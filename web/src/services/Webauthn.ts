@@ -24,7 +24,7 @@ import {
     ServiceResponse,
     WebauthnAssertionPath,
     WebauthnAttestationPath,
-    WebauthnDevicesPath,
+    WebauthnDevicePath,
     WebauthnIdentityFinishPath,
 } from "@services/Api";
 import { SignInResponse } from "@services/SignIn";
@@ -399,12 +399,12 @@ export async function performAssertionCeremony(
 }
 
 export async function deleteDevice(deviceID: string): Promise<number> {
-    let response = await axios.delete(`${WebauthnDevicesPath}/${deviceID}`);
+    let response = await axios.delete(`${WebauthnDevicePath}/${deviceID}`);
     return response.status;
 }
 
 export async function updateDevice(deviceID: string, description: string): Promise<number> {
-    let response = await axios.put<ServiceResponse<WebauthnDeviceUpdateRequest>>(`${WebauthnDevicesPath}/${deviceID}`, {
+    let response = await axios.put<ServiceResponse<WebauthnDeviceUpdateRequest>>(`${WebauthnDevicePath}/${deviceID}`, {
         description: description,
     });
     return response.status;

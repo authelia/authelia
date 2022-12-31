@@ -44,6 +44,8 @@ export default function WebauthnDeviceItem(props: Props) {
 
         const status = await updateDevice(props.device.id, name);
 
+        console.log("Status was: ", status);
+
         setLoadingEdit(false);
 
         if (status !== 200) {
@@ -64,6 +66,8 @@ export default function WebauthnDeviceItem(props: Props) {
         setLoadingDelete(true);
 
         const status = await deleteDevice(props.device.id);
+
+        console.log("Status was: ", status);
 
         setLoadingDelete(false);
 

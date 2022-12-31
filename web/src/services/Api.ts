@@ -18,6 +18,7 @@ export const WebauthnAttestationPath = basePath + "/api/secondfactor/webauthn/at
 export const WebauthnAssertionPath = basePath + "/api/secondfactor/webauthn/assertion";
 
 export const WebauthnDevicesPath = basePath + "/api/secondfactor/webauthn/devices";
+export const WebauthnDevicePath = basePath + "/api/secondfactor/webauthn/device";
 
 export const InitiateDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_devices";
 export const CompleteDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_device";

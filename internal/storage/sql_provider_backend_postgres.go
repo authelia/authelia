@@ -61,6 +61,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 
 	provider.sqlSelectWebauthnDevices = provider.db.Rebind(provider.sqlSelectWebauthnDevices)
 	provider.sqlSelectWebauthnDevicesByUsername = provider.db.Rebind(provider.sqlSelectWebauthnDevicesByUsername)
+	provider.sqlSelectWebauthnDeviceByID = provider.db.Rebind(provider.sqlSelectWebauthnDeviceByID)
 	provider.sqlUpdateWebauthnDeviceDescriptionByUsernameAndID = provider.db.Rebind(provider.sqlUpdateWebauthnDeviceDescriptionByUsernameAndID)
 	provider.sqlUpdateWebauthnDevicePublicKey = provider.db.Rebind(provider.sqlUpdateWebauthnDevicePublicKey)
 	provider.sqlUpdateWebauthnDevicePublicKeyByUsername = provider.db.Rebind(provider.sqlUpdateWebauthnDevicePublicKeyByUsername)
@@ -68,7 +69,6 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlUpdateWebauthnDeviceRecordSignInByUsername = provider.db.Rebind(provider.sqlUpdateWebauthnDeviceRecordSignInByUsername)
 	provider.sqlDeleteWebauthnDevice = provider.db.Rebind(provider.sqlDeleteWebauthnDevice)
 	provider.sqlDeleteWebauthnDeviceByUsername = provider.db.Rebind(provider.sqlDeleteWebauthnDeviceByUsername)
-	provider.sqlDeleteWebauthnDeviceByUsernameAndID = provider.db.Rebind(provider.sqlDeleteWebauthnDeviceByUsernameAndID)
 	provider.sqlDeleteWebauthnDeviceByUsernameAndDescription = provider.db.Rebind(provider.sqlDeleteWebauthnDeviceByUsernameAndDescription)
 
 	provider.sqlSelectDuoDevice = provider.db.Rebind(provider.sqlSelectDuoDevice)
