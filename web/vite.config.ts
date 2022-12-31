@@ -4,6 +4,7 @@ import eslintPlugin from "vite-plugin-eslint";
 import istanbul from "vite-plugin-istanbul";
 import svgr from "vite-plugin-svgr";
 import tsconfigPaths from "vite-tsconfig-paths";
+import { resolve } from "path";
 
 // @ts-ignore
 export default defineConfig(({ mode }) => {
@@ -41,6 +42,10 @@ export default defineConfig(({ mode }) => {
             emptyOutDir: true,
             assetsDir: "static",
             rollupOptions: {
+                input: {
+                    main: resolve(__dirname, "index.html"),
+                    oidc_form_post: resolve(__dirname, "oidc_form_post.html"),
+                },
                 output: {
                     entryFileNames: `static/js/[name].[hash].js`,
                     chunkFileNames: `static/js/[name].[hash].js`,

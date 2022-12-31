@@ -8,9 +8,10 @@ const (
 	assetsRoot    = "public_html"
 	assetsSwagger = assetsRoot + "/api"
 
-	fileOpenAPI   = "openapi.yml"
-	fileIndexHTML = "index.html"
-	fileLogo      = "logo.png"
+	fileOpenAPI         = "openapi.yml"
+	fileIndexHTML       = "index.html"
+	fileLogo            = "logo.png"
+	fileOIDFormPostHTML = "oidc_form_post.html"
 
 	extHTML = ".html"
 	extJSON = ".json"

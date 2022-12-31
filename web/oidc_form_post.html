@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<base href="{{ .BaseURL }}" />
+		<meta property="csp-nonce" content="{{ .CSPNonce }}" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta charset="utf-8" />
+		<title>Redirect to {{ .ClientDescription }} - Authelia</title>
+		<script type="text/javascript" nonce="{{ .CSPNonce }}">
+			window.onload = function() {
+				document.forms[0].submit();
+			};
+		</script>
+		<style nonce="{{ .CSPNonce }}">
+			html, body {
+				height: 100%;
+			}
+
+			body {
+				padding: 0;
+				margin: 0;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				background-color: white;
+			}
+
+			p {
+                position: relative;
+                margin: 30px auto;
+				display: block;
+
+				font-family: Roboto, Helvetica, Arial, sans-serif;
+				font-size: 1rem;
+				line-height: 1.5;
+				letter-spacing: 0.00938em;
+				text-align: center;
+			}
+
+			.client {
+				font-weight: 600;
+			}
+
+			.spinner {
+				position: relative;
+				top: 0;
+				bottom: 0;
+				right: 0;
+				left: 0;
+				margin: auto;
+				text-align: center;
+			}
+
+			.spinner .ball {
+				width: 20px;
+				height: 20px;
+				background-color: #555;
+				border-radius: 50%;
+				display: inline-block;
+				-webkit-animation: motion 3s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+				animation: motion 3s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+			}
+
+			@-webkit-keyframes motion {
+				0% {
+					transform: translateX(0) scale(1);
+				}
+				25% {
+					transform: translateX(-50px) scale(0.3);
+				}
+				50% {
+					transform: translateX(0) scale(1);
+				}
+				75% {
+					transform: translateX(50px) scale(0.3);
+				}
+				100% {
+					transform: translateX(0) scale(1);
+				}
+			}
+
+			@keyframes motion {
+				0% {
+					transform: translateX(0) scale(1);
+				}
+				25% {
+					transform: translateX(-50px) scale(0.3);
+				}
+				50% {
+					transform: translateX(0) scale(1);
+				}
+				75% {
+					transform: translateX(50px) scale(0.3);
+				}
+				100% {
+					transform: translateX(0) scale(1);
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="spinner">
+			<div class="ball"></div>
+			<p>Redirect to <span class="client">{{ .ClientDescription }}</span></p>
+		</div>
+		<form method="post" action="{{ .RedirURL }}">
+			{{ range $key,$value := .Parameters }}
+            {{ range $parameter:= $value}}
+		    <input type="hidden" name="{{ $key }}" value="{{ $parameter }}"/>
+            {{end}}
+			{{ end }}
+		</form>
+	</body>
+</html>

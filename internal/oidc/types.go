@@ -639,3 +639,5 @@ type OpenIDConnectWellKnownConfiguration struct {
 	OpenIDConnectFrontChannelLogoutDiscoveryOptions
 	OpenIDConnectBackChannelLogoutDiscoveryOptions
 }
+
+type ContextKey int

@@ -3,6 +3,7 @@ package server
 import (
 	"net"
 	"os"
+	"path"
 	"strings"
 	"time"
 
@@ -91,11 +92,9 @@ func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 }
 
 func handleRouter(config schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
-	optsTemplatedFile := NewTemplatedFileOptions(&config)
-
-	serveIndexHandler := ServeTemplatedFile(assetsRoot, fileIndexHTML, optsTemplatedFile)
-	serveSwaggerHandler := ServeTemplatedFile(assetsSwagger, fileIndexHTML, optsTemplatedFile)
-	serveSwaggerAPIHandler := ServeTemplatedFile(assetsSwagger, fileOpenAPI, optsTemplatedFile)
+	serveIndexHandler := NewTemplate(&config).Parse(path.Join(assetsRoot, fileIndexHTML)).Handler()
+	serveSwaggerHandler := NewTemplate(&config).Parse(path.Join(assetsSwagger, fileIndexHTML)).Handler()
+	serveSwaggerAPIHandler := NewTemplate(&config).Parse(path.Join(assetsSwagger, fileOpenAPI)).Handler()
 
 	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
 	handlerLocales := newLocalesEmbeddedHandler()
@@ -224,8 +223,14 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	}
 
 	if providers.OpenIDConnect != nil {
+		oidcFormPostTemplate := NewTemplate(&config).Parse(path.Join(assetsRoot, fileOIDFormPostHTML))
+
 		middlewareOIDC := middlewares.NewBridgeBuilder(config, providers).WithPreMiddlewares(
 			middlewares.SecurityHeaders, middlewares.SecurityHeadersCSPNone, middlewares.SecurityHeadersNoStore,
+		).WithWriteFormPostResponseFn(
+			func(templateData map[string]any) func(ctx *middlewares.AutheliaCtx) {
+				return oidcFormPostTemplate.Handler(templateData)
+			},
 		).Build()
 
 		r.GET("/api/oidc/consent", middlewareOIDC(handlers.OpenIDConnectConsentGET))
