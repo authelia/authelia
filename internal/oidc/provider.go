@@ -133,12 +133,12 @@ func (p *OpenIDConnectProvider) WriteAuthorizeError(ctx context.Context, rw http
 }
 
 func (p *OpenIDConnectProvider) writeFormPostResponse(ctx context.Context, requester fosite.AuthorizeRequester, parameters map[string][]string) {
-	ctxValue := ctx.Value(WriteFormPostResponseFnContextKey)
-	if ctxValue == nil {
+	ctxVal := ctx.Value(WriteFormPostResponseFnContextKey)
+	if ctxVal == nil {
 		return
 	}
 
-	writeFn, ok := ctxValue.(func(templateData map[string]any))
+	writeFn, ok := ctxVal.(func(templateData map[string]any))
 	if !ok {
 		return
 	}

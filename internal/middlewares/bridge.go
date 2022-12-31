@@ -9,8 +9,9 @@ import (
 // NewBridgeBuilder creates a new BridgeBuilder.
 func NewBridgeBuilder(config schema.Configuration, providers Providers) *BridgeBuilder {
 	return &BridgeBuilder{
-		config:    config,
-		providers: providers,
+		config:            config,
+		providers:         providers,
+		autheliaCtxValues: make(map[any]func(ctx *AutheliaCtx) any),
 	}
 }
 
@@ -35,9 +36,11 @@ func (b *BridgeBuilder) WithPreMiddlewares(middlewares ...Middleware) *BridgeBui
 	return b
 }
 
-// WithWriteFormPostResponseFn sets the template handler that is used by the oidc provider to redirect the user to the client with the form_post response method.
-func (b *BridgeBuilder) WithWriteFormPostResponseFn(fn func(templateData map[string]any) func(ctx *AutheliaCtx)) *BridgeBuilder {
-	b.writeFormPostResponseFn = fn
+// WithAutheliaCtxValue sets the value associated with key to `AutheliaCtx` which can then be obtained from this context by the key.
+// This makes it easy to pass various values initialized by `AutheliaCtx` to providers.
+// For example, passing `WriteFormPostResponse` func to `OpenIDConnectProvider` to display the authorization page with custom `form_post` response method.
+func (b *BridgeBuilder) WithAutheliaCtxValue(key any, val func(ctx *AutheliaCtx) any) *BridgeBuilder {
+	b.autheliaCtxValues[key] = val
 
 	return b
 }
@@ -59,8 +62,8 @@ func (b *BridgeBuilder) Build() Bridge {
 
 		bridge := func(requestCtx *fasthttp.RequestCtx) {
 			ctx := NewAutheliaCtx(requestCtx, b.config, b.providers)
-			if b.writeFormPostResponseFn != nil {
-				ctx.writeFormPostResponseFn = b.writeFormPostResponseFn
+			for key, val := range b.autheliaCtxValues {
+				ctx = AutheliaCtxWithValue(ctx, key, val(ctx))
 			}
 
 			next(ctx)

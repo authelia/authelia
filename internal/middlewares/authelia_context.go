@@ -14,7 +14,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
-	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -30,27 +29,29 @@ func NewRequestLogger(ctx *AutheliaCtx) *logrus.Entry {
 
 // NewAutheliaCtx instantiate an AutheliaCtx out of a RequestCtx.
 func NewAutheliaCtx(requestCTX *fasthttp.RequestCtx, configuration schema.Configuration, providers Providers) (ctx *AutheliaCtx) {
-	ctx = new(AutheliaCtx)
-	ctx.RequestCtx = requestCTX
-	ctx.Providers = providers
-	ctx.Configuration = configuration
+	ctx = &AutheliaCtx{
+		RequestCtx:    requestCTX,
+		Providers:     providers,
+		Configuration: configuration,
+		Clock:         utils.RealClock{},
+		values:        make(map[any]any),
+	}
 	ctx.Logger = NewRequestLogger(ctx)
-	ctx.Clock = utils.RealClock{}
 
 	return ctx
 }
 
-// Value returns the context value with the given key. If the key is not found, calls on the parent function in `vala/fasthttp` package.
-// Since `AutheliaCtx` is used as the `context.Context` interface inside `oidc/provider` package, this method repeats the behavior of `context.Contex.Value()`
-func (ctx *AutheliaCtx) Value(key any) any {
-	if key, ok := key.(oidc.ContextKey); ok {
-		if key == oidc.WriteFormPostResponseFnContextKey {
-			return func(templateData map[string]any) {
-				ctx.writeFormPostResponseFn(templateData)(ctx)
-			}
-		}
+// WithValue adds a new value associated with key and returns `*AutheliaCtx`.
+func AutheliaCtxWithValue(parent *AutheliaCtx, key, val any) *AutheliaCtx {
+	parent.values[key] = val
+	return parent
+}
 
-		return nil
+// Value returns the value associated with this key, if not found calls, parent function of `vala/fasthttp` package.
+// Since `AutheliaCtx` is used as the `context.Context` interface inside of `oidc/provider` package, this method tries to repeat the behavior of `context.Contex.Value()`.
+func (ctx *AutheliaCtx) Value(key any) any {
+	if val, ok := ctx.values[key]; ok {
+		return val
 	}
 
 	return ctx.RequestCtx.Value(key)

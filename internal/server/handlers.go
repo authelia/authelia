@@ -227,9 +227,11 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 
 		middlewareOIDC := middlewares.NewBridgeBuilder(config, providers).WithPreMiddlewares(
 			middlewares.SecurityHeaders, middlewares.SecurityHeadersCSPNone, middlewares.SecurityHeadersNoStore,
-		).WithWriteFormPostResponseFn(
-			func(templateData map[string]any) func(ctx *middlewares.AutheliaCtx) {
-				return oidcFormPostTemplate.Handler(templateData)
+		).WithAutheliaCtxValue(oidc.WriteFormPostResponseFnContextKey,
+			func(ctx *middlewares.AutheliaCtx) any {
+				return func(tmplData map[string]any) {
+					oidcFormPostTemplate.Handler(tmplData)(ctx)
+				}
 			},
 		).Build()
 
