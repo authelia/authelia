@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 
-import { Stack } from "@mui/material";
+import { Stack, Typography } from "@mui/material";
 
 import { WebauthnDevice } from "@models/Webauthn";
 import { getWebauthnDevices } from "@services/UserWebauthnDevices";
@@ -35,17 +35,21 @@ export default function WebauthnDevicesStack(props: Props) {
     };
 
     return (
-        <Stack spacing={3}>
-            {devices
-                ? devices.map((x, idx) => (
-                      <WebauthnDeviceItem
-                          index={idx}
-                          device={x}
-                          handleDeviceEdit={handleEdit}
-                          handleDeviceDelete={handleDelete}
-                      />
-                  ))
-                : null}
-        </Stack>
+        <Fragment>
+            {devices ? (
+                <Stack spacing={3}>
+                    {devices.map((x, idx) => (
+                        <WebauthnDeviceItem
+                            index={idx}
+                            device={x}
+                            handleDeviceEdit={handleEdit}
+                            handleDeviceDelete={handleDelete}
+                        />
+                    ))}
+                </Stack>
+            ) : (
+                <Typography>No Registered Webauthn Devices</Typography>
+            )}
+        </Fragment>
     );
 }
