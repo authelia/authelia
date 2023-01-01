@@ -9,6 +9,17 @@ import (
 // Templates is the struct which holds all the *template.Template values.
 type Templates struct {
 	notification NotificationTemplates
+	asset        AssetTemplates
+}
+
+type AssetTemplates struct {
+	index *tt.Template
+	api   APIAssetTemplates
+}
+
+type APIAssetTemplates struct {
+	index *tt.Template
+	spec  *tt.Template
 }
 
 // NotificationTemplates are the templates for the notification system.

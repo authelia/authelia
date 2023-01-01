@@ -5,15 +5,14 @@ import (
 )
 
 const (
-	assetsRoot    = "public_html"
-	assetsSwagger = assetsRoot + "/api"
+	assetsRoot = "public_html"
 
-	fileOpenAPI   = "openapi.yml"
-	fileIndexHTML = "index.html"
-	fileLogo      = "logo.png"
+	fileOpenAPI = "openapi.yml"
+	fileLogo    = "logo.png"
 
 	extHTML = ".html"
 	extJSON = ".json"
+	extYML  = ".yml"
 )
 
 var (
@@ -52,8 +51,8 @@ var (
 const (
 	environment = "ENVIRONMENT"
 	dev         = "dev"
-	f           = "false"
-	t           = "true"
+	strFalse    = "false"
+	strTrue     = "true"
 	localhost   = "localhost"
 	schemeHTTP  = "http"
 	schemeHTTPS = "https"
@@ -76,7 +75,8 @@ X_AUTHELIA_HEALTHCHECK_PATH=%s
 `
 
 const (
-	tmplCSPSwagger = "default-src 'self'; img-src 'self' https://validator.swagger.io data:; object-src 'none'; script-src 'self' 'unsafe-inline' 'nonce-%s'; style-src 'self' 'nonce-%s'; base-uri 'self'"
+	tmplCSPSwagger     = "default-src 'self'; img-src 'self' https://validator.swagger.io data:; object-src 'none'; script-src 'self' 'unsafe-inline' 'nonce-%s'; style-src 'self' 'nonce-%s'; base-uri 'self'"
+	tmplCSPSwaggerSpec = "default-src 'self'; img-src 'self' https://validator.swagger.io data:; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self'; base-uri 'self'"
 )
 
 const (
