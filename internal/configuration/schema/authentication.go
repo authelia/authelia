@@ -115,7 +115,7 @@ type LDAPAuthenticationBackend struct {
 	DisplayNameAttribute string `koanf:"display_name_attribute"`
 
 	UserAuthenticationMethod string `koanf:"user_authentication_method"`
-	NTHashAttribute          string `koanf:"nt_hash_attribute"`
+	NTHashAttribute          string `koanf:"nthash_attribute"`
 
 	PermitReferrals               bool `koanf:"permit_referrals"`
 	PermitUnauthenticatedBind     bool `koanf:"permit_unauthenticated_bind"`

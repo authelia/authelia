@@ -202,6 +202,22 @@ for more information.*
 The LDAP attribute that maps to the username in *Authelia*. This must contain the `{username_attribute}`
 [placeholder](../../reference/guides/ldap.md#users-filter-replacements).
 
+### user_authentication_method
+
+{{< confkey type="string" default="bind" required="no" >}}
+
+Configures the authentication method in the LDAP backend.
+
+Can take the following values:
+1. `bind` uses ldap binding as user authentication method.
+1. `nthash` uses ldap **NT Hash** attribute for mathching password. Every user must have this attribute, and the ldap user must have rights to read it.
+
+### nthash_attribute
+
+{{< confkey type="string" required="situational" >}}
+
+This attribute is required if [user_authentication_method](#user_authentication_method) is set to `nthash`.
+
 ### mail_attribute
 
 {{< confkey type="string" required="situational" >}}

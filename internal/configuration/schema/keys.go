@@ -103,7 +103,7 @@ var Keys = []string{
 	"authentication_backend.ldap.permit_feature_detection_failure",
 	"authentication_backend.ldap.user",
 	"authentication_backend.ldap.password",
-	"authentication_backend.ldap.nt_hash_attribute",
+	"authentication_backend.ldap.nthash_attribute",
 	"authentication_backend.ldap.user_authentication_method",
 	"session.name",
 	"session.domain",
