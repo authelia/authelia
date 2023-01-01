@@ -202,6 +202,26 @@ for more information.*
 The LDAP attribute that maps to the username in *Authelia*. This must contain the `{username_attribute}`
 [placeholder](../../reference/guides/ldap.md#users-filter-replacements).
 
+### authentication_method
+
+{{< confkey type="string" default="bind" required="no" >}}
+
+Configures user authentication method used on the login page.
+
+Can take the following values:
+1. `bind` uses ldap binding as user authentication method.
+1. `nt_password` uses ldap **NT Hash** from [nt_password_attribute](#nt_password_attribute) for mathching user password. Every user must have this attribute, and the ldap bind [user](#user) must have rights to read this attribute.
+
+*__Note:__ If you are using FreeAPI as your ldap backend and two-factor authentication is enabled **in** FreeAPI, the users will not be able to authenticate using login and password on the Authelia login page when `authentication_method` is set to `bind`.*
+
+### nt_password_attribute
+
+{{< confkey type="string" required="situational" >}}
+
+This attribute is required if [authentication_method](#authentication_method) is set to `nt_password`.
+
+The attribute has a default value of `ipaNTHash` when [implementation](#implementation) is set to `freeipa`.
+
 ### mail_attribute
 
 {{< confkey type="string" required="situational" >}}

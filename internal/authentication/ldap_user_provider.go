@@ -1,8 +1,10 @@
 package authentication
 
 import (
+	"bytes"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"fmt"
 	"net"
 	"strconv"
@@ -107,11 +109,19 @@ func (p *LDAPUserProvider) CheckUserPassword(username string, password string) (
 		return false, err
 	}
 
-	if clientUser, err = p.connectCustom(p.config.URL, profile.DN, password, p.config.StartTLS, p.dialOpts...); err != nil {
-		return false, fmt.Errorf("authentication failed. Cause: %w", err)
-	}
+	switch p.config.AuthenticationMethod {
+	case schema.LDAPAuthenticationMethodNTPassword:
+		if !bytes.Equal(profile.NTHash, NTHash(password)) {
+			return false, fmt.Errorf("authentication failed. Cause: password mismatch")
+		}
 
-	defer clientUser.Close()
+	case schema.LDAPAuthenticationMethodBind:
+		if clientUser, err = p.connectCustom(p.config.URL, profile.DN, password, p.config.StartTLS, p.dialOpts...); err != nil {
+			return false, fmt.Errorf("authentication failed. Cause: %w", err)
+		}
+
+		defer clientUser.Close()
+	}
 
 	return true, nil
 }
@@ -217,6 +227,11 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 		// https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/6e803168-f140-4d23-b2d3-c3a8ab5917d2
 		pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", password))
 		modifyRequest.Replace(ldapAttributeUnicodePwd, []string{pwdEncoded})
+
+		err = p.modify(client, modifyRequest)
+	case p.config.AuthenticationMethod == schema.LDAPAuthenticationMethodNTPassword:
+		modifyRequest := ldap.NewModifyRequest(profile.DN, controls)
+		modifyRequest.Replace(p.config.NTPasswordAttribute, []string{base64.StdEncoding.EncodeToString(NTHash(password))})
 
 		err = p.modify(client, modifyRequest)
 	default:
@@ -362,41 +377,39 @@ func (p *LDAPUserProvider) getUserProfile(client LDAPClient, username string) (p
 	}
 
 	for _, attr := range result.Entries[0].Attributes {
-		attrs := len(attr.Values)
+		numberOfVals := len(attr.Values)
 
-		if attr.Name == p.config.UsernameAttribute {
-			switch attrs {
-			case 1:
-				userProfile.Username = attr.Values[0]
-			case 0:
-				return nil, fmt.Errorf("user '%s' must have value for attribute '%s'",
-					username, p.config.UsernameAttribute)
-			default:
-				return nil, fmt.Errorf("user '%s' has %d values for for attribute '%s' but the attribute must be a single value attribute",
-					username, attrs, p.config.UsernameAttribute)
-			}
-		}
-
-		if attrs == 0 {
+		if numberOfVals == 0 {
 			continue
 		}
 
-		if attr.Name == p.config.MailAttribute {
-			userProfile.Emails = attr.Values
-		}
+		switch attr.Name {
+		case p.config.UsernameAttribute:
+			if len(attr.Values) > 1 {
+				return nil, fmt.Errorf("user '%s' has %d values for for attribute '%s' but the attribute must be a single value attribute",
+					username, numberOfVals, p.config.UsernameAttribute)
+			}
 
-		if attr.Name == p.config.DisplayNameAttribute {
+			userProfile.Username = attr.Values[0]
+
+		case p.config.NTPasswordAttribute:
+			if len(attr.ByteValues) > 1 {
+				return nil, fmt.Errorf("user '%s' has %d values for for attribute '%s' but the attribute must be a single value attribute",
+					username, numberOfVals, p.config.NTPasswordAttribute)
+			}
+
+			userProfile.NTHash = attr.ByteValues[0]
+
+		case p.config.MailAttribute:
+			userProfile.Emails = attr.Values
+
+		case p.config.DisplayNameAttribute:
 			userProfile.DisplayName = attr.Values[0]
 		}
 	}
 
-	if userProfile.Username == "" {
-		return nil, fmt.Errorf("user '%s' must have value for attribute '%s'",
-			username, p.config.UsernameAttribute)
-	}
-
-	if userProfile.DN == "" {
-		return nil, fmt.Errorf("user '%s' must have a distinguished name but the result returned an empty distinguished name", username)
+	if err := userProfile.validateRequiredAttrs(&p.config, username); err != nil {
+		return nil, err
 	}
 
 	return &userProfile, nil
