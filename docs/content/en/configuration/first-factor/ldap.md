@@ -212,7 +212,7 @@ Can take the following values:
 1. `bind` uses ldap binding as user authentication method.
 1. `nt_password` uses ldap **NT Hash** from [nt_password_attribute](#nt_password_attribute) for mathching user password. Every user must have this attribute, and the ldap bind [user](#user) must have rights to read this attribute.
 
-*__Note:__ If you are using FreeAPI as your ldap backend and two-factor authentication is enabled **in** FreeAPI, the users will not be able to authenticate using the `bind` method.*
+*__Note:__ If you are using FreeAPI as your ldap backend and two-factor authentication is enabled **in** FreeAPI, the users will not be able to authenticate using login and password on the Authelia login page when `authentication_backend` is set to `bind`.*
 
 ### nt_password_attribute
 
