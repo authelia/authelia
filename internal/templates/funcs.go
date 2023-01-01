@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"hash"
 	"os"
+	"path"
+	"path/filepath"
 	"reflect"
 	"sort"
 	"strconv"
@@ -49,7 +51,86 @@ func FuncMap() map[string]any {
 		"b64dec":     FuncB64Dec,
 		"b32enc":     FuncB32Enc,
 		"b32dec":     FuncB32Dec,
+		"list":       FuncList,
+		"dict":       FuncDict,
+		"get":        FuncGet,
+		"set":        FuncSet,
+		"isAbs":      path.IsAbs,
+		"base":       path.Base,
+		"dir":        path.Dir,
+		"ext":        path.Ext,
+		"clean":      path.Clean,
+		"osBase":     filepath.Base,
+		"osClean":    filepath.Clean,
+		"osDir":      filepath.Dir,
+		"osExt":      filepath.Ext,
+		"osIsAbs":    filepath.IsAbs,
+		"deepEqual":  reflect.DeepEqual,
+		"typeOf":     FuncTypeOf,
+		"typeIs":     FuncTypeIs,
+		"typeIsLike": FuncTypeIsLike,
+		"kindOf":     FuncKindOf,
+		"kindIs":     FuncKindIs,
 	}
+}
+
+func FuncTypeIs(is string, v any) bool {
+	return is == FuncTypeOf(v)
+}
+
+func FuncTypeIsLike(is string, v any) bool {
+	t := FuncTypeOf(v)
+
+	return is == t || "*"+is == t
+}
+
+func FuncTypeOf(v any) string {
+	return reflect.ValueOf(v).Type().String()
+}
+
+func FuncKindIs(is string, v any) bool {
+	return is == FuncKindOf(v)
+}
+
+func FuncKindOf(v any) string {
+	return reflect.ValueOf(v).Kind().String()
+}
+
+func FuncList(items ...any) []any {
+	return items
+}
+
+func FuncDict(pairs ...any) map[string]any {
+	m := map[string]any{}
+	p := len(pairs)
+
+	for i := 0; i < p; i += 2 {
+		key := strval(pairs[i])
+
+		if i+1 >= p {
+			m[key] = ""
+
+			continue
+		}
+
+		m[key] = pairs[i+1]
+	}
+
+	return m
+}
+
+func FuncGet(m map[string]any, key string) any {
+	if val, ok := m[key]; ok {
+		return val
+	}
+
+	return ""
+}
+
+func FuncSet(m map[string]any, key string, value any) map[string]any {
+	m[key] = value
+
+	return m
 }
 
 // FuncB64Enc is a helper function that provides similar functionality to the helm b64enc func.

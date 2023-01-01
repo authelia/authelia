@@ -117,14 +117,10 @@ func ETagOpenAPISpec(next middlewares.RequestHandler) middlewares.RequestHandler
 		mu.Unlock()
 
 		if ok {
-			ctx.Logger.Debugf("Found etag")
-
 			ctx.Response.Header.SetBytesKV(headerETag, etag)
 			ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlETaggedAssets)
 
 			if bytes.Equal(etag, ctx.Request.Header.PeekBytes(headerIfNoneMatch)) {
-				ctx.Logger.Debugf("Etag matches")
-
 				ctx.SetStatusCode(fasthttp.StatusNotModified)
 
 				return
@@ -134,8 +130,6 @@ func ETagOpenAPISpec(next middlewares.RequestHandler) middlewares.RequestHandler
 		next(ctx)
 
 		if !ok {
-			ctx.Logger.Debugf("Generate etag")
-
 			h.Write(ctx.Response.Body())
 			sum := h.Sum(nil)
 			h.Reset()
@@ -143,8 +137,6 @@ func ETagOpenAPISpec(next middlewares.RequestHandler) middlewares.RequestHandler
 			etag = make([]byte, hex.EncodedLen(len(sum)))
 
 			hex.Encode(etag, sum)
-
-			ctx.Logger.Debugf("Generated etag is %s %d %d %x", etag, len(etag), len(sum), sum)
 
 			mu.Lock()
 
@@ -199,11 +191,11 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		AssetPath:              config.Server.AssetPath,
 		DuoSelfEnrollment:      strFalse,
 		RememberMe:             strconv.FormatBool(config.Session.RememberMeDuration != schema.RememberMeDisabled),
-		ResetPasswordStr:       strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable),
+		ResetPassword:          strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable),
 		ResetPasswordCustomURL: config.AuthenticationBackend.PasswordReset.CustomURL.String(),
 		Theme:                  config.Theme,
 
-		EndpointsResetPassword: !(config.AuthenticationBackend.PasswordReset.Disable || config.AuthenticationBackend.PasswordReset.CustomURL.String() != ""),
+		EndpointsPasswordReset: !(config.AuthenticationBackend.PasswordReset.Disable || config.AuthenticationBackend.PasswordReset.CustomURL.String() != ""),
 		EndpointsWebauthn:      !config.Webauthn.Disable,
 		EndpointsTOTP:          !config.TOTP.Disable,
 		EndpointsDuo:           !config.DuoAPI.Disable,
@@ -222,12 +214,12 @@ type TemplatedFileOptions struct {
 	AssetPath              string
 	DuoSelfEnrollment      string
 	RememberMe             string
-	ResetPasswordStr       string
+	ResetPassword          string
 	ResetPasswordCustomURL string
 	Session                string
 	Theme                  string
 
-	EndpointsResetPassword bool
+	EndpointsPasswordReset bool
 	EndpointsWebauthn      bool
 	EndpointsTOTP          bool
 	EndpointsDuo           bool
@@ -243,7 +235,7 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, nonce, logoOverri
 		LogoOverride:           logoOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
 		RememberMe:             options.RememberMe,
-		ResetPassword:          options.ResetPasswordStr,
+		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
 		Session:                options.Session,
 		Theme:                  options.Theme,
@@ -258,7 +250,7 @@ func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, nonce string) Te
 		CSPNonce: nonce,
 
 		Session:       options.Session,
-		ResetPassword: options.EndpointsResetPassword,
+		PasswordReset: options.EndpointsPasswordReset,
 		Webauthn:      options.EndpointsWebauthn,
 		TOTP:          options.EndpointsTOTP,
 		Duo:           options.EndpointsDuo,
@@ -286,7 +278,7 @@ type TemplatedFileOpenAPIData struct {
 	BaseURL       string
 	CSPNonce      string
 	Session       string
-	ResetPassword bool
+	PasswordReset bool
 	Webauthn      bool
 	TOTP          bool
 	Duo           bool
