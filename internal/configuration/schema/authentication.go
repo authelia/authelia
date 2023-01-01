@@ -114,8 +114,8 @@ type LDAPAuthenticationBackend struct {
 	MailAttribute        string `koanf:"mail_attribute"`
 	DisplayNameAttribute string `koanf:"display_name_attribute"`
 
-	UserAuthenticationMethod string `koanf:"user_authentication_method"`
-	NTHashAttribute          string `koanf:"nthash_attribute"`
+	AuthenticationMethod string `koanf:"authentication_method"`
+	NTPasswordAttribute  string `koanf:"nt_password_attribute"`
 
 	PermitReferrals               bool `koanf:"permit_referrals"`
 	PermitUnauthenticatedBind     bool `koanf:"permit_unauthenticated_bind"`
@@ -208,7 +208,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA = LDAPAut
 	AdditionalGroupsDN:   "cn=groups,cn=accounts",
 	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))",
 	UsernameAttribute:    ldapAttrUserID,
-	NTHashAttribute:      "ipaNTHash",
+	NTPasswordAttribute:  "ipaNTHash",
 	MailAttribute:        ldapAttrMail,
 	DisplayNameAttribute: ldapAttrDisplayName,
 	GroupsFilter:         "(&(member={dn})(objectClass=groupOfNames))",

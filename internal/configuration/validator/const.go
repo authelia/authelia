@@ -112,7 +112,7 @@ const (
 	errFmtLDAPAuthBackendFilterMissingPlaceholder = "authentication_backend: ldap: option " +
 		"'%s' must contain the placeholder '{%s}' but it is required"
 
-	errFmtLDAPAuthBackendUserAuthenticationMethod = "authentication_backend: ldap: option 'user_authentication_method' " +
+	errFmtLDAPAuthBackendAuthenticationMethod = "authentication_backend: ldap: option 'authentication_method' " +
 		errSuffixMustBeOneOf
 )
 
@@ -326,8 +326,8 @@ const (
 )
 
 var (
-	validLDAPImplementations           = []string{schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory, schema.LDAPImplementationFreeIPA, schema.LDAPImplementationLLDAP}
-	validLDAPUserAuthenticationMethods = []string{schema.LDAPUserAuthenticationMethodBind, schema.LDAPUserAuthenticationMethodNTHash}
+	validLDAPImplementations       = []string{schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory, schema.LDAPImplementationFreeIPA, schema.LDAPImplementationLLDAP}
+	validLDAPAuthenticationMethods = []string{schema.LDAPAuthenticationMethodBind, schema.LDAPAuthenticationMethodNTPassword}
 )
 
 var (

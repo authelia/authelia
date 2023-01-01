@@ -6,10 +6,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-func (profile *ldapUserProfile) checkRequired(config *schema.LDAPAuthenticationBackend, username string) error {
-	if profile.NTHash == nil && config.UserAuthenticationMethod == schema.LDAPUserAuthenticationMethodNTHash {
+func (profile *ldapUserProfile) validateRequiredAttrs(config *schema.LDAPAuthenticationBackend, username string) error {
+	if profile.NTHash == nil && config.AuthenticationMethod == schema.LDAPAuthenticationMethodNTPassword {
 		return fmt.Errorf("user '%s' must have the attribute '%s'",
-			username, config.NTHashAttribute)
+			username, config.NTPasswordAttribute)
 	}
 
 	if profile.Username == "" {

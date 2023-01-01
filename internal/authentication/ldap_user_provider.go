@@ -109,13 +109,13 @@ func (p *LDAPUserProvider) CheckUserPassword(username string, password string) (
 		return false, err
 	}
 
-	switch p.config.UserAuthenticationMethod {
-	case schema.LDAPUserAuthenticationMethodNTHash:
+	switch p.config.AuthenticationMethod {
+	case schema.LDAPAuthenticationMethodNTPassword:
 		if !bytes.Equal(profile.NTHash, NTHash(password)) {
 			return false, fmt.Errorf("authentication failed. Cause: password mismatch")
 		}
 
-	case schema.LDAPUserAuthenticationMethodBind:
+	case schema.LDAPAuthenticationMethodBind:
 		if clientUser, err = p.connectCustom(p.config.URL, profile.DN, password, p.config.StartTLS, p.dialOpts...); err != nil {
 			return false, fmt.Errorf("authentication failed. Cause: %w", err)
 		}
@@ -229,9 +229,9 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 		modifyRequest.Replace(ldapAttributeUnicodePwd, []string{pwdEncoded})
 
 		err = p.modify(client, modifyRequest)
-	case p.config.UserAuthenticationMethod == schema.LDAPUserAuthenticationMethodNTHash:
+	case p.config.AuthenticationMethod == schema.LDAPAuthenticationMethodNTPassword:
 		modifyRequest := ldap.NewModifyRequest(profile.DN, controls)
-		modifyRequest.Replace(p.config.NTHashAttribute, []string{base64.StdEncoding.EncodeToString(NTHash(password))})
+		modifyRequest.Replace(p.config.NTPasswordAttribute, []string{base64.StdEncoding.EncodeToString(NTHash(password))})
 
 		err = p.modify(client, modifyRequest)
 	default:
@@ -392,10 +392,10 @@ func (p *LDAPUserProvider) getUserProfile(client LDAPClient, username string) (p
 
 			userProfile.Username = attr.Values[0]
 
-		case p.config.NTHashAttribute:
+		case p.config.NTPasswordAttribute:
 			if len(attr.ByteValues) > 1 {
 				return nil, fmt.Errorf("user '%s' has %d values for for attribute '%s' but the attribute must be a single value attribute",
-					username, numberOfVals, p.config.NTHashAttribute)
+					username, numberOfVals, p.config.NTPasswordAttribute)
 			}
 
 			userProfile.NTHash = attr.ByteValues[0]
@@ -408,7 +408,7 @@ func (p *LDAPUserProvider) getUserProfile(client LDAPClient, username string) (p
 		}
 	}
 
-	if err := userProfile.checkRequired(&p.config, username); err != nil {
+	if err := userProfile.validateRequiredAttrs(&p.config, username); err != nil {
 		return nil, err
 	}
 

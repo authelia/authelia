@@ -76,8 +76,8 @@ const (
 )
 
 const (
-	LDAPUserAuthenticationMethodBind   = "bind"
-	LDAPUserAuthenticationMethodNTHash = "nthash"
+	LDAPAuthenticationMethodBind       = "bind"
+	LDAPAuthenticationMethodNTPassword = "nt_password"
 )
 
 // TOTP Algorithm.

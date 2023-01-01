@@ -100,8 +100,8 @@ func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {
 		p.usersAttributes = append(p.usersAttributes, p.config.UsernameAttribute)
 	}
 
-	if !utils.IsStringInSlice(p.config.NTHashAttribute, p.usersAttributes) && p.config.UserAuthenticationMethod == schema.LDAPUserAuthenticationMethodNTHash {
-		p.usersAttributes = append(p.usersAttributes, p.config.NTHashAttribute)
+	if !utils.IsStringInSlice(p.config.NTPasswordAttribute, p.usersAttributes) && p.config.AuthenticationMethod == schema.LDAPAuthenticationMethodNTPassword {
+		p.usersAttributes = append(p.usersAttributes, p.config.NTPasswordAttribute)
 	}
 
 	if !utils.IsStringInSlice(p.config.MailAttribute, p.usersAttributes) {

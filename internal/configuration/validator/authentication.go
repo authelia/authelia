@@ -379,24 +379,24 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterReplacedPlaceholders, "groups_filter", "{1}", "{username}"))
 	}
 
-	validateLDAPAuthenticationBackendUserAuthenticationMethod(config.LDAP, validator)
+	validateLDAPAuthenticationBackendAuthenticationMethod(config.LDAP, validator)
 
 	validateLDAPRequiredParameters(config, validator)
 }
 
-func validateLDAPAuthenticationBackendUserAuthenticationMethod(config *schema.LDAPAuthenticationBackend, validator *schema.StructValidator) {
-	if config.UserAuthenticationMethod == "" {
-		config.UserAuthenticationMethod = schema.LDAPUserAuthenticationMethodBind
+func validateLDAPAuthenticationBackendAuthenticationMethod(config *schema.LDAPAuthenticationBackend, validator *schema.StructValidator) {
+	if config.AuthenticationMethod == "" {
+		config.AuthenticationMethod = schema.LDAPAuthenticationMethodBind
 	}
 
-	switch config.UserAuthenticationMethod {
-	case schema.LDAPUserAuthenticationMethodBind:
-	case schema.LDAPUserAuthenticationMethodNTHash:
-		if config.NTHashAttribute == "" {
+	switch config.AuthenticationMethod {
+	case schema.LDAPAuthenticationMethodBind:
+	case schema.LDAPAuthenticationMethodNTPassword:
+		if config.NTPasswordAttribute == "" {
 			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "nt_hash_attribute"))
 		}
 	default:
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendUserAuthenticationMethod, config.UserAuthenticationMethod, strings.Join(validLDAPUserAuthenticationMethods, "', '")))
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendAuthenticationMethod, config.AuthenticationMethod, strings.Join(validLDAPAuthenticationMethods, "', '")))
 	}
 }
 
@@ -437,12 +437,12 @@ func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *
 		config.GroupNameAttribute = implementation.GroupNameAttribute
 	}
 
-	if ldapImplementationShouldSetStr(config.NTHashAttribute, implementation.NTHashAttribute) {
-		config.NTHashAttribute = implementation.NTHashAttribute
+	if ldapImplementationShouldSetStr(config.NTPasswordAttribute, implementation.NTPasswordAttribute) {
+		config.NTPasswordAttribute = implementation.NTPasswordAttribute
 	}
 
-	if ldapImplementationShouldSetStr(config.UserAuthenticationMethod, implementation.UserAuthenticationMethod) {
-		config.UserAuthenticationMethod = implementation.UserAuthenticationMethod
+	if ldapImplementationShouldSetStr(config.AuthenticationMethod, implementation.AuthenticationMethod) {
+		config.AuthenticationMethod = implementation.AuthenticationMethod
 	}
 }
 
