@@ -111,6 +111,9 @@ const (
 		"'%s' must contain enclosing parenthesis: '%s' should probably be '(%s)'"
 	errFmtLDAPAuthBackendFilterMissingPlaceholder = "authentication_backend: ldap: option " +
 		"'%s' must contain the placeholder '{%s}' but it is required"
+
+	errFmtLDAPAuthBackendUserAuthenticationMethod = "authentication_backend: ldap: option 'user_authentication_method' " +
+		errSuffixMustBeOneOf
 )
 
 // TOTP Error constants.
@@ -323,7 +326,8 @@ const (
 )
 
 var (
-	validLDAPImplementations = []string{schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory, schema.LDAPImplementationFreeIPA, schema.LDAPImplementationLLDAP}
+	validLDAPImplementations           = []string{schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory, schema.LDAPImplementationFreeIPA, schema.LDAPImplementationLLDAP}
+	validLDAPUserAuthenticationMethods = []string{schema.LDAPUserAuthenticationMethodBind, schema.LDAPUserAuthenticationMethodNTHash}
 )
 
 var (

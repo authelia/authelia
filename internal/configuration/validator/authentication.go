@@ -379,7 +379,25 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterReplacedPlaceholders, "groups_filter", "{1}", "{username}"))
 	}
 
+	validateLDAPAuthenticationBackendUserAuthenticationMethod(config.LDAP, validator)
+
 	validateLDAPRequiredParameters(config, validator)
+}
+
+func validateLDAPAuthenticationBackendUserAuthenticationMethod(config *schema.LDAPAuthenticationBackend, validator *schema.StructValidator) {
+	if config.UserAuthenticationMethod == "" {
+		config.UserAuthenticationMethod = schema.LDAPUserAuthenticationMethodBind
+	}
+
+	switch config.UserAuthenticationMethod {
+	case schema.LDAPUserAuthenticationMethodBind:
+	case schema.LDAPUserAuthenticationMethodNTHash:
+		if config.NTHashAttribute == "" {
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "nt_hash_attribute"))
+		}
+	default:
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendUserAuthenticationMethod, config.UserAuthenticationMethod, strings.Join(validLDAPUserAuthenticationMethods, "', '")))
+	}
 }
 
 func ldapImplementationShouldSetStr(config, implementation string) bool {
@@ -417,6 +435,14 @@ func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *
 
 	if ldapImplementationShouldSetStr(config.GroupNameAttribute, implementation.GroupNameAttribute) {
 		config.GroupNameAttribute = implementation.GroupNameAttribute
+	}
+
+	if ldapImplementationShouldSetStr(config.NTHashAttribute, implementation.NTHashAttribute) {
+		config.NTHashAttribute = implementation.NTHashAttribute
+	}
+
+	if ldapImplementationShouldSetStr(config.UserAuthenticationMethod, implementation.UserAuthenticationMethod) {
+		config.UserAuthenticationMethod = implementation.UserAuthenticationMethod
 	}
 }
 

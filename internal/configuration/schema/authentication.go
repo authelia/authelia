@@ -114,6 +114,9 @@ type LDAPAuthenticationBackend struct {
 	MailAttribute        string `koanf:"mail_attribute"`
 	DisplayNameAttribute string `koanf:"display_name_attribute"`
 
+	UserAuthenticationMethod string `koanf:"user_authentication_method"`
+	NTHashAttribute          string `koanf:"nt_hash_attribute"`
+
 	PermitReferrals               bool `koanf:"permit_referrals"`
 	PermitUnauthenticatedBind     bool `koanf:"permit_unauthenticated_bind"`
 	PermitFeatureDetectionFailure bool `koanf:"permit_feature_detection_failure"`
@@ -201,8 +204,11 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory =
 
 // DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA represents the default LDAP config for the LDAPImplementationFreeIPA Implementation.
 var DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA = LDAPAuthenticationBackend{
+	AdditionalUsersDN:    "cn=users,cn=accounts",
+	AdditionalGroupsDN:   "cn=groups,cn=accounts",
 	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))",
 	UsernameAttribute:    ldapAttrUserID,
+	NTHashAttribute:      "ipaNTHash",
 	MailAttribute:        ldapAttrMail,
 	DisplayNameAttribute: ldapAttrDisplayName,
 	GroupsFilter:         "(&(member={dn})(objectClass=groupOfNames))",

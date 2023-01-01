@@ -60,6 +60,7 @@ type ldapUserProfile struct {
 	Emails      []string
 	DisplayName string
 	Username    string
+	NTHash      []byte
 }
 
 // LDAPSupportedFeatures represents features which a server may support which are implemented in code.

@@ -75,6 +75,11 @@ const (
 	LDAPImplementationGLAuth = "glauth"
 )
 
+const (
+	LDAPUserAuthenticationMethodBind   = "bind"
+	LDAPUserAuthenticationMethodNTHash = "nthash"
+)
+
 // TOTP Algorithm.
 const (
 	TOTPAlgorithmSHA1   = "SHA1"
