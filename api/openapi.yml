@@ -1,4 +1,3 @@
-# yamllint disable rule:line-length
 ---
 openapi: 3.0.3
 info:
