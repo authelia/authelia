@@ -66,6 +66,7 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 	}
 }
 
+// ServeTemplatedOpenAPI serves templated OpenAPI related files.
 func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) middlewares.RequestHandler {
 	ext := filepath.Ext(t.Name())
 
@@ -101,7 +102,8 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 	}
 }
 
-func ETagOpenAPISpec(next middlewares.RequestHandler) middlewares.RequestHandler {
+// ETagRootURL dynamically matches the If-None-Match header and adds the ETag header,
+func ETagRootURL(next middlewares.RequestHandler) middlewares.RequestHandler {
 	etags := map[string][]byte{}
 
 	h := sha1.New() //nolint:gosec // Usage is for collision avoidance not security.
@@ -116,37 +118,33 @@ func ETagOpenAPISpec(next middlewares.RequestHandler) middlewares.RequestHandler
 
 		mu.Unlock()
 
-		if ok {
+		if ok && bytes.Equal(etag, ctx.Request.Header.PeekBytes(headerIfNoneMatch)) {
 			ctx.Response.Header.SetBytesKV(headerETag, etag)
 			ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlETaggedAssets)
 
-			if bytes.Equal(etag, ctx.Request.Header.PeekBytes(headerIfNoneMatch)) {
-				ctx.SetStatusCode(fasthttp.StatusNotModified)
+			ctx.SetStatusCode(fasthttp.StatusNotModified)
 
-				return
-			}
+			return
 		}
 
 		next(ctx)
 
-		if !ok {
-			h.Write(ctx.Response.Body())
-			sum := h.Sum(nil)
-			h.Reset()
+		mu.Lock()
 
-			etag = make([]byte, hex.EncodedLen(len(sum)))
+		h.Write(ctx.Response.Body())
+		sum := h.Sum(nil)
+		h.Reset()
+		etagNew := make([]byte, hex.EncodedLen(len(sum)))
+		hex.Encode(etagNew, sum)
 
-			hex.Encode(etag, sum)
-
-			mu.Lock()
-
-			etags[k] = etag
-
-			mu.Unlock()
-
-			ctx.Response.Header.SetBytesKV(headerETag, etag)
-			ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlETaggedAssets)
+		if !ok || !bytes.Equal(etag, etagNew) {
+			etags[k] = etagNew
 		}
+
+		mu.Unlock()
+		
+		ctx.Response.Header.SetBytesKV(headerETag, etagNew)
+		ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlETaggedAssets)
 	}
 }
 

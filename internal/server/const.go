@@ -7,8 +7,7 @@ import (
 const (
 	assetsRoot = "public_html"
 
-	fileOpenAPI = "openapi.yml"
-	fileLogo    = "logo.png"
+	fileLogo = "logo.png"
 
 	extHTML = ".html"
 	extJSON = ".json"
