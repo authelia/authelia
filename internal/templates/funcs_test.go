@@ -469,3 +469,97 @@ func TestFuncStringSQuote(t *testing.T) {
 		})
 	}
 }
+
+func TestFuncTypeOf(t *testing.T) {
+	astring := "typeOfExample"
+	anint := 5
+	astringslice := []string{astring}
+	anintslice := []int{anint}
+
+	testCases := []struct {
+		name         string
+		have         any
+		expected     string
+		expectedKind string
+	}{
+		{"String", astring, "string", "string"},
+		{"StringPtr", &astring, "*string", "ptr"},
+		{"StringSlice", astringslice, "[]string", "slice"},
+		{"StringSlicePtr", &astringslice, "*[]string", "ptr"},
+		{"Integer", anint, "int", "int"},
+		{"IntegerPtr", &anint, "*int", "ptr"},
+		{"IntegerSlice", anintslice, "[]int", "slice"},
+		{"IntegerSlicePtr", &anintslice, "*[]int", "ptr"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncTypeOf(tc.have))
+			assert.Equal(t, tc.expectedKind, FuncKindOf(tc.have))
+		})
+	}
+}
+
+func TestFuncTypeIs(t *testing.T) {
+	astring := "typeIsExample"
+	anint := 10
+	astringslice := []string{astring}
+	anintslice := []int{anint}
+
+	testCases := []struct {
+		name         string
+		is           string
+		have         any
+		expected     bool
+		expectedLike bool
+		expectedKind bool
+	}{
+		{"ShouldMatchStringAsString", "string", astring, true, true, true},
+		{"ShouldMatchStringPtrAsString", "string", &astring, false, true, false},
+		{"ShouldNotMatchStringAsInt", "int", astring, false, false, false},
+		{"ShouldNotMatchStringSliceAsStringSlice", "[]string", astringslice, true, true, false},
+		{"ShouldNotMatchStringSlicePtrAsStringSlice", "[]string", &astringslice, false, true, false},
+		{"ShouldNotMatchStringSlicePtrAsStringSlicePtr", "*[]string", &astringslice, true, true, false},
+		{"ShouldNotMatchStringSliceAsString", "string", astringslice, false, false, false},
+		{"ShouldMatchIntAsInt", "int", anint, true, true, true},
+		{"ShouldMatchIntPtrAsInt", "int", &anint, false, true, false},
+		{"ShouldNotMatchIntAsString", "string", anint, false, false, false},
+		{"ShouldMatchIntegerSliceAsIntSlice", "[]int", anintslice, true, true, false},
+		{"ShouldMatchIntegerSlicePtrAsIntSlice", "[]int", &anintslice, false, true, false},
+		{"ShouldMatchIntegerSlicePtrAsIntSlicePtr", "*[]int", &anintslice, true, true, false},
+		{"ShouldNotMatchIntegerSliceAsInt", "int", anintslice, false, false, false},
+		{"ShouldMatchKindSlice", "slice", anintslice, false, false, true},
+		{"ShouldMatchKindPtr", "ptr", &anintslice, false, false, true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncTypeIs(tc.is, tc.have))
+			assert.Equal(t, tc.expectedLike, FuncTypeIsLike(tc.is, tc.have))
+			assert.Equal(t, tc.expectedKind, FuncKindIs(tc.is, tc.have))
+		})
+	}
+}
+
+func TestFuncList(t *testing.T) {
+	assert.Equal(t, []any{"a", "b", "c"}, FuncList("a", "b", "c"))
+	assert.Equal(t, []any{1, 2, 3}, FuncList(1, 2, 3))
+}
+
+func TestFuncDict(t *testing.T) {
+	assert.Equal(t, map[string]any{"a": 1}, FuncDict("a", 1))
+	assert.Equal(t, map[string]any{"a": 1, "b": ""}, FuncDict("a", 1, "b"))
+	assert.Equal(t, map[string]any{"1": 1, "b": 2}, FuncDict(1, 1, "b", 2))
+	assert.Equal(t, map[string]any{"true": 1, "b": 2}, FuncDict(true, 1, "b", 2))
+	assert.Equal(t, map[string]any{"a": 2, "b": 3}, FuncDict("a", 1, "a", 2, "b", 3))
+}
+
+func TestFuncGet(t *testing.T) {
+	assert.Equal(t, 123, FuncGet(map[string]any{"abc": 123}, "abc"))
+	assert.Equal(t, "", FuncGet(map[string]any{"abc": 123}, "123"))
+}
+
+func TestFuncSet(t *testing.T) {
+	assert.Equal(t, map[string]any{"abc": 123, "123": true}, FuncSet(map[string]any{"abc": 123}, "123", true))
+	assert.Equal(t, map[string]any{"abc": true}, FuncSet(map[string]any{"abc": 123}, "abc", true))
+}
