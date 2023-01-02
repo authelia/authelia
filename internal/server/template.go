@@ -102,7 +102,7 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 	}
 }
 
-// ETagRootURL dynamically matches the If-None-Match header and adds the ETag header,
+// ETagRootURL dynamically matches the If-None-Match header and adds the ETag header.
 func ETagRootURL(next middlewares.RequestHandler) middlewares.RequestHandler {
 	etags := map[string][]byte{}
 
@@ -134,7 +134,9 @@ func ETagRootURL(next middlewares.RequestHandler) middlewares.RequestHandler {
 		h.Write(ctx.Response.Body())
 		sum := h.Sum(nil)
 		h.Reset()
+
 		etagNew := make([]byte, hex.EncodedLen(len(sum)))
+
 		hex.Encode(etagNew, sum)
 
 		if !ok || !bytes.Equal(etag, etagNew) {
@@ -142,7 +144,7 @@ func ETagRootURL(next middlewares.RequestHandler) middlewares.RequestHandler {
 		}
 
 		mu.Unlock()
-		
+
 		ctx.Response.Header.SetBytesKV(headerETag, etagNew)
 		ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlETaggedAssets)
 	}
