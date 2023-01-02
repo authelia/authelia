@@ -16,6 +16,62 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
+func TestContentTypes(t *testing.T) {
+	testCases := []struct {
+		name     string
+		setup    func(ctx *middlewares.AutheliaCtx) (err error)
+		expected string
+	}{
+		{
+			name: "ApplicationJSON",
+			setup: func(ctx *middlewares.AutheliaCtx) (err error) {
+				ctx.SetContentTypeApplicationJSON()
+
+				return nil
+			},
+			expected: "application/json; charset=utf-8",
+		},
+		{
+			name: "ApplicationYAML",
+			setup: func(ctx *middlewares.AutheliaCtx) (err error) {
+				ctx.SetContentTypeApplicationYAML()
+
+				return nil
+			},
+			expected: "application/yaml; charset=utf-8",
+		},
+		{
+			name: "TextPlain",
+			setup: func(ctx *middlewares.AutheliaCtx) (err error) {
+				ctx.SetContentTypeTextPlain()
+
+				return nil
+			},
+			expected: "text/plain; charset=utf-8",
+		},
+		{
+			name: "TextHTML",
+			setup: func(ctx *middlewares.AutheliaCtx) (err error) {
+				ctx.SetContentTypeTextHTML()
+
+				return nil
+			},
+			expected: "text/html; charset=utf-8",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			assert.NoError(t, tc.setup(mock.Ctx))
+
+			assert.Equal(t, tc.expected, string(mock.Ctx.Response.Header.ContentType()))
+		})
+	}
+}
+
 func TestIssuerURL(t *testing.T) {
 	testCases := []struct {
 		name              string
