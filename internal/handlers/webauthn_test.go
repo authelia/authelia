@@ -157,7 +157,7 @@ func TestWebauthnNewWebauthnShouldReturnErrWhenHeadersNotAvailable(t *testing.T)
 func TestWebauthnNewWebauthnShouldReturnErrWhenWebauthnNotConfigured(t *testing.T) {
 	ctx := mocks.NewMockAutheliaCtx(t)
 
-	ctx.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "https")
+	ctx.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 	ctx.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "example.com")
 	ctx.Ctx.Request.Header.Set("X-Forwarded-URI", "/")
 

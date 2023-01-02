@@ -74,7 +74,7 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 	defer mock.Close()
 
 	mock.Ctx.Configuration.JWTSecret = testJWTSecret
-	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedHost, "http")
+	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedProto, "http")
 	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedHost, "host")
 
 	mock.StorageMock.EXPECT().

@@ -181,7 +181,7 @@ func (s *StandaloneSuite) TestShouldRespectMethodsACL() {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL()), nil)
 	s.Assert().NoError(err)
 	req.Header.Set("X-Forwarded-Method", "GET")
-	req.Header.Set(fasthttp.HeaderXForwardedHost, "https")
+	req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 	req.Header.Set(fasthttp.HeaderXForwardedHost, fmt.Sprintf("secure.%s", BaseDomain))
 	req.Header.Set("X-Forwarded-URI", "/")
 	req.Header.Set("Accept", "text/html; charset=utf8")
@@ -207,7 +207,7 @@ func (s *StandaloneSuite) TestShouldRespondWithCorrectStatusCode() {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL()), nil)
 	s.Assert().NoError(err)
 	req.Header.Set("X-Forwarded-Method", "GET")
-	req.Header.Set(fasthttp.HeaderXForwardedHost, "https")
+	req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 	req.Header.Set(fasthttp.HeaderXForwardedHost, fmt.Sprintf("secure.%s", BaseDomain))
 	req.Header.Set("X-Forwarded-URI", "/")
 	req.Header.Set("Accept", "text/html; charset=utf8")
@@ -238,7 +238,7 @@ func (s *StandaloneSuite) TestShouldRespondWithCorrectStatusCode() {
 func (s *StandaloneSuite) TestShouldVerifyAPIVerifyUnauthorized() {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify", AutheliaBaseURL), nil)
 	s.Assert().NoError(err)
-	req.Header.Set(fasthttp.HeaderXForwardedHost, "https")
+	req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 	req.Header.Set("X-Original-URL", AdminBaseURL)
 	req.Header.Set("Accept", "text/html; charset=utf8")
 
@@ -255,7 +255,7 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyUnauthorized() {
 func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalURL() {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL()), nil)
 	s.Assert().NoError(err)
-	req.Header.Set(fasthttp.HeaderXForwardedHost, "https")
+	req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 	req.Header.Set("X-Original-URL", AdminBaseURL)
 	req.Header.Set("Accept", "text/html; charset=utf8")
 
@@ -273,7 +273,7 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalURL() {
 func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI() {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL()), nil)
 	s.Assert().NoError(err)
-	req.Header.Set(fasthttp.HeaderXForwardedHost, "https")
+	req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 	req.Header.Set(fasthttp.HeaderXForwardedHost, "secure.example.com:8080")
 	req.Header.Set("X-Forwarded-URI", "/")
 	req.Header.Set("Accept", "text/html; charset=utf8")

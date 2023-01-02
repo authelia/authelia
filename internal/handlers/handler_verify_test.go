@@ -30,7 +30,7 @@ var verifyGetCfg = schema.AuthenticationBackend{
 func TestShouldRaiseWhenTargetUrlIsMalformed(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
-	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "https")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "home.example.com")
 	mock.Ctx.Request.Header.Set("X-Forwarded-URI", "/abc")
 	originalURL, err := mock.Ctx.GetOriginalURL()
@@ -53,7 +53,7 @@ func TestShouldRaiseWhenNoXForwardedHostHeaderProvidedToDetectTargetURL(t *testi
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "https")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 	_, err := mock.Ctx.GetOriginalURL()
 	assert.Error(t, err)
 	assert.Equal(t, "Missing header X-Forwarded-Host", err.Error())
@@ -63,7 +63,7 @@ func TestShouldRaiseWhenXForwardedProtoIsNotParsable(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "!:;;:,")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "!:;;:,")
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "myhost.local")
 
 	_, err := mock.Ctx.GetOriginalURL()
@@ -75,7 +75,7 @@ func TestShouldRaiseWhenXForwardedURIIsNotParsable(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "https")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "myhost.local")
 	mock.Ctx.Request.Header.Set("X-Forwarded-URI", "!:;;:,")
 

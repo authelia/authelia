@@ -29,10 +29,11 @@ func handleSetStatus(code int) middlewares.RequestHandler {
 
 func TestProtectedEndpointRequiredLevel(t *testing.T) {
 	testCases := []struct {
-		name             string
-		level            authentication.Level
-		have             session.UserSession
-		expected, status int
+		name                          string
+		level                         authentication.Level
+		have                          session.UserSession
+		expected, status              int
+		expectedAuth, expectedElevate bool
 	}{
 		{
 			name:     "1FAWithAuthenticatedUser2FAShould200OK",
@@ -101,10 +102,11 @@ func TestProtectedEndpointRequiredLevel(t *testing.T) {
 			},
 		},
 		{
-			name:     "2FAWithNotAuthenticatedUserShould401Unauthenticated",
-			level:    authentication.TwoFactor,
-			expected: fasthttp.StatusForbidden,
-			status:   fasthttp.StatusFound,
+			name:         "2FAWithNotAuthenticatedUserShould401Unauthenticated",
+			level:        authentication.TwoFactor,
+			expected:     fasthttp.StatusForbidden,
+			expectedAuth: true,
+			status:       fasthttp.StatusFound,
 			have: session.UserSession{
 				Username:            "john",
 				DisplayName:         "John Wick",
@@ -140,7 +142,7 @@ func TestProtectedEndpointRequiredLevel(t *testing.T) {
 				assert.Equal(t, `{"status":"OK","message":"Endpoint Response"}`, string(mock.Ctx.Response.Body()))
 				assert.Equal(t, []byte("yes"), mock.Ctx.Response.Header.Peek("X-Testing-Success"))
 			} else {
-				assert.Equal(t, fmt.Sprintf(`{"status":"KO","message":"%s"}`, fasthttp.StatusMessage(tc.expected)), string(mock.Ctx.Response.Body()))
+				assert.Equal(t, fmt.Sprintf(`{"status":"KO","message":"%s","authentication":%t,"elevation":%t}`, fasthttp.StatusMessage(tc.expected), tc.expectedAuth, tc.expectedElevate), string(mock.Ctx.Response.Body()))
 				assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek("X-Testing-Success"))
 			}
 		})
@@ -191,7 +193,7 @@ func TestProtectedEndpointOTP(t *testing.T) {
 			emailexp:   time.Minute,
 			sessionexp: time.Minute,
 			skip2fa:    true,
-			expected:   fasthttp.StatusUnauthorized,
+			expected:   fasthttp.StatusForbidden,
 			status:     fasthttp.StatusOK,
 			have: session.UserSession{
 				Username:            "john",
@@ -207,7 +209,7 @@ func TestProtectedEndpointOTP(t *testing.T) {
 			emailexp:   time.Minute,
 			sessionexp: time.Minute,
 			skip2fa:    false,
-			expected:   fasthttp.StatusUnauthorized,
+			expected:   fasthttp.StatusForbidden,
 			status:     fasthttp.StatusOK,
 			have: session.UserSession{
 				Username:            "john",
@@ -241,12 +243,12 @@ func TestProtectedEndpointOTP(t *testing.T) {
 			},
 		},
 		{
-			name:       "Return401UnauthorizedWhenUserIsEscalatedButInvalidIP",
+			name:       "Return403ForbiddenWhenUserIsEscalatedButInvalidIP",
 			characters: 10,
 			emailexp:   time.Minute,
 			sessionexp: time.Minute,
 			skip2fa:    false,
-			expected:   fasthttp.StatusUnauthorized,
+			expected:   fasthttp.StatusForbidden,
 			status:     fasthttp.StatusOK,
 			ip:         net.ParseIP("192.168.0.2"),
 			time:       time.Unix(1671322337, 0),
@@ -293,7 +295,7 @@ func TestProtectedEndpointOTP(t *testing.T) {
 			switch {
 			case tc.have.IsAnonymous():
 				assert.Equal(t, tc.expected, mock.Ctx.Response.StatusCode())
-				assert.Equal(t, fmt.Sprintf(`{"status":"KO","message":"%s"}`, fasthttp.StatusMessage(tc.expected)), string(mock.Ctx.Response.Body()))
+				assert.Equal(t, fmt.Sprintf(`{"status":"KO","message":"%s","authentication":false,"elevation":false}`, fasthttp.StatusMessage(tc.expected)), string(mock.Ctx.Response.Body()))
 				assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek("X-Testing-Success"))
 			case tc.skip2fa && tc.have.AuthenticationLevel == authentication.TwoFactor:
 				assert.Equal(t, tc.expected, mock.Ctx.Response.StatusCode())
@@ -301,7 +303,7 @@ func TestProtectedEndpointOTP(t *testing.T) {
 				assert.Equal(t, []byte("yes"), mock.Ctx.Response.Header.Peek("X-Testing-Success"))
 			case tc.have.Elevations.User == nil || mock.Ctx.Clock.Now().After(tc.have.Elevations.User.Expires) || !tc.ip.Equal(tc.have.Elevations.User.RemoteIP):
 				assert.Equal(t, tc.expected, mock.Ctx.Response.StatusCode())
-				assert.Equal(t, `{"status":"KO","message":"Elevation Required"}`, string(mock.Ctx.Response.Body()))
+				assert.Equal(t, `{"status":"KO","message":"Forbidden","authentication":false,"elevation":true}`, string(mock.Ctx.Response.Body()))
 				assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek("X-Testing-Success"))
 			default:
 				assert.Equal(t, tc.expected, mock.Ctx.Response.StatusCode())

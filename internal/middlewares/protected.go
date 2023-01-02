@@ -49,19 +49,33 @@ func ProtectedEndpoint(handlers ...ProtectedEndpointHandler) AutheliaMiddleware 
 			s := ctx.GetSession()
 
 			if s.IsAnonymous() {
-				if err := ctx.ReplyJSON(ErrorResponse{Status: "KO", Message: fasthttp.StatusMessage(fasthttp.StatusUnauthorized)}, fasthttp.StatusUnauthorized); err != nil {
-					ctx.Logger.Error(err)
-				}
+				ctx.SetAuthenticationErrorJSON(fasthttp.StatusUnauthorized, fasthttp.StatusMessage(fasthttp.StatusUnauthorized), false, false)
 
 				return
 			}
+
+			var failed, failedAuthentication, failedElevation bool
 
 			for i := 0; i < n; i++ {
 				if handlers[i].Check(ctx, &s) {
 					continue
 				}
 
+				failed = true
+
+				if handlers[i].IsAuthentication() {
+					failedAuthentication = true
+				}
+
+				if handlers[i].IsElevation() {
+					failedElevation = true
+				}
+
 				handlers[i].Failure(ctx, &s)
+			}
+
+			if failed {
+				ctx.SetAuthenticationErrorJSON(fasthttp.StatusForbidden, fasthttp.StatusMessage(fasthttp.StatusForbidden), failedAuthentication, failedElevation)
 
 				return
 			}
@@ -75,6 +89,9 @@ type ProtectedEndpointHandler interface {
 	Name() string
 	Check(ctx *AutheliaCtx, s *session.UserSession) (success bool)
 	Failure(ctx *AutheliaCtx, s *session.UserSession)
+
+	IsAuthentication() bool
+	IsElevation() bool
 }
 
 func NewRequiredLevelProtectedEndpointHandler(level authentication.Level, statusCode int) *RequiredLevelProtectedEndpointHandler {
@@ -103,14 +120,19 @@ func (h *RequiredLevelProtectedEndpointHandler) Name() string {
 	return fmt.Sprintf("required_level(%s)", h.level)
 }
 
+func (h *RequiredLevelProtectedEndpointHandler) IsAuthentication() bool {
+	return true
+}
+
+func (h *RequiredLevelProtectedEndpointHandler) IsElevation() bool {
+	return false
+}
+
 func (h *RequiredLevelProtectedEndpointHandler) Check(ctx *AutheliaCtx, s *session.UserSession) (success bool) {
 	return s.AuthenticationLevel >= h.level
 }
 
-func (h *RequiredLevelProtectedEndpointHandler) Failure(ctx *AutheliaCtx, _ *session.UserSession) {
-	if err := ctx.ReplyJSON(ErrorResponse{Status: "KO", Message: fasthttp.StatusMessage(h.statusCode)}, h.statusCode); err != nil {
-		ctx.Logger.Error(err)
-	}
+func (h *RequiredLevelProtectedEndpointHandler) Failure(_ *AutheliaCtx, _ *session.UserSession) {
 }
 
 func NewOTPEscalationProtectedEndpointHandler(config OTPEscalationProtectedEndpointConfig) *OTPEscalationProtectedEndpointHandler {
@@ -125,6 +147,14 @@ type OTPEscalationProtectedEndpointHandler struct {
 
 func (h *OTPEscalationProtectedEndpointHandler) Name() string {
 	return "one_time_password"
+}
+
+func (h *OTPEscalationProtectedEndpointHandler) IsAuthentication() bool {
+	return false
+}
+
+func (h *OTPEscalationProtectedEndpointHandler) IsElevation() bool {
+	return true
 }
 
 func (h *OTPEscalationProtectedEndpointHandler) Check(ctx *AutheliaCtx, s *session.UserSession) (success bool) {
@@ -174,9 +204,6 @@ func (h *OTPEscalationProtectedEndpointHandler) Failure(ctx *AutheliaCtx, s *ses
 			ctx.Logger.WithError(err).Error("Error session after user elevated session failure")
 		}
 	}
-
-	ctx.SetJSONError("Elevation Required")
-	ctx.SetStatusCode(fasthttp.StatusUnauthorized)
 }
 
 // Require1FA requires the user to have authenticated with at least one-factor authentication (i.e. password).

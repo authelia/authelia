@@ -14,25 +14,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-// WebauthnIdentityStart the handler for initiating the identity validation.
-var WebauthnIdentityStart = middlewares.IdentityVerificationStart(
-	middlewares.IdentityVerificationStartArgs{
-		MailTitle:             "Register your key",
-		MailButtonContent:     "Register",
-		TargetEndpoint:        "/webauthn/register",
-		ActionClaim:           ActionWebauthnRegistration,
-		IdentityRetrieverFunc: identityRetrieverFromSession,
-	}, nil)
-
-// WebauthnIdentityFinish the handler for finishing the identity validation.
-var WebauthnIdentityFinish = middlewares.IdentityVerificationFinish(
-	middlewares.IdentityVerificationFinishArgs{
-		ActionClaim:          ActionWebauthnRegistration,
-		IsTokenUserValidFunc: isTokenUserValidFor2FARegistration,
-	}, SecondFactorWebauthnAttestationGET)
-
-// SecondFactorWebauthnAttestationGET returns the attestation challenge from the server.
-func SecondFactorWebauthnAttestationGET(ctx *middlewares.AutheliaCtx, _ string) {
+// WebauthnAttestationGET returns the attestation challenge from the server.
+func WebauthnAttestationGET(ctx *middlewares.AutheliaCtx) {
 	var (
 		w    *webauthn.WebAuthn
 		user *model.WebauthnUser
