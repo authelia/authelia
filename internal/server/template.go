@@ -2,7 +2,7 @@ package server
 
 import (
 	"bytes"
-	"crypto/sha1"
+	"crypto/sha1" //nolint:gosec
 	"encoding/hex"
 	"fmt"
 	"os"
