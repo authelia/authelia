@@ -75,10 +75,10 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 		var nonce string
 
 		if spec {
-			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, tmplCSPSwaggerSpec)
+			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, tmplCSPSwagger)
 		} else {
 			nonce = utils.RandomString(32, utils.CharSetAlphaNumeric)
-			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPSwagger, nonce, nonce))
+			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPSwaggerNonce, nonce, nonce))
 		}
 
 		switch ext {
