@@ -192,3 +192,15 @@ func Require2FA(next RequestHandler) RequestHandler {
 
 	return handler(next)
 }
+
+// Require2FAWithAPIResponse requires the user to have authenticated with two-factor authentication.
+func Require2FAWithAPIResponse(next RequestHandler) RequestHandler {
+	return func(ctx *AutheliaCtx) {
+		if ctx.GetSession().AuthenticationLevel < authentication.TwoFactor {
+			ctx.SetAuthenticationErrorJSON(fasthttp.StatusForbidden, "Authentication Required.", true, false)
+			return
+		}
+
+		next(ctx)
+	}
+}
