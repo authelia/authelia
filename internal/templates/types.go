@@ -9,12 +9,23 @@ import (
 // Templates is the struct which holds all the *template.Template values.
 type Templates struct {
 	notification NotificationTemplates
+	asset        AssetTemplates
+}
+
+type AssetTemplates struct {
+	index *tt.Template
+	api   APIAssetTemplates
+}
+
+type APIAssetTemplates struct {
+	index *tt.Template
+	spec  *tt.Template
 }
 
 // NotificationTemplates are the templates for the notification system.
 type NotificationTemplates struct {
-	passwordReset        *EmailTemplate
 	identityVerification *EmailTemplate
+	event                *EmailTemplate
 }
 
 // Template covers shared implementations between the text and html template.Template.
@@ -36,9 +47,16 @@ type EmailTemplate struct {
 	Text *tt.Template
 }
 
+// EmailEventValues are the values used for event templates.
+type EmailEventValues struct {
+	Title       string
+	DisplayName string
+	Details     map[string]any
+	RemoteIP    string
+}
+
 // EmailPasswordResetValues are the values used for password reset templates.
 type EmailPasswordResetValues struct {
-	UUID        string
 	Title       string
 	DisplayName string
 	RemoteIP    string
@@ -46,7 +64,6 @@ type EmailPasswordResetValues struct {
 
 // EmailIdentityVerificationValues are the values used for the identity verification templates.
 type EmailIdentityVerificationValues struct {
-	UUID        string
 	Title       string
 	DisplayName string
 	RemoteIP    string

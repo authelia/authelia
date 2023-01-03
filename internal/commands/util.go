@@ -109,7 +109,7 @@ func flagsGetRandomCharacters(flags *pflag.FlagSet, flagNameLength, flagNameChar
 		}
 	}
 
-	return utils.RandomString(n, charset, true), nil
+	return utils.RandomString(n, charset), nil
 }
 
 func termReadConfirmation(flags *pflag.FlagSet, name, prompt, confirmation string) (confirmed bool, err error) {

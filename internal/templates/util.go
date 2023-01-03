@@ -39,24 +39,17 @@ func isSecretEnvKey(key string) (isSecretEnvKey bool) {
 	return false
 }
 
-func templateExists(path string) (exists bool) {
+func fileExists(path string) (exists bool) {
 	info, err := os.Stat(path)
-	if err != nil {
-		return false
-	}
 
-	if info.IsDir() {
-		return false
-	}
-
-	return true
+	return err == nil && !info.IsDir()
 }
 
 func readTemplate(name, ext, category, overridePath string) (tPath string, embed bool, data []byte, err error) {
 	if overridePath != "" {
 		tPath = filepath.Join(overridePath, name+ext)
 
-		if templateExists(tPath) {
+		if fileExists(tPath) {
 			if data, err = os.ReadFile(tPath); err != nil {
 				return tPath, false, nil, fmt.Errorf("failed to read template override at path '%s': %w", tPath, err)
 			}

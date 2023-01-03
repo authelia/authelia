@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net/mail"
+	"os"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -19,14 +20,29 @@ import (
 
 // NewSMTPNotifier creates a SMTPNotifier using the notifier configuration.
 func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.CertPool) *SMTPNotifier {
+	var tlsconfig *tls.Config
+
+	if config.TLS != nil {
+		tlsconfig = utils.NewTLSConfig(config.TLS, certPool)
+	}
+
 	opts := []gomail.Option{
 		gomail.WithPort(config.Port),
-		gomail.WithTLSConfig(utils.NewTLSConfig(config.TLS, certPool)),
-		gomail.WithPassword(config.Password),
+		gomail.WithTLSConfig(tlsconfig),
 		gomail.WithHELO(config.Identifier),
+		gomail.WithTimeout(config.Timeout),
+		gomail.WithoutNoop(),
+	}
+
+	ssl := config.Port == smtpPortSUBMISSIONS
+
+	if ssl {
+		opts = append(opts, gomail.WithSSL())
 	}
 
 	switch {
+	case ssl:
+		break
 	case config.DisableStartTLS:
 		opts = append(opts, gomail.WithTLSPolicy(gomail.NoTLS))
 	case config.DisableRequireTLS:
@@ -35,16 +51,14 @@ func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.Ce
 		opts = append(opts, gomail.WithTLSPolicy(gomail.TLSMandatory))
 	}
 
-	if config.Port == smtpPortSUBMISSIONS {
-		opts = append(opts, gomail.WithSSL())
-	}
-
 	var domain string
 
 	at := strings.LastIndex(config.Sender.Address, "@")
 
 	if at >= 0 {
-		domain = config.Sender.Address[at:]
+		domain = config.Sender.Address[at+1:]
+	} else {
+		domain = "localhost.localdomain"
 	}
 
 	return &SMTPNotifier{
@@ -65,6 +79,7 @@ type SMTPNotifier struct {
 	opts   []gomail.Option
 }
 
+// StartupCheck implements model.StartupCheck to perform startup check operations.
 func (n *SMTPNotifier) StartupCheck() (err error) {
 	var client *gomail.Client
 
@@ -85,11 +100,14 @@ func (n *SMTPNotifier) StartupCheck() (err error) {
 	return nil
 }
 
+// Send a notification via the SMTPNotifier.
 func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject string, et *templates.EmailTemplate, data any) (err error) {
 	msg := gomail.NewMsg(
 		gomail.WithMIMEVersion(gomail.Mime10),
-		gomail.WithBoundary(utils.RandomString(30, utils.CharSetAlphaNumeric, true)),
+		gomail.WithBoundary(utils.RandomString(30, utils.CharSetAlphaNumeric)),
 	)
+
+	setMessageID(msg, n.domain)
 
 	if err = msg.From(n.config.Sender.String()); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to set from address: %w", err)
@@ -118,8 +136,14 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 
 	var client *gomail.Client
 
+	n.log.Debugf("creating client with %d options: %+v", len(n.opts), n.opts)
+
 	if client, err = gomail.NewClient(n.config.Host, n.opts...); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to establish client: %w", err)
+	}
+
+	if auth := NewOpportunisticSMTPAuth(n.config); auth != nil {
+		client.SetSMTPAuthCustom(auth)
 	}
 
 	if err = client.DialWithContext(ctx); err != nil {
@@ -135,4 +159,13 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 	}
 
 	return nil
+}
+
+func setMessageID(msg *gomail.Msg, domain string) {
+	rn, _ := utils.RandomInt(100000000)
+	rm, _ := utils.RandomInt(10000)
+	rs := utils.RandomString(17, utils.CharSetAlphaNumeric)
+	pid := os.Getpid() + rm
+
+	msg.SetMessageIDWithValue(fmt.Sprintf("%d.%d%d.%s@%s", pid, rn, rm, rs, domain))
 }

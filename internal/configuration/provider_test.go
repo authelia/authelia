@@ -17,8 +17,6 @@ import (
 )
 
 func TestShouldErrorSecretNotExist(t *testing.T) {
-	testReset()
-
 	dir := t.TempDir()
 
 	testSetEnv(t, "JWT_SECRET_FILE", filepath.Join(dir, "jwt"))
@@ -73,8 +71,6 @@ func TestLoadShouldReturnErrWithoutSources(t *testing.T) {
 }
 
 func TestShouldHaveNotifier(t *testing.T) {
-	testReset()
-
 	testSetEnv(t, "SESSION_SECRET", "abc")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")
 	testSetEnv(t, "JWT_SECRET", "abc")
@@ -90,8 +86,6 @@ func TestShouldHaveNotifier(t *testing.T) {
 }
 
 func TestShouldValidateConfigurationWithEnv(t *testing.T) {
-	testReset()
-
 	testSetEnv(t, "SESSION_SECRET", "abc")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")
 	testSetEnv(t, "JWT_SECRET", "abc")
@@ -106,15 +100,13 @@ func TestShouldValidateConfigurationWithEnv(t *testing.T) {
 }
 
 func TestShouldValidateConfigurationWithFilters(t *testing.T) {
-	testReset()
-
 	testSetEnv(t, "SESSION_SECRET", "abc")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")
 	testSetEnv(t, "JWT_SECRET", "abc")
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
 
-	_ = os.Setenv("SERVICES_SERVER", "10.10.10.10")
-	_ = os.Setenv("ROOT_DOMAIN", "example.org")
+	t.Setenv("SERVICES_SERVER", "10.10.10.10")
+	t.Setenv("ROOT_DOMAIN", "example.org")
 
 	val := schema.NewStructValidator()
 	_, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config.filtered.yml"}, NewFileFiltersDefault(), DefaultEnvPrefix, DefaultEnvDelimiter)...)
@@ -129,8 +121,6 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 }
 
 func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
-	testReset()
-
 	testSetEnv(t, "SESSION_SECRET", "an env session secret")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "an env storage mysql password")
 	testSetEnv(t, "STORAGE_MYSQL", "a bad env")
@@ -152,8 +142,6 @@ func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 }
 
 func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T) {
-	testReset()
-
 	testSetEnv(t, "SESSION_SECRET", "an env session secret")
 	testSetEnv(t, "SESSION_SECRET_FILE", "./test_resources/example_secret")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "an env storage mysql password")
@@ -182,8 +170,6 @@ func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
 		t.Skip("skipping test due to being on windows")
 	}
 
-	testReset()
-
 	dir := t.TempDir()
 
 	assert.NoError(t, os.WriteFile(filepath.Join(dir, "myconf.yml"), []byte("server:\n  port: 9091\n"), 0000))
@@ -200,8 +186,6 @@ func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
 }
 
 func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
-	testReset()
-
 	testSetEnv(t, "SESSION_SECRET_FILE", "./test_resources/example_secret")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD_FILE", "./test_resources/example_secret")
 	testSetEnv(t, "JWT_SECRET_FILE", "./test_resources/example_secret")
@@ -223,8 +207,6 @@ func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
 }
 
 func TestShouldLoadURLList(t *testing.T) {
-	testReset()
-
 	val := schema.NewStructValidator()
 	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
@@ -241,8 +223,6 @@ func TestShouldLoadURLList(t *testing.T) {
 }
 
 func TestShouldConfigureConsent(t *testing.T) {
-	testReset()
-
 	val := schema.NewStructValidator()
 	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
@@ -258,8 +238,6 @@ func TestShouldConfigureConsent(t *testing.T) {
 }
 
 func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
-	testReset()
-
 	testSetEnv(t, "SESSION_SECRET", "abc")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")
 	testSetEnv(t, "JWT_SECRET", "abc")
@@ -282,8 +260,6 @@ func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
 }
 
 func TestShouldRaiseErrOnInvalidNotifierSMTPSender(t *testing.T) {
-	testReset()
-
 	val := schema.NewStructValidator()
 	keys, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config_smtp_sender_invalid.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
@@ -298,8 +274,6 @@ func TestShouldRaiseErrOnInvalidNotifierSMTPSender(t *testing.T) {
 }
 
 func TestShouldHandleErrInvalidatorWhenSMTPSenderBlank(t *testing.T) {
-	testReset()
-
 	val := schema.NewStructValidator()
 	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_smtp_sender_blank.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
@@ -322,8 +296,6 @@ func TestShouldHandleErrInvalidatorWhenSMTPSenderBlank(t *testing.T) {
 }
 
 func TestShouldDecodeSMTPSenderWithoutName(t *testing.T) {
-	testReset()
-
 	val := schema.NewStructValidator()
 	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
@@ -339,8 +311,6 @@ func TestShouldDecodeSMTPSenderWithoutName(t *testing.T) {
 }
 
 func TestShouldDecodeSMTPSenderWithName(t *testing.T) {
-	testReset()
-
 	val := schema.NewStructValidator()
 	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_alt.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
@@ -357,8 +327,6 @@ func TestShouldDecodeSMTPSenderWithName(t *testing.T) {
 }
 
 func TestShouldParseRegex(t *testing.T) {
-	testReset()
-
 	val := schema.NewStructValidator()
 	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_domain_regex.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
@@ -389,8 +357,6 @@ func TestShouldParseRegex(t *testing.T) {
 }
 
 func TestShouldErrOnParseInvalidRegex(t *testing.T) {
-	testReset()
-
 	val := schema.NewStructValidator()
 	keys, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config_domain_bad_regex.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
@@ -409,8 +375,6 @@ func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
 		t.Skip("skipping test due to being on windows")
 	}
 
-	testReset()
-
 	dir := t.TempDir()
 
 	cfg := filepath.Join(dir, "config.yml")
@@ -426,8 +390,6 @@ func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
 }
 
 func TestShouldLoadDirectoryConfiguration(t *testing.T) {
-	testReset()
-
 	dir := t.TempDir()
 
 	val := schema.NewStructValidator()
@@ -439,31 +401,7 @@ func TestShouldLoadDirectoryConfiguration(t *testing.T) {
 }
 
 func testSetEnv(t *testing.T, key, value string) {
-	assert.NoError(t, os.Setenv(DefaultEnvPrefix+key, value))
-}
-
-func testReset() {
-	testUnsetEnvName("STORAGE_MYSQL")
-	testUnsetEnvName("JWT_SECRET")
-	testUnsetEnvName("DUO_API_SECRET_KEY")
-	testUnsetEnvName("SESSION_SECRET")
-	testUnsetEnvName("AUTHENTICATION_BACKEND_LDAP_PASSWORD")
-	testUnsetEnvName("AUTHENTICATION_BACKEND_LDAP_URL")
-	testUnsetEnvName("NOTIFIER_SMTP_PASSWORD")
-	testUnsetEnvName("SESSION_REDIS_PASSWORD")
-	testUnsetEnvName("SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD")
-	testUnsetEnvName("STORAGE_MYSQL_PASSWORD")
-	testUnsetEnvName("STORAGE_POSTGRES_PASSWORD")
-	testUnsetEnvName("SERVER_TLS_KEY")
-	testUnsetEnvName("SERVER_PORT")
-	testUnsetEnvName("IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY")
-	testUnsetEnvName("IDENTITY_PROVIDERS_OIDC_HMAC_SECRET")
-	testUnsetEnvName("STORAGE_ENCRYPTION_KEY")
-}
-
-func testUnsetEnvName(name string) {
-	_ = os.Unsetenv(DefaultEnvPrefix + name)
-	_ = os.Unsetenv(DefaultEnvPrefix + name + constSecretSuffix)
+	t.Setenv(DefaultEnvPrefix+key, value)
 }
 
 func testCreateFile(path, value string, perm os.FileMode) (err error) {

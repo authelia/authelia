@@ -163,9 +163,9 @@ services:
 In the [SWAG] `/config` mount which is mounted to `${PWD}/data/swag` in our example:
 
 1. Create a folder named `snippets/authelia`:
-   - The `mkdir -p ${PWD}/data/swag/snippets/authelia` command should achieve this on Linux.
-2. Create the `${PWD}/data/swag/nginxsnippets/authelia/location.conf` file which can be found [here](nginx.md#authelia-locationconf).
-3. Create the `${PWD}/data/swag/nginxsnippets/authelia/authrequest.conf` file which can be found [here](nginx.md#authelia-authrequestconf).
+   - The `mkdir -p ${PWD}/data/swag/nginx/snippets/authelia` command should achieve this on Linux.
+2. Create the `${PWD}/data/swag/nginx/snippets/authelia/location.conf` file which can be found [here](nginx.md#authelia-locationconf).
+3. Create the `${PWD}/data/swag/nginx/snippets/authelia/authrequest.conf` file which can be found [here](nginx.md#authelia-authrequestconf).
    - Ensure you adjust the line `error_page 401 =302 https://auth.example.com/?rd=$target_url;` replacing `https://auth.example.com/` with your external Authelia URL.
 
 ## Protected Application
@@ -174,7 +174,7 @@ In the server configuration for the application you want to protect:
 
 1. Edit the `/config/nginx/proxy-confs/` file for the application you wish to protect.
 2. Under the `#include /config/nginx/authelia-server.conf;` line which should be within the `server` block
-   but not inside any `location` blocks add the following line: ``.
+   but not inside any `location` blocks add the following line: `include /config/nginx/snippets/authelia/location.conf;`.
 3. Under the `#include /config/nginx/authelia-location.conf;` line which should be within the applications
    `location` block add the following line `include /config/nginx/snippets/authelia/authrequest.conf;`.
 
