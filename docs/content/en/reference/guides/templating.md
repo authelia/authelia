@@ -76,6 +76,8 @@ The following functions which mimic the behaviour of helm exist in most templati
 - typeIsLike
 - kindOf
 - kindIs
+- default
+- empty
 
 See the [Helm Documentation](https://helm.sh/docs/chart_template_guide/function_list/) for more information. Please
 note that only the functions listed above are supported and the functions don't necessarily behave exactly the same.
