@@ -94,9 +94,9 @@ func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 func handleRouter(config schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
 	optsTemplatedFile := NewTemplatedFileOptions(&config)
 
-	serveIndexHandler := ServeTemplatedFile(assetsRoot, fileIndexHTML, optsTemplatedFile)
-	serveSwaggerHandler := ServeTemplatedFile(assetsSwagger, fileIndexHTML, optsTemplatedFile)
-	serveSwaggerAPIHandler := ServeTemplatedFile(assetsSwagger, fileOpenAPI, optsTemplatedFile)
+	serveIndexHandler := ServeTemplatedFile(providers.Templates.GetAssetIndexTemplate(), optsTemplatedFile)
+	serveOpenAPIHandler := ServeTemplatedOpenAPI(providers.Templates.GetAssetOpenAPIIndexTemplate(), optsTemplatedFile)
+	serveOpenAPISpecHandler := ETagRootURL(ServeTemplatedOpenAPI(providers.Templates.GetAssetOpenAPISpecTemplate(), optsTemplatedFile))
 
 	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
 	handlerLocales := newLocalesEmbeddedHandler()
@@ -127,10 +127,12 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
 
 	// Swagger.
-	r.GET("/api/", bridge(serveSwaggerHandler))
+	r.GET("/api/", bridge(serveOpenAPIHandler))
 	r.OPTIONS("/api/", policyCORSPublicGET.HandleOPTIONS)
-	r.GET("/api/"+fileOpenAPI, policyCORSPublicGET.Middleware(bridge(serveSwaggerAPIHandler)))
-	r.OPTIONS("/api/"+fileOpenAPI, policyCORSPublicGET.HandleOPTIONS)
+	r.GET("/api/index.html", bridge(serveOpenAPIHandler))
+	r.OPTIONS("/api/index.html", policyCORSPublicGET.HandleOPTIONS)
+	r.GET("/api/openapi.yml", policyCORSPublicGET.Middleware(bridge(serveOpenAPISpecHandler)))
+	r.OPTIONS("/api/openapi.yml", policyCORSPublicGET.HandleOPTIONS)
 
 	for _, file := range filesSwagger {
 		r.GET("/api/"+file, handlerPublicHTML)

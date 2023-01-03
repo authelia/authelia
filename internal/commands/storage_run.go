@@ -983,7 +983,7 @@ func (ctx *CmdCtx) StorageUserTOTPExportPNGRunE(cmd *cobra.Command, _ []string) 
 	}
 
 	if dir == "" {
-		dir = utils.RandomString(8, utils.CharSetAlphaNumeric, false)
+		dir = utils.RandomString(8, utils.CharSetAlphaNumeric)
 	}
 
 	if _, err = os.Stat(dir); !os.IsNotExist(err) {

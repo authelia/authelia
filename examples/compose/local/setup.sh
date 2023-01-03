@@ -99,7 +99,7 @@ fi
 password
 
 if [[ $PASSWORD != "" ]]; then
-  PASSWORD=$(sudo docker run authelia/authelia authelia hash-password $PASSWORD | sed 's/Password hash: //g')
+  PASSWORD=$(sudo docker run authelia/authelia authelia crypto hash generate argon2 --password $PASSWORD | sed 's/Digest: //g')
   if [[ $(uname) == "Darwin" ]]; then
     sudo sed -i '' "s/<PASSWORD>/$(echo $PASSWORD | sed -e 's/[\/&]/\\&/g')/g" authelia/users_database.yml
   else

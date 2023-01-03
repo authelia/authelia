@@ -277,14 +277,19 @@ func (ctx *AutheliaCtx) SetContentTypeApplicationJSON() {
 	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
 }
 
-// SetContentTypeTextPlain sets the Content-Type header to 'text/plain; charset=utf-8'.
+// SetContentTypeTextPlain efficiently sets the Content-Type header to 'text/plain; charset=utf-8'.
 func (ctx *AutheliaCtx) SetContentTypeTextPlain() {
 	ctx.SetContentTypeBytes(contentTypeTextPlain)
 }
 
-// SetContentTypeTextHTML sets the Content-Type header to 'text/html; charset=utf-8'.
+// SetContentTypeTextHTML efficiently sets the Content-Type header to 'text/html; charset=utf-8'.
 func (ctx *AutheliaCtx) SetContentTypeTextHTML() {
 	ctx.SetContentTypeBytes(contentTypeTextHTML)
+}
+
+// SetContentTypeApplicationYAML efficiently sets the Content-Type header to 'application/yaml; charset=utf-8'.
+func (ctx *AutheliaCtx) SetContentTypeApplicationYAML() {
+	ctx.SetContentTypeBytes(contentTypeApplicationYAML)
 }
 
 // SetContentSecurityPolicy sets the Content-Security-Policy header.

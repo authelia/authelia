@@ -3,7 +3,6 @@ package main
 import (
 	"embed"
 	"fmt"
-	"strings"
 	"text/template"
 
 	"github.com/authelia/authelia/v4/internal/templates"
@@ -24,13 +23,11 @@ var (
 )
 
 func newTMPL(name string) (tmpl *template.Template, err error) {
-	return template.New(name).
-		Funcs(template.FuncMap{
-			"stringsContains": strings.Contains,
-			"join":            strings.Join,
-			"joinX":           templates.StringJoinXFunc,
-		}).
-		Parse(mustLoadTmplFS(name))
+	funcs := templates.FuncMap()
+
+	funcs["joinX"] = templates.FuncStringJoinX
+
+	return template.New(name).Funcs(funcs).Parse(mustLoadTmplFS(name))
 }
 
 func mustLoadTmplFS(tmpl string) string {

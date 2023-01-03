@@ -1,41 +1,351 @@
 package templates
 
 import (
+	"crypto/sha1" //nolint:gosec
+	"crypto/sha256"
+	"crypto/sha512"
+	"encoding/base32"
+	"encoding/base64"
+	"encoding/hex"
 	"fmt"
+	"hash"
+	"os"
+	"path"
+	"path/filepath"
+	"reflect"
+	"sort"
+	"strconv"
 	"strings"
+	"time"
 )
 
-// StringMapLookupDefaultEmptyFunc is function which takes a map[string]string and returns a template function which
-// takes a string which is used as a key lookup for the map[string]string. If the value isn't found it returns an empty
-// string.
-func StringMapLookupDefaultEmptyFunc(m map[string]string) func(key string) (value string) {
-	return func(key string) (value string) {
-		var ok bool
-
-		if value, ok = m[key]; !ok {
-			return ""
-		}
-
-		return value
+// FuncMap returns the template FuncMap commonly used in several templates.
+func FuncMap() map[string]any {
+	return map[string]any{
+		"iterate":    FuncIterate,
+		"env":        FuncGetEnv,
+		"expandenv":  FuncExpandEnv,
+		"split":      FuncStringSplit,
+		"splitList":  FuncStringSplitList,
+		"join":       FuncElemsJoin,
+		"contains":   FuncStringContains,
+		"hasPrefix":  FuncStringHasPrefix,
+		"hasSuffix":  FuncStringHasSuffix,
+		"lower":      strings.ToLower,
+		"keys":       FuncKeys,
+		"sortAlpha":  FuncSortAlpha,
+		"upper":      strings.ToUpper,
+		"title":      strings.ToTitle,
+		"trim":       strings.TrimSpace,
+		"trimAll":    FuncStringTrimAll,
+		"trimSuffix": FuncStringTrimSuffix,
+		"trimPrefix": FuncStringTrimPrefix,
+		"replace":    FuncStringReplace,
+		"quote":      FuncStringQuote,
+		"sha1sum":    FuncHashSum(sha1.New),
+		"sha256sum":  FuncHashSum(sha256.New),
+		"sha512sum":  FuncHashSum(sha512.New),
+		"squote":     FuncStringSQuote,
+		"now":        time.Now,
+		"b64enc":     FuncB64Enc,
+		"b64dec":     FuncB64Dec,
+		"b32enc":     FuncB32Enc,
+		"b32dec":     FuncB32Dec,
+		"list":       FuncList,
+		"dict":       FuncDict,
+		"get":        FuncGet,
+		"set":        FuncSet,
+		"isAbs":      path.IsAbs,
+		"base":       path.Base,
+		"dir":        path.Dir,
+		"ext":        path.Ext,
+		"clean":      path.Clean,
+		"osBase":     filepath.Base,
+		"osClean":    filepath.Clean,
+		"osDir":      filepath.Dir,
+		"osExt":      filepath.Ext,
+		"osIsAbs":    filepath.IsAbs,
+		"deepEqual":  reflect.DeepEqual,
+		"typeOf":     FuncTypeOf,
+		"typeIs":     FuncTypeIs,
+		"typeIsLike": FuncTypeIsLike,
+		"kindOf":     FuncKindOf,
+		"kindIs":     FuncKindIs,
 	}
 }
 
-// StringMapLookupFunc is function which takes a map[string]string and returns a template function which
-// takes a string which is used as a key lookup for the map[string]string. If the value isn't found it returns an error.
-func StringMapLookupFunc(m map[string]string) func(key string) (value string, err error) {
-	return func(key string) (value string, err error) {
-		var ok bool
+// FuncTypeIs is a helper function that provides similar functionality to the helm typeIs func.
+func FuncTypeIs(is string, v any) bool {
+	return is == FuncTypeOf(v)
+}
 
-		if value, ok = m[key]; !ok {
-			return value, fmt.Errorf("failed to lookup key '%s' from map", key)
+// FuncTypeIsLike is a helper function that provides similar functionality to the helm typeIsLike func.
+func FuncTypeIsLike(is string, v any) bool {
+	t := FuncTypeOf(v)
+
+	return is == t || "*"+is == t
+}
+
+// FuncTypeOf is a helper function that provides similar functionality to the helm typeOf func.
+func FuncTypeOf(v any) string {
+	return reflect.ValueOf(v).Type().String()
+}
+
+// FuncKindIs is a helper function that provides similar functionality to the helm kindIs func.
+func FuncKindIs(is string, v any) bool {
+	return is == FuncKindOf(v)
+}
+
+// FuncKindOf is a helper function that provides similar functionality to the helm kindOf func.
+func FuncKindOf(v any) string {
+	return reflect.ValueOf(v).Kind().String()
+}
+
+// FuncList is a helper function that provides similar functionality to the helm list func.
+func FuncList(items ...any) []any {
+	return items
+}
+
+// FuncDict is a helper function that provides similar functionality to the helm dict func.
+func FuncDict(pairs ...any) map[string]any {
+	m := map[string]any{}
+	p := len(pairs)
+
+	for i := 0; i < p; i += 2 {
+		key := strval(pairs[i])
+
+		if i+1 >= p {
+			m[key] = ""
+
+			continue
 		}
 
-		return value, nil
+		m[key] = pairs[i+1]
+	}
+
+	return m
+}
+
+// FuncGet is a helper function that provides similar functionality to the helm get func.
+func FuncGet(m map[string]any, key string) any {
+	if val, ok := m[key]; ok {
+		return val
+	}
+
+	return ""
+}
+
+// FuncSet is a helper function that provides similar functionality to the helm set func.
+func FuncSet(m map[string]any, key string, value any) map[string]any {
+	m[key] = value
+
+	return m
+}
+
+// FuncB64Enc is a helper function that provides similar functionality to the helm b64enc func.
+func FuncB64Enc(input string) string {
+	return base64.StdEncoding.EncodeToString([]byte(input))
+}
+
+// FuncB64Dec is a helper function that provides similar functionality to the helm b64dec func.
+func FuncB64Dec(input string) (string, error) {
+	data, err := base64.StdEncoding.DecodeString(input)
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
+}
+
+// FuncB32Enc is a helper function that provides similar functionality to the helm b32enc func.
+func FuncB32Enc(input string) string {
+	return base32.StdEncoding.EncodeToString([]byte(input))
+}
+
+// FuncB32Dec is a helper function that provides similar functionality to the helm b32dec func.
+func FuncB32Dec(input string) (string, error) {
+	data, err := base32.StdEncoding.DecodeString(input)
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
+}
+
+// FuncExpandEnv is a special version of os.ExpandEnv that excludes secret keys.
+func FuncExpandEnv(s string) string {
+	return os.Expand(s, FuncGetEnv)
+}
+
+// FuncGetEnv is a special version of os.GetEnv that excludes secret keys.
+func FuncGetEnv(key string) string {
+	if isSecretEnvKey(key) {
+		return ""
+	}
+
+	return os.Getenv(key)
+}
+
+// FuncHashSum is a helper function that provides similar functionality to helm sum funcs.
+func FuncHashSum(new func() hash.Hash) func(data string) string {
+	hasher := new()
+
+	return func(data string) string {
+		sum := hasher.Sum([]byte(data))
+
+		return hex.EncodeToString(sum)
 	}
 }
 
-// IterateFunc is a template function which takes a single uint returning a slice of units from 0 up to that number.
-func IterateFunc(count *uint) (out []uint) {
+// FuncKeys is a helper function that provides similar functionality to the helm keys func.
+func FuncKeys(maps ...map[string]any) []string {
+	var keys []string
+
+	for _, m := range maps {
+		for k := range m {
+			keys = append(keys, k)
+		}
+	}
+
+	return keys
+}
+
+// FuncSortAlpha is a helper function that provides similar functionality to the helm sortAlpha func.
+func FuncSortAlpha(slice any) []string {
+	kind := reflect.Indirect(reflect.ValueOf(slice)).Kind()
+
+	switch kind {
+	case reflect.Slice, reflect.Array:
+		unsorted := strslice(slice)
+		sorted := sort.StringSlice(unsorted)
+		sorted.Sort()
+
+		return sorted
+	}
+
+	return []string{strval(slice)}
+}
+
+// FuncStringReplace is a helper function that provides similar functionality to the helm replace func.
+func FuncStringReplace(old, new, s string) string {
+	return strings.ReplaceAll(s, old, new)
+}
+
+// FuncStringContains is a helper function that provides similar functionality to the helm contains func.
+func FuncStringContains(substr string, s string) bool {
+	return strings.Contains(s, substr)
+}
+
+// FuncStringHasPrefix is a helper function that provides similar functionality to the helm hasPrefix func.
+func FuncStringHasPrefix(prefix string, s string) bool {
+	return strings.HasPrefix(s, prefix)
+}
+
+// FuncStringHasSuffix is a helper function that provides similar functionality to the helm hasSuffix func.
+func FuncStringHasSuffix(suffix string, s string) bool {
+	return strings.HasSuffix(s, suffix)
+}
+
+// FuncStringTrimAll is a helper function that provides similar functionality to the helm trimAll func.
+func FuncStringTrimAll(cutset, s string) string {
+	return strings.Trim(s, cutset)
+}
+
+// FuncStringTrimSuffix is a helper function that provides similar functionality to the helm trimSuffix func.
+func FuncStringTrimSuffix(suffix, s string) string {
+	return strings.TrimSuffix(s, suffix)
+}
+
+// FuncStringTrimPrefix is a helper function that provides similar functionality to the helm trimPrefix func.
+func FuncStringTrimPrefix(prefix, s string) string {
+	return strings.TrimPrefix(s, prefix)
+}
+
+// FuncElemsJoin is a helper function that provides similar functionality to the helm join func.
+func FuncElemsJoin(sep string, elems any) string {
+	return strings.Join(strslice(elems), sep)
+}
+
+// FuncStringSQuote is a helper function that provides similar functionality to the helm squote func.
+func FuncStringSQuote(in ...any) string {
+	out := make([]string, 0, len(in))
+
+	for _, s := range in {
+		if s != nil {
+			out = append(out, fmt.Sprintf("'%s'", strval(s)))
+		}
+	}
+
+	return strings.Join(out, " ")
+}
+
+// FuncStringQuote is a helper function that provides similar functionality to the helm quote func.
+func FuncStringQuote(in ...any) string {
+	out := make([]string, 0, len(in))
+
+	for _, s := range in {
+		if s != nil {
+			out = append(out, fmt.Sprintf("%q", strval(s)))
+		}
+	}
+
+	return strings.Join(out, " ")
+}
+
+func strval(v any) string {
+	switch v := v.(type) {
+	case string:
+		return v
+	case []byte:
+		return string(v)
+	case fmt.Stringer:
+		return v.String()
+	default:
+		return fmt.Sprintf("%v", v)
+	}
+}
+
+func strslice(v any) []string {
+	switch v := v.(type) {
+	case []string:
+		return v
+	case []any:
+		b := make([]string, 0, len(v))
+
+		for _, s := range v {
+			if s != nil {
+				b = append(b, strval(s))
+			}
+		}
+
+		return b
+	default:
+		val := reflect.ValueOf(v)
+		switch val.Kind() {
+		case reflect.Array, reflect.Slice:
+			l := val.Len()
+			b := make([]string, 0, l)
+
+			for i := 0; i < l; i++ {
+				value := val.Index(i).Interface()
+				if value != nil {
+					b = append(b, strval(value))
+				}
+			}
+
+			return b
+		default:
+			if v == nil {
+				return []string{}
+			}
+
+			return []string{strval(v)}
+		}
+	}
+}
+
+// FuncIterate is a template function which takes a single uint returning a slice of units from 0 up to that number.
+func FuncIterate(count *uint) (out []uint) {
 	var i uint
 
 	for i = 0; i < (*count); i++ {
@@ -45,14 +355,26 @@ func IterateFunc(count *uint) (out []uint) {
 	return
 }
 
-// StringsSplitFunc is a template function which takes sep and value, splitting the value by the sep into a slice.
-func StringsSplitFunc(value, sep string) []string {
-	return strings.Split(value, sep)
+// FuncStringSplit is a template function which takes sep and value, splitting the value by the sep into a slice.
+func FuncStringSplit(sep, value string) map[string]string {
+	parts := strings.Split(value, sep)
+	res := make(map[string]string, len(parts))
+
+	for i, v := range parts {
+		res["_"+strconv.Itoa(i)] = v
+	}
+
+	return res
 }
 
-// StringJoinXFunc takes a list of string elements, joins them by the sep string, before every int n characters are
+// FuncStringSplitList is a special split func that reverses the inputs to match helm templates.
+func FuncStringSplitList(sep, s string) []string {
+	return strings.Split(s, sep)
+}
+
+// FuncStringJoinX takes a list of string elements, joins them by the sep string, before every int n characters are
 // written it writes string p. This is useful for line breaks mostly.
-func StringJoinXFunc(elems []string, sep string, n int, p string) string {
+func FuncStringJoinX(elems []string, sep string, n int, p string) string {
 	buf := strings.Builder{}
 
 	c := 0

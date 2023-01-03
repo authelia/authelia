@@ -6,27 +6,50 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	tt "text/template"
 )
 
-func templateExists(path string) (exists bool) {
+const (
+	envPrefix  = "AUTHELIA_"
+	envXPrefix = "X_AUTHELIA_"
+)
+
+// IMPORTANT: This is a copy of github.com/authelia/authelia/internal/configuration's secretSuffixes except all uppercase.
+// Make sure you update these at the same time.
+var envSecretSuffixes = []string{
+	"KEY", "SECRET", "PASSWORD", "TOKEN", "CERTIFICATE_CHAIN",
+}
+
+func isSecretEnvKey(key string) (isSecretEnvKey bool) {
+	key = strings.ToUpper(key)
+
+	if !strings.HasPrefix(key, envPrefix) && !strings.HasPrefix(key, envXPrefix) {
+		return false
+	}
+
+	for _, s := range envSecretSuffixes {
+		suffix := strings.ToUpper(s)
+
+		if strings.HasSuffix(key, suffix) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func fileExists(path string) (exists bool) {
 	info, err := os.Stat(path)
-	if err != nil {
-		return false
-	}
 
-	if info.IsDir() {
-		return false
-	}
-
-	return true
+	return err == nil && !info.IsDir()
 }
 
 func readTemplate(name, ext, category, overridePath string) (tPath string, embed bool, data []byte, err error) {
 	if overridePath != "" {
 		tPath = filepath.Join(overridePath, name+ext)
 
-		if templateExists(tPath) {
+		if fileExists(tPath) {
 			if data, err = os.ReadFile(tPath); err != nil {
 				return tPath, false, nil, fmt.Errorf("failed to read template override at path '%s': %w", tPath, err)
 			}
@@ -45,7 +68,7 @@ func readTemplate(name, ext, category, overridePath string) (tPath string, embed
 }
 
 func parseTextTemplate(name, tPath string, embed bool, data []byte) (t *tt.Template, err error) {
-	if t, err = tt.New(name + extText).Parse(string(data)); err != nil {
+	if t, err = tt.New(name + extText).Funcs(FuncMap()).Parse(string(data)); err != nil {
 		if embed {
 			return nil, fmt.Errorf("failed to parse embedded template '%s': %w", tPath, err)
 		}
@@ -57,7 +80,7 @@ func parseTextTemplate(name, tPath string, embed bool, data []byte) (t *tt.Templ
 }
 
 func parseHTMLTemplate(name, tPath string, embed bool, data []byte) (t *th.Template, err error) {
-	if t, err = th.New(name + extHTML).Parse(string(data)); err != nil {
+	if t, err = th.New(name + extHTML).Funcs(FuncMap()).Parse(string(data)); err != nil {
 		if embed {
 			return nil, fmt.Errorf("failed to parse embedded template '%s': %w", tPath, err)
 		}
