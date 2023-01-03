@@ -175,6 +175,13 @@ func validateOIDCClients(config *schema.OpenIDConnectConfiguration, val *schema.
 			val.Push(fmt.Errorf(errFmtOIDCClientInvalidPolicy, client.ID, client.Policy))
 		}
 
+		switch client.PKCEChallengeMethod {
+		case "", "plain", "S256":
+			break
+		default:
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidPKCEChallengeMethod, client.ID, client.PKCEChallengeMethod))
+		}
+
 		validateOIDCClientConsentMode(c, config, val)
 		validateOIDCClientSectorIdentifier(client, val)
 		validateOIDCClientScopes(c, config, val)
