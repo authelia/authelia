@@ -1,9 +1,12 @@
 package templates
 
 import (
+	"os"
 	"testing"
+	"text/template"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestIsSecretEnvKey(t *testing.T) {
@@ -25,6 +28,28 @@ func TestIsSecretEnvKey(t *testing.T) {
 					assert.Equal(t, tc.expected, isSecretEnvKey(env))
 				})
 			}
+		})
+	}
+}
+
+func TestParseMiscTemplates(t *testing.T) {
+	testCases := []struct {
+		name, path string
+	}{
+		{"OpenAPISpec", "../../api/openapi.yml"},
+		{"ReactIndex", "../../web/index.html"},
+		{"ViteEnv", "../../web/.env.production"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			data, err := os.ReadFile(tc.path)
+
+			require.NoError(t, err)
+
+			_, err = template.New(tc.name).Funcs(FuncMap()).Parse(string(data))
+
+			require.NoError(t, err)
 		})
 	}
 }

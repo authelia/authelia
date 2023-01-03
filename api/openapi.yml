@@ -312,6 +312,7 @@ paths:
         - authelia_auth: []
     {{- end }}
     {{- end }}
+    {{- end }}
   /api/firstfactor:
     post:
       tags:
