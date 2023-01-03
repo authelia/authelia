@@ -49,10 +49,6 @@ type OpenIDConnectClientConfiguration struct {
 	SectorIdentifier url.URL         `koanf:"sector_identifier"`
 	Public           bool            `koanf:"public"`
 
-	EnforcePKCE bool `koanf:"enforce_pkce"`
-
-	PKCEChallengeMethod string `koanf:"pkce_challenge_method"`
-
 	RedirectURIs []string `koanf:"redirect_uris"`
 
 	Audience      []string `koanf:"audience"`
@@ -61,9 +57,12 @@ type OpenIDConnectClientConfiguration struct {
 	ResponseTypes []string `koanf:"response_types"`
 	ResponseModes []string `koanf:"response_modes"`
 
-	UserinfoSigningAlgorithm string `koanf:"userinfo_signing_algorithm"`
-
 	Policy string `koanf:"authorization_policy"`
+
+	EnforcePKCE bool `koanf:"enforce_pkce"`
+
+	UserinfoSigningAlgorithm string `koanf:"userinfo_signing_algorithm"`
+	PKCEChallengeMethod      string `koanf:"pkce_challenge_method"`
 
 	ConsentMode                  string         `koanf:"consent_mode"`
 	ConsentPreConfiguredDuration *time.Duration `koanf:"pre_configured_consent_duration"`
