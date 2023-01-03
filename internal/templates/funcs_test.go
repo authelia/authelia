@@ -357,6 +357,7 @@ func TestFuncSortAlpha(t *testing.T) {
 	}{
 		{"ShouldSortStrings", []string{"a", "c", "b"}, []string{"a", "b", "c"}},
 		{"ShouldSortIntegers", []int{2, 3, 1}, []string{"1", "2", "3"}},
+		{"ShouldSortSingleValue", 1, []string{"1"}},
 	}
 
 	for _, tc := range testCases {
@@ -562,4 +563,78 @@ func TestFuncGet(t *testing.T) {
 func TestFuncSet(t *testing.T) {
 	assert.Equal(t, map[string]any{"abc": 123, "123": true}, FuncSet(map[string]any{"abc": 123}, "123", true))
 	assert.Equal(t, map[string]any{"abc": true}, FuncSet(map[string]any{"abc": 123}, "abc", true))
+}
+
+func TestFuncDefault(t *testing.T) {
+	testCases := []struct {
+		name     string
+		value    []any
+		have     any
+		expected any
+	}{
+		{"ShouldDefaultEmptyString", []any{""}, "default", "default"},
+		{"ShouldNotDefaultString", []any{"not default"}, "default", "not default"},
+		{"ShouldDefaultEmptyInteger", []any{0}, 1, 1},
+		{"ShouldNotDefaultInteger", []any{20}, 1, 20},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncDefault(tc.have, tc.value...))
+		})
+	}
+}
+
+func TestFuncEmpty(t *testing.T) {
+	var nilv *string
+
+	testCases := []struct {
+		name     string
+		value    any
+		expected bool
+	}{
+		{"ShouldBeEmptyNil", nilv, true},
+		{"ShouldBeEmptyNilNil", nil, true},
+		{"ShouldBeEmptyString", "", true},
+		{"ShouldNotBeEmptyString", "abc", false},
+		{"ShouldBeEmptyArray", []string{}, true},
+		{"ShouldNotBeEmptyArray", []string{"abc"}, false},
+		{"ShouldBeEmptyInteger", 0, true},
+		{"ShouldNotBeEmptyInteger", 1, false},
+		{"ShouldBeEmptyInteger8", int8(0), true},
+		{"ShouldNotBeEmptyInteger8", int8(1), false},
+		{"ShouldBeEmptyInteger16", int16(0), true},
+		{"ShouldNotBeEmptyInteger16", int16(1), false},
+		{"ShouldBeEmptyInteger32", int32(0), true},
+		{"ShouldNotBeEmptyInteger32", int32(1), false},
+		{"ShouldBeEmptyInteger64", int64(0), true},
+		{"ShouldNotBeEmptyInteger64", int64(1), false},
+		{"ShouldBeEmptyUnsignedInteger", uint(0), true},
+		{"ShouldNotBeEmptyUnsignedInteger", uint(1), false},
+		{"ShouldBeEmptyUnsignedInteger8", uint8(0), true},
+		{"ShouldNotBeEmptyUnsignedInteger8", uint8(1), false},
+		{"ShouldBeEmptyUnsignedInteger16", uint16(0), true},
+		{"ShouldNotBeEmptyUnsignedInteger16", uint16(1), false},
+		{"ShouldBeEmptyUnsignedInteger32", uint32(0), true},
+		{"ShouldNotBeEmptyUnsignedInteger32", uint32(1), false},
+		{"ShouldBeEmptyUnsignedInteger64", uint64(0), true},
+		{"ShouldNotBeEmptyUnsignedInteger64", uint64(1), false},
+		{"ShouldBeEmptyComplex64", complex64(complex(0, 0)), true},
+		{"ShouldNotBeEmptyComplex64", complex64(complex(100000, 7.5)), false},
+		{"ShouldBeEmptyComplex128", complex128(complex(0, 0)), true},
+		{"ShouldNotBeEmptyComplex128", complex128(complex(100000, 7.5)), false},
+		{"ShouldBeEmptyFloat32", float32(0), true},
+		{"ShouldNotBeEmptyFloat32", float32(1), false},
+		{"ShouldBeEmptyFloat64", float64(0), true},
+		{"ShouldNotBeEmptyFloat64", float64(1), false},
+		{"ShouldBeEmptyBoolean", false, true},
+		{"ShouldNotBeEmptyBoolean", true, false},
+		{"ShouldNotBeEmptyStruct", struct{}{}, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncEmpty(tc.value))
+		})
+	}
 }
