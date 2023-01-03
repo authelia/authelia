@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS oauth2_par_context (
-	id INTEGER AUTO_INCREMENT,
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 	signature VARCHAR(255) NOT NULL,
 	request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -11,8 +11,7 @@ CREATE TABLE IF NOT EXISTS oauth2_par_context (
 	response_mode_default TEXT NOT NULL,
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
-    session_data BYTEA NOT NULL,
-    PRIMARY KEY (id)
+    session_data BLOB NOT NULL
 );
 
 CREATE UNIQUE INDEX oauth2_par_context_signature_key ON oauth2_par_context (signature);
