@@ -18,12 +18,11 @@ func TestNtpIsOffsetTooLarge(t *testing.T) {
 
 func TestNtpPacketToTime(t *testing.T) {
 	resp := &ntpPacket{
-
 		TxTimeSeconds:  60,
 		TxTimeFraction: 0,
 	}
 
-	expected := time.Date(1900, time.January, 1, 0, 1, 0, 0, time.Local)
+	expected := time.Unix(int64(float64(60) - ntpEpochOffset), 0)
 
 	ntpTime := ntpPacketToTime(resp)
 	assert.Equal(t, expected, ntpTime)
