@@ -71,75 +71,9 @@ func FuncMap() map[string]any {
 		"typeIsLike": FuncTypeIsLike,
 		"kindOf":     FuncKindOf,
 		"kindIs":     FuncKindIs,
+		"default":    FuncDefault,
+		"empty":      FuncEmpty,
 	}
-}
-
-// FuncTypeIs is a helper function that provides similar functionality to the helm typeIs func.
-func FuncTypeIs(is string, v any) bool {
-	return is == FuncTypeOf(v)
-}
-
-// FuncTypeIsLike is a helper function that provides similar functionality to the helm typeIsLike func.
-func FuncTypeIsLike(is string, v any) bool {
-	t := FuncTypeOf(v)
-
-	return is == t || "*"+is == t
-}
-
-// FuncTypeOf is a helper function that provides similar functionality to the helm typeOf func.
-func FuncTypeOf(v any) string {
-	return reflect.ValueOf(v).Type().String()
-}
-
-// FuncKindIs is a helper function that provides similar functionality to the helm kindIs func.
-func FuncKindIs(is string, v any) bool {
-	return is == FuncKindOf(v)
-}
-
-// FuncKindOf is a helper function that provides similar functionality to the helm kindOf func.
-func FuncKindOf(v any) string {
-	return reflect.ValueOf(v).Kind().String()
-}
-
-// FuncList is a helper function that provides similar functionality to the helm list func.
-func FuncList(items ...any) []any {
-	return items
-}
-
-// FuncDict is a helper function that provides similar functionality to the helm dict func.
-func FuncDict(pairs ...any) map[string]any {
-	m := map[string]any{}
-	p := len(pairs)
-
-	for i := 0; i < p; i += 2 {
-		key := strval(pairs[i])
-
-		if i+1 >= p {
-			m[key] = ""
-
-			continue
-		}
-
-		m[key] = pairs[i+1]
-	}
-
-	return m
-}
-
-// FuncGet is a helper function that provides similar functionality to the helm get func.
-func FuncGet(m map[string]any, key string) any {
-	if val, ok := m[key]; ok {
-		return val
-	}
-
-	return ""
-}
-
-// FuncSet is a helper function that provides similar functionality to the helm set func.
-func FuncSet(m map[string]any, key string, value any) map[string]any {
-	m[key] = value
-
-	return m
 }
 
 // FuncB64Enc is a helper function that provides similar functionality to the helm b64enc func.
@@ -397,4 +331,107 @@ func FuncStringJoinX(elems []string, sep string, n int, p string) string {
 	}
 
 	return buf.String()
+}
+
+// FuncTypeIs is a helper function that provides similar functionality to the helm typeIs func.
+func FuncTypeIs(is string, v any) bool {
+	return is == FuncTypeOf(v)
+}
+
+// FuncTypeIsLike is a helper function that provides similar functionality to the helm typeIsLike func.
+func FuncTypeIsLike(is string, v any) bool {
+	t := FuncTypeOf(v)
+
+	return is == t || "*"+is == t
+}
+
+// FuncTypeOf is a helper function that provides similar functionality to the helm typeOf func.
+func FuncTypeOf(v any) string {
+	return reflect.ValueOf(v).Type().String()
+}
+
+// FuncKindIs is a helper function that provides similar functionality to the helm kindIs func.
+func FuncKindIs(is string, v any) bool {
+	return is == FuncKindOf(v)
+}
+
+// FuncKindOf is a helper function that provides similar functionality to the helm kindOf func.
+func FuncKindOf(v any) string {
+	return reflect.ValueOf(v).Kind().String()
+}
+
+// FuncList is a helper function that provides similar functionality to the helm list func.
+func FuncList(items ...any) []any {
+	return items
+}
+
+// FuncDict is a helper function that provides similar functionality to the helm dict func.
+func FuncDict(pairs ...any) map[string]any {
+	m := map[string]any{}
+	p := len(pairs)
+
+	for i := 0; i < p; i += 2 {
+		key := strval(pairs[i])
+
+		if i+1 >= p {
+			m[key] = ""
+
+			continue
+		}
+
+		m[key] = pairs[i+1]
+	}
+
+	return m
+}
+
+// FuncGet is a helper function that provides similar functionality to the helm get func.
+func FuncGet(m map[string]any, key string) any {
+	if val, ok := m[key]; ok {
+		return val
+	}
+
+	return ""
+}
+
+// FuncSet is a helper function that provides similar functionality to the helm set func.
+func FuncSet(m map[string]any, key string, value any) map[string]any {
+	m[key] = value
+
+	return m
+}
+
+// FuncDefault is a helper function that provides similar functionality to the helm default func.
+func FuncDefault(d any, vals ...any) interface{} {
+	if FuncEmpty(vals) || FuncEmpty(vals[0]) {
+		return d
+	}
+	return vals[0]
+}
+
+// FuncEmpty is a helper function that provides similar functionality to the helm empty func.
+func FuncEmpty(v any) bool {
+	rv := reflect.ValueOf(v)
+	if !rv.IsValid() {
+		return true
+	}
+
+	switch rv.Kind() {
+	default:
+		return rv.IsNil()
+	case reflect.Array, reflect.Slice, reflect.Map, reflect.String:
+		return rv.Len() == 0
+	case reflect.Bool:
+		return !rv.Bool()
+	case reflect.Complex64, reflect.Complex128:
+		return rv.Complex() == 0
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return rv.Int() == 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return rv.Uint() == 0
+	case reflect.Float32, reflect.Float64:
+		return rv.Float() == 0
+	case reflect.Struct:
+		return false
+	}
 }
