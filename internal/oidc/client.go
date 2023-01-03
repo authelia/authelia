@@ -11,16 +11,10 @@ import (
 
 // NewClient creates a new Client.
 func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) {
-	var secret []byte
-
-	if config.Secret != nil {
-		secret = []byte(config.Secret.Encode())
-	}
-
 	client = &Client{
 		ID:               config.ID,
 		Description:      config.Description,
-		Secret:           secret,
+		Secret:           config.Secret,
 		SectorIdentifier: config.SectorIdentifier.String(),
 		Public:           config.Public,
 
@@ -84,7 +78,11 @@ func (c *Client) GetConsentResponseBody(consent *model.OAuth2ConsentSession) Con
 
 // GetHashedSecret returns the Secret.
 func (c *Client) GetHashedSecret() (secret []byte) {
-	return c.Secret
+	if c.Secret == nil {
+		return []byte(nil)
+	}
+
+	return []byte(c.Secret.Encode())
 }
 
 // GetRedirectURIs returns the RedirectURIs.

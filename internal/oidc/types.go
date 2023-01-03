@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/go-crypt/crypt/algorithm"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
@@ -102,7 +103,7 @@ type Store struct {
 type Client struct {
 	ID               string
 	Description      string
-	Secret           []byte
+	Secret           algorithm.Digest
 	SectorIdentifier string
 	Public           bool
 
