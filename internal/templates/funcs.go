@@ -402,10 +402,11 @@ func FuncSet(m map[string]any, key string, value any) map[string]any {
 }
 
 // FuncDefault is a helper function that provides similar functionality to the helm default func.
-func FuncDefault(d any, vals ...any) interface{} {
+func FuncDefault(d any, vals ...any) any {
 	if FuncEmpty(vals) || FuncEmpty(vals[0]) {
 		return d
 	}
+
 	return vals[0]
 }
 
