@@ -47,7 +47,7 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 }
 
 // ValidateAuthorizationPolicy is a helper function to validate additional policy constraints on a per-client basis.
-func (c *Client) ValidateAuthorizationPolicy(r fosite.AuthorizeRequester) (err error) {
+func (c *Client) ValidateAuthorizationPolicy(r fosite.Requester) (err error) {
 	form := r.GetRequestForm()
 
 	if c.EnforcePKCE {
@@ -60,8 +60,8 @@ func (c *Client) ValidateAuthorizationPolicy(r fosite.AuthorizeRequester) (err e
 		if c.EnforcePKCEChallengeMethod {
 			if method := form.Get("code_challenge_method"); method != c.PKCEChallengeMethod {
 				return errorsx.WithStack(fosite.ErrInvalidRequest.
-					WithHint(fmt.Sprintf("Client must use code_challenge_method=%s, %s is not allowed.", c.EnforcePKCEChallengeMethod, method)).
-					WithDebug(fmt.Sprintf("The server is configured in a way that enforces PKCE %s as challenge method for this client.", c.EnforcePKCEChallengeMethod)))
+					WithHint(fmt.Sprintf("Client must use code_challenge_method=%s, %s is not allowed.", c.PKCEChallengeMethod, method)).
+					WithDebug(fmt.Sprintf("The server is configured in a way that enforces PKCE %s as challenge method for this client.", c.PKCEChallengeMethod)))
 			}
 		}
 	}

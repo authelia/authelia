@@ -49,8 +49,7 @@ type OpenIDConnectClientConfiguration struct {
 	SectorIdentifier url.URL         `koanf:"sector_identifier"`
 	Public           bool            `koanf:"public"`
 
-	EnforcePKCE        bool `koanf:"enforce_pkce"`
-	EnforcePKCENoPlain bool `koanf:"enforce_pkce_no_plain"`
+	EnforcePKCE bool `koanf:"enforce_pkce"`
 
 	PKCEChallengeMethod string `koanf:"pkce_challenge_method"`
 
