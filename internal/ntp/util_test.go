@@ -22,7 +22,7 @@ func TestNtpPacketToTime(t *testing.T) {
 		TxTimeFraction: 0,
 	}
 
-	expected := time.Unix(int64(float64(60) - ntpEpochOffset), 0)
+	expected := time.Unix(int64(float64(60)-ntpEpochOffset), 0)
 
 	ntpTime := ntpPacketToTime(resp)
 	assert.Equal(t, expected, ntpTime)
