@@ -357,6 +357,7 @@ func TestFuncSortAlpha(t *testing.T) {
 	}{
 		{"ShouldSortStrings", []string{"a", "c", "b"}, []string{"a", "b", "c"}},
 		{"ShouldSortIntegers", []int{2, 3, 1}, []string{"1", "2", "3"}},
+		{"ShouldSortSingleValue", 1, []string{"1"}},
 	}
 
 	for _, tc := range testCases {

@@ -226,58 +226,6 @@ func FuncStringQuote(in ...any) string {
 	return strings.Join(out, " ")
 }
 
-func strval(v any) string {
-	switch v := v.(type) {
-	case string:
-		return v
-	case []byte:
-		return string(v)
-	case fmt.Stringer:
-		return v.String()
-	default:
-		return fmt.Sprintf("%v", v)
-	}
-}
-
-func strslice(v any) []string {
-	switch v := v.(type) {
-	case []string:
-		return v
-	case []any:
-		b := make([]string, 0, len(v))
-
-		for _, s := range v {
-			if s != nil {
-				b = append(b, strval(s))
-			}
-		}
-
-		return b
-	default:
-		val := reflect.ValueOf(v)
-		switch val.Kind() {
-		case reflect.Array, reflect.Slice:
-			l := val.Len()
-			b := make([]string, 0, l)
-
-			for i := 0; i < l; i++ {
-				value := val.Index(i).Interface()
-				if value != nil {
-					b = append(b, strval(value))
-				}
-			}
-
-			return b
-		default:
-			if v == nil {
-				return []string{}
-			}
-
-			return []string{strval(v)}
-		}
-	}
-}
-
 // FuncIterate is a template function which takes a single uint returning a slice of units from 0 up to that number.
 func FuncIterate(count *uint) (out []uint) {
 	var i uint
