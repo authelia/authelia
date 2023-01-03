@@ -107,6 +107,10 @@ type Client struct {
 	SectorIdentifier string
 	Public           bool
 
+	EnforcePKCE                bool
+	EnforcePKCEChallengeMethod bool
+	PKCEChallengeMethod        string
+
 	Audience      []string
 	Scopes        []string
 	RedirectURIs  []string

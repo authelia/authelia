@@ -1,7 +1,10 @@
 package oidc
 
 import (
+	"fmt"
+
 	"github.com/ory/fosite"
+	"github.com/ory/x/errorsx"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -17,6 +20,10 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 		Secret:           config.Secret,
 		SectorIdentifier: config.SectorIdentifier.String(),
 		Public:           config.Public,
+
+		EnforcePKCE:                config.EnforcePKCE || config.PKCEChallengeMethod != "",
+		EnforcePKCEChallengeMethod: config.PKCEChallengeMethod != "",
+		PKCEChallengeMethod:        config.PKCEChallengeMethod,
 
 		Audience:      config.Audience,
 		Scopes:        config.Scopes,
@@ -41,6 +48,29 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 	return client
 }
 
+// ValidateAuthorizationPolicy is a helper function to validate additional policy constraints on a per-client basis.
+func (c *Client) ValidateAuthorizationPolicy(r fosite.Requester) (err error) {
+	form := r.GetRequestForm()
+
+	if c.EnforcePKCE {
+		if form.Get("code_challenge") == "" {
+			return errorsx.WithStack(fosite.ErrInvalidRequest.
+				WithHint("Clients must include a code_challenge when performing the authorize code flow, but it is missing.").
+				WithDebug("The server is configured in a way that enforces PKCE for this client."))
+		}
+
+		if c.EnforcePKCEChallengeMethod {
+			if method := form.Get("code_challenge_method"); method != c.PKCEChallengeMethod {
+				return errorsx.WithStack(fosite.ErrInvalidRequest.
+					WithHint(fmt.Sprintf("Client must use code_challenge_method=%s, %s is not allowed.", c.PKCEChallengeMethod, method)).
+					WithDebug(fmt.Sprintf("The server is configured in a way that enforces PKCE %s as challenge method for this client.", c.PKCEChallengeMethod)))
+			}
+		}
+	}
+
+	return nil
+}
+
 // IsAuthenticationLevelSufficient returns if the provided authentication.Level is sufficient for the client of the AutheliaClient.
 func (c *Client) IsAuthenticationLevelSufficient(level authentication.Level) bool {
 	if level == authentication.NotAuthenticated {
@@ -48,11 +78,6 @@ func (c *Client) IsAuthenticationLevelSufficient(level authentication.Level) boo
 	}
 
 	return authorization.IsAuthLevelSufficient(level, c.Policy)
-}
-
-// GetID returns the ID.
-func (c *Client) GetID() string {
-	return c.ID
 }
 
 // GetSectorIdentifier returns the SectorIdentifier for this client.
@@ -74,6 +99,11 @@ func (c *Client) GetConsentResponseBody(consent *model.OAuth2ConsentSession) Con
 	}
 
 	return body
+}
+
+// GetID returns the ID.
+func (c *Client) GetID() string {
+	return c.ID
 }
 
 // GetHashedSecret returns the Secret.

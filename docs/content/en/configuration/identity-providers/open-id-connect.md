@@ -421,11 +421,97 @@ useful for SPA's and CLI tools. This option requires setting the [client secret]
 In addition to the standard rules for redirect URIs, public clients can use the `urn:ietf:wg:oauth:2.0:oob` redirect
 URI.
 
+#### redirect_uris
+
+{{< confkey type="list(string)" required="yes" >}}
+
+A list of valid callback URIs this client will redirect to. All other callbacks will be considered unsafe. The URIs are
+case-sensitive and they differ from application to application - the community has provided
+[a list of URL´s for common applications](../../integration/openid-connect/introduction.md).
+
+Some restrictions that have been placed on clients and
+their redirect URIs are as follows:
+
+1. If a client attempts to authorize with Authelia and its redirect URI is not listed in the client configuration the
+   attempt to authorize will fail and an error will be generated.
+2. The redirect URIs are case-sensitive.
+3. The URI must include a scheme and that scheme must be one of `http` or `https`.
+4. The client can ignore rule 3 and use `urn:ietf:wg:oauth:2.0:oob` if it is a [public](#public) client type.
+
+#### audience
+
+{{< confkey type="list(string)" required="no" >}}
+
+A list of audiences this client is allowed to request.
+
+#### scopes
+
+{{< confkey type="list(string)" default="openid, groups, profile, email" required="no" >}}
+
+A list of scopes to allow this client to consume. See
+[scope definitions](../../integration/openid-connect/introduction.md#scope-definitions) for more information. The
+documentation for the application you want to use with Authelia will most-likely provide you with the scopes to allow.
+
+#### grant_types
+
+{{< confkey type="list(string)" default="refresh_token, authorization_code" required="no" >}}
+
+A list of grant types this client can return. *It is recommended that this isn't configured at this time unless you
+know what you're doing*. Valid options are: `implicit`, `refresh_token`, `authorization_code`, `password`,
+`client_credentials`.
+
+#### response_types
+
+{{< confkey type="list(string)" default="code" required="no" >}}
+
+A list of response types this client can return. *It is recommended that this isn't configured at this time unless you
+know what you're doing*. Valid options are: `code`, `code id_token`, `id_token`, `token id_token`, `token`,
+`token id_token code`.
+
+#### response_modes
+
+{{< confkey type="list(string)" default="form_post, query, fragment" required="no" >}}
+
+A list of response modes this client can return. It is recommended that this isn't configured at this time unless you
+know what you're doing. Potential values are `form_post`, `query`, and `fragment`.
+
 #### authorization_policy
 
 {{< confkey type="string" default="two_factor" required="no" >}}
 
 The authorization policy for this client: either `one_factor` or `two_factor`.
+
+#### enforce_par
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enforces the use of a [Pushed Authorization Requests] flow for this client.
+
+#### enforce_pkce
+
+{{< confkey type="bool" default="false" required="no" >}}
+
+This setting enforces the use of [PKCE] for this individual client. To enforce it for all clients see the global
+[enforce_pkce](#enforcepkce) setting.
+
+#### pkce_challenge_method
+
+{{< confkey type="string" default="" required="no" >}}
+
+This setting enforces the use of the specified [PKCE] challenge method for this individual client. This setting also
+effectively enables the [enforce_pkce](#enforcepkce-1) option for this client.
+
+Valid values are an empty string, `plain`, or `S256`. It should be noted that `S256` is strongly recommended if the
+relying party supports it.
+
+#### userinfo_signing_algorithm
+
+{{< confkey type="string" default="none" required="no" >}}
+
+The algorithm used to sign the userinfo endpoint responses. This can either be `none` or `RS256`.
+
+See the [integration guide](../../integration/openid-connect/introduction.md#user-information-signing-algorithm) for
+more information.
 
 #### consent_mode
 
@@ -458,75 +544,6 @@ Pre-configured consents are only valid if the subject, client id are exactly the
 match exactly with the granted scopes/audience.
 
 [consent_mode]: #consentmode
-
-#### audience
-
-{{< confkey type="list(string)" required="no" >}}
-
-A list of audiences this client is allowed to request.
-
-#### scopes
-
-{{< confkey type="list(string)" default="openid, groups, profile, email" required="no" >}}
-
-A list of scopes to allow this client to consume. See
-[scope definitions](../../integration/openid-connect/introduction.md#scope-definitions) for more information. The
-documentation for the application you want to use with Authelia will most-likely provide you with the scopes to allow.
-
-#### redirect_uris
-
-{{< confkey type="list(string)" required="yes" >}}
-
-A list of valid callback URIs this client will redirect to. All other callbacks will be considered unsafe. The URIs are
-case-sensitive and they differ from application to application - the community has provided
-[a list of URL´s for common applications](../../integration/openid-connect/introduction.md).
-
-Some restrictions that have been placed on clients and
-their redirect URIs are as follows:
-
-1. If a client attempts to authorize with Authelia and its redirect URI is not listed in the client configuration the
-   attempt to authorize will fail and an error will be generated.
-2. The redirect URIs are case-sensitive.
-3. The URI must include a scheme and that scheme must be one of `http` or `https`.
-4. The client can ignore rule 3 and use `urn:ietf:wg:oauth:2.0:oob` if it is a [public](#public) client type.
-
-#### grant_types
-
-{{< confkey type="list(string)" default="refresh_token, authorization_code" required="no" >}}
-
-A list of grant types this client can return. *It is recommended that this isn't configured at this time unless you
-know what you're doing*. Valid options are: `implicit`, `refresh_token`, `authorization_code`, `password`,
-`client_credentials`.
-
-#### response_types
-
-{{< confkey type="list(string)" default="code" required="no" >}}
-
-A list of response types this client can return. *It is recommended that this isn't configured at this time unless you
-know what you're doing*. Valid options are: `code`, `code id_token`, `id_token`, `token id_token`, `token`,
-`token id_token code`.
-
-#### response_modes
-
-{{< confkey type="list(string)" default="form_post, query, fragment" required="no" >}}
-
-A list of response modes this client can return. It is recommended that this isn't configured at this time unless you
-know what you're doing. Potential values are `form_post`, `query`, and `fragment`.
-
-#### enforce_par
-
-{{< confkey type="boolean" default="false" required="no" >}}
-
-Enforces the use of a [Pushed Authorization Requests] flow for this client.
-
-#### userinfo_signing_algorithm
-
-{{< confkey type="string" default="none" required="no" >}}
-
-The algorithm used to sign the userinfo endpoint responses. This can either be `none` or `RS256`.
-
-See the [integration guide](../../integration/openid-connect/introduction.md#user-information-signing-algorithm) for
-more information.
 
 ## Integration
 

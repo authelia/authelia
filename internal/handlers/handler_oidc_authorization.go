@@ -4,11 +4,9 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/ory/fosite"
-	"github.com/ory/x/errorsx"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -54,20 +52,14 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return
 	}
 
-	if client.EnforcePAR {
-		par := requester.GetRequestForm().Get(oidc.FormParameterRequestURI)
+	if err = client.ValidateAuthorizationPolicy(requester); err != nil {
+		rfc := fosite.ErrorToRFC6749Error(err)
 
-		if !strings.HasPrefix(requester.GetRequestForm().Get(oidc.FormParameterRequestURI), ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)) {
-			if par == "" {
-				ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: the client is configured to enforce Pushed Authorization Requests but a standard Authorization Request was received", requester.GetID(), clientID)
-			} else {
-				ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: the client is configured to enforce Pushed Authorization Requests but the '%s' parameter with value '%s' is malformed or does not appear to be intended as a Pushed Authorization Request", requester.GetID(), clientID, oidc.FormParameterRequestURI, par)
-			}
+		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' failed to validate the authorization policy: %s", requester.GetID(), clientID, rfc.WithExposeDebug(true).GetDescription())
 
-			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, errorsx.WithStack(oidc.ErrPAREnforcedClientMissingPAR))
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
 
-			return
-		}
+		return
 	}
 
 	issuer = ctx.RootURL()
