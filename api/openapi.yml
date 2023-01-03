@@ -1,4 +1,3 @@
-# yamllint disable rule:line-length
 ---
 openapi: 3.0.3
 info:
@@ -22,18 +21,24 @@ tags:
     description: Configuration, health and state endpoints
   - name: Authentication
     description: Authentication and verification endpoints
+  {{- if .PasswordReset }}
   - name: Password Reset
     description: Password reset endpoints
   - name: User Information
     description: User configuration endpoints
+  {{- end }}
+  {{- if (or .TOTP .Webauthn .Duo) }}
   - name: Second Factor
     description: TOTP, Webauthn and Duo endpoints
     externalDocs:
       url: https://www.authelia.com/configuration/second-factor/introduction/
+  {{- end }}
+  {{- if .OpenIDConnect }}
   - name: OpenID Connect 1.0
     description: OpenID Connect 1.0 and OAuth 2.0 Endpoints
     externalDocs:
       url: https://www.authelia.com/integration/openid-connect/introduction/
+  {{- end }}
 paths:
   /api/configuration:
     get:
@@ -97,7 +102,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/handlers.StateResponse'
   /api/verify:
-    get:
+    {{- range $method := list "get" "head" "options" "post" "put" "patch" "delete" "trace" }}
+    {{ $method }}:
       tags:
         - Authentication
       summary: Verification
@@ -136,279 +142,7 @@ paths:
           description: Unauthorized
       security:
         - authelia_auth: []
-    head:
-      tags:
-        - Authentication
-      summary: Verification
-      description: >
-        The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified
-        domain.
-      parameters:
-        - $ref: '#/components/parameters/originalURLParam'
-        - $ref: '#/components/parameters/forwardedMethodParam'
-        - $ref: '#/components/parameters/authParam'
-      responses:
-        "200":
-          description: Successful Operation
-          headers:
-            remote-user:
-              description: Username
-              schema:
-                type: string
-                example: john
-            remote-name:
-              description: Name
-              schema:
-                type: string
-                example: John Doe
-            remote-email:
-              description: Email
-              schema:
-                type: string
-                example: john.doe@authelia.com
-            remote-groups:
-              description: Comma separated list of Groups
-              schema:
-                type: string
-                example: admin,devs
-        "401":
-          description: Unauthorized
-      security:
-        - authelia_auth: []
-    options:
-      tags:
-        - Authentication
-      summary: Verification
-      description: >
-        The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified
-        domain.
-      parameters:
-        - $ref: '#/components/parameters/originalURLParam'
-        - $ref: '#/components/parameters/forwardedMethodParam'
-        - $ref: '#/components/parameters/authParam'
-      responses:
-        "200":
-          description: Successful Operation
-          headers:
-            remote-user:
-              description: Username
-              schema:
-                type: string
-                example: john
-            remote-name:
-              description: Name
-              schema:
-                type: string
-                example: John Doe
-            remote-email:
-              description: Email
-              schema:
-                type: string
-                example: john.doe@authelia.com
-            remote-groups:
-              description: Comma separated list of Groups
-              schema:
-                type: string
-                example: admin,devs
-        "401":
-          description: Unauthorized
-      security:
-        - authelia_auth: []
-    post:
-      tags:
-        - Authentication
-      summary: Verification
-      description: >
-        The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified
-        domain.
-      parameters:
-        - $ref: '#/components/parameters/originalURLParam'
-        - $ref: '#/components/parameters/forwardedMethodParam'
-        - $ref: '#/components/parameters/authParam'
-      responses:
-        "200":
-          description: Successful Operation
-          headers:
-            remote-user:
-              description: Username
-              schema:
-                type: string
-                example: john
-            remote-name:
-              description: Name
-              schema:
-                type: string
-                example: John Doe
-            remote-email:
-              description: Email
-              schema:
-                type: string
-                example: john.doe@authelia.com
-            remote-groups:
-              description: Comma separated list of Groups
-              schema:
-                type: string
-                example: admin,devs
-        "401":
-          description: Unauthorized
-      security:
-        - authelia_auth: []
-    put:
-      tags:
-        - Authentication
-      summary: Verification
-      description: >
-        The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified
-        domain.
-      parameters:
-        - $ref: '#/components/parameters/originalURLParam'
-        - $ref: '#/components/parameters/forwardedMethodParam'
-        - $ref: '#/components/parameters/authParam'
-      responses:
-        "200":
-          description: Successful Operation
-          headers:
-            remote-user:
-              description: Username
-              schema:
-                type: string
-                example: john
-            remote-name:
-              description: Name
-              schema:
-                type: string
-                example: John Doe
-            remote-email:
-              description: Email
-              schema:
-                type: string
-                example: john.doe@authelia.com
-            remote-groups:
-              description: Comma separated list of Groups
-              schema:
-                type: string
-                example: admin,devs
-        "401":
-          description: Unauthorized
-      security:
-        - authelia_auth: []
-    patch:
-      tags:
-        - Authentication
-      summary: Verification
-      description: >
-        The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified
-        domain.
-      parameters:
-        - $ref: '#/components/parameters/originalURLParam'
-        - $ref: '#/components/parameters/forwardedMethodParam'
-        - $ref: '#/components/parameters/authParam'
-      responses:
-        "200":
-          description: Successful Operation
-          headers:
-            remote-user:
-              description: Username
-              schema:
-                type: string
-                example: john
-            remote-name:
-              description: Name
-              schema:
-                type: string
-                example: John Doe
-            remote-email:
-              description: Email
-              schema:
-                type: string
-                example: john.doe@authelia.com
-            remote-groups:
-              description: Comma separated list of Groups
-              schema:
-                type: string
-                example: admin,devs
-        "401":
-          description: Unauthorized
-      security:
-        - authelia_auth: []
-    delete:
-      tags:
-        - Authentication
-      summary: Verification
-      description: >
-        The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified
-        domain.
-      parameters:
-        - $ref: '#/components/parameters/originalURLParam'
-        - $ref: '#/components/parameters/forwardedMethodParam'
-        - $ref: '#/components/parameters/authParam'
-      responses:
-        "200":
-          description: Successful Operation
-          headers:
-            remote-user:
-              description: Username
-              schema:
-                type: string
-                example: john
-            remote-name:
-              description: Name
-              schema:
-                type: string
-                example: John Doe
-            remote-email:
-              description: Email
-              schema:
-                type: string
-                example: john.doe@authelia.com
-            remote-groups:
-              description: Comma separated list of Groups
-              schema:
-                type: string
-                example: admin,devs
-        "401":
-          description: Unauthorized
-      security:
-        - authelia_auth: []
-    trace:
-      tags:
-        - Authentication
-      summary: Verification
-      description: >
-        The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified
-        domain.
-      parameters:
-        - $ref: '#/components/parameters/originalURLParam'
-        - $ref: '#/components/parameters/forwardedMethodParam'
-        - $ref: '#/components/parameters/authParam'
-      responses:
-        "200":
-          description: Successful Operation
-          headers:
-            remote-user:
-              description: Username
-              schema:
-                type: string
-                example: john
-            remote-name:
-              description: Name
-              schema:
-                type: string
-                example: John Doe
-            remote-email:
-              description: Email
-              schema:
-                type: string
-                example: john.doe@authelia.com
-            remote-groups:
-              description: Comma separated list of Groups
-              schema:
-                type: string
-                example: admin,devs
-        "401":
-          description: Unauthorized
-      security:
-        - authelia_auth: []
+    {{- end }}
   /api/firstfactor:
     post:
       tags:
@@ -477,6 +211,7 @@ paths:
                 $ref: '#/components/schemas/handlers.logoutResponseBody'
       security:
         - authelia_auth: []
+  {{- if .PasswordReset }}
   /api/reset-password/identity/start:
     post:
       tags:
@@ -494,7 +229,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/handlers.resetPasswordStep1RequestBody'
+              $ref: '#/components/schemas/handlers.PasswordResetStep1RequestBody'
       responses:
         "200":
           description: Successful Operation
@@ -546,7 +281,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/handlers.resetPasswordStep2RequestBody'
+              $ref: '#/components/schemas/handlers.PasswordResetStep2RequestBody'
       responses:
         "200":
           description: Successful Operation
@@ -556,6 +291,7 @@ paths:
                 $ref: '#/components/schemas/middlewares.OkResponse'
       security:
         - authelia_auth: []
+  {{- end }}
   /api/user/info:
     get:
       tags:
@@ -593,25 +329,6 @@ paths:
           description: Forbidden
       security:
         - authelia_auth: []
-  /api/user/info/totp:
-    get:
-      tags:
-        - User Information
-      summary: User TOTP Configuration
-      description: >
-        The user TOTP info endpoint provides information necessary to display the TOTP component to validate their
-        TOTP input such as the period/frequency and number of digits.
-      responses:
-        "200":
-          description: Successful Operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/handlers.UserInfoTOTP'
-        "403":
-          description: Forbidden
-      security:
-        - authelia_auth: []
   /api/user/info/2fa_method:
     post:
       tags:
@@ -630,6 +347,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.OkResponse'
+        "403":
+          description: Forbidden
+      security:
+        - authelia_auth: []
+  {{- if .TOTP }}
+  /api/user/info/totp:
+    get:
+      tags:
+        - User Information
+      summary: User TOTP Configuration
+      description: >
+        The user TOTP info endpoint provides information necessary to display the TOTP component to validate their
+        TOTP input such as the period/frequency and number of digits.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.UserInfoTOTP'
         "403":
           description: Forbidden
       security:
@@ -706,6 +443,8 @@ paths:
                 $ref: '#/components/schemas/middlewares.ErrorResponse'
       security:
         - authelia_auth: []
+  {{- end }}
+  {{- if .Webauthn }}
   /api/secondfactor/webauthn/assertion:
     get:
       tags:
@@ -812,6 +551,8 @@ paths:
                 $ref: '#/components/schemas/middlewares.OkResponse'
       security:
         - authelia_auth: []
+  {{- end }}
+  {{- if .Duo }}
   /api/secondfactor/duo:
     post:
       tags:
@@ -875,6 +616,8 @@ paths:
           description: Unauthorized
       security:
         - authelia_auth: []
+  {{- end }}
+  {{- if .OpenIDConnect }}
   /.well-known/openid-configuration:
     get:
       tags:
@@ -1389,6 +1132,7 @@ paths:
           description: Forbidden
       security:
         - authelia_auth: []
+  {{- end }}
 components:
   parameters:
     originalURLParam:
@@ -1609,7 +1353,8 @@ components:
             redirect:
               type: string
               example: https://home.example.com
-    handlers.resetPasswordStep1RequestBody:
+    {{- if .PasswordReset }}
+    handlers.PasswordResetStep1RequestBody:
       required:
         - username
       type: object
@@ -1617,7 +1362,7 @@ components:
         username:
           type: string
           example: john
-    handlers.resetPasswordStep2RequestBody:
+    handlers.PasswordResetStep2RequestBody:
       required:
         - password
       type: object
@@ -1625,6 +1370,8 @@ components:
         password:
           type: string
           example: password
+    {{- end }}
+    {{- if .Duo }}
     handlers.bodySignDuoRequest:
       type: object
       properties:
@@ -1641,23 +1388,7 @@ components:
           format: uuid
           pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
           example: "3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c"
-    handlers.bodySignTOTPRequest:
-      type: object
-      properties:
-        token:
-          type: string
-          example: "123456"
-        targetURL:
-          type: string
-          example: https://secure.example.com
-        workflow:
-          type: string
-          example: openid_connect
-        workflowID:
-          type: string
-          format: uuid
-          pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
-          example: "3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c"
+    {{- end }}
     handlers.StateResponse:
       type: object
       properties:
@@ -1676,7 +1407,24 @@ components:
             default_redirection_url:
               type: string
               example: https://home.example.com
-    handlers.TOTPKeyResponse:
+    middlewares.ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: KO
+        message:
+          type: string
+          example: Authentication failed, please retry later.
+    middlewares.IdentityVerificationFinishBody:
+      required:
+        - token
+      type: object
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc5MjU1OTYsImlzcyI6IkF1dGhlbGlhIiwiYWN0aW9uIjoiUmVzZXRQYXNzd29yZCIsInVzZXJuYW1lIjoiQW1pciJ9.636yqRrUCGCe4jsMCsonleX5CYWHncYqZum-YYb6VaY
+    middlewares.OkResponse:
       type: object
       properties:
         status:
@@ -1684,13 +1432,6 @@ components:
           example: OK
         data:
           type: object
-          properties:
-            base32_secret:
-              type: string
-              example: 5ZH7Y5CTFWOXN7EOLGBMMXADRNQFHVUDZSYKCN5HMFAIRSLAWY3Q
-            otpauth_url:
-              type: string
-              example: otpauth://totp/auth.example.com:john?algorithm=SHA1&digits=6&issuer=auth.example.com&period=30&secret=5ZH7Y5CTFWOXN7EOLGBMMXADRNQFHVUDZSYKCN5HMFAIRSLAWY3Q
     handlers.UserInfo:
       type: object
       properties:
@@ -1719,6 +1460,19 @@ components:
             has_duo:
               type: boolean
               example: true
+    handlers.UserInfo.MethodBody:
+      required:
+        - method
+      type: object
+      properties:
+        method:
+          type: string
+          enum:
+            - "totp"
+            - "webauthn"
+            - "mobile_push"
+          example: totp
+    {{- if .TOTP }}
     handlers.UserInfoTOTP:
       type: object
       properties:
@@ -1738,36 +1492,24 @@ components:
               description: The number of digits defined in the users TOTP configuration
               type: integer
               example: 6
-    handlers.UserInfo.MethodBody:
-      required:
-        - method
-      type: object
-      properties:
-        method:
-          type: string
-          enum:
-            - "totp"
-            - "webauthn"
-            - "mobile_push"
-          example: totp
-    middlewares.ErrorResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: KO
-        message:
-          type: string
-          example: Authentication failed, please retry later.
-    middlewares.IdentityVerificationFinishBody:
-      required:
-        - token
+    handlers.bodySignTOTPRequest:
       type: object
       properties:
         token:
           type: string
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc5MjU1OTYsImlzcyI6IkF1dGhlbGlhIiwiYWN0aW9uIjoiUmVzZXRQYXNzd29yZCIsInVzZXJuYW1lIjoiQW1pciJ9.636yqRrUCGCe4jsMCsonleX5CYWHncYqZum-YYb6VaY
-    middlewares.OkResponse:
+          example: "123456"
+        targetURL:
+          type: string
+          example: https://secure.example.com
+        workflow:
+          type: string
+          example: openid_connect
+        workflowID:
+          type: string
+          format: uuid
+          pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
+          example: "3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c"
+    handlers.TOTPKeyResponse:
       type: object
       properties:
         status:
@@ -1775,6 +1517,15 @@ components:
           example: OK
         data:
           type: object
+          properties:
+            base32_secret:
+              type: string
+              example: 5ZH7Y5CTFWOXN7EOLGBMMXADRNQFHVUDZSYKCN5HMFAIRSLAWY3Q
+            otpauth_url:
+              type: string
+              example: otpauth://totp/auth.example.com:john?algorithm=SHA1&digits=6&issuer=auth.example.com&period=30&secret=5ZH7Y5CTFWOXN7EOLGBMMXADRNQFHVUDZSYKCN5HMFAIRSLAWY3Q
+    {{- end }}
+    {{- if .Webauthn }}
     webauthn.PublicKeyCredential:
       type: object
       properties:
@@ -2073,6 +1824,8 @@ components:
                 written:
                   type: boolean
                   example: false
+    {{- end }}
+    {{- if .OpenIDConnect }}
     openid.request.consent:
       type: object
       properties:
@@ -3669,12 +3422,15 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/jose.spec.JWK'
+  {{- end }}
   securitySchemes:
     authelia_auth:
       type: apiKey
       name: "{{ .Session }}"
       in: cookie
+    {{- if .OpenIDConnect }}
     openid:
       type: openIdConnect
       openIdConnectUrl: "{{ .BaseURL }}.well-known/openid-configuration"
+    {{- end }}
 ...

@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"hash"
 	"os"
+	"path"
+	"path/filepath"
 	"reflect"
 	"sort"
 	"strconv"
@@ -49,7 +51,95 @@ func FuncMap() map[string]any {
 		"b64dec":     FuncB64Dec,
 		"b32enc":     FuncB32Enc,
 		"b32dec":     FuncB32Dec,
+		"list":       FuncList,
+		"dict":       FuncDict,
+		"get":        FuncGet,
+		"set":        FuncSet,
+		"isAbs":      path.IsAbs,
+		"base":       path.Base,
+		"dir":        path.Dir,
+		"ext":        path.Ext,
+		"clean":      path.Clean,
+		"osBase":     filepath.Base,
+		"osClean":    filepath.Clean,
+		"osDir":      filepath.Dir,
+		"osExt":      filepath.Ext,
+		"osIsAbs":    filepath.IsAbs,
+		"deepEqual":  reflect.DeepEqual,
+		"typeOf":     FuncTypeOf,
+		"typeIs":     FuncTypeIs,
+		"typeIsLike": FuncTypeIsLike,
+		"kindOf":     FuncKindOf,
+		"kindIs":     FuncKindIs,
 	}
+}
+
+// FuncTypeIs is a helper function that provides similar functionality to the helm typeIs func.
+func FuncTypeIs(is string, v any) bool {
+	return is == FuncTypeOf(v)
+}
+
+// FuncTypeIsLike is a helper function that provides similar functionality to the helm typeIsLike func.
+func FuncTypeIsLike(is string, v any) bool {
+	t := FuncTypeOf(v)
+
+	return is == t || "*"+is == t
+}
+
+// FuncTypeOf is a helper function that provides similar functionality to the helm typeOf func.
+func FuncTypeOf(v any) string {
+	return reflect.ValueOf(v).Type().String()
+}
+
+// FuncKindIs is a helper function that provides similar functionality to the helm kindIs func.
+func FuncKindIs(is string, v any) bool {
+	return is == FuncKindOf(v)
+}
+
+// FuncKindOf is a helper function that provides similar functionality to the helm kindOf func.
+func FuncKindOf(v any) string {
+	return reflect.ValueOf(v).Kind().String()
+}
+
+// FuncList is a helper function that provides similar functionality to the helm list func.
+func FuncList(items ...any) []any {
+	return items
+}
+
+// FuncDict is a helper function that provides similar functionality to the helm dict func.
+func FuncDict(pairs ...any) map[string]any {
+	m := map[string]any{}
+	p := len(pairs)
+
+	for i := 0; i < p; i += 2 {
+		key := strval(pairs[i])
+
+		if i+1 >= p {
+			m[key] = ""
+
+			continue
+		}
+
+		m[key] = pairs[i+1]
+	}
+
+	return m
+}
+
+// FuncGet is a helper function that provides similar functionality to the helm get func.
+func FuncGet(m map[string]any, key string) any {
+	if val, ok := m[key]; ok {
+		return val
+	}
+
+	return ""
+}
+
+// FuncSet is a helper function that provides similar functionality to the helm set func.
+func FuncSet(m map[string]any, key string, value any) map[string]any {
+	m[key] = value
+
+	return m
 }
 
 // FuncB64Enc is a helper function that provides similar functionality to the helm b64enc func.
@@ -202,7 +292,7 @@ func FuncStringQuote(in ...any) string {
 	return strings.Join(out, " ")
 }
 
-func strval(v interface{}) string {
+func strval(v any) string {
 	switch v := v.(type) {
 	case string:
 		return v
@@ -219,7 +309,7 @@ func strslice(v any) []string {
 	switch v := v.(type) {
 	case []string:
 		return v
-	case []interface{}:
+	case []any:
 		b := make([]string, 0, len(v))
 
 		for _, s := range v {
