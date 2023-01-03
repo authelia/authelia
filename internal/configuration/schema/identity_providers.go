@@ -43,13 +43,16 @@ type OpenIDConnectCORSConfiguration struct {
 
 // OpenIDConnectClientConfiguration configuration for an OpenID Connect client.
 type OpenIDConnectClientConfiguration struct {
-	ID                 string          `koanf:"id"`
-	Description        string          `koanf:"description"`
-	Secret             *PasswordDigest `koanf:"secret"`
-	SectorIdentifier   url.URL         `koanf:"sector_identifier"`
-	Public             bool            `koanf:"public"`
-	EnforcePKCE        bool            `koanf:"enforce_pkce"`
-	EnforcePKCENoPlain bool            `koanf:"enforce_pkce_no_plain"`
+	ID               string          `koanf:"id"`
+	Description      string          `koanf:"description"`
+	Secret           *PasswordDigest `koanf:"secret"`
+	SectorIdentifier url.URL         `koanf:"sector_identifier"`
+	Public           bool            `koanf:"public"`
+
+	EnforcePKCE        bool `koanf:"enforce_pkce"`
+	EnforcePKCENoPlain bool `koanf:"enforce_pkce_no_plain"`
+
+	PKCEChallengeMethod string `koanf:"pkce_challenge_method"`
 
 	RedirectURIs []string `koanf:"redirect_uris"`
 

@@ -1,6 +1,8 @@
 package oidc
 
 import (
+	"fmt"
+
 	"github.com/ory/fosite"
 	"github.com/ory/x/errorsx"
 
@@ -19,8 +21,9 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 		SectorIdentifier: config.SectorIdentifier.String(),
 		Public:           config.Public,
 
-		EnforcePKCE:        config.EnforcePKCE,
-		EnforcePKCENoPlain: config.EnforcePKCENoPlain,
+		EnforcePKCE:                config.EnforcePKCE || config.PKCEChallengeMethod != "",
+		EnforcePKCEChallengeMethod: config.PKCEChallengeMethod != "",
+		PKCEChallengeMethod:        config.PKCEChallengeMethod,
 
 		Audience:      config.Audience,
 		Scopes:        config.Scopes,
@@ -47,17 +50,19 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 func (c *Client) ValidateAuthorizationPolicy(r fosite.AuthorizeRequester) (err error) {
 	form := r.GetRequestForm()
 
-	if (c.EnforcePKCE || c.EnforcePKCENoPlain) && form.Get("code_challenge") == "" {
-		return errorsx.WithStack(fosite.ErrInvalidRequest.
-			WithHint("Clients must include a code_challenge when performing the authorize code flow, but it is missing.").
-			WithDebug("The server is configured in a way that enforces PKCE for this client."))
-	}
-
-	if c.EnforcePKCENoPlain {
-		if method := form.Get("code_challenge_method"); method == "" || method == PKCEChallengeMethodPlain {
+	if c.EnforcePKCE {
+		if form.Get("code_challenge") == "" {
 			return errorsx.WithStack(fosite.ErrInvalidRequest.
-				WithHint("Client must use code_challenge_method=S256, plain is not allowed.").
-				WithDebug("The server is configured in a way that enforces PKCE S256 as challenge method for this client."))
+				WithHint("Clients must include a code_challenge when performing the authorize code flow, but it is missing.").
+				WithDebug("The server is configured in a way that enforces PKCE for this client."))
+		}
+
+		if c.EnforcePKCEChallengeMethod {
+			if method := form.Get("code_challenge_method"); method != c.PKCEChallengeMethod {
+				return errorsx.WithStack(fosite.ErrInvalidRequest.
+					WithHint(fmt.Sprintf("Client must use code_challenge_method=%s, %s is not allowed.", c.EnforcePKCEChallengeMethod, method)).
+					WithDebug(fmt.Sprintf("The server is configured in a way that enforces PKCE %s as challenge method for this client.", c.EnforcePKCEChallengeMethod)))
+			}
 		}
 	}
 

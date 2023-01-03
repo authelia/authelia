@@ -411,12 +411,15 @@ URI.
 This setting enforces the use of [PKCE] for this individual client. To enforce it for all clients see the global
 [enforce_pkce](#enforcepkce) setting.
 
-#### enforce_pkce_no_plain
+#### pkce_challenge_method
 
-{{< confkey type="bool" default="false" required="no" >}}
+{{< confkey type="string" default="" required="no" >}}
 
-This setting enforces the use of [PKCE] for this individual client does not allow the [PKCE] plain challenge method.
-This setting also effectively enables the [enforce_pkce](#enforcepkce-1) option for this client.
+This setting enforces the use of the specified [PKCE] challenge method for this individual client. This setting also
+effectively enables the [enforce_pkce](#enforcepkce-1) option for this client.
+
+Valid values are an empty string, `plain`, or `S256`. It should be noted that `S256` is strongly recommended if the
+relying party supports it.
 
 #### authorization_policy
 

@@ -331,6 +331,40 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 				fmt.Sprintf(errFmtOIDCClientInvalidConsentMode, "client-bad-consent-mode", strings.Join(append(validOIDCClientConsentModes, "auto"), "', '"), "cap"),
 			},
 		},
+		{
+			Name: "InvalidPKCEChallengeMethod",
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "client-bad-pkce-mode",
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
+					Policy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					PKCEChallengeMethod: "abc",
+				},
+			},
+			Errors: []string{
+				fmt.Sprintf(errFmtOIDCClientInvalidPKCEChallengeMethod, "client-bad-pkce-mode", "abc"),
+			},
+		},
+		{
+			Name: "InvalidPKCEChallengeMethodLowerCaseS256",
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "client-bad-pkce-mode-s256",
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
+					Policy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					PKCEChallengeMethod: "s256",
+				},
+			},
+			Errors: []string{
+				fmt.Sprintf(errFmtOIDCClientInvalidPKCEChallengeMethod, "client-bad-pkce-mode-s256", "s256"),
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -609,7 +643,7 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testi
 	assert.EqualError(t, validator.Errors()[1], fmt.Sprintf(errFmtOIDCClientRedirectURIPublic, "client-with-bad-redirect-uri", oauth2InstalledApp))
 }
 
-func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidPublicClients(t *testing.T) {
+func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidClientOptions(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
@@ -639,6 +673,24 @@ func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidPublicClients(t *te
 					RedirectURIs: []string{
 						"http://127.0.0.1",
 					},
+				},
+				{
+					ID:     "client-with-pkce-mode-plain",
+					Public: true,
+					Policy: "two_factor",
+					RedirectURIs: []string{
+						"https://pkce.com",
+					},
+					PKCEChallengeMethod: "plain",
+				},
+				{
+					ID:     "client-with-pkce-mode-S256",
+					Public: true,
+					Policy: "two_factor",
+					RedirectURIs: []string{
+						"https://pkce.com",
+					},
+					PKCEChallengeMethod: "S256",
 				},
 			},
 		},
