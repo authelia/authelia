@@ -20,7 +20,7 @@ import (
 // CreateDefaultServer Create Authelia's internal webserver with the given configuration and providers.
 func CreateDefaultServer(config schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, err error) {
 	if err = providers.Templates.LoadTemplatedAssets(assets); err != nil {
-		return nil, nil, fmt.Errorf("failed to load templated assets")
+		return nil, nil, fmt.Errorf("failed to load templated assets: %w", err)
 	}
 
 	server = &fasthttp.Server{

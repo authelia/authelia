@@ -122,6 +122,8 @@ func runServices(ctx *CmdCtx) {
 		}()
 
 		if mainServer, mainListener, err = server.CreateDefaultServer(*ctx.config, ctx.providers); err != nil {
+			ctx.log.WithError(err).Error("Create Server (main) returned error")
+
 			return err
 		}
 
@@ -146,6 +148,8 @@ func runServices(ctx *CmdCtx) {
 		}()
 
 		if metricsServer, metricsListener, err = server.CreateMetricsServer(ctx.config.Telemetry.Metrics); err != nil {
+			ctx.log.WithError(err).Error("Create Server (metrics) returned error")
+
 			return err
 		}
 
@@ -163,7 +167,11 @@ func runServices(ctx *CmdCtx) {
 		if watcher, err := runServiceFileWatcher(ctx, ctx.config.AuthenticationBackend.File.Path, provider); err != nil {
 			ctx.log.WithError(err).Errorf("Error opening file watcher")
 		} else {
-			defer watcher.Close()
+			defer func(watcher *fsnotify.Watcher) {
+				if err := watcher.Close(); err != nil {
+					ctx.log.WithError(err).Errorf("Error closing file watcher")
+				}
+			}(watcher)
 		}
 	}
 
