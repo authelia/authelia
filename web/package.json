@@ -160,7 +160,7 @@
     "esbuild": "0.16.12",
     "esbuild-jest": "0.5.0",
     "eslint": "8.31.0",
-    "eslint-config-prettier": "8.5.0",
+    "eslint-config-prettier": "8.6.0",
     "eslint-config-react-app": "7.0.1",
     "eslint-formatter-rdjson": "1.0.5",
     "eslint-import-resolver-typescript": "3.5.2",
