@@ -404,6 +404,20 @@ useful for SPA's and CLI tools. This option requires setting the [client secret]
 In addition to the standard rules for redirect URIs, public clients can use the `urn:ietf:wg:oauth:2.0:oob` redirect
 URI.
 
+#### enforce_pkce
+
+{{< confkey type="bool" default="false" required="no" >}}
+
+This setting enforces the use of [PKCE] for this individual client. To enforce it for all clients see the global
+[enforce_pkce](#enforcepkce) setting.
+
+#### enforce_pkce_no_plain
+
+{{< confkey type="bool" default="false" required="no" >}}
+
+This setting enforces the use of [PKCE] for this individual client does not allow the [PKCE] plain challenge method.
+This setting also effectively enables the [enforce_pkce](#enforcepkce-1) option for this client.
+
 #### authorization_policy
 
 {{< confkey type="string" default="two_factor" required="no" >}}
