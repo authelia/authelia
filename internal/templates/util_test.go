@@ -1,7 +1,9 @@
 package templates
 
 import (
+	"io/fs"
 	"os"
+	"path/filepath"
 	"testing"
 	"text/template"
 
@@ -32,11 +34,58 @@ func TestIsSecretEnvKey(t *testing.T) {
 	}
 }
 
+func TestParseTemplateDirectories(t *testing.T) {
+	testCases := []struct {
+		name, path string
+	}{
+		{"Templates", "./src"},
+		{"OpenAPI", "../../api"},
+		{"Generators", "../../cmd/authelia-gen/templates"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			funcMap := FuncMap()
+
+			if tc.name == "Generators" {
+				funcMap["joinX"] = FuncStringJoinX
+			}
+
+			var (
+				data []byte
+			)
+
+			require.NoError(t, filepath.Walk(tc.path, func(path string, info fs.FileInfo, err error) error {
+				if info.IsDir() {
+					return nil
+				}
+
+				name := info.Name()
+
+				if tc.name == "Templates" {
+					name = filepath.Base(filepath.Dir(path)) + "/" + name
+				}
+
+				t.Run(name, func(t *testing.T) {
+					data, err = os.ReadFile(path)
+
+					require.NoError(t, err)
+
+					_, err = template.New(tc.name).Funcs(funcMap).Parse(string(data))
+
+					require.NoError(t, err)
+				})
+
+				return nil
+			}))
+		})
+	}
+}
+
 func TestParseMiscTemplates(t *testing.T) {
 	testCases := []struct {
 		name, path string
 	}{
-		{"OpenAPISpec", "../../api/openapi.yml"},
 		{"ReactIndex", "../../web/index.html"},
 		{"ViteEnv", "../../web/.env.production"},
 	}
