@@ -10,9 +10,9 @@ specifiers:
   auto-changelog: 2.4.0
   autoprefixer: 10.4.13
   bootstrap: 5.2.3
-  bootstrap-icons: 1.10.2
+  bootstrap-icons: 1.10.3
   clipboard: 2.0.11
-  eslint: 8.30.0
+  eslint: 8.31.0
   exec-bin: 1.0.0
   flexsearch: 0.7.31
   highlight.js: 11.7.0
@@ -20,14 +20,14 @@ specifiers:
   instant.page: 5.1.1
   katex: 0.16.4
   lazysizes: 5.3.2
-  markdownlint-cli2: 0.5.1
+  markdownlint-cli2: 0.6.0
   netlify-plugin-submit-sitemap: 0.4.0
   node-fetch: 3.3.0
   postcss: 8.4.20
   postcss-cli: 10.1.0
   purgecss-whitelister: 2.4.0
   shx: 0.3.4
-  stylelint: 14.16.0
+  stylelint: 14.16.1
   stylelint-config-standard-scss: 6.1.0
 
 devDependencies:
@@ -40,9 +40,9 @@ devDependencies:
   auto-changelog: 2.4.0
   autoprefixer: 10.4.13_postcss@8.4.20
   bootstrap: 5.2.3_@popperjs+core@2.11.6
-  bootstrap-icons: 1.10.2
+  bootstrap-icons: 1.10.3
   clipboard: 2.0.11
-  eslint: 8.30.0
+  eslint: 8.31.0
   exec-bin: 1.0.0
   flexsearch: 0.7.31
   highlight.js: 11.7.0
@@ -50,15 +50,15 @@ devDependencies:
   instant.page: 5.1.1
   katex: 0.16.4
   lazysizes: 5.3.2
-  markdownlint-cli2: 0.5.1
+  markdownlint-cli2: 0.6.0
   netlify-plugin-submit-sitemap: 0.4.0
   node-fetch: 3.3.0
   postcss: 8.4.20
   postcss-cli: 10.1.0_postcss@8.4.20
   purgecss-whitelister: 2.4.0
   shx: 0.3.4
-  stylelint: 14.16.0
-  stylelint-config-standard-scss: 6.1.0_l3s4qeu3gkar2knsdy3w5miimm
+  stylelint: 14.16.1
+  stylelint-config-standard-scss: 6.1.0_vitr26fcqo6sphdfxyxll4n2gy
 
 packages:
 
@@ -1331,8 +1331,8 @@ packages:
       postcss-selector-parser: 6.0.11
     dev: true
 
-  /@eslint/eslintrc/1.4.0:
-    resolution: {integrity: sha512-7yfvXy6MWLgWSFsLhz5yH3iQ52St8cdUY6FoGieKkRDVxuxmrNuUetIuu6cmjNWwniUHiWXjxCr5tTXDrbYS5A==}
+  /@eslint/eslintrc/1.4.1:
+    resolution: {integrity: sha512-XXrH9Uarn0stsyldqDYq8r++mROmWRI1xKMXa640Bb//SY1+ECYX6VzT6Lcx5frD0V30XieqJ0oX9I2Xj5aoMA==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dependencies:
       ajv: 6.12.6
@@ -1683,8 +1683,8 @@ packages:
       safe-buffer: 5.2.1
     dev: true
 
-  /bootstrap-icons/1.10.2:
-    resolution: {integrity: sha512-PTPYadRn1AMGr+QTSxe4ZCc+Wzv9DGZxbi3lNse/dajqV31n2/wl/7NX78ZpkvFgRNmH4ogdIQPQmxAfhEV6nA==}
+  /bootstrap-icons/1.10.3:
+    resolution: {integrity: sha512-7Qvj0j0idEm/DdX9Q0CpxAnJYqBCFCiUI6qzSPYfERMcokVuV9Mdm/AJiVZI8+Gawe4h/l6zFcOzvV7oXCZArw==}
     dev: true
 
   /bootstrap/5.2.3_@popperjs+core@2.11.6:
@@ -2073,7 +2073,7 @@ packages:
     resolution: {integrity: sha512-tQbV/4u5WVB8HMJr08pgw0b6nG4RGt/tj+7Numvq+zqcvUFeMaIWWOUFltiU+6go8BSO2/ogsB4EasDaj0y68Q==}
     engines: {node: '>=14.16'}
     dependencies:
-      globby: 13.1.2
+      globby: 13.1.3
       graceful-fs: 4.2.10
       is-glob: 4.0.3
       is-path-cwd: 3.0.0
@@ -2159,13 +2159,13 @@ packages:
       estraverse: 5.3.0
     dev: true
 
-  /eslint-utils/3.0.0_eslint@8.30.0:
+  /eslint-utils/3.0.0_eslint@8.31.0:
     resolution: {integrity: sha512-uuQC43IGctw68pJA1RgbQS8/NP7rch6Cwd4j3ZBtgo4/8Flj4eGE7ZYSZRN3iq5pVUv6GPdW5Z1RFleo84uLDA==}
     engines: {node: ^10.0.0 || ^12.0.0 || >= 14.0.0}
     peerDependencies:
       eslint: '>=5'
     dependencies:
-      eslint: 8.30.0
+      eslint: 8.31.0
       eslint-visitor-keys: 2.1.0
     dev: true
 
@@ -2179,12 +2179,12 @@ packages:
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dev: true
 
-  /eslint/8.30.0:
-    resolution: {integrity: sha512-MGADB39QqYuzEGov+F/qb18r4i7DohCDOfatHaxI2iGlPuC65bwG2gxgO+7DkyL38dRFaRH7RaRAgU6JKL9rMQ==}
+  /eslint/8.31.0:
+    resolution: {integrity: sha512-0tQQEVdmPZ1UtUKXjX7EMm9BlgJ08G90IhWh0PKDCb3ZLsgAOHI8fYSIzYVZej92zsgq+ft0FGsxhJ3xo2tbuA==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     hasBin: true
     dependencies:
-      '@eslint/eslintrc': 1.4.0
+      '@eslint/eslintrc': 1.4.1
       '@humanwhocodes/config-array': 0.11.8
       '@humanwhocodes/module-importer': 1.0.1
       '@nodelib/fs.walk': 1.2.8
@@ -2195,7 +2195,7 @@ packages:
       doctrine: 3.0.0
       escape-string-regexp: 4.0.0
       eslint-scope: 7.1.1
-      eslint-utils: 3.0.0_eslint@8.30.0
+      eslint-utils: 3.0.0_eslint@8.31.0
       eslint-visitor-keys: 3.3.0
       espree: 9.4.0
       esquery: 1.4.0
@@ -2544,6 +2544,17 @@ packages:
 
   /globby/13.1.2:
     resolution: {integrity: sha512-LKSDZXToac40u8Q1PQtZihbNdTYSNMuWe+K5l+oa6KgDzSvVrHXlJy40hUP522RjAIoNLJYBJi7ow+rbFpIhHQ==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    dependencies:
+      dir-glob: 3.0.1
+      fast-glob: 3.2.12
+      ignore: 5.2.1
+      merge2: 1.4.1
+      slash: 4.0.0
+    dev: true
+
+  /globby/13.1.3:
+    resolution: {integrity: sha512-8krCNHXvlCgHDpegPzleMq07yMYTO2sXKASmZmquEYWEmCx6J5UTRbp5RwMJkTJGtcQ44YpiUYUiN0b9mzy8Bw==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     dependencies:
       dir-glob: 3.0.1
@@ -3037,30 +3048,30 @@ packages:
       uc.micro: 1.0.6
     dev: true
 
-  /markdownlint-cli2-formatter-default/0.0.3_markdownlint-cli2@0.5.1:
+  /markdownlint-cli2-formatter-default/0.0.3_markdownlint-cli2@0.6.0:
     resolution: {integrity: sha512-QEAJitT5eqX1SNboOD+SO/LNBpu4P4je8JlR02ug2cLQAqmIhh8IJnSK7AcaHBHhNADqdGydnPpQOpsNcEEqCw==}
     peerDependencies:
       markdownlint-cli2: '>=0.0.4'
     dependencies:
-      markdownlint-cli2: 0.5.1
+      markdownlint-cli2: 0.6.0
     dev: true
 
-  /markdownlint-cli2/0.5.1:
-    resolution: {integrity: sha512-f3Nb1GF/c8YSrV/FntsCWzpa5mLFJRlO+wzEgv+lkNQjU6MZflUwc2FbyEDPTo6oVhP2VyUOkK0GkFgfuktl1w==}
-    engines: {node: '>=14'}
+  /markdownlint-cli2/0.6.0:
+    resolution: {integrity: sha512-Bv20r6WGdcHMWi8QvAFZ3CBunf4i4aYmVdTfpAvXODI/1k3f09DZZ0i0LcX9ZMhlVxjoOzbVDz1NWyKc5hwTqg==}
+    engines: {node: '>=14.18.0'}
     hasBin: true
     dependencies:
-      globby: 13.1.2
-      markdownlint: 0.26.2
-      markdownlint-cli2-formatter-default: 0.0.3_markdownlint-cli2@0.5.1
+      globby: 13.1.3
+      markdownlint: 0.27.0
+      markdownlint-cli2-formatter-default: 0.0.3_markdownlint-cli2@0.6.0
       micromatch: 4.0.5
       strip-json-comments: 5.0.0
-      yaml: 2.1.1
+      yaml: 2.2.1
     dev: true
 
-  /markdownlint/0.26.2:
-    resolution: {integrity: sha512-2Am42YX2Ex5SQhRq35HxYWDfz1NLEOZWWN25nqd2h3AHRKsGRE+Qg1gt1++exW792eXTrR4jCNHfShfWk9Nz8w==}
-    engines: {node: '>=14'}
+  /markdownlint/0.27.0:
+    resolution: {integrity: sha512-HtfVr/hzJJmE0C198F99JLaeada+646B5SaG2pVoEakLFI6iRGsvMqrnnrflq8hm1zQgwskEgqSnhDW11JBp0w==}
+    engines: {node: '>=14.18.0'}
     dependencies:
       markdown-it: 13.0.1
     dev: true
@@ -3431,7 +3442,7 @@ packages:
     dependencies:
       lilconfig: 2.0.5
       postcss: 8.4.20
-      yaml: 2.1.1
+      yaml: 2.2.1
     dev: true
 
   /postcss-media-query-parser/0.2.3:
@@ -3928,7 +3939,7 @@ packages:
     resolution: {integrity: sha512-Dj1Okke1C3uKKwQcetra4jSuk0DqbzbYtXipzFlFMZtowbF1x7BKJwB9AayVMyFARvU8EDrZdcax4At/452cAg==}
     dev: true
 
-  /stylelint-config-recommended-scss/8.0.0_l3s4qeu3gkar2knsdy3w5miimm:
+  /stylelint-config-recommended-scss/8.0.0_vitr26fcqo6sphdfxyxll4n2gy:
     resolution: {integrity: sha512-BxjxEzRaZoQb7Iinc3p92GS6zRdRAkIuEu2ZFLTxJK2e1AIcCb5B5MXY9KOXdGTnYFZ+KKx6R4Fv9zU6CtMYPQ==}
     peerDependencies:
       postcss: ^8.3.3
@@ -3939,20 +3950,20 @@ packages:
     dependencies:
       postcss: 8.4.20
       postcss-scss: 4.0.4_postcss@8.4.20
-      stylelint: 14.16.0
-      stylelint-config-recommended: 9.0.0_stylelint@14.16.0
-      stylelint-scss: 4.2.0_stylelint@14.16.0
+      stylelint: 14.16.1
+      stylelint-config-recommended: 9.0.0_stylelint@14.16.1
+      stylelint-scss: 4.2.0_stylelint@14.16.1
     dev: true
 
-  /stylelint-config-recommended/9.0.0_stylelint@14.16.0:
+  /stylelint-config-recommended/9.0.0_stylelint@14.16.1:
     resolution: {integrity: sha512-9YQSrJq4NvvRuTbzDsWX3rrFOzOlYBmZP+o513BJN/yfEmGSr0AxdvrWs0P/ilSpVV/wisamAHu5XSk8Rcf4CQ==}
     peerDependencies:
       stylelint: ^14.10.0
     dependencies:
-      stylelint: 14.16.0
+      stylelint: 14.16.1
     dev: true
 
-  /stylelint-config-standard-scss/6.1.0_l3s4qeu3gkar2knsdy3w5miimm:
+  /stylelint-config-standard-scss/6.1.0_vitr26fcqo6sphdfxyxll4n2gy:
     resolution: {integrity: sha512-iZ2B5kQT2G3rUzx+437cEpdcnFOQkwnwqXuY8Z0QUwIHQVE8mnYChGAquyKFUKZRZ0pRnrciARlPaR1RBtPb0Q==}
     peerDependencies:
       postcss: ^8.3.3
@@ -3962,21 +3973,21 @@ packages:
         optional: true
     dependencies:
       postcss: 8.4.20
-      stylelint: 14.16.0
-      stylelint-config-recommended-scss: 8.0.0_l3s4qeu3gkar2knsdy3w5miimm
-      stylelint-config-standard: 29.0.0_stylelint@14.16.0
+      stylelint: 14.16.1
+      stylelint-config-recommended-scss: 8.0.0_vitr26fcqo6sphdfxyxll4n2gy
+      stylelint-config-standard: 29.0.0_stylelint@14.16.1
     dev: true
 
-  /stylelint-config-standard/29.0.0_stylelint@14.16.0:
+  /stylelint-config-standard/29.0.0_stylelint@14.16.1:
     resolution: {integrity: sha512-uy8tZLbfq6ZrXy4JKu3W+7lYLgRQBxYTUUB88vPgQ+ZzAxdrvcaSUW9hOMNLYBnwH+9Kkj19M2DHdZ4gKwI7tg==}
     peerDependencies:
       stylelint: ^14.14.0
     dependencies:
-      stylelint: 14.16.0
-      stylelint-config-recommended: 9.0.0_stylelint@14.16.0
+      stylelint: 14.16.1
+      stylelint-config-recommended: 9.0.0_stylelint@14.16.1
     dev: true
 
-  /stylelint-scss/4.2.0_stylelint@14.16.0:
+  /stylelint-scss/4.2.0_stylelint@14.16.1:
     resolution: {integrity: sha512-HHHMVKJJ5RM9pPIbgJ/XA67h9H0407G68Rm69H4fzFbFkyDMcTV1Byep3qdze5+fJ3c0U7mJrbj6S0Fg072uZA==}
     peerDependencies:
       stylelint: ^14.5.1
@@ -3986,11 +3997,11 @@ packages:
       postcss-resolve-nested-selector: 0.1.1
       postcss-selector-parser: 6.0.11
       postcss-value-parser: 4.2.0
-      stylelint: 14.16.0
+      stylelint: 14.16.1
     dev: true
 
-  /stylelint/14.16.0:
-    resolution: {integrity: sha512-X6uTi9DcxjzLV8ZUAjit1vsRtSwcls0nl07c9rqOPzvpA8IvTX/xWEkBRowS0ffevRrqkHa/ThDEu86u73FQDg==}
+  /stylelint/14.16.1:
+    resolution: {integrity: sha512-ErlzR/T3hhbV+a925/gbfc3f3Fep9/bnspMiJPorfGEmcBbXdS+oo6LrVtoUZ/w9fqD6o6k7PtUlCOsCRdjX/A==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     hasBin: true
     dependencies:
@@ -4339,8 +4350,8 @@ packages:
     engines: {node: '>= 6'}
     dev: true
 
-  /yaml/2.1.1:
-    resolution: {integrity: sha512-o96x3OPo8GjWeSLF+wOAbrPfhFOGY0W00GNaxCDv+9hkcDJEnev1yh8S7pgHF0ik6zc8sQLuL8hjHjJULZp8bw==}
+  /yaml/2.2.1:
+    resolution: {integrity: sha512-e0WHiYql7+9wr4cWMx3TVQrNwejKaEe7/rHNmQmqRjazfOP5W8PB6Jpebb5o6fIapbz9o9+2ipcaTM2ZwDI6lw==}
     engines: {node: '>= 14'}
     dev: true
 
