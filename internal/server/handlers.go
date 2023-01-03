@@ -91,6 +91,7 @@ func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	}
 }
 
+//nolint:gocyclo
 func handleRouter(config schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
 	optsTemplatedFile := NewTemplatedFileOptions(&config)
 
