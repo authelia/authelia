@@ -191,7 +191,7 @@ paths:
       summary: Authorization Verification (ExtAuthz)
       description: >
         The ExtAuthz authorization verification endpoint provides the ability to verify if a user has the necessary
-        permissions to access a specified resource with the Envoy proxies.
+        permissions to access a specified resource with the Envoy proxy.
       parameters:
         - $ref: '#/components/parameters/forwardedMethodParam'
         - $ref: '#/components/parameters/forwardedHostParam'
@@ -275,10 +275,10 @@ paths:
     {{ $method }}:
       tags:
         - Authentication
-      summary: Authorization Verification (ForwardAuth)
+      summary: Authorization Verification (AuthRequest)
       description: >
         The AuthRequest authorization verification endpoint provides the ability to verify if a user has the necessary
-        permissions to access a specified resource with the Traefik, Caddy, or Skipper proxies.
+        permissions to access a specified resource with the HAPROXY, NGINX, or NGINX-based proxies.
       parameters:
         - $ref: '#/components/parameters/originalMethodParam'
         - $ref: '#/components/parameters/originalURLParam'
