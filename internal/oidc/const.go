@@ -92,7 +92,9 @@ const (
 )
 
 const (
-	FormParameterRequestURI = "request_uri"
+	FormParameterRequestURI          = "request_uri"
+	FormParameterCodeChallenge       = "code_challenge"
+	FormParameterCodeChallengeMethod = "code_challenge_method"
 )
 
 // Endpoints.

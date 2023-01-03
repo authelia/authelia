@@ -52,10 +52,20 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return
 	}
 
-	if err = client.ValidateAuthorizationPolicy(requester); err != nil {
+	if err = client.ValidatePARPolicy(requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' failed to validate the authorization policy: %s", requester.GetID(), clientID, rfc.WithExposeDebug(true).GetDescription())
+		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' failed to validate the PAR policy: %s", requester.GetID(), clientID, rfc.WithExposeDebug(true).GetDescription())
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
+
+		return
+	}
+
+	if err = client.ValidatePKCEPolicy(requester); err != nil {
+		rfc := fosite.ErrorToRFC6749Error(err)
+
+		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' failed to validate the PKCE policy: %s", requester.GetID(), clientID, rfc.WithExposeDebug(true).GetDescription())
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
 
@@ -128,6 +138,32 @@ func OpenIDConnectPushedAuthorizationRequest(ctx *middlewares.AutheliaCtx, rw ht
 		rfc := fosite.ErrorToRFC6749Error(err)
 
 		ctx.Logger.Errorf("Pushed Authorization Request failed with error: %s", rfc.WithExposeDebug(true).GetDescription())
+
+		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, err)
+
+		return
+	}
+
+	var client *oidc.Client
+
+	clientID := requester.GetClient().GetID()
+
+	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(clientID); err != nil {
+		if errors.Is(err, fosite.ErrNotFound) {
+			ctx.Logger.Errorf("Pushed Authorization Request with id '%s' on client with id '%s' could not be processed: client was not found", requester.GetID(), clientID)
+		} else {
+			ctx.Logger.Errorf("Pushed Authorization Request with id '%s' on client with id '%s' could not be processed: failed to find client: %+v", requester.GetID(), clientID, err)
+		}
+
+		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, err)
+
+		return
+	}
+
+	if err = client.ValidatePKCEPolicy(requester); err != nil {
+		rfc := fosite.ErrorToRFC6749Error(err)
+
+		ctx.Logger.Errorf("Pushed Authorization Request with id '%s' on client with id '%s' failed to validate the PKCE policy: %s", requester.GetID(), clientID, rfc.WithExposeDebug(true).GetDescription())
 
 		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, err)
 
