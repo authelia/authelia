@@ -61,8 +61,8 @@ type OpenIDConnectClientConfiguration struct {
 
 	EnforcePKCE bool `koanf:"enforce_pkce"`
 
-	UserinfoSigningAlgorithm string `koanf:"userinfo_signing_algorithm"`
 	PKCEChallengeMethod      string `koanf:"pkce_challenge_method"`
+	UserinfoSigningAlgorithm string `koanf:"userinfo_signing_algorithm"`
 
 	ConsentMode                  string         `koanf:"consent_mode"`
 	ConsentPreConfiguredDuration *time.Duration `koanf:"pre_configured_consent_duration"`
