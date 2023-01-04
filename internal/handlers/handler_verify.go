@@ -445,7 +445,7 @@ func VerifyGET(cfg schema.AuthenticationBackend) middlewares.RequestHandler {
 			return
 		}
 
-		if !utils.IsSchemeHTTPS(targetURL) && !isSchemeWSS(targetURL) {
+		if !utils.IsURISecure(targetURL) {
 			ctx.Logger.Errorf("Scheme of target URL %s must be secure since cookies are "+
 				"only transported over a secure connection for security reasons", targetURL.String())
 			ctx.ReplyUnauthorized()
@@ -453,11 +453,25 @@ func VerifyGET(cfg schema.AuthenticationBackend) middlewares.RequestHandler {
 			return
 		}
 
-		isUnderProtectedDomain, cookieDomain := utils.IsURLUnderProtectedDomain(targetURL, ctx.Configuration.Session.Domains)
-		if !isUnderProtectedDomain {
-			// TODO: refactor error message to support multiple domains.
-			ctx.Logger.Errorf("Target URL %s is not under the protected domain %s",
-				targetURL.String(), ctx.Configuration.Session.Domain)
+		cookieDomain := ctx.GetTargetURICookieDomain(targetURL)
+
+		if cookieDomain == "" {
+			l := len(ctx.Configuration.Session.Domains)
+
+			if l == 1 {
+				ctx.Logger.Errorf("Target URL '%s' is not under the protected domain '%s'",
+					targetURL.String(), ctx.Configuration.Session.Domains[0].Domain)
+			} else {
+				domains := make([]string, 0, len(ctx.Configuration.Session.Domains))
+
+				for i, domain := range ctx.Configuration.Session.Domains {
+					domains[i] = domain.Domain
+				}
+
+				ctx.Logger.Errorf("Target URL '%s' is not under any of the protected domains '%s'",
+					targetURL.String(), strings.Join(domains, "', '"))
+			}
+
 			ctx.ReplyUnauthorized()
 
 			return

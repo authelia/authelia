@@ -9,6 +9,12 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+// Serializer is a function that can serialize session information.
+type Serializer interface {
+	Encode(src session.Dict) (data []byte, err error)
+	Decode(dst *session.Dict, src []byte) (err error)
+}
+
 // EncryptingSerializer a serializer encrypting the data with AES-GCM with 256-bit keys.
 type EncryptingSerializer struct {
 	key [32]byte
@@ -21,7 +27,7 @@ func NewEncryptingSerializer(secret string) *EncryptingSerializer {
 }
 
 // Encode encode and encrypt session.
-func (e *EncryptingSerializer) Encode(src session.Dict) ([]byte, error) {
+func (e *EncryptingSerializer) Encode(src session.Dict) (data []byte, err error) {
 	if len(src.D) == 0 {
 		return nil, nil
 	}
@@ -31,28 +37,28 @@ func (e *EncryptingSerializer) Encode(src session.Dict) ([]byte, error) {
 		return nil, fmt.Errorf("unable to marshal session: %v", err)
 	}
 
-	encryptedDst, err := utils.Encrypt(dst, &e.key)
-	if err != nil {
+	if data, err = utils.Encrypt(dst, &e.key); err != nil {
 		return nil, fmt.Errorf("unable to encrypt session: %v", err)
 	}
 
-	return encryptedDst, nil
+	return data, nil
 }
 
 // Decode decrypt and decode session.
-func (e *EncryptingSerializer) Decode(dst *session.Dict, src []byte) error {
+func (e *EncryptingSerializer) Decode(dst *session.Dict, src []byte) (err error) {
 	if len(src) == 0 {
 		return nil
 	}
 
 	dst.Reset()
 
-	decryptedSrc, err := utils.Decrypt(src, &e.key)
-	if err != nil {
+	var data []byte
+
+	if data, err = utils.Decrypt(src, &e.key); err != nil {
 		return fmt.Errorf("unable to decrypt session: %s", err)
 	}
 
-	_, err = dst.UnmarshalMsg(decryptedSrc)
+	_, err = dst.UnmarshalMsg(data)
 
 	return err
 }

@@ -67,6 +67,10 @@ func HasURIDomainSuffix(uri *url.URL, domainSuffix string) bool {
 // HasDomainSuffix returns true if the URI hostname is equal to the domain or if it has a suffix of the domain
 // prefixed with a period.
 func HasDomainSuffix(domain, domainSuffix string) bool {
+	if domainSuffix == "" {
+		return false
+	}
+
 	if domain == domainSuffix {
 		return true
 	}

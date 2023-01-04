@@ -227,16 +227,29 @@ func (ctx *AutheliaCtx) RootURLSlash() (issuerURL *url.URL) {
 	}
 }
 
+// GetTargetURICookieDomain returns the session provider for the targetURI domain.
+func (ctx *AutheliaCtx) GetTargetURICookieDomain(targetURI *url.URL) string {
+	hostname := targetURI.Hostname()
+
+	for _, domain := range ctx.Configuration.Session.Domains {
+		if utils.HasDomainSuffix(hostname, domain.Domain) {
+			return domain.Domain
+		}
+	}
+
+	return ""
+}
+
 // GetDomainSession returns the session provider for the Request's domain.
 func (ctx *AutheliaCtx) GetDomainSession() (*session.Session, error) {
 	targetURL, err := ctx.GetOriginalURL()
-
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve domain session: %s", err)
 	}
 
-	isUnderProtectedDomain, cookieDomain := utils.IsURLUnderProtectedDomain(targetURL, ctx.Configuration.Session.Domains)
-	if !isUnderProtectedDomain || cookieDomain == "" {
+	cookieDomain := ctx.GetTargetURICookieDomain(targetURL)
+
+	if cookieDomain == "" {
 		return nil, fmt.Errorf("unable to retrieve domain session: %s", err)
 	}
 
