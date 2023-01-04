@@ -46,14 +46,32 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 	}{
 		{
 			"ShouldSetGoodDefaultValues",
-			schema.SessionConfiguration{SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2},
-			schema.SessionCookieConfiguration{Name: "authelia_session", Domain: exampleDotCom, SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2},
+			schema.SessionConfiguration{
+				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+					SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
+				},
+			},
+			schema.SessionCookieConfiguration{
+				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+					Name: "authelia_session", Domain: exampleDotCom, SameSite: "lax", Expiration: time.Hour,
+					Inactivity: time.Minute, RememberMe: time.Hour * 2,
+				},
+			},
 			0,
 		},
 		{
 			"ShouldNotSetBadDefaultValues",
-			schema.SessionConfiguration{SameSite: "BAD VALUE", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2},
-			schema.SessionCookieConfiguration{Name: "authelia_session", Domain: exampleDotCom, SameSite: schema.DefaultSessionConfiguration.SameSite, Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2},
+			schema.SessionConfiguration{
+				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+					SameSite: "BAD VALUE", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
+				},
+			},
+			schema.SessionCookieConfiguration{
+				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+					Name: "authelia_session", Domain: exampleDotCom, SameSite: schema.DefaultSessionConfiguration.SameSite,
+					Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
+				},
+			},
 			1,
 		},
 	}
@@ -67,7 +85,11 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 			have := tc.have
 
 			have.Cookies = []schema.SessionCookieConfiguration{
-				{Domain: exampleDotCom},
+				{
+					SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+						Domain: exampleDotCom,
+					},
+				},
 			}
 
 			ValidateSession(&have, validator)
@@ -545,18 +567,22 @@ func TestShouldRaiseErrorWhenHaveDuplicatedDomainName(t *testing.T) {
 	config := newDefaultSessionConfig()
 	config.Domain = ""
 	config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
-		Domain:    exampleDotCom,
+		SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+			Domain: exampleDotCom,
+		},
 		PortalURL: MustParseURL("https://login.example.com"),
 	})
 	config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
-		Domain:    exampleDotCom,
+		SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+			Domain: exampleDotCom,
+		},
 		PortalURL: MustParseURL("https://login.example.com"),
 	})
 
 	ValidateSession(&config, validator)
 	assert.False(t, validator.HasWarnings())
 	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionDomainDuplicate, sessionDomainDescriptor(1, schema.SessionCookieConfiguration{Domain: exampleDotCom})))
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionDomainDuplicate, sessionDomainDescriptor(1, schema.SessionCookieConfiguration{SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{Domain: exampleDotCom}})))
 }
 
 func TestShouldRaiseErrorWhenSubdomainConflicts(t *testing.T) {
@@ -564,11 +590,15 @@ func TestShouldRaiseErrorWhenSubdomainConflicts(t *testing.T) {
 	config := newDefaultSessionConfig()
 	config.Domain = ""
 	config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
-		Domain:    exampleDotCom,
+		SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+			Domain: exampleDotCom,
+		},
 		PortalURL: MustParseURL("https://login.example.com"),
 	})
 	config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
-		Domain:    "internal.example.com",
+		SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+			Domain: "internal.example.com",
+		},
 		PortalURL: MustParseURL("https://login.internal.example.com"),
 	})
 
@@ -595,7 +625,11 @@ func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {
 			config.Domain = ""
 
 			config.Cookies = []schema.SessionCookieConfiguration{
-				{Domain: tc.have, PortalURL: MustParseURL("https://auth.example.com")},
+				{
+					SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+						Domain: tc.have,
+					},
+					PortalURL: MustParseURL("https://auth.example.com")},
 			}
 
 			ValidateSession(&config, validator)
@@ -626,7 +660,12 @@ func TestShouldRaiseErrorWhenPortalURLIsInvalid(t *testing.T) {
 			config := newDefaultSessionConfig()
 			config.Domain = ""
 			config.Cookies = []schema.SessionCookieConfiguration{
-				{Name: "authelia_session", Domain: exampleDotCom, PortalURL: MustParseURL(tc.have)},
+				{
+					SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+						Name:   "authelia_session",
+						Domain: exampleDotCom,
+					},
+					PortalURL: MustParseURL(tc.have)},
 			}
 
 			ValidateSession(&config, validator)

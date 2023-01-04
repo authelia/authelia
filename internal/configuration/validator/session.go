@@ -51,11 +51,13 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 	// Add legacy configuration to the domains list.
 	if config.Domain != "" {
 		config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
-			Domain:     config.Domain,
-			SameSite:   config.SameSite,
-			Expiration: config.Expiration,
-			Inactivity: config.Inactivity,
-			RememberMe: config.RememberMe,
+			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+				Domain:     config.Domain,
+				SameSite:   config.SameSite,
+				Expiration: config.Expiration,
+				Inactivity: config.Inactivity,
+				RememberMe: config.RememberMe,
+			},
 		})
 	}
 

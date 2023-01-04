@@ -28,8 +28,10 @@ func newDefaultConfig() schema.Configuration {
 		Secret: "secret",
 		Cookies: []schema.SessionCookieConfiguration{
 			{
-				Name:   "authelia_session",
-				Domain: exampleDotCom,
+				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+					Name:   "authelia_session",
+					Domain: exampleDotCom,
+				},
 			},
 		},
 	}

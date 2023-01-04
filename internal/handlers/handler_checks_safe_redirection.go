@@ -32,7 +32,7 @@ func CheckSafeRedirectionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.SetJSONBody(checkURIWithinDomainResponseBody{OK: ctx.GetTargetURICookieDomain(targetURI) != ""}); err != nil {
+	if err = ctx.SetJSONBody(checkURIWithinDomainResponseBody{OK: ctx.IsSafeRedirectionTargetURI(targetURI)}); err != nil {
 		ctx.Error(fmt.Errorf("unable to create response body: %w", err), messageOperationFailed)
 		return
 	}

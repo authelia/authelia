@@ -51,16 +51,20 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	config := schema.Configuration{}
 	config.Session.Cookies = []schema.SessionCookieConfiguration{
 		{
-			Name:       "authelia_session",
-			Domain:     "example.com",
-			RememberMe: schema.DefaultSessionConfiguration.RememberMe,
-			Expiration: schema.DefaultSessionConfiguration.Expiration,
+			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+				Name:       "authelia_session",
+				Domain:     "example.com",
+				RememberMe: schema.DefaultSessionConfiguration.RememberMe,
+				Expiration: schema.DefaultSessionConfiguration.Expiration,
+			},
 		},
 		{
-			Name:       "authelia_session",
-			Domain:     "example2.com",
-			RememberMe: schema.DefaultSessionConfiguration.RememberMe,
-			Expiration: schema.DefaultSessionConfiguration.Expiration,
+			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+				Name:       "authelia_session",
+				Domain:     "example2.com",
+				RememberMe: schema.DefaultSessionConfiguration.RememberMe,
+				Expiration: schema.DefaultSessionConfiguration.Expiration,
+			},
 		},
 	}
 

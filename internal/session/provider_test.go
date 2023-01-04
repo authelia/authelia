@@ -18,9 +18,11 @@ func newTestSession() (*Session, error) {
 	config := schema.SessionConfiguration{}
 	config.Cookies = []schema.SessionCookieConfiguration{
 		{
-			Name:       testName,
-			Domain:     testDomain,
-			Expiration: testExpiration,
+			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+				Name:       testName,
+				Domain:     testDomain,
+				Expiration: testExpiration,
+			},
 		},
 	}
 

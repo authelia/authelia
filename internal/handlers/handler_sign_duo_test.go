@@ -581,8 +581,16 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
 	s.mock.Ctx.Configuration.Session.Cookies = []schema.SessionCookieConfiguration{
-		{Domain: "example.com"},
-		{Domain: "mydomain.local"},
+		{
+			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+				Domain: "example.com",
+			},
+		},
+		{
+			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+				Domain: "mydomain.local",
+			},
+		},
 	}
 	s.mock.StorageMock.EXPECT().
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
