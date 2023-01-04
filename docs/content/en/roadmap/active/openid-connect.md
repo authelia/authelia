@@ -64,7 +64,7 @@ Feature List:
 
 Feature List:
 
-* [Proof Key Code Exchange (PKCE)](https://www.rfc-editor.org/rfc/rfc7636.html) for Authorization Code Flow
+* [Proof Key Code Exchange (PKCE)] for Authorization Code Flow
 * Claims:
   * `preferred_username` - sending the username in this claim instead of the `sub` claim.
 
@@ -115,8 +115,8 @@ Feature List:
 
 {{< roadmap-status stage="in-progress" version="v4.38.0" >}}
 
-
 * [OAuth 2.0 Pushed Authorization Requests](https://www.rfc-editor.org/rfc/rfc9126.html)
+* Per-Client [Proof Key Code Exchange (PKCE)] Policy
 
 ### Beta 7
 
@@ -219,3 +219,4 @@ The `preferred_username` claim was missing and was fixed.
 [OpenID Connect Core (Subject Identifier Types)]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
 [OpenID Connect Core (Pairwise Identifier Algorithm)]: https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg
 [OpenID Connect Core (Mandatory to Implement Features for All OpenID Providers)]: https://openid.net/specs/openid-connect-core-1_0.html#ServerMTI
+[Proof Key Code Exchange (PKCE)]: https://www.rfc-editor.org/rfc/rfc7636.html

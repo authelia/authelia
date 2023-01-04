@@ -2,7 +2,7 @@
 title: "Templating"
 description: "A reference guide on the templates system"
 lead: "This section contains reference documentation for Authelia's templating capabilities."
-date: 2022-12-23T18:31:05+11:00
+date: 2022-12-23T21:58:54+11:00
 draft: false
 images: []
 menu:
@@ -76,6 +76,8 @@ The following functions which mimic the behaviour of helm exist in most templati
 - typeIsLike
 - kindOf
 - kindIs
+- default
+- empty
 
 See the [Helm Documentation](https://helm.sh/docs/chart_template_guide/function_list/) for more information. Please
 note that only the functions listed above are supported and the functions don't necessarily behave exactly the same.

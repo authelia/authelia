@@ -217,6 +217,90 @@ func TestClient_GetResponseTypes(t *testing.T) {
 	assert.Equal(t, "id_token", responseTypes[1])
 }
 
+func TestNewClientPKCE(t *testing.T) {
+	testCases := []struct {
+		name                               string
+		have                               schema.OpenIDConnectClientConfiguration
+		expectedEnforcePKCE                bool
+		expectedEnforcePKCEChallengeMethod bool
+		expected                           string
+		req                                *fosite.Request
+		err                                string
+	}{
+		{
+			"ShouldNotEnforcePKCEAndNotErrorOnNonPKCERequest",
+			schema.OpenIDConnectClientConfiguration{},
+			false,
+			false,
+			"",
+			&fosite.Request{},
+			"",
+		},
+		{
+			"ShouldEnforcePKCEAndErrorOnNonPKCERequest",
+			schema.OpenIDConnectClientConfiguration{EnforcePKCE: true},
+			true,
+			false,
+			"",
+			&fosite.Request{},
+			"invalid_request",
+		},
+		{
+			"ShouldEnforcePKCEAndNotErrorOnPKCERequest",
+			schema.OpenIDConnectClientConfiguration{EnforcePKCE: true},
+			true,
+			false,
+			"",
+			&fosite.Request{Form: map[string][]string{"code_challenge": {"abc"}}},
+			"",
+		},
+		{"ShouldEnforcePKCEFromChallengeMethodAndErrorOnNonPKCERequest",
+			schema.OpenIDConnectClientConfiguration{PKCEChallengeMethod: "S256"},
+			true,
+			true,
+			"S256",
+			&fosite.Request{},
+			"invalid_request",
+		},
+		{"ShouldEnforcePKCEFromChallengeMethodAndErrorOnInvalidChallengeMethod",
+			schema.OpenIDConnectClientConfiguration{PKCEChallengeMethod: "S256"},
+			true,
+			true,
+			"S256",
+			&fosite.Request{Form: map[string][]string{"code_challenge": {"abc"}}},
+			"invalid_request",
+		},
+		{"ShouldEnforcePKCEFromChallengeMethodAndNotErrorOnValidRequest",
+			schema.OpenIDConnectClientConfiguration{PKCEChallengeMethod: "S256"},
+			true,
+			true,
+			"S256",
+			&fosite.Request{Form: map[string][]string{"code_challenge": {"abc"}, "code_challenge_method": {"S256"}}},
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := NewClient(tc.have)
+
+			assert.Equal(t, tc.expectedEnforcePKCE, client.EnforcePKCE)
+			assert.Equal(t, tc.expectedEnforcePKCEChallengeMethod, client.EnforcePKCEChallengeMethod)
+			assert.Equal(t, tc.expected, client.PKCEChallengeMethod)
+
+			if tc.req != nil {
+				err := client.ValidateAuthorizationPolicy(tc.req)
+
+				if tc.err != "" {
+					assert.EqualError(t, err, tc.err)
+				} else {
+					assert.NoError(t, err)
+				}
+			}
+		})
+	}
+}
+
 func TestClient_IsPublic(t *testing.T) {
 	c := Client{}
 
