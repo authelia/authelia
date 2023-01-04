@@ -3,7 +3,6 @@ package validator
 import (
 	"fmt"
 	"path"
-	"regexp"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -25,7 +24,6 @@ func ValidateSession(config *schema.SessionConfiguration, validator *schema.Stru
 	}
 
 	validateSession(config, validator)
-	validateSessionDomains(config, validator)
 }
 
 func validateSession(config *schema.SessionConfiguration, validator *schema.StructValidator) {
@@ -41,23 +39,25 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 		config.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration // 1 month.
 	}
 
-	// adding legacy session.domain to domains list.
-	if config.Domain != "" {
-		last := len(config.Domains) - 1
-		// workaround for failing tests when validator is called twice.
-		if last < 0 || config.Domains[last].Domain != config.Domain {
-			config.Domains = append(config.Domains, schema.SessionDomainConfiguration{
-				Domain:    config.Domain,
-				PortalURL: config.PortalURL,
-			})
-		}
-	}
-
 	if config.SameSite == "" {
 		config.SameSite = schema.DefaultSessionConfiguration.SameSite
 	} else if !utils.IsStringInSlice(config.SameSite, validSessionSameSiteValues) {
 		validator.Push(fmt.Errorf(errFmtSessionSameSite, strings.Join(validSessionSameSiteValues, "', '"), config.SameSite))
 	}
+
+	// Add legacy configuration to the domains list.
+	if config.Domain != "" {
+		config.Domains = append(config.Domains, schema.SessionDomainConfiguration{
+			Domain:             config.Domain,
+			PortalURL:          config.PortalURL,
+			SameSite:           config.SameSite,
+			Expiration:         config.Expiration,
+			Inactivity:         config.Inactivity,
+			RememberMeDuration: config.RememberMeDuration,
+		})
+	}
+
+	validateSessionDomains(config, validator)
 }
 
 func validateSessionDomains(config *schema.SessionConfiguration, validator *schema.StructValidator) {
@@ -65,87 +65,74 @@ func validateSessionDomains(config *schema.SessionConfiguration, validator *sche
 		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "domain"))
 	}
 
-	cookieDomainList := make([]string, 0, len(config.Domains))
+	var domains []string
 
-	for index := range config.Domains {
-		if err := validateDomainName(config.Domains[index].Domain); err != nil {
-			validator.Push(err)
+	for i, d := range config.Domains {
+		validateDomainName(i, d, validator)
+
+		// Check the previous domains do not share a root domain.
+		if utils.IsStringInSliceF(d.Domain, domains, utils.HasDomainSuffix) {
+			if utils.IsStringInSlice(d.Domain, domains) {
+				validator.Push(fmt.Errorf(errFmtSessionDomainDuplicate, sessionDomainDescriptor(i, d)))
+			} else {
+				validator.Push(fmt.Errorf(errFmtSessionDomainDuplicateCookieScope, sessionDomainDescriptor(i, d)))
+			}
 		}
 
-		// ensure there's not duplicated domain_cookie.
-		if utils.IsStringInSlice(config.Domains[index].Domain, cookieDomainList) {
-			validator.Push(fmt.Errorf(errFmtSessionDuplicatedDomainCookie, config.Domains[index].Domain, index))
-		} else if sliceHasSuffix(cookieDomainList, config.Domains[index].Domain) { // subdomains are not allowed.
-			validator.Push(fmt.Errorf(errFmtSessionSubdomainConflict, config.Domains[index].Domain))
+		if d.PortalURL != nil && !utils.IsURISafeRedirection(d.PortalURL, d.Domain) {
+			if utils.IsURISecure(d.PortalURL) {
+				validator.Push(fmt.Errorf(errFmtSessionDomainPortalURLNotInCookieScope, sessionDomainDescriptor(i, d), d.Domain))
+			} else {
+				validator.Push(fmt.Errorf(errFmtSessionDomainPortalURLInsecure, sessionDomainDescriptor(i, d)))
+			}
 		}
 
-		if err := validatePortalURL(config.Domains[index].PortalURL, config.Domains[index].Domain); err != nil {
-			validator.PushWarning(err)
+		domains = append(domains, d.Domain)
 
-			config.Domains[index].PortalURL = ""
+		if d.Name == "" {
+			config.Domains[i].Name = config.Name
 		}
 
-		cookieDomainList = append(cookieDomainList, config.Domains[index].Domain)
-
-		if config.Domains[index].Expiration <= 0 {
-			config.Domains[index].Expiration = config.Expiration
+		if d.Expiration <= 0 {
+			config.Domains[i].Expiration = config.Expiration
 		}
 
-		if config.Domains[index].Inactivity <= 0 {
-			config.Domains[index].Inactivity = config.Inactivity
+		if d.Inactivity <= 0 {
+			config.Domains[i].Inactivity = config.Inactivity
 		}
 
-		if config.Domains[index].RememberMeDuration <= 0 && config.Domains[index].RememberMeDuration != schema.RememberMeDisabled {
-			config.Domains[index].RememberMeDuration = config.RememberMeDuration
+		if d.RememberMeDuration <= 0 && d.RememberMeDuration != schema.RememberMeDisabled {
+			config.Domains[i].RememberMeDuration = config.RememberMeDuration
+		}
+
+		if d.SameSite == "" {
+			if utils.IsStringInSlice(config.SameSite, validSessionSameSiteValues) {
+				config.Domains[i].SameSite = config.SameSite
+			} else {
+				config.Domains[i].SameSite = schema.DefaultSessionConfiguration.SameSite
+			}
+		} else if !utils.IsStringInSlice(d.SameSite, validSessionSameSiteValues) {
+			validator.Push(fmt.Errorf(errFmtSessionDomainSameSite, sessionDomainDescriptor(i, d), strings.Join(validSessionSameSiteValues, "', '"), d.SameSite))
 		}
 	}
 }
 
 // validateDomainName returns error if the domain name is invalid.
-func validateDomainName(domain string) error {
-	if domain == "" {
-		return fmt.Errorf(errFmtSessionOptionRequired, "domain")
+func validateDomainName(i int, d schema.SessionDomainConfiguration, validator *schema.StructValidator) {
+	switch {
+	case d.Domain == "":
+		validator.Push(fmt.Errorf(errFmtSessionDomainRequired, sessionDomainDescriptor(i, d)))
+	case strings.HasPrefix(d.Domain, "*."):
+		validator.Push(fmt.Errorf(errFmtSessionDomainMustBeRoot, sessionDomainDescriptor(i, d), d.Domain))
+	case strings.HasPrefix(d.Domain, "."):
+		validator.PushWarning(fmt.Errorf(errFmtSessionDomainHasPeriodPrefix, sessionDomainDescriptor(i, d)))
+	case !reDomainCharacters.MatchString(d.Domain):
+		validator.Push(fmt.Errorf(errFmtSessionDomainInvalidDomain, sessionDomainDescriptor(i, d)))
 	}
-
-	if strings.HasPrefix(domain, "*.") {
-		return fmt.Errorf(errFmtSessionDomainMustBeRoot, domain)
-	}
-
-	// validate that domain name has not invalid characters.
-	re := regexp.MustCompile(`^[a-z0-9-]+(\.[a-z0-9-]+)+[a-z0-9]$`)
-	if !re.MatchString(domain) {
-		return fmt.Errorf(errFmtSessionInvalidDomainName, domain)
-	}
-
-	return nil
 }
 
-func validatePortalURL(url string, domain string) error {
-	if url == "" {
-		return fmt.Errorf(errFmtSessionPortalURLUndefined, domain)
-	}
-
-	// TODO: validate using url.
-	if !strings.Contains(url, domain) {
-		return fmt.Errorf(errFmtSessionPortalURLInvalid, url, domain)
-	}
-
-	return nil
-}
-
-// sliceHasSuffix returns true if an element of slice has specified suffix(str) or str has a slice element as suffix.
-func sliceHasSuffix(slice []string, str string) bool {
-	for _, s := range slice {
-		if strings.HasSuffix(s, "."+str) {
-			return true
-		}
-
-		if strings.HasSuffix(str, "."+s) {
-			return true
-		}
-	}
-
-	return false
+func sessionDomainDescriptor(position int, domain schema.SessionDomainConfiguration) string {
+	return fmt.Sprintf("#%d (domain '%s')", position+1, domain.Domain)
 }
 
 func validateRedisCommon(config *schema.SessionConfiguration, validator *schema.StructValidator) {

@@ -58,14 +58,20 @@ func IsURISecure(uri *url.URL) bool {
 	}
 }
 
-// HasURIDomainSuffix returns true if the URI hostname is equal to the domain or if it has a suffix of the domain
+// HasURIDomainSuffix returns true if the URI hostname is equal to the domain suffix or if it has a suffix of the domain
+// suffix prefixed with a period.
+func HasURIDomainSuffix(uri *url.URL, domainSuffix string) bool {
+	return HasDomainSuffix(uri.Hostname(), domainSuffix)
+}
+
+// HasDomainSuffix returns true if the URI hostname is equal to the domain or if it has a suffix of the domain
 // prefixed with a period.
-func HasURIDomainSuffix(uri *url.URL, domain string) bool {
-	if uri.Hostname() == domain {
+func HasDomainSuffix(domain, domainSuffix string) bool {
+	if domain == domainSuffix {
 		return true
 	}
 
-	if strings.HasSuffix(uri.Hostname(), period+domain) {
+	if strings.HasSuffix(domain, period+domainSuffix) {
 		return true
 	}
 

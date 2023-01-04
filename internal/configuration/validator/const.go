@@ -248,7 +248,6 @@ const (
 // Session error constants.
 const (
 	errFmtSessionOptionRequired           = "session: option '%s' is required"
-	errFmtSessionDomainMustBeRoot         = "session: option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '%s'"
 	errFmtSessionSameSite                 = "session: option 'same_site' must be one of '%s' but is configured as '%s'"
 	errFmtSessionSecretRequired           = "session: option 'secret' is required when using the '%s' provider"
 	errFmtSessionRedisPortRange           = "session: redis: option 'port' must be between 1 and 65535 but is configured as '%d'"
@@ -259,11 +258,15 @@ const (
 	errFmtSessionRedisSentinelMissingName     = "session: redis: high_availability: option 'sentinel_name' is required"
 	errFmtSessionRedisSentinelNodeHostMissing = "session: redis: high_availability: option 'nodes': option 'host' is required for each node but one or more nodes are missing this"
 
-	errFmtSessionDuplicatedDomainCookie = "session: domains: duplicated domain '%s' option for domain index %d"
-	errFmtSessionSubdomainConflict      = "session: the specified (sub)domain '%s' has confict with an existent domain"
-	errFmtSessionInvalidDomainName      = "session: invalid domain name '%s'"
-	errFmtSessionPortalURLUndefined     = "session: portal_url is not defined for domain '%s'"
-	errFmtSessionPortalURLInvalid       = "session: portal_url '%s' is not part of domain '%s'"
+	errFmtSessionDomainMustBeRoot                = "session: domain config %s: option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '%s'"
+	errFmtSessionDomainSameSite                  = "session: domain config %s: option 'same_site' must be one of '%s' but is configured as '%s'"
+	errFmtSessionDomainRequired                  = "session: domain config %s: option 'domain' is required"
+	errFmtSessionDomainHasPeriodPrefix           = "session: domain config %s: option 'domain' has a prefix of '.' which is not supported or intended behaviour: you can use this at your own risk but we recommend removing it"
+	errFmtSessionDomainDuplicate                 = "session: domain config %s: option 'domain' is a duplicate value for another configured session domain"
+	errFmtSessionDomainDuplicateCookieScope      = "session: domain config %s: option 'domain' shares the same cookie domain scope as another configured session domain"
+	errFmtSessionDomainPortalURLInsecure         = "session: domain config %s: option 'portal_url' does not have a secure scheme"
+	errFmtSessionDomainPortalURLNotInCookieScope = "session: domain config %s: option 'portal_url' does not share a cookie scope with domain '%s'"
+	errFmtSessionDomainInvalidDomain             = "session: domain config %s: option 'domain' is not a valid domain"
 )
 
 // Regulation Error Consts.
@@ -369,7 +372,10 @@ var (
 	validOIDCClientConsentModes = []string{"auto", oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
 )
 
-var reKeyReplacer = regexp.MustCompile(`\[\d+]`)
+var (
+	reKeyReplacer      = regexp.MustCompile(`\[\d+]`)
+	reDomainCharacters = regexp.MustCompile(`^[a-z0-9-]+(\.[a-z0-9-]+)+[a-z0-9]$`)
+)
 
 var replacedKeys = map[string]string{
 	"authentication_backend.ldap.skip_verify":         "authentication_backend.ldap.tls.skip_verify",

@@ -3,7 +3,9 @@ package validator
 import (
 	"crypto/tls"
 	"fmt"
+	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -11,15 +13,11 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-const (
-	exampleDotCom = "example.com"
-)
-
 func newDefaultSessionConfig() schema.SessionConfiguration {
 	config := schema.SessionConfiguration{}
 	config.Secret = testJWTSecret
-	config.Domain = examplecom
-	config.PortalURL = "login.example.com"
+	config.Domain = exampleDotCom
+	config.PortalURL = MustParseURL("https://login.example.com")
 	config.Domains = []schema.SessionDomainConfiguration{}
 
 	return config
@@ -38,6 +36,50 @@ func TestShouldSetDefaultSessionValues(t *testing.T) {
 	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
 	assert.Equal(t, schema.DefaultSessionConfiguration.RememberMeDuration, config.RememberMeDuration)
 	assert.Equal(t, schema.DefaultSessionConfiguration.SameSite, config.SameSite)
+}
+
+func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     schema.SessionConfiguration
+		expected schema.SessionDomainConfiguration
+		errs     int
+	}{
+		{
+			"ShouldSetGoodDefaultValues",
+			schema.SessionConfiguration{SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMeDuration: time.Hour * 2},
+			schema.SessionDomainConfiguration{Domain: exampleDotCom, SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMeDuration: time.Hour * 2},
+			0,
+		},
+		{
+			"ShouldNotSetBadDefaultValues",
+			schema.SessionConfiguration{SameSite: "BAD VALUE", Expiration: time.Hour, Inactivity: time.Minute, RememberMeDuration: time.Hour * 2},
+			schema.SessionDomainConfiguration{Domain: exampleDotCom, SameSite: schema.DefaultSessionConfiguration.SameSite, Expiration: time.Hour, Inactivity: time.Minute, RememberMeDuration: time.Hour * 2},
+			1,
+		},
+	}
+
+	validator := schema.NewStructValidator()
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator.Clear()
+
+			have := tc.have
+
+			have.Domains = []schema.SessionDomainConfiguration{
+				{Domain: exampleDotCom},
+			}
+
+			ValidateSession(&have, validator)
+
+			assert.Len(t, validator.Warnings(), 0)
+			assert.Len(t, validator.Errors(), tc.errs)
+
+			require.Len(t, have.Domains, 1)
+			assert.Equal(t, tc.expected, have.Domains[0])
+		})
+	}
 }
 
 func TestShouldSetDefaultSessionValuesWhenNegative(t *testing.T) {
@@ -60,13 +102,14 @@ func TestShouldWarnSessionValuesWhenPotentiallyInvalid(t *testing.T) {
 	config := newDefaultSessionConfig()
 
 	config.Domain = ".example.com"
+	config.PortalURL = nil
 
 	ValidateSession(&config, validator)
 
 	require.Len(t, validator.Warnings(), 1)
 	assert.Len(t, validator.Errors(), 0)
 
-	assert.EqualError(t, validator.Warnings()[0], "session: option 'domain' has a prefix of '.' which is not supported or intended behaviour: you can use this at your own risk but we recommend removing it")
+	assert.EqualError(t, validator.Warnings()[0], "session: domain config #1 (domain '.example.com'): option 'domain' has a prefix of '.' which is not supported or intended behaviour: you can use this at your own risk but we recommend removing it")
 }
 
 func TestShouldHandleRedisConfigSuccessfully(t *testing.T) {
@@ -78,6 +121,8 @@ func TestShouldHandleRedisConfigSuccessfully(t *testing.T) {
 	assert.Len(t, validator.Errors(), 0)
 	validator.Clear()
 
+	config = newDefaultSessionConfig()
+
 	// Set redis config because password must be set only when redis is used.
 	config.Redis = &schema.RedisSessionConfiguration{
 		Host:     "redis.localhost",
@@ -87,8 +132,8 @@ func TestShouldHandleRedisConfigSuccessfully(t *testing.T) {
 
 	ValidateSession(&config, validator)
 
-	assert.False(t, validator.HasWarnings())
-	assert.False(t, validator.HasErrors())
+	assert.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Errors(), 0)
 
 	assert.Equal(t, 8, config.Redis.MaximumActiveConnections)
 }
@@ -104,7 +149,7 @@ func TestShouldRaiseErrorWithInvalidRedisPortLow(t *testing.T) {
 
 	ValidateSession(&config, validator)
 
-	assert.False(t, validator.HasWarnings())
+	require.Len(t, validator.Warnings(), 0)
 	require.Len(t, validator.Errors(), 1)
 
 	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionRedisPortRange, -1))
@@ -137,6 +182,9 @@ func TestShouldRaiseErrorWhenRedisIsUsedAndSecretNotSet(t *testing.T) {
 	assert.Len(t, validator.Errors(), 0)
 	validator.Clear()
 
+	config = newDefaultSessionConfig()
+	config.Secret = ""
+
 	// Set redis config because password must be set only when redis is used.
 	config.Redis = &schema.RedisSessionConfiguration{
 		Host: "redis.localhost",
@@ -158,6 +206,8 @@ func TestShouldRaiseErrorWhenRedisHasHostnameButNoPort(t *testing.T) {
 
 	assert.Len(t, validator.Errors(), 0)
 	validator.Clear()
+
+	config = newDefaultSessionConfig()
 
 	// Set redis config because password must be set only when redis is used.
 	config.Redis = &schema.RedisSessionConfiguration{
@@ -293,7 +343,24 @@ func TestShouldRaiseErrorsWhenRedisSentinelOptionsIncorrectlyConfigured(t *testi
 
 	validator.Clear()
 
-	config.Redis.Port = -1
+	config = newDefaultSessionConfig()
+
+	config.Secret = ""
+	config.Redis = &schema.RedisSessionConfiguration{
+		Port: -1,
+		HighAvailability: &schema.RedisHighAvailabilityConfiguration{
+			SentinelName:     "sentinel",
+			SentinelPassword: "abc123",
+			Nodes: []schema.RedisNode{
+				{
+					Host: "node1",
+					Port: 26379,
+				},
+			},
+			RouteByLatency: true,
+			RouteRandomly:  true,
+		},
+	}
 
 	ValidateSession(&config, validator)
 
@@ -456,9 +523,11 @@ func TestShouldRaiseErrorWhenDomainIsWildcard(t *testing.T) {
 
 	ValidateSession(&config, validator)
 
-	assert.Len(t, validator.Warnings(), 1)
-	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "session: option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '*.example.com'")
+	assert.Len(t, validator.Warnings(), 0)
+	require.Len(t, validator.Errors(), 2)
+
+	assert.EqualError(t, validator.Errors()[0], "session: domain config #1 (domain '*.example.com'): option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '*.example.com'")
+	assert.EqualError(t, validator.Errors()[1], "session: domain config #1 (domain '*.example.com'): option 'portal_url' does not share a cookie scope with domain '*.example.com'")
 }
 
 func TestShouldRaiseErrorWhenDomainNameIsInvalid(t *testing.T) {
@@ -468,9 +537,11 @@ func TestShouldRaiseErrorWhenDomainNameIsInvalid(t *testing.T) {
 
 	ValidateSession(&config, validator)
 
-	assert.Len(t, validator.Warnings(), 1)
-	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionInvalidDomainName, "example!.com"))
+	assert.Len(t, validator.Warnings(), 0)
+	require.Len(t, validator.Errors(), 2)
+
+	assert.EqualError(t, validator.Errors()[0], "session: domain config #1 (domain 'example!.com'): option 'domain' is not a valid domain")
+	assert.EqualError(t, validator.Errors()[1], "session: domain config #1 (domain 'example!.com'): option 'portal_url' does not share a cookie scope with domain 'example!.com'")
 }
 
 func TestShouldRaiseErrorWhenHaveDuplicatedDomainName(t *testing.T) {
@@ -479,17 +550,17 @@ func TestShouldRaiseErrorWhenHaveDuplicatedDomainName(t *testing.T) {
 	config.Domain = ""
 	config.Domains = append(config.Domains, schema.SessionDomainConfiguration{
 		Domain:    exampleDotCom,
-		PortalURL: "login.example.com",
+		PortalURL: MustParseURL("https://login.example.com"),
 	})
 	config.Domains = append(config.Domains, schema.SessionDomainConfiguration{
 		Domain:    exampleDotCom,
-		PortalURL: "login.example.com",
+		PortalURL: MustParseURL("https://login.example.com"),
 	})
 
 	ValidateSession(&config, validator)
 	assert.False(t, validator.HasWarnings())
 	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionDuplicatedDomainCookie, exampleDotCom, 1))
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionDomainDuplicate, sessionDomainDescriptor(1, schema.SessionDomainConfiguration{Domain: exampleDotCom})))
 }
 
 func TestShouldRaiseErrorWhenSubdomainConflicts(t *testing.T) {
@@ -498,29 +569,101 @@ func TestShouldRaiseErrorWhenSubdomainConflicts(t *testing.T) {
 	config.Domain = ""
 	config.Domains = append(config.Domains, schema.SessionDomainConfiguration{
 		Domain:    exampleDotCom,
-		PortalURL: "login.example.com",
+		PortalURL: MustParseURL("https://login.example.com"),
 	})
 	config.Domains = append(config.Domains, schema.SessionDomainConfiguration{
 		Domain:    "internal.example.com",
-		PortalURL: "login.internal.example.com",
+		PortalURL: MustParseURL("https://login.internal.example.com"),
 	})
 
 	ValidateSession(&config, validator)
 	assert.False(t, validator.HasWarnings())
 	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionSubdomainConflict, "internal.example.com"))
+	assert.EqualError(t, validator.Errors()[0], "session: domain config #2 (domain 'internal.example.com'): option 'domain' shares the same cookie domain scope as another configured session domain")
 }
 
-func TestShouldRaiseErrorWhenPortalUrlIsInvalid(t *testing.T) {
+func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		expected []string
+	}{
+		{"ShouldRaiseErrorOnMissingDomain", "", []string{"session: domain config #1 (domain ''): option 'domain' is required"}},
+		{"ShouldNotRaiseErrorOnValidDomain", exampleDotCom, nil},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+			config := newDefaultSessionConfig()
+			config.Domain = ""
+			config.PortalURL = nil
+
+			config.Domains = []schema.SessionDomainConfiguration{
+				{Domain: tc.have},
+			}
+
+			ValidateSession(&config, validator)
+
+			assert.Len(t, validator.Warnings(), 0)
+			require.Len(t, validator.Errors(), len(tc.expected))
+
+			for i, expected := range tc.expected {
+				assert.EqualError(t, validator.Errors()[i], expected)
+			}
+		})
+	}
+
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 	config.Domain = exampleDotCom
-	config.PortalURL = "example2.com/login"
+	config.PortalURL = MustParseURL("https://example2.com/login")
 
 	ValidateSession(&config, validator)
-	assert.True(t, validator.HasWarnings())
-	assert.False(t, validator.HasErrors())
-	assert.EqualError(t, validator.Warnings()[0], fmt.Sprintf(errFmtSessionPortalURLInvalid, "example2.com/login", exampleDotCom))
+	assert.Len(t, validator.Warnings(), 0)
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "session: domain config #1 (domain 'example.com'): option 'portal_url' does not share a cookie scope with domain 'example.com'")
+}
+
+func TestShouldRaiseErrorWhenPortalURLIsInvalid(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		expected []string
+	}{
+		{"ShouldRaiseErrorOnInvalidScope", "https://example2.com/login", []string{"session: domain config #1 (domain 'example.com'): option 'portal_url' does not share a cookie scope with domain 'example.com'"}},
+		{"ShouldRaiseErrorOnInvalidScheme", "http://example.com/login", []string{"session: domain config #1 (domain 'example.com'): option 'portal_url' does not have a secure scheme"}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+			config := newDefaultSessionConfig()
+			config.Domain = exampleDotCom
+			config.PortalURL = MustParseURL(tc.have)
+
+			ValidateSession(&config, validator)
+
+			assert.Len(t, validator.Warnings(), 0)
+			require.Len(t, validator.Errors(), len(tc.expected))
+
+			for i, expected := range tc.expected {
+				assert.EqualError(t, validator.Errors()[i], expected)
+			}
+		})
+	}
+
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.Domain = exampleDotCom
+	config.PortalURL = MustParseURL("https://example2.com/login")
+
+	ValidateSession(&config, validator)
+	assert.Len(t, validator.Warnings(), 0)
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "session: domain config #1 (domain 'example.com'): option 'portal_url' does not share a cookie scope with domain 'example.com'")
 }
 
 func TestShouldRaiseErrorWhenSameSiteSetIncorrectly(t *testing.T) {
@@ -531,22 +674,28 @@ func TestShouldRaiseErrorWhenSameSiteSetIncorrectly(t *testing.T) {
 	ValidateSession(&config, validator)
 
 	assert.False(t, validator.HasWarnings())
-	assert.Len(t, validator.Errors(), 1)
+	require.Len(t, validator.Errors(), 2)
+
 	assert.EqualError(t, validator.Errors()[0], "session: option 'same_site' must be one of 'none', 'lax', 'strict' but is configured as 'NOne'")
+	assert.EqualError(t, validator.Errors()[1], "session: domain config #1 (domain 'example.com'): option 'same_site' must be one of 'none', 'lax', 'strict' but is configured as 'NOne'")
 }
 
 func TestShouldNotRaiseErrorWhenSameSiteSetCorrectly(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
+
+	var config schema.SessionConfiguration
 
 	validOptions := []string{"none", "lax", "strict"}
 
 	for _, opt := range validOptions {
+		validator.Clear()
+
+		config = newDefaultSessionConfig()
 		config.SameSite = opt
 
 		ValidateSession(&config, validator)
 
-		assert.False(t, validator.HasWarnings())
+		assert.Len(t, validator.Warnings(), 0)
 		assert.Len(t, validator.Errors(), 0)
 	}
 }
@@ -577,4 +726,14 @@ func TestShouldSetDefaultRememberMeDuration(t *testing.T) {
 	assert.False(t, validator.HasWarnings())
 	assert.False(t, validator.HasErrors())
 	assert.Equal(t, config.RememberMeDuration, schema.DefaultSessionConfiguration.RememberMeDuration)
+}
+
+func MustParseURL(uri string) *url.URL {
+	u, err := url.ParseRequestURI(uri)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return u
 }

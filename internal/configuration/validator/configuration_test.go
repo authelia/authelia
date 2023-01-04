@@ -25,7 +25,7 @@ func newDefaultConfig() schema.Configuration {
 		DefaultPolicy: "two_factor",
 	}
 	config.Session = schema.SessionConfiguration{
-		Domain: examplecom,
+		Domain: exampleDotCom,
 		Name:   "authelia_session",
 		Secret: "secret",
 	}
@@ -48,6 +48,8 @@ func TestShouldEnsureNotifierConfigIsProvided(t *testing.T) {
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 0)
+
+	config = newDefaultConfig()
 
 	config.Notifier.SMTP = nil
 	config.Notifier.FileSystem = nil
@@ -134,6 +136,8 @@ func TestShouldRaiseErrorOnInvalidCertificatesDirectory(t *testing.T) {
 	}
 
 	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
+
+	config = newDefaultConfig()
 
 	validator = schema.NewStructValidator()
 	config.CertificatesDirectory = "const.go"
