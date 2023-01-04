@@ -16,7 +16,7 @@ import (
 
 func newTestSession() (*Session, error) {
 	config := schema.SessionConfiguration{}
-	config.Domains = []schema.SessionDomainConfiguration{
+	config.Cookies = []schema.SessionCookieConfiguration{
 		{
 			Name:       testName,
 			Domain:     testDomain,

@@ -31,7 +31,7 @@ session:
   secret: unsecure_session_secret
   expiration: 1h
   inactivity: 5m
-  remember_me_duration:  1M
+  remember_me:  1M
 ```
 
 ## Providers
@@ -99,7 +99,7 @@ characters.
 the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
 
 The period of time before the cookie expires and the session is destroyed. This is overriden by
-[remember_me_duration](#remembermeduration) when the remember me box is checked.
+[remember_me](#rememberme) when the remember me box is checked.
 
 ### inactivity
 
@@ -111,7 +111,7 @@ the [common options](../prologue/common.md#duration-notation-format) documentati
 The period of time the user can be inactive for until the session is destroyed. Useful if you want long session timers
 but don't want unused devices to be vulnerable.
 
-### remember_me_duration
+### remember_me
 
 {{< confkey type="duration" default="1M" required="no" >}}
 

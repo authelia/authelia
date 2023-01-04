@@ -37,37 +37,39 @@ type RedisSessionConfiguration struct {
 
 // SessionConfiguration represents the configuration related to user sessions.
 type SessionConfiguration struct {
-	Name               string        `koanf:"name"`
-	Domain             string        `koanf:"domain"`
-	SameSite           string        `koanf:"same_site"`
-	Secret             string        `koanf:"secret"`
-	Expiration         time.Duration `koanf:"expiration"`
-	Inactivity         time.Duration `koanf:"inactivity"`
-	RememberMeDuration time.Duration `koanf:"remember_me_duration"`
+	Name              string        `koanf:"name"`
+	Domain            string        `koanf:"domain"`
+	SameSite          string        `koanf:"same_site"`
+	Secret            string        `koanf:"secret"`
+	Expiration        time.Duration `koanf:"expiration"`
+	Inactivity        time.Duration `koanf:"inactivity"`
+	RememberMe        time.Duration `koanf:"remember_me"`
+	DisableRememberMe bool          `koanf:"disable_remember_me"`
 
-	Domains []SessionDomainConfiguration `koanf:"domains"`
+	Cookies []SessionCookieConfiguration `koanf:"cookies"`
 
 	Redis *RedisSessionConfiguration `koanf:"redis"`
 }
 
-// SessionDomainConfiguration represents the configuration for a cookie domain.
-type SessionDomainConfiguration struct {
-	Name               string        `koanf:"name"`
-	Domain             string        `koanf:"domain"`
-	PortalURL          *url.URL      `koanf:"portal_url"`
-	SameSite           string        `koanf:"same_site"`
-	Expiration         time.Duration `koanf:"expiration"`
-	Inactivity         time.Duration `koanf:"inactivity"`
-	RememberMeDuration time.Duration `koanf:"remember_me_duration"`
+// SessionCookieConfiguration represents the configuration for a cookie domain.
+type SessionCookieConfiguration struct {
+	Name              string        `koanf:"name"`
+	Domain            string        `koanf:"domain"`
+	PortalURL         *url.URL      `koanf:"portal_url"`
+	SameSite          string        `koanf:"same_site"`
+	Expiration        time.Duration `koanf:"expiration"`
+	Inactivity        time.Duration `koanf:"inactivity"`
+	RememberMe        time.Duration `koanf:"remember_me"`
+	DisableRememberMe bool          `koanf:"disable_remember_me"`
 }
 
 // DefaultSessionConfiguration is the default session configuration.
 var DefaultSessionConfiguration = SessionConfiguration{
-	Name:               "authelia_session",
-	Expiration:         time.Hour,
-	Inactivity:         time.Minute * 5,
-	RememberMeDuration: time.Hour * 24 * 30,
-	SameSite:           "lax",
+	Name:       "authelia_session",
+	Expiration: time.Hour,
+	Inactivity: time.Minute * 5,
+	RememberMe: time.Hour * 24 * 30,
+	SameSite:   "lax",
 }
 
 // DefaultRedisConfiguration is the default redis configuration.

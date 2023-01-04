@@ -26,7 +26,7 @@ func newDefaultConfig() schema.Configuration {
 	}
 	config.Session = schema.SessionConfiguration{
 		Secret: "secret",
-		Domains: []schema.SessionDomainConfiguration{
+		Cookies: []schema.SessionCookieConfiguration{
 			{
 				Name:   "authelia_session",
 				Domain: exampleDotCom,

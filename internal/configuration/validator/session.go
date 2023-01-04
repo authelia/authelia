@@ -35,8 +35,11 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 		config.Inactivity = schema.DefaultSessionConfiguration.Inactivity // 5 min.
 	}
 
-	if config.RememberMeDuration <= 0 && config.RememberMeDuration != schema.RememberMeDisabled {
-		config.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration // 1 month.
+	switch {
+	case config.RememberMe == schema.RememberMeDisabled:
+		config.DisableRememberMe = true
+	case config.RememberMe <= 0:
+		config.RememberMe = schema.DefaultSessionConfiguration.RememberMe // 1 month.
 	}
 
 	if config.SameSite == "" {
@@ -47,26 +50,27 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 
 	// Add legacy configuration to the domains list.
 	if config.Domain != "" {
-		config.Domains = append(config.Domains, schema.SessionDomainConfiguration{
-			Domain:             config.Domain,
-			SameSite:           config.SameSite,
-			Expiration:         config.Expiration,
-			Inactivity:         config.Inactivity,
-			RememberMeDuration: config.RememberMeDuration,
+		config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
+			Domain:     config.Domain,
+			SameSite:   config.SameSite,
+			Expiration: config.Expiration,
+			Inactivity: config.Inactivity,
+			RememberMe: config.RememberMe,
 		})
 	}
 
 	validateSessionDomains(config, validator)
 }
 
+//nolint:gocyclo
 func validateSessionDomains(config *schema.SessionConfiguration, validator *schema.StructValidator) {
-	if len(config.Domains) == 0 {
+	if len(config.Cookies) == 0 {
 		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "domain"))
 	}
 
 	var domains []string
 
-	for i, d := range config.Domains {
+	for i, d := range config.Cookies {
 		validateDomainName(i, d, validator)
 
 		// Check the previous domains do not share a root domain.
@@ -89,26 +93,30 @@ func validateSessionDomains(config *schema.SessionConfiguration, validator *sche
 		domains = append(domains, d.Domain)
 
 		if d.Name == "" {
-			config.Domains[i].Name = config.Name
+			config.Cookies[i].Name = config.Name
 		}
 
 		if d.Expiration <= 0 {
-			config.Domains[i].Expiration = config.Expiration
+			config.Cookies[i].Expiration = config.Expiration
 		}
 
 		if d.Inactivity <= 0 {
-			config.Domains[i].Inactivity = config.Inactivity
+			config.Cookies[i].Inactivity = config.Inactivity
 		}
 
-		if d.RememberMeDuration <= 0 && d.RememberMeDuration != schema.RememberMeDisabled {
-			config.Domains[i].RememberMeDuration = config.RememberMeDuration
+		if d.RememberMe <= 0 && !d.DisableRememberMe {
+			if !config.DisableRememberMe {
+				config.Cookies[i].RememberMe = config.RememberMe
+			} else {
+				config.Cookies[i].RememberMe = schema.DefaultSessionConfiguration.RememberMe
+			}
 		}
 
 		if d.SameSite == "" {
 			if utils.IsStringInSlice(config.SameSite, validSessionSameSiteValues) {
-				config.Domains[i].SameSite = config.SameSite
+				config.Cookies[i].SameSite = config.SameSite
 			} else {
-				config.Domains[i].SameSite = schema.DefaultSessionConfiguration.SameSite
+				config.Cookies[i].SameSite = schema.DefaultSessionConfiguration.SameSite
 			}
 		} else if !utils.IsStringInSlice(d.SameSite, validSessionSameSiteValues) {
 			validator.Push(fmt.Errorf(errFmtSessionDomainSameSite, sessionDomainDescriptor(i, d), strings.Join(validSessionSameSiteValues, "', '"), d.SameSite))
@@ -117,7 +125,7 @@ func validateSessionDomains(config *schema.SessionConfiguration, validator *sche
 }
 
 // validateDomainName returns error if the domain name is invalid.
-func validateDomainName(i int, d schema.SessionDomainConfiguration, validator *schema.StructValidator) {
+func validateDomainName(i int, d schema.SessionCookieConfiguration, validator *schema.StructValidator) {
 	switch {
 	case d.Domain == "":
 		validator.Push(fmt.Errorf(errFmtSessionDomainRequired, sessionDomainDescriptor(i, d)))
@@ -130,7 +138,7 @@ func validateDomainName(i int, d schema.SessionDomainConfiguration, validator *s
 	}
 }
 
-func sessionDomainDescriptor(position int, domain schema.SessionDomainConfiguration) string {
+func sessionDomainDescriptor(position int, domain schema.SessionCookieConfiguration) string {
 	return fmt.Sprintf("#%d (domain '%s')", position+1, domain.Domain)
 }
 

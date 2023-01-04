@@ -260,41 +260,48 @@ func NewTLSConfig(config *schema.TLSConfig, rootCAs *x509.CertPool) (tlsConfig *
 
 // NewX509CertPool generates a x509.CertPool from the system PKI and the directory specified.
 func NewX509CertPool(directory string) (certPool *x509.CertPool, warnings []error, errors []error) {
-	certPool, err := x509.SystemCertPool()
-	if err != nil {
+	var err error
+
+	if certPool, err = x509.SystemCertPool(); err != nil {
 		warnings = append(warnings, fmt.Errorf("could not load system certificate pool which may result in untrusted certificate issues: %v", err))
 		certPool = x509.NewCertPool()
 	}
 
-	logger := logging.Logger()
+	log := logging.Logger()
 
-	logger.Tracef("Starting scan of directory %s for certificates", directory)
+	log.Tracef("Starting scan of directory %s for certificates", directory)
 
-	if directory != "" {
-		certsFileInfo, err := os.ReadDir(directory)
-		if err != nil {
-			errors = append(errors, fmt.Errorf("could not read certificates from directory %v", err))
-		} else {
-			for _, certFileInfo := range certsFileInfo {
-				nameLower := strings.ToLower(certFileInfo.Name())
+	if directory == "" {
+		return certPool, warnings, errors
+	}
 
-				if !certFileInfo.IsDir() && (strings.HasSuffix(nameLower, ".cer") || strings.HasSuffix(nameLower, ".crt") || strings.HasSuffix(nameLower, ".pem")) {
-					certPath := filepath.Join(directory, certFileInfo.Name())
+	var entries []os.DirEntry
 
-					logger.Tracef("Found possible cert %s, attempting to add it to the pool", certPath)
+	if entries, err = os.ReadDir(directory); err != nil {
+		errors = append(errors, fmt.Errorf("could not read certificates from directory %v", err))
 
-					certBytes, err := os.ReadFile(certPath)
-					if err != nil {
-						errors = append(errors, fmt.Errorf("could not read certificate %v", err))
-					} else if ok := certPool.AppendCertsFromPEM(certBytes); !ok {
-						errors = append(errors, fmt.Errorf("could not import certificate %s", certFileInfo.Name()))
-					}
-				}
+		return certPool, warnings, errors
+	}
+
+	for _, entry := range entries {
+		nameLower := strings.ToLower(entry.Name())
+
+		if !entry.IsDir() && (strings.HasSuffix(nameLower, ".cer") || strings.HasSuffix(nameLower, ".crt") || strings.HasSuffix(nameLower, ".pem")) {
+			certPath := filepath.Join(directory, entry.Name())
+
+			log.Tracef("Found possible cert %s, attempting to add it to the pool", certPath)
+
+			var data []byte
+
+			if data, err = os.ReadFile(certPath); err != nil {
+				errors = append(errors, fmt.Errorf("could not read certificate %v", err))
+			} else if ok := certPool.AppendCertsFromPEM(data); !ok {
+				errors = append(errors, fmt.Errorf("could not import certificate %s", entry.Name()))
 			}
 		}
 	}
 
-	logger.Tracef("Finished scan of directory %s for certificates", directory)
+	log.Tracef("Finished scan of directory %s for certificates", directory)
 
 	return certPool, warnings, errors
 }

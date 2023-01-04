@@ -19,7 +19,7 @@ import (
 )
 
 // NewProviderConfig creates a configuration for creating the session provider.
-func NewProviderConfig(config schema.SessionDomainConfiguration, providerName string, serializer Serializer) ProviderConfig {
+func NewProviderConfig(config schema.SessionCookieConfiguration, providerName string, serializer Serializer) ProviderConfig {
 	c := session.NewDefaultConfig()
 
 	c.SessionIDGeneratorFunc = func() []byte {
@@ -83,7 +83,7 @@ func NewProviderSession(pconfig ProviderConfig, provider session.Provider) (p *s
 	return p, nil
 }
 
-func NewProviderConfigAndSession(config schema.SessionDomainConfiguration, providerName string, serializer Serializer, provider session.Provider) (c ProviderConfig, p *session.Session, err error) {
+func NewProviderConfigAndSession(config schema.SessionCookieConfiguration, providerName string, serializer Serializer, provider session.Provider) (c ProviderConfig, p *session.Session, err error) {
 	c = NewProviderConfig(config, providerName, serializer)
 
 	if p, err = NewProviderSession(c, provider); err != nil {

@@ -20,11 +20,13 @@ authentication_backend:
 
 session:
   secret: unsecure_session_secret
-  domain: example.com
-  expiration: 3600  # 1 hour
-  inactivity: 300  # 5 minutes
-  remember_me_duration: 1y
-  portal_url: https://login.example.com
+  cookies:
+    - name: 'authelia_session'
+      domain: 'example.com'
+      portal_url: 'https://login.example.com'
+      expiration: 3600  # 1 hour
+      inactivity: 300  # 5 minutes
+      remember_me: 1y
 
 storage:
   encryption_key: a_not_so_secure_encryption_key

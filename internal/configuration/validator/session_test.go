@@ -17,7 +17,7 @@ func newDefaultSessionConfig() schema.SessionConfiguration {
 	config := schema.SessionConfiguration{}
 	config.Secret = testJWTSecret
 	config.Domain = exampleDotCom
-	config.Domains = []schema.SessionDomainConfiguration{}
+	config.Cookies = []schema.SessionCookieConfiguration{}
 
 	return config
 }
@@ -33,7 +33,7 @@ func TestShouldSetDefaultSessionValues(t *testing.T) {
 	assert.Equal(t, schema.DefaultSessionConfiguration.Name, config.Name)
 	assert.Equal(t, schema.DefaultSessionConfiguration.Inactivity, config.Inactivity)
 	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
-	assert.Equal(t, schema.DefaultSessionConfiguration.RememberMeDuration, config.RememberMeDuration)
+	assert.Equal(t, schema.DefaultSessionConfiguration.RememberMe, config.RememberMe)
 	assert.Equal(t, schema.DefaultSessionConfiguration.SameSite, config.SameSite)
 }
 
@@ -41,19 +41,19 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 	testCases := []struct {
 		name     string
 		have     schema.SessionConfiguration
-		expected schema.SessionDomainConfiguration
+		expected schema.SessionCookieConfiguration
 		errs     int
 	}{
 		{
 			"ShouldSetGoodDefaultValues",
-			schema.SessionConfiguration{SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMeDuration: time.Hour * 2},
-			schema.SessionDomainConfiguration{Name: "authelia_session", Domain: exampleDotCom, SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMeDuration: time.Hour * 2},
+			schema.SessionConfiguration{SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2},
+			schema.SessionCookieConfiguration{Name: "authelia_session", Domain: exampleDotCom, SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2},
 			0,
 		},
 		{
 			"ShouldNotSetBadDefaultValues",
-			schema.SessionConfiguration{SameSite: "BAD VALUE", Expiration: time.Hour, Inactivity: time.Minute, RememberMeDuration: time.Hour * 2},
-			schema.SessionDomainConfiguration{Name: "authelia_session", Domain: exampleDotCom, SameSite: schema.DefaultSessionConfiguration.SameSite, Expiration: time.Hour, Inactivity: time.Minute, RememberMeDuration: time.Hour * 2},
+			schema.SessionConfiguration{SameSite: "BAD VALUE", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2},
+			schema.SessionCookieConfiguration{Name: "authelia_session", Domain: exampleDotCom, SameSite: schema.DefaultSessionConfiguration.SameSite, Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2},
 			1,
 		},
 	}
@@ -66,7 +66,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 
 			have := tc.have
 
-			have.Domains = []schema.SessionDomainConfiguration{
+			have.Cookies = []schema.SessionCookieConfiguration{
 				{Domain: exampleDotCom},
 			}
 
@@ -75,8 +75,8 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 			assert.Len(t, validator.Warnings(), 0)
 			assert.Len(t, validator.Errors(), tc.errs)
 
-			require.Len(t, have.Domains, 1)
-			assert.Equal(t, tc.expected, have.Domains[0])
+			require.Len(t, have.Cookies, 1)
+			assert.Equal(t, tc.expected, have.Cookies[0])
 		})
 	}
 }
@@ -85,7 +85,7 @@ func TestShouldSetDefaultSessionValuesWhenNegative(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
-	config.Expiration, config.Inactivity, config.RememberMeDuration = -1, -1, -2
+	config.Expiration, config.Inactivity, config.RememberMe = -1, -1, -2
 
 	ValidateSession(&config, validator)
 
@@ -93,7 +93,7 @@ func TestShouldSetDefaultSessionValuesWhenNegative(t *testing.T) {
 	assert.Len(t, validator.Errors(), 0)
 	assert.Equal(t, schema.DefaultSessionConfiguration.Inactivity, config.Inactivity)
 	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
-	assert.Equal(t, schema.DefaultSessionConfiguration.RememberMeDuration, config.RememberMeDuration)
+	assert.Equal(t, schema.DefaultSessionConfiguration.RememberMe, config.RememberMe)
 }
 
 func TestShouldWarnSessionValuesWhenPotentiallyInvalid(t *testing.T) {
@@ -505,7 +505,7 @@ func TestShouldRaiseErrorWhenDomainNotSet(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 	config.Domain = ""
-	config.Domains = []schema.SessionDomainConfiguration{}
+	config.Cookies = []schema.SessionCookieConfiguration{}
 
 	ValidateSession(&config, validator)
 
@@ -544,11 +544,11 @@ func TestShouldRaiseErrorWhenHaveDuplicatedDomainName(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 	config.Domain = ""
-	config.Domains = append(config.Domains, schema.SessionDomainConfiguration{
+	config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
 		Domain:    exampleDotCom,
 		PortalURL: MustParseURL("https://login.example.com"),
 	})
-	config.Domains = append(config.Domains, schema.SessionDomainConfiguration{
+	config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
 		Domain:    exampleDotCom,
 		PortalURL: MustParseURL("https://login.example.com"),
 	})
@@ -556,18 +556,18 @@ func TestShouldRaiseErrorWhenHaveDuplicatedDomainName(t *testing.T) {
 	ValidateSession(&config, validator)
 	assert.False(t, validator.HasWarnings())
 	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionDomainDuplicate, sessionDomainDescriptor(1, schema.SessionDomainConfiguration{Domain: exampleDotCom})))
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionDomainDuplicate, sessionDomainDescriptor(1, schema.SessionCookieConfiguration{Domain: exampleDotCom})))
 }
 
 func TestShouldRaiseErrorWhenSubdomainConflicts(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 	config.Domain = ""
-	config.Domains = append(config.Domains, schema.SessionDomainConfiguration{
+	config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
 		Domain:    exampleDotCom,
 		PortalURL: MustParseURL("https://login.example.com"),
 	})
-	config.Domains = append(config.Domains, schema.SessionDomainConfiguration{
+	config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
 		Domain:    "internal.example.com",
 		PortalURL: MustParseURL("https://login.internal.example.com"),
 	})
@@ -594,7 +594,7 @@ func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {
 			config := newDefaultSessionConfig()
 			config.Domain = ""
 
-			config.Domains = []schema.SessionDomainConfiguration{
+			config.Cookies = []schema.SessionCookieConfiguration{
 				{Domain: tc.have, PortalURL: MustParseURL("https://auth.example.com")},
 			}
 
@@ -625,7 +625,7 @@ func TestShouldRaiseErrorWhenPortalURLIsInvalid(t *testing.T) {
 			validator := schema.NewStructValidator()
 			config := newDefaultSessionConfig()
 			config.Domain = ""
-			config.Domains = []schema.SessionDomainConfiguration{
+			config.Cookies = []schema.SessionCookieConfiguration{
 				{Name: "authelia_session", Domain: exampleDotCom, PortalURL: MustParseURL(tc.have)},
 			}
 
@@ -680,7 +680,7 @@ func TestShouldSetDefaultWhenNegativeAndNotOverrideDisabledRememberMe(t *testing
 	config := newDefaultSessionConfig()
 	config.Inactivity = -1
 	config.Expiration = -1
-	config.RememberMeDuration = schema.RememberMeDisabled
+	config.RememberMe = schema.RememberMeDisabled
 
 	ValidateSession(&config, validator)
 
@@ -689,7 +689,7 @@ func TestShouldSetDefaultWhenNegativeAndNotOverrideDisabledRememberMe(t *testing
 
 	assert.Equal(t, schema.DefaultSessionConfiguration.Inactivity, config.Inactivity)
 	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
-	assert.Equal(t, schema.RememberMeDisabled, config.RememberMeDuration)
+	assert.Equal(t, schema.RememberMeDisabled, config.RememberMe)
 }
 
 func TestShouldSetDefaultRememberMeDuration(t *testing.T) {
@@ -700,7 +700,7 @@ func TestShouldSetDefaultRememberMeDuration(t *testing.T) {
 
 	assert.False(t, validator.HasWarnings())
 	assert.False(t, validator.HasErrors())
-	assert.Equal(t, config.RememberMeDuration, schema.DefaultSessionConfiguration.RememberMeDuration)
+	assert.Equal(t, config.RememberMe, schema.DefaultSessionConfiguration.RememberMe)
 }
 
 func MustParseURL(uri string) *url.URL {

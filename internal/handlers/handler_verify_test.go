@@ -513,7 +513,6 @@ func TestShouldNotCrashOnEmptyEmail(t *testing.T) {
 	userSession.AuthenticationLevel = authentication.OneFactor
 	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
-	fmt.Printf("Time is %v\n", userSession.RefreshTTL)
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
 
@@ -710,10 +709,10 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 	clock.Set(time.Now())
 	past := clock.Now().Add(-1 * time.Hour)
 
-	mock.Ctx.Configuration.Session.Domains[0].Inactivity = testInactivity
+	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
-	assert.Equal(t, time.Second*10, mock.Ctx.Configuration.Session.Domains[0].Inactivity)
+	assert.Equal(t, time.Second*10, mock.Ctx.Configuration.Session.Cookies[0].Inactivity)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
@@ -743,10 +742,10 @@ func TestShouldDestroySessionWhenInactiveForTooLongUsingDurationNotation(t *test
 	clock := utils.TestingClock{}
 	clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Domains[0].Inactivity = time.Second * 10
+	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = time.Second * 10
 	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
-	assert.Equal(t, time.Second*10, mock.Ctx.Configuration.Session.Domains[0].Inactivity)
+	assert.Equal(t, time.Second*10, mock.Ctx.Configuration.Session.Cookies[0].Inactivity)
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
@@ -772,7 +771,7 @@ func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *te
 
 	mock.Clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Domains[0].Inactivity = testInactivity
+	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
@@ -804,7 +803,7 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 
 	mock.Clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Domains[0].Inactivity = testInactivity
+	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 
 	past := mock.Clock.Now().Add(-1 * time.Hour)
 
@@ -840,10 +839,10 @@ func TestShouldRedirectWhenSessionInactiveForTooLongAndRDParamProvided(t *testin
 	clock := utils.TestingClock{}
 	clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Domains[0].Inactivity = testInactivity
+	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
-	assert.Equal(t, time.Second*10, mock.Ctx.Configuration.Session.Domains[0].Inactivity)
+	assert.Equal(t, time.Second*10, mock.Ctx.Configuration.Session.Cookies[0].Inactivity)
 
 	past := clock.Now().Add(-1 * time.Hour)
 
@@ -903,7 +902,7 @@ func TestShouldUpdateInactivityTimestampEvenWhenHittingForbiddenResources(t *tes
 
 	mock.Clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Domains[0].Inactivity = testInactivity
+	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 
 	past := mock.Clock.Now().Add(-1 * time.Hour)
 
@@ -1398,10 +1397,10 @@ func TestShouldNotRedirectRequestsForBypassACLWhenInactiveForTooLong(t *testing.
 	clock.Set(time.Now())
 	past := clock.Now().Add(-1 * time.Hour)
 
-	mock.Ctx.Configuration.Session.Domains[0].Inactivity = testInactivity
+	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
-	assert.Equal(t, time.Second*10, mock.Ctx.Configuration.Session.Domains[0].Inactivity)
+	assert.Equal(t, time.Second*10, mock.Ctx.Configuration.Session.Cookies[0].Inactivity)
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
@@ -1490,7 +1489,7 @@ func TestIsSessionInactiveTooLong(t *testing.T) {
 
 			defer ctx.Close()
 
-			ctx.Ctx.Configuration.Session.Domains[0].Inactivity = tc.inactivity
+			ctx.Ctx.Configuration.Session.Cookies[0].Inactivity = tc.inactivity
 			ctx.Ctx.Providers.SessionProvider = session.NewProvider(ctx.Ctx.Configuration.Session, nil)
 
 			ctx.Clock.Set(tc.now)

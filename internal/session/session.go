@@ -10,9 +10,10 @@ import (
 
 // Session a session provider.
 type Session struct {
-	sessionHolder *fasthttpsession.Session
-	RememberMe    time.Duration
-	Inactivity    time.Duration
+	sessionHolder     *fasthttpsession.Session
+	DisableRememberMe bool
+	RememberMe        time.Duration
+	Inactivity        time.Duration
 }
 
 // GetSession return the user session from a request.

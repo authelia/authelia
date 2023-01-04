@@ -21,8 +21,6 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	userSession := ctx.GetSession()
 
-	fmt.Printf("user %s\n", userSession.Username)
-
 	config, err := ctx.Providers.StorageProvider.LoadTOTPConfiguration(ctx, userSession.Username)
 	if err != nil {
 		ctx.Logger.Errorf("Failed to load TOTP configuration: %+v", err)

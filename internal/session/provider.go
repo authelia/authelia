@@ -32,15 +32,16 @@ func NewProvider(config schema.SessionConfiguration, certPool *x509.CertPool) *P
 		holder *session.Session
 	)
 
-	for _, dconfig := range config.Domains {
+	for _, dconfig := range config.Cookies {
 		if _, holder, err = NewProviderConfigAndSession(dconfig, name, s, p); err != nil {
 			log.Fatal(err)
 		}
 
 		provider.sessions[dconfig.Domain] = &Session{
-			sessionHolder: holder,
-			RememberMe:    dconfig.RememberMeDuration,
-			Inactivity:    dconfig.Inactivity,
+			sessionHolder:     holder,
+			RememberMe:        dconfig.RememberMe,
+			DisableRememberMe: dconfig.DisableRememberMe,
+			Inactivity:        dconfig.Inactivity,
 		}
 	}
 

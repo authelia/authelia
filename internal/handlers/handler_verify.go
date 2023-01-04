@@ -442,7 +442,6 @@ func VerifyGET(cfg schema.AuthenticationBackend) middlewares.RequestHandler {
 			ctx.Logger.Errorf("Unable to parse target URL: %s", err)
 			ctx.ReplyUnauthorized()
 
-			fmt.Printf("Unable to parse target URL: %s\n", err)
 			return
 		}
 
@@ -457,15 +456,15 @@ func VerifyGET(cfg schema.AuthenticationBackend) middlewares.RequestHandler {
 		cookieDomain := ctx.GetTargetURICookieDomain(targetURL)
 
 		if cookieDomain == "" {
-			l := len(ctx.Configuration.Session.Domains)
+			l := len(ctx.Configuration.Session.Cookies)
 
 			if l == 1 {
 				ctx.Logger.Errorf("Target URL '%s' is not under the protected domain '%s'",
-					targetURL.String(), ctx.Configuration.Session.Domains[0].Domain)
+					targetURL.String(), ctx.Configuration.Session.Cookies[0].Domain)
 			} else {
-				domains := make([]string, 0, len(ctx.Configuration.Session.Domains))
+				domains := make([]string, 0, len(ctx.Configuration.Session.Cookies))
 
-				for i, domain := range ctx.Configuration.Session.Domains {
+				for i, domain := range ctx.Configuration.Session.Cookies {
 					domains[i] = domain.Domain
 				}
 

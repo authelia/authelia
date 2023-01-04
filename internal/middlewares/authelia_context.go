@@ -231,7 +231,7 @@ func (ctx *AutheliaCtx) RootURLSlash() (issuerURL *url.URL) {
 func (ctx *AutheliaCtx) GetTargetURICookieDomain(targetURI *url.URL) string {
 	hostname := targetURI.Hostname()
 
-	for _, domain := range ctx.Configuration.Session.Domains {
+	for _, domain := range ctx.Configuration.Session.Cookies {
 		if utils.HasDomainSuffix(hostname, domain.Domain) {
 			return domain.Domain
 		}

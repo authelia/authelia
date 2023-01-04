@@ -580,7 +580,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotReturnRedirectURL() {
 func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	s.mock.Ctx.Configuration.Session.Domains = []schema.SessionDomainConfiguration{
+	s.mock.Ctx.Configuration.Session.Cookies = []schema.SessionCookieConfiguration{
 		{Domain: "example.com"},
 		{Domain: "mydomain.local"},
 	}
