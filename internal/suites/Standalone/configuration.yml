@@ -28,14 +28,6 @@ session:
   expiration: 3600
   inactivity: 300
   remember_me: 1y
-  cookies:
-    - domain: "example2.com"
-      portal_url: https://login.example2.com
-      expiration: 3600
-      inactivity: 300
-      remember_me: 1y
-    - domain: "example3.com"
-      portal_url: https://example3.com/auth
 
 storage:
   encryption_key: a_not_so_secure_encryption_key
@@ -50,9 +42,6 @@ access_control:
 
   rules:
     - domain: singlefactor.example.com
-      policy: one_factor
-
-    - domain: singlefactor.example2.com
       policy: one_factor
 
     - domain: public.example.com
