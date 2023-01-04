@@ -63,3 +63,33 @@ func TestCheckSafeRedirection_SafeRedirection(t *testing.T) {
 		OK: true,
 	})
 }
+
+func TestShouldFailOnInvalidBody(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtxWithUserSession(t, session.UserSession{
+		Username:            "john",
+		AuthenticationLevel: authentication.OneFactor,
+	})
+	defer mock.Close()
+	mock.Ctx.Configuration.Session.Domain = exampleDotComDomain
+
+	mock.SetRequestBody(t, "not a valid json")
+
+	CheckSafeRedirectionPOST(mock.Ctx)
+	mock.Assert200KO(t, "Operation failed.")
+}
+
+func TestShouldFailOnInvalidURL(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtxWithUserSession(t, session.UserSession{
+		Username:            "john",
+		AuthenticationLevel: authentication.OneFactor,
+	})
+	defer mock.Close()
+	mock.Ctx.Configuration.Session.Domain = exampleDotComDomain
+
+	mock.SetRequestBody(t, checkURIWithinDomainRequestBody{
+		URI: "https//invalid-url",
+	})
+
+	CheckSafeRedirectionPOST(mock.Ctx)
+	mock.Assert200KO(t, "Operation failed.")
+}
