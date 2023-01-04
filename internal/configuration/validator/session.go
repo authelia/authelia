@@ -52,6 +52,7 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 	if config.Domain != "" {
 		config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
 			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+				Name:       config.Name,
 				Domain:     config.Domain,
 				SameSite:   config.SameSite,
 				Expiration: config.Expiration,

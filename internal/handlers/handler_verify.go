@@ -459,7 +459,7 @@ func VerifyGET(cfg schema.AuthenticationBackend) middlewares.RequestHandler {
 			l := len(ctx.Configuration.Session.Cookies)
 
 			if l == 1 {
-				ctx.Logger.Errorf("Target URL '%s' is not under the protected domain '%s'",
+				ctx.Logger.Errorf("Target URL '%s' was not detected as a match to the '%s' session cookie domain",
 					targetURL.String(), ctx.Configuration.Session.Cookies[0].Domain)
 			} else {
 				domains := make([]string, 0, len(ctx.Configuration.Session.Cookies))
@@ -468,7 +468,7 @@ func VerifyGET(cfg schema.AuthenticationBackend) middlewares.RequestHandler {
 					domains[i] = domain.Domain
 				}
 
-				ctx.Logger.Errorf("Target URL '%s' is not under any of the protected domains '%s'",
+				ctx.Logger.Errorf("Target URL '%s' was not detected as a match to any of the '%s' session cookie domains",
 					targetURL.String(), strings.Join(domains, "', '"))
 			}
 
@@ -477,7 +477,7 @@ func VerifyGET(cfg schema.AuthenticationBackend) middlewares.RequestHandler {
 			return
 		}
 
-		ctx.Logger.Debugf("Target URL %s is under protected domain '%s'", targetURL.String(), cookieDomain)
+		ctx.Logger.Debugf("Target URL '%s' was detected as a match to the '%s' session cookie domain", targetURL.String(), cookieDomain)
 
 		method := ctx.XForwardedMethod()
 		isBasicAuth, username, name, groups, emails, authLevel, err := verifyAuth(ctx, targetURL, refreshProfile, refreshProfileInterval)
