@@ -2,24 +2,24 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import { Button, Theme, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import FingerTouchIcon from "@components/FingerTouchIcon";
+import { IdentityToken } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
+import { useQueryParam } from "@hooks/QueryParam";
 import LoginLayout from "@layouts/LoginLayout";
 import { AttestationResult } from "@models/Webauthn";
 import { FirstFactorPath } from "@services/Api";
 import { performAttestationCeremony } from "@services/Webauthn";
-import { extractIdentityToken } from "@utils/IdentityToken";
 
 const RegisterWebauthn = function () {
     const styles = useStyles();
     const navigate = useNavigate();
-    const location = useLocation();
     const { createErrorNotification } = useNotifications();
     const [, setRegistrationInProgress] = useState(false);
 
-    const processToken = extractIdentityToken(location.search);
+    const processToken = useQueryParam(IdentityToken);
 
     const handleBackClick = () => {
         navigate(FirstFactorPath);
