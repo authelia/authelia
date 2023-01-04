@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./docs/static/images/authelia-title.png" width="350" title="Authelia">
+  <img src="https://www.authelia.com/images/authelia-title.png" width="350" title="Authelia">
 </p>
 
   [![Build](https://img.shields.io/buildkite/d6543d3ece3433f46dbe5fd9fcfaf1f68a6dbc48eb1048bc22/master?logo=buildkite&style=flat-square&color=brightgreen)](https://buildkite.com/authelia/authelia)
@@ -24,7 +24,7 @@ Documentation is available at [https://www.authelia.com/](https://www.authelia.c
 The following is a simple diagram of the architecture:
 
 <p align="center" style="margin:50px">
-  <img src="./docs/static/images/archi.png"/>
+  <img src="https://www.authelia.com/images/archi.png"/>
 </p>
 
 **Authelia** can be installed as a standalone service from the [AUR](https://aur.archlinux.org/packages/authelia/),
@@ -38,15 +38,15 @@ Deployment can be orchestrated via the Helm [Chart](https://charts.authelia.com)
 and ingress configurations.
 
 <p align="center">
-  <img src="./docs/static/images/logos/kubernetes.png" height="100"/>
-  <img src="./docs/static/images/logos/docker.logo.png" width="100">
+  <img src="https://www.authelia.com/images/logos/kubernetes.png" height="100"/>
+  <img src="https://www.authelia.com/images/logos/docker.logo.png" width="100">
 </p>
 
 Here is what Authelia's portal looks like:
 
 <p align="center">
-  <img src="./docs/static/images/1FA.png" width="400" />
-  <img src="./docs/static/images/2FA-METHODS.png" width="400" />
+  <img src="https://www.authelia.com/images/1FA.png" width="400" />
+  <img src="https://www.authelia.com/images/2FA-METHODS.png" width="400" />
 </p>
 
 ## Features summary
@@ -92,11 +92,11 @@ If you want to know more about the roadmap, follow [Roadmap](https://www.autheli
 Authelia works in combination with [nginx], [Traefik], [Caddy], [Skipper], [Envoy], or [HAProxy].
 
 <p align="center">
-  <img src="./docs/static/images/logos/nginx.png" height="50"/>
-  <img src="./docs/static/images/logos/traefik.png" height="50"/>
-  <img src="./docs/static/images/logos/caddy.png" height="50"/>
-  <img src="./docs/static/images/logos/envoy.png" height="50"/>
-  <img src="./docs/static/images/logos/haproxy.png" height="50"/>
+  <img src="https://www.authelia.com/images/logos/nginx.png" height="50"/>
+  <img src="https://www.authelia.com/images/logos/traefik.png" height="50"/>
+  <img src="https://www.authelia.com/images/logos/caddy.png" height="50"/>
+  <img src="https://www.authelia.com/images/logos/envoy.png" height="50"/>
+  <img src="https://www.authelia.com/images/logos/haproxy.png" height="50"/>
 </p>
 
 ## Getting Started
@@ -330,17 +330,17 @@ Authelia.
 
 #### Balto
 
-Thank you to [<img src="./docs/static/images/logos/balto.svg" alt="Balto" width="32"> Balto](https://www.getbalto.com/)
+Thank you to [<img src="https://www.authelia.com/images/logos/balto.svg" alt="Balto" width="32"> Balto](https://www.getbalto.com/)
 for hosting our apt repository.
 
 #### JetBrains
 
-Thank you to [<img src="./docs/static/images/logos/jetbrains.svg" alt="JetBrains" width="32"> JetBrains](https://www.jetbrains.com/?from=Authelia)
+Thank you to [<img src="https://www.authelia.com/images/logos/jetbrains.svg" alt="JetBrains" width="32"> JetBrains](https://www.jetbrains.com/?from=Authelia)
 for providing us with free licenses to their great tools.
 
-* [<img src="./docs/static/images/logos/intellij-idea.svg" alt="IDEA" width="32"> IDEA](http://www.jetbrains.com/idea/)
-* [<img src="./docs/static/images/logos/goland.svg" alt="GoLand" width="32"> GoLand](http://www.jetbrains.com/go/)
-* [<img src="./docs/static/images/logos/webstorm.svg" alt="WebStorm" width="32"> WebStorm](http://www.jetbrains.com/webstorm/)
+* [<img src="https://www.authelia.com/images/logos/intellij-idea.svg" alt="IDEA" width="32"> IDEA](http://www.jetbrains.com/idea/)
+* [<img src="https://www.authelia.com/images/logos/goland.svg" alt="GoLand" width="32"> GoLand](http://www.jetbrains.com/go/)
+* [<img src="https://www.authelia.com/images/logos/webstorm.svg" alt="WebStorm" width="32"> WebStorm](http://www.jetbrains.com/webstorm/)
 
 #### Microsoft
 
@@ -348,9 +348,9 @@ Our pipeline agents which we rely on for productivity are hosted on [Azure](http
 and our [git repositories](https://github.com/authelia) are hosted on [GitHub](https://github.com/?from=Authela)
 which are both [Microsoft](https://www.microsoft.com/?from=Authelia) products.
 
-[<img src="./docs/static/images/logos/microsoft.svg" alt="microsoft" height="32">](https://www.microsoft.com/?from=Authelia)
+[<img src="https://www.authelia.com/images/logos/microsoft.svg" alt="microsoft" height="32">](https://www.microsoft.com/?from=Authelia)
 
-[<img src="./docs/static/images/logos/azure.svg" alt="Azure" height="32">](https://azure.microsoft.com/?from=Authelia)
+[<img src="https://www.authelia.com/images/logos/azure.svg" alt="Azure" height="32">](https://azure.microsoft.com/?from=Authelia)
 
 ### Open Collective
 

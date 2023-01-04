@@ -6,7 +6,6 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -172,6 +171,8 @@ const (
 		"invalid value: redirect uri '%s' must have the scheme but it is absent"
 	errFmtOIDCClientInvalidPolicy = "identity_providers: oidc: client '%s': option 'policy' must be 'one_factor' " +
 		"or 'two_factor' but it is configured as '%s'"
+	errFmtOIDCClientInvalidPKCEChallengeMethod = "identity_providers: oidc: client '%s': option 'pkce_challenge_method' must be 'plain' " +
+		"or 'S256' but it is configured as '%s'"
 	errFmtOIDCClientInvalidConsentMode = "identity_providers: oidc: client '%s': consent: option 'mode' must be one of " +
 		"'%s' but it is configured as '%s'"
 	errFmtOIDCClientInvalidEntry = "identity_providers: oidc: client '%s': option '%s' must only have the values " +

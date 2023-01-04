@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"reflect"
 	"strings"
 	tt "text/template"
 )
@@ -39,24 +40,17 @@ func isSecretEnvKey(key string) (isSecretEnvKey bool) {
 	return false
 }
 
-func templateExists(path string) (exists bool) {
+func fileExists(path string) (exists bool) {
 	info, err := os.Stat(path)
-	if err != nil {
-		return false
-	}
 
-	if info.IsDir() {
-		return false
-	}
-
-	return true
+	return err == nil && !info.IsDir()
 }
 
 func readTemplate(name, ext, category, overridePath string) (tPath string, embed bool, data []byte, err error) {
 	if overridePath != "" {
 		tPath = filepath.Join(overridePath, name+ext)
 
-		if templateExists(tPath) {
+		if fileExists(tPath) {
 			if data, err = os.ReadFile(tPath); err != nil {
 				return tPath, false, nil, fmt.Errorf("failed to read template override at path '%s': %w", tPath, err)
 			}
@@ -124,4 +118,56 @@ func loadEmailTemplate(name, overridePath string) (t *EmailTemplate, err error) 
 	}
 
 	return t, nil
+}
+
+func strval(v any) string {
+	switch v := v.(type) {
+	case string:
+		return v
+	case []byte:
+		return string(v)
+	case fmt.Stringer:
+		return v.String()
+	default:
+		return fmt.Sprintf("%v", v)
+	}
+}
+
+func strslice(v any) []string {
+	switch v := v.(type) {
+	case []string:
+		return v
+	case []any:
+		b := make([]string, 0, len(v))
+
+		for _, s := range v {
+			if s != nil {
+				b = append(b, strval(s))
+			}
+		}
+
+		return b
+	default:
+		val := reflect.ValueOf(v)
+		switch val.Kind() {
+		case reflect.Array, reflect.Slice:
+			l := val.Len()
+			b := make([]string, 0, l)
+
+			for i := 0; i < l; i++ {
+				value := val.Index(i).Interface()
+				if value != nil {
+					b = append(b, strval(value))
+				}
+			}
+
+			return b
+		default:
+			if v == nil {
+				return []string{}
+			}
+
+			return []string{strval(v)}
+		}
+	}
 }

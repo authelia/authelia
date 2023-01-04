@@ -54,14 +54,10 @@ func TestStringJoinDelimitedEscaped(t *testing.T) {
 }
 
 func TestShouldNotGenerateSameRandomString(t *testing.T) {
-	randomStringOne := RandomString(10, CharSetAlphaNumeric, false)
-	randomStringTwo := RandomString(10, CharSetAlphaNumeric, false)
-
-	randomCryptoStringOne := RandomString(10, CharSetAlphaNumeric, true)
-	randomCryptoStringTwo := RandomString(10, CharSetAlphaNumeric, true)
+	randomStringOne := RandomString(10, CharSetAlphaNumeric)
+	randomStringTwo := RandomString(10, CharSetAlphaNumeric)
 
 	assert.NotEqual(t, randomStringOne, randomStringTwo)
-	assert.NotEqual(t, randomCryptoStringOne, randomCryptoStringTwo)
 }
 
 func TestShouldDetectAlphaNumericString(t *testing.T) {

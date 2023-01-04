@@ -2,7 +2,7 @@
 title: "Templating"
 description: "A reference guide on the templates system"
 lead: "This section contains reference documentation for Authelia's templating capabilities."
-date: 2022-12-23T18:31:05+11:00
+date: 2022-12-23T21:58:54+11:00
 draft: false
 images: []
 menu:
@@ -50,9 +50,37 @@ The following functions which mimic the behaviour of helm exist in most templati
 - sha512sum
 - squote
 - now
+- keys
+- sortAlpha
+- b64enc
+- b64dec
+- b32enc
+- b32dec
+- list
+- dict
+- get
+- set
+- isAbs
+- base
+- dir
+- ext
+- clean
+- osBase
+- osClean
+- osDir
+- osExt
+- osIsAbs
+- deepEqual
+- typeOf
+- typeIs
+- typeIsLike
+- kindOf
+- kindIs
+- default
+- empty
 
 See the [Helm Documentation](https://helm.sh/docs/chart_template_guide/function_list/) for more information. Please
-note that only the functions listed above are supported.
+note that only the functions listed above are supported and the functions don't necessarily behave exactly the same.
 
 __*Special Note:* The `env` and `expandenv` function automatically excludes environment variables that start with
 `AUTHELIA_` or `X_AUTHELIA_` and end with one of `KEY`, `SECRET`, `PASSWORD`, `TOKEN`, or `CERTIFICATE_CHAIN`.__

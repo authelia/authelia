@@ -325,3 +325,316 @@ func TestFuncStringSplitList(t *testing.T) {
 		})
 	}
 }
+
+func TestFuncKeys(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     []map[string]any
+		expected []string
+	}{
+		{"ShouldProvideKeysSingle", []map[string]any{{"a": "v", "b": "v", "z": "v"}}, []string{"a", "b", "z"}},
+		{"ShouldProvideKeysMultiple", []map[string]any{{"a": "v", "b": "v", "z": "v"}, {"h": "v"}}, []string{"a", "b", "z", "h"}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			keys := FuncKeys(tc.have...)
+
+			assert.Len(t, keys, len(tc.expected))
+
+			for _, expected := range tc.expected {
+				assert.Contains(t, keys, expected)
+			}
+		})
+	}
+}
+
+func TestFuncSortAlpha(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     any
+		expected []string
+	}{
+		{"ShouldSortStrings", []string{"a", "c", "b"}, []string{"a", "b", "c"}},
+		{"ShouldSortIntegers", []int{2, 3, 1}, []string{"1", "2", "3"}},
+		{"ShouldSortSingleValue", 1, []string{"1"}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncSortAlpha(tc.have))
+		})
+	}
+}
+
+func TestFuncBEnc(t *testing.T) {
+	testCases := []struct {
+		name       string
+		have       string
+		expected32 string
+		expected64 string
+	}{
+		{"ShouldEncodeEmptyString", "", "", ""},
+		{"ShouldEncodeString", "abc", "MFRGG===", "YWJj"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Run("Base32", func(t *testing.T) {
+				assert.Equal(t, tc.expected32, FuncB32Enc(tc.have))
+			})
+
+			t.Run("Base64", func(t *testing.T) {
+				assert.Equal(t, tc.expected64, FuncB64Enc(tc.have))
+			})
+		})
+	}
+}
+
+func TestFuncBDec(t *testing.T) {
+	testCases := []struct {
+		name              string
+		have              string
+		err32, expected32 string
+		err64, expected64 string
+	}{
+		{"ShouldDecodeEmptyString", "", "", "", "", ""},
+		{"ShouldDecodeBase32", "MFRGG===", "", "abc", "illegal base64 data at input byte 5", ""},
+		{"ShouldDecodeBase64", "YWJj", "illegal base32 data at input byte 3", "", "", "abc"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var (
+				actual string
+				err    error
+			)
+
+			t.Run("Base32", func(t *testing.T) {
+				actual, err = FuncB32Dec(tc.have)
+
+				if tc.err32 != "" {
+					assert.Equal(t, "", actual)
+					assert.EqualError(t, err, tc.err32)
+				} else {
+					assert.Equal(t, tc.expected32, actual)
+					assert.NoError(t, err)
+				}
+			})
+
+			t.Run("Base64", func(t *testing.T) {
+				actual, err = FuncB64Dec(tc.have)
+
+				if tc.err64 != "" {
+					assert.Equal(t, "", actual)
+					assert.EqualError(t, err, tc.err64)
+				} else {
+					assert.Equal(t, tc.expected64, actual)
+					assert.NoError(t, err)
+				}
+			})
+		})
+	}
+}
+
+func TestFuncStringQuote(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     []any
+		expected string
+	}{
+		{"ShouldQuoteSingleValue", []any{"abc"}, `"abc"`},
+		{"ShouldQuoteMultiValue", []any{"abc", 123}, `"abc" "123"`},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncStringQuote(tc.have...))
+		})
+	}
+}
+
+func TestFuncStringSQuote(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     []any
+		expected string
+	}{
+		{"ShouldQuoteSingleValue", []any{"abc"}, `'abc'`},
+		{"ShouldQuoteMultiValue", []any{"abc", 123}, `'abc' '123'`},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncStringSQuote(tc.have...))
+		})
+	}
+}
+
+func TestFuncTypeOf(t *testing.T) {
+	astring := "typeOfExample"
+	anint := 5
+	astringslice := []string{astring}
+	anintslice := []int{anint}
+
+	testCases := []struct {
+		name         string
+		have         any
+		expected     string
+		expectedKind string
+	}{
+		{"String", astring, "string", "string"},
+		{"StringPtr", &astring, "*string", "ptr"},
+		{"StringSlice", astringslice, "[]string", "slice"},
+		{"StringSlicePtr", &astringslice, "*[]string", "ptr"},
+		{"Integer", anint, "int", "int"},
+		{"IntegerPtr", &anint, "*int", "ptr"},
+		{"IntegerSlice", anintslice, "[]int", "slice"},
+		{"IntegerSlicePtr", &anintslice, "*[]int", "ptr"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncTypeOf(tc.have))
+			assert.Equal(t, tc.expectedKind, FuncKindOf(tc.have))
+		})
+	}
+}
+
+func TestFuncTypeIs(t *testing.T) {
+	astring := "typeIsExample"
+	anint := 10
+	astringslice := []string{astring}
+	anintslice := []int{anint}
+
+	testCases := []struct {
+		name         string
+		is           string
+		have         any
+		expected     bool
+		expectedLike bool
+		expectedKind bool
+	}{
+		{"ShouldMatchStringAsString", "string", astring, true, true, true},
+		{"ShouldMatchStringPtrAsString", "string", &astring, false, true, false},
+		{"ShouldNotMatchStringAsInt", "int", astring, false, false, false},
+		{"ShouldNotMatchStringSliceAsStringSlice", "[]string", astringslice, true, true, false},
+		{"ShouldNotMatchStringSlicePtrAsStringSlice", "[]string", &astringslice, false, true, false},
+		{"ShouldNotMatchStringSlicePtrAsStringSlicePtr", "*[]string", &astringslice, true, true, false},
+		{"ShouldNotMatchStringSliceAsString", "string", astringslice, false, false, false},
+		{"ShouldMatchIntAsInt", "int", anint, true, true, true},
+		{"ShouldMatchIntPtrAsInt", "int", &anint, false, true, false},
+		{"ShouldNotMatchIntAsString", "string", anint, false, false, false},
+		{"ShouldMatchIntegerSliceAsIntSlice", "[]int", anintslice, true, true, false},
+		{"ShouldMatchIntegerSlicePtrAsIntSlice", "[]int", &anintslice, false, true, false},
+		{"ShouldMatchIntegerSlicePtrAsIntSlicePtr", "*[]int", &anintslice, true, true, false},
+		{"ShouldNotMatchIntegerSliceAsInt", "int", anintslice, false, false, false},
+		{"ShouldMatchKindSlice", "slice", anintslice, false, false, true},
+		{"ShouldMatchKindPtr", "ptr", &anintslice, false, false, true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncTypeIs(tc.is, tc.have))
+			assert.Equal(t, tc.expectedLike, FuncTypeIsLike(tc.is, tc.have))
+			assert.Equal(t, tc.expectedKind, FuncKindIs(tc.is, tc.have))
+		})
+	}
+}
+
+func TestFuncList(t *testing.T) {
+	assert.Equal(t, []any{"a", "b", "c"}, FuncList("a", "b", "c"))
+	assert.Equal(t, []any{1, 2, 3}, FuncList(1, 2, 3))
+}
+
+func TestFuncDict(t *testing.T) {
+	assert.Equal(t, map[string]any{"a": 1}, FuncDict("a", 1))
+	assert.Equal(t, map[string]any{"a": 1, "b": ""}, FuncDict("a", 1, "b"))
+	assert.Equal(t, map[string]any{"1": 1, "b": 2}, FuncDict(1, 1, "b", 2))
+	assert.Equal(t, map[string]any{"true": 1, "b": 2}, FuncDict(true, 1, "b", 2))
+	assert.Equal(t, map[string]any{"a": 2, "b": 3}, FuncDict("a", 1, "a", 2, "b", 3))
+}
+
+func TestFuncGet(t *testing.T) {
+	assert.Equal(t, 123, FuncGet(map[string]any{"abc": 123}, "abc"))
+	assert.Equal(t, "", FuncGet(map[string]any{"abc": 123}, "123"))
+}
+
+func TestFuncSet(t *testing.T) {
+	assert.Equal(t, map[string]any{"abc": 123, "123": true}, FuncSet(map[string]any{"abc": 123}, "123", true))
+	assert.Equal(t, map[string]any{"abc": true}, FuncSet(map[string]any{"abc": 123}, "abc", true))
+}
+
+func TestFuncDefault(t *testing.T) {
+	testCases := []struct {
+		name     string
+		value    []any
+		have     any
+		expected any
+	}{
+		{"ShouldDefaultEmptyString", []any{""}, "default", "default"},
+		{"ShouldNotDefaultString", []any{"not default"}, "default", "not default"},
+		{"ShouldDefaultEmptyInteger", []any{0}, 1, 1},
+		{"ShouldNotDefaultInteger", []any{20}, 1, 20},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncDefault(tc.have, tc.value...))
+		})
+	}
+}
+
+func TestFuncEmpty(t *testing.T) {
+	var nilv *string
+
+	testCases := []struct {
+		name     string
+		value    any
+		expected bool
+	}{
+		{"ShouldBeEmptyNil", nilv, true},
+		{"ShouldBeEmptyNilNil", nil, true},
+		{"ShouldBeEmptyString", "", true},
+		{"ShouldNotBeEmptyString", "abc", false},
+		{"ShouldBeEmptyArray", []string{}, true},
+		{"ShouldNotBeEmptyArray", []string{"abc"}, false},
+		{"ShouldBeEmptyInteger", 0, true},
+		{"ShouldNotBeEmptyInteger", 1, false},
+		{"ShouldBeEmptyInteger8", int8(0), true},
+		{"ShouldNotBeEmptyInteger8", int8(1), false},
+		{"ShouldBeEmptyInteger16", int16(0), true},
+		{"ShouldNotBeEmptyInteger16", int16(1), false},
+		{"ShouldBeEmptyInteger32", int32(0), true},
+		{"ShouldNotBeEmptyInteger32", int32(1), false},
+		{"ShouldBeEmptyInteger64", int64(0), true},
+		{"ShouldNotBeEmptyInteger64", int64(1), false},
+		{"ShouldBeEmptyUnsignedInteger", uint(0), true},
+		{"ShouldNotBeEmptyUnsignedInteger", uint(1), false},
+		{"ShouldBeEmptyUnsignedInteger8", uint8(0), true},
+		{"ShouldNotBeEmptyUnsignedInteger8", uint8(1), false},
+		{"ShouldBeEmptyUnsignedInteger16", uint16(0), true},
+		{"ShouldNotBeEmptyUnsignedInteger16", uint16(1), false},
+		{"ShouldBeEmptyUnsignedInteger32", uint32(0), true},
+		{"ShouldNotBeEmptyUnsignedInteger32", uint32(1), false},
+		{"ShouldBeEmptyUnsignedInteger64", uint64(0), true},
+		{"ShouldNotBeEmptyUnsignedInteger64", uint64(1), false},
+		{"ShouldBeEmptyComplex64", complex64(complex(0, 0)), true},
+		{"ShouldNotBeEmptyComplex64", complex64(complex(100000, 7.5)), false},
+		{"ShouldBeEmptyComplex128", complex128(complex(0, 0)), true},
+		{"ShouldNotBeEmptyComplex128", complex128(complex(100000, 7.5)), false},
+		{"ShouldBeEmptyFloat32", float32(0), true},
+		{"ShouldNotBeEmptyFloat32", float32(1), false},
+		{"ShouldBeEmptyFloat64", float64(0), true},
+		{"ShouldNotBeEmptyFloat64", float64(1), false},
+		{"ShouldBeEmptyBoolean", false, true},
+		{"ShouldNotBeEmptyBoolean", true, false},
+		{"ShouldNotBeEmptyStruct", struct{}{}, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncEmpty(tc.value))
+		})
+	}
+}
