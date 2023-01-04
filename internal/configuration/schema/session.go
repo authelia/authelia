@@ -49,7 +49,6 @@ type SessionConfiguration struct {
 type SessionCookieCommonConfiguration struct {
 	Name              string        `koanf:"name"`
 	Domain            string        `koanf:"domain"`
-	PortalURL         *url.URL      `koanf:"portal_url"`
 	SameSite          string        `koanf:"same_site"`
 	Expiration        time.Duration `koanf:"expiration"`
 	Inactivity        time.Duration `koanf:"inactivity"`
