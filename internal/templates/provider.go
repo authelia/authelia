@@ -1,8 +1,9 @@
 package templates
 
 import (
+	"embed"
 	"fmt"
-	"io"
+	"text/template"
 )
 
 // New creates a new templates' provider.
@@ -24,66 +25,96 @@ type Provider struct {
 	templates Templates
 }
 
-// ExecuteEmailEnvelope writes the envelope template to the given io.Writer.
-func (p *Provider) ExecuteEmailEnvelope(wr io.Writer, data EmailEnvelopeValues) (err error) {
-	return p.templates.notification.envelope.Execute(wr, data)
+// LoadTemplatedAssets takes an embed.FS and loads each templated asset document into a Template.
+func (p *Provider) LoadTemplatedAssets(fs embed.FS) (err error) {
+	var (
+		data []byte
+	)
+
+	if data, err = fs.ReadFile("public_html/index.html"); err != nil {
+		return err
+	}
+
+	if p.templates.asset.index, err = template.
+		New("assets/public_html/index.html").
+		Funcs(FuncMap()).
+		Parse(string(data)); err != nil {
+		return err
+	}
+
+	if data, err = fs.ReadFile("public_html/api/index.html"); err != nil {
+		return err
+	}
+
+	if p.templates.asset.api.index, err = template.
+		New("assets/public_html/api/index.html").
+		Funcs(FuncMap()).
+		Parse(string(data)); err != nil {
+		return err
+	}
+
+	if data, err = fs.ReadFile("public_html/api/openapi.yml"); err != nil {
+		return err
+	}
+
+	if p.templates.asset.api.spec, err = template.
+		New("api/public_html/openapi.yaml").
+		Funcs(FuncMap()).
+		Parse(string(data)); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-// ExecuteEmailPasswordResetTemplate writes the password reset template to the given io.Writer.
-func (p *Provider) ExecuteEmailPasswordResetTemplate(wr io.Writer, data EmailPasswordResetValues, format Format) (err error) {
-	return p.templates.notification.passwordReset.Get(format).Execute(wr, data)
+// GetAssetIndexTemplate returns a Template used to generate the React index document.
+func (p *Provider) GetAssetIndexTemplate() (t Template) {
+	return p.templates.asset.index
 }
 
-// ExecuteEmailIdentityVerificationTemplate writes the identity verification template to the given io.Writer.
-func (p *Provider) ExecuteEmailIdentityVerificationTemplate(wr io.Writer, data EmailIdentityVerificationValues, format Format) (err error) {
-	return p.templates.notification.identityVerification.Get(format).Execute(wr, data)
+// GetAssetOpenAPIIndexTemplate returns a Template used to generate the OpenAPI index document.
+func (p *Provider) GetAssetOpenAPIIndexTemplate() (t Template) {
+	return p.templates.asset.api.index
+}
+
+// GetAssetOpenAPISpecTemplate returns a Template used to generate the OpenAPI specification document.
+func (p *Provider) GetAssetOpenAPISpecTemplate() (t Template) {
+	return p.templates.asset.api.spec
+}
+
+// GetEventEmailTemplate returns an EmailTemplate used for generic event notifications.
+func (p *Provider) GetEventEmailTemplate() (t *EmailTemplate) {
+	return p.templates.notification.event
+}
+
+// GetIdentityVerificationEmailTemplate returns the EmailTemplate for Identity Verification notifications.
+func (p *Provider) GetIdentityVerificationEmailTemplate() (t *EmailTemplate) {
+	return p.templates.notification.identityVerification
 }
 
 func (p *Provider) load() (err error) {
 	var errs []error
 
-	if tPath, embed, data, err := readTemplate(TemplateNameEmailEnvelope, TemplateCategoryNotifications, p.config.EmailTemplatesPath); err != nil {
-		errs = append(errs, err)
-	} else {
-		if !embed && tmplEnvelopeHasDeprecatedPlaceholders(data) {
-			errs = append(errs, fmt.Errorf("the evelope template override appears to contain removed placeholders"))
-		} else if p.templates.notification.envelope, err = parseTemplate(TemplateNameEmailEnvelope, tPath, embed, data); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
-	if p.templates.notification.envelope, err = loadTemplate(TemplateNameEmailEnvelope, TemplateCategoryNotifications, p.config.EmailTemplatesPath); err != nil {
+	if p.templates.notification.identityVerification, err = loadEmailTemplate(TemplateNameEmailIdentityVerification, p.config.EmailTemplatesPath); err != nil {
 		errs = append(errs, err)
 	}
 
-	if p.templates.notification.identityVerification.txt, err = loadTemplate(TemplateNameEmailIdentityVerificationTXT, TemplateCategoryNotifications, p.config.EmailTemplatesPath); err != nil {
+	if p.templates.notification.event, err = loadEmailTemplate(TemplateNameEmailEvent, p.config.EmailTemplatesPath); err != nil {
 		errs = append(errs, err)
 	}
 
-	if p.templates.notification.identityVerification.html, err = loadTemplate(TemplateNameEmailIdentityVerificationHTML, TemplateCategoryNotifications, p.config.EmailTemplatesPath); err != nil {
-		errs = append(errs, err)
-	}
+	if len(errs) != 0 {
+		for i, e := range errs {
+			if i == 0 {
+				err = e
+				continue
+			}
 
-	if p.templates.notification.passwordReset.txt, err = loadTemplate(TemplateNameEmailPasswordResetTXT, TemplateCategoryNotifications, p.config.EmailTemplatesPath); err != nil {
-		errs = append(errs, err)
-	}
-
-	if p.templates.notification.passwordReset.html, err = loadTemplate(TemplateNameEmailPasswordResetHTML, TemplateCategoryNotifications, p.config.EmailTemplatesPath); err != nil {
-		errs = append(errs, err)
-	}
-
-	if len(errs) == 0 {
-		return nil
-	}
-
-	for i, e := range errs {
-		if i == 0 {
-			err = e
-			continue
+			err = fmt.Errorf("%v, %w", err, e)
 		}
 
-		err = fmt.Errorf("%v, %w", err, e)
+		return fmt.Errorf("one or more errors occurred loading templates: %w", err)
 	}
 
-	return fmt.Errorf("one or more errors occurred loading templates: %w", err)
+	return nil
 }

@@ -3,7 +3,6 @@ package server
 import (
 	"net"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -92,21 +91,11 @@ func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 }
 
 func handleRouter(config schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
-	rememberMe := strconv.FormatBool(config.Session.RememberMeDuration != schema.RememberMeDisabled)
-	resetPassword := strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable)
+	optsTemplatedFile := NewTemplatedFileOptions(&config)
 
-	resetPasswordCustomURL := config.AuthenticationBackend.PasswordReset.CustomURL.String()
-
-	duoSelfEnrollment := f
-	if !config.DuoAPI.Disable {
-		duoSelfEnrollment = strconv.FormatBool(config.DuoAPI.EnableSelfEnrollment)
-	}
-
-	https := config.Server.TLS.Key != "" && config.Server.TLS.Certificate != ""
-
-	serveIndexHandler := ServeTemplatedFile(assetsRoot, fileIndexHTML, config.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, config.Session.Name, config.Theme, https)
-	serveSwaggerHandler := ServeTemplatedFile(assetsSwagger, fileIndexHTML, config.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, config.Session.Name, config.Theme, https)
-	serveSwaggerAPIHandler := ServeTemplatedFile(assetsSwagger, fileOpenAPI, config.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, config.Session.Name, config.Theme, https)
+	serveIndexHandler := ServeTemplatedFile(providers.Templates.GetAssetIndexTemplate(), optsTemplatedFile)
+	serveOpenAPIHandler := ServeTemplatedOpenAPI(providers.Templates.GetAssetOpenAPIIndexTemplate(), optsTemplatedFile)
+	serveOpenAPISpecHandler := ETagRootURL(ServeTemplatedOpenAPI(providers.Templates.GetAssetOpenAPISpecTemplate(), optsTemplatedFile))
 
 	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
 	handlerLocales := newLocalesEmbeddedHandler()
@@ -115,7 +104,7 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 		WithPreMiddlewares(middlewares.SecurityHeaders).Build()
 
 	policyCORSPublicGET := middlewares.NewCORSPolicyBuilder().
-		WithAllowedMethods("OPTIONS", "GET").
+		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodGet).
 		WithAllowedOrigins("*").
 		Build()
 
@@ -137,10 +126,12 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
 
 	// Swagger.
-	r.GET("/api/", middleware(serveSwaggerHandler))
+	r.GET("/api/", middleware(serveOpenAPIHandler))
 	r.OPTIONS("/api/", policyCORSPublicGET.HandleOPTIONS)
-	r.GET("/api/"+fileOpenAPI, policyCORSPublicGET.Middleware(middleware(serveSwaggerAPIHandler)))
-	r.OPTIONS("/api/"+fileOpenAPI, policyCORSPublicGET.HandleOPTIONS)
+	r.GET("/api/index.html", middleware(serveOpenAPIHandler))
+	r.OPTIONS("/api/index.html", policyCORSPublicGET.HandleOPTIONS)
+	r.GET("/api/openapi.yml", policyCORSPublicGET.Middleware(middleware(serveOpenAPISpecHandler)))
+	r.OPTIONS("/api/openapi.yml", policyCORSPublicGET.HandleOPTIONS)
 
 	for _, file := range filesSwagger {
 		r.GET("/api/"+file, handlerPublicHTML)
@@ -164,11 +155,8 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 
 	metricsVRMW := middlewares.NewMetricsVerifyRequest(providers.Metrics)
 
-	r.GET("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
-	r.HEAD("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
-
-	r.GET("/api/verify/{path:*}", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
-	r.HEAD("/api/verify/{path:*}", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
+	r.ANY("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
+	r.ANY("/api/verify/{path:*}", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
 
 	r.POST("/api/checks/safe-redirection", middlewareAPI(handlers.CheckSafeRedirectionPOST))
 

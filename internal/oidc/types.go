@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/go-crypt/crypt"
+	"github.com/go-crypt/crypt/algorithm"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
@@ -103,9 +103,13 @@ type Store struct {
 type Client struct {
 	ID               string
 	Description      string
-	Secret           crypt.Digest
+	Secret           algorithm.Digest
 	SectorIdentifier string
 	Public           bool
+
+	EnforcePKCE                bool
+	EnforcePKCEChallengeMethod bool
+	PKCEChallengeMethod        string
 
 	Audience      []string
 	Scopes        []string
@@ -183,9 +187,6 @@ type KeyManager struct {
 	jwk  *JWK
 	jwks *jose.JSONWebKeySet
 }
-
-// AdaptiveHasher implements the fosite.Hasher interface without an actual hashing algo.
-type AdaptiveHasher struct{}
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
 type ConsentGetResponseBody struct {

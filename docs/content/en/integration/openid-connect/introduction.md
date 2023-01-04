@@ -93,7 +93,7 @@ Reference values.
 
 The values this [Claim] has are not strictly defined by the [OpenID Connect] specification. As such, some backends may
 expect a specification other than [RFC8176] for this purpose. If you have such an application and wish for us to support
-it then you're encouraged to create an issue.
+it then you're encouraged to create a [feature request](https://www.authelia.com/l/fr).
 
 Below is a list of the potential values we place in the [Claim] and their meaning:
 
@@ -111,7 +111,7 @@ Below is a list of the potential values we place in the [Claim] and their meanin
 ## User Information Signing Algorithm
 
 The following table describes the response from the [UserInfo] endpoint depending on the
-[userinfo_signing_algorithm](../../configuration/identity-providers/open-id-connect.md#userinfo_signing_algorithm).
+[userinfo_signing_algorithm](../../configuration/identity-providers/open-id-connect.md#userinfosigningalgorithm).
 
 | Signing Algorithm |   Encoding   |            Content Type             |
 |:-----------------:|:------------:|:-----------------------------------:|

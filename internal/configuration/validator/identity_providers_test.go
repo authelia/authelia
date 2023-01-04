@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -313,6 +314,57 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifierHost, "client-invalid-sector", "example.com/path?query=abc#fragment"),
 			},
 		},
+		{
+			Name: "InvalidConsentMode",
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "client-bad-consent-mode",
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
+					Policy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					ConsentMode: "cap",
+				},
+			},
+			Errors: []string{
+				fmt.Sprintf(errFmtOIDCClientInvalidConsentMode, "client-bad-consent-mode", strings.Join(append(validOIDCClientConsentModes, "auto"), "', '"), "cap"),
+			},
+		},
+		{
+			Name: "InvalidPKCEChallengeMethod",
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "client-bad-pkce-mode",
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
+					Policy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					PKCEChallengeMethod: "abc",
+				},
+			},
+			Errors: []string{
+				fmt.Sprintf(errFmtOIDCClientInvalidPKCEChallengeMethod, "client-bad-pkce-mode", "abc"),
+			},
+		},
+		{
+			Name: "InvalidPKCEChallengeMethodLowerCaseS256",
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "client-bad-pkce-mode-s256",
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
+					Policy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					PKCEChallengeMethod: "s256",
+				},
+			},
+			Errors: []string{
+				fmt.Sprintf(errFmtOIDCClientInvalidPKCEChallengeMethod, "client-bad-pkce-mode-s256", "s256"),
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -591,7 +643,7 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testi
 	assert.EqualError(t, validator.Errors()[1], fmt.Sprintf(errFmtOIDCClientRedirectURIPublic, "client-with-bad-redirect-uri", oauth2InstalledApp))
 }
 
-func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidPublicClients(t *testing.T) {
+func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidClientOptions(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
@@ -622,6 +674,24 @@ func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidPublicClients(t *te
 						"http://127.0.0.1",
 					},
 				},
+				{
+					ID:     "client-with-pkce-mode-plain",
+					Public: true,
+					Policy: "two_factor",
+					RedirectURIs: []string{
+						"https://pkce.com",
+					},
+					PKCEChallengeMethod: "plain",
+				},
+				{
+					ID:     "client-with-pkce-mode-S256",
+					Public: true,
+					Policy: "two_factor",
+					RedirectURIs: []string{
+						"https://pkce.com",
+					},
+					PKCEChallengeMethod: "S256",
+				},
 			},
 		},
 	}
@@ -633,6 +703,8 @@ func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidPublicClients(t *te
 }
 
 func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
+	timeDay := time.Hour * 24
+
 	validator := schema.NewStructValidator()
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
@@ -645,6 +717,7 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 					RedirectURIs: []string{
 						"https://google.com",
 					},
+					ConsentPreConfiguredDuration: &timeDay,
 				},
 				{
 					ID:                       "b-client",
@@ -669,6 +742,30 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 						"form_post",
 						"fragment",
 					},
+				},
+				{
+					ID:     "c-client",
+					Secret: MustDecodeSecret("$plaintext$a-client-secret"),
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					ConsentMode: "implicit",
+				},
+				{
+					ID:     "d-client",
+					Secret: MustDecodeSecret("$plaintext$a-client-secret"),
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					ConsentMode: "explicit",
+				},
+				{
+					ID:     "e-client",
+					Secret: MustDecodeSecret("$plaintext$a-client-secret"),
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					ConsentMode: "pre-configured",
 				},
 			},
 		},
@@ -701,6 +798,15 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 	require.Len(t, config.OIDC.Clients[1].Scopes, 2)
 	assert.Equal(t, "groups", config.OIDC.Clients[1].Scopes[0])
 	assert.Equal(t, "openid", config.OIDC.Clients[1].Scopes[1])
+
+	// Assert Clients[0] ends up configured with the correct consent mode.
+	require.NotNil(t, config.OIDC.Clients[0].ConsentPreConfiguredDuration)
+	assert.Equal(t, time.Hour*24, *config.OIDC.Clients[0].ConsentPreConfiguredDuration)
+	assert.Equal(t, "pre-configured", config.OIDC.Clients[0].ConsentMode)
+
+	// Assert Clients[1] ends up configured with the correct consent mode.
+	assert.Nil(t, config.OIDC.Clients[1].ConsentPreConfiguredDuration)
+	assert.Equal(t, "explicit", config.OIDC.Clients[1].ConsentMode)
 
 	// Assert Clients[0] ends up configured with the default GrantTypes.
 	require.Len(t, config.OIDC.Clients[0].GrantTypes, 2)
@@ -736,6 +842,15 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 	assert.Equal(t, time.Minute, config.OIDC.AuthorizeCodeLifespan)
 	assert.Equal(t, time.Hour, config.OIDC.IDTokenLifespan)
 	assert.Equal(t, time.Minute*90, config.OIDC.RefreshTokenLifespan)
+
+	assert.Equal(t, "implicit", config.OIDC.Clients[2].ConsentMode)
+	assert.Nil(t, config.OIDC.Clients[2].ConsentPreConfiguredDuration)
+
+	assert.Equal(t, "explicit", config.OIDC.Clients[3].ConsentMode)
+	assert.Nil(t, config.OIDC.Clients[3].ConsentPreConfiguredDuration)
+
+	assert.Equal(t, "pre-configured", config.OIDC.Clients[4].ConsentMode)
+	assert.Equal(t, schema.DefaultOpenIDConnectClientConfiguration.ConsentPreConfiguredDuration, config.OIDC.Clients[4].ConsentPreConfiguredDuration)
 }
 
 // All valid schemes are supported as defined in https://datatracker.ietf.org/doc/html/rfc8252#section-7.1
@@ -775,7 +890,7 @@ func TestValidateOIDCClientRedirectURIsSupportingPrivateUseURISchemes(t *testing
 }
 
 func MustDecodeSecret(value string) *schema.PasswordDigest {
-	if secret, err := schema.NewPasswordDigest(value, true); err != nil {
+	if secret, err := schema.DecodePasswordDigest(value); err != nil {
 		panic(err)
 	} else {
 		return secret

@@ -49,9 +49,15 @@ One current caveat of the [SWAG] implementation is that it serves Authelia as a 
 This is partly because Webauthn requires that the domain is an exact match when registering and authenticating and it is
 possible that due to web standards this will never change.
 
-In addition this represents a bad user experience in some instances as users sometimes visit the
-`https://app.example.com/auth` URL which doesn't automatically redirect the user to `https://app.example.com` (if they
-visit `https://app.example.com` then they'll be redirected to authenticate then redirected back to their original URL).
+In addition this represents a bad user experience in some instances such as:
+
+  - Users sometimes visit the `https://app.example.com/authelia` URL which doesn't automatically redirect the user to
+    `https://app.example.com` (if they visit `https://app.example.com` then they'll be redirected to authenticate then
+    redirected back to their original URL).
+  - Administrators may wish to setup OpenID Connect 1.0 in which case it also doesn't represent a good user experience.
+
+Taking these factors into consideration we're adapting our [SWAG] guide to use what we consider best for the users and
+most easily supported. Users who wish to use the [SWAG] guide are free to do so but may not receive the same support.
 
 ## Trusted Proxies
 
@@ -61,22 +67,116 @@ Especially if you have never read it before.*
 To configure trusted proxies for [SWAG] see the [NGINX] section on [Trusted Proxies](nginx.md#trusted-proxies).
 Adapting this to [SWAG] is beyond the scope of this documentation.
 
+## Docker Compose
+
+The following docker compose example has various applications suitable for setting up an example environment.
+
+It uses the [nginx image](https://github.com/linuxserver/docker-nginx) from [linuxserver.io] which includes all of the
+required modules including the `http_set_misc` module.
+
+It also includes the [nginx-proxy-confs](https://github.com/linuxserver/docker-mods/tree/nginx-proxy-confs) mod where
+they have several configuration examples in the `/config/nginx/proxy-confs` directory. This can be omitted if desired.
+
+If you're looking for a more complete solution [linuxserver.io] also have an nginx container called [SWAG](swag.md)
+which includes ACME and various other useful utilities.
+
+{{< details "docker-compose.yaml" >}}
+```yaml
+---
+version: "3.8"
+
+networks:
+  net:
+    driver: bridge
+
+services:
+  swag:
+    container_name: swag
+    image: lscr.io/linuxserver/swag
+    restart: unless-stopped
+    networks:
+      net:
+        aliases: []
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ${PWD}/data/swag:/config
+    environment:
+      PUID: '1000'
+      PGID: '1000'
+      TZ: 'Australia/Melbourne'
+      URL: 'example.com'
+      SUBDOMAINS: 'www,whoami,auth,nextcloud,'
+      VALIDATION: 'http'
+      CERTPROVIDER: 'cloudflare'
+      ONLY_SUBDOMAINS: 'false'
+      STAGING: 'true'
+    cap_add:
+      - NET_ADMIN
+  authelia:
+    container_name: authelia
+    image: authelia/authelia
+    restart: unless-stopped
+    networks:
+      net:
+        aliases: []
+    expose:
+      - 9091
+    volumes:
+      - ${PWD}/data/authelia/config:/config
+    environment:
+      TZ: 'Australia/Melbourne'
+  nextcloud:
+    container_name: nextcloud
+    image: lscr.io/linuxserver/nextcloud
+    restart: unless-stopped
+    networks:
+      net:
+        aliases: []
+    expose:
+      - 443
+    volumes:
+      - ${PWD}/data/nextcloud/config:/config
+      - ${PWD}/data/nextcloud/data:/data
+    environment:
+      PUID: '1000'
+      PGID: '1000'
+      TZ: 'Australia/Melbourne'
+  whoami:
+    container_name: whoami
+    image: docker.io/traefik/whoami
+    restart: unless-stopped
+    networks:
+      net:
+        aliases: []
+    expose:
+      - 80
+    environment:
+      TZ: 'Australia/Melbourne'
+...
+```
+{{< /details >}}
+
 ## Prerequisite Steps
 
-These steps must be followed regardless of the choice of [subdomain](#subdomain-steps) or [subpath](#subpath-steps).
+In the [SWAG] `/config` mount which is mounted to `${PWD}/data/swag` in our example:
 
-1. Deploy __Authelia__ to your docker network with the `container_name` of `authelia` and ensure it's listening on the
-   default port and you have not configured the __Authelia__ server TLS settings.
+1. Create a folder named `snippets/authelia`:
+   - The `mkdir -p ${PWD}/data/swag/nginx/snippets/authelia` command should achieve this on Linux.
+2. Create the `${PWD}/data/swag/nginx/snippets/authelia/location.conf` file which can be found [here](nginx.md#authelia-locationconf).
+3. Create the `${PWD}/data/swag/nginx/snippets/authelia/authrequest.conf` file which can be found [here](nginx.md#authelia-authrequestconf).
+   - Ensure you adjust the line `error_page 401 =302 https://auth.example.com/?rd=$target_url;` replacing `https://auth.example.com/` with your external Authelia URL.
 
-## Subdomain Steps
+## Protected Application
 
 In the server configuration for the application you want to protect:
 
 1. Edit the `/config/nginx/proxy-confs/` file for the application you wish to protect.
-2. Uncomment the `#include /config/nginx/authelia-server.conf;` line which should be within the `server` block
-   but not inside any `location` blocks.
-3. Uncomment the `#include /config/nginx/authelia-location.conf;` line which should be within the applications
-   `location` block.
+2. Under the `#include /config/nginx/authelia-server.conf;` line which should be within the `server` block
+   but not inside any `location` blocks add the following line: `include /config/nginx/snippets/authelia/location.conf;`.
+3. Under the `#include /config/nginx/authelia-location.conf;` line which should be within the applications
+   `location` block add the following line `include /config/nginx/snippets/authelia/authrequest.conf;`.
 
 ### Example
 
@@ -85,55 +185,28 @@ server {
     listen 443 ssl;
     listen [::]:443 ssl;
 
-    server_name heimdall.*;
+    server_name whoami.*;
 
     include /config/nginx/ssl.conf;
 
     client_max_body_size 0;
 
     # Authelia: Step 1.
-    include /config/nginx/authelia-server.conf;
+    #include /config/nginx/authelia-server.conf;
+    include /config/nginx/snippets/authelia/location.conf;
 
     location / {
         # Authelia: Step 2.
-        include /config/nginx/authelia-location.conf;
+        #include /config/nginx/authelia-location.conf;
+        include /config/nginx/snippets/authelia/authrequest.conf;
 
         include /config/nginx/proxy.conf;
         resolver 127.0.0.11 valid=30s;
-        set $upstream_app heimdall;
-        set $upstream_port 443;
-        set $upstream_proto https;
+        set $upstream_app whoami;
+        set $upstream_port 80;
+        set $upstream_proto http;
         proxy_pass $upstream_proto://$upstream_app:$upstream_port;
     }
-}
-```
-
-## Subpath Steps
-
-*__Note:__ Steps 1 and 2 only need to be done once, even if you wish to protect multiple applications.*
-
-1. Edit `/config/nginx/proxy-confs/default`.
-2. Uncomment the `#include /config/nginx/authelia-server.conf;` line.
-3. Edit the `/config/nginx/proxy-confs/` file for the application you wish to protect.
-4. Uncomment the `#include /config/nginx/authelia-location.conf;` line which should be within the applications
-   `location` block.
-
-### Example
-
-```nginx
-location ^~ /bazarr/ {
-    # Authelia: Step 4.
-    include /config/nginx/authelia-location.conf;
-
-    include /config/nginx/proxy.conf;
-    resolver 127.0.0.11 valid=30s;
-    set $upstream_app bazarr;
-    set $upstream_port 6767;
-    set $upstream_proto http;
-    proxy_pass $upstream_proto://$upstream_app:$upstream_port;
-
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "Upgrade";
 }
 ```
 

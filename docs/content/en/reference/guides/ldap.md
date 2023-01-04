@@ -10,6 +10,8 @@ menu:
     parent: "guides"
 weight: 220
 toc: true
+aliases:
+  - /r/ldap
 ---
 
 ## Binding
@@ -22,7 +24,7 @@ The most insecure method is unauthenticated binds. They are generally considered
 at all ensures anyone with any level of network access can easily obtain objects and their attributes.
 
 Authelia does support unauthenticated binds but it is not by default, you must configure the
-[permit_unauthenticated_bind](../../configuration/first-factor/ldap.md#permit_unauthenticated_bind) configuration
+[permit_unauthenticated_bind](../../configuration/first-factor/ldap.md#permitunauthenticatedbind) configuration
 option.
 
 ### End-User Binding
@@ -46,10 +48,28 @@ Authelia primarily supports this method.
 
 ## Implementation Guide
 
-There are currently two implementations, `custom` and `activedirectory`. The `activedirectory` implementation
-must be used if you wish to allow users to change or reset their password as Active Directory
-uses a custom attribute for this, and an input format other implementations do not use. The long term
-intention of this is to have logical defaults for various RFC implementations of LDAP.
+The following implementations exist:
+
+- `custom`:
+  - Not specific to any particular LDAP provider
+- `activedirectory`:
+  - Specific configuration defaults for [Active Directory]
+  - Special implementation details:
+    - Includes a special encoding format required for changing passwords with [Active Directory]
+- `freeipa`:
+  - Specific configuration defaults for [FreeIPA]
+  - No special implementation details
+- `lldap`:
+  - Specific configuration defaults for [lldap]
+  - No special implementation details
+- `glauth`:
+  - Specific configuration defaults for [GLAuth]
+  - No special implementation details
+
+[Active Directory]: https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/active-directory-domain-services
+[FreeIPA]: https://www.freeipa.org/
+[lldap]: https://github.com/nitnelave/lldap
+[GLAuth]: https://glauth.github.io/
 
 ### Filter replacements
 
@@ -58,12 +78,15 @@ search.
 
 #### Users filter replacements
 
-|       Placeholder        |  Phase  |              Replacement              |
-|:------------------------:|:-------:|:-------------------------------------:|
-|   {username_attribute}   | startup |   The configured username attribute   |
-|     {mail_attribute}     | startup |     The configured mail attribute     |
-| {display_name_attribute} | startup | The configured display name attribute |
-|         {input}          | search  |   The input into the username field   |
+|       Placeholder        |  Phase  |                                                   Replacement                                                    |
+|:------------------------:|:-------:|:----------------------------------------------------------------------------------------------------------------:|
+|   {username_attribute}   | startup |                                        The configured username attribute                                         |
+|     {mail_attribute}     | startup |                                          The configured mail attribute                                           |
+| {display_name_attribute} | startup |                                      The configured display name attribute                                       |
+|         {input}          | search  |                                        The input into the username field                                         |
+| {date-time:generalized}  | search  |          The current UTC time formatted as a LDAP generalized time in the format of `20060102150405.0Z`          |
+|     {date-time:unix}     | search  |                                    The current time formatted as a Unix epoch                                    |
+| {date-time:microsoft-nt} | search  | The current time formatted as a Microsoft NT epoch which is used by some Microsoft [Active Directory] attributes |
 
 #### Groups filter replacements
 
@@ -77,6 +100,14 @@ search.
 
 The below tables describes the current attribute defaults for each implementation.
 
+#### Search Base defaults
+
+The following set defaults for the `additional_users_dn` and `additional_groups_dn` values.
+
+| Implementation |   Users   |  Groups   |
+|:--------------:|:---------:|:---------:|
+|     lldap      | OU=people | OU=groups |
+
 #### Attribute defaults
 
 This table describes the attribute defaults for each implementation. i.e. the username_attribute is described by the
@@ -86,25 +117,41 @@ Username column.
 |:---------------:|:--------------:|:------------:|:----:|:----------:|
 |     custom      |      N/A       | displayName  | mail |     cn     |
 | activedirectory | sAMAccountName | displayName  | mail |     cn     |
+|     freeipa     |      uid       | displayName  | mail |     cn     |
+|      lldap      |      uid       |      cn      | mail |     cn     |
+|     glauth      |       cn       | description  | mail |     cn     |
 
 #### Filter defaults
 
-The filters are probably the most important part to get correct when setting up LDAP. You want to exclude disabled
-accounts. The active directory example has two attribute filters that accomplish this as an example (more examples would
-be appreciated). The userAccountControl filter checks that the account is not disabled and the pwdLastSet makes sure that
-value is not 0 which means the password requires changing at the next login.
+The filters are probably the most important part to get correct when setting up LDAP. You want to exclude accounts under
+the following conditions:
 
-| Implementation  |                                                                          Users Filter                                                                           |               Groups Filter                |
-|:---------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------:|
-|     custom      |                                                                               N/A                                                                               |                    N/A                     |
-| activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))) | (&(member={dn})(sAMAccountType=268435456)) |
+- The account is disabled or locked:
+  - The [Active Directory] implementation achieves this via the `(!(userAccountControl:1.2.840.113556.1.4.803:=2))` filter.
+  - The [FreeIPA] implementation achieves this via the `(!(nsAccountLock=TRUE))` filter.
+  - The [GLAuth] implementation achieves this via the `(!(accountStatus=inactive))` filter.
+- Their password is expired:
+  - The [Active Directory] implementation achieves this via the `(!(pwdLastSet=0))` filter.
+  - The [FreeIPA] implementation achieves this via the `(krbPasswordExpiration>={date-time:generalized})` filter.
+- Their account is expired:
+  - The [Active Directory] implementation achieves this via the `(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt}))` filter.
+  - The [FreeIPA] implementation achieves this via the `(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized}))` filter.
+
+| Implementation  |                                                                                                                       Users Filter                                                                                                                       |                                Groups Filter                                 |
+|:---------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------:|
+|     custom      |                                                                                                                           N/A                                                                                                                            |                                     N/A                                      |
+| activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(&#124;(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt}))) | (&(member={dn})(&#124;(sAMAccountType=268435456)(sAMAccountType=536870912))) |
+|     freeipa     |   (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(&#124;(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))   |                  (&(member={dn})(objectClass=groupOfNames))                  |
+|      lldap      |                                                                                 (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))                                                                                  |                  (&(member={dn})(objectClass=groupOfNames))                  |
+|     glauth      |                                                                 (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=posixAccount)(!(accountStatus=inactive)))                                                                 |                (&(uniqueMember={dn})(objectClass=posixGroup))                |
 
 ##### Microsoft Active Directory sAMAccountType
 
-| Account Type Value |        Description         |               Equivalent Filter                |
-|:------------------:|:--------------------------:|:----------------------------------------------:|
-|     268435456      |    Normal Group Objects    |                      N/A                       |
-|     805306368      |    Normal User Accounts    | `(&(objectCategory=person)(objectClass=user))` |
+| Account Type Value |               Description               |               Equivalent Filter                |
+|:------------------:|:---------------------------------------:|:----------------------------------------------:|
+|     268435456      | Global/Universal Security Group Objects |                      N/A                       |
+|     536870912      |   Domain Local Security Group Objects   |                      N/A                       |
+|     805306368      |          Normal User Accounts           | `(&(objectCategory=person)(objectClass=user))` |
 
 *__References:__*
 - Account Type Values: [Microsoft Learn](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-samr/e742be45-665d-4576-b872-0bc99d1e1fbe).

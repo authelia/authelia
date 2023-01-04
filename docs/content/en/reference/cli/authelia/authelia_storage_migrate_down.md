@@ -40,14 +40,14 @@ authelia storage migrate down --target 20 --encryption-key b3453fde-ecc2-4a1f-94
 ```
       --destroy-data   confirms you want to destroy data with this migration
   -h, --help           help for down
-      --pre1           sets pre1 as the version to migrate to
   -t, --target int     sets the version to migrate to
 ```
 
 ### Options inherited from parent commands
 
 ```
-  -c, --config strings                         configuration files to load (default [configuration.yml])
+  -c, --config strings                         configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
+      --config.experimental.filters strings    list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
       --encryption-key string                  the storage encryption key to use
       --mysql.database string                  the MySQL database name (default "authelia")
       --mysql.host string                      the MySQL hostname

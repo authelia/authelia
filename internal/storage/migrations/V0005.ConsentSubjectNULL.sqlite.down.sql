@@ -1,7 +1,5 @@
 PRAGMA foreign_keys=off;
 
-BEGIN TRANSACTION;
-
 DELETE FROM oauth2_consent_session
        WHERE subject IN(SELECT identifier FROM user_opaque_identifier WHERE username = '' AND service IN('openid', 'openid_connect'));
 
@@ -260,7 +258,5 @@ WHERE challenge_id IN (SELECT challenge_id FROM oauth2_consent_session)
 ORDER BY id;
 
 DROP TABLE IF EXISTS _bkp_DOWN_V0005_oauth2_openid_connect_session;
-
-COMMIT;
 
 PRAGMA foreign_keys=on;

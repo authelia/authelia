@@ -5,7 +5,7 @@ FROM node:19-alpine AS builder-frontend
 
 WORKDIR /node/src/app
 
-COPY .pnpm-store /root/.pnpm-store
+COPY .local /root/.local
 COPY web ./
 
 # Install the dependencies and build
@@ -15,19 +15,19 @@ RUN yarn global add pnpm && \
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.19.3-alpine AS builder-backend
+FROM golang:1.19.4-alpine AS builder-backend
 
 WORKDIR /go/src/app
 
 RUN \
-echo ">> Downloading required apk's..." && \
-apk --no-cache add gcc musl-dev
+	echo ">> Downloading required apk's..." && \
+	apk --no-cache add gcc musl-dev
 
 COPY go.mod go.sum ./
 
 RUN \
-echo ">> Downloading go modules..." && \
-go mod download
+	echo ">> Downloading go modules..." && \
+	go mod download
 
 COPY / ./
 
@@ -36,17 +36,17 @@ COPY --from=builder-frontend /node/src/internal/server/public_html internal/serv
 
 ARG LDFLAGS_EXTRA
 RUN \
-mv api internal/server/public_html/api && \
-cd cmd/authelia && \
-chmod 0666 /go/src/app/.healthcheck.env && \
-echo ">> Starting go build (coverage via go test)..." && \
-CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LDFLAGS="-Wl,-z,relro,-z,now" go test -c --tags coverage -covermode=atomic \
--ldflags "${LDFLAGS_EXTRA}" -o authelia -coverpkg github.com/authelia/authelia/...
+	mv api internal/server/public_html/api && \
+	cd cmd/authelia && \
+	chmod 0666 /go/src/app/.healthcheck.env && \
+	echo ">> Starting go build (coverage via go test)..." && \
+	CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LDFLAGS="-Wl,-z,relro,-z,now" go test -c --tags coverage -covermode=atomic \
+	-ldflags "${LDFLAGS_EXTRA}" -o authelia -coverpkg github.com/authelia/authelia/...
 
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.16.3
+FROM alpine:3.17.0
 
 RUN apk --no-cache add ca-certificates tzdata
 
@@ -58,7 +58,8 @@ EXPOSE 9091
 
 VOLUME /config
 
-ENV PATH="/app:${PATH}"
+ENV PATH="/app:${PATH}" \
+    X_AUTHELIA_CONFIG="/config/configuration.yml"
 
-CMD ["authelia", "-test.coverprofile=/authelia/coverage.txt", "COVERAGE", "--config", "/config/configuration.yml"]
+CMD ["authelia", "-test.coverprofile=/authelia/coverage.txt", "COVERAGE"]
 HEALTHCHECK --interval=30s --timeout=3s CMD /app/healthcheck.sh

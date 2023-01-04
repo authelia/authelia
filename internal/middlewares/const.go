@@ -20,6 +20,7 @@ var (
 
 	headerXForwardedURI    = []byte("X-Forwarded-URI")
 	headerXOriginalURL     = []byte("X-Original-URL")
+	headerXOriginalMethod  = []byte("X-Original-Method")
 	headerXForwardedMethod = []byte("X-Forwarded-Method")
 
 	headerVary   = []byte(fasthttp.HeaderVary)
@@ -67,13 +68,17 @@ var (
 const (
 	strProtoHTTPS = "https"
 	strProtoHTTP  = "http"
+	strSlash      = "/"
+
+	queryArgRedirect = "rd"
+	queryArgToken    = "token"
 )
 
 var (
 	protoHTTPS = []byte(strProtoHTTPS)
 	protoHTTP  = []byte(strProtoHTTP)
 
-	queryArgRedirect = []byte("rd")
+	qryArgRedirect = []byte(queryArgRedirect)
 
 	// UserValueKeyBaseURL is the User Value key where we store the Base URL.
 	UserValueKeyBaseURL = []byte("base_url")
@@ -83,6 +88,7 @@ var (
 	contentTypeTextPlain       = []byte("text/plain; charset=utf-8")
 	contentTypeTextHTML        = []byte("text/html; charset=utf-8")
 	contentTypeApplicationJSON = []byte("application/json; charset=utf-8")
+	contentTypeApplicationYAML = []byte("application/yaml; charset=utf-8")
 )
 
 const (

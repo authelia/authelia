@@ -53,7 +53,6 @@ authelia access-control check-policy --config config.yml --url https://example.c
 ### Options
 
 ```
-  -c, --config strings    configuration files to load (default [configuration.yml])
       --groups strings    the groups of the subject
   -h, --help              help for check-policy
       --ip string         the ip of the subject
@@ -61,6 +60,13 @@ authelia access-control check-policy --config config.yml --url https://example.c
       --url string        the url of the object
       --username string   the username of the subject
       --verbose           enables verbose output
+```
+
+### Options inherited from parent commands
+
+```
+  -c, --config strings                        configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
+      --config.experimental.filters strings   list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
 ```
 
 ### SEE ALSO

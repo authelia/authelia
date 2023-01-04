@@ -3,20 +3,15 @@ package main
 import (
 	"embed"
 	"fmt"
-	"strings"
 	"text/template"
+
+	"github.com/authelia/authelia/v4/internal/templates"
 )
 
 //go:embed templates/*
 var templatesFS embed.FS
 
 var (
-	funcMap = template.FuncMap{
-		"stringsContains": strings.Contains,
-		"join":            strings.Join,
-		"joinX":           fmJoinX,
-	}
-
 	tmplCodeConfigurationSchemaKeys = template.Must(newTMPL("internal_configuration_schema_keys.go"))
 	tmplGitHubIssueTemplateBug      = template.Must(newTMPL("github_issue_template_bug_report.yml"))
 	tmplIssueTemplateFeature        = template.Must(newTMPL("github_issue_template_feature.yml"))
@@ -27,33 +22,12 @@ var (
 	tmplServer                      = template.Must(newTMPL("server_gen.go"))
 )
 
-func fmJoinX(elems []string, sep string, n int, p string) string {
-	buf := strings.Builder{}
-
-	c := 0
-	e := len(elems) - 1
-
-	for i := 0; i <= e; i++ {
-		if c+len(elems[i])+1 > n {
-			c = 0
-
-			buf.WriteString(p)
-		}
-
-		c += len(elems[i]) + 1
-
-		buf.WriteString(elems[i])
-
-		if i < e {
-			buf.WriteString(sep)
-		}
-	}
-
-	return buf.String()
-}
-
 func newTMPL(name string) (tmpl *template.Template, err error) {
-	return template.New(name).Funcs(funcMap).Parse(mustLoadTmplFS(name))
+	funcs := templates.FuncMap()
+
+	funcs["joinX"] = templates.FuncStringJoinX
+
+	return template.New(name).Funcs(funcs).Parse(mustLoadTmplFS(name))
 }
 
 func mustLoadTmplFS(tmpl string) string {

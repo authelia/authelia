@@ -235,10 +235,10 @@ func IsX509PrivateKey(i any) bool {
 }
 
 // NewTLSConfig generates a tls.Config from a schema.TLSConfig and a x509.CertPool.
-func NewTLSConfig(config *schema.TLSConfig, caCertPool *x509.CertPool) (tlsConfig *tls.Config) {
+func NewTLSConfig(config *schema.TLSConfig, rootCAs *x509.CertPool) (tlsConfig *tls.Config) {
 	var certificates []tls.Certificate
 
-	if config.CertificateChain.HasCertificates() && config.PrivateKey != nil {
+	if config.PrivateKey != nil && config.CertificateChain.HasCertificates() {
 		certificates = []tls.Certificate{
 			{
 				Certificate: config.CertificateChain.CertificatesRaw(),
@@ -252,8 +252,8 @@ func NewTLSConfig(config *schema.TLSConfig, caCertPool *x509.CertPool) (tlsConfi
 		ServerName:         config.ServerName,
 		InsecureSkipVerify: config.SkipVerify, //nolint:gosec // Informed choice by user. Off by default.
 		MinVersion:         config.MinimumVersion.MinVersion(),
-		MaxVersion:         config.MinimumVersion.MaxVersion(),
-		RootCAs:            caCertPool,
+		MaxVersion:         config.MaximumVersion.MaxVersion(),
+		RootCAs:            rootCAs,
 		Certificates:       certificates,
 	}
 }
@@ -572,4 +572,51 @@ loop:
 	}
 
 	return extKeyUsage
+}
+
+// RandomString returns a random string with a given length with values from the provided characters. When crypto is set
+// to false we use math/rand and when it's set to true we use crypto/rand. The crypto option should always be set to true
+// excluding when the task is time sensitive and would not benefit from extra randomness.
+func RandomString(n int, characters string) (randomString string) {
+	return string(RandomBytes(n, characters))
+}
+
+// RandomBytes returns a random []byte with a given length with values from the provided characters. When crypto is set
+// to false we use math/rand and when it's set to true we use crypto/rand. The crypto option should always be set to true
+// excluding when the task is time sensitive and would not benefit from extra randomness.
+func RandomBytes(n int, characters string) (bytes []byte) {
+	bytes = make([]byte, n)
+
+	_, _ = rand.Read(bytes)
+
+	for i, b := range bytes {
+		bytes[i] = characters[b%byte(len(characters))]
+	}
+
+	return bytes
+}
+
+func RandomInt(n int) (int, error) {
+	if n <= 0 {
+		return 0, fmt.Errorf("n must be more than 0")
+	}
+
+	max := big.NewInt(int64(n))
+
+	if !max.IsUint64() {
+		return 0, fmt.Errorf("generated max is negative")
+	}
+
+	value, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		return 0, err
+	}
+
+	output := int(value.Int64())
+
+	if output < 0 {
+		return 0, fmt.Errorf("generated number is too big for int")
+	}
+
+	return output, nil
 }

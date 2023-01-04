@@ -1,7 +1,5 @@
 PRAGMA foreign_keys=off;
 
-BEGIN TRANSACTION;
-
 DROP TABLE IF EXISTS _bkp_UP_V0002_totp_configurations;
 DROP TABLE IF EXISTS _bkp_UP_V0002_u2f_devices;
 DROP TABLE IF EXISTS totp_secrets;
@@ -661,7 +659,5 @@ FROM _bkp_UP_V0007_oauth2_openid_connect_session
 ORDER BY id;
 
 DROP TABLE IF EXISTS _bkp_UP_V0007_oauth2_openid_connect_session;
-
-COMMIT;
 
 PRAGMA foreign_keys=on;

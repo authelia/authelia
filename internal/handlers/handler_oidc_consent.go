@@ -130,12 +130,7 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 		query       url.Values
 	)
 
-	if redirectURI, err = ctx.IssuerURL(); err != nil {
-		ctx.Logger.Errorf("Failed to parse the consent redirect URL: %+v", err)
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
+	redirectURI = ctx.RootURL()
 
 	if query, err = url.ParseQuery(consent.Form); err != nil {
 		ctx.Logger.Errorf("Failed to parse the consent form values: %+v", err)

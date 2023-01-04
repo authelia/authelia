@@ -409,18 +409,22 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenSCryptOptio
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenSCryptOptionsTooHigh() {
+	suite.config.File.Password.SCrypt.Iterations = 59
 	suite.config.File.Password.SCrypt.BlockSize = 360287970189639672
+	suite.config.File.Password.SCrypt.Parallelism = 1073741825
 	suite.config.File.Password.SCrypt.KeyLength = 1374389534409
 	suite.config.File.Password.SCrypt.SaltLength = 2147483647
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
 	suite.Assert().Len(suite.validator.Warnings(), 0)
-	suite.Require().Len(suite.validator.Errors(), 3)
+	suite.Require().Len(suite.validator.Errors(), 5)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: scrypt: option 'block_size' is configured as '360287970189639672' but must be less than or equal to '36028797018963967'")
-	suite.Assert().EqualError(suite.validator.Errors()[1], "authentication_backend: file: password: scrypt: option 'key_length' is configured as '1374389534409' but must be less than or equal to '137438953440'")
-	suite.Assert().EqualError(suite.validator.Errors()[2], "authentication_backend: file: password: scrypt: option 'salt_length' is configured as '2147483647' but must be less than or equal to '1024'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: scrypt: option 'iterations' is configured as '59' but must be less than or equal to '58'")
+	suite.Assert().EqualError(suite.validator.Errors()[1], "authentication_backend: file: password: scrypt: option 'block_size' is configured as '360287970189639672' but must be less than or equal to '36028797018963967'")
+	suite.Assert().EqualError(suite.validator.Errors()[2], "authentication_backend: file: password: scrypt: option 'parallelism' is configured as '1073741825' but must be less than or equal to '1073741823'")
+	suite.Assert().EqualError(suite.validator.Errors()[3], "authentication_backend: file: password: scrypt: option 'key_length' is configured as '1374389534409' but must be less than or equal to '137438953440'")
+	suite.Assert().EqualError(suite.validator.Errors()[4], "authentication_backend: file: password: scrypt: option 'salt_length' is configured as '2147483647' but must be less than or equal to '1024'")
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenArgon2OptionsTooLow() {
@@ -437,13 +441,14 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenArgon2Optio
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: argon2: option 'iterations' is configured as '-1' but must be greater than or equal to '1'")
 	suite.Assert().EqualError(suite.validator.Errors()[1], "authentication_backend: file: password: argon2: option 'parallelism' is configured as '-1' but must be greater than or equal to '1'")
-	suite.Assert().EqualError(suite.validator.Errors()[2], "authentication_backend: file: password: argon2: option 'memory' is configured as '-1' but must be greater than or equal to '1'")
+	suite.Assert().EqualError(suite.validator.Errors()[2], "authentication_backend: file: password: argon2: option 'memory' is configured as '-1' but must be greater than or equal to '8'")
 	suite.Assert().EqualError(suite.validator.Errors()[3], "authentication_backend: file: password: argon2: option 'key_length' is configured as '1' but must be greater than or equal to '4'")
 	suite.Assert().EqualError(suite.validator.Errors()[4], "authentication_backend: file: password: argon2: option 'salt_length' is configured as '-1' but must be greater than or equal to '1'")
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenArgon2OptionsTooHigh() {
 	suite.config.File.Password.Argon2.Iterations = 9999999999
+	suite.config.File.Password.Argon2.Memory = 4294967296
 	suite.config.File.Password.Argon2.Parallelism = 16777216
 	suite.config.File.Password.Argon2.KeyLength = 9999999998
 	suite.config.File.Password.Argon2.SaltLength = 9999999997
@@ -455,6 +460,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenArgon2Optio
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: argon2: option 'iterations' is configured as '9999999999' but must be less than or equal to '2147483647'")
 	suite.Assert().EqualError(suite.validator.Errors()[1], "authentication_backend: file: password: argon2: option 'parallelism' is configured as '16777216' but must be less than or equal to '16777215'")
+	suite.Assert().EqualError(suite.validator.Errors()[2], "authentication_backend: file: password: argon2: option 'memory' is configured as '4294967296' but must be less than or equal to '4294967295'")
 	suite.Assert().EqualError(suite.validator.Errors()[3], "authentication_backend: file: password: argon2: option 'key_length' is configured as '9999999998' but must be less than or equal to '2147483647'")
 	suite.Assert().EqualError(suite.validator.Errors()[4], "authentication_backend: file: password: argon2: option 'salt_length' is configured as '9999999997' but must be less than or equal to '2147483647'")
 }
@@ -468,7 +474,19 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenArgon2Memor
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: argon2: option 'memory' is configured as '4' but must be greater than or equal to '32' or '4' (the value of 'parallelism) multiplied by '8'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: argon2: option 'memory' is configured as '4' but must be greater than or equal to '8'")
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenArgon2MemoryTooLowMultiplier() {
+	suite.config.File.Password.Argon2.Memory = 8
+	suite.config.File.Password.Argon2.Parallelism = 4
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: argon2: option 'memory' is configured as '8' but must be greater than or equal to '32' or '4' (the value of 'parallelism) multiplied by '8'")
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenBadAlgorithmDefined() {
@@ -591,7 +609,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenImplementat
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'implementation' is configured as 'masd' but must be one of the following values: 'custom', 'activedirectory'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'implementation' is configured as 'masd' but must be one of the following values: 'custom', 'activedirectory', 'freeipa', 'lldap'")
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenURLNotProvided() {
@@ -857,7 +875,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldNotAllowTLSVerMinGreaterT
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS1.3 is greater than the maximum version TLS1.2")
 }
 
-func TestLdapAuthenticationBackend(t *testing.T) {
+func TestLDAPAuthenticationBackend(t *testing.T) {
 	suite.Run(t, new(LDAPAuthenticationBackendSuite))
 }
 
@@ -876,7 +894,7 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) SetupTest() {
 	suite.config.LDAP.User = testLDAPUser
 	suite.config.LDAP.Password = testLDAPPassword
 	suite.config.LDAP.BaseDN = testLDAPBaseDN
-	suite.config.LDAP.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.TLS
+	suite.config.LDAP.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.TLS
 }
 
 func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldSetActiveDirectoryDefaults() {
@@ -886,8 +904,20 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldSetActiveDirec
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Timeout,
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.Timeout,
 		suite.config.LDAP.Timeout)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.AdditionalUsersDN,
+		suite.config.LDAP.AdditionalUsersDN)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.AdditionalGroupsDN,
+		suite.config.LDAP.AdditionalGroupsDN)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.AdditionalUsersDN,
+		suite.config.LDAP.AdditionalUsersDN)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.AdditionalGroupsDN,
+		suite.config.LDAP.AdditionalGroupsDN)
 	suite.Assert().Equal(
 		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.UsersFilter,
 		suite.config.LDAP.UsersFilter)
@@ -916,12 +946,20 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldOnlySetDefault
 	suite.config.LDAP.DisplayNameAttribute = "name"
 	suite.config.LDAP.GroupsFilter = "(&(member={dn})(objectClass=group)(objectCategory=group))"
 	suite.config.LDAP.GroupNameAttribute = "distinguishedName"
+	suite.config.LDAP.AdditionalUsersDN = "OU=test"
+	suite.config.LDAP.AdditionalGroupsDN = "OU=grps"
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
 	suite.Assert().NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Timeout,
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.Timeout,
 		suite.config.LDAP.Timeout)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.AdditionalUsersDN,
+		suite.config.LDAP.AdditionalUsersDN)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.AdditionalGroupsDN,
+		suite.config.LDAP.AdditionalGroupsDN)
 	suite.Assert().NotEqual(
 		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.UsersFilter,
 		suite.config.LDAP.UsersFilter)
@@ -962,4 +1000,307 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldRaiseErrorOnIn
 
 func TestActiveDirectoryAuthenticationBackend(t *testing.T) {
 	suite.Run(t, new(ActiveDirectoryAuthenticationBackendSuite))
+}
+
+type FreeIPAAuthenticationBackendSuite struct {
+	suite.Suite
+	config    schema.AuthenticationBackend
+	validator *schema.StructValidator
+}
+
+func (suite *FreeIPAAuthenticationBackendSuite) SetupTest() {
+	suite.validator = schema.NewStructValidator()
+	suite.config = schema.AuthenticationBackend{}
+	suite.config.LDAP = &schema.LDAPAuthenticationBackend{}
+	suite.config.LDAP.Implementation = schema.LDAPImplementationFreeIPA
+	suite.config.LDAP.URL = testLDAPURL
+	suite.config.LDAP.User = testLDAPUser
+	suite.config.LDAP.Password = testLDAPPassword
+	suite.config.LDAP.BaseDN = testLDAPBaseDN
+	suite.config.LDAP.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.TLS
+}
+
+func (suite *FreeIPAAuthenticationBackendSuite) TestShouldSetDefaults() {
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
+
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.Timeout,
+		suite.config.LDAP.Timeout)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.AdditionalUsersDN,
+		suite.config.LDAP.AdditionalUsersDN)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.AdditionalGroupsDN,
+		suite.config.LDAP.AdditionalGroupsDN)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.UsersFilter,
+		suite.config.LDAP.UsersFilter)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.UsernameAttribute,
+		suite.config.LDAP.UsernameAttribute)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.DisplayNameAttribute,
+		suite.config.LDAP.DisplayNameAttribute)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.MailAttribute,
+		suite.config.LDAP.MailAttribute)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.GroupsFilter,
+		suite.config.LDAP.GroupsFilter)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.GroupNameAttribute,
+		suite.config.LDAP.GroupNameAttribute)
+}
+
+func (suite *FreeIPAAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotManuallyConfigured() {
+	suite.config.LDAP.Timeout = time.Second * 2
+	suite.config.LDAP.UsersFilter = "(&({username_attribute}={input})(objectClass=person)(!(nsAccountLock=TRUE)))"
+	suite.config.LDAP.UsernameAttribute = "dn"
+	suite.config.LDAP.MailAttribute = "email"
+	suite.config.LDAP.DisplayNameAttribute = "gecos"
+	suite.config.LDAP.GroupsFilter = "(&(member={dn})(objectClass=posixgroup))"
+	suite.config.LDAP.GroupNameAttribute = "groupName"
+	suite.config.LDAP.AdditionalUsersDN = "OU=people"
+	suite.config.LDAP.AdditionalGroupsDN = "OU=grp"
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.Timeout,
+		suite.config.LDAP.Timeout)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.AdditionalUsersDN,
+		suite.config.LDAP.AdditionalUsersDN)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.AdditionalGroupsDN,
+		suite.config.LDAP.AdditionalGroupsDN)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.UsersFilter,
+		suite.config.LDAP.UsersFilter)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.UsernameAttribute,
+		suite.config.LDAP.UsernameAttribute)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.DisplayNameAttribute,
+		suite.config.LDAP.DisplayNameAttribute)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.MailAttribute,
+		suite.config.LDAP.MailAttribute)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.GroupsFilter,
+		suite.config.LDAP.GroupsFilter)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.GroupNameAttribute,
+		suite.config.LDAP.GroupNameAttribute)
+}
+
+func TestFreeIPAAuthenticationBackend(t *testing.T) {
+	suite.Run(t, new(FreeIPAAuthenticationBackendSuite))
+}
+
+type LLDAPAuthenticationBackendSuite struct {
+	suite.Suite
+	config    schema.AuthenticationBackend
+	validator *schema.StructValidator
+}
+
+func (suite *LLDAPAuthenticationBackendSuite) SetupTest() {
+	suite.validator = schema.NewStructValidator()
+	suite.config = schema.AuthenticationBackend{}
+	suite.config.LDAP = &schema.LDAPAuthenticationBackend{}
+	suite.config.LDAP.Implementation = schema.LDAPImplementationLLDAP
+	suite.config.LDAP.URL = testLDAPURL
+	suite.config.LDAP.User = testLDAPUser
+	suite.config.LDAP.Password = testLDAPPassword
+	suite.config.LDAP.BaseDN = testLDAPBaseDN
+	suite.config.LDAP.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.TLS
+}
+
+func (suite *LLDAPAuthenticationBackendSuite) TestShouldSetDefaults() {
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
+
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.Timeout,
+		suite.config.LDAP.Timeout)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.AdditionalUsersDN,
+		suite.config.LDAP.AdditionalUsersDN)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.AdditionalGroupsDN,
+		suite.config.LDAP.AdditionalGroupsDN)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.UsersFilter,
+		suite.config.LDAP.UsersFilter)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.UsernameAttribute,
+		suite.config.LDAP.UsernameAttribute)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.DisplayNameAttribute,
+		suite.config.LDAP.DisplayNameAttribute)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.MailAttribute,
+		suite.config.LDAP.MailAttribute)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.GroupsFilter,
+		suite.config.LDAP.GroupsFilter)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.GroupNameAttribute,
+		suite.config.LDAP.GroupNameAttribute)
+}
+
+func (suite *LLDAPAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotManuallyConfigured() {
+	suite.config.LDAP.Timeout = time.Second * 2
+	suite.config.LDAP.UsersFilter = "(&({username_attribute}={input})(objectClass=Person)(!(nsAccountLock=TRUE)))"
+	suite.config.LDAP.UsernameAttribute = "username"
+	suite.config.LDAP.MailAttribute = "m"
+	suite.config.LDAP.DisplayNameAttribute = "fn"
+	suite.config.LDAP.GroupsFilter = "(&(member={dn})(!(objectClass=posixGroup)))"
+	suite.config.LDAP.GroupNameAttribute = "grpz"
+	suite.config.LDAP.AdditionalUsersDN = "OU=no"
+	suite.config.LDAP.AdditionalGroupsDN = "OU=yes"
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.Timeout,
+		suite.config.LDAP.Timeout)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.AdditionalUsersDN,
+		suite.config.LDAP.AdditionalUsersDN)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.AdditionalGroupsDN,
+		suite.config.LDAP.AdditionalGroupsDN)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.Timeout,
+		suite.config.LDAP.Timeout)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.UsersFilter,
+		suite.config.LDAP.UsersFilter)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.UsernameAttribute,
+		suite.config.LDAP.UsernameAttribute)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.DisplayNameAttribute,
+		suite.config.LDAP.DisplayNameAttribute)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.MailAttribute,
+		suite.config.LDAP.MailAttribute)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.GroupsFilter,
+		suite.config.LDAP.GroupsFilter)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.GroupNameAttribute,
+		suite.config.LDAP.GroupNameAttribute)
+}
+
+func TestLLDAPAuthenticationBackend(t *testing.T) {
+	suite.Run(t, new(LLDAPAuthenticationBackendSuite))
+}
+
+type GLAuthAuthenticationBackendSuite struct {
+	suite.Suite
+	config    schema.AuthenticationBackend
+	validator *schema.StructValidator
+}
+
+func (suite *GLAuthAuthenticationBackendSuite) SetupTest() {
+	suite.validator = schema.NewStructValidator()
+	suite.config = schema.AuthenticationBackend{}
+	suite.config.LDAP = &schema.LDAPAuthenticationBackend{}
+	suite.config.LDAP.Implementation = schema.LDAPImplementationGLAuth
+	suite.config.LDAP.URL = testLDAPURL
+	suite.config.LDAP.User = testLDAPUser
+	suite.config.LDAP.Password = testLDAPPassword
+	suite.config.LDAP.BaseDN = testLDAPBaseDN
+	suite.config.LDAP.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.TLS
+}
+
+func (suite *GLAuthAuthenticationBackendSuite) TestShouldSetDefaults() {
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
+
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.Timeout,
+		suite.config.LDAP.Timeout)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.AdditionalUsersDN,
+		suite.config.LDAP.AdditionalUsersDN)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.AdditionalGroupsDN,
+		suite.config.LDAP.AdditionalGroupsDN)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.UsersFilter,
+		suite.config.LDAP.UsersFilter)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.UsernameAttribute,
+		suite.config.LDAP.UsernameAttribute)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.DisplayNameAttribute,
+		suite.config.LDAP.DisplayNameAttribute)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.MailAttribute,
+		suite.config.LDAP.MailAttribute)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.GroupsFilter,
+		suite.config.LDAP.GroupsFilter)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.GroupNameAttribute,
+		suite.config.LDAP.GroupNameAttribute)
+}
+
+func (suite *GLAuthAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotManuallyConfigured() {
+	suite.config.LDAP.Timeout = time.Second * 2
+	suite.config.LDAP.UsersFilter = "(&({username_attribute}={input})(objectClass=Person)(!(accountStatus=inactive)))"
+	suite.config.LDAP.UsernameAttribute = "description"
+	suite.config.LDAP.MailAttribute = "sender"
+	suite.config.LDAP.DisplayNameAttribute = "given"
+	suite.config.LDAP.GroupsFilter = "(&(member={dn})(objectClass=posixGroup))"
+	suite.config.LDAP.GroupNameAttribute = "grp"
+	suite.config.LDAP.AdditionalUsersDN = "OU=users,OU=GlAuth"
+	suite.config.LDAP.AdditionalGroupsDN = "OU=groups,OU=GLAuth"
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.Timeout,
+		suite.config.LDAP.Timeout)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.AdditionalUsersDN,
+		suite.config.LDAP.AdditionalUsersDN)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.AdditionalGroupsDN,
+		suite.config.LDAP.AdditionalGroupsDN)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.Timeout,
+		suite.config.LDAP.Timeout)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.UsersFilter,
+		suite.config.LDAP.UsersFilter)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.UsernameAttribute,
+		suite.config.LDAP.UsernameAttribute)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.DisplayNameAttribute,
+		suite.config.LDAP.DisplayNameAttribute)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.MailAttribute,
+		suite.config.LDAP.MailAttribute)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.GroupsFilter,
+		suite.config.LDAP.GroupsFilter)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.GroupNameAttribute,
+		suite.config.LDAP.GroupNameAttribute)
+}
+
+func TestGLAuthAuthenticationBackend(t *testing.T) {
+	suite.Run(t, new(GLAuthAuthenticationBackendSuite))
 }

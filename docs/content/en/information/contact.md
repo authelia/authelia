@@ -11,8 +11,8 @@ aliases:
 
 ## Security
 
-If you believe you have identified a security related bug with Authelia please visit the [security policy](security.md)
-documentation.
+If you believe you have identified a security related bug with Authelia please visit the
+[security policy](../policies/security.md) documentation.
 
 ## GitHub
 

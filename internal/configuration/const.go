@@ -36,4 +36,7 @@ const (
 	errFmtDecodeHookCouldNotParseEmptyValue = "could not decode an empty value to a %s%s: %w"
 )
 
+// IMPORTANT: There is an uppercase copy of this in github.com/authelia/authelia/internal/templates named
+// envSecretSuffixes.
+// Make sure you update these at the same time.
 var secretSuffixes = []string{"key", "secret", "password", "token", "certificate_chain"}

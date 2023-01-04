@@ -1,4 +1,4 @@
-FROM golang:1.19.3-alpine
+FROM golang:1.19.4-alpine
 
 ARG USER_ID
 ARG GROUP_ID
@@ -11,7 +11,8 @@ RUN mkdir -p /config && chown dev:dev /config
 
 USER dev
 
-ENV PATH="/app:${PATH}"
+ENV PATH="/app:${PATH}" \
+	X_AUTHELIA_CONFIG="/config/configuration.yml"
 
 VOLUME /config
 
