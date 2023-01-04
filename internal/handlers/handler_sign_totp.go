@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"fmt"
+
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/regulation"
 )
@@ -18,6 +20,8 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	userSession := ctx.GetSession()
+
+	fmt.Printf("user %s\n", userSession.Username)
 
 	config, err := ctx.Providers.StorageProvider.LoadTOTPConfiguration(ctx, userSession.Username)
 	if err != nil {
@@ -67,6 +71,8 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 		return
 	}
+
+	fmt.Println("success")
 
 	userSession.SetTwoFactorTOTP(ctx.Clock.Now())
 

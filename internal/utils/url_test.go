@@ -59,24 +59,3 @@ func TestIsRedirectionSafe_ShouldReturnFalseOnBadDomain(t *testing.T) {
 	assert.False(t, isURLSafe("https://secure.example.comc", "example.com"))
 	assert.False(t, isURLSafe("https://secure.example.co", "example.com"))
 }
-
-func TestIsRedirectionURISafe_CannotParseURI(t *testing.T) {
-	_, err := IsURIStringSafeRedirection("http//invalid", "example.com")
-	assert.EqualError(t, err, "failed to parse URI 'http//invalid': parse \"http//invalid\": invalid URI for request")
-}
-
-func TestIsRedirectionURISafe_InvalidRedirectionURI(t *testing.T) {
-	valid, err := IsURIStringSafeRedirection("http://myurl.com/myresource", "example.com")
-	assert.NoError(t, err)
-	assert.False(t, valid)
-}
-
-func TestIsRedirectionURISafe_ValidRedirectionURI(t *testing.T) {
-	valid, err := IsURIStringSafeRedirection("http://myurl.example.com/myresource", "example.com")
-	assert.NoError(t, err)
-	assert.False(t, valid)
-
-	valid, err = IsURIStringSafeRedirection("http://example.com/myresource", "example.com")
-	assert.NoError(t, err)
-	assert.False(t, valid)
-}

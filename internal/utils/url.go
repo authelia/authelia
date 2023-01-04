@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"net/url"
 	"path"
 	"strings"
@@ -28,17 +27,6 @@ func URLPathFullClean(u *url.URL) (output string) {
 	default:
 		return path.Clean(u.Path)
 	}
-}
-
-// IsURIStringSafeRedirection determines whether the URI is safe to be redirected to.
-func IsURIStringSafeRedirection(uri, protectedDomain string) (safe bool, err error) {
-	var parsedURI *url.URL
-
-	if parsedURI, err = url.ParseRequestURI(uri); err != nil {
-		return false, fmt.Errorf("failed to parse URI '%s': %w", uri, err)
-	}
-
-	return parsedURI != nil && IsURISafeRedirection(parsedURI, protectedDomain), nil
 }
 
 // IsURISafeRedirection returns true if the URI passes the IsURISecure and HasURIDomainSuffix, i.e. if the scheme is

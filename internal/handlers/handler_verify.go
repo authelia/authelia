@@ -46,7 +46,7 @@ func parseBasicAuth(header []byte, auth string) (username, password string, err 
 }
 
 // isTargetURLAuthorized check whether the given user is authorized to access the resource.
-func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.URL,
+func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL *url.URL,
 	username string, userGroups []string, clientIP net.IP, method []byte, authLevel authentication.Level) authorizationMatching {
 	hasSubject, level := authorizer.GetRequiredLevel(
 		authorization.Subject{
@@ -54,7 +54,7 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 			Groups:   userGroups,
 			IP:       clientIP,
 		},
-		authorization.NewObjectRaw(&targetURL, method))
+		authorization.NewObjectRaw(targetURL, method))
 
 	switch {
 	case level == authorization.Bypass:
@@ -120,7 +120,7 @@ func setForwardedHeaders(headers *fasthttp.ResponseHeader, username, name string
 }
 
 func isSessionInactiveTooLong(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, isUserAnonymous bool) (isInactiveTooLong bool) {
-	domainSession, err := ctx.GetDomainSession()
+	domainSession, err := ctx.GetSessionProvider()
 	if err != nil {
 		return false
 	}
@@ -174,7 +174,7 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 	return userSession.Username, userSession.DisplayName, userSession.Groups, userSession.Emails, userSession.AuthenticationLevel, nil
 }
 
-func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, isBasicAuth bool, username string, method []byte) {
+func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, cookieDomain string, isBasicAuth bool, username string, method []byte) {
 	var (
 		statusCode            int
 		friendlyUsername      string
@@ -208,8 +208,8 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 	redirectionURL := ctxGetPortalURL(ctx)
 
 	if redirectionURL != nil {
-		if !utils.IsURISafeRedirection(redirectionURL, ctx.Configuration.Session.Domain) {
-			ctx.Logger.Errorf("Configured Portal URL '%s' does not appear to be able to write cookies for the '%s' domain", redirectionURL, ctx.Configuration.Session.Domain)
+		if !utils.IsURISafeRedirection(redirectionURL, cookieDomain) {
+			ctx.Logger.Errorf("Configured Portal URL '%s' does not appear to be able to write cookies for the '%s' domain", redirectionURL, cookieDomain)
 
 			ctx.ReplyUnauthorized()
 
@@ -442,6 +442,7 @@ func VerifyGET(cfg schema.AuthenticationBackend) middlewares.RequestHandler {
 			ctx.Logger.Errorf("Unable to parse target URL: %s", err)
 			ctx.ReplyUnauthorized()
 
+			fmt.Printf("Unable to parse target URL: %s\n", err)
 			return
 		}
 
@@ -490,12 +491,12 @@ func VerifyGET(cfg schema.AuthenticationBackend) middlewares.RequestHandler {
 				return
 			}
 
-			handleUnauthorized(ctx, targetURL, isBasicAuth, username, method)
+			handleUnauthorized(ctx, targetURL, cookieDomain, isBasicAuth, username, method)
 
 			return
 		}
 
-		authorized := isTargetURLAuthorized(ctx.Providers.Authorizer, *targetURL, username,
+		authorized := isTargetURLAuthorized(ctx.Providers.Authorizer, targetURL, username,
 			groups, ctx.RemoteIP(), method, authLevel)
 
 		switch authorized {
@@ -503,7 +504,7 @@ func VerifyGET(cfg schema.AuthenticationBackend) middlewares.RequestHandler {
 			ctx.Logger.Infof("Access to %s is forbidden to user %s", targetURL.String(), username)
 			ctx.ReplyForbidden()
 		case NotAuthorized:
-			handleUnauthorized(ctx, targetURL, isBasicAuth, username, method)
+			handleUnauthorized(ctx, targetURL, cookieDomain, isBasicAuth, username, method)
 		case Authorized:
 			setForwardedHeaders(&ctx.Response.Header, username, name, groups, emails)
 		}

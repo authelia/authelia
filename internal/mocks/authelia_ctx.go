@@ -49,16 +49,21 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	mockAuthelia.Clock.Set(datetime)
 
 	config := schema.Configuration{}
-	config.Session.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration
-	config.Session.Name = "authelia_session"
 	config.Session.Domains = []schema.SessionDomainConfiguration{
 		{
-			Domain: "example.com",
+			Name:               "authelia_session",
+			Domain:             "example.com",
+			RememberMeDuration: schema.DefaultSessionConfiguration.RememberMeDuration,
+			Expiration:         schema.DefaultSessionConfiguration.Expiration,
 		},
 		{
-			Domain: "example2.com",
+			Name:               "authelia_session",
+			Domain:             "example2.com",
+			RememberMeDuration: schema.DefaultSessionConfiguration.RememberMeDuration,
+			Expiration:         schema.DefaultSessionConfiguration.Expiration,
 		},
 	}
+
 	config.AccessControl.DefaultPolicy = "deny"
 	config.AccessControl.Rules = []schema.ACLRule{{
 		Domains: []string{"bypass.example.com"},

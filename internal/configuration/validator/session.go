@@ -49,7 +49,6 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 	if config.Domain != "" {
 		config.Domains = append(config.Domains, schema.SessionDomainConfiguration{
 			Domain:             config.Domain,
-			PortalURL:          config.PortalURL,
 			SameSite:           config.SameSite,
 			Expiration:         config.Expiration,
 			Inactivity:         config.Inactivity,
@@ -79,11 +78,11 @@ func validateSessionDomains(config *schema.SessionConfiguration, validator *sche
 			}
 		}
 
-		if d.PortalURL != nil && !utils.IsURISafeRedirection(d.PortalURL, d.Domain) {
+		if d.PortalURL != nil && d.Domain != "" && !utils.IsURISafeRedirection(d.PortalURL, d.Domain) {
 			if utils.IsURISecure(d.PortalURL) {
-				validator.Push(fmt.Errorf(errFmtSessionDomainPortalURLNotInCookieScope, sessionDomainDescriptor(i, d), d.Domain))
+				validator.Push(fmt.Errorf(errFmtSessionDomainPortalURLNotInCookieScope, sessionDomainDescriptor(i, d), d.Domain, d.PortalURL))
 			} else {
-				validator.Push(fmt.Errorf(errFmtSessionDomainPortalURLInsecure, sessionDomainDescriptor(i, d)))
+				validator.Push(fmt.Errorf(errFmtSessionDomainPortalURLInsecure, sessionDomainDescriptor(i, d), d.PortalURL))
 			}
 		}
 

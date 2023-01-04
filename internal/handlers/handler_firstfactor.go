@@ -73,7 +73,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 		}
 
 		// TODO: write tests.
-		domainSession, err := ctx.GetDomainSession()
+		domainSession, err := ctx.GetSessionProvider()
 		if err != nil {
 			ctx.Logger.Errorf("%s", err)
 

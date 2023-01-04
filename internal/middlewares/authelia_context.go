@@ -240,14 +240,33 @@ func (ctx *AutheliaCtx) GetTargetURICookieDomain(targetURI *url.URL) string {
 	return ""
 }
 
-// GetDomainSession returns the session provider for the Request's domain.
-func (ctx *AutheliaCtx) GetDomainSession() (*session.Session, error) {
-	targetURL, err := ctx.GetOriginalURL()
-	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve domain session: %s", err)
+// IsSafeRedirectionTargetURI returns true if the targetURI is within the scope of a cookie domain and secure.
+func (ctx *AutheliaCtx) IsSafeRedirectionTargetURI(targetURI *url.URL) bool {
+	if !utils.IsURISecure(targetURI) {
+		return false
 	}
 
-	cookieDomain := ctx.GetTargetURICookieDomain(targetURL)
+	return ctx.GetTargetURICookieDomain(targetURI) != ""
+}
+
+// GetCookieDomain returns the cookie domain for the current request.
+func (ctx *AutheliaCtx) GetCookieDomain() (domain string, err error) {
+	var targetURI *url.URL
+
+	if targetURI, err = ctx.GetOriginalURL(); err != nil {
+		return "", fmt.Errorf("unable to retrieve cookie domain: %s", err)
+	}
+
+	return ctx.GetTargetURICookieDomain(targetURI), nil
+}
+
+// GetSessionProvider returns the session provider for the Request's domain.
+func (ctx *AutheliaCtx) GetSessionProvider() (provider *session.Session, err error) {
+	var cookieDomain string
+
+	if cookieDomain, err = ctx.GetCookieDomain(); err != nil {
+		return nil, err
+	}
 
 	if cookieDomain == "" {
 		return nil, fmt.Errorf("unable to retrieve domain session: %s", err)
@@ -258,13 +277,13 @@ func (ctx *AutheliaCtx) GetDomainSession() (*session.Session, error) {
 
 // GetSession return the user session. Any update will be saved in cache.
 func (ctx *AutheliaCtx) GetSession() session.UserSession {
-	domainSession, err := ctx.GetDomainSession()
+	provider, err := ctx.GetSessionProvider()
 	if err != nil {
 		ctx.Logger.Error("Unable to retrieve domain session")
 		return session.NewDefaultUserSession()
 	}
 
-	userSession, err := domainSession.GetSession(ctx.RequestCtx)
+	userSession, err := provider.GetSession(ctx.RequestCtx)
 	if err != nil {
 		ctx.Logger.Error("Unable to retrieve user session")
 		return session.NewDefaultUserSession()
@@ -275,32 +294,32 @@ func (ctx *AutheliaCtx) GetSession() session.UserSession {
 
 // SaveSession save the content of the session.
 func (ctx *AutheliaCtx) SaveSession(userSession session.UserSession) error {
-	domainSession, err := ctx.GetDomainSession()
+	provider, err := ctx.GetSessionProvider()
 	if err != nil {
 		return fmt.Errorf("unable to save user session: %s", err)
 	}
 
-	return domainSession.SaveSession(ctx.RequestCtx, userSession)
+	return provider.SaveSession(ctx.RequestCtx, userSession)
 }
 
-// RegenerateSession regenereates user session.
+// RegenerateSession regenerates user session.
 func (ctx *AutheliaCtx) RegenerateSession() error {
-	domainSession, err := ctx.GetDomainSession()
+	provider, err := ctx.GetSessionProvider()
 	if err != nil {
 		return fmt.Errorf("unable to regenerate user session: %s", err)
 	}
 
-	return domainSession.RegenerateSession(ctx.RequestCtx)
+	return provider.RegenerateSession(ctx.RequestCtx)
 }
 
 // DestroySession destroy user session.
 func (ctx *AutheliaCtx) DestroySession() error {
-	domainSession, err := ctx.GetDomainSession()
+	provider, err := ctx.GetSessionProvider()
 	if err != nil {
 		return fmt.Errorf("unable to destroy user session: %s", err)
 	}
 
-	return domainSession.DestroySession(ctx.RequestCtx)
+	return provider.DestroySession(ctx.RequestCtx)
 }
 
 // ReplyOK is a helper method to reply ok.

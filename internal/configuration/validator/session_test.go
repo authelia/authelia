@@ -17,7 +17,6 @@ func newDefaultSessionConfig() schema.SessionConfiguration {
 	config := schema.SessionConfiguration{}
 	config.Secret = testJWTSecret
 	config.Domain = exampleDotCom
-	config.PortalURL = MustParseURL("https://login.example.com")
 	config.Domains = []schema.SessionDomainConfiguration{}
 
 	return config
@@ -48,13 +47,13 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 		{
 			"ShouldSetGoodDefaultValues",
 			schema.SessionConfiguration{SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMeDuration: time.Hour * 2},
-			schema.SessionDomainConfiguration{Domain: exampleDotCom, SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMeDuration: time.Hour * 2},
+			schema.SessionDomainConfiguration{Name: "authelia_session", Domain: exampleDotCom, SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMeDuration: time.Hour * 2},
 			0,
 		},
 		{
 			"ShouldNotSetBadDefaultValues",
 			schema.SessionConfiguration{SameSite: "BAD VALUE", Expiration: time.Hour, Inactivity: time.Minute, RememberMeDuration: time.Hour * 2},
-			schema.SessionDomainConfiguration{Domain: exampleDotCom, SameSite: schema.DefaultSessionConfiguration.SameSite, Expiration: time.Hour, Inactivity: time.Minute, RememberMeDuration: time.Hour * 2},
+			schema.SessionDomainConfiguration{Name: "authelia_session", Domain: exampleDotCom, SameSite: schema.DefaultSessionConfiguration.SameSite, Expiration: time.Hour, Inactivity: time.Minute, RememberMeDuration: time.Hour * 2},
 			1,
 		},
 	}
@@ -102,7 +101,6 @@ func TestShouldWarnSessionValuesWhenPotentiallyInvalid(t *testing.T) {
 	config := newDefaultSessionConfig()
 
 	config.Domain = ".example.com"
-	config.PortalURL = nil
 
 	ValidateSession(&config, validator)
 
@@ -524,10 +522,9 @@ func TestShouldRaiseErrorWhenDomainIsWildcard(t *testing.T) {
 	ValidateSession(&config, validator)
 
 	assert.Len(t, validator.Warnings(), 0)
-	require.Len(t, validator.Errors(), 2)
+	require.Len(t, validator.Errors(), 1)
 
 	assert.EqualError(t, validator.Errors()[0], "session: domain config #1 (domain '*.example.com'): option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '*.example.com'")
-	assert.EqualError(t, validator.Errors()[1], "session: domain config #1 (domain '*.example.com'): option 'portal_url' does not share a cookie scope with domain '*.example.com'")
 }
 
 func TestShouldRaiseErrorWhenDomainNameIsInvalid(t *testing.T) {
@@ -538,10 +535,9 @@ func TestShouldRaiseErrorWhenDomainNameIsInvalid(t *testing.T) {
 	ValidateSession(&config, validator)
 
 	assert.Len(t, validator.Warnings(), 0)
-	require.Len(t, validator.Errors(), 2)
+	require.Len(t, validator.Errors(), 1)
 
 	assert.EqualError(t, validator.Errors()[0], "session: domain config #1 (domain 'example!.com'): option 'domain' is not a valid domain")
-	assert.EqualError(t, validator.Errors()[1], "session: domain config #1 (domain 'example!.com'): option 'portal_url' does not share a cookie scope with domain 'example!.com'")
 }
 
 func TestShouldRaiseErrorWhenHaveDuplicatedDomainName(t *testing.T) {
@@ -597,10 +593,9 @@ func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {
 			validator := schema.NewStructValidator()
 			config := newDefaultSessionConfig()
 			config.Domain = ""
-			config.PortalURL = nil
 
 			config.Domains = []schema.SessionDomainConfiguration{
-				{Domain: tc.have},
+				{Domain: tc.have, PortalURL: MustParseURL("https://auth.example.com")},
 			}
 
 			ValidateSession(&config, validator)
@@ -613,17 +608,6 @@ func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {
 			}
 		})
 	}
-
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-	config.Domain = exampleDotCom
-	config.PortalURL = MustParseURL("https://example2.com/login")
-
-	ValidateSession(&config, validator)
-	assert.Len(t, validator.Warnings(), 0)
-	require.Len(t, validator.Errors(), 1)
-
-	assert.EqualError(t, validator.Errors()[0], "session: domain config #1 (domain 'example.com'): option 'portal_url' does not share a cookie scope with domain 'example.com'")
 }
 
 func TestShouldRaiseErrorWhenPortalURLIsInvalid(t *testing.T) {
@@ -632,16 +616,18 @@ func TestShouldRaiseErrorWhenPortalURLIsInvalid(t *testing.T) {
 		have     string
 		expected []string
 	}{
-		{"ShouldRaiseErrorOnInvalidScope", "https://example2.com/login", []string{"session: domain config #1 (domain 'example.com'): option 'portal_url' does not share a cookie scope with domain 'example.com'"}},
-		{"ShouldRaiseErrorOnInvalidScheme", "http://example.com/login", []string{"session: domain config #1 (domain 'example.com'): option 'portal_url' does not have a secure scheme"}},
+		{"ShouldRaiseErrorOnInvalidScope", "https://example2.com/login", []string{"session: domain config #1 (domain 'example.com'): option 'portal_url' does not share a cookie scope with domain 'example.com' with a value of 'https://example2.com/login'"}},
+		{"ShouldRaiseErrorOnInvalidScheme", "http://example.com/login", []string{"session: domain config #1 (domain 'example.com'): option 'portal_url' does not have a secure scheme with a value of 'http://example.com/login'"}},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			validator := schema.NewStructValidator()
 			config := newDefaultSessionConfig()
-			config.Domain = exampleDotCom
-			config.PortalURL = MustParseURL(tc.have)
+			config.Domain = ""
+			config.Domains = []schema.SessionDomainConfiguration{
+				{Name: "authelia_session", Domain: exampleDotCom, PortalURL: MustParseURL(tc.have)},
+			}
 
 			ValidateSession(&config, validator)
 
@@ -653,17 +639,6 @@ func TestShouldRaiseErrorWhenPortalURLIsInvalid(t *testing.T) {
 			}
 		})
 	}
-
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-	config.Domain = exampleDotCom
-	config.PortalURL = MustParseURL("https://example2.com/login")
-
-	ValidateSession(&config, validator)
-	assert.Len(t, validator.Warnings(), 0)
-	require.Len(t, validator.Errors(), 1)
-
-	assert.EqualError(t, validator.Errors()[0], "session: domain config #1 (domain 'example.com'): option 'portal_url' does not share a cookie scope with domain 'example.com'")
 }
 
 func TestShouldRaiseErrorWhenSameSiteSetIncorrectly(t *testing.T) {

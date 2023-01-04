@@ -165,7 +165,7 @@ func TestShouldCheckAuthorizationMatching(t *testing.T) {
 			username = testUsername
 		}
 
-		matching := isTargetURLAuthorized(authorizer, *u, username, []string{}, net.ParseIP("127.0.0.1"), []byte("GET"), rule.AuthLevel)
+		matching := isTargetURLAuthorized(authorizer, u, username, []string{}, net.ParseIP("127.0.0.1"), []byte("GET"), rule.AuthLevel)
 		assert.Equal(t, rule.ExpectedMatching, matching, "policy=%s, authLevel=%v, expected=%v, actual=%v",
 			rule.Policy, rule.AuthLevel, rule.ExpectedMatching, matching)
 	}
@@ -666,32 +666,33 @@ func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 		{"https://deny.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, 403},
 	}
 
-	for _, testCase := range testCases {
-		testCase := testCase
-		t.Run(testCase.String(), func(t *testing.T) {
+	for i, tc := range testCases {
+		t.Run(tc.String(), func(t *testing.T) {
 			mock := mocks.NewMockAutheliaCtx(t)
 			defer mock.Close()
 
 			mock.Clock.Set(time.Now())
 
+			mock.Ctx.Request.Header.Set("X-Original-URL", tc.URL)
+
 			userSession := mock.Ctx.GetSession()
-			userSession.Username = testCase.Username
-			userSession.Emails = testCase.Emails
-			userSession.AuthenticationLevel = testCase.AuthenticationLevel
+			userSession.Username = tc.Username
+			userSession.Emails = tc.Emails
+			userSession.AuthenticationLevel = tc.AuthenticationLevel
 			userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
 			err := mock.Ctx.SaveSession(userSession)
 			require.NoError(t, err)
 
-			mock.Ctx.Request.Header.Set("X-Original-URL", testCase.URL)
-
 			VerifyGET(verifyGetCfg)(mock.Ctx)
-			expStatus, actualStatus := testCase.ExpectedStatusCode, mock.Ctx.Response.StatusCode()
+			expStatus, actualStatus := tc.ExpectedStatusCode, mock.Ctx.Response.StatusCode()
 			assert.Equal(t, expStatus, actualStatus, "URL=%s -> AuthLevel=%d, StatusCode=%d != ExpectedStatusCode=%d",
-				testCase.URL, testCase.AuthenticationLevel, actualStatus, expStatus)
+				tc.URL, tc.AuthenticationLevel, actualStatus, expStatus)
 
-			if testCase.ExpectedStatusCode == 200 && testCase.Username != "" {
-				assert.Equal(t, []byte(testCase.Username), mock.Ctx.Response.Header.Peek("Remote-User"))
+			fmt.Println(i)
+			if tc.ExpectedStatusCode == 200 && tc.Username != "" {
+				assert.Equal(t, tc.ExpectedStatusCode, mock.Ctx.Response.StatusCode())
+				assert.Equal(t, []byte(tc.Username), mock.Ctx.Response.Header.Peek("Remote-User"))
 				assert.Equal(t, []byte("john.doe@example.com"), mock.Ctx.Response.Header.Peek("Remote-Email"))
 			} else {
 				assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek("Remote-User"))
@@ -710,10 +711,11 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 	past := clock.Now().Add(-1 * time.Hour)
 
 	mock.Ctx.Configuration.Session.Domains[0].Inactivity = testInactivity
-	fmt.Printf("%v", mock.Ctx.Configuration.Session.Domains)
 	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 	assert.Equal(t, time.Second*10, mock.Ctx.Configuration.Session.Domains[0].Inactivity)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
@@ -722,8 +724,6 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
-
-	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 

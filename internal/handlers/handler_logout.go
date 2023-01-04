@@ -5,7 +5,6 @@ import (
 	"net/url"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 type logoutBody struct {
@@ -33,7 +32,7 @@ func LogoutPOST(ctx *middlewares.AutheliaCtx) {
 
 	redirectionURL, err := url.ParseRequestURI(body.TargetURL)
 	if err == nil {
-		responseBody.SafeTargetURL = utils.IsURISafeRedirection(redirectionURL, ctx.Configuration.Session.Domain)
+		responseBody.SafeTargetURL = ctx.IsSafeRedirectionTargetURI(redirectionURL)
 	}
 
 	if body.TargetURL != "" {

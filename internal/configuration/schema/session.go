@@ -44,7 +44,6 @@ type SessionConfiguration struct {
 	Expiration         time.Duration `koanf:"expiration"`
 	Inactivity         time.Duration `koanf:"inactivity"`
 	RememberMeDuration time.Duration `koanf:"remember_me_duration"`
-	PortalURL          *url.URL      `koanf:"portal_url"`
 
 	Domains []SessionDomainConfiguration `koanf:"domains"`
 

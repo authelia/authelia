@@ -15,18 +15,16 @@ import (
 )
 
 func newTestSession() (*Session, error) {
-	configuration := schema.SessionConfiguration{}
-	configuration.Domain = testDomain
-	configuration.Name = testName
-	configuration.Expiration = testExpiration
-	configuration.Domains = []schema.SessionDomainConfiguration{
+	config := schema.SessionConfiguration{}
+	config.Domains = []schema.SessionDomainConfiguration{
 		{
+			Name:       testName,
 			Domain:     testDomain,
 			Expiration: testExpiration,
 		},
 	}
 
-	provider := NewProvider(configuration, nil)
+	provider := NewProvider(config, nil)
 
 	return provider.Get(testDomain)
 }
