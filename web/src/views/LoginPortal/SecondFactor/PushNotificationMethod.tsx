@@ -6,8 +6,9 @@ import makeStyles from "@mui/styles/makeStyles";
 import FailureIcon from "@components/FailureIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
 import SuccessIcon from "@components/SuccessIcon";
+import { RedirectionURL } from "@constants/SearchParams";
 import { useIsMountedRef } from "@hooks/Mounted";
-import { useRedirectionURL } from "@hooks/RedirectionURL";
+import { useQueryParam } from "@hooks/QueryParam";
 import { useWorkflow } from "@hooks/Workflow";
 import {
     DuoDevicePostRequest,
@@ -44,7 +45,7 @@ export interface Props {
 const PushNotificationMethod = function (props: Props) {
     const styles = useStyles();
     const [state, setState] = useState(State.SignInInProgress);
-    const redirectionURL = useRedirectionURL();
+    const redirectionURL = useQueryParam(RedirectionURL);
     const [workflow, workflowID] = useWorkflow();
     const mounted = useIsMountedRef();
     const [enroll_url, setEnrollUrl] = useState("");
