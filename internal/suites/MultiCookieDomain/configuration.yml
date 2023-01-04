@@ -49,7 +49,7 @@ access_control:
   default_policy: deny
 
   rules:
-  # First cookie domain
+    # First cookie domain
     - domain: singlefactor.example.com
       policy: one_factor
 
@@ -90,7 +90,7 @@ access_control:
       subject: "user:bob"
       policy: two_factor
 
-  # Second cookie domain
+    # Second cookie domain
     - domain: singlefactor.example2.com
       policy: one_factor
 
@@ -130,8 +130,6 @@ access_control:
         - "^/users/bob/.*$"
       subject: "user:bob"
       policy: two_factor
-
-
 
 regulation:
   # Set it to 0 to disable max_retries.
