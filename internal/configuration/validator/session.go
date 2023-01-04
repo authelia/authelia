@@ -71,7 +71,7 @@ func validateSessionDomains(config *schema.SessionConfiguration, validator *sche
 		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "domain"))
 	}
 
-	var domains []string
+	domains := make([]string, 0)
 
 	for i, d := range config.Cookies {
 		validateDomainName(i, d, validator)
