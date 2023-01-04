@@ -403,6 +403,7 @@ location /authelia {
     proxy_http_version 1.1;
     proxy_cache_bypass $cookie_session;
     proxy_no_cache $cookie_session;
+    proxy_buffer_size 32k;
     proxy_buffers 4 32k;
     client_body_buffer_size 128k;
 
@@ -487,6 +488,7 @@ location /authelia-basic {
     proxy_http_version 1.1;
     proxy_cache_bypass $cookie_session;
     proxy_no_cache $cookie_session;
+    proxy_buffer_size 32k;
     proxy_buffers 4 32k;
     client_body_buffer_size 128k;
 
