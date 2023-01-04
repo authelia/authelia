@@ -1,0 +1,14 @@
+---
+version: '3'
+services:
+  authelia-backend:
+    environment:
+      - AUTHELIA_JWT_SECRET_FILE=/tmp/authelia/MultiCookieDomainSuite/jwt
+      - AUTHELIA_SESSION_SECRET_FILE=/tmp/authelia/MultiCookieDomainSuite/session
+    volumes:
+      - './MultiCookieDomain/configuration.yml:/config/configuration.yml:ro'
+      - './MultiCookieDomain/users.yml:/config/users.yml'
+      - './common/ssl:/config/ssl:ro'
+      - '/tmp:/tmp'
+    user: ${USER_ID}:${GROUP_ID}
+...
