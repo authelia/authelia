@@ -5,21 +5,21 @@ import { Button, Grid, IconButton, InputAdornment, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import FixedTextField from "@components/FixedTextField";
 import PasswordMeter from "@components/PasswordMeter";
 import { IndexRoute } from "@constants/Routes";
+import { IdentityToken } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
+import { useQueryParam } from "@hooks/QueryParam";
 import LoginLayout from "@layouts/LoginLayout";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
 import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
-import { extractIdentityToken } from "@utils/IdentityToken";
 
 const ResetPasswordStep2 = function () {
     const styles = useStyles();
-    const location = useLocation();
     const [formDisabled, setFormDisabled] = useState(true);
     const [password1, setPassword1] = useState("");
     const [password2, setPassword2] = useState("");
@@ -43,7 +43,7 @@ const ResetPasswordStep2 = function () {
 
     // Get the token from the query param to give it back to the API when requesting
     // the secret for OTP.
-    const processToken = extractIdentityToken(location.search);
+    const processToken = useQueryParam(IdentityToken);
 
     const completeProcess = useCallback(async () => {
         if (!processToken) {
