@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -148,6 +149,7 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 	ctx.providers.NTP = ntp.NewProvider(&ctx.config.NTP)
 	ctx.providers.PasswordPolicy = middlewares.NewPasswordPolicyProvider(ctx.config.PasswordPolicy)
 	ctx.providers.Regulator = regulation.NewRegulator(ctx.config.Regulation, ctx.providers.StorageProvider, utils.RealClock{})
+	ctx.providers.SessionProvider = session.NewProvider(ctx.config.Session, ctx.trusted)
 	ctx.providers.TOTP = totp.NewTimeBasedProvider(ctx.config.TOTP)
 
 	var err error
