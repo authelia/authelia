@@ -11,11 +11,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
 

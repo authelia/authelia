@@ -20,7 +20,7 @@ type Mathematical struct{}
 
 // Read implements the io.Reader interface.
 func (r *Mathematical) Read(p []byte) (n int, err error) {
-	return rand.Read(p)
+	return rand.Read(p) //nolint:gosec
 }
 
 // BytesErr returns random data as bytes with the standard random.DefaultN length and can contain any byte values
