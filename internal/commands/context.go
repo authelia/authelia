@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"crypto/x509"
 	"fmt"
 	"os"
 
@@ -27,6 +26,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/totp"
+	"github.com/authelia/authelia/v4/internal/trust"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -58,7 +58,6 @@ type CmdCtx struct {
 
 	config    *schema.Configuration
 	providers middlewares.Providers
-	trusted   *x509.CertPool
 
 	cconfig *CmdCtxConfig
 }
@@ -126,17 +125,18 @@ func (ctx *CmdCtx) CheckSchema() (err error) {
 }
 
 // LoadTrustedCertificates loads the trusted certificates into the CmdCtx.
-func (ctx *CmdCtx) LoadTrustedCertificates() (warns, errs []error) {
-	ctx.trusted, warns, errs = utils.NewX509CertPool(ctx.config.CertificatesDirectory)
+func (ctx *CmdCtx) LoadTrustedCertificates() (err error) {
+	ctx.providers.Trust = trust.NewProvider(ctx.config.CertificatesDirectory...)
 
-	return warns, errs
+	return ctx.providers.Trust.StartupCheck()
 }
 
 // LoadProviders loads all providers into the CmdCtx.
 func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
-	// TODO: Adjust this so the CertPool can be used like a provider.
-	if warns, errs = ctx.LoadTrustedCertificates(); len(warns) != 0 || len(errs) != 0 {
-		return warns, errs
+	var err error
+
+	if err = ctx.LoadTrustedCertificates(); err != nil {
+		return nil, []error{err}
 	}
 
 	storage := getStorageProvider(ctx)
@@ -146,18 +146,16 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 		NTP:             ntp.NewProvider(&ctx.config.NTP),
 		PasswordPolicy:  middlewares.NewPasswordPolicyProvider(ctx.config.PasswordPolicy),
 		Regulator:       regulation.NewRegulator(ctx.config.Regulation, storage, utils.RealClock{}),
-		SessionProvider: session.NewProvider(ctx.config.Session, ctx.trusted),
+		SessionProvider: session.NewProvider(ctx.config.Session, ctx.providers.Trust.GetTrustedCertificates()),
 		StorageProvider: storage,
 		TOTP:            totp.NewTimeBasedProvider(ctx.config.TOTP),
 	}
-
-	var err error
 
 	switch {
 	case ctx.config.AuthenticationBackend.File != nil:
 		providers.UserProvider = authentication.NewFileUserProvider(ctx.config.AuthenticationBackend.File)
 	case ctx.config.AuthenticationBackend.LDAP != nil:
-		providers.UserProvider = authentication.NewLDAPUserProvider(ctx.config.AuthenticationBackend, ctx.trusted)
+		providers.UserProvider = authentication.NewLDAPUserProvider(ctx.config.AuthenticationBackend, ctx.providers.Trust)
 	}
 
 	if providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: ctx.config.Notifier.TemplatePath}); err != nil {
@@ -166,7 +164,7 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 
 	switch {
 	case ctx.config.Notifier.SMTP != nil:
-		providers.Notifier = notification.NewSMTPNotifier(ctx.config.Notifier.SMTP, ctx.trusted)
+		providers.Notifier = notification.NewSMTPNotifier(ctx.config.Notifier.SMTP, ctx.providers.Trust)
 	case ctx.config.Notifier.FileSystem != nil:
 		providers.Notifier = notification.NewFileNotifier(*ctx.config.Notifier.FileSystem)
 	}

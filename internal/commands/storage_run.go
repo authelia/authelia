@@ -25,27 +25,13 @@ import (
 
 // LoadProvidersStorageRunE is a special PreRunE that loads the storage provider into the CmdCtx.
 func (ctx *CmdCtx) LoadProvidersStorageRunE(cmd *cobra.Command, args []string) (err error) {
-	switch warns, errs := ctx.LoadTrustedCertificates(); {
-	case len(errs) != 0:
-		err = fmt.Errorf("had the following errors loading the trusted certificates")
-
-		for _, e := range errs {
-			err = fmt.Errorf("%+v: %w", err, e)
-		}
-
-		return err
-	case len(warns) != 0:
-		err = fmt.Errorf("had the following warnings loading the trusted certificates")
-
-		for _, e := range errs {
-			err = fmt.Errorf("%+v: %w", err, e)
-		}
-
-		return err
-	default:
+	switch err = ctx.LoadTrustedCertificates(); err {
+	case nil:
 		ctx.providers.StorageProvider = getStorageProvider(ctx)
 
 		return nil
+	default:
+		return err
 	}
 }
 

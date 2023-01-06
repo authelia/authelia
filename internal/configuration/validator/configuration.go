@@ -13,13 +13,15 @@ import (
 func ValidateConfiguration(config *schema.Configuration, validator *schema.StructValidator) {
 	var err error
 
-	if config.CertificatesDirectory != "" {
+	if len(config.CertificatesDirectory) != 0 {
 		var info os.FileInfo
 
-		if info, err = os.Stat(config.CertificatesDirectory); err != nil {
-			validator.Push(fmt.Errorf("the location 'certificates_directory' could not be inspected: %w", err))
-		} else if !info.IsDir() {
-			validator.Push(fmt.Errorf("the location 'certificates_directory' refers to '%s' is not a directory", config.CertificatesDirectory))
+		for _, dir := range config.CertificatesDirectory {
+			if info, err = os.Stat(dir); err != nil {
+				validator.Push(fmt.Errorf("the location '%s' in 'certificates_directory' could not be inspected: %w", dir, err))
+			} else if !info.IsDir() {
+				validator.Push(fmt.Errorf("the location '%s' referred to in 'certificates_directory' is not a directory", dir))
+			}
 		}
 	}
 

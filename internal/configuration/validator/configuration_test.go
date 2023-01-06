@@ -112,7 +112,7 @@ func TestShouldNotOverrideCertificatesDirectoryAndShouldPassWhenBlank(t *testing
 	assert.Len(t, validator.Errors(), 0)
 	require.Len(t, validator.Warnings(), 1)
 
-	require.Equal(t, "", config.CertificatesDirectory)
+	require.Equal(t, []string(nil), config.CertificatesDirectory)
 
 	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
 }
@@ -120,7 +120,7 @@ func TestShouldNotOverrideCertificatesDirectoryAndShouldPassWhenBlank(t *testing
 func TestShouldRaiseErrorOnInvalidCertificatesDirectory(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.CertificatesDirectory = "not-a-real-file.go"
+	config.CertificatesDirectory = []string{"not-a-real-file.go"}
 
 	ValidateConfiguration(&config, validator)
 
@@ -128,15 +128,15 @@ func TestShouldRaiseErrorOnInvalidCertificatesDirectory(t *testing.T) {
 	require.Len(t, validator.Warnings(), 1)
 
 	if runtime.GOOS == "windows" {
-		assert.EqualError(t, validator.Errors()[0], "the location 'certificates_directory' could not be inspected: CreateFile not-a-real-file.go: The system cannot find the file specified.")
+		assert.EqualError(t, validator.Errors()[0], "the location 'not-a-real-file.go' in 'certificates_directory' could not be inspected: CreateFile not-a-real-file.go: The system cannot find the file specified.")
 	} else {
-		assert.EqualError(t, validator.Errors()[0], "the location 'certificates_directory' could not be inspected: stat not-a-real-file.go: no such file or directory")
+		assert.EqualError(t, validator.Errors()[0], "the location 'not-a-real-file.go' in 'certificates_directory' could not be inspected: stat not-a-real-file.go: no such file or directory")
 	}
 
 	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
 
 	validator = schema.NewStructValidator()
-	config.CertificatesDirectory = "const.go"
+	config.CertificatesDirectory = []string{"const.go"}
 
 	ValidateConfiguration(&config, validator)
 
@@ -150,7 +150,7 @@ func TestShouldRaiseErrorOnInvalidCertificatesDirectory(t *testing.T) {
 func TestShouldNotRaiseErrorOnValidCertificatesDirectory(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.CertificatesDirectory = "../../suites/common/ssl"
+	config.CertificatesDirectory = []string{"../../suites/common/ssl"}
 
 	ValidateConfiguration(&config, validator)
 

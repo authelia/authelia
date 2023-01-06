@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"github.com/authelia/authelia/v4/internal/trust"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -43,6 +44,7 @@ type Providers struct {
 	Notifier        notification.Notifier
 	Templates       *templates.Provider
 	TOTP            totp.Provider
+	Trust           trust.Provider
 	PasswordPolicy  PasswordPolicyProvider
 }
 

@@ -48,6 +48,7 @@ module.exports = {
                 "suites",
                 "templates",
                 "totp",
+                "trust",
                 "utils",
                 "web",
             ],
