@@ -19,6 +19,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
+	"github.com/authelia/authelia/v4/internal/trust"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -34,6 +35,7 @@ type MockAutheliaCtx struct {
 	StorageMock      *MockStorage
 	NotifierMock     *MockNotifier
 	TOTPMock         *MockTOTP
+	TrustMock        *MockTrust
 
 	UserSession *session.UserSession
 
@@ -75,7 +77,9 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 		Subjects: [][]string{{"group:grafana"}},
 	}}
 
-	providers := middlewares.Providers{}
+	providers := middlewares.Providers{
+		Trust: trust.NewProvider(),
+	}
 
 	mockAuthelia.Ctrl = gomock.NewController(t)
 	mockAuthelia.UserProviderMock = NewMockUserProvider(mockAuthelia.Ctrl)
@@ -97,6 +101,9 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 
 	mockAuthelia.TOTPMock = NewMockTOTP(mockAuthelia.Ctrl)
 	providers.TOTP = mockAuthelia.TOTPMock
+
+	mockAuthelia.TrustMock = NewMockTrust(mockAuthelia.Ctrl)
+	providers.Trust = mockAuthelia.TrustMock
 
 	var err error
 
