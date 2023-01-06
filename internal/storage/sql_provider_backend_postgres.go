@@ -12,7 +12,6 @@ import (
 	"github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // PostgreSQLProvider is a PostgreSQL provider.
@@ -21,9 +20,9 @@ type PostgreSQLProvider struct {
 }
 
 // NewPostgreSQLProvider a PostgreSQL provider.
-func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider *PostgreSQLProvider) {
+func NewPostgreSQLProvider(config *schema.Configuration, tconfig *tls.Config, globalCACertPool *x509.CertPool) (provider *PostgreSQLProvider) {
 	provider = &PostgreSQLProvider{
-		SQLProvider: NewSQLProvider(config, providerPostgres, "pgx", dsnPostgreSQL(config.Storage.PostgreSQL, caCertPool)),
+		SQLProvider: NewSQLProvider(config, providerPostgres, "pgx", dsnPostgreSQL(config.Storage.PostgreSQL, tconfig, globalCACertPool)),
 	}
 
 	// All providers have differing SELECT existing table statements.
@@ -129,7 +128,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	return provider
 }
 
-func dsnPostgreSQL(config *schema.PostgreSQLStorageConfiguration, globalCACertPool *x509.CertPool) (dsn string) {
+func dsnPostgreSQL(config *schema.PostgreSQLStorageConfiguration, tconfig *tls.Config, globalCACertPool *x509.CertPool) (dsn string) {
 	dsnConfig, _ := pgx.ParseConfig("")
 
 	dsnConfig.Host = config.Host
@@ -137,7 +136,7 @@ func dsnPostgreSQL(config *schema.PostgreSQLStorageConfiguration, globalCACertPo
 	dsnConfig.Database = config.Database
 	dsnConfig.User = config.Username
 	dsnConfig.Password = config.Password
-	dsnConfig.TLSConfig = loadPostgreSQLTLSConfig(config, globalCACertPool)
+	dsnConfig.TLSConfig = loadPostgreSQLTLSConfig(config, tconfig, globalCACertPool)
 	dsnConfig.ConnectTimeout = config.Timeout
 	dsnConfig.RuntimeParams = map[string]string{
 		"search_path": config.Schema,
@@ -150,13 +149,13 @@ func dsnPostgreSQL(config *schema.PostgreSQLStorageConfiguration, globalCACertPo
 	return stdlib.RegisterConnConfig(dsnConfig)
 }
 
-func loadPostgreSQLTLSConfig(config *schema.PostgreSQLStorageConfiguration, globalCACertPool *x509.CertPool) (tlsConfig *tls.Config) {
-	if config.TLS == nil && config.SSL == nil {
+func loadPostgreSQLTLSConfig(config *schema.PostgreSQLStorageConfiguration, tconfig *tls.Config, globalCACertPool *x509.CertPool) (tlsConfig *tls.Config) {
+	if tconfig == nil && config.SSL == nil {
 		return nil
 	}
 
-	if config.TLS != nil {
-		return utils.NewTLSConfig(config.TLS, globalCACertPool)
+	if tconfig != nil {
+		return tconfig
 	}
 
 	ca, certs := loadPostgreSQLLegacyTLSConfig(config)

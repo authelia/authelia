@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -27,10 +28,16 @@ func NewProvider(dirs ...string) *StandardTrustProvider {
 // StandardTrustProvider is a trust.Provider used for production operations.
 // Should only be initialized via trust.NewProvider.
 type StandardTrustProvider struct {
-	dirs []string
-	mu   *sync.Mutex
-	log  *logrus.Logger
-	pool *x509.CertPool
+	dirs   []string
+	mu     *sync.Mutex
+	log    *logrus.Logger
+	pool   *x509.CertPool
+	config StandardTrustProviderConfig
+}
+
+type StandardTrustProviderConfig struct {
+	AllowExpired bool
+	AllowFuture  bool
 }
 
 // StartupCheck implements the startup check provider interface.
@@ -44,6 +51,10 @@ func (t *StandardTrustProvider) AddTrustedCertificate(cert *x509.Certificate) (e
 
 	if cert == nil {
 		return fmt.Errorf("certificate was not provided")
+	}
+
+	if err = t.validate(cert); err != nil {
+		return err
 	}
 
 	t.mu.Lock()
@@ -97,6 +108,12 @@ func (t *StandardTrustProvider) AddTrustedCertificateFromPath(path string) (err 
 
 		if len(certs) == 0 {
 			return fmt.Errorf("failed to read certificate: certificate at path '%s' does not contain PEM encoded certificate blocks", path)
+		}
+
+		for _, cert := range certs {
+			if err = t.validate(cert); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -296,7 +313,27 @@ func (t *StandardTrustProvider) load(dir string) (found int, certs []*x509.Certi
 		}
 	}
 
+	for _, cert := range certs {
+		if err = t.validate(cert); err != nil {
+			return 0, nil, err
+		}
+	}
+
 	t.log.WithField("found", found).Tracef("Finished scan of directory '%s' for potential additional trusted certificates", dir)
 
 	return found, certs, nil
+}
+
+func (t *StandardTrustProvider) validate(cert *x509.Certificate) (err error) {
+	now := time.Now()
+
+	if !t.config.AllowExpired && cert.NotAfter.Before(now) {
+		return fmt.Errorf("failed to load certificate which is expired with signature %s: not after %d (now is %d)", cert.Signature, cert.NotAfter.Unix(), now.Unix())
+	}
+
+	if !t.config.AllowFuture && !cert.NotBefore.IsZero() && cert.NotBefore.After(now) {
+		return fmt.Errorf("failed to load certificate which is not yet valid with signature %s: not before %d (now is %d)", cert.Signature, cert.NotBefore.Unix(), now.Unix())
+	}
+
+	return nil
 }
