@@ -1,7 +1,7 @@
 package session
 
 import (
-	"crypto/x509"
+	"crypto/tls"
 	"encoding/json"
 	"time"
 
@@ -22,8 +22,8 @@ type Provider struct {
 }
 
 // NewProvider instantiate a session provider given a configuration.
-func NewProvider(config schema.SessionConfiguration, certPool *x509.CertPool) *Provider {
-	c := NewProviderConfig(config, certPool)
+func NewProvider(config schema.SessionConfiguration, tconfig *tls.Config) *Provider {
+	c := NewProviderConfig(config, tconfig)
 
 	provider := new(Provider)
 	provider.sessionHolder = fasthttpsession.New(c.config)

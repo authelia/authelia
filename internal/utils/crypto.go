@@ -16,12 +16,10 @@ import (
 	"math/big"
 	"net"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/logging"
 )
 
 // PEMBlockType represent an enum of the existing PEM block types.
@@ -256,47 +254,6 @@ func NewTLSConfig(config *schema.TLSConfig, rootCAs *x509.CertPool) (tlsConfig *
 		RootCAs:            rootCAs,
 		Certificates:       certificates,
 	}
-}
-
-// NewX509CertPool generates a x509.CertPool from the system PKI and the directory specified.
-func NewX509CertPool(directory string) (certPool *x509.CertPool, warnings []error, errors []error) {
-	certPool, err := x509.SystemCertPool()
-	if err != nil {
-		warnings = append(warnings, fmt.Errorf("could not load system certificate pool which may result in untrusted certificate issues: %v", err))
-		certPool = x509.NewCertPool()
-	}
-
-	logger := logging.Logger()
-
-	logger.Tracef("Starting scan of directory %s for certificates", directory)
-
-	if directory != "" {
-		certsFileInfo, err := os.ReadDir(directory)
-		if err != nil {
-			errors = append(errors, fmt.Errorf("could not read certificates from directory %v", err))
-		} else {
-			for _, certFileInfo := range certsFileInfo {
-				nameLower := strings.ToLower(certFileInfo.Name())
-
-				if !certFileInfo.IsDir() && (strings.HasSuffix(nameLower, ".cer") || strings.HasSuffix(nameLower, ".crt") || strings.HasSuffix(nameLower, ".pem")) {
-					certPath := filepath.Join(directory, certFileInfo.Name())
-
-					logger.Tracef("Found possible cert %s, attempting to add it to the pool", certPath)
-
-					certBytes, err := os.ReadFile(certPath)
-					if err != nil {
-						errors = append(errors, fmt.Errorf("could not read certificate %v", err))
-					} else if ok := certPool.AppendCertsFromPEM(certBytes); !ok {
-						errors = append(errors, fmt.Errorf("could not import certificate %s", certFileInfo.Name()))
-					}
-				}
-			}
-		}
-	}
-
-	logger.Tracef("Finished scan of directory %s for certificates", directory)
-
-	return certPool, warnings, errors
 }
 
 // WriteCertificateBytesToPEM writes a certificate/csr to a file in the PEM format.

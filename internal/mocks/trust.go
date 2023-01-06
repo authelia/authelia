@@ -37,7 +37,7 @@ func (m *MockTrust) EXPECT() *MockTrustMockRecorder {
 }
 
 // AddTrustedCertificate mocks base method.
-func (m *MockTrust) AddTrustedCertificate(arg0 string) error {
+func (m *MockTrust) AddTrustedCertificate(arg0 *x509.Certificate) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddTrustedCertificate", arg0)
 	ret0, _ := ret[0].(error)
@@ -48,6 +48,20 @@ func (m *MockTrust) AddTrustedCertificate(arg0 string) error {
 func (mr *MockTrustMockRecorder) AddTrustedCertificate(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddTrustedCertificate", reflect.TypeOf((*MockTrust)(nil).AddTrustedCertificate), arg0)
+}
+
+// AddTrustedCertificateFromPath mocks base method.
+func (m *MockTrust) AddTrustedCertificateFromPath(arg0 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddTrustedCertificateFromPath", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddTrustedCertificateFromPath indicates an expected call of AddTrustedCertificateFromPath.
+func (mr *MockTrustMockRecorder) AddTrustedCertificateFromPath(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddTrustedCertificateFromPath", reflect.TypeOf((*MockTrust)(nil).AddTrustedCertificateFromPath), arg0)
 }
 
 // GetTLSConfiguration mocks base method.

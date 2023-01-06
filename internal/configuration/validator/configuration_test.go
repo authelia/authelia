@@ -143,7 +143,7 @@ func TestShouldRaiseErrorOnInvalidCertificatesDirectory(t *testing.T) {
 	require.Len(t, validator.Errors(), 1)
 	require.Len(t, validator.Warnings(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "the location 'certificates_directory' refers to 'const.go' is not a directory")
+	assert.EqualError(t, validator.Errors()[0], "the location 'const.go' referred to in 'certificates_directory' is not a directory")
 	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/trust"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -45,7 +46,10 @@ func TestShouldCreateRedisSessionProviderTLS(t *testing.T) {
 			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
 		},
 	}
-	providerConfig := NewProviderConfig(configuration, nil)
+
+	tp := trust.NewProvider()
+
+	providerConfig := NewProviderConfig(configuration, tp.GetTLSConfiguration(configuration.Redis.TLS))
 
 	assert.Nil(t, providerConfig.redisSentinelConfig)
 	assert.Equal(t, "my_session", providerConfig.config.CookieName)

@@ -3,7 +3,6 @@ package session
 import (
 	"crypto/rand"
 	"crypto/tls"
-	"crypto/x509"
 	"fmt"
 	"strings"
 
@@ -18,7 +17,7 @@ import (
 )
 
 // NewProviderConfig creates a configuration for creating the session provider.
-func NewProviderConfig(config schema.SessionConfiguration, certPool *x509.CertPool) ProviderConfig {
+func NewProviderConfig(config schema.SessionConfiguration, tconfig *tls.Config) ProviderConfig {
 	c := session.NewDefaultConfig()
 
 	c.SessionIDGeneratorFunc = func() []byte {
@@ -72,12 +71,6 @@ func NewProviderConfig(config schema.SessionConfiguration, certPool *x509.CertPo
 	case config.Redis != nil:
 		serializer := NewEncryptingSerializer(config.Secret)
 
-		var tlsConfig *tls.Config
-
-		if config.Redis.TLS != nil {
-			tlsConfig = utils.NewTLSConfig(config.Redis.TLS, certPool)
-		}
-
 		if config.Redis.HighAvailability != nil && config.Redis.HighAvailability.SentinelName != "" {
 			addrs := make([]string, 0)
 
@@ -107,7 +100,7 @@ func NewProviderConfig(config schema.SessionConfiguration, certPool *x509.CertPo
 				PoolSize:         config.Redis.MaximumActiveConnections,
 				MinIdleConns:     config.Redis.MinimumIdleConnections,
 				IdleTimeout:      300,
-				TLSConfig:        tlsConfig,
+				TLSConfig:        tconfig,
 				KeyPrefix:        "authelia-session",
 			}
 		} else {
@@ -133,7 +126,7 @@ func NewProviderConfig(config schema.SessionConfiguration, certPool *x509.CertPo
 				PoolSize:     config.Redis.MaximumActiveConnections,
 				MinIdleConns: config.Redis.MinimumIdleConnections,
 				IdleTimeout:  300,
-				TLSConfig:    tlsConfig,
+				TLSConfig:    tconfig,
 				KeyPrefix:    "authelia-session",
 			}
 		}

@@ -12,8 +12,12 @@ import (
 type Provider interface {
 	model.StartupCheck
 
-	// AddTrustedCertificate adds a trusted certificate to the provider.
-	AddTrustedCertificate(path string) (err error)
+	// AddTrustedCertificate adds a trusted *x509.Certificate to this provider.
+	AddTrustedCertificate(cert *x509.Certificate) (err error)
+
+	// AddTrustedCertificateFromPath adds a trusted certificates from a path to the provider. If the path is a directory
+	// the directory is scanned for .crt, .cer, and .pem files.
+	AddTrustedCertificateFromPath(path string) (err error)
 
 	// GetTrustedCertificates returns the trusted certificates for the provider.
 	GetTrustedCertificates() (pool *x509.CertPool)
