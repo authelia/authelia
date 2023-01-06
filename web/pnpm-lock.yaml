@@ -26,7 +26,7 @@ specifiers:
   '@typescript-eslint/parser': 5.48.0
   '@vitejs/plugin-react': 3.0.1
   axios: 1.2.2
-  broadcast-channel: 4.19.1
+  broadcast-channel: 4.20.1
   classnames: 2.3.2
   esbuild: 0.16.14
   esbuild-jest: 0.5.0
@@ -77,7 +77,7 @@ dependencies:
   '@mui/material': 5.11.3_lskpmcsdi7ipu6qpuapyu56ihm
   '@mui/styles': 5.11.2_kzbn2opkn2327fwg5yzwzya5o4
   axios: 1.2.2
-  broadcast-channel: 4.19.1
+  broadcast-channel: 4.20.1
   classnames: 2.3.2
   i18next: 22.4.8
   i18next-browser-languagedetector: 7.0.1
@@ -4487,8 +4487,8 @@ packages:
       fill-range: 7.0.1
     dev: true
 
-  /broadcast-channel/4.19.1:
-    resolution: {integrity: sha512-CroDV8L4QdMuCHtjs0AATaN2w1rA5e6ca9a3yZATmAs3lbFu3q3QkITkuMS4sQ/NjtZwkVANXLlhgyQfiukBuw==}
+  /broadcast-channel/4.20.1:
+    resolution: {integrity: sha512-ob5xyUEMWJRBOggwVGEZpKCXK/Pkfe3LkrokNTwgywhKXFNETRkD5IanLqmpY/roy7bqBsijb7lMEDyc1qlnHQ==}
     dependencies:
       '@babel/runtime': 7.20.7
       oblivious-set: 1.1.1
