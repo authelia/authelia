@@ -14,12 +14,12 @@ import (
 )
 
 // GetLoginBaseURL returns the URL of the login portal and the path prefix if specified.
-func GetLoginBaseURL() string {
+func GetLoginBaseURL(baseDomain string) string {
 	if PathPrefix != "" {
-		return LoginBaseURL + PathPrefix
+		return LoginBaseURLFmt(baseDomain) + PathPrefix
 	}
 
-	return LoginBaseURL
+	return LoginBaseURLFmt(baseDomain)
 }
 
 func (rs *RodSession) collectCoverage(page *rod.Page) {

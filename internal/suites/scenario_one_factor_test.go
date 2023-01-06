@@ -56,7 +56,7 @@ func (s *OneFactorSuite) TestShouldAuthorizeSecretAfterOneFactor() {
 	}()
 
 	targetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURL)
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, targetURL)
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, targetURL)
 	s.verifySecretAuthorized(s.T(), s.Page)
 }
 
@@ -68,7 +68,7 @@ func (s *OneFactorSuite) TestShouldRedirectToSecondFactor() {
 	}()
 
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, targetURL)
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, targetURL)
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 }
 
@@ -80,7 +80,7 @@ func (s *OneFactorSuite) TestShouldDenyAccessOnBadPassword() {
 	}()
 
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "bad-password", false, targetURL)
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "bad-password", false, BaseDomain, targetURL)
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Incorrect username or password.")
 }

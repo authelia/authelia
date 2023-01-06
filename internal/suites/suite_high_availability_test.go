@@ -88,7 +88,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Verify the user is still authenticated.
-	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL())
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
 	// Then logout and login again to check we can see the secret.
@@ -131,7 +131,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Verify the user is still authenticated.
-	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL())
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 }
 
@@ -171,7 +171,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepSessionAfterAutheliaResta
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Verify the user is still authenticated.
-	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL())
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
 	// Then logout and login again to check the secret is still there.

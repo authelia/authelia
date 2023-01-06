@@ -55,7 +55,7 @@ func (s *RegulationScenario) TestShouldBanUserAfterTooManyAttempt() {
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	s.doVisitLoginPage(s.T(), s.Context(ctx), "")
+	s.doVisitLoginPage(s.T(), s.Context(ctx), BaseDomain, "")
 	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), "john", "bad-password", false)
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Incorrect username or password.")
 
