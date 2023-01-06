@@ -84,7 +84,7 @@ func TestShouldFailOnInvalidBody(t *testing.T) {
 		AuthenticationLevel: authentication.OneFactor,
 	})
 	defer mock.Close()
-	mock.Ctx.Configuration.Session.Domain = exampleDotComDomain
+	mock.Ctx.Configuration.Session.Domain = ExampleCom
 
 	mock.SetRequestBody(t, "not a valid json")
 
@@ -98,7 +98,7 @@ func TestShouldFailOnInvalidURL(t *testing.T) {
 		AuthenticationLevel: authentication.OneFactor,
 	})
 	defer mock.Close()
-	mock.Ctx.Configuration.Session.Domain = exampleDotComDomain
+	mock.Ctx.Configuration.Session.Domain = ExampleCom
 
 	mock.SetRequestBody(t, checkURIWithinDomainRequestBody{
 		URI: "https//invalid-url",
