@@ -1,7 +1,6 @@
 package session
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/trust"
 )
 
 // Provider a session provider.
@@ -22,8 +22,15 @@ type Provider struct {
 }
 
 // NewProvider instantiate a session provider given a configuration.
-func NewProvider(config schema.SessionConfiguration, tconfig *tls.Config) *Provider {
-	c := NewProviderConfig(config, tconfig)
+func NewProvider(config schema.SessionConfiguration, trustProvider trust.Provider) *Provider {
+	var c ProviderConfig
+
+	switch config.Redis {
+	case nil:
+		c = NewProviderConfig(config, nil)
+	default:
+		c = NewProviderConfig(config, trustProvider.GetTLSConfiguration(config.Redis.TLS))
+	}
 
 	provider := new(Provider)
 	provider.sessionHolder = fasthttpsession.New(c.config)

@@ -14,6 +14,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/trust"
 )
 
 func TestContentTypes(t *testing.T) {
@@ -124,7 +125,7 @@ func TestShouldCallNextWithAutheliaCtx(t *testing.T) {
 	ctx := &fasthttp.RequestCtx{}
 	configuration := schema.Configuration{}
 	userProvider := mocks.NewMockUserProvider(ctrl)
-	sessionProvider := session.NewProvider(configuration.Session, nil)
+	sessionProvider := session.NewProvider(configuration.Session, trust.NewProvider())
 	providers := middlewares.Providers{
 		UserProvider:    userProvider,
 		SessionProvider: sessionProvider,

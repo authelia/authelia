@@ -12,6 +12,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/trust"
 )
 
 func TestShouldInitializerSession(t *testing.T) {
@@ -21,7 +22,7 @@ func TestShouldInitializerSession(t *testing.T) {
 	configuration.Name = testName
 	configuration.Expiration = testExpiration
 
-	provider := NewProvider(configuration, nil)
+	provider := NewProvider(configuration, trust.NewProvider())
 	session, err := provider.GetSession(ctx)
 	require.NoError(t, err)
 
@@ -36,7 +37,7 @@ func TestShouldUpdateSession(t *testing.T) {
 	configuration.Name = testName
 	configuration.Expiration = testExpiration
 
-	provider := NewProvider(configuration, nil)
+	provider := NewProvider(configuration, trust.NewProvider())
 	session, _ := provider.GetSession(ctx)
 
 	session.Username = testUsername
@@ -66,7 +67,7 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 	configuration.Name = testName
 	configuration.Expiration = testExpiration
 
-	provider := NewProvider(configuration, nil)
+	provider := NewProvider(configuration, trust.NewProvider())
 	session, _ := provider.GetSession(ctx)
 
 	session.SetOneFactor(timeOneFactor, &authentication.UserDetails{Username: testUsername}, false)
@@ -139,7 +140,7 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	configuration.Name = testName
 	configuration.Expiration = testExpiration
 
-	provider := NewProvider(configuration, nil)
+	provider := NewProvider(configuration, trust.NewProvider())
 	session, _ := provider.GetSession(ctx)
 
 	session.SetOneFactor(timeOneFactor, &authentication.UserDetails{Username: testUsername}, false)
@@ -297,7 +298,7 @@ func TestShouldDestroySessionAndWipeSessionData(t *testing.T) {
 	configuration.Name = testName
 	configuration.Expiration = testExpiration
 
-	provider := NewProvider(configuration, nil)
+	provider := NewProvider(configuration, trust.NewProvider())
 	session, err := provider.GetSession(ctx)
 	require.NoError(t, err)
 

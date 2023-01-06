@@ -146,7 +146,7 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 		NTP:             ntp.NewProvider(&ctx.config.NTP),
 		PasswordPolicy:  middlewares.NewPasswordPolicyProvider(ctx.config.PasswordPolicy),
 		Regulator:       regulation.NewRegulator(ctx.config.Regulation, storage, utils.RealClock{}),
-		SessionProvider: session.NewProvider(ctx.config.Session, ctx.providers.Trust.GetTLSConfiguration(ctx.config.Session.Redis.TLS)),
+		SessionProvider: session.NewProvider(ctx.config.Session, ctx.providers.Trust),
 		StorageProvider: storage,
 		TOTP:            totp.NewTimeBasedProvider(ctx.config.TOTP),
 	}

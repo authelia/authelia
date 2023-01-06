@@ -19,6 +19,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/trust"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -708,7 +709,7 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 
 	mock.Ctx.Configuration.Session.Inactivity = testInactivity
 	// Reload the session provider since the configuration is indirect.
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, trust.NewProvider())
 	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
 
 	userSession := mock.Ctx.GetSession()
@@ -741,7 +742,7 @@ func TestShouldDestroySessionWhenInactiveForTooLongUsingDurationNotation(t *test
 
 	mock.Ctx.Configuration.Session.Inactivity = time.Second * 10
 	// Reload the session provider since the configuration is indirect.
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, trust.NewProvider())
 	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
 
 	userSession := mock.Ctx.GetSession()
@@ -838,7 +839,7 @@ func TestShouldRedirectWhenSessionInactiveForTooLongAndRDParamProvided(t *testin
 
 	mock.Ctx.Configuration.Session.Inactivity = testInactivity
 	// Reload the session provider since the configuration is indirect.
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, trust.NewProvider())
 	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
 
 	past := clock.Now().Add(-1 * time.Hour)
@@ -1437,7 +1438,7 @@ func TestShouldNotRedirectRequestsForBypassACLWhenInactiveForTooLong(t *testing.
 
 	mock.Ctx.Configuration.Session.Inactivity = testInactivity
 	// Reload the session provider since the configuration is indirect.
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, trust.NewProvider())
 	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
 
 	userSession := mock.Ctx.GetSession()
@@ -1528,7 +1529,7 @@ func TestIsSessionInactiveTooLong(t *testing.T) {
 			defer ctx.Close()
 
 			ctx.Ctx.Configuration.Session.Inactivity = tc.inactivity
-			ctx.Ctx.Providers.SessionProvider = session.NewProvider(ctx.Ctx.Configuration.Session, nil)
+			ctx.Ctx.Providers.SessionProvider = session.NewProvider(ctx.Ctx.Configuration.Session, trust.NewProvider())
 
 			ctx.Clock.Set(tc.now)
 			ctx.Ctx.Clock = &ctx.Clock
