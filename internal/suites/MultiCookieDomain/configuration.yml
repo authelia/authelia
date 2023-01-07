@@ -29,12 +29,14 @@ session:
   inactivity: 300
   remember_me: 1y
   cookies:
-    - domain: "example2.com"
+    - name: 'authelia_session'
+      domain: "example2.com"
       portal_url: https://login.example2.com
       expiration: 3600
       inactivity: 300
       remember_me: 1y
-    - domain: "example3.com"
+    - name: 'not_authelia_session'
+      domain: "example3.com"
       portal_url: https://example3.com/auth
 
 storage:
