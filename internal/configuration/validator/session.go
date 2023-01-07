@@ -48,8 +48,11 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 		validator.Push(fmt.Errorf(errFmtSessionSameSite, strings.Join(validSessionSameSiteValues, "', '"), config.SameSite))
 	}
 
-	// Add legacy configuration to the domains list.
-	if config.Domain != "" {
+	cookies := len(config.Cookies)
+
+	switch {
+	case cookies == 0 && config.Domain != "":
+		// Add legacy configuration to the domains list.
 		config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
 			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
 				Name:       config.Name,
@@ -60,6 +63,8 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 				RememberMe: config.RememberMe,
 			},
 		})
+	case cookies != 0 && config.Domain != "":
+		validator.Push(fmt.Errorf(errFmtSessionLegacyAndWarning))
 	}
 
 	validateSessionDomains(config, validator)

@@ -6,14 +6,15 @@ import (
 
 	fasthttpsession "github.com/fasthttp/session/v2"
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // Session a session provider.
 type Session struct {
-	sessionHolder     *fasthttpsession.Session
-	DisableRememberMe bool
-	RememberMe        time.Duration
-	Inactivity        time.Duration
+	Config schema.SessionCookieConfiguration
+
+	sessionHolder *fasthttpsession.Session
 }
 
 // GetSession return the user session from a request.

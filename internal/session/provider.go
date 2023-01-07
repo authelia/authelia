@@ -38,10 +38,8 @@ func NewProvider(config schema.SessionConfiguration, certPool *x509.CertPool) *P
 		}
 
 		provider.sessions[dconfig.Domain] = &Session{
-			sessionHolder:     holder,
-			RememberMe:        dconfig.RememberMe,
-			DisableRememberMe: dconfig.DisableRememberMe,
-			Inactivity:        dconfig.Inactivity,
+			Config:        dconfig,
+			sessionHolder: holder,
 		}
 	}
 

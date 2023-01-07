@@ -125,13 +125,13 @@ func isSessionInactiveTooLong(ctx *middlewares.AutheliaCtx, userSession *session
 		return false
 	}
 
-	if userSession.KeepMeLoggedIn || isUserAnonymous || int64(domainSession.Inactivity.Seconds()) == 0 {
+	if userSession.KeepMeLoggedIn || isUserAnonymous || int64(domainSession.Config.Inactivity.Seconds()) == 0 {
 		return false
 	}
 
-	isInactiveTooLong = time.Unix(userSession.LastActivity, 0).Add(domainSession.Inactivity).Before(ctx.Clock.Now())
+	isInactiveTooLong = time.Unix(userSession.LastActivity, 0).Add(domainSession.Config.Inactivity).Before(ctx.Clock.Now())
 
-	ctx.Logger.Tracef("Inactivity report for user '%s'. Current Time: %d, Last Activity: %d, Maximum Inactivity: %d.", userSession.Username, ctx.Clock.Now().Unix(), userSession.LastActivity, int(domainSession.Inactivity.Seconds()))
+	ctx.Logger.Tracef("Inactivity report for user '%s'. Current Time: %d, Last Activity: %d, Maximum Inactivity: %d.", userSession.Username, ctx.Clock.Now().Unix(), userSession.LastActivity, int(domainSession.Config.Inactivity.Seconds()))
 
 	return isInactiveTooLong
 }

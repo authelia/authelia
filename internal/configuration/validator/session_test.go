@@ -737,9 +737,33 @@ func TestShouldSetDefaultRememberMeDuration(t *testing.T) {
 
 	ValidateSession(&config, validator)
 
-	assert.False(t, validator.HasWarnings())
-	assert.False(t, validator.HasErrors())
+	assert.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Errors(), 0)
+
 	assert.Equal(t, config.RememberMe, schema.DefaultSessionConfiguration.RememberMe)
+}
+
+func TestShouldNotAllowLegacyAndModernCookiesConfig(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
+		SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+			Name:       config.Name,
+			Domain:     config.Domain,
+			SameSite:   config.SameSite,
+			Expiration: config.Expiration,
+			Inactivity: config.Inactivity,
+			RememberMe: config.RememberMe,
+		},
+	})
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "session: option 'domain' and option 'cookies' can't be specified at the same time")
 }
 
 func MustParseURL(uri string) *url.URL {
