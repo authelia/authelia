@@ -313,6 +313,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center"><a href="https://github.com/tiuub"><img src="https://avatars.githubusercontent.com/u/46517077?v=4?s=100" width="100px;" alt="tiuub"/><br /><sub><b>tiuub</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=tiuub" title="Documentation">📖</a></td>
       <td align="center"><a href="http://joshgordon.net"><img src="https://avatars.githubusercontent.com/u/2125341?v=4?s=100" width="100px;" alt="Josh Gordon"/><br /><sub><b>Josh Gordon</b></sub></a><br /><a href="#ideas-joshgordon" title="Ideas, Planning, & Feedback">🤔</a> <a href="#security-joshgordon" title="Security">🛡️</a></td>
     </tr>
+    <tr>
+      <td align="center"><a href="https://github.com/silasfrancisco"><img src="https://avatars.githubusercontent.com/u/84447762?v=4?s=100" width="100px;" alt="silasfrancisco"/><br /><sub><b>silasfrancisco</b></sub></a><br /><a href="#security-silasfrancisco" title="Security">🛡️</a></td>
+    </tr>
   </tbody>
 </table>
 
