@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -44,7 +45,7 @@ func newWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error)
 	config := &webauthn.Config{
 		RPDisplayName: ctx.Configuration.Webauthn.DisplayName,
 		RPID:          rpID,
-		RPOrigin:      origin,
+		RPOrigins:     []string{origin},
 		RPIcon:        "",
 
 		AttestationPreference: ctx.Configuration.Webauthn.ConveyancePreference,
@@ -57,7 +58,7 @@ func newWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error)
 		Timeout: int(ctx.Configuration.Webauthn.Timeout.Milliseconds()),
 	}
 
-	ctx.Logger.Tracef("Creating new Webauthn RP instance with ID %s and Origin %s", config.RPID, config.RPOrigin)
+	ctx.Logger.Tracef("Creating new Webauthn RP instance with ID %s and Origins %s", config.RPID, strings.Join(config.RPOrigins, ", "))
 
 	return webauthn.New(config)
 }
