@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	mapset "github.com/deckarep/golang-set"
+	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -89,7 +89,7 @@ func (s *CustomHeadersScenario) TestShouldForwardCustomHeaderForAuthenticatedUse
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	expectedGroups := mapset.NewSetWith("dev", "admins")
+	expectedGroups := mapset.NewSet("dev", "admins")
 
 	targetURL := fmt.Sprintf("%s/headers", PublicBaseURL)
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, targetURL)
@@ -109,7 +109,7 @@ func (s *CustomHeadersScenario) TestShouldForwardCustomHeaderForAuthenticatedUse
 	}
 
 	groups := strings.Split(payload.Headers.ForwardedGroups, ",")
-	actualGroups := mapset.NewSet()
+	actualGroups := mapset.NewSet[string]()
 
 	for _, group := range groups {
 		actualGroups.Add(group)

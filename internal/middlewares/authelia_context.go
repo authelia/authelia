@@ -396,3 +396,8 @@ func (ctx *AutheliaCtx) SetContentTypeTextHTML() {
 func (ctx *AutheliaCtx) SetContentTypeApplicationJSON() {
 	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
 }
+
+// SetContentTypeApplicationYAML efficiently sets the Content-Type header to 'application/yaml; charset=utf-8'.
+func (ctx *AutheliaCtx) SetContentTypeApplicationYAML() {
+	ctx.SetContentTypeBytes(contentTypeApplicationYAML)
+}

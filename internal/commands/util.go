@@ -14,7 +14,7 @@ import (
 	"golang.org/x/term"
 
 	"github.com/authelia/authelia/v4/internal/configuration"
-	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/authelia/authelia/v4/internal/random"
 )
 
 func recoverErr(i any) error {
@@ -44,37 +44,6 @@ func flagsGetUserIdentifiersGenerateOptions(flags *pflag.FlagSet) (users, servic
 	}
 
 	return users, services, sectors, nil
-}
-
-func flagsGetTOTPExportOptions(flags *pflag.FlagSet) (format, dir string, err error) {
-	if format, err = flags.GetString(cmdFlagNameFormat); err != nil {
-		return "", "", err
-	}
-
-	if dir, err = flags.GetString("dir"); err != nil {
-		return "", "", err
-	}
-
-	switch format {
-	case storageTOTPExportFormatCSV, storageTOTPExportFormatURI:
-		break
-	case storageTOTPExportFormatPNG:
-		if dir == "" {
-			dir = utils.RandomString(8, utils.CharSetAlphaNumeric, false)
-		}
-
-		if _, err = os.Stat(dir); !os.IsNotExist(err) {
-			return "", "", errors.New("output directory must not exist")
-		}
-
-		if err = os.MkdirAll(dir, 0700); err != nil {
-			return "", "", err
-		}
-	default:
-		return "", "", errors.New("format must be csv, uri, or png")
-	}
-
-	return format, dir, nil
 }
 
 //nolint:gocyclo
@@ -108,29 +77,29 @@ func flagsGetRandomCharacters(flags *pflag.FlagSet, flagNameLength, flagNameChar
 
 		switch c {
 		case "ascii":
-			charset = utils.CharSetASCII
+			charset = random.CharSetASCII
 		case "alphanumeric":
-			charset = utils.CharSetAlphaNumeric
+			charset = random.CharSetAlphaNumeric
 		case "alphanumeric-lower":
-			charset = utils.CharSetAlphabeticLower + utils.CharSetNumeric
+			charset = random.CharSetAlphabeticLower + random.CharSetNumeric
 		case "alphanumeric-upper":
-			charset = utils.CharSetAlphabeticUpper + utils.CharSetNumeric
+			charset = random.CharSetAlphabeticUpper + random.CharSetNumeric
 		case "alphabetic":
-			charset = utils.CharSetAlphabetic
+			charset = random.CharSetAlphabetic
 		case "alphabetic-lower":
-			charset = utils.CharSetAlphabeticLower
+			charset = random.CharSetAlphabeticLower
 		case "alphabetic-upper":
-			charset = utils.CharSetAlphabeticUpper
+			charset = random.CharSetAlphabeticUpper
 		case "numeric-hex":
-			charset = utils.CharSetNumericHex
+			charset = random.CharSetNumericHex
 		case "numeric":
-			charset = utils.CharSetNumeric
+			charset = random.CharSetNumeric
 		case "rfc3986":
-			charset = utils.CharSetRFC3986Unreserved
+			charset = random.CharSetRFC3986Unreserved
 		case "rfc3986-lower":
-			charset = utils.CharSetAlphabeticLower + utils.CharSetNumeric + utils.CharSetSymbolicRFC3986Unreserved
+			charset = random.CharSetAlphabeticLower + random.CharSetNumeric + random.CharSetSymbolicRFC3986Unreserved
 		case "rfc3986-upper":
-			charset = utils.CharSetAlphabeticUpper + utils.CharSetNumeric + utils.CharSetSymbolicRFC3986Unreserved
+			charset = random.CharSetAlphabeticUpper + random.CharSetNumeric + random.CharSetSymbolicRFC3986Unreserved
 		default:
 			return "", fmt.Errorf("flag '--%s' with value '%s' is invalid, must be one of 'ascii', 'alphanumeric', 'alphabetic', 'numeric', 'numeric-hex', or 'rfc3986'", flagNameCharSet, c)
 		}
@@ -140,7 +109,9 @@ func flagsGetRandomCharacters(flags *pflag.FlagSet, flagNameLength, flagNameChar
 		}
 	}
 
-	return utils.RandomString(n, charset, true), nil
+	rand := &random.Cryptographical{}
+
+	return rand.StringCustom(n, charset), nil
 }
 
 func termReadConfirmation(flags *pflag.FlagSet, name, prompt, confirmation string) (confirmed bool, err error) {
@@ -246,7 +217,7 @@ func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []co
 		filterNames []string
 	)
 
-	if configs, _, err = loadXEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfig); err != nil {
+	if configs, _, err = loadXEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfig, cmdFlagNameConfig); err != nil {
 		return nil, nil, err
 	}
 
@@ -254,7 +225,7 @@ func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []co
 		return nil, nil, err
 	}
 
-	if filterNames, _, err = loadXEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfigExpFilters); err != nil {
+	if filterNames, _, err = loadXEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfigFilters, cmdFlagNameConfigExpFilters); err != nil {
 		return nil, nil, err
 	}
 

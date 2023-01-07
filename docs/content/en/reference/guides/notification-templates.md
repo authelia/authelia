@@ -20,11 +20,10 @@ This guide effectively documents the usage of the
 
 ## Important Notes
 
-1. The templates are not covered by our stability guarantees. While we aim to avoid changes to the templates which
-   would cause users to have to manually change them changes may be necessary in order to facilitate bug fixes or
-   generally improve the templates.
-   1. This is especially important for the [Envelope Template](#envelope-template).
-   2. It is your responsibility to ensure your templates are up to date. We make no efforts in facilitating this.
+1. The templates are not covered by our stability guarantees as per our [Versioning Policy]. While we aim to avoid
+   changes to the templates which would cause users to have to manually change them changes may be necessary in order to
+   facilitate bug fixes or generally improve the templates.
+   1. It is your responsibility to ensure your templates are up to date. We make no efforts in facilitating this.
 2. We may not be able to offer any direct support in debugging these templates. We only offer support and fixes to
    the official templates.
 3. All templates __*MUST*__ be encoded in UTF-8 with CRLF line endings. The line endings __*MUST NOT*__ be a simple LF.
@@ -69,36 +68,18 @@ This is a basic example:
 Some Additional examples for specific purposes can be found in the
 [examples directory on GitHub](https://github.com/authelia/authelia/tree/master/examples/templates/notifications).
 
-## Envelope Template
-
-*__Important Note:__ This template must end with a CRLF newline. Failure to include this newline will result in
-malformed emails.*
-
-There is also a special envelope template. This is the email envelope which contains the content of the other templates
-when sent via the SMTP notifier. It's *__strongly recommended__* that you do not modify this template unless you know
-what you're doing. If you really want to modify it the name of the file must be `Envelope.tmpl`.
-
-This template contains the following placeholders which are automatically injected into the template:
-
-|       Placeholder       |                                 Description                                 |
-|:-----------------------:|:---------------------------------------------------------------------------:|
-|   `{{ .ProcessID }}`    |                          The Authelia Process ID.                           |
-|      `{{ .UUID }}`      | A string representation of a UUID v4 generated specifically for this email. |
-|      `{{ .Host }}`      |                           The configured [host].                            |
-|   `{{ .ServerName }}`   |                      The configured TLS [server_name].                      |
-|  `{{ .SenderDomain }}`  |               The domain portion of the configured [sender].                |
-|   `{{ .Identifier }}`   |                        The configured [identifier].                         |
-|      `{{ .From }}`      |            The string representation of the configured [sender].            |
-|       `{{ .To }}`       |         The string representation of the recipients email address.          |
-|    `{{ .Subject }}`     |                             The email subject.                              |
-|      `{{ .Date }}`      |             The time.Time of the email envelope being rendered.             |
-
 ## Original Templates
 
 The original template content can be found on
 [GitHub](https://github.com/authelia/authelia/tree/master/internal/templates/src/notification).
 
+## Functions
+
+Several functions are implemented with the email templates. See the
+[Templating Reference Guide](../../reference/guides/templating.md) for more information.
+
 [host]: ../../configuration/notifications/smtp.md#host
 [server_name]: ../../configuration/notifications/smtp.md#tls
 [sender]: ../../configuration/notifications/smtp.md#sender
 [identifier]: ../../configuration/notifications/smtp.md#identifier
+[Versioning Policy]: ../../policies/versioning.md

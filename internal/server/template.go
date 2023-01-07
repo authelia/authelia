@@ -1,56 +1,43 @@
 package server
 
 import (
+	"bytes"
+	"crypto/sha1" //nolint:gosec
+	"encoding/hex"
 	"fmt"
-	"io"
 	"os"
-	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
-	"text/template"
+	"sync"
 
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/authelia/authelia/v4/internal/random"
+	"github.com/authelia/authelia/v4/internal/templates"
 )
 
 // ServeTemplatedFile serves a templated version of a specified file,
 // this is utilised to pass information between the backend and frontend
 // and generate a nonce to support a restrictive CSP while using material-ui.
-func ServeTemplatedFile(publicDir, file string, opts *TemplatedFileOptions) middlewares.RequestHandler {
-	logger := logging.Logger()
-
-	a, err := assets.Open(path.Join(publicDir, file))
-	if err != nil {
-		logger.Fatalf("Unable to open %s: %s", file, err)
-	}
-
-	b, err := io.ReadAll(a)
-	if err != nil {
-		logger.Fatalf("Unable to read %s: %s", file, err)
-	}
-
-	tmpl, err := template.New("file").Parse(string(b))
-	if err != nil {
-		logger.Fatalf("Unable to parse %s template: %s", file, err)
-	}
-
+func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middlewares.RequestHandler {
 	isDevEnvironment := os.Getenv(environment) == dev
+	ext := filepath.Ext(t.Name())
 
 	return func(ctx *middlewares.AutheliaCtx) {
-		logoOverride := f
+		var err error
+
+		logoOverride := strFalse
 
 		if opts.AssetPath != "" {
 			if _, err = os.Stat(filepath.Join(opts.AssetPath, fileLogo)); err == nil {
-				logoOverride = t
+				logoOverride = strTrue
 			}
 		}
 
-		switch extension := filepath.Ext(file); extension {
+		switch ext {
 		case extHTML:
 			ctx.SetContentTypeTextHTML()
 		case extJSON:
@@ -59,11 +46,9 @@ func ServeTemplatedFile(publicDir, file string, opts *TemplatedFileOptions) midd
 			ctx.SetContentTypeTextPlain()
 		}
 
-		nonce := utils.RandomString(32, utils.CharSetAlphaNumeric, true)
+		nonce := ctx.Providers.Random.StringCustom(32, random.CharSetAlphaNumeric)
 
 		switch {
-		case publicDir == assetsSwagger:
-			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPSwagger, nonce, nonce))
 		case ctx.Configuration.Server.Headers.CSPTemplate != "":
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, strings.ReplaceAll(ctx.Configuration.Server.Headers.CSPTemplate, placeholderCSPNonce, nonce))
 		case isDevEnvironment:
@@ -72,12 +57,96 @@ func ServeTemplatedFile(publicDir, file string, opts *TemplatedFileOptions) midd
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPDefault, nonce))
 		}
 
-		if err = tmpl.Execute(ctx.Response.BodyWriter(), opts.CommonData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce, logoOverride)); err != nil {
+		if err = t.Execute(ctx.Response.BodyWriter(), opts.CommonData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce, logoOverride)); err != nil {
 			ctx.RequestCtx.Error("an error occurred", 503)
-			logger.Errorf("Unable to execute template: %v", err)
+			ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
 
 			return
 		}
+	}
+}
+
+// ServeTemplatedOpenAPI serves templated OpenAPI related files.
+func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) middlewares.RequestHandler {
+	ext := filepath.Ext(t.Name())
+
+	spec := ext == extYML
+
+	return func(ctx *middlewares.AutheliaCtx) {
+		var nonce string
+
+		if spec {
+			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, tmplCSPSwagger)
+		} else {
+			nonce = ctx.Providers.Random.StringCustom(32, random.CharSetAlphaNumeric)
+			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPSwaggerNonce, nonce, nonce))
+		}
+
+		switch ext {
+		case extHTML:
+			ctx.SetContentTypeTextHTML()
+		case extYML:
+			ctx.SetContentTypeApplicationYAML()
+		default:
+			ctx.SetContentTypeTextPlain()
+		}
+
+		var err error
+
+		if err = t.Execute(ctx.Response.BodyWriter(), opts.OpenAPIData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce)); err != nil {
+			ctx.RequestCtx.Error("an error occurred", 503)
+			ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
+
+			return
+		}
+	}
+}
+
+// ETagRootURL dynamically matches the If-None-Match header and adds the ETag header.
+func ETagRootURL(next middlewares.RequestHandler) middlewares.RequestHandler {
+	etags := map[string][]byte{}
+
+	h := sha1.New() //nolint:gosec // Usage is for collision avoidance not security.
+	mu := &sync.Mutex{}
+
+	return func(ctx *middlewares.AutheliaCtx) {
+		k := ctx.RootURLSlash().String()
+
+		mu.Lock()
+
+		etag, ok := etags[k]
+
+		mu.Unlock()
+
+		if ok && bytes.Equal(etag, ctx.Request.Header.PeekBytes(headerIfNoneMatch)) {
+			ctx.Response.Header.SetBytesKV(headerETag, etag)
+			ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlETaggedAssets)
+
+			ctx.SetStatusCode(fasthttp.StatusNotModified)
+
+			return
+		}
+
+		next(ctx)
+
+		mu.Lock()
+
+		h.Write(ctx.Response.Body())
+		sum := h.Sum(nil)
+		h.Reset()
+
+		etagNew := make([]byte, hex.EncodedLen(len(sum)))
+
+		hex.Encode(etagNew, sum)
+
+		if !ok || !bytes.Equal(etag, etagNew) {
+			etags[k] = etagNew
+		}
+
+		mu.Unlock()
+
+		ctx.Response.Header.SetBytesKV(headerETag, etagNew)
+		ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlETaggedAssets)
 	}
 }
 
@@ -120,11 +189,17 @@ func writeHealthCheckEnv(disabled bool, scheme, host, path string, port int) (er
 func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileOptions) {
 	opts = &TemplatedFileOptions{
 		AssetPath:              config.Server.AssetPath,
-		DuoSelfEnrollment:      f,
+		DuoSelfEnrollment:      strFalse,
 		RememberMe:             strconv.FormatBool(config.Session.RememberMeDuration != schema.RememberMeDisabled),
 		ResetPassword:          strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable),
 		ResetPasswordCustomURL: config.AuthenticationBackend.PasswordReset.CustomURL.String(),
 		Theme:                  config.Theme,
+
+		EndpointsPasswordReset: !(config.AuthenticationBackend.PasswordReset.Disable || config.AuthenticationBackend.PasswordReset.CustomURL.String() != ""),
+		EndpointsWebauthn:      !config.Webauthn.Disable,
+		EndpointsTOTP:          !config.TOTP.Disable,
+		EndpointsDuo:           !config.DuoAPI.Disable,
+		EndpointsOpenIDConnect: !(config.IdentityProviders.OIDC == nil),
 	}
 
 	if config.PrivacyPolicy.Enable {
@@ -150,6 +225,12 @@ type TemplatedFileOptions struct {
 	PrivacyPolicyAccept    string
 	Session                string
 	Theme                  string
+
+	EndpointsPasswordReset bool
+	EndpointsWebauthn      bool
+	EndpointsTOTP          bool
+	EndpointsDuo           bool
+	EndpointsOpenIDConnect bool
 }
 
 // CommonData returns a TemplatedFileCommonData with the dynamic options.
@@ -170,6 +251,22 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, nonce, logoOverri
 	}
 }
 
+// OpenAPIData returns a TemplatedFileOpenAPIData with the dynamic options.
+func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, nonce string) TemplatedFileOpenAPIData {
+	return TemplatedFileOpenAPIData{
+		Base:     base,
+		BaseURL:  baseURL,
+		CSPNonce: nonce,
+
+		Session:       options.Session,
+		PasswordReset: options.EndpointsPasswordReset,
+		Webauthn:      options.EndpointsWebauthn,
+		TOTP:          options.EndpointsTOTP,
+		Duo:           options.EndpointsDuo,
+		OpenIDConnect: options.EndpointsOpenIDConnect,
+	}
+}
+
 // TemplatedFileCommonData is a struct which is used for many templated files.
 type TemplatedFileCommonData struct {
 	Base                   string
@@ -184,4 +281,17 @@ type TemplatedFileCommonData struct {
 	PrivacyPolicyAccept    string
 	Session                string
 	Theme                  string
+}
+
+// TemplatedFileOpenAPIData is a struct which is used for the OpenAPI spec file.
+type TemplatedFileOpenAPIData struct {
+	Base          string
+	BaseURL       string
+	CSPNonce      string
+	Session       string
+	PasswordReset bool
+	Webauthn      bool
+	TOTP          bool
+	Duo           bool
+	OpenIDConnect bool
 }

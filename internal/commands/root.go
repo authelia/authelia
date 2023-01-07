@@ -45,9 +45,9 @@ func NewRootCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.PersistentFlags().StringSliceP(cmdFlagNameConfig, "c", []string{"configuration.yml"}, "configuration files or directories to load")
+	cmd.PersistentFlags().StringSliceP(cmdFlagNameConfig, "c", []string{"configuration.yml"}, "configuration files or directories to load, for more information run 'authelia -h authelia config'")
 
-	cmd.PersistentFlags().StringSlice(cmdFlagNameConfigExpFilters, nil, "list of filters to apply to all configuration files, for more information: authelia --help authelia filters")
+	cmd.PersistentFlags().StringSlice(cmdFlagNameConfigExpFilters, nil, "list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'")
 
 	cmd.AddCommand(
 		newAccessControlCommand(ctx),
@@ -56,7 +56,8 @@ func NewRootCmd() (cmd *cobra.Command) {
 		newStorageCmd(ctx),
 		newValidateConfigCmd(ctx),
 
-		newHelpTopic("filters", "Help for the config filters", helpTopicConfigFilters),
+		newHelpTopic("config", "Help for the config file/directory paths", helpTopicConfig),
+		newHelpTopic("filters", "help topic for the config filters", helpTopicConfigFilters),
 	)
 
 	return cmd
@@ -121,6 +122,8 @@ func runServices(ctx *CmdCtx) {
 		}()
 
 		if mainServer, mainListener, err = server.CreateDefaultServer(*ctx.config, ctx.providers); err != nil {
+			ctx.log.WithError(err).Error("Create Server (main) returned error")
+
 			return err
 		}
 
@@ -145,6 +148,8 @@ func runServices(ctx *CmdCtx) {
 		}()
 
 		if metricsServer, metricsListener, err = server.CreateMetricsServer(ctx.config.Telemetry.Metrics); err != nil {
+			ctx.log.WithError(err).Error("Create Server (metrics) returned error")
+
 			return err
 		}
 
@@ -162,7 +167,11 @@ func runServices(ctx *CmdCtx) {
 		if watcher, err := runServiceFileWatcher(ctx, ctx.config.AuthenticationBackend.File.Path, provider); err != nil {
 			ctx.log.WithError(err).Errorf("Error opening file watcher")
 		} else {
-			defer watcher.Close()
+			defer func(watcher *fsnotify.Watcher) {
+				if err := watcher.Close(); err != nil {
+					ctx.log.WithError(err).Errorf("Error closing file watcher")
+				}
+			}(watcher)
 		}
 	}
 

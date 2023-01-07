@@ -12,17 +12,22 @@ weight: 101200
 toc: true
 ---
 
-## Loading Behaviour
+## Loading Behaviour and Discovery
 
 There are several options which affect the loading of files:
 
-|       Name        |            Argument             |                                    Description                                     |
-|:-----------------:|:-------------------------------:|:----------------------------------------------------------------------------------:|
-| Files/Directories |        `--config`, `-c`         | A list of file or directory (non-recursive) paths to load configuration files from |
-|      Filters      | `--config.experimental.filters` |   A list of filters applied to every file from the Files or Directories options    |
+|       Name        |            Argument             |    Environment Variable     |                                    Description                                     |
+|:-----------------:|:-------------------------------:|:---------------------------:|:----------------------------------------------------------------------------------:|
+| Files/Directories |        `--config`, `-c`         |     `X_AUTHELIA_CONFIG`     | A list of file or directory (non-recursive) paths to load configuration files from |
+|      Filters      | `--config.experimental.filters` | `X_AUTHELIA_CONFIG_FILTERS` |   A list of filters applied to every file from the Files or Directories options    |
 
 __*Note:* when specifying directories and files, the individual files specified must not be within any of the
 directories specified.__
+
+Configuration options can be discovered via either the Argument or Environment Variable, but not both at the same time.
+If both are specified the Argument takes precedence and the Environment Variable is ignored. It is generally recommended
+that if you're using a container that you use the Environment Variable as this will allow you to execute other commands
+from the context of the container more easily.
 
 ## Formats
 
@@ -182,121 +187,6 @@ output at each filter stage as a base64 string when trace logging is enabled.
 
 #### Functions
 
-In addition to the standard builtin functions we support several other functions.
+In addition to the standard builtin functions we support several other functions which should operate similar.
 
-##### iterate
-
-The `iterate` function generates a list of numbers from 0 to the input provided. Useful for ranging over a list of
-numbers.
-
-Example:
-
-```yaml
-numbers:
-{{- range $i := iterate 5 }}
-  -  {{ $i }}
-{{- end }}
-```
-
-##### env
-
-The `env` function returns the value of an environment variable or a blank string.
-
-Example:
-
-```yaml
-default_redirection_url: 'https://{{ env "DOMAIN" }}'
-```
-
-##### split
-
-The `split` function splits a string by the separator.
-
-Example:
-
-```yaml
-access_control:
-  rules:
-    - domain: 'app.{{ env "DOMAIN" }}'
-      policy: bypass
-      methods:
-      {{ range _, $method := split "GET,POST" "," }}
-        - {{ $method }}
-      {{ end }}
-```
-
-##### join
-
-The `join` function is similar to [split](#split) but does the complete oppiste, joining an array of strings with a
-separator.
-
-Example:
-
-```yaml
-access_control:
-  rules:
-    - domain: ['app.{{ join (split (env "DOMAINS") ",") "', 'app." }}']
-      policy: bypass
-```
-
-##### contains
-
-The `contains` function is a test function which checks if one string contains another string.
-
-Example:
-
-```yaml
-{{ if contains (env "DOMAIN") "https://" }}
-default_redirection_url: '{{ env "DOMAIN" }}'
-{{ else }}
-default_redirection_url: 'https://{{ env "DOMAIN" }}'
-{{ end }}
-```
-
-##### hasPrefix
-
-The `hasPrefix` function is a test function which checks if one string is prefixed with another string.
-
-Example:
-
-```yaml
-{{ if hasPrefix (env "DOMAIN") "https://" }}
-default_redirection_url: '{{ env "DOMAIN" }}'
-{{ else }}
-default_redirection_url: 'https://{{ env "DOMAIN" }}'
-{{ end }}
-```
-
-##### hasSuffix
-
-The `hasSuffix` function is a test function which checks if one string is suffixed with another string.
-
-Example:
-
-```yaml
-{{ if hasSuffix (env "DOMAIN") "/" }}
-default_redirection_url: 'https://{{ env "DOMAIN" }}'
-{{ else }}
-default_redirection_url: 'https://{{ env "DOMAIN" }}/'
-{{ end }}
-```
-
-##### lower
-
-The `lower` function is a conversion function which converts a string to all lowercase.
-
-Example:
-
-```yaml
-default_redirection_url: 'https://{{ env "DOMAIN" | lower }}'
-```
-
-##### upper
-
-The `upper` function is a conversion function which converts a string to all uppercase.
-
-Example:
-
-```yaml
-default_redirection_url: 'https://{{ env "DOMAIN" | upper }}'
-```
+See the [Templating Reference Guide](../../reference/guides/templating.md) for more information.

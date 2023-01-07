@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"crypto/x509"
 	"fmt"
 	"os"
@@ -8,7 +9,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -22,8 +22,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/notification"
 	"github.com/authelia/authelia/v4/internal/ntp"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/totp"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -42,7 +44,10 @@ func NewCmdCtx() *CmdCtx {
 		cancel:  cancel,
 		group:   group,
 		log:     logging.Logger(),
-		config:  &schema.Configuration{},
+		providers: middlewares.Providers{
+			Random: &random.Cryptographical{},
+		},
+		config: &schema.Configuration{},
 	}
 }
 
@@ -80,7 +85,6 @@ type CmdCtxConfig struct {
 // CobraRunECmd describes a function that can be used as a *cobra.Command RunE, PreRunE, or PostRunE.
 type CobraRunECmd func(cmd *cobra.Command, args []string) (err error)
 
-// CheckSchemaVersion is a utility function which checks the schema version.
 func (ctx *CmdCtx) CheckSchemaVersion() (err error) {
 	if ctx.providers.StorageProvider == nil {
 		return fmt.Errorf("storage not loaded")
@@ -106,6 +110,25 @@ func (ctx *CmdCtx) CheckSchemaVersion() (err error) {
 	}
 }
 
+// CheckSchema is a utility function which checks the schema version and encryption key.
+func (ctx *CmdCtx) CheckSchema() (err error) {
+	if err = ctx.CheckSchemaVersion(); err != nil {
+		return err
+	}
+
+	var result storage.EncryptionValidationResult
+
+	if result, err = ctx.providers.StorageProvider.SchemaEncryptionCheckKey(ctx, false); !result.Checked() || !result.Success() {
+		if err != nil {
+			return fmt.Errorf("failed to check the schema encryption key: %w", err)
+		}
+
+		return fmt.Errorf("failed to check the schema encryption key: the key is not valid for the schema")
+	}
+
+	return nil
+}
+
 // LoadTrustedCertificates loads the trusted certificates into the CmdCtx.
 func (ctx *CmdCtx) LoadTrustedCertificates() (warns, errs []error) {
 	ctx.trusted, warns, errs = utils.NewX509CertPool(ctx.config.CertificatesDirectory)
@@ -120,47 +143,42 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 		return warns, errs
 	}
 
-	storage := getStorageProvider(ctx)
+	ctx.providers.StorageProvider = getStorageProvider(ctx)
 
-	providers := middlewares.Providers{
-		Authorizer:      authorization.NewAuthorizer(ctx.config),
-		NTP:             ntp.NewProvider(&ctx.config.NTP),
-		PasswordPolicy:  middlewares.NewPasswordPolicyProvider(ctx.config.PasswordPolicy),
-		Regulator:       regulation.NewRegulator(ctx.config.Regulation, storage, utils.RealClock{}),
-		SessionProvider: session.NewProvider(ctx.config.Session, ctx.trusted),
-		StorageProvider: storage,
-		TOTP:            totp.NewTimeBasedProvider(ctx.config.TOTP),
-	}
+	ctx.providers.Authorizer = authorization.NewAuthorizer(ctx.config)
+	ctx.providers.NTP = ntp.NewProvider(&ctx.config.NTP)
+	ctx.providers.PasswordPolicy = middlewares.NewPasswordPolicyProvider(ctx.config.PasswordPolicy)
+	ctx.providers.Regulator = regulation.NewRegulator(ctx.config.Regulation, ctx.providers.StorageProvider, utils.RealClock{})
+	ctx.providers.SessionProvider = session.NewProvider(ctx.config.Session, ctx.trusted)
+	ctx.providers.TOTP = totp.NewTimeBasedProvider(ctx.config.TOTP)
 
 	var err error
 
 	switch {
 	case ctx.config.AuthenticationBackend.File != nil:
-		providers.UserProvider = authentication.NewFileUserProvider(ctx.config.AuthenticationBackend.File)
+		ctx.providers.UserProvider = authentication.NewFileUserProvider(ctx.config.AuthenticationBackend.File)
 	case ctx.config.AuthenticationBackend.LDAP != nil:
-		providers.UserProvider = authentication.NewLDAPUserProvider(ctx.config.AuthenticationBackend, ctx.trusted)
+		ctx.providers.UserProvider = authentication.NewLDAPUserProvider(ctx.config.AuthenticationBackend, ctx.trusted)
 	}
 
-	if providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: ctx.config.Notifier.TemplatePath}); err != nil {
+	if ctx.providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: ctx.config.Notifier.TemplatePath}); err != nil {
 		errs = append(errs, err)
 	}
 
 	switch {
 	case ctx.config.Notifier.SMTP != nil:
-		providers.Notifier = notification.NewSMTPNotifier(ctx.config.Notifier.SMTP, ctx.trusted, providers.Templates)
+		ctx.providers.Notifier = notification.NewSMTPNotifier(ctx.config.Notifier.SMTP, ctx.trusted)
 	case ctx.config.Notifier.FileSystem != nil:
-		providers.Notifier = notification.NewFileNotifier(*ctx.config.Notifier.FileSystem)
+		ctx.providers.Notifier = notification.NewFileNotifier(*ctx.config.Notifier.FileSystem)
 	}
 
-	if providers.OpenIDConnect, err = oidc.NewOpenIDConnectProvider(ctx.config.IdentityProviders.OIDC, storage); err != nil {
+	if ctx.providers.OpenIDConnect, err = oidc.NewOpenIDConnectProvider(ctx.config.IdentityProviders.OIDC, ctx.providers.StorageProvider, ctx.providers.Templates); err != nil {
 		errs = append(errs, err)
 	}
 
 	if ctx.config.Telemetry.Metrics.Enabled {
-		providers.Metrics = metrics.NewPrometheus()
+		ctx.providers.Metrics = metrics.NewPrometheus()
 	}
-
-	ctx.providers = providers
 
 	return warns, errs
 }
@@ -277,7 +295,7 @@ func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err e
 		result  XEnvCLIResult
 	)
 
-	if configs, result, err = loadXEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfig); err != nil {
+	if configs, result, err = loadXEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfig, cmdFlagNameConfig); err != nil {
 		return err
 	}
 

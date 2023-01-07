@@ -20,7 +20,7 @@ Perform exports of the TOTP configurations
 
 Perform exports of the TOTP configurations.
 
-This subcommand allows exporting TOTP configurations to various formats.
+This subcommand allows exporting TOTP configurations to importable YAML files, or use the subcommands to export them to other non-importable formats.
 
 ```
 authelia storage user totp export [flags]
@@ -29,25 +29,23 @@ authelia storage user totp export [flags]
 ### Examples
 
 ```
-authelia storage user totp export --format csv
-authelia storage user totp export --format png --dir ./totp-qr
-authelia storage user totp export --format png --dir ./totp-qr --config config.yml
-authelia storage user totp export --format png --dir ./totp-qr --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
+authelia storage user totp export --file example.yaml
+authelia storage user totp export --config config.yml
+authelia storage user totp export --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
 ```
 
 ### Options
 
 ```
-      --dir string      used with the png output format to specify which new directory to save the files in
-      --format string   sets the output format, valid values are: csv, uri, png (default "uri")
-  -h, --help            help for export
+  -f, --file string   The file name for the YAML export (default "authelia.export.totp.yaml")
+  -h, --help          help for export
 ```
 
 ### Options inherited from parent commands
 
 ```
-  -c, --config strings                         configuration files or directories to load (default [configuration.yml])
-      --config.experimental.filters strings    list of filters to apply to all configuration files, for more information: authelia --help authelia filters
+  -c, --config strings                         configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
+      --config.experimental.filters strings    list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
       --encryption-key string                  the storage encryption key to use
       --mysql.database string                  the MySQL database name (default "authelia")
       --mysql.host string                      the MySQL hostname
@@ -70,4 +68,7 @@ authelia storage user totp export --format png --dir ./totp-qr --encryption-key 
 ### SEE ALSO
 
 * [authelia storage user totp](authelia_storage_user_totp.md)	 - Manage TOTP configurations
+* [authelia storage user totp export csv](authelia_storage_user_totp_export_csv.md)	 - Perform exports of the TOTP configurations to a CSV
+* [authelia storage user totp export png](authelia_storage_user_totp_export_png.md)	 - Perform exports of the TOTP configurations to QR code PNG images
+* [authelia storage user totp export uri](authelia_storage_user_totp_export_uri.md)	 - Perform exports of the TOTP configurations to URIs
 
