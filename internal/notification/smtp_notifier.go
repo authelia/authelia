@@ -12,9 +12,9 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/trust"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewSMTPNotifier creates a SMTPNotifier using the notifier configuration.
@@ -31,7 +31,10 @@ func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, trustProvider tru
 
 	return &SMTPNotifier{
 		config: config,
+
+		random: &random.Cryptographical{},
 		trust:  trustProvider,
+
 		domain: domain,
 		log:    logging.Logger(),
 	}
@@ -40,6 +43,8 @@ func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, trustProvider tru
 // SMTPNotifier a notifier to send emails to SMTP servers.
 type SMTPNotifier struct {
 	config *schema.SMTPNotifierConfiguration
+
+	random random.Provider
 	trust  trust.Provider
 
 	domain string
@@ -103,10 +108,10 @@ func (n *SMTPNotifier) StartupCheck() (err error) {
 func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject string, et *templates.EmailTemplate, data any) (err error) {
 	msg := gomail.NewMsg(
 		gomail.WithMIMEVersion(gomail.Mime10),
-		gomail.WithBoundary(utils.RandomString(30, utils.CharSetAlphaNumeric)),
+		gomail.WithBoundary(n.random.StringCustom(30, random.CharSetAlphaNumeric)),
 	)
 
-	setMessageID(msg, n.domain)
+	n.setMessageID(msg)
 
 	if err = msg.From(n.config.Sender.String()); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to set from address: %w", err)
@@ -158,11 +163,8 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 	return nil
 }
 
-func setMessageID(msg *gomail.Msg, domain string) {
-	rn, _ := utils.RandomInt(100000000)
-	rm, _ := utils.RandomInt(10000)
-	rs := utils.RandomString(17, utils.CharSetAlphaNumeric)
-	pid := os.Getpid() + rm
+func (n *SMTPNotifier) setMessageID(msg *gomail.Msg) {
+	rm := n.random.Integer(10000)
 
-	msg.SetMessageIDWithValue(fmt.Sprintf("%d.%d%d.%s@%s", pid, rn, rm, rs, domain))
+	msg.SetMessageIDWithValue(fmt.Sprintf("%d.%d%d.%s@%s", os.Getpid()+rm, n.random.Integer(100000000), rm, n.random.StringCustom(17, random.CharSetAlphaNumeric), n.domain))
 }

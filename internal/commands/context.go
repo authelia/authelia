@@ -1,13 +1,13 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"os"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -21,6 +21,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/notification"
 	"github.com/authelia/authelia/v4/internal/ntp"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -43,7 +44,10 @@ func NewCmdCtx() *CmdCtx {
 		cancel:  cancel,
 		group:   group,
 		log:     logging.Logger(),
-		config:  &schema.Configuration{},
+		providers: middlewares.Providers{
+			Random: &random.Cryptographical{},
+		},
+		config: &schema.Configuration{},
 	}
 }
 
@@ -139,45 +143,40 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 		return nil, []error{err}
 	}
 
-	storage := getStorageProvider(ctx)
+	ctx.providers.StorageProvider = getStorageProvider(ctx)
 
-	providers := middlewares.Providers{
-		Authorizer:      authorization.NewAuthorizer(ctx.config),
-		NTP:             ntp.NewProvider(&ctx.config.NTP),
-		PasswordPolicy:  middlewares.NewPasswordPolicyProvider(ctx.config.PasswordPolicy),
-		Regulator:       regulation.NewRegulator(ctx.config.Regulation, storage, utils.RealClock{}),
-		SessionProvider: session.NewProvider(ctx.config.Session, ctx.providers.Trust),
-		StorageProvider: storage,
-		TOTP:            totp.NewTimeBasedProvider(ctx.config.TOTP),
-	}
+	ctx.providers.Authorizer = authorization.NewAuthorizer(ctx.config)
+	ctx.providers.NTP = ntp.NewProvider(&ctx.config.NTP)
+	ctx.providers.PasswordPolicy = middlewares.NewPasswordPolicyProvider(ctx.config.PasswordPolicy)
+	ctx.providers.Regulator = regulation.NewRegulator(ctx.config.Regulation, ctx.providers.StorageProvider, utils.RealClock{})
+	ctx.providers.SessionProvider = session.NewProvider(ctx.config.Session, ctx.providers.Trust)
+	ctx.providers.TOTP = totp.NewTimeBasedProvider(ctx.config.TOTP)
 
 	switch {
 	case ctx.config.AuthenticationBackend.File != nil:
-		providers.UserProvider = authentication.NewFileUserProvider(ctx.config.AuthenticationBackend.File)
+		ctx.providers.UserProvider = authentication.NewFileUserProvider(ctx.config.AuthenticationBackend.File)
 	case ctx.config.AuthenticationBackend.LDAP != nil:
-		providers.UserProvider = authentication.NewLDAPUserProvider(ctx.config.AuthenticationBackend, ctx.providers.Trust)
+		ctx.providers.UserProvider = authentication.NewLDAPUserProvider(ctx.config.AuthenticationBackend, ctx.providers.Trust)
 	}
 
-	if providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: ctx.config.Notifier.TemplatePath}); err != nil {
+	if ctx.providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: ctx.config.Notifier.TemplatePath}); err != nil {
 		errs = append(errs, err)
 	}
 
 	switch {
 	case ctx.config.Notifier.SMTP != nil:
-		providers.Notifier = notification.NewSMTPNotifier(ctx.config.Notifier.SMTP, ctx.providers.Trust)
+		ctx.providers.Notifier = notification.NewSMTPNotifier(ctx.config.Notifier.SMTP, ctx.providers.Trust)
 	case ctx.config.Notifier.FileSystem != nil:
-		providers.Notifier = notification.NewFileNotifier(*ctx.config.Notifier.FileSystem)
+		ctx.providers.Notifier = notification.NewFileNotifier(*ctx.config.Notifier.FileSystem)
 	}
 
-	if providers.OpenIDConnect, err = oidc.NewOpenIDConnectProvider(ctx.config.IdentityProviders.OIDC, storage); err != nil {
+	if ctx.providers.OpenIDConnect, err = oidc.NewOpenIDConnectProvider(ctx.config.IdentityProviders.OIDC, ctx.providers.StorageProvider); err != nil {
 		errs = append(errs, err)
 	}
 
 	if ctx.config.Telemetry.Metrics.Enabled {
-		providers.Metrics = metrics.NewPrometheus()
+		ctx.providers.Metrics = metrics.NewPrometheus()
 	}
-
-	ctx.providers = providers
 
 	return warns, errs
 }
