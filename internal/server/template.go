@@ -202,7 +202,7 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		EndpointsOpenIDConnect: !(config.IdentityProviders.OIDC == nil),
 	}
 
-	if config.PrivacyPolicy.Enable {
+	if config.PrivacyPolicy.Enabled {
 		opts.PrivacyPolicyURL = config.PrivacyPolicy.PolicyURL.String()
 		opts.PrivacyPolicyAccept = strconv.FormatBool(config.PrivacyPolicy.RequireUserAcceptance)
 	}

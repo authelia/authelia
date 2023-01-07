@@ -4,8 +4,9 @@ import (
 	"net/url"
 )
 
+// PrivacyPolicy is the privacy policy configuration.
 type PrivacyPolicy struct {
-	Enable                bool     `koanf:"enable"`
+	Enabled               bool     `koanf:"enabled"`
 	RequireUserAcceptance bool     `koanf:"require_user_acceptance"`
 	PolicyURL             *url.URL `koanf:"policy_url"`
 }
