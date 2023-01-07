@@ -4,7 +4,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
-	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -130,7 +129,7 @@ func cryptoGetWritePathsFromCmd(cmd *cobra.Command) (privateKey, publicKey strin
 	return filepath.Join(dir, private), filepath.Join(dir, public), nil
 }
 
-func cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey any, err error) {
+func (ctx *CmdCtx) cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey any, err error) {
 	switch cmd.Parent().Use {
 	case cmdUseRSA:
 		var (
@@ -141,7 +140,7 @@ func cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey any, err error) 
 			return nil, err
 		}
 
-		if privateKey, err = rsa.GenerateKey(rand.Reader, bits); err != nil {
+		if privateKey, err = rsa.GenerateKey(ctx.providers.Random, bits); err != nil {
 			return nil, fmt.Errorf("generating RSA private key resulted in an error: %w", err)
 		}
 	case cmdUseECDSA:
@@ -158,11 +157,11 @@ func cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey any, err error) 
 			return nil, fmt.Errorf("invalid curve '%s' was specified: curve must be P224, P256, P384, or P521", curveStr)
 		}
 
-		if privateKey, err = ecdsa.GenerateKey(curve, rand.Reader); err != nil {
+		if privateKey, err = ecdsa.GenerateKey(curve, ctx.providers.Random); err != nil {
 			return nil, fmt.Errorf("generating ECDSA private key resulted in an error: %w", err)
 		}
 	case cmdUseEd25519:
-		if _, privateKey, err = ed25519.GenerateKey(rand.Reader); err != nil {
+		if _, privateKey, err = ed25519.GenerateKey(ctx.providers.Random); err != nil {
 			return nil, fmt.Errorf("generating Ed25519 private key resulted in an error: %w", err)
 		}
 	}
@@ -336,7 +335,7 @@ func cryptoGetSubjectFromCmd(cmd *cobra.Command) (subject *pkix.Name, err error)
 	}, nil
 }
 
-func cryptoGetCertificateFromCmd(cmd *cobra.Command) (certificate *x509.Certificate, err error) {
+func (ctx *CmdCtx) cryptoGetCertificateFromCmd(cmd *cobra.Command) (certificate *x509.Certificate, err error) {
 	var (
 		ca           bool
 		subject      *pkix.Name
@@ -378,7 +377,7 @@ func cryptoGetCertificateFromCmd(cmd *cobra.Command) (certificate *x509.Certific
 
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 
-	if serialNumber, err = rand.Int(rand.Reader, serialNumberLimit); err != nil {
+	if serialNumber, err = ctx.providers.Random.IntErr(serialNumberLimit); err != nil {
 		return nil, fmt.Errorf("failed to generate serial number: %w", err)
 	}
 

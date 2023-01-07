@@ -14,7 +14,7 @@ import (
 	"golang.org/x/term"
 
 	"github.com/authelia/authelia/v4/internal/configuration"
-	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/authelia/authelia/v4/internal/random"
 )
 
 func recoverErr(i any) error {
@@ -77,29 +77,29 @@ func flagsGetRandomCharacters(flags *pflag.FlagSet, flagNameLength, flagNameChar
 
 		switch c {
 		case "ascii":
-			charset = utils.CharSetASCII
+			charset = random.CharSetASCII
 		case "alphanumeric":
-			charset = utils.CharSetAlphaNumeric
+			charset = random.CharSetAlphaNumeric
 		case "alphanumeric-lower":
-			charset = utils.CharSetAlphabeticLower + utils.CharSetNumeric
+			charset = random.CharSetAlphabeticLower + random.CharSetNumeric
 		case "alphanumeric-upper":
-			charset = utils.CharSetAlphabeticUpper + utils.CharSetNumeric
+			charset = random.CharSetAlphabeticUpper + random.CharSetNumeric
 		case "alphabetic":
-			charset = utils.CharSetAlphabetic
+			charset = random.CharSetAlphabetic
 		case "alphabetic-lower":
-			charset = utils.CharSetAlphabeticLower
+			charset = random.CharSetAlphabeticLower
 		case "alphabetic-upper":
-			charset = utils.CharSetAlphabeticUpper
+			charset = random.CharSetAlphabeticUpper
 		case "numeric-hex":
-			charset = utils.CharSetNumericHex
+			charset = random.CharSetNumericHex
 		case "numeric":
-			charset = utils.CharSetNumeric
+			charset = random.CharSetNumeric
 		case "rfc3986":
-			charset = utils.CharSetRFC3986Unreserved
+			charset = random.CharSetRFC3986Unreserved
 		case "rfc3986-lower":
-			charset = utils.CharSetAlphabeticLower + utils.CharSetNumeric + utils.CharSetSymbolicRFC3986Unreserved
+			charset = random.CharSetAlphabeticLower + random.CharSetNumeric + random.CharSetSymbolicRFC3986Unreserved
 		case "rfc3986-upper":
-			charset = utils.CharSetAlphabeticUpper + utils.CharSetNumeric + utils.CharSetSymbolicRFC3986Unreserved
+			charset = random.CharSetAlphabeticUpper + random.CharSetNumeric + random.CharSetSymbolicRFC3986Unreserved
 		default:
 			return "", fmt.Errorf("flag '--%s' with value '%s' is invalid, must be one of 'ascii', 'alphanumeric', 'alphabetic', 'numeric', 'numeric-hex', or 'rfc3986'", flagNameCharSet, c)
 		}
@@ -109,7 +109,9 @@ func flagsGetRandomCharacters(flags *pflag.FlagSet, flagNameLength, flagNameChar
 		}
 	}
 
-	return utils.RandomString(n, charset), nil
+	rand := &random.Cryptographical{}
+
+	return rand.StringCustom(n, charset), nil
 }
 
 func termReadConfirmation(flags *pflag.FlagSet, name, prompt, confirmation string) (confirmed bool, err error) {

@@ -14,6 +14,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -64,6 +65,7 @@ func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.Ce
 	return &SMTPNotifier{
 		config: config,
 		domain: domain,
+		random: &random.Cryptographical{},
 		tls:    utils.NewTLSConfig(config.TLS, certPool),
 		log:    logging.Logger(),
 		opts:   opts,
@@ -74,6 +76,7 @@ func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.Ce
 type SMTPNotifier struct {
 	config *schema.SMTPNotifierConfiguration
 	domain string
+	random random.Provider
 	tls    *tls.Config
 	log    *logrus.Logger
 	opts   []gomail.Option
@@ -104,10 +107,10 @@ func (n *SMTPNotifier) StartupCheck() (err error) {
 func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject string, et *templates.EmailTemplate, data any) (err error) {
 	msg := gomail.NewMsg(
 		gomail.WithMIMEVersion(gomail.Mime10),
-		gomail.WithBoundary(utils.RandomString(30, utils.CharSetAlphaNumeric)),
+		gomail.WithBoundary(n.random.StringCustom(30, random.CharSetAlphaNumeric)),
 	)
 
-	setMessageID(msg, n.domain)
+	n.setMessageID(msg, n.domain)
 
 	if err = msg.From(n.config.Sender.String()); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to set from address: %w", err)
@@ -159,10 +162,10 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 	return nil
 }
 
-func setMessageID(msg *gomail.Msg, domain string) {
-	rn, _ := utils.RandomInt(100000000)
-	rm, _ := utils.RandomInt(10000)
-	rs := utils.RandomString(17, utils.CharSetAlphaNumeric)
+func (n *SMTPNotifier) setMessageID(msg *gomail.Msg, domain string) {
+	rn := n.random.Integer(100000000)
+	rm := n.random.Integer(10000)
+	rs := n.random.StringCustom(17, random.CharSetAlphaNumeric)
 	pid := os.Getpid() + rm
 
 	msg.SetMessageIDWithValue(fmt.Sprintf("%d.%d%d.%s@%s", pid, rn, rm, rs, domain))
