@@ -649,7 +649,14 @@
       "profile": "https://github.com/mind-ar",
       "contributions": [
         "code",
-        "translation"
+        "translation",
+        "doc",
+        "bug",
+        "design",
+        "test",
+        "review",
+        "research",
+        "ideas"
       ]
     },
     {
