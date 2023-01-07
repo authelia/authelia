@@ -10,12 +10,19 @@ import (
 // MultiCookieDomainScenario represents a set of tests for multi cookie domain suite.
 type MultiCookieDomainScenario struct {
 	*RodSuite
+
+	domain, nextDomain string
+
+	remember bool
 }
 
 // NewMultiCookieDomainScenario returns a new Multi Cookie Domain Test Scenario.
-func NewMultiCookieDomainScenario() *MultiCookieDomainScenario {
+func NewMultiCookieDomainScenario(domain, nextDomain string, remember bool) *MultiCookieDomainScenario {
 	return &MultiCookieDomainScenario{
-		RodSuite: new(RodSuite),
+		RodSuite:   new(RodSuite),
+		domain:     domain,
+		nextDomain: nextDomain,
+		remember:   remember,
 	}
 }
 
@@ -47,7 +54,7 @@ func (s *MultiCookieDomainScenario) TearDownTest() {
 	s.MustClose()
 }
 
-func (s *MultiCookieDomainScenario) TestShouldAuthorizeSecretOnFirstDomain() {
+func (s *MultiCookieDomainScenario) TestShouldAuthorizeSecret() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer func() {
 		s.doLogout(s.T(), s.Page)
@@ -55,46 +62,14 @@ func (s *MultiCookieDomainScenario) TestShouldAuthorizeSecretOnFirstDomain() {
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	targetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURL)
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, targetURL)
-	s.verifySecretAuthorized(s.T(), s.Page)
-}
+	targetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURLFmt(s.domain))
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", s.remember, s.domain, targetURL)
 
-func (s *MultiCookieDomainScenario) TestShouldAuthorizeSecretOnSecondDomain() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer func() {
-		s.doLogout(s.T(), s.Page)
-		cancel()
-		s.collectScreenshot(ctx.Err(), s.Page)
-	}()
-
-	targetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURLFmt(Example2Com))
-
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, Example2Com, targetURL)
-	s.verifySecretAuthorized(s.T(), s.Page)
-}
-
-func (s *MultiCookieDomainScenario) TestShouldRequestLoginOnSecondDomainAfterLoginOnFirstDomain() {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer func() {
-		s.doLogout(s.T(), s.Page)
-		cancel()
-		s.collectScreenshot(ctx.Err(), s.Page)
-	}()
-
-	firstDomain := BaseDomain
-	secondDomain := Example2Com
-
-	targetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURLFmt(firstDomain))
-	targetURL2 := fmt.Sprintf("%s/secret.html", SingleFactorBaseURLFmt(secondDomain))
-
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, firstDomain, targetURL)
-	s.verifySecretAuthorized(s.T(), s.Page)
-	s.doVisit(s.T(), s.Page, targetURL2)
+	s.doVisit(s.T(), s.Page, fmt.Sprintf("%s%s", GetLoginBaseURL(s.domain), "/logout"))
 	s.verifyIsFirstFactorPage(s.T(), s.Page)
 }
 
-func (s *MultiCookieDomainScenario) TestShouldRequestLoginOnFirstDomainAfterLoginOnSecondDomain() {
+func (s *MultiCookieDomainScenario) TestShouldRequestLoginOnNextDomainAfterLoginOnFirstDomain() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer func() {
 		s.doLogout(s.T(), s.Page)
@@ -102,14 +77,16 @@ func (s *MultiCookieDomainScenario) TestShouldRequestLoginOnFirstDomainAfterLogi
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	firstDomain := Example2Com
-	secondDomain := BaseDomain
+	targetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURLFmt(s.domain))
 
-	targetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURLFmt(firstDomain))
-	targetURL2 := fmt.Sprintf("%s/secret.html", SingleFactorBaseURLFmt(secondDomain))
-
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, firstDomain, targetURL)
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", s.remember, s.domain, targetURL)
 	s.verifySecretAuthorized(s.T(), s.Page)
-	s.doVisit(s.T(), s.Page, targetURL2)
+
+	targetURL = fmt.Sprintf("%s/secret.html", SingleFactorBaseURLFmt(s.nextDomain))
+
+	s.doVisit(s.T(), s.Page, targetURL)
+	s.verifyIsFirstFactorPage(s.T(), s.Page)
+
+	s.doVisit(s.T(), s.Page, fmt.Sprintf("%s%s", GetLoginBaseURL(s.domain), "/logout"))
 	s.verifyIsFirstFactorPage(s.T(), s.Page)
 }
