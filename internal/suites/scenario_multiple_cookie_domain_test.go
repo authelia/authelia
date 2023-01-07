@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 // MultiCookieDomainScenario represents a set of tests for multi cookie domain suite.
@@ -52,6 +54,26 @@ func (s *MultiCookieDomainScenario) SetupTest() {
 func (s *MultiCookieDomainScenario) TearDownTest() {
 	s.collectCoverage(s.Page)
 	s.MustClose()
+}
+
+func (s *MultiCookieDomainScenario) TestRememberMe() {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer func() {
+		s.doLogout(s.T(), s.Page)
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
+	s.doVisitLoginPage(s.T(), s.Page, s.domain, "")
+
+	e, err := s.Page.Element("#username-textfield")
+	require.NoError(s.T(), err)
+	require.NotNil(s.T(), e)
+
+	has, _, err := s.Page.Has("#remember-checkbox")
+
+	s.Assert().NoError(err)
+	s.Assert().Equal(s.remember, has)
 }
 
 func (s *MultiCookieDomainScenario) TestShouldAuthorizeSecret() {
