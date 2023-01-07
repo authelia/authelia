@@ -80,8 +80,8 @@ var (
 
 	qryArgRedirect = []byte(queryArgRedirect)
 
-	// UserValueKeyBaseURL is the User Value key where we store the Base URL.
-	UserValueKeyBaseURL = []byte("base_url")
+	keyUserValueBaseURL   = []byte("base_url")
+	keyUserValueAuthzPath = []byte("authz_path")
 
 	headerSeparator = []byte(", ")
 

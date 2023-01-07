@@ -13,11 +13,11 @@ import (
 func handleAuthzGetObjectExtAuthz(ctx *middlewares.AutheliaCtx) (object authorization.Object, err error) {
 	var targetURL *url.URL
 
-	if targetURL, err = ctx.GetXForwardedURL(); err != nil {
+	if targetURL, err = ctx.GetEnvoyXForwardedURL(); err != nil {
 		return object, fmt.Errorf("failed to get target URL: %w", err)
 	}
 
-	return authorization.NewObjectRaw(targetURL, ctx.Method()), nil
+	return authorization.NewObjectRaw(targetURL, ctx.XForwardedMethod()), nil
 }
 
 func handleAuthzUnauthorizedExtAuthz(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL) {

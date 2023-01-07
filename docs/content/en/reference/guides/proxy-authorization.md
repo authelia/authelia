@@ -72,14 +72,14 @@ This is the implementation which supports Traefik's
 
 #### ForwardAuth Metadata
 
-|  Metadata  |     Source     |         Key          |
-|:----------:|:--------------:|:--------------------:|
-|   Method   |    [Header]    | `X-Forwarded-Method` |
-|   Scheme   |    [Header]    | [X-Forwarded-Proto]  |
-|  Hostname  |    [Header]    |  [X-Forwarded-Host]  |
-|    Path    |    [Header]    |  `X-Forwarded-URI`   |
-|     IP     |    [Header]    |  [X-Forwarded-For]   |
-| Portal URL | Query Argument |         `rd`         |
+|  Metadata  |     Source     |         Key          |          Fallbacks           |
+|:----------:|:--------------:|:--------------------:|:----------------------------:|
+|   Method   |    [Header]    | `X-Forwarded-Method` |            _N/A_             |
+|   Scheme   |    [Header]    | [X-Forwarded-Proto]  |        Server Scheme         |
+|  Hostname  |    [Header]    |  [X-Forwarded-Host]  |            [Host]            |
+|    Path    |    [Header]    |  `X-Forwarded-URI`   |      [Start Line] Path       |
+|     IP     |    [Header]    |  [X-Forwarded-For]   |        TCP Source IP         |
+| Portal URL | Query Argument |         `rd`         | Session Cookie Configuration |
 
 ### ExtAuthz
 
@@ -89,28 +89,32 @@ This is the implementation which supports Envoy's [ExtAuthz Protocol].
 
 #### ExtAuthz Metadata
 
-|  Metadata  |     Source     |         Key         |
-|:----------:|:--------------:|:-------------------:|
-|   Method   | _[Start Line]_ |    [HTTP Method]    |
-|   Scheme   |    [Header]    | [X-Forwarded-Proto] |
-|  Hostname  |    [Header]    | [X-Forwarded-Host]  |
-|    Path    |    [Header]    |  `X-Forwarded-URI`  |
-|     IP     |    [Header]    |  [X-Forwarded-For]  |
-| Portal URL |    [Header]    |  `X-Authelia-URL`   |
+|  Metadata  |     Source     |         Key         |              Fallbacks               |
+|:----------:|:--------------:|:-------------------:|:------------------------------------:|
+|   Method   | _[Start Line]_ |    [HTTP Method]    |                _N/A_                 |
+|   Scheme   |    [Header]    | [X-Forwarded-Proto] |            Server Scheme             |
+|  Hostname  |    [Header]    | [X-Forwarded-Host]  |                [Host]                |
+|    Path    |    [Header]    |  `X-Forwarded-URI`  | Endpoint Sub-Path, [Start Line] Path |
+|     IP     |    [Header]    |  [X-Forwarded-For]  |            TCP Source IP             |
+| Portal URL |    [Header]    |  `X-Authelia-URL`   |     Session Cookie Configuration     |
 
 ### AuthRequest
 
 This is the implementation which supports NGINX's
-[auth_request HTTP module](https://nginx.org/en/docs/http/ngx_http_auth_request_module.html).
+[auth_request HTTP module](https://nginx.org/en/docs/http/ngx_http_auth_request_module.html) and the
+HAProxy [auth-request lua plugin](https://github.com/TimWolla/haproxy-auth-request).
 
-|  Metadata  |  Source  |         Key         |
-|:----------:|:--------:|:-------------------:|
-|   Method   | [Header] | `X-Original-Method` |
-|   Scheme   | [Header] |  `X-Original-URL`   |
-|  Hostname  | [Header] |  `X-Original-URL`   |
-|    Path    | [Header] |  `X-Original-URL`   |
-|     IP     | [Header] |  [X-Forwarded-For]  |
-| Portal URL |   N/A    |         N/A         |
+|  Metadata  |  Source  |         Key         |              Fallbacks              |
+|:----------:|:--------:|:-------------------:|:-----------------------------------:|
+|   Method   | [Header] | `X-Original-Method` | `X-Forwarded-Method`, [HTTP Method] |
+|   Scheme   | [Header] |  `X-Original-URL`   |                _N/A_                |
+|  Hostname  | [Header] |  `X-Original-URL`   |                _N/A_                |
+|    Path    | [Header] |  `X-Original-URL`   |                _N/A_                |
+|     IP     | [Header] |  [X-Forwarded-For]  |            TCP Source IP            |
+| Portal URL |  _N/A_   |        _N/A_        |                _N/A_                |
+
+_**Note:** This endpoint does not support automatic redirection. This is because there is no support on NGINX's side to
+achieve this with `ngx_http_auth_request_module` and the redirection must be performed within the NGINX configuration._
 
 ### Legacy
 
@@ -144,7 +148,7 @@ results.
 2. No Authentication
 3. Unsuccessful Authentication
 
-Both result 2 is the only result in which the next strategy is attempted, this occurs when there is not enough
+Result 2 is the only result in which the next strategy is attempted, this occurs when there is not enough
 information in the request to perform authentication. Both result 1 and 2 result in a short-circuit, i.e. no other
 strategy will be attempted.
 
@@ -188,6 +192,8 @@ or the header is malformed it will respond with the [WWW-Authenticate] header.
 [X-Forwarded-Proto]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto
 [X-Forwarded-Host]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host
 [X-Forwarded-For]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For
+[Host]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host
+
 [HTTP Method]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
 [HTTP Method]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
 [Start Line]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages#start_line

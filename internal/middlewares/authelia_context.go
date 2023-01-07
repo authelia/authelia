@@ -161,9 +161,25 @@ func (ctx *AutheliaCtx) XForwardedHost() (host []byte) {
 	return host
 }
 
-// XForwardedURI return the content of the X-Forwarded-URI header.
+// XForwardedURI return the content of the X-Forwarded-URI header, falling back to the start-line request path.
 func (ctx *AutheliaCtx) XForwardedURI() (uri []byte) {
 	uri = ctx.Request.Header.PeekBytes(headerXForwardedURI)
+
+	if len(uri) == 0 {
+		return ctx.RequestURI()
+	}
+
+	return uri
+}
+
+// EnvoyXForwardedURI return the content of the X-Forwarded-URI header, falling back to the authz_path user value,
+// and finally the start-line request path. This should only be used for the ExtAuthz endpoint.
+func (ctx *AutheliaCtx) EnvoyXForwardedURI() (uri []byte) {
+	uri = ctx.Request.Header.PeekBytes(headerXForwardedURI)
+
+	if uv := ctx.UserValueBytes(keyUserValueAuthzPath); uv != nil {
+		return []byte(uv.(string))
+	}
 
 	if len(uri) == 0 {
 		return ctx.RequestURI()
@@ -195,7 +211,7 @@ func (ctx *AutheliaCtx) QueryArgRedirect() []byte {
 
 // BasePath returns the base_url as per the path visited by the client.
 func (ctx *AutheliaCtx) BasePath() string {
-	if baseURL := ctx.UserValueBytes(UserValueKeyBaseURL); baseURL != nil {
+	if baseURL := ctx.UserValueBytes(keyUserValueBaseURL); baseURL != nil {
 		return baseURL.(string)
 	}
 
@@ -204,7 +220,7 @@ func (ctx *AutheliaCtx) BasePath() string {
 
 // BasePathSlash is the same as BasePath but returns a final slash as well.
 func (ctx *AutheliaCtx) BasePathSlash() string {
-	if baseURL := ctx.UserValueBytes(UserValueKeyBaseURL); baseURL != nil {
+	if baseURL := ctx.UserValueBytes(keyUserValueBaseURL); baseURL != nil {
 		return baseURL.(string) + strSlash
 	}
 
@@ -353,6 +369,28 @@ func (ctx *AutheliaCtx) ExternalRootURL() (rootURL string, err error) {
 // *url.URL.
 func (ctx *AutheliaCtx) GetXForwardedURL() (requestURI *url.URL, err error) {
 	forwardedProto, forwardedHost, forwardedURI := ctx.XForwardedProto(), ctx.XForwardedHost(), ctx.XForwardedURI()
+
+	if forwardedProto == nil {
+		return nil, ErrMissingXForwardedProto
+	}
+
+	if forwardedHost == nil {
+		return nil, ErrMissingXForwardedHost
+	}
+
+	value := utils.BytesJoin(forwardedProto, protoHostSeparator, forwardedHost, forwardedURI)
+
+	if requestURI, err = url.ParseRequestURI(string(value)); err != nil {
+		return nil, fmt.Errorf("failed to parse X-Forwarded Headers: %w", err)
+	}
+
+	return requestURI, nil
+}
+
+// GetEnvoyXForwardedURL returns the parsed X-Forwarded-Proto, X-Forwarded-Host, and X-Forwarded-URI request header as a
+// *url.URL. This should only be used for the ExtAuthz endpoint.
+func (ctx *AutheliaCtx) GetEnvoyXForwardedURL() (requestURI *url.URL, err error) {
+	forwardedProto, forwardedHost, forwardedURI := ctx.XForwardedProto(), ctx.XForwardedHost(), ctx.EnvoyXForwardedURI()
 
 	if forwardedProto == nil {
 		return nil, ErrMissingXForwardedProto

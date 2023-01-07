@@ -181,18 +181,8 @@ static_resources:
                               - exact: cookie
                               - exact: proxy-authorization
                           headers_to_add:
-                            - key: X-Authelia-URL
-                              value: 'https://auth.example.com/'
-                            - key: X-Forwarded-Method
-                              value: '%REQ(:METHOD)%'
                             - key: X-Forwarded-Proto
                               value: '%REQ(:SCHEME)%'
-                            - key: X-Forwarded-Host
-                              value: '%REQ(:AUTHORITY)%'
-                            - key: X-Forwarded-Uri
-                              value: '%REQ(:PATH)%'
-                            - key: X-Forwarded-For
-                              value: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
                         authorization_response:
                           allowed_upstream_headers:
                             patterns:

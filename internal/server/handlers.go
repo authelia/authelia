@@ -1,9 +1,9 @@
 package server
 
 import (
-	"fmt"
 	"net"
 	"os"
+	"path"
 	"strings"
 	"time"
 
@@ -93,6 +93,8 @@ func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 
 //nolint:gocyclo
 func handleRouter(config schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
+	log := logging.Logger()
+
 	optsTemplatedFile := NewTemplatedFileOptions(&config)
 
 	serveIndexHandler := ServeTemplatedFile(providers.Templates.GetAssetIndexTemplate(), optsTemplatedFile)
@@ -158,9 +160,7 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	metricsVRMW := middlewares.NewMetricsVerifyRequest(providers.Metrics)
 
 	for name, endpoint := range config.Server.Endpoints.Authz {
-		path := fmt.Sprintf("/api/authz/%s", name)
-
-		logging.Logger().Debugf("Registering endpoint '%s' with config %+v", path, endpoint)
+		uri := path.Join(pathAuthz, name)
 
 		authz := handlers.NewAuthzBuilder().WithConfig(&config).WithEndpointConfig(endpoint).Build()
 
@@ -170,15 +170,33 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 		case handlers.AuthzImplLegacy.String(), handlers.AuthzImplExtAuthz.String():
 			switch name {
 			case "legacy":
-				r.ANY("/api/verify", handler)
-				r.ANY("/api/verify/{path:*}", handler)
+				log.
+					WithField("path_prefix", pathAuthzLegacy).
+					WithField("impl", endpoint.Implementation).
+					WithField("methods", []string{"*"}).
+					Trace("Registering Authz Endpoint")
+
+				r.ANY(pathAuthzLegacy, handler)
+				r.ANY(path.Join(pathAuthzLegacy, pathParamAuthzEnvoy), handler)
 			default:
-				r.ANY(path, handler)
-				r.ANY(path+"/{path:*}", handler)
+				log.
+					WithField("path_prefix", uri).
+					WithField("impl", endpoint.Implementation).
+					WithField("methods", []string{"*"}).
+					Trace("Registering Authz Endpoint")
+
+				r.ANY(uri, handler)
+				r.ANY(path.Join(uri, pathParamAuthzEnvoy), handler)
 			}
 		default:
-			r.GET(path, handler)
-			r.HEAD(path, handler)
+			log.
+				WithField("path", uri).
+				WithField("impl", endpoint.Implementation).
+				WithField("methods", []string{fasthttp.MethodGet, fasthttp.MethodHead}).
+				Trace("Registering Authz Endpoint")
+
+			r.GET(uri, handler)
+			r.HEAD(uri, handler)
 		}
 	}
 

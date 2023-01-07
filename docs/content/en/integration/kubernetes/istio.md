@@ -50,12 +50,7 @@ spec:
             - 'remote-*'
             - 'authelia-*'
           includeAdditionalHeadersInCheck:
-            X-Authelia-URL: 'https://auth.example.com/'
-            X-Forwarded-Method: '%REQ(:METHOD)%'
             X-Forwarded-Proto: '%REQ(:SCHEME)%'
-            X-Forwarded-Host: '%REQ(:AUTHORITY)%'
-            X-Forwarded-URI: '%REQ(:PATH)%'
-            X-Forwarded-For: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
           headersToDownstreamOnDeny:
             - set-cookie
           headersToDownstreamOnAllow:

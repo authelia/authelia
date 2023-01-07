@@ -32,11 +32,11 @@ type ServerEndpoints struct {
 type ServerAuthzEndpoint struct {
 	Implementation string `koanf:"implementation"`
 
-	AuthnStrategies []ServerAuthnStrategyAuthzEndpoint `koanf:"authn_strategies"`
+	AuthnStrategies []ServerAuthzEndpointAuthnStrategy `koanf:"authn_strategies"`
 }
 
-// ServerAuthnStrategyAuthzEndpoint is the Authz endpoints configuration for the HTTP server.
-type ServerAuthnStrategyAuthzEndpoint struct {
+// ServerAuthzEndpointAuthnStrategy is the Authz endpoints configuration for the HTTP server.
+type ServerAuthzEndpointAuthnStrategy struct {
 	Name string `koanf:"name"`
 }
 
@@ -72,7 +72,7 @@ var DefaultServerConfiguration = ServerConfiguration{
 			},
 			"auth-request": {
 				Implementation: "AuthRequest",
-				AuthnStrategies: []ServerAuthnStrategyAuthzEndpoint{
+				AuthnStrategies: []ServerAuthzEndpointAuthnStrategy{
 					{
 						Name: "HeaderAuthRequestProxyAuthorization",
 					},
@@ -83,7 +83,7 @@ var DefaultServerConfiguration = ServerConfiguration{
 			},
 			"forward-auth": {
 				Implementation: "ForwardAuth",
-				AuthnStrategies: []ServerAuthnStrategyAuthzEndpoint{
+				AuthnStrategies: []ServerAuthzEndpointAuthnStrategy{
 					{
 						Name: "HeaderProxyAuthorization",
 					},
@@ -94,7 +94,7 @@ var DefaultServerConfiguration = ServerConfiguration{
 			},
 			"ext-authz": {
 				Implementation: "ExtAuthz",
-				AuthnStrategies: []ServerAuthnStrategyAuthzEndpoint{
+				AuthnStrategies: []ServerAuthzEndpointAuthnStrategy{
 					{
 						Name: "HeaderProxyAuthorization",
 					},

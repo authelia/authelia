@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"testing"
@@ -24,6 +25,12 @@ import (
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
+
+func Test(t *testing.T) {
+	fmt.Println(path.Join("/api/authz/", "abc"))
+	fmt.Println(path.Join("/api/authz/", "abc/123/", "{path:*}"))
+	fmt.Println(path.Join("/api/authz/", "abc/123/"))
+}
 
 // TemporaryCertificate contains the FD of 2 temporary files containing the PEM format of the certificate and private key.
 type TemporaryCertificate struct {
