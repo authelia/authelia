@@ -308,6 +308,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center"><a href="https://github.com/paul-ohl"><img src="https://avatars.githubusercontent.com/u/37795294?v=4?s=100" width="100px;" alt="Paul Ohl"/><br /><sub><b>Paul Ohl</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=paul-ohl" title="Documentation">📖</a></td>
       <td align="center"><a href="https://github.com/smkent"><img src="https://avatars.githubusercontent.com/u/2831985?v=4?s=100" width="100px;" alt="Stephen Kent"/><br /><sub><b>Stephen Kent</b></sub></a><br /><a href="#ideas-smkent" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/authelia/authelia/commits?author=smkent" title="Code">💻</a> <a href="#design-smkent" title="Design">🎨</a></td>
       <td align="center"><a href="https://github.com/Ohelig"><img src="https://avatars.githubusercontent.com/u/5841980?v=4?s=100" width="100px;" alt="Ohelig"/><br /><sub><b>Ohelig</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=Ohelig" title="Documentation">📖</a></td>
+      <td align="center"><a href="https://github.com/chillinPanda"><img src="https://avatars.githubusercontent.com/u/250694?v=4?s=100" width="100px;" alt="Dinh Bao Dang"/><br /><sub><b>Dinh Bao Dang</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=chillinPanda" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
