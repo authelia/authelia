@@ -247,3 +247,84 @@ func TestShouldReturnCorrectSecondFactorMethods(t *testing.T) {
 
 	assert.Equal(t, []string{}, mock.Ctx.AvailableSecondFactorMethods())
 }
+
+func TestShouldReturnCorrectEnvoyValues(t *testing.T) {
+	testCases := []struct {
+		name                                                                                          string
+		haveXForwardedProto, haveXForwardedHost, haveHost, haveXForwardedURI, haveAuthzPath, havePath string
+		expected                                                                                      string
+		err                                                                                           string
+	}{
+		{"ShouldParseStandardValues",
+			"https",
+			"", "example.com",
+			"", "/a/path", "/api/authz/ext-authz",
+			"https://example.com/a/path", "",
+		},
+		{"ShouldParseStandardValuesWithXForwardedHost",
+			"https",
+			"abc.com", "example.com",
+			"", "/a/path", "/api/authz/ext-authz",
+			"https://abc.com/a/path", "",
+		},
+		{"ShouldFallbackToPath",
+			"https",
+			"abc.com", "example.com",
+			"", "", "/api/authz/ext-authz",
+			"https://abc.com/api/authz/ext-authz", "",
+		},
+		{"ShouldBeOverriddenByXForwardedURI",
+			"https",
+			"abc.com", "example.com",
+			"/a/path", "/api/authz/from-authz-path", "/api/authz/from-startline",
+			"https://abc.com/a/path", "",
+		},
+		{"ShouldErr",
+			"",
+			"", "",
+			"", "", "",
+			"", "missing required Host header",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			if tc.haveXForwardedProto != "" {
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, tc.haveXForwardedProto)
+			}
+
+			if tc.haveXForwardedHost != "" {
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, tc.haveXForwardedHost)
+			}
+
+			if tc.haveHost != "" {
+				mock.Ctx.Request.Header.SetHost(tc.haveHost)
+			}
+
+			if tc.haveXForwardedURI != "" {
+				mock.Ctx.Request.Header.Set("X-Forwarded-URI", tc.haveXForwardedURI)
+			}
+
+			if tc.haveAuthzPath != "" {
+				mock.Ctx.SetUserValueBytes([]byte("authz_path"), tc.haveAuthzPath)
+			}
+
+			if tc.havePath != "" {
+				mock.Ctx.Request.SetRequestURI(tc.havePath)
+			}
+
+			actual, err := mock.Ctx.GetEnvoyXForwardedURL()
+
+			if tc.err == "" {
+				assert.Equal(t, tc.expected, actual.String())
+				assert.NoError(t, err)
+			} else {
+				assert.Nil(t, actual)
+				assert.EqualError(t, err, tc.err)
+			}
+		})
+	}
+}

@@ -177,11 +177,11 @@ func (ctx *AutheliaCtx) XForwardedURI() (uri []byte) {
 func (ctx *AutheliaCtx) EnvoyXForwardedURI() (uri []byte) {
 	uri = ctx.Request.Header.PeekBytes(headerXForwardedURI)
 
-	if uv := ctx.UserValueBytes(keyUserValueAuthzPath); uv != nil {
-		return []byte(uv.(string))
-	}
-
 	if len(uri) == 0 {
+		if uv := ctx.UserValueBytes(keyUserValueAuthzPath); uv != nil {
+			return []byte(uv.(string))
+		}
+
 		return ctx.RequestURI()
 	}
 
@@ -397,7 +397,7 @@ func (ctx *AutheliaCtx) GetEnvoyXForwardedURL() (requestURI *url.URL, err error)
 	}
 
 	if forwardedHost == nil {
-		return nil, ErrMissingXForwardedHost
+		return nil, ErrMissingHeaderHost
 	}
 
 	value := utils.BytesJoin(forwardedProto, protoHostSeparator, forwardedHost, forwardedURI)
