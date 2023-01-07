@@ -64,7 +64,7 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 		)
 
 		if provider, err = ctx.GetSessionProvider(); err == nil {
-			rememberMe = strconv.FormatBool(provider.DisableRememberMe)
+			rememberMe = strconv.FormatBool(!provider.DisableRememberMe)
 		}
 
 		if err = t.Execute(ctx.Response.BodyWriter(), opts.CommonData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce, logoOverride, rememberMe)); err != nil {
