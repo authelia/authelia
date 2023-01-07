@@ -15,7 +15,7 @@ require (
 	github.com/go-ldap/ldap/v3 v3.4.4
 	github.com/go-rod/rod v0.112.2
 	github.com/go-sql-driver/mysql v1.7.0
-	github.com/go-webauthn/webauthn v0.5.0
+	github.com/go-webauthn/webauthn v0.6.0
 	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
@@ -107,7 +107,7 @@ require (
 	github.com/ysmood/goob v0.4.0 // indirect
 	github.com/ysmood/gson v0.7.3 // indirect
 	github.com/ysmood/leakless v0.8.0 // indirect
-	golang.org/x/crypto v0.1.0 // indirect
+	golang.org/x/crypto v0.4.0 // indirect
 	golang.org/x/mod v0.6.0 // indirect
 	golang.org/x/net v0.5.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220223155221-ee480838109b // indirect
