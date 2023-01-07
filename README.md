@@ -315,6 +315,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
     <tr>
       <td align="center"><a href="https://github.com/silasfrancisco"><img src="https://avatars.githubusercontent.com/u/84447762?v=4?s=100" width="100px;" alt="silasfrancisco"/><br /><sub><b>silasfrancisco</b></sub></a><br /><a href="#security-silasfrancisco" title="Security">🛡️</a></td>
+      <td align="center"><a href="https://github.com/n4m3l3ss-b0t"><img src="https://avatars.githubusercontent.com/u/1162710?v=4?s=100" width="100px;" alt="Ricardo Pesqueira"/><br /><sub><b>Ricardo Pesqueira</b></sub></a><br /><a href="#security-n4m3l3ss-b0t" title="Security">🛡️</a></td>
     </tr>
   </tbody>
 </table>
