@@ -888,6 +888,16 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "joshgordon",
+      "name": "Josh Gordon",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2125341?v=4",
+      "profile": "http://joshgordon.net",
+      "contributions": [
+        "ideas",
+        "security"
+      ]
     }
   ],
   "contributorsPerLine": 7
