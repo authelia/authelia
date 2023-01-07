@@ -15,8 +15,8 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/templates"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // ServeTemplatedFile serves a templated version of a specified file,
@@ -46,7 +46,7 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 			ctx.SetContentTypeTextPlain()
 		}
 
-		nonce := utils.RandomString(32, utils.CharSetAlphaNumeric)
+		nonce := ctx.Providers.Random.StringCustom(32, random.CharSetAlphaNumeric)
 
 		switch {
 		case ctx.Configuration.Server.Headers.CSPTemplate != "":
@@ -78,7 +78,7 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 		if spec {
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, tmplCSPSwagger)
 		} else {
-			nonce = utils.RandomString(32, utils.CharSetAlphaNumeric)
+			nonce = ctx.Providers.Random.StringCustom(32, random.CharSetAlphaNumeric)
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPSwaggerNonce, nonce, nonce))
 		}
 

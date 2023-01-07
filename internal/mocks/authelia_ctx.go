@@ -16,6 +16,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
@@ -34,6 +35,7 @@ type MockAutheliaCtx struct {
 	StorageMock      *MockStorage
 	NotifierMock     *MockNotifier
 	TOTPMock         *MockTOTP
+	RandomMock       *MockRandom
 
 	UserSession *session.UserSession
 
@@ -97,6 +99,10 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 
 	mockAuthelia.TOTPMock = NewMockTOTP(mockAuthelia.Ctrl)
 	providers.TOTP = mockAuthelia.TOTPMock
+
+	mockAuthelia.RandomMock = NewMockRandom(mockAuthelia.Ctrl)
+
+	providers.Random = random.NewMathematical()
 
 	var err error
 

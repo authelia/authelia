@@ -22,6 +22,19 @@ prevent automatic upgrade of the `major` version.
 We generally do not recommend automated upgrades of critical systems but instead recommend ensuring you are notified an
 upgrade exists.
 
+## Major Version Zero
+
+A major version of `v0.x.x` indicates as per the [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html) policy
+that there may be breaking changes without warning. Some [components](#components) will be released under this version
+while they're in early development.
+
+## Components
+
+Several components may exist at various times. We aim to abide by this policy for all components related to Authelia.
+It is important to note that each component has its own version, for example the primary Authelia binary version may be
+v4.40.0 but another component such as the [Helm Chart](https://charts.authelia.com) version may be v0.9.0.
+
+This means that a breaking change may occur to one but not the other as these components do not share a version.
 ## Exceptions
 
 There are exceptions to this versioning policy.

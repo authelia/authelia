@@ -9,9 +9,9 @@ import { useNavigate } from "react-router-dom";
 
 import FixedTextField from "@components/FixedTextField";
 import { ResetPasswordStep1Route } from "@constants/Routes";
+import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
-import { useRedirectionURL } from "@hooks/RedirectionURL";
-import { useRequestMethod } from "@hooks/RequestMethod";
+import { useQueryParam } from "@hooks/QueryParam";
 import { useWorkflow } from "@hooks/Workflow";
 import LoginLayout from "@layouts/LoginLayout";
 import { postFirstFactor } from "@services/FirstFactor";
@@ -32,8 +32,8 @@ export interface Props {
 const FirstFactorForm = function (props: Props) {
     const styles = useStyles();
     const navigate = useNavigate();
-    const redirectionURL = useRedirectionURL();
-    const requestMethod = useRequestMethod();
+    const redirectionURL = useQueryParam(RedirectionURL);
+    const requestMethod = useQueryParam(RequestMethod);
     const [workflow] = useWorkflow();
 
     const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
