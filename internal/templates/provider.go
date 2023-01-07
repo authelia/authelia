@@ -3,7 +3,9 @@ package templates
 import (
 	"embed"
 	"fmt"
-	"text/template"
+	th "html/template"
+	"path"
+	tt "text/template"
 )
 
 // New creates a new templates' provider.
@@ -35,7 +37,7 @@ func (p *Provider) LoadTemplatedAssets(fs embed.FS) (err error) {
 		return err
 	}
 
-	if p.templates.asset.index, err = template.
+	if p.templates.asset.index, err = tt.
 		New("assets/public_html/index.html").
 		Funcs(FuncMap()).
 		Parse(string(data)); err != nil {
@@ -46,7 +48,7 @@ func (p *Provider) LoadTemplatedAssets(fs embed.FS) (err error) {
 		return err
 	}
 
-	if p.templates.asset.api.index, err = template.
+	if p.templates.asset.api.index, err = tt.
 		New("assets/public_html/api/index.html").
 		Funcs(FuncMap()).
 		Parse(string(data)); err != nil {
@@ -57,7 +59,7 @@ func (p *Provider) LoadTemplatedAssets(fs embed.FS) (err error) {
 		return err
 	}
 
-	if p.templates.asset.api.spec, err = template.
+	if p.templates.asset.api.spec, err = tt.
 		New("api/public_html/openapi.yaml").
 		Funcs(FuncMap()).
 		Parse(string(data)); err != nil {
@@ -92,6 +94,11 @@ func (p *Provider) GetIdentityVerificationEmailTemplate() (t *EmailTemplate) {
 	return p.templates.notification.identityVerification
 }
 
+// GetOpenIDConnectAuthorizeResponseFormPostTemplate returns a Template used to generate the OpenID Connect 1.0 Form Post Authorize Response.
+func (p *Provider) GetOpenIDConnectAuthorizeResponseFormPostTemplate() (t *th.Template) {
+	return p.templates.oidc.formpost
+}
+
 func (p *Provider) load() (err error) {
 	var errs []error
 
@@ -100,6 +107,17 @@ func (p *Provider) load() (err error) {
 	}
 
 	if p.templates.notification.event, err = loadEmailTemplate(TemplateNameEmailEvent, p.config.EmailTemplatesPath); err != nil {
+		errs = append(errs, err)
+	}
+
+	var data []byte
+
+	if data, err = embedFS.ReadFile(path.Join("src", TemplateCategoryOpenIDConnect, TemplateNameOIDCAuthorizeFormPost)); err != nil {
+		errs = append(errs, err)
+	} else if p.templates.oidc.formpost, err = th.
+		New("oidc/AuthorizeResponseFormPost.html").
+		Funcs(FuncMap()).
+		Parse(string(data)); err != nil {
 		errs = append(errs, err)
 	}
 
