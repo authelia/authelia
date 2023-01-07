@@ -39,6 +39,7 @@ module.exports = {
                 "npm",
                 "ntp",
                 "oidc",
+                "random",
                 "regulation",
                 "renovate",
                 "reviewdog",
