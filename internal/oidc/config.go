@@ -40,11 +40,10 @@ func NewConfig(config *schema.OpenIDConnectConfiguration) *Config {
 		},
 	}
 
-	prefix := "authelia_%s_"
 	c.Strategy.Core = &HMACCoreStrategy{
 		Enigma: &hmac.HMACStrategy{Config: c},
 		Config: c,
-		prefix: &prefix,
+		prefix: tokenPrefixFmt,
 	}
 
 	return c
