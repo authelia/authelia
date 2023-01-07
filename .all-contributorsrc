@@ -53,7 +53,13 @@
         "maintenance",
         "question",
         "review",
-        "test"
+        "test",
+        "mentoring",
+        "infra",
+        "design",
+        "userTesting",
+        "tool",
+        "research"
       ]
     },
     {
