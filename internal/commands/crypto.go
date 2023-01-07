@@ -3,7 +3,6 @@ package commands
 import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
-	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"fmt"
@@ -262,7 +261,7 @@ func (ctx *CmdCtx) CryptoGenerateRunE(cmd *cobra.Command, args []string) (err er
 		privateKey any
 	)
 
-	if privateKey, err = cryptoGenPrivateKeyFromCmd(cmd); err != nil {
+	if privateKey, err = ctx.cryptoGenPrivateKeyFromCmd(cmd); err != nil {
 		return err
 	}
 
@@ -279,7 +278,7 @@ func (ctx *CmdCtx) CryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) 
 		privateKey any
 	)
 
-	if privateKey, err = cryptoGenPrivateKeyFromCmd(cmd); err != nil {
+	if privateKey, err = ctx.cryptoGenPrivateKeyFromCmd(cmd); err != nil {
 		return err
 	}
 
@@ -326,7 +325,7 @@ func (ctx *CmdCtx) CryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) 
 
 	b.Reset()
 
-	if csr, err = x509.CreateCertificateRequest(rand.Reader, template, privateKey); err != nil {
+	if csr, err = x509.CreateCertificateRequest(ctx.providers.Random, template, privateKey); err != nil {
 		return fmt.Errorf("failed to create certificate request: %w", err)
 	}
 
@@ -366,7 +365,7 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 		signatureKey = caPrivateKey
 	}
 
-	if template, err = cryptoGetCertificateFromCmd(cmd); err != nil {
+	if template, err = ctx.cryptoGetCertificateFromCmd(cmd); err != nil {
 		return err
 	}
 
@@ -423,7 +422,7 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 
 	b.Reset()
 
-	if certificate, err = x509.CreateCertificate(rand.Reader, template, parent, publicKey, signatureKey); err != nil {
+	if certificate, err = x509.CreateCertificate(ctx.providers.Random, template, parent, publicKey, signatureKey); err != nil {
 		return fmt.Errorf("failed to create certificate: %w", err)
 	}
 

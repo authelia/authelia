@@ -10,7 +10,9 @@ import InformationIcon from "@components/InformationIcon";
 import SuccessIcon from "@components/SuccessIcon";
 import WebauthnTryIcon from "@components/WebauthnTryIcon";
 import { SettingsRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
+import { IdentityToken } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
+import { useQueryParam } from "@hooks/QueryParam";
 import LoginLayout from "@layouts/LoginLayout";
 import { AttestationPublicKeyCredential, AttestationResult, WebauthnTouchState } from "@models/Webauthn";
 import {
@@ -18,7 +20,6 @@ import {
     getAttestationCreationOptions,
     getAttestationPublicKeyCredentialResult,
 } from "@services/Webauthn";
-import { extractIdentityToken } from "@utils/IdentityToken";
 
 const steps = ["Confirm device", "Choose name"];
 
@@ -39,7 +40,7 @@ const RegisterWebauthn = function (props: Props) {
     const nameRef = useRef() as MutableRefObject<HTMLInputElement>;
     const [nameError, setNameError] = useState(false);
 
-    const processToken = extractIdentityToken(location.search);
+    const processToken = useQueryParam(IdentityToken);
 
     const handleBackClick = () => {
         navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);

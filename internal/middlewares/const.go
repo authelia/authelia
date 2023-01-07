@@ -88,6 +88,7 @@ var (
 	contentTypeTextPlain       = []byte("text/plain; charset=utf-8")
 	contentTypeTextHTML        = []byte("text/html; charset=utf-8")
 	contentTypeApplicationJSON = []byte("application/json; charset=utf-8")
+	contentTypeApplicationYAML = []byte("application/yaml; charset=utf-8")
 )
 
 const (

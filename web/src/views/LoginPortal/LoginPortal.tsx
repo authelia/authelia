@@ -10,9 +10,10 @@ import {
     SecondFactorTOTPSubRoute,
     SecondFactorWebauthnSubRoute,
 } from "@constants/Routes";
+import { RedirectionURL } from "@constants/SearchParams";
 import { useConfiguration } from "@hooks/Configuration";
 import { useNotifications } from "@hooks/NotificationsContext";
-import { useRedirectionURL } from "@hooks/RedirectionURL";
+import { useQueryParam } from "@hooks/QueryParam";
 import { useRedirector } from "@hooks/Redirector";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useAutheliaState } from "@hooks/State";
@@ -38,7 +39,7 @@ const RedirectionErrorMessage =
 
 const LoginPortal = function (props: Props) {
     const location = useLocation();
-    const redirectionURL = useRedirectionURL();
+    const redirectionURL = useQueryParam(RedirectionURL);
     const { createErrorNotification } = useNotifications();
     const [firstFactorDisabled, setFirstFactorDisabled] = useState(true);
     const [broadcastRedirect, setBroadcastRedirect] = useState(false);
