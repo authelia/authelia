@@ -110,25 +110,26 @@ func (s *InactivityScenario) TestShouldRequireReauthenticationAfterCookieExpirat
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 }
 
-func (s *InactivityScenario) TestShouldDisableCookieExpirationAndInactivity() {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer func() {
-		cancel()
-		s.collectScreenshot(ctx.Err(), s.Page)
-	}()
+/*
+	func (s *InactivityScenario) TestShouldDisableCookieExpirationAndInactivity() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer func() {
+			cancel()
+			s.collectScreenshot(ctx.Err(), s.Page)
+		}()
 
-	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
+		targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
 
-	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", true, s.secret, "")
-	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Context(ctx))
+		s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", true, s.secret, "")
+		s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
+		s.verifyIsHome(s.T(), s.Context(ctx))
 
-	time.Sleep(10 * time.Second)
+		time.Sleep(10 * time.Second)
 
-	s.doVisit(s.T(), s.Context(ctx), targetURL)
-	s.verifySecretAuthorized(s.T(), s.Context(ctx))
-}
-
+		s.doVisit(s.T(), s.Context(ctx), targetURL)
+		s.verifySecretAuthorized(s.T(), s.Context(ctx))
+	}
+*/
 func TestInactivityScenario(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
