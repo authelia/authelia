@@ -854,6 +854,15 @@
         "ideas",
         "bug"
       ]
+    },
+    {
+      "login": "tiuub",
+      "name": "tiuub",
+      "avatar_url": "https://avatars.githubusercontent.com/u/46517077?v=4",
+      "profile": "https://github.com/tiuub",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7
