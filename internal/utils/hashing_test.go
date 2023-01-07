@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/authelia/authelia/v4/internal/random"
 )
 
 func TestShouldHashString(t *testing.T) {
@@ -22,7 +24,7 @@ func TestShouldHashString(t *testing.T) {
 	assert.Equal(t, "ae448ac86c4e8e4dec645729708ef41873ae79c6dff84eff73360989487f08e5", anotherSum)
 	assert.NotEqual(t, sum, anotherSum)
 
-	randomInput := RandomString(40, CharSetAlphaNumeric)
+	randomInput := r.StringCustom(40, random.CharSetAlphaNumeric)
 	randomSum := HashSHA256FromString(randomInput)
 
 	assert.NotEqual(t, randomSum, sum)
@@ -38,7 +40,7 @@ func TestShouldHashPath(t *testing.T) {
 	err = os.WriteFile(filepath.Join(dir, "anotherfile"), []byte("another\n"), 0600)
 	assert.NoError(t, err)
 
-	err = os.WriteFile(filepath.Join(dir, "randomfile"), []byte(RandomString(40, CharSetAlphaNumeric)+"\n"), 0600)
+	err = os.WriteFile(filepath.Join(dir, "randomfile"), []byte(r.StringCustom(40, random.CharSetAlphaNumeric)+"\n"), 0600)
 	assert.NoError(t, err)
 
 	sum, err := HashSHA256FromPath(filepath.Join(dir, "myfile"))
