@@ -311,6 +311,11 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center"><a href="https://github.com/chillinPanda"><img src="https://avatars.githubusercontent.com/u/250694?v=4?s=100" width="100px;" alt="Dinh Bao Dang"/><br /><sub><b>Dinh Bao Dang</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=chillinPanda" title="Documentation">📖</a></td>
       <td align="center"><a href="https://github.com/levkoburburas"><img src="https://avatars.githubusercontent.com/u/62853952?v=4?s=100" width="100px;" alt="levkoburburas"/><br /><sub><b>levkoburburas</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=levkoburburas" title="Code">💻</a> <a href="#ideas-levkoburburas" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/authelia/authelia/issues?q=author%3Alevkoburburas" title="Bug reports">🐛</a></td>
       <td align="center"><a href="https://github.com/tiuub"><img src="https://avatars.githubusercontent.com/u/46517077?v=4?s=100" width="100px;" alt="tiuub"/><br /><sub><b>tiuub</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=tiuub" title="Documentation">📖</a></td>
+      <td align="center"><a href="http://joshgordon.net"><img src="https://avatars.githubusercontent.com/u/2125341?v=4?s=100" width="100px;" alt="Josh Gordon"/><br /><sub><b>Josh Gordon</b></sub></a><br /><a href="#ideas-joshgordon" title="Ideas, Planning, & Feedback">🤔</a> <a href="#security-joshgordon" title="Security">🛡️</a></td>
+    </tr>
+    <tr>
+      <td align="center"><a href="https://github.com/silasfrancisco"><img src="https://avatars.githubusercontent.com/u/84447762?v=4?s=100" width="100px;" alt="silasfrancisco"/><br /><sub><b>silasfrancisco</b></sub></a><br /><a href="#security-silasfrancisco" title="Security">🛡️</a></td>
+      <td align="center"><a href="https://github.com/n4m3l3ss-b0t"><img src="https://avatars.githubusercontent.com/u/1162710?v=4?s=100" width="100px;" alt="Ricardo Pesqueira"/><br /><sub><b>Ricardo Pesqueira</b></sub></a><br /><a href="#security-n4m3l3ss-b0t" title="Security">🛡️</a></td>
     </tr>
   </tbody>
 </table>

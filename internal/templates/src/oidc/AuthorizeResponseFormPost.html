@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Submit This Form</title>
+		<script type="text/javascript">
+			window.onload = function() {
+				document.forms[0].submit();
+			};
+		</script>
+	</head>
+	<body>
+		<form method="post" action="{{ .RedirURL }}">
+			{{ range $key,$value := .Parameters }}
+			{{ range $parameter:= $value}}
+			<input type="hidden" name="{{$key}}" value="{{$parameter}}"/>
+			{{end}}
+			{{ end }}
+		</form>
+	</body>
+</html>

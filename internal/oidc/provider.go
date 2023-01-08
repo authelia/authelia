@@ -9,10 +9,11 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/storage"
+	"github.com/authelia/authelia/v4/internal/templates"
 )
 
 // NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.
-func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, store storage.Provider) (provider *OpenIDConnectProvider, err error) {
+func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, store storage.Provider, templates *templates.Provider) (provider *OpenIDConnectProvider, err error) {
 	if config == nil {
 		return nil, nil
 	}
@@ -20,7 +21,7 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, store s
 	provider = &OpenIDConnectProvider{
 		JSONWriter: herodot.NewJSONWriter(nil),
 		Store:      NewStore(config, store),
-		Config:     NewConfig(config),
+		Config:     NewConfig(config, templates),
 	}
 
 	provider.OAuth2Provider = fosite.NewOAuth2Provider(provider.Store, provider.Config)

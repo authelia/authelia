@@ -41,14 +41,14 @@ specifiers:
   eslint-plugin-react: 7.31.11
   eslint-plugin-react-hooks: 4.6.0
   husky: 8.0.3
-  i18next: 22.4.8
+  i18next: 22.4.9
   i18next-browser-languagedetector: 7.0.1
   i18next-http-backend: 2.1.1
   jest: 29.3.1
   jest-environment-jsdom: 29.3.1
   jest-transform-stub: 2.0.0
   jest-watch-typeahead: 2.2.1
-  prettier: 2.8.1
+  prettier: 2.8.2
   qrcode.react: 3.1.0
   react: 18.2.0
   react-dom: 18.2.0
@@ -79,13 +79,13 @@ dependencies:
   axios: 1.2.2
   broadcast-channel: 4.20.1
   classnames: 2.3.2
-  i18next: 22.4.8
+  i18next: 22.4.9
   i18next-browser-languagedetector: 7.0.1
   i18next-http-backend: 2.1.1
   qrcode.react: 3.1.0_react@18.2.0
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
-  react-i18next: 12.1.4_25zoxyjt3sfdpelgxivbzvmrha
+  react-i18next: 12.1.4_iakk3dtjhjpukdoa4oua5khgci
   react-loading: 2.0.3_react@18.2.0
   react-router-dom: 6.6.1_biqbaboplfbrettd7655fr4n2y
   react18-input-otp: 1.1.2_biqbaboplfbrettd7655fr4n2y
@@ -115,7 +115,7 @@ devDependencies:
   eslint-import-resolver-typescript: 3.5.2_ol7jqilc3wemtdbq3nzhywgxq4
   eslint-plugin-import: 2.26.0_cxu27kyieece4tnvunezm4whiq
   eslint-plugin-jsx-a11y: 6.6.1_eslint@8.31.0
-  eslint-plugin-prettier: 4.2.1_32m5uc2milwdw3tnkcq5del26y
+  eslint-plugin-prettier: 4.2.1_iu5s7nk6dw7o3tajefwfiqfmge
   eslint-plugin-react: 7.31.11_eslint@8.31.0
   eslint-plugin-react-hooks: 4.6.0_eslint@8.31.0
   husky: 8.0.3
@@ -123,7 +123,7 @@ devDependencies:
   jest-environment-jsdom: 29.3.1
   jest-transform-stub: 2.0.0
   jest-watch-typeahead: 2.2.1_jest@29.3.1
-  prettier: 2.8.1
+  prettier: 2.8.2
   react-test-renderer: 18.2.0_react@18.2.0
   typescript: 4.9.4
   vite: 4.0.4_@types+node@18.11.18
@@ -5407,7 +5407,7 @@ packages:
       semver: 6.3.0
     dev: true
 
-  /eslint-plugin-prettier/4.2.1_32m5uc2milwdw3tnkcq5del26y:
+  /eslint-plugin-prettier/4.2.1_iu5s7nk6dw7o3tajefwfiqfmge:
     resolution: {integrity: sha512-f/0rXLXUt0oFYs8ra4w49wYZBG5GKZpAYsJSm6rnYL5uVDjd+zowwMwVZHnAjf4edNrKpCDYfXDgmRE/Ak7QyQ==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
@@ -5420,7 +5420,7 @@ packages:
     dependencies:
       eslint: 8.31.0
       eslint-config-prettier: 8.6.0_eslint@8.31.0
-      prettier: 2.8.1
+      prettier: 2.8.2
       prettier-linter-helpers: 1.0.0
     dev: true
 
@@ -6181,8 +6181,8 @@ packages:
       - encoding
     dev: false
 
-  /i18next/22.4.8:
-    resolution: {integrity: sha512-XSOy17ZWqflOiJRYE/dzv6vDle2Se32dnHREHb93UnZzZ1+UnvQ8yKtt1fpNL3zvXz5AwCqqixrtTVZmRetaiQ==}
+  /i18next/22.4.9:
+    resolution: {integrity: sha512-8gWMmUz460KJDQp/ob3MNUX84cVuDRY9PLFPnV8d+Qezz/6dkjxwOaH70xjrCNDO+JrUL25iXfAIN9wUkInNZw==}
     dependencies:
       '@babel/runtime': 7.20.7
     dev: false
@@ -8022,8 +8022,8 @@ packages:
       fast-diff: 1.2.0
     dev: true
 
-  /prettier/2.8.1:
-    resolution: {integrity: sha512-lqGoSJBQNJidqCHE80vqZJHWHRFoNYsSpP9AjFhlhi9ODCJA541svILes/+/1GM3VaL/abZi7cpFzOpdR9UPKg==}
+  /prettier/2.8.2:
+    resolution: {integrity: sha512-BtRV9BcncDyI2tsuS19zzhzoxD8Dh8LiCx7j7tHzrkz8GFXAexeWFdi22mjE1d16dftH2qNaytVxqiRTGlMfpw==}
     engines: {node: '>=10.13.0'}
     hasBin: true
     dev: true
@@ -8112,7 +8112,7 @@ packages:
       react: 18.2.0
       scheduler: 0.23.0
 
-  /react-i18next/12.1.4_25zoxyjt3sfdpelgxivbzvmrha:
+  /react-i18next/12.1.4_iakk3dtjhjpukdoa4oua5khgci:
     resolution: {integrity: sha512-XQND7jYtgM7ht5PH3yIZljCRpAMTlH/zmngM9ZjToqa+0BR6xuu8c7QF0WIIOEjcMTB2S3iOfpN/xG/ZrAnO6g==}
     peerDependencies:
       i18next: '>= 19.0.0'
@@ -8127,7 +8127,7 @@ packages:
     dependencies:
       '@babel/runtime': 7.20.7
       html-parse-stringify: 3.0.1
-      i18next: 22.4.8
+      i18next: 22.4.9
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
     dev: false
