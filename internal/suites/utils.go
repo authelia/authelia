@@ -176,6 +176,7 @@ func generateDevEnvFile(opts map[string]string) error {
 }
 
 // updateDevEnvFileForDomain updates web/.env.development.
+// this function only affects local dev environments.
 func updateDevEnvFileForDomain(domain string) error {
 	if os.Getenv("CI") == "true" {
 		return nil

@@ -38,6 +38,9 @@ func (s *MultiCookieDomainScenario) SetupSuite() {
 
 	err = updateDevEnvFileForDomain(s.domain)
 	require.NoError(s.T(), err)
+
+	// wait some seconds for the frontend image restart.
+	time.Sleep(5 * time.Second)
 }
 
 func (s *MultiCookieDomainScenario) TearDownSuite() {
