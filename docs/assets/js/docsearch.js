@@ -9,7 +9,7 @@ if (searchPlaceholder !== null) {
 docsearch({
   container: '#docsearch',
   appId: 'OX8DV2T9J9',
-  indexName: 'authelia_com}',
+  indexName: 'authelia_com',
   apiKey: 'a4d51f0dde6bb5a07a5bf6022408a353',
   debug: false,
 });
