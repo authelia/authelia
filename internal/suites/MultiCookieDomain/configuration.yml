@@ -24,18 +24,16 @@ authentication_backend:
     path: /config/users.yml
 
 session:
+  expiration: 3600
+  inactivity: 300
+  remember_me: 1y
+  disable_remember_me: false
   cookies:
     - name: 'authelia_session'
       domain: 'example.com'
-      expiration: 3600
-      inactivity: 300
-      remember_me: 1y
-      disable_remember_me: false
     - name: 'example2_session'
       domain: 'example2.com'
       portal_url: 'https://login.example2.com'
-      expiration: 3600
-      inactivity: 300
       disable_remember_me: true
     - name: 'not_authelia_session'
       domain: 'example3.com'

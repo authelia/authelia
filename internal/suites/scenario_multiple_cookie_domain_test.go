@@ -30,12 +30,14 @@ func NewMultiCookieDomainScenario(domain, nextDomain string, remember bool) *Mul
 
 func (s *MultiCookieDomainScenario) SetupSuite() {
 	browser, err := StartRod()
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	s.RodSession = browser
+
+	err = updateDevEnvFileForDomain(s.domain)
+	require.NoError(s.T(), err)
 }
 
 func (s *MultiCookieDomainScenario) TearDownSuite() {

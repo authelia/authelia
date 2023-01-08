@@ -2,12 +2,18 @@ package suites
 
 import (
 	"context"
+	"crypto/tls"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"text/template"
+	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/google/uuid"
@@ -97,6 +103,93 @@ func fixCoveragePath(path string, file os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+// getEnvInfoFromURL gets environments variables for specified cookie domain
+// this func makes a http call to https://login.<domain>/override and is only useful for suite tests.
+func getDomainEnvInfo(domain string) (map[string]string, error) {
+	info := make(map[string]string)
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true, //nolint:gosec
+			},
+		},
+	}
+
+	var (
+		req  *http.Request
+		resp *http.Response
+		body []byte
+		err  error
+	)
+
+	targetURL := LoginBaseURLFmt(domain) + "/override"
+
+	if req, err = http.NewRequest(http.MethodGet, targetURL, nil); err != nil {
+		return info, err
+	}
+
+	req.Header.Set("X-Forwarded-Proto", "https")
+	req.Header.Set("X-Forwarded-Host", domain)
+
+	if resp, err = client.Do(req); err != nil {
+		return info, err
+	}
+
+	if body, err = io.ReadAll(resp.Body); err != nil {
+		return info, err
+	}
+	defer resp.Body.Close()
+
+	if err = json.Unmarshal(body, &info); err != nil {
+		return info, err
+	}
+
+	return info, nil
+}
+
+// generateDevEnvFile generates web/.env.development based on opts.
+func generateDevEnvFile(opts map[string]string) error {
+	path := "../../web"
+	src := fmt.Sprintf("%s/.env.production", path)
+	dst := fmt.Sprintf("%s/.env.development", path)
+
+	tmpl, err := template.ParseFiles(src)
+	if err != nil {
+		return err
+	}
+
+	file, _ := os.Create(dst)
+	defer file.Close()
+
+	if err := tmpl.Execute(file, opts); err != nil {
+		return err
+	}
+
+	time.Sleep(3 * time.Second)
+
+	return nil
+}
+
+// updateDevEnvFileForDomain updates web/.env.development.
+func updateDevEnvFileForDomain(domain string) error {
+	if os.Getenv("CI") == "true" {
+		return nil
+	}
+
+	info, err := getDomainEnvInfo(domain)
+	if err != nil {
+		return err
+	}
+
+	err = generateDevEnvFile(info)
+	if err != nil {
+		return err
 	}
 
 	return nil
