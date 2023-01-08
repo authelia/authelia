@@ -28,11 +28,12 @@ func init() {
 			return err
 		}
 
-		if err := waitUntilAutheliaIsReady(dockerEnvironment, standaloneSuiteName); err != nil {
+		err := waitUntilAutheliaIsReady(dockerEnvironment, standaloneSuiteName)
+		if err != nil {
 			return err
 		}
 
-		err := updateDevEnvFileForDomain(BaseDomain)
+		err = updateDevEnvFileForDomain(BaseDomain)
 		if err != nil {
 			return err
 		}

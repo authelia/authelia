@@ -28,7 +28,17 @@ func init() {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(dockerEnvironment, multiCookieDomainSuiteName)
+		err := waitUntilAutheliaIsReady(dockerEnvironment, multiCookieDomainSuiteName)
+		if err != nil {
+			return err
+		}
+
+		err = updateDevEnvFileForDomain(BaseDomain)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	}
 
 	displayAutheliaLogs := func() error {

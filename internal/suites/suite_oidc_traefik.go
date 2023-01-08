@@ -49,7 +49,17 @@ func init() {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(dockerEnvironment, oidcTraefikSuiteName)
+		err = waitUntilAutheliaIsReady(dockerEnvironment, oidcTraefikSuiteName)
+		if err != nil {
+			return err
+		}
+
+		err = updateDevEnvFileForDomain(BaseDomain)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	}
 
 	displayAutheliaLogs := func() error {
