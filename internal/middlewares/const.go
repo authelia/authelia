@@ -47,14 +47,15 @@ var (
 )
 
 var (
-	headerValueFalse          = []byte("false")
-	headerValueTrue           = []byte("true")
-	headerValueMaxAge         = []byte("100")
-	headerValueVary           = []byte("Accept-Encoding, Origin")
-	headerValueVaryWildcard   = []byte("Accept-Encoding")
-	headerValueOriginWildcard = []byte("*")
-	headerValueZero           = []byte("0")
-	headerValueCSPNone        = []byte("default-src 'none';")
+	headerValueFalse           = []byte("false")
+	headerValueTrue            = []byte("true")
+	headerValueMaxAge          = []byte("100")
+	headerValueVary            = []byte("Accept-Encoding, Origin")
+	headerValueVaryWildcard    = []byte("Accept-Encoding")
+	headerValueOriginWildcard  = []byte("*")
+	headerValueZero            = []byte("0")
+	headerValueCSPNone         = []byte("default-src 'none'")
+	headerValueCSPNoneFormPost = []byte("default-src 'none'; script-src 'sha256-skflBqA90WuHvoczvimLdj49ExKdizFjX2Itd6xKZdU='")
 
 	headerValueNoSniff                 = []byte("nosniff")
 	headerValueStrictOriginCrossOrigin = []byte("strict-origin-when-cross-origin")
@@ -82,6 +83,9 @@ var (
 
 	keyUserValueBaseURL   = []byte("base_url")
 	keyUserValueAuthzPath = []byte("authz_path")
+
+	// UserValueKeyFormPost is the User Value key where we indicate the form_post response mode.
+	UserValueKeyFormPost = []byte("form_post")
 
 	headerSeparator = []byte(", ")
 

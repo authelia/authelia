@@ -10,14 +10,21 @@ import (
 type Templates struct {
 	notification NotificationTemplates
 	asset        AssetTemplates
+	oidc         OpenIDConnectTemplates
 }
 
+type OpenIDConnectTemplates struct {
+	formpost *th.Template
+}
+
+// AssetTemplates are templates for specific key assets.
 type AssetTemplates struct {
 	index *tt.Template
-	api   APIAssetTemplates
+	api   OpenAPIAssetTemplates
 }
 
-type APIAssetTemplates struct {
+// OpenAPIAssetTemplates are asset templates for the OpenAPI specification.
+type OpenAPIAssetTemplates struct {
 	index *tt.Template
 	spec  *tt.Template
 }
