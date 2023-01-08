@@ -13,7 +13,6 @@ import (
 	"runtime"
 	"strings"
 	"text/template"
-	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/google/uuid"
@@ -155,9 +154,11 @@ func getDomainEnvInfo(domain string) (map[string]string, error) {
 
 // generateDevEnvFile generates web/.env.development based on opts.
 func generateDevEnvFile(opts map[string]string) error {
-	path := "../../web"
-	src := fmt.Sprintf("%s/.env.production", path)
-	dst := fmt.Sprintf("%s/.env.development", path)
+	wd, _ := os.Getwd()
+	path := strings.TrimSuffix(wd, "internal/suites")
+
+	src := fmt.Sprintf("%s/web/.env.production", path)
+	dst := fmt.Sprintf("%s/web/.env.development", path)
 
 	tmpl, err := template.ParseFiles(src)
 	if err != nil {
@@ -170,8 +171,6 @@ func generateDevEnvFile(opts map[string]string) error {
 	if err := tmpl.Execute(file, opts); err != nil {
 		return err
 	}
-
-	time.Sleep(3 * time.Second)
 
 	return nil
 }
