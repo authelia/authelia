@@ -232,6 +232,52 @@ button#doks-versions {
   }
 }
 
+/*! purgecss start ignore */
+.algolia-autocomplete {
+  display: flex !important;
+}
+
+.algolia-autocomplete .ds-dropdown-menu {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+@include media-breakpoint-down(sm) {
+  .algolia-autocomplete .ds-dropdown-menu {
+    max-width: 512px !important;
+    min-width: 312px !important;
+    width: auto !important;
+  }
+
+  .algolia-autocomplete .algolia-docsearch-suggestion .algolia-docsearch-suggestion--subcategory-column {
+    font-weight: normal;
+  }
+
+  .algolia-autocomplete .algolia-docsearch-suggestion .algolia-docsearch-suggestion--subcategory-column::after {
+    content: "/";
+    margin-right: 0.25rem;
+  }
+}
+
+.algolia-autocomplete .algolia-docsearch-suggestion--category-header {
+  color: $black;
+}
+
+.algolia-autocomplete .algolia-docsearch-suggestion--title {
+  margin-bottom: 0;
+}
+
+.algolia-autocomplete .algolia-docsearch-suggestion--highlight {
+  padding: 0 0.05em;
+}
+
+.algolia-autocomplete .algolia-docsearch-footer {
+  margin-top: 1rem;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/*! purgecss end ignore */
+
 /*
 @include media-breakpoint-up(lg) {
   .navbar-form {

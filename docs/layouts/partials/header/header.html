@@ -77,19 +77,20 @@
           {{ end -}}
         </ul>
 
-        {{- $showFlexSearch := .Site.Params.options.flexSearch }}
-        {{- if $showFlexSearch }}
+        {{- $showSearch := .Site.Params.options.flexSearch }}
+        {{- if $showSearch }}
         {{- if and (isset .Site.Params.options "searchsectionsshow") (not (eq .Site.Params.options.searchSectionsShow "ALL")) }}
-        {{- $showFlexSearch = or (eq (len .Site.Params.options.searchSectionsShow) 0) (in .Site.Params.options.searchSectionsShow .Section) (and .IsHome (in .Site.Params.options.searchSectionsShow "HomePage")) }}
+        {{- $showSearch = or (eq (len .Site.Params.options.searchSectionsShow) 0) (in .Site.Params.options.searchSectionsShow .Section) (and .IsHome (in .Site.Params.options.searchSectionsShow "HomePage")) }}
         {{- end }}
         {{- end }}
 
-        {{ if $showFlexSearch -}}
-        <hr class="text-black-50 my-4 d-lg-none">
-        <form class="doks-search position-relative flex-grow-1 ms-lg-auto me-lg-2">
-          <input id="search" class="form-control is-search" type="search" placeholder="{{ i18n "search-text" }}" aria-label="{{ i18n "search-text" }}" autocomplete="off">
-          <div id="suggestions" class="shadow bg-white rounded d-none"></div>
-        </form>
+        {{ if $showSearch -}}
+        <div class="d-inline-flex me-auto placeholder-glow">
+          <div id="search-placeholder" aria-hidden="true">
+            <a href="#" tabindex="-1" class="btn btn-light disabled placeholder"></a>
+          </div>
+          <div id="docsearch"></div>
+        </div>
         {{ end -}}
 
         <hr class="text-black-50 my-4 d-lg-none">

@@ -1,0 +1,5 @@
+canonifyURLs = false
+baseurl = "https://authelia-algolia.netlify.app/"
+
+[security.funcs]
+getenv = ["ALGOLIA_APP_ID", "ALGOLIA_INDEX_NAME", "ALGOLIA_API_KEY"]

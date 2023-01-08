@@ -14,6 +14,9 @@ $bootstrap-icons-font-file: "./fonts/bootstrap-icons";
 /** Import highlight.js */
 @import "highlight.js/scss/github-dark-dimmed";
 
+/** Import docsearch */
+@import "@docsearch/css/dist/style";
+
 /** Import KaTeX */
 @import "katex/dist/katex";
 

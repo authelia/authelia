@@ -73,6 +73,11 @@
 
 {{ $js := $slice | resources.Concat "main.js" -}}
 
+{{ $docSearch := resources.Get "js/docsearch.js" | js.Build -}}
+{{ $docSearch := $docSearch | minify | fingerprint "sha512" -}}
+
+<script src="{{ $docSearch.RelPermalink }}" integrity="{{ $docSearch.Data.Integrity }}" crossorigin="anonymous" defer></script>
+
 {{ if eq (hugo.Environment) "development" -}}
   {{ if .Site.Params.options.bootStrapJs -}}
     <script src="{{ $bs.RelPermalink }}" defer></script>
