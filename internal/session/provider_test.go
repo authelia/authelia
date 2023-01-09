@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -35,10 +34,10 @@ func TestShouldInitializerSession(t *testing.T) {
 	ctx := &fasthttp.RequestCtx{}
 
 	provider, err := newTestSession()
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	session, err := provider.GetSession(ctx)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewDefaultUserSession(), session)
 }
@@ -47,7 +46,7 @@ func TestShouldUpdateSession(t *testing.T) {
 	ctx := &fasthttp.RequestCtx{}
 
 	provider, err := newTestSession()
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	session, _ := provider.GetSession(ctx)
 
@@ -55,10 +54,10 @@ func TestShouldUpdateSession(t *testing.T) {
 	session.AuthenticationLevel = authentication.TwoFactor
 
 	err = provider.SaveSession(ctx, session)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	session, err = provider.GetSession(ctx)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, UserSession{
 		Username:            testUsername,
@@ -74,17 +73,17 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 	timeZeroFactor := time.Unix(0, 0)
 
 	provider, err := newTestSession()
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	session, _ := provider.GetSession(ctx)
 
 	session.SetOneFactor(timeOneFactor, &authentication.UserDetails{Username: testUsername}, false)
 
 	err = provider.SaveSession(ctx, session)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	session, err = provider.GetSession(ctx)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	authAt, err := session.AuthenticatedTime(authorization.OneFactor)
 	assert.NoError(t, err)
@@ -109,10 +108,10 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 	session.SetTwoFactorDuo(timeTwoFactor)
 
 	err = provider.SaveSession(ctx, session)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	session, err = provider.GetSession(ctx)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, UserSession{
 		Username:                   testUsername,
@@ -144,17 +143,17 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	timeZeroFactor := time.Unix(0, 0)
 
 	provider, err := newTestSession()
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	session, _ := provider.GetSession(ctx)
 
 	session.SetOneFactor(timeOneFactor, &authentication.UserDetails{Username: testUsername}, false)
 
 	err = provider.SaveSession(ctx, session)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	session, err = provider.GetSession(ctx)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	authAt, err := session.AuthenticatedTime(authorization.OneFactor)
 	assert.NoError(t, err)
@@ -179,10 +178,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	session.SetTwoFactorWebauthn(timeTwoFactor, false, false)
 
 	err = provider.SaveSession(ctx, session)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	session, err = provider.GetSession(ctx)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true}, session.AuthenticationMethodRefs)
 	assert.True(t, session.AuthenticationMethodRefs.MultiFactorAuthentication())
@@ -202,10 +201,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	session.SetTwoFactorWebauthn(timeTwoFactor, false, false)
 
 	err = provider.SaveSession(ctx, session)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	session, err = provider.GetSession(ctx)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t,
 		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true},
@@ -214,10 +213,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	session.SetTwoFactorWebauthn(timeTwoFactor, false, false)
 
 	err = provider.SaveSession(ctx, session)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	session, err = provider.GetSession(ctx)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t,
 		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true},
@@ -226,10 +225,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	session.SetTwoFactorWebauthn(timeTwoFactor, true, false)
 
 	err = provider.SaveSession(ctx, session)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	session, err = provider.GetSession(ctx)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t,
 		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true, WebauthnUserPresence: true},
@@ -238,10 +237,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	session.SetTwoFactorWebauthn(timeTwoFactor, true, false)
 
 	err = provider.SaveSession(ctx, session)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	session, err = provider.GetSession(ctx)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t,
 		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true, WebauthnUserPresence: true},
@@ -250,10 +249,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	session.SetTwoFactorWebauthn(timeTwoFactor, false, true)
 
 	err = provider.SaveSession(ctx, session)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	session, err = provider.GetSession(ctx)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t,
 		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true, WebauthnUserVerified: true},
@@ -262,10 +261,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	session.SetTwoFactorWebauthn(timeTwoFactor, false, true)
 
 	err = provider.SaveSession(ctx, session)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	session, err = provider.GetSession(ctx)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t,
 		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true, WebauthnUserVerified: true},
@@ -274,10 +273,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	session.SetTwoFactorTOTP(timeTwoFactor)
 
 	err = provider.SaveSession(ctx, session)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	session, err = provider.GetSession(ctx)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t,
 		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, TOTP: true, Webauthn: true, WebauthnUserVerified: true},
@@ -286,10 +285,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	session.SetTwoFactorTOTP(timeTwoFactor)
 
 	err = provider.SaveSession(ctx, session)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	session, err = provider.GetSession(ctx)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t,
 		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, TOTP: true, Webauthn: true, WebauthnUserVerified: true},
@@ -299,27 +298,27 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 func TestShouldDestroySessionAndWipeSessionData(t *testing.T) {
 	ctx := &fasthttp.RequestCtx{}
 	domainSession, err := newTestSession()
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	session, err := domainSession.GetSession(ctx)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	session.Username = testUsername
 	session.AuthenticationLevel = authentication.TwoFactor
 
 	err = domainSession.SaveSession(ctx, session)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	newUserSession, err := domainSession.GetSession(ctx)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, testUsername, newUserSession.Username)
 	assert.Equal(t, authentication.TwoFactor, newUserSession.AuthenticationLevel)
 
 	err = domainSession.DestroySession(ctx)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	newUserSession, err = domainSession.GetSession(ctx)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, "", newUserSession.Username)
 	assert.Equal(t, authentication.NotAuthenticated, newUserSession.AuthenticationLevel)
 }
