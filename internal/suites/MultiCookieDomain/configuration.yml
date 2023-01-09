@@ -135,6 +135,48 @@ access_control:
       subject: "user:bob"
       policy: two_factor
 
+    # Third cookie domain
+    - domain: singlefactor.example3.com
+      policy: one_factor
+
+    - domain: public.example3.com
+      policy: bypass
+
+    - domain: secure.example3.com
+      policy: bypass
+      methods:
+        - OPTIONS
+
+    - domain: secure.example3.com
+      policy: two_factor
+
+    - domain: "*.example3.com"
+      subject: "group:admins"
+      policy: two_factor
+
+    - domain: dev.example3.com
+      resources:
+        - "^/users/john/.*$"
+      subject: "user:john"
+      policy: two_factor
+
+    - domain: dev.example3.com
+      resources:
+        - "^/users/harry/.*$"
+      subject: "user:harry"
+      policy: two_factor
+
+    - domain: "*.mail.example3.com"
+      subject: "user:bob"
+      policy: two_factor
+
+    - domain: dev.example3.com
+      resources:
+        - "^/users/bob/.*$"
+      subject: "user:bob"
+      policy: two_factor
+
+
 regulation:
   # Set it to 0 to disable max_retries.
   max_retries: 3
