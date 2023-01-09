@@ -689,13 +689,17 @@ session:
       ## Please read https://www.authelia.com/c/session#same_site
       # same_site: 'lax'
 
+      ## The time before the session cookie expires and the session is destroyed if remember me IS NOT selected by the
+      ## user.
+      # expiration: '1h'
+
       ## The inactivity time before the session is reset. If expiration is set to 1h, and this is set to 5m, if the user
       ## does not select the remember me option their session will get destroyed after 1h, or after 5m since the last
       ## time Authelia detected user activity.
-      # inactivity: 5m
+      # inactivity: '5m'
 
       ## The time before the cookie expires and the session is destroyed if remember me IS selected by the user.
-      # remember_me: 1M
+      # remember_me: '1M'
 
       ## Disable remember me.
       # disable_remember_me: false
@@ -719,11 +723,11 @@ session:
   ## Cookie Session Domain Default Value. The inactivity time before the session is reset. If expiration is set to 1h,
   ## and this is set to 5m, if the user does not select the remember me option their session will get destroyed after
   ## 1h, or after 5m since the last time Authelia detected user activity.
-  inactivity: 5m
+  inactivity: '5m'
 
   ## Cookie Session Domain Default Value. The time before the cookie expires and the session is destroyed if remember me
-  ## IS selected by the user. Value of -1 disables remember me.
-  remember_me: 1M
+  ## IS selected by the user.
+  remember_me: '1M'
 
   ##
   ## Redis Provider
