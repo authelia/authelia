@@ -15,11 +15,11 @@ type MultiCookieDomainSuite struct {
 }
 
 func (s *MultiCookieDomainSuite) TestMultiCookieDomainFirstDomainScenario() {
-	suite.Run(s.T(), NewMultiCookieDomainScenario(BaseDomain, Example2Com, true))
+	suite.Run(s.T(), NewMultiCookieDomainScenario(BaseDomain, Example2DotCom, true))
 }
 
 func (s *MultiCookieDomainSuite) TestMultiCookieDomainSecondDomainScenario() {
-	suite.Run(s.T(), NewMultiCookieDomainScenario(Example2Com, BaseDomain, false))
+	suite.Run(s.T(), NewMultiCookieDomainScenario(Example2DotCom, BaseDomain, false))
 }
 
 func TestMultiCookieDomainSuite(t *testing.T) {

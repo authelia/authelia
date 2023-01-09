@@ -8,9 +8,10 @@ import (
 )
 
 // BaseDomain the base domain.
-var BaseDomain = "example.com:8080"
-
-var Example2Com = "example2.com:8080"
+var (
+	BaseDomain     = "example.com:8080"
+	Example2DotCom = "example2.com:8080"
+)
 
 // PathPrefix the prefix/url_base of the login portal.
 var PathPrefix = os.Getenv("PathPrefix")
