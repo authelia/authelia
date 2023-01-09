@@ -22,6 +22,10 @@ func (s *MultiCookieDomainSuite) TestMultiCookieDomainSecondDomainScenario() {
 	suite.Run(s.T(), NewMultiCookieDomainScenario(Example2DotCom, BaseDomain, false))
 }
 
+func (s *MultiCookieDomainSuite) TestMultiCookieDomainThirdDomainScenario() {
+	suite.Run(s.T(), NewMultiCookieDomainScenario(BaseDomain, Example3DotCom, true))
+}
+
 func TestMultiCookieDomainSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")

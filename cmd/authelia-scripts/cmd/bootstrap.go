@@ -127,6 +127,17 @@ var hostEntries = []HostEntry{
 	{Domain: "secure.example2.com", IP: "192.168.240.100"},
 	{Domain: "mail.example2.com", IP: "192.168.240.100"},
 	{Domain: "duo.example2.com", IP: "192.168.240.100"},
+	{Domain: "login.example3.com", IP: "192.168.240.100"},
+	{Domain: "admin.example3.com", IP: "192.168.240.100"},
+	{Domain: "singlefactor.example3.com", IP: "192.168.240.100"},
+	{Domain: "dev.example3.com", IP: "192.168.240.100"},
+	{Domain: "home.example3.com", IP: "192.168.240.100"},
+	{Domain: "mx1.mail.example3.com", IP: "192.168.240.100"},
+	{Domain: "mx2.mail.example3.com", IP: "192.168.240.100"},
+	{Domain: "public.example3.com", IP: "192.168.240.100"},
+	{Domain: "secure.example3.com", IP: "192.168.240.100"},
+	{Domain: "mail.example3.com", IP: "192.168.240.100"},
+	{Domain: "duo.example3.com", IP: "192.168.240.100"},
 }
 
 func runCommand(cmd string, args ...string) {

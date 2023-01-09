@@ -37,9 +37,9 @@ session:
       domain: 'example2.com'
       portal_url: 'https://login.example2.com'
       disable_remember_me: true
-    - name: 'not_authelia_session'
+    - name: 'authelia_session'
       domain: 'example3.com'
-      portal_url: 'https://example3.com/auth'
+      portal_url: 'https://login.example3.com'
 
 storage:
   encryption_key: a_not_so_secure_encryption_key
