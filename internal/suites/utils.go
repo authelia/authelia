@@ -177,7 +177,7 @@ func generateDevEnvFile(opts map[string]string) error {
 
 // updateDevEnvFileForDomain updates web/.env.development.
 // this function only affects local dev environments.
-func updateDevEnvFileForDomain(domain string) error {
+func updateDevEnvFileForDomain(domain string, setup bool) error {
 	if os.Getenv("CI") == "true" {
 		return nil
 	}
@@ -192,9 +192,11 @@ func updateDevEnvFileForDomain(domain string) error {
 		return err
 	}
 
-	err = waitUntilAutheliaFrontendIsReady(multiCookieDomainDockerEnvironment)
-	if err != nil {
-		return err
+	if !setup {
+		err = waitUntilAutheliaFrontendIsReady(multiCookieDomainDockerEnvironment)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

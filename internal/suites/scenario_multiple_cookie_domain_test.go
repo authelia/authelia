@@ -34,7 +34,7 @@ func (s *MultiCookieDomainScenario) SetupSuite() {
 
 	s.RodSession = browser
 
-	err = updateDevEnvFileForDomain(s.domain)
+	err = updateDevEnvFileForDomain(s.domain, false)
 	s.Require().NoError(err)
 }
 

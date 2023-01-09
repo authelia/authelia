@@ -19,21 +19,17 @@ func init() {
 	})
 
 	setup := func(suitePath string) error {
-		if err := dockerEnvironment.Up(); err != nil {
-			return err
-		}
-
-		err := waitUntilAutheliaIsReady(dockerEnvironment, dockerSuiteName)
+		err := dockerEnvironment.Up()
 		if err != nil {
 			return err
 		}
 
-		err = updateDevEnvFileForDomain(BaseDomain)
+		err = waitUntilAutheliaIsReady(dockerEnvironment, dockerSuiteName)
 		if err != nil {
 			return err
 		}
 
-		return nil
+		return updateDevEnvFileForDomain(BaseDomain, true)
 	}
 
 	displayAutheliaLogs := func() error {

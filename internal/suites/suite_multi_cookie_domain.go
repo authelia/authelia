@@ -35,16 +35,12 @@ func init() {
 	}
 
 	setup := func(suitePath string) error {
-		if err := multiCookieDomainDockerEnvironment.Up(); err != nil {
-			return err
-		}
-
-		err := waitUntilAutheliaIsReady(multiCookieDomainDockerEnvironment, multiCookieDomainSuiteName)
+		err := multiCookieDomainDockerEnvironment.Up()
 		if err != nil {
 			return err
 		}
 
-		return nil
+		return waitUntilAutheliaIsReady(multiCookieDomainDockerEnvironment, multiCookieDomainSuiteName)
 	}
 
 	displayAutheliaLogs := func() error {
