@@ -26,7 +26,7 @@
     "@fortawesome/free-solid-svg-icons": "6.2.1",
     "@fortawesome/react-fontawesome": "0.2.0",
     "@mui/icons-material": "5.11.0",
-    "@mui/material": "5.11.3",
+    "@mui/material": "5.11.4",
     "@mui/styles": "5.11.2",
     "axios": "1.2.2",
     "broadcast-channel": "4.20.1",
@@ -39,7 +39,7 @@
     "react-dom": "18.2.0",
     "react-i18next": "12.1.4",
     "react-loading": "2.0.3",
-    "react-router-dom": "6.6.1",
+    "react-router-dom": "6.6.2",
     "react18-input-otp": "1.1.2",
     "zxcvbn": "4.4.2"
   },
@@ -142,7 +142,7 @@
     ]
   },
   "devDependencies": {
-    "@commitlint/cli": "17.4.0",
+    "@commitlint/cli": "17.4.1",
     "@commitlint/config-conventional": "17.4.0",
     "@limegrass/eslint-plugin-import-alias": "1.0.6",
     "@testing-library/jest-dom": "5.16.5",
@@ -156,7 +156,7 @@
     "@typescript-eslint/eslint-plugin": "5.48.0",
     "@typescript-eslint/parser": "5.48.0",
     "@vitejs/plugin-react": "3.0.1",
-    "esbuild": "0.16.15",
+    "esbuild": "0.16.16",
     "esbuild-jest": "0.5.0",
     "eslint": "8.31.0",
     "eslint-config-prettier": "8.6.0",
