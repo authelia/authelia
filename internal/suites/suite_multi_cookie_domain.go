@@ -2,7 +2,6 @@ package suites
 
 import (
 	"fmt"
-	"os"
 	"time"
 )
 
@@ -19,17 +18,6 @@ var multiCookieDomainDockerEnvironment = NewDockerEnvironment([]string{
 })
 
 func init() {
-	if os.Getenv("CI") == t {
-		multiCookieDomainDockerEnvironment = NewDockerEnvironment([]string{
-			"internal/suites/docker-compose.yml",
-			"internal/suites/MultiCookieDomain/docker-compose.yml",
-			"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
-			"internal/suites/example/compose/nginx/backend/docker-compose.yml",
-			"internal/suites/example/compose/nginx/portal/docker-compose.yml",
-			"internal/suites/example/compose/smtp/docker-compose.yml",
-		})
-	}
-
 	setup := func(suitePath string) error {
 		err := multiCookieDomainDockerEnvironment.Up()
 		if err != nil {

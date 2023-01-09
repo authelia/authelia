@@ -6,5 +6,4 @@ services:
       - './MultiCookieDomain/configuration.yml:/config/configuration.yml:ro'
       - './MultiCookieDomain/users.yml:/config/users.yml'
       - './common/ssl:/config/ssl:ro'
-    user: ${USER_ID}:${GROUP_ID}
 ...

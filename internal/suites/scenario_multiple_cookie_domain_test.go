@@ -114,7 +114,7 @@ func (s *MultiCookieDomainScenario) TestShouldKeepLoggedInOnNextDomaninWhenLogge
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", s.remember, s.domain, firstDomainTargetURL)
 	s.verifySecretAuthorized(s.T(), s.Page)
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", s.remember, s.nextDomain, nextDomainTargetURL)
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", !s.remember, s.nextDomain, nextDomainTargetURL)
 	s.verifySecretAuthorized(s.T(), s.Page)
 
 	s.doVisit(s.T(), s.Page, fmt.Sprintf("%s%s", GetLoginBaseURL(s.domain), "/logout"))
