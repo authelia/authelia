@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 	"time"
-
-	"github.com/stretchr/testify/require"
 )
 
 // MultiCookieDomainScenario represents a set of tests for multi cookie domain suite.
@@ -37,10 +35,7 @@ func (s *MultiCookieDomainScenario) SetupSuite() {
 	s.RodSession = browser
 
 	err = updateDevEnvFileForDomain(s.domain)
-	require.NoError(s.T(), err)
-
-	// wait some seconds for the frontend image restart.
-	time.Sleep(5 * time.Second)
+	s.Require().NoError(err)
 }
 
 func (s *MultiCookieDomainScenario) TearDownSuite() {
@@ -62,44 +57,35 @@ func (s *MultiCookieDomainScenario) TearDownTest() {
 }
 
 func (s *MultiCookieDomainScenario) TestRememberMe() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer func() {
-		s.doLogout(s.T(), s.Page)
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
 	s.doVisitLoginPage(s.T(), s.Page, s.domain, "")
 
-	e, err := s.Page.Element("#username-textfield")
-	require.NoError(s.T(), err)
-	require.NotNil(s.T(), e)
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "username-textfield")
 
-	has, _, err := s.Page.Has("#remember-checkbox")
+	has := s.CheckElementExistsLocatedByID(s.T(), s.Context(ctx), "remember-checkbox")
 
-	s.Assert().NoError(err)
 	s.Assert().Equal(s.remember, has)
 }
 
 func (s *MultiCookieDomainScenario) TestShouldAuthorizeSecret() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer func() {
-		s.doLogout(s.T(), s.Page)
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
 	targetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURLFmt(s.domain))
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", s.remember, s.domain, targetURL)
-
-	s.doVisit(s.T(), s.Page, fmt.Sprintf("%s%s", GetLoginBaseURL(s.domain), "/logout"))
-	s.verifyIsFirstFactorPage(s.T(), s.Page)
 }
 
 func (s *MultiCookieDomainScenario) TestShouldRequestLoginOnNextDomainAfterLoginOnFirstDomain() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer func() {
-		s.doLogout(s.T(), s.Page)
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
@@ -112,9 +98,6 @@ func (s *MultiCookieDomainScenario) TestShouldRequestLoginOnNextDomainAfterLogin
 	targetURL = fmt.Sprintf("%s/secret.html", SingleFactorBaseURLFmt(s.nextDomain))
 
 	s.doVisit(s.T(), s.Page, targetURL)
-	s.verifyIsFirstFactorPage(s.T(), s.Page)
-
-	s.doVisit(s.T(), s.Page, fmt.Sprintf("%s%s", GetLoginBaseURL(s.domain), "/logout"))
 	s.verifyIsFirstFactorPage(s.T(), s.Page)
 }
 

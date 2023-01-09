@@ -192,5 +192,10 @@ func updateDevEnvFileForDomain(domain string) error {
 		return err
 	}
 
+	err = waitUntilAutheliaFrontendIsReady(multiCookieDomainDockerEnvironment)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

@@ -8,32 +8,38 @@ import (
 
 var multiCookieDomainSuiteName = "MultiCookieDomain"
 
+var multiCookieDomainDockerEnvironment = NewDockerEnvironment([]string{
+	"internal/suites/docker-compose.yml",
+	"internal/suites/MultiCookieDomain/docker-compose.yml",
+	"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
+	"internal/suites/example/compose/authelia/docker-compose.frontend.{}.yml",
+	"internal/suites/example/compose/nginx/backend/docker-compose.yml",
+	"internal/suites/example/compose/nginx/portal/docker-compose.yml",
+	"internal/suites/example/compose/smtp/docker-compose.yml",
+})
+
 func init() {
 	_ = os.MkdirAll("/tmp/authelia/MultiCookieDomainSuite/", 0700)
 	_ = os.WriteFile("/tmp/authelia/MultiCookieDomainSuite/jwt", []byte("very_important_secret"), 0600)       //nolint:gosec
 	_ = os.WriteFile("/tmp/authelia/MultiCookieDomainSuite/session", []byte("unsecure_session_secret"), 0600) //nolint:gosec
 
-	dockerEnvironment := NewDockerEnvironment([]string{
-		"internal/suites/docker-compose.yml",
-		"internal/suites/MultiCookieDomain/docker-compose.yml",
-		"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
-		"internal/suites/example/compose/authelia/docker-compose.frontend.{}.yml",
-		"internal/suites/example/compose/nginx/backend/docker-compose.yml",
-		"internal/suites/example/compose/nginx/portal/docker-compose.yml",
-		"internal/suites/example/compose/smtp/docker-compose.yml",
-	})
+	if os.Getenv("CI") == t {
+		multiCookieDomainDockerEnvironment = NewDockerEnvironment([]string{
+			"internal/suites/docker-compose.yml",
+			"internal/suites/MultiCookieDomain/docker-compose.yml",
+			"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
+			"internal/suites/example/compose/nginx/backend/docker-compose.yml",
+			"internal/suites/example/compose/nginx/portal/docker-compose.yml",
+			"internal/suites/example/compose/smtp/docker-compose.yml",
+		})
+	}
 
 	setup := func(suitePath string) error {
-		if err := dockerEnvironment.Up(); err != nil {
+		if err := multiCookieDomainDockerEnvironment.Up(); err != nil {
 			return err
 		}
 
-		err := waitUntilAutheliaIsReady(dockerEnvironment, multiCookieDomainSuiteName)
-		if err != nil {
-			return err
-		}
-
-		err = updateDevEnvFileForDomain(BaseDomain)
+		err := waitUntilAutheliaIsReady(multiCookieDomainDockerEnvironment, multiCookieDomainSuiteName)
 		if err != nil {
 			return err
 		}
@@ -42,14 +48,14 @@ func init() {
 	}
 
 	displayAutheliaLogs := func() error {
-		backendLogs, err := dockerEnvironment.Logs("authelia-backend", nil)
+		backendLogs, err := multiCookieDomainDockerEnvironment.Logs("authelia-backend", nil)
 		if err != nil {
 			return err
 		}
 
 		fmt.Println(backendLogs)
 
-		frontendLogs, err := dockerEnvironment.Logs("authelia-frontend", nil)
+		frontendLogs, err := multiCookieDomainDockerEnvironment.Logs("authelia-frontend", nil)
 		if err != nil {
 			return err
 		}
@@ -60,7 +66,7 @@ func init() {
 	}
 
 	teardown := func(suitePath string) error {
-		err := dockerEnvironment.Down()
+		err := multiCookieDomainDockerEnvironment.Down()
 		_ = os.Remove("/tmp/db.sqlite3")
 
 		return err
