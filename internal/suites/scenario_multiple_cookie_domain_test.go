@@ -117,3 +117,26 @@ func (s *MultiCookieDomainScenario) TestShouldRequestLoginOnNextDomainAfterLogin
 	s.doVisit(s.T(), s.Page, fmt.Sprintf("%s%s", GetLoginBaseURL(s.domain), "/logout"))
 	s.verifyIsFirstFactorPage(s.T(), s.Page)
 }
+
+func (s *MultiCookieDomainScenario) TestShouldKeepLoggedInOnNextDomaninWhenLoggedOffOnFirstDomain() {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
+	firstDomainTargetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURLFmt(s.domain))
+	nextDomainTargetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURLFmt(s.nextDomain))
+
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", s.remember, s.domain, firstDomainTargetURL)
+	s.verifySecretAuthorized(s.T(), s.Page)
+
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", s.remember, s.nextDomain, nextDomainTargetURL)
+	s.verifySecretAuthorized(s.T(), s.Page)
+
+	s.doVisit(s.T(), s.Page, fmt.Sprintf("%s%s", GetLoginBaseURL(s.domain), "/logout"))
+	s.verifyIsFirstFactorPage(s.T(), s.Page)
+
+	s.doVisit(s.T(), s.Page, nextDomainTargetURL)
+	s.verifySecretAuthorized(s.T(), s.Page)
+}
