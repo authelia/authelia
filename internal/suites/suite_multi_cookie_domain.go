@@ -19,10 +19,6 @@ var multiCookieDomainDockerEnvironment = NewDockerEnvironment([]string{
 })
 
 func init() {
-	_ = os.MkdirAll("/tmp/authelia/MultiCookieDomainSuite/", 0700)
-	_ = os.WriteFile("/tmp/authelia/MultiCookieDomainSuite/jwt", []byte("very_important_secret"), 0600)       //nolint:gosec
-	_ = os.WriteFile("/tmp/authelia/MultiCookieDomainSuite/session", []byte("unsecure_session_secret"), 0600) //nolint:gosec
-
 	if os.Getenv("CI") == t {
 		multiCookieDomainDockerEnvironment = NewDockerEnvironment([]string{
 			"internal/suites/docker-compose.yml",
@@ -63,8 +59,6 @@ func init() {
 
 	teardown := func(suitePath string) error {
 		err := multiCookieDomainDockerEnvironment.Down()
-		_ = os.Remove("/tmp/db.sqlite3")
-
 		return err
 	}
 

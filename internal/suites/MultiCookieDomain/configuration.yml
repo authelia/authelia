@@ -3,6 +3,7 @@
 #                Authelia minimal configuration               #
 ###############################################################
 
+jwt_secret: unsecure_secret
 theme: auto
 
 server:
@@ -24,6 +25,7 @@ authentication_backend:
     path: /config/users.yml
 
 session:
+  secret: unsecure_session_secret
   expiration: 3600
   inactivity: 300
   remember_me: 1y
@@ -42,7 +44,7 @@ session:
 storage:
   encryption_key: a_not_so_secure_encryption_key
   local:
-    path: /tmp/db.sqlite3
+    path: /config/db.sqlite
 
 totp:
   issuer: example.com
