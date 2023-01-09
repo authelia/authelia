@@ -271,8 +271,7 @@ func TestShouldUseEncryptingSerializerWithRedis(t *testing.T) {
 	}
 	providerConfig := NewProviderConfig(configuration, nil)
 
-	payload := session.Dict{}
-	payload.Set("key", "value")
+	payload := session.Dict{KV: map[string]interface{}{"key": "value"}}
 
 	encoded, err := providerConfig.config.EncodeFunc(payload)
 	require.NoError(t, err)
@@ -284,5 +283,5 @@ func TestShouldUseEncryptingSerializerWithRedis(t *testing.T) {
 
 	decoded := session.Dict{}
 	_, _ = decoded.UnmarshalMsg(decrypted)
-	assert.Equal(t, "value", decoded.Get("key"))
+	assert.Equal(t, "value", decoded.KV["key"])
 }
