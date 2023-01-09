@@ -23,7 +23,7 @@ func (s *MultiCookieDomainSuite) TestMultiCookieDomainSecondDomainScenario() {
 }
 
 func (s *MultiCookieDomainSuite) TestMultiCookieDomainThirdDomainScenario() {
-	suite.Run(s.T(), NewMultiCookieDomainScenario(BaseDomain, Example3DotCom, true))
+	suite.Run(s.T(), NewMultiCookieDomainScenario(Example3DotCom, BaseDomain, true))
 }
 
 func TestMultiCookieDomainSuite(t *testing.T) {
