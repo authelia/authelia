@@ -1,7 +1,7 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@commitlint/cli': 17.4.0
+  '@commitlint/cli': 17.4.1
   '@commitlint/config-conventional': 17.4.0
   '@emotion/cache': 11.10.5
   '@emotion/react': 11.10.5
@@ -92,7 +92,7 @@ dependencies:
   zxcvbn: 4.4.2
 
 devDependencies:
-  '@commitlint/cli': 17.4.0_@types+node@18.11.18
+  '@commitlint/cli': 17.4.1
   '@commitlint/config-conventional': 17.4.0
   '@limegrass/eslint-plugin-import-alias': 1.0.6_eslint@8.31.0
   '@testing-library/jest-dom': 5.16.5
@@ -2110,14 +2110,14 @@ packages:
       minimist: 1.2.6
     dev: true
 
-  /@commitlint/cli/17.4.0_@types+node@18.11.18:
-    resolution: {integrity: sha512-SEY4sYe8yVlgxPP7X0wJb96DBAGBPsCsy6QbqJt/UECbIAjDeDV5xXBV4jnS7T/qMC10sk6Ub9kDhEX0VWvblw==}
+  /@commitlint/cli/17.4.1:
+    resolution: {integrity: sha512-W8OJwz+izY+fVwyUt1HveCDmABMZNRVZHSVPw/Bh9Y62tp11SmmQaycgbsYLMiMy7JGn4mAJqEGlSHS9Uti9ZQ==}
     engines: {node: '>=v14'}
     hasBin: true
     dependencies:
       '@commitlint/format': 17.4.0
       '@commitlint/lint': 17.4.0
-      '@commitlint/load': 17.4.0_@types+node@18.11.18
+      '@commitlint/load': 17.4.1
       '@commitlint/read': 17.4.0
       '@commitlint/types': 17.4.0
       execa: 5.1.1
@@ -2128,7 +2128,6 @@ packages:
     transitivePeerDependencies:
       - '@swc/core'
       - '@swc/wasm'
-      - '@types/node'
     dev: true
 
   /@commitlint/config-conventional/17.4.0:
@@ -2189,14 +2188,15 @@ packages:
       '@commitlint/types': 17.4.0
     dev: true
 
-  /@commitlint/load/17.4.0_@types+node@18.11.18:
-    resolution: {integrity: sha512-wDKNvAJqukqZqKmhRlf3KNo/12QGo1AQcd80EbV01SxtGvyHOsJ/g+/IbrZpopZv8rvzmEVktcpfDYH6ITepFA==}
+  /@commitlint/load/17.4.1:
+    resolution: {integrity: sha512-6A7/LhIaQpL4ieciIDcVvK2d5z/UI1GBrtDaHm6sQSCL0265clB2/F7XKQNTJHXv9yG4LByT2r+QCpM4GugIfw==}
     engines: {node: '>=v14'}
     dependencies:
       '@commitlint/config-validator': 17.4.0
       '@commitlint/execute-rule': 17.4.0
       '@commitlint/resolve-extends': 17.4.0
       '@commitlint/types': 17.4.0
+      '@types/node': 18.11.18
       chalk: 4.1.2
       cosmiconfig: 8.0.0
       cosmiconfig-typescript-loader: 4.0.0_ubnk2r5xvemv3ydnuibh5f2mpu
@@ -2209,7 +2209,6 @@ packages:
     transitivePeerDependencies:
       - '@swc/core'
       - '@swc/wasm'
-      - '@types/node'
     dev: true
 
   /@commitlint/message/17.4.0:
