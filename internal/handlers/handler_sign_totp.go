@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"fmt"
-
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/regulation"
 )
@@ -69,8 +67,6 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 		return
 	}
-
-	fmt.Println("success")
 
 	userSession.SetTwoFactorTOTP(ctx.Clock.Now())
 
