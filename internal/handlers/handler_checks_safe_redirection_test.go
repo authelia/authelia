@@ -3,7 +3,7 @@ package handlers
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -67,7 +67,7 @@ func TestCheckSafeRedirection(t *testing.T) {
 
 			CheckSafeRedirectionPOST(mock.Ctx)
 
-			require.Equal(t, tc.expected, mock.Ctx.Response.StatusCode())
+			assert.Equal(t, tc.expected, mock.Ctx.Response.StatusCode())
 
 			if tc.expected == fasthttp.StatusOK {
 				mock.Assert200OK(t, checkURIWithinDomainResponseBody{
