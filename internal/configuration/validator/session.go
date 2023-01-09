@@ -113,7 +113,7 @@ func validateSessionDomains(config *schema.SessionConfiguration, validator *sche
 		}
 
 		if d.RememberMe <= 0 && !d.DisableRememberMe {
-			if !config.DisableRememberMe {
+			if config.RememberMe != schema.RememberMeDisabled {
 				config.Cookies[i].RememberMe = config.RememberMe
 			} else {
 				config.Cookies[i].RememberMe = schema.DefaultSessionConfiguration.RememberMe

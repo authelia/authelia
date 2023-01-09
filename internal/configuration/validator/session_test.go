@@ -41,23 +41,30 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 	testCases := []struct {
 		name     string
 		have     schema.SessionConfiguration
-		expected schema.SessionCookieConfiguration
-		errs     int
+		expected schema.SessionConfiguration
+		errs     []string
 	}{
 		{
 			"ShouldSetGoodDefaultValues",
 			schema.SessionConfiguration{
 				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-					SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
+					Domain: exampleDotCom, SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
 				},
 			},
-			schema.SessionCookieConfiguration{
+			schema.SessionConfiguration{
 				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-					Name: "authelia_session", Domain: exampleDotCom, SameSite: "lax", Expiration: time.Hour,
-					Inactivity: time.Minute, RememberMe: time.Hour * 2,
+					Name: "authelia_session", Domain: exampleDotCom, SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
+				},
+				Cookies: []schema.SessionCookieConfiguration{
+					{
+						SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+							Name: "authelia_session", Domain: exampleDotCom, SameSite: "lax", Expiration: time.Hour,
+							Inactivity: time.Minute, RememberMe: time.Hour * 2,
+						},
+					},
 				},
 			},
-			0,
+			nil,
 		},
 		{
 			"ShouldNotSetBadDefaultValues",
@@ -65,14 +72,73 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
 					SameSite: "BAD VALUE", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
 				},
-			},
-			schema.SessionCookieConfiguration{
-				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-					Name: "authelia_session", Domain: exampleDotCom, SameSite: schema.DefaultSessionConfiguration.SameSite,
-					Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
+				Cookies: []schema.SessionCookieConfiguration{
+					{
+						SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+							Name: "authelia_session", Domain: exampleDotCom,
+							Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
+						},
+					},
 				},
 			},
-			1,
+			schema.SessionConfiguration{
+				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+					Name: "authelia_session", SameSite: "BAD VALUE", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
+				},
+				Cookies: []schema.SessionCookieConfiguration{
+					{
+						SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+							Name: "authelia_session", Domain: exampleDotCom, SameSite: schema.DefaultSessionConfiguration.SameSite,
+							Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
+						},
+					},
+				},
+			},
+			[]string{
+				"session: option 'same_site' must be one of 'none', 'lax', 'strict' but is configured as 'BAD VALUE'",
+			},
+		},
+		{
+			"ShouldSetDefaultValuesForEachConfig",
+			schema.SessionConfiguration{
+				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+					Name: "default_session", SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute,
+					RememberMe: schema.RememberMeDisabled,
+				},
+				Cookies: []schema.SessionCookieConfiguration{
+					{
+						SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+							Domain: exampleDotCom,
+						},
+					},
+					{
+						SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+							Domain: "example2.com", Name: "authelia_session", SameSite: "strict",
+						},
+					},
+				},
+			},
+			schema.SessionConfiguration{
+				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+					Name: "default_session", SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute,
+					RememberMe: schema.RememberMeDisabled, DisableRememberMe: true,
+				},
+				Cookies: []schema.SessionCookieConfiguration{
+					{
+						SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+							Name: "default_session", Domain: exampleDotCom, SameSite: "lax",
+							Expiration: time.Hour, Inactivity: time.Minute, RememberMe: schema.DefaultSessionConfiguration.RememberMe,
+						},
+					},
+					{
+						SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+							Name: "authelia_session", Domain: "example2.com", SameSite: "strict",
+							Expiration: time.Hour, Inactivity: time.Minute, RememberMe: schema.DefaultSessionConfiguration.RememberMe,
+						},
+					},
+				},
+			},
+			nil,
 		},
 	}
 
@@ -84,21 +150,18 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 
 			have := tc.have
 
-			have.Cookies = []schema.SessionCookieConfiguration{
-				{
-					SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-						Domain: exampleDotCom,
-					},
-				},
-			}
-
 			ValidateSession(&have, validator)
 
 			assert.Len(t, validator.Warnings(), 0)
-			assert.Len(t, validator.Errors(), tc.errs)
 
-			require.Len(t, have.Cookies, 1)
-			assert.Equal(t, tc.expected, have.Cookies[0])
+			errs := validator.Errors()
+			require.Len(t, validator.Errors(), len(tc.errs))
+
+			for i, err := range errs {
+				assert.EqualError(t, err, tc.errs[i])
+			}
+
+			assert.Equal(t, tc.expected, have)
 		})
 	}
 }
