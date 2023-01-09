@@ -91,14 +91,13 @@ func (s *MultiCookieDomainScenario) TestShouldRequestLoginOnNextDomainAfterLogin
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	targetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURLFmt(s.domain))
+	firstDomainTargetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURLFmt(s.domain))
+	nextDomainTargetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURLFmt(s.nextDomain))
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", s.remember, s.domain, targetURL)
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", s.remember, s.domain, firstDomainTargetURL)
 	s.verifySecretAuthorized(s.T(), s.Page)
 
-	targetURL = fmt.Sprintf("%s/secret.html", SingleFactorBaseURLFmt(s.nextDomain))
-
-	s.doVisit(s.T(), s.Page, targetURL)
+	s.doVisit(s.T(), s.Page, nextDomainTargetURL)
 	s.verifyIsFirstFactorPage(s.T(), s.Page)
 }
 
