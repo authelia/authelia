@@ -127,7 +127,7 @@ func getDomainEnvInfo(domain string) (map[string]string, error) {
 		err  error
 	)
 
-	targetURL := LoginBaseURLFmt(domain) + "/override"
+	targetURL := LoginBaseURLFmt(domain) + "/devworkflow"
 
 	if req, err = http.NewRequest(http.MethodGet, targetURL, nil); err != nil {
 		return info, err

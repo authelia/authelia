@@ -101,7 +101,7 @@ func (s *MultiCookieDomainScenario) TestShouldRequestLoginOnNextDomainAfterLogin
 	s.verifyIsFirstFactorPage(s.T(), s.Page)
 }
 
-func (s *MultiCookieDomainScenario) TestShouldKeepLoggedInOnNextDomaninWhenLoggedOffOnFirstDomain() {
+func (s *MultiCookieDomainScenario) TestShouldStayLoggedInOnNextDomainWhenLoggedOffOnFirstDomain() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer func() {
 		cancel()
@@ -113,6 +113,9 @@ func (s *MultiCookieDomainScenario) TestShouldKeepLoggedInOnNextDomaninWhenLogge
 
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", s.remember, s.domain, firstDomainTargetURL)
 	s.verifySecretAuthorized(s.T(), s.Page)
+
+	err := updateDevEnvFileForDomain(s.nextDomain, false)
+	s.Require().NoError(err)
 
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", !s.remember, s.nextDomain, nextDomainTargetURL)
 	s.verifySecretAuthorized(s.T(), s.Page)
