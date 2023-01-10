@@ -25,13 +25,21 @@ authenticated user and can then order the reverse proxy to let the request pass 
 
 ```yaml
 session:
+  secret: insecure_session_secret
+
   name: authelia_session
-  domain: example.com
   same_site: lax
-  secret: unsecure_session_secret
-  expiration: 1h
   inactivity: 5m
-  remember_me:  1M
+  expiration: 1h
+  remember_me: 1M
+
+  cookies:
+    - name: authelia_session
+      domain: example.com
+      same_site: lax
+      inactivity: 5m
+      expiration: 1h
+      remember_me: 1d
 ```
 
 ## Providers
@@ -50,34 +58,6 @@ providers are recommended.
 
 ## Options
 
-### name
-
-{{< confkey type="string" default="authelia_session" required="no" >}}
-
-The name of the session cookie. By default this is set to authelia_session. It's mostly useful to change this if you are
-doing development or running multiple instances of Authelia.
-
-### domain
-
-{{< confkey type="string" required="yes" >}}
-
-The domain the cookie is assigned to protect. This must be the same as the domain Authelia is served on or the root
-of the domain. For example if listening on auth.example.com the cookie should be auth.example.com or example.com.
-
-### same_site
-
-{{< confkey type="string" default="lax" required="no" >}}
-
-Sets the cookies SameSite value. Prior to offering the configuration choice this defaulted to None. The new default is
-Lax. This option is defined in lower-case. So for example if you want to set it to `Strict`, the value in configuration
-needs to be `strict`.
-
-You can read about the SameSite cookie in detail on the
-[MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite). In short setting SameSite to Lax
-is generally the most desirable option for Authelia. None is not recommended unless you absolutely know what you're
-doing and trust all the protected apps. Strict is not going to work in many use cases and we have not tested it in this
-state but it's available as an option anyway.
-
 ### secret
 
 {{< confkey type="string" required="yes" >}}
@@ -91,6 +71,39 @@ It's __strongly recommended__ this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters.
 
+### domain
+
+{{< confkey type="string" required="no" >}}
+
+_**Deprecation Notice:** This option is deprecated. See the [cookies](#cookies) section instead._
+
+The domain the cookie is assigned to protect. This must be the same as the domain Authelia is served on or the root
+of the domain. For example if listening on auth.example.com the cookie should be auth.example.com or example.com.
+
+This value automatically maps to a single cookies configuration using the default values. It cannot be assigned at the
+same time as a `cookies` configuration.
+
+### name
+
+{{< confkey type="string" default="authelia_session" required="no" >}}
+
+The default `name` value for all [cookies](#cookies) configurations.
+
+### same_site
+
+{{< confkey type="string" default="lax" required="no" >}}
+
+The default `same_site` value for all `cookies` configurations.
+
+### inactivity
+
+{{< confkey type="duration" default="5m" required="no" >}}
+
+*__Note:__ This setting uses the [duration notation format](../prologue/common.md#duration-notation-format). Please see
+the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
+
+The default `inactivity` value for all [cookies](#cookies) configurations.
+
 ### expiration
 
 {{< confkey type="duration" default="1h" required="no" >}}
@@ -98,10 +111,64 @@ characters.
 *__Note:__ This setting uses the [duration notation format](../prologue/common.md#duration-notation-format). Please see
 the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
 
-The period of time before the cookie expires and the session is destroyed. This is overriden by
-[remember_me](#rememberme) when the remember me box is checked.
+The default `expiration` value for all [cookies](#cookies) configurations.
 
-### inactivity
+### remember_me
+
+{{< confkey type="duration" default="1M" required="no" >}}
+
+*__Note:__ This setting uses the [duration notation format](../prologue/common.md#duration-notation-format). Please see
+the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
+
+The default `remember_me` value for all [cookies](#cookies) configurations.
+
+### cookies
+
+#### name
+
+{{< confkey type="string" default="authelia_session" required="no" >}}
+
+The name of the session cookie. By default this is set to the `name` value in the mainsession configuration section.
+
+#### domain
+
+{{< confkey type="string" required="yes" >}}
+
+The domain the cookie is assigned to protect. This must be the same as the domain Authelia is served on or the root
+of the domain, and consequently if the [portal_url](#portal_url) is configured must be able to read and write cookies
+for the domain. For example if listening on `auth.example.com` the cookie should be either `auth.example.com` or
+`example.com`.
+
+Please note most good DynamicDNS solutions fall into a specially protected group of domains and browsers do not allow
+you to write cookies for the root domain. i.e. if you have been assigned `john.duckdns.org` you can't use `duckdns.org`
+for the domain value as browsers will not allow `john.duckdns.org` to read or write cookies for `duckdns.org`.
+
+Consequently, if you have `john.duckdns.org` and `mary.duckdns.org` you cannot share cookies between these domains.
+
+#### portal_url
+
+{{< confkey type="string" required="no" >}}
+
+This is a completely optional URL which is the root URL of your Authelia installation for this cookie domain which can
+be used to generate the appropriate redirection for proxies which support this (NGINX and HAProxy DO NOT support this).
+
+If this option is absent you must use the appropriate query parameter or header for your relevant proxy.
+
+#### same_site
+
+{{< confkey type="string" default="lax" required="no" >}}
+
+Sets the cookies SameSite value. Prior to offering the configuration choice this defaulted to None. The new default is
+Lax. This option is defined in lower-case. So for example if you want to set it to `Strict`, the value in configuration
+needs to be `strict`.
+
+You can read about the SameSite cookie in detail on the
+[MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite). In short setting SameSite to Lax
+is generally the most desirable option for Authelia. None is not recommended unless you absolutely know what you're
+doing and trust all the protected apps. Strict is not going to work in many use cases and we have not tested it in this
+state but it's available as an option anyway.
+
+#### inactivity
 
 {{< confkey type="duration" default="5m" required="no" >}}
 
@@ -111,7 +178,17 @@ the [common options](../prologue/common.md#duration-notation-format) documentati
 The period of time the user can be inactive for until the session is destroyed. Useful if you want long session timers
 but don't want unused devices to be vulnerable.
 
-### remember_me
+#### expiration
+
+{{< confkey type="duration" default="1h" required="no" >}}
+
+*__Note:__ This setting uses the [duration notation format](../prologue/common.md#duration-notation-format). Please see
+the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
+
+The period of time before the cookie expires and the session is destroyed. This is overriden by
+[remember_me](#rememberme) when the remember me box is checked.
+
+#### remember_me
 
 {{< confkey type="duration" default="1M" required="no" >}}
 
@@ -120,6 +197,12 @@ the [common options](../prologue/common.md#duration-notation-format) documentati
 
 The period of time before the cookie expires and the session is destroyed when the remember me box is checked. Setting
 this to `-1` disables this feature entirely.
+
+#### disable_remember_me
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+This completely disables the remember me option for this cookie domain.
 
 ## Security
 
