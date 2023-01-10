@@ -60,7 +60,7 @@ specifiers:
   typescript: 4.9.4
   vite: 4.0.4
   vite-plugin-eslint: 1.8.1
-  vite-plugin-istanbul: 3.0.4
+  vite-plugin-istanbul: 4.0.0
   vite-plugin-svgr: 2.4.0
   vite-tsconfig-paths: 4.0.3
   zxcvbn: 4.4.2
@@ -128,7 +128,7 @@ devDependencies:
   typescript: 4.9.4
   vite: 4.0.4_@types+node@18.11.18
   vite-plugin-eslint: 1.8.1_eslint@8.31.0+vite@4.0.4
-  vite-plugin-istanbul: 3.0.4
+  vite-plugin-istanbul: 4.0.0_vite@4.0.4
   vite-plugin-svgr: 2.4.0_vite@4.0.4
   vite-tsconfig-paths: 4.0.3_gl4qsmwzp7wy5uclz4tx77gbli
 
@@ -167,7 +167,7 @@ packages:
       '@babel/helper-compilation-targets': 7.20.0_@babel+core@7.18.6
       '@babel/helper-module-transforms': 7.20.2
       '@babel/helpers': 7.20.6
-      '@babel/parser': 7.20.5
+      '@babel/parser': 7.20.7
       '@babel/template': 7.18.10
       '@babel/traverse': 7.20.5
       '@babel/types': 7.20.5
@@ -531,14 +531,6 @@ packages:
       '@babel/helper-validator-identifier': 7.19.1
       chalk: 2.4.2
       js-tokens: 4.0.0
-
-  /@babel/parser/7.20.5:
-    resolution: {integrity: sha512-r27t/cy/m9uKLXQNWWebeCUHgnAZq0CpG1OwKRxzJMP1vpSU4bSIK2hq+/cp0bQxetkXx38n09rNu8jVkcK/zA==}
-    engines: {node: '>=6.0.0'}
-    hasBin: true
-    dependencies:
-      '@babel/types': 7.20.7
-    dev: true
 
   /@babel/parser/7.20.7:
     resolution: {integrity: sha512-T3Z9oHybU+0vZlY9CiDSJQTD5ZapcW18ZctFMi0MOAl/4BjFF4ul7NVSARLdbGO5vDqy9eQiGTV0LtKfvCYvcg==}
@@ -6626,7 +6618,7 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       '@babel/core': 7.20.12
-      '@babel/parser': 7.20.5
+      '@babel/parser': 7.20.7
       '@istanbuljs/schema': 0.1.3
       istanbul-lib-coverage: 3.2.0
       semver: 6.3.0
@@ -9338,13 +9330,16 @@ packages:
       vite: 4.0.4_@types+node@18.11.18
     dev: true
 
-  /vite-plugin-istanbul/3.0.4:
-    resolution: {integrity: sha512-DJy3cq6yOFbsM3gLQf/3zeuaJNJsfBv5dLFdZdv8sUV30xLtZI+66QeYfHUyP/5vBUYyLA+xNUCSG5uHY6w+5g==}
+  /vite-plugin-istanbul/4.0.0_vite@4.0.4:
+    resolution: {integrity: sha512-r5TUlEprFyp+L+by/waG1RsIMiqfy7LBAZvheFlXjxzm69146rHGW6bh9TDzXg7wJB6DsyjqKFtvAX50d/I/IQ==}
+    peerDependencies:
+      vite: '>=2.9.1 <= 5'
     dependencies:
       '@istanbuljs/load-nyc-config': 1.1.0
       istanbul-lib-instrument: 5.2.0
       picocolors: 1.0.0
       test-exclude: 6.0.0
+      vite: 4.0.4_@types+node@18.11.18
     transitivePeerDependencies:
       - supports-color
     dev: true
