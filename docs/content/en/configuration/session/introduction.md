@@ -124,6 +124,10 @@ The default `remember_me` value for all [cookies](#cookies) configurations.
 
 ### cookies
 
+The list of specific cookie domains that Authelia is configured to handle. Domains not properly configured will
+automatically be denied by Authelia. The list allows administrators to define multiple session cookie domain
+configurations with individual settings.
+
 #### name
 
 {{< confkey type="string" default="authelia_session" required="no" >}}
@@ -149,8 +153,12 @@ Consequently, if you have `john.duckdns.org` and `mary.duckdns.org` you cannot s
 
 {{< confkey type="string" required="no" >}}
 
+*__Note:__ The AuthRequest implementation does not support redirection control on the authorization server. This means
+that the `portal_url` option is ineffectual for both NGINX and HAProxy, or any other proxy which uses the AuthRequest
+implementation.*
+
 This is a completely optional URL which is the root URL of your Authelia installation for this cookie domain which can
-be used to generate the appropriate redirection for proxies which support this (NGINX and HAProxy DO NOT support this).
+be used to generate the appropriate redirection for proxies which support this.
 
 If this option is absent you must use the appropriate query parameter or header for your relevant proxy.
 
