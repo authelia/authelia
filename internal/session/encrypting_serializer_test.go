@@ -9,8 +9,7 @@ import (
 )
 
 func TestShouldEncryptAndDecrypt(t *testing.T) {
-	payload := session.Dict{}
-	payload.Set("key", "value")
+	payload := session.Dict{KV: map[string]interface{}{"key": "value"}}
 
 	dst, err := payload.MarshalMsg(nil)
 	require.NoError(t, err)
@@ -25,12 +24,11 @@ func TestShouldEncryptAndDecrypt(t *testing.T) {
 	err = serializer.Decode(&decodedPayload, encryptedDst)
 	require.NoError(t, err)
 
-	assert.Equal(t, "value", decodedPayload.Get("key"))
+	assert.Equal(t, "value", decodedPayload.KV["key"])
 }
 
 func TestShouldNotSupportUnencryptedSessionForBackwardCompatibility(t *testing.T) {
-	payload := session.Dict{}
-	payload.Set("key", "value")
+	payload := session.Dict{KV: map[string]interface{}{"key": "value"}}
 
 	dst, err := payload.MarshalMsg(nil)
 	require.NoError(t, err)

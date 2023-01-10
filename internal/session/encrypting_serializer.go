@@ -22,7 +22,7 @@ func NewEncryptingSerializer(secret string) *EncryptingSerializer {
 
 // Encode encode and encrypt session.
 func (e *EncryptingSerializer) Encode(src session.Dict) ([]byte, error) {
-	if len(src.D) == 0 {
+	if len(src.KV) == 0 {
 		return nil, nil
 	}
 
@@ -45,7 +45,9 @@ func (e *EncryptingSerializer) Decode(dst *session.Dict, src []byte) error {
 		return nil
 	}
 
-	dst.Reset()
+	for k := range dst.KV {
+		delete(dst.KV, k)
+	}
 
 	decryptedSrc, err := utils.Decrypt(src, &e.key)
 	if err != nil {
