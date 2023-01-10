@@ -70,7 +70,6 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 	validateSessionDomains(config, validator)
 }
 
-//nolint:gocyclo
 func validateSessionDomains(config *schema.SessionConfiguration, validator *schema.StructValidator) {
 	if len(config.Cookies) == 0 {
 		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "domain"))
@@ -79,70 +78,100 @@ func validateSessionDomains(config *schema.SessionConfiguration, validator *sche
 	domains := make([]string, 0)
 
 	for i, d := range config.Cookies {
-		validateDomainName(i, d, validator)
+		validateSessionDomainName(i, config, validator)
 
-		// Check the previous domains do not share a root domain.
-		if utils.IsStringInSliceF(d.Domain, domains, utils.HasDomainSuffix) {
-			if utils.IsStringInSlice(d.Domain, domains) {
-				validator.Push(fmt.Errorf(errFmtSessionDomainDuplicate, sessionDomainDescriptor(i, d)))
-			} else {
-				validator.Push(fmt.Errorf(errFmtSessionDomainDuplicateCookieScope, sessionDomainDescriptor(i, d)))
-			}
-		}
+		validateSessionUniqueCookieDomain(i, config, domains, validator)
 
-		if d.PortalURL != nil && d.Domain != "" && !utils.IsURISafeRedirection(d.PortalURL, d.Domain) {
-			if utils.IsURISecure(d.PortalURL) {
-				validator.Push(fmt.Errorf(errFmtSessionDomainPortalURLNotInCookieScope, sessionDomainDescriptor(i, d), d.Domain, d.PortalURL))
-			} else {
-				validator.Push(fmt.Errorf(errFmtSessionDomainPortalURLInsecure, sessionDomainDescriptor(i, d), d.PortalURL))
-			}
-		}
+		validateSessionCookieName(i, config)
+
+		validateSessionSafeRedirection(i, config, validator)
+
+		validateSessionExpiration(i, config)
+
+		validateSessionRememberMe(i, config)
+
+		validateSessionSameSite(i, config, validator)
 
 		domains = append(domains, d.Domain)
+	}
+}
 
-		if d.Name == "" {
-			config.Cookies[i].Name = config.Name
-		}
+// validateSessionDomainName returns error if the domain name is invalid.
+func validateSessionDomainName(index int, config *schema.SessionConfiguration, validator *schema.StructValidator) {
+	var d = config.Cookies[index]
 
-		if d.Expiration <= 0 {
-			config.Cookies[i].Expiration = config.Expiration
-		}
+	switch {
+	case d.Domain == "":
+		validator.Push(fmt.Errorf(errFmtSessionDomainRequired, sessionDomainDescriptor(index, d)))
+	case strings.HasPrefix(d.Domain, "*."):
+		validator.Push(fmt.Errorf(errFmtSessionDomainMustBeRoot, sessionDomainDescriptor(index, d), d.Domain))
+	case strings.HasPrefix(d.Domain, "."):
+		validator.PushWarning(fmt.Errorf(errFmtSessionDomainHasPeriodPrefix, sessionDomainDescriptor(index, d)))
+	case !reDomainCharacters.MatchString(d.Domain):
+		validator.Push(fmt.Errorf(errFmtSessionDomainInvalidDomain, sessionDomainDescriptor(index, d)))
+	}
+}
 
-		if d.Inactivity <= 0 {
-			config.Cookies[i].Inactivity = config.Inactivity
-		}
+func validateSessionCookieName(index int, config *schema.SessionConfiguration) {
+	if config.Cookies[index].Name == "" {
+		config.Cookies[index].Name = config.Name
+	}
+}
 
-		if d.RememberMe <= 0 && !d.DisableRememberMe {
-			if config.RememberMe != schema.RememberMeDisabled {
-				config.Cookies[i].RememberMe = config.RememberMe
-			} else {
-				config.Cookies[i].RememberMe = schema.DefaultSessionConfiguration.RememberMe
-			}
-		}
+func validateSessionExpiration(index int, config *schema.SessionConfiguration) {
+	if config.Cookies[index].Expiration <= 0 {
+		config.Cookies[index].Expiration = config.Expiration
+	}
 
-		if d.SameSite == "" {
-			if utils.IsStringInSlice(config.SameSite, validSessionSameSiteValues) {
-				config.Cookies[i].SameSite = config.SameSite
-			} else {
-				config.Cookies[i].SameSite = schema.DefaultSessionConfiguration.SameSite
-			}
-		} else if !utils.IsStringInSlice(d.SameSite, validSessionSameSiteValues) {
-			validator.Push(fmt.Errorf(errFmtSessionDomainSameSite, sessionDomainDescriptor(i, d), strings.Join(validSessionSameSiteValues, "', '"), d.SameSite))
+	if config.Cookies[index].Inactivity <= 0 {
+		config.Cookies[index].Inactivity = config.Inactivity
+	}
+}
+
+// validateSessionUniqueCookieDomain Check the current domains do not share a root domain with previous domains.
+func validateSessionUniqueCookieDomain(index int, config *schema.SessionConfiguration, domains []string, validator *schema.StructValidator) {
+	var d = config.Cookies[index]
+	if utils.IsStringInSliceF(d.Domain, domains, utils.HasDomainSuffix) {
+		if utils.IsStringInSlice(d.Domain, domains) {
+			validator.Push(fmt.Errorf(errFmtSessionDomainDuplicate, sessionDomainDescriptor(index, d)))
+		} else {
+			validator.Push(fmt.Errorf(errFmtSessionDomainDuplicateCookieScope, sessionDomainDescriptor(index, d)))
 		}
 	}
 }
 
-// validateDomainName returns error if the domain name is invalid.
-func validateDomainName(i int, d schema.SessionCookieConfiguration, validator *schema.StructValidator) {
-	switch {
-	case d.Domain == "":
-		validator.Push(fmt.Errorf(errFmtSessionDomainRequired, sessionDomainDescriptor(i, d)))
-	case strings.HasPrefix(d.Domain, "*."):
-		validator.Push(fmt.Errorf(errFmtSessionDomainMustBeRoot, sessionDomainDescriptor(i, d), d.Domain))
-	case strings.HasPrefix(d.Domain, "."):
-		validator.PushWarning(fmt.Errorf(errFmtSessionDomainHasPeriodPrefix, sessionDomainDescriptor(i, d)))
-	case !reDomainCharacters.MatchString(d.Domain):
-		validator.Push(fmt.Errorf(errFmtSessionDomainInvalidDomain, sessionDomainDescriptor(i, d)))
+// validateSessionSafeRedirection validates that PortalURL is safe for redirection.
+func validateSessionSafeRedirection(index int, config *schema.SessionConfiguration, validator *schema.StructValidator) {
+	var d = config.Cookies[index]
+
+	if d.PortalURL != nil && d.Domain != "" && !utils.IsURISafeRedirection(d.PortalURL, d.Domain) {
+		if utils.IsURISecure(d.PortalURL) {
+			validator.Push(fmt.Errorf(errFmtSessionDomainPortalURLNotInCookieScope, sessionDomainDescriptor(index, d), d.Domain, d.PortalURL))
+		} else {
+			validator.Push(fmt.Errorf(errFmtSessionDomainPortalURLInsecure, sessionDomainDescriptor(index, d), d.PortalURL))
+		}
+	}
+}
+
+func validateSessionRememberMe(index int, config *schema.SessionConfiguration) {
+	if config.Cookies[index].RememberMe <= 0 && !config.Cookies[index].DisableRememberMe {
+		if config.RememberMe != schema.RememberMeDisabled {
+			config.Cookies[index].RememberMe = config.RememberMe
+		} else {
+			config.Cookies[index].RememberMe = schema.DefaultSessionConfiguration.RememberMe
+		}
+	}
+}
+
+func validateSessionSameSite(index int, config *schema.SessionConfiguration, validator *schema.StructValidator) {
+	if config.Cookies[index].SameSite == "" {
+		if utils.IsStringInSlice(config.SameSite, validSessionSameSiteValues) {
+			config.Cookies[index].SameSite = config.SameSite
+		} else {
+			config.Cookies[index].SameSite = schema.DefaultSessionConfiguration.SameSite
+		}
+	} else if !utils.IsStringInSlice(config.Cookies[index].SameSite, validSessionSameSiteValues) {
+		validator.Push(fmt.Errorf(errFmtSessionDomainSameSite, sessionDomainDescriptor(index, config.Cookies[index]), strings.Join(validSessionSameSiteValues, "', '"), config.Cookies[index].SameSite))
 	}
 }
 
