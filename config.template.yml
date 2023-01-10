@@ -703,17 +703,15 @@ session:
       ## user.
       # expiration: '1h'
 
-      ## The time before the cookie expires and the session is destroyed if remember me IS selected by the user.
+      ## The time before the cookie expires and the session is destroyed if remember me IS selected by the user. Setting
+      ## this value to -1 disables remember me for this session cookie domain.
       # remember_me: '1M'
 
-      ## Disable remember me.
-      # disable_remember_me: false
-
-  ## Cookie Session Domain Default Value. The name of the session cookie.
+  ## Cookie Session Domain default 'name' value.  The name of the session cookie.
   name: 'authelia_session'
 
-  ## Cookie Session Domain Default Value. Sets the Cookie SameSite value. Possible options are none, lax, or strict.
-  ## Please read https://www.authelia.com/c/session#same_site
+  ## Cookie Session Domain default 'same_site' value. Sets the Cookie SameSite value. Possible options are none, lax,
+  ## or strict. Please read https://www.authelia.com/c/session#same_site
   same_site: 'lax'
 
   ## The value for inactivity, expiration, and remember_me are in seconds or the duration notation format.
@@ -721,17 +719,18 @@ session:
   ## All three of these values affect the cookie/session validity period. Longer periods are considered less secure
   ## because a stolen cookie will last longer giving attackers more time to spy or attack.
 
-  ## Cookie Session Domain Default Value. The inactivity time before the session is reset. If expiration is set to 1h,
-  ## and this is set to 5m, if the user does not select the remember me option their session will get destroyed after
-  ## 1h, or after 5m since the last time Authelia detected user activity.
+  ## Cookie Session Domain default 'inactivity' value. The inactivity time before the session is reset. If expiration is
+  ## set to 1h, and this is set to 5m, if the user does not select the remember me option their session will get
+  ## destroyed after 1h, or after 5m since the last time Authelia detected user activity.
   inactivity: '5m'
 
-  ## Cookie Session Domain Default Value. The time before the session cookie expires and the session is destroyed if
-  ## remember me IS NOT selected by the user.
+  ## Cookie Session Domain default 'expiration' value.  The time before the session cookie expires and the session is
+  ## destroyed if remember me IS NOT selected by the user.
   expiration: '1h'
 
-  ## Cookie Session Domain Default Value. The time before the cookie expires and the session is destroyed if remember me
-  ## IS selected by the user.
+  ## Cookie Session Domain default 'remember_me' value. The time before the cookie expires and the session is destroyed
+  ## if remember me IS selected by the user. Setting this value to -1 disables remember me for all session cookie
+  ## domains which do not have a specific 'remember_me' value.
   remember_me: '1M'
 
   ##

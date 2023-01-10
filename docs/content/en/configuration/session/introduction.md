@@ -130,9 +130,11 @@ configurations with individual settings.
 
 #### name
 
-{{< confkey type="string" default="authelia_session" required="no" >}}
+{{< confkey type="string" required="no" >}}
 
-The name of the session cookie. By default this is set to the `name` value in the mainsession configuration section.
+*__Default Value:__ This option takes its default value from the [name](#name) setting above.*
+
+The name of the session cookie. By default this is set to the `name` value in the main session configuration section.
 
 #### domain
 
@@ -164,7 +166,9 @@ If this option is absent you must use the appropriate query parameter or header 
 
 #### same_site
 
-{{< confkey type="string" default="lax" required="no" >}}
+{{< confkey type="string" required="no" >}}
+
+*__Default Value:__ This option takes its default value from the [same_site](#samesite) setting above.*
 
 Sets the cookies SameSite value. Prior to offering the configuration choice this defaulted to None. The new default is
 Lax. This option is defined in lower-case. So for example if you want to set it to `Strict`, the value in configuration
@@ -178,7 +182,9 @@ state but it's available as an option anyway.
 
 #### inactivity
 
-{{< confkey type="duration" default="5m" required="no" >}}
+{{< confkey type="duration" required="no" >}}
+
+*__Default Value:__ This option takes its default value from the [inactivity](#inactivity) setting above.*
 
 *__Note:__ This setting uses the [duration notation format](../prologue/common.md#duration-notation-format). Please see
 the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
@@ -188,7 +194,9 @@ but don't want unused devices to be vulnerable.
 
 #### expiration
 
-{{< confkey type="duration" default="1h" required="no" >}}
+{{< confkey type="duration" required="no" >}}
+
+*__Default Value:__ This option takes its default value from the [expiration](#expiration) setting above.*
 
 *__Note:__ This setting uses the [duration notation format](../prologue/common.md#duration-notation-format). Please see
 the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
@@ -198,19 +206,15 @@ The period of time before the cookie expires and the session is destroyed. This 
 
 #### remember_me
 
-{{< confkey type="duration" default="1M" required="no" >}}
+{{< confkey type="duration" required="no" >}}
+
+*__Default Value:__ This option takes its default value from the [remember_me](#rememberme) setting above.*
 
 *__Note:__ This setting uses the [duration notation format](../prologue/common.md#duration-notation-format). Please see
 the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
 
 The period of time before the cookie expires and the session is destroyed when the remember me box is checked. Setting
-this to `-1` disables this feature entirely.
-
-#### disable_remember_me
-
-{{< confkey type="boolean" default="false" required="no" >}}
-
-This completely disables the remember me option for this cookie domain.
+this to `-1` disables this feature entirely for this session cookie domain.
 
 ## Security
 

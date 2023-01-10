@@ -38,8 +38,6 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 	switch {
 	case config.RememberMe == schema.RememberMeDisabled:
 		config.DisableRememberMe = true
-
-		fallthrough
 	case config.RememberMe <= 0:
 		config.RememberMe = schema.DefaultSessionConfiguration.RememberMe // 1 month.
 	}
@@ -57,23 +55,23 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 		// Add legacy configuration to the domains list.
 		config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
 			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-				Name:       config.Name,
-				Domain:     config.Domain,
-				SameSite:   config.SameSite,
-				Expiration: config.Expiration,
-				Inactivity: config.Inactivity,
-				RememberMe: config.RememberMe,
+				Name:              config.Name,
+				Domain:            config.Domain,
+				SameSite:          config.SameSite,
+				Expiration:        config.Expiration,
+				Inactivity:        config.Inactivity,
+				RememberMe:        config.RememberMe,
+				DisableRememberMe: config.DisableRememberMe,
 			},
-			DisableRememberMe: config.DisableRememberMe,
 		})
 	case cookies != 0 && config.Domain != "":
 		validator.Push(fmt.Errorf(errFmtSessionLegacyAndWarning))
 	}
 
-	validateSessionDomains(config, validator)
+	validateSessionCookieDomains(config, validator)
 }
 
-func validateSessionDomains(config *schema.SessionConfiguration, validator *schema.StructValidator) {
+func validateSessionCookieDomains(config *schema.SessionConfiguration, validator *schema.StructValidator) {
 	if len(config.Cookies) == 0 {
 		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "domain"))
 	}
@@ -157,8 +155,12 @@ func validateSessionSafeRedirection(index int, config *schema.SessionConfigurati
 }
 
 func validateSessionRememberMe(i int, config *schema.SessionConfiguration) {
-	if config.Cookies[i].RememberMe <= 0 && !config.Cookies[i].DisableRememberMe {
+	if config.Cookies[i].RememberMe <= 0 && config.Cookies[i].RememberMe != schema.RememberMeDisabled {
 		config.Cookies[i].RememberMe = config.RememberMe
+	}
+
+	if config.Cookies[i].RememberMe == schema.RememberMeDisabled {
+		config.Cookies[i].DisableRememberMe = true
 	}
 }
 

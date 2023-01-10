@@ -119,22 +119,21 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 				},
 			},
 			schema.SessionConfiguration{
-				DisableRememberMe: true,
 				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
 					Name: "default_session", SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute,
-					RememberMe: schema.DefaultSessionConfiguration.RememberMe,
+					RememberMe: schema.RememberMeDisabled, DisableRememberMe: true,
 				},
 				Cookies: []schema.SessionCookieConfiguration{
 					{
 						SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
 							Name: "default_session", Domain: exampleDotCom, SameSite: "lax",
-							Expiration: time.Hour, Inactivity: time.Minute, RememberMe: schema.DefaultSessionConfiguration.RememberMe,
+							Expiration: time.Hour, Inactivity: time.Minute, RememberMe: schema.RememberMeDisabled, DisableRememberMe: true,
 						},
 					},
 					{
 						SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
 							Name: "authelia_session", Domain: "example2.com", SameSite: "strict",
-							Expiration: time.Hour, Inactivity: time.Minute, RememberMe: schema.DefaultSessionConfiguration.RememberMe,
+							Expiration: time.Hour, Inactivity: time.Minute, RememberMe: schema.RememberMeDisabled, DisableRememberMe: true,
 						},
 					},
 				},
@@ -792,7 +791,7 @@ func TestShouldSetDefaultWhenNegativeAndNotOverrideDisabledRememberMe(t *testing
 
 	assert.Equal(t, schema.DefaultSessionConfiguration.Inactivity, config.Inactivity)
 	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
-	assert.Equal(t, schema.DefaultSessionConfiguration.RememberMe, config.RememberMe)
+	assert.Equal(t, schema.RememberMeDisabled, config.RememberMe)
 	assert.True(t, config.DisableRememberMe)
 }
 

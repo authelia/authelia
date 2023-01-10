@@ -39,8 +39,6 @@ type RedisSessionConfiguration struct {
 type SessionConfiguration struct {
 	Secret string `koanf:"secret"`
 
-	DisableRememberMe bool
-
 	SessionCookieCommonConfiguration `koanf:",squash"`
 
 	Cookies []SessionCookieConfiguration `koanf:"cookies"`
@@ -55,13 +53,13 @@ type SessionCookieCommonConfiguration struct {
 	Expiration time.Duration `koanf:"expiration"`
 	Inactivity time.Duration `koanf:"inactivity"`
 	RememberMe time.Duration `koanf:"remember_me"`
+
+	DisableRememberMe bool
 }
 
 // SessionCookieConfiguration represents the configuration for a cookie domain.
 type SessionCookieConfiguration struct {
 	SessionCookieCommonConfiguration `koanf:",squash"`
-
-	DisableRememberMe bool `koanf:"disable_remember_me"`
 
 	PortalURL *url.URL `koanf:"portal_url"`
 }
