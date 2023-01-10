@@ -176,6 +176,15 @@ func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, er
 	}, nil
 }
 
+func (p *LDAPUserProvider) logReferral(stage, message string, err error) {
+	switch e := err.(type) {
+	case *ldap.Error:
+		p.log.WithError(err).WithField("e", e).WithField("stage", stage).Debug(message)
+	default:
+		p.log.WithError(err).WithField("stage", stage).Debug(message)
+	}
+}
+
 // UpdatePassword update the password of the given user.
 func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error) {
 	var (
@@ -184,12 +193,16 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 	)
 
 	if client, err = p.connect(); err != nil {
+		p.logReferral("connect", "Failed to Update Password", err)
+
 		return fmt.Errorf("unable to update password. Cause: %w", err)
 	}
 
 	defer client.Close()
 
 	if profile, err = p.getUserProfile(client, username); err != nil {
+		p.logReferral("profile", "Failed to Update Password", err)
+
 		return fmt.Errorf("unable to update password. Cause: %w", err)
 	}
 
@@ -227,6 +240,8 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 	}
 
 	if err != nil {
+		p.logReferral("modify", "Failed to Update Password", err)
+
 		return fmt.Errorf("unable to update password. Cause: %w", err)
 	}
 
