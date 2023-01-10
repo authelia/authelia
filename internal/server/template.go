@@ -200,7 +200,7 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 	opts = &TemplatedFileOptions{
 		AssetPath:              config.Server.AssetPath,
 		DuoSelfEnrollment:      strFalse,
-		RememberMe:             strconv.FormatBool(config.Session.RememberMe != schema.RememberMeDisabled),
+		RememberMe:             strconv.FormatBool(!config.Session.DisableRememberMe),
 		ResetPassword:          strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable),
 		ResetPasswordCustomURL: config.AuthenticationBackend.PasswordReset.CustomURL.String(),
 		Theme:                  config.Theme,

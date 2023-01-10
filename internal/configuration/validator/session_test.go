@@ -119,9 +119,10 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 				},
 			},
 			schema.SessionConfiguration{
+				DisableRememberMe: true,
 				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
 					Name: "default_session", SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute,
-					RememberMe: schema.RememberMeDisabled, DisableRememberMe: true,
+					RememberMe: schema.DefaultSessionConfiguration.RememberMe,
 				},
 				Cookies: []schema.SessionCookieConfiguration{
 					{
@@ -791,7 +792,8 @@ func TestShouldSetDefaultWhenNegativeAndNotOverrideDisabledRememberMe(t *testing
 
 	assert.Equal(t, schema.DefaultSessionConfiguration.Inactivity, config.Inactivity)
 	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
-	assert.Equal(t, schema.RememberMeDisabled, config.RememberMe)
+	assert.Equal(t, schema.DefaultSessionConfiguration.RememberMe, config.RememberMe)
+	assert.True(t, config.DisableRememberMe)
 }
 
 func TestShouldSetDefaultRememberMeDuration(t *testing.T) {
