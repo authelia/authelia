@@ -128,6 +128,7 @@ func (s *InactivityScenario) TestShouldDisableCookieExpirationAndInactivity() {
 	s.doVisit(s.T(), s.Context(ctx), targetURL)
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
+
 func TestInactivityScenario(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
