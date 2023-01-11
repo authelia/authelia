@@ -28,7 +28,7 @@ require (
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/ory/fosite v0.44.0
 	github.com/ory/herodot v0.9.13
-	github.com/ory/x v0.0.529
+	github.com/ory/x v0.0.531
 	github.com/otiai10/copy v1.9.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.4.0
@@ -38,7 +38,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.1
 	github.com/trustelem/zxcvbn v1.0.1
-	github.com/valyala/fasthttp v1.43.0
+	github.com/valyala/fasthttp v1.44.0
 	github.com/wneessen/go-mail v0.3.8
 	golang.org/x/sync v0.1.0
 	golang.org/x/term v0.4.0
