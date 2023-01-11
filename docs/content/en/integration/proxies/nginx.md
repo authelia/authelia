@@ -197,6 +197,10 @@ server {
     location /api/verify {
         proxy_pass $upstream;
     }
+
+    location /api/authz/ {
+        proxy_pass $upstream;
+    }
 }
 ```
 {{< /details >}}
@@ -376,7 +380,7 @@ proxy_set_header X-Forwarded-For $remote_addr;
 
 {{< details "/config/nginx/snippets/authelia-location.conf" >}}
 ```nginx
-set $upstream_authelia http://authelia:9091/api/verify;
+set $upstream_authelia http://authelia:9091/api/authz/auth-request;
 
 ## Virtual endpoint created by nginx to forward auth requests.
 location /authelia {
@@ -386,6 +390,7 @@ location /authelia {
 
     ## Headers
     ## The headers starting with X-* are required.
+    proxy_set_header X-Original-Method $request_method;
     proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
     proxy_set_header X-Original-Method $request_method;
     proxy_set_header X-Forwarded-Method $request_method;
@@ -470,6 +475,7 @@ location /authelia-basic {
 
     ## Headers
     ## The headers starting with X-* are required.
+    proxy_set_header X-Original-Method $request_method;
     proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
     proxy_set_header X-Original-Method $request_method;
     proxy_set_header X-Forwarded-Method $request_method;

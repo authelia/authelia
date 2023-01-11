@@ -150,7 +150,7 @@ func TestShouldGetOriginalURLFromOriginalURLHeader(t *testing.T) {
 	defer mock.Close()
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://home.example.com")
-	originalURL, err := mock.Ctx.GetOriginalURL()
+	originalURL, err := mock.Ctx.GetXOriginalURLOrXForwardedURL()
 	assert.NoError(t, err)
 
 	expectedURL, err := url.ParseRequestURI("https://home.example.com")
@@ -163,7 +163,7 @@ func TestShouldGetOriginalURLFromForwardedHeadersWithoutURI(t *testing.T) {
 	defer mock.Close()
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "home.example.com")
-	originalURL, err := mock.Ctx.GetOriginalURL()
+	originalURL, err := mock.Ctx.GetXOriginalURLOrXForwardedURL()
 	assert.NoError(t, err)
 
 	expectedURL, err := url.ParseRequestURI("https://home.example.com/")
@@ -175,9 +175,9 @@ func TestShouldGetOriginalURLFromForwardedHeadersWithURI(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 	mock.Ctx.Request.Header.Set("X-Original-URL", "htt-ps//home?-.example.com")
-	_, err := mock.Ctx.GetOriginalURL()
+	_, err := mock.Ctx.GetXOriginalURLOrXForwardedURL()
 	assert.Error(t, err)
-	assert.Equal(t, "Unable to parse URL extracted from X-Original-URL header: parse \"htt-ps//home?-.example.com\": invalid URI for request", err.Error())
+	assert.EqualError(t, err, "failed to parse X-Original-URL header: parse \"htt-ps//home?-.example.com\": invalid URI for request")
 }
 
 func TestShouldFallbackToNonXForwardedHeaders(t *testing.T) {
@@ -252,4 +252,85 @@ func TestShouldReturnCorrectSecondFactorMethods(t *testing.T) {
 	mock.Ctx.Configuration.DuoAPI.Disable = true
 
 	assert.Equal(t, []string{}, mock.Ctx.AvailableSecondFactorMethods())
+}
+
+func TestShouldReturnCorrectEnvoyValues(t *testing.T) {
+	testCases := []struct {
+		name                                                                                          string
+		haveXForwardedProto, haveXForwardedHost, haveHost, haveXForwardedURI, haveAuthzPath, havePath string
+		expected                                                                                      string
+		err                                                                                           string
+	}{
+		{"ShouldParseStandardValues",
+			"https",
+			"", "example.com",
+			"", "/a/path", "/api/authz/ext-authz",
+			"https://example.com/a/path", "",
+		},
+		{"ShouldParseStandardValuesWithXForwardedHost",
+			"https",
+			"abc.com", "example.com",
+			"", "/a/path", "/api/authz/ext-authz",
+			"https://abc.com/a/path", "",
+		},
+		{"ShouldFallbackToPath",
+			"https",
+			"abc.com", "example.com",
+			"", "", "/api/authz/ext-authz",
+			"https://abc.com/api/authz/ext-authz", "",
+		},
+		{"ShouldBeOverriddenByXForwardedURI",
+			"https",
+			"abc.com", "example.com",
+			"/a/path", "/api/authz/from-authz-path", "/api/authz/from-startline",
+			"https://abc.com/a/path", "",
+		},
+		{"ShouldErr",
+			"",
+			"", "",
+			"", "", "",
+			"", "missing required Host header",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			if tc.haveXForwardedProto != "" {
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, tc.haveXForwardedProto)
+			}
+
+			if tc.haveXForwardedHost != "" {
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, tc.haveXForwardedHost)
+			}
+
+			if tc.haveHost != "" {
+				mock.Ctx.Request.Header.SetHost(tc.haveHost)
+			}
+
+			if tc.haveXForwardedURI != "" {
+				mock.Ctx.Request.Header.Set("X-Forwarded-URI", tc.haveXForwardedURI)
+			}
+
+			if tc.haveAuthzPath != "" {
+				mock.Ctx.SetUserValueBytes([]byte("authz_path"), tc.haveAuthzPath)
+			}
+
+			if tc.havePath != "" {
+				mock.Ctx.Request.SetRequestURI(tc.havePath)
+			}
+
+			actual, err := mock.Ctx.GetEnvoyXForwardedURL()
+
+			if tc.err == "" {
+				assert.Equal(t, tc.expected, actual.String())
+				assert.NoError(t, err)
+			} else {
+				assert.Nil(t, actual)
+				assert.EqualError(t, err, tc.err)
+			}
+		})
+	}
 }

@@ -3,6 +3,7 @@ package server
 import (
 	"net"
 	"os"
+	"path"
 	"strings"
 	"time"
 
@@ -90,7 +91,10 @@ func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	}
 }
 
+//nolint:gocyclo
 func handleRouter(config schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
+	log := logging.Logger()
+
 	optsTemplatedFile := NewTemplatedFileOptions(&config)
 
 	serveIndexHandler := ServeTemplatedFile(providers.Templates.GetAssetIndexTemplate(), optsTemplatedFile)
@@ -100,7 +104,7 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
 	handlerLocales := newLocalesEmbeddedHandler()
 
-	middleware := middlewares.NewBridgeBuilder(config, providers).
+	bridge := middlewares.NewBridgeBuilder(config, providers).
 		WithPreMiddlewares(middlewares.SecurityHeaders).Build()
 
 	policyCORSPublicGET := middlewares.NewCORSPolicyBuilder().
@@ -111,7 +115,7 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	r := router.New()
 
 	// Static Assets.
-	r.GET("/", middleware(serveIndexHandler))
+	r.GET("/", bridge(serveIndexHandler))
 
 	for _, f := range filesRoot {
 		r.GET("/"+f, handlerPublicHTML)
@@ -126,11 +130,11 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
 
 	// Swagger.
-	r.GET("/api/", middleware(serveOpenAPIHandler))
+	r.GET("/api/", bridge(serveOpenAPIHandler))
 	r.OPTIONS("/api/", policyCORSPublicGET.HandleOPTIONS)
-	r.GET("/api/index.html", middleware(serveOpenAPIHandler))
+	r.GET("/api/index.html", bridge(serveOpenAPIHandler))
 	r.OPTIONS("/api/index.html", policyCORSPublicGET.HandleOPTIONS)
-	r.GET("/api/openapi.yml", policyCORSPublicGET.Middleware(middleware(serveOpenAPISpecHandler)))
+	r.GET("/api/openapi.yml", policyCORSPublicGET.Middleware(bridge(serveOpenAPISpecHandler)))
 	r.OPTIONS("/api/openapi.yml", policyCORSPublicGET.HandleOPTIONS)
 
 	for _, file := range filesSwagger {
@@ -155,8 +159,46 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 
 	metricsVRMW := middlewares.NewMetricsVerifyRequest(providers.Metrics)
 
-	r.ANY("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
-	r.ANY("/api/verify/{path:*}", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
+	for name, endpoint := range config.Server.Endpoints.Authz {
+		uri := path.Join(pathAuthz, name)
+
+		authz := handlers.NewAuthzBuilder().WithConfig(&config).WithEndpointConfig(endpoint).Build()
+
+		handler := middlewares.Wrap(metricsVRMW, bridge(authz.Handler))
+
+		switch endpoint.Implementation {
+		case handlers.AuthzImplLegacy.String(), handlers.AuthzImplExtAuthz.String():
+			switch name {
+			case "legacy":
+				log.
+					WithField("path_prefix", pathAuthzLegacy).
+					WithField("impl", endpoint.Implementation).
+					WithField("methods", []string{"*"}).
+					Trace("Registering Authz Endpoint")
+
+				r.ANY(pathAuthzLegacy, handler)
+				r.ANY(path.Join(pathAuthzLegacy, pathParamAuthzEnvoy), handler)
+			default:
+				log.
+					WithField("path_prefix", uri).
+					WithField("impl", endpoint.Implementation).
+					WithField("methods", []string{"*"}).
+					Trace("Registering Authz Endpoint")
+
+				r.ANY(uri, handler)
+				r.ANY(path.Join(uri, pathParamAuthzEnvoy), handler)
+			}
+		default:
+			log.
+				WithField("path", uri).
+				WithField("impl", endpoint.Implementation).
+				WithField("methods", []string{fasthttp.MethodGet, fasthttp.MethodHead}).
+				Trace("Registering Authz Endpoint")
+
+			r.GET(uri, handler)
+			r.HEAD(uri, handler)
+		}
+	}
 
 	r.POST("/api/checks/safe-redirection", middlewareAPI(handlers.CheckSafeRedirectionPOST))
 
@@ -217,11 +259,11 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 		r.POST("/api/secondfactor/duo_device", middleware1FA(handlers.DuoDevicePOST))
 	}
 
-	if config.Server.EnablePprof {
+	if config.Server.Endpoints.EnablePprof {
 		r.GET("/debug/pprof/{name?}", pprofhandler.PprofHandler)
 	}
 
-	if config.Server.EnableExpvars {
+	if config.Server.Endpoints.EnableExpvars {
 		r.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
 
@@ -315,7 +357,7 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 
 	r.HandleMethodNotAllowed = true
 	r.MethodNotAllowed = handlers.Status(fasthttp.StatusMethodNotAllowed)
-	r.NotFound = handleNotFound(middleware(serveIndexHandler))
+	r.NotFound = handleNotFound(bridge(serveIndexHandler))
 
 	handler := middlewares.LogRequest(r.Handler)
 	if config.Server.Path != "" {

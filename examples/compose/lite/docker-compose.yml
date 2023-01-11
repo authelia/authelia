@@ -61,8 +61,8 @@ services:
       - 'traefik.http.routers.api.tls.certresolver=letsencrypt'
       - 'traefik.http.routers.api.middlewares=authelia@docker'
     ports:
-      - 80:80
-      - 443:443
+      - '80:80'
+      - '443:443'
     command:
       - '--api'
       - '--providers.docker=true'

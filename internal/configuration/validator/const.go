@@ -286,6 +286,14 @@ const (
 
 	errFmtServerPathNoForwardSlashes = "server: option 'path' must not contain any forward slashes"
 	errFmtServerPathAlphaNum         = "server: option 'path' must only contain alpha numeric characters"
+
+	errFmtServerEndpointsAuthzImplementation    = "server: endpoints: authz: %s: option 'implementation' must be one of '%s' but is configured as '%s'"
+	errFmtServerEndpointsAuthzStrategy          = "server: endpoints: authz: %s: authn_strategies: option 'name' must be one of '%s' but is configured as '%s'"
+	errFmtServerEndpointsAuthzStrategyDuplicate = "server: endpoints: authz: %s: authn_strategies: duplicate strategy name detected with name '%s'"
+	errFmtServerEndpointsAuthzPrefixDuplicate   = "server: endpoints: authz: %s: endpoint starts with the same prefix as the '%s' endpoint with the '%s' implementation which accepts prefixes as part of its implementation"
+	errFmtServerEndpointsAuthzInvalidName       = "server: endpoints: authz: %s: contains invalid characters"
+
+	errFmtServerEndpointsAuthzLegacyInvalidImplementation = "server: endpoints: authz: %s: option 'implementation' is invalid: the endpoint with the name 'legacy' must use the 'Legacy' implementation"
 )
 
 const (
@@ -337,6 +345,17 @@ var (
 	validLDAPImplementations = []string{schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory, schema.LDAPImplementationFreeIPA, schema.LDAPImplementationLLDAP}
 )
 
+const (
+	legacy                      = "legacy"
+	authzImplementationLegacy   = "Legacy"
+	authzImplementationExtAuthz = "ExtAuthz"
+)
+
+var (
+	validAuthzImplementations = []string{"AuthRequest", "ForwardAuth", authzImplementationExtAuthz, authzImplementationLegacy}
+	validAuthzAuthnStrategies = []string{"CookieSession", "HeaderAuthorization", "HeaderProxyAuthorization", "HeaderAuthRequestProxyAuthorization", "HeaderLegacy"}
+)
+
 var (
 	validArgon2Variants    = []string{"argon2id", "id", "argon2i", "i", "argon2d", "d"}
 	validSHA2CryptVariants = []string{digestSHA256, digestSHA512}
@@ -374,7 +393,8 @@ var (
 )
 
 var (
-	reKeyReplacer      = regexp.MustCompile(`\[\d+]`)
+	reKeyReplacer       = regexp.MustCompile(`\[\d+]`)
+	reAuthzEndpointName = regexp.MustCompile(`^[a-zA-Z](([a-zA-Z0-9/\._-]*)([a-zA-Z]))?$`)
 	reDomainCharacters = regexp.MustCompile(`^[a-z0-9-]+(\.[a-z0-9-]+)+[a-z0-9]$`)
 )
 

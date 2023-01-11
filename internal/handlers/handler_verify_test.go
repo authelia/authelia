@@ -33,7 +33,7 @@ func TestShouldRaiseWhenTargetUrlIsMalformed(t *testing.T) {
 	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "home.example.com")
 	mock.Ctx.Request.Header.Set("X-Forwarded-URI", "/abc")
-	originalURL, err := mock.Ctx.GetOriginalURL()
+	originalURL, err := mock.Ctx.GetXOriginalURLOrXForwardedURL()
 	assert.NoError(t, err)
 
 	expectedURL, err := url.ParseRequestURI("https://home.example.com/abc")
@@ -46,9 +46,9 @@ func TestShouldRaiseWhenNoHeaderProvidedToDetectTargetURL(t *testing.T) {
 	mock.Ctx.Request.Header.Del("X-Forwarded-Host")
 
 	defer mock.Close()
-	_, err := mock.Ctx.GetOriginalURL()
+	_, err := mock.Ctx.GetXOriginalURLOrXForwardedURL()
 	assert.Error(t, err)
-	assert.Equal(t, "Missing header X-Forwarded-Host", err.Error())
+	assert.EqualError(t, err, "missing required X-Forwarded-Host header")
 }
 
 func TestShouldRaiseWhenNoXForwardedHostHeaderProvidedToDetectTargetURL(t *testing.T) {
@@ -57,9 +57,9 @@ func TestShouldRaiseWhenNoXForwardedHostHeaderProvidedToDetectTargetURL(t *testi
 
 	mock.Ctx.Request.Header.Del("X-Forwarded-Host")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
-	_, err := mock.Ctx.GetOriginalURL()
+	_, err := mock.Ctx.GetXOriginalURLOrXForwardedURL()
 	assert.Error(t, err)
-	assert.Equal(t, "Missing header X-Forwarded-Host", err.Error())
+	assert.EqualError(t, err, "missing required X-Forwarded-Host header")
 }
 
 func TestShouldRaiseWhenXForwardedProtoIsNotParsable(t *testing.T) {
@@ -69,9 +69,9 @@ func TestShouldRaiseWhenXForwardedProtoIsNotParsable(t *testing.T) {
 	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "!:;;:,")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "myhost.local")
 
-	_, err := mock.Ctx.GetOriginalURL()
+	_, err := mock.Ctx.GetXOriginalURLOrXForwardedURL()
 	assert.Error(t, err)
-	assert.Equal(t, "Unable to parse URL !:;;:,://myhost.local/: parse \"!:;;:,://myhost.local/\": invalid URI for request", err.Error())
+	assert.EqualError(t, err, "failed to parse X-Forwarded Headers: parse \"!:;;:,://myhost.local/\": invalid URI for request")
 }
 
 func TestShouldRaiseWhenXForwardedURIIsNotParsable(t *testing.T) {
@@ -82,36 +82,36 @@ func TestShouldRaiseWhenXForwardedURIIsNotParsable(t *testing.T) {
 	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "myhost.local")
 	mock.Ctx.Request.Header.Set("X-Forwarded-URI", "!:;;:,")
 
-	_, err := mock.Ctx.GetOriginalURL()
+	_, err := mock.Ctx.GetXOriginalURLOrXForwardedURL()
 	require.Error(t, err)
-	assert.Equal(t, "Unable to parse URL https://myhost.local!:;;:,: parse \"https://myhost.local!:;;:,\": invalid port \":,\" after host", err.Error())
+	assert.EqualError(t, err, "failed to parse X-Forwarded Headers: parse \"https://myhost.local!:;;:,\": invalid port \":,\" after host")
 }
 
 // Test parseBasicAuth.
 func TestShouldRaiseWhenHeaderDoesNotContainBasicPrefix(t *testing.T) {
 	_, _, err := parseBasicAuth(headerProxyAuthorization, "alzefzlfzemjfej==")
 	assert.Error(t, err)
-	assert.Equal(t, "Basic prefix not found in Proxy-Authorization header", err.Error())
+	assert.EqualError(t, err, "Basic prefix not found in Proxy-Authorization header")
 }
 
 func TestShouldRaiseWhenCredentialsAreNotInBase64(t *testing.T) {
 	_, _, err := parseBasicAuth(headerProxyAuthorization, "Basic alzefzlfzemjfej==")
 	assert.Error(t, err)
-	assert.Equal(t, "illegal base64 data at input byte 16", err.Error())
+	assert.EqualError(t, err, "illegal base64 data at input byte 16")
 }
 
 func TestShouldRaiseWhenCredentialsAreNotInCorrectForm(t *testing.T) {
 	// The decoded format should be user:password.
 	_, _, err := parseBasicAuth(headerProxyAuthorization, "Basic am9obiBwYXNzd29yZA==")
 	assert.Error(t, err)
-	assert.Equal(t, "format of Proxy-Authorization header must be user:password", err.Error())
+	assert.EqualError(t, err, "format of Proxy-Authorization header must be user:password")
 }
 
 func TestShouldUseProvidedHeaderName(t *testing.T) {
 	// The decoded format should be user:password.
 	_, _, err := parseBasicAuth([]byte("HeaderName"), "")
 	assert.Error(t, err)
-	assert.Equal(t, "Basic prefix not found in HeaderName header", err.Error())
+	assert.EqualError(t, err, "Basic prefix not found in HeaderName header")
 }
 
 func TestShouldReturnUsernameAndPassword(t *testing.T) {
@@ -123,29 +123,29 @@ func TestShouldReturnUsernameAndPassword(t *testing.T) {
 }
 
 // Test isTargetURLAuthorized.
-func TestShouldCheckAuthorizationMatching(t *testing.T) {
+func TestShouldCheckAuthzResult(t *testing.T) {
 	type Rule struct {
 		Policy           string
 		AuthLevel        authentication.Level
-		ExpectedMatching authorizationMatching
+		ExpectedMatching AuthzResult
 	}
 
 	rules := []Rule{
-		{"bypass", authentication.NotAuthenticated, Authorized},
-		{"bypass", authentication.OneFactor, Authorized},
-		{"bypass", authentication.TwoFactor, Authorized},
+		{"bypass", authentication.NotAuthenticated, AuthzResultAuthorized},
+		{"bypass", authentication.OneFactor, AuthzResultAuthorized},
+		{"bypass", authentication.TwoFactor, AuthzResultAuthorized},
 
-		{"one_factor", authentication.NotAuthenticated, NotAuthorized},
-		{"one_factor", authentication.OneFactor, Authorized},
-		{"one_factor", authentication.TwoFactor, Authorized},
+		{"one_factor", authentication.NotAuthenticated, AuthzResultUnauthorized},
+		{"one_factor", authentication.OneFactor, AuthzResultAuthorized},
+		{"one_factor", authentication.TwoFactor, AuthzResultAuthorized},
 
-		{"two_factor", authentication.NotAuthenticated, NotAuthorized},
-		{"two_factor", authentication.OneFactor, NotAuthorized},
-		{"two_factor", authentication.TwoFactor, Authorized},
+		{"two_factor", authentication.NotAuthenticated, AuthzResultUnauthorized},
+		{"two_factor", authentication.OneFactor, AuthzResultUnauthorized},
+		{"two_factor", authentication.TwoFactor, AuthzResultAuthorized},
 
-		{"deny", authentication.NotAuthenticated, Forbidden},
-		{"deny", authentication.OneFactor, Forbidden},
-		{"deny", authentication.TwoFactor, Forbidden},
+		{"deny", authentication.NotAuthenticated, AuthzResultForbidden},
+		{"deny", authentication.OneFactor, AuthzResultForbidden},
+		{"deny", authentication.TwoFactor, AuthzResultForbidden},
 	}
 
 	u, _ := url.ParseRequestURI("https://test.example.com")
@@ -977,7 +977,7 @@ func TestShouldURLEncodeRedirectionHeader(t *testing.T) {
 		string(mock.Ctx.Response.Body()))
 }
 
-func TestSchemeIsWSS(t *testing.T) {
+func TestIsDomainProtected(t *testing.T) {
 	GetURL := func(u string) *url.URL {
 		x, err := url.ParseRequestURI(u)
 		require.NoError(t, err)
@@ -985,14 +985,19 @@ func TestSchemeIsWSS(t *testing.T) {
 		return x
 	}
 
-	assert.False(t, isSchemeWSS(
-		GetURL("ws://mytest.example.com/abc/?query=abc")))
-	assert.False(t, isSchemeWSS(
-		GetURL("http://mytest.example.com/abc/?query=abc")))
-	assert.False(t, isSchemeWSS(
-		GetURL("https://mytest.example.com/abc/?query=abc")))
-	assert.True(t, isSchemeWSS(
-		GetURL("wss://mytest.example.com/abc/?query=abc")))
+	assert.True(t, isURLUnderProtectedDomain(
+		GetURL("http://mytest.example.com/abc/?query=abc"), "example.com"))
+
+	assert.True(t, isURLUnderProtectedDomain(
+		GetURL("http://example.com/abc/?query=abc"), "example.com"))
+
+	assert.True(t, isURLUnderProtectedDomain(
+		GetURL("https://mytest.example.com/abc/?query=abc"), "example.com"))
+
+	// Cookies readable by a service on a machine is also readable by a service on the same machine
+	// with a different port as mentioned in https://tools.ietf.org/html/rfc6265#section-8.5.
+	assert.True(t, isURLUnderProtectedDomain(
+		GetURL("https://mytest.example.com:8080/abc/?query=abc"), "example.com"))
 }
 
 func TestShouldNotRefreshUserGroupsFromBackend(t *testing.T) {

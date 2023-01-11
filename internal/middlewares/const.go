@@ -81,8 +81,8 @@ var (
 
 	qryArgRedirect = []byte(queryArgRedirect)
 
-	// UserValueKeyBaseURL is the User Value key where we store the Base URL.
-	UserValueKeyBaseURL = []byte("base_url")
+	keyUserValueBaseURL   = []byte("base_url")
+	keyUserValueAuthzPath = []byte("authz_path")
 
 	// UserValueKeyFormPost is the User Value key where we indicate the form_post response mode.
 	UserValueKeyFormPost = []byte("form_post")
