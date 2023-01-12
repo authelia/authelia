@@ -18,6 +18,8 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 		err       error
 	)
 
+	ctx.Logger.WithField("headers", ctx.Request.Header.String()).Debug("Request to Authz Endpoint Detected")
+
 	if object, err = authz.handleGetObject(ctx); err != nil {
 		// TODO: Adjust.
 		ctx.Logger.Errorf("Error getting object: %v", err)
