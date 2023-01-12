@@ -74,3 +74,33 @@ func handleAuthzUnauthorizedAuthorizationBasic(ctx *middlewares.AutheliaCtx, aut
 
 	ctx.ReplyUnauthorized()
 }
+
+var protoHostSeparator = []byte("://")
+
+func getRequestURIFromForwardedHeaders(protocol, host, uri []byte) (requestURI *url.URL, err error) {
+	if len(protocol) == 0 {
+		return nil, fmt.Errorf("missing protocol value")
+	}
+
+	if len(host) == 0 {
+		return nil, fmt.Errorf("missing host value")
+	}
+
+	value := utils.BytesJoin(protocol, protoHostSeparator, host, uri)
+
+	if requestURI, err = url.ParseRequestURI(string(value)); err != nil {
+		return nil, fmt.Errorf("failed to parse forwarded headers: %w", err)
+	}
+
+	return requestURI, nil
+}
+
+func hasInvalidMethodCharacters(v []byte) bool {
+	for _, c := range v {
+		if c < 0x42 || c > 0x5A {
+			return true
+		}
+	}
+
+	return false
+}

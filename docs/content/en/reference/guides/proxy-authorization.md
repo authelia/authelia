@@ -34,18 +34,7 @@ metadata about the request (such as the resource and IP address of the user) whi
 | forward-auth | /api/authz/forward-auth |  [ForwardAuth]   |      [HeaderProxyAuthorization], [CookieSession]       |
 |  ext-authz   |  /api/authz/ext-authz   |    [ExtAuthz]    |      [HeaderProxyAuthorization], [CookieSession]       |
 | auth-request | /api/authz/auth-request |  [AuthRequest]   | [HeaderAuthRequestProxyAuthorization], [CookieSession] |
-|    legacy    |    /api/authz/legacy    |  [AuthRequest]   | [HeaderAuthRequestProxyAuthorization], [CookieSession] |
-
-[Implementation]: #implementations
-[Authn Strategies]: #authn-strategies
-[ForwardAuth]: #forwardauth
-[ExtAuthz]: #extauthz
-[AuthRequest]: #authrequest
-[Legacy]: #legacy
-[HeaderProxyAuthorization]: #headerproxyauthorization
-[HeaderAuthRequestProxyAuthorization]: #headerauthrequestproxyauthorization
-[HeaderLegacy]: #headerlegacy
-[CookieSession]: #cookiesession
+|    legacy    |       /api/verify       |     [Legacy]     |            [HeaderLegacy], [CookieSession]             |
 
 ## Metadata
 
@@ -62,59 +51,88 @@ particular resource.
 |         IP          | The IP address of the client making the Request |
 | Authelia Portal URL |         The URL of the Authelia Portal          |
 
+Some values may have either fallbacks or override values. If they exist they will be in the alternatives table which
+will be below the main metadata table.
+
+The metadata table contains the recommended source of this information and this source is often times automatic
+depending on the proxy implementation. The difference between an override and a fallback is an override values will
+take precedence over the metadata values, and fallbacks only take effect if the override values or metadata values are
+completely unset.
+
 ## Implementations
 
 ### ForwardAuth
 
-This is the implementation which supports Traefik's
-[ForwardAuth middleware](https://doc.traefik.io/traefik/middlewares/http/forwardauth/), Caddy's
-[forward_auth directive](https://caddyserver.com/docs/caddyfile/directives/forward_auth), and Skipper.
+This is the implementation which supports [Traefik] via the [ForwardAuth Middleware], [Caddy] via the
+[forward_auth directive], and [Skipper] via the [webhook auth filter].
 
 #### ForwardAuth Metadata
 
-|      Metadata       |     Source     |         Key          |          Fallbacks           |
-|:-------------------:|:--------------:|:--------------------:|:----------------------------:|
-|       Method        |    [Header]    | `X-Forwarded-Method` |            _N/A_             |
-|       Scheme        |    [Header]    | [X-Forwarded-Proto]  |        Server Scheme         |
-|      Hostname       |    [Header]    |  [X-Forwarded-Host]  |            [Host]            |
-|        Path         |    [Header]    |  `X-Forwarded-URI`   |      [Start Line] Path       |
-|         IP          |    [Header]    |  [X-Forwarded-For]   |        TCP Source IP         |
-| Authelia Portal URL | Query Argument |    `authelia_url`    | Session Cookie Configuration |
+|      Metadata       |            Source            |         Key          |
+|:-------------------:|:----------------------------:|:--------------------:|
+|       Method        |           [Header]           | `X-Forwarded-Method` |
+|       Scheme        |           [Header]           | [X-Forwarded-Proto]  |
+|      Hostname       |           [Header]           |  [X-Forwarded-Host]  |
+|        Path         |           [Header]           |  `X-Forwarded-URI`   |
+|         IP          |           [Header]           |  [X-Forwarded-For]   |
+| Authelia Portal URL | Session Cookie Configuration |    `authelia_url`    |
+
+##### Alternatives
+
+
+|      Metadata       | Alternative Type |     Source     |      Key       |
+|:-------------------:|:----------------:|:--------------:|:--------------:|
+|       Scheme        |     Fallback     |    [Header]    | Server Scheme  |
+|         IP          |     Fallback     |   TCP Packet   |   Source IP    |
+| Authelia Portal URL |     Override     | Query Argument | `authelia_url` |
 
 ### ExtAuthz
 
-This is the implementation which supports Envoy's [ExtAuthz Protocol].
-
-[ExtAuthz Protocol]: https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto#envoy-v3-api-msg-extensions-filters-http-ext-authz-v3-extauthz
+This is the implementation which supports [Envoy] via the [ExtAuthz Extension Filter].
 
 #### ExtAuthz Metadata
 
-|      Metadata       |     Source     |         Key         |              Fallbacks               |
-|:-------------------:|:--------------:|:-------------------:|:------------------------------------:|
-|       Method        | _[Start Line]_ |    [HTTP Method]    |                _N/A_                 |
-|       Scheme        |    [Header]    | [X-Forwarded-Proto] |            Server Scheme             |
-|      Hostname       |    [Header]    | [X-Forwarded-Host]  |                [Host]                |
-|        Path         |    [Header]    |  `X-Forwarded-URI`  | Endpoint Sub-Path, [Start Line] Path |
-|         IP          |    [Header]    |  [X-Forwarded-For]  |            TCP Source IP             |
-| Authelia Portal URL |    [Header]    |  `X-Authelia-URL`   |     Session Cookie Configuration     |
+|      Metadata       |            Source            |         Key         |
+|:-------------------:|:----------------------------:|:-------------------:|
+|       Method        |        _[Start Line]_        |    [HTTP Method]    |
+|       Scheme        |           [Header]           | [X-Forwarded-Proto] |
+|      Hostname       |           [Header]           |       [Host]        |
+|        Path         |           [Header]           |  Endpoint Sub-Path  |
+|         IP          |           [Header]           |  [X-Forwarded-For]  |
+| Authelia Portal URL | Session Cookie Configuration |   `authelia_url`    |
+
+##### Alternatives
+
+|      Metadata       | Alternative Type |   Source   |        Key         |
+|:-------------------:|:----------------:|:----------:|:------------------:|
+|       Scheme        |     Fallback     |  [Header]  |   Server Scheme    |
+|      Hostname       |     Override     |  [Header]  | [X-Forwarded-Host] |
+|        Path         |     Override     |  [Header]  | [X-Forwarded-URI]  |
+|         IP          |     Fallback     | TCP Packet |     Source IP      |
+| Authelia Portal URL |     Override     |  [Header]  |  `X-Authelia-URL`  |
 
 ### AuthRequest
 
-This is the implementation which supports NGINX's
-[auth_request HTTP module](https://nginx.org/en/docs/http/ngx_http_auth_request_module.html) and the
-HAProxy [auth-request lua plugin](https://github.com/TimWolla/haproxy-auth-request).
+This is the implementation which supports [NGINX] via the [auth_request HTTP module] and [HAProxy] via the
+[auth-request lua plugin].
 
-|      Metadata       |  Source  |         Key         |              Fallbacks              |
-|:-------------------:|:--------:|:-------------------:|:-----------------------------------:|
-|       Method        | [Header] | `X-Original-Method` | `X-Forwarded-Method`, [HTTP Method] |
-|       Scheme        | [Header] |  `X-Original-URL`   |                _N/A_                |
-|      Hostname       | [Header] |  `X-Original-URL`   |                _N/A_                |
-|        Path         | [Header] |  `X-Original-URL`   |                _N/A_                |
-|         IP          | [Header] |  [X-Forwarded-For]  |            TCP Source IP            |
-| Authelia Portal URL |  _N/A_   |        _N/A_        |                _N/A_                |
+|      Metadata       |  Source  |         Key         |
+|:-------------------:|:--------:|:-------------------:|
+|       Method        | [Header] | `X-Original-Method` |
+|       Scheme        | [Header] |  `X-Original-URL`   |
+|      Hostname       | [Header] |  `X-Original-URL`   |
+|        Path         | [Header] |  `X-Original-URL`   |
+|         IP          | [Header] |  [X-Forwarded-For]  |
+| Authelia Portal URL |  _N/A_   |        _N/A_        |
 
 _**Note:** This endpoint does not support automatic redirection. This is because there is no support on NGINX's side to
 achieve this with `ngx_http_auth_request_module` and the redirection must be performed within the NGINX configuration._
+
+##### Alternatives
+
+| Metadata | Alternative Type |   Source   |    Key    |
+|:--------:|:----------------:|:----------:|:---------:|
+|    IP    |     Fallback     | TCP Packet | Source IP |
 
 ### Legacy
 
@@ -184,6 +202,31 @@ TODO:
 
 This strategy uses the [Proxy-Authorization] header to determine the users' identity. If the user credentials are wrong,
 or the header is malformed it will respond with the [WWW-Authenticate] header.
+
+[NGINX]: https://www.nginx.com/
+[Traefik]: https://traefik.io/traefik/
+[Envoy]: https://www.envoyproxy.io/
+[Caddy]: https://caddyserver.com/
+[Skipper]: https://opensource.zalando.com/skipper/
+[HAProxy]: http://www.haproxy.org/
+
+[ExtAuthz Extension Filter]: https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto#envoy-v3-api-msg-extensions-filters-http-ext-authz-v3-extauthz
+[auth_request HTTP module]: https://nginx.org/en/docs/http/ngx_http_auth_request_module.html
+[auth-request lua plugin]: https://github.com/TimWolla/haproxy-auth-request
+[ForwardAuth Middleware]: https://doc.traefik.io/traefik/middlewares/http/forwardauth/
+[forward_auth directive]: https://caddyserver.com/docs/caddyfile/directives/forward_auth
+[webhook auth filter]: https://opensource.zalando.com/skipper/reference/filters/#webhook
+
+[Implementation]: #implementations
+[Authn Strategies]: #authn-strategies
+[ForwardAuth]: #forwardauth
+[ExtAuthz]: #extauthz
+[AuthRequest]: #authrequest
+[Legacy]: #legacy
+[HeaderProxyAuthorization]: #headerproxyauthorization
+[HeaderAuthRequestProxyAuthorization]: #headerauthrequestproxyauthorization
+[HeaderLegacy]: #headerlegacy
+[CookieSession]: #cookiesession
 
 [Authorization]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization
 [WWW-Authenticate]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/WWW-Authenticate

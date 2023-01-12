@@ -11,13 +11,33 @@ import (
 )
 
 func handleAuthzGetObjectExtAuthz(ctx *middlewares.AutheliaCtx) (object authorization.Object, err error) {
+	protocol, host, uri := ctx.XForwardedProto(), ctx.GetXForwardedHost(), ctx.XForwardedURI()
+
+	if uri == nil {
+		uri = ctx.AuthzPath()
+	}
+
 	var targetURL *url.URL
 
-	if targetURL, err = ctx.GetEnvoyXForwardedURL(); err != nil {
+	if targetURL, err = getRequestURIFromForwardedHeaders(protocol, host, uri); err != nil {
 		return object, fmt.Errorf("failed to get target URL: %w", err)
 	}
 
-	return authorization.NewObjectRaw(targetURL, ctx.XForwardedMethod()), nil
+	method := ctx.XForwardedMethod()
+
+	if len(method) == 0 {
+		method = ctx.Method()
+	}
+
+	if len(method) == 0 {
+		return object, fmt.Errorf("start line value 'Method' is empty")
+	}
+
+	if hasInvalidMethodCharacters(method) {
+		return object, fmt.Errorf("start line value 'Method' with value '%s' has invalid characters", method)
+	}
+
+	return authorization.NewObjectRaw(targetURL, method), nil
 }
 
 func handleAuthzUnauthorizedExtAuthz(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL) {

@@ -188,8 +188,8 @@ func TestShouldFallbackToNonXForwardedHeaders(t *testing.T) {
 	mock.Ctx.RequestCtx.Request.SetHost("auth.example.com:1234")
 
 	assert.Equal(t, []byte("http"), mock.Ctx.XForwardedProto())
-	assert.Equal(t, []byte("auth.example.com:1234"), mock.Ctx.XForwardedHost())
-	assert.Equal(t, []byte("/2fa/one-time-password"), mock.Ctx.XForwardedURI())
+	assert.Equal(t, []byte("auth.example.com:1234"), mock.Ctx.GetXForwardedHost())
+	assert.Equal(t, []byte("/2fa/one-time-password"), mock.Ctx.GetXForwardedURI())
 }
 
 func TestShouldOnlyFallbackToNonXForwardedHeadersWhenNil(t *testing.T) {
@@ -204,8 +204,8 @@ func TestShouldOnlyFallbackToNonXForwardedHeadersWhenNil(t *testing.T) {
 	mock.Ctx.RequestCtx.Request.Header.Set("X-Forwarded-Method", "GET")
 
 	assert.Equal(t, []byte("https"), mock.Ctx.XForwardedProto())
-	assert.Equal(t, []byte("auth.example.com:1234"), mock.Ctx.XForwardedHost())
-	assert.Equal(t, []byte("/base/2fa/one-time-password"), mock.Ctx.XForwardedURI())
+	assert.Equal(t, []byte("auth.example.com:1234"), mock.Ctx.GetXForwardedHost())
+	assert.Equal(t, []byte("/base/2fa/one-time-password"), mock.Ctx.GetXForwardedURI())
 	assert.Equal(t, []byte("GET"), mock.Ctx.XForwardedMethod())
 }
 
@@ -248,85 +248,4 @@ func TestShouldReturnCorrectSecondFactorMethods(t *testing.T) {
 	mock.Ctx.Configuration.DuoAPI.Disable = true
 
 	assert.Equal(t, []string{}, mock.Ctx.AvailableSecondFactorMethods())
-}
-
-func TestShouldReturnCorrectEnvoyValues(t *testing.T) {
-	testCases := []struct {
-		name                                                                                          string
-		haveXForwardedProto, haveXForwardedHost, haveHost, haveXForwardedURI, haveAuthzPath, havePath string
-		expected                                                                                      string
-		err                                                                                           string
-	}{
-		{"ShouldParseStandardValues",
-			"https",
-			"", "example.com",
-			"", "/a/path", "/api/authz/ext-authz",
-			"https://example.com/a/path", "",
-		},
-		{"ShouldParseStandardValuesWithXForwardedHost",
-			"https",
-			"abc.com", "example.com",
-			"", "/a/path", "/api/authz/ext-authz",
-			"https://abc.com/a/path", "",
-		},
-		{"ShouldFallbackToPath",
-			"https",
-			"abc.com", "example.com",
-			"", "", "/api/authz/ext-authz",
-			"https://abc.com/api/authz/ext-authz", "",
-		},
-		{"ShouldBeOverriddenByXForwardedURI",
-			"https",
-			"abc.com", "example.com",
-			"/a/path", "/api/authz/from-authz-path", "/api/authz/from-startline",
-			"https://abc.com/a/path", "",
-		},
-		{"ShouldErr",
-			"",
-			"", "",
-			"", "", "",
-			"", "missing required Host header",
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			mock := mocks.NewMockAutheliaCtx(t)
-			defer mock.Close()
-
-			if tc.haveXForwardedProto != "" {
-				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, tc.haveXForwardedProto)
-			}
-
-			if tc.haveXForwardedHost != "" {
-				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, tc.haveXForwardedHost)
-			}
-
-			if tc.haveHost != "" {
-				mock.Ctx.Request.Header.SetHost(tc.haveHost)
-			}
-
-			if tc.haveXForwardedURI != "" {
-				mock.Ctx.Request.Header.Set("X-Forwarded-URI", tc.haveXForwardedURI)
-			}
-
-			if tc.haveAuthzPath != "" {
-				mock.Ctx.SetUserValueBytes([]byte("authz_path"), tc.haveAuthzPath)
-			}
-
-			if tc.havePath != "" {
-				mock.Ctx.Request.SetRequestURI(tc.havePath)
-			}
-
-			actual, err := mock.Ctx.GetEnvoyXForwardedURL()
-
-			if tc.err == "" {
-				assert.Equal(t, tc.expected, actual.String())
-				assert.NoError(t, err)
-			} else {
-				assert.Nil(t, actual)
-				assert.EqualError(t, err, tc.err)
-			}
-		})
-	}
 }

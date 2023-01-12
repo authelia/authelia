@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/url"
 
 	"github.com/valyala/fasthttp"
@@ -10,13 +11,30 @@ import (
 )
 
 func handleAuthzGetObjectAuthRequest(ctx *middlewares.AutheliaCtx) (object authorization.Object, err error) {
-	var targetURL *url.URL
+	var (
+		targetURL *url.URL
+		rawURL    []byte
+	)
 
-	if targetURL, err = ctx.GetXOriginalURL(); err != nil {
-		return object, err
+	if rawURL = ctx.XOriginalURL(); len(rawURL) == 0 {
+		return object, middlewares.ErrMissingXOriginalURL
 	}
 
-	return authorization.NewObjectRaw(targetURL, ctx.XOriginalMethod()), nil
+	if targetURL, err = url.ParseRequestURI(string(rawURL)); err != nil {
+		return object, fmt.Errorf("failed to parse X-Original-URL header: %w", err)
+	}
+
+	method := ctx.XOriginalMethod()
+
+	if len(method) == 0 {
+		return object, fmt.Errorf("header 'X-Original-Method' is empty")
+	}
+
+	if hasInvalidMethodCharacters(method) {
+		return object, fmt.Errorf("header 'X-Original-Method' with value '%s' has invalid characters", method)
+	}
+
+	return authorization.NewObjectRaw(targetURL, method), nil
 }
 
 func handleAuthzUnauthorizedAuthRequest(ctx *middlewares.AutheliaCtx, authn *Authn, _ *url.URL) {

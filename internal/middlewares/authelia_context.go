@@ -130,12 +130,12 @@ func (ctx *AutheliaCtx) ReplyBadRequest() {
 	ctx.ReplyStatusCode(fasthttp.StatusBadRequest)
 }
 
-// XForwardedMethod return the content of the X-Forwarded-Method header.
+// XForwardedMethod returns the content of the X-Forwarded-Method header.
 func (ctx *AutheliaCtx) XForwardedMethod() (method []byte) {
 	return ctx.Request.Header.PeekBytes(headerXForwardedMethod)
 }
 
-// XForwardedProto return the content of the X-Forwarded-Proto header.
+// XForwardedProto returns the content of the X-Forwarded-Proto header.
 func (ctx *AutheliaCtx) XForwardedProto() (proto []byte) {
 	proto = ctx.Request.Header.PeekBytes(headerXForwardedProto)
 
@@ -150,9 +150,14 @@ func (ctx *AutheliaCtx) XForwardedProto() (proto []byte) {
 	return proto
 }
 
-// XForwardedHost return the content of the X-Forwarded-Host header.
+// XForwardedHost returns the content of the X-Forwarded-Host header.
 func (ctx *AutheliaCtx) XForwardedHost() (host []byte) {
-	host = ctx.Request.Header.PeekBytes(headerXForwardedHost)
+	return ctx.Request.Header.PeekBytes(headerXForwardedHost)
+}
+
+// GetXForwardedHost returns the content of the X-Forwarded-Host header falling back to the Host header.
+func (ctx *AutheliaCtx) GetXForwardedHost() (host []byte) {
+	host = ctx.XForwardedHost()
 
 	if host == nil {
 		return ctx.RequestCtx.Host()
@@ -161,9 +166,14 @@ func (ctx *AutheliaCtx) XForwardedHost() (host []byte) {
 	return host
 }
 
-// XForwardedURI return the content of the X-Forwarded-URI header, falling back to the start-line request path.
-func (ctx *AutheliaCtx) XForwardedURI() (uri []byte) {
-	uri = ctx.Request.Header.PeekBytes(headerXForwardedURI)
+// XForwardedURI returns the content of the X-Forwarded-Uri header.
+func (ctx *AutheliaCtx) XForwardedURI() (host []byte) {
+	return ctx.Request.Header.PeekBytes(headerXForwardedURI)
+}
+
+// GetXForwardedURI returns the content of the X-Forwarded-URI header, falling back to the start-line request path.
+func (ctx *AutheliaCtx) GetXForwardedURI() (uri []byte) {
+	uri = ctx.XForwardedURI()
 
 	if len(uri) == 0 {
 		return ctx.RequestURI()
@@ -172,23 +182,7 @@ func (ctx *AutheliaCtx) XForwardedURI() (uri []byte) {
 	return uri
 }
 
-// EnvoyXForwardedURI return the content of the X-Forwarded-URI header, falling back to the authz_path user value,
-// and finally the start-line request path. This should only be used for the ExtAuthz endpoint.
-func (ctx *AutheliaCtx) EnvoyXForwardedURI() (uri []byte) {
-	uri = ctx.Request.Header.PeekBytes(headerXForwardedURI)
-
-	if len(uri) == 0 {
-		if uv := ctx.UserValueBytes(keyUserValueAuthzPath); uv != nil {
-			return []byte(uv.(string))
-		}
-
-		return ctx.RequestURI()
-	}
-
-	return uri
-}
-
-// XOriginalMethod return the content of the X-Original-Method header.
+// XOriginalMethod returns the content of the X-Original-Method header.
 func (ctx *AutheliaCtx) XOriginalMethod() []byte {
 	return ctx.Request.Header.PeekBytes(headerXOriginalMethod)
 }
@@ -198,15 +192,29 @@ func (ctx *AutheliaCtx) XOriginalURL() []byte {
 	return ctx.Request.Header.PeekBytes(headerXOriginalURL)
 }
 
-// XAutheliaURL return the content of the X-Authelia-URL header which is used to communicate the location of the
+// XAutheliaURL returns the content of the X-Authelia-URL header which is used to communicate the location of the
 // portal when using proxies like Envoy.
 func (ctx *AutheliaCtx) XAutheliaURL() []byte {
 	return ctx.Request.Header.PeekBytes(headerXAutheliaURL)
 }
 
-// QueryArgRedirect return the content of the rd query argument.
+// QueryArgRedirect returns the content of the 'rd' query argument.
 func (ctx *AutheliaCtx) QueryArgRedirect() []byte {
 	return ctx.QueryArgs().PeekBytes(qryArgRedirect)
+}
+
+// QueryArgAutheliaURL returns the content of the 'authelia_url' query argument.
+func (ctx *AutheliaCtx) QueryArgAutheliaURL() []byte {
+	return ctx.QueryArgs().PeekBytes(qryArgAutheliaURL)
+}
+
+// AuthzPath returns the 'authz_path' value.
+func (ctx *AutheliaCtx) AuthzPath() (uri []byte) {
+	if uv := ctx.UserValueBytes(keyUserValueAuthzPath); uv != nil {
+		return []byte(uv.(string))
+	}
+
+	return nil
 }
 
 // BasePath returns the base_url as per the path visited by the client.
@@ -231,7 +239,7 @@ func (ctx *AutheliaCtx) BasePathSlash() string {
 func (ctx *AutheliaCtx) RootURL() (issuerURL *url.URL) {
 	return &url.URL{
 		Scheme: string(ctx.XForwardedProto()),
-		Host:   string(ctx.XForwardedHost()),
+		Host:   string(ctx.GetXForwardedHost()),
 		Path:   ctx.BasePath(),
 	}
 }
@@ -240,7 +248,7 @@ func (ctx *AutheliaCtx) RootURL() (issuerURL *url.URL) {
 func (ctx *AutheliaCtx) RootURLSlash() (issuerURL *url.URL) {
 	return &url.URL{
 		Scheme: string(ctx.XForwardedProto()),
-		Host:   string(ctx.XForwardedHost()),
+		Host:   string(ctx.GetXForwardedHost()),
 		Path:   ctx.BasePathSlash(),
 	}
 }
@@ -337,38 +345,10 @@ func (ctx *AutheliaCtx) RemoteIP() net.IP {
 	return ctx.RequestCtx.RemoteIP()
 }
 
-// ExternalRootURL gets the X-Forwarded-Proto, X-Forwarded-Host headers and the BasePath and forms them into a URL.
-func (ctx *AutheliaCtx) ExternalRootURL() (rootURL string, err error) {
-	forwardedProto := ctx.XForwardedProto()
-	if forwardedProto == nil {
-		return "", ErrMissingXForwardedProto
-	}
-
-	forwardedHost := ctx.XForwardedHost()
-	if forwardedHost == nil {
-		return "", ErrMissingXForwardedHost
-	}
-
-	requestURI := utils.BytesJoin(forwardedProto, protoHostSeparator, forwardedHost)
-
-	if base := ctx.BasePath(); base != "" {
-		externalBaseURL, err := url.ParseRequestURI(string(requestURI))
-		if err != nil {
-			return "", err
-		}
-
-		externalBaseURL.Path = path.Join(externalBaseURL.Path, base)
-
-		return externalBaseURL.String(), nil
-	}
-
-	return string(requestURI), nil
-}
-
 // GetXForwardedURL returns the parsed X-Forwarded-Proto, X-Forwarded-Host, and X-Forwarded-URI request header as a
 // *url.URL.
 func (ctx *AutheliaCtx) GetXForwardedURL() (requestURI *url.URL, err error) {
-	forwardedProto, forwardedHost, forwardedURI := ctx.XForwardedProto(), ctx.XForwardedHost(), ctx.XForwardedURI()
+	forwardedProto, forwardedHost, forwardedURI := ctx.XForwardedProto(), ctx.GetXForwardedHost(), ctx.GetXForwardedURI()
 
 	if forwardedProto == nil {
 		return nil, ErrMissingXForwardedProto
@@ -376,28 +356,6 @@ func (ctx *AutheliaCtx) GetXForwardedURL() (requestURI *url.URL, err error) {
 
 	if forwardedHost == nil {
 		return nil, ErrMissingXForwardedHost
-	}
-
-	value := utils.BytesJoin(forwardedProto, protoHostSeparator, forwardedHost, forwardedURI)
-
-	if requestURI, err = url.ParseRequestURI(string(value)); err != nil {
-		return nil, fmt.Errorf("failed to parse X-Forwarded Headers: %w", err)
-	}
-
-	return requestURI, nil
-}
-
-// GetEnvoyXForwardedURL returns the parsed X-Forwarded-Proto, X-Forwarded-Host, and X-Forwarded-URI request header as a
-// *url.URL. This should only be used for the ExtAuthz endpoint.
-func (ctx *AutheliaCtx) GetEnvoyXForwardedURL() (requestURI *url.URL, err error) {
-	forwardedProto, forwardedHost, forwardedURI := ctx.XForwardedProto(), ctx.XForwardedHost(), ctx.EnvoyXForwardedURI()
-
-	if forwardedProto == nil {
-		return nil, ErrMissingXForwardedProto
-	}
-
-	if forwardedHost == nil {
-		return nil, ErrMissingHeaderHost
 	}
 
 	value := utils.BytesJoin(forwardedProto, protoHostSeparator, forwardedHost, forwardedURI)
@@ -449,7 +407,7 @@ func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
 		issuerURL.Scheme = string(scheme)
 	}
 
-	if host := ctx.XForwardedHost(); len(host) != 0 {
+	if host := ctx.GetXForwardedHost(); len(host) != 0 {
 		issuerURL.Host = string(host)
 	} else {
 		return nil, ErrMissingXForwardedHost

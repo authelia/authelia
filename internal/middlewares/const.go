@@ -71,15 +71,17 @@ const (
 	strProtoHTTP  = "http"
 	strSlash      = "/"
 
-	queryArgRedirect = "rd"
-	queryArgToken    = "token"
+	queryArgRedirect    = "rd"
+	queryArgAutheliaURL = "authelia_url"
+	queryArgToken       = "token"
 )
 
 var (
 	protoHTTPS = []byte(strProtoHTTPS)
 	protoHTTP  = []byte(strProtoHTTP)
 
-	qryArgRedirect = []byte(queryArgRedirect)
+	qryArgRedirect    = []byte(queryArgRedirect)
+	qryArgAutheliaURL = []byte(queryArgAutheliaURL)
 
 	keyUserValueBaseURL   = []byte("base_url")
 	keyUserValueAuthzPath = []byte("authz_path")
