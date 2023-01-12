@@ -31,11 +31,13 @@ access_control:
       policy: two_factor
 
 session:
-  name: authelia_session
   secret: unsecure_session_secret
-  expiration: 3600  # 1 hour
-  inactivity: 300  # 5 minutes
-  domain: example.com  # Should match whatever your root protected domain is
+
+  cookies:
+    - name: authelia_session
+      domain: example.com  # Should match whatever your root protected domain is
+      expiration: 3600  # 1 hour
+      inactivity: 300  # 5 minutes
 
 regulation:
   max_retries: 3

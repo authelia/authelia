@@ -25,7 +25,7 @@ session:
   domain: example.com
   expiration: 3600  # 1 hour
   inactivity: 300  # 5 minutes
-  remember_me_duration: 1y
+  remember_me: 1y
 
 # Configuration of the storage backend used to store data and secrets. i.e. totp data
 storage:

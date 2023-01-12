@@ -58,7 +58,7 @@ func (s *SigninEmailScenario) TestShouldSignInWithUserEmail() {
 	}()
 
 	targetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURL)
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john.doe@authelia.com", "password", false, targetURL)
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john.doe@authelia.com", "password", false, BaseDomain, targetURL)
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
 

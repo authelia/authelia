@@ -8,16 +8,38 @@ import (
 )
 
 // BaseDomain the base domain.
-var BaseDomain = "example.com:8080"
+var (
+	BaseDomain     = "example.com:8080"
+	Example2DotCom = "example2.com:8080"
+	Example3DotCom = "example3.com:8080"
+)
 
 // PathPrefix the prefix/url_base of the login portal.
 var PathPrefix = os.Getenv("PathPrefix")
 
+// LoginBaseURLFmt the base URL of the login portal for specified baseDomain.
+func LoginBaseURLFmt(baseDomain string) string {
+	if baseDomain == "" {
+		baseDomain = BaseDomain
+	}
+
+	return fmt.Sprintf("https://login.%s", baseDomain)
+}
+
 // LoginBaseURL the base URL of the login portal.
-var LoginBaseURL = fmt.Sprintf("https://login.%s", BaseDomain)
+var LoginBaseURL = LoginBaseURLFmt(BaseDomain)
+
+// SingleFactorBaseURLFmt the base URL of the singlefactor with custom domain.
+func SingleFactorBaseURLFmt(baseDomain string) string {
+	if baseDomain == "" {
+		baseDomain = BaseDomain
+	}
+
+	return fmt.Sprintf("https://singlefactor.%s", baseDomain)
+}
 
 // SingleFactorBaseURL the base URL of the singlefactor domain.
-var SingleFactorBaseURL = fmt.Sprintf("https://singlefactor.%s", BaseDomain)
+var SingleFactorBaseURL = SingleFactorBaseURLFmt(BaseDomain)
 
 // AdminBaseURL the base URL of the admin domain.
 var AdminBaseURL = fmt.Sprintf("https://admin.%s", BaseDomain)

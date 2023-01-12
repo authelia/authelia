@@ -259,9 +259,11 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			}
 
 			mock := mocks.NewMockAutheliaCtx(t)
+			sessionConfig := mock.Ctx.Configuration.Session
 
 			if resp.config != nil {
 				mock.Ctx.Configuration = *resp.config
+				mock.Ctx.Configuration.Session = sessionConfig
 			}
 
 			// Set the initial user session.

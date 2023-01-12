@@ -35,18 +35,11 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 		config.Inactivity = schema.DefaultSessionConfiguration.Inactivity // 5 min.
 	}
 
-	if config.RememberMeDuration <= 0 && config.RememberMeDuration != schema.RememberMeDisabled {
-		config.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration // 1 month.
-	}
-
-	if config.Domain == "" {
-		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "domain"))
-	} else if strings.HasPrefix(config.Domain, ".") {
-		validator.PushWarning(fmt.Errorf("session: option 'domain' has a prefix of '.' which is not supported or intended behaviour: you can use this at your own risk but we recommend removing it"))
-	}
-
-	if strings.HasPrefix(config.Domain, "*.") {
-		validator.Push(fmt.Errorf(errFmtSessionDomainMustBeRoot, config.Domain))
+	switch {
+	case config.RememberMe == schema.RememberMeDisabled:
+		config.DisableRememberMe = true
+	case config.RememberMe <= 0:
+		config.RememberMe = schema.DefaultSessionConfiguration.RememberMe // 1 month.
 	}
 
 	if config.SameSite == "" {
@@ -54,6 +47,137 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 	} else if !utils.IsStringInSlice(config.SameSite, validSessionSameSiteValues) {
 		validator.Push(fmt.Errorf(errFmtSessionSameSite, strings.Join(validSessionSameSiteValues, "', '"), config.SameSite))
 	}
+
+	cookies := len(config.Cookies)
+
+	switch {
+	case cookies == 0 && config.Domain != "":
+		// Add legacy configuration to the domains list.
+		config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
+			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+				Name:              config.Name,
+				Domain:            config.Domain,
+				SameSite:          config.SameSite,
+				Expiration:        config.Expiration,
+				Inactivity:        config.Inactivity,
+				RememberMe:        config.RememberMe,
+				DisableRememberMe: config.DisableRememberMe,
+			},
+		})
+	case cookies != 0 && config.Domain != "":
+		validator.Push(fmt.Errorf(errFmtSessionLegacyAndWarning))
+	}
+
+	validateSessionCookieDomains(config, validator)
+}
+
+func validateSessionCookieDomains(config *schema.SessionConfiguration, validator *schema.StructValidator) {
+	if len(config.Cookies) == 0 {
+		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "domain"))
+	}
+
+	domains := make([]string, 0)
+
+	for i, d := range config.Cookies {
+		validateSessionDomainName(i, config, validator)
+
+		validateSessionUniqueCookieDomain(i, config, domains, validator)
+
+		validateSessionCookieName(i, config)
+
+		validateSessionSafeRedirection(i, config, validator)
+
+		validateSessionExpiration(i, config)
+
+		validateSessionRememberMe(i, config)
+
+		validateSessionSameSite(i, config, validator)
+
+		domains = append(domains, d.Domain)
+	}
+}
+
+// validateSessionDomainName returns error if the domain name is invalid.
+func validateSessionDomainName(i int, config *schema.SessionConfiguration, validator *schema.StructValidator) {
+	var d = config.Cookies[i]
+
+	switch {
+	case d.Domain == "":
+		validator.Push(fmt.Errorf(errFmtSessionDomainRequired, sessionDomainDescriptor(i, d)))
+	case strings.HasPrefix(d.Domain, "*."):
+		validator.Push(fmt.Errorf(errFmtSessionDomainMustBeRoot, sessionDomainDescriptor(i, d), d.Domain))
+	case strings.HasPrefix(d.Domain, "."):
+		validator.PushWarning(fmt.Errorf(errFmtSessionDomainHasPeriodPrefix, sessionDomainDescriptor(i, d)))
+	case !reDomainCharacters.MatchString(d.Domain):
+		validator.Push(fmt.Errorf(errFmtSessionDomainInvalidDomain, sessionDomainDescriptor(i, d)))
+	}
+}
+
+func validateSessionCookieName(i int, config *schema.SessionConfiguration) {
+	if config.Cookies[i].Name == "" {
+		config.Cookies[i].Name = config.Name
+	}
+}
+
+func validateSessionExpiration(i int, config *schema.SessionConfiguration) {
+	if config.Cookies[i].Expiration <= 0 {
+		config.Cookies[i].Expiration = config.Expiration
+	}
+
+	if config.Cookies[i].Inactivity <= 0 {
+		config.Cookies[i].Inactivity = config.Inactivity
+	}
+}
+
+// validateSessionUniqueCookieDomain Check the current domains do not share a root domain with previous domains.
+func validateSessionUniqueCookieDomain(i int, config *schema.SessionConfiguration, domains []string, validator *schema.StructValidator) {
+	var d = config.Cookies[i]
+	if utils.IsStringInSliceF(d.Domain, domains, utils.HasDomainSuffix) {
+		if utils.IsStringInSlice(d.Domain, domains) {
+			validator.Push(fmt.Errorf(errFmtSessionDomainDuplicate, sessionDomainDescriptor(i, d)))
+		} else {
+			validator.Push(fmt.Errorf(errFmtSessionDomainDuplicateCookieScope, sessionDomainDescriptor(i, d)))
+		}
+	}
+}
+
+// validateSessionSafeRedirection validates that AutheliaURL is safe for redirection.
+func validateSessionSafeRedirection(index int, config *schema.SessionConfiguration, validator *schema.StructValidator) {
+	var d = config.Cookies[index]
+
+	if d.AutheliaURL != nil && d.Domain != "" && !utils.IsURISafeRedirection(d.AutheliaURL, d.Domain) {
+		if utils.IsURISecure(d.AutheliaURL) {
+			validator.Push(fmt.Errorf(errFmtSessionDomainPortalURLNotInCookieScope, sessionDomainDescriptor(index, d), d.Domain, d.AutheliaURL))
+		} else {
+			validator.Push(fmt.Errorf(errFmtSessionDomainPortalURLInsecure, sessionDomainDescriptor(index, d), d.AutheliaURL))
+		}
+	}
+}
+
+func validateSessionRememberMe(i int, config *schema.SessionConfiguration) {
+	if config.Cookies[i].RememberMe <= 0 && config.Cookies[i].RememberMe != schema.RememberMeDisabled {
+		config.Cookies[i].RememberMe = config.RememberMe
+	}
+
+	if config.Cookies[i].RememberMe == schema.RememberMeDisabled {
+		config.Cookies[i].DisableRememberMe = true
+	}
+}
+
+func validateSessionSameSite(i int, config *schema.SessionConfiguration, validator *schema.StructValidator) {
+	if config.Cookies[i].SameSite == "" {
+		if utils.IsStringInSlice(config.SameSite, validSessionSameSiteValues) {
+			config.Cookies[i].SameSite = config.SameSite
+		} else {
+			config.Cookies[i].SameSite = schema.DefaultSessionConfiguration.SameSite
+		}
+	} else if !utils.IsStringInSlice(config.Cookies[i].SameSite, validSessionSameSiteValues) {
+		validator.Push(fmt.Errorf(errFmtSessionDomainSameSite, sessionDomainDescriptor(i, config.Cookies[i]), strings.Join(validSessionSameSiteValues, "', '"), config.Cookies[i].SameSite))
+	}
+}
+
+func sessionDomainDescriptor(position int, domain schema.SessionCookieConfiguration) string {
+	return fmt.Sprintf("#%d (domain '%s')", position+1, domain.Domain)
 }
 
 func validateRedisCommon(config *schema.SessionConfiguration, validator *schema.StructValidator) {

@@ -256,7 +256,7 @@ database. The value of this option should be long and as random as possible. See
 [documentation](../../configuration/session/introduction.md#secret) for this option.
 
 The validity period of session is highly configurable. For example in a highly security conscious domain you could
-set the session [remember_me_duration](../../configuration/session/introduction.md#remembermeduration) to 0 to disable this
+set the session [remember_me](../../configuration/session/introduction.md#rememberme) to 0 to disable this
 feature, and set the [expiration](../../configuration/session/introduction.md#expiration) to 2 hours and the
 [inactivity](../../configuration/session/introduction.md#inactivity) of 10 minutes. Configuring the session security in this
 manner would mean if the cookie age was more than 2 hours or if the user was inactive for more than 10 minutes the
