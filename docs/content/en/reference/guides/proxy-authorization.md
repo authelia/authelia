@@ -42,14 +42,14 @@ Various metadata is collected from the request made to the Authelia authorizatio
 metadata collected. All of this metadata is utilized for the purpose of determining if the user is authorized to a
 particular resource.
 
-|        Name         |                   Description                   |
-|:-------------------:|:-----------------------------------------------:|
-|       Method        |         The Method Verb of the Request          |
-|       Scheme        |          The URI Scheme of the Request          |
-|      Hostname       |         The URI Hostname of the Request         |
-|        Path         |           The URI Path of the Request           |
-|         IP          | The IP address of the client making the Request |
-| Authelia Portal URL |         The URL of the Authelia Portal          |
+|     Name     |                   Description                   |
+|:------------:|:-----------------------------------------------:|
+|    Method    |         The Method Verb of the Request          |
+|    Scheme    |          The URI Scheme of the Request          |
+|   Hostname   |         The URI Hostname of the Request         |
+|     Path     |           The URI Path of the Request           |
+|      IP      | The IP address of the client making the Request |
+| Authelia URL |         The URL of the Authelia Portal          |
 
 Some values may have either fallbacks or override values. If they exist they will be in the alternatives table which
 will be below the main metadata table.
@@ -68,23 +68,23 @@ This is the implementation which supports [Traefik] via the [ForwardAuth Middlew
 
 #### ForwardAuth Metadata
 
-|      Metadata       |            Source            |         Key          |
-|:-------------------:|:----------------------------:|:--------------------:|
-|       Method        |           [Header]           | `X-Forwarded-Method` |
-|       Scheme        |           [Header]           | [X-Forwarded-Proto]  |
-|      Hostname       |           [Header]           |  [X-Forwarded-Host]  |
-|        Path         |           [Header]           |  `X-Forwarded-URI`   |
-|         IP          |           [Header]           |  [X-Forwarded-For]   |
-| Authelia Portal URL | Session Cookie Configuration |    `authelia_url`    |
+|   Metadata   |            Source            |         Key          |
+|:------------:|:----------------------------:|:--------------------:|
+|    Method    |           [Header]           | `X-Forwarded-Method` |
+|    Scheme    |           [Header]           | [X-Forwarded-Proto]  |
+|   Hostname   |           [Header]           |  [X-Forwarded-Host]  |
+|     Path     |           [Header]           |  `X-Forwarded-URI`   |
+|      IP      |           [Header]           |  [X-Forwarded-For]   |
+| Authelia URL | Session Cookie Configuration |    `authelia_url`    |
 
 ##### Alternatives
 
 
-|      Metadata       | Alternative Type |     Source     |      Key       |
-|:-------------------:|:----------------:|:--------------:|:--------------:|
-|       Scheme        |     Fallback     |    [Header]    | Server Scheme  |
-|         IP          |     Fallback     |   TCP Packet   |   Source IP    |
-| Authelia Portal URL |     Override     | Query Argument | `authelia_url` |
+|   Metadata   | Alternative Type |     Source     |      Key       |
+|:------------:|:----------------:|:--------------:|:--------------:|
+|    Scheme    |     Fallback     |    [Header]    | Server Scheme  |
+|      IP      |     Fallback     |   TCP Packet   |   Source IP    |
+| Authelia URL |     Override     | Query Argument | `authelia_url` |
 
 ### ExtAuthz
 
@@ -92,38 +92,38 @@ This is the implementation which supports [Envoy] via the [ExtAuthz Extension Fi
 
 #### ExtAuthz Metadata
 
-|      Metadata       |            Source            |         Key         |
-|:-------------------:|:----------------------------:|:-------------------:|
-|       Method        |        _[Start Line]_        |    [HTTP Method]    |
-|       Scheme        |           [Header]           | [X-Forwarded-Proto] |
-|      Hostname       |           [Header]           |       [Host]        |
-|        Path         |           [Header]           |  Endpoint Sub-Path  |
-|         IP          |           [Header]           |  [X-Forwarded-For]  |
-| Authelia Portal URL | Session Cookie Configuration |   `authelia_url`    |
+|   Metadata   |            Source            |         Key         |
+|:------------:|:----------------------------:|:-------------------:|
+|    Method    |        _[Start Line]_        |    [HTTP Method]    |
+|    Scheme    |           [Header]           | [X-Forwarded-Proto] |
+|   Hostname   |           [Header]           |       [Host]        |
+|     Path     |           [Header]           |  Endpoint Sub-Path  |
+|      IP      |           [Header]           |  [X-Forwarded-For]  |
+| Authelia URL | Session Cookie Configuration |   `authelia_url`    |
 
 ##### Alternatives
 
-|      Metadata       | Alternative Type |   Source   |        Key         |
-|:-------------------:|:----------------:|:----------:|:------------------:|
-|       Scheme        |     Fallback     |  [Header]  |   Server Scheme    |
-|      Hostname       |     Override     |  [Header]  | [X-Forwarded-Host] |
-|        Path         |     Override     |  [Header]  | [X-Forwarded-URI]  |
-|         IP          |     Fallback     | TCP Packet |     Source IP      |
-| Authelia Portal URL |     Override     |  [Header]  |  `X-Authelia-URL`  |
+|   Metadata   | Alternative Type |   Source   |        Key         |
+|:------------:|:----------------:|:----------:|:------------------:|
+|    Scheme    |     Fallback     |  [Header]  |   Server Scheme    |
+|   Hostname   |     Override     |  [Header]  | [X-Forwarded-Host] |
+|     Path     |     Override     |  [Header]  | `X-Forwarded-URI`  |
+|      IP      |     Fallback     | TCP Packet |     Source IP      |
+| Authelia URL |     Override     |  [Header]  |  `X-Authelia-URL`  |
 
 ### AuthRequest
 
 This is the implementation which supports [NGINX] via the [auth_request HTTP module] and [HAProxy] via the
 [auth-request lua plugin].
 
-|      Metadata       |  Source  |         Key         |
-|:-------------------:|:--------:|:-------------------:|
-|       Method        | [Header] | `X-Original-Method` |
-|       Scheme        | [Header] |  `X-Original-URL`   |
-|      Hostname       | [Header] |  `X-Original-URL`   |
-|        Path         | [Header] |  `X-Original-URL`   |
-|         IP          | [Header] |  [X-Forwarded-For]  |
-| Authelia Portal URL |  _N/A_   |        _N/A_        |
+|   Metadata   |  Source  |         Key         |
+|:------------:|:--------:|:-------------------:|
+|    Method    | [Header] | `X-Original-Method` |
+|    Scheme    | [Header] |  `X-Original-URL`   |
+|   Hostname   | [Header] |  `X-Original-URL`   |
+|     Path     | [Header] |  `X-Original-URL`   |
+|      IP      | [Header] |  [X-Forwarded-For]  |
+| Authelia URL |  _N/A_   |        _N/A_        |
 
 _**Note:** This endpoint does not support automatic redirection. This is because there is no support on NGINX's side to
 achieve this with `ngx_http_auth_request_module` and the redirection must be performed within the NGINX configuration._
@@ -143,19 +143,19 @@ This is the legacy implementation which used to operate similar to both the [For
 cater for the AuthRequest and ForwardAuth implementations. The table is in order of precedence where if a header higher
 in the list exists it is used over those lower in the list.*
 
-|      Metadata       |     Source     |         Key          |
-|:-------------------:|:--------------:|:--------------------:|
-|       Method        |    [Header]    | `X-Original-Method`  |
-|       Scheme        |    [Header]    |   `X-Original-URL`   |
-|      Hostname       |    [Header]    |   `X-Original-URL`   |
-|        Path         |    [Header]    |   `X-Original-URL`   |
-|       Method        |    [Header]    | `X-Forwarded-Method` |
-|       Scheme        |    [Header]    | [X-Forwarded-Proto]  |
-|      Hostname       |    [Header]    |  [X-Forwarded-Host]  |
-|        Path         |    [Header]    |  `X-Forwarded-URI`   |
-|         IP          |    [Header]    |  [X-Forwarded-For]   |
-| Authelia Portal URL | Query Argument |         `rd`         |
-| Authelia Portal URL |    [Header]    |   `X-Authelia-URL`   |
+|   Metadata   |     Source     |         Key          |
+|:------------:|:--------------:|:--------------------:|
+|    Method    |    [Header]    | `X-Original-Method`  |
+|    Scheme    |    [Header]    |   `X-Original-URL`   |
+|   Hostname   |    [Header]    |   `X-Original-URL`   |
+|     Path     |    [Header]    |   `X-Original-URL`   |
+|    Method    |    [Header]    | `X-Forwarded-Method` |
+|    Scheme    |    [Header]    | [X-Forwarded-Proto]  |
+|   Hostname   |    [Header]    |  [X-Forwarded-Host]  |
+|     Path     |    [Header]    |  `X-Forwarded-URI`   |
+|      IP      |    [Header]    |  [X-Forwarded-For]   |
+| Authelia URL | Query Argument |         `rd`         |
+| Authelia URL |    [Header]    |   `X-Authelia-URL`   |
 
 ## Authn Strategies
 
