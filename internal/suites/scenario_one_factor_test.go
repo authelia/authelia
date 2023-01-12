@@ -80,7 +80,7 @@ func (s *OneFactorSuite) TestShouldNotAuthorizeSecretBeforeOneFactor() {
 
 	expected.RawQuery = query.Encode()
 
-	rx := regexp.MustCompile(fmt.Sprintf(`^%s(&rm=GET)?$`, expected.String()))
+	rx := regexp.MustCompile(fmt.Sprintf(`^%s(&rm=GET)?$`, regexp.QuoteMeta(expected.String())))
 
 	s.verifyURLIsRegexp(s.T(), s.Context(ctx), rx)
 }
