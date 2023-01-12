@@ -4,10 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/valyala/fasthttp"
 )
 
 type TwoFactorSuite struct {
@@ -60,6 +63,39 @@ func (s *TwoFactorSuite) SetupTest() {
 func (s *TwoFactorSuite) TearDownTest() {
 	s.collectCoverage(s.Page)
 	s.MustClose()
+}
+
+func (s *TwoFactorSuite) TestShouldNotAuthorizeSecretBeforeTwoFactor() {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
+	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
+
+	s.doVisit(s.T(), s.Context(ctx), targetURL)
+
+	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
+
+	raw := GetLoginBaseURL(BaseDomain)
+
+	expected, err := url.ParseRequestURI(raw)
+	s.Assert().NoError(err)
+	s.Require().NotNil(expected)
+
+	if !strings.HasSuffix(expected.Path, "/") {
+		expected.Path += "/"
+	}
+
+	query := expected.Query()
+
+	query.Set("rd", targetURL)
+	query.Set("rm", fasthttp.MethodGet)
+
+	expected.RawQuery = query.Encode()
+
+	s.verifyURLIs(s.T(), s.Context(ctx), expected.String())
 }
 
 func (s *TwoFactorSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
