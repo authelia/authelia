@@ -683,7 +683,7 @@ session:
       ##   - The above domain MUST either:
       ##      - Match the host portion of this URI.
       ##      - Match the suffix of the host portion when prefixed with '.'.
-      # portal_url: 'https://auth.example.com'
+      # authelia_url: 'https://auth.example.com'
 
       ## Sets the Cookie SameSite value. Possible options are none, lax, or strict.
       ## Please read https://www.authelia.com/c/session#same_site

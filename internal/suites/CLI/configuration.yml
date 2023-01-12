@@ -23,7 +23,7 @@ session:
   cookies:
     - name: 'authelia_session'
       domain: 'example.com'
-      portal_url: 'https://login.example.com'
+      authelia_url: 'https://login.example.com'
       expiration: 3600  # 1 hour
       inactivity: 300  # 5 minutes
       remember_me: 1y

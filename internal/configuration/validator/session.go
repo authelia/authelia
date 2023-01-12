@@ -141,15 +141,15 @@ func validateSessionUniqueCookieDomain(i int, config *schema.SessionConfiguratio
 	}
 }
 
-// validateSessionSafeRedirection validates that PortalURL is safe for redirection.
+// validateSessionSafeRedirection validates that AutheliaURL is safe for redirection.
 func validateSessionSafeRedirection(index int, config *schema.SessionConfiguration, validator *schema.StructValidator) {
 	var d = config.Cookies[index]
 
-	if d.PortalURL != nil && d.Domain != "" && !utils.IsURISafeRedirection(d.PortalURL, d.Domain) {
-		if utils.IsURISecure(d.PortalURL) {
-			validator.Push(fmt.Errorf(errFmtSessionDomainPortalURLNotInCookieScope, sessionDomainDescriptor(index, d), d.Domain, d.PortalURL))
+	if d.AutheliaURL != nil && d.Domain != "" && !utils.IsURISafeRedirection(d.AutheliaURL, d.Domain) {
+		if utils.IsURISecure(d.AutheliaURL) {
+			validator.Push(fmt.Errorf(errFmtSessionDomainPortalURLNotInCookieScope, sessionDomainDescriptor(index, d), d.Domain, d.AutheliaURL))
 		} else {
-			validator.Push(fmt.Errorf(errFmtSessionDomainPortalURLInsecure, sessionDomainDescriptor(index, d), d.PortalURL))
+			validator.Push(fmt.Errorf(errFmtSessionDomainPortalURLInsecure, sessionDomainDescriptor(index, d), d.AutheliaURL))
 		}
 	}
 }

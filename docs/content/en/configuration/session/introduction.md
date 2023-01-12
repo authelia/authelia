@@ -141,7 +141,7 @@ The name of the session cookie. By default this is set to the `name` value in th
 {{< confkey type="string" required="yes" >}}
 
 The domain the cookie is assigned to protect. This must be the same as the domain Authelia is served on or the root
-of the domain, and consequently if the [portal_url](#portal_url) is configured must be able to read and write cookies
+of the domain, and consequently if the [authelia_url](#authelia_url) is configured must be able to read and write cookies
 for the domain. For example if listening on `auth.example.com` the cookie should be either `auth.example.com` or
 `example.com`.
 
@@ -151,12 +151,12 @@ for the domain value as browsers will not allow `john.duckdns.org` to read or wr
 
 Consequently, if you have `john.duckdns.org` and `mary.duckdns.org` you cannot share cookies between these domains.
 
-#### portal_url
+#### authelia_url
 
 {{< confkey type="string" required="no" >}}
 
 *__Note:__ The AuthRequest implementation does not support redirection control on the authorization server. This means
-that the `portal_url` option is ineffectual for both NGINX and HAProxy, or any other proxy which uses the AuthRequest
+that the `authelia_url` option is ineffectual for both NGINX and HAProxy, or any other proxy which uses the AuthRequest
 implementation.*
 
 This is a completely optional URL which is the root URL of your Authelia installation for this cookie domain which can

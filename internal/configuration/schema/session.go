@@ -61,7 +61,7 @@ type SessionCookieCommonConfiguration struct {
 type SessionCookieConfiguration struct {
 	SessionCookieCommonConfiguration `koanf:",squash"`
 
-	PortalURL *url.URL `koanf:"portal_url"`
+	AutheliaURL *url.URL `koanf:"authelia_url"`
 }
 
 // DefaultSessionConfiguration is the default session configuration.

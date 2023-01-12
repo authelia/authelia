@@ -633,13 +633,13 @@ func TestShouldRaiseErrorWhenHaveDuplicatedDomainName(t *testing.T) {
 		SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
 			Domain: exampleDotCom,
 		},
-		PortalURL: MustParseURL("https://login.example.com"),
+		AutheliaURL: MustParseURL("https://login.example.com"),
 	})
 	config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
 		SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
 			Domain: exampleDotCom,
 		},
-		PortalURL: MustParseURL("https://login.example.com"),
+		AutheliaURL: MustParseURL("https://login.example.com"),
 	})
 
 	ValidateSession(&config, validator)
@@ -656,13 +656,13 @@ func TestShouldRaiseErrorWhenSubdomainConflicts(t *testing.T) {
 		SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
 			Domain: exampleDotCom,
 		},
-		PortalURL: MustParseURL("https://login.example.com"),
+		AutheliaURL: MustParseURL("https://login.example.com"),
 	})
 	config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
 		SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
 			Domain: "internal.example.com",
 		},
-		PortalURL: MustParseURL("https://login.internal.example.com"),
+		AutheliaURL: MustParseURL("https://login.internal.example.com"),
 	})
 
 	ValidateSession(&config, validator)
@@ -692,7 +692,7 @@ func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {
 					SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
 						Domain: tc.have,
 					},
-					PortalURL: MustParseURL("https://auth.example.com")},
+					AutheliaURL: MustParseURL("https://auth.example.com")},
 			}
 
 			ValidateSession(&config, validator)
@@ -713,8 +713,8 @@ func TestShouldRaiseErrorWhenPortalURLIsInvalid(t *testing.T) {
 		have     string
 		expected []string
 	}{
-		{"ShouldRaiseErrorOnInvalidScope", "https://example2.com/login", []string{"session: domain config #1 (domain 'example.com'): option 'portal_url' does not share a cookie scope with domain 'example.com' with a value of 'https://example2.com/login'"}},
-		{"ShouldRaiseErrorOnInvalidScheme", "http://example.com/login", []string{"session: domain config #1 (domain 'example.com'): option 'portal_url' does not have a secure scheme with a value of 'http://example.com/login'"}},
+		{"ShouldRaiseErrorOnInvalidScope", "https://example2.com/login", []string{"session: domain config #1 (domain 'example.com'): option 'authelia_url' does not share a cookie scope with domain 'example.com' with a value of 'https://example2.com/login'"}},
+		{"ShouldRaiseErrorOnInvalidScheme", "http://example.com/login", []string{"session: domain config #1 (domain 'example.com'): option 'authelia_url' does not have a secure scheme with a value of 'http://example.com/login'"}},
 	}
 
 	for _, tc := range testCases {
@@ -728,7 +728,7 @@ func TestShouldRaiseErrorWhenPortalURLIsInvalid(t *testing.T) {
 						Name:   "authelia_session",
 						Domain: exampleDotCom,
 					},
-					PortalURL: MustParseURL(tc.have)},
+					AutheliaURL: MustParseURL(tc.have)},
 			}
 
 			ValidateSession(&config, validator)

@@ -265,8 +265,8 @@ const (
 	errFmtSessionDomainHasPeriodPrefix           = "session: domain config %s: option 'domain' has a prefix of '.' which is not supported or intended behaviour: you can use this at your own risk but we recommend removing it"
 	errFmtSessionDomainDuplicate                 = "session: domain config %s: option 'domain' is a duplicate value for another configured session domain"
 	errFmtSessionDomainDuplicateCookieScope      = "session: domain config %s: option 'domain' shares the same cookie domain scope as another configured session domain"
-	errFmtSessionDomainPortalURLInsecure         = "session: domain config %s: option 'portal_url' does not have a secure scheme with a value of '%s'"
-	errFmtSessionDomainPortalURLNotInCookieScope = "session: domain config %s: option 'portal_url' does not share a cookie scope with domain '%s' with a value of '%s'"
+	errFmtSessionDomainPortalURLInsecure         = "session: domain config %s: option 'authelia_url' does not have a secure scheme with a value of '%s'"
+	errFmtSessionDomainPortalURLNotInCookieScope = "session: domain config %s: option 'authelia_url' does not share a cookie scope with domain '%s' with a value of '%s'"
 	errFmtSessionDomainInvalidDomain             = "session: domain config %s: option 'domain' is not a valid domain"
 )
 

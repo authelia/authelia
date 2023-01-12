@@ -121,7 +121,7 @@ var Keys = []string{
 	"session.cookies[].inactivity",
 	"session.cookies[].remember_me",
 	"session.cookies[]",
-	"session.cookies[].portal_url",
+	"session.cookies[].authelia_url",
 	"session.redis.host",
 	"session.redis.port",
 	"session.redis.username",
