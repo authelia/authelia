@@ -55,7 +55,7 @@ mail.example.com:8080 {
 	tls internal
 	log
 	forward_auth authelia-backend:9091 {
-		uri /api/authz/caddy?rd=https://login.example.com:8080
+		uri /api/authz/caddy
 		copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
 		import tls-transport
 	}

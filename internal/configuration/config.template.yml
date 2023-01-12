@@ -680,38 +680,76 @@ access_control:
 ## The session cookies identify the user once logged in.
 ## The available providers are: `memory`, `redis`. Memory is the provider unless redis is defined.
 session:
-  ## The name of the session cookie.
-  name: authelia_session
-
-  ## The domain to protect.
-  ## Note: the authenticator must also be in that domain.
-  ## If empty, the cookie is restricted to the subdomain of the issuer.
-  domain: example.com
-
-  ## Sets the Cookie SameSite value. Possible options are none, lax, or strict.
-  ## Please read https://www.authelia.com/c/session#same_site
-  same_site: lax
-
   ## The secret to encrypt the session data. This is only used with Redis / Redis Sentinel.
   ## Secret can also be set using a secret: https://www.authelia.com/c/secrets
-  secret: insecure_session_secret
+  secret: 'insecure_session_secret'
 
-  ## The value for expiration, inactivity, and remember_me_duration are in seconds or the duration notation format.
+  ## Cookies configures the list of allowed cookie domains for sessions to be created on.
+  ## Undefined values will default to the values below.
+  # cookies:
+  #   -
+      ## The name of the session cookie.
+      # name: 'authelia_session'
+
+      ## The domain to protect.
+      ## Note: the Authelia portal must also be in that domain.
+      # domain: 'example.com'
+
+      ## Optional. The fully qualified URI of the portal to redirect users to on proxies that support redirections.
+      ## Rules:
+      ##   - MUST use the secure scheme 'https://'
+      ##   - The above domain MUST either:
+      ##      - Match the host portion of this URI.
+      ##      - Match the suffix of the host portion when prefixed with '.'.
+      # authelia_url: 'https://auth.example.com'
+
+      ## Sets the Cookie SameSite value. Possible options are none, lax, or strict.
+      ## Please read https://www.authelia.com/c/session#same_site
+      # same_site: 'lax'
+
+      ## The value for inactivity, expiration, and remember_me are in seconds or the duration notation format.
+      ## See: https://www.authelia.com/c/common#duration-notation-format
+      ## All three of these values affect the cookie/session validity period. Longer periods are considered less secure
+      ## because a stolen cookie will last longer giving attackers more time to spy or attack.
+
+      ## The inactivity time before the session is reset. If expiration is set to 1h, and this is set to 5m, if the user
+      ## does not select the remember me option their session will get destroyed after 1h, or after 5m since the last
+      ## time Authelia detected user activity.
+      # inactivity: '5m'
+
+      ## The time before the session cookie expires and the session is destroyed if remember me IS NOT selected by the
+      ## user.
+      # expiration: '1h'
+
+      ## The time before the cookie expires and the session is destroyed if remember me IS selected by the user. Setting
+      ## this value to -1 disables remember me for this session cookie domain.
+      # remember_me: '1M'
+
+  ## Cookie Session Domain default 'name' value.  The name of the session cookie.
+  name: 'authelia_session'
+
+  ## Cookie Session Domain default 'same_site' value. Sets the Cookie SameSite value. Possible options are none, lax,
+  ## or strict. Please read https://www.authelia.com/c/session#same_site
+  same_site: 'lax'
+
+  ## The value for inactivity, expiration, and remember_me are in seconds or the duration notation format.
   ## See: https://www.authelia.com/c/common#duration-notation-format
   ## All three of these values affect the cookie/session validity period. Longer periods are considered less secure
   ## because a stolen cookie will last longer giving attackers more time to spy or attack.
 
-  ## The time before the cookie expires and the session is destroyed if remember me IS NOT selected.
-  expiration: 1h
+  ## Cookie Session Domain default 'inactivity' value. The inactivity time before the session is reset. If expiration is
+  ## set to 1h, and this is set to 5m, if the user does not select the remember me option their session will get
+  ## destroyed after 1h, or after 5m since the last time Authelia detected user activity.
+  inactivity: '5m'
 
-  ## The inactivity time before the session is reset. If expiration is set to 1h, and this is set to 5m, if the user
-  ## does not select the remember me option their session will get destroyed after 1h, or after 5m since the last time
-  ## Authelia detected user activity.
-  inactivity: 5m
+  ## Cookie Session Domain default 'expiration' value.  The time before the session cookie expires and the session is
+  ## destroyed if remember me IS NOT selected by the user.
+  expiration: '1h'
 
-  ## The time before the cookie expires and the session is destroyed if remember me IS selected.
-  ## Value of -1 disables remember me.
-  remember_me_duration: 1M
+  ## Cookie Session Domain default 'remember_me' value. The time before the cookie expires and the session is destroyed
+  ## if remember me IS selected by the user. Setting this value to -1 disables remember me for all session cookie
+  ## domains which do not have a specific 'remember_me' value.
+  remember_me: '1M'
 
   ##
   ## Redis Provider

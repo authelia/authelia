@@ -87,8 +87,6 @@ static_resources:
                               - exact: cookie
                               - exact: proxy-authorization
                           headers_to_add:
-                            - key: X-Authelia-URL
-                              value: 'https://login.example.com:8080/'
                             - key: X-Forwarded-Proto
                               value: '%REQ(:SCHEME)%'
                         authorization_response:

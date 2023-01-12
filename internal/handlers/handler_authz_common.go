@@ -12,11 +12,18 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+func handleAuthzPortalURLLegacy(ctx *middlewares.AutheliaCtx) (portalURL *url.URL, err error) {
+	if portalURL, err = handleAuthzPortalURLFromQueryLegacy(ctx); err != nil || portalURL != nil {
+		return portalURL, err
+	}
+
+	return handleAuthzPortalURLFromHeader(ctx)
+}
+
 func handleAuthzPortalURLFromHeader(ctx *middlewares.AutheliaCtx) (portalURL *url.URL, err error) {
 	rawURL := ctx.XAutheliaURL()
-
 	if rawURL == nil {
-		return nil, fmt.Errorf("missing X-Authelia-URL header")
+		return nil, nil
 	}
 
 	if portalURL, err = url.ParseRequestURI(string(rawURL)); err != nil {
@@ -27,6 +34,19 @@ func handleAuthzPortalURLFromHeader(ctx *middlewares.AutheliaCtx) (portalURL *ur
 }
 
 func handleAuthzPortalURLFromQuery(ctx *middlewares.AutheliaCtx) (portalURL *url.URL, err error) {
+	rawURL := ctx.QueryArgAutheliaURL()
+	if rawURL == nil {
+		return nil, nil
+	}
+
+	if portalURL, err = url.ParseRequestURI(string(rawURL)); err != nil {
+		return nil, err
+	}
+
+	return portalURL, nil
+}
+
+func handleAuthzPortalURLFromQueryLegacy(ctx *middlewares.AutheliaCtx) (portalURL *url.URL, err error) {
 	rawURL := ctx.QueryArgs().PeekBytes(qryArgRD)
 	if rawURL == nil {
 		return nil, nil

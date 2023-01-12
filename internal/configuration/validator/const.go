@@ -248,7 +248,7 @@ const (
 // Session error constants.
 const (
 	errFmtSessionOptionRequired           = "session: option '%s' is required"
-	errFmtSessionDomainMustBeRoot         = "session: option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '%s'"
+	errFmtSessionLegacyAndWarning         = "session: option 'domain' and option 'cookies' can't be specified at the same time"
 	errFmtSessionSameSite                 = "session: option 'same_site' must be one of '%s' but is configured as '%s'"
 	errFmtSessionSecretRequired           = "session: option 'secret' is required when using the '%s' provider"
 	errFmtSessionRedisPortRange           = "session: redis: option 'port' must be between 1 and 65535 but is configured as '%d'"
@@ -258,6 +258,16 @@ const (
 
 	errFmtSessionRedisSentinelMissingName     = "session: redis: high_availability: option 'sentinel_name' is required"
 	errFmtSessionRedisSentinelNodeHostMissing = "session: redis: high_availability: option 'nodes': option 'host' is required for each node but one or more nodes are missing this"
+
+	errFmtSessionDomainMustBeRoot                = "session: domain config %s: option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '%s'"
+	errFmtSessionDomainSameSite                  = "session: domain config %s: option 'same_site' must be one of '%s' but is configured as '%s'"
+	errFmtSessionDomainRequired                  = "session: domain config %s: option 'domain' is required"
+	errFmtSessionDomainHasPeriodPrefix           = "session: domain config %s: option 'domain' has a prefix of '.' which is not supported or intended behaviour: you can use this at your own risk but we recommend removing it"
+	errFmtSessionDomainDuplicate                 = "session: domain config %s: option 'domain' is a duplicate value for another configured session domain"
+	errFmtSessionDomainDuplicateCookieScope      = "session: domain config %s: option 'domain' shares the same cookie domain scope as another configured session domain"
+	errFmtSessionDomainPortalURLInsecure         = "session: domain config %s: option 'authelia_url' does not have a secure scheme with a value of '%s'"
+	errFmtSessionDomainPortalURLNotInCookieScope = "session: domain config %s: option 'authelia_url' does not share a cookie scope with domain '%s' with a value of '%s'"
+	errFmtSessionDomainInvalidDomain             = "session: domain config %s: option 'domain' is not a valid domain"
 )
 
 // Regulation Error Consts.
@@ -383,7 +393,8 @@ var (
 )
 
 var (
-	reKeyReplacer       = regexp.MustCompile(`\[\d+]`)
+	reKeyReplacer      = regexp.MustCompile(`\[\d+]`)
+	reDomainCharacters = regexp.MustCompile(`^[a-z0-9-]+(\.[a-z0-9-]+)+[a-z0-9]$`)
 	reAuthzEndpointName = regexp.MustCompile(`^[a-zA-Z](([a-zA-Z0-9/\._-]*)([a-zA-Z]))?$`)
 )
 

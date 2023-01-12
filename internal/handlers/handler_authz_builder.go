@@ -114,6 +114,8 @@ func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerAuthzEndpoint) *Au
 		b.WithImplementationForwardAuth()
 	case AuthzImplAuthRequest.String():
 		b.WithImplementationAuthRequest()
+	case AuthzImplExtAuthz.String():
+		b.WithImplementationExtAuthz()
 	default:
 		b.WithImplementationLegacy()
 	}
@@ -170,7 +172,7 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 	case AuthzImplLegacy:
 		authz.handleGetObject = handleAuthzGetObjectLegacy
 		authz.handleUnauthorized = handleAuthzUnauthorizedLegacy
-		authz.handleGetPortalURL = handleAuthzPortalURLFromQuery
+		authz.handleGetPortalURL = handleAuthzPortalURLLegacy
 	case AuthzImplForwardAuth:
 		authz.handleGetObject = handleAuthzGetObjectForwardAuth
 		authz.handleUnauthorized = handleAuthzUnauthorizedForwardAuth

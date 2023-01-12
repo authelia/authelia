@@ -7,6 +7,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 // Authz is a type which is a effectively is a middlewares.RequestHandler for authorization requests.
@@ -91,7 +92,7 @@ type AuthzBuilder struct {
 
 // AuthnStrategy is a strategy used for Authz authentication.
 type AuthnStrategy interface {
-	Get(ctx *middlewares.AutheliaCtx) (authn Authn, err error)
+	Get(ctx *middlewares.AutheliaCtx, provider *session.Session) (authn Authn, err error)
 	CanHandleUnauthorized() (handle bool)
 	HandleUnauthorized(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL)
 }

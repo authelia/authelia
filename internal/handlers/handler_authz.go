@@ -1,13 +1,12 @@
 package handlers
 
 import (
-	"fmt"
 	"net/url"
-	"strings"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -36,7 +35,17 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if portalURL, err = authz.getPortalURL(ctx, &object); err != nil {
+	var provider *session.Session
+
+	if provider, err = ctx.GetSessionProviderByTargetURL(object.URL); err != nil {
+		ctx.Logger.Errorf("Target URL '%s' does not appear to be a protected domain: %+v", object.URL.String(), err)
+
+		ctx.ReplyUnauthorized()
+
+		return
+	}
+
+	if portalURL, err = authz.getPortalURL(ctx, provider); err != nil {
 		ctx.Logger.Errorf("Target URL '%s' does not appear to be a protected domain: %+v", object.URL.String(), err)
 
 		ctx.ReplyUnauthorized()
@@ -49,7 +58,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 		authenticator AuthnStrategy
 	)
 
-	if authn, authenticator, err = authz.authn(ctx); err != nil {
+	if authn, authenticator, err = authz.authn(ctx, provider); err != nil {
 		// TODO: Adjust.
 		ctx.Logger.Errorf("LOG ME: Target URL '%s' does not appear to be a protected domain: %+v", object.URL.String(), err)
 
@@ -89,32 +98,20 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-func (authz *Authz) getPortalURL(ctx *middlewares.AutheliaCtx, object *authorization.Object) (portalURL *url.URL, err error) {
-	if len(authz.config.Domains) == 1 {
-		portalURL = authz.config.Domains[0].PortalURL
-
-		if portalURL == nil && authz.handleGetPortalURL != nil {
-			if portalURL, err = authz.handleGetPortalURL(ctx); err != nil {
-				return nil, err
-			}
-		}
-
-		if portalURL == nil {
-			return nil, nil
-		}
-
-		if strings.HasSuffix(object.Domain, authz.config.Domains[0].Name) {
-			return portalURL, nil
-		}
-	} else {
-		for i := 0; i < len(authz.config.Domains); i++ {
-			if authz.config.Domains[i].Name != "" && strings.HasSuffix(object.Domain, authz.config.Domains[i].Name) {
-				return authz.config.Domains[i].PortalURL, nil
-			}
-		}
+func (authz *Authz) getPortalURL(ctx *middlewares.AutheliaCtx, provider *session.Session) (portalURL *url.URL, err error) {
+	if authz.handleGetPortalURL == nil {
+		return nil, nil
 	}
 
-	return nil, fmt.Errorf("the url '%s' doesn't appear to be on a protected domain", object.URL.String())
+	if portalURL, err = authz.handleGetPortalURL(ctx); err != nil {
+		return nil, err
+	}
+
+	if portalURL != nil {
+		return portalURL, nil
+	}
+
+	return provider.Config.AutheliaURL, nil
 }
 
 func (authz *Authz) getRedirectionURL(object *authorization.Object, portalURL *url.URL) (redirectionURL *url.URL) {
@@ -137,9 +134,9 @@ func (authz *Authz) getRedirectionURL(object *authorization.Object, portalURL *u
 	return redirectionURL
 }
 
-func (authz *Authz) authn(ctx *middlewares.AutheliaCtx) (authn Authn, strategy AuthnStrategy, err error) {
+func (authz *Authz) authn(ctx *middlewares.AutheliaCtx, provider *session.Session) (authn Authn, strategy AuthnStrategy, err error) {
 	for _, strategy = range authz.strategies {
-		if authn, err = strategy.Get(ctx); err != nil {
+		if authn, err = strategy.Get(ctx, provider); err != nil {
 			if strategy.CanHandleUnauthorized() {
 				return Authn{Type: authn.Type, Level: authentication.NotAuthenticated}, strategy, nil
 			}

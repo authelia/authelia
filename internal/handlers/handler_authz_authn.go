@@ -80,23 +80,23 @@ type CookieSessionAuthnStrategy struct {
 }
 
 // Get returns the Authn information for this AuthnStrategy.
-func (s *CookieSessionAuthnStrategy) Get(ctx *middlewares.AutheliaCtx) (authn Authn, err error) {
+func (s *CookieSessionAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, provider *session.Session) (authn Authn, err error) {
 	authn = Authn{
 		Type:  AuthnTypeCookie,
 		Level: authentication.NotAuthenticated,
 	}
 
-	userSession := ctx.GetSession()
+	userSession, _ := provider.GetSession(ctx.RequestCtx)
 
-	if invalid := handleVerifyGETAuthnCookieValidate(ctx, &userSession, s.refreshEnabled, s.refreshInterval); invalid {
-		if err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx); err != nil {
+	if invalid := handleVerifyGETAuthnCookieValidate(ctx, provider, &userSession, s.refreshEnabled, s.refreshInterval); invalid {
+		if err = ctx.DestroySession(); err != nil {
 			ctx.Logger.Errorf("Unable to destroy user session: %+v", err)
 		}
 
 		return authn, nil
 	}
 
-	if err = ctx.SaveSession(userSession); err != nil {
+	if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
 		ctx.Logger.Errorf("Unable to save updated user session: %+v", err)
 	}
 
@@ -132,7 +132,7 @@ type HeaderAuthnStrategy struct {
 }
 
 // Get returns the Authn information for this AuthnStrategy.
-func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx) (authn Authn, err error) {
+func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Session) (authn Authn, err error) {
 	var (
 		username, password string
 		value              []byte
@@ -205,7 +205,7 @@ func (s *HeaderAuthnStrategy) HandleUnauthorized(ctx *middlewares.AutheliaCtx, _
 type HeaderLegacyAuthnStrategy struct{}
 
 // Get returns the Authn information for this AuthnStrategy.
-func (s *HeaderLegacyAuthnStrategy) Get(ctx *middlewares.AutheliaCtx) (authn Authn, err error) {
+func (s *HeaderLegacyAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Session) (authn Authn, err error) {
 	var (
 		username, password string
 		value, header      []byte
@@ -286,7 +286,7 @@ func (s *HeaderLegacyAuthnStrategy) HandleUnauthorized(ctx *middlewares.Authelia
 	}
 }
 
-func handleVerifyGETAuthnCookieValidate(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, profileRefreshEnabled bool, profileRefreshInterval time.Duration) (invalid bool) {
+func handleVerifyGETAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, profileRefreshEnabled bool, profileRefreshInterval time.Duration) (invalid bool) {
 	isAnonymous := userSession.Username == ""
 
 	if isAnonymous && userSession.AuthenticationLevel != authentication.NotAuthenticated {
@@ -295,7 +295,7 @@ func handleVerifyGETAuthnCookieValidate(ctx *middlewares.AutheliaCtx, userSessio
 		return true
 	}
 
-	if invalid = handleVerifyGETAuthnCookieValidateInactivity(ctx, userSession, isAnonymous); invalid {
+	if invalid = handleVerifyGETAuthnCookieValidateInactivity(ctx, provider, userSession, isAnonymous); invalid {
 		ctx.Logger.Infof("Session for user '%s' not marked as remembereded has exceeded configured session inactivity", userSession.Username)
 
 		return true
@@ -318,14 +318,14 @@ func handleVerifyGETAuthnCookieValidate(ctx *middlewares.AutheliaCtx, userSessio
 	return false
 }
 
-func handleVerifyGETAuthnCookieValidateInactivity(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, isAnonymous bool) (invalid bool) {
-	if isAnonymous || userSession.KeepMeLoggedIn || int64(ctx.Providers.SessionProvider.Inactivity.Seconds()) == 0 {
+func handleVerifyGETAuthnCookieValidateInactivity(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, isAnonymous bool) (invalid bool) {
+	if isAnonymous || userSession.KeepMeLoggedIn || int64(provider.Config.Inactivity.Seconds()) == 0 {
 		return false
 	}
 
-	ctx.Logger.Tracef("Inactivity report for user '%s'. Current Time: %d, Last Activity: %d, Maximum Inactivity: %d.", userSession.Username, ctx.Clock.Now().Unix(), userSession.LastActivity, int(ctx.Providers.SessionProvider.Inactivity.Seconds()))
+	ctx.Logger.Tracef("Inactivity report for user '%s'. Current Time: %d, Last Activity: %d, Maximum Inactivity: %d.", userSession.Username, ctx.Clock.Now().Unix(), userSession.LastActivity, int(provider.Config.Inactivity.Seconds()))
 
-	return time.Unix(userSession.LastActivity, 0).Add(ctx.Providers.SessionProvider.Inactivity).Before(ctx.Clock.Now())
+	return time.Unix(userSession.LastActivity, 0).Add(provider.Config.Inactivity).Before(ctx.Clock.Now())
 }
 
 func handleVerifyGETAuthnCookieValidateUpdate(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, isAnonymous, enabled bool, interval time.Duration) (invalid bool) {
@@ -377,7 +377,7 @@ func handleVerifyGETAuthnCookieValidateUpdate(ctx *middlewares.AutheliaCtx, user
 
 	ctx.Logger.Debugf("Updated profile detected for user '%s'", userSession.Username)
 
-	if ctx.Logger.Level == logrus.TraceLevel {
+	if ctx.Logger.Level >= logrus.TraceLevel {
 		generateVerifySessionHasUpToDateProfileTraceLogs(ctx, userSession, details)
 	}
 
