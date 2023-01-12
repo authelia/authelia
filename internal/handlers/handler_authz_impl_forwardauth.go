@@ -18,8 +18,8 @@ func handleAuthzGetObjectForwardAuth(ctx *middlewares.AutheliaCtx) (object autho
 	if targetURL, err = getRequestURIFromForwardedHeaders(protocol, host, uri); err != nil {
 		return object, fmt.Errorf("failed to get target URL: %w", err)
 	}
-	method := ctx.XForwardedMethod()
 
+	method := ctx.XForwardedMethod()
 	if len(method) == 0 {
 		return object, fmt.Errorf("header 'X-Forwarded-Method' is empty")
 	}

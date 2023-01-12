@@ -393,8 +393,8 @@ var (
 )
 
 var (
-	reKeyReplacer      = regexp.MustCompile(`\[\d+]`)
-	reDomainCharacters = regexp.MustCompile(`^[a-z0-9-]+(\.[a-z0-9-]+)+[a-z0-9]$`)
+	reKeyReplacer       = regexp.MustCompile(`\[\d+]`)
+	reDomainCharacters  = regexp.MustCompile(`^[a-z0-9-]+(\.[a-z0-9-]+)+[a-z0-9]$`)
 	reAuthzEndpointName = regexp.MustCompile(`^[a-zA-Z](([a-zA-Z0-9/\._-]*)([a-zA-Z]))?$`)
 )
 
