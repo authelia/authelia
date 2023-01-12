@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"net/url"
 	"path"
 	"strings"
@@ -30,17 +29,6 @@ func URLPathFullClean(u *url.URL) (output string) {
 	}
 }
 
-// IsURIStringSafeRedirection determines whether the URI is safe to be redirected to.
-func IsURIStringSafeRedirection(uri, protectedDomain string) (safe bool, err error) {
-	var parsedURI *url.URL
-
-	if parsedURI, err = url.ParseRequestURI(uri); err != nil {
-		return false, fmt.Errorf("failed to parse URI '%s': %w", uri, err)
-	}
-
-	return parsedURI != nil && IsURISafeRedirection(parsedURI, protectedDomain), nil
-}
-
 // IsURISafeRedirection returns true if the URI passes the IsURISecure and HasURIDomainSuffix, i.e. if the scheme is
 // secure and the given URI has a hostname that is either exactly equal to the given domain or if it has a suffix of the
 // domain prefixed with a period.
@@ -58,14 +46,24 @@ func IsURISecure(uri *url.URL) bool {
 	}
 }
 
-// HasURIDomainSuffix returns true if the URI hostname is equal to the domain or if it has a suffix of the domain
+// HasURIDomainSuffix returns true if the URI hostname is equal to the domain suffix or if it has a suffix of the domain
+// suffix prefixed with a period.
+func HasURIDomainSuffix(uri *url.URL, domainSuffix string) bool {
+	return HasDomainSuffix(uri.Hostname(), domainSuffix)
+}
+
+// HasDomainSuffix returns true if the URI hostname is equal to the domain or if it has a suffix of the domain
 // prefixed with a period.
-func HasURIDomainSuffix(uri *url.URL, domain string) bool {
-	if uri.Hostname() == domain {
+func HasDomainSuffix(domain, domainSuffix string) bool {
+	if domainSuffix == "" {
+		return false
+	}
+
+	if domain == domainSuffix {
 		return true
 	}
 
-	if strings.HasSuffix(uri.Hostname(), period+domain) {
+	if strings.HasSuffix(domain, period+domainSuffix) {
 		return true
 	}
 

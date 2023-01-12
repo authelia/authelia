@@ -58,7 +58,7 @@ func (s *OneFactorOnlyWebSuite) TestShouldRedirectUserToDefaultURL() {
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.verifyIsHome(s.T(), s.Context(ctx))
 }
 
@@ -70,7 +70,7 @@ func (s *OneFactorOnlyWebSuite) TestShouldRedirectUserToDefaultURLWhenURLIsUnsaf
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "http://unsafe.local")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "http://unsafe.local")
 	s.verifyIsHome(s.T(), s.Context(ctx))
 }
 
@@ -82,9 +82,9 @@ func (s *OneFactorOnlyWebSuite) TestShouldDisplayAuthenticatedView() {
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.verifyIsHome(s.T(), s.Context(ctx))
-	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL())
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsAuthenticatedPage(s.T(), s.Context(ctx))
 }
 
@@ -95,10 +95,10 @@ func (s *OneFactorOnlyWebSuite) TestShouldRedirectAlreadyAuthenticatedUser() {
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
-	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://singlefactor.example.com:8080/secret.html", GetLoginBaseURL()))
+	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://singlefactor.example.com:8080/secret.html", GetLoginBaseURL(BaseDomain)))
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 	s.verifyURLIs(s.T(), s.Context(ctx), "https://singlefactor.example.com:8080/secret.html")
 }
@@ -110,11 +110,11 @@ func (s *OneFactorOnlyWebSuite) TestShouldNotRedirectAlreadyAuthenticatedUserToU
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
-	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://secure.example.local:8080", GetLoginBaseURL()))
+	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://secure.example.local:8080", GetLoginBaseURL(BaseDomain)))
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct.")
 }
 

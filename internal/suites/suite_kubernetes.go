@@ -21,11 +21,12 @@ func init() {
 	kubectl := Kubectl{}
 
 	setup := func(suitePath string) error {
-		if err := dockerEnvironment.Up(); err != nil {
+		err := dockerEnvironment.Up()
+		if err != nil {
 			return err
 		}
 
-		err := waitUntilK3DIsReady(dockerEnvironment)
+		err = waitUntilK3DIsReady(dockerEnvironment)
 		if err != nil {
 			return err
 		}

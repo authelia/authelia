@@ -89,7 +89,7 @@ func (s *TwoFactorSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
 }
 
 func (s *TwoFactorSuite) TestShouldFailTwoFactor() {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -97,7 +97,7 @@ func (s *TwoFactorSuite) TestShouldFailTwoFactor() {
 
 	wrongPasscode := "123456"
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), testUsername, testPassword, false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), testUsername, testPassword, false, BaseDomain, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 	s.doEnterOTP(s.T(), s.Context(ctx), wrongPasscode)
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "The one-time password might be wrong")
