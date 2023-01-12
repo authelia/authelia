@@ -9,7 +9,7 @@ services:
       # Traefik 1.x
       - 'traefik.frontend.rule=Host:public.example.com;Path:/headers'
       - 'traefik.frontend.priority=120'
-      - 'traefik.frontend.auth.forward.address=https://authelia-backend:9091/api/authz/forward-auth?rd=https://login.example.com:8080/'
+      - 'traefik.frontend.auth.forward.address=https://authelia-backend:9091/api/authz/forward-auth'
       - 'traefik.frontend.auth.forward.tls.insecureSkipVerify=true'
       - 'traefik.frontend.auth.forward.trustForwardHeader=true'
       - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'
