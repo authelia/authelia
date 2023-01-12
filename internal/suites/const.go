@@ -17,6 +17,14 @@ var (
 // PathPrefix the prefix/url_base of the login portal.
 var PathPrefix = os.Getenv("PathPrefix")
 
+func GetPathPrefix() string {
+	if prefix := os.Getenv("PathPrefix"); prefix != "" {
+		return prefix
+	}
+
+	return "/"
+}
+
 // LoginBaseURLFmt the base URL of the login portal for specified baseDomain.
 func LoginBaseURLFmt(baseDomain string) string {
 	if baseDomain == "" {

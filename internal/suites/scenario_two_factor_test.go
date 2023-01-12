@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/url"
 	"regexp"
-	"strings"
 	"testing"
 	"time"
 
@@ -84,8 +83,8 @@ func (s *TwoFactorSuite) TestShouldNotAuthorizeSecretBeforeTwoFactor() {
 	s.Assert().NoError(err)
 	s.Require().NotNil(expected)
 
-	if !strings.HasSuffix(expected.Path, "/") {
-		expected.Path += "/"
+	if expected.Path == "" {
+		expected.Path = "/"
 	}
 
 	query := expected.Query()
