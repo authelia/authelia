@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
@@ -143,6 +144,18 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 
 func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 	config := model.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
+	s.mock.Ctx.Configuration.Session.Cookies = []schema.SessionCookieConfiguration{
+		{
+			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+				Domain: "example.com",
+			},
+		},
+		{
+			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+				Domain: "mydomain.local",
+			},
+		},
+	}
 
 	s.mock.StorageMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).

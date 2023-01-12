@@ -26,11 +26,11 @@ func (rs *RodSession) doVisitAndVerifyOneFactorStep(t *testing.T, page *rod.Page
 	rs.verifyIsFirstFactorPage(t, page)
 }
 
-func (rs *RodSession) doVisitLoginPage(t *testing.T, page *rod.Page, targetURL string) {
+func (rs *RodSession) doVisitLoginPage(t *testing.T, page *rod.Page, baseDomain string, targetURL string) {
 	suffix := ""
 	if targetURL != "" {
 		suffix = fmt.Sprintf("?rd=%s", targetURL)
 	}
 
-	rs.doVisitAndVerifyOneFactorStep(t, page, fmt.Sprintf("%s/%s", GetLoginBaseURL(), suffix))
+	rs.doVisitAndVerifyOneFactorStep(t, page, fmt.Sprintf("%s/%s", GetLoginBaseURL(baseDomain), suffix))
 }

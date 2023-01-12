@@ -24,7 +24,7 @@ session:
   domain: example.com
   expiration: 3600  # 1 hour
   inactivity: 300  # 5 minutes
-  remember_me_duration: 1y
+  remember_me: 1y
 
 storage:
   encryption_key: a_not_so_secure_encryption_key

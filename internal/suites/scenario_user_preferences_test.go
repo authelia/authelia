@@ -55,7 +55,7 @@ func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
 	}()
 
 	// Authenticate.
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
 	// Then switch to push notification method.
@@ -67,7 +67,7 @@ func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Then go back to portal.
-	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL())
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 	// And check the latest method is still used.
 	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "push-notification-method")
@@ -76,7 +76,7 @@ func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
 
 	// Logout the user and see what user 'harry' sees.
 	s.doLogout(s.T(), s.Context(ctx))
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "harry", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "harry", "password", false, BaseDomain, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "one-time-password-method")
 
@@ -84,13 +84,13 @@ func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 
 	// Then log back as previous user and verify the push notification is still the default method.
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "push-notification-method")
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	s.doLogout(s.T(), s.Context(ctx))
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 
 	// Eventually restore the default method.
 	s.doChangeMethod(s.T(), s.Context(ctx), "one-time-password")
