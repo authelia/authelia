@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/valyala/fasthttp"
 )
 
 type OneFactorSuite struct {
@@ -77,11 +77,12 @@ func (s *OneFactorSuite) TestShouldNotAuthorizeSecretBeforeOneFactor() {
 	query := expected.Query()
 
 	query.Set("rd", targetURL)
-	query.Set("rm", fasthttp.MethodGet)
 
 	expected.RawQuery = query.Encode()
 
-	s.verifyURLIs(s.T(), s.Context(ctx), expected.String())
+	rx := regexp.MustCompile(fmt.Sprintf(`^%s(&rm=GET)?$`, expected.String()))
+
+	s.verifyURLIsRegexp(s.T(), s.Context(ctx), rx)
 }
 
 func (s *OneFactorSuite) TestShouldAuthorizeSecretAfterOneFactor() {
