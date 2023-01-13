@@ -16,7 +16,7 @@ type BypassPolicyScenario struct {
 
 func NewBypassPolicyScenario() *BypassPolicyScenario {
 	return &BypassPolicyScenario{
-		RodSuite: new(RodSuite),
+		RodSuite: NewRodSuite(""),
 	}
 }
 

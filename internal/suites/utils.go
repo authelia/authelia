@@ -58,6 +58,10 @@ func (s *BaseSuite) SetupSuite() {
 }
 
 func (s *BaseSuite) LoadEnvironment() {
+	if s.Name == "" {
+		return
+	}
+
 	env := filepath.Join(s.Name, ".env")
 
 	var (

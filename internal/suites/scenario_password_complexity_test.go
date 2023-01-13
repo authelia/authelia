@@ -14,7 +14,7 @@ type PasswordComplexityScenario struct {
 }
 
 func NewPasswordComplexityScenario() *PasswordComplexityScenario {
-	return &PasswordComplexityScenario{RodSuite: new(RodSuite)}
+	return &PasswordComplexityScenario{RodSuite: NewRodSuite("")}
 }
 
 func (s *PasswordComplexityScenario) SetupSuite() {

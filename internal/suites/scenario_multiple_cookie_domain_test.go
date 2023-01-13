@@ -19,7 +19,7 @@ type MultiCookieDomainScenario struct {
 // NewMultiCookieDomainScenario returns a new Multi Cookie Domain Test Scenario.
 func NewMultiCookieDomainScenario(domain, nextDomain string, remember bool) *MultiCookieDomainScenario {
 	return &MultiCookieDomainScenario{
-		RodSuite:   new(RodSuite),
+		RodSuite:   NewRodSuite(""),
 		domain:     domain,
 		nextDomain: nextDomain,
 		remember:   remember,

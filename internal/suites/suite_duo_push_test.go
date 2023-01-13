@@ -388,7 +388,7 @@ type DuoPushDefaultRedirectionSuite struct {
 }
 
 func NewDuoPushDefaultRedirectionSuite() *DuoPushDefaultRedirectionSuite {
-	return &DuoPushDefaultRedirectionSuite{RodSuite: new(RodSuite)}
+	return &DuoPushDefaultRedirectionSuite{RodSuite: NewRodSuite(duoPushSuiteName)}
 }
 
 func (s *DuoPushDefaultRedirectionSuite) SetupSuite() {

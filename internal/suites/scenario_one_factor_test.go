@@ -16,7 +16,7 @@ type OneFactorSuite struct {
 
 func New1FAScenario() *OneFactorSuite {
 	return &OneFactorSuite{
-		RodSuite: new(RodSuite),
+		RodSuite: NewRodSuite(""),
 	}
 }
 
