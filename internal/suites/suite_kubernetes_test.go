@@ -11,7 +11,11 @@ type KubernetesSuite struct {
 }
 
 func NewKubernetesSuite() *KubernetesSuite {
-	return &KubernetesSuite{RodSuite: new(RodSuite)}
+	return &KubernetesSuite{
+		RodSuite: &RodSuite{
+			Name: kubernetesSuiteName,
+		},
+	}
 }
 
 func (s *KubernetesSuite) Test1FAScenario() {
@@ -24,6 +28,10 @@ func (s *KubernetesSuite) Test2FAScenario() {
 
 func (s *KubernetesSuite) TestRedirectionURLScenario() {
 	suite.Run(s.T(), NewRedirectionURLScenario())
+}
+
+func (s *KubernetesSuite) SetupSuite() {
+	s.LoadEnvironment()
 }
 
 func TestKubernetesSuite(t *testing.T) {

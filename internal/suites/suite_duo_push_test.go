@@ -20,7 +20,11 @@ type DuoPushWebDriverSuite struct {
 }
 
 func NewDuoPushWebDriverSuite() *DuoPushWebDriverSuite {
-	return &DuoPushWebDriverSuite{RodSuite: new(RodSuite)}
+	return &DuoPushWebDriverSuite{
+		RodSuite: &RodSuite{
+			Name: duoPushSuiteName,
+		},
+	}
 }
 
 func (s *DuoPushWebDriverSuite) SetupSuite() {
@@ -390,6 +394,8 @@ func NewDuoPushDefaultRedirectionSuite() *DuoPushDefaultRedirectionSuite {
 }
 
 func (s *DuoPushDefaultRedirectionSuite) SetupSuite() {
+	s.LoadEnvironment()
+
 	browser, err := StartRod()
 
 	if err != nil {

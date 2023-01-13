@@ -11,7 +11,11 @@ type MariaDBSuite struct {
 }
 
 func NewMariaDBSuite() *MariaDBSuite {
-	return &MariaDBSuite{RodSuite: new(RodSuite)}
+	return &MariaDBSuite{
+		RodSuite: &RodSuite{
+			Name: mariadbSuiteName,
+		},
+	}
 }
 
 func (s *MariaDBSuite) Test1FAScenario() {
@@ -20,6 +24,10 @@ func (s *MariaDBSuite) Test1FAScenario() {
 
 func (s *MariaDBSuite) Test2FAScenario() {
 	suite.Run(s.T(), New2FAScenario())
+}
+
+func (s *MariaDBSuite) SetupSuite() {
+	s.LoadEnvironment()
 }
 
 func TestMariaDBSuite(t *testing.T) {

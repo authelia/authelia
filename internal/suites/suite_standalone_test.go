@@ -22,10 +22,16 @@ type StandaloneWebDriverSuite struct {
 }
 
 func NewStandaloneWebDriverSuite() *StandaloneWebDriverSuite {
-	return &StandaloneWebDriverSuite{RodSuite: new(RodSuite)}
+	return &StandaloneWebDriverSuite{
+		RodSuite: &RodSuite{
+			Name: standaloneSuiteName,
+		},
+	}
 }
 
 func (s *StandaloneWebDriverSuite) SetupSuite() {
+	s.LoadEnvironment()
+
 	browser, err := StartRod()
 
 	if err != nil {

@@ -11,7 +11,11 @@ type LDAPSuite struct {
 }
 
 func NewLDAPSuite() *LDAPSuite {
-	return &LDAPSuite{RodSuite: new(RodSuite)}
+	return &LDAPSuite{
+		RodSuite: &RodSuite{
+			Name: ldapSuiteName,
+		},
+	}
 }
 
 func (s *LDAPSuite) Test1FAScenario() {
@@ -32,6 +36,10 @@ func (s *LDAPSuite) TestPasswordComplexity() {
 
 func (s *LDAPSuite) TestSigninEmailScenario() {
 	suite.Run(s.T(), NewSigninEmailScenario())
+}
+
+func (s *LDAPSuite) SetupSuite() {
+	s.LoadEnvironment()
 }
 
 func TestLDAPSuite(t *testing.T) {

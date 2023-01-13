@@ -11,6 +11,8 @@ type RodSuite struct {
 
 	*RodSession
 	*rod.Page
+
+	Name string
 }
 
 // CommandSuite is a command line interface suite.

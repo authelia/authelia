@@ -17,10 +17,16 @@ type HighAvailabilityWebDriverSuite struct {
 }
 
 func NewHighAvailabilityWebDriverSuite() *HighAvailabilityWebDriverSuite {
-	return &HighAvailabilityWebDriverSuite{RodSuite: new(RodSuite)}
+	return &HighAvailabilityWebDriverSuite{
+		RodSuite: &RodSuite{
+			Name: highAvailabilitySuiteName,
+		},
+	}
 }
 
 func (s *HighAvailabilityWebDriverSuite) SetupSuite() {
+	s.LoadEnvironment()
+
 	browser, err := StartRod()
 
 	if err != nil {
@@ -183,7 +189,9 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepSessionAfterAutheliaResta
 }
 
 var UserJohn = "john"
+
 var UserBob = "bob"
+
 var UserHarry = "harry"
 
 var Users = []string{UserJohn, UserBob, UserHarry}

@@ -11,7 +11,11 @@ type TraefikSuite struct {
 }
 
 func NewTraefikSuite() *TraefikSuite {
-	return &TraefikSuite{RodSuite: new(RodSuite)}
+	return &TraefikSuite{
+		RodSuite: &RodSuite{
+			Name: traefikSuiteName,
+		},
+	}
 }
 
 func (s *TraefikSuite) Test1FAScenario() {
@@ -28,6 +32,10 @@ func (s *TraefikSuite) TestRedirectionURLScenario() {
 
 func (s *TraefikSuite) TestCustomHeaders() {
 	suite.Run(s.T(), NewCustomHeadersScenario())
+}
+
+func (s *TraefikSuite) SetupSuite() {
+	s.LoadEnvironment()
 }
 
 func TestTraefikSuite(t *testing.T) {

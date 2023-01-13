@@ -11,7 +11,11 @@ type EnvoySuite struct {
 }
 
 func NewEnvoySuite() *EnvoySuite {
-	return &EnvoySuite{RodSuite: new(RodSuite)}
+	return &EnvoySuite{
+		RodSuite: &RodSuite{
+			Name: envoySuiteName,
+		},
+	}
 }
 
 func (s *EnvoySuite) Test1FAScenario() {
@@ -28,6 +32,10 @@ func (s *EnvoySuite) TestCustomHeaders() {
 
 func (s *EnvoySuite) TestResetPasswordScenario() {
 	suite.Run(s.T(), NewResetPasswordScenario())
+}
+
+func (s *EnvoySuite) SetupSuite() {
+	s.LoadEnvironment()
 }
 
 func TestEnvoySuite(t *testing.T) {

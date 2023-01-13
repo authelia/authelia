@@ -1,6 +1,7 @@
 package suites
 
 import (
+	"bufio"
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -49,6 +50,40 @@ func (rs *RodSession) collectCoverage(page *rod.Page) {
 		if err != nil {
 			log.Fatal(err)
 		}
+	}
+}
+
+func (s *RodSuite) LoadEnvironment() {
+	env := filepath.Join(s.Name, ".env")
+
+	var (
+		info os.FileInfo
+		err  error
+	)
+
+	if info, err = os.Stat(env); err != nil {
+		s.Assert().Equal(os.ErrNotExist, err)
+		fmt.Printf("env file at %s does not exist\n", env)
+
+		return
+	}
+
+	s.Require().False(info.IsDir())
+
+	var file *os.File
+
+	file, err = os.Open(env)
+
+	s.Require().NoError(err)
+
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+		v := strings.Split(scanner.Text(), "=")
+
+		s.Require().Len(v, 2)
+
+		s.T().Setenv(v[0], v[1])
 	}
 }
 

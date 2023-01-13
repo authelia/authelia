@@ -11,7 +11,11 @@ type DockerSuite struct {
 }
 
 func NewDockerSuite() *DockerSuite {
-	return &DockerSuite{RodSuite: new(RodSuite)}
+	return &DockerSuite{
+		RodSuite: &RodSuite{
+			Name: dockerSuiteName,
+		},
+	}
 }
 
 func (s *DockerSuite) Test1FAScenario() {
@@ -20,6 +24,10 @@ func (s *DockerSuite) Test1FAScenario() {
 
 func (s *DockerSuite) Test2FAScenario() {
 	suite.Run(s.T(), New2FAScenario())
+}
+
+func (s *DockerSuite) SetupSuite() {
+	s.LoadEnvironment()
 }
 
 func TestDockerSuite(t *testing.T) {

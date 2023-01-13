@@ -11,11 +11,19 @@ type OIDCSuite struct {
 }
 
 func NewOIDCSuite() *OIDCSuite {
-	return &OIDCSuite{RodSuite: new(RodSuite)}
+	return &OIDCSuite{
+		RodSuite: &RodSuite{
+			Name: oidcSuiteName,
+		},
+	}
 }
 
 func (s *OIDCSuite) TestOIDCScenario() {
 	suite.Run(s.T(), NewOIDCScenario())
+}
+
+func (s *OIDCSuite) SetupSuite() {
+	s.LoadEnvironment()
 }
 
 func TestOIDCSuite(t *testing.T) {

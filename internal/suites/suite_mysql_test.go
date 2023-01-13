@@ -11,7 +11,11 @@ type MySQLSuite struct {
 }
 
 func NewMySQLSuite() *MySQLSuite {
-	return &MySQLSuite{RodSuite: new(RodSuite)}
+	return &MySQLSuite{
+		RodSuite: &RodSuite{
+			Name: mysqlSuiteName,
+		},
+	}
 }
 
 func (s *MySQLSuite) Test1FAScenario() {
@@ -20,6 +24,10 @@ func (s *MySQLSuite) Test1FAScenario() {
 
 func (s *MySQLSuite) Test2FAScenario() {
 	suite.Run(s.T(), New2FAScenario())
+}
+
+func (s *MySQLSuite) SetupSuite() {
+	s.LoadEnvironment()
 }
 
 func TestMySQLSuite(t *testing.T) {

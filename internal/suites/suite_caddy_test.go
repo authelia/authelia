@@ -11,7 +11,11 @@ type CaddySuite struct {
 }
 
 func NewCaddySuite() *CaddySuite {
-	return &CaddySuite{RodSuite: new(RodSuite)}
+	return &CaddySuite{
+		RodSuite: &RodSuite{
+			Name: caddySuiteName,
+		},
+	}
 }
 
 func (s *CaddySuite) Test1FAScenario() {
@@ -28,6 +32,10 @@ func (s *CaddySuite) TestCustomHeaders() {
 
 func (s *CaddySuite) TestResetPasswordScenario() {
 	suite.Run(s.T(), NewResetPasswordScenario())
+}
+
+func (s *CaddySuite) SetupSuite() {
+	s.LoadEnvironment()
 }
 
 func TestCaddySuite(t *testing.T) {

@@ -11,7 +11,11 @@ type ActiveDirectorySuite struct {
 }
 
 func NewActiveDirectorySuite() *ActiveDirectorySuite {
-	return &ActiveDirectorySuite{RodSuite: new(RodSuite)}
+	return &ActiveDirectorySuite{
+		RodSuite: &RodSuite{
+			Name: activedirectorySuiteName,
+		},
+	}
 }
 
 func (s *ActiveDirectorySuite) Test1FAScenario() {
@@ -32,6 +36,10 @@ func (s *ActiveDirectorySuite) TestPasswordComplexity() {
 
 func (s *ActiveDirectorySuite) TestSigninEmailScenario() {
 	suite.Run(s.T(), NewSigninEmailScenario())
+}
+
+func (s *ActiveDirectorySuite) SetupSuite() {
+	s.LoadEnvironment()
 }
 
 func TestActiveDirectorySuite(t *testing.T) {

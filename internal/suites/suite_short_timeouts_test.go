@@ -11,7 +11,11 @@ type ShortTimeoutsSuite struct {
 }
 
 func NewShortTimeoutsSuite() *ShortTimeoutsSuite {
-	return &ShortTimeoutsSuite{RodSuite: new(RodSuite)}
+	return &ShortTimeoutsSuite{
+		RodSuite: &RodSuite{
+			Name: shortTimeoutsSuiteName,
+		},
+	}
 }
 
 func (s *ShortTimeoutsSuite) TestDefaultRedirectionURLScenario() {
@@ -24,6 +28,10 @@ func (s *ShortTimeoutsSuite) TestInactivityScenario() {
 
 func (s *ShortTimeoutsSuite) TestRegulationScenario() {
 	suite.Run(s.T(), NewRegulationScenario())
+}
+
+func (s *ShortTimeoutsSuite) SetupSuite() {
+	s.LoadEnvironment()
 }
 
 func TestShortTimeoutsSuite(t *testing.T) {

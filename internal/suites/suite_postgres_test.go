@@ -11,7 +11,11 @@ type PostgresSuite struct {
 }
 
 func NewPostgresSuite() *PostgresSuite {
-	return &PostgresSuite{RodSuite: new(RodSuite)}
+	return &PostgresSuite{
+		RodSuite: &RodSuite{
+			Name: postgresSuiteName,
+		},
+	}
 }
 
 func (s *PostgresSuite) Test1FAScenario() {
@@ -20,6 +24,10 @@ func (s *PostgresSuite) Test1FAScenario() {
 
 func (s *PostgresSuite) Test2FAScenario() {
 	suite.Run(s.T(), New2FAScenario())
+}
+
+func (s *PostgresSuite) SetupSuite() {
+	s.LoadEnvironment()
 }
 
 func TestPostgresSuite(t *testing.T) {

@@ -19,10 +19,16 @@ type OneFactorOnlyWebSuite struct {
 }
 
 func NewOneFactorOnlyWebSuite() *OneFactorOnlyWebSuite {
-	return &OneFactorOnlyWebSuite{RodSuite: new(RodSuite)}
+	return &OneFactorOnlyWebSuite{
+		RodSuite: &RodSuite{
+			Name: oneFactorOnlySuiteName,
+		},
+	}
 }
 
 func (s *OneFactorOnlyWebSuite) SetupSuite() {
+	s.LoadEnvironment()
+
 	browser, err := StartRod()
 
 	if err != nil {

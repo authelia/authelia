@@ -14,7 +14,11 @@ type Traefik2Suite struct {
 }
 
 func NewTraefik2Suite() *Traefik2Suite {
-	return &Traefik2Suite{RodSuite: new(RodSuite)}
+	return &Traefik2Suite{
+		RodSuite: &RodSuite{
+			Name: traefik2SuiteName,
+		},
+	}
 }
 
 func (s *Traefik2Suite) Test1FAScenario() {
@@ -62,6 +66,10 @@ func (s *Traefik2Suite) TestShouldKeepSessionAfterRedisRestart() {
 
 	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s/secret.html", SecureBaseURL))
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
+}
+
+func (s *Traefik2Suite) SetupSuite() {
+	s.LoadEnvironment()
 }
 
 func TestTraefik2Suite(t *testing.T) {

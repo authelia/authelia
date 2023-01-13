@@ -11,7 +11,11 @@ type HAProxySuite struct {
 }
 
 func NewHAProxySuite() *HAProxySuite {
-	return &HAProxySuite{RodSuite: new(RodSuite)}
+	return &HAProxySuite{
+		RodSuite: &RodSuite{
+			Name: haproxySuiteName,
+		},
+	}
 }
 
 func (s *HAProxySuite) Test1FAScenario() {
@@ -24,6 +28,10 @@ func (s *HAProxySuite) Test2FAScenario() {
 
 func (s *HAProxySuite) TestCustomHeaders() {
 	suite.Run(s.T(), NewCustomHeadersScenario())
+}
+
+func (s *HAProxySuite) SetupSuite() {
+	s.LoadEnvironment()
 }
 
 func TestHAProxySuite(t *testing.T) {

@@ -15,10 +15,16 @@ type BypassAllWebDriverSuite struct {
 }
 
 func NewBypassAllWebDriverSuite() *BypassAllWebDriverSuite {
-	return &BypassAllWebDriverSuite{RodSuite: new(RodSuite)}
+	return &BypassAllWebDriverSuite{
+		RodSuite: &RodSuite{
+			Name: bypassAllSuiteName,
+		},
+	}
 }
 
 func (s *BypassAllWebDriverSuite) SetupSuite() {
+	s.LoadEnvironment()
+
 	browser, err := StartRod()
 
 	if err != nil {
