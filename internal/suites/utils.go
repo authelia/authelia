@@ -58,8 +58,6 @@ func (s *RodSuite) SetupSuite() {
 }
 
 func (s *RodSuite) LoadEnvironment() {
-	fmt.Println("loading env")
-
 	env := filepath.Join(s.Name, ".env")
 
 	var (
