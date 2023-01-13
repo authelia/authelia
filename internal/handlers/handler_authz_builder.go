@@ -172,18 +172,18 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 	case AuthzImplLegacy:
 		authz.handleGetObject = handleAuthzGetObjectLegacy
 		authz.handleUnauthorized = handleAuthzUnauthorizedLegacy
-		authz.handleGetPortalURL = handleAuthzPortalURLLegacy
+		authz.handleGetAutheliaURL = handleAuthzPortalURLLegacy
 	case AuthzImplForwardAuth:
 		authz.handleGetObject = handleAuthzGetObjectForwardAuth
 		authz.handleUnauthorized = handleAuthzUnauthorizedForwardAuth
-		authz.handleGetPortalURL = handleAuthzPortalURLFromQuery
+		authz.handleGetAutheliaURL = handleAuthzPortalURLFromQuery
 	case AuthzImplAuthRequest:
 		authz.handleGetObject = handleAuthzGetObjectAuthRequest
 		authz.handleUnauthorized = handleAuthzUnauthorizedAuthRequest
 	case AuthzImplExtAuthz:
 		authz.handleGetObject = handleAuthzGetObjectExtAuthz
 		authz.handleUnauthorized = handleAuthzUnauthorizedExtAuthz
-		authz.handleGetPortalURL = handleAuthzPortalURLFromHeader
+		authz.handleGetAutheliaURL = handleAuthzPortalURLFromHeader
 	}
 
 	return authz

@@ -13,7 +13,8 @@ import (
 func handleAuthzGetObjectAuthRequest(ctx *middlewares.AutheliaCtx) (object authorization.Object, err error) {
 	var (
 		targetURL *url.URL
-		rawURL    []byte
+
+		rawURL, method []byte
 	)
 
 	if rawURL = ctx.XOriginalURL(); len(rawURL) == 0 {
@@ -24,9 +25,7 @@ func handleAuthzGetObjectAuthRequest(ctx *middlewares.AutheliaCtx) (object autho
 		return object, fmt.Errorf("failed to parse X-Original-URL header: %w", err)
 	}
 
-	method := ctx.XOriginalMethod()
-
-	if len(method) == 0 {
+	if method = ctx.XOriginalMethod(); len(method) == 0 {
 		return object, fmt.Errorf("header 'X-Original-Method' is empty")
 	}
 

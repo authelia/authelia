@@ -11,13 +11,20 @@ import (
 )
 
 func handleAuthzGetObjectLegacy(ctx *middlewares.AutheliaCtx) (object authorization.Object, err error) {
-	var targetURL *url.URL
+	var (
+		targetURL *url.URL
+		method    []byte
+	)
 
 	if targetURL, err = ctx.GetXOriginalURLOrXForwardedURL(); err != nil {
 		return object, fmt.Errorf("failed to get target URL: %w", err)
 	}
 
-	return authorization.NewObjectRaw(targetURL, ctx.XForwardedMethod()), nil
+	if method = ctx.XForwardedMethod(); len(method) == 0 {
+		method = ctx.Method()
+	}
+
+	return authorization.NewObjectRaw(targetURL, method), nil
 }
 
 func handleAuthzUnauthorizedLegacy(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL) {

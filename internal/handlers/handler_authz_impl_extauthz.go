@@ -17,15 +17,16 @@ func handleAuthzGetObjectExtAuthz(ctx *middlewares.AutheliaCtx) (object authoriz
 		uri = ctx.AuthzPath()
 	}
 
-	var targetURL *url.URL
+	var (
+		targetURL *url.URL
+		method    []byte
+	)
 
 	if targetURL, err = getRequestURIFromForwardedHeaders(protocol, host, uri); err != nil {
 		return object, fmt.Errorf("failed to get target URL: %w", err)
 	}
 
-	method := ctx.XForwardedMethod()
-
-	if len(method) == 0 {
+	if method = ctx.XForwardedMethod(); len(method) == 0 {
 		method = ctx.Method()
 	}
 

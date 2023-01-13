@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/url"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -13,9 +14,9 @@ import (
 // Handler is the middlewares.RequestHandler for Authz.
 func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	var (
-		object    authorization.Object
-		portalURL *url.URL
-		err       error
+		object      authorization.Object
+		autheliaURL *url.URL
+		err         error
 	)
 
 	if object, err = authz.handleGetObject(ctx); err != nil {
@@ -45,7 +46,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if portalURL, err = authz.getPortalURL(ctx, provider); err != nil {
+	if autheliaURL, err = authz.getAutheliaURL(ctx, provider); err != nil {
 		ctx.Logger.Errorf("Target URL '%s' does not appear to be a protected domain: %+v", object.URL.String(), err)
 
 		ctx.ReplyUnauthorized()
@@ -92,34 +93,38 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 			handler = authz.handleUnauthorized
 		}
 
-		handler(ctx, &authn, authz.getRedirectionURL(&object, portalURL))
+		handler(ctx, &authn, authz.getRedirectionURL(&object, autheliaURL))
 	case AuthzResultAuthorized:
 		authz.handleAuthorized(ctx, &authn)
 	}
 }
 
-func (authz *Authz) getPortalURL(ctx *middlewares.AutheliaCtx, provider *session.Session) (portalURL *url.URL, err error) {
-	if authz.handleGetPortalURL == nil {
+func (authz *Authz) getAutheliaURL(ctx *middlewares.AutheliaCtx, provider *session.Session) (autheliaURL *url.URL, err error) {
+	if authz.handleGetAutheliaURL == nil {
 		return nil, nil
 	}
 
-	if portalURL, err = authz.handleGetPortalURL(ctx); err != nil {
+	if autheliaURL, err = authz.handleGetAutheliaURL(ctx); err != nil {
 		return nil, err
 	}
 
-	if portalURL != nil {
-		return portalURL, nil
+	if autheliaURL != nil {
+		return autheliaURL, nil
 	}
 
-	return provider.Config.AutheliaURL, nil
+	if provider.Config.AutheliaURL != nil {
+		return provider.Config.AutheliaURL, nil
+	}
+
+	return nil, fmt.Errorf("authelia url lookup failed")
 }
 
-func (authz *Authz) getRedirectionURL(object *authorization.Object, portalURL *url.URL) (redirectionURL *url.URL) {
-	if portalURL == nil {
+func (authz *Authz) getRedirectionURL(object *authorization.Object, autheliaURL *url.URL) (redirectionURL *url.URL) {
+	if autheliaURL == nil {
 		return nil
 	}
 
-	redirectionURL, _ = url.ParseRequestURI(portalURL.String())
+	redirectionURL, _ = url.ParseRequestURI(autheliaURL.String())
 
 	qry := redirectionURL.Query()
 

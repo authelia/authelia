@@ -13,14 +13,16 @@ import (
 func handleAuthzGetObjectForwardAuth(ctx *middlewares.AutheliaCtx) (object authorization.Object, err error) {
 	protocol, host, uri := ctx.XForwardedProto(), ctx.XForwardedHost(), ctx.XForwardedURI()
 
-	var targetURL *url.URL
+	var (
+		targetURL *url.URL
+		method    []byte
+	)
 
 	if targetURL, err = getRequestURIFromForwardedHeaders(protocol, host, uri); err != nil {
 		return object, fmt.Errorf("failed to get target URL: %w", err)
 	}
 
-	method := ctx.XForwardedMethod()
-	if len(method) == 0 {
+	if method = ctx.XForwardedMethod(); len(method) == 0 {
 		return object, fmt.Errorf("header 'X-Forwarded-Method' is empty")
 	}
 

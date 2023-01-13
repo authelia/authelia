@@ -19,7 +19,7 @@ type Authz struct {
 	handleGetObject    HandlerAuthzGetObject
 	handleVerifyObject HandlerAuthzVerifyObject
 
-	handleGetPortalURL HandlerAuthzGetPortalURL
+	handleGetAutheliaURL HandlerAuthzGetAutheliaURL
 
 	handleAuthorized   HandlerAuthzAuthorized
 	handleUnauthorized HandlerAuthzUnauthorized
@@ -31,8 +31,8 @@ type HandlerAuthzUnauthorized func(ctx *middlewares.AutheliaCtx, authn *Authn, r
 // HandlerAuthzAuthorized is a Authz handler func that handles authorized responses.
 type HandlerAuthzAuthorized func(ctx *middlewares.AutheliaCtx, authn *Authn)
 
-// HandlerAuthzGetPortalURL is a Authz handler func that handles retrieval of the Portal URL.
-type HandlerAuthzGetPortalURL func(ctx *middlewares.AutheliaCtx) (portalURL *url.URL, err error)
+// HandlerAuthzGetAutheliaURL is a Authz handler func that handles retrieval of the Portal URL.
+type HandlerAuthzGetAutheliaURL func(ctx *middlewares.AutheliaCtx) (portalURL *url.URL, err error)
 
 // HandlerAuthzGetRedirectionURL is a Authz handler func that handles retrieval of the Redirection URL.
 type HandlerAuthzGetRedirectionURL func(ctx *middlewares.AutheliaCtx, object *authorization.Object) (redirectionURL *url.URL, err error)
