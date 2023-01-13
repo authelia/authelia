@@ -78,13 +78,19 @@ func (s *RodSuite) LoadEnvironment() {
 
 	scanner := bufio.NewScanner(file)
 
+	fmt.Printf("loaded .env\n")
+
 	for scanner.Scan() {
 		v := strings.Split(scanner.Text(), "=")
 
 		s.Require().Len(v, 2)
 
+		fmt.Printf("setting env '%s' to '%s'\n", v[0], v[1])
+
 		s.T().Setenv(v[0], v[1])
 	}
+
+	fmt.Printf("finished setting env from .env\n")
 }
 
 func (rs *RodSession) collectScreenshot(err error, page *rod.Page) {
