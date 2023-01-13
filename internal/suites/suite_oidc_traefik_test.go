@@ -12,9 +12,7 @@ type OIDCTraefikSuite struct {
 
 func NewOIDCTraefikSuite() *OIDCTraefikSuite {
 	return &OIDCTraefikSuite{
-		RodSuite: &RodSuite{
-			Name: oidcTraefikSuiteName,
-		},
+		RodSuite: NewRodSuite(oidcTraefikSuiteName),
 	}
 }
 

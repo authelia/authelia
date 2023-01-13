@@ -12,9 +12,7 @@ type MariaDBSuite struct {
 
 func NewMariaDBSuite() *MariaDBSuite {
 	return &MariaDBSuite{
-		RodSuite: &RodSuite{
-			Name: mariadbSuiteName,
-		},
+		RodSuite: NewRodSuite(mariadbSuiteName),
 	}
 }
 

@@ -10,11 +10,15 @@ import (
 )
 
 type NetworkACLSuite struct {
-	suite.Suite
+	*BaseSuite
 }
 
 func NewNetworkACLSuite() *NetworkACLSuite {
-	return &NetworkACLSuite{}
+	return &NetworkACLSuite{
+		BaseSuite: &BaseSuite{
+			Name: traefikSuiteName,
+		},
+	}
 }
 
 func (s *NetworkACLSuite) TestShouldAccessSecretUpon2FA() {

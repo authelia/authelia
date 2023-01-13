@@ -18,9 +18,7 @@ type HighAvailabilityWebDriverSuite struct {
 
 func NewHighAvailabilityWebDriverSuite() *HighAvailabilityWebDriverSuite {
 	return &HighAvailabilityWebDriverSuite{
-		RodSuite: &RodSuite{
-			Name: highAvailabilitySuiteName,
-		},
+		RodSuite: NewRodSuite(highAvailabilitySuiteName),
 	}
 }
 
@@ -271,11 +269,15 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldVerifyAccessControl() {
 }
 
 type HighAvailabilitySuite struct {
-	suite.Suite
+	*BaseSuite
 }
 
 func NewHighAvailabilitySuite() *HighAvailabilitySuite {
-	return &HighAvailabilitySuite{}
+	return &HighAvailabilitySuite{
+		BaseSuite: &BaseSuite{
+			Name: highAvailabilitySuiteName,
+		},
+	}
 }
 
 func DoGetWithAuth(t *testing.T, username, password string) int {

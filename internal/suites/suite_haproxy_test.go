@@ -12,9 +12,7 @@ type HAProxySuite struct {
 
 func NewHAProxySuite() *HAProxySuite {
 	return &HAProxySuite{
-		RodSuite: &RodSuite{
-			Name: haproxySuiteName,
-		},
+		RodSuite: NewRodSuite(haproxySuiteName),
 	}
 }
 

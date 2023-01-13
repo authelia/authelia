@@ -12,9 +12,7 @@ type ActiveDirectorySuite struct {
 
 func NewActiveDirectorySuite() *ActiveDirectorySuite {
 	return &ActiveDirectorySuite{
-		RodSuite: &RodSuite{
-			Name: activedirectorySuiteName,
-		},
+		RodSuite: NewRodSuite(activedirectorySuiteName),
 	}
 }
 

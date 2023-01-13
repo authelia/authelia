@@ -12,9 +12,7 @@ type CaddySuite struct {
 
 func NewCaddySuite() *CaddySuite {
 	return &CaddySuite{
-		RodSuite: &RodSuite{
-			Name: caddySuiteName,
-		},
+		RodSuite: NewRodSuite(caddySuiteName),
 	}
 }
 

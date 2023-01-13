@@ -12,9 +12,7 @@ type DockerSuite struct {
 
 func NewDockerSuite() *DockerSuite {
 	return &DockerSuite{
-		RodSuite: &RodSuite{
-			Name: dockerSuiteName,
-		},
+		RodSuite: NewRodSuite(dockerSuiteName),
 	}
 }
 

@@ -12,9 +12,7 @@ type LDAPSuite struct {
 
 func NewLDAPSuite() *LDAPSuite {
 	return &LDAPSuite{
-		RodSuite: &RodSuite{
-			Name: ldapSuiteName,
-		},
+		RodSuite: NewRodSuite(ldapSuiteName),
 	}
 }
 

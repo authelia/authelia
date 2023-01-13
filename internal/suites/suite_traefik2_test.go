@@ -15,9 +15,7 @@ type Traefik2Suite struct {
 
 func NewTraefik2Suite() *Traefik2Suite {
 	return &Traefik2Suite{
-		RodSuite: &RodSuite{
-			Name: traefik2SuiteName,
-		},
+		RodSuite: NewRodSuite(traefik2SuiteName),
 	}
 }
 

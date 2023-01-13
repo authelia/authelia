@@ -23,9 +23,7 @@ type StandaloneWebDriverSuite struct {
 
 func NewStandaloneWebDriverSuite() *StandaloneWebDriverSuite {
 	return &StandaloneWebDriverSuite{
-		RodSuite: &RodSuite{
-			Name: standaloneSuiteName,
-		},
+		RodSuite: NewRodSuite(standaloneSuiteName),
 	}
 }
 
@@ -175,11 +173,15 @@ func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() 
 }
 
 type StandaloneSuite struct {
-	suite.Suite
+	*BaseSuite
 }
 
 func NewStandaloneSuite() *StandaloneSuite {
-	return &StandaloneSuite{}
+	return &StandaloneSuite{
+		BaseSuite: &BaseSuite{
+			Name: standaloneSuiteName,
+		},
+	}
 }
 
 func (s *StandaloneSuite) TestShouldRespectMethodsACL() {

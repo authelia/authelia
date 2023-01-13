@@ -23,10 +23,18 @@ type CLISuite struct {
 }
 
 func NewCLISuite() *CLISuite {
-	return &CLISuite{CommandSuite: new(CommandSuite)}
+	return &CLISuite{
+		CommandSuite: &CommandSuite{
+			BaseSuite: &BaseSuite{
+				Name: cliSuiteName,
+			},
+		},
+	}
 }
 
 func (s *CLISuite) SetupSuite() {
+	s.LoadEnvironment()
+
 	dockerEnvironment := NewDockerEnvironment([]string{
 		"internal/suites/docker-compose.yml",
 		"internal/suites/CLI/docker-compose.yml",

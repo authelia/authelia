@@ -53,11 +53,11 @@ func (rs *RodSession) collectCoverage(page *rod.Page) {
 	}
 }
 
-func (s *RodSuite) SetupSuite() {
+func (s *BaseSuite) SetupSuite() {
 	s.LoadEnvironment()
 }
 
-func (s *RodSuite) LoadEnvironment() {
+func (s *BaseSuite) LoadEnvironment() {
 	env := filepath.Join(s.Name, ".env")
 
 	var (

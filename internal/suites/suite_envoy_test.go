@@ -12,9 +12,7 @@ type EnvoySuite struct {
 
 func NewEnvoySuite() *EnvoySuite {
 	return &EnvoySuite{
-		RodSuite: &RodSuite{
-			Name: envoySuiteName,
-		},
+		RodSuite: NewRodSuite(envoySuiteName),
 	}
 }
 

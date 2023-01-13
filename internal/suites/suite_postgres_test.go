@@ -12,9 +12,7 @@ type PostgresSuite struct {
 
 func NewPostgresSuite() *PostgresSuite {
 	return &PostgresSuite{
-		RodSuite: &RodSuite{
-			Name: postgresSuiteName,
-		},
+		RodSuite: NewRodSuite(postgresSuiteName),
 	}
 }
 

@@ -12,9 +12,7 @@ type MySQLSuite struct {
 
 func NewMySQLSuite() *MySQLSuite {
 	return &MySQLSuite{
-		RodSuite: &RodSuite{
-			Name: mysqlSuiteName,
-		},
+		RodSuite: NewRodSuite(mysqlSuiteName),
 	}
 }
 

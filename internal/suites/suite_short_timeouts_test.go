@@ -12,9 +12,7 @@ type ShortTimeoutsSuite struct {
 
 func NewShortTimeoutsSuite() *ShortTimeoutsSuite {
 	return &ShortTimeoutsSuite{
-		RodSuite: &RodSuite{
-			Name: shortTimeoutsSuiteName,
-		},
+		RodSuite: NewRodSuite(shortTimeoutsSuiteName),
 	}
 }
 

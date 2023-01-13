@@ -12,9 +12,7 @@ type OIDCSuite struct {
 
 func NewOIDCSuite() *OIDCSuite {
 	return &OIDCSuite{
-		RodSuite: &RodSuite{
-			Name: oidcSuiteName,
-		},
+		RodSuite: NewRodSuite(oidcSuiteName),
 	}
 }
 

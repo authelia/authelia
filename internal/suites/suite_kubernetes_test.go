@@ -12,9 +12,7 @@ type KubernetesSuite struct {
 
 func NewKubernetesSuite() *KubernetesSuite {
 	return &KubernetesSuite{
-		RodSuite: &RodSuite{
-			Name: kubernetesSuiteName,
-		},
+		RodSuite: NewRodSuite(kubernetesSuiteName),
 	}
 }
 

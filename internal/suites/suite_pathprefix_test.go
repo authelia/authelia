@@ -12,9 +12,7 @@ type PathPrefixSuite struct {
 
 func NewPathPrefixSuite() *PathPrefixSuite {
 	return &PathPrefixSuite{
-		RodSuite: &RodSuite{
-			Name: pathPrefixSuiteName,
-		},
+		RodSuite: NewRodSuite(pathPrefixSuiteName),
 	}
 }
 
