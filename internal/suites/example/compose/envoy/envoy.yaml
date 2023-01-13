@@ -41,6 +41,10 @@ static_resources:
                           route:
                             cluster: authelia-backend
                         - match:
+                            path: "/devworkflow"
+                          route:
+                            cluster: authelia-backend
+                        - match:
                             path: "/jwks.json"
                           route:
                             cluster: authelia-backend
