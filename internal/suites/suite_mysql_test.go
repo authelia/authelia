@@ -26,10 +26,6 @@ func (s *MySQLSuite) Test2FAScenario() {
 	suite.Run(s.T(), New2FAScenario())
 }
 
-func (s *MySQLSuite) SetupSuite() {
-	s.LoadEnvironment()
-}
-
 func TestMySQLSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")

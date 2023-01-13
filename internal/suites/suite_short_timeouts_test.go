@@ -30,10 +30,6 @@ func (s *ShortTimeoutsSuite) TestRegulationScenario() {
 	suite.Run(s.T(), NewRegulationScenario())
 }
 
-func (s *ShortTimeoutsSuite) SetupSuite() {
-	s.LoadEnvironment()
-}
-
 func TestShortTimeoutsSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")

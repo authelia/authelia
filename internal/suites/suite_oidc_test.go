@@ -22,10 +22,6 @@ func (s *OIDCSuite) TestOIDCScenario() {
 	suite.Run(s.T(), NewOIDCScenario())
 }
 
-func (s *OIDCSuite) SetupSuite() {
-	s.LoadEnvironment()
-}
-
 func TestOIDCSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")

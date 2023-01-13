@@ -34,10 +34,6 @@ func (s *PathPrefixSuite) TestResetPasswordScenario() {
 	suite.Run(s.T(), NewResetPasswordScenario())
 }
 
-func (s *PathPrefixSuite) SetupSuite() {
-	s.LoadEnvironment()
-}
-
 func TestPathPrefixSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")

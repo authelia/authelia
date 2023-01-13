@@ -30,10 +30,6 @@ func (s *KubernetesSuite) TestRedirectionURLScenario() {
 	suite.Run(s.T(), NewRedirectionURLScenario())
 }
 
-func (s *KubernetesSuite) SetupSuite() {
-	s.LoadEnvironment()
-}
-
 func TestKubernetesSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")

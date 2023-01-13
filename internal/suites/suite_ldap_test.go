@@ -38,10 +38,6 @@ func (s *LDAPSuite) TestSigninEmailScenario() {
 	suite.Run(s.T(), NewSigninEmailScenario())
 }
 
-func (s *LDAPSuite) SetupSuite() {
-	s.LoadEnvironment()
-}
-
 func TestLDAPSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")

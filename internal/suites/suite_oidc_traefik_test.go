@@ -22,10 +22,6 @@ func (s *OIDCTraefikSuite) TestOIDCScenario() {
 	suite.Run(s.T(), NewOIDCScenario())
 }
 
-func (s *OIDCTraefikSuite) SetupSuite() {
-	s.LoadEnvironment()
-}
-
 func TestOIDCTraefikSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")

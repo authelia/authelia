@@ -34,10 +34,6 @@ func (s *EnvoySuite) TestResetPasswordScenario() {
 	suite.Run(s.T(), NewResetPasswordScenario())
 }
 
-func (s *EnvoySuite) SetupSuite() {
-	s.LoadEnvironment()
-}
-
 func TestEnvoySuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")

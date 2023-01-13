@@ -26,10 +26,6 @@ func (s *PostgresSuite) Test2FAScenario() {
 	suite.Run(s.T(), New2FAScenario())
 }
 
-func (s *PostgresSuite) SetupSuite() {
-	s.LoadEnvironment()
-}
-
 func TestPostgresSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")

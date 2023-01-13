@@ -26,10 +26,6 @@ func (s *MariaDBSuite) Test2FAScenario() {
 	suite.Run(s.T(), New2FAScenario())
 }
 
-func (s *MariaDBSuite) SetupSuite() {
-	s.LoadEnvironment()
-}
-
 func TestMariaDBSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")

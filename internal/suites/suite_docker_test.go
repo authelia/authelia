@@ -26,10 +26,6 @@ func (s *DockerSuite) Test2FAScenario() {
 	suite.Run(s.T(), New2FAScenario())
 }
 
-func (s *DockerSuite) SetupSuite() {
-	s.LoadEnvironment()
-}
-
 func TestDockerSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
