@@ -23,6 +23,17 @@ func GetLoginBaseURL(baseDomain string) string {
 	return LoginBaseURLFmt(baseDomain) + GetPathPrefix()
 }
 
+// GetLoginBaseURLWithFallbackPrefix overloads GetLoginBaseURL and includes '/' as a prefix if the prefix is empty.
+func GetLoginBaseURLWithFallbackPrefix(baseDomain, fallback string) string {
+	prefix := GetPathPrefix()
+
+	if prefix == "" {
+		prefix = fallback
+	}
+
+	return LoginBaseURLFmt(baseDomain) + prefix
+}
+
 func (rs *RodSession) collectCoverage(page *rod.Page) {
 	coverageDir := "../../web/.nyc_output"
 

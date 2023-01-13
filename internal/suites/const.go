@@ -14,15 +14,9 @@ var (
 	Example3DotCom = "example3.com:8080"
 )
 
-// PathPrefix the prefix/url_base of the login portal.
-var PathPrefix = os.Getenv("PathPrefix")
-
+// GetPathPrefix returns the prefix/url_base of the login portal.
 func GetPathPrefix() string {
-	if prefix := os.Getenv("PathPrefix"); prefix != "" {
-		return prefix
-	}
-
-	return "/"
+	return os.Getenv("PathPrefix")
 }
 
 // LoginBaseURLFmt the base URL of the login portal for specified baseDomain.

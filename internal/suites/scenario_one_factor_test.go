@@ -63,15 +63,11 @@ func (s *OneFactorSuite) TestShouldNotAuthorizeSecretBeforeOneFactor() {
 
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 
-	raw := GetLoginBaseURL(BaseDomain)
+	raw := GetLoginBaseURLWithFallbackPrefix(BaseDomain, "/")
 
 	expected, err := url.ParseRequestURI(raw)
 	s.Assert().NoError(err)
 	s.Require().NotNil(expected)
-
-	if expected.Path == "" {
-		expected.Path = "/"
-	}
 
 	query := expected.Query()
 
