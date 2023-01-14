@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"path"
 	"testing"
 	"time"
 
@@ -266,7 +267,7 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalURL() {
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL := url.QueryEscape(AdminBaseURL)
-	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s", GetLoginBaseURL(BaseDomain), urlEncodedAdminURL))), string(body))
+	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=GET", GetLoginBaseURL(BaseDomain), urlEncodedAdminURL))), string(body))
 }
 
 func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI() {
@@ -285,7 +286,112 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI(
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
-	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s", GetLoginBaseURL(BaseDomain), urlEncodedAdminURL))), string(body))
+	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=GET", GetLoginBaseURL(BaseDomain), urlEncodedAdminURL))), string(body))
+}
+
+func (s *StandaloneSuite) TestShouldVerifyAuthzResponseForAuthRequest() {
+	client := NewHTTPClient()
+
+	testCases := []struct {
+		name           string
+		originalMethod string
+		originalURL    *url.URL
+		status         int
+		body           string
+	}{
+		{"ShouldDenyMethodPOST", http.MethodPost, MustParseURL("https://secure.example.com:8080/"), http.StatusUnauthorized, "abc"},
+		{"ShouldAllowMethodPost", http.MethodPost, MustParseURL("https://bypass.example.com:8080/"), http.StatusOK, "abc"},
+	}
+
+	for _, tc := range testCases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			for _, method := range []string{http.MethodGet, http.MethodPost} {
+				t.Run("Method"+method, func(t *testing.T) {
+					req, err := http.NewRequest(method, fmt.Sprintf("%s/api/authz/auth-request?authelia_url=%s", AutheliaBaseURL, GetLoginBaseURL(BaseDomain)), nil)
+					s.Assert().NoError(err)
+					req.Header.Set("X-Original-Method", tc.originalMethod)
+					req.Header.Set("X-Original-URL", tc.originalURL.String())
+					req.Header.Set("Accept", "text/html; charset=utf8")
+
+					res, err := client.Do(req)
+					s.Assert().NoError(err)
+					s.Assert().Equal(res.StatusCode, tc.status)
+					body, err := io.ReadAll(res.Body)
+					s.Assert().NoError(err)
+					s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=GET", GetLoginBaseURL(BaseDomain), tc.originalURL.String()))), string(body))
+				})
+			}
+		})
+	}
+}
+
+func MustParseURL(in string) *url.URL {
+	if u, err := url.ParseRequestURI(in); err != nil {
+		panic(err)
+	} else {
+		return u
+	}
+}
+
+func (s *StandaloneSuite) TestShouldVerifyAuthzResponseForExtAuthz() {
+	client := NewHTTPClient()
+
+	testCases := []struct {
+		name           string
+		originalMethod string
+		originalURL    *url.URL
+		status         int
+		body           string
+	}{
+		{"ShouldDenyMethodPOST", http.MethodPost, MustParseURL("https://secure.example.com:8080/"), http.StatusFound, "abc"},
+		{"ShouldAllowMethodPost", http.MethodPost, MustParseURL("https://bypass.example.com:8080/"), http.StatusOK, "abc"},
+	}
+
+	for _, tc := range testCases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			for _, method := range []string{http.MethodHead, http.MethodGet, http.MethodPost, http.MethodDelete, http.MethodPut} {
+				t.Run("Method"+method, func(t *testing.T) {
+					reqURL, err := url.ParseRequestURI(AutheliaBaseURL)
+					s.Assert().NoError(err)
+
+					reqURL.Path = "/api/authz/ext-authz"
+					if tc.originalURL.Path != "" && tc.originalURL.Path != "/" {
+						reqURL.Path = path.Join(reqURL.Path, tc.originalURL.Path)
+					}
+
+					req, err := http.NewRequest(method, reqURL.String(), nil)
+					s.Assert().NoError(err)
+					req.Host = tc.originalURL.Host
+
+					req.Header.Set("X-Authelia-URL", GetLoginBaseURL(BaseDomain))
+					req.Header.Set("X-Forwarded-Proto", "https")
+					req.Header.Set("Accept", "text/html; charset=utf8")
+
+					res, err := client.Do(req)
+					s.Assert().NoError(err)
+					s.Assert().Equal(res.StatusCode, tc.status)
+					body, err := io.ReadAll(res.Body)
+					s.Assert().NoError(err)
+
+					if tc.status == http.StatusFound {
+						expected, err := url.ParseRequestURI(GetLoginBaseURL(BaseDomain))
+						s.Assert().NoError(err)
+
+						query := expected.Query()
+
+						query.Set("rd", reqURL.String())
+						query.Set("rm", method)
+
+						expected.RawQuery = query.Encode()
+
+						s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", expected.String()), string(body))
+					} else {
+						s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", "N/A"), string(body))
+					}
+				})
+			}
+		})
+	}
 }
 
 func (s *StandaloneSuite) TestShouldRecordMetrics() {
