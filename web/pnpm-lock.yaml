@@ -48,7 +48,7 @@ specifiers:
   jest-environment-jsdom: 29.3.1
   jest-transform-stub: 2.0.0
   jest-watch-typeahead: 2.2.1
-  prettier: 2.8.2
+  prettier: 2.8.3
   qrcode.react: 3.1.0
   react: 18.2.0
   react-dom: 18.2.0
@@ -115,7 +115,7 @@ devDependencies:
   eslint-import-resolver-typescript: 3.5.3_hnftvkj7qg3s6bbigj4pr6djxy
   eslint-plugin-import: 2.27.4_2ac3tknkazjoq5fxmuugu665ny
   eslint-plugin-jsx-a11y: 6.7.1_eslint@8.31.0
-  eslint-plugin-prettier: 4.2.1_iu5s7nk6dw7o3tajefwfiqfmge
+  eslint-plugin-prettier: 4.2.1_do5yx3dogbskqc4h5x5ilvlwyy
   eslint-plugin-react: 7.32.0_eslint@8.31.0
   eslint-plugin-react-hooks: 4.6.0_eslint@8.31.0
   husky: 8.0.3
@@ -123,7 +123,7 @@ devDependencies:
   jest-environment-jsdom: 29.3.1
   jest-transform-stub: 2.0.0
   jest-watch-typeahead: 2.2.1_jest@29.3.1
-  prettier: 2.8.2
+  prettier: 2.8.3
   react-test-renderer: 18.2.0_react@18.2.0
   typescript: 4.9.4
   vite: 4.0.4_@types+node@18.11.18
@@ -5423,7 +5423,7 @@ packages:
       semver: 6.3.0
     dev: true
 
-  /eslint-plugin-prettier/4.2.1_iu5s7nk6dw7o3tajefwfiqfmge:
+  /eslint-plugin-prettier/4.2.1_do5yx3dogbskqc4h5x5ilvlwyy:
     resolution: {integrity: sha512-f/0rXLXUt0oFYs8ra4w49wYZBG5GKZpAYsJSm6rnYL5uVDjd+zowwMwVZHnAjf4edNrKpCDYfXDgmRE/Ak7QyQ==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
@@ -5436,7 +5436,7 @@ packages:
     dependencies:
       eslint: 8.31.0
       eslint-config-prettier: 8.6.0_eslint@8.31.0
-      prettier: 2.8.2
+      prettier: 2.8.3
       prettier-linter-helpers: 1.0.0
     dev: true
 
@@ -8044,8 +8044,8 @@ packages:
       fast-diff: 1.2.0
     dev: true
 
-  /prettier/2.8.2:
-    resolution: {integrity: sha512-BtRV9BcncDyI2tsuS19zzhzoxD8Dh8LiCx7j7tHzrkz8GFXAexeWFdi22mjE1d16dftH2qNaytVxqiRTGlMfpw==}
+  /prettier/2.8.3:
+    resolution: {integrity: sha512-tJ/oJ4amDihPoufT5sM0Z1SKEuKay8LfVAMlbbhnnkvt6BUserZylqo2PN+p9KeljLr0OHa2rXHU1T8reeoTrw==}
     engines: {node: '>=10.13.0'}
     hasBin: true
     dev: true
