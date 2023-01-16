@@ -325,21 +325,7 @@ func (s *StandaloneSuite) TestShouldVerifyAuthzResponseForAuthRequest() {
 
 						body, err = io.ReadAll(res.Body)
 						s.Assert().NoError(err)
-
-						switch tc.status {
-						case http.StatusFound, http.StatusMovedPermanently, http.StatusPermanentRedirect, http.StatusSeeOther, http.StatusTemporaryRedirect:
-							expected, err := url.ParseRequestURI(GetLoginBaseURL(BaseDomain))
-							s.Assert().NoError(err)
-
-							query := expected.Query()
-
-							query.Set("rd", tc.originalURL.String())
-							query.Set("rm", tc.originalMethod)
-
-							s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">%d %s</a>", utils.StringHTMLEscape(expected.String()), tc.status, fasthttp.StatusMessage(tc.status)), string(body))
-						default:
-							s.Assert().Equal(fmt.Sprintf("%d %s", tc.status, fasthttp.StatusMessage(tc.status)), string(body))
-						}
+						s.Assert().Equal(fmt.Sprintf("%d %s", tc.status, fasthttp.StatusMessage(tc.status)), string(body))
 					default:
 						s.Assert().Equal(http.StatusMethodNotAllowed, res.StatusCode)
 
@@ -358,10 +344,6 @@ func MustParseURL(in string) *url.URL {
 	if u, err := url.ParseRequestURI(in); err != nil {
 		panic(err)
 	} else {
-		if u.Path == "" {
-			u.Path = "/"
-		}
-
 		return u
 	}
 }
@@ -375,8 +357,8 @@ func (s *StandaloneSuite) TestShouldVerifyAuthzResponseForExtAuthz() {
 		success     bool
 		body        string
 	}{
-		{"ShouldDeny", MustParseURL("https://secure.example.com:8080/"), false, "abc"},
-		{"ShouldAllow", MustParseURL("https://public.example.com:8080/"), true, "abc"},
+		{"ShouldDeny", MustParseURL("https://secure.example.com:8080"), false, "abc"},
+		{"ShouldAllow", MustParseURL("https://public.example.com:8080"), true, "abc"},
 	}
 
 	for _, tc := range testCases {
@@ -423,6 +405,10 @@ func (s *StandaloneSuite) TestShouldVerifyAuthzResponseForExtAuthz() {
 					if !tc.success {
 						expected, err := url.ParseRequestURI(GetLoginBaseURL(BaseDomain))
 						s.Assert().NoError(err)
+
+						if expected.Path == "" {
+							expected.Path = "/"
+						}
 
 						query := expected.Query()
 
