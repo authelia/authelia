@@ -392,6 +392,9 @@ func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
 func TestShouldLoadDirectoryConfiguration(t *testing.T) {
 	dir := t.TempDir()
 
+	cfg := filepath.Join(dir, "myconf.yml")
+	assert.NoError(t, testCreateFile(cfg, "server:\n  port: 9091\n", 0700))
+
 	val := schema.NewStructValidator()
 	_, _, err := Load(val, NewFileSource(dir))
 
@@ -406,4 +409,71 @@ func testSetEnv(t *testing.T, key, value string) {
 
 func testCreateFile(path, value string, perm os.FileMode) (err error) {
 	return os.WriteFile(path, []byte(value), perm)
+}
+
+func TestShouldErrorOnNoPath(t *testing.T) {
+	val := schema.NewStructValidator()
+	_, _, err := Load(val, NewFileSource(""))
+
+	assert.NoError(t, err)
+	assert.Len(t, val.Errors(), 1)
+	assert.ErrorContains(t, val.Errors()[0], "invalid file path source configuration")
+}
+
+func TestShouldErrorOnInvalidPath(t *testing.T) {
+	dir := t.TempDir()
+	cfg := filepath.Join(dir, "invalid-folder/config")
+
+	val := schema.NewStructValidator()
+	_, _, err := Load(val, NewFileSource(cfg))
+
+	assert.NoError(t, err)
+	assert.Len(t, val.Errors(), 1)
+	assert.ErrorContains(t, val.Errors()[0], fmt.Sprintf("stat %s: no such file or directory", cfg))
+}
+
+func TestShouldErrorOnDirFSPermissionDenied(t *testing.T) {
+	if runtime.GOOS == constWindows {
+		t.Skip("skipping test due to being on windows")
+	}
+
+	dir := t.TempDir()
+	err := os.Chmod(dir, 0200)
+	assert.NoError(t, err)
+
+	val := schema.NewStructValidator()
+	_, _, err = Load(val, NewFileSource(dir))
+
+	assert.NoError(t, err)
+	assert.Len(t, val.Errors(), 1)
+	assert.ErrorContains(t, val.Errors()[0], fmt.Sprintf("open %s: permission denied", dir))
+}
+
+func TestShouldSkipDirOnLoad(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "some-dir")
+
+	err := os.Mkdir(path, 0700)
+	assert.NoError(t, err)
+
+	val := schema.NewStructValidator()
+	_, _, err = Load(val, NewFileSource(dir))
+
+	assert.NoError(t, err)
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+}
+
+func TestShouldFailIfYmlIsInvalid(t *testing.T) {
+	dir := t.TempDir()
+
+	cfg := filepath.Join(dir, "myconf.yml")
+	assert.NoError(t, testCreateFile(cfg, "an invalid contend\n", 0700))
+
+	val := schema.NewStructValidator()
+	_, _, err := Load(val, NewFileSource(dir))
+
+	assert.NoError(t, err)
+	assert.Len(t, val.Errors(), 1)
+	assert.ErrorContains(t, val.Errors()[0], "unmarshal errors")
 }
