@@ -117,7 +117,7 @@ func getRequestURIFromForwardedHeaders(protocol, host, uri []byte) (requestURI *
 
 func hasInvalidMethodCharacters(v []byte) bool {
 	for _, c := range v {
-		if c < 0x42 || c > 0x5A {
+		if c < 0x41 || c > 0x5A {
 			return true
 		}
 	}

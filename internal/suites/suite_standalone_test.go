@@ -13,6 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -300,7 +301,7 @@ func (s *StandaloneSuite) TestShouldVerifyAuthzResponseForAuthRequest() {
 		body           string
 	}{
 		{"ShouldDenyMethodPOST", http.MethodPost, MustParseURL("https://secure.example.com:8080/"), http.StatusUnauthorized, "abc"},
-		{"ShouldAllowMethodPost", http.MethodPost, MustParseURL("https://bypass.example.com:8080/"), http.StatusOK, "abc"},
+		{"ShouldAllowMethodPOST", http.MethodPost, MustParseURL("https://public.example.com:8080/"), http.StatusOK, "abc"},
 	}
 
 	for _, tc := range testCases {
@@ -315,10 +316,30 @@ func (s *StandaloneSuite) TestShouldVerifyAuthzResponseForAuthRequest() {
 
 					res, err := client.Do(req)
 					s.Assert().NoError(err)
-					s.Assert().Equal(res.StatusCode, tc.status)
-					body, err := io.ReadAll(res.Body)
-					s.Assert().NoError(err)
-					s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=GET", GetLoginBaseURL(BaseDomain), tc.originalURL.String()))), string(body))
+
+					var body []byte
+
+					switch method {
+					case http.MethodGet, http.MethodHead:
+						s.Assert().Equal(tc.status, res.StatusCode)
+
+						body, err = io.ReadAll(res.Body)
+						s.Assert().NoError(err)
+
+						switch tc.status {
+						case http.StatusFound, http.StatusMovedPermanently, http.StatusPermanentRedirect, http.StatusSeeOther, http.StatusTemporaryRedirect:
+							s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">%d %s</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=%s", GetLoginBaseURL(BaseDomain), tc.originalURL.String(), tc.originalMethod)), tc.status, fasthttp.StatusMessage(tc.status)), string(body))
+						default:
+							s.Assert().Equal(fmt.Sprintf("%d %s", tc.status, fasthttp.StatusMessage(tc.status)), string(body))
+						}
+					default:
+						s.Assert().Equal(http.StatusMethodNotAllowed, res.StatusCode)
+
+						body, err = io.ReadAll(res.Body)
+						s.Assert().NoError(err)
+
+						s.Assert().Equal(fmt.Sprintf("%d %s", http.StatusMethodNotAllowed, fasthttp.StatusMessage(http.StatusMethodNotAllowed)), string(body))
+					}
 				})
 			}
 		})
@@ -337,14 +358,13 @@ func (s *StandaloneSuite) TestShouldVerifyAuthzResponseForExtAuthz() {
 	client := NewHTTPClient()
 
 	testCases := []struct {
-		name           string
-		originalMethod string
-		originalURL    *url.URL
-		status         int
-		body           string
+		name        string
+		originalURL *url.URL
+		success     bool
+		body        string
 	}{
-		{"ShouldDenyMethodPOST", http.MethodPost, MustParseURL("https://secure.example.com:8080/"), http.StatusFound, "abc"},
-		{"ShouldAllowMethodPost", http.MethodPost, MustParseURL("https://bypass.example.com:8080/"), http.StatusOK, "abc"},
+		{"ShouldDeny", MustParseURL("https://secure.example.com:8080/"), false, "abc"},
+		{"ShouldAllow", MustParseURL("https://public.example.com:8080/"), true, "abc"},
 	}
 
 	for _, tc := range testCases {
@@ -369,11 +389,26 @@ func (s *StandaloneSuite) TestShouldVerifyAuthzResponseForExtAuthz() {
 
 					res, err := client.Do(req)
 					s.Assert().NoError(err)
-					s.Assert().Equal(res.StatusCode, tc.status)
+
+					var status int
+
+					if tc.success {
+						status = http.StatusOK
+					} else {
+						switch method {
+						case http.MethodGet, http.MethodOptions:
+							status = http.StatusFound
+						default:
+							status = http.StatusSeeOther
+						}
+					}
+
+					s.Assert().Equal(status, res.StatusCode)
+
 					body, err := io.ReadAll(res.Body)
 					s.Assert().NoError(err)
 
-					if tc.status == http.StatusFound {
+					if !tc.success {
 						expected, err := url.ParseRequestURI(GetLoginBaseURL(BaseDomain))
 						s.Assert().NoError(err)
 
@@ -384,9 +419,9 @@ func (s *StandaloneSuite) TestShouldVerifyAuthzResponseForExtAuthz() {
 
 						expected.RawQuery = query.Encode()
 
-						s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", expected.String()), string(body))
+						s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">%d %s</a>", expected.String(), status, fasthttp.StatusMessage(status)), string(body))
 					} else {
-						s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", "N/A"), string(body))
+						s.Assert().Equal("200 OK", string(body))
 					}
 				})
 			}
