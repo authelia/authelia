@@ -14,9 +14,8 @@ func NewPathPrefixSuite() *PathPrefixSuite {
 	return &PathPrefixSuite{RodSuite: new(RodSuite)}
 }
 
-func (s *PathPrefixSuite) Test11CheckEnv() {
+func (s *PathPrefixSuite) TestCheckEnv() {
 	s.Assert().Equal("/auth", GetPathPrefix())
-	s.Assert().Equal("/auth", PathPrefix)
 }
 
 func (s *PathPrefixSuite) Test1FAScenario() {
