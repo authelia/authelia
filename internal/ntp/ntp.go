@@ -40,7 +40,7 @@ func (p *Provider) StartupCheck() (err error) {
 		version = ntpV3
 	}
 
-	req := &ntpPacket{LeapVersionMode: ntpLeapVersionClientMode(false, version)}
+	req := &ntpPacket{LeapVersionMode: ntpLeapVersionClientMode(version)}
 
 	if err := binary.Write(conn, binary.BigEndian, req); err != nil {
 		p.log.Warnf("Could not write to the NTP server socket to validate the system time is properly synchronized: %+v", err)
