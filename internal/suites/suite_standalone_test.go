@@ -414,7 +414,7 @@ func (s *StandaloneSuite) TestShouldVerifyAuthzResponseForExtAuthz() {
 
 						query := expected.Query()
 
-						query.Set("rd", reqURL.String())
+						query.Set("rd", tc.originalURL.String())
 						query.Set("rm", method)
 
 						expected.RawQuery = query.Encode()
