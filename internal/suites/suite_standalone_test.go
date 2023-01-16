@@ -419,7 +419,12 @@ func (s *StandaloneSuite) TestShouldVerifyAuthzResponseForExtAuthz() {
 
 						expected.RawQuery = query.Encode()
 
-						s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">%d %s</a>", expected.String(), status, fasthttp.StatusMessage(status)), string(body))
+						switch method {
+						case http.MethodHead:
+							s.Assert().Equal("", string(body))
+						default:
+							s.Assert().Equal(fmt.Sprintf(`<a href="%s">%d %s</a>`, utils.StringHTMLEscape(expected.String()), status, fasthttp.StatusMessage(status)), string(body))
+						}
 					} else {
 						s.Assert().Equal("200 OK", string(body))
 					}
