@@ -22,7 +22,7 @@
     "npm"
   ],
   "kubernetes": {
-    "fileMatch": ["kube/.+\\.yml$"],
+    "fileMatch": ["kube/.+\\.yml$"]
   },
   "labels": [
     "dependencies"
