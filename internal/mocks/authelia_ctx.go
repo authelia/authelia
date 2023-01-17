@@ -78,6 +78,59 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 				Policy:  "bypass",
 			},
 			{
+				Domains: []string{"bypass-get.example.com"},
+				Policy:  "bypass",
+				Methods: []string{fasthttp.MethodGet},
+			},
+			{
+				Domains: []string{"bypass-head.example.com"},
+				Policy:  "bypass",
+				Methods: []string{fasthttp.MethodHead},
+			},
+			{
+				Domains: []string{"bypass-options.example.com"},
+				Policy:  "bypass",
+				Methods: []string{fasthttp.MethodOptions},
+			},
+			{
+				Domains: []string{"bypass-trace.example.com"},
+				Policy:  "bypass",
+				Methods: []string{fasthttp.MethodTrace},
+			},
+			{
+				Domains: []string{"bypass-put.example.com"},
+				Policy:  "bypass",
+				Methods: []string{fasthttp.MethodPut},
+			},
+			{
+				Domains: []string{"bypass-patch.example.com"},
+				Policy:  "bypass",
+				Methods: []string{fasthttp.MethodPatch},
+			},
+			{
+				Domains: []string{"bypass-post.example.com"},
+				Policy:  "bypass",
+				Methods: []string{fasthttp.MethodPost},
+			},
+			{
+				Domains: []string{"bypass-delete.example.com"},
+				Policy:  "bypass",
+				Methods: []string{fasthttp.MethodDelete},
+			},
+			{
+				Domains: []string{"bypass-connect.example.com"},
+				Policy:  "bypass",
+				Methods: []string{fasthttp.MethodConnect},
+			},
+			{
+				Domains: []string{
+					"bypass-get.example.com", "bypass-head.example.com", "bypass-options.example.com",
+					"bypass-trace.example.com", "bypass-put.example.com", "bypass-patch.example.com",
+					"bypass-post.example.com", "bypass-delete.example.com", "bypass-connect.example.com",
+				},
+				Policy: "one_factor",
+			},
+			{
 				Domains: []string{"one-factor.example.com"},
 				Policy:  "one_factor",
 			},

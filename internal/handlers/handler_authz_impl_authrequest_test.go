@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 func TestRunAuthRequestAuthzSuite(t *testing.T) {
@@ -155,6 +157,42 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsAllow() {
 
 					assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
+				})
+			}
+		})
+	}
+}
+
+func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsWithMethodsACL() {
+	for _, method := range testRequestMethods {
+		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
+			for _, methodACL := range testRequestMethods {
+				targetURI := s.RequireParseRequestURI(fmt.Sprintf("https://bypass-%s.example.com", strings.ToLower(methodACL)))
+				t.Run(targetURI.String(), func(t *testing.T) {
+					authz := s.builder.Build()
+
+					mock := mocks.NewMockAutheliaCtx(t)
+
+					defer mock.Close()
+
+					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
+						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
+					}
+
+					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+
+					mock.Ctx.Request.Header.Set(testXOriginalMethod, method)
+					mock.Ctx.Request.Header.Set(testXOriginalUrl, targetURI.String())
+
+					authz.Handler(mock.Ctx)
+
+					if method == methodACL {
+						assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+						assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
+					} else {
+						assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+						assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
+					}
 				})
 			}
 		})

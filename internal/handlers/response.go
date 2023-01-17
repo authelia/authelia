@@ -251,7 +251,7 @@ func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, ba
 		refererURL, err := url.ParseRequestURI(string(referer))
 		if err == nil {
 			requestURI = refererURL.Query().Get(queryArgRD)
-			requestMethod = refererURL.Query().Get("rm")
+			requestMethod = refererURL.Query().Get(queryArgRM)
 		}
 	}
 
