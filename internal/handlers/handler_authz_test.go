@@ -3,11 +3,10 @@ package handlers
 import (
 	"net/url"
 
-	"github.com/stretchr/testify/suite"
-
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/stretchr/testify/suite"
 )
 
 type AuthzSuite struct {
@@ -37,4 +36,9 @@ func (s *AuthzSuite) RequireParseRequestURI(rawURL string) *url.URL {
 	s.Require().NoError(err)
 
 	return u
+}
+
+type urlpair struct {
+	TargetURL   *url.URL
+	AutheliaURL *url.URL
 }

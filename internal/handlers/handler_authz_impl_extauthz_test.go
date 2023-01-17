@@ -30,13 +30,8 @@ type ExtAuthzAuthzSuite struct {
 	*AuthzSuite
 }
 
-type urlpair struct {
-	TargetURL   *url.URL
-	AutheliaURL *url.URL
-}
-
 func (s *ExtAuthzAuthzSuite) TestShouldHandleAllMethodsDeny() {
-	for _, method := range methods {
+	for _, method := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
 			for _, pairURI := range []urlpair{
 				{s.RequireParseRequestURI("https://one-factor.example.com"), s.RequireParseRequestURI("https://auth.example.com/")},
@@ -88,7 +83,7 @@ func (s *ExtAuthzAuthzSuite) TestShouldHandleAllMethodsDeny() {
 }
 
 func (s *ExtAuthzAuthzSuite) TestShouldHandleAllMethodsOverrideAutheliaURLDeny() {
-	for _, method := range methods {
+	for _, method := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
 			for _, pairURI := range []urlpair{
 				{s.RequireParseRequestURI("https://one-factor.example.com"), s.RequireParseRequestURI("https://auth-from-override.example.com/")},
@@ -141,7 +136,7 @@ func (s *ExtAuthzAuthzSuite) TestShouldHandleAllMethodsOverrideAutheliaURLDeny()
 }
 
 func (s *ExtAuthzAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLDeny() {
-	for _, method := range methods {
+	for _, method := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
 			for _, targetURI := range []*url.URL{
 				s.RequireParseRequestURI("https://bypass.example.com"),
@@ -174,13 +169,13 @@ func (s *ExtAuthzAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLDeny() 
 }
 
 func (s *ExtAuthzAuthzSuite) TestShouldHandleAllMethodsXHRDeny() {
-	for _, method := range methods {
+	for _, method := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
 			for _, x := range []bool{true, false} {
-				xname := "WithoutAccept"
+				xname := testWithoutAccept
 
 				if x {
-					xname = "WithXHRHeader"
+					xname = testWithXHRHeader
 				}
 
 				t.Run(xname, func(t *testing.T) {
@@ -236,7 +231,7 @@ func (s *ExtAuthzAuthzSuite) TestShouldHandleAllMethodsXHRDeny() {
 }
 
 func (s *ExtAuthzAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
-	for _, method := range methods {
+	for _, method := range testRequestMethods {
 		method += "z"
 
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
@@ -277,7 +272,7 @@ func (s *ExtAuthzAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 }
 
 func (s *ExtAuthzAuthzSuite) TestShouldHandleMissingHostDeny() {
-	for _, method := range methods {
+	for _, method := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
 			authz := s.builder.Build()
 
@@ -303,7 +298,7 @@ func (s *ExtAuthzAuthzSuite) TestShouldHandleMissingHostDeny() {
 }
 
 func (s *ExtAuthzAuthzSuite) TestShouldHandleAllMethodsAllow() {
-	for _, method := range methods {
+	for _, method := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
 			for _, targetURI := range []*url.URL{
 				s.RequireParseRequestURI("https://bypass.example.com"),
@@ -342,7 +337,7 @@ func (s *ExtAuthzAuthzSuite) TestShouldHandleAllMethodsAllow() {
 }
 
 func (s *ExtAuthzAuthzSuite) TestShouldHandleAllMethodsAllowXHR() {
-	for _, method := range methods {
+	for _, method := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
 			for _, targetURI := range []*url.URL{
 				s.RequireParseRequestURI("https://bypass.example.com"),
@@ -399,7 +394,7 @@ func (s *ExtAuthzAuthzSuite) TestShouldHandleInvalidURL() {
 
 	for _, tc := range testCases {
 		s.T().Run(tc.name, func(t *testing.T) {
-			for _, method := range methods {
+			for _, method := range testRequestMethods {
 				t.Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
 					authz := s.builder.Build()
 
@@ -407,7 +402,7 @@ func (s *ExtAuthzAuthzSuite) TestShouldHandleInvalidURL() {
 
 					defer mock.Close()
 
-					mock.Ctx.Configuration.AccessControl.DefaultPolicy = "bypass"
+					mock.Ctx.Configuration.AccessControl.DefaultPolicy = testBypass
 					mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&mock.Ctx.Configuration)
 
 					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {

@@ -131,9 +131,9 @@ func TestShouldCheckAuthzResult(t *testing.T) {
 	}
 
 	rules := []Rule{
-		{"bypass", authentication.NotAuthenticated, AuthzResultAuthorized},
-		{"bypass", authentication.OneFactor, AuthzResultAuthorized},
-		{"bypass", authentication.TwoFactor, AuthzResultAuthorized},
+		{testBypass, authentication.NotAuthenticated, AuthzResultAuthorized},
+		{testBypass, authentication.OneFactor, AuthzResultAuthorized},
+		{testBypass, authentication.TwoFactor, AuthzResultAuthorized},
 
 		{"one_factor", authentication.NotAuthenticated, AuthzResultUnauthorized},
 		{"one_factor", authentication.OneFactor, AuthzResultAuthorized},

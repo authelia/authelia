@@ -312,7 +312,7 @@ type FirstFactorRedirectionSuite struct {
 func (s *FirstFactorRedirectionSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 	s.mock.Ctx.Configuration.DefaultRedirectionURL = "https://default.local"
-	s.mock.Ctx.Configuration.AccessControl.DefaultPolicy = "bypass"
+	s.mock.Ctx.Configuration.AccessControl.DefaultPolicy = testBypass
 	s.mock.Ctx.Configuration.AccessControl.Rules = []schema.ACLRule{
 		{
 			Domains: []string{"default.local"},

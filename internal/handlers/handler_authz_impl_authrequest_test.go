@@ -30,7 +30,7 @@ type AuthRequestAuthzSuite struct {
 }
 
 func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsDeny() {
-	for _, methodOriginal := range methods {
+	for _, methodOriginal := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("OriginalMethod%s", methodOriginal), func(t *testing.T) {
 			for _, targetURI := range []*url.URL{
 				s.RequireParseRequestURI("https://one-factor.example.com"),
@@ -45,8 +45,8 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsDeny() {
 
 					defer mock.Close()
 
-					mock.Ctx.Request.Header.Set("X-Original-Method", methodOriginal)
-					mock.Ctx.Request.Header.Set("X-Original-Url", targetURI.String())
+					mock.Ctx.Request.Header.Set(testXOriginalMethod, methodOriginal)
+					mock.Ctx.Request.Header.Set(testXOriginalUrl, targetURI.String())
 
 					authz.Handler(mock.Ctx)
 
@@ -59,7 +59,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsDeny() {
 }
 
 func (s *AuthRequestAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
-	for _, methodOriginal := range methods {
+	for _, methodOriginal := range testRequestMethods {
 		methodOriginal += "z"
 
 		s.T().Run(fmt.Sprintf("OriginalMethod%s", methodOriginal), func(t *testing.T) {
@@ -76,8 +76,8 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 
 					defer mock.Close()
 
-					mock.Ctx.Request.Header.Set("X-Original-Method", methodOriginal)
-					mock.Ctx.Request.Header.Set("X-Original-Url", targetURI.String())
+					mock.Ctx.Request.Header.Set(testXOriginalMethod, methodOriginal)
+					mock.Ctx.Request.Header.Set(testXOriginalUrl, targetURI.String())
 
 					authz.Handler(mock.Ctx)
 
@@ -103,7 +103,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleMissingXOriginalMethodDeny() {
 
 			defer mock.Close()
 
-			mock.Ctx.Request.Header.Set("X-Original-Url", targetURI.String())
+			mock.Ctx.Request.Header.Set(testXOriginalUrl, targetURI.String())
 
 			authz.Handler(mock.Ctx)
 
@@ -114,7 +114,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleMissingXOriginalMethodDeny() {
 }
 
 func (s *AuthRequestAuthzSuite) TestShouldHandleMissingXOriginalURLDeny() {
-	for _, methodOriginal := range methods {
+	for _, methodOriginal := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("OriginalMethod%s", methodOriginal), func(t *testing.T) {
 			authz := s.builder.Build()
 
@@ -122,7 +122,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleMissingXOriginalURLDeny() {
 
 			defer mock.Close()
 
-			mock.Ctx.Request.Header.Set("X-Original-Method", methodOriginal)
+			mock.Ctx.Request.Header.Set(testXOriginalMethod, methodOriginal)
 
 			authz.Handler(mock.Ctx)
 
@@ -133,7 +133,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleMissingXOriginalURLDeny() {
 }
 
 func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsAllow() {
-	for _, methodOriginal := range methods {
+	for _, methodOriginal := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("OriginalMethod%s", methodOriginal), func(t *testing.T) {
 			for _, targetURI := range []*url.URL{
 				s.RequireParseRequestURI("https://bypass.example.com"),
@@ -148,8 +148,8 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsAllow() {
 
 					defer mock.Close()
 
-					mock.Ctx.Request.Header.Set("X-Original-Method", methodOriginal)
-					mock.Ctx.Request.Header.Set("X-Original-Url", targetURI.String())
+					mock.Ctx.Request.Header.Set(testXOriginalMethod, methodOriginal)
+					mock.Ctx.Request.Header.Set(testXOriginalUrl, targetURI.String())
 
 					authz.Handler(mock.Ctx)
 
@@ -179,7 +179,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleInvalidURL() {
 
 	for _, tc := range testCases {
 		s.T().Run(tc.name, func(t *testing.T) {
-			for _, methodOriginal := range methods {
+			for _, methodOriginal := range testRequestMethods {
 				t.Run(fmt.Sprintf("OriginalMethod%s", methodOriginal), func(t *testing.T) {
 					authz := s.builder.Build()
 
@@ -187,11 +187,11 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleInvalidURL() {
 
 					defer mock.Close()
 
-					mock.Ctx.Configuration.AccessControl.DefaultPolicy = "bypass"
+					mock.Ctx.Configuration.AccessControl.DefaultPolicy = testBypass
 					mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&mock.Ctx.Configuration)
 
-					mock.Ctx.Request.Header.Set("X-Original-Method", methodOriginal)
-					mock.Ctx.Request.Header.SetBytesKV([]byte("X-Original-Url"), tc.uri)
+					mock.Ctx.Request.Header.Set(testXOriginalMethod, methodOriginal)
+					mock.Ctx.Request.Header.SetBytesKV([]byte(testXOriginalUrl), tc.uri)
 
 					authz.Handler(mock.Ctx)
 
@@ -202,10 +202,3 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleInvalidURL() {
 		})
 	}
 }
-
-type namebytes struct {
-	name string
-	data []byte
-}
-
-var methods = []string{fasthttp.MethodOptions, fasthttp.MethodHead, fasthttp.MethodGet, fasthttp.MethodDelete, fasthttp.MethodPatch, fasthttp.MethodPost, fasthttp.MethodPut, fasthttp.MethodConnect, fasthttp.MethodTrace}
