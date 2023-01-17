@@ -25,7 +25,3 @@ const (
 const (
 	leapUnknown = 3
 )
-
-func ver(v int) (x uint8) {
-	return (x & 0xc7) | uint8(v)<<3
-}

@@ -5,6 +5,7 @@ import "time"
 // ntpLeapVersionClientMode does the mathematics to configure the leap/version/mode value of an NTP client packet.
 func ntpLeapVersionClientMode(version ntpVersion) (lvm uint8) {
 	lvm = (lvm & maskMode) | uint8(modeClient)
+
 	switch version {
 	case ntpV3:
 		lvm = (lvm & maskVersion) | uint8(version3)<<3
