@@ -70,28 +70,63 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 		},
 	}
 
-	config.AccessControl.DefaultPolicy = "deny"
-	config.AccessControl.Rules = []schema.ACLRule{{
-		Domains: []string{"bypass.example.com"},
-		Policy:  "bypass",
-	}, {
-		Domains: []string{"one-factor.example.com"},
-		Policy:  "one_factor",
-	}, {
-		Domains: []string{"two-factor.example.com"},
-		Policy:  "two_factor",
-	}, {
-		Domains: []string{"deny.example.com"},
-		Policy:  "deny",
-	}, {
-		Domains:  []string{"admin.example.com"},
-		Policy:   "two_factor",
-		Subjects: [][]string{{"group:admin"}},
-	}, {
-		Domains:  []string{"grafana.example.com"},
-		Policy:   "two_factor",
-		Subjects: [][]string{{"group:grafana"}},
-	}}
+	config.AccessControl = schema.AccessControlConfiguration{
+		DefaultPolicy: "deny",
+		Rules: []schema.ACLRule{
+			{
+				Domains: []string{"bypass.example.com"},
+				Policy:  "bypass",
+			},
+			{
+				Domains: []string{"one-factor.example.com"},
+				Policy:  "one_factor",
+			},
+			{
+				Domains: []string{"two-factor.example.com"},
+				Policy:  "two_factor",
+			},
+			{
+				Domains: []string{"deny.example.com"},
+				Policy:  "deny",
+			},
+			{
+				Domains:  []string{"admin.example.com"},
+				Policy:   "two_factor",
+				Subjects: [][]string{{"group:admin"}},
+			},
+			{
+				Domains:  []string{"grafana.example.com"},
+				Policy:   "two_factor",
+				Subjects: [][]string{{"group:grafana"}},
+			},
+			{
+				Domains: []string{"bypass.example2.com"},
+				Policy:  "bypass",
+			},
+			{
+				Domains: []string{"one-factor.example2.com"},
+				Policy:  "one_factor",
+			},
+			{
+				Domains: []string{"two-factor.example2.com"},
+				Policy:  "two_factor",
+			},
+			{
+				Domains: []string{"deny.example2.com"},
+				Policy:  "deny",
+			},
+			{
+				Domains:  []string{"admin.example2.com"},
+				Policy:   "two_factor",
+				Subjects: [][]string{{"group:admin"}},
+			},
+			{
+				Domains:  []string{"grafana.example2.com"},
+				Policy:   "two_factor",
+				Subjects: [][]string{{"group:grafana"}},
+			},
+		},
+	}
 
 	providers := middlewares.Providers{}
 

@@ -51,7 +51,7 @@ func handleAuthzUnauthorizedExtAuthz(ctx *middlewares.AutheliaCtx, authn *Authn,
 		statusCode = fasthttp.StatusUnauthorized
 	default:
 		switch authn.Object.Method {
-		case fasthttp.MethodGet, fasthttp.MethodOptions, "":
+		case fasthttp.MethodGet, fasthttp.MethodOptions, fasthttp.MethodHead:
 			statusCode = fasthttp.StatusFound
 		default:
 			statusCode = fasthttp.StatusSeeOther

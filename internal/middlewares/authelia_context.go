@@ -255,6 +255,10 @@ func (ctx *AutheliaCtx) RootURLSlash() (issuerURL *url.URL) {
 
 // GetTargetURICookieDomain returns the session provider for the targetURI domain.
 func (ctx *AutheliaCtx) GetTargetURICookieDomain(targetURI *url.URL) string {
+	if targetURI == nil {
+		return ""
+	}
+
 	hostname := targetURI.Hostname()
 
 	for _, domain := range ctx.Configuration.Session.Cookies {
@@ -305,6 +309,11 @@ func (ctx *AutheliaCtx) GetSessionProvider() (provider *session.Session, err err
 		return nil, err
 	}
 
+	return ctx.GetCookieDomainSessionProvider(domain)
+}
+
+// GetCookieDomainSessionProvider returns the session provider for the provided domain.
+func (ctx *AutheliaCtx) GetCookieDomainSessionProvider(domain string) (provider *session.Session, err error) {
 	if domain == "" {
 		return nil, fmt.Errorf("unable to retrieve domain session: %w", err)
 	}

@@ -665,7 +665,7 @@ func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 		{"https://deny.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, 403},
 	}
 
-	for i, tc := range testCases {
+	for _, tc := range testCases {
 		t.Run(tc.String(), func(t *testing.T) {
 			mock := mocks.NewMockAutheliaCtx(t)
 			defer mock.Close()
@@ -688,7 +688,6 @@ func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 			assert.Equal(t, expStatus, actualStatus, "URL=%s -> AuthLevel=%d, StatusCode=%d != ExpectedStatusCode=%d",
 				tc.URL, tc.AuthenticationLevel, actualStatus, expStatus)
 
-			fmt.Println(i)
 			if tc.ExpectedStatusCode == 200 && tc.Username != "" {
 				assert.Equal(t, tc.ExpectedStatusCode, mock.Ctx.Response.StatusCode())
 				assert.Equal(t, []byte(tc.Username), mock.Ctx.Response.Header.Peek("Remote-User"))
