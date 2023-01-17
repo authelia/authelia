@@ -5,11 +5,12 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/authelia/authelia/v4/internal/authorization"
-	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/mocks"
 )
 
 func TestRunAuthRequestAuthzSuite(t *testing.T) {
@@ -53,7 +54,6 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsDeny() {
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 				})
 			}
-
 		})
 	}
 }
@@ -85,7 +85,6 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 				})
 			}
-
 		})
 	}
 }
@@ -117,7 +116,6 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleMissingXOriginalMethodDeny() {
 func (s *AuthRequestAuthzSuite) TestShouldHandleMissingXOriginalURLDeny() {
 	for _, methodOriginal := range methods {
 		s.T().Run(fmt.Sprintf("OriginalMethod%s", methodOriginal), func(t *testing.T) {
-
 			authz := s.builder.Build()
 
 			mock := mocks.NewMockAutheliaCtx(t)
@@ -159,7 +157,6 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsAllow() {
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 				})
 			}
-
 		})
 	}
 }

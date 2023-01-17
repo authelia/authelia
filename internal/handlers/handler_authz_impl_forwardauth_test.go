@@ -5,12 +5,13 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/authelia/authelia/v4/internal/authorization"
-	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 func TestRunForwardAuthAuthzSuite(t *testing.T) {
@@ -76,7 +77,6 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsDeny() {
 					assert.Equal(t, expected.String(), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
 				})
 			}
-
 		})
 	}
 }
@@ -129,7 +129,6 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsOverrideAutheliaURLDen
 					assert.Equal(t, expected.String(), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
 				})
 			}
-
 		})
 	}
 }
@@ -162,7 +161,6 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLDeny
 					assert.Equal(t, "", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
 				})
 			}
-
 		})
 	}
 }
@@ -263,7 +261,6 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 				})
 			}
-
 		})
 	}
 }
@@ -271,7 +268,6 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 func (s *ForwardAuthAuthzSuite) TestShouldHandleMissingHostDeny() {
 	for _, method := range methods {
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
-
 			authz := s.builder.Build()
 
 			mock := mocks.NewMockAutheliaCtx(t)
@@ -332,7 +328,6 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsAllow() {
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 				})
 			}
-
 		})
 	}
 }
@@ -371,7 +366,6 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsAllowXHR() {
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 				})
 			}
-
 		})
 	}
 }
