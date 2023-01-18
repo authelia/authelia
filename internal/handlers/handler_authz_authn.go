@@ -88,8 +88,6 @@ func (s *CookieSessionAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, provider 
 
 	userSession, _ := provider.GetSession(ctx.RequestCtx)
 
-	fmt.Println("session get")
-
 	if invalid := handleVerifyGETAuthnCookieValidate(ctx, provider, &userSession, s.refreshEnabled, s.refreshInterval); invalid {
 		if err = ctx.DestroySession(); err != nil {
 			ctx.Logger.Errorf("Unable to destroy user session: %+v", err)
@@ -303,8 +301,6 @@ func handleVerifyGETAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *
 
 		return true
 	}
-
-	fmt.Println("session inactive get")
 
 	if invalid = handleVerifyGETAuthnCookieValidateInactivity(ctx, provider, userSession, isAnonymous); invalid {
 		ctx.Logger.Infof("Session for user '%s' not marked as remembereded has exceeded configured session inactivity", userSession.Username)
