@@ -614,6 +614,56 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithIncorrectAuthHeader() { // TestSho
 	s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
 }
 
+func (s *AuthzSuite) TestShouldDestroySessionWhenInactiveForTooLong() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	builder := s.Builder()
+
+	builder = builder.WithStrategies(
+		NewCookieSessionAuthnStrategy(testInactivity),
+	)
+
+	authz := builder.Build()
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	mock.Ctx.Clock = &mock.Clock
+
+	mock.Clock.Set(time.Now())
+
+	past := mock.Clock.Now().Add(-1 * time.Hour)
+
+	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
+
+	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
+		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
+	}
+
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+
+	targetURI := s.RequireParseRequestURI("https://two-factor.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = testUsername
+	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.LastActivity = past.Unix()
+
+	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+
+	authz.Handler(mock.Ctx)
+
+	newUserSession := mock.Ctx.GetSession()
+	s.Assert().Equal("", newUserSession.Username)
+	s.Assert().Equal(authentication.NotAuthenticated, newUserSession.AuthenticationLevel)
+	s.Assert().Equal(mock.Clock.Now().Unix(), newUserSession.LastActivity)
+}
+
 func setRequestXHRValues(ctx *middlewares.AutheliaCtx, accept, xhr bool) {
 	if accept {
 		ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
