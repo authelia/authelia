@@ -43,7 +43,7 @@ has many drawbacks that just are not satisfactory in order to easily facilitate 
 
 ### Initial Implementation
 
-{{< roadmap-status stage="waiting" >}}
+{{< roadmap-status stage="in-progress" version="v4.38.0" >}}
 
 This stage is waiting on the choice to handle sessions. Initial implementation will involve just a basic cookie
 implementation where users will be required to sign in to each root domain and no SSO functionality will exist.
