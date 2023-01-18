@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/url"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
@@ -189,6 +190,92 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfBypassDomain() {
 	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 	s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
 	s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+}
+
+func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicScheme() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	authz := s.Builder().Build()
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
+		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
+	}
+
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+
+	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
+
+	mock.UserProviderMock.EXPECT().
+		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+		Return(true, nil)
+
+	mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq("john")).
+		Return(nil, fmt.Errorf("generic failure"))
+
+	authz.Handler(mock.Ctx)
+
+	switch s.implementation {
+	case AuthzImplAuthRequest, AuthzImplLegacy:
+		s.Assert().Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+		s.Assert().Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
+		s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+	default:
+		s.Assert().Equal(fasthttp.StatusProxyAuthRequired, mock.Ctx.Response.StatusCode())
+		s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+		s.Assert().Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate)))
+	}
+}
+
+func (s *AuthzSuite) TestShouldNotFailOnMissingEmail() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	authz := s.Builder().Build()
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	mock.Clock.Set(time.Now())
+
+	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
+		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
+	}
+
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+
+	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = testUsername
+	userSession.DisplayName = "John Smith"
+	userSession.Groups = []string{"abc,123"}
+	userSession.Emails = nil
+	userSession.AuthenticationLevel = authentication.OneFactor
+	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
+
+	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+
+	authz.Handler(mock.Ctx)
+
+	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	s.Assert().Equal(testUsername, string(mock.Ctx.Response.Header.PeekBytes(headerRemoteUser)))
+	s.Assert().Equal("John Smith", string(mock.Ctx.Response.Header.PeekBytes(headerRemoteName)))
+	s.Assert().Equal("abc,123", string(mock.Ctx.Response.Header.PeekBytes(headerRemoteGroups)))
 }
 
 func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomain() {
@@ -491,12 +578,10 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithAuthorizationHeaderInvalidPassword
 	s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
 }
 
-func (s *AuthzSuite) TestShouldHandleAuthzWithIncorrectAuthHeader() {
+func (s *AuthzSuite) TestShouldHandleAuthzWithIncorrectAuthHeader() { // TestShouldVerifyAuthBasicArgFailingWrongHeader.
 	if s.setRequest == nil {
 		s.T().Skip()
 	}
-
-	// Equivalent of TestShouldVerifyAuthBasicArgFailingWrongHeader.
 
 	builder := s.Builder()
 

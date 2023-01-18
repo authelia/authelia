@@ -367,7 +367,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsAllowXHR() {
 	}
 }
 
-func (s *LegacyAuthzSuite) TestShouldHandleInvalidURL() {
+func (s *LegacyAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 	testCases := []struct {
 		name         string
 		scheme, host []byte

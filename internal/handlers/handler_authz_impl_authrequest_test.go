@@ -197,7 +197,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsWithMethodsACL() {
 	}
 }
 
-func (s *AuthRequestAuthzSuite) TestShouldHandleInvalidURL() {
+func (s *AuthRequestAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 	testCases := []struct {
 		name     string
 		uri      []byte

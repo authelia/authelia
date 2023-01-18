@@ -385,7 +385,7 @@ func (s *ExtAuthzAuthzSuite) TestShouldHandleAllMethodsWithMethodsACL() {
 	}
 }
 
-func (s *ExtAuthzAuthzSuite) TestShouldHandleInvalidURL() {
+func (s *ExtAuthzAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 	testCases := []struct {
 		name         string
 		scheme, host []byte

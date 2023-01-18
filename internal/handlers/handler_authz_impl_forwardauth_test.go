@@ -383,7 +383,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsAllowXHR() {
 	}
 }
 
-func (s *ForwardAuthAuthzSuite) TestShouldHandleInvalidURL() {
+func (s *ForwardAuthAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 	testCases := []struct {
 		name         string
 		scheme, host []byte
