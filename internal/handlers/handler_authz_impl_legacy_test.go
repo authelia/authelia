@@ -39,8 +39,8 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsDeny() {
 				{s.RequireParseRequestURI("https://one-factor.example2.com/"), s.RequireParseRequestURI("https://auth.example2.com/")},
 				{s.RequireParseRequestURI("https://one-factor.example2.com/subpath"), s.RequireParseRequestURI("https://auth.example2.com/")},
 			} {
-				t.Run(pairURI.TargetURL.String(), func(t *testing.T) {
-					expected := s.RequireParseRequestURI(pairURI.AutheliaURL.String())
+				t.Run(pairURI.TargetURI.String(), func(t *testing.T) {
+					expected := s.RequireParseRequestURI(pairURI.AutheliaURI.String())
 
 					authz := s.builder.Build()
 
@@ -55,9 +55,9 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsDeny() {
 					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
-					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, pairURI.TargetURL.Scheme)
-					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, pairURI.TargetURL.Host)
-					mock.Ctx.Request.Header.Set("X-Forwarded-Uri", pairURI.TargetURL.Path)
+					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, pairURI.TargetURI.Scheme)
+					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, pairURI.TargetURI.Host)
+					mock.Ctx.Request.Header.Set("X-Forwarded-Uri", pairURI.TargetURI.Path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
 					authz.Handler(mock.Ctx)
@@ -70,7 +70,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsDeny() {
 					}
 
 					query := expected.Query()
-					query.Set(queryArgRD, pairURI.TargetURL.String())
+					query.Set(queryArgRD, pairURI.TargetURI.String())
 					query.Set(queryArgRM, method)
 					expected.RawQuery = query.Encode()
 
@@ -90,8 +90,8 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsOverrideAutheliaURLDeny() {
 				{s.RequireParseRequestURI("https://one-factor.example2.com/"), s.RequireParseRequestURI("https://auth-from-override.example2.com/")},
 				{s.RequireParseRequestURI("https://one-factor.example2.com/subpath"), s.RequireParseRequestURI("https://auth-from-override.example2.com/")},
 			} {
-				t.Run(pairURI.TargetURL.String(), func(t *testing.T) {
-					expected := s.RequireParseRequestURI(pairURI.AutheliaURL.String())
+				t.Run(pairURI.TargetURI.String(), func(t *testing.T) {
+					expected := s.RequireParseRequestURI(pairURI.AutheliaURI.String())
 
 					authz := s.builder.Build()
 
@@ -105,11 +105,11 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsOverrideAutheliaURLDeny() {
 
 					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 
-					mock.Ctx.RequestCtx.QueryArgs().Set(queryArgRD, pairURI.AutheliaURL.String())
+					mock.Ctx.RequestCtx.QueryArgs().Set(queryArgRD, pairURI.AutheliaURI.String())
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
-					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, pairURI.TargetURL.Scheme)
-					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, pairURI.TargetURL.Host)
-					mock.Ctx.Request.Header.Set("X-Forwarded-Uri", pairURI.TargetURL.Path)
+					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, pairURI.TargetURI.Scheme)
+					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, pairURI.TargetURI.Host)
+					mock.Ctx.Request.Header.Set("X-Forwarded-Uri", pairURI.TargetURI.Path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
 					authz.Handler(mock.Ctx)
@@ -122,7 +122,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsOverrideAutheliaURLDeny() {
 					}
 
 					query := expected.Query()
-					query.Set(queryArgRD, pairURI.TargetURL.String())
+					query.Set(queryArgRD, pairURI.TargetURI.String())
 					query.Set(queryArgRM, method)
 					expected.RawQuery = query.Encode()
 
@@ -182,8 +182,8 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsXHRDeny() {
 						{s.RequireParseRequestURI("https://one-factor.example2.com/"), s.RequireParseRequestURI("https://auth.example2.com/")},
 						{s.RequireParseRequestURI("https://one-factor.example2.com/subpath"), s.RequireParseRequestURI("https://auth.example2.com/")},
 					} {
-						t.Run(pairURI.TargetURL.String(), func(t *testing.T) {
-							expected := s.RequireParseRequestURI(pairURI.AutheliaURL.String())
+						t.Run(pairURI.TargetURI.String(), func(t *testing.T) {
+							expected := s.RequireParseRequestURI(pairURI.AutheliaURI.String())
 
 							authz := s.builder.Build()
 
@@ -198,9 +198,9 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsXHRDeny() {
 							mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 
 							mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
-							mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, pairURI.TargetURL.Scheme)
-							mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, pairURI.TargetURL.Host)
-							mock.Ctx.Request.Header.Set("X-Forwarded-Uri", pairURI.TargetURL.Path)
+							mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, pairURI.TargetURI.Scheme)
+							mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, pairURI.TargetURI.Host)
+							mock.Ctx.Request.Header.Set("X-Forwarded-Uri", pairURI.TargetURI.Path)
 
 							if x {
 								mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
@@ -212,7 +212,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsXHRDeny() {
 							assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 
 							query := expected.Query()
-							query.Set(queryArgRD, pairURI.TargetURL.String())
+							query.Set(queryArgRD, pairURI.TargetURI.String())
 							query.Set(queryArgRM, method)
 							expected.RawQuery = query.Encode()
 

@@ -11,11 +11,7 @@ import (
 )
 
 func handleAuthzGetObjectExtAuthz(ctx *middlewares.AutheliaCtx) (object authorization.Object, err error) {
-	protocol, host, uri := ctx.XForwardedProto(), ctx.GetXForwardedHost(), ctx.XForwardedURI()
-
-	if uri == nil {
-		uri = ctx.AuthzPath()
-	}
+	protocol, host, uri := ctx.XForwardedProto(), ctx.RequestCtx.Host(), ctx.AuthzPath()
 
 	var (
 		targetURL *url.URL
@@ -26,11 +22,7 @@ func handleAuthzGetObjectExtAuthz(ctx *middlewares.AutheliaCtx) (object authoriz
 		return object, fmt.Errorf("failed to get target URL: %w", err)
 	}
 
-	if method = ctx.XForwardedMethod(); len(method) == 0 {
-		method = ctx.Method()
-	}
-
-	if len(method) == 0 {
+	if method = ctx.Method(); len(method) == 0 {
 		return object, fmt.Errorf("start line value 'Method' is empty")
 	}
 

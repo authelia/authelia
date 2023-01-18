@@ -4,8 +4,10 @@ import (
 	"net/url"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/session"
 )
@@ -40,6 +42,16 @@ func (s *AuthzSuite) RequireParseRequestURI(rawURL string) *url.URL {
 }
 
 type urlpair struct {
-	TargetURL   *url.URL
-	AutheliaURL *url.URL
+	TargetURI   *url.URL
+	AutheliaURI *url.URL
+}
+
+func setRequestXHRValues(ctx *middlewares.AutheliaCtx, accept, xhr bool) {
+	if accept {
+		ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
+	}
+
+	if xhr {
+		ctx.Request.Header.Set(fasthttp.HeaderXRequestedWith, "XMLHttpRequest")
+	}
 }

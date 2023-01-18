@@ -77,8 +77,7 @@ This is the implementation which supports [Traefik] via the [ForwardAuth Middlew
 |      IP      |           [Header]           |  [X-Forwarded-For]   |
 | Authelia URL | Session Cookie Configuration |    `authelia_url`    |
 
-##### Alternatives
-
+#### ForwardAuth Metadata Alternatives
 
 |   Metadata   | Alternative Type |     Source     |      Key       |
 |:------------:|:----------------:|:--------------:|:--------------:|
@@ -101,13 +100,11 @@ This is the implementation which supports [Envoy] via the [ExtAuthz Extension Fi
 |      IP      |           [Header]           |  [X-Forwarded-For]  |
 | Authelia URL | Session Cookie Configuration |   `authelia_url`    |
 
-##### Alternatives
+#### ExtAuthz Metadata Alternatives
 
 |   Metadata   | Alternative Type |   Source   |        Key         |
 |:------------:|:----------------:|:----------:|:------------------:|
 |    Scheme    |     Fallback     |  [Header]  |   Server Scheme    |
-|   Hostname   |     Override     |  [Header]  | [X-Forwarded-Host] |
-|     Path     |     Override     |  [Header]  | `X-Forwarded-URI`  |
 |      IP      |     Fallback     | TCP Packet |     Source IP      |
 | Authelia URL |     Override     |  [Header]  |  `X-Authelia-URL`  |
 
@@ -128,7 +125,7 @@ This is the implementation which supports [NGINX] via the [auth_request HTTP mod
 _**Note:** This endpoint does not support automatic redirection. This is because there is no support on NGINX's side to
 achieve this with `ngx_http_auth_request_module` and the redirection must be performed within the NGINX configuration._
 
-##### Alternatives
+#### AuthRequest Metadata Alternatives
 
 | Metadata | Alternative Type |   Source   |    Key    |
 |:--------:|:----------------:|:----------:|:---------:|
