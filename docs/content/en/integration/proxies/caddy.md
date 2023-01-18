@@ -98,7 +98,10 @@ auth.example.com {
 # Protected Endpoint.
 nextcloud.example.com {
         forward_auth authelia:9091 {
-                uri /api/authz/forward-auth?rd=https://auth.example.com/
+                uri /api/authz/forward-auth
+                ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest
+                ## this is configured in the Session Cookies section of the Authelia configuration.
+                # uri /api/authz/forward-auth?authelia_url=https://auth.example.com/
                 copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
 
                 ## This import needs to be included if you're relying on a trusted proxies configuration.

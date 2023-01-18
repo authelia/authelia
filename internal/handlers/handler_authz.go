@@ -55,15 +55,20 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	}
 
 	var (
-		authn         Authn
-		authenticator AuthnStrategy
+		authn    Authn
+		strategy AuthnStrategy
 	)
 
-	if authn, authenticator, err = authz.authn(ctx, provider); err != nil {
+	if authn, strategy, err = authz.authn(ctx, provider); err != nil {
 		// TODO: Adjust.
 		ctx.Logger.Errorf("LOG ME: Target URL '%s' does not appear to be a protected domain: %+v", object.URL.String(), err)
 
-		ctx.ReplyUnauthorized()
+		switch strategy {
+		case nil:
+			ctx.ReplyUnauthorized()
+		default:
+			strategy.HandleUnauthorized(ctx, &authn, authz.getRedirectionURL(&object, autheliaURL))
+		}
 
 		return
 	}
@@ -87,8 +92,8 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	case AuthzResultUnauthorized:
 		var handler HandlerAuthzUnauthorized
 
-		if authenticator != nil {
-			handler = authenticator.HandleUnauthorized
+		if strategy != nil {
+			handler = strategy.HandleUnauthorized
 		} else {
 			handler = authz.handleUnauthorized
 		}
@@ -147,7 +152,7 @@ func (authz *Authz) authn(ctx *middlewares.AutheliaCtx, provider *session.Sessio
 	for _, strategy = range authz.strategies {
 		if authn, err = strategy.Get(ctx, provider); err != nil {
 			if strategy.CanHandleUnauthorized() {
-				return Authn{Type: authn.Type, Level: authentication.NotAuthenticated}, strategy, nil
+				return Authn{Type: authn.Type, Level: authentication.NotAuthenticated}, strategy, err
 			}
 
 			return Authn{Type: authn.Type, Level: authentication.NotAuthenticated}, nil, err

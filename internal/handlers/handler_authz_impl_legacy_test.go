@@ -21,7 +21,8 @@ func TestRunLegacyAuthzSuite(t *testing.T) {
 func NewLegacyAuthzSuite() *LegacyAuthzSuite {
 	return &LegacyAuthzSuite{
 		AuthzSuite: &AuthzSuite{
-			builder: NewAuthzBuilder().WithImplementationLegacy(),
+			implementation: AuthzImplLegacy,
+			builder:        NewAuthzBuilder().WithImplementationLegacy(),
 		},
 	}
 }
@@ -42,7 +43,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsDeny() {
 				t.Run(pairURI.TargetURI.String(), func(t *testing.T) {
 					expected := s.RequireParseRequestURI(pairURI.AutheliaURI.String())
 
-					authz := s.builder.Build()
+					authz := s.Builder().Build()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
@@ -94,7 +95,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsOverrideAutheliaURLDeny() {
 				t.Run(pairURI.TargetURI.String(), func(t *testing.T) {
 					expected := s.RequireParseRequestURI(pairURI.AutheliaURI.String())
 
-					authz := s.builder.Build()
+					authz := s.Builder().Build()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
@@ -144,7 +145,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLDeny() {
 				s.RequireParseRequestURI("https://bypass.example2.com/subpath"),
 			} {
 				t.Run(targetURI.String(), func(t *testing.T) {
-					authz := s.builder.Build()
+					authz := s.Builder().Build()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
@@ -180,7 +181,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsXHRDeny() {
 						t.Run(pairURI.TargetURI.String(), func(t *testing.T) {
 							expected := s.RequireParseRequestURI(pairURI.AutheliaURI.String())
 
-							authz := s.builder.Build()
+							authz := s.Builder().Build()
 
 							mock := mocks.NewMockAutheliaCtx(t)
 
@@ -233,7 +234,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 				s.RequireParseRequestURI("https://bypass.example2.com/subpath"),
 			} {
 				t.Run(targetURI.String(), func(t *testing.T) {
-					authz := s.builder.Build()
+					authz := s.Builder().Build()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
@@ -264,7 +265,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 func (s *LegacyAuthzSuite) TestShouldHandleMissingHostDeny() {
 	for _, method := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
-			authz := s.builder.Build()
+			authz := s.Builder().Build()
 
 			mock := mocks.NewMockAutheliaCtx(t)
 
@@ -300,7 +301,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsAllow() {
 				s.RequireParseRequestURI("https://bypass.example2.com/subpath"),
 			} {
 				t.Run(targetURI.String(), func(t *testing.T) {
-					authz := s.builder.Build()
+					authz := s.Builder().Build()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
@@ -338,7 +339,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsAllowXHR() {
 				s.RequireParseRequestURI("https://bypass.example2.com/subpath"),
 			} {
 				t.Run(targetURI.String(), func(t *testing.T) {
-					authz := s.builder.Build()
+					authz := s.Builder().Build()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
@@ -387,7 +388,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleInvalidURL() {
 		s.T().Run(tc.name, func(t *testing.T) {
 			for _, method := range testRequestMethods {
 				t.Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
-					authz := s.builder.Build()
+					authz := s.Builder().Build()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 

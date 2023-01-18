@@ -392,11 +392,6 @@ location /authelia {
     ## The headers starting with X-* are required.
     proxy_set_header X-Original-Method $request_method;
     proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
-    proxy_set_header X-Original-Method $request_method;
-    proxy_set_header X-Forwarded-Method $request_method;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-Forwarded-Host $http_host;
-    proxy_set_header X-Forwarded-Uri $request_uri;
     proxy_set_header X-Forwarded-For $remote_addr;
     proxy_set_header Content-Length "";
     proxy_set_header Connection "";
@@ -463,9 +458,12 @@ snippet is rarely required. It's only used if you want to only allow
 [HTTP Basic Authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication) for a particular
 endpoint. It's recommended to use [authelia-location.conf](#authelia-locationconf) instead.*
 
+_**Note:** This example assumes you configured an authz endpoint with the name `auth-request/basic` and the
+implementation `AuthRequest` which contains the `HeaderAuthorization` and `HeaderProxyAuthorization` strategies._
+
 {{< details "/config/nginx/snippets/authelia-location-basic.conf" >}}
 ```nginx
-set $upstream_authelia http://authelia:9091/api/verify?auth=basic;
+set $upstream_authelia http://authelia:9091/api/authz/auth-request/basic;
 
 # Virtual endpoint created by nginx to forward auth requests.
 location /authelia-basic {

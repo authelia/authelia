@@ -183,6 +183,10 @@ static_resources:
                           headers_to_add:
                             - key: X-Forwarded-Proto
                               value: '%REQ(:SCHEME)%'
+                            ## The following commented lines are for configuring the Authelia URL in the proxy. We
+                            ## strongly suggest this is configured in the Session Cookies section of the Authelia configuration.
+                            # - key: X-Authelia-URL
+                            #   value: https://auth.example.com
                         authorization_response:
                           allowed_upstream_headers:
                             patterns:
