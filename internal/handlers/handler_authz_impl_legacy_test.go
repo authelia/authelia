@@ -54,6 +54,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsDeny() {
 
 					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 
+					mock.Ctx.RequestCtx.QueryArgs().Set(queryArgRD, pairURI.AutheliaURI.String())
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, pairURI.TargetURI.Scheme)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, pairURI.TargetURI.Host)
@@ -168,13 +169,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLDeny() {
 func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsXHRDeny() {
 	for _, method := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
-			for _, x := range []bool{true, false} {
-				xname := testWithoutAccept
-
-				if x {
-					xname = testWithXHRHeader
-				}
-
+			for xname, x := range testXHR {
 				t.Run(xname, func(t *testing.T) {
 					for _, pairURI := range []urlpair{
 						{s.RequireParseRequestURI("https://one-factor.example.com/"), s.RequireParseRequestURI("https://auth.example.com/")},
@@ -197,6 +192,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsXHRDeny() {
 
 							mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 
+							mock.Ctx.RequestCtx.QueryArgs().Set(queryArgRD, pairURI.AutheliaURI.String())
 							mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 							mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, pairURI.TargetURI.Scheme)
 							mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, pairURI.TargetURI.Host)

@@ -170,6 +170,7 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 
 	switch b.impl {
 	case AuthzImplLegacy:
+		authz.legacy = true
 		authz.handleGetObject = handleAuthzGetObjectLegacy
 		authz.handleUnauthorized = handleAuthzUnauthorizedLegacy
 		authz.handleGetAutheliaURL = handleAuthzPortalURLLegacy

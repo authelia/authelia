@@ -23,6 +23,8 @@ type Authz struct {
 
 	handleAuthorized   HandlerAuthzAuthorized
 	handleUnauthorized HandlerAuthzUnauthorized
+
+	legacy bool
 }
 
 // HandlerAuthzUnauthorized is a Authz handler func that handles unauthorized responses.
