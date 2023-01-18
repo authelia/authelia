@@ -7,7 +7,6 @@ import (
 
 	"github.com/valyala/fasthttp"
 
-	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -57,18 +56,6 @@ func handleAuthzPortalURLFromQueryLegacy(ctx *middlewares.AutheliaCtx) (portalUR
 	}
 
 	return portalURL, nil
-}
-
-func handleAuthzObjectVerifyStandard(ctx *middlewares.AutheliaCtx, object authorization.Object) (err error) {
-	if !utils.IsURISecure(object.URL) {
-		return fmt.Errorf("target URL '%s' has an insecure scheme '%s', only the 'https' and 'wss' schemes are supported so session cookies can be transmitted securely", object.URL.String(), object.URL.Scheme)
-	}
-
-	if !isURLUnderProtectedDomain(object.URL, ctx.Configuration.Session.Domain) {
-		return fmt.Errorf("target URL '%s' is not on a domain which is a direct subdomain of the configured session domain '%s'", object.URL.String(), ctx.Configuration.Session.Domain)
-	}
-
-	return nil
 }
 
 func handleAuthzAuthorizedStandard(ctx *middlewares.AutheliaCtx, authn *Authn) {

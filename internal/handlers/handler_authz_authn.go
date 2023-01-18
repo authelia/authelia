@@ -88,6 +88,7 @@ func (s *CookieSessionAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, provider 
 
 	userSession, _ := provider.GetSession(ctx.RequestCtx)
 
+	fmt.Println("session", userSession.Username, userSession.Groups)
 	if invalid := handleVerifyGETAuthnCookieValidate(ctx, provider, &userSession, s.refreshEnabled, s.refreshInterval); invalid {
 		if err = ctx.DestroySession(); err != nil {
 			ctx.Logger.Errorf("Unable to destroy user session: %+v", err)

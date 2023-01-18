@@ -16,6 +16,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	var (
 		object      authorization.Object
 		autheliaURL *url.URL
+		provider    *session.Session
 		err         error
 	)
 
@@ -35,8 +36,6 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 
 		return
 	}
-
-	var provider *session.Session
 
 	if provider, err = ctx.GetSessionProviderByTargetURL(object.URL); err != nil {
 		ctx.Logger.Errorf("Target URL '%s' does not appear to be a protected domain: %+v", object.URL.String(), err)

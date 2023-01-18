@@ -1368,6 +1368,8 @@ func TestShouldCheckInvalidSessionUsernameHeaderAndReturn401(t *testing.T) {
 
 	assert.Equal(t, expectedStatusCode, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "401 Unauthorized", string(mock.Ctx.Response.Body()))
+
+	userSession = mock.Ctx.GetSession()
 }
 
 func TestGetProfileRefreshSettings(t *testing.T) {

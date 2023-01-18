@@ -151,10 +151,9 @@ func (b *AuthzBuilder) WithAuthzConfig(config AuthzConfig) *AuthzBuilder {
 // Build returns a new Authz from the currently configured options in this builder.
 func (b *AuthzBuilder) Build() (authz *Authz) {
 	authz = &Authz{
-		config:             b.config,
-		strategies:         b.strategies,
-		handleVerifyObject: handleAuthzObjectVerifyStandard,
-		handleAuthorized:   handleAuthzAuthorizedStandard,
+		config:           b.config,
+		strategies:       b.strategies,
+		handleAuthorized: handleAuthzAuthorizedStandard,
 	}
 
 	if len(authz.strategies) == 0 {

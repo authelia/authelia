@@ -16,8 +16,7 @@ type Authz struct {
 
 	strategies []AuthnStrategy
 
-	handleGetObject    HandlerAuthzGetObject
-	handleVerifyObject HandlerAuthzVerifyObject
+	handleGetObject HandlerAuthzGetObject
 
 	handleGetAutheliaURL HandlerAuthzGetAutheliaURL
 
