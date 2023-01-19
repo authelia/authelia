@@ -22,6 +22,7 @@ session:
   cookies:
     - domain: 'example.com'
       authelia_url: 'https://login.example.com:8080'
+
   # We use redis here to keep the users authenticated when Authelia restarts
   # It eases development.
   redis:

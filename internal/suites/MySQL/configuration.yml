@@ -22,10 +22,12 @@ authentication_backend:
 
 session:
   secret: unsecure_session_secret
-  domain: example.com
   expiration: 3600  # 1 hour
   inactivity: 300  # 5 minutes
   remember_me: 1y
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
 
 # Configuration of the storage backend used to store data and secrets. i.e. totp data
 storage:
