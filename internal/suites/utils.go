@@ -80,6 +80,23 @@ func (rs *RodSession) collectScreenshot(err error, page *rod.Page) {
 	}
 }
 
+func (s *RodSuite) MustHaveCookieWithName(name string) {
+	var have bool
+
+	cookies, err := s.Page.Cookies(nil)
+	s.Require().NoError(err)
+	s.Require().NotEqual(0, len(cookies))
+
+	for _, cookie := range cookies {
+		if cookie.Name == name {
+			have = true
+			break
+		}
+	}
+
+	s.Require().Truef(have, "the '%s' cookie must exist but was absent", name)
+}
+
 func fixCoveragePath(path string, file os.FileInfo, err error) error {
 	if err != nil {
 		return err

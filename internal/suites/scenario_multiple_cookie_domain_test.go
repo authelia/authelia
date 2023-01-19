@@ -11,17 +11,18 @@ import (
 type MultiCookieDomainScenario struct {
 	*RodSuite
 
-	domain, nextDomain string
+	domain, nextDomain, cookie string
 
 	remember bool
 }
 
 // NewMultiCookieDomainScenario returns a new Multi Cookie Domain Test Scenario.
-func NewMultiCookieDomainScenario(domain, nextDomain string, remember bool) *MultiCookieDomainScenario {
+func NewMultiCookieDomainScenario(domain, nextDomain, cookie string, remember bool) *MultiCookieDomainScenario {
 	return &MultiCookieDomainScenario{
 		RodSuite:   new(RodSuite),
 		domain:     domain,
 		nextDomain: nextDomain,
+		cookie:     cookie,
 		remember:   remember,
 	}
 }
@@ -54,6 +55,18 @@ func (s *MultiCookieDomainScenario) SetupTest() {
 func (s *MultiCookieDomainScenario) TearDownTest() {
 	s.collectCoverage(s.Page)
 	s.MustClose()
+}
+
+func (s *MultiCookieDomainScenario) TestCookieName() {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", s.remember, s.domain, "")
+
+	s.MustHaveCookieWithName(s.cookie)
 }
 
 func (s *MultiCookieDomainScenario) TestRememberMe() {
