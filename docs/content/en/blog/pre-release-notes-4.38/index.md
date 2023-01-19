@@ -35,15 +35,15 @@ specific scenarios._
 
 ## OpenID Connect 1.0
 
-As part of our ongoing effort for comprehensive support for OpenID Connect 1.0 we'll be introducing several important
+As part of our ongoing effort for comprehensive support for [OpenID Connect 1.0] we'll be introducing several important
 features. Please see the [roadmap](../../roadmap/active/openid-connect.md) for more information.
 
-### OAuth 2.0 Pushed Authorization Requests
+##### OAuth 2.0 Pushed Authorization Requests
 
-Support for [RFC9126](https://datatracker.ietf.org/doc/html/rfc9126) known as `OAuth 2.0 Pushed Authorization Requests`
-is one of the main features being added to our OpenID Connect 1.0 implementation in this release.
+Support for [RFC9126] known as [Pushed Authorization Requests] is one of the main features being added to our
+[OpenID Connect 1.0] implementation in this release.
 
-Pushed Authorization Requests allows for relying parties / clients to send the Authorization Request parameters over a
+[Pushed Authorization Requests] allows for relying parties / clients to send the Authorization Request parameters over a
 back-channel and receive an opaque URI to be used as the `redirect_uri` on the standard Authorization endpoint in place
 of the standard Authorization Request parameters.
 
@@ -53,25 +53,43 @@ This means the actual Authorization Request parameters are never sent in the cle
 mitigate a few things. In particular it's privacy focused, but it also reduces the attack surface by drastically
 reducing the amount of information over the front-channel.
 
-Even if an attacker gets the Authorization Code, they are unlikely to have the `client_id` for example, and this is
-required to exchange the Authorization Code for an Access Token and ID Token.
+1. Enhanced privacy. This is the primary focus of this specification.
+2. Part of conforming to the [OpenID Connect 1.0] specification [Financial-grade API Security Profile 1.0 (Baseline)].
 
-This option can be enforced globally for users who only use relying parties which support PAR, or can be individually
-enforced per client.
+Even if an attacker gets the [Authorization Code], they are unlikely to have the `client_id` for example, and this is
+required to exchange the [Authorization Code] for an [Access Token] and ID Token.
 
-### Proof Key for Code Exchange by OAuth Public Clients
+This option can be enforced globally for users who only use relying parties which support
+[Pushed Authorization Requests], or can be individually enforced for each relying party which has support.
 
-In addition to the PAR feature, users will now be able to enforce Proof Key for Code Exchange on individual clients. It
-should also be noted, Proof Key for Code Exchange can be used with
-[OAuth 2.0 Pushed Authorization Requests](#oauth-20-pushed-authorization-requests). These features combined with our
-requirement for the HTTPS scheme are very powerful security measures.
+##### Proof Key for Code Exchange by OAuth Public Clients
+
+While we already support [RFC7636] commonly known as [Proof Key for Code Exchange], and support enforcement at a global
+level for either public clients or all clients, we're adding a feature where administrators will be able to enforce
+[Proof Key for Code Exchange] on individual clients.
+
+It should also be noted that [Proof Key for Code Exchange] can be used at the same time as
+[OAuth 2.0 Pushed Authorization Requests](#oauth-20-pushed-authorization-requests).
+
+These features combined with our requirement for the HTTPS scheme are very powerful security measures.
+
+[RFC7636]: https://datatracker.ietf.org/doc/html/rfc7636
+[RFC9126]: https://datatracker.ietf.org/doc/html/rfc9126
+
+[Proof Key for Code Exchange]: https://oauth.net/2/pkce/
+[Access Token]: https://oauth.net/2/access-tokens/
+[Authorization Code]: https://oauth.net/2/grant-types/authorization-code/
+[Financial-grade API Security Profile 1.0 (Baseline)]: https://openid.net/specs/openid-financial-api-part-1-1_0.html
+[OpenID Connect 1.0]: https://openid.net/
+[OpenID Connect 1.0]: https://openid.net/
+[Pushed Authorization Requests]: https://oauth.net/2/pushed-authorization-requests/
 
 ## Multi-Domain Protection
 
 In this release we are releasing the main implementation of the Multi-Domain Protection roadmap item.
 Please see the [roadmap](../../roadmap/active/openid-connect.md) for more information.
 
-### Initial Implementation
+##### Initial Implementation
 
 _**Important Note:** This feature at the time of this writing, will not work well with Webauthn. Steps are being taken
 to address this however it will not specifically delay the release of this feature._
@@ -94,7 +112,7 @@ need to configure a single middleware or helper to perform automatic redirection
 As part of our ongoing effort for comprehensive support for Webauthn we'll be introducing several important
 features. Please see the [roadmap](../../roadmap/active/webauthn.md) for more information.
 
-### Multiple Webauthn Credentials Per-User
+##### Multiple Webauthn Credentials Per-User
 
 In this release we see full support for multiple Webauthn credentials. This is a fairly basic feature but getting the
 frontend experience right is important to us. This is going to be supported via the
@@ -120,14 +138,14 @@ As part of our ongoing effort for comprehensive support for a User Dashboard / C
 several important features. Please see the [roadmap](../../roadmap/active/dashboard-control-panel.md) for more
 information.
 
-### Device Registration OTP
+##### Device Registration OTP
 
 Instead of the current link, in this release users will instead be sent a One Time Password, cryptographically randomly
 generated by Authelia. This One Time Password will grant users a duration to perform security sensitive tasks.
 
 The motivation for this is that it works in more situations, and is slightly less prone to phishing.
 
-### TOTP Registration
+##### TOTP Registration
 
 Instead of just assuming that users have successfully registered their TOTP application, we will require users to enter
 the TOTP code prior to it being saved to the database.
@@ -136,19 +154,19 @@ the TOTP code prior to it being saved to the database.
 
 Several enhancements are landing for the configuration.
 
-### Directories
+##### Directories
 
 Users will now be able to configure a directory where all `.yml` and `.yaml` files will be loaded in lexical order.
 This will not allow combining lists of items, but it will allow you to split portions of the configuration easily.
 
-### Configuration Discovery
+##### Discovery
 
 Environment variables are being added to assist with configuration discovery, and this will be the default method for
 our containers. The advantage is that since the variable will be available when execing into the container, even if
 the configuration paths have changed or you've defined additional paths, the `authelia` command will know where the
 files are if you properly use this variables.
 
-### Templating
+##### Templating
 
 The file based configuration will have access to several experimental templating filters which will assist in creating
 configuration templates. The initial one will just expand *most* environment variables into the configuration. The
@@ -157,7 +175,7 @@ second will use the go template engine in a very similar way to how Helm operate
 As these features are experimental they may break, be removed, or otherwise not operate as expected. However most of our
 testing indicates they're incredibly solid.
 
-### LDAP Implementation
+##### LDAP Implementation
 
 Several new LDAP implementations which provide defaults are being introduced in this version to assist users in
 integrating their LDAP server with Authelia.
@@ -166,16 +184,16 @@ integrating their LDAP server with Authelia.
 
 Some miscellaneous notes about this release.
 
-### Email Notifications
+##### Email Notifications
 
 Events triggered by users will generate new notifications sent to their inbox, for example adding a new 2FA device.
 
-### Storage Import/Export
+##### Storage Import/Export
 
 Utility functions to assist in exporting and subsequently importing the important values in Authelia are being added and
 unified in this release.
 
-### Privacy Policy
+##### Privacy Policy
 
 We'll be introducing a feature which allows administrators to more easily comply with the GDPR which optionally shows a
 link to their individual privacy policy on the frontend, and optionally requires users to accept it before using
