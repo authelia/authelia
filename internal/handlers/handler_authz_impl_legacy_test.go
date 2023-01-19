@@ -10,6 +10,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/session"
 )
@@ -22,7 +23,7 @@ func NewLegacyAuthzSuite() *LegacyAuthzSuite {
 	return &LegacyAuthzSuite{
 		AuthzSuite: &AuthzSuite{
 			implementation: AuthzImplLegacy,
-			builder:        NewAuthzBuilder().WithImplementationLegacy(),
+			setRequest:     setRequestLegacy,
 		},
 	}
 }
@@ -417,4 +418,16 @@ func (s *LegacyAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 			}
 		})
 	}
+}
+
+func setRequestLegacy(ctx *middlewares.AutheliaCtx, method string, targetURI *url.URL, accept, xhr bool) {
+	if method != "" {
+		ctx.Request.Header.Set("X-Forwarded-Method", method)
+	}
+
+	if targetURI != nil {
+		ctx.Request.Header.Set(testXOriginalUrl, targetURI.String())
+	}
+
+	setRequestXHRValues(ctx, accept, xhr)
 }

@@ -216,13 +216,15 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicScheme() {
 
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
-	mock.UserProviderMock.EXPECT().
-		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
-		Return(true, nil)
+	gomock.InOrder(
+		mock.UserProviderMock.EXPECT().
+			CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+			Return(true, nil),
 
-	mock.UserProviderMock.EXPECT().
-		GetDetails(gomock.Eq("john")).
-		Return(nil, fmt.Errorf("generic failure"))
+		mock.UserProviderMock.EXPECT().
+			GetDetails(gomock.Eq("john")).
+			Return(nil, fmt.Errorf("generic failure")),
+	)
 
 	authz.Handler(mock.Ctx)
 

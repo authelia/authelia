@@ -284,13 +284,8 @@ func (s *HeaderLegacyAuthnStrategy) CanHandleUnauthorized() (handle bool) {
 
 // HandleUnauthorized is the Unauthorized handler for the Legacy header AuthnStrategy.
 func (s *HeaderLegacyAuthnStrategy) HandleUnauthorized(ctx *middlewares.AutheliaCtx, authn *Authn, _ *url.URL) {
-	switch authn.Type {
-	case AuthnTypeProxyAuthorization:
-		ctx.ReplyStatusCode(fasthttp.StatusUnauthorized)
-	case AuthnTypeAuthorization:
-		ctx.ReplyStatusCode(fasthttp.StatusUnauthorized)
-		ctx.Response.Header.SetBytesKV(headerWWWAuthenticate, headerValueAuthenticateBasic)
-	}
+	ctx.ReplyStatusCode(fasthttp.StatusUnauthorized)
+	ctx.Response.Header.SetBytesKV(headerWWWAuthenticate, headerValueAuthenticateBasic)
 }
 
 func handleVerifyGETAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, profileRefreshEnabled bool, profileRefreshInterval time.Duration) (invalid bool) {
