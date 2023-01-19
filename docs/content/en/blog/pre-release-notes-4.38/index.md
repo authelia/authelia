@@ -50,11 +50,16 @@ of the standard Authorization Request parameters.
 The endpoint used by this mechanism requires the relying party provides the Token Endpoint authentication parameters.
 
 This means the actual Authorization Request parameters are never sent in the clear over the front-channel. This helps
-mitigate a few things. In particular it's privacy focused, but it also reduces the attack surface by drastically
-reducing the amount of information over the front-channel.
+mitigate a few things:
 
 1. Enhanced privacy. This is the primary focus of this specification.
 2. Part of conforming to the [OpenID Connect 1.0] specification [Financial-grade API Security Profile 1.0 (Baseline)].
+3. Reduces the attack surface by preventing an attacker from adjusting request parameters prior to the Authorization
+   Server receiving them.
+4. Reduces the attack surface marginally as less information is available over the front-channel which is the most
+   likely location where an attacker would have access to information. While reducing access to information is not
+   a reasonable primary security method, when combined with other mechanisms present in [OpenID Connect 1.0] it is
+   meaningful.
 
 Even if an attacker gets the [Authorization Code], they are unlikely to have the `client_id` for example, and this is
 required to exchange the [Authorization Code] for an [Access Token] and ID Token.
