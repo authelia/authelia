@@ -34,6 +34,8 @@ You need the following to run __Authelia__ with [NGINX]:
 
 * [NGINX] must be built with the `http_auth_request` module which is relatively common
 * [NGINX] must be built with the `http_realip` module which is relatively common
+* [NGINX] must be built with the `http_set_misc` module or the `nginx-mod-http-set-misc` package if you want to preserve
+  more than one query parameter when redirected to the portal due to a limitation in [NGINX]
 
 ## Trusted Proxies
 
@@ -50,14 +52,97 @@ configured in the `proxy.conf` file. Each `set_realip_from` directive adds a tru
 proxies list. Any request that comes from a source IP not in one of the configured ranges results in the header being
 replaced with the source IP of the client.
 
+## Docker Compose
+
+The following docker compose example has various applications suitable for setting up an example environment.
+
+It uses the [nginx image](https://github.com/linuxserver/docker-nginx) from [linuxserver.io] which includes all of the
+required modules including the `http_set_misc` module.
+
+It also includes the [nginx-proxy-confs](https://github.com/linuxserver/docker-mods/tree/nginx-proxy-confs) mod where
+they have several configuration examples in the `/config/nginx/proxy-confs` directory. This can be omitted if desired.
+
+If you're looking for a more complete solution [linuxserver.io] also have an nginx container called [SWAG](swag.md)
+which includes ACME and various other useful utilities.
+
+{{< details "docker-compose.yaml" >}}
+```yaml
+---
+version: "3.8"
+
+networks:
+  net:
+    driver: bridge
+
+services:
+  nginx:
+    container_name: nginx
+    image: lscr.io/linuxserver/nginx
+    restart: unless-stopped
+    networks:
+      net:
+        aliases: []
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ${PWD}/data/nginx/snippets:/config/nginx/snippets:ro
+      - ${PWD}/data/nginx/site-confs:/config/nginx/site-confs:ro
+    environment:
+      TZ: 'Australia/Melbourne'
+      DOCKER_MODS: 'linuxserver/mods:nginx-proxy-confs'
+  authelia:
+    container_name: authelia
+    image: authelia/authelia
+    restart: unless-stopped
+    networks:
+      net:
+        aliases: []
+    expose:
+      - 9091
+    volumes:
+      - ${PWD}/data/authelia/config:/config
+    environment:
+      TZ: 'Australia/Melbourne'
+  nextcloud:
+    container_name: nextcloud
+    image: lscr.io/linuxserver/nextcloud
+    restart: unless-stopped
+    networks:
+      net:
+        aliases: []
+    expose:
+      - 443
+    volumes:
+      - ${PWD}/data/nextcloud/config:/config
+      - ${PWD}/data/nextcloud/data:/data
+    environment:
+      PUID: '1000'
+      PGID: '1000'
+      TZ: 'Australia/Melbourne'
+  whoami:
+    container_name: whoami
+    image: docker.io/traefik/whoami
+    restart: unless-stopped
+    networks:
+      net:
+        aliases: []
+    expose:
+      - 80
+    environment:
+      TZ: 'Australia/Melbourne'
+...
+```
+{{< /details >}}
+
 ## Configuration
 
 Below you will find commented examples of the following configuration:
 
-* [Authelia Portal](#authelia-portal)
+* [Authelia Portal](#standard-example)
   * Running in Docker
   * Has the container name `authelia`
-* [Protected Endpoint (Nextcloud)](#protected-endpoint)
+* [Protected Endpoint (Nextcloud)](#standard-example)
   * Running in Docker
   * Has the container name `nextcloud`
 * [Supporting Configuration Snippets](#supporting-configuration-snippets)
@@ -66,61 +151,105 @@ Below you will find commented examples of the following configuration:
     [resolver](https://nginx.org/en/docs/http/ngx_http_core_module.html#resolver) which is standard
   * [NGINX] shares a network with the `authelia` and `nextcloud` containers
 
+### Assumptions
+
+* Authelia is accessible to [NGINX] process with the hostname `authelia` on port `9091` making the URL
+  `http://authelia:9091`. If this is not the case adjust all instances of this as appropriate.
+* The [NGINX] configuration is in the folder `/config/nginx`. If this is not the case adjust all instances of this as
+  appropriate.
+* The URL you wish Authelia to be accessible on is `https://auth.example.com`. If this is not the case adjust all
+  instances of this as appropriate.
+
 ### Standard Example
 
 This example is for using the __Authelia__ portal redirection flow on a specific endpoint. It requires you to have the
 [authelia-location.conf](#authelia-locationconf),
 [authelia-authrequest.conf](#authelia-authrequestconf), and [proxy.conf](#proxyconf) snippets. In the example these
-files exist in the `/config/nginx/` directory. The `/config/nginx/ssl.conf` snippet is expected to have
+files exist in the `/config/nginx/snippets/` directory. The `/config/nginx/snippets/ssl.conf` snippet is expected to have
 the configuration for TLS or SSL but is not included as part of the examples.
 
-{{< details "Authelia Portal (auth.example.com.conf)" >}}
+The directive `include /config/nginx/snippets/authelia-authrequest.conf;` within the `location` block is what directs
+[NGINX] to perform authorization with Authelia. Every `location` block you wish for Authelia to perform authorization for
+should include this directive.
+
+{{< details "/config/nginx/site-confs/auth.conf (Authelia Portal)" >}}
 ```nginx
 server {
     listen 80;
-    server_name auth.example.com;
+    server_name auth.*;
 
     return 301 https://$server_name$request_uri;
 }
 
 server {
     listen 443 ssl http2;
-    server_name auth.example.com;
+    server_name auth.*;
 
-    include /config/nginx/ssl.conf;
+    include /config/nginx/snippets/ssl.conf;
+
+    set $upstream http://authelia:9091;
 
     location / {
-        include /config/nginx/proxy.conf;
+        include /config/nginx/snippets/proxy.conf;
+        proxy_pass $upstream;
+    }
 
-        set $upstream_authelia http://authelia:9091;
-        proxy_pass $upstream_authelia;
+    location /api/verify {
+        proxy_pass $upstream;
     }
 }
 ```
 {{< /details >}}
 
-{{< details "Protected Endpoint (nextcloud.example.com.conf)" >}}
+{{< details "/config/nginx/site-confs/nextcloud.conf (Protected Application - Nextcloud)" >}}
 ```nginx
 server {
     listen 80;
-    server_name nextcloud.example.com;
+    server_name nextcloud.*;
 
     return 301 https://$server_name$request_uri;
 }
 
 server {
     listen 443 ssl http2;
-    server_name nextcloud.example.com;
+    server_name nextcloud.*;
 
-    include /config/nginx/ssl.conf;
-    include /config/nginx/authelia-location.conf;
+    include /config/nginx/snippets/ssl.conf;
+    include /config/nginx/snippets/authelia-location.conf;
+
+    set $upstream http://nextcloud;
 
     location / {
-        include /config/nginx/proxy.conf;
-        include /config/nginx/authelia-authrequest.conf;
+        include /config/nginx/snippets/proxy.conf;
+        include /config/nginx/snippets/authelia-authrequest.conf;
+        proxy_pass $upstream;
+    }
+}
+```
+{{< /details >}}
 
-        set $upstream_nextcloud https://nextcloud;
-        proxy_pass $upstream_nextcloud;
+{{< details "/config/nginx/site-confs/whoami.conf (Protected Application - whoami)" >}}
+```nginx
+server {
+    listen 80;
+    server_name whoami.*;
+
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name whoami.*;
+
+    include /config/nginx/snippets/ssl.conf;
+    include /config/nginx/snippets/authelia-location.conf;
+
+    set $upstream http://whoami;
+
+    location / {
+        include /config/nginx/snippets/proxy.conf;
+        include /config/nginx/snippets/authelia-authrequest.conf;
+        proxy_pass $upstream;
     }
 }
 ```
@@ -131,34 +260,34 @@ server {
 This example is for using HTTP basic auth on a specific endpoint. It is based on the full example above. It requires you
 to have the [authelia-location-basic.conf](#authelia-location-basicconf),
 [authelia-authrequest-basic.conf](#authelia-authrequest-basicconf), and [proxy.conf](#proxyconf) snippets. In the
-example these files exist in the `/config/nginx/` directory. The `/config/nginx/ssl.conf` snippet is expected to have
+example these files exist in the `/config/nginx/snippets/` directory. The `/config/nginx/snippets/ssl.conf` snippet is expected to have
 the configuration for TLS or SSL but is not included as part of the examples.
 
 The Authelia Portal file from the [Standard Example](#standard-example) configuration can be reused for this example as
 such it isn't repeated.
 
-{{< details "Protected Endpoint (nextcloud.example.com.conf)" >}}
+{{< details "/config/nginx/site-confs/nextcloud.conf (Protected Application - Nextcloud)" >}}
 ```nginx
 server {
     listen 80;
-    server_name nextcloud.example.com;
+    server_name nextcloud.*;
 
     return 301 https://$server_name$request_uri;
 }
 
 server {
     listen 443 ssl http2;
-    server_name nextcloud.example.com;
+    server_name nextcloud.*;
 
-    include /config/nginx/ssl.conf;
-    include /config/nginx/authelia-location-basic.conf; # Use the "basic" endpoint
+    include /config/nginx/snippets/ssl.conf;
+    include /config/nginx/snippets/authelia-location-basic.conf; # Use the "basic" endpoint
+
+    set $upstream https://nextcloud;
 
     location / {
-        include /config/nginx/proxy.conf;
-        include /config/nginx/authelia-authrequest-basic.conf;
-
-        set $upstream_nextcloud https://nextcloud;
-        proxy_pass $upstream_nextcloud;
+        include /config/nginx/snippets/proxy.conf;
+        include /config/nginx/snippets/authelia-authrequest-basic.conf;
+        proxy_pass $upstream;
     }
 }
 ```
@@ -178,10 +307,15 @@ The following is an example `proxy.conf`. The important directives include the `
 [Trusted Proxies](#trusted-proxies) section to understand, or set the `X-Forwarded-Proto`, `X-Forwarded-Host`,
 `X-Forwarded-Uri`, and `X-Forwarded-For` headers.
 
-{{< details "proxy.conf" >}}
+##### Standard Variant
+
+Generally this variant is the suggested variant.
+
+{{< details "/config/nginx/snippets/proxy.conf" >}}
 ```nginx
 ## Headers
 proxy_set_header Host $host;
+proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
 proxy_set_header X-Forwarded-Proto $scheme;
 proxy_set_header X-Forwarded-Host $http_host;
 proxy_set_header X-Forwarded-Uri $request_uri;
@@ -217,12 +351,30 @@ proxy_connect_timeout 360;
 ```
 {{< /details >}}
 
+##### Headers Only Variant
+
+Generally the [standard variant](#standard-variant) is the suggested variant. This variant only contains the required
+headers for Authelia to operate.
+
+{{< details "/config/nginx/snippets/proxy.conf" >}}
+```nginx
+## Headers
+proxy_set_header Host $host;
+proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-Forwarded-Host $http_host;
+proxy_set_header X-Forwarded-Uri $request_uri;
+proxy_set_header X-Forwarded-Ssl on;
+proxy_set_header X-Forwarded-For $remote_addr;
+```
+{{< /details >}}
+
 #### authelia-location.conf
 
 *The following snippet is used within the `server` block of a virtual host as a supporting endpoint used by
 `auth_request` and is paired with [authelia-authrequest.conf](#authelia-authrequestconf).*
 
-{{< details "authelia-location.conf" >}}
+{{< details "/config/nginx/snippets/authelia-location.conf" >}}
 ```nginx
 set $upstream_authelia http://authelia:9091/api/verify;
 
@@ -235,6 +387,7 @@ location /authelia {
     ## Headers
     ## The headers starting with X-* are required.
     proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+    proxy_set_header X-Original-Method $request_method;
     proxy_set_header X-Forwarded-Method $request_method;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-Host $http_host;
@@ -267,13 +420,18 @@ location /authelia {
 *The following snippet is used within a `location` block of a virtual host which uses the appropriate location block
 and is paired with [authelia-location.conf](#authelia-locationconf).*
 
-{{< details "authelia-authrequest.conf" >}}
+{{< details "/config/nginx/snippets/authelia-authrequest.conf" >}}
 ```nginx
 ## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
 auth_request /authelia;
 
 ## Set the $target_url variable based on the original request.
-auth_request_set $target_url $scheme://$http_host$request_uri;
+
+## Comment this line if you're using nginx without the http_set_misc module.
+set_escape_uri $target_url $scheme://$http_host$request_uri;
+
+## Uncomment this line if you're using NGINX without the http_set_misc module.
+# set $target_url $scheme://$http_host$request_uri;
 
 ## Save the upstream response headers from Authelia to variables.
 auth_request_set $user $upstream_http_remote_user;
@@ -300,7 +458,7 @@ snippet is rarely required. It's only used if you want to only allow
 [HTTP Basic Authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication) for a particular
 endpoint. It's recommended to use [authelia-location.conf](#authelia-locationconf) instead.*
 
-{{< details "authelia-location-basic.conf" >}}
+{{< details "/config/nginx/snippets/authelia-location-basic.conf" >}}
 ```nginx
 set $upstream_authelia http://authelia:9091/api/verify?auth=basic;
 
@@ -313,6 +471,7 @@ location /authelia-basic {
     ## Headers
     ## The headers starting with X-* are required.
     proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+    proxy_set_header X-Original-Method $request_method;
     proxy_set_header X-Forwarded-Method $request_method;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-Host $http_host;
@@ -348,13 +507,16 @@ required. It's only used if you want to only allow
 [HTTP Basic Authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication) for a particular
 endpoint. It's recommended to use [authelia-authrequest.conf](#authelia-authrequestconf) instead.*
 
-{{< details "authelia-authrequest-basic.conf" >}}
+{{< details "/config/nginx/snippets/authelia-authrequest-basic.conf" >}}
 ```nginx
 ## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
 auth_request /authelia-basic;
 
-## Set the $target_url variable based on the original request.
-auth_request_set $target_url $scheme://$http_host$request_uri;
+## Comment this line if you're using nginx without the http_set_misc module.
+set_escape_uri $target_url $scheme://$http_host$request_uri;
+
+## Uncomment this line if you're using NGINX without the http_set_misc module.
+# set $target_url $scheme://$http_host$request_uri;
 
 ## Save the upstream response headers from Authelia to variables.
 auth_request_set $user $upstream_http_remote_user;
@@ -378,9 +540,9 @@ snippet is rarely required. It's only used if you want to conditionally require
 [HTTP Basic Authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication) for a particular
 endpoint. It's recommended to use [authelia-location.conf](#authelia-locationconf) instead.*
 
-{{< details "authelia-location-detect.conf" >}}
+{{< details "/config/nginx/snippets/authelia-location-detect.conf" >}}
 ```nginx
-include /config/nginx/authelia-location.conf;
+include /config/nginx/snippets/authelia-location.conf;
 
 set $is_basic_auth ""; # false value
 
@@ -417,13 +579,16 @@ required. It's only used if you want to conditionally require
 [HTTP Basic Authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication) for a particular
 endpoint. It's recommended to use [authelia-authrequest.conf](#authelia-authrequestconf) instead.*
 
-{{< details "authelia-authrequest-detect.conf" >}}
+{{< details "/config/nginx/snippets/authelia-authrequest-detect.conf" >}}
 ```nginx
 ## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
 auth_request /authelia;
 
-## Set the $target_url variable based on the original request.
-auth_request_set $target_url $scheme://$http_host$request_uri;
+## Comment this line if you're using nginx without the http_set_misc module.
+set_escape_uri $target_url $scheme://$http_host$request_uri;
+
+## Uncomment this line if you're using NGINX without the http_set_misc module.
+# set $target_url $scheme://$http_host$request_uri;
 
 ## Save the upstream response headers from Authelia to variables.
 auth_request_set $user $upstream_http_remote_user;
@@ -450,3 +615,4 @@ error_page 401 =302 /authelia-detect?rd=$target_url;
 
 [NGINX]: https://www.nginx.com/
 [Forwarded Headers]: fowarded-headers
+[linuxserver.io]: https://www.linuxserver.io/

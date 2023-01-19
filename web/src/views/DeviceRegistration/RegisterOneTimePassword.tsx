@@ -1,27 +1,27 @@
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import { IconDefinition, faCopy, faKey, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Typography, Button, IconButton, Link, CircularProgress, TextField, Theme } from "@mui/material";
+import { Button, CircularProgress, IconButton, Link, TextField, Theme, Typography } from "@mui/material";
 import { red } from "@mui/material/colors";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import AppStoreBadges from "@components/AppStoreBadges";
 import { GoogleAuthenticator } from "@constants/constants";
 import { IndexRoute } from "@constants/Routes";
+import { IdentityToken } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
+import { useQueryParam } from "@hooks/QueryParam";
 import LoginLayout from "@layouts/LoginLayout";
 import { completeTOTPRegistrationProcess } from "@services/RegisterDevice";
-import { extractIdentityToken } from "@utils/IdentityToken";
 
 const RegisterOneTimePassword = function () {
     const styles = useStyles();
     const navigate = useNavigate();
-    const location = useLocation();
     // The secret retrieved from the API is all is ok.
     const [secretURL, setSecretURL] = useState("empty");
     const [secretBase32, setSecretBase32] = useState(undefined as string | undefined);
@@ -32,7 +32,7 @@ const RegisterOneTimePassword = function () {
 
     // Get the token from the query param to give it back to the API when requesting
     // the secret for OTP.
-    const processToken = extractIdentityToken(location.search);
+    const processToken = useQueryParam(IdentityToken);
 
     const handleDoneClick = () => {
         navigate(IndexRoute);

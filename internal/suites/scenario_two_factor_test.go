@@ -12,6 +12,8 @@ import (
 
 type TwoFactorSuite struct {
 	*RodSuite
+
+	secret string
 }
 
 func New2FAScenario() *TwoFactorSuite {
@@ -28,6 +30,18 @@ func (s *TwoFactorSuite) SetupSuite() {
 	}
 
 	s.RodSession = browser
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+
+		s.collectCoverage(s.Page)
+		s.MustClose()
+	}()
+
+	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
+	s.secret = s.doLoginAndRegisterTOTP(s.T(), s.Context(ctx), "john", "password", false)
 }
 
 func (s *TwoFactorSuite) TearDownSuite() {
@@ -60,7 +74,7 @@ func (s *TwoFactorSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
 
 	// Login and register TOTP, logout and login again with 1FA & 2FA.
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
-	_ = s.doRegisterAndLogin2FA(s.T(), s.Context(ctx), username, password, false, targetURL)
+	s.doLoginTwoFactor(s.T(), s.Context(ctx), username, password, false, s.secret, targetURL)
 
 	// And check if the user is redirected to the secret.
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
@@ -75,18 +89,15 @@ func (s *TwoFactorSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
 }
 
 func (s *TwoFactorSuite) TestShouldFailTwoFactor() {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	// Register TOTP secret and logout.
-	s.doRegisterThenLogout(s.T(), s.Context(ctx), testUsername, testPassword)
-
 	wrongPasscode := "123456"
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), testUsername, testPassword, false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), testUsername, testPassword, false, BaseDomain, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 	s.doEnterOTP(s.T(), s.Context(ctx), wrongPasscode)
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "The one-time password might be wrong")

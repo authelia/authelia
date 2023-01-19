@@ -52,7 +52,7 @@ func (s *PasswordComplexityScenario) TestShouldRejectPasswordReset() {
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL())
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 
 	// Attempt to reset the password to a.

@@ -2,7 +2,7 @@
 title: "Argo CD"
 description: "Integrating Argo CD with the Authelia OpenID Connect Provider."
 lead: ""
-date: 2022-07-13T03:42:47+10:00
+date: 2022-07-13T04:27:30+10:00
 draft: false
 images: []
 menu:
@@ -22,9 +22,16 @@ community: true
 
 ## Before You Begin
 
-You are required to utilize a unique client id and a unique and random client secret for all [OpenID Connect] relying
-parties. You should not use the client secret in this example, you should randomly generate one yourself. You may also
-choose to utilize a different client id, it's completely up to you.
+### Common Notes
+
+1. You are *__required__* to utilize a unique client id for every client.
+2. The client id on this page is merely an example and you can theoretically use any alphanumeric string.
+3. You *__should not__* use the client secret in this example, We *__strongly recommend__* reading the
+   [Generating Client Secrets] guide instead.
+
+[Generating Client Secrets]: ../specific-information.md#generating-client-secrets
+
+### Assumptions
 
 This example makes the following assumptions:
 
@@ -62,6 +69,9 @@ which will operate with the above example:
 ```yaml
 - id: argocd
   description: Argo CD
+  secret: '$plaintext$argocd_client_secret'
+  public: false
+  authorization_policy: two_factor
   redirect_uris:
     - https://argocd.example.com/auth/callback
   scopes:
@@ -69,11 +79,11 @@ which will operate with the above example:
     - groups
     - email
     - profile
-  secret: argocd_client_secret
   userinfo_signing_algorithm: none
 - id: argocd-cli
   description: Argo CD (CLI)
   public: true
+  authorization_policy: two_factor
   redirect_uris:
     - http://localhost:8085/auth/callback
   scopes:

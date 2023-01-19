@@ -1,10 +1,10 @@
 package middlewares
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/mail"
+	"path"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -51,7 +51,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-		ss, err := token.SignedString([]byte(ctx.Configuration.JWTSecret))
+		signedToken, err := token.SignedString([]byte(ctx.Configuration.JWTSecret))
 		if err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
@@ -62,47 +62,29 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 			return
 		}
 
-		uri, err := ctx.ExternalRootURL()
-		if err != nil {
-			ctx.Error(err, messageOperationFailed)
-			return
-		}
+		linkURL := ctx.RootURL()
 
-		link := fmt.Sprintf("%s%s?token=%s", uri, args.TargetEndpoint, ss)
+		query := linkURL.Query()
 
-		bufHTML := new(bytes.Buffer)
+		query.Set(queryArgToken, signedToken)
 
-		disableHTML := false
-		if ctx.Configuration.Notifier.SMTP != nil {
-			disableHTML = ctx.Configuration.Notifier.SMTP.DisableHTMLEmails
-		}
+		linkURL.Path = path.Join(linkURL.Path, args.TargetEndpoint)
+		linkURL.RawQuery = query.Encode()
 
-		values := templates.EmailIdentityVerificationValues{
+		data := templates.EmailIdentityVerificationValues{
 			Title:       args.MailTitle,
-			LinkURL:     link,
+			LinkURL:     linkURL.String(),
 			LinkText:    args.MailButtonContent,
 			DisplayName: identity.DisplayName,
 			RemoteIP:    ctx.RemoteIP().String(),
 		}
 
-		if !disableHTML {
-			if err = ctx.Providers.Templates.ExecuteEmailIdentityVerificationTemplate(bufHTML, values, templates.HTMLFormat); err != nil {
-				ctx.Error(err, messageOperationFailed)
-				return
-			}
-		}
-
-		bufText := new(bytes.Buffer)
-
-		if err = ctx.Providers.Templates.ExecuteEmailIdentityVerificationTemplate(bufText, values, templates.PlainTextFormat); err != nil {
-			ctx.Error(err, messageOperationFailed)
-			return
-		}
-
 		ctx.Logger.Debugf("Sending an email to user %s (%s) to confirm identity for registering a device.",
 			identity.Username, identity.Email)
 
-		if err = ctx.Providers.Notifier.Send(mail.Address{Name: identity.DisplayName, Address: identity.Email}, args.MailTitle, bufText.String(), bufHTML.String()); err != nil {
+		recipient := mail.Address{Name: identity.DisplayName, Address: identity.Email}
+
+		if err = ctx.Providers.Notifier.Send(ctx, recipient, args.MailTitle, ctx.Providers.Templates.GetIdentityVerificationEmailTemplate(), data); err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}
@@ -133,7 +115,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 		}
 
 		token, err := jwt.ParseWithClaims(finishBody.Token, &model.IdentityVerificationClaim{},
-			func(token *jwt.Token) (interface{}, error) {
+			func(token *jwt.Token) (any, error) {
 				return []byte(ctx.Configuration.JWTSecret), nil
 			})
 

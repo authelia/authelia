@@ -14,28 +14,28 @@ toc: false
 
 The following table is a support matrix for Authelia features and specific reverse proxies.
 
-|         Proxy         |                                       Standard                                        |                                      Kubernetes                                      |             XHR Redirect             |            Request Method            |
-|:---------------------:|:-------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------:|:------------------------------------:|:------------------------------------:|
-|       [Traefik]       |       [<i class="icon-support-full"></i>](../../integration/proxies/traefik.md)       | [<i class="icon-support-full"></i>](../../integration/kubernetes/traefik-ingress.md) |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
-|        [NGINX]        |        [<i class="icon-support-full"></i>](../../integration/proxies/nginx.md)        |  [<i class="icon-support-full"></i>](../../integration/kubernetes/nginx-ingress.md)  |  <i class="icon-support-none"></i>   |  <i class="icon-support-full"></i>   |
-| [NGINX Proxy Manager] | [<i class="icon-support-full"></i>](../../integration/proxies/nginx-proxy-manager.md) |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-none"></i>   |  <i class="icon-support-full"></i>   |
-|        [SWAG]         |        [<i class="icon-support-full"></i>](../../integration/proxies/swag.md)         |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-none"></i>   |  <i class="icon-support-full"></i>   |
-|       [HAProxy]       |       [<i class="icon-support-full"></i>](../../integration/proxies/haproxy.md)       |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> |  <i class="icon-support-full"></i>   |
-|        [Caddy]        |        [<i class="icon-support-full"></i>](../../integration/proxies/caddy.md)        |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
-|     [Traefik] 1.x     |      [<i class="icon-support-full"></i>](../../integration/proxies/traefikv1.md)      |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
-|        [Envoy]        |      [<i class="icon-support-unknown"></i>](../../integration/proxies/envoy.md)       |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> | <i class="icon-support-unknown"></i> |
-|       [Skipper]       |       [<i class="icon-support-full"></i>](../../integration/proxies/skipper.md)       |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> | <i class="icon-support-unknown"></i> |
-|       [Apache]        |                 <i class="icon-support-none" alt="Not Supported"></i>                 |                          <i class="icon-support-none"></i>                           |  <i class="icon-support-none"></i>   |  <i class="icon-support-none"></i>   |
-|         [IIS]         |                           <i class="icon-support-none"></i>                           |                          <i class="icon-support-none"></i>                           |  <i class="icon-support-none"></i>   |  <i class="icon-support-none"></i>   |
+|         Proxy         |                                           Standard                                           |                                      Kubernetes                                       |           XHR Redirect            |          Request Method           |
+|:---------------------:|:--------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------:|:---------------------------------:|:---------------------------------:|
+|       [Traefik]       |          {{% support support="full" link="../../integration/proxies/traefik.md" %}}          | {{% support support="full" link="../../integration/kubernetes/traefik-ingress.md" %}} |  {{% support support="full" %}}   |  {{% support support="full" %}}   |
+|        [Caddy]        |           {{% support support="full" link="../../integration/proxies/caddy.md" %}}           |                           {{% support support="unknown" %}}                           |  {{% support support="full" %}}   |  {{% support support="full" %}}   |
+|        [Envoy]        |           {{% support support="full" link="../../integration/proxies/envoy.md" %}}           |      {{% support support="full" link="../../integration/kubernetes/istio.md" %}}      | {{% support support="unknown" %}} |  {{% support support="full" %}}   |
+|        [NGINX]        |           {{% support support="full" link="../../integration/proxies/nginx.md" %}}           |  {{% support support="full" link="../../integration/kubernetes/nginx-ingress.md" %}}  |          {{% support %}}          |  {{% support support="full" %}}   |
+| [NGINX Proxy Manager] | {{% support support="full" link="../../integration/proxies/nginx-proxy-manager/index.md" %}} |                                    {{% support %}}                                    |          {{% support %}}          |  {{% support support="full" %}}   |
+|        [SWAG]         |           {{% support support="full" link="../../integration/proxies/swag.md" %}}            |                                    {{% support %}}                                    |          {{% support %}}          |  {{% support support="full" %}}   |
+|       [HAProxy]       |          {{% support support="full" link="../../integration/proxies/haproxy.md" %}}          |                           {{% support support="unknown" %}}                           | {{% support support="unknown" %}} |  {{% support support="full" %}}   |
+|     [Traefik] 1.x     |         {{% support support="full" link="../../integration/proxies/traefikv1.md" %}}         |                           {{% support support="unknown" %}}                           |  {{% support support="full" %}}   |  {{% support support="full" %}}   |
+|       [Skipper]       |          {{% support support="full" link="../../integration/proxies/skipper.md" %}}          |                                    {{% support %}}                                    | {{% support support="unknown" %}} | {{% support support="unknown" %}} |
+|       [Apache]        |                                       {{% support %}}                                        |                                    {{% support %}}                                    |          {{% support %}}          |          {{% support %}}          |
+|         [IIS]         |                                       {{% support %}}                                        |                                    {{% support %}}                                    |          {{% support %}}          |          {{% support %}}          |
 
 Legend:
 
-|                 Icon                 |       Meaning       |
-|:------------------------------------:|:-------------------:|
-|  <i class="icon-support-full"></i>   |      Supported      |
-| <i class="icon-support-unknown"></i> |       Unknown       |
-| <i class="icon-support-partial"></i> | Partially Supported |
-|  <i class="icon-support-none"></i>   |    Not Supported    |
+|                Icon                |       Meaning       |
+|:----------------------------------:|:-------------------:|
+|   {{% support support="full" %}}   |      Supported      |
+| {{% support support="unknown" %}}  |       Unknown       |
+| {{% support support="partial" %}}  | Partially Supported |
+|          {{% support %}}           |    Not Supported    |
 
 ## More Information
 

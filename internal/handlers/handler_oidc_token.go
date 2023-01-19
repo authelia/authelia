@@ -21,12 +21,12 @@ func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 
 	oidcSession := oidc.NewSession()
 
-	if requester, err = ctx.Providers.OpenIDConnect.Fosite.NewAccessRequest(ctx, req, oidcSession); err != nil {
+	if requester, err = ctx.Providers.OpenIDConnect.NewAccessRequest(ctx, req, oidcSession); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
 		ctx.Logger.Errorf("Access Request failed with error: %s", rfc.WithExposeDebug(true).GetDescription())
 
-		ctx.Providers.OpenIDConnect.Fosite.WriteAccessError(rw, requester, err)
+		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 
 		return
 	}
@@ -46,12 +46,12 @@ func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 
 	ctx.Logger.Tracef("Access Request with id '%s' on client with id '%s' response is being generated for session with type '%T'", requester.GetID(), client.GetID(), requester.GetSession())
 
-	if responder, err = ctx.Providers.OpenIDConnect.Fosite.NewAccessResponse(ctx, requester); err != nil {
+	if responder, err = ctx.Providers.OpenIDConnect.NewAccessResponse(ctx, requester); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
 		ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), rfc.WithExposeDebug(true).GetDescription())
 
-		ctx.Providers.OpenIDConnect.Fosite.WriteAccessError(rw, requester, err)
+		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 
 		return
 	}
@@ -60,5 +60,5 @@ func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 
 	ctx.Logger.Tracef("Access Request with id '%s' on client with id '%s' produced the following claims: %+v", requester.GetID(), client.GetID(), responder.ToMap())
 
-	ctx.Providers.OpenIDConnect.Fosite.WriteAccessResponse(rw, requester, responder)
+	ctx.Providers.OpenIDConnect.WriteAccessResponse(ctx, rw, requester, responder)
 }

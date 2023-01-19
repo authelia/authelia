@@ -73,7 +73,7 @@ attacker obtains the file, each password has to be brute forced individually.
 
 Lastly Authelia's implementation of Argon2id is highly tunable. You can tune the key length, salt used, iterations
 (time), parallelism, and memory usage. To read more about this please read how to
-[configure](../configuration/authentication/file.md) file authentication.
+[configure](../../configuration/first-factor/file.md) file authentication.
 
 ## User profile and group membership always kept up-to-date (LDAP authentication provider)
 
@@ -152,8 +152,8 @@ values.
 
 As such all SMTP connections require the following:
 
-1. TLS Connection (STARTTLS or SMTPS) has been negotiated before authentication or sending emails (unauthenticated
-connections require it as well)
+1. A TLS Connection (STARTTLS or implicit) has been negotiated before authentication or sending emails (_unauthenticated
+ connections require it as well_)
 2. Valid X509 Certificate presented to the client during the TLS handshake
 
 There is an option to disable both of these security measures however they are __not recommended__.
@@ -163,41 +163,62 @@ preferable:
 
 ### Configuration Option: certificates_directory
 
-You can [configure a directory](../../configuration/miscellaneous/introduction.md#certificates_directory) of certificates for Authelia
-to trust. These certificates can either be CA's or individual public certificates that should be trusted. These
-are added in addition to the environments PKI trusted certificates if available. This is useful for trusting a
-certificate that is self-signed without drastically reducing security. This is the most recommended workaround to not
-having a valid PKI trusted certificate as it gives you complete control over which ones are trusted without disabling
-critically needed validation of the identity of the target service.
+You can configure a [certificates_directory] option which contains certificates for Authelia to trust. These certificates
+can either be CA's or individual public certificates that should be trusted. These are added in addition to the
+environments PKI trusted certificates if available. This is useful for trusting a certificate that is self-signed without
+drastically reducing security. This is the most recommended workaround to not having a valid PKI trusted certificate as
+it gives you complete control over which ones are trusted without disabling critically needed validation of the identity
+of the target service.
 
-Read more in the [documentation](../../configuration/miscellaneous/introduction.md#certificates_directory) for this option.
+Read more in the [certificates_directory] documentation for this option.
+
+[certificates_directory]: ../../configuration/miscellaneous/introduction.md#certificatesdirectory
+[certificates directory]: #configuration-option--certificatesdirectory
 
 ### Configuration Option: tls.skip_verify
 
 The [tls.skip_verify](../../configuration/notifications/smtp.md#tls) option allows you to skip verifying the certificate
-entirely which is why [certificates_directory](#configuration-option-certificates_directory) is preferred over this.
-This will effectively mean you cannot be sure the certificate is valid which means an attacker via DNS poisoning or MITM
-attacks could intercept emails from Authelia compromising a user's security without their knowledge.
+entirely which is why [certificates directory] is preferred over this. This will effectively mean you cannot be sure the
+certificate is valid which means an attacker via DNS poisoning or MITM attacks could intercept emails from Authelia
+compromising a user's security without their knowledge.
 
 ### Configuration Option: disable_require_tls
 
-Authelia by default ensures that the SMTP server connection is secured via STARTTLS or SMTPS prior to sending sensitive
-information. The [disable_require_tls](../../configuration/notifications/smtp.md#disable_require_tls) disables this requirement
-which means the emails are sent in plain text. This is the least secure option as it effectively removes the validation
-of SMTP certificates and removes the encryption offered by the STARTTLS/SMTPS connection all together.
+Authelia by default ensures that the SMTP server connection is secured via TLS prior to sending sensitive information.
 
-This means not only can the vulnerabilities of the [skip_verify](#configuration-option-tlsskip_verify) option be
+The [disable_require_tls](../../configuration/notifications/smtp.md#disablerequiretls) option disables this
+requirement which means the emails may be sent in cleartext. This is the least secure option as it effectively removes
+the validation of SMTP certificates and makes using an encrypted connection with TLS optional.
+
+This means not only can the vulnerabilities of the [skip_verify](#configuration-option--tlsskipverify) option be
 exploited, but any router or switch along the route of the email which receives the packets could be used to silently
-exploit the plain text nature of the email. This is only usable currently with authentication disabled (comment out the
-password) and as such is only an option for SMTP servers that allow unauthenticated relay (bad practice).
+exploit the cleartext nature of the connection to manipulate the email in transit.
 
-### SMTPS vs STARTTLS
+This is only usable currently with authentication disabled (_comment out the password_), and as such is only an option
+for SMTP servers that allow unauthenticated relaying (bad practice).
 
-All connections start as plain text and are upgraded via STARTTLS. SMTPS is an exception to this rule where the
-connection is over TLS. As SMTPS is deprecated, the only way to configure this is to set the SMTP
-[port](../../configuration/notifications/smtp.md#port) to the officially recognized SMTPS port of 465 which will cause Authelia
-to automatically consider it to be a SMTPS connection. As such your SMTP server, if not offering SMTPS, should not be
-listening on port 465 which is bad practice anyway.
+### SMTP Ports
+
+All SMTP connections begin as [cleartext], and then negotiate to upgrade to a secure TLS connection via STARTTLS.
+
+The [`submissions` service][service-submissions] (_typically port 465_) is an exception to this rule, where the
+connection begins immediately secured with TLS (_similar to HTTPS_). When the configured [port for
+SMTP][docs-config-smtp-port] is set to `465`, Authelia will initiate TLS connections without requiring STARTTLS
+negotiation.
+
+When the `submissions` service port is available, it [should be preferred][port-465] over any STARTTLS port for
+submitting mail.
+
+**NOTE:** Prior to 2018, port 465 was previously assigned for a similar purpose known as [`smtps`][port-465] (_A TLS
+only equivalent of the `smtp` port 25_), which it had been deprecated for. Port 465 has since been re-assigned for only
+supporting mail submission (_which unlike SMTP transfers via port 25, [requires authentication][smtp-auth]_), similar
+to port 587 (_the `submission` port, a common alternative that uses STARTTLS instead_).
+
+[docs-config-smtp-port]: ../../configuration/notifications/smtp.md#port
+[cleartext]: https://cwe.mitre.org/data/definitions/312.html
+[service-submissions]: https://www.rfc-editor.org/rfc/rfc8314#section-7.3
+[port-465]: https://www.rfc-editor.org/rfc/rfc8314#section-3.3
+[smtp-auth]: https://www.rfc-editor.org/rfc/rfc6409#section-4.3
 
 ## Protection against open redirects
 
@@ -217,7 +238,7 @@ would not even be able to create a TCP connection. This measure is recommended i
 configured some kind of ACLs specifically allowing the communication between proxies and Authelia instances like in a
 service mesh or some kind of network overlay.
 
-To configure mutual TLS, please refer to [this document](../../configuration/miscellaneous/server.md#client_certificates)
+To configure mutual TLS, please refer to [this document](../../configuration/miscellaneous/server.md#clientcertificates)
 
 ## Additional security
 
@@ -235,7 +256,7 @@ database. The value of this option should be long and as random as possible. See
 [documentation](../../configuration/session/introduction.md#secret) for this option.
 
 The validity period of session is highly configurable. For example in a highly security conscious domain you could
-set the session [remember_me_duration](../../configuration/session/introduction.md#remember_me_duration) to 0 to disable this
+set the session [remember_me](../../configuration/session/introduction.md#rememberme) to 0 to disable this
 feature, and set the [expiration](../../configuration/session/introduction.md#expiration) to 2 hours and the
 [inactivity](../../configuration/session/introduction.md#inactivity) of 10 minutes. Configuring the session security in this
 manner would mean if the cookie age was more than 2 hours or if the user was inactive for more than 10 minutes the
@@ -325,14 +346,17 @@ typically located at `/etc/fail2ban/filter.d`.
 
 # the failregex rule counts every failed 1FA attempt (first line, wrong username or password) and failed 2FA attempt
 # second line) as a failure.
-# the ignoreregex rule ignores debug, info and warning messages as all authentication failures are flagged as errors
+# the ignoreregex rule ignores info and warning messages as all authentication failures are flagged as errors
+# the third line catches incorrect usernames entered at the password reset form
+# the fourth line catches attempts to spam via the password reset form or 2fa device reset form. This requires debug logging to be enabled
 
 [Definition]
 failregex = ^.*Unsuccessful 1FA authentication attempt by user .*remote_ip="?<HOST>"? stack.*
             ^.*Unsuccessful (TOTP|Duo|U2F) authentication attempt by user .*remote_ip="?<HOST>"? stack.*
+            ^.*user not found.*path=/api/reset-password/identity/start remote_ip="?<HOST>"? stack.*
+            ^.*Sending an email to user.*path=/api/.*/start remote_ip="?<HOST>"?
 
-ignoreregex = ^.*level=debug.*
-              ^.*level=info.*
+ignoreregex = ^.*level=info.*
               ^.*level=warning.*
 ```
 

@@ -22,9 +22,16 @@ community: true
 
 ## Before You Begin
 
-You are required to utilize a unique client id and a unique and random client secret for all [OpenID Connect] relying
-parties. You should not use the client secret in this example, you should randomly generate one yourself. You may also
-choose to utilize a different client id, it's completely up to you.
+### Common Notes
+
+1. You are *__required__* to utilize a unique client id for every client.
+2. The client id on this page is merely an example and you can theoretically use any alphanumeric string.
+3. You *__should not__* use the client secret in this example, We *__strongly recommend__* reading the
+   [Generating Client Secrets] guide instead.
+
+[Generating Client Secrets]: ../specific-information.md#generating-client-secrets
+
+### Assumptions
 
 This example makes the following assumptions:
 
@@ -62,7 +69,7 @@ $CONFIG = array (
     ),
     'oidc_login_default_group' => 'oidc',
     'oidc_login_use_external_storage' => false,
-    'oidc_login_scope' => 'openid profile groups',
+    'oidc_login_scope' => 'openid profile email groups',
     'oidc_login_proxy_ldap' => false,
     'oidc_login_disable_registration' => true,
     'oidc_login_redir_fallback' => false,
@@ -86,15 +93,17 @@ which will operate with the above example:
 
 ```yaml
 - id: nextcloud
-  secret: nextcloud_client_secret
+  description: NextCloud
+  secret: '$plaintext$nextcloud_client_secret'
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://nextcloud.example.com/apps/oidc_login/oidc
   scopes:
     - openid
     - profile
+    - email
     - groups
-  redirect_uris:
-    - https://nextcloud.example.com/apps/oidc_login/oidc
   userinfo_signing_algorithm: none
 ```
 

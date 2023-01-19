@@ -14,11 +14,11 @@ import (
 func OAuthRevocationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
 	var err error
 
-	if err = ctx.Providers.OpenIDConnect.Fosite.NewRevocationRequest(ctx, req); err != nil {
+	if err = ctx.Providers.OpenIDConnect.NewRevocationRequest(ctx, req); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
 		ctx.Logger.Errorf("Revocation Request failed with error: %s", rfc.WithExposeDebug(true).GetDescription())
 	}
 
-	ctx.Providers.OpenIDConnect.Fosite.WriteRevocationResponse(rw, err)
+	ctx.Providers.OpenIDConnect.WriteRevocationResponse(ctx, rw, err)
 }

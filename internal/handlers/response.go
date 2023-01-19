@@ -3,65 +3,17 @@ package handlers
 import (
 	"fmt"
 	"net/url"
+	"path"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
-
-// handleOIDCWorkflowResponse handle the redirection upon authentication in the OIDC workflow.
-func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
-	if len(targetURI) == 0 {
-		ctx.Error(fmt.Errorf("unable to parse target URL %s: empty value", targetURI), messageAuthenticationFailed)
-
-		return
-	}
-
-	var (
-		targetURL *url.URL
-		err       error
-	)
-
-	if targetURL, err = url.ParseRequestURI(targetURI); err != nil {
-		ctx.Error(fmt.Errorf("unable to parse target URL %s: %w", targetURI, err), messageAuthenticationFailed)
-
-		return
-	}
-
-	var (
-		id     string
-		client *oidc.Client
-	)
-
-	if id = targetURL.Query().Get("client_id"); len(id) == 0 {
-		ctx.Error(fmt.Errorf("unable to get client id from from URL '%s'", targetURL), messageAuthenticationFailed)
-
-		return
-	}
-
-	if client, err = ctx.Providers.OpenIDConnect.Store.GetFullClient(id); err != nil {
-		ctx.Error(fmt.Errorf("unable to get client for client with id '%s' from URL '%s': %w", id, targetURL, err), messageAuthenticationFailed)
-
-		return
-	}
-
-	userSession := ctx.GetSession()
-
-	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
-		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", client.ID)
-		ctx.ReplyOK()
-
-		return
-	}
-
-	if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
-		ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
-	}
-}
 
 // Handle1FAResponse handle the redirection upon 1FA authentication.
 func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod string, username string, groups []string) {
@@ -87,7 +39,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 		return
 	}
 
-	requiredLevel := ctx.Providers.Authorizer.GetRequiredLevel(
+	_, requiredLevel := ctx.Providers.Authorizer.GetRequiredLevel(
 		authorization.Subject{
 			Username: username,
 			Groups:   groups,
@@ -104,7 +56,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 		return
 	}
 
-	if !utils.IsRedirectionSafe(*targetURL, ctx.Configuration.Session.Domain) {
+	if !ctx.IsSafeRedirectionTargetURI(targetURL) {
 		ctx.Logger.Debugf("Redirection URL %s is not safe", targetURI)
 
 		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && ctx.Configuration.DefaultRedirectionURL != "" {
@@ -145,13 +97,17 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 		return
 	}
 
-	var safe bool
+	var (
+		parsedURI *url.URL
+		safe      bool
+	)
 
-	if safe, err = utils.IsRedirectionURISafe(targetURI, ctx.Configuration.Session.Domain); err != nil {
-		ctx.Error(fmt.Errorf("unable to check target URL: %s", err), messageMFAValidationFailed)
-
+	if parsedURI, err = url.ParseRequestURI(targetURI); err != nil {
+		ctx.Error(fmt.Errorf("unable to determine if URI '%s' is safe to redirect to: failed to parse URI '%s': %w", targetURI, targetURI, err), messageMFAValidationFailed)
 		return
 	}
+
+	safe = ctx.IsSafeRedirectionTargetURI(parsedURI)
 
 	if safe {
 		ctx.Logger.Debugf("Redirection URL %s is safe", targetURI)
@@ -166,6 +122,122 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 	ctx.ReplyOK()
 }
 
+// handleOIDCWorkflowResponse handle the redirection upon authentication in the OIDC workflow.
+func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, targetURI, workflowID string) {
+	switch {
+	case len(workflowID) != 0:
+		handleOIDCWorkflowResponseWithID(ctx, workflowID)
+	case len(targetURI) != 0:
+		handleOIDCWorkflowResponseWithTargetURL(ctx, targetURI)
+	default:
+		ctx.Error(fmt.Errorf("invalid post data: must contain either a target url or a workflow id"), messageAuthenticationFailed)
+	}
+}
+
+func handleOIDCWorkflowResponseWithTargetURL(ctx *middlewares.AutheliaCtx, targetURI string) {
+	var (
+		issuerURL *url.URL
+		targetURL *url.URL
+		err       error
+	)
+
+	if targetURL, err = url.ParseRequestURI(targetURI); err != nil {
+		ctx.Error(fmt.Errorf("unable to parse target URL '%s': %w", targetURI, err), messageAuthenticationFailed)
+
+		return
+	}
+
+	issuerURL = ctx.RootURL()
+
+	if targetURL.Host != issuerURL.Host {
+		ctx.Error(fmt.Errorf("unable to redirect to '%s': target host '%s' does not match expected issuer host '%s'", targetURL, targetURL.Host, issuerURL.Host), messageAuthenticationFailed)
+
+		return
+	}
+
+	userSession := ctx.GetSession()
+
+	if userSession.IsAnonymous() {
+		ctx.Error(fmt.Errorf("unable to redirect to '%s': user is anonymous", targetURL), messageAuthenticationFailed)
+
+		return
+	}
+
+	if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
+		ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+	}
+}
+
+func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, id string) {
+	var (
+		workflowID uuid.UUID
+		client     *oidc.Client
+		consent    *model.OAuth2ConsentSession
+		err        error
+	)
+
+	if workflowID, err = uuid.Parse(id); err != nil {
+		ctx.Error(fmt.Errorf("unable to parse consent session challenge id '%s': %w", id, err), messageAuthenticationFailed)
+
+		return
+	}
+
+	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, workflowID); err != nil {
+		ctx.Error(fmt.Errorf("unable to load consent session by challenge id '%s': %w", id, err), messageAuthenticationFailed)
+
+		return
+	}
+
+	if consent.Responded() {
+		ctx.Error(fmt.Errorf("consent has already been responded to '%s': %w", id, err), messageAuthenticationFailed)
+
+		return
+	}
+
+	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(consent.ClientID); err != nil {
+		ctx.Error(fmt.Errorf("unable to get client for client with id '%s' with consent challenge id '%s': %w", id, consent.ChallengeID, err), messageAuthenticationFailed)
+
+		return
+	}
+
+	userSession := ctx.GetSession()
+
+	if userSession.IsAnonymous() {
+		ctx.Error(fmt.Errorf("unable to redirect for authorization/consent for client with id '%s' with consent challenge id '%s': user is anonymous", client.ID, consent.ChallengeID), messageAuthenticationFailed)
+
+		return
+	}
+
+	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
+		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", client.ID)
+		ctx.ReplyOK()
+
+		return
+	}
+
+	var (
+		targetURL *url.URL
+		form      url.Values
+	)
+
+	targetURL = ctx.RootURL()
+
+	if form, err = consent.GetForm(); err != nil {
+		ctx.Error(fmt.Errorf("unable to get authorization form values from consent session with challenge id '%s': %w", consent.ChallengeID, err), messageAuthenticationFailed)
+
+		return
+	}
+
+	form.Set(queryArgConsentID, workflowID.String())
+
+	targetURL.Path = path.Join(targetURL.Path, oidc.EndpointPathAuthorization)
+	targetURL.RawQuery = form.Encode()
+
+	if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
+		ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+	}
+}
+
 func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, bannedUntil *time.Time, username string, authType string, errAuth error) (err error) {
 	// We only Mark if there was no underlying error.
 	ctx.Logger.Debugf("Mark %s authentication attempt made by user '%s'", authType, username)
@@ -176,9 +248,9 @@ func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, ba
 
 	referer := ctx.Request.Header.Referer()
 	if referer != nil {
-		refererURL, err := url.Parse(string(referer))
+		refererURL, err := url.ParseRequestURI(string(referer))
 		if err == nil {
-			requestURI = refererURL.Query().Get("rd")
+			requestURI = refererURL.Query().Get(queryArgRD)
 			requestMethod = refererURL.Query().Get("rm")
 		}
 	}

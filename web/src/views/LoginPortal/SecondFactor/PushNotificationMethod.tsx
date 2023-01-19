@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useRef, useState, ReactNode } from "react";
+import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import { Button, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
@@ -6,19 +6,20 @@ import makeStyles from "@mui/styles/makeStyles";
 import FailureIcon from "@components/FailureIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
 import SuccessIcon from "@components/SuccessIcon";
+import { RedirectionURL } from "@constants/SearchParams";
 import { useIsMountedRef } from "@hooks/Mounted";
-import { useRedirectionURL } from "@hooks/RedirectionURL";
+import { useQueryParam } from "@hooks/QueryParam";
 import { useWorkflow } from "@hooks/Workflow";
 import {
-    completePushNotificationSignIn,
-    completeDuoDeviceSelectionProcess,
     DuoDevicePostRequest,
+    completeDuoDeviceSelectionProcess,
+    completePushNotificationSignIn,
     initiateDuoDeviceSelectionProcess,
 } from "@services/PushNotification";
 import { AuthenticationLevel } from "@services/State";
 import DeviceSelectionContainer, {
-    SelectedDevice,
     SelectableDevice,
+    SelectedDevice,
 } from "@views/LoginPortal/SecondFactor/DeviceSelectionContainer";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 
@@ -44,8 +45,8 @@ export interface Props {
 const PushNotificationMethod = function (props: Props) {
     const styles = useStyles();
     const [state, setState] = useState(State.SignInInProgress);
-    const redirectionURL = useRedirectionURL();
-    const workflow = useWorkflow();
+    const redirectionURL = useQueryParam(RedirectionURL);
+    const [workflow, workflowID] = useWorkflow();
     const mounted = useIsMountedRef();
     const [enroll_url, setEnrollUrl] = useState("");
     const [devices, setDevices] = useState([] as SelectableDevice[]);
@@ -95,7 +96,7 @@ const PushNotificationMethod = function (props: Props) {
 
         try {
             setState(State.SignInInProgress);
-            const res = await completePushNotificationSignIn(redirectionURL, workflow);
+            const res = await completePushNotificationSignIn(redirectionURL, workflow, workflowID);
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current) return;
@@ -139,6 +140,7 @@ const PushNotificationMethod = function (props: Props) {
         props.duoSelfEnrollment,
         redirectionURL,
         workflow,
+        workflowID,
         mounted,
         onSignInErrorCallback,
         onSignInSuccessCallback,

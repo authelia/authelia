@@ -8,27 +8,18 @@ import (
 )
 
 const (
-	windows         = "windows"
-	testStringInput = "abcdefghijkl"
-
 	// RFC3339Zero is the default value for time.Time.Unix().
 	RFC3339Zero = int64(-62135596800)
-
-	// TLS13 is the textual representation of TLS 1.3.
-	TLS13 = "1.3"
-
-	// TLS12 is the textual representation of TLS 1.2.
-	TLS12 = "1.2"
-
-	// TLS11 is the textual representation of TLS 1.1.
-	TLS11 = "1.1"
-
-	// TLS10 is the textual representation of TLS 1.0.
-	TLS10 = "1.0"
 
 	clean   = "clean"
 	tagged  = "tagged"
 	unknown = "unknown"
+)
+
+const (
+	period = "."
+	https  = "https"
+	wss    = "wss"
 )
 
 // X.509 consts.
@@ -78,10 +69,6 @@ const (
 	Month = Year / 12
 )
 
-const (
-	errFmtLinuxNotFound = "open %s: no such file or directory"
-)
-
 var (
 	standardDurationUnits = []string{"ns", "us", "µs", "μs", "ms", "s", "m", "h"}
 	reDurationSeconds     = regexp.MustCompile(`^\d+$`)
@@ -104,9 +91,10 @@ const (
 	HoursInYear  = HoursInDay * 365
 )
 
-var (
-	// AlphaNumericCharacters are literally just valid alphanumeric chars.
-	AlphaNumericCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const (
+	// timeUnixEpochAsMicrosoftNTEpoch represents the unix epoch as a Microsoft NT Epoch.
+	// The Microsoft NT Epoch is ticks since Jan 1, 1601 (1 tick is 100ns).
+	timeUnixEpochAsMicrosoftNTEpoch uint64 = 116444736000000000
 )
 
 var htmlEscaper = strings.NewReplacer(
@@ -120,5 +108,7 @@ var htmlEscaper = strings.NewReplacer(
 // ErrTimeoutReached error thrown when a timeout is reached.
 var ErrTimeoutReached = errors.New("timeout reached")
 
-// ErrTLSVersionNotSupported returned when an unknown TLS version supplied.
-var ErrTLSVersionNotSupported = errors.New("supplied tls version isn't supported")
+const (
+	windows             = "windows"
+	errFmtLinuxNotFound = "open %s: no such file or directory"
+)

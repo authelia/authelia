@@ -1,0 +1,25 @@
+module.exports = {
+    extends: ["@commitlint/config-conventional"],
+    rules: {
+        "body-max-line-length": [2, "always", "Infinity"],
+        "body-min-length": [2, "always", 20],
+        "header-case": [2, "always", "lower-case"],
+        "header-max-length": [2, "always", 72],
+        "type-enum": [
+            2,
+            "always",
+            ["{{ join "\", \"" .Types.List }}"],
+        ],
+        "scope-enum": [
+            2,
+            "always",
+            [
+                {{- range .Scopes.All }}
+                "{{ . }}",
+                {{- end }}
+            ],
+        ],
+    },
+    defaultIgnores: true,
+    helpUrl: "https://www.authelia.com/contributing/guidelines/commit-message/",
+};

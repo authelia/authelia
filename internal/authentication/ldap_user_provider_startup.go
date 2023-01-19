@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/go-ldap/ldap/v3"
@@ -46,18 +47,24 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 
 func (p *LDAPUserProvider) getServerSupportedFeatures(client LDAPClient) (features LDAPSupportedFeatures, err error) {
 	var (
-		searchRequest *ldap.SearchRequest
-		searchResult  *ldap.SearchResult
+		request *ldap.SearchRequest
+		result  *ldap.SearchResult
 	)
 
-	searchRequest = ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
-		1, 0, false, "(objectClass=*)", []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute}, nil)
+	request = ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
+		1, 0, false, ldapBaseObjectFilter, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute}, nil)
 
-	if searchResult, err = client.Search(searchRequest); err != nil {
-		return features, err
+	if result, err = client.Search(request); err != nil {
+		if p.config.PermitFeatureDetectionFailure {
+			p.log.WithError(err).Warnf("Error occurred during RootDSE search. This may result in reduced functionality.")
+
+			return features, nil
+		}
+
+		return features, fmt.Errorf("error occurred during RootDSE search: %w", err)
 	}
 
-	if len(searchResult.Entries) != 1 {
+	if len(result.Entries) != 1 {
 		p.log.Errorf("The LDAP Server did not respond appropriately to a RootDSE search. This may result in reduced functionality.")
 
 		return features, nil
@@ -65,7 +72,7 @@ func (p *LDAPUserProvider) getServerSupportedFeatures(client LDAPClient) (featur
 
 	var controlTypeOIDs, extensionOIDs []string
 
-	controlTypeOIDs, extensionOIDs, features = ldapGetFeatureSupportFromEntry(searchResult.Entries[0])
+	controlTypeOIDs, extensionOIDs, features = ldapGetFeatureSupportFromEntry(result.Entries[0])
 
 	controlTypes, extensions := none, none
 
@@ -113,6 +120,18 @@ func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {
 		p.usersFilterReplacementInput = true
 	}
 
+	if strings.Contains(p.config.UsersFilter, ldapPlaceholderDateTimeGeneralized) {
+		p.usersFilterReplacementDateTimeGeneralized = true
+	}
+
+	if strings.Contains(p.config.UsersFilter, ldapPlaceholderDateTimeUnixEpoch) {
+		p.usersFilterReplacementDateTimeUnixEpoch = true
+	}
+
+	if strings.Contains(p.config.UsersFilter, ldapPlaceholderDateTimeMicrosoftNTTimeEpoch) {
+		p.usersFilterReplacementDateTimeMicrosoftNTTimeEpoch = true
+	}
+
 	p.log.Tracef("Detected user filter replacements that need to be resolved per lookup are: %s=%v",
 		ldapPlaceholderInput, p.usersFilterReplacementInput)
 }
@@ -123,7 +142,7 @@ func (p *LDAPUserProvider) parseDynamicGroupsConfiguration() {
 	}
 
 	if p.config.AdditionalGroupsDN != "" {
-		p.groupsBaseDN = ldap.EscapeFilter(p.config.AdditionalGroupsDN + "," + p.config.BaseDN)
+		p.groupsBaseDN = p.config.AdditionalGroupsDN + "," + p.config.BaseDN
 	} else {
 		p.groupsBaseDN = p.config.BaseDN
 	}

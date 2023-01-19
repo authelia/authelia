@@ -1,13 +1,10 @@
 package utils
 
 import (
-	crand "crypto/rand"
 	"fmt"
-	"math/rand"
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 	"unicode"
 
 	"github.com/valyala/fasthttp"
@@ -16,7 +13,7 @@ import (
 // IsStringAbsURL checks a string can be parsed as a URL and that is IsAbs and if it can't it returns an error
 // describing why.
 func IsStringAbsURL(input string) (err error) {
-	parsedURL, err := url.Parse(input)
+	parsedURL, err := url.ParseRequestURI(input)
 	if err != nil {
 		return fmt.Errorf("could not parse '%s' as a URL", input)
 	}
@@ -43,6 +40,17 @@ func IsStringAlphaNumeric(input string) bool {
 func IsStringInSlice(needle string, haystack []string) (inSlice bool) {
 	for _, b := range haystack {
 		if b == needle {
+			return true
+		}
+	}
+
+	return false
+}
+
+// IsStringInSliceF checks if a single string is in a slice of strings using the provided isEqual func.
+func IsStringInSliceF(needle string, haystack []string, isEqual func(needle, item string) bool) (inSlice bool) {
+	for _, b := range haystack {
+		if isEqual(needle, b) {
 			return true
 		}
 	}
@@ -211,32 +219,6 @@ func StringSlicesDelta(before, after []string) (added, removed []string) {
 	return added, removed
 }
 
-// RandomString returns a random string with a given length with values from the provided characters. When crypto is set
-// to false we use math/rand and when it's set to true we use crypto/rand. The crypto option should always be set to true
-// excluding when the task is time sensitive and would not benefit from extra randomness.
-func RandomString(n int, characters string, crypto bool) (randomString string) {
-	return string(RandomBytes(n, characters, crypto))
-}
-
-// RandomBytes returns a random []byte with a given length with values from the provided characters. When crypto is set
-// to false we use math/rand and when it's set to true we use crypto/rand. The crypto option should always be set to true
-// excluding when the task is time sensitive and would not benefit from extra randomness.
-func RandomBytes(n int, characters string, crypto bool) (bytes []byte) {
-	bytes = make([]byte, n)
-
-	if crypto {
-		_, _ = crand.Read(bytes)
-	} else {
-		_, _ = rand.Read(bytes) //nolint:gosec // As this is an option when using this function it's not necessary to be concerned about this.
-	}
-
-	for i, b := range bytes {
-		bytes[i] = characters[b%byte(len(characters))]
-	}
-
-	return bytes
-}
-
 // StringHTMLEscape escapes chars for a HTML body.
 func StringHTMLEscape(input string) (output string) {
 	return htmlEscaper.Replace(input)
@@ -306,8 +288,4 @@ func IsURLHostComponentWithPort(u url.URL) (isHostComponentWithPort bool) {
 	}
 
 	return false
-}
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
 }

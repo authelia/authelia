@@ -56,10 +56,10 @@ func (s *AvailableMethodsScenario) TestShouldCheckAvailableMethods() {
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 
 	methodsButton := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "methods-button")
-	err := methodsButton.Click("left")
+	err := methodsButton.Click("left", 1)
 	s.Assert().NoError(err)
 
 	methodsDialog := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "methods-dialog")

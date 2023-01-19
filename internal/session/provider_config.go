@@ -8,7 +8,9 @@ import (
 	"strings"
 
 	"github.com/fasthttp/session/v2"
+	"github.com/fasthttp/session/v2/providers/memory"
 	"github.com/fasthttp/session/v2/providers/redis"
+	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -17,7 +19,7 @@ import (
 )
 
 // NewProviderConfig creates a configuration for creating the session provider.
-func NewProviderConfig(config schema.SessionConfiguration, certPool *x509.CertPool) ProviderConfig {
+func NewProviderConfig(config schema.SessionCookieConfiguration, providerName string, serializer Serializer) ProviderConfig {
 	c := session.NewDefaultConfig()
 
 	c.SessionIDGeneratorFunc = func() []byte {
@@ -60,21 +62,47 @@ func NewProviderConfig(config schema.SessionConfiguration, certPool *x509.CertPo
 		return true
 	}
 
-	var redisConfig *redis.Config
+	if serializer != nil {
+		c.EncodeFunc = serializer.Encode
+		c.DecodeFunc = serializer.Decode
+	}
 
-	var redisSentinelConfig *redis.FailoverConfig
+	return ProviderConfig{
+		c,
+		providerName,
+	}
+}
 
-	var providerName string
+func NewProviderSession(pconfig ProviderConfig, provider session.Provider) (p *session.Session, err error) {
+	p = session.New(pconfig.config)
 
+	if err = p.SetProvider(provider); err != nil {
+		return nil, err
+	}
+
+	return p, nil
+}
+
+func NewProviderConfigAndSession(config schema.SessionCookieConfiguration, providerName string, serializer Serializer, provider session.Provider) (c ProviderConfig, p *session.Session, err error) {
+	c = NewProviderConfig(config, providerName, serializer)
+
+	if p, err = NewProviderSession(c, provider); err != nil {
+		return c, nil, err
+	}
+
+	return c, p, nil
+}
+
+func NewSessionProvider(config schema.SessionConfiguration, certPool *x509.CertPool) (name string, provider session.Provider, serializer Serializer, err error) {
 	// If redis configuration is provided, then use the redis provider.
 	switch {
 	case config.Redis != nil:
-		serializer := NewEncryptingSerializer(config.Secret)
+		serializer = NewEncryptingSerializer(config.Secret)
 
 		var tlsConfig *tls.Config
 
 		if config.Redis.TLS != nil {
-			tlsConfig = utils.NewTLSConfig(config.Redis.TLS, tls.VersionTLS12, certPool)
+			tlsConfig = utils.NewTLSConfig(config.Redis.TLS, certPool)
 		}
 
 		if config.Redis.HighAvailability != nil && config.Redis.HighAvailability.SentinelName != "" {
@@ -91,9 +119,10 @@ func NewProviderConfig(config schema.SessionConfiguration, certPool *x509.CertPo
 				}
 			}
 
-			providerName = "redis-sentinel"
-			redisSentinelConfig = &redis.FailoverConfig{
-				Logger:           &redisLogger{logger: logging.Logger()},
+			name = "redis-sentinel"
+
+			provider, err = redis.NewFailoverCluster(redis.FailoverConfig{
+				Logger:           logging.LoggerCtxPrintf(logrus.TraceLevel),
 				MasterName:       config.Redis.HighAvailability.SentinelName,
 				SentinelAddrs:    addrs,
 				SentinelUsername: config.Redis.HighAvailability.SentinelUsername,
@@ -108,9 +137,9 @@ func NewProviderConfig(config schema.SessionConfiguration, certPool *x509.CertPo
 				IdleTimeout:      300,
 				TLSConfig:        tlsConfig,
 				KeyPrefix:        "authelia-session",
-			}
+			})
 		} else {
-			providerName = "redis"
+			name = "redis"
 			network := "tcp"
 
 			var addr string
@@ -122,8 +151,8 @@ func NewProviderConfig(config schema.SessionConfiguration, certPool *x509.CertPo
 				addr = fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port)
 			}
 
-			redisConfig = &redis.Config{
-				Logger:       newRedisLogger(),
+			provider, err = redis.New(redis.Config{
+				Logger:       logging.LoggerCtxPrintf(logrus.TraceLevel),
 				Network:      network,
 				Addr:         addr,
 				Username:     config.Redis.Username,
@@ -134,19 +163,12 @@ func NewProviderConfig(config schema.SessionConfiguration, certPool *x509.CertPo
 				IdleTimeout:  300,
 				TLSConfig:    tlsConfig,
 				KeyPrefix:    "authelia-session",
-			}
+			})
 		}
-
-		c.EncodeFunc = serializer.Encode
-		c.DecodeFunc = serializer.Decode
 	default:
-		providerName = "memory"
+		name = "memory"
+		provider, err = memory.New(memory.Config{})
 	}
 
-	return ProviderConfig{
-		c,
-		redisConfig,
-		redisSentinelConfig,
-		providerName,
-	}
+	return name, provider, serializer, err
 }

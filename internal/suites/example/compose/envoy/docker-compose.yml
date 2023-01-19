@@ -1,0 +1,12 @@
+---
+version: '3'
+services:
+  envoy:
+    image: envoyproxy/envoy:v1.25.0
+    volumes:
+      - ./example/compose/envoy/envoy.yaml:/etc/envoy/envoy.yaml
+      - ./example/compose/nginx/portal/ssl:/etc/ssl
+    networks:
+      authelianet:
+        ipv4_address: 192.168.240.100
+...

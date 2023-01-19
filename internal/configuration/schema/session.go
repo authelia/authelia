@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"crypto/tls"
+	"net/url"
 	"time"
 )
 
@@ -35,22 +37,47 @@ type RedisSessionConfiguration struct {
 
 // SessionConfiguration represents the configuration related to user sessions.
 type SessionConfiguration struct {
-	Name               string        `koanf:"name"`
-	Domain             string        `koanf:"domain"`
-	SameSite           string        `koanf:"same_site"`
-	Secret             string        `koanf:"secret"`
-	Expiration         time.Duration `koanf:"expiration"`
-	Inactivity         time.Duration `koanf:"inactivity"`
-	RememberMeDuration time.Duration `koanf:"remember_me_duration"`
+	Secret string `koanf:"secret"`
+
+	SessionCookieCommonConfiguration `koanf:",squash"`
+
+	Cookies []SessionCookieConfiguration `koanf:"cookies"`
 
 	Redis *RedisSessionConfiguration `koanf:"redis"`
 }
 
+type SessionCookieCommonConfiguration struct {
+	Name       string        `koanf:"name"`
+	Domain     string        `koanf:"domain"`
+	SameSite   string        `koanf:"same_site"`
+	Expiration time.Duration `koanf:"expiration"`
+	Inactivity time.Duration `koanf:"inactivity"`
+	RememberMe time.Duration `koanf:"remember_me"`
+
+	DisableRememberMe bool
+}
+
+// SessionCookieConfiguration represents the configuration for a cookie domain.
+type SessionCookieConfiguration struct {
+	SessionCookieCommonConfiguration `koanf:",squash"`
+
+	AutheliaURL *url.URL `koanf:"authelia_url"`
+}
+
 // DefaultSessionConfiguration is the default session configuration.
 var DefaultSessionConfiguration = SessionConfiguration{
-	Name:               "authelia_session",
-	Expiration:         time.Hour,
-	Inactivity:         time.Minute * 5,
-	RememberMeDuration: time.Hour * 24 * 30,
-	SameSite:           "lax",
+	SessionCookieCommonConfiguration: SessionCookieCommonConfiguration{
+		Name:       "authelia_session",
+		Expiration: time.Hour,
+		Inactivity: time.Minute * 5,
+		RememberMe: time.Hour * 24 * 30,
+		SameSite:   "lax",
+	},
+}
+
+// DefaultRedisConfiguration is the default redis configuration.
+var DefaultRedisConfiguration = RedisSessionConfiguration{
+	TLS: &TLSConfig{
+		MinimumVersion: TLSVersion{Value: tls.VersionTLS12},
+	},
 }

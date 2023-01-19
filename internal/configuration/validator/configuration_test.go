@@ -18,16 +18,22 @@ func newDefaultConfig() schema.Configuration {
 	config.Log.Level = "info"
 	config.Log.Format = "text"
 	config.JWTSecret = testJWTSecret
-	config.AuthenticationBackend.File = &schema.FileAuthenticationBackendConfiguration{
+	config.AuthenticationBackend.File = &schema.FileAuthenticationBackend{
 		Path: "/a/path",
 	}
 	config.AccessControl = schema.AccessControlConfiguration{
 		DefaultPolicy: "two_factor",
 	}
 	config.Session = schema.SessionConfiguration{
-		Domain: "example.com",
-		Name:   "authelia_session",
 		Secret: "secret",
+		Cookies: []schema.SessionCookieConfiguration{
+			{
+				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+					Name:   "authelia_session",
+					Domain: exampleDotCom,
+				},
+			},
+		},
 	}
 	config.Storage.EncryptionKey = testEncryptionKey
 	config.Storage.Local = &schema.LocalStorageConfiguration{
@@ -48,6 +54,8 @@ func TestShouldEnsureNotifierConfigIsProvided(t *testing.T) {
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 0)
+
+	config = newDefaultConfig()
 
 	config.Notifier.SMTP = nil
 	config.Notifier.FileSystem = nil
@@ -99,7 +107,7 @@ func TestShouldRaiseErrorWithBadDefaultRedirectionURL(t *testing.T) {
 	require.Len(t, validator.Errors(), 1)
 	require.Len(t, validator.Warnings(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "option 'default_redirection_url' is invalid: the url 'bad_default_redirection_url' is not absolute because it doesn't start with a scheme like 'ldap://' or 'ldaps://'")
+	assert.EqualError(t, validator.Errors()[0], "option 'default_redirection_url' is invalid: could not parse 'bad_default_redirection_url' as a URL")
 	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
 }
 
@@ -134,6 +142,8 @@ func TestShouldRaiseErrorOnInvalidCertificatesDirectory(t *testing.T) {
 	}
 
 	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
+
+	config = newDefaultConfig()
 
 	validator = schema.NewStructValidator()
 	config.CertificatesDirectory = "const.go"

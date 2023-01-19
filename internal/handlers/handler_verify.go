@@ -19,14 +19,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func isURLUnderProtectedDomain(url *url.URL, domain string) bool {
-	return strings.HasSuffix(url.Hostname(), domain)
-}
-
-func isSchemeHTTPS(url *url.URL) bool {
-	return url.Scheme == "https"
-}
-
 func isSchemeWSS(url *url.URL) bool {
 	return url.Scheme == "wss"
 }
@@ -54,26 +46,25 @@ func parseBasicAuth(header []byte, auth string) (username, password string, err 
 }
 
 // isTargetURLAuthorized check whether the given user is authorized to access the resource.
-func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.URL,
+func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL *url.URL,
 	username string, userGroups []string, clientIP net.IP, method []byte, authLevel authentication.Level) authorizationMatching {
-	level := authorizer.GetRequiredLevel(
+	hasSubject, level := authorizer.GetRequiredLevel(
 		authorization.Subject{
 			Username: username,
 			Groups:   userGroups,
 			IP:       clientIP,
 		},
-		authorization.NewObjectRaw(&targetURL, method))
+		authorization.NewObjectRaw(targetURL, method))
 
 	switch {
 	case level == authorization.Bypass:
 		return Authorized
-	case level == authorization.Denied && username != "":
+	case level == authorization.Denied && (username != "" || !hasSubject):
 		// If the user is not anonymous, it means that we went through
 		// all the rules related to that user and knowing who he is we can
 		// deduce the access is forbidden
-		// For anonymous users though, we cannot be sure that she
-		// could not be granted the rights to access the resource. Consequently
-		// for anonymous users we send Unauthorized instead of Forbidden.
+		// For anonymous users though, we check that the matched rule has no subject
+		// if matched rule has not subject then this rule applies to all users including anonymous.
 		return Forbidden
 	case level == authorization.OneFactor && authLevel >= authentication.OneFactor,
 		level == authorization.TwoFactor && authLevel >= authentication.TwoFactor:
@@ -129,13 +120,18 @@ func setForwardedHeaders(headers *fasthttp.ResponseHeader, username, name string
 }
 
 func isSessionInactiveTooLong(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, isUserAnonymous bool) (isInactiveTooLong bool) {
-	if userSession.KeepMeLoggedIn || isUserAnonymous || int64(ctx.Providers.SessionProvider.Inactivity.Seconds()) == 0 {
+	domainSession, err := ctx.GetSessionProvider()
+	if err != nil {
 		return false
 	}
 
-	isInactiveTooLong = time.Unix(userSession.LastActivity, 0).Add(ctx.Providers.SessionProvider.Inactivity).Before(ctx.Clock.Now())
+	if userSession.KeepMeLoggedIn || isUserAnonymous || int64(domainSession.Config.Inactivity.Seconds()) == 0 {
+		return false
+	}
 
-	ctx.Logger.Tracef("Inactivity report for user '%s'. Current Time: %d, Last Activity: %d, Maximum Inactivity: %d.", userSession.Username, ctx.Clock.Now().Unix(), userSession.LastActivity, int(ctx.Providers.SessionProvider.Inactivity.Seconds()))
+	isInactiveTooLong = time.Unix(userSession.LastActivity, 0).Add(domainSession.Config.Inactivity).Before(ctx.Clock.Now())
+
+	ctx.Logger.Tracef("Inactivity report for user '%s'. Current Time: %d, Last Activity: %d, Maximum Inactivity: %d.", userSession.Username, ctx.Clock.Now().Unix(), userSession.LastActivity, int(domainSession.Config.Inactivity.Seconds()))
 
 	return isInactiveTooLong
 }
@@ -144,7 +140,7 @@ func isSessionInactiveTooLong(ctx *middlewares.AutheliaCtx, userSession *session
 func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession, refreshProfile bool,
 	refreshProfileInterval time.Duration) (username, name string, groups, emails []string, authLevel authentication.Level, err error) {
 	// No username in the session means the user is anonymous.
-	isUserAnonymous := userSession.Username == ""
+	isUserAnonymous := userSession.IsAnonymous()
 
 	if isUserAnonymous && userSession.AuthenticationLevel != authentication.NotAuthenticated {
 		return "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("an anonymous user cannot be authenticated (this might be the sign of a security compromise)")
@@ -152,7 +148,7 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 
 	if isSessionInactiveTooLong(ctx, userSession, isUserAnonymous) {
 		// Destroy the session a new one will be regenerated on next request.
-		if err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx); err != nil {
+		if err = ctx.DestroySession(); err != nil {
 			return "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("unable to destroy session for user '%s' after the session has been inactive too long: %w", userSession.Username, err)
 		}
 
@@ -163,7 +159,7 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 
 	if err = verifySessionHasUpToDateProfile(ctx, targetURL, userSession, refreshProfile, refreshProfileInterval); err != nil {
 		if err == authentication.ErrUserNotFound {
-			if err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx); err != nil {
+			if err = ctx.DestroySession(); err != nil {
 				ctx.Logger.Errorf("Unable to destroy user session after provider refresh didn't find the user: %v", err)
 			}
 
@@ -178,10 +174,9 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 	return userSession.Username, userSession.DisplayName, userSession.Groups, userSession.Emails, userSession.AuthenticationLevel, nil
 }
 
-func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, isBasicAuth bool, username string, method []byte) {
+func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, cookieDomain string, isBasicAuth bool, username string, method []byte) {
 	var (
 		statusCode            int
-		redirectionURL        string
 		friendlyUsername      string
 		friendlyRequestMethod string
 	)
@@ -201,10 +196,6 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 		return
 	}
 
-	// Kubernetes ingress controller and Traefik use the rd parameter of the verify
-	// endpoint to provide the URL of the login portal. The target URL of the user
-	// is computed from X-Forwarded-* headers or X-Original-URL.
-	rd := string(ctx.QueryArgs().Peek("rd"))
 	rm := string(method)
 
 	switch rm {
@@ -214,17 +205,30 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 		friendlyRequestMethod = rm
 	}
 
-	if rd != "" {
-		switch rm {
-		case "":
-			redirectionURL = fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
-		default:
-			redirectionURL = fmt.Sprintf("%s?rd=%s&rm=%s", rd, url.QueryEscape(targetURL.String()), rm)
+	redirectionURL := ctxGetPortalURL(ctx)
+
+	if redirectionURL != nil {
+		if !utils.IsURISafeRedirection(redirectionURL, cookieDomain) {
+			ctx.Logger.Errorf("Configured Portal URL '%s' does not appear to be able to write cookies for the '%s' domain", redirectionURL, cookieDomain)
+
+			ctx.ReplyUnauthorized()
+
+			return
 		}
+
+		qry := redirectionURL.Query()
+
+		qry.Set(queryArgRD, targetURL.String())
+
+		if rm != "" {
+			qry.Set("rm", rm)
+		}
+
+		redirectionURL.RawQuery = qry.Encode()
 	}
 
 	switch {
-	case ctx.IsXHR() || !ctx.AcceptsMIME("text/html") || rd == "":
+	case ctx.IsXHR() || !ctx.AcceptsMIME("text/html") || redirectionURL == nil:
 		statusCode = fasthttp.StatusUnauthorized
 	default:
 		switch rm {
@@ -235,9 +239,9 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 		}
 	}
 
-	if redirectionURL != "" {
+	if redirectionURL != nil {
 		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode, redirectionURL)
-		ctx.SpecialRedirect(redirectionURL, statusCode)
+		ctx.SpecialRedirect(redirectionURL.String(), statusCode)
 	} else {
 		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode)
 		ctx.ReplyUnauthorized()
@@ -315,7 +319,7 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 	// See https://www.authelia.com/o/threatmodel#potential-future-guarantees
 	ctx.Logger.Tracef("Checking if we need check the authentication backend for an updated profile for %s.", userSession.Username)
 
-	if !refreshProfile || userSession.Username == "" || targetURL == nil {
+	if !refreshProfile || userSession.IsAnonymous() || targetURL == nil {
 		return nil
 	}
 
@@ -366,7 +370,7 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 	return nil
 }
 
-func getProfileRefreshSettings(cfg schema.AuthenticationBackendConfiguration) (refresh bool, refreshInterval time.Duration) {
+func getProfileRefreshSettings(cfg schema.AuthenticationBackend) (refresh bool, refreshInterval time.Duration) {
 	if cfg.LDAP != nil {
 		if cfg.RefreshInterval == schema.ProfileRefreshDisabled {
 			refresh = false
@@ -407,6 +411,7 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 	}
 
 	userSession := ctx.GetSession()
+
 	if username, name, groups, emails, authLevel, err = verifySessionCookie(ctx, targetURL, &userSession, refreshProfile, refreshProfileInterval); err != nil {
 		return isBasicAuth, username, name, groups, emails, authLevel, err
 	}
@@ -415,7 +420,7 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 	if sessionUsername != nil && !strings.EqualFold(string(sessionUsername), username) {
 		ctx.Logger.Warnf("Possible cookie hijack or attempt to bypass security detected destroying the session and sending 401 response")
 
-		if err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx); err != nil {
+		if err = ctx.DestroySession(); err != nil {
 			ctx.Logger.Errorf("Unable to destroy user session after handler could not match them to their %s header: %s", headerSessionUsername, err)
 		}
 
@@ -426,7 +431,7 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 }
 
 // VerifyGET returns the handler verifying if a request is allowed to go through.
-func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.RequestHandler {
+func VerifyGET(cfg schema.AuthenticationBackend) middlewares.RequestHandler {
 	refreshProfile, refreshProfileInterval := getProfileRefreshSettings(cfg)
 
 	return func(ctx *middlewares.AutheliaCtx) {
@@ -440,7 +445,7 @@ func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 			return
 		}
 
-		if !isSchemeHTTPS(targetURL) && !isSchemeWSS(targetURL) {
+		if !utils.IsURISecure(targetURL) {
 			ctx.Logger.Errorf("Scheme of target URL %s must be secure since cookies are "+
 				"only transported over a secure connection for security reasons", targetURL.String())
 			ctx.ReplyUnauthorized()
@@ -448,13 +453,31 @@ func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 			return
 		}
 
-		if !isURLUnderProtectedDomain(targetURL, ctx.Configuration.Session.Domain) {
-			ctx.Logger.Errorf("Target URL %s is not under the protected domain %s",
-				targetURL.String(), ctx.Configuration.Session.Domain)
+		cookieDomain := ctx.GetTargetURICookieDomain(targetURL)
+
+		if cookieDomain == "" {
+			l := len(ctx.Configuration.Session.Cookies)
+
+			if l == 1 {
+				ctx.Logger.Errorf("Target URL '%s' was not detected as a match to the '%s' session cookie domain",
+					targetURL.String(), ctx.Configuration.Session.Cookies[0].Domain)
+			} else {
+				domains := make([]string, 0, len(ctx.Configuration.Session.Cookies))
+
+				for i, domain := range ctx.Configuration.Session.Cookies {
+					domains[i] = domain.Domain
+				}
+
+				ctx.Logger.Errorf("Target URL '%s' was not detected as a match to any of the '%s' session cookie domains",
+					targetURL.String(), strings.Join(domains, "', '"))
+			}
+
 			ctx.ReplyUnauthorized()
 
 			return
 		}
+
+		ctx.Logger.Debugf("Target URL '%s' was detected as a match to the '%s' session cookie domain", targetURL.String(), cookieDomain)
 
 		method := ctx.XForwardedMethod()
 		isBasicAuth, username, name, groups, emails, authLevel, err := verifyAuth(ctx, targetURL, refreshProfile, refreshProfileInterval)
@@ -467,12 +490,12 @@ func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 				return
 			}
 
-			handleUnauthorized(ctx, targetURL, isBasicAuth, username, method)
+			handleUnauthorized(ctx, targetURL, cookieDomain, isBasicAuth, username, method)
 
 			return
 		}
 
-		authorized := isTargetURLAuthorized(ctx.Providers.Authorizer, *targetURL, username,
+		authorized := isTargetURLAuthorized(ctx.Providers.Authorizer, targetURL, username,
 			groups, ctx.RemoteIP(), method, authLevel)
 
 		switch authorized {
@@ -480,7 +503,7 @@ func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 			ctx.Logger.Infof("Access to %s is forbidden to user %s", targetURL.String(), username)
 			ctx.ReplyForbidden()
 		case NotAuthorized:
-			handleUnauthorized(ctx, targetURL, isBasicAuth, username, method)
+			handleUnauthorized(ctx, targetURL, cookieDomain, isBasicAuth, username, method)
 		case Authorized:
 			setForwardedHeaders(&ctx.Response.Header, username, name, groups, emails)
 		}

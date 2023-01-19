@@ -16,15 +16,22 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.36.1](https://github.com/authelia/authelia/releases/tag/v4.36.1)
+  * [v4.36.3](https://github.com/authelia/authelia/releases/tag/v4.36.3)
 * [Gitea]
-  * [1.16.5](https://github.com/go-gitea/gitea/releases/tag/v1.16.5)
+  * [1.17.0](https://github.com/go-gitea/gitea/releases/tag/v1.17.0)
 
 ## Before You Begin
 
-You are required to utilize a unique client id and a unique and random client secret for all [OpenID Connect] relying
-parties. You should not use the client secret in this example, you should randomly generate one yourself. You may also
-choose to utilize a different client id, it's completely up to you.
+### Common Notes
+
+1. You are *__required__* to utilize a unique client id for every client.
+2. The client id on this page is merely an example and you can theoretically use any alphanumeric string.
+3. You *__should not__* use the client secret in this example, We *__strongly recommend__* reading the
+   [Generating Client Secrets] guide instead.
+
+[Generating Client Secrets]: ../specific-information.md#generating-client-secrets
+
+### Assumptions
 
 This example makes the following assumptions:
 
@@ -52,6 +59,24 @@ To configure [Gitea] to utilize Authelia as an [OpenID Connect] Provider:
 
 {{< figure src="gitea.png" alt="Gitea" width="300" >}}
 
+To configure [Gitea] to perform automatic user creation for the `auth.example.com` domain via [OpenID Connect]:
+
+1. Edit the following values in the [Gitea] `app.ini`:
+```ini
+[openid]
+ENABLE_OPENID_SIGNIN = false
+ENABLE_OPENID_SIGNUP = true
+WHITELISTED_URIS     = auth.example.com
+
+[service]
+DISABLE_REGISTRATION                          = false
+ALLOW_ONLY_EXTERNAL_REGISTRATION              = true
+SHOW_REGISTRATION_BUTTON                      = false
+```
+
+Take a look at the [See Also](#see-also) section for the cheatsheets corresponding to the sections above for their
+descriptions.
+
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
@@ -60,18 +85,24 @@ will operate with the above example:
 
 ```yaml
 - id: gitea
-  secret: gitea_client_secret
+  description: Gitea
+  secret: '$plaintext$gitea_client_secret'
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://gitea.example.com/user/oauth2/authelia/callback
   scopes:
     - openid
     - email
     - profile
-  redirect_uris:
-    - https://gitea.example.com
   userinfo_signing_algorithm: none
 ```
 
-[Authelia]: https://www.authelia.com
+## See Also
+
+- [Gitea] app.ini [Config Cheat Sheet - OpenID](https://docs.gitea.io/en-us/config-cheat-sheet/#openid-openid)
+- [Gitea] app.ini [Config Cheat Sheet - Service](https://docs.gitea.io/en-us/config-cheat-sheet/#service-service)
+
+- [Authelia]: https://www.authelia.com
 [Gitea]: https://gitea.io/
 [OpenID Connect]: ../../openid-connect/introduction.md

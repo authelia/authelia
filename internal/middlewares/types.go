@@ -11,6 +11,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/notification"
 	"github.com/authelia/authelia/v4/internal/ntp"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -35,7 +36,7 @@ type Providers struct {
 	Authorizer      *authorization.Authorizer
 	SessionProvider *session.Provider
 	Regulator       *regulation.Regulator
-	OpenIDConnect   oidc.OpenIDConnectProvider
+	OpenIDConnect   *oidc.OpenIDConnectProvider
 	Metrics         metrics.Provider
 	NTP             *ntp.Provider
 	UserProvider    authentication.UserProvider
@@ -44,6 +45,7 @@ type Providers struct {
 	Templates       *templates.Provider
 	TOTP            totp.Provider
 	PasswordPolicy  PasswordPolicyProvider
+	Random          random.Provider
 }
 
 // RequestHandler represents an Authelia request handler.
@@ -108,8 +110,8 @@ type IdentityVerificationFinishBody struct {
 
 // OKResponse model of a status OK response.
 type OKResponse struct {
-	Status string      `json:"status"`
-	Data   interface{} `json:"data,omitempty"`
+	Status string `json:"status"`
+	Data   any    `json:"data,omitempty"`
 }
 
 // ErrorResponse model of an error response.

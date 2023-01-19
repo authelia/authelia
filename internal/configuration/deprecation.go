@@ -10,7 +10,7 @@ type Deprecation struct {
 	Key     string
 	NewKey  string
 	AutoMap bool
-	MapFunc func(value interface{}) interface{}
+	MapFunc func(value any) any
 	ErrText string
 }
 
@@ -106,10 +106,38 @@ var deprecations = map[string]Deprecation{
 		AutoMap: true,
 		MapFunc: nil,
 	},
+	"storage.postgres.sslmode": {
+		Version: model.SemanticVersion{Major: 4, Minor: 36},
+		Key:     "storage.postgres.sslmode",
+		NewKey:  "storage.postgres.ssl.mode",
+		AutoMap: true,
+		MapFunc: nil,
+	},
 	"authentication_backend.disable_reset_password": {
 		Version: model.SemanticVersion{Major: 4, Minor: 36},
 		Key:     "authentication_backend.disable_reset_password",
 		NewKey:  "authentication_backend.password_reset.disable",
+		AutoMap: true,
+		MapFunc: nil,
+	},
+	"server.read_buffer_size": {
+		Version: model.SemanticVersion{Major: 4, Minor: 36},
+		Key:     "server.read_buffer_size",
+		NewKey:  "server.buffers.read",
+		AutoMap: true,
+		MapFunc: nil,
+	},
+	"server.write_buffer_size": {
+		Version: model.SemanticVersion{Major: 4, Minor: 36},
+		Key:     "server.write_buffer_size",
+		NewKey:  "server.buffers.write",
+		AutoMap: true,
+		MapFunc: nil,
+	},
+	"session.remember_me_duration": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "session.remember_me_duration",
+		NewKey:  "session.remember_me",
 		AutoMap: true,
 		MapFunc: nil,
 	},

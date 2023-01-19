@@ -1,7 +1,10 @@
 package oidc
 
 import (
+	"fmt"
+
 	"github.com/ory/fosite"
+	"github.com/ory/x/errorsx"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -14,9 +17,13 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 	client = &Client{
 		ID:               config.ID,
 		Description:      config.Description,
-		Secret:           []byte(config.Secret),
+		Secret:           config.Secret,
 		SectorIdentifier: config.SectorIdentifier.String(),
 		Public:           config.Public,
+
+		EnforcePKCE:                config.EnforcePKCE || config.PKCEChallengeMethod != "",
+		EnforcePKCEChallengeMethod: config.PKCEChallengeMethod != "",
+		PKCEChallengeMethod:        config.PKCEChallengeMethod,
 
 		Audience:      config.Audience,
 		Scopes:        config.Scopes,
@@ -27,9 +34,9 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 
 		UserinfoSigningAlgorithm: config.UserinfoSigningAlgorithm,
 
-		Policy: authorization.StringToLevel(config.Policy),
+		Policy: authorization.NewLevel(config.Policy),
 
-		PreConfiguredConsentDuration: config.PreConfiguredConsentDuration,
+		Consent: NewClientConsent(config.ConsentMode, config.ConsentPreConfiguredDuration),
 	}
 
 	for _, mode := range config.ResponseModes {
@@ -39,27 +46,49 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 	return client
 }
 
+// ValidateAuthorizationPolicy is a helper function to validate additional policy constraints on a per-client basis.
+func (c *Client) ValidateAuthorizationPolicy(r fosite.Requester) (err error) {
+	form := r.GetRequestForm()
+
+	if c.EnforcePKCE {
+		if form.Get("code_challenge") == "" {
+			return errorsx.WithStack(fosite.ErrInvalidRequest.
+				WithHint("Clients must include a code_challenge when performing the authorize code flow, but it is missing.").
+				WithDebug("The server is configured in a way that enforces PKCE for this client."))
+		}
+
+		if c.EnforcePKCEChallengeMethod {
+			if method := form.Get("code_challenge_method"); method != c.PKCEChallengeMethod {
+				return errorsx.WithStack(fosite.ErrInvalidRequest.
+					WithHint(fmt.Sprintf("Client must use code_challenge_method=%s, %s is not allowed.", c.PKCEChallengeMethod, method)).
+					WithDebug(fmt.Sprintf("The server is configured in a way that enforces PKCE %s as challenge method for this client.", c.PKCEChallengeMethod)))
+			}
+		}
+	}
+
+	return nil
+}
+
 // IsAuthenticationLevelSufficient returns if the provided authentication.Level is sufficient for the client of the AutheliaClient.
-func (c Client) IsAuthenticationLevelSufficient(level authentication.Level) bool {
+func (c *Client) IsAuthenticationLevelSufficient(level authentication.Level) bool {
+	if level == authentication.NotAuthenticated {
+		return false
+	}
+
 	return authorization.IsAuthLevelSufficient(level, c.Policy)
 }
 
-// GetID returns the ID.
-func (c Client) GetID() string {
-	return c.ID
-}
-
 // GetSectorIdentifier returns the SectorIdentifier for this client.
-func (c Client) GetSectorIdentifier() string {
+func (c *Client) GetSectorIdentifier() string {
 	return c.SectorIdentifier
 }
 
 // GetConsentResponseBody returns the proper consent response body for this session.OIDCWorkflowSession.
-func (c Client) GetConsentResponseBody(consent *model.OAuth2ConsentSession) ConsentGetResponseBody {
+func (c *Client) GetConsentResponseBody(consent *model.OAuth2ConsentSession) ConsentGetResponseBody {
 	body := ConsentGetResponseBody{
 		ClientID:          c.ID,
 		ClientDescription: c.Description,
-		PreConfiguration:  c.PreConfiguredConsentDuration != nil,
+		PreConfiguration:  c.Consent.Mode == ClientConsentModePreConfigured,
 	}
 
 	if consent != nil {
@@ -70,18 +99,27 @@ func (c Client) GetConsentResponseBody(consent *model.OAuth2ConsentSession) Cons
 	return body
 }
 
+// GetID returns the ID.
+func (c *Client) GetID() string {
+	return c.ID
+}
+
 // GetHashedSecret returns the Secret.
-func (c Client) GetHashedSecret() []byte {
-	return c.Secret
+func (c *Client) GetHashedSecret() []byte {
+	if c.Secret == nil {
+		return []byte(nil)
+	}
+
+	return []byte(c.Secret.Encode())
 }
 
 // GetRedirectURIs returns the RedirectURIs.
-func (c Client) GetRedirectURIs() []string {
+func (c *Client) GetRedirectURIs() []string {
 	return c.RedirectURIs
 }
 
 // GetGrantTypes returns the GrantTypes.
-func (c Client) GetGrantTypes() fosite.Arguments {
+func (c *Client) GetGrantTypes() fosite.Arguments {
 	if len(c.GrantTypes) == 0 {
 		return fosite.Arguments{"authorization_code"}
 	}
@@ -90,7 +128,7 @@ func (c Client) GetGrantTypes() fosite.Arguments {
 }
 
 // GetResponseTypes returns the ResponseTypes.
-func (c Client) GetResponseTypes() fosite.Arguments {
+func (c *Client) GetResponseTypes() fosite.Arguments {
 	if len(c.ResponseTypes) == 0 {
 		return fosite.Arguments{"code"}
 	}
@@ -99,23 +137,23 @@ func (c Client) GetResponseTypes() fosite.Arguments {
 }
 
 // GetScopes returns the Scopes.
-func (c Client) GetScopes() fosite.Arguments {
+func (c *Client) GetScopes() fosite.Arguments {
 	return c.Scopes
 }
 
 // IsPublic returns the value of the Public property.
-func (c Client) IsPublic() bool {
+func (c *Client) IsPublic() bool {
 	return c.Public
 }
 
 // GetAudience returns the Audience.
-func (c Client) GetAudience() fosite.Arguments {
+func (c *Client) GetAudience() fosite.Arguments {
 	return c.Audience
 }
 
 // GetResponseModes returns the valid response modes for this client.
 //
 // Implements the fosite.ResponseModeClient.
-func (c Client) GetResponseModes() []fosite.ResponseModeType {
+func (c *Client) GetResponseModes() []fosite.ResponseModeType {
 	return c.ResponseModes
 }

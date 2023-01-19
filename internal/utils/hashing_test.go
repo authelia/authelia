@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/authelia/authelia/v4/internal/random"
 )
 
 func TestShouldHashString(t *testing.T) {
@@ -22,7 +24,7 @@ func TestShouldHashString(t *testing.T) {
 	assert.Equal(t, "ae448ac86c4e8e4dec645729708ef41873ae79c6dff84eff73360989487f08e5", anotherSum)
 	assert.NotEqual(t, sum, anotherSum)
 
-	randomInput := RandomString(40, AlphaNumericCharacters, false)
+	randomInput := r.StringCustom(40, random.CharSetAlphaNumeric)
 	randomSum := HashSHA256FromString(randomInput)
 
 	assert.NotEqual(t, randomSum, sum)
@@ -30,16 +32,15 @@ func TestShouldHashString(t *testing.T) {
 }
 
 func TestShouldHashPath(t *testing.T) {
-	dir, err := os.MkdirTemp("", "authelia-hashing")
-	assert.NoError(t, err)
+	dir := t.TempDir()
 
-	err = os.WriteFile(filepath.Join(dir, "myfile"), []byte("output\n"), 0600)
+	err := os.WriteFile(filepath.Join(dir, "myfile"), []byte("output\n"), 0600)
 	assert.NoError(t, err)
 
 	err = os.WriteFile(filepath.Join(dir, "anotherfile"), []byte("another\n"), 0600)
 	assert.NoError(t, err)
 
-	err = os.WriteFile(filepath.Join(dir, "randomfile"), []byte(RandomString(40, AlphaNumericCharacters, true)+"\n"), 0600)
+	err = os.WriteFile(filepath.Join(dir, "randomfile"), []byte(r.StringCustom(40, random.CharSetAlphaNumeric)+"\n"), 0600)
 	assert.NoError(t, err)
 
 	sum, err := HashSHA256FromPath(filepath.Join(dir, "myfile"))

@@ -16,6 +16,14 @@ type RegexpGroupStringSubjectMatcher struct {
 
 // IsMatch returns true if the underlying pattern matches the input given the subject.
 func (r RegexpGroupStringSubjectMatcher) IsMatch(input string, subject Subject) (match bool) {
+	if !r.Pattern.MatchString(input) {
+		return false
+	}
+
+	if subject.IsAnonymous() {
+		return true
+	}
+
 	matches := r.Pattern.FindAllStringSubmatch(input, -1)
 	if matches == nil {
 		return false

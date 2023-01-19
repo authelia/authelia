@@ -2,20 +2,19 @@ package suites
 
 import (
 	"testing"
-	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/stretchr/testify/require"
 )
 
 func (rs *RodSession) doInitiatePasswordReset(t *testing.T, page *rod.Page, username string) {
-	err := rs.WaitElementLocatedByID(t, page, "reset-password-button").Click("left")
+	err := rs.WaitElementLocatedByID(t, page, "reset-password-button").Click("left", 1)
 	require.NoError(t, err)
 	// Fill in username.
 	err = rs.WaitElementLocatedByID(t, page, "username-textfield").Input(username)
 	require.NoError(t, err)
 	// And click on the reset button.
-	err = rs.WaitElementLocatedByID(t, page, "reset-button").Click("left")
+	err = rs.WaitElementLocatedByID(t, page, "reset-button").Click("left", 1)
 	require.NoError(t, err)
 }
 
@@ -23,17 +22,26 @@ func (rs *RodSession) doCompletePasswordReset(t *testing.T, page *rod.Page, newP
 	link := doGetLinkFromLastMail(t)
 	rs.doVisit(t, page, link)
 
-	time.Sleep(1 * time.Second)
+	password1 := rs.WaitElementLocatedByID(t, page, "password1-textfield")
+	password2 := rs.WaitElementLocatedByID(t, page, "password2-textfield")
 
-	err := rs.WaitElementLocatedByID(t, page, "password1-textfield").Input(newPassword1)
+password1:
+	err := password1.MustSelectAllText().Input(newPassword1)
 	require.NoError(t, err)
 
-	time.Sleep(1 * time.Second)
+	if password1.MustText() != newPassword1 {
+		goto password1
+	}
 
-	err = rs.WaitElementLocatedByID(t, page, "password2-textfield").Input(newPassword2)
+password2:
+	err = password2.MustSelectAllText().Input(newPassword2)
 	require.NoError(t, err)
 
-	err = rs.WaitElementLocatedByID(t, page, "reset-button").Click("left")
+	if password2.MustText() != newPassword2 {
+		goto password2
+	}
+
+	err = rs.WaitElementLocatedByID(t, page, "reset-button").Click("left", 1)
 	require.NoError(t, err)
 }
 

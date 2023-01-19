@@ -22,7 +22,7 @@ describes the implementation of this. You can use this implementation in various
 * session:
   * expiration
   * inactivity
-  * remember_me_duration
+  * remember_me
 * regulation:
   * ban_time
   * find_time
@@ -123,13 +123,85 @@ require an IP address for the host of the backend service but want to verify a s
 
 The key `skip_verify` completely negates validating the certificate of the backend service. This is not recommended,
 instead you should tweak the `server_name` option, and the global option
-[certificates directory](../miscellaneous/introduction.md#certificates_directory).
+[certificates directory](../miscellaneous/introduction.md#certificatesdirectory).
 
 ### minimum_version
 
 {{< confkey type="string" default="TLS1.2" required="no" >}}
 
-The key `minimum_version` controls the minimum TLS version Authelia will use when opening TLS connections.
-The possible values are `TLS1.3`, `TLS1.2`, `TLS1.1`, `TLS1.0`. Anything other than `TLS1.3` or `TLS1.2`
+Controls the minimum TLS version Authelia will use when performing TLS handshakes.
+The possible values are `TLS1.3`, `TLS1.2`, `TLS1.1`, `TLS1.0`, `SSL3.0`. Anything other than `TLS1.3` or `TLS1.2`
 are very old and deprecated. You should avoid using these and upgrade your backend service instead of decreasing
-this value.
+this value. At the time of this writing `SSL3.0` will always produce errors.
+
+### maximum_version
+
+{{< confkey type="string" default="TLS1.3" required="no" >}}
+
+Controls the maximum TLS version Authelia will use when performing TLS handshakes.
+The possible values are `TLS1.3`, `TLS1.2`, `TLS1.1`, `TLS1.0`, `SSL3.0`. Anything other than `TLS1.3` or `TLS1.2`
+are very old and deprecated. You should avoid using these and upgrade your backend service instead of decreasing
+this value. At the time of this writing `SSL3.0` will always produce errors.
+
+### certificate_chain
+
+{{< confkey type="string" required="no" >}}
+
+The certificate chain/bundle to be used with the [private_key](#privatekey) to perform mutual TLS authentication with
+the server.
+
+The value must be one or more certificates encoded in the DER base64 ([RFC4648]) encoded PEM format.
+
+### private_key
+
+{{< confkey type="string" required="yes" >}}
+
+*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
+especially for containerized deployments.*
+
+The private key to be used with the [certificate_chain](#certificatechain) for mutual TLS authentication.
+
+The value must be one private key encoded in the DER base64 ([RFC4648]) encoded PEM format.
+
+## Server Buffers
+
+### read
+
+{{< confkey type="integer" default="4096" required="no" >}}
+
+Configures the maximum request size. The default of 4096 is generally sufficient for most use cases.
+
+### write
+
+{{< confkey type="integer" default="4096" required="no" >}}
+
+Configures the maximum response size. The default of 4096 is generally sufficient for most use cases.
+
+## Server Timeouts
+
+### read
+
+{{< confkey type="duration" default="6s" required="no" >}}
+
+*__Note:__ This setting uses the [duration notation format](#duration-notation-format). Please see the
+[common options](#duration-notation-format) documentation for information on this format.*
+
+Configures the server read timeout.
+
+### write
+
+{{< confkey type="duration" default="6s" required="no" >}}
+
+*__Note:__ This setting uses the [duration notation format](#duration-notation-format). Please see the
+[common options](#duration-notation-format) documentation for information on this format.*
+
+Configures the server write timeout.
+
+### idle
+
+{{< confkey type="duration" default="30s" required="no" >}}
+
+*__Note:__ This setting uses the [duration notation format](#duration-notation-format). Please see the
+[common options](#duration-notation-format) documentation for information on this format.*
+
+Configures the server write timeout.

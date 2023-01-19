@@ -20,6 +20,8 @@ func newBootstrapCmd() (cmd *cobra.Command) {
 		Example: cmdBootstrapExample,
 		Args:    cobra.NoArgs,
 		Run:     cmdBootstrapRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd
@@ -51,7 +53,11 @@ func cmdBootstrapRun(_ *cobra.Command, _ []string) {
 	}
 
 	createTemporaryDirectory()
-	createPNPMDirectory()
+
+	if os.Getenv("CI") != "true" {
+		createPNPMDirectory()
+		pnpmInstall()
+	}
 
 	bootstrapPrintln("Preparing /etc/hosts to serve subdomains of example.com...")
 	prepareHostsFile()
@@ -81,11 +87,18 @@ var hostEntries = []HostEntry{
 	{Domain: "mail.example.com", IP: "192.168.240.100"},
 	{Domain: "duo.example.com", IP: "192.168.240.100"},
 
-	// For Traefik suite.
-	{Domain: "traefik.example.com", IP: "192.168.240.100"},
-
 	// For HAProxy suite.
 	{Domain: "haproxy.example.com", IP: "192.168.240.100"},
+
+	// Kubernetes dashboard.
+	{Domain: "kubernetes.example.com", IP: "192.168.240.100"},
+
+	// OIDC tester app.
+	{Domain: "oidc.example.com", IP: "192.168.240.100"},
+	{Domain: "oidc-public.example.com", IP: "192.168.240.100"},
+
+	// For Traefik suite.
+	{Domain: "traefik.example.com", IP: "192.168.240.100"},
 
 	// For testing network ACLs.
 	{Domain: "proxy-client1.example.com", IP: "192.168.240.201"},
@@ -102,11 +115,29 @@ var hostEntries = []HostEntry{
 	{Domain: "redis-sentinel-1.example.com", IP: "192.168.240.121"},
 	{Domain: "redis-sentinel-2.example.com", IP: "192.168.240.122"},
 
-	// Kubernetes dashboard.
-	{Domain: "kubernetes.example.com", IP: "192.168.240.110"},
-	// OIDC tester app.
-	{Domain: "oidc.example.com", IP: "192.168.240.100"},
-	{Domain: "oidc-public.example.com", IP: "192.168.240.100"},
+	// For multi cookie domain tests.
+	{Domain: "login.example2.com", IP: "192.168.240.100"},
+	{Domain: "admin.example2.com", IP: "192.168.240.100"},
+	{Domain: "singlefactor.example2.com", IP: "192.168.240.100"},
+	{Domain: "dev.example2.com", IP: "192.168.240.100"},
+	{Domain: "home.example2.com", IP: "192.168.240.100"},
+	{Domain: "mx1.mail.example2.com", IP: "192.168.240.100"},
+	{Domain: "mx2.mail.example2.com", IP: "192.168.240.100"},
+	{Domain: "public.example2.com", IP: "192.168.240.100"},
+	{Domain: "secure.example2.com", IP: "192.168.240.100"},
+	{Domain: "mail.example2.com", IP: "192.168.240.100"},
+	{Domain: "duo.example2.com", IP: "192.168.240.100"},
+	{Domain: "login.example3.com", IP: "192.168.240.100"},
+	{Domain: "admin.example3.com", IP: "192.168.240.100"},
+	{Domain: "singlefactor.example3.com", IP: "192.168.240.100"},
+	{Domain: "dev.example3.com", IP: "192.168.240.100"},
+	{Domain: "home.example3.com", IP: "192.168.240.100"},
+	{Domain: "mx1.mail.example3.com", IP: "192.168.240.100"},
+	{Domain: "mx2.mail.example3.com", IP: "192.168.240.100"},
+	{Domain: "public.example3.com", IP: "192.168.240.100"},
+	{Domain: "secure.example3.com", IP: "192.168.240.100"},
+	{Domain: "mail.example3.com", IP: "192.168.240.100"},
+	{Domain: "duo.example3.com", IP: "192.168.240.100"},
 }
 
 func runCommand(cmd string, args ...string) {
@@ -145,8 +176,8 @@ func createTemporaryDirectory() {
 func createPNPMDirectory() {
 	home := os.Getenv("HOME")
 	if home != "" {
-		bootstrapPrintln("Creating ", home+"/.pnpm-store")
-		err := os.MkdirAll(home+"/.pnpm-store", 0755)
+		bootstrapPrintln("Creating ", home+"/.local/share/pnpm/store")
+		err := os.MkdirAll(home+"/.local/share/pnpm/store", 0755)
 
 		if err != nil {
 			panic(err)
@@ -154,8 +185,19 @@ func createPNPMDirectory() {
 	}
 }
 
-func bootstrapPrintln(args ...interface{}) {
-	a := make([]interface{}, 0)
+func pnpmInstall() {
+	bootstrapPrintln("Installing web dependencies ")
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	shell(fmt.Sprintf("cd %s/web && pnpm install", cwd))
+}
+
+func bootstrapPrintln(args ...any) {
+	a := make([]any, 0)
 	a = append(a, "[BOOTSTRAP]")
 	a = append(a, args...)
 	fmt.Println(a...)

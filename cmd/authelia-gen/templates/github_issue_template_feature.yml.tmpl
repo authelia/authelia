@@ -1,0 +1,57 @@
+---
+name: Feature Request
+description: Submit a Feature Request
+labels:
+{{- range .Labels }}
+  - {{ . }}
+{{- end }}
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this feature request. A feature request is created as issue for the purpose of tracking the design and implementation of a feature.
+
+        Please review the following requirements before submitting this issue type:
+
+        1. Ensure there are no other similar feature requests.
+        2. Make sure you've checked the [Documentation](https://www.authelia.com) doesn't clearly document the features existence already.
+        3. Consider creating an [Idea Discussion](https://github.com/authelia/authelia/discussions/new?category=ideas) which can be voted on instead if one doesn't exist.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the feature
+    validations:
+      required: true
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Provide a use case
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Describe the feature in detail
+    validations:
+      required: false
+  - type: textarea
+    id: documentation
+    attributes:
+      label: Documentation
+      description: Provide any relevant specification or other documentation if applicable
+    validations:
+      required: false
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-Submission Checklist
+      description: By submitting this issue confirm all of the following
+      options:
+        - label: I agree to follow the [Code of Conduct](http://www.authelia.com/code-of-conduct)
+          required: true
+        - label: I have checked for related issues and checked the documentation
+          required: true
+...

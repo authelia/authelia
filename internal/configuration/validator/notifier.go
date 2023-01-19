@@ -83,10 +83,20 @@ func validateSMTPNotifier(config *schema.SMTPNotifierConfiguration, validator *s
 	}
 
 	if config.TLS == nil {
-		config.TLS = schema.DefaultSMTPNotifierConfiguration.TLS
+		config.TLS = &schema.TLSConfig{}
 	}
 
-	if config.TLS.ServerName == "" {
-		config.TLS.ServerName = config.Host
+	configDefaultTLS := &schema.TLSConfig{
+		ServerName:     config.Host,
+		MinimumVersion: schema.DefaultSMTPNotifierConfiguration.TLS.MinimumVersion,
+		MaximumVersion: schema.DefaultSMTPNotifierConfiguration.TLS.MaximumVersion,
+	}
+
+	if err := ValidateTLSConfig(config.TLS, configDefaultTLS); err != nil {
+		validator.Push(fmt.Errorf(errFmtNotifierSMTPTLSConfigInvalid, err))
+	}
+
+	if config.DisableStartTLS {
+		validator.PushWarning(fmt.Errorf(errFmtNotifierStartTlsDisabled))
 	}
 }

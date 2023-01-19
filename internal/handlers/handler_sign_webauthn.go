@@ -41,10 +41,10 @@ func WebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 		webauthn.WithAllowedCredentials(user.WebAuthnCredentialDescriptors()),
 	}
 
-	extensions := make(map[string]interface{})
+	extensions := map[string]any{}
 
 	if user.HasFIDOU2F() {
-		extensions["appid"] = w.Config.RPOrigin
+		extensions["appid"] = w.Config.RPOrigins[0]
 	}
 
 	if len(extensions) != 0 {
@@ -84,7 +84,7 @@ func WebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		err error
 		w   *webauthn.WebAuthn
 
-		bodyJSON signWebauthnRequestBody
+		bodyJSON bodySignWebauthnRequest
 	)
 
 	if err = ctx.ParseBody(&bodyJSON); err != nil {
@@ -171,7 +171,7 @@ func WebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx); err != nil {
+	if err = ctx.RegenerateSession(); err != nil {
 		ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
@@ -198,7 +198,7 @@ func WebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if bodyJSON.Workflow == workflowOpenIDConnect {
-		handleOIDCWorkflowResponse(ctx, bodyJSON.TargetURL)
+		handleOIDCWorkflowResponse(ctx, bodyJSON.TargetURL, bodyJSON.WorkflowID)
 	} else {
 		Handle2FAResponse(ctx, bodyJSON.TargetURL)
 	}

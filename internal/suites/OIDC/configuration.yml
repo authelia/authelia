@@ -16,10 +16,13 @@ authentication_backend:
 
 session:
   secret: unsecure_session_secret
-  domain: example.com
-  expiration: 3600  # 1 hour
-  inactivity: 300  # 5 minutes
-  remember_me_duration: 1y
+
+  cookies:
+    - domain: example.com
+      expiration: 3600  # 1 hour
+      inactivity: 300  # 5 minutes
+      remember_me: 1y
+
   # We use redis here to keep the users authenticated when Authelia restarts
   # It eases development.
   redis:
@@ -60,33 +63,71 @@ identity_providers:
   oidc:
     enable_client_debug_messages: true
     hmac_secret: IVPWBkAdJHje3uz7LtFTDU2pFUfh39Xm
+    issuer_certificate_chain: |
+      -----BEGIN CERTIFICATE-----
+      MIIC6DCCAdCgAwIBAgIRAIxvm0gFgsbh3D22rSZLuFQwDQYJKoZIhvcNAQELBQAw
+      EzERMA8GA1UEChMIQXV0aGVsaWEwIBcNMjIxMDAyMDAzMDQyWhgPMjEyMjA5MDgw
+      MDMwNDJaMBMxETAPBgNVBAoTCEF1dGhlbGlhMIIBIjANBgkqhkiG9w0BAQEFAAOC
+      AQ8AMIIBCgKCAQEAy71EOkV3jOpVQtVTH5HYcI4PryUCiAEyxAIuO+66gaAa4aCd
+      UCRr8iO/pt5nOwPxjPo+hMHhkcKpX7evj+wgYXAccpIQFSCYWTJkaXFL0jL7yFuE
+      5xpjgRM/x6FfK0IbN5WmVWO9EjesbyMCyDoYpjwzIrxnB70F9Y0nrXst1SnW/Sy0
+      01BQZNzD1tky1KDvEkw7L5mMPZFZMr5wV+ELvbo1LLvvrGYhhzbXWk7pPbxT0gAa
+      7yVvQbDKuCDqssAUyQa2JdlDaQocpldtK6l+dc3IsSWKd2UMouta75ngr9E1igy3
+      t7owMRqH8NjwKHt6KQeDVSdBnWNjG572vaRimQIDAQABozUwMzAOBgNVHQ8BAf8E
+      BAMCBaAwEwYDVR0lBAwwCgYIKwYBBQUHAwEwDAYDVR0TAQH/BAIwADANBgkqhkiG
+      9w0BAQsFAAOCAQEAaZJ09yGa+DGr/iTqshGdPKNCtcf/CXCkL52xiI7DzLxDt30P
+      8vCuXXrrTGBY7eWYupcNy/MyqaUrz1ED+map3nQzZQBJ9vWIfr01B9phkg/WSaNJ
+      1DlYtbPYzr86BlGP1V5d3Wv6JqF3tkWHI0kI38CT68fWdDKrfa5j3JdZGIVJW+51
+      U0IE3Nqhfc76YzwQ3sNX5FT2Fr55RowH+l5OBPk0Bcztq58XmyPR/bvPfDASt8iS
+      DBT+0iiDiwk6LvOkasL8p7nuh5Grc9LMEYXY/QMUbkIWhIVRFlqyJA9s8vGHx1D4
+      96iYKudj+yvO17Szzr/NNmcwETbCs4j6P6QeiA==
+      -----END CERTIFICATE-----
+      -----BEGIN CERTIFICATE-----
+      MIIDBTCCAe2gAwIBAgIQAK/NIAl3Bdg4Xk0y/ZGL7jANBgkqhkiG9w0BAQsFADAT
+      MREwDwYDVQQKEwhBdXRoZWxpYTAgFw0yMjEwMDIwMDMwMjFaGA8yMTIyMDkwODAw
+      MzAyMVowEzERMA8GA1UEChMIQXV0aGVsaWEwggEiMA0GCSqGSIb3DQEBAQUAA4IB
+      DwAwggEKAoIBAQCg7jdO1HmydfkPzTtz57pvAS3YOdBT0hlNjJ4N2lrKhNnixrzK
+      +4R1dWQDP2SHbZQ0TskF8eQ8HhTr7AsApotTthJFkUgV2g+bv7wVroz0Hok5xtd4
+      bnpOvG3YUCP13Nk3ZVxdQXqR3/G3MrbyiXVPcgU+0giJ8EBykbtMu8L79/1iyk+m
+      w4fZfzTOeorRgspO3z3+pTAib2MCTA7bby1dX9qI/ysFPLdbJYfNQDxij8SzNLyJ
+      EkQ4kh3jKXf1VcZjbQTtYTZ3JJDqM08OxGMKuXUxPHd72Xlb+Fzql8LjYdEy/YKA
+      3r8FMf14lzcjvxtLnFXh//hiXh4+xgXMkrLZAgMBAAGjUzBRMA4GA1UdDwEB/wQE
+      AwICpDAPBgNVHSUECDAGBgRVHSUAMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYE
+      FGKpXiZA+8VQyMBqTTep+dVTthSbMA0GCSqGSIb3DQEBCwUAA4IBAQAE4DJg+Rb4
+      iiocvxxQ85lhh94ql++E8MKuzIdN7ORs+ybUnsDD1WFDebubroTQuTSBkFrNuGNJ
+      8B7NZsHiWWLvNsrnxxeC5CicqfhSDti0rKWsbGyeoq7Kqok5E4pwOzeRsxL2e/Hm
+      G6LsUQuQMUG2vxKNynqmJS4VpgSVkiGhUfURFuRRDuRpVQ/XTl7jDIGf/ls7TAZq
+      1AnmnSi4Cqy4hrTnwYUYkFCcH69onUKAoaVNl1eAH7ogxakz32WyWObY98NBrjzA
+      I6VQlaQNSHtdFqDpu7NWJZZZSgN4BknbMYQEPNYCm701cPB4ahJbpg5C3pVPFSql
+      Bc9iI6nN3PCr
+      -----END CERTIFICATE-----
     issuer_private_key: |
       -----BEGIN RSA PRIVATE KEY-----
-      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
+      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
       -----END RSA PRIVATE KEY-----
     clients:
       - id: oidc-tester-app

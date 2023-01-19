@@ -18,7 +18,7 @@ func ValidateLog(config *schema.Configuration, validator *schema.StructValidator
 		config.Log.Format = schema.DefaultLoggingConfiguration.Format
 	}
 
-	if !utils.IsStringInSlice(config.Log.Level, validLoLevels) {
-		validator.Push(fmt.Errorf(errFmtLoggingLevelInvalid, strings.Join(validLoLevels, "', '"), config.Log.Level))
+	if !utils.IsStringInSlice(config.Log.Level, validLogLevels) {
+		validator.Push(fmt.Errorf(errFmtLoggingLevelInvalid, strings.Join(validLogLevels, "', '"), config.Log.Level))
 	}
 }

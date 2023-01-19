@@ -3,6 +3,7 @@ package utils
 import (
 	"net/url"
 	"path"
+	"strings"
 )
 
 // URLPathFullClean returns a URL path with the query parameters appended (full path) with the path portion parsed
@@ -26,4 +27,45 @@ func URLPathFullClean(u *url.URL) (output string) {
 	default:
 		return path.Clean(u.Path)
 	}
+}
+
+// IsURISafeRedirection returns true if the URI passes the IsURISecure and HasURIDomainSuffix, i.e. if the scheme is
+// secure and the given URI has a hostname that is either exactly equal to the given domain or if it has a suffix of the
+// domain prefixed with a period.
+func IsURISafeRedirection(uri *url.URL, domain string) bool {
+	return IsURISecure(uri) && HasURIDomainSuffix(uri, domain)
+}
+
+// IsURISecure returns true if the URI has a secure schemes (https or wss).
+func IsURISecure(uri *url.URL) bool {
+	switch uri.Scheme {
+	case https, wss:
+		return true
+	default:
+		return false
+	}
+}
+
+// HasURIDomainSuffix returns true if the URI hostname is equal to the domain suffix or if it has a suffix of the domain
+// suffix prefixed with a period.
+func HasURIDomainSuffix(uri *url.URL, domainSuffix string) bool {
+	return HasDomainSuffix(uri.Hostname(), domainSuffix)
+}
+
+// HasDomainSuffix returns true if the URI hostname is equal to the domain or if it has a suffix of the domain
+// prefixed with a period.
+func HasDomainSuffix(domain, domainSuffix string) bool {
+	if domainSuffix == "" {
+		return false
+	}
+
+	if domain == domainSuffix {
+		return true
+	}
+
+	if strings.HasSuffix(domain, period+domainSuffix) {
+		return true
+	}
+
+	return false
 }

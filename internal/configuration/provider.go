@@ -19,7 +19,7 @@ func Load(val *schema.StructValidator, sources ...Source) (keys []string, config
 }
 
 // LoadAdvanced is intended to give more flexibility over loading a particular path to a specific interface.
-func LoadAdvanced(val *schema.StructValidator, path string, result interface{}, sources ...Source) (keys []string, err error) {
+func LoadAdvanced(val *schema.StructValidator, path string, result any, sources ...Source) (keys []string, err error) {
 	if val == nil {
 		return keys, errNoValidator
 	}
@@ -44,7 +44,7 @@ func LoadAdvanced(val *schema.StructValidator, path string, result interface{}, 
 	return koanfGetKeys(final), nil
 }
 
-func mapHasKey(k string, m map[string]interface{}) bool {
+func mapHasKey(k string, m map[string]any) bool {
 	if _, ok := m[k]; ok {
 		return true
 	}
@@ -52,7 +52,7 @@ func mapHasKey(k string, m map[string]interface{}) bool {
 	return false
 }
 
-func unmarshal(ko *koanf.Koanf, val *schema.StructValidator, path string, o interface{}) {
+func unmarshal(ko *koanf.Koanf, val *schema.StructValidator, path string, o any) {
 	c := koanf.UnmarshalConf{
 		DecoderConfig: &mapstructure.DecoderConfig{
 			DecodeHook: mapstructure.ComposeDecodeHookFunc(
@@ -61,6 +61,12 @@ func unmarshal(ko *koanf.Koanf, val *schema.StructValidator, path string, o inte
 				StringToURLHookFunc(),
 				StringToRegexpHookFunc(),
 				StringToAddressHookFunc(),
+				StringToX509CertificateHookFunc(),
+				StringToX509CertificateChainHookFunc(),
+				StringToPrivateKeyHookFunc(),
+				StringToCryptoPrivateKeyHookFunc(),
+				StringToTLSVersionHookFunc(),
+				StringToPasswordDigestHookFunc(),
 				ToTimeDurationHookFunc(),
 			),
 			Metadata:         nil,
@@ -80,15 +86,13 @@ func loadSources(ko *koanf.Koanf, val *schema.StructValidator, sources ...Source
 	}
 
 	for _, source := range sources {
-		err := source.Load(val)
-		if err != nil {
+		if err = source.Load(val); err != nil {
 			val.Push(fmt.Errorf("failed to load configuration from %s source: %+v", source.Name(), err))
 
 			continue
 		}
 
-		err = source.Merge(ko, val)
-		if err != nil {
+		if err = source.Merge(ko, val); err != nil {
 			val.Push(fmt.Errorf("failed to merge configuration from %s source: %+v", source.Name(), err))
 
 			continue

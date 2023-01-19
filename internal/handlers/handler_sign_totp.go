@@ -7,7 +7,7 @@ import (
 
 // TimeBasedOneTimePasswordPOST validate the TOTP passcode provided by the user.
 func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
-	bodyJSON := signTOTPRequestBody{}
+	bodyJSON := bodySignTOTPRequest{}
 
 	if err := ctx.ParseBody(&bodyJSON); err != nil {
 		ctx.Logger.Errorf(logFmtErrParseRequestBody, regulation.AuthTypeTOTP, err)
@@ -50,7 +50,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx); err != nil {
+	if err = ctx.RegenerateSession(); err != nil {
 		ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeTOTP, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
@@ -79,7 +79,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if bodyJSON.Workflow == workflowOpenIDConnect {
-		handleOIDCWorkflowResponse(ctx, bodyJSON.TargetURL)
+		handleOIDCWorkflowResponse(ctx, bodyJSON.TargetURL, bodyJSON.WorkflowID)
 	} else {
 		Handle2FAResponse(ctx, bodyJSON.TargetURL)
 	}

@@ -20,22 +20,34 @@ func NewAccessControlRules(config schema.AccessControlConfiguration) (rules []*A
 
 // NewAccessControlRule parses a schema ACL and generates an internal ACL.
 func NewAccessControlRule(pos int, rule schema.ACLRule, networksMap map[string][]*net.IPNet, networksCacheMap map[string]*net.IPNet) *AccessControlRule {
-	return &AccessControlRule{
-		Position:  pos,
-		Domains:   schemaDomainsToACL(rule.Domains, rule.DomainsRegex),
-		Resources: schemaResourcesToACL(rule.Resources),
-		Methods:   schemaMethodsToACL(rule.Methods),
-		Networks:  schemaNetworksToACL(rule.Networks, networksMap, networksCacheMap),
-		Subjects:  schemaSubjectsToACL(rule.Subjects),
-		Policy:    StringToLevel(rule.Policy),
+	r := &AccessControlRule{
+		Position: pos,
+		Query:    NewAccessControlQuery(rule.Query),
+		Methods:  schemaMethodsToACL(rule.Methods),
+		Networks: schemaNetworksToACL(rule.Networks, networksMap, networksCacheMap),
+		Subjects: schemaSubjectsToACL(rule.Subjects),
+		Policy:   NewLevel(rule.Policy),
 	}
+
+	if len(r.Subjects) != 0 {
+		r.HasSubjects = true
+	}
+
+	ruleAddDomain(rule.Domains, r)
+	ruleAddDomainRegex(rule.DomainsRegex, r)
+	ruleAddResources(rule.Resources, r)
+
+	return r
 }
 
 // AccessControlRule controls and represents an ACL internally.
 type AccessControlRule struct {
+	HasSubjects bool
+
 	Position  int
 	Domains   []AccessControlDomain
 	Resources []AccessControlResource
+	Query     []AccessControlQuery
 	Methods   []string
 	Networks  []*net.IPNet
 	Subjects  []AccessControlSubjects
@@ -44,37 +56,42 @@ type AccessControlRule struct {
 
 // IsMatch returns true if all elements of an AccessControlRule match the object and subject.
 func (acr *AccessControlRule) IsMatch(subject Subject, object Object) (match bool) {
-	if !isMatchForDomains(subject, object, acr) {
+	if !acr.MatchesDomains(subject, object) {
 		return false
 	}
 
-	if !isMatchForResources(subject, object, acr) {
+	if !acr.MatchesResources(subject, object) {
 		return false
 	}
 
-	if !isMatchForMethods(object, acr) {
+	if !acr.MatchesQuery(object) {
 		return false
 	}
 
-	if !isMatchForNetworks(subject, acr) {
+	if !acr.MatchesMethods(object) {
 		return false
 	}
 
-	if !isMatchForSubjects(subject, acr) {
+	if !acr.MatchesNetworks(subject) {
+		return false
+	}
+
+	if !acr.MatchesSubjects(subject) {
 		return false
 	}
 
 	return true
 }
 
-func isMatchForDomains(subject Subject, object Object, acl *AccessControlRule) (match bool) {
+// MatchesDomains returns true if the rule matches the domains.
+func (acr *AccessControlRule) MatchesDomains(subject Subject, object Object) (matches bool) {
 	// If there are no domains in this rule then the domain condition is a match.
-	if len(acl.Domains) == 0 {
+	if len(acr.Domains) == 0 {
 		return true
 	}
 
 	// Iterate over the domains until we find a match (return true) or until we exit the loop (return false).
-	for _, domain := range acl.Domains {
+	for _, domain := range acr.Domains {
 		if domain.IsMatch(subject, object) {
 			return true
 		}
@@ -83,14 +100,15 @@ func isMatchForDomains(subject Subject, object Object, acl *AccessControlRule) (
 	return false
 }
 
-func isMatchForResources(subject Subject, object Object, acl *AccessControlRule) (match bool) {
+// MatchesResources returns true if the rule matches the resources.
+func (acr *AccessControlRule) MatchesResources(subject Subject, object Object) (matches bool) {
 	// If there are no resources in this rule then the resource condition is a match.
-	if len(acl.Resources) == 0 {
+	if len(acr.Resources) == 0 {
 		return true
 	}
 
 	// Iterate over the resources until we find a match (return true) or until we exit the loop (return false).
-	for _, resource := range acl.Resources {
+	for _, resource := range acr.Resources {
 		if resource.IsMatch(subject, object) {
 			return true
 		}
@@ -99,23 +117,42 @@ func isMatchForResources(subject Subject, object Object, acl *AccessControlRule)
 	return false
 }
 
-func isMatchForMethods(object Object, acl *AccessControlRule) (match bool) {
-	// If there are no methods in this rule then the method condition is a match.
-	if len(acl.Methods) == 0 {
+// MatchesQuery returns true if the rule matches the query arguments.
+func (acr *AccessControlRule) MatchesQuery(object Object) (match bool) {
+	// If there are no query rules in this rule then the query condition is a match.
+	if len(acr.Query) == 0 {
 		return true
 	}
 
-	return utils.IsStringInSlice(object.Method, acl.Methods)
+	// Iterate over the queries until we find a match (return true) or until we exit the loop (return false).
+	for _, query := range acr.Query {
+		if query.IsMatch(object) {
+			return true
+		}
+	}
+
+	return false
 }
 
-func isMatchForNetworks(subject Subject, acl *AccessControlRule) (match bool) {
+// MatchesMethods returns true if the rule matches the method.
+func (acr *AccessControlRule) MatchesMethods(object Object) (match bool) {
+	// If there are no methods in this rule then the method condition is a match.
+	if len(acr.Methods) == 0 {
+		return true
+	}
+
+	return utils.IsStringInSlice(object.Method, acr.Methods)
+}
+
+// MatchesNetworks returns true if the rule matches the networks.
+func (acr *AccessControlRule) MatchesNetworks(subject Subject) (match bool) {
 	// If there are no networks in this rule then the network condition is a match.
-	if len(acl.Networks) == 0 {
+	if len(acr.Networks) == 0 {
 		return true
 	}
 
 	// Iterate over the networks until we find a match (return true) or until we exit the loop (return false).
-	for _, network := range acl.Networks {
+	for _, network := range acr.Networks {
 		if network.Contains(subject.IP) {
 			return true
 		}
@@ -124,25 +161,26 @@ func isMatchForNetworks(subject Subject, acl *AccessControlRule) (match bool) {
 	return false
 }
 
-// Same as isExactMatchForSubjects except it theoretically matches if subject is anonymous since they'd need to authenticate.
-func isMatchForSubjects(subject Subject, acl *AccessControlRule) (match bool) {
+// MatchesSubjects returns true if the rule matches the subjects.
+func (acr *AccessControlRule) MatchesSubjects(subject Subject) (match bool) {
 	if subject.IsAnonymous() {
 		return true
 	}
 
-	return isExactMatchForSubjects(subject, acl)
+	return acr.MatchesSubjectExact(subject)
 }
 
-func isExactMatchForSubjects(subject Subject, acl *AccessControlRule) (match bool) {
+// MatchesSubjectExact returns true if the rule matches the subjects exactly.
+func (acr *AccessControlRule) MatchesSubjectExact(subject Subject) (match bool) {
 	// If there are no subjects in this rule then the subject condition is a match.
-	if len(acl.Subjects) == 0 {
+	if len(acr.Subjects) == 0 {
 		return true
 	} else if subject.IsAnonymous() {
 		return false
 	}
 
 	// Iterate over the subjects until we find a match (return true) or until we exit the loop (return false).
-	for _, subjectRule := range acl.Subjects {
+	for _, subjectRule := range acr.Subjects {
 		if subjectRule.IsMatch(subject) {
 			return true
 		}

@@ -3,7 +3,6 @@ package commands
 import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
-	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"fmt"
@@ -15,82 +14,98 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func newCryptoCmd() (cmd *cobra.Command) {
+func newCryptoCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "crypto",
+		Use:     cmdUseCrypto,
 		Short:   cmdAutheliaCryptoShort,
 		Long:    cmdAutheliaCryptoLong,
 		Example: cmdAutheliaCryptoExample,
 		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(
-		newCryptoCertificateCmd(),
-		newCryptoPairCmd(),
+		newCryptoRandCmd(ctx),
+		newCryptoCertificateCmd(ctx),
+		newCryptoHashCmd(ctx),
+		newCryptoPairCmd(ctx),
 	)
 
 	return cmd
 }
 
-func newCryptoCertificateCmd() (cmd *cobra.Command) {
+func newCryptoRandCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     cmdUseRand,
+		Short:   cmdAutheliaCryptoRandShort,
+		Long:    cmdAutheliaCryptoRandLong,
+		Example: cmdAutheliaCryptoRandExample,
+		Args:    cobra.NoArgs,
+		RunE:    ctx.CryptoRandRunE,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().StringP(cmdFlagNameCharSet, "x", cmdFlagValueCharSet, cmdFlagUsageCharset)
+	cmd.Flags().String(cmdFlagNameCharacters, "", cmdFlagUsageCharacters)
+	cmd.Flags().IntP(cmdFlagNameLength, "n", 72, cmdFlagUsageLength)
+
+	return cmd
+}
+
+func newCryptoCertificateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:     cmdUseCertificate,
 		Short:   cmdAutheliaCryptoCertificateShort,
 		Long:    cmdAutheliaCryptoCertificateLong,
 		Example: cmdAutheliaCryptoCertificateExample,
 		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(
-		newCryptoCertificateSubCmd(cmdUseRSA),
-		newCryptoCertificateSubCmd(cmdUseECDSA),
-		newCryptoCertificateSubCmd(cmdUseEd25519),
+		newCryptoCertificateSubCmd(ctx, cmdUseRSA),
+		newCryptoCertificateSubCmd(ctx, cmdUseECDSA),
+		newCryptoCertificateSubCmd(ctx, cmdUseEd25519),
 	)
 
 	return cmd
 }
 
-func newCryptoCertificateSubCmd(use string) (cmd *cobra.Command) {
-	var (
-		example, useFmt string
-	)
-
-	useFmt = fmtCryptoUse(use)
-
-	switch use {
-	case cmdUseRSA:
-		example = cmdAutheliaCryptoCertificateRSAExample
-	case cmdUseECDSA:
-		example = cmdAutheliaCryptoCertificateECDSAExample
-	case cmdUseEd25519:
-		example = cmdAutheliaCryptoCertificateEd25519Example
-	}
+func newCryptoCertificateSubCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
+	useFmt := fmtCryptoCertificateUse(use)
 
 	cmd = &cobra.Command{
 		Use:     use,
 		Short:   fmt.Sprintf(fmtCmdAutheliaCryptoCertificateSubShort, useFmt),
 		Long:    fmt.Sprintf(fmtCmdAutheliaCryptoCertificateSubLong, useFmt, useFmt),
-		Example: example,
+		Example: fmt.Sprintf(fmtCmdAutheliaCryptoCertificateSubExample, use),
 		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
 	}
 
-	cmd.AddCommand(newCryptoGenerateCmd(cmdUseCertificate, use), newCryptoCertificateRequestCmd(use))
+	cmd.AddCommand(newCryptoGenerateCmd(ctx, cmdUseCertificate, use), newCryptoCertificateRequestCmd(ctx, use))
 
 	return cmd
 }
 
-func newCryptoCertificateRequestCmd(algorithm string) (cmd *cobra.Command) {
+func newCryptoCertificateRequestCmd(ctx *CmdCtx, algorithm string) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:  cmdUseRequest,
 		Args: cobra.NoArgs,
-		RunE: cryptoCertificateRequestRunE,
+		RunE: ctx.CryptoCertificateRequestRunE,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmdFlagsCryptoPrivateKey(cmd)
 	cmdFlagsCryptoCertificateCommon(cmd)
 	cmdFlagsCryptoCertificateRequest(cmd)
 
-	algorithmFmt := fmtCryptoUse(algorithm)
+	algorithmFmt := fmtCryptoCertificateUse(algorithm)
 
 	cmd.Short = fmt.Sprintf(fmtCmdAutheliaCryptoCertificateGenerateRequestShort, algorithmFmt, cryptoCertCSROut)
 	cmd.Long = fmt.Sprintf(fmtCmdAutheliaCryptoCertificateGenerateRequestLong, algorithmFmt, cryptoCertCSROut, algorithmFmt, cryptoCertCSROut)
@@ -113,30 +128,32 @@ func newCryptoCertificateRequestCmd(algorithm string) (cmd *cobra.Command) {
 	return cmd
 }
 
-func newCryptoPairCmd() (cmd *cobra.Command) {
+func newCryptoPairCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:     cmdUsePair,
 		Short:   cmdAutheliaCryptoPairShort,
 		Long:    cmdAutheliaCryptoPairLong,
 		Example: cmdAutheliaCryptoPairExample,
 		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(
-		newCryptoPairSubCmd(cmdUseRSA),
-		newCryptoPairSubCmd(cmdUseECDSA),
-		newCryptoPairSubCmd(cmdUseEd25519),
+		newCryptoPairSubCmd(ctx, cmdUseRSA),
+		newCryptoPairSubCmd(ctx, cmdUseECDSA),
+		newCryptoPairSubCmd(ctx, cmdUseEd25519),
 	)
 
 	return cmd
 }
 
-func newCryptoPairSubCmd(use string) (cmd *cobra.Command) {
+func newCryptoPairSubCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
 	var (
 		example, useFmt string
 	)
 
-	useFmt = fmtCryptoUse(use)
+	useFmt = fmtCryptoCertificateUse(use)
 
 	switch use {
 	case cmdUseRSA:
@@ -153,24 +170,28 @@ func newCryptoPairSubCmd(use string) (cmd *cobra.Command) {
 		Long:    fmt.Sprintf(cmdAutheliaCryptoPairSubLong, useFmt, useFmt),
 		Example: example,
 		Args:    cobra.NoArgs,
-		RunE:    cryptoGenerateRunE,
+		RunE:    ctx.CryptoGenerateRunE,
+
+		DisableAutoGenTag: true,
 	}
 
-	cmd.AddCommand(newCryptoGenerateCmd(cmdUsePair, use))
+	cmd.AddCommand(newCryptoGenerateCmd(ctx, cmdUsePair, use))
 
 	return cmd
 }
 
-func newCryptoGenerateCmd(category, algorithm string) (cmd *cobra.Command) {
+func newCryptoGenerateCmd(ctx *CmdCtx, category, algorithm string) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:  cmdUseGenerate,
 		Args: cobra.NoArgs,
-		RunE: cryptoGenerateRunE,
+		RunE: ctx.CryptoGenerateRunE,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmdFlagsCryptoPrivateKey(cmd)
 
-	algorithmFmt := fmtCryptoUse(algorithm)
+	algorithmFmt := fmtCryptoCertificateUse(algorithm)
 
 	switch category {
 	case cmdUseCertificate:
@@ -219,28 +240,45 @@ func newCryptoGenerateCmd(category, algorithm string) (cmd *cobra.Command) {
 	return cmd
 }
 
-func cryptoGenerateRunE(cmd *cobra.Command, args []string) (err error) {
+// CryptoRandRunE is the RunE for the authelia crypto rand command.
+func (ctx *CmdCtx) CryptoRandRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		privateKey interface{}
+		random string
 	)
 
-	if privateKey, err = cryptoGenPrivateKeyFromCmd(cmd); err != nil {
+	if random, err = flagsGetRandomCharacters(cmd.Flags(), cmdFlagNameLength, cmdFlagNameCharSet, cmdFlagNameCharacters); err != nil {
+		return err
+	}
+
+	fmt.Printf("Random Value: %s\n", random)
+
+	return nil
+}
+
+// CryptoGenerateRunE is the RunE for the authelia crypto [pair|certificate] [rsa|ecdsa|ed25519] commands.
+func (ctx *CmdCtx) CryptoGenerateRunE(cmd *cobra.Command, args []string) (err error) {
+	var (
+		privateKey any
+	)
+
+	if privateKey, err = ctx.cryptoGenPrivateKeyFromCmd(cmd); err != nil {
 		return err
 	}
 
 	if cmd.Parent().Parent().Use == cmdUseCertificate {
-		return cryptoCertificateGenerateRunE(cmd, args, privateKey)
+		return ctx.CryptoCertificateGenerateRunE(cmd, args, privateKey)
 	}
 
-	return cryptoPairGenerateRunE(cmd, args, privateKey)
+	return ctx.CryptoPairGenerateRunE(cmd, args, privateKey)
 }
 
-func cryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) (err error) {
+// CryptoCertificateRequestRunE is the RunE for the authelia crypto certificate request command.
+func (ctx *CmdCtx) CryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		privateKey interface{}
+		privateKey any
 	)
 
-	if privateKey, err = cryptoGenPrivateKeyFromCmd(cmd); err != nil {
+	if privateKey, err = ctx.cryptoGenPrivateKeyFromCmd(cmd); err != nil {
 		return err
 	}
 
@@ -287,7 +325,7 @@ func cryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) (err error) {
 
 	b.Reset()
 
-	if csr, err = x509.CreateCertificateRequest(rand.Reader, template, privateKey); err != nil {
+	if csr, err = x509.CreateCertificateRequest(ctx.providers.Random, template, privateKey); err != nil {
 		return fmt.Errorf("failed to create certificate request: %w", err)
 	}
 
@@ -306,10 +344,11 @@ func cryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) (err error) {
 	return nil
 }
 
-func cryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string, privateKey interface{}) (err error) {
+// CryptoCertificateGenerateRunE is the RunE for the authelia crypto certificate [rsa|ecdsa|ed25519] commands.
+func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string, privateKey any) (err error) {
 	var (
 		template, caCertificate, parent       *x509.Certificate
-		publicKey, caPrivateKey, signatureKey interface{}
+		publicKey, caPrivateKey, signatureKey any
 	)
 
 	if publicKey = utils.PublicKeyFromPrivateKey(privateKey); publicKey == nil {
@@ -326,7 +365,7 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string, privateKey in
 		signatureKey = caPrivateKey
 	}
 
-	if template, err = cryptoGetCertificateFromCmd(cmd); err != nil {
+	if template, err = ctx.cryptoGetCertificateFromCmd(cmd); err != nil {
 		return err
 	}
 
@@ -383,7 +422,7 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string, privateKey in
 
 	b.Reset()
 
-	if certificate, err = x509.CreateCertificate(rand.Reader, template, parent, publicKey, signatureKey); err != nil {
+	if certificate, err = x509.CreateCertificate(ctx.providers.Random, template, parent, publicKey, signatureKey); err != nil {
 		return fmt.Errorf("failed to create certificate: %w", err)
 	}
 
@@ -398,7 +437,8 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string, privateKey in
 	return nil
 }
 
-func cryptoPairGenerateRunE(cmd *cobra.Command, _ []string, privateKey interface{}) (err error) {
+// CryptoPairGenerateRunE is the RunE for the authelia crypto pair [rsa|ecdsa|ed25519] commands.
+func (ctx *CmdCtx) CryptoPairGenerateRunE(cmd *cobra.Command, _ []string, privateKey any) (err error) {
 	var (
 		privateKeyPath, publicKeyPath string
 		pkcs8                         bool
@@ -437,7 +477,7 @@ func cryptoPairGenerateRunE(cmd *cobra.Command, _ []string, privateKey interface
 		return err
 	}
 
-	var publicKey interface{}
+	var publicKey any
 
 	if publicKey = utils.PublicKeyFromPrivateKey(privateKey); publicKey == nil {
 		return fmt.Errorf("failed to obtain public key from private key")

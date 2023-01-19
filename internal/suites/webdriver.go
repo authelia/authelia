@@ -73,6 +73,14 @@ func (rs *RodSession) Stop() error {
 	return err
 }
 
+// CheckElementExistsLocatedByID checks the existence of an element located by an id.
+func (rs *RodSession) CheckElementExistsLocatedByID(t *testing.T, page *rod.Page, cssSelector string) bool {
+	b, _, err := page.Has("#" + cssSelector)
+	require.NoError(t, err)
+
+	return b
+}
+
 // WaitElementLocatedByClassName wait an element is located by class name.
 func (rs *RodSession) WaitElementLocatedByClassName(t *testing.T, page *rod.Page, className string) *rod.Element {
 	e, err := page.Element("." + className)

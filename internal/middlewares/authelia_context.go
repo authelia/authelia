@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"net/url"
-	"path"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
@@ -81,7 +80,7 @@ func (ctx *AutheliaCtx) ReplyError(err error, message string) {
 		ctx.Logger.Error(marshalErr)
 	}
 
-	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
+	ctx.SetContentTypeApplicationJSON()
 	ctx.SetBody(b)
 	ctx.Logger.Debug(err)
 }
@@ -90,12 +89,12 @@ func (ctx *AutheliaCtx) ReplyError(err error, message string) {
 func (ctx *AutheliaCtx) ReplyStatusCode(statusCode int) {
 	ctx.Response.Reset()
 	ctx.SetStatusCode(statusCode)
-	ctx.SetContentTypeBytes(contentTypeTextPlain)
+	ctx.SetContentTypeTextPlain()
 	ctx.SetBodyString(fmt.Sprintf("%d %s", statusCode, fasthttp.StatusMessage(statusCode)))
 }
 
 // ReplyJSON writes a JSON response.
-func (ctx *AutheliaCtx) ReplyJSON(data interface{}, statusCode int) (err error) {
+func (ctx *AutheliaCtx) ReplyJSON(data any, statusCode int) (err error) {
 	var (
 		body []byte
 	)
@@ -108,7 +107,7 @@ func (ctx *AutheliaCtx) ReplyJSON(data interface{}, statusCode int) (err error) 
 		ctx.SetStatusCode(statusCode)
 	}
 
-	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
+	ctx.SetContentTypeApplicationJSON()
 	ctx.SetBody(body)
 
 	return nil
@@ -145,7 +144,7 @@ func (ctx *AutheliaCtx) XForwardedProto() (proto []byte) {
 }
 
 // XForwardedMethod return the content of the X-Forwarded-Method header.
-func (ctx *AutheliaCtx) XForwardedMethod() (method []byte) {
+func (ctx *AutheliaCtx) XForwardedMethod() []byte {
 	return ctx.RequestCtx.Request.Header.PeekBytes(headerXForwardedMethod)
 }
 
@@ -171,51 +170,120 @@ func (ctx *AutheliaCtx) XForwardedURI() (uri []byte) {
 	return uri
 }
 
-// BasePath returns the base_url as per the path visited by the client.
-func (ctx *AutheliaCtx) BasePath() (base string) {
-	if baseURL := ctx.UserValueBytes(UserValueKeyBaseURL); baseURL != nil {
-		return baseURL.(string)
-	}
-
-	return base
-}
-
-// ExternalRootURL gets the X-Forwarded-Proto, X-Forwarded-Host headers and the BasePath and forms them into a URL.
-func (ctx *AutheliaCtx) ExternalRootURL() (string, error) {
-	protocol := ctx.XForwardedProto()
-	if protocol == nil {
-		return "", errMissingXForwardedProto
-	}
-
-	host := ctx.XForwardedHost()
-	if host == nil {
-		return "", errMissingXForwardedHost
-	}
-
-	externalRootURL := fmt.Sprintf("%s://%s", protocol, host)
-
-	if base := ctx.BasePath(); base != "" {
-		externalBaseURL, err := url.Parse(externalRootURL)
-		if err != nil {
-			return "", err
-		}
-
-		externalBaseURL.Path = path.Join(externalBaseURL.Path, base)
-
-		return externalBaseURL.String(), nil
-	}
-
-	return externalRootURL, nil
-}
-
-// XOriginalURL return the content of the X-Original-URL header.
+// XOriginalURL returns the content of the X-Original-URL header.
 func (ctx *AutheliaCtx) XOriginalURL() []byte {
 	return ctx.RequestCtx.Request.Header.PeekBytes(headerXOriginalURL)
 }
 
+// XOriginalMethod return the content of the X-Original-Method header.
+func (ctx *AutheliaCtx) XOriginalMethod() []byte {
+	return ctx.RequestCtx.Request.Header.PeekBytes(headerXOriginalMethod)
+}
+
+// XAutheliaURL return the content of the X-Authelia-URL header which is used to communicate the location of the
+// portal when using proxies like Envoy.
+func (ctx *AutheliaCtx) XAutheliaURL() []byte {
+	return ctx.RequestCtx.Request.Header.PeekBytes(headerXAutheliaURL)
+}
+
+// QueryArgRedirect return the content of the rd query argument.
+func (ctx *AutheliaCtx) QueryArgRedirect() []byte {
+	return ctx.RequestCtx.QueryArgs().PeekBytes(qryArgRedirect)
+}
+
+// BasePath returns the base_url as per the path visited by the client.
+func (ctx *AutheliaCtx) BasePath() string {
+	if baseURL := ctx.UserValueBytes(UserValueKeyBaseURL); baseURL != nil {
+		return baseURL.(string)
+	}
+
+	return ""
+}
+
+// BasePathSlash is the same as BasePath but returns a final slash as well.
+func (ctx *AutheliaCtx) BasePathSlash() string {
+	if baseURL := ctx.UserValueBytes(UserValueKeyBaseURL); baseURL != nil {
+		return baseURL.(string) + strSlash
+	}
+
+	return strSlash
+}
+
+// RootURL returns the Root URL.
+func (ctx *AutheliaCtx) RootURL() (issuerURL *url.URL) {
+	return &url.URL{
+		Scheme: string(ctx.XForwardedProto()),
+		Host:   string(ctx.XForwardedHost()),
+		Path:   ctx.BasePath(),
+	}
+}
+
+// RootURLSlash is the same as RootURL but includes a final slash as well.
+func (ctx *AutheliaCtx) RootURLSlash() (issuerURL *url.URL) {
+	return &url.URL{
+		Scheme: string(ctx.XForwardedProto()),
+		Host:   string(ctx.XForwardedHost()),
+		Path:   ctx.BasePathSlash(),
+	}
+}
+
+// GetTargetURICookieDomain returns the session provider for the targetURI domain.
+func (ctx *AutheliaCtx) GetTargetURICookieDomain(targetURI *url.URL) string {
+	hostname := targetURI.Hostname()
+
+	for _, domain := range ctx.Configuration.Session.Cookies {
+		if utils.HasDomainSuffix(hostname, domain.Domain) {
+			return domain.Domain
+		}
+	}
+
+	return ""
+}
+
+// IsSafeRedirectionTargetURI returns true if the targetURI is within the scope of a cookie domain and secure.
+func (ctx *AutheliaCtx) IsSafeRedirectionTargetURI(targetURI *url.URL) bool {
+	if !utils.IsURISecure(targetURI) {
+		return false
+	}
+
+	return ctx.GetTargetURICookieDomain(targetURI) != ""
+}
+
+// GetCookieDomain returns the cookie domain for the current request.
+func (ctx *AutheliaCtx) GetCookieDomain() (domain string, err error) {
+	var targetURI *url.URL
+
+	if targetURI, err = ctx.GetOriginalURL(); err != nil {
+		return "", fmt.Errorf("unable to retrieve cookie domain: %s", err)
+	}
+
+	return ctx.GetTargetURICookieDomain(targetURI), nil
+}
+
+// GetSessionProvider returns the session provider for the Request's domain.
+func (ctx *AutheliaCtx) GetSessionProvider() (provider *session.Session, err error) {
+	var cookieDomain string
+
+	if cookieDomain, err = ctx.GetCookieDomain(); err != nil {
+		return nil, err
+	}
+
+	if cookieDomain == "" {
+		return nil, fmt.Errorf("unable to retrieve domain session: %s", err)
+	}
+
+	return ctx.Providers.SessionProvider.Get(cookieDomain)
+}
+
 // GetSession return the user session. Any update will be saved in cache.
 func (ctx *AutheliaCtx) GetSession() session.UserSession {
-	userSession, err := ctx.Providers.SessionProvider.GetSession(ctx.RequestCtx)
+	provider, err := ctx.GetSessionProvider()
+	if err != nil {
+		ctx.Logger.Error("Unable to retrieve domain session")
+		return session.NewDefaultUserSession()
+	}
+
+	userSession, err := provider.GetSession(ctx.RequestCtx)
 	if err != nil {
 		ctx.Logger.Error("Unable to retrieve user session")
 		return session.NewDefaultUserSession()
@@ -226,17 +294,42 @@ func (ctx *AutheliaCtx) GetSession() session.UserSession {
 
 // SaveSession save the content of the session.
 func (ctx *AutheliaCtx) SaveSession(userSession session.UserSession) error {
-	return ctx.Providers.SessionProvider.SaveSession(ctx.RequestCtx, userSession)
+	provider, err := ctx.GetSessionProvider()
+	if err != nil {
+		return fmt.Errorf("unable to save user session: %s", err)
+	}
+
+	return provider.SaveSession(ctx.RequestCtx, userSession)
+}
+
+// RegenerateSession regenerates user session.
+func (ctx *AutheliaCtx) RegenerateSession() error {
+	provider, err := ctx.GetSessionProvider()
+	if err != nil {
+		return fmt.Errorf("unable to regenerate user session: %s", err)
+	}
+
+	return provider.RegenerateSession(ctx.RequestCtx)
+}
+
+// DestroySession destroy user session.
+func (ctx *AutheliaCtx) DestroySession() error {
+	provider, err := ctx.GetSessionProvider()
+	if err != nil {
+		return fmt.Errorf("unable to destroy user session: %s", err)
+	}
+
+	return provider.DestroySession(ctx.RequestCtx)
 }
 
 // ReplyOK is a helper method to reply ok.
 func (ctx *AutheliaCtx) ReplyOK() {
-	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
+	ctx.SetContentTypeApplicationJSON()
 	ctx.SetBody(okMessageBytes)
 }
 
 // ParseBody parse the request body into the type of value.
-func (ctx *AutheliaCtx) ParseBody(value interface{}) error {
+func (ctx *AutheliaCtx) ParseBody(value any) error {
 	err := json.Unmarshal(ctx.PostBody(), &value)
 
 	if err != nil {
@@ -257,7 +350,7 @@ func (ctx *AutheliaCtx) ParseBody(value interface{}) error {
 }
 
 // SetJSONBody Set json body.
-func (ctx *AutheliaCtx) SetJSONBody(value interface{}) error {
+func (ctx *AutheliaCtx) SetJSONBody(value any) error {
 	return ctx.ReplyJSON(OKResponse{Status: "OK", Data: value}, 0)
 }
 
@@ -317,14 +410,14 @@ func (ctx *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 }
 
 // IsXHR returns true if the request is a XMLHttpRequest.
-func (ctx AutheliaCtx) IsXHR() (xhr bool) {
+func (ctx *AutheliaCtx) IsXHR() (xhr bool) {
 	requestedWith := ctx.Request.Header.PeekBytes(headerXRequestedWith)
 
 	return requestedWith != nil && strings.EqualFold(string(requestedWith), headerValueXRequestedWithXHR)
 }
 
 // AcceptsMIME takes a mime type and returns true if the request accepts that type or the wildcard type.
-func (ctx AutheliaCtx) AcceptsMIME(mime string) (acceptsMime bool) {
+func (ctx *AutheliaCtx) AcceptsMIME(mime string) (acceptsMime bool) {
 	accepts := strings.Split(string(ctx.Request.Header.PeekBytes(headerAccept)), ",")
 
 	for i, accept := range accepts {
@@ -344,7 +437,7 @@ func (ctx *AutheliaCtx) SpecialRedirect(uri string, statusCode int) {
 		statusCode = fasthttp.StatusFound
 	}
 
-	ctx.SetContentTypeBytes(contentTypeTextHTML)
+	ctx.SetContentTypeTextHTML()
 	ctx.SetStatusCode(statusCode)
 
 	u := fasthttp.AcquireURI()
@@ -366,4 +459,24 @@ func (ctx *AutheliaCtx) RecordAuthentication(success, regulated bool, method str
 	}
 
 	ctx.Providers.Metrics.RecordAuthentication(success, regulated, method)
+}
+
+// SetContentTypeTextPlain efficiently sets the Content-Type header to 'text/plain; charset=utf-8'.
+func (ctx *AutheliaCtx) SetContentTypeTextPlain() {
+	ctx.SetContentTypeBytes(contentTypeTextPlain)
+}
+
+// SetContentTypeTextHTML efficiently sets the Content-Type header to 'text/html; charset=utf-8'.
+func (ctx *AutheliaCtx) SetContentTypeTextHTML() {
+	ctx.SetContentTypeBytes(contentTypeTextHTML)
+}
+
+// SetContentTypeApplicationJSON efficiently sets the Content-Type header to 'application/json; charset=utf-8'.
+func (ctx *AutheliaCtx) SetContentTypeApplicationJSON() {
+	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
+}
+
+// SetContentTypeApplicationYAML efficiently sets the Content-Type header to 'application/yaml; charset=utf-8'.
+func (ctx *AutheliaCtx) SetContentTypeApplicationYAML() {
+	ctx.SetContentTypeBytes(contentTypeApplicationYAML)
 }

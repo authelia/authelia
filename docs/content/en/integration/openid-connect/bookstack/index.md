@@ -22,9 +22,16 @@ community: true
 
 ## Before You Begin
 
-You are required to utilize a unique client id and a unique and random client secret for all [OpenID Connect] relying
-parties. You should not use the client secret in this example, you should randomly generate one yourself. You may also
-choose to utilize a different client id, it's completely up to you.
+### Common Notes
+
+1. You are *__required__* to utilize a unique client id for every client.
+2. The client id on this page is merely an example and you can theoretically use any alphanumeric string.
+3. You *__should not__* use the client secret in this example, We *__strongly recommend__* reading the
+   [Generating Client Secrets] guide instead.
+
+[Generating Client Secrets]: ../specific-information.md#generating-client-secrets
+
+### Assumptions
 
 This example makes the following assumptions:
 
@@ -32,6 +39,12 @@ This example makes the following assumptions:
 * __Authelia Root URL:__ `https://auth.example.com`
 * __Client ID:__ `bookstack`
 * __Client Secret:__ `bookstack_client_secret`
+
+*__Important Note:__ [BookStack] does not properly URL encode the secret per [RFC6749 Appendix B] at the time this
+article was last modified (noted at the bottom). This means you'll either have to use only alphanumeric characters for
+the secret or URL encode the secret yourself.*
+
+[RFC6749 Appendix B]: https://www.rfc-editor.org/rfc/rfc6749#appendix-B
 
 ## Configuration
 
@@ -57,15 +70,16 @@ which will operate with the above example:
 
 ```yaml
 - id: bookstack
-  secret: bookstack_client_secret
+  description: BookStack
+  secret: '$plaintext$bookstack_client_secret'
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://bookstack.example.com/oidc/callback
   scopes:
     - openid
     - profile
     - email
-  redirect_uris:
-    - https://bookstack.example.com/oidc/callback
   userinfo_signing_algorithm: none
 ```
 

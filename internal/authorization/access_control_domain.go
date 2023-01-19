@@ -9,7 +9,7 @@ import (
 )
 
 // NewAccessControlDomain creates a new SubjectObjectMatcher that matches the domain as a basic string.
-func NewAccessControlDomain(domain string) AccessControlDomain {
+func NewAccessControlDomain(domain string) (subjcets bool, rule AccessControlDomain) {
 	m := &AccessControlDomainMatcher{}
 	domain = strings.ToLower(domain)
 
@@ -19,20 +19,20 @@ func NewAccessControlDomain(domain string) AccessControlDomain {
 		m.Name = domain[1:]
 	case strings.HasPrefix(domain, "{user}"):
 		m.UserWildcard = true
-		m.Name = domain[7:]
+		m.Name = domain[6:]
 	case strings.HasPrefix(domain, "{group}"):
 		m.GroupWildcard = true
-		m.Name = domain[8:]
+		m.Name = domain[7:]
 	default:
 		m.Name = domain
 	}
 
-	return AccessControlDomain{m}
+	return m.UserWildcard || m.GroupWildcard, AccessControlDomain{m}
 }
 
 // NewAccessControlDomainRegex creates a new SubjectObjectMatcher that matches the domain either in a basic way or
 // dynamic User/Group subexpression group way.
-func NewAccessControlDomainRegex(pattern regexp.Regexp) AccessControlDomain {
+func NewAccessControlDomainRegex(pattern regexp.Regexp) (subjects bool, rule AccessControlDomain) {
 	var iuser, igroup = -1, -1
 
 	for i, group := range pattern.SubexpNames() {
@@ -45,10 +45,10 @@ func NewAccessControlDomainRegex(pattern regexp.Regexp) AccessControlDomain {
 	}
 
 	if iuser != -1 || igroup != -1 {
-		return AccessControlDomain{RegexpGroupStringSubjectMatcher{pattern, iuser, igroup}}
+		return true, AccessControlDomain{RegexpGroupStringSubjectMatcher{pattern, iuser, igroup}}
 	}
 
-	return AccessControlDomain{RegexpStringSubjectMatcher{pattern}}
+	return false, AccessControlDomain{RegexpStringSubjectMatcher{pattern}}
 }
 
 // AccessControlDomainMatcher is the basic domain matcher.
@@ -65,11 +65,19 @@ func (m AccessControlDomainMatcher) IsMatch(domain string, subject Subject) (mat
 	case m.Wildcard:
 		return strings.HasSuffix(domain, m.Name)
 	case m.UserWildcard:
-		return domain == fmt.Sprintf("%s.%s", subject.Username, m.Name)
-	case m.GroupWildcard:
-		prefix, suffix := domainToPrefixSuffix(domain)
+		if subject.IsAnonymous() && strings.HasSuffix(domain, m.Name) {
+			return true
+		}
 
-		return suffix == m.Name && utils.IsStringInSliceFold(prefix, subject.Groups)
+		return domain == fmt.Sprintf("%s%s", subject.Username, m.Name)
+	case m.GroupWildcard:
+		if subject.IsAnonymous() && strings.HasSuffix(domain, m.Name) {
+			return true
+		}
+
+		i := strings.Index(domain, ".")
+
+		return domain[i:] == m.Name && utils.IsStringInSliceFold(domain[:i], subject.Groups)
 	default:
 		return strings.EqualFold(domain, m.Name)
 	}

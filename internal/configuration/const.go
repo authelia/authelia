@@ -31,8 +31,12 @@ const (
 	errFmtSecretIOIssue         = "secrets: error loading secret path %s into key '%s': %v"
 	errFmtGenerateConfiguration = "error occurred generating configuration: %+v"
 
-	errFmtDecodeHookCouldNotParse           = "could not decode '%s' to a %s: %w"
-	errFmtDecodeHookCouldNotParseEmptyValue = "could not decode an empty value to a %s: %w"
+	errFmtDecodeHookCouldNotParse           = "could not decode '%s' to a %s%s: %w"
+	errFmtDecodeHookCouldNotParseBasic      = "could not decode to a %s%s: %w"
+	errFmtDecodeHookCouldNotParseEmptyValue = "could not decode an empty value to a %s%s: %w"
 )
 
-var secretSuffixes = []string{"key", "secret", "password", "token"}
+// IMPORTANT: There is an uppercase copy of this in github.com/authelia/authelia/internal/templates named
+// envSecretSuffixes.
+// Make sure you update these at the same time.
+var secretSuffixes = []string{"key", "secret", "password", "token", "certificate_chain"}

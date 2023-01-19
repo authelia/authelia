@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -73,15 +74,15 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 	defer mock.Close()
 
 	mock.Ctx.Configuration.JWTSecret = testJWTSecret
-	mock.Ctx.Request.Header.Add("X-Forwarded-Proto", "http")
-	mock.Ctx.Request.Header.Add("X-Forwarded-Host", "host")
+	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedProto, "http")
+	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedHost, "host")
 
 	mock.StorageMock.EXPECT().
 		SaveIdentityVerification(mock.Ctx, gomock.Any()).
 		Return(nil)
 
 	mock.NotifierMock.EXPECT().
-		Send(gomock.Eq(mail.Address{Address: "john@example.com"}), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
+		Send(gomock.Eq(mock.Ctx), gomock.Eq(mail.Address{Address: "john@example.com"}), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
 		Return(fmt.Errorf("no notif"))
 
 	args := newArgs(defaultRetriever)
@@ -91,37 +92,19 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 	assert.Equal(t, "no notif", mock.Hook.LastEntry().Message)
 }
 
-func TestShouldFailWhenXForwardedHostHeaderIsMissing(t *testing.T) {
-	mock := mocks.NewMockAutheliaCtx(t)
-	defer mock.Close()
-
-	mock.Ctx.Configuration.JWTSecret = testJWTSecret
-	mock.Ctx.Request.Header.Add("X-Forwarded-Proto", "http")
-
-	mock.StorageMock.EXPECT().
-		SaveIdentityVerification(mock.Ctx, gomock.Any()).
-		Return(nil)
-
-	args := newArgs(defaultRetriever)
-	middlewares.IdentityVerificationStart(args, nil)(mock.Ctx)
-
-	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
-	assert.Equal(t, "Missing header X-Forwarded-Host", mock.Hook.LastEntry().Message)
-}
-
 func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 
 	mock.Ctx.Configuration.JWTSecret = testJWTSecret
-	mock.Ctx.Request.Header.Add("X-Forwarded-Proto", "http")
-	mock.Ctx.Request.Header.Add("X-Forwarded-Host", "host")
+	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedProto, "http")
+	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedHost, "host")
 
 	mock.StorageMock.EXPECT().
 		SaveIdentityVerification(mock.Ctx, gomock.Any()).
 		Return(nil)
 
 	mock.NotifierMock.EXPECT().
-		Send(gomock.Eq(mail.Address{Address: "john@example.com"}), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
+		Send(gomock.Eq(mock.Ctx), gomock.Eq(mail.Address{Address: "john@example.com"}), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
 		Return(nil)
 
 	args := newArgs(defaultRetriever)

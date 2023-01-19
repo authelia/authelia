@@ -17,12 +17,30 @@ func Logger() *logrus.Logger {
 	return logrus.StandardLogger()
 }
 
+// LoggerPrintf returns a new PrintfLogger given a level.
+func LoggerPrintf(level logrus.Level) (logger *PrintfLogger) {
+	return &PrintfLogger{
+		level:  level,
+		logrus: logrus.StandardLogger(),
+	}
+}
+
+// LoggerCtxPrintf returns a new CtxPrintfLogger given a level.
+func LoggerCtxPrintf(level logrus.Level) (logger *CtxPrintfLogger) {
+	return &CtxPrintfLogger{
+		level:  level,
+		logrus: logrus.StandardLogger(),
+	}
+}
+
 // InitializeLogger configures the default loggers stack levels, formatting, and the output destinations.
 func InitializeLogger(config schema.LogConfiguration, log bool) error {
 	setLevelStr(config.Level, log)
 
-	callerLevels := []logrus.Level{}
+	var callerLevels []logrus.Level
+
 	stackLevels := []logrus.Level{logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel}
+
 	logrus.AddHook(logrus_stack.NewHook(callerLevels, stackLevels))
 
 	if config.Format == logFormatJSON {

@@ -8,12 +8,13 @@ images: []
 menu:
   integration:
     parent: "kubernetes"
-weight: 551
+weight: 552
 toc: true
 ---
 
 There are two nginx ingress controllers for Kubernetes. The Kubernetes official one [ingress-nginx], and the F5 nginx
-official one [nginx-ingress-controller]. Currently we only have support docs for [ingress-nginx].
+official one [nginx-ingress-controller]. We only have integration documentation for [ingress-nginx] and there are no
+plans to support the F5 [nginx-ingress-controller].
 
 The [nginx documentation](../proxies/nginx.md) may also be useful for crafting advanced snippets to use with annotations
 even though it's not specific to Kubernetes.
@@ -26,11 +27,14 @@ bootstrapping *Authelia*.
 
 ## NGINX Ingress Controller (ingress-nginx)
 
-If you use NGINX Ingress Controller (ingress-nginx) you can protect an ingress with the following annotations. The
+If you use NGINX Ingress Controller ([ingress-nginx]) you can protect an ingress with the following annotations. The
 example assumes that the public domain Authelia is served on is `https://auth.example.com` and there is a
 Kubernetes service with the name `authelia` in the `default` namespace with TCP port `80` configured to route to the
 Authelia HTTP port and that your cluster is configured with the default
 DNS domain name of `cluster.local`.
+
+*__Important Note:__ The following annotations should be applied to an Ingress you wish to protect. They __SHOULD NOT__
+be applied to the Authelia Ingress itself.*
 
 ### Ingress Annotations
 

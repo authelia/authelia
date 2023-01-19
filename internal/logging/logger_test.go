@@ -3,7 +3,6 @@ package logging
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"runtime"
 	"testing"
@@ -16,15 +15,10 @@ import (
 )
 
 func TestShouldWriteLogsToFile(t *testing.T) {
-	dir, err := os.MkdirTemp("/tmp", "logs-dir")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer os.RemoveAll(dir)
+	dir := t.TempDir()
 
 	path := fmt.Sprintf("%s/authelia.log", dir)
-	err = InitializeLogger(schema.LogConfiguration{Format: "text", FilePath: path, KeepStdout: false}, false)
+	err := InitializeLogger(schema.LogConfiguration{Format: "text", FilePath: path, KeepStdout: false}, false)
 	require.NoError(t, err)
 
 	Logger().Info("This is a test")
@@ -39,15 +33,10 @@ func TestShouldWriteLogsToFile(t *testing.T) {
 }
 
 func TestShouldWriteLogsToFileAndStdout(t *testing.T) {
-	dir, err := os.MkdirTemp("/tmp", "logs-dir")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer os.RemoveAll(dir)
+	dir := t.TempDir()
 
 	path := fmt.Sprintf("%s/authelia.log", dir)
-	err = InitializeLogger(schema.LogConfiguration{Format: "text", FilePath: path, KeepStdout: true}, false)
+	err := InitializeLogger(schema.LogConfiguration{Format: "text", FilePath: path, KeepStdout: true}, false)
 	require.NoError(t, err)
 
 	Logger().Info("This is a test")
@@ -62,15 +51,10 @@ func TestShouldWriteLogsToFileAndStdout(t *testing.T) {
 }
 
 func TestShouldFormatLogsAsJSON(t *testing.T) {
-	dir, err := os.MkdirTemp("/tmp", "logs-dir")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer os.RemoveAll(dir)
+	dir := t.TempDir()
 
 	path := fmt.Sprintf("%s/authelia.log", dir)
-	err = InitializeLogger(schema.LogConfiguration{Format: "json", FilePath: path, KeepStdout: false}, false)
+	err := InitializeLogger(schema.LogConfiguration{Format: "json", FilePath: path, KeepStdout: false}, false)
 	require.NoError(t, err)
 
 	Logger().Info("This is a test")

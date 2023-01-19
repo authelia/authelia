@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"net/url"
+
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -13,16 +15,14 @@ import (
 //
 // https://openid.net/specs/openid-connect-discovery-1_0.html
 func OpenIDConnectConfigurationWellKnownGET(ctx *middlewares.AutheliaCtx) {
-	issuer, err := ctx.ExternalRootURL()
-	if err != nil {
-		ctx.Logger.Errorf("Error occurred determining OpenID Connect issuer details: %+v", err)
+	var (
+		issuer *url.URL
+		err    error
+	)
 
-		ctx.ReplyStatusCode(fasthttp.StatusBadRequest)
+	issuer = ctx.RootURL()
 
-		return
-	}
-
-	wellKnown := ctx.Providers.OpenIDConnect.GetOpenIDConnectWellKnownConfiguration(issuer)
+	wellKnown := ctx.Providers.OpenIDConnect.GetOpenIDConnectWellKnownConfiguration(issuer.String())
 
 	if err = ctx.ReplyJSON(wellKnown, fasthttp.StatusOK); err != nil {
 		ctx.Logger.Errorf("Error occurred in JSON encode: %+v", err)
@@ -41,16 +41,14 @@ func OpenIDConnectConfigurationWellKnownGET(ctx *middlewares.AutheliaCtx) {
 //
 // https://datatracker.ietf.org/doc/html/rfc8414
 func OAuthAuthorizationServerWellKnownGET(ctx *middlewares.AutheliaCtx) {
-	issuer, err := ctx.ExternalRootURL()
-	if err != nil {
-		ctx.Logger.Errorf("Error occurred determining OpenID Connect issuer details: %+v", err)
+	var (
+		issuer *url.URL
+		err    error
+	)
 
-		ctx.ReplyStatusCode(fasthttp.StatusBadRequest)
+	issuer = ctx.RootURL()
 
-		return
-	}
-
-	wellKnown := ctx.Providers.OpenIDConnect.GetOAuth2WellKnownConfiguration(issuer)
+	wellKnown := ctx.Providers.OpenIDConnect.GetOAuth2WellKnownConfiguration(issuer.String())
 
 	if err = ctx.ReplyJSON(wellKnown, fasthttp.StatusOK); err != nil {
 		ctx.Logger.Errorf("Error occurred in JSON encode: %+v", err)

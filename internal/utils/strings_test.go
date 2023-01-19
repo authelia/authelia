@@ -53,17 +53,6 @@ func TestStringJoinDelimitedEscaped(t *testing.T) {
 	}
 }
 
-func TestShouldNotGenerateSameRandomString(t *testing.T) {
-	randomStringOne := RandomString(10, AlphaNumericCharacters, false)
-	randomStringTwo := RandomString(10, AlphaNumericCharacters, false)
-
-	randomCryptoStringOne := RandomString(10, AlphaNumericCharacters, true)
-	randomCryptoStringTwo := RandomString(10, AlphaNumericCharacters, true)
-
-	assert.NotEqual(t, randomStringOne, randomStringTwo)
-	assert.NotEqual(t, randomCryptoStringOne, randomCryptoStringTwo)
-}
-
 func TestShouldDetectAlphaNumericString(t *testing.T) {
 	assert.True(t, IsStringAlphaNumeric("abc"))
 	assert.True(t, IsStringAlphaNumeric("abc123"))
@@ -235,13 +224,13 @@ func TestStringSliceURLConversionFuncs(t *testing.T) {
 func TestIsURLInSlice(t *testing.T) {
 	urls := URLsFromStringSlice([]string{"https://google.com", "https://example.com"})
 
-	google, err := url.Parse("https://google.com")
+	google, err := url.ParseRequestURI("https://google.com")
 	assert.NoError(t, err)
 
-	microsoft, err := url.Parse("https://microsoft.com")
+	microsoft, err := url.ParseRequestURI("https://microsoft.com")
 	assert.NoError(t, err)
 
-	example, err := url.Parse("https://example.com")
+	example, err := url.ParseRequestURI("https://example.com")
 	assert.NoError(t, err)
 
 	assert.True(t, IsURLInSlice(*google, urls))

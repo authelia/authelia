@@ -24,18 +24,21 @@ func init() {
 		// TODO(c.michaud): use version in tags for oidc-client but in the meantime we pull the image to make sure it's
 		// up to date.
 		err := dockerEnvironment.Pull("oidc-client")
-
 		if err != nil {
 			return err
 		}
 
 		err = dockerEnvironment.Up()
-
 		if err != nil {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(dockerEnvironment, oidcSuiteName)
+		err = waitUntilAutheliaIsReady(dockerEnvironment, oidcSuiteName)
+		if err != nil {
+			return err
+		}
+
+		return updateDevEnvFileForDomain(BaseDomain, true)
 	}
 
 	displayAutheliaLogs := func() error {

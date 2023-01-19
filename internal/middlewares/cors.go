@@ -197,19 +197,19 @@ type CORSPolicy struct {
 
 // HandleOPTIONS is an OPTIONS handler that just adds CORS headers, the Allow header, and sets the status code to 204
 // without a body. This handler should generally not be used without using WithAllowedMethods.
-func (p CORSPolicy) HandleOPTIONS(ctx *fasthttp.RequestCtx) {
+func (p *CORSPolicy) HandleOPTIONS(ctx *fasthttp.RequestCtx) {
 	p.handleOPTIONS(ctx)
 	p.handle(ctx)
 }
 
 // HandleOnlyOPTIONS is an OPTIONS handler that just handles the Allow header, and sets the status code to 204
 // without a body. This handler should generally not be used without using WithAllowedMethods.
-func (p CORSPolicy) HandleOnlyOPTIONS(ctx *fasthttp.RequestCtx) {
+func (p *CORSPolicy) HandleOnlyOPTIONS(ctx *fasthttp.RequestCtx) {
 	p.handleOPTIONS(ctx)
 }
 
 // Middleware provides a middleware that adds the appropriate CORS headers for this CORSPolicyBuilder.
-func (p CORSPolicy) Middleware(next fasthttp.RequestHandler) (handler fasthttp.RequestHandler) {
+func (p *CORSPolicy) Middleware(next fasthttp.RequestHandler) (handler fasthttp.RequestHandler) {
 	return func(ctx *fasthttp.RequestCtx) {
 		p.handle(ctx)
 
@@ -217,7 +217,7 @@ func (p CORSPolicy) Middleware(next fasthttp.RequestHandler) (handler fasthttp.R
 	}
 }
 
-func (p CORSPolicy) handle(ctx *fasthttp.RequestCtx) {
+func (p *CORSPolicy) handle(ctx *fasthttp.RequestCtx) {
 	if !p.enabled {
 		return
 	}
@@ -229,7 +229,7 @@ func (p CORSPolicy) handle(ctx *fasthttp.RequestCtx) {
 	}
 }
 
-func (p CORSPolicy) handleOPTIONS(ctx *fasthttp.RequestCtx) {
+func (p *CORSPolicy) handleOPTIONS(ctx *fasthttp.RequestCtx) {
 	ctx.Response.ResetBody()
 
 	/* The OPTIONS method should not return a 204 as per the following specifications when read together:
@@ -250,13 +250,13 @@ func (p CORSPolicy) handleOPTIONS(ctx *fasthttp.RequestCtx) {
 	}
 }
 
-func (p CORSPolicy) handleVary(ctx *fasthttp.RequestCtx) {
+func (p *CORSPolicy) handleVary(ctx *fasthttp.RequestCtx) {
 	if len(p.vary) != 0 {
 		ctx.Response.Header.SetBytesKV(headerVary, p.vary)
 	}
 }
 
-func (p CORSPolicy) handleCORS(ctx *fasthttp.RequestCtx) {
+func (p *CORSPolicy) handleCORS(ctx *fasthttp.RequestCtx) {
 	var (
 		originURL *url.URL
 		err       error
@@ -265,7 +265,7 @@ func (p CORSPolicy) handleCORS(ctx *fasthttp.RequestCtx) {
 	origin := ctx.Request.Header.PeekBytes(headerOrigin)
 
 	// Skip processing of any `https` scheme URL that has not expressly been configured.
-	if originURL, err = url.Parse(string(origin)); err != nil || (originURL.Scheme != "https" && p.origins == nil) {
+	if originURL, err = url.ParseRequestURI(string(origin)); err != nil || (originURL.Scheme != strProtoHTTPS && p.origins == nil) {
 		return
 	}
 
@@ -302,7 +302,7 @@ func (p CORSPolicy) handleCORS(ctx *fasthttp.RequestCtx) {
 	p.handleAllowedMethods(ctx)
 }
 
-func (p CORSPolicy) handleAllowedMethods(ctx *fasthttp.RequestCtx) {
+func (p *CORSPolicy) handleAllowedMethods(ctx *fasthttp.RequestCtx) {
 	switch len(p.methods) {
 	case 0:
 		// TODO: It may be beneficial to be able to control this automatic behaviour.
@@ -314,7 +314,7 @@ func (p CORSPolicy) handleAllowedMethods(ctx *fasthttp.RequestCtx) {
 	}
 }
 
-func (p CORSPolicy) handleAllowedHeaders(ctx *fasthttp.RequestCtx) {
+func (p *CORSPolicy) handleAllowedHeaders(ctx *fasthttp.RequestCtx) {
 	switch len(p.headers) {
 	case 0:
 		// TODO: It may be beneficial to be able to control this automatic behaviour.

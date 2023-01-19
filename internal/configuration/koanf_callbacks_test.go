@@ -2,7 +2,6 @@ package configuration
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -16,7 +15,7 @@ import (
 func TestKoanfEnvironmentCallback(t *testing.T) {
 	var (
 		key   string
-		value interface{}
+		value any
 	)
 
 	keyMap := map[string]string{
@@ -46,7 +45,7 @@ func TestKoanfEnvironmentCallback(t *testing.T) {
 func TestKoanfSecretCallbackWithValidSecrets(t *testing.T) {
 	var (
 		key   string
-		value interface{}
+		value any
 	)
 
 	keyMap := map[string]string{
@@ -58,8 +57,7 @@ func TestKoanfSecretCallbackWithValidSecrets(t *testing.T) {
 		"AUTHELIA__STORAGE_MYSQL_FAKE_PASSWORD": "storage.mysql.fake_password",
 	}
 
-	dir, err := os.MkdirTemp("", "authelia-test-callbacks")
-	assert.NoError(t, err)
+	dir := t.TempDir()
 
 	secretOne := filepath.Join(dir, "secert_one")
 	secretTwo := filepath.Join(dir, "secret_two")
@@ -108,8 +106,7 @@ func TestKoanfSecretCallbackShouldErrorOnFSError(t *testing.T) {
 		"AUTHELIA_THEME":  "theme",
 	}
 
-	dir, err := os.MkdirTemp("", "authelia-test-callbacks")
-	assert.NoError(t, err)
+	dir := t.TempDir()
 
 	secret := filepath.Join(dir, "inaccessible")
 

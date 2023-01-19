@@ -39,6 +39,7 @@ module.exports = {
                 "npm",
                 "ntp",
                 "oidc",
+                "random",
                 "regulation",
                 "renovate",
                 "reviewdog",
@@ -54,5 +55,5 @@ module.exports = {
         ],
     },
     defaultIgnores: true,
-    helpUrl: "https://www.authelia.com/contributing/development/guidelines-commit-message/",
+    helpUrl: "https://www.authelia.com/contributing/guidelines/commit-message/",
 };

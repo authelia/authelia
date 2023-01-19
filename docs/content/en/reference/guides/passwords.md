@@ -25,6 +25,7 @@ The format of the [YAML] file is as follows:
 ```yaml
 users:
   john:
+    disabled: false
     displayname: "John Doe"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: john.doe@authelia.com
@@ -32,17 +33,20 @@ users:
       - admins
       - dev
   harry:
+    disabled: false
     displayname: "Harry Potter"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: harry.potter@authelia.com
     groups: []
   bob:
+    disabled: false
     displayname: "Bob Dylan"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: bob.dylan@authelia.com
     groups:
       - dev
   james:
+    disabled: false
     displayname: "James Dean"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: james.dean@authelia.com
@@ -52,25 +56,33 @@ users:
 
 The file contains hashed passwords instead of plain text passwords for security reasons.
 
-You can use Authelia binary or docker image to generate the hash of any password. The [hash-password] command has many
-tunable options, you can view them with the `authelia hash-password --help` command. For example if you wanted to
-improve the entropy you could generate a 16 byte salt and provide it with the `--salt` flag.
+You can use Authelia binary or docker image to generate the hash of any password. The [crypt hash generate] command has
+many supported algorithms. To view them run the `authelia crypto hash generate --help` command. To see the tunable
+options for an algorithm subcommand include that command before `--help`. For example for the [Argon2] algorithm use the
+`authelia crypto hash generate argon2 --help` command to see the available options.
 
-Example: `authelia hash-password --salt abcdefghijklhijl -- 'password'`.
-
-Passwords passed to [hash-password] should be single quoted if using special characters to prevent parameter
-substitution. In addition the password should be the last parameter, and should be after a `--`. For instance to
-generate a hash with the docker image just run:
+Passwords passed to [crypt hash generate] should be single quoted if using the `--password` parameter instead of the
+console prompt, especially if it has  special characters to prevent parameter substitution. For instance to generate an
+[Argon2] hash with the docker image just run:
 
 ```bash
-$ docker run authelia/authelia:latest authelia hash-password -- 'password'
-Password hash: $argon2id$v=19$m=65536$3oc26byQuSkQqksq$zM1QiTvVPrMfV6BVLs2t4gM+af5IN7euO0VB6+Q8ZFs
+$ docker run authelia/authelia:latest authelia crypto hash generate argon2 --password 'password'
+Digest: $argon2id$v=19$m=65536,t=3,p=4$Hjc8e7WYcBFcJmEDUOsS9A$ozM7RyZR1EyDR8cuyVpDDfmLrGPGFgo5E2NNqRumui4
 ```
 
 You may also use the `--config` flag to point to your existing configuration. When used, the values defined in the
-config will be used instead.
+config will be used instead. For example to generate the password with a configuration file named `configuration.yml`
+in the current directory:
 
-See the [full CLI reference documentation](../cli/authelia/authelia_hash-password.md).
+```bash
+$ docker run -v ./configuration.yml:/configuration.yml -it authelia/authelia:latest authelia crypto hash generate --config /configuration.yml
+Enter Password:
+Confirm Password:
+
+Digest: $argon2id$v=19$m=65536,t=3,p=4$Hjc8e7WYcBFcJmEDUOsS9A$ozM7RyZR1EyDR8cuyVpDDfmLrGPGFgo5E2NNqRumui4
+```
+
+See the [full CLI reference documentation](../cli/authelia/authelia_crypto_hash_generate.md).
 
 ### Cost
 
@@ -88,11 +100,11 @@ all algorithms. The main cost type measurements are:
 * CPU
 * Memory
 
-*__Important Note:__ When using algorithms that use a memory cost like [Argon2] it should be noted that this memory is
-released by Go after the hashing process completes, however the operating system may not reclaim the memory until a
-later time such as when the system is experiencing memory pressure which may cause the appearance of more memory being
-in use than Authelia is actually actively using. Authelia will typically reuse this memory if it has not be reclaimed as
-long as another hashing calculation is not still utilizing it.*
+*__Important Note:__ When using algorithms that use a memory cost like [Argon2] and [Scrypt] it should be noted that
+this memory is released by Go after the hashing process completes, however the operating system may not reclaim the
+memory until a later time such as when the system is experiencing memory pressure which may cause the appearance of more
+memory being in use than Authelia is actually actively using. Authelia will typically reuse this memory if it has not be
+reclaimed as long as another hashing calculation is not still utilizing it.*
 
 To get a rough estimate of how much memory should be utilized with these algorithms you can utilize the following
 command:
@@ -114,7 +126,7 @@ widely considered to be the best hashing algorithm, and in 2015 won the [Passwor
 customizable parameters including a memory parameter allowing the [cost](#cost) of computing a hash to scale into the
 future with better hardware which makes it harder to brute-force.
 
-For backwards compatibility and user choice support for the [SHA Crypt] algorithm (`SHA512` variant) is still available.
+For backwards compatibility and user choice support for the [SHA2 Crypt] algorithm (`SHA512` variant) is still available.
 While it's a reasonable hashing function given high enough iterations, as hardware improves it has a higher chance of
 being brute-forced since it only allows scaling the CPU [cost](#cost) whereas [Argon2] allows scaling both for CPU and
 Memory [cost](#cost).
@@ -123,44 +135,72 @@ Memory [cost](#cost).
 
 The algorithm that a hash is utilizing is identifiable by its prefix:
 
-|  Algorithm  | Variant  |    Prefix    |
-|:-----------:|:--------:|:------------:|
-|  [Argon2]   |   `id`   | `$argon2id$` |
-| [SHA Crypt] | `SHA512` |    `$6$`     |
+|  Algorithm   |  Variant   |      Prefix       |
+|:------------:|:----------:|:-----------------:|
+|   [Argon2]   | `argon2id` |   `$argon2id$`    |
+|   [Argon2]   | `argon2i`  |    `$argon2i$`    |
+|   [Argon2]   | `argon2d`  |    `$argon2d$`    |
+|   [Scrypt]   |    N/A     |    `$scrypt$`     |
+|   [PBKDF2]   |   `sha1`   |    `$pbkdf2$`     |
+|   [PBKDF2]   |  `sha224`  | `$pbkdf2-sha224$` |
+|   [PBKDF2]   |  `sha256`  | `$pbkdf2-sha256$` |
+|   [PBKDF2]   |  `sha384`  | `$pbkdf2-sha384$` |
+|   [PBKDF2]   |  `sha512`  | `$pbkdf2-sha512$` |
+| [SHA2 Crypt] |  `SHA256`  |       `$5$`       |
+| [SHA2 Crypt] |  `SHA512`  |       `$6$`       |
+|   [Bcrypt]   | `standard` |      `$2b$`       |
+|   [Bcrypt]   |  `sha256`  | `$bcrypt-sha256$` |
 
 See the [Crypt (C) Wiki page](https://en.wikipedia.org/wiki/Crypt_(C)) for more information.
 
 #### Tuning
 
 The configuration variables are unique to the file authentication provider, thus they all exist in a key under the file
-authentication configuration key called [password](../../configuration/first-factor/file.md#password). The defaults are
+authentication configuration key called [password](../../configuration/first-factor/file.md#password-options). The defaults are
 considered as sane for a reasonable system however we still recommend taking time to figure out the best values to
 adequately determine the [cost](#cost).
 
 While there are recommended parameters for each algorithm it's your responsibility to tune these individually for your
 particular system.
 
-#### Recommended Parameters: Argon2id
+#### Algorithm Choice
+
+We generally discourage [Bcrypt] except when needed for interoperability with legacy systems. The `argon2id` variant of
+the [Argon2] algorithm is the best choice of the algorithms available, but it's important to note that the `argon2id`
+variant is the most resilient variant, followed by the `argon2d` variant and the `argon2i` variant not being recommended.
+It's strongly recommended if you're unsure that you use `argon2id`. [Scrypt] is a likely second best algorithm. [PBKDF2]
+is practically the only choice when it comes to [FIPS-140 compliance]. The `sha512` variant of the [SHA2 Crypt]
+algorithm is also a reasonable option, but is mainly available for backwards compatability.
+
+All other algorithms and variants available exist only for interoperability and we discourage their use if a better
+algorithm is available in your scenario.
+
+#### Recommended Parameters: Argon2
 
 This table adapts the [RFC9106 Parameter Choice] recommendations to our configuration options:
 
-|  Situation  | Iterations (t) | Parallelism (p) | Memory (m) | Salt Size | Key Size |
-|:-----------:|:--------------:|:---------------:|:----------:|:---------:|:--------:|
-| Low Memory  |       3        |        4        |     64     |    16     |    32    |
-| Recommended |       1        |        4        |    2048    |    16     |    32    |
+|  Situation  | Variant  | Iterations (t) | Parallelism (p) | Memory (m) | Salt Size | Key Size |
+|:-----------:|:--------:|:--------------:|:---------------:|:----------:|:---------:|:--------:|
+| Low Memory  | argon2id |       3        |        4        |   65536    |    16     |    32    |
+| Recommended | argon2id |       1        |        4        |  2097152   |    16     |    32    |
 
-#### Recommended Parameters: SHA512
+#### Recommended Parameters: SHA2 Crypt
 
-This table suggests the parameters for the [SHA Crypt] (`SHA512` variant) algorithm:
+This table suggests the parameters for the [SHA2 Crypt] algorithm:
 
-|  Situation   | Iterations (rounds) | Salt Size |
-|:------------:|:-------------------:|:---------:|
-| Standard CPU |        50000        |    16     |
-| High End CPU |       150000        |    16     |
+|  Situation   | Variant | Iterations (rounds) | Salt Size |
+|:------------:|:-------:|:-------------------:|:---------:|
+| Standard CPU | sha512  |        50000        |    16     |
+| High End CPU | sha512  |       150000        |    16     |
+
+[Argon2]: https://www.rfc-editor.org/rfc/rfc9106.html
+[Scrypt]: https://en.wikipedia.org/wiki/Scrypt
+[PBKDF2]: https://www.ietf.org/rfc/rfc2898.html
+[SHA2 Crypt]: https://www.akkadia.org/drepper/SHA-crypt.txt
+[Bcrypt]: https://en.wikipedia.org/wiki/Bcrypt
+[FIPS-140 compliance]: https://csrc.nist.gov/publications/detail/fips/140/2/final
 
 [RFC9106 Parameter Choice]: https://www.rfc-editor.org/rfc/rfc9106.html#section-4
 [YAML]: https://yaml.org/
-[Argon2]: https://www.rfc-editor.org/rfc/rfc9106.html
-[SHA Crypt]: https://www.akkadia.org/drepper/SHA-crypt.txt
-[hash-password]: ../cli/authelia/authelia_hash-password.md
+[crypt hash generate]: ../cli/authelia/authelia_crypto_hash_generate.md
 [Password Hashing Competition]: https://en.wikipedia.org/wiki/Password_Hashing_Competition

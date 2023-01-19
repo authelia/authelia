@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
@@ -59,7 +60,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
 
 	s.mock.Ctx.Configuration.DefaultRedirectionURL = testRedirectionURL
 
-	bodyBytes, err := json.Marshal(signTOTPRequestBody{
+	bodyBytes, err := json.Marshal(bodySignTOTPRequest{
 		Token: "abc",
 	})
 	s.Require().NoError(err)
@@ -97,7 +98,7 @@ func (s *HandlerSignTOTPSuite) TestShouldFailWhenTOTPSignInInfoFailsToUpdate() {
 
 	s.mock.Ctx.Configuration.DefaultRedirectionURL = testRedirectionURL
 
-	bodyBytes, err := json.Marshal(signTOTPRequestBody{
+	bodyBytes, err := json.Marshal(bodySignTOTPRequest{
 		Token: "abc",
 	})
 	s.Require().NoError(err)
@@ -131,7 +132,7 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 		EXPECT().
 		UpdateTOTPConfigurationSignIn(s.mock.Ctx, gomock.Any(), gomock.Any())
 
-	bodyBytes, err := json.Marshal(signTOTPRequestBody{
+	bodyBytes, err := json.Marshal(bodySignTOTPRequest{
 		Token: "abc",
 	})
 	s.Require().NoError(err)
@@ -143,6 +144,18 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 
 func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 	config := model.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
+	s.mock.Ctx.Configuration.Session.Cookies = []schema.SessionCookieConfiguration{
+		{
+			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+				Domain: "example.com",
+			},
+		},
+		{
+			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+				Domain: "mydomain.local",
+			},
+		},
+	}
 
 	s.mock.StorageMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
@@ -165,9 +178,9 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 		EXPECT().
 		UpdateTOTPConfigurationSignIn(s.mock.Ctx, gomock.Any(), gomock.Any())
 
-	bodyBytes, err := json.Marshal(signTOTPRequestBody{
+	bodyBytes, err := json.Marshal(bodySignTOTPRequest{
 		Token:     "abc",
-		TargetURL: "https://mydomain.local",
+		TargetURL: "https://mydomain.example.com",
 	})
 
 	s.Require().NoError(err)
@@ -175,7 +188,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
-		Redirect: "https://mydomain.local",
+		Redirect: "https://mydomain.example.com",
 	})
 }
 
@@ -203,9 +216,9 @@ func (s *HandlerSignTOTPSuite) TestShouldNotRedirectToUnsafeURL() {
 		Validate(gomock.Eq("abc"), gomock.Eq(&model.TOTPConfiguration{Secret: []byte("secret")})).
 		Return(true, nil)
 
-	bodyBytes, err := json.Marshal(signTOTPRequestBody{
+	bodyBytes, err := json.Marshal(bodySignTOTPRequest{
 		Token:     "abc",
-		TargetURL: "http://mydomain.local",
+		TargetURL: "http://mydomain.example.com",
 	})
 
 	s.Require().NoError(err)
@@ -241,7 +254,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFi
 		EXPECT().
 		UpdateTOTPConfigurationSignIn(s.mock.Ctx, gomock.Any(), gomock.Any())
 
-	bodyBytes, err := json.Marshal(signTOTPRequestBody{
+	bodyBytes, err := json.Marshal(bodySignTOTPRequest{
 		Token: "abc",
 	})
 	s.Require().NoError(err)

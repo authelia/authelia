@@ -13,15 +13,17 @@ import (
 
 var container string
 
-var containers = []string{"dev", "coverage"}
-var defaultContainer = "dev"
-var ciBranch = os.Getenv("BUILDKITE_BRANCH")
-var ciPullRequest = os.Getenv("BUILDKITE_PULL_REQUEST")
-var ciTag = os.Getenv("BUILDKITE_TAG")
-var dockerTags = regexp.MustCompile(`v(?P<Patch>(?P<Minor>(?P<Major>\d+)\.\d+)\.\d+.*)`)
-var ignoredSuffixes = regexp.MustCompile("alpha|beta")
-var publicRepo = regexp.MustCompile(`.*:.*`)
-var tags = dockerTags.FindStringSubmatch(ciTag)
+var (
+	containers       = []string{"dev", "coverage"}
+	defaultContainer = "dev"
+	ciBranch         = os.Getenv("BUILDKITE_BRANCH")
+	ciPullRequest    = os.Getenv("BUILDKITE_PULL_REQUEST")
+	ciTag            = os.Getenv("BUILDKITE_TAG")
+	dockerTags       = regexp.MustCompile(`v(?P<Patch>(?P<Minor>(?P<Major>\d+)\.\d+)\.\d+.*)`)
+	ignoredSuffixes  = regexp.MustCompile("alpha|beta")
+	publicRepo       = regexp.MustCompile(`.*:.*`)
+	tags             = dockerTags.FindStringSubmatch(ciTag)
+)
 
 func newDockerCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
@@ -31,6 +33,8 @@ func newDockerCmd() (cmd *cobra.Command) {
 		Example: cmdDockerExample,
 		Args:    cobra.NoArgs,
 		Run:     cmdDockerBuildRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(newDockerBuildCmd(), newDockerPushManifestCmd())
@@ -46,6 +50,8 @@ func newDockerBuildCmd() (cmd *cobra.Command) {
 		Example: cmdDockerBuildExample,
 		Args:    cobra.NoArgs,
 		Run:     cmdDockerBuildRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.PersistentFlags().StringVar(&container, "container", defaultContainer, "target container among: "+strings.Join(containers, ", "))
@@ -61,6 +67,8 @@ func newDockerPushManifestCmd() (cmd *cobra.Command) {
 		Example: cmdDockerPushManifestExample,
 		Args:    cobra.NoArgs,
 		Run:     cmdDockerPushManifestRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd
@@ -92,15 +100,14 @@ func cmdDockerPushManifestRun(_ *cobra.Command, _ []string) {
 			log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
 			login(docker, dockerhub)
 			login(docker, ghcr)
-			deployManifest(docker, tags[1])
-			publishDockerReadme(docker)
 
-			if !ignoredSuffixes.MatchString(ciTag) {
-				deployManifest(docker, tags[2])
-				deployManifest(docker, tags[3])
-				deployManifest(docker, "latest")
-				publishDockerReadme(docker)
+			if ignoredSuffixes.MatchString(ciTag) {
+				deployManifest(docker, tags[1])
+			} else {
+				deployManifest(docker, tags[1], tags[2], tags[3], "latest")
 			}
+
+			publishDockerReadme(docker)
 		} else {
 			log.Fatal("Docker manifest will not be published, the specified tag does not conform to the standard")
 		}
@@ -137,13 +144,12 @@ func dockerBuildOfficialImage(arch string) error {
 	filename := "Dockerfile"
 	dockerfile := fmt.Sprintf("%s.%s", filename, arch)
 
-	flags, err := getXFlags(ciBranch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
+	buildMetaData, err := getBuild(ciBranch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return docker.Build(IntermediateDockerImageName, dockerfile, ".",
-		strings.Join(flags, " "))
+	return docker.Build(IntermediateDockerImageName, dockerfile, ".", buildMetaData)
 }
 
 func login(docker *Docker, registry string) {
@@ -175,13 +181,17 @@ func login(docker *Docker, registry string) {
 	}
 }
 
-func deployManifest(docker *Docker, tag string) {
-	log.Infof("Docker manifest %s:%s will be deployed on %s and %s", DockerImageName, tag, dockerhub, ghcr)
+func deployManifest(docker *Docker, tag ...string) {
+	tags = make([]string, 0)
 
-	dockerhub := dockerhub + "/" + DockerImageName + ":" + tag
-	ghcr := ghcr + "/" + DockerImageName + ":" + tag
+	log.Infof("The following Docker manifest(s) will be deployed on %s and %s", dockerhub, ghcr)
 
-	if err := docker.Manifest(dockerhub, ghcr); err != nil {
+	for _, t := range tag {
+		log.Infof("- %s:%s", DockerImageName, t)
+		tags = append(tags, dockerhub+"/"+DockerImageName+":"+t, ghcr+"/"+DockerImageName+":"+t)
+	}
+
+	if err := docker.Manifest(tags); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -16,15 +16,22 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.35.5](https://github.com/authelia/authelia/releases/tag/v4.35.5)
+  * [v4.36.9](https://github.com/authelia/authelia/releases/tag/v4.36.9)
 * [Seafile] Server
-  * 9.0.4
+  * [9.0.9](https://manual.seafile.com/changelog/server-changelog/#909-2022-09-22)
 
 ## Before You Begin
 
-You are required to utilize a unique client id and a unique and random client secret for all [OpenID Connect] relying
-parties. You should not use the client secret in this example, you should randomly generate one yourself. You may also
-choose to utilize a different client id, it's completely up to you.
+### Common Notes
+
+1. You are *__required__* to utilize a unique client id for every client.
+2. The client id on this page is merely an example and you can theoretically use any alphanumeric string.
+3. You *__should not__* use the client secret in this example, We *__strongly recommend__* reading the
+   [Generating Client Secrets] guide instead.
+
+[Generating Client Secrets]: ../specific-information.md#generating-client-secrets
+
+### Assumptions
 
 This example makes the following assumptions:
 
@@ -39,7 +46,10 @@ This example makes the following assumptions:
 
 To configure [Seafile] to utilize Authelia as an [OpenID Connect] Provider:
 
-1. Edit your [Seafile] `seahub_settings.py` configuration file and add configure the following:
+1. [Seafile] may require some dependencies such as `requests_oauthlib` to be manually installed.
+   See the [Seafile] documentation in the [see also](#see-also) section for more information.
+
+2. Edit your [Seafile] `seahub_settings.py` configuration file and add configure the following:
 
 ```python
 ENABLE_OAUTH = True
@@ -52,15 +62,14 @@ OAUTH_AUTHORIZATION_URL = 'https://auth.example.com/api/oidc/authorization'
 OAUTH_TOKEN_URL = 'https://auth.example.com/api/oidc/token'
 OAUTH_USER_INFO_URL = 'https://auth.example.com/api/oidc/userinfo'
 OAUTH_SCOPE = [
-  "openid",
-  "profile",
-  "email",
-  "groups",
+    "openid",
+    "profile",
+    "email",
 ]
 OAUTH_ATTRIBUTE_MAP = {
-    "id": (True, "preferred_username"),
+    "email": (True, "email"),
     "name": (False, "name"),
-    "email": (False, "email"),
+    "id": (False, "not used"),
 }
 ```
 
@@ -72,15 +81,16 @@ which will operate with the above example:
 
 ```yaml
 - id: seafile
-  secret: seafile_client_secret
+  description: Seafile
+  secret: '$plaintext$seafile_client_secret'
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://seafile.example.com/oauth/callback/
   scopes:
     - openid
     - profile
     - email
-  redirect_uris:
-    - https://seafile.example.com/oauth/callback/
   userinfo_signing_algorithm: none
 ```
 

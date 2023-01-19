@@ -16,9 +16,11 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // MockAutheliaCtx a mock of AutheliaCtx.
@@ -33,45 +35,43 @@ type MockAutheliaCtx struct {
 	StorageMock      *MockStorage
 	NotifierMock     *MockNotifier
 	TOTPMock         *MockTOTP
+	RandomMock       *MockRandom
 
 	UserSession *session.UserSession
 
-	Clock TestingClock
-}
-
-// TestingClock implementation of clock for tests.
-type TestingClock struct {
-	now time.Time
-}
-
-// Now return the stored clock.
-func (dc *TestingClock) Now() time.Time {
-	return dc.now
-}
-
-// After return a channel receiving the time after duration has elapsed.
-func (dc *TestingClock) After(d time.Duration) <-chan time.Time {
-	return time.After(d)
-}
-
-// Set set the time of the clock.
-func (dc *TestingClock) Set(now time.Time) {
-	dc.now = now
+	Clock utils.TestingClock
 }
 
 // NewMockAutheliaCtx create an instance of AutheliaCtx mock.
 func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	mockAuthelia := new(MockAutheliaCtx)
-	mockAuthelia.Clock = TestingClock{}
+	mockAuthelia.Clock = utils.TestingClock{}
 
 	datetime, _ := time.Parse("2006-Jan-02", "2013-Feb-03")
 	mockAuthelia.Clock.Set(datetime)
 
-	configuration := schema.Configuration{}
-	configuration.Session.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration
-	configuration.Session.Name = "authelia_session"
-	configuration.AccessControl.DefaultPolicy = "deny"
-	configuration.AccessControl.Rules = []schema.ACLRule{{
+	config := schema.Configuration{}
+	config.Session.Cookies = []schema.SessionCookieConfiguration{
+		{
+			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+				Name:       "authelia_session",
+				Domain:     "example.com",
+				RememberMe: schema.DefaultSessionConfiguration.RememberMe,
+				Expiration: schema.DefaultSessionConfiguration.Expiration,
+			},
+		},
+		{
+			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+				Name:       "authelia_session",
+				Domain:     "example2.com",
+				RememberMe: schema.DefaultSessionConfiguration.RememberMe,
+				Expiration: schema.DefaultSessionConfiguration.Expiration,
+			},
+		},
+	}
+
+	config.AccessControl.DefaultPolicy = "deny"
+	config.AccessControl.Rules = []schema.ACLRule{{
 		Domains: []string{"bypass.example.com"},
 		Policy:  "bypass",
 	}, {
@@ -106,15 +106,19 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	providers.Notifier = mockAuthelia.NotifierMock
 
 	providers.Authorizer = authorization.NewAuthorizer(
-		&configuration)
+		&config)
 
 	providers.SessionProvider = session.NewProvider(
-		configuration.Session, nil)
+		config.Session, nil)
 
-	providers.Regulator = regulation.NewRegulator(configuration.Regulation, providers.StorageProvider, &mockAuthelia.Clock)
+	providers.Regulator = regulation.NewRegulator(config.Regulation, providers.StorageProvider, &mockAuthelia.Clock)
 
 	mockAuthelia.TOTPMock = NewMockTOTP(mockAuthelia.Ctrl)
 	providers.TOTP = mockAuthelia.TOTPMock
+
+	mockAuthelia.RandomMock = NewMockRandom(mockAuthelia.Ctrl)
+
+	providers.Random = random.NewMathematical()
 
 	var err error
 
@@ -126,7 +130,10 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	// Set a cookie to identify this client throughout the test.
 	// request.Request.Header.SetCookie("authelia_session", "client_cookie").
 
-	ctx := middlewares.NewAutheliaCtx(request, configuration, providers)
+	// Set X-Forwarded-Host for compatibility with multi-root-domain implementation.
+	request.Request.Header.Set("X-Forwarded-Host", "example.com")
+
+	ctx := middlewares.NewAutheliaCtx(request, config, providers)
 	mockAuthelia.Ctx = ctx
 
 	logger, hook := test.NewNullLogger()

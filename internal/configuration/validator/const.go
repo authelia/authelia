@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-webauthn/webauthn/protocol"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -21,10 +22,24 @@ const (
 	policyDeny      = "deny"
 )
 
+const (
+	digestSHA1   = "sha1"
+	digestSHA224 = "sha224"
+	digestSHA256 = "sha256"
+	digestSHA384 = "sha384"
+	digestSHA512 = "sha512"
+)
+
 // Hashing constants.
 const (
-	hashArgon2id = "argon2id"
-	hashSHA512   = "sha512"
+	hashLegacyArgon2id = "argon2id"
+	hashLegacySHA512   = digestSHA512
+
+	hashArgon2    = "argon2"
+	hashSHA2Crypt = "sha2crypt"
+	hashPBKDF2    = "pbkdf2"
+	hashSCrypt    = "scrypt"
+	hashBCrypt    = "bcrypt"
 )
 
 // Scheme constants.
@@ -33,18 +48,6 @@ const (
 	schemeLDAPS = "ldaps"
 	schemeHTTP  = "http"
 	schemeHTTPS = "https"
-)
-
-// Test constants.
-const (
-	testInvalidPolicy = "invalid"
-	testJWTSecret     = "a_secret"
-	testLDAPBaseDN    = "base_dn"
-	testLDAPPassword  = "password"
-	testLDAPURL       = "ldap://ldap"
-	testLDAPUser      = "user"
-	testModeDisabled  = "disable"
-	testEncryptionKey = "a_not_so_secure_encryption_key"
 )
 
 // Notifier Error constants.
@@ -56,6 +59,15 @@ const (
 	errFmtNotifierTemplatePathUnknownError        = "notifier: option 'template_path' refers to location '%s' which couldn't be opened: %w"
 	errFmtNotifierFileSystemFileNameNotConfigured = "notifier: filesystem: option 'filename' is required"
 	errFmtNotifierSMTPNotConfigured               = "notifier: smtp: option '%s' is required"
+	errFmtNotifierSMTPTLSConfigInvalid            = "notifier: smtp: tls: %w"
+	errFmtNotifierStartTlsDisabled                = "notifier: smtp: option 'disable_starttls' is enabled: " +
+		"opportunistic STARTTLS is explicitly disabled which means all emails will be sent insecurely over plaintext " +
+		"and this setting is only necessary for non-compliant SMTP servers which advertise they support STARTTLS " +
+		"when they actually don't support STARTTLS"
+)
+
+const (
+	errSuffixMustBeOneOf = "is configured as '%s' but must be one of the following values: '%s'"
 )
 
 // Authentication Backend Error constants.
@@ -70,28 +82,24 @@ const (
 		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
 
 	errFmtFileAuthBackendPathNotConfigured  = "authentication_backend: file: option 'path' is required"
-	errFmtFileAuthBackendPasswordSaltLength = "authentication_backend: file: password: option 'salt_length' " +
-		"must be 2 or more but it is configured a '%d'"
 	errFmtFileAuthBackendPasswordUnknownAlg = "authentication_backend: file: password: option 'algorithm' " +
-		"must be either 'argon2id' or 'sha512' but it is configured as '%s'"
-	errFmtFileAuthBackendPasswordInvalidIterations = "authentication_backend: file: password: option " +
-		"'iterations' must be 1 or more but it is configured as '%d'"
-	errFmtFileAuthBackendPasswordArgon2idInvalidKeyLength = "authentication_backend: file: password: option " +
-		"'key_length' must be 16 or more when using algorithm 'argon2id' but it is configured as '%d'"
-	errFmtFileAuthBackendPasswordArgon2idInvalidParallelism = "authentication_backend: file: password: option " +
-		"'parallelism' must be 1 or more when using algorithm 'argon2id' but it is configured as '%d'"
-	errFmtFileAuthBackendPasswordArgon2idInvalidMemory = "authentication_backend: file: password: option 'memory' " +
-		"must at least be parallelism multiplied by 8 when using algorithm 'argon2id' " +
-		"with parallelism %d it should be at least %d but it is configured as '%d'"
+		errSuffixMustBeOneOf
+	errFmtFileAuthBackendPasswordInvalidVariant = "authentication_backend: file: password: %s: " +
+		"option 'variant' " + errSuffixMustBeOneOf
+	errFmtFileAuthBackendPasswordOptionTooLarge = "authentication_backend: file: password: %s: " +
+		"option '%s' is configured as '%d' but must be less than or equal to '%d'"
+	errFmtFileAuthBackendPasswordOptionTooSmall = "authentication_backend: file: password: %s: " +
+		"option '%s' is configured as '%d' but must be greater than or equal to '%d'"
+	errFmtFileAuthBackendPasswordArgon2MemoryTooLow = "authentication_backend: file: password: argon2: " +
+		"option 'memory' is configured as '%d' but must be greater than or equal to '%d' or '%d' (the value of 'parallelism) multiplied by '%d'"
 
 	errFmtLDAPAuthBackendUnauthenticatedBindWithPassword     = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when a password is specified"
 	errFmtLDAPAuthBackendUnauthenticatedBindWithResetEnabled = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when password reset is enabled"
 
-	errFmtLDAPAuthBackendMissingOption = "authentication_backend: ldap: option '%s' is required"
-	errFmtLDAPAuthBackendTLSMinVersion = "authentication_backend: ldap: tls: option " +
-		"'minimum_tls_version' is invalid: %s: %w"
-	errFmtLDAPAuthBackendImplementation = "authentication_backend: ldap: option 'implementation' " +
-		"is configured as '%s' but must be one of the following values: '%s'"
+	errFmtLDAPAuthBackendMissingOption    = "authentication_backend: ldap: option '%s' is required"
+	errFmtLDAPAuthBackendTLSConfigInvalid = "authentication_backend: ldap: tls: %w"
+	errFmtLDAPAuthBackendImplementation   = "authentication_backend: ldap: option 'implementation' " +
+		errSuffixMustBeOneOf
 	errFmtLDAPAuthBackendFilterReplacedPlaceholders = "authentication_backend: ldap: option " +
 		"'%s' has an invalid placeholder: '%s' has been removed, please use '%s' instead"
 	errFmtLDAPAuthBackendURLNotParsable = "authentication_backend: ldap: option " +
@@ -114,12 +122,15 @@ const (
 
 // Storage Error constants.
 const (
-	errStrStorage                            = "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided"
-	errStrStorageEncryptionKeyMustBeProvided = "storage: option 'encryption_key' is required"
-	errStrStorageEncryptionKeyTooShort       = "storage: option 'encryption_key' must be 20 characters or longer"
-	errFmtStorageUserPassMustBeProvided      = "storage: %s: option 'username' and 'password' are required" //nolint:gosec
-	errFmtStorageOptionMustBeProvided        = "storage: %s: option '%s' is required"
-	errFmtStoragePostgreSQLInvalidSSLMode    = "storage: postgres: ssl: option 'mode' must be one of '%s' but it is configured as '%s'"
+	errStrStorage                                 = "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided"
+	errStrStorageEncryptionKeyMustBeProvided      = "storage: option 'encryption_key' is required"
+	errStrStorageEncryptionKeyTooShort            = "storage: option 'encryption_key' must be 20 characters or longer"
+	errFmtStorageUserPassMustBeProvided           = "storage: %s: option 'username' and 'password' are required" //nolint:gosec
+	errFmtStorageOptionMustBeProvided             = "storage: %s: option '%s' is required"
+	errFmtStorageTLSConfigInvalid                 = "storage: %s: tls: %w"
+	errFmtStoragePostgreSQLInvalidSSLMode         = "storage: postgres: ssl: option 'mode' must be one of '%s' but it is configured as '%s'"
+	errFmtStoragePostgreSQLInvalidSSLAndTLSConfig = "storage: postgres: can't define both 'tls' and 'ssl' configuration options"
+	warnFmtStoragePostgreSQLInvalidSSLDeprecated  = "storage: postgres: ssl: the ssl configuration options are deprecated and we recommend the tls options instead"
 )
 
 // Telemetry Error constants.
@@ -131,8 +142,11 @@ const (
 const (
 	errFmtOIDCNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +
 		"more clients configured"
-	errFmtOIDCNoPrivateKey            = "identity_providers: oidc: option 'issuer_private_key' is required"
-	errFmtOIDCEnforcePKCEInvalidValue = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
+	errFmtOIDCNoPrivateKey             = "identity_providers: oidc: option 'issuer_private_key' is required"
+	errFmtOIDCInvalidPrivateKeyBitSize = "identity_providers: oidc: option 'issuer_private_key' must be an RSA private key with %d bits or more but it only has %d bits"
+	errFmtOIDCCertificateMismatch      = "identity_providers: oidc: option 'issuer_private_key' does not appear to be the private key the certificate provided by option 'issuer_certificate_chain'"
+	errFmtOIDCCertificateChain         = "identity_providers: oidc: option 'issuer_certificate_chain' produced an error during validation of the chain: %w"
+	errFmtOIDCEnforcePKCEInvalidValue  = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
 		"'public_clients_only' or 'always', but it is configured as '%s'"
 
 	errFmtOIDCCORSInvalidOrigin                    = "identity_providers: oidc: cors: option 'allowed_origins' contains an invalid value '%s' as it has a %s: origins must only be scheme, hostname, and an optional port"
@@ -148,17 +162,19 @@ const (
 	errFmtOIDCClientInvalidSecret       = "identity_providers: oidc: client '%s': option 'secret' is required"
 	errFmtOIDCClientPublicInvalidSecret = "identity_providers: oidc: client '%s': option 'secret' is " +
 		"required to be empty when option 'public' is true"
-	errFmtOIDCClientRedirectURI = "identity_providers: oidc: client '%s': option 'redirect_uris' has an " +
-		"invalid value: redirect uri '%s' must have a scheme of 'http' or 'https' but '%s' is configured"
 	errFmtOIDCClientRedirectURICantBeParsed = "identity_providers: oidc: client '%s': option 'redirect_uris' has an " +
 		"invalid value: redirect uri '%s' could not be parsed: %v"
-	errFmtOIDCClientRedirectURIPublic = "identity_providers: oidc: client '%s': option 'redirect_uris' has the" +
+	errFmtOIDCClientRedirectURIPublic = "identity_providers: oidc: client '%s': option 'redirect_uris' has the " +
 		"redirect uri '%s' when option 'public' is false but this is invalid as this uri is not valid " +
 		"for the openid connect confidential client type"
 	errFmtOIDCClientRedirectURIAbsolute = "identity_providers: oidc: client '%s': option 'redirect_uris' has an " +
-		"invalid value: redirect uri '%s' must have the scheme 'http' or 'https' but it has no scheme"
+		"invalid value: redirect uri '%s' must have the scheme but it is absent"
 	errFmtOIDCClientInvalidPolicy = "identity_providers: oidc: client '%s': option 'policy' must be 'one_factor' " +
 		"or 'two_factor' but it is configured as '%s'"
+	errFmtOIDCClientInvalidPKCEChallengeMethod = "identity_providers: oidc: client '%s': option 'pkce_challenge_method' must be 'plain' " +
+		"or 'S256' but it is configured as '%s'"
+	errFmtOIDCClientInvalidConsentMode = "identity_providers: oidc: client '%s': consent: option 'mode' must be one of " +
+		"'%s' but it is configured as '%s'"
 	errFmtOIDCClientInvalidEntry = "identity_providers: oidc: client '%s': option '%s' must only have the values " +
 		"'%s' but one option is configured as '%s'"
 	errFmtOIDCClientInvalidUserinfoAlgorithm = "identity_providers: oidc: client '%s': option " +
@@ -198,13 +214,25 @@ const (
 		"https://www.authelia.com/c/acl#bypass"
 	errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomainRegex = "access control: rule %s: 'policy' option 'bypass' is " +
 		"not supported when 'domain_regex' option contains the user or group named matches. For more information see: " +
-		"https://www.authelia.com/c/acl#bypass-and-user-identity"
+		"https://www.authelia.com/c/acl-match-concept-2"
 	errFmtAccessControlRuleNetworksInvalid = "access control: rule %s: the network '%s' is not a " +
 		"valid Group Name, IP, or CIDR notation"
 	errFmtAccessControlRuleSubjectInvalid = "access control: rule %s: 'subject' option '%s' is " +
 		"invalid: must start with 'user:' or 'group:'"
 	errFmtAccessControlRuleMethodInvalid = "access control: rule %s: 'methods' option '%s' is " +
 		"invalid: must be one of '%s'"
+	errFmtAccessControlRuleQueryInvalid = "access control: rule %s: 'query' option 'operator' with value '%s' is " +
+		"invalid: must be one of '%s'"
+	errFmtAccessControlRuleQueryInvalidNoValue = "access control: rule %s: 'query' option '%s' is " +
+		"invalid: must have a value"
+	errFmtAccessControlRuleQueryInvalidNoValueOperator = "access control: rule %s: 'query' option '%s' is " +
+		"invalid: must have a value when the operator is '%s'"
+	errFmtAccessControlRuleQueryInvalidValue = "access control: rule %s: 'query' option '%s' is " +
+		"invalid: must not have a value when the operator is '%s'"
+	errFmtAccessControlRuleQueryInvalidValueParse = "access control: rule %s: 'query' option '%s' is " +
+		"invalid: %w"
+	errFmtAccessControlRuleQueryInvalidValueType = "access control: rule %s: 'query' option 'value' is " +
+		"invalid: expected type was string but got %T"
 )
 
 // Theme Error constants.
@@ -220,15 +248,26 @@ const (
 // Session error constants.
 const (
 	errFmtSessionOptionRequired           = "session: option '%s' is required"
-	errFmtSessionDomainMustBeRoot         = "session: option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '%s'"
+	errFmtSessionLegacyAndWarning         = "session: option 'domain' and option 'cookies' can't be specified at the same time"
 	errFmtSessionSameSite                 = "session: option 'same_site' must be one of '%s' but is configured as '%s'"
 	errFmtSessionSecretRequired           = "session: option 'secret' is required when using the '%s' provider"
 	errFmtSessionRedisPortRange           = "session: redis: option 'port' must be between 1 and 65535 but is configured as '%d'"
 	errFmtSessionRedisHostRequired        = "session: redis: option 'host' is required"
 	errFmtSessionRedisHostOrNodesRequired = "session: redis: option 'host' or the 'high_availability' option 'nodes' is required"
+	errFmtSessionRedisTLSConfigInvalid    = "session: redis: tls: %w"
 
 	errFmtSessionRedisSentinelMissingName     = "session: redis: high_availability: option 'sentinel_name' is required"
 	errFmtSessionRedisSentinelNodeHostMissing = "session: redis: high_availability: option 'nodes': option 'host' is required for each node but one or more nodes are missing this"
+
+	errFmtSessionDomainMustBeRoot                = "session: domain config %s: option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '%s'"
+	errFmtSessionDomainSameSite                  = "session: domain config %s: option 'same_site' must be one of '%s' but is configured as '%s'"
+	errFmtSessionDomainRequired                  = "session: domain config %s: option 'domain' is required"
+	errFmtSessionDomainHasPeriodPrefix           = "session: domain config %s: option 'domain' has a prefix of '.' which is not supported or intended behaviour: you can use this at your own risk but we recommend removing it"
+	errFmtSessionDomainDuplicate                 = "session: domain config %s: option 'domain' is a duplicate value for another configured session domain"
+	errFmtSessionDomainDuplicateCookieScope      = "session: domain config %s: option 'domain' shares the same cookie domain scope as another configured session domain"
+	errFmtSessionDomainPortalURLInsecure         = "session: domain config %s: option 'authelia_url' does not have a secure scheme with a value of '%s'"
+	errFmtSessionDomainPortalURLNotInCookieScope = "session: domain config %s: option 'authelia_url' does not share a cookie scope with domain '%s' with a value of '%s'"
+	errFmtSessionDomainInvalidDomain             = "session: domain config %s: option 'domain' is not a valid domain"
 )
 
 // Regulation Error Consts.
@@ -247,7 +286,6 @@ const (
 
 	errFmtServerPathNoForwardSlashes = "server: option 'path' must not contain any forward slashes"
 	errFmtServerPathAlphaNum         = "server: option 'path' must only contain alpha numeric characters"
-	errFmtServerBufferSize           = "server: option '%s_buffer_size' must be above 0 but it is configured as '%d'"
 )
 
 const (
@@ -286,33 +324,59 @@ const (
 	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
 )
 
-var validStoragePostgreSQLSSLModes = []string{testModeDisabled, "require", "verify-ca", "verify-full"}
+const (
+	operatorPresent    = "present"
+	operatorAbsent     = "absent"
+	operatorEqual      = "equal"
+	operatorNotEqual   = "not equal"
+	operatorPattern    = "pattern"
+	operatorNotPattern = "not pattern"
+)
 
-var validThemeNames = []string{"light", "dark", "grey", "auto"}
+var (
+	validLDAPImplementations = []string{schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory, schema.LDAPImplementationFreeIPA, schema.LDAPImplementationLLDAP}
+)
 
-var validSessionSameSiteValues = []string{"none", "lax", "strict"}
+var (
+	validArgon2Variants    = []string{"argon2id", "id", "argon2i", "i", "argon2d", "d"}
+	validSHA2CryptVariants = []string{digestSHA256, digestSHA512}
+	validPBKDF2Variants    = []string{digestSHA1, digestSHA224, digestSHA256, digestSHA384, digestSHA512}
+	validBCryptVariants    = []string{"standard", digestSHA256}
+	validHashAlgorithms    = []string{hashSHA2Crypt, hashPBKDF2, hashSCrypt, hashBCrypt, hashArgon2}
+)
 
-var validLoLevels = []string{"trace", "debug", "info", "warn", "error"}
+var (
+	validStoragePostgreSQLSSLModes           = []string{"disable", "require", "verify-ca", "verify-full"}
+	validThemeNames                          = []string{"light", "dark", "grey", "auto"}
+	validSessionSameSiteValues               = []string{"none", "lax", "strict"}
+	validLogLevels                           = []string{"trace", "debug", "info", "warn", "error"}
+	validWebauthnConveyancePreferences       = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
+	validWebauthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
+	validRFC7231HTTPMethodVerbs              = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
+	validRFC4918HTTPMethodVerbs              = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
+)
 
-var validWebauthnConveyancePreferences = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
-var validWebauthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
-
-var validRFC7231HTTPMethodVerbs = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
-var validRFC4918HTTPMethodVerbs = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
-
-var validACLHTTPMethodVerbs = append(validRFC7231HTTPMethodVerbs, validRFC4918HTTPMethodVerbs...)
-
-var validACLRulePolicies = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
+var (
+	validACLHTTPMethodVerbs = append(validRFC7231HTTPMethodVerbs, validRFC4918HTTPMethodVerbs...)
+	validACLRulePolicies    = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
+	validACLRuleOperators   = []string{operatorPresent, operatorAbsent, operatorEqual, operatorNotEqual, operatorPattern, operatorNotPattern}
+)
 
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 
-var validOIDCScopes = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess}
-var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
-var validOIDCResponseModes = []string{"form_post", "query", "fragment"}
-var validOIDCUserinfoAlgorithms = []string{"none", "RS256"}
-var validOIDCCORSEndpoints = []string{oidc.AuthorizationEndpoint, oidc.TokenEndpoint, oidc.IntrospectionEndpoint, oidc.RevocationEndpoint, oidc.UserinfoEndpoint}
+var (
+	validOIDCScopes             = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess}
+	validOIDCGrantTypes         = []string{oidc.GrantTypeImplicit, oidc.GrantTypeRefreshToken, oidc.GrantTypeAuthorizationCode, oidc.GrantTypePassword, oidc.GrantTypeClientCredentials}
+	validOIDCResponseModes      = []string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery, oidc.ResponseModeFragment}
+	validOIDCUserinfoAlgorithms = []string{oidc.SigningAlgorithmNone, oidc.SigningAlgorithmRSAWithSHA256}
+	validOIDCCORSEndpoints      = []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
+	validOIDCClientConsentModes = []string{"auto", oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
+)
 
-var reKeyReplacer = regexp.MustCompile(`\[\d+]`)
+var (
+	reKeyReplacer      = regexp.MustCompile(`\[\d+]`)
+	reDomainCharacters = regexp.MustCompile(`^[a-z0-9-]+(\.[a-z0-9-]+)+[a-z0-9]$`)
+)
 
 var replacedKeys = map[string]string{
 	"authentication_backend.ldap.skip_verify":         "authentication_backend.ldap.tls.skip_verify",

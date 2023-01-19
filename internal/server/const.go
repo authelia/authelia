@@ -5,16 +5,18 @@ import (
 )
 
 const (
-	embeddedAssets = "public_html/"
-	swaggerAssets  = embeddedAssets + "api/"
-	apiFile        = "openapi.yml"
-	indexFile      = "index.html"
-	logoFile       = "logo.png"
+	assetsRoot = "public_html"
+
+	fileLogo = "logo.png"
+
+	extHTML = ".html"
+	extJSON = ".json"
+	extYML  = ".yml"
 )
 
 var (
-	rootFiles    = []string{"manifest.json", "robots.txt"}
-	swaggerFiles = []string{
+	filesRoot    = []string{"manifest.json", "robots.txt"}
+	filesSwagger = []string{
 		"favicon-16x16.png",
 		"favicon-32x32.png",
 		"index.css",
@@ -35,7 +37,7 @@ var (
 	}
 
 	// Directories excluded from the not found handler proceeding to the next() handler.
-	httpServerDirs = []struct {
+	dirsHTTPServer = []struct {
 		name, prefix string
 	}{
 		{name: "/api", prefix: "/api/"},
@@ -46,9 +48,10 @@ var (
 )
 
 const (
+	environment = "ENVIRONMENT"
 	dev         = "dev"
-	f           = "false"
-	t           = "true"
+	strFalse    = "false"
+	strTrue     = "true"
 	localhost   = "localhost"
 	schemeHTTP  = "http"
 	schemeHTTPS = "https"
@@ -71,6 +74,15 @@ X_AUTHELIA_HEALTHCHECK_PATH=%s
 `
 
 const (
-	cspDefaultTemplate  = "default-src 'self'%s; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-%s'; frame-ancestors 'none'; base-uri 'self'"
-	cspNoncePlaceholder = "${NONCE}"
+	tmplCSPSwaggerNonce = "default-src 'self'; img-src 'self' https://validator.swagger.io data:; object-src 'none'; script-src 'self' 'unsafe-inline' 'nonce-%s'; style-src 'self' 'nonce-%s'; base-uri 'self'"
+	tmplCSPSwagger      = "default-src 'self'; img-src 'self' https://validator.swagger.io data:; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self'; base-uri 'self'"
+)
+
+const (
+	connNonTLS = "non-TLS"
+	connTLS    = "TLS"
+)
+
+const (
+	fmtLogServerInit = "Initializing %s for %s connections on '%s' path '%s'"
 )

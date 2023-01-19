@@ -1,12 +1,21 @@
 ---
 extends: default
 
+locale: en_US.UTF-8
+
+yaml-files:
+  - '*.yaml'
+  - '*.yml'
+  - '.yamllint'
+
 ignore: |
+  api/openapi.yml
   docs/pnpm-lock.yaml
   internal/configuration/test_resources/config_bad_quoting.yml
   web/pnpm-lock.yaml
   web/node_modules/
-
+  .github/ISSUE_TEMPLATE/feature-request.yml
+  .github/ISSUE_TEMPLATE/bug-report.yml
 rules:
   document-end:
     level: warning

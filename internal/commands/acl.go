@@ -10,36 +10,39 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
-	"github.com/authelia/authelia/v4/internal/configuration"
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
 )
 
-func newAccessControlCommand() (cmd *cobra.Command) {
+func newAccessControlCommand(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:     "access-control",
 		Short:   cmdAutheliaAccessControlShort,
 		Long:    cmdAutheliaAccessControlLong,
 		Example: cmdAutheliaAccessControlExample,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(
-		newAccessControlCheckCommand(),
+		newAccessControlCheckCommand(ctx),
 	)
 
 	return cmd
 }
 
-func newAccessControlCheckCommand() (cmd *cobra.Command) {
+func newAccessControlCheckCommand(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:     "check-policy",
 		Short:   cmdAutheliaAccessControlCheckPolicyShort,
 		Long:    cmdAutheliaAccessControlCheckPolicyLong,
 		Example: cmdAutheliaAccessControlCheckPolicyExample,
-		RunE:    accessControlCheckRunE,
-	}
+		PreRunE: ctx.ChainRunE(
+			ctx.ConfigLoadRunE,
+		),
+		RunE: ctx.AccessControlCheckRunE,
 
-	cmdWithConfigFlags(cmd, false, []string{"configuration.yml"})
+		DisableAutoGenTag: true,
+	}
 
 	cmd.Flags().String("url", "", "the url of the object")
 	cmd.Flags().String("method", "GET", "the HTTP method of the object")
@@ -51,36 +54,14 @@ func newAccessControlCheckCommand() (cmd *cobra.Command) {
 	return cmd
 }
 
-func accessControlCheckRunE(cmd *cobra.Command, _ []string) (err error) {
-	configs, err := cmd.Flags().GetStringSlice("config")
-	if err != nil {
-		return err
-	}
+func (ctx *CmdCtx) AccessControlCheckRunE(cmd *cobra.Command, _ []string) (err error) {
+	validator.ValidateAccessControl(ctx.config, ctx.cconfig.validator)
 
-	sources := make([]configuration.Source, len(configs)+2)
-
-	for i, path := range configs {
-		sources[i] = configuration.NewYAMLFileSource(path)
-	}
-
-	sources[0+len(configs)] = configuration.NewEnvironmentSource(configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter)
-	sources[1+len(configs)] = configuration.NewSecretsSource(configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter)
-
-	val := schema.NewStructValidator()
-
-	accessControlConfig := &schema.Configuration{}
-
-	if _, err = configuration.LoadAdvanced(val, "access_control", &accessControlConfig.AccessControl, sources...); err != nil {
-		return err
-	}
-
-	validator.ValidateAccessControl(accessControlConfig, val)
-
-	if val.HasErrors() || val.HasWarnings() {
+	if ctx.cconfig.validator.HasErrors() || ctx.cconfig.validator.HasWarnings() {
 		return errors.New("your configuration has errors")
 	}
 
-	authorizer := authorization.NewAuthorizer(accessControlConfig)
+	authorizer := authorization.NewAuthorizer(ctx.config)
 
 	subject, object, err := getSubjectAndObjectFromFlags(cmd)
 	if err != nil {
@@ -90,7 +71,7 @@ func accessControlCheckRunE(cmd *cobra.Command, _ []string) (err error) {
 	results := authorizer.GetRuleMatchResults(subject, object)
 
 	if len(results) == 0 {
-		fmt.Printf("\nThe default policy '%s' will be applied to ALL requests as no rules are configured.\n\n", accessControlConfig.AccessControl.DefaultPolicy)
+		fmt.Printf("\nThe default policy '%s' will be applied to ALL requests as no rules are configured.\n\n", ctx.config.AccessControl.DefaultPolicy)
 
 		return nil
 	}
@@ -100,7 +81,7 @@ func accessControlCheckRunE(cmd *cobra.Command, _ []string) (err error) {
 		return err
 	}
 
-	accessControlCheckWriteOutput(object, subject, results, accessControlConfig.AccessControl.DefaultPolicy, verbose)
+	accessControlCheckWriteOutput(object, subject, results, ctx.config.AccessControl.DefaultPolicy, verbose)
 
 	return nil
 }
@@ -167,11 +148,11 @@ func accessControlCheckWriteOutput(object authorization.Object, subject authoriz
 
 	switch {
 	case appliedPos != 0 && (potentialPos == 0 || (potentialPos > appliedPos)):
-		fmt.Printf("\nThe policy '%s' from rule #%d will be applied to this request.\n\n", authorization.LevelToString(applied.Rule.Policy), appliedPos)
+		fmt.Printf("\nThe policy '%s' from rule #%d will be applied to this request.\n\n", applied.Rule.Policy, appliedPos)
 	case potentialPos != 0 && appliedPos != 0:
-		fmt.Printf("\nThe policy '%s' from rule #%d will potentially be applied to this request. If not policy '%s' from rule #%d will be.\n\n", authorization.LevelToString(potential.Rule.Policy), potentialPos, authorization.LevelToString(applied.Rule.Policy), appliedPos)
+		fmt.Printf("\nThe policy '%s' from rule #%d will potentially be applied to this request. If not policy '%s' from rule #%d will be.\n\n", potential.Rule.Policy, potentialPos, applied.Rule.Policy, appliedPos)
 	case potentialPos != 0:
-		fmt.Printf("\nThe policy '%s' from rule #%d will potentially be applied to this request. Otherwise the policy '%s' from the default policy will be.\n\n", authorization.LevelToString(potential.Rule.Policy), potentialPos, defaultPolicy)
+		fmt.Printf("\nThe policy '%s' from rule #%d will potentially be applied to this request. Otherwise the policy '%s' from the default policy will be.\n\n", potential.Rule.Policy, potentialPos, defaultPolicy)
 	default:
 		fmt.Printf("\nThe policy '%s' from the default policy will be applied to this request as no rules matched the request.\n\n", defaultPolicy)
 	}
@@ -204,7 +185,7 @@ func getSubjectAndObjectFromFlags(cmd *cobra.Command) (subject authorization.Sub
 		return subject, object, err
 	}
 
-	parsedURL, err := url.Parse(requestURL)
+	parsedURL, err := url.ParseRequestURI(requestURL)
 	if err != nil {
 		return subject, object, err
 	}

@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -42,8 +43,6 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectTOTPConfig:  fmt.Sprintf(queryFmtSelectTOTPConfiguration, tableTOTPConfigurations),
 		sqlSelectTOTPConfigs: fmt.Sprintf(queryFmtSelectTOTPConfigurations, tableTOTPConfigurations),
 
-		sqlUpdateTOTPConfigSecret:                 fmt.Sprintf(queryFmtUpdateTOTPConfigurationSecret, tableTOTPConfigurations),
-		sqlUpdateTOTPConfigSecretByUsername:       fmt.Sprintf(queryFmtUpdateTOTPConfigurationSecretByUsername, tableTOTPConfigurations),
 		sqlUpdateTOTPConfigRecordSignIn:           fmt.Sprintf(queryFmtUpdateTOTPConfigRecordSignIn, tableTOTPConfigurations),
 		sqlUpdateTOTPConfigRecordSignInByUsername: fmt.Sprintf(queryFmtUpdateTOTPConfigRecordSignInByUsername, tableTOTPConfigurations),
 
@@ -51,10 +50,12 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectWebauthnDevices:           fmt.Sprintf(queryFmtSelectWebauthnDevices, tableWebauthnDevices),
 		sqlSelectWebauthnDevicesByUsername: fmt.Sprintf(queryFmtSelectWebauthnDevicesByUsername, tableWebauthnDevices),
 
-		sqlUpdateWebauthnDevicePublicKey:              fmt.Sprintf(queryFmtUpdateWebauthnDevicePublicKey, tableWebauthnDevices),
-		sqlUpdateWebauthnDevicePublicKeyByUsername:    fmt.Sprintf(queryFmtUpdateUpdateWebauthnDevicePublicKeyByUsername, tableWebauthnDevices),
 		sqlUpdateWebauthnDeviceRecordSignIn:           fmt.Sprintf(queryFmtUpdateWebauthnDeviceRecordSignIn, tableWebauthnDevices),
 		sqlUpdateWebauthnDeviceRecordSignInByUsername: fmt.Sprintf(queryFmtUpdateWebauthnDeviceRecordSignInByUsername, tableWebauthnDevices),
+
+		sqlDeleteWebauthnDevice:                         fmt.Sprintf(queryFmtDeleteWebauthnDevice, tableWebauthnDevices),
+		sqlDeleteWebauthnDeviceByUsername:               fmt.Sprintf(queryFmtDeleteWebauthnDeviceByUsername, tableWebauthnDevices),
+		sqlDeleteWebauthnDeviceByUsernameAndDescription: fmt.Sprintf(queryFmtDeleteWebauthnDeviceByUsernameAndDescription, tableWebauthnDevices),
 
 		sqlUpsertDuoDevice: fmt.Sprintf(queryFmtUpsertDuoDevice, tableDuoDevices),
 		sqlDeleteDuoDevice: fmt.Sprintf(queryFmtDeleteDuoDevice, tableDuoDevices),
@@ -68,6 +69,15 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectUserOpaqueIdentifier:            fmt.Sprintf(queryFmtSelectUserOpaqueIdentifier, tableUserOpaqueIdentifier),
 		sqlSelectUserOpaqueIdentifiers:           fmt.Sprintf(queryFmtSelectUserOpaqueIdentifiers, tableUserOpaqueIdentifier),
 		sqlSelectUserOpaqueIdentifierBySignature: fmt.Sprintf(queryFmtSelectUserOpaqueIdentifierBySignature, tableUserOpaqueIdentifier),
+
+		sqlInsertOAuth2ConsentPreConfiguration:  fmt.Sprintf(queryFmtInsertOAuth2ConsentPreConfiguration, tableOAuth2ConsentPreConfiguration),
+		sqlSelectOAuth2ConsentPreConfigurations: fmt.Sprintf(queryFmtSelectOAuth2ConsentPreConfigurations, tableOAuth2ConsentPreConfiguration),
+
+		sqlInsertOAuth2ConsentSession:              fmt.Sprintf(queryFmtInsertOAuth2ConsentSession, tableOAuth2ConsentSession),
+		sqlUpdateOAuth2ConsentSessionSubject:       fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionSubject, tableOAuth2ConsentSession),
+		sqlUpdateOAuth2ConsentSessionResponse:      fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionResponse, tableOAuth2ConsentSession),
+		sqlUpdateOAuth2ConsentSessionGranted:       fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionGranted, tableOAuth2ConsentSession),
+		sqlSelectOAuth2ConsentSessionByChallengeID: fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionByChallengeID, tableOAuth2ConsentSession),
 
 		sqlInsertOAuth2AuthorizeCodeSession:                fmt.Sprintf(queryFmtInsertOAuth2Session, tableOAuth2AuthorizeCodeSession),
 		sqlSelectOAuth2AuthorizeCodeSession:                fmt.Sprintf(queryFmtSelectOAuth2Session, tableOAuth2AuthorizeCodeSession),
@@ -103,13 +113,6 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlRevokeOAuth2OpenIDConnectSessionByRequestID:     fmt.Sprintf(queryFmtRevokeOAuth2SessionByRequestID, tableOAuth2OpenIDConnectSession),
 		sqlDeactivateOAuth2OpenIDConnectSession:            fmt.Sprintf(queryFmtDeactivateOAuth2Session, tableOAuth2OpenIDConnectSession),
 		sqlDeactivateOAuth2OpenIDConnectSessionByRequestID: fmt.Sprintf(queryFmtDeactivateOAuth2SessionByRequestID, tableOAuth2OpenIDConnectSession),
-
-		sqlInsertOAuth2ConsentSession:               fmt.Sprintf(queryFmtInsertOAuth2ConsentSession, tableOAuth2ConsentSession),
-		sqlUpdateOAuth2ConsentSessionSubject:        fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionSubject, tableOAuth2ConsentSession),
-		sqlUpdateOAuth2ConsentSessionResponse:       fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionResponse, tableOAuth2ConsentSession),
-		sqlUpdateOAuth2ConsentSessionGranted:        fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionGranted, tableOAuth2ConsentSession),
-		sqlSelectOAuth2ConsentSessionByChallengeID:  fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionByChallengeID, tableOAuth2ConsentSession),
-		sqlSelectOAuth2ConsentSessionsPreConfigured: fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionsPreConfigured, tableOAuth2ConsentSession),
 
 		sqlUpsertOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 		sqlSelectOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
@@ -154,8 +157,6 @@ type SQLProvider struct {
 	sqlSelectTOTPConfig  string
 	sqlSelectTOTPConfigs string
 
-	sqlUpdateTOTPConfigSecret                 string
-	sqlUpdateTOTPConfigSecretByUsername       string
 	sqlUpdateTOTPConfigRecordSignIn           string
 	sqlUpdateTOTPConfigRecordSignInByUsername string
 
@@ -164,10 +165,12 @@ type SQLProvider struct {
 	sqlSelectWebauthnDevices           string
 	sqlSelectWebauthnDevicesByUsername string
 
-	sqlUpdateWebauthnDevicePublicKey              string
-	sqlUpdateWebauthnDevicePublicKeyByUsername    string
 	sqlUpdateWebauthnDeviceRecordSignIn           string
 	sqlUpdateWebauthnDeviceRecordSignInByUsername string
+
+	sqlDeleteWebauthnDevice                         string
+	sqlDeleteWebauthnDeviceByUsername               string
+	sqlDeleteWebauthnDeviceByUsernameAndDescription string
 
 	// Table: duo_devices.
 	sqlUpsertDuoDevice string
@@ -193,6 +196,17 @@ type SQLProvider struct {
 	// Table: encryption.
 	sqlUpsertEncryptionValue string
 	sqlSelectEncryptionValue string
+
+	// Table: oauth2_consent_preconfiguration.
+	sqlInsertOAuth2ConsentPreConfiguration  string
+	sqlSelectOAuth2ConsentPreConfigurations string
+
+	// Table: oauth2_consent_session.
+	sqlInsertOAuth2ConsentSession              string
+	sqlUpdateOAuth2ConsentSessionSubject       string
+	sqlUpdateOAuth2ConsentSessionResponse      string
+	sqlUpdateOAuth2ConsentSessionGranted       string
+	sqlSelectOAuth2ConsentSessionByChallengeID string
 
 	// Table: oauth2_authorization_code_session.
 	sqlInsertOAuth2AuthorizeCodeSession                string
@@ -234,14 +248,6 @@ type SQLProvider struct {
 	sqlDeactivateOAuth2OpenIDConnectSession            string
 	sqlDeactivateOAuth2OpenIDConnectSessionByRequestID string
 
-	// Table: oauth2_consent_session.
-	sqlInsertOAuth2ConsentSession               string
-	sqlUpdateOAuth2ConsentSessionSubject        string
-	sqlUpdateOAuth2ConsentSessionResponse       string
-	sqlUpdateOAuth2ConsentSessionGranted        string
-	sqlSelectOAuth2ConsentSessionByChallengeID  string
-	sqlSelectOAuth2ConsentSessionsPreConfigured string
-
 	sqlUpsertOAuth2BlacklistedJTI string
 	sqlSelectOAuth2BlacklistedJTI string
 
@@ -278,13 +284,17 @@ func (p *SQLProvider) StartupCheck() (err error) {
 
 	ctx := context.Background()
 
-	if err = p.SchemaEncryptionCheckKey(ctx, false); err != nil && !errors.Is(err, ErrSchemaEncryptionVersionUnsupported) {
+	var result EncryptionValidationResult
+
+	if result, err = p.SchemaEncryptionCheckKey(ctx, false); err != nil && !errors.Is(err, ErrSchemaEncryptionVersionUnsupported) {
 		return err
 	}
 
-	err = p.SchemaMigrate(ctx, true, SchemaLatest)
+	if !result.Success() {
+		return ErrSchemaEncryptionInvalidKey
+	}
 
-	switch err {
+	switch err = p.SchemaMigrate(ctx, true, SchemaLatest); err {
 	case ErrSchemaAlreadyUpToDate:
 		p.log.Infof("Storage schema is already up to date")
 		return nil
@@ -396,8 +406,8 @@ func (p *SQLProvider) LoadUserOpaqueIdentifierBySignature(ctx context.Context, s
 func (p *SQLProvider) SaveOAuth2ConsentSession(ctx context.Context, consent model.OAuth2ConsentSession) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertOAuth2ConsentSession,
 		consent.ChallengeID, consent.ClientID, consent.Subject, consent.Authorized, consent.Granted,
-		consent.RequestedAt, consent.RespondedAt, consent.ExpiresAt, consent.Form,
-		consent.RequestedScopes, consent.GrantedScopes, consent.RequestedAudience, consent.GrantedAudience); err != nil {
+		consent.RequestedAt, consent.RespondedAt, consent.Form,
+		consent.RequestedScopes, consent.GrantedScopes, consent.RequestedAudience, consent.GrantedAudience, consent.PreConfiguration); err != nil {
 		return fmt.Errorf("error inserting oauth2 consent session with challenge id '%s' for subject '%s': %w", consent.ChallengeID.String(), consent.Subject.UUID.String(), err)
 	}
 
@@ -415,7 +425,7 @@ func (p *SQLProvider) SaveOAuth2ConsentSessionSubject(ctx context.Context, conse
 
 // SaveOAuth2ConsentSessionResponse updates an OAuth2.0 consent session with the response.
 func (p *SQLProvider) SaveOAuth2ConsentSessionResponse(ctx context.Context, consent model.OAuth2ConsentSession, authorized bool) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionResponse, authorized, consent.ExpiresAt, consent.GrantedScopes, consent.GrantedAudience, consent.ID); err != nil {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionResponse, authorized, consent.GrantedScopes, consent.GrantedAudience, consent.PreConfiguration, consent.ID); err != nil {
 		return fmt.Errorf("error updating oauth2 consent session (authorized  '%t') with id '%d' and challenge id '%s' for subject '%s': %w", authorized, consent.ID, consent.ChallengeID, consent.Subject.UUID, err)
 	}
 
@@ -442,19 +452,43 @@ func (p *SQLProvider) LoadOAuth2ConsentSessionByChallengeID(ctx context.Context,
 	return consent, nil
 }
 
-// LoadOAuth2ConsentSessionsPreConfigured returns an OAuth2.0 consents that are pre-configured given the consent signature.
-func (p *SQLProvider) LoadOAuth2ConsentSessionsPreConfigured(ctx context.Context, clientID string, subject uuid.UUID) (rows *ConsentSessionRows, err error) {
-	var r *sqlx.Rows
-
-	if r, err = p.db.QueryxContext(ctx, p.sqlSelectOAuth2ConsentSessionsPreConfigured, clientID, subject); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return &ConsentSessionRows{}, nil
+// SaveOAuth2ConsentPreConfiguration inserts an OAuth2.0 consent pre-configuration.
+func (p *SQLProvider) SaveOAuth2ConsentPreConfiguration(ctx context.Context, config model.OAuth2ConsentPreConfig) (insertedID int64, err error) {
+	switch p.name {
+	case providerPostgres:
+		if err = p.db.GetContext(ctx, &insertedID, p.sqlInsertOAuth2ConsentPreConfiguration,
+			config.ClientID, config.Subject, config.CreatedAt, config.ExpiresAt,
+			config.Revoked, config.Scopes, config.Audience); err != nil {
+			return -1, fmt.Errorf("error inserting oauth2 consent pre-configuration for subject '%s' with client id '%s' and scopes '%s': %w", config.Subject.String(), config.ClientID, strings.Join(config.Scopes, " "), err)
 		}
 
-		return &ConsentSessionRows{}, fmt.Errorf("error selecting oauth2 consent session by signature with client id '%s' and subject '%s': %w", clientID, subject.String(), err)
+		return insertedID, nil
+	default:
+		var result sql.Result
+
+		if result, err = p.db.ExecContext(ctx, p.sqlInsertOAuth2ConsentPreConfiguration,
+			config.ClientID, config.Subject, config.CreatedAt, config.ExpiresAt,
+			config.Revoked, config.Scopes, config.Audience); err != nil {
+			return -1, fmt.Errorf("error inserting oauth2 consent pre-configuration for subject '%s' with client id '%s' and scopes '%s': %w", config.Subject.String(), config.ClientID, strings.Join(config.Scopes, " "), err)
+		}
+
+		return result.LastInsertId()
+	}
+}
+
+// LoadOAuth2ConsentPreConfigurations returns an OAuth2.0 consents pre-configurations given the consent signature.
+func (p *SQLProvider) LoadOAuth2ConsentPreConfigurations(ctx context.Context, clientID string, subject uuid.UUID) (rows *ConsentPreConfigRows, err error) {
+	var r *sqlx.Rows
+
+	if r, err = p.db.QueryxContext(ctx, p.sqlSelectOAuth2ConsentPreConfigurations, clientID, subject); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return &ConsentPreConfigRows{}, nil
+		}
+
+		return &ConsentPreConfigRows{}, fmt.Errorf("error selecting oauth2 consent pre-configurations by signature with client id '%s' and subject '%s': %w", clientID, subject.String(), err)
 	}
 
-	return &ConsentSessionRows{rows: r}, nil
+	return &ConsentPreConfigRows{rows: r}, nil
 }
 
 // SaveOAuth2Session saves a OAuth2Session to the database.
@@ -509,11 +543,11 @@ func (p *SQLProvider) RevokeOAuth2Session(ctx context.Context, sessionType OAuth
 	case OAuth2SessionTypeOpenIDConnect:
 		query = p.sqlRevokeOAuth2OpenIDConnectSession
 	default:
-		return fmt.Errorf("error revoking oauth2 session with signature '%s': unknown oauth2 session type '%s'", signature, sessionType)
+		return fmt.Errorf("error revoking oauth2 session with signature '%s': unknown oauth2 session type '%s'", signature, sessionType.String())
 	}
 
 	if _, err = p.db.ExecContext(ctx, query, signature); err != nil {
-		return fmt.Errorf("error revoking oauth2 %s session with signature '%s': %w", sessionType, signature, err)
+		return fmt.Errorf("error revoking oauth2 %s session with signature '%s': %w", sessionType.String(), signature, err)
 	}
 
 	return nil
@@ -535,11 +569,11 @@ func (p *SQLProvider) RevokeOAuth2SessionByRequestID(ctx context.Context, sessio
 	case OAuth2SessionTypeOpenIDConnect:
 		query = p.sqlRevokeOAuth2OpenIDConnectSessionByRequestID
 	default:
-		return fmt.Errorf("error revoking oauth2 session with request id '%s': unknown oauth2 session type '%s'", requestID, sessionType)
+		return fmt.Errorf("error revoking oauth2 session with request id '%s': unknown oauth2 session type '%s'", requestID, sessionType.String())
 	}
 
 	if _, err = p.db.ExecContext(ctx, query, requestID); err != nil {
-		return fmt.Errorf("error revoking oauth2 %s session with request id '%s': %w", sessionType, requestID, err)
+		return fmt.Errorf("error revoking oauth2 %s session with request id '%s': %w", sessionType.String(), requestID, err)
 	}
 
 	return nil
@@ -561,11 +595,11 @@ func (p *SQLProvider) DeactivateOAuth2Session(ctx context.Context, sessionType O
 	case OAuth2SessionTypeOpenIDConnect:
 		query = p.sqlDeactivateOAuth2OpenIDConnectSession
 	default:
-		return fmt.Errorf("error deactivating oauth2 session with signature '%s': unknown oauth2 session type '%s'", signature, sessionType)
+		return fmt.Errorf("error deactivating oauth2 session with signature '%s': unknown oauth2 session type '%s'", signature, sessionType.String())
 	}
 
 	if _, err = p.db.ExecContext(ctx, query, signature); err != nil {
-		return fmt.Errorf("error deactivating oauth2 %s session with signature '%s': %w", sessionType, signature, err)
+		return fmt.Errorf("error deactivating oauth2 %s session with signature '%s': %w", sessionType.String(), signature, err)
 	}
 
 	return nil
@@ -587,7 +621,7 @@ func (p *SQLProvider) DeactivateOAuth2SessionByRequestID(ctx context.Context, se
 	case OAuth2SessionTypeOpenIDConnect:
 		query = p.sqlDeactivateOAuth2OpenIDConnectSessionByRequestID
 	default:
-		return fmt.Errorf("error deactivating oauth2 session with request id '%s': unknown oauth2 session type '%s'", requestID, sessionType)
+		return fmt.Errorf("error deactivating oauth2 session with request id '%s': unknown oauth2 session type '%s'", requestID, sessionType.String())
 	}
 
 	if _, err = p.db.ExecContext(ctx, query, requestID); err != nil {
@@ -613,17 +647,17 @@ func (p *SQLProvider) LoadOAuth2Session(ctx context.Context, sessionType OAuth2S
 	case OAuth2SessionTypeOpenIDConnect:
 		query = p.sqlSelectOAuth2OpenIDConnectSession
 	default:
-		return nil, fmt.Errorf("error selecting oauth2 session: unknown oauth2 session type '%s'", sessionType)
+		return nil, fmt.Errorf("error selecting oauth2 session: unknown oauth2 session type '%s'", sessionType.String())
 	}
 
 	session = &model.OAuth2Session{}
 
 	if err = p.db.GetContext(ctx, session, query, signature); err != nil {
-		return nil, fmt.Errorf("error selecting oauth2 %s session with signature '%s': %w", sessionType, signature, err)
+		return nil, fmt.Errorf("error selecting oauth2 %s session with signature '%s': %w", sessionType.String(), signature, err)
 	}
 
 	if session.Session, err = p.decrypt(session.Session); err != nil {
-		return nil, fmt.Errorf("error decrypting the oauth2 %s session data with signature '%s' for subject '%s' and request id '%s': %w", sessionType, signature, session.Subject, session.RequestID, err)
+		return nil, fmt.Errorf("error decrypting the oauth2 %s session data with signature '%s' for subject '%s' and request id '%s': %w", sessionType.String(), signature, session.Subject, session.RequestID, err)
 	}
 
 	return session, nil
@@ -716,7 +750,7 @@ func (p *SQLProvider) FindIdentityVerification(ctx context.Context, jti string) 
 	}
 
 	switch {
-	case verification.Consumed != nil:
+	case verification.Consumed.Valid:
 		return false, fmt.Errorf("the token has already been consumed")
 	case verification.ExpiresAt.Before(time.Now()):
 		return false, fmt.Errorf("the token expired %s ago", time.Since(verification.ExpiresAt))
@@ -742,7 +776,7 @@ func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config model.TO
 }
 
 // UpdateTOTPConfigurationSignIn updates a registered Webauthn devices sign in information.
-func (p *SQLProvider) UpdateTOTPConfigurationSignIn(ctx context.Context, id int, lastUsedAt *time.Time) (err error) {
+func (p *SQLProvider) UpdateTOTPConfigurationSignIn(ctx context.Context, id int, lastUsedAt sql.NullTime) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigRecordSignIn, lastUsedAt, id); err != nil {
 		return fmt.Errorf("error updating TOTP configuration id %d: %w", id, err)
 	}
@@ -799,21 +833,6 @@ func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, limit, page in
 	return configs, nil
 }
 
-func (p *SQLProvider) updateTOTPConfigurationSecret(ctx context.Context, config model.TOTPConfiguration) (err error) {
-	switch config.ID {
-	case 0:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigSecretByUsername, config.Secret, config.Username)
-	default:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigSecret, config.Secret, config.ID)
-	}
-
-	if err != nil {
-		return fmt.Errorf("error updating TOTP configuration secret for user '%s': %w", config.Username, err)
-	}
-
-	return nil
-}
-
 // SaveWebauthnDevice saves a registered Webauthn device.
 func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device model.WebauthnDevice) (err error) {
 	if device.PublicKey, err = p.encrypt(device.PublicKey); err != nil {
@@ -833,9 +852,37 @@ func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device model.Webau
 }
 
 // UpdateWebauthnDeviceSignIn updates a registered Webauthn devices sign in information.
-func (p *SQLProvider) UpdateWebauthnDeviceSignIn(ctx context.Context, id int, rpid string, lastUsedAt *time.Time, signCount uint32, cloneWarning bool) (err error) {
+func (p *SQLProvider) UpdateWebauthnDeviceSignIn(ctx context.Context, id int, rpid string, lastUsedAt sql.NullTime, signCount uint32, cloneWarning bool) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceRecordSignIn, rpid, lastUsedAt, signCount, cloneWarning, id); err != nil {
 		return fmt.Errorf("error updating Webauthn signin metadata for id '%x': %w", id, err)
+	}
+
+	return nil
+}
+
+// DeleteWebauthnDevice deletes a registered Webauthn device.
+func (p *SQLProvider) DeleteWebauthnDevice(ctx context.Context, kid string) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlDeleteWebauthnDevice, kid); err != nil {
+		return fmt.Errorf("error deleting webauthn device with kid '%s': %w", kid, err)
+	}
+
+	return nil
+}
+
+// DeleteWebauthnDeviceByUsername deletes registered Webauthn devices by username or username and description.
+func (p *SQLProvider) DeleteWebauthnDeviceByUsername(ctx context.Context, username, description string) (err error) {
+	if len(username) == 0 {
+		return fmt.Errorf("error deleting webauthn device with username '%s' and description '%s': username must not be empty", username, description)
+	}
+
+	if len(description) == 0 {
+		if _, err = p.db.ExecContext(ctx, p.sqlDeleteWebauthnDeviceByUsername, username); err != nil {
+			return fmt.Errorf("error deleting webauthn devices for username '%s': %w", username, err)
+		}
+	} else {
+		if _, err = p.db.ExecContext(ctx, p.sqlDeleteWebauthnDeviceByUsernameAndDescription, username, description); err != nil {
+			return fmt.Errorf("error deleting webauthn device with username '%s' and description '%s': %w", username, description, err)
+		}
 	}
 
 	return nil
@@ -879,21 +926,6 @@ func (p *SQLProvider) LoadWebauthnDevicesByUsername(ctx context.Context, usernam
 	}
 
 	return devices, nil
-}
-
-func (p *SQLProvider) updateWebauthnDevicePublicKey(ctx context.Context, device model.WebauthnDevice) (err error) {
-	switch device.ID {
-	case 0:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDevicePublicKeyByUsername, device.PublicKey, device.Username, device.KID)
-	default:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDevicePublicKey, device.PublicKey, device.ID)
-	}
-
-	if err != nil {
-		return fmt.Errorf("error updating Webauthn public key for user '%s' kid '%x': %w", device.Username, device.KID, err)
-	}
-
-	return nil
 }
 
 // SavePreferredDuoDevice saves a Duo device.

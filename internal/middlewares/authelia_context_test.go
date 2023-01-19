@@ -6,14 +6,119 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/session"
 )
+
+func TestContentTypes(t *testing.T) {
+	testCases := []struct {
+		name     string
+		setup    func(ctx *middlewares.AutheliaCtx) (err error)
+		expected string
+	}{
+		{
+			name: "ApplicationJSON",
+			setup: func(ctx *middlewares.AutheliaCtx) (err error) {
+				ctx.SetContentTypeApplicationJSON()
+
+				return nil
+			},
+			expected: "application/json; charset=utf-8",
+		},
+		{
+			name: "ApplicationYAML",
+			setup: func(ctx *middlewares.AutheliaCtx) (err error) {
+				ctx.SetContentTypeApplicationYAML()
+
+				return nil
+			},
+			expected: "application/yaml; charset=utf-8",
+		},
+		{
+			name: "TextPlain",
+			setup: func(ctx *middlewares.AutheliaCtx) (err error) {
+				ctx.SetContentTypeTextPlain()
+
+				return nil
+			},
+			expected: "text/plain; charset=utf-8",
+		},
+		{
+			name: "TextHTML",
+			setup: func(ctx *middlewares.AutheliaCtx) (err error) {
+				ctx.SetContentTypeTextHTML()
+
+				return nil
+			},
+			expected: "text/html; charset=utf-8",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			assert.NoError(t, tc.setup(mock.Ctx))
+
+			assert.Equal(t, tc.expected, string(mock.Ctx.Response.Header.ContentType()))
+		})
+	}
+}
+
+func TestIssuerURL(t *testing.T) {
+	testCases := []struct {
+		name              string
+		proto, host, base string
+		expected          string
+	}{
+		{
+			name:  "Standard",
+			proto: "https", host: "auth.example.com", base: "",
+			expected: "https://auth.example.com",
+		},
+		{
+			name:  "Base",
+			proto: "https", host: "example.com", base: "auth",
+			expected: "https://example.com/auth",
+		},
+		{
+			name:  "NoHost",
+			proto: "https", host: "", base: "",
+			expected: "https:",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, tc.proto)
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, tc.host)
+
+			if tc.base != "" {
+				mock.Ctx.SetUserValue("base_url", tc.base)
+			}
+
+			actual := mock.Ctx.RootURL()
+
+			require.NotNil(t, actual)
+
+			assert.Equal(t, tc.expected, actual.String())
+			assert.Equal(t, tc.proto, actual.Scheme)
+			assert.Equal(t, tc.host, actual.Host)
+			assert.Equal(t, tc.base, actual.Path)
+		})
+	}
+}
 
 func TestShouldCallNextWithAutheliaCtx(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -24,6 +129,7 @@ func TestShouldCallNextWithAutheliaCtx(t *testing.T) {
 	providers := middlewares.Providers{
 		UserProvider:    userProvider,
 		SessionProvider: sessionProvider,
+		Random:          random.NewMathematical(),
 	}
 	nextCalled := false
 
@@ -55,8 +161,8 @@ func TestShouldGetOriginalURLFromOriginalURLHeader(t *testing.T) {
 func TestShouldGetOriginalURLFromForwardedHeadersWithoutURI(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
-	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
-	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "home.example.com")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "home.example.com")
 	originalURL, err := mock.Ctx.GetOriginalURL()
 	assert.NoError(t, err)
 
@@ -76,6 +182,8 @@ func TestShouldGetOriginalURLFromForwardedHeadersWithURI(t *testing.T) {
 
 func TestShouldFallbackToNonXForwardedHeaders(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
+	mock.Ctx.Request.Header.Del("X-Forwarded-Host")
+
 	defer mock.Close()
 
 	mock.Ctx.RequestCtx.Request.SetRequestURI("/2fa/one-time-password")
@@ -90,11 +198,13 @@ func TestShouldOnlyFallbackToNonXForwardedHeadersWhenNil(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
+	mock.Ctx.Request.Header.Del("X-Forwarded-Host")
+
 	mock.Ctx.RequestCtx.Request.SetRequestURI("/2fa/one-time-password")
 	mock.Ctx.RequestCtx.Request.SetHost("localhost")
 	mock.Ctx.RequestCtx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.example.com:1234")
 	mock.Ctx.RequestCtx.Request.Header.Set("X-Forwarded-URI", "/base/2fa/one-time-password")
-	mock.Ctx.RequestCtx.Request.Header.Set("X-Forwarded-Proto", "https")
+	mock.Ctx.RequestCtx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 	mock.Ctx.RequestCtx.Request.Header.Set("X-Forwarded-Method", "GET")
 
 	assert.Equal(t, []byte("https"), mock.Ctx.XForwardedProto())

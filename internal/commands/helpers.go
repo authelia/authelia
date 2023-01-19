@@ -1,102 +1,121 @@
 package commands
 
 import (
-	"github.com/authelia/authelia/v4/internal/authentication"
-	"github.com/authelia/authelia/v4/internal/authorization"
-	"github.com/authelia/authelia/v4/internal/metrics"
-	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/notification"
-	"github.com/authelia/authelia/v4/internal/ntp"
-	"github.com/authelia/authelia/v4/internal/oidc"
-	"github.com/authelia/authelia/v4/internal/regulation"
-	"github.com/authelia/authelia/v4/internal/session"
+	"encoding/base32"
+	"errors"
+	"fmt"
+
+	"github.com/spf13/pflag"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
-	"github.com/authelia/authelia/v4/internal/templates"
-	"github.com/authelia/authelia/v4/internal/totp"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func getStorageProvider() (provider storage.Provider) {
+func getStorageProvider(ctx *CmdCtx) (provider storage.Provider) {
 	switch {
-	case config.Storage.PostgreSQL != nil:
-		return storage.NewPostgreSQLProvider(config)
-	case config.Storage.MySQL != nil:
-		return storage.NewMySQLProvider(config)
-	case config.Storage.Local != nil:
-		return storage.NewSQLiteProvider(config)
+	case ctx.config.Storage.PostgreSQL != nil:
+		return storage.NewPostgreSQLProvider(ctx.config, ctx.trusted)
+	case ctx.config.Storage.MySQL != nil:
+		return storage.NewMySQLProvider(ctx.config, ctx.trusted)
+	case ctx.config.Storage.Local != nil:
+		return storage.NewSQLiteProvider(ctx.config)
 	default:
 		return nil
 	}
 }
 
-func getProviders() (providers middlewares.Providers, warnings []error, errors []error) {
-	// TODO: Adjust this so the CertPool can be used like a provider.
-	autheliaCertPool, warnings, errors := utils.NewX509CertPool(config.CertificatesDirectory)
-	if len(warnings) != 0 || len(errors) != 0 {
-		return providers, warnings, errors
+func containsIdentifier(identifier model.UserOpaqueIdentifier, identifiers []model.UserOpaqueIdentifier) bool {
+	for i := 0; i < len(identifiers); i++ {
+		if identifier.Service == identifiers[i].Service && identifier.SectorID == identifiers[i].SectorID && identifier.Username == identifiers[i].Username {
+			return true
+		}
 	}
 
-	storageProvider := getStorageProvider()
+	return false
+}
 
-	var (
-		userProvider authentication.UserProvider
-		err          error
-	)
-
+func storageWrapCheckSchemaErr(err error) error {
 	switch {
-	case config.AuthenticationBackend.File != nil:
-		userProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
-	case config.AuthenticationBackend.LDAP != nil:
-		userProvider = authentication.NewLDAPUserProvider(config.AuthenticationBackend, autheliaCertPool)
+	case errors.Is(err, errStorageSchemaIncompatible):
+		return fmt.Errorf("command requires the use of a compatibe schema version: %w", err)
+	case errors.Is(err, errStorageSchemaOutdated):
+		return fmt.Errorf("command requires the use of a up to date schema version: %w", err)
+	default:
+		return err
+	}
+}
+
+func storageTOTPGenerateRunEOptsFromFlags(flags *pflag.FlagSet) (force bool, filename, secret string, err error) {
+	if force, err = flags.GetBool("force"); err != nil {
+		return force, filename, secret, err
 	}
 
-	templatesProvider, err := templates.New(templates.Config{EmailTemplatesPath: config.Notifier.TemplatePath})
-	if err != nil {
-		errors = append(errors, err)
+	if filename, err = flags.GetString("path"); err != nil {
+		return force, filename, secret, err
 	}
 
-	var notifier notification.Notifier
-
-	switch {
-	case config.Notifier.SMTP != nil:
-		notifier = notification.NewSMTPNotifier(config.Notifier.SMTP, autheliaCertPool, templatesProvider)
-	case config.Notifier.FileSystem != nil:
-		notifier = notification.NewFileNotifier(*config.Notifier.FileSystem)
+	if secret, err = flags.GetString("secret"); err != nil {
+		return force, filename, secret, err
 	}
 
-	ntpProvider := ntp.NewProvider(&config.NTP)
-
-	clock := utils.RealClock{}
-	authorizer := authorization.NewAuthorizer(config)
-	sessionProvider := session.NewProvider(config.Session, autheliaCertPool)
-	regulator := regulation.NewRegulator(config.Regulation, storageProvider, clock)
-
-	oidcProvider, err := oidc.NewOpenIDConnectProvider(config.IdentityProviders.OIDC, storageProvider)
-	if err != nil {
-		errors = append(errors, err)
+	secretLength := base32.StdEncoding.WithPadding(base32.NoPadding).DecodedLen(len(secret))
+	if secret != "" && secretLength < schema.TOTPSecretSizeMinimum {
+		return force, filename, secret, fmt.Errorf("decoded length of the base32 secret must have "+
+			"a length of more than %d but '%s' has a decoded length of %d", schema.TOTPSecretSizeMinimum, secret, secretLength)
 	}
 
-	totpProvider := totp.NewTimeBasedProvider(config.TOTP)
+	return force, filename, secret, nil
+}
 
-	ppolicyProvider := middlewares.NewPasswordPolicyProvider(config.PasswordPolicy)
-
-	var metricsProvider metrics.Provider
-	if config.Telemetry.Metrics.Enabled {
-		metricsProvider = metrics.NewPrometheus()
+func storageWebauthnDeleteRunEOptsFromFlags(flags *pflag.FlagSet, args []string) (all, byKID bool, description, kid, user string, err error) {
+	if len(args) != 0 {
+		user = args[0]
 	}
 
-	return middlewares.Providers{
-		Authorizer:      authorizer,
-		UserProvider:    userProvider,
-		Regulator:       regulator,
-		OpenIDConnect:   oidcProvider,
-		StorageProvider: storageProvider,
-		Metrics:         metricsProvider,
-		NTP:             ntpProvider,
-		Notifier:        notifier,
-		SessionProvider: sessionProvider,
-		Templates:       templatesProvider,
-		TOTP:            totpProvider,
-		PasswordPolicy:  ppolicyProvider,
-	}, warnings, errors
+	f := 0
+
+	if flags.Changed(cmdFlagNameAll) {
+		if all, err = flags.GetBool(cmdFlagNameAll); err != nil {
+			return
+		}
+
+		f++
+	}
+
+	if flags.Changed(cmdFlagNameDescription) {
+		if description, err = flags.GetString(cmdFlagNameDescription); err != nil {
+			return
+		}
+
+		f++
+	}
+
+	if byKID = flags.Changed(cmdFlagNameKeyID); byKID {
+		if kid, err = flags.GetString(cmdFlagNameKeyID); err != nil {
+			return
+		}
+
+		f++
+	}
+
+	if f > 1 {
+		err = fmt.Errorf("must only supply one of the flags --all, --description, and --kid but %d were specified", f)
+
+		return
+	}
+
+	if f == 0 {
+		err = fmt.Errorf("must supply one of the flags --all, --description, or --kid")
+
+		return
+	}
+
+	if !byKID && len(user) == 0 {
+		err = fmt.Errorf("must supply the username or the --kid flag")
+
+		return
+	}
+
+	return
 }

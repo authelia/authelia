@@ -20,9 +20,16 @@ community: true
 
 ## Before You Begin
 
-You are required to utilize a unique client id and a unique and random client secret for all [OpenID Connect] relying
-parties. You should not use the client secret in this example, you should randomly generate one yourself. You may also
-choose to utilize a different client id, it's completely up to you.
+### Common Notes
+
+1. You are *__required__* to utilize a unique client id for every client.
+2. The client id on this page is merely an example and you can theoretically use any alphanumeric string.
+3. You *__should not__* use the client secret in this example, We *__strongly recommend__* reading the
+   [Generating Client Secrets] guide instead.
+
+[Generating Client Secrets]: ../specific-information.md#generating-client-secrets
+
+### Assumptions
 
 This example makes the following assumptions:
 
@@ -31,9 +38,19 @@ This example makes the following assumptions:
 * __Client ID:__ `cloudflare`
 * __Client Secret:__ `cloudflare_client_secret`
 
+*__Important Note:__ [Cloudflare Zero Trust] does not properly URL encode the secret per [RFC6749 Appendix B] at the
+time this article was last modified (noted at the bottom). This means you'll either have to use only alphanumeric
+characters for the secret or URL encode the secret yourself.*
+
+[RFC6749 Appendix B]: https://www.rfc-editor.org/rfc/rfc6749#appendix-B
+
 ## Configuration
 
 ### Application
+
+*__Important Note:__ It is a requirement that the Authelia URL's can be requested by Cloudflare's servers. This usually
+means that the URL's are accessible to foreign clients on the internet. There may be a way to configure this without
+accessibility to foreign clients on the internet on Cloudflare's end but this is beyond the scope of this document.*
 
 To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect] Provider:
 
@@ -49,7 +66,8 @@ To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect] 
    4. Auth URL: `https://auth.example.com/api/oidc/authorization`
    5. Token URL: `https://auth.example.com/api/oidc/token`
    6. Certificate URL: `https://auth.example.com/jwks.json`
-   7. Add the following OIDC Claims: `preferred_username`, `mail`, `groups`
+   7. Enable `Proof Key for Code Exchange (PKCE)`
+   8. Add the following OIDC Claims: `preferred_username`, `mail`
 7. Click Save
 
 ### Authelia
@@ -60,16 +78,16 @@ which will operate with the above example:
 
 ```yaml
 - id: cloudflare
-  secret: cloudflare_client_secret
+  description: Cloudflare ZeroTrust
+  secret: '$plaintext$cloudflare_client_secret'
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://example-team.cloudflareaccess.com/cdn-cgi/access/callback
   scopes:
     - openid
     - profile
-    - groups
     - email
-  redirect_uris:
-    - https://example-team.cloudflareaccess.com/cdn-cgi/access/callback
   userinfo_signing_algorithm: none
 ```
 

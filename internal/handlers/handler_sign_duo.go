@@ -16,7 +16,7 @@ import (
 func DuoPOST(duoAPI duo.API) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
 		var (
-			bodyJSON       = &signDuoRequestBody{}
+			bodyJSON       = &bodySignDuoRequest{}
 			device, method string
 		)
 
@@ -90,7 +90,7 @@ func DuoPOST(duoAPI duo.API) middlewares.RequestHandler {
 }
 
 // HandleInitialDeviceSelection handler for retrieving all available devices.
-func HandleInitialDeviceSelection(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.API, bodyJSON *signDuoRequestBody) (device string, method string, err error) {
+func HandleInitialDeviceSelection(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.API, bodyJSON *bodySignDuoRequest) (device string, method string, err error) {
 	result, message, devices, enrollURL, err := DuoPreAuth(ctx, duoAPI)
 	if err != nil {
 		ctx.Logger.Errorf("Failed to perform Duo PreAuth for user '%s': %+v", userSession.Username, err)
@@ -135,7 +135,7 @@ func HandleInitialDeviceSelection(ctx *middlewares.AutheliaCtx, userSession *ses
 }
 
 // HandlePreferredDeviceCheck handler to check if the saved device and method is still valid.
-func HandlePreferredDeviceCheck(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.API, device string, method string, bodyJSON *signDuoRequestBody) (string, string, error) {
+func HandlePreferredDeviceCheck(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.API, device string, method string, bodyJSON *bodySignDuoRequest) (string, string, error) {
 	result, message, devices, enrollURL, err := DuoPreAuth(ctx, duoAPI)
 	if err != nil {
 		ctx.Logger.Errorf("Failed to perform Duo PreAuth for user '%s': %+v", userSession.Username, err)
@@ -243,10 +243,10 @@ func HandleAutoSelection(ctx *middlewares.AutheliaCtx, devices []DuoDevice, user
 }
 
 // HandleAllow handler for successful logins.
-func HandleAllow(ctx *middlewares.AutheliaCtx, bodyJSON *signDuoRequestBody) {
+func HandleAllow(ctx *middlewares.AutheliaCtx, bodyJSON *bodySignDuoRequest) {
 	userSession := ctx.GetSession()
 
-	err := ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
+	err := ctx.RegenerateSession()
 	if err != nil {
 		ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeDuo, userSession.Username, err)
 
@@ -267,7 +267,7 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, bodyJSON *signDuoRequestBody) {
 	}
 
 	if bodyJSON.Workflow == workflowOpenIDConnect {
-		handleOIDCWorkflowResponse(ctx, bodyJSON.TargetURL)
+		handleOIDCWorkflowResponse(ctx, bodyJSON.TargetURL, bodyJSON.WorkflowID)
 	} else {
 		Handle2FAResponse(ctx, bodyJSON.TargetURL)
 	}
