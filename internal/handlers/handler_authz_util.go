@@ -30,6 +30,7 @@ func friendlyUsername(username string) (fusername string) {
 	}
 }
 
+//nolint:unparam
 func isURLUnderProtectedDomain(url *url.URL, domain string) bool {
 	return strings.HasSuffix(url.Hostname(), domain)
 }

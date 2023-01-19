@@ -1016,7 +1016,7 @@ func TestShouldNotRefreshUserGroupsFromBackend(t *testing.T) {
 	}
 
 	cfg := verifyGetCfg
-	cfg.RefreshInterval = "disable"
+	cfg.RefreshInterval = schema.ProfileRefreshDisabled
 	verifyGet := VerifyGET(cfg)
 
 	mock.UserProviderMock.EXPECT().GetDetails("john").Times(0)

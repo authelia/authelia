@@ -848,7 +848,7 @@ func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabl
 	mock.Clock.Set(time.Now())
 
 	mock.Ctx.Clock = &mock.Clock
-	mock.Ctx.Configuration.AuthenticationBackend.RefreshInterval = "disable"
+	mock.Ctx.Configuration.AuthenticationBackend.RefreshInterval = schema.ProfileRefreshDisabled
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 
 	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
@@ -1066,6 +1066,7 @@ func (s *AuthzSuite) TestShouldUpdateRemovedUserGroupsFromBackendAndDeny() {
 	s.Require().Equal("users", userSession.Groups[1])
 
 	user.Groups = []string{"users"}
+
 	mock.Clock.Set(mock.Clock.Now().Add(6 * time.Minute))
 
 	authz.Handler(mock.Ctx)
@@ -1147,6 +1148,7 @@ func (s *AuthzSuite) TestShouldUpdateAddedUserGroupsFromBackendAndDeny() {
 	s.Require().Equal("users", userSession.Groups[0])
 
 	user.Groups = []string{"admin", "users"}
+
 	mock.Clock.Set(mock.Clock.Now().Add(6 * time.Minute))
 
 	authz.Handler(mock.Ctx)
