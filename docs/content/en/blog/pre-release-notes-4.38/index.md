@@ -53,7 +53,7 @@ This means the actual Authorization Request parameters are never sent in the cle
 mitigate a few things:
 
 1. Enhanced privacy. This is the primary focus of this specification.
-2. Part of conforming to the [OpenID Connect 1.0] specification [Financial-grade API Security Profile 1.0 (Baseline)].
+2. Part of conforming to the [OpenID Connect 1.0] specification [Financial-grade API Security Profile 1.0 (Advanced)].
 3. Reduces the attack surface by preventing an attacker from adjusting request parameters prior to the Authorization
    Server receiving them.
 4. Reduces the attack surface marginally as less information is available over the front-channel which is the most
@@ -84,7 +84,7 @@ These features combined with our requirement for the HTTPS scheme are very power
 [Proof Key for Code Exchange]: https://oauth.net/2/pkce/
 [Access Token]: https://oauth.net/2/access-tokens/
 [Authorization Code]: https://oauth.net/2/grant-types/authorization-code/
-[Financial-grade API Security Profile 1.0 (Baseline)]: https://openid.net/specs/openid-financial-api-part-1-1_0.html
+[Financial-grade API Security Profile 1.0 (Advanced)]: https://openid.net/specs/openid-financial-api-part-2-1_0.html
 [OpenID Connect 1.0]: https://openid.net/
 [OpenID Connect 1.0]: https://openid.net/
 [Pushed Authorization Requests]: https://oauth.net/2/pushed-authorization-requests/
