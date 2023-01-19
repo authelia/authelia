@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -11,19 +12,20 @@ import (
 type MultiCookieDomainScenario struct {
 	*RodSuite
 
-	domain, nextDomain, cookie string
+	domain, nextDomain string
+	cookieNames        []string
 
 	remember bool
 }
 
 // NewMultiCookieDomainScenario returns a new Multi Cookie Domain Test Scenario.
-func NewMultiCookieDomainScenario(domain, nextDomain, cookie string, remember bool) *MultiCookieDomainScenario {
+func NewMultiCookieDomainScenario(domain, nextDomain string, cookieNames []string, remember bool) *MultiCookieDomainScenario {
 	return &MultiCookieDomainScenario{
-		RodSuite:   new(RodSuite),
-		domain:     domain,
-		nextDomain: nextDomain,
-		cookie:     cookie,
-		remember:   remember,
+		RodSuite:    new(RodSuite),
+		domain:      domain,
+		nextDomain:  nextDomain,
+		cookieNames: cookieNames,
+		remember:    remember,
 	}
 }
 
@@ -66,7 +68,11 @@ func (s *MultiCookieDomainScenario) TestCookieName() {
 
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", s.remember, s.domain, "")
 
-	s.MustHaveCookieWithName(s.cookie)
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "logout-button")
+
+	cookieNames := s.GetCookieNames()
+
+	s.Assert().Equalf(s.cookieNames, cookieNames, "cookie names should include '%s' (only and all of) but includes '%s'", strings.Join(s.cookieNames, ","), strings.Join(cookieNames, ","))
 }
 
 func (s *MultiCookieDomainScenario) TestRememberMe() {

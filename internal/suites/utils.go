@@ -18,6 +18,38 @@ import (
 	"github.com/google/uuid"
 )
 
+var browserPaths = []string{"/usr/bin/chromium-browser", "/usr/bin/chromium"}
+
+// ValidateBrowserPath validates the appropriate chromium browser path.
+func ValidateBrowserPath(path string) (browserPath string, err error) {
+	var info os.FileInfo
+
+	if info, err = os.Stat(path); err != nil {
+		return "", err
+	} else if info.IsDir() {
+		return "", fmt.Errorf("browser cannot be a directory")
+	}
+
+	return path, nil
+}
+
+// GetBrowserPath retrieves the appropriate chromium browser path.
+func GetBrowserPath() (path string, err error) {
+	browserPath := os.Getenv("BROWSER_PATH")
+
+	if browserPath != "" {
+		return ValidateBrowserPath(browserPath)
+	}
+
+	for _, browserPath = range browserPaths {
+		if browserPath, err = ValidateBrowserPath(browserPath); err == nil {
+			return browserPath, nil
+		}
+	}
+
+	return "", fmt.Errorf("no chromium browser was detected in the known paths, set the BROWSER_PATH environment variable to override the path")
+}
+
 // GetLoginBaseURL returns the URL of the login portal and the path prefix if specified.
 func GetLoginBaseURL(baseDomain string) string {
 	return LoginBaseURLFmt(baseDomain) + GetPathPrefix()
@@ -80,21 +112,15 @@ func (rs *RodSession) collectScreenshot(err error, page *rod.Page) {
 	}
 }
 
-func (s *RodSuite) MustHaveCookieWithName(name string) {
-	var have bool
-
+func (s *RodSuite) GetCookieNames() (names []string) {
 	cookies, err := s.Page.Cookies(nil)
 	s.Require().NoError(err)
-	s.Require().NotEqual(0, len(cookies))
 
 	for _, cookie := range cookies {
-		if cookie.Name == name {
-			have = true
-			break
-		}
+		names = append(names, cookie.Name)
 	}
 
-	s.Require().Truef(have, "the '%s' cookie must exist but was absent", name)
+	return names
 }
 
 func fixCoveragePath(path string, file os.FileInfo, err error) error {

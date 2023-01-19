@@ -19,10 +19,11 @@ type RodSession struct {
 }
 
 // StartRodWithProxy create a rod/chromedp session.
-func StartRodWithProxy(proxy string) (*RodSession, error) {
-	browserPath := os.Getenv("BROWSER_PATH")
-	if browserPath == "" {
-		browserPath = "/usr/bin/chromium-browser"
+func StartRodWithProxy(proxy string) (session *RodSession, err error) {
+	var browserPath string
+
+	if browserPath, err = GetBrowserPath(); err != nil {
+		return nil, err
 	}
 
 	headless := false
