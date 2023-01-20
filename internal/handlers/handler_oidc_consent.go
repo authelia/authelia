@@ -156,7 +156,12 @@ func oidcConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, consentID uui
 		err error
 	)
 
-	userSession = ctx.GetSession()
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.Errorf("Unable to load user session for challenge id '%s': %v", consentID, err)
+		ctx.ReplyForbidden()
+
+		return userSession, nil, nil, true
+	}
 
 	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, consentID); err != nil {
 		ctx.Logger.Errorf("Unable to load consent session with challenge id '%s': %v", consentID, err)

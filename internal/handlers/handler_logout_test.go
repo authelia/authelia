@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -19,10 +18,14 @@ type LogoutSuite struct {
 
 func (s *LogoutSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
-	userSession := s.mock.Ctx.GetSession()
+	provider, err := s.mock.Ctx.GetSessionProvider()
+	s.Require().NoError(err)
+
+	userSession, err := provider.GetSession(s.mock.Ctx.RequestCtx)
+	s.Require().NoError(err)
+
 	userSession.Username = testUsername
-	err := s.mock.Ctx.SaveSession(userSession)
-	require.NoError(s.T(), err)
+	s.Require().NoError(provider.SaveSession(s.mock.Ctx.RequestCtx, userSession))
 }
 
 func (s *LogoutSuite) TearDownTest() {

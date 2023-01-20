@@ -25,11 +25,12 @@ type FetchSuite struct {
 func (s *FetchSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 	// Set the initial user session.
-	userSession := s.mock.Ctx.GetSession()
+	userSession, err := s.mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = 1
-	err := s.mock.Ctx.SaveSession(userSession)
-	require.NoError(s.T(), err)
+	s.Require().NoError(s.mock.Ctx.SaveSession(userSession))
 }
 
 func (s *FetchSuite) TearDownTest() {
@@ -102,11 +103,12 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 
 		// Set the initial user session.
-		userSession := mock.Ctx.GetSession()
+		userSession, err := mock.Ctx.GetSession()
+		require.NoError(t, err)
+
 		userSession.Username = testUsername
 		userSession.AuthenticationLevel = 1
-		err := mock.Ctx.SaveSession(userSession)
-		require.NoError(t, err)
+		require.NoError(t, mock.Ctx.SaveSession(userSession))
 
 		mock.StorageMock.
 			EXPECT().
@@ -267,11 +269,12 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			}
 
 			// Set the initial user session.
-			userSession := mock.Ctx.GetSession()
+			userSession, err := mock.Ctx.GetSession()
+			require.NoError(t, err)
+
 			userSession.Username = testUsername
 			userSession.AuthenticationLevel = 1
-			err := mock.Ctx.SaveSession(userSession)
-			require.NoError(t, err)
+			require.NoError(t, mock.Ctx.SaveSession(userSession))
 
 			if resp.db.Method == "" {
 				gomock.InOrder(
@@ -373,11 +376,12 @@ type SaveSuite struct {
 func (s *SaveSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 	// Set the initial user session.
-	userSession := s.mock.Ctx.GetSession()
+	userSession, err := s.mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = 1
-	err := s.mock.Ctx.SaveSession(userSession)
-	require.NoError(s.T(), err)
+	require.NoError(s.T(), s.mock.Ctx.SaveSession(userSession))
 }
 
 func (s *SaveSuite) TearDownTest() {

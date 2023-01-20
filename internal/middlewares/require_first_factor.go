@@ -7,7 +7,7 @@ import (
 // Require1FA check if user has enough permissions to execute the next handler.
 func Require1FA(next RequestHandler) RequestHandler {
 	return func(ctx *AutheliaCtx) {
-		if ctx.GetSession().AuthenticationLevel < authentication.OneFactor {
+		if s, err := ctx.GetSession(); err != nil || s.AuthenticationLevel < authentication.OneFactor {
 			ctx.ReplyForbidden()
 			return
 		}

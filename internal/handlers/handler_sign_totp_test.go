@@ -24,10 +24,11 @@ type HandlerSignTOTPSuite struct {
 
 func (s *HandlerSignTOTPSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
-	userSession := s.mock.Ctx.GetSession()
+	userSession, err := s.mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	userSession.Username = testUsername
-	err := s.mock.Ctx.SaveSession(userSession)
-	require.NoError(s.T(), err)
+	require.NoError(s.T(), s.mock.Ctx.SaveSession(userSession))
 }
 
 func (s *HandlerSignTOTPSuite) TearDownTest() {

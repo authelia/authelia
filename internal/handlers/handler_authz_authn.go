@@ -86,14 +86,33 @@ func (s *CookieSessionAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, provider 
 		Level: authentication.NotAuthenticated,
 	}
 
-	userSession, _ := provider.GetSession(ctx.RequestCtx)
+	var userSession session.UserSession
+
+	if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
+		return authn, fmt.Errorf("failed to retrieve user session: %w", err)
+	}
+
+	// This check prevents cookies being used on the incorrect domain.
+	if userSession.CookieDomain != provider.Config.Domain {
+		ctx.Logger.Warnf("Destroying session cookie as the cookie domain '%s' does not match the requests detected cookie domain '%s' which may be a sign a user tried to move this cookie from one domain to another", userSession.CookieDomain, provider.Config.Domain)
+
+		if err = provider.DestroySession(ctx.RequestCtx); err != nil {
+			ctx.Logger.WithError(err).Error("Error occurred trying to destroy the session cookie")
+		}
+
+		userSession = provider.NewDefaultUserSession()
+
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+			ctx.Logger.WithError(err).Error("Error occurred trying to save the new session cookie")
+		}
+	}
 
 	if invalid := handleVerifyGETAuthnCookieValidate(ctx, provider, &userSession, s.refreshEnabled, s.refreshInterval); invalid {
 		if err = ctx.DestroySession(); err != nil {
 			ctx.Logger.Errorf("Unable to destroy user session: %+v", err)
 		}
 
-		userSession = session.NewDefaultUserSession()
+		userSession = provider.NewDefaultUserSession()
 		userSession.LastActivity = ctx.Clock.Now().Unix()
 
 		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {

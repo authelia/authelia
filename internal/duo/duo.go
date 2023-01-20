@@ -7,6 +7,7 @@ import (
 	duoapi "github.com/duosecurity/duo_api_golang"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 // NewDuoAPI create duo API instance.
@@ -17,7 +18,7 @@ func NewDuoAPI(duoAPI *duoapi.DuoApi) *APIImpl {
 }
 
 // Call performs a request to the DuoAPI.
-func (d *APIImpl) Call(ctx *middlewares.AutheliaCtx, values url.Values, method string, path string) (*Response, error) {
+func (d *APIImpl) Call(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values, method string, path string) (*Response, error) {
 	var response Response
 
 	_, responseBytes, err := d.DuoApi.SignedCall(method, path, values)
@@ -25,7 +26,7 @@ func (d *APIImpl) Call(ctx *middlewares.AutheliaCtx, values url.Values, method s
 		return nil, err
 	}
 
-	ctx.Logger.Tracef("Duo endpoint: %s response raw data for %s from IP %s: %s", path, ctx.GetSession().Username, ctx.RemoteIP().String(), string(responseBytes))
+	ctx.Logger.Tracef("Duo endpoint: %s response raw data for %s from IP %s: %s", path, userSession.Username, ctx.RemoteIP().String(), string(responseBytes))
 
 	err = json.Unmarshal(responseBytes, &response)
 	if err != nil {
@@ -35,7 +36,7 @@ func (d *APIImpl) Call(ctx *middlewares.AutheliaCtx, values url.Values, method s
 	if response.Stat == "FAIL" {
 		ctx.Logger.Warnf(
 			"Duo Push Auth failed to process the auth request for %s from %s: %s (%s), error code %d.",
-			ctx.GetSession().Username, ctx.RemoteIP().String(),
+			userSession.Username, ctx.RemoteIP().String(),
 			response.Message, response.MessageDetail, response.Code)
 	}
 
@@ -43,10 +44,10 @@ func (d *APIImpl) Call(ctx *middlewares.AutheliaCtx, values url.Values, method s
 }
 
 // PreAuthCall performs a preauth request to the DuoAPI.
-func (d *APIImpl) PreAuthCall(ctx *middlewares.AutheliaCtx, values url.Values) (*PreAuthResponse, error) {
+func (d *APIImpl) PreAuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (*PreAuthResponse, error) {
 	var preAuthResponse PreAuthResponse
 
-	response, err := d.Call(ctx, values, "POST", "/auth/v2/preauth")
+	response, err := d.Call(ctx, userSession, values, "POST", "/auth/v2/preauth")
 	if err != nil {
 		return nil, err
 	}
@@ -60,10 +61,10 @@ func (d *APIImpl) PreAuthCall(ctx *middlewares.AutheliaCtx, values url.Values) (
 }
 
 // AuthCall performs an auth request to the DuoAPI.
-func (d *APIImpl) AuthCall(ctx *middlewares.AutheliaCtx, values url.Values) (*AuthResponse, error) {
+func (d *APIImpl) AuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (*AuthResponse, error) {
 	var authResponse AuthResponse
 
-	response, err := d.Call(ctx, values, "POST", "/auth/v2/auth")
+	response, err := d.Call(ctx, userSession, values, "POST", "/auth/v2/auth")
 	if err != nil {
 		return nil, err
 	}

@@ -263,7 +263,9 @@ func (s *AuthzSuite) TestShouldNotFailOnMissingEmail() {
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
 
-	userSession := mock.Ctx.GetSession()
+	userSession, err := mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	userSession.Username = testUsername
 	userSession.DisplayName = "John Smith"
 	userSession.Groups = []string{"abc,123"}
@@ -652,7 +654,9 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenInactiveForTooLong() {
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
 
-	userSession := mock.Ctx.GetSession()
+	userSession, err := mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = past.Unix()
@@ -661,7 +665,9 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenInactiveForTooLong() {
 
 	authz.Handler(mock.Ctx)
 
-	userSession = mock.Ctx.GetSession()
+	userSession, err = mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	s.Assert().Equal("", userSession.Username)
 	s.Assert().Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel)
 	s.Assert().Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
@@ -700,7 +706,9 @@ func (s *AuthzSuite) TestShouldNotDestroySessionWhenInactiveForTooLongRememberMe
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
 
-	userSession := mock.Ctx.GetSession()
+	userSession, err := mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = 0
@@ -711,7 +719,9 @@ func (s *AuthzSuite) TestShouldNotDestroySessionWhenInactiveForTooLongRememberMe
 
 	authz.Handler(mock.Ctx)
 
-	userSession = mock.Ctx.GetSession()
+	userSession, err = mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	s.Assert().Equal(testUsername, userSession.Username)
 	s.Assert().Equal(authentication.TwoFactor, userSession.AuthenticationLevel)
 	s.Assert().Equal(int64(0), userSession.LastActivity)
@@ -752,7 +762,9 @@ func (s *AuthzSuite) TestShouldNotDestroySessionWhenNotInactiveForTooLong() {
 
 	last := mock.Clock.Now().Add(-1 * time.Second)
 
-	userSession := mock.Ctx.GetSession()
+	userSession, err := mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = last.Unix()
@@ -762,7 +774,9 @@ func (s *AuthzSuite) TestShouldNotDestroySessionWhenNotInactiveForTooLong() {
 
 	authz.Handler(mock.Ctx)
 
-	userSession = mock.Ctx.GetSession()
+	userSession, err = mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	s.Assert().Equal(testUsername, userSession.Username)
 	s.Assert().Equal(authentication.TwoFactor, userSession.AuthenticationLevel)
 	s.Assert().Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
@@ -803,7 +817,9 @@ func (s *AuthzSuite) TestShouldUpdateInactivityTimestampEvenWhenHittingForbidden
 
 	last := mock.Clock.Now().Add(-3 * time.Second)
 
-	userSession := mock.Ctx.GetSession()
+	userSession, err := mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = last.Unix()
@@ -813,7 +829,9 @@ func (s *AuthzSuite) TestShouldUpdateInactivityTimestampEvenWhenHittingForbidden
 
 	authz.Handler(mock.Ctx)
 
-	userSession = mock.Ctx.GetSession()
+	userSession, err = mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	s.Assert().Equal(testUsername, userSession.Username)
 	s.Assert().Equal(authentication.TwoFactor, userSession.AuthenticationLevel)
 	s.Assert().Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
@@ -863,7 +881,9 @@ func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabl
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
 
-	userSession := mock.Ctx.GetSession()
+	userSession, err := mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	userSession.Username = user.Username
 	userSession.Groups = user.Groups
 	userSession.Emails = user.Emails
@@ -887,7 +907,9 @@ func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabl
 
 	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
-	userSession = mock.Ctx.GetSession()
+	userSession, err = mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	s.Assert().Equal(user.Username, userSession.Username)
 	s.Assert().Equal(authentication.TwoFactor, userSession.AuthenticationLevel)
 	s.Assert().Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
@@ -900,7 +922,9 @@ func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabl
 
 	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
-	userSession = mock.Ctx.GetSession()
+	userSession, err = mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	s.Assert().Equal(user.Username, userSession.Username)
 	s.Assert().Equal(authentication.TwoFactor, userSession.AuthenticationLevel)
 	s.Assert().Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
@@ -954,7 +978,9 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenUserDoesNotExist() {
 		},
 	}
 
-	userSession := mock.Ctx.GetSession()
+	userSession, err := mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	userSession.Username = user.Username
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = mock.Clock.Now().Unix()
@@ -974,7 +1000,9 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenUserDoesNotExist() {
 
 	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
-	userSession = mock.Ctx.GetSession()
+	userSession, err = mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	s.Assert().Equal(mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
 
 	userSession.RefreshTTL = mock.Clock.Now().Add(-1 * time.Minute)
@@ -990,7 +1018,8 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenUserDoesNotExist() {
 		s.Assert().Equal(fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
 	}
 
-	userSession = mock.Ctx.GetSession()
+	userSession, err = mock.Ctx.GetSession()
+	s.Require().NoError(err)
 
 	s.Assert().Equal("", userSession.Username)
 	s.Assert().Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel)
@@ -1041,7 +1070,9 @@ func (s *AuthzSuite) TestShouldUpdateRemovedUserGroupsFromBackendAndDeny() {
 		},
 	}
 
-	userSession := mock.Ctx.GetSession()
+	userSession, err := mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	userSession.Username = user.Username
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = mock.Clock.Now().Unix()
@@ -1061,7 +1092,9 @@ func (s *AuthzSuite) TestShouldUpdateRemovedUserGroupsFromBackendAndDeny() {
 
 	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
-	userSession = mock.Ctx.GetSession()
+	userSession, err = mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	s.Assert().Equal(mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
 	s.Require().Len(userSession.Groups, 2)
 	s.Require().Equal("admin", userSession.Groups[0])
@@ -1075,7 +1108,9 @@ func (s *AuthzSuite) TestShouldUpdateRemovedUserGroupsFromBackendAndDeny() {
 
 	s.Assert().Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
 
-	userSession = mock.Ctx.GetSession()
+	userSession, err = mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	s.Assert().Equal(mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
 	s.Require().Len(userSession.Groups, 1)
 	s.Require().Equal("users", userSession.Groups[0])
@@ -1124,7 +1159,9 @@ func (s *AuthzSuite) TestShouldUpdateAddedUserGroupsFromBackendAndDeny() {
 		},
 	}
 
-	userSession := mock.Ctx.GetSession()
+	userSession, err := mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	userSession.Username = user.Username
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = mock.Clock.Now().Unix()
@@ -1144,7 +1181,9 @@ func (s *AuthzSuite) TestShouldUpdateAddedUserGroupsFromBackendAndDeny() {
 
 	s.Assert().Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
 
-	userSession = mock.Ctx.GetSession()
+	userSession, err = mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	s.Assert().Equal(mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
 	s.Require().Len(userSession.Groups, 1)
 	s.Require().Equal("users", userSession.Groups[0])
@@ -1157,7 +1196,9 @@ func (s *AuthzSuite) TestShouldUpdateAddedUserGroupsFromBackendAndDeny() {
 
 	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
-	userSession = mock.Ctx.GetSession()
+	userSession, err = mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	s.Assert().Equal(mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
 	s.Require().Len(userSession.Groups, 2)
 	s.Require().Equal("admin", userSession.Groups[0])
@@ -1199,7 +1240,9 @@ func (s *AuthzSuite) TestShouldCheckValidSessionUsernameHeaderAndReturn200() {
 
 	mock.Ctx.Request.Header.SetBytesK(headerSessionUsername, testUsername)
 
-	userSession := mock.Ctx.GetSession()
+	userSession, err := mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.OneFactor
 	userSession.LastActivity = mock.Clock.Now().Unix()
@@ -1211,7 +1254,9 @@ func (s *AuthzSuite) TestShouldCheckValidSessionUsernameHeaderAndReturn200() {
 
 	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
-	userSession = mock.Ctx.GetSession()
+	userSession, err = mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	s.Assert().Equal(testUsername, userSession.Username)
 	s.Assert().Equal(authentication.OneFactor, userSession.AuthenticationLevel)
 	s.Assert().Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
@@ -1252,7 +1297,9 @@ func (s *AuthzSuite) TestShouldCheckInvalidSessionUsernameHeaderAndReturn401AndD
 
 	mock.Ctx.Request.Header.SetBytesK(headerSessionUsername, "root")
 
-	userSession := mock.Ctx.GetSession()
+	userSession, err := mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.OneFactor
 	userSession.LastActivity = mock.Clock.Now().Unix()
@@ -1282,7 +1329,9 @@ func (s *AuthzSuite) TestShouldCheckInvalidSessionUsernameHeaderAndReturn401AndD
 		s.Assert().Equal(location.String(), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
 	}
 
-	userSession = mock.Ctx.GetSession()
+	userSession, err = mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	s.Assert().Equal("", userSession.Username)
 	s.Assert().Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel)
 	s.Assert().Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
@@ -1323,7 +1372,9 @@ func (s *AuthzSuite) TestShouldNotRedirectRequestsForBypassACLWhenInactiveForToo
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
 
-	userSession := mock.Ctx.GetSession()
+	userSession, err := mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = past.Unix()
@@ -1334,7 +1385,9 @@ func (s *AuthzSuite) TestShouldNotRedirectRequestsForBypassACLWhenInactiveForToo
 
 	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
-	userSession = mock.Ctx.GetSession()
+	userSession, err = mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
 	s.Assert().Equal("", userSession.Username)
 	s.Assert().Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel)
 	s.Assert().Equal(mock.Clock.Now().Unix(), userSession.LastActivity)

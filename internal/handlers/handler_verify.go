@@ -232,12 +232,19 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, co
 	}
 }
 
-func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool) error {
+func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool) (err error) {
 	if isBasicAuth {
 		return nil
 	}
 
-	userSession := ctx.GetSession()
+	var (
+		userSession session.UserSession
+	)
+
+	if userSession, err = ctx.GetSession(); err != nil {
+		return fmt.Errorf("error occurred obtaining session: %w", err)
+	}
+
 	// We don't need to update the activity timestamp when user checked keep me logged in.
 	if userSession.KeepMeLoggedIn {
 		return nil
@@ -326,7 +333,11 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 		return isBasicAuth, username, name, groups, emails, authLevel, err
 	}
 
-	userSession := ctx.GetSession()
+	var userSession session.UserSession
+
+	if userSession, err = ctx.GetSession(); err != nil {
+		return isBasicAuth, username, name, groups, emails, authLevel, err
+	}
 
 	if username, name, groups, emails, authLevel, err = verifySessionCookie(ctx, targetURL, &userSession, refreshProfile, refreshProfileInterval); err != nil {
 		return isBasicAuth, username, name, groups, emails, authLevel, err

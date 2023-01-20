@@ -13,6 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 // Handle1FAResponse handle the redirection upon 1FA authentication.
@@ -155,7 +156,13 @@ func handleOIDCWorkflowResponseWithTargetURL(ctx *middlewares.AutheliaCtx, targe
 		return
 	}
 
-	userSession := ctx.GetSession()
+	var userSession session.UserSession
+
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Error(fmt.Errorf("unable to redirect to '%s': failed to lookup session: %w", targetURL, err), messageAuthenticationFailed)
+
+		return
+	}
 
 	if userSession.IsAnonymous() {
 		ctx.Error(fmt.Errorf("unable to redirect to '%s': user is anonymous", targetURL), messageAuthenticationFailed)
@@ -200,7 +207,13 @@ func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, id string) {
 		return
 	}
 
-	userSession := ctx.GetSession()
+	var userSession session.UserSession
+
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Error(fmt.Errorf("unable to redirect for authorization/consent for client with id '%s' with consent challenge id '%s': failed to lookup session: %w", client.ID, consent.ChallengeID, err), messageAuthenticationFailed)
+
+		return
+	}
 
 	if userSession.IsAnonymous() {
 		ctx.Error(fmt.Errorf("unable to redirect for authorization/consent for client with id '%s' with consent challenge id '%s': user is anonymous", client.ID, consent.ChallengeID), messageAuthenticationFailed)

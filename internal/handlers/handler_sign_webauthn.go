@@ -9,17 +9,24 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 // WebauthnAssertionGET handler starts the assertion ceremony.
 func WebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	var (
-		w    *webauthn.WebAuthn
-		user *model.WebauthnUser
-		err  error
+		w           *webauthn.WebAuthn
+		user        *model.WebauthnUser
+		userSession session.UserSession
+		err         error
 	)
 
-	userSession := ctx.GetSession()
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
+
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+		return
+	}
 
 	if w, err = newWebauthn(ctx); err != nil {
 		ctx.Logger.Errorf("Unable to configure %s during assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
@@ -81,6 +88,8 @@ func WebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 // WebauthnAssertionPOST handler completes the assertion ceremony after verifying the challenge.
 func WebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	var (
+		userSession session.UserSession
+
 		err error
 		w   *webauthn.WebAuthn
 
@@ -95,7 +104,12 @@ func WebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	userSession := ctx.GetSession()
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
+
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+		return
+	}
 
 	if userSession.Webauthn == nil {
 		ctx.Logger.Errorf("Webauthn session data is not present in order to handle assertion for user '%s'. This could indicate a user trying to POST to the wrong endpoint, or the session data is not present for the browser they used.", userSession.Username)

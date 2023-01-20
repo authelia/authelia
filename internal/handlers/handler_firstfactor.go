@@ -7,7 +7,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/regulation"
-	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -92,7 +91,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 			return
 		}
 
-		newSession := session.NewDefaultUserSession()
+		newSession := provider.NewDefaultUserSession()
 
 		// Reset all values from previous session except OIDC workflow before regenerating the cookie.
 		if err = ctx.SaveSession(newSession); err != nil {

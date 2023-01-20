@@ -18,6 +18,8 @@ type ProviderConfig struct {
 
 // UserSession is the structure representing the session of a user.
 type UserSession struct {
+	CookieDomain string
+
 	Username    string
 	DisplayName string
 	// TODO(c.michaud): move groups out of the session.
