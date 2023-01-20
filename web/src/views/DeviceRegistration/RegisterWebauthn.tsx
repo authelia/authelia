@@ -1,4 +1,4 @@
-import React, { Fragment, MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
+import React, { MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
 
 import { Box, Button, Grid, Stack, Step, StepLabel, Stepper, Theme, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
@@ -143,7 +143,7 @@ const RegisterWebauthn = function (props: Props) {
         switch (step) {
             case 0:
                 return (
-                    <Fragment>
+                    <>
                         <div className={styles.icon}>
                             <WebauthnTryIcon onRetryClick={startAttestation} webauthnTouchState={state} />
                         </div>
@@ -157,7 +157,7 @@ const RegisterWebauthn = function (props: Props) {
                                 </Stack>
                             </Grid>
                         </Grid>
-                    </Fragment>
+                    </>
                 );
             case 1:
                 return (
