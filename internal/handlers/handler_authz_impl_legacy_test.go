@@ -3,12 +3,15 @@ package handlers
 import (
 	"fmt"
 	"net/url"
+	"regexp"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -368,6 +371,125 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsAllowXHR() {
 	}
 }
 
+func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuth() { // TestShouldVerifyAuthBasicArgOk.
+	authz := s.Builder().Build()
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
+		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
+	}
+
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+
+	mock.Ctx.QueryArgs().Add("auth", "basic")
+	mock.Ctx.Request.Header.Set("Authorization", "Basic am9objpwYXNzd29yZA==")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
+
+	gomock.InOrder(
+		mock.UserProviderMock.EXPECT().
+			CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+			Return(true, nil),
+
+		mock.UserProviderMock.EXPECT().
+			GetDetails(gomock.Eq("john")).
+			Return(&authentication.UserDetails{
+				Emails: []string{"john@example.com"},
+				Groups: []string{"dev", "admins"},
+			}, nil),
+	)
+
+	authz.Handler(mock.Ctx)
+
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+}
+
+func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
+	testCases := []struct {
+		name  string
+		setup func(mock *mocks.MockAutheliaCtx)
+	}{
+		{
+			"HeaderAbsent", // TestShouldVerifyAuthBasicArgFailingNoHeader.
+			nil,
+		},
+		{
+			"HeaderEmpty", // TestShouldVerifyAuthBasicArgFailingEmptyHeader.
+			func(mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Request.Header.Set("Authorization", "")
+			},
+		},
+		{
+			"HeaderIncorrect", // TestShouldVerifyAuthBasicArgFailingWrongHeader.
+			func(mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
+
+			},
+		},
+		{
+			"IncorrectPassword", // TestShouldVerifyAuthBasicArgFailingWrongPassword.
+			func(mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Request.Header.Set("Authorization", "Basic am9objpwYXNzd29yZA==")
+
+				mock.UserProviderMock.EXPECT().
+					CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+					Return(false, fmt.Errorf("generic error"))
+			},
+		},
+		{
+			"NoAccess", // TestShouldVerifyAuthBasicArgFailingWrongPassword.
+			func(mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Request.Header.Set("Authorization", "Basic am9objpwYXNzd29yZA==")
+				mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com/")
+
+				gomock.InOrder(
+					mock.UserProviderMock.EXPECT().
+						CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+						Return(true, nil),
+
+					mock.UserProviderMock.EXPECT().
+						GetDetails(gomock.Eq("john")).
+						Return(&authentication.UserDetails{
+							Emails: []string{"john@example.com"},
+							Groups: []string{"dev", "admin"},
+						}, nil),
+				)
+			},
+		},
+	}
+
+	authz := s.Builder().Build()
+
+	for _, tc := range testCases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
+				mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
+			}
+
+			mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+
+			mock.Ctx.QueryArgs().Add("auth", "basic")
+			mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
+
+			if tc.setup != nil {
+				tc.setup(mock)
+			}
+
+			authz.Handler(mock.Ctx)
+
+			assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+			assert.Equal(t, "401 Unauthorized", string(mock.Ctx.Response.Body()))
+			assert.Regexp(t, regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
+		})
+	}
+}
+
 func (s *LegacyAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 	testCases := []struct {
 		name         string
@@ -375,6 +497,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 		path         string
 		expected     int
 	}{
+		// The first byte in the host sequence is the null byte. This should never respond with 200 OK.
 		{"Should401UnauthorizedWithNullByte",
 			[]byte("https"), []byte{0, 110, 111, 116, 45, 111, 110, 101, 45, 102, 97, 99, 116, 111, 114, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109}, "/path-example",
 			fasthttp.StatusUnauthorized,

@@ -75,11 +75,12 @@ func handleAuthzAuthorizedStandard(ctx *middlewares.AutheliaCtx, authn *Authn) {
 	}
 }
 
-func handleAuthzUnauthorizedAuthorizationBasic(ctx *middlewares.AutheliaCtx, authn *Authn, _ *url.URL) {
+func handleAuthzUnauthorizedAuthorizationBasic(ctx *middlewares.AutheliaCtx, authn *Authn) {
 	ctx.Logger.Infof("Access to '%s' is not authorized to user '%s', sending 401 response with WWW-Authenticate header requesting Basic scheme", authn.Object.URL.String(), authn.Username)
-	ctx.Response.Header.SetBytesKV(headerWWWAuthenticate, headerValueAuthenticateBasic)
 
 	ctx.ReplyUnauthorized()
+
+	ctx.Response.Header.SetBytesKV(headerWWWAuthenticate, headerValueAuthenticateBasic)
 }
 
 var protoHostSeparator = []byte("://")

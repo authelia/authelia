@@ -37,7 +37,7 @@ func handleAuthzUnauthorizedLegacy(ctx *middlewares.AutheliaCtx, authn *Authn, r
 	)
 
 	if authn.Type == AuthnTypeAuthorization {
-		handleAuthzUnauthorizedAuthorizationBasic(ctx, authn, nil)
+		handleAuthzUnauthorizedAuthorizationBasic(ctx, authn)
 
 		return
 	}

@@ -3,9 +3,11 @@ package handlers
 import (
 	"fmt"
 	"net/url"
+	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
 
@@ -150,6 +152,50 @@ func (s *AuthzSuite) TestShouldApplyDefaultPolicy() {
 	s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
 	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
 	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+}
+
+func (s *AuthzSuite) TestShouldDenyObject() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	testCases := []struct {
+		name  string
+		value string
+	}{
+		{
+			"NotProtected",
+			"https://test.not-a-protected-domain.com",
+		},
+		{
+			"Insecure",
+			"http://test.example.com",
+		},
+	}
+
+	authz := s.Builder().Build()
+
+	for _, tc := range testCases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
+				mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
+			}
+
+			mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+
+			targetURI := s.RequireParseRequestURI(tc.value)
+
+			s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+			authz.Handler(mock.Ctx)
+
+			assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+		})
+	}
 }
 
 func (s *AuthzSuite) TestShouldApplyPolicyOfBypassDomain() {
@@ -1417,6 +1463,49 @@ func (s *AuthzSuite) TestShouldNotRedirectRequestsForBypassACLWhenInactiveForToo
 
 		s.Equal(location.String(), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
 	}
+}
+
+func (s *AuthzSuite) TestShouldFailToParsePortalURL() {
+	if s.setRequest == nil || s.implementation == AuthzImplAuthRequest {
+		s.T().Skip()
+	}
+
+	builder := s.Builder()
+
+	builder = builder.WithStrategies(
+		NewCookieSessionAuthnStrategy(testInactivity),
+	)
+
+	authz := builder.Build()
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
+
+	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
+		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
+	}
+
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+
+	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	switch s.implementation {
+	case AuthzImplLegacy:
+		mock.Ctx.RequestCtx.QueryArgs().Set(queryArgRD, "JKL$#N%KJ#@$N")
+	case AuthzImplForwardAuth:
+		mock.Ctx.RequestCtx.QueryArgs().Set("authelia_url", "JKL$#N%KJ#@$N")
+	case AuthzImplExtAuthz:
+		mock.Ctx.Request.Header.Set("X-Authelia-URL", "JKL$#N%KJ#@$N")
+	}
+
+	authz.Handler(mock.Ctx)
+
+	s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 }
 
 func setRequestXHRValues(ctx *middlewares.AutheliaCtx, accept, xhr bool) {

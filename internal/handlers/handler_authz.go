@@ -21,8 +21,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if object, err = authz.handleGetObject(ctx); err != nil {
-		// TODO: Adjust.
-		ctx.Logger.Errorf("Error getting object: %v", err)
+		ctx.Logger.Errorf("Error getting original request object: %v", err)
 
 		ctx.ReplyUnauthorized()
 
@@ -38,7 +37,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if provider, err = ctx.GetSessionProviderByTargetURL(object.URL); err != nil {
-		ctx.Logger.Errorf("Target URL '%s' does not appear to be a protected domain: %+v", object.URL.String(), err)
+		ctx.Logger.WithError(err).Errorf("Target URL '%s' does not appear to be configured as a session domain", object.URL.String())
 
 		ctx.ReplyUnauthorized()
 
@@ -46,7 +45,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if autheliaURL, err = authz.getAutheliaURL(ctx, provider); err != nil {
-		ctx.Logger.Errorf("Target URL '%s' does not appear to be a protected domain: %+v", object.URL.String(), err)
+		ctx.Logger.WithError(err).Error("Error occurred trying to determine the URL of the portal")
 
 		ctx.ReplyUnauthorized()
 
@@ -59,8 +58,9 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if authn, strategy, err = authz.authn(ctx, provider); err != nil {
-		// TODO: Adjust.
-		ctx.Logger.Errorf("LOG ME: Target URL '%s' does not appear to be a protected domain: %+v", object.URL.String(), err)
+		authn.Object = object
+
+		ctx.Logger.WithError(err).Error("Error occurred while attempting to authenticate a request")
 
 		switch strategy {
 		case nil:
@@ -86,7 +86,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 
 	switch isAuthzResult(authn.Level, required, ruleHasSubject) {
 	case AuthzResultForbidden:
-		ctx.Logger.Infof("Access to '%s' is forbidden to user %s", object.URL.String(), authn.Username)
+		ctx.Logger.Infof("Access to '%s' is forbidden to user '%s'", object.URL.String(), authn.Username)
 		ctx.ReplyForbidden()
 	case AuthzResultUnauthorized:
 		var handler HandlerAuthzUnauthorized
