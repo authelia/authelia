@@ -101,13 +101,13 @@ func (s *AuthzSuite) TestShouldNotBeAbleToParseBasicAuth() {
 
 	switch s.implementation {
 	case AuthzImplAuthRequest, AuthzImplLegacy:
-		s.Assert().Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
-		s.Assert().Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
-		s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+		s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+		s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
+		s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
 	default:
-		s.Assert().Equal(fasthttp.StatusProxyAuthRequired, mock.Ctx.Response.StatusCode())
-		s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
-		s.Assert().Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate)))
+		s.Equal(fasthttp.StatusProxyAuthRequired, mock.Ctx.Response.StatusCode())
+		s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+		s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate)))
 	}
 }
 
@@ -147,9 +147,9 @@ func (s *AuthzSuite) TestShouldApplyDefaultPolicy() {
 
 	authz.Handler(mock.Ctx)
 
-	s.Assert().Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
-	s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
-	s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+	s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
 }
 
 func (s *AuthzSuite) TestShouldApplyPolicyOfBypassDomain() {
@@ -188,9 +188,9 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfBypassDomain() {
 
 	authz.Handler(mock.Ctx)
 
-	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
-	s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
-	s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
 }
 
 func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicScheme() {
@@ -230,13 +230,13 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicScheme() {
 
 	switch s.implementation {
 	case AuthzImplAuthRequest, AuthzImplLegacy:
-		s.Assert().Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
-		s.Assert().Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
-		s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+		s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+		s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
+		s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
 	default:
-		s.Assert().Equal(fasthttp.StatusProxyAuthRequired, mock.Ctx.Response.StatusCode())
-		s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
-		s.Assert().Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate)))
+		s.Equal(fasthttp.StatusProxyAuthRequired, mock.Ctx.Response.StatusCode())
+		s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+		s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate)))
 	}
 }
 
@@ -277,10 +277,10 @@ func (s *AuthzSuite) TestShouldNotFailOnMissingEmail() {
 
 	authz.Handler(mock.Ctx)
 
-	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
-	s.Assert().Equal(testUsername, string(mock.Ctx.Response.Header.PeekBytes(headerRemoteUser)))
-	s.Assert().Equal("John Smith", string(mock.Ctx.Response.Header.PeekBytes(headerRemoteName)))
-	s.Assert().Equal("abc,123", string(mock.Ctx.Response.Header.PeekBytes(headerRemoteGroups)))
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	s.Equal(testUsername, string(mock.Ctx.Response.Header.PeekBytes(headerRemoteUser)))
+	s.Equal("John Smith", string(mock.Ctx.Response.Header.PeekBytes(headerRemoteName)))
+	s.Equal("abc,123", string(mock.Ctx.Response.Header.PeekBytes(headerRemoteGroups)))
 }
 
 func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomain() {
@@ -319,9 +319,9 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomain() {
 
 	authz.Handler(mock.Ctx)
 
-	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
-	s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
-	s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
 }
 
 func (s *AuthzSuite) TestShouldApplyPolicyOfTwoFactorDomain() {
@@ -362,13 +362,13 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfTwoFactorDomain() {
 
 	switch s.implementation {
 	case AuthzImplAuthRequest, AuthzImplLegacy:
-		s.Assert().Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
-		s.Assert().Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
-		s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+		s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+		s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
+		s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
 	default:
-		s.Assert().Equal(fasthttp.StatusProxyAuthRequired, mock.Ctx.Response.StatusCode())
-		s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
-		s.Assert().Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate)))
+		s.Equal(fasthttp.StatusProxyAuthRequired, mock.Ctx.Response.StatusCode())
+		s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+		s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate)))
 	}
 }
 
@@ -408,9 +408,9 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfDenyDomain() {
 
 	authz.Handler(mock.Ctx)
 
-	s.Assert().Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
-	s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
-	s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+	s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
 }
 
 func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainWithAuthorizationHeader() {
@@ -459,9 +459,9 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainWithAuthorizationHead
 
 	authz.Handler(mock.Ctx)
 
-	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
-	s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
-	s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
 }
 
 func (s *AuthzSuite) TestShouldHandleAuthzWithoutHeaderNoCookie() {
@@ -496,9 +496,9 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithoutHeaderNoCookie() {
 
 	authz.Handler(mock.Ctx)
 
-	s.Assert().Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
-	s.Assert().Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
-	s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+	s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+	s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
+	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
 }
 
 func (s *AuthzSuite) TestShouldHandleAuthzWithEmptyAuthorizationHeader() {
@@ -535,9 +535,9 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithEmptyAuthorizationHeader() {
 
 	authz.Handler(mock.Ctx)
 
-	s.Assert().Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
-	s.Assert().Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
-	s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+	s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+	s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
+	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
 }
 
 func (s *AuthzSuite) TestShouldHandleAuthzWithAuthorizationHeaderInvalidPassword() {
@@ -578,9 +578,9 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithAuthorizationHeaderInvalidPassword
 
 	authz.Handler(mock.Ctx)
 
-	s.Assert().Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
-	s.Assert().Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
-	s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+	s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+	s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
+	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
 }
 
 func (s *AuthzSuite) TestShouldHandleAuthzWithIncorrectAuthHeader() { // TestShouldVerifyAuthBasicArgFailingWrongHeader.
@@ -614,9 +614,9 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithIncorrectAuthHeader() { // TestSho
 
 	authz.Handler(mock.Ctx)
 
-	s.Assert().Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
-	s.Assert().Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
-	s.Assert().Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+	s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+	s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
+	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
 }
 
 func (s *AuthzSuite) TestShouldDestroySessionWhenInactiveForTooLong() {
@@ -668,9 +668,9 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenInactiveForTooLong() {
 	userSession, err = mock.Ctx.GetSession()
 	s.Require().NoError(err)
 
-	s.Assert().Equal("", userSession.Username)
-	s.Assert().Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel)
-	s.Assert().Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
+	s.Equal("", userSession.Username)
+	s.Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel)
+	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
 }
 
 func (s *AuthzSuite) TestShouldNotDestroySessionWhenInactiveForTooLongRememberMe() {
@@ -722,9 +722,9 @@ func (s *AuthzSuite) TestShouldNotDestroySessionWhenInactiveForTooLongRememberMe
 	userSession, err = mock.Ctx.GetSession()
 	s.Require().NoError(err)
 
-	s.Assert().Equal(testUsername, userSession.Username)
-	s.Assert().Equal(authentication.TwoFactor, userSession.AuthenticationLevel)
-	s.Assert().Equal(int64(0), userSession.LastActivity)
+	s.Equal(testUsername, userSession.Username)
+	s.Equal(authentication.TwoFactor, userSession.AuthenticationLevel)
+	s.Equal(int64(0), userSession.LastActivity)
 }
 
 func (s *AuthzSuite) TestShouldNotDestroySessionWhenNotInactiveForTooLong() {
@@ -777,9 +777,9 @@ func (s *AuthzSuite) TestShouldNotDestroySessionWhenNotInactiveForTooLong() {
 	userSession, err = mock.Ctx.GetSession()
 	s.Require().NoError(err)
 
-	s.Assert().Equal(testUsername, userSession.Username)
-	s.Assert().Equal(authentication.TwoFactor, userSession.AuthenticationLevel)
-	s.Assert().Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
+	s.Equal(testUsername, userSession.Username)
+	s.Equal(authentication.TwoFactor, userSession.AuthenticationLevel)
+	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
 }
 
 func (s *AuthzSuite) TestShouldUpdateInactivityTimestampEvenWhenHittingForbiddenResources() {
@@ -832,9 +832,9 @@ func (s *AuthzSuite) TestShouldUpdateInactivityTimestampEvenWhenHittingForbidden
 	userSession, err = mock.Ctx.GetSession()
 	s.Require().NoError(err)
 
-	s.Assert().Equal(testUsername, userSession.Username)
-	s.Assert().Equal(authentication.TwoFactor, userSession.AuthenticationLevel)
-	s.Assert().Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
+	s.Equal(testUsername, userSession.Username)
+	s.Equal(authentication.TwoFactor, userSession.AuthenticationLevel)
+	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
 }
 
 func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabled() {
@@ -897,7 +897,7 @@ func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabl
 
 	authz.Handler(mock.Ctx)
 
-	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 	targetURI = s.RequireParseRequestURI("https://admin.example.com")
 
@@ -905,33 +905,33 @@ func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabl
 
 	authz.Handler(mock.Ctx)
 
-	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 	userSession, err = mock.Ctx.GetSession()
 	s.Require().NoError(err)
 
-	s.Assert().Equal(user.Username, userSession.Username)
-	s.Assert().Equal(authentication.TwoFactor, userSession.AuthenticationLevel)
-	s.Assert().Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
+	s.Equal(user.Username, userSession.Username)
+	s.Equal(authentication.TwoFactor, userSession.AuthenticationLevel)
+	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
 	s.Require().Len(userSession.Groups, 2)
-	s.Assert().Equal("admin", userSession.Groups[0])
-	s.Assert().Equal("users", userSession.Groups[1])
-	s.Assert().Equal(utils.RFC3339Zero, userSession.RefreshTTL.Unix())
+	s.Equal("admin", userSession.Groups[0])
+	s.Equal("users", userSession.Groups[1])
+	s.Equal(utils.RFC3339Zero, userSession.RefreshTTL.Unix())
 
 	authz.Handler(mock.Ctx)
 
-	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 	userSession, err = mock.Ctx.GetSession()
 	s.Require().NoError(err)
 
-	s.Assert().Equal(user.Username, userSession.Username)
-	s.Assert().Equal(authentication.TwoFactor, userSession.AuthenticationLevel)
-	s.Assert().Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
+	s.Equal(user.Username, userSession.Username)
+	s.Equal(authentication.TwoFactor, userSession.AuthenticationLevel)
+	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
 	s.Require().Len(userSession.Groups, 2)
-	s.Assert().Equal("admin", userSession.Groups[0])
-	s.Assert().Equal("users", userSession.Groups[1])
-	s.Assert().Equal(utils.RFC3339Zero, userSession.RefreshTTL.Unix())
+	s.Equal("admin", userSession.Groups[0])
+	s.Equal("users", userSession.Groups[1])
+	s.Equal(utils.RFC3339Zero, userSession.RefreshTTL.Unix())
 }
 
 func (s *AuthzSuite) TestShouldDestroySessionWhenUserDoesNotExist() {
@@ -998,12 +998,12 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenUserDoesNotExist() {
 
 	authz.Handler(mock.Ctx)
 
-	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 	userSession, err = mock.Ctx.GetSession()
 	s.Require().NoError(err)
 
-	s.Assert().Equal(mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
+	s.Equal(mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
 
 	userSession.RefreshTTL = mock.Clock.Now().Add(-1 * time.Minute)
 
@@ -1013,17 +1013,17 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenUserDoesNotExist() {
 
 	switch s.implementation {
 	case AuthzImplAuthRequest, AuthzImplLegacy:
-		s.Assert().Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+		s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 	default:
-		s.Assert().Equal(fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
+		s.Equal(fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
 	}
 
 	userSession, err = mock.Ctx.GetSession()
 	s.Require().NoError(err)
 
-	s.Assert().Equal("", userSession.Username)
-	s.Assert().Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel)
-	s.Assert().True(userSession.IsAnonymous())
+	s.Equal("", userSession.Username)
+	s.Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel)
+	s.True(userSession.IsAnonymous())
 }
 
 func (s *AuthzSuite) TestShouldUpdateRemovedUserGroupsFromBackendAndDeny() {
@@ -1090,12 +1090,12 @@ func (s *AuthzSuite) TestShouldUpdateRemovedUserGroupsFromBackendAndDeny() {
 
 	authz.Handler(mock.Ctx)
 
-	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 	userSession, err = mock.Ctx.GetSession()
 	s.Require().NoError(err)
 
-	s.Assert().Equal(mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
+	s.Equal(mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
 	s.Require().Len(userSession.Groups, 2)
 	s.Require().Equal("admin", userSession.Groups[0])
 	s.Require().Equal("users", userSession.Groups[1])
@@ -1106,12 +1106,12 @@ func (s *AuthzSuite) TestShouldUpdateRemovedUserGroupsFromBackendAndDeny() {
 
 	authz.Handler(mock.Ctx)
 
-	s.Assert().Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+	s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
 
 	userSession, err = mock.Ctx.GetSession()
 	s.Require().NoError(err)
 
-	s.Assert().Equal(mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
+	s.Equal(mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
 	s.Require().Len(userSession.Groups, 1)
 	s.Require().Equal("users", userSession.Groups[0])
 }
@@ -1179,12 +1179,12 @@ func (s *AuthzSuite) TestShouldUpdateAddedUserGroupsFromBackendAndDeny() {
 
 	authz.Handler(mock.Ctx)
 
-	s.Assert().Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+	s.Equal(fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
 
 	userSession, err = mock.Ctx.GetSession()
 	s.Require().NoError(err)
 
-	s.Assert().Equal(mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
+	s.Equal(mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
 	s.Require().Len(userSession.Groups, 1)
 	s.Require().Equal("users", userSession.Groups[0])
 
@@ -1194,12 +1194,12 @@ func (s *AuthzSuite) TestShouldUpdateAddedUserGroupsFromBackendAndDeny() {
 
 	authz.Handler(mock.Ctx)
 
-	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 	userSession, err = mock.Ctx.GetSession()
 	s.Require().NoError(err)
 
-	s.Assert().Equal(mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
+	s.Equal(mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
 	s.Require().Len(userSession.Groups, 2)
 	s.Require().Equal("admin", userSession.Groups[0])
 	s.Require().Equal("users", userSession.Groups[1])
@@ -1252,14 +1252,14 @@ func (s *AuthzSuite) TestShouldCheckValidSessionUsernameHeaderAndReturn200() {
 
 	authz.Handler(mock.Ctx)
 
-	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 	userSession, err = mock.Ctx.GetSession()
 	s.Require().NoError(err)
 
-	s.Assert().Equal(testUsername, userSession.Username)
-	s.Assert().Equal(authentication.OneFactor, userSession.AuthenticationLevel)
-	s.Assert().Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
+	s.Equal(testUsername, userSession.Username)
+	s.Equal(authentication.OneFactor, userSession.AuthenticationLevel)
+	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
 }
 
 func (s *AuthzSuite) TestShouldCheckInvalidSessionUsernameHeaderAndReturn401AndDestroySession() {
@@ -1311,9 +1311,9 @@ func (s *AuthzSuite) TestShouldCheckInvalidSessionUsernameHeaderAndReturn401AndD
 
 	switch s.implementation {
 	case AuthzImplAuthRequest, AuthzImplLegacy:
-		s.Assert().Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+		s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 	default:
-		s.Assert().Equal(fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
+		s.Equal(fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
 		location := s.RequireParseRequestURI(mock.Ctx.Configuration.Session.Cookies[0].AutheliaURL.String())
 
 		if location.Path == "" {
@@ -1326,15 +1326,15 @@ func (s *AuthzSuite) TestShouldCheckInvalidSessionUsernameHeaderAndReturn401AndD
 
 		location.RawQuery = query.Encode()
 
-		s.Assert().Equal(location.String(), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+		s.Equal(location.String(), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
 	}
 
 	userSession, err = mock.Ctx.GetSession()
 	s.Require().NoError(err)
 
-	s.Assert().Equal("", userSession.Username)
-	s.Assert().Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel)
-	s.Assert().Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
+	s.Equal("", userSession.Username)
+	s.Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel)
+	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
 }
 
 func (s *AuthzSuite) TestShouldNotRedirectRequestsForBypassACLWhenInactiveForTooLong() {
@@ -1383,14 +1383,14 @@ func (s *AuthzSuite) TestShouldNotRedirectRequestsForBypassACLWhenInactiveForToo
 
 	authz.Handler(mock.Ctx)
 
-	s.Assert().Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 	userSession, err = mock.Ctx.GetSession()
 	s.Require().NoError(err)
 
-	s.Assert().Equal("", userSession.Username)
-	s.Assert().Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel)
-	s.Assert().Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
+	s.Equal("", userSession.Username)
+	s.Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel)
+	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
 
 	targetURI = s.RequireParseRequestURI("https://two-factor.example.com")
 
@@ -1400,9 +1400,9 @@ func (s *AuthzSuite) TestShouldNotRedirectRequestsForBypassACLWhenInactiveForToo
 
 	switch s.implementation {
 	case AuthzImplAuthRequest, AuthzImplLegacy:
-		s.Assert().Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+		s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 	default:
-		s.Assert().Equal(fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
+		s.Equal(fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
 		location := s.RequireParseRequestURI(mock.Ctx.Configuration.Session.Cookies[0].AutheliaURL.String())
 
 		if location.Path == "" {
@@ -1415,7 +1415,7 @@ func (s *AuthzSuite) TestShouldNotRedirectRequestsForBypassACLWhenInactiveForToo
 
 		location.RawQuery = query.Encode()
 
-		s.Assert().Equal(location.String(), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+		s.Equal(location.String(), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
 	}
 }
 

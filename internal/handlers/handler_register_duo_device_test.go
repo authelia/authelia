@@ -27,7 +27,7 @@ func (s *RegisterDuoDeviceSuite) SetupTest() {
 	s.Require().NoError(err)
 
 	userSession.Username = testUsername
-	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
+	s.NoError(s.mock.Ctx.SaveSession(userSession))
 }
 
 func (s *RegisterDuoDeviceSuite) TearDownTest() {
