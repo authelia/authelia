@@ -3,7 +3,7 @@ import React, { MutableRefObject, useCallback, useEffect, useRef, useState } fro
 import { Box, Button, Grid, Stack, Step, StepLabel, Stepper, Theme, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import FixedTextField from "@components/FixedTextField";
 import InformationIcon from "@components/InformationIcon";
@@ -29,7 +29,6 @@ const RegisterWebauthn = function (props: Props) {
     const [state, setState] = useState(WebauthnTouchState.WaitTouch);
     const styles = useStyles();
     const navigate = useNavigate();
-    const location = useLocation();
     const { t: translate } = useTranslation();
     const { createErrorNotification } = useNotifications();
 
