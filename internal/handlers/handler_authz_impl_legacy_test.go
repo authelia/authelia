@@ -425,7 +425,6 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 			"HeaderIncorrect", // TestShouldVerifyAuthBasicArgFailingWrongHeader.
 			func(mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
-
 			},
 		},
 		{
