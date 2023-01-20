@@ -28,9 +28,12 @@ type SecondFactorDuoPostSuite struct {
 
 func (s *SecondFactorDuoPostSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
+
 	userSession, err := s.mock.Ctx.GetSession()
 	s.Require().NoError(err)
+
 	userSession.Username = testUsername
+
 	require.NoError(s.T(), s.mock.Ctx.SaveSession(userSession))
 }
 

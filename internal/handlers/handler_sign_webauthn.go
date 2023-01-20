@@ -25,6 +25,7 @@ func WebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
+
 		return
 	}
 
@@ -86,6 +87,8 @@ func WebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 }
 
 // WebauthnAssertionPOST handler completes the assertion ceremony after verifying the challenge.
+//
+//nolint:gocyclo
 func WebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		userSession session.UserSession
@@ -108,6 +111,7 @@ func WebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
+
 		return
 	}
 

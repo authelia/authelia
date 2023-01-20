@@ -24,6 +24,7 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
 
 		ctx.ReplyForbidden()
+
 		return
 	}
 
@@ -72,6 +73,7 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
 
 		ctx.ReplyForbidden()
+
 		return
 	}
 
@@ -102,6 +104,7 @@ func MethodPreferencePOST(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
 
 		ctx.Error(err, messageOperationFailed)
+
 		return
 	}
 

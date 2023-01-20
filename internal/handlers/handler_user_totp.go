@@ -22,6 +22,7 @@ func UserTOTPInfoGET(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
 
 		ctx.ReplyForbidden()
+
 		return
 	}
 
