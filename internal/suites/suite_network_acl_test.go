@@ -57,7 +57,7 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon1FA() {
 
 	browser.verifyIsFirstFactorPage(s.T(), page)
 	browser.doLoginOneFactor(s.T(), page, "john", "password",
-		false, fmt.Sprintf("%s/secret.html", SecureBaseURL))
+		false, BaseDomain, fmt.Sprintf("%s/secret.html", SecureBaseURL))
 	browser.verifySecretAuthorized(s.T(), page)
 }
 

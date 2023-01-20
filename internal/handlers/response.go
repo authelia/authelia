@@ -13,7 +13,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // Handle1FAResponse handle the redirection upon 1FA authentication.
@@ -57,7 +56,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 		return
 	}
 
-	if !utils.IsURISafeRedirection(targetURL, ctx.Configuration.Session.Domain) {
+	if !ctx.IsSafeRedirectionTargetURI(targetURL) {
 		ctx.Logger.Debugf("Redirection URL %s is not safe", targetURI)
 
 		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && ctx.Configuration.DefaultRedirectionURL != "" {
@@ -98,13 +97,17 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 		return
 	}
 
-	var safe bool
+	var (
+		parsedURI *url.URL
+		safe      bool
+	)
 
-	if safe, err = utils.IsURIStringSafeRedirection(targetURI, ctx.Configuration.Session.Domain); err != nil {
-		ctx.Error(fmt.Errorf("unable to check target URL: %s", err), messageMFAValidationFailed)
-
+	if parsedURI, err = url.ParseRequestURI(targetURI); err != nil {
+		ctx.Error(fmt.Errorf("unable to determine if URI '%s' is safe to redirect to: failed to parse URI '%s': %w", targetURI, targetURI, err), messageMFAValidationFailed)
 		return
 	}
+
+	safe = ctx.IsSafeRedirectionTargetURI(parsedURI)
 
 	if safe {
 		ctx.Logger.Debugf("Redirection URL %s is safe", targetURI)

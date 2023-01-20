@@ -323,7 +323,7 @@ func TestShouldDecodeSMTPSenderWithName(t *testing.T) {
 
 	assert.Equal(t, "Admin", config.Notifier.SMTP.Sender.Name)
 	assert.Equal(t, "admin@example.com", config.Notifier.SMTP.Sender.Address)
-	assert.Equal(t, schema.RememberMeDisabled, config.Session.RememberMeDuration)
+	assert.Equal(t, schema.RememberMeDisabled, config.Session.RememberMe)
 }
 
 func TestShouldParseRegex(t *testing.T) {

@@ -22,7 +22,7 @@ describes the implementation of this. You can use this implementation in various
 * session:
   * expiration
   * inactivity
-  * remember_me_duration
+  * remember_me
 * regulation:
   * ban_time
   * find_time
