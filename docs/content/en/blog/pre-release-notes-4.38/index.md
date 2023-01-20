@@ -21,6 +21,10 @@ Overall this release adds several major roadmap items. It's quite a big release.
 nothing major. It's one of our biggest releases to date, so while it's taken a longer time than usual it's for good
 reason we think.
 
+We understand it's taking a bit longer than usual and people are getting anxious for their particular feature of
+interest. We're trying to ensure that we sufficiently add automated tests to all of the new features in both the backend
+and in the frontend via automated browser-based testing in Chromium to ensure a high quality user experience.
+
 As this is a larger release we're probably going to ask users to help with some experimentation. If you're comfortable
 backing up your database then please keep your eyes peeled in the [chat](../../information/contact.md#chat).
 
