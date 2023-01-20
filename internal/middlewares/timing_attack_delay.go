@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"crypto/rand"
 	"math"
 	"math/big"
 	"sync"
@@ -62,7 +61,7 @@ func movingAverageIteration(value time.Duration, history int, successful bool, c
 }
 
 func calculateActualDelay(ctx *AutheliaCtx, execDuration time.Duration, execDurationAvgMs, minDelayMs float64, maxRandomMs int64, successful bool) (actualDelayMs float64) {
-	randomDelayMs, err := rand.Int(rand.Reader, big.NewInt(maxRandomMs))
+	randomDelayMs, err := ctx.Providers.Random.IntErr(big.NewInt(maxRandomMs))
 	if err != nil {
 		return float64(maxRandomMs)
 	}

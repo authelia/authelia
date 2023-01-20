@@ -134,4 +134,11 @@ var deprecations = map[string]Deprecation{
 		AutoMap: true,
 		MapFunc: nil,
 	},
+	"session.remember_me_duration": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "session.remember_me_duration",
+		NewKey:  "session.remember_me",
+		AutoMap: true,
+		MapFunc: nil,
+	},
 }

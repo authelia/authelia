@@ -113,6 +113,7 @@ const (
 	testInactivity     = time.Second * 10
 	testRedirectionURL = "http://redirection.local"
 	testUsername       = "john"
+	exampleDotCom      = "example.com"
 )
 
 // Duo constants.

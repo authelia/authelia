@@ -10,6 +10,24 @@ import (
 // Templates is the struct which holds all the *template.Template values.
 type Templates struct {
 	notification NotificationTemplates
+	asset        AssetTemplates
+	oidc         OpenIDConnectTemplates
+}
+
+type OpenIDConnectTemplates struct {
+	formpost *th.Template
+}
+
+// AssetTemplates are templates for specific key assets.
+type AssetTemplates struct {
+	index *tt.Template
+	api   OpenAPIAssetTemplates
+}
+
+// OpenAPIAssetTemplates are asset templates for the OpenAPI specification.
+type OpenAPIAssetTemplates struct {
+	index *tt.Template
+	spec  *tt.Template
 }
 
 // NotificationTemplates are the templates for the notification system.

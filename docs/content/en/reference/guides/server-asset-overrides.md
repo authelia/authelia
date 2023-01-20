@@ -39,8 +39,8 @@ the language itself, or adding a variant form of that language. If you'd like su
 to make a PR. We also encourage people to make PR's for variants where the difference in the variants is significant.*
 
 *__Important Note__ Users wishing to override the locales files should be aware that we do not provide any guarantee
-that the file will not change in a breaking way between releases. Users who planning to utilize these
-overrides should either check for changes to the files in the
+that the file will not change in a breaking way between releases as per our [Versioning Policy]. Users who planning to
+utilize these overrides should either check for changes to the files in the
 [en](https://github.com/authelia/authelia/tree/master/internal/server/locales/en) translation prior to upgrading or
 [Contribute](../../contributing/prologue/translations.md) their translation to ensure it is maintained.*
 
@@ -72,12 +72,8 @@ Each file in a locale directory represents a translation namespace. The list of 
 
 List of supported languages and variants:
 
-|      Description      | Language | Additional Variants |       Location       |
-|:---------------------:|:--------:|:-------------------:|:--------------------:|
-|        English        |    en    |         N/A         |  locales/en/*.json   |
-|        Spanish        |    es    |         N/A         |  locales/es/*.json   |
-|        German         |    de    |         N/A         |  locales/de/*.json   |
-|        French         |    fr    |         N/A         |  locales/fr/*.json   |
-|        Russian        |    ru    |         N/A         |  locales/ru/*.json   |
-|        Swedish        |    sv    |   sv-SE (Sweden)    |  locales/sv/*.json   |
-| Chinese (Traditional) |  zh-TW   |         N/A         | locales/zh-TW/*.json |
+{{% table-i18n-overrides %}}
+
+More information may be available from the [Internationalization Reference Guide](./internationalization.md).
+
+[Versioning Policy]: ../../policies/versioning.md

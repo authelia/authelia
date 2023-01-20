@@ -12,5 +12,5 @@ const (
 )
 
 const (
-	examplecom = "example.com"
+	exampleDotCom = "example.com"
 )

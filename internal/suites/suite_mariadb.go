@@ -21,11 +21,17 @@ func init() {
 	})
 
 	setup := func(suitePath string) error {
-		if err := dockerEnvironment.Up(); err != nil {
+		err := dockerEnvironment.Up()
+		if err != nil {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(dockerEnvironment, mariadbSuiteName)
+		err = waitUntilAutheliaIsReady(dockerEnvironment, mariadbSuiteName)
+		if err != nil {
+			return err
+		}
+
+		return updateDevEnvFileForDomain(BaseDomain, true)
 	}
 
 	displayAutheliaLogs := func() error {

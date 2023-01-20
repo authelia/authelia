@@ -68,7 +68,7 @@ func (s *StandaloneWebDriverSuite) TestShouldLetUserKnowHeIsAlreadyAuthenticated
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
-	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL())
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsAuthenticatedPage(s.T(), s.Context(ctx))
 }
 
@@ -89,7 +89,7 @@ func (s *StandaloneWebDriverSuite) TestShouldRedirectAfterOneFactorOnAnotherTab(
 
 	// Switch to first, visit the login page and wait for redirection to secret page with secret displayed.
 	s.Page.MustActivate()
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, targetURL)
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, targetURL)
 	s.verifySecretAuthorized(s.T(), s.Page)
 
 	// Switch to second tab and wait for redirection to secret page with secret displayed.
@@ -111,7 +111,7 @@ func (s *StandaloneWebDriverSuite) TestShouldRedirectAlreadyAuthenticatedUser() 
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
-	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://secure.example.com:8080", GetLoginBaseURL()))
+	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://secure.example.com:8080", GetLoginBaseURL(BaseDomain)))
 
 	_, err := s.Page.ElementR("h1", "Public resource")
 	require.NoError(s.T(), err)
@@ -132,7 +132,7 @@ func (s *StandaloneWebDriverSuite) TestShouldNotRedirectAlreadyAuthenticatedUser
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
-	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://secure.example.local:8080", GetLoginBaseURL()))
+	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://secure.example.local:8080", GetLoginBaseURL(BaseDomain)))
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct.")
 }
 
@@ -152,7 +152,7 @@ func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() 
 	require.NoError(s.T(), provider.DeleteTOTPConfiguration(ctx, username))
 
 	// Login one factor.
-	s.doLoginOneFactor(s.T(), s.Context(ctx), username, password, false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), username, password, false, BaseDomain, "")
 
 	// Check the user is asked to register a new device.
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-not-registered")
@@ -163,7 +163,7 @@ func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() 
 	s.doLogout(s.T(), s.Context(ctx))
 
 	// Login one factor again.
-	s.doLoginOneFactor(s.T(), s.Context(ctx), username, password, false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), username, password, false, BaseDomain, "")
 
 	// now the user should be asked to perform 2FA.
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-method")
@@ -178,7 +178,7 @@ func NewStandaloneSuite() *StandaloneSuite {
 }
 
 func (s *StandaloneSuite) TestShouldRespectMethodsACL() {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL()), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL(BaseDomain)), nil)
 	s.Assert().NoError(err)
 	req.Header.Set("X-Forwarded-Method", "GET")
 	req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
@@ -194,7 +194,7 @@ func (s *StandaloneSuite) TestShouldRespectMethodsACL() {
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
-	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=GET", GetLoginBaseURL(), urlEncodedAdminURL))), string(body))
+	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=GET", GetLoginBaseURL(BaseDomain), urlEncodedAdminURL))), string(body))
 
 	req.Header.Set("X-Forwarded-Method", "OPTIONS")
 
@@ -204,7 +204,7 @@ func (s *StandaloneSuite) TestShouldRespectMethodsACL() {
 }
 
 func (s *StandaloneSuite) TestShouldRespondWithCorrectStatusCode() {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL()), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL(BaseDomain)), nil)
 	s.Assert().NoError(err)
 	req.Header.Set("X-Forwarded-Method", "GET")
 	req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
@@ -220,7 +220,7 @@ func (s *StandaloneSuite) TestShouldRespondWithCorrectStatusCode() {
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
-	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=GET", GetLoginBaseURL(), urlEncodedAdminURL))), string(body))
+	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=GET", GetLoginBaseURL(BaseDomain), urlEncodedAdminURL))), string(body))
 
 	req.Header.Set("X-Forwarded-Method", "POST")
 
@@ -231,7 +231,7 @@ func (s *StandaloneSuite) TestShouldRespondWithCorrectStatusCode() {
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL = url.QueryEscape(SecureBaseURL + "/")
-	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">303 See Other</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=POST", GetLoginBaseURL(), urlEncodedAdminURL))), string(body))
+	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">303 See Other</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=POST", GetLoginBaseURL(BaseDomain), urlEncodedAdminURL))), string(body))
 }
 
 // Standard case using nginx.
@@ -253,7 +253,7 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyUnauthorized() {
 
 // Standard case using Kubernetes.
 func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalURL() {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL()), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL(BaseDomain)), nil)
 	s.Assert().NoError(err)
 	req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 	req.Header.Set("X-Original-URL", AdminBaseURL)
@@ -267,11 +267,11 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalURL() {
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL := url.QueryEscape(AdminBaseURL)
-	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s", GetLoginBaseURL(), urlEncodedAdminURL))), string(body))
+	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s", GetLoginBaseURL(BaseDomain), urlEncodedAdminURL))), string(body))
 }
 
 func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI() {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL()), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL(BaseDomain)), nil)
 	s.Assert().NoError(err)
 	req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 	req.Header.Set(fasthttp.HeaderXForwardedHost, "secure.example.com:8080")
@@ -286,7 +286,7 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI(
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
-	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s", GetLoginBaseURL(), urlEncodedAdminURL))), string(body))
+	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s", GetLoginBaseURL(BaseDomain), urlEncodedAdminURL))), string(body))
 }
 
 func (s *StandaloneSuite) TestShouldRecordMetrics() {

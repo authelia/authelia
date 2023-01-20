@@ -198,7 +198,7 @@ When used in conjunction with [domain] the rule will match when either the [doma
 
 In addition to standard regex patterns this criteria can match some [Named Regex Groups].
 
-[domain_regex]: #domainregex
+[domain_regex]: #domain_regex
 
 ##### Examples
 
@@ -339,7 +339,7 @@ access_control:
 {{< confkey type="list(string)" required="no" >}}
 
 This criteria is a list of values which can be an IP Address, network address range in CIDR notation, or an alias from
-the [global](#networks--global-) section. It matches against the first address in the `X-Forwarded-For` header, or if there
+the [global](#networks-global) section. It matches against the first address in the `X-Forwarded-For` header, or if there
 are none it will fall back to the IP address of the packet TCP source IP address. For this reason it's important for you
 to configure the proxy server correctly in order to accurately match requests with this criteria. *__Note:__ you may
 combine CIDR networks with the alias rules as you please.*
@@ -360,7 +360,7 @@ for administrators to tune the security to their specific needs if desired.
 
 ##### Examples
 
-*Require [two_factor](#twofactor) for all clients other than internal clients and `112.134.145.167`. The first two
+*Require [two_factor](#two_factor) for all clients other than internal clients and `112.134.145.167`. The first two
 rules in this list are effectively the same rule just expressed in different ways.*
 
 ```yaml
@@ -485,7 +485,7 @@ access_control:
 ## Policies
 
 The policy of the first matching rule in the configured list decides the policy applied to the request, if no rule
-matches the request the [default_policy](#defaultpolicy) is applied.
+matches the request the [default_policy](#default_policy) is applied.
 
 [policies]: #policies
 
@@ -510,14 +510,14 @@ about the subject is [one_factor]. See [Rule Matching Concept 2] for more inform
 This policy requires the user at minimum complete 1FA successfully (username and password). This means if they have
 performed 2FA then they will be allowed to access the resource.
 
-[one_factor]: #onefactor
+[one_factor]: #one_factor
 
 ### two_factor
 
 This policy requires the user to complete 2FA successfully. This is currently the highest level of authentication
 policy available.
 
-[two_factor]: #twofactor
+[two_factor]: #two_factor
 
 ## Rule Matching
 
@@ -554,7 +554,7 @@ a match for that request.
   policy: two_factor
 ```
 
-[Rule Matching Concept 1]: #rule-matching-concept-1--sequential-order
+[Rule Matching Concept 1]: #rule-matching-concept-1-sequential-order
 
 ### Rule Matching Concept 2: Subject Criteria Requires Authentication
 
@@ -569,7 +569,7 @@ for authentication if no prior rules match the request per [Rule Matching Concep
 identical rules, and one of them has a subject based reliant criteria, and the other one is a [bypass] rule then the
 [bypass] rule should generally come first.
 
-[Rule Matching Concept 2]: #rule-matching-concept-2--subject-criteria-requires-authentication
+[Rule Matching Concept 2]: #rule-matching-concept-2-subject-criteria-requires-authentication
 
 ## Named Regex Groups
 

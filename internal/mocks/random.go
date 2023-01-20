@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	big "math/big"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -91,6 +92,35 @@ func (mr *MockRandomMockRecorder) BytesErr() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BytesErr", reflect.TypeOf((*MockRandom)(nil).BytesErr))
 }
 
+// Int mocks base method.
+func (m *MockRandom) Int(arg0 *big.Int) *big.Int {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Int", arg0)
+	ret0, _ := ret[0].(*big.Int)
+	return ret0
+}
+
+// Int indicates an expected call of Int.
+func (mr *MockRandomMockRecorder) Int(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Int", reflect.TypeOf((*MockRandom)(nil).Int), arg0)
+}
+
+// IntErr mocks base method.
+func (m *MockRandom) IntErr(arg0 *big.Int) (*big.Int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IntErr", arg0)
+	ret0, _ := ret[0].(*big.Int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IntErr indicates an expected call of IntErr.
+func (mr *MockRandomMockRecorder) IntErr(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IntErr", reflect.TypeOf((*MockRandom)(nil).IntErr), arg0)
+}
+
 // Integer mocks base method.
 func (m *MockRandom) Integer(arg0 int) int {
 	m.ctrl.T.Helper()
@@ -118,6 +148,21 @@ func (m *MockRandom) IntegerErr(arg0 int) (int, error) {
 func (mr *MockRandomMockRecorder) IntegerErr(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IntegerErr", reflect.TypeOf((*MockRandom)(nil).IntegerErr), arg0)
+}
+
+// Read mocks base method.
+func (m *MockRandom) Read(arg0 []byte) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Read", arg0)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Read indicates an expected call of Read.
+func (mr *MockRandomMockRecorder) Read(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Read", reflect.TypeOf((*MockRandom)(nil).Read), arg0)
 }
 
 // StringCustom mocks base method.

@@ -35,11 +35,17 @@ func init() {
 	}
 
 	setup := func(suitePath string) error {
-		if err := traefik2DockerEnvironment.Up(); err != nil {
+		err := traefik2DockerEnvironment.Up()
+		if err != nil {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(traefik2DockerEnvironment, traefik2SuiteName)
+		err = waitUntilAutheliaIsReady(traefik2DockerEnvironment, traefik2SuiteName)
+		if err != nil {
+			return err
+		}
+
+		return updateDevEnvFileForDomain(BaseDomain, true)
 	}
 
 	displayAutheliaLogs := func() error {

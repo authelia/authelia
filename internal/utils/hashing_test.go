@@ -24,9 +24,7 @@ func TestShouldHashString(t *testing.T) {
 	assert.Equal(t, "ae448ac86c4e8e4dec645729708ef41873ae79c6dff84eff73360989487f08e5", anotherSum)
 	assert.NotEqual(t, sum, anotherSum)
 
-	rand := &random.Cryptographical{}
-
-	randomInput := rand.StringCustom(40, random.CharSetAlphaNumeric)
+	randomInput := r.StringCustom(40, random.CharSetAlphaNumeric)
 	randomSum := HashSHA256FromString(randomInput)
 
 	assert.NotEqual(t, randomSum, sum)
@@ -42,9 +40,7 @@ func TestShouldHashPath(t *testing.T) {
 	err = os.WriteFile(filepath.Join(dir, "anotherfile"), []byte("another\n"), 0600)
 	assert.NoError(t, err)
 
-	rand := &random.Cryptographical{}
-
-	err = os.WriteFile(filepath.Join(dir, "randomfile"), []byte(rand.StringCustom(40, random.CharSetAlphaNumeric)+"\n"), 0600)
+	err = os.WriteFile(filepath.Join(dir, "randomfile"), []byte(r.StringCustom(40, random.CharSetAlphaNumeric)+"\n"), 0600)
 	assert.NoError(t, err)
 
 	sum, err := HashSHA256FromPath(filepath.Join(dir, "myfile"))

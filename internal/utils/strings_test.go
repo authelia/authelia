@@ -6,8 +6,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/authelia/authelia/v4/internal/random"
 )
 
 func TestStringSplitDelimitedEscaped(t *testing.T) {
@@ -53,15 +51,6 @@ func TestStringJoinDelimitedEscaped(t *testing.T) {
 			assert.Equal(t, tc.have, split)
 		})
 	}
-}
-
-func TestShouldNotGenerateSameRandomString(t *testing.T) {
-	rand := &random.Cryptographical{}
-
-	randomStringOne := rand.StringCustom(10, random.CharSetAlphaNumeric)
-	randomStringTwo := rand.StringCustom(10, random.CharSetAlphaNumeric)
-
-	assert.NotEqual(t, randomStringOne, randomStringTwo)
 }
 
 func TestShouldDetectAlphaNumericString(t *testing.T) {

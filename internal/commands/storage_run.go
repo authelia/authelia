@@ -16,10 +16,9 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
-	"github.com/authelia/authelia/v4/internal/random"
-
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/totp"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -985,7 +984,8 @@ func (ctx *CmdCtx) StorageUserTOTPExportPNGRunE(cmd *cobra.Command, _ []string) 
 	}
 
 	if dir == "" {
-		dir = ctx.providers.Random.StringCustom(8, random.CharSetAlphaNumeric)
+		rand := &random.Cryptographical{}
+		dir = rand.StringCustom(8, random.CharSetAlphaNumeric)
 	}
 
 	if _, err = os.Stat(dir); !os.IsNotExist(err) {

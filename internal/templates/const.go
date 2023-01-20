@@ -11,9 +11,12 @@ const (
 	TemplateNameEmailPasswordReset        = "PasswordReset"
 	TemplateNameEmailOneTimePassword      = "OneTimePassword"
 	TemplateNameEmailEvent                = "Event"
+
+	TemplateNameOIDCAuthorizeFormPost = "AuthorizeResponseFormPost.html"
 )
 
 // Template Category Names.
 const (
 	TemplateCategoryNotifications = "notification"
+	TemplateCategoryOpenIDConnect = "oidc"
 )

@@ -246,7 +246,7 @@ func HandleAutoSelection(ctx *middlewares.AutheliaCtx, devices []DuoDevice, user
 func HandleAllow(ctx *middlewares.AutheliaCtx, bodyJSON *bodySignDuoRequest) {
 	userSession := ctx.GetSession()
 
-	err := ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
+	err := ctx.RegenerateSession()
 	if err != nil {
 		ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeDuo, userSession.Username, err)
 

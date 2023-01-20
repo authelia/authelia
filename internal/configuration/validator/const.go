@@ -6,7 +6,6 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -172,6 +171,8 @@ const (
 		"invalid value: redirect uri '%s' must have the scheme but it is absent"
 	errFmtOIDCClientInvalidPolicy = "identity_providers: oidc: client '%s': option 'policy' must be 'one_factor' " +
 		"or 'two_factor' but it is configured as '%s'"
+	errFmtOIDCClientInvalidPKCEChallengeMethod = "identity_providers: oidc: client '%s': option 'pkce_challenge_method' must be 'plain' " +
+		"or 'S256' but it is configured as '%s'"
 	errFmtOIDCClientInvalidConsentMode = "identity_providers: oidc: client '%s': consent: option 'mode' must be one of " +
 		"'%s' but it is configured as '%s'"
 	errFmtOIDCClientInvalidEntry = "identity_providers: oidc: client '%s': option '%s' must only have the values " +
@@ -247,7 +248,7 @@ const (
 // Session error constants.
 const (
 	errFmtSessionOptionRequired           = "session: option '%s' is required"
-	errFmtSessionDomainMustBeRoot         = "session: option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '%s'"
+	errFmtSessionLegacyAndWarning         = "session: option 'domain' and option 'cookies' can't be specified at the same time"
 	errFmtSessionSameSite                 = "session: option 'same_site' must be one of '%s' but is configured as '%s'"
 	errFmtSessionSecretRequired           = "session: option 'secret' is required when using the '%s' provider"
 	errFmtSessionRedisPortRange           = "session: redis: option 'port' must be between 1 and 65535 but is configured as '%d'"
@@ -257,6 +258,16 @@ const (
 
 	errFmtSessionRedisSentinelMissingName     = "session: redis: high_availability: option 'sentinel_name' is required"
 	errFmtSessionRedisSentinelNodeHostMissing = "session: redis: high_availability: option 'nodes': option 'host' is required for each node but one or more nodes are missing this"
+
+	errFmtSessionDomainMustBeRoot                = "session: domain config %s: option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '%s'"
+	errFmtSessionDomainSameSite                  = "session: domain config %s: option 'same_site' must be one of '%s' but is configured as '%s'"
+	errFmtSessionDomainRequired                  = "session: domain config %s: option 'domain' is required"
+	errFmtSessionDomainHasPeriodPrefix           = "session: domain config %s: option 'domain' has a prefix of '.' which is not supported or intended behaviour: you can use this at your own risk but we recommend removing it"
+	errFmtSessionDomainDuplicate                 = "session: domain config %s: option 'domain' is a duplicate value for another configured session domain"
+	errFmtSessionDomainDuplicateCookieScope      = "session: domain config %s: option 'domain' shares the same cookie domain scope as another configured session domain"
+	errFmtSessionDomainPortalURLInsecure         = "session: domain config %s: option 'authelia_url' does not have a secure scheme with a value of '%s'"
+	errFmtSessionDomainPortalURLNotInCookieScope = "session: domain config %s: option 'authelia_url' does not share a cookie scope with domain '%s' with a value of '%s'"
+	errFmtSessionDomainInvalidDomain             = "session: domain config %s: option 'domain' is not a valid domain"
 )
 
 // Regulation Error Consts.
@@ -362,7 +373,10 @@ var (
 	validOIDCClientConsentModes = []string{"auto", oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
 )
 
-var reKeyReplacer = regexp.MustCompile(`\[\d+]`)
+var (
+	reKeyReplacer      = regexp.MustCompile(`\[\d+]`)
+	reDomainCharacters = regexp.MustCompile(`^[a-z0-9-]+(\.[a-z0-9-]+)+[a-z0-9]$`)
+)
 
 var replacedKeys = map[string]string{
 	"authentication_backend.ldap.skip_verify":         "authentication_backend.ldap.tls.skip_verify",

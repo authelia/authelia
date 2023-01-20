@@ -3,11 +3,17 @@ package random
 import (
 	"crypto/rand"
 	"fmt"
+	"io"
 	"math/big"
 )
 
 // Cryptographical is the production random.Provider which uses crypto/rand.
 type Cryptographical struct{}
+
+// Read implements the io.Reader interface.
+func (r *Cryptographical) Read(p []byte) (n int, err error) {
+	return io.ReadFull(rand.Reader, p)
+}
 
 // BytesErr returns random data as bytes with the standard random.DefaultN length and can contain any byte values
 // (including unreadable byte values). If an error is returned from the random read this function returns it.
@@ -75,6 +81,30 @@ func (r *Cryptographical) StringCustom(n int, characters string) (data string) {
 	return string(r.BytesCustom(n, []byte(characters)))
 }
 
+// IntErr returns a random *big.Int error combination with a maximum of max.
+func (r *Cryptographical) IntErr(max *big.Int) (value *big.Int, err error) {
+	if max == nil {
+		return nil, fmt.Errorf("max is required")
+	}
+
+	if max.Sign() <= 0 {
+		return nil, fmt.Errorf("max must be 1 or more")
+	}
+
+	return rand.Int(rand.Reader, max)
+}
+
+// Int returns a random *big.Int with a maximum of max.
+func (r *Cryptographical) Int(max *big.Int) (value *big.Int) {
+	var err error
+
+	if value, err = r.IntErr(max); err != nil {
+		return big.NewInt(-1)
+	}
+
+	return value
+}
+
 // IntegerErr returns a random int error combination with a maximum of n.
 func (r *Cryptographical) IntegerErr(n int) (value int, err error) {
 	if n <= 0 {
@@ -83,15 +113,13 @@ func (r *Cryptographical) IntegerErr(n int) (value int, err error) {
 
 	max := big.NewInt(int64(n))
 
-	if !max.IsUint64() {
-		return 0, fmt.Errorf("generated max is negative")
+	var result *big.Int
+
+	if result, err = r.IntErr(max); err != nil {
+		return 0, err
 	}
 
-	if nn, err := rand.Int(rand.Reader, max); err != nil {
-		return 0, err
-	} else {
-		value = int(nn.Int64())
-	}
+	value = int(result.Int64())
 
 	if value < 0 {
 		return 0, fmt.Errorf("generated number is too big for int")

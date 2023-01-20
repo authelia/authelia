@@ -51,9 +51,25 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	mockAuthelia.Clock.Set(datetime)
 
 	config := schema.Configuration{}
-	config.Session.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration
-	config.Session.Name = "authelia_session"
-	config.Session.Domain = "example.com"
+	config.Session.Cookies = []schema.SessionCookieConfiguration{
+		{
+			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+				Name:       "authelia_session",
+				Domain:     "example.com",
+				RememberMe: schema.DefaultSessionConfiguration.RememberMe,
+				Expiration: schema.DefaultSessionConfiguration.Expiration,
+			},
+		},
+		{
+			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+				Name:       "authelia_session",
+				Domain:     "example2.com",
+				RememberMe: schema.DefaultSessionConfiguration.RememberMe,
+				Expiration: schema.DefaultSessionConfiguration.Expiration,
+			},
+		},
+	}
+
 	config.AccessControl.DefaultPolicy = "deny"
 	config.AccessControl.Rules = []schema.ACLRule{{
 		Domains: []string{"bypass.example.com"},
@@ -102,7 +118,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 
 	mockAuthelia.RandomMock = NewMockRandom(mockAuthelia.Ctrl)
 
-	providers.Random = &random.Mathematical{}
+	providers.Random = random.NewMathematical()
 
 	var err error
 
@@ -113,6 +129,9 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	request := &fasthttp.RequestCtx{}
 	// Set a cookie to identify this client throughout the test.
 	// request.Request.Header.SetCookie("authelia_session", "client_cookie").
+
+	// Set X-Forwarded-Host for compatibility with multi-root-domain implementation.
+	request.Request.Header.Set(fasthttp.HeaderXForwardedHost, "example.com")
 
 	ctx := middlewares.NewAutheliaCtx(request, config, providers)
 	mockAuthelia.Ctx = ctx

@@ -43,6 +43,8 @@ func TestShouldRaiseWhenTargetUrlIsMalformed(t *testing.T) {
 
 func TestShouldRaiseWhenNoHeaderProvidedToDetectTargetURL(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
+	mock.Ctx.Request.Header.Del(fasthttp.HeaderXForwardedHost)
+
 	defer mock.Close()
 	_, err := mock.Ctx.GetOriginalURL()
 	assert.Error(t, err)
@@ -53,6 +55,7 @@ func TestShouldRaiseWhenNoXForwardedHostHeaderProvidedToDetectTargetURL(t *testi
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
+	mock.Ctx.Request.Header.Del(fasthttp.HeaderXForwardedHost)
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 	_, err := mock.Ctx.GetOriginalURL()
 	assert.Error(t, err)
@@ -162,7 +165,7 @@ func TestShouldCheckAuthorizationMatching(t *testing.T) {
 			username = testUsername
 		}
 
-		matching := isTargetURLAuthorized(authorizer, *u, username, []string{}, net.ParseIP("127.0.0.1"), []byte("GET"), rule.AuthLevel)
+		matching := isTargetURLAuthorized(authorizer, u, username, []string{}, net.ParseIP("127.0.0.1"), []byte("GET"), rule.AuthLevel)
 		assert.Equal(t, rule.ExpectedMatching, matching, "policy=%s, authLevel=%v, expected=%v, actual=%v",
 			rule.Policy, rule.AuthLevel, rule.ExpectedMatching, matching)
 	}
@@ -510,7 +513,6 @@ func TestShouldNotCrashOnEmptyEmail(t *testing.T) {
 	userSession.AuthenticationLevel = authentication.OneFactor
 	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
-	fmt.Printf("Time is %v\n", userSession.RefreshTTL)
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
 
@@ -663,32 +665,33 @@ func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 		{"https://deny.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, 403},
 	}
 
-	for _, testCase := range testCases {
-		testCase := testCase
-		t.Run(testCase.String(), func(t *testing.T) {
+	for i, tc := range testCases {
+		t.Run(tc.String(), func(t *testing.T) {
 			mock := mocks.NewMockAutheliaCtx(t)
 			defer mock.Close()
 
 			mock.Clock.Set(time.Now())
 
+			mock.Ctx.Request.Header.Set("X-Original-URL", tc.URL)
+
 			userSession := mock.Ctx.GetSession()
-			userSession.Username = testCase.Username
-			userSession.Emails = testCase.Emails
-			userSession.AuthenticationLevel = testCase.AuthenticationLevel
+			userSession.Username = tc.Username
+			userSession.Emails = tc.Emails
+			userSession.AuthenticationLevel = tc.AuthenticationLevel
 			userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
 			err := mock.Ctx.SaveSession(userSession)
 			require.NoError(t, err)
 
-			mock.Ctx.Request.Header.Set("X-Original-URL", testCase.URL)
-
 			VerifyGET(verifyGetCfg)(mock.Ctx)
-			expStatus, actualStatus := testCase.ExpectedStatusCode, mock.Ctx.Response.StatusCode()
+			expStatus, actualStatus := tc.ExpectedStatusCode, mock.Ctx.Response.StatusCode()
 			assert.Equal(t, expStatus, actualStatus, "URL=%s -> AuthLevel=%d, StatusCode=%d != ExpectedStatusCode=%d",
-				testCase.URL, testCase.AuthenticationLevel, actualStatus, expStatus)
+				tc.URL, tc.AuthenticationLevel, actualStatus, expStatus)
 
-			if testCase.ExpectedStatusCode == 200 && testCase.Username != "" {
-				assert.Equal(t, []byte(testCase.Username), mock.Ctx.Response.Header.Peek("Remote-User"))
+			fmt.Println(i)
+			if tc.ExpectedStatusCode == 200 && tc.Username != "" {
+				assert.Equal(t, tc.ExpectedStatusCode, mock.Ctx.Response.StatusCode())
+				assert.Equal(t, []byte(tc.Username), mock.Ctx.Response.Header.Peek("Remote-User"))
 				assert.Equal(t, []byte("john.doe@example.com"), mock.Ctx.Response.Header.Peek("Remote-Email"))
 			} else {
 				assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek("Remote-User"))
@@ -706,10 +709,12 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 	clock.Set(time.Now())
 	past := clock.Now().Add(-1 * time.Hour)
 
-	mock.Ctx.Configuration.Session.Inactivity = testInactivity
+	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
-	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
+	assert.Equal(t, time.Second*10, mock.Ctx.Configuration.Session.Cookies[0].Inactivity)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
@@ -718,8 +723,6 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
-
-	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 
@@ -739,10 +742,10 @@ func TestShouldDestroySessionWhenInactiveForTooLongUsingDurationNotation(t *test
 	clock := utils.TestingClock{}
 	clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Inactivity = time.Second * 10
+	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = time.Second * 10
 	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
-	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
+	assert.Equal(t, time.Second*10, mock.Ctx.Configuration.Session.Cookies[0].Inactivity)
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
@@ -768,7 +771,7 @@ func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *te
 
 	mock.Clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Inactivity = testInactivity
+	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
@@ -800,7 +803,7 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 
 	mock.Clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Inactivity = testInactivity
+	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 
 	past := mock.Clock.Now().Add(-1 * time.Hour)
 
@@ -836,10 +839,10 @@ func TestShouldRedirectWhenSessionInactiveForTooLongAndRDParamProvided(t *testin
 	clock := utils.TestingClock{}
 	clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Inactivity = testInactivity
+	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
-	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
+	assert.Equal(t, time.Second*10, mock.Ctx.Configuration.Session.Cookies[0].Inactivity)
 
 	past := clock.Now().Add(-1 * time.Hour)
 
@@ -899,7 +902,7 @@ func TestShouldUpdateInactivityTimestampEvenWhenHittingForbiddenResources(t *tes
 
 	mock.Clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Inactivity = testInactivity
+	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 
 	past := mock.Clock.Now().Add(-1 * time.Hour)
 
@@ -972,47 +975,6 @@ func TestShouldURLEncodeRedirectionHeader(t *testing.T) {
 
 	assert.Equal(t, "<a href=\"https://auth.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com\">302 Found</a>",
 		string(mock.Ctx.Response.Body()))
-}
-
-func TestIsDomainProtected(t *testing.T) {
-	GetURL := func(u string) *url.URL {
-		x, err := url.ParseRequestURI(u)
-		require.NoError(t, err)
-
-		return x
-	}
-
-	assert.True(t, isURLUnderProtectedDomain(
-		GetURL("http://mytest.example.com/abc/?query=abc"), "example.com"))
-
-	assert.True(t, isURLUnderProtectedDomain(
-		GetURL("http://example.com/abc/?query=abc"), "example.com"))
-
-	assert.True(t, isURLUnderProtectedDomain(
-		GetURL("https://mytest.example.com/abc/?query=abc"), "example.com"))
-
-	// Cookies readable by a service on a machine is also readable by a service on the same machine
-	// with a different port as mentioned in https://tools.ietf.org/html/rfc6265#section-8.5.
-	assert.True(t, isURLUnderProtectedDomain(
-		GetURL("https://mytest.example.com:8080/abc/?query=abc"), "example.com"))
-}
-
-func TestSchemeIsHTTPS(t *testing.T) {
-	GetURL := func(u string) *url.URL {
-		x, err := url.ParseRequestURI(u)
-		require.NoError(t, err)
-
-		return x
-	}
-
-	assert.False(t, isSchemeHTTPS(
-		GetURL("http://mytest.example.com/abc/?query=abc")))
-	assert.False(t, isSchemeHTTPS(
-		GetURL("ws://mytest.example.com/abc/?query=abc")))
-	assert.False(t, isSchemeHTTPS(
-		GetURL("wss://mytest.example.com/abc/?query=abc")))
-	assert.True(t, isSchemeHTTPS(
-		GetURL("https://mytest.example.com/abc/?query=abc")))
 }
 
 func TestSchemeIsWSS(t *testing.T) {
@@ -1435,10 +1397,10 @@ func TestShouldNotRedirectRequestsForBypassACLWhenInactiveForTooLong(t *testing.
 	clock.Set(time.Now())
 	past := clock.Now().Add(-1 * time.Hour)
 
-	mock.Ctx.Configuration.Session.Inactivity = testInactivity
+	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
-	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
+	assert.Equal(t, time.Second*10, mock.Ctx.Configuration.Session.Cookies[0].Inactivity)
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
@@ -1527,7 +1489,7 @@ func TestIsSessionInactiveTooLong(t *testing.T) {
 
 			defer ctx.Close()
 
-			ctx.Ctx.Configuration.Session.Inactivity = tc.inactivity
+			ctx.Ctx.Configuration.Session.Cookies[0].Inactivity = tc.inactivity
 			ctx.Ctx.Providers.SessionProvider = session.NewProvider(ctx.Ctx.Configuration.Session, nil)
 
 			ctx.Clock.Set(tc.now)

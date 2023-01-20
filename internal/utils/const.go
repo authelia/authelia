@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/authelia/authelia/v4/internal/random"
 )
 
 const (
@@ -97,15 +99,6 @@ const (
 	timeUnixEpochAsMicrosoftNTEpoch uint64 = 116444736000000000
 )
 
-const (
-	// CharSetUnambiguousUpper  are a set of unambiguous uppercase characters.
-	CharSetUnambiguousUpper = "ABCDEFGHJKLMNOPQRTUVWYXZ2346789"
-)
-
-var (
-	regexCharSetUnambiguousUpper = regexp.MustCompile(`[^` + CharSetUnambiguousUpper + `]+`)
-)
-
 var htmlEscaper = strings.NewReplacer(
 	"&", "&amp;",
 	"<", "&lt;",
@@ -120,4 +113,8 @@ var ErrTimeoutReached = errors.New("timeout reached")
 const (
 	windows             = "windows"
 	errFmtLinuxNotFound = "open %s: no such file or directory"
+)
+
+var (
+	regexCharSetUnambiguousUpper = regexp.MustCompile(`[^` + random.CharSetUnambiguousUpper + `]+`)
 )

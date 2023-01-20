@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/fasthttp/session/v2"
-	"github.com/fasthttp/session/v2/providers/redis"
 	"github.com/go-webauthn/webauthn/webauthn"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -14,10 +13,8 @@ import (
 
 // ProviderConfig is the configuration used to create the session provider.
 type ProviderConfig struct {
-	config              session.Config
-	redisConfig         *redis.Config
-	redisSentinelConfig *redis.FailoverConfig
-	providerName        string
+	config       session.Config
+	providerName string
 }
 
 // UserSession is the structure representing the session of a user.

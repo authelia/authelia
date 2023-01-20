@@ -147,6 +147,7 @@ func TestWebauthnGetUserWithErr(t *testing.T) {
 
 func TestWebauthnNewWebauthnShouldReturnErrWhenHeadersNotAvailable(t *testing.T) {
 	ctx := mocks.NewMockAutheliaCtx(t)
+	ctx.Ctx.Request.Header.Del("X-Forwarded-Host")
 
 	w, err := newWebauthn(ctx.Ctx)
 

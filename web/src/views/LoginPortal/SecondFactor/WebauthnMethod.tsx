@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import WebauthnTryIcon from "@components/WebauthnTryIcon";
+import { RedirectionURL } from "@constants/SearchParams";
 import { useIsMountedRef } from "@hooks/Mounted";
-import { useRedirectionURL } from "@hooks/RedirectionURL";
+import { useQueryParam } from "@hooks/QueryParam";
 import { useWorkflow } from "@hooks/Workflow";
 import { AssertionResult, WebauthnTouchState } from "@models/Webauthn";
 import { AuthenticationLevel } from "@services/State";
@@ -25,7 +26,7 @@ export interface Props {
 
 const WebauthnMethod = function (props: Props) {
     const [state, setState] = useState(WebauthnTouchState.WaitTouch);
-    const redirectionURL = useRedirectionURL();
+    const redirectionURL = useQueryParam(RedirectionURL);
     const [workflow, workflowID] = useWorkflow();
     const mounted = useIsMountedRef();
 

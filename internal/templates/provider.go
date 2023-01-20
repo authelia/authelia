@@ -1,7 +1,11 @@
 package templates
 
 import (
+	"embed"
 	"fmt"
+	th "html/template"
+	"path"
+	tt "text/template"
 )
 
 // New creates a new templates' provider.
@@ -23,7 +27,64 @@ type Provider struct {
 	templates Templates
 }
 
-// GetEventEmailTemplate returns the EmailTemplate for Event notifications.
+// LoadTemplatedAssets takes an embed.FS and loads each templated asset document into a Template.
+func (p *Provider) LoadTemplatedAssets(fs embed.FS) (err error) {
+	var (
+		data []byte
+	)
+
+	if data, err = fs.ReadFile("public_html/index.html"); err != nil {
+		return err
+	}
+
+	if p.templates.asset.index, err = tt.
+		New("assets/public_html/index.html").
+		Funcs(FuncMap()).
+		Parse(string(data)); err != nil {
+		return err
+	}
+
+	if data, err = fs.ReadFile("public_html/api/index.html"); err != nil {
+		return err
+	}
+
+	if p.templates.asset.api.index, err = tt.
+		New("assets/public_html/api/index.html").
+		Funcs(FuncMap()).
+		Parse(string(data)); err != nil {
+		return err
+	}
+
+	if data, err = fs.ReadFile("public_html/api/openapi.yml"); err != nil {
+		return err
+	}
+
+	if p.templates.asset.api.spec, err = tt.
+		New("api/public_html/openapi.yaml").
+		Funcs(FuncMap()).
+		Parse(string(data)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GetAssetIndexTemplate returns a Template used to generate the React index document.
+func (p *Provider) GetAssetIndexTemplate() (t Template) {
+	return p.templates.asset.index
+}
+
+// GetAssetOpenAPIIndexTemplate returns a Template used to generate the OpenAPI index document.
+func (p *Provider) GetAssetOpenAPIIndexTemplate() (t Template) {
+	return p.templates.asset.api.index
+}
+
+// GetAssetOpenAPISpecTemplate returns a Template used to generate the OpenAPI specification document.
+func (p *Provider) GetAssetOpenAPISpecTemplate() (t Template) {
+	return p.templates.asset.api.spec
+}
+
+// GetEventEmailTemplate returns an EmailTemplate used for generic event notifications.
 func (p *Provider) GetEventEmailTemplate() (t *EmailTemplate) {
 	return p.templates.notification.event
 }
@@ -31,6 +92,11 @@ func (p *Provider) GetEventEmailTemplate() (t *EmailTemplate) {
 // GetIdentityVerificationEmailTemplate returns the EmailTemplate for Identity Verification notifications.
 func (p *Provider) GetIdentityVerificationEmailTemplate() (t *EmailTemplate) {
 	return p.templates.notification.identityVerification
+}
+
+// GetOpenIDConnectAuthorizeResponseFormPostTemplate returns a Template used to generate the OpenID Connect 1.0 Form Post Authorize Response.
+func (p *Provider) GetOpenIDConnectAuthorizeResponseFormPostTemplate() (t *th.Template) {
+	return p.templates.oidc.formpost
 }
 
 // GetOneTimePasswordEmailTemplate returns the EmailTemplate for One Time Password notifications.
@@ -50,6 +116,17 @@ func (p *Provider) load() (err error) {
 	}
 
 	if p.templates.notification.event, err = loadEmailTemplate(TemplateNameEmailEvent, p.config.EmailTemplatesPath); err != nil {
+		errs = append(errs, err)
+	}
+
+	var data []byte
+
+	if data, err = embedFS.ReadFile(path.Join("src", TemplateCategoryOpenIDConnect, TemplateNameOIDCAuthorizeFormPost)); err != nil {
+		errs = append(errs, err)
+	} else if p.templates.oidc.formpost, err = th.
+		New("oidc/AuthorizeResponseFormPost.html").
+		Funcs(FuncMap()).
+		Parse(string(data)); err != nil {
 		errs = append(errs, err)
 	}
 

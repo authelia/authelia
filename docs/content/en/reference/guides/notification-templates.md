@@ -20,9 +20,9 @@ This guide effectively documents the usage of the
 
 ## Important Notes
 
-1. The templates are not covered by our stability guarantees. While we aim to avoid changes to the templates which
-   would cause users to have to manually change them changes may be necessary in order to facilitate bug fixes or
-   generally improve the templates.
+1. The templates are not covered by our stability guarantees as per our [Versioning Policy]. While we aim to avoid
+   changes to the templates which would cause users to have to manually change them changes may be necessary in order to
+   facilitate bug fixes or generally improve the templates.
    1. It is your responsibility to ensure your templates are up to date. We make no efforts in facilitating this.
 2. We may not be able to offer any direct support in debugging these templates. We only offer support and fixes to
    the official templates.
@@ -82,3 +82,4 @@ Several functions are implemented with the email templates. See the
 [server_name]: ../../configuration/notifications/smtp.md#tls
 [sender]: ../../configuration/notifications/smtp.md#sender
 [identifier]: ../../configuration/notifications/smtp.md#identifier
+[Versioning Policy]: ../../policies/versioning.md

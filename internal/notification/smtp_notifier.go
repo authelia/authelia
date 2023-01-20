@@ -65,8 +65,8 @@ func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.Ce
 	return &SMTPNotifier{
 		config: config,
 		domain: domain,
-		tls:    utils.NewTLSConfig(config.TLS, certPool),
 		random: &random.Cryptographical{},
+		tls:    utils.NewTLSConfig(config.TLS, certPool),
 		log:    logging.Logger(),
 		opts:   opts,
 	}
@@ -76,8 +76,8 @@ func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.Ce
 type SMTPNotifier struct {
 	config *schema.SMTPNotifierConfiguration
 	domain string
-	tls    *tls.Config
 	random random.Provider
+	tls    *tls.Config
 	log    *logrus.Logger
 	opts   []gomail.Option
 }
@@ -138,8 +138,6 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 	}
 
 	var client *gomail.Client
-
-	n.log.Debugf("creating client with %d options: %+v", len(n.opts), n.opts)
 
 	if client, err = gomail.NewClient(n.config.Host, n.opts...); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to establish client: %w", err)

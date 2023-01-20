@@ -1,13 +1,27 @@
 package random
 
 import (
+	"fmt"
+	"math/big"
 	"math/rand"
 	"time"
 )
 
-// Mathematical is the random.Provider which uses math/rand and is PROBABLY UNSAFE FOR PRODUCTION IN MOST SITUATIONS.
+// NewMathematical runs rand.Seed with the current time and returns a random.Provider, specifically *random.Mathematical.
+func NewMathematical() *Mathematical {
+	rand.Seed(time.Now().UnixNano())
+
+	return &Mathematical{}
+}
+
+// Mathematical is the random.Provider which uses math/rand and is COMPLETELY UNSAFE FOR PRODUCTION IN MOST SITUATIONS.
 // Use random.Cryptographical instead.
 type Mathematical struct{}
+
+// Read implements the io.Reader interface.
+func (r *Mathematical) Read(p []byte) (n int, err error) {
+	return rand.Read(p) //nolint:gosec
+}
 
 // BytesErr returns random data as bytes with the standard random.DefaultN length and can contain any byte values
 // (including unreadable byte values). If an error is returned from the random read this function returns it.
@@ -77,6 +91,30 @@ func (r *Mathematical) StringCustom(n int, characters string) (data string) {
 	return string(r.BytesCustom(n, []byte(characters)))
 }
 
+// IntErr returns a random *big.Int error combination with a maximum of max.
+func (r *Mathematical) IntErr(max *big.Int) (value *big.Int, err error) {
+	if max == nil {
+		return nil, fmt.Errorf("max is required")
+	}
+
+	if max.Sign() <= 0 {
+		return nil, fmt.Errorf("max must be 1 or more")
+	}
+
+	return big.NewInt(int64(rand.Intn(max.Sign()))), nil //nolint:gosec
+}
+
+// Int returns a random *big.Int with a maximum of max.
+func (r *Mathematical) Int(max *big.Int) (value *big.Int) {
+	var err error
+
+	if value, err = r.IntErr(max); err != nil {
+		return big.NewInt(-1)
+	}
+
+	return value
+}
+
 // IntegerErr returns a random int error combination with a maximum of n.
 func (r *Mathematical) IntegerErr(n int) (output int, err error) {
 	return r.Integer(n), nil
@@ -85,8 +123,4 @@ func (r *Mathematical) IntegerErr(n int) (output int, err error) {
 // Integer returns a random int with a maximum of n.
 func (r *Mathematical) Integer(n int) int {
 	return rand.Intn(n) //nolint:gosec
-}
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
 }
