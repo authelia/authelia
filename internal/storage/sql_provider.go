@@ -321,19 +321,20 @@ func (p *SQLProvider) StartupCheck() (err error) {
 		return ErrSchemaEncryptionInvalidKey
 	}
 
+	switch err = p.SchemaMigrate(ctx, true, SchemaLatest); err {
+	case nil:
+		break
+	case ErrSchemaAlreadyUpToDate:
+		p.log.Infof("Storage schema is already up to date")
+	default:
+		return fmt.Errorf("error during schema migrate: %w", err)
+	}
+
 	if p.keys.signature, err = p.getKeySigHMAC(ctx); err != nil {
 		return fmt.Errorf("failed to initialize the hmac signature key during startup: %w", err)
 	}
 
-	switch err = p.SchemaMigrate(ctx, true, SchemaLatest); err {
-	case ErrSchemaAlreadyUpToDate:
-		p.log.Infof("Storage schema is already up to date")
-		return nil
-	case nil:
-		return nil
-	default:
-		return fmt.Errorf("error during schema migrate: %w", err)
-	}
+	return nil
 }
 
 // BeginTX begins a transaction.
