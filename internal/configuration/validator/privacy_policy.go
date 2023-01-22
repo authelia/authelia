@@ -12,9 +12,10 @@ func ValidatePrivacyPolicy(config *schema.PrivacyPolicy, validator *schema.Struc
 		return
 	}
 
-	if config.PolicyURL == nil {
+	switch config.PolicyURL {
+	case nil:
 		validator.Push(fmt.Errorf(errPrivacyPolicyEnabledWithoutURL))
-	} else {
+	default:
 		if config.PolicyURL.Scheme != schemeHTTPS {
 			validator.Push(fmt.Errorf(errFmtPrivacyPolicyURLNotHTTPS, config.PolicyURL.Scheme))
 		}
