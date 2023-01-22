@@ -19,6 +19,38 @@ import (
 	"github.com/google/uuid"
 )
 
+var browserPaths = []string{"/usr/bin/chromium-browser", "/usr/bin/chromium"}
+
+// ValidateBrowserPath validates the appropriate chromium browser path.
+func ValidateBrowserPath(path string) (browserPath string, err error) {
+	var info os.FileInfo
+
+	if info, err = os.Stat(path); err != nil {
+		return "", err
+	} else if info.IsDir() {
+		return "", fmt.Errorf("browser cannot be a directory")
+	}
+
+	return path, nil
+}
+
+// GetBrowserPath retrieves the appropriate chromium browser path.
+func GetBrowserPath() (path string, err error) {
+	browserPath := os.Getenv("BROWSER_PATH")
+
+	if browserPath != "" {
+		return ValidateBrowserPath(browserPath)
+	}
+
+	for _, browserPath = range browserPaths {
+		if browserPath, err = ValidateBrowserPath(browserPath); err == nil {
+			return browserPath, nil
+		}
+	}
+
+	return "", fmt.Errorf("no chromium browser was detected in the known paths, set the BROWSER_PATH environment variable to override the path")
+}
+
 // GetLoginBaseURL returns the URL of the login portal and the path prefix if specified.
 func GetLoginBaseURL(baseDomain string) string {
 	if PathPrefix != "" {

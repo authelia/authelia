@@ -22,7 +22,7 @@
     "npm"
   ],
   "kubernetes": {
-    "fileMatch": ["kube/.+\\.yml$"],
+    "fileMatch": ["kube/.+\\.yml$"]
   },
   "labels": [
     "dependencies"
@@ -30,7 +30,6 @@
   "packageRules": [
     {
       "matchUpdateTypes": ["digest", "minor", "patch"],
-      "matchCurrentVersion": "!/^0/",
       "automerge": true,
       "automergeType": "pr",
       "platformAutomerge": true
