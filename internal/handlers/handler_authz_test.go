@@ -370,6 +370,60 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomain() {
 	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
 }
 
+func (s *AuthzSuite) TestShouldHandleAnyCaseSchemeParameter() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	testCases := []struct {
+		name, scheme string
+	}{
+		{"Standard", "Basic"},
+		{"LowerCase", "basic"},
+		{"UpperCase", "BASIC"},
+		{"MixedCase", "BaSIc"},
+	}
+
+	authz := s.Builder().Build()
+
+	for _, tc := range testCases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(s.T())
+
+			defer mock.Close()
+
+			for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
+				mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
+			}
+
+			mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+
+			targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
+
+			s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, fmt.Sprintf("%s am9objpwYXNzd29yZA==", tc.scheme))
+
+			mock.UserProviderMock.EXPECT().
+				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+				Return(true, nil)
+
+			mock.UserProviderMock.EXPECT().
+				GetDetails(gomock.Eq("john")).
+				Return(&authentication.UserDetails{
+					Emails: []string{"john@example.com"},
+					Groups: []string{"dev", "admins"},
+				}, nil)
+
+			authz.Handler(mock.Ctx)
+
+			s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+			s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+			s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+		})
+	}
+}
+
 func (s *AuthzSuite) TestShouldApplyPolicyOfTwoFactorDomain() {
 	if s.setRequest == nil {
 		s.T().Skip()

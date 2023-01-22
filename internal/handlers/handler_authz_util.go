@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"net/url"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -28,11 +27,6 @@ func friendlyUsername(username string) (fusername string) {
 	default:
 		return username
 	}
-}
-
-//nolint:unparam
-func isURLUnderProtectedDomain(url *url.URL, domain string) bool {
-	return strings.HasSuffix(url.Hostname(), domain)
 }
 
 func isAuthzResult(level authentication.Level, required authorization.Level, ruleHasSubject bool) AuthzResult {

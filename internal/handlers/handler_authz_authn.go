@@ -173,7 +173,7 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 		return authn, nil
 	}
 
-	if username, password, err = headerAuthorizationParseBasic(value); err != nil {
+	if username, password, err = headerAuthorizationParse(value); err != nil {
 		return authn, fmt.Errorf("failed to parse content of %s header: %w", s.headerAuthorize, err)
 	}
 
@@ -258,7 +258,7 @@ func (s *HeaderLegacyAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session
 		return authn, nil
 	}
 
-	if username, password, err = headerAuthorizationParseBasic(value); err != nil {
+	if username, password, err = headerAuthorizationParse(value); err != nil {
 		return authn, fmt.Errorf("failed to parse content of %s header: %w", header, err)
 	}
 
@@ -406,7 +406,7 @@ func handleVerifyGETAuthnCookieValidateUpdate(ctx *middlewares.AutheliaCtx, user
 	return false
 }
 
-func headerAuthorizationParseBasic(value []byte) (username, password string, err error) {
+func headerAuthorizationParse(value []byte) (username, password string, err error) {
 	if bytes.Equal(value, qryValueEmpty) {
 		return "", "", fmt.Errorf("header is malformed: empty value")
 	}
@@ -417,21 +417,32 @@ func headerAuthorizationParseBasic(value []byte) (username, password string, err
 		return "", "", fmt.Errorf("header is malformed: does not appear to have a scheme")
 	}
 
-	if parts[0] != headerAuthorizationSchemeBasic {
-		return "", "", fmt.Errorf("header is malformed: unexpected scheme '%s': expected scheme '%s'", parts[0], headerAuthorizationSchemeBasic)
-	}
+	scheme := strings.ToLower(parts[0])
 
+	switch scheme {
+	case headerAuthorizationSchemeBasic:
+		if username, password, err = headerAuthorizationParseBasic(parts[1]); err != nil {
+			return username, password, fmt.Errorf("header is malformed: %w", err)
+		}
+
+		return username, password, nil
+	default:
+		return "", "", fmt.Errorf("header is malformed: unsupported scheme '%s': supported schemes '%s'", parts[0], strings.ToTitle(headerAuthorizationSchemeBasic))
+	}
+}
+
+func headerAuthorizationParseBasic(value string) (username, password string, err error) {
 	var content []byte
 
-	if content, err = base64.StdEncoding.DecodeString(parts[1]); err != nil {
-		return "", "", fmt.Errorf("header is malformed: could not decode credentials: %w", err)
+	if content, err = base64.StdEncoding.DecodeString(value); err != nil {
+		return "", "", fmt.Errorf("could not decode credentials: %w", err)
 	}
 
 	strContent := string(content)
 	s := strings.IndexByte(strContent, ':')
 
 	if s < 1 {
-		return "", "", fmt.Errorf("header is malformed: format of header must be <user>:<password> but either doesn't have a colon or username")
+		return "", "", fmt.Errorf("format of header must be <user>:<password> but either doesn't have a colon or username")
 	}
 
 	return strContent[:s], strContent[s+1:], nil

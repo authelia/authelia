@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"time"
+
 	"github.com/valyala/fasthttp"
 )
 
@@ -23,4 +25,11 @@ const (
 	testBypass          = "bypass"
 	testWithoutAccept   = "WithoutAccept"
 	testWithXHRHeader   = "WithXHRHeader"
+)
+
+const (
+	testInactivity     = time.Second * 10
+	testRedirectionURL = "http://redirection.local"
+	testUsername       = "john"
+	exampleDotCom      = "example.com"
 )

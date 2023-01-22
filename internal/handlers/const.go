@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"time"
-
 	"github.com/valyala/fasthttp"
 )
 
@@ -26,7 +24,7 @@ var (
 )
 
 const (
-	headerAuthorizationSchemeBasic = "Basic"
+	headerAuthorizationSchemeBasic = "basic"
 )
 
 var (
@@ -121,13 +119,6 @@ const (
 	logFmtErrConsentGenerate                    = logFmtConsentPrefix + "could not be processed: error occurred generating consent: %+v"
 )
 
-const (
-	testInactivity     = time.Second * 10
-	testRedirectionURL = "http://redirection.local"
-	testUsername       = "john"
-	exampleDotCom      = "example.com"
-)
-
 // Duo constants.
 const (
 	allow  = "allow"
@@ -135,8 +126,6 @@ const (
 	enroll = "enroll"
 	auth   = "auth"
 )
-
-const authPrefix = "Basic "
 
 const ldapPasswordComplexityCode = "0000052D."
 
