@@ -295,21 +295,16 @@ const (
 )
 
 const (
+	errPrivacyPolicyEnabledWithoutURL = "privacy_policy: option 'policy_url' must be provided when the option 'enabled' is true"
+	errFmtPrivacyPolicyURLNotHTTPS    = "privacy_policy: option 'policy_url' must have the 'https' scheme but it's configured as '%s'"
+)
+
+const (
 	errFmtDuoMissingOption = "duo_api: option '%s' is required when duo is enabled but it is missing"
 )
 
 // Error constants.
 const (
-	/*
-		errFmtDeprecatedConfigurationKey = "the %s configuration option is deprecated and will be " +
-			"removed in %s, please use %s instead"
-
-		Uncomment for use when deprecating keys.
-
-		TODO: Create a method from within Koanf to automatically remap deprecated keys and produce warnings.
-		TODO (cont): The main consideration is making sure we do not overwrite the destination key name if it already exists.
-	*/
-
 	errFmtInvalidDefault2FAMethod = "option 'default_2fa_method' is configured as '%s' but must be one of " +
 		"the following values: '%s'"
 	errFmtInvalidDefault2FAMethodDisabled = "option 'default_2fa_method' is configured as '%s' " +
