@@ -1,7 +1,6 @@
 package validator
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -38,13 +37,5 @@ func TestValidatePrivacyPolicy(t *testing.T) {
 				assert.EqualError(t, validator.Errors()[0], tc.expected)
 			}
 		})
-	}
-}
-
-func MustParseURL(in string) *url.URL {
-	if out, err := url.ParseRequestURI(in); err != nil {
-		panic(err)
-	} else {
-		return out
 	}
 }

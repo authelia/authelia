@@ -2,24 +2,61 @@ package suites
 
 import (
 	"context"
+	"crypto/tls"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"text/template"
 
 	"github.com/go-rod/rod"
 	"github.com/google/uuid"
 )
 
-// GetLoginBaseURL returns the URL of the login portal and the path prefix if specified.
-func GetLoginBaseURL() string {
-	if PathPrefix != "" {
-		return LoginBaseURL + PathPrefix
+var browserPaths = []string{"/usr/bin/chromium-browser", "/usr/bin/chromium"}
+
+// ValidateBrowserPath validates the appropriate chromium browser path.
+func ValidateBrowserPath(path string) (browserPath string, err error) {
+	var info os.FileInfo
+
+	if info, err = os.Stat(path); err != nil {
+		return "", err
+	} else if info.IsDir() {
+		return "", fmt.Errorf("browser cannot be a directory")
 	}
 
-	return LoginBaseURL
+	return path, nil
+}
+
+// GetBrowserPath retrieves the appropriate chromium browser path.
+func GetBrowserPath() (path string, err error) {
+	browserPath := os.Getenv("BROWSER_PATH")
+
+	if browserPath != "" {
+		return ValidateBrowserPath(browserPath)
+	}
+
+	for _, browserPath = range browserPaths {
+		if browserPath, err = ValidateBrowserPath(browserPath); err == nil {
+			return browserPath, nil
+		}
+	}
+
+	return "", fmt.Errorf("no chromium browser was detected in the known paths, set the BROWSER_PATH environment variable to override the path")
+}
+
+// GetLoginBaseURL returns the URL of the login portal and the path prefix if specified.
+func GetLoginBaseURL(baseDomain string) string {
+	if PathPrefix != "" {
+		return LoginBaseURLFmt(baseDomain) + PathPrefix
+	}
+
+	return LoginBaseURLFmt(baseDomain)
 }
 
 func (rs *RodSession) collectCoverage(page *rod.Page) {
@@ -94,6 +131,101 @@ func fixCoveragePath(path string, file os.FileInfo, err error) error {
 		content := strings.ReplaceAll(string(read), "/node/src/app/", ciPath+"web/")
 
 		err = os.WriteFile(path, []byte(content), 0)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// getEnvInfoFromURL gets environments variables for specified cookie domain
+// this func makes a http call to https://login.<domain>/override and is only useful for suite tests.
+func getDomainEnvInfo(domain string) (map[string]string, error) {
+	info := make(map[string]string)
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true, //nolint:gosec
+			},
+		},
+	}
+
+	var (
+		req  *http.Request
+		resp *http.Response
+		body []byte
+		err  error
+	)
+
+	targetURL := LoginBaseURLFmt(domain) + "/devworkflow"
+
+	if req, err = http.NewRequest(http.MethodGet, targetURL, nil); err != nil {
+		return info, err
+	}
+
+	req.Header.Set("X-Forwarded-Proto", "https")
+	req.Header.Set("X-Forwarded-Host", domain)
+
+	if resp, err = client.Do(req); err != nil {
+		return info, err
+	}
+
+	if body, err = io.ReadAll(resp.Body); err != nil {
+		return info, err
+	}
+	defer resp.Body.Close()
+
+	if err = json.Unmarshal(body, &info); err != nil {
+		return info, err
+	}
+
+	return info, nil
+}
+
+// generateDevEnvFile generates web/.env.development based on opts.
+func generateDevEnvFile(opts map[string]string) error {
+	wd, _ := os.Getwd()
+	path := strings.TrimSuffix(wd, "internal/suites")
+
+	src := fmt.Sprintf("%s/web/.env.production", path)
+	dst := fmt.Sprintf("%s/web/.env.development", path)
+
+	tmpl, err := template.ParseFiles(src)
+	if err != nil {
+		return err
+	}
+
+	file, _ := os.Create(dst)
+	defer file.Close()
+
+	if err := tmpl.Execute(file, opts); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// updateDevEnvFileForDomain updates web/.env.development.
+// this function only affects local dev environments.
+func updateDevEnvFileForDomain(domain string, setup bool) error {
+	if os.Getenv("CI") == "true" {
+		return nil
+	}
+
+	info, err := getDomainEnvInfo(domain)
+	if err != nil {
+		return err
+	}
+
+	err = generateDevEnvFile(info)
+	if err != nil {
+		return err
+	}
+
+	if !setup {
+		err = waitUntilAutheliaFrontendIsReady(multiCookieDomainDockerEnvironment)
 		if err != nil {
 			return err
 		}

@@ -5,7 +5,6 @@ import (
 	"net/url"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 type logoutBody struct {
@@ -26,14 +25,14 @@ func LogoutPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.Error(fmt.Errorf("unable to parse body during logout: %s", err), messageOperationFailed)
 	}
 
-	err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
+	err = ctx.DestroySession()
 	if err != nil {
 		ctx.Error(fmt.Errorf("unable to destroy session during logout: %s", err), messageOperationFailed)
 	}
 
 	redirectionURL, err := url.ParseRequestURI(body.TargetURL)
 	if err == nil {
-		responseBody.SafeTargetURL = utils.IsURISafeRedirection(redirectionURL, ctx.Configuration.Session.Domain)
+		responseBody.SafeTargetURL = ctx.IsSafeRedirectionTargetURI(redirectionURL)
 	}
 
 	if body.TargetURL != "" {

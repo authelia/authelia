@@ -79,7 +79,7 @@ const (
 
 type labelPriority int
 
-//nolint:deadcode // Kept for future use.
+//nolint:deadcode,varcheck // Kept for future use.
 const (
 	labelPriorityCritical labelPriority = iota
 	labelPriorityHigh
@@ -122,7 +122,7 @@ func (s labelStatus) String() string {
 
 type labelType int
 
-//nolint:deadcode // Kept for future use.
+//nolint:deadcode,varcheck // Kept for future use.
 const (
 	labelTypeFeature labelType = iota
 	labelTypeBugUnconfirmed
