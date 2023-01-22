@@ -523,7 +523,6 @@ authentication_backend:
         # variant: standard
         # cost: 12
 
-
 ##
 ## Password Policy Configuration.
 ##
@@ -557,6 +556,23 @@ password_policy:
 
     ## Configures the minimum score allowed.
     min_score: 3
+
+##
+## Privacy Policy Configuration
+##
+## Parameters used for displaying the privacy policy link and drawer.
+privacy_policy:
+
+  ## Enables the display of the privacy policy using the policy_url.
+  enabled: false
+
+  ## Enables the display of the privacy policy drawer which requires users accept the privacy policy
+  ## on a per-browser basis.
+  require_user_acceptance: false
+
+  ## The URL of the privacy policy document. Must be an absolute URL and must have the 'https://' scheme.
+  ## If the privacy policy enabled option is true, this MUST be provided.
+  policy_url: ''
 
 ##
 ## Access Control Configuration

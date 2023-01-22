@@ -272,4 +272,7 @@ var Keys = []string{
 	"password_policy.standard.require_special",
 	"password_policy.zxcvbn.enabled",
 	"password_policy.zxcvbn.min_score",
+	"privacy_policy.enabled",
+	"privacy_policy.require_user_acceptance",
+	"privacy_policy.policy_url",
 }
