@@ -16,7 +16,7 @@ type NetworkACLSuite struct {
 func NewNetworkACLSuite() *NetworkACLSuite {
 	return &NetworkACLSuite{
 		BaseSuite: &BaseSuite{
-			Name: traefikSuiteName,
+			Name: networkACLSuiteName,
 		},
 	}
 }

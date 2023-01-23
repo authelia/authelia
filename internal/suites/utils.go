@@ -94,8 +94,6 @@ func (s *BaseSuite) LoadEnvironment() {
 		return
 	}
 
-	fmt.Printf("Checking Suite %s for .env file\n", s.Name)
-
 	path := filepath.Join(s.Name, ".env")
 
 	var (
@@ -110,14 +108,10 @@ func (s *BaseSuite) LoadEnvironment() {
 	if info, err = os.Stat(path); err != nil {
 		s.Assert().True(os.IsNotExist(err))
 
-		fmt.Printf("Suite %s does not have an .env file or it can't be read: %v\n", s.Name, err)
-
 		return
 	}
 
 	s.Require().False(info.IsDir())
-
-	fmt.Printf("Suite %s does have an .env file at path %s\n", s.Name, path)
 
 	var file *os.File
 
