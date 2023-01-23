@@ -95,8 +95,6 @@ func ValidateServer(config *schema.Configuration, validator *schema.StructValida
 }
 
 // ValidateServerEndpoints configures the default endpoints and checks the configuration of custom endpoints.
-//
-//nolint:gocyclo
 func ValidateServerEndpoints(config *schema.Configuration, validator *schema.StructValidator) {
 	if config.Server.Endpoints.EnableExpvars {
 		validator.PushWarning(fmt.Errorf("server: endpoints: option 'enable_expvars' should not be enabled in production"))
@@ -123,28 +121,7 @@ func ValidateServerEndpoints(config *schema.Configuration, validator *schema.Str
 	for _, name := range authzs {
 		endpoint := config.Server.Endpoints.Authz[name]
 
-		if name == legacy {
-			switch endpoint.Implementation {
-			case authzImplementationLegacy:
-				break
-			case "":
-				endpoint.Implementation = authzImplementationLegacy
-
-				config.Server.Endpoints.Authz[name] = endpoint
-			default:
-				if !utils.IsStringInSlice(endpoint.Implementation, validAuthzImplementations) {
-					validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzImplementation, name, strings.Join(validAuthzImplementations, "', '"), endpoint.Implementation))
-				} else {
-					validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzLegacyInvalidImplementation, name))
-				}
-			}
-		} else if !utils.IsStringInSlice(endpoint.Implementation, validAuthzImplementations) {
-			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzImplementation, name, strings.Join(validAuthzImplementations, "', '"), endpoint.Implementation))
-		}
-
-		if !reAuthzEndpointName.MatchString(name) {
-			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzInvalidName, name))
-		}
+		validateServerEndpointsAuthzEndpoint(config, name, endpoint, validator)
 
 		for _, oName := range authzs {
 			oEndpoint := config.Server.Endpoints.Authz[oName]
@@ -163,18 +140,47 @@ func ValidateServerEndpoints(config *schema.Configuration, validator *schema.Str
 			}
 		}
 
-		var strategies []string
+		validateServerEndpointsAuthzStrategies(name, endpoint.AuthnStrategies, validator)
+	}
+}
 
-		for _, strategy := range endpoint.AuthnStrategies {
-			if utils.IsStringInSlice(strategy.Name, strategies) {
-				validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzStrategyDuplicate, name, strategy.Name))
+func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name string, endpoint schema.ServerAuthzEndpoint, validator *schema.StructValidator) {
+	if name == legacy {
+		switch endpoint.Implementation {
+		case authzImplementationLegacy:
+			break
+		case "":
+			endpoint.Implementation = authzImplementationLegacy
+
+			config.Server.Endpoints.Authz[name] = endpoint
+		default:
+			if !utils.IsStringInSlice(endpoint.Implementation, validAuthzImplementations) {
+				validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzImplementation, name, strings.Join(validAuthzImplementations, "', '"), endpoint.Implementation))
+			} else {
+				validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzLegacyInvalidImplementation, name))
 			}
+		}
+	} else if !utils.IsStringInSlice(endpoint.Implementation, validAuthzImplementations) {
+		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzImplementation, name, strings.Join(validAuthzImplementations, "', '"), endpoint.Implementation))
+	}
 
-			strategies = append(strategies, strategy.Name)
+	if !reAuthzEndpointName.MatchString(name) {
+		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzInvalidName, name))
+	}
+}
 
-			if !utils.IsStringInSlice(strategy.Name, validAuthzAuthnStrategies) {
-				validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzStrategy, name, strings.Join(validAuthzAuthnStrategies, "', '"), strategy.Name))
-			}
+func validateServerEndpointsAuthzStrategies(name string, strategies []schema.ServerAuthzEndpointAuthnStrategy, validator *schema.StructValidator) {
+	names := make([]string, len(strategies))
+
+	for _, strategy := range strategies {
+		if utils.IsStringInSlice(strategy.Name, names) {
+			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzStrategyDuplicate, name, strategy.Name))
+		}
+
+		names = append(names, strategy.Name)
+
+		if !utils.IsStringInSlice(strategy.Name, validAuthzAuthnStrategies) {
+			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzStrategy, name, strings.Join(validAuthzAuthnStrategies, "', '"), strategy.Name))
 		}
 	}
 }
