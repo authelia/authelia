@@ -7,7 +7,6 @@ func BytesJoin(s ...[]byte) (dst []byte) {
 	}
 
 	if len(s) == 1 {
-		// Just return a copy.
 		return append([]byte(nil), s[0]...)
 	}
 

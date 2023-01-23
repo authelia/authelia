@@ -341,7 +341,6 @@ func (ctx *AutheliaCtx) GetSession() (userSession session.UserSession, err error
 		return provider.NewDefaultUserSession(), nil
 	}
 
-	// This check prevents cookies being used on the incorrect domain.
 	if userSession.CookieDomain != provider.Config.Domain {
 		ctx.Logger.Warnf("Destroying session cookie as the cookie domain '%s' does not match the requests detected cookie domain '%s' which may be a sign a user tried to move this cookie from one domain to another", userSession.CookieDomain, provider.Config.Domain)
 
