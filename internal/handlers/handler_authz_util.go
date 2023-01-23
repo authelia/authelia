@@ -54,7 +54,6 @@ func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaC
 	emailsAdded, emailsRemoved := utils.StringSlicesDelta(userSession.Emails, details.Emails)
 	nameDelta := userSession.DisplayName != details.DisplayName
 
-	// Check Groups.
 	var groupsDelta []string
 	if len(groupsAdded) != 0 {
 		groupsDelta = append(groupsDelta, fmt.Sprintf("added: %s.", strings.Join(groupsAdded, ", ")))
@@ -86,7 +85,6 @@ func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaC
 		ctx.Logger.Tracef("No updated emails detected for %s", userSession.Username)
 	}
 
-	// Check Name.
 	if nameDelta {
 		ctx.Logger.Tracef("Updated display name detected for %s. Added: %s. Removed: %s.", userSession.Username, details.DisplayName, userSession.DisplayName)
 	} else {

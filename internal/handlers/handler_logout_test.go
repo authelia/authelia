@@ -19,13 +19,13 @@ type LogoutSuite struct {
 func (s *LogoutSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 	provider, err := s.mock.Ctx.GetSessionProvider()
-	s.Require().NoError(err)
+	s.Assert().NoError(err)
 
 	userSession, err := provider.GetSession(s.mock.Ctx.RequestCtx)
-	s.Require().NoError(err)
+	s.Assert().NoError(err)
 
 	userSession.Username = testUsername
-	s.Require().NoError(provider.SaveSession(s.mock.Ctx.RequestCtx, userSession))
+	s.Assert().NoError(provider.SaveSession(s.mock.Ctx.RequestCtx, userSession))
 }
 
 func (s *LogoutSuite) TearDownTest() {

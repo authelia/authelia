@@ -209,9 +209,8 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), []byte("{\"status\":\"OK\"}"), s.mock.Ctx.Response.Body())
 
-	// And store authentication in session.
 	userSession, err := s.mock.Ctx.GetSession()
-	s.Require().NoError(err)
+	s.Assert().NoError(err)
 
 	assert.Equal(s.T(), "test", userSession.Username)
 	assert.Equal(s.T(), true, userSession.KeepMeLoggedIn)
@@ -252,9 +251,8 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), []byte("{\"status\":\"OK\"}"), s.mock.Ctx.Response.Body())
 
-	// And store authentication in session.
 	userSession, err := s.mock.Ctx.GetSession()
-	s.Require().NoError(err)
+	s.Assert().NoError(err)
 
 	assert.Equal(s.T(), "test", userSession.Username)
 	assert.Equal(s.T(), false, userSession.KeepMeLoggedIn)
@@ -298,9 +296,8 @@ func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSess
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), []byte("{\"status\":\"OK\"}"), s.mock.Ctx.Response.Body())
 
-	// And store authentication in session.
 	userSession, err := s.mock.Ctx.GetSession()
-	s.Require().NoError(err)
+	s.Assert().NoError(err)
 
 	assert.Equal(s.T(), "Test", userSession.Username)
 	assert.Equal(s.T(), true, userSession.KeepMeLoggedIn)

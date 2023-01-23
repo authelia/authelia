@@ -170,7 +170,6 @@ func getProfileRefreshSettings(cfg schema.AuthenticationBackend) (refresh bool, 
 			refresh = true
 
 			if cfg.RefreshInterval != schema.ProfileRefreshAlways {
-				// Skip Error Check since validator checks it.
 				refreshInterval, _ = utils.ParseDurationString(cfg.RefreshInterval)
 			} else {
 				refreshInterval = schema.RefreshIntervalAlways

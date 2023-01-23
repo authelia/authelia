@@ -24,13 +24,12 @@ type FetchSuite struct {
 
 func (s *FetchSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
-	// Set the initial user session.
 	userSession, err := s.mock.Ctx.GetSession()
-	s.Require().NoError(err)
+	s.Assert().NoError(err)
 
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = 1
-	s.Require().NoError(s.mock.Ctx.SaveSession(userSession))
+	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
 }
 
 func (s *FetchSuite) TearDownTest() {
@@ -102,13 +101,12 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 
 		mock := mocks.NewMockAutheliaCtx(t)
 
-		// Set the initial user session.
 		userSession, err := mock.Ctx.GetSession()
-		require.NoError(t, err)
+		s.Assert().NoError(err)
 
 		userSession.Username = testUsername
 		userSession.AuthenticationLevel = 1
-		require.NoError(t, mock.Ctx.SaveSession(userSession))
+		s.Assert().NoError(mock.Ctx.SaveSession(userSession))
 
 		mock.StorageMock.
 			EXPECT().
@@ -268,13 +266,12 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 				mock.Ctx.Configuration.Session = sessionConfig
 			}
 
-			// Set the initial user session.
 			userSession, err := mock.Ctx.GetSession()
-			require.NoError(t, err)
+			s.Assert().NoError(err)
 
 			userSession.Username = testUsername
 			userSession.AuthenticationLevel = 1
-			require.NoError(t, mock.Ctx.SaveSession(userSession))
+			s.Assert().NoError(mock.Ctx.SaveSession(userSession))
 
 			if resp.db.Method == "" {
 				gomock.InOrder(
@@ -375,13 +372,12 @@ type SaveSuite struct {
 
 func (s *SaveSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
-	// Set the initial user session.
 	userSession, err := s.mock.Ctx.GetSession()
-	s.Require().NoError(err)
+	s.Assert().NoError(err)
 
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = 1
-	require.NoError(s.T(), s.mock.Ctx.SaveSession(userSession))
+	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
 }
 
 func (s *SaveSuite) TearDownTest() {

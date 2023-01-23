@@ -141,7 +141,7 @@ func validateSessionUniqueCookieDomain(i int, config *schema.SessionConfiguratio
 	}
 }
 
-// validateSessionSafeRedirection validates that PortalURL is safe for redirection.
+// validateSessionSafeRedirection validates that AutheliaURL is safe for redirection.
 func validateSessionSafeRedirection(index int, config *schema.SessionConfiguration, validator *schema.StructValidator) {
 	var d = config.Cookies[index]
 

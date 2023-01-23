@@ -24,7 +24,7 @@ type RegisterDuoDeviceSuite struct {
 func (s *RegisterDuoDeviceSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 	userSession, err := s.mock.Ctx.GetSession()
-	s.Require().NoError(err)
+	s.Assert().NoError(err)
 
 	userSession.Username = testUsername
 	s.NoError(s.mock.Ctx.SaveSession(userSession))
