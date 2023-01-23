@@ -69,7 +69,6 @@ func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaC
 		ctx.Logger.Tracef("No updated groups detected for %s", userSession.Username)
 	}
 
-	// Check Emails.
 	var emailsDelta []string
 	if len(emailsAdded) != 0 {
 		emailsDelta = append(emailsDelta, fmt.Sprintf("added: %s.", strings.Join(emailsAdded, ", ")))
