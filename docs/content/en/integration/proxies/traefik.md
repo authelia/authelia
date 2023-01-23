@@ -368,7 +368,7 @@ http:
         trustForwardHeader: true
         authResponseHeaders:
           - 'Authorization'
-          - 'Authorization'
+          - 'Proxy-Authorization'
           - 'Remote-User'
           - 'Remote-Groups'
           - 'Remote-Email'
@@ -379,11 +379,11 @@ http:
           key: /certificates/traefik.private.pem
     authelia-basic:
       forwardAuth:
-        address: https://authelia:9091/api/verify?auth=basic
+        address: 'https://authelia:9091/api/verify?auth=basic'
         trustForwardHeader: true
         authResponseHeaders:
           - 'Authorization'
-          - 'Authorization'
+          - 'Proxy-Authorization'
           - 'Remote-User'
           - 'Remote-Groups'
           - 'Remote-Email'
