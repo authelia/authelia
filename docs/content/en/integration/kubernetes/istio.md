@@ -41,9 +41,10 @@ spec:
           port: 80
           pathPrefix: '/api/authz/ext-authz/'
           includeRequestHeadersInCheck:
-            - accept
-            - cookie
-            - proxy-authorization
+            - 'accept'
+            - 'cookie'
+            - 'authorization'
+            - 'proxy-authorization'
           headersToUpstreamOnAllow:
             - 'authorization'
             - 'proxy-authorization'
@@ -52,9 +53,9 @@ spec:
           includeAdditionalHeadersInCheck:
             X-Forwarded-Proto: '%REQ(:SCHEME)%'
           headersToDownstreamOnDeny:
-            - set-cookie
+            - 'set-cookie'
           headersToDownstreamOnAllow:
-            - set-cookie
+            - 'set-cookie'
 ```
 
 ### Authorization Policy

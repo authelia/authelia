@@ -364,7 +364,7 @@ http:
   middlewares:
     authelia:
       forwardAuth:
-        address: 'https://authelia:9091/api/authz/forward-auth?rd=https%3A%2F%2Fauth.example.com%2F'
+        address: 'https://authelia:9091/api/authz/forward-auth?authelia_url=https%3A%2F%2Fauth.example.com%2F'
         trustForwardHeader: true
         authResponseHeaders:
           - 'Authorization'
@@ -495,7 +495,10 @@ This can be avoided a couple different ways:
 2. Define the __Authelia__ middleware on your [Traefik] container. See the below example.
 
 ```yaml
-- 'traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/authz/forward-auth?rd=https%3A%2F%2Fauth.example.com%2F'
+- 'traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/authz/forward-auth'
+## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest this is
+## configured in the Session Cookies section of the Authelia configuration.
+# - 'traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/authz/forward-auth?authelia_url=https%3A%2F%2Fauth.example.com%2F'
 - 'traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader=true'
 - 'traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Name,Remote-Email'
 ```
