@@ -280,6 +280,27 @@ func TestShouldValidateAndUpdatePort(t *testing.T) {
 	assert.Equal(t, 9091, config.Server.Port)
 }
 
+func TestServerEndpointsDevelShouldWarn(t *testing.T) {
+	config := &schema.Configuration{
+		Server: schema.ServerConfiguration{
+			Endpoints: schema.ServerEndpoints{
+				EnablePprof:   true,
+				EnableExpvars: true,
+			},
+		},
+	}
+
+	validator := schema.NewStructValidator()
+
+	ValidateServer(config, validator)
+
+	require.Len(t, validator.Warnings(), 2)
+	assert.Len(t, validator.Errors(), 0)
+
+	assert.EqualError(t, validator.Warnings()[0], "server: endpoints: option 'enable_expvars' should not be enabled in production")
+	assert.EqualError(t, validator.Warnings()[1], "server: endpoints: option 'enable_pprof' should not be enabled in production")
+}
+
 func TestServerAuthzEndpointErrors(t *testing.T) {
 	testCases := []struct {
 		name string

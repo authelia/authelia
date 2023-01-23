@@ -14,8 +14,6 @@ var (
 	Example3DotCom = "example3.com:8080"
 )
 
-var PathPrefix = os.Getenv("PathPrefix")
-
 // GetPathPrefix returns the prefix/url_base of the login portal.
 func GetPathPrefix() string {
 	return os.Getenv("PathPrefix")

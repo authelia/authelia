@@ -184,21 +184,27 @@ errors.
 ### HeaderAuthorization
 
 This strategy uses the [Authorization] header to determine the users' identity. If the user credentials are wrong, or
-the header is malformed it will respond with the [WWW-Authenticate] header.
+the header is malformed it will respond with the [WWW-Authenticate] header and a [401 Unauthorized] status code.
 
 ### HeaderProxyAuthorization
 
 This strategy uses the [Proxy-Authorization] header to determine the users' identity. If the user credentials are wrong,
-or the header is malformed it will respond with the [Proxy-Authenticate] header.
+or the header is malformed it will respond with the [Proxy-Authenticate] header and a
+[407 Proxy Authentication Required] status code.
 
 ### HeaderAuthRequestProxyAuthorization
 
-TODO:
+This strategy uses the [Proxy-Authorization] header to determine the users' identity. If the user credentials are wrong,
+or the header is malformed it will respond with the [WWW-Authenticate] header and a [401 Unauthorized] status code. It
+is specifically intended for use with the [AuthRequest] implementation.
 
 ### HeaderLegacy
 
 This strategy uses the [Proxy-Authorization] header to determine the users' identity. If the user credentials are wrong,
 or the header is malformed it will respond with the [WWW-Authenticate] header.
+
+[401 Unauthorized]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+[407 Proxy Authentication Required]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/407
 
 [NGINX]: https://www.nginx.com/
 [Traefik]: https://traefik.io/traefik/

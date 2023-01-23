@@ -98,7 +98,14 @@ func ValidateServer(config *schema.Configuration, validator *schema.StructValida
 //
 //nolint:gocyclo
 func ValidateServerEndpoints(config *schema.Configuration, validator *schema.StructValidator) {
-	// TODO: log pprof/expvars.
+	if config.Server.Endpoints.EnableExpvars {
+		validator.PushWarning(fmt.Errorf("server: endpoints: option 'enable_expvars' should not be enabled in production"))
+	}
+
+	if config.Server.Endpoints.EnablePprof {
+		validator.PushWarning(fmt.Errorf("server: endpoints: option 'enable_pprof' should not be enabled in production"))
+	}
+
 	if len(config.Server.Endpoints.Authz) == 0 {
 		config.Server.Endpoints.Authz = schema.DefaultServerConfiguration.Endpoints.Authz
 
