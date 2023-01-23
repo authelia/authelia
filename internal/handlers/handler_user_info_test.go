@@ -9,7 +9,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -102,11 +101,11 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 
 		userSession, err := mock.Ctx.GetSession()
-		s.Assert().NoError(err)
+		assert.NoError(t, err)
 
 		userSession.Username = testUsername
 		userSession.AuthenticationLevel = 1
-		s.Assert().NoError(mock.Ctx.SaveSession(userSession))
+		assert.NoError(t, mock.Ctx.SaveSession(userSession))
 
 		mock.StorageMock.
 			EXPECT().
@@ -267,11 +266,11 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			}
 
 			userSession, err := mock.Ctx.GetSession()
-			s.Assert().NoError(err)
+			assert.NoError(t, err)
 
 			userSession.Username = testUsername
 			userSession.AuthenticationLevel = 1
-			s.Assert().NoError(mock.Ctx.SaveSession(userSession))
+			assert.NoError(t, mock.Ctx.SaveSession(userSession))
 
 			if resp.db.Method == "" {
 				gomock.InOrder(
