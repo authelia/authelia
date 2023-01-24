@@ -21,7 +21,7 @@ type DuoPushWebDriverSuite struct {
 
 func NewDuoPushWebDriverSuite() *DuoPushWebDriverSuite {
 	return &DuoPushWebDriverSuite{
-		RodSuite: NewRodSuite(duoPushSuiteName),
+		RodSuite: NewRodSuite(""),
 	}
 }
 

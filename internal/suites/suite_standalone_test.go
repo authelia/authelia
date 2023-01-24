@@ -23,7 +23,7 @@ type StandaloneWebDriverSuite struct {
 
 func NewStandaloneWebDriverSuite() *StandaloneWebDriverSuite {
 	return &StandaloneWebDriverSuite{
-		RodSuite: NewRodSuite(standaloneSuiteName),
+		RodSuite: NewRodSuite(""),
 	}
 }
 

@@ -18,7 +18,7 @@ type HighAvailabilityWebDriverSuite struct {
 
 func NewHighAvailabilityWebDriverSuite() *HighAvailabilityWebDriverSuite {
 	return &HighAvailabilityWebDriverSuite{
-		RodSuite: NewRodSuite(highAvailabilitySuiteName),
+		RodSuite: NewRodSuite(""),
 	}
 }
 

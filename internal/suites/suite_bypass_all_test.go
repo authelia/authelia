@@ -16,7 +16,7 @@ type BypassAllWebDriverSuite struct {
 
 func NewBypassAllWebDriverSuite() *BypassAllWebDriverSuite {
 	return &BypassAllWebDriverSuite{
-		RodSuite: NewRodSuite(bypassAllSuiteName),
+		RodSuite: NewRodSuite(""),
 	}
 }
 
