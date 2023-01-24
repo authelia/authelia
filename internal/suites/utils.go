@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -17,6 +16,7 @@ import (
 
 	"github.com/go-rod/rod"
 	"github.com/google/uuid"
+	log "github.com/sirupsen/logrus"
 )
 
 var browserPaths = []string{"/usr/bin/chromium-browser", "/usr/bin/chromium"}
@@ -94,6 +94,8 @@ func (s *BaseSuite) LoadEnvironment() {
 		return
 	}
 
+	log.Debugf("Checking Suite %s for .env file", s.Name)
+
 	path := filepath.Join(s.Name, ".env")
 
 	var (
@@ -108,10 +110,14 @@ func (s *BaseSuite) LoadEnvironment() {
 	if info, err = os.Stat(path); err != nil {
 		s.Assert().True(os.IsNotExist(err))
 
+		log.Debugf("Suite %s does not have an .env file or it can't be read: %v", s.Name, err)
+
 		return
 	}
 
 	s.Require().False(info.IsDir())
+
+	log.Debugf("Suite %s does have an .env file at path %s", s.Name, path)
 
 	var file *os.File
 
