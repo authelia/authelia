@@ -53,8 +53,8 @@ func GetBrowserPath() (path string, err error) {
 
 // GetLoginBaseURL returns the URL of the login portal and the path prefix if specified.
 func GetLoginBaseURL(baseDomain string) string {
-	if PathPrefix != "" {
-		return LoginBaseURLFmt(baseDomain) + PathPrefix
+	if pathPrefix := os.Getenv("PathPrefix"); pathPrefix != "" {
+		return LoginBaseURLFmt(baseDomain) + pathPrefix
 	}
 
 	return LoginBaseURLFmt(baseDomain)
@@ -105,6 +105,10 @@ func (s *BaseSuite) SetupLogging() {
 	s.NoError(err)
 
 	log.SetLevel(l)
+
+	log.SetFormatter(&log.TextFormatter{
+		ForceColors: true,
+	})
 }
 
 func (s *BaseSuite) SetupEnvironment() {
@@ -135,7 +139,7 @@ func (s *BaseSuite) SetupEnvironment() {
 
 	s.Require().False(info.IsDir())
 
-	log.Debugf("Suite %s does have an .env file at path %s", s.Name, path)
+	log.Debugf("Suite %s does have an .env file at path: %s", s.Name, path)
 
 	var file *os.File
 
