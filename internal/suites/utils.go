@@ -86,10 +86,28 @@ func (rs *RodSession) collectCoverage(page *rod.Page) {
 }
 
 func (s *BaseSuite) SetupSuite() {
-	s.LoadEnvironment()
+	s.SetupLogging()
+	s.SetupEnvironment()
 }
 
-func (s *BaseSuite) LoadEnvironment() {
+func (s *BaseSuite) SetupLogging() {
+	var (
+		level string
+		ok    bool
+	)
+
+	if level, ok = os.LookupEnv("SUITES_LOG_LEVEL"); !ok {
+		return
+	}
+
+	l, err := log.ParseLevel(level)
+
+	s.NoError(err)
+
+	log.SetLevel(l)
+}
+
+func (s *BaseSuite) SetupEnvironment() {
 	if s.Name == "" {
 		return
 	}

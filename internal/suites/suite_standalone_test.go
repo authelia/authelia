@@ -28,7 +28,7 @@ func NewStandaloneWebDriverSuite() *StandaloneWebDriverSuite {
 }
 
 func (s *StandaloneWebDriverSuite) SetupSuite() {
-	s.LoadEnvironment()
+	s.SetupEnvironment()
 
 	browser, err := StartRod()
 

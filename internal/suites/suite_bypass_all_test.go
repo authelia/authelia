@@ -21,7 +21,7 @@ func NewBypassAllWebDriverSuite() *BypassAllWebDriverSuite {
 }
 
 func (s *BypassAllWebDriverSuite) SetupSuite() {
-	s.LoadEnvironment()
+	s.SetupEnvironment()
 
 	browser, err := StartRod()
 

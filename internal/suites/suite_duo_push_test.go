@@ -392,7 +392,7 @@ func NewDuoPushDefaultRedirectionSuite() *DuoPushDefaultRedirectionSuite {
 }
 
 func (s *DuoPushDefaultRedirectionSuite) SetupSuite() {
-	s.LoadEnvironment()
+	s.SetupEnvironment()
 
 	browser, err := StartRod()
 

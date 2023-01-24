@@ -21,7 +21,7 @@ func NewOneFactorOnlySuite() *OneFactorOnlySuite {
 }
 
 func (s *OneFactorOnlySuite) SetupSuite() {
-	s.LoadEnvironment()
+	s.SetupEnvironment()
 
 	browser, err := StartRod()
 
