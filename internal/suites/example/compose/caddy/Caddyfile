@@ -29,6 +29,10 @@ login.example.com:8080 {
 			import tls-transport
 		}
 
+		reverse_proxy /devworkflow authelia-backend:9091 {
+			import tls-transport
+        }
+
 		reverse_proxy /jwks.json authelia-backend:9091 {
 			import tls-transport
 		}

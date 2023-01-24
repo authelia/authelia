@@ -192,7 +192,7 @@ func fixCoveragePath(path string, file os.FileInfo, err error) error {
 }
 
 // getEnvInfoFromURL gets environments variables for specified cookie domain
-// this func makes a http call to https://login.<domain>/override and is only useful for suite tests.
+// this func makes a http call to https://login.<domain>/devworkflow and is only useful for suite tests.
 func getDomainEnvInfo(domain string) (map[string]string, error) {
 	info := make(map[string]string)
 

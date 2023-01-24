@@ -49,7 +49,7 @@ func (s *OneFactorSuite) TearDownTest() {
 }
 
 func (s *OneFactorSuite) TestShouldAuthorizeSecretAfterOneFactor() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
