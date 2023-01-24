@@ -28,7 +28,7 @@
     "@mui/icons-material": "5.11.0",
     "@mui/material": "5.11.6",
     "@mui/styles": "5.11.2",
-    "axios": "1.2.3",
+    "axios": "1.2.4",
     "broadcast-channel": "4.20.2",
     "classnames": "2.3.2",
     "i18next": "22.4.9",
