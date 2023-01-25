@@ -91,7 +91,7 @@ func (s *BaseSuite) SetupSuite() {
 }
 
 func (s *BaseSuite) SetupLogging() {
-	if os.Getenv("SUITE_SETUP_LOGGING") == "true" {
+	if os.Getenv("SUITE_SETUP_LOGGING") == t {
 		return
 	}
 
@@ -114,11 +114,11 @@ func (s *BaseSuite) SetupLogging() {
 		ForceColors: true,
 	})
 
-	s.T().Setenv("SUITE_SETUP_LOGGING", "true")
+	s.T().Setenv("SUITE_SETUP_LOGGING", t)
 }
 
 func (s *BaseSuite) SetupEnvironment() {
-	if s.Name == "" || os.Getenv("SUITE_SETUP_ENVIRONMENT") == "true" {
+	if s.Name == "" || os.Getenv("SUITE_SETUP_ENVIRONMENT") == t {
 		return
 	}
 
@@ -163,7 +163,7 @@ func (s *BaseSuite) SetupEnvironment() {
 		s.T().Setenv(v[0], v[1])
 	}
 
-	s.T().Setenv("SUITE_SETUP_ENVIRONMENT", "true")
+	s.T().Setenv("SUITE_SETUP_ENVIRONMENT", t)
 }
 
 func (rs *RodSession) collectScreenshot(err error, page *rod.Page) {
@@ -292,7 +292,7 @@ func generateDevEnvFile(opts map[string]string) error {
 // updateDevEnvFileForDomain updates web/.env.development.
 // this function only affects local dev environments.
 func updateDevEnvFileForDomain(domain string, setup bool) error {
-	if os.Getenv("CI") == "true" {
+	if os.Getenv("CI") == t {
 		return nil
 	}
 
