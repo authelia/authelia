@@ -1,7 +1,7 @@
 ---
 title: "OpenID Connect"
 description: "OpenID Connect Configuration"
-lead: "Authelia can operate as an OpenID Connect provider. This section describes how to configure this."
+lead: "Authelia can operate as an OpenID Connect 1.0 Provider. This section describes how to configure this."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -15,13 +15,14 @@ aliases:
   - /docs/configuration/identity-providers/oidc.html
 ---
 
-__Authelia__ currently supports the [OpenID Connect] OP role as a [__beta__](../../roadmap/active/openid-connect.md)
-feature. The OP role is the [OpenID Connect] Provider role, not the Relying Party or RP role. This means other
-applications that implement the [OpenID Connect] RP role can use Authelia as an authentication and authorization backend
-similar to how you may use social media or development platforms for login.
+__Authelia__ currently supports the [OpenID Connect] 1.0 Provider role as an open
+[__beta__](../../roadmap/active/openid-connect.md) feature. We currently do not support the [OpenID Connect] 1.0 Relying
+Party role. This means other applications that implement the [OpenID Connect] 1.0 Relying Party role can use Authelia as
+an [OpenID Connect] 1.0 Provider similar to how you may use social media or development platforms for login.
 
-The Relying Party role is the role which allows an application to use GitHub, Google, or other [OpenID Connect]
-providers for authentication and authorization. We do not intend to support this functionality at this moment in time.
+The [OpenID Connect] 1.0 Relying Party role is the role which allows an application to use GitHub, Google, or other
+[OpenID Connect] 1.0 Providers for authentication and authorization. We do not intend to support this functionality at
+this moment in time.
 
 More information about the beta can be found in the [roadmap](../../roadmap/active/openid-connect.md).
 
