@@ -33,7 +33,7 @@ func NewCLISuite() *CLISuite {
 }
 
 func (s *CLISuite) SetupSuite() {
-	s.SetupEnvironment()
+	s.BaseSuite.SetupSuite()
 
 	dockerEnvironment := NewDockerEnvironment([]string{
 		"internal/suites/docker-compose.yml",

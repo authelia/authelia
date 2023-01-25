@@ -23,7 +23,7 @@ func NewHighAvailabilityWebDriverSuite() *HighAvailabilityWebDriverSuite {
 }
 
 func (s *HighAvailabilityWebDriverSuite) SetupSuite() {
-	s.SetupEnvironment()
+	s.BaseSuite.SetupSuite()
 
 	browser, err := StartRod()
 
