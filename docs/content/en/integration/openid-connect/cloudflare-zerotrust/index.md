@@ -52,7 +52,7 @@ characters for the secret or URL encode the secret yourself.*
 means that the URL's are accessible to foreign clients on the internet. There may be a way to configure this without
 accessibility to foreign clients on the internet on Cloudflare's end but this is beyond the scope of this document.*
 
-To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect] Provider:
+To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Visit the [Cloudflare Zero Trust Dashboard](https://dash.teams.cloudflare.com)
 2. Visit `Settings`
@@ -98,4 +98,4 @@ which will operate with the above example:
 [Authelia]: https://www.authelia.com
 [Cloudflare]: https://www.cloudflare.com/
 [Cloudflare Zero Trust]: https://www.cloudflare.com/products/zero-trust/
-[OpenID Connect]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

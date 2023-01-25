@@ -50,7 +50,7 @@ the secret or URL encode the secret yourself.*
 
 ### Application
 
-To configure [BookStack] to utilize Authelia as an [OpenID Connect] Provider:
+To configure [BookStack] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Edit your .env file
 2. Set the following values:
@@ -89,4 +89,4 @@ which will operate with the above example:
 
 [Authelia]: https://www.authelia.com
 [BookStack]: https://www.bookstackapp.com/
-[OpenID Connect]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

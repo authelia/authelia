@@ -44,7 +44,7 @@ This example makes the following assumptions:
 
 ### Application
 
-To configure [Harbor] to utilize Authelia as an [OpenID Connect] Provider:
+To configure [Harbor] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Visit Administration
 2. Visit Configuration
@@ -92,4 +92,4 @@ which will operate with the above example:
 
 [Authelia]: https://www.authelia.com
 [Harbor]: https://goharbor.io/
-[OpenID Connect]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md
