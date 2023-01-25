@@ -77,6 +77,8 @@ const (
 )
 
 const (
+	envFileProd        = "./web/.env.production"
+	envFileDev         = "./web/.env.development"
 	namespaceAuthelia  = "authelia"
 	namespaceDashboard = "kubernetes-dashboard"
 	namespaceKube      = "kube-system"

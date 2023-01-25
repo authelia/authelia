@@ -268,18 +268,12 @@ func getDomainEnvInfo(domain string) (map[string]string, error) {
 
 // generateDevEnvFile generates web/.env.development based on opts.
 func generateDevEnvFile(opts map[string]string) error {
-	wd, _ := os.Getwd()
-	path := strings.TrimSuffix(wd, "internal/suites")
-
-	src := fmt.Sprintf("%s/web/.env.production", path)
-	dst := fmt.Sprintf("%s/web/.env.development", path)
-
-	tmpl, err := template.ParseFiles(src)
+	tmpl, err := template.ParseFiles(envFileProd)
 	if err != nil {
 		return err
 	}
 
-	file, _ := os.Create(dst)
+	file, _ := os.Create(envFileDev)
 	defer file.Close()
 
 	if err := tmpl.Execute(file, opts); err != nil {
@@ -294,6 +288,11 @@ func generateDevEnvFile(opts map[string]string) error {
 func updateDevEnvFileForDomain(domain string, setup bool) error {
 	if os.Getenv("CI") == t {
 		return nil
+	}
+
+	if _, err := os.Stat(envFileDev); err != nil && os.IsNotExist(err) {
+		file, _ := os.Create(envFileDev)
+		file.Close()
 	}
 
 	info, err := getDomainEnvInfo(domain)
