@@ -11,7 +11,9 @@ type OIDCTraefikSuite struct {
 }
 
 func NewOIDCTraefikSuite() *OIDCTraefikSuite {
-	return &OIDCTraefikSuite{RodSuite: new(RodSuite)}
+	return &OIDCTraefikSuite{
+		RodSuite: NewRodSuite(oidcTraefikSuiteName),
+	}
 }
 
 func (s *OIDCTraefikSuite) TestOIDCScenario() {

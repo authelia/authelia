@@ -19,7 +19,7 @@ type CustomHeadersScenario struct {
 
 func NewCustomHeadersScenario() *CustomHeadersScenario {
 	return &CustomHeadersScenario{
-		RodSuite: new(RodSuite),
+		RodSuite: NewRodSuite(""),
 	}
 }
 

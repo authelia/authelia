@@ -5,13 +5,22 @@ import (
 	"net/url"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 // CheckSafeRedirectionPOST handler checking whether the redirection to a given URL provided in body is safe.
 func CheckSafeRedirectionPOST(ctx *middlewares.AutheliaCtx) {
-	userSession := ctx.GetSession()
+	var (
+		s   session.UserSession
+		err error
+	)
 
-	if userSession.IsAnonymous() {
+	if s, err = ctx.GetSession(); err != nil {
+		ctx.ReplyUnauthorized()
+		return
+	}
+
+	if s.IsAnonymous() {
 		ctx.ReplyUnauthorized()
 		return
 	}
@@ -19,7 +28,6 @@ func CheckSafeRedirectionPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		bodyJSON  checkURIWithinDomainRequestBody
 		targetURI *url.URL
-		err       error
 	)
 
 	if err = ctx.ParseBody(&bodyJSON); err != nil {

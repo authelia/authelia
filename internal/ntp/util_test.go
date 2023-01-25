@@ -29,13 +29,9 @@ func TestNtpPacketToTime(t *testing.T) {
 }
 
 func TestLeapVersionClientMode(t *testing.T) {
-	v3Noleap := uint8(27)
-	v4Noleap := uint8(43)
-	v3leap := uint8(91)
-	v4leap := uint8(107)
+	v3Noleap := uint8(0xdb)
+	v4Noleap := uint8(0xe3)
 
-	assert.Equal(t, v3Noleap, ntpLeapVersionClientMode(false, ntpV3))
-	assert.Equal(t, v4Noleap, ntpLeapVersionClientMode(false, ntpV4))
-	assert.Equal(t, v3leap, ntpLeapVersionClientMode(true, ntpV3))
-	assert.Equal(t, v4leap, ntpLeapVersionClientMode(true, ntpV4))
+	assert.Equal(t, v3Noleap, ntpLeapVersionClientMode(ntpV3))
+	assert.Equal(t, v4Noleap, ntpLeapVersionClientMode(ntpV4))
 }

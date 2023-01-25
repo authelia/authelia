@@ -14,6 +14,12 @@ const (
 	extYML  = ".yml"
 )
 
+const (
+	pathAuthz           = "/api/authz"
+	pathAuthzLegacy     = "/api/verify"
+	pathParamAuthzEnvoy = "{authz_path:*}"
+)
+
 var (
 	filesRoot    = []string{"manifest.json", "robots.txt"}
 	filesSwagger = []string{

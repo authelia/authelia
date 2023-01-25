@@ -25,22 +25,21 @@ when configured. If metrics are enabled the metrics listener listens on `0.0.0.0
 
 #### Recorded Metrics
 
-##### Vectored Histograms
-
-|          Name           | Vectors |                                                    Buckets                                                    |
-|:-----------------------:|:-------:|:-------------------------------------------------------------------------------------------------------------:|
-| authentication_duration | success | .0005, .00075, .001, .005, .01, .025, .05, .075, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 0.9, 1, 5, 10, 15, 30, 60 |
-|    request_duration     |  code   |                   .005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 15, 20, 30, 40, 50, 60                    |
-
 ##### Vectored Counters
 
-|             Name             |        Vectors        |
-|:----------------------------:|:---------------------:|
-|           request            |     code, method      |
-|        verify_request        |         code          |
-| authentication_first_factor  |    success, banned    |
-| authentication_second_factor | success, banned, type |
+|        Name         |        Vectors        |     Description      |
+|:-------------------:|:---------------------:|:--------------------:|
+|       request       |     code, method      |     All Requests     |
+|        authz        |         code          |    Authz Requests    |
+|        authn        |    success, banned    | Authn Requests (1FA) |
+| authn_second_factor | success, banned, type | Authn Requests (2FA) |
 
+##### Vectored Histograms
+
+|       Name       | Vectors |                                                    Buckets                                                    |
+|:----------------:|:-------:|:-------------------------------------------------------------------------------------------------------------:|
+|  authn_duration  | success | .0005, .00075, .001, .005, .01, .025, .05, .075, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 0.9, 1, 5, 10, 15, 30, 60 |
+| request_duration |  code   |                   .005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 15, 20, 30, 40, 50, 60                    |
 
 #### Vector Definitions
 

@@ -11,6 +11,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 // OpenIDConnectAuthorization handles GET/POST requests to the OpenID Connect 1.0 Authorization endpoint.
@@ -64,12 +65,19 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 	issuer = ctx.RootURL()
 
-	userSession := ctx.GetSession()
-
 	var (
-		consent *model.OAuth2ConsentSession
-		handled bool
+		userSession session.UserSession
+		consent     *model.OAuth2ConsentSession
+		handled     bool
 	)
+
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred obtaining session information: %+v", requester.GetID(), client.GetID(), err)
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, fosite.ErrServerError.WithHint("Could not obtain the user session."))
+
+		return
+	}
 
 	if consent, handled = handleOIDCAuthorizationConsent(ctx, issuer, client, userSession, rw, r, requester); handled {
 		return

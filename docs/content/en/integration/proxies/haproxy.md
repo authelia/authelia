@@ -193,13 +193,11 @@ frontend fe_http
 
     # Required headers
     http-request set-header X-Real-IP %[src]
-    http-request set-header X-Forwarded-Method %[var(req.method)]
-    http-request set-header X-Forwarded-Proto %[var(req.scheme)]
-    http-request set-header X-Forwarded-Host %[req.hdr(Host)]
-    http-request set-header X-Forwarded-Uri %[path]%[var(req.questionmark)]%[query]
+    http-request set-header X-Original-Method %[var(req.method)]
+    http-request set-header X-Original-URL %[var(req.scheme)]://%[req.hdr(Host)]%[path]%[var(req.questionmark)]%[query]
 
     # Protect endpoints with haproxy-auth-request and Authelia
-    http-request lua.auth-request be_authelia /api/verify if protected-frontends
+    http-request lua.auth-request be_authelia /api/authz/auth-request if protected-frontends
     # Force `Authorization` header via query arg to /api/verify
     http-request lua.auth-request be_authelia /api/verify?auth=basic if protected-frontends-basic
 
@@ -293,12 +291,11 @@ frontend fe_http
 
     # Required headers
     http-request set-header X-Real-IP %[src]
-    http-request set-header X-Forwarded-Proto %[var(req.scheme)]
-    http-request set-header X-Forwarded-Host %[req.hdr(Host)]
-    http-request set-header X-Forwarded-Uri %[path]%[var(req.questionmark)]%[query]
+    http-request set-header X-Original-Method %[var(req.method)]
+    http-request set-header X-Original-URL %[var(req.scheme)]://%[req.hdr(Host)]%[path]%[var(req.questionmark)]%[query]
 
     # Protect endpoints with haproxy-auth-request and Authelia
-    http-request lua.auth-request be_authelia_proxy /api/verify if protected-frontends
+    http-request lua.auth-request be_authelia_proxy /api/authz/auth-request if protected-frontends
     # Force `Authorization` header via query arg to /api/verify
     http-request lua.auth-request be_authelia_proxy /api/verify?auth=basic if protected-frontends-basic
 

@@ -51,12 +51,6 @@ server:
   ## Useful to allow overriding of specific static assets.
   # asset_path: /config/assets/
 
-  ## Enables the pprof endpoint.
-  enable_pprof: false
-
-  ## Enables the expvars endpoint.
-  enable_expvars: false
-
   ## Disables writing the health check vars to /app/.healthcheck.env which makes healthcheck.sh return exit code 0.
   ## This is disabled by default if either /app/.healthcheck.env or /app/healthcheck.sh do not exist.
   disable_healthcheck: false
@@ -103,6 +97,30 @@ server:
 
     ## Idle timeout.
     # idle: 30s
+
+  ## Server Endpoints configuration.
+  ## This section is considered advanced and it SHOULD NOT be configured unless you've read the relevant documentation.
+  # endpoints:
+    ## Enables the pprof endpoint.
+    # enable_pprof: false
+
+    ## Enables the expvars endpoint.
+    # enable_expvars: false
+
+    ## Configure the authz endpoints.
+    # authz:
+      # forward-auth:
+        # implementation: ForwardAuth
+        # authn_strategies: []
+      # ext-authz:
+        # implementation: ExtAuthz
+        # authn_strategies: []
+      # auth-request:
+        # implementation: AuthRequest
+        # authn_strategies: []
+      # legacy:
+        # implementation: Legacy
+        # authn_strategies: []
 
 ##
 ## Log Configuration
@@ -505,7 +523,6 @@ authentication_backend:
         # variant: standard
         # cost: 12
 
-
 ##
 ## Password Policy Configuration.
 ##
@@ -539,6 +556,23 @@ password_policy:
 
     ## Configures the minimum score allowed.
     min_score: 3
+
+##
+## Privacy Policy Configuration
+##
+## Parameters used for displaying the privacy policy link and drawer.
+privacy_policy:
+
+  ## Enables the display of the privacy policy using the policy_url.
+  enabled: false
+
+  ## Enables the display of the privacy policy drawer which requires users accept the privacy policy
+  ## on a per-browser basis.
+  require_user_acceptance: false
+
+  ## The URL of the privacy policy document. Must be an absolute URL and must have the 'https://' scheme.
+  ## If the privacy policy enabled option is true, this MUST be provided.
+  policy_url: ''
 
 ##
 ## Access Control Configuration

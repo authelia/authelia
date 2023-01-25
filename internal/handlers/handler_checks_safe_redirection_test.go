@@ -21,35 +21,35 @@ func TestCheckSafeRedirection(t *testing.T) {
 	}{
 		{
 			"ShouldReturnUnauthorized",
-			session.UserSession{AuthenticationLevel: authentication.NotAuthenticated},
+			session.UserSession{CookieDomain: "example.com", AuthenticationLevel: authentication.NotAuthenticated},
 			"http://myapp.example.com",
 			fasthttp.StatusUnauthorized,
 			false,
 		},
 		{
 			"ShouldReturnTrueOnGoodDomain",
-			session.UserSession{Username: "john", AuthenticationLevel: authentication.OneFactor},
+			session.UserSession{CookieDomain: "example.com", Username: "john", AuthenticationLevel: authentication.OneFactor},
 			"https://myapp.example.com",
 			fasthttp.StatusOK,
 			true,
 		},
 		{
 			"ShouldReturnFalseOnGoodDomainWithBadScheme",
-			session.UserSession{Username: "john", AuthenticationLevel: authentication.OneFactor},
+			session.UserSession{CookieDomain: "example.com", Username: "john", AuthenticationLevel: authentication.OneFactor},
 			"http://myapp.example.com",
 			fasthttp.StatusOK,
 			false,
 		},
 		{
 			"ShouldReturnFalseOnBadDomainWithGoodScheme",
-			session.UserSession{Username: "john", AuthenticationLevel: authentication.OneFactor},
+			session.UserSession{CookieDomain: "example.com", Username: "john", AuthenticationLevel: authentication.OneFactor},
 			"https://myapp.notgood.com",
 			fasthttp.StatusOK,
 			false,
 		},
 		{
 			"ShouldReturnFalseOnBadDomainWithBadScheme",
-			session.UserSession{Username: "john", AuthenticationLevel: authentication.OneFactor},
+			session.UserSession{CookieDomain: "example.com", Username: "john", AuthenticationLevel: authentication.OneFactor},
 			"http://myapp.notgood.com",
 			fasthttp.StatusOK,
 			false,
@@ -80,9 +80,11 @@ func TestCheckSafeRedirection(t *testing.T) {
 
 func TestShouldFailOnInvalidBody(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtxWithUserSession(t, session.UserSession{
+		CookieDomain:        exampleDotCom,
 		Username:            "john",
 		AuthenticationLevel: authentication.OneFactor,
 	})
+
 	defer mock.Close()
 	mock.Ctx.Configuration.Session.Domain = exampleDotCom
 
@@ -94,6 +96,7 @@ func TestShouldFailOnInvalidBody(t *testing.T) {
 
 func TestShouldFailOnInvalidURL(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtxWithUserSession(t, session.UserSession{
+		CookieDomain:        exampleDotCom,
 		Username:            "john",
 		AuthenticationLevel: authentication.OneFactor,
 	})
