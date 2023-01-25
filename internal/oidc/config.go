@@ -50,7 +50,6 @@ func NewConfig(config *schema.OpenIDConnectConfiguration, templates *templates.P
 	c.Strategy.Core = &HMACCoreStrategy{
 		Enigma: &hmac.HMACStrategy{Config: c},
 		Config: c,
-		prefix: tokenPrefixFmt,
 	}
 
 	return c

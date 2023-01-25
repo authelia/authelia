@@ -115,7 +115,9 @@ const (
 )
 
 const (
-	tokenPrefixFmt               = "authelia_%s_" //nolint:gosec
+	tokenPrefixOrgAutheliaFmt = "authelia_%s_" //nolint:gosec
+	tokenPrefixOrgOryFmt      = "ory_%s_"      //nolint:gosec
+
 	tokenPrefixPartAccessToken   = "at"
 	tokenPrefixPartRefreshToken  = "rt"
 	tokenPrefixPartAuthorizeCode = "ac"
@@ -238,15 +240,4 @@ const (
 	explicit      = "explicit"
 	preconfigured = "pre-configured"
 	none          = "none"
-)
-
-// HMACCoreStrategy constants.
-const (
-	ory      = "ory"
-	authelia = "authelia"
-
-	tokenPrefixFormat      = "%s_%s_"
-	tokenPartAccessToken   = "at"
-	tokenPartRefreshToken  = "rt"
-	tokenPartAuthorizeCode = "ac"
 )
