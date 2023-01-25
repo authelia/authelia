@@ -15,7 +15,7 @@ type UserPreferencesScenario struct {
 
 func NewUserPreferencesScenario() *UserPreferencesScenario {
 	return &UserPreferencesScenario{
-		RodSuite: new(RodSuite),
+		RodSuite: NewRodSuite(""),
 	}
 }
 

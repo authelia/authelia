@@ -11,7 +11,9 @@ type OIDCSuite struct {
 }
 
 func NewOIDCSuite() *OIDCSuite {
-	return &OIDCSuite{RodSuite: new(RodSuite)}
+	return &OIDCSuite{
+		RodSuite: NewRodSuite(oidcSuiteName),
+	}
 }
 
 func (s *OIDCSuite) TestOIDCScenario() {

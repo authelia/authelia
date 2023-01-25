@@ -20,7 +20,9 @@ type DuoPushWebDriverSuite struct {
 }
 
 func NewDuoPushWebDriverSuite() *DuoPushWebDriverSuite {
-	return &DuoPushWebDriverSuite{RodSuite: new(RodSuite)}
+	return &DuoPushWebDriverSuite{
+		RodSuite: NewRodSuite(""),
+	}
 }
 
 func (s *DuoPushWebDriverSuite) SetupSuite() {
@@ -386,10 +388,12 @@ type DuoPushDefaultRedirectionSuite struct {
 }
 
 func NewDuoPushDefaultRedirectionSuite() *DuoPushDefaultRedirectionSuite {
-	return &DuoPushDefaultRedirectionSuite{RodSuite: new(RodSuite)}
+	return &DuoPushDefaultRedirectionSuite{RodSuite: NewRodSuite(duoPushSuiteName)}
 }
 
 func (s *DuoPushDefaultRedirectionSuite) SetupSuite() {
+	s.BaseSuite.SetupSuite()
+
 	browser, err := StartRod()
 
 	if err != nil {
@@ -444,11 +448,15 @@ func (s *DuoPushDefaultRedirectionSuite) TestUserIsRedirectedToDefaultURL() {
 }
 
 type DuoPushSuite struct {
-	suite.Suite
+	*BaseSuite
 }
 
 func NewDuoPushSuite() *DuoPushSuite {
-	return &DuoPushSuite{}
+	return &DuoPushSuite{
+		BaseSuite: &BaseSuite{
+			Name: duoPushSuiteName,
+		},
+	}
 }
 
 func (s *DuoPushSuite) TestDuoPushWebDriverSuite() {

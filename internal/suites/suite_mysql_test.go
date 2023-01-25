@@ -11,7 +11,9 @@ type MySQLSuite struct {
 }
 
 func NewMySQLSuite() *MySQLSuite {
-	return &MySQLSuite{RodSuite: new(RodSuite)}
+	return &MySQLSuite{
+		RodSuite: NewRodSuite(mysqlSuiteName),
+	}
 }
 
 func (s *MySQLSuite) Test1FAScenario() {

@@ -2,7 +2,6 @@ package suites
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -13,9 +12,6 @@ var (
 	Example2DotCom = "example2.com:8080"
 	Example3DotCom = "example3.com:8080"
 )
-
-// PathPrefix the prefix/url_base of the login portal.
-var PathPrefix = os.Getenv("PathPrefix")
 
 // LoginBaseURLFmt the base URL of the login portal for specified baseDomain.
 func LoginBaseURLFmt(baseDomain string) string {
@@ -81,6 +77,8 @@ const (
 )
 
 const (
+	envFileProd        = "./web/.env.production"
+	envFileDev         = "./web/.env.development"
 	namespaceAuthelia  = "authelia"
 	namespaceDashboard = "kubernetes-dashboard"
 	namespaceKube      = "kube-system"

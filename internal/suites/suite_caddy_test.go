@@ -11,7 +11,9 @@ type CaddySuite struct {
 }
 
 func NewCaddySuite() *CaddySuite {
-	return &CaddySuite{RodSuite: new(RodSuite)}
+	return &CaddySuite{
+		RodSuite: NewRodSuite(caddySuiteName),
+	}
 }
 
 func (s *CaddySuite) Test1FAScenario() {

@@ -14,7 +14,7 @@ type ResetPasswordScenario struct {
 }
 
 func NewResetPasswordScenario() *ResetPasswordScenario {
-	return &ResetPasswordScenario{RodSuite: new(RodSuite)}
+	return &ResetPasswordScenario{RodSuite: NewRodSuite("")}
 }
 
 func (s *ResetPasswordScenario) SetupSuite() {

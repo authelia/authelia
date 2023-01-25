@@ -11,7 +11,9 @@ type DockerSuite struct {
 }
 
 func NewDockerSuite() *DockerSuite {
-	return &DockerSuite{RodSuite: new(RodSuite)}
+	return &DockerSuite{
+		RodSuite: NewRodSuite(dockerSuiteName),
+	}
 }
 
 func (s *DockerSuite) Test1FAScenario() {
