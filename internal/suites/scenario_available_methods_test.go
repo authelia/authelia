@@ -16,7 +16,7 @@ type AvailableMethodsScenario struct {
 
 func NewAvailableMethodsScenario(methods []string) *AvailableMethodsScenario {
 	return &AvailableMethodsScenario{
-		RodSuite: new(RodSuite),
+		RodSuite: NewRodSuite(""),
 		methods:  methods,
 	}
 }

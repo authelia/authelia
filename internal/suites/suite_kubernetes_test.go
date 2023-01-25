@@ -11,7 +11,9 @@ type KubernetesSuite struct {
 }
 
 func NewKubernetesSuite() *KubernetesSuite {
-	return &KubernetesSuite{RodSuite: new(RodSuite)}
+	return &KubernetesSuite{
+		RodSuite: NewRodSuite(kubernetesSuiteName),
+	}
 }
 
 func (s *KubernetesSuite) Test1FAScenario() {

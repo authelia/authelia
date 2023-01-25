@@ -20,7 +20,7 @@ type TwoFactorSuite struct {
 
 func New2FAScenario() *TwoFactorSuite {
 	return &TwoFactorSuite{
-		RodSuite: new(RodSuite),
+		RodSuite: NewRodSuite(""),
 	}
 }
 

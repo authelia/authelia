@@ -11,7 +11,9 @@ type PathPrefixSuite struct {
 }
 
 func NewPathPrefixSuite() *PathPrefixSuite {
-	return &PathPrefixSuite{RodSuite: new(RodSuite)}
+	return &PathPrefixSuite{
+		RodSuite: NewRodSuite(pathPrefixSuiteName),
+	}
 }
 
 func (s *PathPrefixSuite) TestCheckEnv() {

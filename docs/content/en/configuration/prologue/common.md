@@ -204,4 +204,4 @@ Configures the server write timeout.
 *__Note:__ This setting uses the [duration notation format](#duration-notation-format). Please see the
 [common options](#duration-notation-format) documentation for information on this format.*
 
-Configures the server write timeout.
+Configures the server idle timeout.

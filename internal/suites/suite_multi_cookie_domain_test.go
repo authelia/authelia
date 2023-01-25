@@ -7,11 +7,15 @@ import (
 )
 
 func NewMultiCookieDomainSuite() *MultiCookieDomainSuite {
-	return &MultiCookieDomainSuite{}
+	return &MultiCookieDomainSuite{
+		BaseSuite: &BaseSuite{
+			Name: multiCookieDomainSuiteName,
+		},
+	}
 }
 
 type MultiCookieDomainSuite struct {
-	suite.Suite
+	*BaseSuite
 }
 
 func (s *MultiCookieDomainSuite) TestMultiCookieDomainFirstDomainScenario() {

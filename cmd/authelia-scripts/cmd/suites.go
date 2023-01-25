@@ -348,6 +348,8 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 		cmd.Env = append(cmd.Env, "HEADLESS=y")
 	}
 
+	cmd.Env = append(cmd.Env, "SUITES_LOG_LEVEL="+log.GetLevel().String())
+
 	testErr := cmd.Run()
 
 	// If the tests failed, run the error hook.
