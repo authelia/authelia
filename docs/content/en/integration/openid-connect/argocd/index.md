@@ -45,7 +45,7 @@ This example makes the following assumptions:
 
 ### Application
 
-To configure [Argo CD] to utilize Authelia as an [OpenID Connect] Provider use the following configuration:
+To configure [Argo CD] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
 
 ```yaml
 name: Authelia
@@ -101,7 +101,7 @@ which will operate with the above example:
 
 [Authelia]: https://www.authelia.com
 [Argo CD]: https://argo-cd.readthedocs.io/en/stable/
-[OpenID Connect]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md
 
 
 

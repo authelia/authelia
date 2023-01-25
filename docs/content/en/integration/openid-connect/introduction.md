@@ -14,21 +14,22 @@ aliases:
   - /docs/community/oidc-integrations.html
 ---
 
-Authelia supports [OpenID Connect] as part of an open beta. This section details implementation specifics that can be
-used for integrating Authelia with relying parties, as well as specific documentation for some relying parties.
+Authelia can act as an [OpenID Connect 1.0] Provider as part of an open beta. This section details implementation
+specifics that can be used for integrating Authelia with an [OpenID Connect 1.0] Relying Party, as well as specific
+documentation for some [OpenID Connect 1.0] Relying Party implementations.
 
 See the [configuration documentation](../../configuration/identity-providers/open-id-connect.md) for information on how
-to configure [OpenID Connect].
+to configure the Authelia [OpenID Connect 1.0] Provider.
 
 ## Scope Definitions
 
 ### openid
 
-This is the default scope for [OpenID Connect]. This field is forced on every client by the configuration validation
+This is the default scope for [OpenID Connect 1.0]. This field is forced on every client by the configuration validation
 that Authelia does.
 
 *__Important Note:__ The subject identifiers or `sub` [Claim] has been changed to a [RFC4122] UUID V4 to identify the
-individual user as per the [Subject Identifier Types] section of the [OpenID Connect] specification. Please use the
+individual user as per the [Subject Identifier Types] section of the [OpenID Connect 1.0] specification. Please use the
 `preferred_username` [Claim] instead.*
 
 |  [Claim]  |   JWT Type    | Authelia Attribute |                         Description                         |
@@ -91,7 +92,7 @@ This scope includes the profile information the authentication backend reports a
 Authelia currently supports adding the `amr` [Claim] to the [ID Token] utilizing the [RFC8176] Authentication Method
 Reference values.
 
-The values this [Claim] has are not strictly defined by the [OpenID Connect] specification. As such, some backends may
+The values this [Claim] has are not strictly defined by the [OpenID Connect 1.0] specification. As such, some backends may
 expect a specification other than [RFC8176] for this purpose. If you have such an application and wish for us to support
 it then you're encouraged to create a [feature request](https://www.authelia.com/l/fr).
 
@@ -162,7 +163,7 @@ These endpoints implement OpenID Connect elements.
 [Claims]: https://openid.net/specs/openid-connect-core-1_0.html#Claims
 [Claim]: https://openid.net/specs/openid-connect-core-1_0.html#Claims
 
-[OpenID Connect]: https://openid.net/connect/
+[OpenID Connect 1.0]: https://openid.net/connect/
 
 [OpenID Connect Discovery]: https://openid.net/specs/openid-connect-discovery-1_0.html
 [OAuth 2.0 Authorization Server Metadata]: https://www.rfc-editor.org/rfc/rfc8414.html

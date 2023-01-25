@@ -44,9 +44,9 @@ This example makes the following assumptions:
 
 ### Application
 
-To configure [GitLab] to utilize Authelia as an [OpenID Connect] Provider:
+To configure [GitLab] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
-1. Add the Omnibus [OpenID Connect] OmniAuth configuration to `gitlab.rb`:
+1. Add the Omnibus [OpenID Connect 1.0] OmniAuth configuration to `gitlab.rb`:
 
 ```ruby
 gitlab_rails['omniauth_providers'] = [
@@ -101,4 +101,4 @@ which will operate with the above example:
 
 [Authelia]: https://www.authelia.com
 [GitLab]: https://about.gitlab.com/
-[OpenID Connect]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md
