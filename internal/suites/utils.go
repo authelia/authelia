@@ -53,11 +53,18 @@ func GetBrowserPath() (path string, err error) {
 
 // GetLoginBaseURL returns the URL of the login portal and the path prefix if specified.
 func GetLoginBaseURL(baseDomain string) string {
-	if pathPrefix := os.Getenv("PathPrefix"); pathPrefix != "" {
-		return LoginBaseURLFmt(baseDomain) + pathPrefix
+	return LoginBaseURLFmt(baseDomain) + GetPathPrefix()
+}
+
+// GetLoginBaseURLWithFallbackPrefix overloads GetLoginBaseURL and includes '/' as a prefix if the prefix is empty.
+func GetLoginBaseURLWithFallbackPrefix(baseDomain, fallback string) string {
+	prefix := GetPathPrefix()
+
+	if prefix == "" {
+		prefix = fallback
 	}
 
-	return LoginBaseURLFmt(baseDomain)
+	return LoginBaseURLFmt(baseDomain) + prefix
 }
 
 func (rs *RodSession) collectCoverage(page *rod.Page) {
@@ -185,6 +192,17 @@ func (rs *RodSession) collectScreenshot(err error, page *rod.Page) {
 
 		page.MustScreenshotFullPage(fmt.Sprintf("%s/%s.jpg", path, r.Replace(fn.Name())))
 	}
+}
+
+func (s *RodSuite) GetCookieNames() (names []string) {
+	cookies, err := s.Page.Cookies(nil)
+	s.Require().NoError(err)
+
+	for _, cookie := range cookies {
+		names = append(names, cookie.Name)
+	}
+
+	return names
 }
 
 func fixCoveragePath(path string, file os.FileInfo, err error) error {

@@ -4,6 +4,25 @@ default_redirection_url: https://home.example.com:8080/
 server:
   host: 127.0.0.1
   port: 9091
+  endpoints:
+    authz:
+      forward-auth:
+        implementation: ForwardAuth
+        authn_strategies:
+          - name: HeaderProxyAuthorization
+          - name: CookieSession
+      ext-authz:
+        implementation: ExtAuthz
+        authn_strategies:
+          - name: HeaderProxyAuthorization
+          - name: CookieSession
+      auth-request:
+        implementation: AuthRequest
+        authn_strategies:
+          - name: HeaderAuthRequestProxyAuthorization
+          - name: CookieSession
+      legacy:
+        implementation: Legacy
 
 log:
   level: debug

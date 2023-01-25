@@ -24,10 +24,12 @@ authentication_backend:
     path: /config/users.yml
 
 session:
-  domain: example.com
   expiration: 3600
   inactivity: 300
   remember_me: 1y
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
 
 storage:
   encryption_key: a_not_so_secure_encryption_key

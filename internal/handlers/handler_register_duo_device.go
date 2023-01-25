@@ -8,21 +8,31 @@ import (
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // DuoDevicesGET handler for retrieving available devices and capabilities from duo api.
 func DuoDevicesGET(duoAPI duo.API) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
-		userSession := ctx.GetSession()
+		var (
+			userSession session.UserSession
+			err         error
+		)
+
+		if userSession, err = ctx.GetSession(); err != nil {
+			ctx.Error(fmt.Errorf("failed to get session data: %w", err), messageMFAValidationFailed)
+			return
+		}
+
 		values := url.Values{}
 		values.Set("username", userSession.Username)
 
 		ctx.Logger.Debugf("Starting Duo PreAuth for %s", userSession.Username)
 
-		result, message, devices, enrollURL, err := DuoPreAuth(ctx, duoAPI)
+		result, message, devices, enrollURL, err := DuoPreAuth(ctx, &userSession, duoAPI)
 		if err != nil {
-			ctx.Error(fmt.Errorf("duo PreAuth API errored: %s", err), messageMFAValidationFailed)
+			ctx.Error(fmt.Errorf("duo PreAuth API errored: %w", err), messageMFAValidationFailed)
 			return
 		}
 
@@ -80,39 +90,55 @@ func DuoDevicesGET(duoAPI duo.API) middlewares.RequestHandler {
 
 // DuoDevicePOST update the user preferences regarding Duo device and method.
 func DuoDevicePOST(ctx *middlewares.AutheliaCtx) {
-	device := DuoDeviceBody{}
+	bodyJSON := DuoDeviceBody{}
 
-	err := ctx.ParseBody(&device)
-	if err != nil {
+	var (
+		userSession session.UserSession
+		err         error
+	)
+
+	if err = ctx.ParseBody(&bodyJSON); err != nil {
 		ctx.Error(err, messageMFAValidationFailed)
 		return
 	}
 
-	if !utils.IsStringInSlice(device.Method, duo.PossibleMethods) {
-		ctx.Error(fmt.Errorf("unknown method '%s', it should be one of %s", device.Method, strings.Join(duo.PossibleMethods, ", ")), messageMFAValidationFailed)
+	if !utils.IsStringInSlice(bodyJSON.Method, duo.PossibleMethods) {
+		ctx.Error(fmt.Errorf("unknown method '%s', it should be one of %s", bodyJSON.Method, strings.Join(duo.PossibleMethods, ", ")), messageMFAValidationFailed)
 		return
 	}
 
-	userSession := ctx.GetSession()
-	ctx.Logger.Debugf("Save new preferred Duo device and method of user %s to %s using %s", userSession.Username, device.Device, device.Method)
-	err = ctx.Providers.StorageProvider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: userSession.Username, Device: device.Device, Method: device.Method})
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Error(err, messageMFAValidationFailed)
+		return
+	}
+
+	ctx.Logger.Debugf("Save new preferred Duo device and method of user %s to %s using %s", userSession.Username, bodyJSON.Device, bodyJSON.Method)
+	err = ctx.Providers.StorageProvider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: userSession.Username, Device: bodyJSON.Device, Method: bodyJSON.Method})
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("unable to save new preferred Duo device and method: %s", err), messageMFAValidationFailed)
+		ctx.Error(fmt.Errorf("unable to save new preferred Duo device and method: %w", err), messageMFAValidationFailed)
 		return
 	}
 
 	ctx.ReplyOK()
 }
 
-// SecondFactorDuoDeviceDelete deletes the useres preferred Duo device and method.
-func SecondFactorDuoDeviceDelete(ctx *middlewares.AutheliaCtx) {
-	userSession := ctx.GetSession()
-	ctx.Logger.Debugf("Deleting preferred Duo device and method of user %s", userSession.Username)
-	err := ctx.Providers.StorageProvider.DeletePreferredDuoDevice(ctx, userSession.Username)
+// DuoDeviceDELETE deletes the useres preferred Duo device and method.
+func DuoDeviceDELETE(ctx *middlewares.AutheliaCtx) {
+	var (
+		userSession session.UserSession
+		err         error
+	)
 
-	if err != nil {
-		ctx.Error(fmt.Errorf("unable to delete preferred Duo device and method: %s", err), messageMFAValidationFailed)
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Error(fmt.Errorf("unable to get session to delete preferred Duo device and method: %w", err), messageMFAValidationFailed)
+		return
+	}
+
+	ctx.Logger.Debugf("Deleting preferred Duo device and method of user %s", userSession.Username)
+
+	if err = ctx.Providers.StorageProvider.DeletePreferredDuoDevice(ctx, userSession.Username); err != nil {
+		ctx.Error(fmt.Errorf("unable to delete preferred Duo device and method: %w", err), messageMFAValidationFailed)
 		return
 	}
 

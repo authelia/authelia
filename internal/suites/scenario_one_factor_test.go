@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
+	"regexp"
 	"testing"
 	"time"
 
@@ -46,6 +48,36 @@ func (s *OneFactorSuite) SetupTest() {
 func (s *OneFactorSuite) TearDownTest() {
 	s.collectCoverage(s.Page)
 	s.MustClose()
+}
+
+func (s *OneFactorSuite) TestShouldNotAuthorizeSecretBeforeOneFactor() {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
+	targetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURL)
+
+	s.doVisit(s.T(), s.Context(ctx), targetURL)
+
+	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
+
+	raw := GetLoginBaseURLWithFallbackPrefix(BaseDomain, "/")
+
+	expected, err := url.ParseRequestURI(raw)
+	s.Assert().NoError(err)
+	s.Require().NotNil(expected)
+
+	query := expected.Query()
+
+	query.Set("rd", targetURL)
+
+	expected.RawQuery = query.Encode()
+
+	rx := regexp.MustCompile(fmt.Sprintf(`^%s(&rm=GET)?$`, regexp.QuoteMeta(expected.String())))
+
+	s.verifyURLIsRegexp(s.T(), s.Context(ctx), rx)
 }
 
 func (s *OneFactorSuite) TestShouldAuthorizeSecretAfterOneFactor() {

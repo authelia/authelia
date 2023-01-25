@@ -274,7 +274,7 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalURL() {
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL := url.QueryEscape(AdminBaseURL)
-	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s", GetLoginBaseURL(BaseDomain), urlEncodedAdminURL))), string(body))
+	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=GET", GetLoginBaseURL(BaseDomain), urlEncodedAdminURL))), string(body))
 }
 
 func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI() {
@@ -293,7 +293,7 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI(
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
-	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s", GetLoginBaseURL(BaseDomain), urlEncodedAdminURL))), string(body))
+	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=GET", GetLoginBaseURL(BaseDomain), urlEncodedAdminURL))), string(body))
 }
 
 func (s *StandaloneSuite) TestShouldRecordMetrics() {

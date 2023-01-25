@@ -19,12 +19,12 @@ func NewPrometheus() (provider *Prometheus) {
 
 // Prometheus is a middleware for recording prometheus metrics.
 type Prometheus struct {
-	authDuration     *prometheus.HistogramVec
-	reqDuration      *prometheus.HistogramVec
-	reqCounter       *prometheus.CounterVec
-	reqVerifyCounter *prometheus.CounterVec
-	auth1FACounter   *prometheus.CounterVec
-	auth2FACounter   *prometheus.CounterVec
+	authnDuration   *prometheus.HistogramVec
+	reqDuration     *prometheus.HistogramVec
+	reqCounter      *prometheus.CounterVec
+	authzCounter    *prometheus.CounterVec
+	authnCounter    *prometheus.CounterVec
+	authn2FACounter *prometheus.CounterVec
 }
 
 // RecordRequest takes the statusCode string, requestMethod string, and the elapsed time.Duration to record the request and request duration metrics.
@@ -33,31 +33,31 @@ func (r *Prometheus) RecordRequest(statusCode, requestMethod string, elapsed tim
 	r.reqDuration.WithLabelValues(statusCode).Observe(elapsed.Seconds())
 }
 
-// RecordVerifyRequest takes the statusCode string to record the verify endpoint request metrics.
-func (r *Prometheus) RecordVerifyRequest(statusCode string) {
-	r.reqVerifyCounter.WithLabelValues(statusCode).Inc()
+// RecordAuthz takes the statusCode string to record the verify endpoint request metrics.
+func (r *Prometheus) RecordAuthz(statusCode string) {
+	r.authzCounter.WithLabelValues(statusCode).Inc()
 }
 
-// RecordAuthentication takes the success and regulated booleans and a method string to record the authentication metrics.
-func (r *Prometheus) RecordAuthentication(success, banned bool, authType string) {
+// RecordAuthn takes the success and regulated booleans and a method string to record the authentication metrics.
+func (r *Prometheus) RecordAuthn(success, banned bool, authType string) {
 	switch authType {
 	case "1fa", "":
-		r.auth1FACounter.WithLabelValues(strconv.FormatBool(success), strconv.FormatBool(banned)).Inc()
+		r.authnCounter.WithLabelValues(strconv.FormatBool(success), strconv.FormatBool(banned)).Inc()
 	default:
-		r.auth2FACounter.WithLabelValues(strconv.FormatBool(success), strconv.FormatBool(banned), authType).Inc()
+		r.authn2FACounter.WithLabelValues(strconv.FormatBool(success), strconv.FormatBool(banned), authType).Inc()
 	}
 }
 
 // RecordAuthenticationDuration takes the statusCode string, requestMethod string, and the elapsed time.Duration to record the request and request duration metrics.
 func (r *Prometheus) RecordAuthenticationDuration(success bool, elapsed time.Duration) {
-	r.authDuration.WithLabelValues(strconv.FormatBool(success)).Observe(elapsed.Seconds())
+	r.authnDuration.WithLabelValues(strconv.FormatBool(success)).Observe(elapsed.Seconds())
 }
 
 func (r *Prometheus) register() {
-	r.authDuration = promauto.NewHistogramVec(
+	r.authnDuration = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Subsystem: "authelia",
-			Name:      "authentication_duration",
+			Name:      "authn_duration",
 			Help:      "The time an authentication attempt takes in seconds.",
 			Buckets:   []float64{.0005, .00075, .001, .005, .01, .025, .05, .075, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 0.9, 1, 5, 10, 15, 30, 60},
 		},
@@ -83,28 +83,28 @@ func (r *Prometheus) register() {
 		[]string{"code", "method"},
 	)
 
-	r.reqVerifyCounter = promauto.NewCounterVec(
+	r.authzCounter = promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Subsystem: "authelia",
-			Name:      "verify_request",
-			Help:      "The number of verify requests processed.",
+			Name:      "authz",
+			Help:      "The number of authz requests processed.",
 		},
 		[]string{"code"},
 	)
 
-	r.auth1FACounter = promauto.NewCounterVec(
+	r.authnCounter = promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Subsystem: "authelia",
-			Name:      "authentication_first_factor",
+			Name:      "authn",
 			Help:      "The number of 1FA authentications processed.",
 		},
 		[]string{"success", "banned"},
 	)
 
-	r.auth2FACounter = promauto.NewCounterVec(
+	r.authn2FACounter = promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Subsystem: "authelia",
-			Name:      "authentication_second_factor",
+			Name:      "authn_second_factor",
 			Help:      "The number of 2FA authentications processed.",
 		},
 		[]string{"success", "banned", "type"},

@@ -209,13 +209,14 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), []byte("{\"status\":\"OK\"}"), s.mock.Ctx.Response.Body())
 
-	// And store authentication in session.
-	session := s.mock.Ctx.GetSession()
-	assert.Equal(s.T(), "test", session.Username)
-	assert.Equal(s.T(), true, session.KeepMeLoggedIn)
-	assert.Equal(s.T(), authentication.OneFactor, session.AuthenticationLevel)
-	assert.Equal(s.T(), []string{"test@example.com"}, session.Emails)
-	assert.Equal(s.T(), []string{"dev", "admins"}, session.Groups)
+	userSession, err := s.mock.Ctx.GetSession()
+	s.Assert().NoError(err)
+
+	assert.Equal(s.T(), "test", userSession.Username)
+	assert.Equal(s.T(), true, userSession.KeepMeLoggedIn)
+	assert.Equal(s.T(), authentication.OneFactor, userSession.AuthenticationLevel)
+	assert.Equal(s.T(), []string{"test@example.com"}, userSession.Emails)
+	assert.Equal(s.T(), []string{"dev", "admins"}, userSession.Groups)
 }
 
 func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
@@ -250,13 +251,14 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), []byte("{\"status\":\"OK\"}"), s.mock.Ctx.Response.Body())
 
-	// And store authentication in session.
-	session := s.mock.Ctx.GetSession()
-	assert.Equal(s.T(), "test", session.Username)
-	assert.Equal(s.T(), false, session.KeepMeLoggedIn)
-	assert.Equal(s.T(), authentication.OneFactor, session.AuthenticationLevel)
-	assert.Equal(s.T(), []string{"test@example.com"}, session.Emails)
-	assert.Equal(s.T(), []string{"dev", "admins"}, session.Groups)
+	userSession, err := s.mock.Ctx.GetSession()
+	s.Assert().NoError(err)
+
+	assert.Equal(s.T(), "test", userSession.Username)
+	assert.Equal(s.T(), false, userSession.KeepMeLoggedIn)
+	assert.Equal(s.T(), authentication.OneFactor, userSession.AuthenticationLevel)
+	assert.Equal(s.T(), []string{"test@example.com"}, userSession.Emails)
+	assert.Equal(s.T(), []string{"dev", "admins"}, userSession.Groups)
 }
 
 func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSession() {
@@ -294,13 +296,14 @@ func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSess
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), []byte("{\"status\":\"OK\"}"), s.mock.Ctx.Response.Body())
 
-	// And store authentication in session.
-	session := s.mock.Ctx.GetSession()
-	assert.Equal(s.T(), "Test", session.Username)
-	assert.Equal(s.T(), true, session.KeepMeLoggedIn)
-	assert.Equal(s.T(), authentication.OneFactor, session.AuthenticationLevel)
-	assert.Equal(s.T(), []string{"test@example.com"}, session.Emails)
-	assert.Equal(s.T(), []string{"dev", "admins"}, session.Groups)
+	userSession, err := s.mock.Ctx.GetSession()
+	s.Assert().NoError(err)
+
+	assert.Equal(s.T(), "Test", userSession.Username)
+	assert.Equal(s.T(), true, userSession.KeepMeLoggedIn)
+	assert.Equal(s.T(), authentication.OneFactor, userSession.AuthenticationLevel)
+	assert.Equal(s.T(), []string{"test@example.com"}, userSession.Emails)
+	assert.Equal(s.T(), []string{"dev", "admins"}, userSession.Groups)
 }
 
 type FirstFactorRedirectionSuite struct {
@@ -312,7 +315,7 @@ type FirstFactorRedirectionSuite struct {
 func (s *FirstFactorRedirectionSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 	s.mock.Ctx.Configuration.DefaultRedirectionURL = "https://default.local"
-	s.mock.Ctx.Configuration.AccessControl.DefaultPolicy = "bypass"
+	s.mock.Ctx.Configuration.AccessControl.DefaultPolicy = testBypass
 	s.mock.Ctx.Configuration.AccessControl.Rules = []schema.ACLRule{
 		{
 			Domains: []string{"default.local"},

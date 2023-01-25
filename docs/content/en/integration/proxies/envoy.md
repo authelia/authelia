@@ -169,7 +169,7 @@ static_resources:
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
                       http_service:
-                        path_prefix: '/api/verify/'
+                        path_prefix: /api/authz/ext-authz/
                         server_uri:
                           uri: authelia:9091
                           cluster: authelia
@@ -181,18 +181,12 @@ static_resources:
                               - exact: cookie
                               - exact: proxy-authorization
                           headers_to_add:
-                            - key: X-Authelia-URL
-                              value: 'https://auth.example.com/'
-                            - key: X-Forwarded-Method
-                              value: '%REQ(:METHOD)%'
                             - key: X-Forwarded-Proto
                               value: '%REQ(:SCHEME)%'
-                            - key: X-Forwarded-Host
-                              value: '%REQ(:AUTHORITY)%'
-                            - key: X-Forwarded-Uri
-                              value: '%REQ(:PATH)%'
-                            - key: X-Forwarded-For
-                              value: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
+                            ## The following commented lines are for configuring the Authelia URL in the proxy. We
+                            ## strongly suggest this is configured in the Session Cookies section of the Authelia configuration.
+                            # - key: X-Authelia-URL
+                            #   value: https://auth.example.com
                         authorization_response:
                           allowed_upstream_headers:
                             patterns:

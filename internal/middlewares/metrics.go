@@ -29,8 +29,8 @@ func NewMetricsRequest(metrics metrics.Recorder) (middleware Basic) {
 	}
 }
 
-// NewMetricsVerifyRequest returns a middleware if provided with a metrics.Recorder, otherwise it returns nil.
-func NewMetricsVerifyRequest(metrics metrics.Recorder) (middleware Basic) {
+// NewMetricsAuthzRequest returns a middleware if provided with a metrics.Recorder, otherwise it returns nil.
+func NewMetricsAuthzRequest(metrics metrics.Recorder) (middleware Basic) {
 	if metrics == nil {
 		return nil
 	}
@@ -41,7 +41,7 @@ func NewMetricsVerifyRequest(metrics metrics.Recorder) (middleware Basic) {
 
 			statusCode := strconv.Itoa(ctx.Response.StatusCode())
 
-			metrics.RecordVerifyRequest(statusCode)
+			metrics.RecordAuthz(statusCode)
 		}
 	}
 }
