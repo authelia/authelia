@@ -114,6 +114,13 @@ const (
 	JWTHeaderKeyIdentifier = "kid"
 )
 
+const (
+	tokenPrefixFmt               = "authelia_%s_" //nolint:gosec
+	tokenPrefixPartAccessToken   = "at"
+	tokenPrefixPartRefreshToken  = "rt"
+	tokenPrefixPartAuthorizeCode = "ac"
+)
+
 // Paths.
 const (
 	EndpointPathConsent                           = "/consent"

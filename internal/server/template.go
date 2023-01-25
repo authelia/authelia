@@ -15,8 +15,9 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/random"
+	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // ServeTemplatedFile serves a templated version of a specified file,
@@ -46,7 +47,7 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 			ctx.SetContentTypeTextPlain()
 		}
 
-		nonce := utils.RandomString(32, utils.CharSetAlphaNumeric)
+		nonce := ctx.Providers.Random.StringCustom(32, random.CharSetAlphaNumeric)
 
 		switch {
 		case ctx.Configuration.Server.Headers.CSPTemplate != "":
@@ -57,7 +58,16 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPDefault, nonce))
 		}
 
-		if err = t.Execute(ctx.Response.BodyWriter(), opts.CommonData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce, logoOverride)); err != nil {
+		var (
+			rememberMe string
+			provider   *session.Session
+		)
+
+		if provider, err = ctx.GetSessionProvider(); err == nil {
+			rememberMe = strconv.FormatBool(!provider.Config.DisableRememberMe)
+		}
+
+		if err = t.Execute(ctx.Response.BodyWriter(), opts.CommonData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce, logoOverride, rememberMe)); err != nil {
 			ctx.RequestCtx.Error("an error occurred", 503)
 			ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
 
@@ -78,7 +88,7 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 		if spec {
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, tmplCSPSwagger)
 		} else {
-			nonce = utils.RandomString(32, utils.CharSetAlphaNumeric)
+			nonce = ctx.Providers.Random.StringCustom(32, random.CharSetAlphaNumeric)
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPSwaggerNonce, nonce, nonce))
 		}
 
@@ -190,7 +200,7 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 	opts = &TemplatedFileOptions{
 		AssetPath:              config.Server.AssetPath,
 		DuoSelfEnrollment:      strFalse,
-		RememberMe:             strconv.FormatBool(config.Session.RememberMeDuration != schema.RememberMeDisabled),
+		RememberMe:             strconv.FormatBool(!config.Session.DisableRememberMe),
 		ResetPassword:          strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable),
 		ResetPasswordCustomURL: config.AuthenticationBackend.PasswordReset.CustomURL.String(),
 		Theme:                  config.Theme,
@@ -200,6 +210,12 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		EndpointsTOTP:          !config.TOTP.Disable,
 		EndpointsDuo:           !config.DuoAPI.Disable,
 		EndpointsOpenIDConnect: !(config.IdentityProviders.OIDC == nil),
+		EndpointsAuthz:         config.Server.Endpoints.Authz,
+	}
+
+	if config.PrivacyPolicy.Enabled {
+		opts.PrivacyPolicyURL = config.PrivacyPolicy.PolicyURL.String()
+		opts.PrivacyPolicyAccept = strconv.FormatBool(config.PrivacyPolicy.RequireUserAcceptance)
 	}
 
 	if !config.DuoAPI.Disable {
@@ -216,6 +232,8 @@ type TemplatedFileOptions struct {
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string
+	PrivacyPolicyURL       string
+	PrivacyPolicyAccept    string
 	Session                string
 	Theme                  string
 
@@ -224,10 +242,16 @@ type TemplatedFileOptions struct {
 	EndpointsTOTP          bool
 	EndpointsDuo           bool
 	EndpointsOpenIDConnect bool
+
+	EndpointsAuthz map[string]schema.ServerAuthzEndpoint
 }
 
 // CommonData returns a TemplatedFileCommonData with the dynamic options.
-func (options *TemplatedFileOptions) CommonData(base, baseURL, nonce, logoOverride string) TemplatedFileCommonData {
+func (options *TemplatedFileOptions) CommonData(base, baseURL, nonce, logoOverride, rememberMe string) TemplatedFileCommonData {
+	if rememberMe != "" {
+		return options.commonDataWithRememberMe(base, baseURL, nonce, logoOverride, rememberMe)
+	}
+
 	return TemplatedFileCommonData{
 		Base:                   base,
 		BaseURL:                baseURL,
@@ -235,6 +259,24 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, nonce, logoOverri
 		LogoOverride:           logoOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
 		RememberMe:             options.RememberMe,
+		ResetPassword:          options.ResetPassword,
+		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
+		PrivacyPolicyURL:       options.PrivacyPolicyURL,
+		PrivacyPolicyAccept:    options.PrivacyPolicyAccept,
+		Session:                options.Session,
+		Theme:                  options.Theme,
+	}
+}
+
+// CommonDataWithRememberMe returns a TemplatedFileCommonData with the dynamic options.
+func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, nonce, logoOverride, rememberMe string) TemplatedFileCommonData {
+	return TemplatedFileCommonData{
+		Base:                   base,
+		BaseURL:                baseURL,
+		CSPNonce:               nonce,
+		LogoOverride:           logoOverride,
+		DuoSelfEnrollment:      options.DuoSelfEnrollment,
+		RememberMe:             rememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
 		Session:                options.Session,
@@ -249,12 +291,13 @@ func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, nonce string) Te
 		BaseURL:  baseURL,
 		CSPNonce: nonce,
 
-		Session:       options.Session,
-		PasswordReset: options.EndpointsPasswordReset,
-		Webauthn:      options.EndpointsWebauthn,
-		TOTP:          options.EndpointsTOTP,
-		Duo:           options.EndpointsDuo,
-		OpenIDConnect: options.EndpointsOpenIDConnect,
+		Session:        options.Session,
+		PasswordReset:  options.EndpointsPasswordReset,
+		Webauthn:       options.EndpointsWebauthn,
+		TOTP:           options.EndpointsTOTP,
+		Duo:            options.EndpointsDuo,
+		OpenIDConnect:  options.EndpointsOpenIDConnect,
+		EndpointsAuthz: options.EndpointsAuthz,
 	}
 }
 
@@ -268,6 +311,8 @@ type TemplatedFileCommonData struct {
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string
+	PrivacyPolicyURL       string
+	PrivacyPolicyAccept    string
 	Session                string
 	Theme                  string
 }
@@ -283,4 +328,6 @@ type TemplatedFileOpenAPIData struct {
 	TOTP          bool
 	Duo           bool
 	OpenIDConnect bool
+
+	EndpointsAuthz map[string]schema.ServerAuthzEndpoint
 }

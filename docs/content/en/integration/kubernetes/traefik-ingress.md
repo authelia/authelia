@@ -61,12 +61,17 @@ metadata:
     app.kubernetes.io/name: authelia
 spec:
   forwardAuth:
-    address: http://authelia.default.svc.cluster.local/api/verify?rd=https%3A%2F%2Fauth.example.com%2F
+    address: 'http://authelia.default.svc.cluster.local/api/authz/forward-auth'
+    ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest this is
+    ## configured in the Session Cookies section of the Authelia configuration.
+    # address: 'http://authelia.default.svc.cluster.local/api/authz/forward-auth?authelia_url=https%3A%2F%2Fauth.example.com%2F'
     authResponseHeaders:
-      - Remote-User
-      - Remote-Name
-      - Remote-Email
-      - Remote-Groups
+      - 'Authorization'
+      - 'Proxy-Authorization'
+      - 'Remote-User'
+      - 'Remote-Groups'
+      - 'Remote-Email'
+      - 'Remote-Name'
 ...
 ```
 {{< /details >}}

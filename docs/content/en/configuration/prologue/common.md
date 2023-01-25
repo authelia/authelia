@@ -22,7 +22,7 @@ describes the implementation of this. You can use this implementation in various
 * session:
   * expiration
   * inactivity
-  * remember_me_duration
+  * remember_me
 * regulation:
   * ban_time
   * find_time
@@ -204,4 +204,4 @@ Configures the server write timeout.
 *__Note:__ This setting uses the [duration notation format](#duration-notation-format). Please see the
 [common options](#duration-notation-format) documentation for information on this format.*
 
-Configures the server write timeout.
+Configures the server idle timeout.

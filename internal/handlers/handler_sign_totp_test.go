@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
@@ -23,10 +23,11 @@ type HandlerSignTOTPSuite struct {
 
 func (s *HandlerSignTOTPSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
-	userSession := s.mock.Ctx.GetSession()
+	userSession, err := s.mock.Ctx.GetSession()
+	s.Assert().NoError(err)
+
 	userSession.Username = testUsername
-	err := s.mock.Ctx.SaveSession(userSession)
-	require.NoError(s.T(), err)
+	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
 }
 
 func (s *HandlerSignTOTPSuite) TearDownTest() {
@@ -143,6 +144,18 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 
 func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 	config := model.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
+	s.mock.Ctx.Configuration.Session.Cookies = []schema.SessionCookieConfiguration{
+		{
+			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+				Domain: "example.com",
+			},
+		},
+		{
+			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+				Domain: "mydomain.local",
+			},
+		},
+	}
 
 	s.mock.StorageMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
@@ -253,7 +266,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFi
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), nil)
 
-	s.Assert().NotEqual(
+	s.NotEqual(
 		res[0][1],
 		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
 }

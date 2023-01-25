@@ -150,7 +150,7 @@ filesystem but before parsing their content. These filters are _**NOT**_ covered
 argument or environment variable will change and usage of these will either break or just not work.
 
 The filters are configured as a list of filter names by the `--config.experimental.filters` CLI argument and
-`X_AUTHELIA_CONFIG_EXPERIMENTAL_FILTERS` environment variable. We recommend using the environment variable as it ensures
+`X_AUTHELIA_CONFIG_FILTERS` environment variable. We recommend using the environment variable as it ensures
 commands executed from the container use the same filters. If both the CLI argument and environment variable are used
 the environment variable is completely ignored.
 
@@ -164,7 +164,7 @@ authelia --config config.yml --config.experimental.filters expand-env,template
 ```
 
 ```text
-X_AUTHELIA_CONFIG_EXPERIMENTAL_FILTERS=expand-env,template
+X_AUTHELIA_CONFIG_FILTERS=expand-env,template
 ```
 
 ### Expand Environment Variable Filter

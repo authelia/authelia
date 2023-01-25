@@ -2,38 +2,45 @@ package handlers
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 // CheckSafeRedirectionPOST handler checking whether the redirection to a given URL provided in body is safe.
 func CheckSafeRedirectionPOST(ctx *middlewares.AutheliaCtx) {
-	userSession := ctx.GetSession()
+	var (
+		s   session.UserSession
+		err error
+	)
 
-	if userSession.IsAnonymous() {
+	if s, err = ctx.GetSession(); err != nil {
 		ctx.ReplyUnauthorized()
 		return
 	}
 
-	var reqBody checkURIWithinDomainRequestBody
+	if s.IsAnonymous() {
+		ctx.ReplyUnauthorized()
+		return
+	}
 
-	err := ctx.ParseBody(&reqBody)
-	if err != nil {
+	var (
+		bodyJSON  checkURIWithinDomainRequestBody
+		targetURI *url.URL
+	)
+
+	if err = ctx.ParseBody(&bodyJSON); err != nil {
 		ctx.Error(fmt.Errorf("unable to parse request body: %w", err), messageOperationFailed)
 		return
 	}
 
-	safe, err := utils.IsURIStringSafeRedirection(reqBody.URI, ctx.Configuration.Session.Domain)
-	if err != nil {
-		ctx.Error(fmt.Errorf("unable to determine if uri %s is safe to redirect to: %w", reqBody.URI, err), messageOperationFailed)
+	if targetURI, err = url.ParseRequestURI(bodyJSON.URI); err != nil {
+		ctx.Error(fmt.Errorf("unable to determine if uri %s is safe to redirect to: failed to parse URI '%s': %w", bodyJSON.URI, bodyJSON.URI, err), messageOperationFailed)
 		return
 	}
 
-	err = ctx.SetJSONBody(checkURIWithinDomainResponseBody{
-		OK: safe,
-	})
-	if err != nil {
+	if err = ctx.SetJSONBody(checkURIWithinDomainResponseBody{OK: ctx.IsSafeRedirectionTargetURI(targetURI)}); err != nil {
 		ctx.Error(fmt.Errorf("unable to create response body: %w", err), messageOperationFailed)
 		return
 	}

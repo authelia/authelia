@@ -1,25 +1,70 @@
 package suites
 
 import (
+	"bufio"
 	"context"
+	"crypto/tls"
+	"encoding/json"
 	"fmt"
-	"log"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"text/template"
 
 	"github.com/go-rod/rod"
 	"github.com/google/uuid"
+	log "github.com/sirupsen/logrus"
 )
 
-// GetLoginBaseURL returns the URL of the login portal and the path prefix if specified.
-func GetLoginBaseURL() string {
-	if PathPrefix != "" {
-		return LoginBaseURL + PathPrefix
+var browserPaths = []string{"/usr/bin/chromium-browser", "/usr/bin/chromium"}
+
+// ValidateBrowserPath validates the appropriate chromium browser path.
+func ValidateBrowserPath(path string) (browserPath string, err error) {
+	var info os.FileInfo
+
+	if info, err = os.Stat(path); err != nil {
+		return "", err
+	} else if info.IsDir() {
+		return "", fmt.Errorf("browser cannot be a directory")
 	}
 
-	return LoginBaseURL
+	return path, nil
+}
+
+// GetBrowserPath retrieves the appropriate chromium browser path.
+func GetBrowserPath() (path string, err error) {
+	browserPath := os.Getenv("BROWSER_PATH")
+
+	if browserPath != "" {
+		return ValidateBrowserPath(browserPath)
+	}
+
+	for _, browserPath = range browserPaths {
+		if browserPath, err = ValidateBrowserPath(browserPath); err == nil {
+			return browserPath, nil
+		}
+	}
+
+	return "", fmt.Errorf("no chromium browser was detected in the known paths, set the BROWSER_PATH environment variable to override the path")
+}
+
+// GetLoginBaseURL returns the URL of the login portal and the path prefix if specified.
+func GetLoginBaseURL(baseDomain string) string {
+	return LoginBaseURLFmt(baseDomain) + GetPathPrefix()
+}
+
+// GetLoginBaseURLWithFallbackPrefix overloads GetLoginBaseURL and includes '/' as a prefix if the prefix is empty.
+func GetLoginBaseURLWithFallbackPrefix(baseDomain, fallback string) string {
+	prefix := GetPathPrefix()
+
+	if prefix == "" {
+		prefix = fallback
+	}
+
+	return LoginBaseURLFmt(baseDomain) + prefix
 }
 
 func (rs *RodSession) collectCoverage(page *rod.Page) {
@@ -47,6 +92,87 @@ func (rs *RodSession) collectCoverage(page *rod.Page) {
 	}
 }
 
+func (s *BaseSuite) SetupSuite() {
+	s.SetupLogging()
+	s.SetupEnvironment()
+}
+
+func (s *BaseSuite) SetupLogging() {
+	if os.Getenv("SUITE_SETUP_LOGGING") == t {
+		return
+	}
+
+	var (
+		level string
+		ok    bool
+	)
+
+	if level, ok = os.LookupEnv("SUITES_LOG_LEVEL"); !ok {
+		return
+	}
+
+	l, err := log.ParseLevel(level)
+
+	s.NoError(err)
+
+	log.SetLevel(l)
+
+	log.SetFormatter(&log.TextFormatter{
+		ForceColors: true,
+	})
+
+	s.T().Setenv("SUITE_SETUP_LOGGING", t)
+}
+
+func (s *BaseSuite) SetupEnvironment() {
+	if s.Name == "" || os.Getenv("SUITE_SETUP_ENVIRONMENT") == t {
+		return
+	}
+
+	log.Debugf("Checking Suite %s for .env file", s.Name)
+
+	path := filepath.Join(s.Name, ".env")
+
+	var (
+		info os.FileInfo
+		err  error
+	)
+
+	path, err = filepath.Abs(path)
+
+	s.Require().NoError(err)
+
+	if info, err = os.Stat(path); err != nil {
+		s.Assert().True(os.IsNotExist(err))
+
+		log.Debugf("Suite %s does not have an .env file or it can't be read: %v", s.Name, err)
+
+		return
+	}
+
+	s.Require().False(info.IsDir())
+
+	log.Debugf("Suite %s does have an .env file at path: %s", s.Name, path)
+
+	var file *os.File
+
+	file, err = os.Open(path)
+
+	s.Require().NoError(err)
+
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+		v := strings.Split(scanner.Text(), "=")
+
+		s.Require().Len(v, 2)
+
+		s.T().Setenv(v[0], v[1])
+	}
+
+	s.T().Setenv("SUITE_SETUP_ENVIRONMENT", t)
+}
+
 func (rs *RodSession) collectScreenshot(err error, page *rod.Page) {
 	if err == context.DeadlineExceeded && os.Getenv("CI") == t {
 		base := "/buildkite/screenshots"
@@ -66,6 +192,17 @@ func (rs *RodSession) collectScreenshot(err error, page *rod.Page) {
 
 		page.MustScreenshotFullPage(fmt.Sprintf("%s/%s.jpg", path, r.Replace(fn.Name())))
 	}
+}
+
+func (s *RodSuite) GetCookieNames() (names []string) {
+	cookies, err := s.Page.Cookies(nil)
+	s.Require().NoError(err)
+
+	for _, cookie := range cookies {
+		names = append(names, cookie.Name)
+	}
+
+	return names
 }
 
 func fixCoveragePath(path string, file os.FileInfo, err error) error {
@@ -94,6 +231,100 @@ func fixCoveragePath(path string, file os.FileInfo, err error) error {
 		content := strings.ReplaceAll(string(read), "/node/src/app/", ciPath+"web/")
 
 		err = os.WriteFile(path, []byte(content), 0)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// getEnvInfoFromURL gets environments variables for specified cookie domain
+// this func makes a http call to https://login.<domain>/devworkflow and is only useful for suite tests.
+func getDomainEnvInfo(domain string) (map[string]string, error) {
+	info := make(map[string]string)
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true, //nolint:gosec
+			},
+		},
+	}
+
+	var (
+		req  *http.Request
+		resp *http.Response
+		body []byte
+		err  error
+	)
+
+	targetURL := LoginBaseURLFmt(domain) + "/devworkflow"
+
+	if req, err = http.NewRequest(http.MethodGet, targetURL, nil); err != nil {
+		return info, err
+	}
+
+	req.Header.Set("X-Forwarded-Proto", "https")
+	req.Header.Set("X-Forwarded-Host", domain)
+
+	if resp, err = client.Do(req); err != nil {
+		return info, err
+	}
+
+	if body, err = io.ReadAll(resp.Body); err != nil {
+		return info, err
+	}
+	defer resp.Body.Close()
+
+	if err = json.Unmarshal(body, &info); err != nil {
+		return info, err
+	}
+
+	return info, nil
+}
+
+// generateDevEnvFile generates web/.env.development based on opts.
+func generateDevEnvFile(opts map[string]string) error {
+	tmpl, err := template.ParseFiles(envFileProd)
+	if err != nil {
+		return err
+	}
+
+	file, _ := os.Create(envFileDev)
+	defer file.Close()
+
+	if err := tmpl.Execute(file, opts); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// updateDevEnvFileForDomain updates web/.env.development.
+// this function only affects local dev environments.
+func updateDevEnvFileForDomain(domain string, setup bool) error {
+	if os.Getenv("CI") == t {
+		return nil
+	}
+
+	if _, err := os.Stat(envFileDev); err != nil && os.IsNotExist(err) {
+		file, _ := os.Create(envFileDev)
+		file.Close()
+	}
+
+	info, err := getDomainEnvInfo(domain)
+	if err != nil {
+		return err
+	}
+
+	err = generateDevEnvFile(info)
+	if err != nil {
+		return err
+	}
+
+	if !setup {
+		err = waitUntilAutheliaFrontendIsReady(multiCookieDomainDockerEnvironment)
 		if err != nil {
 			return err
 		}

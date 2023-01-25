@@ -11,7 +11,9 @@ type LDAPSuite struct {
 }
 
 func NewLDAPSuite() *LDAPSuite {
-	return &LDAPSuite{RodSuite: new(RodSuite)}
+	return &LDAPSuite{
+		RodSuite: NewRodSuite(ldapSuiteName),
+	}
 }
 
 func (s *LDAPSuite) Test1FAScenario() {

@@ -15,10 +15,14 @@ type BypassAllWebDriverSuite struct {
 }
 
 func NewBypassAllWebDriverSuite() *BypassAllWebDriverSuite {
-	return &BypassAllWebDriverSuite{RodSuite: new(RodSuite)}
+	return &BypassAllWebDriverSuite{
+		RodSuite: NewRodSuite(""),
+	}
 }
 
 func (s *BypassAllWebDriverSuite) SetupSuite() {
+	s.BaseSuite.SetupSuite()
+
 	browser, err := StartRod()
 
 	if err != nil {
@@ -61,11 +65,15 @@ func (s *BypassAllWebDriverSuite) TestShouldAccessPublicResource() {
 }
 
 type BypassAllSuite struct {
-	suite.Suite
+	*BaseSuite
 }
 
 func NewBypassAllSuite() *BypassAllSuite {
-	return &BypassAllSuite{}
+	return &BypassAllSuite{
+		BaseSuite: &BaseSuite{
+			Name: bypassAllSuiteName,
+		},
+	}
 }
 
 func (s *BypassAllSuite) TestBypassAllWebDriverSuite() {

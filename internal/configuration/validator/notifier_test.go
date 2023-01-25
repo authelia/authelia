@@ -23,7 +23,7 @@ func (suite *NotifierSuite) SetupTest() {
 		Username: "john",
 		Password: "password",
 		Sender:   mail.Address{Name: "Authelia", Address: "authelia@example.com"},
-		Host:     examplecom,
+		Host:     exampleDotCom,
 		Port:     25,
 	}
 	suite.config.FileSystem = nil
@@ -78,7 +78,7 @@ func (suite *NotifierSuite) TestSMTPShouldSetTLSDefaults() {
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
-	suite.Assert().Equal(examplecom, suite.config.SMTP.TLS.ServerName)
+	suite.Assert().Equal(exampleDotCom, suite.config.SMTP.TLS.ServerName)
 	suite.Assert().Equal(uint16(tls.VersionTLS12), suite.config.SMTP.TLS.MinimumVersion.Value)
 	suite.Assert().False(suite.config.SMTP.TLS.SkipVerify)
 }
@@ -111,7 +111,7 @@ func (suite *NotifierSuite) TestSMTPShouldDefaultTLSServerNameToHost() {
 }
 
 func (suite *NotifierSuite) TestSMTPShouldErrorOnSSL30() {
-	suite.config.SMTP.Host = examplecom
+	suite.config.SMTP.Host = exampleDotCom
 	suite.config.SMTP.TLS = &schema.TLSConfig{
 		MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
 	}
@@ -125,7 +125,7 @@ func (suite *NotifierSuite) TestSMTPShouldErrorOnSSL30() {
 }
 
 func (suite *NotifierSuite) TestSMTPShouldErrorOnTLSMinVerGreaterThanMaxVer() {
-	suite.config.SMTP.Host = examplecom
+	suite.config.SMTP.Host = exampleDotCom
 	suite.config.SMTP.TLS = &schema.TLSConfig{
 		MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
 		MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS10},
@@ -140,7 +140,7 @@ func (suite *NotifierSuite) TestSMTPShouldErrorOnTLSMinVerGreaterThanMaxVer() {
 }
 
 func (suite *NotifierSuite) TestSMTPShouldWarnOnDisabledSTARTTLS() {
-	suite.config.SMTP.Host = examplecom
+	suite.config.SMTP.Host = exampleDotCom
 	suite.config.SMTP.DisableStartTLS = true
 
 	ValidateNotifier(&suite.config, suite.validator)

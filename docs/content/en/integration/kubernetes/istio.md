@@ -39,27 +39,23 @@ spec:
         envoyExtAuthzHttp:
           service: 'authelia.default.svc.cluster.local'
           port: 80
-          pathPrefix: '/api/verify/'
+          pathPrefix: '/api/authz/ext-authz/'
           includeRequestHeadersInCheck:
-            - accept
-            - cookie
-            - proxy-authorization
+            - 'accept'
+            - 'cookie'
+            - 'authorization'
+            - 'proxy-authorization'
           headersToUpstreamOnAllow:
             - 'authorization'
             - 'proxy-authorization'
             - 'remote-*'
             - 'authelia-*'
           includeAdditionalHeadersInCheck:
-            X-Authelia-URL: 'https://auth.example.com/'
-            X-Forwarded-Method: '%REQ(:METHOD)%'
             X-Forwarded-Proto: '%REQ(:SCHEME)%'
-            X-Forwarded-Host: '%REQ(:AUTHORITY)%'
-            X-Forwarded-URI: '%REQ(:PATH)%'
-            X-Forwarded-For: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
           headersToDownstreamOnDeny:
-            - set-cookie
+            - 'set-cookie'
           headersToDownstreamOnAllow:
-            - set-cookie
+            - 'set-cookie'
 ```
 
 ### Authorization Policy

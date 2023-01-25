@@ -19,11 +19,11 @@ import (
 	"github.com/ory/fosite/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// NewConfig creates a new Config.
-func NewConfig(config *schema.OpenIDConnectConfiguration) (c *Config) {
+func NewConfig(config *schema.OpenIDConnectConfiguration, templates *templates.Provider) (c *Config) {
 	c = &Config{
 		GlobalSecret:               []byte(utils.HashSHA256FromString(config.HMACSecret)),
 		SendDebugMessagesToClients: config.EnableClientDebugMessages,
@@ -44,11 +44,13 @@ func NewConfig(config *schema.OpenIDConnectConfiguration) (c *Config) {
 			ContextLifespan: config.PAR.ContextLifespan,
 			URIPrefix:       urnPARPrefix,
 		},
+		Templates: templates,
 	}
 
 	c.Strategy.Core = &HMACCoreStrategy{
 		Enigma: &hmac.HMACStrategy{Config: c},
 		Config: c,
+		prefix: tokenPrefixFmt,
 	}
 
 	return c
@@ -91,6 +93,8 @@ type Config struct {
 	HTTPClient           *retryablehttp.Client
 	FormPostHTMLTemplate *template.Template
 	MessageCatalog       i18n.MessageCatalog
+
+	Templates *templates.Provider
 }
 
 // HashConfig holds specific fosite.Configurator information for hashing.
@@ -521,7 +525,11 @@ func (c *Config) GetMessageCatalog(ctx context.Context) (catalog i18n.MessageCat
 
 // GetFormPostHTMLTemplate returns the form post HTML template.
 func (c *Config) GetFormPostHTMLTemplate(ctx context.Context) (tmpl *template.Template) {
-	return c.FormPostHTMLTemplate
+	if c.Templates == nil {
+		return nil
+	}
+
+	return c.Templates.GetOpenIDConnectAuthorizeResponseFormPostTemplate()
 }
 
 // GetTokenURL returns the token URL.

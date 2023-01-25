@@ -43,7 +43,7 @@ The following steps will allow you to run the website on the localhost and view 
     ```bash
     git clone https://github.com/authelia/authelia.git
     cd authelia/docs
-    npm run install
+    npm install
     npm run start
     ```
 2. Visit [http://localhost:1313/](http://localhost:1313/) in your browser.

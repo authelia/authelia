@@ -21,10 +21,13 @@ authentication_backend:
 
 session:
   secret: unsecure_session_secret
-  domain: example.com
-  inactivity: 5
-  expiration: 8
-  remember_me_duration: 1y
+  cookies:
+    - name: 'authelia_sessin'
+      domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
+      inactivity: 5
+      expiration: 8
+      remember_me: 1y
 
 storage:
   encryption_key: a_not_so_secure_encryption_key

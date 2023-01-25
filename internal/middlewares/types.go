@@ -11,6 +11,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/notification"
 	"github.com/authelia/authelia/v4/internal/ntp"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -28,6 +29,8 @@ type AutheliaCtx struct {
 	Configuration schema.Configuration
 
 	Clock utils.Clock
+
+	session *session.Session
 }
 
 // Providers contain all provider provided to Authelia.
@@ -44,6 +47,7 @@ type Providers struct {
 	Templates       *templates.Provider
 	TOTP            totp.Provider
 	PasswordPolicy  PasswordPolicyProvider
+	Random          random.Provider
 }
 
 // RequestHandler represents an Authelia request handler.

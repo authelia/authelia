@@ -19,7 +19,7 @@ type CustomHeadersScenario struct {
 
 func NewCustomHeadersScenario() *CustomHeadersScenario {
 	return &CustomHeadersScenario{
-		RodSuite: new(RodSuite),
+		RodSuite: NewRodSuite(""),
 	}
 }
 
@@ -92,7 +92,7 @@ func (s *CustomHeadersScenario) TestShouldForwardCustomHeaderForAuthenticatedUse
 	expectedGroups := mapset.NewSet("dev", "admins")
 
 	targetURL := fmt.Sprintf("%s/headers", PublicBaseURL)
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, targetURL)
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, targetURL)
 	s.verifyIsPublic(s.T(), s.Context(ctx))
 
 	body, err := s.Context(ctx).Element("body")

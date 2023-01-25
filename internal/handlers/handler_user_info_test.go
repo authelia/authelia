@@ -9,7 +9,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -24,12 +23,12 @@ type FetchSuite struct {
 
 func (s *FetchSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
-	// Set the initial user session.
-	userSession := s.mock.Ctx.GetSession()
+	userSession, err := s.mock.Ctx.GetSession()
+	s.Assert().NoError(err)
+
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = 1
-	err := s.mock.Ctx.SaveSession(userSession)
-	require.NoError(s.T(), err)
+	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
 }
 
 func (s *FetchSuite) TearDownTest() {
@@ -101,12 +100,12 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 
 		mock := mocks.NewMockAutheliaCtx(t)
 
-		// Set the initial user session.
-		userSession := mock.Ctx.GetSession()
+		userSession, err := mock.Ctx.GetSession()
+		assert.NoError(t, err)
+
 		userSession.Username = testUsername
 		userSession.AuthenticationLevel = 1
-		err := mock.Ctx.SaveSession(userSession)
-		require.NoError(t, err)
+		assert.NoError(t, mock.Ctx.SaveSession(userSession))
 
 		mock.StorageMock.
 			EXPECT().
@@ -259,17 +258,19 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			}
 
 			mock := mocks.NewMockAutheliaCtx(t)
+			sessionConfig := mock.Ctx.Configuration.Session
 
 			if resp.config != nil {
 				mock.Ctx.Configuration = *resp.config
+				mock.Ctx.Configuration.Session = sessionConfig
 			}
 
-			// Set the initial user session.
-			userSession := mock.Ctx.GetSession()
+			userSession, err := mock.Ctx.GetSession()
+			assert.NoError(t, err)
+
 			userSession.Username = testUsername
 			userSession.AuthenticationLevel = 1
-			err := mock.Ctx.SaveSession(userSession)
-			require.NoError(t, err)
+			assert.NoError(t, mock.Ctx.SaveSession(userSession))
 
 			if resp.db.Method == "" {
 				gomock.InOrder(
@@ -370,12 +371,12 @@ type SaveSuite struct {
 
 func (s *SaveSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
-	// Set the initial user session.
-	userSession := s.mock.Ctx.GetSession()
+	userSession, err := s.mock.Ctx.GetSession()
+	s.Assert().NoError(err)
+
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = 1
-	err := s.mock.Ctx.SaveSession(userSession)
-	require.NoError(s.T(), err)
+	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
 }
 
 func (s *SaveSuite) TearDownTest() {

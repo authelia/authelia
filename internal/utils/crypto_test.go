@@ -36,7 +36,9 @@ func TestShouldReturnErrWhenX509DirectoryNotExist(t *testing.T) {
 }
 
 func TestShouldNotReturnErrWhenX509DirectoryExist(t *testing.T) {
-	pool, warnings, errors := NewX509CertPool("/tmp")
+	dir := t.TempDir()
+
+	pool, warnings, errors := NewX509CertPool(dir)
 	assert.NotNil(t, pool)
 
 	if runtime.GOOS == windows {

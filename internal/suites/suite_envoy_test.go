@@ -11,7 +11,9 @@ type EnvoySuite struct {
 }
 
 func NewEnvoySuite() *EnvoySuite {
-	return &EnvoySuite{RodSuite: new(RodSuite)}
+	return &EnvoySuite{
+		RodSuite: NewRodSuite(envoySuiteName),
+	}
 }
 
 func (s *EnvoySuite) Test1FAScenario() {

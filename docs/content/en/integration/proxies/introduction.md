@@ -31,21 +31,22 @@ See [support](support.md) for support information.
 ## Integration Implementation
 
 Authelia is capable of being integrated into many proxies due to the decisions regarding the implementation. We handle
-requests to the `/api/verify` endpoint with specific headers and return standardized responses based on the headers and
+requests to the authz endpoints with specific headers and return standardized responses based on the headers and
 the policy engines determination about what must be done.
 
 ### Destination Identification
 
-The method to identify the destination of a request relies on metadata headers which need to be set by your reverse
-proxy. The headers we rely on are as follows:
+Broadly speaking, the method to identify the destination of a request relies on metadata headers which need to be set by
+your reverse proxy. The headers we rely on at the authz endpoints are as follows:
 
 * [X-Forwarded-Proto](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto)
 * [X-Forwarded-Host](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host)
 * X-Forwarded-Uri
 * [X-Forwarded-For](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For)
-* X-Forwarded-Method
+* X-Forwarded-Method / X-Original-Method
+* X-Original-URL
 
-Alternatively we utilize `X-Original-URL` header which is expected to contain a fully formatted URL.
+The specifics however are dictated by the specific [Authorization Implementation](../../reference/guides/proxy-authorization.md) used.
 
 ### User Identification
 

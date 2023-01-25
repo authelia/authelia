@@ -47,14 +47,15 @@ var (
 )
 
 var (
-	headerValueFalse          = []byte("false")
-	headerValueTrue           = []byte("true")
-	headerValueMaxAge         = []byte("100")
-	headerValueVary           = []byte("Accept-Encoding, Origin")
-	headerValueVaryWildcard   = []byte("Accept-Encoding")
-	headerValueOriginWildcard = []byte("*")
-	headerValueZero           = []byte("0")
-	headerValueCSPNone        = []byte("default-src 'none';")
+	headerValueFalse           = []byte("false")
+	headerValueTrue            = []byte("true")
+	headerValueMaxAge          = []byte("100")
+	headerValueVary            = []byte("Accept-Encoding, Origin")
+	headerValueVaryWildcard    = []byte("Accept-Encoding")
+	headerValueOriginWildcard  = []byte("*")
+	headerValueZero            = []byte("0")
+	headerValueCSPNone         = []byte("default-src 'none'")
+	headerValueCSPNoneFormPost = []byte("default-src 'none'; script-src 'sha256-skflBqA90WuHvoczvimLdj49ExKdizFjX2Itd6xKZdU='")
 
 	headerValueNoSniff                 = []byte("nosniff")
 	headerValueStrictOriginCrossOrigin = []byte("strict-origin-when-cross-origin")
@@ -70,18 +71,23 @@ const (
 	strProtoHTTP  = "http"
 	strSlash      = "/"
 
-	queryArgRedirect = "rd"
-	queryArgToken    = "token"
+	queryArgRedirect    = "rd"
+	queryArgAutheliaURL = "authelia_url"
+	queryArgToken       = "token"
 )
 
 var (
 	protoHTTPS = []byte(strProtoHTTPS)
 	protoHTTP  = []byte(strProtoHTTP)
 
-	qryArgRedirect = []byte(queryArgRedirect)
+	qryArgRedirect    = []byte(queryArgRedirect)
+	qryArgAutheliaURL = []byte(queryArgAutheliaURL)
 
-	// UserValueKeyBaseURL is the User Value key where we store the Base URL.
-	UserValueKeyBaseURL = []byte("base_url")
+	keyUserValueBaseURL   = []byte("base_url")
+	keyUserValueAuthzPath = []byte("authz_path")
+
+	// UserValueKeyFormPost is the User Value key where we indicate the form_post response mode.
+	UserValueKeyFormPost = []byte("form_post")
 
 	headerSeparator = []byte(", ")
 
