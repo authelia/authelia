@@ -141,4 +141,18 @@ var deprecations = map[string]Deprecation{
 		AutoMap: true,
 		MapFunc: nil,
 	},
+	"server.enable_pprof": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "server.enable_pprof",
+		NewKey:  "server.endpoints.enable_pprof",
+		AutoMap: true,
+		MapFunc: nil,
+	},
+	"server.enable_expvars": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "server.enable_expvars",
+		NewKey:  "server.endpoints.enable_expvars",
+		AutoMap: true,
+		MapFunc: nil,
+	},
 }

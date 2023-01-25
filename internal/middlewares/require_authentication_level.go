@@ -9,7 +9,7 @@ import (
 // Require1FA requires the user to have authenticated with at least one-factor authentication (i.e. password).
 func Require1FA(next RequestHandler) RequestHandler {
 	return func(ctx *AutheliaCtx) {
-		if ctx.GetSession().AuthenticationLevel < authentication.OneFactor {
+		if session, err := ctx.GetSession(); err != nil || session.AuthenticationLevel < authentication.OneFactor {
 			ctx.ReplyForbidden()
 			return
 		}
@@ -21,7 +21,7 @@ func Require1FA(next RequestHandler) RequestHandler {
 // Require2FA requires the user to have authenticated with two-factor authentication.
 func Require2FA(next RequestHandler) RequestHandler {
 	return func(ctx *AutheliaCtx) {
-		if ctx.GetSession().AuthenticationLevel < authentication.TwoFactor {
+		if session, err := ctx.GetSession(); err != nil || session.AuthenticationLevel < authentication.TwoFactor {
 			ctx.ReplyForbidden()
 			return
 		}
@@ -33,7 +33,7 @@ func Require2FA(next RequestHandler) RequestHandler {
 // Require2FAWithAPIResponse requires the user to have authenticated with two-factor authentication.
 func Require2FAWithAPIResponse(next RequestHandler) RequestHandler {
 	return func(ctx *AutheliaCtx) {
-		if ctx.GetSession().AuthenticationLevel < authentication.TwoFactor {
+		if session, err := ctx.GetSession(); err != nil || session.AuthenticationLevel < authentication.TwoFactor {
 			ctx.SetAuthenticationErrorJSON(fasthttp.StatusForbidden, "Authentication Required.", true, false)
 			return
 		}

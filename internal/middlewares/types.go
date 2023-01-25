@@ -29,6 +29,8 @@ type AutheliaCtx struct {
 	Configuration schema.Configuration
 
 	Clock utils.Clock
+
+	session *session.Session
 }
 
 // Providers contain all provider provided to Authelia.

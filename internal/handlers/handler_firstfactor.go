@@ -4,9 +4,10 @@ import (
 	"errors"
 	"time"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/regulation"
-	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // FirstFactorPOST is the handler performing the first factory.
@@ -90,7 +91,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 			return
 		}
 
-		newSession := session.NewDefaultUserSession()
+		newSession := provider.NewDefaultUserSession()
 
 		// Reset all values from previous session except OIDC workflow before regenerating the cookie.
 		if err = ctx.SaveSession(newSession); err != nil {
@@ -158,4 +159,23 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
 		}
 	}
+}
+
+func getProfileRefreshSettings(cfg schema.AuthenticationBackend) (refresh bool, refreshInterval time.Duration) {
+	if cfg.LDAP != nil {
+		if cfg.RefreshInterval == schema.ProfileRefreshDisabled {
+			refresh = false
+			refreshInterval = 0
+		} else {
+			refresh = true
+
+			if cfg.RefreshInterval != schema.ProfileRefreshAlways {
+				refreshInterval, _ = utils.ParseDurationString(cfg.RefreshInterval)
+			} else {
+				refreshInterval = schema.RefreshIntervalAlways
+			}
+		}
+	}
+
+	return refresh, refreshInterval
 }

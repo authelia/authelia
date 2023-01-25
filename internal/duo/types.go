@@ -7,13 +7,14 @@ import (
 	duoapi "github.com/duosecurity/duo_api_golang"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 // API interface wrapping duo api library for testing purpose.
 type API interface {
-	Call(ctx *middlewares.AutheliaCtx, values url.Values, method string, path string) (*Response, error)
-	PreAuthCall(ctx *middlewares.AutheliaCtx, values url.Values) (*PreAuthResponse, error)
-	AuthCall(ctx *middlewares.AutheliaCtx, values url.Values) (*AuthResponse, error)
+	Call(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values, method string, path string) (response *Response, err error)
+	PreAuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (response *PreAuthResponse, err error)
+	AuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (response *AuthResponse, err error)
 }
 
 // APIImpl implementation of DuoAPI interface.

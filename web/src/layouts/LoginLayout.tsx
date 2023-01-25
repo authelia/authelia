@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 import { ReactComponent as UserSvg } from "@assets/images/user.svg";
 import Brand from "@components/Brand";
+import PrivacyPolicyDrawer from "@components/PrivacyPolicyDrawer";
 import TypographyWithTooltip from "@components/TypographyWithTootip";
 import { SettingsRoute } from "@constants/Routes";
 import { getLogoOverride } from "@utils/Configuration";
@@ -26,12 +27,14 @@ export interface Props {
 const LoginLayout = function (props: Props) {
     const navigate = useNavigate();
     const styles = useStyles();
+    const { t: translate } = useTranslation();
+
     const logo = getLogoOverride() ? (
         <img src="./static/media/logo.png" alt="Logo" className={styles.icon} />
     ) : (
         <UserSvg className={styles.icon} />
     );
-    const { t: translate } = useTranslation();
+
     useEffect(() => {
         document.title = `${translate("Login")} - Authelia`;
     }, [translate]);
@@ -62,9 +65,9 @@ const LoginLayout = function (props: Props) {
                 </Toolbar>
             </AppBar>
             <Grid
-                container
                 id={props.id}
                 className={styles.root}
+                container
                 spacing={0}
                 alignItems="center"
                 justifyContent="center"
@@ -98,6 +101,7 @@ const LoginLayout = function (props: Props) {
                         {props.showBrand ? <Brand /> : null}
                     </Grid>
                 </Container>
+                <PrivacyPolicyDrawer />
             </Grid>
         </Box>
     );

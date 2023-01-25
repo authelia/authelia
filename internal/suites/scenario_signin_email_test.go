@@ -18,7 +18,7 @@ type SigninEmailScenario struct {
 
 func NewSigninEmailScenario() *SigninEmailScenario {
 	return &SigninEmailScenario{
-		RodSuite: new(RodSuite),
+		RodSuite: NewRodSuite(""),
 	}
 }
 

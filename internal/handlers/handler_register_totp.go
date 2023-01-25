@@ -9,8 +9,12 @@ import (
 )
 
 // identityRetrieverFromSession retriever computing the identity from the cookie session.
-func identityRetrieverFromSession(ctx *middlewares.AutheliaCtx) (*session.Identity, error) {
-	userSession := ctx.GetSession()
+func identityRetrieverFromSession(ctx *middlewares.AutheliaCtx) (identity *session.Identity, err error) {
+	var userSession session.UserSession
+
+	if userSession, err = ctx.GetSession(); err != nil {
+		return nil, fmt.Errorf("error retrieving user session for request: %w", err)
+	}
 
 	if len(userSession.Emails) == 0 {
 		return nil, fmt.Errorf("user %s does not have any email address", userSession.Username)
@@ -24,7 +28,9 @@ func identityRetrieverFromSession(ctx *middlewares.AutheliaCtx) (*session.Identi
 }
 
 func isTokenUserValidFor2FARegistration(ctx *middlewares.AutheliaCtx, username string) bool {
-	return ctx.GetSession().Username == username
+	userSession, err := ctx.GetSession()
+
+	return err == nil && userSession.Username == username
 }
 
 // TOTPIdentityStart the handler for initiating the identity validation.

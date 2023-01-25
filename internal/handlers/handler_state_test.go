@@ -27,10 +27,11 @@ func (s *StateGetSuite) TearDownTest() {
 }
 
 func (s *StateGetSuite) TestShouldReturnUsernameFromSession() {
-	userSession := s.mock.Ctx.GetSession()
+	userSession, err := s.mock.Ctx.GetSession()
+	s.Assert().NoError(err)
+
 	userSession.Username = "username"
-	err := s.mock.Ctx.SaveSession(userSession)
-	require.NoError(s.T(), err)
+	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
 
 	StateGET(s.mock.Ctx)
 
@@ -57,9 +58,11 @@ func (s *StateGetSuite) TestShouldReturnUsernameFromSession() {
 }
 
 func (s *StateGetSuite) TestShouldReturnAuthenticationLevelFromSession() {
-	userSession := s.mock.Ctx.GetSession()
+	userSession, err := s.mock.Ctx.GetSession()
+	s.Assert().NoError(err)
+
 	userSession.AuthenticationLevel = authentication.OneFactor
-	err := s.mock.Ctx.SaveSession(userSession)
+	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
 	require.NoError(s.T(), err)
 
 	StateGET(s.mock.Ctx)

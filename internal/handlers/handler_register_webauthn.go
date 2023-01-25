@@ -11,6 +11,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
+	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
@@ -34,12 +35,19 @@ var WebauthnIdentityFinish = middlewares.IdentityVerificationFinish(
 // SecondFactorWebauthnAttestationGET returns the attestation challenge from the server.
 func SecondFactorWebauthnAttestationGET(ctx *middlewares.AutheliaCtx, _ string) {
 	var (
-		w    *webauthn.WebAuthn
-		user *model.WebauthnUser
-		err  error
+		w           *webauthn.WebAuthn
+		user        *model.WebauthnUser
+		userSession session.UserSession
+		err         error
 	)
 
-	userSession := ctx.GetSession()
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred retrieving session for %s attestation challenge", regulation.AuthTypeWebauthn)
+
+		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
+
+		return
+	}
 
 	if w, err = newWebauthn(ctx); err != nil {
 		ctx.Logger.Errorf("Unable to create %s attestation challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
@@ -96,12 +104,20 @@ func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 		w    *webauthn.WebAuthn
 		user *model.WebauthnUser
 
+		userSession session.UserSession
+
 		attestationResponse *protocol.ParsedCredentialCreationData
 		credential          *webauthn.Credential
 		postData            *requestPostData
 	)
 
-	userSession := ctx.GetSession()
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred retrieving session for %s attestation response", regulation.AuthTypeWebauthn)
+
+		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
+
+		return
+	}
 
 	if userSession.Webauthn == nil {
 		ctx.Logger.Errorf("Webauthn session data is not present in order to handle attestation for user '%s'. This could indicate a user trying to POST to the wrong endpoint, or the session data is not present for the browser they used.", userSession.Username)

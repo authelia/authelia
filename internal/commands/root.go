@@ -117,7 +117,7 @@ func runServices(ctx *CmdCtx) {
 	ctx.group.Go(func() (err error) {
 		defer func() {
 			if r := recover(); r != nil {
-				ctx.log.WithError(recoverErr(r)).Errorf("Critical error in server caught (recovered)")
+				ctx.log.WithError(recoverErr(r)).Errorf("Server (main) critical error caught (recovered)")
 			}
 		}()
 
@@ -143,7 +143,7 @@ func runServices(ctx *CmdCtx) {
 
 		defer func() {
 			if r := recover(); r != nil {
-				ctx.log.WithError(recoverErr(r)).Errorf("Critical error in metrics server caught (recovered)")
+				ctx.log.WithError(recoverErr(r)).Errorf("Server (metrics) critical error caught (recovered)")
 			}
 		}()
 
@@ -165,11 +165,11 @@ func runServices(ctx *CmdCtx) {
 	if ctx.config.AuthenticationBackend.File != nil && ctx.config.AuthenticationBackend.File.Watch {
 		provider := ctx.providers.UserProvider.(*authentication.FileUserProvider)
 		if watcher, err := runServiceFileWatcher(ctx, ctx.config.AuthenticationBackend.File.Path, provider); err != nil {
-			ctx.log.WithError(err).Errorf("Error opening file watcher")
+			ctx.log.WithError(err).Errorf("File Watcher (user database) start returned error")
 		} else {
 			defer func(watcher *fsnotify.Watcher) {
 				if err := watcher.Close(); err != nil {
-					ctx.log.WithError(err).Errorf("Error closing file watcher")
+					ctx.log.WithError(err).Errorf("File Watcher (user database) close returned error")
 				}
 			}(watcher)
 		}

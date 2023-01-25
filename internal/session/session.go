@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	fasthttpsession "github.com/fasthttp/session/v2"
+	"github.com/fasthttp/session/v2"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -14,15 +14,24 @@ import (
 type Session struct {
 	Config schema.SessionCookieConfiguration
 
-	sessionHolder *fasthttpsession.Session
+	sessionHolder *session.Session
+}
+
+// NewDefaultUserSession returns a new default UserSession for this session provider.
+func (p *Session) NewDefaultUserSession() (userSession UserSession) {
+	userSession = NewDefaultUserSession()
+
+	userSession.CookieDomain = p.Config.Domain
+
+	return userSession
 }
 
 // GetSession return the user session from a request.
-func (p *Session) GetSession(ctx *fasthttp.RequestCtx) (UserSession, error) {
-	store, err := p.sessionHolder.Get(ctx)
+func (p *Session) GetSession(ctx *fasthttp.RequestCtx) (userSession UserSession, err error) {
+	var store *session.Store
 
-	if err != nil {
-		return NewDefaultUserSession(), err
+	if store, err = p.sessionHolder.Get(ctx); err != nil {
+		return p.NewDefaultUserSession(), err
 	}
 
 	userSessionJSON, ok := store.Get(userSessionStorerKey).([]byte)
@@ -30,42 +39,38 @@ func (p *Session) GetSession(ctx *fasthttp.RequestCtx) (UserSession, error) {
 	// If userSession is not yet defined we create the new session with default values
 	// and save it in the store.
 	if !ok {
-		userSession := NewDefaultUserSession()
+		userSession = p.NewDefaultUserSession()
 
 		store.Set(userSessionStorerKey, userSession)
 
 		return userSession, nil
 	}
 
-	var userSession UserSession
-	err = json.Unmarshal(userSessionJSON, &userSession)
-
-	if err != nil {
-		return NewDefaultUserSession(), err
+	if err = json.Unmarshal(userSessionJSON, &userSession); err != nil {
+		return p.NewDefaultUserSession(), err
 	}
 
 	return userSession, nil
 }
 
 // SaveSession save the user session.
-func (p *Session) SaveSession(ctx *fasthttp.RequestCtx, userSession UserSession) error {
-	store, err := p.sessionHolder.Get(ctx)
+func (p *Session) SaveSession(ctx *fasthttp.RequestCtx, userSession UserSession) (err error) {
+	var (
+		store           *session.Store
+		userSessionJSON []byte
+	)
 
-	if err != nil {
+	if store, err = p.sessionHolder.Get(ctx); err != nil {
 		return err
 	}
 
-	userSessionJSON, err := json.Marshal(userSession)
-
-	if err != nil {
+	if userSessionJSON, err = json.Marshal(userSession); err != nil {
 		return err
 	}
 
 	store.Set(userSessionStorerKey, userSessionJSON)
 
-	err = p.sessionHolder.Save(ctx, store)
-
-	if err != nil {
+	if err = p.sessionHolder.Save(ctx, store); err != nil {
 		return err
 	}
 
@@ -74,9 +79,7 @@ func (p *Session) SaveSession(ctx *fasthttp.RequestCtx, userSession UserSession)
 
 // RegenerateSession regenerate a session ID.
 func (p *Session) RegenerateSession(ctx *fasthttp.RequestCtx) error {
-	err := p.sessionHolder.Regenerate(ctx)
-
-	return err
+	return p.sessionHolder.Regenerate(ctx)
 }
 
 // DestroySession destroy a session ID and delete the cookie.
@@ -85,10 +88,10 @@ func (p *Session) DestroySession(ctx *fasthttp.RequestCtx) error {
 }
 
 // UpdateExpiration update the expiration of the cookie and session.
-func (p *Session) UpdateExpiration(ctx *fasthttp.RequestCtx, expiration time.Duration) error {
-	store, err := p.sessionHolder.Get(ctx)
+func (p *Session) UpdateExpiration(ctx *fasthttp.RequestCtx, expiration time.Duration) (err error) {
+	var store *session.Store
 
-	if err != nil {
+	if store, err = p.sessionHolder.Get(ctx); err != nil {
 		return err
 	}
 

@@ -18,18 +18,25 @@ __Authelia__ and its development workflow can be tested with [Docker] and [Docke
 
 In order to build and contribute to __Authelia__, you need to make sure the following are installed in your environment:
 
-* [go] *(v1.18 or greater)*
-* [Docker]
-* [Docker Compose]
-* [Node.js] *(v16 or greater)*
-* [pnpm]
+* General:
+  * [git]
+* Backend Development:
+  * [go] *(v1.19 or greater)*
+  * [gcc]
+* Frontend Development
+  * [Node.js] *(v18 or greater)*
+  * [pnpm]
+* Integration Suites:
+  * [Docker]
+  * [Docker Compose]
+  * [chromium]
 
 The additional tools are recommended:
 
 * [golangci-lint]
 * [goimports-reviser]
 * [yamllint]
-* Either the [VSCodium] or [GoLand] IDE
+* [VSCodium] or [GoLand]
 
 ## Scripts
 
@@ -80,3 +87,6 @@ listed subdomains from your browser, and they will be served by the reverse prox
 [yamllint]: https://yamllint.readthedocs.io/en/stable/quickstart.html
 [VSCodium]: https://vscodium.com/
 [GoLand]: https://www.jetbrains.com/go/
+[chromium]: https://www.chromium.org/
+[git]: https://git-scm.com/
+[gcc]: https://gcc.gnu.org/

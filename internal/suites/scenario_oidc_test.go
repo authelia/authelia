@@ -22,7 +22,7 @@ type OIDCScenario struct {
 
 func NewOIDCScenario() *OIDCScenario {
 	return &OIDCScenario{
-		RodSuite: new(RodSuite),
+		RodSuite: NewRodSuite(""),
 	}
 }
 

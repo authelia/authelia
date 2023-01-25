@@ -11,7 +11,9 @@ type MariaDBSuite struct {
 }
 
 func NewMariaDBSuite() *MariaDBSuite {
-	return &MariaDBSuite{RodSuite: new(RodSuite)}
+	return &MariaDBSuite{
+		RodSuite: NewRodSuite(mariadbSuiteName),
+	}
 }
 
 func (s *MariaDBSuite) Test1FAScenario() {

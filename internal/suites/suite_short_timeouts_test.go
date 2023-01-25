@@ -11,7 +11,9 @@ type ShortTimeoutsSuite struct {
 }
 
 func NewShortTimeoutsSuite() *ShortTimeoutsSuite {
-	return &ShortTimeoutsSuite{RodSuite: new(RodSuite)}
+	return &ShortTimeoutsSuite{
+		RodSuite: NewRodSuite(shortTimeoutsSuiteName),
+	}
 }
 
 func (s *ShortTimeoutsSuite) TestDefaultRedirectionURLScenario() {

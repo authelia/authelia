@@ -17,8 +17,6 @@ import (
 // MethodList is the list of available methods.
 type MethodList = []string
 
-type authorizationMatching int
-
 // configurationBody the content returned by the configuration endpoint.
 type configurationBody struct {
 	AvailableMethods MethodList `json:"available_methods"`

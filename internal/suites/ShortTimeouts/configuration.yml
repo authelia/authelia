@@ -22,8 +22,9 @@ authentication_backend:
 session:
   secret: unsecure_session_secret
   cookies:
-    - name: authelia_session
-      domain: example.com
+    - name: 'authelia_sessin'
+      domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
       inactivity: 5
       expiration: 8
       remember_me: 1y

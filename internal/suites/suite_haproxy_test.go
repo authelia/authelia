@@ -11,7 +11,9 @@ type HAProxySuite struct {
 }
 
 func NewHAProxySuite() *HAProxySuite {
-	return &HAProxySuite{RodSuite: new(RodSuite)}
+	return &HAProxySuite{
+		RodSuite: NewRodSuite(haproxySuiteName),
+	}
 }
 
 func (s *HAProxySuite) Test1FAScenario() {

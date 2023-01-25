@@ -87,7 +87,10 @@ session:
   expiration: 3600  # 1 hour
   inactivity: 300  # 5 minutes
   remember_me: 1y
-  domain: example.com
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
+
   redis:
     host: redis-service
     port: 6379

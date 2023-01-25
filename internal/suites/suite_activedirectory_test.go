@@ -11,7 +11,9 @@ type ActiveDirectorySuite struct {
 }
 
 func NewActiveDirectorySuite() *ActiveDirectorySuite {
-	return &ActiveDirectorySuite{RodSuite: new(RodSuite)}
+	return &ActiveDirectorySuite{
+		RodSuite: NewRodSuite(activedirectorySuiteName),
+	}
 }
 
 func (s *ActiveDirectorySuite) Test1FAScenario() {

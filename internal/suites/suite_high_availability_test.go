@@ -17,10 +17,14 @@ type HighAvailabilityWebDriverSuite struct {
 }
 
 func NewHighAvailabilityWebDriverSuite() *HighAvailabilityWebDriverSuite {
-	return &HighAvailabilityWebDriverSuite{RodSuite: new(RodSuite)}
+	return &HighAvailabilityWebDriverSuite{
+		RodSuite: NewRodSuite(""),
+	}
 }
 
 func (s *HighAvailabilityWebDriverSuite) SetupSuite() {
+	s.BaseSuite.SetupSuite()
+
 	browser, err := StartRod()
 
 	if err != nil {
@@ -183,7 +187,9 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepSessionAfterAutheliaResta
 }
 
 var UserJohn = "john"
+
 var UserBob = "bob"
+
 var UserHarry = "harry"
 
 var Users = []string{UserJohn, UserBob, UserHarry}
@@ -263,11 +269,15 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldVerifyAccessControl() {
 }
 
 type HighAvailabilitySuite struct {
-	suite.Suite
+	*BaseSuite
 }
 
 func NewHighAvailabilitySuite() *HighAvailabilitySuite {
-	return &HighAvailabilitySuite{}
+	return &HighAvailabilitySuite{
+		BaseSuite: &BaseSuite{
+			Name: highAvailabilitySuiteName,
+		},
+	}
 }
 
 func DoGetWithAuth(t *testing.T, username, password string) int {

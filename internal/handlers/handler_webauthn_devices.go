@@ -11,6 +11,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
+	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
@@ -34,9 +35,20 @@ func getWebauthnDeviceIDFromContext(ctx *middlewares.AutheliaCtx) (int, error) {
 
 // WebauthnDevicesGET returns all devices registered for the current user.
 func WebauthnDevicesGET(ctx *middlewares.AutheliaCtx) {
-	s := ctx.GetSession()
+	var (
+		userSession session.UserSession
+		err         error
+	)
 
-	devices, err := ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, s.Username)
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
+
+		ctx.ReplyForbidden()
+
+		return
+	}
+
+	devices, err := ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, userSession.Username)
 
 	if err != nil && err != storage.ErrNoWebauthnDevice {
 		ctx.Error(err, messageOperationFailed)
@@ -54,15 +66,23 @@ func WebauthnDevicePUT(ctx *middlewares.AutheliaCtx) {
 	var (
 		bodyJSON bodyEditWebauthnDeviceRequest
 
-		id     int
-		device *model.WebauthnDevice
-		err    error
+		id          int
+		device      *model.WebauthnDevice
+		userSession session.UserSession
+
+		err error
 	)
 
-	s := ctx.GetSession()
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
+
+		ctx.ReplyForbidden()
+
+		return
+	}
 
 	if err = json.Unmarshal(ctx.PostBody(), &bodyJSON); err != nil {
-		ctx.Logger.Errorf("Unable to parse %s update request data for user '%s': %+v", regulation.AuthTypeWebauthn, s.Username, err)
+		ctx.Logger.Errorf("Unable to parse %s update request data for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.Error(err, messageOperationFailed)
@@ -79,12 +99,12 @@ func WebauthnDevicePUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if device.Username != s.Username {
-		ctx.Error(fmt.Errorf("user '%s' tried to delete device with id '%d' which belongs to '%s", s.Username, device.ID, device.Username), messageOperationFailed)
+	if device.Username != userSession.Username {
+		ctx.Error(fmt.Errorf("user '%s' tried to delete device with id '%d' which belongs to '%s", userSession.Username, device.ID, device.Username), messageOperationFailed)
 		return
 	}
 
-	if err = ctx.Providers.StorageProvider.UpdateWebauthnDeviceDescription(ctx, s.Username, id, bodyJSON.Description); err != nil {
+	if err = ctx.Providers.StorageProvider.UpdateWebauthnDeviceDescription(ctx, userSession.Username, id, bodyJSON.Description); err != nil {
 		ctx.Error(err, messageOperationFailed)
 		return
 	}
@@ -93,9 +113,10 @@ func WebauthnDevicePUT(ctx *middlewares.AutheliaCtx) {
 // WebauthnDeviceDELETE deletes a specific device for the current user.
 func WebauthnDeviceDELETE(ctx *middlewares.AutheliaCtx) {
 	var (
-		id     int
-		device *model.WebauthnDevice
-		err    error
+		id          int
+		device      *model.WebauthnDevice
+		userSession session.UserSession
+		err         error
 	)
 
 	if id, err = getWebauthnDeviceIDFromContext(ctx); err != nil {
@@ -107,10 +128,16 @@ func WebauthnDeviceDELETE(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	s := ctx.GetSession()
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
 
-	if device.Username != s.Username {
-		ctx.Error(fmt.Errorf("user '%s' tried to delete device with id '%d' which belongs to '%s", s.Username, device.ID, device.Username), messageOperationFailed)
+		ctx.ReplyForbidden()
+
+		return
+	}
+
+	if device.Username != userSession.Username {
+		ctx.Error(fmt.Errorf("user '%s' tried to delete device with id '%d' which belongs to '%s", userSession.Username, device.ID, device.Username), messageOperationFailed)
 		return
 	}
 

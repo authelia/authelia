@@ -18,7 +18,7 @@ type InactivityScenario struct {
 
 func NewInactivityScenario() *InactivityScenario {
 	return &InactivityScenario{
-		RodSuite: new(RodSuite),
+		RodSuite: NewRodSuite(""),
 	}
 }
 
