@@ -91,6 +91,10 @@ func (s *BaseSuite) SetupSuite() {
 }
 
 func (s *BaseSuite) SetupLogging() {
+	if os.Getenv("SUITE_SETUP_LOGGING") == "true" {
+		return
+	}
+
 	var (
 		level string
 		ok    bool
@@ -109,10 +113,12 @@ func (s *BaseSuite) SetupLogging() {
 	log.SetFormatter(&log.TextFormatter{
 		ForceColors: true,
 	})
+
+	s.T().Setenv("SUITE_SETUP_LOGGING", "true")
 }
 
 func (s *BaseSuite) SetupEnvironment() {
-	if s.Name == "" {
+	if s.Name == "" || os.Getenv("SUITE_SETUP_ENVIRONMENT") == "true" {
 		return
 	}
 
@@ -156,6 +162,8 @@ func (s *BaseSuite) SetupEnvironment() {
 
 		s.T().Setenv(v[0], v[1])
 	}
+
+	s.T().Setenv("SUITE_SETUP_ENVIRONMENT", "true")
 }
 
 func (rs *RodSession) collectScreenshot(err error, page *rod.Page) {
