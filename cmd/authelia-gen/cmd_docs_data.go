@@ -89,13 +89,9 @@ func docsKeysRunE(cmd *cobra.Command, args []string) (err error) {
 		data []ConfigurationKey
 	)
 
-	keys := readTags("", reflect.TypeOf(schema.Configuration{}))
+	keys := readTags("", reflect.TypeOf(schema.Configuration{}), true)
 
 	for _, key := range keys {
-		if strings.Contains(key, "[]") {
-			continue
-		}
-
 		ck := ConfigurationKey{
 			Path:   key,
 			Secret: configuration.IsSecretKey(key),
