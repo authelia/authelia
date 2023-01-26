@@ -3,7 +3,7 @@ title: "4.38: Pre-Release Notes"
 description: "Authelia 4.38 is just around the corner. This version has several additional features and improvements to existing features. In this blog post we'll discuss the new features and roughly what it means for users."
 lead: "Pre-Release Notes for 4.38"
 excerpt: "Authelia 4.38 is just around the corner. This version has several additional features and improvements to existing features. In this blog post we'll discuss the new features and roughly what it means for users."
-date: 2023-01-18T19:47:09+10:00
+date: 2023-01-21T00:18:00+11:00
 draft: false
 images: []
 categories: ["News", "Release Notes"]
