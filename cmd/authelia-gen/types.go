@@ -32,7 +32,8 @@ type GitHubTagsJSON struct {
 
 // DocsDataMisc represents the docs misc data schema.
 type DocsDataMisc struct {
-	CSP TemplateCSP `json:"csp"`
+	CSP    TemplateCSP `json:"csp"`
+	Latest string      `json:"latest"`
 }
 
 // TemplateCSP represents the CSP template vars.
@@ -139,7 +140,13 @@ func (t labelType) String() string {
 	return fmt.Sprintf("%s/%s", labelAreaPrefixType, labelTypeDescriptions[t])
 }
 
+// CSPValue represents individual CSP values.
 type CSPValue struct {
 	Name  string
 	Value string
+}
+
+// PackageJSON represents a NPM package.json file.
+type PackageJSON struct {
+	Version string `json:"version"`
 }
