@@ -37,6 +37,41 @@ necessary as several new features will not be available or even possible without
 will be publishing some guides on making these adjustments on the blog in the near future, including an FAQ catered to
 specific scenarios._
 
+## Builds
+
+The following contains information on getting access to the pre-production builds of 4.38.0.
+
+### 4.38.0-beta1
+
+- Container Images:
+  - [docker.io/authelia/authelia:v4.38.0-beta1](https://hub.docker.com/layers/authelia/authelia/v4.38.0-beta1/images/sha256-53faae6b6a0616f71f1f77069237d92969433b0037b9825be12852e013812bd0?context=explore)
+  - [ghcr.io/authelia/authelia:v4.38.0-beta1](https://github.com/authelia/authelia/pkgs/container/authelia/65909221?tag=v4.38.0-beta1)
+- [Binaries](https://buildkite.com/authelia/authelia/builds/18261)
+- [Documentation](https://deploy-preview-4828--authelia-staging.netlify.app/)
+
+Major Documentation Changes:
+
+- [LDAP](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/configuration/first-factor/ldap/)
+  - [Reference Guide](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/reference/guides/ldap/)
+- [Server](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/configuration/miscellaneous/server/)
+  - [Authz Endpoints](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/configuration/miscellaneous/server-endpoints-authz/)
+    - [Reference Guide](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/reference/guides/proxy-authorization/)
+- [Session](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/configuration/session/introduction/)
+- [Configuration Files](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/configuration/methods/files/)
+- [Configuration Files](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/configuration/methods/files/)
+- [Proxy Integration](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/integration/proxies/introduction/)
+  - [Caddy](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/integration/proxies/caddy/)
+  - [Envoy](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/integration/proxies/envoy/)
+  - [HAProxy](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/integration/proxies/haproxy/)
+  - [HAProxy](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/integration/proxies/haproxy/)
+  - [NGINX](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/integration/proxies/nginx/)
+  - [Traefik](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/integration/proxies/traefik/)
+- [Kubernetes Integration](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/integration/kubernetes/introduction/)
+  - [Traefik Ingress](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/integration/kubernetes/traefik-ingress/)
+  - [Istio](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/integration/kubernetes/istio/)
+  - [NGINX Ingress](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/integration/kubernetes/nginx-ingress/)
+- [Templating Reference Guide](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/reference/guides/templating/)
+
 ## OpenID Connect 1.0
 
 As part of our ongoing effort for comprehensive support for [OpenID Connect 1.0] we'll be introducing several important
@@ -141,6 +176,8 @@ In addition to being able to customize them you can create your own, and complet
 implementations in the process. Use of these new endpoints will require reconfiguration of your proxy, we plan to
 release a guide for each proxy.
 
+See the server authz endpoints docs and reference guide in the [builds](#builds) section for more information.
+
 ## User Dashboard / Control Panel
 
 As part of our ongoing effort for comprehensive support for a User Dashboard / Control Panel we'll be introducing
@@ -184,6 +221,8 @@ second will use the go template engine in a very similar way to how Helm operate
 As these features are experimental they may break, be removed, or otherwise not operate as expected. However most of our
 testing indicates they're incredibly solid.
 
+See the templating reference guide in the [builds](#builds) section for more information.
+
 ##### LDAP Implementation
 
 Several new LDAP implementations which provide defaults are being introduced in this version to assist users in
@@ -207,3 +246,8 @@ unified in this release.
 We'll be introducing a feature which allows administrators to more easily comply with the GDPR which optionally shows a
 link to their individual privacy policy on the frontend, and optionally requires users to accept it before using
 Authelia.
+
+##### LDAP Implementations
+
+This release adds several LDAP implementations into our existing set. See the reference guide in the [builds](#builds)
+section for more information.
