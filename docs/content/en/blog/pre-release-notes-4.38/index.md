@@ -37,6 +37,18 @@ necessary as several new features will not be available or even possible without
 will be publishing some guides on making these adjustments on the blog in the near future, including an FAQ catered to
 specific scenarios._
 
+## Builds
+
+The following contains information on getting access to the pre-production builds of 4.38.0.
+
+
+### 4.38.0-beta1
+
+- Container Images:
+  - [docker.io/authelia/authelia:v4.38.0-beta1](https://hub.docker.com/layers/authelia/authelia/v4.38.0-beta1/images/sha256-53faae6b6a0616f71f1f77069237d92969433b0037b9825be12852e013812bd0?context=explore)
+  - [ghcr.io/authelia/authelia:v4.38.0-beta1](https://github.com/authelia/authelia/pkgs/container/authelia/65909221?tag=v4.38.0-beta1)
+- [Binaries](https://buildkite.com/authelia/authelia/builds/18261)
+
 ## OpenID Connect 1.0
 
 As part of our ongoing effort for comprehensive support for [OpenID Connect 1.0] we'll be introducing several important
