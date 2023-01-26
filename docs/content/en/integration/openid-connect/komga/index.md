@@ -44,7 +44,7 @@ This example makes the following assumptions:
 
 ### Application
 
-To configure [Komga] to utilize Authelia as an [OpenID Connect] Provider:
+To configure [Komga] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Configure the security section of the [Komga] configuration:
 ```yaml
@@ -99,4 +99,4 @@ which will operate with the above example:
 
 [Authelia]: https://www.authelia.com
 [Komga]: https://www.komga.org
-[OpenID Connect]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

@@ -44,7 +44,7 @@ This example makes the following assumptions:
 
 ### Application
 
-To configure [Seafile] to utilize Authelia as an [OpenID Connect] Provider:
+To configure [Seafile] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. [Seafile] may require some dependencies such as `requests_oauthlib` to be manually installed.
    See the [Seafile] documentation in the [see also](#see-also) section for more information.
@@ -100,4 +100,4 @@ which will operate with the above example:
 
 [Authelia]: https://www.authelia.com
 [Seafile]: https://www.seafile.com/
-[OpenID Connect]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

@@ -177,7 +177,7 @@ func codeKeysRunE(cmd *cobra.Command, args []string) (err error) {
 
 	data := tmplConfigurationKeysData{
 		Timestamp: time.Now(),
-		Keys:      readTags("", reflect.TypeOf(schema.Configuration{})),
+		Keys:      readTags("", reflect.TypeOf(schema.Configuration{}), false),
 	}
 
 	if root, err = cmd.Flags().GetString(cmdFlagRoot); err != nil {

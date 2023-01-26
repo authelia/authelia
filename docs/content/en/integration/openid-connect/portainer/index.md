@@ -46,7 +46,7 @@ This example makes the following assumptions:
 
 ### Application
 
-To configure [Portainer] to utilize Authelia as an [OpenID Connect] Provider:
+To configure [Portainer] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Visit Settings
 2. Visit Authentication
@@ -93,4 +93,4 @@ which will operate with the above example:
 
 [Authelia]: https://www.authelia.com
 [Portainer]: https://www.portainer.io/
-[OpenID Connect]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md
