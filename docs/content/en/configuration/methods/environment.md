@@ -15,7 +15,7 @@ toc: true
 Environment variables are applied after the configuration file meaning anything specified as part of the environment
 overrides the configuration files.
 
-*__Please Note:__ It is not possible to configure several sections at this time, these include but may nott not be
+*__Please Note:__ It is not possible to configure several sections at this time, these include but may not be
 limited to the rules section in access control, the clients section in the OpenID Connect identity provider, the cookies
 section of in session, and the authz section in the server endpoints.*
 
