@@ -3,12 +3,14 @@ package main
 const (
 	dirCurrent = "./"
 	dirLocales = "internal/server/locales"
+	dirWeb     = "web"
 
 	subPathCmd      = "cmd"
 	subPathInternal = "internal"
 
-	fileCICommitLintConfig = "web/.commitlintrc.js"
-	fileWebI18NIndex       = "web/src/i18n/index.ts"
+	fileCICommitLintConfig = ".commitlintrc.js"
+	fileWebI18NIndex       = "src/i18n/index.ts"
+	fileWebPackage         = "package.json"
 
 	fileDocsCommitMessageGuidelines = "docs/content/en/contributing/guidelines/commit-message.md"
 
@@ -68,27 +70,30 @@ const (
 
 const (
 	cmdFlagRoot                        = "dir.root"
-	cmdFlagExclude                     = "exclude"
-	cmdFlagVersions                    = "versions"
+	cmdFlagWeb                         = "dir.web"
+	cmdFlagFileWebI18N                 = "file.web.i18n"
+	cmdFlagFileWebPackage              = "file.web.package"
+	cmdFlagDocs                        = "dir.docs"
 	cmdFlagDirLocales                  = "dir.locales"
 	cmdFlagDocsCLIReference            = "dir.docs.cli-reference"
 	cmdFlagDocsContent                 = "dir.docs.content"
 	cmdFlagDocsData                    = "dir.docs.data"
-	cmdFlagDocs                        = "dir.docs"
-	cmdFlagDocsDataLanguages           = "file.docs.data.languages"
 	cmdFlagDocsDataMisc                = "file.docs.data.misc"
 	cmdFlagDocsDataKeys                = "file.docs.data.keys"
-	cmdFlagCwd                         = "cwd"
+	cmdFlagDocsDataLanguages           = "file.docs.data.languages"
 	cmdFlagFileConfigKeys              = "file.configuration-keys"
 	cmdFlagFileScriptsGen              = "file.scripts.gen"
 	cmdFlagFileServerGenerated         = "file.server.generated"
 	cmdFlagFileConfigCommitLint        = "file.commit-lint-config"
 	cmdFlagFileDocsCommitMsgGuidelines = "file.docs-commit-msg-guidelines"
-	cmdFlagFileWebI18N                 = "file.web-i18n"
 	cmdFlagFeatureRequest              = "file.feature-request"
 	cmdFlagBugReport                   = "file.bug-report"
-	cmdFlagPackageConfigKeys           = "package.configuration.keys"
-	cmdFlagPackageScriptsGen           = "package.scripts.gen"
+
+	cmdFlagExclude           = "exclude"
+	cmdFlagVersions          = "versions"
+	cmdFlagCwd               = "cwd"
+	cmdFlagPackageConfigKeys = "package.configuration.keys"
+	cmdFlagPackageScriptsGen = "package.scripts.gen"
 )
 
 const (

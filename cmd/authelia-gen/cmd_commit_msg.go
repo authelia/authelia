@@ -110,7 +110,7 @@ func commitLintRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if pathCommitLintConfig, err = cmd.Flags().GetString(cmdFlagFileConfigCommitLint); err != nil {
+	if pathCommitLintConfig, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagWeb, cmdFlagFileConfigCommitLint); err != nil {
 		return err
 	}
 
