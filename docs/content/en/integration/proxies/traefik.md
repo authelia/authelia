@@ -364,7 +364,10 @@ http:
   middlewares:
     authelia:
       forwardAuth:
-        address: 'https://authelia:9091/api/authz/forward-auth?authelia_url=https%3A%2F%2Fauth.example.com%2F'
+        address: 'http://authelia:9091/api/authz/forward-auth'
+        ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest this is
+        ## configured in the Session Cookies section of the Authelia configuration.
+        # address: 'https://authelia:9091/api/authz/forward-auth?authelia_url=https%3A%2F%2Fauth.example.com%2F'
         trustForwardHeader: true
         authResponseHeaders:
           - 'Authorization'
