@@ -60,7 +60,7 @@ func TestShouldSplitDomainCorrectly(t *testing.T) {
 }
 
 func TestShouldParseRuleNetworks(t *testing.T) {
-	schemaNetworks := []schema.ACLNetwork{
+	schemaNetworks := []schema.AccessControlNetwork{
 		{
 			Name: "desktop",
 			Networks: []string{
@@ -105,7 +105,7 @@ func TestShouldParseRuleNetworks(t *testing.T) {
 }
 
 func TestShouldParseACLNetworks(t *testing.T) {
-	schemaNetworks := []schema.ACLNetwork{
+	schemaNetworks := []schema.AccessControlNetwork{
 		{
 			Name: "test",
 			Networks: []string{

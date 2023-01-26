@@ -28,7 +28,7 @@ func TestShouldSetDefaultLoggingValues(t *testing.T) {
 
 func TestShouldRaiseErrorOnInvalidLoggingLevel(t *testing.T) {
 	config := &schema.Configuration{
-		Log: schema.LogConfiguration{
+		Log: schema.Log{
 			Level: "TRACE",
 		},
 	}

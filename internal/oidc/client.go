@@ -13,7 +13,7 @@ import (
 )
 
 // NewClient creates a new Client.
-func NewClient(config schema.OpenIDConnectClient) (client Client) {
+func NewClient(config schema.IdentityProvidersOpenIDConnectClient) (client Client) {
 	base := &BaseClient{
 		ID:               config.ID,
 		Description:      config.Description,

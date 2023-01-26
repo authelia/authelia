@@ -18,7 +18,7 @@ func TestShouldWriteLogsToFile(t *testing.T) {
 	dir := t.TempDir()
 
 	path := fmt.Sprintf("%s/authelia.log", dir)
-	err := InitializeLogger(schema.LogConfiguration{Format: "text", FilePath: path, KeepStdout: false}, false)
+	err := InitializeLogger(schema.Log{Format: "text", FilePath: path, KeepStdout: false}, false)
 	require.NoError(t, err)
 
 	Logger().Info("This is a test")
@@ -36,7 +36,7 @@ func TestShouldWriteLogsToFileAndStdout(t *testing.T) {
 	dir := t.TempDir()
 
 	path := fmt.Sprintf("%s/authelia.log", dir)
-	err := InitializeLogger(schema.LogConfiguration{Format: "text", FilePath: path, KeepStdout: true}, false)
+	err := InitializeLogger(schema.Log{Format: "text", FilePath: path, KeepStdout: true}, false)
 	require.NoError(t, err)
 
 	Logger().Info("This is a test")
@@ -54,7 +54,7 @@ func TestShouldFormatLogsAsJSON(t *testing.T) {
 	dir := t.TempDir()
 
 	path := fmt.Sprintf("%s/authelia.log", dir)
-	err := InitializeLogger(schema.LogConfiguration{Format: "json", FilePath: path, KeepStdout: false}, false)
+	err := InitializeLogger(schema.Log{Format: "json", FilePath: path, KeepStdout: false}, false)
 	require.NoError(t, err)
 
 	Logger().Info("This is a test")
@@ -69,7 +69,7 @@ func TestShouldFormatLogsAsJSON(t *testing.T) {
 }
 
 func TestShouldRaiseErrorOnInvalidFile(t *testing.T) {
-	err := InitializeLogger(schema.LogConfiguration{FilePath: "/not/a/valid/path/to.log"}, false)
+	err := InitializeLogger(schema.Log{FilePath: "/not/a/valid/path/to.log"}, false)
 
 	switch runtime.GOOS {
 	case "windows":

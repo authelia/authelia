@@ -132,7 +132,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	return provider
 }
 
-func dsnPostgreSQL(config *schema.PostgreSQLStorageConfiguration, globalCACertPool *x509.CertPool) (dsn string) {
+func dsnPostgreSQL(config *schema.StoragePostgreSQL, globalCACertPool *x509.CertPool) (dsn string) {
 	dsnConfig, _ := pgx.ParseConfig("")
 
 	dsnConfig.Host = config.Address.SocketHostname()
@@ -153,16 +153,26 @@ func dsnPostgreSQL(config *schema.PostgreSQLStorageConfiguration, globalCACertPo
 	return stdlib.RegisterConnConfig(dsnConfig)
 }
 
-func loadPostgreSQLTLSConfig(config *schema.PostgreSQLStorageConfiguration, globalCACertPool *x509.CertPool) (tlsConfig *tls.Config) {
-	if config.TLS == nil && config.SSL == nil {
-		return nil
-	}
-
+func loadPostgreSQLTLSConfig(config *schema.StoragePostgreSQL, globalCACertPool *x509.CertPool) (tlsConfig *tls.Config) {
 	if config.TLS != nil {
 		return utils.NewTLSConfig(config.TLS, globalCACertPool)
 	}
 
-	ca, certs := loadPostgreSQLLegacyTLSConfig(config)
+	return loadPostgreSQLLegacyTLSConfig(config, globalCACertPool)
+}
+
+//nolint:staticcheck // Used for legacy purposes.
+func loadPostgreSQLLegacyTLSConfig(config *schema.StoragePostgreSQL, globalCACertPool *x509.CertPool) (tlsConfig *tls.Config) {
+	if config.SSL == nil {
+		return nil
+	}
+
+	var (
+		ca    *x509.Certificate
+		certs []tls.Certificate
+	)
+
+	ca, certs = loadPostgreSQLLegacyTLSConfigFiles(config)
 
 	switch config.SSL.Mode {
 	case "disable":
@@ -196,7 +206,8 @@ func loadPostgreSQLTLSConfig(config *schema.PostgreSQLStorageConfiguration, glob
 	return tlsConfig
 }
 
-func loadPostgreSQLLegacyTLSConfig(config *schema.PostgreSQLStorageConfiguration) (ca *x509.Certificate, certs []tls.Certificate) {
+//nolint:staticcheck // Used for legacy purposes.
+func loadPostgreSQLLegacyTLSConfigFiles(config *schema.StoragePostgreSQL) (ca *x509.Certificate, certs []tls.Certificate) {
 	var (
 		err error
 	)

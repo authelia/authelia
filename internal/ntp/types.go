@@ -8,7 +8,7 @@ import (
 
 // Provider type is the NTP provider.
 type Provider struct {
-	config *schema.NTPConfiguration
+	config *schema.NTP
 	log    *logrus.Logger
 }
 

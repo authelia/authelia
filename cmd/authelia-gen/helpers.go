@@ -3,18 +3,22 @@ package main
 import (
 	"crypto/ecdsa"
 	"crypto/rsa"
+	"encoding/json"
 	"fmt"
 	"net/mail"
 	"net/url"
+	"os"
 	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
 	"time"
 
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 func getPFlagPath(flags *pflag.FlagSet, flagNames ...string) (fullPath string, err error) {
@@ -84,6 +88,28 @@ func containsType(needle reflect.Type, haystack []reflect.Type) (contains bool) 
 	}
 
 	return false
+}
+
+func readVersion(cmd *cobra.Command) (version *model.SemanticVersion, err error) {
+	var (
+		pathPackageJSON string
+		dataPackageJSON []byte
+		packageJSON     PackageJSON
+	)
+
+	if pathPackageJSON, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagWeb, cmdFlagFileWebPackage); err != nil {
+		return nil, err
+	}
+
+	if dataPackageJSON, err = os.ReadFile(pathPackageJSON); err != nil {
+		return nil, err
+	}
+
+	if err = json.Unmarshal(dataPackageJSON, &packageJSON); err != nil {
+		return nil, fmt.Errorf("failed to unmarshall package.json: %w", err)
+	}
+
+	return model.NewSemanticVersion(packageJSON.Version)
 }
 
 //nolint:gocyclo

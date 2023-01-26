@@ -10,7 +10,7 @@ import (
 )
 
 // ValidateSession validates and update session configuration.
-func ValidateSession(config *schema.SessionConfiguration, validator *schema.StructValidator) {
+func ValidateSession(config *schema.Session, validator *schema.StructValidator) {
 	if config.Name == "" {
 		config.Name = schema.DefaultSessionConfiguration.Name
 	}
@@ -26,7 +26,7 @@ func ValidateSession(config *schema.SessionConfiguration, validator *schema.Stru
 	validateSession(config, validator)
 }
 
-func validateSession(config *schema.SessionConfiguration, validator *schema.StructValidator) {
+func validateSession(config *schema.Session, validator *schema.StructValidator) {
 	if config.Expiration <= 0 {
 		config.Expiration = schema.DefaultSessionConfiguration.Expiration // 1 hour.
 	}
@@ -51,27 +51,27 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 	cookies := len(config.Cookies)
 
 	switch {
-	case cookies == 0 && config.Domain != "":
+	case cookies == 0 && config.Domain != "": //nolint:staticcheck
 		// Add legacy configuration to the domains list.
-		config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
-			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+		config.Cookies = append(config.Cookies, schema.SessionCookie{
+			SessionCookieCommon: schema.SessionCookieCommon{
 				Name:              config.Name,
-				Domain:            config.Domain,
 				SameSite:          config.SameSite,
 				Expiration:        config.Expiration,
 				Inactivity:        config.Inactivity,
 				RememberMe:        config.RememberMe,
 				DisableRememberMe: config.DisableRememberMe,
 			},
+			Domain: config.Domain, //nolint:staticcheck
 		})
-	case cookies != 0 && config.Domain != "":
+	case cookies != 0 && config.Domain != "": //nolint:staticcheck
 		validator.Push(fmt.Errorf(errFmtSessionLegacyAndWarning))
 	}
 
 	validateSessionCookieDomains(config, validator)
 }
 
-func validateSessionCookieDomains(config *schema.SessionConfiguration, validator *schema.StructValidator) {
+func validateSessionCookieDomains(config *schema.Session, validator *schema.StructValidator) {
 	if len(config.Cookies) == 0 {
 		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "cookies"))
 	}
@@ -85,7 +85,7 @@ func validateSessionCookieDomains(config *schema.SessionConfiguration, validator
 
 		validateSessionCookieName(i, config)
 
-		validateSessionSafeRedirection(i, config, validator)
+		validateSessionCookiesAutheliaURL(i, config, validator)
 
 		validateSessionExpiration(i, config)
 
@@ -98,7 +98,7 @@ func validateSessionCookieDomains(config *schema.SessionConfiguration, validator
 }
 
 // validateSessionDomainName returns error if the domain name is invalid.
-func validateSessionDomainName(i int, config *schema.SessionConfiguration, validator *schema.StructValidator) {
+func validateSessionDomainName(i int, config *schema.Session, validator *schema.StructValidator) {
 	var d = config.Cookies[i]
 
 	switch {
@@ -123,13 +123,13 @@ func validateSessionDomainName(i int, config *schema.SessionConfiguration, valid
 	}
 }
 
-func validateSessionCookieName(i int, config *schema.SessionConfiguration) {
+func validateSessionCookieName(i int, config *schema.Session) {
 	if config.Cookies[i].Name == "" {
 		config.Cookies[i].Name = config.Name
 	}
 }
 
-func validateSessionExpiration(i int, config *schema.SessionConfiguration) {
+func validateSessionExpiration(i int, config *schema.Session) {
 	if config.Cookies[i].Expiration <= 0 {
 		config.Cookies[i].Expiration = config.Expiration
 	}
@@ -140,7 +140,7 @@ func validateSessionExpiration(i int, config *schema.SessionConfiguration) {
 }
 
 // validateSessionUniqueCookieDomain Check the current domains do not share a root domain with previous domains.
-func validateSessionUniqueCookieDomain(i int, config *schema.SessionConfiguration, domains []string, validator *schema.StructValidator) {
+func validateSessionUniqueCookieDomain(i int, config *schema.Session, domains []string, validator *schema.StructValidator) {
 	var d = config.Cookies[i]
 	if utils.IsStringInSliceF(d.Domain, domains, utils.HasDomainSuffix) {
 		if utils.IsStringInSlice(d.Domain, domains) {
@@ -151,8 +151,8 @@ func validateSessionUniqueCookieDomain(i int, config *schema.SessionConfiguratio
 	}
 }
 
-// validateSessionSafeRedirection validates that AutheliaURL is safe for redirection.
-func validateSessionSafeRedirection(index int, config *schema.SessionConfiguration, validator *schema.StructValidator) {
+// validateSessionCookiesAutheliaURL validates the AutheliaURL.
+func validateSessionCookiesAutheliaURL(index int, config *schema.Session, validator *schema.StructValidator) {
 	var d = config.Cookies[index]
 
 	if d.AutheliaURL != nil && d.Domain != "" && !utils.IsURISafeRedirection(d.AutheliaURL, d.Domain) {
@@ -164,7 +164,7 @@ func validateSessionSafeRedirection(index int, config *schema.SessionConfigurati
 	}
 }
 
-func validateSessionRememberMe(i int, config *schema.SessionConfiguration) {
+func validateSessionRememberMe(i int, config *schema.Session) {
 	if config.Cookies[i].RememberMe <= 0 && config.Cookies[i].RememberMe != schema.RememberMeDisabled {
 		config.Cookies[i].RememberMe = config.RememberMe
 	}
@@ -174,7 +174,7 @@ func validateSessionRememberMe(i int, config *schema.SessionConfiguration) {
 	}
 }
 
-func validateSessionSameSite(i int, config *schema.SessionConfiguration, validator *schema.StructValidator) {
+func validateSessionSameSite(i int, config *schema.Session, validator *schema.StructValidator) {
 	if config.Cookies[i].SameSite == "" {
 		if utils.IsStringInSlice(config.SameSite, validSessionSameSiteValues) {
 			config.Cookies[i].SameSite = config.SameSite
@@ -186,17 +186,17 @@ func validateSessionSameSite(i int, config *schema.SessionConfiguration, validat
 	}
 }
 
-func sessionDomainDescriptor(position int, domain schema.SessionCookieConfiguration) string {
+func sessionDomainDescriptor(position int, domain schema.SessionCookie) string {
 	return fmt.Sprintf("#%d (domain '%s')", position+1, domain.Domain)
 }
 
-func validateRedisCommon(config *schema.SessionConfiguration, validator *schema.StructValidator) {
+func validateRedisCommon(config *schema.Session, validator *schema.StructValidator) {
 	if config.Secret == "" {
 		validator.Push(fmt.Errorf(errFmtSessionSecretRequired, "redis"))
 	}
 
 	if config.Redis.TLS != nil {
-		configDefaultTLS := &schema.TLSConfig{
+		configDefaultTLS := &schema.TLS{
 			ServerName:     config.Redis.Host,
 			MinimumVersion: schema.DefaultRedisConfiguration.TLS.MinimumVersion,
 			MaximumVersion: schema.DefaultRedisConfiguration.TLS.MaximumVersion,
@@ -208,7 +208,7 @@ func validateRedisCommon(config *schema.SessionConfiguration, validator *schema.
 	}
 }
 
-func validateRedis(config *schema.SessionConfiguration, validator *schema.StructValidator) {
+func validateRedis(config *schema.Session, validator *schema.StructValidator) {
 	if config.Redis.Host == "" {
 		validator.Push(fmt.Errorf(errFmtSessionRedisHostRequired))
 	}
@@ -220,11 +220,11 @@ func validateRedis(config *schema.SessionConfiguration, validator *schema.Struct
 	}
 
 	if config.Redis.MaximumActiveConnections <= 0 {
-		config.Redis.MaximumActiveConnections = 8
+		config.Redis.MaximumActiveConnections = schema.DefaultRedisConfiguration.MaximumActiveConnections
 	}
 }
 
-func validateRedisSentinel(config *schema.SessionConfiguration, validator *schema.StructValidator) {
+func validateRedisSentinel(config *schema.Session, validator *schema.StructValidator) {
 	if config.Redis.HighAvailability.SentinelName == "" {
 		validator.Push(fmt.Errorf(errFmtSessionRedisSentinelMissingName))
 	}

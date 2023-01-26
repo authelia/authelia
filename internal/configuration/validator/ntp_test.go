@@ -11,7 +11,7 @@ import (
 
 func newDefaultNTPConfig() schema.Configuration {
 	return schema.Configuration{
-		NTP: schema.NTPConfiguration{},
+		NTP: schema.NTP{},
 	}
 }
 

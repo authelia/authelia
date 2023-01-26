@@ -44,33 +44,33 @@ func TestAuthzBuilder_WithConfig(t *testing.T) {
 func TestAuthzBuilder_WithEndpointConfig(t *testing.T) {
 	builder := NewAuthzBuilder()
 
-	builder.WithEndpointConfig(schema.ServerAuthzEndpoint{
+	builder.WithEndpointConfig(schema.ServerEndpointsAuthz{
 		Implementation: "ExtAuthz",
 	})
 
 	assert.Equal(t, AuthzImplExtAuthz, builder.implementation)
 
-	builder.WithEndpointConfig(schema.ServerAuthzEndpoint{
+	builder.WithEndpointConfig(schema.ServerEndpointsAuthz{
 		Implementation: "ForwardAuth",
 	})
 
 	assert.Equal(t, AuthzImplForwardAuth, builder.implementation)
 
-	builder.WithEndpointConfig(schema.ServerAuthzEndpoint{
+	builder.WithEndpointConfig(schema.ServerEndpointsAuthz{
 		Implementation: "AuthRequest",
 	})
 
 	assert.Equal(t, AuthzImplAuthRequest, builder.implementation)
 
-	builder.WithEndpointConfig(schema.ServerAuthzEndpoint{
+	builder.WithEndpointConfig(schema.ServerEndpointsAuthz{
 		Implementation: "Legacy",
 	})
 
 	assert.Equal(t, AuthzImplLegacy, builder.implementation)
 
-	builder.WithEndpointConfig(schema.ServerAuthzEndpoint{
+	builder.WithEndpointConfig(schema.ServerEndpointsAuthz{
 		Implementation: "ExtAuthz",
-		AuthnStrategies: []schema.ServerAuthzEndpointAuthnStrategy{
+		AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{
 			{Name: "HeaderProxyAuthorization"},
 			{Name: "CookieSession"},
 		},
@@ -78,9 +78,9 @@ func TestAuthzBuilder_WithEndpointConfig(t *testing.T) {
 
 	assert.Len(t, builder.strategies, 2)
 
-	builder.WithEndpointConfig(schema.ServerAuthzEndpoint{
+	builder.WithEndpointConfig(schema.ServerEndpointsAuthz{
 		Implementation: "ExtAuthz",
-		AuthnStrategies: []schema.ServerAuthzEndpointAuthnStrategy{
+		AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{
 			{Name: "HeaderAuthorization"},
 			{Name: "HeaderProxyAuthorization"},
 			{Name: "HeaderAuthRequestProxyAuthorization"},

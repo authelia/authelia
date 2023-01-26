@@ -80,7 +80,7 @@ func TestTOTPGenerateCustom(t *testing.T) {
 		},
 	}
 
-	totp := NewTimeBasedProvider(schema.TOTPConfiguration{
+	totp := NewTimeBasedProvider(schema.TOTP{
 		Issuer:     "Authelia",
 		Algorithm:  "SHA1",
 		Digits:     6,
@@ -120,7 +120,7 @@ func TestTOTPGenerateCustom(t *testing.T) {
 func TestTOTPGenerate(t *testing.T) {
 	skew := uint(2)
 
-	totp := NewTimeBasedProvider(schema.TOTPConfiguration{
+	totp := NewTimeBasedProvider(schema.TOTP{
 		Issuer:     "Authelia",
 		Algorithm:  "SHA256",
 		Digits:     8,

@@ -14,14 +14,14 @@ import (
 )
 
 func newTestSession() (*Session, error) {
-	config := schema.SessionConfiguration{}
-	config.Cookies = []schema.SessionCookieConfiguration{
+	config := schema.Session{}
+	config.Cookies = []schema.SessionCookie{
 		{
-			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+			SessionCookieCommon: schema.SessionCookieCommon{
 				Name:       testName,
-				Domain:     testDomain,
 				Expiration: testExpiration,
 			},
+			Domain: testDomain,
 		},
 	}
 

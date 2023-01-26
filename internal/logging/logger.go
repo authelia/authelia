@@ -34,7 +34,7 @@ func LoggerCtxPrintf(level logrus.Level) (logger *CtxPrintfLogger) {
 }
 
 // InitializeLogger configures the default loggers stack levels, formatting, and the output destinations.
-func InitializeLogger(config schema.LogConfiguration, log bool) error {
+func InitializeLogger(config schema.Log, log bool) error {
 	setLevelStr(config.Level, log)
 
 	var callerLevels []logrus.Level

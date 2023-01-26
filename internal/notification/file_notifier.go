@@ -20,7 +20,7 @@ type FileNotifier struct {
 }
 
 // NewFileNotifier create an FileNotifier writing the notification into a file.
-func NewFileNotifier(configuration schema.FileSystemNotifierConfiguration) *FileNotifier {
+func NewFileNotifier(configuration schema.NotifierFileSystem) *FileNotifier {
 	return &FileNotifier{
 		path: configuration.Filename,
 	}

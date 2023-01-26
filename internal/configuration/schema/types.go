@@ -10,18 +10,33 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
+	"github.com/authelia/jsonschema"
 	"github.com/go-crypt/crypt"
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/go-crypt/crypt/algorithm/plaintext"
+	"github.com/valyala/fasthttp"
+	"gopkg.in/yaml.v3"
 )
 
 var cdecoder algorithm.DecoderRegister
 
 // DecodePasswordDigest returns a new PasswordDigest if it can be decoded.
 func DecodePasswordDigest(encodedDigest string) (digest *PasswordDigest, err error) {
+	var d algorithm.Digest
+
+	if d, err = DecodeAlgorithmDigest(encodedDigest); err != nil {
+		return nil, err
+	}
+
+	return NewPasswordDigest(d), nil
+}
+
+// DecodeAlgorithmDigest returns a new algorithm.Digest if it can be decoded.
+func DecodeAlgorithmDigest(encodedDigest string) (digest algorithm.Digest, err error) {
 	if cdecoder == nil {
 		if cdecoder, err = crypt.NewDefaultDecoder(); err != nil {
 			return nil, fmt.Errorf("failed to initialize decoder: %w", err)
@@ -32,18 +47,25 @@ func DecodePasswordDigest(encodedDigest string) (digest *PasswordDigest, err err
 		}
 	}
 
-	var d algorithm.Digest
+	return cdecoder.Decode(encodedDigest)
+}
 
-	if d, err = cdecoder.Decode(encodedDigest); err != nil {
-		return nil, err
-	}
-
-	return &PasswordDigest{Digest: d}, nil
+// NewPasswordDigest returns a new *PasswordDigest from an algorithm.Digest.
+func NewPasswordDigest(digest algorithm.Digest) *PasswordDigest {
+	return &PasswordDigest{Digest: digest}
 }
 
 // PasswordDigest is a configuration type for the crypt.Digest.
 type PasswordDigest struct {
 	algorithm.Digest
+}
+
+// JSONSchema returns the JSON Schema information for the PasswordDigest type.
+func (PasswordDigest) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		Type:    "string",
+		Pattern: `^\$((argon2(id|i|d)\$v=19\$m=\d+,t=\d+,p=\d+|scrypt\$ln=\d+,r=\d+,p=\d+)\$[a-zA-Z0-9\/+]+\$[a-zA-Z0-9\/+]+|pbkdf2(-sha(224|256|384|512))?\$\d+\$[a-zA-Z0-9\/.]+\$[a-zA-Z0-9\/.]+|bcrypt-sha256\$v=2,t=2b,r=\d+\$[a-zA-Z0-9\/.]+\$[a-zA-Z0-9\/.]+|2(a|b|y)?\$\d+\$[a-zA-Z0-9.\/]+|(5|6)\$rounds=\d+\$[a-zA-Z0-9.\/]+\$[a-zA-Z0-9.\/]+|plaintext\$.+|base64\$[a-zA-Z0-9.=\/]+)$`,
+	}
 }
 
 // IsPlainText returns true if the underlying algorithm.Digest is a *plaintext.Digest.
@@ -58,6 +80,20 @@ func (d *PasswordDigest) IsPlainText() bool {
 	default:
 		return false
 	}
+}
+
+func (d *PasswordDigest) UnmarshalYAML(value *yaml.Node) (err error) {
+	digestRaw := ""
+
+	if err = value.Decode(&digestRaw); err != nil {
+		return err
+	}
+
+	if d.Digest, err = DecodeAlgorithmDigest(digestRaw); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // NewX509CertificateChain creates a new *X509CertificateChain from a given string, parsing each PEM block one by one.
@@ -130,6 +166,19 @@ type TLSVersion struct {
 	Value uint16
 }
 
+// JSONSchema returns the JSON Schema information for the TLSVersion type.
+func (TLSVersion) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		Type: "string",
+		Enum: []any{
+			"TLS1.0",
+			"TLS1.1",
+			"TLS1.2",
+			"TLS1.3",
+		},
+	}
+}
+
 // MaxVersion returns the value of this as a MaxVersion value.
 func (v *TLSVersion) MaxVersion() uint16 {
 	if v.Value == 0 {
@@ -178,6 +227,14 @@ type CryptographicKey any
 // X509CertificateChain is a helper struct that holds a list of *x509.Certificate's.
 type X509CertificateChain struct {
 	certs []*x509.Certificate
+}
+
+// JSONSchema returns the JSON Schema information for the X509CertificateChain type.
+func (X509CertificateChain) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		Type:    "string",
+		Pattern: `^(-{5}BEGIN CERTIFICATE-{5}\n([a-zA-Z0-9/+]{1,64}\n)+([a-zA-Z0-9/+]{1,64}[=]{0,2})\n-{5}END CERTIFICATE-{5}\n?)+$`,
+	}
 }
 
 // Thumbprint returns the Thumbprint for the first certificate.
@@ -329,4 +386,161 @@ func (c *X509CertificateChain) Validate() (err error) {
 	}
 
 	return nil
+}
+
+type AccessControlRuleNetworks []string
+
+func (AccessControlRuleNetworks) JSONSchema() *jsonschema.Schema {
+	return &jsonschemaWeakStringUniqueSlice
+}
+
+type IdentityProvidersOpenIDConnectClientRedirectURIs []string
+
+func (IdentityProvidersOpenIDConnectClientRedirectURIs) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		OneOf: []*jsonschema.Schema{
+			&jsonschemaURI,
+			{
+				Type:        "array",
+				Items:       &jsonschemaURI,
+				UniqueItems: true,
+			},
+		},
+	}
+}
+
+// AccessControlNetworkNetworks represents the ACL AccessControlNetworkNetworks type.
+type AccessControlNetworkNetworks []string
+
+func (AccessControlNetworkNetworks) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		OneOf: []*jsonschema.Schema{
+			&jsonschemaACLNetwork,
+			{
+				Type:        "array",
+				Items:       &jsonschemaACLNetwork,
+				UniqueItems: true,
+			},
+		},
+	}
+}
+
+type AccessControlRuleDomains []string
+
+func (AccessControlRuleDomains) JSONSchema() *jsonschema.Schema {
+	return &jsonschemaWeakStringUniqueSlice
+}
+
+type AccessControlRuleMethods []string
+
+func (AccessControlRuleMethods) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		OneOf: []*jsonschema.Schema{
+			&jsonschemaACLMethod,
+			{
+				Type:        "array",
+				Items:       &jsonschemaACLMethod,
+				UniqueItems: true,
+			},
+		},
+	}
+}
+
+// AccessControlRuleRegex represents the ACL AccessControlRuleSubjects type.
+type AccessControlRuleRegex []regexp.Regexp
+
+func (AccessControlRuleRegex) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		OneOf: []*jsonschema.Schema{
+			{
+				Type:   "string",
+				Format: "regex",
+			},
+			{
+				Type: "array",
+				Items: &jsonschema.Schema{
+					Type:   "string",
+					Format: "regex",
+				},
+				UniqueItems: true,
+			},
+		},
+	}
+}
+
+// AccessControlRuleSubjects represents the ACL AccessControlRuleSubjects type.
+type AccessControlRuleSubjects [][]string
+
+func (AccessControlRuleSubjects) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		OneOf: []*jsonschema.Schema{
+			&jsonschemaACLSubject,
+			{
+				Type:  "array",
+				Items: &jsonschemaACLSubject,
+			},
+			{
+				Type: "array",
+				Items: &jsonschema.Schema{
+					Type:  "array",
+					Items: &jsonschemaACLSubject,
+				},
+				UniqueItems: true,
+			},
+		},
+	}
+}
+
+type CSPTemplate string
+
+var jsonschemaURI = jsonschema.Schema{
+	Type:   "string",
+	Format: "uri",
+}
+
+var jsonschemaWeakStringUniqueSlice = jsonschema.Schema{
+	OneOf: []*jsonschema.Schema{
+		{
+			Type: "string",
+		},
+		{
+			Type: "array",
+			Items: &jsonschema.Schema{
+				Type: "string",
+			},
+			UniqueItems: true,
+		},
+	},
+}
+
+var jsonschemaACLNetwork = jsonschema.Schema{
+	Type:    "string",
+	Pattern: `((^((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))(\/([0-2]?[0-9]|3[0-2]))?$)|(^((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))?(\/(12[0-8]|1[0-1][0-9]|[0-9]{1,2}))?$))`,
+}
+
+var jsonschemaACLSubject = jsonschema.Schema{
+	Type:    "string",
+	Pattern: "^(user|group):.+$",
+}
+
+var jsonschemaACLMethod = jsonschema.Schema{
+	Type: "string",
+	Enum: []any{
+		fasthttp.MethodGet,
+		fasthttp.MethodHead,
+		fasthttp.MethodPost,
+		fasthttp.MethodPut,
+		fasthttp.MethodPatch,
+		fasthttp.MethodDelete,
+		fasthttp.MethodTrace,
+		fasthttp.MethodConnect,
+		fasthttp.MethodOptions,
+		"COPY",
+		"LOCK",
+		"MKCOL",
+		"MOVE",
+		"PROPFIND",
+		"PROPPATCH",
+		"UNLOCK",
+	},
 }

@@ -17,7 +17,7 @@ import (
 )
 
 func TestKeyManager(t *testing.T) {
-	config := &schema.OpenIDConnect{
+	config := &schema.IdentityProvidersOpenIDConnect{
 		IssuerPrivateKeys: []schema.JWK{
 			{
 				Use:              oidc.KeyUseSignature,

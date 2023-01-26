@@ -317,7 +317,7 @@ func (s *FirstFactorRedirectionSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 	s.mock.Ctx.Configuration.DefaultRedirectionURL = "https://default.local"
 	s.mock.Ctx.Configuration.AccessControl.DefaultPolicy = testBypass
-	s.mock.Ctx.Configuration.AccessControl.Rules = []schema.ACLRule{
+	s.mock.Ctx.Configuration.AccessControl.Rules = []schema.AccessControlRule{
 		{
 			Domains: []string{"default.local"},
 			Policy:  "one_factor",
@@ -404,7 +404,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUns
 //	the user should receive 200 without redirection URL.
 func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedAndTwoFactorEnabled() {
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
-		AccessControl: schema.AccessControlConfiguration{
+		AccessControl: schema.AccessControl{
 			DefaultPolicy: "two_factor",
 		},
 	})
@@ -430,9 +430,9 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedA
 //	the user should receive 200 without redirection URL.
 func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvidedAndTwoFactorEnabled() {
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
-		AccessControl: schema.AccessControlConfiguration{
+		AccessControl: schema.AccessControl{
 			DefaultPolicy: "one_factor",
-			Rules: []schema.ACLRule{
+			Rules: []schema.AccessControlRule{
 				{
 					Domains: []string{"test.example.com"},
 					Policy:  "one_factor",

@@ -40,12 +40,12 @@ func TestShouldSetDefaultServerValues(t *testing.T) {
 func TestShouldSetDefaultServerValuesWithLegacyAddress(t *testing.T) {
 	testCases := []struct {
 		name     string
-		have     schema.ServerConfiguration
+		have     schema.Server
 		expected schema.Address
 	}{
 		{
 			"ShouldParseAll",
-			schema.ServerConfiguration{
+			schema.Server{
 				Host: "abc",
 				Port: 123,
 				Path: "subpath",
@@ -54,7 +54,7 @@ func TestShouldSetDefaultServerValuesWithLegacyAddress(t *testing.T) {
 		},
 		{
 			"ShouldParseHostAndPort",
-			schema.ServerConfiguration{
+			schema.Server{
 				Host: "abc",
 				Port: 123,
 			},
@@ -62,7 +62,7 @@ func TestShouldSetDefaultServerValuesWithLegacyAddress(t *testing.T) {
 		},
 		{
 			"ShouldParseHostAndPath",
-			schema.ServerConfiguration{
+			schema.Server{
 				Host: "abc",
 				Path: "subpath",
 			},
@@ -70,7 +70,7 @@ func TestShouldSetDefaultServerValuesWithLegacyAddress(t *testing.T) {
 		},
 		{
 			"ShouldParsePortAndPath",
-			schema.ServerConfiguration{
+			schema.Server{
 				Port: 123,
 				Path: "subpath",
 			},
@@ -78,21 +78,21 @@ func TestShouldSetDefaultServerValuesWithLegacyAddress(t *testing.T) {
 		},
 		{
 			"ShouldParseHost",
-			schema.ServerConfiguration{
+			schema.Server{
 				Host: "abc",
 			},
 			MustParseAddress("tcp://abc:9091/"),
 		},
 		{
 			"ShouldParsePort",
-			schema.ServerConfiguration{
+			schema.Server{
 				Port: 123,
 			},
 			MustParseAddress("tcp://:123/"),
 		},
 		{
 			"ShouldParsePath",
-			schema.ServerConfiguration{
+			schema.Server{
 				Path: "subpath",
 			},
 			MustParseAddress("tcp://:9091/subpath"),
@@ -131,7 +131,7 @@ func TestShouldSetDefaultConfig(t *testing.T) {
 
 func TestValidateSeverAddress(t *testing.T) {
 	config := &schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.Server{
 			Address: &schema.AddressTCP{Address: MustParseAddress("tcp://:9091/path/")},
 		},
 	}
@@ -161,7 +161,7 @@ func TestValidateServerShouldCorrectlyIdentifyValidAddressSchemes(t *testing.T) 
 	}
 
 	have := &schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.Server{
 			Buffers: schema.ServerBuffers{
 				Read:  -1,
 				Write: -1,
@@ -204,7 +204,7 @@ func TestValidateServerShouldCorrectlyIdentifyValidAddressSchemes(t *testing.T) 
 func TestShouldDefaultOnNegativeValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.Server{
 			Buffers: schema.ServerBuffers{
 				Read:  -1,
 				Write: -1,
@@ -232,7 +232,7 @@ func TestShouldDefaultOnNegativeValues(t *testing.T) {
 func TestShouldRaiseOnNonAlphanumericCharsInPath(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.Server{
 			Path: "app le",
 		},
 	}
@@ -247,7 +247,7 @@ func TestShouldRaiseOnNonAlphanumericCharsInPath(t *testing.T) {
 func TestShouldRaiseOnForwardSlashInPath(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.Server{
 			Path: "app/le",
 		},
 	}
@@ -420,7 +420,7 @@ func TestShouldNotUpdateConfig(t *testing.T) {
 
 func TestServerEndpointsDevelShouldWarn(t *testing.T) {
 	config := &schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.Server{
 			Endpoints: schema.ServerEndpoints{
 				EnablePprof:   true,
 				EnableExpvars: true,
@@ -442,14 +442,14 @@ func TestServerEndpointsDevelShouldWarn(t *testing.T) {
 func TestServerAuthzEndpointErrors(t *testing.T) {
 	testCases := []struct {
 		name string
-		have map[string]schema.ServerAuthzEndpoint
+		have map[string]schema.ServerEndpointsAuthz
 		errs []string
 	}{
 		{"ShouldAllowDefaultEndpoints", schema.DefaultServerConfiguration.Endpoints.Authz, nil},
 		{"ShouldAllowSetDefaultEndpoints", nil, nil},
 		{
 			"ShouldErrorOnInvalidEndpointImplementations",
-			map[string]schema.ServerAuthzEndpoint{
+			map[string]schema.ServerEndpointsAuthz{
 				"example": {Implementation: "zero"},
 			},
 			[]string{
@@ -458,7 +458,7 @@ func TestServerAuthzEndpointErrors(t *testing.T) {
 		},
 		{
 			"ShouldErrorOnInvalidEndpointImplementationLegacy",
-			map[string]schema.ServerAuthzEndpoint{
+			map[string]schema.ServerEndpointsAuthz{
 				"legacy": {Implementation: "zero"},
 			},
 			[]string{
@@ -467,15 +467,15 @@ func TestServerAuthzEndpointErrors(t *testing.T) {
 		},
 		{
 			"ShouldErrorOnInvalidEndpointLegacyImplementation",
-			map[string]schema.ServerAuthzEndpoint{
+			map[string]schema.ServerEndpointsAuthz{
 				"legacy": {Implementation: "ExtAuthz"},
 			},
 			[]string{"server: endpoints: authz: legacy: option 'implementation' is invalid: the endpoint with the name 'legacy' must use the 'Legacy' implementation"},
 		},
 		{
 			"ShouldErrorOnInvalidAuthnStrategies",
-			map[string]schema.ServerAuthzEndpoint{
-				"example": {Implementation: "ExtAuthz", AuthnStrategies: []schema.ServerAuthzEndpointAuthnStrategy{{Name: "bad-name"}}},
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: "ExtAuthz", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{{Name: "bad-name"}}},
 			},
 			[]string{
 				"server: endpoints: authz: example: authn_strategies: option 'name' must be one of 'CookieSession', 'HeaderAuthorization', 'HeaderProxyAuthorization', 'HeaderAuthRequestProxyAuthorization', or 'HeaderLegacy' but it's configured as 'bad-name'",
@@ -483,14 +483,14 @@ func TestServerAuthzEndpointErrors(t *testing.T) {
 		},
 		{
 			"ShouldErrorOnDuplicateName",
-			map[string]schema.ServerAuthzEndpoint{
-				"example": {Implementation: "ExtAuthz", AuthnStrategies: []schema.ServerAuthzEndpointAuthnStrategy{{Name: "CookieSession"}, {Name: "CookieSession"}}},
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: "ExtAuthz", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{{Name: "CookieSession"}, {Name: "CookieSession"}}},
 			},
 			[]string{"server: endpoints: authz: example: authn_strategies: duplicate strategy name detected with name 'CookieSession'"},
 		},
 		{
 			"ShouldErrorOnInvalidChars",
-			map[string]schema.ServerAuthzEndpoint{
+			map[string]schema.ServerEndpointsAuthz{
 				"/abc":  {Implementation: "ForwardAuth"},
 				"/abc/": {Implementation: "ForwardAuth"},
 				"abc/":  {Implementation: "ForwardAuth"},
@@ -515,7 +515,7 @@ func TestServerAuthzEndpointErrors(t *testing.T) {
 		},
 		{
 			"ShouldErrorOnEndpointsWithDuplicatePrefix",
-			map[string]schema.ServerAuthzEndpoint{
+			map[string]schema.ServerEndpointsAuthz{
 				"apple":         {Implementation: "ForwardAuth"},
 				"apple/abc":     {Implementation: "ForwardAuth"},
 				"pear/abc":      {Implementation: "ExtAuthz"},
@@ -568,7 +568,7 @@ func TestServerAuthzEndpointErrors(t *testing.T) {
 }
 
 func TestServerAuthzEndpointLegacyAsImplementationLegacyWhenBlank(t *testing.T) {
-	have := map[string]schema.ServerAuthzEndpoint{
+	have := map[string]schema.ServerEndpointsAuthz{
 		"legacy": {},
 	}
 

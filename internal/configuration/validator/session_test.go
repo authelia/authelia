@@ -13,11 +13,11 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-func newDefaultSessionConfig() schema.SessionConfiguration {
-	config := schema.SessionConfiguration{}
+func newDefaultSessionConfig() schema.Session {
+	config := schema.Session{}
 	config.Secret = testJWTSecret
-	config.Domain = exampleDotCom
-	config.Cookies = []schema.SessionCookieConfiguration{}
+	config.Domain = exampleDotCom //nolint:staticcheck
+	config.Cookies = []schema.SessionCookie{}
 
 	return config
 }
@@ -40,27 +40,30 @@ func TestShouldSetDefaultSessionValues(t *testing.T) {
 func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 	testCases := []struct {
 		name     string
-		have     schema.SessionConfiguration
-		expected schema.SessionConfiguration
+		have     schema.Session
+		expected schema.Session
 		errs     []string
 	}{
 		{
 			"ShouldSetGoodDefaultValues",
-			schema.SessionConfiguration{
-				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-					Domain: exampleDotCom, SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
+			schema.Session{
+				SessionCookieCommon: schema.SessionCookieCommon{
+					SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
 				},
+				Domain: exampleDotCom,
 			},
-			schema.SessionConfiguration{
-				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-					Name: "authelia_session", Domain: exampleDotCom, SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
+			schema.Session{
+				SessionCookieCommon: schema.SessionCookieCommon{
+					Name: "authelia_session", SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
 				},
-				Cookies: []schema.SessionCookieConfiguration{
+				Domain: exampleDotCom,
+				Cookies: []schema.SessionCookie{
 					{
-						SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-							Name: "authelia_session", Domain: exampleDotCom, SameSite: "lax", Expiration: time.Hour,
+						SessionCookieCommon: schema.SessionCookieCommon{
+							Name: "authelia_session", SameSite: "lax", Expiration: time.Hour,
 							Inactivity: time.Minute, RememberMe: time.Hour * 2,
 						},
+						Domain: exampleDotCom,
 					},
 				},
 			},
@@ -68,29 +71,31 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 		},
 		{
 			"ShouldNotSetBadDefaultValues",
-			schema.SessionConfiguration{
-				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+			schema.Session{
+				SessionCookieCommon: schema.SessionCookieCommon{
 					SameSite: "BAD VALUE", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
 				},
-				Cookies: []schema.SessionCookieConfiguration{
+				Cookies: []schema.SessionCookie{
 					{
-						SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-							Name: "authelia_session", Domain: exampleDotCom,
+						SessionCookieCommon: schema.SessionCookieCommon{
+							Name:       "authelia_session",
 							Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
 						},
+						Domain: exampleDotCom,
 					},
 				},
 			},
-			schema.SessionConfiguration{
-				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+			schema.Session{
+				SessionCookieCommon: schema.SessionCookieCommon{
 					Name: "authelia_session", SameSite: "BAD VALUE", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
 				},
-				Cookies: []schema.SessionCookieConfiguration{
+				Cookies: []schema.SessionCookie{
 					{
-						SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-							Name: "authelia_session", Domain: exampleDotCom, SameSite: schema.DefaultSessionConfiguration.SameSite,
+						SessionCookieCommon: schema.SessionCookieCommon{
+							Name: "authelia_session", SameSite: schema.DefaultSessionConfiguration.SameSite,
 							Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
 						},
+						Domain: exampleDotCom,
 					},
 				},
 			},
@@ -100,41 +105,42 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 		},
 		{
 			"ShouldSetDefaultValuesForEachConfig",
-			schema.SessionConfiguration{
-				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+			schema.Session{
+				SessionCookieCommon: schema.SessionCookieCommon{
 					Name: "default_session", SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute,
 					RememberMe: schema.RememberMeDisabled,
 				},
-				Cookies: []schema.SessionCookieConfiguration{
+				Cookies: []schema.SessionCookie{
 					{
-						SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-							Domain: exampleDotCom,
-						},
+						Domain: exampleDotCom,
 					},
 					{
-						SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-							Domain: "example2.com", Name: "authelia_session", SameSite: "strict",
+						SessionCookieCommon: schema.SessionCookieCommon{
+							Name: "authelia_session", SameSite: "strict",
 						},
+						Domain: "example2.com",
 					},
 				},
 			},
-			schema.SessionConfiguration{
-				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+			schema.Session{
+				SessionCookieCommon: schema.SessionCookieCommon{
 					Name: "default_session", SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute,
 					RememberMe: schema.RememberMeDisabled, DisableRememberMe: true,
 				},
-				Cookies: []schema.SessionCookieConfiguration{
+				Cookies: []schema.SessionCookie{
 					{
-						SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-							Name: "default_session", Domain: exampleDotCom, SameSite: "lax",
+						SessionCookieCommon: schema.SessionCookieCommon{
+							Name: "default_session", SameSite: "lax",
 							Expiration: time.Hour, Inactivity: time.Minute, RememberMe: schema.RememberMeDisabled, DisableRememberMe: true,
 						},
+						Domain: exampleDotCom,
 					},
 					{
-						SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-							Name: "authelia_session", Domain: "example2.com", SameSite: "strict",
+						SessionCookieCommon: schema.SessionCookieCommon{
+							Name: "authelia_session", SameSite: "strict",
 							Expiration: time.Hour, Inactivity: time.Minute, RememberMe: schema.RememberMeDisabled, DisableRememberMe: true,
 						},
+						Domain: "example2.com",
 					},
 				},
 			},
@@ -142,17 +148,18 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 		},
 		{
 			"ShouldErrorOnEmptyConfig",
-			schema.SessionConfiguration{
-				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-					Name: "", SameSite: "", Domain: "",
+			schema.Session{
+				SessionCookieCommon: schema.SessionCookieCommon{
+					Name: "", SameSite: "",
 				},
-				Cookies: []schema.SessionCookieConfiguration{},
+				Domain:  "",
+				Cookies: []schema.SessionCookie{},
 			},
-			schema.SessionConfiguration{
-				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+			schema.Session{
+				SessionCookieCommon: schema.SessionCookieCommon{
 					Name: "authelia_session", SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute * 5, RememberMe: time.Hour * 24 * 30,
 				},
-				Cookies: []schema.SessionCookieConfiguration{},
+				Cookies: []schema.SessionCookie{},
 			},
 			[]string{
 				"session: option 'cookies' is required",
@@ -203,7 +210,7 @@ func TestShouldWarnSessionValuesWhenPotentiallyInvalid(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
-	config.Domain = ".example.com"
+	config.Domain = ".example.com" //nolint:staticcheck
 
 	ValidateSession(&config, validator)
 
@@ -225,7 +232,7 @@ func TestShouldHandleRedisConfigSuccessfully(t *testing.T) {
 	config = newDefaultSessionConfig()
 
 	// Set redis config because password must be set only when redis is used.
-	config.Redis = &schema.RedisSessionConfiguration{
+	config.Redis = &schema.SessionRedis{
 		Host:     "redis.localhost",
 		Port:     6379,
 		Password: "password",
@@ -243,7 +250,7 @@ func TestShouldRaiseErrorWithInvalidRedisPortLow(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
-	config.Redis = &schema.RedisSessionConfiguration{
+	config.Redis = &schema.SessionRedis{
 		Host: "authelia-port-1",
 		Port: -1,
 	}
@@ -260,7 +267,7 @@ func TestShouldRaiseErrorWithInvalidRedisPortHigh(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
-	config.Redis = &schema.RedisSessionConfiguration{
+	config.Redis = &schema.SessionRedis{
 		Host: "authelia-port-1",
 		Port: 65536,
 	}
@@ -287,7 +294,7 @@ func TestShouldRaiseErrorWhenRedisIsUsedAndSecretNotSet(t *testing.T) {
 	config.Secret = ""
 
 	// Set redis config because password must be set only when redis is used.
-	config.Redis = &schema.RedisSessionConfiguration{
+	config.Redis = &schema.SessionRedis{
 		Host: "redis.localhost",
 		Port: 6379,
 	}
@@ -311,7 +318,7 @@ func TestShouldRaiseErrorWhenRedisHasHostnameButNoPort(t *testing.T) {
 	config = newDefaultSessionConfig()
 
 	// Set redis config because password must be set only when redis is used.
-	config.Redis = &schema.RedisSessionConfiguration{
+	config.Redis = &schema.SessionRedis{
 		Host: "redis.localhost",
 		Port: 0,
 	}
@@ -327,13 +334,13 @@ func TestShouldRaiseOneErrorWhenRedisHighAvailabilityHasNodesWithNoHost(t *testi
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
-	config.Redis = &schema.RedisSessionConfiguration{
+	config.Redis = &schema.SessionRedis{
 		Host: "redis",
 		Port: 6379,
-		HighAvailability: &schema.RedisHighAvailabilityConfiguration{
+		HighAvailability: &schema.SessionRedisHighAvailability{
 			SentinelName:     "authelia-sentinel",
 			SentinelPassword: "abc123",
-			Nodes: []schema.RedisNode{
+			Nodes: []schema.SessionRedisHighAvailabilityNode{
 				{
 					Port: 26379,
 				},
@@ -358,10 +365,10 @@ func TestShouldRaiseOneErrorWhenRedisHighAvailabilityDoesNotHaveSentinelName(t *
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
-	config.Redis = &schema.RedisSessionConfiguration{
+	config.Redis = &schema.SessionRedis{
 		Host: "redis",
 		Port: 6379,
-		HighAvailability: &schema.RedisHighAvailabilityConfiguration{
+		HighAvailability: &schema.SessionRedisHighAvailability{
 			SentinelPassword: "abc123",
 		},
 	}
@@ -380,13 +387,13 @@ func TestShouldUpdateDefaultPortWhenRedisSentinelHasNodes(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
-	config.Redis = &schema.RedisSessionConfiguration{
+	config.Redis = &schema.SessionRedis{
 		Host: "redis",
 		Port: 6379,
-		HighAvailability: &schema.RedisHighAvailabilityConfiguration{
+		HighAvailability: &schema.SessionRedisHighAvailability{
 			SentinelName:     "authelia-sentinel",
 			SentinelPassword: "abc123",
-			Nodes: []schema.RedisNode{
+			Nodes: []schema.SessionRedisHighAvailabilityNode{
 				{
 					Host: "node-1",
 					Port: 333,
@@ -416,12 +423,12 @@ func TestShouldRaiseErrorsWhenRedisSentinelOptionsIncorrectlyConfigured(t *testi
 	config := newDefaultSessionConfig()
 
 	config.Secret = ""
-	config.Redis = &schema.RedisSessionConfiguration{
+	config.Redis = &schema.SessionRedis{
 		Port: 65536,
-		HighAvailability: &schema.RedisHighAvailabilityConfiguration{
+		HighAvailability: &schema.SessionRedisHighAvailability{
 			SentinelName:     "sentinel",
 			SentinelPassword: "abc123",
-			Nodes: []schema.RedisNode{
+			Nodes: []schema.SessionRedisHighAvailabilityNode{
 				{
 					Host: "node1",
 					Port: 26379,
@@ -447,12 +454,12 @@ func TestShouldRaiseErrorsWhenRedisSentinelOptionsIncorrectlyConfigured(t *testi
 	config = newDefaultSessionConfig()
 
 	config.Secret = ""
-	config.Redis = &schema.RedisSessionConfiguration{
+	config.Redis = &schema.SessionRedis{
 		Port: -1,
-		HighAvailability: &schema.RedisHighAvailabilityConfiguration{
+		HighAvailability: &schema.SessionRedisHighAvailability{
 			SentinelName:     "sentinel",
 			SentinelPassword: "abc123",
-			Nodes: []schema.RedisNode{
+			Nodes: []schema.SessionRedisHighAvailabilityNode{
 				{
 					Host: "node1",
 					Port: 26379,
@@ -478,13 +485,13 @@ func TestShouldNotRaiseErrorsAndSetDefaultPortWhenRedisSentinelPortBlank(t *test
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
-	config.Redis = &schema.RedisSessionConfiguration{
+	config.Redis = &schema.SessionRedis{
 		Host: "mysentinelHost",
 		Port: 0,
-		HighAvailability: &schema.RedisHighAvailabilityConfiguration{
+		HighAvailability: &schema.SessionRedisHighAvailability{
 			SentinelName:     "sentinel",
 			SentinelPassword: "abc123",
-			Nodes: []schema.RedisNode{
+			Nodes: []schema.SessionRedisHighAvailabilityNode{
 				{
 					Host: "node1",
 					Port: 26379,
@@ -507,9 +514,9 @@ func TestShouldRaiseErrorWhenRedisHostAndHighAvailabilityNodesEmpty(t *testing.T
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
-	config.Redis = &schema.RedisSessionConfiguration{
+	config.Redis = &schema.SessionRedis{
 		Port: 26379,
-		HighAvailability: &schema.RedisHighAvailabilityConfiguration{
+		HighAvailability: &schema.SessionRedisHighAvailability{
 			SentinelName:     "sentinel",
 			SentinelPassword: "abc123",
 			RouteByLatency:   true,
@@ -529,7 +536,7 @@ func TestShouldRaiseErrorsWhenRedisHostNotSet(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
-	config.Redis = &schema.RedisSessionConfiguration{
+	config.Redis = &schema.SessionRedis{
 		Port: 6379,
 	}
 
@@ -547,10 +554,10 @@ func TestShouldSetDefaultRedisTLSOptions(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
-	config.Redis = &schema.RedisSessionConfiguration{
+	config.Redis = &schema.SessionRedis{
 		Host: "redis.local",
 		Port: 6379,
-		TLS:  &schema.TLSConfig{},
+		TLS:  &schema.TLS{},
 	}
 
 	ValidateSession(&config, validator)
@@ -567,10 +574,10 @@ func TestShouldRaiseErrorOnBadRedisTLSOptionsSSL30(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
-	config.Redis = &schema.RedisSessionConfiguration{
+	config.Redis = &schema.SessionRedis{
 		Host: "redis.local",
 		Port: 6379,
-		TLS: &schema.TLSConfig{
+		TLS: &schema.TLS{
 			MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
 		},
 	}
@@ -587,10 +594,10 @@ func TestShouldRaiseErrorOnBadRedisTLSOptionsMinVerGreaterThanMax(t *testing.T) 
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
-	config.Redis = &schema.RedisSessionConfiguration{
+	config.Redis = &schema.SessionRedis{
 		Host: "redis.local",
 		Port: 6379,
-		TLS: &schema.TLSConfig{
+		TLS: &schema.TLS{
 			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
 			MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS10},
 		},
@@ -607,40 +614,32 @@ func TestShouldRaiseErrorOnBadRedisTLSOptionsMinVerGreaterThanMax(t *testing.T) 
 func TestShouldRaiseErrorWhenHaveDuplicatedDomainName(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
-	config.Domain = ""
-	config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
-		SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-			Domain: exampleDotCom,
-		},
+	config.Domain = "" //nolint:staticcheck
+	config.Cookies = append(config.Cookies, schema.SessionCookie{
+		Domain:      exampleDotCom,
 		AutheliaURL: MustParseURL("https://login.example.com"),
 	})
-	config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
-		SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-			Domain: exampleDotCom,
-		},
+	config.Cookies = append(config.Cookies, schema.SessionCookie{
+		Domain:      exampleDotCom,
 		AutheliaURL: MustParseURL("https://login.example.com"),
 	})
 
 	ValidateSession(&config, validator)
 	assert.False(t, validator.HasWarnings())
 	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionDomainDuplicate, sessionDomainDescriptor(1, schema.SessionCookieConfiguration{SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{Domain: exampleDotCom}})))
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionDomainDuplicate, sessionDomainDescriptor(1, schema.SessionCookie{Domain: exampleDotCom})))
 }
 
 func TestShouldRaiseErrorWhenSubdomainConflicts(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
-	config.Domain = ""
-	config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
-		SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-			Domain: exampleDotCom,
-		},
+	config.Domain = "" //nolint:staticcheck
+	config.Cookies = append(config.Cookies, schema.SessionCookie{
+		Domain:      exampleDotCom,
 		AutheliaURL: MustParseURL("https://login.example.com"),
 	})
-	config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
-		SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-			Domain: "internal.example.com",
-		},
+	config.Cookies = append(config.Cookies, schema.SessionCookie{
+		Domain:      "internal.example.com",
 		AutheliaURL: MustParseURL("https://login.internal.example.com"),
 	})
 
@@ -672,13 +671,11 @@ func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			validator := schema.NewStructValidator()
 			config := newDefaultSessionConfig()
-			config.Domain = ""
+			config.Domain = "" //nolint:staticcheck
 
-			config.Cookies = []schema.SessionCookieConfiguration{
+			config.Cookies = []schema.SessionCookie{
 				{
-					SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-						Domain: tc.have,
-					},
+					Domain: tc.have,
 				},
 			}
 
@@ -712,13 +709,13 @@ func TestShouldRaiseErrorWhenPortalURLIsInvalid(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			validator := schema.NewStructValidator()
 			config := newDefaultSessionConfig()
-			config.Domain = ""
-			config.Cookies = []schema.SessionCookieConfiguration{
+			config.Domain = "" //nolint:staticcheck
+			config.Cookies = []schema.SessionCookie{
 				{
-					SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-						Name:   "authelia_session",
-						Domain: exampleDotCom,
+					SessionCookieCommon: schema.SessionCookieCommon{
+						Name: "authelia_session",
 					},
+					Domain:      exampleDotCom,
 					AutheliaURL: MustParseURL(tc.have)},
 			}
 
@@ -751,7 +748,7 @@ func TestShouldRaiseErrorWhenSameSiteSetIncorrectly(t *testing.T) {
 func TestShouldNotRaiseErrorWhenSameSiteSetCorrectly(t *testing.T) {
 	validator := schema.NewStructValidator()
 
-	var config schema.SessionConfiguration
+	var config schema.Session
 
 	validOptions := []string{"none", "lax", "strict"}
 
@@ -802,15 +799,15 @@ func TestShouldNotAllowLegacyAndModernCookiesConfig(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
-	config.Cookies = append(config.Cookies, schema.SessionCookieConfiguration{
-		SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+	config.Cookies = append(config.Cookies, schema.SessionCookie{
+		SessionCookieCommon: schema.SessionCookieCommon{
 			Name:       config.Name,
-			Domain:     config.Domain,
 			SameSite:   config.SameSite,
 			Expiration: config.Expiration,
 			Inactivity: config.Inactivity,
 			RememberMe: config.RememberMe,
 		},
+		Domain: config.Domain, //nolint:staticcheck
 	})
 
 	ValidateSession(&config, validator)
