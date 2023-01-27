@@ -44,7 +44,7 @@ This example makes the following assumptions:
 
 ### Application
 
-To configure [HashiCorp Vault] to utilize Authelia as an [OpenID Connect] Provider please see the links in the
+To configure [HashiCorp Vault] to utilize Authelia as an [OpenID Connect 1.0] Provider please see the links in the
 [see also](#see-also) section.
 
 ### Authelia
@@ -77,4 +77,4 @@ which will operate with the above example:
 
 [Authelia]: https://www.authelia.com
 [HashiCorp Vault]: https://www.vaultproject.io/
-[OpenID Connect]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

@@ -44,7 +44,7 @@ This example makes the following assumptions:
 
 ### Application
 
-To configure [Synapse] to utilize Authelia as an [OpenID Connect] Provider:
+To configure [Synapse] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Edit your [Synapse] `homeserver.yaml` configuration file and add configure the following:
 
@@ -94,4 +94,4 @@ which will operate with the above example:
 
 [Authelia]: https://www.authelia.com
 [Synapse]: https://github.com/matrix-org/synapse
-[OpenID Connect]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

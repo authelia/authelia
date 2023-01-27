@@ -44,7 +44,7 @@ This example makes the following assumptions:
 
 ### Application
 
-To configure [Nextcloud] to utilize Authelia as an [OpenID Connect] Provider:
+To configure [Nextcloud] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Install the [Nextcloud OpenID Connect Login app]
 2. Add the following to the [Nextcloud] `config.php` configuration:
@@ -115,4 +115,4 @@ which will operate with the above example:
 [Authelia]: https://www.authelia.com
 [Nextcloud]: https://nextcloud.com/
 [Nextcloud OpenID Connect Login app]: https://apps.nextcloud.com/apps/oidc_login
-[OpenID Connect]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

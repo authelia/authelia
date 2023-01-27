@@ -50,7 +50,7 @@ This example makes the following assumptions:
 
 ### Application
 
-To configure [Proxmox] to utilize Authelia as an [OpenID Connect] Provider:
+To configure [Proxmox] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Visit Datacenter
 2. Visit Permission
@@ -94,4 +94,4 @@ which will operate with the above example:
 
 [Authelia]: https://www.authelia.com
 [Proxmox]: https://www.proxmox.com/
-[OpenID Connect]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md
