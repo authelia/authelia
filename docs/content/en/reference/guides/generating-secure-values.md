@@ -20,7 +20,7 @@ we provide a convenience layer for this purpose.
 ### authelia
 
 The __Authelia__ docker container or CLI binary can be used to generate a random alphanumeric string and output the
-the string and the hash at the same time.
+string and the hash at the same time.
 
 Use the `authelia crypto hash generate --help` command or see the [authelia crypto hash generate] reference guide for
 more information on all available options and algorithms.
