@@ -59,7 +59,7 @@ In the example we have a commented `trusted_proxies` directive which shows an ex
 to the trusted proxy list in [Caddy]:
 
 * 10.0.0.0/8
-* 172.16.0.0/16
+* 172.16.0.0/12
 * 192.168.0.0/16
 * fc00::/7
 
@@ -84,7 +84,7 @@ support to ensure the basic example covers your use case in a secure way.
 ##     https://www.authelia.com/integration/proxies/caddy/#forwarded-header-trust#trusted-proxies
 (trusted_proxy_list) {
        ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
-       # trusted_proxies 10.0.0.0/8 172.16.0.0/16 192.168.0.0/16 fc00::/7
+       # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
 }
 
 # Authelia Portal.
@@ -123,7 +123,7 @@ nextcloud.example.com {
 ##     https://www.authelia.com/integration/proxies/caddy/#forwarded-header-trust#trusted-proxies
 (trusted_proxy_list) {
        ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
-       # trusted_proxies 10.0.0.0/8 172.16.0.0/16 192.168.0.0/16 fc00::/7
+       # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
 }
 
 example.com {
@@ -168,7 +168,7 @@ preferred in *most* situations. If you are unsure of what you're doing please do
 ##     https://www.authelia.com/integration/proxies/caddy/#forwarded-header-trust#trusted-proxies
 (trusted_proxy_list) {
        ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
-       # trusted_proxies 10.0.0.0/8 172.16.0.0/16 192.168.0.0/16 fc00::/7
+       # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
 }
 
 # Authelia Portal.
