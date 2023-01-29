@@ -1,5 +1,6 @@
 #!/bin/sh
+
 . "$(dirname "$0")/_/husky.sh"
 . "$(dirname "$0")/required-apps"
 
-cd web && ${PMGR} commitlint --edit "$1"
+cd web && ${PMGR_EXEC} commitlint --edit "$1"
