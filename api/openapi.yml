@@ -20,7 +20,9 @@ tags:
   - name: State
     description: Configuration, health and state endpoints
   - name: Authentication
-    description: Authentication and verification endpoints
+    description: Authentication endpoints
+  - name: Authorization
+    description: Authorization endpoints
   {{- if .PasswordReset }}
   - name: Password Reset
     description: Password reset endpoints
@@ -101,18 +103,58 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/handlers.StateResponse'
-  /api/verify:
+  {{- range $name, $config := .EndpointsAuthz }}
+  {{- $uri := printf "/api/authz/%s" $name }}
+  {{- if (eq $name "legacy") }}{{ $uri = "/api/verify" }}{{ end }}
+  {{ $uri }}:
+    {{- if (eq $config.Implementation "Legacy") }}
     {{- range $method := list "get" "head" "options" "post" "put" "patch" "delete" "trace" }}
     {{ $method }}:
       tags:
-        - Authentication
-      summary: Verification
+        - Authorization
+      summary: Authorization Verification (Legacy)
       description: >
-        The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified
-        domain.
+        The legacy authorization verification endpoint provides the ability to verify if a user has the necessary
+        permissions to access a specified domain with several proxies. It's generally recommended users use a proxy
+        specific endpoint instead.
       parameters:
-        - $ref: '#/components/parameters/originalURLParam'
+        - name: X-Original-URL
+          in: header
+          description: Redirection URL
+          required: false
+          style: simple
+          explode: true
+          schema:
+            type: string
         - $ref: '#/components/parameters/forwardedMethodParam'
+        - name: X-Forwarded-Proto
+          in: header
+          description: Redirection URL (Scheme / Protocol)
+          required: false
+          style: simple
+          explode: true
+          example: "https"
+          schema:
+            type: string
+        - name: X-Forwarded-Host
+          in: header
+          description: Redirection URL (Host)
+          required: false
+          style: simple
+          explode: true
+          example: "example.com"
+          schema:
+            type: string
+        - name: X-Forwarded-Uri
+          in: header
+          description: Redirection URL (URI)
+          required: false
+          style: simple
+          explode: true
+          example: "/path/example"
+          schema:
+            type: string
+        - $ref: '#/components/parameters/forwardedForParam'
         - $ref: '#/components/parameters/authParam'
       responses:
         "200":
@@ -142,6 +184,136 @@ paths:
           description: Unauthorized
       security:
         - authelia_auth: []
+    {{- end }}
+    {{- else if (eq $config.Implementation "ExtAuthz") }}
+    {{- range $method := list "get" "head" "options" "post" "put" "patch" "delete" "trace" }}
+    {{ $method }}:
+      tags:
+        - Authorization
+      summary: Authorization Verification (ExtAuthz)
+      description: >
+        The ExtAuthz authorization verification endpoint provides the ability to verify if a user has the necessary
+        permissions to access a specified resource with the Envoy proxy.
+      parameters:
+        - $ref: '#/components/parameters/forwardedMethodParam'
+        - $ref: '#/components/parameters/forwardedHostParam'
+        - $ref: '#/components/parameters/forwardedURIParam'
+        - $ref: '#/components/parameters/forwardedForParam'
+        - $ref: '#/components/parameters/autheliaURLParam'
+      responses:
+        "200":
+          description: Successful Operation
+          headers:
+            remote-user:
+              description: Username
+              schema:
+                type: string
+                example: john
+            remote-name:
+              description: Name
+              schema:
+                type: string
+                example: John Doe
+            remote-email:
+              description: Email
+              schema:
+                type: string
+                example: john.doe@authelia.com
+            remote-groups:
+              description: Comma separated list of Groups
+              schema:
+                type: string
+                example: admin,devs
+        "401":
+          description: Unauthorized
+      security:
+        - authelia_auth: []
+    {{- end }}
+    {{- else if (eq $config.Implementation "ForwardAuth") }}
+    {{- range $method := list "get" "head" }}
+    {{ $method }}:
+      tags:
+        - Authorization
+      summary: Authorization Verification (ForwardAuth)
+      description: >
+        The ForwardAuth authorization verification endpoint provides the ability to verify if a user has the necessary
+        permissions to access a specified resource with the Traefik, Caddy, or Skipper proxies.
+      parameters:
+        - $ref: '#/components/parameters/forwardedMethodParam'
+        - $ref: '#/components/parameters/forwardedHostParam'
+        - $ref: '#/components/parameters/forwardedURIParam'
+        - $ref: '#/components/parameters/forwardedForParam'
+      responses:
+        "200":
+          description: Successful Operation
+          headers:
+            remote-user:
+              description: Username
+              schema:
+                type: string
+                example: john
+            remote-name:
+              description: Name
+              schema:
+                type: string
+                example: John Doe
+            remote-email:
+              description: Email
+              schema:
+                type: string
+                example: john.doe@authelia.com
+            remote-groups:
+              description: Comma separated list of Groups
+              schema:
+                type: string
+                example: admin,devs
+        "401":
+          description: Unauthorized
+      security:
+        - authelia_auth: []
+    {{- end }}
+    {{- else if (eq $config.Implementation "AuthRequest") }}
+    {{- range $method := list "get" "head" }}
+    {{ $method }}:
+      tags:
+        - Authorization
+      summary: Authorization Verification (AuthRequest)
+      description: >
+        The AuthRequest authorization verification endpoint provides the ability to verify if a user has the necessary
+        permissions to access a specified resource with the HAPROXY, NGINX, or NGINX-based proxies.
+      parameters:
+        - $ref: '#/components/parameters/originalMethodParam'
+        - $ref: '#/components/parameters/originalURLParam'
+      responses:
+        "200":
+          description: Successful Operation
+          headers:
+            remote-user:
+              description: Username
+              schema:
+                type: string
+                example: john
+            remote-name:
+              description: Name
+              schema:
+                type: string
+                example: John Doe
+            remote-email:
+              description: Email
+              schema:
+                type: string
+                example: john.doe@authelia.com
+            remote-groups:
+              description: Comma separated list of Groups
+              schema:
+                type: string
+                example: admin,devs
+        "401":
+          description: Unauthorized
+      security:
+        - authelia_auth: []
+    {{- end }}
+    {{- end }}
     {{- end }}
   /api/firstfactor:
     post:
@@ -1135,6 +1307,32 @@ paths:
   {{- end }}
 components:
   parameters:
+    originalMethodParam:
+      name: X-Original-Method
+      in: header
+      description: Request Method
+      required: true
+      style: simple
+      explode: true
+      schema:
+        type: string
+        enum:
+          - "GET"
+          - "HEAD"
+          - "POST"
+          - "PUT"
+          - "PATCH"
+          - "DELETE"
+          - "TRACE"
+          - "CONNECT"
+          - "OPTIONS"
+          - "COPY"
+          - "LOCK"
+          - "MKCOL"
+          - "MOVE"
+          - "PROPFIND"
+          - "PROPPATCH"
+          - "UNLOCK"
     originalURLParam:
       name: X-Original-URL
       in: header
@@ -1170,6 +1368,56 @@ components:
           - "PROPFIND"
           - "PROPPATCH"
           - "UNLOCK"
+    forwardedProtoParam:
+      name: X-Forwarded-Proto
+      in: header
+      description: Redirection URL (Scheme / Protocol)
+      required: true
+      style: simple
+      explode: true
+      example: "https"
+      schema:
+        type: string
+    forwardedHostParam:
+      name: X-Forwarded-Host
+      in: header
+      description: Redirection URL (Host)
+      required: true
+      style: simple
+      explode: true
+      example: "example.com"
+      schema:
+        type: string
+    forwardedURIParam:
+      name: X-Forwarded-Uri
+      in: header
+      description: Redirection URL (URI)
+      required: true
+      style: simple
+      explode: true
+      example: "/path/example"
+      schema:
+        type: string
+    forwardedForParam:
+      name: X-Forwarded-For
+      in: header
+      description: Clients IP address or IP address chain
+      required: false
+      style: simple
+      explode: true
+      example: "192.168.0.55,192.168.0.20"
+      schema:
+        type: string
+    autheliaURLParam:
+      name: X-Authelia-URL
+      in: header
+      description: Authelia Portal URL
+      required: false
+      style: simple
+      explode: true
+      example: "https://auth.example.com"
+      schema:
+        type: string
     authParam:
       name: auth
       in: query

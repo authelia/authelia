@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
-import { useRedirectionURL } from "@hooks/RedirectionURL";
+import { RedirectionURL } from "@constants/SearchParams";
+import { useQueryParam } from "@hooks/QueryParam";
 import { useUserInfoTOTPConfiguration } from "@hooks/UserInfoTOTPConfiguration";
 import { useWorkflow } from "@hooks/Workflow";
 import { completeTOTPSignIn } from "@services/OneTimePassword";
@@ -33,7 +34,7 @@ const OneTimePasswordMethod = function (props: Props) {
     const [state, setState] = useState(
         props.authenticationLevel === AuthenticationLevel.TwoFactor ? State.Success : State.Idle,
     );
-    const redirectionURL = useRedirectionURL();
+    const redirectionURL = useQueryParam(RedirectionURL);
     const [workflow, workflowID] = useWorkflow();
     const { t: translate } = useTranslation();
 

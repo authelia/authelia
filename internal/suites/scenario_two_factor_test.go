@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
+	"regexp"
 	"testing"
 	"time"
 
@@ -18,7 +20,7 @@ type TwoFactorSuite struct {
 
 func New2FAScenario() *TwoFactorSuite {
 	return &TwoFactorSuite{
-		RodSuite: new(RodSuite),
+		RodSuite: NewRodSuite(""),
 	}
 }
 
@@ -62,6 +64,36 @@ func (s *TwoFactorSuite) TearDownTest() {
 	s.MustClose()
 }
 
+func (s *TwoFactorSuite) TestShouldNotAuthorizeSecretBeforeTwoFactor() {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
+	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
+
+	s.doVisit(s.T(), s.Context(ctx), targetURL)
+
+	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
+
+	raw := GetLoginBaseURLWithFallbackPrefix(BaseDomain, "/")
+
+	expected, err := url.ParseRequestURI(raw)
+	s.Assert().NoError(err)
+	s.Require().NotNil(expected)
+
+	query := expected.Query()
+
+	query.Set("rd", targetURL)
+
+	expected.RawQuery = query.Encode()
+
+	rx := regexp.MustCompile(fmt.Sprintf(`^%s(&rm=GET)?$`, regexp.QuoteMeta(expected.String())))
+
+	s.verifyURLIsRegexp(s.T(), s.Context(ctx), rx)
+}
+
 func (s *TwoFactorSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer func() {
@@ -89,7 +121,7 @@ func (s *TwoFactorSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
 }
 
 func (s *TwoFactorSuite) TestShouldFailTwoFactor() {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -97,7 +129,7 @@ func (s *TwoFactorSuite) TestShouldFailTwoFactor() {
 
 	wrongPasscode := "123456"
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), testUsername, testPassword, false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), testUsername, testPassword, false, BaseDomain, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 	s.doEnterOTP(s.T(), s.Context(ctx), wrongPasscode)
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "The one-time password might be wrong")

@@ -44,7 +44,7 @@ This example makes the following assumptions:
 
 ### Application
 
-To configure [Gitea] to utilize Authelia as an [OpenID Connect] Provider:
+To configure [Gitea] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Expand User Options
 2. Visit Site Administration
@@ -59,7 +59,7 @@ To configure [Gitea] to utilize Authelia as an [OpenID Connect] Provider:
 
 {{< figure src="gitea.png" alt="Gitea" width="300" >}}
 
-To configure [Gitea] to perform automatic user creation for the `auth.example.com` domain via [OpenID Connect]:
+To configure [Gitea] to perform automatic user creation for the `auth.example.com` domain via [OpenID Connect 1.0]:
 
 1. Edit the following values in the [Gitea] `app.ini`:
 ```ini
@@ -105,4 +105,4 @@ will operate with the above example:
 
 - [Authelia]: https://www.authelia.com
 [Gitea]: https://gitea.io/
-[OpenID Connect]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

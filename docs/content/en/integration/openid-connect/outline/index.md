@@ -47,7 +47,7 @@ in an error as [Outline] will attempt to use a refresh token that is never issue
 
 ### Application
 
-To configure [Outline] to utilize Authelia as an [OpenID Connect] Provider:
+To configure [Outline] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Configure the following environment options:
 ```text
@@ -92,4 +92,4 @@ which will operate with the above example:
 
 [Authelia]: https://www.authelia.com
 [Outline]: https://www.getoutline.com/
-[OpenID Connect]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

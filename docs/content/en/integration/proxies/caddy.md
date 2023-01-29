@@ -59,7 +59,7 @@ In the example we have a commented `trusted_proxies` directive which shows an ex
 to the trusted proxy list in [Caddy]:
 
 * 10.0.0.0/8
-* 172.16.0.0/16
+* 172.16.0.0/12
 * 192.168.0.0/16
 * fc00::/7
 
@@ -84,7 +84,7 @@ support to ensure the basic example covers your use case in a secure way.
 ##     https://www.authelia.com/integration/proxies/caddy/#forwarded-header-trust#trusted-proxies
 (trusted_proxy_list) {
        ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
-       # trusted_proxies 10.0.0.0/8 172.16.0.0/16 192.168.0.0/16 fc00::/7
+       # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
 }
 
 # Authelia Portal.
@@ -98,7 +98,10 @@ auth.example.com {
 # Protected Endpoint.
 nextcloud.example.com {
         forward_auth authelia:9091 {
-                uri /api/verify?rd=https://auth.example.com/
+                uri /api/authz/forward-auth
+                ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest
+                ## this is configured in the Session Cookies section of the Authelia configuration.
+                # uri /api/authz/forward-auth?authelia_url=https://auth.example.com/
                 copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
 
                 ## This import needs to be included if you're relying on a trusted proxies configuration.
@@ -120,7 +123,7 @@ nextcloud.example.com {
 ##     https://www.authelia.com/integration/proxies/caddy/#forwarded-header-trust#trusted-proxies
 (trusted_proxy_list) {
        ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
-       # trusted_proxies 10.0.0.0/8 172.16.0.0/16 192.168.0.0/16 fc00::/7
+       # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
 }
 
 example.com {
@@ -137,7 +140,7 @@ example.com {
         @nextcloud path /nextcloud /nextcloud/*
         handle @nextcloud {
                 forward_auth authelia:9091 {
-                        uri /api/verify?rd=https://example.com/authelia/
+                        uri /api/authz/forward-auth?authelia_url=https://example.com/authelia/
                         copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
 
                         ## This import needs to be included if you're relying on a trusted proxies configuration.
@@ -165,7 +168,7 @@ preferred in *most* situations. If you are unsure of what you're doing please do
 ##     https://www.authelia.com/integration/proxies/caddy/#forwarded-header-trust#trusted-proxies
 (trusted_proxy_list) {
        ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
-       # trusted_proxies 10.0.0.0/8 172.16.0.0/16 192.168.0.0/16 fc00::/7
+       # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
 }
 
 # Authelia Portal.
@@ -183,7 +186,7 @@ nextcloud.example.com {
                 import trusted_proxy_list
 
                 method GET
-                rewrite "/api/verify?rd=https://auth.example.com/"
+                rewrite "/api/authz/forward-auth?authelia_url=https://auth.example.com/"
 
                 header_up X-Forwarded-Method {method}
                 header_up X-Forwarded-Uri {uri}

@@ -44,7 +44,7 @@ This example makes the following assumptions:
 
 ### Application
 
-To configure [Apache Guacamole] to utilize Authelia as an [OpenID Connect] Provider use the following configuration:
+To configure [Apache Guacamole] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
 
 ```yaml
 openid-client-id: guacamole
@@ -89,7 +89,7 @@ The following YAML configuration is an example __Authelia__
 
 [Authelia]: https://www.authelia.com
 [Apache Guacamole]: https://guacamole.apache.org/
-[OpenID Connect]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md
 
 
 

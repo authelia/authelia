@@ -45,14 +45,14 @@ click:
 }
 
 // Login 1FA.
-func (rs *RodSession) doLoginOneFactor(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool, targetURL string) {
-	rs.doVisitLoginPage(t, page, targetURL)
+func (rs *RodSession) doLoginOneFactor(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool, domain string, targetURL string) {
+	rs.doVisitLoginPage(t, page, domain, targetURL)
 	rs.doFillLoginPageAndClick(t, page, username, password, keepMeLoggedIn)
 }
 
 // Login 1FA and 2FA subsequently (must already be registered).
 func (rs *RodSession) doLoginTwoFactor(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool, otpSecret, targetURL string) {
-	rs.doLoginOneFactor(t, page, username, password, keepMeLoggedIn, targetURL)
+	rs.doLoginOneFactor(t, page, username, password, keepMeLoggedIn, BaseDomain, targetURL)
 	rs.verifyIsSecondFactorPage(t, page)
 	rs.doValidateTOTP(t, page, otpSecret)
 	// timeout when targetURL is not defined to prevent a show stopping redirect when visiting a protected domain.
@@ -63,9 +63,9 @@ func (rs *RodSession) doLoginTwoFactor(t *testing.T, page *rod.Page, username, p
 
 // Login 1FA and register 2FA.
 func (rs *RodSession) doLoginAndRegisterTOTP(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool) string {
-	rs.doLoginOneFactor(t, page, username, password, keepMeLoggedIn, "")
+	rs.doLoginOneFactor(t, page, username, password, keepMeLoggedIn, BaseDomain, "")
 	secret := rs.doRegisterTOTP(t, page)
-	rs.doVisit(t, page, GetLoginBaseURL())
+	rs.doVisit(t, page, GetLoginBaseURL(BaseDomain))
 	rs.verifyIsSecondFactorPage(t, page)
 
 	return secret

@@ -45,7 +45,7 @@ In the example we have four commented lines which configure `TrustedIPs` which s
 networks to the trusted proxy list in [Traefik]:
 
 * 10.0.0.0/8
-* 172.16.0.0/16
+* 172.16.0.0/12
 * 192.168.0.0/16
 * fc00::/7
 
@@ -90,9 +90,9 @@ services:
       - 'traefik.frontend.rule=Host:traefik.example.com'
       - 'traefik.port=8081'
     ports:
-      - 80:80
-      - 443:443
-      - 8081:8081
+      - '80:80'
+      - '443:443'
+      - '8081:8081'
     restart: unless-stopped
     command:
       - '--api'
@@ -105,8 +105,8 @@ services:
       - '--entryPoints=Name:http Address::80'
       - '--entryPoints=Name:https Address::443 TLS'
       ## See the Forwarded Header Trust section. Comment the above two lines, then uncomment and customize the next two lines to configure the TrustedIPs.
-      # - '--entryPoints=Name:http Address::80 ForwardedHeaders.TrustedIPs:10.0.0.0/8,172.16.0.0/16,192.168.0.0/16,fc00::/7 ProxyProtocol.TrustedIPs:10.0.0.0/8,172.16.0.0/16,192.168.0.0/16,fc00::/7'
-      # - '--entryPoints=Name:https Address::443 TLS ForwardedHeaders.TrustedIPs:10.0.0.0/8,172.16.0.0/16,192.168.0.0/16,fc00::/7 ProxyProtocol.TrustedIPs:10.0.0.0/8,172.16.0.0/16,192.168.0.0/16,fc00::/7'
+      # - '--entryPoints=Name:http Address::80 ForwardedHeaders.TrustedIPs:10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7 ProxyProtocol.TrustedIPs:10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7'
+      # - '--entryPoints=Name:https Address::443 TLS ForwardedHeaders.TrustedIPs:10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7 ProxyProtocol.TrustedIPs:10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7'
       - '--entryPoints=Name:api Address::8081'
   authelia:
     image: authelia/authelia
@@ -132,9 +132,12 @@ services:
       - net
     labels:
       - 'traefik.frontend.rule=Host:nextcloud.example.com'
-      - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/verify?rd=https://auth.example.com/'
+      - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/authz/forward-auth'
+      ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest this is
+      ## configured in the Session Cookies section of the Authelia configuration.
+      # - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/authz/forward-auth?authelia_url=https%3A%2F%2Fauth.example.com%2F'
       - 'traefik.frontend.auth.forward.trustForwardHeader=true'
-      - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'
+      - 'traefik.frontend.auth.forward.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Name,Remote-Email'
     expose:
       - 443
     restart: unless-stopped
@@ -151,9 +154,9 @@ services:
       - net
     labels:
       - 'traefik.frontend.rule=Host:heimdall.example.com'
-      - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/verify?auth=basic'
+      - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/authz/forward-auth/basic'
       - 'traefik.frontend.auth.forward.trustForwardHeader=true'
-      - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'
+      - 'traefik.frontend.auth.forward.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Name,Remote-Email'
     expose:
       - 443
     restart: unless-stopped

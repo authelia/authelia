@@ -17,10 +17,14 @@ type HighAvailabilityWebDriverSuite struct {
 }
 
 func NewHighAvailabilityWebDriverSuite() *HighAvailabilityWebDriverSuite {
-	return &HighAvailabilityWebDriverSuite{RodSuite: new(RodSuite)}
+	return &HighAvailabilityWebDriverSuite{
+		RodSuite: NewRodSuite(""),
+	}
 }
 
 func (s *HighAvailabilityWebDriverSuite) SetupSuite() {
+	s.BaseSuite.SetupSuite()
+
 	browser, err := StartRod()
 
 	if err != nil {
@@ -88,7 +92,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Verify the user is still authenticated.
-	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL())
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
 	// Then logout and login again to check we can see the secret.
@@ -131,7 +135,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Verify the user is still authenticated.
-	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL())
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 }
 
@@ -171,7 +175,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepSessionAfterAutheliaResta
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Verify the user is still authenticated.
-	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL())
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
 	// Then logout and login again to check the secret is still there.
@@ -183,7 +187,9 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepSessionAfterAutheliaResta
 }
 
 var UserJohn = "john"
+
 var UserBob = "bob"
+
 var UserHarry = "harry"
 
 var Users = []string{UserJohn, UserBob, UserHarry}
@@ -239,7 +245,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldVerifyAccessControl() {
 
 	verifyAuthorization := func(username string) func(t *testing.T) {
 		return func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			defer func() {
 				s.collectScreenshot(ctx.Err(), s.Page)
 				cancel()
@@ -263,11 +269,15 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldVerifyAccessControl() {
 }
 
 type HighAvailabilitySuite struct {
-	suite.Suite
+	*BaseSuite
 }
 
 func NewHighAvailabilitySuite() *HighAvailabilitySuite {
-	return &HighAvailabilitySuite{}
+	return &HighAvailabilitySuite{
+		BaseSuite: &BaseSuite{
+			Name: highAvailabilitySuiteName,
+		},
+	}
 }
 
 func DoGetWithAuth(t *testing.T, username, password string) int {

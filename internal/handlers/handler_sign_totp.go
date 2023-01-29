@@ -3,13 +3,19 @@ package handlers
 import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/regulation"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 // TimeBasedOneTimePasswordPOST validate the TOTP passcode provided by the user.
 func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	bodyJSON := bodySignTOTPRequest{}
 
-	if err := ctx.ParseBody(&bodyJSON); err != nil {
+	var (
+		userSession session.UserSession
+		err         error
+	)
+
+	if err = ctx.ParseBody(&bodyJSON); err != nil {
 		ctx.Logger.Errorf(logFmtErrParseRequestBody, regulation.AuthTypeTOTP, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
@@ -17,7 +23,13 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	userSession := ctx.GetSession()
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
+
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
+		return
+	}
 
 	config, err := ctx.Providers.StorageProvider.LoadTOTPConfiguration(ctx, userSession.Username)
 	if err != nil {
@@ -50,7 +62,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx); err != nil {
+	if err = ctx.RegenerateSession(); err != nil {
 		ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeTOTP, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)

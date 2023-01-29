@@ -42,7 +42,7 @@ func localesRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if pathWebI18NIndex, err = cmd.Flags().GetString(cmdFlagFileWebI18N); err != nil {
+	if pathWebI18NIndex, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagWeb, cmdFlagFileWebI18N); err != nil {
 		return err
 	}
 

@@ -44,7 +44,7 @@ This example makes the following assumptions:
 
 ### Application
 
-To configure [Grafana] to utilize Authelia as an [OpenID Connect] Provider you have two effective options:
+To configure [Grafana] to utilize Authelia as an [OpenID Connect 1.0] Provider you have two effective options:
 
 #### Configuration File
 
@@ -119,4 +119,4 @@ which will operate with the above example:
 
 [Authelia]: https://www.authelia.com
 [Grafana]: https://grafana.com/
-[OpenID Connect]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

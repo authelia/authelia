@@ -146,11 +146,12 @@ func TestWebauthnGetUserWithErr(t *testing.T) {
 
 func TestWebauthnNewWebauthnShouldReturnErrWhenHeadersNotAvailable(t *testing.T) {
 	ctx := mocks.NewMockAutheliaCtx(t)
+	ctx.Ctx.Request.Header.Del("X-Forwarded-Host")
 
 	w, err := newWebauthn(ctx.Ctx)
 
 	assert.Nil(t, w)
-	assert.EqualError(t, err, "Missing header X-Forwarded-Host")
+	assert.EqualError(t, err, "missing required X-Forwarded-Host header")
 }
 
 func TestWebauthnNewWebauthnShouldReturnErrWhenWebauthnNotConfigured(t *testing.T) {

@@ -1,18 +1,13 @@
 package main
 
 import (
-	"crypto/ecdsa"
-	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"net/mail"
-	"net/url"
 	"os"
 	"path/filepath"
 	"reflect"
-	"regexp"
 	"strings"
 	"time"
 
@@ -182,7 +177,7 @@ func codeKeysRunE(cmd *cobra.Command, args []string) (err error) {
 
 	data := tmplConfigurationKeysData{
 		Timestamp: time.Now(),
-		Keys:      readTags("", reflect.TypeOf(schema.Configuration{})),
+		Keys:      readTags("", reflect.TypeOf(schema.Configuration{}), false),
 	}
 
 	if root, err = cmd.Flags().GetString(cmdFlagRoot); err != nil {
@@ -214,117 +209,4 @@ func codeKeysRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	return nil
-}
-
-var decodedTypes = []reflect.Type{
-	reflect.TypeOf(mail.Address{}),
-	reflect.TypeOf(regexp.Regexp{}),
-	reflect.TypeOf(url.URL{}),
-	reflect.TypeOf(time.Duration(0)),
-	reflect.TypeOf(schema.Address{}),
-	reflect.TypeOf(rsa.PrivateKey{}),
-	reflect.TypeOf(ecdsa.PrivateKey{}),
-}
-
-func containsType(needle reflect.Type, haystack []reflect.Type) (contains bool) {
-	for _, t := range haystack {
-		if needle.Kind() == reflect.Ptr {
-			if needle.Elem() == t {
-				return true
-			}
-		} else if needle == t {
-			return true
-		}
-	}
-
-	return false
-}
-
-//nolint:gocyclo
-func readTags(prefix string, t reflect.Type) (tags []string) {
-	tags = make([]string, 0)
-
-	if t.Kind() != reflect.Struct {
-		if t.Kind() == reflect.Slice {
-			tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, "", true), t.Elem())...)
-		}
-
-		return
-	}
-
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-
-		tag := field.Tag.Get("koanf")
-
-		if tag == "" {
-			tags = append(tags, prefix)
-
-			continue
-		}
-
-		switch field.Type.Kind() {
-		case reflect.Struct:
-			if !containsType(field.Type, decodedTypes) {
-				tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, false), field.Type)...)
-
-				continue
-			}
-		case reflect.Slice:
-			switch field.Type.Elem().Kind() {
-			case reflect.Struct:
-				if !containsType(field.Type.Elem(), decodedTypes) {
-					tags = append(tags, getKeyNameFromTagAndPrefix(prefix, tag, false))
-					tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, true), field.Type.Elem())...)
-
-					continue
-				}
-			case reflect.Slice:
-				tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, true), field.Type.Elem())...)
-			}
-		case reflect.Ptr:
-			switch field.Type.Elem().Kind() {
-			case reflect.Struct:
-				if !containsType(field.Type.Elem(), decodedTypes) {
-					tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, false), field.Type.Elem())...)
-
-					continue
-				}
-			case reflect.Slice:
-				if field.Type.Elem().Elem().Kind() == reflect.Struct {
-					if !containsType(field.Type.Elem(), decodedTypes) {
-						tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, true), field.Type.Elem())...)
-
-						continue
-					}
-				}
-			}
-		}
-
-		tags = append(tags, getKeyNameFromTagAndPrefix(prefix, tag, false))
-	}
-
-	return tags
-}
-
-func getKeyNameFromTagAndPrefix(prefix, name string, slice bool) string {
-	nameParts := strings.SplitN(name, ",", 2)
-
-	if prefix == "" {
-		return nameParts[0]
-	}
-
-	if len(nameParts) == 2 && nameParts[1] == "squash" {
-		return prefix
-	}
-
-	if slice {
-		if name == "" {
-			return fmt.Sprintf("%s[]", prefix)
-		}
-
-		return fmt.Sprintf("%s.%s[]", prefix, nameParts[0])
-	}
-
-	return fmt.Sprintf("%s.%s", prefix, nameParts[0])
 }

@@ -6,15 +6,29 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 // UserTOTPInfoGET returns the users TOTP configuration.
 func UserTOTPInfoGET(ctx *middlewares.AutheliaCtx) {
-	userSession := ctx.GetSession()
+	var (
+		userSession session.UserSession
+		err         error
+	)
 
-	config, err := ctx.Providers.StorageProvider.LoadTOTPConfiguration(ctx, userSession.Username)
-	if err != nil {
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
+
+		ctx.ReplyForbidden()
+
+		return
+	}
+
+	var config *model.TOTPConfiguration
+
+	if config, err = ctx.Providers.StorageProvider.LoadTOTPConfiguration(ctx, userSession.Username); err != nil {
 		if errors.Is(err, storage.ErrNoTOTPConfiguration) {
 			ctx.SetStatusCode(fasthttp.StatusNotFound)
 			ctx.SetJSONError("Could not find TOTP Configuration for user.")

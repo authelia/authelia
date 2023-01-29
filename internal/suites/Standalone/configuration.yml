@@ -24,10 +24,12 @@ authentication_backend:
     path: /config/users.yml
 
 session:
-  domain: example.com
-  expiration: 3600  # 1 hour
-  inactivity: 300  # 5 minutes
-  remember_me_duration: 1y
+  expiration: 3600
+  inactivity: 300
+  remember_me: 1y
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
 
 storage:
   encryption_key: a_not_so_secure_encryption_key
@@ -80,6 +82,7 @@ access_control:
         - "^/users/bob/.*$"
       subject: "user:bob"
       policy: two_factor
+
 
 regulation:
   # Set it to 0 to disable max_retries.

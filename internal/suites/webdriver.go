@@ -19,10 +19,11 @@ type RodSession struct {
 }
 
 // StartRodWithProxy create a rod/chromedp session.
-func StartRodWithProxy(proxy string) (*RodSession, error) {
-	browserPath := os.Getenv("BROWSER_PATH")
-	if browserPath == "" {
-		browserPath = "/usr/bin/chromium-browser"
+func StartRodWithProxy(proxy string) (session *RodSession, err error) {
+	var browserPath string
+
+	if browserPath, err = GetBrowserPath(); err != nil {
+		return nil, err
 	}
 
 	headless := false
@@ -71,6 +72,14 @@ func (rs *RodSession) Stop() error {
 	rs.Launcher.Cleanup()
 
 	return err
+}
+
+// CheckElementExistsLocatedByID checks the existence of an element located by an id.
+func (rs *RodSession) CheckElementExistsLocatedByID(t *testing.T, page *rod.Page, cssSelector string) bool {
+	b, _, err := page.Has("#" + cssSelector)
+	require.NoError(t, err)
+
+	return b
 }
 
 // WaitElementLocatedByClassName wait an element is located by class name.

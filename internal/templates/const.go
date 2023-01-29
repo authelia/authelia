@@ -9,9 +9,12 @@ const (
 const (
 	TemplateNameEmailIdentityVerification = "IdentityVerification"
 	TemplateNameEmailEvent                = "Event"
+
+	TemplateNameOIDCAuthorizeFormPost = "AuthorizeResponseFormPost.html"
 )
 
 // Template Category Names.
 const (
 	TemplateCategoryNotifications = "notification"
+	TemplateCategoryOpenIDConnect = "oidc"
 )
