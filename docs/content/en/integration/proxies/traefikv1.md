@@ -45,7 +45,7 @@ In the example we have four commented lines which configure `TrustedIPs` which s
 networks to the trusted proxy list in [Traefik]:
 
 * 10.0.0.0/8
-* 172.16.0.0/16
+* 172.16.0.0/12
 * 192.168.0.0/16
 * fc00::/7
 
@@ -105,8 +105,8 @@ services:
       - '--entryPoints=Name:http Address::80'
       - '--entryPoints=Name:https Address::443 TLS'
       ## See the Forwarded Header Trust section. Comment the above two lines, then uncomment and customize the next two lines to configure the TrustedIPs.
-      # - '--entryPoints=Name:http Address::80 ForwardedHeaders.TrustedIPs:10.0.0.0/8,172.16.0.0/16,192.168.0.0/16,fc00::/7 ProxyProtocol.TrustedIPs:10.0.0.0/8,172.16.0.0/16,192.168.0.0/16,fc00::/7'
-      # - '--entryPoints=Name:https Address::443 TLS ForwardedHeaders.TrustedIPs:10.0.0.0/8,172.16.0.0/16,192.168.0.0/16,fc00::/7 ProxyProtocol.TrustedIPs:10.0.0.0/8,172.16.0.0/16,192.168.0.0/16,fc00::/7'
+      # - '--entryPoints=Name:http Address::80 ForwardedHeaders.TrustedIPs:10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7 ProxyProtocol.TrustedIPs:10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7'
+      # - '--entryPoints=Name:https Address::443 TLS ForwardedHeaders.TrustedIPs:10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7 ProxyProtocol.TrustedIPs:10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7'
       - '--entryPoints=Name:api Address::8081'
   authelia:
     image: authelia/authelia
