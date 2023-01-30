@@ -96,23 +96,21 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 }
 
 func identityVerificationValidateToken(ctx *AutheliaCtx) (*jwt.Token, error) {
-	var finishBody IdentityVerificationFinishBody
+	var bodyJSON IdentityVerificationFinishBody
 
-	b := ctx.PostBody()
-
-	err := json.Unmarshal(b, &finishBody)
+	err := json.Unmarshal(ctx.PostBody(), &bodyJSON)
 
 	if err != nil {
 		ctx.Error(err, messageOperationFailed)
 		return nil, err
 	}
 
-	if finishBody.Token == "" {
+	if bodyJSON.Token == "" {
 		ctx.Error(fmt.Errorf("No token provided"), messageOperationFailed)
 		return nil, err
 	}
 
-	token, err := jwt.ParseWithClaims(finishBody.Token, &model.IdentityVerificationClaim{},
+	token, err := jwt.ParseWithClaims(bodyJSON.Token, &model.IdentityVerificationClaim{},
 		func(token *jwt.Token) (any, error) {
 			return []byte(ctx.Configuration.JWTSecret), nil
 		})
@@ -185,8 +183,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 			return
 		}
 
-		err = ctx.Providers.StorageProvider.ConsumeIdentityVerification(ctx, claims.ID, model.NewNullIP(ctx.RemoteIP()))
-		if err != nil {
+		if err = ctx.Providers.StorageProvider.ConsumeIdentityVerification(ctx, claims.ID, model.NewNullIP(ctx.RemoteIP())); err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}

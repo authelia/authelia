@@ -14,6 +14,8 @@ specifiers:
   '@mui/icons-material': 5.11.0
   '@mui/material': 5.11.6
   '@mui/styles': 5.11.2
+  '@simplewebauthn/browser': ^7.0.1
+  '@simplewebauthn/typescript-types': ^7.0.0
   '@testing-library/jest-dom': 5.16.5
   '@testing-library/react': 13.4.0
   '@types/jest': 29.4.0
@@ -76,6 +78,8 @@ dependencies:
   '@mui/icons-material': 5.11.0_j5wvuqirnhynb4halegp2mqooy
   '@mui/material': 5.11.6_rqh7qj4464ntrqrt6banhaqg4q
   '@mui/styles': 5.11.2_3stiutgnnbnfnf3uowm5cip22i
+  '@simplewebauthn/browser': 7.0.1
+  '@simplewebauthn/typescript-types': 7.0.0
   axios: 1.2.6
   broadcast-channel: 4.20.2
   classnames: 2.3.2
@@ -3394,6 +3398,14 @@ packages:
   /@rushstack/eslint-patch/1.1.4:
     resolution: {integrity: sha512-LwzQKA4vzIct1zNZzBmRKI9QuNpLgTQMEjsQLf3BXuGYb3QPTP4Yjf6mkdX+X1mYttZ808QpOwAzZjv28kq7DA==}
     dev: true
+
+  /@simplewebauthn/browser/7.0.1:
+    resolution: {integrity: sha512-zFTTQojH8FWAvzBeB9WHMkZz5XrHaNQwKmdpGDfyRtXHJSLlWUjZN1egD2vWqU+gE0CKl0NRZJ56uLugBs9AUg==}
+    dev: false
+
+  /@simplewebauthn/typescript-types/7.0.0:
+    resolution: {integrity: sha512-bV+xACCFTsrLR/23ozHO06ZllHZaxC8LlI5YCo79GvU2BrN+rePDU2yXwZIYndNWcMQwRdndRdAhpafOh9AC/g==}
+    dev: false
 
   /@sinclair/typebox/0.25.21:
     resolution: {integrity: sha512-gFukHN4t8K4+wVC+ECqeqwzBDeFeTzBXroBTqE6vcWrQGbEUpHO7LYdG0f4xnvYq4VOEwITSlHlp0JBAIFMS/g==}

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/url"
 
@@ -35,6 +36,14 @@ type bodySignWebauthnRequest struct {
 	TargetURL  string `json:"targetURL"`
 	Workflow   string `json:"workflow"`
 	WorkflowID string `json:"workflowID"`
+
+	Response json.RawMessage `json:"response"`
+}
+
+type bodyRegisterWebauthnRequest struct {
+	Description string `json:"description"`
+
+	Response json.RawMessage `json:"response"`
 }
 
 type bodyEditWebauthnDeviceRequest struct {

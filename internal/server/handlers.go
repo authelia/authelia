@@ -238,7 +238,11 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 		// Webauthn Endpoints.
 		r.POST("/api/secondfactor/webauthn/identity/start", middleware1FA(handlers.WebauthnIdentityStart))
 		r.POST("/api/secondfactor/webauthn/identity/finish", middleware1FA(handlers.WebauthnIdentityFinish))
-		r.POST("/api/secondfactor/webauthn/attestation", middleware1FA(handlers.WebauthnAttestationPOST))
+
+		r.GET("/api/secondfactor/register/webauthn", middleware1FA(handlers.WebauthnRegistrationGET))
+		r.POST("/api/secondfactor/register/webauthn", middleware1FA(handlers.WebauthnRegistrationPOST))
+
+		r.POST("/api/secondfactor/webauthn/attestation", middleware1FA(handlers.WebauthnRegistrationPOST))
 
 		r.GET("/api/secondfactor/webauthn/assertion", middleware1FA(handlers.WebauthnAssertionGET))
 		r.POST("/api/secondfactor/webauthn/assertion", middleware1FA(handlers.WebauthnAssertionPOST))

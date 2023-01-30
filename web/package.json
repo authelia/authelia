@@ -28,6 +28,8 @@
     "@mui/icons-material": "5.11.0",
     "@mui/material": "5.11.6",
     "@mui/styles": "5.11.2",
+    "@simplewebauthn/browser": "^7.0.1",
+    "@simplewebauthn/typescript-types": "^7.0.0",
     "axios": "1.2.6",
     "broadcast-channel": "4.20.2",
     "classnames": "2.3.2",

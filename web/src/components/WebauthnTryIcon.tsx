@@ -11,7 +11,6 @@ import { WebauthnTouchState } from "@models/Webauthn";
 import IconWithContext from "@views/LoginPortal/SecondFactor/IconWithContext";
 
 interface Props {
-    timer: number;
     onRetryClick: () => void;
     webauthnTouchState: WebauthnTouchState;
 }
@@ -61,7 +60,7 @@ export default function WebauthnTryIcon(props: Props) {
     );
 
     return (
-        <Box className={styles.icon} sx={{ minHeight: 101 }} align="middle">
+        <Box className={styles.icon} sx={{ minHeight: 101 }}>
             {touch}
             {failure}
         </Box>

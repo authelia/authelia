@@ -5,13 +5,9 @@ import { RedirectionURL } from "@constants/SearchParams";
 import { useIsMountedRef } from "@hooks/Mounted";
 import { useQueryParam } from "@hooks/QueryParam";
 import { useWorkflow } from "@hooks/Workflow";
-import { AssertionResult, WebauthnTouchState } from "@models/Webauthn";
+import { AssertionResult, AssertionResultFailureString, WebauthnTouchState } from "@models/Webauthn";
 import { AuthenticationLevel } from "@services/State";
-import {
-    getAssertionPublicKeyCredentialResult,
-    getAssertionRequestOptions,
-    postAssertionPublicKeyCredentialResult,
-} from "@services/Webauthn";
+import { getAuthenticationOptions, getAuthenticationResult, postAuthenticationResponse } from "@services/Webauthn";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 
 export interface Props {
@@ -42,55 +38,28 @@ const WebauthnMethod = function (props: Props) {
 
         try {
             setState(WebauthnTouchState.WaitTouch);
-            const assertionRequestResponse = await getAssertionRequestOptions();
+            const optionsStatus = await getAuthenticationOptions();
 
-            if (assertionRequestResponse.status !== 200 || assertionRequestResponse.options == null) {
+            if (optionsStatus.status !== 200 || optionsStatus.options == null) {
                 setState(WebauthnTouchState.Failure);
                 onSignInErrorCallback(new Error("Failed to initiate security key sign in process"));
 
                 return;
             }
 
-            const result = await getAssertionPublicKeyCredentialResult(assertionRequestResponse.options);
+            const result = await getAuthenticationResult(optionsStatus.options);
 
             if (result.result !== AssertionResult.Success) {
                 if (!mounted.current) return;
-                switch (result.result) {
-                    case AssertionResult.FailureUserConsent:
-                        onSignInErrorCallback(new Error("You cancelled the assertion request."));
-                        break;
-                    case AssertionResult.FailureU2FFacetID:
-                        onSignInErrorCallback(new Error("The server responded with an invalid Facet ID for the URL."));
-                        break;
-                    case AssertionResult.FailureSyntax:
-                        onSignInErrorCallback(
-                            new Error(
-                                "The assertion challenge was rejected as malformed or incompatible by your browser.",
-                            ),
-                        );
-                        break;
-                    case AssertionResult.FailureWebauthnNotSupported:
-                        onSignInErrorCallback(new Error("Your browser does not support the WebAuthN protocol."));
-                        break;
-                    case AssertionResult.FailureUnrecognized:
-                        onSignInErrorCallback(new Error("This device is not registered."));
-                        break;
-                    case AssertionResult.FailureUnknownSecurity:
-                        onSignInErrorCallback(new Error("An unknown security error occurred."));
-                        break;
-                    case AssertionResult.FailureUnknown:
-                        onSignInErrorCallback(new Error("An unknown error occurred."));
-                        break;
-                    default:
-                        onSignInErrorCallback(new Error("An unexpected error occurred."));
-                        break;
-                }
+
                 setState(WebauthnTouchState.Failure);
+
+                onSignInErrorCallback(new Error(AssertionResultFailureString(result.result)));
 
                 return;
             }
 
-            if (result.credential == null) {
+            if (result.response == null) {
                 onSignInErrorCallback(new Error("The browser did not respond with the expected attestation data."));
                 setState(WebauthnTouchState.Failure);
 
@@ -101,12 +70,7 @@ const WebauthnMethod = function (props: Props) {
 
             setState(WebauthnTouchState.InProgress);
 
-            const response = await postAssertionPublicKeyCredentialResult(
-                result.credential,
-                redirectionURL,
-                workflow,
-                workflowID,
-            );
+            const response = await postAuthenticationResponse(result.response, redirectionURL, workflow, workflowID);
 
             if (response.data.status === "OK" && response.status === 200) {
                 onSignInSuccessCallback(response.data.data ? response.data.data.redirect : undefined);

@@ -1,5 +1,12 @@
+import {
+    AuthenticationResponseJSON,
+    PublicKeyCredentialCreationOptionsJSON,
+    PublicKeyCredentialRequestOptionsJSON,
+    RegistrationResponseJSON,
+} from "@simplewebauthn/typescript-types";
+
 export interface PublicKeyCredentialCreationOptionsStatus {
-    options?: PublicKeyCredentialCreationOptions;
+    options?: PublicKeyCredentialCreationOptionsJSON;
     status: number;
 }
 
@@ -7,77 +14,13 @@ export interface CredentialCreation {
     publicKey: PublicKeyCredentialCreationOptionsJSON;
 }
 
-export interface PublicKeyCredentialCreationOptionsJSON
-    extends Omit<PublicKeyCredentialCreationOptions, "challenge" | "excludeCredentials" | "user"> {
-    challenge: string;
-    excludeCredentials?: PublicKeyCredentialDescriptorJSON[];
-    user: PublicKeyCredentialUserEntityJSON;
-}
-
 export interface PublicKeyCredentialRequestOptionsStatus {
-    options?: PublicKeyCredentialRequestOptions;
+    options?: PublicKeyCredentialRequestOptionsJSON;
     status: number;
 }
 
 export interface CredentialRequest {
     publicKey: PublicKeyCredentialRequestOptionsJSON;
-}
-
-export interface PublicKeyCredentialRequestOptionsJSON
-    extends Omit<PublicKeyCredentialRequestOptions, "allowCredentials" | "challenge"> {
-    allowCredentials?: PublicKeyCredentialDescriptorJSON[];
-    challenge: string;
-}
-
-export interface PublicKeyCredentialDescriptorJSON extends Omit<PublicKeyCredentialDescriptor, "id"> {
-    id: string;
-}
-
-export interface PublicKeyCredentialUserEntityJSON extends Omit<PublicKeyCredentialUserEntity, "id"> {
-    id: string;
-}
-
-export interface AuthenticatorAssertionResponseJSON
-    extends Omit<AuthenticatorAssertionResponse, "authenticatorData" | "clientDataJSON" | "signature" | "userHandle"> {
-    authenticatorData: string;
-    clientDataJSON: string;
-    signature: string;
-    userHandle: string;
-}
-
-export interface AuthenticatorAttestationResponseFuture extends AuthenticatorAttestationResponse {
-    getTransports?: () => AuthenticatorTransport[];
-    getAuthenticatorData?: () => ArrayBuffer;
-    getPublicKey?: () => ArrayBuffer;
-    getPublicKeyAlgorithm?: () => COSEAlgorithmIdentifier[];
-}
-
-export interface AttestationPublicKeyCredential extends PublicKeyCredential {
-    response: AuthenticatorAttestationResponseFuture;
-}
-
-export interface AuthenticatorAttestationResponseJSON
-    extends Omit<AuthenticatorAttestationResponseFuture, "clientDataJSON" | "attestationObject"> {
-    clientDataJSON: string;
-    attestationObject: string;
-}
-
-export interface AttestationPublicKeyCredentialJSON
-    extends Omit<AttestationPublicKeyCredential, "response" | "rawId" | "getClientExtensionResults"> {
-    rawId: string;
-    response: AuthenticatorAttestationResponseJSON;
-    clientExtensionResults: AuthenticationExtensionsClientOutputs;
-    transports?: AuthenticatorTransport[];
-}
-
-export interface PublicKeyCredentialJSON
-    extends Omit<PublicKeyCredential, "rawId" | "response" | "getClientExtensionResults"> {
-    rawId: string;
-    clientExtensionResults: AuthenticationExtensionsClientOutputs;
-    response: AuthenticatorAssertionResponseJSON;
-    targetURL?: string;
-    workflow?: string;
-    workflowID?: string;
 }
 
 export enum AttestationResult {
@@ -93,19 +36,9 @@ export enum AttestationResult {
     FailureToken,
 }
 
-export interface AttestationPublicKeyCredentialResult {
-    credential?: AttestationPublicKeyCredential;
+export interface RegistrationResult {
+    response?: RegistrationResponseJSON;
     result: AttestationResult;
-}
-
-export interface AttestationPublicKeyCredentialResultJSON {
-    credential?: AttestationPublicKeyCredentialJSON;
-    result: AttestationResult;
-}
-
-export interface AttestationFinishResult {
-    result: AttestationResult;
-    message: string;
 }
 
 export enum AssertionResult {
@@ -121,18 +54,54 @@ export enum AssertionResult {
     FailureUnrecognized,
 }
 
-export interface DiscoverableAssertionResult {
-    result: AssertionResult;
-    username: string;
+export function AssertionResultFailureString(result: AssertionResult) {
+    switch (result) {
+        case AssertionResult.Success:
+            return "";
+        case AssertionResult.FailureUserConsent:
+            return "You cancelled the assertion request.";
+        case AssertionResult.FailureU2FFacetID:
+            return "The server responded with an invalid Facet ID for the URL.";
+        case AssertionResult.FailureSyntax:
+            return "The assertion challenge was rejected as malformed or incompatible by your browser.";
+        case AssertionResult.FailureWebauthnNotSupported:
+            return "Your browser does not support the WebAuthN protocol.";
+        case AssertionResult.FailureUnrecognized:
+            return "This device is not registered.";
+        case AssertionResult.FailureUnknownSecurity:
+            return "An unknown security error occurred.";
+        case AssertionResult.FailureUnknown:
+            return "An unknown error occurred.";
+        default:
+            return "An unexpected error occurred.";
+    }
 }
 
-export interface AssertionPublicKeyCredentialResult {
-    credential?: PublicKeyCredential;
-    result: AssertionResult;
+export function AttestationResultFailureString(result: AttestationResult) {
+    switch (result) {
+        case AttestationResult.FailureToken:
+            return "You must open the link from the same device and browser that initiated the registration process.";
+        case AttestationResult.FailureSupport:
+            return "Your browser does not appear to support the configuration.";
+        case AttestationResult.FailureSyntax:
+            return "The attestation challenge was rejected as malformed or incompatible by your browser.";
+        case AttestationResult.FailureWebauthnNotSupported:
+            return "Your browser does not support the WebAuthN protocol.";
+        case AttestationResult.FailureUserConsent:
+            return "You cancelled the attestation request.";
+        case AttestationResult.FailureUserVerificationOrResidentKey:
+            return "Your device does not support user verification or resident keys but this was required.";
+        case AttestationResult.FailureExcluded:
+            return "You have registered this device already.";
+        case AttestationResult.FailureUnknown:
+            return "An unknown error occurred.";
+    }
+
+    return "";
 }
 
-export interface AssertionPublicKeyCredentialResultJSON {
-    credential?: PublicKeyCredentialJSON;
+export interface AuthenticationResult {
+    response?: AuthenticationResponseJSON;
     result: AssertionResult;
 }
 
@@ -155,8 +124,4 @@ export enum WebauthnTouchState {
     WaitTouch = 1,
     InProgress = 2,
     Failure = 3,
-}
-
-export interface WebauthnDeviceUpdateRequest {
-    description: string;
 }

@@ -1,35 +1,32 @@
+import { startAuthentication, startRegistration } from "@simplewebauthn/browser";
+import {
+    AuthenticationResponseJSON,
+    PublicKeyCredentialCreationOptionsJSON,
+    PublicKeyCredentialRequestOptionsJSON,
+    RegistrationResponseJSON,
+} from "@simplewebauthn/typescript-types";
 import axios, { AxiosError, AxiosResponse } from "axios";
 
 import {
-    AssertionPublicKeyCredentialResult,
     AssertionResult,
-    AttestationFinishResult,
-    AttestationPublicKeyCredential,
-    AttestationPublicKeyCredentialJSON,
-    AttestationPublicKeyCredentialResult,
     AttestationResult,
-    AuthenticatorAttestationResponseFuture,
+    AuthenticationResult,
     CredentialCreation,
     CredentialRequest,
-    PublicKeyCredentialCreationOptionsJSON,
     PublicKeyCredentialCreationOptionsStatus,
-    PublicKeyCredentialDescriptorJSON,
-    PublicKeyCredentialJSON,
-    PublicKeyCredentialRequestOptionsJSON,
     PublicKeyCredentialRequestOptionsStatus,
+    RegistrationResult,
 } from "@models/Webauthn";
 import {
     AuthenticationOKResponse,
     OptionalDataServiceResponse,
     ServiceResponse,
     WebauthnAssertionPath,
-    WebauthnAttestationPath,
     WebauthnDevicePath,
-    WebauthnIdentityFinishPath,
+    WebauthnRegistrationPath,
     validateStatusAuthentication,
 } from "@services/Api";
 import { SignInResponse } from "@services/SignIn";
-import { getBase64WebEncodingFromBytes, getBytesFromBase64 } from "@utils/Base64";
 
 export function isWebauthnSecure(): boolean {
     if (window.isSecureContext) {
@@ -49,120 +46,6 @@ export async function isWebauthnPlatformAuthenticatorAvailable(): Promise<boolea
     }
 
     return window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-}
-
-function arrayBufferEncode(value: ArrayBuffer): string {
-    return getBase64WebEncodingFromBytes(new Uint8Array(value));
-}
-
-function arrayBufferDecode(value: string): ArrayBuffer {
-    return getBytesFromBase64(value);
-}
-
-function decodePublicKeyCredentialDescriptor(
-    descriptor: PublicKeyCredentialDescriptorJSON,
-): PublicKeyCredentialDescriptor {
-    return {
-        id: arrayBufferDecode(descriptor.id),
-        type: descriptor.type,
-        transports: descriptor.transports,
-    };
-}
-
-function decodePublicKeyCredentialCreationOptions(
-    options: PublicKeyCredentialCreationOptionsJSON,
-): PublicKeyCredentialCreationOptions {
-    return {
-        attestation: options.attestation,
-        authenticatorSelection: options.authenticatorSelection,
-        challenge: arrayBufferDecode(options.challenge),
-        excludeCredentials: options.excludeCredentials?.map(decodePublicKeyCredentialDescriptor),
-        extensions: options.extensions,
-        pubKeyCredParams: options.pubKeyCredParams,
-        rp: options.rp,
-        timeout: options.timeout,
-        user: {
-            displayName: options.user.displayName,
-            id: arrayBufferDecode(options.user.id),
-            name: options.user.name,
-        },
-    };
-}
-
-function decodePublicKeyCredentialRequestOptions(
-    options: PublicKeyCredentialRequestOptionsJSON,
-): PublicKeyCredentialRequestOptions {
-    let allowCredentials: PublicKeyCredentialDescriptor[] | undefined = undefined;
-
-    if (options.allowCredentials?.length !== 0) {
-        allowCredentials = options.allowCredentials?.map(decodePublicKeyCredentialDescriptor);
-    }
-
-    return {
-        allowCredentials: allowCredentials,
-        challenge: arrayBufferDecode(options.challenge),
-        extensions: options.extensions,
-        rpId: options.rpId,
-        timeout: options.timeout,
-        userVerification: options.userVerification,
-    };
-}
-
-function encodeAttestationPublicKeyCredential(
-    credential: AttestationPublicKeyCredential,
-): AttestationPublicKeyCredentialJSON {
-    const response = credential.response as AuthenticatorAttestationResponseFuture;
-
-    let transports: AuthenticatorTransport[] | undefined;
-
-    if (response?.getTransports !== undefined && typeof response.getTransports === "function") {
-        transports = response.getTransports();
-    }
-
-    return {
-        id: credential.id,
-        type: credential.type,
-        rawId: arrayBufferEncode(credential.rawId),
-        clientExtensionResults: credential.getClientExtensionResults(),
-        response: {
-            attestationObject: arrayBufferEncode(response.attestationObject),
-            clientDataJSON: arrayBufferEncode(response.clientDataJSON),
-        },
-        transports: transports,
-    };
-}
-
-function encodeAssertionPublicKeyCredential(
-    credential: PublicKeyCredential,
-    targetURL: string | undefined,
-    workflow: string | undefined,
-    workflowID: string | undefined,
-): PublicKeyCredentialJSON {
-    const response = credential.response as AuthenticatorAssertionResponse;
-
-    let userHandle: string;
-
-    if (response.userHandle == null) {
-        userHandle = "";
-    } else {
-        userHandle = arrayBufferEncode(response.userHandle);
-    }
-
-    return {
-        id: credential.id,
-        type: credential.type,
-        rawId: arrayBufferEncode(credential.rawId),
-        clientExtensionResults: credential.getClientExtensionResults(),
-        response: {
-            authenticatorData: arrayBufferEncode(response.authenticatorData),
-            clientDataJSON: arrayBufferEncode(response.clientDataJSON),
-            signature: arrayBufferEncode(response.signature),
-            userHandle: userHandle,
-        },
-        targetURL: targetURL,
-        workflow: workflow,
-        workflowID: workflowID,
-    };
 }
 
 function getAttestationResultFromDOMException(exception: DOMException): AttestationResult {
@@ -193,7 +76,7 @@ function getAttestationResultFromDOMException(exception: DOMException): Attestat
 
 function getAssertionResultFromDOMException(
     exception: DOMException,
-    requestOptions: PublicKeyCredentialRequestOptions,
+    options: PublicKeyCredentialRequestOptionsJSON,
 ): AssertionResult {
     // Docs for this section:
     // https://w3c.github.io/webauthn/#sctn-op-get-assertion
@@ -209,7 +92,7 @@ function getAssertionResultFromDOMException(
             // § 6.3.3 Step 6 and Step 7.
             return AssertionResult.FailureUserConsent;
         case "SecurityError":
-            if (requestOptions.extensions?.appid !== undefined) {
+            if (options.extensions?.appid !== undefined) {
                 // § 10.1 and 10.2 Step 3.
                 return AssertionResult.FailureU2FFacetID;
             } else {
@@ -221,14 +104,10 @@ function getAssertionResultFromDOMException(
     }
 }
 
-export async function getAttestationCreationOptions(
-    token: null | string,
-): Promise<PublicKeyCredentialCreationOptionsStatus> {
+export async function getAttestationCreationOptions(): Promise<PublicKeyCredentialCreationOptionsStatus> {
     let response: AxiosResponse<ServiceResponse<CredentialCreation>>;
 
-    response = await axios.post<ServiceResponse<CredentialCreation>>(WebauthnIdentityFinishPath, {
-        token: token,
-    });
+    response = await axios.get<ServiceResponse<CredentialCreation>>(WebauthnRegistrationPath);
 
     if (response.data.status !== "OK" || response.data.data == null) {
         return {
@@ -237,12 +116,12 @@ export async function getAttestationCreationOptions(
     }
 
     return {
-        options: decodePublicKeyCredentialCreationOptions(response.data.data.publicKey),
+        options: response.data.data.publicKey,
         status: response.status,
     };
 }
 
-export async function getAssertionRequestOptions(): Promise<PublicKeyCredentialRequestOptionsStatus> {
+export async function getAuthenticationOptions(): Promise<PublicKeyCredentialRequestOptionsStatus> {
     let response: AxiosResponse<ServiceResponse<CredentialRequest>>;
 
     response = await axios.get<ServiceResponse<CredentialRequest>>(WebauthnAssertionPath);
@@ -254,65 +133,55 @@ export async function getAssertionRequestOptions(): Promise<PublicKeyCredentialR
     }
 
     return {
-        options: decodePublicKeyCredentialRequestOptions(response.data.data.publicKey),
+        options: response.data.data.publicKey,
         status: response.status,
     };
 }
 
-export async function getAttestationPublicKeyCredentialResult(
-    creationOptions: PublicKeyCredentialCreationOptions,
-): Promise<AttestationPublicKeyCredentialResult> {
-    const result: AttestationPublicKeyCredentialResult = {
-        result: AttestationResult.Success,
+export async function startWebauthnRegistration(options: PublicKeyCredentialCreationOptionsJSON) {
+    const result: RegistrationResult = {
+        result: AttestationResult.Failure,
     };
 
     try {
-        result.credential = (await navigator.credentials.create({
-            publicKey: creationOptions,
-        })) as AttestationPublicKeyCredential;
+        result.response = await startRegistration(options);
     } catch (e) {
-        result.result = AttestationResult.Failure;
-
         const exception = e as DOMException;
         if (exception !== undefined) {
             result.result = getAttestationResultFromDOMException(exception);
 
             return result;
         } else {
-            console.error(`Unhandled exception occurred during WebAuthN attestation: ${e}`);
+            console.error(`Unhandled exception occurred during WebAuthn attestation: ${e}`);
         }
     }
 
-    if (result.credential != null) {
+    if (result.response != null) {
         result.result = AttestationResult.Success;
     }
 
     return result;
 }
 
-export async function getAssertionPublicKeyCredentialResult(
-    requestOptions: PublicKeyCredentialRequestOptions,
-): Promise<AssertionPublicKeyCredentialResult> {
-    const result: AssertionPublicKeyCredentialResult = {
+export async function getAuthenticationResult(options: PublicKeyCredentialRequestOptionsJSON) {
+    const result: AuthenticationResult = {
         result: AssertionResult.Success,
     };
 
     try {
-        result.credential = (await navigator.credentials.get({ publicKey: requestOptions })) as PublicKeyCredential;
+        result.response = await startAuthentication(options);
     } catch (e) {
-        result.result = AssertionResult.Failure;
-
         const exception = e as DOMException;
         if (exception !== undefined) {
-            result.result = getAssertionResultFromDOMException(exception, requestOptions);
+            result.result = getAssertionResultFromDOMException(exception, options);
 
             return result;
         } else {
-            console.error(`Unhandled exception occurred during WebAuthN assertion: ${e}`);
+            console.error(`Unhandled exception occurred during WebAuthn authentication: ${e}`);
         }
     }
 
-    if (result.credential == null) {
+    if (result.response == null) {
         result.result = AssertionResult.Failure;
     } else {
         result.result = AssertionResult.Success;
@@ -321,82 +190,51 @@ export async function getAssertionPublicKeyCredentialResult(
     return result;
 }
 
-async function postAttestationPublicKeyCredentialResult(
-    credential: AttestationPublicKeyCredential,
+async function postRegistrationResponse(
+    response: RegistrationResponseJSON,
     description: string,
 ): Promise<AxiosResponse<OptionalDataServiceResponse<any>>> {
-    const credentialJSON = encodeAttestationPublicKeyCredential(credential);
-    const postBody = {
-        credential: credentialJSON,
+    return axios.post<OptionalDataServiceResponse<any>>(WebauthnRegistrationPath, {
+        response: response,
         description: description,
-    };
-    return axios.post<OptionalDataServiceResponse<any>>(WebauthnAttestationPath, postBody);
+    });
 }
 
-export async function postAssertionPublicKeyCredentialResult(
-    credential: PublicKeyCredential,
+export async function postAuthenticationResponse(
+    response: AuthenticationResponseJSON,
     targetURL: string | undefined,
     workflow?: string,
     workflowID?: string,
-): Promise<AxiosResponse<ServiceResponse<SignInResponse>>> {
-    const credentialJSON = encodeAssertionPublicKeyCredential(credential, targetURL, workflow, workflowID);
-    return axios.post<ServiceResponse<SignInResponse>>(WebauthnAssertionPath, credentialJSON);
+) {
+    return axios.post<ServiceResponse<SignInResponse>>(WebauthnAssertionPath, {
+        response: response,
+        targetURL: targetURL,
+        workflow: workflow,
+        workflowID: workflowID,
+    });
 }
 
-export async function finishAttestationCeremony(
-    credential: AttestationPublicKeyCredential,
-    description: string,
-): Promise<AttestationResult> {
+export async function finishRegistration(response: RegistrationResponseJSON, description: string) {
     let result = {
         status: AttestationResult.Failure,
         message: "Device registration failed.",
-    } as AttestationResult;
+    };
+
     try {
-        const response = await postAttestationPublicKeyCredentialResult(credential, description);
-        if (response.data.status === "OK" && (response.status === 200 || response.status === 201)) {
+        const resp = await postRegistrationResponse(response, description);
+        if (resp.data.status === "OK" && (resp.status === 200 || resp.status === 201)) {
             return {
                 status: AttestationResult.Success,
-            } as AttestationFinishResult;
+                message: "",
+            };
         }
     } catch (error) {
-        if (error instanceof AxiosError) {
+        if (error instanceof AxiosError && error.response !== undefined) {
             result.message = error.response.data.message;
         }
     }
+
     return result;
-}
-
-export async function performAssertionCeremony(
-    targetURL?: string,
-    workflow?: string,
-    workflowID?: string,
-): Promise<AssertionResult> {
-    const assertionRequestOpts = await getAssertionRequestOptions();
-
-    if (assertionRequestOpts.status !== 200 || assertionRequestOpts.options == null) {
-        return AssertionResult.FailureChallenge;
-    }
-
-    const assertionResult = await getAssertionPublicKeyCredentialResult(assertionRequestOpts.options);
-
-    if (assertionResult.result !== AssertionResult.Success) {
-        return assertionResult.result;
-    } else if (assertionResult.credential == null) {
-        return AssertionResult.Failure;
-    }
-
-    const response = await postAssertionPublicKeyCredentialResult(
-        assertionResult.credential,
-        targetURL,
-        workflow,
-        workflowID,
-    );
-
-    if (response.data.status === "OK" && response.status === 200) {
-        return AssertionResult.Success;
-    }
-
-    return AssertionResult.Failure;
 }
 
 export async function deleteDevice(deviceID: string) {

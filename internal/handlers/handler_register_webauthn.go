@@ -30,10 +30,15 @@ var WebauthnIdentityFinish = middlewares.IdentityVerificationFinish(
 	middlewares.IdentityVerificationFinishArgs{
 		ActionClaim:          ActionWebauthnRegistration,
 		IsTokenUserValidFunc: isTokenUserValidFor2FARegistration,
-	}, SecondFactorWebauthnAttestationGET)
+	}, WebauthnAttestationGET)
 
-// SecondFactorWebauthnAttestationGET returns the attestation challenge from the server.
-func SecondFactorWebauthnAttestationGET(ctx *middlewares.AutheliaCtx, _ string) {
+// WebauthnAttestationGET returns the attestation challenge from the server.
+func WebauthnAttestationGET(ctx *middlewares.AutheliaCtx, _ string) {
+	WebauthnRegistrationGET(ctx)
+}
+
+// WebauthnRegistrationGET returns the attestation challenge from the server.
+func WebauthnRegistrationGET(ctx *middlewares.AutheliaCtx) {
 	var (
 		w           *webauthn.WebAuthn
 		user        *model.WebauthnUser
@@ -92,13 +97,8 @@ func SecondFactorWebauthnAttestationGET(ctx *middlewares.AutheliaCtx, _ string) 
 	}
 }
 
-// WebauthnAttestationPOST processes the attestation challenge response from the client.
-func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
-	type requestPostData struct {
-		Credential  json.RawMessage `json:"credential"`
-		Description string          `json:"description"`
-	}
-
+// WebauthnRegistrationPOST processes the attestation challenge response from the client.
+func WebauthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		err  error
 		w    *webauthn.WebAuthn
@@ -106,9 +106,10 @@ func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 
 		userSession session.UserSession
 
-		attestationResponse *protocol.ParsedCredentialCreationData
-		credential          *webauthn.Credential
-		postData            *requestPostData
+		response *protocol.ParsedCredentialCreationData
+
+		credential *webauthn.Credential
+		bodyJSON   bodyRegisterWebauthnRequest
 	)
 
 	if userSession, err = ctx.GetSession(); err != nil {
@@ -135,8 +136,7 @@ func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	err = json.Unmarshal(ctx.PostBody(), &postData)
-	if err != nil {
+	if err = json.Unmarshal(ctx.PostBody(), &bodyJSON); err != nil {
 		ctx.Logger.Errorf("Unable to parse %s assertion request data for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
@@ -144,13 +144,15 @@ func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if attestationResponse, err = protocol.ParseCredentialCreationResponseBody(bytes.NewReader(postData.Credential)); err != nil {
+	if response, err = protocol.ParseCredentialCreationResponseBody(bytes.NewReader(bodyJSON.Response)); err != nil {
 		ctx.Logger.Errorf("Unable to parse %s assertion for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
 		return
 	}
+
+	ctx.Logger.WithField("att_format", response.Response.AttestationObject.Format).Debug("Response Data")
 
 	if user, err = getWebAuthnUser(ctx, userSession); err != nil {
 		ctx.Logger.Errorf("Unable to load %s devices for assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
@@ -160,13 +162,15 @@ func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if credential, err = w.CreateCredential(user, *userSession.Webauthn, attestationResponse); err != nil {
+	if credential, err = w.CreateCredential(user, *userSession.Webauthn, response); err != nil {
 		ctx.Logger.Errorf("Unable to load %s devices for assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
 		return
 	}
+
+	ctx.Logger.WithField("att_type", credential.AttestationType).Debug("Credential Data")
 
 	devices, err := ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, userSession.Username)
 	if err != nil && err != storage.ErrNoWebauthnDevice {
@@ -178,8 +182,8 @@ func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	for _, existingDevice := range devices {
-		if existingDevice.Description == postData.Description {
-			ctx.Logger.Errorf("%s device for for user '%s' with name '%s' already exists", regulation.AuthTypeWebauthn, userSession.Username, postData.Description)
+		if existingDevice.Description == bodyJSON.Description {
+			ctx.Logger.Errorf("%s device for for user '%s' with name '%s' already exists", regulation.AuthTypeWebauthn, userSession.Username, bodyJSON.Description)
 
 			respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 			ctx.SetStatusCode(fasthttp.StatusConflict)
@@ -189,7 +193,7 @@ func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 		}
 	}
 
-	device := model.NewWebauthnDeviceFromCredential(w.Config.RPID, userSession.Username, postData.Description, credential)
+	device := model.NewWebauthnDeviceFromCredential(w.Config.RPID, userSession.Username, bodyJSON.Description, credential)
 
 	if err = ctx.Providers.StorageProvider.SaveWebauthnDevice(ctx, device); err != nil {
 		ctx.Logger.Errorf("Unable to load %s devices for assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
@@ -207,5 +211,5 @@ func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 	ctx.ReplyOK()
 	ctx.SetStatusCode(fasthttp.StatusCreated)
 
-	ctxLogEvent(ctx, userSession.Username, "Second Factor Method Added", map[string]any{"Action": "Second Factor Method Added", "Category": "Webauthn Credential", "Credential Description": postData.Description})
+	ctxLogEvent(ctx, userSession.Username, "Second Factor Method Added", map[string]any{"Action": "Second Factor Method Added", "Category": "Webauthn Credential", "Credential Description": bodyJSON.Description})
 }

@@ -2,6 +2,7 @@ import React, { Fragment, MutableRefObject, useCallback, useEffect, useRef, useS
 
 import { Box, Button, Grid, Stack, Step, StepLabel, Stepper, Theme, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
+import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/typescript-types";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -10,16 +11,15 @@ import InformationIcon from "@components/InformationIcon";
 import SuccessIcon from "@components/SuccessIcon";
 import WebauthnTryIcon from "@components/WebauthnTryIcon";
 import { SettingsRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
-import { IdentityToken } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
-import { useQueryParam } from "@hooks/QueryParam";
 import LoginLayout from "@layouts/LoginLayout";
-import { AttestationPublicKeyCredential, AttestationResult, WebauthnTouchState } from "@models/Webauthn";
 import {
-    finishAttestationCeremony,
-    getAttestationCreationOptions,
-    getAttestationPublicKeyCredentialResult,
-} from "@services/Webauthn";
+    AttestationResult,
+    AttestationResultFailureString,
+    RegistrationResult,
+    WebauthnTouchState,
+} from "@models/Webauthn";
+import { finishRegistration, getAttestationCreationOptions, startWebauthnRegistration } from "@services/Webauthn";
 
 const steps = ["Confirm device", "Choose name"];
 
@@ -33,83 +33,60 @@ const RegisterWebauthn = function (props: Props) {
     const { createErrorNotification } = useNotifications();
 
     const [activeStep, setActiveStep] = React.useState(0);
-    const [credential, setCredential] = React.useState(null as null | AttestationPublicKeyCredential);
-    const [creationOptions, setCreationOptions] = useState(null as null | PublicKeyCredentialCreationOptions);
+    const [result, setResult] = React.useState(null as null | RegistrationResult);
+    const [options, setOptions] = useState(null as null | PublicKeyCredentialCreationOptionsJSON);
     const [deviceName, setName] = useState("");
     const nameRef = useRef() as MutableRefObject<HTMLInputElement>;
     const [nameError, setNameError] = useState(false);
-
-    const processToken = useQueryParam(IdentityToken);
 
     const handleBackClick = () => {
         navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
     };
 
     const finishAttestation = async () => {
-        if (!credential) {
+        if (!result || !result.response) {
             return;
         }
+
         if (!deviceName.length) {
             setNameError(true);
             return;
         }
-        const result = await finishAttestationCeremony(credential, deviceName);
-        switch (result.status) {
+
+        const res = await finishRegistration(result.response, deviceName);
+        switch (res.status) {
             case AttestationResult.Success:
                 setActiveStep(2);
                 navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
                 break;
             case AttestationResult.Failure:
-                createErrorNotification(result.message);
+                createErrorNotification(res.message);
         }
     };
 
-    const startAttestation = useCallback(async () => {
+    const startRegistration = useCallback(async () => {
+        if (options === null) {
+            return;
+        }
+
         try {
             setState(WebauthnTouchState.WaitTouch);
             setActiveStep(0);
 
-            const startResult = await getAttestationPublicKeyCredentialResult(creationOptions);
+            const res = await startWebauthnRegistration(options);
 
-            switch (startResult.result) {
-                case AttestationResult.Success:
-                    if (startResult.credential == null) {
-                        throw new Error("Attestation request succeeded but credential is empty");
-                    }
-                    setCredential(startResult.credential);
-                    setActiveStep(1);
-                    return;
-                case AttestationResult.FailureToken:
-                    createErrorNotification(
-                        "You must open the link from the same device and browser that initiated the registration process.",
-                    );
-                    break;
-                case AttestationResult.FailureSupport:
-                    createErrorNotification("Your browser does not appear to support the configuration.");
-                    break;
-                case AttestationResult.FailureSyntax:
-                    createErrorNotification(
-                        "The attestation challenge was rejected as malformed or incompatible by your browser.",
-                    );
-                    break;
-                case AttestationResult.FailureWebauthnNotSupported:
-                    createErrorNotification("Your browser does not support the WebAuthN protocol.");
-                    break;
-                case AttestationResult.FailureUserConsent:
-                    createErrorNotification("You cancelled the attestation request.");
-                    break;
-                case AttestationResult.FailureUserVerificationOrResidentKey:
-                    createErrorNotification(
-                        "Your device does not support user verification or resident keys but this was required.",
-                    );
-                    break;
-                case AttestationResult.FailureExcluded:
-                    createErrorNotification("You have registered this device already.");
-                    break;
-                case AttestationResult.FailureUnknown:
-                    createErrorNotification("An unknown error occurred.");
-                    break;
+            if (res.result === AttestationResult.Success) {
+                if (res.response == null) {
+                    throw new Error("Attestation request succeeded but credential is empty");
+                }
+
+                setResult(res);
+                setActiveStep(1);
+
+                return;
             }
+
+            createErrorNotification(AttestationResultFailureString(res.result));
             setState(WebauthnTouchState.Failure);
         } catch (err) {
             console.error(err);
@@ -117,26 +94,26 @@ const RegisterWebauthn = function (props: Props) {
                 "Failed to register your device. The identity verification process might have timed out.",
             );
         }
-    }, [creationOptions, createErrorNotification]);
+    }, [options, createErrorNotification]);
 
     useEffect(() => {
-        if (creationOptions !== null) {
-            startAttestation();
+        if (options !== null) {
+            startRegistration();
         }
-    }, [creationOptions, startAttestation]);
+    }, [options, startRegistration]);
 
     useEffect(() => {
         (async () => {
-            const result = await getAttestationCreationOptions(processToken);
-            if (result.status !== 200 || !result.options) {
+            const res = await getAttestationCreationOptions();
+            if (res.status !== 200 || !res.options) {
                 createErrorNotification(
                     "You must open the link from the same device and browser that initiated the registration process.",
                 );
                 return;
             }
-            setCreationOptions(result.options);
+            setOptions(res.options);
         })();
-    }, [processToken, setCreationOptions, createErrorNotification]);
+    }, [setOptions, createErrorNotification]);
 
     function renderStep(step: number) {
         switch (step) {
@@ -144,10 +121,10 @@ const RegisterWebauthn = function (props: Props) {
                 return (
                     <Fragment>
                         <div className={styles.icon}>
-                            <WebauthnTryIcon onRetryClick={startAttestation} webauthnTouchState={state} />
+                            <WebauthnTryIcon onRetryClick={startRegistration} webauthnTouchState={state} />
                         </div>
                         <Typography className={styles.instruction}>Touch the token on your security key</Typography>
-                        <Grid container align="center" spacing={1}>
+                        <Grid container spacing={1}>
                             <Grid item xs={12}>
                                 <Stack direction="row" spacing={1} justifyContent="center">
                                     <Button color="primary" onClick={handleBackClick}>
@@ -196,7 +173,7 @@ const RegisterWebauthn = function (props: Props) {
                             </Grid>
                             <Grid item xs={12}>
                                 <Stack direction="row" spacing={1} justifyContent="center">
-                                    <Button color="primary" variant="outlined" onClick={startAttestation}>
+                                    <Button color="primary" variant="outlined" onClick={startRegistration}>
                                         Back
                                     </Button>
                                     <Button color="primary" variant="contained" onClick={finishAttestation}>
