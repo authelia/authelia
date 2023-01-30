@@ -268,6 +268,7 @@ const (
 	errFmtSessionDomainPortalURLInsecure         = "session: domain config %s: option 'authelia_url' does not have a secure scheme with a value of '%s'"
 	errFmtSessionDomainPortalURLNotInCookieScope = "session: domain config %s: option 'authelia_url' does not share a cookie scope with domain '%s' with a value of '%s'"
 	errFmtSessionDomainInvalidDomain             = "session: domain config %s: option 'domain' is not a valid domain"
+	errFmtSessionDomainInvalidDomainNoDots       = "session: domain config %s: option 'domain' is not a valid domain: must have at least a single period"
 )
 
 // Regulation Error Consts.

@@ -108,6 +108,8 @@ func validateSessionDomainName(i int, config *schema.SessionConfiguration, valid
 		validator.Push(fmt.Errorf(errFmtSessionDomainMustBeRoot, sessionDomainDescriptor(i, d), d.Domain))
 	case strings.HasPrefix(d.Domain, "."):
 		validator.PushWarning(fmt.Errorf(errFmtSessionDomainHasPeriodPrefix, sessionDomainDescriptor(i, d)))
+	case !strings.Contains(d.Domain, "."):
+		validator.Push(fmt.Errorf(errFmtSessionDomainInvalidDomainNoDots, sessionDomainDescriptor(i, d)))
 	case !reDomainCharacters.MatchString(d.Domain):
 		validator.Push(fmt.Errorf(errFmtSessionDomainInvalidDomain, sessionDomainDescriptor(i, d)))
 	}
