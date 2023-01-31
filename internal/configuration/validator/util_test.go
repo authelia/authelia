@@ -16,6 +16,7 @@ func TestIsCookieDomainValid(t *testing.T) {
 		{"*.example.com", false},
 		{"authelia.com", false},
 		{"duckdns.org", true},
+		{".duckdns.org", true},
 		{"example.duckdns.org", false},
 		{"192.168.2.1", false},
 		{"localhost", true},

@@ -1,6 +1,8 @@
 package validator
 
 import (
+	"strings"
+
 	"golang.org/x/net/publicsuffix"
 )
 
@@ -9,5 +11,5 @@ func isCookieDomainAPublicSuffix(domain string) (valid bool) {
 
 	suffix, _ = publicsuffix.PublicSuffix(domain)
 
-	return len(domain) == len(suffix)
+	return len(strings.TrimLeft(domain, ".")) == len(suffix)
 }
