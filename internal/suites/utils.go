@@ -242,7 +242,10 @@ func fixCoveragePath(path string, file os.FileInfo, err error) error {
 // getEnvInfoFromURL gets environments variables for specified cookie domain
 // this func makes a http call to https://login.<domain>/devworkflow and is only useful for suite tests.
 func getDomainEnvInfo(domain string) (map[string]string, error) {
-	info := make(map[string]string)
+	info := map[string]string{
+		"PrivacyPolicyURL":    "https://www.authelia.com/policies/privacy/",
+		"PrivacyPolicyAccept": "false",
+	}
 
 	client := &http.Client{
 		Transport: &http.Transport{
@@ -318,8 +321,7 @@ func updateDevEnvFileForDomain(domain string, setup bool) error {
 		return err
 	}
 
-	err = generateDevEnvFile(info)
-	if err != nil {
+	if err = generateDevEnvFile(info); err != nil {
 		return err
 	}
 

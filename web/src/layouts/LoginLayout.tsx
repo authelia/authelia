@@ -72,7 +72,6 @@ const LoginLayout = function (props: Props) {
                             </Grid>
                             {privacyEnabled ? (
                                 <Fragment>
-                                    <Divider orientation="vertical" flexItem variant="middle" />
                                     <Grid item xs={4}>
                                         <PrivacyPolicyLink className={styles.footerLinks} />
                                     </Grid>
