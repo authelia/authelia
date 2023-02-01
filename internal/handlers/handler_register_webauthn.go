@@ -15,28 +15,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-// WebauthnIdentityStart the handler for initiating the identity validation.
-var WebauthnIdentityStart = middlewares.IdentityVerificationStart(
-	middlewares.IdentityVerificationStartArgs{
-		MailTitle:             "Register your key",
-		MailButtonContent:     "Register",
-		TargetEndpoint:        "/webauthn/register",
-		ActionClaim:           ActionWebauthnRegistration,
-		IdentityRetrieverFunc: identityRetrieverFromSession,
-	}, nil)
-
-// WebauthnIdentityFinish the handler for finishing the identity validation.
-var WebauthnIdentityFinish = middlewares.IdentityVerificationFinish(
-	middlewares.IdentityVerificationFinishArgs{
-		ActionClaim:          ActionWebauthnRegistration,
-		IsTokenUserValidFunc: isTokenUserValidFor2FARegistration,
-	}, WebauthnAttestationGET)
-
-// WebauthnAttestationGET returns the attestation challenge from the server.
-func WebauthnAttestationGET(ctx *middlewares.AutheliaCtx, _ string) {
-	WebauthnRegistrationGET(ctx)
-}
-
 // WebauthnRegistrationGET returns the attestation challenge from the server.
 func WebauthnRegistrationGET(ctx *middlewares.AutheliaCtx) {
 	var (
@@ -113,7 +91,7 @@ func WebauthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred retrieving session for %s attestation response", regulation.AuthTypeWebauthn)
+		ctx.Logger.WithError(err).Errorf("Error occurred retrieving session for %s registration response", regulation.AuthTypeWebauthn)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
@@ -121,7 +99,7 @@ func WebauthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if userSession.Webauthn == nil {
-		ctx.Logger.Errorf("Webauthn session data is not present in order to handle attestation for user '%s'. This could indicate a user trying to POST to the wrong endpoint, or the session data is not present for the browser they used.", userSession.Username)
+		ctx.Logger.Errorf("Webauthn session data is not present in order to handle %s registration for user '%s'. This could indicate a user trying to POST to the wrong endpoint, or the session data is not present for the browser they used.", regulation.AuthTypeWebauthn, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -129,7 +107,7 @@ func WebauthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if w, err = newWebauthn(ctx); err != nil {
-		ctx.Logger.Errorf("Unable to configure %s during assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+		ctx.Logger.Errorf("Unable to configure %s during registration for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
@@ -137,7 +115,7 @@ func WebauthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err = json.Unmarshal(ctx.PostBody(), &bodyJSON); err != nil {
-		ctx.Logger.Errorf("Unable to parse %s assertion request data for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+		ctx.Logger.Errorf("Unable to parse %s registration request POST data for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -145,7 +123,7 @@ func WebauthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if response, err = protocol.ParseCredentialCreationResponseBody(bytes.NewReader(bodyJSON.Response)); err != nil {
-		ctx.Logger.Errorf("Unable to parse %s assertion for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+		ctx.Logger.Errorf("Unable to parse %s registration for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -155,7 +133,7 @@ func WebauthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	ctx.Logger.WithField("att_format", response.Response.AttestationObject.Format).Debug("Response Data")
 
 	if user, err = getWebAuthnUser(ctx, userSession); err != nil {
-		ctx.Logger.Errorf("Unable to load %s devices for assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+		ctx.Logger.Errorf("Unable to load %s user details for registration for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -163,7 +141,7 @@ func WebauthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if credential, err = w.CreateCredential(user, *userSession.Webauthn, response); err != nil {
-		ctx.Logger.Errorf("Unable to load %s devices for assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+		ctx.Logger.Errorf("Unable to create %s credential for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -196,7 +174,7 @@ func WebauthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	device := model.NewWebauthnDeviceFromCredential(w.Config.RPID, userSession.Username, bodyJSON.Description, credential)
 
 	if err = ctx.Providers.StorageProvider.SaveWebauthnDevice(ctx, device); err != nil {
-		ctx.Logger.Errorf("Unable to load %s devices for assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+		ctx.Logger.Errorf("Unable to save %s device registration for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
@@ -205,7 +183,7 @@ func WebauthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 
 	userSession.Webauthn = nil
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf(logFmtErrSessionSave, "removal of the attestation challenge", regulation.AuthTypeWebauthn, userSession.Username, err)
+		ctx.Logger.Errorf(logFmtErrSessionSave, "removal of the registration challenge", regulation.AuthTypeWebauthn, userSession.Username, err)
 	}
 
 	ctx.ReplyOK()

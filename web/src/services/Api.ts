@@ -11,13 +11,12 @@ export const FirstFactorPath = basePath + "/api/firstfactor";
 export const InitiateTOTPRegistrationPath = basePath + "/api/secondfactor/totp/identity/start";
 export const CompleteTOTPRegistrationPath = basePath + "/api/secondfactor/totp/identity/finish";
 
-export const WebauthnIdentityStartPath = basePath + "/api/secondfactor/webauthn/identity/start";
-export const WebauthnRegistrationPath = basePath + "/api/secondfactor/register/webauthn";
+export const WebauthnRegistrationPath = basePath + "/api/secondfactor/webauthn/credential/register";
 
-export const WebauthnAssertionPath = basePath + "/api/secondfactor/webauthn/assertion";
+export const WebauthnAssertionPath = basePath + "/api/secondfactor/webauthn";
 
-export const WebauthnDevicesPath = basePath + "/api/secondfactor/webauthn/devices";
-export const WebauthnDevicePath = basePath + "/api/secondfactor/webauthn/device";
+export const WebauthnDevicesPath = basePath + "/api/secondfactor/webauthn/credentials";
+export const WebauthnDevicePath = basePath + "/api/secondfactor/webauthn/credential";
 
 export const InitiateDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_devices";
 export const CompleteDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_device";

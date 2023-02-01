@@ -235,22 +235,15 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	}
 
 	if !config.Webauthn.Disable {
-		// Webauthn Endpoints.
-		r.POST("/api/secondfactor/webauthn/identity/start", middleware1FA(handlers.WebauthnIdentityStart))
-		r.POST("/api/secondfactor/webauthn/identity/finish", middleware1FA(handlers.WebauthnIdentityFinish))
-
-		r.GET("/api/secondfactor/register/webauthn", middleware1FA(handlers.WebauthnRegistrationGET))
-		r.POST("/api/secondfactor/register/webauthn", middleware1FA(handlers.WebauthnRegistrationPOST))
-
-		r.POST("/api/secondfactor/webauthn/attestation", middleware1FA(handlers.WebauthnRegistrationPOST))
-
-		r.GET("/api/secondfactor/webauthn/assertion", middleware1FA(handlers.WebauthnAssertionGET))
-		r.POST("/api/secondfactor/webauthn/assertion", middleware1FA(handlers.WebauthnAssertionPOST))
+		r.GET("/api/secondfactor/webauthn", middleware1FA(handlers.WebauthnAssertionGET))
+		r.POST("/api/secondfactor/webauthn", middleware1FA(handlers.WebauthnAssertionPOST))
 
 		// Management of the webauthn devices.
-		r.GET("/api/secondfactor/webauthn/devices", middleware1FA(handlers.WebauthnDevicesGET))
-		r.PUT("/api/secondfactor/webauthn/device/{deviceID}", middleware2FA(handlers.WebauthnDevicePUT))
-		r.DELETE("/api/secondfactor/webauthn/device/{deviceID}", middleware2FA(handlers.WebauthnDeviceDELETE))
+		r.GET("/api/secondfactor/webauthn/credentials", middleware1FA(handlers.WebauthnDevicesGET))
+		r.GET("/api/secondfactor/webauthn/credential/register", middleware1FA(handlers.WebauthnRegistrationGET))
+		r.POST("/api/secondfactor/webauthn/credential/register", middleware1FA(handlers.WebauthnRegistrationPOST))
+		r.PUT("/api/secondfactor/webauthn/credential/{deviceID}", middleware2FA(handlers.WebauthnDevicePUT))
+		r.DELETE("/api/secondfactor/webauthn/credential/{deviceID}", middleware2FA(handlers.WebauthnDeviceDELETE))
 	}
 
 	// Configure DUO api endpoint only if configuration exists.
