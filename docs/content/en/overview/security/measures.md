@@ -216,9 +216,9 @@ to port 587 (_the `submission` port, a common alternative that uses STARTTLS ins
 
 [docs-config-smtp-port]: ../../configuration/notifications/smtp.md#port
 [cleartext]: https://cwe.mitre.org/data/definitions/312.html
-[service-submissions]: https://www.rfc-editor.org/rfc/rfc8314#section-7.3
-[port-465]: https://www.rfc-editor.org/rfc/rfc8314#section-3.3
-[smtp-auth]: https://www.rfc-editor.org/rfc/rfc6409#section-4.3
+[service-submissions]: https://datatracker.ietf.org/doc/html/rfc8314#section-7.3
+[port-465]: https://datatracker.ietf.org/doc/html/rfc8314#section-3.3
+[smtp-auth]: https://datatracker.ietf.org/doc/html/rfc6409#section-4.3
 
 ## Protection against open redirects
 
