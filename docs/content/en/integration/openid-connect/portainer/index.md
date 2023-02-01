@@ -60,8 +60,9 @@ To configure [Portainer] to utilize Authelia as an [OpenID Connect 1.0] Provider
    7. Access Token URL: `https://auth.example.com/api/oidc/token`
    8. Resource URL: `https://auth.example.com/api/oidc/userinfo`
    9. Redirect URL: `https://portainer.example.com`
-   10. User Identifier: `preferred_username`
-   11. Scopes: `openid profile groups email`
+   10. Logout URL:  `https://auth.example.com/logout`
+   11. User Identifier: `preferred_username`
+   12. Scopes: `openid profile groups email`
 
 {{< figure src="portainer.png" alt="Portainer" width="736" style="padding-right: 10px" >}}
 
