@@ -589,7 +589,7 @@ match value is a list/slice).
 
 The regex groups are case-insensitive due to the fact that the regex groups are used in domain criteria and domain names
 should not be compared in a case-sensitive way as per the [RFC4343](https://www.rfc-editor.org/rfc/rfc4343.html)
-abstract and [RFC3986 Section 3.2.2](https://www.rfc-editor.org/rfc/rfc3986#section-3.2.2).
+abstract and [RFC3986 Section 3.2.2](https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.2).
 
 We do not currently apply any other normalization to usernames or groups when matching these groups. As such it's
 generally *__not recommended__* to use these patterns with usernames or groups which contain characters that are not

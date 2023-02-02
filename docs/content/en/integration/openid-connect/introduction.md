@@ -168,7 +168,7 @@ These endpoints implement OpenID Connect elements.
 [OpenID Connect Discovery]: https://openid.net/specs/openid-connect-discovery-1_0.html
 [OAuth 2.0 Authorization Server Metadata]: https://www.rfc-editor.org/rfc/rfc8414.html
 
-[JSON Web Key Sets]: https://www.rfc-editor.org/rfc/rfc7517.html#section-5
+[JSON Web Key Sets]: https://datatracker.ietf.org/doc/html/rfc7517#section-5
 
 [Authorization]: https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
 [Token]: https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint

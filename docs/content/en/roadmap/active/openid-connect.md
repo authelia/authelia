@@ -39,11 +39,11 @@ Feature List:
 * [User Consent](https://openid.net/specs/openid-connect-core-1_0.html#Consent)
 * [Authorization Code Flow](https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowSteps)
 * [OpenID Connect Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html)
-* [RS256 Signature Strategy](https://www.rfc-editor.org/rfc/rfc7518.html#section-3.1)
+* [RS256 Signature Strategy](https://datatracker.ietf.org/doc/html/rfc7518#section-3.1)
 * Per Client Scope/Grant Type/Response Type Restriction
 * Per Client Authorization Policy (1FA/2FA)
 * Per Client List of Valid Redirection URI's
-* [Confidential Client Type](https://www.rfc-editor.org/rfc/rfc6749.html#section-2.1)
+* [Confidential Client Type](https://datatracker.ietf.org/doc/html/rfc6749#section-2.1)
 
 ### Beta 2
 
@@ -56,7 +56,7 @@ Feature List:
 * Token/Code Lifespan
 * Client Debug Messages
 * Client Audience
-* [Public Client Type](https://www.rfc-editor.org/rfc/rfc6749.html#section-2.1)
+* [Public Client Type](https://datatracker.ietf.org/doc/html/rfc6749#section-2.1)
 
 ### Beta 3
 
@@ -97,7 +97,7 @@ Feature List:
 
 Feature List:
 
-* [JWK's backed by X509 Certificate Chains](https://www.rfc-editor.org/rfc/rfc7517#section-4.7)
+* [JWK's backed by X509 Certificate Chains](https://datatracker.ietf.org/doc/html/rfc7517#section-4.7)
 * Hashed Client Secrets
 * Per-Client [Consent](https://openid.net/specs/openid-connect-core-1_0.html#Consent) Mode:
   * Explicit:
