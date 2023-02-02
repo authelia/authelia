@@ -52,7 +52,7 @@ specifiers:
   qrcode.react: 3.1.0
   react: 18.2.0
   react-dom: 18.2.0
-  react-i18next: 12.1.4
+  react-i18next: 12.1.5
   react-loading: 2.0.3
   react-router-dom: 6.8.0
   react-test-renderer: 18.2.0
@@ -85,7 +85,7 @@ dependencies:
   qrcode.react: 3.1.0_react@18.2.0
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
-  react-i18next: 12.1.4_iakk3dtjhjpukdoa4oua5khgci
+  react-i18next: 12.1.5_iakk3dtjhjpukdoa4oua5khgci
   react-loading: 2.0.3_react@18.2.0
   react-router-dom: 6.8.0_biqbaboplfbrettd7655fr4n2y
   react18-input-otp: 1.1.2_biqbaboplfbrettd7655fr4n2y
@@ -8332,8 +8332,8 @@ packages:
       react: 18.2.0
       scheduler: 0.23.0
 
-  /react-i18next/12.1.4_iakk3dtjhjpukdoa4oua5khgci:
-    resolution: {integrity: sha512-XQND7jYtgM7ht5PH3yIZljCRpAMTlH/zmngM9ZjToqa+0BR6xuu8c7QF0WIIOEjcMTB2S3iOfpN/xG/ZrAnO6g==}
+  /react-i18next/12.1.5_iakk3dtjhjpukdoa4oua5khgci:
+    resolution: {integrity: sha512-7PQAv6DA0TcStG96fle+8RfTwxVbHVlZZJPoEszwUNvDuWpGldJmNWa3ZPesEsZQZGF6GkzwvEh6p57qpFD2gQ==}
     peerDependencies:
       i18next: '>= 19.0.0'
       react: '>= 16.8.0 || 18'
