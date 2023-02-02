@@ -119,7 +119,7 @@ identity_providers:
     clients:
       - id: myapp
         description: My Application
-        secret: '$plaintext$this_is_a_secret'
+        secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         sector_identifier: ''
         public: false
         authorization_policy: two_factor
@@ -171,8 +171,8 @@ JSON key's in the JWKs [Discoverable Endpoint](../../integration/openid-connect/
 as per [RFC7517].
 
 [RFC7517]: https://www.rfc-editor.org/rfc/rfc7517
-[x5c]: https://www.rfc-editor.org/rfc/rfc7517#section-4.7
-[x5t]: https://www.rfc-editor.org/rfc/rfc7517#section-4.8
+[x5c]: https://datatracker.ietf.org/doc/html/rfc7517#section-4.7
+[x5t]: https://datatracker.ietf.org/doc/html/rfc7517#section-4.8
 
 The first certificate in the chain must have the public key for the [issuer_private_key](#issuerprivatekey), each
 certificate in the chain must be valid for the current date, and each certificate in the chain should be signed by the
@@ -534,7 +534,7 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [RFC6234]: https://www.rfc-editor.org/rfc/rfc6234.html
 [RFC4648]: https://www.rfc-editor.org/rfc/rfc4648.html
 [RFC7468]: https://www.rfc-editor.org/rfc/rfc7468.html
-[RFC6749 Section 2.1]: https://www.rfc-editor.org/rfc/rfc6749.html#section-2.1
+[RFC6749 Section 2.1]: https://datatracker.ietf.org/doc/html/rfc6749#section-2.1
 [PKCE]: https://www.rfc-editor.org/rfc/rfc7636.html
 [Authorization Code Flow]: https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth
 [Subject Identifier Type]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes

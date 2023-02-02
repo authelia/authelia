@@ -200,7 +200,7 @@ This table suggests the parameters for the [SHA2 Crypt] algorithm:
 [Bcrypt]: https://en.wikipedia.org/wiki/Bcrypt
 [FIPS-140 compliance]: https://csrc.nist.gov/publications/detail/fips/140/2/final
 
-[RFC9106 Parameter Choice]: https://www.rfc-editor.org/rfc/rfc9106.html#section-4
+[RFC9106 Parameter Choice]: https://datatracker.ietf.org/doc/html/rfc9106#section-4
 [YAML]: https://yaml.org/
 [crypt hash generate]: ../cli/authelia/authelia_crypto_hash_generate.md
 [Password Hashing Competition]: https://en.wikipedia.org/wiki/Password_Hashing_Competition
