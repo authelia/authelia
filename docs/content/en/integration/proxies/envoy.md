@@ -177,9 +177,10 @@ static_resources:
                         authorization_request:
                           allowed_headers:
                             patterns:
+                              - exact: authorization
+                              - exact: proxy-authorization
                               - exact: accept
                               - exact: cookie
-                              - exact: proxy-authorization
                           headers_to_add:
                             - key: X-Forwarded-Proto
                               value: '%REQ(:SCHEME)%'
