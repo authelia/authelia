@@ -185,4 +185,10 @@ identity_providers:
       - id: abc
         secret: '${ABC_CLIENT_SECRET}'
         consent_mode: explicit
+      - id: xyz
+        secret: '$XYZ_CLIENT_SECRET'
+        consent_mode: explicit
+      - id: '123'
+        secret: $ANOTHER_CLIENT_SECRET
+        consent_mode: explicit
 ...
