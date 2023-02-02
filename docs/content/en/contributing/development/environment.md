@@ -21,7 +21,7 @@ In order to build and contribute to __Authelia__, you need to make sure the foll
 * General:
   * [git]
 * Backend Development:
-  * [go] *(v1.19 or greater)*
+  * [go] *(v1.20 or greater)*
   * [gcc]
 * Frontend Development
   * [Node.js] *(v18 or greater)*
