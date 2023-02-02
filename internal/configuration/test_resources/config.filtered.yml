@@ -174,4 +174,15 @@ notifier:
     port: 1025
     sender: 'admin@{{ env "ROOT_DOMAIN" }}'
     disable_require_tls: true
+
+identity_providers:
+  oidc:
+    cors:
+      allowed_origins:
+        - https://google.com
+        - https://example.com
+    clients:
+      - id: abc
+        secret: '${ABC_CLIENT_SECRET}'
+        consent_mode: explicit
 ...

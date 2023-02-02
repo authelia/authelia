@@ -105,6 +105,7 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 	testSetEnv(t, "JWT_SECRET", "abc")
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
 
+	t.Setenv("ABC_CLIENT_SECRET", "$plaintext$example")
 	t.Setenv("SERVICES_SERVER", "10.10.10.10")
 	t.Setenv("ROOT_DOMAIN", "example.org")
 
@@ -118,6 +119,7 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 	assert.Equal(t, "api-123456789.example.org", config.DuoAPI.Hostname)
 	assert.Equal(t, "10.10.10.10", config.Notifier.SMTP.Host)
 	assert.Equal(t, "10.10.10.10", config.Session.Redis.Host)
+	assert.Equal(t, "$plaintext$example", config.IdentityProviders.OIDC.Clients[0].Secret.String())
 }
 
 func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
