@@ -22,14 +22,7 @@ community: true
 
 ## Before You Begin
 
-### Common Notes
-
-1. You are *__required__* to utilize a unique client id for every client.
-2. The client id on this page is merely an example and you can theoretically use any alphanumeric string.
-3. You *__should not__* use the client secret in this example, We *__strongly recommend__* reading the
-   [Generating Client Secrets] guide instead.
-
-[Generating Client Secrets]: ../specific-information.md#generating-client-secrets
+{{% oidc-common %}}
 
 ### Assumptions
 
@@ -38,7 +31,7 @@ This example makes the following assumptions:
 * __Application Root URL:__ `https://argocd.example.com`
 * __Authelia Root URL:__ `https://auth.example.com`
 * __Client ID:__ `argocd`
-* __Client Secret:__ `argocd_client_secret`
+* __Client Secret:__ `insecure_secret`
 * __CLI Client ID:__ `argocd-cli`
 
 ## Configuration
@@ -51,7 +44,7 @@ To configure [Argo CD] to utilize Authelia as an [OpenID Connect 1.0] Provider u
 name: Authelia
 issuer: https://auth.example.com
 clientID: argocd
-clientSecret: argocd_client_secret
+clientSecret: insecure_secret
 cliClientID: argocd-cli
 requestedScopes:
   - openid
@@ -69,7 +62,7 @@ which will operate with the above example:
 ```yaml
 - id: argocd
   description: Argo CD
-  secret: '$plaintext$argocd_client_secret'
+  secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
   public: false
   authorization_policy: two_factor
   redirect_uris:

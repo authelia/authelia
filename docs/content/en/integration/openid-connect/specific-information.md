@@ -34,6 +34,22 @@ using PBKDF2 which can be stored in the Authelia configuration.
 
 ### Plaintext
 
-Authelia supports storing the plaintext secret in the configuration. This may be discontinued in the future. Plaintext
-is either denoted by the `$plaintext$` prefix where everything after the prefix is the secret. In addition if the secret
-does not start with the `$` character it's considered as a plaintext secret for the time being but is deprecated.
+Authelia *technically* supports storing the plaintext secret in the configuration. This will likely be completely
+unavailable in the future as it was a mistake to implement it like this in the first place. While some other OpenID
+Connect 1.0 providers operate in this way, it's more often than not that they operating in this way in error. The
+current *technical support* for this is only to prevent massive upheaval to users and give them time to migrate.
+
+As per [RFC6819 Section 5.1.4.1.3](https://datatracker.ietf.org/doc/html/rfc6819#section-5.1.4.1.3) the secret should
+only be stored by the authorization server as hashes / digests unless there is a very specific specification or protocol
+that is implemented by the authorization server which requires access to the secret in the clear to operate properly in
+which case the secret should be encrypted and not be stored in plaintext. The most likely long term outcome is that the
+client configurations will be stored in the database with the secret both salted and peppered.
+
+Authelia currently does not implement any of the specifications or protocols which require secrets being accessible in
+the clear and currently has no plans to implement any of these. As such it's *__strongly discouraged and heavily
+deprecated__* and we instead recommended that users remove this from their configuration entirely and use the
+[Generating Client Secrets](#generating-client-secrets) guide.
+
+Plaintext is either denoted by the `$plaintext$` prefix where everything after the prefix is the secret. In addition if
+the secret does not start with the `$` character it's considered as a plaintext secret for the time being but is
+deprecated as is the `$plaintext$` prefix.

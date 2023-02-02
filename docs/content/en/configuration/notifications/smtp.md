@@ -164,7 +164,7 @@ characters and the user password is changed to this value.
 {{< confkey type="string" required="yes" >}}
 
 The sender is used to construct both the SMTP command `MAIL FROM` and to add the `FROM` header. This address must be
-in [RFC5322](https://www.rfc-editor.org/rfc/rfc5322.html#section-3.4) format. This means it must one of two formats:
+in [RFC5322](https://datatracker.ietf.org/doc/html/rfc5322#section-3.4) format. This means it must one of two formats:
 
 * jsmith@domain.com
 * John Smith <jsmith@domain.com>

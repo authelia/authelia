@@ -11,9 +11,9 @@ require (
 	github.com/fasthttp/session/v2 v2.4.16
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-asn1-ber/asn1-ber v1.5.4
-	github.com/go-crypt/crypt v0.2.3
+	github.com/go-crypt/crypt v0.2.5
 	github.com/go-ldap/ldap/v3 v3.4.4
-	github.com/go-rod/rod v0.112.3
+	github.com/go-rod/rod v0.112.4
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/go-webauthn/webauthn v0.7.0
 	github.com/golang-jwt/jwt/v4 v4.4.3
@@ -65,7 +65,7 @@ require (
 	github.com/ecordell/optgen v0.0.6 // indirect
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
-	github.com/go-crypt/x v0.1.10 // indirect
+	github.com/go-crypt/x v0.1.12 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-webauthn/revoke v0.1.6 // indirect
 	github.com/golang/glog v1.0.0 // indirect
