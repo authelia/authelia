@@ -1,6 +1,7 @@
 package random
 
 import (
+	crand "crypto/rand"
 	"fmt"
 	"math/big"
 	"math/rand"
@@ -100,17 +101,18 @@ func (r *Mathematical) StringCustom(n int, characters string) (data string) {
 	return string(r.BytesCustom(n, []byte(characters)))
 }
 
-// IntErr returns a random *big.Int error combination with a maximum of max.
-func (r *Mathematical) IntErr(max *big.Int) (value *big.Int, err error) {
-	if max == nil {
-		return nil, fmt.Errorf("max is required")
-	}
+// Intn returns a random int with a maximum of n.
+func (r *Mathematical) Intn(n int) int {
+	r.lock.Lock()
 
-	if max.Sign() <= 0 {
-		return nil, fmt.Errorf("max must be 1 or more")
-	}
+	defer r.lock.Unlock()
 
-	return big.NewInt(int64(r.rand.Intn(max.Sign()))), nil
+	return r.rand.Intn(n)
+}
+
+// IntnErr returns a random int error combination with a maximum of n.
+func (r *Mathematical) IntnErr(n int) (output int, err error) {
+	return r.Intn(n), nil
 }
 
 // Int returns a random *big.Int with a maximum of max.
@@ -124,12 +126,25 @@ func (r *Mathematical) Int(max *big.Int) (value *big.Int) {
 	return value
 }
 
-// IntegerErr returns a random int error combination with a maximum of n.
-func (r *Mathematical) IntegerErr(n int) (output int, err error) {
-	return r.Integer(n), nil
+// IntErr returns a random *big.Int error combination with a maximum of max.
+func (r *Mathematical) IntErr(max *big.Int) (value *big.Int, err error) {
+	if max == nil {
+		return nil, fmt.Errorf("max is required")
+	}
+
+	if max.Sign() <= 0 {
+		return nil, fmt.Errorf("max must be 1 or more")
+	}
+
+	r.lock.Lock()
+
+	defer r.lock.Unlock()
+
+	return big.NewInt(int64(r.Intn(max.Sign()))), nil
 }
 
-// Integer returns a random int with a maximum of n.
-func (r *Mathematical) Integer(n int) int {
-	return r.rand.Intn(n)
+// Prime returns a number of the given bit length that is prime with high probability. Prime will return error for any
+// error returned by rand.Read or if bits < 2.
+func (r *Mathematical) Prime(bits int) (prime *big.Int, err error) {
+	return crand.Prime(r, bits)
 }
