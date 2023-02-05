@@ -816,7 +816,7 @@ paths:
       summary: OAuth 2.0 Authorization Server Metadata
       description: >
         This endpoint retrieves the OAuth 2.0 Authorization Server Metadata document (RFC8414) used by clients to
-        perform discovery for an OAuth 2.0 Authorization Server. See https://www.rfc-editor.org/rfc/rfc8414.
+        perform discovery for an OAuth 2.0 Authorization Server. See https://datatracker.ietf.org/doc/html/rfc8414.
       responses:
         "200":
           description: OK
@@ -2796,7 +2796,7 @@ components:
           description: >
             JSON array containing a list of the JWE [JWE] encryption algorithms (alg values) [JWA] supported by the
             UserInfo Endpoint to encode the Claims in a JWT [JWT]. See Also: JWE:
-            https://datatracker.ietf.org/doc/html/rfc7516 JWA: https://datatracker.ietf.org/doc/html/rfc7518
+            https://datatracker.ietf.org/doc/html/rfc7518
             JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
           example: ["A256GCMKW"]
@@ -2806,7 +2806,7 @@ components:
           description: >
             JSON array containing a list of the JWE encryption algorithms (enc values) [JWA] supported by the UserInfo
             Endpoint to encode the Claims in a JWT [JWT]. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516
-            JWA: https://datatracker.ietf.org/doc/html/rfc7518 JWT: https://datatracker.ietf.org/doc/html/rfc7519
+            JWA: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
           example: ["A256GCM"]
           items:
@@ -2822,7 +2822,7 @@ components:
           description: >
             JSON array containing a list of the JWS [JWS] signing algorithms (alg values) [JWA] supported by the
             UserInfo Endpoint to encode the Claims in a JWT [JWT]. The value none MAY be included. See Also:
-            JWS: https://datatracker.ietf.org/doc/html/rfc7515 JWA: https://datatracker.ietf.org/doc/html/rfc7518 JWT:
+            JWS: https://datatracker.ietf.org/doc/html/rfc7518 JWT:
             https://datatracker.ietf.org/doc/html/rfc7519
           type: array
           example: ["none", "RS256"]

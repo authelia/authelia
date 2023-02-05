@@ -4,23 +4,32 @@ import (
 	"fmt"
 	"math/big"
 	"math/rand"
+	"sync"
 	"time"
 )
 
 // NewMathematical runs rand.Seed with the current time and returns a random.Provider, specifically *random.Mathematical.
 func NewMathematical() *Mathematical {
-	rand.Seed(time.Now().UnixNano())
-
-	return &Mathematical{}
+	return &Mathematical{
+		rand: rand.New(rand.NewSource(time.Now().UnixNano())), //nolint:gosec
+		lock: &sync.Mutex{},
+	}
 }
 
 // Mathematical is the random.Provider which uses math/rand and is COMPLETELY UNSAFE FOR PRODUCTION IN MOST SITUATIONS.
 // Use random.Cryptographical instead.
-type Mathematical struct{}
+type Mathematical struct {
+	rand *rand.Rand
+	lock *sync.Mutex
+}
 
 // Read implements the io.Reader interface.
 func (r *Mathematical) Read(p []byte) (n int, err error) {
-	return rand.Read(p) //nolint:gosec
+	r.lock.Lock()
+
+	defer r.lock.Unlock()
+
+	return r.rand.Read(p)
 }
 
 // BytesErr returns random data as bytes with the standard random.DefaultN length and can contain any byte values
@@ -28,7 +37,7 @@ func (r *Mathematical) Read(p []byte) (n int, err error) {
 func (r *Mathematical) BytesErr() (data []byte, err error) {
 	data = make([]byte, DefaultN)
 
-	if _, err = rand.Read(data); err != nil { //nolint:gosec
+	if _, err = r.Read(data); err != nil {
 		return nil, err
 	}
 
@@ -53,7 +62,7 @@ func (r *Mathematical) BytesCustomErr(n int, charset []byte) (data []byte, err e
 
 	data = make([]byte, n)
 
-	if _, err = rand.Read(data); err != nil { //nolint:gosec
+	if _, err = r.Read(data); err != nil {
 		return nil, err
 	}
 
@@ -101,7 +110,7 @@ func (r *Mathematical) IntErr(max *big.Int) (value *big.Int, err error) {
 		return nil, fmt.Errorf("max must be 1 or more")
 	}
 
-	return big.NewInt(int64(rand.Intn(max.Sign()))), nil //nolint:gosec
+	return big.NewInt(int64(r.rand.Intn(max.Sign()))), nil
 }
 
 // Int returns a random *big.Int with a maximum of max.
@@ -122,5 +131,5 @@ func (r *Mathematical) IntegerErr(n int) (output int, err error) {
 
 // Integer returns a random int with a maximum of n.
 func (r *Mathematical) Integer(n int) int {
-	return rand.Intn(n) //nolint:gosec
+	return r.rand.Intn(n)
 }

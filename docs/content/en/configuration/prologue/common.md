@@ -154,7 +154,7 @@ The value must be one or more certificates encoded in the DER base64 ([RFC4648])
 
 ### private_key
 
-{{< confkey type="string" required="yes" >}}
+{{< confkey type="string" required="no" >}}
 
 *__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
 especially for containerized deployments.*
@@ -162,6 +162,8 @@ especially for containerized deployments.*
 The private key to be used with the [certificate_chain](#certificatechain) for mutual TLS authentication.
 
 The value must be one private key encoded in the DER base64 ([RFC4648]) encoded PEM format.
+
+[RFC4648]: https://datatracker.ietf.org/doc/html/rfc4648
 
 ## Server Buffers
 

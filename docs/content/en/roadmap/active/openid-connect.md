@@ -115,7 +115,7 @@ Feature List:
 
 {{< roadmap-status stage="in-progress" version="v4.38.0" >}}
 
-* [OAuth 2.0 Pushed Authorization Requests](https://www.rfc-editor.org/rfc/rfc9126.html)
+* [OAuth 2.0 Pushed Authorization Requests](https://datatracker.ietf.org/doc/html/rfc9126)
 * Per-Client [Proof Key Code Exchange (PKCE)] Policy
 
 ### Beta 7
@@ -177,7 +177,7 @@ Should be implemented alongside [Dynamic Client Registration](#openid-connect-dy
 
 {{< roadmap-status stage="complete" version="v4.34.0" >}}
 
-See the [IETF Specification RFC8414](https://www.rfc-editor.org/rfc/rfc8414.html) for more information.
+See the [IETF Specification RFC8414](https://datatracker.ietf.org/doc/html/rfc8414) for more information.
 
 #### OpenID Connect Session Management
 
@@ -205,9 +205,9 @@ The `preferred_username` claim was missing and was fixed.
 
 [Cross Origin Resource Sharing]: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
 
-[RFC8176]: https://www.rfc-editor.org/rfc/rfc8176.html
-[RFC8693 Section 4.3]: https://www.rfc-editor.org/rfc/rfc8693.html/#section-4.3
-[RFC4122]: https://www.rfc-editor.org/rfc/rfc4122.html
+[RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176
+[RFC8693 Section 4.3]: https://datatracker.ietf.org/doc/html/rfc8693/#section-4.3
+[RFC4122]: https://datatracker.ietf.org/doc/html/rfc4122
 
 [OpenID Connect]: https://openid.net/connect/
 [OpenID Connect Front-Channel Logout]: https://openid.net/specs/openid-connect-frontchannel-1_0.html
@@ -219,4 +219,4 @@ The `preferred_username` claim was missing and was fixed.
 [OpenID Connect Core (Subject Identifier Types)]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
 [OpenID Connect Core (Pairwise Identifier Algorithm)]: https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg
 [OpenID Connect Core (Mandatory to Implement Features for All OpenID Providers)]: https://openid.net/specs/openid-connect-core-1_0.html#ServerMTI
-[Proof Key Code Exchange (PKCE)]: https://www.rfc-editor.org/rfc/rfc7636.html
+[Proof Key Code Exchange (PKCE)]: https://datatracker.ietf.org/doc/html/rfc7636
