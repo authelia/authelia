@@ -15,7 +15,7 @@ services:
       - 'traefik.http.middlewares.authelia.forwardauth.address=https://authelia-backend:9091${PathPrefix}/api/authz/forward-auth'  # yamllint disable-line rule:line-length
       - 'traefik.http.middlewares.authelia.forwardauth.tls.insecureSkipVerify=true'
       - 'traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true'
-      - 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email'  # yamllint disable-line rule:line-length
+      - 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Email,Remote-Name'  # yamllint disable-line rule:line-length
     command:
       - '--accesslog=true'
       - '--api'

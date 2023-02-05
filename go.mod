@@ -1,19 +1,19 @@
 module github.com/authelia/authelia/v4
 
-go 1.19
+go 1.20
 
 require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/deckarep/golang-set/v2 v2.1.0
-	github.com/duosecurity/duo_api_golang v0.0.0-20221117185402-091daa09e19d
-	github.com/fasthttp/router v1.4.15
+	github.com/duosecurity/duo_api_golang v0.0.0-20230203160531-b221c950c2b0
+	github.com/fasthttp/router v1.4.16
 	github.com/fasthttp/session/v2 v2.4.16
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-asn1-ber/asn1-ber v1.5.4
-	github.com/go-crypt/crypt v0.2.3
+	github.com/go-crypt/crypt v0.2.5
 	github.com/go-ldap/ldap/v3 v3.4.4
-	github.com/go-rod/rod v0.112.3
+	github.com/go-rod/rod v0.112.4
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/go-webauthn/webauthn v0.7.0
 	github.com/golang-jwt/jwt/v4 v4.4.3
@@ -40,6 +40,7 @@ require (
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.44.0
 	github.com/wneessen/go-mail v0.3.8
+	golang.org/x/net v0.5.0
 	golang.org/x/sync v0.1.0
 	golang.org/x/term v0.4.0
 	golang.org/x/text v0.6.0
@@ -64,7 +65,7 @@ require (
 	github.com/ecordell/optgen v0.0.6 // indirect
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
-	github.com/go-crypt/x v0.1.10 // indirect
+	github.com/go-crypt/x v0.1.12 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-webauthn/revoke v0.1.6 // indirect
 	github.com/golang/glog v1.0.0 // indirect
@@ -109,7 +110,6 @@ require (
 	github.com/ysmood/leakless v0.8.0 // indirect
 	golang.org/x/crypto v0.5.0 // indirect
 	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/net v0.5.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect
 	golang.org/x/sys v0.4.0 // indirect
 	golang.org/x/tools v0.4.0 // indirect

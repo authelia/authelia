@@ -87,16 +87,20 @@ static_resources:
                         authorization_request:
                           allowed_headers:
                             patterns:
+                              - exact: authorization
+                              - exact: proxy-authorization
                               - exact: accept
                               - exact: cookie
-                              - exact: proxy-authorization
                           headers_to_add:
                             - key: X-Forwarded-Proto
                               value: '%REQ(:SCHEME)%'
                         authorization_response:
                           allowed_upstream_headers:
                             patterns:
+                              - exact: authorization
+                              - exact: proxy-authorization
                               - prefix: remote-
+                              - prefix: authelia-
                           allowed_client_headers:
                             patterns:
                               - exact: set-cookie
