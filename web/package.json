@@ -39,7 +39,7 @@
     "react-dom": "18.2.0",
     "react-i18next": "12.1.5",
     "react-loading": "2.0.3",
-    "react-router-dom": "6.8.0",
+    "react-router-dom": "6.8.1",
     "react18-input-otp": "1.1.2",
     "zxcvbn": "4.4.2"
   },
