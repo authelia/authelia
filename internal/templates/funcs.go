@@ -395,7 +395,7 @@ func FuncEmpty(v any) bool {
 func FuncIndent(indent int, value string) string {
 	padding := strings.Repeat(" ", indent)
 
-	return padding + strings.Replace(value, "\n", "\n"+padding, -1)
+	return padding + strings.ReplaceAll(value, "\n", "\n"+padding)
 }
 
 // FuncNewlineIndent is a helper function that provides similar functionality to the helm nindent func.
