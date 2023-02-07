@@ -18,7 +18,7 @@ import (
 )
 
 // CreateDefaultServer Create Authelia's internal webserver with the given configuration and providers.
-func CreateDefaultServer(config schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, err error) {
+func CreateDefaultServer(config *schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, err error) {
 	if err = providers.Templates.LoadTemplatedAssets(assets); err != nil {
 		return nil, nil, fmt.Errorf("failed to load templated assets: %w", err)
 	}
@@ -90,27 +90,31 @@ func CreateDefaultServer(config schema.Configuration, providers middlewares.Prov
 		paths = append(paths, config.Server.Path)
 	}
 
-	logging.Logger().Infof(fmtLogServerInit, "server", connectionType, listener.Addr().String(), strings.Join(paths, "' and '"))
+	logging.Logger().Infof(fmtLogServerInit, "server (main)", connectionType, listener.Addr().String(), strings.Join(paths, "' and '"))
 
 	return server, listener, nil
 }
 
 // CreateMetricsServer creates a metrics server.
-func CreateMetricsServer(config schema.TelemetryMetricsConfig) (server *fasthttp.Server, listener net.Listener, err error) {
-	if listener, err = config.Address.Listener(); err != nil {
-		return nil, nil, err
+func CreateMetricsServer(config *schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, err error) {
+	if providers.Metrics == nil {
+		return nil, nil, nil
 	}
 
 	server = &fasthttp.Server{
 		ErrorHandler:          handleError(),
 		NoDefaultServerHeader: true,
 		Handler:               handleMetrics(),
-		ReadBufferSize:        config.Buffers.Read,
-		WriteBufferSize:       config.Buffers.Write,
-		ReadTimeout:           config.Timeouts.Read,
-		WriteTimeout:          config.Timeouts.Write,
-		IdleTimeout:           config.Timeouts.Idle,
+		ReadBufferSize:        config.Telemetry.Metrics.Buffers.Read,
+		WriteBufferSize:       config.Telemetry.Metrics.Buffers.Write,
+		ReadTimeout:           config.Telemetry.Metrics.Timeouts.Read,
+		WriteTimeout:          config.Telemetry.Metrics.Timeouts.Write,
+		IdleTimeout:           config.Telemetry.Metrics.Timeouts.Idle,
 		Logger:                logging.LoggerPrintf(logrus.DebugLevel),
+	}
+
+	if listener, err = config.Telemetry.Metrics.Address.Listener(); err != nil {
+		return nil, nil, err
 	}
 
 	logging.Logger().Infof(fmtLogServerInit, "server (metrics)", connNonTLS, listener.Addr().String(), "/metrics")

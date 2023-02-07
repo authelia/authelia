@@ -2,16 +2,13 @@ package commands
 
 import (
 	"fmt"
-	"net"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"strings"
+	"sync"
 	"syscall"
 
-	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/cobra"
-	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/logging"
@@ -110,78 +107,58 @@ func runServices(ctx *CmdCtx) {
 	defer signal.Stop(quit)
 
 	var (
-		mainServer, metricsServer     *fasthttp.Server
-		mainListener, metricsListener net.Listener
+		services []Service
+
+		err error
 	)
 
-	ctx.group.Go(func() (err error) {
-		defer func() {
-			if r := recover(); r != nil {
-				ctx.log.WithError(recoverErr(r)).Errorf("Server (main) critical error caught (recovered)")
-			}
-		}()
+	switch server, listener, err := server.CreateDefaultServer(ctx.config, ctx.providers); {
+	case err != nil:
+		ctx.log.WithError(err).Fatal("Create Server Service (main) returned error")
+	case server != nil && listener != nil:
+		svc := NewServerService("main", server, listener, ctx.log)
 
-		if mainServer, mainListener, err = server.CreateDefaultServer(*ctx.config, ctx.providers); err != nil {
-			ctx.log.WithError(err).Error("Create Server (main) returned error")
+		ctx.group.Go(svc.Run)
 
-			return err
-		}
+		services = append(services, svc)
+	default:
+		ctx.log.Fatal("Create Server Service (main) failed")
+	}
 
-		if err = mainServer.Serve(mainListener); err != nil {
-			ctx.log.WithError(err).Error("Server (main) returned error")
+	switch server, listener, err := server.CreateMetricsServer(ctx.config, ctx.providers); {
+	case err != nil:
+		ctx.log.WithError(err).Fatal("Create Server Service (metrics) returned error")
+	case server != nil && listener != nil:
+		svc := NewServerService("metrics", server, listener, ctx.log)
 
-			return err
-		}
+		ctx.group.Go(svc.Run)
 
-		return nil
-	})
-
-	ctx.group.Go(func() (err error) {
-		if ctx.providers.Metrics == nil {
-			return nil
-		}
-
-		defer func() {
-			if r := recover(); r != nil {
-				ctx.log.WithError(recoverErr(r)).Errorf("Server (metrics) critical error caught (recovered)")
-			}
-		}()
-
-		if metricsServer, metricsListener, err = server.CreateMetricsServer(ctx.config.Telemetry.Metrics); err != nil {
-			ctx.log.WithError(err).Error("Create Server (metrics) returned error")
-
-			return err
-		}
-
-		if err = metricsServer.Serve(metricsListener); err != nil {
-			ctx.log.WithError(err).Error("Server (metrics) returned error")
-
-			return err
-		}
-
-		return nil
-	})
+		services = append(services, svc)
+	default:
+		ctx.log.Debug("Create Server Service (metrics) skipped")
+	}
 
 	if ctx.config.AuthenticationBackend.File != nil && ctx.config.AuthenticationBackend.File.Watch {
 		provider := ctx.providers.UserProvider.(*authentication.FileUserProvider)
-		if watcher, err := runServiceFileWatcher(ctx, ctx.config.AuthenticationBackend.File.Path, provider); err != nil {
-			ctx.log.WithError(err).Errorf("File Watcher (user database) start returned error")
-		} else {
-			defer func(watcher *fsnotify.Watcher) {
-				if err := watcher.Close(); err != nil {
-					ctx.log.WithError(err).Errorf("File Watcher (user database) close returned error")
-				}
-			}(watcher)
+
+		var svc *FileWatcherService
+
+		if svc, err = NewFileWatcherService("users", ctx.config.AuthenticationBackend.File.Path, provider, ctx.log); err != nil {
+			ctx.log.WithError(err).Fatal("Create Watcher Service (users) returned error")
 		}
+
+		ctx.group.Go(svc.Run)
+
+		services = append(services, svc)
 	}
 
 	select {
 	case s := <-quit:
 		switch s {
 		case syscall.SIGINT:
-			ctx.log.Debugf("Shutdown started due to SIGINT")
-		case syscall.SIGQUIT:
-			ctx.log.Debugf("Shutdown started due to SIGQUIT")
+			ctx.log.WithField("signal", "SIGINT").Debugf("Shutdown started due to signal")
+		case syscall.SIGTERM:
+			ctx.log.WithField("signal", "SIGTERM").Debugf("Shutdown started due to signal")
 		}
 	case <-ctx.Done():
 		ctx.log.Debugf("Shutdown started due to context completion")
@@ -191,96 +168,27 @@ func runServices(ctx *CmdCtx) {
 
 	ctx.log.Infof("Shutting down")
 
-	var err error
+	wgShutdown := &sync.WaitGroup{}
 
-	if mainServer != nil {
-		if err = mainServer.Shutdown(); err != nil {
-			ctx.log.WithError(err).Errorf("Error occurred shutting down the server")
-		}
+	for _, service := range services {
+		go func() {
+			service.Shutdown()
+
+			wgShutdown.Done()
+		}()
+
+		wgShutdown.Add(1)
 	}
 
-	if metricsServer != nil {
-		if err = metricsServer.Shutdown(); err != nil {
-			ctx.log.WithError(err).Errorf("Error occurred shutting down the metrics server")
-		}
-	}
+	wgShutdown.Wait()
 
 	if err = ctx.providers.StorageProvider.Close(); err != nil {
-		ctx.log.WithError(err).Errorf("Error occurred closing the database connection")
+		ctx.log.WithError(err).Error("Error occurred closing database connections")
 	}
 
 	if err = ctx.group.Wait(); err != nil {
 		ctx.log.WithError(err).Errorf("Error occurred waiting for shutdown")
 	}
-}
-
-type ReloadFilter func(path string) (skipped bool)
-
-type ProviderReload interface {
-	Reload() (reloaded bool, err error)
-}
-
-func runServiceFileWatcher(ctx *CmdCtx, path string, reload ProviderReload) (watcher *fsnotify.Watcher, err error) {
-	if watcher, err = fsnotify.NewWatcher(); err != nil {
-		return nil, err
-	}
-
-	failed := make(chan struct{})
-
-	var directory, filename string
-
-	if path != "" {
-		directory, filename = filepath.Dir(path), filepath.Base(path)
-	}
-
-	ctx.group.Go(func() error {
-		for {
-			select {
-			case <-failed:
-				return nil
-			case event, ok := <-watcher.Events:
-				if !ok {
-					return nil
-				}
-
-				if filename != filepath.Base(event.Name) {
-					ctx.log.WithField("file", event.Name).WithField("op", event.Op).Tracef("File modification detected to irrelevant file")
-					break
-				}
-
-				switch {
-				case event.Op&fsnotify.Write == fsnotify.Write, event.Op&fsnotify.Create == fsnotify.Create:
-					ctx.log.WithField("file", event.Name).WithField("op", event.Op).Debug("File modification detected")
-
-					switch reloaded, err := reload.Reload(); {
-					case err != nil:
-						ctx.log.WithField("file", event.Name).WithField("op", event.Op).WithError(err).Error("Error occurred reloading file")
-					case reloaded:
-						ctx.log.WithField("file", event.Name).Info("Reloaded file successfully")
-					default:
-						ctx.log.WithField("file", event.Name).Debug("Reload of file was triggered but it was skipped")
-					}
-				case event.Op&fsnotify.Remove == fsnotify.Remove:
-					ctx.log.WithField("file", event.Name).WithField("op", event.Op).Debug("Remove of file was detected")
-				}
-			case err, ok := <-watcher.Errors:
-				if !ok {
-					return nil
-				}
-				ctx.log.WithError(err).Errorf("Error while watching files")
-			}
-		}
-	})
-
-	if err := watcher.Add(directory); err != nil {
-		failed <- struct{}{}
-
-		return nil, err
-	}
-
-	ctx.log.WithField("directory", directory).WithField("file", filename).Debug("Directory is being watched for changes to the file")
-
-	return watcher, nil
 }
 
 func doStartupChecks(ctx *CmdCtx) {
