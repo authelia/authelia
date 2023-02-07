@@ -87,6 +87,68 @@ This scope includes the profile information the authentication backend reports a
 | preferred_username |  string  |      username      | The username the user used to login with |
 |        name        |  string  |    display_name    |          The users display name          |
 
+## Parameters
+
+The following section describes advanced parameters which can be used in various endpoints as well as their related
+configuration options.
+
+### Grant Types
+
+The following describes the various [OAuth 2.0] and [OpenID Connect 1.0] grant types and their support level. The value
+field is both the required value for the `grant_type` parameter in the authorization request and the `grant_types`
+configuration option.
+
+|                   Grant Type                    | Supported |                     Value                      |                                Notes                                |
+|:-----------------------------------------------:|:---------:|:----------------------------------------------:|:-------------------------------------------------------------------:|
+|         [OAuth 2.0 Authorization Code]          |    Yes    |              `authorization_code`              |                                                                     |
+| [OAuth 2.0 Resource Owner Password Credentials] |    No     |                   `password`                   | This Grant Type has been deprecated and should not normally be used |
+|         [OAuth 2.0 Client Credentials]          |    Yes    |              `client_credentials`              |                                                                     |
+|              [OAuth 2.0 Implicit]               |    Yes    |                   `implicit`                   | This Grant Type has been deprecated and should not normally be used |
+|            [OAuth 2.0 Refresh Token]            |    Yes    |                `refresh_token`                 |                                                                     |
+|             [OAuth 2.0 Device Code]             |    No     | `urn:ietf:params:oauth:grant-type:device_code` |                                                                     |
+|
+
+[OAuth 2.0 Authorization Code]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.1
+[OAuth 2.0 Implicit]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.2
+[OAuth 2.0 Resource Owner Password Credentials]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.3
+[OAuth 2.0 Client Credentials]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.4
+[OAuth 2.0 Refresh Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.5
+[OAuth 2.0 Device Code]: https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
+
+### Response Types
+
+The following describes the supported response types. See the [OAuth 2.0 Multiple Response Type Encoding Practices] for
+more technical information.
+
+|         Flow Type         |        Values         |
+|:-------------------------:|:---------------------:|
+| [Authorization Code Flow] |        `code`         |
+|      [Implicit Flow]      |   `token id_token`    |
+|      [Implicit Flow]      |      `id_token`       |
+|      [Implicit Flow]      |        `token`        |
+|       [Hybrid Flow]       |     `code token`      |
+|       [Hybrid Flow]       |    `code id_token`    |
+|       [Hybrid Flow]       | `code token id_token` |
+
+[Authorization Code Flow]: https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth
+[Implicit Flow]: https://openid.net/specs/openid-connect-core-1_0.html#ImplicitFlowAuth
+[Hybrid Flow]: https://openid.net/specs/openid-connect-core-1_0.html#HybridFlowAuth
+
+[OAuth 2.0 Multiple Response Type Encoding Practices]: https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
+
+### Response Modes
+
+The following describes the supported response modes. See the [OAuth 2.0 Multiple Response Type Encoding Practices] for
+more technical information.
+
+|         Name          |    Value    |
+|:---------------------:|:-----------:|
+|     Query String      |   `query`   |
+|       Fragment        | `fragment`  |
+| [OAuth 2.0 Form Post] | `form_post` |
+
+[OAuth 2.0 Form Post]: https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
+
 ## Authentication Method References
 
 Authelia currently supports adding the `amr` [Claim] to the [ID Token] utilizing the [RFC8176] Authentication Method
