@@ -78,6 +78,9 @@ The following functions which mimic the behaviour of helm exist in most templati
 - kindIs
 - default
 - empty
+- indent
+- nindent
+- uuidv4
 
 See the [Helm Documentation](https://helm.sh/docs/chart_template_guide/function_list/) for more information. Please
 note that only the functions listed above are supported and the functions don't necessarily behave exactly the same.
@@ -92,3 +95,7 @@ The following is a list of special functions and their syntax.
 #### iterate
 
 Input is a single uint. Returns a slice of uints from 0 to the provided uint.
+
+#### fileContent
+
+Input is a path. Returns the content of a file.
