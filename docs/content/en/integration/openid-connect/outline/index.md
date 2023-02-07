@@ -22,14 +22,7 @@ community: true
 
 ## Before You Begin
 
-### Common Notes
-
-1. You are *__required__* to utilize a unique client id for every client.
-2. The client id on this page is merely an example and you can theoretically use any alphanumeric string.
-3. You *__should not__* use the client secret in this example, We *__strongly recommend__* reading the
-   [Generating Client Secrets] guide instead.
-
-[Generating Client Secrets]: ../specific-information.md#generating-client-secrets
+{{% oidc-common %}}
 
 ### Assumptions
 
@@ -38,7 +31,7 @@ This example makes the following assumptions:
 * __Application Root URL:__ `https://outline.example.com`
 * __Authelia Root URL:__ `https://auth.example.com`
 * __Client ID:__ `outline`
-* __Client Secret:__ `outline_client_secret`
+* __Client Secret:__ `insecure_secret`
 
 *__Important Note:__ At the time of this writing [Outline] requires the `offline_access` scope by default. Failure to include this scope will result
 in an error as [Outline] will attempt to use a refresh token that is never issued.*
@@ -55,7 +48,7 @@ URL=https://outline.example.com
 FORCE_HTTPS=true
 
 OIDC_CLIENT_ID=outline
-OIDC_CLIENT_SECRET=outline_client_secret
+OIDC_CLIENT_SECRET=insecure_secret
 OIDC_AUTH_URI=https://auth.example.com/api/oidc/authorization
 OIDC_TOKEN_URI=https://auth.example.com/api/oidc/token
 OIDC_USERINFO_URI=https://auth.example.com/api/oidc/userinfo
@@ -73,7 +66,7 @@ which will operate with the above example:
 ```yaml
 - id: outline
   description: Outline
-  secret: '$plaintext$outline_client_secret'
+  secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
   public: false
   authorization_policy: two_factor
   redirect_uris:

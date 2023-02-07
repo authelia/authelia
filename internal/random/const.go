@@ -25,7 +25,7 @@ const (
 	CharSetSymbolic = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 
 	// CharSetSymbolicRFC3986Unreserved are RFC3986 unreserved symbol characters.
-	// See https://www.rfc-editor.org/rfc/rfc3986#section-2.3.
+	// See https://datatracker.ietf.org/doc/html/rfc3986#section-2.3.
 	CharSetSymbolicRFC3986Unreserved = "-._~"
 
 	// CharSetAlphaNumeric are literally just valid alphanumeric printable ASCII chars.
@@ -35,7 +35,7 @@ const (
 	CharSetASCII = CharSetAlphabetic + CharSetNumeric + CharSetSymbolic
 
 	// CharSetRFC3986Unreserved are RFC3986 unreserved characters.
-	// See https://www.rfc-editor.org/rfc/rfc3986#section-2.3.
+	// See https://datatracker.ietf.org/doc/html/rfc3986#section-2.3.
 	CharSetRFC3986Unreserved = CharSetAlphabetic + CharSetNumeric + CharSetSymbolicRFC3986Unreserved
 
 	// CharSetUnambiguousUpper  are a set of unambiguous uppercase characters.

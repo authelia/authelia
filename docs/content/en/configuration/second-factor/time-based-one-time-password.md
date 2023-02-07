@@ -172,5 +172,5 @@ at least a minimal configuration that has the storage backend connection details
 See the [CLI Documentation](../../reference/cli/authelia/authelia_storage_user_totp_export.md) for methods to perform
 exports.
 
-[RFC4226]: https://www.rfc-editor.org/rfc/rfc4226.html
-[RFC6238]: https://www.rfc-editor.org/rfc/rfc6238.html
+[RFC4226]: https://datatracker.ietf.org/doc/html/rfc4226
+[RFC6238]: https://datatracker.ietf.org/doc/html/rfc6238

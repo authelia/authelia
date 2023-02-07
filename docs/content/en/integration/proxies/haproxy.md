@@ -62,7 +62,7 @@ line in the main configuration which shows an example of not trusting any proxie
 the following networks to the trusted proxy list in [HAProxy]:
 
 * 10.0.0.0/8
-* 172.16.0.0/16
+* 172.16.0.0/12
 * 192.168.0.0/16
 * fc00::/7
 
@@ -218,28 +218,52 @@ backend be_authelia
     server authelia authelia:9091
 
 backend be_nextcloud
-    # Pass Remote-User, Remote-Name, Remote-Email and Remote-Groups headers
+    ## Pass the special authorization response headers to the protected application.
+    acl authorization_exist var(req.auth_response_header.authorization) -m found
+    acl proxy_authorization_exist var(req.auth_response_header.proxy_authorization) -m found
+
+    http-request set-header Authorization %[var(req.auth_response_header.authorization)] if authorization_exist
+    http-request set-header Proxy-Authorization %[var(req.auth_response_header.proxy_authorization)] if proxy_authorization_exist
+
+    ## Pass the special metadata response headers to the protected application.
     acl remote_user_exist var(req.auth_response_header.remote_user) -m found
     acl remote_groups_exist var(req.auth_response_header.remote_groups) -m found
     acl remote_name_exist var(req.auth_response_header.remote_name) -m found
     acl remote_email_exist var(req.auth_response_header.remote_email) -m found
+
     http-request set-header Remote-User %[var(req.auth_response_header.remote_user)] if remote_user_exist
     http-request set-header Remote-Groups %[var(req.auth_response_header.remote_groups)] if remote_groups_exist
     http-request set-header Remote-Name %[var(req.auth_response_header.remote_name)] if remote_name_exist
     http-request set-header Remote-Email %[var(req.auth_response_header.remote_email)] if remote_email_exist
+
+    ## Pass the Set-Cookie response headers to the user.
+    acl set_cookie_exist var(req.auth_response_header.set_cookie) -m found
+    http-response set-header Set-Cookie %[var(req.auth_response_header.set_cookie)] if set_cookie_exist
 
     server nextcloud nextcloud:443 ssl verify none
 
 backend be_heimdall
-    # Pass Remote-User, Remote-Name, Remote-Email and Remote-Groups headers
+    ## Pass the special authorization response headers to the protected application.
+    acl authorization_exist var(req.auth_response_header.authorization) -m found
+    acl proxy_authorization_exist var(req.auth_response_header.proxy_authorization) -m found
+
+    http-request set-header Authorization %[var(req.auth_response_header.authorization)] if authorization_exist
+    http-request set-header Proxy-Authorization %[var(req.auth_response_header.proxy_authorization)] if proxy_authorization_exist
+
+    ## Pass the special metadata response headers to the protected application.
     acl remote_user_exist var(req.auth_response_header.remote_user) -m found
     acl remote_groups_exist var(req.auth_response_header.remote_groups) -m found
     acl remote_name_exist var(req.auth_response_header.remote_name) -m found
     acl remote_email_exist var(req.auth_response_header.remote_email) -m found
+
     http-request set-header Remote-User %[var(req.auth_response_header.remote_user)] if remote_user_exist
     http-request set-header Remote-Groups %[var(req.auth_response_header.remote_groups)] if remote_groups_exist
     http-request set-header Remote-Name %[var(req.auth_response_header.remote_name)] if remote_name_exist
     http-request set-header Remote-Email %[var(req.auth_response_header.remote_email)] if remote_email_exist
+
+    ## Pass the Set-Cookie response headers to the user.
+    acl set_cookie_exist var(req.auth_response_header.set_cookie) -m found
+    http-response set-header Set-Cookie %[var(req.auth_response_header.set_cookie)] if set_cookie_exist
 
     server heimdall heimdall:443 ssl verify none
 ```
@@ -325,28 +349,52 @@ listen authelia_proxy
     server authelia authelia:9091 ssl verify none
 
 backend be_nextcloud
-    # Pass Remote-User, Remote-Name, Remote-Email and Remote-Groups headers
+    ## Pass the special authorization response headers to the protected application.
+    acl authorization_exist var(req.auth_response_header.authorization) -m found
+    acl proxy_authorization_exist var(req.auth_response_header.proxy_authorization) -m found
+
+    http-request set-header Authorization %[var(req.auth_response_header.authorization)] if authorization_exist
+    http-request set-header Proxy-Authorization %[var(req.auth_response_header.proxy_authorization)] if proxy_authorization_exist
+
+    ## Pass the special metadata response headers to the protected application.
     acl remote_user_exist var(req.auth_response_header.remote_user) -m found
     acl remote_groups_exist var(req.auth_response_header.remote_groups) -m found
     acl remote_name_exist var(req.auth_response_header.remote_name) -m found
     acl remote_email_exist var(req.auth_response_header.remote_email) -m found
+
     http-request set-header Remote-User %[var(req.auth_response_header.remote_user)] if remote_user_exist
     http-request set-header Remote-Groups %[var(req.auth_response_header.remote_groups)] if remote_groups_exist
     http-request set-header Remote-Name %[var(req.auth_response_header.remote_name)] if remote_name_exist
     http-request set-header Remote-Email %[var(req.auth_response_header.remote_email)] if remote_email_exist
+
+    ## Pass the Set-Cookie response headers to the user.
+    acl set_cookie_exist var(req.auth_response_header.set_cookie) -m found
+    http-response set-header Set-Cookie %[var(req.auth_response_header.set_cookie)] if set_cookie_exist
 
     server nextcloud nextcloud:443 ssl verify none
 
 backend be_heimdall
-    # Pass Remote-User, Remote-Name, Remote-Email and Remote-Groups headers
+    ## Pass the special authorization response headers to the protected application.
+    acl authorization_exist var(req.auth_response_header.authorization) -m found
+    acl proxy_authorization_exist var(req.auth_response_header.proxy_authorization) -m found
+
+    http-request set-header Authorization %[var(req.auth_response_header.authorization)] if authorization_exist
+    http-request set-header Proxy-Authorization %[var(req.auth_response_header.proxy_authorization)] if proxy_authorization_exist
+
+    ## Pass the special metadata response headers to the protected application.
     acl remote_user_exist var(req.auth_response_header.remote_user) -m found
     acl remote_groups_exist var(req.auth_response_header.remote_groups) -m found
     acl remote_name_exist var(req.auth_response_header.remote_name) -m found
     acl remote_email_exist var(req.auth_response_header.remote_email) -m found
+
     http-request set-header Remote-User %[var(req.auth_response_header.remote_user)] if remote_user_exist
     http-request set-header Remote-Groups %[var(req.auth_response_header.remote_groups)] if remote_groups_exist
     http-request set-header Remote-Name %[var(req.auth_response_header.remote_name)] if remote_name_exist
     http-request set-header Remote-Email %[var(req.auth_response_header.remote_email)] if remote_email_exist
+
+    ## Pass the Set-Cookie response headers to the user.
+    acl set_cookie_exist var(req.auth_response_header.set_cookie) -m found
+    http-response set-header Set-Cookie %[var(req.auth_response_header.set_cookie)] if set_cookie_exist
 
     server heimdall heimdall:443 ssl verify none
 ```

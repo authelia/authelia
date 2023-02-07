@@ -316,4 +316,4 @@ for your users.
 
 [username attribute]: #usernameattribute
 [TechNet wiki]: https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx
-[RFC2307]: https://www.rfc-editor.org/rfc/rfc2307.html
+[RFC2307]: https://datatracker.ietf.org/doc/html/rfc2307

@@ -18,11 +18,7 @@ func (r *Cryptographical) Read(p []byte) (n int, err error) {
 // BytesErr returns random data as bytes with the standard random.DefaultN length and can contain any byte values
 // (including unreadable byte values). If an error is returned from the random read this function returns it.
 func (r *Cryptographical) BytesErr() (data []byte, err error) {
-	data = make([]byte, DefaultN)
-
-	_, err = rand.Read(data)
-
-	return data, err
+	return r.BytesCustomErr(0, nil)
 }
 
 // Bytes returns random data as bytes with the standard random.DefaultN length and can contain any byte values
@@ -49,8 +45,10 @@ func (r *Cryptographical) BytesCustomErr(n int, charset []byte) (data []byte, er
 
 	t := len(charset)
 
-	for i := 0; i < n; i++ {
-		data[i] = charset[data[i]%byte(t)]
+	if t > 0 {
+		for i := 0; i < n; i++ {
+			data[i] = charset[data[i]%byte(t)]
+		}
 	}
 
 	return data, nil
@@ -81,6 +79,36 @@ func (r *Cryptographical) StringCustom(n int, characters string) (data string) {
 	return string(r.BytesCustom(n, []byte(characters)))
 }
 
+// IntnErr returns a random int error combination with a maximum of n.
+func (r *Cryptographical) IntnErr(n int) (value int, err error) {
+	if n <= 0 {
+		return 0, fmt.Errorf("n must be more than 0")
+	}
+
+	max := big.NewInt(int64(n))
+
+	var result *big.Int
+
+	if result, err = r.IntErr(max); err != nil {
+		return 0, err
+	}
+
+	value = int(result.Int64())
+
+	if value < 0 {
+		return 0, fmt.Errorf("generated number is too big for int")
+	}
+
+	return value, nil
+}
+
+// Intn returns a random int with a maximum of n.
+func (r *Cryptographical) Intn(n int) (value int) {
+	value, _ = r.IntnErr(n)
+
+	return value
+}
+
 // IntErr returns a random *big.Int error combination with a maximum of max.
 func (r *Cryptographical) IntErr(max *big.Int) (value *big.Int, err error) {
 	if max == nil {
@@ -105,32 +133,8 @@ func (r *Cryptographical) Int(max *big.Int) (value *big.Int) {
 	return value
 }
 
-// IntegerErr returns a random int error combination with a maximum of n.
-func (r *Cryptographical) IntegerErr(n int) (value int, err error) {
-	if n <= 0 {
-		return 0, fmt.Errorf("n must be more than 0")
-	}
-
-	max := big.NewInt(int64(n))
-
-	var result *big.Int
-
-	if result, err = r.IntErr(max); err != nil {
-		return 0, err
-	}
-
-	value = int(result.Int64())
-
-	if value < 0 {
-		return 0, fmt.Errorf("generated number is too big for int")
-	}
-
-	return value, nil
-}
-
-// Integer returns a random int with a maximum of n.
-func (r *Cryptographical) Integer(n int) (value int) {
-	value, _ = r.IntegerErr(n)
-
-	return value
+// Prime returns a number of the given bit length that is prime with high probability. Prime will return error for any
+// error returned by rand.Read or if bits < 2.
+func (r *Cryptographical) Prime(bits int) (prime *big.Int, err error) {
+	return rand.Prime(rand.Reader, bits)
 }

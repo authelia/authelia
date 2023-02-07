@@ -22,14 +22,7 @@ community: true
 
 ## Before You Begin
 
-### Common Notes
-
-1. You are *__required__* to utilize a unique client id for every client.
-2. The client id on this page is merely an example and you can theoretically use any alphanumeric string.
-3. You *__should not__* use the client secret in this example, We *__strongly recommend__* reading the
-   [Generating Client Secrets] guide instead.
-
-[Generating Client Secrets]: ../specific-information.md#generating-client-secrets
+{{% oidc-common %}}
 
 ### Assumptions
 
@@ -38,7 +31,7 @@ This example makes the following assumptions:
 * __Application Root URL:__ `https://vault.example.com`
 * __Authelia Root URL:__ `https://auth.example.com`
 * __Client ID:__ `vault`
-* __Client Secret:__ `vault_client_secret`
+* __Client Secret:__ `insecure_secret`
 
 ## Configuration
 
@@ -56,7 +49,7 @@ which will operate with the above example:
 ```yaml
 - id: vault
   description: HashiCorp Vault
-  secret: '$plaintext$vault_client_secret'
+  secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
   public: false
   authorization_policy: two_factor
   redirect_uris:

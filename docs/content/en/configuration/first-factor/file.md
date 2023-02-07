@@ -256,8 +256,8 @@ truncation that [Bcrypt] does. It is not supported by many other systems.*
 
 Controls the hashing cost when hashing passwords using [Bcrypt].
 
-[Argon2]: https://www.rfc-editor.org/rfc/rfc9106.html
+[Argon2]: https://datatracker.ietf.org/doc/html/rfc9106
 [Scrypt]: https://en.wikipedia.org/wiki/Scrypt
-[PBKDF2]: https://www.ietf.org/rfc/rfc2898.html
+[PBKDF2]: https://datatracker.ietf.org/doc/html/rfc2898
 [SHA2 Crypt]: https://www.akkadia.org/drepper/SHA-crypt.txt
 [Bcrypt]: https://en.wikipedia.org/wiki/Bcrypt
