@@ -609,7 +609,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenImplementat
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'implementation' is configured as 'masd' but must be one of the following values: 'custom', 'activedirectory', 'freeipa', 'lldap'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'implementation' is configured as 'masd' but must be one of the following values: 'custom', 'activedirectory', 'rfc2307bis', 'freeipa', 'lldap', 'glauth'")
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenURLNotProvided() {
@@ -1000,6 +1000,108 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldRaiseErrorOnIn
 
 func TestActiveDirectoryAuthenticationBackend(t *testing.T) {
 	suite.Run(t, new(ActiveDirectoryAuthenticationBackendSuite))
+}
+
+type RFC2307bisAuthenticationBackendSuite struct {
+	suite.Suite
+	config    schema.AuthenticationBackend
+	validator *schema.StructValidator
+}
+
+func (suite *RFC2307bisAuthenticationBackendSuite) SetupTest() {
+	suite.validator = schema.NewStructValidator()
+	suite.config = schema.AuthenticationBackend{}
+	suite.config.LDAP = &schema.LDAPAuthenticationBackend{}
+	suite.config.LDAP.Implementation = schema.LDAPImplementationRFC2307bis
+	suite.config.LDAP.URL = testLDAPURL
+	suite.config.LDAP.User = testLDAPUser
+	suite.config.LDAP.Password = testLDAPPassword
+	suite.config.LDAP.BaseDN = testLDAPBaseDN
+	suite.config.LDAP.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.TLS
+}
+
+func (suite *RFC2307bisAuthenticationBackendSuite) TestShouldSetDefaults() {
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
+
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.Timeout,
+		suite.config.LDAP.Timeout)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.AdditionalUsersDN,
+		suite.config.LDAP.AdditionalUsersDN)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.AdditionalGroupsDN,
+		suite.config.LDAP.AdditionalGroupsDN)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.UsersFilter,
+		suite.config.LDAP.UsersFilter)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.UsernameAttribute,
+		suite.config.LDAP.UsernameAttribute)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.DisplayNameAttribute,
+		suite.config.LDAP.DisplayNameAttribute)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.MailAttribute,
+		suite.config.LDAP.MailAttribute)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.GroupsFilter,
+		suite.config.LDAP.GroupsFilter)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.GroupNameAttribute,
+		suite.config.LDAP.GroupNameAttribute)
+}
+
+func (suite *RFC2307bisAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotManuallyConfigured() {
+	suite.config.LDAP.Timeout = time.Second * 2
+	suite.config.LDAP.UsersFilter = "(&({username_attribute}={input})(objectClass=Person))"
+	suite.config.LDAP.UsernameAttribute = "o"
+	suite.config.LDAP.MailAttribute = "Email"
+	suite.config.LDAP.DisplayNameAttribute = "Given"
+	suite.config.LDAP.GroupsFilter = "(&(member={dn})(objectClass=posixGroup)(objectClass=top))"
+	suite.config.LDAP.GroupNameAttribute = "gid"
+	suite.config.LDAP.AdditionalUsersDN = "OU=users,OU=OpenLDAP"
+	suite.config.LDAP.AdditionalGroupsDN = "OU=groups,OU=OpenLDAP"
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.Timeout,
+		suite.config.LDAP.Timeout)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.AdditionalUsersDN,
+		suite.config.LDAP.AdditionalUsersDN)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.AdditionalGroupsDN,
+		suite.config.LDAP.AdditionalGroupsDN)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.Timeout,
+		suite.config.LDAP.Timeout)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.UsersFilter,
+		suite.config.LDAP.UsersFilter)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.UsernameAttribute,
+		suite.config.LDAP.UsernameAttribute)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.DisplayNameAttribute,
+		suite.config.LDAP.DisplayNameAttribute)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.MailAttribute,
+		suite.config.LDAP.MailAttribute)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.GroupsFilter,
+		suite.config.LDAP.GroupsFilter)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.GroupNameAttribute,
+		suite.config.LDAP.GroupNameAttribute)
+}
+
+func TestRFC2307bisAuthenticationBackend(t *testing.T) {
+	suite.Run(t, new(RFC2307bisAuthenticationBackendSuite))
 }
 
 type FreeIPAAuthenticationBackendSuite struct {
