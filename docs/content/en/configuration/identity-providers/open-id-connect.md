@@ -402,9 +402,6 @@ This enables the public client type for this client. This is for clients that ar
 confidentiality of credentials, you can read more about client types in [RFC6749 Section 2.1]. This is particularly
 useful for SPA's and CLI tools. This option requires setting the [client secret](#secret) to a blank string.
 
-In addition to the standard rules for redirect URIs, public clients can use the `urn:ietf:wg:oauth:2.0:oob` redirect
-URI.
-
 #### redirect_uris
 
 {{< confkey type="list(string)" required="yes" >}}
@@ -420,7 +417,6 @@ their redirect URIs are as follows:
    attempt to authorize will fail and an error will be generated.
 2. The redirect URIs are case-sensitive.
 3. The URI must include a scheme and that scheme must be one of `http` or `https`.
-4. The client can ignore rule 3 and use `urn:ietf:wg:oauth:2.0:oob` if it is a [public](#public) client type.
 
 #### audience
 
@@ -434,30 +430,41 @@ A list of audiences this client is allowed to request.
 
 A list of scopes to allow this client to consume. See
 [scope definitions](../../integration/openid-connect/introduction.md#scope-definitions) for more information. The
-documentation for the application you want to use with Authelia will most-likely provide you with the scopes to allow.
+documentation for the application you are trying to configure [OpenID Connect 1.0] for will likely have a list of scopes
+or claims required which can be matched with the above guide.
 
 #### grant_types
 
 {{< confkey type="list(string)" default="refresh_token, authorization_code" required="no" >}}
 
-A list of grant types this client can return. *It is recommended that this isn't configured at this time unless you
-know what you're doing*. Valid options are: `implicit`, `refresh_token`, `authorization_code`, `password`,
-`client_credentials`.
+*__Important Note:__ It is recommended that this isn't configured at this time unless you know what you're doing.*
+
+The list of grant types this client is permitted to use in order to obtain access to the relevant tokens.
+
+See the [Grant Types](../../integration/openid-connect/introduction.md#grant-types) section of the
+[OpenID Connect 1.0 Integration Guide](../../integration/openid-connect/introduction.md#grant-types) for more information.
 
 #### response_types
 
 {{< confkey type="list(string)" default="code" required="no" >}}
 
-A list of response types this client can return. *It is recommended that this isn't configured at this time unless you
-know what you're doing*. Valid options are: `code`, `code id_token`, `id_token`, `token id_token`, `token`,
-`token id_token code`.
+*__Important Note:__ It is recommended that this isn't configured at this time unless you know what you're doing.*
+
+A list of response types this client supports.
+
+See the [Response Types](../../integration/openid-connect/introduction.md#response-types) section of the
+[OpenID Connect 1.0 Integration Guide](../../integration/openid-connect/introduction.md#response-types) for more information.
 
 #### response_modes
 
 {{< confkey type="list(string)" default="form_post, query, fragment" required="no" >}}
 
-A list of response modes this client can return. It is recommended that this isn't configured at this time unless you
-know what you're doing. Potential values are `form_post`, `query`, and `fragment`.
+*__Important Note:__ It is recommended that this isn't configured at this time unless you know what you're doing.*
+
+A list of response modes this client supports.
+
+See the [Response Modes](../../integration/openid-connect/introduction.md#response-modes) section of the
+[OpenID Connect 1.0 Integration Guide](../../integration/openid-connect/introduction.md#response-modes) for more information.
 
 #### authorization_policy
 
@@ -495,14 +502,18 @@ more information.
 
 {{< confkey type="string" default="auto" required="no" >}}
 
+*__Important Note:__ the `implicit` consent mode is not technically part of the specification. It theoretically could be
+misused in certain conditions specifically with public clients or when the client credentials (i.e. client secret) has
+been exposed to an attacker. For these reasons this mode is discouraged.*
+
 Configures the consent mode. The following table describes the different modes:
 
-|     Value      |                                                                                   Description                                                                                    |
-|:--------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-|      auto      |                  Automatically determined (default). Uses `explicit` unless [pre_configured_consent_duration] is specified in which case uses `pre-configured`.                  |
-|    explicit    |                                                    Requires the user provide unique explicit consent for every authorization.                                                    |
-|    implicit    | Automatically assumes consent for every authorization, never asking the user if they wish to give consent. *__Note:__* this option is not technically part of the specification. |
-| pre-configured |                                             Allows the end-user to remember their consent for the [pre_configured_consent_duration].                                             |
+|     Value      |                                                                  Description                                                                   |
+|:--------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|
+|      auto      | Automatically determined (default). Uses `explicit` unless [pre_configured_consent_duration] is specified in which case uses `pre-configured`. |
+|    explicit    |                                   Requires the user provide unique explicit consent for every authorization.                                   |
+|    implicit    |                   Automatically assumes consent for every authorization, never asking the user if they wish to give consent.                   |
+| pre-configured |                            Allows the end-user to remember their consent for the [pre_configured_consent_duration].                            |
 
 [pre_configured_consent_duration]: #preconfiguredconsentduration
 
