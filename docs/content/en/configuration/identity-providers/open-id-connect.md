@@ -502,14 +502,18 @@ more information.
 
 {{< confkey type="string" default="auto" required="no" >}}
 
+*__Important Note:__ the `implicit` consent mode is not technically part of the specification. It theoretically could be
+misused in certain conditions specifically with public clients or when the client credentials (i.e. client secret) has
+been exposed to an attacker. For these reasons this mode is discouraged.*
+
 Configures the consent mode. The following table describes the different modes:
 
-|     Value      |                                                                                   Description                                                                                    |
-|:--------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-|      auto      |                  Automatically determined (default). Uses `explicit` unless [pre_configured_consent_duration] is specified in which case uses `pre-configured`.                  |
-|    explicit    |                                                    Requires the user provide unique explicit consent for every authorization.                                                    |
-|    implicit    | Automatically assumes consent for every authorization, never asking the user if they wish to give consent. *__Note:__* this option is not technically part of the specification. |
-| pre-configured |                                             Allows the end-user to remember their consent for the [pre_configured_consent_duration].                                             |
+|     Value      |                                                                  Description                                                                   |
+|:--------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|
+|      auto      | Automatically determined (default). Uses `explicit` unless [pre_configured_consent_duration] is specified in which case uses `pre-configured`. |
+|    explicit    |                                   Requires the user provide unique explicit consent for every authorization.                                   |
+|    implicit    |                   Automatically assumes consent for every authorization, never asking the user if they wish to give consent.                   |
+| pre-configured |                            Allows the end-user to remember their consent for the [pre_configured_consent_duration].                            |
 
 [pre_configured_consent_duration]: #preconfiguredconsentduration
 
