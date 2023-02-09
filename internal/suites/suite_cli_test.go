@@ -402,7 +402,7 @@ func (s *CLISuite) TestShouldGenerateCertificateRSAWithNotBefore() {
 func (s *CLISuite) TestShouldFailGenerateCertificateRSAWithInvalidNotBefore() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name=example.com", "--sans='*.example.com'", "--not-before", "Jan", "--directory=/tmp/"})
 	s.Assert().NotNil(err)
-	s.Assert().Contains(output, "Error: failed to parse not before: parsing time \"Jan\" as \"Jan 2 15:04:05 2006\": cannot parse \"\" as \"2\"")
+	s.Assert().Contains(output, "Error: failed to parse not before: failed to find a suitable time layout for time 'Jan'")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSAWith4096Bits() {
@@ -555,7 +555,7 @@ func (s *CLISuite) TestShouldGenerateCertificateEd25519() {
 func (s *CLISuite) TestShouldFailGenerateCertificateParseNotBefore() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--not-before=invalid", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NotNil(err)
-	s.Assert().Contains(output, "Error: failed to parse not before: parsing time \"invalid\" as \"Jan 2 15:04:05 2006\": cannot parse \"invalid\" as \"Jan\"")
+	s.Assert().Contains(output, "Error: failed to parse not before: failed to find a suitable time layout for time 'invalid'")
 }
 
 func (s *CLISuite) TestShouldFailGenerateCertificateECDSA() {

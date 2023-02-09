@@ -78,6 +78,13 @@ static_resources:
                   - name: envoy.filters.http.ext_authz
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                      transport_api_version: V3
+                      allowed_headers:
+                        patterns:
+                          - exact: authorization
+                          - exact: proxy-authorization
+                          - exact: accept
+                          - exact: cookie
                       http_service:
                         path_prefix: /api/authz/ext-authz/
                         server_uri:
@@ -85,12 +92,6 @@ static_resources:
                           cluster: authelia-backend
                           timeout: 0.25s
                         authorization_request:
-                          allowed_headers:
-                            patterns:
-                              - exact: authorization
-                              - exact: proxy-authorization
-                              - exact: accept
-                              - exact: cookie
                           headers_to_add:
                             - key: X-Forwarded-Proto
                               value: '%REQ(:SCHEME)%'
@@ -118,9 +119,9 @@ static_resources:
               common_tls_context:
                 tls_certificates:
                   - certificate_chain:
-                      filename: /etc/ssl/server.cert
+                      filename: /pki/public.bundle.crt
                     private_key:
-                      filename: /etc/ssl/server.key
+                      filename: /pki/private.pem
   clusters:
     - name: authelia-frontend
       transport_socket_matches:
@@ -231,4 +232,15 @@ static_resources:
                     socket_address:
                       address: nginx-backend
                       port_value: 80
+layered_runtime:
+  layers:
+    - name: static_layer_0
+      static_layer:
+        envoy:
+          resource_limits:
+            listener:
+              example_listener_name:
+                connection_limit: 10000
+        overload:
+          global_downstream_max_connections: 50000
 ...

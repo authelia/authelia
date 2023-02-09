@@ -1,14 +1,14 @@
 ---
-title: "authelia storage encryption change-key"
-description: "Reference for the authelia storage encryption change-key command."
+title: "docs/content/en/reference/cli/authelia/authelia storage encryption change-key"
+description: "Reference for the docs/content/en/reference/cli/authelia/authelia storage encryption change-key command."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
   reference:
-    parent: "cli-authelia"
-weight: 905
+    parent: "cli-docs/content/en/reference/cli/authelia/authelia"
+weight: 995
 toc: true
 ---
 

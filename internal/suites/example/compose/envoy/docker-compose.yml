@@ -5,7 +5,7 @@ services:
     image: envoyproxy/envoy:v1.25.1
     volumes:
       - ./example/compose/envoy/envoy.yaml:/etc/envoy/envoy.yaml
-      - ./example/compose/nginx/portal/ssl:/etc/ssl
+      - ./common/pki:/pki
     networks:
       authelianet:
         ipv4_address: 192.168.240.100

@@ -4,5 +4,5 @@ services:
   authelia-backend:
     volumes:
       - './HighAvailability/configuration.yml:/config/configuration.yml:ro'
-      - './common/ssl:/config/ssl:ro'
+      - './common/pki:/config/ssl:ro'
 ...

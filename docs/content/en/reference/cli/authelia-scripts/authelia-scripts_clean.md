@@ -1,14 +1,14 @@
 ---
-title: "authelia-scripts clean"
-description: "Reference for the authelia-scripts clean command."
+title: "docs/content/en/reference/cli/authelia-scripts/authelia-scripts clean"
+description: "Reference for the docs/content/en/reference/cli/authelia-scripts/authelia-scripts clean command."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
   reference:
-    parent: "cli-authelia-scripts"
-weight: 925
+    parent: "cli-docs/content/en/reference/cli/authelia-scripts/authelia-scripts"
+weight: 995
 toc: true
 ---
 

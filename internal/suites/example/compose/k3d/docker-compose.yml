@@ -6,7 +6,7 @@ services:
     volumes:
       - './example/kube:/authelia'
       - './example/kube/authelia/configs/configuration.yml:/configmaps/authelia/configuration.yml'
-      - './common/ssl:/configmaps/authelia/ssl'
+      - './common/pki:/configmaps/authelia/ssl'
       - './example/compose/ldap/ldif:/configmaps/ldap'
       - './example/compose/nginx/backend:/configmaps/nginx-backend'
     privileged: true

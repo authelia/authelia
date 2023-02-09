@@ -1,14 +1,14 @@
 ---
-title: "authelia crypto certificate rsa request"
-description: "Reference for the authelia crypto certificate rsa request command."
+title: "docs/content/en/reference/cli/authelia/authelia crypto certificate rsa request"
+description: "Reference for the docs/content/en/reference/cli/authelia/authelia crypto certificate rsa request command."
 lead: ""
 date: 2022-06-27T18:27:57+10:00
 draft: false
 images: []
 menu:
   reference:
-    parent: "cli-authelia"
-weight: 905
+    parent: "cli-docs/content/en/reference/cli/authelia/authelia"
+weight: 995
 toc: true
 ---
 
@@ -39,12 +39,13 @@ authelia crypto certificate rsa request --help
   -n, --common-name string            certificate common name
       --country strings               certificate country
   -d, --directory string              directory where the generated keys, certificates, etc will be stored
-      --duration duration             duration of time the certificate is valid for (default 8760h0m0s)
+      --duration string               duration of time the certificate is valid for (default "1y")
       --file.csr string               name of the file to export the certificate request data to (default "request.csr")
       --file.private-key string       name of the file to export the private key data to (default "private.pem")
   -h, --help                          help for request
   -l, --locality strings              certificate locality
-      --not-before string             earliest date and time the certificate is considered valid formatted as Jan 2 15:04:05 2006 (default is now)
+      --not-after string              latest date and time the certificate is considered valid in various formats
+      --not-before string             earliest date and time the certificate is considered valid in various formats (default is now)
   -o, --organization strings          certificate organization (default [Authelia])
       --organizational-unit strings   certificate organizational unit
   -p, --postcode strings              certificate postcode

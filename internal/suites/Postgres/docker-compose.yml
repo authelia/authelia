@@ -5,5 +5,5 @@ services:
     volumes:
       - './Postgres/configuration.yml:/config/configuration.yml:ro'
       - './Postgres/users.yml:/config/users.yml'
-      - './common/ssl:/config/ssl:ro'
+      - './common/pki:/config/ssl:ro'
 ...

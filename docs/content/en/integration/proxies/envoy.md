@@ -168,6 +168,13 @@ static_resources:
                   - name: envoy.filters.http.ext_authz
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                      transport_api_version: V3
+                      allowed_headers:
+                        patterns:
+                          - exact: authorization
+                          - exact: proxy-authorization
+                          - exact: accept
+                          - exact: cookie
                       http_service:
                         path_prefix: /api/authz/ext-authz/
                         server_uri:
@@ -234,6 +241,17 @@ static_resources:
                     socket_address:
                       address: authelia
                       port_value: 9091
+layered_runtime:
+  layers:
+    - name: static_layer_0
+      static_layer:
+        envoy:
+          resource_limits:
+            listener:
+              example_listener_name:
+                connection_limit: 10000
+        overload:
+          global_downstream_max_connections: 50000
 ```
 {{< /details >}}
 

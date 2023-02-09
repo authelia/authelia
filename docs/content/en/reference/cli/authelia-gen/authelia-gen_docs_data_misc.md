@@ -1,14 +1,14 @@
 ---
-title: "authelia-gen docs data misc"
-description: "Reference for the authelia-gen docs data misc command."
+title: "docs/content/en/reference/cli/authelia-gen/authelia-gen docs data misc"
+description: "Reference for the docs/content/en/reference/cli/authelia-gen/authelia-gen docs data misc command."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
   reference:
-    parent: "cli-authelia-gen"
-weight: 915
+    parent: "cli-docs/content/en/reference/cli/authelia-gen/authelia-gen"
+weight: 995
 toc: true
 ---
 

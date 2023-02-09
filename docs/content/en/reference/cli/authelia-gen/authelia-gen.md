@@ -1,14 +1,14 @@
 ---
-title: "authelia-gen"
-description: "Reference for the authelia-gen command."
+title: "docs/content/en/reference/cli/authelia-gen/authelia-gen"
+description: "Reference for the docs/content/en/reference/cli/authelia-gen/authelia-gen command."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
   reference:
-    parent: "cli-authelia-gen"
-weight: 910
+    parent: "cli-docs/content/en/reference/cli/authelia-gen/authelia-gen"
+weight: 990
 toc: true
 ---
 

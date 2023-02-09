@@ -1,14 +1,14 @@
 ---
-title: "authelia crypto pair"
-description: "Reference for the authelia crypto pair command."
+title: "docs/content/en/reference/cli/authelia/authelia crypto pair"
+description: "Reference for the docs/content/en/reference/cli/authelia/authelia crypto pair command."
 lead: ""
 date: 2022-06-27T18:27:57+10:00
 draft: false
 images: []
 menu:
   reference:
-    parent: "cli-authelia"
-weight: 905
+    parent: "cli-docs/content/en/reference/cli/authelia/authelia"
+weight: 995
 toc: true
 ---
 

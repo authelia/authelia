@@ -32,8 +32,9 @@ func cmdFlagsCryptoCertificateCommon(cmd *cobra.Command) {
 	cmd.Flags().StringSliceP(cmdFlagNameStreetAddress, "s", nil, "certificate street address")
 	cmd.Flags().StringSliceP(cmdFlagNamePostcode, "p", nil, "certificate postcode")
 
-	cmd.Flags().String(cmdFlagNameNotBefore, "", fmt.Sprintf("earliest date and time the certificate is considered valid formatted as %s (default is now)", timeLayoutCertificateNotBefore))
-	cmd.Flags().Duration(cmdFlagNameDuration, 365*24*time.Hour, "duration of time the certificate is valid for")
+	cmd.Flags().String(cmdFlagNameNotBefore, "", "earliest date and time the certificate is considered valid in various formats (default is now)")
+	cmd.Flags().String(cmdFlagNameNotAfter, "", "latest date and time the certificate is considered valid in various formats")
+	cmd.Flags().String(cmdFlagNameDuration, "1y", "duration of time the certificate is valid for")
 	cmd.Flags().StringSlice(cmdFlagNameSANs, nil, "subject alternative names")
 }
 
@@ -42,6 +43,8 @@ func cmdFlagsCryptoCertificateGenerate(cmd *cobra.Command) {
 	cmd.Flags().String(cmdFlagNameFileCAPrivateKey, "ca.private.pem", "certificate authority private key to use to signing this certificate")
 	cmd.Flags().String(cmdFlagNameFileCACertificate, "ca.public.crt", "certificate authority certificate to use when signing this certificate")
 	cmd.Flags().String(cmdFlagNameFileCertificate, "public.crt", "name of the file to export the certificate data to")
+	cmd.Flags().String(cmdFlagNameFileCertificateBundle, "public.bundle.crt", fmt.Sprintf("name of the file to export the certificate bundle data to when the --%s flag is set", cmdFlagNameBundle))
+	cmd.Flags().Bool(cmdFlagNameBundle, false, fmt.Sprintf("enables generating the certificate bundle if the --%s flag is set", cmdFlagNamePathCA))
 
 	cmd.Flags().StringSlice(cmdFlagNameExtendedUsage, nil, "specify the extended usage types of the certificate")
 
@@ -91,17 +94,15 @@ func cryptoSANsToString(dnsSANs []string, ipSANs []net.IP) (sans []string) {
 	return sans
 }
 
-func cryptoGetWritePathsFromCmd(cmd *cobra.Command) (privateKey, publicKey string, err error) {
-	var dir string
-
+func cryptoGetWritePathsFromCmd(cmd *cobra.Command) (dir, privateKey, publicKey string, err error) {
 	if dir, err = cmd.Flags().GetString(cmdFlagNameDirectory); err != nil {
-		return "", "", err
+		return "", "", "", err
 	}
 
 	ca, _ := cmd.Flags().GetBool(cmdFlagNameCA)
 	csr := cmd.Use == cmdUseRequest
 
-	var private, public string
+	var pathPrivate, pathPublic string
 
 	var flagPrivate, flagPublic string
 
@@ -118,15 +119,15 @@ func cryptoGetWritePathsFromCmd(cmd *cobra.Command) (privateKey, publicKey strin
 		flagPrivate, flagPublic = cmdFlagNameFilePrivateKey, cmdFlagNameFileCertificate
 	}
 
-	if private, err = cmd.Flags().GetString(flagPrivate); err != nil {
-		return "", "", err
+	if pathPrivate, err = cmd.Flags().GetString(flagPrivate); err != nil {
+		return "", "", "", err
 	}
 
-	if public, err = cmd.Flags().GetString(flagPublic); err != nil {
-		return "", "", err
+	if pathPublic, err = cmd.Flags().GetString(flagPublic); err != nil {
+		return "", "", "", err
 	}
 
-	return filepath.Join(dir, private), filepath.Join(dir, public), nil
+	return dir, filepath.Join(dir, pathPrivate), filepath.Join(dir, pathPublic), nil
 }
 
 func (ctx *CmdCtx) cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey any, err error) {
@@ -167,6 +168,28 @@ func (ctx *CmdCtx) cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey an
 	}
 
 	return privateKey, nil
+}
+
+func cryptoGetCertificateBundleFromCmd(cmd *cobra.Command, dir string, caCertificate *x509.Certificate) (bundle bool, bundlePath string, err error) {
+	if bundle, err = cmd.Flags().GetBool(cmdFlagNameBundle); err != nil {
+		return false, "", err
+	}
+
+	if !bundle {
+		return bundle, bundlePath, err
+	}
+
+	if caCertificate == nil {
+		return false, "", fmt.Errorf("the --%s flag can't be used with self-signed certificates, you can specify the authority path using the --%s flag", cmdFlagNameBundle, cmdFlagNamePathCA)
+	}
+
+	if bundlePath, err = cmd.Flags().GetString(cmdFlagNameFileCertificateBundle); err != nil {
+		return false, "", err
+	}
+
+	bundlePath = filepath.Join(dir, bundlePath)
+
+	return bundle, bundlePath, err
 }
 
 func cryptoGetCAFromCmd(cmd *cobra.Command) (privateKey any, cert *x509.Certificate, err error) {
@@ -337,10 +360,10 @@ func cryptoGetSubjectFromCmd(cmd *cobra.Command) (subject *pkix.Name, err error)
 
 func (ctx *CmdCtx) cryptoGetCertificateFromCmd(cmd *cobra.Command) (certificate *x509.Certificate, err error) {
 	var (
-		ca           bool
-		subject      *pkix.Name
-		notBeforeStr string
-		duration     time.Duration
+		ca      bool
+		subject *pkix.Name
+
+		notBefore, notAfter time.Time
 	)
 
 	if ca, err = cmd.Flags().GetBool(cmdFlagNameCA); err != nil {
@@ -351,29 +374,15 @@ func (ctx *CmdCtx) cryptoGetCertificateFromCmd(cmd *cobra.Command) (certificate 
 		return nil, err
 	}
 
-	if notBeforeStr, err = cmd.Flags().GetString(cmdFlagNameNotBefore); err != nil {
-		return nil, err
-	}
-
-	if duration, err = cmd.Flags().GetDuration(cmdFlagNameDuration); err != nil {
+	if notBefore, notAfter, err = cryptoCertificateValidityFromCmd(cmd); err != nil {
 		return nil, err
 	}
 
 	var (
-		notBefore             time.Time
 		serialNumber          *big.Int
 		dnsSANs, extKeyUsages []string
 		ipSANs                []net.IP
 	)
-
-	switch len(notBeforeStr) {
-	case 0:
-		notBefore = time.Now()
-	default:
-		if notBefore, err = time.Parse(timeLayoutCertificateNotBefore, notBeforeStr); err != nil {
-			return nil, fmt.Errorf("failed to parse not before: %w", err)
-		}
-	}
 
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 
@@ -396,7 +405,7 @@ func (ctx *CmdCtx) cryptoGetCertificateFromCmd(cmd *cobra.Command) (certificate 
 		Subject:      *subject,
 
 		NotBefore: notBefore,
-		NotAfter:  notBefore.Add(duration),
+		NotAfter:  notAfter,
 
 		IsCA: ca,
 
@@ -413,6 +422,57 @@ func (ctx *CmdCtx) cryptoGetCertificateFromCmd(cmd *cobra.Command) (certificate 
 	}
 
 	return certificate, nil
+}
+
+func cryptoCertificateValidityFromCmd(cmd *cobra.Command) (notBefore, notAfter time.Time, err error) {
+	never := time.UnixMicro(0)
+
+	switch cmd.Flags().Changed(cmdFlagNameNotBefore) {
+	case true:
+		var notBeforeStr string
+
+		if notBeforeStr, err = cmd.Flags().GetString(cmdFlagNameNotBefore); err != nil {
+			return never, never, err
+		}
+
+		if notBefore, err = utils.ParseTimeString(notBeforeStr); err != nil {
+			return never, never, fmt.Errorf("failed to parse not before: %w", err)
+		}
+	default:
+		notBefore = time.Now()
+	}
+
+	switch useNotAfter := cmd.Flags().Changed(cmdFlagNameNotAfter); {
+	case useNotAfter && cmd.Flags().Changed(cmdFlagNameDuration):
+		return never, never, fmt.Errorf("failed to determine not after ")
+	case useNotAfter:
+		var notAfterStr string
+
+		if notAfterStr, err = cmd.Flags().GetString(cmdFlagNameNotAfter); err != nil {
+			return never, never, err
+		}
+
+		if notAfter, err = utils.ParseTimeString(notAfterStr); err != nil {
+			return never, never, fmt.Errorf("failed to parse not after: %w", err)
+		}
+	default:
+		var (
+			durationStr string
+			duration    time.Duration
+		)
+
+		if durationStr, err = cmd.Flags().GetString(cmdFlagNameDuration); err != nil {
+			return never, never, err
+		}
+
+		if duration, err = utils.ParseDurationString(durationStr); err != nil {
+			return never, never, fmt.Errorf("failed to parse duration string: %w", err)
+		}
+
+		notAfter = notBefore.Add(duration)
+	}
+
+	return notBefore, notAfter, nil
 }
 
 func fmtCryptoHashUse(use string) string {

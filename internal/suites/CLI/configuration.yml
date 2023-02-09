@@ -6,8 +6,8 @@
 server:
   port: 9091
   tls:
-    certificate: /config/ssl/cert.pem
-    key: /config/ssl/key.pem
+    certificate: /config/ssl/public.backend.crt
+    key: /config/ssl/private.backend.pem
 
 log:
   level: debug

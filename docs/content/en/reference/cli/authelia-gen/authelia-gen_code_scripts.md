@@ -1,14 +1,14 @@
 ---
-title: "authelia-gen code scripts"
-description: "Reference for the authelia-gen code scripts command."
+title: "docs/content/en/reference/cli/authelia-gen/authelia-gen code scripts"
+description: "Reference for the docs/content/en/reference/cli/authelia-gen/authelia-gen code scripts command."
 lead: ""
 date: 2022-09-16T14:21:05+10:00
 draft: false
 images: []
 menu:
   reference:
-    parent: "cli-authelia-gen"
-weight: 915
+    parent: "cli-docs/content/en/reference/cli/authelia-gen/authelia-gen"
+weight: 995
 toc: true
 ---
 
