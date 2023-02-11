@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 
@@ -109,16 +108,9 @@ func genCLIDocWriteIndex(path, name string) (err error) {
 func prepend(input string) string {
 	now := time.Now()
 
-	var pathz []string
+	_, filename := filepath.Split(strings.Replace(input, ".md", "", 1))
 
-	switch runtime.GOOS {
-	case "windows":
-		pathz = strings.Split(strings.Replace(input, ".md", "", 1), "\\")
-	default:
-		pathz = strings.Split(strings.Replace(input, ".md", "", 1), "/")
-	}
-
-	parts := strings.Split(pathz[len(pathz)-1], "_")
+	parts := strings.Split(filename, "_")
 
 	cmd := parts[0]
 
