@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -9,6 +10,7 @@ import (
 	"syscall"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -96,7 +98,11 @@ func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 }
 
 func runServices(ctx *CmdCtx) {
-	defer ctx.cancel()
+	cctx, cancel := context.WithCancel(ctx)
+
+	group, cctx := errgroup.WithContext(cctx)
+
+	defer cancel()
 
 	quit := make(chan os.Signal, 1)
 
@@ -115,7 +121,7 @@ func runServices(ctx *CmdCtx) {
 		if service := serviceFunc(ctx); service != nil {
 			services = append(services, service)
 
-			ctx.group.Go(service.Run)
+			group.Go(service.Run)
 		}
 	}
 
@@ -129,11 +135,11 @@ func runServices(ctx *CmdCtx) {
 		case syscall.SIGTERM:
 			ctx.log.WithField("signal", "SIGTERM").Debugf("Shutdown started due to signal")
 		}
-	case <-ctx.Done():
+	case <-cctx.Done():
 		ctx.log.Debugf("Shutdown started due to context completion")
 	}
 
-	ctx.cancel()
+	cancel()
 
 	ctx.log.Infof("Shutting down")
 
@@ -157,7 +163,7 @@ func runServices(ctx *CmdCtx) {
 		ctx.log.WithError(err).Error("Error occurred closing database connections")
 	}
 
-	if err = ctx.group.Wait(); err != nil {
+	if err = group.Wait(); err != nil {
 		ctx.log.WithError(err).Errorf("Error occurred waiting for shutdown")
 	}
 }
