@@ -1,16 +1,11 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"os"
-	"os/signal"
 	"strings"
-	"sync"
-	"syscall"
 
 	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -92,80 +87,9 @@ func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 
 	ctx.cconfig = nil
 
-	runServices(ctx)
+	servicesRun(ctx)
 
 	return nil
-}
-
-func runServices(ctx *CmdCtx) {
-	cctx, cancel := context.WithCancel(ctx)
-
-	group, cctx := errgroup.WithContext(cctx)
-
-	defer cancel()
-
-	quit := make(chan os.Signal, 1)
-
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-
-	defer signal.Stop(quit)
-
-	var (
-		services []Service
-	)
-
-	for _, serviceFunc := range []func(ctx *CmdCtx) Service{
-		svcSvrMainFunc, svcSvrMetricsFunc,
-		svcWatcherUsersFunc,
-	} {
-		if service := serviceFunc(ctx); service != nil {
-			services = append(services, service)
-
-			group.Go(service.Run)
-		}
-	}
-
-	ctx.log.Info("Startup Complete")
-
-	select {
-	case s := <-quit:
-		switch s {
-		case syscall.SIGINT:
-			ctx.log.WithField("signal", "SIGINT").Debugf("Shutdown started due to signal")
-		case syscall.SIGTERM:
-			ctx.log.WithField("signal", "SIGTERM").Debugf("Shutdown started due to signal")
-		}
-	case <-cctx.Done():
-		ctx.log.Debugf("Shutdown started due to context completion")
-	}
-
-	cancel()
-
-	ctx.log.Infof("Shutting down")
-
-	wgShutdown := &sync.WaitGroup{}
-
-	for _, service := range services {
-		go func() {
-			service.Shutdown()
-
-			wgShutdown.Done()
-		}()
-
-		wgShutdown.Add(1)
-	}
-
-	wgShutdown.Wait()
-
-	var err error
-
-	if err = ctx.providers.StorageProvider.Close(); err != nil {
-		ctx.log.WithError(err).Error("Error occurred closing database connections")
-	}
-
-	if err = group.Wait(); err != nil {
-		ctx.log.WithError(err).Errorf("Error occurred waiting for shutdown")
-	}
 }
 
 func doStartupChecks(ctx *CmdCtx) {
