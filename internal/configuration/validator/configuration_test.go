@@ -160,7 +160,7 @@ func TestShouldRaiseErrorOnInvalidCertificatesDirectory(t *testing.T) {
 func TestShouldNotRaiseErrorOnValidCertificatesDirectory(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.CertificatesDirectory = "../../suites/common/ssl"
+	config.CertificatesDirectory = "../../suites/common/pki"
 
 	ValidateConfiguration(&config, validator)
 

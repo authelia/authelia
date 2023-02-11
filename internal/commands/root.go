@@ -55,6 +55,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 
 		newHelpTopic("config", "Help for the config file/directory paths", helpTopicConfig),
 		newHelpTopic("filters", "help topic for the config filters", helpTopicConfigFilters),
+		newHelpTopic("time-layouts", "help topic for the various time layouts", helpTopicTimeLayouts),
 	)
 
 	return cmd

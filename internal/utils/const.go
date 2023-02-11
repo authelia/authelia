@@ -70,9 +70,22 @@ const (
 )
 
 var (
+	// StandardTimeLayouts is the set of standard time layouts used with ParseTimeString.
+	StandardTimeLayouts = []string{
+		"Jan 2 15:04:05 2006",
+		time.DateTime,
+		time.RFC3339,
+		time.RFC1123Z,
+		time.RubyDate,
+		time.ANSIC,
+		time.DateOnly,
+	}
+
 	standardDurationUnits = []string{"ns", "us", "µs", "μs", "ms", "s", "m", "h"}
-	reDurationSeconds     = regexp.MustCompile(`^\d+$`)
-	reDurationStandard    = regexp.MustCompile(`(?P<Duration>[1-9]\d*?)(?P<Unit>[^\d\s]+)`)
+
+	reOnlyNumeric      = regexp.MustCompile(`^\d+$`)
+	reDurationStandard = regexp.MustCompile(`(?P<Duration>[1-9]\d*?)(?P<Unit>[^\d\s]+)`)
+	reNumeric          = regexp.MustCompile(`\d+`)
 )
 
 // Duration unit types.

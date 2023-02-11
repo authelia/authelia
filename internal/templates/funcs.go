@@ -17,62 +17,68 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // FuncMap returns the template FuncMap commonly used in several templates.
 func FuncMap() map[string]any {
 	return map[string]any{
-		"iterate":    FuncIterate,
-		"env":        FuncGetEnv,
-		"expandenv":  FuncExpandEnv,
-		"split":      FuncStringSplit,
-		"splitList":  FuncStringSplitList,
-		"join":       FuncElemsJoin,
-		"contains":   FuncStringContains,
-		"hasPrefix":  FuncStringHasPrefix,
-		"hasSuffix":  FuncStringHasSuffix,
-		"lower":      strings.ToLower,
-		"keys":       FuncKeys,
-		"sortAlpha":  FuncSortAlpha,
-		"upper":      strings.ToUpper,
-		"title":      strings.ToTitle,
-		"trim":       strings.TrimSpace,
-		"trimAll":    FuncStringTrimAll,
-		"trimSuffix": FuncStringTrimSuffix,
-		"trimPrefix": FuncStringTrimPrefix,
-		"replace":    FuncStringReplace,
-		"quote":      FuncStringQuote,
-		"sha1sum":    FuncHashSum(sha1.New),
-		"sha256sum":  FuncHashSum(sha256.New),
-		"sha512sum":  FuncHashSum(sha512.New),
-		"squote":     FuncStringSQuote,
-		"now":        time.Now,
-		"b64enc":     FuncB64Enc,
-		"b64dec":     FuncB64Dec,
-		"b32enc":     FuncB32Enc,
-		"b32dec":     FuncB32Dec,
-		"list":       FuncList,
-		"dict":       FuncDict,
-		"get":        FuncGet,
-		"set":        FuncSet,
-		"isAbs":      path.IsAbs,
-		"base":       path.Base,
-		"dir":        path.Dir,
-		"ext":        path.Ext,
-		"clean":      path.Clean,
-		"osBase":     filepath.Base,
-		"osClean":    filepath.Clean,
-		"osDir":      filepath.Dir,
-		"osExt":      filepath.Ext,
-		"osIsAbs":    filepath.IsAbs,
-		"deepEqual":  reflect.DeepEqual,
-		"typeOf":     FuncTypeOf,
-		"typeIs":     FuncTypeIs,
-		"typeIsLike": FuncTypeIsLike,
-		"kindOf":     FuncKindOf,
-		"kindIs":     FuncKindIs,
-		"default":    FuncDefault,
-		"empty":      FuncEmpty,
+		"iterate":     FuncIterate,
+		"fileContent": FuncFileContent,
+		"env":         FuncGetEnv,
+		"expandenv":   FuncExpandEnv,
+		"split":       FuncStringSplit,
+		"splitList":   FuncStringSplitList,
+		"join":        FuncElemsJoin,
+		"contains":    FuncStringContains,
+		"hasPrefix":   FuncStringHasPrefix,
+		"hasSuffix":   FuncStringHasSuffix,
+		"lower":       strings.ToLower,
+		"keys":        FuncKeys,
+		"sortAlpha":   FuncSortAlpha,
+		"upper":       strings.ToUpper,
+		"title":       strings.ToTitle,
+		"trim":        strings.TrimSpace,
+		"trimAll":     FuncStringTrimAll,
+		"trimSuffix":  FuncStringTrimSuffix,
+		"trimPrefix":  FuncStringTrimPrefix,
+		"replace":     FuncStringReplace,
+		"quote":       FuncStringQuote,
+		"sha1sum":     FuncHashSum(sha1.New),
+		"sha256sum":   FuncHashSum(sha256.New),
+		"sha512sum":   FuncHashSum(sha512.New),
+		"squote":      FuncStringSQuote,
+		"now":         time.Now,
+		"b64enc":      FuncB64Enc,
+		"b64dec":      FuncB64Dec,
+		"b32enc":      FuncB32Enc,
+		"b32dec":      FuncB32Dec,
+		"list":        FuncList,
+		"dict":        FuncDict,
+		"get":         FuncGet,
+		"set":         FuncSet,
+		"isAbs":       path.IsAbs,
+		"base":        path.Base,
+		"dir":         path.Dir,
+		"ext":         path.Ext,
+		"clean":       path.Clean,
+		"osBase":      filepath.Base,
+		"osClean":     filepath.Clean,
+		"osDir":       filepath.Dir,
+		"osExt":       filepath.Ext,
+		"osIsAbs":     filepath.IsAbs,
+		"deepEqual":   reflect.DeepEqual,
+		"typeOf":      FuncTypeOf,
+		"typeIs":      FuncTypeIs,
+		"typeIsLike":  FuncTypeIsLike,
+		"kindOf":      FuncKindOf,
+		"kindIs":      FuncKindIs,
+		"default":     FuncDefault,
+		"empty":       FuncEmpty,
+		"indent":      FuncIndent,
+		"nindent":     FuncNewlineIndent,
+		"uuidv4":      FuncUUIDv4,
 	}
 }
 
@@ -383,4 +389,32 @@ func FuncEmpty(v any) bool {
 	case reflect.Struct:
 		return false
 	}
+}
+
+// FuncIndent is a helper function that provides similar functionality to the helm indent func.
+func FuncIndent(indent int, value string) string {
+	padding := strings.Repeat(" ", indent)
+
+	return padding + strings.ReplaceAll(value, "\n", "\n"+padding)
+}
+
+// FuncNewlineIndent is a helper function that provides similar functionality to the helm nindent func.
+func FuncNewlineIndent(indent int, value string) string {
+	return "\n" + FuncIndent(indent, value)
+}
+
+// FuncUUIDv4 is a helper function that provides similar functionality to the helm uuidv4 func.
+func FuncUUIDv4() string {
+	return uuid.New().String()
+}
+
+// FuncFileContent returns the file content.
+func FuncFileContent(path string) (data string, err error) {
+	var raw []byte
+
+	if raw, err = os.ReadFile(path); err != nil {
+		return "", err
+	}
+
+	return string(raw), nil
 }

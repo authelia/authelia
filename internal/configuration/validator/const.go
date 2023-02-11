@@ -339,7 +339,14 @@ const (
 )
 
 var (
-	validLDAPImplementations = []string{schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory, schema.LDAPImplementationFreeIPA, schema.LDAPImplementationLLDAP}
+	validLDAPImplementations = []string{
+		schema.LDAPImplementationCustom,
+		schema.LDAPImplementationActiveDirectory,
+		schema.LDAPImplementationRFC2307bis,
+		schema.LDAPImplementationFreeIPA,
+		schema.LDAPImplementationLLDAP,
+		schema.LDAPImplementationGLAuth,
+	}
 )
 
 const (
