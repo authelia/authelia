@@ -70,6 +70,8 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 	ValidateNTP(config, validator)
 
 	ValidatePasswordPolicy(&config.PasswordPolicy, validator)
+
+	ValidatePrivacyPolicy(&config.PrivacyPolicy, validator)
 }
 
 func validateDefault2FAMethod(config *schema.Configuration, validator *schema.StructValidator) {

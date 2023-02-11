@@ -20,7 +20,9 @@ type DuoPushWebDriverSuite struct {
 }
 
 func NewDuoPushWebDriverSuite() *DuoPushWebDriverSuite {
-	return &DuoPushWebDriverSuite{RodSuite: new(RodSuite)}
+	return &DuoPushWebDriverSuite{
+		RodSuite: NewRodSuite(""),
+	}
 }
 
 func (s *DuoPushWebDriverSuite) SetupSuite() {
@@ -73,7 +75,7 @@ func (s *DuoPushWebDriverSuite) TestShouldBypassDeviceSelection() {
 
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	s.verifyIsHome(s.T(), s.Context(ctx))
 }
@@ -89,7 +91,7 @@ func (s *DuoPushWebDriverSuite) TestShouldDenyDeviceSelection() {
 
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Device selection was denied by Duo policy")
 }
@@ -105,7 +107,7 @@ func (s *DuoPushWebDriverSuite) TestShouldAskUserToRegister() {
 
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-not-registered")
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "No compatible device found")
@@ -133,14 +135,14 @@ func (s *DuoPushWebDriverSuite) TestShouldAutoSelectDevice() {
 	ConfigureDuo(s.T(), Allow)
 
 	// Authenticate.
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	// Switch Method where single Device should be selected automatically.
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Re-Login the user.
 	s.doLogout(s.T(), s.Context(ctx))
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	// And check the latest method and device is still used.
 	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "push-notification-method")
 	// Meaning the authentication is successful.
@@ -172,7 +174,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectDevice() {
 	ConfigureDuo(s.T(), Allow)
 
 	// Authenticate.
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	// Switch Method where Device Selection should open automatically.
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	// Check for available Device 1.
@@ -185,7 +187,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectDevice() {
 
 	// Re-Login the user.
 	s.doLogout(s.T(), s.Context(ctx))
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	// And check the latest method and device is still used.
 	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "push-notification-method")
 	// Meaning the authentication is successful.
@@ -207,7 +209,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailInitialSelectionBecauseOfUnsupport
 
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-not-registered")
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "No compatible device found")
@@ -236,7 +238,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectNewDeviceAfterSavedDeviceMethodI
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Allow)
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "device-selection")
 	s.doSelectDevice(s.T(), s.Context(ctx), "12345ABCDEFGHIJ67890")
@@ -262,13 +264,13 @@ func (s *DuoPushWebDriverSuite) TestShouldAutoSelectNewDeviceAfterSavedDeviceIsN
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Allow)
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	s.verifyIsHome(s.T(), s.Context(ctx))
 }
 
 func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionBypassed() {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	var PreAuthAPIResponse = duo.PreAuthResponse{
@@ -281,7 +283,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionBypasse
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Deny)
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	s.doClickButton(s.T(), s.Context(ctx), "selection-link")
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Device selection was bypassed by Duo policy")
@@ -301,7 +303,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionDenied(
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Deny)
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	err := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "selection-link").Click("left", 1)
 	require.NoError(s.T(), err)
@@ -321,7 +323,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailAuthenticationBecausePreauthDenied
 	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "failure-icon")
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "There was an issue completing sign in process")
@@ -349,7 +351,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSucceedAuthentication() {
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Allow)
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	s.verifyIsHome(s.T(), s.Context(ctx))
 }
@@ -376,7 +378,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailAuthentication() {
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Deny)
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "failure-icon")
 }
@@ -386,10 +388,12 @@ type DuoPushDefaultRedirectionSuite struct {
 }
 
 func NewDuoPushDefaultRedirectionSuite() *DuoPushDefaultRedirectionSuite {
-	return &DuoPushDefaultRedirectionSuite{RodSuite: new(RodSuite)}
+	return &DuoPushDefaultRedirectionSuite{RodSuite: NewRodSuite(duoPushSuiteName)}
 }
 
 func (s *DuoPushDefaultRedirectionSuite) SetupSuite() {
+	s.BaseSuite.SetupSuite()
+
 	browser, err := StartRod()
 
 	if err != nil {
@@ -435,7 +439,7 @@ func (s *DuoPushDefaultRedirectionSuite) TestUserIsRedirectedToDefaultURL() {
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Allow)
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	s.verifyIsHome(s.T(), s.Page)
 
@@ -444,11 +448,15 @@ func (s *DuoPushDefaultRedirectionSuite) TestUserIsRedirectedToDefaultURL() {
 }
 
 type DuoPushSuite struct {
-	suite.Suite
+	*BaseSuite
 }
 
 func NewDuoPushSuite() *DuoPushSuite {
-	return &DuoPushSuite{}
+	return &DuoPushSuite{
+		BaseSuite: &BaseSuite{
+			Name: duoPushSuiteName,
+		},
+	}
 }
 
 func (s *DuoPushSuite) TestDuoPushWebDriverSuite() {

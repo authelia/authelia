@@ -31,11 +31,9 @@ func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, trustProvider tru
 
 	return &SMTPNotifier{
 		config: config,
-
+		domain: domain,
 		random: &random.Cryptographical{},
 		trust:  trustProvider,
-
-		domain: domain,
 		log:    logging.Logger(),
 	}
 }
@@ -48,7 +46,8 @@ type SMTPNotifier struct {
 	trust  trust.Provider
 
 	domain string
-	log    *logrus.Logger
+
+	log *logrus.Logger
 }
 
 func (n *SMTPNotifier) opts() (opts []gomail.Option) {
@@ -164,7 +163,7 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 }
 
 func (n *SMTPNotifier) setMessageID(msg *gomail.Msg) {
-	rm := n.random.Integer(10000)
+	rm := n.random.Intn(10000)
 
-	msg.SetMessageIDWithValue(fmt.Sprintf("%d.%d%d.%s@%s", os.Getpid()+rm, n.random.Integer(100000000), rm, n.random.StringCustom(17, random.CharSetAlphaNumeric), n.domain))
+	msg.SetMessageIDWithValue(fmt.Sprintf("%d.%d%d.%s@%s", os.Getpid()+rm, n.random.Intn(100000000), rm, n.random.StringCustom(17, random.CharSetAlphaNumeric), n.domain))
 }

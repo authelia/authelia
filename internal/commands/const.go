@@ -534,20 +534,18 @@ const (
 )
 
 const (
-	timeLayoutCertificateNotBefore = "Jan 2 15:04:05 2006"
-)
-
-const (
 	cmdFlagNameDirectory = "directory"
 
 	cmdFlagNamePathCA = "path.ca"
+	cmdFlagNameBundle = "bundle"
 
-	cmdFlagNameFilePrivateKey    = "file.private-key"
-	cmdFlagNameFilePublicKey     = "file.public-key"
-	cmdFlagNameFileCertificate   = "file.certificate"
-	cmdFlagNameFileCAPrivateKey  = "file.ca-private-key"
-	cmdFlagNameFileCACertificate = "file.ca-certificate"
-	cmdFlagNameFileCSR           = "file.csr"
+	cmdFlagNameFilePrivateKey        = "file.private-key"
+	cmdFlagNameFilePublicKey         = "file.public-key"
+	cmdFlagNameFileCertificate       = "file.certificate"
+	cmdFlagNameFileCertificateBundle = "file.certificate-bundle"
+	cmdFlagNameFileCAPrivateKey      = "file.ca-private-key"
+	cmdFlagNameFileCACertificate     = "file.ca-certificate"
+	cmdFlagNameFileCSR               = "file.csr"
 
 	cmdFlagNameExtendedUsage = "extended-usage"
 	cmdFlagNameSignature     = "signature"
@@ -564,6 +562,7 @@ const (
 	cmdFlagNamePostcode           = "postcode"
 
 	cmdFlagNameNotBefore = "not-before"
+	cmdFlagNameNotAfter  = "not-after"
 	cmdFlagNameDuration  = "duration"
 
 	cmdFlagNamePKCS8 = "pkcs8"
@@ -749,4 +748,31 @@ Secrets:
 	way: 'key', 'secret', 'password', 'token'.
 
 	The available options and the specific secret mapping can be found here: https://www.authelia.com/configuration/methods/secrets/`
+
+	helpTopicTimeLayouts = `Several commands take date time inputs which are parsed. These inputs are parsed with
+specific layouts in mind and these layouts are handled in order.
+
+Format:
+
+	The layouts use a format where specific sequence of characters are representative of a portion of each timestamp.
+
+	See the go documentation for more information on how these layouts work, however the layouts are fairly self
+	explanatory and you can just use standard unix timestamps if desired.
+
+Layouts:
+
+	Unix (µs): 1675899060000000
+	Unix (ms): 1675899060000
+	Unix (s): 1675899060
+	Simple: Jan 2 15:04:05 2006
+	Date Time: 2006-01-02 15:04:05
+	RFC3339: 2006-01-02T15:04:05Z07:00
+	RFC1123 with numeric timezone: Mon, 02 Jan 2006 15:04:05 -0700
+	Ruby Date: Mon Jan 02 15:04:05 -0700 2006
+	ANSIC: Mon Jan _2 15:04:05 2006
+	Date: 2006-01-02`
+)
+
+const (
+	fmtLogServerListening = "Server is listening for %s connections on '%s' path '%s'"
 )

@@ -230,7 +230,7 @@ func IsX509PrivateKey(i any) bool {
 }
 
 // WriteCertificateBytesToPEM writes a certificate/csr to a file in the PEM format.
-func WriteCertificateBytesToPEM(cert []byte, path string, csr bool) (err error) {
+func WriteCertificateBytesToPEM(path string, csr bool, certs ...[]byte) (err error) {
 	out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to open %s for writing: %w", path, err)
@@ -241,10 +241,12 @@ func WriteCertificateBytesToPEM(cert []byte, path string, csr bool) (err error) 
 		blockType = BlockTypeCertificateRequest
 	}
 
-	if err = pem.Encode(out, &pem.Block{Bytes: cert, Type: blockType}); err != nil {
-		_ = out.Close()
+	for _, cert := range certs {
+		if err = pem.Encode(out, &pem.Block{Bytes: cert, Type: blockType}); err != nil {
+			_ = out.Close()
 
-		return err
+			return err
+		}
 	}
 
 	return out.Close()
@@ -468,7 +470,7 @@ func X509ParseKeyUsage(keyUsages []string, ca bool) (keyUsage x509.KeyUsage) {
 func X509ParseExtendedKeyUsage(extKeyUsages []string, ca bool) (extKeyUsage []x509.ExtKeyUsage) {
 	if len(extKeyUsages) == 0 {
 		if ca {
-			extKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageAny}
+			extKeyUsage = []x509.ExtKeyUsage{}
 		} else {
 			extKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}
 		}

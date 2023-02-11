@@ -8,8 +8,8 @@ default_redirection_url: https://home.example.com:8080
 server:
   port: 443
   tls:
-    certificate: /config/ssl/cert.pem
-    key: /config/ssl/key.pem
+    certificate: /pki/public.backend.crt
+    key: /pki/private.backend.pem
 
 log:
   level: debug
@@ -86,8 +86,11 @@ access_control:
 session:
   expiration: 3600  # 1 hour
   inactivity: 300  # 5 minutes
-  remember_me_duration: 1y
-  domain: example.com
+  remember_me: 1y
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
+
   redis:
     host: redis-service
     port: 6379

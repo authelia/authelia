@@ -1,0 +1,219 @@
+---
+###############################################################
+#                Authelia minimal configuration               #
+###############################################################
+
+jwt_secret: unsecure_secret
+theme: auto
+
+server:
+  port: 9091
+  tls:
+    certificate: /pki/public.backend.crt
+    key: /pki/private.backend.pem
+
+telemetry:
+  metrics:
+    enabled: true
+    address: tcp://0.0.0.0:9959
+
+log:
+  level: debug
+
+authentication_backend:
+  file:
+    path: /config/users.yml
+
+session:
+  secret: unsecure_session_secret
+  expiration: 3600
+  inactivity: 300
+  remember_me: 1y
+  cookies:
+    - name: 'authelia_session'
+      domain: 'example.com'
+    - name: 'example2_session'
+      domain: 'example2.com'
+      authelia_url: 'https://login.example2.com'
+      remember_me: -1
+    - name: 'authelia_session'
+      domain: 'example3.com'
+      authelia_url: 'https://login.example3.com'
+
+storage:
+  encryption_key: a_not_so_secure_encryption_key
+  local:
+    path: /config/db.sqlite
+
+totp:
+  issuer: example.com
+
+access_control:
+  default_policy: deny
+
+  rules:
+    # First cookie domain
+    - domain: singlefactor.example.com
+      policy: one_factor
+
+    - domain: public.example.com
+      policy: bypass
+
+    - domain: secure.example.com
+      policy: bypass
+      methods:
+        - OPTIONS
+
+    - domain: secure.example.com
+      policy: two_factor
+
+    - domain: "*.example.com"
+      subject: "group:admins"
+      policy: two_factor
+
+    - domain: dev.example.com
+      resources:
+        - "^/users/john/.*$"
+      subject: "user:john"
+      policy: two_factor
+
+    - domain: dev.example.com
+      resources:
+        - "^/users/harry/.*$"
+      subject: "user:harry"
+      policy: two_factor
+
+    - domain: "*.mail.example.com"
+      subject: "user:bob"
+      policy: two_factor
+
+    - domain: dev.example.com
+      resources:
+        - "^/users/bob/.*$"
+      subject: "user:bob"
+      policy: two_factor
+
+    # Second cookie domain
+    - domain: singlefactor.example2.com
+      policy: one_factor
+
+    - domain: public.example2.com
+      policy: bypass
+
+    - domain: secure.example2.com
+      policy: bypass
+      methods:
+        - OPTIONS
+
+    - domain: secure.example2.com
+      policy: two_factor
+
+    - domain: "*.example2.com"
+      subject: "group:admins"
+      policy: two_factor
+
+    - domain: dev.example2.com
+      resources:
+        - "^/users/john/.*$"
+      subject: "user:john"
+      policy: two_factor
+
+    - domain: dev.example2.com
+      resources:
+        - "^/users/harry/.*$"
+      subject: "user:harry"
+      policy: two_factor
+
+    - domain: "*.mail.example2.com"
+      subject: "user:bob"
+      policy: two_factor
+
+    - domain: dev.example2.com
+      resources:
+        - "^/users/bob/.*$"
+      subject: "user:bob"
+      policy: two_factor
+
+    # Third cookie domain
+    - domain: singlefactor.example3.com
+      policy: one_factor
+
+    - domain: public.example3.com
+      policy: bypass
+
+    - domain: secure.example3.com
+      policy: bypass
+      methods:
+        - OPTIONS
+
+    - domain: secure.example3.com
+      policy: two_factor
+
+    - domain: "*.example3.com"
+      subject: "group:admins"
+      policy: two_factor
+
+    - domain: dev.example3.com
+      resources:
+        - "^/users/john/.*$"
+      subject: "user:john"
+      policy: two_factor
+
+    - domain: dev.example3.com
+      resources:
+        - "^/users/harry/.*$"
+      subject: "user:harry"
+      policy: two_factor
+
+    - domain: "*.mail.example3.com"
+      subject: "user:bob"
+      policy: two_factor
+
+    - domain: dev.example3.com
+      resources:
+        - "^/users/bob/.*$"
+      subject: "user:bob"
+      policy: two_factor
+
+
+regulation:
+  # Set it to 0 to disable max_retries.
+  max_retries: 3
+  # The user is banned if the authentication failed `max_retries` times in a `find_time` seconds window.
+  find_time: 300
+  # The length of time before a banned user can login again.
+  ban_time: 900
+
+notifier:
+  smtp:
+    host: smtp
+    port: 1025
+    sender: admin@example.com
+    disable_require_tls: true
+ntp:
+  ## NTP server address
+  address: "time.cloudflare.com:123"
+  ## ntp version
+  version: 4
+  ## "maximum desynchronization" is the allowed offset time between the host and the ntp server
+  max_desync: 3s
+  ## You can enable or disable the NTP synchronization check on startup
+  disable_startup_check: false
+
+password_policy:
+  standard:
+    # Enables standard password Policy
+    enabled: false
+    min_length: 8
+    max_length: 0
+    require_uppercase: true
+    require_lowercase: true
+    require_number: true
+    require_special: true
+  zxcvbn:
+    ##  zxcvbn: uses zxcvbn for password strength checking (see: https://github.com/dropbox/zxcvbn)
+    ##    Note that the zxcvbn option does not prohibit the user from using a weak password,
+    ##    it only offers feedback about the strength of the password they are entering.
+    ##    if you need to enforce password rules, you should use `mode=classic`
+    enabled: false
+...

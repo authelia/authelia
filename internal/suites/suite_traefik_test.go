@@ -11,7 +11,9 @@ type TraefikSuite struct {
 }
 
 func NewTraefikSuite() *TraefikSuite {
-	return &TraefikSuite{RodSuite: new(RodSuite)}
+	return &TraefikSuite{
+		RodSuite: NewRodSuite(traefikSuiteName),
+	}
 }
 
 func (s *TraefikSuite) Test1FAScenario() {

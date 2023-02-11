@@ -1,0 +1,9 @@
+---
+version: '3'
+services:
+  authelia-backend:
+    volumes:
+      - './MultiCookieDomain/configuration.yml:/config/configuration.yml:ro'
+      - './MultiCookieDomain/users.yml:/config/users.yml'
+      - './common/pki:/pki:ro'
+...

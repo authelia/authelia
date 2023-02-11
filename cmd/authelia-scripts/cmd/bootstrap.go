@@ -64,7 +64,7 @@ func cmdBootstrapRun(_ *cobra.Command, _ []string) {
 
 	fmt.Println()
 	bootstrapPrintln("Run 'authelia-scripts suites setup Standalone' to start Authelia and visit https://home.example.com:8080.")
-	bootstrapPrintln("More details at https://github.com/authelia/authelia/blob/master/docs/getting-started.md")
+	bootstrapPrintln("More details at https://www.authelia.com/contributing/development/build-and-test/")
 }
 
 var hostEntries = []HostEntry{
@@ -114,6 +114,30 @@ var hostEntries = []HostEntry{
 	{Domain: "redis-sentinel-0.example.com", IP: "192.168.240.120"},
 	{Domain: "redis-sentinel-1.example.com", IP: "192.168.240.121"},
 	{Domain: "redis-sentinel-2.example.com", IP: "192.168.240.122"},
+
+	// For multi cookie domain tests.
+	{Domain: "login.example2.com", IP: "192.168.240.100"},
+	{Domain: "admin.example2.com", IP: "192.168.240.100"},
+	{Domain: "singlefactor.example2.com", IP: "192.168.240.100"},
+	{Domain: "dev.example2.com", IP: "192.168.240.100"},
+	{Domain: "home.example2.com", IP: "192.168.240.100"},
+	{Domain: "mx1.mail.example2.com", IP: "192.168.240.100"},
+	{Domain: "mx2.mail.example2.com", IP: "192.168.240.100"},
+	{Domain: "public.example2.com", IP: "192.168.240.100"},
+	{Domain: "secure.example2.com", IP: "192.168.240.100"},
+	{Domain: "mail.example2.com", IP: "192.168.240.100"},
+	{Domain: "duo.example2.com", IP: "192.168.240.100"},
+	{Domain: "login.example3.com", IP: "192.168.240.100"},
+	{Domain: "admin.example3.com", IP: "192.168.240.100"},
+	{Domain: "singlefactor.example3.com", IP: "192.168.240.100"},
+	{Domain: "dev.example3.com", IP: "192.168.240.100"},
+	{Domain: "home.example3.com", IP: "192.168.240.100"},
+	{Domain: "mx1.mail.example3.com", IP: "192.168.240.100"},
+	{Domain: "mx2.mail.example3.com", IP: "192.168.240.100"},
+	{Domain: "public.example3.com", IP: "192.168.240.100"},
+	{Domain: "secure.example3.com", IP: "192.168.240.100"},
+	{Domain: "mail.example3.com", IP: "192.168.240.100"},
+	{Domain: "duo.example3.com", IP: "192.168.240.100"},
 }
 
 func runCommand(cmd string, args ...string) {

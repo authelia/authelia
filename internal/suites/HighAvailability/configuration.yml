@@ -8,8 +8,8 @@ jwt_secret: unsecure_secret
 server:
   port: 9091
   tls:
-    certificate: /config/ssl/cert.pem
-    key: /config/ssl/key.pem
+    certificate: /pki/public.backend.crt
+    key: /pki/private.backend.pem
 
 log:
   level: debug
@@ -102,7 +102,7 @@ session:
         - host: redis-sentinel-2
           port: 26379
 
-  remember_me_duration: 1y
+  remember_me: 1y
 
 regulation:
   max_retries: 3

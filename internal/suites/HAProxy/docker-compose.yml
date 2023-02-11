@@ -5,5 +5,5 @@ services:
     volumes:
       - './HAProxy/configuration.yml:/config/configuration.yml:ro'
       - './HAProxy/users.yml:/config/users.yml'
-      - './common/ssl:/config/ssl:ro'
+      - './common/pki:/pki:ro'
 ...

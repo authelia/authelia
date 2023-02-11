@@ -97,7 +97,7 @@ session:
   name: authelia_session
   expiration: 3600000  # 1 hour
   inactivity: 300000  # 5 minutes
-  remember_me_duration: -1
+  remember_me: -1
   domain: example.com
   redis:
     host: 127.0.0.1

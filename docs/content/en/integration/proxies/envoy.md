@@ -168,8 +168,15 @@ static_resources:
                   - name: envoy.filters.http.ext_authz
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                      transport_api_version: v3
+                      allowed_headers:
+                        patterns:
+                          - exact: authorization
+                          - exact: proxy-authorization
+                          - exact: accept
+                          - exact: cookie
                       http_service:
-                        path_prefix: '/api/verify/'
+                        path_prefix: /api/authz/ext-authz/
                         server_uri:
                           uri: authelia:9091
                           cluster: authelia
@@ -177,22 +184,17 @@ static_resources:
                         authorization_request:
                           allowed_headers:
                             patterns:
+                              - exact: authorization
+                              - exact: proxy-authorization
                               - exact: accept
                               - exact: cookie
-                              - exact: proxy-authorization
                           headers_to_add:
-                            - key: X-Authelia-URL
-                              value: 'https://auth.example.com/'
-                            - key: X-Forwarded-Method
-                              value: '%REQ(:METHOD)%'
                             - key: X-Forwarded-Proto
                               value: '%REQ(:SCHEME)%'
-                            - key: X-Forwarded-Host
-                              value: '%REQ(:AUTHORITY)%'
-                            - key: X-Forwarded-Uri
-                              value: '%REQ(:PATH)%'
-                            - key: X-Forwarded-For
-                              value: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
+                            ## The following commented lines are for configuring the Authelia URL in the proxy. We
+                            ## strongly suggest this is configured in the Session Cookies section of the Authelia configuration.
+                            # - key: X-Authelia-URL
+                            #   value: https://auth.example.com
                         authorization_response:
                           allowed_upstream_headers:
                             patterns:
@@ -213,9 +215,9 @@ static_resources:
   clusters:
     - name: nextcloud
       connect_timeout: 0.25s
-      type: LOGICAL_DNS
-      dns_lookup_family: V4_ONLY
-      lb_policy: ROUND_ROBIN
+      type: logical_dns
+      dns_lookup_family: v4_only
+      lb_policy: round_robin
       load_assignment:
         cluster_name: nextcloud
         endpoints:
@@ -227,9 +229,9 @@ static_resources:
                       port_value: 80
     - name: authelia
       connect_timeout: 0.25s
-      type: LOGICAL_DNS
-      dns_lookup_family: V4_ONLY
-      lb_policy: ROUND_ROBIN
+      type: logical_dns
+      dns_lookup_family: v4_only
+      lb_policy: round_robin
       load_assignment:
         cluster_name: authelia
         endpoints:
@@ -239,6 +241,17 @@ static_resources:
                     socket_address:
                       address: authelia
                       port_value: 9091
+layered_runtime:
+  layers:
+    - name: static_layer_0
+      static_layer:
+        envoy:
+          resource_limits:
+            listener:
+              example_listener_name:
+                connection_limit: 10000
+        overload:
+          global_downstream_max_connections: 50000
 ```
 {{< /details >}}
 

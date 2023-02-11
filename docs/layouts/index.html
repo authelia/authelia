@@ -7,7 +7,7 @@
     <div class="col-lg-9 col-xl-8 text-center">
       <p class="lead">{{ .Params.lead | safeHTML }}</p>
       <a class="btn btn-primary btn-lg px-4 mb-2" href="/integration/prologue/get-started/" role="button">Get Started</a>
-      <p class="meta">Open-source Apache 2.0 Licensed. <a href="https://github.com/authelia/authelia">GitHub v{{ $data := getJSON "https://raw.githubusercontent.com/authelia/authelia/master/web/package.json" }}{{ $data.version }}</a></p>
+      <p class="meta">Open-source Apache 2.0 Licensed. <a href="https://github.com/authelia/authelia">GitHub v{{ $.Site.Data.misc.latest }}</a></p>
     </div>
   </div>
 </section>

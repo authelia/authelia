@@ -5,5 +5,5 @@ services:
     volumes:
       - './Envoy/configuration.yml:/config/configuration.yml:ro'
       - './Envoy/users.yml:/config/users.yml'
-      - './common/ssl:/config/ssl:ro'
+      - './common/pki:/pki:ro'
 ...

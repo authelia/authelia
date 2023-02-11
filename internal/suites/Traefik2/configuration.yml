@@ -9,8 +9,13 @@ server:
   port: 9091
   asset_path: /config/assets/
   tls:
-    certificate: /config/ssl/cert.pem
-    key: /config/ssl/key.pem
+    certificate: /pki/public.backend.crt
+    key: /pki/private.backend.pem
+  endpoints:
+    authz:
+      forward-auth:
+        implementation: ForwardAuth
+        authn_strategies: []
 
 log:
   level: debug
@@ -21,10 +26,13 @@ authentication_backend:
 
 session:
   secret: unsecure_session_secret
-  domain: example.com
   expiration: 3600  # 1 hour
   inactivity: 300  # 5 minutes
-  remember_me_duration: 1y
+  remember_me: 1y
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
+
   redis:
     host: redis
     port: 6379

@@ -121,33 +121,48 @@ func (mr *MockRandomMockRecorder) IntErr(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IntErr", reflect.TypeOf((*MockRandom)(nil).IntErr), arg0)
 }
 
-// Integer mocks base method.
-func (m *MockRandom) Integer(arg0 int) int {
+// Intn mocks base method.
+func (m *MockRandom) Intn(arg0 int) int {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Integer", arg0)
+	ret := m.ctrl.Call(m, "Intn", arg0)
 	ret0, _ := ret[0].(int)
 	return ret0
 }
 
-// Integer indicates an expected call of Integer.
-func (mr *MockRandomMockRecorder) Integer(arg0 interface{}) *gomock.Call {
+// Intn indicates an expected call of Intn.
+func (mr *MockRandomMockRecorder) Intn(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Integer", reflect.TypeOf((*MockRandom)(nil).Integer), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Intn", reflect.TypeOf((*MockRandom)(nil).Intn), arg0)
 }
 
-// IntegerErr mocks base method.
-func (m *MockRandom) IntegerErr(arg0 int) (int, error) {
+// IntnErr mocks base method.
+func (m *MockRandom) IntnErr(arg0 int) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IntegerErr", arg0)
+	ret := m.ctrl.Call(m, "IntnErr", arg0)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// IntegerErr indicates an expected call of IntegerErr.
-func (mr *MockRandomMockRecorder) IntegerErr(arg0 interface{}) *gomock.Call {
+// IntnErr indicates an expected call of IntnErr.
+func (mr *MockRandomMockRecorder) IntnErr(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IntegerErr", reflect.TypeOf((*MockRandom)(nil).IntegerErr), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IntnErr", reflect.TypeOf((*MockRandom)(nil).IntnErr), arg0)
+}
+
+// Prime mocks base method.
+func (m *MockRandom) Prime(arg0 int) (*big.Int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Prime", arg0)
+	ret0, _ := ret[0].(*big.Int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Prime indicates an expected call of Prime.
+func (mr *MockRandomMockRecorder) Prime(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Prime", reflect.TypeOf((*MockRandom)(nil).Prime), arg0)
 }
 
 // Read mocks base method.

@@ -43,14 +43,14 @@ This example makes the following assumptions:
 * __Application Root URL:__ `https://proxmox.example.com`
 * __Authelia Root URL:__ `https://auth.example.com`
 * __Client ID:__ `proxmox`
-* __Client Secret:__ `proxmox_client_secret`
+* __Client Secret:__ `insecure_secret`
 * __Realm__ `authelia`
 
 ## Configuration
 
 ### Application
 
-To configure [Proxmox] to utilize Authelia as an [OpenID Connect] Provider:
+To configure [Proxmox] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Visit Datacenter
 2. Visit Permission
@@ -60,7 +60,7 @@ To configure [Proxmox] to utilize Authelia as an [OpenID Connect] Provider:
    1. Issuer URL: `https://auth.example.com`
    2. Realm: `authelia`
    3. Client ID: `proxmox`
-   4. Client Key: `proxmox_client_secret`
+   4. Client Key: `insecure_secret`
    5. Username Claim `preferred_username`
    6. Scopes: `openid profile email`
    7. Enable *Autocreate Users* if you want users to automatically be created in [Proxmox].
@@ -76,7 +76,7 @@ which will operate with the above example:
 ```yaml
 - id: proxmox
   description: Proxmox
-  secret: '$plaintext$proxmox_client_secret'
+  secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
   public: false
   authorization_policy: two_factor
   redirect_uris:
@@ -94,4 +94,4 @@ which will operate with the above example:
 
 [Authelia]: https://www.authelia.com
 [Proxmox]: https://www.proxmox.com/
-[OpenID Connect]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

@@ -14,6 +14,12 @@ const (
 	extYML  = ".yml"
 )
 
+const (
+	pathAuthz           = "/api/authz"
+	pathAuthzLegacy     = "/api/verify"
+	pathParamAuthzEnvoy = "{authz_path:*}"
+)
+
 var (
 	filesRoot    = []string{"manifest.json", "robots.txt"}
 	filesSwagger = []string{
@@ -76,13 +82,4 @@ X_AUTHELIA_HEALTHCHECK_PATH=%s
 const (
 	tmplCSPSwaggerNonce = "default-src 'self'; img-src 'self' https://validator.swagger.io data:; object-src 'none'; script-src 'self' 'unsafe-inline' 'nonce-%s'; style-src 'self' 'nonce-%s'; base-uri 'self'"
 	tmplCSPSwagger      = "default-src 'self'; img-src 'self' https://validator.swagger.io data:; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self'; base-uri 'self'"
-)
-
-const (
-	connNonTLS = "non-TLS"
-	connTLS    = "TLS"
-)
-
-const (
-	fmtLogServerInit = "Initializing %s for %s connections on '%s' path '%s'"
 )

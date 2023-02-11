@@ -389,7 +389,7 @@ func TestX509ParseExtendedKeyUsage(t *testing.T) {
 		expected []x509.ExtKeyUsage
 	}{
 		{"ShouldParseDefault", nil, false, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}},
-		{"ShouldParseDefaultCA", nil, true, []x509.ExtKeyUsage{x509.ExtKeyUsageAny}},
+		{"ShouldParseDefaultCA", nil, true, []x509.ExtKeyUsage{}},
 		{"ShouldParseAny", [][]string{{"any"}, {"Any"}, {"any", "server_auth"}}, false, []x509.ExtKeyUsage{x509.ExtKeyUsageAny}},
 		{"ShouldParseServerAuth", [][]string{{"server_auth"}, {"Server_Auth"}, {"serverauth"}, {"serverAuth"}}, false, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}},
 		{"ShouldParseClientAuth", [][]string{{"client_auth"}, {"Client_Auth"}, {"clientauth"}, {"clientAuth"}}, false, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}},

@@ -51,12 +51,6 @@ server:
   ## Useful to allow overriding of specific static assets.
   # asset_path: /config/assets/
 
-  ## Enables the pprof endpoint.
-  enable_pprof: false
-
-  ## Enables the expvars endpoint.
-  enable_expvars: false
-
   ## Disables writing the health check vars to /app/.healthcheck.env which makes healthcheck.sh return exit code 0.
   ## This is disabled by default if either /app/.healthcheck.env or /app/healthcheck.sh do not exist.
   disable_healthcheck: false
@@ -103,6 +97,30 @@ server:
 
     ## Idle timeout.
     # idle: 30s
+
+  ## Server Endpoints configuration.
+  ## This section is considered advanced and it SHOULD NOT be configured unless you've read the relevant documentation.
+  # endpoints:
+    ## Enables the pprof endpoint.
+    # enable_pprof: false
+
+    ## Enables the expvars endpoint.
+    # enable_expvars: false
+
+    ## Configure the authz endpoints.
+    # authz:
+      # forward-auth:
+        # implementation: ForwardAuth
+        # authn_strategies: []
+      # ext-authz:
+        # implementation: ExtAuthz
+        # authn_strategies: []
+      # auth-request:
+        # implementation: AuthRequest
+        # authn_strategies: []
+      # legacy:
+        # implementation: Legacy
+        # authn_strategies: []
 
 ##
 ## Log Configuration
@@ -408,7 +426,7 @@ authentication_backend:
     ## changed once attributed to a user otherwise it would break the configuration for that user. Technically,
     ## non-unique attributes like 'mail' can also be used but we don't recommend using them, we instead advise to use
     ## a filter to perform alternative lookups and the attributes mentioned above (sAMAccountName and uid) to
-    ## follow https://www.ietf.org/rfc/rfc2307.txt.
+    ## follow https://datatracker.ietf.org/doc/html/rfc2307.
     # username_attribute: uid
 
     ## The additional_users_dn is prefixed to base_dn and delimited by a comma when searching for users.
@@ -505,7 +523,6 @@ authentication_backend:
         # variant: standard
         # cost: 12
 
-
 ##
 ## Password Policy Configuration.
 ##
@@ -539,6 +556,23 @@ password_policy:
 
     ## Configures the minimum score allowed.
     min_score: 3
+
+##
+## Privacy Policy Configuration
+##
+## Parameters used for displaying the privacy policy link and drawer.
+privacy_policy:
+
+  ## Enables the display of the privacy policy using the policy_url.
+  enabled: false
+
+  ## Enables the display of the privacy policy drawer which requires users accept the privacy policy
+  ## on a per-browser basis.
+  require_user_acceptance: false
+
+  ## The URL of the privacy policy document. Must be an absolute URL and must have the 'https://' scheme.
+  ## If the privacy policy enabled option is true, this MUST be provided.
+  policy_url: ''
 
 ##
 ## Access Control Configuration
@@ -662,38 +696,76 @@ access_control:
 ## The session cookies identify the user once logged in.
 ## The available providers are: `memory`, `redis`. Memory is the provider unless redis is defined.
 session:
-  ## The name of the session cookie.
-  name: authelia_session
-
-  ## The domain to protect.
-  ## Note: the authenticator must also be in that domain.
-  ## If empty, the cookie is restricted to the subdomain of the issuer.
-  domain: example.com
-
-  ## Sets the Cookie SameSite value. Possible options are none, lax, or strict.
-  ## Please read https://www.authelia.com/c/session#same_site
-  same_site: lax
-
   ## The secret to encrypt the session data. This is only used with Redis / Redis Sentinel.
   ## Secret can also be set using a secret: https://www.authelia.com/c/secrets
-  secret: insecure_session_secret
+  secret: 'insecure_session_secret'
 
-  ## The value for expiration, inactivity, and remember_me_duration are in seconds or the duration notation format.
+  ## Cookies configures the list of allowed cookie domains for sessions to be created on.
+  ## Undefined values will default to the values below.
+  # cookies:
+  #   -
+      ## The name of the session cookie.
+      # name: 'authelia_session'
+
+      ## The domain to protect.
+      ## Note: the Authelia portal must also be in that domain.
+      # domain: 'example.com'
+
+      ## Optional. The fully qualified URI of the portal to redirect users to on proxies that support redirections.
+      ## Rules:
+      ##   - MUST use the secure scheme 'https://'
+      ##   - The above domain MUST either:
+      ##      - Match the host portion of this URI.
+      ##      - Match the suffix of the host portion when prefixed with '.'.
+      # authelia_url: 'https://auth.example.com'
+
+      ## Sets the Cookie SameSite value. Possible options are none, lax, or strict.
+      ## Please read https://www.authelia.com/c/session#same_site
+      # same_site: 'lax'
+
+      ## The value for inactivity, expiration, and remember_me are in seconds or the duration notation format.
+      ## See: https://www.authelia.com/c/common#duration-notation-format
+      ## All three of these values affect the cookie/session validity period. Longer periods are considered less secure
+      ## because a stolen cookie will last longer giving attackers more time to spy or attack.
+
+      ## The inactivity time before the session is reset. If expiration is set to 1h, and this is set to 5m, if the user
+      ## does not select the remember me option their session will get destroyed after 1h, or after 5m since the last
+      ## time Authelia detected user activity.
+      # inactivity: '5m'
+
+      ## The time before the session cookie expires and the session is destroyed if remember me IS NOT selected by the
+      ## user.
+      # expiration: '1h'
+
+      ## The time before the cookie expires and the session is destroyed if remember me IS selected by the user. Setting
+      ## this value to -1 disables remember me for this session cookie domain.
+      # remember_me: '1M'
+
+  ## Cookie Session Domain default 'name' value.  The name of the session cookie.
+  name: 'authelia_session'
+
+  ## Cookie Session Domain default 'same_site' value. Sets the Cookie SameSite value. Possible options are none, lax,
+  ## or strict. Please read https://www.authelia.com/c/session#same_site
+  same_site: 'lax'
+
+  ## The value for inactivity, expiration, and remember_me are in seconds or the duration notation format.
   ## See: https://www.authelia.com/c/common#duration-notation-format
   ## All three of these values affect the cookie/session validity period. Longer periods are considered less secure
   ## because a stolen cookie will last longer giving attackers more time to spy or attack.
 
-  ## The time before the cookie expires and the session is destroyed if remember me IS NOT selected.
-  expiration: 1h
+  ## Cookie Session Domain default 'inactivity' value. The inactivity time before the session is reset. If expiration is
+  ## set to 1h, and this is set to 5m, if the user does not select the remember me option their session will get
+  ## destroyed after 1h, or after 5m since the last time Authelia detected user activity.
+  inactivity: '5m'
 
-  ## The inactivity time before the session is reset. If expiration is set to 1h, and this is set to 5m, if the user
-  ## does not select the remember me option their session will get destroyed after 1h, or after 5m since the last time
-  ## Authelia detected user activity.
-  inactivity: 5m
+  ## Cookie Session Domain default 'expiration' value.  The time before the session cookie expires and the session is
+  ## destroyed if remember me IS NOT selected by the user.
+  expiration: '1h'
 
-  ## The time before the cookie expires and the session is destroyed if remember me IS selected.
-  ## Value of -1 disables remember me.
-  remember_me_duration: 1M
+  ## Cookie Session Domain default 'remember_me' value. The time before the cookie expires and the session is destroyed
+  ## if remember me IS selected by the user. Setting this value to -1 disables remember me for all session cookie
+  ## domains which do not have a specific 'remember_me' value.
+  remember_me: '1M'
 
   ##
   ## Redis Provider

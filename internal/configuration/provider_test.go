@@ -105,6 +105,9 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 	testSetEnv(t, "JWT_SECRET", "abc")
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
 
+	t.Setenv("ABC_CLIENT_SECRET", "$plaintext$example-abc")
+	t.Setenv("XYZ_CLIENT_SECRET", "$plaintext$example-xyz")
+	t.Setenv("ANOTHER_CLIENT_SECRET", "$plaintext$example-123")
 	t.Setenv("SERVICES_SERVER", "10.10.10.10")
 	t.Setenv("ROOT_DOMAIN", "example.org")
 
@@ -118,6 +121,11 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 	assert.Equal(t, "api-123456789.example.org", config.DuoAPI.Hostname)
 	assert.Equal(t, "10.10.10.10", config.Notifier.SMTP.Host)
 	assert.Equal(t, "10.10.10.10", config.Session.Redis.Host)
+
+	require.Len(t, config.IdentityProviders.OIDC.Clients, 3)
+	assert.Equal(t, "$plaintext$example-abc", config.IdentityProviders.OIDC.Clients[0].Secret.String())
+	assert.Equal(t, "$plaintext$example-xyz", config.IdentityProviders.OIDC.Clients[1].Secret.String())
+	assert.Equal(t, "$plaintext$example-123", config.IdentityProviders.OIDC.Clients[2].Secret.String())
 }
 
 func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
@@ -323,7 +331,7 @@ func TestShouldDecodeSMTPSenderWithName(t *testing.T) {
 
 	assert.Equal(t, "Admin", config.Notifier.SMTP.Sender.Name)
 	assert.Equal(t, "admin@example.com", config.Notifier.SMTP.Sender.Address)
-	assert.Equal(t, schema.RememberMeDisabled, config.Session.RememberMeDuration)
+	assert.Equal(t, schema.RememberMeDisabled, config.Session.RememberMe)
 }
 
 func TestShouldParseRegex(t *testing.T) {

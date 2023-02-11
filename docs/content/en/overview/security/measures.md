@@ -216,9 +216,9 @@ to port 587 (_the `submission` port, a common alternative that uses STARTTLS ins
 
 [docs-config-smtp-port]: ../../configuration/notifications/smtp.md#port
 [cleartext]: https://cwe.mitre.org/data/definitions/312.html
-[service-submissions]: https://www.rfc-editor.org/rfc/rfc8314#section-7.3
-[port-465]: https://www.rfc-editor.org/rfc/rfc8314#section-3.3
-[smtp-auth]: https://www.rfc-editor.org/rfc/rfc6409#section-4.3
+[service-submissions]: https://datatracker.ietf.org/doc/html/rfc8314#section-7.3
+[port-465]: https://datatracker.ietf.org/doc/html/rfc8314#section-3.3
+[smtp-auth]: https://datatracker.ietf.org/doc/html/rfc6409#section-4.3
 
 ## Protection against open redirects
 
@@ -256,7 +256,7 @@ database. The value of this option should be long and as random as possible. See
 [documentation](../../configuration/session/introduction.md#secret) for this option.
 
 The validity period of session is highly configurable. For example in a highly security conscious domain you could
-set the session [remember_me_duration](../../configuration/session/introduction.md#remembermeduration) to 0 to disable this
+set the session [remember_me](../../configuration/session/introduction.md#rememberme) to 0 to disable this
 feature, and set the [expiration](../../configuration/session/introduction.md#expiration) to 2 hours and the
 [inactivity](../../configuration/session/introduction.md#inactivity) of 10 minutes. Configuring the session security in this
 manner would mean if the cookie age was more than 2 hours or if the user was inactive for more than 10 minutes the

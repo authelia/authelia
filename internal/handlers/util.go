@@ -1,32 +1,12 @@
 package handlers
 
 import (
-	"bytes"
 	"fmt"
-	"net/url"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
-
-var bytesEmpty = []byte("")
-
-func ctxGetPortalURL(ctx *middlewares.AutheliaCtx) (portalURL *url.URL) {
-	var rawURL []byte
-
-	if rawURL = ctx.QueryArgRedirect(); rawURL != nil && !bytes.Equal(rawURL, bytesEmpty) {
-		portalURL, _ = url.ParseRequestURI(string(rawURL))
-
-		return portalURL
-	} else if rawURL = ctx.XAutheliaURL(); rawURL != nil && !bytes.Equal(rawURL, bytesEmpty) {
-		portalURL, _ = url.ParseRequestURI(string(rawURL))
-
-		return portalURL
-	}
-
-	return nil
-}
 
 func ctxLogEvent(ctx *middlewares.AutheliaCtx, username, description string, eventDetails map[string]any) {
 	var (

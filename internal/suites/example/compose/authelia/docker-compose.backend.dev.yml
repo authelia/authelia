@@ -21,11 +21,11 @@ services:
       - '${GOPATH}:/go'
     labels:
       # Traefik 1.x
-      - 'traefik.frontend.rule=Host:login.example.com;PathPrefix:/api,/locales'
+      - 'traefik.frontend.rule=Host:login.example.com;PathPrefix:/api,/devworkflow,/locales'
       - 'traefik.protocol=https'
       # Traefik 2.x
       - 'traefik.enable=true'
-      - 'traefik.http.routers.authelia_backend.rule=Host(`login.example.com`) && PathPrefix(`/.well-known`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/.well-known`) || Host(`login.example.com`) && PathPrefix(`/api`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/api`) || Host(`login.example.com`) && PathPrefix(`/locales`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/locales`) || Host(`login.example.com`) && Path(`/jwks.json`) || Host(`login.example.com`) && Path(`${PathPrefix}/jwks.json`)'  # yamllint disable-line rule:line-length
+      - 'traefik.http.routers.authelia_backend.rule=Host(`login.example.com`) && PathPrefix(`/.well-known`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/.well-known`) || Host(`login.example.com`) && PathPrefix(`/api`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/api`) || Host(`login.example.com`) && PathPrefix(`/devworkflow`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/devworkflow`) || Host(`login.example.com`) && PathPrefix(`/locales`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/locales`) || Host(`login.example.com`) && Path(`/jwks.json`) || Host(`login.example.com`) && Path(`${PathPrefix}/jwks.json`)'  # yamllint disable-line rule:line-length
       - 'traefik.http.routers.authelia_backend.entrypoints=https'
       - 'traefik.http.routers.authelia_backend.tls=true'
       - 'traefik.http.services.authelia_backend.loadbalancer.server.scheme=https'
