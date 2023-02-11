@@ -92,10 +92,10 @@ func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 }
 
 //nolint:gocyclo
-func handleRouter(config schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
+func handleRouter(config *schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
 	log := logging.Logger()
 
-	optsTemplatedFile := NewTemplatedFileOptions(&config)
+	optsTemplatedFile := NewTemplatedFileOptions(config)
 
 	serveIndexHandler := ServeTemplatedFile(providers.Templates.GetAssetIndexTemplate(), optsTemplatedFile)
 	serveOpenAPIHandler := ServeTemplatedOpenAPI(providers.Templates.GetAssetOpenAPIIndexTemplate(), optsTemplatedFile)
@@ -104,7 +104,7 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
 	handlerLocales := newLocalesEmbeddedHandler()
 
-	bridge := middlewares.NewBridgeBuilder(config, providers).
+	bridge := middlewares.NewBridgeBuilder(*config, providers).
 		WithPreMiddlewares(middlewares.SecurityHeaders).Build()
 
 	policyCORSPublicGET := middlewares.NewCORSPolicyBuilder().
@@ -141,16 +141,16 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 		r.GET("/api/"+file, handlerPublicHTML)
 	}
 
-	middlewareAPI := middlewares.NewBridgeBuilder(config, providers).
+	middlewareAPI := middlewares.NewBridgeBuilder(*config, providers).
 		WithPreMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
 		Build()
 
-	middleware1FA := middlewares.NewBridgeBuilder(config, providers).
+	middleware1FA := middlewares.NewBridgeBuilder(*config, providers).
 		WithPreMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
 		WithPostMiddlewares(middlewares.Require1FA).
 		Build()
 
-	middleware2FA := middlewares.NewBridgeBuilder(config, providers).
+	middleware2FA := middlewares.NewBridgeBuilder(*config, providers).
 		WithPreMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
 		WithPostMiddlewares(middlewares.Require2FAWithAPIResponse).
 		Build()
@@ -167,7 +167,7 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	for name, endpoint := range config.Server.Endpoints.Authz {
 		uri := path.Join(pathAuthz, name)
 
-		authz := handlers.NewAuthzBuilder().WithConfig(&config).WithEndpointConfig(endpoint).Build()
+		authz := handlers.NewAuthzBuilder().WithConfig(config).WithEndpointConfig(endpoint).Build()
 
 		handler := middlewares.Wrap(metricsVRMW, bridge(authz.Handler))
 
@@ -275,7 +275,7 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	}
 
 	if providers.OpenIDConnect != nil {
-		bridgeOIDC := middlewares.NewBridgeBuilder(config, providers).WithPreMiddlewares(
+		bridgeOIDC := middlewares.NewBridgeBuilder(*config, providers).WithPreMiddlewares(
 			middlewares.SecurityHeaders, middlewares.SecurityHeadersCSPNoneOpenIDConnect, middlewares.SecurityHeadersNoStore,
 		).Build()
 
