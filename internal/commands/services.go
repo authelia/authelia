@@ -7,11 +7,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
-	"github.com/authelia/authelia/v4/internal/server"
 	"github.com/fsnotify/fsnotify"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/server"
 )
 
 // NewServerService creates a new ServerService with the appropriate logger etc.
@@ -238,7 +239,3 @@ func connectionType(isTLS bool) string {
 
 	return "non-TLS"
 }
-
-const (
-	fmtLogServerInit = "Server is listening for %s connections on '%s' path '%s'"
-)

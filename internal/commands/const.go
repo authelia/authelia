@@ -772,3 +772,7 @@ Layouts:
 	ANSIC: Mon Jan _2 15:04:05 2006
 	Date: 2006-01-02`
 )
+
+const (
+	fmtLogServerInit = "Server is listening for %s connections on '%s' path '%s'"
+)
