@@ -5,5 +5,5 @@ services:
     volumes:
       - './Docker/configuration.yml:/config/configuration.yml:ro'
       - './Docker/users.yml:/config/users.yml'
-      - './common/pki:/config/ssl:ro'
+      - './common/pki:/pki:ro'
 ...

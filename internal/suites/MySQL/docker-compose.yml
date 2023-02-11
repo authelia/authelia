@@ -5,5 +5,5 @@ services:
     volumes:
       - './MySQL/configuration.yml:/config/configuration.yml:ro'
       - './MySQL/users.yml:/config/users.yml'
-      - './common/pki:/config/ssl:ro'
+      - './common/pki:/pki:ro'
 ...
