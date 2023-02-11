@@ -115,7 +115,7 @@ func (service *ServerService) Run() (err error) {
 		}
 	}()
 
-	service.log.Infof(fmtLogServerInit, connectionType(service.isTLS), service.listener.Addr().String(), strings.Join(service.paths, "' and '"))
+	service.log.Infof(fmtLogServerListening, connectionType(service.isTLS), service.listener.Addr().String(), strings.Join(service.paths, "' and '"))
 
 	if err = service.server.Serve(service.listener); err != nil {
 		service.log.WithError(err).Error("Error returned attempting to serve requests")
@@ -150,6 +150,8 @@ func (service *FileWatcherService) Run() (err error) {
 			service.log.WithError(recoverErr(r)).Error("Critical error caught (recovered)")
 		}
 	}()
+
+	service.log.Infof("Watching for file changes to the '%s' file", filepath.Join(service.directory, service.file))
 
 	for {
 		select {
