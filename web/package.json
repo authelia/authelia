@@ -2,6 +2,10 @@
   "name": "authelia",
   "version": "4.37.5",
   "private": true,
+  "engines": {
+    "node": ">=18.4.0",
+    "pnpm": "7"
+  },
   "pnpm": {
     "peerDependencyRules": {
       "allowedVersions": {
