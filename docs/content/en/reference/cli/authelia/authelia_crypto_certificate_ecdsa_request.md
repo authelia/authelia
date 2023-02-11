@@ -39,12 +39,13 @@ authelia crypto certificate ecdsa request --help
       --country strings               certificate country
   -b, --curve string                  Sets the elliptic curve which can be P224, P256, P384, or P521 (default "P256")
   -d, --directory string              directory where the generated keys, certificates, etc will be stored
-      --duration duration             duration of time the certificate is valid for (default 8760h0m0s)
+      --duration string               duration of time the certificate is valid for (default "1y")
       --file.csr string               name of the file to export the certificate request data to (default "request.csr")
       --file.private-key string       name of the file to export the private key data to (default "private.pem")
   -h, --help                          help for request
   -l, --locality strings              certificate locality
-      --not-before string             earliest date and time the certificate is considered valid formatted as Jan 2 15:04:05 2006 (default is now)
+      --not-after string              latest date and time the certificate is considered valid in various formats
+      --not-before string             earliest date and time the certificate is considered valid in various formats (default is now)
   -o, --organization strings          certificate organization (default [Authelia])
       --organizational-unit strings   certificate organizational unit
   -p, --postcode strings              certificate postcode

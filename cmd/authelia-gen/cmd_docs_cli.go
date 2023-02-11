@@ -108,8 +108,9 @@ func genCLIDocWriteIndex(path, name string) (err error) {
 func prepend(input string) string {
 	now := time.Now()
 
-	pathz := strings.Split(strings.Replace(input, ".md", "", 1), "\\")
-	parts := strings.Split(pathz[len(pathz)-1], "_")
+	_, filename := filepath.Split(strings.Replace(input, ".md", "", 1))
+
+	parts := strings.Split(filename, "_")
 
 	cmd := parts[0]
 

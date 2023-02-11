@@ -6,5 +6,5 @@ services:
       - './OIDCTraefik/configuration.yml:/config/configuration.yml:ro'
       - './OIDCTraefik/users.yml:/config/users.yml'
       - './OIDCTraefik/keypair/key.pem:/config/issuer.pem:ro'
-      - './common/ssl:/config/ssl:ro'
+      - './common/pki:/config/ssl:ro'
 ...

@@ -64,7 +64,7 @@ func cmdBootstrapRun(_ *cobra.Command, _ []string) {
 
 	fmt.Println()
 	bootstrapPrintln("Run 'authelia-scripts suites setup Standalone' to start Authelia and visit https://home.example.com:8080.")
-	bootstrapPrintln("More details at https://github.com/authelia/authelia/blob/master/docs/getting-started.md")
+	bootstrapPrintln("More details at https://www.authelia.com/contributing/development/build-and-test/")
 }
 
 var hostEntries = []HostEntry{

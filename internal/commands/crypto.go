@@ -313,7 +313,7 @@ func (ctx *CmdCtx) CryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) 
 
 	b.WriteString(fmt.Sprintf("\n\tSubject Alternative Names: %s\n\n", strings.Join(cryptoSANsToString(template.DNSNames, template.IPAddresses), ", ")))
 
-	if privateKeyPath, csrPath, err = cryptoGetWritePathsFromCmd(cmd); err != nil {
+	if _, privateKeyPath, csrPath, err = cryptoGetWritePathsFromCmd(cmd); err != nil {
 		return err
 	}
 
@@ -329,15 +329,11 @@ func (ctx *CmdCtx) CryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) 
 		return fmt.Errorf("failed to create certificate request: %w", err)
 	}
 
-	if privateKeyPath, csrPath, err = cryptoGetWritePathsFromCmd(cmd); err != nil {
-		return err
-	}
-
 	if err = utils.WriteKeyToPEM(privateKey, privateKeyPath, false); err != nil {
 		return err
 	}
 
-	if err = utils.WriteCertificateBytesToPEM(csr, csrPath, true); err != nil {
+	if err = utils.WriteCertificateBytesToPEM(csrPath, true, csr); err != nil {
 		return err
 	}
 
@@ -406,21 +402,23 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 	b.WriteString(fmt.Sprintf("\n\tSubject Alternative Names: %s\n\n", strings.Join(cryptoSANsToString(template.DNSNames, template.IPAddresses), ", ")))
 
 	var (
-		privateKeyPath, certificatePath string
-		certificate                     []byte
+		dir, privateKeyPath, certificatePath, certificateBundlePath string
+
+		bundle      bool
+		certificate []byte
 	)
 
-	if privateKeyPath, certificatePath, err = cryptoGetWritePathsFromCmd(cmd); err != nil {
+	if dir, privateKeyPath, certificatePath, err = cryptoGetWritePathsFromCmd(cmd); err != nil {
+		return err
+	}
+
+	if bundle, certificateBundlePath, err = cryptoGetCertificateBundleFromCmd(cmd, dir, caCertificate); err != nil {
 		return err
 	}
 
 	b.WriteString("Output Paths:\n")
 	b.WriteString(fmt.Sprintf("\tPrivate Key: %s\n", privateKeyPath))
-	b.WriteString(fmt.Sprintf("\tCertificate: %s\n\n", certificatePath))
-
-	fmt.Print(b.String())
-
-	b.Reset()
+	b.WriteString(fmt.Sprintf("\tCertificate: %s\n", certificatePath))
 
 	if certificate, err = x509.CreateCertificate(ctx.providers.Random, template, parent, publicKey, signatureKey); err != nil {
 		return fmt.Errorf("failed to create certificate: %w", err)
@@ -430,9 +428,23 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 		return err
 	}
 
-	if err = utils.WriteCertificateBytesToPEM(certificate, certificatePath, false); err != nil {
+	if err = utils.WriteCertificateBytesToPEM(certificatePath, false, certificate); err != nil {
 		return err
 	}
+
+	if bundle {
+		b.WriteString(fmt.Sprintf("\tCertificate (bundle): %s\n", certificateBundlePath))
+
+		if err = utils.WriteCertificateBytesToPEM(certificateBundlePath, false, certificate, caCertificate.Raw); err != nil {
+			return err
+		}
+	}
+
+	b.WriteString("\n")
+
+	fmt.Print(b.String())
+
+	b.Reset()
 
 	return nil
 }
@@ -448,7 +460,7 @@ func (ctx *CmdCtx) CryptoPairGenerateRunE(cmd *cobra.Command, _ []string, privat
 		return err
 	}
 
-	if privateKeyPath, publicKeyPath, err = cryptoGetWritePathsFromCmd(cmd); err != nil {
+	if _, privateKeyPath, publicKeyPath, err = cryptoGetWritePathsFromCmd(cmd); err != nil {
 		return err
 	}
 
