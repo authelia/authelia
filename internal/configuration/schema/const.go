@@ -65,6 +65,9 @@ const (
 	// LDAPImplementationActiveDirectory is the string for the Active Directory LDAP implementation.
 	LDAPImplementationActiveDirectory = "activedirectory"
 
+	// LDAPImplementationRFC2307bis is the string for the RFC2307bis LDAP implementation.
+	LDAPImplementationRFC2307bis = "rfc2307bis"
+
 	// LDAPImplementationFreeIPA is the string for the FreeIPA LDAP implementation.
 	LDAPImplementationFreeIPA = "freeipa"
 

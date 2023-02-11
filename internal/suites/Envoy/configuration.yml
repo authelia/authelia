@@ -9,8 +9,8 @@ server:
   port: 9091
   asset_path: /config/assets/
   tls:
-    certificate: /config/ssl/cert.pem
-    key: /config/ssl/key.pem
+    certificate: /pki/public.backend.crt
+    key: /pki/private.backend.pem
   endpoints:
     authz:
       ext-authz:

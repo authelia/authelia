@@ -163,8 +163,8 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 }
 
 func (n *SMTPNotifier) setMessageID(msg *gomail.Msg, domain string) {
-	rn := n.random.Integer(100000000)
-	rm := n.random.Integer(10000)
+	rn := n.random.Intn(100000000)
+	rm := n.random.Intn(10000)
 	rs := n.random.StringCustom(17, random.CharSetAlphaNumeric)
 	pid := os.Getpid() + rm
 

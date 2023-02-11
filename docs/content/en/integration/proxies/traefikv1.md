@@ -137,7 +137,7 @@ services:
       ## configured in the Session Cookies section of the Authelia configuration.
       # - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/authz/forward-auth?authelia_url=https%3A%2F%2Fauth.example.com%2F'
       - 'traefik.frontend.auth.forward.trustForwardHeader=true'
-      - 'traefik.frontend.auth.forward.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Name,Remote-Email'
+      - 'traefik.frontend.auth.forward.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Email,Remote-Name'
     expose:
       - 443
     restart: unless-stopped
@@ -156,7 +156,7 @@ services:
       - 'traefik.frontend.rule=Host:heimdall.example.com'
       - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/authz/forward-auth/basic'
       - 'traefik.frontend.auth.forward.trustForwardHeader=true'
-      - 'traefik.frontend.auth.forward.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Name,Remote-Email'
+      - 'traefik.frontend.auth.forward.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Email,Remote-Name'
     expose:
       - 443
     restart: unless-stopped

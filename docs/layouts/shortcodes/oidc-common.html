@@ -1,0 +1,18 @@
+{{ $specificinfo := "../specific-information/" }}{{ $config := "../../../configuration/identity-providers/open-id-connect.md" }}
+{{- with .Get "specificinfo" }}{{ $specificinfo = . }}{{ end }}
+{{- with .Get "config" }}{{ $config = . }}{{ end }}
+### Common Notes
+
+1. The [OpenID Connect 1.0](https://openid.net/specs/openid-connect-core-1_0.html) `client_id` parameter:
+    1. This *__must__* be a unique value for every client.
+    2. The value used in this guide is merely for demonstration purposes and you can theoretically use nearly any
+       alphanumeric string.
+2. The [OpenID Connect 1.0](https://openid.net/specs/openid-connect-core-1_0.html) `secret` parameter:
+    1. The value used in this guide is merely for demonstration purposes and you *__should absolutely not__* use this in
+       production and should instead utilize the
+       [Generating Client Secrets]({{ $specificinfo }}#generating-client-secrets) guide.
+    2. This string may be stored as plaintext in the Authelia configuration but this behaviour is deprecated and is not
+       guaranteed to be supported in the future. See the [Plaintext]({{ $specificinfo }}#plaintext) guide for more
+       information.
+3. The Configuration example for Authelia is only a portion of the required configuration and it should be used as a
+   guide in conjunction with the standard [OpenID Connect 1.0 Configuration]({{ $config }}) guide.

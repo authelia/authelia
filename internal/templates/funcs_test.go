@@ -638,3 +638,23 @@ func TestFuncEmpty(t *testing.T) {
 		})
 	}
 }
+
+func TestFuncIndent(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		indent   int
+		expected []string
+	}{
+		{"ShouldIndentZeroMultiLine", "abc\n123", 0, []string{"abc\n123", "\nabc\n123"}},
+		{"ShouldIndentOneMultiLine", "abc\n123", 1, []string{" abc\n 123", "\n abc\n 123"}},
+		{"ShouldIndentOneSingleLine", "abc", 1, []string{" abc", "\n abc"}},
+		{"ShouldIndentZeroSingleLine", "abc", 0, []string{"abc", "\nabc"}},
+	}
+
+	for _, tc := range testCases {
+		for i, f := range []func(i int, v string) string{FuncIndent, FuncNewlineIndent} {
+			assert.Equal(t, tc.expected[i], f(tc.indent, tc.have))
+		}
+	}
+}

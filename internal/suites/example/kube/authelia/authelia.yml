@@ -33,7 +33,7 @@ spec:
               mountPath: /config/configuration.yml
               readOnly: true
             - name: authelia-ssl
-              mountPath: /config/ssl
+              mountPath: /pki
               readOnly: true
             - name: secrets
               mountPath: /config/secrets

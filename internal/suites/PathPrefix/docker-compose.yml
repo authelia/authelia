@@ -5,5 +5,5 @@ services:
     volumes:
       - './PathPrefix/configuration.yml:/config/configuration.yml:ro'
       - './PathPrefix/users.yml:/config/users.yml'
-      - './common/ssl:/config/ssl:ro'
+      - './common/pki:/pki:ro'
 ...

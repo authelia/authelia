@@ -102,7 +102,7 @@ nextcloud.example.com {
                 ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest
                 ## this is configured in the Session Cookies section of the Authelia configuration.
                 # uri /api/authz/forward-auth?authelia_url=https://auth.example.com/
-                copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+                copy_headers Authorization Proxy-Authorization Remote-User Remote-Groups Remote-Email Remote-Name
 
                 ## This import needs to be included if you're relying on a trusted proxies configuration.
                 import trusted_proxy_list
@@ -141,7 +141,7 @@ example.com {
         handle @nextcloud {
                 forward_auth authelia:9091 {
                         uri /api/authz/forward-auth?authelia_url=https://example.com/authelia/
-                        copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+                        copy_headers Authorization Proxy-Authorization Remote-User Remote-Groups Remote-Email Remote-Name
 
                         ## This import needs to be included if you're relying on a trusted proxies configuration.
                         import trusted_proxy_list
@@ -198,10 +198,12 @@ nextcloud.example.com {
                 ##   2. Copy the relevant headers from the auth request and provide them to the backend.
                 @good status 2xx
                 handle_response @good {
+                        request_header Authorization {http.reverse_proxy.header.Authorization}
+                        request_header Proxy-Authorization {http.reverse_proxy.header.Proxy-Authorization}
                         request_header Remote-User {http.reverse_proxy.header.Remote-User}
                         request_header Remote-Groups {http.reverse_proxy.header.Remote-Groups}
-                        request_header Remote-Name {http.reverse_proxy.header.Remote-Name}
                         request_header Remote-Email {http.reverse_proxy.header.Remote-Email}
+                        request_header Remote-Name {http.reverse_proxy.header.Remote-Name}
                 }
         }
 
