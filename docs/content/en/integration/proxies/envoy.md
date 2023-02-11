@@ -168,7 +168,7 @@ static_resources:
                   - name: envoy.filters.http.ext_authz
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
-                      transport_api_version: V3
+                      transport_api_version: v3
                       allowed_headers:
                         patterns:
                           - exact: authorization
@@ -215,9 +215,9 @@ static_resources:
   clusters:
     - name: nextcloud
       connect_timeout: 0.25s
-      type: LOGICAL_DNS
-      dns_lookup_family: V4_ONLY
-      lb_policy: ROUND_ROBIN
+      type: logical_dns
+      dns_lookup_family: v4_only
+      lb_policy: round_robin
       load_assignment:
         cluster_name: nextcloud
         endpoints:
@@ -229,9 +229,9 @@ static_resources:
                       port_value: 80
     - name: authelia
       connect_timeout: 0.25s
-      type: LOGICAL_DNS
-      dns_lookup_family: V4_ONLY
-      lb_policy: ROUND_ROBIN
+      type: logical_dns
+      dns_lookup_family: v4_only
+      lb_policy: round_robin
       load_assignment:
         cluster_name: authelia
         endpoints:
