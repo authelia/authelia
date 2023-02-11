@@ -97,7 +97,6 @@ func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 	return nil
 }
 
-//nolint:gocyclo // Complexity is required in this function.
 func runServices(ctx *CmdCtx) {
 	defer ctx.cancel()
 
@@ -109,48 +108,14 @@ func runServices(ctx *CmdCtx) {
 
 	var (
 		services []Service
-
-		err error
 	)
 
-	switch server, listener, err := server.CreateDefaultServer(ctx.config, ctx.providers); {
-	case err != nil:
-		ctx.log.WithError(err).Fatal("Create Server Service (main) returned error")
-	case server != nil && listener != nil:
-		svc := NewServerService("main", server, listener, ctx.log)
+	for _, serviceFunc := range []func(ctx *CmdCtx) Service{serviceGetServerMain, serviceGetServerMetrics, serviceGetFileWatcherUsers} {
+		if service := serviceFunc(ctx); service != nil {
+			services = append(services, service)
 
-		ctx.group.Go(svc.Run)
-
-		services = append(services, svc)
-	default:
-		ctx.log.Fatal("Create Server Service (main) failed")
-	}
-
-	switch server, listener, err := server.CreateMetricsServer(ctx.config, ctx.providers); {
-	case err != nil:
-		ctx.log.WithError(err).Fatal("Create Server Service (metrics) returned error")
-	case server != nil && listener != nil:
-		svc := NewServerService("metrics", server, listener, ctx.log)
-
-		ctx.group.Go(svc.Run)
-
-		services = append(services, svc)
-	default:
-		ctx.log.Debug("Create Server Service (metrics) skipped")
-	}
-
-	if ctx.config.AuthenticationBackend.File != nil && ctx.config.AuthenticationBackend.File.Watch {
-		provider := ctx.providers.UserProvider.(*authentication.FileUserProvider)
-
-		var svc *FileWatcherService
-
-		if svc, err = NewFileWatcherService("users", ctx.config.AuthenticationBackend.File.Path, provider, ctx.log); err != nil {
-			ctx.log.WithError(err).Fatal("Create Watcher Service (users) returned error")
+			ctx.group.Go(service.Run)
 		}
-
-		ctx.group.Go(svc.Run)
-
-		services = append(services, svc)
 	}
 
 	select {
@@ -183,6 +148,8 @@ func runServices(ctx *CmdCtx) {
 
 	wgShutdown.Wait()
 
+	var err error
+
 	if err = ctx.providers.StorageProvider.Close(); err != nil {
 		ctx.log.WithError(err).Error("Error occurred closing database connections")
 	}
@@ -190,6 +157,46 @@ func runServices(ctx *CmdCtx) {
 	if err = ctx.group.Wait(); err != nil {
 		ctx.log.WithError(err).Errorf("Error occurred waiting for shutdown")
 	}
+}
+
+func serviceGetServerMain(ctx *CmdCtx) (service Service) {
+	switch svr, listener, err := server.CreateDefaultServer(ctx.config, ctx.providers); {
+	case err != nil:
+		ctx.log.WithError(err).Fatal("Create Server Service (main) returned error")
+	case svr != nil && listener != nil:
+		service = NewServerService("main", svr, listener, ctx.log)
+	default:
+		ctx.log.Fatal("Create Server Service (main) failed")
+	}
+
+	return service
+}
+
+func serviceGetFileWatcherUsers(ctx *CmdCtx) (service Service) {
+	var err error
+
+	if ctx.config.AuthenticationBackend.File != nil && ctx.config.AuthenticationBackend.File.Watch {
+		provider := ctx.providers.UserProvider.(*authentication.FileUserProvider)
+
+		if service, err = NewFileWatcherService("users", ctx.config.AuthenticationBackend.File.Path, provider, ctx.log); err != nil {
+			ctx.log.WithError(err).Fatal("Create Watcher Service (users) returned error")
+		}
+	}
+
+	return service
+}
+
+func serviceGetServerMetrics(ctx *CmdCtx) (service Service) {
+	switch svr, listener, err := server.CreateMetricsServer(ctx.config, ctx.providers); {
+	case err != nil:
+		ctx.log.WithError(err).Fatal("Create Server Service (metrics) returned error")
+	case svr != nil && listener != nil:
+		service = NewServerService("metrics", svr, listener, ctx.log)
+	default:
+		ctx.log.Debug("Create Server Service (metrics) skipped")
+	}
+
+	return service
 }
 
 func doStartupChecks(ctx *CmdCtx) {
