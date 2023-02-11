@@ -21,10 +21,10 @@ func TestWebauthnGetUser(t *testing.T) {
 		DisplayName: "John Smith",
 	}
 
-	ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "john").Return([]model.WebauthnDevice{
+	ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "example.com", "john").Return([]model.WebauthnDevice{
 		{
 			ID:              1,
-			RPID:            "https://example.com",
+			RPID:            "example.com",
 			Username:        "john",
 			Description:     "Primary",
 			KID:             model.NewBase64([]byte("abc123")),
@@ -47,7 +47,7 @@ func TestWebauthnGetUser(t *testing.T) {
 		},
 	}, nil)
 
-	user, err := getWebAuthnUser(ctx.Ctx, userSession)
+	user, err := getWebauthnUserByRPID(ctx.Ctx, userSession, "example.com")
 
 	require.NoError(t, err)
 	require.NotNil(t, user)
@@ -64,7 +64,7 @@ func TestWebauthnGetUser(t *testing.T) {
 	require.Len(t, user.Devices, 2)
 
 	assert.Equal(t, 1, user.Devices[0].ID)
-	assert.Equal(t, "https://example.com", user.Devices[0].RPID)
+	assert.Equal(t, "example.com", user.Devices[0].RPID)
 	assert.Equal(t, "john", user.Devices[0].Username)
 	assert.Equal(t, "Primary", user.Devices[0].Description)
 	assert.Equal(t, "", user.Devices[0].Transport)
@@ -106,10 +106,10 @@ func TestWebauthnGetUserWithoutDisplayName(t *testing.T) {
 		Username: "john",
 	}
 
-	ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "john").Return([]model.WebauthnDevice{
+	ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "example.com", "john").Return([]model.WebauthnDevice{
 		{
 			ID:              1,
-			RPID:            "https://example.com",
+			RPID:            "example.com",
 			Username:        "john",
 			Description:     "Primary",
 			KID:             model.NewBase64([]byte("abc123")),
@@ -120,7 +120,7 @@ func TestWebauthnGetUserWithoutDisplayName(t *testing.T) {
 		},
 	}, nil)
 
-	user, err := getWebAuthnUser(ctx.Ctx, userSession)
+	user, err := getWebauthnUserByRPID(ctx.Ctx, userSession, "example.com")
 
 	require.NoError(t, err)
 	require.NotNil(t, user)
@@ -136,9 +136,9 @@ func TestWebauthnGetUserWithErr(t *testing.T) {
 		Username: "john",
 	}
 
-	ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "john").Return(nil, errors.New("not found"))
+	ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "example.com", "john").Return(nil, errors.New("not found"))
 
-	user, err := getWebAuthnUser(ctx.Ctx, userSession)
+	user, err := getWebauthnUserByRPID(ctx.Ctx, userSession, "example.com")
 
 	assert.EqualError(t, err, "not found")
 	assert.Nil(t, user)

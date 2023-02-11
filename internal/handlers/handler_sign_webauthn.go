@@ -37,7 +37,7 @@ func WebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if user, err = getWebAuthnUser(ctx, userSession); err != nil {
+	if user, err = getWebauthnUserByRPID(ctx, userSession, w.Config.RPID); err != nil {
 		ctx.Logger.Errorf("Unable to load %s user details during authentication challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
@@ -145,7 +145,7 @@ func WebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if user, err = getWebAuthnUser(ctx, userSession); err != nil {
+	if user, err = getWebauthnUserByRPID(ctx, userSession, w.Config.RPID); err != nil {
 		ctx.Logger.Errorf("Unable to load %s credentials for authentication challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)

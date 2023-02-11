@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/url"
 	"strings"
 
@@ -13,7 +12,11 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-func getWebAuthnUser(ctx *middlewares.AutheliaCtx, userSession session.UserSession) (user *model.WebauthnUser, err error) {
+func getWebauthnUser(ctx *middlewares.AutheliaCtx, userSession session.UserSession) (user *model.WebauthnUser, err error) {
+	return getWebauthnUserByRPID(ctx, userSession, "")
+}
+
+func getWebauthnUserByRPID(ctx *middlewares.AutheliaCtx, userSession session.UserSession, rpid string) (user *model.WebauthnUser, err error) {
 	user = &model.WebauthnUser{
 		Username:    userSession.Username,
 		DisplayName: userSession.DisplayName,
@@ -23,7 +26,7 @@ func getWebAuthnUser(ctx *middlewares.AutheliaCtx, userSession session.UserSessi
 		user.DisplayName = user.Username
 	}
 
-	if user.Devices, err = ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, userSession.Username); err != nil {
+	if user.Devices, err = ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, rpid, userSession.Username); err != nil {
 		return nil, err
 	}
 
@@ -32,20 +35,17 @@ func getWebAuthnUser(ctx *middlewares.AutheliaCtx, userSession session.UserSessi
 
 func newWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error) {
 	var (
-		u *url.URL
+		origin *url.URL
 	)
 
-	if u, err = ctx.GetXOriginalURLOrXForwardedURL(); err != nil {
+	if origin, err = ctx.GetOrigin(); err != nil {
 		return nil, err
 	}
 
-	rpID := u.Hostname()
-	origin := fmt.Sprintf("%s://%s", u.Scheme, u.Host)
-
 	config := &webauthn.Config{
 		RPDisplayName: ctx.Configuration.Webauthn.DisplayName,
-		RPID:          rpID,
-		RPOrigins:     []string{origin},
+		RPID:          origin.Hostname(),
+		RPOrigins:     []string{origin.String()},
 		RPIcon:        "",
 
 		AttestationPreference: ctx.Configuration.Webauthn.ConveyancePreference,

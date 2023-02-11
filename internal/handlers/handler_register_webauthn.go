@@ -40,7 +40,7 @@ func WebauthnRegistrationGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if user, err = getWebAuthnUser(ctx, userSession); err != nil {
+	if user, err = getWebauthnUserByRPID(ctx, userSession, w.Config.RPID); err != nil {
 		ctx.Logger.Errorf("Unable to load %s devices for assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
@@ -132,7 +132,7 @@ func WebauthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 
 	ctx.Logger.WithField("att_format", response.Response.AttestationObject.Format).Debug("Response Data")
 
-	if user, err = getWebAuthnUser(ctx, userSession); err != nil {
+	if user, err = getWebauthnUser(ctx, userSession); err != nil {
 		ctx.Logger.Errorf("Unable to load %s user details for registration for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
@@ -150,7 +150,7 @@ func WebauthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 
 	ctx.Logger.WithField("att_type", credential.AttestationType).Debug("Credential Data")
 
-	devices, err := ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, userSession.Username)
+	devices, err := ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, w.Config.RPID, userSession.Username)
 	if err != nil && err != storage.ErrNoWebauthnDevice {
 		ctx.Logger.Errorf("Unable to load existing %s devices for for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
@@ -172,6 +172,13 @@ func WebauthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	device := model.NewWebauthnDeviceFromCredential(w.Config.RPID, userSession.Username, bodyJSON.Description, credential)
+
+	ctx.Logger.WithFields(map[string]any{
+		"RPID": device.RPID,
+		"ID":   device.ID,
+		"KID":  device.KID.String(),
+		"User": device.Username,
+	}).Debug("Registering New Device")
 
 	if err = ctx.Providers.StorageProvider.SaveWebauthnDevice(ctx, device); err != nil {
 		ctx.Logger.Errorf("Unable to save %s device registration for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)

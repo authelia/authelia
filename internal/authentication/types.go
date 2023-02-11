@@ -3,6 +3,7 @@ package authentication
 import (
 	"crypto/tls"
 	"net/mail"
+	"time"
 
 	"github.com/go-ldap/ldap/v3"
 	"golang.org/x/text/encoding/unicode"
@@ -17,16 +18,35 @@ type LDAPClientFactory interface {
 //
 // Methods added to this interface that have a direct correlation with one from ldap.Client should have the same signature.
 type LDAPClient interface {
+	Start()
 	Close()
+	IsClosing() bool
+	SetTimeout(timeout time.Duration)
+
+	TLSConnectionState() (state tls.ConnectionState, ok bool)
 	StartTLS(config *tls.Config) (err error)
 
+	Unbind() (err error)
 	Bind(username, password string) (err error)
+	SimpleBind(simpleBindRequest *ldap.SimpleBindRequest) (bindResult *ldap.SimpleBindResult, err error)
+	MD5Bind(host string, username string, password string) (err error)
+	DigestMD5Bind(digestMD5BindRequest *ldap.DigestMD5BindRequest) (digestMD5BindResult *ldap.DigestMD5BindResult, err error)
 	UnauthenticatedBind(username string) (err error)
+	ExternalBind() (err error)
 
 	Modify(modifyRequest *ldap.ModifyRequest) (err error)
+	ModifyWithResult(modifyRequest *ldap.ModifyRequest) (modifyResult *ldap.ModifyResult, err error)
+	ModifyDN(m *ldap.ModifyDNRequest) (err error)
 	PasswordModify(pwdModifyRequest *ldap.PasswordModifyRequest) (pwdModifyResult *ldap.PasswordModifyResult, err error)
 
+	Add(addRequest *ldap.AddRequest) (err error)
+	Del(delRequest *ldap.DelRequest) (err error)
+
 	Search(searchRequest *ldap.SearchRequest) (searchResult *ldap.SearchResult, err error)
+	SearchWithPaging(searchRequest *ldap.SearchRequest, pagingSize uint32) (searchResult *ldap.SearchResult, err error)
+	Compare(dn string, attribute string, value string) (same bool, err error)
+
+	WhoAmI(controls []ldap.Control) (whoamiResult *ldap.WhoAmIResult, err error)
 }
 
 // UserDetails represent the details retrieved for a given user.

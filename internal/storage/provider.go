@@ -44,7 +44,7 @@ type Provider interface {
 	DeleteWebauthnDevice(ctx context.Context, kid string) (err error)
 	DeleteWebauthnDeviceByUsername(ctx context.Context, username, description string) (err error)
 	LoadWebauthnDevices(ctx context.Context, limit, page int) (devices []model.WebauthnDevice, err error)
-	LoadWebauthnDevicesByUsername(ctx context.Context, username string) (devices []model.WebauthnDevice, err error)
+	LoadWebauthnDevicesByUsername(ctx context.Context, rpid, username string) (devices []model.WebauthnDevice, err error)
 	LoadWebauthnDeviceByID(ctx context.Context, id int) (device *model.WebauthnDevice, err error)
 
 	SavePreferredDuoDevice(ctx context.Context, device model.DuoDevice) (err error)

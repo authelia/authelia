@@ -40,6 +40,7 @@ export default function WebauthnDevicesStack(props: Props) {
                 <Stack spacing={3}>
                     {devices.map((x, idx) => (
                         <WebauthnDeviceItem
+                            key={idx}
                             index={idx}
                             device={x}
                             handleDeviceEdit={handleEdit}

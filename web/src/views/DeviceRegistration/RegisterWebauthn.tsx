@@ -23,7 +23,9 @@ import { finishRegistration, getAttestationCreationOptions, startWebauthnRegistr
 
 const steps = ["Confirm device", "Choose name"];
 
-interface Props {}
+interface Props {
+    est: AuthenticatorSelectionCriteria;
+}
 
 const RegisterWebauthn = function (props: Props) {
     const [state, setState] = useState(WebauthnTouchState.WaitTouch);
@@ -69,11 +71,15 @@ const RegisterWebauthn = function (props: Props) {
             return;
         }
 
+        console.log("start registration");
+
         try {
             setState(WebauthnTouchState.WaitTouch);
             setActiveStep(0);
 
             const res = await startWebauthnRegistration(options);
+
+            console.log("got response", res.result);
 
             if (res.result === AttestationResult.Success) {
                 if (res.response == null) {

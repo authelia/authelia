@@ -49,10 +49,11 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlUpsertWebauthnDevice:                           fmt.Sprintf(queryFmtUpsertWebauthnDevice, tableWebauthnDevices),
 		sqlSelectWebauthnDevices:                          fmt.Sprintf(queryFmtSelectWebauthnDevices, tableWebauthnDevices),
 		sqlSelectWebauthnDevicesByUsername:                fmt.Sprintf(queryFmtSelectWebauthnDevicesByUsername, tableWebauthnDevices),
+		sqlSelectWebauthnDevicesByRPIDByUsername:          fmt.Sprintf(queryFmtSelectWebauthnDevicesByRPIDByUsername, tableWebauthnDevices),
 		sqlSelectWebauthnDeviceByID:                       fmt.Sprintf(queryFmtSelectWebauthnDeviceByID, tableWebauthnDevices),
 		sqlUpdateWebauthnDeviceDescriptionByUsernameAndID: fmt.Sprintf(queryFmtUpdateUpdateWebauthnDeviceDescriptionByUsernameAndID, tableWebauthnDevices),
 		sqlUpdateWebauthnDevicePublicKey:                  fmt.Sprintf(queryFmtUpdateWebauthnDevicePublicKey, tableWebauthnDevices),
-		sqlUpdateWebauthnDevicePublicKeyByUsername:        fmt.Sprintf(queryFmtUpdateUpdateWebauthnDevicePublicKeyByUsername, tableWebauthnDevices),
+		sqlUpdateWebauthnDevicePublicKeyByUsername:        fmt.Sprintf(queryFmtUpdateWebauthnDevicePublicKeyByUsername, tableWebauthnDevices),
 		sqlUpdateWebauthnDeviceRecordSignIn:               fmt.Sprintf(queryFmtUpdateWebauthnDeviceRecordSignIn, tableWebauthnDevices),
 		sqlUpdateWebauthnDeviceRecordSignInByUsername:     fmt.Sprintf(queryFmtUpdateWebauthnDeviceRecordSignInByUsername, tableWebauthnDevices),
 		sqlDeleteWebauthnDevice:                           fmt.Sprintf(queryFmtDeleteWebauthnDevice, tableWebauthnDevices),
@@ -163,10 +164,11 @@ type SQLProvider struct {
 	sqlUpdateTOTPConfigRecordSignInByUsername string
 
 	// Table: webauthn_devices.
-	sqlUpsertWebauthnDevice            string
-	sqlSelectWebauthnDevices           string
-	sqlSelectWebauthnDevicesByUsername string
-	sqlSelectWebauthnDeviceByID        string
+	sqlUpsertWebauthnDevice                  string
+	sqlSelectWebauthnDevices                 string
+	sqlSelectWebauthnDevicesByUsername       string
+	sqlSelectWebauthnDevicesByRPIDByUsername string
+	sqlSelectWebauthnDeviceByID              string
 
 	sqlUpdateWebauthnDeviceDescriptionByUsernameAndID string
 	sqlUpdateWebauthnDevicePublicKey                  string
@@ -940,8 +942,15 @@ func (p *SQLProvider) LoadWebauthnDeviceByID(ctx context.Context, id int) (devic
 }
 
 // LoadWebauthnDevicesByUsername loads all webauthn devices registration for a given username.
-func (p *SQLProvider) LoadWebauthnDevicesByUsername(ctx context.Context, username string) (devices []model.WebauthnDevice, err error) {
-	if err = p.db.SelectContext(ctx, &devices, p.sqlSelectWebauthnDevicesByUsername, username); err != nil {
+func (p *SQLProvider) LoadWebauthnDevicesByUsername(ctx context.Context, rpid, username string) (devices []model.WebauthnDevice, err error) {
+	switch len(rpid) {
+	case 0:
+		err = p.db.SelectContext(ctx, &devices, p.sqlSelectWebauthnDevicesByUsername, username)
+	default:
+		err = p.db.SelectContext(ctx, &devices, p.sqlSelectWebauthnDevicesByRPIDByUsername, rpid, username)
+	}
+
+	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return devices, ErrNoWebauthnDevice
 		}

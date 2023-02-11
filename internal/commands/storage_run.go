@@ -550,7 +550,7 @@ func (ctx *CmdCtx) StorageUserWebauthnListRunE(cmd *cobra.Command, args []string
 
 	user := args[0]
 
-	devices, err = ctx.providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, user)
+	devices, err = ctx.providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, "", user)
 
 	switch {
 	case len(devices) == 0 || (err != nil && errors.Is(err, storage.ErrNoWebauthnDevice)):

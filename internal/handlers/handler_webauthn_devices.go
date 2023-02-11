@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"strconv"
 
 	"github.com/valyala/fasthttp"
@@ -37,6 +38,7 @@ func getWebauthnDeviceIDFromContext(ctx *middlewares.AutheliaCtx) (int, error) {
 func WebauthnDevicesGET(ctx *middlewares.AutheliaCtx) {
 	var (
 		userSession session.UserSession
+		origin      *url.URL
 		err         error
 	)
 
@@ -48,7 +50,15 @@ func WebauthnDevicesGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	devices, err := ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, userSession.Username)
+	if origin, err = ctx.GetOrigin(); err != nil {
+		ctx.Logger.WithError(err).Error("Error occurred retrieving origin")
+
+		ctx.ReplyForbidden()
+
+		return
+	}
+
+	devices, err := ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, origin.Hostname(), userSession.Username)
 
 	if err != nil && err != storage.ErrNoWebauthnDevice {
 		ctx.Error(err, messageOperationFailed)

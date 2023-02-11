@@ -527,6 +527,18 @@ func (ctx *AutheliaCtx) GetXOriginalURLOrXForwardedURL() (requestURI *url.URL, e
 	}
 }
 
+// GetOrigin returns the expected origin for requests from this endpoint.
+func (ctx *AutheliaCtx) GetOrigin() (origin *url.URL, err error) {
+	if origin, err = ctx.GetXOriginalURLOrXForwardedURL(); err != nil {
+		return nil, err
+	}
+
+	origin.Path = ""
+	origin.RawPath = ""
+
+	return origin, nil
+}
+
 // IssuerURL returns the expected Issuer.
 func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
 	issuerURL = &url.URL{

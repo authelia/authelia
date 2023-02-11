@@ -82,7 +82,7 @@
       "^.+\\.(css|png|svg)$": "jest-transform-stub"
     },
     "transformIgnorePatterns": [
-      "[/\\\\]node_modules[/\\\\](?!(\\.pnpm[/\\\\])?(@fortawesome[+/\\\\]fontawesome-svg-core|@simplewebauthn[+/\\\\]browser))"
+      "[/\\\\]node_modules[/\\\\](?!(\\.pnpm[/\\\\])?(@simplewebauthn[+/\\\\]browser)).+\\.(js|jsx|cjs|ts|tsx)$"
     ],
     "moduleNameMapper": {
       "^@root/(.*)$": [

@@ -144,12 +144,13 @@ export async function startWebauthnRegistration(options: PublicKeyCredentialCrea
     };
 
     try {
+        console.log(JSON.stringify(options));
         result.response = await startRegistration(options);
     } catch (e) {
         const exception = e as DOMException;
         if (exception !== undefined) {
             result.result = getAttestationResultFromDOMException(exception);
-
+            console.error(exception);
             return result;
         } else {
             console.error(`Unhandled exception occurred during WebAuthn attestation: ${e}`);
@@ -174,6 +175,8 @@ export async function getAuthenticationResult(options: PublicKeyCredentialReques
         const exception = e as DOMException;
         if (exception !== undefined) {
             result.result = getAssertionResultFromDOMException(exception, options);
+
+            console.error(exception);
 
             return result;
         } else {
