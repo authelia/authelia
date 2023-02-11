@@ -6,7 +6,7 @@ services:
       - './CLI/configuration.yml:/config/configuration.yml:ro'
       - './CLI/storage.yml:/config/configuration.storage.yml:ro'
       - './CLI/users.yml:/config/users.yml'
-      - './common/pki:/config/ssl:ro'
+      - './common/pki:/pki:ro'
       - '/tmp:/tmp'
     user: ${USER_ID}:${GROUP_ID}
 ...

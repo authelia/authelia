@@ -54,7 +54,7 @@ func TestShouldNotReturnErrWhenX509DirectoryExist(t *testing.T) {
 func TestShouldReadCertsFromDirectoryButNotKeys(t *testing.T) {
 	pool, warnings, errors := NewX509CertPool("../suites/common/pki/")
 	assert.NotNil(t, pool)
-	require.Len(t, errors, 2)
+	require.Len(t, errors, 3)
 
 	if runtime.GOOS == "windows" {
 		require.Len(t, warnings, 1)
@@ -64,7 +64,8 @@ func TestShouldReadCertsFromDirectoryButNotKeys(t *testing.T) {
 	}
 
 	assert.EqualError(t, errors[0], "could not import certificate private.backend.pem")
-	assert.EqualError(t, errors[1], "could not import certificate private.pem")
+	assert.EqualError(t, errors[1], "could not import certificate private.oidc.pem")
+	assert.EqualError(t, errors[2], "could not import certificate private.pem")
 }
 
 func TestShouldGenerateCertificateAndPersistIt(t *testing.T) {
