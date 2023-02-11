@@ -5,14 +5,17 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/server"
 	"github.com/fsnotify/fsnotify"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 )
 
 // NewServerService creates a new ServerService with the appropriate logger etc.
-func NewServerService(name string, server *fasthttp.Server, listener net.Listener, logger *logrus.Logger) (service *ServerService) {
+func NewServerService(name string, server *fasthttp.Server, listener net.Listener, paths []string, isTLS bool, logger *logrus.Logger) (service *ServerService) {
 	entry := logger.WithFields(logrus.Fields{
 		"service": "server",
 		"server":  name,
@@ -21,6 +24,8 @@ func NewServerService(name string, server *fasthttp.Server, listener net.Listene
 	return &ServerService{
 		server:   server,
 		listener: listener,
+		paths:    paths,
+		isTLS:    isTLS,
 		log:      entry,
 	}
 }
@@ -90,6 +95,8 @@ type Service interface {
 // ServerService is a Service which runs a webserver.
 type ServerService struct {
 	server   *fasthttp.Server
+	paths    []string
+	isTLS    bool
 	listener net.Listener
 	log      *logrus.Entry
 }
@@ -101,6 +108,8 @@ func (service *ServerService) Run() (err error) {
 			service.log.WithError(recoverErr(r)).Error("Critical error caught (recovered)")
 		}
 	}()
+
+	service.log.Infof(fmtLogServerInit, connectionType(service.isTLS), service.listener.Addr().String(), strings.Join(service.paths, "' and '"))
 
 	if err = service.server.Serve(service.listener); err != nil {
 		service.log.WithError(err).Error("Error returned attempting to serve requests")
@@ -181,3 +190,55 @@ func (service *FileWatcherService) Shutdown() {
 		service.log.WithError(err).Error("Error occurred during shutdown")
 	}
 }
+
+func svcSvrMainFunc(ctx *CmdCtx) (service Service) {
+	switch svr, listener, paths, isTLS, err := server.CreateDefaultServer(ctx.config, ctx.providers); {
+	case err != nil:
+		ctx.log.WithError(err).Fatal("Create Server Service (main) returned error")
+	case svr != nil && listener != nil:
+		service = NewServerService("main", svr, listener, paths, isTLS, ctx.log)
+	default:
+		ctx.log.Fatal("Create Server Service (main) failed")
+	}
+
+	return service
+}
+
+func svcSvrMetricsFunc(ctx *CmdCtx) (service Service) {
+	switch svr, listener, paths, isTLS, err := server.CreateMetricsServer(ctx.config, ctx.providers); {
+	case err != nil:
+		ctx.log.WithError(err).Fatal("Create Server Service (metrics) returned error")
+	case svr != nil && listener != nil:
+		service = NewServerService("metrics", svr, listener, paths, isTLS, ctx.log)
+	default:
+		ctx.log.Debug("Create Server Service (metrics) skipped")
+	}
+
+	return service
+}
+
+func svcWatcherUsersFunc(ctx *CmdCtx) (service Service) {
+	var err error
+
+	if ctx.config.AuthenticationBackend.File != nil && ctx.config.AuthenticationBackend.File.Watch {
+		provider := ctx.providers.UserProvider.(*authentication.FileUserProvider)
+
+		if service, err = NewFileWatcherService("users", ctx.config.AuthenticationBackend.File.Path, provider, ctx.log); err != nil {
+			ctx.log.WithError(err).Fatal("Create Watcher Service (users) returned error")
+		}
+	}
+
+	return service
+}
+
+func connectionType(isTLS bool) string {
+	if isTLS {
+		return "TLS"
+	}
+
+	return "non-TLS"
+}
+
+const (
+	fmtLogServerInit = "Server is listening for %s connections on '%s' path '%s'"
+)

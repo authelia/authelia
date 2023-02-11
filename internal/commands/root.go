@@ -10,10 +10,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
-	"github.com/authelia/authelia/v4/internal/server"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -110,13 +108,18 @@ func runServices(ctx *CmdCtx) {
 		services []Service
 	)
 
-	for _, serviceFunc := range []func(ctx *CmdCtx) Service{serviceGetServerMain, serviceGetServerMetrics, serviceGetFileWatcherUsers} {
+	for _, serviceFunc := range []func(ctx *CmdCtx) Service{
+		svcSvrMainFunc, svcSvrMetricsFunc,
+		svcWatcherUsersFunc,
+	} {
 		if service := serviceFunc(ctx); service != nil {
 			services = append(services, service)
 
 			ctx.group.Go(service.Run)
 		}
 	}
+
+	ctx.log.Info("Startup Complete")
 
 	select {
 	case s := <-quit:
@@ -157,46 +160,6 @@ func runServices(ctx *CmdCtx) {
 	if err = ctx.group.Wait(); err != nil {
 		ctx.log.WithError(err).Errorf("Error occurred waiting for shutdown")
 	}
-}
-
-func serviceGetServerMain(ctx *CmdCtx) (service Service) {
-	switch svr, listener, err := server.CreateDefaultServer(ctx.config, ctx.providers); {
-	case err != nil:
-		ctx.log.WithError(err).Fatal("Create Server Service (main) returned error")
-	case svr != nil && listener != nil:
-		service = NewServerService("main", svr, listener, ctx.log)
-	default:
-		ctx.log.Fatal("Create Server Service (main) failed")
-	}
-
-	return service
-}
-
-func serviceGetFileWatcherUsers(ctx *CmdCtx) (service Service) {
-	var err error
-
-	if ctx.config.AuthenticationBackend.File != nil && ctx.config.AuthenticationBackend.File.Watch {
-		provider := ctx.providers.UserProvider.(*authentication.FileUserProvider)
-
-		if service, err = NewFileWatcherService("users", ctx.config.AuthenticationBackend.File.Path, provider, ctx.log); err != nil {
-			ctx.log.WithError(err).Fatal("Create Watcher Service (users) returned error")
-		}
-	}
-
-	return service
-}
-
-func serviceGetServerMetrics(ctx *CmdCtx) (service Service) {
-	switch svr, listener, err := server.CreateMetricsServer(ctx.config, ctx.providers); {
-	case err != nil:
-		ctx.log.WithError(err).Fatal("Create Server Service (metrics) returned error")
-	case svr != nil && listener != nil:
-		service = NewServerService("metrics", svr, listener, ctx.log)
-	default:
-		ctx.log.Debug("Create Server Service (metrics) skipped")
-	}
-
-	return service
 }
 
 func doStartupChecks(ctx *CmdCtx) {

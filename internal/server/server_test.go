@@ -152,7 +152,7 @@ func NewTLSServerContext(configuration schema.Configuration) (serverContext *TLS
 		return nil, err
 	}
 
-	s, listener, err := CreateDefaultServer(&configuration, providers)
+	s, listener, _, _, err := CreateDefaultServer(&configuration, providers)
 
 	if err != nil {
 		return nil, err

@@ -42,7 +42,7 @@ func waitUntilAutheliaBackendIsReady(dockerEnvironment *DockerEnvironment) error
 		90*time.Second,
 		dockerEnvironment,
 		"authelia-backend",
-		[]string{"Initializing server (main) for"})
+		[]string{"Startup Complete"})
 }
 
 func waitUntilAutheliaFrontendIsReady(dockerEnvironment *DockerEnvironment) error {
