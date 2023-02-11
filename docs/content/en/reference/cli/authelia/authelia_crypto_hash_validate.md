@@ -1,14 +1,14 @@
 ---
-title: "docs/content/en/reference/cli/authelia/authelia crypto hash validate"
-description: "Reference for the docs/content/en/reference/cli/authelia/authelia crypto hash validate command."
+title: "authelia crypto hash validate"
+description: "Reference for the authelia crypto hash validate command."
 lead: ""
 date: 2022-10-17T21:51:59+11:00
 draft: false
 images: []
 menu:
   reference:
-    parent: "cli-docs/content/en/reference/cli/authelia/authelia"
-weight: 995
+    parent: "cli-authelia"
+weight: 905
 toc: true
 ---
 

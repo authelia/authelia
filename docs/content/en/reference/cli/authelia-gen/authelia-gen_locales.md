@@ -1,14 +1,14 @@
 ---
-title: "docs/content/en/reference/cli/authelia-gen/authelia-gen locales"
-description: "Reference for the docs/content/en/reference/cli/authelia-gen/authelia-gen locales command."
+title: "authelia-gen locales"
+description: "Reference for the authelia-gen locales command."
 lead: ""
 date: 2022-09-16T14:21:05+10:00
 draft: false
 images: []
 menu:
   reference:
-    parent: "cli-docs/content/en/reference/cli/authelia-gen/authelia-gen"
-weight: 995
+    parent: "cli-authelia-gen"
+weight: 915
 toc: true
 ---
 

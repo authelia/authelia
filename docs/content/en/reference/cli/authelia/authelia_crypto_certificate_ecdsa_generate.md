@@ -1,14 +1,14 @@
 ---
-title: "docs/content/en/reference/cli/authelia/authelia crypto certificate ecdsa generate"
-description: "Reference for the docs/content/en/reference/cli/authelia/authelia crypto certificate ecdsa generate command."
+title: "authelia crypto certificate ecdsa generate"
+description: "Reference for the authelia crypto certificate ecdsa generate command."
 lead: ""
 date: 2022-06-27T18:27:57+10:00
 draft: false
 images: []
 menu:
   reference:
-    parent: "cli-docs/content/en/reference/cli/authelia/authelia"
-weight: 995
+    parent: "cli-authelia"
+weight: 905
 toc: true
 ---
 

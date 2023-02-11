@@ -1,14 +1,14 @@
 ---
-title: "docs/content/en/reference/cli/authelia-scripts/authelia-scripts"
-description: "Reference for the docs/content/en/reference/cli/authelia-scripts/authelia-scripts command."
+title: "authelia-scripts"
+description: "Reference for the authelia-scripts command."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
   reference:
-    parent: "cli-docs/content/en/reference/cli/authelia-scripts/authelia-scripts"
-weight: 990
+    parent: "cli-authelia-scripts"
+weight: 920
 toc: true
 ---
 

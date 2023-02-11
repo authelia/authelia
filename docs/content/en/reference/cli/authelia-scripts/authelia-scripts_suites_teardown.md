@@ -1,14 +1,14 @@
 ---
-title: "docs/content/en/reference/cli/authelia-scripts/authelia-scripts suites teardown"
-description: "Reference for the docs/content/en/reference/cli/authelia-scripts/authelia-scripts suites teardown command."
+title: "authelia-scripts suites teardown"
+description: "Reference for the authelia-scripts suites teardown command."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
   reference:
-    parent: "cli-docs/content/en/reference/cli/authelia-scripts/authelia-scripts"
-weight: 995
+    parent: "cli-authelia-scripts"
+weight: 925
 toc: true
 ---
 

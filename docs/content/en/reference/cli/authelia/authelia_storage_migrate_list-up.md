@@ -1,14 +1,14 @@
 ---
-title: "docs/content/en/reference/cli/authelia/authelia storage migrate list-up"
-description: "Reference for the docs/content/en/reference/cli/authelia/authelia storage migrate list-up command."
+title: "authelia storage migrate list-up"
+description: "Reference for the authelia storage migrate list-up command."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
   reference:
-    parent: "cli-docs/content/en/reference/cli/authelia/authelia"
-weight: 995
+    parent: "cli-authelia"
+weight: 905
 toc: true
 ---
 
