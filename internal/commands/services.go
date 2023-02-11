@@ -9,32 +9,9 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
-
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-type ServiceRun func() error
-
-type ServerServiceFactory func(*schema.Configuration, middlewares.Providers) (*fasthttp.Server, net.Listener, error)
-
-type ReloadFilter func(path string) (skipped bool)
-
-type ProviderReload interface {
-	Reload() (reloaded bool, err error)
-}
-
-type Service interface {
-	Run() (err error)
-	Shutdown()
-}
-
-type ServerService struct {
-	server   *fasthttp.Server
-	listener net.Listener
-	log      *logrus.Entry
-}
-
+// NewServerService creates a new ServerService with the appropriate logger etc.
 func NewServerService(name string, server *fasthttp.Server, listener net.Listener, logger *logrus.Logger) (service *ServerService) {
 	entry := logger.WithFields(logrus.Fields{
 		"service": "server",
@@ -48,37 +25,7 @@ func NewServerService(name string, server *fasthttp.Server, listener net.Listene
 	}
 }
 
-func (service *ServerService) Run() (err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			service.log.WithError(recoverErr(r)).Error("Critical error caught (recovered)")
-		}
-	}()
-
-	if err = service.server.Serve(service.listener); err != nil {
-		service.log.WithError(err).Error("Error returned attempting to serve requests")
-
-		return err
-	}
-
-	return nil
-}
-
-func (service *ServerService) Shutdown() {
-	if err := service.server.Shutdown(); err != nil {
-		service.log.WithError(err).Error("Error occurred during shutdown")
-	}
-}
-
-type FileWatcherService struct {
-	watcher *fsnotify.Watcher
-	reload  ProviderReload
-
-	log       *logrus.Entry
-	file      string
-	directory string
-}
-
+// NewFileWatcherService creates a new FileWatcherService with the appropriate logger etc.
 func NewFileWatcherService(name, path string, reload ProviderReload, logger *logrus.Logger) (service *FileWatcherService, err error) {
 	if path == "" {
 		return nil, fmt.Errorf("path must be specified")
@@ -129,6 +76,59 @@ func NewFileWatcherService(name, path string, reload ProviderReload, logger *log
 	return service, nil
 }
 
+// ProviderReload represents the required methods to support reloading a provider.
+type ProviderReload interface {
+	Reload() (reloaded bool, err error)
+}
+
+// Service represents the required methods to support handling a service.
+type Service interface {
+	Run() (err error)
+	Shutdown()
+}
+
+// ServerService is a Service which runs a webserver.
+type ServerService struct {
+	server   *fasthttp.Server
+	listener net.Listener
+	log      *logrus.Entry
+}
+
+// Run the ServerService.
+func (service *ServerService) Run() (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			service.log.WithError(recoverErr(r)).Error("Critical error caught (recovered)")
+		}
+	}()
+
+	if err = service.server.Serve(service.listener); err != nil {
+		service.log.WithError(err).Error("Error returned attempting to serve requests")
+
+		return err
+	}
+
+	return nil
+}
+
+// Shutdown the ServerService.
+func (service *ServerService) Shutdown() {
+	if err := service.server.Shutdown(); err != nil {
+		service.log.WithError(err).Error("Error occurred during shutdown")
+	}
+}
+
+// FileWatcherService is a Service that watches files for changes.
+type FileWatcherService struct {
+	watcher *fsnotify.Watcher
+	reload  ProviderReload
+
+	log       *logrus.Entry
+	file      string
+	directory string
+}
+
+// Run the FileWatcherService.
 func (service *FileWatcherService) Run() (err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -175,6 +175,7 @@ func (service *FileWatcherService) Run() (err error) {
 	}
 }
 
+// Shutdown the FileWatcherService.
 func (service *FileWatcherService) Shutdown() {
 	if err := service.watcher.Close(); err != nil {
 		service.log.WithError(err).Error("Error occurred during shutdown")
