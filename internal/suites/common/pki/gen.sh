@@ -1,0 +1,5 @@
+#!/bin/bash
+
+go run ./cmd/authelia crypto certificate rsa generate  --directory ./internal/suites/common/pki -n 'Authelia Development Standalone Root CA' --not-before 'Jan 1 00:00:00 2000' --not-after 'Jan 1 00:00:00 2100' -o 'Authelia' --organizational-unit 'Development' --ca
+go run ./cmd/authelia crypto certificate rsa generate --directory ./internal/suites/common/pki --path.ca ./internal/suites/common/pki/ -n '*.example.com' --sans '*.example.com,example.com' --not-before 'Jan 1 00:00:00 2000' --not-after 'Jan 1 00:00:00 2100' -o 'Authelia' --organizational-unit 'Development' --bundle
+go run ./cmd/authelia crypto certificate rsa generate --directory ./internal/suites/common/pki --path.ca ./internal/suites/common/pki/ --file.certificate public.backend.crt --file.certificate-bundle public.backend.bundle.crt --file.private-key private.backend.pem -n 'login.example.com' --sans 'login.example.com,authelia' --not-before 'Jan 1 00:00:00 2000' --not-after 'Jan 1 00:00:00 2100' -o 'Authelia' --organizational-unit 'Development' --bundle

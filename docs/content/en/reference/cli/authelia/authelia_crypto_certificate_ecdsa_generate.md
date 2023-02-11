@@ -35,28 +35,31 @@ authelia crypto certificate ecdsa generate --help
 ### Options
 
 ```
-      --ca                            create the certificate as a certificate authority certificate
-  -n, --common-name string            certificate common name
-      --country strings               certificate country
-  -b, --curve string                  Sets the elliptic curve which can be P224, P256, P384, or P521 (default "P256")
-  -d, --directory string              directory where the generated keys, certificates, etc will be stored
-      --duration duration             duration of time the certificate is valid for (default 8760h0m0s)
-      --extended-usage strings        specify the extended usage types of the certificate
-      --file.ca-certificate string    certificate authority certificate to use when signing this certificate (default "ca.public.crt")
-      --file.ca-private-key string    certificate authority private key to use to signing this certificate (default "ca.private.pem")
-      --file.certificate string       name of the file to export the certificate data to (default "public.crt")
-      --file.private-key string       name of the file to export the private key data to (default "private.pem")
-  -h, --help                          help for generate
-  -l, --locality strings              certificate locality
-      --not-before string             earliest date and time the certificate is considered valid formatted as Jan 2 15:04:05 2006 (default is now)
-  -o, --organization strings          certificate organization (default [Authelia])
-      --organizational-unit strings   certificate organizational unit
-      --path.ca string                source directory of the certificate authority files, if not provided the certificate will be self-signed
-  -p, --postcode strings              certificate postcode
-      --province strings              certificate province
-      --sans strings                  subject alternative names
-      --signature string              signature algorithm for the certificate (default "SHA256")
-  -s, --street-address strings        certificate street address
+      --bundle                           enables generating the certificate bundle if the --path.ca flag is set
+      --ca                               create the certificate as a certificate authority certificate
+  -n, --common-name string               certificate common name
+      --country strings                  certificate country
+  -b, --curve string                     Sets the elliptic curve which can be P224, P256, P384, or P521 (default "P256")
+  -d, --directory string                 directory where the generated keys, certificates, etc will be stored
+      --duration string                  duration of time the certificate is valid for (default "1y")
+      --extended-usage strings           specify the extended usage types of the certificate
+      --file.ca-certificate string       certificate authority certificate to use when signing this certificate (default "ca.public.crt")
+      --file.ca-private-key string       certificate authority private key to use to signing this certificate (default "ca.private.pem")
+      --file.certificate string          name of the file to export the certificate data to (default "public.crt")
+      --file.certificate-bundle string   name of the file to export the certificate bundle data to when the --bundle flag is set (default "public.bundle.crt")
+      --file.private-key string          name of the file to export the private key data to (default "private.pem")
+  -h, --help                             help for generate
+  -l, --locality strings                 certificate locality
+      --not-after string                 latest date and time the certificate is considered valid in various formats
+      --not-before string                earliest date and time the certificate is considered valid in various formats (default is now)
+  -o, --organization strings             certificate organization (default [Authelia])
+      --organizational-unit strings      certificate organizational unit
+      --path.ca string                   source directory of the certificate authority files, if not provided the certificate will be self-signed
+  -p, --postcode strings                 certificate postcode
+      --province strings                 certificate province
+      --sans strings                     subject alternative names
+      --signature string                 signature algorithm for the certificate (default "SHA256")
+  -s, --street-address strings           certificate street address
 ```
 
 ### Options inherited from parent commands
