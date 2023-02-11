@@ -5,5 +5,5 @@ services:
     volumes:
       - './MariaDB/configuration.yml:/config/configuration.yml:ro'
       - './MariaDB/users.yml:/config/users.yml'
-      - './common/pki:/config/ssl:ro'
+      - './common/pki:/pki:ro'
 ...

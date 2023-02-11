@@ -8,8 +8,8 @@ jwt_secret: unsecure_secret
 server:
   port: 9091
   tls:
-    certificate: /config/ssl/public.backend.crt
-    key: /config/ssl/private.backend.pem
+    certificate: /pki/public.backend.crt
+    key: /pki/private.backend.pem
 
 log:
   level: debug
