@@ -21,23 +21,18 @@ import (
 )
 
 // NewServerService creates a new ServerService with the appropriate logger etc.
-func NewServerService(name string, server *fasthttp.Server, listener net.Listener, paths []string, isTLS bool, logger *logrus.Logger) (service *ServerService) {
-	entry := logger.WithFields(logrus.Fields{
-		"service": "server",
-		"server":  name,
-	})
-
+func NewServerService(name string, server *fasthttp.Server, listener net.Listener, paths []string, isTLS bool, log *logrus.Logger) (service *ServerService) {
 	return &ServerService{
 		server:   server,
 		listener: listener,
 		paths:    paths,
 		isTLS:    isTLS,
-		log:      entry,
+		log:      log.WithFields(map[string]any{"service": "server", "server": name}),
 	}
 }
 
 // NewFileWatcherService creates a new FileWatcherService with the appropriate logger etc.
-func NewFileWatcherService(name, path string, reload ProviderReload, logger *logrus.Logger) (service *FileWatcherService, err error) {
+func NewFileWatcherService(name, path string, reload ProviderReload, log *logrus.Logger) (service *FileWatcherService, err error) {
 	if path == "" {
 		return nil, fmt.Errorf("path must be specified")
 	}
@@ -58,10 +53,7 @@ func NewFileWatcherService(name, path string, reload ProviderReload, logger *log
 		return nil, err
 	}
 
-	entry := logger.WithFields(logrus.Fields{
-		"service": "watcher",
-		"watcher": name,
-	})
+	entry := log.WithFields(map[string]any{"service": "watcher", "watcher": name})
 
 	if info.IsDir() {
 		service = &FileWatcherService{
@@ -151,7 +143,7 @@ func (service *FileWatcherService) Run() (err error) {
 		}
 	}()
 
-	service.log.Infof("Watching for file changes to the '%s' file", filepath.Join(service.directory, service.file))
+	service.log.WithField("file", filepath.Join(service.directory, service.file)).Info("Watching for file changes to the file")
 
 	for {
 		select {
@@ -161,26 +153,26 @@ func (service *FileWatcherService) Run() (err error) {
 			}
 
 			if service.file != "" && service.file != filepath.Base(event.Name) {
-				service.log.WithField("file", event.Name).WithField("op", event.Op).Tracef("File modification detected to irrelevant file")
+				service.log.WithFields(map[string]any{"file": event.Name, "op": event.Op}).Tracef("File modification detected to irrelevant file")
 				break
 			}
 
 			switch {
 			case event.Op&fsnotify.Write == fsnotify.Write, event.Op&fsnotify.Create == fsnotify.Create:
-				service.log.WithField("file", event.Name).WithField("op", event.Op).Debug("File modification was detected")
+				service.log.WithFields(map[string]any{"file": event.Name, "op": event.Op}).Debug("File modification was detected")
 
 				var reloaded bool
 
 				switch reloaded, err = service.reload.Reload(); {
 				case err != nil:
-					service.log.WithField("file", event.Name).WithField("op", event.Op).WithError(err).Error("Error occurred during reload")
+					service.log.WithFields(map[string]any{"file": event.Name, "op": event.Op}).WithError(err).Error("Error occurred during reload")
 				case reloaded:
 					service.log.WithField("file", event.Name).Info("Reloaded successfully")
 				default:
 					service.log.WithField("file", event.Name).Debug("Reload of was triggered but it was skipped")
 				}
 			case event.Op&fsnotify.Remove == fsnotify.Remove:
-				service.log.WithField("file", event.Name).WithField("op", event.Op).Debug("File remove was detected")
+				service.log.WithFields(map[string]any{"file": event.Name, "op": event.Op}).Debug("File remove was detected")
 			}
 		case err, ok := <-service.watcher.Errors:
 			if !ok {
