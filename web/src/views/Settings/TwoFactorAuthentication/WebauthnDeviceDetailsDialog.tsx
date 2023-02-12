@@ -4,17 +4,18 @@ import { Check, ContentCopy } from "@mui/icons-material";
 import {
     Box,
     Button,
+    CircularProgress,
     Dialog,
     DialogActions,
     DialogContent,
     DialogContentText,
     DialogTitle,
     Stack,
+    Tooltip,
     Typography,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import LoadingButton from "@components/LoadingButton";
 import { WebauthnDevice } from "@models/Webauthn";
 
 interface Props {
@@ -103,15 +104,18 @@ function PropertyCopyButton(props: PropertyTextProps) {
     };
 
     return (
-        <LoadingButton
-            loading={copying}
-            variant="outlined"
-            color={copied ? "success" : "primary"}
-            onClick={handleCopyToClipboard}
-            startIcon={copied ? <Check /> : <ContentCopy />}
-        >
-            {copied ? translate("Copied") : props.name}
-        </LoadingButton>
+        <Tooltip title={`${translate("Click to copy the")} ${props.name}`}>
+            <Button
+                variant="outlined"
+                color={copied ? "success" : "primary"}
+                onClick={copying ? undefined : handleCopyToClipboard}
+                startIcon={
+                    copying ? <CircularProgress color="inherit" size={20} /> : copied ? <Check /> : <ContentCopy />
+                }
+            >
+                {copied ? translate("Copied") : props.name}
+            </Button>
+        </Tooltip>
     );
 }
 

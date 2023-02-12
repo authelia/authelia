@@ -1,6 +1,6 @@
 import React, { Fragment, Suspense, useState } from "react";
 
-import { Box, Button, Paper, Stack, Typography } from "@mui/material";
+import { Box, Button, Paper, Stack, Tooltip, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { AutheliaState } from "@services/State";
@@ -41,15 +41,17 @@ export default function WebauthnDevices(props: Props) {
                             <Typography variant="h5">{translate("Webauthn Credentials")}</Typography>
                         </Box>
                         <Box>
-                            <Button
-                                variant="outlined"
-                                color="primary"
-                                onClick={() => {
-                                    setShowWebauthnDeviceRegisterDialog(true);
-                                }}
-                            >
-                                {translate("Add Credential")}
-                            </Button>
+                            <Tooltip title={translate("Click to add a Webauthn credential to your account")}>
+                                <Button
+                                    variant="outlined"
+                                    color="primary"
+                                    onClick={() => {
+                                        setShowWebauthnDeviceRegisterDialog(true);
+                                    }}
+                                >
+                                    {translate("Add Credential")}
+                                </Button>
+                            </Tooltip>
                         </Box>
                         <Suspense fallback={<LoadingPage />}>
                             <WebauthnDevicesStack

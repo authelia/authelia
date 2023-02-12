@@ -7,6 +7,8 @@
 	"Attestation Type": "Attestation Type",
 	"Authenticator Attestation GUID": "Authenticator Attestation GUID",
 	"Cancel": "Cancel",
+	"Click to add a Webauthn credential to your account": "Click to add a Webauthn credential to your account",
+	"Click to copy the": "Click to copy the",
 	"Clone Warning": "Clone Warning",
 	"Created": "Created",
 	"Delete": "Delete",
