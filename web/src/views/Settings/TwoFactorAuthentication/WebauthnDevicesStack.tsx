@@ -15,11 +15,11 @@ interface Props {
 export default function WebauthnDevicesStack(props: Props) {
     const { t: translate } = useTranslation("settings");
 
-    const [devices, setDevices] = useState<WebauthnDevice[]>([]);
+    const [devices, setDevices] = useState<WebauthnDevice[] | null>(null);
 
     useEffect(() => {
         (async function () {
-            setDevices([]);
+            setDevices(null);
             const devices = await getWebauthnDevices();
             setDevices(devices);
         })();
@@ -27,7 +27,7 @@ export default function WebauthnDevicesStack(props: Props) {
 
     return (
         <Fragment>
-            {devices.length !== 0 ? (
+            {devices !== null && devices.length !== 0 ? (
                 <Stack spacing={3}>
                     {devices.map((x, idx) => (
                         <WebauthnDeviceItem key={idx} index={idx} device={x} handleEdit={props.incrementRefreshState} />

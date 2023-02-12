@@ -64,11 +64,11 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
         setName("");
     };
 
-    const handleClose = () => {
+    const handleClose = useCallback(() => {
         resetStates();
 
         props.setCancelled();
-    };
+    }, [props]);
 
     const finishAttestation = async () => {
         if (!result || !result.response) {

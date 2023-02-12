@@ -46,16 +46,13 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlUpdateTOTPConfigRecordSignIn:           fmt.Sprintf(queryFmtUpdateTOTPConfigRecordSignIn, tableTOTPConfigurations),
 		sqlUpdateTOTPConfigRecordSignInByUsername: fmt.Sprintf(queryFmtUpdateTOTPConfigRecordSignInByUsername, tableTOTPConfigurations),
 
-		sqlUpsertWebauthnDevice:                           fmt.Sprintf(queryFmtUpsertWebauthnDevice, tableWebauthnDevices),
+		sqlInsertWebauthnDevice:                           fmt.Sprintf(queryFmtUpsertInsertDevice, tableWebauthnDevices),
 		sqlSelectWebauthnDevices:                          fmt.Sprintf(queryFmtSelectWebauthnDevices, tableWebauthnDevices),
 		sqlSelectWebauthnDevicesByUsername:                fmt.Sprintf(queryFmtSelectWebauthnDevicesByUsername, tableWebauthnDevices),
 		sqlSelectWebauthnDevicesByRPIDByUsername:          fmt.Sprintf(queryFmtSelectWebauthnDevicesByRPIDByUsername, tableWebauthnDevices),
 		sqlSelectWebauthnDeviceByID:                       fmt.Sprintf(queryFmtSelectWebauthnDeviceByID, tableWebauthnDevices),
 		sqlUpdateWebauthnDeviceDescriptionByUsernameAndID: fmt.Sprintf(queryFmtUpdateUpdateWebauthnDeviceDescriptionByUsernameAndID, tableWebauthnDevices),
-		sqlUpdateWebauthnDevicePublicKey:                  fmt.Sprintf(queryFmtUpdateWebauthnDevicePublicKey, tableWebauthnDevices),
-		sqlUpdateWebauthnDevicePublicKeyByUsername:        fmt.Sprintf(queryFmtUpdateWebauthnDevicePublicKeyByUsername, tableWebauthnDevices),
 		sqlUpdateWebauthnDeviceRecordSignIn:               fmt.Sprintf(queryFmtUpdateWebauthnDeviceRecordSignIn, tableWebauthnDevices),
-		sqlUpdateWebauthnDeviceRecordSignInByUsername:     fmt.Sprintf(queryFmtUpdateWebauthnDeviceRecordSignInByUsername, tableWebauthnDevices),
 		sqlDeleteWebauthnDevice:                           fmt.Sprintf(queryFmtDeleteWebauthnDevice, tableWebauthnDevices),
 		sqlDeleteWebauthnDeviceByUsername:                 fmt.Sprintf(queryFmtDeleteWebauthnDeviceByUsername, tableWebauthnDevices),
 		sqlDeleteWebauthnDeviceByUsernameAndDescription:   fmt.Sprintf(queryFmtDeleteWebauthnDeviceByUsernameAndDescription, tableWebauthnDevices),
@@ -164,17 +161,14 @@ type SQLProvider struct {
 	sqlUpdateTOTPConfigRecordSignInByUsername string
 
 	// Table: webauthn_devices.
-	sqlUpsertWebauthnDevice                  string
+	sqlInsertWebauthnDevice                  string
 	sqlSelectWebauthnDevices                 string
 	sqlSelectWebauthnDevicesByUsername       string
 	sqlSelectWebauthnDevicesByRPIDByUsername string
 	sqlSelectWebauthnDeviceByID              string
 
 	sqlUpdateWebauthnDeviceDescriptionByUsernameAndID string
-	sqlUpdateWebauthnDevicePublicKey                  string
-	sqlUpdateWebauthnDevicePublicKeyByUsername        string
 	sqlUpdateWebauthnDeviceRecordSignIn               string
-	sqlUpdateWebauthnDeviceRecordSignInByUsername     string
 
 	sqlDeleteWebauthnDevice                         string
 	sqlDeleteWebauthnDeviceByUsername               string
@@ -847,7 +841,7 @@ func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device model.Webau
 		return fmt.Errorf("error encrypting the Webauthn device public key for user '%s' kid '%x': %w", device.Username, device.KID, err)
 	}
 
-	if _, err = p.db.ExecContext(ctx, p.sqlUpsertWebauthnDevice,
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertWebauthnDevice,
 		device.CreatedAt, device.LastUsedAt,
 		device.RPID, device.Username, device.Description,
 		device.KID, device.PublicKey,

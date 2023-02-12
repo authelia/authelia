@@ -149,11 +149,6 @@ const (
 		SET public_key = ?
 		WHERE id = ?;`
 
-	queryFmtUpdateWebauthnDevicePublicKeyByUsername = `
-		UPDATE %s
-		SET public_key = ?
-		WHERE username = ? AND kid = ?;`
-
 	queryFmtUpdateUpdateWebauthnDeviceDescriptionByUsernameAndID = `
 		UPDATE %s
 		SET description = ?
@@ -166,22 +161,9 @@ const (
 			clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
 		WHERE id = ?;`
 
-	queryFmtUpdateWebauthnDeviceRecordSignInByUsername = `
-		UPDATE %s
-		SET
-			rpid = ?, last_used_at = ?, sign_count = ?,
-			clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
-		WHERE username = ? AND kid = ?;`
-
-	queryFmtUpsertWebauthnDevice = `
-		REPLACE INTO %s (created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
-
-	queryFmtUpsertWebauthnDevicePostgreSQL = `
+	queryFmtUpsertInsertDevice = `
 		INSERT INTO %s (created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-			ON CONFLICT (rpid, username, description)
-			DO UPDATE SET created_at = $1, last_used_at = $2, kid = $6, public_key = $7, attestation_type = $8, transport = $9, aaguid = $10, sign_count = $11, clone_warning = $12;`
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtDeleteWebauthnDevice = `
 		DELETE FROM %s

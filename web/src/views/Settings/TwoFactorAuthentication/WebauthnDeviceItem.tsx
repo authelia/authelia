@@ -4,10 +4,9 @@ import { Fingerprint } from "@mui/icons-material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import { Box, Button, Paper, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Paper, Stack, Tooltip, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import LoadingButton from "@components/LoadingButton";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { WebauthnDevice } from "@models/Webauthn";
 import { deleteDevice, updateDevice } from "@services/Webauthn";
@@ -169,26 +168,26 @@ export default function WebauthnDeviceItem(props: Props) {
                             </Button>
                         </Tooltip>
                         <Tooltip title={translate("Edit information for this Webauthn credential")}>
-                            <LoadingButton
-                                loading={loadingEdit}
+                            <Button
                                 variant="outlined"
                                 color="primary"
-                                startIcon={<EditIcon />}
-                                onClick={() => setShowDialogEdit(true)}
+                                startIcon={loadingEdit ? <CircularProgress color="inherit" size={20} /> : <EditIcon />}
+                                onClick={loadingEdit ? undefined : () => setShowDialogEdit(true)}
                             >
                                 {translate("Edit")}
-                            </LoadingButton>
+                            </Button>
                         </Tooltip>
                         <Tooltip title={translate("Remove this Webauthn credential")}>
-                            <LoadingButton
-                                loading={loadingDelete}
+                            <Button
                                 variant="outlined"
-                                color="secondary"
-                                startIcon={<DeleteIcon />}
-                                onClick={() => setShowDialogDelete(true)}
+                                color="primary"
+                                startIcon={
+                                    loadingDelete ? <CircularProgress color="inherit" size={20} /> : <DeleteIcon />
+                                }
+                                onClick={loadingDelete ? undefined : () => setShowDialogDelete(true)}
                             >
                                 {translate("Remove")}
-                            </LoadingButton>
+                            </Button>
                         </Tooltip>
                     </Stack>
                 </Box>
