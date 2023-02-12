@@ -19,7 +19,7 @@ const PasswordMeter = function (props: Props) {
     const [progressColor] = useState(["#D32F2F", "#FF5722", "#FFEB3B", "#AFB42B", "#62D32F"]);
     const [passwordScore, setPasswordScore] = useState(0);
     const [maxScores, setMaxScores] = useState(0);
-    const [feedback, setFeedback] = useState("");
+    const [feedback, setFeedback] = useState<string | null>(null);
 
     useEffect(() => {
         const password = props.value;
@@ -114,7 +114,7 @@ const PasswordMeter = function (props: Props) {
 
     return (
         <Box className={styles.progressContainer}>
-            <Box title={feedback} className={classnames(styles.progressBar)} />
+            <Box title={feedback === null ? "" : feedback} className={classnames(styles.progressBar)} />
         </Box>
     );
 };

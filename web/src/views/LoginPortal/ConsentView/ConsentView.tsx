@@ -47,22 +47,25 @@ function scopeNameToAvatar(id: string) {
 }
 
 const ConsentView = function (props: Props) {
-    const styles = useStyles();
     const { t: translate } = useTranslation();
+
+    const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoGET();
+
+    const { createErrorNotification, resetNotification } = useNotifications();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const redirect = useRedirector();
     const consentID = searchParams.get(Identifier);
-    const { createErrorNotification, resetNotification } = useNotifications();
+
     const [response, setResponse] = useState<ConsentGetResponseBody | undefined>(undefined);
     const [error, setError] = useState<any>(undefined);
     const [preConfigure, setPreConfigure] = useState(false);
 
+    const styles = useStyles();
+
     const handlePreConfigureChanged = () => {
         setPreConfigure((preConfigure) => !preConfigure);
     };
-
-    const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoGET();
 
     useEffect(() => {
         fetchUserInfo();
@@ -167,7 +170,7 @@ const ConsentView = function (props: Props) {
                         <div className={styles.scopesListContainer}>
                             <List className={styles.scopesList}>
                                 {response?.scopes.map((scope: string) => (
-                                    <Tooltip title={"Scope " + scope}>
+                                    <Tooltip title={translate("Scope", { name: scope })}>
                                         <ListItem id={"scope-" + scope} dense>
                                             <ListItemIcon>{scopeNameToAvatar(scope)}</ListItemIcon>
                                             <ListItemText primary={translateScopeNameToDescription(scope)} />
@@ -180,10 +183,7 @@ const ConsentView = function (props: Props) {
                     {response?.pre_configuration ? (
                         <Grid item xs={12}>
                             <Tooltip
-                                title={
-                                    translate("This saves this consent as a pre-configured consent for future use") ||
-                                    "This saves this consent as a pre-configured consent for future use"
-                                }
+                                title={translate("This saves this consent as a pre-configured consent for future use")}
                             >
                                 <FormControlLabel
                                     control={

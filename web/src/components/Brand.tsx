@@ -14,6 +14,7 @@ const url = "https://www.authelia.com";
 
 const Brand = function (props: Props) {
     const { t: translate } = useTranslation();
+
     const styles = useStyles();
     const privacyEnabled = getPrivacyPolicyEnabled();
 

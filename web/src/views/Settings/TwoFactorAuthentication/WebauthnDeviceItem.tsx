@@ -1,10 +1,10 @@
 import React, { Fragment, useState } from "react";
 
+import { Fingerprint } from "@mui/icons-material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import KeyRoundedIcon from "@mui/icons-material/KeyRounded";
-import { Box, Button, Stack, Typography } from "@mui/material";
+import { Box, Button, Paper, Stack, Tooltip, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import LoadingButton from "@components/LoadingButton";
@@ -18,8 +18,7 @@ import WebauthnDeviceEditDialog from "@views/Settings/TwoFactorAuthentication/We
 interface Props {
     index: number;
     device: WebauthnDevice;
-    handleDeviceEdit(index: number, device: WebauthnDevice): void;
-    handleDeviceDelete(device: WebauthnDevice): void;
+    handleEdit: () => void;
 }
 
 export default function WebauthnDeviceItem(props: Props) {
@@ -49,19 +48,21 @@ export default function WebauthnDeviceItem(props: Props) {
 
         if (response.data.status === "KO") {
             if (response.data.elevation) {
-                createErrorNotification(translate("You must be elevated to update the device"));
+                createErrorNotification(translate("You must be elevated to update Webauthn credentials"));
             } else if (response.data.authentication) {
-                createErrorNotification(translate("You must have a higher authentication level to update the device"));
+                createErrorNotification(
+                    translate("You must have a higher authentication level to update Webauthn credentials"),
+                );
             } else {
-                createErrorNotification(translate("There was a problem updating the device"));
+                createErrorNotification(translate("There was a problem updating the Webauthn credential"));
             }
 
             return;
         }
 
-        createSuccessNotification(translate("Successfully updated the device"));
+        createSuccessNotification(translate("Successfully updated the Webauthn credential"));
 
-        props.handleDeviceEdit(props.index, { ...props.device, description: name });
+        props.handleEdit();
     };
 
     const handleDelete = async (ok: boolean) => {
@@ -79,78 +80,119 @@ export default function WebauthnDeviceItem(props: Props) {
 
         if (response.data.status === "KO") {
             if (response.data.elevation) {
-                createErrorNotification(translate("You must be elevated to delete the device"));
+                createErrorNotification(translate("You must be elevated to delete Webauthn credentials"));
             } else if (response.data.authentication) {
-                createErrorNotification(translate("You must have a higher authentication level to delete the device"));
+                createErrorNotification(
+                    translate("You must have a higher authentication level to delete Webauthn credentials"),
+                );
             } else {
-                createErrorNotification(translate("There was a problem deleting the device"));
+                createErrorNotification(translate("There was a problem deleting the Webauthn credential"));
             }
 
             return;
         }
 
-        createSuccessNotification(translate("Successfully deleted the device"));
+        createSuccessNotification(translate("Successfully deleted the Webauthn credential"));
 
-        props.handleDeviceDelete(props.device);
+        props.handleEdit();
     };
 
     return (
         <Fragment>
-            <WebauthnDeviceDetailsDialog
-                device={props.device}
-                open={showDialogDetails}
-                handleClose={() => {
-                    setShowDialogDetails(false);
-                }}
-            />
-            <WebauthnDeviceEditDialog device={props.device} open={showDialogEdit} handleClose={handleEdit} />
-            <WebauthnDeviceDeleteDialog device={props.device} open={showDialogDelete} handleClose={handleDelete} />
-            <Stack direction="row" spacing={1} alignItems="center">
-                <KeyRoundedIcon fontSize="large" />
-                <Stack spacing={0} sx={{ minWidth: 400 }}>
-                    <Box>
-                        <Typography display="inline" sx={{ fontWeight: "bold" }}>
-                            {props.device.description}
-                        </Typography>
-                        <Typography
-                            display="inline"
-                            variant="body2"
-                        >{` (${props.device.attestation_type.toUpperCase()})`}</Typography>
-                    </Box>
-                    <Typography>Added {props.device.created_at.toString()}</Typography>
-                    <Typography>
-                        {props.device.last_used_at === undefined
-                            ? translate("Never used")
-                            : "Last used " + props.device.last_used_at.toString()}
-                    </Typography>
-                </Stack>
-                <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<InfoOutlinedIcon />}
-                    onClick={() => setShowDialogDetails(true)}
-                >
-                    {translate("Info")}
-                </Button>
-                <LoadingButton
-                    loading={loadingEdit}
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<EditIcon />}
-                    onClick={() => setShowDialogEdit(true)}
-                >
-                    {translate("Edit")}
-                </LoadingButton>
-                <LoadingButton
-                    loading={loadingDelete}
-                    variant="outlined"
-                    color="secondary"
-                    startIcon={<DeleteIcon />}
-                    onClick={() => setShowDialogDelete(true)}
-                >
-                    {translate("Remove")}
-                </LoadingButton>
-            </Stack>
+            <Paper variant="outlined">
+                <Box sx={{ p: 3 }}>
+                    <WebauthnDeviceDetailsDialog
+                        device={props.device}
+                        open={showDialogDetails}
+                        handleClose={() => {
+                            setShowDialogDetails(false);
+                        }}
+                    />
+                    <WebauthnDeviceEditDialog device={props.device} open={showDialogEdit} handleClose={handleEdit} />
+                    <WebauthnDeviceDeleteDialog
+                        device={props.device}
+                        open={showDialogDelete}
+                        handleClose={handleDelete}
+                    />
+                    <Stack direction="row" spacing={1} alignItems="center">
+                        <Fingerprint fontSize="large" color={"warning"} />
+                        <Stack spacing={0} sx={{ minWidth: 400 }}>
+                            <Box>
+                                <Typography display="inline" sx={{ fontWeight: "bold" }}>
+                                    {props.device.description}
+                                </Typography>
+                                <Typography
+                                    display="inline"
+                                    variant="body2"
+                                >{` (${props.device.attestation_type.toUpperCase()})`}</Typography>
+                            </Box>
+                            <Typography variant={"caption"}>
+                                {translate("Added", {
+                                    when: new Date(props.device.created_at),
+                                    formatParams: {
+                                        when: {
+                                            hour: "numeric",
+                                            minute: "numeric",
+                                            year: "numeric",
+                                            month: "long",
+                                            day: "numeric",
+                                        },
+                                    },
+                                })}
+                            </Typography>
+                            <Typography variant={"caption"}>
+                                {props.device.last_used_at === undefined
+                                    ? translate("Never used")
+                                    : translate("Last Used", {
+                                          when: new Date(props.device.last_used_at),
+                                          formatParams: {
+                                              when: {
+                                                  hour: "numeric",
+                                                  minute: "numeric",
+                                                  year: "numeric",
+                                                  month: "long",
+                                                  day: "numeric",
+                                              },
+                                          },
+                                      })}
+                            </Typography>
+                        </Stack>
+
+                        <Tooltip title={translate("Display extended information for this Webauthn credential")}>
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                startIcon={<InfoOutlinedIcon />}
+                                onClick={() => setShowDialogDetails(true)}
+                            >
+                                {translate("Info")}
+                            </Button>
+                        </Tooltip>
+                        <Tooltip title={translate("Edit information for this Webauthn credential")}>
+                            <LoadingButton
+                                loading={loadingEdit}
+                                variant="outlined"
+                                color="primary"
+                                startIcon={<EditIcon />}
+                                onClick={() => setShowDialogEdit(true)}
+                            >
+                                {translate("Edit")}
+                            </LoadingButton>
+                        </Tooltip>
+                        <Tooltip title={translate("Remove this Webauthn credential")}>
+                            <LoadingButton
+                                loading={loadingDelete}
+                                variant="outlined"
+                                color="secondary"
+                                startIcon={<DeleteIcon />}
+                                onClick={() => setShowDialogDelete(true)}
+                            >
+                                {translate("Remove")}
+                            </LoadingButton>
+                        </Tooltip>
+                    </Stack>
+                </Box>
+            </Paper>
         </Fragment>
     );
 }

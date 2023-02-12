@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 
+import { Check, ContentCopy } from "@mui/icons-material";
 import {
     Box,
     Button,
@@ -13,11 +14,12 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import LoadingButton from "@components/LoadingButton";
 import { WebauthnDevice } from "@models/Webauthn";
 
 interface Props {
     open: boolean;
-    device: WebauthnDevice | undefined;
+    device: WebauthnDevice;
     handleClose: () => void;
 }
 
@@ -26,43 +28,43 @@ export default function WebauthnDetailsDeleteDialog(props: Props) {
 
     return (
         <Dialog open={props.open} onClose={props.handleClose}>
-            <DialogTitle>Security key details</DialogTitle>
+            <DialogTitle>{translate("Webauthn Credential Details")}</DialogTitle>
             <DialogContent>
-                <DialogContentText sx={{ mb: 3 }}>{`Extended information for security key ${
-                    props.device ? props.device.description : "(unknown)"
-                }`}</DialogContentText>
-                {props.device && (
-                    <Stack spacing={0} sx={{ minWidth: 400 }}>
-                        <PropertyText
-                            name={translate("Credential Identifier")}
-                            value={props.device.kid.toString()}
-                            clipboard={true}
-                        />
-                        <PropertyText
-                            name={translate("Public Key")}
-                            value={props.device.public_key.toString()}
-                            clipboard={true}
-                        />
-                        <PropertyText name={translate("Relying Party ID")} value={props.device.rpid} />
-                        <PropertyText
-                            name={translate("Authenticator Attestation GUID")}
-                            value={props.device.aaguid === undefined ? "N/A" : props.device.aaguid}
-                        />
-                        <PropertyText name={translate("Attestation Type")} value={props.device.attestation_type} />
-                        <PropertyText
-                            name={translate("Transports")}
-                            value={props.device.transports.length === 0 ? "N/A" : props.device.transports.join(", ")}
-                        />
-                        <PropertyText
-                            name={translate("Clone Warning")}
-                            value={props.device.clone_warning ? translate("Yes") : translate("No")}
-                        />
-                        <PropertyText name={translate("Usage Count")} value={`${props.device.sign_count}`} />
-                    </Stack>
-                )}
+                <DialogContentText sx={{ mb: 3 }}>
+                    {translate("Extended Webauthn credential information for security key", {
+                        description: props.device.description,
+                    })}
+                </DialogContentText>
+                <Stack spacing={0} sx={{ minWidth: 400 }}>
+                    <Box paddingBottom={2}>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                            <PropertyCopyButton name={translate("Identifier")} value={props.device.kid.toString()} />
+                            <PropertyCopyButton
+                                name={translate("Public Key")}
+                                value={props.device.public_key.toString()}
+                            />
+                        </Stack>
+                    </Box>
+                    <PropertyText name={translate("Description")} value={props.device.description} />
+                    <PropertyText name={translate("Relying Party ID")} value={props.device.rpid} />
+                    <PropertyText
+                        name={translate("Authenticator Attestation GUID")}
+                        value={props.device.aaguid === undefined ? "N/A" : props.device.aaguid}
+                    />
+                    <PropertyText name={translate("Attestation Type")} value={props.device.attestation_type} />
+                    <PropertyText
+                        name={translate("Transports")}
+                        value={props.device.transports.length === 0 ? "N/A" : props.device.transports.join(", ")}
+                    />
+                    <PropertyText
+                        name={translate("Clone Warning")}
+                        value={props.device.clone_warning ? translate("Yes") : translate("No")}
+                    />
+                    <PropertyText name={translate("Usage Count")} value={`${props.device.sign_count}`} />
+                </Stack>
             </DialogContent>
             <DialogActions>
-                <Button onClick={props.handleClose}>Close</Button>
+                <Button onClick={props.handleClose}>{translate("Close")}</Button>
             </DialogActions>
         </Dialog>
     );
@@ -71,28 +73,55 @@ export default function WebauthnDetailsDeleteDialog(props: Props) {
 interface PropertyTextProps {
     name: string;
     value: string;
-    clipboard?: boolean;
 }
 
-function PropertyText(props: PropertyTextProps) {
+function PropertyCopyButton(props: PropertyTextProps) {
+    const { t: translate } = useTranslation("settings");
+
     const [copied, setCopied] = useState(false);
+    const [copying, setCopying] = useState(false);
 
     const handleCopyToClipboard = () => {
-        navigator.clipboard.writeText(props.value);
-        setCopied(true);
-        setTimeout(() => {
-            setCopied(false);
-        }, 3000);
+        if (copied) {
+            return;
+        }
+
+        (async () => {
+            setCopying(true);
+
+            await navigator.clipboard.writeText(props.value);
+
+            setTimeout(() => {
+                setCopying(false);
+                setCopied(true);
+            }, 500);
+
+            setTimeout(() => {
+                setCopied(false);
+            }, 2000);
+        })();
     };
 
     return (
-        <Box onClick={props.clipboard ? handleCopyToClipboard : undefined}>
+        <LoadingButton
+            loading={copying}
+            variant="outlined"
+            color={copied ? "success" : "primary"}
+            onClick={handleCopyToClipboard}
+            startIcon={copied ? <Check /> : <ContentCopy />}
+        >
+            {copied ? translate("Copied") : props.name}
+        </LoadingButton>
+    );
+}
+
+function PropertyText(props: PropertyTextProps) {
+    return (
+        <Box>
             <Typography display="inline" sx={{ fontWeight: "bold" }}>
                 {`${props.name}: `}
             </Typography>
-            <Typography display="inline">
-                {props.clipboard ? (copied ? "(copied to clipboard)" : "(click to copy)") : props.value}
-            </Typography>
+            <Typography display="inline">{props.value}</Typography>
         </Box>
     );
 }

@@ -1,55 +1,40 @@
 import React, { Fragment, useEffect, useState } from "react";
 
 import { Stack, Typography } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 import { WebauthnDevice } from "@models/Webauthn";
 import { getWebauthnDevices } from "@services/UserWebauthnDevices";
 import WebauthnDeviceItem from "@views/Settings/TwoFactorAuthentication/WebauthnDeviceItem";
 
-interface Props {}
+interface Props {
+    refreshState: number;
+    incrementRefreshState: () => void;
+}
 
 export default function WebauthnDevicesStack(props: Props) {
+    const { t: translate } = useTranslation("settings");
+
     const [devices, setDevices] = useState<WebauthnDevice[]>([]);
 
     useEffect(() => {
         (async function () {
+            setDevices([]);
             const devices = await getWebauthnDevices();
             setDevices(devices);
         })();
-    }, []);
-
-    const handleEdit = (index: number, device: WebauthnDevice) => {
-        const nextDevices = devices.map((d, i) => {
-            if (i === index) {
-                return device;
-            } else {
-                return d;
-            }
-        });
-
-        setDevices(nextDevices);
-    };
-
-    const handleDelete = (device: WebauthnDevice) => {
-        setDevices(devices.filter((d) => d.id !== device.id && d.kid !== device.kid));
-    };
+    }, [props.refreshState]);
 
     return (
         <Fragment>
-            {devices ? (
+            {devices.length !== 0 ? (
                 <Stack spacing={3}>
                     {devices.map((x, idx) => (
-                        <WebauthnDeviceItem
-                            key={idx}
-                            index={idx}
-                            device={x}
-                            handleDeviceEdit={handleEdit}
-                            handleDeviceDelete={handleDelete}
-                        />
+                        <WebauthnDeviceItem key={idx} index={idx} device={x} handleEdit={props.incrementRefreshState} />
                     ))}
                 </Stack>
             ) : (
-                <Typography>No Registered Webauthn Devices</Typography>
+                <Typography>{translate("No Registered Webauthn Credentials")}</Typography>
             )}
         </Fragment>
     );

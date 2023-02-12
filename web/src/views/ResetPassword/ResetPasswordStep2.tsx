@@ -153,7 +153,7 @@ const ResetPasswordStep2 = function () {
                         value={password2}
                         onChange={(e) => setPassword2(e.target.value)}
                         error={errorPassword2}
-                        onKeyPress={(ev) => {
+                        onKeyDown={(ev) => {
                             if (ev.key === "Enter") {
                                 doResetPassword();
                                 ev.preventDefault();

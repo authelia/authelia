@@ -6,9 +6,9 @@ import { useTranslation } from "react-i18next";
 import { getPrivacyPolicyURL } from "@utils/Configuration";
 
 const PrivacyPolicyLink = function (props: LinkProps) {
-    const hrefPrivacyPolicy = getPrivacyPolicyURL();
-
     const { t: translate } = useTranslation();
+
+    const hrefPrivacyPolicy = getPrivacyPolicyURL();
 
     return (
         <Fragment>

@@ -20,15 +20,18 @@ import LoginLayout from "@layouts/LoginLayout";
 import { completeTOTPRegistrationProcess } from "@services/RegisterDevice";
 
 const RegisterOneTimePassword = function () {
+    const { t: translate } = useTranslation();
+
     const styles = useStyles();
+
     const navigate = useNavigate();
+    const { createSuccessNotification, createErrorNotification } = useNotifications();
+
     // The secret retrieved from the API is all is ok.
     const [secretURL, setSecretURL] = useState("empty");
     const [secretBase32, setSecretBase32] = useState(undefined as string | undefined);
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
     const [hasErrored, setHasErrored] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const { t: translate } = useTranslation();
 
     // Get the token from the query param to give it back to the API when requesting
     // the secret for OTP.

@@ -1,18 +1,28 @@
 import React, { Fragment, MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
 
-import { Box, Button, Grid, Stack, Step, StepLabel, Stepper, Theme, Typography } from "@mui/material";
+import {
+    Box,
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Grid,
+    Stack,
+    Step,
+    StepLabel,
+    Stepper,
+    TextField,
+    Theme,
+    Typography,
+} from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/typescript-types";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 
-import FixedTextField from "@components/FixedTextField";
 import InformationIcon from "@components/InformationIcon";
-import SuccessIcon from "@components/SuccessIcon";
-import WebauthnTryIcon from "@components/WebauthnTryIcon";
-import { SettingsRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
+import WebauthnRegisterIcon from "@components/WebauthnRegisterIcon";
 import { useNotifications } from "@hooks/NotificationsContext";
-import LoginLayout from "@layouts/LoginLayout";
 import {
     AttestationResult,
     AttestationResultFailureString,
@@ -24,25 +34,40 @@ import { finishRegistration, getAttestationCreationOptions, startWebauthnRegistr
 const steps = ["Confirm device", "Choose name"];
 
 interface Props {
-    est: AuthenticatorSelectionCriteria;
+    open: boolean;
+    onClose: () => void;
+    setCancelled: () => void;
 }
 
-const RegisterWebauthn = function (props: Props) {
-    const [state, setState] = useState(WebauthnTouchState.WaitTouch);
+const WebauthnDeviceRegisterDialog = function (props: Props) {
+    const { t: translate } = useTranslation("settings");
+
     const styles = useStyles();
-    const navigate = useNavigate();
-    const { t: translate } = useTranslation();
     const { createErrorNotification } = useNotifications();
 
-    const [activeStep, setActiveStep] = React.useState(0);
-    const [result, setResult] = React.useState(null as null | RegistrationResult);
-    const [options, setOptions] = useState(null as null | PublicKeyCredentialCreationOptionsJSON);
+    const [state, setState] = useState(WebauthnTouchState.WaitTouch);
+    const [activeStep, setActiveStep] = useState(0);
+    const [result, setResult] = useState<RegistrationResult | null>(null);
+    const [options, setOptions] = useState<PublicKeyCredentialCreationOptionsJSON | null>(null);
+    const [timeout, setTimeout] = useState<number | null>(null);
     const [deviceName, setName] = useState("");
+
     const nameRef = useRef() as MutableRefObject<HTMLInputElement>;
     const [nameError, setNameError] = useState(false);
 
-    const handleBackClick = () => {
-        navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
+    const resetStates = () => {
+        setState(WebauthnTouchState.WaitTouch);
+        setActiveStep(0);
+        setResult(null);
+        setOptions(null);
+        setTimeout(null);
+        setName("");
+    };
+
+    const handleClose = () => {
+        resetStates();
+
+        props.setCancelled();
     };
 
     const finishAttestation = async () => {
@@ -58,8 +83,7 @@ const RegisterWebauthn = function (props: Props) {
         const res = await finishRegistration(result.response, deviceName);
         switch (res.status) {
             case AttestationResult.Success:
-                setActiveStep(2);
-                navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
+                handleClose();
                 break;
             case AttestationResult.Failure:
                 createErrorNotification(res.message);
@@ -71,7 +95,7 @@ const RegisterWebauthn = function (props: Props) {
             return;
         }
 
-        console.log("start registration");
+        setTimeout(options.timeout ? options.timeout : null);
 
         try {
             setState(WebauthnTouchState.WaitTouch);
@@ -79,7 +103,7 @@ const RegisterWebauthn = function (props: Props) {
 
             const res = await startWebauthnRegistration(options);
 
-            console.log("got response", res.result);
+            setTimeout(null);
 
             if (res.result === AttestationResult.Success) {
                 if (res.response == null) {
@@ -103,13 +127,29 @@ const RegisterWebauthn = function (props: Props) {
     }, [options, createErrorNotification]);
 
     useEffect(() => {
-        if (options !== null) {
-            startRegistration();
+        if (state !== WebauthnTouchState.Failure || activeStep !== 0 || !props.open) {
+            return;
         }
-    }, [options, startRegistration]);
+
+        handleClose();
+    }, [props, state, activeStep, handleClose]);
 
     useEffect(() => {
         (async () => {
+            if (options === null || !props.open || activeStep !== 0) {
+                return;
+            }
+
+            await startRegistration();
+        })();
+    }, [options, props.open, activeStep, startRegistration]);
+
+    useEffect(() => {
+        (async () => {
+            if (!props.open || activeStep !== 0) {
+                return;
+            }
+
             const res = await getAttestationCreationOptions();
             if (res.status !== 200 || !res.options) {
                 createErrorNotification(
@@ -119,39 +159,31 @@ const RegisterWebauthn = function (props: Props) {
             }
             setOptions(res.options);
         })();
-    }, [setOptions, createErrorNotification]);
+    }, [setOptions, createErrorNotification, props.open, activeStep]);
 
     function renderStep(step: number) {
         switch (step) {
             case 0:
                 return (
                     <Fragment>
-                        <div className={styles.icon}>
-                            <WebauthnTryIcon onRetryClick={startRegistration} webauthnTouchState={state} />
-                        </div>
-                        <Typography className={styles.instruction}>Touch the token on your security key</Typography>
-                        <Grid container spacing={1}>
-                            <Grid item xs={12}>
-                                <Stack direction="row" spacing={1} justifyContent="center">
-                                    <Button color="primary" onClick={handleBackClick}>
-                                        Cancel
-                                    </Button>
-                                </Stack>
-                            </Grid>
-                        </Grid>
+                        <Box className={styles.icon}>
+                            {timeout !== null ? <WebauthnRegisterIcon timeout={timeout} /> : null}
+                        </Box>
+                        <Typography className={styles.instruction}>
+                            {translate("Touch the token on your security key")}
+                        </Typography>
                     </Fragment>
                 );
             case 1:
                 return (
-                    <div id="webauthn-registration-name">
-                        <div className={styles.icon}>
+                    <Box id="webauthn-registration-name">
+                        <Box className={styles.icon}>
                             <InformationIcon />
-                        </div>
-                        <Typography className={styles.instruction}>Enter a name for this key</Typography>
+                        </Box>
+                        <Typography className={styles.instruction}>{translate("Enter a name for this key")}</Typography>
                         <Grid container spacing={1}>
                             <Grid item xs={12}>
-                                <FixedTextField
-                                    // TODO (PR: #806, Issue: #511) potentially refactor
+                                <TextField
                                     inputRef={nameRef}
                                     id="name-textfield"
                                     label={translate("Name")}
@@ -159,18 +191,19 @@ const RegisterWebauthn = function (props: Props) {
                                     required
                                     value={deviceName}
                                     error={nameError}
-                                    fullWidth
                                     disabled={false}
                                     onChange={(v) => setName(v.target.value.substring(0, 30))}
                                     onFocus={() => setNameError(false)}
                                     autoCapitalize="none"
                                     autoComplete="webauthn-name"
-                                    onKeyPress={(ev) => {
+                                    onKeyDown={(ev) => {
                                         if (ev.key === "Enter") {
                                             if (!deviceName.length) {
                                                 setNameError(true);
                                             } else {
-                                                finishAttestation();
+                                                (async () => {
+                                                    await finishAttestation();
+                                                })();
                                             }
                                             ev.preventDefault();
                                         }
@@ -178,35 +211,32 @@ const RegisterWebauthn = function (props: Props) {
                                 />
                             </Grid>
                             <Grid item xs={12}>
-                                <Stack direction="row" spacing={1} justifyContent="center">
-                                    <Button color="primary" variant="outlined" onClick={startRegistration}>
-                                        Back
-                                    </Button>
+                                <Stack direction="row" spacing={1} justifyContent="center" paddingTop={1}>
                                     <Button color="primary" variant="contained" onClick={finishAttestation}>
-                                        Finish
+                                        {translate("Finish")}
                                     </Button>
                                 </Stack>
                             </Grid>
                         </Grid>
-                    </div>
-                );
-            case 2:
-                return (
-                    <div id="webauthn-registration-success">
-                        <div className={styles.iconContainer}>
-                            <SuccessIcon />
-                        </div>
-                        <Typography>{translate("Registration success")}</Typography>
-                    </div>
+                    </Box>
                 );
         }
     }
 
+    const handleOnClose = () => {
+        if (activeStep === 0 || !props.open) {
+            return;
+        }
+
+        handleClose();
+    };
+
     return (
-        <LoginLayout title="Register Security Key">
-            <Grid container>
-                <Grid item xs={12} className={styles.methodContainer}>
-                    <Box sx={{ width: "100%" }}>
+        <Dialog open={props.open} onClose={handleOnClose} maxWidth={"xs"} fullWidth={true}>
+            <DialogTitle>{translate("Register Webauthn Credential (Security Key)")}</DialogTitle>
+            <DialogContent>
+                <Grid container spacing={0} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
+                    <Grid item xs={12}>
                         <Stepper activeStep={activeStep}>
                             {steps.map((label, index) => {
                                 const stepProps: { completed?: boolean } = {};
@@ -215,38 +245,34 @@ const RegisterWebauthn = function (props: Props) {
                                 } = {};
                                 return (
                                     <Step key={label} {...stepProps}>
-                                        <StepLabel {...labelProps}>{label}</StepLabel>
+                                        <StepLabel {...labelProps}>{translate(label)}</StepLabel>
                                     </Step>
                                 );
                             })}
                         </Stepper>
+                    </Grid>
+                    <Grid item xs={12}>
                         {renderStep(activeStep)}
-                    </Box>
+                    </Grid>
                 </Grid>
-            </Grid>
-        </LoginLayout>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={handleClose} disabled={activeStep === 0 && state !== WebauthnTouchState.Failure}>
+                    {translate("Cancel")}
+                </Button>
+            </DialogActions>
+        </Dialog>
     );
 };
 
-export default RegisterWebauthn;
+export default WebauthnDeviceRegisterDialog;
 
 const useStyles = makeStyles((theme: Theme) => ({
     icon: {
         paddingTop: theme.spacing(4),
         paddingBottom: theme.spacing(4),
     },
-    iconContainer: {
-        marginBottom: theme.spacing(2),
-        flex: "0 0 100%",
-    },
     instruction: {
         paddingBottom: theme.spacing(4),
-    },
-    methodContainer: {
-        border: "1px solid #d6d6d6",
-        borderRadius: "10px",
-        padding: theme.spacing(4),
-        marginTop: theme.spacing(2),
-        marginBottom: theme.spacing(2),
     },
 }));

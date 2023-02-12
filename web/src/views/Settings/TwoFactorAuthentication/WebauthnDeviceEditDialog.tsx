@@ -1,19 +1,19 @@
 import React, { MutableRefObject, useRef, useState } from "react";
 
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import FixedTextField from "@components/FixedTextField";
 import { WebauthnDevice } from "@models/Webauthn";
 
 interface Props {
     open: boolean;
-    device: WebauthnDevice | undefined;
+    device: WebauthnDevice;
     handleClose: (ok: boolean, name: string) => void;
 }
 
 export default function WebauthnDeviceEditDialog(props: Props) {
-    const { t: translate } = useTranslation();
+    const { t: translate } = useTranslation("settings");
+
     const [deviceName, setName] = useState("");
     const nameRef = useRef() as MutableRefObject<HTMLInputElement>;
     const [nameError, setNameError] = useState(false);
@@ -34,11 +34,10 @@ export default function WebauthnDeviceEditDialog(props: Props) {
 
     return (
         <Dialog open={props.open} onClose={handleCancel}>
-            <DialogTitle>{`Edit ${props.device ? props.device.description : "(unknown)"}`}</DialogTitle>
+            <DialogTitle>{translate("Edit Webauthn Credential")}</DialogTitle>
             <DialogContent>
-                <DialogContentText>Enter a new name for this device:</DialogContentText>
-                <FixedTextField
-                    // TODO (PR: #806, Issue: #511) potentially refactor
+                <DialogContentText>{translate("Enter a new name for this Webauthn credential")}</DialogContentText>
+                <TextField
                     autoFocus
                     inputRef={nameRef}
                     id="name-textfield"
@@ -55,7 +54,7 @@ export default function WebauthnDeviceEditDialog(props: Props) {
                     }}
                     autoCapitalize="none"
                     autoComplete="webauthn-name"
-                    onKeyPress={(ev) => {
+                    onKeyDown={(ev) => {
                         if (ev.key === "Enter") {
                             handleConfirm();
                             ev.preventDefault();
@@ -64,8 +63,8 @@ export default function WebauthnDeviceEditDialog(props: Props) {
                 />
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleCancel}>Cancel</Button>
-                <Button onClick={handleConfirm}>Update</Button>
+                <Button onClick={handleCancel}>{translate("Cancel")}</Button>
+                <Button onClick={handleConfirm}>{translate("Update")}</Button>
             </DialogActions>
         </Dialog>
     );

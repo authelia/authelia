@@ -107,8 +107,8 @@ export interface AuthenticationResult {
 
 export interface WebauthnDevice {
     id: string;
-    created_at: Date;
-    last_used_at?: Date;
+    created_at: string;
+    last_used_at?: string;
     rpid: string;
     description: string;
     kid: Uint8Array;

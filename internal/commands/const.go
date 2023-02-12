@@ -774,5 +774,5 @@ Layouts:
 )
 
 const (
-	fmtLogServerListening = "Server is listening for %s connections on '%s' path '%s'"
+	fmtLogServerListening = "Listening for %s connections on '%s' path '%s'"
 )

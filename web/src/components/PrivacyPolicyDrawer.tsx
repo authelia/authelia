@@ -6,10 +6,11 @@ import { usePersistentStorageValue } from "@hooks/PersistentStorage";
 import { getPrivacyPolicyEnabled, getPrivacyPolicyRequireAccept } from "@utils/Configuration";
 
 const PrivacyPolicyDrawer = function (props: DrawerProps) {
+    const { t: translate } = useTranslation();
+
     const privacyEnabled = getPrivacyPolicyEnabled();
     const privacyRequireAccept = getPrivacyPolicyRequireAccept();
     const [accepted, setAccepted] = usePersistentStorageValue<boolean>("privacy-policy-accepted", false);
-    const { t: translate } = useTranslation();
 
     return privacyEnabled && privacyRequireAccept && !accepted ? (
         <Drawer {...props} anchor="bottom" open={!accepted}>

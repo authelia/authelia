@@ -16,18 +16,19 @@ import { getLogoOverride } from "@utils/Configuration";
 export interface Props {
     id?: string;
     children?: ReactNode;
-    title?: string;
-    titleTooltip?: string;
-    subtitle?: string;
-    subtitleTooltip?: string;
+    title?: string | null;
+    titleTooltip?: string | null;
+    subtitle?: string | null;
+    subtitleTooltip?: string | null;
     showBrand?: boolean;
     showSettings?: boolean;
 }
 
 const LoginLayout = function (props: Props) {
+    const { t: translate } = useTranslation();
+
     const navigate = useNavigate();
     const styles = useStyles();
-    const { t: translate } = useTranslation();
 
     const logo = getLogoOverride() ? (
         <img src="./static/media/logo.png" alt="Logo" className={styles.icon} />
@@ -82,7 +83,7 @@ const LoginLayout = function (props: Props) {
                                 <TypographyWithTooltip
                                     variant={"h5"}
                                     value={props.title}
-                                    tooltip={props.titleTooltip}
+                                    tooltip={props.titleTooltip !== null ? props.titleTooltip : undefined}
                                 />
                             </Grid>
                         ) : null}
@@ -91,7 +92,7 @@ const LoginLayout = function (props: Props) {
                                 <TypographyWithTooltip
                                     variant={"h6"}
                                     value={props.subtitle}
-                                    tooltip={props.subtitleTooltip}
+                                    tooltip={props.subtitleTooltip !== null ? props.subtitleTooltip : undefined}
                                 />
                             </Grid>
                         ) : null}

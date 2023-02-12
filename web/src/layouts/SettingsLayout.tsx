@@ -33,6 +33,7 @@ const defaultDrawerWidth = 240;
 
 const SettingsLayout = function (props: Props) {
     const { t: translate } = useTranslation("settings");
+
     const navigate = useRouterNavigate();
 
     useEffect(() => {
@@ -65,7 +66,7 @@ const SettingsLayout = function (props: Props) {
                             navigate(IndexRoute);
                         }}
                     >
-                        {"Close"}
+                        {translate("Close")}
                     </Button>
                 </Toolbar>
             </AppBar>
@@ -114,7 +115,7 @@ const SettingsMenuItem = function (props: SettingsMenuItemProps) {
     const navigate = useRouterNavigate();
 
     return (
-        <ListItem disablePadding onClick={selected ? () => console.log("selected") : () => navigate(props.pathname)}>
+        <ListItem disablePadding onClick={!selected ? () => navigate(props.pathname) : undefined}>
             <ListItemButton selected={selected}>
                 <ListItemIcon>{props.icon}</ListItemIcon>
                 <ListItemText primary={props.text} />

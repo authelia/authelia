@@ -144,7 +144,6 @@ export async function startWebauthnRegistration(options: PublicKeyCredentialCrea
     };
 
     try {
-        console.log(JSON.stringify(options));
         result.response = await startRegistration(options);
     } catch (e) {
         const exception = e as DOMException;
