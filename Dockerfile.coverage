@@ -39,9 +39,9 @@ RUN \
 	mv api internal/server/public_html/api && \
 	cd cmd/authelia && \
 	chmod 0666 /go/src/app/.healthcheck.env && \
-	echo ">> Starting go build (coverage via go test)..." && \
-	CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LDFLAGS="-Wl,-z,relro,-z,now" go test -c --tags coverage -covermode=atomic \
-	-ldflags "${LDFLAGS_EXTRA}" -o authelia -coverpkg github.com/authelia/authelia/...
+	echo ">> Starting go build (coverage via -cover)..." && \
+    CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LDFLAGS="-Wl,-z,relro,-z,now" go build -cover -covermode=atomic \
+	-ldflags "${LDFLAGS_EXTRA}" -o authelia
 
 # ===================================
 # ===== Authelia official image =====
@@ -59,7 +59,8 @@ EXPOSE 9091
 VOLUME /config
 
 ENV PATH="/app:${PATH}" \
+	GOCOVERDIR="/authelia/coverage/" \
     X_AUTHELIA_CONFIG="/config/configuration.yml"
 
-CMD ["authelia", "-test.coverprofile=/authelia/coverage.txt", "COVERAGE"]
+CMD ["authelia"]
 HEALTHCHECK --interval=30s --timeout=3s CMD /app/healthcheck.sh
