@@ -4,7 +4,7 @@
 ###############################################################
 
 jwt_secret: unsecure_secret
-theme: auto
+theme: dark
 
 server:
   address: 'tcp://:9091'
@@ -48,6 +48,18 @@ storage:
 
 totp:
   issuer: example.com
+  allowed_algorithms:
+    - SHA1
+    - SHA256
+    - SHA512
+  allowed_digits:
+    - 6
+    - 8
+  allowed_periods:
+    - 30
+    - 60
+    - 90
+    - 120
 
 access_control:
   default_policy: deny

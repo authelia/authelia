@@ -8,7 +8,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// ValidateTOTP validates and update TOTP configuration.
+// ValidateTOTP validates and updates TOTP configuration.
 func ValidateTOTP(config *schema.Configuration, validator *schema.StructValidator) {
 	if config.TOTP.Disable {
 		return
@@ -18,26 +18,73 @@ func ValidateTOTP(config *schema.Configuration, validator *schema.StructValidato
 		config.TOTP.Issuer = schema.DefaultTOTPConfiguration.Issuer
 	}
 
-	if config.TOTP.Algorithm == "" {
-		config.TOTP.Algorithm = schema.DefaultTOTPConfiguration.Algorithm
+	if config.TOTP.DefaultAlgorithm == "" {
+		config.TOTP.DefaultAlgorithm = schema.DefaultTOTPConfiguration.DefaultAlgorithm
 	} else {
-		config.TOTP.Algorithm = strings.ToUpper(config.TOTP.Algorithm)
+		config.TOTP.DefaultAlgorithm = strings.ToUpper(config.TOTP.DefaultAlgorithm)
 
-		if !utils.IsStringInSlice(config.TOTP.Algorithm, schema.TOTPPossibleAlgorithms) {
-			validator.Push(fmt.Errorf(errFmtTOTPInvalidAlgorithm, strJoinOr(schema.TOTPPossibleAlgorithms), config.TOTP.Algorithm))
+		if !utils.IsStringInSlice(config.TOTP.DefaultAlgorithm, schema.TOTPPossibleAlgorithms) {
+			validator.Push(fmt.Errorf(errFmtTOTPInvalidAlgorithm, strings.Join(schema.TOTPPossibleAlgorithms, "', '"), config.TOTP.DefaultAlgorithm))
 		}
 	}
 
-	if config.TOTP.Period == 0 {
-		config.TOTP.Period = schema.DefaultTOTPConfiguration.Period
-	} else if config.TOTP.Period < 15 {
-		validator.Push(fmt.Errorf(errFmtTOTPInvalidPeriod, config.TOTP.Period))
+	for i, algorithm := range config.TOTP.AllowedAlgorithms {
+		config.TOTP.AllowedAlgorithms[i] = strings.ToUpper(algorithm)
+
+		// TODO: Customize this error.
+		if !utils.IsStringInSlice(config.TOTP.AllowedAlgorithms[i], schema.TOTPPossibleAlgorithms) {
+			validator.Push(fmt.Errorf(errFmtTOTPInvalidAlgorithm, strings.Join(schema.TOTPPossibleAlgorithms, "', '"), config.TOTP.AllowedAlgorithms[i]))
+		}
 	}
 
-	if config.TOTP.Digits == 0 {
-		config.TOTP.Digits = schema.DefaultTOTPConfiguration.Digits
-	} else if config.TOTP.Digits != 6 && config.TOTP.Digits != 8 {
-		validator.Push(fmt.Errorf(errFmtTOTPInvalidDigits, config.TOTP.Digits))
+	if !utils.IsStringInSlice(config.TOTP.DefaultAlgorithm, config.TOTP.AllowedAlgorithms) {
+		config.TOTP.AllowedAlgorithms = append(config.TOTP.AllowedAlgorithms, config.TOTP.DefaultAlgorithm)
+	}
+
+	if config.TOTP.DefaultPeriod == 0 {
+		config.TOTP.DefaultPeriod = schema.DefaultTOTPConfiguration.DefaultPeriod
+	} else if config.TOTP.DefaultPeriod < 15 {
+		validator.Push(fmt.Errorf(errFmtTOTPInvalidPeriod, config.TOTP.DefaultPeriod))
+	}
+
+	var hasDefaultPeriod bool
+
+	for _, period := range config.TOTP.AllowedPeriods {
+		// TODO: Customize this error.
+		if period < 15 {
+			validator.Push(fmt.Errorf(errFmtTOTPInvalidPeriod, period))
+		}
+
+		if period == config.TOTP.DefaultPeriod {
+			hasDefaultPeriod = true
+		}
+	}
+
+	if !hasDefaultPeriod {
+		config.TOTP.AllowedPeriods = append(config.TOTP.AllowedPeriods, config.TOTP.DefaultPeriod)
+	}
+
+	if config.TOTP.DefaultDigits == 0 {
+		config.TOTP.DefaultDigits = schema.DefaultTOTPConfiguration.DefaultDigits
+	} else if config.TOTP.DefaultDigits != 6 && config.TOTP.DefaultDigits != 8 {
+		validator.Push(fmt.Errorf(errFmtTOTPInvalidDigits, config.TOTP.DefaultDigits))
+	}
+
+	var hasDefaultDigits bool
+
+	for _, digits := range config.TOTP.AllowedDigits {
+		// TODO: Customize this error.
+		if digits != 6 && digits != 8 {
+			validator.Push(fmt.Errorf(errFmtTOTPInvalidDigits, config.TOTP.DefaultDigits))
+		}
+
+		if digits == config.TOTP.DefaultDigits {
+			hasDefaultDigits = true
+		}
+	}
+
+	if !hasDefaultDigits {
+		config.TOTP.AllowedDigits = append(config.TOTP.AllowedDigits, config.TOTP.DefaultDigits)
 	}
 
 	if config.TOTP.Skew == nil {

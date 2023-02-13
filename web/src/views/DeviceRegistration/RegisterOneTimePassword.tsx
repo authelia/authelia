@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import { IconDefinition, faCopy, faKey, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Button, CircularProgress, IconButton, Link, TextField, Theme, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, IconButton, Link, TextField, Theme, Typography } from "@mui/material";
 import { red } from "@mui/material/colors";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
@@ -92,8 +92,8 @@ const RegisterOneTimePassword = function () {
 
     return (
         <LoginLayout title={translate("Scan QR Code")}>
-            <div className={styles.root}>
-                <div className={styles.googleAuthenticator}>
+            <Box className={styles.root}>
+                <Box className={styles.googleAuthenticator}>
                     <Typography className={styles.googleAuthenticatorText}>
                         {translate("Need Google Authenticator?")}
                     </Typography>
@@ -104,15 +104,15 @@ const RegisterOneTimePassword = function () {
                         googlePlayLink={GoogleAuthenticator.googlePlay}
                         appleStoreLink={GoogleAuthenticator.appleStore}
                     />
-                </div>
-                <div className={classnames(qrcodeFuzzyStyle, styles.qrcodeContainer)}>
+                </Box>
+                <Box className={classnames(qrcodeFuzzyStyle, styles.qrcodeContainer)}>
                     <Link href={secretURL} underline="hover">
                         <QRCodeSVG value={secretURL} className={styles.qrcode} size={256} />
                         {!hasErrored && isLoading ? <CircularProgress className={styles.loader} size={128} /> : null}
                         {hasErrored ? <FontAwesomeIcon className={styles.failureIcon} icon={faTimesCircle} /> : null}
                     </Link>
-                </div>
-                <div>
+                </Box>
+                <Box>
                     {secretURL !== "empty" ? (
                         <TextField
                             id="secret-url"
@@ -130,7 +130,7 @@ const RegisterOneTimePassword = function () {
                     {secretURL !== "empty"
                         ? SecretButton(secretURL, translate("OTP URL copied to clipboard"), faCopy)
                         : null}
-                </div>
+                </Box>
                 <Button
                     variant="contained"
                     color="primary"
@@ -140,7 +140,7 @@ const RegisterOneTimePassword = function () {
                 >
                     {translate("Done")}
                 </Button>
-            </div>
+            </Box>
         </LoginLayout>
     );
 };
