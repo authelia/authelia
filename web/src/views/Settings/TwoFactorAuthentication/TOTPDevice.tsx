@@ -11,6 +11,7 @@ import { deleteUserTOTPConfiguration } from "@services/UserInfoTOTPConfiguration
 import DeleteDialog from "@views/Settings/TwoFactorAuthentication/DeleteDialog";
 
 interface Props {
+    index: number;
     config: UserInfoTOTPConfiguration;
     handleRefresh: () => void;
 }
