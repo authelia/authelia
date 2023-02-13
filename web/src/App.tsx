@@ -78,6 +78,7 @@ const App: React.FC<Props> = (props: Props) => {
             }
         }
     }, []);
+
     return (
         <CacheProvider value={cache}>
             <ThemeProvider theme={theme}>

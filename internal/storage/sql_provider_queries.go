@@ -73,12 +73,12 @@ const (
 
 const (
 	queryFmtSelectTOTPConfiguration = `
-		SELECT id, username, issuer, algorithm, digits, period, secret
+		SELECT id, created_at, last_used_at, username, issuer, algorithm, digits, period, secret
 		FROM %s
 		WHERE username = ?;`
 
 	queryFmtSelectTOTPConfigurations = `
-		SELECT id, username, issuer, algorithm, digits, period, secret
+		SELECT id, created_at, last_used_at, username, issuer, algorithm, digits, period, secret
 		FROM %s
 		LIMIT ?
 		OFFSET ?;`

@@ -35,7 +35,7 @@ func TestShouldOnlyMarshalPeriodAndDigitsAndAbsolutelyNeverSecret(t *testing.T) 
 	data, err := json.Marshal(object)
 	assert.NoError(t, err)
 
-	assert.Equal(t, "{\"digits\":6,\"period\":30}", string(data))
+	assert.Equal(t, "{\"created_at\":\"0001-01-01T00:00:00Z\",\"issuer\":\"Authelia\",\"algorithm\":\"SHA1\",\"digits\":6,\"period\":30}", string(data))
 
 	// DO NOT REMOVE OR CHANGE THESE TESTS UNLESS YOU FULLY UNDERSTAND THE COMMENT AT THE TOP OF THIS TEST.
 	require.NotContains(t, string(data), "secret")
