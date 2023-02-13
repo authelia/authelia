@@ -142,8 +142,8 @@
     ]
   },
   "devDependencies": {
-    "@commitlint/cli": "17.4.2",
-    "@commitlint/config-conventional": "17.4.2",
+    "@commitlint/cli": "17.4.3",
+    "@commitlint/config-conventional": "17.4.3",
     "@limegrass/eslint-plugin-import-alias": "1.0.6",
     "@testing-library/jest-dom": "5.16.5",
     "@testing-library/react": "13.4.0",
