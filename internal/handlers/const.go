@@ -67,6 +67,7 @@ const (
 	messageOperationFailed                 = "Operation failed."
 	messageAuthenticationFailed            = "Authentication failed. Check your credentials."
 	messageUnableToRegisterOneTimePassword = "Unable to set up one-time passwords." //nolint:gosec
+	messageUnableToDeleteOneTimePassword   = "Unable to delete one-time password."  //nolint:gosec
 	messageUnableToRegisterSecurityKey     = "Unable to register your security key."
 	messageSecurityKeyDuplicateName        = "Another one of your security keys is already registered with that display name."
 	messageUnableToResetPassword           = "Unable to reset your password."

@@ -64,6 +64,20 @@ func (mr *MockTOTPMockRecorder) GenerateCustom(arg0, arg1, arg2, arg3, arg4, arg
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateCustom", reflect.TypeOf((*MockTOTP)(nil).GenerateCustom), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
+// Options mocks base method.
+func (m *MockTOTP) Options() model.TOTPOptions {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Options")
+	ret0, _ := ret[0].(model.TOTPOptions)
+	return ret0
+}
+
+// Options indicates an expected call of Options.
+func (mr *MockTOTPMockRecorder) Options() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Options", reflect.TypeOf((*MockTOTP)(nil).Options))
+}
+
 // Validate mocks base method.
 func (m *MockTOTP) Validate(arg0 string, arg1 *model.TOTPConfiguration) (bool, error) {
 	m.ctrl.T.Helper()

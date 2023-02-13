@@ -3,6 +3,7 @@ package model
 import (
 	"database/sql"
 	"encoding/base64"
+	"encoding/json"
 	"image"
 	"net/url"
 	"strconv"
@@ -12,17 +13,54 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type TOTPOptions struct {
+	Algorithm  string   `json:"algorithm"`
+	Algorithms []string `json:"algorithms"`
+
+	Length  int   `json:"length"`
+	Lengths []int `json:"lengths"`
+
+	Period  int   `json:"period"`
+	Periods []int `json:"periods"`
+}
+
 // TOTPConfiguration represents a users TOTP configuration row in the database.
 type TOTPConfiguration struct {
-	ID         int          `db:"id" json:"-"`
-	CreatedAt  time.Time    `db:"created_at" json:"-"`
-	LastUsedAt sql.NullTime `db:"last_used_at" json:"-"`
-	Username   string       `db:"username" json:"-"`
-	Issuer     string       `db:"issuer" json:"-"`
-	Algorithm  string       `db:"algorithm" json:"-"`
-	Digits     uint         `db:"digits" json:"digits"`
-	Period     uint         `db:"period" json:"period"`
-	Secret     []byte       `db:"secret" json:"-"`
+	ID         int          `db:"id"`
+	CreatedAt  time.Time    `db:"created_at"`
+	LastUsedAt sql.NullTime `db:"last_used_at"`
+	Username   string       `db:"username"`
+	Issuer     string       `db:"issuer"`
+	Algorithm  string       `db:"algorithm"`
+	Digits     uint         `db:"digits"`
+	Period     uint         `db:"period"`
+	Secret     []byte       `db:"secret"`
+}
+
+type TOTPConfigurationJSON struct {
+	CreatedAt  time.Time  `json:"created_at"`
+	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
+	Issuer     string     `json:"issuer"`
+	Algorithm  string     `json:"algorithm"`
+	Digits     int        `json:"digits"`
+	Period     int        `json:"period"`
+}
+
+// MarshalJSON returns the WebauthnDevice in a JSON friendly manner.
+func (c TOTPConfiguration) MarshalJSON() (data []byte, err error) {
+	o := TOTPConfigurationJSON{
+		CreatedAt: c.CreatedAt,
+		Issuer:    c.Issuer,
+		Algorithm: c.Algorithm,
+		Digits:    int(c.Digits),
+		Period:    int(c.Period),
+	}
+
+	if c.LastUsedAt.Valid {
+		o.LastUsedAt = &c.LastUsedAt.Time
+	}
+
+	return json.Marshal(o)
 }
 
 // LastUsed provides LastUsedAt as a *time.Time instead of sql.NullTime.

@@ -30,31 +30,31 @@ func TestValidateTOTP(t *testing.T) {
 		{
 			desc: "ShouldNormalizeTOTPAlgorithm",
 			have: schema.TOTPConfiguration{
-				Algorithm:  digestSHA1,
-				Digits:     6,
-				Period:     30,
-				SecretSize: 32,
-				Skew:       schema.DefaultTOTPConfiguration.Skew,
-				Issuer:     "abc",
+				DefaultAlgorithm: digestSHA1,
+				DefaultDigits:    6,
+				DefaultPeriod:    30,
+				SecretSize:       32,
+				Skew:             schema.DefaultTOTPConfiguration.Skew,
+				Issuer:           "abc",
 			},
 			expected: schema.TOTPConfiguration{
-				Algorithm:  "SHA1",
-				Digits:     6,
-				Period:     30,
-				SecretSize: 32,
-				Skew:       schema.DefaultTOTPConfiguration.Skew,
-				Issuer:     "abc",
+				DefaultAlgorithm: "SHA1",
+				DefaultDigits:    6,
+				DefaultPeriod:    30,
+				SecretSize:       32,
+				Skew:             schema.DefaultTOTPConfiguration.Skew,
+				Issuer:           "abc",
 			},
 		},
 		{
 			desc: "ShouldRaiseErrorWhenInvalidTOTPAlgorithm",
 			have: schema.TOTPConfiguration{
-				Algorithm:  "sha3",
-				Digits:     6,
-				Period:     30,
-				SecretSize: 32,
-				Skew:       schema.DefaultTOTPConfiguration.Skew,
-				Issuer:     "abc",
+				DefaultAlgorithm: "sha3",
+				DefaultDigits:    6,
+				DefaultPeriod:    30,
+				SecretSize:       32,
+				Skew:             schema.DefaultTOTPConfiguration.Skew,
+				Issuer:           "abc",
 			},
 			errs: []string{
 				"totp: option 'algorithm' must be one of 'SHA1', 'SHA256', or 'SHA512' but it's configured as 'SHA3'",
@@ -63,12 +63,12 @@ func TestValidateTOTP(t *testing.T) {
 		{
 			desc: "ShouldRaiseErrorWhenInvalidTOTPValue",
 			have: schema.TOTPConfiguration{
-				Algorithm:  "sha3",
-				Period:     5,
-				Digits:     20,
-				SecretSize: 10,
-				Skew:       schema.DefaultTOTPConfiguration.Skew,
-				Issuer:     "abc",
+				DefaultAlgorithm: "sha3",
+				DefaultPeriod:    5,
+				DefaultDigits:    20,
+				SecretSize:       10,
+				Skew:             schema.DefaultTOTPConfiguration.Skew,
+				Issuer:           "abc",
 			},
 			errs: []string{
 				"totp: option 'algorithm' must be one of 'SHA1', 'SHA256', or 'SHA512' but it's configured as 'SHA3'",
@@ -94,9 +94,9 @@ func TestValidateTOTP(t *testing.T) {
 				assert.Len(t, warns, 0)
 				assert.Equal(t, tc.expected.Disable, config.TOTP.Disable)
 				assert.Equal(t, tc.expected.Issuer, config.TOTP.Issuer)
-				assert.Equal(t, tc.expected.Algorithm, config.TOTP.Algorithm)
+				assert.Equal(t, tc.expected.DefaultAlgorithm, config.TOTP.DefaultAlgorithm)
 				assert.Equal(t, tc.expected.Skew, config.TOTP.Skew)
-				assert.Equal(t, tc.expected.Period, config.TOTP.Period)
+				assert.Equal(t, tc.expected.DefaultPeriod, config.TOTP.DefaultPeriod)
 				assert.Equal(t, tc.expected.SecretSize, config.TOTP.SecretSize)
 			} else {
 				expectedErrs := len(tc.errs)

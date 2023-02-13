@@ -15,11 +15,23 @@ import (
 // NewTimeBasedProvider creates a new totp.TimeBased which implements the totp.Provider.
 func NewTimeBasedProvider(config schema.TOTPConfiguration) (provider *TimeBased) {
 	provider = &TimeBased{
-		config: &config,
+		opts: &model.TOTPOptions{
+			Algorithm:  config.DefaultAlgorithm,
+			Algorithms: config.AllowedAlgorithms,
+			Period:     config.DefaultPeriod,
+			Periods:    config.AllowedPeriods,
+			Length:     config.DefaultDigits,
+			Lengths:    config.AllowedDigits,
+		},
+		issuer:    config.Issuer,
+		algorithm: config.DefaultAlgorithm,
+		digits:    uint(config.DefaultDigits),
+		period:    uint(config.DefaultPeriod),
+		size:      uint(config.SecretSize),
 	}
 
 	if config.Skew != nil {
-		provider.skew = *config.Skew
+		provider.skew = uint(*config.Skew)
 	} else {
 		provider.skew = 1
 	}
@@ -29,8 +41,14 @@ func NewTimeBasedProvider(config schema.TOTPConfiguration) (provider *TimeBased)
 
 // TimeBased totp.Provider for production use.
 type TimeBased struct {
-	config *schema.TOTPConfiguration
-	skew   uint
+	opts *model.TOTPOptions
+
+	issuer    string
+	algorithm string
+	digits    uint
+	period    uint
+	skew      uint
+	size      uint
 }
 
 // GenerateCustom generates a TOTP with custom options.
@@ -45,8 +63,12 @@ func (p TimeBased) GenerateCustom(username, algorithm, secret string, digits, pe
 		}
 	}
 
+	if secretSize == 0 {
+		secretSize = p.size
+	}
+
 	opts := totp.GenerateOpts{
-		Issuer:      p.config.Issuer,
+		Issuer:      p.issuer,
 		AccountName: username,
 		Period:      period,
 		Secret:      secretData,
@@ -55,26 +77,32 @@ func (p TimeBased) GenerateCustom(username, algorithm, secret string, digits, pe
 		Algorithm:   otpStringToAlgo(algorithm),
 	}
 
+	fmt.Println("secret before", opts.Secret)
+
 	if key, err = totp.Generate(opts); err != nil {
 		return nil, err
 	}
 
+	fmt.Println("secret key", key)
+
 	config = &model.TOTPConfiguration{
 		CreatedAt: time.Now(),
 		Username:  username,
-		Issuer:    p.config.Issuer,
+		Issuer:    p.issuer,
 		Algorithm: algorithm,
 		Digits:    digits,
 		Secret:    []byte(key.Secret()),
 		Period:    period,
 	}
 
+	fmt.Println("secret after", config.Secret)
+
 	return config, nil
 }
 
 // Generate generates a TOTP with default options.
 func (p TimeBased) Generate(username string) (config *model.TOTPConfiguration, err error) {
-	return p.GenerateCustom(username, p.config.Algorithm, "", p.config.Digits, p.config.Period, p.config.SecretSize)
+	return p.GenerateCustom(username, p.algorithm, "", p.digits, p.period, p.size)
 }
 
 // Validate the token against the given configuration.
@@ -86,5 +114,17 @@ func (p TimeBased) Validate(token string, config *model.TOTPConfiguration) (vali
 		Algorithm: otpStringToAlgo(config.Algorithm),
 	}
 
+	fmt.Println("period", opts.Period)
+	fmt.Println("skew", opts.Skew)
+	fmt.Println("digits", opts.Digits)
+	fmt.Println("algorithm", opts.Algorithm)
+	fmt.Println("token", token)
+	fmt.Println("secret", config.Secret)
+
 	return totp.ValidateCustom(token, string(config.Secret), time.Now().UTC(), opts)
+}
+
+// Options returns the configured options for this provider.
+func (p TimeBased) Options() model.TOTPOptions {
+	return *p.opts
 }

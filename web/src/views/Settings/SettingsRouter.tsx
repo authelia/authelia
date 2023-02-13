@@ -14,9 +14,9 @@ export interface Props {}
 
 const SettingsRouter = function (props: Props) {
     const navigate = useRouterNavigate();
+
     const [state, fetchState, , fetchStateError] = useAutheliaState();
 
-    // Fetch the state on page load
     useEffect(() => {
         fetchState();
     }, [fetchState]);
@@ -24,6 +24,8 @@ const SettingsRouter = function (props: Props) {
     useEffect(() => {
         if (fetchStateError || (state && state.authentication_level < AuthenticationLevel.OneFactor)) {
             navigate(IndexRoute);
+
+            return;
         }
     }, [state, fetchStateError, navigate]);
 
@@ -33,7 +35,7 @@ const SettingsRouter = function (props: Props) {
                 <Route path={IndexRoute} element={<SettingsView />} />
                 <Route
                     path={SettingsTwoFactorAuthenticationSubRoute}
-                    element={<TwoFactorAuthenticationView state={state} />}
+                    element={state ? <TwoFactorAuthenticationView /> : null}
                 />
             </Routes>
         </SettingsLayout>
