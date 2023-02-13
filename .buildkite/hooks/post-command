@@ -15,6 +15,7 @@ if [[ ! "${BUILDKITE_BRANCH}" =~ ^(v.*) ]] && [[ "${BUILDKITE_COMMAND_EXIT_STATU
     NAME="UnitTest"
     if [[ "${SUITE}" != "" ]]; then
       NAME=${SUITE}
+      go tool covdata percent -i=coverage
       go tool covdata textfmt -i=coverage -o coverage.txt
     fi
     if [[ "${BUILDKITE_AGENT_META_DATA_CODECOV}" == "verbose" ]]; then
