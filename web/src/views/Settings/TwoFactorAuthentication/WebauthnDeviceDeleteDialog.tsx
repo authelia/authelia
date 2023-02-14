@@ -24,7 +24,7 @@ export default function WebauthnDeviceDeleteDialog(props: Props) {
             <DialogContent>
                 <DialogContentText>
                     {translate("Are you sure you want to remove the Webauthn credential from from your account", {
-                        description: props.device.description,
+                        description: props.device.displayname,
                     })}
                 </DialogContentText>
             </DialogContent>

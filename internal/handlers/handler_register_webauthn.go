@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -15,17 +16,18 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-// WebauthnRegistrationGET returns the attestation challenge from the server.
-func WebauthnRegistrationGET(ctx *middlewares.AutheliaCtx) {
+// WebauthnRegistrationPUT returns the attestation challenge from the server.
+func WebauthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 	var (
 		w           *webauthn.WebAuthn
 		user        *model.WebauthnUser
 		userSession session.UserSession
+		bodyJSON    bodyRegisterWebauthnPUTRequest
 		err         error
 	)
 
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred retrieving session for %s attestation challenge", regulation.AuthTypeWebauthn)
+		ctx.Logger.WithError(err).Errorf("Error occurred retrieving session for %s registration challenge", regulation.AuthTypeWebauthn)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
@@ -33,40 +35,84 @@ func WebauthnRegistrationGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if w, err = newWebauthn(ctx); err != nil {
-		ctx.Logger.Errorf("Unable to create %s attestation challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+		ctx.Logger.Errorf("Unable to create provider to generate %s registration challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
 		return
 	}
 
-	if user, err = getWebauthnUserByRPID(ctx, userSession, w.Config.RPID); err != nil {
-		ctx.Logger.Errorf("Unable to load %s devices for assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
-
-		respondUnauthorized(ctx, messageMFAValidationFailed)
-
-		return
-	}
-
-	var credentialCreation *protocol.CredentialCreation
-
-	if credentialCreation, userSession.Webauthn, err = w.BeginRegistration(user, webauthn.WithExclusions(user.WebAuthnCredentialDescriptors())); err != nil {
-		ctx.Logger.Errorf("Unable to create %s attestation challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+	if err = json.Unmarshal(ctx.PostBody(), &bodyJSON); err != nil {
+		ctx.Logger.Errorf("Unable to parse %s registration request PUT data for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
 		return
 	}
+
+	if length := len(bodyJSON.DisplayName); length == 0 || length > 64 {
+		ctx.Logger.Errorf("Failed to validate the user chosen display name for during %s registration for user '%s': the value has a length of %d but must be between 1 and 64", regulation.AuthTypeWebauthn, userSession.Username, length)
+
+		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
+
+		return
+	}
+
+	devices, err := ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, w.Config.RPID, userSession.Username)
+	if err != nil && err != storage.ErrNoWebauthnDevice {
+		ctx.Logger.Errorf("Unable to load existing %s devices for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+
+		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
+
+		return
+	}
+
+	for _, device := range devices {
+		if strings.EqualFold(device.DisplayName, bodyJSON.DisplayName) {
+			ctx.Logger.Errorf("Unable to generate %s registration challenge: device for for user '%s' with display name '%s' already exists", regulation.AuthTypeWebauthn, userSession.Username, bodyJSON.DisplayName)
+
+			ctx.SetStatusCode(fasthttp.StatusConflict)
+			ctx.SetJSONError(messageSecurityKeyDuplicateName)
+
+			return
+		}
+	}
+
+	if user, err = getWebauthnUserByRPID(ctx, userSession.Username, bodyJSON.DisplayName, w.Config.RPID); err != nil {
+		ctx.Logger.Errorf("Unable to load %s devices for registration challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+
+		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
+
+		return
+	}
+
+	var (
+		opts *protocol.CredentialCreation
+	)
+
+	data := session.Webauthn{
+		DisplayName: bodyJSON.DisplayName,
+	}
+
+	if opts, data.SessionData, err = w.BeginRegistration(user, webauthn.WithExclusions(user.WebAuthnCredentialDescriptors())); err != nil {
+		ctx.Logger.Errorf("Unable to create %s registration challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+
+		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
+
+		return
+	}
+
+	userSession.Webauthn = &data
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf(logFmtErrSessionSave, "attestation challenge", regulation.AuthTypeWebauthn, userSession.Username, err)
+		ctx.Logger.Errorf(logFmtErrSessionSave, "registration challenge", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
 		return
 	}
 
-	if err = ctx.SetJSONBody(credentialCreation); err != nil {
+	if err = ctx.SetJSONBody(opts); err != nil {
 		ctx.Logger.Errorf(logFmtErrWriteResponseBody, regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
@@ -87,7 +133,6 @@ func WebauthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 		response *protocol.ParsedCredentialCreationData
 
 		credential *webauthn.Credential
-		bodyJSON   bodyRegisterWebauthnRequest
 	)
 
 	if userSession, err = ctx.GetSession(); err != nil {
@@ -98,10 +143,10 @@ func WebauthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if userSession.Webauthn == nil {
+	if userSession.Webauthn == nil || userSession.Webauthn.SessionData == nil {
 		ctx.Logger.Errorf("Webauthn session data is not present in order to handle %s registration for user '%s'. This could indicate a user trying to POST to the wrong endpoint, or the session data is not present for the browser they used.", regulation.AuthTypeWebauthn, userSession.Username)
 
-		respondUnauthorized(ctx, messageMFAValidationFailed)
+		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
 		return
 	}
@@ -114,71 +159,41 @@ func WebauthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = json.Unmarshal(ctx.PostBody(), &bodyJSON); err != nil {
-		ctx.Logger.Errorf("Unable to parse %s registration request POST data for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
-
-		respondUnauthorized(ctx, messageMFAValidationFailed)
-
-		return
-	}
-
-	if response, err = protocol.ParseCredentialCreationResponseBody(bytes.NewReader(bodyJSON.Response)); err != nil {
-		ctx.Logger.Errorf("Unable to parse %s registration for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
-
-		respondUnauthorized(ctx, messageMFAValidationFailed)
-
-		return
-	}
-
-	ctx.Logger.WithField("att_format", response.Response.AttestationObject.Format).Debug("Response Data")
-
-	if user, err = getWebauthnUser(ctx, userSession); err != nil {
-		ctx.Logger.Errorf("Unable to load %s user details for registration for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
-
-		respondUnauthorized(ctx, messageMFAValidationFailed)
-
-		return
-	}
-
-	if credential, err = w.CreateCredential(user, *userSession.Webauthn, response); err != nil {
-		ctx.Logger.Errorf("Unable to create %s credential for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
-
-		respondUnauthorized(ctx, messageMFAValidationFailed)
-
-		return
-	}
-
-	ctx.Logger.WithField("att_type", credential.AttestationType).Debug("Credential Data")
-
-	devices, err := ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, w.Config.RPID, userSession.Username)
-	if err != nil && err != storage.ErrNoWebauthnDevice {
-		ctx.Logger.Errorf("Unable to load existing %s devices for for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+	if response, err = protocol.ParseCredentialCreationResponseBody(bytes.NewReader(ctx.PostBody())); err != nil {
+		switch e := err.(type) {
+		case *protocol.Error:
+			ctx.Logger.Errorf("Unable to parse %s registration for user '%s': %+v (%s)", regulation.AuthTypeWebauthn, userSession.Username, err, e.DevInfo)
+		default:
+			ctx.Logger.Errorf("Unable to parse %s registration for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+		}
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
 		return
 	}
 
-	for _, existingDevice := range devices {
-		if existingDevice.Description == bodyJSON.Description {
-			ctx.Logger.Errorf("%s device for for user '%s' with name '%s' already exists", regulation.AuthTypeWebauthn, userSession.Username, bodyJSON.Description)
+	if user, err = getWebauthnUser(ctx, userSession); err != nil {
+		ctx.Logger.Errorf("Unable to load %s user details for registration for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
-			respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
-			ctx.SetStatusCode(fasthttp.StatusConflict)
-			ctx.SetJSONError(messageSecurityKeyDuplicateName)
+		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
-			return
-		}
+		return
 	}
 
-	device := model.NewWebauthnDeviceFromCredential(w.Config.RPID, userSession.Username, bodyJSON.Description, credential)
+	if credential, err = w.CreateCredential(user, *userSession.Webauthn.SessionData, response); err != nil {
+		switch e := err.(type) {
+		case *protocol.Error:
+			ctx.Logger.Errorf("Unable to create %s credential for user '%s': %+v (%s)", regulation.AuthTypeWebauthn, userSession.Username, err, e.DevInfo)
+		default:
+			ctx.Logger.Errorf("Unable to create %s credential for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+		}
 
-	ctx.Logger.WithFields(map[string]any{
-		"RPID": device.RPID,
-		"ID":   device.ID,
-		"KID":  device.KID.String(),
-		"User": device.Username,
-	}).Debug("Registering New Device")
+		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
+
+		return
+	}
+
+	device := model.NewWebauthnDeviceFromCredential(w.Config.RPID, userSession.Username, userSession.Webauthn.DisplayName, credential)
 
 	if err = ctx.Providers.StorageProvider.SaveWebauthnDevice(ctx, device); err != nil {
 		ctx.Logger.Errorf("Unable to save %s device registration for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
@@ -189,6 +204,7 @@ func WebauthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	userSession.Webauthn = nil
+
 	if err = ctx.SaveSession(userSession); err != nil {
 		ctx.Logger.Errorf(logFmtErrSessionSave, "removal of the registration challenge", regulation.AuthTypeWebauthn, userSession.Username, err)
 	}
@@ -196,5 +212,5 @@ func WebauthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	ctx.ReplyOK()
 	ctx.SetStatusCode(fasthttp.StatusCreated)
 
-	ctxLogEvent(ctx, userSession.Username, "Second Factor Method Added", map[string]any{"Action": "Second Factor Method Added", "Category": "Webauthn Credential", "Credential Description": bodyJSON.Description})
+	ctxLogEvent(ctx, userSession.Username, "Second Factor Method Added", map[string]any{"Action": "Second Factor Method Added", "Category": "Webauthn Credential", "Credential Display Name": device.DisplayName})
 }

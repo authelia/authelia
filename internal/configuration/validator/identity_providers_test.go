@@ -721,7 +721,7 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 				},
 				{
 					ID:                       "b-client",
-					Description:              "Normal Description",
+					Description:              "Normal DisplayName",
 					Secret:                   MustDecodeSecret("$plaintext$b-client-secret"),
 					Policy:                   policyOneFactor,
 					UserinfoSigningAlgorithm: "RS256",
@@ -783,9 +783,9 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 	assert.Equal(t, "none", config.OIDC.Clients[0].UserinfoSigningAlgorithm)
 	assert.Equal(t, "RS256", config.OIDC.Clients[1].UserinfoSigningAlgorithm)
 
-	// Assert Clients[0] Description is set to the Clients[0] ID, and Clients[1]'s Description is not overridden.
+	// Assert Clients[0] DisplayName is set to the Clients[0] ID, and Clients[1]'s DisplayName is not overridden.
 	assert.Equal(t, config.OIDC.Clients[0].ID, config.OIDC.Clients[0].Description)
-	assert.Equal(t, "Normal Description", config.OIDC.Clients[1].Description)
+	assert.Equal(t, "Normal DisplayName", config.OIDC.Clients[1].Description)
 
 	// Assert Clients[0] ends up configured with the default Scopes.
 	require.Len(t, config.OIDC.Clients[0].Scopes, 4)

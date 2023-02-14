@@ -104,10 +104,20 @@ function getAssertionResultFromDOMException(
     }
 }
 
-export async function getAttestationCreationOptions(): Promise<PublicKeyCredentialCreationOptionsStatus> {
-    let response: AxiosResponse<ServiceResponse<CredentialCreation>>;
-
-    response = await axios.get<ServiceResponse<CredentialCreation>>(WebauthnRegistrationPath);
+export async function getAttestationCreationOptions(
+    displayname: string,
+): Promise<PublicKeyCredentialCreationOptionsStatus> {
+    const response = await axios.put<ServiceResponse<CredentialCreation>>(
+        WebauthnRegistrationPath,
+        {
+            displayname: displayname,
+        },
+        {
+            validateStatus: function (status) {
+                return status < 300 || status === 409;
+            },
+        },
+    );
 
     if (response.data.status !== "OK" || response.data.data == null) {
         return {
@@ -194,12 +204,8 @@ export async function getAuthenticationResult(options: PublicKeyCredentialReques
 
 async function postRegistrationResponse(
     response: RegistrationResponseJSON,
-    description: string,
 ): Promise<AxiosResponse<OptionalDataServiceResponse<any>>> {
-    return axios.post<OptionalDataServiceResponse<any>>(WebauthnRegistrationPath, {
-        response: response,
-        description: description,
-    });
+    return axios.post<OptionalDataServiceResponse<any>>(WebauthnRegistrationPath, response);
 }
 
 export async function postAuthenticationResponse(
@@ -216,14 +222,14 @@ export async function postAuthenticationResponse(
     });
 }
 
-export async function finishRegistration(response: RegistrationResponseJSON, description: string) {
+export async function finishRegistration(response: RegistrationResponseJSON) {
     let result = {
         status: AttestationResult.Failure,
         message: "Device registration failed.",
     };
 
     try {
-        const resp = await postRegistrationResponse(response, description);
+        const resp = await postRegistrationResponse(response);
         if (resp.data.status === "OK" && (resp.status === 200 || resp.status === 201)) {
             return {
                 status: AttestationResult.Success,

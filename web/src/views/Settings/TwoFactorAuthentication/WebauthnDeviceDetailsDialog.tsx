@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { WebauthnDevice } from "@models/Webauthn";
+import { WebauthnDevice, toTransportName } from "@models/Webauthn";
 
 interface Props {
     open: boolean;
@@ -33,7 +33,7 @@ export default function WebauthnDetailsDeleteDialog(props: Props) {
             <DialogContent>
                 <DialogContentText sx={{ mb: 3 }}>
                     {translate("Extended Webauthn credential information for security key", {
-                        description: props.device.description,
+                        displayname: props.device.displayname,
                     })}
                 </DialogContentText>
                 <Stack spacing={0} sx={{ minWidth: 400 }}>
@@ -46,16 +46,39 @@ export default function WebauthnDetailsDeleteDialog(props: Props) {
                             />
                         </Stack>
                     </Box>
-                    <PropertyText name={translate("Description")} value={props.device.description} />
+                    <PropertyText name={translate("Display Name")} value={props.device.displayname} />
                     <PropertyText name={translate("Relying Party ID")} value={props.device.rpid} />
                     <PropertyText
-                        name={translate("Authenticator Attestation GUID")}
+                        name={translate("Authenticator GUID")}
                         value={props.device.aaguid === undefined ? "N/A" : props.device.aaguid}
                     />
                     <PropertyText name={translate("Attestation Type")} value={props.device.attestation_type} />
+                    <PropertyText name={translate("Attachment")} value={props.device.attachment} />
+                    <PropertyText
+                        name={translate("Discoverable")}
+                        value={props.device.discoverable ? translate("Yes") : translate("No")}
+                    />
+                    <PropertyText
+                        name={translate("User Verified")}
+                        value={props.device.verified ? translate("Yes") : translate("No")}
+                    />
+                    <PropertyText
+                        name={translate("Backup State")}
+                        value={
+                            props.device.backup_eligible
+                                ? props.device.backup_state
+                                    ? translate("Backed Up")
+                                    : translate("Eligible")
+                                : translate("Not Eligible")
+                        }
+                    />
                     <PropertyText
                         name={translate("Transports")}
-                        value={props.device.transports.length === 0 ? "N/A" : props.device.transports.join(", ")}
+                        value={
+                            props.device.transports.length === 0
+                                ? "N/A"
+                                : props.device.transports.map((transport) => toTransportName(transport)).join(", ")
+                        }
                     />
                     <PropertyText
                         name={translate("Clone Warning")}

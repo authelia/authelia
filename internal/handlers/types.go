@@ -40,10 +40,8 @@ type bodySignWebauthnRequest struct {
 	Response json.RawMessage `json:"response"`
 }
 
-type bodyRegisterWebauthnRequest struct {
-	Description string `json:"description"`
-
-	Response json.RawMessage `json:"response"`
+type bodyRegisterWebauthnPUTRequest struct {
+	DisplayName string `json:"displayname"`
 }
 
 type bodyEditWebauthnDeviceRequest struct {

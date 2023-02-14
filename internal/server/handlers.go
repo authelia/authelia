@@ -240,7 +240,7 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 
 		// Management of the webauthn devices.
 		r.GET("/api/secondfactor/webauthn/credentials", middleware1FA(handlers.WebauthnDevicesGET))
-		r.GET("/api/secondfactor/webauthn/credential/register", middleware1FA(handlers.WebauthnRegistrationGET))
+		r.PUT("/api/secondfactor/webauthn/credential/register", middleware1FA(handlers.WebauthnRegistrationPUT))
 		r.POST("/api/secondfactor/webauthn/credential/register", middleware1FA(handlers.WebauthnRegistrationPOST))
 		r.PUT("/api/secondfactor/webauthn/credential/{deviceID}", middleware2FA(handlers.WebauthnDevicePUT))
 		r.DELETE("/api/secondfactor/webauthn/credential/{deviceID}", middleware2FA(handlers.WebauthnDeviceDELETE))

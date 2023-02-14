@@ -51,11 +51,11 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectWebauthnDevicesByUsername:                fmt.Sprintf(queryFmtSelectWebauthnDevicesByUsername, tableWebauthnDevices),
 		sqlSelectWebauthnDevicesByRPIDByUsername:          fmt.Sprintf(queryFmtSelectWebauthnDevicesByRPIDByUsername, tableWebauthnDevices),
 		sqlSelectWebauthnDeviceByID:                       fmt.Sprintf(queryFmtSelectWebauthnDeviceByID, tableWebauthnDevices),
-		sqlUpdateWebauthnDeviceDescriptionByUsernameAndID: fmt.Sprintf(queryFmtUpdateUpdateWebauthnDeviceDescriptionByUsernameAndID, tableWebauthnDevices),
+		sqlUpdateWebauthnDeviceDescriptionByUsernameAndID: fmt.Sprintf(queryFmtUpdateUpdateWebauthnDeviceDisplayNameByUsernameAndID, tableWebauthnDevices),
 		sqlUpdateWebauthnDeviceRecordSignIn:               fmt.Sprintf(queryFmtUpdateWebauthnDeviceRecordSignIn, tableWebauthnDevices),
 		sqlDeleteWebauthnDevice:                           fmt.Sprintf(queryFmtDeleteWebauthnDevice, tableWebauthnDevices),
 		sqlDeleteWebauthnDeviceByUsername:                 fmt.Sprintf(queryFmtDeleteWebauthnDeviceByUsername, tableWebauthnDevices),
-		sqlDeleteWebauthnDeviceByUsernameAndDescription:   fmt.Sprintf(queryFmtDeleteWebauthnDeviceByUsernameAndDescription, tableWebauthnDevices),
+		sqlDeleteWebauthnDeviceByUsernameAndDisplayName:   fmt.Sprintf(queryFmtDeleteWebauthnDeviceByUsernameAndDisplayName, tableWebauthnDevices),
 
 		sqlUpsertDuoDevice: fmt.Sprintf(queryFmtUpsertDuoDevice, tableDuoDevices),
 		sqlDeleteDuoDevice: fmt.Sprintf(queryFmtDeleteDuoDevice, tableDuoDevices),
@@ -172,7 +172,7 @@ type SQLProvider struct {
 
 	sqlDeleteWebauthnDevice                         string
 	sqlDeleteWebauthnDeviceByUsername               string
-	sqlDeleteWebauthnDeviceByUsernameAndDescription string
+	sqlDeleteWebauthnDeviceByUsernameAndDisplayName string
 
 	// Table: duo_devices.
 	sqlUpsertDuoDevice string
@@ -842,10 +842,10 @@ func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device model.Webau
 	}
 
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertWebauthnDevice,
-		device.CreatedAt, device.LastUsedAt,
-		device.RPID, device.Username, device.Description,
-		device.KID, device.PublicKey,
-		device.AttestationType, device.Transport, device.AAGUID, device.SignCount, device.CloneWarning,
+		device.CreatedAt, device.LastUsedAt, device.RPID, device.Username, device.DisplayName,
+		device.KID, device.AAGUID, device.AttestationType, device.Attachment, device.Transport,
+		device.SignCount, device.CloneWarning, device.Discoverable, device.Present, device.Verified,
+		device.BackupEligible, device.BackupState, device.PublicKey,
 	); err != nil {
 		return fmt.Errorf("error upserting Webauthn device for user '%s' kid '%x': %w", device.Username, device.KID, err)
 	}
@@ -863,9 +863,12 @@ func (p *SQLProvider) UpdateWebauthnDeviceDescription(ctx context.Context, usern
 }
 
 // UpdateWebauthnDeviceSignIn updates a registered Webauthn devices sign in information.
-func (p *SQLProvider) UpdateWebauthnDeviceSignIn(ctx context.Context, id int, rpid string, lastUsedAt sql.NullTime, signCount uint32, cloneWarning bool) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceRecordSignIn, rpid, lastUsedAt, signCount, cloneWarning, id); err != nil {
-		return fmt.Errorf("error updating Webauthn signin metadata for id '%x': %w", id, err)
+func (p *SQLProvider) UpdateWebauthnDeviceSignIn(ctx context.Context, device model.WebauthnDevice) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceRecordSignIn,
+		device.RPID, device.LastUsedAt, device.SignCount, device.Discoverable, device.Present, device.Verified,
+		device.BackupEligible, device.BackupState, device.CloneWarning, device.ID,
+	); err != nil {
+		return fmt.Errorf("error updating Webauthn signin metadata for id '%x': %w", device.ID, err)
 	}
 
 	return nil
@@ -881,18 +884,18 @@ func (p *SQLProvider) DeleteWebauthnDevice(ctx context.Context, kid string) (err
 }
 
 // DeleteWebauthnDeviceByUsername deletes registered Webauthn devices by username or username and description.
-func (p *SQLProvider) DeleteWebauthnDeviceByUsername(ctx context.Context, username, description string) (err error) {
+func (p *SQLProvider) DeleteWebauthnDeviceByUsername(ctx context.Context, username, displayname string) (err error) {
 	if len(username) == 0 {
-		return fmt.Errorf("error deleting webauthn device with username '%s' and description '%s': username must not be empty", username, description)
+		return fmt.Errorf("error deleting webauthn device with username '%s' and displayname '%s': username must not be empty", username, displayname)
 	}
 
-	if len(description) == 0 {
+	if len(displayname) == 0 {
 		if _, err = p.db.ExecContext(ctx, p.sqlDeleteWebauthnDeviceByUsername, username); err != nil {
 			return fmt.Errorf("error deleting webauthn devices for username '%s': %w", username, err)
 		}
 	} else {
-		if _, err = p.db.ExecContext(ctx, p.sqlDeleteWebauthnDeviceByUsernameAndDescription, username, description); err != nil {
-			return fmt.Errorf("error deleting webauthn device with username '%s' and description '%s': %w", username, description, err)
+		if _, err = p.db.ExecContext(ctx, p.sqlDeleteWebauthnDeviceByUsernameAndDisplayName, username, displayname); err != nil {
+			return fmt.Errorf("error deleting webauthn device with username '%s' and displayname '%s': %w", username, displayname, err)
 		}
 	}
 

@@ -1,3 +1,33 @@
-DROP INDEX webauthn_devices_lookup_key ON webauthn_devices;
-ALTER TABLE webauthn_devices MODIFY COLUMN rpid VARCHAR(512);
-CREATE UNIQUE INDEX webauthn_devices_lookup_key ON webauthn_devices (rpid, username, description);
+ALTER TABLE webauthn_devices
+    RENAME _bkp_UP_V0008_webauthn_devices;
+
+CREATE TABLE IF NOT EXISTS webauthn_devices (
+    id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_used_at TIMESTAMP NULL DEFAULT NULL,
+	rpid VARCHAR(512) NOT NULL,
+    username VARCHAR(100) NOT NULL,
+	displayname VARCHAR(30) NOT NULL,
+    kid VARCHAR(512) NOT NULL,
+	aaguid CHAR(36) NOT NULL,
+    attestation_type VARCHAR(32),
+	attachment VARCHAR(64) NOT NULL,
+    transport VARCHAR(20) DEFAULT '',
+    sign_count INTEGER DEFAULT 0,
+    clone_warning BOOLEAN NOT NULL DEFAULT FALSE,
+	discoverable BOOLEAN NOT NULL,
+    present BOOLEAN NOT NULL DEFAULT FALSE,
+    verified BOOLEAN NOT NULL DEFAULT FALSE,
+    backup_eligible BOOLEAN NOT NULL DEFAULT FALSE,
+    backup_state BOOLEAN NOT NULL DEFAULT FALSE,
+	public_key BLOB NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
+
+CREATE UNIQUE INDEX webauthn_devices_kid_key ON webauthn_devices (kid);
+CREATE UNIQUE INDEX webauthn_devices_lookup_key ON webauthn_devices (rpid, username, displayname);
+
+INSERT INTO webauthn_devices (created_at, last_used_at, rpid, username, displayname, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key)
+SELECT id, created_at, last_used_at, CAST(rpid AS CHAR) AS rpid, username, description, kid, aaguid, attestation_type, 'cross-platform', transport, sign_count, clone_warning, FALSE, FALSE, FALSE, FALSE, public_key
+FROM _bkp_UP_V0008_webauthn_devices;
+
+DROP TABLE IF EXISTS _bkp_UP_V0008_webauthn_devices;

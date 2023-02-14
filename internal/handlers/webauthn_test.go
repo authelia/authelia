@@ -26,7 +26,7 @@ func TestWebauthnGetUser(t *testing.T) {
 			ID:              1,
 			RPID:            "example.com",
 			Username:        "john",
-			Description:     "Primary",
+			DisplayName:     "Primary",
 			KID:             model.NewBase64([]byte("abc123")),
 			AttestationType: "fido-u2f",
 			PublicKey:       []byte("data"),
@@ -37,7 +37,7 @@ func TestWebauthnGetUser(t *testing.T) {
 			ID:              2,
 			RPID:            "example.com",
 			Username:        "john",
-			Description:     "Secondary",
+			DisplayName:     "Secondary",
 			KID:             model.NewBase64([]byte("123abc")),
 			AttestationType: "packed",
 			Transport:       "usb,nfc",
@@ -47,7 +47,7 @@ func TestWebauthnGetUser(t *testing.T) {
 		},
 	}, nil)
 
-	user, err := getWebauthnUserByRPID(ctx.Ctx, userSession, "example.com")
+	user, err := getWebauthnUserByRPID(ctx.Ctx, userSession.Username, userSession.DisplayName, "example.com")
 
 	require.NoError(t, err)
 	require.NotNil(t, user)
@@ -66,7 +66,7 @@ func TestWebauthnGetUser(t *testing.T) {
 	assert.Equal(t, 1, user.Devices[0].ID)
 	assert.Equal(t, "example.com", user.Devices[0].RPID)
 	assert.Equal(t, "john", user.Devices[0].Username)
-	assert.Equal(t, "Primary", user.Devices[0].Description)
+	assert.Equal(t, "Primary", user.Devices[0].DisplayName)
 	assert.Equal(t, "", user.Devices[0].Transport)
 	assert.Equal(t, "fido-u2f", user.Devices[0].AttestationType)
 	assert.Equal(t, []byte("data"), user.Devices[0].PublicKey)
@@ -83,7 +83,7 @@ func TestWebauthnGetUser(t *testing.T) {
 	assert.Equal(t, 2, user.Devices[1].ID)
 	assert.Equal(t, "example.com", user.Devices[1].RPID)
 	assert.Equal(t, "john", user.Devices[1].Username)
-	assert.Equal(t, "Secondary", user.Devices[1].Description)
+	assert.Equal(t, "Secondary", user.Devices[1].DisplayName)
 	assert.Equal(t, "usb,nfc", user.Devices[1].Transport)
 	assert.Equal(t, "packed", user.Devices[1].AttestationType)
 	assert.Equal(t, []byte("data"), user.Devices[1].PublicKey)
@@ -111,7 +111,7 @@ func TestWebauthnGetUserWithoutDisplayName(t *testing.T) {
 			ID:              1,
 			RPID:            "example.com",
 			Username:        "john",
-			Description:     "Primary",
+			DisplayName:     "Primary",
 			KID:             model.NewBase64([]byte("abc123")),
 			AttestationType: "fido-u2f",
 			PublicKey:       []byte("data"),
@@ -120,7 +120,7 @@ func TestWebauthnGetUserWithoutDisplayName(t *testing.T) {
 		},
 	}, nil)
 
-	user, err := getWebauthnUserByRPID(ctx.Ctx, userSession, "example.com")
+	user, err := getWebauthnUserByRPID(ctx.Ctx, userSession.Username, userSession.DisplayName, "example.com")
 
 	require.NoError(t, err)
 	require.NotNil(t, user)
@@ -138,7 +138,7 @@ func TestWebauthnGetUserWithErr(t *testing.T) {
 
 	ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "example.com", "john").Return(nil, errors.New("not found"))
 
-	user, err := getWebauthnUserByRPID(ctx.Ctx, userSession, "example.com")
+	user, err := getWebauthnUserByRPID(ctx.Ctx, userSession.Username, userSession.DisplayName, "example.com")
 
 	assert.EqualError(t, err, "not found")
 	assert.Nil(t, user)

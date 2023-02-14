@@ -13,20 +13,20 @@ import (
 )
 
 func getWebauthnUser(ctx *middlewares.AutheliaCtx, userSession session.UserSession) (user *model.WebauthnUser, err error) {
-	return getWebauthnUserByRPID(ctx, userSession, "")
+	return getWebauthnUserByRPID(ctx, userSession.Username, userSession.DisplayName, "")
 }
 
-func getWebauthnUserByRPID(ctx *middlewares.AutheliaCtx, userSession session.UserSession, rpid string) (user *model.WebauthnUser, err error) {
+func getWebauthnUserByRPID(ctx *middlewares.AutheliaCtx, username, displayname string, rpid string) (user *model.WebauthnUser, err error) {
 	user = &model.WebauthnUser{
-		Username:    userSession.Username,
-		DisplayName: userSession.DisplayName,
+		Username:    username,
+		DisplayName: displayname,
 	}
 
 	if user.DisplayName == "" {
 		user.DisplayName = user.Username
 	}
 
-	if user.Devices, err = ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, rpid, userSession.Username); err != nil {
+	if user.Devices, err = ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, rpid, user.Username); err != nil {
 		return nil, err
 	}
 

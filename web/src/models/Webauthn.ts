@@ -110,14 +110,34 @@ export interface WebauthnDevice {
     created_at: string;
     last_used_at?: string;
     rpid: string;
-    description: string;
+    displayname: string;
     kid: Uint8Array;
-    public_key: Uint8Array;
-    attestation_type: string;
-    transports: string[];
     aaguid?: string;
+    attestation_type: string;
+    attachment: string;
+    transports: string[];
     sign_count: number;
     clone_warning: boolean;
+    discoverable: boolean;
+    present: boolean;
+    verified: boolean;
+    backup_eligible: boolean;
+    backup_state: boolean;
+    public_key: Uint8Array;
+}
+
+export function toTransportName(transport: string) {
+    switch (transport.toLowerCase()) {
+        case "internal":
+            return "Internal";
+        case "ble":
+            return "Bluetooth";
+        case "nfc":
+        case "usb":
+            return transport.toUpperCase();
+        default:
+            return transport;
+    }
 }
 
 export enum WebauthnTouchState {

@@ -15,7 +15,7 @@ require (
 	github.com/go-ldap/ldap/v3 v3.4.4
 	github.com/go-rod/rod v0.112.5
 	github.com/go-sql-driver/mysql v1.7.0
-	github.com/go-webauthn/webauthn v0.7.1
+	github.com/go-webauthn/webauthn v0.7.2-0.20230214122838-1ee3a4aecef1
 	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0

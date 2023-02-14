@@ -6,9 +6,9 @@ import {
     Dialog,
     DialogActions,
     DialogContent,
+    DialogContentText,
     DialogTitle,
     Grid,
-    Stack,
     Step,
     StepLabel,
     Stepper,
@@ -23,15 +23,10 @@ import { useTranslation } from "react-i18next";
 import InformationIcon from "@components/InformationIcon";
 import WebauthnRegisterIcon from "@components/WebauthnRegisterIcon";
 import { useNotifications } from "@hooks/NotificationsContext";
-import {
-    AttestationResult,
-    AttestationResultFailureString,
-    RegistrationResult,
-    WebauthnTouchState,
-} from "@models/Webauthn";
+import { AttestationResult, AttestationResultFailureString, WebauthnTouchState } from "@models/Webauthn";
 import { finishRegistration, getAttestationCreationOptions, startWebauthnRegistration } from "@services/Webauthn";
 
-const steps = ["Confirm device", "Choose name"];
+const steps = ["Display Name", "Verification"];
 
 interface Props {
     open: boolean;
@@ -47,21 +42,20 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
 
     const [state, setState] = useState(WebauthnTouchState.WaitTouch);
     const [activeStep, setActiveStep] = useState(0);
-    const [result, setResult] = useState<RegistrationResult | null>(null);
     const [options, setOptions] = useState<PublicKeyCredentialCreationOptionsJSON | null>(null);
     const [timeout, setTimeout] = useState<number | null>(null);
-    const [deviceName, setName] = useState("");
+    const [credentialDisplayName, setCredentialDisplayName] = useState("");
+    const [errorDisplayName, setErrorDisplayName] = useState(false);
 
     const nameRef = useRef() as MutableRefObject<HTMLInputElement>;
-    const [nameError, setNameError] = useState(false);
 
     const resetStates = () => {
         setState(WebauthnTouchState.WaitTouch);
-        setActiveStep(0);
-        setResult(null);
         setOptions(null);
+        setActiveStep(0);
         setTimeout(null);
-        setName("");
+        setCredentialDisplayName("");
+        setErrorDisplayName(false);
     };
 
     const handleClose = useCallback(() => {
@@ -70,53 +64,41 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
         props.setCancelled();
     }, [props]);
 
-    const finishAttestation = async () => {
-        if (!result || !result.response) {
-            return;
-        }
-
-        if (!deviceName.length) {
-            setNameError(true);
-            return;
-        }
-
-        const res = await finishRegistration(result.response, deviceName);
-        switch (res.status) {
-            case AttestationResult.Success:
-                handleClose();
-                break;
-            case AttestationResult.Failure:
-                createErrorNotification(res.message);
-        }
-    };
-
-    const startRegistration = useCallback(async () => {
+    const performCredentialCreation = useCallback(async () => {
         if (options === null) {
             return;
         }
 
         setTimeout(options.timeout ? options.timeout : null);
+        setActiveStep(1);
 
         try {
             setState(WebauthnTouchState.WaitTouch);
-            setActiveStep(0);
 
-            const res = await startWebauthnRegistration(options);
+            const resultCredentialCreation = await startWebauthnRegistration(options);
 
             setTimeout(null);
 
-            if (res.result === AttestationResult.Success) {
-                if (res.response == null) {
-                    throw new Error("Attestation request succeeded but credential is empty");
+            if (resultCredentialCreation.result === AttestationResult.Success) {
+                if (resultCredentialCreation.response == null) {
+                    throw new Error("Credential Creation Request succeeded but Registration Response is empty.");
                 }
 
-                setResult(res);
-                setActiveStep(1);
+                const response = await finishRegistration(resultCredentialCreation.response);
+
+                switch (response.status) {
+                    case AttestationResult.Success:
+                        handleClose();
+                        break;
+                    case AttestationResult.Failure:
+                        createErrorNotification(response.message);
+                        break;
+                }
 
                 return;
             }
 
-            createErrorNotification(AttestationResultFailureString(res.result));
+            createErrorNotification(AttestationResultFailureString(resultCredentialCreation.result));
             setState(WebauthnTouchState.Failure);
         } catch (err) {
             console.error(err);
@@ -124,7 +106,7 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
                 "Failed to register your device. The identity verification process might have timed out.",
             );
         }
-    }, [options, createErrorNotification]);
+    }, [options, createErrorNotification, handleClose]);
 
     useEffect(() => {
         if (state !== WebauthnTouchState.Failure || activeStep !== 0 || !props.open) {
@@ -135,35 +117,100 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
     }, [props, state, activeStep, handleClose]);
 
     useEffect(() => {
-        (async () => {
-            if (options === null || !props.open || activeStep !== 0) {
+        (async function () {
+            if (!props.open || activeStep !== 0 || options === null) {
                 return;
             }
 
-            await startRegistration();
+            await performCredentialCreation();
         })();
-    }, [options, props.open, activeStep, startRegistration]);
+    }, [props.open, activeStep, options, performCredentialCreation]);
 
-    useEffect(() => {
-        (async () => {
-            if (!props.open || activeStep !== 0) {
-                return;
-            }
+    const handleNext = useCallback(async () => {
+        if (credentialDisplayName.length === 0 || credentialDisplayName.length > 64) {
+            setErrorDisplayName(true);
+            createErrorNotification(
+                translate("The Display Name must be more than 1 character and less than 64 characters."),
+            );
 
-            const res = await getAttestationCreationOptions();
-            if (res.status !== 200 || !res.options) {
+            return;
+        }
+
+        const res = await getAttestationCreationOptions(credentialDisplayName);
+
+        switch (res.status) {
+            case 200:
+                if (res.options) {
+                    setOptions(res.options);
+                } else {
+                    throw new Error(
+                        "Credential Creation Options Request succeeded but Credential Creation Options is empty.",
+                    );
+                }
+
+                break;
+            case 409:
+                setErrorDisplayName(true);
+                createErrorNotification(translate("A Webauthn Credential with that Display Name already exists."));
+
+                break;
+            default:
                 createErrorNotification(
-                    "You must open the link from the same device and browser that initiated the registration process.",
+                    translate("Error occurred obtaining the Webauthn Credential creation options."),
                 );
-                return;
+        }
+    }, [createErrorNotification, credentialDisplayName, performCredentialCreation, translate]);
+
+    const handleCredentialDisplayName = useCallback(
+        (displayname: string) => {
+            setCredentialDisplayName(displayname);
+
+            if (errorDisplayName) {
+                setErrorDisplayName(false);
             }
-            setOptions(res.options);
-        })();
-    }, [setOptions, createErrorNotification, props.open, activeStep]);
+        },
+        [errorDisplayName],
+    );
 
     function renderStep(step: number) {
         switch (step) {
             case 0:
+                return (
+                    <Box>
+                        <Box className={styles.icon}>
+                            <InformationIcon />
+                        </Box>
+                        <Typography className={styles.instruction}>
+                            {translate("Enter a display name for this credential")}
+                        </Typography>
+                        <Grid container spacing={1}>
+                            <Grid item xs={12}>
+                                <TextField
+                                    inputRef={nameRef}
+                                    id="name-textfield"
+                                    label={translate("Display Name")}
+                                    variant="outlined"
+                                    required
+                                    value={credentialDisplayName}
+                                    error={errorDisplayName}
+                                    disabled={false}
+                                    onChange={(v) => handleCredentialDisplayName(v.target.value)}
+                                    autoCapitalize="none"
+                                    onKeyDown={(ev) => {
+                                        if (ev.key === "Enter") {
+                                            (async () => {
+                                                await handleNext();
+                                            })();
+
+                                            ev.preventDefault();
+                                        }
+                                    }}
+                                />
+                            </Grid>
+                        </Grid>
+                    </Box>
+                );
+            case 1:
                 return (
                     <Fragment>
                         <Box className={styles.icon}>
@@ -173,52 +220,6 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
                             {translate("Touch the token on your security key")}
                         </Typography>
                     </Fragment>
-                );
-            case 1:
-                return (
-                    <Box id="webauthn-registration-name">
-                        <Box className={styles.icon}>
-                            <InformationIcon />
-                        </Box>
-                        <Typography className={styles.instruction}>{translate("Enter a name for this key")}</Typography>
-                        <Grid container spacing={1}>
-                            <Grid item xs={12}>
-                                <TextField
-                                    inputRef={nameRef}
-                                    id="name-textfield"
-                                    label={translate("Name")}
-                                    variant="outlined"
-                                    required
-                                    value={deviceName}
-                                    error={nameError}
-                                    disabled={false}
-                                    onChange={(v) => setName(v.target.value.substring(0, 30))}
-                                    onFocus={() => setNameError(false)}
-                                    autoCapitalize="none"
-                                    autoComplete="webauthn-name"
-                                    onKeyDown={(ev) => {
-                                        if (ev.key === "Enter") {
-                                            if (!deviceName.length) {
-                                                setNameError(true);
-                                            } else {
-                                                (async () => {
-                                                    await finishAttestation();
-                                                })();
-                                            }
-                                            ev.preventDefault();
-                                        }
-                                    }}
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <Stack direction="row" spacing={1} justifyContent="center" paddingTop={1}>
-                                    <Button color="primary" variant="contained" onClick={finishAttestation}>
-                                        {translate("Finish")}
-                                    </Button>
-                                </Stack>
-                            </Grid>
-                        </Grid>
-                    </Box>
                 );
         }
     }
@@ -233,8 +234,13 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
 
     return (
         <Dialog open={props.open} onClose={handleOnClose} maxWidth={"xs"} fullWidth={true}>
-            <DialogTitle>{translate("Register Webauthn Credential (Security Key)")}</DialogTitle>
+            <DialogTitle>{translate("Register Webauthn Credential")}</DialogTitle>
             <DialogContent>
+                <DialogContentText sx={{ mb: 3 }}>
+                    {translate(
+                        "This page allows registration of a new Security Key backed by modern Webauthn Credential technology.",
+                    )}
+                </DialogContentText>
                 <Grid container spacing={0} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
                     <Grid item xs={12}>
                         <Stepper activeStep={activeStep}>
@@ -257,9 +263,24 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
                 </Grid>
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleClose} disabled={activeStep === 0 && state !== WebauthnTouchState.Failure}>
+                <Button
+                    color={activeStep === 1 && state !== WebauthnTouchState.Failure ? "primary" : "error"}
+                    disabled={activeStep === 1 && state !== WebauthnTouchState.Failure}
+                    onClick={handleClose}
+                >
                     {translate("Cancel")}
                 </Button>
+                {activeStep === 0 ? (
+                    <Button
+                        color={credentialDisplayName.length !== 0 ? "success" : "primary"}
+                        disabled={activeStep !== 0}
+                        onClick={async () => {
+                            await handleNext();
+                        }}
+                    >
+                        {translate("Next")}
+                    </Button>
+                ) : null}
             </DialogActions>
         </Dialog>
     );
