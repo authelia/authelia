@@ -40,7 +40,7 @@ RUN \
 	cd cmd/authelia && \
 	chmod 0666 /go/src/app/.healthcheck.env && \
 	echo ">> Starting go build (coverage via -cover)..." && \
-    CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LDFLAGS="-Wl,-z,relro,-z,now" go build -cover -covermode=atomic \
+	CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LDFLAGS="-Wl,-z,relro,-z,now" go build -cover -covermode=atomic \
 	-ldflags "${LDFLAGS_EXTRA}" -o authelia
 
 # ===================================
