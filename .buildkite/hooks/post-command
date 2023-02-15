@@ -25,7 +25,7 @@ if [[ ! "${BUILDKITE_BRANCH}" =~ ^(v.*) ]] && [[ "${BUILDKITE_COMMAND_EXIT_STATU
     if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
       cd web && pnpm report
     fi
-    codecov -Z -c -f '!Dockerfile*' -f '!*.go' -f '!*.zst' -n ${NAME} -F frontend "${BUILDKITE_AGENT_META_DATA_CODECOV}"
+    codecov -Z -c -f '!Dockerfile*' -f '!*.go' -f '!*.tar' -f '!*.zst' -n ${NAME} -F frontend "${BUILDKITE_AGENT_META_DATA_CODECOV}"
   fi
 fi
 
