@@ -110,7 +110,7 @@ export interface WebauthnDevice {
     created_at: string;
     last_used_at?: string;
     rpid: string;
-    displayname: string;
+    description: string;
     kid: Uint8Array;
     aaguid?: string;
     attestation_type: string;

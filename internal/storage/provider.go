@@ -38,6 +38,9 @@ type Provider interface {
 	LoadTOTPConfiguration(ctx context.Context, username string) (config *model.TOTPConfiguration, err error)
 	LoadTOTPConfigurations(ctx context.Context, limit, page int) (configs []model.TOTPConfiguration, err error)
 
+	SaveWebauthnUser(ctx context.Context, user model.WebauthnUser) (err error)
+	LoadWebauthnUser(ctx context.Context, rpid, username string) (user *model.WebauthnUser, err error)
+
 	SaveWebauthnDevice(ctx context.Context, device model.WebauthnDevice) (err error)
 	UpdateWebauthnDeviceDescription(ctx context.Context, username string, deviceID int, description string) (err error)
 	UpdateWebauthnDeviceSignIn(ctx context.Context, device model.WebauthnDevice) (err error)

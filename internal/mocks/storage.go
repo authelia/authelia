@@ -449,6 +449,21 @@ func (mr *MockStorageMockRecorder) LoadWebauthnDevicesByUsername(arg0, arg1, arg
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadWebauthnDevicesByUsername", reflect.TypeOf((*MockStorage)(nil).LoadWebauthnDevicesByUsername), arg0, arg1, arg2)
 }
 
+// LoadWebauthnUser mocks base method.
+func (m *MockStorage) LoadWebauthnUser(arg0 context.Context, arg1, arg2 string) (*model.WebauthnUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadWebauthnUser", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.WebauthnUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadWebauthnUser indicates an expected call of LoadWebauthnUser.
+func (mr *MockStorageMockRecorder) LoadWebauthnUser(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadWebauthnUser", reflect.TypeOf((*MockStorage)(nil).LoadWebauthnUser), arg0, arg1, arg2)
+}
+
 // RevokeOAuth2Session mocks base method.
 func (m *MockStorage) RevokeOAuth2Session(arg0 context.Context, arg1 storage.OAuth2SessionType, arg2 string) error {
 	m.ctrl.T.Helper()
@@ -672,6 +687,20 @@ func (m *MockStorage) SaveWebauthnDevice(arg0 context.Context, arg1 model.Webaut
 func (mr *MockStorageMockRecorder) SaveWebauthnDevice(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveWebauthnDevice", reflect.TypeOf((*MockStorage)(nil).SaveWebauthnDevice), arg0, arg1)
+}
+
+// SaveWebauthnUser mocks base method.
+func (m *MockStorage) SaveWebauthnUser(arg0 context.Context, arg1 model.WebauthnUser) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveWebauthnUser", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveWebauthnUser indicates an expected call of SaveWebauthnUser.
+func (mr *MockStorageMockRecorder) SaveWebauthnUser(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveWebauthnUser", reflect.TypeOf((*MockStorage)(nil).SaveWebauthnUser), arg0, arg1)
 }
 
 // SchemaEncryptionChangeKey mocks base method.

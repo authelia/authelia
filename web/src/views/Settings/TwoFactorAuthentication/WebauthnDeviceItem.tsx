@@ -118,7 +118,7 @@ export default function WebauthnDeviceItem(props: Props) {
                         <Stack spacing={0} sx={{ minWidth: 400 }}>
                             <Box>
                                 <Typography display="inline" sx={{ fontWeight: "bold" }}>
-                                    {props.device.displayname}
+                                    {props.device.description}
                                 </Typography>
                                 <Typography
                                     display="inline"

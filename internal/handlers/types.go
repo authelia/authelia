@@ -41,7 +41,7 @@ type bodySignWebauthnRequest struct {
 }
 
 type bodyRegisterWebauthnPUTRequest struct {
-	DisplayName string `json:"displayname"`
+	Description string `json:"description"`
 }
 
 type bodyEditWebauthnDeviceRequest struct {

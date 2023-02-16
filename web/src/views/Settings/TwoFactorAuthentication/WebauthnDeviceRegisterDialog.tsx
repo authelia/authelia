@@ -26,7 +26,7 @@ import { useNotifications } from "@hooks/NotificationsContext";
 import { AttestationResult, AttestationResultFailureString, WebauthnTouchState } from "@models/Webauthn";
 import { finishRegistration, getAttestationCreationOptions, startWebauthnRegistration } from "@services/Webauthn";
 
-const steps = ["Display Name", "Verification"];
+const steps = ["Description", "Verification"];
 
 interface Props {
     open: boolean;
@@ -44,8 +44,8 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
     const [activeStep, setActiveStep] = useState(0);
     const [options, setOptions] = useState<PublicKeyCredentialCreationOptionsJSON | null>(null);
     const [timeout, setTimeout] = useState<number | null>(null);
-    const [credentialDisplayName, setCredentialDisplayName] = useState("");
-    const [errorDisplayName, setErrorDisplayName] = useState(false);
+    const [credentialDescription, setCredentialDescription] = useState("");
+    const [errorDescription, setErrorDescription] = useState(false);
 
     const nameRef = useRef() as MutableRefObject<HTMLInputElement>;
 
@@ -54,8 +54,8 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
         setOptions(null);
         setActiveStep(0);
         setTimeout(null);
-        setCredentialDisplayName("");
-        setErrorDisplayName(false);
+        setCredentialDescription("");
+        setErrorDescription(false);
     };
 
     const handleClose = useCallback(() => {
@@ -127,16 +127,16 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
     }, [props.open, activeStep, options, performCredentialCreation]);
 
     const handleNext = useCallback(async () => {
-        if (credentialDisplayName.length === 0 || credentialDisplayName.length > 64) {
-            setErrorDisplayName(true);
+        if (credentialDescription.length === 0 || credentialDescription.length > 64) {
+            setErrorDescription(true);
             createErrorNotification(
-                translate("The Display Name must be more than 1 character and less than 64 characters."),
+                translate("The Description must be more than 1 character and less than 64 characters."),
             );
 
             return;
         }
 
-        const res = await getAttestationCreationOptions(credentialDisplayName);
+        const res = await getAttestationCreationOptions(credentialDescription);
 
         switch (res.status) {
             case 200:
@@ -150,8 +150,8 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
 
                 break;
             case 409:
-                setErrorDisplayName(true);
-                createErrorNotification(translate("A Webauthn Credential with that Display Name already exists."));
+                setErrorDescription(true);
+                createErrorNotification(translate("A Webauthn Credential with that Description already exists."));
 
                 break;
             default:
@@ -159,17 +159,17 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
                     translate("Error occurred obtaining the Webauthn Credential creation options."),
                 );
         }
-    }, [createErrorNotification, credentialDisplayName, performCredentialCreation, translate]);
+    }, [createErrorNotification, credentialDescription, performCredentialCreation, translate]);
 
-    const handleCredentialDisplayName = useCallback(
-        (displayname: string) => {
-            setCredentialDisplayName(displayname);
+    const handleCredentialDescription = useCallback(
+        (description: string) => {
+            setCredentialDescription(description);
 
-            if (errorDisplayName) {
-                setErrorDisplayName(false);
+            if (errorDescription) {
+                setErrorDescription(false);
             }
         },
-        [errorDisplayName],
+        [errorDescription],
     );
 
     function renderStep(step: number) {
@@ -181,20 +181,20 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
                             <InformationIcon />
                         </Box>
                         <Typography className={styles.instruction}>
-                            {translate("Enter a display name for this credential")}
+                            {translate("Enter a description for this credential")}
                         </Typography>
                         <Grid container spacing={1}>
                             <Grid item xs={12}>
                                 <TextField
                                     inputRef={nameRef}
                                     id="name-textfield"
-                                    label={translate("Display Name")}
+                                    label={translate("Description")}
                                     variant="outlined"
                                     required
-                                    value={credentialDisplayName}
-                                    error={errorDisplayName}
+                                    value={credentialDescription}
+                                    error={errorDescription}
                                     disabled={false}
-                                    onChange={(v) => handleCredentialDisplayName(v.target.value)}
+                                    onChange={(v) => handleCredentialDescription(v.target.value)}
                                     autoCapitalize="none"
                                     onKeyDown={(ev) => {
                                         if (ev.key === "Enter") {
@@ -272,7 +272,7 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
                 </Button>
                 {activeStep === 0 ? (
                     <Button
-                        color={credentialDisplayName.length !== 0 ? "success" : "primary"}
+                        color={credentialDescription.length !== 0 ? "success" : "primary"}
                         disabled={activeStep !== 0}
                         onClick={async () => {
                             await handleNext();

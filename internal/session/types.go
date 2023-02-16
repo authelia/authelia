@@ -45,12 +45,13 @@ type UserSession struct {
 	RefreshTTL time.Time
 }
 
+// Webauthn holds the standard webauthn session data plus some extra.
 type Webauthn struct {
 	*webauthn.SessionData
 	DisplayName string
 }
 
-// Identity identity of the user who is being verified.
+// Identity of the user who is being verified.
 type Identity struct {
 	Username    string
 	Email       string

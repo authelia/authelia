@@ -58,6 +58,9 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlDeleteTOTPConfig = provider.db.Rebind(provider.sqlDeleteTOTPConfig)
 	provider.sqlSelectTOTPConfigs = provider.db.Rebind(provider.sqlSelectTOTPConfigs)
 
+	provider.sqlInsertWebauthnUser = provider.db.Rebind(provider.sqlInsertWebauthnUser)
+	provider.sqlSelectWebauthnUser = provider.db.Rebind(provider.sqlSelectWebauthnUser)
+
 	provider.sqlInsertWebauthnDevice = provider.db.Rebind(provider.sqlInsertWebauthnDevice)
 	provider.sqlSelectWebauthnDevices = provider.db.Rebind(provider.sqlSelectWebauthnDevices)
 	provider.sqlSelectWebauthnDevicesByUsername = provider.db.Rebind(provider.sqlSelectWebauthnDevicesByUsername)

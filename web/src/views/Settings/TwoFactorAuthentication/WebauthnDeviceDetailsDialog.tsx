@@ -33,7 +33,7 @@ export default function WebauthnDetailsDeleteDialog(props: Props) {
             <DialogContent>
                 <DialogContentText sx={{ mb: 3 }}>
                     {translate("Extended Webauthn credential information for security key", {
-                        displayname: props.device.displayname,
+                        description: props.device.description,
                     })}
                 </DialogContentText>
                 <Stack spacing={0} sx={{ minWidth: 400 }}>
@@ -46,7 +46,7 @@ export default function WebauthnDetailsDeleteDialog(props: Props) {
                             />
                         </Stack>
                     </Box>
-                    <PropertyText name={translate("Display Name")} value={props.device.displayname} />
+                    <PropertyText name={translate("Description")} value={props.device.description} />
                     <PropertyText name={translate("Relying Party ID")} value={props.device.rpid} />
                     <PropertyText
                         name={translate("Authenticator GUID")}

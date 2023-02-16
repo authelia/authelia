@@ -12,6 +12,7 @@ const (
 	tableUserOpaqueIdentifier = "user_opaque_identifier"
 	tableUserPreferences      = "user_preferences"
 	tableWebauthnDevices      = "webauthn_devices"
+	tableWebauthnUsers        = "webauthn_users"
 
 	tableOAuth2ConsentSession          = "oauth2_consent_session"
 	tableOAuth2ConsentPreConfiguration = "oauth2_consent_preconfiguration"

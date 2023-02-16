@@ -9,17 +9,25 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
-	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/random"
 )
 
-func getWebauthnUser(ctx *middlewares.AutheliaCtx, userSession session.UserSession) (user *model.WebauthnUser, err error) {
-	return getWebauthnUserByRPID(ctx, userSession.Username, userSession.DisplayName, "")
-}
+func getWebauthnUserByRPID(ctx *middlewares.AutheliaCtx, username, description string, rpid string) (user *model.WebauthnUser, err error) {
+	if user, err = ctx.Providers.StorageProvider.LoadWebauthnUser(ctx, rpid, username); err != nil {
+		return nil, err
+	}
 
-func getWebauthnUserByRPID(ctx *middlewares.AutheliaCtx, username, displayname string, rpid string) (user *model.WebauthnUser, err error) {
-	user = &model.WebauthnUser{
-		Username:    username,
-		DisplayName: displayname,
+	if user == nil {
+		user = &model.WebauthnUser{
+			RPID:        rpid,
+			Username:    username,
+			UserID:      ctx.Providers.Random.StringCustom(64, random.CharSetASCII),
+			DisplayName: description,
+		}
+
+		if err = ctx.Providers.StorageProvider.SaveWebauthnUser(ctx, *user); err != nil {
+			return nil, err
+		}
 	}
 
 	if user.DisplayName == "" {

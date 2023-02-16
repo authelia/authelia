@@ -562,7 +562,7 @@ func (ctx *CmdCtx) StorageUserWebauthnListRunE(cmd *cobra.Command, args []string
 		fmt.Printf("ID\tKID\tDescription\n")
 
 		for _, device := range devices {
-			fmt.Printf("%d\t%s\t%s", device.ID, device.KID, device.DisplayName)
+			fmt.Printf("%d\t%s\t%s", device.ID, device.KID, device.Description)
 		}
 	}
 
@@ -595,7 +595,7 @@ func (ctx *CmdCtx) StorageUserWebauthnListAllRunE(_ *cobra.Command, _ []string) 
 		}
 
 		for _, device := range devices {
-			output.WriteString(fmt.Sprintf("%d\t%s\t%s\t%s\n", device.ID, device.KID, device.DisplayName, device.Username))
+			output.WriteString(fmt.Sprintf("%d\t%s\t%s\t%s\n", device.ID, device.KID, device.Description, device.Username))
 		}
 
 		if len(devices) < limit {

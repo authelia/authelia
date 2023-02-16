@@ -20,9 +20,13 @@ const (
 
 // WebauthnUser is an object to represent a user for the Webauthn lib.
 type WebauthnUser struct {
-	Username    string
-	DisplayName string
-	Devices     []WebauthnDevice
+	ID          int    `db:"id"`
+	RPID        string `db:"rpid"`
+	Username    string `db:"username"`
+	UserID      string `db:"userid"`
+	DisplayName string `db:"-"`
+
+	Devices []WebauthnDevice `db:"-"`
 }
 
 // HasFIDOU2F returns true if the user has any attestation type `fido-u2f` devices.
@@ -38,7 +42,7 @@ func (w WebauthnUser) HasFIDOU2F() bool {
 
 // WebAuthnID implements the webauthn.User interface.
 func (w WebauthnUser) WebAuthnID() []byte {
-	return []byte(w.Username)
+	return []byte(w.UserID)
 }
 
 // WebAuthnName implements the webauthn.User  interface.
@@ -117,7 +121,7 @@ func (w WebauthnUser) WebAuthnCredentialDescriptors() (descriptors []protocol.Cr
 }
 
 // NewWebauthnDeviceFromCredential creates a WebauthnDevice from a webauthn.Credential.
-func NewWebauthnDeviceFromCredential(rpid, username, displayname string, credential *webauthn.Credential) (device WebauthnDevice) {
+func NewWebauthnDeviceFromCredential(rpid, username, description string, credential *webauthn.Credential) (device WebauthnDevice) {
 	transport := make([]string, len(credential.Transport))
 
 	for i, t := range credential.Transport {
@@ -128,7 +132,7 @@ func NewWebauthnDeviceFromCredential(rpid, username, displayname string, credent
 		RPID:            rpid,
 		Username:        username,
 		CreatedAt:       time.Now(),
-		DisplayName:     displayname,
+		Description:     description,
 		KID:             NewBase64(credential.ID),
 		AttestationType: credential.AttestationType,
 		Attachment:      string(credential.Authenticator.Attachment),
@@ -157,7 +161,7 @@ type WebauthnDeviceJSON struct {
 	CreatedAt       time.Time  `json:"created_at"`
 	LastUsedAt      *time.Time `json:"last_used_at,omitempty"`
 	RPID            string     `json:"rpid"`
-	DisplayName     string     `json:"displayname"`
+	Description     string     `json:"description"`
 	KID             []byte     `json:"kid"`
 	AAGUID          string     `json:"aaguid,omitempty"`
 	Attachment      string     `json:"attachment"`
@@ -180,7 +184,7 @@ type WebauthnDevice struct {
 	LastUsedAt      sql.NullTime  `db:"last_used_at"`
 	RPID            string        `db:"rpid"`
 	Username        string        `db:"username"`
-	DisplayName     string        `db:"displayname"`
+	Description     string        `db:"description"`
 	KID             Base64        `db:"kid"`
 	AAGUID          uuid.NullUUID `db:"aaguid"`
 	AttestationType string        `db:"attestation_type"`
@@ -202,7 +206,7 @@ func (w *WebauthnDevice) MarshalJSON() (data []byte, err error) {
 		ID:              w.ID,
 		CreatedAt:       w.CreatedAt,
 		RPID:            w.RPID,
-		DisplayName:     w.DisplayName,
+		Description:     w.Description,
 		KID:             w.KID.data,
 		AttestationType: w.AttestationType,
 		Attachment:      w.Attachment,
@@ -265,7 +269,7 @@ func (d *WebauthnDevice) MarshalYAML() (any, error) {
 		LastUsedAt:      d.LastUsed(),
 		RPID:            d.RPID,
 		Username:        d.Username,
-		DisplayName:     d.DisplayName,
+		Description:     d.Description,
 		KID:             d.KID.String(),
 		AAGUID:          d.AAGUID.UUID.String(),
 		AttestationType: d.AttestationType,
@@ -316,7 +320,7 @@ func (d *WebauthnDevice) UnmarshalYAML(value *yaml.Node) (err error) {
 	d.CreatedAt = o.CreatedAt
 	d.RPID = o.RPID
 	d.Username = o.Username
-	d.DisplayName = o.DisplayName
+	d.Description = o.Description
 	d.AttestationType = o.AttestationType
 	d.Attachment = o.Attachment
 	d.Transport = o.Transport
@@ -341,7 +345,7 @@ type WebauthnDeviceData struct {
 	LastUsedAt      *time.Time `yaml:"last_used_at"`
 	RPID            string     `yaml:"rpid"`
 	Username        string     `yaml:"username"`
-	DisplayName     string     `yaml:"displayname"`
+	Description     string     `yaml:"description"`
 	KID             string     `yaml:"kid"`
 	AAGUID          string     `yaml:"aaguid"`
 	AttestationType string     `yaml:"attestation_type"`

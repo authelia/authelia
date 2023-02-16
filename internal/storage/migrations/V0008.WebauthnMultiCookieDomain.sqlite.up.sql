@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS webauthn_devices (
     last_used_at DATETIME NULL DEFAULT NULL,
     rpid VARCHAR(512) NOT NULL,
     username VARCHAR(100) NOT NULL,
-    displayname VARCHAR(64) NOT NULL,
+	description VARCHAR(64) NOT NULL,
     kid VARCHAR(512) NOT NULL,
 	aaguid CHAR(36) NULL,
     attestation_type VARCHAR(32),
@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS webauthn_devices (
     transport VARCHAR(20) DEFAULT '',
     sign_count INTEGER DEFAULT 0,
     clone_warning BOOLEAN NOT NULL DEFAULT FALSE,
+    legacy BOOLEAN NOT NULL DEFAULT FALSE,
 	discoverable BOOLEAN NOT NULL,
 	present BOOLEAN NOT NULL DEFAULT FALSE,
 	verified BOOLEAN NOT NULL DEFAULT FALSE,
@@ -27,10 +28,19 @@ CREATE TABLE IF NOT EXISTS webauthn_devices (
 );
 
 CREATE UNIQUE INDEX webauthn_devices_kid_key ON webauthn_devices (kid);
-CREATE UNIQUE INDEX webauthn_devices_lookup_key ON webauthn_devices (rpid, username, displayname);
+CREATE UNIQUE INDEX webauthn_devices_lookup_key ON webauthn_devices (rpid, username, description);
 
-INSERT INTO webauthn_devices (created_at, last_used_at, rpid, username, displayname, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key)
-SELECT created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, 'cross-platform', transport, sign_count, clone_warning, FALSE, FALSE, FALSE, FALSE, FALSE, public_key
+INSERT INTO webauthn_devices (created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key)
+SELECT created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, 'cross-platform', transport, sign_count, clone_warning, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, public_key
 FROM _bkp_UP_V0008_webauthn_devices;
 
 DROP TABLE IF EXISTS _bkp_UP_V0008_webauthn_devices;
+
+CREATE TABLE IF NOT EXISTS webauthn_users (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    rpid VARCHAR(512) NOT NULL,
+    username VARCHAR(100) NOT NULL,
+	userid CHAR(64) NOT NULL
+);
+
+CREATE UNIQUE INDEX webauthn_users_lookup_key ON webauthn_users (rpid, username);
