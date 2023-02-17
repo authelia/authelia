@@ -19,8 +19,8 @@
   },
   "dependencies": {
     "@emotion/cache": "11.10.5",
-    "@emotion/react": "11.10.5",
-    "@emotion/styled": "11.10.5",
+    "@emotion/react": "11.10.6",
+    "@emotion/styled": "11.10.6",
     "@fortawesome/fontawesome-svg-core": "6.3.0",
     "@fortawesome/free-regular-svg-icons": "6.3.0",
     "@fortawesome/free-solid-svg-icons": "6.3.0",
