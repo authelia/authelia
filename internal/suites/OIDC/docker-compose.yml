@@ -3,7 +3,7 @@ version: '3'
 services:
   authelia-backend:
     environment:
-      AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_CERTIFICATE_CHAIN_FILE: /pki/public.oidc.bundle.crt
+      AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_CERTIFICATE_CHAIN_FILE: /pki/public.oidc.chain.pem
       AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE: /pki/private.oidc.pem
     volumes:
       - './OIDC/configuration.yml:/config/configuration.yml:ro'
