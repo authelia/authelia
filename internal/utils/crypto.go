@@ -308,18 +308,30 @@ func NewX509CertPool(directory string) (certPool *x509.CertPool, warnings []erro
 
 // WriteCertificateBytesToPEM writes a certificate/csr to a file in the PEM format.
 func WriteCertificateBytesToPEM(path string, csr bool, certs ...[]byte) (err error) {
-	out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		return fmt.Errorf("failed to open %s for writing: %w", path, err)
-	}
-
 	blockType := BlockTypeCertificate
 	if csr {
 		blockType = BlockTypeCertificateRequest
 	}
 
-	for _, cert := range certs {
-		if err = pem.Encode(out, &pem.Block{Bytes: cert, Type: blockType}); err != nil {
+	blocks := make([]*pem.Block, len(certs))
+
+	for i, cert := range certs {
+		blocks[i] = &pem.Block{Type: blockType, Bytes: cert}
+	}
+
+	return WritePEM(path, blocks...)
+}
+
+// WritePEM writes a set of *pem.Blocks to a file.
+func WritePEM(path string, blocks ...*pem.Block) (err error) {
+	var out *os.File
+
+	if out, err = os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
+		return err
+	}
+
+	for _, block := range blocks {
+		if err = pem.Encode(out, block); err != nil {
 			_ = out.Close()
 
 			return err
@@ -331,23 +343,12 @@ func WriteCertificateBytesToPEM(path string, csr bool, certs ...[]byte) (err err
 
 // WriteKeyToPEM writes a key that can be encoded as a PEM to a file in the PEM format.
 func WriteKeyToPEM(key any, path string, pkcs8 bool) (err error) {
-	pemBlock, err := PEMBlockFromX509Key(key, pkcs8)
+	block, err := PEMBlockFromX509Key(key, pkcs8)
 	if err != nil {
 		return err
 	}
 
-	out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		return fmt.Errorf("failed to open %s for writing: %w", path, err)
-	}
-
-	if err = pem.Encode(out, pemBlock); err != nil {
-		_ = out.Close()
-
-		return err
-	}
-
-	return out.Close()
+	return WritePEM(path, block)
 }
 
 // PEMBlockFromX509Key turns a PublicKey or PrivateKey into a pem.Block.
