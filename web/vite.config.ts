@@ -12,11 +12,11 @@ export default defineConfig(({ mode }) => {
 
     const istanbulPlugin = isCoverage
         ? istanbul({
-              include: "src/*",
+              checkProd: false,
               exclude: ["node_modules"],
               extension: [".js", ".jsx", ".ts", ".tsx"],
-              checkProd: false,
               forceBuildInstrument: true,
+              include: "src/*",
               requireEnv: true,
           })
         : undefined;
@@ -24,14 +24,11 @@ export default defineConfig(({ mode }) => {
     return {
         base: "./",
         build: {
-            sourcemap,
-            outDir: "../internal/server/public_html",
-            emptyOutDir: true,
             assetsDir: "static",
+            emptyOutDir: true,
+            outDir: "../internal/server/public_html",
             rollupOptions: {
                 output: {
-                    entryFileNames: `static/js/[name].[hash].js`,
-                    chunkFileNames: `static/js/[name].[hash].js`,
                     assetFileNames: ({ name }) => {
                         if (name && name.endsWith(".css")) {
                             return "static/css/[name].[hash].[ext]";
@@ -39,12 +36,26 @@ export default defineConfig(({ mode }) => {
 
                         return "static/media/[name].[hash].[ext]";
                     },
+                    chunkFileNames: `static/js/[name].[hash].js`,
+                    entryFileNames: `static/js/[name].[hash].js`,
                 },
             },
+            sourcemap,
         },
         server: {
-            port: 3000,
             open: false,
+            port: 3000,
+        },
+        test: {
+            coverage: {
+                provider: "c8",
+            },
+            environment: "happy-dom",
+            globals: true,
+            onConsoleLog(log) {
+                if (log.includes('No routes matched location "blank"')) return false;
+            },
+            setupFiles: ["src/setupTests.js"],
         },
         plugins: [eslintPlugin({ cache: false }), istanbulPlugin, react(), svgr(), tsconfigPaths()],
     };
