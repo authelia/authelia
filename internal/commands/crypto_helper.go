@@ -46,7 +46,7 @@ func cmdFlagsCryptoCertificateGenerate(cmd *cobra.Command) {
 	cmd.Flags().String(cmdFlagNameFileCertificate, "public.crt", "name of the file to export the certificate data to")
 	cmd.Flags().String(cmdFlagNameFileBundleChain, "public.chain.pem", fmt.Sprintf("name of the file to export the certificate chain PEM bundle to when the --%s flag includes 'chain'", cmdFlagNameBundles))
 	cmd.Flags().String(cmdFlagNameFileBundlePrivKeyChain, "private.chain.pem", fmt.Sprintf("name of the file to export the certificate chain and private key PEM bundle to when the --%s flag includes 'priv-chain'", cmdFlagNameBundles))
-	cmd.Flags().StringSlice(cmdFlagNameBundles, nil, fmt.Sprintf("enables generating bundles options are 'chain' and 'privkey-chain'"))
+	cmd.Flags().StringSlice(cmdFlagNameBundles, nil, "enables generating bundles options are 'chain' and 'privkey-chain'")
 
 	cmd.Flags().StringSlice(cmdFlagNameExtendedUsage, nil, "specify the extended usage types of the certificate")
 
