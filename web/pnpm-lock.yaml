@@ -58,7 +58,7 @@ specifiers:
   react-test-renderer: 18.2.0
   react18-input-otp: 1.1.2
   typescript: 4.9.5
-  vite: 4.1.1
+  vite: 4.1.2
   vite-plugin-eslint: 1.8.1
   vite-plugin-istanbul: 4.0.0
   vite-plugin-svgr: 2.4.0
@@ -105,7 +105,7 @@ devDependencies:
   '@types/zxcvbn': 4.4.1
   '@typescript-eslint/eslint-plugin': 5.52.0_6cfvjsbua5ptj65675bqcn6oza
   '@typescript-eslint/parser': 5.52.0_7kw3g6rralp5ps6mg3uyzz6azm
-  '@vitejs/plugin-react': 3.1.0_vite@4.1.1
+  '@vitejs/plugin-react': 3.1.0_vite@4.1.2
   esbuild: 0.17.8
   esbuild-jest: 0.5.0_esbuild@0.17.8
   eslint: 8.34.0
@@ -126,10 +126,10 @@ devDependencies:
   prettier: 2.8.4
   react-test-renderer: 18.2.0_react@18.2.0
   typescript: 4.9.5
-  vite: 4.1.1_@types+node@18.13.0
-  vite-plugin-eslint: 1.8.1_eslint@8.34.0+vite@4.1.1
-  vite-plugin-istanbul: 4.0.0_vite@4.1.1
-  vite-plugin-svgr: 2.4.0_vite@4.1.1
+  vite: 4.1.2_@types+node@18.13.0
+  vite-plugin-eslint: 1.8.1_eslint@8.34.0+vite@4.1.2
+  vite-plugin-istanbul: 4.0.0_vite@4.1.2
+  vite-plugin-svgr: 2.4.0_vite@4.1.2
   vite-tsconfig-paths: 4.0.5_typescript@4.9.5
 
 packages:
@@ -4003,7 +4003,7 @@ packages:
       eslint-visitor-keys: 3.3.0
     dev: true
 
-  /@vitejs/plugin-react/3.1.0_vite@4.1.1:
+  /@vitejs/plugin-react/3.1.0_vite@4.1.2:
     resolution: {integrity: sha512-AfgcRL8ZBhAlc3BFdigClmTUMISmmzHn7sB2h9U1odvc5U/MjWXsAaz18b/WoppUTDBzxOJwo2VdClfUcItu9g==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
@@ -4014,7 +4014,7 @@ packages:
       '@babel/plugin-transform-react-jsx-source': 7.19.6_@babel+core@7.20.12
       magic-string: 0.27.0
       react-refresh: 0.14.0
-      vite: 4.1.1_@types+node@18.13.0
+      vite: 4.1.2_@types+node@18.13.0
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -9484,7 +9484,7 @@ packages:
       spdx-expression-parse: 3.0.1
     dev: true
 
-  /vite-plugin-eslint/1.8.1_eslint@8.34.0+vite@4.1.1:
+  /vite-plugin-eslint/1.8.1_eslint@8.34.0+vite@4.1.2:
     resolution: {integrity: sha512-PqdMf3Y2fLO9FsNPmMX+//2BF5SF8nEWspZdgl4kSt7UvHDRHVVfHvxsD7ULYzZrJDGRxR81Nq7TOFgwMnUang==}
     peerDependencies:
       eslint: '>=7'
@@ -9494,10 +9494,10 @@ packages:
       '@types/eslint': 8.4.5
       eslint: 8.34.0
       rollup: 2.78.0
-      vite: 4.1.1_@types+node@18.13.0
+      vite: 4.1.2_@types+node@18.13.0
     dev: true
 
-  /vite-plugin-istanbul/4.0.0_vite@4.1.1:
+  /vite-plugin-istanbul/4.0.0_vite@4.1.2:
     resolution: {integrity: sha512-r5TUlEprFyp+L+by/waG1RsIMiqfy7LBAZvheFlXjxzm69146rHGW6bh9TDzXg7wJB6DsyjqKFtvAX50d/I/IQ==}
     peerDependencies:
       vite: '>=2.9.1 <= 5'
@@ -9506,19 +9506,19 @@ packages:
       istanbul-lib-instrument: 5.2.0
       picocolors: 1.0.0
       test-exclude: 6.0.0
-      vite: 4.1.1_@types+node@18.13.0
+      vite: 4.1.2_@types+node@18.13.0
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /vite-plugin-svgr/2.4.0_vite@4.1.1:
+  /vite-plugin-svgr/2.4.0_vite@4.1.2:
     resolution: {integrity: sha512-q+mJJol6ThvqkkJvvVFEndI4EaKIjSI0I3jNFgSoC9fXAz1M7kYTVUin8fhUsFojFDKZ9VHKtX6NXNaOLpbsHA==}
     peerDependencies:
       vite: ^2.6.0 || 3 || 4
     dependencies:
       '@rollup/pluginutils': 5.0.2
       '@svgr/core': 6.5.1
-      vite: 4.1.1_@types+node@18.13.0
+      vite: 4.1.2_@types+node@18.13.0
     transitivePeerDependencies:
       - rollup
       - supports-color
@@ -9535,8 +9535,8 @@ packages:
       - typescript
     dev: true
 
-  /vite/4.1.1_@types+node@18.13.0:
-    resolution: {integrity: sha512-LM9WWea8vsxhr782r9ntg+bhSFS06FJgCvvB0+8hf8UWtvaiDagKYWXndjfX6kGl74keHJUcpzrQliDXZlF5yg==}
+  /vite/4.1.2_@types+node@18.13.0:
+    resolution: {integrity: sha512-MWDb9Rfy3DI8omDQySbMK93nQqStwbsQWejXRY2EBzEWKmLAXWb1mkI9Yw2IJrc+oCvPCI1Os5xSSIBYY6DEAw==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:
