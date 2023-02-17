@@ -146,7 +146,7 @@
     "@commitlint/config-conventional": "17.4.3",
     "@limegrass/eslint-plugin-import-alias": "1.0.6",
     "@testing-library/jest-dom": "5.16.5",
-    "@testing-library/react": "13.4.0",
+    "@testing-library/react": "14.0.0",
     "@types/jest": "29.4.0",
     "@types/node": "18.13.0",
     "@types/qrcode.react": "1.0.2",
