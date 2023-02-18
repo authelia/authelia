@@ -112,7 +112,7 @@ func (authz *Authz) getAutheliaURL(ctx *middlewares.AutheliaCtx, provider *sessi
 		return nil, err
 	}
 
-	if autheliaURL != nil {
+	if autheliaURL != nil || authz.legacy {
 		return autheliaURL, nil
 	}
 

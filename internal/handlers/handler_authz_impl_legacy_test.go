@@ -139,7 +139,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsOverrideAutheliaURLDeny() {
 	}
 }
 
-func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLDeny() {
+func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLBypassStatus200() {
 	for _, method := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
 			for _, targetURI := range []*url.URL{
@@ -163,8 +163,81 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLDeny() {
 
 					authz.Handler(mock.Ctx)
 
+					assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+					assert.Equal(t, "", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+				})
+			}
+		})
+	}
+}
+
+func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLOneFactorStatus401() {
+	for _, method := range testRequestMethods {
+		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
+			for _, targetURI := range []*url.URL{
+				s.RequireParseRequestURI("https://one-factor.example.com"),
+				s.RequireParseRequestURI("https://one-factor.example.com/subpath"),
+				s.RequireParseRequestURI("https://one-factor.example2.com"),
+				s.RequireParseRequestURI("https://one-factor.example2.com/subpath"),
+			} {
+				t.Run(targetURI.String(), func(t *testing.T) {
+					authz := s.Builder().Build()
+
+					mock := mocks.NewMockAutheliaCtx(t)
+
+					defer mock.Close()
+
+					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
+					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, targetURI.Scheme)
+					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, targetURI.Host)
+					mock.Ctx.Request.Header.Set("X-Forwarded-Uri", targetURI.Path)
+					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
+
+					authz.Handler(mock.Ctx)
+
 					assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, "", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+				})
+			}
+		})
+	}
+}
+
+func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsRDAutheliaURLOneFactorStatus302Or303() {
+	for _, method := range testRequestMethods {
+		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
+			for _, targetURI := range []*url.URL{
+				s.RequireParseRequestURI("https://one-factor.example.com/"),
+				s.RequireParseRequestURI("https://one-factor.example.com/subpath"),
+			} {
+				t.Run(targetURI.String(), func(t *testing.T) {
+					authz := s.Builder().Build()
+
+					mock := mocks.NewMockAutheliaCtx(t)
+
+					defer mock.Close()
+
+					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
+					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, targetURI.Scheme)
+					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, targetURI.Host)
+					mock.Ctx.Request.Header.Set("X-Forwarded-Uri", targetURI.Path)
+					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
+					mock.Ctx.Request.SetRequestURI("/api/verify?rd=https%3A%2F%2Fauth.example.com")
+
+					authz.Handler(mock.Ctx)
+
+					switch method {
+					case fasthttp.MethodGet, fasthttp.MethodOptions:
+						assert.Equal(t, fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
+					default:
+						assert.Equal(t, fasthttp.StatusSeeOther, mock.Ctx.Response.StatusCode())
+					}
+
+					query := &url.Values{}
+					query.Set("rd", targetURI.String())
+					query.Set("rm", method)
+
+					assert.Equal(t, fmt.Sprintf("https://auth.example.com/?%s", query.Encode()), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
 				})
 			}
 		})
