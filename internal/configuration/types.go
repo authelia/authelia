@@ -1,7 +1,7 @@
 package configuration
 
 import (
-	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/v2"
 	"github.com/spf13/pflag"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
