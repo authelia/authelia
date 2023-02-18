@@ -48,7 +48,7 @@ type UserSession struct {
 // Webauthn holds the standard webauthn session data plus some extra.
 type Webauthn struct {
 	*webauthn.SessionData
-	DisplayName string
+	Description string
 }
 
 // Identity of the user who is being verified.

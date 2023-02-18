@@ -70,3 +70,34 @@ func newWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error)
 
 	return webauthn.New(config)
 }
+
+func webauthnCredentialCreationIsDiscoverable(ctx *middlewares.AutheliaCtx, response *protocol.ParsedCredentialCreationData) (discoverable bool) {
+	if value, ok := response.ClientExtensionResults["credProps"]; ok {
+		switch credentialProperties := value.(type) {
+		case map[string]any:
+			var v any
+
+			if v, ok = credentialProperties["rk"]; ok {
+				if discoverable, ok = v.(bool); ok {
+					ctx.Logger.WithFields(map[string]any{"discoverable": discoverable}).Trace("Determined Credential Discoverability via Client Extension Results")
+
+					return discoverable
+				} else {
+					ctx.Logger.WithFields(map[string]any{"discoverable": false}).Trace("Assuming Credential Discoverability is false as the 'rk' field for the 'credProps' extension in the Client Extension Results was not a boolean")
+				}
+			} else {
+				ctx.Logger.WithFields(map[string]any{"discoverable": false}).Trace("Assuming Credential Discoverability is false as the 'rk' field for the 'credProps' extension was missing from the Client Extension Results")
+			}
+
+			return false
+		default:
+			ctx.Logger.WithFields(map[string]any{"discoverable": false}).Trace("Assuming Credential Discoverability is false as the 'credProps' extension in the Client Extension Results does not appear to be a dictionary")
+
+			return false
+		}
+	}
+
+	ctx.Logger.WithFields(map[string]any{"discoverable": false}).Trace("Assuming Credential Discoverability is false as the 'credProps' extension is missing from the Client Extension Results")
+
+	return false
+}

@@ -87,18 +87,20 @@ func WebauthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 	}
 
 	var (
-		opts *protocol.CredentialCreation
+		creation *protocol.CredentialCreation
 	)
 
+	opts := []webauthn.RegistrationOption{
+		webauthn.WithExclusions(user.WebAuthnCredentialDescriptors()),
+		webauthn.WithExtensions(map[string]any{"credProps": true}),
+		webauthn.WithResidentKeyRequirement(protocol.ResidentKeyRequirementDiscouraged),
+	}
+
 	data := session.Webauthn{
-		DisplayName: bodyJSON.Description,
+		Description: bodyJSON.Description,
 	}
 
-	extensions := map[string]any{
-		"credProps": true,
-	}
-
-	if opts, data.SessionData, err = w.BeginRegistration(user, webauthn.WithExclusions(user.WebAuthnCredentialDescriptors()), webauthn.WithExtensions(extensions)); err != nil {
+	if creation, data.SessionData, err = w.BeginRegistration(user, opts...); err != nil {
 		ctx.Logger.Errorf("Unable to create %s registration challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
@@ -116,7 +118,7 @@ func WebauthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.SetJSONBody(opts); err != nil {
+	if err = ctx.SetJSONBody(creation); err != nil {
 		ctx.Logger.Errorf(logFmtErrWriteResponseBody, regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
@@ -197,34 +199,9 @@ func WebauthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	var discoverable bool
+	device := model.NewWebauthnDeviceFromCredential(w.Config.RPID, userSession.Username, userSession.Webauthn.Description, credential)
 
-	if value, ok := response.ClientExtensionResults["credProps"]; ok {
-		switch credprops := value.(type) {
-		case map[string]any:
-			ctx.Logger.Debug("Is type")
-
-			var v any
-
-			if v, ok = credprops["rk"]; ok {
-				ctx.Logger.Debug("found rk")
-
-				if discoverable, ok = v.(bool); ok {
-					ctx.Logger.Debug("found rk bool")
-				} else {
-					ctx.Logger.Debugf("not found rk bool %T", v)
-				}
-			} else {
-				ctx.Logger.Debug("not found rk")
-			}
-		default:
-			ctx.Logger.Debugf("type is %T", credprops)
-		}
-	}
-
-	device := model.NewWebauthnDeviceFromCredential(w.Config.RPID, userSession.Username, userSession.Webauthn.DisplayName, credential)
-
-	device.Discoverable = discoverable
+	device.Discoverable = webauthnCredentialCreationIsDiscoverable(ctx, response)
 
 	if err = ctx.Providers.StorageProvider.SaveWebauthnDevice(ctx, device); err != nil {
 		ctx.Logger.Errorf("Unable to save %s device registration for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)

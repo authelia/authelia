@@ -45,20 +45,19 @@ func WebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	var opts = []webauthn.LoginOption{
-		webauthn.WithAllowedCredentials(user.WebAuthnCredentialDescriptors()),
-	}
-
 	extensions := map[string]any{}
 
 	if user.HasFIDOU2F() {
 		extensions["appid"] = w.Config.RPOrigins[0]
 	}
 
+	var opts = []webauthn.LoginOption{
+		webauthn.WithAllowedCredentials(user.WebAuthnCredentialDescriptors()),
+	}
+
 	if len(extensions) != 0 {
 		opts = append(opts, webauthn.WithAssertionExtensions(extensions))
 	}
-
 	var assertion *protocol.CredentialAssertion
 
 	data := session.Webauthn{}
