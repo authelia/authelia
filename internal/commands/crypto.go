@@ -365,7 +365,7 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 		return err
 	}
 
-	b := strings.Builder{}
+	b := &strings.Builder{}
 
 	b.WriteString("Generating Certificate\n\n")
 
@@ -402,17 +402,12 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 	b.WriteString(fmt.Sprintf("\n\tSubject Alternative Names: %s\n\n", strings.Join(cryptoSANsToString(template.DNSNames, template.IPAddresses), ", ")))
 
 	var (
-		dir, privateKeyPath, certificatePath, certificateBundlePath string
+		dir, privateKeyPath, certificatePath string
 
-		bundle      bool
 		certificate []byte
 	)
 
 	if dir, privateKeyPath, certificatePath, err = cryptoGetWritePathsFromCmd(cmd); err != nil {
-		return err
-	}
-
-	if bundle, certificateBundlePath, err = cryptoGetCertificateBundleFromCmd(cmd, dir, caCertificate); err != nil {
 		return err
 	}
 
@@ -432,10 +427,8 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 		return err
 	}
 
-	if bundle {
-		b.WriteString(fmt.Sprintf("\tCertificate (bundle): %s\n", certificateBundlePath))
-
-		if err = utils.WriteCertificateBytesToPEM(certificateBundlePath, false, certificate, caCertificate.Raw); err != nil {
+	if cmd.Flags().Changed(cmdFlagNameBundles) {
+		if err = cryptoGenerateCertificateBundlesFromCmd(cmd, b, dir, caCertificate, certificate, privateKey); err != nil {
 			return err
 		}
 	}

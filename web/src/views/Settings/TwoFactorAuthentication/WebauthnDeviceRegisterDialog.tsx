@@ -159,7 +159,7 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
                     translate("Error occurred obtaining the Webauthn Credential creation options."),
                 );
         }
-    }, [createErrorNotification, credentialDescription, performCredentialCreation, translate]);
+    }, [createErrorNotification, credentialDescription, translate]);
 
     const handleCredentialDescription = useCallback(
         (description: string) => {
