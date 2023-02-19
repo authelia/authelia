@@ -51,19 +51,30 @@ func newWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error)
 	}
 
 	config := &webauthn.Config{
-		RPDisplayName: ctx.Configuration.Webauthn.DisplayName,
-		RPID:          origin.Hostname(),
-		RPOrigins:     []string{origin.String()},
-		RPIcon:        "",
-
+		RPID:                  origin.Hostname(),
+		RPDisplayName:         ctx.Configuration.Webauthn.DisplayName,
+		RPOrigins:             []string{origin.String()},
 		AttestationPreference: ctx.Configuration.Webauthn.ConveyancePreference,
 		AuthenticatorSelection: protocol.AuthenticatorSelection{
 			AuthenticatorAttachment: protocol.CrossPlatform,
-			UserVerification:        ctx.Configuration.Webauthn.UserVerification,
 			RequireResidentKey:      protocol.ResidentKeyNotRequired(),
+			ResidentKey:             protocol.ResidentKeyRequirementDiscouraged,
+			UserVerification:        ctx.Configuration.Webauthn.UserVerification,
 		},
-
-		Timeout: int(ctx.Configuration.Webauthn.Timeout.Milliseconds()),
+		Debug:                false,
+		EncodeUserIDAsString: true,
+		Timeouts: webauthn.TimeoutsConfig{
+			Login: webauthn.TimeoutConfig{
+				Enforce:    true,
+				Timeout:    ctx.Configuration.Webauthn.Timeout,
+				TimeoutUVD: ctx.Configuration.Webauthn.Timeout,
+			},
+			Registration: webauthn.TimeoutConfig{
+				Enforce:    true,
+				Timeout:    ctx.Configuration.Webauthn.Timeout,
+				TimeoutUVD: ctx.Configuration.Webauthn.Timeout,
+			},
+		},
 	}
 
 	ctx.Logger.Tracef("Creating new Webauthn RP instance with ID %s and Origins %s", config.RPID, strings.Join(config.RPOrigins, ", "))

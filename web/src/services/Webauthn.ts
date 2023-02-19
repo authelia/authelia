@@ -104,8 +104,6 @@ function getAssertionResultFromDOMException(
     }
 }
 
-const decode = (str: string): string => window.atob(str.replace("-", "+").replace("_", "/")).toString();
-
 export async function getAttestationCreationOptions(
     description: string,
 ): Promise<PublicKeyCredentialCreationOptionsStatus> {
@@ -126,8 +124,6 @@ export async function getAttestationCreationOptions(
             status: response.status,
         };
     }
-
-    response.data.data.publicKey.user.id = decode(response.data.data.publicKey.user.id);
 
     return {
         options: response.data.data.publicKey,

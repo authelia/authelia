@@ -58,9 +58,11 @@ func WebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	if len(extensions) != 0 {
 		opts = append(opts, webauthn.WithAssertionExtensions(extensions))
 	}
-	var assertion *protocol.CredentialAssertion
 
-	data := session.Webauthn{}
+	var (
+		assertion *protocol.CredentialAssertion
+		data      session.Webauthn
+	)
 
 	if assertion, data.SessionData, err = w.BeginLogin(user, opts...); err != nil {
 		ctx.Logger.Errorf("Unable to create %s authentication challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
@@ -207,8 +209,8 @@ func WebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	userSession.SetTwoFactorWebauthn(ctx.Clock.Now(),
-		assertionResponse.Response.AuthenticatorData.Flags.UserPresent(),
-		assertionResponse.Response.AuthenticatorData.Flags.UserVerified())
+		assertionResponse.Response.AuthenticatorData.Flags.HasUserPresent(),
+		assertionResponse.Response.AuthenticatorData.Flags.HasUserVerified())
 
 	if err = ctx.SaveSession(userSession); err != nil {
 		ctx.Logger.Errorf(logFmtErrSessionSave, "removal of the authentiation challenge and authentication time", regulation.AuthTypeWebauthn, userSession.Username, err)

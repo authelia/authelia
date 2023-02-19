@@ -192,8 +192,8 @@ github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0/go.mod h1:fyg78
 github.com/go-test/deep v1.0.2-0.20181118220953-042da051cf31/go.mod h1:wGDj63lr65AM2AQyKZd/NYHGb0R+1RLqB8NKt3aSFNA=
 github.com/go-webauthn/revoke v0.1.9 h1:gSJ1ckA9VaKA2GN4Ukp+kiGTk1/EXtaDb1YE8RknbS0=
 github.com/go-webauthn/revoke v0.1.9/go.mod h1:j6WKPnv0HovtEs++paan9g3ar46gm1NarktkXBaPR+w=
-github.com/go-webauthn/webauthn v0.7.2-0.20230215030733-184b9e43f224 h1:FD36ZZlNO+E1MarHZiWT6KiZpEUc06slIeT1P2suK9k=
-github.com/go-webauthn/webauthn v0.7.2-0.20230215030733-184b9e43f224/go.mod h1:22OJd+TV8oHrjjXmPHtcPR82lR/yR5m5ilGiF8yPFrE=
+github.com/go-webauthn/webauthn v0.8.0 h1:0MPTC348uPc88XCmn5VZaI+Lp0u2LXawYpPvNayLsio=
+github.com/go-webauthn/webauthn v0.8.0/go.mod h1:22OJd+TV8oHrjjXmPHtcPR82lR/yR5m5ilGiF8yPFrE=
 github.com/godbus/dbus/v5 v5.0.4/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
 github.com/gogo/protobuf v1.1.1/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
 github.com/gogo/protobuf v1.2.1/go.mod h1:hp+jE20tsWTFYpLwKvXlhS1hjn+gTNwPg2I6zVXpSg4=
