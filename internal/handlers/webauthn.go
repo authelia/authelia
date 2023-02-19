@@ -12,7 +12,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/random"
 )
 
-func getWebauthnUserByRPID(ctx *middlewares.AutheliaCtx, username, description string, rpid string) (user *model.WebauthnUser, err error) {
+func getWebauthnUserByRPID(ctx *middlewares.AutheliaCtx, username, displayname string, rpid string) (user *model.WebauthnUser, err error) {
 	if user, err = ctx.Providers.StorageProvider.LoadWebauthnUser(ctx, rpid, username); err != nil {
 		return nil, err
 	}
@@ -22,12 +22,14 @@ func getWebauthnUserByRPID(ctx *middlewares.AutheliaCtx, username, description s
 			RPID:        rpid,
 			Username:    username,
 			UserID:      ctx.Providers.Random.StringCustom(64, random.CharSetASCII),
-			DisplayName: description,
+			DisplayName: displayname,
 		}
 
 		if err = ctx.Providers.StorageProvider.SaveWebauthnUser(ctx, *user); err != nil {
 			return nil, err
 		}
+	} else {
+		user.DisplayName = displayname
 	}
 
 	if user.DisplayName == "" {
