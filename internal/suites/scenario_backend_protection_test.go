@@ -43,7 +43,7 @@ func (s *BackendProtectionScenario) TestProtectionOfBackendEndpoints() {
 	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/totp", AutheliaBaseURL), 403)
 	s.AssertRequestStatusCode("GET", fmt.Sprintf("%s/api/secondfactor/webauthn/credentials", AutheliaBaseURL), 403)
 	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/webauthn", AutheliaBaseURL), 403)
-	s.AssertRequestStatusCode("GET", fmt.Sprintf("%s/api/secondfactor/webauthn/credential/register", AutheliaBaseURL), 403)
+	s.AssertRequestStatusCode("PUT", fmt.Sprintf("%s/api/secondfactor/webauthn/credential/register", AutheliaBaseURL), 403)
 	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/webauthn/credential/register", AutheliaBaseURL), 403)
 	s.AssertRequestStatusCode("DELETE", fmt.Sprintf("%s/api/secondfactor/webauthn/credential/1", AutheliaBaseURL), 403)
 	s.AssertRequestStatusCode("PUT", fmt.Sprintf("%s/api/secondfactor/webauthn/credential/1", AutheliaBaseURL), 403)

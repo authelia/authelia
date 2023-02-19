@@ -1,4 +1,11 @@
 ALTER TABLE webauthn_devices
+	DROP CONSTRAINT IF EXISTS webauthn_devices_pkey;
+
+DROP INDEX IF EXISTS webauthn_devices_pkey;
+DROP INDEX IF EXISTS webauthn_devices_kid_key;
+DROP INDEX IF EXISTS webauthn_devices_lookup_key;
+
+ALTER TABLE webauthn_devices
     RENAME TO _bkp_UP_V0008_webauthn_devices;
 
 CREATE TABLE IF NOT EXISTS webauthn_devices (
@@ -34,7 +41,7 @@ FROM _bkp_UP_V0008_webauthn_devices;
 DROP TABLE IF EXISTS _bkp_UP_V0008_webauthn_devices;
 
 CREATE TABLE IF NOT EXISTS webauthn_users (
-    id SERIAL CONSTRAINT webauthn_devices_pkey PRIMARY KEY,
+    id SERIAL CONSTRAINT webauthn_users_pkey PRIMARY KEY,
     rpid VARCHAR(512) NOT NULL,
     username VARCHAR(100) NOT NULL,
 	userid CHAR(64) NOT NULL
