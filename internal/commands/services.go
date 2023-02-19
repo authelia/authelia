@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/sirupsen/logrus"
@@ -23,11 +24,12 @@ import (
 // NewServerService creates a new ServerService with the appropriate logger etc.
 func NewServerService(name string, server *fasthttp.Server, listener net.Listener, paths []string, isTLS bool, log *logrus.Logger) (service *ServerService) {
 	return &ServerService{
+		name:     name,
 		server:   server,
 		listener: listener,
 		paths:    paths,
 		isTLS:    isTLS,
-		log:      log.WithFields(map[string]any{"service": "server", "server": name}),
+		log:      log.WithFields(map[string]any{logFieldService: serviceTypeServer, serviceTypeServer: name}),
 	}
 }
 
@@ -53,10 +55,11 @@ func NewFileWatcherService(name, path string, reload ProviderReload, log *logrus
 		return nil, err
 	}
 
-	entry := log.WithFields(map[string]any{"service": "watcher", "watcher": name})
+	entry := log.WithFields(map[string]any{logFieldService: serviceTypeWatcher, serviceTypeWatcher: name})
 
 	if info.IsDir() {
 		service = &FileWatcherService{
+			name:      name,
 			watcher:   watcher,
 			reload:    reload,
 			log:       entry,
@@ -64,6 +67,7 @@ func NewFileWatcherService(name, path string, reload ProviderReload, log *logrus
 		}
 	} else {
 		service = &FileWatcherService{
+			name:      name,
 			watcher:   watcher,
 			reload:    reload,
 			log:       entry,
@@ -86,17 +90,40 @@ type ProviderReload interface {
 
 // Service represents the required methods to support handling a service.
 type Service interface {
+	// ServiceType returns the type name for the Service.
+	ServiceType() string
+
+	// ServiceName returns the individual name for the Service.
+	ServiceName() string
+
+	// Run performs the running operations for the Service.
 	Run() (err error)
+
+	// Shutdown perform the shutdown cleanup and termination operations for the Service.
 	Shutdown()
+
+	// Log returns the logger configured for the service.
+	Log() *logrus.Entry
 }
 
 // ServerService is a Service which runs a webserver.
 type ServerService struct {
+	name     string
 	server   *fasthttp.Server
 	paths    []string
 	isTLS    bool
 	listener net.Listener
 	log      *logrus.Entry
+}
+
+// ServiceType returns the service type for this service, which is always 'server'.
+func (service *ServerService) ServiceType() string {
+	return serviceTypeServer
+}
+
+// ServiceName returns the individual name for this service.
+func (service *ServerService) ServiceName() string {
+	return service.name
 }
 
 // Run the ServerService.
@@ -120,19 +147,40 @@ func (service *ServerService) Run() (err error) {
 
 // Shutdown the ServerService.
 func (service *ServerService) Shutdown() {
-	if err := service.server.Shutdown(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+
+	defer cancel()
+
+	if err := service.server.ShutdownWithContext(ctx); err != nil {
 		service.log.WithError(err).Error("Error occurred during shutdown")
 	}
 }
 
+// Log returns the *logrus.Entry of the ServerService.
+func (service *ServerService) Log() *logrus.Entry {
+	return service.log
+}
+
 // FileWatcherService is a Service that watches files for changes.
 type FileWatcherService struct {
+	name string
+
 	watcher *fsnotify.Watcher
 	reload  ProviderReload
 
 	log       *logrus.Entry
 	file      string
 	directory string
+}
+
+// ServiceType returns the service type for this service, which is always 'watcher'.
+func (service *FileWatcherService) ServiceType() string {
+	return serviceTypeWatcher
+}
+
+// ServiceName returns the individual name for this service.
+func (service *FileWatcherService) ServiceName() string {
+	return service.name
 }
 
 // Run the FileWatcherService.
@@ -152,34 +200,36 @@ func (service *FileWatcherService) Run() (err error) {
 				return nil
 			}
 
+			log := service.log.WithFields(map[string]any{logFieldFile: event.Name, logFieldOP: event.Op})
+
 			if service.file != "" && service.file != filepath.Base(event.Name) {
-				service.log.WithFields(map[string]any{"file": event.Name, "op": event.Op}).Tracef("File modification detected to irrelevant file")
+				log.Trace("File modification detected to irrelevant file")
 				break
 			}
 
 			switch {
 			case event.Op&fsnotify.Write == fsnotify.Write, event.Op&fsnotify.Create == fsnotify.Create:
-				service.log.WithFields(map[string]any{"file": event.Name, "op": event.Op}).Debug("File modification was detected")
+				log.Debug("File modification was detected")
 
 				var reloaded bool
 
 				switch reloaded, err = service.reload.Reload(); {
 				case err != nil:
-					service.log.WithFields(map[string]any{"file": event.Name, "op": event.Op}).WithError(err).Error("Error occurred during reload")
+					log.WithError(err).Error("Error occurred during reload")
 				case reloaded:
-					service.log.WithField("file", event.Name).Info("Reloaded successfully")
+					log.Info("Reloaded successfully")
 				default:
-					service.log.WithField("file", event.Name).Debug("Reload of was triggered but it was skipped")
+					log.Debug("Reload of was triggered but it was skipped")
 				}
 			case event.Op&fsnotify.Remove == fsnotify.Remove:
-				service.log.WithFields(map[string]any{"file": event.Name, "op": event.Op}).Debug("File remove was detected")
+				log.Debug("File remove was detected")
 			}
 		case err, ok := <-service.watcher.Errors:
 			if !ok {
 				return nil
 			}
 
-			service.log.WithError(err).Errorf("Error while watching files")
+			service.log.WithError(err).Error("Error while watching files")
 		}
 	}
 }
@@ -189,6 +239,11 @@ func (service *FileWatcherService) Shutdown() {
 	if err := service.watcher.Close(); err != nil {
 		service.log.WithError(err).Error("Error occurred during shutdown")
 	}
+}
+
+// Log returns the *logrus.Entry of the FileWatcherService.
+func (service *FileWatcherService) Log() *logrus.Entry {
+	return service.log
 }
 
 func svcSvrMainFunc(ctx *CmdCtx) (service Service) {
@@ -267,34 +322,35 @@ func servicesRun(ctx *CmdCtx) {
 		}
 	}
 
-	ctx.log.Info("Startup Complete")
+	ctx.log.Info("Startup complete")
 
 	select {
 	case s := <-quit:
-		switch s {
-		case syscall.SIGINT:
-			ctx.log.WithField("signal", "SIGINT").Debugf("Shutdown started due to signal")
-		case syscall.SIGTERM:
-			ctx.log.WithField("signal", "SIGTERM").Debugf("Shutdown started due to signal")
-		}
+		ctx.log.WithField("signal", s.String()).Debug("Shutdown initiated due to process signal")
 	case <-cctx.Done():
-		ctx.log.Debugf("Shutdown started due to context completion")
+		ctx.log.Debug("Shutdown initiated due to context completion")
 	}
 
 	cancel()
 
-	ctx.log.Infof("Shutting down")
+	ctx.log.Info("Shutdown initiated")
 
 	wgShutdown := &sync.WaitGroup{}
 
+	ctx.log.Tracef("Shutdown of %d services is required", len(services))
+
 	for _, service := range services {
-		go func() {
+		wgShutdown.Add(1)
+
+		go func(service Service) {
+			service.Log().Trace("Shutdown of service initiated")
+
 			service.Shutdown()
 
 			wgShutdown.Done()
-		}()
 
-		wgShutdown.Add(1)
+			service.Log().Trace("Shutdown of service complete")
+		}(service)
 	}
 
 	wgShutdown.Wait()
@@ -306,6 +362,8 @@ func servicesRun(ctx *CmdCtx) {
 	}
 
 	if err = group.Wait(); err != nil {
-		ctx.log.WithError(err).Errorf("Error occurred waiting for shutdown")
+		ctx.log.WithError(err).Error("Error occurred waiting for shutdown")
 	}
+
+	ctx.log.Info("Shutdown complete")
 }

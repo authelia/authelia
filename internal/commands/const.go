@@ -777,3 +777,12 @@ Layouts:
 const (
 	fmtLogServerListening = "Server is listening for %s connections on '%s' path '%s'"
 )
+
+const (
+	logFieldService = "service"
+	logFieldFile    = "file"
+	logFieldOP      = "op"
+
+	serviceTypeServer  = "server"
+	serviceTypeWatcher = "watcher"
+)
