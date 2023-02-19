@@ -164,5 +164,5 @@ func TestWebauthnNewWebauthnShouldReturnErrWhenWebauthnNotConfigured(t *testing.
 	w, err := newWebauthn(ctx.Ctx)
 
 	assert.Nil(t, w)
-	assert.EqualError(t, err, "Configuration error: Missing RPDisplayName")
+	assert.EqualError(t, err, "error occurred validating the configuration: the field 'RPDisplayName' must be configured but it is empty")
 }
