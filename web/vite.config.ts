@@ -5,7 +5,6 @@ import istanbul from "vite-plugin-istanbul";
 import svgr from "vite-plugin-svgr";
 import tsconfigPaths from "vite-tsconfig-paths";
 
-// @ts-ignore
 export default defineConfig(({ mode }) => {
     const isCoverage = process.env.VITE_COVERAGE === "true";
     const sourcemap = isCoverage ? "inline" : undefined;
@@ -48,7 +47,7 @@ export default defineConfig(({ mode }) => {
         },
         test: {
             coverage: {
-                provider: "c8",
+                provider: "istanbul",
             },
             environment: "happy-dom",
             globals: true,
