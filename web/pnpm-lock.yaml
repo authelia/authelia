@@ -12,7 +12,7 @@ specifiers:
   '@fortawesome/react-fontawesome': 0.2.0
   '@limegrass/eslint-plugin-import-alias': 1.0.6
   '@mui/icons-material': 5.11.9
-  '@mui/material': 5.11.9
+  '@mui/material': 5.11.10
   '@mui/styles': 5.11.9
   '@testing-library/jest-dom': 5.16.5
   '@testing-library/react': 14.0.0
@@ -73,8 +73,8 @@ dependencies:
   '@fortawesome/free-regular-svg-icons': 6.3.0
   '@fortawesome/free-solid-svg-icons': 6.3.0
   '@fortawesome/react-fontawesome': 0.2.0_d5rbrisxfyemehbvmdbryvgjte
-  '@mui/icons-material': 5.11.9_ofpk46txu7v2f5mzrtv4xsczka
-  '@mui/material': 5.11.9_xqeqsl5kvjjtyxwyi3jhw3yuli
+  '@mui/icons-material': 5.11.9_ylmaxqh5wvme7ymgn4ys5vax6u
+  '@mui/material': 5.11.10_xqeqsl5kvjjtyxwyi3jhw3yuli
   '@mui/styles': 5.11.9_pmekkgnqduwlme35zpnqhenc34
   axios: 1.3.3
   broadcast-channel: 4.20.2
@@ -3139,7 +3139,7 @@ packages:
     resolution: {integrity: sha512-YGEtucQ/Nl91VZkzYaLad47Cdui51n/hW+OQm4210g4N3/nZzBxmGeKfubEalf+ShKH4aYDS86XTO6q/TpZnjQ==}
     dev: false
 
-  /@mui/icons-material/5.11.9_ofpk46txu7v2f5mzrtv4xsczka:
+  /@mui/icons-material/5.11.9_ylmaxqh5wvme7ymgn4ys5vax6u:
     resolution: {integrity: sha512-SPANMk6K757Q1x48nCwPGdSNb8B71d+2hPMJ0V12VWerpSsbjZtvAPi5FAn13l2O5mwWkvI0Kne+0tCgnNxMNw==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
@@ -3151,13 +3151,13 @@ packages:
         optional: true
     dependencies:
       '@babel/runtime': 7.20.13
-      '@mui/material': 5.11.9_xqeqsl5kvjjtyxwyi3jhw3yuli
+      '@mui/material': 5.11.10_xqeqsl5kvjjtyxwyi3jhw3yuli
       '@types/react': 18.0.28
       react: 18.2.0
     dev: false
 
-  /@mui/material/5.11.9_xqeqsl5kvjjtyxwyi3jhw3yuli:
-    resolution: {integrity: sha512-Wb3WzjzYyi/WKSl/XlF7aC8kk2NE21IoHMF7hNQMkPb0GslbWwR4OUjlBpxtG+RSZn44wMZkEDNB9Hw0TDsd8g==}
+  /@mui/material/5.11.10_xqeqsl5kvjjtyxwyi3jhw3yuli:
+    resolution: {integrity: sha512-hs1WErbiedqlJIZsljgoil908x4NMp8Lfk8di+5c7o809roqKcFTg2+k3z5ucKvs29AXcsdXrDB/kn2K6dGYIw==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
       '@emotion/react': ^11.5.0
