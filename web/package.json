@@ -26,7 +26,7 @@
     "@fortawesome/free-solid-svg-icons": "6.3.0",
     "@fortawesome/react-fontawesome": "0.2.0",
     "@mui/icons-material": "5.11.9",
-    "@mui/material": "5.11.9",
+    "@mui/material": "5.11.10",
     "@mui/styles": "5.11.9",
     "axios": "1.3.3",
     "broadcast-channel": "4.20.2",
