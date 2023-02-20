@@ -191,7 +191,7 @@ func (service *FileWatcherService) Run() (err error) {
 		}
 	}()
 
-	service.log.WithField("file", filepath.Join(service.directory, service.file)).Info("Watching for file changes to the file")
+	service.log.WithField(logFieldFile, filepath.Join(service.directory, service.file)).Info("Watching file for changes")
 
 	for {
 		select {
@@ -219,7 +219,7 @@ func (service *FileWatcherService) Run() (err error) {
 				case reloaded:
 					log.Info("Reloaded successfully")
 				default:
-					log.Debug("Reload of was triggered but it was skipped")
+					log.Debug("Reload was triggered but it was skipped")
 				}
 			case event.Op&fsnotify.Remove == fsnotify.Remove:
 				log.Debug("File remove was detected")
@@ -229,7 +229,7 @@ func (service *FileWatcherService) Run() (err error) {
 				return nil
 			}
 
-			service.log.WithError(err).Error("Error while watching files")
+			service.log.WithError(err).Error("Error while watching file for changes")
 		}
 	}
 }
