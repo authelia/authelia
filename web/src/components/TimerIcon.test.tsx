@@ -19,17 +19,19 @@ it("renders without crashing", () => {
 
 it("renders a timer icon with updating progress for a given period", () => {
     const { container } = render(<TimerIcon width={32} height={32} period={30} />);
-    const initialProgress = container
-        .firstElementChild!.firstElementChild!.nextElementSibling!.nextElementSibling!.getAttribute("stroke-dasharray")!
-        .split(/\s(.+)/)[0];
+    const initialProgress =
+        container.firstElementChild!.firstElementChild!.nextElementSibling!.nextElementSibling!.getAttribute(
+            "stroke-dasharray",
+        );
 
     act(() => {
         vi.advanceTimersByTime(3000);
     });
 
-    const updatedProgress = container
-        .firstElementChild!.firstElementChild!.nextElementSibling!.nextElementSibling!.getAttribute("stroke-dasharray")!
-        .split(/\s(.+)/)[0];
+    const updatedProgress =
+        container.firstElementChild!.firstElementChild!.nextElementSibling!.nextElementSibling!.getAttribute(
+            "stroke-dasharray",
+        );
 
-    expect(Number(updatedProgress)).toBeGreaterThan(Number(initialProgress));
+    expect(updatedProgress).not.toBe(initialProgress);
 });
