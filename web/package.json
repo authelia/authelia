@@ -43,6 +43,7 @@
     "coverage": "VITE_COVERAGE=true vite build",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "test": "vitest run --coverage",
+    "test:watch": "vitest --coverage",
     "report": "nyc report -r clover -r json -r lcov -r text"
   },
   "eslintConfig": {
@@ -67,11 +68,13 @@
     "@commitlint/cli": "17.5.1",
     "@commitlint/config-conventional": "17.4.4",
     "@limegrass/eslint-plugin-import-alias": "1.0.6",
+    "@testing-library/jest-dom": "5.16.5",
     "@testing-library/react": "14.0.0",
     "@types/node": "18.15.11",
     "@types/qrcode.react": "1.0.2",
     "@types/react": "18.0.34",
     "@types/react-dom": "18.0.11",
+    "@types/testing-library__jest-dom": "5.14.5",
     "@types/zxcvbn": "4.4.1",
     "@typescript-eslint/eslint-plugin": "5.58.0",
     "@typescript-eslint/parser": "5.58.0",
