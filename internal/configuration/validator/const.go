@@ -267,7 +267,9 @@ const (
 	errFmtSessionDomainDuplicateCookieScope      = "session: domain config %s: option 'domain' shares the same cookie domain scope as another configured session domain"
 	errFmtSessionDomainPortalURLInsecure         = "session: domain config %s: option 'authelia_url' does not have a secure scheme with a value of '%s'"
 	errFmtSessionDomainPortalURLNotInCookieScope = "session: domain config %s: option 'authelia_url' does not share a cookie scope with domain '%s' with a value of '%s'"
-	errFmtSessionDomainInvalidDomain             = "session: domain config %s: option 'domain' is not a valid domain"
+	errFmtSessionDomainInvalidDomain             = "session: domain config %s: option 'domain' is not a valid cookie domain"
+	errFmtSessionDomainInvalidDomainNoDots       = "session: domain config %s: option 'domain' is not a valid cookie domain: must have at least a single period"
+	errFmtSessionDomainInvalidDomainPublic       = "session: domain config %s: option 'domain' is not a valid cookie domain: the domain is part of the special public suffix list"
 )
 
 // Regulation Error Consts.
@@ -286,6 +288,14 @@ const (
 
 	errFmtServerPathNoForwardSlashes = "server: option 'path' must not contain any forward slashes"
 	errFmtServerPathAlphaNum         = "server: option 'path' must only contain alpha numeric characters"
+
+	errFmtServerEndpointsAuthzImplementation    = "server: endpoints: authz: %s: option 'implementation' must be one of '%s' but is configured as '%s'"
+	errFmtServerEndpointsAuthzStrategy          = "server: endpoints: authz: %s: authn_strategies: option 'name' must be one of '%s' but is configured as '%s'"
+	errFmtServerEndpointsAuthzStrategyDuplicate = "server: endpoints: authz: %s: authn_strategies: duplicate strategy name detected with name '%s'"
+	errFmtServerEndpointsAuthzPrefixDuplicate   = "server: endpoints: authz: %s: endpoint starts with the same prefix as the '%s' endpoint with the '%s' implementation which accepts prefixes as part of its implementation"
+	errFmtServerEndpointsAuthzInvalidName       = "server: endpoints: authz: %s: contains invalid characters"
+
+	errFmtServerEndpointsAuthzLegacyInvalidImplementation = "server: endpoints: authz: %s: option 'implementation' is invalid: the endpoint with the name 'legacy' must use the 'Legacy' implementation"
 )
 
 const (
@@ -295,21 +305,16 @@ const (
 )
 
 const (
+	errPrivacyPolicyEnabledWithoutURL = "privacy_policy: option 'policy_url' must be provided when the option 'enabled' is true"
+	errFmtPrivacyPolicyURLNotHTTPS    = "privacy_policy: option 'policy_url' must have the 'https' scheme but it's configured as '%s'"
+)
+
+const (
 	errFmtDuoMissingOption = "duo_api: option '%s' is required when duo is enabled but it is missing"
 )
 
 // Error constants.
 const (
-	/*
-		errFmtDeprecatedConfigurationKey = "the %s configuration option is deprecated and will be " +
-			"removed in %s, please use %s instead"
-
-		Uncomment for use when deprecating keys.
-
-		TODO: Create a method from within Koanf to automatically remap deprecated keys and produce warnings.
-		TODO (cont): The main consideration is making sure we do not overwrite the destination key name if it already exists.
-	*/
-
 	errFmtInvalidDefault2FAMethod = "option 'default_2fa_method' is configured as '%s' but must be one of " +
 		"the following values: '%s'"
 	errFmtInvalidDefault2FAMethodDisabled = "option 'default_2fa_method' is configured as '%s' " +
@@ -334,7 +339,25 @@ const (
 )
 
 var (
-	validLDAPImplementations = []string{schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory, schema.LDAPImplementationFreeIPA, schema.LDAPImplementationLLDAP}
+	validLDAPImplementations = []string{
+		schema.LDAPImplementationCustom,
+		schema.LDAPImplementationActiveDirectory,
+		schema.LDAPImplementationRFC2307bis,
+		schema.LDAPImplementationFreeIPA,
+		schema.LDAPImplementationLLDAP,
+		schema.LDAPImplementationGLAuth,
+	}
+)
+
+const (
+	legacy                      = "legacy"
+	authzImplementationLegacy   = "Legacy"
+	authzImplementationExtAuthz = "ExtAuthz"
+)
+
+var (
+	validAuthzImplementations = []string{"AuthRequest", "ForwardAuth", authzImplementationExtAuthz, authzImplementationLegacy}
+	validAuthzAuthnStrategies = []string{"CookieSession", "HeaderAuthorization", "HeaderProxyAuthorization", "HeaderAuthRequestProxyAuthorization", "HeaderLegacy"}
 )
 
 var (
@@ -374,8 +397,9 @@ var (
 )
 
 var (
-	reKeyReplacer      = regexp.MustCompile(`\[\d+]`)
-	reDomainCharacters = regexp.MustCompile(`^[a-z0-9-]+(\.[a-z0-9-]+)+[a-z0-9]$`)
+	reKeyReplacer       = regexp.MustCompile(`\[\d+]`)
+	reDomainCharacters  = regexp.MustCompile(`^[a-z0-9-]+(\.[a-z0-9-]+)+[a-z0-9]$`)
+	reAuthzEndpointName = regexp.MustCompile(`^[a-zA-Z](([a-zA-Z0-9/\._-]*)([a-zA-Z]))?$`)
 )
 
 var replacedKeys = map[string]string{

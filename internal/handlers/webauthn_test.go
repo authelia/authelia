@@ -75,7 +75,7 @@ func TestWebauthnGetUser(t *testing.T) {
 
 	descriptors := user.WebAuthnCredentialDescriptors()
 	assert.Equal(t, "fido-u2f", descriptors[0].AttestationType)
-	assert.Equal(t, []byte("abc123"), descriptors[0].CredentialID)
+	assert.Equal(t, "abc123", string(descriptors[0].CredentialID))
 	assert.Equal(t, protocol.PublicKeyCredentialType, descriptors[0].Type)
 
 	assert.Len(t, descriptors[0].Transport, 0)
@@ -91,7 +91,7 @@ func TestWebauthnGetUser(t *testing.T) {
 	assert.False(t, user.Devices[1].CloneWarning)
 
 	assert.Equal(t, "packed", descriptors[1].AttestationType)
-	assert.Equal(t, []byte("123abc"), descriptors[1].CredentialID)
+	assert.Equal(t, "123abc", string(descriptors[1].CredentialID))
 	assert.Equal(t, protocol.PublicKeyCredentialType, descriptors[1].Type)
 
 	assert.Len(t, descriptors[1].Transport, 2)
@@ -151,7 +151,7 @@ func TestWebauthnNewWebauthnShouldReturnErrWhenHeadersNotAvailable(t *testing.T)
 	w, err := newWebauthn(ctx.Ctx)
 
 	assert.Nil(t, w)
-	assert.EqualError(t, err, "Missing header X-Forwarded-Host")
+	assert.EqualError(t, err, "missing required X-Forwarded-Host header")
 }
 
 func TestWebauthnNewWebauthnShouldReturnErrWhenWebauthnNotConfigured(t *testing.T) {

@@ -3,6 +3,7 @@ package validator
 import (
 	"fmt"
 	"path"
+	"sort"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -88,5 +89,98 @@ func ValidateServer(config *schema.Configuration, validator *schema.StructValida
 
 	if config.Server.Timeouts.Idle <= 0 {
 		config.Server.Timeouts.Idle = schema.DefaultServerConfiguration.Timeouts.Idle
+	}
+
+	ValidateServerEndpoints(config, validator)
+}
+
+// ValidateServerEndpoints configures the default endpoints and checks the configuration of custom endpoints.
+func ValidateServerEndpoints(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.Server.Endpoints.EnableExpvars {
+		validator.PushWarning(fmt.Errorf("server: endpoints: option 'enable_expvars' should not be enabled in production"))
+	}
+
+	if config.Server.Endpoints.EnablePprof {
+		validator.PushWarning(fmt.Errorf("server: endpoints: option 'enable_pprof' should not be enabled in production"))
+	}
+
+	if len(config.Server.Endpoints.Authz) == 0 {
+		config.Server.Endpoints.Authz = schema.DefaultServerConfiguration.Endpoints.Authz
+
+		return
+	}
+
+	authzs := make([]string, 0, len(config.Server.Endpoints.Authz))
+
+	for name := range config.Server.Endpoints.Authz {
+		authzs = append(authzs, name)
+	}
+
+	sort.Strings(authzs)
+
+	for _, name := range authzs {
+		endpoint := config.Server.Endpoints.Authz[name]
+
+		validateServerEndpointsAuthzEndpoint(config, name, endpoint, validator)
+
+		for _, oName := range authzs {
+			oEndpoint := config.Server.Endpoints.Authz[oName]
+
+			if oName == name || oName == legacy {
+				continue
+			}
+
+			switch oEndpoint.Implementation {
+			case authzImplementationLegacy, authzImplementationExtAuthz:
+				if strings.HasPrefix(name, oName+"/") {
+					validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzPrefixDuplicate, name, oName, oEndpoint.Implementation))
+				}
+			default:
+				continue
+			}
+		}
+
+		validateServerEndpointsAuthzStrategies(name, endpoint.AuthnStrategies, validator)
+	}
+}
+
+func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name string, endpoint schema.ServerAuthzEndpoint, validator *schema.StructValidator) {
+	if name == legacy {
+		switch endpoint.Implementation {
+		case authzImplementationLegacy:
+			break
+		case "":
+			endpoint.Implementation = authzImplementationLegacy
+
+			config.Server.Endpoints.Authz[name] = endpoint
+		default:
+			if !utils.IsStringInSlice(endpoint.Implementation, validAuthzImplementations) {
+				validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzImplementation, name, strings.Join(validAuthzImplementations, "', '"), endpoint.Implementation))
+			} else {
+				validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzLegacyInvalidImplementation, name))
+			}
+		}
+	} else if !utils.IsStringInSlice(endpoint.Implementation, validAuthzImplementations) {
+		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzImplementation, name, strings.Join(validAuthzImplementations, "', '"), endpoint.Implementation))
+	}
+
+	if !reAuthzEndpointName.MatchString(name) {
+		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzInvalidName, name))
+	}
+}
+
+func validateServerEndpointsAuthzStrategies(name string, strategies []schema.ServerAuthzEndpointAuthnStrategy, validator *schema.StructValidator) {
+	names := make([]string, len(strategies))
+
+	for _, strategy := range strategies {
+		if utils.IsStringInSlice(strategy.Name, names) {
+			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzStrategyDuplicate, name, strategy.Name))
+		}
+
+		names = append(names, strategy.Name)
+
+		if !utils.IsStringInSlice(strategy.Name, validAuthzAuthnStrategies) {
+			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzStrategy, name, strings.Join(validAuthzAuthnStrategies, "', '"), strategy.Name))
+		}
 	}
 }

@@ -45,12 +45,19 @@ var ResetPasswordIdentityStart = middlewares.IdentityVerificationStart(middlewar
 }, middlewares.TimingAttackDelay(10, 250, 85, time.Millisecond*500, false))
 
 func resetPasswordIdentityFinish(ctx *middlewares.AutheliaCtx, username string) {
-	userSession := ctx.GetSession()
+	var (
+		userSession session.UserSession
+		err         error
+	)
+
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.Errorf("Unable to get session to clear password reset flag in session for user %s: %s", userSession.Username, err)
+	}
+
 	// TODO(c.michaud): use JWT tokens to expire the request in only few seconds for better security.
 	userSession.PasswordResetUsername = &username
 
-	err := ctx.SaveSession(userSession)
-	if err != nil {
+	if err = ctx.SaveSession(userSession); err != nil {
 		ctx.Logger.Errorf("Unable to clear password reset flag in session for user %s: %s", userSession.Username, err)
 	}
 

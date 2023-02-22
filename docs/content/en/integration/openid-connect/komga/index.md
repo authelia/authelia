@@ -22,14 +22,7 @@ community: true
 
 ## Before You Begin
 
-### Common Notes
-
-1. You are *__required__* to utilize a unique client id for every client.
-2. The client id on this page is merely an example and you can theoretically use any alphanumeric string.
-3. You *__should not__* use the client secret in this example, We *__strongly recommend__* reading the
-   [Generating Client Secrets] guide instead.
-
-[Generating Client Secrets]: ../specific-information.md#generating-client-secrets
+{{% oidc-common %}}
 
 ### Assumptions
 
@@ -38,13 +31,13 @@ This example makes the following assumptions:
 * __Application Root URL:__ `https://komga.example.com`
 * __Authelia Root URL:__ `https://auth.example.com`
 * __Client ID:__ `komga`
-* __Client Secret:__ `komga_client_secret`
+* __Client Secret:__ `insecure_secret`
 
 ## Configuration
 
 ### Application
 
-To configure [Komga] to utilize Authelia as an [OpenID Connect] Provider:
+To configure [Komga] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Configure the security section of the [Komga] configuration:
 ```yaml
@@ -58,7 +51,7 @@ spring:
         registration:
           authelia:
             client-id: `komga`
-            client-secret: `komga_client_secret`
+            client-secret: `insecure_secret`
             client-name: Authelia
             scope: openid,profile,email
             authorization-grant-type: authorization_code
@@ -78,7 +71,7 @@ which will operate with the above example:
 ```yaml
 - id: komga
   description: Komga
-  secret: '$plaintext$komga_client_secret'
+  secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
   public: false
   authorization_policy: two_factor
   redirect_uris:
@@ -99,4 +92,4 @@ which will operate with the above example:
 
 [Authelia]: https://www.authelia.com
 [Komga]: https://www.komga.org
-[OpenID Connect]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

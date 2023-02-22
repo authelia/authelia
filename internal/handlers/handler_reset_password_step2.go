@@ -4,13 +4,22 @@ import (
 	"fmt"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // ResetPasswordPOST handler for resetting passwords.
 func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
-	userSession := ctx.GetSession()
+	var (
+		userSession session.UserSession
+		err         error
+	)
+
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Error(fmt.Errorf("error occurred retrieving session for user: %w", err), messageUnableToResetPassword)
+		return
+	}
 
 	// Those checks unsure that the identity verification process has been initiated and completed successfully
 	// otherwise PasswordReset would not be set to true. We can improve the security of this check by making the
@@ -23,9 +32,8 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 	username := *userSession.PasswordResetUsername
 
 	var requestBody resetPasswordStep2RequestBody
-	err := ctx.ParseBody(&requestBody)
 
-	if err != nil {
+	if err = ctx.ParseBody(&requestBody); err != nil {
 		ctx.Error(err, messageUnableToResetPassword)
 		return
 	}

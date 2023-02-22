@@ -5,20 +5,31 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+func NewRodSuite(name string) *RodSuite {
+	return &RodSuite{
+		BaseSuite: &BaseSuite{
+			Name: name,
+		},
+	}
+}
+
 // RodSuite is a go-rod suite.
 type RodSuite struct {
-	suite.Suite
+	*BaseSuite
 
 	*RodSession
 	*rod.Page
 }
 
-// CommandSuite is a command line interface suite.
-type CommandSuite struct {
+type BaseSuite struct {
 	suite.Suite
 
-	testArg     string //nolint:structcheck // TODO: Remove when bug fixed: https://github.com/golangci/golangci-lint/issues/537.
-	coverageArg string //nolint:structcheck // TODO: Remove when bug fixed: https://github.com/golangci/golangci-lint/issues/537.
+	Name string
+}
+
+// CommandSuite is a command line interface suite.
+type CommandSuite struct {
+	*BaseSuite
 
 	*DockerEnvironment
 }

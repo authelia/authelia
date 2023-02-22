@@ -11,7 +11,13 @@ type PathPrefixSuite struct {
 }
 
 func NewPathPrefixSuite() *PathPrefixSuite {
-	return &PathPrefixSuite{RodSuite: new(RodSuite)}
+	return &PathPrefixSuite{
+		RodSuite: NewRodSuite(pathPrefixSuiteName),
+	}
+}
+
+func (s *PathPrefixSuite) TestCheckEnv() {
+	s.Assert().Equal("/auth", GetPathPrefix())
 }
 
 func (s *PathPrefixSuite) Test1FAScenario() {
@@ -28,6 +34,10 @@ func (s *PathPrefixSuite) TestCustomHeaders() {
 
 func (s *PathPrefixSuite) TestResetPasswordScenario() {
 	suite.Run(s.T(), NewResetPasswordScenario())
+}
+
+func (s *PathPrefixSuite) SetupSuite() {
+	s.T().Setenv("PathPrefix", "/auth")
 }
 
 func TestPathPrefixSuite(t *testing.T) {

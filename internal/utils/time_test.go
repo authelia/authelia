@@ -1,63 +1,112 @@
 package utils
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestParseDurationString_ShouldParseDurationString(t *testing.T) {
-	duration, err := ParseDurationString("1h")
+func TestParseDurationString(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     []string
+		raw      bool
+		expected time.Duration
+		err      string
+	}{
+		{"ShouldParseStringsForMillisecond", []string{"%d ms", "%d millisecond", "%d milliseconds"}, false, time.Millisecond, ""},
+		{"ShouldParseStringsForSecond", []string{"%d s", "%d second", "%d seconds"}, false, time.Second, ""},
+		{"ShouldParseStringsForMinute", []string{"%d m", "%d minute", "%d minutes"}, false, time.Minute, ""},
+		{"ShouldParseStringsForHour", []string{"%d h", "%d hour", "%d hours"}, false, time.Hour, ""},
+		{"ShouldParseStringsForDay", []string{"%d d", "%d day", "%d days"}, false, time.Hour * HoursInDay, ""},
+		{"ShouldParseStringsForWeek", []string{"%d w", "%d week", "%d weeks"}, false, time.Hour * HoursInWeek, ""},
+		{"ShouldParseStringsForMonth", []string{"%d M", "%d month", "%d months"}, false, time.Hour * HoursInMonth, ""},
+		{"ShouldParseStringsForYear", []string{"%d y", "%d year", "%d years"}, false, time.Hour * HoursInYear, ""},
+		{"ShouldParseStringsDecimals", []string{"100"}, true, time.Second * 100, ""},
+		{"ShouldParseStringsDecimalNull", []string{""}, true, time.Second * 0, ""},
+	}
 
-	assert.NoError(t, err)
-	assert.Equal(t, 60*time.Minute, duration)
-}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			for _, f := range tc.have {
+				if tc.raw {
+					t.Run(f, func(t *testing.T) {
+						actual, actualErr := ParseDurationString(f)
 
-func TestParseDurationString_ShouldParseBlankString(t *testing.T) {
-	duration, err := ParseDurationString("")
+						if tc.err == "" {
+							assert.NoError(t, actualErr)
+							assert.Equal(t, tc.expected, actual)
+						} else {
+							assert.EqualError(t, actualErr, tc.err)
+						}
+					})
+				} else {
+					for _, d := range []int{1, 5, 20} {
+						input := fmt.Sprintf(f, d)
 
-	assert.NoError(t, err)
-	assert.Equal(t, time.Second*0, duration)
-}
+						inputNoSpace := strings.ReplaceAll(input, " ", "")
 
-func TestParseDurationString_ShouldParseDurationStringAllUnits(t *testing.T) {
-	duration, err := ParseDurationString("1y")
+						t.Run(inputNoSpace, func(t *testing.T) {
+							t.Run("WithSpaces", func(t *testing.T) {
+								actual, actualErr := ParseDurationString(input)
 
-	assert.NoError(t, err)
-	assert.Equal(t, time.Hour*24*365, duration)
+								if tc.err == "" {
+									assert.NoError(t, actualErr)
+									assert.Equal(t, tc.expected*time.Duration(d), actual)
+								} else {
+									assert.EqualError(t, actualErr, tc.err)
+								}
 
-	duration, err = ParseDurationString("1M")
+								t.Run("LeadingZeros", func(t *testing.T) {
+									inputActual := reNumeric.ReplaceAllStringFunc(input, func(s string) string {
+										return "000" + s
+									})
 
-	assert.NoError(t, err)
-	assert.Equal(t, time.Hour*24*30, duration)
+									actual, actualErr := ParseDurationString(inputActual)
 
-	duration, err = ParseDurationString("1w")
+									if tc.err == "" {
+										assert.NoError(t, actualErr)
+										assert.Equal(t, tc.expected*time.Duration(d), actual)
+									} else {
+										assert.EqualError(t, actualErr, tc.err)
+									}
+								})
+							})
 
-	assert.NoError(t, err)
-	assert.Equal(t, time.Hour*24*7, duration)
+							t.Run("WithoutSpaces", func(t *testing.T) {
+								actual, actualErr := ParseDurationString(inputNoSpace)
 
-	duration, err = ParseDurationString("1d")
+								if tc.err == "" {
+									assert.NoError(t, actualErr)
+									assert.Equal(t, tc.expected*time.Duration(d), actual)
+								} else {
+									assert.EqualError(t, actualErr, tc.err)
+								}
 
-	assert.NoError(t, err)
-	assert.Equal(t, time.Hour*24, duration)
+								t.Run("LeadingZeros", func(t *testing.T) {
+									inputActual := reNumeric.ReplaceAllStringFunc(inputNoSpace, func(s string) string {
+										return "000" + s
+									})
 
-	duration, err = ParseDurationString("1h")
+									actual, actualErr := ParseDurationString(inputActual)
 
-	assert.NoError(t, err)
-	assert.Equal(t, time.Hour, duration)
-
-	duration, err = ParseDurationString("1s")
-
-	assert.NoError(t, err)
-	assert.Equal(t, time.Second, duration)
-}
-
-func TestParseDurationString_ShouldParseSecondsString(t *testing.T) {
-	duration, err := ParseDurationString("100")
-
-	assert.NoError(t, err)
-	assert.Equal(t, 100*time.Second, duration)
+									if tc.err == "" {
+										assert.NoError(t, actualErr)
+										assert.Equal(t, tc.expected*time.Duration(d), actual)
+									} else {
+										assert.EqualError(t, actualErr, tc.err)
+									}
+								})
+							})
+						})
+					}
+				}
+			}
+		})
+	}
 }
 
 func TestParseDurationString_ShouldNotParseDurationStringWithOutOfOrderQuantitiesAndUnits(t *testing.T) {
@@ -74,18 +123,11 @@ func TestParseDurationString_ShouldNotParseBadDurationString(t *testing.T) {
 	assert.Equal(t, time.Duration(0), duration)
 }
 
-func TestParseDurationString_ShouldParseDurationStringWithMultiValueUnits(t *testing.T) {
-	duration, err := ParseDurationString("10ms")
+func TestParseDurationString_ShouldNotParseBadDurationStringAlt(t *testing.T) {
+	duration, err := ParseDurationString("10abcxyz")
 
-	assert.NoError(t, err)
-	assert.Equal(t, time.Duration(10)*time.Millisecond, duration)
-}
-
-func TestParseDurationString_ShouldParseDurationStringWithLeadingZero(t *testing.T) {
-	duration, err := ParseDurationString("005h")
-
-	assert.NoError(t, err)
-	assert.Equal(t, time.Duration(5)*time.Hour, duration)
+	assert.EqualError(t, err, "could not parse the units portion of '10abcxyz' in duration string '10abcxyz': the unit 'abcxyz' is not valid")
+	assert.Equal(t, time.Duration(0), duration)
 }
 
 func TestParseDurationString_ShouldParseMultiUnitValues(t *testing.T) {
@@ -129,4 +171,36 @@ func TestShouldConvertKnownUnixNanoTimeToKnownWin32Epoch(t *testing.T) {
 
 	assert.Equal(t, win32Epoch, UnixNanoTimeToMicrosoftNTEpoch(exampleNanoTime))
 	assert.Equal(t, timeUnixEpochAsMicrosoftNTEpoch, UnixNanoTimeToMicrosoftNTEpoch(0))
+}
+
+func TestParseTimeString(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		index    int
+		expected time.Time
+		err      string
+	}{
+		{"ShouldParseIntegerAsUnix", "1675899060", -1, time.Unix(1675899060, 0), ""},
+		{"ShouldParseIntegerAsUnixMilli", "1675899060000", -2, time.Unix(1675899060, 0), ""},
+		{"ShouldParseIntegerAsUnixMicro", "1675899060000000", -3, time.Unix(1675899060, 0), ""},
+		{"ShouldNotParseSuperLargeInteger", "9999999999999999999999999999999999999999", -999, time.Unix(0, 0), "time value was detected as an integer but the integer could not be parsed: strconv.ParseInt: parsing \"9999999999999999999999999999999999999999\": value out of range"},
+		{"ShouldParseSimpleTime", "Jan 2 15:04:05 2006", 0, time.Unix(1136214245, 0), ""},
+		{"ShouldNotParseInvalidTime", "abc", -998, time.Unix(0, 0), "failed to find a suitable time layout for time 'abc'"},
+		{"ShouldMatchDate", "2020-05-01", 6, time.Unix(1588291200, 0), ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			index, actual, err := matchParseTimeStringWithLayouts(tc.have, StandardTimeLayouts)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.index, index)
+				assert.Equal(t, tc.expected.UnixNano(), actual.UnixNano())
+			} else {
+				assert.EqualError(t, err, tc.err)
+			}
+		})
+	}
 }

@@ -6,8 +6,8 @@
 server:
   port: 9091
   tls:
-    certificate: /config/ssl/cert.pem
-    key: /config/ssl/key.pem
+    certificate: /pki/public.backend.crt
+    key: /pki/private.backend.pem
 
 log:
   level: debug
@@ -23,7 +23,7 @@ session:
   cookies:
     - name: 'authelia_session'
       domain: 'example.com'
-      authelia_url: 'https://login.example.com'
+      authelia_url: 'https://login.example.com:8080'
       expiration: 3600  # 1 hour
       inactivity: 300  # 5 minutes
       remember_me: 1y

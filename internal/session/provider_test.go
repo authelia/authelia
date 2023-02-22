@@ -39,7 +39,7 @@ func TestShouldInitializerSession(t *testing.T) {
 	session, err := provider.GetSession(ctx)
 	assert.NoError(t, err)
 
-	assert.Equal(t, NewDefaultUserSession(), session)
+	assert.Equal(t, provider.NewDefaultUserSession(), session)
 }
 
 func TestShouldUpdateSession(t *testing.T) {
@@ -60,6 +60,7 @@ func TestShouldUpdateSession(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, UserSession{
+		CookieDomain:        testDomain,
 		Username:            testUsername,
 		AuthenticationLevel: authentication.TwoFactor,
 	}, session)
@@ -98,6 +99,7 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 	assert.Equal(t, timeZeroFactor, authAt)
 
 	assert.Equal(t, UserSession{
+		CookieDomain:              testDomain,
 		Username:                  testUsername,
 		AuthenticationLevel:       authentication.OneFactor,
 		LastActivity:              timeOneFactor.Unix(),
@@ -114,6 +116,7 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, UserSession{
+		CookieDomain:               testDomain,
 		Username:                   testUsername,
 		AuthenticationLevel:        authentication.TwoFactor,
 		LastActivity:               timeTwoFactor.Unix(),
@@ -168,6 +171,7 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	assert.Equal(t, timeZeroFactor, authAt)
 
 	assert.Equal(t, UserSession{
+		CookieDomain:              testDomain,
 		Username:                  testUsername,
 		AuthenticationLevel:       authentication.OneFactor,
 		LastActivity:              timeOneFactor.Unix(),

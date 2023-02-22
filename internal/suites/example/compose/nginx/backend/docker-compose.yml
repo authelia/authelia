@@ -6,10 +6,10 @@ services:
     labels:
       # Traefik 1.x
       - 'traefik.frontend.rule=Host:home.example.com,public.example.com,secure.example.com,admin.example.com,singlefactor.example.com'  # yamllint disable-line rule:line-length
-      - 'traefik.frontend.auth.forward.address=https://authelia-backend:9091/api/verify?rd=https://login.example.com:8080'  # yamllint disable-line rule:line-length
+      - 'traefik.frontend.auth.forward.address=https://authelia-backend:9091/api/authz/forward-auth'  # yamllint disable-line rule:line-length
       - 'traefik.frontend.auth.forward.tls.insecureSkipVerify=true'
       - 'traefik.frontend.auth.forward.trustForwardHeader=true'
-      - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'
+      - 'traefik.frontend.auth.forward.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Email,Remote-Name'
       # Traefik 2.x
       - 'traefik.enable=true'
       - 'traefik.http.routers.protectedapps.rule=Host(`home.example.com`,`public.example.com`,`secure.example.com`,`admin.example.com`,`singlefactor.example.com`)'  # yamllint disable-line rule:line-length

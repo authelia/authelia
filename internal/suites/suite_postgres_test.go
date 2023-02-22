@@ -11,7 +11,9 @@ type PostgresSuite struct {
 }
 
 func NewPostgresSuite() *PostgresSuite {
-	return &PostgresSuite{RodSuite: new(RodSuite)}
+	return &PostgresSuite{
+		RodSuite: NewRodSuite(postgresSuiteName),
+	}
 }
 
 func (s *PostgresSuite) Test1FAScenario() {

@@ -1,4 +1,10 @@
 ---
+# Enable the admin interface at http://192.168.240.100:9901/ for debugging.
+admin:
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 9901
 static_resources:
   listeners:
     - name: listener_0
@@ -41,6 +47,10 @@ static_resources:
                           route:
                             cluster: authelia-backend
                         - match:
+                            path: "/devworkflow"
+                          route:
+                            cluster: authelia-backend
+                        - match:
                             path: "/jwks.json"
                           route:
                             cluster: authelia-backend
@@ -74,35 +84,30 @@ static_resources:
                   - name: envoy.filters.http.ext_authz
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                      transport_api_version: v3
+                      allowed_headers:
+                        patterns:
+                          - exact: authorization
+                          - exact: proxy-authorization
+                          - exact: accept
+                          - exact: cookie
                       http_service:
-                        path_prefix: /api/verify/
+                        path_prefix: /api/authz/ext-authz/
                         server_uri:
                           uri: authelia-backend:9091
                           cluster: authelia-backend
                           timeout: 0.25s
                         authorization_request:
-                          allowed_headers:
-                            patterns:
-                              - exact: accept
-                              - exact: cookie
-                              - exact: proxy-authorization
                           headers_to_add:
-                            - key: X-Authelia-URL
-                              value: 'https://login.example.com:8080/'
-                            - key: X-Forwarded-Method
-                              value: '%REQ(:METHOD)%'
                             - key: X-Forwarded-Proto
                               value: '%REQ(:SCHEME)%'
-                            - key: X-Forwarded-Host
-                              value: '%REQ(:AUTHORITY)%'
-                            - key: X-Forwarded-URI
-                              value: '%REQ(:PATH)%'
-                            - key: X-Forwarded-For
-                              value: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
                         authorization_response:
                           allowed_upstream_headers:
                             patterns:
+                              - exact: authorization
+                              - exact: proxy-authorization
                               - prefix: remote-
+                              - prefix: authelia-
                           allowed_client_headers:
                             patterns:
                               - exact: set-cookie
@@ -120,9 +125,9 @@ static_resources:
               common_tls_context:
                 tls_certificates:
                   - certificate_chain:
-                      filename: /etc/ssl/server.cert
+                      filename: /pki/public.chain.pem
                     private_key:
-                      filename: /etc/ssl/server.key
+                      filename: /pki/private.pem
   clusters:
     - name: authelia-frontend
       transport_socket_matches:
@@ -141,9 +146,9 @@ static_resources:
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.transport_sockets.raw_buffer.v3.RawBuffer
       connect_timeout: 0.25s
-      type: STRICT_DNS
+      type: strict_dns
       dns_lookup_family: V4_ONLY
-      lb_policy: ROUND_ROBIN
+      lb_policy: round_robin
       load_assignment:
         cluster_name: authelia-frontend
         endpoints:
@@ -174,9 +179,9 @@ static_resources:
                       enableTLS: true
     - name: authelia-backend
       connect_timeout: 0.25s
-      type: LOGICAL_DNS
-      dns_lookup_family: V4_ONLY
-      lb_policy: ROUND_ROBIN
+      type: logical_dns
+      dns_lookup_family: v4_only
+      lb_policy: round_robin
       load_assignment:
         cluster_name: authelia-backend
         endpoints:
@@ -193,9 +198,9 @@ static_resources:
           common_tls_context: {}
     - name: smtp
       connect_timeout: 0.25s
-      type: LOGICAL_DNS
-      dns_lookup_family: V4_ONLY
-      lb_policy: ROUND_ROBIN
+      type: logical_dns
+      dns_lookup_family: v4_only
+      lb_policy: round_robin
       load_assignment:
         cluster_name: smtp
         endpoints:
@@ -207,9 +212,9 @@ static_resources:
                       port_value: 1080
     - name: httpbin
       connect_timeout: 0.25s
-      type: LOGICAL_DNS
-      dns_lookup_family: V4_ONLY
-      lb_policy: ROUND_ROBIN
+      type: logical_dns
+      dns_lookup_family: v4_only
+      lb_policy: round_robin
       load_assignment:
         cluster_name: httpbin
         endpoints:
@@ -221,9 +226,9 @@ static_resources:
                       port_value: 8000
     - name: nginx-backend
       connect_timeout: 0.25s
-      type: LOGICAL_DNS
-      dns_lookup_family: V4_ONLY
-      lb_policy: ROUND_ROBIN
+      type: logical_dns
+      dns_lookup_family: v4_only
+      lb_policy: round_robin
       load_assignment:
         cluster_name: nginx-backend
         endpoints:
@@ -233,4 +238,15 @@ static_resources:
                     socket_address:
                       address: nginx-backend
                       port_value: 80
+layered_runtime:
+  layers:
+    - name: static_layer_0
+      static_layer:
+        envoy:
+          resource_limits:
+            listener:
+              example_listener_name:
+                connection_limit: 10000
+        overload:
+          global_downstream_max_connections: 50000
 ...

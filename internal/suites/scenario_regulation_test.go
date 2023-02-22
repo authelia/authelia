@@ -16,7 +16,7 @@ type RegulationScenario struct {
 
 func NewRegulationScenario() *RegulationScenario {
 	return &RegulationScenario{
-		RodSuite: new(RodSuite),
+		RodSuite: NewRodSuite(""),
 	}
 }
 

@@ -31,6 +31,7 @@ fi
 if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
   DEFAULT_ARCH=coverage
   echo "--- :docker: Extract and load build container"
+  mkdir coverage
   buildkite-agent artifact download "authelia-image-${DEFAULT_ARCH}*" .
   if [[ "${SUITE}" == "Kubernetes" ]]; then
     zstd -d authelia-image-coverage.tar.zst --stdout > ./internal/suites/example/kube/authelia-image-${DEFAULT_ARCH}.tar

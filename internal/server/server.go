@@ -7,7 +7,6 @@ import (
 	"net"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
@@ -18,9 +17,9 @@ import (
 )
 
 // CreateDefaultServer Create Authelia's internal webserver with the given configuration and providers.
-func CreateDefaultServer(config schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, err error) {
+func CreateDefaultServer(config *schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, paths []string, isTLS bool, err error) {
 	if err = providers.Templates.LoadTemplatedAssets(assets); err != nil {
-		return nil, nil, fmt.Errorf("failed to load templated assets: %w", err)
+		return nil, nil, nil, false, fmt.Errorf("failed to load templated assets: %w", err)
 	}
 
 	server = &fasthttp.Server{
@@ -38,15 +37,14 @@ func CreateDefaultServer(config schema.Configuration, providers middlewares.Prov
 	address := net.JoinHostPort(config.Server.Host, strconv.Itoa(config.Server.Port))
 
 	var (
-		connectionType   string
 		connectionScheme string
 	)
 
 	if config.Server.TLS.Certificate != "" && config.Server.TLS.Key != "" {
-		connectionType, connectionScheme = connTLS, schemeHTTPS
+		isTLS, connectionScheme = true, schemeHTTPS
 
 		if err = server.AppendCert(config.Server.TLS.Certificate, config.Server.TLS.Key); err != nil {
-			return nil, nil, fmt.Errorf("unable to load tls server certificate '%s' or private key '%s': %w", config.Server.TLS.Certificate, config.Server.TLS.Key, err)
+			return nil, nil, nil, false, fmt.Errorf("unable to load tls server certificate '%s' or private key '%s': %w", config.Server.TLS.Certificate, config.Server.TLS.Key, err)
 		}
 
 		if len(config.Server.TLS.ClientCertificates) > 0 {
@@ -56,7 +54,7 @@ func CreateDefaultServer(config schema.Configuration, providers middlewares.Prov
 
 			for _, path := range config.Server.TLS.ClientCertificates {
 				if cert, err = os.ReadFile(path); err != nil {
-					return nil, nil, fmt.Errorf("unable to load tls client certificate '%s': %w", path, err)
+					return nil, nil, nil, false, fmt.Errorf("unable to load tls client certificate '%s': %w", path, err)
 				}
 
 				caCertPool.AppendCertsFromPEM(cert)
@@ -69,51 +67,51 @@ func CreateDefaultServer(config schema.Configuration, providers middlewares.Prov
 		}
 
 		if listener, err = tls.Listen("tcp", address, server.TLSConfig.Clone()); err != nil {
-			return nil, nil, fmt.Errorf("unable to initialize tcp listener: %w", err)
+			return nil, nil, nil, false, fmt.Errorf("unable to initialize tcp listener: %w", err)
 		}
 	} else {
-		connectionType, connectionScheme = connNonTLS, schemeHTTP
+		connectionScheme = schemeHTTP
 
 		if listener, err = net.Listen("tcp", address); err != nil {
-			return nil, nil, fmt.Errorf("unable to initialize tcp listener: %w", err)
+			return nil, nil, nil, false, fmt.Errorf("unable to initialize tcp listener: %w", err)
 		}
 	}
 
 	if err = writeHealthCheckEnv(config.Server.DisableHealthcheck, connectionScheme, config.Server.Host,
 		config.Server.Path, config.Server.Port); err != nil {
-		return nil, nil, fmt.Errorf("unable to configure healthcheck: %w", err)
+		return nil, nil, nil, false, fmt.Errorf("unable to configure healthcheck: %w", err)
 	}
 
-	paths := []string{"/"}
+	paths = []string{"/"}
 
 	if config.Server.Path != "" {
 		paths = append(paths, config.Server.Path)
 	}
 
-	logging.Logger().Infof(fmtLogServerInit, "server", connectionType, listener.Addr().String(), strings.Join(paths, "' and '"))
-
-	return server, listener, nil
+	return server, listener, paths, isTLS, nil
 }
 
 // CreateMetricsServer creates a metrics server.
-func CreateMetricsServer(config schema.TelemetryMetricsConfig) (server *fasthttp.Server, listener net.Listener, err error) {
-	if listener, err = config.Address.Listener(); err != nil {
-		return nil, nil, err
+func CreateMetricsServer(config *schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, paths []string, tls bool, err error) {
+	if providers.Metrics == nil {
+		return
 	}
 
 	server = &fasthttp.Server{
 		ErrorHandler:          handleError(),
 		NoDefaultServerHeader: true,
 		Handler:               handleMetrics(),
-		ReadBufferSize:        config.Buffers.Read,
-		WriteBufferSize:       config.Buffers.Write,
-		ReadTimeout:           config.Timeouts.Read,
-		WriteTimeout:          config.Timeouts.Write,
-		IdleTimeout:           config.Timeouts.Idle,
+		ReadBufferSize:        config.Telemetry.Metrics.Buffers.Read,
+		WriteBufferSize:       config.Telemetry.Metrics.Buffers.Write,
+		ReadTimeout:           config.Telemetry.Metrics.Timeouts.Read,
+		WriteTimeout:          config.Telemetry.Metrics.Timeouts.Write,
+		IdleTimeout:           config.Telemetry.Metrics.Timeouts.Idle,
 		Logger:                logging.LoggerPrintf(logrus.DebugLevel),
 	}
 
-	logging.Logger().Infof(fmtLogServerInit, "server (metrics)", connNonTLS, listener.Addr().String(), "/metrics")
+	if listener, err = config.Telemetry.Metrics.Address.Listener(); err != nil {
+		return nil, nil, nil, false, err
+	}
 
-	return server, listener, nil
+	return server, listener, []string{"/metrics"}, false, nil
 }

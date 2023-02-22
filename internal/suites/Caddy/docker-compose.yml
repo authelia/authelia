@@ -5,5 +5,5 @@ services:
     volumes:
       - './Caddy/configuration.yml:/config/configuration.yml:ro'
       - './Caddy/users.yml:/config/users.yml'
-      - './common/ssl:/config/ssl:ro'
+      - './common/pki:/pki:ro'
 ...

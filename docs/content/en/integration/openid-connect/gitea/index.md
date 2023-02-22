@@ -22,14 +22,7 @@ community: true
 
 ## Before You Begin
 
-### Common Notes
-
-1. You are *__required__* to utilize a unique client id for every client.
-2. The client id on this page is merely an example and you can theoretically use any alphanumeric string.
-3. You *__should not__* use the client secret in this example, We *__strongly recommend__* reading the
-   [Generating Client Secrets] guide instead.
-
-[Generating Client Secrets]: ../specific-information.md#generating-client-secrets
+{{% oidc-common %}}
 
 ### Assumptions
 
@@ -38,13 +31,17 @@ This example makes the following assumptions:
 * __Application Root URL:__ `https://gitea.example.com`
 * __Authelia Root URL:__ `https://auth.example.com`
 * __Client ID:__ `gitea`
-* __Client Secret:__ `gitea_client_secret`
+* __Client Secret:__ `insecure_secret`
+* __Authentication Name (Gitea):__ `authelia`:
+    * This option determines the redirect URI in the format of
+      `https://gitea.example.com/user/oauth2/<Authentication Name>/callback`.
+      This means if you change this value you need to update the redirect URI.
 
 ## Configuration
 
 ### Application
 
-To configure [Gitea] to utilize Authelia as an [OpenID Connect] Provider:
+To configure [Gitea] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Expand User Options
 2. Visit Site Administration
@@ -54,12 +51,12 @@ To configure [Gitea] to utilize Authelia as an [OpenID Connect] Provider:
    1. Authentication Name: `authelia`
    2. OAuth2 Provider: `OpenID Connect`
    3. Client ID (Key): `gitea`
-   4. Client Secret: `gitea_client_secret`
+   4. Client Secret: `insecure_secret`
    5. OpenID Connect Auto Discovery URL: `https://auth.example.com/.well-known/openid-configuration`
 
 {{< figure src="gitea.png" alt="Gitea" width="300" >}}
 
-To configure [Gitea] to perform automatic user creation for the `auth.example.com` domain via [OpenID Connect]:
+To configure [Gitea] to perform automatic user creation for the `auth.example.com` domain via [OpenID Connect 1.0]:
 
 1. Edit the following values in the [Gitea] `app.ini`:
 ```ini
@@ -86,7 +83,7 @@ will operate with the above example:
 ```yaml
 - id: gitea
   description: Gitea
-  secret: '$plaintext$gitea_client_secret'
+  secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
   public: false
   authorization_policy: two_factor
   redirect_uris:
@@ -105,4 +102,4 @@ will operate with the above example:
 
 - [Authelia]: https://www.authelia.com
 [Gitea]: https://gitea.io/
-[OpenID Connect]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

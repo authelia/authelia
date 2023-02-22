@@ -5,16 +5,16 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // DuoPreAuth helper function for retrieving supported devices and capabilities from duo api.
-func DuoPreAuth(ctx *middlewares.AutheliaCtx, duoAPI duo.API) (string, string, []DuoDevice, string, error) {
-	userSession := ctx.GetSession()
+func DuoPreAuth(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.API) (result, message string, devices []DuoDevice, enrollURL string, err error) {
 	values := url.Values{}
 	values.Set("username", userSession.Username)
 
-	preAuthResponse, err := duoAPI.PreAuthCall(ctx, values)
+	preAuthResponse, err := duoAPI.PreAuthCall(ctx, userSession, values)
 	if err != nil {
 		return "", "", nil, "", err
 	}

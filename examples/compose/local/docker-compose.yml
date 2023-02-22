@@ -19,7 +19,7 @@ services:
       - 'traefik.http.routers.authelia.entrypoints=https'
       - 'traefik.http.routers.authelia.tls=true'
       - 'traefik.http.routers.authelia.tls.options=default'
-      - 'traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://authelia.example.com'  # yamllint disable-line rule:line-length
+      - 'traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/authz/forward-auth?authelia-url=https://authelia.example.com'  # yamllint disable-line rule:line-length
       - 'traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true'
       - 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'  # yamllint disable-line rule:line-length
     expose:
@@ -32,7 +32,7 @@ services:
       - TZ=Australia/Melbourne
 
   traefik:
-    image: traefik:v2.9.6
+    image: traefik:v2.9.8
     container_name: traefik
     volumes:
       - ./traefik:/etc/traefik
@@ -48,8 +48,8 @@ services:
       - 'traefik.http.routers.api.tls.options=default'
       - 'traefik.http.routers.api.middlewares=authelia@docker'
     ports:
-      - 80:80
-      - 443:443
+      - '80:80'
+      - '443:443'
     command:
       - '--api'
       - '--providers.docker=true'

@@ -15,7 +15,7 @@ type RedirectionCheckScenario struct {
 
 func NewRedirectionCheckScenario() *RedirectionCheckScenario {
 	return &RedirectionCheckScenario{
-		RodSuite: new(RodSuite),
+		RodSuite: NewRodSuite(""),
 	}
 }
 

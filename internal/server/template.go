@@ -210,6 +210,12 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		EndpointsTOTP:          !config.TOTP.Disable,
 		EndpointsDuo:           !config.DuoAPI.Disable,
 		EndpointsOpenIDConnect: !(config.IdentityProviders.OIDC == nil),
+		EndpointsAuthz:         config.Server.Endpoints.Authz,
+	}
+
+	if config.PrivacyPolicy.Enabled {
+		opts.PrivacyPolicyURL = config.PrivacyPolicy.PolicyURL.String()
+		opts.PrivacyPolicyAccept = strconv.FormatBool(config.PrivacyPolicy.RequireUserAcceptance)
 	}
 
 	if !config.DuoAPI.Disable {
@@ -226,6 +232,8 @@ type TemplatedFileOptions struct {
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string
+	PrivacyPolicyURL       string
+	PrivacyPolicyAccept    string
 	Session                string
 	Theme                  string
 
@@ -234,6 +242,8 @@ type TemplatedFileOptions struct {
 	EndpointsTOTP          bool
 	EndpointsDuo           bool
 	EndpointsOpenIDConnect bool
+
+	EndpointsAuthz map[string]schema.ServerAuthzEndpoint
 }
 
 // CommonData returns a TemplatedFileCommonData with the dynamic options.
@@ -251,6 +261,8 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, nonce, logoOverri
 		RememberMe:             options.RememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
+		PrivacyPolicyURL:       options.PrivacyPolicyURL,
+		PrivacyPolicyAccept:    options.PrivacyPolicyAccept,
 		Session:                options.Session,
 		Theme:                  options.Theme,
 	}
@@ -279,12 +291,13 @@ func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, nonce string) Te
 		BaseURL:  baseURL,
 		CSPNonce: nonce,
 
-		Session:       options.Session,
-		PasswordReset: options.EndpointsPasswordReset,
-		Webauthn:      options.EndpointsWebauthn,
-		TOTP:          options.EndpointsTOTP,
-		Duo:           options.EndpointsDuo,
-		OpenIDConnect: options.EndpointsOpenIDConnect,
+		Session:        options.Session,
+		PasswordReset:  options.EndpointsPasswordReset,
+		Webauthn:       options.EndpointsWebauthn,
+		TOTP:           options.EndpointsTOTP,
+		Duo:            options.EndpointsDuo,
+		OpenIDConnect:  options.EndpointsOpenIDConnect,
+		EndpointsAuthz: options.EndpointsAuthz,
 	}
 }
 
@@ -298,6 +311,8 @@ type TemplatedFileCommonData struct {
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string
+	PrivacyPolicyURL       string
+	PrivacyPolicyAccept    string
 	Session                string
 	Theme                  string
 }
@@ -313,4 +328,6 @@ type TemplatedFileOpenAPIData struct {
 	TOTP          bool
 	Duo           bool
 	OpenIDConnect bool
+
+	EndpointsAuthz map[string]schema.ServerAuthzEndpoint
 }

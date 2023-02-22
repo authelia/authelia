@@ -33,7 +33,7 @@ spec:
               mountPath: /config/configuration.yml
               readOnly: true
             - name: authelia-ssl
-              mountPath: /config/ssl
+              mountPath: /pki
               readOnly: true
             - name: secrets
               mountPath: /config/secrets
@@ -142,12 +142,15 @@ metadata:
     app.kubernetes.io/name: authelia
 spec:
   forwardAuth:
-    address: https://authelia-service.authelia.svc.cluster.local/api/verify?rd=https://login.example.com:8080
+    address: 'https://authelia-service.authelia.svc.cluster.local/api/authz/forward-auth'
+    trustForwardHeader: true
     authResponseHeaders:
-      - Remote-User
-      - Remote-Name
-      - Remote-Email
-      - Remote-Groups
+      - 'Authorization'
+      - 'Proxy-Authorization'
+      - 'Remote-User'
+      - 'Remote-Groups'
+      - 'Remote-Email'
+      - 'Remote-Name'
     tls:
       insecureSkipVerify: true
 ...

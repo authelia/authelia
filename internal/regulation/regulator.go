@@ -24,7 +24,7 @@ func NewRegulator(config schema.RegulationConfiguration, provider storage.Regula
 // Mark an authentication attempt.
 // We split Mark and Regulate in order to avoid timing attacks.
 func (r *Regulator) Mark(ctx Context, successful, banned bool, username, requestURI, requestMethod, authType string) error {
-	ctx.RecordAuthentication(successful, banned, strings.ToLower(authType))
+	ctx.RecordAuthn(successful, banned, strings.ToLower(authType))
 
 	return r.storageProvider.AppendAuthenticationLog(ctx, model.AuthenticationAttempt{
 		Time:          r.clock.Now(),

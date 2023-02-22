@@ -13,7 +13,7 @@ func StripPath(path string) (middleware Middleware) {
 			uri := ctx.RequestURI()
 
 			if strings.HasPrefix(string(uri), path) {
-				ctx.SetUserValueBytes(UserValueKeyBaseURL, path)
+				ctx.SetUserValueBytes(keyUserValueBaseURL, path)
 
 				newURI := strings.TrimPrefix(string(uri), path)
 				ctx.Request.SetRequestURI(newURI)

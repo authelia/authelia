@@ -18,7 +18,7 @@ type DefaultRedirectionURLScenario struct {
 
 func NewDefaultRedirectionURLScenario() *DefaultRedirectionURLScenario {
 	return &DefaultRedirectionURLScenario{
-		RodSuite: new(RodSuite),
+		RodSuite: NewRodSuite(""),
 	}
 }
 
