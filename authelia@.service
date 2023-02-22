@@ -3,6 +3,8 @@ Description=Authelia authentication and authorization server
 After=multi-user.target
 
 [Service]
+User=authelia
+Group=authelia
 Environment=AUTHELIA_SERVER_DISABLE_HEALTHCHECK=true
 ExecStart=/usr/bin/authelia --config /etc/authelia/%i.yml
 SyslogIdentifier=authelia-%i
