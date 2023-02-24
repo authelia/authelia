@@ -52,7 +52,7 @@ specifiers:
   qrcode.react: 3.1.0
   react: 18.2.0
   react-dom: 18.2.0
-  react-i18next: 12.1.5
+  react-i18next: 12.2.0
   react-loading: 2.0.3
   react-router-dom: 6.8.1
   react-test-renderer: 18.2.0
@@ -85,7 +85,7 @@ dependencies:
   qrcode.react: 3.1.0_react@18.2.0
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
-  react-i18next: 12.1.5_3yopsigl4h4eb2nqrqfsy65uwi
+  react-i18next: 12.2.0_3yopsigl4h4eb2nqrqfsy65uwi
   react-loading: 2.0.3_react@18.2.0
   react-router-dom: 6.8.1_biqbaboplfbrettd7655fr4n2y
   react18-input-otp: 1.1.2_biqbaboplfbrettd7655fr4n2y
@@ -8368,8 +8368,8 @@ packages:
       react: 18.2.0
       scheduler: 0.23.0
 
-  /react-i18next/12.1.5_3yopsigl4h4eb2nqrqfsy65uwi:
-    resolution: {integrity: sha512-7PQAv6DA0TcStG96fle+8RfTwxVbHVlZZJPoEszwUNvDuWpGldJmNWa3ZPesEsZQZGF6GkzwvEh6p57qpFD2gQ==}
+  /react-i18next/12.2.0_3yopsigl4h4eb2nqrqfsy65uwi:
+    resolution: {integrity: sha512-5XeVgSygaGfyFmDd2WcXvINRw2WEC1XviW1LXY/xLOEMzsCFRwKqfnHN+hUjla8ZipbVJR27GCMSuTr0BhBBBQ==}
     peerDependencies:
       i18next: '>= 19.0.0'
       react: '>= 16.8.0 || 18'
@@ -8381,7 +8381,7 @@ packages:
       react-native:
         optional: true
     dependencies:
-      '@babel/runtime': 7.20.7
+      '@babel/runtime': 7.20.13
       html-parse-stringify: 3.0.1
       i18next: 22.4.10
       react: 18.2.0
