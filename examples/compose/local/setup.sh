@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 
 writehosts(){
-  echo "\
-127.0.0.1  authelia.$DOMAIN
-127.0.0.1  public.$DOMAIN
-127.0.0.1  traefik.$DOMAIN
-127.0.0.1  secure.$DOMAIN" | sudo tee -a /etc/hosts > /dev/null
+  echo NEWHOSTS | sudo tee -a /etc/hosts > /dev/null
 }
 
 username(){
@@ -27,7 +23,7 @@ if [[ ! -x "$(command -v docker)" ]]; then
   exit 1
 fi
 
-if [[ ! -x "$(command -v docker-compose)" ]]; then
+if [[ ! -x "$(command -v docker-compose)" && ! $(docker compose version) ]]; then
   echo "You must install Docker Compose on your machine";
   exit 1
 fi
@@ -54,6 +50,11 @@ if [[ $DOMAIN == "" ]]; then
 fi
 
 MODIFIED=$(cat /etc/hosts | grep $DOMAIN && echo true || echo false)
+NEWHOSTS="
+127.0.0.1  authelia.$DOMAIN
+127.0.0.1  public.$DOMAIN
+127.0.0.1  traefik.$DOMAIN
+127.0.0.1  secure.$DOMAIN"
 
 if [[ $MODIFIED == "false" ]]; then
   writehosts
@@ -110,7 +111,7 @@ else
   password
 fi
 
-sudo docker-compose up -d
+sudo docker-compose up -d || sudo docker compose up -d
 
 if [[ $? != 0 ]]; then
   exit 1
@@ -127,4 +128,7 @@ You can now visit the following locations:
 You will need to authorize the self-signed certificate upon visiting each domain.
 To visit https://secure.$DOMAIN you will need to register a device for second factor authentication and confirm by clicking on a link sent by email. Since this is a demo with a fake email address, the content of the email will be stored in './authelia/notification.txt'.
 Upon registering, you can grab this link easily by running the following command: 'grep -Eo '"https://.*" ' ./authelia/notification.txt'.
+
+WSL users: You will need to add the following to your C:\Windows\System32\drivers\etc\hosts file:
+$NEWHOSTS
 EOF
