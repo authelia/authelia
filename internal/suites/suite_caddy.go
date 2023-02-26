@@ -32,14 +32,12 @@ func init() {
 		})
 	}
 
-	setup := func(suitePath string) error {
-		err := dockerEnvironment.Up()
-		if err != nil {
+	setup := func(suitePath string) (err error) {
+		if err = dockerEnvironment.Up(); err != nil {
 			return err
 		}
 
-		err = waitUntilAutheliaIsReady(dockerEnvironment, caddySuiteName)
-		if err != nil {
+		if err = waitUntilAutheliaIsReady(dockerEnvironment, caddySuiteName); err != nil {
 			return err
 		}
 

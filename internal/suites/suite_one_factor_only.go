@@ -17,14 +17,12 @@ func init() {
 		"internal/suites/example/compose/nginx/portal/docker-compose.yml",
 	})
 
-	setup := func(suitePath string) error {
-		err := dockerEnvironment.Up()
-		if err != nil {
+	setup := func(suitePath string) (err error) {
+		if err = dockerEnvironment.Up(); err != nil {
 			return err
 		}
 
-		err = waitUntilAutheliaIsReady(dockerEnvironment, oneFactorOnlySuiteName)
-		if err != nil {
+		if err = waitUntilAutheliaIsReady(dockerEnvironment, oneFactorOnlySuiteName); err != nil {
 			return err
 		}
 
