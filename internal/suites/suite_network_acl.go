@@ -21,14 +21,12 @@ func init() {
 		"internal/suites/example/compose/httpbin/docker-compose.yml",
 	})
 
-	setup := func(suitePath string) error {
-		err := dockerEnvironment.Up()
-		if err != nil {
+	setup := func(suitePath string) (err error) {
+		if err = dockerEnvironment.Up(); err != nil {
 			return err
 		}
 
-		err = waitUntilAutheliaIsReady(dockerEnvironment, networkACLSuiteName)
-		if err != nil {
+		if err = waitUntilAutheliaIsReady(dockerEnvironment, networkACLSuiteName); err != nil {
 			return err
 		}
 

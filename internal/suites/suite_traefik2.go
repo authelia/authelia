@@ -34,14 +34,12 @@ func init() {
 		})
 	}
 
-	setup := func(suitePath string) error {
-		err := traefik2DockerEnvironment.Up()
-		if err != nil {
+	setup := func(suitePath string) (err error) {
+		if err = traefik2DockerEnvironment.Up(); err != nil {
 			return err
 		}
 
-		err = waitUntilAutheliaIsReady(traefik2DockerEnvironment, traefik2SuiteName)
-		if err != nil {
+		if err = waitUntilAutheliaIsReady(traefik2DockerEnvironment, traefik2SuiteName); err != nil {
 			return err
 		}
 

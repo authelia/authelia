@@ -19,14 +19,12 @@ func init() {
 		"internal/suites/example/compose/duo-api/docker-compose.yml",
 	})
 
-	setup := func(suitePath string) error {
-		err := dockerEnvironment.Up()
-		if err != nil {
+	setup := func(suitePath string) (err error) {
+		if err = dockerEnvironment.Up(); err != nil {
 			return err
 		}
 
-		err = waitUntilAutheliaIsReady(dockerEnvironment, duoPushSuiteName)
-		if err != nil {
+		if err = waitUntilAutheliaIsReady(dockerEnvironment, duoPushSuiteName); err != nil {
 			return err
 		}
 
