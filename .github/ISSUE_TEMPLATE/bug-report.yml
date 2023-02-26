@@ -134,8 +134,8 @@ body:
     attributes:
       label: Logs (Authelia)
       description: |
-      	Provide complete logs with the log level set to debug or trace. Complete means from application start until the
-      	issue occurring. The template will automatically put this content in a code block so you can just paste it.
+        Provide complete logs with the log level set to debug or trace. Complete means from application start until the
+        issue occurring. The template will automatically put this content in a code block so you can just paste it.
       render: shell
     validations:
       required: true
