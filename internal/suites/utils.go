@@ -285,13 +285,16 @@ func getDomainEnvInfo(domain string) (info map[string]string, err error) {
 
 // generateDevEnvFile generates web/.env.development based on opts.
 func generateDevEnvFile(info map[string]string) (err error) {
+	base, _ := os.Getwd()
+	base = strings.TrimSuffix(base, "/internal/suites")
+
 	var tmpl *template.Template
 
-	if tmpl, err = template.ParseFiles(envFileProd); err != nil {
+	if tmpl, err = template.ParseFiles(base + envFileProd); err != nil {
 		return err
 	}
 
-	file, _ := os.Create(envFileDev)
+	file, _ := os.Create(base + envFileDev)
 	defer file.Close()
 
 	if err = tmpl.Execute(file, info); err != nil {
