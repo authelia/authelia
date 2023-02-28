@@ -52,6 +52,7 @@ func (s *RequestMethodScenario) TestShouldRespondWithAppropriateMethodNotAllowed
 			s.Assert().NoError(err)
 
 			res, err := s.client.Do(req)
+
 			s.Assert().NoError(err)
 			s.Assert().Equal(fasthttp.StatusMethodNotAllowed, res.StatusCode)
 			s.Assert().Equal(strings.Join(tc.expected, ", "), res.Header.Get(fasthttp.HeaderAllow))
@@ -76,6 +77,7 @@ func (s *RequestMethodScenario) TestShouldRespondWithAppropriateResponseWithMeth
 			s.Assert().NoError(err)
 
 			res, err := s.client.Do(req)
+
 			s.Assert().NoError(err)
 			s.Assert().Equal(tc.expectedStatus, res.StatusCode)
 
