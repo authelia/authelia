@@ -18,13 +18,16 @@ var multiCookieDomainDockerEnvironment = NewDockerEnvironment([]string{
 })
 
 func init() {
-	setup := func(suitePath string) error {
-		err := multiCookieDomainDockerEnvironment.Up()
-		if err != nil {
+	setup := func(suitePath string) (err error) {
+		if err = multiCookieDomainDockerEnvironment.Up(); err != nil {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(multiCookieDomainDockerEnvironment, multiCookieDomainSuiteName)
+		if err = waitUntilAutheliaIsReady(multiCookieDomainDockerEnvironment, multiCookieDomainSuiteName); err != nil {
+			return err
+		}
+
+		return updateDevEnvFileForDomain(BaseDomain, true)
 	}
 
 	displayAutheliaLogs := func() error {

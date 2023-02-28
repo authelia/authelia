@@ -15,8 +15,8 @@ func init() {
 		"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
 	})
 
-	setup := func(suitePath string) error {
-		if err := dockerEnvironment.Up(); err != nil {
+	setup := func(suitePath string) (err error) {
+		if err = dockerEnvironment.Up(); err != nil {
 			return err
 		}
 
