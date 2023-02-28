@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"path"
@@ -89,6 +90,13 @@ func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 
 		next(ctx)
 	}
+}
+
+func handleMethodNotAllowed(ctx *fasthttp.RequestCtx) {
+	middlewares.SetContentTypeTextPlain(ctx)
+
+	ctx.SetStatusCode(fasthttp.StatusMethodNotAllowed)
+	ctx.SetBodyString(fmt.Sprintf("%d %s", fasthttp.StatusMethodNotAllowed, fasthttp.StatusMessage(fasthttp.StatusMethodNotAllowed)))
 }
 
 //nolint:gocyclo
@@ -374,6 +382,7 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	}
 
 	r.HandleMethodNotAllowed = true
+	r.MethodNotAllowed = handleMethodNotAllowed
 	r.NotFound = handleNotFound(bridge(serveIndexHandler))
 
 	handler := middlewares.LogRequest(r.Handler)
