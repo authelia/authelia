@@ -7,7 +7,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/deckarep/golang-set/v2 v2.1.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20230203160531-b221c950c2b0
-	github.com/fasthttp/router v1.4.16
+	github.com/fasthttp/router v1.4.17
 	github.com/fasthttp/session/v2 v2.4.16
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-asn1-ber/asn1-ber v1.5.4
@@ -101,7 +101,7 @@ require (
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/savsgio/gotils v0.0.0-20220530130905-52f3993e8d6d // indirect
+	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
 	github.com/spf13/afero v1.9.3 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
