@@ -60,7 +60,7 @@ specifiers:
   typescript: 4.9.5
   vite: 4.1.4
   vite-plugin-eslint: 1.8.1
-  vite-plugin-istanbul: 4.0.0
+  vite-plugin-istanbul: 4.0.1
   vite-plugin-svgr: 2.4.0
   vite-tsconfig-paths: 4.0.5
   zxcvbn: 4.4.2
@@ -128,7 +128,7 @@ devDependencies:
   typescript: 4.9.5
   vite: 4.1.4_@types+node@18.14.2
   vite-plugin-eslint: 1.8.1_eslint@8.35.0+vite@4.1.4
-  vite-plugin-istanbul: 4.0.0_vite@4.1.4
+  vite-plugin-istanbul: 4.0.1_vite@4.1.4
   vite-plugin-svgr: 2.4.0_vite@4.1.4
   vite-tsconfig-paths: 4.0.5_typescript@4.9.5
 
@@ -9503,8 +9503,8 @@ packages:
       vite: 4.1.4_@types+node@18.14.2
     dev: true
 
-  /vite-plugin-istanbul/4.0.0_vite@4.1.4:
-    resolution: {integrity: sha512-r5TUlEprFyp+L+by/waG1RsIMiqfy7LBAZvheFlXjxzm69146rHGW6bh9TDzXg7wJB6DsyjqKFtvAX50d/I/IQ==}
+  /vite-plugin-istanbul/4.0.1_vite@4.1.4:
+    resolution: {integrity: sha512-1fUCJyYvt/vkDQWR/15knwCk+nWmNbVbmZTXf/X4XD0dcdmJsYrZF5JQo7ttYxFyflGH2SVu+XRlpN06CakKPQ==}
     peerDependencies:
       vite: '>=2.9.1 <= 5'
     dependencies:
