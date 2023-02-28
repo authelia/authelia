@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -25,7 +26,7 @@ import (
 // and generate a nonce to support a restrictive CSP while using material-ui.
 func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middlewares.RequestHandler {
 	isDevEnvironment := os.Getenv(environment) == dev
-	ext := filepath.Ext(t.Name())
+	ext := path.Ext(t.Name())
 
 	return func(ctx *middlewares.AutheliaCtx) {
 		var err error
@@ -67,18 +68,34 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 			rememberMe = strconv.FormatBool(!provider.Config.DisableRememberMe)
 		}
 
-		if err = t.Execute(ctx.Response.BodyWriter(), opts.CommonData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce, logoOverride, rememberMe)); err != nil {
-			ctx.RequestCtx.Error("an error occurred", 503)
-			ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
+		switch {
+		case ctx.IsHead():
+			data := &bytes.Buffer{}
 
-			return
+			if err = t.Execute(data, opts.CommonData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce, logoOverride, rememberMe)); err != nil {
+				ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
+				ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
+
+				return
+			}
+
+			ctx.Response.ResetBody()
+			ctx.Response.SkipBody = true
+			ctx.Response.Header.Set(fasthttp.HeaderContentLength, strconv.Itoa(data.Len()))
+		default:
+			if err = t.Execute(ctx.Response.BodyWriter(), opts.CommonData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce, logoOverride, rememberMe)); err != nil {
+				ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
+				ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
+
+				return
+			}
 		}
 	}
 }
 
 // ServeTemplatedOpenAPI serves templated OpenAPI related files.
 func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) middlewares.RequestHandler {
-	ext := filepath.Ext(t.Name())
+	ext := path.Ext(t.Name())
 
 	spec := ext == extYML
 
@@ -103,11 +120,27 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 
 		var err error
 
-		if err = t.Execute(ctx.Response.BodyWriter(), opts.OpenAPIData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce)); err != nil {
-			ctx.RequestCtx.Error("an error occurred", 503)
-			ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
+		switch {
+		case ctx.IsHead():
+			data := &bytes.Buffer{}
 
-			return
+			if err = t.Execute(data, opts.OpenAPIData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce)); err != nil {
+				ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
+				ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
+
+				return
+			}
+
+			ctx.Response.ResetBody()
+			ctx.Response.SkipBody = true
+			ctx.Response.Header.Set(fasthttp.HeaderContentLength, strconv.Itoa(data.Len()))
+		default:
+			if err = t.Execute(ctx.Response.BodyWriter(), opts.OpenAPIData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce)); err != nil {
+				ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
+				ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
+
+				return
+			}
 		}
 	}
 }
@@ -138,6 +171,11 @@ func ETagRootURL(next middlewares.RequestHandler) middlewares.RequestHandler {
 		}
 
 		next(ctx)
+
+		if ctx.Response.SkipBody || ctx.Response.StatusCode() != fasthttp.StatusOK {
+			// Skip generating the ETag as the response body should be empty.
+			return
+		}
 
 		mu.Lock()
 
