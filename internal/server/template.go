@@ -68,24 +68,24 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 			rememberMe = strconv.FormatBool(!provider.Config.DisableRememberMe)
 		}
 
+		data := &bytes.Buffer{}
+
+		if err = t.Execute(data, opts.CommonData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce, logoOverride, rememberMe)); err != nil {
+			ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
+			ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
+
+			return
+		}
+
 		switch {
 		case ctx.IsHead():
-			data := &bytes.Buffer{}
-
-			if err = t.Execute(data, opts.CommonData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce, logoOverride, rememberMe)); err != nil {
-				ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
-				ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
-
-				return
-			}
-
 			ctx.Response.ResetBody()
 			ctx.Response.SkipBody = true
 			ctx.Response.Header.Set(fasthttp.HeaderContentLength, strconv.Itoa(data.Len()))
 		default:
-			if err = t.Execute(ctx.Response.BodyWriter(), opts.CommonData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce, logoOverride, rememberMe)); err != nil {
+			if _, err = data.WriteTo(ctx.Response.BodyWriter()); err != nil {
 				ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
-				ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
+				ctx.Logger.WithError(err).Errorf("Error occcurred writing body")
 
 				return
 			}
@@ -120,24 +120,24 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 
 		var err error
 
+		data := &bytes.Buffer{}
+
+		if err = t.Execute(data, opts.OpenAPIData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce)); err != nil {
+			ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
+			ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
+
+			return
+		}
+
 		switch {
 		case ctx.IsHead():
-			data := &bytes.Buffer{}
-
-			if err = t.Execute(data, opts.OpenAPIData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce)); err != nil {
-				ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
-				ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
-
-				return
-			}
-
 			ctx.Response.ResetBody()
 			ctx.Response.SkipBody = true
 			ctx.Response.Header.Set(fasthttp.HeaderContentLength, strconv.Itoa(data.Len()))
 		default:
-			if err = t.Execute(ctx.Response.BodyWriter(), opts.OpenAPIData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce)); err != nil {
+			if _, err = data.WriteTo(ctx.Response.BodyWriter()); err != nil {
 				ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
-				ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
+				ctx.Logger.WithError(err).Errorf("Error occcurred writing body")
 
 				return
 			}
