@@ -42,8 +42,9 @@ func (s *RequestMethodScenario) TestShouldRespondWithAppropriateMethodNotAllowed
 		uri      string
 		expected []string
 	}{
-		{"ShouldShowAllowedMethodsOnInvalidRequestToRootPath", fasthttp.MethodPost, AutheliaBaseURL, []string{fasthttp.MethodGet, fasthttp.MethodHead, fasthttp.MethodOptions}},
-		{"ShouldShowMethodsOpenAPISpecification", fasthttp.MethodPost, fmt.Sprintf("%s/api/openapi.yml", AutheliaBaseURL), []string{fasthttp.MethodGet, fasthttp.MethodHead, fasthttp.MethodOptions}},
+		{"RootPathShouldShowAllowedMethodsOnInvalidRequest", fasthttp.MethodPost, AutheliaBaseURL, []string{fasthttp.MethodGet, fasthttp.MethodHead, fasthttp.MethodOptions}},
+		{"OpenAPISpecificationShouldShowAllowedMethodsOnInvalidRequest", fasthttp.MethodPost, fmt.Sprintf("%s/api/openapi.yml", AutheliaBaseURL), []string{fasthttp.MethodGet, fasthttp.MethodHead, fasthttp.MethodOptions}},
+		{"LocalesShouldShowAllowedMethodsOnInvalidRequest", fasthttp.MethodPost, fmt.Sprintf("%s/locales/en/portal.json", AutheliaBaseURL), []string{fasthttp.MethodGet, fasthttp.MethodHead, fasthttp.MethodOptions}},
 	}
 
 	for _, tc := range testCases {
@@ -69,6 +70,7 @@ func (s *RequestMethodScenario) TestShouldRespondWithAppropriateResponseWithMeth
 	}{
 		{"RootPathShouldShowContentLengthAndRespondOK", AutheliaBaseURL, fasthttp.StatusOK, true},
 		{"OpenAPISpecShouldShowContentLengthAndRespondOK", fmt.Sprintf("%s/api/openapi.yml", AutheliaBaseURL), fasthttp.StatusOK, true},
+		{"LocalesShouldShowContentLengthAndRespondOK", fmt.Sprintf("%s/locales/en/portal.json", AutheliaBaseURL), fasthttp.StatusOK, true},
 	}
 
 	for _, tc := range testCases {
