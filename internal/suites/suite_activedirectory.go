@@ -19,14 +19,12 @@ func init() {
 		"internal/suites/example/compose/samba/docker-compose.yml",
 	})
 
-	setup := func(suitePath string) error {
-		err := dockerEnvironment.Up()
-		if err != nil {
+	setup := func(suitePath string) (err error) {
+		if err = dockerEnvironment.Up(); err != nil {
 			return err
 		}
 
-		err = waitUntilAutheliaIsReady(dockerEnvironment, activedirectorySuiteName)
-		if err != nil {
+		if err = waitUntilAutheliaIsReady(dockerEnvironment, activedirectorySuiteName); err != nil {
 			return err
 		}
 

@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"net/url"
-
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -11,20 +9,11 @@ import (
 // OpenIDConnectConfigurationWellKnownGET handles requests to a .well-known endpoint (RFC5785) which returns the
 // OpenID Connect Discovery 1.0 metadata.
 //
-// https://datatracker.ietf.org/doc/html/rfc5785
+// RFC5785: Defining Well-Known URIs (https://datatracker.ietf.org/doc/html/rfc5785)
 //
-// https://openid.net/specs/openid-connect-discovery-1_0.html
+// OpenID Connect Discovery 1.0 (https://openid.net/specs/openid-connect-discovery-1_0.html)
 func OpenIDConnectConfigurationWellKnownGET(ctx *middlewares.AutheliaCtx) {
-	var (
-		issuer *url.URL
-		err    error
-	)
-
-	issuer = ctx.RootURL()
-
-	wellKnown := ctx.Providers.OpenIDConnect.GetOpenIDConnectWellKnownConfiguration(issuer.String())
-
-	if err = ctx.ReplyJSON(wellKnown, fasthttp.StatusOK); err != nil {
+	if err := ctx.ReplyJSON(ctx.Providers.OpenIDConnect.GetOpenIDConnectWellKnownConfiguration(ctx.RootURL().String()), fasthttp.StatusOK); err != nil {
 		ctx.Logger.Errorf("Error occurred in JSON encode: %+v", err)
 
 		// TODO: Determine if this is the appropriate error code here.
@@ -37,20 +26,11 @@ func OpenIDConnectConfigurationWellKnownGET(ctx *middlewares.AutheliaCtx) {
 // OAuthAuthorizationServerWellKnownGET handles requests to a .well-known endpoint (RFC5785) which returns the
 // OAuth 2.0 Authorization Server Metadata (RFC8414).
 //
-// https://datatracker.ietf.org/doc/html/rfc5785
+// RFC5785: Defining Well-Known URIs (https://datatracker.ietf.org/doc/html/rfc5785)
 //
-// https://datatracker.ietf.org/doc/html/rfc8414
+// RFC8414: OAuth 2.0 Authorization Server Metadata (https://datatracker.ietf.org/doc/html/rfc8414)
 func OAuthAuthorizationServerWellKnownGET(ctx *middlewares.AutheliaCtx) {
-	var (
-		issuer *url.URL
-		err    error
-	)
-
-	issuer = ctx.RootURL()
-
-	wellKnown := ctx.Providers.OpenIDConnect.GetOAuth2WellKnownConfiguration(issuer.String())
-
-	if err = ctx.ReplyJSON(wellKnown, fasthttp.StatusOK); err != nil {
+	if err := ctx.ReplyJSON(ctx.Providers.OpenIDConnect.GetOAuth2WellKnownConfiguration(ctx.RootURL().String()), fasthttp.StatusOK); err != nil {
 		ctx.Logger.Errorf("Error occurred in JSON encode: %+v", err)
 
 		// TODO: Determine if this is the appropriate error code here.
