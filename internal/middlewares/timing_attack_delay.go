@@ -5,70 +5,93 @@ import (
 	"math/big"
 	"sync"
 	"time"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/random"
 )
 
-// TimingAttackDelayFunc describes a function for preventing timing attacks via a delay.
-type TimingAttackDelayFunc func(ctx *AutheliaCtx, requestTime time.Time, successful *bool)
+func NewTimingAttackDelayer(name string, delay, min, max time.Duration, history int) *TimingAttackDelay {
+	return &TimingAttackDelay{
+		log:    logging.Logger().WithFields(map[string]any{"service": "timing attack delay", "name": name}),
+		random: random.NewCryptographical(),
 
-// TimingAttackDelay creates a new standard timing delay func.
-func TimingAttackDelay(history int, minDelayMs float64, maxRandomMs int64, initialDelay time.Duration, record bool) TimingAttackDelayFunc {
-	var (
-		mutex  = &sync.Mutex{}
-		cursor = 0
-	)
+		mu: &sync.Mutex{},
 
-	execDurationMovingAverage := make([]time.Duration, history)
+		authns: delayedAuthns(delay, history),
+		n:      history,
+		i:      0,
 
-	for i := range execDurationMovingAverage {
-		execDurationMovingAverage[i] = initialDelay
-	}
-
-	return func(ctx *AutheliaCtx, requestTime time.Time, successful *bool) {
-		successfulValue := false
-		if successful != nil {
-			successfulValue = *successful
-		}
-
-		execDuration := time.Since(requestTime)
-
-		if record && ctx.Providers.Metrics != nil {
-			ctx.Providers.Metrics.RecordAuthenticationDuration(successfulValue, execDuration)
-		}
-
-		execDurationAvgMs := movingAverageIteration(execDuration, history, successfulValue, &cursor, &execDurationMovingAverage, mutex)
-		actualDelayMs := calculateActualDelay(ctx, execDuration, execDurationAvgMs, minDelayMs, maxRandomMs, successfulValue)
-		time.Sleep(time.Duration(actualDelayMs) * time.Millisecond)
+		msDelayMin: float64(min.Milliseconds()),
+		msDelayMax: big.NewInt(max.Milliseconds()),
 	}
 }
 
-func movingAverageIteration(value time.Duration, history int, successful bool, cursor *int, movingAvg *[]time.Duration, mutex sync.Locker) float64 {
-	mutex.Lock()
+type TimingAttackDelay struct {
+	log    *logrus.Entry
+	random random.Provider
 
+	mu sync.Locker
+
+	authns []time.Duration
+	n      int
+	i      int
+
+	msDelayMin float64
+	msDelayMax *big.Int
+}
+
+func (m *TimingAttackDelay) Delay(successful bool, elapsed time.Duration) {
+	time.Sleep(m.actual(elapsed, m.avg(elapsed, successful), successful))
+}
+
+func (m *TimingAttackDelay) actual(elapsed time.Duration, avg float64, successful bool) time.Duration {
+	additional, err := m.random.IntErr(m.msDelayMax)
+	if err != nil {
+		return time.Millisecond * time.Duration(avg+float64(m.msDelayMax.Int64()))
+	}
+
+	total := math.Max(avg, m.msDelayMin) + float64(additional.Int64())
+	actual := math.Max(total-float64(elapsed.Milliseconds()), 1.0)
+
+	m.log.WithFields(map[string]any{
+		"successful": successful,
+		"elapsed":    elapsed.Milliseconds(),
+		"average":    avg,
+		"random":     additional.Int64(),
+		"total":      total,
+		"actual":     actual,
+	}).Trace("Delaying to Prevent Timing Attacks")
+
+	return time.Millisecond * time.Duration(actual)
+}
+
+func (m *TimingAttackDelay) avg(elapsed time.Duration, successful bool) float64 {
 	var sum int64
 
-	for _, v := range *movingAvg {
-		sum += v.Milliseconds()
+	m.mu.Lock()
+
+	for _, authn := range m.authns {
+		sum += authn.Milliseconds()
 	}
 
 	if successful {
-		(*movingAvg)[*cursor] = value
-		*cursor = (*cursor + 1) % history
+		m.authns[m.i] = elapsed
+		m.i = (m.i + 1) % m.n
 	}
 
-	mutex.Unlock()
+	m.mu.Unlock()
 
-	return float64(sum / int64(history))
+	return float64(sum / int64(m.n))
 }
 
-func calculateActualDelay(ctx *AutheliaCtx, execDuration time.Duration, execDurationAvgMs, minDelayMs float64, maxRandomMs int64, successful bool) (actualDelayMs float64) {
-	randomDelayMs, err := ctx.Providers.Random.IntErr(big.NewInt(maxRandomMs))
-	if err != nil {
-		return float64(maxRandomMs)
+func delayedAuthns(delay time.Duration, history int) []time.Duration {
+	s := make([]time.Duration, history)
+
+	for i := range s {
+		s[i] = delay
 	}
 
-	totalDelayMs := math.Max(execDurationAvgMs, minDelayMs) + float64(randomDelayMs.Int64())
-	actualDelayMs = math.Max(totalDelayMs-float64(execDuration.Milliseconds()), 1.0)
-	ctx.Logger.Tracef("Timing Attack Delay successful: %t, exec duration: %d, avg execution duration: %d, random delay ms: %d, total delay ms: %d, actual delay ms: %d", successful, execDuration.Milliseconds(), int64(execDurationAvgMs), randomDelayMs.Int64(), int64(totalDelayMs), int64(actualDelayMs))
-
-	return actualDelayMs
+	return s
 }

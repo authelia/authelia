@@ -31,7 +31,7 @@ func (s *FirstFactorSuite) TearDownTest() {
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfBodyIsNil() {
-	FirstFactorPOST(nil)(s.mock.Ctx)
+	FirstFactorPOST(s.mock.Ctx)
 
 	// No body.
 	assert.Equal(s.T(), "Failed to parse 1FA request body: unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
@@ -43,7 +43,7 @@ func (s *FirstFactorSuite) TestShouldFailIfBodyIsInBadFormat() {
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test"
 	}`)
-	FirstFactorPOST(nil)(s.mock.Ctx)
+	FirstFactorPOST(s.mock.Ctx)
 
 	assert.Equal(s.T(), "Failed to parse 1FA request body: unable to validate body: password: non zero value required", s.mock.Hook.LastEntry().Message)
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
@@ -71,7 +71,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 		"password": "hello",
 		"keepMeLoggedIn": true
 	}`)
-	FirstFactorPOST(nil)(s.mock.Ctx)
+	FirstFactorPOST(s.mock.Ctx)
 
 	assert.Equal(s.T(), "Unsuccessful 1FA authentication attempt by user 'test': failed", s.mock.Hook.LastEntry().Message)
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
@@ -100,7 +100,7 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsNotMarkedWhenProviderC
 		"keepMeLoggedIn": true
 	}`)
 
-	FirstFactorPOST(nil)(s.mock.Ctx)
+	FirstFactorPOST(s.mock.Ctx)
 }
 
 func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCredentials() {
@@ -126,7 +126,7 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCrede
 		"keepMeLoggedIn": true
 	}`)
 
-	FirstFactorPOST(nil)(s.mock.Ctx)
+	FirstFactorPOST(s.mock.Ctx)
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
@@ -150,7 +150,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
 		"password": "hello",
 		"keepMeLoggedIn": true
 	}`)
-	FirstFactorPOST(nil)(s.mock.Ctx)
+	FirstFactorPOST(s.mock.Ctx)
 
 	assert.Equal(s.T(), "Could not obtain profile details during 1FA authentication for user 'test': failed", s.mock.Hook.LastEntry().Message)
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
@@ -172,7 +172,7 @@ func (s *FirstFactorSuite) TestShouldFailIfAuthenticationMarkFail() {
 		"password": "hello",
 		"keepMeLoggedIn": true
 	}`)
-	FirstFactorPOST(nil)(s.mock.Ctx)
+	FirstFactorPOST(s.mock.Ctx)
 
 	assert.Equal(s.T(), "Unable to mark 1FA authentication attempt by user 'test': failed", s.mock.Hook.LastEntry().Message)
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
@@ -203,7 +203,7 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 		"password": "hello",
 		"keepMeLoggedIn": true
 	}`)
-	FirstFactorPOST(nil)(s.mock.Ctx)
+	FirstFactorPOST(s.mock.Ctx)
 
 	// Respond with 200.
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
@@ -245,7 +245,7 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 		"requestMethod": "GET",
 		"keepMeLoggedIn": false
 	}`)
-	FirstFactorPOST(nil)(s.mock.Ctx)
+	FirstFactorPOST(s.mock.Ctx)
 
 	// Respond with 200.
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
@@ -290,7 +290,7 @@ func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSess
 		"requestMethod": "GET",
 		"keepMeLoggedIn": true
 	}`)
-	FirstFactorPOST(nil)(s.mock.Ctx)
+	FirstFactorPOST(s.mock.Ctx)
 
 	// Respond with 200.
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
@@ -364,7 +364,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenNoTarget
 		"requestMethod": "GET",
 		"keepMeLoggedIn": false
 	}`)
-	FirstFactorPOST(nil)(s.mock.Ctx)
+	FirstFactorPOST(s.mock.Ctx)
 
 	// Respond with 200.
 	s.mock.Assert200OK(s.T(), redirectResponse{Redirect: "https://default.local"})
@@ -388,7 +388,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUns
 		"targetURL": "http://notsafe.local"
 	}`)
 
-	FirstFactorPOST(nil)(s.mock.Ctx)
+	FirstFactorPOST(s.mock.Ctx)
 
 	// Respond with 200.
 	s.mock.Assert200OK(s.T(), redirectResponse{Redirect: "https://default.local"})
@@ -414,7 +414,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedA
 		"keepMeLoggedIn": false
 	}`)
 
-	FirstFactorPOST(nil)(s.mock.Ctx)
+	FirstFactorPOST(s.mock.Ctx)
 
 	// Respond with 200.
 	s.mock.Assert200OK(s.T(), nil)
@@ -449,7 +449,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvi
 		"keepMeLoggedIn": false
 	}`)
 
-	FirstFactorPOST(nil)(s.mock.Ctx)
+	FirstFactorPOST(s.mock.Ctx)
 
 	// Respond with 200.
 	s.mock.Assert200OK(s.T(), nil)

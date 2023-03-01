@@ -6,9 +6,8 @@ import (
 	"os"
 	"path"
 	"strings"
-	"time"
 
-	duoapi "github.com/duosecurity/duo_api_golang"
+	"github.com/duosecurity/duo_api_golang"
 	"github.com/fasthttp/router"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
@@ -53,16 +52,20 @@ func handleError() func(ctx *fasthttp.RequestCtx, err error) {
 			statusCode = fasthttp.StatusRequestHeaderFieldsTooLarge
 			message = "Request from client exceeded the server buffer sizes."
 		case *net.OpError:
-			if e.Timeout() {
+			switch {
+			case e.Timeout():
 				statusCode = fasthttp.StatusRequestTimeout
-				message = "Request timeout occurred while handling request from client."
-			} else {
+				message = "Timeout network error occurred while handling request from the client."
+			case e.Temporary():
+				statusCode = fasthttp.StatusServiceUnavailable
+				message = "Temporary network error occurred while handling the request from the client."
+			default:
 				statusCode = fasthttp.StatusBadRequest
-				message = "An unknown network error occurred while handling a request from client."
+				message = "An unknown network error occurred while handling a request from the client."
 			}
 		default:
 			statusCode = fasthttp.StatusBadRequest
-			message = "An unknown error occurred while handling a request from client."
+			message = "An unknown error occurred while handling a request from the client."
 		}
 
 		logging.Logger().WithFields(logrus.Fields{
@@ -220,17 +223,15 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 					WithField("methods", []string{fasthttp.MethodGet, fasthttp.MethodHead}).
 					Trace("Registering Authz Endpoint")
 
-				r.GET(uri, handler)
 				r.HEAD(uri, handler)
+				r.GET(uri, handler)
 			}
 		}
 	}
 
 	r.POST("/api/checks/safe-redirection", middlewareAPI(handlers.CheckSafeRedirectionPOST))
 
-	delayFunc := middlewares.TimingAttackDelay(10, 250, 85, time.Second, true)
-
-	r.POST("/api/firstfactor", middlewareAPI(handlers.FirstFactorPOST(delayFunc)))
+	r.POST("/api/firstfactor", middlewareAPI(handlers.FirstFactorPOST))
 	r.POST("/api/logout", middlewareAPI(handlers.LogoutPOST))
 
 	// Only register endpoints if forgot password is not disabled.

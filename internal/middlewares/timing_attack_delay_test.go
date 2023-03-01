@@ -1,71 +1,74 @@
 package middlewares
 
 import (
-	"sync"
+	"fmt"
 	"testing"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/authelia/authelia/v4/internal/logging"
-	"github.com/authelia/authelia/v4/internal/random"
 )
 
 func TestTimingAttackDelayAverages(t *testing.T) {
-	execDuration := time.Millisecond * 500
-	oneSecond := time.Millisecond * 1000
-	durations := []time.Duration{oneSecond, oneSecond, oneSecond, oneSecond, oneSecond, oneSecond, oneSecond, oneSecond, oneSecond, oneSecond}
-	cursor := 0
-	mutex := &sync.Mutex{}
-	avgExecDuration := movingAverageIteration(execDuration, 10, false, &cursor, &durations, mutex)
-	assert.Equal(t, avgExecDuration, float64(1000))
+	delayer := NewTimingAttackDelayer("test", time.Second, time.Millisecond*250, time.Millisecond*85, 10)
+	// func movingAverageIteration(value time.Duration, history int, successful bool, cursor *int, movingAvg *[]time.Duration, mutex sync.Locker) f
 
-	execDurations := []time.Duration{
+	expected := float64(1000)
+
+	elapsedDurations := []time.Duration{
+		time.Millisecond * 500, time.Millisecond * 500, time.Millisecond * 500, time.Millisecond * 500,
+		time.Millisecond * 500, time.Millisecond * 500, time.Millisecond * 500, time.Millisecond * 500,
 		time.Millisecond * 500, time.Millisecond * 500, time.Millisecond * 500, time.Millisecond * 500,
 		time.Millisecond * 500, time.Millisecond * 500, time.Millisecond * 500, time.Millisecond * 500,
 		time.Millisecond * 500, time.Millisecond * 500, time.Millisecond * 500, time.Millisecond * 500,
 	}
 
-	current := float64(1000)
+	// Execute at 500ms.
+	for i, have := range elapsedDurations {
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+			if i == 0 {
+				assert.Equal(t, expected, delayer.avg(have, false))
+			} else {
+				assert.Equal(t, expected, delayer.avg(have, true))
 
-	// Execute at 500ms for 12 requests.
-	for _, execDuration = range execDurations {
-		avgExecDuration = movingAverageIteration(execDuration, 10, true, &cursor, &durations, mutex)
-		assert.Equal(t, avgExecDuration, current)
-
-		// Should not dip below 500, and should decrease in value by 50 each iteration.
-		if current > 500 {
-			current -= 50
-		}
+				// Should not dip below 500, and should decrease in value by 50 each iteration where it was successful.
+				if expected > 500 {
+					expected -= 50
+				}
+			}
+		})
 	}
 }
 
 func TestTimingAttackDelayCalculations(t *testing.T) {
-	execDuration := 500 * time.Millisecond
-	avgExecDurationMs := 1000.0
-	expectedMinimumDelayMs := avgExecDurationMs - float64(execDuration.Milliseconds())
+	min := time.Millisecond * 250
+	max := time.Millisecond * 85
+	avg := time.Second
 
-	ctx := &AutheliaCtx{
-		Logger: logging.Logger().WithFields(logrus.Fields{}),
-		Providers: Providers{
-			Random: &random.Cryptographical{},
-		},
-	}
+	delayer := NewTimingAttackDelayer("test", avg, min, max, 10)
+	elapsed := 500 * time.Millisecond
+
+	expectedMin := avg - elapsed
 
 	for i := 0; i < 100; i++ {
-		delay := calculateActualDelay(ctx, execDuration, avgExecDurationMs, 250, 85, false)
-		assert.True(t, delay >= expectedMinimumDelayMs)
-		assert.True(t, delay <= expectedMinimumDelayMs+float64(85))
+		delay := delayer.actual(elapsed, delayer.avg(elapsed, false), false)
+		assert.GreaterOrEqual(t, delay, expectedMin)
+		assert.LessOrEqual(t, delay, expectedMin+max)
 	}
 
-	execDuration = 5 * time.Millisecond
-	avgExecDurationMs = 5.0
-	expectedMinimumDelayMs = 250 - float64(execDuration.Milliseconds())
+	elapsed = time.Millisecond * 5
+	avg = time.Millisecond * 5
+
+	expectedMin = min - elapsed
+
+	delayer = NewTimingAttackDelayer("test", avg, min, max, 10)
 
 	for i := 0; i < 100; i++ {
-		delay := calculateActualDelay(ctx, execDuration, avgExecDurationMs, 250, 85, false)
-		assert.True(t, delay >= expectedMinimumDelayMs)
-		assert.True(t, delay <= expectedMinimumDelayMs+float64(250))
+		delay := delayer.actual(elapsed, delayer.avg(elapsed, false), false)
+		assert.GreaterOrEqual(t, delay, expectedMin)
+		assert.LessOrEqual(t, delay, expectedMin+max)
 	}
 }
+
+/*
+
+ */

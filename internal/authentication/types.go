@@ -3,10 +3,16 @@ package authentication
 import (
 	"crypto/tls"
 	"net/mail"
+	"time"
 
 	"github.com/go-ldap/ldap/v3"
 	"golang.org/x/text/encoding/unicode"
 )
+
+// Delayer is a implementation can be use to delay events.
+type Delayer interface {
+	Delay(successful bool, elapsed time.Duration)
+}
 
 // LDAPClientFactory an interface of factory of LDAP clients.
 type LDAPClientFactory interface {

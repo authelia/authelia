@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -144,13 +145,6 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 
 	var err error
 
-	switch {
-	case ctx.config.AuthenticationBackend.File != nil:
-		ctx.providers.UserProvider = authentication.NewFileUserProvider(ctx.config.AuthenticationBackend.File)
-	case ctx.config.AuthenticationBackend.LDAP != nil:
-		ctx.providers.UserProvider = authentication.NewLDAPUserProvider(ctx.config.AuthenticationBackend, ctx.trusted)
-	}
-
 	if ctx.providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: ctx.config.Notifier.TemplatePath}); err != nil {
 		errs = append(errs, err)
 	}
@@ -168,6 +162,22 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 
 	if ctx.config.Telemetry.Metrics.Enabled {
 		ctx.providers.Metrics = metrics.NewPrometheus()
+	}
+
+	var user *authentication.Middleware
+
+	switch {
+	case ctx.config.AuthenticationBackend.File != nil:
+		user = authentication.NewMiddleware(authentication.NewFileUserProvider(ctx.config.AuthenticationBackend.File))
+	case ctx.config.AuthenticationBackend.LDAP != nil:
+		user = authentication.NewMiddleware(authentication.NewLDAPUserProvider(ctx.config.AuthenticationBackend, ctx.trusted))
+	}
+
+	if user != nil {
+		user.ConfigureMetrics(ctx.providers.Metrics)
+		user.ConfigureDelayer(middlewares.NewTimingAttackDelayer("authn", time.Second, time.Millisecond*250, time.Millisecond*85, 10))
+
+		ctx.providers.UserProvider = user
 	}
 
 	return warns, errs
