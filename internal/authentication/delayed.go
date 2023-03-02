@@ -13,7 +13,7 @@ func NewMiddleware(provider UserProvider) *Middleware {
 	}
 }
 
-// Middleware is a UserProvider which pre/post handles methods for another UserProvider
+// Middleware is a UserProvider which pre/post handles methods for another UserProvider.
 type Middleware struct {
 	UserProvider
 
