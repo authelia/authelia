@@ -10,7 +10,6 @@ import (
 
 func TestTimingAttackDelayAverages(t *testing.T) {
 	delayer := NewTimingAttackDelayer("test", time.Second, time.Millisecond*250, time.Millisecond*85, 10)
-	// func movingAverageIteration(value time.Duration, history int, successful bool, cursor *int, movingAvg *[]time.Duration, mutex sync.Locker) f
 
 	expected := float64(1000)
 
