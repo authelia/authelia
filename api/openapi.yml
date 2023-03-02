@@ -76,6 +76,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/handlers.configuration.PasswordPolicyConfigurationBody'
   /api/health:
+    head:
+      tags:
+        - State
+      summary: Application Health
+      description: The health check endpoint provides information about the health of Authelia.
+      responses:
+        "200":
+          description: Successful Operation
     get:
       tags:
         - State

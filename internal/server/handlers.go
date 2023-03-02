@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"path"
@@ -77,10 +78,10 @@ func handleError() func(ctx *fasthttp.RequestCtx, err error) {
 
 func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
-		path := strings.ToLower(string(ctx.Path()))
+		uri := strings.ToLower(string(ctx.Path()))
 
 		for i := 0; i < len(dirsHTTPServer); i++ {
-			if path == dirsHTTPServer[i].name || strings.HasPrefix(path, dirsHTTPServer[i].prefix) {
+			if uri == dirsHTTPServer[i].name || strings.HasPrefix(uri, dirsHTTPServer[i].prefix) {
 				handlers.SetStatusCodeResponse(ctx, fasthttp.StatusNotFound)
 
 				return
@@ -89,6 +90,13 @@ func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 
 		next(ctx)
 	}
+}
+
+func handleMethodNotAllowed(ctx *fasthttp.RequestCtx) {
+	middlewares.SetContentTypeTextPlain(ctx)
+
+	ctx.SetStatusCode(fasthttp.StatusMethodNotAllowed)
+	ctx.SetBodyString(fmt.Sprintf("%d %s", fasthttp.StatusMethodNotAllowed, fasthttp.StatusMessage(fasthttp.StatusMethodNotAllowed)))
 }
 
 //nolint:gocyclo
@@ -115,29 +123,45 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	r := router.New()
 
 	// Static Assets.
+	r.HEAD("/", bridge(serveIndexHandler))
 	r.GET("/", bridge(serveIndexHandler))
 
 	for _, f := range filesRoot {
+		r.HEAD("/"+f, handlerPublicHTML)
 		r.GET("/"+f, handlerPublicHTML)
 	}
 
+	r.HEAD("/favicon.ico", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerPublicHTML))
 	r.GET("/favicon.ico", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerPublicHTML))
+
+	r.HEAD("/static/media/logo.png", middlewares.AssetOverride(config.Server.AssetPath, 2, handlerPublicHTML))
 	r.GET("/static/media/logo.png", middlewares.AssetOverride(config.Server.AssetPath, 2, handlerPublicHTML))
+
+	r.HEAD("/static/{filepath:*}", handlerPublicHTML)
 	r.GET("/static/{filepath:*}", handlerPublicHTML)
 
 	// Locales.
+	r.HEAD("/locales/{language:[a-z]{1,3}}-{variant:[a-zA-Z0-9-]+}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
 	r.GET("/locales/{language:[a-z]{1,3}}-{variant:[a-zA-Z0-9-]+}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
+
+	r.HEAD("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
 	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
 
 	// Swagger.
+	r.HEAD("/api/", bridge(serveOpenAPIHandler))
 	r.GET("/api/", bridge(serveOpenAPIHandler))
 	r.OPTIONS("/api/", policyCORSPublicGET.HandleOPTIONS)
+
+	r.HEAD("/api/index.html", bridge(serveOpenAPIHandler))
 	r.GET("/api/index.html", bridge(serveOpenAPIHandler))
 	r.OPTIONS("/api/index.html", policyCORSPublicGET.HandleOPTIONS)
+
+	r.HEAD("/api/openapi.yml", policyCORSPublicGET.Middleware(bridge(serveOpenAPISpecHandler)))
 	r.GET("/api/openapi.yml", policyCORSPublicGET.Middleware(bridge(serveOpenAPISpecHandler)))
 	r.OPTIONS("/api/openapi.yml", policyCORSPublicGET.HandleOPTIONS)
 
 	for _, file := range filesSwagger {
+		r.HEAD("/api/"+file, handlerPublicHTML)
 		r.GET("/api/"+file, handlerPublicHTML)
 	}
 
@@ -150,7 +174,9 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 		WithPostMiddlewares(middlewares.Require1FA).
 		Build()
 
+	r.HEAD("/api/health", middlewareAPI(handlers.HealthGET))
 	r.GET("/api/health", middlewareAPI(handlers.HealthGET))
+
 	r.GET("/api/state", middlewareAPI(handlers.StateGET))
 
 	r.GET("/api/configuration", middleware1FA(handlers.ConfigurationGET))
@@ -356,7 +382,7 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	}
 
 	r.HandleMethodNotAllowed = true
-	r.MethodNotAllowed = handlers.Status(fasthttp.StatusMethodNotAllowed)
+	r.MethodNotAllowed = handleMethodNotAllowed
 	r.NotFound = handleNotFound(bridge(serveIndexHandler))
 
 	handler := middlewares.LogRequest(r.Handler)
