@@ -536,16 +536,17 @@ const (
 const (
 	cmdFlagNameDirectory = "directory"
 
-	cmdFlagNamePathCA = "path.ca"
-	cmdFlagNameBundle = "bundle"
+	cmdFlagNamePathCA  = "path.ca"
+	cmdFlagNameBundles = "bundles"
 
-	cmdFlagNameFilePrivateKey        = "file.private-key"
-	cmdFlagNameFilePublicKey         = "file.public-key"
-	cmdFlagNameFileCertificate       = "file.certificate"
-	cmdFlagNameFileCertificateBundle = "file.certificate-bundle"
-	cmdFlagNameFileCAPrivateKey      = "file.ca-private-key"
-	cmdFlagNameFileCACertificate     = "file.ca-certificate"
-	cmdFlagNameFileCSR               = "file.csr"
+	cmdFlagNameFilePrivateKey         = "file.private-key"
+	cmdFlagNameFilePublicKey          = "file.public-key"
+	cmdFlagNameFileCertificate        = "file.certificate"
+	cmdFlagNameFileBundleChain        = "file.bundle.chain"
+	cmdFlagNameFileBundlePrivKeyChain = "file.bundle.priv-chain"
+	cmdFlagNameFileCAPrivateKey       = "file.ca-private-key"
+	cmdFlagNameFileCACertificate      = "file.ca-certificate"
+	cmdFlagNameFileCSR                = "file.csr"
 
 	cmdFlagNameExtendedUsage = "extended-usage"
 	cmdFlagNameSignature     = "signature"
@@ -775,4 +776,13 @@ Layouts:
 
 const (
 	fmtLogServerListening = "Server is listening for %s connections on '%s' path '%s'"
+)
+
+const (
+	logFieldService = "service"
+	logFieldFile    = "file"
+	logFieldOP      = "op"
+
+	serviceTypeServer  = "server"
+	serviceTypeWatcher = "watcher"
 )

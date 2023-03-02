@@ -125,7 +125,7 @@ static_resources:
               common_tls_context:
                 tls_certificates:
                   - certificate_chain:
-                      filename: /pki/public.bundle.crt
+                      filename: /pki/public.chain.pem
                     private_key:
                       filename: /pki/private.pem
   clusters:

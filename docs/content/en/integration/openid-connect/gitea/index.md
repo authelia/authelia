@@ -32,6 +32,10 @@ This example makes the following assumptions:
 * __Authelia Root URL:__ `https://auth.example.com`
 * __Client ID:__ `gitea`
 * __Client Secret:__ `insecure_secret`
+* __Authentication Name (Gitea):__ `authelia`:
+    * This option determines the redirect URI in the format of
+      `https://gitea.example.com/user/oauth2/<Authentication Name>/callback`.
+      This means if you change this value you need to update the redirect URI.
 
 ## Configuration
 

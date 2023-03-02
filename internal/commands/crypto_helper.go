@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/pem"
 	"fmt"
 	"math/big"
 	"net"
@@ -43,8 +44,9 @@ func cmdFlagsCryptoCertificateGenerate(cmd *cobra.Command) {
 	cmd.Flags().String(cmdFlagNameFileCAPrivateKey, "ca.private.pem", "certificate authority private key to use to signing this certificate")
 	cmd.Flags().String(cmdFlagNameFileCACertificate, "ca.public.crt", "certificate authority certificate to use when signing this certificate")
 	cmd.Flags().String(cmdFlagNameFileCertificate, "public.crt", "name of the file to export the certificate data to")
-	cmd.Flags().String(cmdFlagNameFileCertificateBundle, "public.bundle.crt", fmt.Sprintf("name of the file to export the certificate bundle data to when the --%s flag is set", cmdFlagNameBundle))
-	cmd.Flags().Bool(cmdFlagNameBundle, false, fmt.Sprintf("enables generating the certificate bundle if the --%s flag is set", cmdFlagNamePathCA))
+	cmd.Flags().String(cmdFlagNameFileBundleChain, "public.chain.pem", fmt.Sprintf("name of the file to export the certificate chain PEM bundle to when the --%s flag includes 'chain'", cmdFlagNameBundles))
+	cmd.Flags().String(cmdFlagNameFileBundlePrivKeyChain, "private.chain.pem", fmt.Sprintf("name of the file to export the certificate chain and private key PEM bundle to when the --%s flag includes 'priv-chain'", cmdFlagNameBundles))
+	cmd.Flags().StringSlice(cmdFlagNameBundles, nil, "enables generating bundles options are 'chain' and 'privkey-chain'")
 
 	cmd.Flags().StringSlice(cmdFlagNameExtendedUsage, nil, "specify the extended usage types of the certificate")
 
@@ -170,26 +172,60 @@ func (ctx *CmdCtx) cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey an
 	return privateKey, nil
 }
 
-func cryptoGetCertificateBundleFromCmd(cmd *cobra.Command, dir string, caCertificate *x509.Certificate) (bundle bool, bundlePath string, err error) {
-	if bundle, err = cmd.Flags().GetBool(cmdFlagNameBundle); err != nil {
-		return false, "", err
+func cryptoGenerateCertificateBundlesFromCmd(cmd *cobra.Command, b *strings.Builder, dir string, ca *x509.Certificate, certificate []byte, privkey any) (err error) {
+	var bundles []string
+
+	if bundles, err = cmd.Flags().GetStringSlice(cmdFlagNameBundles); err != nil {
+		return err
 	}
 
-	if !bundle {
-		return bundle, bundlePath, err
+	blocks := []*pem.Block{
+		{Type: utils.BlockTypeCertificate, Bytes: certificate},
 	}
 
-	if caCertificate == nil {
-		return false, "", fmt.Errorf("the --%s flag can't be used with self-signed certificates, you can specify the authority path using the --%s flag", cmdFlagNameBundle, cmdFlagNamePathCA)
+	if ca != nil {
+		blocks = append(blocks, &pem.Block{Type: utils.BlockTypeCertificate, Bytes: ca.Raw})
 	}
 
-	if bundlePath, err = cmd.Flags().GetString(cmdFlagNameFileCertificateBundle); err != nil {
-		return false, "", err
+	var name string
+
+	if utils.IsStringInSliceFold("chain", bundles) {
+		if name, err = cmd.Flags().GetString(cmdFlagNameFileBundleChain); err != nil {
+			return err
+		}
+
+		pathPEM := filepath.Join(dir, name)
+
+		b.WriteString(fmt.Sprintf("\tCertificate (chain): %s\n", pathPEM))
+
+		if err = utils.WritePEM(pathPEM, blocks...); err != nil {
+			return err
+		}
 	}
 
-	bundlePath = filepath.Join(dir, bundlePath)
+	if utils.IsStringInSliceFold("priv-chain", bundles) {
+		if name, err = cmd.Flags().GetString(cmdFlagNameFileBundlePrivKeyChain); err != nil {
+			return err
+		}
 
-	return bundle, bundlePath, err
+		var block *pem.Block
+
+		if block, err = utils.PEMBlockFromX509Key(privkey, false); err != nil {
+			return err
+		}
+
+		blocks = append([]*pem.Block{block}, blocks...)
+
+		pathPEM := filepath.Join(dir, name)
+
+		b.WriteString(fmt.Sprintf("\tCertificate (priv-chain): %s\n", pathPEM))
+
+		if err = utils.WritePEM(pathPEM, blocks...); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func cryptoGetCAFromCmd(cmd *cobra.Command) (privateKey any, cert *x509.Certificate, err error) {

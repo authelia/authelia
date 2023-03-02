@@ -31,8 +31,5 @@ type BaseSuite struct {
 type CommandSuite struct {
 	*BaseSuite
 
-	testArg     string //nolint:structcheck // TODO: Remove when bug fixed: https://github.com/golangci/golangci-lint/issues/537.
-	coverageArg string //nolint:structcheck // TODO: Remove when bug fixed: https://github.com/golangci/golangci-lint/issues/537.
-
 	*DockerEnvironment
 }
