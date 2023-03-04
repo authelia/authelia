@@ -8,14 +8,12 @@ import (
 
 func loadPEMCertificates(data []byte) (certs []*x509.Certificate, err error) {
 	var (
-		cert *x509.Certificate
+		cert  *x509.Certificate
+		block *pem.Block
 	)
 
 	for len(data) > 0 {
-		var block *pem.Block
-
-		block, data = pem.Decode(data)
-		if block == nil {
+		if block, data = pem.Decode(data); block == nil {
 			if len(certs) == 0 {
 				break
 			}

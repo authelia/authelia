@@ -97,7 +97,7 @@ func GenerateCertificate(privateKeyBuilder PrivateKeyBuilder, hosts []string, va
 
 // ConvertDERToPEM convert certificate in DER format into PEM format.
 func ConvertDERToPEM(der []byte, blockType PEMBlockType) ([]byte, error) {
-	var buf bytes.Buffer
+	buf := &bytes.Buffer{}
 
 	var blockTypeStr string
 
@@ -110,7 +110,7 @@ func ConvertDERToPEM(der []byte, blockType PEMBlockType) ([]byte, error) {
 		return nil, fmt.Errorf("unknown PEM block type %d", blockType)
 	}
 
-	if err := pem.Encode(&buf, &pem.Block{Type: blockTypeStr, Bytes: der}); err != nil {
+	if err := pem.Encode(buf, &pem.Block{Type: blockTypeStr, Bytes: der}); err != nil {
 		return nil, fmt.Errorf("failed to encode DER data into PEM: %v", err)
 	}
 
@@ -275,7 +275,7 @@ func WriteKeyToPEM(key any, path string, pkcs8 bool) (err error) {
 }
 
 // PEMBlockFromX509Key turns a PublicKey or PrivateKey into a pem.Block.
-func PEMBlockFromX509Key(key any, pkcs8 bool) (pemBlock *pem.Block, err error) {
+func PEMBlockFromX509Key(key any, pkcs8 bool) (block *pem.Block, err error) {
 	var (
 		data      []byte
 		blockType string

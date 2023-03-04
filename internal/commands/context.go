@@ -120,7 +120,7 @@ func (ctx *CmdCtx) CheckSchema() (err error) {
 
 // LoadTrustedCertificates loads the trusted certificates into the CmdCtx.
 func (ctx *CmdCtx) LoadTrustedCertificates() (err error) {
-	ctx.providers.Trust = trust.NewProvider(ctx.config.CertificatesDirectory...)
+	ctx.providers.Trust = trust.NewProvider(trust.WithPaths(ctx.config.CertificatesDirectory...))
 
 	return ctx.providers.Trust.StartupCheck()
 }
