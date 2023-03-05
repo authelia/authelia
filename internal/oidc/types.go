@@ -1,6 +1,7 @@
 package oidc
 
 import (
+	"context"
 	"net/url"
 	"time"
 
@@ -642,4 +643,10 @@ type OpenIDConnectWellKnownConfiguration struct {
 	OpenIDConnectDiscoveryOptions
 	OpenIDConnectFrontChannelLogoutDiscoveryOptions
 	OpenIDConnectBackChannelLogoutDiscoveryOptions
+}
+
+type OpenIDConnectContext interface {
+	context.Context
+
+	IssuerURL() (issuerURL *url.URL, err error)
 }

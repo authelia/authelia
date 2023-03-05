@@ -2971,21 +2971,55 @@ components:
             - "access_token"
             - "refresh_token"
     openid.spec.AccessRequest.ClientAuth:
+      oneOf:
+        - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth.Base'
+        - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth.Secret'
+        - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth.JWT'
+    openid.spec.AccessRequest.ClientAuth.Base:
       type: object
+      required:
+        - "client_id"
       properties:
         client_id:
           description: >
-            REQUIRED if the client is not authenticating with the
-            authorization server as described in Section 3.2.1. of [RFC6749].
-            The client identifier as described in Section 2.2 of [RFC6749].
+            REQUIRED if the client is not authenticating with the authorization server as described in
+            Section 3.2.1. of [RFC6749]. The client identifier as described in Section 2.2 of [RFC6749].
           type: string
-          example: "authelia_dc_mn123kjn12kj3123njk"
+          example: "my_client"
+    openid.spec.AccessRequest.ClientAuth.Secret:
+      type: object
+      required:
+        - "client_secret"
+      properties:
         client_secret:
           description: >
             REQUIRED. The client secret. The client MAY omit the
             parameter if the client secret is an empty string.
           type: string
           format: password
+    openid.spec.AccessRequest.ClientAuth.JWT:
+      allOf:
+        - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth.Base'
+        - type: object
+          required:
+            - "client_assertion"
+            - "client_assertion_type"
+          properties:
+            client_assertion:
+              description: >
+                The value of the client_assertion_type parameter MUST be
+                "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+              enum:
+                - "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+              example: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+              type: string
+            client_assertion_type:
+              description: >
+                A JWT signed with HS256 using the client secret value or RS256 using a registered public key.
+                Theoretically a properly formed JWT signed using HS256 with the client secret as the HMAC key should
+                work but this has not been tested.
+              format: password
+              type: string
     openid.spec.AccessRequest.AuthorizationCodeFlow:
       allOf:
         - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
@@ -2995,22 +3029,22 @@ components:
             - "grant_type"
           properties:
             grant_type:
-              description: Value MUST be set to "urn:ietf:params:oauth:grant-type:device_code".
-              type: string
+              description: Value MUST be set to "code".
               enum:
                 - "authorization_code"
+              type: string
             code:
               description: The Authorization Code.
-              type: string
               example: "authelia_ac_1j2kn3knj12n3kj12n"
+              type: string
             code_verifier:
               description: The Authorization Code Verifier (PKCE).
-              type: string
               example: "88a25754f7c0b3b3b88cf6cd4e29e8356b160524fdc1cb329a94471825628fd3"
+              type: string
             redirect_uri:
               description: The original Redirect URI used in the Authorization Request.
-              type: string
               example: "https://app.example.com/oidc/callback"
+              type: string
     openid.spec.AccessRequest.DeviceCodeFlow:
       allOf:
         - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
@@ -3053,18 +3087,26 @@ components:
                 resource owner.
     openid.spec.AccessResponse:
       type: object
+      required:
+        - "access_token"
+        - "token_type"
+        - "expires_in"
       properties:
         access_token:
           description: The access token issued by the authorization server.
-          type: string
           example: "authelia_at_cr4i4EtTn2F4k6mX4XzxbsBewkxCGn"
-        refresh_token:
           type: string
+        id_token:
+          description: The id token issued by the authorization server.
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+          type: string
+        refresh_token:
           description: >
             The refresh token, which can be used to obtain new access tokens using the
             same authorization grant as described in Section 6.
-        token_type:
+          example: "authelia_rt_kGBoSMbfVGP2RR6Kvujv3Xg7uXV2i"
           type: string
+        token_type:
           description: >
             The access token type provides the client with the information
             required to successfully utilize the access token to make a protected
@@ -3073,21 +3115,26 @@ components:
             type.
           enum:
             - "bearer"
+          example: "bearer"
+          type: string
         expires_in:
-          type: integer
           description: >
             The lifetime in seconds of the access token. For
             example, the value "3600" denotes that the access token will
             expire in one hour from the time the response was generated.
             If omitted, the authorization server SHOULD provide the
             expiration time via other means or document the default value.
+          example: 3600
+          type: integer
         state:
-          type: string
           description: Exactly the state value passed in the authorization request if present.
-        scope:
+          example: "5dVZhNfri5XZS6wadskuzUk4MHYCvEcUgidjMeBjsktAhY7EKB"
           type: string
+        scope:
           description: >
             The scope of the access token as described by Section 3.3 if it differs from the requested scope.
+          example: "openid profile groups"
+          type: string
     openid.spec.AuthorizeRequest:
       type: object
       required:
