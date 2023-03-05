@@ -2,6 +2,7 @@ import React, { Fragment, useCallback, useEffect, useState } from "react";
 
 import { IconDefinition, faCopy, faKey, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Visibility } from "@mui/icons-material";
 import {
     Box,
     Button,
@@ -9,11 +10,11 @@ import {
     Dialog,
     DialogActions,
     DialogContent,
+    DialogContentText,
     DialogTitle,
     FormControl,
     FormControlLabel,
     FormLabel,
-    Grid,
     IconButton,
     Link,
     Radio,
@@ -26,6 +27,7 @@ import {
     Typography,
 } from "@mui/material";
 import { red } from "@mui/material/colors";
+import Grid from "@mui/material/Unstable_Grid2";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { QRCodeSVG } from "qrcode.react";
@@ -69,6 +71,7 @@ export default function TOTPRegisterDialogController(props: Props) {
     const [hasErrored, setHasErrored] = useState(false);
     const [dialValue, setDialValue] = useState("");
     const [dialState, setDialState] = useState(State.Idle);
+    const [totpSecretURLHidden, setTOTPSecretURLHidden] = useState(true);
 
     const resetStates = () => {
         setOptions(null);
@@ -85,6 +88,7 @@ export default function TOTPRegisterDialogController(props: Props) {
         setActiveStep(0);
         setDialValue("");
         setDialState(State.Idle);
+        setTOTPSecretURLHidden(true);
     };
 
     const handleClose = useCallback(() => {
@@ -112,7 +116,7 @@ export default function TOTPRegisterDialogController(props: Props) {
     };
 
     useEffect(() => {
-        if (!props.open || activeStep !== 0) {
+        if (!props.open || activeStep !== 0 || options !== null) {
             return;
         }
 
@@ -126,13 +130,14 @@ export default function TOTPRegisterDialogController(props: Props) {
             setOptionPeriod(opts.period);
             setOptionPeriods(opts.periods.map((period) => period.toString()));
         })();
-    }, [props.open, activeStep]);
+    }, [props.open, activeStep, options]);
 
     const handleSetStepPrevious = useCallback(() => {
         if (activeStep === 0) {
             return;
         }
 
+        setShowAdvanced(false);
         setActiveStep((prevState) => (prevState -= 1));
     }, [activeStep]);
 
@@ -141,6 +146,7 @@ export default function TOTPRegisterDialogController(props: Props) {
             return;
         }
 
+        setShowAdvanced(false);
         setActiveStep((prevState) => (prevState += 1));
     }, [activeStep]);
 
@@ -213,7 +219,6 @@ export default function TOTPRegisterDialogController(props: Props) {
     function SecretButton(text: string | undefined, action: string, icon: IconDefinition) {
         return (
             <IconButton
-                className={styles.secretButtons}
                 color="primary"
                 onClick={() => {
                     navigator.clipboard.writeText(`${text}`);
@@ -232,21 +237,20 @@ export default function TOTPRegisterDialogController(props: Props) {
                 return (
                     <Fragment>
                         {options === null ? (
-                            <Grid item xs={12}>
+                            <Grid xs={12}>
                                 <Typography>Loading...</Typography>
                             </Grid>
                         ) : (
-                            <Fragment>
-                                <Grid item xs={12}>
+                            <Grid container>
+                                <Grid xs={12}>
                                     <Typography>{translate("To begin select next")}</Typography>
                                 </Grid>
-                                <Grid item xs={12} hidden={hideAdvanced}>
+                                <Grid xs={12} hidden={hideAdvanced}>
                                     <Button variant={"outlined"} color={"warning"} onClick={toggleAdvanced}>
                                         {showAdvanced ? translate("Hide Advanced") : translate("Show Advanced")}
                                     </Button>
                                 </Grid>
                                 <Grid
-                                    item
                                     xs={12}
                                     hidden={hideAdvanced || !showAdvanced}
                                     justifyContent={"center"}
@@ -330,15 +334,15 @@ export default function TOTPRegisterDialogController(props: Props) {
                                         </RadioGroup>
                                     </FormControl>
                                 </Grid>
-                            </Fragment>
+                            </Grid>
                         )}
                     </Fragment>
                 );
             case 1:
                 return (
                     <Fragment>
-                        <Grid item xs={12}>
-                            <Box className={styles.googleAuthenticator}>
+                        <Grid xs={12}>
+                            <Box>
                                 <Typography className={styles.googleAuthenticatorText}>
                                     {translate("Need Google Authenticator?")}
                                 </Typography>
@@ -351,10 +355,10 @@ export default function TOTPRegisterDialogController(props: Props) {
                                 />
                             </Box>
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid xs={12}>
                             <Box className={classnames(qrcodeFuzzyStyle, styles.qrcodeContainer)}>
                                 <Link href={totpSecretURL} underline="hover">
-                                    <QRCodeSVG value={totpSecretURL} className={styles.qrcode} size={256} />
+                                    <QRCodeSVG value={totpSecretURL} className={styles.qrcode} size={128} />
                                     {!hasErrored && totpIsLoading ? (
                                         <CircularProgress className={styles.loader} size={128} />
                                     ) : null}
@@ -364,22 +368,20 @@ export default function TOTPRegisterDialogController(props: Props) {
                                 </Link>
                             </Box>
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid xs={12}>
                             <Grid container spacing={2} justifyContent={"center"}>
-                                <Grid item xs={12}>
-                                    {totpSecretURL !== "empty" ? (
-                                        <TextField
-                                            id="secret-url"
-                                            label={translate("Secret")}
-                                            className={styles.secret}
-                                            value={totpSecretURL}
-                                            InputProps={{
-                                                readOnly: true,
-                                            }}
-                                        />
-                                    ) : null}
+                                <Grid xs={2}>
+                                    <IconButton
+                                        color="primary"
+                                        onClick={() => {
+                                            setTOTPSecretURLHidden((value) => !value);
+                                        }}
+                                        size="large"
+                                    >
+                                        <Visibility />
+                                    </IconButton>
                                 </Grid>
-                                <Grid item xs={2}>
+                                <Grid xs={2}>
                                     {totpSecretBase32
                                         ? SecretButton(
                                               totpSecretBase32,
@@ -388,10 +390,23 @@ export default function TOTPRegisterDialogController(props: Props) {
                                           )
                                         : null}
                                 </Grid>
-                                <Grid item xs={2}>
-                                    {totpSecretURL !== "empty"
+                                <Grid xs={2}>
+                                    {totpSecretURL !== ""
                                         ? SecretButton(totpSecretURL, translate("OTP URL copied to clipboard"), faCopy)
                                         : null}
+                                </Grid>
+                                <Grid xs={12}>
+                                    <TextField
+                                        id="secret-url"
+                                        label={translate("Secret")}
+                                        className={styles.secret}
+                                        value={totpSecretURL}
+                                        multiline={true}
+                                        hidden={totpSecretURLHidden || totpSecretURL === ""}
+                                        InputProps={{
+                                            readOnly: true,
+                                        }}
+                                    />
                                 </Grid>
                             </Grid>
                         </Grid>
@@ -399,7 +414,7 @@ export default function TOTPRegisterDialogController(props: Props) {
                 );
             case 2:
                 return (
-                    <Grid item xs={12}>
+                    <Grid xs={12}>
                         <OTPDial
                             passcode={dialValue}
                             state={dialState}
@@ -416,8 +431,11 @@ export default function TOTPRegisterDialogController(props: Props) {
         <Dialog open={props.open} onClose={handleOnClose} maxWidth={"xs"} fullWidth={true}>
             <DialogTitle>{translate("Register One Time Password (TOTP)")}</DialogTitle>
             <DialogContent>
+                <DialogContentText sx={{ mb: 3 }}>
+                    {translate("This dialog allows registration of the One-Time Password.")}
+                </DialogContentText>
                 <Grid container spacing={0} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
-                    <Grid item xs={12}>
+                    <Grid xs={12}>
                         <Stepper activeStep={activeStep}>
                             {steps.map((label, index) => {
                                 const stepProps: { completed?: boolean } = {};
@@ -432,7 +450,7 @@ export default function TOTPRegisterDialogController(props: Props) {
                             })}
                         </Stepper>
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid xs={12}>
                         <Grid container spacing={2} paddingY={3} justifyContent={"center"}>
                             {renderStep(activeStep)}
                         </Grid>
@@ -440,23 +458,13 @@ export default function TOTPRegisterDialogController(props: Props) {
                 </Grid>
             </DialogContent>
             <DialogActions>
-                <Button
-                    variant={"outlined"}
-                    color={"primary"}
-                    onClick={handleSetStepPrevious}
-                    disabled={activeStep === 0}
-                >
+                <Button color={"primary"} onClick={handleSetStepPrevious} disabled={activeStep === 0}>
                     {translate("Previous")}
                 </Button>
-                <Button variant={"outlined"} color={"primary"} onClick={handleClose}>
+                <Button color={"error"} onClick={handleClose}>
                     {translate("Cancel")}
                 </Button>
-                <Button
-                    variant={"outlined"}
-                    color={"primary"}
-                    onClick={handleSetStepNext}
-                    disabled={activeStep === steps.length - 1}
-                >
+                <Button color={"primary"} onClick={handleSetStepNext} disabled={activeStep === steps.length - 1}>
                     {translate("Next")}
                 </Button>
             </DialogActions>
@@ -465,10 +473,6 @@ export default function TOTPRegisterDialogController(props: Props) {
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
-    root: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-    },
     qrcode: {
         marginTop: theme.spacing(2),
         marginBottom: theme.spacing(2),
@@ -483,15 +487,10 @@ const useStyles = makeStyles((theme: Theme) => ({
         marginBottom: theme.spacing(1),
         width: "256px",
     },
-    googleAuthenticator: {},
     googleAuthenticatorText: {
         fontSize: theme.typography.fontSize * 0.8,
     },
     googleAuthenticatorBadges: {},
-    secretButtons: {},
-    doneButton: {
-        width: "256px",
-    },
     qrcodeContainer: {
         position: "relative",
         display: "inline-block",
