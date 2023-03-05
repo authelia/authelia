@@ -4,7 +4,7 @@ import Grid from "@mui/material/Unstable_Grid2";
 
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserInfoPOST } from "@hooks/UserInfo";
-import { useUserInfoTOTPConfiguration, useUserInfoTOTPConfigurationOptional } from "@hooks/UserInfoTOTPConfiguration";
+import { useUserInfoTOTPConfigurationOptional } from "@hooks/UserInfoTOTPConfiguration";
 import { useUserWebAuthnDevices } from "@hooks/WebAuthnDevices";
 import TOTPPanel from "@views/Settings/TwoFactorAuthentication/TOTPPanel";
 import WebAuthnDevicesPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnDevicesPanel";

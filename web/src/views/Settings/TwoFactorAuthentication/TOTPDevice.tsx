@@ -11,7 +11,6 @@ import { deleteUserTOTPConfiguration } from "@services/UserInfoTOTPConfiguration
 import DeleteDialog from "@views/Settings/TwoFactorAuthentication/DeleteDialog";
 
 interface Props {
-    index: number;
     config: UserInfoTOTPConfiguration;
     handleRefresh: () => void;
 }
@@ -69,14 +68,14 @@ export default function TOTPDevice(props: Props) {
                             "Are you sure you want to remove the Time-based One Time Password from from your account",
                         )}
                     />
-                    <Stack direction="row" spacing={1} alignItems="center">
+                    <Stack direction={"row"} spacing={1} alignItems={"center"}>
                         <QrCode2 fontSize="large" />
                         <Stack spacing={0} sx={{ minWidth: 400 }}>
                             <Box>
-                                <Typography display="inline" sx={{ fontWeight: "bold" }}>
+                                <Typography display={"inline"} sx={{ fontWeight: "bold" }}>
                                     {props.config.issuer}
                                 </Typography>
-                                <Typography display="inline" variant="body2">
+                                <Typography display={"inline"} variant={"body2"}>
                                     {" (" +
                                         translate("{{algorithm}}, {{digits}} digits, {{seconds}} seconds", {
                                             algorithm: toAlgorithmString(props.config.algorithm),
@@ -87,7 +86,7 @@ export default function TOTPDevice(props: Props) {
                                 </Typography>
                             </Box>
                             <Typography variant={"caption"}>
-                                {translate("Added", {
+                                {translate("Added when", {
                                     when: props.config.created_at,
                                     formatParams: {
                                         when: {
@@ -103,7 +102,7 @@ export default function TOTPDevice(props: Props) {
                             <Typography variant={"caption"}>
                                 {props.config.last_used_at === undefined
                                     ? translate("Never used")
-                                    : translate("Last Used", {
+                                    : translate("Last Used when", {
                                           when: props.config.last_used_at,
                                           formatParams: {
                                               when: {
@@ -117,7 +116,6 @@ export default function TOTPDevice(props: Props) {
                                       })}
                             </Typography>
                         </Stack>
-
                         <Tooltip title={translate("Remove the Time-based One Time Password configuration")}>
                             <Button
                                 variant={"outlined"}
