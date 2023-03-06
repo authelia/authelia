@@ -645,6 +645,7 @@ type OpenIDConnectWellKnownConfiguration struct {
 	OpenIDConnectBackChannelLogoutDiscoveryOptions
 }
 
+// OpenIDConnectContext represents the context implementation that is used by some OpenID Connect 1.0 implementations.
 type OpenIDConnectContext interface {
 	context.Context
 
