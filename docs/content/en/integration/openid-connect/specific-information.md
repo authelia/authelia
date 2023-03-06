@@ -53,3 +53,20 @@ deprecated__* and we instead recommended that users remove this from their confi
 Plaintext is either denoted by the `$plaintext$` prefix where everything after the prefix is the secret. In addition if
 the secret does not start with the `$` character it's considered as a plaintext secret for the time being but is
 deprecated as is the `$plaintext$` prefix.
+
+## Frequently Asked Questions
+
+### Why isn't my application able to retrieve the token even though I've consented?
+
+The most common cause for this issue is when the affected application can not make requests to the Token [Endpoint].
+This becomes obvious when the log level is set to `debug` or `trace` and a presence of requests to the Authorization
+[Endpoint] without errors but an absence of requests made to the Token [Endpoint].
+
+These requests can be identified by looking at the `path` field in the logs, or by messages prefixed with
+`Authorization Request` indicating a request to the Authorization [Endpoint] and `Access Request` indicating a request
+to the Token [Endpoint].
+
+All causes should be clearly logged by the client application, and all errors that do not match this scenario are
+clearly logged by Authelia. It's not possible for us to log requests that never occur however.
+
+[Endpoint]: ./introduction.md#discoverable-endpoints
