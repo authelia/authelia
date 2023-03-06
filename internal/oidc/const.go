@@ -73,12 +73,12 @@ const (
 	GrantTypeClientCredentials = "client_credentials"
 )
 
-// Client Auth Type strings.
+// Client Auth Method strings.
 const (
-	ClientAuthTypeClientSecretBasic = "client_secret_basic"
-	ClientAuthTypeClientSecretPost  = "client_secret_post"
-	ClientAuthTypeClientSecretJWT   = "client_secret_jwt"
-	ClientAuthTypeNone              = "none"
+	ClientAuthMethodClientSecretBasic = "client_secret_basic"
+	ClientAuthMethodClientSecretPost  = "client_secret_post"
+	ClientAuthMethodClientSecretJWT   = "client_secret_jwt"
+	ClientAuthMethodNone              = "none"
 )
 
 const (

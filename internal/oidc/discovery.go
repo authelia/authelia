@@ -54,10 +54,10 @@ func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge bool, clien
 				ClaimFullName,
 			},
 			TokenEndpointAuthMethodsSupported: []string{
-				ClientAuthTypeClientSecretBasic,
-				ClientAuthTypeClientSecretPost,
-				ClientAuthTypeClientSecretJWT,
-				ClientAuthTypeNone,
+				ClientAuthMethodClientSecretBasic,
+				ClientAuthMethodClientSecretPost,
+				ClientAuthMethodClientSecretJWT,
+				ClientAuthMethodNone,
 			},
 		},
 		OAuth2DiscoveryOptions: OAuth2DiscoveryOptions{
