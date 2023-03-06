@@ -81,13 +81,14 @@ const (
 	ClientAuthMethodNone              = "none"
 )
 
+// Response Type strings.
 const (
 	ResponseTypeAuthorizationCodeFlow = "code"
-	ResponseTypeImplicitFlowToken     = "token"
 	ResponseTypeImplicitFlowIDToken   = "id_token"
+	ResponseTypeImplicitFlowToken     = "token"
 	ResponseTypeImplicitFlowBoth      = "id_token token"
-	ResponseTypeHybridFlowToken       = "code token"
 	ResponseTypeHybridFlowIDToken     = "code id_token"
+	ResponseTypeHybridFlowToken       = "code token"
 	ResponseTypeHybridFlowBoth        = "code id_token token"
 )
 

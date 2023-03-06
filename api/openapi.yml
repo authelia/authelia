@@ -6,7 +6,7 @@ info:
     Authelia is an open-source authentication and authorization server providing 2-factor authentication and single
     sign-on (SSO) for your applications via a web portal.
   contact:
-    name: Authelia Support
+    name: Support
     url: https://www.authelia.com/contact/
     email: team@authelia.com
   license:
