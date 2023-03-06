@@ -8,7 +8,7 @@ images: []
 menu:
   contributing:
     parent: "guidelines"
-weight: 320
+weight: 350
 toc: true
 aliases:
   - /docs/contributing/style-guide.html
