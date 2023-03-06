@@ -24,8 +24,8 @@ type Provider interface {
 	LoadUserInfo(ctx context.Context, username string) (info model.UserInfo, err error)
 
 	SaveUserOpaqueIdentifier(ctx context.Context, subject model.UserOpaqueIdentifier) (err error)
-	LoadUserOpaqueIdentifier(ctx context.Context, opaqueUUID uuid.UUID) (subject *model.UserOpaqueIdentifier, err error)
-	LoadUserOpaqueIdentifiers(ctx context.Context) (opaqueIDs []model.UserOpaqueIdentifier, err error)
+	LoadUserOpaqueIdentifier(ctx context.Context, identifier uuid.UUID) (subject *model.UserOpaqueIdentifier, err error)
+	LoadUserOpaqueIdentifiers(ctx context.Context) (identifiers []model.UserOpaqueIdentifier, err error)
 	LoadUserOpaqueIdentifierBySignature(ctx context.Context, service, sectorID, username string) (subject *model.UserOpaqueIdentifier, err error)
 
 	SaveIdentityVerification(ctx context.Context, verification model.IdentityVerification) (err error)
@@ -69,6 +69,10 @@ type Provider interface {
 	DeactivateOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (err error)
 	DeactivateOAuth2SessionByRequestID(ctx context.Context, sessionType OAuth2SessionType, requestID string) (err error)
 	LoadOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (session *model.OAuth2Session, err error)
+
+	SaveOAuth2PARContext(ctx context.Context, par model.OAuth2PARContext) (err error)
+	LoadOAuth2PARContext(ctx context.Context, signature string) (par *model.OAuth2PARContext, err error)
+	RevokeOAuth2PARContext(ctx context.Context, signature string) (err error)
 
 	SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI model.OAuth2BlacklistedJTI) (err error)
 	LoadOAuth2BlacklistedJTI(ctx context.Context, signature string) (blacklistedJTI *model.OAuth2BlacklistedJTI, err error)

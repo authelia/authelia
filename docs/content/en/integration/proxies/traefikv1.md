@@ -11,6 +11,7 @@ menu:
 weight: 371
 toc: true
 aliases:
+  - /i/traefik/v1
   - /docs/deployment/supported-proxies/traefik1.x.html
 ---
 

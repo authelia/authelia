@@ -338,6 +338,15 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 		r.GET("/api/oidc/authorize", policyCORSAuthorization.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectAuthorization))))
 		r.POST("/api/oidc/authorize", policyCORSAuthorization.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectAuthorization))))
 
+		policyCORSPAR := middlewares.NewCORSPolicyBuilder().
+			WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodPost).
+			WithAllowedOrigins(allowedOrigins...).
+			WithEnabled(utils.IsStringInSliceFold(oidc.EndpointPushedAuthorizationRequest, config.IdentityProviders.OIDC.CORS.Endpoints)).
+			Build()
+
+		r.OPTIONS(oidc.EndpointPathPushedAuthorizationRequest, policyCORSPAR.HandleOnlyOPTIONS)
+		r.POST(oidc.EndpointPathPushedAuthorizationRequest, policyCORSPAR.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectPushedAuthorizationRequest))))
+
 		policyCORSToken := middlewares.NewCORSPolicyBuilder().
 			WithAllowCredentials(true).
 			WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodPost).

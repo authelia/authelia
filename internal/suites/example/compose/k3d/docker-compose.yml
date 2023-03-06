@@ -2,7 +2,7 @@
 version: '3'
 services:
   k3d:
-    image: ghcr.io/k3d-io/k3d:5.4.7-dind
+    image: ghcr.io/k3d-io/k3d:5.4.8-dind
     volumes:
       - './example/kube:/authelia'
       - './example/kube/authelia/configs/configuration.yml:/configmaps/authelia/configuration.yml'

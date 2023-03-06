@@ -6,6 +6,7 @@ import (
 	"hash"
 	"html/template"
 	"net/url"
+	"path"
 	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
@@ -23,8 +24,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func NewConfig(config *schema.OpenIDConnectConfiguration, templates *templates.Provider) *Config {
-	c := &Config{
+func NewConfig(config *schema.OpenIDConnectConfiguration, templates *templates.Provider) (c *Config) {
+	c = &Config{
 		GlobalSecret:               []byte(utils.HashSHA256FromString(config.HMACSecret)),
 		SendDebugMessagesToClients: config.EnableClientDebugMessages,
 		MinParameterEntropy:        config.MinimumParameterEntropy,
@@ -39,18 +40,23 @@ func NewConfig(config *schema.OpenIDConnectConfiguration, templates *templates.P
 			EnforcePublicClients:      config.EnforcePKCE != "never",
 			AllowPlainChallengeMethod: config.EnablePKCEPlainChallenge,
 		},
+		PAR: PARConfig{
+			Enforced:        config.PAR.Enforce,
+			ContextLifespan: config.PAR.ContextLifespan,
+			URIPrefix:       urnPARPrefix,
+		},
 		Templates: templates,
 	}
 
 	c.Strategy.Core = &HMACCoreStrategy{
 		Enigma: &hmac.HMACStrategy{Config: c},
 		Config: c,
-		prefix: tokenPrefixFmt,
 	}
 
 	return c
 }
 
+// Config is an implementation of the fosite.Configurator.
 type Config struct {
 	// GlobalSecret is the global secret used to sign and verify signatures.
 	GlobalSecret []byte
@@ -67,7 +73,7 @@ type Config struct {
 	JWTScopeField  jwt.JWTScopeFieldEnum
 	JWTMaxDuration time.Duration
 
-	Hasher               *AdaptiveHasher
+	Hasher               *Hasher
 	Hash                 HashConfig
 	Strategy             StrategyConfig
 	PAR                  PARConfig
@@ -91,11 +97,13 @@ type Config struct {
 	Templates *templates.Provider
 }
 
+// HashConfig holds specific fosite.Configurator information for hashing.
 type HashConfig struct {
 	ClientSecrets fosite.Hasher
 	HMAC          func() (h hash.Hash)
 }
 
+// StrategyConfig holds specific fosite.Configurator information for various strategies.
 type StrategyConfig struct {
 	Core                 oauth2.CoreStrategy
 	OpenID               openid.OpenIDConnectTokenStrategy
@@ -105,17 +113,20 @@ type StrategyConfig struct {
 	ClientAuthentication fosite.ClientAuthenticationStrategy
 }
 
+// PARConfig holds specific fosite.Configurator information for Pushed Authorization Requests.
 type PARConfig struct {
 	Enforced        bool
 	URIPrefix       string
 	ContextLifespan time.Duration
 }
 
+// IssuersConfig holds specific fosite.Configurator information for the issuer.
 type IssuersConfig struct {
 	IDToken     string
 	AccessToken string
 }
 
+// HandlersConfig holds specific fosite.Configurator handlers configuration information.
 type HandlersConfig struct {
 	// ResponseMode provides an extension handler for custom response modes.
 	ResponseMode fosite.ResponseModeHandler
@@ -136,18 +147,21 @@ type HandlersConfig struct {
 	PushedAuthorizeEndpoint fosite.PushedAuthorizeEndpointHandlers
 }
 
+// GrantTypeJWTBearerConfig holds specific fosite.Configurator information for the JWT Bearer Grant Type.
 type GrantTypeJWTBearerConfig struct {
 	OptionalClientAuth bool
 	OptionalJTIClaim   bool
 	OptionalIssuedDate bool
 }
 
+// ProofKeyCodeExchangeConfig holds specific fosite.Configurator information for PKCE.
 type ProofKeyCodeExchangeConfig struct {
 	Enforce                   bool
 	EnforcePublicClients      bool
 	AllowPlainChallengeMethod bool
 }
 
+// LifespanConfig holds specific fosite.Configurator information for various lifespans.
 type LifespanConfig struct {
 	AccessToken   time.Duration
 	AuthorizeCode time.Duration
@@ -161,6 +175,7 @@ const (
 	PromptConsent = "consent"
 )
 
+// LoadHandlers reloads the handlers based on the current configuration.
 func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 	validator := openid.NewOpenIDConnectRequestValidator(strategy, c)
 
@@ -276,6 +291,10 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 
 		if h, ok := handler.(fosite.RevocationHandler); ok {
 			x.Revocation.Append(h)
+		}
+
+		if h, ok := handler.(fosite.PushedAuthorizeEndpointHandler); ok {
+			x.PushedAuthorizeEndpoint.Append(h)
 		}
 	}
 
@@ -515,13 +534,24 @@ func (c *Config) GetFormPostHTMLTemplate(ctx context.Context) (tmpl *template.Te
 
 // GetTokenURL returns the token URL.
 func (c *Config) GetTokenURL(ctx context.Context) (tokenURL string) {
+	if ctx, ok := ctx.(OpenIDConnectContext); ok {
+		tokenURI, err := ctx.IssuerURL()
+		if err != nil {
+			return c.TokenURL
+		}
+
+		tokenURI.Path = path.Join(tokenURI.Path, EndpointPathToken)
+
+		return tokenURI.String()
+	}
+
 	return c.TokenURL
 }
 
 // GetSecretsHasher returns the client secrets hashing function.
 func (c *Config) GetSecretsHasher(ctx context.Context) (hasher fosite.Hasher) {
 	if c.Hash.ClientSecrets == nil {
-		c.Hash.ClientSecrets, _ = NewAdaptiveHasher()
+		c.Hash.ClientSecrets, _ = NewHasher()
 	}
 
 	return c.Hash.ClientSecrets
@@ -583,7 +613,7 @@ func (c *Config) EnforcePushedAuthorize(ctx context.Context) bool {
 
 // GetPushedAuthorizeContextLifespan is the lifespan of the short-lived PAR context.
 func (c *Config) GetPushedAuthorizeContextLifespan(ctx context.Context) (lifespan time.Duration) {
-	if c.PAR.ContextLifespan == 0 {
+	if c.PAR.ContextLifespan.Seconds() == 0 {
 		c.PAR.ContextLifespan = lifespanPARContextDefault
 	}
 
