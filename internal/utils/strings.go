@@ -104,8 +104,13 @@ func IsStringSliceContainsAll(needles []string, haystack []string) (inSlice bool
 
 // IsStringSliceContainsAny checks if the haystack contains any of the strings in the needles.
 func IsStringSliceContainsAny(needles []string, haystack []string) (inSlice bool) {
+	return IsStringSliceContainsAnyF(needles, haystack, IsStringInSlice)
+}
+
+// IsStringSliceContainsAnyF checks if the haystack contains any of the strings in the needles using the isInSlice func.
+func IsStringSliceContainsAnyF(needles []string, haystack []string, isInSlice func(needle string, haystack []string) bool) (inSlice bool) {
 	for _, n := range needles {
-		if IsStringInSlice(n, haystack) {
+		if isInSlice(n, haystack) {
 			return true
 		}
 	}

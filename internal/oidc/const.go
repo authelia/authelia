@@ -110,13 +110,20 @@ const (
 	PKCEChallengeMethodSHA256 = "S256"
 )
 
+const (
+	FormParameterRequestURI          = "request_uri"
+	FormParameterCodeChallenge       = "code_challenge"
+	FormParameterCodeChallengeMethod = "code_challenge_method"
+)
+
 // Endpoints.
 const (
-	EndpointAuthorization = "authorization"
-	EndpointToken         = "token"
-	EndpointUserinfo      = "userinfo"
-	EndpointIntrospection = "introspection"
-	EndpointRevocation    = "revocation"
+	EndpointAuthorization              = "authorization"
+	EndpointToken                      = "token"
+	EndpointUserinfo                   = "userinfo"
+	EndpointIntrospection              = "introspection"
+	EndpointRevocation                 = "revocation"
+	EndpointPushedAuthorizationRequest = "pushed-authorization-request"
 )
 
 // JWT Headers.
@@ -126,7 +133,9 @@ const (
 )
 
 const (
-	tokenPrefixFmt               = "authelia_%s_" //nolint:gosec
+	tokenPrefixOrgAutheliaFmt = "authelia_%s_" //nolint:gosec
+	tokenPrefixOrgOryFmt      = "ory_%s_"      //nolint:gosec
+
 	tokenPrefixPartAccessToken   = "at"
 	tokenPrefixPartRefreshToken  = "rt"
 	tokenPrefixPartAuthorizeCode = "ac"
@@ -146,6 +155,8 @@ const (
 	EndpointPathUserinfo      = EndpointPathRoot + "/" + EndpointUserinfo
 	EndpointPathIntrospection = EndpointPathRoot + "/" + EndpointIntrospection
 	EndpointPathRevocation    = EndpointPathRoot + "/" + EndpointRevocation
+
+	EndpointPathPushedAuthorizationRequest = EndpointPathRoot + "/" + EndpointPushedAuthorizationRequest
 )
 
 // Authentication Method Reference Values https://datatracker.ietf.org/doc/html/rfc8176

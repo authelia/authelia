@@ -119,6 +119,8 @@ type Client struct {
 	ResponseTypes []string
 	ResponseModes []fosite.ResponseModeType
 
+	EnforcePAR bool
+
 	UserinfoSigningAlgorithm string
 
 	Policy authorization.Level
