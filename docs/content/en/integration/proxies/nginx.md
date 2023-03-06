@@ -383,7 +383,7 @@ proxy_set_header X-Forwarded-For $remote_addr;
 set $upstream_authelia http://authelia:9091/api/authz/auth-request;
 
 ## Virtual endpoint created by nginx to forward auth requests.
-location /authelia {
+location /internal/authelia/authz {
     ## Essential Proxy Configuration
     internal;
     proxy_pass $upstream_authelia;
@@ -423,7 +423,7 @@ and is paired with [authelia-location.conf](#authelia-locationconf).*
 {{< details "/config/nginx/snippets/authelia-authrequest.conf" >}}
 ```nginx
 ## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
-auth_request /authelia;
+auth_request /internal/authelia/authz;
 
 ## Set the $target_url variable based on the original request.
 
@@ -478,7 +478,7 @@ implementation `AuthRequest` which contains the `HeaderAuthorization` and `Heade
 set $upstream_authelia http://authelia:9091/api/authz/auth-request/basic;
 
 # Virtual endpoint created by nginx to forward auth requests.
-location /authelia-basic {
+location /internal/authelia/authz/basic {
     ## Essential Proxy Configuration
     internal;
     proxy_pass $upstream_authelia;
@@ -526,7 +526,7 @@ endpoint. It's recommended to use [authelia-authrequest.conf](#authelia-authrequ
 {{< details "/config/nginx/snippets/authelia-authrequest-basic.conf" >}}
 ```nginx
 ## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
-auth_request /authelia-basic;
+auth_request /internal/authelia/authz/basic;
 
 ## Comment this line if you're using nginx without the http_set_misc module.
 set_escape_uri $target_url $scheme://$http_host$request_uri;
@@ -570,7 +570,7 @@ if ($request_uri = "/force-basic") {
 }
 
 ## A new virtual endpoint to used if the auth_request failed
-location  /authelia-detect {
+location  /internal/authelia/authz/detect {
     internal;
 
     if ($is_basic_auth) {
@@ -598,7 +598,7 @@ endpoint. It's recommended to use [authelia-authrequest.conf](#authelia-authrequ
 {{< details "/config/nginx/snippets/authelia-authrequest-detect.conf" >}}
 ```nginx
 ## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
-auth_request /authelia;
+auth_request /internal/authelia/authz;
 
 ## Comment this line if you're using nginx without the http_set_misc module.
 set_escape_uri $target_url $scheme://$http_host$request_uri;
@@ -619,7 +619,7 @@ proxy_set_header Remote-Name $name;
 proxy_set_header Remote-Email $email;
 
 ## If the subreqest returns 200 pass to the backend, if the subrequest returns 401 redirect to the portal.
-error_page 401 =302 /authelia-detect?rd=$target_url;
+error_page 401 =302 /internal/authelia/authz/detect?rd=$target_url;
 ```
 {{< /details >}}
 
