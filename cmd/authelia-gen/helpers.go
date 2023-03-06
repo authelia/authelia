@@ -83,12 +83,16 @@ func containsType(needle reflect.Type, haystack []reflect.Type) (contains bool) 
 }
 
 //nolint:gocyclo
-func readTags(prefix string, t reflect.Type) (tags []string) {
+func readTags(prefix string, t reflect.Type, envSkip bool) (tags []string) {
 	tags = make([]string, 0)
+
+	if envSkip && (t.Kind() == reflect.Slice || t.Kind() == reflect.Map) {
+		return
+	}
 
 	if t.Kind() != reflect.Struct {
 		if t.Kind() == reflect.Slice {
-			tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, "", true, false), t.Elem())...)
+			tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, "", true, false), t.Elem(), envSkip)...)
 		}
 
 		return
@@ -108,34 +112,42 @@ func readTags(prefix string, t reflect.Type) (tags []string) {
 		switch kind := field.Type.Kind(); kind {
 		case reflect.Struct:
 			if !containsType(field.Type, decodedTypes) {
-				tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, false, false), field.Type)...)
+				tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, false, false), field.Type, envSkip)...)
 
 				continue
 			}
 		case reflect.Slice, reflect.Map:
+			if envSkip {
+				continue
+			}
+
 			switch field.Type.Elem().Kind() {
 			case reflect.Struct:
 				if !containsType(field.Type.Elem(), decodedTypes) {
 					tags = append(tags, getKeyNameFromTagAndPrefix(prefix, tag, false, false))
-					tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, kind == reflect.Slice, kind == reflect.Map), field.Type.Elem())...)
+					tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, kind == reflect.Slice, kind == reflect.Map), field.Type.Elem(), envSkip)...)
 
 					continue
 				}
 			case reflect.Slice:
-				tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, kind == reflect.Slice, kind == reflect.Map), field.Type.Elem())...)
+				tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, kind == reflect.Slice, kind == reflect.Map), field.Type.Elem(), envSkip)...)
 			}
 		case reflect.Ptr:
 			switch field.Type.Elem().Kind() {
 			case reflect.Struct:
 				if !containsType(field.Type.Elem(), decodedTypes) {
-					tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, false, false), field.Type.Elem())...)
+					tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, false, false), field.Type.Elem(), envSkip)...)
 
 					continue
 				}
-			case reflect.Slice:
+			case reflect.Slice, reflect.Map:
+				if envSkip {
+					continue
+				}
+
 				if field.Type.Elem().Elem().Kind() == reflect.Struct {
 					if !containsType(field.Type.Elem(), decodedTypes) {
-						tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, true, false), field.Type.Elem())...)
+						tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, true, false), field.Type.Elem(), envSkip)...)
 
 						continue
 					}

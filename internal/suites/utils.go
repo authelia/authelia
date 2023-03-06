@@ -241,8 +241,8 @@ func fixCoveragePath(path string, file os.FileInfo, err error) error {
 
 // getEnvInfoFromURL gets environments variables for specified cookie domain
 // this func makes a http call to https://login.<domain>/devworkflow and is only useful for suite tests.
-func getDomainEnvInfo(domain string) (map[string]string, error) {
-	info := make(map[string]string)
+func getDomainEnvInfo(domain string) (info map[string]string, err error) {
+	info = make(map[string]string)
 
 	client := &http.Client{
 		Transport: &http.Transport{
@@ -256,7 +256,6 @@ func getDomainEnvInfo(domain string) (map[string]string, error) {
 		req  *http.Request
 		resp *http.Response
 		body []byte
-		err  error
 	)
 
 	targetURL := LoginBaseURLFmt(domain) + "/devworkflow"
@@ -285,16 +284,20 @@ func getDomainEnvInfo(domain string) (map[string]string, error) {
 }
 
 // generateDevEnvFile generates web/.env.development based on opts.
-func generateDevEnvFile(opts map[string]string) error {
-	tmpl, err := template.ParseFiles(envFileProd)
-	if err != nil {
+func generateDevEnvFile(info map[string]string) (err error) {
+	base, _ := os.Getwd()
+	base = strings.TrimSuffix(base, "/internal/suites")
+
+	var tmpl *template.Template
+
+	if tmpl, err = template.ParseFiles(base + envFileProd); err != nil {
 		return err
 	}
 
-	file, _ := os.Create(envFileDev)
+	file, _ := os.Create(base + envFileDev)
 	defer file.Close()
 
-	if err := tmpl.Execute(file, opts); err != nil {
+	if err = tmpl.Execute(file, info); err != nil {
 		return err
 	}
 
@@ -303,29 +306,28 @@ func generateDevEnvFile(opts map[string]string) error {
 
 // updateDevEnvFileForDomain updates web/.env.development.
 // this function only affects local dev environments.
-func updateDevEnvFileForDomain(domain string, setup bool) error {
+func updateDevEnvFileForDomain(domain string, setup bool) (err error) {
 	if os.Getenv("CI") == t {
 		return nil
 	}
 
-	if _, err := os.Stat(envFileDev); err != nil && os.IsNotExist(err) {
+	if _, err = os.Stat(envFileDev); err != nil && os.IsNotExist(err) {
 		file, _ := os.Create(envFileDev)
 		file.Close()
 	}
 
-	info, err := getDomainEnvInfo(domain)
-	if err != nil {
+	var info map[string]string
+
+	if info, err = getDomainEnvInfo(domain); err != nil {
 		return err
 	}
 
-	err = generateDevEnvFile(info)
-	if err != nil {
+	if err = generateDevEnvFile(info); err != nil {
 		return err
 	}
 
 	if !setup {
-		err = waitUntilAutheliaFrontendIsReady(multiCookieDomainDockerEnvironment)
-		if err != nil {
+		if err = waitUntilAutheliaFrontendIsReady(multiCookieDomainDockerEnvironment); err != nil {
 			return err
 		}
 	}

@@ -1,6 +1,7 @@
 package oidc
 
 import (
+	"context"
 	"net/url"
 	"time"
 
@@ -644,4 +645,11 @@ type OpenIDConnectWellKnownConfiguration struct {
 	OpenIDConnectDiscoveryOptions
 	OpenIDConnectFrontChannelLogoutDiscoveryOptions
 	OpenIDConnectBackChannelLogoutDiscoveryOptions
+}
+
+// OpenIDConnectContext represents the context implementation that is used by some OpenID Connect 1.0 implementations.
+type OpenIDConnectContext interface {
+	context.Context
+
+	IssuerURL() (issuerURL *url.URL, err error)
 }

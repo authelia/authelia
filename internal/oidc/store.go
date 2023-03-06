@@ -180,7 +180,7 @@ func (s *Store) DeleteAccessTokenSession(ctx context.Context, signature string) 
 	return s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeAccessToken, signature)
 }
 
-// RevokeAccessToken revokes an access token as specified in: https://tools.ietf.org/html/rfc7009#section-2.1
+// RevokeAccessToken revokes an access token as specified in: https://datatracker.ietf.org/doc/html/rfc7009#section-2.1
 // If the token passed to the request is an access token, the server MAY revoke the respective refresh token as well.
 // This implements a portion of oauth2.TokenRevocationStorage.
 func (s *Store) RevokeAccessToken(ctx context.Context, requestID string) (err error) {
@@ -205,7 +205,7 @@ func (s *Store) DeleteRefreshTokenSession(ctx context.Context, signature string)
 	return s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeRefreshToken, signature)
 }
 
-// RevokeRefreshToken revokes a refresh token as specified in: https://tools.ietf.org/html/rfc7009#section-2.1
+// RevokeRefreshToken revokes a refresh token as specified in: https://datatracker.ietf.org/doc/html/rfc7009#section-2.1
 // If the particular token is a refresh token and the authorization server supports the revocation of access tokens,
 // then the authorization server SHOULD also invalidate all access tokens based on the same authorization grant (see Implementation Note).
 // This implements a portion of oauth2.TokenRevocationStorage.
@@ -213,7 +213,7 @@ func (s *Store) RevokeRefreshToken(ctx context.Context, requestID string) (err e
 	return s.provider.DeactivateOAuth2SessionByRequestID(ctx, storage.OAuth2SessionTypeRefreshToken, requestID)
 }
 
-// RevokeRefreshTokenMaybeGracePeriod revokes an access token as specified in: https://tools.ietf.org/html/rfc7009#section-2.1
+// RevokeRefreshTokenMaybeGracePeriod revokes an access token as specified in: https://datatracker.ietf.org/doc/html/rfc7009#section-2.1
 // If the token passed to the request is an access token, the server MAY revoke the respective refresh token as well.
 // This implements a portion of oauth2.TokenRevocationStorage.
 func (s *Store) RevokeRefreshTokenMaybeGracePeriod(ctx context.Context, requestID string, signature string) (err error) {

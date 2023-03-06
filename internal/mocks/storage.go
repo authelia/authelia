@@ -10,11 +10,10 @@ import (
 	reflect "reflect"
 	time "time"
 
-	gomock "github.com/golang/mock/gomock"
-	uuid "github.com/google/uuid"
-
 	model "github.com/authelia/authelia/v4/internal/model"
 	storage "github.com/authelia/authelia/v4/internal/storage"
+	gomock "github.com/golang/mock/gomock"
+	uuid "github.com/google/uuid"
 )
 
 // MockStorage is a mock of Provider interface.
@@ -39,6 +38,7 @@ func NewMockStorage(ctrl *gomock.Controller) *MockStorage {
 func (m *MockStorage) EXPECT() *MockStorageMockRecorder {
 	return m.recorder
 }
+
 
 // AppendAuthenticationLog mocks base method.
 func (m *MockStorage) AppendAuthenticationLog(arg0 context.Context, arg1 model.AuthenticationAttempt) error {

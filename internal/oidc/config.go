@@ -6,6 +6,7 @@ import (
 	"hash"
 	"html/template"
 	"net/url"
+	"path"
 	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
@@ -533,6 +534,17 @@ func (c *Config) GetFormPostHTMLTemplate(ctx context.Context) (tmpl *template.Te
 
 // GetTokenURL returns the token URL.
 func (c *Config) GetTokenURL(ctx context.Context) (tokenURL string) {
+	if ctx, ok := ctx.(OpenIDConnectContext); ok {
+		tokenURI, err := ctx.IssuerURL()
+		if err != nil {
+			return c.TokenURL
+		}
+
+		tokenURI.Path = path.Join(tokenURI.Path, EndpointPathToken)
+
+		return tokenURI.String()
+	}
+
 	return c.TokenURL
 }
 

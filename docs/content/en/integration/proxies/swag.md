@@ -42,22 +42,67 @@ bootstrapping *Authelia*.
 
 ### SWAG Caveat
 
-One current caveat of the [SWAG] implementation is that it serves Authelia as a subpath for each domain. We
-*__strongly recommend__* instead of using the out of the box method and guide for [SWAG] that you follow the
-[NGINX](nginx.md) guide (which *can be used* with [SWAG]) and run Authelia as it's own subdomain.
+One current caveat of the [SWAG] implementation is that it serves Authelia as a subpath for each domain by default. We
+*__strongly recommend__* instead of using the defaults that you configure Authelia as a subdomain if possible.
 
-This is partly because Webauthn requires that the domain is an exact match when registering and authenticating and it is
+There are two potential ways to achieve this:
+
+1. Adjust the default `authelia-server.conf` as per the included directions.
+2. Use the supplementary configuration snippets provided officially by Authelia.
+
+This is partly because WebAuthn requires that the domain is an exact match when registering and authenticating and it is
 possible that due to web standards this will never change.
 
 In addition this represents a bad user experience in some instances such as:
 
-  - Users sometimes visit the `https://app.example.com/authelia` URL which doesn't automatically redirect the user to
-    `https://app.example.com` (if they visit `https://app.example.com` then they'll be redirected to authenticate then
-    redirected back to their original URL).
-  - Administrators may wish to setup OpenID Connect 1.0 in which case it also doesn't represent a good user experience.
+- Users sometimes visit the `https://app.example.com/authelia` URL which doesn't automatically redirect the user to
+  `https://app.example.com` (if they visit `https://app.example.com` then they'll be redirected to authenticate then
+  redirected back to their original URL)
+- Administrators may wish to setup [OpenID Connect 1.0](../../configuration/identity-providers/open-id-connect.md) in
+  which case it also doesn't represent a good user experience as the `issuer` will be
+  `https://app.example.com/authelia` for example
+- Using the [SWAG] default configurations are more difficult to support as our specific familiarity is with our own
+  example snippets
 
-Taking these factors into consideration we're adapting our [SWAG] guide to use what we consider best for the users and
-most easily supported. Users who wish to use the [SWAG] guide are free to do so but may not receive the same support.
+#### Option 1: Adjusting the Default Configuration
+
+Open the generated `authelia-server.conf`. Adjust the following sections. There are two snippets, one before and one
+after. The only lines that change are the `set $authelia_backend` lines, and this configuration assumes you're
+serving Authelia at `auth.example.com`.
+
+```nginx
+    ## Set $authelia_backend to route requests to the current domain by default
+    set $authelia_backend $http_host;
+    ## In order for Webauthn to work with multiple domains authelia must operate on a separate subdomain
+    ## To use authelia on a separate subdomain:
+    ##  * comment the $authelia_backend line above
+    ##  * rename /config/nginx/proxy-confs/authelia.conf.sample to /config/nginx/proxy-confs/authelia.conf
+    ##  * make sure that your dns has a cname set for authelia
+    ##  * uncomment the $authelia_backend line below and change example.com to your domain
+    ##  * restart the swag container
+    #set $authelia_backend authelia.example.com;
+
+    return 302 https://$authelia_backend/authelia/?rd=$target_url;
+```
+
+```nginx
+    ## Set $authelia_backend to route requests to the current domain by default
+    # set $authelia_backend $http_host;
+    ## In order for Webauthn to work with multiple domains authelia must operate on a separate subdomain
+    ## To use authelia on a separate subdomain:
+    ##  * comment the $authelia_backend line above
+    ##  * rename /config/nginx/proxy-confs/authelia.conf.sample to /config/nginx/proxy-confs/authelia.conf
+    ##  * make sure that your dns has a cname set for authelia
+    ##  * uncomment the $authelia_backend line below and change example.com to your domain
+    ##  * restart the swag container
+    set $authelia_backend auth.example.com;
+
+    return 302 https://$authelia_backend/authelia/?rd=$target_url;
+```
+
+#### Option 2: Using the Authelia Supplementary Configuration Snippets
+
+See standard [NGINX](nginx.md) guide (which *can be used* with [SWAG]) and run Authelia as it's own subdomain.
 
 ## Trusted Proxies
 
@@ -102,6 +147,8 @@ services:
       - '443:443'
     volumes:
       - ${PWD}/data/swag:/config
+      ## Uncomment the line below if you want to use the Authelia configuration snippets.
+      #- ${PWD}/data/nginx/snippets:/snippets:ro
     environment:
       PUID: '1000'
       PGID: '1000'

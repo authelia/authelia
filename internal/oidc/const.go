@@ -73,6 +73,25 @@ const (
 	GrantTypeClientCredentials = "client_credentials"
 )
 
+// Client Auth Method strings.
+const (
+	ClientAuthMethodClientSecretBasic = "client_secret_basic"
+	ClientAuthMethodClientSecretPost  = "client_secret_post"
+	ClientAuthMethodClientSecretJWT   = "client_secret_jwt"
+	ClientAuthMethodNone              = "none"
+)
+
+// Response Type strings.
+const (
+	ResponseTypeAuthorizationCodeFlow = "code"
+	ResponseTypeImplicitFlowIDToken   = "id_token"
+	ResponseTypeImplicitFlowToken     = "token"
+	ResponseTypeImplicitFlowBoth      = "id_token token"
+	ResponseTypeHybridFlowIDToken     = "code id_token"
+	ResponseTypeHybridFlowToken       = "code token"
+	ResponseTypeHybridFlowBoth        = "code id_token token"
+)
+
 // Signing Algorithm strings.
 const (
 	SigningAlgorithmNone          = none

@@ -199,6 +199,20 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory =
 	},
 }
 
+// DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis represents the default LDAP config for the LDAPImplementationRFC2307bis Implementation.
+var DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis = LDAPAuthenticationBackend{
+	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(|(objectClass=inetOrgPerson)(objectClass=organizationalPerson)))",
+	UsernameAttribute:    ldapAttrUserID,
+	MailAttribute:        ldapAttrMail,
+	DisplayNameAttribute: ldapAttrDisplayName,
+	GroupsFilter:         "(&(|(member={dn})(uniqueMember={dn}))(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=groupOfMembers)))",
+	GroupNameAttribute:   ldapAttrCommonName,
+	Timeout:              time.Second * 5,
+	TLS: &TLSConfig{
+		MinimumVersion: TLSVersion{tls.VersionTLS12},
+	},
+}
+
 // DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA represents the default LDAP config for the LDAPImplementationFreeIPA Implementation.
 var DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA = LDAPAuthenticationBackend{
 	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))",

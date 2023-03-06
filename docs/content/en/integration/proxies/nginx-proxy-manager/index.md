@@ -68,7 +68,7 @@ services:
     volumes:
       - ${PWD}/data/nginx-proxy-manager/data:/data
       - ${PWD}/data/nginx-proxy-manager/letsencrypt:/etc/letsencrypt
-      - ${PWD}/data/nginx/snippets:/config/nginx/snippets:ro
+      - ${PWD}/data/nginx/snippets:/snippets:ro
     environment:
       TZ: 'Australia/Melbourne'
   authelia:
