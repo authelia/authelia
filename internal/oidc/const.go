@@ -118,13 +118,12 @@ const (
 
 // Endpoints.
 const (
-	EndpointAuthorization = "authorization"
-	EndpointToken         = "token"
-	EndpointUserinfo      = "userinfo"
-	EndpointIntrospection = "introspection"
-	EndpointRevocation    = "revocation"
-
-	EndpointPushedAuthorizationRequest = EndpointAuthorization + "/push"
+	EndpointAuthorization              = "authorization"
+	EndpointToken                      = "token"
+	EndpointUserinfo                   = "userinfo"
+	EndpointIntrospection              = "introspection"
+	EndpointRevocation                 = "revocation"
+	EndpointPushedAuthorizationRequest = "pushed-authorization-request"
 )
 
 // JWT Headers.

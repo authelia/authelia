@@ -302,6 +302,7 @@ A list of endpoints to configure with cross-origin resource sharing headers. It 
 option is at least in this list. The potential endpoints which this can be enabled on are as follows:
 
 * authorization
+* pushed-authorization-request
 * token
 * revocation
 * introspection
