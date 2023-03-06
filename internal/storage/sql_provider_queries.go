@@ -314,6 +314,19 @@ const (
 		SET active = FALSE
 		WHERE request_id = ?;`
 
+	queryFmtSelectOAuth2PARContext = `
+		SELECT id, signature, request_id, client_id, requested_at, scopes, audience,
+		handled_response_types, response_mode, response_mode_default, revoked,
+		form_data, session_data
+		FROM %s
+		WHERE signature = ? AND revoked = FALSE;`
+
+	queryFmtInsertOAuth2PARContext = `
+		INSERT INTO %s (signature, request_id, client_id, requested_at, scopes, audience,
+		handled_response_types, response_mode, response_mode_default, revoked,
+		form_data, session_data)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
 	queryFmtSelectOAuth2BlacklistedJTI = `
 		SELECT id, signature, expires_at
 		FROM %s

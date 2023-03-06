@@ -272,6 +272,23 @@ Allows [PKCE] `plain` challenges when set to `true`.
 *__Security Notice:__* Changing this value is generally discouraged. Applications should use the `S256` [PKCE] challenge
 method instead.
 
+### pushed_authorizations
+
+Controls the behaviour of [Pushed Authorization Requests].
+
+#### enforce
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+When enabled all authorization requests must use the [Pushed Authorization Requests] flow.
+
+#### context_lifespan
+
+{{< confkey type="duration" default="5m" required="no" >}}
+
+The maximum amount of time between the [Pushed Authorization Requests] flow being initiated and the generated
+`request_uri` being utilized by a client.
+
 ### cors
 
 Some [OpenID Connect 1.0] Endpoints need to allow cross-origin resource sharing, however some are optional. This section allows
@@ -285,6 +302,7 @@ A list of endpoints to configure with cross-origin resource sharing headers. It 
 option is at least in this list. The potential endpoints which this can be enabled on are as follows:
 
 * authorization
+* pushed-authorization-request
 * token
 * revocation
 * introspection
@@ -472,6 +490,12 @@ See the [Response Modes](../../integration/openid-connect/introduction.md#respon
 
 The authorization policy for this client: either `one_factor` or `two_factor`.
 
+#### enforce_par
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enforces the use of a [Pushed Authorization Requests] flow for this client.
+
 #### enforce_pkce
 
 {{< confkey type="bool" default="false" required="no" >}}
@@ -550,3 +574,4 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [Authorization Code Flow]: https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth
 [Subject Identifier Type]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
 [Pairwise Identifier Algorithm]: https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg
+[Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126

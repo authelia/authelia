@@ -130,15 +130,15 @@ func skipMigration(providerName string, up bool, target, prior int, migration *m
 }
 
 func scanMigration(m string) (migration model.SchemaMigration, err error) {
-	result := reMigration.FindStringSubmatch(m)
-
-	if result == nil || len(result) != 5 {
+	if !reMigration.MatchString(m) {
 		return model.SchemaMigration{}, errors.New("invalid migration: could not parse the format")
 	}
 
+	result := reMigration.FindStringSubmatch(m)
+
 	migration = model.SchemaMigration{
-		Name:     strings.ReplaceAll(result[2], "_", " "),
-		Provider: result[3],
+		Name:     strings.ReplaceAll(result[reMigration.SubexpIndex("Name")], "_", " "),
+		Provider: result[reMigration.SubexpIndex("Provider")],
 	}
 
 	data, err := migrationsFS.ReadFile(fmt.Sprintf("migrations/%s", m))
@@ -148,22 +148,22 @@ func scanMigration(m string) (migration model.SchemaMigration, err error) {
 
 	migration.Query = string(data)
 
-	switch result[4] {
+	switch direction := result[reMigration.SubexpIndex("Direction")]; direction {
 	case "up":
 		migration.Up = true
 	case "down":
 		migration.Up = false
 	default:
-		return model.SchemaMigration{}, fmt.Errorf("invalid migration: value in position 4 '%s' must be up or down", result[4])
+		return model.SchemaMigration{}, fmt.Errorf("invalid migration: value in Direction group '%s' must be up or down", direction)
 	}
 
-	migration.Version, _ = strconv.Atoi(result[1])
+	migration.Version, _ = strconv.Atoi(result[reMigration.SubexpIndex("Version")])
 
 	switch migration.Provider {
 	case providerAll, providerSQLite, providerMySQL, providerPostgres:
 		break
 	default:
-		return model.SchemaMigration{}, fmt.Errorf("invalid migration: value in position 3 '%s' must be all, sqlite, postgres, or mysql", result[3])
+		return model.SchemaMigration{}, fmt.Errorf("invalid migration: value in Provider group '%s' must be all, sqlite, postgres, or mysql", migration.Provider)
 	}
 
 	return migration, nil
