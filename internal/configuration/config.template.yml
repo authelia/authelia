@@ -286,7 +286,7 @@ authentication_backend:
   ## always belong to groups they belonged to at the time of login even if they have been removed from them in LDAP.
   ## To force update on every request you can set this to '0' or 'always', this will increase processor demand.
   ## See the below documentation for more information.
-  ## Duration Notation docs:  https://www.authelia.com/c/common#duration-notation-format
+  ## Duration Notation docs:  https://www.authelia.com/c/common#duration
   ## Refresh Interval docs: https://www.authelia.com/c/1fa#refresh-interval
   refresh_interval: 5m
 
@@ -720,8 +720,8 @@ session:
       ## Please read https://www.authelia.com/c/session#same_site
       # same_site: 'lax'
 
-      ## The value for inactivity, expiration, and remember_me are in seconds or the duration notation format.
-      ## See: https://www.authelia.com/c/common#duration-notation-format
+      ## The value for inactivity, expiration, and remember_me are in seconds or the duration common syntax.
+      ## See: https://www.authelia.com/c/common#duration
       ## All three of these values affect the cookie/session validity period. Longer periods are considered less secure
       ## because a stolen cookie will last longer giving attackers more time to spy or attack.
 
@@ -745,8 +745,8 @@ session:
   ## or strict. Please read https://www.authelia.com/c/session#same_site
   same_site: 'lax'
 
-  ## The value for inactivity, expiration, and remember_me are in seconds or the duration notation format.
-  ## See: https://www.authelia.com/c/common#duration-notation-format
+  ## The value for inactivity, expiration, and remember_me are in seconds or the duration common syntax.
+  ## See: https://www.authelia.com/c/common#duration
   ## All three of these values affect the cookie/session validity period. Longer periods are considered less secure
   ## because a stolen cookie will last longer giving attackers more time to spy or attack.
 
@@ -921,11 +921,11 @@ regulation:
 
   ## The time range during which the user can attempt login before being banned. The user is banned if the
   ## authentication failed 'max_retries' times in a 'find_time' seconds window. Find Time accepts duration notation.
-  ## See: https://www.authelia.com/c/common#duration-notation-format
+  ## See: https://www.authelia.com/c/common#duration
   find_time: 2m
 
   ## The length of time before a banned user can login again. Ban Time accepts duration notation.
-  ## See: https://www.authelia.com/c/common#duration-notation-format
+  ## See: https://www.authelia.com/c/common#duration
   ban_time: 5m
 
 ##
