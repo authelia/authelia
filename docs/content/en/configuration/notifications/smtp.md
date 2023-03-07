@@ -142,6 +142,9 @@ STARTTLS negotiation is not required for this port, the connection is implicitly
 
 {{< confkey type="duration" default="5s" required="no" >}}
 
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
+
 The SMTP connection timeout.
 
 ### username

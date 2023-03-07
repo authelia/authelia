@@ -37,11 +37,8 @@ default_2fa_method: ""
 ##
 server:
 
-  ## The address to listen on.
-  host: 0.0.0.0
-
-  ## The port to listen on.
-  port: 9091
+  ## The address to listen on. This must be a TCP or unix socket.
+  address: "tcp://:9091"
 
   ## Set the single level path Authelia listens on.
   ## Must be alphanumeric chars and should not contain any slashes.

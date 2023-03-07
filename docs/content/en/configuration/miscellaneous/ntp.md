@@ -53,8 +53,8 @@ Determines the NTP version supported. Valid values are 3 or 4.
 
 {{< confkey type="duration" default="3s" required="no" >}}
 
-*__Note:__ This setting uses the [duration notation format](../prologue/common.md#duration-notation-format). Please see
-the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
 
 This is used to tune the acceptable desync from the time reported from the NTP server.
 

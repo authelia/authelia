@@ -21,6 +21,14 @@ func getEnvConfigMap(keys []string, prefix, delimiter string) (keyMap map[string
 		}
 	}
 
+	for _, deprecation := range deprecations {
+		if !deprecation.AutoMap {
+			continue
+		}
+
+		keyMap[ToEnvironmentKey(deprecation.Key, prefix, delimiter)] = deprecation.Key
+	}
+
 	return keyMap, ignoredKeys
 }
 

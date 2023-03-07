@@ -203,12 +203,18 @@ key data for the first certificate in the chain.
 
 {{< confkey type="duration" default="1h" required="no" >}}
 
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
+
 The maximum lifetime of an access token. It's generally recommended keeping this short similar to the default.
 For more information read these docs about [token lifespan].
 
 ### authorize_code_lifespan
 
 {{< confkey type="duration" default="1m" required="no" >}}
+
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
 
 The maximum lifetime of an authorize code. This can be rather short, as the authorize code should only be needed to
 obtain the other token types. For more information read these docs about [token lifespan].
@@ -217,11 +223,17 @@ obtain the other token types. For more information read these docs about [token 
 
 {{< confkey type="duration" default="1h" required="no" >}}
 
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
+
 The maximum lifetime of an ID token. For more information read these docs about [token lifespan].
 
 ### refresh_token_lifespan
 
 {{< confkey type="string" default="90m" required="no" >}}
+
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
 
 The maximum lifetime of a refresh token. The
 refresh token can be used to obtain new refresh tokens as well as access tokens or id tokens with an
@@ -287,6 +299,9 @@ When enabled all authorization requests must use the [Pushed Authorization Reque
 #### context_lifespan
 
 {{< confkey type="duration" default="5m" required="no" >}}
+
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
 
 The maximum amount of time between the [Pushed Authorization Requests] flow being initiated and the generated
 `request_uri` being utilized by a client.
@@ -568,8 +583,8 @@ Configures the consent mode. The following table describes the different modes:
 
 {{< confkey type="duration" default="1w" required="no" >}}
 
-*__Note:__ This setting uses the [duration notation format](../prologue/common.md#duration-notation-format). Please see
-the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
 
 Specifying this in the configuration without a consent [consent_mode] enables the `pre-configured` mode. If this is
 specified as well as the [consent_mode] then it only has an effect if the [consent_mode] is `pre-configured` or `auto`.
