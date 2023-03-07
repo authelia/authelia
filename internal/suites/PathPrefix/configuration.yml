@@ -6,7 +6,7 @@
 jwt_secret: unsecure_secret
 
 server:
-  port: 9091
+  address: "tcp://:9091"
   path: auth
   tls:
     certificate: /pki/public.backend.crt

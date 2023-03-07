@@ -21,8 +21,7 @@ aliases:
 
 ```yaml
 server:
-  host: 0.0.0.0
-  port: 9091
+  address: "tcp://:9091"
   path: ""
   disable_healthcheck: false
   tls:
@@ -58,24 +57,34 @@ server:
 
 ## Options
 
-## host
+### address
 
-{{< confkey type="string" default="0.0.0.0" required="no" >}}
+{{< confkey type="address" default="tcp://:9091" required="no" >}}
 
-Defines the address to listen on. See also [port](#port). Should typically be `0.0.0.0` or `127.0.0.1`, the former for
-containerized environments and the later for daemonized environments like init.d and systemd.
+*__Reference Note:__ This configuration option uses the [address common syntax](../prologue/common.md#address). Please
+see the [documentation](../prologue/common.md#address) on this format for more information.*
 
-Note: If utilising an IPv6 literal address it must be enclosed by square brackets and quoted:
+Configures the listener address for the Main HTTP Server. The address itself is a listener and the scheme must either be
+the `unix` scheme or one of the `tcp` schemes.
+
+__Example:__
 
 ```yaml
-host: "[fd00:1111:2222:3333::1]"
+server:
+  address: tcp://127.0.0.1:9091
 ```
 
-### port
+```yaml
+server:
+  address: unix:///var/run/authelia.sock
+```
 
-{{< confkey type="integer" default="9091" required="no" >}}
+### umask
 
-Defines the port to listen on. See also [host](#host).
+{{< confkey type="int" required="no" >}}
+
+If set temporarily changes the Umask during the creation of the unix domain socket if configured as such in the
+[address](#address).
 
 ### path
 

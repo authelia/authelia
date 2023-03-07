@@ -7,7 +7,7 @@ jwt_secret: unsecure_secret
 theme: auto
 
 server:
-  port: 9091
+  address: "tcp://:9091"
   tls:
     certificate: /pki/public.backend.crt
     key: /pki/private.backend.pem

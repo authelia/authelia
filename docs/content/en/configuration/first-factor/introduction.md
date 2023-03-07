@@ -41,6 +41,9 @@ This section describes the individual configuration options.
 
 {{< confkey type="duration" default="5m" required="no" >}}
 
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
+
 This setting controls the interval at which details are refreshed from the backend. Particularly useful for
 [LDAP](#ldap).
 

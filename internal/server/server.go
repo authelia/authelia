@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"strconv"
 
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
@@ -34,11 +33,20 @@ func CreateDefaultServer(config *schema.Configuration, providers middlewares.Pro
 		Logger:                logging.LoggerPrintf(logrus.DebugLevel),
 	}
 
-	address := net.JoinHostPort(config.Server.Host, strconv.Itoa(config.Server.Port))
-
 	var (
-		connectionScheme string
+		connectionScheme = schemeHTTP
 	)
+
+	switch config.Server.UMask {
+	case nil:
+		listener, err = config.Server.Address.Listener()
+	default:
+		listener, err = config.Server.Address.ListenerWithUMask(*config.Server.UMask)
+	}
+
+	if err != nil {
+		return nil, nil, nil, false, fmt.Errorf("error occurred while attempting to initialize main server listener for address '%s': %w", config.Server.Address.String(), err)
+	}
 
 	if config.Server.TLS.Certificate != "" && config.Server.TLS.Key != "" {
 		isTLS, connectionScheme = true, schemeHTTPS
@@ -66,19 +74,11 @@ func CreateDefaultServer(config *schema.Configuration, providers middlewares.Pro
 			server.TLSConfig.ClientAuth = tls.RequireAndVerifyClientCert
 		}
 
-		if listener, err = tls.Listen("tcp", address, server.TLSConfig.Clone()); err != nil {
-			return nil, nil, nil, false, fmt.Errorf("unable to initialize tcp listener: %w", err)
-		}
-	} else {
-		connectionScheme = schemeHTTP
-
-		if listener, err = net.Listen("tcp", address); err != nil {
-			return nil, nil, nil, false, fmt.Errorf("unable to initialize tcp listener: %w", err)
-		}
+		listener = tls.NewListener(listener, server.TLSConfig.Clone())
 	}
 
-	if err = writeHealthCheckEnv(config.Server.DisableHealthcheck, connectionScheme, config.Server.Host,
-		config.Server.Path, config.Server.Port); err != nil {
+	if err = writeHealthCheckEnv(config.Server.DisableHealthcheck, connectionScheme, config.Server.Address.Hostname(),
+		config.Server.Path, config.Server.Address.Port()); err != nil {
 		return nil, nil, nil, false, fmt.Errorf("unable to configure healthcheck: %w", err)
 	}
 
@@ -109,8 +109,15 @@ func CreateMetricsServer(config *schema.Configuration, providers middlewares.Pro
 		Logger:                logging.LoggerPrintf(logrus.DebugLevel),
 	}
 
-	if listener, err = config.Telemetry.Metrics.Address.Listener(); err != nil {
-		return nil, nil, nil, false, err
+	switch config.Telemetry.Metrics.UMask {
+	case nil:
+		listener, err = config.Telemetry.Metrics.Address.Listener()
+	default:
+		listener, err = config.Telemetry.Metrics.Address.ListenerWithUMask(*config.Telemetry.Metrics.UMask)
+	}
+
+	if err != nil {
+		return nil, nil, nil, false, fmt.Errorf("error occurred while attempting to initialize metrics telemetry server listener for address '%s': %w", config.Telemetry.Metrics.Address.String(), err)
 	}
 
 	return server, listener, []string{"/metrics"}, false, nil

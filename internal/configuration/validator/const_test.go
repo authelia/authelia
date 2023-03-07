@@ -14,3 +14,7 @@ const (
 const (
 	exampleDotCom = "example.com"
 )
+
+const (
+	local25 = "127.0.0.25"
+)

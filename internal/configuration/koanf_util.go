@@ -66,22 +66,29 @@ func koanfRemapKeysStandard(keys map[string]any, val *schema.StructValidator, ds
 	for key, value = range keys {
 		if d, ok = ds[key]; ok {
 			if !d.AutoMap {
-				val.Push(fmt.Errorf("invalid configuration key '%s' was replaced by '%s'", d.Key, d.NewKey))
+				if d.ErrFunc != nil {
+					d.ErrFunc(d, keysFinal, value, val)
+				} else {
+					val.Push(fmt.Errorf("invalid configuration key '%s' was replaced by '%s'", d.Key, d.NewKey))
 
-				keysFinal[key] = value
+					keysFinal[key] = value
+				}
 
 				continue
-			} else {
-				val.PushWarning(fmt.Errorf("configuration key '%s' is deprecated in %s and has been replaced by '%s': "+
-					"this has been automatically mapped for you but you will need to adjust your configuration to remove this message", d.Key, d.Version.String(), d.NewKey))
 			}
 
 			if !mapHasKey(d.NewKey, keys) && !mapHasKey(d.NewKey, keysFinal) {
+				val.PushWarning(fmt.Errorf("configuration key '%s' is deprecated in %s and has been replaced by '%s': "+
+					"this has been automatically mapped for you but you will need to adjust your configuration to remove this message", d.Key, d.Version.String(), d.NewKey))
+
 				if d.MapFunc != nil {
 					keysFinal[d.NewKey] = d.MapFunc(value)
 				} else {
 					keysFinal[d.NewKey] = value
 				}
+			} else {
+				val.PushWarning(fmt.Errorf("configuration key '%s' is deprecated in %s and has been replaced by '%s': "+
+					"this has not been automatically mapped for you because the replacement key also exists and you will need to adjust your configuration to remove this message", d.Key, d.Version.String(), d.NewKey))
 			}
 
 			continue

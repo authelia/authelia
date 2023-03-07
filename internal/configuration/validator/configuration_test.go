@@ -13,8 +13,7 @@ import (
 
 func newDefaultConfig() schema.Configuration {
 	config := schema.Configuration{}
-	config.Server.Host = loopback
-	config.Server.Port = 9090
+	config.Server.Address = &schema.AddressTCP{Address: schema.NewAddressFromNetworkValues("tcp", loopback, 9090)}
 	config.Log.Level = "info"
 	config.Log.Format = "text"
 	config.JWTSecret = testJWTSecret

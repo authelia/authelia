@@ -409,7 +409,9 @@ func TestShouldLoadDirectoryConfiguration(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Len(t, val.Errors(), 0)
-	assert.Len(t, val.Warnings(), 0)
+	require.Len(t, val.Warnings(), 1)
+
+	assert.EqualError(t, val.Warnings()[0], "configuration key 'server.port' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.host' in the format of 'tcp://<host>:<port>': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
 }
 
 func testSetEnv(t *testing.T, key, value string) {

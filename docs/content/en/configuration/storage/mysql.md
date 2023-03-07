@@ -174,6 +174,9 @@ characters and the user password is changed to this value.
 
 {{< confkey type="duration" default="5s" required="no" >}}
 
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
+
 The SQL connection timeout.
 
 ### tls
