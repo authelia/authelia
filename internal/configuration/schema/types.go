@@ -142,7 +142,7 @@ type PasswordDigest struct {
 
 // IsPlainText returns true if the underlying algorithm.Digest is a *plaintext.Digest.
 func (d *PasswordDigest) IsPlainText() bool {
-	if d == nil {
+	if d == nil || d.Digest == nil {
 		return false
 	}
 
