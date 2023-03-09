@@ -140,6 +140,20 @@ type PasswordDigest struct {
 	algorithm.Digest
 }
 
+// IsPlainText returns true if the underlying algorithm.Digest is a *plaintext.Digest.
+func (d *PasswordDigest) IsPlainText() bool {
+	if d == nil {
+		return false
+	}
+
+	switch d.Digest.(type) {
+	case *plaintext.Digest:
+		return true
+	default:
+		return false
+	}
+}
+
 // NewX509CertificateChain creates a new *X509CertificateChain from a given string, parsing each PEM block one by one.
 func NewX509CertificateChain(in string) (chain *X509CertificateChain, err error) {
 	if in == "" {
