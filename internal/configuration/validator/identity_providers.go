@@ -166,6 +166,8 @@ func validateOIDCClients(config *schema.OpenIDConnectConfiguration, val *schema.
 		} else {
 			if client.Secret == nil {
 				val.Push(fmt.Errorf(errFmtOIDCClientInvalidSecret, client.ID))
+			} else if client.Secret.IsPlainText() {
+				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidSecretPlainText, client.ID))
 			}
 		}
 
