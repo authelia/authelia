@@ -168,7 +168,7 @@ func TestShouldNotRaiseErrorOnValidCertificatesDirectory(t *testing.T) {
 	require.Len(t, validator.Warnings(), 1)
 
 	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
-}
+}.
 */
 
 func TestValidateDefault2FAMethod(t *testing.T) {

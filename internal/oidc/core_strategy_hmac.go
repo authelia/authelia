@@ -19,7 +19,6 @@ type HMACCoreStrategy struct {
 		fosite.RefreshTokenLifespanProvider
 		fosite.AuthorizeCodeLifespanProvider
 	}
-	prefix string
 }
 
 // AccessTokenSignature implements oauth2.AccessTokenStrategy.
@@ -112,11 +111,11 @@ func (h *HMACCoreStrategy) ValidateAuthorizeCode(ctx context.Context, r fosite.R
 }
 
 func (h *HMACCoreStrategy) getPrefix(part string) string {
-	if len(h.prefix) == 0 {
-		return ""
-	}
+	return h.getCustomPrefix(tokenPrefixOrgAutheliaFmt, part)
+}
 
-	return fmt.Sprintf(h.prefix, part)
+func (h *HMACCoreStrategy) getCustomPrefix(tokenPrefixFmt, part string) string {
+	return fmt.Sprintf(tokenPrefixFmt, part)
 }
 
 func (h *HMACCoreStrategy) setPrefix(token, part string) string {
@@ -124,5 +123,9 @@ func (h *HMACCoreStrategy) setPrefix(token, part string) string {
 }
 
 func (h *HMACCoreStrategy) trimPrefix(token, part string) string {
+	if strings.HasPrefix(token, h.getCustomPrefix(tokenPrefixOrgOryFmt, part)) {
+		return strings.TrimPrefix(token, h.getCustomPrefix(tokenPrefixOrgOryFmt, part))
+	}
+
 	return strings.TrimPrefix(token, h.getPrefix(part))
 }

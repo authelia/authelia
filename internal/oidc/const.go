@@ -73,6 +73,25 @@ const (
 	GrantTypeClientCredentials = "client_credentials"
 )
 
+// Client Auth Method strings.
+const (
+	ClientAuthMethodClientSecretBasic = "client_secret_basic"
+	ClientAuthMethodClientSecretPost  = "client_secret_post"
+	ClientAuthMethodClientSecretJWT   = "client_secret_jwt"
+	ClientAuthMethodNone              = "none"
+)
+
+// Response Type strings.
+const (
+	ResponseTypeAuthorizationCodeFlow = "code"
+	ResponseTypeImplicitFlowIDToken   = "id_token"
+	ResponseTypeImplicitFlowToken     = "token"
+	ResponseTypeImplicitFlowBoth      = "id_token token"
+	ResponseTypeHybridFlowIDToken     = "code id_token"
+	ResponseTypeHybridFlowToken       = "code token"
+	ResponseTypeHybridFlowBoth        = "code id_token token"
+)
+
 // Signing Algorithm strings.
 const (
 	SigningAlgorithmNone          = none
@@ -91,13 +110,20 @@ const (
 	PKCEChallengeMethodSHA256 = "S256"
 )
 
+const (
+	FormParameterRequestURI          = "request_uri"
+	FormParameterCodeChallenge       = "code_challenge"
+	FormParameterCodeChallengeMethod = "code_challenge_method"
+)
+
 // Endpoints.
 const (
-	EndpointAuthorization = "authorization"
-	EndpointToken         = "token"
-	EndpointUserinfo      = "userinfo"
-	EndpointIntrospection = "introspection"
-	EndpointRevocation    = "revocation"
+	EndpointAuthorization              = "authorization"
+	EndpointToken                      = "token"
+	EndpointUserinfo                   = "userinfo"
+	EndpointIntrospection              = "introspection"
+	EndpointRevocation                 = "revocation"
+	EndpointPushedAuthorizationRequest = "pushed-authorization-request"
 )
 
 // JWT Headers.
@@ -107,7 +133,9 @@ const (
 )
 
 const (
-	tokenPrefixFmt               = "authelia_%s_" //nolint:gosec
+	tokenPrefixOrgAutheliaFmt = "authelia_%s_" //nolint:gosec
+	tokenPrefixOrgOryFmt      = "ory_%s_"      //nolint:gosec
+
 	tokenPrefixPartAccessToken   = "at"
 	tokenPrefixPartRefreshToken  = "rt"
 	tokenPrefixPartAuthorizeCode = "ac"
@@ -127,6 +155,8 @@ const (
 	EndpointPathUserinfo      = EndpointPathRoot + "/" + EndpointUserinfo
 	EndpointPathIntrospection = EndpointPathRoot + "/" + EndpointIntrospection
 	EndpointPathRevocation    = EndpointPathRoot + "/" + EndpointRevocation
+
+	EndpointPathPushedAuthorizationRequest = EndpointPathRoot + "/" + EndpointPushedAuthorizationRequest
 )
 
 // Authentication Method Reference Values https://datatracker.ietf.org/doc/html/rfc8176
