@@ -2,11 +2,10 @@ package schema
 
 // Configuration object extracted from YAML configuration file.
 type Configuration struct {
-	Theme                 string   `koanf:"theme"`
-	CertificatesDirectory []string `koanf:"certificates_directory"`
-	JWTSecret             string   `koanf:"jwt_secret"`
-	DefaultRedirectionURL string   `koanf:"default_redirection_url"`
-	Default2FAMethod      string   `koanf:"default_2fa_method"`
+	Theme                 string `koanf:"theme"`
+	JWTSecret             string `koanf:"jwt_secret"`
+	DefaultRedirectionURL string `koanf:"default_redirection_url"`
+	Default2FAMethod      string `koanf:"default_2fa_method"`
 
 	Log                   LogConfiguration               `koanf:"log"`
 	IdentityProviders     IdentityProvidersConfiguration `koanf:"identity_providers"`
@@ -24,4 +23,5 @@ type Configuration struct {
 	Webauthn              WebauthnConfiguration          `koanf:"webauthn"`
 	PasswordPolicy        PasswordPolicyConfiguration    `koanf:"password_policy"`
 	PrivacyPolicy         PrivacyPolicy                  `koanf:"privacy_policy"`
+	Trust                 Trust                          `koanf:"trust"`
 }

@@ -120,9 +120,21 @@ func (ctx *CmdCtx) CheckSchema() (err error) {
 
 // LoadTrustedCertificates loads the trusted certificates into the CmdCtx.
 func (ctx *CmdCtx) LoadTrustedCertificates() (err error) {
-	ctx.providers.Trust = trust.NewProvider(trust.WithPaths(ctx.config.CertificatesDirectory...))
+	opts := []trust.ProductionOpt{
+		trust.WithCertificatePaths(ctx.config.Trust.Certificates.Paths...),
+		trust.WithSystem(!ctx.config.Trust.Certificates.DisableSystemCertificates),
+		trust.WithValidateNotAfter(!ctx.config.Trust.Certificates.DisableValidateNotAfter),
+		trust.WithValidateNotBefore(!ctx.config.Trust.Certificates.DisableValidateNotBefore),
+		trust.WithValidationReturnErrors(!ctx.config.Trust.Certificates.DisableValidationErrors),
+	}
 
-	return ctx.providers.Trust.StartupCheck()
+	for _, chain := range ctx.config.Trust.Certificates.Certificates {
+		opts = append(opts, trust.WithStatic(chain.Certificates()...))
+	}
+
+	ctx.providers.CertificateTrust = trust.NewProduction(opts...)
+
+	return ctx.providers.CertificateTrust.StartupCheck()
 }
 
 // LoadProviders loads all providers into the CmdCtx.
@@ -139,14 +151,14 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 	ctx.providers.NTP = ntp.NewProvider(&ctx.config.NTP)
 	ctx.providers.PasswordPolicy = middlewares.NewPasswordPolicyProvider(ctx.config.PasswordPolicy)
 	ctx.providers.Regulator = regulation.NewRegulator(ctx.config.Regulation, ctx.providers.StorageProvider, utils.RealClock{})
-	ctx.providers.SessionProvider = session.NewProvider(ctx.config.Session, ctx.providers.Trust)
+	ctx.providers.SessionProvider = session.NewProvider(ctx.config.Session, ctx.providers.CertificateTrust)
 	ctx.providers.TOTP = totp.NewTimeBasedProvider(ctx.config.TOTP)
 
 	switch {
 	case ctx.config.AuthenticationBackend.File != nil:
 		ctx.providers.UserProvider = authentication.NewFileUserProvider(ctx.config.AuthenticationBackend.File)
 	case ctx.config.AuthenticationBackend.LDAP != nil:
-		ctx.providers.UserProvider = authentication.NewLDAPUserProvider(ctx.config.AuthenticationBackend, ctx.providers.Trust)
+		ctx.providers.UserProvider = authentication.NewLDAPUserProvider(ctx.config.AuthenticationBackend, ctx.providers.CertificateTrust)
 	}
 
 	if ctx.providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: ctx.config.Notifier.TemplatePath}); err != nil {
@@ -155,7 +167,7 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 
 	switch {
 	case ctx.config.Notifier.SMTP != nil:
-		ctx.providers.Notifier = notification.NewSMTPNotifier(ctx.config.Notifier.SMTP, ctx.providers.Trust)
+		ctx.providers.Notifier = notification.NewSMTPNotifier(ctx.config.Notifier.SMTP, ctx.providers.CertificateTrust)
 	case ctx.config.Notifier.FileSystem != nil:
 		ctx.providers.Notifier = notification.NewFileNotifier(*ctx.config.Notifier.FileSystem)
 	}

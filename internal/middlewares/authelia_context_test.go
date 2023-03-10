@@ -126,7 +126,7 @@ func TestShouldCallNextWithAutheliaCtx(t *testing.T) {
 	ctx := &fasthttp.RequestCtx{}
 	configuration := schema.Configuration{}
 	userProvider := mocks.NewMockUserProvider(ctrl)
-	sessionProvider := session.NewProvider(configuration.Session, trust.NewProvider())
+	sessionProvider := session.NewProvider(configuration.Session, trust.NewProduction())
 	providers := middlewares.Providers{
 		UserProvider:    userProvider,
 		SessionProvider: sessionProvider,

@@ -462,11 +462,11 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuth() { // TestShouldVeri
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
 
 	gomock.InOrder(
-		mock.UserProviderMock.EXPECT().
+		mock.MockUserProvider.EXPECT().
 			CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 			Return(true, nil),
 
-		mock.UserProviderMock.EXPECT().
+		mock.MockUserProvider.EXPECT().
 			GetDetails(gomock.Eq("john")).
 			Return(&authentication.UserDetails{
 				Emails: []string{"john@example.com"},
@@ -505,7 +505,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 			func(mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set("Authorization", "Basic am9objpwYXNzd29yZA==")
 
-				mock.UserProviderMock.EXPECT().
+				mock.MockUserProvider.EXPECT().
 					CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 					Return(false, fmt.Errorf("generic error"))
 			},
@@ -517,11 +517,11 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com/")
 
 				gomock.InOrder(
-					mock.UserProviderMock.EXPECT().
+					mock.MockUserProvider.EXPECT().
 						CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 						Return(true, nil),
 
-					mock.UserProviderMock.EXPECT().
+					mock.MockUserProvider.EXPECT().
 						GetDetails(gomock.Eq("john")).
 						Return(&authentication.UserDetails{
 							Emails: []string{"john@example.com"},

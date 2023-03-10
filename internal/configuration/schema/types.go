@@ -157,6 +157,10 @@ func NewX509CertificateChain(in string) (chain *X509CertificateChain, err error)
 		cert  *x509.Certificate
 	)
 
+	if chain.certs, err = x509.ParseCertificates(data); err == nil && len(chain.certs) != 0 {
+		return chain, nil
+	}
+
 	for {
 		block, data = pem.Decode(data)
 

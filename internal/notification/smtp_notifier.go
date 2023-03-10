@@ -18,7 +18,7 @@ import (
 )
 
 // NewSMTPNotifier creates a SMTPNotifier using the notifier configuration.
-func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, trustProvider trust.Provider) *SMTPNotifier {
+func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, trustProvider trust.CertificateProvider) *SMTPNotifier {
 	var domain string
 
 	at := strings.LastIndex(config.Sender.Address, "@")
@@ -43,7 +43,7 @@ type SMTPNotifier struct {
 	config *schema.SMTPNotifierConfiguration
 
 	random random.Provider
-	trust  trust.Provider
+	trust  trust.CertificateProvider
 
 	domain string
 
@@ -59,7 +59,7 @@ func (n *SMTPNotifier) opts() (opts []gomail.Option) {
 	}
 
 	if n.config.TLS != nil {
-		opts = append(opts, gomail.WithTLSConfig(n.trust.GetTLSConfiguration(n.config.TLS)))
+		opts = append(opts, gomail.WithTLSConfig(n.trust.GetTLSConfig(n.config.TLS)))
 	}
 
 	ssl := n.config.Port == smtpPortSUBMISSIONS

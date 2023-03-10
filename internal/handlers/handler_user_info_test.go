@@ -107,7 +107,7 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 		userSession.AuthenticationLevel = 1
 		assert.NoError(t, mock.Ctx.SaveSession(userSession))
 
-		mock.StorageMock.
+		mock.MockStorage.
 			EXPECT().
 			LoadUserInfo(mock.Ctx, gomock.Eq("john")).
 			Return(resp.db, resp.err)
@@ -274,33 +274,33 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 
 			if resp.db.Method == "" {
 				gomock.InOrder(
-					mock.StorageMock.
+					mock.MockStorage.
 						EXPECT().
 						LoadPreferred2FAMethod(mock.Ctx, gomock.Eq("john")).
 						Return("", sql.ErrNoRows),
-					mock.StorageMock.
+					mock.MockStorage.
 						EXPECT().
 						SavePreferred2FAMethod(mock.Ctx, gomock.Eq("john"), gomock.Eq("")).
 						Return(resp.saveErr),
-					mock.StorageMock.
+					mock.MockStorage.
 						EXPECT().
 						LoadUserInfo(mock.Ctx, gomock.Eq("john")).
 						Return(resp.db, nil),
-					mock.StorageMock.EXPECT().
+					mock.MockStorage.EXPECT().
 						SavePreferred2FAMethod(mock.Ctx, gomock.Eq("john"), gomock.Eq(resp.api.Method)).
 						Return(resp.saveErr),
 				)
 			} else {
 				gomock.InOrder(
-					mock.StorageMock.
+					mock.MockStorage.
 						EXPECT().
 						LoadPreferred2FAMethod(mock.Ctx, gomock.Eq("john")).
 						Return(resp.db.Method, nil),
-					mock.StorageMock.
+					mock.MockStorage.
 						EXPECT().
 						LoadUserInfo(mock.Ctx, gomock.Eq("john")).
 						Return(resp.db, nil),
-					mock.StorageMock.EXPECT().
+					mock.MockStorage.EXPECT().
 						SavePreferred2FAMethod(mock.Ctx, gomock.Eq("john"), gomock.Eq(resp.api.Method)).
 						Return(resp.saveErr),
 				)
@@ -349,7 +349,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 }
 
 func (s *FetchSuite) TestShouldReturnError500WhenStorageFailsToLoad() {
-	s.mock.StorageMock.EXPECT().
+	s.mock.MockStorage.EXPECT().
 		LoadUserInfo(s.mock.Ctx, gomock.Eq("john")).
 		Return(model.UserInfo{}, fmt.Errorf("failure"))
 
@@ -421,7 +421,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenBadMethodProvided() {
 
 func (s *SaveSuite) TestShouldReturnError500WhenDatabaseFailsToSave() {
 	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"webauthn\"}"))
-	s.mock.StorageMock.EXPECT().
+	s.mock.MockStorage.EXPECT().
 		SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("webauthn")).
 		Return(fmt.Errorf("Failure"))
 
@@ -434,7 +434,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenDatabaseFailsToSave() {
 
 func (s *SaveSuite) TestShouldReturn200WhenMethodIsSuccessfullySaved() {
 	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"webauthn\"}"))
-	s.mock.StorageMock.EXPECT().
+	s.mock.MockStorage.EXPECT().
 		SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("webauthn")).
 		Return(nil)
 

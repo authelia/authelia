@@ -50,12 +50,12 @@ func (s *FirstFactorSuite) TestShouldFailIfBodyIsInBadFormat() {
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
-	s.mock.UserProviderMock.
+	s.mock.MockUserProvider.
 		EXPECT().
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
 		Return(false, fmt.Errorf("failed"))
 
-	s.mock.StorageMock.
+	s.mock.MockStorage.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
 			Username:   "test",
@@ -78,12 +78,12 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 }
 
 func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsNotMarkedWhenProviderCheckPasswordError() {
-	s.mock.UserProviderMock.
+	s.mock.MockUserProvider.
 		EXPECT().
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
 		Return(false, fmt.Errorf("invalid credentials"))
 
-	s.mock.StorageMock.
+	s.mock.MockStorage.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
 			Username:   "test",
@@ -104,12 +104,12 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsNotMarkedWhenProviderC
 }
 
 func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCredentials() {
-	s.mock.UserProviderMock.
+	s.mock.MockUserProvider.
 		EXPECT().
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
 		Return(false, nil)
 
-	s.mock.StorageMock.
+	s.mock.MockStorage.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
 			Username:   "test",
@@ -130,17 +130,17 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCrede
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
-	s.mock.UserProviderMock.
+	s.mock.MockUserProvider.
 		EXPECT().
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
 		Return(true, nil)
 
-	s.mock.StorageMock.
+	s.mock.MockStorage.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 		Return(nil)
 
-	s.mock.UserProviderMock.
+	s.mock.MockUserProvider.
 		EXPECT().
 		GetDetails(gomock.Eq("test")).
 		Return(nil, fmt.Errorf("failed"))
@@ -157,12 +157,12 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfAuthenticationMarkFail() {
-	s.mock.UserProviderMock.
+	s.mock.MockUserProvider.
 		EXPECT().
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
 		Return(true, nil)
 
-	s.mock.StorageMock.
+	s.mock.MockStorage.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 		Return(fmt.Errorf("failed"))
@@ -179,12 +179,12 @@ func (s *FirstFactorSuite) TestShouldFailIfAuthenticationMarkFail() {
 }
 
 func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
-	s.mock.UserProviderMock.
+	s.mock.MockUserProvider.
 		EXPECT().
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
 		Return(true, nil)
 
-	s.mock.UserProviderMock.
+	s.mock.MockUserProvider.
 		EXPECT().
 		GetDetails(gomock.Eq("test")).
 		Return(&authentication.UserDetails{
@@ -193,7 +193,7 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 			Groups:   []string{"dev", "admins"},
 		}, nil)
 
-	s.mock.StorageMock.
+	s.mock.MockStorage.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 		Return(nil)
@@ -220,12 +220,12 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 }
 
 func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
-	s.mock.UserProviderMock.
+	s.mock.MockUserProvider.
 		EXPECT().
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
 		Return(true, nil)
 
-	s.mock.UserProviderMock.
+	s.mock.MockUserProvider.
 		EXPECT().
 		GetDetails(gomock.Eq("test")).
 		Return(&authentication.UserDetails{
@@ -234,7 +234,7 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 			Groups:   []string{"dev", "admins"},
 		}, nil)
 
-	s.mock.StorageMock.
+	s.mock.MockStorage.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 		Return(nil)
@@ -262,12 +262,12 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 }
 
 func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSession() {
-	s.mock.UserProviderMock.
+	s.mock.MockUserProvider.
 		EXPECT().
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
 		Return(true, nil)
 
-	s.mock.UserProviderMock.
+	s.mock.MockUserProvider.
 		EXPECT().
 		GetDetails(gomock.Eq("test")).
 		Return(&authentication.UserDetails{
@@ -279,7 +279,7 @@ func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSess
 			Groups:   []string{"dev", "admins"},
 		}, nil)
 
-	s.mock.StorageMock.
+	s.mock.MockStorage.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 		Return(nil)
@@ -324,12 +324,12 @@ func (s *FirstFactorRedirectionSuite) SetupTest() {
 	}
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
 
-	s.mock.UserProviderMock.
+	s.mock.MockUserProvider.
 		EXPECT().
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
 		Return(true, nil)
 
-	s.mock.UserProviderMock.
+	s.mock.MockUserProvider.
 		EXPECT().
 		GetDetails(gomock.Eq("test")).
 		Return(&authentication.UserDetails{
@@ -338,7 +338,7 @@ func (s *FirstFactorRedirectionSuite) SetupTest() {
 			Groups:   []string{"dev", "admins"},
 		}, nil)
 
-	s.mock.StorageMock.
+	s.mock.MockStorage.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 		Return(nil)

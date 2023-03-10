@@ -4,40 +4,50 @@ import (
 	"crypto/x509"
 )
 
-type Opt func(provider *Production)
+// ProductionOpt describes a Production option.
+type ProductionOpt func(provider *Production)
 
-func WithPaths(paths ...string) Opt {
+// WithCertificatePaths alters the paths this provider checks for relevant trusted certificates.
+func WithCertificatePaths(paths ...string) ProductionOpt {
 	return func(provider *Production) {
 		provider.config.Paths = paths
 	}
 }
 
-func WithSystem(system bool) Opt {
+// WithSystem sets the value which controls if the system certificate pool is trusted. Default is true.
+func WithSystem(system bool) ProductionOpt {
 	return func(provider *Production) {
 		provider.config.System = system
 	}
 }
 
-func WithInvalid(invalid bool) Opt {
+// WithValidationReturnErrors sets the value which determines if invalid certificates will return an error. Default is
+// true.
+func WithValidationReturnErrors(errs bool) ProductionOpt {
 	return func(provider *Production) {
-		provider.config.Invalid = invalid
+		provider.config.ValidationReturnErrors = errs
 	}
 }
 
-func WithExpired(expired bool) Opt {
+// WithValidateNotAfter sets the value which determines if certificates not after time value (expiration) will be
+// validated. Default is true.
+func WithValidateNotAfter(expired bool) ProductionOpt {
 	return func(provider *Production) {
-		provider.config.Expired = expired
+		provider.config.ValidateNotAfter = expired
 	}
 }
 
-func WithFuture(future bool) Opt {
+// WithValidateNotBefore sets the value which determines if the certificate not before time value will be validated.
+// Default is true.
+func WithValidateNotBefore(future bool) ProductionOpt {
 	return func(provider *Production) {
-		provider.config.Future = future
+		provider.config.ValidateNotBefore = future
 	}
 }
 
-func WithStatic(static []*x509.Certificate) Opt {
+// WithStatic includes static trusted certificates.
+func WithStatic(static ...*x509.Certificate) ProductionOpt {
 	return func(provider *Production) {
-		provider.config.Static = static
+		provider.config.Static = append(provider.config.Static, static...)
 	}
 }

@@ -18,7 +18,7 @@ import (
 // LDAPUserProvider is a UserProvider that connects to LDAP servers like ActiveDirectory, OpenLDAP, OpenDJ, FreeIPA, etc.
 type LDAPUserProvider struct {
 	config schema.LDAPAuthenticationBackend
-	trust  trust.Provider
+	trust  trust.CertificateProvider
 
 	log     *logrus.Logger
 	factory LDAPClientFactory
@@ -47,14 +47,14 @@ type LDAPUserProvider struct {
 }
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider with the ProductionLDAPClientFactory.
-func NewLDAPUserProvider(config schema.AuthenticationBackend, trustProvider trust.Provider) (provider *LDAPUserProvider) {
+func NewLDAPUserProvider(config schema.AuthenticationBackend, trustProvider trust.CertificateProvider) (provider *LDAPUserProvider) {
 	provider = NewLDAPUserProviderWithFactory(*config.LDAP, config.PasswordReset.Disable, trustProvider, NewProductionLDAPClientFactory())
 
 	return provider
 }
 
 // NewLDAPUserProviderWithFactory creates a new instance of LDAPUserProvider with the specified LDAPClientFactory.
-func NewLDAPUserProviderWithFactory(config schema.LDAPAuthenticationBackend, disableResetPassword bool, trustProvider trust.Provider, factory LDAPClientFactory) (provider *LDAPUserProvider) {
+func NewLDAPUserProviderWithFactory(config schema.LDAPAuthenticationBackend, disableResetPassword bool, trustProvider trust.CertificateProvider, factory LDAPClientFactory) (provider *LDAPUserProvider) {
 	if config.TLS == nil {
 		config.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.TLS
 	}
@@ -73,7 +73,7 @@ func NewLDAPUserProviderWithFactory(config schema.LDAPAuthenticationBackend, dis
 	}
 
 	if provider.trust == nil {
-		provider.trust = trust.NewProvider()
+		provider.trust = trust.NewProduction()
 	}
 
 	provider.parseDynamicUsersConfiguration()
@@ -88,7 +88,7 @@ func (p *LDAPUserProvider) dialOpts() (opts []ldap.DialOpt) {
 	}
 
 	if p.config.TLS != nil {
-		opts = append(opts, ldap.DialWithTLSConfig(p.trust.GetTLSConfiguration(p.config.TLS)))
+		opts = append(opts, ldap.DialWithTLSConfig(p.trust.GetTLSConfig(p.config.TLS)))
 	}
 
 	return opts
@@ -247,7 +247,7 @@ func (p *LDAPUserProvider) connectCustom(url, username, password string, startTL
 	}
 
 	if startTLS {
-		if err = client.StartTLS(p.trust.GetTLSConfiguration(p.config.TLS)); err != nil {
+		if err = client.StartTLS(p.trust.GetTLSConfig(p.config.TLS)); err != nil {
 			client.Close()
 
 			return nil, fmt.Errorf("starttls failed with error: %w", err)

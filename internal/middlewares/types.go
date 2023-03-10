@@ -36,20 +36,20 @@ type AutheliaCtx struct {
 
 // Providers contain all provider provided to Authelia.
 type Providers struct {
-	Authorizer      *authorization.Authorizer
-	SessionProvider *session.Provider
-	Regulator       *regulation.Regulator
-	OpenIDConnect   *oidc.OpenIDConnectProvider
-	Metrics         metrics.Provider
-	NTP             *ntp.Provider
-	UserProvider    authentication.UserProvider
-	StorageProvider storage.Provider
-	Notifier        notification.Notifier
-	Templates       *templates.Provider
-	TOTP            totp.Provider
-	Trust           trust.Provider
-	PasswordPolicy  PasswordPolicyProvider
-	Random          random.Provider
+	Authorizer       *authorization.Authorizer
+	SessionProvider  *session.Provider
+	Regulator        *regulation.Regulator
+	OpenIDConnect    *oidc.OpenIDConnectProvider
+	Metrics          metrics.Provider
+	NTP              *ntp.Provider
+	UserProvider     authentication.UserProvider
+	StorageProvider  storage.Provider
+	Notifier         notification.Notifier
+	Templates        *templates.Provider
+	TOTP             totp.Provider
+	CertificateTrust trust.CertificateProvider
+	PasswordPolicy   PasswordPolicyProvider
+	Random           random.Provider
 }
 
 // RequestHandler represents an Authelia request handler.

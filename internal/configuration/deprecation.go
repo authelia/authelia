@@ -155,4 +155,11 @@ var deprecations = map[string]Deprecation{
 		AutoMap: true,
 		MapFunc: nil,
 	},
+	"certificates_directory": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "certificates_directory",
+		NewKey:  "trust.certificates.paths",
+		AutoMap: true,
+		MapFunc: nil,
+	},
 }

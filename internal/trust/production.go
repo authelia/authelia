@@ -17,12 +17,17 @@ import (
 	"github.com/authelia/authelia/v4/internal/logging"
 )
 
-// NewProvider returns a new provider.
-func NewProvider(opts ...Opt) (provider *Production) {
+// NewProduction returns a new provider.
+func NewProduction(opts ...ProductionOpt) (provider *Production) {
 	provider = &Production{
-		mu:     &sync.Mutex{},
-		config: Config{},
-		log:    logging.Logger().WithFields(map[string]any{"service": "trust"}),
+		mu: &sync.Mutex{},
+		config: Config{
+			System:                 true,
+			ValidationReturnErrors: true,
+			ValidateNotAfter:       true,
+			ValidateNotBefore:      true,
+		},
+		log: logging.Logger().WithFields(map[string]any{"service": "trust"}),
 	}
 
 	for _, opt := range opts {
@@ -32,7 +37,7 @@ func NewProvider(opts ...Opt) (provider *Production) {
 	return provider
 }
 
-// Production is a trust.Provider used for production operations. Should only be initialized via trust.NewProvider.
+// Production is a trust.CertificateProvider used for production operations. Should only be initialized via trust.NewProduction.
 type Production struct {
 	mu     *sync.Mutex
 	log    *logrus.Entry
@@ -50,14 +55,15 @@ type Config struct {
 	// System allows trusting of system certificates.
 	System bool
 
-	// Invalid allows importing of expired or future certificates and instead just logs a warning.
-	Invalid bool
+	// ValidationReturnErrors ensures that errors during validation are returned during validation. If disabled the
+	// errors will instead be logged as warnings.
+	ValidationReturnErrors bool
 
-	// Expired enforces checks on the expired status of certificates.
-	Expired bool
+	// ValidateNotAfter enforces checks on the not after value of certificates.
+	ValidateNotAfter bool
 
-	// Future enforces checks on the not yet valid status of certificates.
-	Future bool
+	// ValidateNotBefore enforces checks on the not before value of certificates.
+	ValidateNotBefore bool
 }
 
 // StartupCheck implements the startup check provider interface.
@@ -86,8 +92,40 @@ func (t *Production) AddTrustedCertificate(cert *x509.Certificate) (err error) {
 	return nil
 }
 
-// AddTrustedCertificatesFromPEM adds the *x509.Certificate content of a PEM block to this provider.
-func (t *Production) AddTrustedCertificatesFromPEM(blocks []byte) (err error) {
+// AddTrustedCertificatesFromBytes adds the *x509.Certificate content of a DER binary encoded block or PEM encoded
+// blocks to this provider.
+func (t *Production) AddTrustedCertificatesFromBytes(data []byte) (err error) {
+	t.init()
+
+	found, certs, err := t.readFromBytes("", data)
+	if err != nil {
+		return err
+	}
+
+	if found == 0 {
+		return fmt.Errorf("no certificates found in data")
+	}
+
+	t.mu.Lock()
+
+	pool := t.pool.Clone()
+
+	t.mu.Unlock()
+
+	for i := 0; i < len(certs); i++ {
+		if err = t.validate(certs[i]); err != nil {
+			return err
+		}
+
+		pool.AddCert(certs[i])
+	}
+
+	t.mu.Lock()
+
+	t.pool = pool
+
+	t.mu.Unlock()
+
 	return nil
 }
 
@@ -128,38 +166,24 @@ func (t *Production) AddTrustedCertificateFromPath(path string) (err error) {
 	return nil
 }
 
-// GetTrustedCertificates returns the trusted certificates for this provider.
-func (t *Production) GetTrustedCertificates() (pool *x509.CertPool) {
+// GetCertPool returns the trusted certificates for this provider.
+func (t *Production) GetCertPool() (pool *x509.CertPool) {
 	t.init()
 
 	t.mu.Lock()
 
-	pool = t.pool.Clone()
+	defer t.mu.Unlock()
 
-	t.mu.Unlock()
-
-	return pool
+	return t.pool.Clone()
 }
 
-// GetTLSConfiguration returns a *tls.Config when provided with a *schema.TLSConfig with this providers trusted certificates.
-func (t *Production) GetTLSConfiguration(sconfig *schema.TLSConfig) (config *tls.Config) {
-	if sconfig == nil {
+// GetTLSConfig returns a *tls.Config when provided with a *schema.TLSConfig with this providers trusted certificates.
+func (t *Production) GetTLSConfig(c *schema.TLSConfig) (config *tls.Config) {
+	if c == nil {
 		return nil
 	}
 
 	t.init()
-
-	var certificates []tls.Certificate
-
-	if sconfig.PrivateKey != nil && sconfig.CertificateChain.HasCertificates() {
-		certificates = []tls.Certificate{
-			{
-				Certificate: sconfig.CertificateChain.CertificatesRaw(),
-				Leaf:        sconfig.CertificateChain.Leaf(),
-				PrivateKey:  sconfig.PrivateKey,
-			},
-		}
-	}
 
 	t.mu.Lock()
 
@@ -167,11 +191,31 @@ func (t *Production) GetTLSConfiguration(sconfig *schema.TLSConfig) (config *tls
 
 	t.mu.Unlock()
 
+	return t.NewTLSConfig(c, rootCAs)
+}
+
+func (t *Production) NewTLSConfig(c *schema.TLSConfig, rootCAs *x509.CertPool) (config *tls.Config) {
+	if c == nil {
+		return nil
+	}
+
+	var certificates []tls.Certificate
+
+	if c.PrivateKey != nil && c.CertificateChain.HasCertificates() {
+		certificates = []tls.Certificate{
+			{
+				Certificate: c.CertificateChain.CertificatesRaw(),
+				Leaf:        c.CertificateChain.Leaf(),
+				PrivateKey:  c.PrivateKey,
+			},
+		}
+	}
+
 	return &tls.Config{
-		ServerName:         sconfig.ServerName,
-		InsecureSkipVerify: sconfig.SkipVerify, //nolint:gosec // Informed choice by user. Off by default.
-		MinVersion:         sconfig.MinimumVersion.MinVersion(),
-		MaxVersion:         sconfig.MaximumVersion.MaxVersion(),
+		ServerName:         c.ServerName,
+		InsecureSkipVerify: c.SkipVerify, //nolint:gosec // Informed choice by user. Off by default.
+		MinVersion:         c.MinimumVersion.MinVersion(),
+		MaxVersion:         c.MaximumVersion.MaxVersion(),
 		RootCAs:            rootCAs,
 		Certificates:       certificates,
 	}
@@ -277,18 +321,19 @@ func (t *Production) read(name string) (found int, certs []*x509.Certificate, er
 	}
 }
 
-func (t *Production) readFromFile(name string) (found int, certs []*x509.Certificate, err error) {
-	ext := strings.ToLower(filepath.Ext(name))
+func (t *Production) readFromBytes(ext string, data []byte) (found int, certs []*x509.Certificate, err error) {
+	isPEM := ext == extPEM
+
+	if !isPEM {
+		if certs, err = x509.ParseCertificates(data); err == nil {
+			return len(certs), certs, nil
+		}
+	}
 
 	var (
 		cert  *x509.Certificate
 		block *pem.Block
-		data  []byte
 	)
-
-	if data, err = os.ReadFile(name); err != nil {
-		return 0, nil, fmt.Errorf("failed to read certificate: %w", err)
-	}
 
 	for len(data) > 0 {
 		if block, data = pem.Decode(data); block == nil {
@@ -296,16 +341,15 @@ func (t *Production) readFromFile(name string) (found int, certs []*x509.Certifi
 				break
 			}
 
-			return 0, nil, fmt.Errorf("failed to parse certificate: the file contained no PEM blocks")
+			return 0, nil, fmt.Errorf("failed to parse certificate: the file contained no PEM blocks and was not DER binary encoded")
 		}
 
 		if block.Type != "CERTIFICATE" {
-			switch ext {
-			case extPEM:
+			if isPEM {
 				continue
-			default:
-				return 0, nil, fmt.Errorf("failed to parse certificate PEM block: the PEM block is not a certificate, it's a '%s'", block.Type)
 			}
+
+			return 0, nil, fmt.Errorf("failed to parse certificate PEM block: the PEM block is not a certificate, it's a '%s'", block.Type)
 		}
 
 		if len(block.Headers) != 0 {
@@ -320,6 +364,18 @@ func (t *Production) readFromFile(name string) (found int, certs []*x509.Certifi
 	}
 
 	return len(certs), certs, nil
+}
+
+func (t *Production) readFromFile(name string) (found int, certs []*x509.Certificate, err error) {
+	var (
+		data []byte
+	)
+
+	if data, err = os.ReadFile(name); err != nil {
+		return 0, nil, fmt.Errorf("failed to read certificate: %w", err)
+	}
+
+	return t.readFromBytes(strings.ToLower(filepath.Ext(name)), data)
 }
 
 func (t *Production) readFromDirectory(name string) (found int, certs []*x509.Certificate, err error) {
@@ -368,86 +424,24 @@ func (t *Production) readFromDirectory(name string) (found int, certs []*x509.Ce
 	return found, certs, nil
 }
 
-/*
-func (t *Production) load(dir string) (found int, certs []*x509.Certificate, err error) {
-	var (
-		entries []os.DirEntry
-		data    []byte
-	)
-
-	t.log.WithFields(map[string]any{"directory": dir}).Debug("Starting certificate scan on directory")
-
-	if entries, err = os.ReadDir(dir); err != nil {
-		return found, nil, err
-	}
-
-	if len(entries) == 0 {
-		t.log.WithFields(map[string]any{"directory": dir}).Trace("Finished certificate scan on empty directory")
-
-		return 0, nil, nil
-	}
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-
-		ext := strings.ToLower(filepath.Ext(entry.Name()))
-
-		switch ext {
-		case extCER, extCRT, extPEM:
-			path := filepath.Join(dir, entry.Name())
-
-			t.log.WithFields(map[string]any{"directory": dir, "name": entry.Name()}).Trace("Certificate scan on directory discovered a potential certificate")
-
-			if data, err = os.ReadFile(path); err != nil {
-				return 0, nil, fmt.Errorf("failed to read certificate: %w", err)
-			}
-
-			var loaded []*x509.Certificate
-
-			if loaded, err = loadPEMCertificates(data); err != nil {
-				return 0, nil, fmt.Errorf("failed to read certificate: certificate at path '%s': %w", path, err)
-			}
-
-			c := len(loaded)
-
-			if c == 0 {
-				return 0, nil, fmt.Errorf("failed to read certificate: certificate at path '%s' does not contain PEM encoded certificate blocks", path)
-			}
-
-			certs = append(certs, loaded...)
-
-			found += c
-		default:
-			continue
-		}
-	}
-
-	t.log.WithFields(map[string]any{"directory": dir, "found": found}).Debug("Finished certificate scan on directory")
-
-	return found, certs, nil
-}
-*/
-
 func (t *Production) validate(cert *x509.Certificate) (err error) {
 	now := time.Now()
 
-	if t.config.Expired && cert.NotAfter.Before(now) {
+	if t.config.ValidateNotAfter && cert.NotAfter.Before(now) {
 		switch {
-		case t.config.Invalid:
-			t.log.WithFields(map[string]any{"signature": string(cert.Signature), "common name": cert.Subject.CommonName, "expires": cert.NotAfter.Unix()}).Warn("Certificate which has expired was loaded")
-		default:
+		case t.config.ValidationReturnErrors:
 			return fmt.Errorf("failed to load certificate which is expired with signature %s: not after %d (now is %d)", cert.Signature, cert.NotAfter.Unix(), now.Unix())
+		default:
+			t.log.WithFields(map[string]any{"signature": string(cert.Signature), "common name": cert.Subject.CommonName, "expires": cert.NotAfter.Unix()}).Warn("Certificate which has expired was loaded")
 		}
 	}
 
-	if t.config.Future && !cert.NotBefore.IsZero() && cert.NotBefore.After(now) {
+	if t.config.ValidateNotBefore && !cert.NotBefore.IsZero() && cert.NotBefore.After(now) {
 		switch {
-		case t.config.Invalid:
-			t.log.WithFields(map[string]any{"signature": string(cert.Signature), "common name": cert.Subject.CommonName, "not before": cert.NotBefore.Unix()}).Warn("Certificate which is only valid in the future was loaded")
-		default:
+		case t.config.ValidationReturnErrors:
 			return fmt.Errorf("failed to load certificate which is not yet valid with signature %s: not before %d (now is %d)", cert.Signature, cert.NotBefore.Unix(), now.Unix())
+		default:
+			t.log.WithFields(map[string]any{"signature": string(cert.Signature), "common name": cert.Subject.CommonName, "not before": cert.NotBefore.Unix()}).Warn("Certificate which is only valid in the future was loaded")
 		}
 	}
 

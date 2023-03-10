@@ -15,11 +15,11 @@ import (
 func getStorageProvider(ctx *CmdCtx) (provider storage.Provider) {
 	switch {
 	case ctx.config.Storage.PostgreSQL != nil:
-		tconfig := ctx.providers.Trust.GetTLSConfiguration(ctx.config.Storage.PostgreSQL.TLS)
+		tconfig := ctx.providers.CertificateTrust.GetTLSConfig(ctx.config.Storage.PostgreSQL.TLS)
 
-		return storage.NewPostgreSQLProvider(ctx.config, tconfig, ctx.providers.Trust.GetTrustedCertificates())
+		return storage.NewPostgreSQLProvider(ctx.config, tconfig, ctx.providers.CertificateTrust.GetCertPool())
 	case ctx.config.Storage.MySQL != nil:
-		return storage.NewMySQLProvider(ctx.config, ctx.providers.Trust.GetTLSConfiguration(ctx.config.Storage.MySQL.TLS))
+		return storage.NewMySQLProvider(ctx.config, ctx.providers.CertificateTrust.GetTLSConfig(ctx.config.Storage.MySQL.TLS))
 	case ctx.config.Storage.Local != nil:
 		return storage.NewSQLiteProvider(ctx.config)
 	default:

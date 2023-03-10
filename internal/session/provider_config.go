@@ -93,7 +93,7 @@ func NewProviderConfigAndSession(config schema.SessionCookieConfiguration, provi
 	return c, p, nil
 }
 
-func NewSessionProvider(config schema.SessionConfiguration, trustProvider trust.Provider) (name string, provider session.Provider, serializer Serializer, err error) {
+func NewSessionProvider(config schema.SessionConfiguration, trustProvider trust.CertificateProvider) (name string, provider session.Provider, serializer Serializer, err error) {
 	// If redis configuration is provided, then use the redis provider.
 	switch {
 	case config.Redis != nil:
@@ -102,7 +102,7 @@ func NewSessionProvider(config schema.SessionConfiguration, trustProvider trust.
 		var tlsConfig *tls.Config
 
 		if config.Redis.TLS != nil && trustProvider != nil {
-			tlsConfig = trustProvider.GetTLSConfiguration(config.Redis.TLS)
+			tlsConfig = trustProvider.GetTLSConfig(config.Redis.TLS)
 		}
 
 		if config.Redis.HighAvailability != nil && config.Redis.HighAvailability.SentinelName != "" {

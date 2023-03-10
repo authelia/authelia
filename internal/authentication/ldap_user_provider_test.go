@@ -31,7 +31,7 @@ func TestShouldCreateRawConnectionWhenSchemeIsLDAP(t *testing.T) {
 			Password: "password",
 		},
 		false,
-		trust.NewProvider(),
+		trust.NewProduction(),
 		mockFactory)
 
 	dialURL := mockFactory.EXPECT().

@@ -9,7 +9,6 @@ package schema
 // Keys is a list of valid schema keys detected by reflecting over a schema.Configuration struct.
 var Keys = []string{
 	"theme",
-	"certificates_directory",
 	"jwt_secret",
 	"default_redirection_url",
 	"default_2fa_method",
@@ -275,4 +274,10 @@ var Keys = []string{
 	"privacy_policy.enabled",
 	"privacy_policy.require_user_acceptance",
 	"privacy_policy.policy_url",
+	"trust.certificates.paths",
+	"trust.certificates.certificates",
+	"trust.certificates.disable_system_certificates",
+	"trust.certificates.disable_validation_errors",
+	"trust.certificates.disable_validate_not_before",
+	"trust.certificates.disable_validate_not_after",
 }
