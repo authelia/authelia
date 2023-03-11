@@ -1,13 +1,13 @@
 package session
 
 import (
-	"crypto/x509"
 	"fmt"
 
 	"github.com/fasthttp/session/v2"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/trust"
 )
 
 // Provider contains a list of domain sessions.
@@ -16,10 +16,10 @@ type Provider struct {
 }
 
 // NewProvider instantiate a session provider given a configuration.
-func NewProvider(config schema.SessionConfiguration, certPool *x509.CertPool) *Provider {
+func NewProvider(config schema.SessionConfiguration, trustProvider trust.CertificateProvider) *Provider {
 	log := logging.Logger()
 
-	name, p, s, err := NewSessionProvider(config, certPool)
+	name, p, s, err := NewSessionProvider(config, trustProvider)
 	if err != nil {
 		log.Fatal(err)
 	}

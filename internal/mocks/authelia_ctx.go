@@ -31,11 +31,12 @@ type MockAutheliaCtx struct {
 	Ctrl *gomock.Controller
 
 	// Providers.
-	UserProviderMock *MockUserProvider
-	StorageMock      *MockStorage
-	NotifierMock     *MockNotifier
-	TOTPMock         *MockTOTP
-	RandomMock       *MockRandom
+	MockUserProvider    *MockUserProvider
+	MockStorage         *MockStorage
+	MockNotifier        *MockNotifier
+	MockTOTP            *MockTOTP
+	MockRandom          *MockRandom
+	MockCertifiateTrust *MockCertificateTrust
 
 	UserSession *session.UserSession
 
@@ -184,14 +185,14 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	providers := middlewares.Providers{}
 
 	mockAuthelia.Ctrl = gomock.NewController(t)
-	mockAuthelia.UserProviderMock = NewMockUserProvider(mockAuthelia.Ctrl)
-	providers.UserProvider = mockAuthelia.UserProviderMock
+	mockAuthelia.MockUserProvider = NewMockUserProvider(mockAuthelia.Ctrl)
+	providers.UserProvider = mockAuthelia.MockUserProvider
 
-	mockAuthelia.StorageMock = NewMockStorage(mockAuthelia.Ctrl)
-	providers.StorageProvider = mockAuthelia.StorageMock
+	mockAuthelia.MockStorage = NewMockStorage(mockAuthelia.Ctrl)
+	providers.StorageProvider = mockAuthelia.MockStorage
 
-	mockAuthelia.NotifierMock = NewMockNotifier(mockAuthelia.Ctrl)
-	providers.Notifier = mockAuthelia.NotifierMock
+	mockAuthelia.MockNotifier = NewMockNotifier(mockAuthelia.Ctrl)
+	providers.Notifier = mockAuthelia.MockNotifier
 
 	providers.Authorizer = authorization.NewAuthorizer(
 		&config)
@@ -201,12 +202,14 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 
 	providers.Regulator = regulation.NewRegulator(config.Regulation, providers.StorageProvider, &mockAuthelia.Clock)
 
-	mockAuthelia.TOTPMock = NewMockTOTP(mockAuthelia.Ctrl)
-	providers.TOTP = mockAuthelia.TOTPMock
+	mockAuthelia.MockTOTP = NewMockTOTP(mockAuthelia.Ctrl)
+	providers.TOTP = mockAuthelia.MockTOTP
 
-	mockAuthelia.RandomMock = NewMockRandom(mockAuthelia.Ctrl)
-
+	mockAuthelia.MockRandom = NewMockRandom(mockAuthelia.Ctrl)
 	providers.Random = random.NewMathematical()
+
+	mockAuthelia.MockCertifiateTrust = NewMockCertificateTrust(mockAuthelia.Ctrl)
+	providers.CertificateTrust = mockAuthelia.MockCertifiateTrust
 
 	var err error
 

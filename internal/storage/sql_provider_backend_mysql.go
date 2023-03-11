@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"crypto/x509"
+	"crypto/tls"
 	"fmt"
 	"path"
 	"time"
@@ -9,7 +9,6 @@ import (
 	"github.com/go-sql-driver/mysql"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // MySQLProvider is a MySQL provider.
@@ -18,9 +17,9 @@ type MySQLProvider struct {
 }
 
 // NewMySQLProvider a MySQL provider.
-func NewMySQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider *MySQLProvider) {
+func NewMySQLProvider(config *schema.Configuration, tconfig *tls.Config) (provider *MySQLProvider) {
 	provider = &MySQLProvider{
-		SQLProvider: NewSQLProvider(config, providerMySQL, providerMySQL, dsnMySQL(config.Storage.MySQL, caCertPool)),
+		SQLProvider: NewSQLProvider(config, providerMySQL, providerMySQL, dsnMySQL(config.Storage.MySQL, tconfig)),
 	}
 
 	// All providers have differing SELECT existing table statements.
@@ -32,7 +31,7 @@ func NewMySQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (
 	return provider
 }
 
-func dsnMySQL(config *schema.MySQLStorageConfiguration, caCertPool *x509.CertPool) (dataSourceName string) {
+func dsnMySQL(config *schema.MySQLStorageConfiguration, tconfig *tls.Config) (dataSourceName string) {
 	dsnConfig := mysql.NewConfig()
 
 	switch {
@@ -47,8 +46,8 @@ func dsnMySQL(config *schema.MySQLStorageConfiguration, caCertPool *x509.CertPoo
 		dsnConfig.Addr = fmt.Sprintf("%s:%d", config.Host, config.Port)
 	}
 
-	if config.TLS != nil {
-		_ = mysql.RegisterTLSConfig("storage", utils.NewTLSConfig(config.TLS, caCertPool))
+	if tconfig != nil {
+		_ = mysql.RegisterTLSConfig("storage", tconfig)
 
 		dsnConfig.TLSConfig = "storage"
 	}

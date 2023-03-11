@@ -9,3 +9,4 @@ package mocks
 //go:generate mockgen -package mocks -destination storage.go -mock_names Provider=MockStorage github.com/authelia/authelia/v4/internal/storage Provider
 //go:generate mockgen -package mocks -destination duo_api.go -mock_names API=MockAPI github.com/authelia/authelia/v4/internal/duo API
 //go:generate mockgen -package mocks -destination random.go -mock_names Provider=MockRandom github.com/authelia/authelia/v4/internal/random Provider
+//go:generate mockgen -package mocks -destination trust_certificate.go -mock_names CertificateProvider=MockCertificateTrust github.com/authelia/authelia/v4/internal/trust CertificateProvider

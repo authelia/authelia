@@ -1,8 +1,6 @@
 package authentication
 
 import (
-	"crypto/tls"
-	"crypto/x509"
 	"fmt"
 	"net"
 	"strconv"
@@ -13,16 +11,17 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/trust"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // LDAPUserProvider is a UserProvider that connects to LDAP servers like ActiveDirectory, OpenLDAP, OpenDJ, FreeIPA, etc.
 type LDAPUserProvider struct {
-	config    schema.LDAPAuthenticationBackend
-	tlsConfig *tls.Config
-	dialOpts  []ldap.DialOpt
-	log       *logrus.Logger
-	factory   LDAPClientFactory
+	config schema.LDAPAuthenticationBackend
+	trust  trust.CertificateProvider
+
+	log     *logrus.Logger
+	factory LDAPClientFactory
 
 	clock utils.Clock
 
@@ -48,26 +47,16 @@ type LDAPUserProvider struct {
 }
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider with the ProductionLDAPClientFactory.
-func NewLDAPUserProvider(config schema.AuthenticationBackend, certPool *x509.CertPool) (provider *LDAPUserProvider) {
-	provider = NewLDAPUserProviderWithFactory(*config.LDAP, config.PasswordReset.Disable, certPool, NewProductionLDAPClientFactory())
+func NewLDAPUserProvider(config schema.AuthenticationBackend, trustProvider trust.CertificateProvider) (provider *LDAPUserProvider) {
+	provider = NewLDAPUserProviderWithFactory(*config.LDAP, config.PasswordReset.Disable, trustProvider, NewProductionLDAPClientFactory())
 
 	return provider
 }
 
 // NewLDAPUserProviderWithFactory creates a new instance of LDAPUserProvider with the specified LDAPClientFactory.
-func NewLDAPUserProviderWithFactory(config schema.LDAPAuthenticationBackend, disableResetPassword bool, certPool *x509.CertPool, factory LDAPClientFactory) (provider *LDAPUserProvider) {
+func NewLDAPUserProviderWithFactory(config schema.LDAPAuthenticationBackend, disableResetPassword bool, trustProvider trust.CertificateProvider, factory LDAPClientFactory) (provider *LDAPUserProvider) {
 	if config.TLS == nil {
 		config.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.TLS
-	}
-
-	tlsConfig := utils.NewTLSConfig(config.TLS, certPool)
-
-	var dialOpts = []ldap.DialOpt{
-		ldap.DialWithDialer(&net.Dialer{Timeout: config.Timeout}),
-	}
-
-	if tlsConfig != nil {
-		dialOpts = append(dialOpts, ldap.DialWithTLSConfig(tlsConfig))
 	}
 
 	if factory == nil {
@@ -76,18 +65,33 @@ func NewLDAPUserProviderWithFactory(config schema.LDAPAuthenticationBackend, dis
 
 	provider = &LDAPUserProvider{
 		config:               config,
-		tlsConfig:            tlsConfig,
-		dialOpts:             dialOpts,
+		trust:                trustProvider,
 		log:                  logging.Logger(),
 		factory:              factory,
 		disableResetPassword: disableResetPassword,
 		clock:                &utils.RealClock{},
 	}
 
+	if provider.trust == nil {
+		provider.trust = trust.NewProduction()
+	}
+
 	provider.parseDynamicUsersConfiguration()
 	provider.parseDynamicGroupsConfiguration()
 
 	return provider
+}
+
+func (p *LDAPUserProvider) dialOpts() (opts []ldap.DialOpt) {
+	opts = []ldap.DialOpt{
+		ldap.DialWithDialer(&net.Dialer{Timeout: p.config.Timeout}),
+	}
+
+	if p.config.TLS != nil {
+		opts = append(opts, ldap.DialWithTLSConfig(p.trust.GetTLSConfig(p.config.TLS)))
+	}
+
+	return opts
 }
 
 // CheckUserPassword checks if provided password matches for the given user.
@@ -107,7 +111,7 @@ func (p *LDAPUserProvider) CheckUserPassword(username string, password string) (
 		return false, err
 	}
 
-	if clientUser, err = p.connectCustom(p.config.URL, profile.DN, password, p.config.StartTLS, p.dialOpts...); err != nil {
+	if clientUser, err = p.connectCustom(p.config.URL, profile.DN, password, p.config.StartTLS, p.dialOpts()...); err != nil {
 		return false, fmt.Errorf("authentication failed. Cause: %w", err)
 	}
 
@@ -234,7 +238,7 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 }
 
 func (p *LDAPUserProvider) connect() (client LDAPClient, err error) {
-	return p.connectCustom(p.config.URL, p.config.User, p.config.Password, p.config.StartTLS, p.dialOpts...)
+	return p.connectCustom(p.config.URL, p.config.User, p.config.Password, p.config.StartTLS, p.dialOpts()...)
 }
 
 func (p *LDAPUserProvider) connectCustom(url, username, password string, startTLS bool, opts ...ldap.DialOpt) (client LDAPClient, err error) {
@@ -243,7 +247,7 @@ func (p *LDAPUserProvider) connectCustom(url, username, password string, startTL
 	}
 
 	if startTLS {
-		if err = client.StartTLS(p.tlsConfig); err != nil {
+		if err = client.StartTLS(p.trust.GetTLSConfig(p.config.TLS)); err != nil {
 			client.Close()
 
 			return nil, fmt.Errorf("starttls failed with error: %w", err)
@@ -299,7 +303,7 @@ func (p *LDAPUserProvider) searchReferral(referral string, request *ldap.SearchR
 		result *ldap.SearchResult
 	)
 
-	if client, err = p.connectCustom(referral, p.config.User, p.config.Password, p.config.StartTLS, p.dialOpts...); err != nil {
+	if client, err = p.connectCustom(referral, p.config.User, p.config.Password, p.config.StartTLS, p.dialOpts()...); err != nil {
 		return fmt.Errorf("error occurred connecting to referred LDAP server '%s': %w", referral, err)
 	}
 
@@ -468,7 +472,7 @@ func (p *LDAPUserProvider) modify(client LDAPClient, modifyRequest *ldap.ModifyR
 			errRef    error
 		)
 
-		if clientRef, errRef = p.connectCustom(referral, p.config.User, p.config.Password, p.config.StartTLS, p.dialOpts...); errRef != nil {
+		if clientRef, errRef = p.connectCustom(referral, p.config.User, p.config.Password, p.config.StartTLS, p.dialOpts()...); errRef != nil {
 			return fmt.Errorf("error occurred connecting to referred LDAP server '%s': %+v. Original Error: %w", referral, errRef, err)
 		}
 
@@ -502,7 +506,7 @@ func (p *LDAPUserProvider) pwdModify(client LDAPClient, pwdModifyRequest *ldap.P
 			errRef    error
 		)
 
-		if clientRef, errRef = p.connectCustom(referral, p.config.User, p.config.Password, p.config.StartTLS, p.dialOpts...); errRef != nil {
+		if clientRef, errRef = p.connectCustom(referral, p.config.User, p.config.Password, p.config.StartTLS, p.dialOpts()...); errRef != nil {
 			return fmt.Errorf("error occurred connecting to referred LDAP server '%s': %+v. Original Error: %w", referral, errRef, err)
 		}
 

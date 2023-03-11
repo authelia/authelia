@@ -7,7 +7,6 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
@@ -16,12 +15,8 @@ import (
 	"math/big"
 	"net"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/logging"
 )
 
 // PEMBlockType represent an enum of the existing PEM block types.
@@ -102,7 +97,7 @@ func GenerateCertificate(privateKeyBuilder PrivateKeyBuilder, hosts []string, va
 
 // ConvertDERToPEM convert certificate in DER format into PEM format.
 func ConvertDERToPEM(der []byte, blockType PEMBlockType) ([]byte, error) {
-	var buf bytes.Buffer
+	buf := &bytes.Buffer{}
 
 	var blockTypeStr string
 
@@ -115,7 +110,7 @@ func ConvertDERToPEM(der []byte, blockType PEMBlockType) ([]byte, error) {
 		return nil, fmt.Errorf("unknown PEM block type %d", blockType)
 	}
 
-	if err := pem.Encode(&buf, &pem.Block{Type: blockTypeStr, Bytes: der}); err != nil {
+	if err := pem.Encode(buf, &pem.Block{Type: blockTypeStr, Bytes: der}); err != nil {
 		return nil, fmt.Errorf("failed to encode DER data into PEM: %v", err)
 	}
 
@@ -234,78 +229,6 @@ func IsX509PrivateKey(i any) bool {
 	}
 }
 
-// NewTLSConfig generates a tls.Config from a schema.TLSConfig and a x509.CertPool.
-func NewTLSConfig(config *schema.TLSConfig, rootCAs *x509.CertPool) (tlsConfig *tls.Config) {
-	var certificates []tls.Certificate
-
-	if config.PrivateKey != nil && config.CertificateChain.HasCertificates() {
-		certificates = []tls.Certificate{
-			{
-				Certificate: config.CertificateChain.CertificatesRaw(),
-				Leaf:        config.CertificateChain.Leaf(),
-				PrivateKey:  config.PrivateKey,
-			},
-		}
-	}
-
-	return &tls.Config{
-		ServerName:         config.ServerName,
-		InsecureSkipVerify: config.SkipVerify, //nolint:gosec // Informed choice by user. Off by default.
-		MinVersion:         config.MinimumVersion.MinVersion(),
-		MaxVersion:         config.MaximumVersion.MaxVersion(),
-		RootCAs:            rootCAs,
-		Certificates:       certificates,
-	}
-}
-
-// NewX509CertPool generates a x509.CertPool from the system PKI and the directory specified.
-func NewX509CertPool(directory string) (certPool *x509.CertPool, warnings []error, errors []error) {
-	var err error
-
-	if certPool, err = x509.SystemCertPool(); err != nil {
-		warnings = append(warnings, fmt.Errorf("could not load system certificate pool which may result in untrusted certificate issues: %v", err))
-		certPool = x509.NewCertPool()
-	}
-
-	log := logging.Logger()
-
-	log.Tracef("Starting scan of directory %s for certificates", directory)
-
-	if directory == "" {
-		return certPool, warnings, errors
-	}
-
-	var entries []os.DirEntry
-
-	if entries, err = os.ReadDir(directory); err != nil {
-		errors = append(errors, fmt.Errorf("could not read certificates from directory %v", err))
-
-		return certPool, warnings, errors
-	}
-
-	for _, entry := range entries {
-		nameLower := strings.ToLower(entry.Name())
-
-		if !entry.IsDir() && (strings.HasSuffix(nameLower, ".cer") || strings.HasSuffix(nameLower, ".crt") || strings.HasSuffix(nameLower, ".pem")) {
-			certPath := filepath.Join(directory, entry.Name())
-
-			log.Tracef("Found possible cert %s, attempting to add it to the pool", certPath)
-
-			var data []byte
-
-			if data, err = os.ReadFile(certPath); err != nil {
-				errors = append(errors, fmt.Errorf("could not read certificate %v", err))
-			} else if ok := certPool.AppendCertsFromPEM(data); !ok {
-				errors = append(errors, fmt.Errorf("could not import certificate %s", entry.Name()))
-			}
-		}
-	}
-
-	log.Tracef("Finished scan of directory %s for certificates", directory)
-
-	return certPool, warnings, errors
-}
-
 // WriteCertificateBytesToPEM writes a certificate/csr to a file in the PEM format.
 func WriteCertificateBytesToPEM(path string, csr bool, certs ...[]byte) (err error) {
 	blockType := BlockTypeCertificate
@@ -352,7 +275,7 @@ func WriteKeyToPEM(key any, path string, pkcs8 bool) (err error) {
 }
 
 // PEMBlockFromX509Key turns a PublicKey or PrivateKey into a pem.Block.
-func PEMBlockFromX509Key(key any, pkcs8 bool) (pemBlock *pem.Block, err error) {
+func PEMBlockFromX509Key(key any, pkcs8 bool) (block *pem.Block, err error) {
 	var (
 		data      []byte
 		blockType string

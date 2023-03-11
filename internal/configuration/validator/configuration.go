@@ -2,7 +2,6 @@ package validator
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -12,16 +11,6 @@ import (
 // ValidateConfiguration and adapt the configuration read from file.
 func ValidateConfiguration(config *schema.Configuration, validator *schema.StructValidator) {
 	var err error
-
-	if config.CertificatesDirectory != "" {
-		var info os.FileInfo
-
-		if info, err = os.Stat(config.CertificatesDirectory); err != nil {
-			validator.Push(fmt.Errorf("the location 'certificates_directory' could not be inspected: %w", err))
-		} else if !info.IsDir() {
-			validator.Push(fmt.Errorf("the location 'certificates_directory' refers to '%s' is not a directory", config.CertificatesDirectory))
-		}
-	}
 
 	if config.JWTSecret == "" {
 		validator.Push(fmt.Errorf("option 'jwt_secret' is required"))

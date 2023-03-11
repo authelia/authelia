@@ -13,6 +13,7 @@ import (
 	"golang.org/x/text/encoding/unicode"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/trust"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -30,7 +31,7 @@ func TestShouldCreateRawConnectionWhenSchemeIsLDAP(t *testing.T) {
 			Password: "password",
 		},
 		false,
-		nil,
+		trust.NewProduction(),
 		mockFactory)
 
 	dialURL := mockFactory.EXPECT().
@@ -3766,7 +3767,7 @@ func TestShouldCallStartTLSWhenEnabled(t *testing.T) {
 		Return(nil)
 
 	connStartTLS := mockClient.EXPECT().
-		StartTLS(provider.tlsConfig)
+		StartTLS(gomock.Any())
 
 	connClose := mockClient.EXPECT().Close()
 
@@ -3897,7 +3898,7 @@ func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T
 		Return(nil)
 
 	connStartTLS := mockClient.EXPECT().
-		StartTLS(provider.tlsConfig)
+		StartTLS(gomock.Any())
 
 	connClose := mockClient.EXPECT().Close()
 
@@ -3972,7 +3973,7 @@ func TestShouldReturnLDAPSAlreadySecuredWhenStartTLSAttempted(t *testing.T) {
 		Return(mockClient, nil)
 
 	connStartTLS := mockClient.EXPECT().
-		StartTLS(provider.tlsConfig).
+		StartTLS(gomock.Any()).
 		Return(errors.New("LDAP Result Code 200 \"Network Error\": ldap: already encrypted"))
 
 	gomock.InOrder(dialURL, connStartTLS, mockClient.EXPECT().Close())

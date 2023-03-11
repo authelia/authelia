@@ -136,11 +136,11 @@ func (s *AuthzSuite) TestShouldApplyDefaultPolicy() {
 
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
-	mock.UserProviderMock.EXPECT().
+	mock.MockUserProvider.EXPECT().
 		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 		Return(true, nil)
 
-	mock.UserProviderMock.EXPECT().
+	mock.MockUserProvider.EXPECT().
 		GetDetails(gomock.Eq("john")).
 		Return(&authentication.UserDetails{
 			Emails: []string{"john@example.com"},
@@ -221,11 +221,11 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfBypassDomain() {
 
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
-	mock.UserProviderMock.EXPECT().
+	mock.MockUserProvider.EXPECT().
 		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 		Return(true, nil)
 
-	mock.UserProviderMock.EXPECT().
+	mock.MockUserProvider.EXPECT().
 		GetDetails(gomock.Eq("john")).
 		Return(&authentication.UserDetails{
 			Emails: []string{"john@example.com"},
@@ -263,11 +263,11 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicScheme() {
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
 	gomock.InOrder(
-		mock.UserProviderMock.EXPECT().
+		mock.MockUserProvider.EXPECT().
 			CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 			Return(true, nil),
 
-		mock.UserProviderMock.EXPECT().
+		mock.MockUserProvider.EXPECT().
 			GetDetails(gomock.Eq("john")).
 			Return(nil, fmt.Errorf("generic failure")),
 	)
@@ -352,11 +352,11 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomain() {
 
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
-	mock.UserProviderMock.EXPECT().
+	mock.MockUserProvider.EXPECT().
 		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 		Return(true, nil)
 
-	mock.UserProviderMock.EXPECT().
+	mock.MockUserProvider.EXPECT().
 		GetDetails(gomock.Eq("john")).
 		Return(&authentication.UserDetails{
 			Emails: []string{"john@example.com"},
@@ -404,11 +404,11 @@ func (s *AuthzSuite) TestShouldHandleAnyCaseSchemeParameter() {
 
 			mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, fmt.Sprintf("%s am9objpwYXNzd29yZA==", tc.scheme))
 
-			mock.UserProviderMock.EXPECT().
+			mock.MockUserProvider.EXPECT().
 				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 				Return(true, nil)
 
-			mock.UserProviderMock.EXPECT().
+			mock.MockUserProvider.EXPECT().
 				GetDetails(gomock.Eq("john")).
 				Return(&authentication.UserDetails{
 					Emails: []string{"john@example.com"},
@@ -447,11 +447,11 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfTwoFactorDomain() {
 
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
-	mock.UserProviderMock.EXPECT().
+	mock.MockUserProvider.EXPECT().
 		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 		Return(true, nil)
 
-	mock.UserProviderMock.EXPECT().
+	mock.MockUserProvider.EXPECT().
 		GetDetails(gomock.Eq("john")).
 		Return(&authentication.UserDetails{
 			Emails: []string{"john@example.com"},
@@ -495,11 +495,11 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfDenyDomain() {
 
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
-	mock.UserProviderMock.EXPECT().
+	mock.MockUserProvider.EXPECT().
 		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 		Return(true, nil)
 
-	mock.UserProviderMock.EXPECT().
+	mock.MockUserProvider.EXPECT().
 		GetDetails(gomock.Eq("john")).
 		Return(&authentication.UserDetails{
 			Emails: []string{"john@example.com"},
@@ -546,11 +546,11 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainWithAuthorizationHead
 
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
 
-	mock.UserProviderMock.EXPECT().
+	mock.MockUserProvider.EXPECT().
 		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 		Return(true, nil)
 
-	mock.UserProviderMock.EXPECT().
+	mock.MockUserProvider.EXPECT().
 		GetDetails(gomock.Eq("john")).
 		Return(&authentication.UserDetails{
 			Emails: []string{"john@example.com"},
@@ -672,7 +672,7 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithAuthorizationHeaderInvalidPassword
 
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
 
-	mock.UserProviderMock.EXPECT().
+	mock.MockUserProvider.EXPECT().
 		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 		Return(false, nil)
 
@@ -993,7 +993,7 @@ func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabl
 
 	s.Require().NoError(mock.Ctx.SaveSession(userSession))
 
-	mock.UserProviderMock.EXPECT().GetDetails("john").Times(0)
+	mock.MockUserProvider.EXPECT().GetDetails("john").Times(0)
 
 	authz.Handler(mock.Ctx)
 
@@ -1092,8 +1092,8 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenUserDoesNotExist() {
 	s.Require().NoError(mock.Ctx.SaveSession(userSession))
 
 	gomock.InOrder(
-		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
-		mock.UserProviderMock.EXPECT().GetDetails("john").Return(nil, authentication.ErrUserNotFound).Times(1),
+		mock.MockUserProvider.EXPECT().GetDetails("john").Return(user, nil).Times(1),
+		mock.MockUserProvider.EXPECT().GetDetails("john").Return(nil, authentication.ErrUserNotFound).Times(1),
 	)
 
 	authz.Handler(mock.Ctx)
@@ -1184,8 +1184,8 @@ func (s *AuthzSuite) TestShouldUpdateRemovedUserGroupsFromBackendAndDeny() {
 	s.Require().NoError(mock.Ctx.SaveSession(userSession))
 
 	gomock.InOrder(
-		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
-		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
+		mock.MockUserProvider.EXPECT().GetDetails("john").Return(user, nil).Times(1),
+		mock.MockUserProvider.EXPECT().GetDetails("john").Return(user, nil).Times(1),
 	)
 
 	authz.Handler(mock.Ctx)
@@ -1273,8 +1273,8 @@ func (s *AuthzSuite) TestShouldUpdateAddedUserGroupsFromBackendAndDeny() {
 	s.Require().NoError(mock.Ctx.SaveSession(userSession))
 
 	gomock.InOrder(
-		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
-		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
+		mock.MockUserProvider.EXPECT().GetDetails("john").Return(user, nil).Times(1),
+		mock.MockUserProvider.EXPECT().GetDetails("john").Return(user, nil).Times(1),
 	)
 
 	authz.Handler(mock.Ctx)

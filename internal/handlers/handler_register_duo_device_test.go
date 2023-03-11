@@ -130,7 +130,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithDeny() {
 
 func (s *RegisterDuoDeviceSuite) TestShouldRespondOK() {
 	s.mock.Ctx.Request.SetBodyString("{\"device\":\"1234567890123456\", \"method\":\"push\"}")
-	s.mock.StorageMock.EXPECT().
+	s.mock.MockStorage.EXPECT().
 		SavePreferredDuoDevice(gomock.Eq(s.mock.Ctx), gomock.Eq(model.DuoDevice{Username: "john", Device: "1234567890123456", Method: "push"})).
 		Return(nil)
 

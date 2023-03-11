@@ -6,7 +6,6 @@ import (
 	"crypto/elliptic"
 	"crypto/rsa"
 	"crypto/x509"
-	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -14,59 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func TestShouldReturnErrWhenX509DirectoryNotExist(t *testing.T) {
-	pool, warnings, errors := NewX509CertPool("/tmp/asdfzyxabc123/not/a/real/dir")
-	assert.NotNil(t, pool)
-
-	if runtime.GOOS == windows {
-		require.Len(t, warnings, 1)
-		assert.EqualError(t, warnings[0], "could not load system certificate pool which may result in untrusted certificate issues: crypto/x509: system root pool is not available on Windows")
-	} else {
-		assert.Len(t, warnings, 0)
-	}
-
-	require.Len(t, errors, 1)
-
-	if runtime.GOOS == windows {
-		assert.EqualError(t, errors[0], "could not read certificates from directory open /tmp/asdfzyxabc123/not/a/real/dir: The system cannot find the path specified.")
-	} else {
-		assert.EqualError(t, errors[0], "could not read certificates from directory open /tmp/asdfzyxabc123/not/a/real/dir: no such file or directory")
-	}
-}
-
-func TestShouldNotReturnErrWhenX509DirectoryExist(t *testing.T) {
-	dir := t.TempDir()
-
-	pool, warnings, errors := NewX509CertPool(dir)
-	assert.NotNil(t, pool)
-
-	if runtime.GOOS == windows {
-		require.Len(t, warnings, 1)
-		assert.EqualError(t, warnings[0], "could not load system certificate pool which may result in untrusted certificate issues: crypto/x509: system root pool is not available on Windows")
-	} else {
-		assert.Len(t, warnings, 0)
-	}
-
-	assert.Len(t, errors, 0)
-}
-
-func TestShouldReadCertsFromDirectoryButNotKeys(t *testing.T) {
-	pool, warnings, errors := NewX509CertPool("../suites/common/pki/")
-	assert.NotNil(t, pool)
-	require.Len(t, errors, 3)
-
-	if runtime.GOOS == "windows" {
-		require.Len(t, warnings, 1)
-		assert.EqualError(t, warnings[0], "could not load system certificate pool which may result in untrusted certificate issues: crypto/x509: system root pool is not available on Windows")
-	} else {
-		assert.Len(t, warnings, 0)
-	}
-
-	assert.EqualError(t, errors[0], "could not import certificate private.backend.pem")
-	assert.EqualError(t, errors[1], "could not import certificate private.oidc.pem")
-	assert.EqualError(t, errors[2], "could not import certificate private.pem")
-}
 
 func TestShouldGenerateCertificateAndPersistIt(t *testing.T) {
 	testCases := []struct {
