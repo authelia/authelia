@@ -30,6 +30,48 @@ type GitHubTagsJSON struct {
 	Name string `json:"name"`
 }
 
+type GitHubReleasesJSON struct {
+	ID              int              `json:"id"`
+	Name            string           `json:"name"`
+	TagName         string           `json:"tag_name"`
+	TargetCommitISH string           `json:"target_commitish"`
+	NodeID          string           `json:"node_id"`
+	Draft           bool             `json:"draft"`
+	Prerelease      bool             `json:"prerelease"`
+	URL             string           `json:"url"`
+	AssetsURL       string           `json:"assets_url"`
+	UploadURL       string           `json:"upload_url"`
+	HTMLURL         string           `json:"html_url"`
+	TarballURL      string           `json:"tarball_url"`
+	ZipballURL      string           `json:"zipball_url"`
+	Assets          []any            `json:"assets"`
+	CreatedAt       time.Time        `json:"created_at"`
+	PublishedAt     time.Time        `json:"published_at"`
+	Author          GitHubAuthorJSON `json:"author"`
+	Body            string           `json:"body"`
+}
+
+type GitHubAuthorJSON struct {
+	ID                int    `json:"id"`
+	Login             string `json:"login"`
+	NodeID            string `json:"node_id"`
+	AvatarURL         string `json:"avatar_url"`
+	GravatarID        string `json:"gravatar_id"`
+	URL               string `json:"url"`
+	HTMLURL           string `json:"html_url"`
+	FollowersURL      string `json:"followers_url"`
+	FollowingURL      string `json:"following_url"`
+	GistsURL          string `json:"gists_url"`
+	StarredURL        string `json:"starred_url"`
+	SubscriptionsURL  string `json:"subscriptions_url"`
+	OrganizationsURL  string `json:"organizations_url"`
+	ReposURL          string `json:"repos_url"`
+	EventsURL         string `json:"events_url"`
+	ReceivedEventsURL string `json:"received_events_url"`
+	Type              string `json:"type"`
+	SiteAdmin         bool   `json:"site_admin"`
+}
+
 // DocsDataMisc represents the docs misc data schema.
 type DocsDataMisc struct {
 	CSP    TemplateCSP `json:"csp"`
