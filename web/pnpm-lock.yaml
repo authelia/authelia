@@ -56,7 +56,7 @@ specifiers:
   react-loading: 2.0.3
   react-router-dom: 6.9.0
   react-test-renderer: 18.2.0
-  react18-input-otp: 1.1.2
+  react18-input-otp: 1.1.3
   typescript: 4.9.5
   vite: 4.1.4
   vite-plugin-eslint: 1.8.1
@@ -88,7 +88,7 @@ dependencies:
   react-i18next: 12.2.0_nuvg7z3l7c7q3mgp6kac62miay
   react-loading: 2.0.3_react@18.2.0
   react-router-dom: 6.9.0_biqbaboplfbrettd7655fr4n2y
-  react18-input-otp: 1.1.2_biqbaboplfbrettd7655fr4n2y
+  react18-input-otp: 1.1.3_biqbaboplfbrettd7655fr4n2y
   zxcvbn: 4.4.2
 
 devDependencies:
@@ -8563,8 +8563,8 @@ packages:
     dependencies:
       loose-envify: 1.4.0
 
-  /react18-input-otp/1.1.2_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-E21NiPh/KH67Bq/uEAm78E8H+croiGAyX5WcXfX49qh0im1iKrk/3RCKCTESG6WUoJYyh/fj5JY0UrHm+Mm0eQ==}
+  /react18-input-otp/1.1.3_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-55dZMVX61In2ngUhA4Fv0NMY4j5RZjxrJaSOAnJGJmkAhxKB6puVHYEmipyy2+W2CPydFF7pv+0NKzPUA03EVg==}
     peerDependencies:
       react: 16.2.0 - 18 || 18
       react-dom: 16.2.0 - 18 || 18
