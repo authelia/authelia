@@ -2,7 +2,7 @@
 title: "Accessibility"
 description: "Authelia Development Accessibility Guidelines"
 lead: "This section covers the accessibility guidelines we aim to respect during development."
-date: 2023-03-06T11:42:13+11:00
+date: 2023-03-06T20:17:57+11:00
 draft: false
 images: []
 menu:
