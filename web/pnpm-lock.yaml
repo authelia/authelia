@@ -16,7 +16,7 @@ specifiers:
   '@mui/styles': 5.11.13
   '@testing-library/jest-dom': 5.16.5
   '@testing-library/react': 14.0.0
-  '@types/jest': 29.4.2
+  '@types/jest': 29.4.3
   '@types/node': 18.15.3
   '@types/qrcode.react': 1.0.2
   '@types/react': 18.0.28
@@ -97,7 +97,7 @@ devDependencies:
   '@limegrass/eslint-plugin-import-alias': 1.0.6_eslint@8.36.0
   '@testing-library/jest-dom': 5.16.5
   '@testing-library/react': 14.0.0_biqbaboplfbrettd7655fr4n2y
-  '@types/jest': 29.4.2
+  '@types/jest': 29.4.3
   '@types/node': 18.15.3
   '@types/qrcode.react': 1.0.2
   '@types/react': 18.0.28
@@ -3705,8 +3705,8 @@ packages:
       '@types/istanbul-lib-report': 3.0.0
     dev: true
 
-  /@types/jest/29.4.2:
-    resolution: {integrity: sha512-bbne90W7is+m88ezmZrLiTpp41tIoTdvPC5t3gLoNgu/6qbGdWTC2JWqPWQRJn2Q7rVYTr8aTWqOjhGJDXyvAQ==}
+  /@types/jest/29.4.3:
+    resolution: {integrity: sha512-rQ+fXtBHSDfgoTwGLLNuZ27fHpp14mCZSxGUZ3MlNExwJno5hz0uXEWtXfQlE8vaZmYAa6atbR9rpHk+NnlRaw==}
     dependencies:
       expect: 29.5.0
       pretty-format: 29.5.0
@@ -3795,7 +3795,7 @@ packages:
   /@types/testing-library__jest-dom/5.14.5:
     resolution: {integrity: sha512-SBwbxYoyPIvxHbeHxTZX2Pe/74F/tX2/D3mMvzabdeJ25bBojfW0TyB8BHrbq/9zaaKICJZjLP+8r6AeZMFCuQ==}
     dependencies:
-      '@types/jest': 29.4.2
+      '@types/jest': 29.4.3
     dev: true
 
   /@types/tough-cookie/4.0.2:
