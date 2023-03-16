@@ -81,3 +81,7 @@ Our [website and documentation](https://www.authelia.com) are built and hosted b
 [Netlify](https://www.netlify.com/?from=Authelia).
 
 [Open Collective]: https://opencollective.com/authelia-sponsors
+
+## Influence
+
+Authelia has zero affiliations (financial or otherwise) to disclose as having an influence over the project.
