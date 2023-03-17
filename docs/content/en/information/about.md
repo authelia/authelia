@@ -17,15 +17,6 @@ are free to contribute [financially](../contributing/prologue/financial.md) or w
 [documentation](../contributing/prologue/documentation-contributions.md) or
 [code base](../contributing/development/introduction.md).
 
-## Affiliation
-
-Authelia maintains zero affiliations with third parties which have influence over the project. At the time of this
-writing we would very likely cut ties with any third party which made their affiliation conditional on them having an
-influence over our direction.
-
-Any such influence in the future will be [disclosed](../contributing/prologue/financial.md#influence) as will any
-affiliations via [sponsorship](../contributing/prologue/financial.md#sponsorship).
-
 ## Teams
 
 The following section describes the various teams within the Authelia project.
@@ -37,6 +28,61 @@ The following section describes the various teams within the Authelia project.
 ### Maintainers Team
 
 {{% profile-team name="maintainers" %}}
+
+## Sponsors
+
+Authelia is sponsored by the organizations listed below. The organizations below sponsor us completely voluntarily
+and do not expect anything additional other than us mentioning them or having a code of conduct, and some do not even
+require either of those things.
+
+Please see the [sponsorship section](../contributing/prologue/financial.md#sponsorship) of the financial contributing
+page for more information on how to become a sponsor.
+
+### Balto
+
+Our [apt repository](https://apt.authelia.com) is hosted thanks to [Balto](https://www.getbalto.com/?from=Authelia).
+
+{{< figure src="/images/logos/balto.svg" alt="Balto" width="193" style="padding-right: 10px"  ignoreStaticImages="false" >}}
+
+### Buildkite
+
+Our [continuous integration and continuous deployment pipelines](https://buildkite.com/authelia/?from=Authelia) are hosted by
+[Buildkite](https://buildkite.com/features?from=Authelia).
+
+### Crowdin
+
+Our [localization platform](https://translate.authelia.com) is hosted by [Crowdin](https://crowdin.com/?from=Authelia).
+
+### JetBrains
+
+Our development IDE's are provided by [JetBrains](https://www.jetbrains.com/?from=Authelia).
+
+{{< figure src="/images/logos/jetbrains.svg" alt="JetBrains" width="50" style="padding-right: 10px" ignoreStaticImages="false" >}}
+
+### Microsoft
+
+Our pipeline agents which we rely on for productivity are hosted on [Azure](https://azure.microsoft.com/?from=Authelia)
+and our [git repositories](https://github.com/authelia) are hosted on [GitHub](https://github.com/?from=Authela)
+which are both [Microsoft](https://www.microsoft.com/?from=Authelia) products.
+
+{{< figure src="/images/logos/microsoft.svg" alt="Microsoft" width="234.45" style="padding-right: 10px" ignoreStaticImages="false" >}}
+
+{{< figure src="/images/logos/azure.svg" alt="Azure" width="173.55" style="padding-right: 10px" ignoreStaticImages="false" >}}
+
+### Netlify
+
+Our [website and documentation](https://www.authelia.com) are built and hosted by
+[Netlify](https://www.netlify.com/?from=Authelia).
+
+[Open Collective]: https://opencollective.com/authelia-sponsors
+
+## Governance and Affiliations
+
+Authelia is free from any outside governance and is entirely governed as outlined on this page, in addition we do not
+have any affiliations which have ever asked this of us.
+
+Our affiliations with external companies will be transparently communicated in this section and the
+[sponsors](#sponsors) section.
 
 ## Compliance
 

@@ -16,6 +16,8 @@ If you believe you have identified a security vulnerability or security related 
 
 ## Individual Team Members
 
+If you're interested in contacting an individual team member for any reason please see the [About](about.md)
+informational page.
 
 ## GitHub
 
