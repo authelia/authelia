@@ -2,11 +2,10 @@ package notification
 
 import (
 	"fmt"
-	"net/smtp"
 	"strings"
 
 	"github.com/wneessen/go-mail"
-	"github.com/wneessen/go-mail/auth"
+	"github.com/wneessen/go-mail/smtp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -46,7 +45,7 @@ func (a *OpportunisticSMTPAuth) Start(server *smtp.ServerInfo) (proto string, to
 			case mail.SMTPAuthPlain:
 				a.sa = smtp.PlainAuth("", a.username, a.password, a.host)
 			case mail.SMTPAuthLogin:
-				a.sa = auth.LoginAuth(a.username, a.password, a.host)
+				a.sa = smtp.LoginAuth(a.username, a.password, a.host)
 			case mail.SMTPAuthCramMD5:
 				a.sa = smtp.CRAMMD5Auth(a.username, a.password)
 			}
@@ -61,7 +60,7 @@ func (a *OpportunisticSMTPAuth) Start(server *smtp.ServerInfo) (proto string, to
 			case mail.SMTPAuthPlain:
 				a.sa = smtp.PlainAuth("", a.username, a.password, a.host)
 			case mail.SMTPAuthLogin:
-				a.sa = auth.LoginAuth(a.username, a.password, a.host)
+				a.sa = smtp.LoginAuth(a.username, a.password, a.host)
 			case mail.SMTPAuthCramMD5:
 				a.sa = smtp.CRAMMD5Auth(a.username, a.password)
 			}

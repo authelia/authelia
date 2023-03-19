@@ -8,7 +8,7 @@ require (
 	github.com/deckarep/golang-set/v2 v2.3.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20230203160531-b221c950c2b0
 	github.com/fasthttp/router v1.4.18
-	github.com/fasthttp/session/v2 v2.4.16
+	github.com/fasthttp/session/v2 v2.4.17
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-asn1-ber/asn1-ber v1.5.4
 	github.com/go-crypt/crypt v0.2.6
@@ -44,7 +44,7 @@ require (
 	github.com/stretchr/testify v1.8.2
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.45.0
-	github.com/wneessen/go-mail v0.3.8
+	github.com/wneessen/go-mail v0.3.9
 	golang.org/x/net v0.8.0
 	golang.org/x/sync v0.1.0
 	golang.org/x/term v0.6.0
@@ -58,7 +58,7 @@ require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
-	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/cristalhq/jwt/v4 v4.0.2 // indirect
 	github.com/dave/jennifer v1.6.0 // indirect
