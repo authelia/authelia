@@ -44,40 +44,4 @@ We are currently directly looking for someone to sponsor:
 
 * [Security Audit](../../policies/security.md#help-wanted)
 
-### Balto
-
-Our [apt repository](https://apt.authelia.com) is hosted thanks to [Balto](https://www.getbalto.com/?from=Authelia).
-
-{{< figure src="/images/logos/balto.svg" alt="Balto" width="193" style="padding-right: 10px"  ignoreStaticImages="false" >}}
-
-### Buildkite
-
-Our [continuous integration and continuous deployment pipelines](https://buildkite.com/authelia/?from=Authelia) are hosted by
-[Buildkite](https://buildkite.com/features?from=Authelia).
-
-### Crowdin
-
-Our [localization platform](https://translate.authelia.com) is hosted by [Crowdin](https://crowdin.com/?from=Authelia).
-
-### JetBrains
-
-Our development IDE's are provided by [JetBrains](https://www.jetbrains.com/?from=Authelia).
-
-{{< figure src="/images/logos/jetbrains.svg" alt="JetBrains" width="50" style="padding-right: 10px" ignoreStaticImages="false" >}}
-
-### Microsoft
-
-Our pipeline agents which we rely on for productivity are hosted on [Azure](https://azure.microsoft.com/?from=Authelia)
-and our [git repositories](https://github.com/authelia) are hosted on [GitHub](https://github.com/?from=Authela)
-which are both [Microsoft](https://www.microsoft.com/?from=Authelia) products.
-
-{{< figure src="/images/logos/microsoft.svg" alt="Microsoft" width="234.45" style="padding-right: 10px" ignoreStaticImages="false" >}}
-
-{{< figure src="/images/logos/azure.svg" alt="Azure" width="173.55" style="padding-right: 10px" ignoreStaticImages="false" >}}
-
-### Netlify
-
-Our [website and documentation](https://www.authelia.com) are built and hosted by
-[Netlify](https://www.netlify.com/?from=Authelia).
-
-[Open Collective]: https://opencollective.com/authelia-sponsors
+To see a list of our sponsors pleaase see the [sponsors section](../../information/about.md#sponsors) on the about page.
