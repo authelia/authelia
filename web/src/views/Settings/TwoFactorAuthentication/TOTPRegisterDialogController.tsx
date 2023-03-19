@@ -43,7 +43,7 @@ import { getTOTPOptions } from "@services/UserInfoTOTPConfiguration";
 import { State } from "@views/LoginPortal/SecondFactor/OneTimePasswordMethod";
 import OTPDial from "@views/LoginPortal/SecondFactor/OTPDial";
 
-const steps = ["Start", "Scan QR Code", "Confirmation"];
+const steps = ["Start", "Register", "Confirm"];
 
 interface Props {
     open: boolean;
@@ -216,16 +216,18 @@ export default function TOTPRegisterDialogController(props: Props) {
     const hidePeriods = advanced && optionPeriods.length <= 1;
     const qrcodeFuzzyStyle = totpIsLoading || hasErrored ? styles.fuzzy : undefined;
 
-    function SecretButton(text: string | undefined, action: string, icon: IconDefinition) {
+    function SecretButton(text: string, action: string, icon: IconDefinition) {
+        const handleOnClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+            (async () => {
+                event.preventDefault();
+
+                await navigator.clipboard.writeText(text);
+                createSuccessNotification(action);
+            })();
+        };
+
         return (
-            <IconButton
-                color="primary"
-                onClick={() => {
-                    navigator.clipboard.writeText(`${text}`);
-                    createSuccessNotification(`${action}`);
-                }}
-                size="large"
-            >
+            <IconButton color="primary" onClick={handleOnClick} size="large">
                 <FontAwesomeIcon icon={icon} />
             </IconButton>
         );
@@ -342,23 +344,9 @@ export default function TOTPRegisterDialogController(props: Props) {
                 return (
                     <Fragment>
                         <Grid xs={12}>
-                            <Box>
-                                <Typography className={styles.googleAuthenticatorText}>
-                                    {translate("Need Google Authenticator?")}
-                                </Typography>
-                                <AppStoreBadges
-                                    iconSize={128}
-                                    targetBlank
-                                    className={styles.googleAuthenticatorBadges}
-                                    googlePlayLink={GoogleAuthenticator.googlePlay}
-                                    appleStoreLink={GoogleAuthenticator.appleStore}
-                                />
-                            </Box>
-                        </Grid>
-                        <Grid xs={12}>
                             <Box className={classnames(qrcodeFuzzyStyle, styles.qrcodeContainer)}>
                                 <Link href={totpSecretURL} underline="hover">
-                                    <QRCodeSVG value={totpSecretURL} className={styles.qrcode} size={128} />
+                                    <QRCodeSVG value={totpSecretURL} className={styles.qrcode} size={150} />
                                     {!hasErrored && totpIsLoading ? (
                                         <CircularProgress className={styles.loader} size={128} />
                                     ) : null}
@@ -395,14 +383,13 @@ export default function TOTPRegisterDialogController(props: Props) {
                                         ? SecretButton(totpSecretURL, translate("OTP URL copied to clipboard"), faCopy)
                                         : null}
                                 </Grid>
-                                <Grid xs={12}>
+                                <Grid xs={12} hidden={totpSecretURLHidden || totpSecretURL === ""}>
                                     <TextField
                                         id="secret-url"
                                         label={translate("Secret")}
                                         className={styles.secret}
                                         value={totpSecretURL}
                                         multiline={true}
-                                        hidden={totpSecretURLHidden || totpSecretURL === ""}
                                         InputProps={{
                                             readOnly: true,
                                         }}
@@ -410,19 +397,35 @@ export default function TOTPRegisterDialogController(props: Props) {
                                 </Grid>
                             </Grid>
                         </Grid>
+                        <Grid xs={12} sx={{ display: { xs: "none", md: "block" } }}>
+                            <Box>
+                                <Typography className={styles.googleAuthenticatorText}>
+                                    {translate("Need Google Authenticator?")}
+                                </Typography>
+                                <AppStoreBadges
+                                    iconSize={128}
+                                    targetBlank
+                                    className={styles.googleAuthenticatorBadges}
+                                    googlePlayLink={GoogleAuthenticator.googlePlay}
+                                    appleStoreLink={GoogleAuthenticator.appleStore}
+                                />
+                            </Box>
+                        </Grid>
                     </Fragment>
                 );
             case 2:
                 return (
-                    <Grid xs={12}>
-                        <OTPDial
-                            passcode={dialValue}
-                            state={dialState}
-                            digits={optionLength}
-                            period={optionPeriod}
-                            onChange={setDialValue}
-                        />
-                    </Grid>
+                    <Fragment>
+                        <Grid xs={12} paddingY={4}>
+                            <OTPDial
+                                passcode={dialValue}
+                                state={dialState}
+                                digits={optionLength}
+                                period={optionPeriod}
+                                onChange={setDialValue}
+                            />
+                        </Grid>
+                    </Fragment>
                 );
         }
     }
@@ -451,7 +454,7 @@ export default function TOTPRegisterDialogController(props: Props) {
                         </Stepper>
                     </Grid>
                     <Grid xs={12}>
-                        <Grid container spacing={2} paddingY={3} justifyContent={"center"}>
+                        <Grid container spacing={1} justifyContent={"center"}>
                             {renderStep(activeStep)}
                         </Grid>
                     </Grid>
