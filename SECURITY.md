@@ -66,8 +66,13 @@ with the `Core Team` role.
 5. The vulnerability is patched, and if possible the user reporting the bug is given access to a fixed binary, docker
    image, and git patch.
 6. The patch is confirmed to resolve the vulnerability.
-7. The fix is released.
-8. The [security advisory] is published sometime after users have had a chance to update.
+7. The fix is released and users are notified that they should update urgently.
+8. The [security advisory] is published when (whichever happens sooner):
+   - The CVE details are published by [MITRE], [NIST], etc.
+   - Roughly 7 days after users have been notified the update is available.
+
+[MITRE]: https://www.mitre.org/
+[NIST]: https://www.nist.gov/
 
 ## Credit
 
