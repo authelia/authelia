@@ -26,9 +26,10 @@ informational page.
 The [GitHub Discussions](https://github.com/authelia/authelia/discussions) forum is the correct location to discus
 anything that is not a bug or feature request such as:
 
-- Ideas about
-If you have a general question or want to discuss an idea that you're not entirely sure about out please visit
-[GitHub Discussions](https://github.com/authelia/authelia/discussions) and start a new discussion.
+- Ideas about future features where it's not clear most people can use it (allows users to vote on it)
+- Questions / Support Requests
+- Sharing configuration or utilization ideas (i.e. show your setup) for things that are not obvious
+- Any issue you're experiencing that may or may not be a bug (i.e you're unsure if it's a bug)
 
 ### Issues
 
