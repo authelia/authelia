@@ -32,9 +32,13 @@ passes, and coverage does not regress.
 
 ## Do not force push to your pull request branch
 
-Please do not force push to your PR's branch after you have created your PR, as doing so makes it harder for us to
-review your work. PRs will always be squashed by us when we merge your work. Commit as many times as you need in your
+Please do not force push to your PR's branch after you have created your PR especially when a maintainer has either
+performed a review or has indicated they are performing a review, as doing so makes it harder to review your commits
+accurately. PRs will always be squashed by us when we merge your work. Commit as many times as you need in your
 pull request branch.
+
+The exception exists for contributors to make adjustments to the commit message i.e. to perform the Developer
+Certificate of Origin sign off.
 
 ## Re-requesting a review
 
