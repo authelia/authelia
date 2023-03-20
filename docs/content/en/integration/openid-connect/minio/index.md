@@ -55,7 +55,7 @@ To configure [Minio] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 | Claim Prefix | <blank> |
 | Scopes | openid,profile,email |
 | Redirect URI | https://minio.example.com/oauth_callback |
-| Role Policy | <blank> |
+| Role Policy | `readonly` |
 | Claim User Info | Disabled |
 | Redirect URI Dynamic | Disabled |
 
