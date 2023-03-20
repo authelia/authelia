@@ -19,8 +19,9 @@ The following outlines the specific requirements we have for testing the Autheli
   - Sometimes there is limited ways in which tests can be performed and the limitation makes the test ineffectual
 - Tests should be named to reflect what they testing for and which part of the code they are testing
 - It's required for bug fixes that contributors create a test that fails prior to and passes
-  subsequent to fix being applied unless there is a specific reason to exclude this test, and this test is part of the
-  contribution
+  subsequent to the fix being applied, this test must be included in the contribution,
+  excluding this test will likely result in the fix being rejected unless explicitly agreed
+  and advised otherwise by the core team
 - It's strongly encouraged for features that contributors create have as much testing as is reasonable i.e. any line
   that can be tested should be tested, if the line can't be tested generally this is an indication a refactor may be
   required
