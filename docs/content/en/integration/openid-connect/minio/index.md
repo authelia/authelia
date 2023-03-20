@@ -46,24 +46,24 @@ To configure [Minio] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 | Field | Info to enter |
 | ----- | ----- | 
-| Name | authelia |
-| Config URL | https://auth.example.com/.well-known/openid-configuration |
-| Client ID | minio |
+| Name | `authelia` |
+| Config URL | `https://auth.example.com/.well-known/openid-configuration` |
+| Client ID | `minio` |
 | Client Secret | `insecure_secret` |
 | Claim Name | <blank> |
-| Display Name | Authelia |
-| Claim Prefix | <blank> |
-| Scopes | openid,profile,email |
-| Redirect URI | https://minio.example.com/oauth_callback |
+| Display Name | `Authelia` |
+| Claim Prefix | `authelia` |
+| Scopes | `openid,profile,email` |
+| Redirect URI | `https://minio.example.com/oauth_callback` |
 | Role Policy | `readonly` |
 | Claim User Info | Disabled |
 | Redirect URI Dynamic | Disabled |
 
 5. Press `Save` at the bottom
-6. At the top, accept the offer of a serfer restart
+6. At the top, accept the offer of a server restart
 7. When the login screen appears again, click the `Other Authentication Methods` open, then select `Authelia` from the list.
 8. Login!
-  
+
   
 ### Authelia
 
