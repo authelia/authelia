@@ -17,7 +17,7 @@ community: true
 
 * [Authelia]
   * [v4.37.5](https://github.com/authelia/authelia/releases/tag/v4.37.5)
-* [Minio]
+* [MinIO]
   * [2023-03-13T19:46:17Z](https://github.com/minio/minio/releases/tag/RELEASE.2023-03-13T19-46-17Z)
 
 ## Before You Begin
@@ -37,12 +37,12 @@ This example makes the following assumptions:
 
 ### Application
 
-To configure [Minio] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
-1. Login to Minio
-2. On the left hand menu, go to `Identity`, then `OpenID`.
+1. Login to [MinIO]
+2. On the left hand menu, go to `Identity`, then `OpenID`
 3. On the top right, click `Create Configuration`
-4. On the screen that appears, enter the following information  - 
+4. On the screen that appears, enter the following information:
 
 | Field | Info to enter |
 | ----- | ----- | 
@@ -60,20 +60,20 @@ To configure [Minio] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 | Redirect URI Dynamic | Disabled |
 
 5. Press `Save` at the bottom
-6. At the top, accept the offer of a server restart
+6. Accept the offer of a server restart at the top
 7. When the login screen appears again, click the `Other Authentication Methods` open, then select `Authelia` from the list.
-8. Login!
+8. Login
 
   
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Minio]
+[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [MinIO]
 which will operate with the above example:
 
 ```yaml
 - id: minio
-  description: Minio
+  description: MinIO
   secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
   public: false
   authorization_policy: two_factor
@@ -89,7 +89,8 @@ which will operate with the above example:
 
 ## See Also
 
-- [Minio](https://minio.com/) 
-- [Minio OpenID Identiy Management](https://min.io/docs/minio/linux/reference/minio-server/minio-server.html#minio-server-envvar-external-identity-management-openid)
-- [Authelia]: https://www.authelia.com
-- [OpenID Connect 1.0]: ../../openid-connect/introduction.md 
+- [MinIO OpenID Identiy Management](https://min.io/docs/minio/linux/reference/minio-server/minio-server.html#minio-server-envvar-external-identity-management-openid)
+
+[MinIO]: https://minio.com/
+[Authelia]: https://www.authelia.com
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md 
