@@ -44,4 +44,6 @@ We are currently directly looking for someone to sponsor:
 
 * [Security Audit](../../policies/security.md#help-wanted)
 
-To see a list of our sponsors pleaase see the [sponsors section](../../information/about.md#sponsors) on the about page.
+To see a list of our sponsors please see the [sponsors section](../../information/about.md#sponsors) on the about page.
+
+[Open Collective]: https://opencollective.com/authelia-sponsors
