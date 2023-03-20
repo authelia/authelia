@@ -68,7 +68,7 @@ To configure [Minio] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Nextcloud]
+[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Minio]
 which will operate with the above example:
 
 ```yaml
@@ -88,7 +88,8 @@ which will operate with the above example:
 ```
 
 ## See Also
-* [Authelia]: https://www.authelia.com  
-* [Minio]: https://minio.com/  
-  * [OpenID Identiy Management](https://min.io/docs/minio/linux/reference/minio-server/minio-server.html#minio-server-envvar-external-identity-management-openid)  
-* [OpenID Connect 1.0]: ../../openid-connect/introduction.md  
+
+- [Minio](https://minio.com/) 
+- [Minio OpenID Identiy Management](https://min.io/docs/minio/linux/reference/minio-server/minio-server.html#minio-server-envvar-external-identity-management-openid)
+- [Authelia]: https://www.authelia.com
+- [OpenID Connect 1.0]: ../../openid-connect/introduction.md 
