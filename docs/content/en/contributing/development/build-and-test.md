@@ -99,17 +99,40 @@ The suite will be spawned, tests will be run and then the suite will be torn dow
 ### Binary
 
 If you want to manually build the binary from source you will require the open source software described in the
-[Development Environment](./environment.md#setup) documentation.
+[Development Environment](./environment.md#setup) documentation. Then you can follow the below steps on Linux (you may
+have to adapt them on other systems).
 
-Then the commands required are as follows:
+Clone the Repository:
 
 ```bash
 git clone https://github.com/authelia/authelia.git
-cd authelia\web
-pnpm install
-pnpm build
+```
+
+Download the Dependencies:
+
+```bash
+cd authelia && go mod download
+cd web && pnpm install
 cd ..
-go mod download
+```
+
+Build the Web Frontend:
+
+```bash
+cd web && pnpm build
+cd ..
+```
+
+Build the Binary (with debug symbols):
+
+```bash
+CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LDFLAGS="-Wl,-z,relro,-z,now" \
+go build -ldflags "-linkmode=external" -trimpath -buildmode=pie -o authelia ./cmd/authelia
+```
+
+Build the Binary (without debug symbols):
+
+```bash
 CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LDFLAGS="-Wl,-z,relro,-z,now" \
 go build -ldflags "-linkmode=external -s -w" -trimpath -buildmode=pie -o authelia ./cmd/authelia
 ```

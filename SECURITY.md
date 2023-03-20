@@ -7,11 +7,9 @@ decisions are made with security being the priority and we always aim to impleme
 
 ## Coordinated vulnerability disclosure
 
-__Authelia__ follows the
-[coordinated vulnerability disclosure](https://en.wikipedia.org/wiki/Coordinated_vulnerability_disclosure) model when
-dealing with security vulnerabilities. This was previously known as responsible disclosure. We strongly urge anyone
-reporting vulnerabilities to __Authelia__ or any other project to follow this model as it is considered as a best
-practice by many in the security industry.
+__Authelia__ follows the [coordinated vulnerability disclosure] model when dealing with security vulnerabilities. This
+was previously known as responsible disclosure. We strongly urge anyone reporting vulnerabilities to __Authelia__ or any
+other project to follow this model as it is considered as a best practice by many in the security industry.
 
 If you believe you have identified a security vulnerability or security related bug with __Authelia__ please make every
 effort to contact us privately using one of the [contact options](#contact-options) below. Please do not open an issue,
@@ -21,8 +19,8 @@ Using this process helps ensure that users affected have an avenue to fixing the
 made public as possible. This mitigates the increasing the attack surface (via improving attacker knowledge) for
 diligent administrators simply via the act of disclosing the security issue.
 
-For more information about [security](https://www.authelia.com/information/security/) related matters, please read
-[the documentation](https://www.authelia.com/information/security/).
+For more information about [security](https://www.authelia.com/security/) related matters, please read
+[the documentation](https://www.authelia.com/security/).
 
 ## Contact Options
 
@@ -39,19 +37,19 @@ for users who have a GitHub account.
 Users can utilize the [security@authelia.com](mailto:security@authelia.com) email address to privately report a
 vulnerability. This is an easy method of users who do not have a GitHub account.
 
-This email address is only accessible by key members of the team for the purpose of disclosing security vulnerabilities
-and issues within the __Authelia__ code base.
+This email address is only accessible by members of the [core team] for the purpose of disclosing security
+vulnerabilities and issues within the __Authelia__ code base.
 
 ### Chat
 
 If you wish to chat directly instead of sending an email please use either [Matrix](README.md#matrix) or
-[Discord](README.md#discord) to direct / private message one of the core team members.
+[Discord](README.md#discord) to direct / private message one of the [core team] members.
 
 Please avoid this method unless absolutely necessary. We generally prefer that users use either the
 [GitHub Security](#github-security) or [Email](#email) option rather than this option as it both allows multiple team
-members to deal with the report and prevents mistakes when contacting a core team member.
+members to deal with the report and prevents mistakes when contacting a [core team] member.
 
-The core team members are identified in [Matrix](README.md#matrix) as room admins, and in [Discord](README.md#discord)
+The [core team] members are identified in [Matrix](README.md#matrix) as room admins, and in [Discord](README.md#discord)
 with the `Core Team` role.
 
 ## Process
@@ -80,19 +78,7 @@ Users who report bugs will at their discretion (i.e. they do not have to be if t
 credited for the discovery. Both in the [security advisory] and in our [all contributors](README.md#contribute)
 documentation.
 
-## Help wanted
-
-We are actively looking for sponsorship to obtain security audits to comprehensively ensure the security of _Authelia_.
-As security is really important to us we see this as one of the main financial priorities.
-
-We believe that we should obtain the following categories of security audits:
-
-* Code Security Audit / Analysis
-* Penetration Testing
-
-If you know of a company which either performs these kinds of audits and would be willing to sponsor the audit in some
-way such as doing it pro bono or at a discounted rate, or wants to help improve _Authelia_ in a meaningful way and is
-willing to make a financial contribution towards this then please feel free to contact us.
-
+[coordinated vulnerability disclosure]: https://en.wikipedia.org/wiki/Coordinated_vulnerability_disclosure
 [security advisory]: https://github.com/authelia/authelia/security/advisories
 [report a vulnerability]: https://github.com/authelia/authelia/security/advisories/new
+[core team]: https://www.authelia.com/information/about/#core-team
