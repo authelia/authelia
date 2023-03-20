@@ -1,6 +1,6 @@
 ---
-title: "Minio"
-description: "Integrating Minio with the Authelia OpenID Connect Provider."
+title: "MinIO"
+description: "Integrating MinIO with the Authelia OpenID Connect Provider."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
@@ -43,28 +43,23 @@ To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 2. On the left hand menu, go to `Identity`, then `OpenID`
 3. On the top right, click `Create Configuration`
 4. On the screen that appears, enter the following information:
-
-| Field | Info to enter |
-| ----- | ----- | 
-| Name | `authelia` |
-| Config URL | `https://auth.example.com/.well-known/openid-configuration` |
-| Client ID | `minio` |
-| Client Secret | `insecure_secret` |
-| Claim Name | <blank> |
-| Display Name | `Authelia` |
-| Claim Prefix | `authelia` |
-| Scopes | `openid,profile,email` |
-| Redirect URI | `https://minio.example.com/oauth_callback` |
-| Role Policy | `readonly` |
-| Claim User Info | Disabled |
-| Redirect URI Dynamic | Disabled |
-
+    - Name: `authelia`
+    - Config URL: `https://auth.example.com/.well-known/openid-configuration`
+    - Client ID: `minio`
+    - Client Secret: `insecure_secret`
+    - Claim Name: Leave Empty
+    - Display Name: `Authelia`
+    - Claim Prefix: `authelia`
+    - Scopes: `openid,profile,email`
+    - Redirect URI: `https://minio.example.com/oauth_callback`
+    - Role Policy: `readonly`
+    - Claim User Info: Disabled
+    - Redirect URI Dynamic: Disabled
 5. Press `Save` at the bottom
 6. Accept the offer of a server restart at the top
 7. When the login screen appears again, click the `Other Authentication Methods` open, then select `Authelia` from the list.
 8. Login
 
-  
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
