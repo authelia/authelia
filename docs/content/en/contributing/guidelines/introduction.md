@@ -24,14 +24,6 @@ sense to follow one just let us know your reasoning when you make a PR if it's n
 
 Some general guidelines include:
 
-- Testing:
-  - While we aim for 100% coverage on changes, we do not enforce this where it doesn't make practical sense:
-    - A test which just marks a line as tested is not necessarily an effectual test
-    - Sometimes there is limited ways in which tests can be performed and the limitation makes the test ineffectual
-  - Tests should be named to reflect what they testing for and which part of the code they are testing
-  - It's strongly encouraged for bug fixes that contributors create a test that fails prior to fixing the bug and passes
-    after fixing the bug and that this test is part of the contribution
-  - It's strongly encouraged for features that contributors create have as much testing as is reasonable
 - It's recommended people wishing to contribute discuss their intended changes prior to contributing
   - This helps avoid people doubling up on contributions
   - This helps avoid conflicts between contributions
