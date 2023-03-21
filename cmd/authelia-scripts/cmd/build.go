@@ -88,8 +88,9 @@ func buildAutheliaBinaryGOX(xflags []string) {
 			"CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now",
 			"GOX_LINUX_ARM_CC=arm-linux-musleabihf-gcc", "GOX_LINUX_ARM64_CC=aarch64-linux-musl-gcc")
 
-		err := cmd.Run()
-		if err != nil {
+		log.WithFields(map[string]any{"env": cmd.Env, "path": cmd.Path, "args": cmd.Args}).Info("Building binaries with logged reproducible options")
+
+		if err := cmd.Run(); err != nil {
 			log.Fatal(err)
 		}
 	}()
@@ -100,8 +101,9 @@ func buildAutheliaBinaryGOX(xflags []string) {
 		cmd := utils.CommandWithStdout("bash", "-c", "docker run --rm -e GOX_LINUX_ARM_CC=arm-linux-gnueabihf-gcc -e GOX_LINUX_ARM64_CC=aarch64-linux-gnu-gcc -e GOX_FREEBSD_AMD64_CC=x86_64-pc-freebsd13-gcc -v ${PWD}:/workdir -v /buildkite/.go:/root/go authelia/crossbuild "+
 			"gox -output={{.Dir}}-{{.OS}}-{{.Arch}} -buildmode=pie -trimpath -cgo -ldflags=\"-linkmode=external -s -w "+strings.Join(xflags, " ")+"\" -osarch=\"linux/amd64 linux/arm linux/arm64 freebsd/amd64\" ./cmd/authelia/")
 
-		err := cmd.Run()
-		if err != nil {
+		log.WithFields(map[string]any{"env": cmd.Env, "path": cmd.Path, "args": cmd.Args}).Info("Building containers with logged reproducible options")
+
+		if err := cmd.Run(); err != nil {
 			log.Fatal(err)
 		}
 	}()
@@ -119,8 +121,9 @@ func buildAutheliaBinaryGO(xflags []string) {
 	cmd.Env = append(os.Environ(),
 		"CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now")
 
-	err := cmd.Run()
-	if err != nil {
+	log.WithFields(map[string]any{"env": cmd.Env, "path": cmd.Path, "args": cmd.Args}).Info("Building binary with logged reproducible options")
+
+	if err := cmd.Run(); err != nil {
 		log.Fatal(err)
 	}
 }

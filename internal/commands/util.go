@@ -317,6 +317,8 @@ func newHelpTopic(topic, short, body string) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:   topic,
 		Short: short,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {

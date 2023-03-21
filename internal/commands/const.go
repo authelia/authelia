@@ -28,6 +28,7 @@ Build Number: %s
 Build OS: %s
 Build Arch: %s
 Build Date: %s
+Build Go Version: %s
 Extra: %s
 `
 
