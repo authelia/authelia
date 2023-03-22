@@ -81,7 +81,7 @@ support to ensure the basic example covers your use case in a secure way.
 {{< details "Caddyfile" >}}
 ```caddyfile
 ## It is important to read the following document before enabling this section:
-##     https://www.authelia.com/integration/proxies/caddy/#forwarded-header-trust#trusted-proxies
+##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies
 (trusted_proxy_list) {
        ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
        # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
