@@ -30,7 +30,7 @@ func latestMigrationVersion(providerName string) (version int, err error) {
 			return -1, err
 		}
 
-		if m.Provider != providerName {
+		if m.Provider != providerName && m.Provider != providerAll {
 			continue
 		}
 
@@ -61,6 +61,8 @@ func loadMigrations(providerName string, prior, target int) (migrations []model.
 
 	up := prior < target
 
+	var migrationsAll []model.SchemaMigration
+
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue
@@ -75,7 +77,28 @@ func loadMigrations(providerName string, prior, target int) (migrations []model.
 			continue
 		}
 
-		migrations = append(migrations, migration)
+		if migration.Provider == providerAll {
+			migrationsAll = append(migrationsAll, migration)
+		} else {
+			migrations = append(migrations, migration)
+		}
+	}
+
+	// Add "all" migrations for versions that don't exist.
+	for _, am := range migrationsAll {
+		found := false
+
+		for _, m := range migrations {
+			if m.Version == am.Version {
+				found = true
+
+				break
+			}
+		}
+
+		if !found {
+			migrations = append(migrations, am)
+		}
 	}
 
 	if up {

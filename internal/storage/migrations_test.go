@@ -9,7 +9,7 @@ import (
 
 const (
 	// This is the latest schema version for the purpose of tests.
-	LatestVersion = 8
+	LatestVersion = 9
 )
 
 func TestShouldObtainCorrectUpMigrations(t *testing.T) {
@@ -42,6 +42,10 @@ func TestShouldObtainCorrectDownMigrations(t *testing.T) {
 	for i := 0; i < len(migrations); i++ {
 		assert.Equal(t, ver-i, migrations[i].Version)
 	}
+}
+
+func TestMigrationShouldGetSpecificMigrationIfAvaliable(t *testing.T) {
+
 }
 
 func TestMigrationsShouldNotBeDuplicatedPostgres(t *testing.T) {
