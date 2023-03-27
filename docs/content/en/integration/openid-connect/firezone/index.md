@@ -32,9 +32,9 @@ This example makes the following assumptions:
 * __Authelia Root URL:__ `https://auth.example.com`
 * __Client ID:__ `firezone`
 * __Client Secret:__ `insecure_secret`
-* __Authentication Name (Gitea):__ `authelia`:
+* __Config ID (Firezone):__ `authelia`:
     * This option determines the redirect URI in the format of
-      `https://firezone.example.com/user/oauth2/<Authentication Name>/callback`.
+      `https://firezone.example.com/auth/oidc/<Config ID>/callback`.
       This means if you change this value you need to update the redirect URI.
 
 ## Configuration
