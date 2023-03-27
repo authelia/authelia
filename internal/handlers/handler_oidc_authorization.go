@@ -53,28 +53,6 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return
 	}
 
-	if requester.GetResponseMode() == fosite.ResponseModeDefault {
-		invalid := true
-		defaultResponseMode := requester.GetDefaultResponseMode()
-
-		for _, configResponseMode := range client.GetResponseModes() {
-			if configResponseMode == defaultResponseMode {
-				invalid = false
-				break
-			}
-		}
-
-		if invalid {
-			rfc := fosite.ErrUnsupportedResponseMode.WithHintf(`The request omitted the response_mode making the default response_mode "%s" based on the other authorization request parameters but registered OAuth 2.0 client doesn't support this response_mode`, defaultResponseMode)
-
-			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' failed to validate the Response Mode: %s", requester.GetID(), clientID, rfc.WithExposeDebug(true).GetDescription())
-
-			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
-
-			return
-		}
-	}
-
 	if err = client.ValidatePARPolicy(requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
@@ -83,6 +61,28 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
 
 		return
+	}
+
+	if !oidc.IsPushedAuthorizedRequest(requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)) {
+		if err = client.ValidatePKCEPolicy(requester); err != nil {
+			rfc := fosite.ErrorToRFC6749Error(err)
+
+			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' failed to validate the PKCE policy: %s", requester.GetID(), client.GetID(), rfc.WithExposeDebug(true).GetDescription())
+
+			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
+
+			return
+		}
+
+		if err = client.ValidateResponseModePolicy(requester); err != nil {
+			rfc := fosite.ErrorToRFC6749Error(err)
+
+			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' failed to validate the Response Mode: %s", requester.GetID(), client.GetID(), rfc.WithExposeDebug(true).GetDescription())
+
+			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
+
+			return
+		}
 	}
 
 	if err = client.ValidatePKCEPolicy(requester); err != nil {
@@ -197,9 +197,19 @@ func OpenIDConnectPushedAuthorizationRequest(ctx *middlewares.AutheliaCtx, rw ht
 	if err = client.ValidatePKCEPolicy(requester); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
-		ctx.Logger.Errorf("Pushed Authorization Request with id '%s' on client with id '%s' failed to validate the PKCE policy: %s", requester.GetID(), clientID, rfc.WithExposeDebug(true).GetDescription())
+		ctx.Logger.Errorf("Pushed Authorization Request with id '%s' on client with id '%s' failed to validate the PKCE policy: %s", requester.GetID(), client.GetID(), rfc.WithExposeDebug(true).GetDescription())
 
-		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, err)
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
+
+		return
+	}
+
+	if err = client.ValidateResponseModePolicy(requester); err != nil {
+		rfc := fosite.ErrorToRFC6749Error(err)
+
+		ctx.Logger.Errorf("Pushed Authorization Request with id '%s' on client with id '%s' failed to validate the Response Mode: %s", requester.GetID(), client.GetID(), rfc.WithExposeDebug(true).GetDescription())
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
 
 		return
 	}
