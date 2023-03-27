@@ -43,10 +43,13 @@ This example makes the following assumptions:
 
 To configure [Firezone] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
-1. Sing in with an admin user
-2. Visit Settings -> Security
-3. In the "Single Sign-On" section, click on the "Add OpenID Connect Provider" button
-4. Configure:
+1. Visit your [Firezone] site
+2. Sign in as an admin
+3. Visit:
+    1. Settings
+    2. Security
+4. In the `Single Sign-On` section, click on the `Add OpenID Connect Provider` button
+5. Configure:
    1. Config ID: `authelia`
    2. Label: `Authelia`
    3. Scope: `openid email profile`
