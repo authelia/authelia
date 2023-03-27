@@ -92,15 +92,21 @@ func (c *Client) ValidateResponseModePolicy(r fosite.AuthorizeRequester) (err er
 		return nil
 	}
 
-	mode := r.GetDefaultResponseMode()
+	m := r.GetDefaultResponseMode()
 
-	for _, m := range c.GetResponseModes() {
+	modes := c.GetResponseModes()
+
+	if len(modes) == 0 {
+		return nil
+	}
+
+	for _, mode := range modes {
 		if m == mode {
 			return nil
 		}
 	}
 
-	return errorsx.WithStack(fosite.ErrUnsupportedResponseMode.WithHintf(`The request omitted the response_mode making the default response_mode "%s" based on the other authorization request parameters but registered OAuth 2.0 client doesn't support this response_mode`, mode))
+	return errorsx.WithStack(fosite.ErrUnsupportedResponseMode.WithHintf(`The request omitted the response_mode making the default response_mode "%s" based on the other authorization request parameters but registered OAuth 2.0 client doesn't support this response_mode`, m))
 }
 
 // IsAuthenticationLevelSufficient returns if the provided authentication.Level is sufficient for the client of the AutheliaClient.

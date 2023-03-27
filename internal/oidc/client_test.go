@@ -405,6 +405,14 @@ func TestNewClientResponseModes(t *testing.T) {
 			"",
 			"",
 		},
+		{
+			"ShouldNotEnforceUnconfiguredResponseMode",
+			schema.OpenIDConnectClientConfiguration{ResponseModes: []string{}},
+			[]fosite.ResponseModeType{},
+			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeDefault, Request: fosite.Request{Form: map[string][]string{FormParameterResponseMode: {ResponseModeQuery}}}},
+			"",
+			"",
+		},
 	}
 
 	for _, tc := range testCases {
