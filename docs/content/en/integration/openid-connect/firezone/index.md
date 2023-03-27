@@ -56,7 +56,7 @@ To configure [Firezone] to utilize Authelia as an [OpenID Connect 1.0] Provider:
    4. Client ID: `firezone`
    5. Client secret: `insecure_secret`
    6. Discovery Document URI: `https://auth.example.com/.well-known/openid-configuration`
-   7. Redirect URI (optional): `https://firezone.example.com/auth/oidc/authelia/callback/`
+   7. Redirect URI (optional): `https://firezone.example.com/auth/oidc/authelia/callback`
    8. Auto-create users (checkbox): `true`
 
 {{< figure src="firezone.png" alt="Firezone" width="500" >}}
