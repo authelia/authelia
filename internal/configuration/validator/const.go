@@ -170,16 +170,14 @@ const (
 		"for the openid connect confidential client type"
 	errFmtOIDCClientRedirectURIAbsolute = "identity_providers: oidc: client '%s': option 'redirect_uris' has an " +
 		"invalid value: redirect uri '%s' must have the scheme but it is absent"
-	errFmtOIDCClientInvalidPolicy = "identity_providers: oidc: client '%s': option 'policy' must be 'one_factor' " +
-		"or 'two_factor' but it is configured as '%s'"
-	errFmtOIDCClientInvalidPKCEChallengeMethod = "identity_providers: oidc: client '%s': option 'pkce_challenge_method' must be 'plain' " +
-		"or 'S256' but it is configured as '%s'"
 	errFmtOIDCClientInvalidConsentMode = "identity_providers: oidc: client '%s': consent: option 'mode' must be one of " +
 		"'%s' but it is configured as '%s'"
 	errFmtOIDCClientInvalidEntry = "identity_providers: oidc: client '%s': option '%s' must only have the values " +
 		"'%s' but one option is configured as '%s'"
-	errFmtOIDCClientInvalidUserinfoAlgorithm = "identity_providers: oidc: client '%s': option " +
-		"'userinfo_signing_algorithm' must be one of '%s' but it is configured as '%s'"
+	errFmtOIDCClientInvalidValue = "identity_providers: oidc: client '%s': option " +
+		"'%s' must be one of '%s' but it is configured as '%s'"
+	errFmtOIDCClientInvalidTokenEndpointAuthMethod = "identity_providers: oidc: client '%s': option " +
+		"'token_endpoint_auth_method' must be one of '%s' when configured as the '%s' client type but it's configured as '%s'"
 	errFmtOIDCClientInvalidSectorIdentifier = "identity_providers: oidc: client '%s': option " +
 		"'sector_identifier' with value '%s': must be a URL with only the host component for example '%s' but it has a %s with the value '%s'"
 	errFmtOIDCClientInvalidSectorIdentifierWithoutValue = "identity_providers: oidc: client '%s': option " +
@@ -389,12 +387,14 @@ var (
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 
 var (
-	validOIDCScopes             = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess}
-	validOIDCGrantTypes         = []string{oidc.GrantTypeImplicit, oidc.GrantTypeRefreshToken, oidc.GrantTypeAuthorizationCode, oidc.GrantTypePassword, oidc.GrantTypeClientCredentials}
-	validOIDCResponseModes      = []string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery, oidc.ResponseModeFragment}
-	validOIDCUserinfoAlgorithms = []string{oidc.SigningAlgorithmNone, oidc.SigningAlgorithmRSAWithSHA256}
-	validOIDCCORSEndpoints      = []string{oidc.EndpointAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
-	validOIDCClientConsentModes = []string{"auto", oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
+	validOIDCScopes                                     = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess}
+	validOIDCGrantTypes                                 = []string{oidc.GrantTypeImplicit, oidc.GrantTypeRefreshToken, oidc.GrantTypeAuthorizationCode, oidc.GrantTypePassword, oidc.GrantTypeClientCredentials}
+	validOIDCResponseModes                              = []string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery, oidc.ResponseModeFragment}
+	validOIDCUserinfoAlgorithms                         = []string{oidc.SigningAlgorithmNone, oidc.SigningAlgorithmRSAWithSHA256}
+	validOIDCCORSEndpoints                              = []string{oidc.EndpointAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
+	validOIDCClientConsentModes                         = []string{"auto", oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
+	validOIDCClientTokenEndpointAuthMethods             = []string{oidc.ClientAuthMethodNone, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic}
+	validOIDCClientTokenEndpointAuthMethodsConfidential = []string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic}
 )
 
 var (

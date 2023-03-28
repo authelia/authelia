@@ -119,6 +119,13 @@ type Client struct {
 	ResponseTypes []string
 	ResponseModes []fosite.ResponseModeType
 
+	RequestURIs                       []string
+	JSONWebKeys                       *jose.JSONWebKeySet
+	JSONWebKeysURI                    string
+	RequestObjectSigningAlgorithm     string
+	TokenEndpointAuthMethod           string
+	TokenEndpointAuthSigningAlgorithm string
+
 	EnforcePAR bool
 
 	UserinfoSigningAlgorithm string

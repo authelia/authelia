@@ -5,6 +5,7 @@ import (
 
 	"github.com/ory/fosite"
 	"github.com/ory/x/errorsx"
+	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -34,6 +35,7 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 
 		EnforcePAR: config.EnforcePAR,
 
+		TokenEndpointAuthMethod:  config.TokenEndpointAuthMethod,
 		UserinfoSigningAlgorithm: config.UserinfoSigningAlgorithm,
 
 		Policy: authorization.NewLevel(config.Policy),
@@ -175,4 +177,54 @@ func (c *Client) GetAudience() fosite.Arguments {
 // Implements the fosite.ResponseModeClient.
 func (c *Client) GetResponseModes() []fosite.ResponseModeType {
 	return c.ResponseModes
+}
+
+// GetRequestURIs is an array of request_uri values that are pre-registered by the RP for use at the OP. Servers MAY
+// cache the contents of the files referenced by these URIs and not retrieve them at the time they are used in a request.
+// OPs can require that request_uri values used be pre-registered with the require_request_uri_registration
+// discovery parameter.
+func (c *Client) GetRequestURIs() []string {
+	return c.RequestURIs
+}
+
+// GetJSONWebKeys returns the JSON Web Key Set containing the public key used by the client to authenticate.
+func (c *Client) GetJSONWebKeys() *jose.JSONWebKeySet {
+	return c.JSONWebKeys
+}
+
+// GetJSONWebKeysURI returns the URL for lookup of JSON Web Key Set containing the
+// public key used by the client to authenticate.
+func (c *Client) GetJSONWebKeysURI() string {
+	return c.JSONWebKeysURI
+}
+
+// GetRequestObjectSigningAlgorithm returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing Request
+// Objects sent to the OP. All Request Objects from this Client MUST be rejected, if not signed with this algorithm.
+func (c *Client) GetRequestObjectSigningAlgorithm() string {
+	return c.RequestObjectSigningAlgorithm
+}
+
+// GetTokenEndpointAuthMethod returns the requested Client Authentication Method for the Token Endpoint. The options are
+// client_secret_post, client_secret_basic, client_secret_jwt, private_key_jwt, and none.
+func (c *Client) GetTokenEndpointAuthMethod() string {
+	if c.TokenEndpointAuthMethod == "" {
+		if c.Public {
+			c.TokenEndpointAuthMethod = ClientAuthMethodNone
+		} else {
+			c.TokenEndpointAuthMethod = ClientAuthMethodClientSecretPost
+		}
+	}
+
+	return c.TokenEndpointAuthMethod
+}
+
+// GetTokenEndpointAuthSigningAlgorithm returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing the JWT
+// [JWT] used to authenticate the Client at the Token Endpoint for the private_key_jwt and client_secret_jwt
+// authentication methods.
+func (c *Client) GetTokenEndpointAuthSigningAlgorithm() string {
+	if c.TokenEndpointAuthSigningAlgorithm == "" {
+		c.TokenEndpointAuthSigningAlgorithm = "RS256"
+	}
+
+	return c.TokenEndpointAuthSigningAlgorithm
 }

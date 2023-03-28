@@ -174,23 +174,25 @@ func validateOIDCClients(config *schema.OpenIDConnectConfiguration, val *schema.
 		if client.Policy == "" {
 			config.Clients[c].Policy = schema.DefaultOpenIDConnectClientConfiguration.Policy
 		} else if client.Policy != policyOneFactor && client.Policy != policyTwoFactor {
-			val.Push(fmt.Errorf(errFmtOIDCClientInvalidPolicy, client.ID, client.Policy))
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, client.ID, "policy", "one_factor', 'two_factor", client.Policy))
 		}
 
 		switch client.PKCEChallengeMethod {
 		case "", "plain", "S256":
 			break
 		default:
-			val.Push(fmt.Errorf(errFmtOIDCClientInvalidPKCEChallengeMethod, client.ID, client.PKCEChallengeMethod))
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, client.ID, "pkce_challenge_method", "plain', 'S256", client.PKCEChallengeMethod))
 		}
 
 		validateOIDCClientConsentMode(c, config, val)
-		validateOIDCClientSectorIdentifier(client, val)
 		validateOIDCClientScopes(c, config, val)
 		validateOIDCClientGrantTypes(c, config, val)
 		validateOIDCClientResponseTypes(c, config, val)
 		validateOIDCClientResponseModes(c, config, val)
+		validateOIDCClientTokenEndpointAuthMethod(c, config, val)
 		validateOIDDClientUserinfoAlgorithm(c, config, val)
+
+		validateOIDCClientSectorIdentifier(client, val)
 		validateOIDCClientRedirectURIs(client, val)
 	}
 
@@ -314,12 +316,36 @@ func validateOIDCClientResponseModes(c int, config *schema.OpenIDConnectConfigur
 	}
 }
 
+func validateOIDCClientTokenEndpointAuthMethod(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+	if config.Clients[c].TokenEndpointAuthMethod == "" {
+		if config.Clients[c].Public {
+			config.Clients[c].TokenEndpointAuthMethod = oidc.ClientAuthMethodNone
+		} else {
+			config.Clients[c].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretPost
+		}
+
+		return
+	}
+
+	switch {
+	case !utils.IsStringInSlice(config.Clients[c].TokenEndpointAuthMethod, validOIDCClientTokenEndpointAuthMethods):
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
+			config.Clients[c].ID, "token_endpoint_auth_method", strings.Join(validOIDCClientTokenEndpointAuthMethods, "', '"), config.Clients[c].TokenEndpointAuthMethod))
+	case config.Clients[c].TokenEndpointAuthMethod == oidc.ClientAuthMethodNone && !config.Clients[c].Public:
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthMethod,
+			config.Clients[c].ID, strings.Join(validOIDCClientTokenEndpointAuthMethodsConfidential, "', '"), "confidential", config.Clients[c].TokenEndpointAuthMethod))
+	case config.Clients[c].TokenEndpointAuthMethod != oidc.ClientAuthMethodNone && config.Clients[c].Public:
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthMethod,
+			config.Clients[c].ID, oidc.ClientAuthMethodNone, "public", config.Clients[c].TokenEndpointAuthMethod))
+	}
+}
+
 func validateOIDDClientUserinfoAlgorithm(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
 	if config.Clients[c].UserinfoSigningAlgorithm == "" {
 		config.Clients[c].UserinfoSigningAlgorithm = schema.DefaultOpenIDConnectClientConfiguration.UserinfoSigningAlgorithm
 	} else if !utils.IsStringInSlice(config.Clients[c].UserinfoSigningAlgorithm, validOIDCUserinfoAlgorithms) {
-		val.Push(fmt.Errorf(errFmtOIDCClientInvalidUserinfoAlgorithm,
-			config.Clients[c].ID, strings.Join(validOIDCUserinfoAlgorithms, ", "), config.Clients[c].UserinfoSigningAlgorithm))
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
+			config.Clients[c].ID, "userinfo_signing_algorithm", strings.Join(validOIDCUserinfoAlgorithms, "', '"), config.Clients[c].UserinfoSigningAlgorithm))
 	}
 }
 

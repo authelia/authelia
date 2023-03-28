@@ -195,7 +195,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					},
 				},
 			},
-			Errors: []string{"identity_providers: oidc: client 'client-1': option 'policy' must be 'one_factor' or 'two_factor' but it is configured as 'a-policy'"},
+			Errors: []string{"identity_providers: oidc: client 'client-1': option 'policy' must be one of 'one_factor', 'two_factor' but it is configured as 'a-policy'"},
 		},
 		{
 			Name: "ClientIDDuplicated",
@@ -345,7 +345,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 				},
 			},
 			Errors: []string{
-				fmt.Sprintf(errFmtOIDCClientInvalidPKCEChallengeMethod, "client-bad-pkce-mode", "abc"),
+				"identity_providers: oidc: client 'client-bad-pkce-mode': option 'pkce_challenge_method' must be one of 'plain', 'S256' but it is configured as 'abc'",
 			},
 		},
 		{
@@ -362,7 +362,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 				},
 			},
 			Errors: []string{
-				fmt.Sprintf(errFmtOIDCClientInvalidPKCEChallengeMethod, "client-bad-pkce-mode-s256", "s256"),
+				"identity_providers: oidc: client 'client-bad-pkce-mode-s256': option 'pkce_challenge_method' must be one of 'plain', 'S256' but it is configured as 's256'",
 			},
 		},
 	}
@@ -574,7 +574,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadUserinfoAlg(t *testing.T
 	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: client 'good_id': option 'userinfo_signing_algorithm' must be one of 'none, RS256' but it is configured as 'rs256'")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: client 'good_id': option 'userinfo_signing_algorithm' must be one of 'none', 'RS256' but it is configured as 'rs256'")
 }
 
 func TestValidateIdentityProvidersShouldRaiseWarningOnSecurityIssue(t *testing.T) {
@@ -914,6 +914,62 @@ func TestValidateOIDCClientRedirectURIsSupportingPrivateUseURISchemes(t *testing
 			errors.New("identity_providers: oidc: client 'owncloud': option 'redirect_uris' has the redirect uri 'urn:ietf:wg:oauth:2.0:oob' when option 'public' is false but this is invalid as this uri is not valid for the openid connect confidential client type"),
 		})
 	})
+}
+
+func TestValidateOIDCClientTokenEndpoint(t *testing.T) {
+	testCasses := []struct {
+		name     string
+		have     string
+		public   bool
+		expected string
+		errs     []string
+	}{
+		{"ShouldSetDefaultValueConfidential", "", false, "client_secret_post", nil},
+		{"ShouldSetDefaultValuePublic", "", true, "none", nil},
+		{"ShouldErrorOnInvalidValue", "abc", false, "abc",
+			[]string{
+				"identity_providers: oidc: client 'test': option 'token_endpoint_auth_method' must be one of 'none', 'client_secret_post', 'client_secret_basic' but it is configured as 'abc'",
+			},
+		},
+		{"ShouldErrorOnInvalidValueForPublicClient", "client_secret_post", true, "client_secret_post",
+			[]string{
+				"identity_providers: oidc: client 'test': option 'token_endpoint_auth_method' must be one of 'none' when configured as the 'public' client type but it's configured as 'client_secret_post'",
+			},
+		},
+		{"ShouldErrorOnInvalidValueForConfidentialClient", "none", false, "none",
+			[]string{
+				"identity_providers: oidc: client 'test': option 'token_endpoint_auth_method' must be one of 'client_secret_post', 'client_secret_basic' when configured as the 'confidential' client type but it's configured as 'none'",
+			},
+		},
+	}
+
+	for _, tc := range testCasses {
+		t.Run(tc.name, func(t *testing.T) {
+			have := &schema.OpenIDConnectConfiguration{
+				Clients: []schema.OpenIDConnectClientConfiguration{
+					{
+						ID:                      "test",
+						Public:                  tc.public,
+						TokenEndpointAuthMethod: tc.have,
+					},
+				},
+			}
+
+			val := schema.NewStructValidator()
+
+			validateOIDCClientTokenEndpointAuthMethod(0, have, val)
+
+			assert.Equal(t, tc.expected, have.Clients[0].TokenEndpointAuthMethod)
+			assert.Len(t, val.Warnings(), 0)
+			require.Len(t, val.Errors(), len(tc.errs))
+
+			if tc.errs != nil {
+				for i, err := range tc.errs {
+					assert.EqualError(t, val.Errors()[i], err)
+				}
+			}
+		})
+	}
 }
 
 func MustDecodeSecret(value string) *schema.PasswordDigest {

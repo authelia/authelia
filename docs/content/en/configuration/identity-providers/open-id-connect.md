@@ -522,6 +522,16 @@ The algorithm used to sign the userinfo endpoint responses. This can either be `
 See the [integration guide](../../integration/openid-connect/introduction.md#user-information-signing-algorithm) for
 more information.
 
+#### token_endpoint_auth_method
+
+{{< confkey type="string" default="client_secret_basic" required="no" >}}
+
+The registered client authentication mechanism used by this client for the [Token Endpoint]. Only a single mechanism is
+permitted per client. Supported values are `client_secret_basic`, `client_secret_post`, and `none`.
+
+See the [integration guide](../../integration/openid-connect/introduction.md#client-authentication-method) for
+more information.
+
 #### consent_mode
 
 {{< confkey type="string" default="auto" required="no" >}}
@@ -565,6 +575,7 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 
 [token lifespan]: https://docs.apigee.com/api-platform/antipatterns/oauth-long-expiration
 [OpenID Connect 1.0]: https://openid.net/connect/
+[Token Endpoint]: https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
 [JWT]: https://datatracker.ietf.org/doc/html/rfc7519
 [RFC6234]: https://datatracker.ietf.org/doc/html/rfc6234
 [RFC4648]: https://datatracker.ietf.org/doc/html/rfc4648
