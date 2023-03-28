@@ -142,11 +142,12 @@ const (
 const (
 	errFmtOIDCNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +
 		"more clients configured"
-	errFmtOIDCNoPrivateKey             = "identity_providers: oidc: option 'issuer_private_key' is required"
-	errFmtOIDCInvalidPrivateKeyBitSize = "identity_providers: oidc: option 'issuer_private_key' must be an RSA private key with %d bits or more but it only has %d bits"
-	errFmtOIDCCertificateMismatch      = "identity_providers: oidc: option 'issuer_private_key' does not appear to be the private key the certificate provided by option 'issuer_certificate_chain'"
-	errFmtOIDCCertificateChain         = "identity_providers: oidc: option 'issuer_certificate_chain' produced an error during validation of the chain: %w"
-	errFmtOIDCEnforcePKCEInvalidValue  = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
+	errFmtOIDCNoPrivateKey                               = "identity_providers: oidc: option 'issuer_private_key' is required"
+	errFmtOIDCInvalidPrivateKeyBitSize                   = "identity_providers: oidc: option 'issuer_private_key' must be an RSA private key with %d bits or more but it only has %d bits"
+	errFmtOIDCInvalidPrivateKeyMalformedMissingPublicKey = "identity_providers: oidc: option 'issuer_private_key' must be a valid RSA private key but the provided data is missing the public key bits"
+	errFmtOIDCCertificateMismatch                        = "identity_providers: oidc: option 'issuer_private_key' does not appear to be the private key the certificate provided by option 'issuer_certificate_chain'"
+	errFmtOIDCCertificateChain                           = "identity_providers: oidc: option 'issuer_certificate_chain' produced an error during validation of the chain: %w"
+	errFmtOIDCEnforcePKCEInvalidValue                    = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
 		"'public_clients_only' or 'always', but it is configured as '%s'"
 
 	errFmtOIDCCORSInvalidOrigin                    = "identity_providers: oidc: cors: option 'allowed_origins' contains an invalid value '%s' as it has a %s: origins must only be scheme, hostname, and an optional port"
