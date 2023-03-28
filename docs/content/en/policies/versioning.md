@@ -22,6 +22,17 @@ prevent automatic upgrade of the `major` version.
 We generally do not recommend automated upgrades of critical systems but instead recommend ensuring you are notified an
 upgrade exists.
 
+## Supported Versions
+
+The following information is indicative of our support policy:
+
+- We provide support to user questions for 3 `minor` versions at minimum
+- We provide bug fixes (as a `patch`) to the latest `minor` version
+- We provide vulnerability fixes:
+  - As workarounds in the [security advisory](https://github.com/authelia/authelia/security/advisories) (if possible)
+  - As patches in the [security advisory](https://github.com/authelia/authelia/security/advisories)
+  - To the last 3 `minor` versions upon request
+
 ## Major Version Zero
 
 A major version of `v0.x.x` indicates as per the [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html) policy
@@ -35,6 +46,7 @@ It is important to note that each component has its own version, for example the
 v4.40.0 but another component such as the [Helm Chart](https://charts.authelia.com) version may be v0.9.0.
 
 This means that a breaking change may occur to one but not the other as these components do not share a version.
+
 ## Exceptions
 
 There are exceptions to this versioning policy.

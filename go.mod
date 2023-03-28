@@ -13,7 +13,7 @@ require (
 	github.com/go-asn1-ber/asn1-ber v1.5.4
 	github.com/go-crypt/crypt v0.2.6
 	github.com/go-ldap/ldap/v3 v3.4.4
-	github.com/go-rod/rod v0.112.6
+	github.com/go-rod/rod v0.112.8
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/go-webauthn/webauthn v0.7.1
 	github.com/golang-jwt/jwt/v4 v4.5.0
@@ -44,7 +44,7 @@ require (
 	github.com/stretchr/testify v1.8.2
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.45.0
-	github.com/wneessen/go-mail v0.3.8
+	github.com/wneessen/go-mail v0.3.9
 	golang.org/x/net v0.8.0
 	golang.org/x/sync v0.1.0
 	golang.org/x/term v0.6.0

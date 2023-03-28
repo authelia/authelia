@@ -75,6 +75,14 @@ Lastly Authelia's implementation of Argon2id is highly tunable. You can tune the
 (time), parallelism, and memory usage. To read more about this please read how to
 [configure](../../configuration/first-factor/file.md) file authentication.
 
+## Protections against return oriented programming attacks and general hardening
+
+Authelia is built as a position independent executable which makes Return Oriented Programming (ROP) attacks
+significantly more difficult to execute reliably.
+
+In addition it is built as a static binary with full relocation read-only support making this and several other
+traditional binary weaknesses significantly more difficult to exploit.
+
 ## User profile and group membership always kept up-to-date (LDAP authentication provider)
 
 This measure is unrelated to the File authentication provider.
