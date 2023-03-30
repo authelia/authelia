@@ -95,7 +95,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 				},
 			},
 			[]string{
-				"session: option 'same_site' must be one of 'none', 'lax', 'strict' but is configured as 'BAD VALUE'",
+				"session: option 'same_site' must be one of 'none', 'lax', or 'strict' but it's configured as 'BAD VALUE'",
 			},
 		},
 		{
@@ -302,7 +302,7 @@ func TestShouldRaiseErrorWhenRedisHasHostnameButNoPort(t *testing.T) {
 
 	assert.False(t, validator.HasWarnings())
 	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "session: redis: option 'port' must be between 1 and 65535 but is configured as '0'")
+	assert.EqualError(t, validator.Errors()[0], "session: redis: option 'port' must be between 1 and 65535 but it's configured as '0'")
 }
 
 func TestShouldRaiseOneErrorWhenRedisHighAvailabilityHasNodesWithNoHost(t *testing.T) {
@@ -646,7 +646,7 @@ func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {
 		{"ShouldRaiseErrorOnPublicDomainDuckDNS", "duckdns.org", nil, []string{"session: domain config #1 (domain 'duckdns.org'): option 'domain' is not a valid cookie domain: the domain is part of the special public suffix list"}},
 		{"ShouldNotRaiseErrorOnSuffixOfPublicDomainDuckDNS", "example.duckdns.org", nil, nil},
 		{"ShouldRaiseWarningOnDomainWithLeadingDot", ".example.com", []string{"session: domain config #1 (domain '.example.com'): option 'domain' has a prefix of '.' which is not supported or intended behaviour: you can use this at your own risk but we recommend removing it"}, nil},
-		{"ShouldRaiseErrorOnDomainWithLeadingStarDot", "*.example.com", nil, []string{"session: domain config #1 (domain '*.example.com'): option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '*.example.com'"}},
+		{"ShouldRaiseErrorOnDomainWithLeadingStarDot", "*.example.com", nil, []string{"session: domain config #1 (domain '*.example.com'): option 'domain' must be the domain you wish to protect not a wildcard domain but it's configured as '*.example.com'"}},
 		{"ShouldRaiseErrorOnDomainNotSet", "", nil, []string{"session: domain config #1 (domain ''): option 'domain' is required"}},
 	}
 
@@ -726,8 +726,8 @@ func TestShouldRaiseErrorWhenSameSiteSetIncorrectly(t *testing.T) {
 	assert.False(t, validator.HasWarnings())
 	require.Len(t, validator.Errors(), 2)
 
-	assert.EqualError(t, validator.Errors()[0], "session: option 'same_site' must be one of 'none', 'lax', 'strict' but is configured as 'NOne'")
-	assert.EqualError(t, validator.Errors()[1], "session: domain config #1 (domain 'example.com'): option 'same_site' must be one of 'none', 'lax', 'strict' but is configured as 'NOne'")
+	assert.EqualError(t, validator.Errors()[0], "session: option 'same_site' must be one of 'none', 'lax', or 'strict' but it's configured as 'NOne'")
+	assert.EqualError(t, validator.Errors()[1], "session: domain config #1 (domain 'example.com'): option 'same_site' must be one of 'none', 'lax', or 'strict' but it's configured as 'NOne'")
 }
 
 func TestShouldNotRaiseErrorWhenSameSiteSetCorrectly(t *testing.T) {

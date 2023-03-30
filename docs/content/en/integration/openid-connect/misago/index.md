@@ -2,7 +2,7 @@
 title: "Misago"
 description: "Integrating Misago with the Authelia OpenID Connect Provider."
 lead: ""
-date: 2023-03-04T13:20:00+00:00
+date: 2023-03-14T08:51:13+11:00
 draft: false
 images: []
 menu:

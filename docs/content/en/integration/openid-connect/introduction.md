@@ -21,7 +21,14 @@ documentation for some [OpenID Connect 1.0] Relying Party implementations.
 See the [configuration documentation](../../configuration/identity-providers/open-id-connect.md) for information on how
 to configure the Authelia [OpenID Connect 1.0] Provider.
 
+This page is intended as an integration reference point for any implementers who wish to integrate an
+[OpenID Connect 1.0] Relying Party (client application) either as a developer or user of the third party Reyling Party.
+
 ## Scope Definitions
+
+The following scope definitions describe each scope supported and the associated effects including the individual claims
+returned by granting this scope. By default we do not issue any claims which reveal the users identity which allows
+administrators semi-granular control over which claims the client is entitled to.
 
 ### openid
 
@@ -56,6 +63,9 @@ issued token credentials, effectively it allows the relying party to obtain new 
 
 Generally unless an application supports this and actively requests this scope they should not be granted this scope via
 the client configuration.
+
+It is also important to note that we treat a [Refresh Token] as single use and reissue a new [Refresh Token] during the
+refresh flow.
 
 ### groups
 
@@ -92,43 +102,21 @@ This scope includes the profile information the authentication backend reports a
 The following section describes advanced parameters which can be used in various endpoints as well as their related
 configuration options.
 
-### Grant Types
-
-The following describes the various [OAuth 2.0] and [OpenID Connect 1.0] grant types and their support level. The value
-field is both the required value for the `grant_type` parameter in the authorization request and the `grant_types`
-configuration option.
-
-|                   Grant Type                    | Supported |                     Value                      |                                Notes                                |
-|:-----------------------------------------------:|:---------:|:----------------------------------------------:|:-------------------------------------------------------------------:|
-|         [OAuth 2.0 Authorization Code]          |    Yes    |              `authorization_code`              |                                                                     |
-| [OAuth 2.0 Resource Owner Password Credentials] |    No     |                   `password`                   | This Grant Type has been deprecated and should not normally be used |
-|         [OAuth 2.0 Client Credentials]          |    Yes    |              `client_credentials`              |                                                                     |
-|              [OAuth 2.0 Implicit]               |    Yes    |                   `implicit`                   | This Grant Type has been deprecated and should not normally be used |
-|            [OAuth 2.0 Refresh Token]            |    Yes    |                `refresh_token`                 |                                                                     |
-|             [OAuth 2.0 Device Code]             |    No     | `urn:ietf:params:oauth:grant-type:device_code` |                                                                     |
-|
-
-[OAuth 2.0 Authorization Code]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.1
-[OAuth 2.0 Implicit]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.2
-[OAuth 2.0 Resource Owner Password Credentials]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.3
-[OAuth 2.0 Client Credentials]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.4
-[OAuth 2.0 Refresh Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.5
-[OAuth 2.0 Device Code]: https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
-
 ### Response Types
 
 The following describes the supported response types. See the [OAuth 2.0 Multiple Response Type Encoding Practices] for
-more technical information.
+more technical information. The default response modes column indicates which response modes are allowed by default on
+clients configured with this flow type value. If more than a single response type is configured
 
-|         Flow Type         |        Values         |
-|:-------------------------:|:---------------------:|
-| [Authorization Code Flow] |        `code`         |
-|      [Implicit Flow]      |   `token id_token`    |
-|      [Implicit Flow]      |      `id_token`       |
-|      [Implicit Flow]      |        `token`        |
-|       [Hybrid Flow]       |     `code token`      |
-|       [Hybrid Flow]       |    `code id_token`    |
-|       [Hybrid Flow]       | `code token id_token` |
+|         Flow Type         |         Value         | Default [Response Modes](#response-modes) Values |
+|:-------------------------:|:---------------------:|:------------------------------------------------:|
+| [Authorization Code Flow] |        `code`         |               `form_post`, `query`               |
+|      [Implicit Flow]      |   `id_token token`    |             `form_post`, `fragment`              |
+|      [Implicit Flow]      |      `id_token`       |             `form_post`, `fragment`              |
+|      [Implicit Flow]      |        `token`        |             `form_post`, `fragment`              |
+|       [Hybrid Flow]       |     `code token`      |             `form_post`, `fragment`              |
+|       [Hybrid Flow]       |    `code id_token`    |             `form_post`, `fragment`              |
+|       [Hybrid Flow]       | `code id_token token` |             `form_post`, `fragment`              |
 
 [Authorization Code Flow]: https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth
 [Implicit Flow]: https://openid.net/specs/openid-connect-core-1_0.html#ImplicitFlowAuth
@@ -139,20 +127,44 @@ more technical information.
 ### Response Modes
 
 The following describes the supported response modes. See the [OAuth 2.0 Multiple Response Type Encoding Practices] for
-more technical information.
+more technical information. The default response modes of a client is based on the [Response Types](#response-types)
+configuration.
 
 |         Name          |    Value    |
 |:---------------------:|:-----------:|
+| [OAuth 2.0 Form Post] | `form_post` |
 |     Query String      |   `query`   |
 |       Fragment        | `fragment`  |
-| [OAuth 2.0 Form Post] | `form_post` |
 
 [OAuth 2.0 Form Post]: https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
+
+### Grant Types
+
+The following describes the various [OAuth 2.0] and [OpenID Connect 1.0] grant types and their support level. The value
+field is both the required value for the `grant_type` parameter in the authorization request and the `grant_types`
+configuration option.
+
+|                   Grant Type                    | Supported |                     Value                      |                                              Notes                                              |
+|:-----------------------------------------------:|:---------:|:----------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
+|         [OAuth 2.0 Authorization Code]          |    Yes    |              `authorization_code`              |                                                                                                 |
+| [OAuth 2.0 Resource Owner Password Credentials] |    No     |                   `password`                   |               This Grant Type has been deprecated and should not normally be used               |
+|         [OAuth 2.0 Client Credentials]          |    No     |              `client_credentials`              |                                                                                                 |
+|              [OAuth 2.0 Implicit]               |    Yes    |                   `implicit`                   |               This Grant Type has been deprecated and should not normally be used               |
+|            [OAuth 2.0 Refresh Token]            |    Yes    |                `refresh_token`                 | This Grant Type should genreally only be used for clients which have the `offline_access` scope |
+|             [OAuth 2.0 Device Code]             |    No     | `urn:ietf:params:oauth:grant-type:device_code` |                                                                                                 |
+|
+
+[OAuth 2.0 Authorization Code]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.1
+[OAuth 2.0 Implicit]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.2
+[OAuth 2.0 Resource Owner Password Credentials]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.3
+[OAuth 2.0 Client Credentials]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.4
+[OAuth 2.0 Refresh Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.5
+[OAuth 2.0 Device Code]: https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
 
 ### Client Authentication Method
 
 The following describes the supported client authentication methods. See the [OpenID Connect 1.0 Client Authentication]
-specification for more information.
+specification and the [OAuth 2.0 - Client Types] specification for more information.
 
 |             Description              |         Value / Name          | Supported Client Types | Default for Client Type |                      Assertion Type                      |
 |:------------------------------------:|:-----------------------------:|:----------------------:|:-----------------------:|:--------------------------------------------------------:|
@@ -167,6 +179,7 @@ specification for more information.
 
 [OpenID Connect 1.0 Client Authentication]: https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
 [OAuth 2.0 Mutual-TLS]: https://datatracker.ietf.org/doc/html/rfc8705
+[OAuth 2.0 - Client Types]: https://datatracker.ietf.org/doc/html/rfc8705#section-2.1
 
 ## Authentication Method References
 

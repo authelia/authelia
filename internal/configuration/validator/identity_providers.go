@@ -3,6 +3,7 @@ package validator
 import (
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -123,10 +124,10 @@ func validateOIDCOptionsCORSAllowedOriginsFromClientRedirectURIs(config *schema.
 				continue
 			}
 
-			origin := utils.OriginFromURL(*uri)
+			origin := utils.OriginFromURL(uri)
 
-			if !utils.IsURLInSlice(origin, config.CORS.AllowedOrigins) {
-				config.CORS.AllowedOrigins = append(config.CORS.AllowedOrigins, origin)
+			if !utils.IsURLInSlice(*origin, config.CORS.AllowedOrigins) {
+				config.CORS.AllowedOrigins = append(config.CORS.AllowedOrigins, *origin)
 			}
 		}
 	}
@@ -135,108 +136,128 @@ func validateOIDCOptionsCORSAllowedOriginsFromClientRedirectURIs(config *schema.
 func validateOIDCOptionsCORSEndpoints(config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
 	for _, endpoint := range config.CORS.Endpoints {
 		if !utils.IsStringInSlice(endpoint, validOIDCCORSEndpoints) {
-			val.Push(fmt.Errorf(errFmtOIDCCORSInvalidEndpoint, endpoint, strings.Join(validOIDCCORSEndpoints, "', '")))
+			val.Push(fmt.Errorf(errFmtOIDCCORSInvalidEndpoint, endpoint, strJoinOr(validOIDCCORSEndpoints)))
 		}
 	}
 }
 
 func validateOIDCClients(config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
-	invalidID, duplicateIDs := false, false
+	var (
+		errDeprecated bool
 
-	var ids []string
+		clientIDs, duplicateClientIDs, blankClientIDs []string
+	)
+
+	errDeprecatedFunc := func() { errDeprecated = true }
 
 	for c, client := range config.Clients {
 		if client.ID == "" {
-			invalidID = true
+			blankClientIDs = append(blankClientIDs, "#"+strconv.Itoa(c+1))
 		} else {
 			if client.Description == "" {
 				config.Clients[c].Description = client.ID
 			}
 
-			if utils.IsStringInSliceFold(client.ID, ids) {
-				duplicateIDs = true
-			}
-			ids = append(ids, client.ID)
-		}
-
-		if client.Public {
-			if client.Secret != nil {
-				val.Push(fmt.Errorf(errFmtOIDCClientPublicInvalidSecret, client.ID))
-			}
-		} else {
-			if client.Secret == nil {
-				val.Push(fmt.Errorf(errFmtOIDCClientInvalidSecret, client.ID))
-			} else if client.Secret.IsPlainText() {
-				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidSecretPlainText, client.ID))
+			if id := strings.ToLower(client.ID); utils.IsStringInSlice(id, clientIDs) {
+				if !utils.IsStringInSlice(id, duplicateClientIDs) {
+					duplicateClientIDs = append(duplicateClientIDs, id)
+				}
+			} else {
+				clientIDs = append(clientIDs, id)
 			}
 		}
 
-		if client.Policy == "" {
-			config.Clients[c].Policy = schema.DefaultOpenIDConnectClientConfiguration.Policy
-		} else if client.Policy != policyOneFactor && client.Policy != policyTwoFactor {
-			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, client.ID, "policy", "one_factor', 'two_factor", client.Policy))
-		}
-
-		switch client.PKCEChallengeMethod {
-		case "", "plain", "S256":
-			break
-		default:
-			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, client.ID, "pkce_challenge_method", "plain', 'S256", client.PKCEChallengeMethod))
-		}
-
-		validateOIDCClientConsentMode(c, config, val)
-		validateOIDCClientScopes(c, config, val)
-		validateOIDCClientGrantTypes(c, config, val)
-		validateOIDCClientResponseTypes(c, config, val)
-		validateOIDCClientResponseModes(c, config, val)
-		validateOIDCClientTokenEndpointAuthMethod(c, config, val)
-		validateOIDDClientUserinfoAlgorithm(c, config, val)
-
-		validateOIDCClientSectorIdentifier(client, val)
-		validateOIDCClientRedirectURIs(client, val)
+		validateOIDCClient(c, config, val, errDeprecatedFunc)
 	}
 
-	if invalidID {
-		val.Push(fmt.Errorf(errFmtOIDCClientsWithEmptyID))
+	if errDeprecated {
+		val.PushWarning(fmt.Errorf("identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors"))
 	}
 
-	if duplicateIDs {
-		val.Push(fmt.Errorf(errFmtOIDCClientsDuplicateID))
+	if len(blankClientIDs) != 0 {
+		val.Push(fmt.Errorf(errFmtOIDCClientsWithEmptyID, buildJoinedString(", ", ", or ", "", blankClientIDs)))
+	}
+
+	if len(duplicateClientIDs) != 0 {
+		val.Push(fmt.Errorf(errFmtOIDCClientsDuplicateID, strJoinOr(duplicateClientIDs)))
 	}
 }
 
-func validateOIDCClientSectorIdentifier(client schema.OpenIDConnectClientConfiguration, val *schema.StructValidator) {
-	if client.SectorIdentifier.String() != "" {
-		if utils.IsURLHostComponent(client.SectorIdentifier) || utils.IsURLHostComponentWithPort(client.SectorIdentifier) {
+func validateOIDCClient(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator, errDeprecatedFunc func()) {
+	if config.Clients[c].Public {
+		if config.Clients[c].Secret != nil {
+			val.Push(fmt.Errorf(errFmtOIDCClientPublicInvalidSecret, config.Clients[c].ID))
+		}
+	} else {
+		if config.Clients[c].Secret == nil {
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidSecret, config.Clients[c].ID))
+		} else if config.Clients[c].Secret.IsPlainText() {
+			val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidSecretPlainText, config.Clients[c].ID))
+		}
+	}
+
+	switch config.Clients[c].Policy {
+	case "":
+		config.Clients[c].Policy = schema.DefaultOpenIDConnectClientConfiguration.Policy
+	case policyOneFactor, policyTwoFactor:
+		break
+	default:
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, "policy", strJoinOr([]string{policyOneFactor, policyTwoFactor}), config.Clients[c].Policy))
+	}
+
+	switch config.Clients[c].PKCEChallengeMethod {
+	case "", oidc.PKCEChallengeMethodPlain, oidc.PKCEChallengeMethodSHA256:
+		break
+	default:
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, "pkce_challenge_method", strJoinOr([]string{oidc.PKCEChallengeMethodPlain, oidc.PKCEChallengeMethodSHA256}), config.Clients[c].PKCEChallengeMethod))
+	}
+
+	validateOIDCClientConsentMode(c, config, val)
+
+	validateOIDCClientScopes(c, config, val, errDeprecatedFunc)
+	validateOIDCClientResponseTypes(c, config, val, errDeprecatedFunc)
+	validateOIDCClientResponseModes(c, config, val, errDeprecatedFunc)
+	validateOIDCClientGrantTypes(c, config, val, errDeprecatedFunc)
+	validateOIDCClientRedirectURIs(c, config, val, errDeprecatedFunc)
+
+	validateOIDCClientTokenEndpointAuthMethod(c, config, val)
+	validateOIDDClientUserinfoAlgorithm(c, config, val)
+
+	validateOIDCClientSectorIdentifier(c, config, val)
+}
+
+func validateOIDCClientSectorIdentifier(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+	if config.Clients[c].SectorIdentifier.String() != "" {
+		if utils.IsURLHostComponent(config.Clients[c].SectorIdentifier) || utils.IsURLHostComponentWithPort(config.Clients[c].SectorIdentifier) {
 			return
 		}
 
-		if client.SectorIdentifier.Scheme != "" {
-			val.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, client.ID, client.SectorIdentifier.String(), client.SectorIdentifier.Host, "scheme", client.SectorIdentifier.Scheme))
+		if config.Clients[c].SectorIdentifier.Scheme != "" {
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifier.String(), config.Clients[c].SectorIdentifier.Host, "scheme", config.Clients[c].SectorIdentifier.Scheme))
 
-			if client.SectorIdentifier.Path != "" {
-				val.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, client.ID, client.SectorIdentifier.String(), client.SectorIdentifier.Host, "path", client.SectorIdentifier.Path))
+			if config.Clients[c].SectorIdentifier.Path != "" {
+				val.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifier.String(), config.Clients[c].SectorIdentifier.Host, "path", config.Clients[c].SectorIdentifier.Path))
 			}
 
-			if client.SectorIdentifier.RawQuery != "" {
-				val.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, client.ID, client.SectorIdentifier.String(), client.SectorIdentifier.Host, "query", client.SectorIdentifier.RawQuery))
+			if config.Clients[c].SectorIdentifier.RawQuery != "" {
+				val.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifier.String(), config.Clients[c].SectorIdentifier.Host, "query", config.Clients[c].SectorIdentifier.RawQuery))
 			}
 
-			if client.SectorIdentifier.Fragment != "" {
-				val.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, client.ID, client.SectorIdentifier.String(), client.SectorIdentifier.Host, "fragment", client.SectorIdentifier.Fragment))
+			if config.Clients[c].SectorIdentifier.Fragment != "" {
+				val.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifier.String(), config.Clients[c].SectorIdentifier.Host, "fragment", config.Clients[c].SectorIdentifier.Fragment))
 			}
 
-			if client.SectorIdentifier.User != nil {
-				if client.SectorIdentifier.User.Username() != "" {
-					val.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, client.ID, client.SectorIdentifier.String(), client.SectorIdentifier.Host, "username", client.SectorIdentifier.User.Username()))
+			if config.Clients[c].SectorIdentifier.User != nil {
+				if config.Clients[c].SectorIdentifier.User.Username() != "" {
+					val.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifier.String(), config.Clients[c].SectorIdentifier.Host, "username", config.Clients[c].SectorIdentifier.User.Username()))
 				}
 
-				if _, set := client.SectorIdentifier.User.Password(); set {
-					val.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifierWithoutValue, client.ID, client.SectorIdentifier.String(), client.SectorIdentifier.Host, "password"))
+				if _, set := config.Clients[c].SectorIdentifier.User.Password(); set {
+					val.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifierWithoutValue, config.Clients[c].ID, config.Clients[c].SectorIdentifier.String(), config.Clients[c].SectorIdentifier.Host, "password"))
 				}
 			}
-		} else if client.SectorIdentifier.Host == "" {
-			val.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifierHost, client.ID, client.SectorIdentifier.String()))
+		} else if config.Clients[c].SectorIdentifier.Host == "" {
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifierHost, config.Clients[c].ID, config.Clients[c].SectorIdentifier.String()))
 		}
 	}
 }
@@ -252,7 +273,7 @@ func validateOIDCClientConsentMode(c int, config *schema.OpenIDConnectConfigurat
 	case utils.IsStringInSlice(config.Clients[c].ConsentMode, validOIDCClientConsentModes):
 		break
 	default:
-		val.Push(fmt.Errorf(errFmtOIDCClientInvalidConsentMode, config.Clients[c].ID, strings.Join(append(validOIDCClientConsentModes, "auto"), "', '"), config.Clients[c].ConsentMode))
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidConsentMode, config.Clients[c].ID, strJoinOr(append(validOIDCClientConsentModes, "auto")), config.Clients[c].ConsentMode))
 	}
 
 	if config.Clients[c].ConsentMode == oidc.ClientConsentModePreConfigured.String() && config.Clients[c].ConsentPreConfiguredDuration == nil {
@@ -260,59 +281,172 @@ func validateOIDCClientConsentMode(c int, config *schema.OpenIDConnectConfigurat
 	}
 }
 
-func validateOIDCClientScopes(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+func validateOIDCClientScopes(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator, errDeprecatedFunc func()) {
 	if len(config.Clients[c].Scopes) == 0 {
 		config.Clients[c].Scopes = schema.DefaultOpenIDConnectClientConfiguration.Scopes
-		return
 	}
 
 	if !utils.IsStringInSlice(oidc.ScopeOpenID, config.Clients[c].Scopes) {
-		config.Clients[c].Scopes = append(config.Clients[c].Scopes, oidc.ScopeOpenID)
+		config.Clients[c].Scopes = append([]string{oidc.ScopeOpenID}, config.Clients[c].Scopes...)
 	}
 
-	for _, scope := range config.Clients[c].Scopes {
-		if !utils.IsStringInSlice(scope, validOIDCScopes) {
-			val.Push(fmt.Errorf(
-				errFmtOIDCClientInvalidEntry,
-				config.Clients[c].ID, "scopes", strings.Join(validOIDCScopes, "', '"), scope))
-		}
+	invalid, duplicates := validateList(config.Clients[c].Scopes, validOIDCClientScopes, true)
+
+	if len(invalid) != 0 {
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidEntries, config.Clients[c].ID, "scopes", strJoinOr(validOIDCClientScopes), strJoinAnd(invalid)))
+	}
+
+	if len(duplicates) != 0 {
+		errDeprecatedFunc()
+
+		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, "scopes", strJoinAnd(duplicates)))
 	}
 }
 
-func validateOIDCClientGrantTypes(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+func validateOIDCClientResponseTypes(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator, errDeprecatedFunc func()) {
+	if len(config.Clients[c].ResponseTypes) == 0 {
+		config.Clients[c].ResponseTypes = schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes
+	}
+
+	invalid, duplicates := validateList(config.Clients[c].ResponseTypes, validOIDCClientResponseTypes, true)
+
+	if len(invalid) != 0 {
+		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntries, config.Clients[c].ID, "response_types", strJoinOr(validOIDCClientResponseTypes), strJoinAnd(invalid)))
+	}
+
+	if len(duplicates) != 0 {
+		errDeprecatedFunc()
+
+		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, "response_types", strJoinAnd(duplicates)))
+	}
+}
+
+func validateOIDCClientResponseModes(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator, errDeprecatedFunc func()) {
+	if len(config.Clients[c].ResponseModes) == 0 {
+		config.Clients[c].ResponseModes = schema.DefaultOpenIDConnectClientConfiguration.ResponseModes
+
+		for _, responseType := range config.Clients[c].ResponseTypes {
+			switch responseType {
+			case oidc.ResponseTypeAuthorizationCodeFlow:
+				if !utils.IsStringInSlice(oidc.ResponseModeQuery, config.Clients[c].ResponseModes) {
+					config.Clients[c].ResponseModes = append(config.Clients[c].ResponseModes, oidc.ResponseModeQuery)
+				}
+			case oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth,
+				oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth:
+				if !utils.IsStringInSlice(oidc.ResponseModeFragment, config.Clients[c].ResponseModes) {
+					config.Clients[c].ResponseModes = append(config.Clients[c].ResponseModes, oidc.ResponseModeFragment)
+				}
+			}
+		}
+	}
+
+	invalid, duplicates := validateList(config.Clients[c].ResponseModes, validOIDCClientResponseModes, true)
+
+	if len(invalid) != 0 {
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidEntries, config.Clients[c].ID, "response_modes", strJoinOr(validOIDCClientResponseModes), strJoinAnd(invalid)))
+	}
+
+	if len(duplicates) != 0 {
+		errDeprecatedFunc()
+
+		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, "response_modes", strJoinAnd(duplicates)))
+	}
+}
+
+func validateOIDCClientGrantTypes(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator, errDeprecatedFunc func()) {
 	if len(config.Clients[c].GrantTypes) == 0 {
-		config.Clients[c].GrantTypes = schema.DefaultOpenIDConnectClientConfiguration.GrantTypes
-		return
+		for _, responseType := range config.Clients[c].ResponseTypes {
+			switch responseType {
+			case oidc.ResponseTypeAuthorizationCodeFlow:
+				if !utils.IsStringInSlice(oidc.GrantTypeAuthorizationCode, config.Clients[c].GrantTypes) {
+					config.Clients[c].GrantTypes = append(config.Clients[c].GrantTypes, oidc.GrantTypeAuthorizationCode)
+				}
+			case oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth:
+				if !utils.IsStringInSlice(oidc.GrantTypeImplicit, config.Clients[c].GrantTypes) {
+					config.Clients[c].GrantTypes = append(config.Clients[c].GrantTypes, oidc.GrantTypeImplicit)
+				}
+			case oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth:
+				if !utils.IsStringInSlice(oidc.GrantTypeAuthorizationCode, config.Clients[c].GrantTypes) {
+					config.Clients[c].GrantTypes = append(config.Clients[c].GrantTypes, oidc.GrantTypeAuthorizationCode)
+				}
+
+				if !utils.IsStringInSlice(oidc.GrantTypeImplicit, config.Clients[c].GrantTypes) {
+					config.Clients[c].GrantTypes = append(config.Clients[c].GrantTypes, oidc.GrantTypeImplicit)
+				}
+			}
+		}
 	}
 
 	for _, grantType := range config.Clients[c].GrantTypes {
-		if !utils.IsStringInSlice(grantType, validOIDCGrantTypes) {
-			val.Push(fmt.Errorf(
-				errFmtOIDCClientInvalidEntry,
-				config.Clients[c].ID, "grant_types", strings.Join(validOIDCGrantTypes, "', '"), grantType))
+		switch grantType {
+		case oidc.GrantTypeImplicit:
+			if !utils.IsStringSliceContainsAny(validOIDCClientResponseModesImplicitFlow, config.Clients[c].ResponseTypes) && !utils.IsStringSliceContainsAny(validOIDCClientResponseModesHybridFlow, config.Clients[c].ResponseTypes) {
+				errDeprecatedFunc()
+
+				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidGrantTypeMatch, config.Clients[c].ID, grantType, "for either the implicit or hybrid flow", strJoinOr(append(append([]string{}, validOIDCClientResponseModesImplicitFlow...), validOIDCClientResponseModesHybridFlow...)), strJoinAnd(config.Clients[c].ResponseTypes)))
+			}
+		case oidc.GrantTypeAuthorizationCode:
+			if !utils.IsStringInSlice(oidc.ResponseTypeAuthorizationCodeFlow, config.Clients[c].ResponseTypes) && !utils.IsStringSliceContainsAny(validOIDCClientResponseModesHybridFlow, config.Clients[c].ResponseTypes) {
+				errDeprecatedFunc()
+
+				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidGrantTypeMatch, config.Clients[c].ID, grantType, "for either the authorization code or hybrid flow", strJoinOr(append([]string{oidc.ResponseTypeAuthorizationCodeFlow}, validOIDCClientResponseModesHybridFlow...)), strJoinAnd(config.Clients[c].ResponseTypes)))
+			}
+		case oidc.GrantTypeRefreshToken:
+			if !utils.IsStringInSlice(oidc.ScopeOfflineAccess, config.Clients[c].Scopes) {
+				errDeprecatedFunc()
+
+				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidGrantTypeRefresh, config.Clients[c].ID))
+			}
 		}
+	}
+
+	invalid, duplicates := validateList(config.Clients[c].GrantTypes, validOIDCClientGrantTypes, true)
+
+	if len(invalid) != 0 {
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidEntries, config.Clients[c].ID, "grant_types", strJoinOr(validOIDCClientGrantTypes), strJoinAnd(invalid)))
+	}
+
+	if len(duplicates) != 0 {
+		errDeprecatedFunc()
+
+		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, "grant_types", strJoinAnd(duplicates)))
 	}
 }
 
-func validateOIDCClientResponseTypes(c int, config *schema.OpenIDConnectConfiguration, _ *schema.StructValidator) {
-	if len(config.Clients[c].ResponseTypes) == 0 {
-		config.Clients[c].ResponseTypes = schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes
-		return
-	}
-}
+func validateOIDCClientRedirectURIs(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator, errDeprecatedFunc func()) {
+	var (
+		parsedRedirectURI *url.URL
+		err               error
+	)
 
-func validateOIDCClientResponseModes(c int, config *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
-	if len(config.Clients[c].ResponseModes) == 0 {
-		config.Clients[c].ResponseModes = schema.DefaultOpenIDConnectClientConfiguration.ResponseModes
-		return
-	}
+	for _, redirectURI := range config.Clients[c].RedirectURIs {
+		if redirectURI == oauth2InstalledApp {
+			if config.Clients[c].Public {
+				continue
+			}
 
-	for _, responseMode := range config.Clients[c].ResponseModes {
-		if !utils.IsStringInSlice(responseMode, validOIDCResponseModes) {
-			validator.Push(fmt.Errorf(
-				errFmtOIDCClientInvalidEntry,
-				config.Clients[c].ID, "response_modes", strings.Join(validOIDCResponseModes, "', '"), responseMode))
+			val.Push(fmt.Errorf(errFmtOIDCClientRedirectURIPublic, config.Clients[c].ID, oauth2InstalledApp))
+
+			continue
 		}
+
+		if parsedRedirectURI, err = url.Parse(redirectURI); err != nil {
+			val.Push(fmt.Errorf(errFmtOIDCClientRedirectURICantBeParsed, config.Clients[c].ID, redirectURI, err))
+			continue
+		}
+
+		if !parsedRedirectURI.IsAbs() || (!config.Clients[c].Public && parsedRedirectURI.Scheme == "") {
+			val.Push(fmt.Errorf(errFmtOIDCClientRedirectURIAbsolute, config.Clients[c].ID, redirectURI))
+			return
+		}
+	}
+
+	_, duplicates := validateList(config.Clients[c].RedirectURIs, nil, true)
+
+	if len(duplicates) != 0 {
+		errDeprecatedFunc()
+
+		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, "redirect_uris", strJoinAnd(duplicates)))
 	}
 }
 
@@ -321,55 +455,30 @@ func validateOIDCClientTokenEndpointAuthMethod(c int, config *schema.OpenIDConne
 		if config.Clients[c].Public {
 			config.Clients[c].TokenEndpointAuthMethod = oidc.ClientAuthMethodNone
 		} else {
-			config.Clients[c].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretPost
+			config.Clients[c].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretBasic
 		}
-
-		return
 	}
 
 	switch {
 	case !utils.IsStringInSlice(config.Clients[c].TokenEndpointAuthMethod, validOIDCClientTokenEndpointAuthMethods):
 		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
-			config.Clients[c].ID, "token_endpoint_auth_method", strings.Join(validOIDCClientTokenEndpointAuthMethods, "', '"), config.Clients[c].TokenEndpointAuthMethod))
+			config.Clients[c].ID, "token_endpoint_auth_method", strJoinOr(validOIDCClientTokenEndpointAuthMethods), config.Clients[c].TokenEndpointAuthMethod))
 	case config.Clients[c].TokenEndpointAuthMethod == oidc.ClientAuthMethodNone && !config.Clients[c].Public:
 		val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthMethod,
-			config.Clients[c].ID, strings.Join(validOIDCClientTokenEndpointAuthMethodsConfidential, "', '"), "confidential", config.Clients[c].TokenEndpointAuthMethod))
+			config.Clients[c].ID, strJoinOr(validOIDCClientTokenEndpointAuthMethodsConfidential), "confidential", config.Clients[c].TokenEndpointAuthMethod))
 	case config.Clients[c].TokenEndpointAuthMethod != oidc.ClientAuthMethodNone && config.Clients[c].Public:
 		val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthMethod,
-			config.Clients[c].ID, oidc.ClientAuthMethodNone, "public", config.Clients[c].TokenEndpointAuthMethod))
+			config.Clients[c].ID, strJoinOr([]string{oidc.ClientAuthMethodNone}), "public", config.Clients[c].TokenEndpointAuthMethod))
 	}
 }
 
 func validateOIDDClientUserinfoAlgorithm(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
 	if config.Clients[c].UserinfoSigningAlgorithm == "" {
 		config.Clients[c].UserinfoSigningAlgorithm = schema.DefaultOpenIDConnectClientConfiguration.UserinfoSigningAlgorithm
-	} else if !utils.IsStringInSlice(config.Clients[c].UserinfoSigningAlgorithm, validOIDCUserinfoAlgorithms) {
-		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
-			config.Clients[c].ID, "userinfo_signing_algorithm", strings.Join(validOIDCUserinfoAlgorithms, "', '"), config.Clients[c].UserinfoSigningAlgorithm))
 	}
-}
 
-func validateOIDCClientRedirectURIs(client schema.OpenIDConnectClientConfiguration, val *schema.StructValidator) {
-	for _, redirectURI := range client.RedirectURIs {
-		if redirectURI == oauth2InstalledApp {
-			if client.Public {
-				continue
-			}
-
-			val.Push(fmt.Errorf(errFmtOIDCClientRedirectURIPublic, client.ID, oauth2InstalledApp))
-
-			continue
-		}
-
-		parsedURL, err := url.Parse(redirectURI)
-		if err != nil {
-			val.Push(fmt.Errorf(errFmtOIDCClientRedirectURICantBeParsed, client.ID, redirectURI, err))
-			continue
-		}
-
-		if !parsedURL.IsAbs() || (!client.Public && parsedURL.Scheme == "") {
-			val.Push(fmt.Errorf(errFmtOIDCClientRedirectURIAbsolute, client.ID, redirectURI))
-			return
-		}
+	if !utils.IsStringInSlice(config.Clients[c].UserinfoSigningAlgorithm, validOIDCClientUserinfoAlgorithms) {
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
+			config.Clients[c].ID, "userinfo_signing_algorithm", strJoinOr(validOIDCClientUserinfoAlgorithms), config.Clients[c].UserinfoSigningAlgorithm))
 	}
 }

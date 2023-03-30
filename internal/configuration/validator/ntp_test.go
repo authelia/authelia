@@ -49,5 +49,5 @@ func TestShouldRaiseErrorOnInvalidNTPVersion(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "ntp: option 'version' must be either 3 or 4 but it is configured as '1'")
+	assert.EqualError(t, validator.Errors()[0], "ntp: option 'version' must be either 3 or 4 but it's configured as '1'")
 }

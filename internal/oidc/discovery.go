@@ -76,10 +76,6 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 				SigningAlgorithmNone,
 				SigningAlgorithmRSAWithSHA256,
 			},
-			RequestObjectSigningAlgValuesSupported: []string{
-				SigningAlgorithmNone,
-				SigningAlgorithmRSAWithSHA256,
-			},
 		},
 		PushedAuthorizationDiscoveryOptions: PushedAuthorizationDiscoveryOptions{
 			RequirePushedAuthorizationRequests: c.PAR.Enforce,

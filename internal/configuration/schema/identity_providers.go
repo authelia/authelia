@@ -93,9 +93,8 @@ var defaultOIDCClientConsentPreConfiguredDuration = time.Hour * 24 * 7
 var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClientConfiguration{
 	Policy:        "two_factor",
 	Scopes:        []string{"openid", "groups", "profile", "email"},
-	GrantTypes:    []string{"refresh_token", "authorization_code"},
 	ResponseTypes: []string{"code"},
-	ResponseModes: []string{"form_post", "query", "fragment"},
+	ResponseModes: []string{"form_post"},
 
 	UserinfoSigningAlgorithm:     "none",
 	ConsentMode:                  "auto",

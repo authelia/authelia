@@ -71,7 +71,7 @@ func ValidatePasswordConfiguration(config *schema.Password, validator *schema.St
 	case utils.IsStringInSlice(config.Algorithm, validHashAlgorithms):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordUnknownAlg, config.Algorithm, strings.Join(validHashAlgorithms, "', '")))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordUnknownAlg, strJoinOr(validHashAlgorithms), config.Algorithm))
 	}
 
 	validateFileAuthenticationBackendPasswordConfigArgon2(config, validator)
@@ -89,7 +89,7 @@ func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Passwo
 	case utils.IsStringInSlice(config.Argon2.Variant, validArgon2Variants):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashArgon2, config.Argon2.Variant, strings.Join(validArgon2Variants, "', '")))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashArgon2, strJoinOr(validArgon2Variants), config.Argon2.Variant))
 	}
 
 	switch {
@@ -147,7 +147,7 @@ func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.Pas
 	case utils.IsStringInSlice(config.SHA2Crypt.Variant, validSHA2CryptVariants):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashSHA2Crypt, config.SHA2Crypt.Variant, strings.Join(validSHA2CryptVariants, "', '")))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashSHA2Crypt, strJoinOr(validSHA2CryptVariants), config.SHA2Crypt.Variant))
 	}
 
 	switch {
@@ -176,7 +176,7 @@ func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.Passwo
 	case utils.IsStringInSlice(config.PBKDF2.Variant, validPBKDF2Variants):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashPBKDF2, config.PBKDF2.Variant, strings.Join(validPBKDF2Variants, "', '")))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashPBKDF2, strJoinOr(validPBKDF2Variants), config.PBKDF2.Variant))
 	}
 
 	switch {
@@ -205,7 +205,7 @@ func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.Passwo
 	case utils.IsStringInSlice(config.BCrypt.Variant, validBCryptVariants):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashBCrypt, config.BCrypt.Variant, strings.Join(validBCryptVariants, "', '")))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashBCrypt, strJoinOr(validBCryptVariants), config.BCrypt.Variant))
 	}
 
 	switch {
@@ -369,7 +369,7 @@ func validateLDAPAuthenticationBackendImplementation(config *schema.Authenticati
 	case schema.LDAPImplementationGLAuth:
 		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth
 	default:
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendImplementation, config.LDAP.Implementation, strings.Join(validLDAPImplementations, "', '")))
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendImplementation, strJoinOr(validLDAPImplementations), config.LDAP.Implementation))
 	}
 
 	tlsconfig := &schema.TLSConfig{}
