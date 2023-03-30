@@ -31,7 +31,7 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 		RedirectURIs:  config.RedirectURIs,
 		GrantTypes:    config.GrantTypes,
 		ResponseTypes: config.ResponseTypes,
-		ResponseModes: []fosite.ResponseModeType{fosite.ResponseModeDefault},
+		ResponseModes: []fosite.ResponseModeType{},
 
 		EnforcePAR: config.EnforcePAR,
 

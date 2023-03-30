@@ -19,8 +19,7 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, "", blankClient.ID)
 	assert.Equal(t, "", blankClient.Description)
 	assert.Equal(t, "", blankClient.Description)
-	require.Len(t, blankClient.ResponseModes, 1)
-	assert.Equal(t, fosite.ResponseModeDefault, blankClient.ResponseModes[0])
+	require.Len(t, blankClient.ResponseModes, 0)
 
 	exampleConfig := schema.OpenIDConnectClientConfiguration{
 		ID:            "myapp",
@@ -36,11 +35,8 @@ func TestNewClient(t *testing.T) {
 
 	exampleClient := NewClient(exampleConfig)
 	assert.Equal(t, "myapp", exampleClient.ID)
-	require.Len(t, exampleClient.ResponseModes, 4)
-	assert.Equal(t, fosite.ResponseModeDefault, exampleClient.ResponseModes[0])
-	assert.Equal(t, fosite.ResponseModeFormPost, exampleClient.ResponseModes[1])
-	assert.Equal(t, fosite.ResponseModeQuery, exampleClient.ResponseModes[2])
-	assert.Equal(t, fosite.ResponseModeFragment, exampleClient.ResponseModes[3])
+	require.Len(t, exampleClient.ResponseModes, 1)
+	assert.Equal(t, fosite.ResponseModeFormPost, exampleClient.ResponseModes[0])
 	assert.Equal(t, authorization.TwoFactor, exampleClient.Policy)
 }
 
