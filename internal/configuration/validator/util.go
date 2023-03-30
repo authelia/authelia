@@ -73,7 +73,7 @@ func buildJoinedString(sep, sepFinal, quote string, items []string) string {
 	return b.String()
 }
 
-func validateList(values, valid []string, chkDuplicate bool) (invalid, duplicates []string) {
+func validateList(values, valid []string, chkDuplicate bool) (invalid, duplicates []string) { //nolint:unparam
 	chkValid := len(valid) != 0
 
 	for i, value := range values {
