@@ -60,6 +60,7 @@ func buildJoinedString(sep, sepFinal, quote string, items []string) string {
 			if sepFinal == "" || n != 2 {
 				b.WriteString(sep)
 			}
+
 			b.WriteString(" ")
 		}
 

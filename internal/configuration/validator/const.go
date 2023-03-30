@@ -156,6 +156,7 @@ const (
 
 	errFmtOIDCClientsDuplicateID = "identity_providers: oidc: clients: option 'id' must be unique for every client but one or more clients share the following 'id' values %s"
 	errFmtOIDCClientsWithEmptyID = "identity_providers: oidc: clients: option 'id' is required but was absent on the clients in positions %s"
+	errFmtOIDCClientsDeprecated  = "identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors"
 
 	errFmtOIDCClientInvalidSecret          = "identity_providers: oidc: client '%s': option 'secret' is required"
 	errFmtOIDCClientInvalidSecretPlainText = "identity_providers: oidc: client '%s': option 'secret' is plaintext but it should be a hashed value as plaintext values are deprecated and will be removed when oidc becomes stable"
@@ -354,6 +355,10 @@ const (
 	authzImplementationExtAuthz = "ExtAuthz"
 )
 
+const (
+	auto = "auto"
+)
+
 var (
 	validAuthzImplementations = []string{"AuthRequest", "ForwardAuth", authzImplementationExtAuthz, authzImplementationLegacy}
 	validAuthzAuthnStrategies = []string{"CookieSession", "HeaderAuthorization", "HeaderProxyAuthorization", "HeaderAuthRequestProxyAuthorization", "HeaderLegacy"}
@@ -369,7 +374,7 @@ var (
 
 var (
 	validStoragePostgreSQLSSLModes           = []string{"disable", "require", "verify-ca", "verify-full"}
-	validThemeNames                          = []string{"light", "dark", "grey", "auto"}
+	validThemeNames                          = []string{"light", "dark", "grey", auto}
 	validSessionSameSiteValues               = []string{"none", "lax", "strict"}
 	validLogLevels                           = []string{"trace", "debug", "info", "warn", "error"}
 	validWebauthnConveyancePreferences       = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
@@ -386,12 +391,25 @@ var (
 
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 
+const (
+	attrOIDCScopes              = "scopes"
+	attrOIDCResponseTypes       = "response_types"
+	attrOIDCResponseModes       = "response_modes"
+	attrOIDCGrantTypes          = "grant_types"
+	attrOIDCRedirectURIs        = "redirect_uris"
+	attrOIDCTokenAuthMethod     = "token_endpoint_auth_method"
+	attrOIDCPublic              = "public"
+	attrOIDCConfidential        = "confidential"
+	attrOIDCUsrSigAlg           = "userinfo_signing_algorithm"
+	attrOIDCPKCEChallengeMethod = "pkce_challenge_method"
+)
+
 var (
 	validOIDCCORSEndpoints = []string{oidc.EndpointAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
 
 	validOIDCClientScopes                    = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess}
 	validOIDCClientUserinfoAlgorithms        = []string{oidc.SigningAlgorithmNone, oidc.SigningAlgorithmRSAWithSHA256}
-	validOIDCClientConsentModes              = []string{"auto", oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
+	validOIDCClientConsentModes              = []string{auto, oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
 	validOIDCClientResponseModes             = []string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery, oidc.ResponseModeFragment}
 	validOIDCClientResponseModesImplicitFlow = []string{oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth}
 	validOIDCClientResponseModesHybridFlow   = []string{oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}

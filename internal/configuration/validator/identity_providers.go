@@ -171,11 +171,11 @@ func validateOIDCClients(config *schema.OpenIDConnectConfiguration, val *schema.
 	}
 
 	if errDeprecated {
-		val.PushWarning(fmt.Errorf("identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors"))
+		val.PushWarning(fmt.Errorf(errFmtOIDCClientsDeprecated))
 	}
 
 	if len(blankClientIDs) != 0 {
-		val.Push(fmt.Errorf(errFmtOIDCClientsWithEmptyID, buildJoinedString(", ", ", or ", "", blankClientIDs)))
+		val.Push(fmt.Errorf(errFmtOIDCClientsWithEmptyID, buildJoinedString(", ", "or", "", blankClientIDs)))
 	}
 
 	if len(duplicateClientIDs) != 0 {
@@ -209,7 +209,7 @@ func validateOIDCClient(c int, config *schema.OpenIDConnectConfiguration, val *s
 	case "", oidc.PKCEChallengeMethodPlain, oidc.PKCEChallengeMethodSHA256:
 		break
 	default:
-		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, "pkce_challenge_method", strJoinOr([]string{oidc.PKCEChallengeMethodPlain, oidc.PKCEChallengeMethodSHA256}), config.Clients[c].PKCEChallengeMethod))
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, attrOIDCPKCEChallengeMethod, strJoinOr([]string{oidc.PKCEChallengeMethodPlain, oidc.PKCEChallengeMethodSHA256}), config.Clients[c].PKCEChallengeMethod))
 	}
 
 	validateOIDCClientConsentMode(c, config, val)
@@ -264,7 +264,7 @@ func validateOIDCClientSectorIdentifier(c int, config *schema.OpenIDConnectConfi
 
 func validateOIDCClientConsentMode(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
 	switch {
-	case utils.IsStringInSlice(config.Clients[c].ConsentMode, []string{"", "auto"}):
+	case utils.IsStringInSlice(config.Clients[c].ConsentMode, []string{"", auto}):
 		if config.Clients[c].ConsentPreConfiguredDuration != nil {
 			config.Clients[c].ConsentMode = oidc.ClientConsentModePreConfigured.String()
 		} else {
@@ -273,7 +273,7 @@ func validateOIDCClientConsentMode(c int, config *schema.OpenIDConnectConfigurat
 	case utils.IsStringInSlice(config.Clients[c].ConsentMode, validOIDCClientConsentModes):
 		break
 	default:
-		val.Push(fmt.Errorf(errFmtOIDCClientInvalidConsentMode, config.Clients[c].ID, strJoinOr(append(validOIDCClientConsentModes, "auto")), config.Clients[c].ConsentMode))
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidConsentMode, config.Clients[c].ID, strJoinOr(append(validOIDCClientConsentModes, auto)), config.Clients[c].ConsentMode))
 	}
 
 	if config.Clients[c].ConsentMode == oidc.ClientConsentModePreConfigured.String() && config.Clients[c].ConsentPreConfiguredDuration == nil {
@@ -293,13 +293,13 @@ func validateOIDCClientScopes(c int, config *schema.OpenIDConnectConfiguration, 
 	invalid, duplicates := validateList(config.Clients[c].Scopes, validOIDCClientScopes, true)
 
 	if len(invalid) != 0 {
-		val.Push(fmt.Errorf(errFmtOIDCClientInvalidEntries, config.Clients[c].ID, "scopes", strJoinOr(validOIDCClientScopes), strJoinAnd(invalid)))
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidEntries, config.Clients[c].ID, attrOIDCScopes, strJoinOr(validOIDCClientScopes), strJoinAnd(invalid)))
 	}
 
 	if len(duplicates) != 0 {
 		errDeprecatedFunc()
 
-		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, "scopes", strJoinAnd(duplicates)))
+		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, attrOIDCScopes, strJoinAnd(duplicates)))
 	}
 }
 
@@ -311,13 +311,13 @@ func validateOIDCClientResponseTypes(c int, config *schema.OpenIDConnectConfigur
 	invalid, duplicates := validateList(config.Clients[c].ResponseTypes, validOIDCClientResponseTypes, true)
 
 	if len(invalid) != 0 {
-		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntries, config.Clients[c].ID, "response_types", strJoinOr(validOIDCClientResponseTypes), strJoinAnd(invalid)))
+		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntries, config.Clients[c].ID, attrOIDCResponseTypes, strJoinOr(validOIDCClientResponseTypes), strJoinAnd(invalid)))
 	}
 
 	if len(duplicates) != 0 {
 		errDeprecatedFunc()
 
-		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, "response_types", strJoinAnd(duplicates)))
+		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, attrOIDCResponseTypes, strJoinAnd(duplicates)))
 	}
 }
 
@@ -343,13 +343,13 @@ func validateOIDCClientResponseModes(c int, config *schema.OpenIDConnectConfigur
 	invalid, duplicates := validateList(config.Clients[c].ResponseModes, validOIDCClientResponseModes, true)
 
 	if len(invalid) != 0 {
-		val.Push(fmt.Errorf(errFmtOIDCClientInvalidEntries, config.Clients[c].ID, "response_modes", strJoinOr(validOIDCClientResponseModes), strJoinAnd(invalid)))
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidEntries, config.Clients[c].ID, attrOIDCResponseModes, strJoinOr(validOIDCClientResponseModes), strJoinAnd(invalid)))
 	}
 
 	if len(duplicates) != 0 {
 		errDeprecatedFunc()
 
-		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, "response_modes", strJoinAnd(duplicates)))
+		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, attrOIDCResponseModes, strJoinAnd(duplicates)))
 	}
 }
 
@@ -403,13 +403,13 @@ func validateOIDCClientGrantTypes(c int, config *schema.OpenIDConnectConfigurati
 	invalid, duplicates := validateList(config.Clients[c].GrantTypes, validOIDCClientGrantTypes, true)
 
 	if len(invalid) != 0 {
-		val.Push(fmt.Errorf(errFmtOIDCClientInvalidEntries, config.Clients[c].ID, "grant_types", strJoinOr(validOIDCClientGrantTypes), strJoinAnd(invalid)))
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidEntries, config.Clients[c].ID, attrOIDCGrantTypes, strJoinOr(validOIDCClientGrantTypes), strJoinAnd(invalid)))
 	}
 
 	if len(duplicates) != 0 {
 		errDeprecatedFunc()
 
-		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, "grant_types", strJoinAnd(duplicates)))
+		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, attrOIDCGrantTypes, strJoinAnd(duplicates)))
 	}
 }
 
@@ -446,7 +446,7 @@ func validateOIDCClientRedirectURIs(c int, config *schema.OpenIDConnectConfigura
 	if len(duplicates) != 0 {
 		errDeprecatedFunc()
 
-		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, "redirect_uris", strJoinAnd(duplicates)))
+		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, attrOIDCRedirectURIs, strJoinAnd(duplicates)))
 	}
 }
 
@@ -462,13 +462,13 @@ func validateOIDCClientTokenEndpointAuthMethod(c int, config *schema.OpenIDConne
 	switch {
 	case !utils.IsStringInSlice(config.Clients[c].TokenEndpointAuthMethod, validOIDCClientTokenEndpointAuthMethods):
 		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
-			config.Clients[c].ID, "token_endpoint_auth_method", strJoinOr(validOIDCClientTokenEndpointAuthMethods), config.Clients[c].TokenEndpointAuthMethod))
+			config.Clients[c].ID, attrOIDCTokenAuthMethod, strJoinOr(validOIDCClientTokenEndpointAuthMethods), config.Clients[c].TokenEndpointAuthMethod))
 	case config.Clients[c].TokenEndpointAuthMethod == oidc.ClientAuthMethodNone && !config.Clients[c].Public:
 		val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthMethod,
-			config.Clients[c].ID, strJoinOr(validOIDCClientTokenEndpointAuthMethodsConfidential), "confidential", config.Clients[c].TokenEndpointAuthMethod))
+			config.Clients[c].ID, strJoinOr(validOIDCClientTokenEndpointAuthMethodsConfidential), attrOIDCConfidential, config.Clients[c].TokenEndpointAuthMethod))
 	case config.Clients[c].TokenEndpointAuthMethod != oidc.ClientAuthMethodNone && config.Clients[c].Public:
 		val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthMethod,
-			config.Clients[c].ID, strJoinOr([]string{oidc.ClientAuthMethodNone}), "public", config.Clients[c].TokenEndpointAuthMethod))
+			config.Clients[c].ID, strJoinOr([]string{oidc.ClientAuthMethodNone}), attrOIDCPublic, config.Clients[c].TokenEndpointAuthMethod))
 	}
 }
 
@@ -479,6 +479,6 @@ func validateOIDDClientUserinfoAlgorithm(c int, config *schema.OpenIDConnectConf
 
 	if !utils.IsStringInSlice(config.Clients[c].UserinfoSigningAlgorithm, validOIDCClientUserinfoAlgorithms) {
 		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
-			config.Clients[c].ID, "userinfo_signing_algorithm", strJoinOr(validOIDCClientUserinfoAlgorithms), config.Clients[c].UserinfoSigningAlgorithm))
+			config.Clients[c].ID, attrOIDCUsrSigAlg, strJoinOr(validOIDCClientUserinfoAlgorithms), config.Clients[c].UserinfoSigningAlgorithm))
 	}
 }

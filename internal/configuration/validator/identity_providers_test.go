@@ -1472,7 +1472,6 @@ func TestValidateOIDCClients(t *testing.T) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretBasic
 				have.Clients[0].Public = true
 				have.Clients[0].Secret = nil
-
 			},
 			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
 				assert.Equal(t, oidc.ClientAuthMethodClientSecretBasic, have.Clients[0].TokenEndpointAuthMethod)
@@ -1498,7 +1497,6 @@ func TestValidateOIDCClients(t *testing.T) {
 			"ShouldRaiseErrorOnInvalidClientAuthMethodForConfidentialClient",
 			func(have *schema.OpenIDConnectConfiguration) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodNone
-
 			},
 			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
 				assert.Equal(t, oidc.ClientAuthMethodNone, have.Clients[0].TokenEndpointAuthMethod)
@@ -1613,7 +1611,7 @@ func TestValidateOIDCClients(t *testing.T) {
 		{
 			"ShouldSetDefaultConsentModeAuto",
 			func(have *schema.OpenIDConnectConfiguration) {
-				have.Clients[0].ConsentMode = "auto"
+				have.Clients[0].ConsentMode = auto
 			},
 			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
 				assert.Equal(t, "explicit", have.Clients[0].ConsentMode)
@@ -1664,7 +1662,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			func(have *schema.OpenIDConnectConfiguration) {
 				d := time.Minute
 
-				have.Clients[0].ConsentMode = "auto"
+				have.Clients[0].ConsentMode = auto
 				have.Clients[0].ConsentPreConfiguredDuration = &d
 			},
 			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
