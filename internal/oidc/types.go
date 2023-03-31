@@ -619,6 +619,28 @@ type OpenIDConnectBackChannelLogoutDiscoveryOptions struct {
 	BackChannelLogoutSessionSupported bool `json:"backchannel_logout_session_supported"`
 }
 
+// OpenIDConnectPromptCreateDiscoveryOptions represents the discovery options specific to Initiating User Registration
+// via OpenID Connect 1.0 functionality.
+// See Also:
+//
+//	Initiating User Registration via OpenID Connect 1.0: https://openid.net/specs/openid-connect-prompt-create-1_0.html
+type OpenIDConnectPromptCreateDiscoveryOptions struct {
+	/*
+		OPTIONAL. JSON array containing the list of prompt values that this OP supports.
+
+		This metadata element is OPTIONAL in the context of the OpenID Provider not supporting the create value. If
+		omitted, the Relying Party should assume that this specification is not supported. The OpenID Provider MAY
+		provide this metadata element even if it doesn't support the create value.
+		Specific to this specification, a value of create in the array indicates to the Relying party that this OpenID
+		Provider supports this specification. If an OpenID Provider supports this specification it MUST define this metadata
+		element in the openid-configuration file. Additionally, if this metadata element is defined by the OpenID
+		Provider, the OP must also specify all other prompt values which it supports.
+		See Also:
+			OpenID.PromptCreate: https://openid.net/specs/openid-connect-prompt-create-1_0.html
+	*/
+	PromptValuesSupported []string `json:"prompt_values_supported,omitempty"`
+}
+
 // PushedAuthorizationDiscoveryOptions represents the well known discovery document specific to the
 // OAuth 2.0 Pushed Authorization Requests (RFC9126) implementation.
 //
@@ -652,6 +674,7 @@ type OpenIDConnectWellKnownConfiguration struct {
 	OpenIDConnectDiscoveryOptions
 	OpenIDConnectFrontChannelLogoutDiscoveryOptions
 	OpenIDConnectBackChannelLogoutDiscoveryOptions
+	OpenIDConnectPromptCreateDiscoveryOptions
 }
 
 // OpenIDConnectContext represents the context implementation that is used by some OpenID Connect 1.0 implementations.

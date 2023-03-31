@@ -77,6 +77,12 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 				SigningAlgorithmRSAWithSHA256,
 			},
 		},
+		OpenIDConnectPromptCreateDiscoveryOptions: OpenIDConnectPromptCreateDiscoveryOptions{
+			PromptValuesSupported: []string{
+				PromptNone,
+				PromptConsent,
+			},
+		},
 		PushedAuthorizationDiscoveryOptions: PushedAuthorizationDiscoveryOptions{
 			RequirePushedAuthorizationRequests: c.PAR.Enforce,
 		},

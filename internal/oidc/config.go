@@ -173,6 +173,7 @@ const (
 	PromptNone    = none
 	PromptLogin   = "login"
 	PromptConsent = "consent"
+	// PromptCreate  = "create"
 )
 
 // LoadHandlers reloads the handlers based on the current configuration.
