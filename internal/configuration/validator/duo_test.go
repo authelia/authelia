@@ -23,6 +23,11 @@ func TestValidateDuo(t *testing.T) {
 			expected: schema.DuoAPIConfiguration{Disable: true},
 		},
 		{
+			desc:     "ShouldDisableDuoConfigured",
+			have:     &schema.Configuration{DuoAPI: schema.DuoAPIConfiguration{Disable: true, Hostname: "example.com"}},
+			expected: schema.DuoAPIConfiguration{Disable: true, Hostname: "example.com"},
+		},
+		{
 			desc: "ShouldNotDisableDuo",
 			have: &schema.Configuration{DuoAPI: schema.DuoAPIConfiguration{
 				Hostname:       "test",

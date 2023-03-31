@@ -73,7 +73,7 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 
 func validateSessionCookieDomains(config *schema.SessionConfiguration, validator *schema.StructValidator) {
 	if len(config.Cookies) == 0 {
-		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "domain"))
+		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "cookies"))
 	}
 
 	domains := make([]string, 0)

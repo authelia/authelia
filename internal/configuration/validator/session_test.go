@@ -140,6 +140,24 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 			},
 			nil,
 		},
+		{
+			"ShouldErrorOnEmptyConfig",
+			schema.SessionConfiguration{
+				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+					Name: "", SameSite: "", Domain: "",
+				},
+				Cookies: []schema.SessionCookieConfiguration{},
+			},
+			schema.SessionConfiguration{
+				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+					Name: "authelia_session", SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute * 5, RememberMe: time.Hour * 24 * 30,
+				},
+				Cookies: []schema.SessionCookieConfiguration{},
+			},
+			[]string{
+				"session: option 'cookies' is required",
+			},
+		},
 	}
 
 	validator := schema.NewStructValidator()

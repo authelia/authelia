@@ -197,6 +197,23 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidMethod() {
 	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1 (domain 'public.example.com'): option 'methods' must only have the values 'GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'TRACE', 'CONNECT', 'OPTIONS', 'COPY', 'LOCK', 'MKCOL', 'MOVE', 'PROPFIND', 'PROPPATCH', or 'UNLOCK' but the values 'HOP' are present")
 }
 
+func (suite *AccessControl) TestShouldRaiseErrorDuplicateMethod() {
+	suite.config.AccessControl.Rules = []schema.ACLRule{
+		{
+			Domains: []string{"public.example.com"},
+			Policy:  "bypass",
+			Methods: []string{"GET", "GET"},
+		},
+	}
+
+	ValidateRules(suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1 (domain 'public.example.com'): option 'methods' must have unique values but the values 'GET' are duplicated")
+}
+
 func (suite *AccessControl) TestShouldRaiseErrorInvalidSubject() {
 	domains := []string{"public.example.com"}
 	subjects := [][]string{{testInvalid}}
