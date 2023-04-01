@@ -97,9 +97,9 @@ will operate with the above example:
 
 ## See Also
 
-- [Gitea] app.ini [Config Cheat Sheet - OpenID](https://docs.gitea.io/en-us/config-cheat-sheet/#openid-openid)
-- [Gitea] app.ini [Config Cheat Sheet - Service](https://docs.gitea.io/en-us/config-cheat-sheet/#service-service)
+- [Gitea] app.ini [Config Cheat Sheet](https://docs.gitea.io/en-us/config-cheat-sheet):
+  - [OpenID](https://docs.gitea.io/en-us/config-cheat-sheet/#openid-openid)
+  - [Service](https://docs.gitea.io/en-us/config-cheat-sheet/#service-service)
 
-- [Authelia]: https://www.authelia.com
 [Gitea]: https://gitea.io/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
