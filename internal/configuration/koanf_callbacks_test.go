@@ -122,5 +122,5 @@ func TestKoanfSecretCallbackShouldErrorOnFSError(t *testing.T) {
 
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
-	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("secrets: error loading secret path %s into key 'theme': failed to read the file due to a permission issue: open %s: permission denied", secret, secret))
+	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("secrets: error loading secret path %s into key 'theme': file permission error occurred: open %s: permission denied", secret, secret))
 }
