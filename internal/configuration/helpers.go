@@ -58,6 +58,18 @@ func IsSecretKey(key string) (isSecretKey bool) {
 }
 
 func loadSecret(path string) (value string, err error) {
+	/*
+		info, err := os.Stat(path)
+		if err != nil {
+			return "", err
+		}
+
+		if info.IsDir() {
+			return "", fmt.Errorf("open %s: path is a directory but a file was expected", path)
+		}
+
+	*/
+
 	content, err := os.ReadFile(path)
 	if err != nil {
 		return "", err

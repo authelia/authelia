@@ -117,10 +117,10 @@ func TestKoanfSecretCallbackShouldErrorOnFSError(t *testing.T) {
 	callback := koanfEnvironmentSecretsCallback(keyMap, val)
 
 	key, value := callback("AUTHELIA_THEME", secret)
-	assert.Equal(t, "theme", key)
-	assert.Equal(t, "", value)
+	assert.Equal(t, "", key)
+	assert.Equal(t, nil, value)
 
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
-	assert.EqualError(t, val.Errors()[0], fmt.Sprintf(errFmtSecretIOIssue, secret, "theme", fmt.Sprintf("open %s: permission denied", secret)))
+	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("secrets: error loading secret path %s into key 'theme': failed to read the file due to a permission issue: open %s: permission denied", secret, secret))
 }

@@ -28,7 +28,9 @@ var (
 const (
 	errFmtSecretAlreadyDefined = "secrets: error loading secret into key '%s': it's already defined in other " +
 		"configuration sources"
-	errFmtSecretIOIssue         = "secrets: error loading secret path %s into key '%s': %v"
+	errFmtSecretOSError         = "secrets: error loading secret path %s into key '%s': %w"
+	errFmtSecretOSPermission    = "secrets: error loading secret path %s into key '%s': failed to read the file due to a permission issue: %w"
+	errFmtSecretOSNotExist      = "secrets: error loading secret path %s into key '%s': failed to read the file due to it not existing: %w"
 	errFmtGenerateConfiguration = "error occurred generating configuration: %+v"
 
 	errFmtDecodeHookCouldNotParse           = "could not decode '%s' to a %s%s: %w"

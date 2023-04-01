@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -40,13 +41,25 @@ func koanfEnvironmentSecretsCallback(keyMap map[string]string, validator *schema
 			return "", nil
 		}
 
-		v, err := loadSecret(value)
-		if err != nil {
-			validator.Push(fmt.Errorf(errFmtSecretIOIssue, value, k, err))
-			return k, ""
-		}
+		switch v, err := loadSecret(value); err {
+		case nil:
+			return k, v
+		default:
+			switch {
+			case os.IsNotExist(err):
+				validator.Push(fmt.Errorf(errFmtSecretOSNotExist, value, k, err))
 
-		return k, v
+				return "", nil
+			case os.IsPermission(err):
+				validator.Push(fmt.Errorf(errFmtSecretOSPermission, value, k, err))
+
+				return "", nil
+			default:
+				validator.Push(fmt.Errorf(errFmtSecretOSError, value, k, err))
+
+				return "", nil
+			}
+		}
 	}
 }
 
