@@ -20,26 +20,27 @@ func GetExpectedErrTxt(err string) string {
 	switch runtime.GOOS {
 	case windows:
 		switch err {
-		case "pathnotfound":
-			return fmt.Sprintf(errFmtWindowsNotFound, "open", "path")
-		case "statpathnotfound":
-			return fmt.Sprintf(errFmtWindowsNotFound, "stat", "path")
-		case "filenotfound":
-			return fmt.Sprintf(errFmtWindowsNotFound, "open", "file")
-		case "statfilenotfound":
-			return fmt.Sprintf(errFmtWindowsNotFound, "stat", "file")
-		case "isdir":
+		case strPathNotFound:
+			return fmt.Sprintf(errFmtWindowsNotFound, strOpen, strPath)
+		case strStat + strPathNotFound:
+			return fmt.Sprintf(errFmtWindowsNotFound, strStat, strPath)
+		case strFileNotFound:
+			return fmt.Sprintf(errFmtWindowsNotFound, strOpen, strFile)
+		case strStat + strFileNotFound:
+			return fmt.Sprintf(errFmtWindowsNotFound, strStat, strFile)
+		case strIsDir:
 			return "read %s: The handle is invalid."
 		}
 	default:
 		switch err {
-		case "pathnotfound", "filenotfound":
-			return fmt.Sprintf(errFmtLinuxNotFound, "open")
-		case "statpathnotfound", "statfilenotfound":
-			return fmt.Sprintf(errFmtLinuxNotFound, "stat")
-		case "isdir":
+		case strPathNotFound, strFileNotFound:
+			return fmt.Sprintf(errFmtLinuxNotFound, strOpen)
+		case strStat + strPathNotFound, strStat + strFileNotFound:
+			return fmt.Sprintf(errFmtLinuxNotFound, strStat)
+		case strIsDir:
 			return "read %s: is a directory"
 		}
 	}
+
 	return ""
 }
