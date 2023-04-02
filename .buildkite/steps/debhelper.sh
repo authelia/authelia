@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2019 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 GITTAG=$(git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g')
 
 if [[ "${BUILDKITE_TAG}" == "" ]]; then

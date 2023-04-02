@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 export const IndexRoute: string = "/";
 export const AuthenticatedRoute: string = "/authenticated";
 export const ConsentRoute: string = "/consent";

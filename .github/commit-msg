@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# SPDX-FileCopyrightText: 2019 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 . "$(dirname "$0")/_/husky.sh"
 . "$(dirname "$0")/required-apps"
 

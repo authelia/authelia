@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { CompleteTOTPSignInPath } from "@services/Api";
 import { PostWithOptionalResponse } from "@services/Client";
 import { SignInResponse } from "@services/SignIn";

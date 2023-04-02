@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import React, { Fragment, ReactNode, useEffect } from "react";
 
 import { Container, Divider, Grid, Link, Theme } from "@mui/material";

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2019 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 # This represents the hardcoded pipeline set in Buildkite interface which executes the repo provided dynamic pipeline.
 # It is used to ensure that insecure code from external PR cannot be executed before a maintainers approval, to avoid

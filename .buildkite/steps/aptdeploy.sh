@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2019 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 for FILE in authelia_amd64.deb authelia_arm64.deb authelia_armhf.deb; do
   mv ${FILE} ${FILE/authelia_/authelia_${BUILDKITE_TAG//v}-1_}
 done

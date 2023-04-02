@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 const autoprefixer = require('autoprefixer');
 const purgecss = require('@fullhuman/postcss-purgecss');
 const whitelister = require('purgecss-whitelister');

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import React, { MutableRefObject, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button, Checkbox, FormControlLabel, Grid, Link, Theme } from "@mui/material";

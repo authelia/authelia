@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2019 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 writehosts(){
   echo "\
 127.0.0.1  authelia.$DOMAIN

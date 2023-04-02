@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2019 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 pull_request_title: "i18n: update translations"
 commit_message: "i18n: update translation for %original_file_name% (%language%)"

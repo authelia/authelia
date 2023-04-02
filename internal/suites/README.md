@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2019 Authelia
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # Authelia Suites
 
 A **suite** is a kind of virtual environment for Authelia. Please

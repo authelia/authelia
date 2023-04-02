@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { DependencyList, useCallback, useState } from "react";
 
 type PromisifiedFunction<Ret> = (...args: any) => Promise<Ret>;

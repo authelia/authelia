@@ -1,0 +1,31 @@
+The JetBrains logos contained in this repository and the brand name "JetBrains"
+(collectively "JetBrains logos") are not part of the Apache 2.0 license, and
+can only be used commercially by the Ring UI project on products, websites,
+and publications.
+
+Third parties may use the JetBrains logos and brand name under these conditions:
+
+- The JetBrains logos can only be used to point to JetBrains. When used with a
+  link on a web page, it should point to the URL https://www.jetbrains.com/.
+- You will visualize and promote your own branding more prominent than you use
+  the JetBrains logos. The JetBrains logos only can be used as a secondary
+  brand, which means it has to be clear for an average viewer that this is not
+  an official JetBrains website, publication or product.
+- You can use the JetBrains logos on promotion products, such as T-shirts or
+  caps or trade show booths, provided it is a secondary brand as described in
+  point 2.
+- The JetBrains logos can only be used unaltered, without fancy enhancements,
+  in original colors, original typography, and always in accordance with
+  JetBrains brand guidelines available here: https://www.jetbrains.com/company/brand/#section=do-donts
+  and trademark guidelines here: https://www.jetbrains.com/company/brand/#section=usage-trademarks.
+  In case of any discrepancy between the abovementioned guidelines and this license, the guidelines take precedence.
+- In case you use the JetBrains logos on products you sell commercially, you
+  always have to contact us with a picture of how it will be used, and ask for
+  explicit permission.
+
+If you have further questions or doubts, do not hesitate to contact us. You can
+contact us at marketing@jetbrains.com.
+
+For the avoidance of doubt, any JetBrains logos provided with this license are
+the property of JetBrains s.r.o. JetBrains and the JetBrains logo is the
+trademark of JetBrains s.r.o.

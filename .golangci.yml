@@ -45,6 +45,13 @@ issues:
     - (G104|G307)
     - (Expect directory permissions to be 0750 or less|Expect file permissions to be 0600 or less)
     - Potential file inclusion via variable
+  exclude-rules:
+    - linters:
+        - godot
+      source: '^// SPDX-License-Identifier: Apache-2.0$'
+    - linters:
+        - godot
+      source: '^// SPDX-FileCopyrightText: .*?$'
   exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0

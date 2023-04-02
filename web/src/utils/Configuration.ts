@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 export function getEmbeddedVariable(variableName: string) {
     const value = document.body.getAttribute(`data-${variableName}`);
     if (value === null) {

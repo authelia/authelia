@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 Henk Verlinde
+#
+# SPDX-License-Identifier: MIT
+
 assets/js/index.js
 assets/js/katex.js
 assets/js/vendor

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import eslintPlugin from "vite-plugin-eslint";

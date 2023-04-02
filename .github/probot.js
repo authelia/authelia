@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 // PR commentary for Authelia branch based contributions
 on('pull_request.opened')
     .filter(

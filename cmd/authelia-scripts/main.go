@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 //usr/bin/env go run "$0" "$@"; exit
 //nolint:gocritic
 

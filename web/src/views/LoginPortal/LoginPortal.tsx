@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import React, { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
 
 import { Route, Routes, useLocation, useNavigate, useSearchParams } from "react-router-dom";

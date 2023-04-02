@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2019 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 jwt_secret: RUtG9TnbXrOl1XLLmDgySw1DGgx9QcrtepIf1uDDBlBVKFZxkVBruYKBi32PvaU
 

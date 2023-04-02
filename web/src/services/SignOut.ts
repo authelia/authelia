@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { LogoutPath } from "@services/Api";
 import { PostWithOptionalResponse } from "@services/Client";
 

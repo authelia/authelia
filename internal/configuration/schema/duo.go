@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package schema
 
 // DuoAPIConfiguration represents the configuration related to Duo API.

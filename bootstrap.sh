@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2019 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 if [[ $(uname) == "Darwin" ]]; then
   echo "Authelia's development workflow currently isn't supported on macOS"
   exit

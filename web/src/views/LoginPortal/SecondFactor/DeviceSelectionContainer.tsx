@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import React, { ReactNode, useState } from "react";
 
 import { Button, Container, Grid, Theme, Typography } from "@mui/material";

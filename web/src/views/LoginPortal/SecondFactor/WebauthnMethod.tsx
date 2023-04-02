@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import React, { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
 import { Button, Theme, useTheme } from "@mui/material";

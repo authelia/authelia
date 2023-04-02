@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2019 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 # Enable the admin interface at http://192.168.240.100:9901/ for debugging.
 admin:

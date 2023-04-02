@@ -1,0 +1,48 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Authelia
+Upstream-Contact: Authelia Maintainers <team@authelia.com>
+Source: https://github.com/authelia/authelia
+
+Files: docs/assets/*
+Copyright: 2019 Authelia
+           2020 Henk Verlinde
+License: MIT
+
+Files: docs/config/*
+Copyright: 2019 Authelia
+License: Apache-2.0
+
+Files: docs/content/*
+Copyright: 2019 Authelia
+License: Apache-2.0
+
+Files: docs/data/*
+Copyright: 2019 Authelia
+License: Apache-2.0
+
+Files: docs/layouts/*
+Copyright: 2019 Authelia
+           2020 Henk Verlinde
+License: MIT
+
+Files: docs/static/images/branding/*
+Copyright: 2019 Authelia
+License: Apache-2.0
+
+Files: internal/storage/migrations/*
+Copyright: 2019 Authelia
+License: Apache-2.0
+
+Files: internal/suites/example/compose/ldap/*
+Copyright: 2019 Authelia
+License: Apache-2.0
+
+Files: internal/suites/example/compose/redis/templates/*
+Copyright: 2006-2020 Salvatore Sanfilippo
+License: BSD-3-Clause
+
+# Sample paragraph, commented out:
+#
+# Files: src/*
+# Copyright: $YEAR $NAME <$CONTACT>
+# License: ...

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authentication
 
 // This file is used to generate mocks. You can generate all mocks using the

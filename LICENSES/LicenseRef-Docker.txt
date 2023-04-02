@@ -1,0 +1,1 @@
+Copyright or Trademark of Docker Inc. All rights reserved. https://www.docker.com/legal/trademark-guidelines/

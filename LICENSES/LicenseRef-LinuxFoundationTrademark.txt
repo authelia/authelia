@@ -1,0 +1,8 @@
+https://www.linuxfoundation.org/legal/trademark-usage
+
+Certain marks of The Linux Foundation have been created to enable you to communicate compatibility or interoperability
+of software or products. In addition to the requirement that any use of a mark to make an assertion of compatibility
+must, of course, be accurate, the use of these marks must avoid confusion regarding The Linux Foundation’s association
+with the product. The use of the mark cannot imply that The Linux Foundation or its projects are sponsoring or
+endorsing the product.
+

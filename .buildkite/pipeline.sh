@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: 2019 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 set -u
 
 DIVERGED=$(git merge-base --fork-point origin/master > /dev/null; echo $?)

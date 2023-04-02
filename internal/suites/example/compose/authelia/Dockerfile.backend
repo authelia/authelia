@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2019 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 FROM golang:1.20.3-alpine
 
 ARG USER_ID

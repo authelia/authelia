@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2019 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# You can find a documented example of a caddy configuration at https://www.authelia.com/integration/proxies/caddy/
 (tls-transport) {
 	transport http {
 		tls

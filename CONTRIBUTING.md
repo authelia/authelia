@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2019 Authelia
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # Contributing
 
 Anybody willing to contribute to the project either with code, documentation, security reviews or whatever, are very

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package schema
 
 // TOTPConfiguration represents the configuration related to TOTP options.

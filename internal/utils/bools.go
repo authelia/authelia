@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package utils
 
 // IsBoolCountLessThanN takes an int (n), bool (v), and then a variadic slice of bool (vals). If the number of bools in vals with

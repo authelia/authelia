@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import React from "react";
 
 import { Grid, Theme, Typography, useTheme } from "@mui/material";

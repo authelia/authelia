@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import React, { Fragment, ReactNode, useEffect, useState } from "react";
 
 import { AccountBox, Autorenew, CheckBox, Contacts, Drafts, Group } from "@mui/icons-material";

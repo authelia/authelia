@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2019 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 default_redirection_url: 'https://home.{{ env "ROOT_DOMAIN" }}:8080/'
 

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { createContext, useContext, useRef } from "react";
 
 import { AlertColor } from "@mui/material";
