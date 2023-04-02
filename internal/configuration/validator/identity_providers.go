@@ -400,16 +400,16 @@ func validateOIDCClientGrantTypesCheckRelated(c int, config *schema.OpenIDConnec
 	for _, grantType := range config.Clients[c].GrantTypes {
 		switch grantType {
 		case oidc.GrantTypeImplicit:
-			if !utils.IsStringSliceContainsAny(validOIDCClientResponseModesImplicitFlow, config.Clients[c].ResponseTypes) && !utils.IsStringSliceContainsAny(validOIDCClientResponseModesHybridFlow, config.Clients[c].ResponseTypes) {
+			if !utils.IsStringSliceContainsAny(validOIDCClientResponseTypesImplicitFlow, config.Clients[c].ResponseTypes) && !utils.IsStringSliceContainsAny(validOIDCClientResponseTypesHybridFlow, config.Clients[c].ResponseTypes) {
 				errDeprecatedFunc()
 
-				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidGrantTypeMatch, config.Clients[c].ID, grantType, "for either the implicit or hybrid flow", strJoinOr(append(append([]string{}, validOIDCClientResponseModesImplicitFlow...), validOIDCClientResponseModesHybridFlow...)), strJoinAnd(config.Clients[c].ResponseTypes)))
+				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidGrantTypeMatch, config.Clients[c].ID, grantType, "for either the implicit or hybrid flow", strJoinOr(append(append([]string{}, validOIDCClientResponseTypesImplicitFlow...), validOIDCClientResponseTypesHybridFlow...)), strJoinAnd(config.Clients[c].ResponseTypes)))
 			}
 		case oidc.GrantTypeAuthorizationCode:
-			if !utils.IsStringInSlice(oidc.ResponseTypeAuthorizationCodeFlow, config.Clients[c].ResponseTypes) && !utils.IsStringSliceContainsAny(validOIDCClientResponseModesHybridFlow, config.Clients[c].ResponseTypes) {
+			if !utils.IsStringInSlice(oidc.ResponseTypeAuthorizationCodeFlow, config.Clients[c].ResponseTypes) && !utils.IsStringSliceContainsAny(validOIDCClientResponseTypesHybridFlow, config.Clients[c].ResponseTypes) {
 				errDeprecatedFunc()
 
-				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidGrantTypeMatch, config.Clients[c].ID, grantType, "for either the authorization code or hybrid flow", strJoinOr(append([]string{oidc.ResponseTypeAuthorizationCodeFlow}, validOIDCClientResponseModesHybridFlow...)), strJoinAnd(config.Clients[c].ResponseTypes)))
+				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidGrantTypeMatch, config.Clients[c].ID, grantType, "for either the authorization code or hybrid flow", strJoinOr(append([]string{oidc.ResponseTypeAuthorizationCodeFlow}, validOIDCClientResponseTypesHybridFlow...)), strJoinAnd(config.Clients[c].ResponseTypes)))
 			}
 		case oidc.GrantTypeRefreshToken:
 			if !utils.IsStringInSlice(oidc.ScopeOfflineAccess, config.Clients[c].Scopes) {
@@ -459,7 +459,9 @@ func validateOIDCClientRedirectURIs(c int, config *schema.OpenIDConnectConfigura
 }
 
 func validateOIDCClientTokenEndpointAuthMethod(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
-	if config.Clients[c].Public && config.Clients[c].TokenEndpointAuthMethod == "" {
+	implcit := len(config.Clients[c].ResponseTypes) != 0 && utils.IsStringSliceContainsAll(config.Clients[c].ResponseTypes, validOIDCClientResponseTypesImplicitFlow)
+
+	if config.Clients[c].TokenEndpointAuthMethod == "" && (config.Clients[c].Public || implcit) {
 		config.Clients[c].TokenEndpointAuthMethod = oidc.ClientAuthMethodNone
 	}
 
@@ -469,12 +471,12 @@ func validateOIDCClientTokenEndpointAuthMethod(c int, config *schema.OpenIDConne
 	case !utils.IsStringInSlice(config.Clients[c].TokenEndpointAuthMethod, validOIDCClientTokenEndpointAuthMethods):
 		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
 			config.Clients[c].ID, attrOIDCTokenAuthMethod, strJoinOr(validOIDCClientTokenEndpointAuthMethods), config.Clients[c].TokenEndpointAuthMethod))
-	case config.Clients[c].TokenEndpointAuthMethod == oidc.ClientAuthMethodNone && !config.Clients[c].Public:
+	case config.Clients[c].TokenEndpointAuthMethod == oidc.ClientAuthMethodNone && !config.Clients[c].Public && !implcit:
 		val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthMethod,
-			config.Clients[c].ID, strJoinOr(validOIDCClientTokenEndpointAuthMethodsConfidential), attrOIDCConfidential, config.Clients[c].TokenEndpointAuthMethod))
+			config.Clients[c].ID, strJoinOr(validOIDCClientTokenEndpointAuthMethodsConfidential), strJoinAnd(validOIDCClientResponseTypesImplicitFlow), config.Clients[c].TokenEndpointAuthMethod))
 	case config.Clients[c].TokenEndpointAuthMethod != oidc.ClientAuthMethodNone && config.Clients[c].Public:
-		val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthMethod,
-			config.Clients[c].ID, strJoinOr([]string{oidc.ClientAuthMethodNone}), attrOIDCPublic, config.Clients[c].TokenEndpointAuthMethod))
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthMethodPublic,
+			config.Clients[c].ID, config.Clients[c].TokenEndpointAuthMethod))
 	}
 }
 
