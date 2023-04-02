@@ -169,13 +169,6 @@ type LifespanConfig struct {
 	RefreshToken  time.Duration
 }
 
-const (
-	PromptNone    = none
-	PromptLogin   = "login"
-	PromptConsent = "consent"
-	// PromptCreate  = "create"
-)
-
 // LoadHandlers reloads the handlers based on the current configuration.
 func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 	validator := openid.NewOpenIDConnectRequestValidator(strategy, c)

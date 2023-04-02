@@ -143,7 +143,7 @@ type PasswordPolicyBody struct {
 }
 
 type handlerAuthorizationConsent func(
-	ctx *middlewares.AutheliaCtx, issuer *url.URL, client *oidc.Client,
+	ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
 	userSession session.UserSession, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request,
 	requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool)

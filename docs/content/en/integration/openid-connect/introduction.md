@@ -168,7 +168,7 @@ specification and the [OAuth 2.0 - Client Types] specification for more informat
 
 |             Description              |         Value / Name          | Supported Client Types | Default for Client Type |                      Assertion Type                      |
 |:------------------------------------:|:-----------------------------:|:----------------------:|:-----------------------:|:--------------------------------------------------------:|
-|  Secret via HTTP Basic Auth Scheme   |     `client_secret_basic`     |     `confidential`     |     `confidential`      |                           N/A                            |
+|  Secret via HTTP Basic Auth Scheme   |     `client_secret_basic`     |     `confidential`     |           N/A           |                           N/A                            |
 |      Secret via HTTP POST Body       |     `client_secret_post`      |     `confidential`     |           N/A           |                           N/A                            |
 |        JWT (signed by secret)        |      `client_secret_jwt`      |     Not Supported      |           N/A           | `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` |
 |     JWT (signed by private key)      |       `private_key_jwt`       |     Not Supported      |           N/A           | `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` |

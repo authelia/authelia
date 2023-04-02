@@ -24,7 +24,7 @@ func NewStore(config *schema.OpenIDConnectConfiguration, provider storage.Provid
 
 	store = &Store{
 		provider: provider,
-		clients:  map[string]*Client{},
+		clients:  map[string]Client{},
 	}
 
 	for _, client := range config.Clients {
@@ -72,11 +72,11 @@ func (s *Store) GetClientPolicy(id string) (level authorization.Level) {
 		return authorization.TwoFactor
 	}
 
-	return client.Policy
+	return client.GetAuthorizationPolicy()
 }
 
 // GetFullClient returns a fosite.Client asserted as an Client matching the provided id.
-func (s *Store) GetFullClient(id string) (client *Client, err error) {
+func (s *Store) GetFullClient(id string) (client Client, err error) {
 	client, ok := s.clients[id]
 	if !ok {
 		return nil, fosite.ErrNotFound

@@ -533,10 +533,12 @@ more information.
 
 #### token_endpoint_auth_method
 
-{{< confkey type="string" default="client_secret_basic" required="no" >}}
+{{< confkey type="string" default="" required="no" >}}
 
-The registered client authentication mechanism used by this client for the [Token Endpoint]. Only a single mechanism is
-permitted per client. Supported values are `client_secret_basic`, `client_secret_post`, and `none`.
+The registered client authentication mechanism used by this client for the [Token Endpoint]. If no method is defined
+the confidential client type will accept any supported method. The public client type defaults to `none` as this
+is required by the specification. This may be required as a breaking change in future versions.
+Supported values are `client_secret_basic`, `client_secret_post`, and `none`.
 
 See the [integration guide](../../integration/openid-connect/introduction.md#client-authentication-method) for
 more information.

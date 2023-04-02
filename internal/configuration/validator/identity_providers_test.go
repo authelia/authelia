@@ -1374,10 +1374,10 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 		},
 		{
-			"ShouldSetDefaultTokenEndpointClientAuthMethodConfidentialClient",
+			"ShouldNotSetDefaultTokenEndpointClientAuthMethodConfidentialClient",
 			nil,
 			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
-				assert.Equal(t, oidc.ClientAuthMethodClientSecretBasic, have.Clients[0].TokenEndpointAuthMethod)
+				assert.Equal(t, "", have.Clients[0].TokenEndpointAuthMethod)
 			},
 			tcv{
 				nil,
@@ -1793,8 +1793,8 @@ func TestValidateOIDCClientTokenEndpointAuthMethod(t *testing.T) {
 		expected string
 		errs     []string
 	}{
-		{"ShouldSetDefaultValueConfidential", "", false, "client_secret_basic", nil},
-		{"ShouldSetDefaultValuePublic", "", true, "none", nil},
+		{"ShouldSetDefaultValueConfidential", "", false, "", nil},
+		{"ShouldSetDefaultValuePublic", "", true, oidc.ClientAuthMethodNone, nil},
 		{"ShouldErrorOnInvalidValue", "abc", false, "abc",
 			[]string{
 				"identity_providers: oidc: client 'test': option 'token_endpoint_auth_method' must be one of 'none', 'client_secret_post', or 'client_secret_basic' but it's configured as 'abc'",

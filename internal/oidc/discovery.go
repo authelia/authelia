@@ -5,11 +5,12 @@ import (
 )
 
 // NewOpenIDConnectWellKnownConfiguration generates a new OpenIDConnectWellKnownConfiguration.
-func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration, clients map[string]*Client) (config OpenIDConnectWellKnownConfiguration) {
+func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration) (config OpenIDConnectWellKnownConfiguration) {
 	config = OpenIDConnectWellKnownConfiguration{
 		CommonDiscoveryOptions: CommonDiscoveryOptions{
 			SubjectTypesSupported: []string{
 				SubjectTypePublic,
+				SubjectTypePairwise,
 			},
 			ResponseTypesSupported: []string{
 				ResponseTypeAuthorizationCodeFlow,
@@ -86,22 +87,6 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 		PushedAuthorizationDiscoveryOptions: PushedAuthorizationDiscoveryOptions{
 			RequirePushedAuthorizationRequests: c.PAR.Enforce,
 		},
-	}
-
-	var pairwise, public bool
-
-	for _, client := range clients {
-		if pairwise && public {
-			break
-		}
-
-		if client.SectorIdentifier != "" {
-			pairwise = true
-		}
-	}
-
-	if pairwise {
-		config.SubjectTypesSupported = append(config.SubjectTypesSupported, SubjectTypePairwise)
 	}
 
 	if c.EnablePKCEPlainChallenge {

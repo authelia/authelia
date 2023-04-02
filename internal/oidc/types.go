@@ -12,6 +12,7 @@ import (
 	"github.com/ory/herodot"
 	"gopkg.in/square/go-jose.v2"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -97,11 +98,11 @@ type OpenIDConnectProvider struct {
 // openid.OpenIDConnectRequestStorage, and partially implements rfc7523.RFC7523KeyStorage.
 type Store struct {
 	provider storage.Provider
-	clients  map[string]*Client
+	clients  map[string]Client
 }
 
-// Client represents the client internally.
-type Client struct {
+// BaseClient is the base for all clients.
+type BaseClient struct {
 	ID               string
 	Description      string
 	Secret           algorithm.Digest
@@ -119,13 +120,6 @@ type Client struct {
 	ResponseTypes []string
 	ResponseModes []fosite.ResponseModeType
 
-	RequestURIs                       []string
-	JSONWebKeys                       *jose.JSONWebKeySet
-	JSONWebKeysURI                    string
-	RequestObjectSigningAlgorithm     string
-	TokenEndpointAuthMethod           string
-	TokenEndpointAuthSigningAlgorithm string
-
 	EnforcePAR bool
 
 	UserinfoSigningAlgorithm string
@@ -133,6 +127,41 @@ type Client struct {
 	Policy authorization.Level
 
 	Consent ClientConsent
+}
+
+// FullClient is the client with comprehensive supported features.
+type FullClient struct {
+	*BaseClient
+
+	RequestURIs                       []string
+	JSONWebKeys                       *jose.JSONWebKeySet
+	JSONWebKeysURI                    string
+	RequestObjectSigningAlgorithm     string
+	TokenEndpointAuthMethod           string
+	TokenEndpointAuthSigningAlgorithm string
+}
+
+// Client represents the internal client definitions.
+type Client interface {
+	fosite.Client
+	fosite.ResponseModeClient
+
+	GetDescription() string
+	GetSecret() algorithm.Digest
+	GetSectorIdentifier() string
+	GetConsentResponseBody(consent *model.OAuth2ConsentSession) ConsentGetResponseBody
+	GetUserinfoSigningAlgorithm() string
+
+	GetPKCEEnforcement() bool
+	GetPKCEChallengeMethodEnforcement() bool
+	GetPKCEChallengeMethod() string
+	GetAuthorizationPolicy() authorization.Level
+	GetConsentPolicy() ClientConsent
+
+	IsAuthenticationLevelSufficient(level authentication.Level) bool
+
+	ValidatePKCEPolicy(r fosite.Requester) (err error)
+	ValidatePARPolicy(r fosite.Requester, prefix string) (err error)
 }
 
 // NewClientConsent converts the schema.OpenIDConnectClientConsentConfig into a oidc.ClientConsent.

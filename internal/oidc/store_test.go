@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -69,8 +70,10 @@ func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 }
 
 func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
+	id := "myclient"
+
 	c1 := schema.OpenIDConnectClientConfiguration{
-		ID:          "myclient",
+		ID:          id,
 		Description: "myclient desc",
 		Policy:      "one_factor",
 		Scopes:      []string{ScopeOpenID, ScopeProfile},
@@ -83,17 +86,17 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 		Clients:                []schema.OpenIDConnectClientConfiguration{c1},
 	}, nil)
 
-	client, err := s.GetFullClient(c1.ID)
+	client, err := s.GetFullClient(id)
 	require.NoError(t, err)
 	require.NotNil(t, client)
-	assert.Equal(t, client.ID, c1.ID)
-	assert.Equal(t, client.Description, c1.Description)
-	assert.Equal(t, client.Scopes, c1.Scopes)
-	assert.Equal(t, client.GrantTypes, c1.GrantTypes)
-	assert.Equal(t, client.ResponseTypes, c1.ResponseTypes)
-	assert.Equal(t, client.RedirectURIs, c1.RedirectURIs)
-	assert.Equal(t, client.Policy, authorization.OneFactor)
-	assert.Equal(t, client.Secret.Encode(), "$plaintext$mysecret")
+	assert.Equal(t, id, client.GetID())
+	assert.Equal(t, "myclient desc", client.GetDescription())
+	assert.Equal(t, fosite.Arguments(c1.Scopes), client.GetScopes())
+	assert.Equal(t, fosite.Arguments([]string{GrantTypeAuthorizationCode}), client.GetGrantTypes())
+	assert.Equal(t, fosite.Arguments([]string{ResponseTypeAuthorizationCodeFlow}), client.GetResponseTypes())
+	assert.Equal(t, []string(nil), client.GetRedirectURIs())
+	assert.Equal(t, authorization.OneFactor, client.GetAuthorizationPolicy())
+	assert.Equal(t, "$plaintext$mysecret", client.GetSecret().Encode())
 }
 
 func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {

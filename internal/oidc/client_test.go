@@ -6,6 +6,7 @@ import (
 	"github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -14,14 +15,23 @@ import (
 )
 
 func TestNewClient(t *testing.T) {
-	blankConfig := schema.OpenIDConnectClientConfiguration{}
-	blankClient := NewClient(blankConfig)
-	assert.Equal(t, "", blankClient.ID)
-	assert.Equal(t, "", blankClient.Description)
-	assert.Equal(t, "", blankClient.Description)
-	require.Len(t, blankClient.ResponseModes, 0)
+	config := schema.OpenIDConnectClientConfiguration{}
+	client := NewClient(config)
+	assert.Equal(t, "", client.GetID())
+	assert.Equal(t, "", client.GetDescription())
+	assert.Len(t, client.GetResponseModes(), 0)
+	assert.Len(t, client.GetResponseTypes(), 1)
+	assert.Equal(t, "", client.GetSectorIdentifier())
 
-	exampleConfig := schema.OpenIDConnectClientConfiguration{
+	bclient, ok := client.(*BaseClient)
+	require.True(t, ok)
+	assert.Equal(t, "", bclient.UserinfoSigningAlgorithm)
+	assert.Equal(t, SigningAlgorithmNone, client.GetUserinfoSigningAlgorithm())
+
+	_, ok = client.(*FullClient)
+	assert.False(t, ok)
+
+	config = schema.OpenIDConnectClientConfiguration{
 		ID:            "myapp",
 		Description:   "My App",
 		Policy:        "two_factor",
@@ -33,15 +43,108 @@ func TestNewClient(t *testing.T) {
 		ResponseModes: schema.DefaultOpenIDConnectClientConfiguration.ResponseModes,
 	}
 
-	exampleClient := NewClient(exampleConfig)
-	assert.Equal(t, "myapp", exampleClient.ID)
-	require.Len(t, exampleClient.ResponseModes, 1)
-	assert.Equal(t, fosite.ResponseModeFormPost, exampleClient.ResponseModes[0])
-	assert.Equal(t, authorization.TwoFactor, exampleClient.Policy)
+	client = NewClient(config)
+	assert.Equal(t, "myapp", client.GetID())
+	require.Len(t, client.GetResponseModes(), 1)
+	assert.Equal(t, fosite.ResponseModeFormPost, client.GetResponseModes()[0])
+	assert.Equal(t, authorization.TwoFactor, client.GetAuthorizationPolicy())
+
+	config = schema.OpenIDConnectClientConfiguration{
+		TokenEndpointAuthMethod: ClientAuthMethodClientSecretBasic,
+	}
+
+	client = NewClient(config)
+
+	fclient, ok := client.(*FullClient)
+
+	var niljwks *jose.JSONWebKeySet
+
+	require.True(t, ok)
+	assert.Equal(t, "", fclient.UserinfoSigningAlgorithm)
+	assert.Equal(t, ClientAuthMethodClientSecretBasic, fclient.TokenEndpointAuthMethod)
+	assert.Equal(t, ClientAuthMethodClientSecretBasic, fclient.GetTokenEndpointAuthMethod())
+	assert.Equal(t, SigningAlgorithmNone, client.GetUserinfoSigningAlgorithm())
+	assert.Equal(t, "", fclient.TokenEndpointAuthSigningAlgorithm)
+	assert.Equal(t, SigningAlgorithmRSAWithSHA256, fclient.GetTokenEndpointAuthSigningAlgorithm())
+	assert.Equal(t, "", fclient.RequestObjectSigningAlgorithm)
+	assert.Equal(t, "", fclient.GetRequestObjectSigningAlgorithm())
+	assert.Equal(t, "", fclient.JSONWebKeysURI)
+	assert.Equal(t, "", fclient.GetJSONWebKeysURI())
+	assert.Equal(t, niljwks, fclient.JSONWebKeys)
+	assert.Equal(t, niljwks, fclient.GetJSONWebKeys())
+	assert.Equal(t, []string(nil), fclient.RequestURIs)
+	assert.Equal(t, []string(nil), fclient.GetRequestURIs())
+}
+
+func TestBaseClient_ValidatePARPolicy(t *testing.T) {
+	testCases := []struct {
+		name     string
+		client   *BaseClient
+		have     *fosite.Request
+		expected string
+	}{
+		{
+			"ShouldNotEnforcePAR",
+			&BaseClient{
+				EnforcePAR: false,
+			},
+			&fosite.Request{},
+			"",
+		},
+		{
+			"ShouldEnforcePARAndErrorWithoutCorrectRequestURI",
+			&BaseClient{
+				EnforcePAR: true,
+			},
+			&fosite.Request{
+				Form: map[string][]string{
+					FormParameterRequestURI: {"https://google.com"},
+				},
+			},
+			"invalid_request",
+		},
+		{
+			"ShouldEnforcePARAndErrorWithEmptyRequestURI",
+			&BaseClient{
+				EnforcePAR: true,
+			},
+			&fosite.Request{
+				Form: map[string][]string{
+					FormParameterRequestURI: {""},
+				},
+			},
+			"invalid_request",
+		},
+		{
+			"ShouldEnforcePARAndNotErrorWithCorrectRequestURI",
+			&BaseClient{
+				EnforcePAR: true,
+			},
+			&fosite.Request{
+				Form: map[string][]string{
+					FormParameterRequestURI: {urnPARPrefix + "abc"},
+				},
+			},
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.client.ValidatePARPolicy(tc.have, urnPARPrefix)
+
+			switch tc.expected {
+			case "":
+				assert.NoError(t, err)
+			default:
+				assert.EqualError(t, err, tc.expected)
+			}
+		})
+	}
 }
 
 func TestIsAuthenticationLevelSufficient(t *testing.T) {
-	c := Client{}
+	c := &FullClient{BaseClient: &BaseClient{}}
 
 	c.Policy = authorization.Bypass
 	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated))
@@ -65,7 +168,7 @@ func TestIsAuthenticationLevelSufficient(t *testing.T) {
 }
 
 func TestClient_GetConsentResponseBody(t *testing.T) {
-	c := Client{}
+	c := &FullClient{BaseClient: &BaseClient{}}
 
 	consentRequestBody := c.GetConsentResponseBody(nil)
 	assert.Equal(t, "", consentRequestBody.ClientID)
@@ -92,7 +195,7 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 }
 
 func TestClient_GetAudience(t *testing.T) {
-	c := Client{}
+	c := &FullClient{BaseClient: &BaseClient{}}
 
 	audience := c.GetAudience()
 	assert.Len(t, audience, 0)
@@ -105,7 +208,7 @@ func TestClient_GetAudience(t *testing.T) {
 }
 
 func TestClient_GetScopes(t *testing.T) {
-	c := Client{}
+	c := &FullClient{BaseClient: &BaseClient{}}
 
 	scopes := c.GetScopes()
 	assert.Len(t, scopes, 0)
@@ -118,7 +221,7 @@ func TestClient_GetScopes(t *testing.T) {
 }
 
 func TestClient_GetGrantTypes(t *testing.T) {
-	c := Client{}
+	c := &FullClient{BaseClient: &BaseClient{}}
 
 	grantTypes := c.GetGrantTypes()
 	require.Len(t, grantTypes, 1)
@@ -132,7 +235,7 @@ func TestClient_GetGrantTypes(t *testing.T) {
 }
 
 func TestClient_Hashing(t *testing.T) {
-	c := Client{}
+	c := &FullClient{BaseClient: &BaseClient{}}
 
 	hashedSecret := c.GetHashedSecret()
 	assert.Equal(t, []byte(nil), hashedSecret)
@@ -143,7 +246,7 @@ func TestClient_Hashing(t *testing.T) {
 }
 
 func TestClient_GetHashedSecret(t *testing.T) {
-	c := Client{}
+	c := &FullClient{BaseClient: &BaseClient{}}
 
 	hashedSecret := c.GetHashedSecret()
 	assert.Equal(t, []byte(nil), hashedSecret)
@@ -155,7 +258,7 @@ func TestClient_GetHashedSecret(t *testing.T) {
 }
 
 func TestClient_GetID(t *testing.T) {
-	c := Client{}
+	c := &FullClient{BaseClient: &BaseClient{}}
 
 	id := c.GetID()
 	assert.Equal(t, "", id)
@@ -167,7 +270,7 @@ func TestClient_GetID(t *testing.T) {
 }
 
 func TestClient_GetRedirectURIs(t *testing.T) {
-	c := Client{}
+	c := &FullClient{BaseClient: &BaseClient{}}
 
 	redirectURIs := c.GetRedirectURIs()
 	require.Len(t, redirectURIs, 0)
@@ -180,7 +283,7 @@ func TestClient_GetRedirectURIs(t *testing.T) {
 }
 
 func TestClient_GetResponseModes(t *testing.T) {
-	c := Client{}
+	c := &FullClient{BaseClient: &BaseClient{}}
 
 	responseModes := c.GetResponseModes()
 	require.Len(t, responseModes, 0)
@@ -199,7 +302,7 @@ func TestClient_GetResponseModes(t *testing.T) {
 }
 
 func TestClient_GetResponseTypes(t *testing.T) {
-	c := Client{}
+	c := &FullClient{BaseClient: &BaseClient{}}
 
 	responseTypes := c.GetResponseTypes()
 	require.Len(t, responseTypes, 1)
@@ -280,9 +383,9 @@ func TestNewClientPKCE(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			client := NewClient(tc.have)
 
-			assert.Equal(t, tc.expectedEnforcePKCE, client.EnforcePKCE)
-			assert.Equal(t, tc.expectedEnforcePKCEChallengeMethod, client.EnforcePKCEChallengeMethod)
-			assert.Equal(t, tc.expected, client.PKCEChallengeMethod)
+			assert.Equal(t, tc.expectedEnforcePKCE, client.GetPKCEEnforcement())
+			assert.Equal(t, tc.expectedEnforcePKCEChallengeMethod, client.GetPKCEChallengeMethodEnforcement())
+			assert.Equal(t, tc.expected, client.GetPKCEChallengeMethod())
 
 			if tc.r != nil {
 				err := client.ValidatePKCEPolicy(tc.r)
@@ -298,7 +401,7 @@ func TestNewClientPKCE(t *testing.T) {
 }
 
 func TestClient_IsPublic(t *testing.T) {
-	c := Client{}
+	c := &FullClient{BaseClient: &BaseClient{}}
 
 	assert.False(t, c.IsPublic())
 

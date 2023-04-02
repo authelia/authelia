@@ -3,6 +3,7 @@ package oidc
 import (
 	"strings"
 
+	"github.com/go-crypt/crypt/algorithm"
 	"github.com/ory/fosite"
 	"github.com/ory/x/errorsx"
 	"gopkg.in/square/go-jose.v2"
@@ -14,8 +15,8 @@ import (
 )
 
 // NewClient creates a new Client.
-func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) {
-	client = &Client{
+func NewClient(config schema.OpenIDConnectClientConfiguration) (client Client) {
+	base := &BaseClient{
 		ID:               config.ID,
 		Description:      config.Description,
 		Secret:           config.Secret,
@@ -35,7 +36,6 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 
 		EnforcePAR: config.EnforcePAR,
 
-		TokenEndpointAuthMethod:  config.TokenEndpointAuthMethod,
 		UserinfoSigningAlgorithm: config.UserinfoSigningAlgorithm,
 
 		Policy: authorization.NewLevel(config.Policy),
@@ -44,14 +44,160 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 	}
 
 	for _, mode := range config.ResponseModes {
-		client.ResponseModes = append(client.ResponseModes, fosite.ResponseModeType(mode))
+		base.ResponseModes = append(base.ResponseModes, fosite.ResponseModeType(mode))
+	}
+
+	if config.TokenEndpointAuthMethod != "" && config.TokenEndpointAuthMethod != "auto" {
+		client = &FullClient{
+			BaseClient:              base,
+			TokenEndpointAuthMethod: config.TokenEndpointAuthMethod,
+		}
+	} else {
+		client = base
 	}
 
 	return client
 }
 
+// GetID returns the ID.
+func (c *BaseClient) GetID() string {
+	return c.ID
+}
+
+// GetDescription returns the Description.
+func (c *BaseClient) GetDescription() string {
+	if c.Description == "" {
+		c.Description = c.GetID()
+	}
+
+	return c.Description
+}
+
+// GetSecret returns the Secret.
+func (c *BaseClient) GetSecret() algorithm.Digest {
+	return c.Secret
+}
+
+// GetSectorIdentifier returns the SectorIdentifier for this client.
+func (c *BaseClient) GetSectorIdentifier() string {
+	return c.SectorIdentifier
+}
+
+// GetHashedSecret returns the Secret.
+func (c *BaseClient) GetHashedSecret() (secret []byte) {
+	if c.Secret == nil {
+		return []byte(nil)
+	}
+
+	return []byte(c.Secret.Encode())
+}
+
+// GetRedirectURIs returns the RedirectURIs.
+func (c *BaseClient) GetRedirectURIs() (redirectURIs []string) {
+	return c.RedirectURIs
+}
+
+// GetGrantTypes returns the GrantTypes.
+func (c *BaseClient) GetGrantTypes() fosite.Arguments {
+	if len(c.GrantTypes) == 0 {
+		return fosite.Arguments{"authorization_code"}
+	}
+
+	return c.GrantTypes
+}
+
+// GetResponseTypes returns the ResponseTypes.
+func (c *BaseClient) GetResponseTypes() fosite.Arguments {
+	if len(c.ResponseTypes) == 0 {
+		return fosite.Arguments{"code"}
+	}
+
+	return c.ResponseTypes
+}
+
+// GetScopes returns the Scopes.
+func (c *BaseClient) GetScopes() fosite.Arguments {
+	return c.Scopes
+}
+
+// GetAudience returns the Audience.
+func (c *BaseClient) GetAudience() fosite.Arguments {
+	return c.Audience
+}
+
+// GetResponseModes returns the valid response modes for this client.
+//
+// Implements the fosite.ResponseModeClient.
+func (c *BaseClient) GetResponseModes() []fosite.ResponseModeType {
+	return c.ResponseModes
+}
+
+// GetUserinfoSigningAlgorithm returns the UserinfoSigningAlgorithm.
+func (c *BaseClient) GetUserinfoSigningAlgorithm() string {
+	if c.UserinfoSigningAlgorithm == "" {
+		c.UserinfoSigningAlgorithm = SigningAlgorithmNone
+	}
+
+	return c.UserinfoSigningAlgorithm
+}
+
+// GetPKCEEnforcement returns EnforcePKCE.
+func (c *BaseClient) GetPKCEEnforcement() bool {
+	return c.EnforcePKCE
+}
+
+// GetPKCEChallengeMethodEnforcement returns EnforcePKCEChallengeMethod.
+func (c *BaseClient) GetPKCEChallengeMethodEnforcement() bool {
+	return c.EnforcePKCEChallengeMethod
+}
+
+// GetPKCEChallengeMethod returns PKCEChallengeMethod.
+func (c *BaseClient) GetPKCEChallengeMethod() string {
+	return c.PKCEChallengeMethod
+}
+
+// GetAuthorizationPolicy returns Policy.
+func (c *BaseClient) GetAuthorizationPolicy() authorization.Level {
+	return c.Policy
+}
+
+// GetConsentPolicy returns Consent.
+func (c *BaseClient) GetConsentPolicy() ClientConsent {
+	return c.Consent
+}
+
+// GetConsentResponseBody returns the proper consent response body for this session.OIDCWorkflowSession.
+func (c *BaseClient) GetConsentResponseBody(consent *model.OAuth2ConsentSession) ConsentGetResponseBody {
+	body := ConsentGetResponseBody{
+		ClientID:          c.ID,
+		ClientDescription: c.Description,
+		PreConfiguration:  c.Consent.Mode == ClientConsentModePreConfigured,
+	}
+
+	if consent != nil {
+		body.Scopes = consent.RequestedScopes
+		body.Audience = consent.RequestedAudience
+	}
+
+	return body
+}
+
+// IsPublic returns the value of the Public property.
+func (c *BaseClient) IsPublic() bool {
+	return c.Public
+}
+
+// IsAuthenticationLevelSufficient returns if the provided authentication.Level is sufficient for the client of the AutheliaClient.
+func (c *BaseClient) IsAuthenticationLevelSufficient(level authentication.Level) bool {
+	if level == authentication.NotAuthenticated {
+		return false
+	}
+
+	return authorization.IsAuthLevelSufficient(level, c.Policy)
+}
+
 // ValidatePKCEPolicy is a helper function to validate PKCE policy constraints on a per-client basis.
-func (c *Client) ValidatePKCEPolicy(r fosite.Requester) (err error) {
+func (c *BaseClient) ValidatePKCEPolicy(r fosite.Requester) (err error) {
 	form := r.GetRequestForm()
 
 	if c.EnforcePKCE {
@@ -74,10 +220,10 @@ func (c *Client) ValidatePKCEPolicy(r fosite.Requester) (err error) {
 }
 
 // ValidatePARPolicy is a helper function to validate additional policy constraints on a per-client basis.
-func (c *Client) ValidatePARPolicy(r fosite.Requester, prefix string) (err error) {
-	form := r.GetRequestForm()
-
+func (c *BaseClient) ValidatePARPolicy(r fosite.Requester, prefix string) (err error) {
 	if c.EnforcePAR {
+		form := r.GetRequestForm()
+
 		if requestURI := form.Get(FormParameterRequestURI); !strings.HasPrefix(requestURI, prefix) {
 			if requestURI == "" {
 				return errorsx.WithStack(ErrPAREnforcedClientMissingPAR.WithDebug("The request_uri parameter was empty."))
@@ -90,123 +236,34 @@ func (c *Client) ValidatePARPolicy(r fosite.Requester, prefix string) (err error
 	return nil
 }
 
-// IsAuthenticationLevelSufficient returns if the provided authentication.Level is sufficient for the client of the AutheliaClient.
-func (c *Client) IsAuthenticationLevelSufficient(level authentication.Level) bool {
-	if level == authentication.NotAuthenticated {
-		return false
-	}
-
-	return authorization.IsAuthLevelSufficient(level, c.Policy)
-}
-
-// GetSectorIdentifier returns the SectorIdentifier for this client.
-func (c *Client) GetSectorIdentifier() string {
-	return c.SectorIdentifier
-}
-
-// GetConsentResponseBody returns the proper consent response body for this session.OIDCWorkflowSession.
-func (c *Client) GetConsentResponseBody(consent *model.OAuth2ConsentSession) ConsentGetResponseBody {
-	body := ConsentGetResponseBody{
-		ClientID:          c.ID,
-		ClientDescription: c.Description,
-		PreConfiguration:  c.Consent.Mode == ClientConsentModePreConfigured,
-	}
-
-	if consent != nil {
-		body.Scopes = consent.RequestedScopes
-		body.Audience = consent.RequestedAudience
-	}
-
-	return body
-}
-
-// GetID returns the ID.
-func (c *Client) GetID() string {
-	return c.ID
-}
-
-// GetHashedSecret returns the Secret.
-func (c *Client) GetHashedSecret() (secret []byte) {
-	if c.Secret == nil {
-		return []byte(nil)
-	}
-
-	return []byte(c.Secret.Encode())
-}
-
-// GetRedirectURIs returns the RedirectURIs.
-func (c *Client) GetRedirectURIs() (redirectURIs []string) {
-	return c.RedirectURIs
-}
-
-// GetGrantTypes returns the GrantTypes.
-func (c *Client) GetGrantTypes() fosite.Arguments {
-	if len(c.GrantTypes) == 0 {
-		return fosite.Arguments{"authorization_code"}
-	}
-
-	return c.GrantTypes
-}
-
-// GetResponseTypes returns the ResponseTypes.
-func (c *Client) GetResponseTypes() fosite.Arguments {
-	if len(c.ResponseTypes) == 0 {
-		return fosite.Arguments{"code"}
-	}
-
-	return c.ResponseTypes
-}
-
-// GetScopes returns the Scopes.
-func (c *Client) GetScopes() fosite.Arguments {
-	return c.Scopes
-}
-
-// IsPublic returns the value of the Public property.
-func (c *Client) IsPublic() bool {
-	return c.Public
-}
-
-// GetAudience returns the Audience.
-func (c *Client) GetAudience() fosite.Arguments {
-	return c.Audience
-}
-
-// GetResponseModes returns the valid response modes for this client.
-//
-// Implements the fosite.ResponseModeClient.
-func (c *Client) GetResponseModes() []fosite.ResponseModeType {
-	return c.ResponseModes
-}
-
 // GetRequestURIs is an array of request_uri values that are pre-registered by the RP for use at the OP. Servers MAY
 // cache the contents of the files referenced by these URIs and not retrieve them at the time they are used in a request.
 // OPs can require that request_uri values used be pre-registered with the require_request_uri_registration
 // discovery parameter.
-func (c *Client) GetRequestURIs() []string {
+func (c *FullClient) GetRequestURIs() []string {
 	return c.RequestURIs
 }
 
 // GetJSONWebKeys returns the JSON Web Key Set containing the public key used by the client to authenticate.
-func (c *Client) GetJSONWebKeys() *jose.JSONWebKeySet {
+func (c *FullClient) GetJSONWebKeys() *jose.JSONWebKeySet {
 	return c.JSONWebKeys
 }
 
 // GetJSONWebKeysURI returns the URL for lookup of JSON Web Key Set containing the
 // public key used by the client to authenticate.
-func (c *Client) GetJSONWebKeysURI() string {
+func (c *FullClient) GetJSONWebKeysURI() string {
 	return c.JSONWebKeysURI
 }
 
 // GetRequestObjectSigningAlgorithm returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing Request
 // Objects sent to the OP. All Request Objects from this Client MUST be rejected, if not signed with this algorithm.
-func (c *Client) GetRequestObjectSigningAlgorithm() string {
+func (c *FullClient) GetRequestObjectSigningAlgorithm() string {
 	return c.RequestObjectSigningAlgorithm
 }
 
 // GetTokenEndpointAuthMethod returns the requested Client Authentication Method for the Token Endpoint. The options are
 // client_secret_post, client_secret_basic, client_secret_jwt, private_key_jwt, and none.
-func (c *Client) GetTokenEndpointAuthMethod() string {
+func (c *FullClient) GetTokenEndpointAuthMethod() string {
 	if c.TokenEndpointAuthMethod == "" {
 		if c.Public {
 			c.TokenEndpointAuthMethod = ClientAuthMethodNone
@@ -221,9 +278,9 @@ func (c *Client) GetTokenEndpointAuthMethod() string {
 // GetTokenEndpointAuthSigningAlgorithm returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing the JWT
 // [JWT] used to authenticate the Client at the Token Endpoint for the private_key_jwt and client_secret_jwt
 // authentication methods.
-func (c *Client) GetTokenEndpointAuthSigningAlgorithm() string {
+func (c *FullClient) GetTokenEndpointAuthSigningAlgorithm() string {
 	if c.TokenEndpointAuthSigningAlgorithm == "" {
-		c.TokenEndpointAuthSigningAlgorithm = "RS256"
+		c.TokenEndpointAuthSigningAlgorithm = SigningAlgorithmRSAWithSHA256
 	}
 
 	return c.TokenEndpointAuthSigningAlgorithm

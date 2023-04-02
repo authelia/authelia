@@ -113,6 +113,13 @@ const (
 	FormParameterCodeChallengeMethod = "code_challenge_method"
 )
 
+const (
+	PromptNone    = none
+	PromptLogin   = "login"
+	PromptConsent = "consent"
+	// PromptCreate  = "create" // This prompt value is currently unused.
+)
+
 // Endpoints.
 const (
 	EndpointAuthorization              = "authorization"

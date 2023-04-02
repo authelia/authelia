@@ -40,7 +40,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		Request: fosite.Request{
 			ID:     requestID.String(),
 			Form:   formValues,
-			Client: &Client{ID: "example"},
+			Client: &BaseClient{ID: "example"},
 		},
 	}
 

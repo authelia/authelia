@@ -459,15 +459,13 @@ func validateOIDCClientRedirectURIs(c int, config *schema.OpenIDConnectConfigura
 }
 
 func validateOIDCClientTokenEndpointAuthMethod(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
-	if config.Clients[c].TokenEndpointAuthMethod == "" {
-		if config.Clients[c].Public {
-			config.Clients[c].TokenEndpointAuthMethod = oidc.ClientAuthMethodNone
-		} else {
-			config.Clients[c].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretBasic
-		}
+	if config.Clients[c].Public && config.Clients[c].TokenEndpointAuthMethod == "" {
+		config.Clients[c].TokenEndpointAuthMethod = oidc.ClientAuthMethodNone
 	}
 
 	switch {
+	case config.Clients[c].TokenEndpointAuthMethod == "":
+		break
 	case !utils.IsStringInSlice(config.Clients[c].TokenEndpointAuthMethod, validOIDCClientTokenEndpointAuthMethods):
 		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
 			config.Clients[c].ID, attrOIDCTokenAuthMethod, strJoinOr(validOIDCClientTokenEndpointAuthMethods), config.Clients[c].TokenEndpointAuthMethod))

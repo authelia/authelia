@@ -139,8 +139,9 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 	assert.Contains(t, disco.ResponseModesSupported, ResponseModeQuery)
 	assert.Contains(t, disco.ResponseModesSupported, ResponseModeFragment)
 
-	assert.Len(t, disco.SubjectTypesSupported, 1)
+	assert.Len(t, disco.SubjectTypesSupported, 2)
 	assert.Contains(t, disco.SubjectTypesSupported, SubjectTypePublic)
+	assert.Contains(t, disco.SubjectTypesSupported, SubjectTypePairwise)
 
 	assert.Len(t, disco.ResponseTypesSupported, 7)
 	assert.Contains(t, disco.ResponseTypesSupported, ResponseTypeAuthorizationCodeFlow)
@@ -235,8 +236,9 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfig
 	assert.Contains(t, disco.ResponseModesSupported, ResponseModeQuery)
 	assert.Contains(t, disco.ResponseModesSupported, ResponseModeFragment)
 
-	assert.Len(t, disco.SubjectTypesSupported, 1)
+	assert.Len(t, disco.SubjectTypesSupported, 2)
 	assert.Contains(t, disco.SubjectTypesSupported, SubjectTypePublic)
+	assert.Contains(t, disco.SubjectTypesSupported, SubjectTypePairwise)
 
 	assert.Len(t, disco.ResponseTypesSupported, 7)
 	assert.Contains(t, disco.ResponseTypesSupported, ResponseTypeAuthorizationCodeFlow)
