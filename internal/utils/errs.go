@@ -15,7 +15,7 @@ func (s ErrSliceSortAlphabetical) Less(i, j int) bool { return s[i].Error() < s[
 
 func (s ErrSliceSortAlphabetical) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 
-// GetExpectedErrTxt returns error text for expected errs.
+// GetExpectedErrTxt returns error text for expected errs. THIS IS A TEST UTILITY FUNCTION.
 func GetExpectedErrTxt(err string) string {
 	switch runtime.GOOS {
 	case windows:
