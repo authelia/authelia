@@ -18,7 +18,9 @@ repository (but search first in case a similar issue already exists).
 
 If you would like to fix a bug or implement a feature, please fork the repository and create a Pull Request.
 More information on getting set up locally can be found in the
-[Development Contribution](https://www.authelia.com/contributing/development/introduction/) documentation.
+[Development Contribution](https://www.authelia.com/contributing/development/introduction/) documentation, in addition
+the [Contribution Guidelines](https://www.authelia.com/contributing/guidelines/introduction/) documentation includes
+several contribution guidelines.
 
 Before you start any Pull Request, it's recommended that you create an issue to discuss first if you have any doubts
 about requirement or implementation. That way you can be sure that the maintainer(s) agree on what to change and how,
