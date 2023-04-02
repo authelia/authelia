@@ -168,6 +168,8 @@ github.com/go-sql-driver/mysql v1.7.0/go.mod h1:OXbVy3sEdcQ2Doequ6Z5BW6fXNQTmx+9
 github.com/go-stack/stack v1.8.0/go.mod h1:v0f6uXyyMGvRgIKkXu+yp6POWl0qKG85gN/melR3HDY=
 github.com/go-webauthn/revoke v0.1.9 h1:gSJ1ckA9VaKA2GN4Ukp+kiGTk1/EXtaDb1YE8RknbS0=
 github.com/go-webauthn/revoke v0.1.9/go.mod h1:j6WKPnv0HovtEs++paan9g3ar46gm1NarktkXBaPR+w=
+github.com/go-webauthn/webauthn v0.5.0 h1:Tbmp37AGIhYbQmcy2hEffo3U3cgPClqvxJ7cLUnF7Rc=
+github.com/go-webauthn/webauthn v0.5.0/go.mod h1:0CBq/jNfPS9l033j4AxMk8K8MluiMsde9uGNSPFLEVE=
 github.com/go-webauthn/webauthn v0.7.1 h1:b1/HP1bkqsW+DIO22WyG7BP9dL0rN151VpruH6cxADA=
 github.com/go-webauthn/webauthn v0.7.1/go.mod h1:22OJd+TV8oHrjjXmPHtcPR82lR/yR5m5ilGiF8yPFrE=
 github.com/gogo/protobuf v1.1.1/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
