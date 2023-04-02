@@ -81,25 +81,30 @@ The following YAML configuration is an example __Authelia__
 will operate with the above example:
 
 ```yaml
-- id: gitea
-  description: Gitea
-  secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-  public: false
-  authorization_policy: two_factor
-  redirect_uris:
-    - https://gitea.example.com/user/oauth2/authelia/callback
-  scopes:
-    - openid
-    - email
-    - profile
-  userinfo_signing_algorithm: none
+identity_providers:
+  oidc:
+    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
+    ## See: https://www.authelia.com/c/oidc
+    clients:
+    - id: gitea
+      description: Gitea
+      secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+      public: false
+      authorization_policy: two_factor
+      redirect_uris:
+        - https://gitea.example.com/user/oauth2/authelia/callback
+      scopes:
+        - openid
+        - email
+        - profile
+      userinfo_signing_algorithm: none
 ```
 
 ## See Also
 
-- [Gitea] app.ini [Config Cheat Sheet - OpenID](https://docs.gitea.io/en-us/config-cheat-sheet/#openid-openid)
-- [Gitea] app.ini [Config Cheat Sheet - Service](https://docs.gitea.io/en-us/config-cheat-sheet/#service-service)
+- [Gitea] app.ini [Config Cheat Sheet](https://docs.gitea.io/en-us/config-cheat-sheet):
+  - [OpenID](https://docs.gitea.io/en-us/config-cheat-sheet/#openid-openid)
+  - [Service](https://docs.gitea.io/en-us/config-cheat-sheet/#service-service)
 
-- [Authelia]: https://www.authelia.com
 [Gitea]: https://gitea.io/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
