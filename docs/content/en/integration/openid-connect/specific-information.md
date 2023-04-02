@@ -46,9 +46,11 @@ which case the secret should be encrypted and not be stored in plaintext. The mo
 client configurations will be stored in the database with the secret both salted and peppered.
 
 Authelia currently does not implement any of the specifications or protocols which require secrets being accessible in
-the clear and currently has no plans to implement any of these. As such it's *__strongly discouraged and heavily
-deprecated__* and we instead recommended that users remove this from their configuration entirely and use the
-[Generating Client Secrets](#generating-client-secrets) guide.
+the clear such as most notibly the `client_secret_jwt` grant and currently we no plans to implement any of these. As
+such it's *__strongly discouraged and heavily deprecated__* and we instead recommended that users remove this from their
+configuration entirely and use the [Generating Client Secrets](#generating-client-secrets) guide. At such a time as we
+support one of these protocols we will very likely only allow plaintext for clients configured expressly for this
+purpose i.e. a client that only allows `client_secret_jwt` and no other grants.
 
 Plaintext is either denoted by the `$plaintext$` prefix where everything after the prefix is the secret. In addition if
 the secret does not start with the `$` character it's considered as a plaintext secret for the time being but is
