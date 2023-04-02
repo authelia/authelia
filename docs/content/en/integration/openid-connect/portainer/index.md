@@ -65,19 +65,24 @@ The following YAML configuration is an example __Authelia__
 which will operate with the above example:
 
 ```yaml
-- id: portainer
-  description: Portainer
-  secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-  public: false
-  authorization_policy: two_factor
-  redirect_uris:
-    - https://portainer.example.com
-  scopes:
-    - openid
-    - profile
-    - groups
-    - email
-  userinfo_signing_algorithm: none
+identity_providers:
+  oidc:
+    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
+    ## See: https://www.authelia.com/c/oidc
+    clients:
+    - id: portainer
+      description: Portainer
+      secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+      public: false
+      authorization_policy: two_factor
+      redirect_uris:
+        - https://portainer.example.com
+      scopes:
+        - openid
+        - profile
+        - groups
+        - email
+      userinfo_signing_algorithm: none
 ```
 
 ## See Also
