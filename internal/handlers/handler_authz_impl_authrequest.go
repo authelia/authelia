@@ -36,7 +36,12 @@ func handleAuthzGetObjectAuthRequest(ctx *middlewares.AutheliaCtx) (object autho
 	return authorization.NewObjectRaw(targetURL, method), nil
 }
 
-func handleAuthzUnauthorizedAuthRequest(ctx *middlewares.AutheliaCtx, authn *Authn, _ *url.URL) {
-	ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d", authn.Object.URL.String(), authn.Method, authn.Username, fasthttp.StatusUnauthorized)
-	ctx.ReplyUnauthorized()
+func handleAuthzUnauthorizedAuthRequest(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL) {
+	if redirectionURL == nil {
+		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d", authn.Object.URL.String(), authn.Method, authn.Username, fasthttp.StatusUnauthorized)
+		ctx.ReplyUnauthorized()
+	} else {
+		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s", authn.Object.URL.String(), authn.Method, authn.Username, fasthttp.StatusUnauthorized, redirectionURL)
+		ctx.SpecialRedirect(redirectionURL.String(), fasthttp.StatusUnauthorized)
+	}
 }

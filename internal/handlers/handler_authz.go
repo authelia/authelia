@@ -112,19 +112,22 @@ func (authz *Authz) getAutheliaURL(ctx *middlewares.AutheliaCtx, provider *sessi
 		return nil, err
 	}
 
-	if autheliaURL != nil || authz.legacy {
+	switch {
+	case autheliaURL != nil, authz.implementation == AuthzImplLegacy:
 		return autheliaURL, nil
 	}
 
 	if provider.Config.AutheliaURL != nil {
-		if authz.legacy {
-			return nil, nil
-		}
-
+		ctx.Logger.WithField("url", provider.Config.AutheliaURL).Info("return due config url")
 		return provider.Config.AutheliaURL, nil
 	}
 
-	return nil, fmt.Errorf("authelia url lookup failed")
+	switch authz.implementation {
+	case AuthzImplLegacy, AuthzImplAuthRequest:
+		return nil, nil
+	default:
+		return nil, fmt.Errorf("authelia url lookup failed")
+	}
 }
 
 func (authz *Authz) getRedirectionURL(object *authorization.Object, autheliaURL *url.URL) (redirectionURL *url.URL) {
@@ -133,6 +136,10 @@ func (authz *Authz) getRedirectionURL(object *authorization.Object, autheliaURL 
 	}
 
 	redirectionURL, _ = url.ParseRequestURI(autheliaURL.String())
+
+	if redirectionURL.Path == "" {
+		redirectionURL.Path = "/"
+	}
 
 	qry := redirectionURL.Query()
 

@@ -188,8 +188,15 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsWithMethodsACL() {
 						assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 						assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 					} else {
+						expected := s.RequireParseRequestURI("https://auth.example.com/")
+
+						query := expected.Query()
+						query.Set(queryArgRD, targetURI.String())
+						query.Set(queryArgRM, method)
+						expected.RawQuery = query.Encode()
+
 						assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
-						assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
+						assert.Equal(t, expected.String(), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
 					}
 				})
 			}

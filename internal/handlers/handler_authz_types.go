@@ -23,7 +23,7 @@ type Authz struct {
 	handleAuthorized   HandlerAuthzAuthorized
 	handleUnauthorized HandlerAuthzUnauthorized
 
-	legacy bool
+	implementation AuthzImplementation
 }
 
 // HandlerAuthzUnauthorized is a Authz handler func that handles unauthorized responses.
@@ -86,9 +86,9 @@ type AuthzDomain struct {
 
 // AuthzBuilder is a builder pattern for the Authz type.
 type AuthzBuilder struct {
-	config     AuthzConfig
-	impl       AuthzImplementation
-	strategies []AuthnStrategy
+	config         AuthzConfig
+	implementation AuthzImplementation
+	strategies     []AuthnStrategy
 }
 
 // AuthnStrategy is a strategy used for Authz authentication.

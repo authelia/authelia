@@ -46,7 +46,7 @@ func (b *AuthzBuilder) WithStrategyProxyAuthorization() *AuthzBuilder {
 // WithImplementationLegacy configures this builder to output an Authz which is used with the Legacy
 // implementation which is a mix of the other implementations and usually works with most proxies.
 func (b *AuthzBuilder) WithImplementationLegacy() *AuthzBuilder {
-	b.impl = AuthzImplLegacy
+	b.implementation = AuthzImplLegacy
 
 	return b
 }
@@ -54,7 +54,7 @@ func (b *AuthzBuilder) WithImplementationLegacy() *AuthzBuilder {
 // WithImplementationForwardAuth configures this builder to output an Authz which is used with the ForwardAuth
 // implementation traditionally used by Traefik, Caddy, and Skipper.
 func (b *AuthzBuilder) WithImplementationForwardAuth() *AuthzBuilder {
-	b.impl = AuthzImplForwardAuth
+	b.implementation = AuthzImplForwardAuth
 
 	return b
 }
@@ -62,7 +62,7 @@ func (b *AuthzBuilder) WithImplementationForwardAuth() *AuthzBuilder {
 // WithImplementationAuthRequest configures this builder to output an Authz which is used with the AuthRequest
 // implementation traditionally used by NGINX.
 func (b *AuthzBuilder) WithImplementationAuthRequest() *AuthzBuilder {
-	b.impl = AuthzImplAuthRequest
+	b.implementation = AuthzImplAuthRequest
 
 	return b
 }
@@ -70,7 +70,7 @@ func (b *AuthzBuilder) WithImplementationAuthRequest() *AuthzBuilder {
 // WithImplementationExtAuthz configures this builder to output an Authz which is used with the ExtAuthz
 // implementation traditionally used by Envoy.
 func (b *AuthzBuilder) WithImplementationExtAuthz() *AuthzBuilder {
-	b.impl = AuthzImplExtAuthz
+	b.implementation = AuthzImplExtAuthz
 
 	return b
 }
@@ -154,10 +154,11 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 		config:           b.config,
 		strategies:       b.strategies,
 		handleAuthorized: handleAuthzAuthorizedStandard,
+		implementation:   b.implementation,
 	}
 
 	if len(authz.strategies) == 0 {
-		switch b.impl {
+		switch b.implementation {
 		case AuthzImplLegacy:
 			authz.strategies = []AuthnStrategy{NewHeaderLegacyAuthnStrategy(), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
 		case AuthzImplAuthRequest:
@@ -167,9 +168,8 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 		}
 	}
 
-	switch b.impl {
+	switch b.implementation {
 	case AuthzImplLegacy:
-		authz.legacy = true
 		authz.handleGetObject = handleAuthzGetObjectLegacy
 		authz.handleUnauthorized = handleAuthzUnauthorizedLegacy
 		authz.handleGetAutheliaURL = handleAuthzPortalURLLegacy
@@ -180,6 +180,7 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 	case AuthzImplAuthRequest:
 		authz.handleGetObject = handleAuthzGetObjectAuthRequest
 		authz.handleUnauthorized = handleAuthzUnauthorizedAuthRequest
+		authz.handleGetAutheliaURL = handleAuthzPortalURLFromQuery
 	case AuthzImplExtAuthz:
 		authz.handleGetObject = handleAuthzGetObjectExtAuthz
 		authz.handleUnauthorized = handleAuthzUnauthorizedExtAuthz
