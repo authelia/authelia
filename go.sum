@@ -170,8 +170,6 @@ github.com/go-webauthn/revoke v0.1.9 h1:gSJ1ckA9VaKA2GN4Ukp+kiGTk1/EXtaDb1YE8Rkn
 github.com/go-webauthn/revoke v0.1.9/go.mod h1:j6WKPnv0HovtEs++paan9g3ar46gm1NarktkXBaPR+w=
 github.com/go-webauthn/webauthn v0.5.0 h1:Tbmp37AGIhYbQmcy2hEffo3U3cgPClqvxJ7cLUnF7Rc=
 github.com/go-webauthn/webauthn v0.5.0/go.mod h1:0CBq/jNfPS9l033j4AxMk8K8MluiMsde9uGNSPFLEVE=
-github.com/go-webauthn/webauthn v0.7.1 h1:b1/HP1bkqsW+DIO22WyG7BP9dL0rN151VpruH6cxADA=
-github.com/go-webauthn/webauthn v0.7.1/go.mod h1:22OJd+TV8oHrjjXmPHtcPR82lR/yR5m5ilGiF8yPFrE=
 github.com/gogo/protobuf v1.1.1/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
 github.com/gogo/protobuf v1.2.1/go.mod h1:hp+jE20tsWTFYpLwKvXlhS1hjn+gTNwPg2I6zVXpSg4=
 github.com/golang-jwt/jwt/v4 v4.5.0 h1:7cYmW1XlMY7h7ii7UhUyChSgS5wUJEnm9uZVTGqOWzg=
@@ -374,8 +372,8 @@ github.com/ory/go-convenience v0.1.0/go.mod h1:uEY/a60PL5c12nYz4V5cHY03IBmwIAEm8
 github.com/ory/herodot v0.9.13 h1:cN/Z4eOkErl/9W7hDIDLb79IO/bfsH+8yscBjRpB4IU=
 github.com/ory/herodot v0.9.13/go.mod h1:IWDs9kSvFQqw/cQ8zi5ksyYvITiUU4dI7glUrhZcJYo=
 github.com/ory/viper v1.7.5/go.mod h1:ypOuyJmEUb3oENywQZRgeAMwqgOyDqwboO1tj3DjTaM=
-github.com/ory/x v0.0.545 h1:B2zw7LrQwtdzbaRo0nz4EvDukH7A2UK+IdeYQF2iXBw=
-github.com/ory/x v0.0.545/go.mod h1:x0n1bElGPQeONaKO++izk4CIOhiDhan+i1MUygjrlfM=
+github.com/ory/x v0.0.547 h1:zDuxCi8xpnhSon/2qjjXw9xeYoBwckzV6UdM4dW4sls=
+github.com/ory/x v0.0.547/go.mod h1:sjmOyekJtJrlrq6wtYAKolLruBptf/qUrZ2oMrLEZkM=
 github.com/otiai10/copy v1.9.0 h1:7KFNiCgZ91Ru4qW4CWPf/7jqtxLagGRmIxWldPP9VY4=
 github.com/otiai10/copy v1.9.0/go.mod h1:hsfX19wcn0UWIHUQ3/4fHuehhk2UyArQ9dVFAn3FczI=
 github.com/otiai10/curr v0.0.0-20150429015615-9b4961190c95/go.mod h1:9qAhocn7zKJG+0mI8eUu6xqkFDYS2kb2saOteoSB3cE=
