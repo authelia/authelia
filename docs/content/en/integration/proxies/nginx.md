@@ -52,6 +52,30 @@ configured in the `proxy.conf` file. Each `set_realip_from` directive adds a tru
 proxies list. Any request that comes from a source IP not in one of the configured ranges results in the header being
 replaced with the source IP of the client.
 
+## Assumptions and Adaptation
+
+This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
+can not reasonably have examples for every advanced configuration option that exists. The
+following are the assumptions we make:
+
+* Deployment Scenario:
+  * Single Host
+  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
+  * Proxy is deployed as a Container on a network shared with Authelia
+* The above assumption means that AUthelia should be accesible to the proxy on `http://authelia:9091` and as such:
+  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
+    certificate defined
+  * You will have to adapt all instances of `authelia` in the URL if:
+    * you're using a different container name
+    * you deployed the proxy to a different location
+  * You will have to adapt all instances of `9091` in the URL if:
+    * you have adjusted the default port in the configuration
+  * You will have to adapt the entire URL if:
+    * Authelia is on a different host to the proxy
+* All services are part of the `example.com` domain:
+  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
+    just testing or you want ot use that specific domain
+
 ## Docker Compose
 
 The following docker compose example has various applications suitable for setting up an example environment.
@@ -457,6 +481,9 @@ proxy_set_header Remote-Name $name;
 auth_request_set $cookie $upstream_http_set_cookie;
 add_header Set-Cookie $cookie;
 
+## IMPORTANT: The below URL `https://auth.example.com/` MUST be replaced with the externally accessible URL of the
+## Authelia Portal/Site.
+##
 ## If the subreqest returns 200 pass to the backend, if the subrequest returns 401 redirect to the portal.
 error_page 401 =302 https://auth.example.com/?rd=$target_url;
 ```
@@ -580,6 +607,9 @@ location  /internal/authelia/authz/detect {
         return 401;
     }
 
+    ## IMPORTANT: The below URL `https://auth.example.com/` MUST be replaced with the externally accessible URL of the
+    ## Authelia Portal/Site.
+    ##
     ## The original request didn't target /force-basic, redirect to the pretty login page
     ## This is what `error_page 401 =302 https://auth.example.com/?rd=$target_url;` did.
     return 302 https://auth.example.com/$is_args$args;

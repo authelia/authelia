@@ -55,13 +55,13 @@ possible that due to web standards this will never change.
 
 In addition this represents a bad user experience in some instances such as:
 
-- Users sometimes visit the `https://app.example.com/authelia` URL which doesn't automatically redirect the user to
+* Users sometimes visit the `https://app.example.com/authelia` URL which doesn't automatically redirect the user to
   `https://app.example.com` (if they visit `https://app.example.com` then they'll be redirected to authenticate then
   redirected back to their original URL)
-- Administrators may wish to setup [OpenID Connect 1.0](../../configuration/identity-providers/open-id-connect.md) in
+* Administrators may wish to setup [OpenID Connect 1.0](../../configuration/identity-providers/open-id-connect.md) in
   which case it also doesn't represent a good user experience as the `issuer` will be
   `https://app.example.com/authelia` for example
-- Using the [SWAG] default configurations are more difficult to support as our specific familiarity is with our own
+* Using the [SWAG] default configurations are more difficult to support as our specific familiarity is with our own
   example snippets
 
 #### Option 1: Adjusting the Default Configuration
@@ -111,6 +111,30 @@ Especially if you have never read it before.*
 
 To configure trusted proxies for [SWAG] see the [NGINX] section on [Trusted Proxies](nginx.md#trusted-proxies).
 Adapting this to [SWAG] is beyond the scope of this documentation.
+
+## Assumptions and Adaptation
+
+This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
+can not reasonably have examples for every advanced configuration option that exists. The
+following are the assumptions we make:
+
+* Deployment Scenario:
+  * Single Host
+  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
+  * Proxy is deployed as a Container on a network shared with Authelia
+* The above assumption means that AUthelia should be accesible to the proxy on `http://authelia:9091` and as such:
+  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
+    certificate defined
+  * You will have to adapt all instances of `authelia` in the URL if:
+    * you're using a different container name
+    * you deployed the proxy to a different location
+  * You will have to adapt all instances of `9091` in the URL if:
+    * you have adjusted the default port in the configuration
+  * You will have to adapt the entire URL if:
+    * Authelia is on a different host to the proxy
+* All services are part of the `example.com` domain:
+  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
+    just testing or you want ot use that specific domain
 
 ## Docker Compose
 
