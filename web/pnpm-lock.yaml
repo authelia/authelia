@@ -190,8 +190,8 @@ devDependencies:
     specifier: 2.4.0
     version: 2.4.0(vite@4.2.1)
   vite-tsconfig-paths:
-    specifier: 4.0.7
-    version: 4.0.7(typescript@5.0.3)(vite@4.2.1)
+    specifier: 4.0.8
+    version: 4.0.8(typescript@5.0.3)(vite@4.2.1)
 
 packages:
 
@@ -9057,12 +9057,12 @@ packages:
       yn: 3.1.1
     dev: true
 
-  /tsconfck@2.0.1(typescript@5.0.3):
-    resolution: {integrity: sha512-/ipap2eecmVBmBlsQLBRbUmUNFwNJV/z2E+X0FPtHNjPwroMZQ7m39RMaCywlCulBheYXgMdUlWDd9rzxwMA0Q==}
-    engines: {node: ^14.13.1 || ^16 || >=18, pnpm: ^7.0.1}
+  /tsconfck@2.1.1(typescript@5.0.3):
+    resolution: {integrity: sha512-ZPCkJBKASZBmBUNqGHmRhdhM8pJYDdOXp4nRgj/O0JwUwsMq50lCDRQP/M5GBNAA0elPrq4gAeu4dkaVCuKWww==}
+    engines: {node: ^14.13.1 || ^16 || >=18}
     hasBin: true
     peerDependencies:
-      typescript: ^4.3.5
+      typescript: ^4.3.5 || ^5.0.0
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -9313,8 +9313,8 @@ packages:
       - supports-color
     dev: true
 
-  /vite-tsconfig-paths@4.0.7(typescript@5.0.3)(vite@4.2.1):
-    resolution: {integrity: sha512-MwIYaby6kcbQGZqMH+gAK6h0UYQGOkjsuAgw4q6bP/5vWkn8VKvnmLuCQHA2+IzHAJHnE8OFTO4lnJLFMf9+7Q==}
+  /vite-tsconfig-paths@4.0.8(typescript@5.0.3)(vite@4.2.1):
+    resolution: {integrity: sha512-p04zH+Ey+NT78571x0pdX7nVRIJSlmKVvYryFglSWOK3Hc72eDL0+JJfbyQiugaIBApJkaEqbBQvqpsFZOSVGg==}
     peerDependencies:
       vite: '*'
     peerDependenciesMeta:
@@ -9323,7 +9323,7 @@ packages:
     dependencies:
       debug: 4.3.4
       globrex: 0.1.2
-      tsconfck: 2.0.1(typescript@5.0.3)
+      tsconfck: 2.1.1(typescript@5.0.3)
       vite: 4.2.1(@types/node@18.15.11)
     transitivePeerDependencies:
       - supports-color
