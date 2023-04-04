@@ -23,6 +23,18 @@ to be used by administrators of their individual *Authelia* installs.
 when configured. If metrics are enabled the metrics listener listens on `0.0.0.0:9959` as per the officially
 [registered port] unless configured otherwise.
 
+#### Example Prometheus Job  
+```yaml
+# Authelia
+  - job_name: authelia
+    scrape_interval: 60s
+    scheme: http
+    static_configs:
+    - targets: [authelia_address:9959]
+```  
+*Notes: Replace 'authelia_address' with the URL or IP of your Authelia container.*  
+
+
 #### Recorded Metrics
 
 ##### Vectored Counters
@@ -65,3 +77,4 @@ The authentication type `webauthn`, `totp`, or `duo`.
 
 [Prometheus]: https://prometheus.io/
 [registered port]: https://github.com/prometheus/prometheus/wiki/Default-port-allocations
+
