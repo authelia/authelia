@@ -2,8 +2,8 @@ lockfileVersion: '6.0'
 
 dependencies:
   '@emotion/cache':
-    specifier: 11.10.5
-    version: 11.10.5
+    specifier: 11.10.7
+    version: 11.10.7
   '@emotion/react':
     specifier: 11.10.6
     version: 11.10.6(@types/react@18.0.33)(react@18.2.0)
@@ -2270,8 +2270,8 @@ packages:
       stylis: 4.1.3
     dev: false
 
-  /@emotion/cache@11.10.5:
-    resolution: {integrity: sha512-dGYHWyzTdmK+f2+EnIGBpkz1lKc4Zbj2KHd4cX3Wi8/OWr5pKslNjc3yABKH4adRGCvSX4VDC0i04mrrq0aiRA==}
+  /@emotion/cache@11.10.7:
+    resolution: {integrity: sha512-VLl1/2D6LOjH57Y8Vem1RoZ9haWF4jesHDGiHtKozDQuBIkJm2gimVo0I02sWCuzZtVACeixTVB4jeE8qvCBoQ==}
     dependencies:
       '@emotion/memoize': 0.8.0
       '@emotion/sheet': 1.2.1
@@ -2305,7 +2305,7 @@ packages:
     dependencies:
       '@babel/runtime': 7.20.13
       '@emotion/babel-plugin': 11.10.6
-      '@emotion/cache': 11.10.5
+      '@emotion/cache': 11.10.7
       '@emotion/serialize': 1.1.1
       '@emotion/use-insertion-effect-with-fallbacks': 1.0.0(react@18.2.0)
       '@emotion/utils': 1.2.0
@@ -3109,7 +3109,7 @@ packages:
         optional: true
     dependencies:
       '@babel/runtime': 7.21.0
-      '@emotion/cache': 11.10.5
+      '@emotion/cache': 11.10.7
       '@emotion/react': 11.10.6(@types/react@18.0.33)(react@18.2.0)
       '@emotion/styled': 11.10.6(@emotion/react@11.10.6)(@types/react@18.0.33)(react@18.2.0)
       csstype: 3.1.2
