@@ -57,7 +57,11 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	}
 
 	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(clientID); err != nil {
-		ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(fosite.ErrServerError.WithHint("Unable to assert type of client")))
+		rfc := fosite.ErrorToRFC6749Error(err)
+
+		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed to retrieve client configuration with error: %s", requester.GetID(), client.GetID(), rfc.WithExposeDebug(true).GetDescription())
+
+		ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(rfc))
 
 		return
 	}
@@ -100,7 +104,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		var jti uuid.UUID
 
 		if jti, err = uuid.NewRandom(); err != nil {
-			ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError.WithHintf("Could not generate JTI."))
+			ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError.WithHint("Could not generate JTI."))
 
 			return
 		}

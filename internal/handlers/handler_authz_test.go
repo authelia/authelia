@@ -1448,6 +1448,7 @@ func (s *AuthzSuite) TestShouldFailToParsePortalURL() {
 	switch s.implementation {
 	case AuthzImplLegacy:
 		expected = fasthttp.StatusUnauthorized
+
 		mock.Ctx.RequestCtx.QueryArgs().Set(queryArgRD, "JKL$#N%KJ#@$N")
 	case AuthzImplForwardAuth, AuthzImplAuthRequest:
 		mock.Ctx.RequestCtx.QueryArgs().Set("authelia_url", "JKL$#N%KJ#@$N")
