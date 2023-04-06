@@ -61,15 +61,17 @@ func loadMigrations(providerName string, prior, target int) (migrations []model.
 
 	up := prior < target
 
-	var migrationsAll []model.SchemaMigration
+	var (
+		migrationsAll []model.SchemaMigration
+		migration     model.SchemaMigration
+	)
 
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue
 		}
 
-		migration, err := scanMigration(entry.Name())
-		if err != nil {
+		if migration, err = scanMigration(entry.Name()); err != nil {
 			return nil, err
 		}
 
