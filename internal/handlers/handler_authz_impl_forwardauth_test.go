@@ -13,7 +13,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/session"
 )
 
 func TestRunForwardAuthAuthzSuite(t *testing.T) {
@@ -51,11 +50,9 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsDeny() {
 
 					defer mock.Close()
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					s.setRequest(mock.Ctx, method, pairURI.TargetURI, true, false)
 
@@ -98,11 +95,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsOverrideAutheliaURLDen
 
 					defer mock.Close()
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
-
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					mock.Ctx.RequestCtx.QueryArgs().Set("authelia_url", pairURI.AutheliaURI.String())
 					s.setRequest(mock.Ctx, method, pairURI.TargetURI, true, false)
@@ -148,8 +141,10 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLDeny
 
 					authz.Handler(mock.Ctx)
 
-					assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+					assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
+					assert.Equal(t, fmt.Sprintf("%d %s", fasthttp.StatusBadRequest, fasthttp.StatusMessage(fasthttp.StatusBadRequest)), string(mock.Ctx.Response.Body()))
 					assert.Equal(t, "", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+					assert.Equal(t, "text/plain; charset=utf-8", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderContentType)))
 				})
 			}
 		})
@@ -176,11 +171,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsXHRDeny() {
 
 							defer mock.Close()
 
-							for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-								mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-							}
-
-							mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+							s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 							s.setRequest(mock.Ctx, method, pairURI.TargetURI, x, x)
 
@@ -220,11 +211,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 
 					defer mock.Close()
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
-
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					s.setRequest(mock.Ctx, method, targetURI, true, false)
 
@@ -247,11 +234,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleMissingHostDeny() {
 
 			defer mock.Close()
 
-			for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-				mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-			}
-
-			mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+			s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 			mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
@@ -283,11 +266,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsAllow() {
 
 					defer mock.Close()
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
-
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					s.setRequest(mock.Ctx, method, targetURI, true, false)
 
@@ -313,11 +292,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsWithMethodsACL() {
 
 					defer mock.Close()
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
-
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					s.setRequest(mock.Ctx, method, targetURI, true, false)
 
@@ -365,11 +340,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsAllowXHR() {
 
 					defer mock.Close()
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
-
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					s.setRequest(mock.Ctx, method, targetURI, true, true)
 
@@ -413,11 +384,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 					mock.Ctx.Configuration.AccessControl.DefaultPolicy = testBypass
 					mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&mock.Ctx.Configuration)
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
-
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 					mock.Ctx.Request.Header.SetBytesKV([]byte(fasthttp.HeaderXForwardedProto), tc.scheme)
@@ -475,11 +442,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldNotHandleAuthRequestAllMethodsWithMeth
 
 					defer mock.Close()
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
-
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					setRequestAuthRequest(mock.Ctx, method, targetURI, true, false)
 
@@ -509,11 +472,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldNotHandleExtAuthzAllMethodsAllow() {
 
 					defer mock.Close()
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
-
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					setRequestExtAuthz(mock.Ctx, method, targetURI, true, false)
 
@@ -545,11 +504,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldNotHandleExtAuthzAllMethodsAllowXHR() 
 
 							defer mock.Close()
 
-							for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-								mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-							}
-
-							mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+							s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 							setRequestExtAuthz(mock.Ctx, method, targetURI, x, x)
 
@@ -577,11 +532,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldNotHandleExtAuthzAllMethodsWithMethods
 
 					defer mock.Close()
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
-
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					setRequestExtAuthz(mock.Ctx, method, targetURI, true, false)
 

@@ -47,7 +47,14 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	if autheliaURL, err = authz.getAutheliaURL(ctx, provider); err != nil {
 		ctx.Logger.WithError(err).Error("Error occurred trying to determine the URL of the portal")
 
-		ctx.ReplyUnauthorized()
+		fmt.Println(err)
+
+		switch authz.implementation {
+		case AuthzImplLegacy:
+			ctx.ReplyUnauthorized()
+		default:
+			ctx.ReplyBadRequest()
+		}
 
 		return
 	}
@@ -104,10 +111,6 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 }
 
 func (authz *Authz) getAutheliaURL(ctx *middlewares.AutheliaCtx, provider *session.Session) (autheliaURL *url.URL, err error) {
-	if authz.handleGetAutheliaURL == nil {
-		return nil, nil
-	}
-
 	if autheliaURL, err = authz.handleGetAutheliaURL(ctx); err != nil {
 		return nil, err
 	}
@@ -118,16 +121,10 @@ func (authz *Authz) getAutheliaURL(ctx *middlewares.AutheliaCtx, provider *sessi
 	}
 
 	if provider.Config.AutheliaURL != nil {
-		ctx.Logger.WithField("url", provider.Config.AutheliaURL).Info("return due config url")
 		return provider.Config.AutheliaURL, nil
 	}
 
-	switch authz.implementation {
-	case AuthzImplLegacy, AuthzImplAuthRequest:
-		return nil, nil
-	default:
-		return nil, fmt.Errorf("authelia url lookup failed")
-	}
+	return nil, fmt.Errorf("authelia url lookup failed")
 }
 
 func (authz *Authz) getRedirectionURL(object *authorization.Object, autheliaURL *url.URL) (redirectionURL *url.URL) {

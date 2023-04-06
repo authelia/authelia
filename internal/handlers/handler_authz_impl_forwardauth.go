@@ -50,6 +50,6 @@ func handleAuthzUnauthorizedForwardAuth(ctx *middlewares.AutheliaCtx, authn *Aut
 		}
 	}
 
-	ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s", authn.Object.String(), authn.Method, authn.Username, statusCode, redirectionURL)
+	ctx.Logger.Infof(logFmtAuthzRedirect, authn.Object.String(), authn.Method, authn.Username, statusCode, redirectionURL)
 	ctx.SpecialRedirect(redirectionURL.String(), statusCode)
 }

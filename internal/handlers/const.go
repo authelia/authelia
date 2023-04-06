@@ -16,6 +16,8 @@ const (
 )
 
 var (
+	headerLocation = []byte(fasthttp.HeaderLocation)
+
 	headerAuthorization   = []byte(fasthttp.HeaderAuthorization)
 	headerWWWAuthenticate = []byte(fasthttp.HeaderWWWAuthenticate)
 
@@ -87,6 +89,8 @@ const (
 )
 
 const (
+	logFmtAuthzRedirect = "Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s"
+
 	logFmtAuthorizationPrefix = "Authorization Request with id '%s' on client with id '%s' "
 
 	logFmtErrConsentCantDetermineConsentMode = logFmtAuthorizationPrefix + "could not be processed: error occurred generating consent: client consent mode could not be reliably determined"
