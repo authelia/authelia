@@ -15,6 +15,10 @@ const (
 	ActionResetPassword = "ResetPassword"
 )
 
+const (
+	anonymous = "<anonymous>"
+)
+
 var (
 	headerLocation = []byte(fasthttp.HeaderLocation)
 

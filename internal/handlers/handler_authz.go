@@ -21,7 +21,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if object, err = authz.handleGetObject(ctx); err != nil {
-		ctx.Logger.Errorf("Error getting original request object: %v", err)
+		ctx.Logger.WithError(err).Error("Error getting Target URL and Request Method")
 
 		ctx.ReplyUnauthorized()
 
@@ -37,7 +37,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if provider, err = ctx.GetSessionProviderByTargetURL(object.URL); err != nil {
-		ctx.Logger.WithError(err).Errorf("Target URL '%s' does not appear to be configured as a session domain", object.URL.String())
+		ctx.Logger.WithError(err).WithField("target_url", object.URL.String()).Error("Target URL does not appear to have a relevant session cookies configuration")
 
 		ctx.ReplyUnauthorized()
 
@@ -45,7 +45,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if autheliaURL, err = authz.getAutheliaURL(ctx, provider); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred trying to determine the URL of the portal")
+		ctx.Logger.WithError(err).WithField("target_url", object.URL.String()).Error("Error occurred trying to determine the external Authelia URL for Target URL")
 
 		fmt.Println(err)
 
@@ -162,10 +162,10 @@ func (authz *Authz) authn(ctx *middlewares.AutheliaCtx, provider *session.Sessio
 	for _, strategy = range authz.strategies {
 		if authn, err = strategy.Get(ctx, provider); err != nil {
 			if strategy.CanHandleUnauthorized() {
-				return Authn{Type: authn.Type, Level: authentication.NotAuthenticated}, strategy, err
+				return Authn{Type: authn.Type, Level: authentication.NotAuthenticated, Username: anonymous}, strategy, err
 			}
 
-			return Authn{Type: authn.Type, Level: authentication.NotAuthenticated}, nil, err
+			return Authn{Type: authn.Type, Level: authentication.NotAuthenticated, Username: anonymous}, nil, err
 		}
 
 		if authn.Level != authentication.NotAuthenticated {
