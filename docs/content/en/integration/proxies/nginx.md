@@ -34,8 +34,8 @@ You need the following to run __Authelia__ with [NGINX]:
 
 * [NGINX] must be built with the `http_auth_request` module which is relatively common
 * [NGINX] must be built with the `http_realip` module which is relatively common
-* [NGINX] must be built with the `http_set_misc` module or the `nginx-mod-http-set-misc` package if you want to preserve
-  more than one query parameter when redirected to the portal due to a limitation in [NGINX]
+* [NGINX] must be built with the `http_set_misc` module or the `nginx-mod-http-set-misc` package if you want to use the
+  legacy method and preserve more than one query parameter when redirected to the portal due to a limitation in [NGINX]
 
 ## Trusted Proxies
 

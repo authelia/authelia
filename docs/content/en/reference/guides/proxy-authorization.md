@@ -113,23 +113,24 @@ This is the implementation which supports [Envoy] via the [ExtAuthz Extension Fi
 This is the implementation which supports [NGINX] via the [auth_request HTTP module] and [HAProxy] via the
 [auth-request lua plugin].
 
-|   Metadata   |  Source  |         Key         |
-|:------------:|:--------:|:-------------------:|
-|    Method    | [Header] | `X-Original-Method` |
-|    Scheme    | [Header] |  `X-Original-URL`   |
-|   Hostname   | [Header] |  `X-Original-URL`   |
-|     Path     | [Header] |  `X-Original-URL`   |
-|      IP      | [Header] |  [X-Forwarded-For]  |
-| Authelia URL |  _N/A_   |        _N/A_        |
+|   Metadata   |            Source            |         Key         |
+|:------------:|:----------------------------:|:-------------------:|
+|    Method    |           [Header]           | `X-Original-Method` |
+|    Scheme    |           [Header]           |  `X-Original-URL`   |
+|   Hostname   |           [Header]           |  `X-Original-URL`   |
+|     Path     |           [Header]           |  `X-Original-URL`   |
+|      IP      |           [Header]           |  [X-Forwarded-For]  |
+| Authelia URL | Session Cookie Configuration |   `authelia_url`    |
 
 _**Note:** This endpoint does not support automatic redirection. This is because there is no support on NGINX's side to
 achieve this with `ngx_http_auth_request_module` and the redirection must be performed within the NGINX configuration._
 
 #### AuthRequest Metadata Alternatives
 
-| Metadata | Alternative Type |   Source   |    Key    |
-|:--------:|:----------------:|:----------:|:---------:|
-|    IP    |     Fallback     | TCP Packet | Source IP |
+|   Metadata   | Alternative Type |     Source     |      Key       |
+|:------------:|:----------------:|:--------------:|:--------------:|
+|      IP      |     Fallback     |   TCP Packet   |   Source IP    |
+| Authelia URL |     Override     | Query Argument | `authelia_url` |
 
 ### Legacy
 
