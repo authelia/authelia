@@ -15,11 +15,7 @@ type SchemaMigration struct {
 
 // NotEmpty returns true if the SchemaMigration is not an empty string.
 func (m SchemaMigration) NotEmpty() bool {
-	if len(strings.TrimSpace(m.Query)) == 0 {
-		return false
-	}
-
-	return true
+	return len(strings.TrimSpace(m.Query)) != 0
 }
 
 // Before returns the version the schema should be at Before the migration is applied.
