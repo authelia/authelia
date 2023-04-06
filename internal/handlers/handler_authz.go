@@ -116,8 +116,15 @@ func (authz *Authz) getAutheliaURL(ctx *middlewares.AutheliaCtx, provider *sessi
 	}
 
 	switch {
-	case autheliaURL != nil, authz.implementation == AuthzImplLegacy:
+	case authz.implementation == AuthzImplLegacy:
 		return autheliaURL, nil
+	case autheliaURL != nil:
+		switch {
+		case utils.HasURIDomainSuffix(autheliaURL, provider.Config.Domain):
+			return autheliaURL, nil
+		default:
+			return nil, fmt.Errorf("authelia url '%s' is not valid for detected domain '%s' as the url does not have the domain as a suffix", autheliaURL.String(), provider.Config.Domain)
+		}
 	}
 
 	if provider.Config.AutheliaURL != nil {
