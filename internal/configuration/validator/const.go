@@ -190,10 +190,10 @@ const (
 		"configured to an unsafe value, it should be above 8 but it's configured to %d"
 )
 
-// Webauthn Error constants.
+// WebAuthn Error constants.
 const (
-	errFmtWebauthnConveyancePreference = "webauthn: option 'attestation_conveyance_preference' must be one of '%s' but it is configured as '%s'"
-	errFmtWebauthnUserVerification     = "webauthn: option 'user_verification' must be one of 'discouraged', 'preferred', 'required' but it is configured as '%s'"
+	errFmtWebAuthnConveyancePreference = "webauthn: option 'attestation_conveyance_preference' must be one of '%s' but it is configured as '%s'"
+	errFmtWebAuthnUserVerification     = "webauthn: option 'user_verification' must be one of 'discouraged', 'preferred', 'required' but it is configured as '%s'"
 )
 
 // Access Control error constants.
@@ -374,8 +374,8 @@ var (
 	validThemeNames                          = []string{"light", "dark", "grey", "auto"}
 	validSessionSameSiteValues               = []string{"none", "lax", "strict"}
 	validLogLevels                           = []string{"trace", "debug", "info", "warn", "error"}
-	validWebauthnConveyancePreferences       = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
-	validWebauthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
+	validWebAuthnConveyancePreferences       = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
+	validWebAuthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
 	validRFC7231HTTPMethodVerbs              = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
 	validRFC4918HTTPMethodVerbs              = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
 )

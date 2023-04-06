@@ -36,7 +36,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldHaveAllConfiguredMethods
 		TOTP: schema.TOTPConfiguration{
 			Disable: false,
 		},
-		Webauthn: schema.WebauthnConfiguration{
+		WebAuthn: schema.WebAuthnConfiguration{
 			Disable: false,
 		},
 		AccessControl: schema.AccessControlConfiguration{
@@ -66,7 +66,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveTOTPFromAvailableM
 		TOTP: schema.TOTPConfiguration{
 			Disable: true,
 		},
-		Webauthn: schema.WebauthnConfiguration{
+		WebAuthn: schema.WebAuthnConfiguration{
 			Disable: false,
 		},
 		AccessControl: schema.AccessControlConfiguration{
@@ -88,7 +88,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveTOTPFromAvailableM
 	})
 }
 
-func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveWebauthnFromAvailableMethodsWhenDisabled() {
+func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveWebAuthnFromAvailableMethodsWhenDisabled() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		DuoAPI: schema.DuoAPIConfiguration{
 			Disable: false,
@@ -96,7 +96,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveWebauthnFromAvaila
 		TOTP: schema.TOTPConfiguration{
 			Disable: false,
 		},
-		Webauthn: schema.WebauthnConfiguration{
+		WebAuthn: schema.WebAuthnConfiguration{
 			Disable: true,
 		},
 		AccessControl: schema.AccessControlConfiguration{
@@ -126,7 +126,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveDuoFromAvailableMe
 		TOTP: schema.TOTPConfiguration{
 			Disable: false,
 		},
-		Webauthn: schema.WebauthnConfiguration{
+		WebAuthn: schema.WebAuthnConfiguration{
 			Disable: false,
 		},
 		AccessControl: schema.AccessControlConfiguration{
@@ -156,7 +156,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveAllMethodsWhenNoTw
 		TOTP: schema.TOTPConfiguration{
 			Disable: false,
 		},
-		Webauthn: schema.WebauthnConfiguration{
+		WebAuthn: schema.WebAuthnConfiguration{
 			Disable: false,
 		},
 		AccessControl: schema.AccessControlConfiguration{
@@ -186,7 +186,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveAllMethodsWhenAllD
 		TOTP: schema.TOTPConfiguration{
 			Disable: true,
 		},
-		Webauthn: schema.WebauthnConfiguration{
+		WebAuthn: schema.WebAuthnConfiguration{
 			Disable: true,
 		},
 		AccessControl: schema.AccessControlConfiguration{

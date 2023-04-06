@@ -124,7 +124,7 @@ func newStorageUserCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd.AddCommand(
 		newStorageUserIdentifiersCmd(ctx),
 		newStorageUserTOTPCmd(ctx),
-		newStorageUserWebauthnCmd(ctx),
+		newStorageUserWebAuthnCmd(ctx),
 	)
 
 	return cmd
@@ -221,34 +221,34 @@ func newStorageUserIdentifiersAddCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	return cmd
 }
 
-func newStorageUserWebauthnCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+func newStorageUserWebAuthnCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:     "webauthn",
-		Short:   cmdAutheliaStorageUserWebauthnShort,
-		Long:    cmdAutheliaStorageUserWebauthnLong,
-		Example: cmdAutheliaStorageUserWebauthnExample,
+		Short:   cmdAutheliaStorageUserWebAuthnShort,
+		Long:    cmdAutheliaStorageUserWebAuthnLong,
+		Example: cmdAutheliaStorageUserWebAuthnExample,
 		Args:    cobra.NoArgs,
 
 		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(
-		newStorageUserWebauthnListCmd(ctx),
-		newStorageUserWebauthnDeleteCmd(ctx),
-		newStorageUserWebauthnExportCmd(ctx),
-		newStorageUserWebauthnImportCmd(ctx),
+		newStorageUserWebAuthnListCmd(ctx),
+		newStorageUserWebAuthnDeleteCmd(ctx),
+		newStorageUserWebAuthnExportCmd(ctx),
+		newStorageUserWebAuthnImportCmd(ctx),
 	)
 
 	return cmd
 }
 
-func newStorageUserWebauthnImportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+func newStorageUserWebAuthnImportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:     cmdUseImportFileName,
-		Short:   cmdAutheliaStorageUserWebauthnImportShort,
-		Long:    cmdAutheliaStorageUserWebauthnImportLong,
-		Example: cmdAutheliaStorageUserWebauthnImportExample,
-		RunE:    ctx.StorageUserWebauthnImportRunE,
+		Short:   cmdAutheliaStorageUserWebAuthnImportShort,
+		Long:    cmdAutheliaStorageUserWebAuthnImportLong,
+		Example: cmdAutheliaStorageUserWebAuthnImportExample,
+		RunE:    ctx.StorageUserWebAuthnImportRunE,
 		Args:    cobra.ExactArgs(1),
 
 		DisableAutoGenTag: true,
@@ -257,13 +257,13 @@ func newStorageUserWebauthnImportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	return cmd
 }
 
-func newStorageUserWebauthnExportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+func newStorageUserWebAuthnExportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:     cmdUseExport,
-		Short:   cmdAutheliaStorageUserWebauthnExportShort,
-		Long:    cmdAutheliaStorageUserWebauthnExportLong,
-		Example: cmdAutheliaStorageUserWebauthnExportExample,
-		RunE:    ctx.StorageUserWebauthnExportRunE,
+		Short:   cmdAutheliaStorageUserWebAuthnExportShort,
+		Long:    cmdAutheliaStorageUserWebAuthnExportLong,
+		Example: cmdAutheliaStorageUserWebAuthnExportExample,
+		RunE:    ctx.StorageUserWebAuthnExportRunE,
 		Args:    cobra.NoArgs,
 
 		DisableAutoGenTag: true,
@@ -274,13 +274,13 @@ func newStorageUserWebauthnExportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	return cmd
 }
 
-func newStorageUserWebauthnListCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+func newStorageUserWebAuthnListCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:     "list [username]",
-		Short:   cmdAutheliaStorageUserWebauthnListShort,
-		Long:    cmdAutheliaStorageUserWebauthnListLong,
-		Example: cmdAutheliaStorageUserWebauthnListExample,
-		RunE:    ctx.StorageUserWebauthnListRunE,
+		Short:   cmdAutheliaStorageUserWebAuthnListShort,
+		Long:    cmdAutheliaStorageUserWebAuthnListLong,
+		Example: cmdAutheliaStorageUserWebAuthnListExample,
+		RunE:    ctx.StorageUserWebAuthnListRunE,
 		Args:    cobra.MaximumNArgs(1),
 
 		DisableAutoGenTag: true,
@@ -289,13 +289,13 @@ func newStorageUserWebauthnListCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	return cmd
 }
 
-func newStorageUserWebauthnDeleteCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+func newStorageUserWebAuthnDeleteCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:     "delete [username]",
-		Short:   cmdAutheliaStorageUserWebauthnDeleteShort,
-		Long:    cmdAutheliaStorageUserWebauthnDeleteLong,
-		Example: cmdAutheliaStorageUserWebauthnDeleteExample,
-		RunE:    ctx.StorageUserWebauthnDeleteRunE,
+		Short:   cmdAutheliaStorageUserWebAuthnDeleteShort,
+		Long:    cmdAutheliaStorageUserWebAuthnDeleteLong,
+		Example: cmdAutheliaStorageUserWebAuthnDeleteExample,
+		RunE:    ctx.StorageUserWebAuthnDeleteRunE,
 		Args:    cobra.MaximumNArgs(1),
 
 		DisableAutoGenTag: true,

@@ -11,7 +11,7 @@ const (
 	tableTOTPConfigurations   = "totp_configurations"
 	tableUserOpaqueIdentifier = "user_opaque_identifier"
 	tableUserPreferences      = "user_preferences"
-	tableWebauthnDevices      = "webauthn_devices"
+	tableWebAuthnDevices      = "webauthn_devices"
 
 	tableOAuth2BlacklistedJTI          = "oauth2_blacklisted_jti"
 	tableOAuth2ConsentSession          = "oauth2_consent_session"
