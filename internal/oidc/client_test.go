@@ -32,11 +32,11 @@ func TestNewClient(t *testing.T) {
 	assert.False(t, ok)
 
 	config = schema.OpenIDConnectClientConfiguration{
-		ID:            "myapp",
-		Description:   "My App",
-		Policy:        "two_factor",
-		Secret:        MustDecodeSecret("$plaintext$abcdef"),
-		RedirectURIs:  []string{"https://google.com/callback"},
+		ID:            myclient,
+		Description:   myclientdesc,
+		Policy:        twofactor,
+		Secret:        MustDecodeSecret(badsecret),
+		RedirectURIs:  []string{examplecom},
 		Scopes:        schema.DefaultOpenIDConnectClientConfiguration.Scopes,
 		ResponseTypes: schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes,
 		GrantTypes:    schema.DefaultOpenIDConnectClientConfiguration.GrantTypes,
@@ -44,7 +44,7 @@ func TestNewClient(t *testing.T) {
 	}
 
 	client = NewClient(config)
-	assert.Equal(t, "myapp", client.GetID())
+	assert.Equal(t, myclient, client.GetID())
 	require.Len(t, client.GetResponseModes(), 1)
 	assert.Equal(t, fosite.ResponseModeFormPost, client.GetResponseModes()[0])
 	assert.Equal(t, authorization.TwoFactor, client.GetAuthorizationPolicy())
@@ -176,20 +176,20 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 	assert.Equal(t, []string(nil), consentRequestBody.Scopes)
 	assert.Equal(t, []string(nil), consentRequestBody.Audience)
 
-	c.ID = "myclient"
-	c.Description = "My Client"
+	c.ID = myclient
+	c.Description = myclientdesc
 
 	consent := &model.OAuth2ConsentSession{
-		RequestedAudience: []string{"https://example.com"},
-		RequestedScopes:   []string{"openid", "groups"},
+		RequestedAudience: []string{examplecom},
+		RequestedScopes:   []string{ScopeOpenID, ScopeGroups},
 	}
 
-	expectedScopes := []string{"openid", "groups"}
-	expectedAudiences := []string{"https://example.com"}
+	expectedScopes := []string{ScopeOpenID, ScopeGroups}
+	expectedAudiences := []string{examplecom}
 
 	consentRequestBody = c.GetConsentResponseBody(consent)
-	assert.Equal(t, "myclient", consentRequestBody.ClientID)
-	assert.Equal(t, "My Client", consentRequestBody.ClientDescription)
+	assert.Equal(t, myclient, consentRequestBody.ClientID)
+	assert.Equal(t, myclientdesc, consentRequestBody.ClientDescription)
 	assert.Equal(t, expectedScopes, consentRequestBody.Scopes)
 	assert.Equal(t, expectedAudiences, consentRequestBody.Audience)
 }
@@ -200,11 +200,11 @@ func TestClient_GetAudience(t *testing.T) {
 	audience := c.GetAudience()
 	assert.Len(t, audience, 0)
 
-	c.Audience = []string{"https://example.com"}
+	c.Audience = []string{examplecom}
 
 	audience = c.GetAudience()
 	require.Len(t, audience, 1)
-	assert.Equal(t, "https://example.com", audience[0])
+	assert.Equal(t, examplecom, audience[0])
 }
 
 func TestClient_GetScopes(t *testing.T) {
@@ -213,11 +213,11 @@ func TestClient_GetScopes(t *testing.T) {
 	scopes := c.GetScopes()
 	assert.Len(t, scopes, 0)
 
-	c.Scopes = []string{"openid"}
+	c.Scopes = []string{ScopeOpenID}
 
 	scopes = c.GetScopes()
 	require.Len(t, scopes, 1)
-	assert.Equal(t, "openid", scopes[0])
+	assert.Equal(t, ScopeOpenID, scopes[0])
 }
 
 func TestClient_GetGrantTypes(t *testing.T) {
@@ -225,7 +225,7 @@ func TestClient_GetGrantTypes(t *testing.T) {
 
 	grantTypes := c.GetGrantTypes()
 	require.Len(t, grantTypes, 1)
-	assert.Equal(t, "authorization_code", grantTypes[0])
+	assert.Equal(t, GrantTypeAuthorizationCode, grantTypes[0])
 
 	c.GrantTypes = []string{"device_code"}
 
@@ -240,7 +240,7 @@ func TestClient_Hashing(t *testing.T) {
 	hashedSecret := c.GetHashedSecret()
 	assert.Equal(t, []byte(nil), hashedSecret)
 
-	c.Secret = MustDecodeSecret("$plaintext$a_bad_secret")
+	c.Secret = MustDecodeSecret(badsecret)
 
 	assert.True(t, c.Secret.MatchBytes([]byte("a_bad_secret")))
 }
@@ -251,10 +251,10 @@ func TestClient_GetHashedSecret(t *testing.T) {
 	hashedSecret := c.GetHashedSecret()
 	assert.Equal(t, []byte(nil), hashedSecret)
 
-	c.Secret = MustDecodeSecret("$plaintext$a_bad_secret")
+	c.Secret = MustDecodeSecret(badsecret)
 
 	hashedSecret = c.GetHashedSecret()
-	assert.Equal(t, []byte("$plaintext$a_bad_secret"), hashedSecret)
+	assert.Equal(t, []byte(badsecret), hashedSecret)
 }
 
 func TestClient_GetID(t *testing.T) {
@@ -263,10 +263,10 @@ func TestClient_GetID(t *testing.T) {
 	id := c.GetID()
 	assert.Equal(t, "", id)
 
-	c.ID = "myid"
+	c.ID = myclient
 
 	id = c.GetID()
-	assert.Equal(t, "myid", id)
+	assert.Equal(t, myclient, id)
 }
 
 func TestClient_GetRedirectURIs(t *testing.T) {
@@ -275,11 +275,11 @@ func TestClient_GetRedirectURIs(t *testing.T) {
 	redirectURIs := c.GetRedirectURIs()
 	require.Len(t, redirectURIs, 0)
 
-	c.RedirectURIs = []string{"https://example.com/oauth2/callback"}
+	c.RedirectURIs = []string{examplecom}
 
 	redirectURIs = c.GetRedirectURIs()
 	require.Len(t, redirectURIs, 1)
-	assert.Equal(t, "https://example.com/oauth2/callback", redirectURIs[0])
+	assert.Equal(t, examplecom, redirectURIs[0])
 }
 
 func TestClient_GetResponseModes(t *testing.T) {
@@ -306,14 +306,14 @@ func TestClient_GetResponseTypes(t *testing.T) {
 
 	responseTypes := c.GetResponseTypes()
 	require.Len(t, responseTypes, 1)
-	assert.Equal(t, "code", responseTypes[0])
+	assert.Equal(t, ResponseTypeAuthorizationCodeFlow, responseTypes[0])
 
-	c.ResponseTypes = []string{"code", "id_token"}
+	c.ResponseTypes = []string{ResponseTypeAuthorizationCodeFlow, ResponseTypeImplicitFlowIDToken}
 
 	responseTypes = c.GetResponseTypes()
 	require.Len(t, responseTypes, 2)
-	assert.Equal(t, "code", responseTypes[0])
-	assert.Equal(t, "id_token", responseTypes[1])
+	assert.Equal(t, ResponseTypeAuthorizationCodeFlow, responseTypes[0])
+	assert.Equal(t, ResponseTypeImplicitFlowIDToken, responseTypes[1])
 }
 
 func TestNewClientPKCE(t *testing.T) {

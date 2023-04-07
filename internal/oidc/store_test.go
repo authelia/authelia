@@ -18,23 +18,23 @@ func TestOpenIDConnectStore_GetClientPolicy(t *testing.T) {
 		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
-				ID:          "myclient",
-				Description: "myclient desc",
-				Policy:      "one_factor",
+				ID:          myclient,
+				Description: myclientdesc,
+				Policy:      onefactor,
 				Scopes:      []string{ScopeOpenID, ScopeProfile},
 				Secret:      MustDecodeSecret("$plaintext$mysecret"),
 			},
 			{
 				ID:          "myotherclient",
-				Description: "myclient desc",
-				Policy:      "two_factor",
+				Description: myclientdesc,
+				Policy:      twofactor,
 				Scopes:      []string{ScopeOpenID, ScopeProfile},
 				Secret:      MustDecodeSecret("$plaintext$mysecret"),
 			},
 		},
 	}, nil)
 
-	policyOne := s.GetClientPolicy("myclient")
+	policyOne := s.GetClientPolicy(myclient)
 	assert.Equal(t, authorization.OneFactor, policyOne)
 
 	policyTwo := s.GetClientPolicy("myotherclient")
@@ -50,9 +50,9 @@ func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
-				ID:          "myclient",
-				Description: "myclient desc",
-				Policy:      "one_factor",
+				ID:          myclient,
+				Description: myclientdesc,
+				Policy:      onefactor,
 				Scopes:      []string{ScopeOpenID, ScopeProfile},
 				Secret:      MustDecodeSecret("$plaintext$mysecret"),
 			},
@@ -63,19 +63,19 @@ func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 	assert.EqualError(t, err, "not_found")
 	assert.Nil(t, client)
 
-	client, err = s.GetClient(context.Background(), "myclient")
+	client, err = s.GetClient(context.Background(), myclient)
 	require.NoError(t, err)
 	require.NotNil(t, client)
-	assert.Equal(t, "myclient", client.GetID())
+	assert.Equal(t, myclient, client.GetID())
 }
 
 func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
-	id := "myclient"
+	id := myclient
 
 	c1 := schema.OpenIDConnectClientConfiguration{
 		ID:          id,
-		Description: "myclient desc",
-		Policy:      "one_factor",
+		Description: myclientdesc,
+		Policy:      onefactor,
 		Scopes:      []string{ScopeOpenID, ScopeProfile},
 		Secret:      MustDecodeSecret("$plaintext$mysecret"),
 	}
@@ -90,7 +90,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, client)
 	assert.Equal(t, id, client.GetID())
-	assert.Equal(t, "myclient desc", client.GetDescription())
+	assert.Equal(t, myclientdesc, client.GetDescription())
 	assert.Equal(t, fosite.Arguments(c1.Scopes), client.GetScopes())
 	assert.Equal(t, fosite.Arguments([]string{GrantTypeAuthorizationCode}), client.GetGrantTypes())
 	assert.Equal(t, fosite.Arguments([]string{ResponseTypeAuthorizationCodeFlow}), client.GetResponseTypes())
@@ -101,9 +101,9 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 
 func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 	c1 := schema.OpenIDConnectClientConfiguration{
-		ID:          "myclient",
-		Description: "myclient desc",
-		Policy:      "one_factor",
+		ID:          myclient,
+		Description: myclientdesc,
+		Policy:      onefactor,
 		Scopes:      []string{ScopeOpenID, ScopeProfile},
 		Secret:      MustDecodeSecret("$plaintext$mysecret"),
 	}
@@ -125,16 +125,16 @@ func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
 		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
-				ID:          "myclient",
-				Description: "myclient desc",
-				Policy:      "one_factor",
+				ID:          myclient,
+				Description: myclientdesc,
+				Policy:      onefactor,
 				Scopes:      []string{ScopeOpenID, ScopeProfile},
 				Secret:      MustDecodeSecret("$plaintext$mysecret"),
 			},
 		},
 	}, nil)
 
-	validClient := s.IsValidClientID("myclient")
+	validClient := s.IsValidClientID(myclient)
 	invalidClient := s.IsValidClientID("myinvalidclient")
 
 	assert.True(t, validClient)
