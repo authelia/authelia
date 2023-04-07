@@ -87,7 +87,7 @@ This is the implementation which supports [Traefik] via the [ForwardAuth Middlew
 
 ### ExtAuthz
 
-This is the implementation which supports [Envoy] via the [ExtAuthz Extension Filter].
+This is the implementation which supports [Envoy] via the [HTTP ExtAuthz Filter].
 
 #### ExtAuthz Metadata
 
@@ -122,8 +122,10 @@ This is the implementation which supports [NGINX] via the [auth_request HTTP mod
 |      IP      |           [Header]           |  [X-Forwarded-For]  |
 | Authelia URL | Session Cookie Configuration |   `authelia_url`    |
 
-_**Note:** This endpoint does not support automatic redirection. This is because there is no support on NGINX's side to
-achieve this with `ngx_http_auth_request_module` and the redirection must be performed within the NGINX configuration._
+_**Note:** This endpoint does not support automatic redirection. This is because there is no support on [NGINX]'s side
+to achieve this with `ngx_http_auth_request_module` and the redirection must be performed within the [NGINX]
+configuration. However we return the appropriate URL to redirect users to with the `X-Redirection-URL` header which
+simplifies this process especially for multi-cookie domain deployments._
 
 #### AuthRequest Metadata Alternatives
 
@@ -214,7 +216,7 @@ or the header is malformed it will respond with the [WWW-Authenticate] header.
 [Skipper]: https://opensource.zalando.com/skipper/
 [HAProxy]: http://www.haproxy.org/
 
-[ExtAuthz Extension Filter]: https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto#envoy-v3-api-msg-extensions-filters-http-ext-authz-v3-extauthz
+[HTTP ExtAuthz Filter]: https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto#envoy-v3-api-msg-extensions-filters-http-ext-authz-v3-extauthz
 [auth_request HTTP module]: https://nginx.org/en/docs/http/ngx_http_auth_request_module.html
 [auth-request lua plugin]: https://github.com/TimWolla/haproxy-auth-request
 [ForwardAuth Middleware]: https://doc.traefik.io/traefik/middlewares/http/forwardauth/
