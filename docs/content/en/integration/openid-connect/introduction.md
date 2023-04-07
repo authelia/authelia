@@ -61,6 +61,10 @@ This scope is a special scope designed to allow applications to obtain a [Refres
 an application on behalf of a user. A [Refresh Token] is a special [Access Token] that allows refreshing previously
 issued token credentials, effectively it allows the relying party to obtain new tokens periodically.
 
+As per [OpenID Connect 1.0] Section 11 [Offline Access] can only be granted during the [Authorization Code Flow] or a
+[Hybrid Flow]. The [Refresh Token] will only ever be returned at the [Token Endpoint] when the client is exchanging
+their [OAuth 2.0 Authorization Code].
+
 Generally unless an application supports this and actively requests this scope they should not be granted this scope via
 the client configuration.
 
@@ -321,10 +325,13 @@ The advantages of this approach are as follows:
 
 [JSON Web Key Set]: https://datatracker.ietf.org/doc/html/rfc7517#section-5
 
+[Offline Access]: https://openid.net/specs/openid-connect-core-1_0.html#OfflineAccess
+
 [Authorization]: https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
-[Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
 [Token]: https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
 [UserInfo]: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
+
+[Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
 [Introspection]: https://datatracker.ietf.org/doc/html/rfc7662
 [Revocation]: https://datatracker.ietf.org/doc/html/rfc7009
 [Proof Key Code Exchange]: https://www.rfc-editor.org/rfc/rfc7636.html

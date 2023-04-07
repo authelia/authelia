@@ -1003,6 +1003,28 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 		},
 		{
+			"ShouldRaiseErrorOnMissingAuthorizationCodeFlowResponseTypeWithRefreshTokenValues",
+			nil,
+			nil,
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeProfile, oidc.ScopeOfflineAccess},
+				[]string{oidc.ResponseTypeImplicitFlowBoth},
+				nil,
+				[]string{oidc.GrantTypeImplicit, oidc.GrantTypeRefreshToken},
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeProfile, oidc.ScopeOfflineAccess},
+				[]string{oidc.ResponseTypeImplicitFlowBoth},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeFragment},
+				[]string{oidc.GrantTypeImplicit, oidc.GrantTypeRefreshToken},
+			},
+			[]string{
+				"identity_providers: oidc: client 'test': option 'scopes' should only have the values 'offline_access' or 'offline' if the client is also configured with a 'response_type' such as 'code', 'code id_token', 'code token', or 'code id_token token' which respond with authorization codes",
+				"identity_providers: oidc: client 'test': option 'grant_types' should only have the values 'refresh_token' if the client is also configured with a 'response_type' such as 'code', 'code id_token', 'code token', or 'code id_token token' which respond with authorization codes",
+			},
+			nil,
+		},
+		{
 			"ShouldRaiseErrorOnDuplicateResponseTypes",
 			nil,
 			nil,

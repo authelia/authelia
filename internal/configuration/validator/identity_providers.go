@@ -301,6 +301,17 @@ func validateOIDCClientScopes(c int, config *schema.OpenIDConnectConfiguration, 
 
 		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, attrOIDCScopes, strJoinAnd(duplicates)))
 	}
+
+	if utils.IsStringSliceContainsAny([]string{oidc.ScopeOfflineAccess, oidc.ScopeOffline}, config.Clients[c].Scopes) &&
+		!utils.IsStringSliceContainsAny(validOIDCClientResponseTypesRefreshToken, config.Clients[c].ResponseTypes) {
+		errDeprecatedFunc()
+
+		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidRefreshTokenOptionWithoutCodeResponseType,
+			config.Clients[c].ID, attrOIDCScopes,
+			strJoinOr([]string{oidc.ScopeOfflineAccess, oidc.ScopeOffline}),
+			strJoinOr(validOIDCClientResponseTypesRefreshToken)),
+		)
+	}
 }
 
 func validateOIDCClientResponseTypes(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator, errDeprecatedFunc func()) {
@@ -412,10 +423,20 @@ func validateOIDCClientGrantTypesCheckRelated(c int, config *schema.OpenIDConnec
 				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidGrantTypeMatch, config.Clients[c].ID, grantType, "for either the authorization code or hybrid flow", strJoinOr(append([]string{oidc.ResponseTypeAuthorizationCodeFlow}, validOIDCClientResponseTypesHybridFlow...)), strJoinAnd(config.Clients[c].ResponseTypes)))
 			}
 		case oidc.GrantTypeRefreshToken:
-			if !utils.IsStringInSlice(oidc.ScopeOfflineAccess, config.Clients[c].Scopes) {
+			if !utils.IsStringSliceContainsAny([]string{oidc.ScopeOfflineAccess, oidc.ScopeOffline}, config.Clients[c].Scopes) {
 				errDeprecatedFunc()
 
 				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidGrantTypeRefresh, config.Clients[c].ID))
+			}
+
+			if !utils.IsStringSliceContainsAny(validOIDCClientResponseTypesRefreshToken, config.Clients[c].ResponseTypes) {
+				errDeprecatedFunc()
+
+				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidRefreshTokenOptionWithoutCodeResponseType,
+					config.Clients[c].ID, attrOIDCGrantTypes,
+					strJoinOr([]string{oidc.GrantTypeRefreshToken}),
+					strJoinOr(validOIDCClientResponseTypesRefreshToken)),
+				)
 			}
 		}
 	}
