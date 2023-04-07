@@ -166,7 +166,7 @@ func (d *WebauthnDevice) UpdateSignInInfo(config *webauthn.Config, now time.Time
 
 	switch d.AttestationType {
 	case attestationTypeFIDOU2F:
-		d.RPID = config.RPOrigins[0]
+		d.RPID = config.RPOrigin
 	default:
 		d.RPID = config.RPID
 	}
