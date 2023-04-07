@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -18,27 +17,6 @@ func NewAuthzBuilder() *AuthzBuilder {
 // WithStrategies replaces all strategies in this builder with the provided value.
 func (b *AuthzBuilder) WithStrategies(strategies ...AuthnStrategy) *AuthzBuilder {
 	b.strategies = strategies
-
-	return b
-}
-
-// WithStrategyCookie adds the Cookie header strategy to the strategies in this builder.
-func (b *AuthzBuilder) WithStrategyCookie(refreshInterval time.Duration) *AuthzBuilder {
-	b.strategies = append(b.strategies, NewCookieSessionAuthnStrategy(refreshInterval))
-
-	return b
-}
-
-// WithStrategyAuthorization adds the Authorization header strategy to the strategies in this builder.
-func (b *AuthzBuilder) WithStrategyAuthorization() *AuthzBuilder {
-	b.strategies = append(b.strategies, NewHeaderAuthorizationAuthnStrategy())
-
-	return b
-}
-
-// WithStrategyProxyAuthorization adds the Proxy-Authorization header strategy to the strategies in this builder.
-func (b *AuthzBuilder) WithStrategyProxyAuthorization() *AuthzBuilder {
-	b.strategies = append(b.strategies, NewHeaderProxyAuthorizationAuthnStrategy())
 
 	return b
 }
@@ -95,12 +73,6 @@ func (b *AuthzBuilder) WithConfig(config *schema.Configuration) *AuthzBuilder {
 
 	b.config = AuthzConfig{
 		RefreshInterval: refreshInterval,
-		Domains: []AuthzDomain{
-			{
-				Name:      fmt.Sprintf(".%s", config.Session.Domain),
-				PortalURL: nil,
-			},
-		},
 	}
 
 	return b
@@ -136,14 +108,6 @@ func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerAuthzEndpoint) *Au
 			b.strategies = append(b.strategies, NewHeaderLegacyAuthnStrategy())
 		}
 	}
-
-	return b
-}
-
-// WithAuthzConfig allows configuring the Authz config by providing a AuthzConfig directly. Recommended this is only
-// used in testing and WithConfig is used instead.
-func (b *AuthzBuilder) WithAuthzConfig(config AuthzConfig) *AuthzBuilder {
-	b.config = config
 
 	return b
 }

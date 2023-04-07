@@ -75,13 +75,6 @@ type Authn struct {
 // AuthzConfig represents the configuration elements of the Authz type.
 type AuthzConfig struct {
 	RefreshInterval time.Duration
-	Domains         []AuthzDomain
-}
-
-// AuthzDomain represents a domain for the AuthzConfig.
-type AuthzDomain struct {
-	Name      string
-	PortalURL *url.URL
 }
 
 // AuthzBuilder is a builder pattern for the Authz type.
