@@ -41,5 +41,5 @@ func handleAuthzUnauthorizedAuthRequest(ctx *middlewares.AutheliaCtx, authn *Aut
 
 	ctx.ReplyUnauthorized()
 
-	ctx.Response.Header.SetBytesK(headerXRedirectionURL, redirectionURL.String())
+	ctx.Response.Header.SetBytesK(headerLocation, redirectionURL.String())
 }

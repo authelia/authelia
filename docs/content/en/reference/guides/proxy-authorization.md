@@ -64,7 +64,7 @@ completely unset.
 ### ForwardAuth
 
 This is the implementation which supports [Traefik] via the [ForwardAuth Middleware], [Caddy] via the
-[forward_auth directive], and [Skipper] via the [webhook auth filter].
+[forward_auth directive], [HAProxy] via the [auth-request lua plugin], and [Skipper] via the [webhook auth filter].
 
 #### ForwardAuth Metadata
 
@@ -110,8 +110,10 @@ This is the implementation which supports [Envoy] via the [HTTP ExtAuthz Filter]
 
 ### AuthRequest
 
-This is the implementation which supports [NGINX] via the [auth_request HTTP module] and [HAProxy] via the
-[auth-request lua plugin].
+This is the implementation which supports [NGINX] via the [auth_request HTTP module], and can technically support
+[HAProxy] via the [auth-request lua plugin].
+
+#### AuthRequest Metadata
 
 |   Metadata   |            Source            |         Key         |
 |:------------:|:----------------------------:|:-------------------:|
@@ -124,7 +126,7 @@ This is the implementation which supports [NGINX] via the [auth_request HTTP mod
 
 _**Note:** This endpoint does not support automatic redirection. This is because there is no support on [NGINX]'s side
 to achieve this with `ngx_http_auth_request_module` and the redirection must be performed within the [NGINX]
-configuration. However we return the appropriate URL to redirect users to with the `X-Redirection-URL` header which
+configuration. However we return the appropriate URL to redirect users to with the `Location` header which
 simplifies this process especially for multi-cookie domain deployments._
 
 #### AuthRequest Metadata Alternatives

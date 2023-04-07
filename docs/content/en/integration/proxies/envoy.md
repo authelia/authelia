@@ -37,6 +37,23 @@ how you can configure multiple IP ranges. You should customize this example to f
 You should only include the specific IP address ranges of the trusted proxies within your architecture and should not
 trust entire subnets unless that subnet only has trusted proxies and no other services.*
 
+## Implementation
+
+[Envoy] utilizes the [ExtAuthz](../../reference/guides/proxy-authorization.md#extauthz) Authz implementation. The
+associated [Metadata](../../reference/guides/proxy-authorization.md#extauthz-metadata) should be considered required.
+
+The examples below assume you are using the default
+[Authz Endpoints Configuration](../../configuration/miscellaneous/server-endpoints-authz.md) or one similar to the
+following minimal configuration:
+
+```yaml
+server:
+  endpoints:
+    authz:
+      ext-authz:
+        implementation: ExtAuthz
+```
+
 ## Configuration
 
 Below you will find commented examples of the following configuration:

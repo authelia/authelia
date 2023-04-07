@@ -52,6 +52,23 @@ configured in the `proxy.conf` file. Each `set_realip_from` directive adds a tru
 proxies list. Any request that comes from a source IP not in one of the configured ranges results in the header being
 replaced with the source IP of the client.
 
+## Implementation
+
+[NGINX] utilizes the [AuthRequest](../../reference/guides/proxy-authorization.md#authrequest) Authz implementation. The
+associated [Metadata](../../reference/guides/proxy-authorization.md#authrequest-metadata) should be considered required.
+
+The examples below assume you are using the default
+[Authz Endpoints Configuration](../../configuration/miscellaneous/server-endpoints-authz.md) or one similar to the
+following minimal configuration:
+
+```yaml
+server:
+  endpoints:
+    authz:
+      auth-request:
+        implementation: AuthRequest
+```
+
 ## Docker Compose
 
 The following docker compose example has various applications suitable for setting up an example environment.
@@ -453,8 +470,8 @@ add_header Set-Cookie $cookie;
 ## should be commented / uncommented as pairs. The modern method uses the session cookies configuration's authelia_url
 ## value to determine the redirection URL here. It's much simpler and compatible with the mutli-cookie domain easily.
 
-## Modern Method: Set the $redirection_url to the X-Redirection-URL header of the .
-auth_request_set $redirection_url $upstream_http_x_redirection_url;
+## Modern Method: Set the $redirection_url to the Location header of the response to the Authz endpoint.
+auth_request_set $redirection_url $upstream_http_location;
 
 ## Modern Method: When there is a 401 response code from the authz endpoint redirect to the $redirection_url.
 error_page 401 =302 $redirection_url;

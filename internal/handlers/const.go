@@ -20,15 +20,14 @@ const (
 )
 
 var (
-	headerLocation = []byte(fasthttp.HeaderLocation)
-
 	headerAuthorization   = []byte(fasthttp.HeaderAuthorization)
 	headerWWWAuthenticate = []byte(fasthttp.HeaderWWWAuthenticate)
 
 	headerProxyAuthorization = []byte(fasthttp.HeaderProxyAuthorization)
 	headerProxyAuthenticate  = []byte(fasthttp.HeaderProxyAuthenticate)
 
-	headerXRedirectionURL = []byte("X-Redirection-URL")
+	headerLocation = []byte(fasthttp.HeaderLocation)
+
 	headerSessionUsername = []byte("Session-Username")
 	headerRemoteUser      = []byte("Remote-User")
 	headerRemoteGroups    = []byte("Remote-Groups")
