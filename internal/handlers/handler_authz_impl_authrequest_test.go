@@ -13,6 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func TestRunAuthRequestAuthzSuite(t *testing.T) {
@@ -202,7 +203,13 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsWithMethodsACL() {
 						query.Set(queryArgRM, method)
 						expected.RawQuery = query.Encode()
 
-						assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+						switch method {
+						case fasthttp.MethodHead:
+							assert.Nil(t, mock.Ctx.Response.Body())
+						default:
+							assert.Equal(t, fmt.Sprintf(`<a href="%s">%d %s</a>`, utils.StringHTMLEscape(expected.String()), fasthttp.StatusUnauthorized, fasthttp.StatusMessage(fasthttp.StatusUnauthorized)), string(mock.Ctx.Response.Body()))
+						}
+
 						assert.Equal(t, expected.String(), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
 					}
 				})

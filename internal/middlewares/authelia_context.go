@@ -563,13 +563,27 @@ func (ctx *AutheliaCtx) AcceptsMIME(mime string) (acceptsMime bool) {
 }
 
 // SpecialRedirect performs a redirect similar to fasthttp.RequestCtx except it allows statusCode 401 and includes body
-// content in the form of a link to the location.
+// content in the form of a link to the location if the request method was not head.
 func (ctx *AutheliaCtx) SpecialRedirect(uri string, statusCode int) {
+	var u []byte
+
+	u, statusCode = ctx.setSpecialRedirect(uri, statusCode)
+
+	ctx.SetContentTypeTextHTML()
+	ctx.SetBodyString(fmt.Sprintf("<a href=\"%s\">%d %s</a>", utils.StringHTMLEscape(string(u)), statusCode, fasthttp.StatusMessage(statusCode)))
+}
+
+// SpecialRedirectNoBody performs a redirect similar to fasthttp.RequestCtx except it allows statusCode 401 and includes
+// no body.
+func (ctx *AutheliaCtx) SpecialRedirectNoBody(uri string, statusCode int) {
+	_, _ = ctx.setSpecialRedirect(uri, statusCode)
+}
+
+func (ctx *AutheliaCtx) setSpecialRedirect(uri string, statusCode int) ([]byte, int) {
 	if statusCode < fasthttp.StatusMovedPermanently || (statusCode > fasthttp.StatusSeeOther && statusCode != fasthttp.StatusTemporaryRedirect && statusCode != fasthttp.StatusPermanentRedirect && statusCode != fasthttp.StatusUnauthorized) {
 		statusCode = fasthttp.StatusFound
 	}
 
-	ctx.SetContentTypeTextHTML()
 	ctx.SetStatusCode(statusCode)
 
 	u := fasthttp.AcquireURI()
@@ -577,11 +591,13 @@ func (ctx *AutheliaCtx) SpecialRedirect(uri string, statusCode int) {
 	ctx.URI().CopyTo(u)
 	u.Update(uri)
 
-	ctx.Response.Header.SetBytesKV(headerLocation, u.FullURI())
+	raw := u.FullURI()
 
-	ctx.SetBodyString(fmt.Sprintf("<a href=\"%s\">%d %s</a>", utils.StringHTMLEscape(string(u.FullURI())), statusCode, fasthttp.StatusMessage(statusCode)))
+	ctx.Response.Header.SetBytesKV(headerLocation, raw)
 
 	fasthttp.ReleaseURI(u)
+
+	return raw, statusCode
 }
 
 // RecordAuthn records authentication metrics.

@@ -13,6 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func TestRunForwardAuthAuthzSuite(t *testing.T) {
@@ -304,17 +305,22 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsWithMethodsACL() {
 					} else {
 						expected := s.RequireParseRequestURI("https://auth.example.com/")
 
-						switch method {
-						case fasthttp.MethodGet, fasthttp.MethodOptions, fasthttp.MethodHead:
-							assert.Equal(t, fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
-						default:
-							assert.Equal(t, fasthttp.StatusSeeOther, mock.Ctx.Response.StatusCode())
-						}
-
 						query := expected.Query()
 						query.Set(queryArgRD, targetURI.String())
 						query.Set(queryArgRM, method)
 						expected.RawQuery = query.Encode()
+
+						switch method {
+						case fasthttp.MethodHead:
+							assert.Equal(t, fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
+							assert.Nil(t, mock.Ctx.Response.Body())
+						case fasthttp.MethodGet, fasthttp.MethodOptions:
+							assert.Equal(t, fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
+							assert.Equal(t, fmt.Sprintf(`<a href="%s">%d %s</a>`, utils.StringHTMLEscape(expected.String()), fasthttp.StatusFound, fasthttp.StatusMessage(fasthttp.StatusFound)), string(mock.Ctx.Response.Body()))
+						default:
+							assert.Equal(t, fasthttp.StatusSeeOther, mock.Ctx.Response.StatusCode())
+							assert.Equal(t, fmt.Sprintf(`<a href="%s">%d %s</a>`, utils.StringHTMLEscape(expected.String()), fasthttp.StatusSeeOther, fasthttp.StatusMessage(fasthttp.StatusSeeOther)), string(mock.Ctx.Response.Body()))
+						}
 
 						assert.Equal(t, expected.String(), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
 					}

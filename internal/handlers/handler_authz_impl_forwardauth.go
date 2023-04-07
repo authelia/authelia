@@ -51,5 +51,11 @@ func handleAuthzUnauthorizedForwardAuth(ctx *middlewares.AutheliaCtx, authn *Aut
 	}
 
 	ctx.Logger.Infof(logFmtAuthzRedirect, authn.Object.String(), authn.Method, authn.Username, statusCode, redirectionURL)
-	ctx.SpecialRedirect(redirectionURL.String(), statusCode)
+
+	switch authn.Object.Method {
+	case fasthttp.MethodHead:
+		ctx.SpecialRedirectNoBody(redirectionURL.String(), statusCode)
+	default:
+		ctx.SpecialRedirect(redirectionURL.String(), statusCode)
+	}
 }

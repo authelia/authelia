@@ -47,7 +47,7 @@ func handleAuthzUnauthorizedLegacy(ctx *middlewares.AutheliaCtx, authn *Authn, r
 		statusCode = fasthttp.StatusUnauthorized
 	default:
 		switch authn.Object.Method {
-		case fasthttp.MethodGet, fasthttp.MethodOptions, "":
+		case fasthttp.MethodGet, fasthttp.MethodOptions, fasthttp.MethodHead, "":
 			statusCode = fasthttp.StatusFound
 		default:
 			statusCode = fasthttp.StatusSeeOther
@@ -56,7 +56,13 @@ func handleAuthzUnauthorizedLegacy(ctx *middlewares.AutheliaCtx, authn *Authn, r
 
 	if redirectionURL != nil {
 		ctx.Logger.Infof(logFmtAuthzRedirect, authn.Object.URL.String(), authn.Method, authn.Username, statusCode, redirectionURL)
-		ctx.SpecialRedirect(redirectionURL.String(), statusCode)
+
+		switch authn.Object.Method {
+		case fasthttp.MethodHead:
+			ctx.SpecialRedirectNoBody(redirectionURL.String(), statusCode)
+		default:
+			ctx.SpecialRedirect(redirectionURL.String(), statusCode)
+		}
 	} else {
 		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d", authn.Object.URL.String(), authn.Method, authn.Username, statusCode)
 		ctx.ReplyUnauthorized()
