@@ -27,6 +27,13 @@ var (
 
 	headerProxyAuthorization = []byte(fasthttp.HeaderProxyAuthorization)
 	headerProxyAuthenticate  = []byte(fasthttp.HeaderProxyAuthenticate)
+
+	headerXRedirectionURL = []byte("X-Redirection-Url")
+	headerSessionUsername = []byte("Session-Username")
+	headerRemoteUser      = []byte("Remote-User")
+	headerRemoteGroups    = []byte("Remote-Groups")
+	headerRemoteName      = []byte("Remote-Name")
+	headerRemoteEmail     = []byte("Remote-Email")
 )
 
 const (
@@ -35,14 +42,6 @@ const (
 
 var (
 	headerValueAuthenticateBasic = []byte(`Basic realm="Authorization Required"`)
-)
-
-var (
-	headerSessionUsername = []byte("Session-Username")
-	headerRemoteUser      = []byte("Remote-User")
-	headerRemoteGroups    = []byte("Remote-Groups")
-	headerRemoteName      = []byte("Remote-Name")
-	headerRemoteEmail     = []byte("Remote-Email")
 )
 
 const (
