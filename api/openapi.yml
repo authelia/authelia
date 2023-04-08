@@ -188,8 +188,37 @@ paths:
               schema:
                 type: string
                 example: admin,devs
+            set-cookie:
+              description: Sets a new cookie value
+              schema:
+                type: string
+        "302":
+          description: Found
+          headers:
+            location:
+              description: Redirect Location for user authorization
+              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+            set-cookie:
+              description: Sets a new cookie value
+              schema:
+                type: string
+        "303":
+          description: See Other
+          headers:
+            location:
+              description: Redirect Location for user authorization
+              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+            set-cookie:
+              description: Sets a new cookie value
+              schema:
+                type: string
         "401":
           description: Unauthorized
+          headers:
+            set-cookie:
+              description: Sets a new cookie value
+              schema:
+                type: string
       security:
         - authelia_auth: []
     {{- end }}
@@ -232,6 +261,32 @@ paths:
               schema:
                 type: string
                 example: admin,devs
+            set-cookie:
+              description: Sets a new cookie value
+              schema:
+                type: string
+        "302":
+          description: Found
+          headers:
+            location:
+              description: Redirect Location for user authorization
+              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+            set-cookie:
+              description: Sets a new cookie value
+              schema:
+                type: string
+        "303":
+          description: See Other
+          headers:
+            location:
+              description: Redirect Location for user authorization
+              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+            set-cookie:
+              description: Sets a new cookie value
+              schema:
+                type: string
+        "400":
+          description: Bad Request
         "401":
           description: Unauthorized
       security:
@@ -275,6 +330,32 @@ paths:
               schema:
                 type: string
                 example: admin,devs
+            set-cookie:
+              description: Sets a new cookie value
+              schema:
+                type: string
+        "302":
+          description: Found
+          headers:
+            location:
+              description: Redirect Location for user authorization
+              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+            set-cookie:
+              description: Sets a new cookie value
+              schema:
+                type: string
+        "303":
+          description: See Other
+          headers:
+            location:
+              description: Redirect Location for user authorization
+              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+            set-cookie:
+              description: Sets a new cookie value
+              schema:
+                type: string
+        "400":
+          description: Bad Request
         "401":
           description: Unauthorized
       security:
@@ -316,8 +397,22 @@ paths:
               schema:
                 type: string
                 example: admin,devs
+            set-cookie:
+              description: Sets a new cookie value
+              schema:
+                type: string
+        "400":
+          description: Bad Request
         "401":
           description: Unauthorized
+          headers:
+            location:
+              description: Redirect Location for user authorization
+              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+            set-cookie:
+              description: Sets a new cookie value
+              schema:
+                type: string
       security:
         - authelia_auth: []
     {{- end }}
@@ -1904,7 +1999,7 @@ components:
                       properties:
                         appidExclude:
                           type: string
-                          example: https://auth.example.com
+                          example: {{ .BaseURL }}
     webauthn.PublicKeyCredentialRequestOptions:
       type: object
       properties:
@@ -1939,7 +2034,7 @@ components:
                       properties:
                         appid:
                           type: string
-                          example: https://auth.example.com
+                          example: {{ .BaseURL }}
     webauthn.Transports:
       type: object
       properties:
