@@ -111,6 +111,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/handlers.StateResponse'
+  {{- $app := "" }}{{ if .Domain }}{{ $app = printf "https://%s/" .Domain }}{{ else if .BaseURL }}{{ $app = .BaseURL }}{{ else }}{{ $app = "https://app.example.com" }}{{ end }}
+  {{- $redir := printf "%s?rd=%s&rm=GET" (.BaseURL | default "https://auth.example.com/") (urlquery $app) }}
   {{- range $name, $config := .EndpointsAuthz }}
   {{- $uri := printf "/api/authz/%s" $name }}
   {{- if (eq $name "legacy") }}{{ $uri = "/api/verify" }}{{ end }}
@@ -150,7 +152,7 @@ paths:
           required: false
           style: simple
           explode: true
-          example: "example.com"
+          example: '{{ $.Domain | default "example.com" }}'
           schema:
             type: string
         - name: X-Forwarded-Uri
@@ -197,7 +199,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+              example: {{ $redir }}
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -207,7 +209,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+              example: {{ $redir }}
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -270,7 +272,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+              example: {{ $redir }}
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -280,7 +282,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+              example: {{ $redir }}
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -339,7 +341,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+              example: {{ $redir }}
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -349,7 +351,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+              example: {{ $redir }}
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -408,7 +410,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+              example: {{ $redir }}
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -996,7 +998,7 @@ paths:
           required: true
           schema:
             type: string
-            example: "https://app.example.com"
+            example: "https://app.{{ .Domain | default "example.com" }}"
         - in: query
           name: state
           description: >
@@ -1488,7 +1490,7 @@ components:
       required: true
       style: simple
       explode: true
-      example: "example.com"
+      example: "{{ .Domain | default "example.com" }}"
       schema:
         type: string
     forwardedURIParam:
@@ -1518,7 +1520,7 @@ components:
       required: false
       style: simple
       explode: true
-      example: "https://auth.example.com"
+      example: "{{ .BaseURL | default "https://auth.example.com" }}"
       schema:
         type: string
     authParam:
@@ -1542,7 +1544,7 @@ components:
       properties:
         uri:
           type: string
-          example: https://secure.example.com
+          example: "https://secure.{{ .Domain | default "example.com" }}"
     handlers.checkURIWithinDomainResponseBody:
       type: object
       properties:
@@ -1659,7 +1661,7 @@ components:
           example: password
         targetURL:
           type: string
-          example: https://home.example.com
+          example: 'https://home.{{ .Domain | default "example.com" }}'
         workflow:
           type: string
           example: openid_connect
@@ -1679,7 +1681,7 @@ components:
       properties:
         targetURL:
           type: string
-          example: https://redirect.example.com
+          example: 'https://redirect.{{ .Domain | default "example.com" }}'
     handlers.logoutResponseBody:
       type: object
       properties:
@@ -1703,7 +1705,7 @@ components:
           properties:
             redirect:
               type: string
-              example: https://home.example.com
+              example: 'https://home.{{ .Domain | default "example.com" }}'
     {{- if .PasswordReset }}
     handlers.PasswordResetStep1RequestBody:
       required:
@@ -1728,7 +1730,7 @@ components:
       properties:
         targetURL:
           type: string
-          example: https://secure.example.com
+          example: 'https://secure.{{ .Domain | default "example.com" }}'
         passcode:
           type: string
         workflow:
@@ -1757,7 +1759,7 @@ components:
               example: 1
             default_redirection_url:
               type: string
-              example: https://home.example.com
+              example: 'https://home.{{ .Domain | default "example.com" }}'
     middlewares.ErrorResponse:
       type: object
       properties:
@@ -1851,7 +1853,7 @@ components:
           example: "123456"
         targetURL:
           type: string
-          example: https://secure.example.com
+          example: 'https://secure.{{ .Domain | default "example.com" }}'
         workflow:
           type: string
           example: openid_connect
@@ -1874,7 +1876,7 @@ components:
               example: 5ZH7Y5CTFWOXN7EOLGBMMXADRNQFHVUDZSYKCN5HMFAIRSLAWY3Q
             otpauth_url:
               type: string
-              example: otpauth://totp/auth.example.com:john?algorithm=SHA1&digits=6&issuer=auth.example.com&period=30&secret=5ZH7Y5CTFWOXN7EOLGBMMXADRNQFHVUDZSYKCN5HMFAIRSLAWY3Q
+              example: 'otpauth://totp/{{ .Domain | default "example.com" }}:john?algorithm=SHA1&digits=6&issuer=auth.{{ .Domain | default "example.com" }}&period=30&secret=5ZH7Y5CTFWOXN7EOLGBMMXADRNQFHVUDZSYKCN5HMFAIRSLAWY3Q'
     {{- end }}
     {{- if .Webauthn }}
     webauthn.PublicKeyCredential:
@@ -2023,7 +2025,7 @@ components:
                       example: 60000
                     rpId:
                       type: string
-                      example: auth.example.com
+                      example: 'auth.{{ .Domain | default "example.com" }}'
                     allowCredentials:
                       type: array
                       items:
@@ -3138,7 +3140,7 @@ components:
               type: string
             redirect_uri:
               description: The original Redirect URI used in the Authorization Request.
-              example: "https://app.example.com/oidc/callback"
+              example: 'https://app.{{ .Domain | default "example.com" }}/oidc/callback'
               type: string
     openid.spec.AccessRequest.DeviceCodeFlow:
       allOf:
@@ -3260,7 +3262,7 @@ components:
             that the Client Type is confidential, as defined in Section 2.1 of OAuth 2.0, and provided the OP
             allows the use of http Redirection URIs in this case. The Redirection URI MAY use an alternate
             scheme, such as one that is intended to identify a callback into a native application.
-          example: "https://app.example.com"
+          example: 'https://app.{{ .Domain | default "example.com" }}'
           type: string
         state:
           description: >

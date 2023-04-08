@@ -81,9 +81,6 @@ The following functions which mimic the behaviour of helm exist in most templati
 - indent
 - nindent
 - uuidv4
-- urlParse
-- urlParseRequestURI (stricter version of urlParse)
-- urlJoin
 - urlquery
 - urlunquery (opposite of urlquery)
 
