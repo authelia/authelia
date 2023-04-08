@@ -90,22 +90,37 @@ following are the assumptions we make:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want ot use that specific domain
 
+## Implementation
+
+[HAProxy] utilizes the [ForwardAuth](../../reference/guides/proxy-authorization.md#forwardauth) Authz implementation. The
+associated [Metadata](../../reference/guides/proxy-authorization.md#forwardauth-metadata) should be considered required.
+
+The examples below assume you are using the default
+[Authz Endpoints Configuration](../../configuration/miscellaneous/server-endpoints-authz.md) or one similar to the
+following minimal configuration:
+
+```yaml
+server:
+  endpoints:
+    authz:
+      forward-auth:
+        implementation: ForwardAuth
+```
+
 ## Configuration
 
 Below you will find commented examples of the following configuration:
 
 * Authelia Portal
-* Protected Endpoint (Nextcloud)
-* Protected Endpoint with `Authorization` header for basic authentication (Heimdall)
+* Protected Endpoints (Nextcloud)
 
 With this configuration you can protect your virtual hosts with Authelia, by following the steps below:
 
-1. Add host(s) to the `protected-frontends` or `protected-frontends-basic` ACLs to support protection with Authelia.
-You can separate each subdomain with a `|` in the regex, for example:
+1. Add host(s) to the `protected-frontends` ACLs to support protection with Authelia. You can separate each subdomain
+   with a `|` in the regex, for example:
 
     ```text
     acl protected-frontends hdr(host) -m reg -i ^(?i)(jenkins|nextcloud|phpmyadmin)\.example\.com
-    acl protected-frontends-basic hdr(host) -m reg -i ^(?i)(heimdall)\.example\.com
     ```
 
 2. Add host ACL(s) in the form of `host-service`, this will be utilised to route to the correct
@@ -190,46 +205,24 @@ frontend fe_http
     option forwardfor
 
     # Host ACLs
-    acl protected-frontends hdr(host) -m reg -i ^(?i)(nextcloud)\.example\.com
-    acl protected-frontends-basic hdr(host) -m reg -i ^(?i)(heimdall)\.example\.com
-    acl host-authelia hdr(host) -i auth.example.com
-    acl host-nextcloud hdr(host) -i nextcloud.example.com
-    acl host-heimdall hdr(host) -i heimdall.example.com
-
-    # This is required if utilising basic auth with /api/verify?auth=basic
-    http-request set-var(txn.host) hdr(Host)
+    acl protected-frontends hdr(Host) -m reg -i ^(?i)(nextcloud|heimdall)\.example\.com
+    acl host-authelia hdr(Host) -i auth.example.com
+    acl host-nextcloud hdr(Host) -i nextcloud.example.com
+    acl host-heimdall hdr(Host) -i heimdall.example.com
 
     http-request set-var(req.scheme) str(https) if { ssl_fc }
     http-request set-var(req.scheme) str(http) if !{ ssl_fc }
     http-request set-var(req.questionmark) str(?) if { query -m found }
 
-    # These are optional if you wish to use the Methods rule in the access_control section.
-    #http-request set-var(req.method) str(CONNECT) if { method CONNECT }
-    #http-request set-var(req.method) str(GET) if { method GET }
-    #http-request set-var(req.method) str(HEAD) if { method HEAD }
-    #http-request set-var(req.method) str(OPTIONS) if { method OPTIONS }
-    #http-request set-var(req.method) str(POST) if { method POST }
-    #http-request set-var(req.method) str(TRACE) if { method TRACE }
-    #http-request set-var(req.method) str(PUT) if { method PUT }
-    #http-request set-var(req.method) str(PATCH) if { method PATCH }
-    #http-request set-var(req.method) str(DELETE) if { method DELETE }
-    #http-request set-header X-Forwarded-Method %[var(req.method)]
-
-    # Required headers
-    http-request set-header X-Real-IP %[src]
-    http-request set-header X-Original-Method %[var(req.method)]
-    http-request set-header X-Original-URL %[var(req.scheme)]://%[req.hdr(Host)]%[path]%[var(req.questionmark)]%[query]
+    # Required Headers
+    http-request set-header X-Forwarded-Method %[method]
+    http-request set-header X-Forwarded-Proto  %[var(req.scheme)]
+    http-request set-header X-Forwarded-Host   %[req.hdr(Host)]
+    http-request set-header X-Forwarded-URI    %[path]%[var(req.questionmark)]%[query]
 
     # Protect endpoints with haproxy-auth-request and Authelia
-    http-request lua.auth-request be_authelia /api/authz/auth-request if protected-frontends
-    # Force `Authorization` header via query arg to /api/verify
-    http-request lua.auth-request be_authelia /api/verify?auth=basic if protected-frontends-basic
-
-    # Redirect protected-frontends to Authelia if not authenticated
-    http-request redirect location https://auth.example.com/?rd=%[var(req.scheme)]://%[base]%[var(req.questionmark)]%[query] if protected-frontends !{ var(txn.auth_response_successful) -m bool }
-    # Send 401 and pass `WWW-Authenticate` header on protected-frontend-basic if not pre-authenticated
-    http-request set-var(txn.auth) var(req.auth_response_header.www_authenticate) if protected-frontends-basic !{ var(txn.auth_response_successful) -m bool }
-    http-response deny deny_status 401 hdr WWW-Authenticate %[var(txn.auth)] if { var(txn.host) -m reg -i ^(?i)(heimdall)\.example\.com } !{ var(txn.auth_response_successful) -m bool }
+    http-request lua.auth-intercept be_authelia /api/authz/forward-auth HEAD * authorization,proxy-authorization,remote_user,remote-user,remote-groups,remote-name,remote-email - if protected-frontends
+    http-request redirect location %[var(txn.auth_response_location)] if protected-frontends !{ var(txn.auth_response_successful) -m bool }
 
     # Authelia backend route
     use_backend be_authelia if host-authelia
@@ -242,24 +235,6 @@ backend be_authelia
     server authelia authelia:9091
 
 backend be_nextcloud
-    ## Pass the special authorization response headers to the protected application.
-    acl authorization_exist var(req.auth_response_header.authorization) -m found
-    acl proxy_authorization_exist var(req.auth_response_header.proxy_authorization) -m found
-
-    http-request set-header Authorization %[var(req.auth_response_header.authorization)] if authorization_exist
-    http-request set-header Proxy-Authorization %[var(req.auth_response_header.proxy_authorization)] if proxy_authorization_exist
-
-    ## Pass the special metadata response headers to the protected application.
-    acl remote_user_exist var(req.auth_response_header.remote_user) -m found
-    acl remote_groups_exist var(req.auth_response_header.remote_groups) -m found
-    acl remote_name_exist var(req.auth_response_header.remote_name) -m found
-    acl remote_email_exist var(req.auth_response_header.remote_email) -m found
-
-    http-request set-header Remote-User %[var(req.auth_response_header.remote_user)] if remote_user_exist
-    http-request set-header Remote-Groups %[var(req.auth_response_header.remote_groups)] if remote_groups_exist
-    http-request set-header Remote-Name %[var(req.auth_response_header.remote_name)] if remote_name_exist
-    http-request set-header Remote-Email %[var(req.auth_response_header.remote_email)] if remote_email_exist
-
     ## Pass the Set-Cookie response headers to the user.
     acl set_cookie_exist var(req.auth_response_header.set_cookie) -m found
     http-response set-header Set-Cookie %[var(req.auth_response_header.set_cookie)] if set_cookie_exist
@@ -267,24 +242,6 @@ backend be_nextcloud
     server nextcloud nextcloud:443 ssl verify none
 
 backend be_heimdall
-    ## Pass the special authorization response headers to the protected application.
-    acl authorization_exist var(req.auth_response_header.authorization) -m found
-    acl proxy_authorization_exist var(req.auth_response_header.proxy_authorization) -m found
-
-    http-request set-header Authorization %[var(req.auth_response_header.authorization)] if authorization_exist
-    http-request set-header Proxy-Authorization %[var(req.auth_response_header.proxy_authorization)] if proxy_authorization_exist
-
-    ## Pass the special metadata response headers to the protected application.
-    acl remote_user_exist var(req.auth_response_header.remote_user) -m found
-    acl remote_groups_exist var(req.auth_response_header.remote_groups) -m found
-    acl remote_name_exist var(req.auth_response_header.remote_name) -m found
-    acl remote_email_exist var(req.auth_response_header.remote_email) -m found
-
-    http-request set-header Remote-User %[var(req.auth_response_header.remote_user)] if remote_user_exist
-    http-request set-header Remote-Groups %[var(req.auth_response_header.remote_groups)] if remote_groups_exist
-    http-request set-header Remote-Name %[var(req.auth_response_header.remote_name)] if remote_name_exist
-    http-request set-header Remote-Email %[var(req.auth_response_header.remote_email)] if remote_email_exist
-
     ## Pass the Set-Cookie response headers to the user.
     acl set_cookie_exist var(req.auth_response_header.set_cookie) -m found
     http-response set-header Set-Cookie %[var(req.auth_response_header.set_cookie)] if set_cookie_exist
@@ -311,47 +268,37 @@ defaults
 frontend fe_http
     bind *:443 ssl crt /usr/local/etc/haproxy/haproxy.pem
 
-    # Host ACLs
-    acl protected-frontends hdr(host) -m reg -i ^(?i)(nextcloud)\.example\.com
-    acl protected-frontends-basic hdr(host) -m reg -i ^(?i)(heimdall)\.example\.com
-    acl host-authelia hdr(host) -i auth.example.com
-    acl host-nextcloud hdr(host) -i nextcloud.example.com
-    acl host-heimdall hdr(host) -i heimdall.example.com
+    ## Trusted Proxies.
+    http-request del-header X-Forwarded-For
 
-    # This is required if utilising basic auth with /api/verify?auth=basic
-    http-request set-var(txn.host) hdr(Host)
+    ## Comment the above directive and the two directives below to enable the trusted proxies ACL.
+    # acl src-trusted_proxies src -f trusted_proxies.src.acl
+    # http-request del-header X-Forwarded-For if !src-trusted_proxies
+
+    ## Ensure X-Forwarded-For is set for the auth request.
+    acl hdr-xff_exists req.hdr(X-Forwarded-For) -m found
+    http-request set-header X-Forwarded-For %[src] if !hdr-xff_exists
+    option forwardfor
+
+    # Host ACLs
+    acl protected-frontends hdr(Host) -m reg -i ^(?i)(nextcloud|heimdall)\.example\.com
+    acl host-authelia hdr(Host) -i auth.example.com
+    acl host-nextcloud hdr(Host) -i nextcloud.example.com
+    acl host-heimdall hdr(Host) -i heimdall.example.com
 
     http-request set-var(req.scheme) str(https) if { ssl_fc }
     http-request set-var(req.scheme) str(http) if !{ ssl_fc }
     http-request set-var(req.questionmark) str(?) if { query -m found }
 
-    # These are optional if you wish to use the Methods rule in the access_control section.
-    #http-request set-var(req.method) str(CONNECT) if { method CONNECT }
-    #http-request set-var(req.method) str(GET) if { method GET }
-    #http-request set-var(req.method) str(HEAD) if { method HEAD }
-    #http-request set-var(req.method) str(OPTIONS) if { method OPTIONS }
-    #http-request set-var(req.method) str(POST) if { method POST }
-    #http-request set-var(req.method) str(TRACE) if { method TRACE }
-    #http-request set-var(req.method) str(PUT) if { method PUT }
-    #http-request set-var(req.method) str(PATCH) if { method PATCH }
-    #http-request set-var(req.method) str(DELETE) if { method DELETE }
-    #http-request set-header X-Forwarded-Method %[var(req.method)]
-
-    # Required headers
-    http-request set-header X-Real-IP %[src]
-    http-request set-header X-Original-Method %[var(req.method)]
-    http-request set-header X-Original-URL %[var(req.scheme)]://%[req.hdr(Host)]%[path]%[var(req.questionmark)]%[query]
+    # Required Headers
+    http-request set-header X-Forwarded-Method %[method]
+    http-request set-header X-Forwarded-Proto  %[var(req.scheme)]
+    http-request set-header X-Forwarded-Host   %[req.hdr(Host)]
+    http-request set-header X-Forwarded-URI    %[path]%[var(req.questionmark)]%[query]
 
     # Protect endpoints with haproxy-auth-request and Authelia
-    http-request lua.auth-request be_authelia_proxy /api/authz/auth-request if protected-frontends
-    # Force `Authorization` header via query arg to /api/verify
-    http-request lua.auth-request be_authelia_proxy /api/verify?auth=basic if protected-frontends-basic
-
-    # Redirect protected-frontends to Authelia if not authenticated
-    http-request redirect location https://auth.example.com/?rd=%[var(req.scheme)]://%[base]%[var(req.questionmark)]%[query] if protected-frontends !{ var(txn.auth_response_successful) -m bool }
-    # Send 401 and pass `WWW-Authenticate` header on protected-frontend-basic if not pre-authenticated
-    http-request set-var(txn.auth) var(req.auth_response_header.www_authenticate) if protected-frontends-basic !{ var(txn.auth_response_successful) -m bool }
-    http-response deny deny_status 401 hdr WWW-Authenticate %[var(txn.auth)] if { var(txn.host) -m reg -i ^(?i)(heimdall)\.example\.com } !{ var(txn.auth_response_successful) -m bool }
+    http-request lua.auth-intercept be_authelia_proxy /api/authz/forward-auth HEAD * authorization,proxy-authorization,remote_user,remote-user,remote-groups,remote-name,remote-email - if protected-frontends
+    http-request redirect location %[var(txn.auth_response_location)] if protected-frontends !{ var(txn.auth_response_successful) -m bool }
 
     # Authelia backend route
     use_backend be_authelia if host-authelia
@@ -373,24 +320,6 @@ listen authelia_proxy
     server authelia authelia:9091 ssl verify none
 
 backend be_nextcloud
-    ## Pass the special authorization response headers to the protected application.
-    acl authorization_exist var(req.auth_response_header.authorization) -m found
-    acl proxy_authorization_exist var(req.auth_response_header.proxy_authorization) -m found
-
-    http-request set-header Authorization %[var(req.auth_response_header.authorization)] if authorization_exist
-    http-request set-header Proxy-Authorization %[var(req.auth_response_header.proxy_authorization)] if proxy_authorization_exist
-
-    ## Pass the special metadata response headers to the protected application.
-    acl remote_user_exist var(req.auth_response_header.remote_user) -m found
-    acl remote_groups_exist var(req.auth_response_header.remote_groups) -m found
-    acl remote_name_exist var(req.auth_response_header.remote_name) -m found
-    acl remote_email_exist var(req.auth_response_header.remote_email) -m found
-
-    http-request set-header Remote-User %[var(req.auth_response_header.remote_user)] if remote_user_exist
-    http-request set-header Remote-Groups %[var(req.auth_response_header.remote_groups)] if remote_groups_exist
-    http-request set-header Remote-Name %[var(req.auth_response_header.remote_name)] if remote_name_exist
-    http-request set-header Remote-Email %[var(req.auth_response_header.remote_email)] if remote_email_exist
-
     ## Pass the Set-Cookie response headers to the user.
     acl set_cookie_exist var(req.auth_response_header.set_cookie) -m found
     http-response set-header Set-Cookie %[var(req.auth_response_header.set_cookie)] if set_cookie_exist
@@ -398,24 +327,6 @@ backend be_nextcloud
     server nextcloud nextcloud:443 ssl verify none
 
 backend be_heimdall
-    ## Pass the special authorization response headers to the protected application.
-    acl authorization_exist var(req.auth_response_header.authorization) -m found
-    acl proxy_authorization_exist var(req.auth_response_header.proxy_authorization) -m found
-
-    http-request set-header Authorization %[var(req.auth_response_header.authorization)] if authorization_exist
-    http-request set-header Proxy-Authorization %[var(req.auth_response_header.proxy_authorization)] if proxy_authorization_exist
-
-    ## Pass the special metadata response headers to the protected application.
-    acl remote_user_exist var(req.auth_response_header.remote_user) -m found
-    acl remote_groups_exist var(req.auth_response_header.remote_groups) -m found
-    acl remote_name_exist var(req.auth_response_header.remote_name) -m found
-    acl remote_email_exist var(req.auth_response_header.remote_email) -m found
-
-    http-request set-header Remote-User %[var(req.auth_response_header.remote_user)] if remote_user_exist
-    http-request set-header Remote-Groups %[var(req.auth_response_header.remote_groups)] if remote_groups_exist
-    http-request set-header Remote-Name %[var(req.auth_response_header.remote_name)] if remote_name_exist
-    http-request set-header Remote-Email %[var(req.auth_response_header.remote_email)] if remote_email_exist
-
     ## Pass the Set-Cookie response headers to the user.
     acl set_cookie_exist var(req.auth_response_header.set_cookie) -m found
     http-response set-header Set-Cookie %[var(req.auth_response_header.set_cookie)] if set_cookie_exist

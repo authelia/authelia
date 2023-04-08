@@ -87,6 +87,23 @@ following are the assumptions we make:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want ot use that specific domain
 
+## Implementation
+
+[Caddy] utilizes the [ForwardAuth](../../reference/guides/proxy-authorization.md#forwardauth) Authz implementation. The
+associated [Metadata](../../reference/guides/proxy-authorization.md#forwardauth-metadata) should be considered required.
+
+The examples below assume you are using the default
+[Authz Endpoints Configuration](../../configuration/miscellaneous/server-endpoints-authz.md) or one similar to the
+following minimal configuration:
+
+```yaml
+server:
+  endpoints:
+    authz:
+      forward-auth:
+        implementation: ForwardAuth
+```
+
 ## Configuration
 
 Below you will find commented examples of the following configuration:

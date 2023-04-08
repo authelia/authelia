@@ -34,8 +34,8 @@ You need the following to run __Authelia__ with [NGINX]:
 
 * [NGINX] must be built with the `http_auth_request` module which is relatively common
 * [NGINX] must be built with the `http_realip` module which is relatively common
-* [NGINX] must be built with the `http_set_misc` module or the `nginx-mod-http-set-misc` package if you want to preserve
-  more than one query parameter when redirected to the portal due to a limitation in [NGINX]
+* [NGINX] must be built with the `http_set_misc` module or the `nginx-mod-http-set-misc` package if you want to use the
+  legacy method and preserve more than one query parameter when redirected to the portal due to a limitation in [NGINX]
 
 ## Trusted Proxies
 
@@ -75,6 +75,23 @@ following are the assumptions we make:
 * All services are part of the `example.com` domain:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want ot use that specific domain
+
+## Implementation
+
+[NGINX] utilizes the [AuthRequest](../../reference/guides/proxy-authorization.md#authrequest) Authz implementation. The
+associated [Metadata](../../reference/guides/proxy-authorization.md#authrequest-metadata) should be considered required.
+
+The examples below assume you are using the default
+[Authz Endpoints Configuration](../../configuration/miscellaneous/server-endpoints-authz.md) or one similar to the
+following minimal configuration:
+
+```yaml
+server:
+  endpoints:
+    authz:
+      auth-request:
+        implementation: AuthRequest
+```
 
 ## Docker Compose
 
@@ -449,14 +466,6 @@ and is paired with [authelia-location.conf](#authelia-locationconf).*
 ## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
 auth_request /internal/authelia/authz;
 
-## Set the $target_url variable based on the original request.
-
-## Comment this line if you're using nginx without the http_set_misc module.
-set_escape_uri $target_url $scheme://$http_host$request_uri;
-
-## Uncomment this line if you're using NGINX without the http_set_misc module.
-# set $target_url $scheme://$http_host$request_uri;
-
 ## Save the upstream authorization response headers from Authelia to variables.
 auth_request_set $authorization $upstream_http_authorization;
 auth_request_set $proxy_authorization $upstream_http_proxy_authorization;
@@ -481,11 +490,23 @@ proxy_set_header Remote-Name $name;
 auth_request_set $cookie $upstream_http_set_cookie;
 add_header Set-Cookie $cookie;
 
-## IMPORTANT: The below URL `https://auth.example.com/` MUST be replaced with the externally accessible URL of the
-## Authelia Portal/Site.
-##
-## If the subreqest returns 200 pass to the backend, if the subrequest returns 401 redirect to the portal.
-error_page 401 =302 https://auth.example.com/?rd=$target_url;
+## Configure the redirection when the authz failure occurs. Lines starting with 'Modern Method' and 'Legacy Method'
+## should be commented / uncommented as pairs. The modern method uses the session cookies configuration's authelia_url
+## value to determine the redirection URL here. It's much simpler and compatible with the mutli-cookie domain easily.
+
+## Modern Method: Set the $redirection_url to the Location header of the response to the Authz endpoint.
+auth_request_set $redirection_url $upstream_http_location;
+
+## Modern Method: When there is a 401 response code from the authz endpoint redirect to the $redirection_url.
+error_page 401 =302 $redirection_url;
+
+## Legacy Method: Set $target_url to the original requested URL.
+## This requires http_set_misc module, replace 'set_escape_uri' with 'set' if you don't have this module.
+# set_escape_uri $target_url $scheme://$http_host$request_uri;
+
+## Legacy Method: When there is a 401 response code from the authz endpoint redirect to the portal with the 'rd'
+## URL parameter set to $target_url. This requires users update 'auth.example.com/' with their external authelia URL.
+# error_page 401 =302 https://auth.example.com/?rd=$target_url;
 ```
 {{< /details >}}
 
@@ -554,12 +575,6 @@ endpoint. It's recommended to use [authelia-authrequest.conf](#authelia-authrequ
 ```nginx
 ## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
 auth_request /internal/authelia/authz/basic;
-
-## Comment this line if you're using nginx without the http_set_misc module.
-set_escape_uri $target_url $scheme://$http_host$request_uri;
-
-## Uncomment this line if you're using NGINX without the http_set_misc module.
-# set $target_url $scheme://$http_host$request_uri;
 
 ## Save the upstream response headers from Authelia to variables.
 auth_request_set $user $upstream_http_remote_user;

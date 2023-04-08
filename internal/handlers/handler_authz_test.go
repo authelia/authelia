@@ -50,9 +50,12 @@ func (s *AuthzSuite) RequireParseRequestURI(rawURL string) *url.URL {
 	return u
 }
 
-type urlpair struct {
-	TargetURI   *url.URL
-	AutheliaURI *url.URL
+func (s *AuthzSuite) ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock *mocks.MockAutheliaCtx) {
+	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
+		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
+	}
+
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 }
 
 func (s *AuthzSuite) Builder() (builder *AuthzBuilder) {
@@ -87,11 +90,7 @@ func (s *AuthzSuite) TestShouldNotBeAbleToParseBasicAuth() {
 
 	defer mock.Close()
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://test.example.com")
 
@@ -124,11 +123,7 @@ func (s *AuthzSuite) TestShouldApplyDefaultPolicy() {
 
 	defer mock.Close()
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://test.example.com")
 
@@ -181,11 +176,7 @@ func (s *AuthzSuite) TestShouldDenyObject() {
 
 			defer mock.Close()
 
-			for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-				mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-			}
-
-			mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+			s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 			targetURI := s.RequireParseRequestURI(tc.value)
 
@@ -193,7 +184,12 @@ func (s *AuthzSuite) TestShouldDenyObject() {
 
 			authz.Handler(mock.Ctx)
 
-			assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+			switch s.implementation {
+			case AuthzImplLegacy:
+				assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+			default:
+				assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
+			}
 		})
 	}
 }
@@ -209,11 +205,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfBypassDomain() {
 
 	defer mock.Close()
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
 
@@ -250,11 +242,7 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicScheme() {
 
 	defer mock.Close()
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
 
@@ -299,11 +287,7 @@ func (s *AuthzSuite) TestShouldNotFailOnMissingEmail() {
 
 	mock.Clock.Set(time.Now())
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
 
@@ -340,11 +324,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomain() {
 
 	defer mock.Close()
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -392,11 +372,7 @@ func (s *AuthzSuite) TestShouldHandleAnyCaseSchemeParameter() {
 
 			defer mock.Close()
 
-			for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-				mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-			}
-
-			mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+			s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 			targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -435,11 +411,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfTwoFactorDomain() {
 
 	defer mock.Close()
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://two-factor.example.com")
 
@@ -483,11 +455,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfDenyDomain() {
 
 	defer mock.Close()
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://deny.example.com")
 
@@ -534,11 +502,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainWithAuthorizationHead
 
 	defer mock.Close()
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -584,11 +548,7 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithoutHeaderNoCookie() {
 
 	defer mock.Close()
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -621,11 +581,7 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithEmptyAuthorizationHeader() {
 
 	defer mock.Close()
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -660,11 +616,7 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithAuthorizationHeaderInvalidPassword
 
 	defer mock.Close()
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -700,11 +652,7 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithIncorrectAuthHeader() { // TestSho
 
 	defer mock.Close()
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -744,11 +692,7 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenInactiveForTooLong() {
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://two-factor.example.com")
 
@@ -796,11 +740,7 @@ func (s *AuthzSuite) TestShouldNotDestroySessionWhenInactiveForTooLongRememberMe
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://two-factor.example.com")
 
@@ -850,11 +790,7 @@ func (s *AuthzSuite) TestShouldNotDestroySessionWhenNotInactiveForTooLong() {
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://two-factor.example.com")
 
@@ -905,11 +841,7 @@ func (s *AuthzSuite) TestShouldUpdateInactivityTimestampEvenWhenHittingForbidden
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://deny.example.com")
 
@@ -971,11 +903,7 @@ func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabl
 	mock.Ctx.Configuration.AuthenticationBackend.RefreshInterval = schema.ProfileRefreshDisabled
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://two-factor.example.com")
 
@@ -1057,11 +985,7 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenUserDoesNotExist() {
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://two-factor.example.com")
 
@@ -1149,11 +1073,7 @@ func (s *AuthzSuite) TestShouldUpdateRemovedUserGroupsFromBackendAndDeny() {
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://admin.example.com")
 
@@ -1239,11 +1159,7 @@ func (s *AuthzSuite) TestShouldUpdateAddedUserGroupsFromBackendAndDeny() {
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://admin.example.com")
 
@@ -1328,11 +1244,7 @@ func (s *AuthzSuite) TestShouldCheckValidSessionUsernameHeaderAndReturn200() {
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -1385,11 +1297,7 @@ func (s *AuthzSuite) TestShouldCheckInvalidSessionUsernameHeaderAndReturn401AndD
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -1462,11 +1370,7 @@ func (s *AuthzSuite) TestShouldNotRedirectRequestsForBypassACLWhenInactiveForToo
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
 
@@ -1520,7 +1424,7 @@ func (s *AuthzSuite) TestShouldNotRedirectRequestsForBypassACLWhenInactiveForToo
 }
 
 func (s *AuthzSuite) TestShouldFailToParsePortalURL() {
-	if s.setRequest == nil || s.implementation == AuthzImplAuthRequest {
+	if s.setRequest == nil {
 		s.T().Skip()
 	}
 
@@ -1538,20 +1442,20 @@ func (s *AuthzSuite) TestShouldFailToParsePortalURL() {
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
 
+	expected := fasthttp.StatusBadRequest
+
 	switch s.implementation {
 	case AuthzImplLegacy:
+		expected = fasthttp.StatusUnauthorized
+
 		mock.Ctx.RequestCtx.QueryArgs().Set(queryArgRD, "JKL$#N%KJ#@$N")
-	case AuthzImplForwardAuth:
+	case AuthzImplForwardAuth, AuthzImplAuthRequest:
 		mock.Ctx.RequestCtx.QueryArgs().Set("authelia_url", "JKL$#N%KJ#@$N")
 	case AuthzImplExtAuthz:
 		mock.Ctx.Request.Header.Set("X-Authelia-URL", "JKL$#N%KJ#@$N")
@@ -1559,7 +1463,10 @@ func (s *AuthzSuite) TestShouldFailToParsePortalURL() {
 
 	authz.Handler(mock.Ctx)
 
-	s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+	s.Equal(expected, mock.Ctx.Response.StatusCode())
+	s.Equal(fmt.Sprintf("%d %s", expected, fasthttp.StatusMessage(expected)), string(mock.Ctx.Response.Body()))
+	s.Equal("", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+	s.Equal("text/plain; charset=utf-8", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderContentType)))
 }
 
 func setRequestXHRValues(ctx *middlewares.AutheliaCtx, accept, xhr bool) {
@@ -1570,4 +1477,9 @@ func setRequestXHRValues(ctx *middlewares.AutheliaCtx, accept, xhr bool) {
 	if xhr {
 		ctx.Request.Header.Set(fasthttp.HeaderXRequestedWith, "XMLHttpRequest")
 	}
+}
+
+type urlpair struct {
+	TargetURI   *url.URL
+	AutheliaURI *url.URL
 }
