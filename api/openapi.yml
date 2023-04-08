@@ -199,7 +199,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ $redir }}
+              example: '{{ $redir }}'
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -209,7 +209,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ $redir }}
+              example: '{{ $redir }}'
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -272,7 +272,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ $redir }}
+              example: '{{ $redir }}'
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -282,7 +282,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ $redir }}
+              example: '{{ $redir }}'
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -341,7 +341,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ $redir }}
+              example: '{{ $redir }}'
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -351,7 +351,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ $redir }}
+              example: '{{ $redir }}'
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -410,7 +410,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ $redir }}
+              example: '{{ $redir }}'
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -2001,7 +2001,7 @@ components:
                       properties:
                         appidExclude:
                           type: string
-                          example: {{ .BaseURL }}
+                          example: '{{ .BaseURL }}'
     webauthn.PublicKeyCredentialRequestOptions:
       type: object
       properties:
@@ -2036,7 +2036,7 @@ components:
                       properties:
                         appid:
                           type: string
-                          example: {{ .BaseURL }}
+                          example: '{{ .BaseURL }}'
     webauthn.Transports:
       type: object
       properties:
