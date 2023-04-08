@@ -143,7 +143,7 @@ paths:
           required: false
           style: simple
           explode: true
-          example: "https"
+          example: 'https'
           schema:
             type: string
         - name: X-Forwarded-Host
@@ -161,7 +161,7 @@ paths:
           required: false
           style: simple
           explode: true
-          example: "/path/example"
+          example: '/path/example'
           schema:
             type: string
         - $ref: '#/components/parameters/forwardedForParam'
@@ -964,14 +964,14 @@ paths:
             type: string
             format: uuid
             pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
-            example: "713ef767-81bc-4a27-9b83-5fe2e101b2b4"
+            example: '713ef767-81bc-4a27-9b83-5fe2e101b2b4'
         - in: query
           name: scope
           description: The requested scope.
           required: true
           schema:
             type: string
-            example: "openid profile groups"
+            example: 'openid profile groups'
         - in: query
           name: response_type
           description: The OAuth 2.0 response type.
@@ -984,7 +984,7 @@ paths:
           required: true
           schema:
             type: string
-            example: "app"
+            example: 'app'
         - in: query
           name: redirect_uri
           description: >
@@ -998,7 +998,7 @@ paths:
           required: true
           schema:
             type: string
-            example: "https://app.{{ .Domain | default "example.com" }}"
+            example: 'https://app.{{ .Domain | default "example.com" }}'
         - in: query
           name: state
           description: >
@@ -1008,7 +1008,7 @@ paths:
           required: false
           schema:
             type: string
-            example: "oV84Vsy7wyCgRk2h4aZBmXZq4q3g2f"
+            example: 'oV84Vsy7wyCgRk2h4aZBmXZq4q3g2f'
         - in: query
           name: response_mode
           description: >
@@ -1028,7 +1028,7 @@ paths:
           required: false
           schema:
             type: string
-            example: "TRMLqchoKGQNcooXvBvUy9PtmLdJGf"
+            example: 'TRMLqchoKGQNcooXvBvUy9PtmLdJGf'
         - in: query
           name: display
           description: >
@@ -1068,7 +1068,7 @@ paths:
           required: false
           schema:
             type: string
-            example: "en-US"
+            example: 'en-US'
         - in: query
           name: claims_locales
           description: >
@@ -1078,7 +1078,7 @@ paths:
           required: false
           schema:
             type: string
-            example: "en-US"
+            example: 'en-US'
         - in: query
           name: id_token_hint
           required: false
@@ -1316,7 +1316,7 @@ paths:
           description: The OAuth 2.0 Access Token issued by this OpenID Connect 1.0 Provider.
           schema:
             type: string
-            example: "authelia_at_cr4i4EtTn2F4k6mX4XzxbsBewkxCGn"
+            example: 'authelia_at_cr4i4EtTn2F4k6mX4XzxbsBewkxCGn'
       responses:
         "200":
           description: OK
@@ -1345,7 +1345,7 @@ paths:
           description: The OAuth 2.0 Access Token issued by this OpenID Connect 1.0 Provider.
           schema:
             type: string
-            example: "authelia_at_cr4i4EtTn2F4k6mX4XzxbsBewkxCGn"
+            example: 'authelia_at_cr4i4EtTn2F4k6mX4XzxbsBewkxCGn'
       requestBody:
         content:
           application/x-www-form-urlencoded:
@@ -1355,7 +1355,7 @@ paths:
                 access_token:
                   description: The OAuth 2.0 Access Token issued by this OpenID Connect 1.0 Provider.
                   type: string
-                  example: "authelia_at_cr4i4EtTn2F4k6mX4XzxbsBewkxCGn"
+                  example: 'authelia_at_cr4i4EtTn2F4k6mX4XzxbsBewkxCGn'
       responses:
         "200":
           description: OK
@@ -1480,7 +1480,7 @@ components:
       required: true
       style: simple
       explode: true
-      example: "https"
+      example: 'https'
       schema:
         type: string
     forwardedHostParam:
@@ -1490,7 +1490,7 @@ components:
       required: true
       style: simple
       explode: true
-      example: "{{ .Domain | default "example.com" }}"
+      example: '{{ .Domain | default "example.com" }}'
       schema:
         type: string
     forwardedURIParam:
@@ -1500,7 +1500,7 @@ components:
       required: true
       style: simple
       explode: true
-      example: "/path/example"
+      example: '/path/example'
       schema:
         type: string
     forwardedForParam:
@@ -1510,7 +1510,7 @@ components:
       required: false
       style: simple
       explode: true
-      example: "192.168.0.55,192.168.0.20"
+      example: '192.168.0.55,192.168.0.20'
       schema:
         type: string
     autheliaURLParam:
@@ -1520,7 +1520,7 @@ components:
       required: false
       style: simple
       explode: true
-      example: "{{ .BaseURL | default "https://auth.example.com" }}"
+      example: '{{ .BaseURL | default "https://auth.example.com" }}'
       schema:
         type: string
     authParam:
@@ -1544,7 +1544,7 @@ components:
       properties:
         uri:
           type: string
-          example: "https://secure.{{ .Domain | default "example.com" }}"
+          example: 'https://secure.{{ .Domain | default "example.com" }}'
     handlers.checkURIWithinDomainResponseBody:
       type: object
       properties:
@@ -1669,7 +1669,7 @@ components:
           type: string
           format: uuid
           pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
-          example: "3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c"
+          example: '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
         requestMethod:
           type: string
           example: GET
@@ -1740,7 +1740,7 @@ components:
           type: string
           format: uuid
           pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
-          example: "3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c"
+          example: '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
     {{- end }}
     handlers.StateResponse:
       type: object
@@ -1850,7 +1850,7 @@ components:
       properties:
         token:
           type: string
-          example: "123456"
+          example: '123456'
         targetURL:
           type: string
           example: 'https://secure.{{ .Domain | default "example.com" }}'
@@ -1861,7 +1861,7 @@ components:
           type: string
           format: uuid
           pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
-          example: "3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c"
+          example: '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
     handlers.TOTPKeyResponse:
       type: object
       properties:
@@ -1949,7 +1949,7 @@ components:
                       type: string
                       format: uuid
                       pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
-                      example: "3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c"
+                      example: '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
     webauthn.PublicKeyCredentialCreationOptions:
       type: object
       properties:
@@ -2191,11 +2191,11 @@ components:
             client_id:
               type: string
               description: The identifier of the client for the user to provide consent for.
-              example: "app"
+              example: 'app'
             client_description:
               description: The descriptive name of the client for the user to provide consent for.
               type: string
-              example: "App Platform"
+              example: 'App Platform'
             scopes:
               description: The list of the requested scopes for the user to provide consent for.
               type: array
@@ -2230,11 +2230,11 @@ components:
               type: string
               format: uuid
               pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
-              example: "713ef767-81bc-4a27-9b83-5fe2e101b2b4"
+              example: '713ef767-81bc-4a27-9b83-5fe2e101b2b4'
             client_id:
               description: The identifier of the client for the user to provide consent for.
               type: string
-              example: "app"
+              example: 'app'
             consent:
               description: Indicates if the user consented to the consent request.
               type: boolean
@@ -2257,7 +2257,7 @@ components:
             URL of the OP''s OAuth 2.0 Authorization Endpoint [OpenID.Core].
             See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
           type: string
-          example: "{{ .BaseURL }}api/oidc/authorization"
+          example: '{{ .BaseURL }}api/oidc/authorization'
         claims_supported:
           description: >
             JSON array containing a list of the Claim Names of the Claims that the OpenID Provider MAY be able to supply
@@ -2309,7 +2309,7 @@ components:
             URL of the authorization server''s OAuth 2.0 introspection endpoint [RFC7662]. See Also: OAuth 2.0 Token
             Introspection: https://datatracker.ietf.org/doc/html/rfc7662
           type: string
-          example: "{{ .BaseURL }}api/oidc/introspection"
+          example: '{{ .BaseURL }}api/oidc/introspection'
         introspection_endpoint_auth_methods_supported:
           description: >
             JSON array containing a list of client authentication methods supported by this introspection endpoint. The
@@ -2342,7 +2342,7 @@ components:
             If Issuer discovery is supported (see Section 2), this value MUST be identical to the issuer value returned
             by WebFinger. This also MUST be identical to the iss Claim value in ID Tokens issued from this Issuer.
           type: string
-          example: "{{ .BaseURL }}"
+          example: '{{ .BaseURL }}'
         jwks_uri:
           description: >
             URL of the OP's JSON Web Key Set [JWK] document. This contains the signing key(s) the RP uses to validate
@@ -2353,7 +2353,7 @@ components:
             RECOMMENDED, as it is less secure. The JWK x5c parameter MAY be used to provide X.509 representations of
             keys provided. When used, the bare key values MUST still be present and MUST match those in the certificate.
           type: string
-          example: "{{ .BaseURL }}jwks.json"
+          example: '{{ .BaseURL }}jwks.json'
         op_policy_uri:
           description:
             URL that the OpenID Provider provides to the person registering the Client to read about the OP's
@@ -2371,13 +2371,13 @@ components:
             The URL of the pushed authorization request endpoint at which a client can post an authorization request to
             exchange for a "request_uri" value usable at the authorization server.
           type: string
-          example: "{{ .BaseURL }}api/oidc/par"
+          example: '{{ .BaseURL }}api/oidc/par'
         registration_endpoint:
           description: >
             URL of the authorization server''s OAuth 2.0 Dynamic Client Registration endpoint [RFC7591]. See Also:
             OAuth 2.0 Dynamic Client Registration Protocol: https://datatracker.ietf.org/doc/html/rfc7591
           type: string
-          example: "{{ .BaseURL }}api/oidc/registration"
+          example: '{{ .BaseURL }}api/oidc/registration'
         require_pushed_authorization_requests:
           description: >
             Boolean parameter indicating whether the authorization server accepts authorization request data only via
@@ -2406,7 +2406,7 @@ components:
             URL of the authorization server''s OAuth 2.0 revocation endpoint [RFC7009].
             See Also: OAuth 2.0 Token Revocation: https://datatracker.ietf.org/doc/html/rfc7009
           type: string
-          example: "{{ .BaseURL }}api/oidc/revocation"
+          example: '{{ .BaseURL }}api/oidc/revocation'
         revocation_endpoint_auth_methods_supported:
           description: >
             JSON array containing a list of client authentication methods supported by this revocation endpoint. The
@@ -2452,7 +2452,7 @@ components:
             the OpenID Provider. In particular, if the OpenID Provider does not support Dynamic Client Registration,
             then information on how to register Clients needs to be provided in this documentation.
           type: string
-          example: "https://authelia.com"
+          example: 'https://authelia.com'
         subject_types_supported:
           description: >
             JSON array containing a list of the Subject Identifier types that this OP supports.
@@ -2466,7 +2466,7 @@ components:
             URL of the OP''s OAuth 2.0 Token Endpoint [OpenID.Core]. This is REQUIRED unless only the Implicit Flow is
             used. See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
           type: string
-          example: "{{ .BaseURL }}api/oidc/token"
+          example: '{{ .BaseURL }}api/oidc/token'
         token_endpoint_auth_methods_supported:
           description: >
             JSON array containing a list of Client Authentication methods supported by this Token Endpoint. The options
@@ -2524,7 +2524,7 @@ components:
             URL of the OP''s OAuth 2.0 Authorization Endpoint [OpenID.Core].
             See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
           type: string
-          example: "{{ .BaseURL }}api/oidc/authorization"
+          example: '{{ .BaseURL }}api/oidc/authorization'
         backchannel_logout_session_supported:
           description: >
             Boolean value specifying whether the OP can pass a sid (session ID) Claim in the Logout Token to identify
@@ -2666,7 +2666,7 @@ components:
             URL of the authorization server''s OAuth 2.0 introspection endpoint [RFC7662]. See Also: OAuth 2.0
             Token Introspection: https://datatracker.ietf.org/doc/html/rfc7662'
           type: string
-          example: "{{ .BaseURL }}api/oidc/introspection"
+          example: '{{ .BaseURL }}api/oidc/introspection'
         introspection_endpoint_auth_methods_supported:
           description: >
             JSON array containing a list of client authentication methods supported by this introspection endpoint. The
@@ -2699,7 +2699,7 @@ components:
             If Issuer discovery is supported (see Section 2), this value MUST be identical to the issuer value returned
             by WebFinger. This also MUST be identical to the iss Claim value in ID Tokens issued from this Issuer.
           type: string
-          example: "{{ .BaseURL }}"
+          example: '{{ .BaseURL }}'
         jwks_uri:
           description: >
             URL of the OP's JSON Web Key Set [JWK] document. This contains the signing key(s) the RP uses to validate
@@ -2710,7 +2710,7 @@ components:
             RECOMMENDED, as it is less secure. The JWK x5c parameter MAY be used to provide X.509 representations of
             keys provided. When used, the bare key values MUST still be present and MUST match those in the certificate.
           type: string
-          example: "{{ .BaseURL }}jwks.json"
+          example: '{{ .BaseURL }}jwks.json'
         op_policy_uri:
           description: >
             URL that the OpenID Provider provides to the person registering the Client to read about the OP's
@@ -2728,13 +2728,13 @@ components:
             The URL of the pushed authorization request endpoint at which a client can post an authorization request to
             exchange for a "request_uri" value usable at the authorization server.
           type: string
-          example: "{{ .BaseURL }}api/oidc/par"
+          example: '{{ .BaseURL }}api/oidc/par'
         registration_endpoint:
           description: >
             URL of the authorization server''s OAuth 2.0 Dynamic Client Registration endpoint [RFC7591]. See Also:
             OAuth 2.0 Dynamic Client Registration Protocol: https://datatracker.ietf.org/doc/html/rfc7591
           type: string
-          example: "{{ .BaseURL }}api/oidc/registration"
+          example: '{{ .BaseURL }}api/oidc/registration'
         request_object_encryption_alg_values_supported:
           description: >
             JSON array containing a list of the JWE encryption algorithms (alg values) supported by the OP for Request
@@ -2805,7 +2805,7 @@ components:
             URL of the authorization server''s OAuth 2.0 revocation endpoint [RFC7009]. See Also:
             OAuth 2.0 Token Revocation: https://datatracker.ietf.org/doc/html/rfc7009
           type: string
-          example: "{{ .BaseURL }}api/oidc/revocation"
+          example: '{{ .BaseURL }}api/oidc/revocation'
         revocation_endpoint_auth_methods_supported:
           description: >
             JSON array containing a list of client authentication methods supported by this revocation endpoint. The
@@ -2852,7 +2852,7 @@ components:
             the OpenID Provider. In particular, if the OpenID Provider does not support Dynamic Client Registration,
             then information on how to register Clients needs to be provided in this documentation.
           type: string
-          example: "https://www.authelia.com"
+          example: 'https://www.authelia.com'
         subject_types_supported:
           description: >
             JSON array containing a list of the Subject Identifier types that this OP supports. Valid types include
@@ -2866,7 +2866,7 @@ components:
             URL of the OP''s OAuth 2.0 Token Endpoint [OpenID.Core]. This is REQUIRED unless only the Implicit Flow is
             used. See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
           type: string
-          example: "{{ .BaseURL }}api/oidc/token"
+          example: '{{ .BaseURL }}api/oidc/token'
         token_endpoint_auth_methods_supported:
           description: >
             JSON array containing a list of Client Authentication methods supported by this Token Endpoint. The options
@@ -2922,7 +2922,7 @@ components:
             path, and query parameter components.
             See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
           type: string
-          example: "{{ .BaseURL }}api/oidc/userinfo"
+          example: '{{ .BaseURL }}api/oidc/userinfo'
         userinfo_signing_alg_values_supported:
           description: >
             JSON array containing a list of the JWS [JWS] signing algorithms (alg values) [JWA] supported by the
@@ -3049,7 +3049,7 @@ components:
             this is the "refresh_token" value returned from the token endpoint
             as defined in OAuth 2.0 [RFC6749], Section 5.1. Other token types
             are outside the scope of this specification.
-          example: "authelia_at_cr4i4EtTn2F4k6mX4XzxbsBewkxCGn"
+          example: 'authelia_at_cr4i4EtTn2F4k6mX4XzxbsBewkxCGn'
           type: string
         token_type_hint:
           description: >
@@ -3065,7 +3065,7 @@ components:
           enum:
             - "access_token"
             - "refresh_token"
-          example: "access_token"
+          example: 'access_token'
           type: string
     openid.spec.AccessRequest.ClientAuth:
       oneOf:
@@ -3081,7 +3081,7 @@ components:
           description: >
             REQUIRED if the client is not authenticating with the authorization server as described in
             Section 3.2.1. of [RFC6749]. The client identifier as described in Section 2.2 of [RFC6749].
-          example: "my_client"
+          example: 'my_client'
           type: string
     openid.spec.AccessRequest.ClientAuth.Secret:
       required:
@@ -3108,7 +3108,7 @@ components:
                 "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
               enum:
                 - "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
-              example: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+              example: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
               type: string
             client_assertion_type:
               description: >
@@ -3132,11 +3132,11 @@ components:
               type: string
             code:
               description: The Authorization Code.
-              example: "authelia_ac_1j2kn3knj12n3kj12n"
+              example: 'authelia_ac_1j2kn3knj12n3kj12n'
               type: string
             code_verifier:
               description: The Authorization Code Verifier (PKCE).
-              example: "88a25754f7c0b3b3b88cf6cd4e29e8356b160524fdc1cb329a94471825628fd3"
+              example: '88a25754f7c0b3b3b88cf6cd4e29e8356b160524fdc1cb329a94471825628fd3'
               type: string
             redirect_uri:
               description: The original Redirect URI used in the Authorization Request.
@@ -3157,7 +3157,7 @@ components:
               type: string
             device_code:
               description: The Device Authorization Code.
-              example: "authelia_dc_mn123kjn12kj3123njk"
+              example: 'authelia_dc_mn123kjn12kj3123njk'
               type: string
     openid.spec.AccessRequest.RefreshTokenFlow:
       allOf:
@@ -3174,7 +3174,7 @@ components:
               type: string
             refresh_token:
               description: The Refresh Token.
-              example: "authelia_rt_1n2j3kihn12kj3n12k"
+              example: 'authelia_rt_1n2j3kihn12kj3n12k'
               type: string
             scope:
               description: >
@@ -3183,7 +3183,7 @@ components:
                 not originally granted by the resource owner, and if omitted is
                 treated as equal to the scope originally granted by the
                 resource owner.
-              example: "openid profile groups"
+              example: 'openid profile groups'
               type: string
     openid.spec.AccessResponse:
       type: object
@@ -3194,17 +3194,17 @@ components:
       properties:
         access_token:
           description: The access token issued by the authorization server.
-          example: "authelia_at_cr4i4EtTn2F4k6mX4XzxbsBewkxCGn"
+          example: 'authelia_at_cr4i4EtTn2F4k6mX4XzxbsBewkxCGn'
           type: string
         id_token:
           description: The id token issued by the authorization server.
-          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
           type: string
         refresh_token:
           description: >
             The refresh token, which can be used to obtain new access tokens using the
             same authorization grant as described in Section 6.
-          example: "authelia_rt_kGBoSMbfVGP2RR6Kvujv3Xg7uXV2i"
+          example: 'authelia_rt_kGBoSMbfVGP2RR6Kvujv3Xg7uXV2i'
           type: string
         token_type:
           description: >
@@ -3215,7 +3215,7 @@ components:
             type.
           enum:
             - "bearer"
-          example: "bearer"
+          example: 'bearer'
           type: string
         expires_in:
           description: >
@@ -3228,12 +3228,12 @@ components:
           type: integer
         state:
           description: Exactly the state value passed in the authorization request if present.
-          example: "5dVZhNfri5XZS6wadskuzUk4MHYCvEcUgidjMeBjsktAhY7EKB"
+          example: '5dVZhNfri5XZS6wadskuzUk4MHYCvEcUgidjMeBjsktAhY7EKB'
           type: string
         scope:
           description: >
             The scope of the access token as described by Section 3.3 if it differs from the requested scope.
-          example: "openid profile groups"
+          example: 'openid profile groups'
           type: string
     openid.spec.AuthorizeRequest:
       type: object
@@ -3245,13 +3245,13 @@ components:
       properties:
         scope:
           description: The requested scope.
-          example: "openid profile groups"
+          example: 'openid profile groups'
           type: string
         response_type:
           $ref: '#/components/schemas/openid.spec.ResponseType'
         client_id:
           description: The OAuth 2.0 client identifier.
-          example: "app"
+          example: 'app'
           type: string
         redirect_uri:
           description: >
@@ -3269,7 +3269,7 @@ components:
             Opaque value used to maintain state between the request and the callback. Typically, Cross-Site
             Request Forgery (CSRF, XSRF) mitigation is done by cryptographically binding the value of this
             parameter with a browser cookie.
-          example: "oV84Vsy7wyCgRk2h4aZBmXZq4q3g2f"
+          example: 'oV84Vsy7wyCgRk2h4aZBmXZq4q3g2f'
           type: string
         response_mode:
           $ref: '#/components/schemas/openid.spec.ResponseMode'
@@ -3279,7 +3279,7 @@ components:
             The value is passed through unmodified from the Authentication Request to the ID Token. Sufficient
             entropy MUST be present in the nonce values used to prevent attackers from guessing values. For
             implementation notes, see Section 15.5.2.
-          example: "TRMLqchoKGQNcooXvBvUy9PtmLdJGf"
+          example: 'TRMLqchoKGQNcooXvBvUy9PtmLdJGf'
           type: string
         display:
           $ref: '#/components/schemas/openid.spec.DisplayType'
@@ -3295,7 +3295,7 @@ components:
             - "login consent"
             - "login select_account"
             - "consent select_account"
-          example: "consent"
+          example: 'consent'
           type: string
         max_age:
           description: >
@@ -3395,7 +3395,7 @@ components:
         - "popup"
         - "touch"
         - "wap"
-      example: "page"
+      example: 'page'
       type: string
     openid.spec.ResponseType:
       description: The OAuth 2.0 / OpenID Connect 1.0 Response Type.
@@ -3408,7 +3408,7 @@ components:
         - "token id_token"
         - "code id_token token"
         - "none"
-      example: "code"
+      example: 'code'
       type: string
     openid.spec.ResponseMode:
       description: >
@@ -3419,7 +3419,7 @@ components:
         - "query"
         - "fragment"
         - "form_post"
-      example: "query"
+      example: 'query'
       type: string
     openid.spec.GrantType:
       description: The OAuth 2.0 / OpenID Connect 1.0 Grant Type.
@@ -3430,14 +3430,14 @@ components:
         - "password"
         - "client_credentials"
         - "urn:ietf:params:oauth:grant-type:device_code"
-      example: "authorization_code"
+      example: 'authorization_code'
       type: string
     openid.spec.CodeChallengeMethod:
       description: The RFC7636 Code Challenge Verifier Method.
       enum:
         - "plain"
         - "S256"
-      example: "S256"
+      example: 'S256'
       type: string
     openid.spec.ClaimType:
       description: The representation of claims.
@@ -3445,7 +3445,7 @@ components:
         - "normal"
         - "aggregated"
         - "distributed"
-      example: "normal"
+      example: 'normal'
       type: string
     jose.spec.None:
       description: The JSON Web Signature Algorithm
@@ -3518,7 +3518,7 @@ components:
           enum:
             - "sig"
             - "enc"
-          example: "sig"
+          example: 'sig'
           type: string
         key_ops:
           description: >
@@ -3620,13 +3620,13 @@ components:
                 The "kty" (key type) parameter identifies the cryptographic algorithm
                 family used with the key.
               type: string
-              example: "RSA"
+              example: 'RSA'
               enum:
                 - "RSA"
             alg:
               description: The JSON Web Signature Algorithm
               type: string
-              example: "RS256"
+              example: 'RS256'
               enum:
                 - "RS256"
                 - "RS384"
@@ -3737,13 +3737,13 @@ components:
                 The "kty" (key type) parameter identifies the cryptographic algorithm
                 family used with the key.
               type: string
-              example: "EC"
+              example: 'EC'
               enum:
                 - "EC"
             alg:
               description: The JSON Web Signature Algorithm
               type: string
-              example: "ES256"
+              example: 'ES256'
               enum:
                 - "ES256"
                 - "ES384"
@@ -3767,7 +3767,7 @@ components:
                 The curve parameter identifies the cryptographic curve used with the key. Curve
                 values from [DSS] used by this specification.
               type: string
-              example: "P-521"
+              example: 'P-521'
               enum:
                 - "P-256"
                 - "P-384"
@@ -3807,7 +3807,7 @@ components:
                 The "kty" (key type) parameter identifies the cryptographic algorithm
                 family used with the key.
               type: string
-              example: "oct"
+              example: 'oct'
               enum:
                 - "oct"
             k:
