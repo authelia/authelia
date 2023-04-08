@@ -76,7 +76,9 @@ func TestShouldTemplateOpenAPI(t *testing.T) {
 	handler(mock.Ctx)
 
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
-	assert.NotEqual(t, "", string(mock.Ctx.Response.Body()))
 
-	assert.Contains(t, string(mock.Ctx.Response.Body()), "example: https://auth.example.com/?rd=https%3A%2F%2Fexample.com&rm=GET")
+	body := string(mock.Ctx.Response.Body())
+
+	assert.NotEqual(t, "", body)
+	assert.Contains(t, body, "example: 'https://auth.example.com/?rd=https%3A%2F%2Fexample.com%2F&rm=GET'")
 }
