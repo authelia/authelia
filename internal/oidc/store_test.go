@@ -60,7 +60,7 @@ func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 	}, nil)
 
 	client, err := s.GetClient(context.Background(), "myinvalidclient")
-	assert.EqualError(t, err, "not_found")
+	assert.EqualError(t, err, "invalid_client")
 	assert.Nil(t, client)
 
 	client, err = s.GetClient(context.Background(), myclient)
@@ -116,7 +116,7 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 
 	client, err := s.GetFullClient("another-client")
 	assert.Nil(t, client)
-	assert.EqualError(t, err, "not_found")
+	assert.EqualError(t, err, "invalid_client")
 }
 
 func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {

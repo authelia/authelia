@@ -37,6 +37,47 @@ how you can configure multiple IP ranges. You should customize this example to f
 You should only include the specific IP address ranges of the trusted proxies within your architecture and should not
 trust entire subnets unless that subnet only has trusted proxies and no other services.*
 
+## Assumptions and Adaptation
+
+This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
+can not reasonably have examples for every advanced configuration option that exists. The
+following are the assumptions we make:
+
+* Deployment Scenario:
+  * Single Host
+  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
+  * Proxy is deployed as a Container on a network shared with Authelia
+* The above assumption means that AUthelia should be accesible to the proxy on `http://authelia:9091` and as such:
+  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
+    certificate defined
+  * You will have to adapt all instances of `authelia` in the URL if:
+    * you're using a different container name
+    * you deployed the proxy to a different location
+  * You will have to adapt all instances of `9091` in the URL if:
+    * you have adjusted the default port in the configuration
+  * You will have to adapt the entire URL if:
+    * Authelia is on a different host to the proxy
+* All services are part of the `example.com` domain:
+  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
+    just testing or you want ot use that specific domain
+
+## Implementation
+
+[Envoy] utilizes the [ExtAuthz](../../reference/guides/proxy-authorization.md#extauthz) Authz implementation. The
+associated [Metadata](../../reference/guides/proxy-authorization.md#extauthz-metadata) should be considered required.
+
+The examples below assume you are using the default
+[Authz Endpoints Configuration](../../configuration/miscellaneous/server-endpoints-authz.md) or one similar to the
+following minimal configuration:
+
+```yaml
+server:
+  endpoints:
+    authz:
+      ext-authz:
+        implementation: ExtAuthz
+```
+
 ## Configuration
 
 Below you will find commented examples of the following configuration:

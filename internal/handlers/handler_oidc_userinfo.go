@@ -33,7 +33,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		req.Context(), fosite.AccessTokenFromRequest(req), fosite.AccessToken, oidcSession); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
-		ctx.Logger.Errorf("UserInfo Request failed with error: %+v", rfc)
+		ctx.Logger.Errorf("UserInfo Request failed with error: %s", rfc.WithExposeDebug(true).GetDescription())
 
 		if rfc.StatusCode() == http.StatusUnauthorized {
 			rw.Header().Set(fasthttp.HeaderWWWAuthenticate, fmt.Sprintf(`Bearer error="%s",error_description="%s"`, rfc.ErrorField, rfc.GetDescription()))
@@ -47,7 +47,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	clientID := requester.GetClient().GetID()
 
 	if tokenType != fosite.AccessToken {
-		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed with error: bearer authorization failed as the token is not an access_token", requester.GetID(), client.GetID())
+		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed with error: bearer authorization failed as the token is not an access token", requester.GetID(), client.GetID())
 
 		errStr := "Only access tokens are allowed in the authorization header."
 		rw.Header().Set(fasthttp.HeaderWWWAuthenticate, fmt.Sprintf(`Bearer error="invalid_token",error_description="%s"`, errStr))
@@ -57,7 +57,11 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	}
 
 	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(clientID); err != nil {
-		ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(fosite.ErrServerError.WithHint("Unable to assert type of client")))
+		rfc := fosite.ErrorToRFC6749Error(err)
+
+		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed to retrieve client configuration with error: %s", requester.GetID(), client.GetID(), rfc.WithExposeDebug(true).GetDescription())
+
+		ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(rfc))
 
 		return
 	}
@@ -100,7 +104,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		var jti uuid.UUID
 
 		if jti, err = uuid.NewRandom(); err != nil {
-			ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError.WithHintf("Could not generate JTI."))
+			ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError.WithHint("Could not generate JTI."))
 
 			return
 		}
@@ -120,9 +124,9 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 			return
 		}
 
-		rw.Header().Set("Content-Type", "application/jwt")
+		rw.Header().Set(fasthttp.HeaderContentType, "application/jwt")
 		_, _ = rw.Write([]byte(token))
-	case "none", "":
+	case oidc.SigningAlgorithmNone, "":
 		ctx.Providers.OpenIDConnect.Write(rw, req, claims)
 	default:
 		ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(fosite.ErrServerError.WithHintf("Unsupported UserInfo signing algorithm '%s'.", client.GetUserinfoSigningAlgorithm())))
