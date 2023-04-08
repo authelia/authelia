@@ -111,6 +111,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/handlers.StateResponse'
+  {{- $redir := "https://auth.example.com/?rd=https%3A%2F%2Fexample.com&rm=GET" }}
+  {{- if .Domain }}
+  {{- $redir = printf "%s?rd=%s&rm=GET" .BaseURL (urlquery (printf "https://%s" .Domain)) }}
+  {{- else if .BaseURL }}
+  {{- $redir = printf "%s?rd=%s&rm=GET" .BaseURL (urlquery .BaseURL) }}
+  {{- end }}
   {{- range $name, $config := .EndpointsAuthz }}
   {{- $uri := printf "/api/authz/%s" $name }}
   {{- if (eq $name "legacy") }}{{ $uri = "/api/verify" }}{{ end }}
@@ -197,7 +203,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+              example: {{ $redir }}
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -207,7 +213,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+              example: {{ $redir }}
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -270,7 +276,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+              example: {{ $redir }}
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -280,7 +286,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+              example: {{ $redir }}
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -339,7 +345,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+              example: {{ $redir }}
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -349,7 +355,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+              example: {{ $redir }}
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -408,7 +414,7 @@ paths:
           headers:
             location:
               description: Redirect Location for user authorization
-              example: {{ .BaseURL }}/?rd={{ urlquery .BaseURL }}&rm=GET
+              example: {{ $redir }}
             set-cookie:
               description: Sets a new cookie value
               schema:
