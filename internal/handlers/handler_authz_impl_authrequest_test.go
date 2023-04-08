@@ -93,7 +93,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 
 					authz.Handler(mock.Ctx)
 
-					assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+					assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 				})
 			}
@@ -119,7 +119,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleMissingXOriginalMethodDeny() {
 
 			authz.Handler(mock.Ctx)
 
-			assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+			assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 			assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 		})
 	}
@@ -138,7 +138,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleMissingXOriginalURLDeny() {
 
 			authz.Handler(mock.Ctx)
 
-			assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+			assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 			assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 		})
 	}
@@ -226,7 +226,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 	}{
 		{"Should401UnauthorizedWithNullByte",
 			[]byte{104, 116, 116, 112, 115, 58, 47, 47, 0, 110, 111, 116, 45, 111, 110, 101, 45, 102, 97, 99, 116, 111, 114, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109},
-			fasthttp.StatusUnauthorized,
+			fasthttp.StatusBadRequest,
 		},
 		{"Should200OkWithoutNullByte",
 			[]byte{104, 116, 116, 112, 115, 58, 47, 47, 110, 111, 116, 45, 111, 110, 101, 45, 102, 97, 99, 116, 111, 114, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109},
@@ -284,7 +284,7 @@ func (s *AuthRequestAuthzSuite) TestShouldNotHandleExtAuthzAllMethodsAllow() {
 
 					authz.Handler(mock.Ctx)
 
-					assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+					assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 				})
 			}
@@ -316,7 +316,7 @@ func (s *AuthRequestAuthzSuite) TestShouldNotHandleExtAuthzAllMethodsAllowXHR() 
 
 							authz.Handler(mock.Ctx)
 
-							assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+							assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 							assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 						})
 					}
@@ -344,7 +344,7 @@ func (s *AuthRequestAuthzSuite) TestShouldNotHandleExtAuthzAllMethodsWithMethods
 
 					authz.Handler(mock.Ctx)
 
-					assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+					assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 				})
 			}
@@ -374,7 +374,7 @@ func (s *AuthRequestAuthzSuite) TestShouldNotHandleForwardAuthAllMethodsAllow() 
 
 					authz.Handler(mock.Ctx)
 
-					assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+					assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 				})
 			}
@@ -406,7 +406,7 @@ func (s *AuthRequestAuthzSuite) TestShouldNotHandleForwardAuthAllMethodsAllowXHR
 
 							authz.Handler(mock.Ctx)
 
-							assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+							assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 							assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 						})
 					}
@@ -434,7 +434,7 @@ func (s *AuthRequestAuthzSuite) TestShouldNotHandleForwardAuthAllMethodsWithMeth
 
 					authz.Handler(mock.Ctx)
 
-					assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+					assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 				})
 			}

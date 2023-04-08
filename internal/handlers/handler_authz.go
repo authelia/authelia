@@ -23,7 +23,12 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	if object, err = authz.handleGetObject(ctx); err != nil {
 		ctx.Logger.WithError(err).Error("Error getting Target URL and Request Method")
 
-		ctx.ReplyUnauthorized()
+		switch authz.implementation {
+		case AuthzImplLegacy:
+			ctx.ReplyUnauthorized()
+		default:
+			ctx.ReplyBadRequest()
+		}
 
 		return
 	}
@@ -46,8 +51,6 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 
 	if autheliaURL, err = authz.getAutheliaURL(ctx, provider); err != nil {
 		ctx.Logger.WithError(err).WithField("target_url", object.URL.String()).Error("Error occurred trying to determine the external Authelia URL for Target URL")
-
-		fmt.Println(err)
 
 		switch authz.implementation {
 		case AuthzImplLegacy:
