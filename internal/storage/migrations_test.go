@@ -45,7 +45,44 @@ func TestShouldObtainCorrectDownMigrations(t *testing.T) {
 }
 
 func TestMigrationShouldGetSpecificMigrationIfAvaliable(t *testing.T) {
+	upMigrationsPostgreSQL, err := loadMigrations(providerPostgres, 8, 9)
+	require.NoError(t, err)
+	require.Len(t, upMigrationsPostgreSQL, 1)
 
+	assert.True(t, upMigrationsPostgreSQL[0].Up)
+	assert.Equal(t, 9, upMigrationsPostgreSQL[0].Version)
+	assert.Equal(t, providerPostgres, upMigrationsPostgreSQL[0].Provider)
+
+	upMigrationsSQLite, err := loadMigrations(providerSQLite, 8, 9)
+	require.NoError(t, err)
+	require.Len(t, upMigrationsSQLite, 1)
+
+	assert.True(t, upMigrationsSQLite[0].Up)
+	assert.Equal(t, 9, upMigrationsSQLite[0].Version)
+	assert.Equal(t, providerAll, upMigrationsSQLite[0].Provider)
+
+	downMigrationsPostgreSQL, err := loadMigrations(providerPostgres, 9, 8)
+	require.NoError(t, err)
+	require.Len(t, downMigrationsPostgreSQL, 1)
+
+	assert.False(t, downMigrationsPostgreSQL[0].Up)
+	assert.Equal(t, 9, downMigrationsPostgreSQL[0].Version)
+	assert.Equal(t, providerAll, downMigrationsPostgreSQL[0].Provider)
+
+	downMigrationsSQLite, err := loadMigrations(providerSQLite, 9, 8)
+	require.NoError(t, err)
+	require.Len(t, downMigrationsSQLite, 1)
+
+	assert.False(t, downMigrationsSQLite[0].Up)
+	assert.Equal(t, 9, downMigrationsSQLite[0].Version)
+	assert.Equal(t, providerAll, downMigrationsSQLite[0].Provider)
+}
+
+func TestMigrationShouldReturnErrorOnSame(t *testing.T) {
+	migrations, err := loadMigrations(providerPostgres, 1, 1)
+
+	assert.EqualError(t, err, "current version is same as migration target, no action being taken")
+	assert.Nil(t, migrations)
 }
 
 func TestMigrationsShouldNotBeDuplicatedPostgres(t *testing.T) {
