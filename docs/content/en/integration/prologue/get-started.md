@@ -17,6 +17,12 @@ obviously choose a different path if you are so inclined.
 
 ## Prerequisites
 
+The most important prerequisite that users understand that there is no single way to deploy software similar to
+Authelia. We provide as much information as possible for users to configure the critical parts usually in the most
+common scenarios however those using more advanced architectures are likely going to have to adapt. We can generally
+help with answering less specific questions about this and it may be possible if provided adequate information more
+specific questions may be answered.
+
 ### Forwarded Authentication
 
 Forwarded Authentication is a simple per-request authorization flow that checks the metadata of a request and a session
