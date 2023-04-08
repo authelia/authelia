@@ -528,6 +528,35 @@ func TestShouldRaiseErrorOnKeySizeTooSmall(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option 'issuer_private_key' must be an RSA private key with 2048 bits or more but it only has 1024 bits")
 }
 
+func TestShouldRaiseErrorOnKeyInvalidPublicKey(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.IdentityProvidersConfiguration{
+		OIDC: &schema.OpenIDConnectConfiguration{
+			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey3),
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "good_id",
+					Secret: MustDecodeSecret(goodOpenIDConnectClientSecret),
+					Policy: "two_factor",
+					RedirectURIs: []string{
+						"https://google.com/callback",
+					},
+				},
+			},
+		},
+	}
+
+	config.OIDC.IssuerPrivateKey.PublicKey.N = nil
+
+	ValidateIdentityProviders(config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option 'issuer_private_key' must be a valid RSA private key but the provided data is missing the public key bits")
+}
+
 func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseModes(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.IdentityProvidersConfiguration{

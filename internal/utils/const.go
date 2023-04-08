@@ -122,6 +122,15 @@ var htmlEscaper = strings.NewReplacer(
 var ErrTimeoutReached = errors.New("timeout reached")
 
 const (
-	windows             = "windows"
-	errFmtLinuxNotFound = "open %s: no such file or directory"
+	windows               = "windows"
+	errFmtLinuxNotFound   = "%s %%s: no such file or directory"
+	errFmtWindowsNotFound = "%s %%s: The system cannot find the %s specified."
+
+	strStat         = "stat"
+	strOpen         = "open"
+	strFile         = "file"
+	strPath         = "path"
+	strIsDir        = "isdir"
+	strPathNotFound = "pathnotfound"
+	strFileNotFound = "filenotfound"
 )
