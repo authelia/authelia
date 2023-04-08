@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"hash"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -79,6 +80,8 @@ func FuncMap() map[string]any {
 		"indent":      FuncIndent,
 		"nindent":     FuncNewlineIndent,
 		"uuidv4":      FuncUUIDv4,
+		"urlquery":    url.QueryEscape,
+		"urlunquery":  url.QueryUnescape,
 	}
 }
 
