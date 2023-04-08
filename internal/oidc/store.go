@@ -79,7 +79,7 @@ func (s *Store) GetClientPolicy(id string) (level authorization.Level) {
 func (s *Store) GetFullClient(id string) (client *Client, err error) {
 	client, ok := s.clients[id]
 	if !ok {
-		return nil, fosite.ErrNotFound
+		return nil, fosite.ErrInvalidClient
 	}
 
 	return client, nil

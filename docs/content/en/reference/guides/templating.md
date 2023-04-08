@@ -81,6 +81,8 @@ The following functions which mimic the behaviour of helm exist in most templati
 - indent
 - nindent
 - uuidv4
+- urlquery
+- urlunquery (opposite of urlquery)
 
 See the [Helm Documentation](https://helm.sh/docs/chart_template_guide/function_list/) for more information. Please
 note that only the functions listed above are supported and the functions don't necessarily behave exactly the same.

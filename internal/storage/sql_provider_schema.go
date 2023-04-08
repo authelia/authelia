@@ -244,14 +244,16 @@ func (p *SQLProvider) schemaMigrateLock(ctx context.Context, conn SQLXConnection
 }
 
 func (p *SQLProvider) schemaMigrateApply(ctx context.Context, conn SQLXConnection, migration model.SchemaMigration) (err error) {
-	if _, err = conn.ExecContext(ctx, migration.Query); err != nil {
-		return fmt.Errorf(errFmtFailedMigration, migration.Version, migration.Name, err)
-	}
+	if migration.NotEmpty() {
+		if _, err = conn.ExecContext(ctx, migration.Query); err != nil {
+			return fmt.Errorf(errFmtFailedMigration, migration.Version, migration.Name, err)
+		}
 
-	if migration.Version == 1 && migration.Up {
-		// Add the schema encryption value if upgrading to v1.
-		if err = p.setNewEncryptionCheckValue(ctx, conn, &p.key); err != nil {
-			return err
+		if migration.Version == 1 && migration.Up {
+			// Add the schema encryption value if upgrading to v1.
+			if err = p.setNewEncryptionCheckValue(ctx, conn, &p.key); err != nil {
+				return err
+			}
 		}
 	}
 
