@@ -5,6 +5,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/valyala/fasthttp"
 )
 
 // NewAuthzBuilder creates a new AuthzBuilder.
@@ -121,6 +122,8 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 		implementation:   b.implementation,
 	}
 
+	authz.config.StatusCodeBadRequest = fasthttp.StatusBadRequest
+
 	if len(authz.strategies) == 0 {
 		switch b.implementation {
 		case AuthzImplLegacy:
@@ -134,6 +137,7 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 
 	switch b.implementation {
 	case AuthzImplLegacy:
+		authz.config.StatusCodeBadRequest = fasthttp.StatusUnauthorized
 		authz.handleGetObject = handleAuthzGetObjectLegacy
 		authz.handleUnauthorized = handleAuthzUnauthorizedLegacy
 		authz.handleGetAutheliaURL = handleAuthzPortalURLLegacy

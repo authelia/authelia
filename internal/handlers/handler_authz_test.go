@@ -184,7 +184,12 @@ func (s *AuthzSuite) TestShouldDenyObject() {
 
 			authz.Handler(mock.Ctx)
 
-			assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+			switch s.implementation {
+			case AuthzImplLegacy:
+				assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+			default:
+				assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
+			}
 		})
 	}
 }

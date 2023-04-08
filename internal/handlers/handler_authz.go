@@ -23,12 +23,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	if object, err = authz.handleGetObject(ctx); err != nil {
 		ctx.Logger.WithError(err).Error("Error getting Target URL and Request Method")
 
-		switch authz.implementation {
-		case AuthzImplLegacy:
-			ctx.ReplyUnauthorized()
-		default:
-			ctx.ReplyBadRequest()
-		}
+		ctx.ReplyStatusCode(authz.config.StatusCodeBadRequest)
 
 		return
 	}
@@ -36,7 +31,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	if !utils.IsURISecure(object.URL) {
 		ctx.Logger.Errorf("Target URL '%s' has an insecure scheme '%s', only the 'https' and 'wss' schemes are supported so session cookies can be transmitted securely", object.URL.String(), object.URL.Scheme)
 
-		ctx.ReplyUnauthorized()
+		ctx.ReplyStatusCode(authz.config.StatusCodeBadRequest)
 
 		return
 	}
@@ -44,7 +39,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	if provider, err = ctx.GetSessionProviderByTargetURL(object.URL); err != nil {
 		ctx.Logger.WithError(err).WithField("target_url", object.URL.String()).Error("Target URL does not appear to have a relevant session cookies configuration")
 
-		ctx.ReplyUnauthorized()
+		ctx.ReplyStatusCode(authz.config.StatusCodeBadRequest)
 
 		return
 	}
@@ -52,12 +47,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	if autheliaURL, err = authz.getAutheliaURL(ctx, provider); err != nil {
 		ctx.Logger.WithError(err).WithField("target_url", object.URL.String()).Error("Error occurred trying to determine the external Authelia URL for Target URL")
 
-		switch authz.implementation {
-		case AuthzImplLegacy:
-			ctx.ReplyUnauthorized()
-		default:
-			ctx.ReplyBadRequest()
-		}
+		ctx.ReplyStatusCode(authz.config.StatusCodeBadRequest)
 
 		return
 	}

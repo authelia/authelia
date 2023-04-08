@@ -10,7 +10,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-// Authz is a type which is a effectively is a middlewares.RequestHandler for authorization requests.
+// Authz is a type which is a effectively is a middlewares.RequestHandler for authorization requests. This should NOT be
+// manually used and developers should instead use NewAuthzBuilder.
 type Authz struct {
 	config AuthzConfig
 
@@ -75,6 +76,10 @@ type Authn struct {
 // AuthzConfig represents the configuration elements of the Authz type.
 type AuthzConfig struct {
 	RefreshInterval time.Duration
+
+	// StatusCodeBadRequest is sent for configuration issues prior to performing authorization checks. It's set by the
+	// builder.
+	StatusCodeBadRequest int
 }
 
 // AuthzBuilder is a builder pattern for the Authz type.
