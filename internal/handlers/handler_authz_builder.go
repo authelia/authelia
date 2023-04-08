@@ -3,9 +3,10 @@ package handlers
 import (
 	"time"
 
+	"github.com/valyala/fasthttp"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
-	"github.com/valyala/fasthttp"
 )
 
 // NewAuthzBuilder creates a new AuthzBuilder.
