@@ -8,8 +8,8 @@ jwt_secret: unsecure_secret
 server:
   port: 9091
   tls:
-    certificate: /config/ssl/cert.pem
-    key: /config/ssl/key.pem
+    certificate: /pki/public.backend.crt
+    key: /pki/private.backend.pem
 
 log:
   level: debug
@@ -87,7 +87,9 @@ session:
   secret: unsecure_session_secret
   expiration: 3600  # 1 hour
   inactivity: 300  # 5 minutes
-  domain: example.com
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
   redis:
     username: authelia
     password: redis-user-password

@@ -5,5 +5,5 @@ services:
     volumes:
       - './Traefik/configuration.yml:/config/configuration.yml:ro'
       - './Traefik/users.yml:/config/users.yml'
-      - './common/ssl:/config/ssl:ro'
+      - './common/pki:/pki:ro'
 ...

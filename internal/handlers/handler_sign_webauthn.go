@@ -52,7 +52,7 @@ func WebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	extensions := map[string]any{}
 
 	if user.HasFIDOU2F() {
-		extensions["appid"] = w.Config.RPOrigins[0]
+		extensions["appid"] = w.Config.RPOrigin
 	}
 
 	if len(extensions) != 0 {

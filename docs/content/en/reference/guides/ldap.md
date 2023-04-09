@@ -56,6 +56,9 @@ The following implementations exist:
   - Specific configuration defaults for [Active Directory]
   - Special implementation details:
     - Includes a special encoding format required for changing passwords with [Active Directory]
+- `rfc2307bis`:
+  - Specific configuration defaults for [RFC2307bis]
+  - No special implementation details
 - `freeipa`:
   - Specific configuration defaults for [FreeIPA]
   - No special implementation details
@@ -70,11 +73,17 @@ The following implementations exist:
 [FreeIPA]: https://www.freeipa.org/
 [lldap]: https://github.com/nitnelave/lldap
 [GLAuth]: https://glauth.github.io/
+[RFC2307bis]: https://datatracker.ietf.org/doc/html/draft-howard-rfc2307bis-02
 
 ### Filter replacements
 
 Various replacements occur in the user and groups filter. The replacements either occur at startup or upon an LDAP
-search.
+search which is indicated by the phase column.
+
+The phases exist to optimize performance. The replacements in the startup phase are replaced once before the connection
+is ever established. In addition to this, during the startup phase we purposefully check the filters for which search
+phase replacements exist so we only have to check if the replacement is necessary once, and we don't needlessly perform
+every possible replacement on every search regardless of if it's needed or not.
 
 #### Users filter replacements
 
@@ -117,6 +126,7 @@ Username column.
 |:---------------:|:--------------:|:------------:|:----:|:----------:|
 |     custom      |      N/A       | displayName  | mail |     cn     |
 | activedirectory | sAMAccountName | displayName  | mail |     cn     |
+|   rfc2307bis    |      uid       | displayName  | mail |     cn     |
 |     freeipa     |      uid       | displayName  | mail |     cn     |
 |      lldap      |      uid       |      cn      | mail |     cn     |
 |     glauth      |       cn       | description  | mail |     cn     |
@@ -130,20 +140,32 @@ the following conditions:
   - The [Active Directory] implementation achieves this via the `(!(userAccountControl:1.2.840.113556.1.4.803:=2))` filter.
   - The [FreeIPA] implementation achieves this via the `(!(nsAccountLock=TRUE))` filter.
   - The [GLAuth] implementation achieves this via the `(!(accountStatus=inactive))` filter.
+  - The following implementations have no suitable attribute for this as far as we're aware:
+    - [RFC2307bis]
+    - [lldap]
 - Their password is expired:
   - The [Active Directory] implementation achieves this via the `(!(pwdLastSet=0))` filter.
   - The [FreeIPA] implementation achieves this via the `(krbPasswordExpiration>={date-time:generalized})` filter.
+  - The following implementations have no suitable attribute for this as far as we're aware:
+    - [RFC2307bis]
+    - [GLAuth]
+    - [lldap]
 - Their account is expired:
   - The [Active Directory] implementation achieves this via the `(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt}))` filter.
   - The [FreeIPA] implementation achieves this via the `(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized}))` filter.
+  - The following implementations have no suitable attribute for this as far as we're aware:
+    - [RFC2307bis]
+    - [GLAuth]
+    - [lldap]
 
-| Implementation  |                                                                                                                       Users Filter                                                                                                                       |                                Groups Filter                                 |
-|:---------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------:|
-|     custom      |                                                                                                                           N/A                                                                                                                            |                                     N/A                                      |
-| activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(&#124;(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt}))) | (&(member={dn})(&#124;(sAMAccountType=268435456)(sAMAccountType=536870912))) |
-|     freeipa     |   (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(&#124;(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))   |                  (&(member={dn})(objectClass=groupOfNames))                  |
-|      lldap      |                                                                                 (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))                                                                                  |                  (&(member={dn})(objectClass=groupOfNames))                  |
-|     glauth      |                                                                 (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=posixAccount)(!(accountStatus=inactive)))                                                                 |                (&(uniqueMember={dn})(objectClass=posixGroup))                |
+| Implementation  |                                                                                                                       Users Filter                                                                                                                       |                                                               Groups Filter                                                               |
+|:---------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------------:|
+|     custom      |                                                                                                                           N/A                                                                                                                            |                                                                    N/A                                                                    |
+| activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(&#124;(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt}))) |                               (&(member={dn})(&#124;(sAMAccountType=268435456)(sAMAccountType=536870912)))                                |
+|   rfc2307bis    |                                                         (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(&#124;(objectClass=inetOrgPerson)(objectClass=organizationalPerson)))                                                         | (&(&#124;(member={dn})(uniqueMember={dn}))(&#124;(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=groupOfMembers))) |
+|     freeipa     |   (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(&#124;(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))   |                                                (&(member={dn})(objectClass=groupOfNames))                                                 |
+|      lldap      |                                                                                 (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))                                                                                  |                                                (&(member={dn})(objectClass=groupOfNames))                                                 |
+|     glauth      |                                                                 (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=posixAccount)(!(accountStatus=inactive)))                                                                 |                                              (&(uniqueMember={dn})(objectClass=posixGroup))                                               |
 
 ##### Microsoft Active Directory sAMAccountType
 

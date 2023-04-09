@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -25,7 +26,7 @@ import (
 // and generate a nonce to support a restrictive CSP while using material-ui.
 func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middlewares.RequestHandler {
 	isDevEnvironment := os.Getenv(environment) == dev
-	ext := filepath.Ext(t.Name())
+	ext := path.Ext(t.Name())
 
 	return func(ctx *middlewares.AutheliaCtx) {
 		var err error
@@ -60,25 +61,52 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 
 		var (
 			rememberMe string
+			baseURL    string
+			domain     string
 			provider   *session.Session
 		)
 
 		if provider, err = ctx.GetSessionProvider(); err == nil {
+			if provider.Config.AutheliaURL != nil {
+				baseURL = provider.Config.AutheliaURL.String()
+			} else {
+				baseURL = ctx.RootURLSlash().String()
+			}
+
+			domain = provider.Config.Domain
 			rememberMe = strconv.FormatBool(!provider.Config.DisableRememberMe)
+		} else {
+			baseURL = ctx.RootURLSlash().String()
 		}
 
-		if err = t.Execute(ctx.Response.BodyWriter(), opts.CommonData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce, logoOverride, rememberMe)); err != nil {
-			ctx.RequestCtx.Error("an error occurred", 503)
+		data := &bytes.Buffer{}
+
+		if err = t.Execute(data, opts.CommonData(ctx.BasePath(), baseURL, domain, nonce, logoOverride, rememberMe)); err != nil {
+			ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
 			ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
 
 			return
+		}
+
+		switch {
+		case ctx.IsHead():
+			ctx.Response.ResetBody()
+			ctx.Response.SkipBody = true
+			ctx.Response.Header.Set(fasthttp.HeaderContentLength, strconv.Itoa(data.Len()))
+		default:
+			if _, err = data.WriteTo(ctx.Response.BodyWriter()); err != nil {
+				ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
+				ctx.Logger.WithError(err).Errorf("Error occcurred writing body")
+
+				return
+			}
 		}
 	}
 }
 
 // ServeTemplatedOpenAPI serves templated OpenAPI related files.
 func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) middlewares.RequestHandler {
-	ext := filepath.Ext(t.Name())
+	ext := path.Ext(t.Name())
 
 	spec := ext == extYML
 
@@ -101,13 +129,46 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 			ctx.SetContentTypeTextPlain()
 		}
 
-		var err error
+		var (
+			baseURL  string
+			domain   string
+			provider *session.Session
+			err      error
+		)
 
-		if err = t.Execute(ctx.Response.BodyWriter(), opts.OpenAPIData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce)); err != nil {
-			ctx.RequestCtx.Error("an error occurred", 503)
+		if provider, err = ctx.GetSessionProvider(); err == nil {
+			if provider.Config.AutheliaURL != nil {
+				baseURL = provider.Config.AutheliaURL.String()
+			} else {
+				baseURL = ctx.RootURLSlash().String()
+			}
+
+			domain = provider.Config.Domain
+		} else {
+			baseURL = ctx.RootURLSlash().String()
+		}
+
+		data := &bytes.Buffer{}
+
+		if err = t.Execute(data, opts.OpenAPIData(ctx.BasePath(), baseURL, domain, nonce)); err != nil {
+			ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
 			ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
 
 			return
+		}
+
+		switch {
+		case ctx.IsHead():
+			ctx.Response.ResetBody()
+			ctx.Response.SkipBody = true
+			ctx.Response.Header.Set(fasthttp.HeaderContentLength, strconv.Itoa(data.Len()))
+		default:
+			if _, err = data.WriteTo(ctx.Response.BodyWriter()); err != nil {
+				ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
+				ctx.Logger.WithError(err).Errorf("Error occcurred writing body")
+
+				return
+			}
 		}
 	}
 }
@@ -138,6 +199,11 @@ func ETagRootURL(next middlewares.RequestHandler) middlewares.RequestHandler {
 		}
 
 		next(ctx)
+
+		if ctx.Response.SkipBody || ctx.Response.StatusCode() != fasthttp.StatusOK {
+			// Skip generating the ETag as the response body should be empty.
+			return
+		}
 
 		mu.Lock()
 
@@ -247,14 +313,15 @@ type TemplatedFileOptions struct {
 }
 
 // CommonData returns a TemplatedFileCommonData with the dynamic options.
-func (options *TemplatedFileOptions) CommonData(base, baseURL, nonce, logoOverride, rememberMe string) TemplatedFileCommonData {
+func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, logoOverride, rememberMe string) TemplatedFileCommonData {
 	if rememberMe != "" {
-		return options.commonDataWithRememberMe(base, baseURL, nonce, logoOverride, rememberMe)
+		return options.commonDataWithRememberMe(base, baseURL, domain, nonce, logoOverride, rememberMe)
 	}
 
 	return TemplatedFileCommonData{
 		Base:                   base,
 		BaseURL:                baseURL,
+		Domain:                 domain,
 		CSPNonce:               nonce,
 		LogoOverride:           logoOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
@@ -269,10 +336,11 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, nonce, logoOverri
 }
 
 // CommonDataWithRememberMe returns a TemplatedFileCommonData with the dynamic options.
-func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, nonce, logoOverride, rememberMe string) TemplatedFileCommonData {
+func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, domain, nonce, logoOverride, rememberMe string) TemplatedFileCommonData {
 	return TemplatedFileCommonData{
 		Base:                   base,
 		BaseURL:                baseURL,
+		Domain:                 domain,
 		CSPNonce:               nonce,
 		LogoOverride:           logoOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
@@ -285,10 +353,11 @@ func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, non
 }
 
 // OpenAPIData returns a TemplatedFileOpenAPIData with the dynamic options.
-func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, nonce string) TemplatedFileOpenAPIData {
+func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, domain, nonce string) TemplatedFileOpenAPIData {
 	return TemplatedFileOpenAPIData{
 		Base:     base,
 		BaseURL:  baseURL,
+		Domain:   domain,
 		CSPNonce: nonce,
 
 		Session:        options.Session,
@@ -305,6 +374,7 @@ func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, nonce string) Te
 type TemplatedFileCommonData struct {
 	Base                   string
 	BaseURL                string
+	Domain                 string
 	CSPNonce               string
 	LogoOverride           string
 	DuoSelfEnrollment      string
@@ -321,6 +391,7 @@ type TemplatedFileCommonData struct {
 type TemplatedFileOpenAPIData struct {
 	Base          string
 	BaseURL       string
+	Domain        string
 	CSPNonce      string
 	Session       string
 	PasswordReset bool

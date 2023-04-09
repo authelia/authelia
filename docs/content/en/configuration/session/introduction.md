@@ -15,11 +15,8 @@ aliases:
   - /docs/configuration/session/
 ---
 
-__Authelia__ relies on session cookies to authenticate users. When the user visits a website of the protected domain
-`example.com` for the first time, Authelia detects that there is no cookie for that user. Consequently, Authelia
-redirects the user to the login portal through which the user should authenticate to get a cookie which is valid for
-`*.example.com`, meaning all websites of the domain. At the next request, Authelia receives the cookie associated to the
-authenticated user and can then order the reverse proxy to let the request pass through to the application.
+__Authelia__ relies on session cookies to authorize user access to various protected websites. This section configures
+the session cookie behaviour and the domains which Authelia can service authorization requests for.
 
 ## Configuration
 
@@ -34,8 +31,9 @@ session:
   remember_me: 1M
 
   cookies:
-    - name: authelia_session
-      domain: example.com
+    - domain: example.com
+      authelia_url: https://auth.example.com
+      name: authelia_session
       same_site: lax
       inactivity: 5m
       expiration: 1h
@@ -75,10 +73,8 @@ characters.
 
 {{< confkey type="string" required="no" >}}
 
-_**Deprecation Notice:** This option is deprecated. See the [cookies](#cookies) section instead._
-
-The domain the cookie is assigned to protect. This must be the same as the domain Authelia is served on or the root
-of the domain. For example if listening on auth.example.com the cookie should be auth.example.com or example.com.
+_**Deprecation Notice:** This option is deprecated. See the [cookies](#cookies) section and specifically the
+[cookies domain](#domain-1) option instead._
 
 This value automatically maps to a single cookies configuration using the default values. It cannot be assigned at the
 same time as a `cookies` configuration.
@@ -128,28 +124,25 @@ The list of specific cookie domains that Authelia is configured to handle. Domai
 automatically be denied by Authelia. The list allows administrators to define multiple session cookie domain
 configurations with individual settings.
 
-#### name
-
-{{< confkey type="string" required="no" >}}
-
-*__Default Value:__ This option takes its default value from the [name](#name) setting above.*
-
-The name of the session cookie. By default this is set to the `name` value in the main session configuration section.
-
 #### domain
 
 {{< confkey type="string" required="yes" >}}
 
-The domain the cookie is assigned to protect. This must be the same as the domain Authelia is served on or the root
-of the domain, and consequently if the [authelia_url](#authelia_url) is configured must be able to read and write cookies
-for the domain. For example if listening on `auth.example.com` the cookie should be either `auth.example.com` or
-`example.com`.
+*__Important Note:__ Browsers have rules regarding which cookie domains a website can write. In particular this.*
 
-Please note most good DynamicDNS solutions fall into a specially protected group of domains and browsers do not allow
-you to write cookies for the root domain. i.e. if you have been assigned `john.duckdns.org` you can't use `duckdns.org`
-for the domain value as browsers will not allow `john.duckdns.org` to read or write cookies for `duckdns.org`.
+The domain the session cookie is assigned to protect. This must be the same as the domain Authelia is served on or the
+root of the domain, and consequently if the [authelia_url](#authelia_url) is configured must be able to read and write
+cookies for this domain.
 
-Consequently, if you have `john.duckdns.org` and `mary.duckdns.org` you cannot share cookies between these domains.
+For example if Authelia is accessible via the URL `https://auth.example.com` the domain should be either
+`auth.example.com` or `example.com`.
+
+The value must not match a domain on the [Public Suffix List](https://publicsuffix.org/list/) as browsers do not allow
+websites to write cookies for these domains. This includes most Dynamic DNS services such as `duckdns.org`. You should
+use your domain instead of `duckdns.org` for this value, for example `example.duckdns.org`.
+
+Consequently, if you have `example.duckdns.org` and `example-auth.duckdns.org` you cannot share cookies between these
+domains.
 
 #### authelia_url
 
@@ -160,9 +153,23 @@ that the `authelia_url` option is ineffectual for both NGINX and HAProxy, or any
 implementation.*
 
 This is a completely optional URL which is the root URL of your Authelia installation for this cookie domain which can
-be used to generate the appropriate redirection for proxies which support this.
+be used to generate the appropriate redirection for proxies which support this. This URL must:
+
+1. Be able to read and write cookies for the configured [domain](#domain-1).
+2. Use the `https://` scheme.
+3. Include the path if relevant (i.e. `https://example.com/authelia` rather than `https://example.com` if you're using the
+   [server path option](../miscellaneous/server.md#path) of `authelia` and if the Authelia portal is inaccessible from
+   `https://example.com`).
 
 If this option is absent you must use the appropriate query parameter or header for your relevant proxy.
+
+#### name
+
+{{< confkey type="string" required="no" >}}
+
+*__Default Value:__ This option takes its default value from the [name](#name) setting above.*
+
+The name of the session cookie. By default this is set to the `name` value in the main session configuration section.
 
 #### same_site
 

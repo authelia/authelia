@@ -321,49 +321,19 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 		config.LDAP.Implementation = schema.LDAPImplementationCustom
 	}
 
-	var implementation *schema.LDAPAuthenticationBackend
-
-	switch config.LDAP.Implementation {
-	case schema.LDAPImplementationCustom:
-		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom
-	case schema.LDAPImplementationActiveDirectory:
-		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory
-	case schema.LDAPImplementationFreeIPA:
-		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA
-	case schema.LDAPImplementationLLDAP:
-		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP
-	case schema.LDAPImplementationGLAuth:
-		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth
-	default:
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendImplementation, config.LDAP.Implementation, strings.Join(validLDAPImplementations, "', '")))
-	}
-
-	configDefaultTLS := &schema.TLSConfig{}
-
-	if implementation != nil {
-		if config.LDAP.Timeout == 0 {
-			config.LDAP.Timeout = implementation.Timeout
-		}
-
-		configDefaultTLS = &schema.TLSConfig{
-			MinimumVersion: implementation.TLS.MinimumVersion,
-			MaximumVersion: implementation.TLS.MaximumVersion,
-		}
-
-		setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config.LDAP, implementation)
-	}
+	defaultTLS := validateLDAPAuthenticationBackendImplementation(config, validator)
 
 	if config.LDAP.URL == "" {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "url"))
 	} else {
-		configDefaultTLS.ServerName = validateLDAPAuthenticationBackendURL(config.LDAP, validator)
+		defaultTLS.ServerName = validateLDAPAuthenticationBackendURL(config.LDAP, validator)
 	}
 
 	if config.LDAP.TLS == nil {
 		config.LDAP.TLS = &schema.TLSConfig{}
 	}
 
-	if err := ValidateTLSConfig(config.LDAP.TLS, configDefaultTLS); err != nil {
+	if err := ValidateTLSConfig(config.LDAP.TLS, defaultTLS); err != nil {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendTLSConfigInvalid, err))
 	}
 
@@ -380,6 +350,44 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 	}
 
 	validateLDAPRequiredParameters(config, validator)
+}
+
+func validateLDAPAuthenticationBackendImplementation(config *schema.AuthenticationBackend, validator *schema.StructValidator) *schema.TLSConfig {
+	var implementation *schema.LDAPAuthenticationBackend
+
+	switch config.LDAP.Implementation {
+	case schema.LDAPImplementationCustom:
+		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom
+	case schema.LDAPImplementationActiveDirectory:
+		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory
+	case schema.LDAPImplementationRFC2307bis:
+		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis
+	case schema.LDAPImplementationFreeIPA:
+		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA
+	case schema.LDAPImplementationLLDAP:
+		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP
+	case schema.LDAPImplementationGLAuth:
+		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth
+	default:
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendImplementation, config.LDAP.Implementation, strings.Join(validLDAPImplementations, "', '")))
+	}
+
+	tlsconfig := &schema.TLSConfig{}
+
+	if implementation != nil {
+		if config.LDAP.Timeout == 0 {
+			config.LDAP.Timeout = implementation.Timeout
+		}
+
+		tlsconfig = &schema.TLSConfig{
+			MinimumVersion: implementation.TLS.MinimumVersion,
+			MaximumVersion: implementation.TLS.MaximumVersion,
+		}
+
+		setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config.LDAP, implementation)
+	}
+
+	return tlsconfig
 }
 
 func ldapImplementationShouldSetStr(config, implementation string) bool {

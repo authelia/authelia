@@ -32,15 +32,19 @@ type Provider interface {
 	// StringCustom is an overload of GenerateCustom which takes a characters string and returns a string.
 	StringCustom(n int, characters string) (data string)
 
+	// Intn returns a random integer with a maximum of n.
+	Intn(n int) (value int)
+
+	// IntnErr returns a random int error combination with a maximum of n.
+	IntnErr(n int) (value int, err error)
+
 	// IntErr returns a random *big.Int error combination with a maximum of max.
 	IntErr(max *big.Int) (value *big.Int, err error)
 
 	// Int returns a random *big.Int with a maximum of max.
 	Int(max *big.Int) (value *big.Int)
 
-	// IntegerErr returns a random int error combination with a maximum of n.
-	IntegerErr(n int) (value int, err error)
-
-	// Integer returns a random integer with a maximum of n.
-	Integer(n int) (value int)
+	// Prime returns a number of the given bit length that is prime with high probability. Prime will return error for any
+	// error returned by rand.Read or if bits < 2.
+	Prime(bits int) (prime *big.Int, err error)
 }

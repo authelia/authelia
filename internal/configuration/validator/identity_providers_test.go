@@ -80,7 +80,7 @@ func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: cors: option 'endpoints' contains an invalid value 'invalid_endpoint': must be one of 'authorization', 'token', 'introspection', 'revocation', 'userinfo'")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: cors: option 'endpoints' contains an invalid value 'invalid_endpoint': must be one of 'authorization', 'pushed-authorization-request', 'token', 'introspection', 'revocation', 'userinfo'")
 }
 
 func TestShouldRaiseErrorWhenOIDCPKCEEnforceValueInvalid(t *testing.T) {
@@ -179,8 +179,8 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 				},
 			},
 			Errors: []string{
-				fmt.Sprintf(errFmtOIDCClientInvalidSecret, ""),
-				errFmtOIDCClientsWithEmptyID,
+				"identity_providers: oidc: client '': option 'secret' is required",
+				"identity_providers: oidc: one or more clients have been configured with an empty id",
 			},
 		},
 		{
@@ -195,7 +195,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					},
 				},
 			},
-			Errors: []string{fmt.Sprintf(errFmtOIDCClientInvalidPolicy, "client-1", "a-policy")},
+			Errors: []string{"identity_providers: oidc: client 'client-1': option 'policy' must be 'one_factor' or 'two_factor' but it is configured as 'a-policy'"},
 		},
 		{
 			Name: "ClientIDDuplicated",
@@ -427,7 +427,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:         "good_id",
-					Secret:     MustDecodeSecret("$plaintext$good_secret"),
+					Secret:     MustDecodeSecret(goodOpenIDConnectClientSecret),
 					Policy:     "two_factor",
 					GrantTypes: []string{"bad_grant_type"},
 					RedirectURIs: []string{
@@ -454,7 +454,7 @@ func TestShouldNotErrorOnCertificateValid(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "good_id",
-					Secret: MustDecodeSecret("$plaintext$good_secret"),
+					Secret: MustDecodeSecret(goodOpenIDConnectClientSecret),
 					Policy: "two_factor",
 					RedirectURIs: []string{
 						"https://google.com/callback",
@@ -480,7 +480,7 @@ func TestShouldRaiseErrorOnCertificateNotValid(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "good_id",
-					Secret: MustDecodeSecret("$plaintext$good_secret"),
+					Secret: MustDecodeSecret(goodOpenIDConnectClientSecret),
 					Policy: "two_factor",
 					RedirectURIs: []string{
 						"https://google.com/callback",
@@ -507,7 +507,7 @@ func TestShouldRaiseErrorOnKeySizeTooSmall(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "good_id",
-					Secret: MustDecodeSecret("$plaintext$good_secret"),
+					Secret: MustDecodeSecret(goodOpenIDConnectClientSecret),
 					Policy: "two_factor",
 					RedirectURIs: []string{
 						"https://google.com/callback",
@@ -523,6 +523,35 @@ func TestShouldRaiseErrorOnKeySizeTooSmall(t *testing.T) {
 	require.Len(t, validator.Errors(), 1)
 
 	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option 'issuer_private_key' must be an RSA private key with 2048 bits or more but it only has 1024 bits")
+}
+
+func TestShouldRaiseErrorOnKeyInvalidPublicKey(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.IdentityProvidersConfiguration{
+		OIDC: &schema.OpenIDConnectConfiguration{
+			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey3),
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "good_id",
+					Secret: MustDecodeSecret(goodOpenIDConnectClientSecret),
+					Policy: "two_factor",
+					RedirectURIs: []string{
+						"https://google.com/callback",
+					},
+				},
+			},
+		},
+	}
+
+	config.OIDC.IssuerPrivateKey.PublicKey.N = nil
+
+	ValidateIdentityProviders(config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option 'issuer_private_key' must be a valid RSA private key but the provided data is missing the public key bits")
 }
 
 func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseModes(t *testing.T) {
@@ -587,7 +616,7 @@ func TestValidateIdentityProvidersShouldRaiseWarningOnSecurityIssue(t *testing.T
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "good_id",
-					Secret: MustDecodeSecret("$plaintext$good_secret"),
+					Secret: MustDecodeSecret(goodOpenIDConnectClientSecret),
 					Policy: "two_factor",
 					RedirectURIs: []string{
 						"https://google.com/callback",
@@ -623,7 +652,7 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testi
 				},
 				{
 					ID:     "client-with-bad-redirect-uri",
-					Secret: MustDecodeSecret("$plaintext$a-secret"),
+					Secret: MustDecodeSecret(goodOpenIDConnectClientSecret),
 					Public: false,
 					Policy: "two_factor",
 					RedirectURIs: []string{
@@ -702,6 +731,33 @@ func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidClientOptions(t *te
 	assert.Len(t, validator.Warnings(), 0)
 }
 
+func TestValidateIdentityProvidersShouldRaiseWarningOnPlainTextClients(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.IdentityProvidersConfiguration{
+		OIDC: &schema.OpenIDConnectConfiguration{
+			HMACSecret:       "hmac1",
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "client-with-invalid-secret_standard",
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
+					Policy: "two_factor",
+					RedirectURIs: []string{
+						"https://localhost",
+					},
+				},
+			},
+		},
+	}
+
+	ValidateIdentityProviders(config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+	require.Len(t, validator.Warnings(), 1)
+
+	assert.EqualError(t, validator.Warnings()[0], "identity_providers: oidc: client 'client-with-invalid-secret_standard': option 'secret' is plaintext but it should be a hashed value as plaintext values are deprecated and will be removed when oidc becomes stable")
+}
+
 func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 	timeDay := time.Hour * 24
 
@@ -713,7 +769,7 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "a-client",
-					Secret: MustDecodeSecret("$plaintext$a-client-secret"),
+					Secret: MustDecodeSecret(goodOpenIDConnectClientSecret),
 					RedirectURIs: []string{
 						"https://google.com",
 					},
@@ -722,7 +778,7 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 				{
 					ID:                       "b-client",
 					Description:              "Normal Description",
-					Secret:                   MustDecodeSecret("$plaintext$b-client-secret"),
+					Secret:                   MustDecodeSecret(goodOpenIDConnectClientSecret),
 					Policy:                   policyOneFactor,
 					UserinfoSigningAlgorithm: "RS256",
 					RedirectURIs: []string{
@@ -745,7 +801,7 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 				},
 				{
 					ID:     "c-client",
-					Secret: MustDecodeSecret("$plaintext$a-client-secret"),
+					Secret: MustDecodeSecret(goodOpenIDConnectClientSecret),
 					RedirectURIs: []string{
 						"https://google.com",
 					},
@@ -753,7 +809,7 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 				},
 				{
 					ID:     "d-client",
-					Secret: MustDecodeSecret("$plaintext$a-client-secret"),
+					Secret: MustDecodeSecret(goodOpenIDConnectClientSecret),
 					RedirectURIs: []string{
 						"https://google.com",
 					},
@@ -761,7 +817,7 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 				},
 				{
 					ID:     "e-client",
-					Secret: MustDecodeSecret("$plaintext$a-client-secret"),
+					Secret: MustDecodeSecret(goodOpenIDConnectClientSecret),
 					RedirectURIs: []string{
 						"https://google.com",
 					},
@@ -1019,4 +1075,6 @@ AQmB98tdGLggbyXiODV2h+Rd37aFGb0QHzerIIsVNtMwlPCcp733D4kWJqTUYWZ+
 KBL3XEahgs6Os5EYZ4aBAkEAjKE+2/nBYUdHVusjMXeNsE5rqwJND5zvYzmToG7+
 xhv4RUAe4dHL4IDQoQRjhr3Nw+JYvtzBx0Iq/178xMnGKg==
 -----END RSA PRIVATE KEY-----`
+
+	goodOpenIDConnectClientSecret = "$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng" //nolint:gosec
 )

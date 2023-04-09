@@ -118,14 +118,14 @@ func codeScriptsRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if resp, err = http.Get("https://api.github.com/repos/swagger-api/swagger-ui/tags"); err != nil {
+	if resp, err = http.Get("https://api.github.com/repos/swagger-api/swagger-ui/releases/latest"); err != nil {
 		return fmt.Errorf("failed to get latest version of the Swagger UI: %w", err)
 	}
 
 	defer resp.Body.Close()
 
 	var (
-		respJSON []GitHubTagsJSON
+		respJSON GitHubReleasesJSON
 		respRaw  []byte
 	)
 
@@ -137,14 +137,10 @@ func codeScriptsRunE(cmd *cobra.Command, args []string) (err error) {
 		return fmt.Errorf("failed to get latest version of the Swagger UI: %w", err)
 	}
 
-	if len(respJSON) < 1 {
-		return fmt.Errorf("failed to get latest version of the Swagger UI: the api returned zero results")
-	}
-
-	if strings.HasPrefix(respJSON[0].Name, "v") {
-		data.VersionSwaggerUI = respJSON[0].Name[1:]
+	if strings.HasPrefix(respJSON.TagName, "v") {
+		data.VersionSwaggerUI = respJSON.TagName[1:]
 	} else {
-		data.VersionSwaggerUI = respJSON[0].Name
+		data.VersionSwaggerUI = respJSON.TagName
 	}
 
 	fullPathScriptsGen := filepath.Join(root, pathScriptsGen)
@@ -177,7 +173,7 @@ func codeKeysRunE(cmd *cobra.Command, args []string) (err error) {
 
 	data := tmplConfigurationKeysData{
 		Timestamp: time.Now(),
-		Keys:      readTags("", reflect.TypeOf(schema.Configuration{})),
+		Keys:      readTags("", reflect.TypeOf(schema.Configuration{}), false),
 	}
 
 	if root, err = cmd.Flags().GetString(cmdFlagRoot); err != nil {

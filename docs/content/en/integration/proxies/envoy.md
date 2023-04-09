@@ -37,6 +37,47 @@ how you can configure multiple IP ranges. You should customize this example to f
 You should only include the specific IP address ranges of the trusted proxies within your architecture and should not
 trust entire subnets unless that subnet only has trusted proxies and no other services.*
 
+## Assumptions and Adaptation
+
+This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
+can not reasonably have examples for every advanced configuration option that exists. The
+following are the assumptions we make:
+
+* Deployment Scenario:
+  * Single Host
+  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
+  * Proxy is deployed as a Container on a network shared with Authelia
+* The above assumption means that AUthelia should be accesible to the proxy on `http://authelia:9091` and as such:
+  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
+    certificate defined
+  * You will have to adapt all instances of `authelia` in the URL if:
+    * you're using a different container name
+    * you deployed the proxy to a different location
+  * You will have to adapt all instances of `9091` in the URL if:
+    * you have adjusted the default port in the configuration
+  * You will have to adapt the entire URL if:
+    * Authelia is on a different host to the proxy
+* All services are part of the `example.com` domain:
+  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
+    just testing or you want ot use that specific domain
+
+## Implementation
+
+[Envoy] utilizes the [ExtAuthz](../../reference/guides/proxy-authorization.md#extauthz) Authz implementation. The
+associated [Metadata](../../reference/guides/proxy-authorization.md#extauthz-metadata) should be considered required.
+
+The examples below assume you are using the default
+[Authz Endpoints Configuration](../../configuration/miscellaneous/server-endpoints-authz.md) or one similar to the
+following minimal configuration:
+
+```yaml
+server:
+  endpoints:
+    authz:
+      ext-authz:
+        implementation: ExtAuthz
+```
+
 ## Configuration
 
 Below you will find commented examples of the following configuration:
@@ -168,6 +209,13 @@ static_resources:
                   - name: envoy.filters.http.ext_authz
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                      transport_api_version: v3
+                      allowed_headers:
+                        patterns:
+                          - exact: authorization
+                          - exact: proxy-authorization
+                          - exact: accept
+                          - exact: cookie
                       http_service:
                         path_prefix: /api/authz/ext-authz/
                         server_uri:
@@ -177,9 +225,10 @@ static_resources:
                         authorization_request:
                           allowed_headers:
                             patterns:
+                              - exact: authorization
+                              - exact: proxy-authorization
                               - exact: accept
                               - exact: cookie
-                              - exact: proxy-authorization
                           headers_to_add:
                             - key: X-Forwarded-Proto
                               value: '%REQ(:SCHEME)%'
@@ -207,9 +256,9 @@ static_resources:
   clusters:
     - name: nextcloud
       connect_timeout: 0.25s
-      type: LOGICAL_DNS
-      dns_lookup_family: V4_ONLY
-      lb_policy: ROUND_ROBIN
+      type: logical_dns
+      dns_lookup_family: v4_only
+      lb_policy: round_robin
       load_assignment:
         cluster_name: nextcloud
         endpoints:
@@ -221,9 +270,9 @@ static_resources:
                       port_value: 80
     - name: authelia
       connect_timeout: 0.25s
-      type: LOGICAL_DNS
-      dns_lookup_family: V4_ONLY
-      lb_policy: ROUND_ROBIN
+      type: logical_dns
+      dns_lookup_family: v4_only
+      lb_policy: round_robin
       load_assignment:
         cluster_name: authelia
         endpoints:
@@ -233,6 +282,17 @@ static_resources:
                     socket_address:
                       address: authelia
                       port_value: 9091
+layered_runtime:
+  layers:
+    - name: static_layer_0
+      static_layer:
+        envoy:
+          resource_limits:
+            listener:
+              example_listener_name:
+                connection_limit: 10000
+        overload:
+          global_downstream_max_connections: 50000
 ```
 {{< /details >}}
 

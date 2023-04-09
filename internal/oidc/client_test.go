@@ -224,7 +224,7 @@ func TestNewClientPKCE(t *testing.T) {
 		expectedEnforcePKCE                bool
 		expectedEnforcePKCEChallengeMethod bool
 		expected                           string
-		req                                *fosite.Request
+		r                                  *fosite.Request
 		err                                string
 	}{
 		{
@@ -288,8 +288,8 @@ func TestNewClientPKCE(t *testing.T) {
 			assert.Equal(t, tc.expectedEnforcePKCEChallengeMethod, client.EnforcePKCEChallengeMethod)
 			assert.Equal(t, tc.expected, client.PKCEChallengeMethod)
 
-			if tc.req != nil {
-				err := client.ValidateAuthorizationPolicy(tc.req)
+			if tc.r != nil {
+				err := client.ValidatePKCEPolicy(tc.r)
 
 				if tc.err != "" {
 					assert.EqualError(t, err, tc.err)

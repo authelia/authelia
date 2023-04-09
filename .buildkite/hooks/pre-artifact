@@ -21,7 +21,6 @@ if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]]; then
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then
-  # Saving image for docker push
   docker save "${DOCKER_IMAGE}" | zstdmt -T0 -12 > "authelia-image-coverage.tar.zst"
 fi
 

@@ -9,7 +9,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -35,14 +34,8 @@ import (
 func NewCmdCtx() *CmdCtx {
 	ctx := context.Background()
 
-	ctx, cancel := context.WithCancel(ctx)
-
-	group, ctx := errgroup.WithContext(ctx)
-
 	return &CmdCtx{
 		Context: ctx,
-		cancel:  cancel,
-		group:   group,
 		log:     logging.Logger(),
 		providers: middlewares.Providers{
 			Random: &random.Cryptographical{},
@@ -54,9 +47,6 @@ func NewCmdCtx() *CmdCtx {
 // CmdCtx is a context.Context used for the root command.
 type CmdCtx struct {
 	context.Context
-
-	cancel context.CancelFunc
-	group  *errgroup.Group
 
 	log *logrus.Logger
 

@@ -35,9 +35,17 @@ The way this format works is you can either configure an integer or a string in 
 supply an integer, it is considered a representation of seconds. If you supply a string, it parses the string in blocks
 of quantities and units (number followed by a unit letter).  For example `5h` indicates a quantity of 5 units of `h`.
 
+The following is ignored:
+  - all spaces
+  - leading zeros
+
 While you can use multiple of these blocks in combination, we suggest keeping it simple and use a single value.
 
 ### Unit Legend
+
+#### Short Units
+
+These values have been available for a long time.
 
 |  Unit   | Associated Letter |
 |:-------:|:-----------------:|
@@ -48,6 +56,21 @@ While you can use multiple of these blocks in combination, we suggest keeping it
 |  Hours  |         h         |
 | Minutes |         m         |
 | Seconds |         s         |
+
+#### Long Units
+
+These values are more human readable but have only been available since v4.38.0.
+
+|     Unit     |   Human Readable Long Unit    |
+|:------------:|:-----------------------------:|
+|    Years     |        `year`, `years`        |
+|    Months    |       `month`, `months`       |
+|    Weeks     |        `week`, `weeks`        |
+|     Days     |         `day`, `days`         |
+|    Hours     |        `hour`, `hours`        |
+|   Minutes    |      `minute`, `minutes`      |
+|   Seconds    |      `second`, `seconds`      |
+| Milliseconds | `millisecond`, `milliseconds` |
 
 ### Examples
 
@@ -154,7 +177,7 @@ The value must be one or more certificates encoded in the DER base64 ([RFC4648])
 
 ### private_key
 
-{{< confkey type="string" required="yes" >}}
+{{< confkey type="string" required="no" >}}
 
 *__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
 especially for containerized deployments.*
@@ -162,6 +185,8 @@ especially for containerized deployments.*
 The private key to be used with the [certificate_chain](#certificatechain) for mutual TLS authentication.
 
 The value must be one private key encoded in the DER base64 ([RFC4648]) encoded PEM format.
+
+[RFC4648]: https://datatracker.ietf.org/doc/html/rfc4648
 
 ## Server Buffers
 

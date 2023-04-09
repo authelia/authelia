@@ -1,7 +1,7 @@
 package oidc
 
 import (
-	"fmt"
+	"strings"
 
 	"github.com/ory/fosite"
 	"github.com/ory/x/errorsx"
@@ -32,6 +32,8 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 		ResponseTypes: config.ResponseTypes,
 		ResponseModes: []fosite.ResponseModeType{fosite.ResponseModeDefault},
 
+		EnforcePAR: config.EnforcePAR,
+
 		UserinfoSigningAlgorithm: config.UserinfoSigningAlgorithm,
 
 		Policy: authorization.NewLevel(config.Policy),
@@ -46,23 +48,40 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 	return client
 }
 
-// ValidateAuthorizationPolicy is a helper function to validate additional policy constraints on a per-client basis.
-func (c *Client) ValidateAuthorizationPolicy(r fosite.Requester) (err error) {
+// ValidatePKCEPolicy is a helper function to validate PKCE policy constraints on a per-client basis.
+func (c *Client) ValidatePKCEPolicy(r fosite.Requester) (err error) {
 	form := r.GetRequestForm()
 
 	if c.EnforcePKCE {
-		if form.Get("code_challenge") == "" {
+		if form.Get(FormParameterCodeChallenge) == "" {
 			return errorsx.WithStack(fosite.ErrInvalidRequest.
 				WithHint("Clients must include a code_challenge when performing the authorize code flow, but it is missing.").
 				WithDebug("The server is configured in a way that enforces PKCE for this client."))
 		}
 
 		if c.EnforcePKCEChallengeMethod {
-			if method := form.Get("code_challenge_method"); method != c.PKCEChallengeMethod {
+			if method := form.Get(FormParameterCodeChallengeMethod); method != c.PKCEChallengeMethod {
 				return errorsx.WithStack(fosite.ErrInvalidRequest.
-					WithHint(fmt.Sprintf("Client must use code_challenge_method=%s, %s is not allowed.", c.PKCEChallengeMethod, method)).
-					WithDebug(fmt.Sprintf("The server is configured in a way that enforces PKCE %s as challenge method for this client.", c.PKCEChallengeMethod)))
+					WithHintf("Client must use code_challenge_method=%s, %s is not allowed.", c.PKCEChallengeMethod, method).
+					WithDebugf("The server is configured in a way that enforces PKCE %s as challenge method for this client.", c.PKCEChallengeMethod))
 			}
+		}
+	}
+
+	return nil
+}
+
+// ValidatePARPolicy is a helper function to validate additional policy constraints on a per-client basis.
+func (c *Client) ValidatePARPolicy(r fosite.Requester, prefix string) (err error) {
+	form := r.GetRequestForm()
+
+	if c.EnforcePAR {
+		if requestURI := form.Get(FormParameterRequestURI); !strings.HasPrefix(requestURI, prefix) {
+			if requestURI == "" {
+				return errorsx.WithStack(ErrPAREnforcedClientMissingPAR.WithDebug("The request_uri parameter was empty."))
+			}
+
+			return errorsx.WithStack(ErrPAREnforcedClientMissingPAR.WithDebugf("The request_uri parameter '%s' is malformed.", requestURI))
 		}
 	}
 
@@ -105,7 +124,7 @@ func (c *Client) GetID() string {
 }
 
 // GetHashedSecret returns the Secret.
-func (c *Client) GetHashedSecret() []byte {
+func (c *Client) GetHashedSecret() (secret []byte) {
 	if c.Secret == nil {
 		return []byte(nil)
 	}
@@ -114,7 +133,7 @@ func (c *Client) GetHashedSecret() []byte {
 }
 
 // GetRedirectURIs returns the RedirectURIs.
-func (c *Client) GetRedirectURIs() []string {
+func (c *Client) GetRedirectURIs() (redirectURIs []string) {
 	return c.RedirectURIs
 }
 

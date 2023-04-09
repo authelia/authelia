@@ -70,9 +70,22 @@ const (
 )
 
 var (
+	// StandardTimeLayouts is the set of standard time layouts used with ParseTimeString.
+	StandardTimeLayouts = []string{
+		"Jan 2 15:04:05 2006",
+		time.DateTime,
+		time.RFC3339,
+		time.RFC1123Z,
+		time.RubyDate,
+		time.ANSIC,
+		time.DateOnly,
+	}
+
 	standardDurationUnits = []string{"ns", "us", "µs", "μs", "ms", "s", "m", "h"}
-	reDurationSeconds     = regexp.MustCompile(`^\d+$`)
-	reDurationStandard    = regexp.MustCompile(`(?P<Duration>[1-9]\d*?)(?P<Unit>[^\d\s]+)`)
+
+	reOnlyNumeric      = regexp.MustCompile(`^\d+$`)
+	reDurationStandard = regexp.MustCompile(`(?P<Duration>[1-9]\d*?)(?P<Unit>[^\d\s]+)`)
+	reNumeric          = regexp.MustCompile(`\d+`)
 )
 
 // Duration unit types.
@@ -109,6 +122,15 @@ var htmlEscaper = strings.NewReplacer(
 var ErrTimeoutReached = errors.New("timeout reached")
 
 const (
-	windows             = "windows"
-	errFmtLinuxNotFound = "open %s: no such file or directory"
+	windows               = "windows"
+	errFmtLinuxNotFound   = "%s %%s: no such file or directory"
+	errFmtWindowsNotFound = "%s %%s: The system cannot find the %s specified."
+
+	strStat         = "stat"
+	strOpen         = "open"
+	strFile         = "file"
+	strPath         = "path"
+	strIsDir        = "isdir"
+	strPathNotFound = "pathnotfound"
+	strFileNotFound = "filenotfound"
 )

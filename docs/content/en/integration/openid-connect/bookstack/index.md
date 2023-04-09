@@ -22,14 +22,7 @@ community: true
 
 ## Before You Begin
 
-### Common Notes
-
-1. You are *__required__* to utilize a unique client id for every client.
-2. The client id on this page is merely an example and you can theoretically use any alphanumeric string.
-3. You *__should not__* use the client secret in this example, We *__strongly recommend__* reading the
-   [Generating Client Secrets] guide instead.
-
-[Generating Client Secrets]: ../specific-information.md#generating-client-secrets
+{{% oidc-common %}}
 
 ### Assumptions
 
@@ -38,19 +31,19 @@ This example makes the following assumptions:
 * __Application Root URL:__ `https://bookstack.example.com`
 * __Authelia Root URL:__ `https://auth.example.com`
 * __Client ID:__ `bookstack`
-* __Client Secret:__ `bookstack_client_secret`
+* __Client Secret:__ `insecure_secret`
 
 *__Important Note:__ [BookStack] does not properly URL encode the secret per [RFC6749 Appendix B] at the time this
 article was last modified (noted at the bottom). This means you'll either have to use only alphanumeric characters for
 the secret or URL encode the secret yourself.*
 
-[RFC6749 Appendix B]: https://www.rfc-editor.org/rfc/rfc6749#appendix-B
+[RFC6749 Appendix B]: https://datatracker.ietf.org/doc/html/rfc6749#appendix-B
 
 ## Configuration
 
 ### Application
 
-To configure [BookStack] to utilize Authelia as an [OpenID Connect] Provider:
+To configure [BookStack] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Edit your .env file
 2. Set the following values:
@@ -58,7 +51,7 @@ To configure [BookStack] to utilize Authelia as an [OpenID Connect] Provider:
    2. OIDC_NAME: `Authelia`
    3. OIDC_DISPLAY_NAME_CLAIMS: `name`
    4. OIDC_CLIENT_ID: `bookstack`
-   5. OIDC_CLIENT_SECRET: `bookstack_client_secret`
+   5. OIDC_CLIENT_SECRET: `insecure_secret`
    6. OIDC_ISSUER: `https://auth.example.com`
    7. OIDC_ISSUER_DISCOVER: `true`
 
@@ -69,18 +62,23 @@ The following YAML configuration is an example __Authelia__
 which will operate with the above example:
 
 ```yaml
-- id: bookstack
-  description: BookStack
-  secret: '$plaintext$bookstack_client_secret'
-  public: false
-  authorization_policy: two_factor
-  redirect_uris:
-    - https://bookstack.example.com/oidc/callback
-  scopes:
-    - openid
-    - profile
-    - email
-  userinfo_signing_algorithm: none
+identity_providers:
+  oidc:
+    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
+    ## See: https://www.authelia.com/c/oidc
+    clients:
+    - id: bookstack
+      description: BookStack
+      secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+      public: false
+      authorization_policy: two_factor
+      redirect_uris:
+        - https://bookstack.example.com/oidc/callback
+      scopes:
+        - openid
+        - profile
+        - email
+      userinfo_signing_algorithm: none
 ```
 
 ## See Also
@@ -89,4 +87,4 @@ which will operate with the above example:
 
 [Authelia]: https://www.authelia.com
 [BookStack]: https://www.bookstackapp.com/
-[OpenID Connect]: ../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md
