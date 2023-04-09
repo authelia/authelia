@@ -79,7 +79,7 @@ func (s *Store) GetClientPolicy(id string) (level authorization.Level) {
 func (s *Store) GetFullClient(id string) (client *Client, err error) {
 	client, ok := s.clients[id]
 	if !ok {
-		return nil, fosite.ErrNotFound
+		return nil, fosite.ErrInvalidClient
 	}
 
 	return client, nil
@@ -165,7 +165,7 @@ func (s *Store) InvalidateAuthorizeCodeSession(ctx context.Context, code string)
 // This implements a portion of oauth2.AuthorizeCodeStorage.
 func (s *Store) GetAuthorizeCodeSession(ctx context.Context, code string, session fosite.Session) (request fosite.Requester, err error) {
 	// TODO: Implement the fosite.ErrInvalidatedAuthorizeCode error above. This requires splitting the invalidated sessions and deleted sessions.
-	return s.loadSessionBySignature(ctx, storage.OAuth2SessionTypeAuthorizeCode, code, session)
+	return s.loadRequesterBySignature(ctx, storage.OAuth2SessionTypeAuthorizeCode, code, session)
 }
 
 // CreateAccessTokenSession stores the authorization request for a given access token.
@@ -180,7 +180,7 @@ func (s *Store) DeleteAccessTokenSession(ctx context.Context, signature string) 
 	return s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeAccessToken, signature)
 }
 
-// RevokeAccessToken revokes an access token as specified in: https://tools.ietf.org/html/rfc7009#section-2.1
+// RevokeAccessToken revokes an access token as specified in: https://datatracker.ietf.org/doc/html/rfc7009#section-2.1
 // If the token passed to the request is an access token, the server MAY revoke the respective refresh token as well.
 // This implements a portion of oauth2.TokenRevocationStorage.
 func (s *Store) RevokeAccessToken(ctx context.Context, requestID string) (err error) {
@@ -190,7 +190,7 @@ func (s *Store) RevokeAccessToken(ctx context.Context, requestID string) (err er
 // GetAccessTokenSession gets the authorization request for a given access token.
 // This implements a portion of oauth2.AccessTokenStorage.
 func (s *Store) GetAccessTokenSession(ctx context.Context, signature string, session fosite.Session) (request fosite.Requester, err error) {
-	return s.loadSessionBySignature(ctx, storage.OAuth2SessionTypeAccessToken, signature, session)
+	return s.loadRequesterBySignature(ctx, storage.OAuth2SessionTypeAccessToken, signature, session)
 }
 
 // CreateRefreshTokenSession stores the authorization request for a given refresh token.
@@ -205,7 +205,7 @@ func (s *Store) DeleteRefreshTokenSession(ctx context.Context, signature string)
 	return s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeRefreshToken, signature)
 }
 
-// RevokeRefreshToken revokes a refresh token as specified in: https://tools.ietf.org/html/rfc7009#section-2.1
+// RevokeRefreshToken revokes a refresh token as specified in: https://datatracker.ietf.org/doc/html/rfc7009#section-2.1
 // If the particular token is a refresh token and the authorization server supports the revocation of access tokens,
 // then the authorization server SHOULD also invalidate all access tokens based on the same authorization grant (see Implementation Note).
 // This implements a portion of oauth2.TokenRevocationStorage.
@@ -213,7 +213,7 @@ func (s *Store) RevokeRefreshToken(ctx context.Context, requestID string) (err e
 	return s.provider.DeactivateOAuth2SessionByRequestID(ctx, storage.OAuth2SessionTypeRefreshToken, requestID)
 }
 
-// RevokeRefreshTokenMaybeGracePeriod revokes an access token as specified in: https://tools.ietf.org/html/rfc7009#section-2.1
+// RevokeRefreshTokenMaybeGracePeriod revokes an access token as specified in: https://datatracker.ietf.org/doc/html/rfc7009#section-2.1
 // If the token passed to the request is an access token, the server MAY revoke the respective refresh token as well.
 // This implements a portion of oauth2.TokenRevocationStorage.
 func (s *Store) RevokeRefreshTokenMaybeGracePeriod(ctx context.Context, requestID string, signature string) (err error) {
@@ -223,7 +223,7 @@ func (s *Store) RevokeRefreshTokenMaybeGracePeriod(ctx context.Context, requestI
 // GetRefreshTokenSession gets the authorization request for a given refresh token.
 // This implements a portion of oauth2.RefreshTokenStorage.
 func (s *Store) GetRefreshTokenSession(ctx context.Context, signature string, session fosite.Session) (request fosite.Requester, err error) {
-	return s.loadSessionBySignature(ctx, storage.OAuth2SessionTypeRefreshToken, signature, session)
+	return s.loadRequesterBySignature(ctx, storage.OAuth2SessionTypeRefreshToken, signature, session)
 }
 
 // CreatePKCERequestSession stores the authorization request for a given PKCE request.
@@ -241,7 +241,7 @@ func (s *Store) DeletePKCERequestSession(ctx context.Context, signature string) 
 // GetPKCERequestSession gets the authorization request for a given PKCE request.
 // This implements a portion of pkce.PKCERequestStorage.
 func (s *Store) GetPKCERequestSession(ctx context.Context, signature string, session fosite.Session) (requester fosite.Requester, err error) {
-	return s.loadSessionBySignature(ctx, storage.OAuth2SessionTypePKCEChallenge, signature, session)
+	return s.loadRequesterBySignature(ctx, storage.OAuth2SessionTypePKCEChallenge, signature, session)
 }
 
 // CreateOpenIDConnectSession creates an open id connect session for a given authorize code.
@@ -263,7 +263,37 @@ func (s *Store) DeleteOpenIDConnectSession(ctx context.Context, authorizeCode st
 // - or an arbitrary error if an error occurred.
 // This implements a portion of openid.OpenIDConnectRequestStorage.
 func (s *Store) GetOpenIDConnectSession(ctx context.Context, authorizeCode string, request fosite.Requester) (r fosite.Requester, err error) {
-	return s.loadSessionBySignature(ctx, storage.OAuth2SessionTypeOpenIDConnect, authorizeCode, request.GetSession())
+	return s.loadRequesterBySignature(ctx, storage.OAuth2SessionTypeOpenIDConnect, authorizeCode, request.GetSession())
+}
+
+// CreatePARSession stores the pushed authorization request context. The requestURI is used to derive the key.
+// This implements a portion of fosite.PARStorage.
+func (s *Store) CreatePARSession(ctx context.Context, requestURI string, request fosite.AuthorizeRequester) (err error) {
+	var par *model.OAuth2PARContext
+
+	if par, err = model.NewOAuth2PARContext(requestURI, request); err != nil {
+		return err
+	}
+
+	return s.provider.SaveOAuth2PARContext(ctx, *par)
+}
+
+// GetPARSession gets the push authorization request context. The caller is expected to merge the AuthorizeRequest.
+// This implements a portion of fosite.PARStorage.
+func (s *Store) GetPARSession(ctx context.Context, requestURI string) (request fosite.AuthorizeRequester, err error) {
+	var par *model.OAuth2PARContext
+
+	if par, err = s.provider.LoadOAuth2PARContext(ctx, requestURI); err != nil {
+		return nil, err
+	}
+
+	return par.ToAuthorizeRequest(ctx, NewSession(), s)
+}
+
+// DeletePARSession deletes the context.
+// This implements a portion of fosite.PARStorage.
+func (s *Store) DeletePARSession(ctx context.Context, requestURI string) (err error) {
+	return s.provider.RevokeOAuth2PARContext(ctx, requestURI)
 }
 
 // IsJWTUsed implements an interface required for RFC7523.
@@ -280,7 +310,7 @@ func (s *Store) MarkJWTUsedForTime(ctx context.Context, jti string, exp time.Tim
 	return s.SetClientAssertionJWT(ctx, jti, exp)
 }
 
-func (s *Store) loadSessionBySignature(ctx context.Context, sessionType storage.OAuth2SessionType, signature string, session fosite.Session) (r fosite.Requester, err error) {
+func (s *Store) loadRequesterBySignature(ctx context.Context, sessionType storage.OAuth2SessionType, signature string, session fosite.Session) (r fosite.Requester, err error) {
 	var (
 		sessionModel *model.OAuth2Session
 	)

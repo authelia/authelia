@@ -23,14 +23,12 @@ var haDockerEnvironment = NewDockerEnvironment([]string{
 })
 
 func init() {
-	setup := func(suitePath string) error {
-		err := haDockerEnvironment.Up()
-		if err != nil {
+	setup := func(suitePath string) (err error) {
+		if err = haDockerEnvironment.Up(); err != nil {
 			return err
 		}
 
-		err = waitUntilAutheliaIsReady(haDockerEnvironment, highAvailabilitySuiteName)
-		if err != nil {
+		if err = waitUntilAutheliaIsReady(haDockerEnvironment, highAvailabilitySuiteName); err != nil {
 			return err
 		}
 

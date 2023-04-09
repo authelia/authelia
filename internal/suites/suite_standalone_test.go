@@ -346,6 +346,10 @@ func (s *StandaloneSuite) TestResetPasswordScenario() {
 	suite.Run(s.T(), NewResetPasswordScenario())
 }
 
+func (s *StandaloneSuite) TestRequestMethodScenario() {
+	suite.Run(s.T(), NewRequestMethodScenario())
+}
+
 func (s *StandaloneSuite) TestAvailableMethodsScenario() {
 	suite.Run(s.T(), NewAvailableMethodsScenario([]string{"TIME-BASED ONE-TIME PASSWORD", "SECURITY KEY - WEBAUTHN"}))
 }

@@ -234,11 +234,11 @@ func (p *CORSPolicy) handleOPTIONS(ctx *fasthttp.RequestCtx) {
 
 	/* The OPTIONS method should not return a 204 as per the following specifications when read together:
 
-	RFC7231 (https://www.rfc-editor.org/rfc/rfc7231#section-4.3.7):
+	RFC7231 (https://datatracker.ietf.org/doc/html/rfc7231#section-4.3.7):
 		A server MUST generate a Content-Length field with a value of "0" if no payload body is to be sent in
 		the response.
 
-	RFC7230 (https://www.rfc-editor.org/rfc/rfc7230#section-3.3.2):
+	RFC7230 (https://datatracker.ietf.org/doc/html/rfc7230#section-3.3.2):
 		A server MUST NOT send a Content-Length header field in any response with a status code of 1xx (Informational)
 		or 204 (No Content).
 	*/

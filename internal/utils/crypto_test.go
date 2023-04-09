@@ -52,9 +52,9 @@ func TestShouldNotReturnErrWhenX509DirectoryExist(t *testing.T) {
 }
 
 func TestShouldReadCertsFromDirectoryButNotKeys(t *testing.T) {
-	pool, warnings, errors := NewX509CertPool("../suites/common/ssl/")
+	pool, warnings, errors := NewX509CertPool("../suites/common/pki/")
 	assert.NotNil(t, pool)
-	require.Len(t, errors, 1)
+	require.Len(t, errors, 3)
 
 	if runtime.GOOS == "windows" {
 		require.Len(t, warnings, 1)
@@ -63,7 +63,9 @@ func TestShouldReadCertsFromDirectoryButNotKeys(t *testing.T) {
 		assert.Len(t, warnings, 0)
 	}
 
-	assert.EqualError(t, errors[0], "could not import certificate key.pem")
+	assert.EqualError(t, errors[0], "could not import certificate private.backend.pem")
+	assert.EqualError(t, errors[1], "could not import certificate private.oidc.pem")
+	assert.EqualError(t, errors[2], "could not import certificate private.pem")
 }
 
 func TestShouldGenerateCertificateAndPersistIt(t *testing.T) {
@@ -441,7 +443,7 @@ func TestX509ParseExtendedKeyUsage(t *testing.T) {
 		expected []x509.ExtKeyUsage
 	}{
 		{"ShouldParseDefault", nil, false, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}},
-		{"ShouldParseDefaultCA", nil, true, []x509.ExtKeyUsage{x509.ExtKeyUsageAny}},
+		{"ShouldParseDefaultCA", nil, true, []x509.ExtKeyUsage{}},
 		{"ShouldParseAny", [][]string{{"any"}, {"Any"}, {"any", "server_auth"}}, false, []x509.ExtKeyUsage{x509.ExtKeyUsageAny}},
 		{"ShouldParseServerAuth", [][]string{{"server_auth"}, {"Server_Auth"}, {"serverauth"}, {"serverAuth"}}, false, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}},
 		{"ShouldParseClientAuth", [][]string{{"client_auth"}, {"Client_Auth"}, {"clientauth"}, {"clientAuth"}}, false, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}},

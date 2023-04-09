@@ -4,12 +4,15 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 	testCases := []struct {
 		desc               string
 		pkcePlainChallenge bool
+		enforcePAR         bool
 		clients            map[string]*Client
 
 		expectCodeChallengeMethodsSupported, expectSubjectTypesSupported []string
@@ -63,7 +66,14 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			actual := NewOpenIDConnectWellKnownConfiguration(tc.pkcePlainChallenge, tc.clients)
+			c := schema.OpenIDConnectConfiguration{
+				EnablePKCEPlainChallenge: tc.pkcePlainChallenge,
+				PAR: schema.OpenIDConnectPARConfiguration{
+					Enforce: tc.enforcePAR,
+				},
+			}
+
+			actual := NewOpenIDConnectWellKnownConfiguration(&c, tc.clients)
 			for _, codeChallengeMethod := range tc.expectCodeChallengeMethodsSupported {
 				assert.Contains(t, actual.CodeChallengeMethodsSupported, codeChallengeMethod)
 			}

@@ -22,14 +22,9 @@ aliases:
 * [Proxmox]
   * 7.1-10
 
-### Common Notes
+## Before You Begin
 
-1. You are *__required__* to utilize a unique client id for every client.
-2. The client id on this page is merely an example and you can theoretically use any alphanumeric string.
-3. You *__should not__* use the client secret in this example, We *__strongly recommend__* reading the
-   [Generating Client Secrets] guide instead.
-
-[Generating Client Secrets]: ../specific-information.md#generating-client-secrets
+{{% oidc-common %}}
 
 ### Specific Notes
 
@@ -43,7 +38,7 @@ This example makes the following assumptions:
 * __Application Root URL:__ `https://proxmox.example.com`
 * __Authelia Root URL:__ `https://auth.example.com`
 * __Client ID:__ `proxmox`
-* __Client Secret:__ `proxmox_client_secret`
+* __Client Secret:__ `insecure_secret`
 * __Realm__ `authelia`
 
 ## Configuration
@@ -60,7 +55,7 @@ To configure [Proxmox] to utilize Authelia as an [OpenID Connect 1.0] Provider:
    1. Issuer URL: `https://auth.example.com`
    2. Realm: `authelia`
    3. Client ID: `proxmox`
-   4. Client Key: `proxmox_client_secret`
+   4. Client Key: `insecure_secret`
    5. Username Claim `preferred_username`
    6. Scopes: `openid profile email`
    7. Enable *Autocreate Users* if you want users to automatically be created in [Proxmox].
@@ -74,18 +69,23 @@ The following YAML configuration is an example __Authelia__
 which will operate with the above example:
 
 ```yaml
-- id: proxmox
-  description: Proxmox
-  secret: '$plaintext$proxmox_client_secret'
-  public: false
-  authorization_policy: two_factor
-  redirect_uris:
-    - https://proxmox.example.com
-  scopes:
-    - openid
-    - profile
-    - email
-  userinfo_signing_algorithm: none
+identity_providers:
+  oidc:
+    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
+    ## See: https://www.authelia.com/c/oidc
+    clients:
+    - id: proxmox
+      description: Proxmox
+      secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+      public: false
+      authorization_policy: two_factor
+      redirect_uris:
+        - https://proxmox.example.com
+      scopes:
+        - openid
+        - profile
+        - email
+      userinfo_signing_algorithm: none
 ```
 
 ## See Also

@@ -142,11 +142,12 @@ const (
 const (
 	errFmtOIDCNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +
 		"more clients configured"
-	errFmtOIDCNoPrivateKey             = "identity_providers: oidc: option 'issuer_private_key' is required"
-	errFmtOIDCInvalidPrivateKeyBitSize = "identity_providers: oidc: option 'issuer_private_key' must be an RSA private key with %d bits or more but it only has %d bits"
-	errFmtOIDCCertificateMismatch      = "identity_providers: oidc: option 'issuer_private_key' does not appear to be the private key the certificate provided by option 'issuer_certificate_chain'"
-	errFmtOIDCCertificateChain         = "identity_providers: oidc: option 'issuer_certificate_chain' produced an error during validation of the chain: %w"
-	errFmtOIDCEnforcePKCEInvalidValue  = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
+	errFmtOIDCNoPrivateKey                               = "identity_providers: oidc: option 'issuer_private_key' is required"
+	errFmtOIDCInvalidPrivateKeyBitSize                   = "identity_providers: oidc: option 'issuer_private_key' must be an RSA private key with %d bits or more but it only has %d bits"
+	errFmtOIDCInvalidPrivateKeyMalformedMissingPublicKey = "identity_providers: oidc: option 'issuer_private_key' must be a valid RSA private key but the provided data is missing the public key bits"
+	errFmtOIDCCertificateMismatch                        = "identity_providers: oidc: option 'issuer_private_key' does not appear to be the private key the certificate provided by option 'issuer_certificate_chain'"
+	errFmtOIDCCertificateChain                           = "identity_providers: oidc: option 'issuer_certificate_chain' produced an error during validation of the chain: %w"
+	errFmtOIDCEnforcePKCEInvalidValue                    = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
 		"'public_clients_only' or 'always', but it is configured as '%s'"
 
 	errFmtOIDCCORSInvalidOrigin                    = "identity_providers: oidc: cors: option 'allowed_origins' contains an invalid value '%s' as it has a %s: origins must only be scheme, hostname, and an optional port"
@@ -159,8 +160,9 @@ const (
 	errFmtOIDCClientsWithEmptyID = "identity_providers: oidc: one or more clients have been configured with " +
 		"an empty id"
 
-	errFmtOIDCClientInvalidSecret       = "identity_providers: oidc: client '%s': option 'secret' is required"
-	errFmtOIDCClientPublicInvalidSecret = "identity_providers: oidc: client '%s': option 'secret' is " +
+	errFmtOIDCClientInvalidSecret          = "identity_providers: oidc: client '%s': option 'secret' is required"
+	errFmtOIDCClientInvalidSecretPlainText = "identity_providers: oidc: client '%s': option 'secret' is plaintext but it should be a hashed value as plaintext values are deprecated and will be removed when oidc becomes stable"
+	errFmtOIDCClientPublicInvalidSecret    = "identity_providers: oidc: client '%s': option 'secret' is " +
 		"required to be empty when option 'public' is true"
 	errFmtOIDCClientRedirectURICantBeParsed = "identity_providers: oidc: client '%s': option 'redirect_uris' has an " +
 		"invalid value: redirect uri '%s' could not be parsed: %v"
@@ -267,7 +269,9 @@ const (
 	errFmtSessionDomainDuplicateCookieScope      = "session: domain config %s: option 'domain' shares the same cookie domain scope as another configured session domain"
 	errFmtSessionDomainPortalURLInsecure         = "session: domain config %s: option 'authelia_url' does not have a secure scheme with a value of '%s'"
 	errFmtSessionDomainPortalURLNotInCookieScope = "session: domain config %s: option 'authelia_url' does not share a cookie scope with domain '%s' with a value of '%s'"
-	errFmtSessionDomainInvalidDomain             = "session: domain config %s: option 'domain' is not a valid domain"
+	errFmtSessionDomainInvalidDomain             = "session: domain config %s: option 'domain' is not a valid cookie domain"
+	errFmtSessionDomainInvalidDomainNoDots       = "session: domain config %s: option 'domain' is not a valid cookie domain: must have at least a single period"
+	errFmtSessionDomainInvalidDomainPublic       = "session: domain config %s: option 'domain' is not a valid cookie domain: the domain is part of the special public suffix list"
 )
 
 // Regulation Error Consts.
@@ -337,7 +341,14 @@ const (
 )
 
 var (
-	validLDAPImplementations = []string{schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory, schema.LDAPImplementationFreeIPA, schema.LDAPImplementationLLDAP}
+	validLDAPImplementations = []string{
+		schema.LDAPImplementationCustom,
+		schema.LDAPImplementationActiveDirectory,
+		schema.LDAPImplementationRFC2307bis,
+		schema.LDAPImplementationFreeIPA,
+		schema.LDAPImplementationLLDAP,
+		schema.LDAPImplementationGLAuth,
+	}
 )
 
 const (
@@ -383,7 +394,7 @@ var (
 	validOIDCGrantTypes         = []string{oidc.GrantTypeImplicit, oidc.GrantTypeRefreshToken, oidc.GrantTypeAuthorizationCode, oidc.GrantTypePassword, oidc.GrantTypeClientCredentials}
 	validOIDCResponseModes      = []string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery, oidc.ResponseModeFragment}
 	validOIDCUserinfoAlgorithms = []string{oidc.SigningAlgorithmNone, oidc.SigningAlgorithmRSAWithSHA256}
-	validOIDCCORSEndpoints      = []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
+	validOIDCCORSEndpoints      = []string{oidc.EndpointAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
 	validOIDCClientConsentModes = []string{"auto", oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
 )
 

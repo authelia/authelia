@@ -37,7 +37,9 @@ func validateOIDC(config *schema.OpenIDConnectConfiguration, val *schema.StructV
 			}
 		}
 
-		if config.IssuerPrivateKey.Size()*8 < 2048 {
+		if config.IssuerPrivateKey.PublicKey.N == nil {
+			val.Push(fmt.Errorf(errFmtOIDCInvalidPrivateKeyMalformedMissingPublicKey))
+		} else if config.IssuerPrivateKey.Size()*8 < 2048 {
 			val.Push(fmt.Errorf(errFmtOIDCInvalidPrivateKeyBitSize, 2048, config.IssuerPrivateKey.Size()*8))
 		}
 	}
@@ -166,6 +168,8 @@ func validateOIDCClients(config *schema.OpenIDConnectConfiguration, val *schema.
 		} else {
 			if client.Secret == nil {
 				val.Push(fmt.Errorf(errFmtOIDCClientInvalidSecret, client.ID))
+			} else if client.Secret.IsPlainText() {
+				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidSecretPlainText, client.ID))
 			}
 		}
 

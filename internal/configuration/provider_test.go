@@ -22,7 +22,7 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 	testSetEnv(t, "JWT_SECRET_FILE", filepath.Join(dir, "jwt"))
 	testSetEnv(t, "DUO_API_SECRET_KEY_FILE", filepath.Join(dir, "duo"))
 	testSetEnv(t, "SESSION_SECRET_FILE", filepath.Join(dir, "session"))
-	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", filepath.Join(dir, "authentication"))
+	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", dir)
 	testSetEnv(t, "NOTIFIER_SMTP_PASSWORD_FILE", filepath.Join(dir, "notifier"))
 	testSetEnv(t, "SESSION_REDIS_PASSWORD_FILE", filepath.Join(dir, "redis"))
 	testSetEnv(t, "SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE", filepath.Join(dir, "redis-sentinel"))
@@ -44,20 +44,21 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 	sort.Sort(utils.ErrSliceSortAlphabetical(errs))
 
 	errFmt := utils.GetExpectedErrTxt("filenotfound")
+	errFmtDir := utils.GetExpectedErrTxt("isdir")
 
 	// ignore the errors before this as they are checked by the validator.
-	assert.EqualError(t, errs[0], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "authentication"), "authentication_backend.ldap.password", fmt.Sprintf(errFmt, filepath.Join(dir, "authentication"))))
-	assert.EqualError(t, errs[1], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "duo"), "duo_api.secret_key", fmt.Sprintf(errFmt, filepath.Join(dir, "duo"))))
-	assert.EqualError(t, errs[2], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "jwt"), "jwt_secret", fmt.Sprintf(errFmt, filepath.Join(dir, "jwt"))))
-	assert.EqualError(t, errs[3], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "mysql"), "storage.mysql.password", fmt.Sprintf(errFmt, filepath.Join(dir, "mysql"))))
-	assert.EqualError(t, errs[4], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "notifier"), "notifier.smtp.password", fmt.Sprintf(errFmt, filepath.Join(dir, "notifier"))))
-	assert.EqualError(t, errs[5], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "oidc-hmac"), "identity_providers.oidc.hmac_secret", fmt.Sprintf(errFmt, filepath.Join(dir, "oidc-hmac"))))
-	assert.EqualError(t, errs[6], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "oidc-key"), "identity_providers.oidc.issuer_private_key", fmt.Sprintf(errFmt, filepath.Join(dir, "oidc-key"))))
-	assert.EqualError(t, errs[7], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "postgres"), "storage.postgres.password", fmt.Sprintf(errFmt, filepath.Join(dir, "postgres"))))
-	assert.EqualError(t, errs[8], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "redis"), "session.redis.password", fmt.Sprintf(errFmt, filepath.Join(dir, "redis"))))
-	assert.EqualError(t, errs[9], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "redis-sentinel"), "session.redis.high_availability.sentinel_password", fmt.Sprintf(errFmt, filepath.Join(dir, "redis-sentinel"))))
-	assert.EqualError(t, errs[10], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "session"), "session.secret", fmt.Sprintf(errFmt, filepath.Join(dir, "session"))))
-	assert.EqualError(t, errs[11], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "tls"), "server.tls.key", fmt.Sprintf(errFmt, filepath.Join(dir, "tls"))))
+	assert.EqualError(t, errs[0], fmt.Sprintf("secrets: error loading secret path %s into key 'authentication_backend.ldap.password': %s", dir, fmt.Sprintf(errFmtDir, dir)))
+	assert.EqualError(t, errs[1], fmt.Sprintf("secrets: error loading secret path %s into key 'duo_api.secret_key': file does not exist error occurred: %s", filepath.Join(dir, "duo"), fmt.Sprintf(errFmt, filepath.Join(dir, "duo"))))
+	assert.EqualError(t, errs[2], fmt.Sprintf("secrets: error loading secret path %s into key 'jwt_secret': file does not exist error occurred: %s", filepath.Join(dir, "jwt"), fmt.Sprintf(errFmt, filepath.Join(dir, "jwt"))))
+	assert.EqualError(t, errs[3], fmt.Sprintf("secrets: error loading secret path %s into key 'storage.mysql.password': file does not exist error occurred: %s", filepath.Join(dir, "mysql"), fmt.Sprintf(errFmt, filepath.Join(dir, "mysql"))))
+	assert.EqualError(t, errs[4], fmt.Sprintf("secrets: error loading secret path %s into key 'notifier.smtp.password': file does not exist error occurred: %s", filepath.Join(dir, "notifier"), fmt.Sprintf(errFmt, filepath.Join(dir, "notifier"))))
+	assert.EqualError(t, errs[5], fmt.Sprintf("secrets: error loading secret path %s into key 'identity_providers.oidc.hmac_secret': file does not exist error occurred: %s", filepath.Join(dir, "oidc-hmac"), fmt.Sprintf(errFmt, filepath.Join(dir, "oidc-hmac"))))
+	assert.EqualError(t, errs[6], fmt.Sprintf("secrets: error loading secret path %s into key 'identity_providers.oidc.issuer_private_key': file does not exist error occurred: %s", filepath.Join(dir, "oidc-key"), fmt.Sprintf(errFmt, filepath.Join(dir, "oidc-key"))))
+	assert.EqualError(t, errs[7], fmt.Sprintf("secrets: error loading secret path %s into key 'storage.postgres.password': file does not exist error occurred: %s", filepath.Join(dir, "postgres"), fmt.Sprintf(errFmt, filepath.Join(dir, "postgres"))))
+	assert.EqualError(t, errs[8], fmt.Sprintf("secrets: error loading secret path %s into key 'session.redis.password': file does not exist error occurred: %s", filepath.Join(dir, "redis"), fmt.Sprintf(errFmt, filepath.Join(dir, "redis"))))
+	assert.EqualError(t, errs[9], fmt.Sprintf("secrets: error loading secret path %s into key 'session.redis.high_availability.sentinel_password': file does not exist error occurred: %s", filepath.Join(dir, "redis-sentinel"), fmt.Sprintf(errFmt, filepath.Join(dir, "redis-sentinel"))))
+	assert.EqualError(t, errs[10], fmt.Sprintf("secrets: error loading secret path %s into key 'session.secret': file does not exist error occurred: %s", filepath.Join(dir, "session"), fmt.Sprintf(errFmt, filepath.Join(dir, "session"))))
+	assert.EqualError(t, errs[11], fmt.Sprintf("secrets: error loading secret path %s into key 'server.tls.key': file does not exist error occurred: %s", filepath.Join(dir, "tls"), fmt.Sprintf(errFmt, filepath.Join(dir, "tls"))))
 }
 
 func TestLoadShouldReturnErrWithoutValidator(t *testing.T) {
@@ -105,6 +106,9 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 	testSetEnv(t, "JWT_SECRET", "abc")
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
 
+	t.Setenv("ABC_CLIENT_SECRET", "$plaintext$example-abc")
+	t.Setenv("XYZ_CLIENT_SECRET", "$plaintext$example-xyz")
+	t.Setenv("ANOTHER_CLIENT_SECRET", "$plaintext$example-123")
 	t.Setenv("SERVICES_SERVER", "10.10.10.10")
 	t.Setenv("ROOT_DOMAIN", "example.org")
 
@@ -118,6 +122,11 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 	assert.Equal(t, "api-123456789.example.org", config.DuoAPI.Hostname)
 	assert.Equal(t, "10.10.10.10", config.Notifier.SMTP.Host)
 	assert.Equal(t, "10.10.10.10", config.Session.Redis.Host)
+
+	require.Len(t, config.IdentityProviders.OIDC.Clients, 3)
+	assert.Equal(t, "$plaintext$example-abc", config.IdentityProviders.OIDC.Clients[0].Secret.String())
+	assert.Equal(t, "$plaintext$example-xyz", config.IdentityProviders.OIDC.Clients[1].Secret.String())
+	assert.Equal(t, "$plaintext$example-123", config.IdentityProviders.OIDC.Clients[2].Secret.String())
 }
 
 func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {

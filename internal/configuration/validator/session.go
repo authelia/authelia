@@ -104,12 +104,22 @@ func validateSessionDomainName(i int, config *schema.SessionConfiguration, valid
 	switch {
 	case d.Domain == "":
 		validator.Push(fmt.Errorf(errFmtSessionDomainRequired, sessionDomainDescriptor(i, d)))
+		return
 	case strings.HasPrefix(d.Domain, "*."):
 		validator.Push(fmt.Errorf(errFmtSessionDomainMustBeRoot, sessionDomainDescriptor(i, d), d.Domain))
+		return
 	case strings.HasPrefix(d.Domain, "."):
 		validator.PushWarning(fmt.Errorf(errFmtSessionDomainHasPeriodPrefix, sessionDomainDescriptor(i, d)))
+	case !strings.Contains(d.Domain, "."):
+		validator.Push(fmt.Errorf(errFmtSessionDomainInvalidDomainNoDots, sessionDomainDescriptor(i, d)))
+		return
 	case !reDomainCharacters.MatchString(d.Domain):
 		validator.Push(fmt.Errorf(errFmtSessionDomainInvalidDomain, sessionDomainDescriptor(i, d)))
+		return
+	}
+
+	if isCookieDomainAPublicSuffix(d.Domain) {
+		validator.Push(fmt.Errorf(errFmtSessionDomainInvalidDomainPublic, sessionDomainDescriptor(i, d)))
 	}
 }
 

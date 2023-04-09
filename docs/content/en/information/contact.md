@@ -11,15 +11,25 @@ aliases:
 
 ## Security
 
-If you believe you have identified a security related bug with Authelia please visit the
-[security policy](../policies/security.md) documentation.
+If you believe you have identified a security vulnerability or security related bug with __Authelia__ please view our
+[security policy](../policies/security.md).
+
+## Individual Team Members
+
+If you're interested in contacting an individual team member for any reason please see the [About](about.md)
+informational page.
 
 ## GitHub
 
 ### Discussions
 
-If you have a general question or want to discuss an idea that's not entirely hashed out please visit
-[GitHub Discussions](https://github.com/authelia/authelia/discussions) and start a new discussion.
+The [GitHub Discussions](https://github.com/authelia/authelia/discussions) forum is the correct location to discus
+anything that is not a bug or feature request such as:
+
+- Ideas about future features where it's not clear most people can use it (allows users to vote on it)
+- Questions / Support Requests
+- Sharing configuration or utilization ideas (i.e. show your setup) for things that are not obvious
+- Any issue you're experiencing that may or may not be a bug (i.e you're unsure if it's a bug)
 
 ### Issues
 
@@ -55,7 +65,7 @@ are bridged to the [Matrix Rooms](#matrix) with the same names providing they ex
 
 To contact the team for anything not security related you can utilize [team@authelia.com](mailto:team@authelia.com).
 
-For all security related matters over email please ensure you use [security@authelia.com](mailto:team@authelia.com).
+For all security related matters over email please ensure you use [security@authelia.com](mailto:security@authelia.com).
 
 [Discord]: https://discord.com/
 [Matrix]: https://matrix.org/

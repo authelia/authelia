@@ -588,8 +588,8 @@ The match type `Equals` matches if the value extracted from the pattern is equal
 match value is a list/slice).
 
 The regex groups are case-insensitive due to the fact that the regex groups are used in domain criteria and domain names
-should not be compared in a case-sensitive way as per the [RFC4343](https://www.rfc-editor.org/rfc/rfc4343.html)
-abstract and [RFC3986 Section 3.2.2](https://www.rfc-editor.org/rfc/rfc3986#section-3.2.2).
+should not be compared in a case-sensitive way as per the [RFC4343](https://datatracker.ietf.org/doc/html/rfc4343)
+abstract and [RFC3986 Section 3.2.2](https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.2).
 
 We do not currently apply any other normalization to usernames or groups when matching these groups. As such it's
 generally *__not recommended__* to use these patterns with usernames or groups which contain characters that are not
@@ -664,6 +664,6 @@ access_control:
       policy: bypass
 ```
 
-[RFC7231]: https://www.rfc-editor.org/rfc/rfc7231.html
-[RFC5789]: https://www.rfc-editor.org/rfc/rfc5789.html
-[RFC4918]: https://www.rfc-editor.org/rfc/rfc4918.html
+[RFC7231]: https://datatracker.ietf.org/doc/html/rfc7231
+[RFC5789]: https://datatracker.ietf.org/doc/html/rfc5789
+[RFC4918]: https://datatracker.ietf.org/doc/html/rfc4918

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -15,7 +16,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func TestRunLegacyAuthzSuite(t *testing.T) {
@@ -53,11 +54,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsDeny() {
 
 					defer mock.Close()
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
-
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					mock.Ctx.RequestCtx.QueryArgs().Set(queryArgRD, pairURI.AutheliaURI.String())
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
@@ -69,7 +66,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsDeny() {
 					authz.Handler(mock.Ctx)
 
 					switch method {
-					case fasthttp.MethodGet, fasthttp.MethodOptions:
+					case fasthttp.MethodGet, fasthttp.MethodOptions, fasthttp.MethodHead:
 						assert.Equal(t, fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
 					default:
 						assert.Equal(t, fasthttp.StatusSeeOther, mock.Ctx.Response.StatusCode())
@@ -105,11 +102,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsOverrideAutheliaURLDeny() {
 
 					defer mock.Close()
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
-
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					mock.Ctx.RequestCtx.QueryArgs().Set(queryArgRD, pairURI.AutheliaURI.String())
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
@@ -121,7 +114,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsOverrideAutheliaURLDeny() {
 					authz.Handler(mock.Ctx)
 
 					switch method {
-					case fasthttp.MethodGet, fasthttp.MethodOptions:
+					case fasthttp.MethodGet, fasthttp.MethodOptions, fasthttp.MethodHead:
 						assert.Equal(t, fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
 					default:
 						assert.Equal(t, fasthttp.StatusSeeOther, mock.Ctx.Response.StatusCode())
@@ -139,7 +132,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsOverrideAutheliaURLDeny() {
 	}
 }
 
-func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLDeny() {
+func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLBypassStatus200() {
 	for _, method := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
 			for _, targetURI := range []*url.URL{
@@ -163,8 +156,81 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLDeny() {
 
 					authz.Handler(mock.Ctx)
 
+					assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+					assert.Equal(t, "", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+				})
+			}
+		})
+	}
+}
+
+func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLOneFactorStatus401() {
+	for _, method := range testRequestMethods {
+		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
+			for _, targetURI := range []*url.URL{
+				s.RequireParseRequestURI("https://one-factor.example.com"),
+				s.RequireParseRequestURI("https://one-factor.example.com/subpath"),
+				s.RequireParseRequestURI("https://one-factor.example2.com"),
+				s.RequireParseRequestURI("https://one-factor.example2.com/subpath"),
+			} {
+				t.Run(targetURI.String(), func(t *testing.T) {
+					authz := s.Builder().Build()
+
+					mock := mocks.NewMockAutheliaCtx(t)
+
+					defer mock.Close()
+
+					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
+					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, targetURI.Scheme)
+					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, targetURI.Host)
+					mock.Ctx.Request.Header.Set("X-Forwarded-Uri", targetURI.Path)
+					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
+
+					authz.Handler(mock.Ctx)
+
 					assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, "", string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+				})
+			}
+		})
+	}
+}
+
+func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsRDAutheliaURLOneFactorStatus302Or303() {
+	for _, method := range testRequestMethods {
+		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
+			for _, targetURI := range []*url.URL{
+				s.RequireParseRequestURI("https://one-factor.example.com/"),
+				s.RequireParseRequestURI("https://one-factor.example.com/subpath"),
+			} {
+				t.Run(targetURI.String(), func(t *testing.T) {
+					authz := s.Builder().Build()
+
+					mock := mocks.NewMockAutheliaCtx(t)
+
+					defer mock.Close()
+
+					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
+					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, targetURI.Scheme)
+					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, targetURI.Host)
+					mock.Ctx.Request.Header.Set("X-Forwarded-Uri", targetURI.Path)
+					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
+					mock.Ctx.Request.SetRequestURI("/api/verify?rd=https%3A%2F%2Fauth.example.com")
+
+					authz.Handler(mock.Ctx)
+
+					switch method {
+					case fasthttp.MethodGet, fasthttp.MethodOptions, fasthttp.MethodHead:
+						assert.Equal(t, fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
+					default:
+						assert.Equal(t, fasthttp.StatusSeeOther, mock.Ctx.Response.StatusCode())
+					}
+
+					query := &url.Values{}
+					query.Set("rd", targetURI.String())
+					query.Set("rm", method)
+
+					assert.Equal(t, fmt.Sprintf("https://auth.example.com/?%s", query.Encode()), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
 				})
 			}
 		})
@@ -191,11 +257,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsXHRDeny() {
 
 							defer mock.Close()
 
-							for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-								mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-							}
-
-							mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+							s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 							mock.Ctx.RequestCtx.QueryArgs().Set(queryArgRD, pairURI.AutheliaURI.String())
 							mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
@@ -244,11 +306,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 
 					defer mock.Close()
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
-
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, targetURI.Scheme)
@@ -275,11 +333,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleMissingHostDeny() {
 
 			defer mock.Close()
 
-			for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-				mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-			}
-
-			mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+			s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 			mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
@@ -311,11 +365,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsAllow() {
 
 					defer mock.Close()
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
-
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, targetURI.Scheme)
@@ -327,6 +377,56 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsAllow() {
 
 					assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
+				})
+			}
+		})
+	}
+}
+
+func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsWithMethodsACL() {
+	for _, method := range testRequestMethods {
+		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
+			for _, methodACL := range testRequestMethods {
+				targetURI := s.RequireParseRequestURI(fmt.Sprintf("https://bypass-%s.example.com", strings.ToLower(methodACL)))
+				t.Run(targetURI.String(), func(t *testing.T) {
+					authz := s.Builder().Build()
+
+					mock := mocks.NewMockAutheliaCtx(t)
+
+					defer mock.Close()
+
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+
+					s.setRequest(mock.Ctx, method, targetURI, true, false)
+					mock.Ctx.RequestCtx.QueryArgs().Set(queryArgRD, "https://auth.example.com")
+
+					authz.Handler(mock.Ctx)
+
+					if method == methodACL {
+						assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+						assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
+					} else {
+						expected := s.RequireParseRequestURI("https://auth.example.com/")
+
+						query := expected.Query()
+						query.Set(queryArgRD, targetURI.String())
+						query.Set(queryArgRM, method)
+						expected.RawQuery = query.Encode()
+
+						switch method {
+						case fasthttp.MethodHead:
+							assert.Equal(t, fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
+							assert.Nil(t, mock.Ctx.Response.Body())
+						case fasthttp.MethodGet, fasthttp.MethodOptions:
+							assert.Equal(t, fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
+							assert.Equal(t, fmt.Sprintf(`<a href="%s">%d %s</a>`, utils.StringHTMLEscape(expected.String()), fasthttp.StatusFound, fasthttp.StatusMessage(fasthttp.StatusFound)), string(mock.Ctx.Response.Body()))
+						default:
+							assert.Equal(t, fasthttp.StatusSeeOther, mock.Ctx.Response.StatusCode())
+							assert.Equal(t, fmt.Sprintf(`<a href="%s">%d %s</a>`, utils.StringHTMLEscape(expected.String()), fasthttp.StatusSeeOther, fasthttp.StatusMessage(fasthttp.StatusSeeOther)), string(mock.Ctx.Response.Body()))
+						}
+
+						assert.Equal(t, expected.String(), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+					}
 				})
 			}
 		})
@@ -349,11 +449,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsAllowXHR() {
 
 					defer mock.Close()
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
-
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, targetURI.Scheme)
@@ -378,11 +474,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuth() { // TestShouldVeri
 
 	defer mock.Close()
 
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-	}
-
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	mock.Ctx.QueryArgs().Add("auth", "basic")
 	mock.Ctx.Request.Header.Set("Authorization", "Basic am9objpwYXNzd29yZA==")
@@ -467,11 +559,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 
 			defer mock.Close()
 
-			for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-				mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-			}
-
-			mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+			s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 			mock.Ctx.QueryArgs().Add("auth", "basic")
 			mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
@@ -520,11 +608,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 					mock.Ctx.Configuration.AccessControl.DefaultPolicy = testBypass
 					mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&mock.Ctx.Configuration)
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
-
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 					mock.Ctx.Request.Header.SetBytesKV([]byte(fasthttp.HeaderXForwardedProto), tc.scheme)

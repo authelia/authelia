@@ -63,6 +63,47 @@ to the trusted proxy list in [Caddy]:
 * 192.168.0.0/16
 * fc00::/7
 
+## Assumptions and Adaptation
+
+This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
+can not reasonably have examples for every advanced configuration option that exists. The
+following are the assumptions we make:
+
+* Deployment Scenario:
+  * Single Host
+  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
+  * Proxy is deployed as a Container on a network shared with Authelia
+* The above assumption means that AUthelia should be accesible to the proxy on `http://authelia:9091` and as such:
+  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
+    certificate defined
+  * You will have to adapt all instances of `authelia` in the URL if:
+    * you're using a different container name
+    * you deployed the proxy to a different location
+  * You will have to adapt all instances of `9091` in the URL if:
+    * you have adjusted the default port in the configuration
+  * You will have to adapt the entire URL if:
+    * Authelia is on a different host to the proxy
+* All services are part of the `example.com` domain:
+  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
+    just testing or you want ot use that specific domain
+
+## Implementation
+
+[Caddy] utilizes the [ForwardAuth](../../reference/guides/proxy-authorization.md#forwardauth) Authz implementation. The
+associated [Metadata](../../reference/guides/proxy-authorization.md#forwardauth-metadata) should be considered required.
+
+The examples below assume you are using the default
+[Authz Endpoints Configuration](../../configuration/miscellaneous/server-endpoints-authz.md) or one similar to the
+following minimal configuration:
+
+```yaml
+server:
+  endpoints:
+    authz:
+      forward-auth:
+        implementation: ForwardAuth
+```
+
 ## Configuration
 
 Below you will find commented examples of the following configuration:
@@ -81,7 +122,7 @@ support to ensure the basic example covers your use case in a secure way.
 {{< details "Caddyfile" >}}
 ```caddyfile
 ## It is important to read the following document before enabling this section:
-##     https://www.authelia.com/integration/proxies/caddy/#forwarded-header-trust#trusted-proxies
+##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies
 (trusted_proxy_list) {
        ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
        # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
@@ -102,7 +143,7 @@ nextcloud.example.com {
                 ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest
                 ## this is configured in the Session Cookies section of the Authelia configuration.
                 # uri /api/authz/forward-auth?authelia_url=https://auth.example.com/
-                copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+                copy_headers Authorization Proxy-Authorization Remote-User Remote-Groups Remote-Email Remote-Name
 
                 ## This import needs to be included if you're relying on a trusted proxies configuration.
                 import trusted_proxy_list
@@ -120,7 +161,7 @@ nextcloud.example.com {
 {{< details "Caddyfile" >}}
 ```caddyfile
 ## It is important to read the following document before enabling this section:
-##     https://www.authelia.com/integration/proxies/caddy/#forwarded-header-trust#trusted-proxies
+##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies
 (trusted_proxy_list) {
        ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
        # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
@@ -141,7 +182,7 @@ example.com {
         handle @nextcloud {
                 forward_auth authelia:9091 {
                         uri /api/authz/forward-auth?authelia_url=https://example.com/authelia/
-                        copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+                        copy_headers Authorization Proxy-Authorization Remote-User Remote-Groups Remote-Email Remote-Name
 
                         ## This import needs to be included if you're relying on a trusted proxies configuration.
                         import trusted_proxy_list
@@ -165,7 +206,7 @@ preferred in *most* situations. If you are unsure of what you're doing please do
 {{< details "Caddyfile" >}}
 ```caddyfile
 ## It is important to read the following document before enabling this section:
-##     https://www.authelia.com/integration/proxies/caddy/#forwarded-header-trust#trusted-proxies
+##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies
 (trusted_proxy_list) {
        ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
        # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
@@ -198,10 +239,12 @@ nextcloud.example.com {
                 ##   2. Copy the relevant headers from the auth request and provide them to the backend.
                 @good status 2xx
                 handle_response @good {
+                        request_header Authorization {http.reverse_proxy.header.Authorization}
+                        request_header Proxy-Authorization {http.reverse_proxy.header.Proxy-Authorization}
                         request_header Remote-User {http.reverse_proxy.header.Remote-User}
                         request_header Remote-Groups {http.reverse_proxy.header.Remote-Groups}
-                        request_header Remote-Name {http.reverse_proxy.header.Remote-Name}
                         request_header Remote-Email {http.reverse_proxy.header.Remote-Email}
+                        request_header Remote-Name {http.reverse_proxy.header.Remote-Name}
                 }
         }
 

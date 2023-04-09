@@ -119,7 +119,7 @@ identity_providers:
     clients:
       - id: myapp
         description: My Application
-        secret: '$plaintext$this_is_a_secret'
+        secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         sector_identifier: ''
         public: false
         authorization_policy: two_factor
@@ -170,9 +170,9 @@ encoded PEM format used to sign/encrypt the [OpenID Connect 1.0] [JWT]'s. When c
 JSON key's in the JWKs [Discoverable Endpoint](../../integration/openid-connect/introduction.md#discoverable-endpoints)
 as per [RFC7517].
 
-[RFC7517]: https://www.rfc-editor.org/rfc/rfc7517
-[x5c]: https://www.rfc-editor.org/rfc/rfc7517#section-4.7
-[x5t]: https://www.rfc-editor.org/rfc/rfc7517#section-4.8
+[RFC7517]: https://datatracker.ietf.org/doc/html/rfc7517
+[x5c]: https://datatracker.ietf.org/doc/html/rfc7517#section-4.7
+[x5t]: https://datatracker.ietf.org/doc/html/rfc7517#section-4.8
 
 The first certificate in the chain must have the public key for the [issuer_private_key](#issuerprivatekey), each
 certificate in the chain must be valid for the current date, and each certificate in the chain should be signed by the
@@ -251,7 +251,7 @@ this value.
 
 {{< confkey type="string" default="public_clients_only" required="no" >}}
 
-[Proof Key for Code Exchange](https://www.rfc-editor.org/rfc/rfc7636.html) enforcement policy: if specified, must be
+[Proof Key for Code Exchange](https://datatracker.ietf.org/doc/html/rfc7636) enforcement policy: if specified, must be
 either `never`, `public_clients_only` or `always`.
 
 If set to `public_clients_only` (default), [PKCE] will be required for public clients using the
@@ -272,6 +272,23 @@ Allows [PKCE] `plain` challenges when set to `true`.
 *__Security Notice:__* Changing this value is generally discouraged. Applications should use the `S256` [PKCE] challenge
 method instead.
 
+### pushed_authorizations
+
+Controls the behaviour of [Pushed Authorization Requests].
+
+#### enforce
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+When enabled all authorization requests must use the [Pushed Authorization Requests] flow.
+
+#### context_lifespan
+
+{{< confkey type="duration" default="5m" required="no" >}}
+
+The maximum amount of time between the [Pushed Authorization Requests] flow being initiated and the generated
+`request_uri` being utilized by a client.
+
 ### cors
 
 Some [OpenID Connect 1.0] Endpoints need to allow cross-origin resource sharing, however some are optional. This section allows
@@ -285,6 +302,7 @@ A list of endpoints to configure with cross-origin resource sharing headers. It 
 option is at least in this list. The potential endpoints which this can be enabled on are as follows:
 
 * authorization
+* pushed-authorization-request
 * token
 * revocation
 * introspection
@@ -402,9 +420,6 @@ This enables the public client type for this client. This is for clients that ar
 confidentiality of credentials, you can read more about client types in [RFC6749 Section 2.1]. This is particularly
 useful for SPA's and CLI tools. This option requires setting the [client secret](#secret) to a blank string.
 
-In addition to the standard rules for redirect URIs, public clients can use the `urn:ietf:wg:oauth:2.0:oob` redirect
-URI.
-
 #### redirect_uris
 
 {{< confkey type="list(string)" required="yes" >}}
@@ -420,7 +435,6 @@ their redirect URIs are as follows:
    attempt to authorize will fail and an error will be generated.
 2. The redirect URIs are case-sensitive.
 3. The URI must include a scheme and that scheme must be one of `http` or `https`.
-4. The client can ignore rule 3 and use `urn:ietf:wg:oauth:2.0:oob` if it is a [public](#public) client type.
 
 #### audience
 
@@ -434,36 +448,53 @@ A list of audiences this client is allowed to request.
 
 A list of scopes to allow this client to consume. See
 [scope definitions](../../integration/openid-connect/introduction.md#scope-definitions) for more information. The
-documentation for the application you want to use with Authelia will most-likely provide you with the scopes to allow.
+documentation for the application you are trying to configure [OpenID Connect 1.0] for will likely have a list of scopes
+or claims required which can be matched with the above guide.
 
 #### grant_types
 
 {{< confkey type="list(string)" default="refresh_token, authorization_code" required="no" >}}
 
-A list of grant types this client can return. *It is recommended that this isn't configured at this time unless you
-know what you're doing*. Valid options are: `implicit`, `refresh_token`, `authorization_code`, `password`,
-`client_credentials`.
+*__Important Note:__ It is recommended that this isn't configured at this time unless you know what you're doing.*
+
+The list of grant types this client is permitted to use in order to obtain access to the relevant tokens.
+
+See the [Grant Types](../../integration/openid-connect/introduction.md#grant-types) section of the
+[OpenID Connect 1.0 Integration Guide](../../integration/openid-connect/introduction.md#grant-types) for more information.
 
 #### response_types
 
 {{< confkey type="list(string)" default="code" required="no" >}}
 
-A list of response types this client can return. *It is recommended that this isn't configured at this time unless you
-know what you're doing*. Valid options are: `code`, `code id_token`, `id_token`, `token id_token`, `token`,
-`token id_token code`.
+*__Important Note:__ It is recommended that this isn't configured at this time unless you know what you're doing.*
+
+A list of response types this client supports.
+
+See the [Response Types](../../integration/openid-connect/introduction.md#response-types) section of the
+[OpenID Connect 1.0 Integration Guide](../../integration/openid-connect/introduction.md#response-types) for more information.
 
 #### response_modes
 
 {{< confkey type="list(string)" default="form_post, query, fragment" required="no" >}}
 
-A list of response modes this client can return. It is recommended that this isn't configured at this time unless you
-know what you're doing. Potential values are `form_post`, `query`, and `fragment`.
+*__Important Note:__ It is recommended that this isn't configured at this time unless you know what you're doing.*
+
+A list of response modes this client supports.
+
+See the [Response Modes](../../integration/openid-connect/introduction.md#response-modes) section of the
+[OpenID Connect 1.0 Integration Guide](../../integration/openid-connect/introduction.md#response-modes) for more information.
 
 #### authorization_policy
 
 {{< confkey type="string" default="two_factor" required="no" >}}
 
 The authorization policy for this client: either `one_factor` or `two_factor`.
+
+#### enforce_par
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enforces the use of a [Pushed Authorization Requests] flow for this client.
 
 #### enforce_pkce
 
@@ -495,14 +526,18 @@ more information.
 
 {{< confkey type="string" default="auto" required="no" >}}
 
+*__Important Note:__ the `implicit` consent mode is not technically part of the specification. It theoretically could be
+misused in certain conditions specifically with public clients or when the client credentials (i.e. client secret) has
+been exposed to an attacker. For these reasons this mode is discouraged.*
+
 Configures the consent mode. The following table describes the different modes:
 
-|     Value      |                                                                                   Description                                                                                    |
-|:--------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-|      auto      |                  Automatically determined (default). Uses `explicit` unless [pre_configured_consent_duration] is specified in which case uses `pre-configured`.                  |
-|    explicit    |                                                    Requires the user provide unique explicit consent for every authorization.                                                    |
-|    implicit    | Automatically assumes consent for every authorization, never asking the user if they wish to give consent. *__Note:__* this option is not technically part of the specification. |
-| pre-configured |                                             Allows the end-user to remember their consent for the [pre_configured_consent_duration].                                             |
+|     Value      |                                                                  Description                                                                   |
+|:--------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|
+|      auto      | Automatically determined (default). Uses `explicit` unless [pre_configured_consent_duration] is specified in which case uses `pre-configured`. |
+|    explicit    |                                   Requires the user provide unique explicit consent for every authorization.                                   |
+|    implicit    |                   Automatically assumes consent for every authorization, never asking the user if they wish to give consent.                   |
+| pre-configured |                            Allows the end-user to remember their consent for the [pre_configured_consent_duration].                            |
 
 [pre_configured_consent_duration]: #preconfiguredconsentduration
 
@@ -530,12 +565,13 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 
 [token lifespan]: https://docs.apigee.com/api-platform/antipatterns/oauth-long-expiration
 [OpenID Connect 1.0]: https://openid.net/connect/
-[JWT]: https://www.rfc-editor.org/rfc/rfc7519.html
-[RFC6234]: https://www.rfc-editor.org/rfc/rfc6234.html
-[RFC4648]: https://www.rfc-editor.org/rfc/rfc4648.html
-[RFC7468]: https://www.rfc-editor.org/rfc/rfc7468.html
-[RFC6749 Section 2.1]: https://www.rfc-editor.org/rfc/rfc6749.html#section-2.1
-[PKCE]: https://www.rfc-editor.org/rfc/rfc7636.html
+[JWT]: https://datatracker.ietf.org/doc/html/rfc7519
+[RFC6234]: https://datatracker.ietf.org/doc/html/rfc6234
+[RFC4648]: https://datatracker.ietf.org/doc/html/rfc4648
+[RFC7468]: https://datatracker.ietf.org/doc/html/rfc7468
+[RFC6749 Section 2.1]: https://datatracker.ietf.org/doc/html/rfc6749#section-2.1
+[PKCE]: https://datatracker.ietf.org/doc/html/rfc7636
 [Authorization Code Flow]: https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth
 [Subject Identifier Type]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
 [Pairwise Identifier Algorithm]: https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg
+[Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126

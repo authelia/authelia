@@ -50,7 +50,7 @@ func InitializeLogger(config schema.LogConfiguration, log bool) error {
 	}
 
 	if config.FilePath != "" {
-		filePath := strings.ReplaceAll(config.FilePath, "%d", time.Now().Format("2006-02-01T150405Z"))
+		filePath := strings.ReplaceAll(config.FilePath, "%d", time.Now().Format(time.RFC3339))
 
 		f, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 

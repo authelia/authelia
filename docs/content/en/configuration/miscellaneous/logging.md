@@ -75,7 +75,8 @@ level to `debug` or `trace` this will generate large amount of log entries. Admi
 they rotate and/or truncate the logs over time to prevent significant long-term disk usage.
 
 If you include the value `%d` in the filename it will replace this value with a date time indicative of the time
-the logger was initialized using `2006-02-01T150405Z` as the format.
+the logger was initialized using [RFC3339](https://datatracker.ietf.org/doc/html/rfc3339) as the format which is
+represented as `2006-01-02T15:04:05Z07:00` in go.
 
 #### File Path Examples
 

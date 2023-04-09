@@ -1,21 +1,29 @@
 package oidc
 
+import (
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+)
+
 // NewOpenIDConnectWellKnownConfiguration generates a new OpenIDConnectWellKnownConfiguration.
-func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge bool, clients map[string]*Client) (config OpenIDConnectWellKnownConfiguration) {
+func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration, clients map[string]*Client) (config OpenIDConnectWellKnownConfiguration) {
 	config = OpenIDConnectWellKnownConfiguration{
 		CommonDiscoveryOptions: CommonDiscoveryOptions{
 			SubjectTypesSupported: []string{
 				SubjectTypePublic,
 			},
 			ResponseTypesSupported: []string{
-				"code",
-				"token",
-				"id_token",
-				"code token",
-				"code id_token",
-				"token id_token",
-				"code token id_token",
-				"none",
+				ResponseTypeAuthorizationCodeFlow,
+				ResponseTypeImplicitFlowIDToken,
+				ResponseTypeImplicitFlowToken,
+				ResponseTypeImplicitFlowBoth,
+				ResponseTypeHybridFlowIDToken,
+				ResponseTypeHybridFlowToken,
+				ResponseTypeHybridFlowBoth,
+			},
+			GrantTypesSupported: []string{
+				GrantTypeAuthorizationCode,
+				GrantTypeImplicit,
+				GrantTypeRefreshToken,
 			},
 			ResponseModesSupported: []string{
 				ResponseModeFormPost,
@@ -49,6 +57,12 @@ func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge bool, clien
 				ClaimPreferredUsername,
 				ClaimFullName,
 			},
+			TokenEndpointAuthMethodsSupported: []string{
+				ClientAuthMethodClientSecretBasic,
+				ClientAuthMethodClientSecretPost,
+				ClientAuthMethodClientSecretJWT,
+				ClientAuthMethodNone,
+			},
 		},
 		OAuth2DiscoveryOptions: OAuth2DiscoveryOptions{
 			CodeChallengeMethodsSupported: []string{
@@ -68,6 +82,9 @@ func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge bool, clien
 				SigningAlgorithmRSAWithSHA256,
 			},
 		},
+		PushedAuthorizationDiscoveryOptions: PushedAuthorizationDiscoveryOptions{
+			RequirePushedAuthorizationRequests: c.PAR.Enforce,
+		},
 	}
 
 	var pairwise, public bool
@@ -86,7 +103,7 @@ func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge bool, clien
 		config.SubjectTypesSupported = append(config.SubjectTypesSupported, SubjectTypePairwise)
 	}
 
-	if enablePKCEPlainChallenge {
+	if c.EnablePKCEPlainChallenge {
 		config.CodeChallengeMethodsSupported = append(config.CodeChallengeMethodsSupported, PKCEChallengeMethodPlain)
 	}
 

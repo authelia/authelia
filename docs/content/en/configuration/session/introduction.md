@@ -137,11 +137,12 @@ cookies for this domain.
 For example if Authelia is accessible via the URL `https://auth.example.com` the domain should be either
 `auth.example.com` or `example.com`.
 
-Please note most good DynamicDNS solutions fall into a specially protected group of domains and browsers do not allow
-you to write cookies for the root domain. i.e. if you have been assigned `john.duckdns.org` you can't use `duckdns.org`
-for the domain value as browsers will not allow `john.duckdns.org` to read or write cookies for `duckdns.org`.
+The value must not match a domain on the [Public Suffix List](https://publicsuffix.org/list/) as browsers do not allow
+websites to write cookies for these domains. This includes most Dynamic DNS services such as `duckdns.org`. You should
+use your domain instead of `duckdns.org` for this value, for example `example.duckdns.org`.
 
-Consequently, if you have `john.duckdns.org` and `mary.duckdns.org` you cannot share cookies between these domains.
+Consequently, if you have `example.duckdns.org` and `example-auth.duckdns.org` you cannot share cookies between these
+domains.
 
 #### authelia_url
 
