@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
@@ -138,7 +139,9 @@ type TLSServerContext struct {
 func NewTLSServerContext(configuration schema.Configuration) (serverContext *TLSServerContext, err error) {
 	serverContext = new(TLSServerContext)
 
-	providers := middlewares.Providers{}
+	providers := middlewares.Providers{
+		Random: random.NewMathematical(),
+	}
 
 	providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: configuration.Notifier.TemplatePath})
 	if err != nil {

@@ -32,14 +32,24 @@ type encOAuth2Session struct {
 	Session []byte `db:"session_data"`
 }
 
+type encOneTimePassword struct {
+	ID  int    `db:"id"`
+	OTP []byte `db:"otp"`
+}
+
+type encTOTPConfiguration struct {
+	ID     int    `db:"id"`
+	Secret []byte `db:"secret"`
+}
+
 type encWebAuthnDevice struct {
 	ID        int    `db:"id"`
 	PublicKey []byte `db:"public_key"`
 }
 
-type encTOTPConfiguration struct {
-	ID     int    `db:"id" json:"-"`
-	Secret []byte `db:"secret" json:"-"`
+type encEncryption struct {
+	ID    int    `db:"id"`
+	Value []byte `db:"value"`
 }
 
 // EncryptionValidationResult contains information about the success of a schema encryption validation.

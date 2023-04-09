@@ -446,7 +446,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvi
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
-		"requestMethod": "GET",
+		"requestMethod": fasthttp.MethodGet,
 		"keepMeLoggedIn": false
 	}`)
 

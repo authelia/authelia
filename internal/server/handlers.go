@@ -176,7 +176,7 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 
 	middleware2FA := middlewares.NewBridgeBuilder(*config, providers).
 		WithPreMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
-		WithPostMiddlewares(middlewares.Require2FAWithAPIResponse).
+		WithPostMiddlewares(middlewares.Require2FA).
 		Build()
 
 	r.HEAD("/api/health", middlewareAPI(handlers.HealthGET))

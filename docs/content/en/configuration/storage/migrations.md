@@ -39,3 +39,4 @@ this instance if you wanted to downgrade to pre1 you would need to use an Authel
 |       8        |      4.38.0      |                          OpenID Connect 1.0 Pushed Authorization Requests                          |
 |       9        |      4.38.0      | Fix a PostgreSQL NOT NULL constraint issue on the `aaguid` column of the `webauthn_devices` table  |
 |       10       |      4.38.0      |                        WebAuthn adjustments for multi-cookie domain changes                        |
+|       11       |      4.38.0      |                   One-Time Password for Identity Verification via Email Changes                    |

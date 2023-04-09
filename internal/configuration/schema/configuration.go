@@ -24,4 +24,5 @@ type Configuration struct {
 	WebAuthn              WebAuthnConfiguration          `koanf:"webauthn"`
 	PasswordPolicy        PasswordPolicyConfiguration    `koanf:"password_policy"`
 	PrivacyPolicy         PrivacyPolicy                  `koanf:"privacy_policy"`
+	IdentityValidation    IdentityValidation             `koanf:"identity_validation"`
 }
