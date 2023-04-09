@@ -59,7 +59,7 @@ var deprecations = map[string]Deprecation{
 	},
 	"host": {
 		Version: model.SemanticVersion{Major: 4, Minor: 30},
-		Key:     "logs_file",
+		Key:     "host",
 		NewKey:  "server.host",
 		AutoMap: true,
 		MapFunc: nil,

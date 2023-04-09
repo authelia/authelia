@@ -61,6 +61,23 @@ networks to the trusted proxy list in [Traefik]:
 
 See the [Entry Points](https://doc.traefik.io/traefik/routing/entrypoints) documentation for more information.
 
+## Implementation
+
+[Traefik] utilizes the [ForwardAuth](../../reference/guides/proxy-authorization.md#forwardauth) Authz implementation. The
+associated [Metadata](../../reference/guides/proxy-authorization.md#forwardauth-metadata) should be considered required.
+
+The examples below assume you are using the default
+[Authz Endpoints Configuration](../../configuration/miscellaneous/server-endpoints-authz.md) or one similar to the
+following minimal configuration:
+
+```yaml
+server:
+  endpoints:
+    authz:
+      forward-auth:
+        implementation: ForwardAuth
+```
+
 ## Configuration
 
 Below you will find commented examples of the following docker deployment:
@@ -75,6 +92,30 @@ The below configuration looks to provide examples of running [Traefik] 2.x with 
 
 Please ensure that you also setup the respective [ACME configuration](https://docs.traefik.io/https/acme/) for your
 [Traefik] setup as this is not covered in the example below.
+
+## Assumptions and Adaptation
+
+This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
+can not reasonably have examples for every advanced configuration option that exists. The
+following are the assumptions we make:
+
+* Deployment Scenario:
+  * Single Host
+  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
+  * Proxy is deployed as a Container on a network shared with Authelia
+* The above assumption means that AUthelia should be accesible to the proxy on `http://authelia:9091` and as such:
+  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
+    certificate defined
+  * You will have to adapt all instances of `authelia` in the URL if:
+    * you're using a different container name
+    * you deployed the proxy to a different location
+  * You will have to adapt all instances of `9091` in the URL if:
+    * you have adjusted the default port in the configuration
+  * You will have to adapt the entire URL if:
+    * Authelia is on a different host to the proxy
+* All services are part of the `example.com` domain:
+  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
+    just testing or you want ot use that specific domain
 
 ### Docker Compose
 

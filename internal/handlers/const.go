@@ -15,12 +15,22 @@ const (
 	ActionResetPassword = "ResetPassword"
 )
 
+const (
+	anonymous = "<anonymous>"
+)
+
 var (
 	headerAuthorization   = []byte(fasthttp.HeaderAuthorization)
 	headerWWWAuthenticate = []byte(fasthttp.HeaderWWWAuthenticate)
 
 	headerProxyAuthorization = []byte(fasthttp.HeaderProxyAuthorization)
 	headerProxyAuthenticate  = []byte(fasthttp.HeaderProxyAuthenticate)
+
+	headerSessionUsername = []byte("Session-Username")
+	headerRemoteUser      = []byte("Remote-User")
+	headerRemoteGroups    = []byte("Remote-Groups")
+	headerRemoteName      = []byte("Remote-Name")
+	headerRemoteEmail     = []byte("Remote-Email")
 )
 
 const (
@@ -29,14 +39,6 @@ const (
 
 var (
 	headerValueAuthenticateBasic = []byte(`Basic realm="Authorization Required"`)
-)
-
-var (
-	headerSessionUsername = []byte("Session-Username")
-	headerRemoteUser      = []byte("Remote-User")
-	headerRemoteGroups    = []byte("Remote-Groups")
-	headerRemoteName      = []byte("Remote-Name")
-	headerRemoteEmail     = []byte("Remote-Email")
 )
 
 const (
@@ -88,6 +90,8 @@ const (
 )
 
 const (
+	logFmtAuthzRedirect = "Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s"
+
 	logFmtAuthorizationPrefix = "Authorization Request with id '%s' on client with id '%s' "
 
 	logFmtErrConsentCantDetermineConsentMode = logFmtAuthorizationPrefix + "could not be processed: error occurred generating consent: client consent mode could not be reliably determined"

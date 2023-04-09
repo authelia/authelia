@@ -201,8 +201,8 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 		case "legacy":
 			log.
 				WithField("path_prefix", pathAuthzLegacy).
-				WithField("impl", endpoint.Implementation).
-				WithField("methods", []string{"*"}).
+				WithField("implementation", endpoint.Implementation).
+				WithField("methods", "*").
 				Trace("Registering Authz Endpoint")
 
 			r.ANY(pathAuthzLegacy, handler)
@@ -212,8 +212,8 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 			case handlers.AuthzImplLegacy.String(), handlers.AuthzImplExtAuthz.String():
 				log.
 					WithField("path_prefix", uri).
-					WithField("impl", endpoint.Implementation).
-					WithField("methods", []string{"*"}).
+					WithField("implementation", endpoint.Implementation).
+					WithField("methods", "*").
 					Trace("Registering Authz Endpoint")
 
 				r.ANY(uri, handler)
@@ -221,7 +221,7 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 			default:
 				log.
 					WithField("path", uri).
-					WithField("impl", endpoint.Implementation).
+					WithField("implementation", endpoint.Implementation).
 					WithField("methods", []string{fasthttp.MethodGet, fasthttp.MethodHead}).
 					Trace("Registering Authz Endpoint")
 
