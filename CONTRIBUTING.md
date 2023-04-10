@@ -30,7 +30,12 @@ issue so that no one else starts any duplicate work.
 Pull Requests can only be merged once all status checks are green, which means `authelia-scripts --log-level debug ci`
 passes, and coverage does not regress.
 
-## Do not force push to your pull request branch
+### Sign the Developer Certificate of Origin
+
+Please ensure you complete the [Developer Certificate of Origin] sign off for all commits. More information can be found
+in the [Developer Certificate of Origin] documentation.
+
+### Do not force push to your pull request branch
 
 Please do not force push to your PR's branch after you have created your PR especially when a maintainer has either
 performed a review or has indicated they are performing a review, as doing so makes it harder to review your commits
