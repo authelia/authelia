@@ -2,7 +2,7 @@
 title: "Firezone"
 description: "Integrating Firezone with the Authelia OpenID Connect Provider."
 lead: ""
-date: 2023-03-25T13:07:02+10:00
+date: 2023-03-28T20:29:13+11:00
 draft: false
 images: []
 menu:

@@ -12,8 +12,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-func getWebAuthnUser(ctx *middlewares.AutheliaCtx, userSession session.UserSession) (user *model.WebauthnUser, err error) {
-	user = &model.WebauthnUser{
+func getWebAuthnUser(ctx *middlewares.AutheliaCtx, userSession session.UserSession) (user *model.WebAuthnUser, err error) {
+	user = &model.WebAuthnUser{
 		Username:    userSession.Username,
 		DisplayName: userSession.DisplayName,
 	}

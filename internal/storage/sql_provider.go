@@ -882,7 +882,7 @@ func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, limit, page in
 }
 
 // SaveWebauthnDevice saves a registered Webauthn device.
-func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device model.WebauthnDevice) (err error) {
+func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device model.WebAuthnDevice) (err error) {
 	if device.PublicKey, err = p.encrypt(device.PublicKey); err != nil {
 		return fmt.Errorf("error encrypting Webauthn device public key for user '%s' kid '%x': %w", device.Username, device.KID, err)
 	}
@@ -937,8 +937,8 @@ func (p *SQLProvider) DeleteWebauthnDeviceByUsername(ctx context.Context, userna
 }
 
 // LoadWebauthnDevices loads Webauthn device registrations.
-func (p *SQLProvider) LoadWebauthnDevices(ctx context.Context, limit, page int) (devices []model.WebauthnDevice, err error) {
-	devices = make([]model.WebauthnDevice, 0, limit)
+func (p *SQLProvider) LoadWebauthnDevices(ctx context.Context, limit, page int) (devices []model.WebAuthnDevice, err error) {
+	devices = make([]model.WebAuthnDevice, 0, limit)
 
 	if err = p.db.SelectContext(ctx, &devices, p.sqlSelectWebauthnDevices, limit, limit*page); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -958,7 +958,7 @@ func (p *SQLProvider) LoadWebauthnDevices(ctx context.Context, limit, page int) 
 }
 
 // LoadWebauthnDevicesByUsername loads all webauthn devices registration for a given username.
-func (p *SQLProvider) LoadWebauthnDevicesByUsername(ctx context.Context, username string) (devices []model.WebauthnDevice, err error) {
+func (p *SQLProvider) LoadWebauthnDevicesByUsername(ctx context.Context, username string) (devices []model.WebAuthnDevice, err error) {
 	if err = p.db.SelectContext(ctx, &devices, p.sqlSelectWebauthnDevicesByUsername, username); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNoWebauthnDevice

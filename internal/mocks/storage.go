@@ -421,10 +421,10 @@ func (mr *MockStorageMockRecorder) LoadUserOpaqueIdentifiers(arg0 interface{}) *
 }
 
 // LoadWebauthnDevices mocks base method.
-func (m *MockStorage) LoadWebauthnDevices(arg0 context.Context, arg1, arg2 int) ([]model.WebauthnDevice, error) {
+func (m *MockStorage) LoadWebauthnDevices(arg0 context.Context, arg1, arg2 int) ([]model.WebAuthnDevice, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoadWebauthnDevices", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]model.WebauthnDevice)
+	ret0, _ := ret[0].([]model.WebAuthnDevice)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -436,10 +436,10 @@ func (mr *MockStorageMockRecorder) LoadWebauthnDevices(arg0, arg1, arg2 interfac
 }
 
 // LoadWebauthnDevicesByUsername mocks base method.
-func (m *MockStorage) LoadWebauthnDevicesByUsername(arg0 context.Context, arg1 string) ([]model.WebauthnDevice, error) {
+func (m *MockStorage) LoadWebauthnDevicesByUsername(arg0 context.Context, arg1 string) ([]model.WebAuthnDevice, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoadWebauthnDevicesByUsername", arg0, arg1)
-	ret0, _ := ret[0].([]model.WebauthnDevice)
+	ret0, _ := ret[0].([]model.WebAuthnDevice)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -690,7 +690,7 @@ func (mr *MockStorageMockRecorder) SaveUserOpaqueIdentifier(arg0, arg1 interface
 }
 
 // SaveWebauthnDevice mocks base method.
-func (m *MockStorage) SaveWebauthnDevice(arg0 context.Context, arg1 model.WebauthnDevice) error {
+func (m *MockStorage) SaveWebauthnDevice(arg0 context.Context, arg1 model.WebAuthnDevice) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveWebauthnDevice", arg0, arg1)
 	ret0, _ := ret[0].(error)

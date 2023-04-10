@@ -73,7 +73,7 @@ serving Authelia at `auth.example.com`.
 ```nginx
     ## Set $authelia_backend to route requests to the current domain by default
     set $authelia_backend $http_host;
-    ## In order for Webauthn to work with multiple domains authelia must operate on a separate subdomain
+    ## In order for WebAuthn to work with multiple domains authelia must operate on a separate subdomain
     ## To use authelia on a separate subdomain:
     ##  * comment the $authelia_backend line above
     ##  * rename /config/nginx/proxy-confs/authelia.conf.sample to /config/nginx/proxy-confs/authelia.conf
@@ -88,7 +88,7 @@ serving Authelia at `auth.example.com`.
 ```nginx
     ## Set $authelia_backend to route requests to the current domain by default
     # set $authelia_backend $http_host;
-    ## In order for Webauthn to work with multiple domains authelia must operate on a separate subdomain
+    ## In order for WebAuthn to work with multiple domains authelia must operate on a separate subdomain
     ## To use authelia on a separate subdomain:
     ##  * comment the $authelia_backend line above
     ##  * rename /config/nginx/proxy-confs/authelia.conf.sample to /config/nginx/proxy-confs/authelia.conf
