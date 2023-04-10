@@ -37,3 +37,4 @@ this instance if you wanted to downgrade to pre1 you would need to use an Authel
 |       6        |      4.37.0      |          Adjusted the OpenID Connect tables to allow pre-configured consent improvements           |
 |       7        |      4.37.3      |       Fixed some schema inconsistencies most notably the MySQL/MariaDB Engine and Collation        |
 |       8        |      4.38.0      |                          OpenID Connect 1.0 Pushed Authorization Requests                          |
+|       9        |      4.38.0      | Fix a PostgreSQL NOT NULL constraint issue on the `aaguid` column of the `webauthn_devices` table  |
