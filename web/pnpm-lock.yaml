@@ -190,8 +190,8 @@ devDependencies:
     specifier: 2.4.0
     version: 2.4.0(vite@4.2.1)
   vite-tsconfig-paths:
-    specifier: 4.0.8
-    version: 4.0.8(typescript@5.0.4)(vite@4.2.1)
+    specifier: 4.0.9
+    version: 4.0.9(typescript@5.0.4)(vite@4.2.1)
 
 packages:
 
@@ -9321,8 +9321,8 @@ packages:
       - supports-color
     dev: true
 
-  /vite-tsconfig-paths@4.0.8(typescript@5.0.4)(vite@4.2.1):
-    resolution: {integrity: sha512-p04zH+Ey+NT78571x0pdX7nVRIJSlmKVvYryFglSWOK3Hc72eDL0+JJfbyQiugaIBApJkaEqbBQvqpsFZOSVGg==}
+  /vite-tsconfig-paths@4.0.9(typescript@5.0.4)(vite@4.2.1):
+    resolution: {integrity: sha512-qtjwLELs7AEtvZGWbv5aXNda0vyaU8MDjvohMS05sePdUNqBZbBk670Rpfoe0GguF4R1G/DT7yBTPSHdF4h9kA==}
     peerDependencies:
       vite: '*'
     peerDependenciesMeta:
