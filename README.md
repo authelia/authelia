@@ -365,10 +365,6 @@ Our pipeline agents which we rely on for productivity are hosted on [Azure](http
 and our [git repositories](https://github.com/authelia) are hosted on [GitHub](https://github.com/?from=Authela)
 which are both [Microsoft](https://www.microsoft.com/?from=Authelia) products.
 
-[<img src="https://www.authelia.com/images/logos/microsoft.svg" alt="microsoft" height="32">](https://www.microsoft.com/?from=Authelia)
-
-[<img src="https://www.authelia.com/images/logos/azure.svg" alt="Azure" height="32">](https://azure.microsoft.com/?from=Authelia)
-
 ### Open Collective
 
 #### Backers

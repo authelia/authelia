@@ -65,10 +65,6 @@ Our pipeline agents which we rely on for productivity are hosted on [Azure](http
 and our [git repositories](https://github.com/authelia) are hosted on [GitHub](https://github.com/?from=Authela)
 which are both [Microsoft](https://www.microsoft.com/?from=Authelia) products.
 
-{{< figure src="/images/logos/microsoft.svg" alt="Microsoft" width="234.45" style="padding-right: 10px" ignoreStaticImages="false" >}}
-
-{{< figure src="/images/logos/azure.svg" alt="Azure" width="173.55" style="padding-right: 10px" ignoreStaticImages="false" >}}
-
 ### Netlify
 
 Our [website and documentation](https://www.authelia.com) are built and hosted by
