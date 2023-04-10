@@ -14,13 +14,13 @@ toc: true
 
 ## authelia storage user webauthn import
 
-Perform imports of the Webauthn devices
+Perform imports of the WebAuthn devices
 
 ### Synopsis
 
-Perform imports of the Webauthn devices.
+Perform imports of the WebAuthn devices.
 
-This subcommand allows importing Webauthn devices from various formats.
+This subcommand allows importing WebAuthn devices from various formats.
 
 ```
 authelia storage user webauthn import <filename> [flags]
@@ -67,5 +67,5 @@ authelia storage user webauthn import --file authelia.export.webauthn.yaml --enc
 
 ### SEE ALSO
 
-* [authelia storage user webauthn](authelia_storage_user_webauthn.md)	 - Manage Webauthn devices
+* [authelia storage user webauthn](authelia_storage_user_webauthn.md)	 - Manage WebAuthn devices
 
