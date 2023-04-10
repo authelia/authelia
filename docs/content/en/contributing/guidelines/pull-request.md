@@ -20,8 +20,11 @@ processing merges into the [master] branch.
 ## Overview
 
 * Ensure the `Allow edits by maintainers` checkbox is checked due to our [Squash Merge](#squash-merge) policy
-* Ensure you avoid a force push excluding changes to the commit message (i.e. to provide the Developer Certificate of
-  Origin sign-off) due to our [Squash Merge](#squash-merge) policy and [Review](#review) complications
+* Ensure you avoid a force push excluding changes to the commit message (i.e. to provide the
+  [Developer Certificate of Origin] sign-off) due to our [Squash Merge](#squash-merge) policy and [Review](#review)
+  complications
+
+[Developer Certificate of Origin]: commit-message.md#developer-certificate-of-origin
 
 ## Squash Merge
 

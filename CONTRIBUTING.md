@@ -37,8 +37,10 @@ performed a review or has indicated they are performing a review, as doing so ma
 accurately. PRs will always be squashed by us when we merge your work. Commit as many times as you need in your
 pull request branch.
 
-The exception exists for contributors to make adjustments to the commit message i.e. to perform the Developer
-Certificate of Origin sign off.
+An exception exists for contributors to make adjustments to the commit message i.e. to perform the
+[Developer Certificate of Origin] sign off.
+
+[Developer Certificate of Origin]: https://www.authelia.com/contributing/guidelines/commit-message/#developer-certificate-of-origin
 
 ## Re-requesting a review
 
