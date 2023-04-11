@@ -6,15 +6,8 @@
     "peerDependencyRules": {
       "allowedVersions": {
         "@types/react": "18",
-        "react": "18",
-        "react-dom": "18"
-      },
-      "ignoreMissing": [
-        "@babel/core",
-        "@babel/plugin-syntax-flow",
-        "@babel/plugin-transform-react-jsx",
-        "prop-types"
-      ]
+        "react": "18"
+      }
     }
   },
   "dependencies": {
