@@ -4,41 +4,39 @@ import { render } from "@testing-library/react";
 
 import TypographyWithTooltip, { Props } from "@components/TypographyWithTooltip";
 
-describe("TypographyWithTooltip", () => {
-    const defaultProps: Props = {
-        variant: "h5",
-        value: "Example",
+const defaultProps: Props = {
+    variant: "h5",
+    value: "Example",
+};
+
+it("renders without crashing", () => {
+    render(<TypographyWithTooltip {...defaultProps} />);
+});
+
+it("renders with tooltip without crashing", () => {
+    const props: Props = {
+        ...defaultProps,
+        tooltip: "A tooltip",
     };
+    render(<TypographyWithTooltip {...props} />);
+});
 
-    it("renders without crashing", () => {
-        render(<TypographyWithTooltip {...defaultProps} />);
-    });
+it("renders the text correctly", () => {
+    const props: Props = {
+        ...defaultProps,
+        value: "Test text",
+    };
+    const { getByText } = render(<TypographyWithTooltip {...props} />);
+    const element = getByText(props.value!);
+    expect(element).toBeInTheDocument();
+});
 
-    it("renders with tooltip without crashing", () => {
-        const props: Props = {
-            ...defaultProps,
-            tooltip: "A tooltip",
-        };
-        render(<TypographyWithTooltip {...props} />);
-    });
-
-    it("renders the text correctly", () => {
-        const props: Props = {
-            ...defaultProps,
-            value: "Test text",
-        };
-        const { getByText } = render(<TypographyWithTooltip {...props} />);
-        const element = getByText(props.value!);
-        expect(element).toBeInTheDocument();
-    });
-
-    it("renders the tooltip correctly", () => {
-        const props: Props = {
-            ...defaultProps,
-            tooltip: "Test tooltip",
-        };
-        const { getByText } = render(<TypographyWithTooltip {...props} />);
-        const element = getByText(props.value!);
-        expect(element).toHaveAttribute("aria-label", props.tooltip);
-    });
+it("renders the tooltip correctly", () => {
+    const props: Props = {
+        ...defaultProps,
+        tooltip: "Test tooltip",
+    };
+    const { getByText } = render(<TypographyWithTooltip {...props} />);
+    const element = getByText(props.value!);
+    expect(element).toHaveAttribute("aria-label", props.tooltip);
 });
