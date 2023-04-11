@@ -10,10 +10,10 @@
 	</head>
 	<body>
 		<form method="post" action="{{ .RedirURL }}">
-			{{ range $key,$value := .Parameters }}
-			{{ range $parameter:= $value}}
-			<input type="hidden" name="{{$key}}" value="{{$parameter}}"/>
-			{{end}}
+			{{ range $key, $value := .Parameters }}
+			{{ range $parameter := $value }}
+			<input type="hidden" name="{{ $key }}" value="{{ $parameter }}"/>
+			{{ end }}
 			{{ end }}
 		</form>
 	</body>

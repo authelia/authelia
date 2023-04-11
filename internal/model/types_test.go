@@ -1,20 +1,10 @@
 package model
 
 import (
-	"fmt"
 	"testing"
 
-	"github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
 )
-
-func Test(t *testing.T) {
-	args := fosite.Arguments{"abc", "123"}
-
-	x := StringSlicePipeDelimited(args)
-
-	fmt.Println(x)
-}
 
 func TestDatabaseModelTypeIP(t *testing.T) {
 	ip := IP{}

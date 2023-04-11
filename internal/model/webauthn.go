@@ -196,14 +196,18 @@ func (d *WebAuthnDevice) UpdateSignInInfo(config *webauthn.Config, now time.Time
 	}
 }
 
+// DataValueLastUsedAt provides LastUsedAt as a *time.Time instead of sql.NullTime.
 func (d *WebAuthnDevice) DataValueLastUsedAt() *time.Time {
 	if d.LastUsedAt.Valid {
-		return &d.LastUsedAt.Time
+		value := time.Unix(d.LastUsedAt.Time.Unix(), int64(d.LastUsedAt.Time.Nanosecond()))
+
+		return &value
 	}
 
 	return nil
 }
 
+// DataValueAAGUID provides AAGUID as a *string instead of uuid.NullUUID.
 func (d *WebAuthnDevice) DataValueAAGUID() *string {
 	if d.AAGUID.Valid {
 		value := d.AAGUID.UUID.String()
@@ -381,4 +385,27 @@ func (d *WebAuthnDeviceData) ToDevice() (device *WebAuthnDevice, err error) {
 // WebAuthnDeviceExport represents a WebAuthnDevice export file.
 type WebAuthnDeviceExport struct {
 	WebAuthnDevices []WebAuthnDevice `yaml:"webauthn_devices"`
+}
+
+// WebAuthnDeviceDataExport represents a WebAuthnDevice export file.
+type WebAuthnDeviceDataExport struct {
+	WebAuthnDevices []WebAuthnDeviceData `yaml:"webauthn_devices"`
+}
+
+// ToData converts this WebAuthnDeviceExport into a WebAuthnDeviceDataExport.
+func (export WebAuthnDeviceExport) ToData() WebAuthnDeviceDataExport {
+	data := WebAuthnDeviceDataExport{
+		WebAuthnDevices: make([]WebAuthnDeviceData, len(export.WebAuthnDevices)),
+	}
+
+	for i, device := range export.WebAuthnDevices {
+		data.WebAuthnDevices[i] = device.ToData()
+	}
+
+	return data
+}
+
+// MarshalYAML marshals this model into YAML.
+func (export WebAuthnDeviceExport) MarshalYAML() (any, error) {
+	return export.ToData(), nil
 }

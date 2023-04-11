@@ -63,6 +63,28 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return
 	}
 
+	if !oidc.IsPushedAuthorizedRequest(requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)) {
+		if err = client.ValidatePKCEPolicy(requester); err != nil {
+			rfc := fosite.ErrorToRFC6749Error(err)
+
+			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' failed to validate the PKCE policy: %s", requester.GetID(), client.GetID(), rfc.WithExposeDebug(true).GetDescription())
+
+			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
+
+			return
+		}
+
+		if err = client.ValidateResponseModePolicy(requester); err != nil {
+			rfc := fosite.ErrorToRFC6749Error(err)
+
+			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' failed to validate the Response Mode: %s", requester.GetID(), client.GetID(), rfc.WithExposeDebug(true).GetDescription())
+
+			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
+
+			return
+		}
+	}
+
 	if err = client.ValidatePKCEPolicy(requester); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
@@ -175,9 +197,19 @@ func OpenIDConnectPushedAuthorizationRequest(ctx *middlewares.AutheliaCtx, rw ht
 	if err = client.ValidatePKCEPolicy(requester); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
-		ctx.Logger.Errorf("Pushed Authorization Request with id '%s' on client with id '%s' failed to validate the PKCE policy: %s", requester.GetID(), clientID, rfc.WithExposeDebug(true).GetDescription())
+		ctx.Logger.Errorf("Pushed Authorization Request with id '%s' on client with id '%s' failed to validate the PKCE policy: %s", requester.GetID(), client.GetID(), rfc.WithExposeDebug(true).GetDescription())
 
-		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, err)
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
+
+		return
+	}
+
+	if err = client.ValidateResponseModePolicy(requester); err != nil {
+		rfc := fosite.ErrorToRFC6749Error(err)
+
+		ctx.Logger.Errorf("Pushed Authorization Request with id '%s' on client with id '%s' failed to validate the Response Mode: %s", requester.GetID(), client.GetID(), rfc.WithExposeDebug(true).GetDescription())
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
 
 		return
 	}
