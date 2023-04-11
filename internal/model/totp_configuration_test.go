@@ -1,11 +1,14 @@
 package model
 
 import (
+	"database/sql"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 )
 
 /*
@@ -74,4 +77,63 @@ func TestShouldReturnImage(t *testing.T) {
 
 	assert.Equal(t, 41, img.Bounds().Dx())
 	assert.Equal(t, 41, img.Bounds().Dy())
+}
+
+func TestTOTPConfigurationImportExport(t *testing.T) {
+	have := TOTPConfigurationExport{
+		TOTPConfigurations: []TOTPConfiguration{
+			{
+				ID:         0,
+				CreatedAt:  time.Now(),
+				LastUsedAt: sql.NullTime{Valid: false},
+				Username:   "john",
+				Issuer:     "example",
+				Algorithm:  "SHA1",
+				Digits:     6,
+				Period:     30,
+				Secret:     MustRead(80),
+			},
+			{
+				ID:         1,
+				CreatedAt:  time.Now(),
+				LastUsedAt: sql.NullTime{Time: time.Now(), Valid: true},
+				Username:   "abc",
+				Issuer:     "example2",
+				Algorithm:  "SHA512",
+				Digits:     8,
+				Period:     90,
+				Secret:     MustRead(120),
+			},
+		},
+	}
+
+	out, err := yaml.Marshal(&have)
+	require.NoError(t, err)
+
+	imported := TOTPConfigurationExport{}
+
+	require.NoError(t, yaml.Unmarshal(out, &imported))
+
+	require.Equal(t, len(have.TOTPConfigurations), len(imported.TOTPConfigurations))
+
+	for i, actual := range imported.TOTPConfigurations {
+		t.Run(actual.Username, func(t *testing.T) {
+			expected := have.TOTPConfigurations[i]
+
+			if expected.ID != 0 {
+				assert.NotEqual(t, expected.ID, actual.ID)
+			} else {
+				assert.Equal(t, expected.ID, actual.ID)
+			}
+
+			assert.Equal(t, expected.Username, actual.Username)
+			assert.Equal(t, expected.Issuer, actual.Issuer)
+			assert.Equal(t, expected.Algorithm, actual.Algorithm)
+			assert.Equal(t, expected.Digits, actual.Digits)
+			assert.Equal(t, expected.Period, actual.Period)
+			assert.WithinDuration(t, expected.CreatedAt, actual.CreatedAt, time.Second)
+			assert.WithinDuration(t, expected.LastUsedAt.Time, actual.LastUsedAt.Time, time.Second)
+			assert.Equal(t, expected.LastUsedAt.Valid, actual.LastUsedAt.Valid)
+		})
+	}
 }

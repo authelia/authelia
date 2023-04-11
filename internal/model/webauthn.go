@@ -172,17 +172,20 @@ func (d *WebAuthnDevice) UpdateSignInInfo(config *webauthn.Config, now time.Time
 	}
 }
 
+// LastUsed provides LastUsedAt as a *time.Time instead of sql.NullTime.
 func (d *WebAuthnDevice) LastUsed() *time.Time {
 	if d.LastUsedAt.Valid {
-		return &d.LastUsedAt.Time
+		value := time.Unix(d.LastUsedAt.Time.Unix(), int64(d.LastUsedAt.Time.Nanosecond()))
+
+		return &value
 	}
 
 	return nil
 }
 
-// MarshalYAML marshals this model into YAML.
-func (d *WebAuthnDevice) MarshalYAML() (any, error) {
-	o := WebAuthnDeviceData{
+// ToData converts this WebAuthnDevice into the data format for exporting etc.
+func (d *WebAuthnDevice) ToData() WebAuthnDeviceData {
+	return WebAuthnDeviceData{
 		CreatedAt:       d.CreatedAt,
 		LastUsedAt:      d.LastUsed(),
 		RPID:            d.RPID,
@@ -196,8 +199,11 @@ func (d *WebAuthnDevice) MarshalYAML() (any, error) {
 		SignCount:       d.SignCount,
 		CloneWarning:    d.CloneWarning,
 	}
+}
 
-	return yaml.Marshal(o)
+// MarshalYAML marshals this model into YAML.
+func (d *WebAuthnDevice) MarshalYAML() (any, error) {
+	return d.ToData(), nil
 }
 
 // UnmarshalYAML unmarshalls YAML into this model.
@@ -265,4 +271,27 @@ type WebAuthnDeviceData struct {
 // WebAuthnDeviceExport represents a WebAuthnDevice export file.
 type WebAuthnDeviceExport struct {
 	WebAuthnDevices []WebAuthnDevice `yaml:"webauthn_devices"`
+}
+
+// WebAuthnDeviceDataExport represents a WebAuthnDevice export file.
+type WebAuthnDeviceDataExport struct {
+	WebAuthnDevices []WebAuthnDeviceData `yaml:"webauthn_devices"`
+}
+
+// ToData converts this WebAuthnDeviceExport into a WebAuthnDeviceDataExport.
+func (export WebAuthnDeviceExport) ToData() WebAuthnDeviceDataExport {
+	data := WebAuthnDeviceDataExport{
+		WebAuthnDevices: make([]WebAuthnDeviceData, len(export.WebAuthnDevices)),
+	}
+
+	for i, device := range export.WebAuthnDevices {
+		data.WebAuthnDevices[i] = device.ToData()
+	}
+
+	return data
+}
+
+// MarshalYAML marshals this model into YAML.
+func (export WebAuthnDeviceExport) MarshalYAML() (any, error) {
+	return export.ToData(), nil
 }
