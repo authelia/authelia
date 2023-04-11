@@ -33,7 +33,7 @@ var WebauthnIdentityFinish = middlewares.IdentityVerificationFinish(
 func SecondFactorWebauthnAttestationGET(ctx *middlewares.AutheliaCtx, _ string) {
 	var (
 		w           *webauthn.WebAuthn
-		user        *model.WebauthnUser
+		user        *model.WebAuthnUser
 		userSession session.UserSession
 		err         error
 	)
@@ -94,7 +94,7 @@ func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		err  error
 		w    *webauthn.WebAuthn
-		user *model.WebauthnUser
+		user *model.WebAuthnUser
 
 		userSession session.UserSession
 
@@ -150,7 +150,7 @@ func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	device := model.NewWebauthnDeviceFromCredential(w.Config.RPID, userSession.Username, "Primary", credential)
+	device := model.NewWebAuthnDeviceFromCredential(w.Config.RPID, userSession.Username, "Primary", credential)
 
 	if err = ctx.Providers.StorageProvider.SaveWebauthnDevice(ctx, device); err != nil {
 		ctx.Logger.Errorf("Unable to load %s devices for assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)

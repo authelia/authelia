@@ -16,7 +16,7 @@ import (
 func WebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	var (
 		w           *webauthn.WebAuthn
-		user        *model.WebauthnUser
+		user        *model.WebAuthnUser
 		userSession session.UserSession
 		err         error
 	)
@@ -134,7 +134,7 @@ func WebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		assertionResponse *protocol.ParsedCredentialAssertionData
 		credential        *webauthn.Credential
-		user              *model.WebauthnUser
+		user              *model.WebAuthnUser
 	)
 
 	if assertionResponse, err = protocol.ParseCredentialRequestResponseBody(bytes.NewReader(ctx.PostBody())); err != nil {

@@ -21,7 +21,7 @@ func TestWebauthnGetUser(t *testing.T) {
 		DisplayName: "John Smith",
 	}
 
-	ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "john").Return([]model.WebauthnDevice{
+	ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "john").Return([]model.WebAuthnDevice{
 		{
 			ID:              1,
 			RPID:            "https://example.com",
@@ -106,7 +106,7 @@ func TestWebauthnGetUserWithoutDisplayName(t *testing.T) {
 		Username: "john",
 	}
 
-	ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "john").Return([]model.WebauthnDevice{
+	ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "john").Return([]model.WebAuthnDevice{
 		{
 			ID:              1,
 			RPID:            "https://example.com",
