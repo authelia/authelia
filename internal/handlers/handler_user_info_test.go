@@ -62,7 +62,7 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 		{
 			db: model.UserInfo{
 				Method:      "webauthn",
-				HasWebauthn: true,
+				HasWebAuthn: true,
 				HasTOTP:     true,
 			},
 			err: nil,
@@ -70,7 +70,7 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 		{
 			db: model.UserInfo{
 				Method:      "webauthn",
-				HasWebauthn: true,
+				HasWebAuthn: true,
 				HasTOTP:     false,
 			},
 			err: nil,
@@ -78,7 +78,7 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 		{
 			db: model.UserInfo{
 				Method:      "mobile_push",
-				HasWebauthn: false,
+				HasWebAuthn: false,
 				HasTOTP:     false,
 			},
 			err: nil,
@@ -128,7 +128,7 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 			})
 
 			t.Run("registered webauthn", func(t *testing.T) {
-				assert.Equal(t, resp.api.HasWebauthn, actualPreferences.HasWebauthn)
+				assert.Equal(t, resp.api.HasWebAuthn, actualPreferences.HasWebAuthn)
 			})
 
 			t.Run("registered totp", func(t *testing.T) {
@@ -160,13 +160,13 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			db: model.UserInfo{
 				Method:      "",
 				HasTOTP:     false,
-				HasWebauthn: false,
+				HasWebAuthn: false,
 				HasDuo:      false,
 			},
 			api: &model.UserInfo{
 				Method:      "totp",
 				HasTOTP:     false,
-				HasWebauthn: false,
+				HasWebAuthn: false,
 				HasDuo:      false,
 			},
 			config:  &schema.Configuration{},
@@ -178,13 +178,13 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			db: model.UserInfo{
 				Method:      "",
 				HasTOTP:     false,
-				HasWebauthn: false,
+				HasWebAuthn: false,
 				HasDuo:      true,
 			},
 			api: &model.UserInfo{
 				Method:      "mobile_push",
 				HasTOTP:     false,
-				HasWebauthn: false,
+				HasWebAuthn: false,
 				HasDuo:      true,
 			},
 			config:  &schema.Configuration{},
@@ -196,13 +196,13 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			db: model.UserInfo{
 				Method:      "",
 				HasTOTP:     false,
-				HasWebauthn: false,
+				HasWebAuthn: false,
 				HasDuo:      true,
 			},
 			api: &model.UserInfo{
 				Method:      "totp",
 				HasTOTP:     false,
-				HasWebauthn: false,
+				HasWebAuthn: false,
 				HasDuo:      true,
 			},
 			config:  &schema.Configuration{DuoAPI: schema.DuoAPIConfiguration{Disable: true}},
@@ -214,13 +214,13 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			db: model.UserInfo{
 				Method:      "",
 				HasTOTP:     true,
-				HasWebauthn: true,
+				HasWebAuthn: true,
 				HasDuo:      true,
 			},
 			api: &model.UserInfo{
 				Method:      "webauthn",
 				HasTOTP:     true,
-				HasWebauthn: true,
+				HasWebAuthn: true,
 				HasDuo:      true,
 			},
 			config: &schema.Configuration{
@@ -236,13 +236,13 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			db: model.UserInfo{
 				Method:      "",
 				HasTOTP:     false,
-				HasWebauthn: false,
+				HasWebAuthn: false,
 				HasDuo:      false,
 			},
 			api: &model.UserInfo{
 				Method:      "totp",
 				HasTOTP:     true,
-				HasWebauthn: true,
+				HasWebAuthn: true,
 				HasDuo:      true,
 			},
 			config:  &schema.Configuration{},
@@ -322,7 +322,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 				})
 
 				t.Run("registered webauthn", func(t *testing.T) {
-					assert.Equal(t, resp.api.HasWebauthn, actualPreferences.HasWebauthn)
+					assert.Equal(t, resp.api.HasWebAuthn, actualPreferences.HasWebAuthn)
 				})
 
 				t.Run("registered totp", func(t *testing.T) {

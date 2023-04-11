@@ -841,7 +841,7 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 
 	// Assert Clients[0] DisplayName is set to the Clients[0] ID, and Clients[1]'s DisplayName is not overridden.
 	assert.Equal(t, config.OIDC.Clients[0].ID, config.OIDC.Clients[0].Description)
-	assert.Equal(t, "Normal DisplayName", config.OIDC.Clients[1].Description)
+	assert.Equal(t, "Normal Description", config.OIDC.Clients[1].Description)
 
 	// Assert Clients[0] ends up configured with the default Scopes.
 	require.Len(t, config.OIDC.Clients[0].Scopes, 4)

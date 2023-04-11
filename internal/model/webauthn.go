@@ -18,19 +18,19 @@ const (
 	attestationTypeFIDOU2F = "fido-u2f"
 )
 
-// WebauthnUser is an object to represent a user for the Webauthn lib.
-type WebauthnUser struct {
+// WebAuthnUser is an object to represent a user for the WebAuthn lib.
+type WebAuthnUser struct {
 	ID          int    `db:"id"`
 	RPID        string `db:"rpid"`
 	Username    string `db:"username"`
 	UserID      string `db:"userid"`
 	DisplayName string `db:"-"`
 
-	Devices []WebauthnDevice `db:"-"`
+	Devices []WebAuthnDevice `db:"-"`
 }
 
 // HasFIDOU2F returns true if the user has any attestation type `fido-u2f` devices.
-func (w WebauthnUser) HasFIDOU2F() bool {
+func (w WebAuthnUser) HasFIDOU2F() bool {
 	for _, c := range w.Devices {
 		if c.AttestationType == attestationTypeFIDOU2F {
 			return true
@@ -41,27 +41,27 @@ func (w WebauthnUser) HasFIDOU2F() bool {
 }
 
 // WebAuthnID implements the webauthn.User interface.
-func (w WebauthnUser) WebAuthnID() []byte {
+func (w WebAuthnUser) WebAuthnID() []byte {
 	return []byte(w.UserID)
 }
 
 // WebAuthnName implements the webauthn.User  interface.
-func (w WebauthnUser) WebAuthnName() string {
+func (w WebAuthnUser) WebAuthnName() string {
 	return w.Username
 }
 
 // WebAuthnDisplayName implements the webauthn.User interface.
-func (w WebauthnUser) WebAuthnDisplayName() string {
+func (w WebAuthnUser) WebAuthnDisplayName() string {
 	return w.DisplayName
 }
 
 // WebAuthnIcon implements the webauthn.User interface.
-func (w WebauthnUser) WebAuthnIcon() string {
+func (w WebAuthnUser) WebAuthnIcon() string {
 	return ""
 }
 
 // WebAuthnCredentials implements the webauthn.User interface.
-func (w WebauthnUser) WebAuthnCredentials() (credentials []webauthn.Credential) {
+func (w WebAuthnUser) WebAuthnCredentials() (credentials []webauthn.Credential) {
 	credentials = make([]webauthn.Credential, len(w.Devices))
 
 	var credential webauthn.Credential
@@ -108,7 +108,7 @@ func (w WebauthnUser) WebAuthnCredentials() (credentials []webauthn.Credential) 
 }
 
 // WebAuthnCredentialDescriptors decodes the users credentials into protocol.CredentialDescriptor's.
-func (w WebauthnUser) WebAuthnCredentialDescriptors() (descriptors []protocol.CredentialDescriptor) {
+func (w WebAuthnUser) WebAuthnCredentialDescriptors() (descriptors []protocol.CredentialDescriptor) {
 	credentials := w.WebAuthnCredentials()
 
 	descriptors = make([]protocol.CredentialDescriptor, len(credentials))
@@ -120,15 +120,15 @@ func (w WebauthnUser) WebAuthnCredentialDescriptors() (descriptors []protocol.Cr
 	return descriptors
 }
 
-// NewWebauthnDeviceFromCredential creates a WebauthnDevice from a webauthn.Credential.
-func NewWebauthnDeviceFromCredential(rpid, username, description string, credential *webauthn.Credential) (device WebauthnDevice) {
+// NewWebAuthnDeviceFromCredential creates a WebAuthnDevice from a webauthn.Credential.
+func NewWebAuthnDeviceFromCredential(rpid, username, description string, credential *webauthn.Credential) (device WebAuthnDevice) {
 	transport := make([]string, len(credential.Transport))
 
 	for i, t := range credential.Transport {
 		transport[i] = string(t)
 	}
 
-	device = WebauthnDevice{
+	device = WebAuthnDevice{
 		RPID:            rpid,
 		Username:        username,
 		CreatedAt:       time.Now(),
@@ -155,30 +155,8 @@ func NewWebauthnDeviceFromCredential(rpid, username, description string, credent
 	return device
 }
 
-// WebauthnDeviceJSON represents a Webauthn Device in the JSON format.
-type WebauthnDeviceJSON struct {
-	ID              int        `json:"id"`
-	CreatedAt       time.Time  `json:"created_at"`
-	LastUsedAt      *time.Time `json:"last_used_at,omitempty"`
-	RPID            string     `json:"rpid"`
-	Description     string     `json:"description"`
-	KID             []byte     `json:"kid"`
-	AAGUID          string     `json:"aaguid,omitempty"`
-	Attachment      string     `json:"attachment"`
-	AttestationType string     `json:"attestation_type"`
-	Transports      []string   `json:"transports"`
-	SignCount       uint32     `json:"sign_count"`
-	CloneWarning    bool       `json:"clone_warning"`
-	Discoverable    bool       `json:"discoverable"`
-	Present         bool       `json:"present"`
-	Verified        bool       `json:"verified"`
-	BackupEligible  bool       `json:"backup_eligible"`
-	BackupState     bool       `json:"backup_state"`
-	PublicKey       []byte     `json:"public_key"`
-}
-
-// WebauthnDevice represents a Webauthn Device in the database storage.
-type WebauthnDevice struct {
+// WebAuthnDevice represents a WebAuthn Device in the database storage.
+type WebAuthnDevice struct {
 	ID              int           `db:"id"`
 	CreatedAt       time.Time     `db:"created_at"`
 	LastUsedAt      sql.NullTime  `db:"last_used_at"`
@@ -200,44 +178,8 @@ type WebauthnDevice struct {
 	PublicKey       []byte        `db:"public_key"`
 }
 
-// MarshalJSON returns the WebauthnDevice in a JSON friendly manner.
-func (w *WebauthnDevice) MarshalJSON() (data []byte, err error) {
-	o := WebauthnDeviceJSON{
-		ID:              w.ID,
-		CreatedAt:       w.CreatedAt,
-		RPID:            w.RPID,
-		Description:     w.Description,
-		KID:             w.KID.data,
-		AttestationType: w.AttestationType,
-		Attachment:      w.Attachment,
-		Transports:      []string{},
-		SignCount:       w.SignCount,
-		CloneWarning:    w.CloneWarning,
-		Discoverable:    w.Discoverable,
-		Present:         w.Present,
-		Verified:        w.Verified,
-		BackupEligible:  w.BackupEligible,
-		BackupState:     w.BackupState,
-		PublicKey:       w.PublicKey,
-	}
-
-	if w.AAGUID.Valid {
-		o.AAGUID = w.AAGUID.UUID.String()
-	}
-
-	if w.Transport != "" {
-		o.Transports = strings.Split(w.Transport, ",")
-	}
-
-	if w.LastUsedAt.Valid {
-		o.LastUsedAt = &w.LastUsedAt.Time
-	}
-
-	return json.Marshal(o)
-}
-
-// UpdateSignInInfo adjusts the values of the WebauthnDevice after a sign in.
-func (d *WebauthnDevice) UpdateSignInInfo(config *webauthn.Config, now time.Time, signCount uint32) {
+// UpdateSignInInfo adjusts the values of the WebAuthnDevice after a sign in.
+func (d *WebAuthnDevice) UpdateSignInInfo(config *webauthn.Config, now time.Time, signCount uint32) {
 	d.LastUsedAt = sql.NullTime{Time: now, Valid: true}
 
 	d.SignCount = signCount
@@ -254,7 +196,7 @@ func (d *WebauthnDevice) UpdateSignInInfo(config *webauthn.Config, now time.Time
 	}
 }
 
-func (d *WebauthnDevice) LastUsed() *time.Time {
+func (d *WebAuthnDevice) DataValueLastUsedAt() *time.Time {
 	if d.LastUsedAt.Valid {
 		return &d.LastUsedAt.Time
 	}
@@ -262,19 +204,28 @@ func (d *WebauthnDevice) LastUsed() *time.Time {
 	return nil
 }
 
-// MarshalYAML marshals this model into YAML.
-func (d *WebauthnDevice) MarshalYAML() (any, error) {
-	o := WebauthnDeviceData{
+func (d *WebAuthnDevice) DataValueAAGUID() *string {
+	if d.AAGUID.Valid {
+		value := d.AAGUID.UUID.String()
+
+		return &value
+	}
+
+	return nil
+}
+
+func (d *WebAuthnDevice) ToData() WebAuthnDeviceData {
+	o := WebAuthnDeviceData{
+		ID:              d.ID,
 		CreatedAt:       d.CreatedAt,
-		LastUsedAt:      d.LastUsed(),
+		LastUsedAt:      d.DataValueLastUsedAt(),
 		RPID:            d.RPID,
 		Username:        d.Username,
 		Description:     d.Description,
 		KID:             d.KID.String(),
-		AAGUID:          d.AAGUID.UUID.String(),
+		AAGUID:          d.DataValueAAGUID(),
 		AttestationType: d.AttestationType,
 		Attachment:      d.Attachment,
-		Transport:       d.Transport,
 		SignCount:       d.SignCount,
 		CloneWarning:    d.CloneWarning,
 		Present:         d.Present,
@@ -284,12 +235,26 @@ func (d *WebauthnDevice) MarshalYAML() (any, error) {
 		PublicKey:       base64.StdEncoding.EncodeToString(d.PublicKey),
 	}
 
-	return yaml.Marshal(o)
+	if d.Transport != "" {
+		o.Transports = strings.Split(d.Transport, ",")
+	}
+
+	return o
+}
+
+// MarshalJSON returns the WebAuthnDevice in a JSON friendly manner.
+func (d *WebAuthnDevice) MarshalJSON() (data []byte, err error) {
+	return json.Marshal(d.ToData())
+}
+
+// MarshalYAML marshals this model into YAML.
+func (d *WebAuthnDevice) MarshalYAML() (any, error) {
+	return d.ToData(), nil
 }
 
 // UnmarshalYAML unmarshalls YAML into this model.
-func (d *WebauthnDevice) UnmarshalYAML(value *yaml.Node) (err error) {
-	o := &WebauthnDeviceData{}
+func (d *WebAuthnDevice) UnmarshalYAML(value *yaml.Node) (err error) {
+	o := &WebAuthnDeviceData{}
 
 	if err = value.Decode(o); err != nil {
 		return err
@@ -301,12 +266,14 @@ func (d *WebauthnDevice) UnmarshalYAML(value *yaml.Node) (err error) {
 
 	var aaguid uuid.UUID
 
-	if aaguid, err = uuid.Parse(o.AAGUID); err != nil {
-		return err
-	}
+	if o.AAGUID != nil {
+		if aaguid, err = uuid.Parse(*o.AAGUID); err != nil {
+			return err
+		}
 
-	if aaguid.ID() != 0 {
-		d.AAGUID = uuid.NullUUID{Valid: true, UUID: aaguid}
+		if aaguid.ID() != 0 {
+			d.AAGUID = uuid.NullUUID{Valid: true, UUID: aaguid}
+		}
 	}
 
 	var kid []byte
@@ -323,7 +290,7 @@ func (d *WebauthnDevice) UnmarshalYAML(value *yaml.Node) (err error) {
 	d.Description = o.Description
 	d.AttestationType = o.AttestationType
 	d.Attachment = o.Attachment
-	d.Transport = o.Transport
+	d.Transport = strings.Join(o.Transports, ",")
 	d.SignCount = o.SignCount
 	d.CloneWarning = o.CloneWarning
 	d.Discoverable = o.Discoverable
@@ -339,29 +306,79 @@ func (d *WebauthnDevice) UnmarshalYAML(value *yaml.Node) (err error) {
 	return nil
 }
 
-// WebauthnDeviceData represents a Webauthn Device in the database storage.
-type WebauthnDeviceData struct {
-	CreatedAt       time.Time  `yaml:"created_at"`
-	LastUsedAt      *time.Time `yaml:"last_used_at"`
-	RPID            string     `yaml:"rpid"`
-	Username        string     `yaml:"username"`
-	Description     string     `yaml:"description"`
-	KID             string     `yaml:"kid"`
-	AAGUID          string     `yaml:"aaguid"`
-	AttestationType string     `yaml:"attestation_type"`
-	Attachment      string     `yaml:"attachment"`
-	Transport       string     `yaml:"transport"`
-	SignCount       uint32     `yaml:"sign_count"`
-	CloneWarning    bool       `yaml:"clone_warning"`
-	Discoverable    bool       `yaml:"discoverable"`
-	Present         bool       `yaml:"present"`
-	Verified        bool       `yaml:"verified"`
-	BackupEligible  bool       `yaml:"backup_eligible"`
-	BackupState     bool       `yaml:"backup_state"`
-	PublicKey       string     `yaml:"public_key"`
+// WebAuthnDeviceData represents a WebAuthn Device in the database storage.
+type WebAuthnDeviceData struct {
+	ID              int        `json:"id" yaml:"-"`
+	CreatedAt       time.Time  `json:"created_at" yaml:"created_at"`
+	LastUsedAt      *time.Time `json:"last_used_at,omitempty" yaml:"last_used_at,omitempty"`
+	RPID            string     `json:"rpid" yaml:"rpid"`
+	Username        string     `json:"-" yaml:"username"`
+	Description     string     `json:"description" yaml:"description"`
+	KID             string     `json:"kid" yaml:"kid"`
+	AAGUID          *string    `json:"aaguid,omitempty" yaml:"aaguid,omitempty"`
+	AttestationType string     `json:"attestation_type" yaml:"attestation_type"`
+	Attachment      string     `json:"attachment" yaml:"attachment"`
+	Transports      []string   `json:"transports" yaml:"transports"`
+	SignCount       uint32     `json:"sign_count" yaml:"sign_count"`
+	CloneWarning    bool       `json:"clone_warning" yaml:"clone_warning"`
+	Discoverable    bool       `json:"discoverable" yaml:"discoverable"`
+	Present         bool       `json:"present" yaml:"present"`
+	Verified        bool       `json:"verified" yaml:"verified"`
+	BackupEligible  bool       `json:"backup_eligible" yaml:"backup_eligible"`
+	BackupState     bool       `json:"backup_state" yaml:"backup_state"`
+	PublicKey       string     `json:"public_key" yaml:"public_key"`
 }
 
-// WebauthnDeviceExport represents a WebauthnDevice export file.
-type WebauthnDeviceExport struct {
-	WebauthnDevices []WebauthnDevice `yaml:"webauthn_devices"`
+func (d *WebAuthnDeviceData) ToDevice() (device *WebAuthnDevice, err error) {
+	device = &WebAuthnDevice{
+		CreatedAt:       d.CreatedAt,
+		RPID:            d.RPID,
+		Username:        d.Username,
+		Description:     d.Description,
+		AttestationType: d.AttestationType,
+		Attachment:      d.Attachment,
+		Transport:       strings.Join(d.Transports, ","),
+		SignCount:       d.SignCount,
+		CloneWarning:    d.CloneWarning,
+		Discoverable:    d.Discoverable,
+		Present:         d.Present,
+		Verified:        d.Verified,
+		BackupEligible:  d.BackupEligible,
+		BackupState:     d.BackupState,
+	}
+
+	if device.PublicKey, err = base64.StdEncoding.DecodeString(d.PublicKey); err != nil {
+		return nil, err
+	}
+
+	var aaguid uuid.UUID
+
+	if d.AAGUID != nil {
+		if aaguid, err = uuid.Parse(*d.AAGUID); err != nil {
+			return nil, err
+		}
+
+		if aaguid.ID() != 0 {
+			device.AAGUID = uuid.NullUUID{Valid: true, UUID: aaguid}
+		}
+	}
+
+	var kid []byte
+
+	if kid, err = base64.StdEncoding.DecodeString(d.KID); err != nil {
+		return nil, err
+	}
+
+	device.KID = NewBase64(kid)
+
+	if d.LastUsedAt != nil {
+		device.LastUsedAt = sql.NullTime{Valid: true, Time: *d.LastUsedAt}
+	}
+
+	return device, nil
+}
+
+// WebAuthnDeviceExport represents a WebAuthnDevice export file.
+type WebAuthnDeviceExport struct {
+	WebAuthnDevices []WebAuthnDevice `yaml:"webauthn_devices"`
 }

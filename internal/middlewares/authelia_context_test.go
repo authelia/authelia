@@ -235,17 +235,17 @@ func TestShouldReturnCorrectSecondFactorMethods(t *testing.T) {
 
 	mock.Ctx.Configuration.DuoAPI.Disable = true
 
-	assert.Equal(t, []string{model.SecondFactorMethodTOTP, model.SecondFactorMethodWebauthn}, mock.Ctx.AvailableSecondFactorMethods())
+	assert.Equal(t, []string{model.SecondFactorMethodTOTP, model.SecondFactorMethodWebAuthn}, mock.Ctx.AvailableSecondFactorMethods())
 
 	mock.Ctx.Configuration.DuoAPI.Disable = false
 
-	assert.Equal(t, []string{model.SecondFactorMethodTOTP, model.SecondFactorMethodWebauthn, model.SecondFactorMethodDuo}, mock.Ctx.AvailableSecondFactorMethods())
+	assert.Equal(t, []string{model.SecondFactorMethodTOTP, model.SecondFactorMethodWebAuthn, model.SecondFactorMethodDuo}, mock.Ctx.AvailableSecondFactorMethods())
 
 	mock.Ctx.Configuration.TOTP.Disable = true
 
-	assert.Equal(t, []string{model.SecondFactorMethodWebauthn, model.SecondFactorMethodDuo}, mock.Ctx.AvailableSecondFactorMethods())
+	assert.Equal(t, []string{model.SecondFactorMethodWebAuthn, model.SecondFactorMethodDuo}, mock.Ctx.AvailableSecondFactorMethods())
 
-	mock.Ctx.Configuration.Webauthn.Disable = true
+	mock.Ctx.Configuration.WebAuthn.Disable = true
 
 	assert.Equal(t, []string{model.SecondFactorMethodDuo}, mock.Ctx.AvailableSecondFactorMethods())
 

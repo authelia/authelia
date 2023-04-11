@@ -49,9 +49,9 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 			},
 		},
 		{
-			desc: "Webauthn",
+			desc: "WebAuthn",
 
-			is: AuthenticationMethodsReferences{Webauthn: true},
+			is: AuthenticationMethodsReferences{WebAuthn: true},
 			want: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           true,
@@ -63,9 +63,9 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 			},
 		},
 		{
-			desc: "Webauthn User Presence",
+			desc: "WebAuthn User Presence",
 
-			is: AuthenticationMethodsReferences{WebauthnUserPresence: true},
+			is: AuthenticationMethodsReferences{WebAuthnUserPresence: true},
 			want: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           false,
@@ -77,9 +77,9 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 			},
 		},
 		{
-			desc: "Webauthn User Verified",
+			desc: "WebAuthn User Verified",
 
-			is: AuthenticationMethodsReferences{WebauthnUserVerified: true},
+			is: AuthenticationMethodsReferences{WebAuthnUserVerified: true},
 			want: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           false,
@@ -91,9 +91,9 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 			},
 		},
 		{
-			desc: "Webauthn with User Presence and Verified",
+			desc: "WebAuthn with User Presence and Verified",
 
-			is: AuthenticationMethodsReferences{Webauthn: true, WebauthnUserVerified: true, WebauthnUserPresence: true},
+			is: AuthenticationMethodsReferences{WebAuthn: true, WebAuthnUserVerified: true, WebAuthnUserPresence: true},
 			want: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           true,
@@ -119,9 +119,9 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 			},
 		},
 		{
-			desc: "Duo Webauthn TOTP",
+			desc: "Duo WebAuthn TOTP",
 
-			is: AuthenticationMethodsReferences{Duo: true, Webauthn: true, TOTP: true},
+			is: AuthenticationMethodsReferences{Duo: true, WebAuthn: true, TOTP: true},
 			want: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           true,

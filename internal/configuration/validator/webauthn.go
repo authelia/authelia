@@ -8,27 +8,27 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// ValidateWebauthn validates and update Webauthn configuration.
-func ValidateWebauthn(config *schema.Configuration, validator *schema.StructValidator) {
-	if config.Webauthn.DisplayName == "" {
-		config.Webauthn.DisplayName = schema.DefaultWebauthnConfiguration.DisplayName
+// ValidateWebAuthn validates and update WebAuthn configuration.
+func ValidateWebAuthn(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.WebAuthn.DisplayName == "" {
+		config.WebAuthn.DisplayName = schema.DefaultWebAuthnConfiguration.DisplayName
 	}
 
-	if config.Webauthn.Timeout <= 0 {
-		config.Webauthn.Timeout = schema.DefaultWebauthnConfiguration.Timeout
-	}
-
-	switch {
-	case config.Webauthn.ConveyancePreference == "":
-		config.Webauthn.ConveyancePreference = schema.DefaultWebauthnConfiguration.ConveyancePreference
-	case !utils.IsStringInSlice(string(config.Webauthn.ConveyancePreference), validWebauthnConveyancePreferences):
-		validator.Push(fmt.Errorf(errFmtWebauthnConveyancePreference, strings.Join(validWebauthnConveyancePreferences, "', '"), config.Webauthn.ConveyancePreference))
+	if config.WebAuthn.Timeout <= 0 {
+		config.WebAuthn.Timeout = schema.DefaultWebAuthnConfiguration.Timeout
 	}
 
 	switch {
-	case config.Webauthn.UserVerification == "":
-		config.Webauthn.UserVerification = schema.DefaultWebauthnConfiguration.UserVerification
-	case !utils.IsStringInSlice(string(config.Webauthn.UserVerification), validWebauthnUserVerificationRequirement):
-		validator.Push(fmt.Errorf(errFmtWebauthnUserVerification, config.Webauthn.UserVerification))
+	case config.WebAuthn.ConveyancePreference == "":
+		config.WebAuthn.ConveyancePreference = schema.DefaultWebAuthnConfiguration.ConveyancePreference
+	case !utils.IsStringInSlice(string(config.WebAuthn.ConveyancePreference), validWebAuthnConveyancePreferences):
+		validator.Push(fmt.Errorf(errFmtWebAuthnConveyancePreference, strings.Join(validWebAuthnConveyancePreferences, "', '"), config.WebAuthn.ConveyancePreference))
+	}
+
+	switch {
+	case config.WebAuthn.UserVerification == "":
+		config.WebAuthn.UserVerification = schema.DefaultWebAuthnConfiguration.UserVerification
+	case !utils.IsStringInSlice(string(config.WebAuthn.UserVerification), validWebAuthnUserVerificationRequirement):
+		validator.Push(fmt.Errorf(errFmtWebAuthnUserVerification, config.WebAuthn.UserVerification))
 	}
 }

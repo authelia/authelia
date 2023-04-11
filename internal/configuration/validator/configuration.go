@@ -43,7 +43,7 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 
 	ValidateTOTP(config, validator)
 
-	ValidateWebauthn(config, validator)
+	ValidateWebAuthn(config, validator)
 
 	ValidateAuthenticationBackend(&config.AuthenticationBackend, validator)
 
@@ -89,7 +89,7 @@ func validateDefault2FAMethod(config *schema.Configuration, validator *schema.St
 		enabledMethods = append(enabledMethods, "totp")
 	}
 
-	if !config.Webauthn.Disable {
+	if !config.WebAuthn.Disable {
 		enabledMethods = append(enabledMethods, "webauthn")
 	}
 

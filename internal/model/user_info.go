@@ -15,8 +15,8 @@ type UserInfo struct {
 	// True if a TOTP device has been registered.
 	HasTOTP bool `db:"has_totp" json:"has_totp" valid:"required"`
 
-	// True if a Webauthn device has been registered.
-	HasWebauthn bool `db:"has_webauthn" json:"has_webauthn" valid:"required"`
+	// True if a WebAuthn device has been registered.
+	HasWebAuthn bool `db:"has_webauthn" json:"has_webauthn" valid:"required"`
 
 	// True if a duo device has been configured as the preferred.
 	HasDuo bool `db:"has_duo" json:"has_duo" valid:"required"`
@@ -31,7 +31,7 @@ func (i *UserInfo) SetDefaultPreferred2FAMethod(methods []string, fallback strin
 
 	before := i.Method
 
-	totp, webauthn, duo := utils.IsStringInSlice(SecondFactorMethodTOTP, methods), utils.IsStringInSlice(SecondFactorMethodWebauthn, methods), utils.IsStringInSlice(SecondFactorMethodDuo, methods)
+	totp, webauthn, duo := utils.IsStringInSlice(SecondFactorMethodTOTP, methods), utils.IsStringInSlice(SecondFactorMethodWebAuthn, methods), utils.IsStringInSlice(SecondFactorMethodDuo, methods)
 
 	if i.Method == "" && utils.IsStringInSlice(fallback, methods) {
 		i.Method = fallback
@@ -50,8 +50,8 @@ func (i *UserInfo) setMethod(totp, webauthn, duo bool, methods []string, fallbac
 	switch {
 	case i.HasTOTP && totp:
 		i.Method = SecondFactorMethodTOTP
-	case i.HasWebauthn && webauthn:
-		i.Method = SecondFactorMethodWebauthn
+	case i.HasWebAuthn && webauthn:
+		i.Method = SecondFactorMethodWebAuthn
 	case i.HasDuo && duo:
 		i.Method = SecondFactorMethodDuo
 	case fallback != "" && utils.IsStringInSlice(fallback, methods):
@@ -59,7 +59,7 @@ func (i *UserInfo) setMethod(totp, webauthn, duo bool, methods []string, fallbac
 	case totp:
 		i.Method = SecondFactorMethodTOTP
 	case webauthn:
-		i.Method = SecondFactorMethodWebauthn
+		i.Method = SecondFactorMethodWebAuthn
 	case duo:
 		i.Method = SecondFactorMethodDuo
 	}

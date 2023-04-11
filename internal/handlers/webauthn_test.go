@@ -15,7 +15,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-func TestWebauthnGetUser(t *testing.T) {
+func TestWebAuthnGetUser(t *testing.T) {
 	ctx := mocks.NewMockAutheliaCtx(t)
 
 	userSession := session.UserSession{
@@ -24,10 +24,10 @@ func TestWebauthnGetUser(t *testing.T) {
 	}
 
 	ctx.StorageMock.EXPECT().
-		LoadWebauthnUser(ctx.Ctx, "example.com", "john").
-		Return(&model.WebauthnUser{ID: 1, RPID: "example.com", Username: "john", UserID: "john123"}, nil)
+		LoadWebAuthnUser(ctx.Ctx, "example.com", "john").
+		Return(&model.WebAuthnUser{ID: 1, RPID: "example.com", Username: "john", UserID: "john123"}, nil)
 
-	ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "example.com", "john").Return([]model.WebauthnDevice{
+	ctx.StorageMock.EXPECT().LoadWebAuthnDevicesByUsername(ctx.Ctx, "example.com", "john").Return([]model.WebAuthnDevice{
 		{
 			ID:              1,
 			RPID:            "example.com",
@@ -53,7 +53,7 @@ func TestWebauthnGetUser(t *testing.T) {
 		},
 	}, nil)
 
-	user, err := getWebauthnUserByRPID(ctx.Ctx, userSession.Username, userSession.DisplayName, "example.com")
+	user, err := getWebAuthnUserByRPID(ctx.Ctx, userSession.Username, userSession.DisplayName, "example.com")
 
 	require.NoError(t, err)
 	require.NotNil(t, user)
@@ -105,7 +105,7 @@ func TestWebauthnGetUser(t *testing.T) {
 	assert.Equal(t, protocol.AuthenticatorTransport("nfc"), descriptors[1].Transport[1])
 }
 
-func TestWebauthnGetNewUser(t *testing.T) {
+func TestWebAuthnGetNewUser(t *testing.T) {
 	ctx := mocks.NewMockAutheliaCtx(t)
 
 	// Use the random mock.
@@ -118,15 +118,15 @@ func TestWebauthnGetNewUser(t *testing.T) {
 
 	gomock.InOrder(
 		ctx.StorageMock.EXPECT().
-			LoadWebauthnUser(ctx.Ctx, "example.com", "john").
+			LoadWebAuthnUser(ctx.Ctx, "example.com", "john").
 			Return(nil, nil),
 		ctx.RandomMock.EXPECT().
 			StringCustom(64, random.CharSetASCII).
 			Return("=ckBRe.%fp{w#K[qw4)AWMZrAP)(z3NUt5n3g?;>'^Rp>+eE4z>[^.<3?&n;LM#w"),
 		ctx.StorageMock.EXPECT().
-			SaveWebauthnUser(ctx.Ctx, model.WebauthnUser{RPID: "example.com", Username: "john", DisplayName: "John Smith", UserID: "=ckBRe.%fp{w#K[qw4)AWMZrAP)(z3NUt5n3g?;>'^Rp>+eE4z>[^.<3?&n;LM#w"}).
+			SaveWebAuthnUser(ctx.Ctx, model.WebAuthnUser{RPID: "example.com", Username: "john", DisplayName: "John Smith", UserID: "=ckBRe.%fp{w#K[qw4)AWMZrAP)(z3NUt5n3g?;>'^Rp>+eE4z>[^.<3?&n;LM#w"}).
 			Return(nil),
-		ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "example.com", "john").Return([]model.WebauthnDevice{
+		ctx.StorageMock.EXPECT().LoadWebAuthnDevicesByUsername(ctx.Ctx, "example.com", "john").Return([]model.WebAuthnDevice{
 			{
 				ID:              1,
 				RPID:            "example.com",
@@ -153,7 +153,7 @@ func TestWebauthnGetNewUser(t *testing.T) {
 		}, nil),
 	)
 
-	user, err := getWebauthnUserByRPID(ctx.Ctx, userSession.Username, userSession.DisplayName, "example.com")
+	user, err := getWebAuthnUserByRPID(ctx.Ctx, userSession.Username, userSession.DisplayName, "example.com")
 
 	require.NoError(t, err)
 	require.NotNil(t, user)
@@ -205,7 +205,7 @@ func TestWebauthnGetNewUser(t *testing.T) {
 	assert.Equal(t, protocol.AuthenticatorTransport("nfc"), descriptors[1].Transport[1])
 }
 
-func TestWebauthnGetUserWithoutDisplayName(t *testing.T) {
+func TestWebAuthnGetUserWithoutDisplayName(t *testing.T) {
 	ctx := mocks.NewMockAutheliaCtx(t)
 
 	userSession := session.UserSession{
@@ -213,10 +213,10 @@ func TestWebauthnGetUserWithoutDisplayName(t *testing.T) {
 	}
 
 	ctx.StorageMock.EXPECT().
-		LoadWebauthnUser(ctx.Ctx, "example.com", "john").
-		Return(&model.WebauthnUser{ID: 1, RPID: "example.com", Username: "john", UserID: "john123"}, nil)
+		LoadWebAuthnUser(ctx.Ctx, "example.com", "john").
+		Return(&model.WebAuthnUser{ID: 1, RPID: "example.com", Username: "john", UserID: "john123"}, nil)
 
-	ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "example.com", "john").Return([]model.WebauthnDevice{
+	ctx.StorageMock.EXPECT().LoadWebAuthnDevicesByUsername(ctx.Ctx, "example.com", "john").Return([]model.WebAuthnDevice{
 		{
 			ID:              1,
 			RPID:            "example.com",
@@ -230,7 +230,7 @@ func TestWebauthnGetUserWithoutDisplayName(t *testing.T) {
 		},
 	}, nil)
 
-	user, err := getWebauthnUserByRPID(ctx.Ctx, userSession.Username, userSession.DisplayName, "example.com")
+	user, err := getWebAuthnUserByRPID(ctx.Ctx, userSession.Username, userSession.DisplayName, "example.com")
 
 	require.NoError(t, err)
 	require.NotNil(t, user)
@@ -239,7 +239,7 @@ func TestWebauthnGetUserWithoutDisplayName(t *testing.T) {
 	assert.Equal(t, "john", user.DisplayName)
 }
 
-func TestWebauthnGetUserWithErr(t *testing.T) {
+func TestWebAuthnGetUserWithErr(t *testing.T) {
 	ctx := mocks.NewMockAutheliaCtx(t)
 
 	userSession := session.UserSession{
@@ -247,37 +247,37 @@ func TestWebauthnGetUserWithErr(t *testing.T) {
 	}
 
 	ctx.StorageMock.EXPECT().
-		LoadWebauthnUser(ctx.Ctx, "example.com", "john").
-		Return(&model.WebauthnUser{ID: 1, RPID: "example.com", Username: "john", UserID: "john123"}, nil)
+		LoadWebAuthnUser(ctx.Ctx, "example.com", "john").
+		Return(&model.WebAuthnUser{ID: 1, RPID: "example.com", Username: "john", UserID: "john123"}, nil)
 
 	ctx.StorageMock.EXPECT().
-		LoadWebauthnDevicesByUsername(ctx.Ctx, "example.com", "john").
+		LoadWebAuthnDevicesByUsername(ctx.Ctx, "example.com", "john").
 		Return(nil, errors.New("not found"))
 
-	user, err := getWebauthnUserByRPID(ctx.Ctx, userSession.Username, userSession.DisplayName, "example.com")
+	user, err := getWebAuthnUserByRPID(ctx.Ctx, userSession.Username, userSession.DisplayName, "example.com")
 
 	assert.EqualError(t, err, "not found")
 	assert.Nil(t, user)
 }
 
-func TestWebauthnNewWebauthnShouldReturnErrWhenHeadersNotAvailable(t *testing.T) {
+func TestWebAuthnNewWebAuthnShouldReturnErrWhenHeadersNotAvailable(t *testing.T) {
 	ctx := mocks.NewMockAutheliaCtx(t)
 	ctx.Ctx.Request.Header.Del("X-Forwarded-Host")
 
-	w, err := newWebauthn(ctx.Ctx)
+	w, err := newWebAuthn(ctx.Ctx)
 
 	assert.Nil(t, w)
 	assert.EqualError(t, err, "missing required X-Forwarded-Host header")
 }
 
-func TestWebauthnNewWebauthnShouldReturnErrWhenWebauthnNotConfigured(t *testing.T) {
+func TestWebAuthnNewWebAuthnShouldReturnErrWhenWebAuthnNotConfigured(t *testing.T) {
 	ctx := mocks.NewMockAutheliaCtx(t)
 
 	ctx.Ctx.Request.Header.Set("X-Forwarded-Host", "example.com")
 	ctx.Ctx.Request.Header.Set("X-Forwarded-URI", "/")
 	ctx.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
 
-	w, err := newWebauthn(ctx.Ctx)
+	w, err := newWebAuthn(ctx.Ctx)
 
 	assert.Nil(t, w)
 	assert.EqualError(t, err, "error occurred validating the configuration: the field 'RPDisplayName' must be configured but it is empty")

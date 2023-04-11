@@ -119,71 +119,71 @@ const (
 )
 
 const (
-	queryFmtSelectWebauthnDevices = `
+	queryFmtSelectWebAuthnDevices = `
 		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key
 		FROM %s
 		LIMIT ?
 		OFFSET ?;`
 
-	queryFmtSelectWebauthnDevicesByUsername = `
+	queryFmtSelectWebAuthnDevicesByUsername = `
 		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key
 		FROM %s
 		WHERE username = ?;`
 
-	queryFmtSelectWebauthnDevicesByRPIDByUsername = `
+	queryFmtSelectWebAuthnDevicesByRPIDByUsername = `
 		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key
 		FROM %s
 		WHERE rpid = ? AND username = ?;`
 
-	queryFmtSelectWebauthnDeviceByID = `
+	queryFmtSelectWebAuthnDeviceByID = `
 		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key
 		FROM %s
 		WHERE id = ?;`
 
-	queryFmtUpdateUpdateWebauthnDeviceDescriptionByUsernameAndID = `
+	queryFmtUpdateUpdateWebAuthnDeviceDescriptionByUsernameAndID = `
 		UPDATE %s
 		SET description = ?
 		WHERE username = ? AND id = ?;`
 
-	queryFmtUpdateWebauthnDeviceRecordSignIn = `
+	queryFmtUpdateWebAuthnDeviceRecordSignIn = `
 		UPDATE %s
 		SET
 			rpid = ?, last_used_at = ?, sign_count = ?, discoverable = ?, present = ?, verified = ?, backup_eligible = ?, backup_state = ?,
 			clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
 		WHERE id = ?;`
 
-	queryFmtInsertWebauthnDevice = `
+	queryFmtInsertWebAuthnDevice = `
 		INSERT INTO %s (created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
-	queryFmtDeleteWebauthnDevice = `
+	queryFmtDeleteWebAuthnDevice = `
 		DELETE FROM %s
 		WHERE kid = ?;`
 
-	queryFmtDeleteWebauthnDeviceByUsername = `
+	queryFmtDeleteWebAuthnDeviceByUsername = `
 		DELETE FROM %s
 		WHERE username = ?;`
 
-	queryFmtDeleteWebauthnDeviceByUsernameAndDescription = `
+	queryFmtDeleteWebAuthnDeviceByUsernameAndDescription = `
 		DELETE FROM %s
 		WHERE username = ? AND description = ?;`
 
-	queryFmtSelectWebauthnDevicesEncryptedData = `
+	queryFmtSelectWebAuthnDevicesEncryptedData = `
 		SELECT id, public_key
 		FROM %s;`
 
-	queryFmtUpdateWebauthnDevicesEncryptedData = `
+	queryFmtUpdateWebAuthnDevicesEncryptedData = `
 		UPDATE %s
 		SET public_key = ?
 		WHERE id = ?;`
 )
 
 const (
-	queryFmtInsertWebauthnUser = `
+	queryFmtInsertWebAuthnUser = `
 		INSERT INTO %s (rpid, username, userid)
 		VALUES (?, ?, ?);`
 
-	queryFmtSelectWebauthnUser = `
+	queryFmtSelectWebAuthnUser = `
 		SELECT id, rpid, username, userid
 		FROM %s
 		WHERE rpid = ? AND username = ?;`

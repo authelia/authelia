@@ -12,20 +12,20 @@ import (
 	"github.com/authelia/authelia/v4/internal/random"
 )
 
-func getWebauthnUserByRPID(ctx *middlewares.AutheliaCtx, username, displayname string, rpid string) (user *model.WebauthnUser, err error) {
-	if user, err = ctx.Providers.StorageProvider.LoadWebauthnUser(ctx, rpid, username); err != nil {
+func getWebAuthnUserByRPID(ctx *middlewares.AutheliaCtx, username, displayname string, rpid string) (user *model.WebAuthnUser, err error) {
+	if user, err = ctx.Providers.StorageProvider.LoadWebAuthnUser(ctx, rpid, username); err != nil {
 		return nil, err
 	}
 
 	if user == nil {
-		user = &model.WebauthnUser{
+		user = &model.WebAuthnUser{
 			RPID:        rpid,
 			Username:    username,
 			UserID:      ctx.Providers.Random.StringCustom(64, random.CharSetASCII),
 			DisplayName: displayname,
 		}
 
-		if err = ctx.Providers.StorageProvider.SaveWebauthnUser(ctx, *user); err != nil {
+		if err = ctx.Providers.StorageProvider.SaveWebAuthnUser(ctx, *user); err != nil {
 			return nil, err
 		}
 	} else {
@@ -36,14 +36,14 @@ func getWebauthnUserByRPID(ctx *middlewares.AutheliaCtx, username, displayname s
 		user.DisplayName = user.Username
 	}
 
-	if user.Devices, err = ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, rpid, user.Username); err != nil {
+	if user.Devices, err = ctx.Providers.StorageProvider.LoadWebAuthnDevicesByUsername(ctx, rpid, user.Username); err != nil {
 		return nil, err
 	}
 
 	return user, nil
 }
 
-func newWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error) {
+func newWebAuthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error) {
 	var (
 		origin *url.URL
 	)
@@ -54,32 +54,32 @@ func newWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error)
 
 	config := &webauthn.Config{
 		RPID:                  origin.Hostname(),
-		RPDisplayName:         ctx.Configuration.Webauthn.DisplayName,
+		RPDisplayName:         ctx.Configuration.WebAuthn.DisplayName,
 		RPOrigins:             []string{origin.String()},
-		AttestationPreference: ctx.Configuration.Webauthn.ConveyancePreference,
+		AttestationPreference: ctx.Configuration.WebAuthn.ConveyancePreference,
 		AuthenticatorSelection: protocol.AuthenticatorSelection{
 			AuthenticatorAttachment: protocol.CrossPlatform,
 			RequireResidentKey:      protocol.ResidentKeyNotRequired(),
 			ResidentKey:             protocol.ResidentKeyRequirementDiscouraged,
-			UserVerification:        ctx.Configuration.Webauthn.UserVerification,
+			UserVerification:        ctx.Configuration.WebAuthn.UserVerification,
 		},
 		Debug:                false,
 		EncodeUserIDAsString: true,
 		Timeouts: webauthn.TimeoutsConfig{
 			Login: webauthn.TimeoutConfig{
 				Enforce:    true,
-				Timeout:    ctx.Configuration.Webauthn.Timeout,
-				TimeoutUVD: ctx.Configuration.Webauthn.Timeout,
+				Timeout:    ctx.Configuration.WebAuthn.Timeout,
+				TimeoutUVD: ctx.Configuration.WebAuthn.Timeout,
 			},
 			Registration: webauthn.TimeoutConfig{
 				Enforce:    true,
-				Timeout:    ctx.Configuration.Webauthn.Timeout,
-				TimeoutUVD: ctx.Configuration.Webauthn.Timeout,
+				Timeout:    ctx.Configuration.WebAuthn.Timeout,
+				TimeoutUVD: ctx.Configuration.WebAuthn.Timeout,
 			},
 		},
 	}
 
-	ctx.Logger.Tracef("Creating new Webauthn RP instance with ID %s and Origins %s", config.RPID, strings.Join(config.RPOrigins, ", "))
+	ctx.Logger.Tracef("Creating new WebAuthn RP instance with ID %s and Origins %s", config.RPID, strings.Join(config.RPOrigins, ", "))
 
 	return webauthn.New(config)
 }

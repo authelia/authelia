@@ -31,8 +31,8 @@ type bodySignTOTPRequest struct {
 	WorkflowID string `json:"workflowID"`
 }
 
-// bodySignWebauthnRequest is the  model of the request body of WebAuthn 2FA authentication endpoint.
-type bodySignWebauthnRequest struct {
+// bodySignWebAuthnRequest is the  model of the request body of WebAuthn 2FA authentication endpoint.
+type bodySignWebAuthnRequest struct {
 	TargetURL  string `json:"targetURL"`
 	Workflow   string `json:"workflow"`
 	WorkflowID string `json:"workflowID"`
@@ -40,11 +40,11 @@ type bodySignWebauthnRequest struct {
 	Response json.RawMessage `json:"response"`
 }
 
-type bodyRegisterWebauthnPUTRequest struct {
+type bodyRegisterWebAuthnPUTRequest struct {
 	Description string `json:"description"`
 }
 
-type bodyEditWebauthnDeviceRequest struct {
+type bodyEditWebAuthnDeviceRequest struct {
 	Description string `json:"description"`
 }
 

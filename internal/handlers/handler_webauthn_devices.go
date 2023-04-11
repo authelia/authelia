@@ -16,7 +16,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-func getWebauthnDeviceIDFromContext(ctx *middlewares.AutheliaCtx) (int, error) {
+func getWebAuthnDeviceIDFromContext(ctx *middlewares.AutheliaCtx) (int, error) {
 	deviceIDStr, ok := ctx.UserValue("deviceID").(string)
 	if !ok {
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
@@ -34,8 +34,8 @@ func getWebauthnDeviceIDFromContext(ctx *middlewares.AutheliaCtx) (int, error) {
 	return deviceID, nil
 }
 
-// WebauthnDevicesGET returns all devices registered for the current user.
-func WebauthnDevicesGET(ctx *middlewares.AutheliaCtx) {
+// WebAuthnDevicesGET returns all devices registered for the current user.
+func WebAuthnDevicesGET(ctx *middlewares.AutheliaCtx) {
 	var (
 		userSession session.UserSession
 		origin      *url.URL
@@ -58,9 +58,9 @@ func WebauthnDevicesGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	devices, err := ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, origin.Hostname(), userSession.Username)
+	devices, err := ctx.Providers.StorageProvider.LoadWebAuthnDevicesByUsername(ctx, origin.Hostname(), userSession.Username)
 
-	if err != nil && err != storage.ErrNoWebauthnDevice {
+	if err != nil && err != storage.ErrNoWebAuthnDevice {
 		ctx.Error(err, messageOperationFailed)
 		return
 	}
@@ -71,13 +71,13 @@ func WebauthnDevicesGET(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-// WebauthnDevicePUT updates the description for a specific device for the current user.
-func WebauthnDevicePUT(ctx *middlewares.AutheliaCtx) {
+// WebAuthnDevicePUT updates the description for a specific device for the current user.
+func WebAuthnDevicePUT(ctx *middlewares.AutheliaCtx) {
 	var (
-		bodyJSON bodyEditWebauthnDeviceRequest
+		bodyJSON bodyEditWebAuthnDeviceRequest
 
 		id          int
-		device      *model.WebauthnDevice
+		device      *model.WebAuthnDevice
 		userSession session.UserSession
 
 		err error
@@ -92,7 +92,7 @@ func WebauthnDevicePUT(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err = json.Unmarshal(ctx.PostBody(), &bodyJSON); err != nil {
-		ctx.Logger.Errorf("Unable to parse %s update request data for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+		ctx.Logger.Errorf("Unable to parse %s update request data for user '%s': %+v", regulation.AuthTypeWebAuthn, userSession.Username, err)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.Error(err, messageOperationFailed)
@@ -100,11 +100,11 @@ func WebauthnDevicePUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if id, err = getWebauthnDeviceIDFromContext(ctx); err != nil {
+	if id, err = getWebAuthnDeviceIDFromContext(ctx); err != nil {
 		return
 	}
 
-	if device, err = ctx.Providers.StorageProvider.LoadWebauthnDeviceByID(ctx, id); err != nil {
+	if device, err = ctx.Providers.StorageProvider.LoadWebAuthnDeviceByID(ctx, id); err != nil {
 		ctx.Error(err, messageOperationFailed)
 		return
 	}
@@ -114,26 +114,26 @@ func WebauthnDevicePUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.Providers.StorageProvider.UpdateWebauthnDeviceDescription(ctx, userSession.Username, id, bodyJSON.Description); err != nil {
+	if err = ctx.Providers.StorageProvider.UpdateWebAuthnDeviceDescription(ctx, userSession.Username, id, bodyJSON.Description); err != nil {
 		ctx.Error(err, messageOperationFailed)
 		return
 	}
 }
 
-// WebauthnDeviceDELETE deletes a specific device for the current user.
-func WebauthnDeviceDELETE(ctx *middlewares.AutheliaCtx) {
+// WebAuthnDeviceDELETE deletes a specific device for the current user.
+func WebAuthnDeviceDELETE(ctx *middlewares.AutheliaCtx) {
 	var (
 		id          int
-		device      *model.WebauthnDevice
+		device      *model.WebAuthnDevice
 		userSession session.UserSession
 		err         error
 	)
 
-	if id, err = getWebauthnDeviceIDFromContext(ctx); err != nil {
+	if id, err = getWebAuthnDeviceIDFromContext(ctx); err != nil {
 		return
 	}
 
-	if device, err = ctx.Providers.StorageProvider.LoadWebauthnDeviceByID(ctx, id); err != nil {
+	if device, err = ctx.Providers.StorageProvider.LoadWebAuthnDeviceByID(ctx, id); err != nil {
 		ctx.Error(err, messageOperationFailed)
 		return
 	}
@@ -151,7 +151,7 @@ func WebauthnDeviceDELETE(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.Providers.StorageProvider.DeleteWebauthnDevice(ctx, device.KID.String()); err != nil {
+	if err = ctx.Providers.StorageProvider.DeleteWebAuthnDevice(ctx, device.KID.String()); err != nil {
 		ctx.Error(err, messageOperationFailed)
 		return
 	}
