@@ -80,7 +80,7 @@
     "@typescript-eslint/eslint-plugin": "5.58.0",
     "@typescript-eslint/parser": "5.58.0",
     "@vitejs/plugin-react": "3.1.0",
-    "@vitest/coverage-istanbul": "0.28.5",
+    "@vitest/coverage-istanbul": "0.30.0",
     "esbuild": "0.17.16",
     "eslint": "8.38.0",
     "eslint-config-prettier": "8.8.0",
@@ -92,7 +92,7 @@
     "eslint-plugin-prettier": "4.2.1",
     "eslint-plugin-react": "7.32.2",
     "eslint-plugin-react-hooks": "4.6.0",
-    "happy-dom": "8.4.3",
+    "happy-dom": "9.1.9",
     "husky": "8.0.3",
     "prettier": "2.8.7",
     "react-test-renderer": "18.2.0",
@@ -102,7 +102,7 @@
     "vite-plugin-istanbul": "4.0.1",
     "vite-plugin-svgr": "2.4.0",
     "vite-tsconfig-paths": "4.1.0",
-    "vitest": "0.28.5",
+    "vitest": "0.30.0",
     "vitest-preview": "0.0.1"
   }
 }
