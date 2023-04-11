@@ -96,6 +96,7 @@ func TestLoadXNormalizedPaths(t *testing.T) {
 	ayml := filepath.Join(configdir, "a.yml")
 	byml := filepath.Join(configdir, "b.yml")
 	cyml := filepath.Join(otherdir, "c.yml")
+	dyml := filepath.Join(otherdir, "d.yml")
 
 	file, err = os.Create(ayml)
 
@@ -142,30 +143,44 @@ func TestLoadXNormalizedPaths(t *testing.T) {
 
 	testCases := []struct {
 		name           string
+		haveX          XEnvCLIResult
 		have, expected []string
 		expectedErr    string
 	}{
 		{"ShouldAllowFiles",
+			XEnvCLIResultCLIImplicit, []string{ayml},
 			[]string{ayml},
-			[]string{ayml}, "",
+			"",
+		},
+		{"ShouldSkipFilesNotExistImplicit",
+			XEnvCLIResultCLIImplicit, []string{dyml},
+			[]string(nil),
+			"",
+		},
+		{"ShouldNotErrFilesNotExistExplicit",
+			XEnvCLIResultCLIExplicit, []string{dyml},
+			[]string{dyml},
+			"",
 		},
 		{"ShouldAllowDirectories",
+			XEnvCLIResultCLIImplicit, []string{configdir},
 			[]string{configdir},
-			[]string{configdir}, "",
+			"",
 		},
 		{"ShouldAllowFilesDirectories",
+			XEnvCLIResultCLIImplicit, []string{ayml, otherdir},
 			[]string{ayml, otherdir},
-			[]string{ayml, otherdir}, "",
+			"",
 		},
 		{"ShouldRaiseErrOnOverlappingFilesDirectories",
-			[]string{ayml, configdir},
+			XEnvCLIResultCLIImplicit, []string{ayml, configdir},
 			nil, fmt.Sprintf("failed to load config directory '%s': the config file '%s' is in that directory which is not supported", configdir, ayml),
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual, actualErr := loadXNormalizedPaths(tc.have, XEnvCLIResultCLIImplicit)
+			actual, actualErr := loadXNormalizedPaths(tc.have, tc.haveX)
 
 			assert.Equal(t, tc.expected, actual)
 
