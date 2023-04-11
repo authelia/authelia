@@ -1,6 +1,7 @@
 package oidc
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/ory/fosite"
@@ -19,8 +20,7 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, "", blankClient.ID)
 	assert.Equal(t, "", blankClient.Description)
 	assert.Equal(t, "", blankClient.Description)
-	require.Len(t, blankClient.ResponseModes, 1)
-	assert.Equal(t, fosite.ResponseModeDefault, blankClient.ResponseModes[0])
+	assert.Len(t, blankClient.ResponseModes, 0)
 
 	exampleConfig := schema.OpenIDConnectClientConfiguration{
 		ID:            "myapp",
@@ -36,11 +36,10 @@ func TestNewClient(t *testing.T) {
 
 	exampleClient := NewClient(exampleConfig)
 	assert.Equal(t, "myapp", exampleClient.ID)
-	require.Len(t, exampleClient.ResponseModes, 4)
-	assert.Equal(t, fosite.ResponseModeDefault, exampleClient.ResponseModes[0])
-	assert.Equal(t, fosite.ResponseModeFormPost, exampleClient.ResponseModes[1])
-	assert.Equal(t, fosite.ResponseModeQuery, exampleClient.ResponseModes[2])
-	assert.Equal(t, fosite.ResponseModeFragment, exampleClient.ResponseModes[3])
+	require.Len(t, exampleClient.ResponseModes, 3)
+	assert.Equal(t, fosite.ResponseModeFormPost, exampleClient.ResponseModes[0])
+	assert.Equal(t, fosite.ResponseModeQuery, exampleClient.ResponseModes[1])
+	assert.Equal(t, fosite.ResponseModeFragment, exampleClient.ResponseModes[2])
 	assert.Equal(t, authorization.TwoFactor, exampleClient.Policy)
 }
 
@@ -226,6 +225,7 @@ func TestNewClientPKCE(t *testing.T) {
 		expected                           string
 		r                                  *fosite.Request
 		err                                string
+		desc                               string
 	}{
 		{
 			"ShouldNotEnforcePKCEAndNotErrorOnNonPKCERequest",
@@ -234,6 +234,7 @@ func TestNewClientPKCE(t *testing.T) {
 			false,
 			"",
 			&fosite.Request{},
+			"",
 			"",
 		},
 		{
@@ -244,6 +245,7 @@ func TestNewClientPKCE(t *testing.T) {
 			"",
 			&fosite.Request{},
 			"invalid_request",
+			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Clients must include a code_challenge when performing the authorize code flow, but it is missing. The server is configured in a way that enforces PKCE for this client.",
 		},
 		{
 			"ShouldEnforcePKCEAndNotErrorOnPKCERequest",
@@ -253,6 +255,7 @@ func TestNewClientPKCE(t *testing.T) {
 			"",
 			&fosite.Request{Form: map[string][]string{"code_challenge": {"abc"}}},
 			"",
+			"",
 		},
 		{"ShouldEnforcePKCEFromChallengeMethodAndErrorOnNonPKCERequest",
 			schema.OpenIDConnectClientConfiguration{PKCEChallengeMethod: "S256"},
@@ -261,6 +264,7 @@ func TestNewClientPKCE(t *testing.T) {
 			"S256",
 			&fosite.Request{},
 			"invalid_request",
+			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Clients must include a code_challenge when performing the authorize code flow, but it is missing. The server is configured in a way that enforces PKCE for this client.",
 		},
 		{"ShouldEnforcePKCEFromChallengeMethodAndErrorOnInvalidChallengeMethod",
 			schema.OpenIDConnectClientConfiguration{PKCEChallengeMethod: "S256"},
@@ -269,6 +273,7 @@ func TestNewClientPKCE(t *testing.T) {
 			"S256",
 			&fosite.Request{Form: map[string][]string{"code_challenge": {"abc"}}},
 			"invalid_request",
+			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Client must use code_challenge_method=S256,  is not allowed. The server is configured in a way that enforces PKCE S256 as challenge method for this client.",
 		},
 		{"ShouldEnforcePKCEFromChallengeMethodAndNotErrorOnValidRequest",
 			schema.OpenIDConnectClientConfiguration{PKCEChallengeMethod: "S256"},
@@ -276,6 +281,7 @@ func TestNewClientPKCE(t *testing.T) {
 			true,
 			"S256",
 			&fosite.Request{Form: map[string][]string{"code_challenge": {"abc"}, "code_challenge_method": {"S256"}}},
+			"",
 			"",
 		},
 	}
@@ -292,7 +298,136 @@ func TestNewClientPKCE(t *testing.T) {
 				err := client.ValidatePKCEPolicy(tc.r)
 
 				if tc.err != "" {
+					require.NotNil(t, err)
 					assert.EqualError(t, err, tc.err)
+					assert.Equal(t, tc.desc, fosite.ErrorToRFC6749Error(err).WithExposeDebug(true).GetDescription())
+				} else {
+					assert.NoError(t, err)
+				}
+			}
+		})
+	}
+}
+
+func TestNewClientPAR(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     schema.OpenIDConnectClientConfiguration
+		expected bool
+		r        *fosite.Request
+		err      string
+		desc     string
+	}{
+		{
+			"ShouldNotEnforcEPARAndNotErrorOnNonPARRequest",
+			schema.OpenIDConnectClientConfiguration{},
+			false,
+			&fosite.Request{},
+			"",
+			"",
+		},
+		{
+			"ShouldEnforcePARAndErrorOnNonPARRequest",
+			schema.OpenIDConnectClientConfiguration{EnforcePAR: true},
+			true,
+			&fosite.Request{},
+			"invalid_request",
+			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Pushed Authorization Requests are enforced for this client but no such request was sent. The request_uri parameter was empty.",
+		},
+		{
+			"ShouldEnforcePARAndErrorOnNonPARRequest",
+			schema.OpenIDConnectClientConfiguration{EnforcePAR: true},
+			true,
+			&fosite.Request{Form: map[string][]string{FormParameterRequestURI: {"https://example.com"}}},
+			"invalid_request",
+			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Pushed Authorization Requests are enforced for this client but no such request was sent. The request_uri parameter 'https://example.com' is malformed."},
+		{
+			"ShouldEnforcePARAndNotErrorOnPARRequest",
+			schema.OpenIDConnectClientConfiguration{EnforcePAR: true},
+			true,
+			&fosite.Request{Form: map[string][]string{FormParameterRequestURI: {fmt.Sprintf("%sabc", urnPARPrefix)}}},
+			"",
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := NewClient(tc.have)
+
+			assert.Equal(t, tc.expected, client.EnforcePAR)
+
+			if tc.r != nil {
+				err := client.ValidatePARPolicy(tc.r, urnPARPrefix)
+
+				if tc.err != "" {
+					require.NotNil(t, err)
+					assert.EqualError(t, err, tc.err)
+					assert.Equal(t, tc.desc, fosite.ErrorToRFC6749Error(err).WithExposeDebug(true).GetDescription())
+				} else {
+					assert.NoError(t, err)
+				}
+			}
+		})
+	}
+}
+
+func TestNewClientResponseModes(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     schema.OpenIDConnectClientConfiguration
+		expected []fosite.ResponseModeType
+		r        *fosite.AuthorizeRequest
+		err      string
+		desc     string
+	}{
+		{
+			"ShouldEnforceResponseModePolicyAndAllowDefaultModeQuery",
+			schema.OpenIDConnectClientConfiguration{ResponseModes: []string{ResponseModeQuery}},
+			[]fosite.ResponseModeType{fosite.ResponseModeQuery},
+			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeDefault, Request: fosite.Request{Form: map[string][]string{FormParameterResponseMode: nil}}},
+			"",
+			"",
+		},
+		{
+			"ShouldEnforceResponseModePolicyAndFailOnDefaultMode",
+			schema.OpenIDConnectClientConfiguration{ResponseModes: []string{ResponseModeFormPost}},
+			[]fosite.ResponseModeType{fosite.ResponseModeFormPost},
+			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeDefault, Request: fosite.Request{Form: map[string][]string{FormParameterResponseMode: nil}}},
+			"unsupported_response_mode",
+			"The authorization server does not support obtaining a response using this response mode. The request omitted the response_mode making the default response_mode 'query' based on the other authorization request parameters but registered OAuth 2.0 client doesn't support this response_mode",
+		},
+		{
+			"ShouldNotEnforceConfiguredResponseMode",
+			schema.OpenIDConnectClientConfiguration{ResponseModes: []string{ResponseModeFormPost}},
+			[]fosite.ResponseModeType{fosite.ResponseModeFormPost},
+			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeQuery, Request: fosite.Request{Form: map[string][]string{FormParameterResponseMode: {ResponseModeQuery}}}},
+			"",
+			"",
+		},
+		{
+			"ShouldNotEnforceUnconfiguredResponseMode",
+			schema.OpenIDConnectClientConfiguration{ResponseModes: []string{}},
+			[]fosite.ResponseModeType{},
+			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeDefault, Request: fosite.Request{Form: map[string][]string{FormParameterResponseMode: {ResponseModeQuery}}}},
+			"",
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := NewClient(tc.have)
+
+			assert.Equal(t, tc.expected, client.GetResponseModes())
+
+			if tc.r != nil {
+				err := client.ValidateResponseModePolicy(tc.r)
+
+				if tc.err != "" {
+					require.NotNil(t, err)
+					assert.EqualError(t, err, tc.err)
+					assert.Equal(t, tc.desc, fosite.ErrorToRFC6749Error(err).WithExposeDebug(true).GetDescription())
 				} else {
 					assert.NoError(t, err)
 				}
