@@ -1,8 +1,6 @@
 package oidc
 
 import (
-	"strings"
-
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/ory/fosite"
 	"github.com/ory/x/errorsx"
@@ -141,6 +139,11 @@ func (c *BaseClient) GetUserinfoSigningAlgorithm() string {
 	return c.UserinfoSigningAlgorithm
 }
 
+// GetPAREnforcement returns EnforcePAR.
+func (c *BaseClient) GetPAREnforcement() bool {
+	return c.EnforcePAR
+}
+
 // GetPKCEEnforcement returns EnforcePKCE.
 func (c *BaseClient) GetPKCEEnforcement() bool {
 	return c.EnforcePKCE
@@ -222,18 +225,41 @@ func (c *BaseClient) ValidatePKCEPolicy(r fosite.Requester) (err error) {
 // ValidatePARPolicy is a helper function to validate additional policy constraints on a per-client basis.
 func (c *BaseClient) ValidatePARPolicy(r fosite.Requester, prefix string) (err error) {
 	if c.EnforcePAR {
-		form := r.GetRequestForm()
-
-		if requestURI := form.Get(FormParameterRequestURI); !strings.HasPrefix(requestURI, prefix) {
-			if requestURI == "" {
+		if !IsPushedAuthorizedRequest(r, prefix) {
+			switch requestURI := r.GetRequestForm().Get(FormParameterRequestURI); requestURI {
+			case "":
 				return errorsx.WithStack(ErrPAREnforcedClientMissingPAR.WithDebug("The request_uri parameter was empty."))
+			default:
+				return errorsx.WithStack(ErrPAREnforcedClientMissingPAR.WithDebugf("The request_uri parameter '%s' is malformed.", requestURI))
 			}
-
-			return errorsx.WithStack(ErrPAREnforcedClientMissingPAR.WithDebugf("The request_uri parameter '%s' is malformed.", requestURI))
 		}
 	}
 
 	return nil
+}
+
+// ValidateResponseModePolicy is an additional check to the response mode parameter to ensure if it's omitted that the
+// default response mode for the fosite.AuthorizeRequester is permitted.
+func (c *BaseClient) ValidateResponseModePolicy(r fosite.AuthorizeRequester) (err error) {
+	if r.GetResponseMode() != fosite.ResponseModeDefault {
+		return nil
+	}
+
+	m := r.GetDefaultResponseMode()
+
+	modes := c.GetResponseModes()
+
+	if len(modes) == 0 {
+		return nil
+	}
+
+	for _, mode := range modes {
+		if m == mode {
+			return nil
+		}
+	}
+
+	return errorsx.WithStack(fosite.ErrUnsupportedResponseMode.WithHintf(`The request omitted the response_mode making the default response_mode "%s" based on the other authorization request parameters but registered OAuth 2.0 client doesn't support this response_mode`, m))
 }
 
 // GetRequestURIs is an array of request_uri values that are pre-registered by the RP for use at the OP. Servers MAY

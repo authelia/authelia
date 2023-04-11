@@ -109,6 +109,8 @@ type BaseClient struct {
 	SectorIdentifier string
 	Public           bool
 
+	EnforcePAR bool
+
 	EnforcePKCE                bool
 	EnforcePKCEChallengeMethod bool
 	PKCEChallengeMethod        string
@@ -119,8 +121,6 @@ type BaseClient struct {
 	GrantTypes    []string
 	ResponseTypes []string
 	ResponseModes []fosite.ResponseModeType
-
-	EnforcePAR bool
 
 	UserinfoSigningAlgorithm string
 
@@ -152,6 +152,7 @@ type Client interface {
 	GetConsentResponseBody(consent *model.OAuth2ConsentSession) ConsentGetResponseBody
 	GetUserinfoSigningAlgorithm() string
 
+	GetPAREnforcement() bool
 	GetPKCEEnforcement() bool
 	GetPKCEChallengeMethodEnforcement() bool
 	GetPKCEChallengeMethod() string
@@ -162,6 +163,7 @@ type Client interface {
 
 	ValidatePKCEPolicy(r fosite.Requester) (err error)
 	ValidatePARPolicy(r fosite.Requester, prefix string) (err error)
+	ValidateResponseModePolicy(r fosite.AuthorizeRequester) (err error)
 }
 
 // NewClientConsent converts the schema.OpenIDConnectClientConsentConfig into a oidc.ClientConsent.

@@ -109,6 +109,7 @@ const (
 
 const (
 	FormParameterRequestURI          = "request_uri"
+	FormParameterResponseMode        = "response_mode"
 	FormParameterCodeChallenge       = "code_challenge"
 	FormParameterCodeChallengeMethod = "code_challenge_method"
 )

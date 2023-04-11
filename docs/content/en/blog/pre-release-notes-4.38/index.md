@@ -49,7 +49,7 @@ authelia configuration, and authelia database prior to attempting to do so._
 Notable Missing Features from this build:
 
 - OpenID Connect 1.0 PAR
-- Multi-Device Webauthn
+- Multi-Device WebAuthn
 - Device Registration OTP
 
 - Container Images:
@@ -144,7 +144,7 @@ Please see the [roadmap](../../roadmap/active/openid-connect.md) for more inform
 
 ##### Initial Implementation
 
-_**Important Note:** This feature at the time of this writing, will not work well with Webauthn. Steps are being taken
+_**Important Note:** This feature at the time of this writing, will not work well with WebAuthn. Steps are being taken
 to address this however it will not specifically delay the release of this feature._
 
 This release see's the initial implementation of multi-domain protection. Users will be able to configure more than a
@@ -160,14 +160,14 @@ NGINX/NGINX Proxy Manager/SWAG/HAProxy with the use of the new
 [Customizable Authorization Endpoints](#customizable-authorization-endpoints). This is important as it means you only
 need to configure a single middleware or helper to perform automatic redirection.
 
-## Webauthn
+## WebAuthn
 
-As part of our ongoing effort for comprehensive support for Webauthn we'll be introducing several important
+As part of our ongoing effort for comprehensive support for WebAuthn we'll be introducing several important
 features. Please see the [roadmap](../../roadmap/active/webauthn.md) for more information.
 
-##### Multiple Webauthn Credentials Per-User
+##### Multiple WebAuthn Credentials Per-User
 
-In this release we see full support for multiple Webauthn credentials. This is a fairly basic feature but getting the
+In this release we see full support for multiple WebAuthn credentials. This is a fairly basic feature but getting the
 frontend experience right is important to us. This is going to be supported via the
 [User Control Panel](#user-dashboard--control-panel).
 
