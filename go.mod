@@ -32,7 +32,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/ory/fosite v0.44.0
-	github.com/ory/herodot v0.10.0
+	github.com/ory/herodot v0.10.1
 	github.com/ory/x v0.0.550
 	github.com/otiai10/copy v1.10.0
 	github.com/pkg/errors v0.9.1
