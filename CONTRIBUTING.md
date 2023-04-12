@@ -42,10 +42,15 @@ performed a review or has indicated they are performing a review, as doing so ma
 accurately. PRs will always be squashed by us when we merge your work. Commit as many times as you need in your
 pull request branch.
 
-An exception exists for contributors to make adjustments to the commit message i.e. to perform the
-[Developer Certificate of Origin] sign off.
+A few exceptions exist to this rule and are as follows:
+
+- Making adjustments to the commit message i.e. for the following reasons:
+	- To comply with the [Developer Certificate of Origin] sign off requirement
+	- To comply with the other [Commit Message] guidelines
+- To rebase your changes off of master or another branch
 
 [Developer Certificate of Origin]: https://www.authelia.com/contributing/guidelines/commit-message/#developer-certificate-of-origin
+[Commit Message]: https://www.authelia.com/contributing/guidelines/commit-message/
 
 ## Re-requesting a review
 
