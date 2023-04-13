@@ -1,7 +1,10 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -24,154 +27,185 @@ func newBuildCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
+	cmd.Flags().Bool("print", false, "Prints the command instead of running it, useful for reproducible builds")
+	cmd.Flags().Int("build-number", 0, "Forcefully sets the build number, useful for reproducible builds")
+
 	return cmd
 }
 
-func cmdBuildRun(cobraCmd *cobra.Command, args []string) {
+func cmdBuildRun(cmd *cobra.Command, args []string) {
 	branch := os.Getenv("BUILDKITE_BRANCH")
 
+	var (
+		buildPrint bool
+		err        error
+	)
+
+	if buildPrint, err = cmd.Flags().GetBool("print"); err != nil {
+		log.Fatal(err)
+	}
+
 	if strings.HasPrefix(branch, "renovate/") {
-		buildFrontend(branch)
+		buildFrontend(false, branch)
 		log.Info("Skip building Authelia for deps...")
 		os.Exit(0)
 	}
 
-	log.Info("Building Authelia...")
+	switch {
+	case buildPrint:
+		log.Info("Printing Build Authelia Commands...")
+	default:
+		log.Info("Building Authelia...")
 
-	cmdCleanRun(cobraCmd, args)
+		cmdCleanRun(cmd, args)
+
+		log.Debug("Creating `" + OutputDir + "` directory")
+
+		if err = os.MkdirAll(OutputDir, os.ModePerm); err != nil {
+			log.Fatal(err)
+		}
+	}
 
 	buildMetaData, err := getBuild(branch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Debug("Creating `" + OutputDir + "` directory")
-
-	if err = os.MkdirAll(OutputDir, os.ModePerm); err != nil {
-		log.Fatal(err)
+	if cmd.Flags().Changed("build-number") {
+		buildMetaData.Number, _ = cmd.Flags().GetInt("build-number")
 	}
 
 	log.Debug("Building Authelia frontend...")
-	buildFrontend(branch)
+	buildFrontend(buildPrint, branch)
 
 	log.Debug("Building swagger-ui frontend...")
-	buildSwagger()
+	buildSwagger(buildPrint)
 
-	buildkite, _ := cobraCmd.Flags().GetBool("buildkite")
+	buildkite, _ := cmd.Flags().GetBool("buildkite")
 
 	if buildkite {
-		log.Info("Building Authelia Go binaries with gox...")
-
-		buildAutheliaBinaryGOX(buildMetaData.XFlags())
+		buildAutheliaBinaryGOX(buildPrint, buildMetaData)
 	} else {
-		log.Info("Building Authelia Go binary...")
-
-		buildAutheliaBinaryGO(buildMetaData.XFlags())
+		buildAutheliaBinaryGO(buildPrint, buildMetaData)
 	}
 
-	cleanAssets()
+	if !buildPrint {
+		cleanAssets()
+	}
 }
 
-func buildAutheliaBinaryGOX(xflags []string) {
+func buildAutheliaBinaryGOX(buildPrint bool, buildMetaData *Build) {
 	var wg sync.WaitGroup
 
-	s := time.Now()
+	started := time.Now()
 
-	wg.Add(2)
+	xflags := buildMetaData.XFlags()
+
+	cmds := make([]*exec.Cmd, 2)
+
+	cmds[0] = utils.CommandWithStdout("gox", "-output={{.Dir}}-{{.OS}}-{{.Arch}}-musl", "-buildmode=pie", "-trimpath", "-cgo", "-ldflags=-linkmode=external -s -w "+strings.Join(xflags, " "), "-osarch=linux/amd64 linux/arm linux/arm64", "./cmd/authelia/")
+
+	cmds[0].Env = append(cmds[0].Env,
+		"CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now",
+		"GOX_LINUX_ARM_CC=arm-linux-musleabihf-gcc", "GOX_LINUX_ARM64_CC=aarch64-linux-musl-gcc")
+
+	cmds[1] = utils.CommandWithStdout("bash", "-c", "docker run --rm -e GOX_LINUX_ARM_CC=arm-linux-gnueabihf-gcc -e GOX_LINUX_ARM64_CC=aarch64-linux-gnu-gcc -e GOX_FREEBSD_AMD64_CC=x86_64-pc-freebsd13-gcc -v ${PWD}:/workdir -v /buildkite/.go:/root/go authelia/crossbuild "+
+		"gox -output={{.Dir}}-{{.OS}}-{{.Arch}} -buildmode=pie -trimpath -cgo -ldflags=\"-linkmode=external -s -w "+strings.Join(xflags, " ")+"\" -osarch=\"linux/amd64 linux/arm linux/arm64 freebsd/amd64\" ./cmd/authelia/")
+
+	if buildPrint {
+		for _, cmd := range cmds {
+			buildCmdPrint(cmd)
+		}
+
+		return
+	}
+
+	log.Info("Building Authelia Go binaries with gox...")
+
+	wg.Add(len(cmds))
 
 	go func() {
 		defer wg.Done()
 
-		cmd := utils.CommandWithStdout("gox", "-output={{.Dir}}-{{.OS}}-{{.Arch}}-musl", "-buildmode=pie", "-trimpath", "-cgo", "-ldflags=-linkmode=external -s -w "+strings.Join(xflags, " "), "-osarch=linux/amd64 linux/arm linux/arm64", "./cmd/authelia/")
-
-		cmd.Env = append(os.Environ(),
-			"CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now",
-			"GOX_LINUX_ARM_CC=arm-linux-musleabihf-gcc", "GOX_LINUX_ARM64_CC=aarch64-linux-musl-gcc")
-
-		err := cmd.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
+		buildCmdRun(cmds[0])
 	}()
 
 	go func() {
 		defer wg.Done()
 
-		cmd := utils.CommandWithStdout("bash", "-c", "docker run --rm -e GOX_LINUX_ARM_CC=arm-linux-gnueabihf-gcc -e GOX_LINUX_ARM64_CC=aarch64-linux-gnu-gcc -e GOX_FREEBSD_AMD64_CC=x86_64-pc-freebsd13-gcc -v ${PWD}:/workdir -v /buildkite/.go:/root/go authelia/crossbuild "+
-			"gox -output={{.Dir}}-{{.OS}}-{{.Arch}} -buildmode=pie -trimpath -cgo -ldflags=\"-linkmode=external -s -w "+strings.Join(xflags, " ")+"\" -osarch=\"linux/amd64 linux/arm linux/arm64 freebsd/amd64\" ./cmd/authelia/")
-
-		err := cmd.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
+		buildCmdRun(cmds[1])
 	}()
 
 	wg.Wait()
 
-	e := time.Since(s)
-
-	log.Debugf("Binary compilation completed in %s.", e)
+	log.Debugf("Binary compilation completed in %s.", time.Since(started))
 }
 
-func buildAutheliaBinaryGO(xflags []string) {
-	cmd := utils.CommandWithStdout("go", "build", "-buildmode=pie", "-trimpath", "-o", OutputDir+"/authelia", "-ldflags", "-linkmode=external -s -w "+strings.Join(xflags, " "), "./cmd/authelia/")
+func buildAutheliaBinaryGO(buildPrint bool, buildMetaData *Build) {
+	cmd := utils.CommandWithStdout("go", "build", "-buildmode=pie", "-trimpath", "-o", OutputDir+"/authelia", "-ldflags", "-linkmode=external -s -w "+strings.Join(buildMetaData.XFlags(), " "), "./cmd/authelia/")
 
-	cmd.Env = append(os.Environ(),
+	cmd.Env = append(cmd.Env,
 		"CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now")
 
-	err := cmd.Run()
-	if err != nil {
-		log.Fatal(err)
+	if buildPrint {
+		buildCmdPrint(cmd)
+
+		return
 	}
+
+	log.Info("Building Authelia Go binary...")
+
+	buildCmdRun(cmd)
 }
 
-func buildFrontend(branch string) {
-	cmd := utils.CommandWithStdout("pnpm", "install")
-	cmd.Dir = webDirectory
+func buildFrontend(buildPrint bool, branch string) {
+	var (
+		cmds []*exec.Cmd
+		cmd  *exec.Cmd
+	)
 
-	err := cmd.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
+	cmd = utils.CommandWithStdout("pnpm", "install")
+	cmd.Dir = filepath.Join(cmd.Dir, webDirectory)
+
+	cmds = append(cmds, cmd)
 
 	if !strings.HasPrefix(branch, "renovate/") {
 		cmd = utils.CommandWithStdout("pnpm", "build")
-		cmd.Dir = webDirectory
+		cmd.Dir = filepath.Join(cmd.Dir, webDirectory)
 
-		err = cmd.Run()
-		if err != nil {
-			log.Fatal(err)
+		cmds = append(cmds, cmd)
+	}
+
+	for _, cmd = range cmds {
+		if buildPrint {
+			buildCmdPrint(cmd)
+
+			continue
 		}
+
+		buildCmdRun(cmd)
 	}
 }
 
-func buildSwagger() {
-	cmd := utils.CommandWithStdout("bash", "-c", "wget -q https://github.com/swagger-api/swagger-ui/archive/v"+versionSwaggerUI+".tar.gz -O ./v"+versionSwaggerUI+".tar.gz")
+func buildSwagger(buildPrint bool) {
+	var (
+		cmds []*exec.Cmd
+		cmd  *exec.Cmd
+	)
 
-	err := cmd.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
+	cmds = append(cmds, utils.CommandWithStdout("bash", "-c", "wget -q https://github.com/swagger-api/swagger-ui/archive/v"+versionSwaggerUI+".tar.gz -O ./v"+versionSwaggerUI+".tar.gz"))
+	cmds = append(cmds, utils.CommandWithStdout("cp", "-r", "api", "internal/server/public_html"))
+	cmds = append(cmds, utils.CommandWithStdout("tar", "-C", "internal/server/public_html/api", "--exclude=index.html", "--strip-components=2", "-xf", "v"+versionSwaggerUI+".tar.gz", "swagger-ui-"+versionSwaggerUI+"/dist"))
+	cmds = append(cmds, utils.CommandWithStdout("rm", "./v"+versionSwaggerUI+".tar.gz"))
 
-	cmd = utils.CommandWithStdout("cp", "-r", "api", "internal/server/public_html")
+	for _, cmd = range cmds {
+		if buildPrint {
+			buildCmdPrint(cmd)
 
-	err = cmd.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
+			continue
+		}
 
-	cmd = utils.CommandWithStdout("tar", "-C", "internal/server/public_html/api", "--exclude=index.html", "--strip-components=2", "-xf", "v"+versionSwaggerUI+".tar.gz", "swagger-ui-"+versionSwaggerUI+"/dist")
-
-	err = cmd.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	cmd = utils.CommandWithStdout("rm", "./v"+versionSwaggerUI+".tar.gz")
-
-	err = cmd.Run()
-	if err != nil {
-		log.Fatal(err)
+		buildCmdRun(cmd)
 	}
 }
 
@@ -182,13 +216,36 @@ func cleanAssets() {
 
 	cmd := utils.CommandWithStdout("mkdir", "-p", "internal/server/public_html/api")
 
-	if err := cmd.Run(); err != nil {
-		log.Fatal(err)
-	}
+	buildCmdRun(cmd)
 
 	cmd = utils.CommandWithStdout("bash", "-c", "touch internal/server/public_html/{index.html,api/index.html,api/openapi.yml}")
 
+	buildCmdRun(cmd)
+}
+
+func buildCmdRun(cmd *exec.Cmd) {
+	if len(cmd.Env) != 0 {
+		cmd.Env = append(os.Environ(), cmd.Env...)
+	}
+
 	if err := cmd.Run(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func buildCmdPrint(cmd *exec.Cmd) {
+	b := &strings.Builder{}
+
+	if cmd.Dir != "" {
+		b.WriteString(fmt.Sprintf("cd %s\n", cmd.Dir))
+	}
+
+	if len(cmd.Env) != 0 {
+		b.WriteString(strings.Join(cmd.Env, " "))
+		b.WriteString(" ")
+	}
+
+	b.WriteString(cmd.String())
+
+	fmt.Println(b.String())
 }

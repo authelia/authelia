@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -50,15 +50,8 @@ func (s *CLISuite) TestShouldPrintBuildInformation() {
 
 	output, err := s.Exec("authelia-backend", []string{"authelia", "build-info"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Last Tag: ")
-	s.Assert().Contains(output, "State: ")
-	s.Assert().Contains(output, "Branch: ")
-	s.Assert().Contains(output, "Build Number: ")
-	s.Assert().Contains(output, "Build OS: ")
-	s.Assert().Contains(output, "Build Arch: ")
-	s.Assert().Contains(output, "Build Date: ")
 
-	r := regexp.MustCompile(`^Last Tag: v\d+\.\d+\.\d+\nState: (tagged|untagged) (clean|dirty)\nBranch: [^\s\n]+\nCommit: [0-9a-f]{40}\nBuild Number: \d+\nBuild OS: (linux|darwin|windows|freebsd)\nBuild Arch: (amd64|arm|arm64)\nBuild Date: (Sun|Mon|Tue|Wed|Thu|Fri|Sat), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} [+-]\d{4}\nExtra: \n`)
+	r := regexp.MustCompile(`^Last Tag: v\d+\.\d+\.\d+\nState: (tagged|untagged) (clean|dirty)\nBranch: [^\s\n]+\nCommit: [0-9a-f]{40}\nCommit Date: (Sun|Mon|Tue|Wed|Thu|Fri|Sat), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} \+0000\nBuild Number: \d+\nBuild OS: (linux|darwin|windows|freebsd)\nBuild Arch: (amd64|arm|arm64)\nBuild Go Version: go\d+\.\d+(\.\d+)?\nExtra:`)
 	s.Assert().Regexp(r, output)
 }
 

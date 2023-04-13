@@ -24,10 +24,11 @@ authelia --config /etc/authelia/config/`
 State: %s
 Branch: %s
 Commit: %s
+Commit Date: %s
 Build Number: %s
 Build OS: %s
 Build Arch: %s
-Build Date: %s
+Build Go Version: %s
 Extra: %s
 `
 

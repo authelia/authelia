@@ -27,7 +27,7 @@ func newBuildInfoCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 // BuildInfoRunE is the RunE for the authelia build-info command.
 func (ctx *CmdCtx) BuildInfoRunE(_ *cobra.Command, _ []string) (err error) {
 	_, err = fmt.Printf(fmtAutheliaBuild, utils.BuildTag, utils.BuildState, utils.BuildBranch, utils.BuildCommit,
-		utils.BuildNumber, runtime.GOOS, runtime.GOARCH, utils.BuildDate, utils.BuildExtra)
+		utils.BuildDate, utils.BuildNumber, runtime.GOOS, runtime.GOARCH, runtime.Version(), utils.BuildExtra)
 
 	return err
 }

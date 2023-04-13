@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -50,6 +51,21 @@ func getBuild(branch, buildNumber, extra string) (b *Build, err error) {
 		return nil, fmt.Errorf("error getting commit with git rev-parse: %w", err)
 	}
 
+	var (
+		gitCommitTS  string
+		gitCommitTSI int
+	)
+
+	if gitCommitTS, _, err = utils.RunCommandAndReturnOutput(fmt.Sprintf("git show -s --format=%%ct %s", b.Commit)); err != nil {
+		return nil, fmt.Errorf("error getting commit date with git show -s --format=%%ct %s: %w", b.Commit, err)
+	}
+
+	if gitCommitTSI, err = strconv.Atoi(strings.TrimSpace(gitCommitTS)); err != nil {
+		return nil, fmt.Errorf("error getting commit date with git show -s --format=%%ct %s: %w", b.Commit, err)
+	}
+
+	b.Date = time.Unix(int64(gitCommitTSI), 0).UTC()
+
 	if gitTagCommit == b.Commit {
 		b.Tagged = true
 	}
@@ -57,8 +73,6 @@ func getBuild(branch, buildNumber, extra string) (b *Build, err error) {
 	if _, exitCode, _ := utils.RunCommandAndReturnOutput("git diff --quiet"); exitCode == 0 {
 		b.Clean = true
 	}
-
-	b.Date = time.Now()
 
 	return b, nil
 }

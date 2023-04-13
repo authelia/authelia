@@ -85,7 +85,7 @@ func (b Build) XFlags() []string {
 		fmt.Sprintf(fmtLDFLAGSX, "BuildBranch", b.Branch),
 		fmt.Sprintf(fmtLDFLAGSX, "BuildTag", b.Tag),
 		fmt.Sprintf(fmtLDFLAGSX, "BuildCommit", b.Commit),
-		fmt.Sprintf(fmtLDFLAGSX, "BuildDate", b.Date.Format("Mon, 02 Jan 2006 15:04:05 -0700")),
+		fmt.Sprintf(fmtLDFLAGSX, "BuildDate", b.Date.Format(time.RFC1123)),
 		fmt.Sprintf(fmtLDFLAGSX, "BuildState", b.State()),
 		fmt.Sprintf(fmtLDFLAGSX, "BuildExtra", b.Extra),
 		fmt.Sprintf(fmtLDFLAGSX, "BuildNumber", strconv.Itoa(b.Number)),
@@ -112,7 +112,7 @@ func (b Build) ContainerLabels() (labels map[string]string) {
 	}
 
 	labels = map[string]string{
-		"org.opencontainers.image.created":       b.Date.Format(time.RFC3339),
+		"org.opencontainers.image.created":       b.Date.UTC().Format(time.RFC3339),
 		"org.opencontainers.image.authors":       "",
 		"org.opencontainers.image.url":           "https://github.com/authelia/authelia/pkgs/container/authelia",
 		"org.opencontainers.image.documentation": "https://www.authelia.com",
