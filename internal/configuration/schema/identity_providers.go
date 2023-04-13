@@ -29,8 +29,15 @@ type OpenIDConnectConfiguration struct {
 	EnablePKCEPlainChallenge bool   `koanf:"enable_pkce_plain_challenge"`
 
 	CORS OpenIDConnectCORSConfiguration `koanf:"cors"`
+	PAR  OpenIDConnectPARConfiguration  `koanf:"pushed_authorizations"`
 
 	Clients []OpenIDConnectClientConfiguration `koanf:"clients"`
+}
+
+// OpenIDConnectPARConfiguration represents an OpenID Connect PAR config.
+type OpenIDConnectPARConfiguration struct {
+	Enforce         bool          `koanf:"enforce"`
+	ContextLifespan time.Duration `koanf:"context_lifespan"`
 }
 
 // OpenIDConnectCORSConfiguration represents an OpenID Connect CORS config.
@@ -57,8 +64,11 @@ type OpenIDConnectClientConfiguration struct {
 	ResponseTypes []string `koanf:"response_types"`
 	ResponseModes []string `koanf:"response_modes"`
 
+	TokenEndpointAuthMethod string `koanf:"token_endpoint_auth_method"`
+
 	Policy string `koanf:"authorization_policy"`
 
+	EnforcePAR  bool `koanf:"enforce_par"`
 	EnforcePKCE bool `koanf:"enforce_pkce"`
 
 	PKCEChallengeMethod      string `koanf:"pkce_challenge_method"`
@@ -83,9 +93,8 @@ var defaultOIDCClientConsentPreConfiguredDuration = time.Hour * 24 * 7
 var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClientConfiguration{
 	Policy:        "two_factor",
 	Scopes:        []string{"openid", "groups", "profile", "email"},
-	GrantTypes:    []string{"refresh_token", "authorization_code"},
 	ResponseTypes: []string{"code"},
-	ResponseModes: []string{"form_post", "query", "fragment"},
+	ResponseModes: []string{"form_post"},
 
 	UserinfoSigningAlgorithm:     "none",
 	ConsentMode:                  "auto",

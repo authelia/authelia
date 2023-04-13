@@ -360,7 +360,7 @@ func (suite *StorageSuite) TestShouldValidatePostgresSSLModeMustBeValid() {
 
 	suite.Assert().Len(suite.validator.Warnings(), 1)
 	suite.Require().Len(suite.validator.Errors(), 1)
-	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: postgres: ssl: option 'mode' must be one of 'disable', 'require', 'verify-ca', 'verify-full' but it is configured as 'unknown'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: postgres: ssl: option 'mode' must be one of 'disable', 'require', 'verify-ca', or 'verify-full' but it's configured as 'unknown'")
 }
 
 func (suite *StorageSuite) TestShouldRaiseErrorOnNoEncryptionKey() {

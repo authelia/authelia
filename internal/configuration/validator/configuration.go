@@ -78,7 +78,7 @@ func validateDefault2FAMethod(config *schema.Configuration, validator *schema.St
 	}
 
 	if !utils.IsStringInSlice(config.Default2FAMethod, validDefault2FAMethods) {
-		validator.Push(fmt.Errorf(errFmtInvalidDefault2FAMethod, config.Default2FAMethod, strings.Join(validDefault2FAMethods, "', '")))
+		validator.Push(fmt.Errorf(errFmtInvalidDefault2FAMethod, strJoinOr(validDefault2FAMethods), config.Default2FAMethod))
 
 		return
 	}
@@ -98,6 +98,6 @@ func validateDefault2FAMethod(config *schema.Configuration, validator *schema.St
 	}
 
 	if !utils.IsStringInSlice(config.Default2FAMethod, enabledMethods) {
-		validator.Push(fmt.Errorf(errFmtInvalidDefault2FAMethodDisabled, config.Default2FAMethod, strings.Join(enabledMethods, "', '")))
+		validator.Push(fmt.Errorf(errFmtInvalidDefault2FAMethodDisabled, strJoinOr(enabledMethods), config.Default2FAMethod))
 	}
 }

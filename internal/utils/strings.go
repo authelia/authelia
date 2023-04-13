@@ -104,8 +104,13 @@ func IsStringSliceContainsAll(needles []string, haystack []string) (inSlice bool
 
 // IsStringSliceContainsAny checks if the haystack contains any of the strings in the needles.
 func IsStringSliceContainsAny(needles []string, haystack []string) (inSlice bool) {
+	return IsStringSliceContainsAnyF(needles, haystack, IsStringInSlice)
+}
+
+// IsStringSliceContainsAnyF checks if the haystack contains any of the strings in the needles using the isInSlice func.
+func IsStringSliceContainsAnyF(needles []string, haystack []string, isInSlice func(needle string, haystack []string) bool) (inSlice bool) {
 	for _, n := range needles {
-		if IsStringInSlice(n, haystack) {
+		if isInSlice(n, haystack) {
 			return true
 		}
 	}
@@ -195,8 +200,8 @@ func URLsFromStringSlice(urls []string) []url.URL {
 }
 
 // OriginFromURL returns an origin url.URL given another url.URL.
-func OriginFromURL(u url.URL) (origin url.URL) {
-	return url.URL{
+func OriginFromURL(u *url.URL) (origin *url.URL) {
+	return &url.URL{
 		Scheme: u.Scheme,
 		Host:   u.Host,
 	}

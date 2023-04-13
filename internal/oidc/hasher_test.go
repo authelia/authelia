@@ -9,7 +9,7 @@ import (
 )
 
 func TestShouldNotRaiseErrorOnEqualPasswordsPlainText(t *testing.T) {
-	hasher, err := NewAdaptiveHasher()
+	hasher, err := NewHasher()
 
 	require.NoError(t, err)
 
@@ -22,7 +22,7 @@ func TestShouldNotRaiseErrorOnEqualPasswordsPlainText(t *testing.T) {
 }
 
 func TestShouldNotRaiseErrorOnEqualPasswordsPlainTextWithSeparator(t *testing.T) {
-	hasher, err := NewAdaptiveHasher()
+	hasher, err := NewHasher()
 
 	require.NoError(t, err)
 
@@ -35,7 +35,7 @@ func TestShouldNotRaiseErrorOnEqualPasswordsPlainTextWithSeparator(t *testing.T)
 }
 
 func TestShouldRaiseErrorOnNonEqualPasswordsPlainText(t *testing.T) {
-	hasher, err := NewAdaptiveHasher()
+	hasher, err := NewHasher()
 
 	require.NoError(t, err)
 
@@ -48,7 +48,7 @@ func TestShouldRaiseErrorOnNonEqualPasswordsPlainText(t *testing.T) {
 }
 
 func TestShouldHashPassword(t *testing.T) {
-	hasher := AdaptiveHasher{}
+	hasher := Hasher{}
 
 	data := []byte("abc")
 

@@ -24,7 +24,7 @@ func ValidateTOTP(config *schema.Configuration, validator *schema.StructValidato
 		config.TOTP.Algorithm = strings.ToUpper(config.TOTP.Algorithm)
 
 		if !utils.IsStringInSlice(config.TOTP.Algorithm, schema.TOTPPossibleAlgorithms) {
-			validator.Push(fmt.Errorf(errFmtTOTPInvalidAlgorithm, strings.Join(schema.TOTPPossibleAlgorithms, "', '"), config.TOTP.Algorithm))
+			validator.Push(fmt.Errorf(errFmtTOTPInvalidAlgorithm, strJoinOr(schema.TOTPPossibleAlgorithms), config.TOTP.Algorithm))
 		}
 	}
 

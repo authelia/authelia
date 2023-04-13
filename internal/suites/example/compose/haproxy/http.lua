@@ -752,9 +752,9 @@ M.base64 = {}
 --- URL safe base64 encoder
 --
 -- Padding ('=') is omited, as permited per RFC
---   https://tools.ietf.org/html/rfc4648
+--   https://datatracker.ietf.org/doc/html/rfc4648
 -- in order to follow JSON Web Signature RFC
---   https://tools.ietf.org/html/rfc7515
+--   https://datatracker.ietf.org/doc/html/rfc7515
 --
 -- @param s String (can be binary data) to encode
 -- @param enc Function which implements base64 encoder (e.g. HAProxy base64 fetch)

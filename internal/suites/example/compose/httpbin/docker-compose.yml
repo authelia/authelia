@@ -12,7 +12,7 @@ services:
       - 'traefik.frontend.auth.forward.address=https://authelia-backend:9091/api/authz/forward-auth'
       - 'traefik.frontend.auth.forward.tls.insecureSkipVerify=true'
       - 'traefik.frontend.auth.forward.trustForwardHeader=true'
-      - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'
+      - 'traefik.frontend.auth.forward.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Email,Remote-Name'
       # Traefik 2.x
       - 'traefik.enable=true'
       - 'traefik.http.routers.httpbin.rule=Host(`public.example.com`) && Path(`/headers`)'

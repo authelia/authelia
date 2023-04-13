@@ -178,7 +178,7 @@ func handleOIDCWorkflowResponseWithTargetURL(ctx *middlewares.AutheliaCtx, targe
 func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, id string) {
 	var (
 		workflowID uuid.UUID
-		client     *oidc.Client
+		client     oidc.Client
 		consent    *model.OAuth2ConsentSession
 		err        error
 	)
@@ -210,19 +210,19 @@ func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, id string) {
 	var userSession session.UserSession
 
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Error(fmt.Errorf("unable to redirect for authorization/consent for client with id '%s' with consent challenge id '%s': failed to lookup session: %w", client.ID, consent.ChallengeID, err), messageAuthenticationFailed)
+		ctx.Error(fmt.Errorf("unable to redirect for authorization/consent for client with id '%s' with consent challenge id '%s': failed to lookup session: %w", client.GetID(), consent.ChallengeID, err), messageAuthenticationFailed)
 
 		return
 	}
 
 	if userSession.IsAnonymous() {
-		ctx.Error(fmt.Errorf("unable to redirect for authorization/consent for client with id '%s' with consent challenge id '%s': user is anonymous", client.ID, consent.ChallengeID), messageAuthenticationFailed)
+		ctx.Error(fmt.Errorf("unable to redirect for authorization/consent for client with id '%s' with consent challenge id '%s': user is anonymous", client.GetID(), consent.ChallengeID), messageAuthenticationFailed)
 
 		return
 	}
 
 	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
-		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", client.ID)
+		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", client.GetID())
 		ctx.ReplyOK()
 
 		return

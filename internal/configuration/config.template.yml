@@ -426,7 +426,7 @@ authentication_backend:
     ## changed once attributed to a user otherwise it would break the configuration for that user. Technically,
     ## non-unique attributes like 'mail' can also be used but we don't recommend using them, we instead advise to use
     ## a filter to perform alternative lookups and the attributes mentioned above (sAMAccountName and uid) to
-    ## follow https://www.ietf.org/rfc/rfc2307.txt.
+    ## follow https://datatracker.ietf.org/doc/html/rfc2307.
     # username_attribute: uid
 
     ## The additional_users_dn is prefixed to base_dn and delimited by a comma when searching for users.
@@ -1480,12 +1480,6 @@ notifier:
           # - email
           # - profile
 
-        ## Grant Types configures which grants this client can obtain.
-        ## It's not recommended to define this unless you know what you're doing.
-        # grant_types:
-          # - refresh_token
-          # - authorization_code
-
         ## Response Types configures which responses this client can be sent.
         ## It's not recommended to define this unless you know what you're doing.
         # response_types:
@@ -1495,7 +1489,14 @@ notifier:
         # response_modes:
           # - form_post
           # - query
-          # - fragment
+
+        ## Grant Types configures which grants this client can obtain.
+        ## It's not recommended to define this unless you know what you're doing.
+        # grant_types:
+        # - authorization_code
+
+        ## The permitted client authentication method for the Token Endpoint for this client.
+        # token_endpoint_auth_method: client_secret_basic
 
         ## The policy to require for this client; one_factor or two_factor.
         # authorization_policy: two_factor

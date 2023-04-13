@@ -16,7 +16,7 @@ import (
 func WebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	var (
 		w           *webauthn.WebAuthn
-		user        *model.WebauthnUser
+		user        *model.WebAuthnUser
 		userSession session.UserSession
 		err         error
 	)
@@ -52,7 +52,7 @@ func WebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	extensions := map[string]any{}
 
 	if user.HasFIDOU2F() {
-		extensions["appid"] = w.Config.RPOrigins[0]
+		extensions["appid"] = w.Config.RPOrigin
 	}
 
 	if len(extensions) != 0 {
@@ -134,7 +134,7 @@ func WebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		assertionResponse *protocol.ParsedCredentialAssertionData
 		credential        *webauthn.Credential
-		user              *model.WebauthnUser
+		user              *model.WebAuthnUser
 	)
 
 	if assertionResponse, err = protocol.ParseCredentialRequestResponseBody(bytes.NewReader(ctx.PostBody())); err != nil {

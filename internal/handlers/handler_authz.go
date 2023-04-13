@@ -21,9 +21,9 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if object, err = authz.handleGetObject(ctx); err != nil {
-		ctx.Logger.Errorf("Error getting original request object: %v", err)
+		ctx.Logger.WithError(err).Error("Error getting Target URL and Request Method")
 
-		ctx.ReplyUnauthorized()
+		ctx.ReplyStatusCode(authz.config.StatusCodeBadRequest)
 
 		return
 	}
@@ -31,23 +31,23 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	if !utils.IsURISecure(object.URL) {
 		ctx.Logger.Errorf("Target URL '%s' has an insecure scheme '%s', only the 'https' and 'wss' schemes are supported so session cookies can be transmitted securely", object.URL.String(), object.URL.Scheme)
 
-		ctx.ReplyUnauthorized()
+		ctx.ReplyStatusCode(authz.config.StatusCodeBadRequest)
 
 		return
 	}
 
 	if provider, err = ctx.GetSessionProviderByTargetURL(object.URL); err != nil {
-		ctx.Logger.WithError(err).Errorf("Target URL '%s' does not appear to be configured as a session domain", object.URL.String())
+		ctx.Logger.WithError(err).WithField("target_url", object.URL.String()).Error("Target URL does not appear to have a relevant session cookies configuration")
 
-		ctx.ReplyUnauthorized()
+		ctx.ReplyStatusCode(authz.config.StatusCodeBadRequest)
 
 		return
 	}
 
 	if autheliaURL, err = authz.getAutheliaURL(ctx, provider); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred trying to determine the URL of the portal")
+		ctx.Logger.WithError(err).WithField("target_url", object.URL.String()).Error("Error occurred trying to determine the external Authelia URL for Target URL")
 
-		ctx.ReplyUnauthorized()
+		ctx.ReplyStatusCode(authz.config.StatusCodeBadRequest)
 
 		return
 	}
@@ -104,23 +104,23 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 }
 
 func (authz *Authz) getAutheliaURL(ctx *middlewares.AutheliaCtx, provider *session.Session) (autheliaURL *url.URL, err error) {
-	if authz.handleGetAutheliaURL == nil {
-		return nil, nil
-	}
-
 	if autheliaURL, err = authz.handleGetAutheliaURL(ctx); err != nil {
 		return nil, err
 	}
 
-	if autheliaURL != nil {
+	switch {
+	case authz.implementation == AuthzImplLegacy:
 		return autheliaURL, nil
+	case autheliaURL != nil:
+		switch {
+		case utils.HasURIDomainSuffix(autheliaURL, provider.Config.Domain):
+			return autheliaURL, nil
+		default:
+			return nil, fmt.Errorf("authelia url '%s' is not valid for detected domain '%s' as the url does not have the domain as a suffix", autheliaURL.String(), provider.Config.Domain)
+		}
 	}
 
 	if provider.Config.AutheliaURL != nil {
-		if authz.legacy {
-			return nil, nil
-		}
-
 		return provider.Config.AutheliaURL, nil
 	}
 
@@ -133,6 +133,10 @@ func (authz *Authz) getRedirectionURL(object *authorization.Object, autheliaURL 
 	}
 
 	redirectionURL, _ = url.ParseRequestURI(autheliaURL.String())
+
+	if redirectionURL.Path == "" {
+		redirectionURL.Path = "/"
+	}
 
 	qry := redirectionURL.Query()
 
@@ -151,10 +155,10 @@ func (authz *Authz) authn(ctx *middlewares.AutheliaCtx, provider *session.Sessio
 	for _, strategy = range authz.strategies {
 		if authn, err = strategy.Get(ctx, provider); err != nil {
 			if strategy.CanHandleUnauthorized() {
-				return Authn{Type: authn.Type, Level: authentication.NotAuthenticated}, strategy, err
+				return Authn{Type: authn.Type, Level: authentication.NotAuthenticated, Username: anonymous}, strategy, err
 			}
 
-			return Authn{Type: authn.Type, Level: authentication.NotAuthenticated}, nil, err
+			return Authn{Type: authn.Type, Level: authentication.NotAuthenticated, Username: anonymous}, nil, err
 		}
 
 		if authn.Level != authentication.NotAuthenticated {

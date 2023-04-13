@@ -2,7 +2,7 @@
 title: "Proxy Authorization"
 description: "A reference guide on Proxy Authorization implementations"
 lead: "This section contains reference guide on Proxy Authorization implementations Authelia supports."
-date: 2022-10-31T09:33:39+11:00
+date: 2023-01-25T20:36:40+11:00
 draft: false
 images: []
 menu:
@@ -64,7 +64,7 @@ completely unset.
 ### ForwardAuth
 
 This is the implementation which supports [Traefik] via the [ForwardAuth Middleware], [Caddy] via the
-[forward_auth directive], and [Skipper] via the [webhook auth filter].
+[forward_auth directive], [HAProxy] via the [auth-request lua plugin], and [Skipper] via the [webhook auth filter].
 
 #### ForwardAuth Metadata
 
@@ -87,7 +87,7 @@ This is the implementation which supports [Traefik] via the [ForwardAuth Middlew
 
 ### ExtAuthz
 
-This is the implementation which supports [Envoy] via the [ExtAuthz Extension Filter].
+This is the implementation which supports [Envoy] via the [HTTP ExtAuthz Filter].
 
 #### ExtAuthz Metadata
 
@@ -110,26 +110,31 @@ This is the implementation which supports [Envoy] via the [ExtAuthz Extension Fi
 
 ### AuthRequest
 
-This is the implementation which supports [NGINX] via the [auth_request HTTP module] and [HAProxy] via the
-[auth-request lua plugin].
+This is the implementation which supports [NGINX] via the [auth_request HTTP module], and can technically support
+[HAProxy] via the [auth-request lua plugin].
 
-|   Metadata   |  Source  |         Key         |
-|:------------:|:--------:|:-------------------:|
-|    Method    | [Header] | `X-Original-Method` |
-|    Scheme    | [Header] |  `X-Original-URL`   |
-|   Hostname   | [Header] |  `X-Original-URL`   |
-|     Path     | [Header] |  `X-Original-URL`   |
-|      IP      | [Header] |  [X-Forwarded-For]  |
-| Authelia URL |  _N/A_   |        _N/A_        |
+#### AuthRequest Metadata
 
-_**Note:** This endpoint does not support automatic redirection. This is because there is no support on NGINX's side to
-achieve this with `ngx_http_auth_request_module` and the redirection must be performed within the NGINX configuration._
+|   Metadata   |            Source            |         Key         |
+|:------------:|:----------------------------:|:-------------------:|
+|    Method    |           [Header]           | `X-Original-Method` |
+|    Scheme    |           [Header]           |  `X-Original-URL`   |
+|   Hostname   |           [Header]           |  `X-Original-URL`   |
+|     Path     |           [Header]           |  `X-Original-URL`   |
+|      IP      |           [Header]           |  [X-Forwarded-For]  |
+| Authelia URL | Session Cookie Configuration |   `authelia_url`    |
+
+_**Note:** This endpoint does not support automatic redirection. This is because there is no support on [NGINX]'s side
+to achieve this with `ngx_http_auth_request_module` and the redirection must be performed within the [NGINX]
+configuration. However we return the appropriate URL to redirect users to with the `Location` header which
+simplifies this process especially for multi-cookie domain deployments._
 
 #### AuthRequest Metadata Alternatives
 
-| Metadata | Alternative Type |   Source   |    Key    |
-|:--------:|:----------------:|:----------:|:---------:|
-|    IP    |     Fallback     | TCP Packet | Source IP |
+|   Metadata   | Alternative Type |     Source     |      Key       |
+|:------------:|:----------------:|:--------------:|:--------------:|
+|      IP      |     Fallback     |   TCP Packet   |   Source IP    |
+| Authelia URL |     Override     | Query Argument | `authelia_url` |
 
 ### Legacy
 
@@ -213,7 +218,7 @@ or the header is malformed it will respond with the [WWW-Authenticate] header.
 [Skipper]: https://opensource.zalando.com/skipper/
 [HAProxy]: http://www.haproxy.org/
 
-[ExtAuthz Extension Filter]: https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto#envoy-v3-api-msg-extensions-filters-http-ext-authz-v3-extauthz
+[HTTP ExtAuthz Filter]: https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto#envoy-v3-api-msg-extensions-filters-http-ext-authz-v3-extauthz
 [auth_request HTTP module]: https://nginx.org/en/docs/http/ngx_http_auth_request_module.html
 [auth-request lua plugin]: https://github.com/TimWolla/haproxy-auth-request
 [ForwardAuth Middleware]: https://doc.traefik.io/traefik/middlewares/http/forwardauth/

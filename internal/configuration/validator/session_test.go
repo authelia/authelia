@@ -95,7 +95,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 				},
 			},
 			[]string{
-				"session: option 'same_site' must be one of 'none', 'lax', 'strict' but is configured as 'BAD VALUE'",
+				"session: option 'same_site' must be one of 'none', 'lax', or 'strict' but it's configured as 'BAD VALUE'",
 			},
 		},
 		{
@@ -139,6 +139,24 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 				},
 			},
 			nil,
+		},
+		{
+			"ShouldErrorOnEmptyConfig",
+			schema.SessionConfiguration{
+				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+					Name: "", SameSite: "", Domain: "",
+				},
+				Cookies: []schema.SessionCookieConfiguration{},
+			},
+			schema.SessionConfiguration{
+				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+					Name: "authelia_session", SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute * 5, RememberMe: time.Hour * 24 * 30,
+				},
+				Cookies: []schema.SessionCookieConfiguration{},
+			},
+			[]string{
+				"session: option 'cookies' is required",
+			},
 		},
 	}
 
@@ -302,7 +320,7 @@ func TestShouldRaiseErrorWhenRedisHasHostnameButNoPort(t *testing.T) {
 
 	assert.False(t, validator.HasWarnings())
 	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "session: redis: option 'port' must be between 1 and 65535 but is configured as '0'")
+	assert.EqualError(t, validator.Errors()[0], "session: redis: option 'port' must be between 1 and 65535 but it's configured as '0'")
 }
 
 func TestShouldRaiseOneErrorWhenRedisHighAvailabilityHasNodesWithNoHost(t *testing.T) {
@@ -586,45 +604,6 @@ func TestShouldRaiseErrorOnBadRedisTLSOptionsMinVerGreaterThanMax(t *testing.T) 
 	assert.EqualError(t, validator.Errors()[0], "session: redis: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS1.3 is greater than the maximum version TLS1.0")
 }
 
-func TestShouldRaiseErrorWhenDomainNotSet(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-	config.Domain = ""
-	config.Cookies = []schema.SessionCookieConfiguration{}
-
-	ValidateSession(&config, validator)
-
-	assert.False(t, validator.HasWarnings())
-	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "session: option 'domain' is required")
-}
-
-func TestShouldRaiseErrorWhenDomainIsWildcard(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-	config.Domain = "*.example.com"
-
-	ValidateSession(&config, validator)
-
-	assert.Len(t, validator.Warnings(), 0)
-	require.Len(t, validator.Errors(), 1)
-
-	assert.EqualError(t, validator.Errors()[0], "session: domain config #1 (domain '*.example.com'): option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '*.example.com'")
-}
-
-func TestShouldRaiseErrorWhenDomainNameIsInvalid(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-	config.Domain = "example!.com"
-
-	ValidateSession(&config, validator)
-
-	assert.Len(t, validator.Warnings(), 0)
-	require.Len(t, validator.Errors(), 1)
-
-	assert.EqualError(t, validator.Errors()[0], "session: domain config #1 (domain 'example!.com'): option 'domain' is not a valid domain")
-}
-
 func TestShouldRaiseErrorWhenHaveDuplicatedDomainName(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
@@ -675,10 +654,18 @@ func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {
 	testCases := []struct {
 		name     string
 		have     string
+		warnings []string
 		expected []string
 	}{
-		{"ShouldRaiseErrorOnMissingDomain", "", []string{"session: domain config #1 (domain ''): option 'domain' is required"}},
-		{"ShouldNotRaiseErrorOnValidDomain", exampleDotCom, nil},
+		{"ShouldNotRaiseErrorOnValidDomain", exampleDotCom, nil, nil},
+		{"ShouldRaiseErrorOnMissingDomain", "", nil, []string{"session: domain config #1 (domain ''): option 'domain' is required"}},
+		{"ShouldRaiseErrorOnDomainWithInvalidChars", "example!.com", nil, []string{"session: domain config #1 (domain 'example!.com'): option 'domain' is not a valid cookie domain"}},
+		{"ShouldRaiseErrorOnDomainWithoutDots", "localhost", nil, []string{"session: domain config #1 (domain 'localhost'): option 'domain' is not a valid cookie domain: must have at least a single period"}},
+		{"ShouldRaiseErrorOnPublicDomainDuckDNS", "duckdns.org", nil, []string{"session: domain config #1 (domain 'duckdns.org'): option 'domain' is not a valid cookie domain: the domain is part of the special public suffix list"}},
+		{"ShouldNotRaiseErrorOnSuffixOfPublicDomainDuckDNS", "example.duckdns.org", nil, nil},
+		{"ShouldRaiseWarningOnDomainWithLeadingDot", ".example.com", []string{"session: domain config #1 (domain '.example.com'): option 'domain' has a prefix of '.' which is not supported or intended behaviour: you can use this at your own risk but we recommend removing it"}, nil},
+		{"ShouldRaiseErrorOnDomainWithLeadingStarDot", "*.example.com", nil, []string{"session: domain config #1 (domain '*.example.com'): option 'domain' must be the domain you wish to protect not a wildcard domain but it's configured as '*.example.com'"}},
+		{"ShouldRaiseErrorOnDomainNotSet", "", nil, []string{"session: domain config #1 (domain ''): option 'domain' is required"}},
 	}
 
 	for _, tc := range testCases {
@@ -692,13 +679,17 @@ func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {
 					SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
 						Domain: tc.have,
 					},
-					AutheliaURL: MustParseURL("https://auth.example.com")},
+				},
 			}
 
 			ValidateSession(&config, validator)
 
-			assert.Len(t, validator.Warnings(), 0)
+			require.Len(t, validator.Warnings(), len(tc.warnings))
 			require.Len(t, validator.Errors(), len(tc.expected))
+
+			for i, expected := range tc.warnings {
+				assert.EqualError(t, validator.Warnings()[i], expected)
+			}
 
 			for i, expected := range tc.expected {
 				assert.EqualError(t, validator.Errors()[i], expected)
@@ -753,8 +744,8 @@ func TestShouldRaiseErrorWhenSameSiteSetIncorrectly(t *testing.T) {
 	assert.False(t, validator.HasWarnings())
 	require.Len(t, validator.Errors(), 2)
 
-	assert.EqualError(t, validator.Errors()[0], "session: option 'same_site' must be one of 'none', 'lax', 'strict' but is configured as 'NOne'")
-	assert.EqualError(t, validator.Errors()[1], "session: domain config #1 (domain 'example.com'): option 'same_site' must be one of 'none', 'lax', 'strict' but is configured as 'NOne'")
+	assert.EqualError(t, validator.Errors()[0], "session: option 'same_site' must be one of 'none', 'lax', or 'strict' but it's configured as 'NOne'")
+	assert.EqualError(t, validator.Errors()[1], "session: domain config #1 (domain 'example.com'): option 'same_site' must be one of 'none', 'lax', or 'strict' but it's configured as 'NOne'")
 }
 
 func TestShouldNotRaiseErrorWhenSameSiteSetCorrectly(t *testing.T) {

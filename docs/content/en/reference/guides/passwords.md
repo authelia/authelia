@@ -193,14 +193,14 @@ This table suggests the parameters for the [SHA2 Crypt] algorithm:
 | Standard CPU | sha512  |        50000        |    16     |
 | High End CPU | sha512  |       150000        |    16     |
 
-[Argon2]: https://www.rfc-editor.org/rfc/rfc9106.html
+[Argon2]: https://datatracker.ietf.org/doc/html/rfc9106
 [Scrypt]: https://en.wikipedia.org/wiki/Scrypt
-[PBKDF2]: https://www.ietf.org/rfc/rfc2898.html
+[PBKDF2]: https://datatracker.ietf.org/doc/html/rfc2898
 [SHA2 Crypt]: https://www.akkadia.org/drepper/SHA-crypt.txt
 [Bcrypt]: https://en.wikipedia.org/wiki/Bcrypt
 [FIPS-140 compliance]: https://csrc.nist.gov/publications/detail/fips/140/2/final
 
-[RFC9106 Parameter Choice]: https://www.rfc-editor.org/rfc/rfc9106.html#section-4
+[RFC9106 Parameter Choice]: https://datatracker.ietf.org/doc/html/rfc9106#section-4
 [YAML]: https://yaml.org/
 [crypt hash generate]: ../cli/authelia/authelia_crypto_hash_generate.md
 [Password Hashing Competition]: https://en.wikipedia.org/wiki/Password_Hashing_Competition

@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { ReactComponent as UserSvg } from "@assets/images/user.svg";
 import PrivacyPolicyDrawer from "@components/PrivacyPolicyDrawer";
 import PrivacyPolicyLink from "@components/PrivacyPolicyLink";
-import TypographyWithTooltip from "@components/TypographyWithTootip";
+import TypographyWithTooltip from "@components/TypographyWithTooltip";
 import { getLogoOverride, getPrivacyPolicyEnabled } from "@utils/Configuration";
 
 export interface Props {

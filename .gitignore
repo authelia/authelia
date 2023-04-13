@@ -25,3 +25,5 @@ authelia-image-dev.tar
 
 /authelia
 __debug_bin
+
+internal/suites/common/pki/ca/ca.private.pem

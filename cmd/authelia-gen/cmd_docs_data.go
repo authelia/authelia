@@ -52,6 +52,26 @@ func docsDataMiscRunE(cmd *cobra.Command, args []string) (err error) {
 	data.CSP.TemplateDevelopment = strings.ReplaceAll(data.CSP.TemplateDevelopment, "%s", codeCSPNonce)
 
 	var (
+		pathPackageJSON string
+		dataPackageJSON []byte
+		packageJSON     PackageJSON
+	)
+
+	if pathPackageJSON, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagWeb, cmdFlagFileWebPackage); err != nil {
+		return err
+	}
+
+	if dataPackageJSON, err = os.ReadFile(pathPackageJSON); err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(dataPackageJSON, &packageJSON); err != nil {
+		return fmt.Errorf("failed to unmarshall package.json: %w", err)
+	}
+
+	data.Latest = packageJSON.Version
+
+	var (
 		outputPath string
 		dataJSON   []byte
 	)

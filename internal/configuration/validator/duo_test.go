@@ -23,6 +23,11 @@ func TestValidateDuo(t *testing.T) {
 			expected: schema.DuoAPIConfiguration{Disable: true},
 		},
 		{
+			desc:     "ShouldDisableDuoConfigured",
+			have:     &schema.Configuration{DuoAPI: schema.DuoAPIConfiguration{Disable: true, Hostname: "example.com"}},
+			expected: schema.DuoAPIConfiguration{Disable: true, Hostname: "example.com"},
+		},
+		{
 			desc: "ShouldNotDisableDuo",
 			have: &schema.Configuration{DuoAPI: schema.DuoAPIConfiguration{
 				Hostname:       "test",
@@ -46,7 +51,7 @@ func TestValidateDuo(t *testing.T) {
 				IntegrationKey: "test",
 			},
 			errs: []string{
-				"duo_api: option 'secret_key' is required when duo is enabled but it is missing",
+				"duo_api: option 'secret_key' is required when duo is enabled but it's absent",
 			},
 		},
 		{
@@ -60,7 +65,7 @@ func TestValidateDuo(t *testing.T) {
 				SecretKey: "test",
 			},
 			errs: []string{
-				"duo_api: option 'integration_key' is required when duo is enabled but it is missing",
+				"duo_api: option 'integration_key' is required when duo is enabled but it's absent",
 			},
 		},
 		{
@@ -74,7 +79,7 @@ func TestValidateDuo(t *testing.T) {
 				SecretKey:      "test",
 			},
 			errs: []string{
-				"duo_api: option 'hostname' is required when duo is enabled but it is missing",
+				"duo_api: option 'hostname' is required when duo is enabled but it's absent",
 			},
 		},
 	}

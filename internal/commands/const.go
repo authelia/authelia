@@ -177,56 +177,56 @@ This subcommand allows manually adding an opaque identifier for a user to the da
 authelia storage user identifiers add john --identifier f0919359-9d15-4e15-bcba-83b41620a073 --config config.yml
 authelia storage user identifiers add john --identifier f0919359-9d15-4e15-bcba-83b41620a073 --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
-	cmdAutheliaStorageUserWebauthnShort = "Manage Webauthn devices"
+	cmdAutheliaStorageUserWebAuthnShort = "Manage WebAuthn devices"
 
-	cmdAutheliaStorageUserWebauthnLong = `Manage Webauthn devices.
+	cmdAutheliaStorageUserWebAuthnLong = `Manage WebAuthn devices.
 
-This subcommand allows interacting with Webauthn devices.`
+This subcommand allows interacting with WebAuthn devices.`
 
-	cmdAutheliaStorageUserWebauthnExample = `authelia storage user webauthn --help`
+	cmdAutheliaStorageUserWebAuthnExample = `authelia storage user webauthn --help`
 
-	cmdAutheliaStorageUserWebauthnImportShort = "Perform imports of the Webauthn devices"
+	cmdAutheliaStorageUserWebAuthnImportShort = "Perform imports of the WebAuthn devices"
 
-	cmdAutheliaStorageUserWebauthnImportLong = `Perform imports of the Webauthn devices.
+	cmdAutheliaStorageUserWebAuthnImportLong = `Perform imports of the WebAuthn devices.
 
-This subcommand allows importing Webauthn devices from various formats.`
+This subcommand allows importing WebAuthn devices from various formats.`
 
-	cmdAutheliaStorageUserWebauthnImportExample = `authelia storage user webauthn export
+	cmdAutheliaStorageUserWebAuthnImportExample = `authelia storage user webauthn export
 authelia storage user webauthn import --file authelia.export.webauthn.yaml
 authelia storage user webauthn import --file authelia.export.webauthn.yaml --config config.yml
 authelia storage user webauthn import --file authelia.export.webauthn.yaml --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
-	cmdAutheliaStorageUserWebauthnExportShort = "Perform exports of the Webauthn devices"
+	cmdAutheliaStorageUserWebAuthnExportShort = "Perform exports of the WebAuthn devices"
 
-	cmdAutheliaStorageUserWebauthnExportLong = `Perform exports of the Webauthn devices.
+	cmdAutheliaStorageUserWebAuthnExportLong = `Perform exports of the WebAuthn devices.
 
-This subcommand allows exporting Webauthn devices to various formats.`
+This subcommand allows exporting WebAuthn devices to various formats.`
 
-	cmdAutheliaStorageUserWebauthnExportExample = `authelia storage user webauthn export
+	cmdAutheliaStorageUserWebAuthnExportExample = `authelia storage user webauthn export
 authelia storage user webauthn export --file authelia.export.webauthn.yaml
 authelia storage user webauthn export --config config.yml
 authelia storage user webauthn export--encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
-	cmdAutheliaStorageUserWebauthnListShort = "List Webauthn devices"
+	cmdAutheliaStorageUserWebAuthnListShort = "List WebAuthn devices"
 
-	cmdAutheliaStorageUserWebauthnListLong = `List Webauthn devices.
+	cmdAutheliaStorageUserWebAuthnListLong = `List WebAuthn devices.
 
-This subcommand allows listing Webauthn devices.`
+This subcommand allows listing WebAuthn devices.`
 
-	cmdAutheliaStorageUserWebauthnListExample = `authelia storage user webauthn list
+	cmdAutheliaStorageUserWebAuthnListExample = `authelia storage user webauthn list
 authelia storage user webauthn list john
 authelia storage user webauthn list --config config.yml
 authelia storage user webauthn list john --config config.yml
 authelia storage user webauthn list --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
 authelia storage user webauthn list john --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
-	cmdAutheliaStorageUserWebauthnDeleteShort = "Delete a Webauthn device"
+	cmdAutheliaStorageUserWebAuthnDeleteShort = "Delete a WebAuthn device"
 
-	cmdAutheliaStorageUserWebauthnDeleteLong = `Delete a Webauthn device.
+	cmdAutheliaStorageUserWebAuthnDeleteLong = `Delete a WebAuthn device.
 
-This subcommand allows deleting a Webauthn device directly from the database.`
+This subcommand allows deleting a WebAuthn device directly from the database.`
 
-	cmdAutheliaStorageUserWebauthnDeleteExample = `authelia storage user webauthn delete john --all
+	cmdAutheliaStorageUserWebAuthnDeleteExample = `authelia storage user webauthn delete john --all
 authelia storage user webauthn delete john --all --config config.yml
 authelia storage user webauthn delete john --all --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
 authelia storage user webauthn delete john --description Primary
@@ -534,20 +534,19 @@ const (
 )
 
 const (
-	timeLayoutCertificateNotBefore = "Jan 2 15:04:05 2006"
-)
-
-const (
 	cmdFlagNameDirectory = "directory"
 
-	cmdFlagNamePathCA = "path.ca"
+	cmdFlagNamePathCA  = "path.ca"
+	cmdFlagNameBundles = "bundles"
 
-	cmdFlagNameFilePrivateKey    = "file.private-key"
-	cmdFlagNameFilePublicKey     = "file.public-key"
-	cmdFlagNameFileCertificate   = "file.certificate"
-	cmdFlagNameFileCAPrivateKey  = "file.ca-private-key"
-	cmdFlagNameFileCACertificate = "file.ca-certificate"
-	cmdFlagNameFileCSR           = "file.csr"
+	cmdFlagNameFilePrivateKey         = "file.private-key"
+	cmdFlagNameFilePublicKey          = "file.public-key"
+	cmdFlagNameFileCertificate        = "file.certificate"
+	cmdFlagNameFileBundleChain        = "file.bundle.chain"
+	cmdFlagNameFileBundlePrivKeyChain = "file.bundle.priv-chain"
+	cmdFlagNameFileCAPrivateKey       = "file.ca-private-key"
+	cmdFlagNameFileCACertificate      = "file.ca-certificate"
+	cmdFlagNameFileCSR                = "file.csr"
 
 	cmdFlagNameExtendedUsage = "extended-usage"
 	cmdFlagNameSignature     = "signature"
@@ -564,6 +563,7 @@ const (
 	cmdFlagNamePostcode           = "postcode"
 
 	cmdFlagNameNotBefore = "not-before"
+	cmdFlagNameNotAfter  = "not-after"
 	cmdFlagNameDuration  = "duration"
 
 	cmdFlagNamePKCS8 = "pkcs8"
@@ -749,4 +749,40 @@ Secrets:
 	way: 'key', 'secret', 'password', 'token'.
 
 	The available options and the specific secret mapping can be found here: https://www.authelia.com/configuration/methods/secrets/`
+
+	helpTopicTimeLayouts = `Several commands take date time inputs which are parsed. These inputs are parsed with
+specific layouts in mind and these layouts are handled in order.
+
+Format:
+
+	The layouts use a format where specific sequence of characters are representative of a portion of each timestamp.
+
+	See the go documentation for more information on how these layouts work, however the layouts are fairly self
+	explanatory and you can just use standard unix timestamps if desired.
+
+Layouts:
+
+	Unix (µs): 1675899060000000
+	Unix (ms): 1675899060000
+	Unix (s): 1675899060
+	Simple: Jan 2 15:04:05 2006
+	Date Time: 2006-01-02 15:04:05
+	RFC3339: 2006-01-02T15:04:05Z07:00
+	RFC1123 with numeric timezone: Mon, 02 Jan 2006 15:04:05 -0700
+	Ruby Date: Mon Jan 02 15:04:05 -0700 2006
+	ANSIC: Mon Jan _2 15:04:05 2006
+	Date: 2006-01-02`
+)
+
+const (
+	fmtLogServerListening = "Server is listening for %s connections on '%s' path '%s'"
+)
+
+const (
+	logFieldService = "service"
+	logFieldFile    = "file"
+	logFieldOP      = "op"
+
+	serviceTypeServer  = "server"
+	serviceTypeWatcher = "watcher"
 )
