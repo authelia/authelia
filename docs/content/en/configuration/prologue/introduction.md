@@ -16,9 +16,8 @@ toc: true
 
 We document the configuration in two ways:
 
-1. The [YAML] configuration template
-   [config.template.yml](https://github.com/authelia/authelia/blob/master/config.template.yml) has comments with very
-   limited documentation on the effective use of a particular option. All documentation lines start with `##`. Lines
+1. The [YAML] configuration template {{% github-link path="config.template.yml" %}} has comments with very limited
+   documentation on the effective use of a particular option. All documentation lines start with `##`. Lines
    starting with a single `#` are [YAML] configuration options which are commented to disable them or as examples.
 2. This documentation site. Generally each section of the configuration is in its own section of the documentation
    site. Each configuration option is listed in its relevant section as a heading, under that heading generally are two
