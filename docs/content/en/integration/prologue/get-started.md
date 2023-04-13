@@ -44,8 +44,10 @@ by the relevant specifications.
 ## Configuration
 
 It's important to customize the configuration for *Authelia* in advance of deploying it. The configuration is static and
-not configured via web GUI. You can find a configuration template named {{% github-link path="config.template.yml" %}}
-on GitHub which can be used as a basis for configuration.
+not configured via web GUI. You can find a configuration template named {{< github-link path="config.template.yml" >}}
+on GitHub which can be used as a basis for configuration, alternatively *Authelia* will write this template relevant for
+your version the first time it is started. Users should expect that they have to configure elements of this file as part
+of initial setup.
 
 The important sections to consider in initial configuration are as follows:
 

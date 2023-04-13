@@ -16,7 +16,7 @@ toc: true
 
 We document the configuration in two ways:
 
-1. The [YAML] configuration template {{% github-link path="config.template.yml" %}} has comments with very limited
+1. The [YAML] configuration template {{< github-link path="config.template.yml" >}} has comments with very limited
    documentation on the effective use of a particular option. All documentation lines start with `##`. Lines
    starting with a single `#` are [YAML] configuration options which are commented to disable them or as examples.
 2. This documentation site. Generally each section of the configuration is in its own section of the documentation

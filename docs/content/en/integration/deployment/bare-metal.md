@@ -25,8 +25,8 @@ bootstrapping *Authelia*.
 
 We publish two example [systemd] unit files:
 
-* {{% github-link path="authelia.service" %}}
-* {{% github-link path="authelia@.service" %}}
+* {{< github-link path="authelia.service" >}}
+* {{< github-link path="authelia@.service" >}}
 
 ## Arch Linux
 

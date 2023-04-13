@@ -44,7 +44,7 @@ case you have multiple devices available, you will be asked to select your prefe
 ### Why don't I have access to the *Push Notification* option?
 
 It's likely that you have not configured __Authelia__ correctly. Please read this documentation again and be sure you
-had a look at {{% github-link path="config.template.yml" %}} and
+had a look at {{< github-link path="config.template.yml" >}} and
 [configuration documentation](../../../configuration/second-factor/duo.md).
 
 [Duo]: https://duo.com/
