@@ -27,15 +27,15 @@ func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing
 		IssuerCertificateChain:   schema.X509CertificateChain{},
 		IssuerPrivateKey:         mustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		EnablePKCEPlainChallenge: true,
-		HMACSecret:               "asbdhaaskmdlkamdklasmdlkams",
+		HMACSecret:               badhmac,
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
-				ID:               "a-client",
-				Secret:           MustDecodeSecret("$plaintext$a-client-secret"),
-				SectorIdentifier: url.URL{Host: "google.com"},
-				Policy:           "one_factor",
+				ID:               myclient,
+				Secret:           MustDecodeSecret(badsecret),
+				SectorIdentifier: url.URL{Host: examplecomsid},
+				Policy:           onefactor,
 				RedirectURIs: []string{
-					"https://google.com",
+					examplecom,
 				},
 			},
 		},
@@ -43,7 +43,7 @@ func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing
 
 	assert.NoError(t, err)
 
-	disco := provider.GetOpenIDConnectWellKnownConfiguration("https://example.com")
+	disco := provider.GetOpenIDConnectWellKnownConfiguration(examplecom)
 
 	assert.Len(t, disco.SubjectTypesSupported, 2)
 	assert.Contains(t, disco.SubjectTypesSupported, SubjectTypePublic)
@@ -58,12 +58,12 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *tes
 	provider, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
 		IssuerCertificateChain: schema.X509CertificateChain{},
 		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
-		HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
+		HMACSecret:             badhmac,
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
 				ID:     "a-client",
 				Secret: MustDecodeSecret("$plaintext$a-client-secret"),
-				Policy: "one_factor",
+				Policy: onefactor,
 				RedirectURIs: []string{
 					"https://google.com",
 				},
@@ -72,7 +72,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *tes
 				ID:          "b-client",
 				Description: "Normal Description",
 				Secret:      MustDecodeSecret("$plaintext$b-client-secret"),
-				Policy:      "two_factor",
+				Policy:      twofactor,
 				RedirectURIs: []string{
 					"https://google.com",
 				},
@@ -103,7 +103,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 			{
 				ID:     "a-client",
 				Secret: MustDecodeSecret("$plaintext$a-client-secret"),
-				Policy: "one_factor",
+				Policy: onefactor,
 				RedirectURIs: []string{
 					"https://google.com",
 				},
@@ -113,9 +113,9 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 
 	assert.NoError(t, err)
 
-	disco := provider.GetOpenIDConnectWellKnownConfiguration("https://example.com")
+	disco := provider.GetOpenIDConnectWellKnownConfiguration(examplecom)
 
-	assert.Equal(t, "https://example.com", disco.Issuer)
+	assert.Equal(t, examplecom, disco.Issuer)
 	assert.Equal(t, "https://example.com/jwks.json", disco.JWKSURI)
 	assert.Equal(t, "https://example.com/api/oidc/authorization", disco.AuthorizationEndpoint)
 	assert.Equal(t, "https://example.com/api/oidc/token", disco.TokenEndpoint)
@@ -139,8 +139,9 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 	assert.Contains(t, disco.ResponseModesSupported, ResponseModeQuery)
 	assert.Contains(t, disco.ResponseModesSupported, ResponseModeFragment)
 
-	assert.Len(t, disco.SubjectTypesSupported, 1)
+	assert.Len(t, disco.SubjectTypesSupported, 2)
 	assert.Contains(t, disco.SubjectTypesSupported, SubjectTypePublic)
+	assert.Contains(t, disco.SubjectTypesSupported, SubjectTypePairwise)
 
 	assert.Len(t, disco.ResponseTypesSupported, 7)
 	assert.Contains(t, disco.ResponseTypesSupported, ResponseTypeAuthorizationCodeFlow)
@@ -151,10 +152,9 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 	assert.Contains(t, disco.ResponseTypesSupported, ResponseTypeHybridFlowToken)
 	assert.Contains(t, disco.ResponseTypesSupported, ResponseTypeHybridFlowBoth)
 
-	assert.Len(t, disco.TokenEndpointAuthMethodsSupported, 4)
+	assert.Len(t, disco.TokenEndpointAuthMethodsSupported, 3)
 	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, ClientAuthMethodClientSecretBasic)
 	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, ClientAuthMethodClientSecretPost)
-	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, ClientAuthMethodClientSecretJWT)
 	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, ClientAuthMethodNone)
 
 	assert.Len(t, disco.GrantTypesSupported, 3)
@@ -169,9 +169,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 	assert.Contains(t, disco.UserinfoSigningAlgValuesSupported, SigningAlgorithmRSAWithSHA256)
 	assert.Contains(t, disco.UserinfoSigningAlgValuesSupported, SigningAlgorithmNone)
 
-	assert.Len(t, disco.RequestObjectSigningAlgValuesSupported, 2)
-	assert.Contains(t, disco.RequestObjectSigningAlgValuesSupported, SigningAlgorithmRSAWithSHA256)
-	assert.Contains(t, disco.RequestObjectSigningAlgValuesSupported, SigningAlgorithmNone)
+	assert.Len(t, disco.RequestObjectSigningAlgValuesSupported, 0)
 
 	assert.Len(t, disco.ClaimsSupported, 18)
 	assert.Contains(t, disco.ClaimsSupported, ClaimAuthenticationMethodsReference)
@@ -203,7 +201,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfig
 			{
 				ID:     "a-client",
 				Secret: MustDecodeSecret("$plaintext$a-client-secret"),
-				Policy: "one_factor",
+				Policy: onefactor,
 				RedirectURIs: []string{
 					"https://google.com",
 				},
@@ -213,9 +211,9 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfig
 
 	assert.NoError(t, err)
 
-	disco := provider.GetOAuth2WellKnownConfiguration("https://example.com")
+	disco := provider.GetOAuth2WellKnownConfiguration(examplecom)
 
-	assert.Equal(t, "https://example.com", disco.Issuer)
+	assert.Equal(t, examplecom, disco.Issuer)
 	assert.Equal(t, "https://example.com/jwks.json", disco.JWKSURI)
 	assert.Equal(t, "https://example.com/api/oidc/authorization", disco.AuthorizationEndpoint)
 	assert.Equal(t, "https://example.com/api/oidc/token", disco.TokenEndpoint)
@@ -238,8 +236,9 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfig
 	assert.Contains(t, disco.ResponseModesSupported, ResponseModeQuery)
 	assert.Contains(t, disco.ResponseModesSupported, ResponseModeFragment)
 
-	assert.Len(t, disco.SubjectTypesSupported, 1)
+	assert.Len(t, disco.SubjectTypesSupported, 2)
 	assert.Contains(t, disco.SubjectTypesSupported, SubjectTypePublic)
+	assert.Contains(t, disco.SubjectTypesSupported, SubjectTypePairwise)
 
 	assert.Len(t, disco.ResponseTypesSupported, 7)
 	assert.Contains(t, disco.ResponseTypesSupported, ResponseTypeAuthorizationCodeFlow)
@@ -250,10 +249,9 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfig
 	assert.Contains(t, disco.ResponseTypesSupported, ResponseTypeHybridFlowToken)
 	assert.Contains(t, disco.ResponseTypesSupported, ResponseTypeHybridFlowBoth)
 
-	assert.Len(t, disco.TokenEndpointAuthMethodsSupported, 4)
+	assert.Len(t, disco.TokenEndpointAuthMethodsSupported, 3)
 	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, ClientAuthMethodClientSecretBasic)
 	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, ClientAuthMethodClientSecretPost)
-	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, ClientAuthMethodClientSecretJWT)
 	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, ClientAuthMethodNone)
 
 	assert.Len(t, disco.GrantTypesSupported, 3)
@@ -292,7 +290,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 			{
 				ID:     "a-client",
 				Secret: MustDecodeSecret("$plaintext$a-client-secret"),
-				Policy: "one_factor",
+				Policy: onefactor,
 				RedirectURIs: []string{
 					"https://google.com",
 				},
@@ -302,7 +300,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 
 	assert.NoError(t, err)
 
-	disco := provider.GetOpenIDConnectWellKnownConfiguration("https://example.com")
+	disco := provider.GetOpenIDConnectWellKnownConfiguration(examplecom)
 
 	require.Len(t, disco.CodeChallengeMethodsSupported, 2)
 	assert.Equal(t, PKCEChallengeMethodSHA256, disco.CodeChallengeMethodsSupported[0])

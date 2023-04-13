@@ -314,14 +314,18 @@ func TestServerAuthzEndpointErrors(t *testing.T) {
 			map[string]schema.ServerAuthzEndpoint{
 				"example": {Implementation: "zero"},
 			},
-			[]string{"server: endpoints: authz: example: option 'implementation' must be one of 'AuthRequest', 'ForwardAuth', 'ExtAuthz', 'Legacy' but is configured as 'zero'"},
+			[]string{
+				"server: endpoints: authz: example: option 'implementation' must be one of 'AuthRequest', 'ForwardAuth', 'ExtAuthz', or 'Legacy' but it's configured as 'zero'",
+			},
 		},
 		{
 			"ShouldErrorOnInvalidEndpointImplementationLegacy",
 			map[string]schema.ServerAuthzEndpoint{
 				"legacy": {Implementation: "zero"},
 			},
-			[]string{"server: endpoints: authz: legacy: option 'implementation' must be one of 'AuthRequest', 'ForwardAuth', 'ExtAuthz', 'Legacy' but is configured as 'zero'"},
+			[]string{
+				"server: endpoints: authz: legacy: option 'implementation' must be one of 'AuthRequest', 'ForwardAuth', 'ExtAuthz', or 'Legacy' but it's configured as 'zero'",
+			},
 		},
 		{
 			"ShouldErrorOnInvalidEndpointLegacyImplementation",
@@ -335,7 +339,9 @@ func TestServerAuthzEndpointErrors(t *testing.T) {
 			map[string]schema.ServerAuthzEndpoint{
 				"example": {Implementation: "ExtAuthz", AuthnStrategies: []schema.ServerAuthzEndpointAuthnStrategy{{Name: "bad-name"}}},
 			},
-			[]string{"server: endpoints: authz: example: authn_strategies: option 'name' must be one of 'CookieSession', 'HeaderAuthorization', 'HeaderProxyAuthorization', 'HeaderAuthRequestProxyAuthorization', 'HeaderLegacy' but is configured as 'bad-name'"},
+			[]string{
+				"server: endpoints: authz: example: authn_strategies: option 'name' must be one of 'CookieSession', 'HeaderAuthorization', 'HeaderProxyAuthorization', 'HeaderAuthRequestProxyAuthorization', or 'HeaderLegacy' but it's configured as 'bad-name'",
+			},
 		},
 		{
 			"ShouldErrorOnDuplicateName",

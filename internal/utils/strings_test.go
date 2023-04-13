@@ -242,7 +242,7 @@ func TestOriginFromURL(t *testing.T) {
 	google, err := url.Parse("https://google.com/abc?a=123#five")
 	assert.NoError(t, err)
 
-	origin := OriginFromURL(*google)
+	origin := OriginFromURL(google)
 	assert.Equal(t, "https://google.com", origin.String())
 }
 

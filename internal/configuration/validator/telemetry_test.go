@@ -58,7 +58,7 @@ func TestValidateTelemetry(t *testing.T) {
 			&schema.Configuration{Telemetry: schema.TelemetryConfig{Metrics: schema.TelemetryMetricsConfig{Address: mustParseAddress("udp://0.0.0.0")}}},
 			&schema.Configuration{Telemetry: schema.TelemetryConfig{Metrics: schema.TelemetryMetricsConfig{Address: mustParseAddress("udp://0.0.0.0:9959")}}},
 			nil,
-			[]string{"telemetry: metrics: option 'address' must have a scheme 'tcp://' but it is configured as 'udp'"},
+			[]string{"telemetry: metrics: option 'address' must have a scheme 'tcp://' but it's configured as 'udp'"},
 		},
 	}
 

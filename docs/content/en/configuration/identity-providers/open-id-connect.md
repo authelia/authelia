@@ -451,9 +451,40 @@ A list of scopes to allow this client to consume. See
 documentation for the application you are trying to configure [OpenID Connect 1.0] for will likely have a list of scopes
 or claims required which can be matched with the above guide.
 
+#### response_types
+
+{{< confkey type="list(string)" default="code" required="no" >}}
+
+*__Security Note:__ It is recommended that only the `code` response type (i.e. the default) is used. The other response
+types are not as secure as this response type.*
+
+A list of response types this client supports. If a response type not in this list is requested by a client then an
+error will be returned to the client. The response type indicates the types of values that are returned to the client.
+
+See the [Response Types](../../integration/openid-connect/introduction.md#response-types) section of the
+[OpenID Connect 1.0 Integration Guide](../../integration/openid-connect/introduction.md#response-types) for more information.
+
+#### response_modes
+
+{{< confkey type="list(string)" default="form_post, query" required="no" >}}
+
+*__Important Note:__ It is recommended that this isn't configured at this time unless you know what you're doing.*
+
+A list of response modes this client supports. If a response mode not in this list is requested by a client then an
+error will be returned to the client. The response mode controls how the response type is returned to the client.
+
+See the [Response Modes](../../integration/openid-connect/introduction.md#response-modes) section of the
+[OpenID Connect 1.0 Integration Guide](../../integration/openid-connect/introduction.md#response-modes) for more
+information.
+
+The default values are based on the [response_types](#responsetypes) values. When the [response_types](#responsetypes)
+values include the `code` type then the `query` response mode will be included. When any other type is included the
+`fragment` response mode will be included. It's important to note at this time we do not support the `none` response
+type, but when it is supported it will include the `query` response mode.
+
 #### grant_types
 
-{{< confkey type="list(string)" default="refresh_token, authorization_code" required="no" >}}
+{{< confkey type="list(string)" default="authorization_code" required="no" >}}
 
 *__Important Note:__ It is recommended that this isn't configured at this time unless you know what you're doing.*
 
@@ -461,28 +492,6 @@ The list of grant types this client is permitted to use in order to obtain acces
 
 See the [Grant Types](../../integration/openid-connect/introduction.md#grant-types) section of the
 [OpenID Connect 1.0 Integration Guide](../../integration/openid-connect/introduction.md#grant-types) for more information.
-
-#### response_types
-
-{{< confkey type="list(string)" default="code" required="no" >}}
-
-*__Important Note:__ It is recommended that this isn't configured at this time unless you know what you're doing.*
-
-A list of response types this client supports.
-
-See the [Response Types](../../integration/openid-connect/introduction.md#response-types) section of the
-[OpenID Connect 1.0 Integration Guide](../../integration/openid-connect/introduction.md#response-types) for more information.
-
-#### response_modes
-
-{{< confkey type="list(string)" default="form_post, query, fragment" required="no" >}}
-
-*__Important Note:__ It is recommended that this isn't configured at this time unless you know what you're doing.*
-
-A list of response modes this client supports.
-
-See the [Response Modes](../../integration/openid-connect/introduction.md#response-modes) section of the
-[OpenID Connect 1.0 Integration Guide](../../integration/openid-connect/introduction.md#response-modes) for more information.
 
 #### authorization_policy
 
@@ -520,6 +529,18 @@ relying party supports it.
 The algorithm used to sign the userinfo endpoint responses. This can either be `none` or `RS256`.
 
 See the [integration guide](../../integration/openid-connect/introduction.md#user-information-signing-algorithm) for
+more information.
+
+#### token_endpoint_auth_method
+
+{{< confkey type="string" default="" required="no" >}}
+
+The registered client authentication mechanism used by this client for the [Token Endpoint]. If no method is defined
+the confidential client type will accept any supported method. The public client type defaults to `none` as this
+is required by the specification. This may be required as a breaking change in future versions.
+Supported values are `client_secret_basic`, `client_secret_post`, and `none`.
+
+See the [integration guide](../../integration/openid-connect/introduction.md#client-authentication-method) for
 more information.
 
 #### consent_mode
@@ -565,6 +586,7 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 
 [token lifespan]: https://docs.apigee.com/api-platform/antipatterns/oauth-long-expiration
 [OpenID Connect 1.0]: https://openid.net/connect/
+[Token Endpoint]: https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
 [JWT]: https://datatracker.ietf.org/doc/html/rfc7519
 [RFC6234]: https://datatracker.ietf.org/doc/html/rfc6234
 [RFC4648]: https://datatracker.ietf.org/doc/html/rfc4648

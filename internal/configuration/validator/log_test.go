@@ -40,5 +40,5 @@ func TestShouldRaiseErrorOnInvalidLoggingLevel(t *testing.T) {
 	assert.Len(t, validator.Warnings(), 0)
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "log: option 'level' must be one of 'trace', 'debug', 'info', 'warn', 'error' but it is configured as 'TRACE'")
+	assert.EqualError(t, validator.Errors()[0], "log: option 'level' must be one of 'trace', 'debug', 'info', 'warn', or 'error' but it's configured as 'TRACE'")
 }

@@ -93,6 +93,6 @@ func TestWebauthnShouldRaiseErrorsOnInvalidOptions(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 2)
 
-	assert.EqualError(t, validator.Errors()[0], "webauthn: option 'attestation_conveyance_preference' must be one of 'none', 'indirect', 'direct' but it is configured as 'no'")
-	assert.EqualError(t, validator.Errors()[1], "webauthn: option 'user_verification' must be one of 'discouraged', 'preferred', 'required' but it is configured as 'yes'")
+	assert.EqualError(t, validator.Errors()[0], "webauthn: option 'attestation_conveyance_preference' must be one of 'none', 'indirect', or 'direct' but it's configured as 'no'")
+	assert.EqualError(t, validator.Errors()[1], "webauthn: option 'user_verification' must be one of 'none', 'indirect', or 'direct' but it's configured as 'yes'")
 }

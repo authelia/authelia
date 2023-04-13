@@ -12,6 +12,7 @@ import (
 	"github.com/ory/herodot"
 	"gopkg.in/square/go-jose.v2"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -97,16 +98,18 @@ type OpenIDConnectProvider struct {
 // openid.OpenIDConnectRequestStorage, and partially implements rfc7523.RFC7523KeyStorage.
 type Store struct {
 	provider storage.Provider
-	clients  map[string]*Client
+	clients  map[string]Client
 }
 
-// Client represents the client internally.
-type Client struct {
+// BaseClient is the base for all clients.
+type BaseClient struct {
 	ID               string
 	Description      string
 	Secret           algorithm.Digest
 	SectorIdentifier string
 	Public           bool
+
+	EnforcePAR bool
 
 	EnforcePKCE                bool
 	EnforcePKCEChallengeMethod bool
@@ -119,13 +122,48 @@ type Client struct {
 	ResponseTypes []string
 	ResponseModes []fosite.ResponseModeType
 
-	EnforcePAR bool
-
 	UserinfoSigningAlgorithm string
 
 	Policy authorization.Level
 
 	Consent ClientConsent
+}
+
+// FullClient is the client with comprehensive supported features.
+type FullClient struct {
+	*BaseClient
+
+	RequestURIs                       []string
+	JSONWebKeys                       *jose.JSONWebKeySet
+	JSONWebKeysURI                    string
+	RequestObjectSigningAlgorithm     string
+	TokenEndpointAuthMethod           string
+	TokenEndpointAuthSigningAlgorithm string
+}
+
+// Client represents the internal client definitions.
+type Client interface {
+	fosite.Client
+	fosite.ResponseModeClient
+
+	GetDescription() string
+	GetSecret() algorithm.Digest
+	GetSectorIdentifier() string
+	GetConsentResponseBody(consent *model.OAuth2ConsentSession) ConsentGetResponseBody
+	GetUserinfoSigningAlgorithm() string
+
+	GetPAREnforcement() bool
+	GetPKCEEnforcement() bool
+	GetPKCEChallengeMethodEnforcement() bool
+	GetPKCEChallengeMethod() string
+	GetAuthorizationPolicy() authorization.Level
+	GetConsentPolicy() ClientConsent
+
+	IsAuthenticationLevelSufficient(level authentication.Level) bool
+
+	ValidatePKCEPolicy(r fosite.Requester) (err error)
+	ValidatePARPolicy(r fosite.Requester, prefix string) (err error)
+	ValidateResponseModePolicy(r fosite.AuthorizeRequester) (err error)
 }
 
 // NewClientConsent converts the schema.OpenIDConnectClientConsentConfig into a oidc.ClientConsent.
@@ -344,6 +382,12 @@ type CommonDiscoveryOptions struct {
 		Client if it is given.
 	*/
 	OPTOSURI string `json:"op_tos_uri,omitempty"`
+
+	/*
+			A JWT containing metadata values about the authorization server as claims. This is a string value consisting of
+		    the entire signed JWT. A "signed_metadata" metadata value SHOULD NOT appear as a claim in the JWT.
+	*/
+	SignedMetadata string `json:"signed_metadata,omitempty"`
 }
 
 // OAuth2DiscoveryOptions represents the discovery options specific to OAuth 2.0.
@@ -425,6 +469,98 @@ type OAuth2DiscoveryOptions struct {
 			IANA.OAuth.Parameters: https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml
 	*/
 	CodeChallengeMethodsSupported []string `json:"code_challenge_methods_supported,omitempty"`
+}
+
+type OAuth2JWTIntrospectionResponseDiscoveryOptions struct {
+	/*
+		OPTIONAL.  JSON array containing a list of the JWS [RFC7515] signing algorithms ("alg" values) as defined in JWA
+		[RFC7518] supported by the introspection endpoint to sign the response.
+	*/
+	IntrospectionSigningAlgValuesSupported []string `json:"introspection_signing_alg_values_supported,omitempty"`
+
+	/*
+		OPTIONAL.  JSON array containing a list of the JWE [RFC7516] encryption algorithms ("alg" values) as defined in
+		JWA [RFC7518] supported by the introspection endpoint to encrypt the content encryption key for introspection
+		responses (content key encryption).
+	*/
+	IntrospectionEncryptionAlgValuesSupported []string `json:"introspection_encryption_alg_values_supported"`
+
+	/*
+		OPTIONAL.  JSON array containing a list of the JWE [RFC7516] encryption algorithms ("enc" values) as defined in
+		JWA [RFC7518] supported by the introspection endpoint to encrypt the response (content encryption).
+	*/
+	IntrospectionEncryptionEncValuesSupported []string `json:"introspection_encryption_enc_values_supported"`
+}
+
+type OAuth2DeviceAuthorizationGrantDiscoveryOptions struct {
+	/*
+		OPTIONAL.  URL of the authorization server's device authorization endpoint, as defined in Section 3.1.
+	*/
+	DeviceAuthorizationEndpoint string `json:"device_authorization_endpoint"`
+}
+
+type OAuth2MutualTLSClientAuthenticationDiscoveryOptions struct {
+	/*
+		OPTIONAL. Boolean value indicating server support for mutual-TLS client certificate-bound access tokens. If
+		omitted, the default value is false.
+	*/
+	TLSClientCertificateBoundAccessTokens bool `json:"tls_client_certificate_bound_access_tokens"`
+
+	/*
+		OPTIONAL. A JSON object containing alternative authorization server endpoints that, when present, an OAuth
+		client intending to do mutual TLS uses in preference to the conventional endpoints. The parameter value itself
+		consists of one or more endpoint parameters, such as token_endpoint, revocation_endpoint,
+		introspection_endpoint, etc., conventionally defined for the top level of authorization server metadata. An
+		OAuth client intending to do mutual TLS (for OAuth client authentication and/or to acquire or use
+		certificate-bound tokens) when making a request directly to the authorization server MUST use the alias URL of
+		the endpoint within the mtls_endpoint_aliases, when present, in preference to the endpoint URL of the same name
+		at the top level of metadata. When an endpoint is not present in mtls_endpoint_aliases, then the client uses the
+		conventional endpoint URL defined at the top level of the authorization server metadata. Metadata parameters
+		within mtls_endpoint_aliases that do not define endpoints to which an OAuth client makes a direct request have
+		no meaning and SHOULD be ignored.
+	*/
+	MutualTLSEndpointAliases struct {
+		AuthorizationEndpoint              string `json:"authorization_endpoint,omitempty"`
+		TokenEndpoint                      string `json:"token_endpoint,omitempty"`
+		IntrospectionEndpoint              string `json:"introspection_endpoint,omitempty"`
+		RevocationEndpoint                 string `json:"revocation_endpoint,omitempty"`
+		EndSessionEndpoint                 string `json:"end_session_endpoint,omitempty"`
+		UserinfoEndpoint                   string `json:"userinfo_endpoint,omitempty"`
+		BackChannelAuthenticationEndpoint  string `json:"backchannel_authentication_endpoint,omitempty"`
+		FederationRegistrationEndpoint     string `json:"federation_registration_endpoint,omitempty"`
+		PushedAuthorizationRequestEndpoint string `json:"pushed_authorization_request_endpoint,omitempty"`
+		RegistrationEndpoint               string `json:"registration_endpoint,omitempty"`
+	} `json:"mtls_endpoint_aliases"`
+}
+
+type OAuth2JWTSecuredAuthorizationRequestDiscoveryOptions struct {
+	/*
+		Indicates where authorization request needs to be protected as Request Object and provided through either
+		request or request_uri parameter.
+	*/
+	RequireSignedRequestObject bool `json:"require_signed_request_object"`
+}
+
+type OAuth2IssuerIdentificationDiscoveryOptions struct {
+	AuthorizationResponseIssuerParameterSupported bool `json:"authorization_response_iss_parameter_supported"`
+}
+
+// OAuth2PushedAuthorizationDiscoveryOptions represents the well known discovery document specific to the
+// OAuth 2.0 Pushed Authorization Requests (RFC9126) implementation.
+//
+// OAuth 2.0 Pushed Authorization Requests: https://datatracker.ietf.org/doc/html/rfc9126#section-5
+type OAuth2PushedAuthorizationDiscoveryOptions struct {
+	/*
+	   The URL of the pushed authorization request endpoint at which a client can post an authorization request to
+	   exchange for a "request_uri" value usable at the authorization server.
+	*/
+	PushedAuthorizationRequestEndpoint string `json:"pushed_authorization_request_endpoint"`
+
+	/*
+		Boolean parameter indicating whether the authorization server accepts authorization request data only via PAR.
+		If omitted, the default value is "false".
+	*/
+	RequirePushedAuthorizationRequests bool `json:"require_pushed_authorization_requests"`
 }
 
 // OpenIDConnectDiscoveryOptions represents the discovery options specific to OpenID Connect.
@@ -553,6 +689,12 @@ type OpenIDConnectDiscoveryOptions struct {
 	ClaimLocalesSupported []string `json:"claims_locales_supported,omitempty"`
 
 	/*
+		OPTIONAL. Boolean value specifying whether the OP supports use of the request parameter, with true indicating
+		support. If omitted, the default value is false.
+	*/
+	RequestParameterSupported bool `json:"request_parameter_supported"`
+
+	/*
 		OPTIONAL. Boolean value specifying whether the OP supports use of the request_uri parameter, with true indicating
 		support. If omitted, the default value is true.
 	*/
@@ -612,39 +754,202 @@ type OpenIDConnectBackChannelLogoutDiscoveryOptions struct {
 	BackChannelLogoutSessionSupported bool `json:"backchannel_logout_session_supported"`
 }
 
-// PushedAuthorizationDiscoveryOptions represents the well known discovery document specific to the
-// OAuth 2.0 Pushed Authorization Requests (RFC9126) implementation.
+// OpenIDConnectSessionManagementDiscoveryOptions represents the discovery options specific to OpenID Connect 1.0
+// Session Management.
 //
-// OAuth 2.0 Pushed Authorization Requests: https://datatracker.ietf.org/doc/html/rfc9126#section-5
-type PushedAuthorizationDiscoveryOptions struct {
+// To support OpenID Connect Session Management, the RP needs to obtain the Session Management related OP metadata. This
+// OP metadata is normally obtained via the OP's Discovery response, as described in OpenID Connect Discovery 1.0, or
+// MAY be learned via other mechanisms. This OpenID Provider Metadata parameter MUST be included in the Server's
+// discovery responses when Session Management and Discovery are supported.
+//
+// See Also:
+//
+// OpenID Connect 1.0 Session Management: https://openid.net/specs/openid-connect-session-1_0.html
+type OpenIDConnectSessionManagementDiscoveryOptions struct {
 	/*
-	   The URL of the pushed authorization request endpoint at which a client can post an authorization request to
-	   exchange for a "request_uri" value usable at the authorization server.
+		REQUIRED. URL of an OP iframe that supports cross-origin communications for session state information with the
+		RP Client, using the HTML5 postMessage API. This URL MUST use the https scheme and MAY contain port, path, and
+		query parameter components. The page is loaded from an invisible iframe embedded in an RP page so that it can
+		run in the OP's security context. It accepts postMessage requests from the relevant RP iframe and uses
+		postMessage to post back the login status of the End-User at the OP.
 	*/
-	PushedAuthorizationRequestEndpoint string `json:"pushed_authorization_request_endpoint,omitempty"`
+	CheckSessionIFrame string `json:"check_session_iframe"`
+}
+
+// OpenIDConnectRPInitiatedLogoutDiscoveryOptions represents the discovery options specific to
+// OpenID Connect RP-Initiated Logout 1.0.
+//
+// To support OpenID Connect RP-Initiated Logout, the RP needs to obtain the RP-Initiated Logout related OP metadata.
+// This OP metadata is normally obtained via the OP's Discovery response, as described in OpenID Connect Discovery 1.0,
+// or MAY be learned via other mechanisms. This OpenID Provider Metadata parameter MUST be included in the Server's
+// discovery responses when RP-Initiated Logout and Discovery are supported.
+//
+// See Also:
+//
+// OpenID Connect RP-Initiated Logout 1.0: https://openid.net/specs/openid-connect-rpinitiated-1_0.html
+type OpenIDConnectRPInitiatedLogoutDiscoveryOptions struct {
+	/*
+		REQUIRED. URL at the OP to which an RP can perform a redirect to request that the End-User be logged out at the
+		OP. This URL MUST use the https scheme and MAY contain port, path, and query parameter components.
+	*/
+	EndSessionEndpoint string `json:"end_session_endpoint"`
+}
+
+// OpenIDConnectPromptCreateDiscoveryOptions represents the discovery options specific to Initiating User Registration
+// via OpenID Connect 1.0 functionality.
+//
+// This specification extends the OpenID Connect Discovery Metadata Section 3.
+//
+// See Also:
+//
+//	Initiating User Registration via OpenID Connect 1.0: https://openid.net/specs/openid-connect-prompt-create-1_0.html
+type OpenIDConnectPromptCreateDiscoveryOptions struct {
+	/*
+		OPTIONAL. JSON array containing the list of prompt values that this OP supports.
+
+		This metadata element is OPTIONAL in the context of the OpenID Provider not supporting the create value. If
+		omitted, the Relying Party should assume that this specification is not supported. The OpenID Provider MAY
+		provide this metadata element even if it doesn't support the create value.
+		Specific to this specification, a value of create in the array indicates to the Relying party that this OpenID
+		Provider supports this specification. If an OpenID Provider supports this specification it MUST define this metadata
+		element in the openid-configuration file. Additionally, if this metadata element is defined by the OpenID
+		Provider, the OP must also specify all other prompt values which it supports.
+		See Also:
+			OpenID.PromptCreate: https://openid.net/specs/openid-connect-prompt-create-1_0.html
+	*/
+	PromptValuesSupported []string `json:"prompt_values_supported,omitempty"`
+}
+
+// OpenIDConnectClientInitiatedBackChannelAuthFlowDiscoveryOptions represents the discovery options specific to
+// OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0
+//
+// The following authorization server metadata parameters are introduced by this specification for OPs publishing their
+// support of the CIBA flow and details thereof.
+//
+// See Also:
+//
+// OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0:
+// https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#rfc.section.4
+type OpenIDConnectClientInitiatedBackChannelAuthFlowDiscoveryOptions struct {
+	/*
+		REQUIRED. URL of the OP's Backchannel Authentication Endpoint as defined in Section 7.
+	*/
+	BackChannelAuthenticationEndpoint string `json:"backchannel_authentication_endpoint"`
 
 	/*
-		    Boolean parameter indicating whether the authorization server accepts authorization request data only via PAR.
-			If omitted, the default value is "false".
+		REQUIRED. JSON array containing one or more of the following values: poll, ping, and push.
 	*/
-	RequirePushedAuthorizationRequests bool `json:"require_pushed_authorization_requests"`
+	BackChannelTokenDeliveryModesSupported []string `json:"backchannel_token_delivery_modes_supported"`
+
+	/*
+		OPTIONAL. JSON array containing a list of the JWS signing algorithms (alg values) supported by the OP for signed
+		authentication requests, which are described in Section 7.1.1. If omitted, signed authentication requests are
+		not supported by the OP.
+	*/
+	BackChannelAuthRequestSigningAlgValuesSupported []string `json:"backchannel_authentication_request_signing_alg_values_supported,omitempty"`
+
+	/*
+		OPTIONAL. Boolean value specifying whether the OP supports the use of the user_code parameter, with true
+		indicating support. If omitted, the default value is false.
+	*/
+	BackChannelUserCodeParameterSupported bool `json:"backchannel_user_code_parameter_supported"`
+}
+
+// OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions represents the discovery options specific to
+// JWT Secured Authorization Response Mode for OAuth 2.0 (JARM).
+//
+// Authorization servers SHOULD publish the supported algorithms for signing and encrypting the JWT of an authorization
+// response by utilizing OAuth 2.0 Authorization Server Metadata [RFC8414] parameters. The following parameters are
+// introduced by this specification.
+//
+// See Also:
+//
+// JWT Secured Authorization Response Mode for OAuth 2.0 (JARM):
+// https://openid.net/specs/oauth-v2-jarm.html#name-authorization-server-metada
+type OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions struct {
+	/*
+		OPTIONAL. A JSON array containing a list of the JWS [RFC7515] signing algorithms (alg values) supported by the
+		authorization endpoint to sign the response.
+	*/
+	AuthorizationSigningAlgValuesSupported []string `json:"authorization_signing_alg_values_supported,omitempty"`
+
+	/*
+		OPTIONAL. A JSON array containing a list of the JWE [RFC7516] encryption algorithms (alg values) supported by
+		the authorization endpoint to encrypt the response.
+	*/
+	AuthorizationEncryptionAlgValuesSupported []string `json:"authorization_encryption_alg_values_supported,omitempty"`
+
+	/*
+		OPTIONAL. A JSON array containing a list of the JWE [RFC7516] encryption algorithms (enc values) supported by
+		the authorization endpoint to encrypt the response.
+	*/
+	AuthorizationEncryptionEncValuesSupported []string `json:"authorization_encryption_enc_values_supported,omitempty"`
+}
+
+type OpenIDFederationDiscoveryOptions struct {
+	/*
+		OPTIONAL. URL of the OP's federation-specific Dynamic Client Registration Endpoint. If the OP supports explicit
+		client registration as described in Section 10.2, then this claim is REQUIRED.
+	*/
+	FederationRegistrationEndpoint string `json:"federation_registration_endpoint,omitempty"`
+
+	/*
+		REQUIRED. Array specifying the federation types supported. Federation-type values defined by this specification
+		are automatic and explicit.
+	*/
+	ClientRegistrationTypesSupported []string `json:"client_registration_types_supported"`
+
+	/*
+		OPTIONAL. A JSON Object defining the client authentications supported for each endpoint. The endpoint names are
+		defined in the IANA "OAuth Authorization Server Metadata" registry [IANA.OAuth.Parameters]. Other endpoints and
+		authentication methods are possible if made recognizable according to established standards and not in conflict
+		with the operating principles of this specification. In OpenID Connect Core, no client authentication is
+		performed at the authentication endpoint. Instead, the request itself is authenticated. The OP maps information
+		in the request (like the redirect_uri) to information it has gained on the client through static or dynamic
+		registration. If the mapping is successful, the request can be processed. If the RP uses Automatic Registration,
+		as defined in Section 10.1, the OP has no prior knowledge of the RP. Therefore, the OP must start by gathering
+		information about the RP using the process outlined in Section 6. Once it has the RP's metadata, the OP can
+		verify the request in the same way as if it had known the RP's metadata beforehand. To make the request
+		verification more secure, we demand the use of a client authentication or verification method that proves that
+		the RP is in possession of a key that appears in the RP's metadata.
+	*/
+	RequestAuthenticationMethodsSupported []string `json:"request_authentication_methods_supported,omitempty"`
+
+	/*
+		OPTIONAL. JSON array containing a list of the JWS signing algorithms (alg values) supported for the signature on
+		the JWT [RFC7519] used in the request_object contained in the request parameter of an authorization request or
+		in the private_key_jwt of a pushed authorization request. This entry MUST be present if either of these
+		authentication methods are specified in the request_authentication_methods_supported entry. No default
+		algorithms are implied if this entry is omitted. Servers SHOULD support RS256. The value none MUST NOT be used.
+	*/
+	RequestAuthenticationSigningAlgValuesSupproted []string `json:"request_authentication_signing_alg_values_supported,omitempty"`
 }
 
 // OAuth2WellKnownConfiguration represents the well known discovery document specific to OAuth 2.0.
 type OAuth2WellKnownConfiguration struct {
 	CommonDiscoveryOptions
 	OAuth2DiscoveryOptions
-	PushedAuthorizationDiscoveryOptions
+	*OAuth2DeviceAuthorizationGrantDiscoveryOptions
+	*OAuth2MutualTLSClientAuthenticationDiscoveryOptions
+	*OAuth2IssuerIdentificationDiscoveryOptions
+	*OAuth2JWTIntrospectionResponseDiscoveryOptions
+	*OAuth2JWTSecuredAuthorizationRequestDiscoveryOptions
+	*OAuth2PushedAuthorizationDiscoveryOptions
 }
 
 // OpenIDConnectWellKnownConfiguration represents the well known discovery document specific to OpenID Connect.
 type OpenIDConnectWellKnownConfiguration struct {
-	CommonDiscoveryOptions
-	OAuth2DiscoveryOptions
-	PushedAuthorizationDiscoveryOptions
+	OAuth2WellKnownConfiguration
+
 	OpenIDConnectDiscoveryOptions
-	OpenIDConnectFrontChannelLogoutDiscoveryOptions
-	OpenIDConnectBackChannelLogoutDiscoveryOptions
+	*OpenIDConnectFrontChannelLogoutDiscoveryOptions
+	*OpenIDConnectBackChannelLogoutDiscoveryOptions
+	*OpenIDConnectSessionManagementDiscoveryOptions
+	*OpenIDConnectRPInitiatedLogoutDiscoveryOptions
+	*OpenIDConnectPromptCreateDiscoveryOptions
+	*OpenIDConnectClientInitiatedBackChannelAuthFlowDiscoveryOptions
+	*OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions
+	*OpenIDFederationDiscoveryOptions
 }
 
 // OpenIDConnectContext represents the context implementation that is used by some OpenID Connect 1.0 implementations.

@@ -69,15 +69,12 @@ const (
 	GrantTypeImplicit          = implicit
 	GrantTypeRefreshToken      = "refresh_token"
 	GrantTypeAuthorizationCode = "authorization_code"
-	GrantTypePassword          = "password"
-	GrantTypeClientCredentials = "client_credentials"
 )
 
 // Client Auth Method strings.
 const (
 	ClientAuthMethodClientSecretBasic = "client_secret_basic"
 	ClientAuthMethodClientSecretPost  = "client_secret_post"
-	ClientAuthMethodClientSecretJWT   = "client_secret_jwt"
 	ClientAuthMethodNone              = "none"
 )
 
@@ -115,6 +112,13 @@ const (
 	FormParameterResponseMode        = "response_mode"
 	FormParameterCodeChallenge       = "code_challenge"
 	FormParameterCodeChallengeMethod = "code_challenge_method"
+)
+
+const (
+	PromptNone    = none
+	PromptLogin   = "login"
+	PromptConsent = "consent"
+	// PromptCreate  = "create" // This prompt value is currently unused.
 )
 
 // Endpoints.

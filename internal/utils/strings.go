@@ -200,8 +200,8 @@ func URLsFromStringSlice(urls []string) []url.URL {
 }
 
 // OriginFromURL returns an origin url.URL given another url.URL.
-func OriginFromURL(u url.URL) (origin url.URL) {
-	return url.URL{
+func OriginFromURL(u *url.URL) (origin *url.URL) {
+	return &url.URL{
 		Scheme: u.Scheme,
 		Host:   u.Host,
 	}

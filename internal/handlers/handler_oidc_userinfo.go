@@ -23,7 +23,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	var (
 		tokenType fosite.TokenType
 		requester fosite.AccessRequester
-		client    *oidc.Client
+		client    oidc.Client
 		err       error
 	)
 
@@ -99,7 +99,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 	ctx.Logger.Tracef("UserInfo Response with id '%s' on client with id '%s' is being sent with the following claims: %+v", requester.GetID(), clientID, claims)
 
-	switch client.UserinfoSigningAlgorithm {
+	switch client.GetUserinfoSigningAlgorithm() {
 	case oidc.SigningAlgorithmRSAWithSHA256:
 		var jti uuid.UUID
 
@@ -129,6 +129,6 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	case oidc.SigningAlgorithmNone, "":
 		ctx.Providers.OpenIDConnect.Write(rw, req, claims)
 	default:
-		ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(fosite.ErrServerError.WithHintf("Unsupported UserInfo signing algorithm '%s'.", client.UserinfoSigningAlgorithm)))
+		ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(fosite.ErrServerError.WithHintf("Unsupported UserInfo signing algorithm '%s'.", client.GetUserinfoSigningAlgorithm())))
 	}
 }
