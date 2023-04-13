@@ -1,8 +1,6 @@
 package oidc
 
 import (
-	"strings"
-
 	"github.com/ory/fosite"
 	"github.com/ory/x/errorsx"
 
@@ -30,7 +28,7 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 		RedirectURIs:  config.RedirectURIs,
 		GrantTypes:    config.GrantTypes,
 		ResponseTypes: config.ResponseTypes,
-		ResponseModes: []fosite.ResponseModeType{fosite.ResponseModeDefault},
+		ResponseModes: []fosite.ResponseModeType{},
 
 		EnforcePAR: config.EnforcePAR,
 
@@ -73,19 +71,42 @@ func (c *Client) ValidatePKCEPolicy(r fosite.Requester) (err error) {
 
 // ValidatePARPolicy is a helper function to validate additional policy constraints on a per-client basis.
 func (c *Client) ValidatePARPolicy(r fosite.Requester, prefix string) (err error) {
-	form := r.GetRequestForm()
-
 	if c.EnforcePAR {
-		if requestURI := form.Get(FormParameterRequestURI); !strings.HasPrefix(requestURI, prefix) {
-			if requestURI == "" {
+		if !IsPushedAuthorizedRequest(r, prefix) {
+			switch requestURI := r.GetRequestForm().Get(FormParameterRequestURI); requestURI {
+			case "":
 				return errorsx.WithStack(ErrPAREnforcedClientMissingPAR.WithDebug("The request_uri parameter was empty."))
+			default:
+				return errorsx.WithStack(ErrPAREnforcedClientMissingPAR.WithDebugf("The request_uri parameter '%s' is malformed.", requestURI))
 			}
-
-			return errorsx.WithStack(ErrPAREnforcedClientMissingPAR.WithDebugf("The request_uri parameter '%s' is malformed.", requestURI))
 		}
 	}
 
 	return nil
+}
+
+// ValidateResponseModePolicy is an additional check to the response mode parameter to ensure if it's omitted that the
+// default response mode for the fosite.AuthorizeRequester is permitted.
+func (c *Client) ValidateResponseModePolicy(r fosite.AuthorizeRequester) (err error) {
+	if r.GetResponseMode() != fosite.ResponseModeDefault {
+		return nil
+	}
+
+	m := r.GetDefaultResponseMode()
+
+	modes := c.GetResponseModes()
+
+	if len(modes) == 0 {
+		return nil
+	}
+
+	for _, mode := range modes {
+		if m == mode {
+			return nil
+		}
+	}
+
+	return errorsx.WithStack(fosite.ErrUnsupportedResponseMode.WithHintf(`The request omitted the response_mode making the default response_mode "%s" based on the other authorization request parameters but registered OAuth 2.0 client doesn't support this response_mode`, m))
 }
 
 // IsAuthenticationLevelSufficient returns if the provided authentication.Level is sufficient for the client of the AutheliaClient.

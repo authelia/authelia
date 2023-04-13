@@ -215,13 +215,14 @@ const (
 func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []configuration.FileFilter, err error) {
 	var (
 		filterNames []string
+		result      XEnvCLIResult
 	)
 
-	if configs, _, err = loadXEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfig, cmdFlagNameConfig); err != nil {
+	if configs, result, err = loadXEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfig, cmdFlagNameConfig); err != nil {
 		return nil, nil, err
 	}
 
-	if configs, err = loadXNormalizedPaths(configs); err != nil {
+	if configs, err = loadXNormalizedPaths(configs, result); err != nil {
 		return nil, nil, err
 	}
 
@@ -236,7 +237,7 @@ func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []co
 	return
 }
 
-func loadXNormalizedPaths(paths []string) ([]string, error) {
+func loadXNormalizedPaths(paths []string, result XEnvCLIResult) ([]string, error) {
 	var (
 		configs, files, dirs []string
 		err                  error
@@ -258,10 +259,15 @@ func loadXNormalizedPaths(paths []string) ([]string, error) {
 			files = append(files, path)
 		default:
 			if os.IsNotExist(err) {
-				configs = append(configs, path)
-				files = append(files, path)
+				switch result {
+				case XEnvCLIResultCLIImplicit:
+					continue
+				default:
+					configs = append(configs, path)
+					files = append(files, path)
 
-				continue
+					continue
+				}
 			}
 
 			return nil, fmt.Errorf("error occurred stating file at path '%s': %w", path, err)

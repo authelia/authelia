@@ -177,56 +177,56 @@ This subcommand allows manually adding an opaque identifier for a user to the da
 authelia storage user identifiers add john --identifier f0919359-9d15-4e15-bcba-83b41620a073 --config config.yml
 authelia storage user identifiers add john --identifier f0919359-9d15-4e15-bcba-83b41620a073 --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
-	cmdAutheliaStorageUserWebauthnShort = "Manage Webauthn devices"
+	cmdAutheliaStorageUserWebAuthnShort = "Manage WebAuthn devices"
 
-	cmdAutheliaStorageUserWebauthnLong = `Manage Webauthn devices.
+	cmdAutheliaStorageUserWebAuthnLong = `Manage WebAuthn devices.
 
-This subcommand allows interacting with Webauthn devices.`
+This subcommand allows interacting with WebAuthn devices.`
 
-	cmdAutheliaStorageUserWebauthnExample = `authelia storage user webauthn --help`
+	cmdAutheliaStorageUserWebAuthnExample = `authelia storage user webauthn --help`
 
-	cmdAutheliaStorageUserWebauthnImportShort = "Perform imports of the Webauthn devices"
+	cmdAutheliaStorageUserWebAuthnImportShort = "Perform imports of the WebAuthn devices"
 
-	cmdAutheliaStorageUserWebauthnImportLong = `Perform imports of the Webauthn devices.
+	cmdAutheliaStorageUserWebAuthnImportLong = `Perform imports of the WebAuthn devices.
 
-This subcommand allows importing Webauthn devices from various formats.`
+This subcommand allows importing WebAuthn devices from various formats.`
 
-	cmdAutheliaStorageUserWebauthnImportExample = `authelia storage user webauthn export
+	cmdAutheliaStorageUserWebAuthnImportExample = `authelia storage user webauthn export
 authelia storage user webauthn import --file authelia.export.webauthn.yaml
 authelia storage user webauthn import --file authelia.export.webauthn.yaml --config config.yml
 authelia storage user webauthn import --file authelia.export.webauthn.yaml --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
-	cmdAutheliaStorageUserWebauthnExportShort = "Perform exports of the Webauthn devices"
+	cmdAutheliaStorageUserWebAuthnExportShort = "Perform exports of the WebAuthn devices"
 
-	cmdAutheliaStorageUserWebauthnExportLong = `Perform exports of the Webauthn devices.
+	cmdAutheliaStorageUserWebAuthnExportLong = `Perform exports of the WebAuthn devices.
 
-This subcommand allows exporting Webauthn devices to various formats.`
+This subcommand allows exporting WebAuthn devices to various formats.`
 
-	cmdAutheliaStorageUserWebauthnExportExample = `authelia storage user webauthn export
+	cmdAutheliaStorageUserWebAuthnExportExample = `authelia storage user webauthn export
 authelia storage user webauthn export --file authelia.export.webauthn.yaml
 authelia storage user webauthn export --config config.yml
 authelia storage user webauthn export--encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
-	cmdAutheliaStorageUserWebauthnListShort = "List Webauthn devices"
+	cmdAutheliaStorageUserWebAuthnListShort = "List WebAuthn devices"
 
-	cmdAutheliaStorageUserWebauthnListLong = `List Webauthn devices.
+	cmdAutheliaStorageUserWebAuthnListLong = `List WebAuthn devices.
 
-This subcommand allows listing Webauthn devices.`
+This subcommand allows listing WebAuthn devices.`
 
-	cmdAutheliaStorageUserWebauthnListExample = `authelia storage user webauthn list
+	cmdAutheliaStorageUserWebAuthnListExample = `authelia storage user webauthn list
 authelia storage user webauthn list john
 authelia storage user webauthn list --config config.yml
 authelia storage user webauthn list john --config config.yml
 authelia storage user webauthn list --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
 authelia storage user webauthn list john --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
-	cmdAutheliaStorageUserWebauthnDeleteShort = "Delete a Webauthn device"
+	cmdAutheliaStorageUserWebAuthnDeleteShort = "Delete a WebAuthn device"
 
-	cmdAutheliaStorageUserWebauthnDeleteLong = `Delete a Webauthn device.
+	cmdAutheliaStorageUserWebAuthnDeleteLong = `Delete a WebAuthn device.
 
-This subcommand allows deleting a Webauthn device directly from the database.`
+This subcommand allows deleting a WebAuthn device directly from the database.`
 
-	cmdAutheliaStorageUserWebauthnDeleteExample = `authelia storage user webauthn delete john --all
+	cmdAutheliaStorageUserWebAuthnDeleteExample = `authelia storage user webauthn delete john --all
 authelia storage user webauthn delete john --all --config config.yml
 authelia storage user webauthn delete john --all --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
 authelia storage user webauthn delete john --description Primary
