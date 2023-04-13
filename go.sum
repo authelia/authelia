@@ -327,8 +327,8 @@ github.com/ory/go-convenience v0.1.0 h1:zouLKfF2GoSGnJwGq+PE/nJAE6dj2Zj5QlTgmMTs
 github.com/ory/go-convenience v0.1.0/go.mod h1:uEY/a60PL5c12nYz4V5cHY03IBmwIAEm8TWB0yn9KNs=
 github.com/ory/herodot v0.10.2 h1:gGvNMHgAwWzdP/eo+roSiT5CGssygHSjDU7MSQNlJ4E=
 github.com/ory/herodot v0.10.2/go.mod h1:MMNmY6MG1uB6fnXYFaHoqdV23DTWctlPsmRCeq/2+wc=
-github.com/ory/x v0.0.551 h1:U3z2bvSzAwDP0SWmbAdjzfvWPu4k+oWrPctoCdalGk0=
-github.com/ory/x v0.0.551/go.mod h1:oRVemI3SQQOLvOCJWIRinHQKlgmay/NbwSyRUIsS/Yk=
+github.com/ory/x v0.0.552 h1:vgDw7FFQ7Ama3iyDLbjElY2Um1/ub82iIubK0pUj81M=
+github.com/ory/x v0.0.552/go.mod h1:oRVemI3SQQOLvOCJWIRinHQKlgmay/NbwSyRUIsS/Yk=
 github.com/otiai10/copy v1.10.0 h1:znyI7l134wNg/wDktoVQPxPkgvhDfGCYUasey+h0rDQ=
 github.com/otiai10/copy v1.10.0/go.mod h1:rSaLseMUsZFFbsFGc7wCJnnkTAvdc5L6VWxPE4308Ww=
 github.com/otiai10/mint v1.5.1 h1:XaPLeE+9vGbuyEHem1JNk3bYc7KKqyI/na0/mLd/Kks=
