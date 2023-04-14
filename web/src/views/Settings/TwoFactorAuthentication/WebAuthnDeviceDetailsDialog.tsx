@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React, { Fragment, useState } from "react";
 
 import { Check, ContentCopy } from "@mui/icons-material";
 import {
-    Box,
     Button,
     CircularProgress,
     Dialog,
@@ -10,10 +9,11 @@ import {
     DialogContent,
     DialogContentText,
     DialogTitle,
-    Stack,
+    Divider,
     Tooltip,
     Typography,
 } from "@mui/material";
+import Grid from "@mui/material/Unstable_Grid2";
 import { useTranslation } from "react-i18next";
 
 import { WebAuthnDevice, toTransportName } from "@models/WebAuthn";
@@ -24,7 +24,7 @@ interface Props {
     handleClose: () => void;
 }
 
-export default function WebAuthnDetailsDeleteDialog(props: Props) {
+export default function WebAuthnDeviceDetailsDialog(props: Props) {
     const { t: translate } = useTranslation("settings");
 
     return (
@@ -36,16 +36,19 @@ export default function WebAuthnDetailsDeleteDialog(props: Props) {
                         description: props.device.description,
                     })}
                 </DialogContentText>
-                <Stack spacing={0} sx={{ minWidth: 400 }}>
-                    <Box paddingBottom={2}>
-                        <Stack direction="row" spacing={1} alignItems="center">
-                            <PropertyCopyButton name={translate("Identifier")} value={props.device.kid.toString()} />
-                            <PropertyCopyButton
-                                name={translate("Public Key")}
-                                value={props.device.public_key.toString()}
-                            />
-                        </Stack>
-                    </Box>
+                <Grid container spacing={2}>
+                    <Grid md={3} sx={{ display: { xs: "none", md: "block" } }}>
+                        <Fragment />
+                    </Grid>
+                    <Grid xs={4} md={2}>
+                        <PropertyCopyButton name={translate("KID")} value={props.device.kid.toString()} />
+                    </Grid>
+                    <Grid xs={8} md={4}>
+                        <PropertyCopyButton name={translate("Public Key")} value={props.device.public_key.toString()} />
+                    </Grid>
+                    <Grid xs={12}>
+                        <Divider />
+                    </Grid>
                     <PropertyText name={translate("Description")} value={props.device.description} />
                     <PropertyText name={translate("Relying Party ID")} value={props.device.rpid} />
                     <PropertyText
@@ -53,7 +56,10 @@ export default function WebAuthnDetailsDeleteDialog(props: Props) {
                         value={props.device.aaguid === undefined ? "N/A" : props.device.aaguid}
                     />
                     <PropertyText name={translate("Attestation Type")} value={props.device.attestation_type} />
-                    <PropertyText name={translate("Attachment")} value={props.device.attachment} />
+                    <PropertyText
+                        name={translate("Attachment")}
+                        value={props.device.attachment === "" ? translate("Unknown") : props.device.attachment}
+                    />
                     <PropertyText
                         name={translate("Discoverable")}
                         value={props.device.discoverable ? translate("Yes") : translate("No")}
@@ -85,7 +91,41 @@ export default function WebAuthnDetailsDeleteDialog(props: Props) {
                         value={props.device.clone_warning ? translate("Yes") : translate("No")}
                     />
                     <PropertyText name={translate("Usage Count")} value={`${props.device.sign_count}`} />
-                </Stack>
+                    <PropertyText
+                        name={translate("Added")}
+                        value={translate("{{when, datetime}}", {
+                            when: new Date(props.device.created_at),
+                            formatParams: {
+                                when: {
+                                    hour: "numeric",
+                                    minute: "numeric",
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                },
+                            },
+                        })}
+                    />
+                    <PropertyText
+                        name={translate("Last Used")}
+                        value={
+                            props.device.last_used_at
+                                ? translate("{{when, datetime}}", {
+                                      when: new Date(props.device.last_used_at),
+                                      formatParams: {
+                                          when: {
+                                              hour: "numeric",
+                                              minute: "numeric",
+                                              year: "numeric",
+                                              month: "long",
+                                              day: "numeric",
+                                          },
+                                      },
+                                  })
+                                : translate("Never")
+                        }
+                    />
+                </Grid>
             </DialogContent>
             <DialogActions>
                 <Button onClick={props.handleClose}>{translate("Close")}</Button>
@@ -97,6 +137,7 @@ export default function WebAuthnDetailsDeleteDialog(props: Props) {
 interface PropertyTextProps {
     name: string;
     value: string;
+    xs?: number;
 }
 
 function PropertyCopyButton(props: PropertyTextProps) {
@@ -144,11 +185,11 @@ function PropertyCopyButton(props: PropertyTextProps) {
 
 function PropertyText(props: PropertyTextProps) {
     return (
-        <Box>
+        <Grid xs={props.xs !== undefined ? props.xs : 12}>
             <Typography display="inline" sx={{ fontWeight: "bold" }}>
                 {`${props.name}: `}
             </Typography>
             <Typography display="inline">{props.value}</Typography>
-        </Box>
+        </Grid>
     );
 }

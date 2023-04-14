@@ -245,7 +245,7 @@ export async function finishRegistration(response: RegistrationResponseJSON) {
     return result;
 }
 
-export async function deleteDevice(deviceID: string) {
+export async function deleteUserWebAuthnDevice(deviceID: string) {
     return await axios<AuthenticationOKResponse>({
         method: "DELETE",
         url: `${WebAuthnDevicePath}/${deviceID}`,
@@ -253,7 +253,7 @@ export async function deleteDevice(deviceID: string) {
     });
 }
 
-export async function updateDevice(deviceID: string, description: string) {
+export async function updateUserWebAuthnDevice(deviceID: string, description: string) {
     return await axios<AuthenticationOKResponse>({
         method: "PUT",
         url: `${WebAuthnDevicePath}/${deviceID}`,

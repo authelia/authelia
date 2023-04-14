@@ -3,39 +3,33 @@ import React from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { WebAuthnDevice } from "@models/WebAuthn";
-
 interface Props {
     open: boolean;
-    device: WebAuthnDevice;
+    title: string;
+    text: string;
     handleClose: (ok: boolean) => void;
 }
 
-export default function WebAuthnDeviceDeleteDialog(props: Props) {
+export default function DeleteDialog(props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const handleCancel = () => {
         props.handleClose(false);
     };
 
+    const handleRemove = () => {
+        props.handleClose(true);
+    };
+
     return (
         <Dialog open={props.open} onClose={handleCancel}>
-            <DialogTitle>{translate("Remove WebAuthn Credential")}</DialogTitle>
+            <DialogTitle>{props.title}</DialogTitle>
             <DialogContent>
-                <DialogContentText>
-                    {translate("Are you sure you want to remove the WebAuthn credential from from your account", {
-                        description: props.device.description,
-                    })}
-                </DialogContentText>
+                <DialogContentText>{props.text}</DialogContentText>
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleCancel}>{translate("Cancel")}</Button>
-                <Button
-                    onClick={() => {
-                        props.handleClose(true);
-                    }}
-                    autoFocus
-                >
+                <Button onClick={handleRemove} color={"error"}>
                     {translate("Remove")}
                 </Button>
             </DialogActions>

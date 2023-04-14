@@ -1,6 +1,9 @@
 ALTER TABLE webauthn_devices
     RENAME TO _bkp_DOWN_V0008_webauthn_devices;
 
+DROP INDEX IF EXISTS webauthn_devices_kid_key;
+DROP INDEX IF EXISTS webauthn_devices_lookup_key;
+
 CREATE TABLE IF NOT EXISTS webauthn_devices (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

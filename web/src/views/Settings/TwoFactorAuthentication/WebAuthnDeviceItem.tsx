@@ -1,16 +1,18 @@
-import React, { Fragment, useState } from "react";
+import React, { useState } from "react";
 
 import { Fingerprint } from "@mui/icons-material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import { Box, Button, CircularProgress, Paper, Stack, Tooltip, Typography } from "@mui/material";
+import { CircularProgress, Paper, Stack, Tooltip, Typography } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import Grid from "@mui/material/Unstable_Grid2";
 import { useTranslation } from "react-i18next";
 
 import { useNotifications } from "@hooks/NotificationsContext";
 import { WebAuthnDevice } from "@models/WebAuthn";
-import { deleteDevice, updateDevice } from "@services/WebAuthn";
-import WebAuthnDeviceDeleteDialog from "@views/Settings/TwoFactorAuthentication/WebAuthnDeviceDeleteDialog";
+import { deleteUserWebAuthnDevice, updateUserWebAuthnDevice } from "@services/WebAuthn";
+import DeleteDialog from "@views/Settings/TwoFactorAuthentication/DeleteDialog";
 import WebAuthnDeviceDetailsDialog from "@views/Settings/TwoFactorAuthentication/WebAuthnDeviceDetailsDialog";
 import WebAuthnDeviceEditDialog from "@views/Settings/TwoFactorAuthentication/WebAuthnDeviceEditDialog";
 
@@ -41,7 +43,7 @@ export default function WebAuthnDeviceItem(props: Props) {
 
         setLoadingEdit(true);
 
-        const response = await updateDevice(props.device.id, name);
+        const response = await updateUserWebAuthnDevice(props.device.id, name);
 
         setLoadingEdit(false);
 
@@ -73,7 +75,7 @@ export default function WebAuthnDeviceItem(props: Props) {
 
         setLoadingDelete(true);
 
-        const response = await deleteDevice(props.device.id);
+        const response = await deleteUserWebAuthnDevice(props.device.id);
 
         setLoadingDelete(false);
 
@@ -97,101 +99,102 @@ export default function WebAuthnDeviceItem(props: Props) {
     };
 
     return (
-        <Fragment>
+        <Grid xs={12} md={6} xl={3}>
+            <WebAuthnDeviceDetailsDialog
+                device={props.device}
+                open={showDialogDetails}
+                handleClose={() => {
+                    setShowDialogDetails(false);
+                }}
+            />
+            <WebAuthnDeviceEditDialog device={props.device} open={showDialogEdit} handleClose={handleEdit} />
+            <DeleteDialog
+                open={showDialogDelete}
+                handleClose={handleDelete}
+                title={translate("Remove WebAuthn Credential")}
+                text={translate("Are you sure you want to remove the WebAuthn credential from from your account", {
+                    description: props.device.description,
+                })}
+            />
             <Paper variant="outlined">
-                <Box sx={{ p: 3 }}>
-                    <WebAuthnDeviceDetailsDialog
-                        device={props.device}
-                        open={showDialogDetails}
-                        handleClose={() => {
-                            setShowDialogDetails(false);
-                        }}
-                    />
-                    <WebAuthnDeviceEditDialog device={props.device} open={showDialogEdit} handleClose={handleEdit} />
-                    <WebAuthnDeviceDeleteDialog
-                        device={props.device}
-                        open={showDialogDelete}
-                        handleClose={handleDelete}
-                    />
-                    <Stack direction="row" spacing={1} alignItems="center">
-                        <Fingerprint fontSize="large" color={"warning"} />
-                        <Stack spacing={0} sx={{ minWidth: 400 }}>
-                            <Box>
-                                <Typography display="inline" sx={{ fontWeight: "bold" }}>
-                                    {props.device.description}
-                                </Typography>
-                                <Typography
-                                    display="inline"
-                                    variant="body2"
-                                >{` (${props.device.attestation_type.toUpperCase()})`}</Typography>
-                            </Box>
-                            <Typography variant={"caption"}>
-                                {translate("Added", {
-                                    when: new Date(props.device.created_at),
-                                    formatParams: {
-                                        when: {
-                                            hour: "numeric",
-                                            minute: "numeric",
-                                            year: "numeric",
-                                            month: "long",
-                                            day: "numeric",
+                <Grid container spacing={1} alignItems="center" padding={3}>
+                    <Grid xs={12} sm={6} md={6}>
+                        <Grid container>
+                            <Grid xs={12}>
+                                <Stack direction={"row"} spacing={1} alignItems={"center"}>
+                                    <Fingerprint fontSize="large" color={"warning"} />
+                                    <Typography display="inline" sx={{ fontWeight: "bold" }}>
+                                        {props.device.description}
+                                    </Typography>
+                                    <Typography
+                                        display="inline"
+                                        variant="body2"
+                                    >{` (${props.device.attestation_type.toUpperCase()})`}</Typography>
+                                </Stack>
+                            </Grid>
+                            <Grid xs={12}>
+                                <Typography variant={"caption"} sx={{ display: { xs: "none", md: "block" } }}>
+                                    {translate("Added when", {
+                                        when: new Date(props.device.created_at),
+                                        formatParams: {
+                                            when: {
+                                                hour: "numeric",
+                                                minute: "numeric",
+                                                year: "numeric",
+                                                month: "long",
+                                                day: "numeric",
+                                            },
                                         },
-                                    },
-                                })}
-                            </Typography>
-                            <Typography variant={"caption"}>
-                                {props.device.last_used_at === undefined
-                                    ? translate("Never used")
-                                    : translate("Last Used", {
-                                          when: new Date(props.device.last_used_at),
-                                          formatParams: {
-                                              when: {
-                                                  hour: "numeric",
-                                                  minute: "numeric",
-                                                  year: "numeric",
-                                                  month: "long",
-                                                  day: "numeric",
+                                    })}
+                                </Typography>
+                            </Grid>
+                            <Grid xs={12}>
+                                <Typography variant={"caption"} sx={{ display: { xs: "none", md: "block" } }}>
+                                    {props.device.last_used_at === undefined
+                                        ? translate("Never used")
+                                        : translate("Last Used when", {
+                                              when: new Date(props.device.last_used_at),
+                                              formatParams: {
+                                                  when: {
+                                                      hour: "numeric",
+                                                      minute: "numeric",
+                                                      year: "numeric",
+                                                      month: "long",
+                                                      day: "numeric",
+                                                  },
                                               },
-                                          },
-                                      })}
-                            </Typography>
+                                          })}
+                                </Typography>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                    <Grid xs={12} md={7} xl={5}>
+                        <Stack direction={"row"} spacing={1}>
+                            <Tooltip title={translate("Display extended information for this WebAuthn credential")}>
+                                <IconButton color="primary" onClick={() => setShowDialogDetails(true)}>
+                                    <InfoOutlinedIcon />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title={translate("Edit information for this WebAuthn credential")}>
+                                <IconButton
+                                    color="primary"
+                                    onClick={loadingEdit ? undefined : () => setShowDialogEdit(true)}
+                                >
+                                    {loadingEdit ? <CircularProgress color="inherit" size={20} /> : <EditIcon />}
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title={translate("Remove this WebAuthn credential")}>
+                                <IconButton
+                                    color="primary"
+                                    onClick={loadingDelete ? undefined : () => setShowDialogDelete(true)}
+                                >
+                                    {loadingDelete ? <CircularProgress color="inherit" size={20} /> : <DeleteIcon />}
+                                </IconButton>
+                            </Tooltip>
                         </Stack>
-
-                        <Tooltip title={translate("Display extended information for this WebAuthn credential")}>
-                            <Button
-                                variant="outlined"
-                                color="primary"
-                                startIcon={<InfoOutlinedIcon />}
-                                onClick={() => setShowDialogDetails(true)}
-                            >
-                                {translate("Info")}
-                            </Button>
-                        </Tooltip>
-                        <Tooltip title={translate("Edit information for this WebAuthn credential")}>
-                            <Button
-                                variant="outlined"
-                                color="primary"
-                                startIcon={loadingEdit ? <CircularProgress color="inherit" size={20} /> : <EditIcon />}
-                                onClick={loadingEdit ? undefined : () => setShowDialogEdit(true)}
-                            >
-                                {translate("Edit")}
-                            </Button>
-                        </Tooltip>
-                        <Tooltip title={translate("Remove this WebAuthn credential")}>
-                            <Button
-                                variant="outlined"
-                                color="primary"
-                                startIcon={
-                                    loadingDelete ? <CircularProgress color="inherit" size={20} /> : <DeleteIcon />
-                                }
-                                onClick={loadingDelete ? undefined : () => setShowDialogDelete(true)}
-                            >
-                                {translate("Remove")}
-                            </Button>
-                        </Tooltip>
-                    </Stack>
-                </Box>
+                    </Grid>
+                </Grid>
             </Paper>
-        </Fragment>
+        </Grid>
     );
 }

@@ -8,7 +8,6 @@ import {
     DialogContent,
     DialogContentText,
     DialogTitle,
-    Grid,
     Step,
     StepLabel,
     Stepper,
@@ -16,6 +15,7 @@ import {
     Theme,
     Typography,
 } from "@mui/material";
+import Grid from "@mui/material/Unstable_Grid2";
 import makeStyles from "@mui/styles/makeStyles";
 import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/typescript-types";
 import { useTranslation } from "react-i18next";
@@ -30,7 +30,6 @@ const steps = ["Description", "Verification"];
 
 interface Props {
     open: boolean;
-    onClose: () => void;
     setCancelled: () => void;
 }
 
@@ -65,7 +64,7 @@ const WebAuthnDeviceRegisterDialog = function (props: Props) {
     }, [props]);
 
     const performCredentialCreation = useCallback(async () => {
-        if (options === null) {
+        if (!props.open || options === null) {
             return;
         }
 
@@ -106,10 +105,10 @@ const WebAuthnDeviceRegisterDialog = function (props: Props) {
                 "Failed to register your device. The identity verification process might have timed out.",
             );
         }
-    }, [options, createErrorNotification, handleClose]);
+    }, [props.open, options, createErrorNotification, handleClose]);
 
     useEffect(() => {
-        if (state !== WebAuthnTouchState.Failure || activeStep !== 0 || !props.open) {
+        if (!props.open || state !== WebAuthnTouchState.Failure || activeStep !== 0) {
             return;
         }
 
@@ -126,40 +125,48 @@ const WebAuthnDeviceRegisterDialog = function (props: Props) {
         })();
     }, [props.open, activeStep, options, performCredentialCreation]);
 
-    const handleNext = useCallback(async () => {
-        if (credentialDescription.length === 0 || credentialDescription.length > 64) {
-            setErrorDescription(true);
-            createErrorNotification(
-                translate("The Description must be more than 1 character and less than 64 characters."),
-            );
-
+    const handleNext = useCallback(() => {
+        if (!props.open) {
             return;
         }
 
-        const res = await getAttestationCreationOptions(credentialDescription);
-
-        switch (res.status) {
-            case 200:
-                if (res.options) {
-                    setOptions(res.options);
-                } else {
-                    throw new Error(
-                        "Credential Creation Options Request succeeded but Credential Creation Options is empty.",
-                    );
-                }
-
-                break;
-            case 409:
+        (async function () {
+            if (credentialDescription.length === 0 || credentialDescription.length > 64) {
                 setErrorDescription(true);
-                createErrorNotification(translate("A WebAuthn Credential with that Description already exists."));
-
-                break;
-            default:
                 createErrorNotification(
-                    translate("Error occurred obtaining the WebAuthn Credential creation options."),
+                    translate("The Description must be more than 1 character and less than 64 characters."),
                 );
-        }
-    }, [createErrorNotification, credentialDescription, translate]);
+
+                return;
+            }
+
+            const res = await getAttestationCreationOptions(credentialDescription);
+
+            switch (res.status) {
+                case 200:
+                    if (res.options) {
+                        setOptions(res.options);
+                    } else {
+                        throw new Error(
+                            "Credential Creation Options Request succeeded but Credential Creation Options is empty.",
+                        );
+                    }
+
+                    break;
+                case 409:
+                    setErrorDescription(true);
+                    createErrorNotification(translate("A WebAuthn Credential with that Description already exists."));
+
+                    break;
+                default:
+                    createErrorNotification(
+                        translate("Error occurred obtaining the WebAuthn Credential creation options."),
+                    );
+            }
+
+            await performCredentialCreation();
+        })();
+    }, [createErrorNotification, credentialDescription, performCredentialCreation, props.open, translate]);
 
     const handleCredentialDescription = useCallback(
         (description: string) => {
@@ -184,7 +191,7 @@ const WebAuthnDeviceRegisterDialog = function (props: Props) {
                             {translate("Enter a description for this credential")}
                         </Typography>
                         <Grid container spacing={1}>
-                            <Grid item xs={12}>
+                            <Grid xs={12}>
                                 <TextField
                                     inputRef={nameRef}
                                     id="name-textfield"
@@ -225,7 +232,7 @@ const WebAuthnDeviceRegisterDialog = function (props: Props) {
     }
 
     const handleOnClose = () => {
-        if (activeStep === 0 || !props.open) {
+        if (!props.open || activeStep === 1) {
             return;
         }
 
@@ -242,7 +249,7 @@ const WebAuthnDeviceRegisterDialog = function (props: Props) {
                     )}
                 </DialogContentText>
                 <Grid container spacing={0} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
-                    <Grid item xs={12}>
+                    <Grid xs={12}>
                         <Stepper activeStep={activeStep}>
                             {steps.map((label, index) => {
                                 const stepProps: { completed?: boolean } = {};
@@ -257,9 +264,7 @@ const WebAuthnDeviceRegisterDialog = function (props: Props) {
                             })}
                         </Stepper>
                     </Grid>
-                    <Grid item xs={12}>
-                        {renderStep(activeStep)}
-                    </Grid>
+                    <Grid xs={12}>{renderStep(activeStep)}</Grid>
                 </Grid>
             </DialogContent>
             <DialogActions>
