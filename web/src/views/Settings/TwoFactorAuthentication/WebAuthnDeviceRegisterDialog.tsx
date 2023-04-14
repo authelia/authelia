@@ -21,10 +21,10 @@ import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/typescri
 import { useTranslation } from "react-i18next";
 
 import InformationIcon from "@components/InformationIcon";
-import WebauthnRegisterIcon from "@components/WebauthnRegisterIcon";
+import WebAuthnRegisterIcon from "@components/WebAuthnRegisterIcon";
 import { useNotifications } from "@hooks/NotificationsContext";
-import { AttestationResult, AttestationResultFailureString, WebauthnTouchState } from "@models/Webauthn";
-import { finishRegistration, getAttestationCreationOptions, startWebauthnRegistration } from "@services/Webauthn";
+import { AttestationResult, AttestationResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
+import { finishRegistration, getAttestationCreationOptions, startWebAuthnRegistration } from "@services/WebAuthn";
 
 const steps = ["Description", "Verification"];
 
@@ -34,13 +34,13 @@ interface Props {
     setCancelled: () => void;
 }
 
-const WebauthnDeviceRegisterDialog = function (props: Props) {
+const WebAuthnDeviceRegisterDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const styles = useStyles();
     const { createErrorNotification } = useNotifications();
 
-    const [state, setState] = useState(WebauthnTouchState.WaitTouch);
+    const [state, setState] = useState(WebAuthnTouchState.WaitTouch);
     const [activeStep, setActiveStep] = useState(0);
     const [options, setOptions] = useState<PublicKeyCredentialCreationOptionsJSON | null>(null);
     const [timeout, setTimeout] = useState<number | null>(null);
@@ -50,7 +50,7 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
     const nameRef = useRef() as MutableRefObject<HTMLInputElement>;
 
     const resetStates = () => {
-        setState(WebauthnTouchState.WaitTouch);
+        setState(WebAuthnTouchState.WaitTouch);
         setOptions(null);
         setActiveStep(0);
         setTimeout(null);
@@ -73,9 +73,9 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
         setActiveStep(1);
 
         try {
-            setState(WebauthnTouchState.WaitTouch);
+            setState(WebAuthnTouchState.WaitTouch);
 
-            const resultCredentialCreation = await startWebauthnRegistration(options);
+            const resultCredentialCreation = await startWebAuthnRegistration(options);
 
             setTimeout(null);
 
@@ -99,7 +99,7 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
             }
 
             createErrorNotification(AttestationResultFailureString(resultCredentialCreation.result));
-            setState(WebauthnTouchState.Failure);
+            setState(WebAuthnTouchState.Failure);
         } catch (err) {
             console.error(err);
             createErrorNotification(
@@ -109,7 +109,7 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
     }, [options, createErrorNotification, handleClose]);
 
     useEffect(() => {
-        if (state !== WebauthnTouchState.Failure || activeStep !== 0 || !props.open) {
+        if (state !== WebAuthnTouchState.Failure || activeStep !== 0 || !props.open) {
             return;
         }
 
@@ -151,12 +151,12 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
                 break;
             case 409:
                 setErrorDescription(true);
-                createErrorNotification(translate("A Webauthn Credential with that Description already exists."));
+                createErrorNotification(translate("A WebAuthn Credential with that Description already exists."));
 
                 break;
             default:
                 createErrorNotification(
-                    translate("Error occurred obtaining the Webauthn Credential creation options."),
+                    translate("Error occurred obtaining the WebAuthn Credential creation options."),
                 );
         }
     }, [createErrorNotification, credentialDescription, translate]);
@@ -214,7 +214,7 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
                 return (
                     <Fragment>
                         <Box className={styles.icon}>
-                            {timeout !== null ? <WebauthnRegisterIcon timeout={timeout} /> : null}
+                            {timeout !== null ? <WebAuthnRegisterIcon timeout={timeout} /> : null}
                         </Box>
                         <Typography className={styles.instruction}>
                             {translate("Touch the token on your security key")}
@@ -234,11 +234,11 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
 
     return (
         <Dialog open={props.open} onClose={handleOnClose} maxWidth={"xs"} fullWidth={true}>
-            <DialogTitle>{translate("Register Webauthn Credential")}</DialogTitle>
+            <DialogTitle>{translate("Register WebAuthn Credential")}</DialogTitle>
             <DialogContent>
                 <DialogContentText sx={{ mb: 3 }}>
                     {translate(
-                        "This page allows registration of a new Security Key backed by modern Webauthn Credential technology.",
+                        "This page allows registration of a new Security Key backed by modern WebAuthn Credential technology.",
                     )}
                 </DialogContentText>
                 <Grid container spacing={0} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
@@ -264,8 +264,8 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
             </DialogContent>
             <DialogActions>
                 <Button
-                    color={activeStep === 1 && state !== WebauthnTouchState.Failure ? "primary" : "error"}
-                    disabled={activeStep === 1 && state !== WebauthnTouchState.Failure}
+                    color={activeStep === 1 && state !== WebAuthnTouchState.Failure ? "primary" : "error"}
+                    disabled={activeStep === 1 && state !== WebAuthnTouchState.Failure}
                     onClick={handleClose}
                 >
                     {translate("Cancel")}
@@ -286,7 +286,7 @@ const WebauthnDeviceRegisterDialog = function (props: Props) {
     );
 };
 
-export default WebauthnDeviceRegisterDialog;
+export default WebAuthnDeviceRegisterDialog;
 
 const useStyles = makeStyles((theme: Theme) => ({
     icon: {

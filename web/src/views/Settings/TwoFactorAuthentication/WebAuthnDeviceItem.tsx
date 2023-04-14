@@ -8,19 +8,19 @@ import { Box, Button, CircularProgress, Paper, Stack, Tooltip, Typography } from
 import { useTranslation } from "react-i18next";
 
 import { useNotifications } from "@hooks/NotificationsContext";
-import { WebauthnDevice } from "@models/Webauthn";
-import { deleteDevice, updateDevice } from "@services/Webauthn";
-import WebauthnDeviceDeleteDialog from "@views/Settings/TwoFactorAuthentication/WebauthnDeviceDeleteDialog";
-import WebauthnDeviceDetailsDialog from "@views/Settings/TwoFactorAuthentication/WebauthnDeviceDetailsDialog";
-import WebauthnDeviceEditDialog from "@views/Settings/TwoFactorAuthentication/WebauthnDeviceEditDialog";
+import { WebAuthnDevice } from "@models/WebAuthn";
+import { deleteDevice, updateDevice } from "@services/WebAuthn";
+import WebAuthnDeviceDeleteDialog from "@views/Settings/TwoFactorAuthentication/WebAuthnDeviceDeleteDialog";
+import WebAuthnDeviceDetailsDialog from "@views/Settings/TwoFactorAuthentication/WebAuthnDeviceDetailsDialog";
+import WebAuthnDeviceEditDialog from "@views/Settings/TwoFactorAuthentication/WebAuthnDeviceEditDialog";
 
 interface Props {
     index: number;
-    device: WebauthnDevice;
+    device: WebAuthnDevice;
     handleEdit: () => void;
 }
 
-export default function WebauthnDeviceItem(props: Props) {
+export default function WebAuthnDeviceItem(props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const { createSuccessNotification, createErrorNotification } = useNotifications();
@@ -47,19 +47,19 @@ export default function WebauthnDeviceItem(props: Props) {
 
         if (response.data.status === "KO") {
             if (response.data.elevation) {
-                createErrorNotification(translate("You must be elevated to update Webauthn credentials"));
+                createErrorNotification(translate("You must be elevated to update WebAuthn credentials"));
             } else if (response.data.authentication) {
                 createErrorNotification(
-                    translate("You must have a higher authentication level to update Webauthn credentials"),
+                    translate("You must have a higher authentication level to update WebAuthn credentials"),
                 );
             } else {
-                createErrorNotification(translate("There was a problem updating the Webauthn credential"));
+                createErrorNotification(translate("There was a problem updating the WebAuthn credential"));
             }
 
             return;
         }
 
-        createSuccessNotification(translate("Successfully updated the Webauthn credential"));
+        createSuccessNotification(translate("Successfully updated the WebAuthn credential"));
 
         props.handleEdit();
     };
@@ -79,19 +79,19 @@ export default function WebauthnDeviceItem(props: Props) {
 
         if (response.data.status === "KO") {
             if (response.data.elevation) {
-                createErrorNotification(translate("You must be elevated to delete Webauthn credentials"));
+                createErrorNotification(translate("You must be elevated to delete WebAuthn credentials"));
             } else if (response.data.authentication) {
                 createErrorNotification(
-                    translate("You must have a higher authentication level to delete Webauthn credentials"),
+                    translate("You must have a higher authentication level to delete WebAuthn credentials"),
                 );
             } else {
-                createErrorNotification(translate("There was a problem deleting the Webauthn credential"));
+                createErrorNotification(translate("There was a problem deleting the WebAuthn credential"));
             }
 
             return;
         }
 
-        createSuccessNotification(translate("Successfully deleted the Webauthn credential"));
+        createSuccessNotification(translate("Successfully deleted the WebAuthn credential"));
 
         props.handleEdit();
     };
@@ -100,15 +100,15 @@ export default function WebauthnDeviceItem(props: Props) {
         <Fragment>
             <Paper variant="outlined">
                 <Box sx={{ p: 3 }}>
-                    <WebauthnDeviceDetailsDialog
+                    <WebAuthnDeviceDetailsDialog
                         device={props.device}
                         open={showDialogDetails}
                         handleClose={() => {
                             setShowDialogDetails(false);
                         }}
                     />
-                    <WebauthnDeviceEditDialog device={props.device} open={showDialogEdit} handleClose={handleEdit} />
-                    <WebauthnDeviceDeleteDialog
+                    <WebAuthnDeviceEditDialog device={props.device} open={showDialogEdit} handleClose={handleEdit} />
+                    <WebAuthnDeviceDeleteDialog
                         device={props.device}
                         open={showDialogDelete}
                         handleClose={handleDelete}
@@ -157,7 +157,7 @@ export default function WebauthnDeviceItem(props: Props) {
                             </Typography>
                         </Stack>
 
-                        <Tooltip title={translate("Display extended information for this Webauthn credential")}>
+                        <Tooltip title={translate("Display extended information for this WebAuthn credential")}>
                             <Button
                                 variant="outlined"
                                 color="primary"
@@ -167,7 +167,7 @@ export default function WebauthnDeviceItem(props: Props) {
                                 {translate("Info")}
                             </Button>
                         </Tooltip>
-                        <Tooltip title={translate("Edit information for this Webauthn credential")}>
+                        <Tooltip title={translate("Edit information for this WebAuthn credential")}>
                             <Button
                                 variant="outlined"
                                 color="primary"
@@ -177,7 +177,7 @@ export default function WebauthnDeviceItem(props: Props) {
                                 {translate("Edit")}
                             </Button>
                         </Tooltip>
-                        <Tooltip title={translate("Remove this Webauthn credential")}>
+                        <Tooltip title={translate("Remove this WebAuthn credential")}>
                             <Button
                                 variant="outlined"
                                 color="primary"

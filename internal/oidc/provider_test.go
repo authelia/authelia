@@ -70,7 +70,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *tes
 			},
 			{
 				ID:          "b-client",
-				Description: "Normal DisplayName",
+				Description: "Normal Description",
 				Secret:      MustDecodeSecret("$plaintext$b-client-secret"),
 				Policy:      twofactor,
 				RedirectURIs: []string{

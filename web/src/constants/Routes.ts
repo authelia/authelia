@@ -3,7 +3,7 @@ export const AuthenticatedRoute: string = "/authenticated";
 export const ConsentRoute: string = "/consent";
 
 export const SecondFactorRoute: string = "/2fa";
-export const SecondFactorWebauthnSubRoute: string = "/webauthn";
+export const SecondFactorWebAuthnSubRoute: string = "/webauthn";
 export const SecondFactorTOTPSubRoute: string = "/one-time-password";
 export const SecondFactorPushSubRoute: string = "/push-notification";
 

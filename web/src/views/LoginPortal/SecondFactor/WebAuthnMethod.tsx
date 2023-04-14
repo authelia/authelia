@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import WebauthnTryIcon from "@components/WebauthnTryIcon";
+import WebAuthnTryIcon from "@components/WebAuthnTryIcon";
 import { RedirectionURL } from "@constants/SearchParams";
 import { useIsMountedRef } from "@hooks/Mounted";
 import { useQueryParam } from "@hooks/QueryParam";
 import { useWorkflow } from "@hooks/Workflow";
-import { AssertionResult, AssertionResultFailureString, WebauthnTouchState } from "@models/Webauthn";
+import { AssertionResult, AssertionResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
 import { AuthenticationLevel } from "@services/State";
-import { getAuthenticationOptions, getAuthenticationResult, postAuthenticationResponse } from "@services/Webauthn";
+import { getAuthenticationOptions, getAuthenticationResult, postAuthenticationResponse } from "@services/WebAuthn";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 
 export interface Props {
@@ -20,8 +20,8 @@ export interface Props {
     onSignInSuccess: (redirectURL: string | undefined) => void;
 }
 
-const WebauthnMethod = function (props: Props) {
-    const [state, setState] = useState(WebauthnTouchState.WaitTouch);
+const WebAuthnMethod = function (props: Props) {
+    const [state, setState] = useState(WebAuthnTouchState.WaitTouch);
     const redirectionURL = useQueryParam(RedirectionURL);
     const [workflow, workflowID] = useWorkflow();
     const mounted = useIsMountedRef();
@@ -37,11 +37,11 @@ const WebauthnMethod = function (props: Props) {
         }
 
         try {
-            setState(WebauthnTouchState.WaitTouch);
+            setState(WebAuthnTouchState.WaitTouch);
             const optionsStatus = await getAuthenticationOptions();
 
             if (optionsStatus.status !== 200 || optionsStatus.options == null) {
-                setState(WebauthnTouchState.Failure);
+                setState(WebAuthnTouchState.Failure);
                 onSignInErrorCallback(new Error("Failed to initiate security key sign in process"));
 
                 return;
@@ -52,7 +52,7 @@ const WebauthnMethod = function (props: Props) {
             if (result.result !== AssertionResult.Success) {
                 if (!mounted.current) return;
 
-                setState(WebauthnTouchState.Failure);
+                setState(WebAuthnTouchState.Failure);
 
                 onSignInErrorCallback(new Error(AssertionResultFailureString(result.result)));
 
@@ -61,14 +61,14 @@ const WebauthnMethod = function (props: Props) {
 
             if (result.response == null) {
                 onSignInErrorCallback(new Error("The browser did not respond with the expected attestation data."));
-                setState(WebauthnTouchState.Failure);
+                setState(WebAuthnTouchState.Failure);
 
                 return;
             }
 
             if (!mounted.current) return;
 
-            setState(WebauthnTouchState.InProgress);
+            setState(WebAuthnTouchState.InProgress);
 
             const response = await postAuthenticationResponse(result.response, redirectionURL, workflow, workflowID);
 
@@ -80,14 +80,14 @@ const WebauthnMethod = function (props: Props) {
             if (!mounted.current) return;
 
             onSignInErrorCallback(new Error("The server rejected the security key."));
-            setState(WebauthnTouchState.Failure);
+            setState(WebAuthnTouchState.Failure);
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current) return;
             console.error(err);
             onSignInErrorCallback(new Error("Failed to initiate security key sign in process"));
-            setState(WebauthnTouchState.Failure);
+            setState(WebAuthnTouchState.Failure);
         }
     }, [
         onSignInErrorCallback,
@@ -121,9 +121,9 @@ const WebauthnMethod = function (props: Props) {
             state={methodState}
             onRegisterClick={props.onRegisterClick}
         >
-            <WebauthnTryIcon onRetryClick={doInitiateSignIn} webauthnTouchState={state} />
+            <WebAuthnTryIcon onRetryClick={doInitiateSignIn} webauthnTouchState={state} />
         </MethodContainer>
     );
 };
 
-export default WebauthnMethod;
+export default WebAuthnMethod;

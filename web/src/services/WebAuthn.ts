@@ -16,7 +16,7 @@ import {
     PublicKeyCredentialCreationOptionsStatus,
     PublicKeyCredentialRequestOptionsStatus,
     RegistrationResult,
-} from "@models/Webauthn";
+} from "@models/WebAuthn";
 import {
     AuthenticationOKResponse,
     OptionalDataServiceResponse,
@@ -28,7 +28,7 @@ import {
 } from "@services/Api";
 import { SignInResponse } from "@services/SignIn";
 
-export function isWebauthnSecure(): boolean {
+export function isWebAuthnSecure(): boolean {
     if (window.isSecureContext) {
         return true;
     }
@@ -36,12 +36,12 @@ export function isWebauthnSecure(): boolean {
     return window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 }
 
-export function isWebauthnSupported(): boolean {
+export function isWebAuthnSupported(): boolean {
     return window?.PublicKeyCredential !== undefined && typeof window.PublicKeyCredential === "function";
 }
 
-export async function isWebauthnPlatformAuthenticatorAvailable(): Promise<boolean> {
-    if (!isWebauthnSupported()) {
+export async function isWebAuthnPlatformAuthenticatorAvailable(): Promise<boolean> {
+    if (!isWebAuthnSupported()) {
         return false;
     }
 
@@ -148,7 +148,7 @@ export async function getAuthenticationOptions(): Promise<PublicKeyCredentialReq
     };
 }
 
-export async function startWebauthnRegistration(options: PublicKeyCredentialCreationOptionsJSON) {
+export async function startWebAuthnRegistration(options: PublicKeyCredentialCreationOptionsJSON) {
     const result: RegistrationResult = {
         result: AttestationResult.Failure,
     };

@@ -32,7 +32,7 @@ export enum AttestationResult {
     FailureSyntax,
     FailureSupport,
     FailureUnknown,
-    FailureWebauthnNotSupported,
+    FailureWebAuthnNotSupported,
     FailureToken,
 }
 
@@ -49,7 +49,7 @@ export enum AssertionResult {
     FailureSyntax,
     FailureUnknown,
     FailureUnknownSecurity,
-    FailureWebauthnNotSupported,
+    FailureWebAuthnNotSupported,
     FailureChallenge,
     FailureUnrecognized,
 }
@@ -64,7 +64,7 @@ export function AssertionResultFailureString(result: AssertionResult) {
             return "The server responded with an invalid Facet ID for the URL.";
         case AssertionResult.FailureSyntax:
             return "The assertion challenge was rejected as malformed or incompatible by your browser.";
-        case AssertionResult.FailureWebauthnNotSupported:
+        case AssertionResult.FailureWebAuthnNotSupported:
             return "Your browser does not support the WebAuthN protocol.";
         case AssertionResult.FailureUnrecognized:
             return "This device is not registered.";
@@ -85,7 +85,7 @@ export function AttestationResultFailureString(result: AttestationResult) {
             return "Your browser does not appear to support the configuration.";
         case AttestationResult.FailureSyntax:
             return "The attestation challenge was rejected as malformed or incompatible by your browser.";
-        case AttestationResult.FailureWebauthnNotSupported:
+        case AttestationResult.FailureWebAuthnNotSupported:
             return "Your browser does not support the WebAuthN protocol.";
         case AttestationResult.FailureUserConsent:
             return "You cancelled the attestation request.";
@@ -105,7 +105,7 @@ export interface AuthenticationResult {
     result: AssertionResult;
 }
 
-export interface WebauthnDevice {
+export interface WebAuthnDevice {
     id: string;
     created_at: string;
     last_used_at?: string;
@@ -140,7 +140,7 @@ export function toTransportName(transport: string) {
     }
 }
 
-export enum WebauthnTouchState {
+export enum WebAuthnTouchState {
     WaitTouch = 1,
     InProgress = 2,
     Failure = 3,

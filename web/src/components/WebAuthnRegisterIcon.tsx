@@ -12,7 +12,7 @@ interface Props {
     timeout: number;
 }
 
-export default function WebauthnRegisterIcon(props: Props) {
+export default function WebAuthnRegisterIcon(props: Props) {
     const theme = useTheme();
     const [timerPercent, triggerTimer] = useTimer(props.timeout);
 

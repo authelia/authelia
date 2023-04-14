@@ -3,15 +3,15 @@ import React, { MutableRefObject, useRef, useState } from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { WebauthnDevice } from "@models/Webauthn";
+import { WebAuthnDevice } from "@models/WebAuthn";
 
 interface Props {
     open: boolean;
-    device: WebauthnDevice;
+    device: WebAuthnDevice;
     handleClose: (ok: boolean, name: string) => void;
 }
 
-export default function WebauthnDeviceEditDialog(props: Props) {
+export default function WebAuthnDeviceEditDialog(props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const [deviceName, setName] = useState("");
@@ -34,9 +34,9 @@ export default function WebauthnDeviceEditDialog(props: Props) {
 
     return (
         <Dialog open={props.open} onClose={handleCancel}>
-            <DialogTitle>{translate("Edit Webauthn Credential")}</DialogTitle>
+            <DialogTitle>{translate("Edit WebAuthn Credential")}</DialogTitle>
             <DialogContent>
-                <DialogContentText>{translate("Enter a new name for this Webauthn credential")}</DialogContentText>
+                <DialogContentText>{translate("Enter a new name for this WebAuthn credential")}</DialogContentText>
                 <TextField
                     autoFocus
                     inputRef={nameRef}

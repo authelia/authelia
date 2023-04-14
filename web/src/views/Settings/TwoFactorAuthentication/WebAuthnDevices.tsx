@@ -5,17 +5,17 @@ import { useTranslation } from "react-i18next";
 
 import { AutheliaState } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
-import WebauthnDeviceRegisterDialog from "@views/Settings/TwoFactorAuthentication/WebauthnDeviceRegisterDialog";
-import WebauthnDevicesStack from "@views/Settings/TwoFactorAuthentication/WebauthnDevicesStack";
+import WebAuthnDeviceRegisterDialog from "@views/Settings/TwoFactorAuthentication/WebAuthnDeviceRegisterDialog";
+import WebAuthnDevicesStack from "@views/Settings/TwoFactorAuthentication/WebAuthnDevicesStack";
 
 interface Props {
     state: AutheliaState;
 }
 
-export default function WebauthnDevices(props: Props) {
+export default function WebAuthnDevices(props: Props) {
     const { t: translate } = useTranslation("settings");
 
-    const [showWebauthnDeviceRegisterDialog, setShowWebauthnDeviceRegisterDialog] = useState<boolean>(false);
+    const [showWebAuthnDeviceRegisterDialog, setShowWebAuthnDeviceRegisterDialog] = useState<boolean>(false);
     const [refreshState, setRefreshState] = useState<number>(0);
 
     const handleIncrementRefreshState = () => {
@@ -24,13 +24,13 @@ export default function WebauthnDevices(props: Props) {
 
     return (
         <Fragment>
-            <WebauthnDeviceRegisterDialog
-                open={showWebauthnDeviceRegisterDialog}
+            <WebAuthnDeviceRegisterDialog
+                open={showWebAuthnDeviceRegisterDialog}
                 onClose={() => {
                     handleIncrementRefreshState();
                 }}
                 setCancelled={() => {
-                    setShowWebauthnDeviceRegisterDialog(false);
+                    setShowWebAuthnDeviceRegisterDialog(false);
                     handleIncrementRefreshState();
                 }}
             />
@@ -38,15 +38,15 @@ export default function WebauthnDevices(props: Props) {
                 <Box sx={{ p: 3 }}>
                     <Stack spacing={2}>
                         <Box>
-                            <Typography variant="h5">{translate("Webauthn Credentials")}</Typography>
+                            <Typography variant="h5">{translate("WebAuthn Credentials")}</Typography>
                         </Box>
                         <Box>
-                            <Tooltip title={translate("Click to add a Webauthn credential to your account")}>
+                            <Tooltip title={translate("Click to add a WebAuthn credential to your account")}>
                                 <Button
                                     variant="outlined"
                                     color="primary"
                                     onClick={() => {
-                                        setShowWebauthnDeviceRegisterDialog(true);
+                                        setShowWebAuthnDeviceRegisterDialog(true);
                                     }}
                                 >
                                     {translate("Add Credential")}
@@ -54,7 +54,7 @@ export default function WebauthnDevices(props: Props) {
                             </Tooltip>
                         </Box>
                         <Suspense fallback={<LoadingPage />}>
-                            <WebauthnDevicesStack
+                            <WebAuthnDevicesStack
                                 refreshState={refreshState}
                                 incrementRefreshState={handleIncrementRefreshState}
                             />

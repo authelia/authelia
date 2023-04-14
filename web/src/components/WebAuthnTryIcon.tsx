@@ -7,15 +7,15 @@ import FailureIcon from "@components/FailureIcon";
 import FingerTouchIcon from "@components/FingerTouchIcon";
 import LinearProgressBar from "@components/LinearProgressBar";
 import { useTimer } from "@hooks/Timer";
-import { WebauthnTouchState } from "@models/Webauthn";
+import { WebAuthnTouchState } from "@models/WebAuthn";
 import IconWithContext from "@views/LoginPortal/SecondFactor/IconWithContext";
 
 interface Props {
     onRetryClick: () => void;
-    webauthnTouchState: WebauthnTouchState;
+    webauthnTouchState: WebAuthnTouchState;
 }
 
-export default function WebauthnTryIcon(props: Props) {
+export default function WebAuthnTryIcon(props: Props) {
     const touchTimeout = 30;
     const theme = useTheme();
     const [timerPercent, triggerTimer, clearTimer] = useTimer(touchTimeout * 1000 - 500);
@@ -42,7 +42,7 @@ export default function WebauthnTryIcon(props: Props) {
     const touch = (
         <IconWithContext
             icon={<FingerTouchIcon size={64} animated strong />}
-            className={props.webauthnTouchState === WebauthnTouchState.WaitTouch ? undefined : "hidden"}
+            className={props.webauthnTouchState === WebAuthnTouchState.WaitTouch ? undefined : "hidden"}
         >
             <LinearProgressBar value={timerPercent} className={styles.progressBar} height={theme.spacing(2)} />
         </IconWithContext>
@@ -51,7 +51,7 @@ export default function WebauthnTryIcon(props: Props) {
     const failure = (
         <IconWithContext
             icon={<FailureIcon />}
-            className={props.webauthnTouchState === WebauthnTouchState.Failure ? undefined : "hidden"}
+            className={props.webauthnTouchState === WebAuthnTouchState.Failure ? undefined : "hidden"}
         >
             <Button color="secondary" onClick={handleRetryClick}>
                 Retry

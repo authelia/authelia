@@ -16,23 +16,23 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { WebauthnDevice, toTransportName } from "@models/Webauthn";
+import { WebAuthnDevice, toTransportName } from "@models/WebAuthn";
 
 interface Props {
     open: boolean;
-    device: WebauthnDevice;
+    device: WebAuthnDevice;
     handleClose: () => void;
 }
 
-export default function WebauthnDetailsDeleteDialog(props: Props) {
+export default function WebAuthnDetailsDeleteDialog(props: Props) {
     const { t: translate } = useTranslation("settings");
 
     return (
         <Dialog open={props.open} onClose={props.handleClose}>
-            <DialogTitle>{translate("Webauthn Credential Details")}</DialogTitle>
+            <DialogTitle>{translate("WebAuthn Credential Details")}</DialogTitle>
             <DialogContent>
                 <DialogContentText sx={{ mb: 3 }}>
-                    {translate("Extended Webauthn credential information for security key", {
+                    {translate("Extended WebAuthn credential information for security key", {
                         description: props.device.description,
                     })}
                 </DialogContentText>
