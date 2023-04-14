@@ -61,6 +61,7 @@ func newCryptoHashGenerateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:   cmdAutheliaCryptoHashGenerateShort,
 		Long:    cmdAutheliaCryptoHashGenerateLong,
 		Example: cmdAutheliaCryptoHashGenerateExample,
+		Args:    cobra.NoArgs,
 		PreRunE: ctx.ChainRunE(
 			ctx.ConfigSetDefaultsRunE(defaults),
 			ctx.CryptoHashGenerateMapFlagsRunE,
