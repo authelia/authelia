@@ -52,7 +52,7 @@ func TestWebAuthnGetUser(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, user)
 
-	assert.Equal(t, []byte("john"), user.WebAuthnID())
+	assert.Equal(t, []byte{}, user.WebAuthnID())
 	assert.Equal(t, "john", user.WebAuthnName())
 	assert.Equal(t, "john", user.Username)
 
@@ -109,7 +109,7 @@ func TestWebAuthnGetUserWithoutDisplayName(t *testing.T) {
 	ctx.StorageMock.EXPECT().LoadWebAuthnDevicesByUsername(ctx.Ctx, "john").Return([]model.WebAuthnDevice{
 		{
 			ID:              1,
-			RPID:            "https://example.com",
+			RPID:            "example.com",
 			Username:        "john",
 			Description:     "Primary",
 			KID:             model.NewBase64([]byte("abc123")),
