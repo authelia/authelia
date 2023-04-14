@@ -22,7 +22,7 @@ export function toEnum(method: Method2FA): SecondFactorMethod {
         case "totp":
             return SecondFactorMethod.TOTP;
         case "webauthn":
-            return SecondFactorMethod.Webauthn;
+            return SecondFactorMethod.WebAuthn;
         case "mobile_push":
             return SecondFactorMethod.MobilePush;
     }
@@ -32,7 +32,7 @@ export function toString(method: SecondFactorMethod): Method2FA {
     switch (method) {
         case SecondFactorMethod.TOTP:
             return "totp";
-        case SecondFactorMethod.Webauthn:
+        case SecondFactorMethod.WebAuthn:
             return "webauthn";
         case SecondFactorMethod.MobilePush:
             return "mobile_push";

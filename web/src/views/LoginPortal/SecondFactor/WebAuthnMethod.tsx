@@ -11,13 +11,13 @@ import { useIsMountedRef } from "@hooks/Mounted";
 import { useQueryParam } from "@hooks/QueryParam";
 import { useTimer } from "@hooks/Timer";
 import { useWorkflow } from "@hooks/Workflow";
-import { AssertionResult } from "@models/Webauthn";
+import { AssertionResult } from "@models/WebAuthn";
 import { AuthenticationLevel } from "@services/State";
 import {
     getAssertionPublicKeyCredentialResult,
     getAssertionRequestOptions,
     postAssertionPublicKeyCredentialResult,
-} from "@services/Webauthn";
+} from "@services/WebAuthn";
 import IconWithContext from "@views/LoginPortal/SecondFactor/IconWithContext";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 
@@ -37,7 +37,7 @@ export interface Props {
     onSignInSuccess: (redirectURL: string | undefined) => void;
 }
 
-const WebauthnMethod = function (props: Props) {
+const WebAuthnMethod = function (props: Props) {
     const signInTimeout = 30;
     const [state, setState] = useState(State.WaitTouch);
     const styles = useStyles();
@@ -86,7 +86,7 @@ const WebauthnMethod = function (props: Props) {
                             ),
                         );
                         break;
-                    case AssertionResult.FailureWebauthnNotSupported:
+                    case AssertionResult.FailureWebAuthnNotSupported:
                         onSignInErrorCallback(new Error("Your browser does not support the WebAuthN protocol."));
                         break;
                     case AssertionResult.FailureUnknownSecurity:
@@ -179,7 +179,7 @@ const WebauthnMethod = function (props: Props) {
     );
 };
 
-export default WebauthnMethod;
+export default WebAuthnMethod;
 
 const useStyles = makeStyles((theme: Theme) => ({
     icon: {

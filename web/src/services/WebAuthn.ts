@@ -16,7 +16,7 @@ import {
     PublicKeyCredentialJSON,
     PublicKeyCredentialRequestOptionsJSON,
     PublicKeyCredentialRequestOptionsStatus,
-} from "@models/Webauthn";
+} from "@models/WebAuthn";
 import {
     OptionalDataServiceResponse,
     ServiceResponse,

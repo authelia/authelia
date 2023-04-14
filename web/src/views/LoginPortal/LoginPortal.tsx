@@ -143,7 +143,7 @@ const LoginPortal = function (props: Props) {
                 if (configuration.available_methods.size === 0) {
                     redirect(AuthenticatedRoute, false);
                 } else {
-                    if (userInfo.method === SecondFactorMethod.Webauthn) {
+                    if (userInfo.method === SecondFactorMethod.WebAuthn) {
                         redirect(`${SecondFactorRoute}${SecondFactorWebAuthnSubRoute}`);
                     } else if (userInfo.method === SecondFactorMethod.MobilePush) {
                         redirect(`${SecondFactorRoute}${SecondFactorPushSubRoute}`);
