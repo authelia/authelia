@@ -49,7 +49,7 @@ func (ctx *AutheliaCtx) AvailableSecondFactorMethods() (methods []string) {
 		methods = append(methods, model.SecondFactorMethodTOTP)
 	}
 
-	if !ctx.Configuration.Webauthn.Disable {
+	if !ctx.Configuration.WebAuthn.Disable {
 		methods = append(methods, model.SecondFactorMethodWebAuthn)
 	}
 

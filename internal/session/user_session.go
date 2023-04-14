@@ -56,13 +56,13 @@ func (s *UserSession) SetTwoFactorDuo(now time.Time) {
 	s.AuthenticationMethodRefs.Duo = true
 }
 
-// SetTwoFactorWebauthn sets the relevant Webauthn AMR's and sets the factor to 2FA.
-func (s *UserSession) SetTwoFactorWebauthn(now time.Time, userPresence, userVerified bool) {
+// SetTwoFactorWebAuthn sets the relevant WebAuthn AMR's and sets the factor to 2FA.
+func (s *UserSession) SetTwoFactorWebAuthn(now time.Time, userPresence, userVerified bool) {
 	s.setTwoFactor(now)
-	s.AuthenticationMethodRefs.Webauthn = true
-	s.AuthenticationMethodRefs.WebauthnUserPresence, s.AuthenticationMethodRefs.WebauthnUserVerified = userPresence, userVerified
+	s.AuthenticationMethodRefs.WebAuthn = true
+	s.AuthenticationMethodRefs.WebAuthnUserPresence, s.AuthenticationMethodRefs.WebAuthnUserVerified = userPresence, userVerified
 
-	s.Webauthn = nil
+	s.WebAuthn = nil
 }
 
 // AuthenticatedTime returns the unix timestamp this session authenticated successfully at the given level.

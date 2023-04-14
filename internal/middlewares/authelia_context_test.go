@@ -245,7 +245,7 @@ func TestShouldReturnCorrectSecondFactorMethods(t *testing.T) {
 
 	assert.Equal(t, []string{model.SecondFactorMethodWebAuthn, model.SecondFactorMethodDuo}, mock.Ctx.AvailableSecondFactorMethods())
 
-	mock.Ctx.Configuration.Webauthn.Disable = true
+	mock.Ctx.Configuration.WebAuthn.Disable = true
 
 	assert.Equal(t, []string{model.SecondFactorMethodDuo}, mock.Ctx.AvailableSecondFactorMethods())
 

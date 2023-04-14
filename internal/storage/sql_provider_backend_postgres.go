@@ -31,7 +31,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 
 	// Specific alterations to this provider.
 	// PostgreSQL doesn't have a UPSERT statement but has an ON CONFLICT operation instead.
-	provider.sqlUpsertWebauthnDevice = fmt.Sprintf(queryFmtUpsertWebauthnDevicePostgreSQL, tableWebauthnDevices)
+	provider.sqlUpsertWebAuthnDevice = fmt.Sprintf(queryFmtUpsertWebAuthnDevicePostgreSQL, tableWebAuthnDevices)
 	provider.sqlUpsertDuoDevice = fmt.Sprintf(queryFmtUpsertDuoDevicePostgreSQL, tableDuoDevices)
 	provider.sqlUpsertTOTPConfig = fmt.Sprintf(queryFmtUpsertTOTPConfigurationPostgreSQL, tableTOTPConfigurations)
 	provider.sqlUpsertPreferred2FAMethod = fmt.Sprintf(queryFmtUpsertPreferred2FAMethodPostgreSQL, tableUserPreferences)
@@ -59,13 +59,13 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlDeleteTOTPConfig = provider.db.Rebind(provider.sqlDeleteTOTPConfig)
 	provider.sqlSelectTOTPConfigs = provider.db.Rebind(provider.sqlSelectTOTPConfigs)
 
-	provider.sqlSelectWebauthnDevices = provider.db.Rebind(provider.sqlSelectWebauthnDevices)
-	provider.sqlSelectWebauthnDevicesByUsername = provider.db.Rebind(provider.sqlSelectWebauthnDevicesByUsername)
-	provider.sqlUpdateWebauthnDeviceRecordSignIn = provider.db.Rebind(provider.sqlUpdateWebauthnDeviceRecordSignIn)
-	provider.sqlUpdateWebauthnDeviceRecordSignInByUsername = provider.db.Rebind(provider.sqlUpdateWebauthnDeviceRecordSignInByUsername)
-	provider.sqlDeleteWebauthnDevice = provider.db.Rebind(provider.sqlDeleteWebauthnDevice)
-	provider.sqlDeleteWebauthnDeviceByUsername = provider.db.Rebind(provider.sqlDeleteWebauthnDeviceByUsername)
-	provider.sqlDeleteWebauthnDeviceByUsernameAndDescription = provider.db.Rebind(provider.sqlDeleteWebauthnDeviceByUsernameAndDescription)
+	provider.sqlSelectWebAuthnDevices = provider.db.Rebind(provider.sqlSelectWebAuthnDevices)
+	provider.sqlSelectWebAuthnDevicesByUsername = provider.db.Rebind(provider.sqlSelectWebAuthnDevicesByUsername)
+	provider.sqlUpdateWebAuthnDeviceRecordSignIn = provider.db.Rebind(provider.sqlUpdateWebAuthnDeviceRecordSignIn)
+	provider.sqlUpdateWebAuthnDeviceRecordSignInByUsername = provider.db.Rebind(provider.sqlUpdateWebAuthnDeviceRecordSignInByUsername)
+	provider.sqlDeleteWebAuthnDevice = provider.db.Rebind(provider.sqlDeleteWebAuthnDevice)
+	provider.sqlDeleteWebAuthnDeviceByUsername = provider.db.Rebind(provider.sqlDeleteWebAuthnDeviceByUsername)
+	provider.sqlDeleteWebAuthnDeviceByUsernameAndDescription = provider.db.Rebind(provider.sqlDeleteWebAuthnDeviceByUsernameAndDescription)
 
 	provider.sqlSelectDuoDevice = provider.db.Rebind(provider.sqlSelectDuoDevice)
 	provider.sqlDeleteDuoDevice = provider.db.Rebind(provider.sqlDeleteDuoDevice)

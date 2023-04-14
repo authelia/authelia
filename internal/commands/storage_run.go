@@ -451,7 +451,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnExportRunE(cmd *cobra.Command, args []stri
 	}
 
 	for page := 0; true; page++ {
-		if devices, err = ctx.providers.StorageProvider.LoadWebauthnDevices(ctx, limit, page); err != nil {
+		if devices, err = ctx.providers.StorageProvider.LoadWebAuthnDevices(ctx, limit, page); err != nil {
 			return err
 		}
 
@@ -522,7 +522,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnImportRunE(cmd *cobra.Command, args []stri
 	}
 
 	for _, device := range export.WebAuthnDevices {
-		if err = ctx.providers.StorageProvider.SaveWebauthnDevice(ctx, device); err != nil {
+		if err = ctx.providers.StorageProvider.SaveWebAuthnDevice(ctx, device); err != nil {
 			return err
 		}
 	}
@@ -550,10 +550,10 @@ func (ctx *CmdCtx) StorageUserWebAuthnListRunE(cmd *cobra.Command, args []string
 
 	user := args[0]
 
-	devices, err = ctx.providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, user)
+	devices, err = ctx.providers.StorageProvider.LoadWebAuthnDevicesByUsername(ctx, user)
 
 	switch {
-	case len(devices) == 0 || (err != nil && errors.Is(err, storage.ErrNoWebauthnDevice)):
+	case len(devices) == 0 || (err != nil && errors.Is(err, storage.ErrNoWebAuthnDevice)):
 		return fmt.Errorf("user '%s' has no webauthn devices", user)
 	case err != nil:
 		return fmt.Errorf("can't list devices for user '%s': %w", user, err)
@@ -586,7 +586,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnListAllRunE(_ *cobra.Command, _ []string) 
 	output := strings.Builder{}
 
 	for page := 0; true; page++ {
-		if devices, err = ctx.providers.StorageProvider.LoadWebauthnDevices(ctx, limit, page); err != nil {
+		if devices, err = ctx.providers.StorageProvider.LoadWebAuthnDevices(ctx, limit, page); err != nil {
 			return fmt.Errorf("failed to list devices: %w", err)
 		}
 
@@ -629,13 +629,13 @@ func (ctx *CmdCtx) StorageUserWebAuthnDeleteRunE(cmd *cobra.Command, args []stri
 	}
 
 	if byKID {
-		if err = ctx.providers.StorageProvider.DeleteWebauthnDevice(ctx, kid); err != nil {
+		if err = ctx.providers.StorageProvider.DeleteWebAuthnDevice(ctx, kid); err != nil {
 			return fmt.Errorf("failed to delete webauthn device with kid '%s': %w", kid, err)
 		}
 
 		fmt.Printf("Successfully deleted WebAuthn device with key id '%s'\n", kid)
 	} else {
-		err = ctx.providers.StorageProvider.DeleteWebauthnDeviceByUsername(ctx, user, description)
+		err = ctx.providers.StorageProvider.DeleteWebAuthnDeviceByUsername(ctx, user, description)
 
 		if all {
 			if err != nil {

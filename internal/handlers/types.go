@@ -30,8 +30,8 @@ type bodySignTOTPRequest struct {
 	WorkflowID string `json:"workflowID"`
 }
 
-// bodySignWebauthnRequest is the  model of the request body of WebAuthn 2FA authentication endpoint.
-type bodySignWebauthnRequest struct {
+// bodySignWebAuthnRequest is the  model of the request body of WebAuthn 2FA authentication endpoint.
+type bodySignWebAuthnRequest struct {
 	TargetURL  string `json:"targetURL"`
 	Workflow   string `json:"workflow"`
 	WorkflowID string `json:"workflowID"`

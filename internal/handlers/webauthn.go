@@ -22,14 +22,14 @@ func getWebAuthnUser(ctx *middlewares.AutheliaCtx, userSession session.UserSessi
 		user.DisplayName = user.Username
 	}
 
-	if user.Devices, err = ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, userSession.Username); err != nil {
+	if user.Devices, err = ctx.Providers.StorageProvider.LoadWebAuthnDevicesByUsername(ctx, userSession.Username); err != nil {
 		return nil, err
 	}
 
 	return user, nil
 }
 
-func newWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error) {
+func newWebAuthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error) {
 	var (
 		u *url.URL
 	)
@@ -42,22 +42,22 @@ func newWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error)
 	origin := fmt.Sprintf("%s://%s", u.Scheme, u.Host)
 
 	config := &webauthn.Config{
-		RPDisplayName: ctx.Configuration.Webauthn.DisplayName,
+		RPDisplayName: ctx.Configuration.WebAuthn.DisplayName,
 		RPID:          rpID,
 		RPOrigin:      origin,
 		RPIcon:        "",
 
-		AttestationPreference: ctx.Configuration.Webauthn.ConveyancePreference,
+		AttestationPreference: ctx.Configuration.WebAuthn.ConveyancePreference,
 		AuthenticatorSelection: protocol.AuthenticatorSelection{
 			AuthenticatorAttachment: protocol.CrossPlatform,
-			UserVerification:        ctx.Configuration.Webauthn.UserVerification,
+			UserVerification:        ctx.Configuration.WebAuthn.UserVerification,
 			RequireResidentKey:      protocol.ResidentKeyNotRequired(),
 		},
 
-		Timeout: int(ctx.Configuration.Webauthn.Timeout.Milliseconds()),
+		Timeout: int(ctx.Configuration.WebAuthn.Timeout.Milliseconds()),
 	}
 
-	ctx.Logger.Tracef("Creating new Webauthn RP instance with ID %s and Origins %s", config.RPID, config.RPOrigin)
+	ctx.Logger.Tracef("Creating new WebAuthn RP instance with ID %s and Origins %s", config.RPID, config.RPOrigin)
 
 	return webauthn.New(config)
 }

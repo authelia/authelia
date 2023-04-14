@@ -13,7 +13,7 @@ import { AttestationResult } from "@models/Webauthn";
 import { FirstFactorPath } from "@services/Api";
 import { performAttestationCeremony } from "@services/Webauthn";
 
-const RegisterWebauthn = function () {
+const RegisterWebAuthn = function () {
     const styles = useStyles();
     const navigate = useNavigate();
     const { createErrorNotification } = useNotifications();
@@ -99,7 +99,7 @@ const RegisterWebauthn = function () {
     );
 };
 
-export default RegisterWebauthn;
+export default RegisterWebAuthn;
 
 const useStyles = makeStyles((theme: Theme) => ({
     icon: {
