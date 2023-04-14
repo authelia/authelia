@@ -21,9 +21,9 @@ import {
     AuthenticationOKResponse,
     OptionalDataServiceResponse,
     ServiceResponse,
-    WebauthnAssertionPath,
-    WebauthnDevicePath,
-    WebauthnRegistrationPath,
+    WebAuthnAssertionPath,
+    WebAuthnDevicePath,
+    WebAuthnRegistrationPath,
     validateStatusAuthentication,
 } from "@services/Api";
 import { SignInResponse } from "@services/SignIn";
@@ -108,7 +108,7 @@ export async function getAttestationCreationOptions(
     description: string,
 ): Promise<PublicKeyCredentialCreationOptionsStatus> {
     const response = await axios.put<ServiceResponse<CredentialCreation>>(
-        WebauthnRegistrationPath,
+        WebAuthnRegistrationPath,
         {
             description: description,
         },
@@ -134,7 +134,7 @@ export async function getAttestationCreationOptions(
 export async function getAuthenticationOptions(): Promise<PublicKeyCredentialRequestOptionsStatus> {
     let response: AxiosResponse<ServiceResponse<CredentialRequest>>;
 
-    response = await axios.get<ServiceResponse<CredentialRequest>>(WebauthnAssertionPath);
+    response = await axios.get<ServiceResponse<CredentialRequest>>(WebAuthnAssertionPath);
 
     if (response.data.status !== "OK" || response.data.data == null) {
         return {
@@ -205,7 +205,7 @@ export async function getAuthenticationResult(options: PublicKeyCredentialReques
 async function postRegistrationResponse(
     response: RegistrationResponseJSON,
 ): Promise<AxiosResponse<OptionalDataServiceResponse<any>>> {
-    return axios.post<OptionalDataServiceResponse<any>>(WebauthnRegistrationPath, response);
+    return axios.post<OptionalDataServiceResponse<any>>(WebAuthnRegistrationPath, response);
 }
 
 export async function postAuthenticationResponse(
@@ -214,7 +214,7 @@ export async function postAuthenticationResponse(
     workflow?: string,
     workflowID?: string,
 ) {
-    return axios.post<ServiceResponse<SignInResponse>>(WebauthnAssertionPath, {
+    return axios.post<ServiceResponse<SignInResponse>>(WebAuthnAssertionPath, {
         response: response,
         targetURL: targetURL,
         workflow: workflow,
@@ -248,7 +248,7 @@ export async function finishRegistration(response: RegistrationResponseJSON) {
 export async function deleteDevice(deviceID: string) {
     return await axios<AuthenticationOKResponse>({
         method: "DELETE",
-        url: `${WebauthnDevicePath}/${deviceID}`,
+        url: `${WebAuthnDevicePath}/${deviceID}`,
         validateStatus: validateStatusAuthentication,
     });
 }
@@ -256,7 +256,7 @@ export async function deleteDevice(deviceID: string) {
 export async function updateDevice(deviceID: string, description: string) {
     return await axios<AuthenticationOKResponse>({
         method: "PUT",
-        url: `${WebauthnDevicePath}/${deviceID}`,
+        url: `${WebAuthnDevicePath}/${deviceID}`,
         data: { description: description },
         validateStatus: validateStatusAuthentication,
     });
