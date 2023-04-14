@@ -272,7 +272,7 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		Theme:                  config.Theme,
 
 		EndpointsPasswordReset: !(config.AuthenticationBackend.PasswordReset.Disable || config.AuthenticationBackend.PasswordReset.CustomURL.String() != ""),
-		EndpointsWebauthn:      !config.Webauthn.Disable,
+		EndpointsWebAuthn:      !config.WebAuthn.Disable,
 		EndpointsTOTP:          !config.TOTP.Disable,
 		EndpointsDuo:           !config.DuoAPI.Disable,
 		EndpointsOpenIDConnect: !(config.IdentityProviders.OIDC == nil),
@@ -304,7 +304,7 @@ type TemplatedFileOptions struct {
 	Theme                  string
 
 	EndpointsPasswordReset bool
-	EndpointsWebauthn      bool
+	EndpointsWebAuthn      bool
 	EndpointsTOTP          bool
 	EndpointsDuo           bool
 	EndpointsOpenIDConnect bool
@@ -362,7 +362,7 @@ func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, domain, nonce st
 
 		Session:        options.Session,
 		PasswordReset:  options.EndpointsPasswordReset,
-		Webauthn:       options.EndpointsWebauthn,
+		WebAuthn:       options.EndpointsWebAuthn,
 		TOTP:           options.EndpointsTOTP,
 		Duo:            options.EndpointsDuo,
 		OpenIDConnect:  options.EndpointsOpenIDConnect,
@@ -395,7 +395,7 @@ type TemplatedFileOpenAPIData struct {
 	CSPNonce      string
 	Session       string
 	PasswordReset bool
-	Webauthn      bool
+	WebAuthn      bool
 	TOTP          bool
 	Duo           bool
 	OpenIDConnect bool

@@ -8,7 +8,7 @@ import { Route, Routes, useNavigate } from "react-router-dom";
 import {
     SecondFactorPushSubRoute,
     SecondFactorTOTPSubRoute,
-    SecondFactorWebauthnSubRoute,
+    SecondFactorWebAuthnSubRoute,
     LogoutRoute as SignOutRoute,
 } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
@@ -16,10 +16,10 @@ import LoginLayout from "@layouts/LoginLayout";
 import { Configuration } from "@models/Configuration";
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
-import { initiateTOTPRegistrationProcess, initiateWebauthnRegistrationProcess } from "@services/RegisterDevice";
+import { initiateTOTPRegistrationProcess, initiateWebAuthnRegistrationProcess } from "@services/RegisterDevice";
 import { AuthenticationLevel } from "@services/State";
 import { setPreferred2FAMethod } from "@services/UserInfo";
-import { isWebauthnSupported } from "@services/Webauthn";
+import { isWebAuthnSupported } from "@services/Webauthn";
 import MethodSelectionDialog from "@views/LoginPortal/SecondFactor/MethodSelectionDialog";
 import OneTimePasswordMethod from "@views/LoginPortal/SecondFactor/OneTimePasswordMethod";
 import PushNotificationMethod from "@views/LoginPortal/SecondFactor/PushNotificationMethod";
@@ -45,7 +45,7 @@ const SecondFactorForm = function (props: Props) {
     const { t: translate } = useTranslation();
 
     useEffect(() => {
-        setWebauthnSupported(isWebauthnSupported());
+        setWebauthnSupported(isWebAuthnSupported());
     }, [setWebauthnSupported]);
 
     const initiateRegistration = (initiateRegistrationFunc: () => Promise<void>) => {
@@ -124,14 +124,14 @@ const SecondFactorForm = function (props: Props) {
                             }
                         />
                         <Route
-                            path={SecondFactorWebauthnSubRoute}
+                            path={SecondFactorWebAuthnSubRoute}
                             element={
                                 <WebauthnMethod
                                     id="webauthn-method"
                                     authenticationLevel={props.authenticationLevel}
                                     // Whether the user has a Webauthn device registered already
                                     registered={props.userInfo.has_webauthn}
-                                    onRegisterClick={initiateRegistration(initiateWebauthnRegistrationProcess)}
+                                    onRegisterClick={initiateRegistration(initiateWebAuthnRegistrationProcess)}
                                     onSignInError={(err) => createErrorNotification(err.message)}
                                     onSignInSuccess={props.onAuthenticationSuccess}
                                 />

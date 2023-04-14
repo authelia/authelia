@@ -255,14 +255,14 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 		r.POST("/api/secondfactor/totp", middleware1FA(handlers.TimeBasedOneTimePasswordPOST))
 	}
 
-	if !config.Webauthn.Disable {
-		// Webauthn Endpoints.
+	if !config.WebAuthn.Disable {
+		// WebAuthn Endpoints.
 		r.POST("/api/secondfactor/webauthn/identity/start", middleware1FA(handlers.WebauthnIdentityStart))
 		r.POST("/api/secondfactor/webauthn/identity/finish", middleware1FA(handlers.WebauthnIdentityFinish))
-		r.POST("/api/secondfactor/webauthn/attestation", middleware1FA(handlers.WebauthnAttestationPOST))
+		r.POST("/api/secondfactor/webauthn/attestation", middleware1FA(handlers.WebAuthnAttestationPOST))
 
-		r.GET("/api/secondfactor/webauthn/assertion", middleware1FA(handlers.WebauthnAssertionGET))
-		r.POST("/api/secondfactor/webauthn/assertion", middleware1FA(handlers.WebauthnAssertionPOST))
+		r.GET("/api/secondfactor/webauthn/assertion", middleware1FA(handlers.WebAuthnAssertionGET))
+		r.POST("/api/secondfactor/webauthn/assertion", middleware1FA(handlers.WebAuthnAssertionPOST))
 	}
 
 	// Configure DUO api endpoint only if configuration exists.

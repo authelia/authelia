@@ -21,7 +21,7 @@ type Configuration struct {
 	Notifier              NotifierConfiguration          `koanf:"notifier"`
 	Server                ServerConfiguration            `koanf:"server"`
 	Telemetry             TelemetryConfig                `koanf:"telemetry"`
-	Webauthn              WebauthnConfiguration          `koanf:"webauthn"`
+	WebAuthn              WebAuthnConfiguration          `koanf:"webauthn"`
 	PasswordPolicy        PasswordPolicyConfiguration    `koanf:"password_policy"`
 	PrivacyPolicy         PrivacyPolicy                  `koanf:"privacy_policy"`
 }

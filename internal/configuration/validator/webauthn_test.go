@@ -11,39 +11,39 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-func TestWebauthnShouldSetDefaultValues(t *testing.T) {
+func TestWebAuthnShouldSetDefaultValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
-		Webauthn: schema.WebauthnConfiguration{},
+		WebAuthn: schema.WebAuthnConfiguration{},
 	}
 
-	ValidateWebauthn(config, validator)
+	ValidateWebAuthn(config, validator)
 
 	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, schema.DefaultWebauthnConfiguration.DisplayName, config.Webauthn.DisplayName)
-	assert.Equal(t, schema.DefaultWebauthnConfiguration.Timeout, config.Webauthn.Timeout)
-	assert.Equal(t, schema.DefaultWebauthnConfiguration.ConveyancePreference, config.Webauthn.ConveyancePreference)
-	assert.Equal(t, schema.DefaultWebauthnConfiguration.UserVerification, config.Webauthn.UserVerification)
+	assert.Equal(t, schema.DefaultWebAuthnConfiguration.DisplayName, config.WebAuthn.DisplayName)
+	assert.Equal(t, schema.DefaultWebAuthnConfiguration.Timeout, config.WebAuthn.Timeout)
+	assert.Equal(t, schema.DefaultWebAuthnConfiguration.ConveyancePreference, config.WebAuthn.ConveyancePreference)
+	assert.Equal(t, schema.DefaultWebAuthnConfiguration.UserVerification, config.WebAuthn.UserVerification)
 }
 
-func TestWebauthnShouldSetDefaultTimeoutWhenNegative(t *testing.T) {
+func TestWebAuthnShouldSetDefaultTimeoutWhenNegative(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
-		Webauthn: schema.WebauthnConfiguration{
+		WebAuthn: schema.WebAuthnConfiguration{
 			Timeout: -1,
 		},
 	}
 
-	ValidateWebauthn(config, validator)
+	ValidateWebAuthn(config, validator)
 
 	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, schema.DefaultWebauthnConfiguration.Timeout, config.Webauthn.Timeout)
+	assert.Equal(t, schema.DefaultWebAuthnConfiguration.Timeout, config.WebAuthn.Timeout)
 }
 
-func TestWebauthnShouldNotSetDefaultValuesWhenConfigured(t *testing.T) {
+func TestWebAuthnShouldNotSetDefaultValuesWhenConfigured(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
-		Webauthn: schema.WebauthnConfiguration{
+		WebAuthn: schema.WebAuthnConfiguration{
 			DisplayName:          "Test",
 			Timeout:              time.Second * 50,
 			ConveyancePreference: protocol.PreferNoAttestation,
@@ -51,37 +51,37 @@ func TestWebauthnShouldNotSetDefaultValuesWhenConfigured(t *testing.T) {
 		},
 	}
 
-	ValidateWebauthn(config, validator)
+	ValidateWebAuthn(config, validator)
 
 	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, "Test", config.Webauthn.DisplayName)
-	assert.Equal(t, time.Second*50, config.Webauthn.Timeout)
-	assert.Equal(t, protocol.PreferNoAttestation, config.Webauthn.ConveyancePreference)
-	assert.Equal(t, protocol.VerificationDiscouraged, config.Webauthn.UserVerification)
+	assert.Equal(t, "Test", config.WebAuthn.DisplayName)
+	assert.Equal(t, time.Second*50, config.WebAuthn.Timeout)
+	assert.Equal(t, protocol.PreferNoAttestation, config.WebAuthn.ConveyancePreference)
+	assert.Equal(t, protocol.VerificationDiscouraged, config.WebAuthn.UserVerification)
 
-	config.Webauthn.ConveyancePreference = protocol.PreferIndirectAttestation
-	config.Webauthn.UserVerification = protocol.VerificationPreferred
+	config.WebAuthn.ConveyancePreference = protocol.PreferIndirectAttestation
+	config.WebAuthn.UserVerification = protocol.VerificationPreferred
 
-	ValidateWebauthn(config, validator)
-
-	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, protocol.PreferIndirectAttestation, config.Webauthn.ConveyancePreference)
-	assert.Equal(t, protocol.VerificationPreferred, config.Webauthn.UserVerification)
-
-	config.Webauthn.ConveyancePreference = protocol.PreferDirectAttestation
-	config.Webauthn.UserVerification = protocol.VerificationRequired
-
-	ValidateWebauthn(config, validator)
+	ValidateWebAuthn(config, validator)
 
 	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, protocol.PreferDirectAttestation, config.Webauthn.ConveyancePreference)
-	assert.Equal(t, protocol.VerificationRequired, config.Webauthn.UserVerification)
+	assert.Equal(t, protocol.PreferIndirectAttestation, config.WebAuthn.ConveyancePreference)
+	assert.Equal(t, protocol.VerificationPreferred, config.WebAuthn.UserVerification)
+
+	config.WebAuthn.ConveyancePreference = protocol.PreferDirectAttestation
+	config.WebAuthn.UserVerification = protocol.VerificationRequired
+
+	ValidateWebAuthn(config, validator)
+
+	require.Len(t, validator.Errors(), 0)
+	assert.Equal(t, protocol.PreferDirectAttestation, config.WebAuthn.ConveyancePreference)
+	assert.Equal(t, protocol.VerificationRequired, config.WebAuthn.UserVerification)
 }
 
-func TestWebauthnShouldRaiseErrorsOnInvalidOptions(t *testing.T) {
+func TestWebAuthnShouldRaiseErrorsOnInvalidOptions(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
-		Webauthn: schema.WebauthnConfiguration{
+		WebAuthn: schema.WebAuthnConfiguration{
 			DisplayName:          "Test",
 			Timeout:              time.Second * 50,
 			ConveyancePreference: "no",
@@ -89,7 +89,7 @@ func TestWebauthnShouldRaiseErrorsOnInvalidOptions(t *testing.T) {
 		},
 	}
 
-	ValidateWebauthn(config, validator)
+	ValidateWebAuthn(config, validator)
 
 	require.Len(t, validator.Errors(), 2)
 

@@ -188,7 +188,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 			},
 		},
 		{
-			desc: "ShouldAllowConfiguredMethodWebauthn",
+			desc: "ShouldAllowConfiguredMethodWebAuthn",
 			have: &schema.Configuration{
 				Default2FAMethod: "webauthn",
 				DuoAPI: schema.DuoAPIConfiguration{
@@ -225,7 +225,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 			},
 		},
 		{
-			desc: "ShouldNotAllowDisabledMethodWebauthn",
+			desc: "ShouldNotAllowDisabledMethodWebAuthn",
 			have: &schema.Configuration{
 				Default2FAMethod: "webauthn",
 				DuoAPI: schema.DuoAPIConfiguration{
@@ -233,7 +233,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 					IntegrationKey: "another key",
 					Hostname:       "none",
 				},
-				Webauthn: schema.WebauthnConfiguration{Disable: true},
+				WebAuthn: schema.WebAuthnConfiguration{Disable: true},
 			},
 			expectedErrs: []string{
 				"option 'default_2fa_method' must be one of the enabled options 'totp' or 'mobile_push' but it's configured as 'webauthn'",

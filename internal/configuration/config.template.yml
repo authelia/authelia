@@ -214,13 +214,13 @@ totp:
 ##
 ## Parameters used for WebAuthn.
 webauthn:
-  ## Disable Webauthn.
+  ## Disable WebAuthn.
   disable: false
 
-  ## Adjust the interaction timeout for Webauthn dialogues.
+  ## Adjust the interaction timeout for WebAuthn dialogues.
   timeout: 60s
 
-  ## The display name the browser should show the user for when using Webauthn to login/register.
+  ## The display name the browser should show the user for when using WebAuthn to login/register.
   display_name: Authelia
 
   ## Conveyance preference controls if we collect the attestation statement including the AAGUID from the device.
@@ -1167,7 +1167,7 @@ regulation:
 ##
 ## Notification Provider
 ##
-## Notifications are sent to users when they require a password reset, a Webauthn registration or a TOTP registration.
+## Notifications are sent to users when they require a password reset, a WebAuthn registration or a TOTP registration.
 ## The available providers are: filesystem, smtp. You must use only one of these providers.
 notifier:
   ## You can disable the notifier startup check by setting this to true.
