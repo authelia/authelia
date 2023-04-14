@@ -205,6 +205,63 @@ func (mr *MockLDAPClientMockRecorder) ModifyWithResult(arg0 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ModifyWithResult", reflect.TypeOf((*MockLDAPClient)(nil).ModifyWithResult), arg0)
 }
 
+// NTLMBind mocks base method.
+func (m *MockLDAPClient) NTLMBind(arg0, arg1, arg2 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NTLMBind", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NTLMBind indicates an expected call of NTLMBind.
+func (mr *MockLDAPClientMockRecorder) NTLMBind(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NTLMBind", reflect.TypeOf((*MockLDAPClient)(nil).NTLMBind), arg0, arg1, arg2)
+}
+
+// NTLMBindWithHash mocks base method.
+func (m *MockLDAPClient) NTLMBindWithHash(arg0, arg1, arg2 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NTLMBindWithHash", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NTLMBindWithHash indicates an expected call of NTLMBindWithHash.
+func (mr *MockLDAPClientMockRecorder) NTLMBindWithHash(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NTLMBindWithHash", reflect.TypeOf((*MockLDAPClient)(nil).NTLMBindWithHash), arg0, arg1, arg2)
+}
+
+// NTLMChallengeBind mocks base method.
+func (m *MockLDAPClient) NTLMChallengeBind(arg0 *ldap.NTLMBindRequest) (*ldap.NTLMBindResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NTLMChallengeBind", arg0)
+	ret0, _ := ret[0].(*ldap.NTLMBindResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NTLMChallengeBind indicates an expected call of NTLMChallengeBind.
+func (mr *MockLDAPClientMockRecorder) NTLMChallengeBind(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NTLMChallengeBind", reflect.TypeOf((*MockLDAPClient)(nil).NTLMChallengeBind), arg0)
+}
+
+// NTLMUnauthenticatedBind mocks base method.
+func (m *MockLDAPClient) NTLMUnauthenticatedBind(arg0, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NTLMUnauthenticatedBind", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NTLMUnauthenticatedBind indicates an expected call of NTLMUnauthenticatedBind.
+func (mr *MockLDAPClientMockRecorder) NTLMUnauthenticatedBind(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NTLMUnauthenticatedBind", reflect.TypeOf((*MockLDAPClient)(nil).NTLMUnauthenticatedBind), arg0, arg1)
+}
+
 // PasswordModify mocks base method.
 func (m *MockLDAPClient) PasswordModify(arg0 *ldap.PasswordModifyRequest) (*ldap.PasswordModifyResult, error) {
 	m.ctrl.T.Helper()

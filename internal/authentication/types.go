@@ -28,25 +28,29 @@ type LDAPClient interface {
 
 	Unbind() (err error)
 	Bind(username, password string) (err error)
-	SimpleBind(simpleBindRequest *ldap.SimpleBindRequest) (bindResult *ldap.SimpleBindResult, err error)
+	SimpleBind(request *ldap.SimpleBindRequest) (result *ldap.SimpleBindResult, err error)
 	MD5Bind(host string, username string, password string) (err error)
-	DigestMD5Bind(digestMD5BindRequest *ldap.DigestMD5BindRequest) (digestMD5BindResult *ldap.DigestMD5BindResult, err error)
+	DigestMD5Bind(request *ldap.DigestMD5BindRequest) (result *ldap.DigestMD5BindResult, err error)
 	UnauthenticatedBind(username string) (err error)
 	ExternalBind() (err error)
+	NTLMBind(domain string, username string, password string) (err error)
+	NTLMUnauthenticatedBind(domain string, username string) (err error)
+	NTLMBindWithHash(domain string, username string, hash string) (err error)
+	NTLMChallengeBind(request *ldap.NTLMBindRequest) (result *ldap.NTLMBindResult, err error)
 
-	Modify(modifyRequest *ldap.ModifyRequest) (err error)
-	ModifyWithResult(modifyRequest *ldap.ModifyRequest) (modifyResult *ldap.ModifyResult, err error)
+	Modify(request *ldap.ModifyRequest) (err error)
+	ModifyWithResult(request *ldap.ModifyRequest) (result *ldap.ModifyResult, err error)
 	ModifyDN(m *ldap.ModifyDNRequest) (err error)
-	PasswordModify(pwdModifyRequest *ldap.PasswordModifyRequest) (pwdModifyResult *ldap.PasswordModifyResult, err error)
+	PasswordModify(request *ldap.PasswordModifyRequest) (result *ldap.PasswordModifyResult, err error)
 
-	Add(addRequest *ldap.AddRequest) (err error)
-	Del(delRequest *ldap.DelRequest) (err error)
+	Add(request *ldap.AddRequest) (err error)
+	Del(request *ldap.DelRequest) (err error)
 
-	Search(searchRequest *ldap.SearchRequest) (searchResult *ldap.SearchResult, err error)
-	SearchWithPaging(searchRequest *ldap.SearchRequest, pagingSize uint32) (searchResult *ldap.SearchResult, err error)
+	Search(request *ldap.SearchRequest) (result *ldap.SearchResult, err error)
+	SearchWithPaging(request *ldap.SearchRequest, pagingSize uint32) (result *ldap.SearchResult, err error)
 	Compare(dn string, attribute string, value string) (same bool, err error)
 
-	WhoAmI(controls []ldap.Control) (whoamiResult *ldap.WhoAmIResult, err error)
+	WhoAmI(controls []ldap.Control) (result *ldap.WhoAmIResult, err error)
 }
 
 // UserDetails represent the details retrieved for a given user.
