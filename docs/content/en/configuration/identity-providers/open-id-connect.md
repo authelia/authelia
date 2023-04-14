@@ -548,8 +548,8 @@ more information.
 {{< confkey type="string" default="auto" required="no" >}}
 
 *__Important Note:__ the `implicit` consent mode is not technically part of the specification. It theoretically could be
-misused in certain conditions specifically with public clients or when the client credentials (i.e. client secret) has
-been exposed to an attacker. For these reasons this mode is discouraged.*
+misused in certain conditions specifically with the public client type or when the client credentials (i.e. client
+secret) has been exposed to an attacker. For these reasons this mode is discouraged.*
 
 Configures the consent mode. The following table describes the different modes:
 
