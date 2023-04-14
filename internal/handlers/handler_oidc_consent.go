@@ -32,7 +32,7 @@ func OpenIDConnectConsentGET(ctx *middlewares.AutheliaCtx) {
 
 	var (
 		consent *model.OAuth2ConsentSession
-		client  *oidc.Client
+		client  oidc.Client
 		handled bool
 	)
 
@@ -70,7 +70,7 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		userSession session.UserSession
 		consent     *model.OAuth2ConsentSession
-		client      *oidc.Client
+		client      oidc.Client
 		handled     bool
 	)
 
@@ -90,12 +90,12 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 		consent.Grant()
 
 		if bodyJSON.PreConfigure {
-			if client.Consent.Mode == oidc.ClientConsentModePreConfigured {
+			if client.GetConsentPolicy().Mode == oidc.ClientConsentModePreConfigured {
 				config := model.OAuth2ConsentPreConfig{
 					ClientID:  consent.ClientID,
 					Subject:   consent.Subject.UUID,
 					CreatedAt: time.Now(),
-					ExpiresAt: sql.NullTime{Time: time.Now().Add(client.Consent.Duration), Valid: true},
+					ExpiresAt: sql.NullTime{Time: time.Now().Add(client.GetConsentPolicy().Duration), Valid: true},
 					Scopes:    consent.GrantedScopes,
 					Audience:  consent.GrantedAudience,
 				}
@@ -151,7 +151,7 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-func oidcConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, consentID uuid.UUID) (userSession session.UserSession, consent *model.OAuth2ConsentSession, client *oidc.Client, handled bool) {
+func oidcConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, consentID uuid.UUID) (userSession session.UserSession, consent *model.OAuth2ConsentSession, client oidc.Client, handled bool) {
 	var (
 		err error
 	)
@@ -185,7 +185,7 @@ func oidcConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, consentID uui
 		return userSession, nil, nil, true
 	}
 
-	switch client.Consent.Mode {
+	switch client.GetConsentPolicy().Mode {
 	case oidc.ClientConsentModeImplicit:
 		ctx.Logger.Errorf("Unable to perform OpenID Connect Consent for user '%s' and client id '%s': the client is using the implicit consent mode", userSession.Username, consent.ClientID)
 		ctx.ReplyForbidden()

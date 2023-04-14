@@ -3,7 +3,6 @@ package validator
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -92,7 +91,7 @@ func validatePostgreSQLConfiguration(config *schema.PostgreSQLStorageConfigurati
 		case config.SSL.Mode == "":
 			config.SSL.Mode = schema.DefaultPostgreSQLStorageConfiguration.SSL.Mode
 		case !utils.IsStringInSlice(config.SSL.Mode, validStoragePostgreSQLSSLModes):
-			validator.Push(fmt.Errorf(errFmtStoragePostgreSQLInvalidSSLMode, strings.Join(validStoragePostgreSQLSSLModes, "', '"), config.SSL.Mode))
+			validator.Push(fmt.Errorf(errFmtStoragePostgreSQLInvalidSSLMode, strJoinOr(validStoragePostgreSQLSSLModes), config.SSL.Mode))
 		}
 	}
 }

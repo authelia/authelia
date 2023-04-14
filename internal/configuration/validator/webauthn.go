@@ -2,7 +2,6 @@ package validator
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -22,13 +21,13 @@ func ValidateWebAuthn(config *schema.Configuration, validator *schema.StructVali
 	case config.WebAuthn.ConveyancePreference == "":
 		config.WebAuthn.ConveyancePreference = schema.DefaultWebAuthnConfiguration.ConveyancePreference
 	case !utils.IsStringInSlice(string(config.WebAuthn.ConveyancePreference), validWebAuthnConveyancePreferences):
-		validator.Push(fmt.Errorf(errFmtWebAuthnConveyancePreference, strings.Join(validWebAuthnConveyancePreferences, "', '"), config.WebAuthn.ConveyancePreference))
+		validator.Push(fmt.Errorf(errFmtWebAuthnConveyancePreference, strJoinOr(validWebAuthnConveyancePreferences), config.WebAuthn.ConveyancePreference))
 	}
 
 	switch {
 	case config.WebAuthn.UserVerification == "":
 		config.WebAuthn.UserVerification = schema.DefaultWebAuthnConfiguration.UserVerification
 	case !utils.IsStringInSlice(string(config.WebAuthn.UserVerification), validWebAuthnUserVerificationRequirement):
-		validator.Push(fmt.Errorf(errFmtWebAuthnUserVerification, config.WebAuthn.UserVerification))
+		validator.Push(fmt.Errorf(errFmtWebAuthnUserVerification, strJoinOr(validWebAuthnConveyancePreferences), config.WebAuthn.UserVerification))
 	}
 }

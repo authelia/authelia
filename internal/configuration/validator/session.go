@@ -45,7 +45,7 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 	if config.SameSite == "" {
 		config.SameSite = schema.DefaultSessionConfiguration.SameSite
 	} else if !utils.IsStringInSlice(config.SameSite, validSessionSameSiteValues) {
-		validator.Push(fmt.Errorf(errFmtSessionSameSite, strings.Join(validSessionSameSiteValues, "', '"), config.SameSite))
+		validator.Push(fmt.Errorf(errFmtSessionSameSite, strJoinOr(validSessionSameSiteValues), config.SameSite))
 	}
 
 	cookies := len(config.Cookies)
@@ -73,7 +73,7 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 
 func validateSessionCookieDomains(config *schema.SessionConfiguration, validator *schema.StructValidator) {
 	if len(config.Cookies) == 0 {
-		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "domain"))
+		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "cookies"))
 	}
 
 	domains := make([]string, 0)
@@ -182,7 +182,7 @@ func validateSessionSameSite(i int, config *schema.SessionConfiguration, validat
 			config.Cookies[i].SameSite = schema.DefaultSessionConfiguration.SameSite
 		}
 	} else if !utils.IsStringInSlice(config.Cookies[i].SameSite, validSessionSameSiteValues) {
-		validator.Push(fmt.Errorf(errFmtSessionDomainSameSite, sessionDomainDescriptor(i, config.Cookies[i]), strings.Join(validSessionSameSiteValues, "', '"), config.Cookies[i].SameSite))
+		validator.Push(fmt.Errorf(errFmtSessionDomainSameSite, sessionDomainDescriptor(i, config.Cookies[i]), strJoinOr(validSessionSameSiteValues), config.Cookies[i].SameSite))
 	}
 }
 

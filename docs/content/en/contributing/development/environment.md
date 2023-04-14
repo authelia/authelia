@@ -38,6 +38,23 @@ The additional tools are recommended:
 * [yamllint]
 * [VSCodium] or [GoLand]
 
+## Certificate
+
+Authelia utilizes a self-signed Root CA certificate for the development environment. This allows us to sign elements of
+the CI process uniformly and only trust a single additional Root CA Certificate. The private key for this certificate is
+maintained by the [Core Team] so if you need an additional certificate signed for this purpose please reach out to them.
+
+While developing for Authelia you may also want to trust this Root CA. It is critical that you are aware of what this
+means if you decide to do so.
+
+1. It will allow us to generate trusted certificates for machines this is installed on.
+2. If compromised there is no formal revocation process at this time as we are not a certified CA.
+3. Trusting Root CA's is not necessary for the development process it only makes it smoother.
+4. Trusting additional Root CA's for prolonged periods is not generally a good idea.
+
+If you'd still like to trust the Root CA Certificate it's located (encoded as a PEM) in the main git repository at
+ [/internal/suites/common/pki/ca/ca.public.crt](https://github.com/authelia/authelia/blob/master/internal/suites/common/pki/ca/ca.public.crt).
+
 ## Scripts
 
 There is a scripting context provided with __Authelia__ which can easily be configured. It allows running integration

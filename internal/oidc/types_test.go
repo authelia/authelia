@@ -40,7 +40,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		Request: fosite.Request{
 			ID:     requestID.String(),
 			Form:   formValues,
-			Client: &Client{ID: "example"},
+			Client: &BaseClient{ID: "example"},
 		},
 	}
 
@@ -50,7 +50,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 
 	requested := time.Unix(1647332518, 0)
 	authAt := time.Unix(1647332500, 0)
-	issuer := "https://example.com"
+	issuer := examplecom
 	amr := []string{AMRPasswordBasedAuthentication}
 
 	consent := &model.OAuth2ConsentSession{
