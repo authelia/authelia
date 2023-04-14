@@ -57,7 +57,7 @@ This is a list of the key features of Authelia:
 
 * Several second factor methods:
   * **[Security Keys](https://www.authelia.com/overview/authentication/security-key/)** that support
-    [FIDO2]&nbsp;[Webauthn] with devices like a [YubiKey].
+    [FIDO2]&nbsp;[WebAuthn] with devices like a [YubiKey].
   * **[Time-based One-Time password](https://www.authelia.com/overview/authentication/one-time-password/)**
     with compatible authenticator applications.
   * **[Mobile Push Notifications](https://www.authelia.com/overview/authentication/push-notification/)**
@@ -399,7 +399,7 @@ Companies contributing to Authelia via Open Collective will have a special menti
 [TOTP]: https://en.wikipedia.org/wiki/Time-based_One-time_Password_Algorithm
 [FIDO2]: https://www.yubico.com/authentication-standards/fido2/
 [YubiKey]: https://www.yubico.com/products/yubikey-5-overview/
-[Webauthn]: https://www.yubico.com/authentication-standards/webauthn/
+[WebAuthn]: https://www.yubico.com/authentication-standards/webauthn/
 [auth_request]: https://nginx.org/en/docs/http/ngx_http_auth_request_module.html
 [config.template.yml]: ./config.template.yml
 [nginx]: https://www.authelia.com/integration/proxies/nginx/
