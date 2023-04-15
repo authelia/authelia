@@ -27,7 +27,7 @@ func TestNewClient(t *testing.T) {
 	bclient, ok := client.(*BaseClient)
 	require.True(t, ok)
 	assert.Equal(t, "", bclient.UserinfoSigningAlgorithm)
-	assert.Equal(t, SigningAlgorithmNone, client.GetUserinfoSigningAlgorithm())
+	assert.Equal(t, SigningAlgNone, client.GetUserinfoSigningAlgorithm())
 
 	_, ok = client.(*FullClient)
 	assert.False(t, ok)
@@ -64,9 +64,9 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, "", fclient.UserinfoSigningAlgorithm)
 	assert.Equal(t, ClientAuthMethodClientSecretBasic, fclient.TokenEndpointAuthMethod)
 	assert.Equal(t, ClientAuthMethodClientSecretBasic, fclient.GetTokenEndpointAuthMethod())
-	assert.Equal(t, SigningAlgorithmNone, client.GetUserinfoSigningAlgorithm())
+	assert.Equal(t, SigningAlgNone, client.GetUserinfoSigningAlgorithm())
 	assert.Equal(t, "", fclient.TokenEndpointAuthSigningAlgorithm)
-	assert.Equal(t, SigningAlgorithmRSAWithSHA256, fclient.GetTokenEndpointAuthSigningAlgorithm())
+	assert.Equal(t, SigningAlgRSAUsingSHA256, fclient.GetTokenEndpointAuthSigningAlgorithm())
 	assert.Equal(t, "", fclient.RequestObjectSigningAlgorithm)
 	assert.Equal(t, "", fclient.GetRequestObjectSigningAlgorithm())
 	assert.Equal(t, "", fclient.JSONWebKeysURI)
@@ -544,12 +544,4 @@ func TestClient_IsPublic(t *testing.T) {
 
 	c.Public = true
 	assert.True(t, c.IsPublic())
-}
-
-func MustDecodeSecret(value string) *schema.PasswordDigest {
-	if secret, err := schema.DecodePasswordDigest(value); err != nil {
-		panic(err)
-	} else {
-		return secret
-	}
 }

@@ -555,10 +555,17 @@ more information.
 The registered client authentication mechanism used by this client for the [Token Endpoint]. If no method is defined
 the confidential client type will accept any supported method. The public client type defaults to `none` as this
 is required by the specification. This may be required as a breaking change in future versions.
-Supported values are `client_secret_basic`, `client_secret_post`, and `none`.
+Supported values are `client_secret_basic`, `client_secret_post`, `client_secret_jwt`, and `none`.
 
 See the [integration guide](../../integration/openid-connect/introduction.md#client-authentication-method) for
 more information.
+
+#### token_endpoint_auth_signing_alg
+
+{{< confkey type="string" default="HS256" required="no" >}}
+
+The JWT signing algorithm accepted when the [token_endpoint_auth_method](#tokenendpointauthmethod) is configured as
+`client_secret_jwt`. Supported values are `HS256`, `HS385`, and `HS512`.
 
 #### consent_mode
 

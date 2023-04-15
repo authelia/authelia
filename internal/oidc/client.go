@@ -47,8 +47,9 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client Client) {
 
 	if config.TokenEndpointAuthMethod != "" && config.TokenEndpointAuthMethod != "auto" {
 		client = &FullClient{
-			BaseClient:              base,
-			TokenEndpointAuthMethod: config.TokenEndpointAuthMethod,
+			BaseClient:                        base,
+			TokenEndpointAuthMethod:           config.TokenEndpointAuthMethod,
+			TokenEndpointAuthSigningAlgorithm: config.TokenEndpointAuthSigningAlg,
 		}
 	} else {
 		client = base
@@ -133,7 +134,7 @@ func (c *BaseClient) GetResponseModes() []fosite.ResponseModeType {
 // GetUserinfoSigningAlgorithm returns the UserinfoSigningAlgorithm.
 func (c *BaseClient) GetUserinfoSigningAlgorithm() string {
 	if c.UserinfoSigningAlgorithm == "" {
-		c.UserinfoSigningAlgorithm = SigningAlgorithmNone
+		c.UserinfoSigningAlgorithm = SigningAlgNone
 	}
 
 	return c.UserinfoSigningAlgorithm
@@ -306,7 +307,7 @@ func (c *FullClient) GetTokenEndpointAuthMethod() string {
 // authentication methods.
 func (c *FullClient) GetTokenEndpointAuthSigningAlgorithm() string {
 	if c.TokenEndpointAuthSigningAlgorithm == "" {
-		c.TokenEndpointAuthSigningAlgorithm = SigningAlgorithmRSAWithSHA256
+		c.TokenEndpointAuthSigningAlgorithm = SigningAlgRSAUsingSHA256
 	}
 
 	return c.TokenEndpointAuthSigningAlgorithm
