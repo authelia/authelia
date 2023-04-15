@@ -1,7 +1,7 @@
 ---
 title: "Frequently Asked Questions"
 description: "Frequently Asked Questions regarding integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party"
-lead: "Frequently Asked Questionsregarding integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party."
+lead: "Frequently Asked Questions regarding integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party."
 date: 2022-10-20T15:27:09+11:00
 draft: false
 images: []
@@ -12,7 +12,7 @@ weight: 615
 toc: true
 ---
 
-## How Do I Generate Client Secrets
+## How do I generate client secrets?
 
 We strongly recommend the following guidelines for generating client secrets:
 
@@ -48,13 +48,11 @@ that is implemented by the authorization server which requires access to the sec
 which case the secret should be encrypted and not be stored in plaintext. The most likely long term outcome is that the
 client configurations will be stored in the database with the secret both salted and peppered.
 
-Authelia currently does implement the `client_secret_jwt` assertion client authentication method. Warnings will be
-generated for any client not explicitly configured to utilize this client authentication method. We do not support any
-of the other the specifications or protocols which require secrets being accessible in the clear and currently we no
-plans to implement any of these. We only officially support utilization of the plaintext digest types where it's backed
-by specifications and as such we plan to make the use outside of the `client_secret_jwt` a fatal error in the future.
-For these reasons we recommended that users remove this from their configuration entirely and use the
-[How Do I Generate Client Secrets](#how-do-i-generate-client-secrets) FAQ.
+Authelia currently does not implement any of the specifications or protocols which require secrets being accessible in
+the clear such as most notably the `client_secret_jwt` grant, we will however likely soon implement `client_secret_jwt`.
+We are however *__strongly discouraging__* and formally deprecating the use of plaintext client secrets for purposes
+outside those required by specifications. We instead recommended that users remove this from their configuration
+entirely and use the [How Do I Generate Client Secrets](#how-do-i-generate-client-secrets) FAQ.
 
 Plaintext is either denoted by the `$plaintext$` prefix where everything after the prefix is the secret. In addition if
 the secret does not start with the `$` character it's considered as a plaintext secret for the time being but is
