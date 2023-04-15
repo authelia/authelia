@@ -1,7 +1,7 @@
 ---
-title: "Specific Information"
-description: "Specific information regarding integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party"
-lead: "Specific information regarding integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party."
+title: "Frequently Asked Questions"
+description: "Frequently Asked Questions regarding integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party"
+lead: "Frequently Asked Questionsregarding integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party."
 date: 2022-10-20T15:27:09+11:00
 draft: false
 images: []
@@ -12,7 +12,7 @@ weight: 615
 toc: true
 ---
 
-## Generating Client Secrets
+## How Do I Generate Client Secrets
 
 We strongly recommend the following guidelines for generating client secrets:
 
@@ -26,9 +26,12 @@ We strongly recommend the following guidelines for generating client secrets:
    when using it to access the token endpoint.
 
 Authelia provides an easy way to perform such actions via the [Generating a Random Password Hash] guide. Users can
-perform a command such as `authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72` command to
+perform a command such as
+`authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random-charset rfc3986` command to
 both generate a client secret with 72 characters which is printed and is to be used with the relying party and hash it
-using PBKDF2 which can be stored in the Authelia configuration.
+using PBKDF2 which can be stored in the Authelia configuration. This random command also avoids issues with a relying
+party / client application encoding the characters correctly as it uses the
+[RFC3986 Unreserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3).
 
 [Generating a Random Password Hash]: ../../reference/guides/generating-secure-values.md#generating-a-random-password-hash
 
@@ -45,20 +48,19 @@ that is implemented by the authorization server which requires access to the sec
 which case the secret should be encrypted and not be stored in plaintext. The most likely long term outcome is that the
 client configurations will be stored in the database with the secret both salted and peppered.
 
-Authelia currently does not implement any of the specifications or protocols which require secrets being accessible in
-the clear such as most notibly the `client_secret_jwt` grant and currently we no plans to implement any of these. As
-such it's *__strongly discouraged and heavily deprecated__* and we instead recommended that users remove this from their
-configuration entirely and use the [Generating Client Secrets](#generating-client-secrets) guide. At such a time as we
-support one of these protocols we will very likely only allow plaintext for clients configured expressly for this
-purpose i.e. a client that only allows `client_secret_jwt` and no other grants.
+Authelia currently does implement the `client_secret_jwt` assertion client authentication method. Warnings will be
+generated for any client not explicitly configured to utilize this client authentication method. We do not support any
+of the other the specifications or protocols which require secrets being accessible in the clear and currently we no
+plans to implement any of these. We only officially support utilization of the plaintext digest types where it's backed
+by specifications and as such we plan to make the use outside of the `client_secret_jwt` a fatal error in the future.
+For these reasons we recommended that users remove this from their configuration entirely and use the
+[How Do I Generate Client Secrets](#how-do-i-generate-client-secrets) FAQ.
 
 Plaintext is either denoted by the `$plaintext$` prefix where everything after the prefix is the secret. In addition if
 the secret does not start with the `$` character it's considered as a plaintext secret for the time being but is
 deprecated as is the `$plaintext$` prefix.
 
-## Frequently Asked Questions
-
-### Why isn't my application able to retrieve the token even though I've consented?
+## Why isn't my application able to retrieve the token even though I've consented?
 
 The most common cause for this issue is when the affected application can not make requests to the Token [Endpoint].
 This becomes obvious when the log level is set to `debug` or `trace` and a presence of requests to the Authorization
