@@ -33,6 +33,11 @@ This example makes the following assumptions:
 * __Client ID:__ `nextcloud`
 * __Client Secret:__ `insecure_secret`
 
+*__Important Note:__ it has been reported that some of the [Nextcloud] plugins do not properly encode the client secret.
+as such it's important to only use alphanumeric characters as well as the other
+[RFC3986 Unreserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3). We recommend using the
+generating client secrets guidance above.*
+
 ## Configuration
 
 ### Application

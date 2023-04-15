@@ -260,7 +260,7 @@ func StringToAddressHookFunc() mapstructure.DecodeHookFuncType {
 
 // StringToX509CertificateHookFunc decodes strings to x509.Certificate's.
 func StringToX509CertificateHookFunc() mapstructure.DecodeHookFuncType {
-	return func(f reflect.Type, t reflect.Type, data any) (value interface{}, err error) {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		if f.Kind() != reflect.String {
 			return data, nil
 		}
@@ -283,7 +283,7 @@ func StringToX509CertificateHookFunc() mapstructure.DecodeHookFuncType {
 			return result, nil
 		}
 
-		var i interface{}
+		var i any
 
 		if i, err = utils.ParseX509FromPEM([]byte(dataStr)); err != nil {
 			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "*", expectedType, err)
@@ -300,7 +300,7 @@ func StringToX509CertificateHookFunc() mapstructure.DecodeHookFuncType {
 
 // StringToX509CertificateChainHookFunc decodes strings to schema.X509CertificateChain's.
 func StringToX509CertificateChainHookFunc() mapstructure.DecodeHookFuncType {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		var ptr bool
 
 		if f.Kind() != reflect.String {
@@ -348,7 +348,7 @@ func StringToX509CertificateChainHookFunc() mapstructure.DecodeHookFuncType {
 
 // StringToTLSVersionHookFunc decodes strings to schema.TLSVersion's.
 func StringToTLSVersionHookFunc() mapstructure.DecodeHookFuncType {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		var ptr bool
 
 		if f.Kind() != reflect.String {
@@ -388,7 +388,7 @@ func StringToTLSVersionHookFunc() mapstructure.DecodeHookFuncType {
 
 // StringToCryptoPrivateKeyHookFunc decodes strings to schema.CryptographicPrivateKey's.
 func StringToCryptoPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		if f.Kind() != reflect.String {
 			return data, nil
 		}
@@ -418,7 +418,7 @@ func StringToCryptoPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 
 // StringToPrivateKeyHookFunc decodes strings to rsa.PrivateKey's.
 func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		if f.Kind() != reflect.String {
 			return data, nil
 		}
@@ -487,7 +487,7 @@ func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 
 // StringToPasswordDigestHookFunc decodes a string into a crypt.Digest.
 func StringToPasswordDigestHookFunc() mapstructure.DecodeHookFuncType {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		var ptr bool
 
 		if f.Kind() != reflect.String {

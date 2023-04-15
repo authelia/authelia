@@ -42,15 +42,63 @@ specific scenarios._
 The following contains information on getting access to the pre-production builds of 4.38.0.
 
 _**Note:** We strongly recommend people who wish to try the beta builds make backups of their proxy configuration,
-authelia configuration, and authelia database prior to attempting to do so._
+Authelia configuration, and Authelia database prior to attempting to do so._
+
+### 4.38.0-beta2
+
+This is a quick release before we start merging the TOTP and WebAuthn improvements. Once these are merged another beta
+will be released and then shortly after the release will be officially published.
+
+Notable Missing Features from this build:
+
+- Multi-Device Webauthn
+- Device Registration OTP
+
+Actual Builds:
+
+- Container Images:
+  - [docker.io/authelia/authelia:v4.38.0-beta2](https://hub.docker.com/layers/authelia/authelia/v4.38.0-beta2/images/sha256-e02b645853db2cbd371c6bc8a80333718c830dcf7f3b5ec8c14d8178ea04cb78?context=explore)
+  - [ghcr.io/authelia/authelia:v4.38.0-beta2](https://github.com/authelia/authelia/pkgs/container/authelia/85646062?tag=v4.38.0-beta2)
+- [Binaries](https://buildkite.com/authelia/authelia/builds/19741)
+- [Documentation](https://deploy-preview-5250--authelia-staging.netlify.app/)
+
+Major Documentation Changes:
+
+- [LDAP](https://deploy-preview-5250--authelia-staging.netlify.app/configuration/first-factor/ldap/)
+  - [Reference Guide](https://deploy-preview-5250--authelia-staging.netlify.app/reference/guides/ldap/)
+- [Server](https://deploy-preview-5250--authelia-staging.netlify.app/configuration/miscellaneous/server/)
+  - [Authz Endpoints](https://deploy-preview-5250--authelia-staging.netlify.app/configuration/miscellaneous/server-endpoints-authz/)
+    - [Reference Guide](https://deploy-preview-5250--authelia-staging.netlify.app/reference/guides/proxy-authorization/)
+- [Session](https://deploy-preview-5250--authelia-staging.netlify.app/configuration/session/introduction/)
+- [Configuration Files](https://deploy-preview-5250--authelia-staging.netlify.app/configuration/methods/files/)
+- [Proxy Integration](https://deploy-preview-5250--authelia-staging.netlify.app/integration/proxies/introduction/)
+  - [Caddy](https://deploy-preview-5250--authelia-staging.netlify.app/integration/proxies/caddy/)
+  - [Envoy](https://deploy-preview-5250--authelia-staging.netlify.app/integration/proxies/envoy/)
+  - [HAProxy](https://deploy-preview-5250--authelia-staging.netlify.app/integration/proxies/haproxy/)
+  - [NGINX](https://deploy-preview-5250--authelia-staging.netlify.app/integration/proxies/nginx/)
+  - [Traefik](https://deploy-preview-5250--authelia-staging.netlify.app/integration/proxies/traefik/)
+- [Kubernetes Integration](https://deploy-preview-5250--authelia-staging.netlify.app/integration/kubernetes/introduction/)
+  - [Traefik Ingress](https://deploy-preview-5250--authelia-staging.netlify.app/integration/kubernetes/traefik-ingress/)
+  - [Istio](https://deploy-preview-5250--authelia-staging.netlify.app/integration/kubernetes/istio/)
+  - [NGINX Ingress](https://deploy-preview-5250--authelia-staging.netlify.app/integration/kubernetes/nginx-ingress/)
+- [Templating Reference Guide](https://deploy-preview-5250--authelia-staging.netlify.app/reference/guides/templating/)
 
 ### 4.38.0-beta1
 
 Notable Missing Features from this build:
 
-- OpenID Connect 1.0 PAR
+- OpenID Connect 1.0
+  - Pushed Authorization Requests
+  - Client Authentication Modes
+  - Additional Client Validations
 - Multi-Device WebAuthn
 - Device Registration OTP
+
+Known Bugs:
+
+- WebAuthn doesn't work. Fixed in master or 4.38.0-beta2
+
+Actual Builds:
 
 - Container Images:
   - [docker.io/authelia/authelia:v4.38.0-beta1](https://hub.docker.com/layers/authelia/authelia/v4.38.0-beta1/images/sha256-53faae6b6a0616f71f1f77069237d92969433b0037b9825be12852e013812bd0?context=explore)
@@ -67,11 +115,9 @@ Major Documentation Changes:
     - [Reference Guide](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/reference/guides/proxy-authorization/)
 - [Session](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/configuration/session/introduction/)
 - [Configuration Files](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/configuration/methods/files/)
-- [Configuration Files](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/configuration/methods/files/)
 - [Proxy Integration](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/integration/proxies/introduction/)
   - [Caddy](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/integration/proxies/caddy/)
   - [Envoy](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/integration/proxies/envoy/)
-  - [HAProxy](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/integration/proxies/haproxy/)
   - [HAProxy](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/integration/proxies/haproxy/)
   - [NGINX](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/integration/proxies/nginx/)
   - [Traefik](https://63d20934fa12200009e12cbf--authelia-staging.netlify.app/integration/proxies/traefik/)
@@ -136,6 +182,17 @@ These features combined with our requirement for the HTTPS scheme are very power
 [OpenID Connect 1.0]: https://openid.net/
 [OpenID Connect 1.0]: https://openid.net/
 [Pushed Authorization Requests]: https://oauth.net/2/pushed-authorization-requests/
+
+##### Client Authentication Method (Token Endpoint)
+
+This release will allow administrators to optionally configure the Client Authentication Method for the Token Endpoint,
+restricting the client usage of the token endpoint and paving the way to more advanced Client Authentication Methods.
+
+##### Additional Client Validations
+
+This release will add additional client configuration validations for various elements which are not technically
+compatible. It's important to note that these likely will become errors but are currently just warnings.
+
 
 ## Multi-Domain Protection
 
