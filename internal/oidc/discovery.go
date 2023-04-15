@@ -62,7 +62,13 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 				TokenEndpointAuthMethodsSupported: []string{
 					ClientAuthMethodClientSecretBasic,
 					ClientAuthMethodClientSecretPost,
+					ClientAuthMethodClientSecretJWT,
 					ClientAuthMethodNone,
+				},
+				TokenEndpointAuthSigningAlgValuesSupported: []string{
+					SigningAlgHMACUsingSHA256,
+					SigningAlgHMACUsingSHA384,
+					SigningAlgHMACUsingSHA512,
 				},
 			},
 			OAuth2DiscoveryOptions: OAuth2DiscoveryOptions{
@@ -77,11 +83,11 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 
 		OpenIDConnectDiscoveryOptions: OpenIDConnectDiscoveryOptions{
 			IDTokenSigningAlgValuesSupported: []string{
-				SigningAlgorithmRSAWithSHA256,
+				SigningAlgRSAUsingSHA256,
 			},
 			UserinfoSigningAlgValuesSupported: []string{
-				SigningAlgorithmNone,
-				SigningAlgorithmRSAWithSHA256,
+				SigningAlgNone,
+				SigningAlgRSAUsingSHA256,
 			},
 		},
 		OpenIDConnectFrontChannelLogoutDiscoveryOptions: &OpenIDConnectFrontChannelLogoutDiscoveryOptions{},

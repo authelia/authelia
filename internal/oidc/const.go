@@ -41,6 +41,11 @@ const (
 )
 
 const (
+	// ClientAssertionJWTBearerType is the JWT bearer assertion.
+	ClientAssertionJWTBearerType = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer" //nolint:gosec // False Positive.
+)
+
+const (
 	lifespanTokenDefault         = time.Hour
 	lifespanRefreshTokenDefault  = time.Hour * 24 * 30
 	lifespanAuthorizeCodeDefault = time.Minute * 15
@@ -75,6 +80,8 @@ const (
 const (
 	ClientAuthMethodClientSecretBasic = "client_secret_basic"
 	ClientAuthMethodClientSecretPost  = "client_secret_post"
+	ClientAuthMethodClientSecretJWT   = "client_secret_jwt"
+	ClientAuthMethodPrivateKeyJWT     = "private_key_jwt"
 	ClientAuthMethodNone              = "none"
 )
 
@@ -89,10 +96,30 @@ const (
 	ResponseTypeHybridFlowBoth        = "code id_token token"
 )
 
-// Signing Algorithm strings.
+// JWS Algorithm strings.
+// See: https://datatracker.ietf.org/doc/html/rfc7518#section-3.1
 const (
-	SigningAlgorithmNone          = none
-	SigningAlgorithmRSAWithSHA256 = "RS256"
+	SigningAlgNone = none
+
+	SigningAlgRSAUsingSHA256 = "RS256"
+	SigningAlgRSAUsingSHA384 = "RS384"
+	SigningAlgRSAUsingSHA512 = "RS512"
+
+	SigningAlgRSAPSSUsingSHA256 = "PS256"
+	SigningAlgRSAPSSUsingSHA384 = "PS384"
+	SigningAlgRSAPSSUsingSHA512 = "PS512"
+
+	SigningAlgECDSAUsingP256AndSHA256 = "ES256"
+	SigningAlgECDSAUsingP384AndSHA384 = "ES384"
+	SigningAlgECDSAUsingP521AndSHA512 = "ES512"
+
+	SigningAlgHMACUsingSHA256 = "HS256"
+	SigningAlgHMACUsingSHA384 = "HS384"
+	SigningAlgHMACUsingSHA512 = "HS512"
+)
+
+const (
+	KeyUseSignature = "sig"
 )
 
 // Subject Type strings.
@@ -108,10 +135,18 @@ const (
 )
 
 const (
+	HeaderParameterAlgorithm = "alg"
+)
+
+const (
+	FormParameterClientID            = "client_id"
+	FormParameterClientSecret        = "client_secret"
 	FormParameterRequestURI          = "request_uri"
 	FormParameterResponseMode        = "response_mode"
 	FormParameterCodeChallenge       = "code_challenge"
 	FormParameterCodeChallengeMethod = "code_challenge_method"
+	FormParameterClientAssertionType = "client_assertion_type"
+	FormParameterClientAssertion     = "client_assertion"
 )
 
 const (

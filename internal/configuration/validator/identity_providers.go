@@ -193,8 +193,13 @@ func validateOIDCClient(c int, config *schema.OpenIDConnectConfiguration, val *s
 	} else {
 		if config.Clients[c].Secret == nil {
 			val.Push(fmt.Errorf(errFmtOIDCClientInvalidSecret, config.Clients[c].ID))
-		} else if config.Clients[c].Secret.IsPlainText() {
-			val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidSecretPlainText, config.Clients[c].ID))
+		} else {
+			switch {
+			case config.Clients[c].Secret.IsPlainText() && config.Clients[c].TokenEndpointAuthMethod != oidc.ClientAuthMethodClientSecretJWT:
+				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidSecretPlainText, config.Clients[c].ID))
+			case !config.Clients[c].Secret.IsPlainText() && config.Clients[c].TokenEndpointAuthMethod == oidc.ClientAuthMethodClientSecretJWT:
+				val.Push(fmt.Errorf(errFmtOIDCClientInvalidSecretNotPlainText, config.Clients[c].ID))
+			}
 		}
 	}
 
@@ -222,7 +227,7 @@ func validateOIDCClient(c int, config *schema.OpenIDConnectConfiguration, val *s
 	validateOIDCClientGrantTypes(c, config, val, errDeprecatedFunc)
 	validateOIDCClientRedirectURIs(c, config, val, errDeprecatedFunc)
 
-	validateOIDCClientTokenEndpointAuthMethod(c, config, val)
+	validateOIDCClientTokenEndpointAuth(c, config, val)
 	validateOIDDClientUserinfoAlgorithm(c, config, val)
 
 	validateOIDCClientSectorIdentifier(c, config, val)
@@ -481,12 +486,8 @@ func validateOIDCClientRedirectURIs(c int, config *schema.OpenIDConnectConfigura
 	}
 }
 
-func validateOIDCClientTokenEndpointAuthMethod(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+func validateOIDCClientTokenEndpointAuth(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
 	implcit := len(config.Clients[c].ResponseTypes) != 0 && utils.IsStringSliceContainsAll(config.Clients[c].ResponseTypes, validOIDCClientResponseTypesImplicitFlow)
-
-	if config.Clients[c].TokenEndpointAuthMethod == "" && (config.Clients[c].Public || implcit) {
-		config.Clients[c].TokenEndpointAuthMethod = oidc.ClientAuthMethodNone
-	}
 
 	switch {
 	case config.Clients[c].TokenEndpointAuthMethod == "":
@@ -500,6 +501,18 @@ func validateOIDCClientTokenEndpointAuthMethod(c int, config *schema.OpenIDConne
 	case config.Clients[c].TokenEndpointAuthMethod != oidc.ClientAuthMethodNone && config.Clients[c].Public:
 		val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthMethodPublic,
 			config.Clients[c].ID, config.Clients[c].TokenEndpointAuthMethod))
+	}
+
+	switch config.Clients[c].TokenEndpointAuthMethod {
+	case "":
+		break
+	case oidc.ClientAuthMethodClientSecretJWT:
+		switch {
+		case config.Clients[c].TokenEndpointAuthSigningAlg == "":
+			config.Clients[c].TokenEndpointAuthSigningAlg = oidc.SigningAlgHMACUsingSHA256
+		case !utils.IsStringInSlice(config.Clients[c].TokenEndpointAuthSigningAlg, validOIDCClientTokenEndpointAuthSigAlgs):
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthSigAlg, config.Clients[c].ID, strJoinOr(validOIDCClientTokenEndpointAuthSigAlgs), config.Clients[c].TokenEndpointAuthMethod))
+		}
 	}
 }
 

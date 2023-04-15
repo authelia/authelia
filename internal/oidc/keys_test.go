@@ -17,7 +17,7 @@ func TestKeyManager_AddActiveJWK(t *testing.T) {
 	assert.Nil(t, manager.jwk)
 	assert.Nil(t, manager.Strategy())
 
-	j, err := manager.AddActiveJWK(schema.X509CertificateChain{}, mustParseRSAPrivateKey(exampleIssuerPrivateKey))
+	j, err := manager.AddActiveJWK(schema.X509CertificateChain{}, MustParseRSAPrivateKey(exampleIssuerPrivateKey))
 	require.NoError(t, err)
 	require.NotNil(t, j)
 	require.NotNil(t, manager.jwk)
