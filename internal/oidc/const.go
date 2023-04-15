@@ -135,6 +135,10 @@ const (
 )
 
 const (
+	HeaderParameterAlgorithm = "alg"
+)
+
+const (
 	FormParameterClientID            = "client_id"
 	FormParameterClientSecret        = "client_secret"
 	FormParameterRequestURI          = "request_uri"
@@ -166,9 +170,6 @@ const (
 const (
 	// JWTHeaderKeyIdentifier is the JWT Header referencing the JWS Key Identifier used to sign a token.
 	JWTHeaderKeyIdentifier = "kid"
-
-	// JWTHeaderKeyAlgorithm is the JWT Header referencing the JWS Key algorithm used to sign a token.
-	JWTHeaderKeyAlgorithm = "alg"
 )
 
 const (
