@@ -50,7 +50,7 @@ func (f *FilteredFile) ReadBytes() (data []byte, err error) {
 }
 
 // Read is not supported by the filtered file koanf.Provider.
-func (f *FilteredFile) Read() (map[string]interface{}, error) {
+func (f *FilteredFile) Read() (map[string]any, error) {
 	return nil, errors.New("filtered file provider does not support this method")
 }
 
