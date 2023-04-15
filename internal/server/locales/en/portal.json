@@ -53,7 +53,7 @@
 	"Scan QR Code": "Scan QR Code",
 	"Scope": "Scope {{name}}",
 	"Secret": "Secret",
-	"Security Key - WebAuthN": "Security Key - WebAuthN",
+	"Security Key - WebAuthn": "Security Key - WebAuthn",
 	"Select a Device": "Select a Device",
 	"Sign in": "Sign in",
 	"Sign out": "Sign out",

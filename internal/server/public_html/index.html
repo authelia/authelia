@@ -1,11 +1,32 @@
-{
-  "Base":"{{ .Base }}",
-  "DuoSelfEnrollment":"{{ .DuoSelfEnrollment }}",
-  "LogoOverride":"{{ .LogoOverride }}",
-  "RememberMe":"{{ .RememberMe }}",
-  "ResetPassword":"{{ .ResetPassword }}",
-  "ResetPasswordCustomURL":"{{ .ResetPasswordCustomURL }}",
-  "PrivacyPolicyURL":"{{ .PrivacyPolicyURL }}",
-  "PrivacyPolicyAccept":"{{ .PrivacyPolicyAccept }}",
-  "Theme":"{{ .Theme }}"
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="{{ .BaseURL }}" />
+  <meta property="csp-nonce" content="{{ .CSPNonce }}" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="Authelia login portal for your apps" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./favicon.ico" />
+  <title>Login - Authelia</title>
+  <script type="module" crossorigin src="./static/js/index.78b807a3.js"></script>
+  <link rel="stylesheet" href="./static/css/index.9502ad8b.css">
+</head>
+
+<body
+    data-basepath="{{ .Base }}"
+    data-duoselfenrollment="{{ .DuoSelfEnrollment }}"
+    data-logooverride="{{ .LogoOverride }}"
+    data-privacypolicyaccept="{{ .PrivacyPolicyAccept }}"
+    data-privacypolicyurl="{{ .PrivacyPolicyURL }}"
+    data-rememberme="{{ .RememberMe }}"
+    data-resetpassword="{{ .ResetPassword }}"
+    data-resetpasswordcustomurl="{{ .ResetPasswordCustomURL }}"
+    data-theme="{{ .Theme }}"
+>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root"></div>
+  
+</body>
+</html>

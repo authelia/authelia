@@ -65,7 +65,7 @@ export function AssertionResultFailureString(result: AssertionResult) {
         case AssertionResult.FailureSyntax:
             return "The assertion challenge was rejected as malformed or incompatible by your browser.";
         case AssertionResult.FailureWebAuthnNotSupported:
-            return "Your browser does not support the WebAuthN protocol.";
+            return "Your browser does not support the WebAuthn protocol.";
         case AssertionResult.FailureUnrecognized:
             return "This device is not registered.";
         case AssertionResult.FailureUnknownSecurity:
@@ -86,7 +86,7 @@ export function AttestationResultFailureString(result: AttestationResult) {
         case AttestationResult.FailureSyntax:
             return "The attestation challenge was rejected as malformed or incompatible by your browser.";
         case AttestationResult.FailureWebAuthnNotSupported:
-            return "Your browser does not support the WebAuthN protocol.";
+            return "Your browser does not support the WebAuthn protocol.";
         case AttestationResult.FailureUserConsent:
             return "You cancelled the attestation request.";
         case AttestationResult.FailureUserVerificationOrResidentKey:

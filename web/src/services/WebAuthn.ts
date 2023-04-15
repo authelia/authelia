@@ -69,7 +69,7 @@ function getAttestationResultFromDOMException(exception: DOMException): Attestat
             // § 6.3.2 Step 4.
             return AttestationResult.FailureUserVerificationOrResidentKey;
         default:
-            console.error(`Unhandled DOMException occurred during WebAuthN attestation: ${exception}`);
+            console.error(`Unhandled DOMException occurred during WebAuthn attestation: ${exception}`);
             return AttestationResult.FailureUnknown;
     }
 }
@@ -99,7 +99,7 @@ function getAssertionResultFromDOMException(
                 return AssertionResult.FailureUnknownSecurity;
             }
         default:
-            console.error(`Unhandled DOMException occurred during WebAuthN assertion: ${exception}`);
+            console.error(`Unhandled DOMException occurred during WebAuthn assertion: ${exception}`);
             return AssertionResult.FailureUnknown;
     }
 }
