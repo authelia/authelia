@@ -1884,11 +1884,11 @@ func TestValidateOIDCClients(t *testing.T) {
 			"ShouldRaiseErrorOnInvalidTokenAuthAlgClientTypeConfidential",
 			func(have *schema.OpenIDConnectConfiguration) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
-				have.Clients[0].TokenEndpointAuthSigningAlg = "abcinvalid"
+				have.Clients[0].TokenEndpointAuthSigningAlg = "abc"
 				have.Clients[0].Secret = MustDecodeSecret("$plaintext$abc123")
 			},
 			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
-				assert.Equal(t, "abcinvalid", have.Clients[0].TokenEndpointAuthSigningAlg)
+				assert.Equal(t, "abc", have.Clients[0].TokenEndpointAuthSigningAlg)
 			},
 			tcv{
 				nil,
