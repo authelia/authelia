@@ -46,8 +46,8 @@ type TOTPConfigurationJSON struct {
 	Period     int        `json:"period"`
 }
 
-// MarshalJSON returns the WebauthnDevice in a JSON friendly manner.
-func (c TOTPConfiguration) MarshalJSON() (data []byte, err error) {
+// MarshalJSON returns the TOTPConfiguration in a JSON friendly manner.
+func (c *TOTPConfiguration) MarshalJSON() (data []byte, err error) {
 	o := TOTPConfigurationJSON{
 		CreatedAt: c.CreatedAt,
 		Issuer:    c.Issuer,
