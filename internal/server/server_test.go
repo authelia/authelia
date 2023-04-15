@@ -200,7 +200,7 @@ func TestShouldRaiseErrorWhenClientDoesNotSkipVerify(t *testing.T) {
 
 	defer tlsServerContext.Close()
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://local.example.com:%d", tlsServerContext.Port()), nil)
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("https://local.example.com:%d", tlsServerContext.Port()), nil)
 	require.NoError(t, err)
 
 	_, err = http.DefaultClient.Do(req)
@@ -228,7 +228,7 @@ func TestShouldServeOverTLSWhenClientDoesSkipVerify(t *testing.T) {
 
 	defer tlsServerContext.Close()
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://local.example.com:%d/api/notfound", tlsServerContext.Port()), nil)
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("https://local.example.com:%d/api/notfound", tlsServerContext.Port()), nil)
 	require.NoError(t, err)
 
 	tr := &http.Transport{
@@ -265,7 +265,7 @@ func TestShouldServeOverTLSWhenClientHasProperRootCA(t *testing.T) {
 
 	defer tlsServerContext.Close()
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://local.example.com:%d/api/notfound", tlsServerContext.Port()), nil)
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("https://local.example.com:%d/api/notfound", tlsServerContext.Port()), nil)
 	require.NoError(t, err)
 
 	block, _ := pem.Decode(certificateContext.Certificates[0].CertificatePEM)
@@ -317,7 +317,7 @@ func TestShouldRaiseWhenMutualTLSIsConfiguredAndClientIsNotAuthenticated(t *test
 
 	defer tlsServerContext.Close()
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://local.example.com:%d/api/notfound", tlsServerContext.Port()), nil)
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("https://local.example.com:%d/api/notfound", tlsServerContext.Port()), nil)
 	require.NoError(t, err)
 
 	// Create a root CA for the client to properly validate server cert.
@@ -360,7 +360,7 @@ func TestShouldServeProperlyWhenMutualTLSIsConfiguredAndClientIsAuthenticated(t 
 
 	defer tlsServerContext.Close()
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://local.example.com:%d/api/notfound", tlsServerContext.Port()), nil)
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("https://local.example.com:%d/api/notfound", tlsServerContext.Port()), nil)
 	require.NoError(t, err)
 
 	// Create a root CA for the client to properly validate server cert.

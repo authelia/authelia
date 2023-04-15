@@ -10,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -116,7 +117,7 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 
 		if resp.err == nil {
 			t.Run("expected status code", func(t *testing.T) {
-				assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+				assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 			})
 
 			actualPreferences := model.UserInfo{}
@@ -140,7 +141,7 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 			})
 		} else {
 			t.Run("expected status code", func(t *testing.T) {
-				assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+				assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 			})
 
 			errResponse := mock.GetResponseError(t)
@@ -310,7 +311,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 
 			if resp.loadErr == nil && resp.saveErr == nil {
 				t.Run(fmt.Sprintf("%s/%s", resp.description, "expected status code"), func(t *testing.T) {
-					assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+					assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 				})
 
 				actualPreferences := model.UserInfo{}
@@ -334,7 +335,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 				})
 			} else {
 				t.Run("expected status code", func(t *testing.T) {
-					assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+					assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 				})
 
 				errResponse := mock.GetResponseError(t)
@@ -440,7 +441,7 @@ func (s *SaveSuite) TestShouldReturn200WhenMethodIsSuccessfullySaved() {
 
 	MethodPreferencePOST(s.mock.Ctx)
 
-	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 }
 
 func TestSaveSuite(t *testing.T) {

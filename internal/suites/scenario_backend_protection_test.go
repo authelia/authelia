@@ -75,7 +75,7 @@ func (s *BackendProtectionScenario) TestInvalidEndpointsReturn404() {
 }
 
 func (s *BackendProtectionScenario) TestInvalidEndpointsReturn405() {
-	s.AssertRequestStatusCode(fasthttp.MethodPut, fmt.Sprintf("%s/api/configuration", AutheliaBaseURL), 405)
+	s.AssertRequestStatusCode(fasthttp.MethodPut, fmt.Sprintf("%s/api/configuration", AutheliaBaseURL), fasthttp.StatusMethodNotAllowed)
 }
 
 func TestRunBackendProtection(t *testing.T) {
