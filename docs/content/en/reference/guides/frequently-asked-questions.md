@@ -14,4 +14,4 @@ toc: true
 
 ## Identity Providers
 
-- [OpenID Connect 1.0 Integration](../../integration/openid-connect/specific-information.md#frequently-asked-questions)
+- [OpenID Connect 1.0 Integration](../../integration/openid-connect/frequently-asked-questions.md)
