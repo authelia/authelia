@@ -18,7 +18,6 @@ type LDAPClientFactory interface {
 //
 // Methods added to this interface that have a direct correlation with one from ldap.Client should have the same signature.
 type LDAPClient interface {
-	Start()
 	Close()
 	IsClosing() bool
 	SetTimeout(timeout time.Duration)
