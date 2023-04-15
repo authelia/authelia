@@ -48,32 +48,32 @@ func (s *BackendProtectionScenario) AssertRequestStatusCode(method, url string, 
 }
 
 func (s *BackendProtectionScenario) TestProtectionOfBackendEndpoints() {
-	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/secondfactor/totp", AutheliaBaseURL), 403)
-	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/secondfactor/webauthn/assertion", AutheliaBaseURL), 403)
-	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/secondfactor/webauthn/attestation", AutheliaBaseURL), 403)
-	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/user/info/2fa_method", AutheliaBaseURL), 403)
+	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/secondfactor/totp", AutheliaBaseURL), fasthttp.StatusForbidden)
+	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/secondfactor/webauthn/assertion", AutheliaBaseURL), fasthttp.StatusForbidden)
+	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/secondfactor/webauthn/attestation", AutheliaBaseURL), fasthttp.StatusForbidden)
+	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/user/info/2fa_method", AutheliaBaseURL), fasthttp.StatusForbidden)
 
-	s.AssertRequestStatusCode(fasthttp.MethodGet, fmt.Sprintf("%s/api/user/info", AutheliaBaseURL), 403)
-	s.AssertRequestStatusCode(fasthttp.MethodGet, fmt.Sprintf("%s/api/configuration", AutheliaBaseURL), 403)
+	s.AssertRequestStatusCode(fasthttp.MethodGet, fmt.Sprintf("%s/api/user/info", AutheliaBaseURL), fasthttp.StatusForbidden)
+	s.AssertRequestStatusCode(fasthttp.MethodGet, fmt.Sprintf("%s/api/configuration", AutheliaBaseURL), fasthttp.StatusForbidden)
 
-	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/secondfactor/totp/identity/start", AutheliaBaseURL), 403)
-	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/secondfactor/totp/identity/finish", AutheliaBaseURL), 403)
-	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/secondfactor/webauthn/identity/start", AutheliaBaseURL), 403)
-	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/secondfactor/webauthn/identity/finish", AutheliaBaseURL), 403)
+	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/secondfactor/totp/identity/start", AutheliaBaseURL), fasthttp.StatusForbidden)
+	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/secondfactor/totp/identity/finish", AutheliaBaseURL), fasthttp.StatusForbidden)
+	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/secondfactor/webauthn/identity/start", AutheliaBaseURL), fasthttp.StatusForbidden)
+	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/secondfactor/webauthn/identity/finish", AutheliaBaseURL), fasthttp.StatusForbidden)
 }
 
 func (s *BackendProtectionScenario) TestInvalidEndpointsReturn404() {
-	s.AssertRequestStatusCode(fasthttp.MethodGet, fmt.Sprintf("%s/api/not_existing", AutheliaBaseURL), 404)
-	s.AssertRequestStatusCode(fasthttp.MethodHead, fmt.Sprintf("%s/api/not_existing", AutheliaBaseURL), 404)
-	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/not_existing", AutheliaBaseURL), 404)
+	s.AssertRequestStatusCode(fasthttp.MethodGet, fmt.Sprintf("%s/api/not_existing", AutheliaBaseURL), fasthttp.StatusNotFound)
+	s.AssertRequestStatusCode(fasthttp.MethodHead, fmt.Sprintf("%s/api/not_existing", AutheliaBaseURL), fasthttp.StatusNotFound)
+	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/not_existing", AutheliaBaseURL), fasthttp.StatusNotFound)
 
-	s.AssertRequestStatusCode(fasthttp.MethodGet, fmt.Sprintf("%s/api/not_existing/second", AutheliaBaseURL), 404)
-	s.AssertRequestStatusCode(fasthttp.MethodHead, fmt.Sprintf("%s/api/not_existing/second", AutheliaBaseURL), 404)
-	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/not_existing/second", AutheliaBaseURL), 404)
+	s.AssertRequestStatusCode(fasthttp.MethodGet, fmt.Sprintf("%s/api/not_existing/second", AutheliaBaseURL), fasthttp.StatusNotFound)
+	s.AssertRequestStatusCode(fasthttp.MethodHead, fmt.Sprintf("%s/api/not_existing/second", AutheliaBaseURL), fasthttp.StatusNotFound)
+	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/not_existing/second", AutheliaBaseURL), fasthttp.StatusNotFound)
 }
 
 func (s *BackendProtectionScenario) TestInvalidEndpointsReturn405() {
-	s.AssertRequestStatusCode("PUT", fmt.Sprintf("%s/api/configuration", AutheliaBaseURL), 405)
+	s.AssertRequestStatusCode(fasthttp.MethodPut, fmt.Sprintf("%s/api/configuration", AutheliaBaseURL), fasthttp.StatusMethodNotAllowed)
 }
 
 func TestRunBackendProtection(t *testing.T) {

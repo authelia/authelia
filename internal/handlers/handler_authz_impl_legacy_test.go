@@ -477,7 +477,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuth() { // TestShouldVeri
 	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	mock.Ctx.QueryArgs().Add("auth", "basic")
-	mock.Ctx.Request.Header.Set("Authorization", "Basic am9objpwYXNzd29yZA==")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
 
 	gomock.InOrder(
@@ -510,19 +510,19 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 		{
 			"HeaderEmpty", // TestShouldVerifyAuthBasicArgFailingEmptyHeader.
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.Ctx.Request.Header.Set("Authorization", "")
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "")
 			},
 		},
 		{
 			"HeaderIncorrect", // TestShouldVerifyAuthBasicArgFailingWrongHeader.
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 			},
 		},
 		{
 			"IncorrectPassword", // TestShouldVerifyAuthBasicArgFailingWrongPassword.
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.Ctx.Request.Header.Set("Authorization", "Basic am9objpwYXNzd29yZA==")
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
 
 				mock.UserProviderMock.EXPECT().
 					CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
@@ -532,7 +532,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 		{
 			"NoAccess", // TestShouldVerifyAuthBasicArgFailingWrongPassword.
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.Ctx.Request.Header.Set("Authorization", "Basic am9objpwYXNzd29yZA==")
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com/")
 
 				gomock.InOrder(
