@@ -49,8 +49,7 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 				}
 			}
 
-			client, err = p.Store.GetClient(ctx, clientID)
-			if err != nil {
+			if client, err = p.Store.GetClient(ctx, clientID); err != nil {
 				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithWrap(err).WithDebug(err.Error()))
 			}
 
@@ -114,11 +113,13 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 
 		claims := token.Claims
 
+		tokenURL := p.Config.GetTokenURL(ctx)
+
 		var jti string
 
 		if !claims.VerifyIssuer(clientID, true) {
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'iss' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client."))
-		} else if p.Config.GetTokenURL(ctx) == "" {
+		} else if tokenURL == "" {
 			return nil, errorsx.WithStack(fosite.ErrMisconfiguration.WithHint("The authorization server's token endpoint URL has not been set."))
 		} else if sub, ok := claims[ClaimSubject].(string); !ok || sub != clientID {
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'sub' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client."))
@@ -151,22 +152,19 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 			return nil, err
 		}
 
-		if auds, ok := claims[ClaimAudience].([]any); !ok {
-			if !claims.VerifyAudience(p.Config.GetTokenURL(ctx), true) {
-				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("Claim 'audience' from 'client_assertion' must match the authorization server's token endpoint '%s'.", p.Config.GetTokenURL(ctx)))
-			}
-		} else {
-			var found bool
+		var found bool
+
+		if auds, ok := claims[ClaimAudience].([]any); ok {
 			for _, aud := range auds {
-				if a, ok := aud.(string); ok && a == p.Config.GetTokenURL(ctx) {
+				if a, ok := aud.(string); ok && a == tokenURL {
 					found = true
 					break
 				}
 			}
+		}
 
-			if !found {
-				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("Claim 'audience' from 'client_assertion' must match the authorization server's token endpoint '%s'.", p.Config.GetTokenURL(ctx)))
-			}
+		if !found {
+			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("Claim 'audience' from 'client_assertion' must match the authorization server's token endpoint '%s'.", tokenURL))
 		}
 
 		return client, nil
@@ -190,7 +188,7 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The OAuth 2.0 Client supports client authentication method '%s', but method 'client_secret_post' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'client_secret_post'.", method))
 		} else if _, secret, basicOk := r.BasicAuth(); basicOk && ok && secret != "" && method != ClientAuthMethodClientSecretBasic {
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The OAuth 2.0 Client supports client authentication method '%s', but method 'client_secret_basic' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'client_secret_basic'.", method))
-		} else if ok && oidcClient.GetTokenEndpointAuthMethod() != ClientAuthMethodNone && client.IsPublic() {
+		} else if ok && method != ClientAuthMethodNone && client.IsPublic() {
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The OAuth 2.0 Client supports client authentication method '%s', but method 'none' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'none'.", method))
 		}
 	}
