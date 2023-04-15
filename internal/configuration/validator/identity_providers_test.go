@@ -1,15 +1,12 @@
 package validator
 
 import (
-	"crypto/ecdsa"
-	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"net/url"
-	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -33,7 +30,7 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 2)
 
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option 'issuer_private_key' or `issuer_jwks` is required")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option 'issuer_private_key' is required")
 	assert.EqualError(t, validator.Errors()[1], "identity_providers: oidc: option 'clients' must have one or more clients configured")
 }
 
@@ -42,14 +39,14 @@ func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: keyRSA2048,
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 			CORS: schema.OpenIDConnectCORSConfiguration{
 				Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo},
 			},
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "example",
-					Secret: tOpenIDConnectPlainTextClientSecret,
+					Secret: MustDecodeSecret("$plaintext$example"),
 				},
 			},
 		},
@@ -65,14 +62,14 @@ func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: keyRSA2048,
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 			CORS: schema.OpenIDConnectCORSConfiguration{
 				Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, "invalid_endpoint"},
 			},
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "example",
-					Secret: tOpenIDConnectPlainTextClientSecret,
+					Secret: MustDecodeSecret("$plaintext$example"),
 				},
 			},
 		},
@@ -90,7 +87,7 @@ func TestShouldRaiseErrorWhenOIDCPKCEEnforceValueInvalid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: keyRSA2048,
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 			EnforcePKCE:      testInvalid,
 		},
 	}
@@ -109,7 +106,7 @@ func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: keyRSA2048,
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 			CORS: schema.OpenIDConnectCORSConfiguration{
 				AllowedOrigins:                       utils.URLsFromStringSlice([]string{"https://example.com/", "https://site.example.com/subpath", "https://site.example.com?example=true", "*"}),
 				AllowedOriginsFromClientRedirectURIs: true,
@@ -117,7 +114,7 @@ func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:           "myclient",
-					Secret:       tOpenIDConnectPlainTextClientSecret,
+					Secret:       MustDecodeSecret("$plaintext$jk12nb3klqwmnelqkwenm"),
 					Policy:       "two_factor",
 					RedirectURIs: []string{"https://example.com/oauth2_callback", "https://localhost:566/callback", "http://an.example.com/callback", "file://a/file"},
 				},
@@ -144,7 +141,7 @@ func TestShouldRaiseErrorWhenOIDCServerNoClients(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: keyRSA2048,
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 		},
 	}
 
@@ -190,7 +187,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-1",
-					Secret: tOpenIDConnectPlainTextClientSecret,
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Policy: "a-policy",
 					RedirectURIs: []string{
 						"https://google.com",
@@ -206,13 +203,13 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:           "client-x",
-					Secret:       tOpenIDConnectPlainTextClientSecret,
+					Secret:       MustDecodeSecret("$plaintext$a-secret"),
 					Policy:       policyTwoFactor,
 					RedirectURIs: []string{},
 				},
 				{
 					ID:           "client-x",
-					Secret:       tOpenIDConnectPlainTextClientSecret,
+					Secret:       MustDecodeSecret("$plaintext$a-secret"),
 					Policy:       policyTwoFactor,
 					RedirectURIs: []string{},
 				},
@@ -226,7 +223,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-check-uri-parse",
-					Secret: tOpenIDConnectPlainTextClientSecret,
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"http://abc@%two",
@@ -242,7 +239,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-check-uri-abs",
-					Secret: tOpenIDConnectPlainTextClientSecret,
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"google.com",
@@ -258,7 +255,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-valid-sector",
-					Secret: tOpenIDConnectPlainTextClientSecret,
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
@@ -272,7 +269,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-valid-sector",
-					Secret: tOpenIDConnectPlainTextClientSecret,
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
@@ -286,7 +283,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-invalid-sector",
-					Secret: tOpenIDConnectPlainTextClientSecret,
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
@@ -308,7 +305,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-invalid-sector",
-					Secret: tOpenIDConnectPlainTextClientSecret,
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
@@ -325,7 +322,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-bad-consent-mode",
-					Secret: tOpenIDConnectPlainTextClientSecret,
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
@@ -342,7 +339,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-bad-pkce-mode",
-					Secret: tOpenIDConnectPlainTextClientSecret,
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
@@ -359,7 +356,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-bad-pkce-mode-s256",
-					Secret: tOpenIDConnectPlainTextClientSecret,
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
@@ -379,7 +376,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			config := &schema.IdentityProvidersConfiguration{
 				OIDC: &schema.OpenIDConnectConfiguration{
 					HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-					IssuerPrivateKey: keyRSA2048,
+					IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 					Clients:          tc.Clients,
 				},
 			}
@@ -403,11 +400,11 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadScopes(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: keyRSA2048,
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "good_id",
-					Secret: tOpenIDConnectPlainTextClientSecret,
+					Secret: MustDecodeSecret("$plaintext$good_secret"),
 					Policy: "two_factor",
 					Scopes: []string{"openid", "bad_scope"},
 					RedirectURIs: []string{
@@ -429,11 +426,11 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: keyRSA2048,
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:         "good_id",
-					Secret:     tOpenIDConnectPBKDF2ClientSecret,
+					Secret:     MustDecodeSecret(goodOpenIDConnectClientSecret),
 					Policy:     "two_factor",
 					GrantTypes: []string{"bad_grant_type"},
 					RedirectURIs: []string{
@@ -455,12 +452,12 @@ func TestShouldNotErrorOnCertificateValid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:             "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerCertificateChain: certRSA2048,
-			IssuerPrivateKey:       keyRSA2048,
+			IssuerCertificateChain: MustParseX509CertificateChain(testCert1),
+			IssuerPrivateKey:       MustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "good_id",
-					Secret: tOpenIDConnectPBKDF2ClientSecret,
+					Secret: MustDecodeSecret(goodOpenIDConnectClientSecret),
 					Policy: "two_factor",
 					RedirectURIs: []string{
 						"https://google.com/callback",
@@ -481,12 +478,12 @@ func TestShouldRaiseErrorOnCertificateNotValid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:             "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerCertificateChain: certRSA2048,
-			IssuerPrivateKey:       keyRSA4096,
+			IssuerCertificateChain: MustParseX509CertificateChain(testCert1),
+			IssuerPrivateKey:       MustParseRSAPrivateKey(testKey2),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "good_id",
-					Secret: tOpenIDConnectPBKDF2ClientSecret,
+					Secret: MustDecodeSecret(goodOpenIDConnectClientSecret),
 					Policy: "two_factor",
 					RedirectURIs: []string{
 						"https://google.com/callback",
@@ -501,7 +498,115 @@ func TestShouldRaiseErrorOnCertificateNotValid(t *testing.T) {
 	assert.Len(t, validator.Warnings(), 0)
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: issuer_jwks: key #1 with key id '9c7423': option 'key' does not appear to be the private key the certificate provided by option 'certificate_chain'")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option 'issuer_private_key' does not appear to be the private key the certificate provided by option 'issuer_certificate_chain'")
+}
+
+func TestShouldRaiseErrorOnKeySizeTooSmall(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.IdentityProvidersConfiguration{
+		OIDC: &schema.OpenIDConnectConfiguration{
+			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey3),
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "good_id",
+					Secret: MustDecodeSecret(goodOpenIDConnectClientSecret),
+					Policy: "two_factor",
+					RedirectURIs: []string{
+						"https://google.com/callback",
+					},
+				},
+			},
+		},
+	}
+
+	ValidateIdentityProviders(config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option 'issuer_private_key' must be an RSA private key with 2048 bits or more but it only has 1024 bits")
+}
+
+func TestShouldRaiseErrorOnKeyInvalidPublicKey(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.IdentityProvidersConfiguration{
+		OIDC: &schema.OpenIDConnectConfiguration{
+			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey3),
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "good_id",
+					Secret: MustDecodeSecret(goodOpenIDConnectClientSecret),
+					Policy: "two_factor",
+					RedirectURIs: []string{
+						"https://google.com/callback",
+					},
+				},
+			},
+		},
+	}
+
+	config.OIDC.IssuerPrivateKey.PublicKey.N = nil
+
+	ValidateIdentityProviders(config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option 'issuer_private_key' must be a valid RSA private key but the provided data is missing the public key bits")
+}
+
+func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseModes(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.IdentityProvidersConfiguration{
+		OIDC: &schema.OpenIDConnectConfiguration{
+			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:            "good_id",
+					Secret:        MustDecodeSecret("$plaintext$good_secret"),
+					Policy:        "two_factor",
+					ResponseModes: []string{"bad_responsemode"},
+					RedirectURIs: []string{
+						"https://google.com/callback",
+					},
+				},
+			},
+		},
+	}
+
+	ValidateIdentityProviders(config, validator)
+
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: client 'good_id': option 'response_modes' must only have the values 'form_post', 'query', or 'fragment' but the values 'bad_responsemode' are present")
+}
+
+func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadUserinfoAlg(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.IdentityProvidersConfiguration{
+		OIDC: &schema.OpenIDConnectConfiguration{
+			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:                       "good_id",
+					Secret:                   MustDecodeSecret("$plaintext$good_secret"),
+					Policy:                   "two_factor",
+					UserinfoSigningAlgorithm: "rs256",
+					RedirectURIs: []string{
+						"https://google.com/callback",
+					},
+				},
+			},
+		},
+	}
+
+	ValidateIdentityProviders(config, validator)
+
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: client 'good_id': option 'userinfo_signing_algorithm' must be one of 'none' or 'RS256' but it's configured as 'rs256'")
 }
 
 func TestValidateIdentityProvidersShouldRaiseWarningOnSecurityIssue(t *testing.T) {
@@ -509,12 +614,12 @@ func TestValidateIdentityProvidersShouldRaiseWarningOnSecurityIssue(t *testing.T
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:              "abc",
-			IssuerPrivateKey:        keyRSA2048,
+			IssuerPrivateKey:        MustParseRSAPrivateKey(testKey1),
 			MinimumParameterEntropy: 1,
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "good_id",
-					Secret: tOpenIDConnectPBKDF2ClientSecret,
+					Secret: MustDecodeSecret(goodOpenIDConnectClientSecret),
 					Policy: "two_factor",
 					RedirectURIs: []string{
 						"https://google.com/callback",
@@ -537,11 +642,11 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testi
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "hmac1",
-			IssuerPrivateKey: keyRSA2048,
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-with-invalid-secret",
-					Secret: tOpenIDConnectPlainTextClientSecret,
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Public: true,
 					Policy: "two_factor",
 					RedirectURIs: []string{
@@ -550,7 +655,7 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testi
 				},
 				{
 					ID:     "client-with-bad-redirect-uri",
-					Secret: tOpenIDConnectPBKDF2ClientSecret,
+					Secret: MustDecodeSecret(goodOpenIDConnectClientSecret),
 					Public: false,
 					Policy: "two_factor",
 					RedirectURIs: []string{
@@ -575,7 +680,7 @@ func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidClientOptions(t *te
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "hmac1",
-			IssuerPrivateKey: keyRSA2048,
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "installed-app-client",
@@ -634,11 +739,11 @@ func TestValidateIdentityProvidersShouldRaiseWarningOnPlainTextClients(t *testin
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "hmac1",
-			IssuerPrivateKey: keyRSA2048,
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-with-invalid-secret_standard",
-					Secret: tOpenIDConnectPlainTextClientSecret,
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Policy: "two_factor",
 					RedirectURIs: []string{
 						"https://localhost",
@@ -1469,7 +1574,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			"ShouldSetDefaultUserInfoAlg",
 			nil,
 			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
-				assert.Equal(t, oidc.SigningAlgNone, have.Clients[0].UserinfoSigningAlg)
+				assert.Equal(t, oidc.SigningAlgNone, have.Clients[0].UserinfoSigningAlgorithm)
 			},
 			tcv{
 				nil,
@@ -1489,10 +1594,10 @@ func TestValidateOIDCClients(t *testing.T) {
 		{
 			"ShouldNotOverrideUserInfoAlg",
 			func(have *schema.OpenIDConnectConfiguration) {
-				have.Clients[0].UserinfoSigningAlg = oidc.SigningAlgRSAUsingSHA256
+				have.Clients[0].UserinfoSigningAlgorithm = oidc.SigningAlgRSAUsingSHA256
 			},
 			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
-				assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, have.Clients[0].UserinfoSigningAlg)
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, have.Clients[0].UserinfoSigningAlgorithm)
 			},
 			tcv{
 				nil,
@@ -1512,10 +1617,10 @@ func TestValidateOIDCClients(t *testing.T) {
 		{
 			"ShouldRaiseErrorOnInvalidUserInfoAlg",
 			func(have *schema.OpenIDConnectConfiguration) {
-				have.Clients[0].UserinfoSigningAlg = "rs256"
+				have.Clients[0].UserinfoSigningAlgorithm = "rs256"
 			},
 			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
-				assert.Equal(t, "rs256", have.Clients[0].UserinfoSigningAlg)
+				assert.Equal(t, "rs256", have.Clients[0].UserinfoSigningAlgorithm)
 			},
 			tcv{
 				nil,
@@ -1531,7 +1636,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 			nil,
 			[]string{
-				"identity_providers: oidc: client 'test': option 'userinfo_signing_algorithm' must be one of 'RS256' or 'none' but it's configured as 'rs256'",
+				"identity_providers: oidc: client 'test': option 'userinfo_signing_algorithm' must be one of 'none' or 'RS256' but it's configured as 'rs256'",
 			},
 		},
 		{
@@ -1681,52 +1786,6 @@ func TestValidateOIDCClients(t *testing.T) {
 			"ShouldRaiseErrorOnIncorrectlyConfiguredTokenEndpointClientAuthMethodClientSecretJWT",
 			func(have *schema.OpenIDConnectConfiguration) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
-				have.Clients[0].Secret = tOpenIDConnectPBKDF2ClientSecret
-			},
-			nil,
-			tcv{
-				nil,
-				nil,
-				nil,
-				nil,
-			},
-			tcv{
-				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
-				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
-				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
-				[]string{oidc.GrantTypeAuthorizationCode},
-			},
-			nil,
-			[]string{
-				"identity_providers: oidc: client 'test': option 'secret' must be plaintext with option 'token_endpoint_auth_method' with a value of 'client_secret_jwt'",
-			},
-		},
-		{
-			"ShouldNotRaiseWarningOrErrorOnCorrectlyConfiguredTokenEndpointClientAuthMethodClientSecretJWT",
-			func(have *schema.OpenIDConnectConfiguration) {
-				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
-				have.Clients[0].Secret = tOpenIDConnectPlainTextClientSecret
-			},
-			nil,
-			tcv{
-				nil,
-				nil,
-				nil,
-				nil,
-			},
-			tcv{
-				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
-				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
-				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
-				[]string{oidc.GrantTypeAuthorizationCode},
-			},
-			nil,
-			nil,
-		},
-		{
-			"ShouldRaiseErrorOnIncorrectlyConfiguredTokenEndpointClientAuthMethodClientSecretJWT",
-			func(have *schema.OpenIDConnectConfiguration) {
-				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
 				have.Clients[0].Secret = MustDecodeSecret("$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng")
 			},
 			nil,
@@ -1773,7 +1832,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			"ShouldSetDefaultTokenEndpointAuthSigAlg",
 			func(have *schema.OpenIDConnectConfiguration) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
-				have.Clients[0].Secret = tOpenIDConnectPlainTextClientSecret
+				have.Clients[0].Secret = MustDecodeSecret("$plaintext$abc123")
 			},
 			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
 				assert.Equal(t, oidc.SigningAlgHMACUsingSHA256, have.Clients[0].TokenEndpointAuthSigningAlg)
@@ -1825,11 +1884,11 @@ func TestValidateOIDCClients(t *testing.T) {
 			"ShouldRaiseErrorOnInvalidTokenAuthAlgClientTypeConfidential",
 			func(have *schema.OpenIDConnectConfiguration) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
-				have.Clients[0].TokenEndpointAuthSigningAlg = oidc.EndpointToken
-				have.Clients[0].Secret = tOpenIDConnectPlainTextClientSecret
+				have.Clients[0].TokenEndpointAuthSigningAlg = "abc"
+				have.Clients[0].Secret = MustDecodeSecret("$plaintext$abc123")
 			},
 			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
-				assert.Equal(t, oidc.EndpointToken, have.Clients[0].TokenEndpointAuthSigningAlg)
+				assert.Equal(t, "abc", have.Clients[0].TokenEndpointAuthSigningAlg)
 			},
 			tcv{
 				nil,
@@ -1855,13 +1914,10 @@ func TestValidateOIDCClients(t *testing.T) {
 	for _, tc := range testCasses {
 		t.Run(tc.name, func(t *testing.T) {
 			have := &schema.OpenIDConnectConfiguration{
-				Discovery: schema.OpenIDConnectDiscovery{
-					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
-				},
 				Clients: []schema.OpenIDConnectClientConfiguration{
 					{
 						ID:            "test",
-						Secret:        tOpenIDConnectPBKDF2ClientSecret,
+						Secret:        MustDecodeSecret("$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng"),
 						Scopes:        tc.have.Scopes,
 						ResponseModes: tc.have.ResponseModes,
 						ResponseTypes: tc.have.ResponseTypes,
@@ -1961,388 +2017,6 @@ func TestValidateOIDCClientTokenEndpointAuthMethod(t *testing.T) {
 	}
 }
 
-func TestValidateOIDCIssuer(t *testing.T) {
-	frankenchain := schema.NewX509CertificateChainFromCerts([]*x509.Certificate{certRSA2048.Leaf(), certRSA1024.Leaf()})
-	frankenkey := &rsa.PrivateKey{}
-
-	*frankenkey = *keyRSA2048
-
-	frankenkey.PublicKey.N = nil
-
-	testCases := []struct {
-		name     string
-		have     schema.OpenIDConnectConfiguration
-		expected schema.OpenIDConnectConfiguration
-		errs     []string
-	}{
-		{
-			"ShouldMapLegacyConfiguration",
-			schema.OpenIDConnectConfiguration{
-				IssuerPrivateKey: keyRSA2048,
-			},
-			schema.OpenIDConnectConfiguration{
-				IssuerPrivateKey: keyRSA2048,
-				IssuerJWKS: []schema.JWK{
-					{KeyID: "e7dfdc", Key: keyRSA2048, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
-				},
-				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:             "e7dfdc",
-					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
-				},
-			},
-			nil,
-		},
-		{
-			"ShouldSetDefaultKeyValues",
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA2048, CertificateChain: certRSA2048},
-					{Key: keyECDSAP256, CertificateChain: certECDSAP256},
-					{Key: keyECDSAP384, CertificateChain: certECDSAP384},
-					{Key: keyECDSAP521, CertificateChain: certECDSAP521},
-				},
-			},
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "e7dfdc"},
-					{Key: keyECDSAP256, CertificateChain: certECDSAP256, Algorithm: oidc.SigningAlgECDSAUsingP256AndSHA256, Use: oidc.KeyUseSignature, KeyID: "29b3f2"},
-					{Key: keyECDSAP384, CertificateChain: certECDSAP384, Algorithm: oidc.SigningAlgECDSAUsingP384AndSHA384, Use: oidc.KeyUseSignature, KeyID: "e968b4"},
-					{Key: keyECDSAP521, CertificateChain: certECDSAP521, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature, KeyID: "6b20c3"},
-				},
-				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:             "e7dfdc",
-					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512},
-				},
-			},
-			nil,
-		},
-		{
-			"ShouldRaiseErrorsDuplicateRSA256Keys",
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA2048, CertificateChain: certRSA2048},
-					{Key: keyRSA4096, CertificateChain: certRSA4096},
-				},
-			},
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "e7dfdc"},
-					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "9c7423"},
-				},
-				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:             "e7dfdc",
-					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
-				},
-			},
-			[]string{
-				"identity_providers: oidc: issuer_jwks: key #2 with key id '9c7423': option 'algorithm' must be unique but another key is using it",
-			},
-		},
-		{
-			"ShouldRaiseErrorsDuplicateRSA256Keys",
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA512},
-				},
-			},
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA512, Use: oidc.KeyUseSignature, KeyID: "9c7423"},
-				},
-				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:             "",
-					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA512},
-				},
-			},
-			[]string{
-				"identity_providers: oidc: issuer_jwks: keys: must at least have one key supporting the 'RS256' algorithm but only has 'RS512'",
-			},
-		},
-		{
-			"ShouldRaiseErrorOnBadCurve",
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096},
-					{Key: keyECDSAP224, CertificateChain: certECDSAP224},
-				},
-			},
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "9c7423"},
-					{Key: keyECDSAP224, CertificateChain: certECDSAP224},
-				},
-				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:             "9c7423",
-					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
-				},
-			},
-			[]string{
-				"identity_providers: oidc: issuer_jwks: key #2: option 'key' failed to calculate thumbprint to configure key id value: square/go-jose: unsupported/unknown elliptic curve",
-			},
-		},
-		{
-			"ShouldRaiseErrorOnBadRSAKey",
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA1024, CertificateChain: certRSA1024},
-				},
-			},
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA1024, CertificateChain: certRSA1024, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "a9c018"},
-				},
-				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:             "a9c018",
-					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
-				},
-			},
-			[]string{
-				"identity_providers: oidc: issuer_jwks: key #1 with key id 'a9c018': option 'key' is an RSA 1024 bit private key but it must be a RSA 2048 bit private key",
-			},
-		},
-		{
-			"ShouldRaiseErrorOnBadAlg",
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: "invalid"},
-				},
-			},
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: "invalid", Use: oidc.KeyUseSignature, KeyID: "9c7423"},
-				},
-				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:             "",
-					RegisteredJWKSigningAlgs: []string{"invalid"},
-				},
-			},
-			[]string{
-				"identity_providers: oidc: issuer_jwks: key #1 with key id '9c7423': option 'algorithm' must be one of 'RS256', 'PS256', 'ES256', 'RS384', 'PS384', 'ES384', 'RS512', 'PS512', or 'ES512' but it's configured as 'invalid'",
-				"identity_providers: oidc: issuer_jwks: keys: must at least have one key supporting the 'RS256' algorithm but only has 'invalid'",
-			},
-		},
-		{
-			"ShouldRaiseErrorOnBadUse",
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096, Use: "invalid"},
-				},
-			},
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: "invalid", KeyID: "9c7423"},
-				},
-				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:             "9c7423",
-					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
-				},
-			},
-			[]string{
-				"identity_providers: oidc: issuer_jwks: key #1 with key id '9c7423': option 'use' must be one of 'sig' but it's configured as 'invalid'",
-			},
-		},
-		{
-			"ShouldRaiseErrorOnBadKeyIDLength",
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "thisistoolong"},
-				},
-			},
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "thisistoolong"},
-				},
-				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:             "thisistoolong",
-					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
-				},
-			},
-			[]string{
-				"identity_providers: oidc: issuer_jwks: key #1 with key id 'thisistoolong': option `key_id`` must be 7 characters or less",
-			},
-		},
-		{
-			"ShouldRaiseErrorOnBadKeyIDCharacters",
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "x@x"},
-				},
-			},
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "x@x"},
-				},
-				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:             "x@x",
-					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
-				},
-			},
-			[]string{
-				"identity_providers: oidc: issuer_jwks: key #1 with key id 'x@x': option 'key_id' must only have alphanumeric characters",
-			},
-		},
-		{
-			"ShouldRaiseErrorOnBadKeyIDDuplicates",
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "x"},
-					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAPSSUsingSHA256, KeyID: "x"},
-				},
-			},
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "x"},
-					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAPSSUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "x"},
-				},
-				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:             "x",
-					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA256},
-				},
-			},
-			[]string{
-				"identity_providers: oidc: issuer_jwks: key #2 with key id 'x': option 'key_id' must be unique",
-			},
-		},
-		{
-			"ShouldRaiseErrorOnEd25519Keys",
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyEd2519, CertificateChain: certEd15519},
-				},
-			},
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyEd2519, CertificateChain: certEd15519, KeyID: "d2dd94"},
-				},
-				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:             "",
-					RegisteredJWKSigningAlgs: []string(nil),
-				},
-			},
-			[]string{
-				"identity_providers: oidc: issuer_jwks: key #1 with key id 'd2dd94': option 'key' must be a *rsa.PrivateKey or *ecdsa.PrivateKey but it's a ed25519.PrivateKey",
-			},
-		},
-		{
-			"ShouldRaiseErrorOnCertificateAsKey",
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: publicRSA2048Pair},
-				},
-			},
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: publicRSA2048Pair, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "904c62"},
-				},
-				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:             "904c62",
-					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
-				},
-			},
-			[]string{
-				"identity_providers: oidc: issuer_jwks: key #1 with key id '904c62': option 'key' must be a *rsa.PrivateKey or *ecdsa.PrivateKey but it's a *rsa.PublicKey",
-			},
-		},
-		{
-			"ShouldRaiseErrorOnInvalidChain",
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA2048, CertificateChain: frankenchain},
-				},
-			},
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: keyRSA2048, CertificateChain: frankenchain, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "e7dfdc"},
-				},
-				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:             "e7dfdc",
-					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
-				},
-			},
-			[]string{
-				"identity_providers: oidc: issuer_jwks: key #1 with key id 'e7dfdc': option 'certificate_chain' produced an error during validation of the chain: certificate #1 in chain is not signed properly by certificate #2 in chain: x509: invalid signature: parent certificate cannot sign this kind of certificate",
-			},
-		},
-		{
-			"ShouldRaiseErrorOnInvalidPrivateKeyN",
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: frankenkey},
-				},
-			},
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: frankenkey},
-				},
-				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:             "",
-					RegisteredJWKSigningAlgs: []string(nil),
-				},
-			},
-			[]string{
-				"identity_providers: oidc: issuer_jwks: key #1: option 'key' must be a valid RSA private key but the provided data is malformed as it's missing the public key bits",
-			},
-		},
-		{
-			"ShouldRaiseErrorOnCertForKey",
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: certRSA2048},
-				},
-			},
-			schema.OpenIDConnectConfiguration{
-				IssuerJWKS: []schema.JWK{
-					{Key: certRSA2048},
-				},
-				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:             "",
-					RegisteredJWKSigningAlgs: []string(nil),
-				},
-			},
-			[]string{
-				"identity_providers: oidc: issuer_jwks: key #1 with key id '': option 'key' failed to get key properties: the key type 'schema.X509CertificateChain' is unknown or not valid for the configuration",
-			},
-		},
-	}
-
-	var n int
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			val := schema.NewStructValidator()
-
-			validateOIDCIssuer(&tc.have, val)
-
-			assert.Equal(t, tc.expected.Discovery.DefaultKeyID, tc.have.Discovery.DefaultKeyID)
-			assert.Equal(t, tc.expected.Discovery.RegisteredJWKSigningAlgs, tc.have.Discovery.RegisteredJWKSigningAlgs)
-			assert.Equal(t, tc.expected.IssuerPrivateKey, tc.have.IssuerPrivateKey)
-			assert.Equal(t, tc.expected.IssuerCertificateChain, tc.have.IssuerCertificateChain)
-
-			n = len(tc.expected.IssuerJWKS)
-
-			require.Len(t, tc.have.IssuerJWKS, n)
-
-			for i := 0; i < n; i++ {
-				t.Run(fmt.Sprintf("Key%d", i), func(t *testing.T) {
-					assert.Equal(t, tc.expected.IssuerJWKS[i].Algorithm, tc.have.IssuerJWKS[i].Algorithm)
-					assert.Equal(t, tc.expected.IssuerJWKS[i].Use, tc.have.IssuerJWKS[i].Use)
-					assert.Equal(t, tc.expected.IssuerJWKS[i].KeyID, tc.have.IssuerJWKS[i].KeyID)
-					assert.Equal(t, tc.expected.IssuerJWKS[i].Key, tc.have.IssuerJWKS[i].Key)
-					assert.Equal(t, tc.expected.IssuerJWKS[i].CertificateChain, tc.have.IssuerJWKS[i].CertificateChain)
-				})
-			}
-
-			n = len(tc.errs)
-
-			require.Len(t, val.Errors(), n)
-
-			for i := 0; i < n; i++ {
-				assert.EqualError(t, val.Errors()[i], tc.errs[i])
-			}
-		})
-	}
-}
-
 func MustDecodeSecret(value string) *schema.PasswordDigest {
 	if secret, err := schema.DecodePasswordDigest(value); err != nil {
 		panic(err)
@@ -2351,153 +2025,128 @@ func MustDecodeSecret(value string) *schema.PasswordDigest {
 	}
 }
 
-func MustLoadCrypto(alg, mod, ext string, extra ...string) any {
-	fparts := []string{alg, mod}
-	if len(extra) != 0 {
-		fparts = append(fparts, extra...)
+func MustParseRSAPrivateKey(data string) *rsa.PrivateKey {
+	block, _ := pem.Decode([]byte(data))
+	if block == nil || block.Bytes == nil || len(block.Bytes) == 0 {
+		panic("not pem encoded")
 	}
 
-	var (
-		data    []byte
-		decoded any
-		err     error
-	)
+	if block.Type != "RSA PRIVATE KEY" {
+		panic("not private key")
+	}
 
-	if data, err = os.ReadFile(fmt.Sprintf(pathCrypto, strings.Join(fparts, "_"), ext)); err != nil {
+	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
 		panic(err)
 	}
 
-	if decoded, err = utils.ParseX509FromPEMRecursive(data); err != nil {
+	return key
+}
+
+func MustParseX509CertificateChain(data string) schema.X509CertificateChain {
+	chain, err := schema.NewX509CertificateChain(data)
+
+	if err != nil {
 		panic(err)
 	}
 
-	return decoded
+	return *chain
 }
 
-func MustLoadCertificateChain(alg, op string) schema.X509CertificateChain {
-	decoded := MustLoadCrypto(alg, op, "crt")
-
-	switch cert := decoded.(type) {
-	case *x509.Certificate:
-		return schema.NewX509CertificateChainFromCerts([]*x509.Certificate{cert})
-	case []*x509.Certificate:
-		return schema.NewX509CertificateChainFromCerts(cert)
-	default:
-		panic(fmt.Errorf("the key was not a *x509.Certificate or []*x509.Certificate, it's a %T", cert))
-	}
-}
-
-func MustLoadCertificate(alg, op string) *x509.Certificate {
-	decoded := MustLoadCrypto(alg, op, "crt")
-
-	cert, ok := decoded.(*x509.Certificate)
-	if !ok {
-		panic(fmt.Errorf("the key was not a *x509.Certificate, it's a %T", cert))
-	}
-
-	return cert
-}
-
-func MustLoadEd15519PrivateKey(curve string, extra ...string) ed25519.PrivateKey {
-	decoded := MustLoadCrypto("ED25519", curve, "pem", extra...)
-
-	key, ok := decoded.(ed25519.PrivateKey)
-	if !ok {
-		panic(fmt.Errorf("the key was not a ed25519.PrivateKey, it's a %T", key))
-	}
-
-	return key
-}
-
-func MustLoadECDSAPrivateKey(curve string, extra ...string) *ecdsa.PrivateKey {
-	decoded := MustLoadCrypto("ECDSA", curve, "pem", extra...)
-
-	key, ok := decoded.(*ecdsa.PrivateKey)
-	if !ok {
-		panic(fmt.Errorf("the key was not a *ecdsa.PrivateKey, it's a %T", key))
-	}
-
-	return key
-}
-
-func MustLoadRSAPublicKey(bits string, extra ...string) *rsa.PublicKey {
-	decoded := MustLoadCrypto("RSA", bits, "pem", extra...)
-
-	key, ok := decoded.(*rsa.PublicKey)
-	if !ok {
-		panic(fmt.Errorf("the key was not a *rsa.PublicKey, it's a %T", key))
-	}
-
-	return key
-}
-
-func MustLoadRSAPrivateKey(bits string, extra ...string) *rsa.PrivateKey {
-	decoded := MustLoadCrypto("RSA", bits, "pem", extra...)
-
-	key, ok := decoded.(*rsa.PrivateKey)
-	if !ok {
-		panic(fmt.Errorf("the key was not a *rsa.PrivateKey, it's a %T", key))
-	}
-
-	return key
-}
-
-const (
-	pathCrypto = "../test_resources/crypto/%s.%s"
-)
-
-//nolint:unused
 var (
-	tOpenIDConnectPBKDF2ClientSecret, tOpenIDConnectPlainTextClientSecret *schema.PasswordDigest
+	testCert1 = `
+-----BEGIN CERTIFICATE-----
+MIIC5jCCAc6gAwIBAgIRAJZ+6KrHw95zIDgm2arCTCgwDQYJKoZIhvcNAQELBQAw
+EzERMA8GA1UEChMIQXV0aGVsaWEwHhcNMjIwOTA4MDIyNDQyWhcNMjMwOTA4MDIy
+NDQyWjATMREwDwYDVQQKEwhBdXRoZWxpYTCCASIwDQYJKoZIhvcNAQEBBQADggEP
+ADCCAQoCggEBAMAE7muDAJtLsV3WgOpjrZ1JD1RlhuSOa3V+4zo2NYFQSdZW18SZ
+fYYgUwLOleEy3VQ3N9MEFh/rWNHYHdsBjDvz/Q1EzAlXqthGd0Sic/UDYtrahrko
+jCSkZCQ5YVO9ivMRth6XdUlu7RHVYY3aSOWPx2wiw9cdN+e4p73W6KwyzT7ezbUD
+0Nng0Z7CNQTLHv3LBsLUODc4aVOvp2B4aAaw6cn990buKMvUuo2ge9gh0c5gIOM5
+dU7xOGAt7RzwCIHnG4CGAWPFuuS215ZeelgQr/9/fhtzDqSuBZw5f10vXnAyBwei
+vN6Kffj2RXB+koFwBguT84A6cfmxWllGNF0CAwEAAaM1MDMwDgYDVR0PAQH/BAQD
+AgWgMBMGA1UdJQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcN
+AQELBQADggEBAFvORjj7RGoIc3q0fv6QjuncZ0Mu1/24O0smCr6tq5d6RQBRpb1M
+jEsbTMLZErrHbyw/DWC75eJhW6T+6HiVTo6brBXkmDL+QGkLgRNOkZla6cnmIpmL
+bf9iPmmcThscQERgYZzNg19zqK8JAQU/6PgU/N6OXTL/mQQoB972ET9dUl7lGx1Q
+2l8XBe8t4QTp4t1xd3c4azxWvFNpzWBjC5eBWiVHLJmFXr4xpcnPFYFETOkvEqwt
+pMQ2x895BoLrep6b+g0xeF4pmmIQwA9KrUVr++gpYaRzytaOIYwcIPMzt9iLWKQe
+6ZSOrTVi8pPugYXp+LhVk/WI7r8EWtyADu0=
+-----END CERTIFICATE-----`
 
-	// Standard RSA key pair.
-	publicRSA2048Pair  *rsa.PublicKey
-	privateRSA2048Pair *rsa.PrivateKey
+	testKey1 = `
+-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEAwATua4MAm0uxXdaA6mOtnUkPVGWG5I5rdX7jOjY1gVBJ1lbX
+xJl9hiBTAs6V4TLdVDc30wQWH+tY0dgd2wGMO/P9DUTMCVeq2EZ3RKJz9QNi2tqG
+uSiMJKRkJDlhU72K8xG2Hpd1SW7tEdVhjdpI5Y/HbCLD1x0357invdborDLNPt7N
+tQPQ2eDRnsI1BMse/csGwtQ4NzhpU6+nYHhoBrDpyf33Ru4oy9S6jaB72CHRzmAg
+4zl1TvE4YC3tHPAIgecbgIYBY8W65LbXll56WBCv/39+G3MOpK4FnDl/XS9ecDIH
+B6K83op9+PZFcH6SgXAGC5PzgDpx+bFaWUY0XQIDAQABAoIBAQClcdpHcglMxOwe
+kRpkWdwWAAQgUJXoSbnW86wu1NRHBfmInyyrrSBVN3aunXbQITZIQIdt3kB94haW
+P6KBt5Svd2saSqOOjSWb0SMkVOCaQ/+h19VqpcASNj4+Y94y+8ZD5ofHVfJtghDr
+Y7H5OhHDEZ3e0xlwODGaCyUkUY4KBv/oIlILoh4phbDYHkZH8AzDnEiyVE1JAWlN
+voAQysgSU7eEnNCi1S07jl5bY+MD3XpJkAfQsJYhqYT/qetStZ12PuXjpbIr3y53
+qjCrKeWTyDN+gOznyIGuiR6nvXeQAw/o9hZiah4RuHXTPs/3GAcRXcuMR0pbgJ+B
+yfX6eLK1AoGBAPKkJKPYJD2NHukAelNbT2OgeDIgJmfOIvLa73/x2hXvWwa4VwIC
+POuKXtT/a02J4pYMGlaKXfHgLmaW2HPObOIjpxqgRIswsiKS1AbaDtkWnhaS1/SJ
+oZ7Fk8DdX+1QT4J/fj/2uxRT0GhXdMxDpK7ekpmRE+APPCGhmOMgmWszAoGBAMqX
+Ts1RdGWgDxLi15rDqdqRBARJG7Om/xC2voXVmbAb4Q+QoNrNeiIAM2usuhrVuj5V
+c16m9fxswRNYqQBYyShDi5wp5a8UjfqDpzJdku2bmrBaL+XVq8PY+oTK6KS3ss8U
+CGQ8P6Phz5JGavn/nDMRZ4EwEWqbEMUqJAJlpmIvAoGAQ9Wj8LJyn0qew6FAkaFL
+dpzcPZdDZW35009l+a0RvWQnXJ+Yo5UglvEeRgoKY6kS0cQccOlKDl8QWdn+NZIW
+WrqA8y6vOwKoKoZGBIxd7k8mb0UqXtFDf/HYtuis8tmrAN7H2vYNo0czUphwrNKU
+bdcHwSsQFWns87IL3iO1AIUCgYBzmBX8jOePPN6c9hXzVoVKEshp8ZT+0uBilwLq
+tk/07lNiYDGH5woy8E5mt62QtjaIbpVfgoCEwUEBWutDKWXNtYypVDabyWyhbhEu
+abn2HX0L9smxqFNTcjCvKF/J7I74HQQUvVPKnIOlgMx1TOXBNcMLMXQekc/lz/+v
+5nQjPQKBgQDjdJABeiy9tU0tzLWUVc5QoQKnlfSJoFLis46REb1yHwU9OjTc05Wx
+5lAXdTjDmnelDdGWNWHjWOiKSkTxhvQD3jXriI5y8Sdxe3zS3ikYvbMbi97GJz0O
+5oyNJo6/froW1dLkJJWR8hg2PQbtoOo6l9HHSd91BnJJ4qFbq9ZrXQ==
+-----END RSA PRIVATE KEY-----`
 
-	// Standard RSA key / certificate pairs.
-	keyRSA1024, keyRSA2048, keyRSA2048PKCS8, keyRSA4096 *rsa.PrivateKey
-	certRSA1024, certRSA2048, certRSA4096               schema.X509CertificateChain
+	testKey2 = `
+-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEA6z1LOg1ZCqb0lytXWZ+MRBpMHEXOoTOLYgfZXt1IYyE3Z758
+cyalk0NYQhY5cZDsXPYWPvAHiPMUxutWkoxFwby56S+AbIMa3/Is+ILrHRJs8Exn
+ZkpyrYFxPX12app2kErdmAkHSx0Z5/kuXiz96PHs8S8/ZbyZolLHzdfLtSzjvRm5
+Zue5iFzsf19NJz5CIBfv8g5lRwtE8wNJoRSpn1xq7fqfuA0weDNFPzjlNWRLy6aa
+rK7qJexRkmkCs4sLgyl+9NODYJpvmN8E1yhyC27E0joI6rBFVW7Ihv+cSPCdDzGp
+EWe81x3AeqAa3mjVqkiq4u4Z2i8JDgBaPboqJwIDAQABAoIBAAFdLZ58jVOefDSU
+L8F5R1rtvBs93GDa56f926jNJ6pLewLC+/2+757W+SAI+PRLntM7Kg3bXm/Q2QH+
+Q1Y+MflZmspbWCdI61L5GIGoYKyeers59i+FpvySj5GHtLQRiTZ0+Kv1AXHSDWBm
+9XneUOqU3IbZe0ifu1RRno72/VtjkGXbW8Mkkw+ohyGbIeTx/0/JQ6sSNZTT3Vk7
+8i4IXptq3HSF0/vqZuah8rShoeNq72pD1YLM9YPdL5by1QkDLnqATDiCpLBTCaNV
+I8sqYEun+HYbQzBj8ZACG2JVZpEEidONWQHw5BPWO95DSZYrVnEkuCqeH+u5vYt7
+CHuJ3AECgYEA+W3v5z+j91w1VPHS0VB3SCDMouycAMIUnJPAbt+0LPP0scUFsBGE
+hPAKddC54pmMZRQ2KIwBKiyWfCrJ8Xz8Yogn7fJgmwTHidJBr2WQpIEkNGlK3Dzi
+jXL2sh0yC7sHvn0DqiQ79l/e7yRbSnv2wrTJEczOOH2haD7/tBRyCYECgYEA8W+q
+E9YyGvEltnPFaOxofNZ8LHVcZSsQI5b6fc0iE7fjxFqeXPXEwGSOTwqQLQRiHn9b
+CfPmIG4Vhyq0otVmlPvUnfBZ2OK+tl5X2/mQFO3ROMdvpi0KYa994uqfJdSTaqLn
+jjoKFB906UFHnDQDLZUNiV1WwnkTglgLc+xrd6cCgYEAqqthyv6NyBTM3Tm2gcio
+Ra9Dtntl51LlXZnvwy3IkDXBCd6BHM9vuLKyxZiziGx+Vy90O1xI872cnot8sINQ
+Am+dur/tAEVN72zxyv0Y8qb2yfH96iKy9gxi5s75TnOEQgAygLnYWaWR2lorKRUX
+bHTdXBOiS58S0UzCFEslGIECgYBqkO4SKWYeTDhoKvuEj2yjRYyzlu28XeCWxOo1
+otiauX0YSyNBRt2cSgYiTzhKFng0m+QUJYp63/wymB/5C5Zmxi0XtWIDADpLhqLj
+HmmBQ2Mo26alQ5YkffBju0mZyhVzaQop1eZi8WuKFV1FThPlB7hc3E0SM5zv2Grd
+tQnOWwKBgQC40yZY0PcjuILhy+sIc0Wvh7LUA7taSdTye149kRvbvsCDN7Jh75lM
+USjhLXY0Nld2zBm9r8wMb81mXH29uvD+tDqqsICvyuKlA/tyzXR+QTr7dCVKVwu0
+1YjCJ36UpTsLre2f8nOSLtNmRfDPtbOE2mkOoO9dD9UU0XZwnvn9xw==
+-----END RSA PRIVATE KEY-----`
 
-	// Standard ECDSA key / certificate pairs.
-	keyECDSAP224, keyECDSAP256, keyECDSAP384, keyECDSAP521     *ecdsa.PrivateKey
-	certECDSAP224, certECDSAP256, certECDSAP384, certECDSAP521 schema.X509CertificateChain
+	testKey3 = `-----BEGIN RSA PRIVATE KEY-----
+MIICXgIBAAKBgQDBi7fdmUmlpWklpgAvNUdhDrpsDVqAHuEzVApK6f6ohYAi0/q2
++YmOwyPKDSrOc6Sy1myJtV3FbZGvYaQhnokc4bnkS9DH0lY+6Hk2vKps5PrhRY/q
+1EjnfwXvzhAzb25rGFwKcSvfvndMTVvxgqXVob+3pRt9maD6HFHAh2/NCQIDAQAB
+AoGACT2bfLgJ3R/FomeHkLlxe//RBMGqdX2D8QhtKWB8qR0engsS6FOHrspAVjBE
+v/Cjh2pXake/f2KY1w/JX1WLZEFXja2RFPeeDiiC/4S7pKCySUVeHO9rQ4SY5Frg
+/s/QWWtmq7+1iu2DXhdGJA6fIurzSoDgUXo3NGFCYqIFaAECQQDUi9AAgEljmc2q
+dAUQD0KNTcJFkpTafhfPiYc2GT1vS/bArtXRmvJmbIiRfVuGbM8z5ES7JGd5FyYL
+i2WCCzUBAkEA6R14GVhN8NIPWEUrzjgOvjKlc2ZHskT3dYb3djpm69TK7GjLtHyq
+qO7l4VJowsXI+o/6YucagF6+rH0O0VrwCQJBAM8twYDbi63knA8MrGqtFUg7haTf
+bu1Tf84y1nOrQrEcMNg9E/sOuD2SicSXlwF/SrHgTgbFQ39LSzBxnm6WkgECQQCh
+AQmB98tdGLggbyXiODV2h+Rd37aFGb0QHzerIIsVNtMwlPCcp733D4kWJqTUYWZ+
+KBL3XEahgs6Os5EYZ4aBAkEAjKE+2/nBYUdHVusjMXeNsE5rqwJND5zvYzmToG7+
+xhv4RUAe4dHL4IDQoQRjhr3Nw+JYvtzBx0Iq/178xMnGKg==
+-----END RSA PRIVATE KEY-----`
 
-	// Standard ECDSA key / certificate pairs.
-	keyECDSAP256PKCS8, keyECDSAP384PKCS8, keyECDSAP521PKCS8                        *ecdsa.PrivateKey
-	certECDSAP224PKCS8, certECDSAP256PKCS8, certECDSAP384PKCS8, certECDSAP521PKCS8 schema.X509CertificateChain
-
-	// Ed15519 key / certificate pair.
-	keyEd2519   ed25519.PrivateKey
-	certEd15519 schema.X509CertificateChain
+	goodOpenIDConnectClientSecret = "$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng" //nolint:gosec
 )
-
-func init() {
-	tOpenIDConnectPBKDF2ClientSecret = MustDecodeSecret("$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng")
-	tOpenIDConnectPlainTextClientSecret = MustDecodeSecret("$plaintext$example")
-
-	publicRSA2048Pair = MustLoadRSAPublicKey("2048", "PAIR", "PUBLIC")
-	privateRSA2048Pair = MustLoadRSAPrivateKey("2048", "PAIR", "PRIVATE")
-
-	keyRSA1024 = MustLoadRSAPrivateKey("1024")
-	keyRSA2048 = MustLoadRSAPrivateKey("2048")
-	keyRSA4096 = MustLoadRSAPrivateKey("4096")
-	keyECDSAP224 = MustLoadECDSAPrivateKey("P224")
-	keyECDSAP256 = MustLoadECDSAPrivateKey("P256")
-	keyECDSAP384 = MustLoadECDSAPrivateKey("P384")
-	keyECDSAP521 = MustLoadECDSAPrivateKey("P521")
-	keyEd2519 = MustLoadEd15519PrivateKey("PKCS8")
-
-	keyRSA2048PKCS8 = MustLoadRSAPrivateKey("2048", "PKCS8")
-	keyECDSAP256PKCS8 = MustLoadECDSAPrivateKey("P256", "PKCS8")
-	keyECDSAP384PKCS8 = MustLoadECDSAPrivateKey("P384", "PKCS8")
-	keyECDSAP521PKCS8 = MustLoadECDSAPrivateKey("P521", "PKCS8")
-
-	certRSA1024 = MustLoadCertificateChain("RSA", "1024")
-	certRSA2048 = MustLoadCertificateChain("RSA", "2048")
-	certRSA4096 = MustLoadCertificateChain("RSA", "4096")
-	certECDSAP224 = MustLoadCertificateChain("ECDSA", "P224")
-	certECDSAP256 = MustLoadCertificateChain("ECDSA", "P256")
-	certECDSAP384 = MustLoadCertificateChain("ECDSA", "P384")
-	certECDSAP521 = MustLoadCertificateChain("ECDSA", "P521")
-	certEd15519 = MustLoadCertificateChain("ED25519", "PKCS8")
-}
