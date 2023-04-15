@@ -11,13 +11,11 @@ import (
 	"time"
 
 	"github.com/go-crypt/crypt/algorithm/plaintext"
-	"github.com/golang-jwt/jwt/v4"
 	"github.com/ory/fosite"
+	"github.com/ory/fosite/token/jwt"
 	"github.com/ory/x/errorsx"
 	"github.com/pkg/errors"
 	"gopkg.in/square/go-jose.v2"
-
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // DefaultClientAuthenticationStrategy is a copy of fosite's with the addition of the client_secret_jwt method and some
@@ -43,8 +41,7 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 			}
 
 			if clientID == "" {
-				claims := t.Claims.(jwt.MapClaims)
-
+				claims := t.Claims
 				if sub, ok := claims[ClaimSubject].(string); !ok {
 					return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("The claim 'sub' from the client_assertion JSON Web Token is undefined."))
 				} else {
@@ -52,7 +49,8 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 				}
 			}
 
-			if client, err = p.Store.GetClient(ctx, clientID); err != nil {
+			client, err = p.Store.GetClient(ctx, clientID)
+			if err != nil {
 				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithWrap(err).WithDebug(err.Error()))
 			}
 
@@ -62,7 +60,7 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 			}
 
 			switch oidcClient.GetTokenEndpointAuthMethod() {
-			case ClientAuthMethodPrivateKeyJWT, ClientAuthMethodClientSecretJWT:
+			case ClientAuthMethodPrivateKeyJWT:
 				break
 			case ClientAuthMethodNone:
 				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("This requested OAuth 2.0 client does not support client authentication, however 'client_assertion' was provided in the request."))
@@ -70,57 +68,40 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 				fallthrough
 			case ClientAuthMethodClientSecretBasic:
 				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("This requested OAuth 2.0 client only supports client authentication method '%s', however 'client_assertion' was provided in the request.", oidcClient.GetTokenEndpointAuthMethod()))
+			case ClientAuthMethodClientSecretJWT:
+				fallthrough
 			default:
 				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("This requested OAuth 2.0 client only supports client authentication method '%s', however that method is not supported by this server.", oidcClient.GetTokenEndpointAuthMethod()))
 			}
 
-			if oidcClient.GetTokenEndpointAuthSigningAlgorithm() != fmt.Sprintf("%s", t.Header[HeaderParameterAlgorithm]) {
-				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The 'client_assertion' uses signing algorithm '%s' but the requested OAuth 2.0 Client enforces signing algorithm '%s'.", t.Header[HeaderParameterAlgorithm], oidcClient.GetTokenEndpointAuthSigningAlgorithm()))
+			if oidcClient.GetTokenEndpointAuthSigningAlgorithm() != fmt.Sprintf("%s", t.Header["alg"]) {
+				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The 'client_assertion' uses signing algorithm '%s' but the requested OAuth 2.0 Client enforces signing algorithm '%s'.", t.Header["alg"], oidcClient.GetTokenEndpointAuthSigningAlgorithm()))
 			}
-
 			switch t.Method {
-			case jwt.SigningMethodRS256, jwt.SigningMethodRS384, jwt.SigningMethodRS512:
+			case jose.RS256, jose.RS384, jose.RS512:
 				return p.findClientPublicJWK(ctx, oidcClient, t, true)
-			case jwt.SigningMethodES256, jwt.SigningMethodES384, jwt.SigningMethodES512:
+			case jose.ES256, jose.ES384, jose.ES512:
 				return p.findClientPublicJWK(ctx, oidcClient, t, false)
-			case jwt.SigningMethodPS256, jwt.SigningMethodPS384, jwt.SigningMethodPS512:
+			case jose.PS256, jose.PS384, jose.PS512:
 				return p.findClientPublicJWK(ctx, oidcClient, t, true)
-			case jwt.SigningMethodHS256, jwt.SigningMethodHS384, jwt.SigningMethodHS512:
-				if spd, ok := oidcClient.Secret.(*schema.PasswordDigest); ok {
-					if secret, ok := spd.Digest.(*plaintext.Digest); ok {
-						return secret.Key(), nil
-					}
+			case jose.HS256, jose.HS384, jose.HS512:
+				switch secret := oidcClient.Secret.(type) {
+				case *plaintext.Digest:
+					return secret.Key(), nil
+				default:
+					return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("This client does not support authentication method 'client_secret_jwt' as the client secret is not in plaintext."))
 				}
-
-				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("This client does not support authentication method 'client_secret_jwt' as the client secret is not in plaintext."))
 			default:
-				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The 'client_assertion' request parameter uses unsupported signing algorithm '%s'.", t.Header[HeaderParameterAlgorithm]))
+				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The 'client_assertion' request parameter uses unsupported signing algorithm '%s'.", t.Header["alg"]))
 			}
 		})
 
 		if err != nil {
-			var r *fosite.RFC6749Error
-
-			if errors.As(err, &r) {
-				return nil, err
-			}
-
 			var e *jwt.ValidationError
 
 			if errors.As(err, &e) {
-				rfc := fosite.ErrInvalidClient.WithHint("Unable to verify the integrity of the 'client_assertion' value.").WithWrap(err)
-
-				switch {
-				case e.Errors&jwt.ValidationErrorMalformed != 0:
-					return nil, errorsx.WithStack(rfc.WithDebug("The token is malformed."))
-				case e.Errors&jwt.ValidationErrorIssuedAt != 0:
-					return nil, errorsx.WithStack(rfc.WithDebug("The token was used before it was issued."))
-				case e.Errors&jwt.ValidationErrorExpired != 0:
-					return nil, errorsx.WithStack(rfc.WithDebug("The token is expired."))
-				case e.Errors&jwt.ValidationErrorNotValidYet != 0:
-					return nil, errorsx.WithStack(rfc.WithDebug("The token isn't valid yet."))
-				case e.Errors&jwt.ValidationErrorSignatureInvalid != 0:
-					return nil, errorsx.WithStack(rfc.WithDebug("The signature is invalid."))
+				if e.Inner != nil {
+					return nil, e.Inner
 				}
 
 				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Unable to verify the integrity of the 'client_assertion' value.").WithWrap(err).WithDebug(err.Error()))
@@ -131,15 +112,13 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Unable to verify the request object because its claims could not be validated, check if the expiry time is set correctly.").WithWrap(err).WithDebug(err.Error()))
 		}
 
-		claims := token.Claims.(jwt.MapClaims)
-
-		tokenURL := p.Config.GetTokenURL(ctx)
+		claims := token.Claims
 
 		var jti string
 
 		if !claims.VerifyIssuer(clientID, true) {
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'iss' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client."))
-		} else if tokenURL == "" {
+		} else if p.Config.GetTokenURL(ctx) == "" {
 			return nil, errorsx.WithStack(fosite.ErrMisconfiguration.WithHint("The authorization server's token endpoint URL has not been set."))
 		} else if sub, ok := claims[ClaimSubject].(string); !ok || sub != clientID {
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'sub' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client."))
@@ -172,19 +151,22 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 			return nil, err
 		}
 
-		var found bool
-
-		if auds, ok := claims[ClaimAudience].([]any); ok {
+		if auds, ok := claims[ClaimAudience].([]any); !ok {
+			if !claims.VerifyAudience(p.Config.GetTokenURL(ctx), true) {
+				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("Claim 'audience' from 'client_assertion' must match the authorization server's token endpoint '%s'.", p.Config.GetTokenURL(ctx)))
+			}
+		} else {
+			var found bool
 			for _, aud := range auds {
-				if a, ok := aud.(string); ok && a == tokenURL {
+				if a, ok := aud.(string); ok && a == p.Config.GetTokenURL(ctx) {
 					found = true
 					break
 				}
 			}
-		}
 
-		if !found {
-			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("Claim 'audience' from 'client_assertion' must match the authorization server's token endpoint '%s'.", tokenURL))
+			if !found {
+				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("Claim 'audience' from 'client_assertion' must match the authorization server's token endpoint '%s'.", p.Config.GetTokenURL(ctx)))
+			}
 		}
 
 		return client, nil
@@ -204,11 +186,11 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 	if oidcClient, ok := client.(fosite.OpenIDConnectClient); ok {
 		method := oidcClient.GetTokenEndpointAuthMethod()
 
-		if form.Get(FormParameterClientID) != "" && form.Get(FormParameterClientSecret) != "" && method != ClientAuthMethodClientSecretPost {
+		if ok && form.Get(FormParameterClientID) != "" && form.Get(FormParameterClientSecret) != "" && method != ClientAuthMethodClientSecretPost {
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The OAuth 2.0 Client supports client authentication method '%s', but method 'client_secret_post' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'client_secret_post'.", method))
-		} else if _, secret, basicOk := r.BasicAuth(); basicOk && secret != "" && method != ClientAuthMethodClientSecretBasic {
+		} else if _, secret, basicOk := r.BasicAuth(); basicOk && ok && secret != "" && method != ClientAuthMethodClientSecretBasic {
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The OAuth 2.0 Client supports client authentication method '%s', but method 'client_secret_basic' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'client_secret_basic'.", method))
-		} else if method != ClientAuthMethodNone && client.IsPublic() {
+		} else if ok && oidcClient.GetTokenEndpointAuthMethod() != ClientAuthMethodNone && client.IsPublic() {
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The OAuth 2.0 Client supports client authentication method '%s', but method 'none' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'none'.", method))
 		}
 	}
@@ -285,7 +267,7 @@ func findPublicKey(t *jwt.Token, set *jose.JSONWebKeySet, expectsRSAKey bool) (a
 	}
 
 	for _, key := range keys {
-		if key.Use != KeyUseSignature {
+		if key.Use != "sig" {
 			continue
 		}
 
