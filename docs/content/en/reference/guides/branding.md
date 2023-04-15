@@ -15,17 +15,19 @@ toc: true
 ## Usage
 
 The images are currently licensed under the same [Apache 2.0](https://github.com/authelia/authelia/blob/master/LICENSE)
-as everything else in the repository. It is kindly requested however that with all of our branding that users only make
-modifications that are in harmony with the following rules which are not intended to restrict usage unreasonably and are
-only intended to preserve the Authelia branding identity:
+as everything else in the repository. It is kindly requested however that with all of our branding that without explicit
+contrary permission users only use the images and only make modifications that are in harmony with the following rules
+which are not intended to restrict usage unreasonably and are only intended to preserve the Authelia branding identity:
 
 1. They do not unreasonably alter the quality of the branding:
-    - Image size changes should be done only when the size is appropriate for the intended display scenario.
-    - Compression should not be applied overly aggressively for the intended display scenario.
+   - Image size changes should be done only when the size is appropriate for the intended display scenario.
+   - Compression should not be applied overly aggressively for the intended display scenario.
 2. The changes do not unreasonably alter the design of the branding and should fit one or more of the following
    categories:
    - Layout
    - Format
+3. They are not used in a way that would indicate affiliation or endorsement by Authelia.
+4. They are not used in exchange for trade or financial reimbursement as they are intellectual property of Authelia.
 
 Examples of changes which fit these categories include:
 
