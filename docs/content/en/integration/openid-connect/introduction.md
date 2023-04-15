@@ -174,7 +174,7 @@ specification and the [OAuth 2.0 - Client Types] specification for more informat
 |:------------------------------------:|:-----------------------------:|:----------------------:|:-----------------------:|:--------------------------------------------------------:|
 |  Secret via HTTP Basic Auth Scheme   |     `client_secret_basic`     |     `confidential`     |           N/A           |                           N/A                            |
 |      Secret via HTTP POST Body       |     `client_secret_post`      |     `confidential`     |           N/A           |                           N/A                            |
-|        JWT (signed by secret)        |      `client_secret_jwt`      |     Not Supported      |           N/A           | `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` |
+|        JWT (signed by secret)        |      `client_secret_jwt`      |     `confidential`     |           N/A           | `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` |
 |     JWT (signed by private key)      |       `private_key_jwt`       |     Not Supported      |           N/A           | `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` |
 |        [OAuth 2.0 Mutual-TLS]        |       `tls_client_auth`       |     Not Supported      |           N/A           |                           N/A                            |
 | [OAuth 2.0 Mutual-TLS] (Self Signed) | `self_signed_tls_client_auth` |     Not Supported      |           N/A           |                           N/A                            |

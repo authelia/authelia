@@ -62,6 +62,7 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 				TokenEndpointAuthMethodsSupported: []string{
 					ClientAuthMethodClientSecretBasic,
 					ClientAuthMethodClientSecretPost,
+					ClientAuthMethodClientSecretJWT,
 					ClientAuthMethodNone,
 				},
 			},

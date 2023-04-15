@@ -758,7 +758,7 @@ func TestValidateIdentityProvidersShouldRaiseWarningOnPlainTextClients(t *testin
 	assert.Len(t, validator.Errors(), 0)
 	require.Len(t, validator.Warnings(), 1)
 
-	assert.EqualError(t, validator.Warnings()[0], "identity_providers: oidc: client 'client-with-invalid-secret_standard': option 'secret' is plaintext but it should be a hashed value as plaintext values are deprecated and will be removed when oidc becomes stable")
+	assert.EqualError(t, validator.Warnings()[0], "identity_providers: oidc: client 'client-with-invalid-secret_standard': option 'secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed when oidc becomes stable")
 }
 
 // All valid schemes are supported as defined in https://datatracker.ietf.org/doc/html/rfc8252#section-7.1
@@ -1535,7 +1535,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 			nil,
 			[]string{
-				"identity_providers: oidc: client 'test': option 'token_endpoint_auth_method' must be one of 'none', 'client_secret_post', or 'client_secret_basic' but it's configured as 'client_credentials'",
+				"identity_providers: oidc: client 'test': option 'token_endpoint_auth_method' must be one of 'none', 'client_secret_post', 'client_secret_basic', or 'client_secret_jwt' but it's configured as 'client_credentials'",
 			},
 		},
 		{
@@ -1827,6 +1827,52 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 			nil,
 		},
+		{
+			"ShouldRaiseErrorOnIncorrectlyConfiguredTokenEndpointClientAuthMethodClientSecretJWT",
+			func(have *schema.OpenIDConnectConfiguration) {
+				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
+				have.Clients[0].Secret = MustDecodeSecret("$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng")
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: client 'test': option 'secret' must be plaintext with option 'token_endpoint_auth_method' with a value of 'client_secret_jwt'",
+			},
+		},
+		{
+			"ShouldNotRaiseWarningOrErrorOnCorrectlyConfiguredTokenEndpointClientAuthMethodClientSecretJWT",
+			func(have *schema.OpenIDConnectConfiguration) {
+				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
+				have.Clients[0].Secret = MustDecodeSecret("$plaintext$abc123")
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
 	}
 
 	errDeprecatedFunc := func() {}
@@ -1894,7 +1940,7 @@ func TestValidateOIDCClientTokenEndpointAuthMethod(t *testing.T) {
 		{"ShouldSetDefaultValuePublic", "", true, oidc.ClientAuthMethodNone, nil},
 		{"ShouldErrorOnInvalidValue", "abc", false, "abc",
 			[]string{
-				"identity_providers: oidc: client 'test': option 'token_endpoint_auth_method' must be one of 'none', 'client_secret_post', or 'client_secret_basic' but it's configured as 'abc'",
+				"identity_providers: oidc: client 'test': option 'token_endpoint_auth_method' must be one of 'none', 'client_secret_post', 'client_secret_basic', or 'client_secret_jwt' but it's configured as 'abc'",
 			},
 		},
 		{"ShouldErrorOnInvalidValueForPublicClient", "client_secret_post", true, "client_secret_post",

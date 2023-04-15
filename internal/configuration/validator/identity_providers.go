@@ -193,8 +193,13 @@ func validateOIDCClient(c int, config *schema.OpenIDConnectConfiguration, val *s
 	} else {
 		if config.Clients[c].Secret == nil {
 			val.Push(fmt.Errorf(errFmtOIDCClientInvalidSecret, config.Clients[c].ID))
-		} else if config.Clients[c].Secret.IsPlainText() {
-			val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidSecretPlainText, config.Clients[c].ID))
+		} else {
+			switch {
+			case config.Clients[c].Secret.IsPlainText() && config.Clients[c].TokenEndpointAuthMethod != oidc.ClientAuthMethodClientSecretJWT:
+				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidSecretPlainText, config.Clients[c].ID))
+			case !config.Clients[c].Secret.IsPlainText() && config.Clients[c].TokenEndpointAuthMethod == oidc.ClientAuthMethodClientSecretJWT:
+				val.Push(fmt.Errorf(errFmtOIDCClientInvalidSecretNotPlainText, config.Clients[c].ID))
+			}
 		}
 	}
 

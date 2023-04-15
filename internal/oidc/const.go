@@ -41,6 +41,11 @@ const (
 )
 
 const (
+	// ClientAssertionJWTBearerType is the JWT bearer assertion.
+	ClientAssertionJWTBearerType = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer" //nolint:gosec // False Positive.
+)
+
+const (
 	lifespanTokenDefault         = time.Hour
 	lifespanRefreshTokenDefault  = time.Hour * 24 * 30
 	lifespanAuthorizeCodeDefault = time.Minute * 15
@@ -75,6 +80,8 @@ const (
 const (
 	ClientAuthMethodClientSecretBasic = "client_secret_basic"
 	ClientAuthMethodClientSecretPost  = "client_secret_post"
+	ClientAuthMethodClientSecretJWT   = "client_secret_jwt"
+	ClientAuthMethodPrivateKeyJWT     = "private_key_jwt"
 	ClientAuthMethodNone              = "none"
 )
 
@@ -108,10 +115,14 @@ const (
 )
 
 const (
+	FormParameterClientID            = "client_id"
+	FormParameterClientSecret        = "client_secret"
 	FormParameterRequestURI          = "request_uri"
 	FormParameterResponseMode        = "response_mode"
 	FormParameterCodeChallenge       = "code_challenge"
 	FormParameterCodeChallengeMethod = "code_challenge_method"
+	FormParameterClientAssertionType = "client_assertion_type"
+	FormParameterClientAssertion     = "client_assertion"
 )
 
 const (
