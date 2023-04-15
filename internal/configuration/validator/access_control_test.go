@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -185,7 +186,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidMethod() {
 		{
 			Domains: []string{"public.example.com"},
 			Policy:  "bypass",
-			Methods: []string{"GET", "HOP"},
+			Methods: []string{fasthttp.MethodGet, "HOP"},
 		},
 	}
 
@@ -202,7 +203,7 @@ func (suite *AccessControl) TestShouldRaiseErrorDuplicateMethod() {
 		{
 			Domains: []string{"public.example.com"},
 			Policy:  "bypass",
-			Methods: []string{"GET", "GET"},
+			Methods: []string{fasthttp.MethodGet, fasthttp.MethodGet},
 		},
 	}
 

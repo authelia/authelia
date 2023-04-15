@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/valyala/fasthttp"
 )
 
 func TestShouldAppendQueryParamToURL(t *testing.T) {
@@ -13,12 +14,12 @@ func TestShouldAppendQueryParamToURL(t *testing.T) {
 
 	require.NoError(t, err)
 
-	object := NewObject(targetURL, "GET")
+	object := NewObject(targetURL, fasthttp.MethodGet)
 
 	assert.Equal(t, "https", object.URL.Scheme)
 	assert.Equal(t, "domain.example.com", object.Domain)
 	assert.Equal(t, "/api?type=none", object.Path)
-	assert.Equal(t, "GET", object.Method)
+	assert.Equal(t, fasthttp.MethodGet, object.Method)
 }
 
 func TestShouldCreateNewObjectFromRaw(t *testing.T) {
@@ -26,13 +27,13 @@ func TestShouldCreateNewObjectFromRaw(t *testing.T) {
 
 	require.NoError(t, err)
 
-	object := NewObjectRaw(targetURL, []byte("GET"))
+	object := NewObjectRaw(targetURL, []byte(fasthttp.MethodGet))
 
 	assert.Equal(t, "https", object.URL.Scheme)
 	assert.Equal(t, "domain.example.com", object.Domain)
 	assert.Equal(t, "/api", object.URL.Path)
 	assert.Equal(t, "/api", object.Path)
-	assert.Equal(t, "GET", object.Method)
+	assert.Equal(t, fasthttp.MethodGet, object.Method)
 }
 
 func TestShouldCleanURL(t *testing.T) {
@@ -43,14 +44,14 @@ func TestShouldCleanURL(t *testing.T) {
 
 		expectedScheme, expectedDomain, expectedPath, expectedPathClean string
 	}{
-		{"https://a.com", "/a/../t", "GET", "https", "a.com", "/a/../t", "/t"},
-		{"https://a.com", "/a/..%2f/t", "GET", "https", "a.com", "/a/..//t", "/t"},
-		{"https://a.com", "/a/..%2ft", "GET", "https", "a.com", "/a/../t", "/t"},
-		{"https://a.com", "/a/..%2F/t", "GET", "https", "a.com", "/a/..//t", "/t"},
-		{"https://a.com", "/a/..%2Ft", "GET", "https", "a.com", "/a/../t", "/t"},
-		{"https://a.com", "/a/..%2Ft", "GET", "https", "a.com", "/a/../t", "/t"},
-		{"https://a.com", "/a/%2F..%2Ft", "GET", "https", "a.com", "/a//../t", "/t"},
-		{"https://a.com", "/a/%2F%2e%2e%2Ft", "GET", "https", "a.com", "/a//../t", "/t"},
+		{"https://a.com", "/a/../t", fasthttp.MethodGet, "https", "a.com", "/a/../t", "/t"},
+		{"https://a.com", "/a/..%2f/t", fasthttp.MethodGet, "https", "a.com", "/a/..//t", "/t"},
+		{"https://a.com", "/a/..%2ft", fasthttp.MethodGet, "https", "a.com", "/a/../t", "/t"},
+		{"https://a.com", "/a/..%2F/t", fasthttp.MethodGet, "https", "a.com", "/a/..//t", "/t"},
+		{"https://a.com", "/a/..%2Ft", fasthttp.MethodGet, "https", "a.com", "/a/../t", "/t"},
+		{"https://a.com", "/a/..%2Ft", fasthttp.MethodGet, "https", "a.com", "/a/../t", "/t"},
+		{"https://a.com", "/a/%2F..%2Ft", fasthttp.MethodGet, "https", "a.com", "/a//../t", "/t"},
+		{"https://a.com", "/a/%2F%2e%2e%2Ft", fasthttp.MethodGet, "https", "a.com", "/a//../t", "/t"},
 	}
 
 	for _, tc := range testCases {
