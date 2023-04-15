@@ -325,7 +325,7 @@ func TestShouldParseCurves(t *testing.T) {
 	}
 }
 
-func testMustBuildPrivateKey(b PrivateKeyBuilder) interface{} {
+func testMustBuildPrivateKey(b PrivateKeyBuilder) any {
 	k, err := b.Build()
 	if err != nil {
 		panic(err)
@@ -337,8 +337,8 @@ func testMustBuildPrivateKey(b PrivateKeyBuilder) interface{} {
 func TestPublicKeyFromPrivateKey(t *testing.T) {
 	testCases := []struct {
 		Name       string
-		PrivateKey interface{}
-		Expected   interface{}
+		PrivateKey any
+		Expected   any
 	}{
 		{
 			Name:       "RSA2048",
