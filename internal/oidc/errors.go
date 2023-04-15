@@ -6,7 +6,7 @@ import (
 	"github.com/ory/fosite"
 )
 
-var errPasswordsDoNotMatch = errors.New("the passwords don't match")
+var errPasswordsDoNotMatch = errors.New("The provided client secret did not match the registered client secret.")
 
 var (
 	// ErrIssuerCouldNotDerive is sent when the issuer couldn't be determined from the headers.

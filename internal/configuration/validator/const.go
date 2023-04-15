@@ -160,9 +160,10 @@ const (
 	errFmtOIDCClientsWithEmptyID = "identity_providers: oidc: clients: option 'id' is required but was absent on the clients in positions %s"
 	errFmtOIDCClientsDeprecated  = "identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors"
 
-	errFmtOIDCClientInvalidSecret          = "identity_providers: oidc: client '%s': option 'secret' is required"
-	errFmtOIDCClientInvalidSecretPlainText = "identity_providers: oidc: client '%s': option 'secret' is plaintext but it should be a hashed value as plaintext values are deprecated and will be removed when oidc becomes stable"
-	errFmtOIDCClientPublicInvalidSecret    = "identity_providers: oidc: client '%s': option 'secret' is " +
+	errFmtOIDCClientInvalidSecret             = "identity_providers: oidc: client '%s': option 'secret' is required"
+	errFmtOIDCClientInvalidSecretPlainText    = "identity_providers: oidc: client '%s': option 'secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed when oidc becomes stable"
+	errFmtOIDCClientInvalidSecretNotPlainText = "identity_providers: oidc: client '%s': option 'secret' must be plaintext with option 'token_endpoint_auth_method' with a value of 'client_secret_jwt'"
+	errFmtOIDCClientPublicInvalidSecret       = "identity_providers: oidc: client '%s': option 'secret' is " +
 		"required to be empty when option 'public' is true"
 	errFmtOIDCClientRedirectURICantBeParsed = "identity_providers: oidc: client '%s': option 'redirect_uris' has an " +
 		"invalid value: redirect uri '%s' could not be parsed: %v"
@@ -182,6 +183,8 @@ const (
 		"'token_endpoint_auth_method' must be one of %s when configured as the confidential client type unless it only includes implicit flow response types such as %s but it's configured as '%s'"
 	errFmtOIDCClientInvalidTokenEndpointAuthMethodPublic = "identity_providers: oidc: client '%s': option " +
 		"'token_endpoint_auth_method' must be 'none' when configured as the public client type but it's configured as '%s'"
+	errFmtOIDCClientInvalidTokenEndpointAuthSigAlg = "identity_providers: oidc: client '%s': option " +
+		"'token_endpoint_auth_signing_alg' must be %s when option 'token_endpoint_auth_method' is %s"
 	errFmtOIDCClientInvalidSectorIdentifier = "identity_providers: oidc: client '%s': option " +
 		"'sector_identifier' with value '%s': must be a URL with only the host component for example '%s' but it has a %s with the value '%s'"
 	errFmtOIDCClientInvalidSectorIdentifierWithoutValue = "identity_providers: oidc: client '%s': option " +
@@ -408,7 +411,7 @@ var (
 	validOIDCCORSEndpoints = []string{oidc.EndpointAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
 
 	validOIDCClientScopes                    = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess}
-	validOIDCClientUserinfoAlgorithms        = []string{oidc.SigningAlgorithmNone, oidc.SigningAlgorithmRSAWithSHA256}
+	validOIDCClientUserinfoAlgorithms        = []string{oidc.SigningAlgNone, oidc.SigningAlgRSAUsingSHA256}
 	validOIDCClientConsentModes              = []string{auto, oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
 	validOIDCClientResponseModes             = []string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery, oidc.ResponseModeFragment}
 	validOIDCClientResponseTypes             = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth, oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
@@ -417,8 +420,9 @@ var (
 	validOIDCClientResponseTypesRefreshToken = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
 	validOIDCClientGrantTypes                = []string{oidc.GrantTypeImplicit, oidc.GrantTypeRefreshToken, oidc.GrantTypeAuthorizationCode}
 
-	validOIDCClientTokenEndpointAuthMethods             = []string{oidc.ClientAuthMethodNone, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic}
+	validOIDCClientTokenEndpointAuthMethods             = []string{oidc.ClientAuthMethodNone, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodClientSecretJWT}
 	validOIDCClientTokenEndpointAuthMethodsConfidential = []string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic}
+	validOIDCClientTokenEndpointAuthSigAlgs             = []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512}
 )
 
 var (

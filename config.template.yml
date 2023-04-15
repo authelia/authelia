@@ -1498,6 +1498,10 @@ notifier:
         ## The permitted client authentication method for the Token Endpoint for this client.
         # token_endpoint_auth_method: client_secret_basic
 
+        ## The permitted client authentication signing algorithm for the Token Endpoint for this client when using
+        ## the 'client_secret_jwt' token_endpoint_auth_method.
+        # token_endpoint_auth_signing_alg: HS256
+
         ## The policy to require for this client; one_factor or two_factor.
         # authorization_policy: two_factor
 

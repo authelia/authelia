@@ -958,3 +958,15 @@ type OpenIDConnectContext interface {
 
 	IssuerURL() (issuerURL *url.URL, err error)
 }
+
+// MockOpenIDConnectContext is a minimal implementation of OpenIDConnectContext for the purpose of testing.
+type MockOpenIDConnectContext struct {
+	context.Context
+
+	MockIssuerURL *url.URL
+}
+
+// IssuerURL returns the MockIssuerURL.
+func (m *MockOpenIDConnectContext) IssuerURL() (issuerURL *url.URL, err error) {
+	return m.MockIssuerURL, nil
+}

@@ -36,6 +36,7 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, store s
 	}
 
 	provider.Config.LoadHandlers(provider.Store, provider.KeyManager.Strategy())
+	provider.Config.Strategy.ClientAuthentication = provider.DefaultClientAuthenticationStrategy
 
 	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config)
 
