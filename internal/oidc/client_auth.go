@@ -74,9 +74,10 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("This requested OAuth 2.0 client only supports client authentication method '%s', however that method is not supported by this server.", oidcClient.GetTokenEndpointAuthMethod()))
 			}
 
-			if oidcClient.GetTokenEndpointAuthSigningAlgorithm() != fmt.Sprintf("%s", t.Header["alg"]) {
-				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The 'client_assertion' uses signing algorithm '%s' but the requested OAuth 2.0 Client enforces signing algorithm '%s'.", t.Header["alg"], oidcClient.GetTokenEndpointAuthSigningAlgorithm()))
+			if oidcClient.GetTokenEndpointAuthSigningAlgorithm() != fmt.Sprintf("%s", t.Header[HeaderParameterAlgorithm]) {
+				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The 'client_assertion' uses signing algorithm '%s' but the requested OAuth 2.0 Client enforces signing algorithm '%s'.", t.Header[HeaderParameterAlgorithm], oidcClient.GetTokenEndpointAuthSigningAlgorithm()))
 			}
+
 			switch t.Method {
 			case jwt.SigningMethodRS256, jwt.SigningMethodRS384, jwt.SigningMethodRS512:
 				return p.findClientPublicJWK(ctx, oidcClient, t, true)
@@ -93,16 +94,33 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 
 				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("This client does not support authentication method 'client_secret_jwt' as the client secret is not in plaintext."))
 			default:
-				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The 'client_assertion' request parameter uses unsupported signing algorithm '%s'.", t.Header["alg"]))
+				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The 'client_assertion' request parameter uses unsupported signing algorithm '%s'.", t.Header[HeaderParameterAlgorithm]))
 			}
 		})
 
 		if err != nil {
+			var r *fosite.RFC6749Error
+
+			if errors.As(err, &r) {
+				return nil, err
+			}
+
 			var e *jwt.ValidationError
 
 			if errors.As(err, &e) {
-				if e.Inner != nil {
-					return nil, e.Inner
+				rfc := fosite.ErrInvalidClient.WithHint("Unable to verify the integrity of the 'client_assertion' value.").WithWrap(err)
+
+				switch {
+				case e.Errors&jwt.ValidationErrorMalformed != 0:
+					return nil, errorsx.WithStack(rfc.WithDebug("The token is malformed."))
+				case e.Errors&jwt.ValidationErrorIssuedAt != 0:
+					return nil, errorsx.WithStack(rfc.WithDebug("The token was used before it was issued."))
+				case e.Errors&jwt.ValidationErrorExpired != 0:
+					return nil, errorsx.WithStack(rfc.WithDebug("The token is expired."))
+				case e.Errors&jwt.ValidationErrorNotValidYet != 0:
+					return nil, errorsx.WithStack(rfc.WithDebug("The token isn't valid yet."))
+				case e.Errors&jwt.ValidationErrorSignatureInvalid != 0:
+					return nil, errorsx.WithStack(rfc.WithDebug("The signature is invalid."))
 				}
 
 				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Unable to verify the integrity of the 'client_assertion' value.").WithWrap(err).WithDebug(err.Error()))

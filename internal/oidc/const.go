@@ -126,6 +126,10 @@ const (
 )
 
 const (
+	HeaderParameterAlgorithm = "alg"
+)
+
+const (
 	FormParameterClientID            = "client_id"
 	FormParameterClientSecret        = "client_secret"
 	FormParameterRequestURI          = "request_uri"
