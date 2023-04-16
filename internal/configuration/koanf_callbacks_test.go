@@ -21,6 +21,7 @@ func TestKoanfEnvironmentCallback(t *testing.T) {
 	keyMap := map[string]string{
 		DefaultEnvPrefix + "KEY_EXAMPLE_UNDERSCORE": "key.example_underscore",
 	}
+
 	ignoredKeys := []string{DefaultEnvPrefix + "SOME_SECRET"}
 
 	callback := koanfEnvironmentCallback(keyMap, ignoredKeys, DefaultEnvPrefix, DefaultEnvDelimiter)

@@ -1,12 +1,14 @@
 package validator
 
 import (
+	"crypto/ecdsa"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -30,7 +32,7 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 2)
 
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option 'issuer_private_key' is required")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option 'issuer_private_key' or `issuer_jwks` is required")
 	assert.EqualError(t, validator.Errors()[1], "identity_providers: oidc: option 'clients' must have one or more clients configured")
 }
 
@@ -39,7 +41,7 @@ func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKeyRSA1),
 			CORS: schema.OpenIDConnectCORSConfiguration{
 				Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo},
 			},
@@ -62,7 +64,7 @@ func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKeyRSA1),
 			CORS: schema.OpenIDConnectCORSConfiguration{
 				Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, "invalid_endpoint"},
 			},
@@ -87,7 +89,7 @@ func TestShouldRaiseErrorWhenOIDCPKCEEnforceValueInvalid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKeyRSA1),
 			EnforcePKCE:      testInvalid,
 		},
 	}
@@ -106,7 +108,7 @@ func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKeyRSA1),
 			CORS: schema.OpenIDConnectCORSConfiguration{
 				AllowedOrigins:                       utils.URLsFromStringSlice([]string{"https://example.com/", "https://site.example.com/subpath", "https://site.example.com?example=true", "*"}),
 				AllowedOriginsFromClientRedirectURIs: true,
@@ -141,7 +143,7 @@ func TestShouldRaiseErrorWhenOIDCServerNoClients(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKeyRSA1),
 		},
 	}
 
@@ -376,7 +378,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			config := &schema.IdentityProvidersConfiguration{
 				OIDC: &schema.OpenIDConnectConfiguration{
 					HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-					IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
+					IssuerPrivateKey: MustParseRSAPrivateKey(testKeyRSA1),
 					Clients:          tc.Clients,
 				},
 			}
@@ -400,7 +402,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadScopes(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKeyRSA1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "good_id",
@@ -426,7 +428,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKeyRSA1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:         "good_id",
@@ -452,8 +454,8 @@ func TestShouldNotErrorOnCertificateValid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:             "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerCertificateChain: MustParseX509CertificateChain(testCert1),
-			IssuerPrivateKey:       MustParseRSAPrivateKey(testKey1),
+			IssuerCertificateChain: MustParseX509CertificateChain(testCertRSA1),
+			IssuerPrivateKey:       MustParseRSAPrivateKey(testKeyRSA1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "good_id",
@@ -478,8 +480,8 @@ func TestShouldRaiseErrorOnCertificateNotValid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:             "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerCertificateChain: MustParseX509CertificateChain(testCert1),
-			IssuerPrivateKey:       MustParseRSAPrivateKey(testKey2),
+			IssuerCertificateChain: MustParseX509CertificateChain(testCertRSA1),
+			IssuerPrivateKey:       MustParseRSAPrivateKey(testKeyRSA2),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "good_id",
@@ -498,7 +500,7 @@ func TestShouldRaiseErrorOnCertificateNotValid(t *testing.T) {
 	assert.Len(t, validator.Warnings(), 0)
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option 'issuer_private_key' does not appear to be the private key the certificate provided by option 'issuer_certificate_chain'")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: issuer_jwks: key #0 with key id '5ee437': option 'key' does not appear to be the private key the certificate provided by option 'certificate_chain'")
 }
 
 func TestShouldRaiseErrorOnKeySizeTooSmall(t *testing.T) {
@@ -506,7 +508,7 @@ func TestShouldRaiseErrorOnKeySizeTooSmall(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: MustParseRSAPrivateKey(testKey3),
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKeyRSA3),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "good_id",
@@ -525,36 +527,7 @@ func TestShouldRaiseErrorOnKeySizeTooSmall(t *testing.T) {
 	assert.Len(t, validator.Warnings(), 0)
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option 'issuer_private_key' must be an RSA private key with 2048 bits or more but it only has 1024 bits")
-}
-
-func TestShouldRaiseErrorOnKeyInvalidPublicKey(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
-			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: MustParseRSAPrivateKey(testKey3),
-			Clients: []schema.OpenIDConnectClientConfiguration{
-				{
-					ID:     "good_id",
-					Secret: MustDecodeSecret(goodOpenIDConnectClientSecret),
-					Policy: "two_factor",
-					RedirectURIs: []string{
-						"https://google.com/callback",
-					},
-				},
-			},
-		},
-	}
-
-	config.OIDC.IssuerPrivateKey.PublicKey.N = nil
-
-	ValidateIdentityProviders(config, validator)
-
-	assert.Len(t, validator.Warnings(), 0)
-	require.Len(t, validator.Errors(), 1)
-
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option 'issuer_private_key' must be a valid RSA private key but the provided data is missing the public key bits")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: issuer_jwks: key #0 with key id '739c2e': option 'key' is an RSA 1024 bit private key but it must be a RSA 2048 bit private key")
 }
 
 func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseModes(t *testing.T) {
@@ -562,7 +535,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseModes(t *testing
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKeyRSA1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:            "good_id",
@@ -583,38 +556,12 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseModes(t *testing
 	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: client 'good_id': option 'response_modes' must only have the values 'form_post', 'query', or 'fragment' but the values 'bad_responsemode' are present")
 }
 
-func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadUserinfoAlg(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
-			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
-			Clients: []schema.OpenIDConnectClientConfiguration{
-				{
-					ID:                       "good_id",
-					Secret:                   MustDecodeSecret("$plaintext$good_secret"),
-					Policy:                   "two_factor",
-					UserinfoSigningAlgorithm: "rs256",
-					RedirectURIs: []string{
-						"https://google.com/callback",
-					},
-				},
-			},
-		},
-	}
-
-	ValidateIdentityProviders(config, validator)
-
-	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: client 'good_id': option 'userinfo_signing_algorithm' must be one of 'none' or 'RS256' but it's configured as 'rs256'")
-}
-
 func TestValidateIdentityProvidersShouldRaiseWarningOnSecurityIssue(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:              "abc",
-			IssuerPrivateKey:        MustParseRSAPrivateKey(testKey1),
+			IssuerPrivateKey:        MustParseRSAPrivateKey(testKeyRSA1),
 			MinimumParameterEntropy: 1,
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
@@ -642,7 +589,7 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testi
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "hmac1",
-			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKeyRSA1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-with-invalid-secret",
@@ -680,7 +627,7 @@ func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidClientOptions(t *te
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "hmac1",
-			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKeyRSA1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "installed-app-client",
@@ -739,7 +686,7 @@ func TestValidateIdentityProvidersShouldRaiseWarningOnPlainTextClients(t *testin
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "hmac1",
-			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKeyRSA1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-with-invalid-secret_standard",
@@ -1574,7 +1521,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			"ShouldSetDefaultUserInfoAlg",
 			nil,
 			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
-				assert.Equal(t, oidc.SigAlgNone, have.Clients[0].UserinfoSigningAlgorithm)
+				assert.Equal(t, oidc.SigningAlgNone, have.Clients[0].UserinfoSigningAlg)
 			},
 			tcv{
 				nil,
@@ -1594,10 +1541,10 @@ func TestValidateOIDCClients(t *testing.T) {
 		{
 			"ShouldNotOverrideUserInfoAlg",
 			func(have *schema.OpenIDConnectConfiguration) {
-				have.Clients[0].UserinfoSigningAlgorithm = oidc.SigAlgRSAUsingSHA256
+				have.Clients[0].UserinfoSigningAlg = oidc.SigningAlgRSAUsingSHA256
 			},
 			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
-				assert.Equal(t, oidc.SigAlgRSAUsingSHA256, have.Clients[0].UserinfoSigningAlgorithm)
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, have.Clients[0].UserinfoSigningAlg)
 			},
 			tcv{
 				nil,
@@ -1617,10 +1564,10 @@ func TestValidateOIDCClients(t *testing.T) {
 		{
 			"ShouldRaiseErrorOnInvalidUserInfoAlg",
 			func(have *schema.OpenIDConnectConfiguration) {
-				have.Clients[0].UserinfoSigningAlgorithm = "rs256"
+				have.Clients[0].UserinfoSigningAlg = "rs256"
 			},
 			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
-				assert.Equal(t, "rs256", have.Clients[0].UserinfoSigningAlgorithm)
+				assert.Equal(t, "rs256", have.Clients[0].UserinfoSigningAlg)
 			},
 			tcv{
 				nil,
@@ -1636,7 +1583,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 			nil,
 			[]string{
-				"identity_providers: oidc: client 'test': option 'userinfo_signing_algorithm' must be one of 'none' or 'RS256' but it's configured as 'rs256'",
+				"identity_providers: oidc: client 'test': option 'userinfo_signing_algorithm' must be one of 'RS256' or 'none' but it's configured as 'rs256'",
 			},
 		},
 		{
@@ -1881,7 +1828,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				have.Clients[0].Secret = MustDecodeSecret("$plaintext$abc123")
 			},
 			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
-				assert.Equal(t, oidc.SigAlgHMACUsingSHA256, have.Clients[0].TokenEndpointAuthSigningAlg)
+				assert.Equal(t, oidc.SigningAlgHMACUsingSHA256, have.Clients[0].TokenEndpointAuthSigningAlg)
 			},
 			tcv{
 				nil,
@@ -1902,12 +1849,12 @@ func TestValidateOIDCClients(t *testing.T) {
 			"ShouldRaiseErrorOnInvalidPublicTokenAuthAlg",
 			func(have *schema.OpenIDConnectConfiguration) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
-				have.Clients[0].TokenEndpointAuthSigningAlg = oidc.SigAlgHMACUsingSHA256
+				have.Clients[0].TokenEndpointAuthSigningAlg = oidc.SigningAlgHMACUsingSHA256
 				have.Clients[0].Secret = nil
 				have.Clients[0].Public = true
 			},
 			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
-				assert.Equal(t, oidc.SigAlgHMACUsingSHA256, have.Clients[0].TokenEndpointAuthSigningAlg)
+				assert.Equal(t, oidc.SigningAlgHMACUsingSHA256, have.Clients[0].TokenEndpointAuthSigningAlg)
 			},
 			tcv{
 				nil,
@@ -1930,11 +1877,11 @@ func TestValidateOIDCClients(t *testing.T) {
 			"ShouldRaiseErrorOnInvalidTokenAuthAlgClientTypeConfidential",
 			func(have *schema.OpenIDConnectConfiguration) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
-				have.Clients[0].TokenEndpointAuthSigningAlg = "abc"
+				have.Clients[0].TokenEndpointAuthSigningAlg = oidc.EndpointToken
 				have.Clients[0].Secret = MustDecodeSecret("$plaintext$abc123")
 			},
 			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
-				assert.Equal(t, "abc", have.Clients[0].TokenEndpointAuthSigningAlg)
+				assert.Equal(t, oidc.EndpointToken, have.Clients[0].TokenEndpointAuthSigningAlg)
 			},
 			tcv{
 				nil,
@@ -1960,6 +1907,9 @@ func TestValidateOIDCClients(t *testing.T) {
 	for _, tc := range testCasses {
 		t.Run(tc.name, func(t *testing.T) {
 			have := &schema.OpenIDConnectConfiguration{
+				Discovery: schema.OpenIDConnectDiscovery{
+					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
+				},
 				Clients: []schema.OpenIDConnectClientConfiguration{
 					{
 						ID:            "test",
@@ -2063,6 +2013,301 @@ func TestValidateOIDCClientTokenEndpointAuthMethod(t *testing.T) {
 	}
 }
 
+func TestValidateOIDCIssuer(t *testing.T) {
+	keyRSA1024 := MustParseRSAPrivateKey(testKeyRSA1024)
+	keyRSA2048 := MustParseRSAPrivateKey(testKeyRSA2048)
+	keyRSA4096 := MustParseRSAPrivateKey(testKeyRSA4096)
+	keyECDSAP224 := MustParseECDSAPrivateKey(testKeyECDSAWithP224)
+	keyECDSAP256 := MustParseECDSAPrivateKey(testKeyECDSAWithP256)
+	keyECDSAP384 := MustParseECDSAPrivateKey(testKeyECDSAWithP384)
+	keyECDSAP521 := MustParseECDSAPrivateKey(testKeyECDSAWithP521)
+
+	assert.NotNil(t, keyECDSAP224)
+
+	certRSA1024 := MustParseX509CertificateChain(testCertRSA1024)
+	certRSA2048 := MustParseX509CertificateChain(testCertRSA2048)
+	certRSA4096 := MustParseX509CertificateChain(testCertRSA4096)
+	certECDSAP224 := MustParseX509CertificateChain(testCertECDSAWithP224)
+	certECDSAP256 := MustParseX509CertificateChain(testCertECDSAWithP256)
+	certECDSAP384 := MustParseX509CertificateChain(testCertECDSAWithP384)
+	certECDSAP521 := MustParseX509CertificateChain(testCertECDSAWithP521)
+
+	assert.NotNil(t, certECDSAP224)
+
+	testCases := []struct {
+		name     string
+		have     schema.OpenIDConnectConfiguration
+		expected schema.OpenIDConnectConfiguration
+		errs     []string
+	}{
+		{
+			"ShouldMapLegacyConfiguration",
+			schema.OpenIDConnectConfiguration{
+				IssuerPrivateKey: keyRSA2048,
+			},
+			schema.OpenIDConnectConfiguration{
+				IssuerPrivateKey: keyRSA2048,
+				IssuerJWKS: []schema.JWK{
+					{KeyID: "e7dfdc", Key: keyRSA2048, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
+				},
+				Discovery: schema.OpenIDConnectDiscovery{
+					DefaultKeyID:             "e7dfdc",
+					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
+				},
+			},
+			nil,
+		},
+		{
+			"ShouldSetDefaultKeyValues",
+			schema.OpenIDConnectConfiguration{
+				IssuerJWKS: []schema.JWK{
+					{Key: keyRSA2048, CertificateChain: certRSA2048},
+					{Key: keyECDSAP256, CertificateChain: certECDSAP256},
+					{Key: keyECDSAP384, CertificateChain: certECDSAP384},
+					{Key: keyECDSAP521, CertificateChain: certECDSAP521},
+				},
+			},
+			schema.OpenIDConnectConfiguration{
+				IssuerJWKS: []schema.JWK{
+					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "e7dfdc"},
+					{Key: keyECDSAP256, CertificateChain: certECDSAP256, Algorithm: oidc.SigningAlgECDSAUsingP256AndSHA256, Use: oidc.KeyUseSignature, KeyID: "29b3f2"},
+					{Key: keyECDSAP384, CertificateChain: certECDSAP384, Algorithm: oidc.SigningAlgECDSAUsingP384AndSHA384, Use: oidc.KeyUseSignature, KeyID: "e968b4"},
+					{Key: keyECDSAP521, CertificateChain: certECDSAP521, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature, KeyID: "6b20c3"},
+				},
+				Discovery: schema.OpenIDConnectDiscovery{
+					DefaultKeyID:             "e7dfdc",
+					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512},
+				},
+			},
+			nil,
+		},
+		{
+			"ShouldRaiseErrorsDuplicateRSA256Keys",
+			schema.OpenIDConnectConfiguration{
+				IssuerJWKS: []schema.JWK{
+					{Key: keyRSA2048, CertificateChain: certRSA2048},
+					{Key: keyRSA4096, CertificateChain: certRSA4096},
+				},
+			},
+			schema.OpenIDConnectConfiguration{
+				IssuerJWKS: []schema.JWK{
+					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "e7dfdc"},
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "9c7423"},
+				},
+				Discovery: schema.OpenIDConnectDiscovery{
+					DefaultKeyID:             "e7dfdc",
+					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: issuer_jwks: key #1 with key id '9c7423': option 'algorithm' must be unique but another key is using it",
+			},
+		},
+		{
+			"ShouldRaiseErrorsDuplicateRSA256Keys",
+			schema.OpenIDConnectConfiguration{
+				IssuerJWKS: []schema.JWK{
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA512},
+				},
+			},
+			schema.OpenIDConnectConfiguration{
+				IssuerJWKS: []schema.JWK{
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA512, Use: oidc.KeyUseSignature, KeyID: "9c7423"},
+				},
+				Discovery: schema.OpenIDConnectDiscovery{
+					DefaultKeyID:             "",
+					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA512},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: issuer_jwks: keys: must at least have one key supporting the 'RS256' algorithm but only has 'RS512'",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnBadCurve",
+			schema.OpenIDConnectConfiguration{
+				IssuerJWKS: []schema.JWK{
+					{Key: keyRSA4096, CertificateChain: certRSA4096},
+					{Key: keyECDSAP224, CertificateChain: certECDSAP224},
+				},
+			},
+			schema.OpenIDConnectConfiguration{
+				IssuerJWKS: []schema.JWK{
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "9c7423"},
+					{Key: keyECDSAP224, CertificateChain: certECDSAP224},
+				},
+				Discovery: schema.OpenIDConnectDiscovery{
+					DefaultKeyID:             "9c7423",
+					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: issuer_jwks: key #1: option 'key' failed to calculate thumbprint to configure key id value: square/go-jose: unsupported/unknown elliptic curve",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnBadRSAKey",
+			schema.OpenIDConnectConfiguration{
+				IssuerJWKS: []schema.JWK{
+					{Key: keyRSA1024, CertificateChain: certRSA1024},
+				},
+			},
+			schema.OpenIDConnectConfiguration{
+				IssuerJWKS: []schema.JWK{
+					{Key: keyRSA1024, CertificateChain: certRSA1024, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "a9c018"},
+				},
+				Discovery: schema.OpenIDConnectDiscovery{
+					DefaultKeyID:             "a9c018",
+					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: issuer_jwks: key #0 with key id 'a9c018': option 'key' is an RSA 1024 bit private key but it must be a RSA 2048 bit private key",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnBadAlg",
+			schema.OpenIDConnectConfiguration{
+				IssuerJWKS: []schema.JWK{
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: "invalid"},
+				},
+			},
+			schema.OpenIDConnectConfiguration{
+				IssuerJWKS: []schema.JWK{
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: "invalid", Use: oidc.KeyUseSignature, KeyID: "9c7423"},
+				},
+				Discovery: schema.OpenIDConnectDiscovery{
+					DefaultKeyID:             "",
+					RegisteredJWKSigningAlgs: []string{"invalid"},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: issuer_jwks: key #0 with key id '9c7423': option 'algorithm' must be one of 'RS256', 'PS256', 'ES256', 'RS384', 'PS384', 'ES384', 'RS512', 'PS512', or 'ES512' but it's configured as 'invalid'",
+				"identity_providers: oidc: issuer_jwks: keys: must at least have one key supporting the 'RS256' algorithm but only has 'invalid'",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnBadUse",
+			schema.OpenIDConnectConfiguration{
+				IssuerJWKS: []schema.JWK{
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Use: "invalid"},
+				},
+			},
+			schema.OpenIDConnectConfiguration{
+				IssuerJWKS: []schema.JWK{
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: "invalid", KeyID: "9c7423"},
+				},
+				Discovery: schema.OpenIDConnectDiscovery{
+					DefaultKeyID:             "9c7423",
+					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: issuer_jwks: key #0 with key id '9c7423': option 'use' must be one of 'sig' but it's configured as 'invalid'",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnBadKeyIDLength",
+			schema.OpenIDConnectConfiguration{
+				IssuerJWKS: []schema.JWK{
+					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "thisistoolong"},
+				},
+			},
+			schema.OpenIDConnectConfiguration{
+				IssuerJWKS: []schema.JWK{
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "thisistoolong"},
+				},
+				Discovery: schema.OpenIDConnectDiscovery{
+					DefaultKeyID:             "thisistoolong",
+					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: issuer_jwks: key #0 with key id 'thisistoolong': option `key_id`` must be 7 characters or less",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnBadKeyIDCharacters",
+			schema.OpenIDConnectConfiguration{
+				IssuerJWKS: []schema.JWK{
+					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "x@x"},
+				},
+			},
+			schema.OpenIDConnectConfiguration{
+				IssuerJWKS: []schema.JWK{
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "x@x"},
+				},
+				Discovery: schema.OpenIDConnectDiscovery{
+					DefaultKeyID:             "x@x",
+					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: issuer_jwks: key #0 with key id 'x@x': option 'key_id' must only have alphanumeric characters",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnBadKeyIDDuplicates",
+			schema.OpenIDConnectConfiguration{
+				IssuerJWKS: []schema.JWK{
+					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "x"},
+					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAPSSUsingSHA256, KeyID: "x"},
+				},
+			},
+			schema.OpenIDConnectConfiguration{
+				IssuerJWKS: []schema.JWK{
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "x"},
+					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAPSSUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "x"},
+				},
+				Discovery: schema.OpenIDConnectDiscovery{
+					DefaultKeyID:             "x",
+					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA256},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: issuer_jwks: key #1 with key id 'x': option 'key_id' must be unique",
+			},
+		},
+	}
+
+	var n int
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			val := schema.NewStructValidator()
+
+			validateOIDCIssuer(&tc.have, val)
+
+			assert.Equal(t, tc.expected.Discovery.DefaultKeyID, tc.have.Discovery.DefaultKeyID)
+			assert.Equal(t, tc.expected.Discovery.RegisteredJWKSigningAlgs, tc.have.Discovery.RegisteredJWKSigningAlgs)
+			assert.Equal(t, tc.expected.IssuerPrivateKey, tc.have.IssuerPrivateKey)
+			assert.Equal(t, tc.expected.IssuerCertificateChain, tc.have.IssuerCertificateChain)
+
+			n = len(tc.expected.IssuerJWKS)
+
+			require.Len(t, tc.have.IssuerJWKS, n)
+
+			for i := 0; i < n; i++ {
+				t.Run(fmt.Sprintf("Key%d", i), func(t *testing.T) {
+					assert.Equal(t, tc.expected.IssuerJWKS[i].Algorithm, tc.have.IssuerJWKS[i].Algorithm)
+					assert.Equal(t, tc.expected.IssuerJWKS[i].Use, tc.have.IssuerJWKS[i].Use)
+					assert.Equal(t, tc.expected.IssuerJWKS[i].KeyID, tc.have.IssuerJWKS[i].KeyID)
+					assert.Equal(t, tc.expected.IssuerJWKS[i].Key, tc.have.IssuerJWKS[i].Key)
+					assert.Equal(t, tc.expected.IssuerJWKS[i].CertificateChain, tc.have.IssuerJWKS[i].CertificateChain)
+				})
+			}
+
+			n = len(tc.errs)
+
+			require.Len(t, val.Errors(), n)
+
+			for i := 0; i < n; i++ {
+				assert.EqualError(t, val.Errors()[i], tc.errs[i])
+			}
+		})
+	}
+}
+
 func MustDecodeSecret(value string) *schema.PasswordDigest {
 	if secret, err := schema.DecodePasswordDigest(value); err != nil {
 		panic(err)
@@ -2073,15 +2318,33 @@ func MustDecodeSecret(value string) *schema.PasswordDigest {
 
 func MustParseRSAPrivateKey(data string) *rsa.PrivateKey {
 	block, _ := pem.Decode([]byte(data))
-	if block == nil || block.Bytes == nil || len(block.Bytes) == 0 {
+	if block == nil || len(block.Bytes) == 0 {
 		panic("not pem encoded")
 	}
 
 	if block.Type != "RSA PRIVATE KEY" {
-		panic("not private key")
+		panic("not rsa private key")
 	}
 
 	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		panic(err)
+	}
+
+	return key
+}
+
+func MustParseECDSAPrivateKey(data string) *ecdsa.PrivateKey {
+	block, _ := pem.Decode([]byte(strings.TrimSpace(data)))
+	if block == nil || len(block.Bytes) == 0 {
+		panic("not pem encoded")
+	}
+
+	if block.Type != "EC PRIVATE KEY" {
+		panic("not ecdsa private key")
+	}
+
+	key, err := x509.ParseECPrivateKey(block.Bytes)
 	if err != nil {
 		panic(err)
 	}
@@ -2100,7 +2363,7 @@ func MustParseX509CertificateChain(data string) schema.X509CertificateChain {
 }
 
 var (
-	testCert1 = `
+	testCertRSA1 = `
 -----BEGIN CERTIFICATE-----
 MIIC5jCCAc6gAwIBAgIRAJZ+6KrHw95zIDgm2arCTCgwDQYJKoZIhvcNAQELBQAw
 EzERMA8GA1UEChMIQXV0aGVsaWEwHhcNMjIwOTA4MDIyNDQyWhcNMjMwOTA4MDIy
@@ -2120,7 +2383,7 @@ pMQ2x895BoLrep6b+g0xeF4pmmIQwA9KrUVr++gpYaRzytaOIYwcIPMzt9iLWKQe
 6ZSOrTVi8pPugYXp+LhVk/WI7r8EWtyADu0=
 -----END CERTIFICATE-----`
 
-	testKey1 = `
+	testKeyRSA1 = `
 -----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEAwATua4MAm0uxXdaA6mOtnUkPVGWG5I5rdX7jOjY1gVBJ1lbX
 xJl9hiBTAs6V4TLdVDc30wQWH+tY0dgd2wGMO/P9DUTMCVeq2EZ3RKJz9QNi2tqG
@@ -2149,7 +2412,7 @@ abn2HX0L9smxqFNTcjCvKF/J7I74HQQUvVPKnIOlgMx1TOXBNcMLMXQekc/lz/+v
 5oyNJo6/froW1dLkJJWR8hg2PQbtoOo6l9HHSd91BnJJ4qFbq9ZrXQ==
 -----END RSA PRIVATE KEY-----`
 
-	testKey2 = `
+	testKeyRSA2 = `
 -----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEA6z1LOg1ZCqb0lytXWZ+MRBpMHEXOoTOLYgfZXt1IYyE3Z758
 cyalk0NYQhY5cZDsXPYWPvAHiPMUxutWkoxFwby56S+AbIMa3/Is+ILrHRJs8Exn
@@ -2178,7 +2441,8 @@ USjhLXY0Nld2zBm9r8wMb81mXH29uvD+tDqqsICvyuKlA/tyzXR+QTr7dCVKVwu0
 1YjCJ36UpTsLre2f8nOSLtNmRfDPtbOE2mkOoO9dD9UU0XZwnvn9xw==
 -----END RSA PRIVATE KEY-----`
 
-	testKey3 = `-----BEGIN RSA PRIVATE KEY-----
+	testKeyRSA3 = `
+-----BEGIN RSA PRIVATE KEY-----
 MIICXgIBAAKBgQDBi7fdmUmlpWklpgAvNUdhDrpsDVqAHuEzVApK6f6ohYAi0/q2
 +YmOwyPKDSrOc6Sy1myJtV3FbZGvYaQhnokc4bnkS9DH0lY+6Hk2vKps5PrhRY/q
 1EjnfwXvzhAzb25rGFwKcSvfvndMTVvxgqXVob+3pRt9maD6HFHAh2/NCQIDAQAB
@@ -2193,6 +2457,253 @@ AQmB98tdGLggbyXiODV2h+Rd37aFGb0QHzerIIsVNtMwlPCcp733D4kWJqTUYWZ+
 KBL3XEahgs6Os5EYZ4aBAkEAjKE+2/nBYUdHVusjMXeNsE5rqwJND5zvYzmToG7+
 xhv4RUAe4dHL4IDQoQRjhr3Nw+JYvtzBx0Iq/178xMnGKg==
 -----END RSA PRIVATE KEY-----`
+
+	testCertRSA1024 = `
+-----BEGIN CERTIFICATE-----
+MIIB4zCCAUygAwIBAgIRANSysyC3vJlv86Ttmi8M97owDQYJKoZIhvcNAQELBQAw
+EzERMA8GA1UEChMIQXV0aGVsaWEwIBcNMjMwNDE3MTM0MTM3WhgPMjEwMDAxMDEw
+MDAwMDBaMBMxETAPBgNVBAoTCEF1dGhlbGlhMIGfMA0GCSqGSIb3DQEBAQUAA4GN
+ADCBiQKBgQC4ntJ/qcs9yBQihZkrF5v2Pdp6Rr8uNc4GDjuOsVGUohpwcjVobAuj
+AuvCG646cnekbkJOm1bY+38F+nfWJ7ny9RYMp1ng6xWR6vpzZiPyJI89FQU3gd8f
+WDI5Xn2ZvrSqfgEJhXMAWn7EPgUajlbLoPzYFCKSChIpR9umk5DBnQIDAQABozUw
+MzAOBgNVHQ8BAf8EBAMCBaAwEwYDVR0lBAwwCgYIKwYBBQUHAwEwDAYDVR0TAQH/
+BAIwADANBgkqhkiG9w0BAQsFAAOBgQBjpYkj+iE9XoA0q8Iq8+CYwlRwQ76jHKgy
+z+0JCJE10ysuDPqRJEGJR3vfOs6VyNTGcvdCemPkTEYYAikaT4ydRNqIwefuHlx0
+7Abr/GUkZpRdTNfitAZbN4HpHpxZhx/A4yNutwGLiZSzqsn1r1VxTymSkNLa680X
+84rsVRZppA==
+-----END CERTIFICATE-----`
+
+	testKeyRSA1024 = `
+-----BEGIN RSA PRIVATE KEY-----
+MIICWwIBAAKBgQC4ntJ/qcs9yBQihZkrF5v2Pdp6Rr8uNc4GDjuOsVGUohpwcjVo
+bAujAuvCG646cnekbkJOm1bY+38F+nfWJ7ny9RYMp1ng6xWR6vpzZiPyJI89FQU3
+gd8fWDI5Xn2ZvrSqfgEJhXMAWn7EPgUajlbLoPzYFCKSChIpR9umk5DBnQIDAQAB
+AoGAHNF93jus5An1SqY8EIPw7nEdR3T/psDzVfKmzVFUgLUFF4RcXd5vupRcJMKZ
+Ybo4fsxPQWHyHpCzdUVxq1YsKkK5qaAGjUfyHKP9yS/ZTKzA4BQJ+mOxagdZ79PB
+dxrxtRWz58x++537TNGAUNziG7zaLOmdwlqul4bYjHt5FCkCQQDhPwFMbrpjT4oM
+fDuy1bWS4t3X4VVBZfEQT3WeLu4qHzCnBbEszL/q3bXtKlbiqcWRwhrOvCqkmY8v
+XBAb21yTAkEA0dPVHCcgXKWIytz7DOGEcBoO8ANw/918VoA9LW560pL5B1qzYAl+
+7Ecl6zoZLJPVY1BQ+HVE5tLih84hmlp3DwJAZnHQdmHaFfcEE3+ha0n1plPWkCwl
+KXRi+ocZOJOhsLi02RImrfiFxR2Hc9GQ6NBMUmnU5XgBcRGCZQjbLsBLTwJAEct7
+SVXwIqtPPJUdHWyKxM8Q8T35eVmZT+S0S4QRGoaoY/1HNR/ZCcTG7HoS5HrtH+0R
+0OBxJXpBB+9tXh/J9QJAJDVE0lcJWKeUl/W3P/pzCXZHdUtqoYUFuuuJyFnAAFFU
+CKi6wGKnfsc0v01tVpooyThJ+4Z9eTotNGp6ke1tTA==
+-----END RSA PRIVATE KEY-----`
+
+	testCertRSA2048 = `
+-----BEGIN CERTIFICATE-----
+MIIC6DCCAdCgAwIBAgIRAKtA7n5MZorcd0TquNdXF74wDQYJKoZIhvcNAQELBQAw
+EzERMA8GA1UEChMIQXV0aGVsaWEwIBcNMjMwNDE3MTM0NDI4WhgPMjEwMDAxMDEw
+MDAwMDBaMBMxETAPBgNVBAoTCEF1dGhlbGlhMIIBIjANBgkqhkiG9w0BAQEFAAOC
+AQ8AMIIBCgKCAQEAugGNhIscNEpZtxdrTuRAyeGjSERuue56uF0lMDvh8YDi0alQ
+y4q80FmIwfP9lWmji9IkMvf1iD0M2I55WBPrL9ddqtpdkIfLgz6eX791LKtF9n8u
+PwuX2jUDtWdJrMlOIJ8wCcTjyCFzjTFujAtXGffjWt4tlKCWZZUkJqmyfBiQIag6
+ZFb1S6VXFXFpWTOIc41X2VBmzpSLnfqEDqgp/KMDja1tDYAhFh3IAFSzBpXqUGT4
+cH2wJUcrngdaiHR/2ToJRu66jK8akB35gjmKiF/Tp9pUI7/rBgPeFWDCZuuZa3k3
+brfjJkynQAoCNajfxy8cglCxAuG+jWubFDPGewIDAQABozUwMzAOBgNVHQ8BAf8E
+BAMCBaAwEwYDVR0lBAwwCgYIKwYBBQUHAwEwDAYDVR0TAQH/BAIwADANBgkqhkiG
+9w0BAQsFAAOCAQEAoIXTZcKC13KW1GNhzx9ECFTs/gatfjkYONRz+M2wjpVGHzsn
+JUPXhoT1SL9WdWYXVVCUXrQge9n9n6IccDjwddnoWL2JMXnNd2PAJLgwE2Xfd40o
+U1CLTwvsVNCXjoQLyjkg+SbWGqApVS3oj+A8RTtSBbztP+CoOqbyD3Roo1sFHeE8
+PXYboT5bIIaU7DaxhItGHwVDLLOSD72FP/5i+ZmFse2EzUUdyi6d4FSjk7pZCX1T
+/2w/bqk3zRemBqDwTnH+sMhPUPvcOg6AIR5YdjWYSDz45sDdgBpUZYYTPfSz2nUL
+PJwsB/gk0asMwSYprat6sJ0X3xrtg1ak3a7LkQ==
+-----END CERTIFICATE-----`
+
+	testKeyRSA2048 = `
+-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEAugGNhIscNEpZtxdrTuRAyeGjSERuue56uF0lMDvh8YDi0alQ
+y4q80FmIwfP9lWmji9IkMvf1iD0M2I55WBPrL9ddqtpdkIfLgz6eX791LKtF9n8u
+PwuX2jUDtWdJrMlOIJ8wCcTjyCFzjTFujAtXGffjWt4tlKCWZZUkJqmyfBiQIag6
+ZFb1S6VXFXFpWTOIc41X2VBmzpSLnfqEDqgp/KMDja1tDYAhFh3IAFSzBpXqUGT4
+cH2wJUcrngdaiHR/2ToJRu66jK8akB35gjmKiF/Tp9pUI7/rBgPeFWDCZuuZa3k3
+brfjJkynQAoCNajfxy8cglCxAuG+jWubFDPGewIDAQABAoIBAD7IkWUAs4du5TNo
+wz7AyqGZ+MxG1P0LYv7h6dCLFeu3blgIh438iVjmL8QPwDNzkdF7H97YVVckDDb4
+eDrjlknyrtohlN1ZCLeHJlv5OurV8OqP6SM8nYf4xwSvFW4uEKHwOX3CqIP/zooE
++mRo24CXbHVacxYs0jb9jVNDikxaRh57aL9wqvg8/SUhe2T2VXzTO9z0ZYNuIyF/
+EkOLkRM1FY7o3zHuYeRN2Y/QbS7yOT4aIodHBtwvObWs8g6Sq8cSbss72x22fY8J
+uPwDASy93EOfn7phx9rGq6ioy5XpZtiGHPs+dThftBoOUCq3x2PxdVjGRwnZ1LRd
+kEhWm3kCgYEA8LelRt6go8tqUGj82Y+RkKlbviO7+P8Hol1B1fV+wIlLK6CRm6Mb
+3PB7fRdBsxcuBFf8WfVdfIkSHEi2uG+Ehb54AySTdsgRYHSQtSYMvKyKxHcsEJ6x
+5uNK425N6wVS86MGoIK5li6jpVwdnA8bE6cvEMBRMXlTTIzvwM1+AV8CgYEAxdCw
+qqaS6aYBH5Ol0hUi3wW6HaLUOVGksrn3ZTfAGsgoX/mgF8qinz1NmuSzKoevvVK9
+q9TC+GDrVNQcD7s2kQQD3Ni8Jb3ok360HcqRN+n8O5+v/t7OjHSsqSRmnQX/lvWO
++65r442ziHXrhFT2CwmY3zBHXe2+MBrGHmrgRGUCgYEAkRoSbdrrOHD44Am5SSfq
+1inQnJgLyjdpEa1nbyLxyfu4rU64FvpGZHMt7SSkvODfI00qV8u5E8XIffYy9pB6
+cOh0jWhx36sQFnWNeTS7fsv/RhiUHlya3pPqY5ftLhtiemyuJPlIB8iLarVRP+43
+IyynCVD0YH9DACUArNbx+r8CgYBpd9EZy2I9DPNAYLpifj5vZmBK+MvqG6uSVzCe
+WNEl9l4AfdlrlfCKsma0FQepv1pluL3D5dZmE1aljcnAYXLAcsGUeEIoZU6hhUaH
+M7+lbi27pHJzk1vQ60w7ilrjkZUqaZZofiCr3JtCQIznq1zbmaxWIymJ3P4wK7ZB
+9X3JOQKBgQDHPBrRVP5Od7dd/C+yi7p2CujuLbV4vKczpNf7Kj+OwQZtnZxjzi95
+ObquHDkrz5+OhkvZwKNKO89UQzvhT+7gpQpZJ/gdVl1oNuZ5gAsJ4aDWX+NZ00Z0
+Nkb2HpYR8xlnt6rFV465SYun1CIz5h1sUD1T75LDK340SrMbQq2Ilw==
+-----END RSA PRIVATE KEY-----`
+
+	testCertRSA4096 = `
+-----BEGIN CERTIFICATE-----
+MIIE5zCCAs+gAwIBAgIQFaK8pCAGUonNI4J2+aHgGzANBgkqhkiG9w0BAQsFADAT
+MREwDwYDVQQKEwhBdXRoZWxpYTAgFw0yMzA0MTcxMzQ1MTBaGA8yMTAwMDEwMTAw
+MDAwMFowEzERMA8GA1UEChMIQXV0aGVsaWEwggIiMA0GCSqGSIb3DQEBAQUAA4IC
+DwAwggIKAoICAQCjdNqfv8DzXBfR4XXsskYFcUYSLx17BrQ1hQqyLCTaAluH80OE
+7HyZbbklKyvw4ig5Rk8Slq1pv6JBK3dEsOWWth2BNZEQyyGXa/aa77Zj6FxdDRHb
+H/retzJzxTaaiu+F50OU0PkE5clj/V5JsgKwm70GwOy6zLkGnlv0k0I8HzTYJd1u
+9qfKLZpmkJ0oiR4TogEgZA+9atCxzAFbcrynEnStIrepxvad9oOlzFLxArFe5Ai8
+IsT3hgIo1SHFSVMhPdfsXVt1nIo5h2Ol2Ry932sIIDypNc70KsYgzQ4jC/6iRni4
+saKoUp9IIDCRl+zjlLM1csiufhzC8U0g+UvWFkzigTW4J+CneQk9nnb5BtfCAiir
+6WjOicQJff9EuvQFYASljQypH8hunKcH9YWtT/DGRThpWRgDMMalHnEprC4uSrYy
+1QajLCi0ncJIArW3SdyePc7tRebNIxY3/Phj5kMwfV+ypIso5nJyu41AQVaRT7U5
++YHydvg3FGOa7JDUm1a27BQgpocz5yU5aazbffmPz/eRPqMa/YRsmzBLnuhkR2Fo
+6aRoU0a3zQe9LcrP8gdxr2ZQqZYzdVJ2feywaeH6RN6jl3S2IlH/j71G0dyi3nSN
+nC4pe7CHH/wtE6NYCzoPcpZIcDqWt1aCFKYCK1MacmWSycxzv0dzJo+CnwIDAQAB
+ozUwMzAOBgNVHQ8BAf8EBAMCBaAwEwYDVR0lBAwwCgYIKwYBBQUHAwEwDAYDVR0T
+AQH/BAIwADANBgkqhkiG9w0BAQsFAAOCAgEAL65NXfJDjTF/GeoB6s8V3fvuwviu
+RVQZsbKO4i7nCgs7lFJbXDkW+ybXhq1fmOeCnD1BaF5wwBNB4rgb70PT2eGpKbC7
+7U4sgghU7CYSS5sc3dP2xAS1NaCrTAa3m8tlzPqhkR1VkZ9X16fG7kTp/CPXMKMT
+zoBj+v3Iv3Gf+gSJu6a2PmvAPuV4w78PH9Lz2sZ7FkZYOYhzNgUS++vL2k53DIW9
+6mIqMhm6y9yzsxJx9FXKBWqNuqpL3Gp5KL0XWFy4JIbnpX1b0J4C8yAvF5QS8viO
+3VFFcgGB5VWS6vMDAp/c6O+9Rzg0ZbfnLYAHxeSMGZ/Zkf/TnHNjKASFmEu912iH
+c6ulT8hVxwTxi/P8eereFdsMib8Z0z871e/2KGZN9bwycVIsqZIllTM3vqcwc9wi
+uu6eoScqx25qut2G7K2aQxtfPHmPfyh7/Ft3jZra3apzEuRE3KRBVWaSbDI2SjoP
+LESJpBtFPnKOt2p9p/70iODv2lrfoMpj4eXXztJAJFUi4KkczomrU1WtJDc8J5Pp
+9tBiNFR1bBKE4+9kwY+6x8LMJs94XjlbG7stoPki41qGR/8Th+n33GcIF4n9Up9l
+2XR5/Iqewj2FJAkiYcalFasScU/hLTyjJzpYMOtAvVbBgvYm8IQ4Q5VBkQPPe6a4
+P+3smf8j9ywptqk=
+-----END CERTIFICATE-----`
+
+	testKeyRSA4096 = `
+-----BEGIN RSA PRIVATE KEY-----
+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
+-----END RSA PRIVATE KEY-----`
+
+	testCertECDSAWithP224 = `
+-----BEGIN CERTIFICATE-----
+MIIBRzCB9qADAgECAhB51uvUDHkaxlSEs8cgoYBRMAoGCCqGSM49BAMCMBMxETAP
+BgNVBAoTCEF1dGhlbGlhMCAXDTIzMDQxNzEzMTIwMloYDzIxMDAwMTAxMDAwMDAw
+WjATMREwDwYDVQQKEwhBdXRoZWxpYTBOMBAGByqGSM49AgEGBSuBBAAhAzoABJa4
+oEFZqEbmsnKWXEfNWTiqyEq6YiWbVFIH/PGijaRmsYpKC2UBGsscN4DziAUHBlqX
+KLA/lsRjozUwMzAOBgNVHQ8BAf8EBAMCBaAwEwYDVR0lBAwwCgYIKwYBBQUHAwEw
+DAYDVR0TAQH/BAIwADAKBggqhkjOPQQDAgNAADA9Ah0Aq03epx31NN1fTorB/rrz
+Muu9Taw8YxaZxvjLaQIcbNHGY5bFYxi04ahvN1rYi2sJEn66SaWut+lBIw==
+-----END CERTIFICATE-----`
+
+	testKeyECDSAWithP224 = `
+-----BEGIN EC PRIVATE KEY-----
+MGgCAQEEHM0126u3fW5scirH39HU9FgPTZOHPxg2NgbSQQ+gBwYFK4EEACGhPAM6
+AASWuKBBWahG5rJyllxHzVk4qshKumIlm1RSB/zxoo2kZrGKSgtlARrLHDeA84gF
+BwZalyiwP5bEYw==
+-----END EC PRIVATE KEY-----`
+
+	testCertECDSAWithP256 = `
+-----BEGIN CERTIFICATE-----
+MIIBWzCCAQKgAwIBAgIRANqK3vKflYMr/2HGVd3aOR0wCgYIKoZIzj0EAwIwEzER
+MA8GA1UEChMIQXV0aGVsaWEwIBcNMjMwNDE3MTMxNjI5WhgPMjEwMDAxMDEwMDAw
+MDBaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcD
+QgAEnnBdDSXbTgHtrc5vcJ2xz6qyGXM8PJgENjgQgn5WFVQCSZnKp08+mzeDiHrM
+67KmISfxSAjoeCJV+dP6JfxIVqM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1UdJQQM
+MAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwCgYIKoZIzj0EAwIDRwAwRAIgOo+m
+1yQsTmqOaKak9MY2q7CdBI9Di8vPK/sE/x5JIPYCIA/lyI/sG1EEdLT8g3M4Joc3
+VK7cBHjmftnZL6kiS+Dn
+-----END CERTIFICATE-----`
+
+	testKeyECDSAWithP256 = `
+-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIHL87FDsqijXFhRJ5VgYiOz2ko6xxP7aP7i4v3Eowf4KoAoGCCqGSM49
+AwEHoUQDQgAEnnBdDSXbTgHtrc5vcJ2xz6qyGXM8PJgENjgQgn5WFVQCSZnKp08+
+mzeDiHrM67KmISfxSAjoeCJV+dP6JfxIVg==
+-----END EC PRIVATE KEY-----`
+
+	testCertECDSAWithP384 = `
+-----BEGIN CERTIFICATE-----
+MIIBmDCCAR6gAwIBAgIQWFgOoTSBNa4F1A+Uk5fBhTAKBggqhkjOPQQDAjATMREw
+DwYDVQQKEwhBdXRoZWxpYTAgFw0yMzA0MTcxMzE1MDBaGA8yMTAwMDEwMTAwMDAw
+MFowEzERMA8GA1UEChMIQXV0aGVsaWEwdjAQBgcqhkjOPQIBBgUrgQQAIgNiAARq
+Fk2dSauZd2mW0ZXuxZ0k2a5PInZOs3wbzjJr67RPzmPMNGt5dVHtbOTLr9MAcm21
+E6/4CLQZ+wMq4Zxuhoa02VN4lQBFOzWFPwVTa0lcOUCkJ7E7JWXiZjX80ROyqDOj
+NTAzMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDATAMBgNVHRMB
+Af8EAjAAMAoGCCqGSM49BAMCA2gAMGUCMQCJHEN22ouKJr0usue9/bUsJltPrgSW
+v7NjjQ9hY96JAwBQpTxX6EksQdnl44Q/LLACMHBZn3weWvq8frMOAmAvOomMsnMp
+H7tweTJNXh4V8XdtR2GGxAAYbq/ShyxrpQ6LVA==
+-----END CERTIFICATE-----`
+
+	testKeyECDSAWithP384 = `
+-----BEGIN EC PRIVATE KEY-----
+MIGkAgEBBDBd2neGG9Ax14sDR0V0TYSXIBxNWZwYr7OAFd57MRUZ/+BkHvQEMOoV
+umd/tOgGjEagBwYFK4EEACKhZANiAARqFk2dSauZd2mW0ZXuxZ0k2a5PInZOs3wb
+zjJr67RPzmPMNGt5dVHtbOTLr9MAcm21E6/4CLQZ+wMq4Zxuhoa02VN4lQBFOzWF
+PwVTa0lcOUCkJ7E7JWXiZjX80ROyqDM=
+-----END EC PRIVATE KEY-----`
+
+	testCertECDSAWithP521 = `
+-----BEGIN CERTIFICATE-----
+MIIB5DCCAUWgAwIBAgIRAIpQUsZLrSAJ7+PY4U0MIaYwCgYIKoZIzj0EAwIwEzER
+MA8GA1UEChMIQXV0aGVsaWEwIBcNMjMwNDE3MTMxNTM2WhgPMjEwMDAxMDEwMDAw
+MDBaMBMxETAPBgNVBAoTCEF1dGhlbGlhMIGbMBAGByqGSM49AgEGBSuBBAAjA4GG
+AAQAO8GuJvWACDYuO1ZhMdbrINK8AM8B2xFn5nSvAHAgYolyXz8yxLjmFT1/ifQZ
+QjnocX4j/zOGIt1f1OXQvPSRaiQAzWlFIejCKChBK0hiDqfTyzDgrJGiCobL1bgr
+yxO3oDg70YeN3mr0OkMvdrIBjpGpGkt5AX6XyaIau9ogZJz6gyOjNTAzMA4GA1Ud
+DwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDATAMBgNVHRMBAf8EAjAAMAoG
+CCqGSM49BAMCA4GMADCBiAJCAKaUek+/zGw7Tt3L5rqQhXFzWI4mfci+jD99/JHY
+UT/FX2Co/tjEcyty46mMWsw6E7q6XCJ6gx38SCWe7wRdMXQMAkIA6rlkntqo6r+j
+PoTtPVmbkFFc5ficw+xlmhuKblKrq+u8sbnm+J62C8pXuzSc8dtKEe0+oORD5HH9
+YGuoIKNL2vg=
+-----END CERTIFICATE-----`
+
+	testKeyECDSAWithP521 = `
+-----BEGIN EC PRIVATE KEY-----
+MIHcAgEBBEIAe0mKO82UiFUDM3M3CgyEKkXuXnt0m2DAnW3Yf2nadim00n/XsGw7
++ID6Zz5Xhazpx7WFNNhtrjbNQOKbsQNndPugBwYFK4EEACOhgYkDgYYABAA7wa4m
+9YAINi47VmEx1usg0rwAzwHbEWfmdK8AcCBiiXJfPzLEuOYVPX+J9BlCOehxfiP/
+M4Yi3V/U5dC89JFqJADNaUUh6MIoKEErSGIOp9PLMOCskaIKhsvVuCvLE7egODvR
+h43eavQ6Qy92sgGOkakaS3kBfpfJohq72iBknPqDIw==
+-----END EC PRIVATE KEY-----`
 
 	goodOpenIDConnectClientSecret = "$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng" //nolint:gosec
 )

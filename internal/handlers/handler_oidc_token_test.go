@@ -145,11 +145,10 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 	s.store = mocks.NewMockStorage(s.ctrl)
 
-	var err error
-
 	secret := MustDecodeSecret("$plaintext$client-secret")
 
-	s.provider, err = oidc.NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+	s.provider = oidc.NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+		IssuerJWKS:             schema.OpenIDConnectIssuerJWKS{},
 		IssuerCertificateChain: schema.X509CertificateChain{},
 		IssuerPrivateKey:       MustParseRSAPrivateKey(exampleRSAPrivateKey),
 		HMACSecret:             "abc123",
@@ -162,7 +161,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgHMACUsingSHA256,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgHMACUsingSHA256,
 			},
 			{
 				ID:     "hs384",
@@ -172,7 +171,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgHMACUsingSHA384,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgHMACUsingSHA384,
 			},
 			{
 				ID:     "hs512",
@@ -182,7 +181,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgHMACUsingSHA512,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgHMACUsingSHA512,
 			},
 			{
 				ID:     "rs256",
@@ -192,7 +191,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgRSAUsingSHA256,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA256,
 			},
 			{
 				ID:     "rs384",
@@ -202,7 +201,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgRSAUsingSHA384,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA384,
 			},
 			{
 				ID:     "rs512",
@@ -212,7 +211,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgRSAUsingSHA512,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA512,
 			},
 			{
 				ID:     "ps256",
@@ -222,7 +221,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgRSAPSSUsingSHA256,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA256,
 			},
 			{
 				ID:     "ps384",
@@ -232,7 +231,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgRSAPSSUsingSHA384,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA384,
 			},
 			{
 				ID:     "ps512",
@@ -242,7 +241,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgRSAPSSUsingSHA512,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA512,
 			},
 			{
 				ID:     "es256",
@@ -252,7 +251,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgECDSAUsingP256AndSHA256,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP256AndSHA256,
 			},
 			{
 				ID:     "es384",
@@ -262,7 +261,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgECDSAUsingP384AndSHA384,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP384AndSHA384,
 			},
 			{
 				ID:     "es512",
@@ -272,7 +271,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgECDSAUsingP521AndSHA512,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP521AndSHA512,
 			},
 			{
 				ID:     "hs5122",
@@ -282,7 +281,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgHMACUsingSHA512,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgHMACUsingSHA512,
 			},
 			{
 				ID:     "hashed",
@@ -292,7 +291,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgHMACUsingSHA512,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgHMACUsingSHA512,
 			},
 			{
 				ID:     oidc.ClientAuthMethodClientSecretBasic,
@@ -302,7 +301,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretBasic,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgNone,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgNone,
 			},
 			{
 				ID:     oidc.ClientAuthMethodNone,
@@ -312,7 +311,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodNone,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgNone,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgNone,
 			},
 			{
 				ID:     oidc.ClientAuthMethodClientSecretPost,
@@ -322,7 +321,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretPost,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgNone,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgNone,
 			},
 			{
 				ID:     "bad_method",
@@ -332,7 +331,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:     "bad_method",
-				TokenEndpointAuthSigningAlg: oidc.SigAlgNone,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgNone,
 			},
 			{
 				ID:     "base",
@@ -370,8 +369,6 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 			},
 		},
 	}, s.store, nil)
-
-	s.Require().NoError(err)
 }
 
 func (s *ClientAuthenticationStrategySuite) TestShouldValidateAssertionHS256() {
@@ -1334,214 +1331,6 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailMissingAssertion() {
 	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The client_assertion request parameter must be set when using client_assertion_type of 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'.")
 	s.Nil(client)
 }
-
-/*
-
-func TestOpenIDConnectProvider_DefaultClientAuthenticationStrategy_ShouldValidateJWT(t *testing.T) {
-	aClientID := "a-client"
-	aClientSecret := "a-client-secret"
-	root := MustParseRequestURI("https://auth.example.com")
-	tokenURL := root.JoinPath(oidc.EndpointPathToken)
-
-	require.NotNil(t, tokenURL)
-
-	ctrl := gomock.NewController(t)
-
-	store := mocks.NewMockStorage(ctrl)
-
-	provider, err := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
-		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       MustParseRSAPrivateKey(exampleIssuerPrivateKey),
-		HMACSecret:             "abc123",
-		Clients: []schema.OpenIDConnectClientConfiguration{
-			{
-				ID:     aClientID,
-				Secret: MustDecodeSecret("$plaintext$" + aClientSecret),
-				Policy: authorization.OneFactor.String(),
-				RedirectURIs: []string{
-					"https://google.com",
-				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgHMACUsingSHA512,
-			},
-		},
-	}, store, nil)
-
-	assert.NotNil(t, provider)
-	assert.NoError(t, err)
-
-	assertion := NewAssertion(aClientID, tokenURL, time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
-
-	assertionJWT := jwt.NewWithClaims(jose.HS512, assertion.ToMapClaims())
-
-	token, err := assertionJWT.SignedString([]byte(aClientSecret))
-
-	require.NoError(t, err)
-	require.NotEqual(t, "", token)
-
-	values := &url.Values{}
-
-	values.Set(oidc.FormParameterClientAssertionType, oidc.ClientAssertionJWTBearerType)
-	values.Set(oidc.FormParameterClientAssertion, token)
-
-	var ctx oidc.OpenIDConnectContext = &oidc.MockOpenIDConnectContext{
-		Context:       context.Background(),
-		MockIssuerURL: MustParseRequestURI("https://auth.example.com"),
-	}
-
-	r, err := http.NewRequest(http.MethodPost, tokenURL.String(), strings.NewReader(values.Encode()))
-
-	assert.NoError(t, err)
-
-	require.NotNil(t, r)
-
-	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	assert.NoError(t, r.ParseForm())
-
-	sig := fmt.Sprintf("%x", sha256.Sum256([]byte(assertion.JTI)))
-
-	gomock.InOrder(
-		store.
-			EXPECT().LoadOAuth2BlacklistedJTI(ctx, sig).
-			Return(nil, sql.ErrNoRows),
-
-		store.
-			EXPECT().SaveOAuth2BlacklistedJTI(ctx, model.OAuth2BlacklistedJTI{Signature: sig, ExpiresAt: assertion.ExpiresAt}).
-			Return(nil),
-	)
-
-	client, err := provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
-
-	assert.NoError(t, ErrorToRFC6749ErrorTest(err))
-
-	require.NotNil(t, client)
-
-	assert.Equal(t, aClientID, client.GetID())
-}
-
-func TestOpenIDConnectProvider_DefaultClientAuthenticationStrategy_ShouldErrorInvalidKTY(t *testing.T) {
-	aClientID := "a-client"
-	aClientSecret := "a-client-secret"
-	root := MustParseRequestURI("https://auth.example.com")
-	tokenURL := root.JoinPath(oidc.EndpointPathToken)
-
-	require.NotNil(t, tokenURL)
-
-	provider, err := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
-		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       MustParseRSAPrivateKey(exampleIssuerPrivateKey),
-		HMACSecret:             "abc123",
-		Clients: []schema.OpenIDConnectClientConfiguration{
-			{
-				ID:     aClientID,
-				Secret: MustDecodeSecret("$plaintext$" + aClientSecret),
-				Policy: "one_factor",
-				RedirectURIs: []string{
-					"https://google.com",
-				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgHMACUsingSHA256,
-			},
-		},
-	}, nil, nil)
-
-	assert.NotNil(t, provider)
-	assert.NoError(t, err)
-
-	assertion := NewAssertion(aClientID, tokenURL, time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
-
-	assertionJWT := jwt.NewWithClaims(jose.HS512, assertion.ToMapClaims())
-
-	token, err := assertionJWT.SignedString([]byte(aClientSecret))
-
-	require.NoError(t, err)
-	require.NotEqual(t, "", token)
-
-	values := &url.Values{}
-
-	values.Set(oidc.FormParameterClientAssertionType, oidc.ClientAssertionJWTBearerType)
-	values.Set(oidc.FormParameterClientAssertion, token)
-
-	var ctx oidc.OpenIDConnectContext = &oidc.MockOpenIDConnectContext{
-		Context:       context.Background(),
-		MockIssuerURL: MustParseRequestURI("https://auth.example.com"),
-	}
-
-	r, err := http.NewRequest(http.MethodPost, tokenURL.String(), strings.NewReader(values.Encode()))
-
-	assert.NoError(t, err)
-
-	require.NotNil(t, r)
-
-	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	assert.NoError(t, r.ParseForm())
-
-	client, err := provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
-
-	assert.Nil(t, client)
-	assert.EqualError(t, err, "invalid_client")
-	assert.EqualError(t, ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The 'client_assertion' uses signing algorithm 'HS512' but the requested OAuth 2.0 Client enforces signing algorithm 'HS256'.")
-}
-
-func TestOpenIDConnectProvider_DefaultClientAuthenticationStrategy_ShouldErrorEmptyAssertion(t *testing.T) {
-	aClientID := "a-client"
-	aClientSecret := "a-client-secret"
-	root := MustParseRequestURI("https://auth.example.com")
-	tokenURL := root.JoinPath(oidc.EndpointPathToken)
-
-	require.NotNil(t, tokenURL)
-
-	provider, err := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
-		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       MustParseRSAPrivateKey(exampleIssuerPrivateKey),
-		HMACSecret:             "abc123",
-		Clients: []schema.OpenIDConnectClientConfiguration{
-			{
-				ID:     aClientID,
-				Secret: MustDecodeSecret("$plaintext$" + aClientSecret),
-				Policy: "one_factor",
-				RedirectURIs: []string{
-					"https://google.com",
-				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgHMACUsingSHA256,
-			},
-		},
-	}, nil, nil)
-
-	assert.NotNil(t, provider)
-	assert.NoError(t, err)
-
-	values := &url.Values{}
-
-	values.Set(oidc.FormParameterClientAssertionType, oidc.ClientAssertionJWTBearerType)
-
-	var ctx oidc.OpenIDConnectContext = &oidc.MockOpenIDConnectContext{
-		Context:       context.Background(),
-		MockIssuerURL: MustParseRequestURI("https://auth.example.com"),
-	}
-
-	r, err := http.NewRequest(http.MethodPost, tokenURL.String(), strings.NewReader(values.Encode()))
-
-	assert.NoError(t, err)
-
-	require.NotNil(t, r)
-
-	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	assert.NoError(t, r.ParseForm())
-
-	client, err := provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
-
-	assert.Nil(t, client)
-	assert.EqualError(t, err, "invalid_request")
-	assert.EqualError(t, ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The client_assertion request parameter must be set when using client_assertion_type of 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'.")
-}
-
-temp comment.
-*/
 
 type RegisteredClaims struct {
 	jwt.RegisteredClaims

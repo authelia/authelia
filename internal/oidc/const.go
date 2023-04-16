@@ -99,23 +99,23 @@ const (
 // JWS Algorithm strings.
 // See: https://datatracker.ietf.org/doc/html/rfc7518#section-3.1
 const (
-	SigAlgNone = none
+	SigningAlgNone = none
 
-	SigAlgRSAUsingSHA256 = "RS256"
-	SigAlgRSAUsingSHA384 = "RS384"
-	SigAlgRSAUsingSHA512 = "RS512"
+	SigningAlgRSAUsingSHA256 = "RS256"
+	SigningAlgRSAUsingSHA384 = "RS384"
+	SigningAlgRSAUsingSHA512 = "RS512"
 
-	SigAlgRSAPSSUsingSHA256 = "PS256"
-	SigAlgRSAPSSUsingSHA384 = "PS384"
-	SigAlgRSAPSSUsingSHA512 = "PS512"
+	SigningAlgRSAPSSUsingSHA256 = "PS256"
+	SigningAlgRSAPSSUsingSHA384 = "PS384"
+	SigningAlgRSAPSSUsingSHA512 = "PS512"
 
-	SigAlgECDSAUsingP256AndSHA256 = "ES256"
-	SigAlgECDSAUsingP384AndSHA384 = "ES384"
-	SigAlgECDSAUsingP521AndSHA512 = "ES512"
+	SigningAlgECDSAUsingP256AndSHA256 = "ES256"
+	SigningAlgECDSAUsingP384AndSHA384 = "ES384"
+	SigningAlgECDSAUsingP521AndSHA512 = "ES512"
 
-	SigAlgHMACUsingSHA256 = "HS256"
-	SigAlgHMACUsingSHA384 = "HS384"
-	SigAlgHMACUsingSHA512 = "HS512"
+	SigningAlgHMACUsingSHA256 = "HS256"
+	SigningAlgHMACUsingSHA384 = "HS384"
+	SigningAlgHMACUsingSHA512 = "HS512"
 )
 
 const (

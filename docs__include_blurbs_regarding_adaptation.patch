@@ -1,0 +1,411 @@
+Subject: [PATCH] docs: include blurbs regarding adaptation
+---
+Index: source/repos/github.com/authelia/authelia/docs/content/en/integration/prologue/get-started.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/source/repos/github.com/authelia/authelia/docs/content/en/integration/prologue/get-started.md b/source/repos/github.com/authelia/authelia/docs/content/en/integration/prologue/get-started.md
+--- a/source/repos/github.com/authelia/authelia/docs/content/en/integration/prologue/get-started.md	(revision 6d35ed29a29ced99a0861924ffda779a2d612488)
++++ b/source/repos/github.com/authelia/authelia/docs/content/en/integration/prologue/get-started.md	(date 1680480744242)
+@@ -17,6 +17,12 @@
+ 
+ ## Prerequisites
+ 
++The most important prerequisite that users understand that there is no single way to deploy software similar to
++Authelia. We provide as much information as possible for users to configure the critical parts usually in the most
++common scenarios however those using more advanced architectures are likely going to have to adapt. We can generally
++help with answering less specific questions about this and it may be possible if provided adequate information more
++specific questions may be answered.
++
+ ### Forwarded Authentication
+ 
+ Forwarded Authentication is a simple per-request authorization flow that checks the metadata of a request and a session
+Index: source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/nginx-proxy-manager/index.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/nginx-proxy-manager/index.md b/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/nginx-proxy-manager/index.md
+--- a/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/nginx-proxy-manager/index.md	(revision 6d35ed29a29ced99a0861924ffda779a2d612488)
++++ b/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/nginx-proxy-manager/index.md	(date 1680480161909)
+@@ -40,6 +40,30 @@
+ [Trusted Proxies](../nginx.md#trusted-proxies). Adapting this to [NGINX Proxy Manager] is beyond the scope of
+ this documentation.
+ 
++## Assumptions and Adaptation
++
++This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
++can not reasonably have examples for every advanced configuration option that exists. The
++following are the assumptions we make:
++
++* Deployment Scenario:
++  * Single Host
++  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
++  * Proxy is deployed as a Container on a network shared with Authelia
++* The above assumption means that AUthelia should be accesible to the proxy on `http://authelia:9091` and as such:
++  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
++    certificate defined
++  * You will have to adapt all instances of `authelia` in the URL if:
++    * you're using a different container name
++    * you deployed the proxy to a different location
++  * You will have to adapt all instances of `9091` in the URL if:
++    * you have adjusted the default port in the configuration
++  * You will have to adapt the entire URL if:
++    * Authelia is on a different host to the proxy
++* All services are part of the `example.com` domain:
++  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
++    just testing or you want ot use that specific domain
++
+ ## Docker Compose
+ 
+ The following docker compose example has various applications suitable for setting up an example environment.
+Index: source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/caddy.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/caddy.md b/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/caddy.md
+--- a/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/caddy.md	(revision 6d35ed29a29ced99a0861924ffda779a2d612488)
++++ b/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/caddy.md	(date 1680480161899)
+@@ -63,6 +63,30 @@
+ * 192.168.0.0/16
+ * fc00::/7
+ 
++## Assumptions and Adaptation
++
++This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
++can not reasonably have examples for every advanced configuration option that exists. The
++following are the assumptions we make:
++
++* Deployment Scenario:
++  * Single Host
++  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
++  * Proxy is deployed as a Container on a network shared with Authelia
++* The above assumption means that AUthelia should be accesible to the proxy on `http://authelia:9091` and as such:
++  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
++    certificate defined
++  * You will have to adapt all instances of `authelia` in the URL if:
++    * you're using a different container name
++    * you deployed the proxy to a different location
++  * You will have to adapt all instances of `9091` in the URL if:
++    * you have adjusted the default port in the configuration
++  * You will have to adapt the entire URL if:
++    * Authelia is on a different host to the proxy
++* All services are part of the `example.com` domain:
++  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
++    just testing or you want ot use that specific domain
++
+ ## Configuration
+ 
+ Below you will find commented examples of the following configuration:
+Index: source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/envoy.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/envoy.md b/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/envoy.md
+--- a/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/envoy.md	(revision 6d35ed29a29ced99a0861924ffda779a2d612488)
++++ b/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/envoy.md	(date 1680480161879)
+@@ -37,6 +37,30 @@
+ You should only include the specific IP address ranges of the trusted proxies within your architecture and should not
+ trust entire subnets unless that subnet only has trusted proxies and no other services.*
+ 
++## Assumptions and Adaptation
++
++This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
++can not reasonably have examples for every advanced configuration option that exists. The
++following are the assumptions we make:
++
++* Deployment Scenario:
++  * Single Host
++  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
++  * Proxy is deployed as a Container on a network shared with Authelia
++* The above assumption means that AUthelia should be accesible to the proxy on `http://authelia:9091` and as such:
++  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
++    certificate defined
++  * You will have to adapt all instances of `authelia` in the URL if:
++    * you're using a different container name
++    * you deployed the proxy to a different location
++  * You will have to adapt all instances of `9091` in the URL if:
++    * you have adjusted the default port in the configuration
++  * You will have to adapt the entire URL if:
++    * Authelia is on a different host to the proxy
++* All services are part of the `example.com` domain:
++  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
++    just testing or you want ot use that specific domain
++
+ ## Configuration
+ 
+ Below you will find commented examples of the following configuration:
+Index: source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/haproxy.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/haproxy.md b/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/haproxy.md
+--- a/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/haproxy.md	(revision 6d35ed29a29ced99a0861924ffda779a2d612488)
++++ b/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/haproxy.md	(date 1680480161945)
+@@ -66,6 +66,30 @@
+ * 192.168.0.0/16
+ * fc00::/7
+ 
++## Assumptions and Adaptation
++
++This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
++can not reasonably have examples for every advanced configuration option that exists. The
++following are the assumptions we make:
++
++* Deployment Scenario:
++  * Single Host
++  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
++  * Proxy is deployed as a Container on a network shared with Authelia
++* The above assumption means that AUthelia should be accesible to the proxy on `http://authelia:9091` and as such:
++  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
++    certificate defined
++  * You will have to adapt all instances of `authelia` in the URL if:
++    * you're using a different container name
++    * you deployed the proxy to a different location
++  * You will have to adapt all instances of `9091` in the URL if:
++    * you have adjusted the default port in the configuration
++  * You will have to adapt the entire URL if:
++    * Authelia is on a different host to the proxy
++* All services are part of the `example.com` domain:
++  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
++    just testing or you want ot use that specific domain
++
+ ## Configuration
+ 
+ Below you will find commented examples of the following configuration:
+Index: source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/nginx.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/nginx.md b/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/nginx.md
+--- a/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/nginx.md	(revision 6d35ed29a29ced99a0861924ffda779a2d612488)
++++ b/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/nginx.md	(date 1680481281081)
+@@ -52,6 +52,30 @@
+ proxies list. Any request that comes from a source IP not in one of the configured ranges results in the header being
+ replaced with the source IP of the client.
+ 
++## Assumptions and Adaptation
++
++This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
++can not reasonably have examples for every advanced configuration option that exists. The
++following are the assumptions we make:
++
++* Deployment Scenario:
++  * Single Host
++  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
++  * Proxy is deployed as a Container on a network shared with Authelia
++* The above assumption means that AUthelia should be accesible to the proxy on `http://authelia:9091` and as such:
++  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
++    certificate defined
++  * You will have to adapt all instances of `authelia` in the URL if:
++    * you're using a different container name
++    * you deployed the proxy to a different location
++  * You will have to adapt all instances of `9091` in the URL if:
++    * you have adjusted the default port in the configuration
++  * You will have to adapt the entire URL if:
++    * Authelia is on a different host to the proxy
++* All services are part of the `example.com` domain:
++  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
++    just testing or you want ot use that specific domain
++
+ ## Docker Compose
+ 
+ The following docker compose example has various applications suitable for setting up an example environment.
+@@ -457,6 +481,9 @@
+ auth_request_set $cookie $upstream_http_set_cookie;
+ add_header Set-Cookie $cookie;
+ 
++## IMPORTANT: The below URL `https://auth.example.com/` MUST be replaced with the externally accessible URL of the
++## Authelia Portal/Site.
++##
+ ## If the subreqest returns 200 pass to the backend, if the subrequest returns 401 redirect to the portal.
+ error_page 401 =302 https://auth.example.com/?rd=$target_url;
+ ```
+@@ -580,6 +607,9 @@
+         return 401;
+     }
+ 
++    ## IMPORTANT: The below URL `https://auth.example.com/` MUST be replaced with the externally accessible URL of the
++    ## Authelia Portal/Site.
++    ##
+     ## The original request didn't target /force-basic, redirect to the pretty login page
+     ## This is what `error_page 401 =302 https://auth.example.com/?rd=$target_url;` did.
+     return 302 https://auth.example.com/$is_args$args;
+Index: source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/skipper.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/skipper.md b/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/skipper.md
+--- a/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/skipper.md	(revision 6d35ed29a29ced99a0861924ffda779a2d612488)
++++ b/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/skipper.md	(date 1680480161915)
+@@ -44,6 +44,30 @@
+ You should only include the specific IP address ranges of the trusted proxies within your architecture and should not
+ trust entire subnets unless that subnet only has trusted proxies and no other services.*
+ 
++## Assumptions and Adaptation
++
++This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
++can not reasonably have examples for every advanced configuration option that exists. The
++following are the assumptions we make:
++
++* Deployment Scenario:
++  * Single Host
++  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
++  * Proxy is deployed as a Container on a network shared with Authelia
++* The above assumption means that AUthelia should be accesible to the proxy on `http://authelia:9091` and as such:
++  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
++    certificate defined
++  * You will have to adapt all instances of `authelia` in the URL if:
++    * you're using a different container name
++    * you deployed the proxy to a different location
++  * You will have to adapt all instances of `9091` in the URL if:
++    * you have adjusted the default port in the configuration
++  * You will have to adapt the entire URL if:
++    * Authelia is on a different host to the proxy
++* All services are part of the `example.com` domain:
++  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
++    just testing or you want ot use that specific domain
++
+ ## Potential
+ 
+ Support for [Skipper] should be possible via [Skipper]'s
+Index: source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/swag.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/swag.md b/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/swag.md
+--- a/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/swag.md	(revision 6d35ed29a29ced99a0861924ffda779a2d612488)
++++ b/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/swag.md	(date 1680480161925)
+@@ -55,13 +55,13 @@
+ 
+ In addition this represents a bad user experience in some instances such as:
+ 
+-- Users sometimes visit the `https://app.example.com/authelia` URL which doesn't automatically redirect the user to
++* Users sometimes visit the `https://app.example.com/authelia` URL which doesn't automatically redirect the user to
+   `https://app.example.com` (if they visit `https://app.example.com` then they'll be redirected to authenticate then
+   redirected back to their original URL)
+-- Administrators may wish to setup [OpenID Connect 1.0](../../configuration/identity-providers/open-id-connect.md) in
++* Administrators may wish to setup [OpenID Connect 1.0](../../configuration/identity-providers/open-id-connect.md) in
+   which case it also doesn't represent a good user experience as the `issuer` will be
+   `https://app.example.com/authelia` for example
+-- Using the [SWAG] default configurations are more difficult to support as our specific familiarity is with our own
++* Using the [SWAG] default configurations are more difficult to support as our specific familiarity is with our own
+   example snippets
+ 
+ #### Option 1: Adjusting the Default Configuration
+@@ -112,6 +112,30 @@
+ To configure trusted proxies for [SWAG] see the [NGINX] section on [Trusted Proxies](nginx.md#trusted-proxies).
+ Adapting this to [SWAG] is beyond the scope of this documentation.
+ 
++## Assumptions and Adaptation
++
++This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
++can not reasonably have examples for every advanced configuration option that exists. The
++following are the assumptions we make:
++
++* Deployment Scenario:
++  * Single Host
++  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
++  * Proxy is deployed as a Container on a network shared with Authelia
++* The above assumption means that AUthelia should be accesible to the proxy on `http://authelia:9091` and as such:
++  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
++    certificate defined
++  * You will have to adapt all instances of `authelia` in the URL if:
++    * you're using a different container name
++    * you deployed the proxy to a different location
++  * You will have to adapt all instances of `9091` in the URL if:
++    * you have adjusted the default port in the configuration
++  * You will have to adapt the entire URL if:
++    * Authelia is on a different host to the proxy
++* All services are part of the `example.com` domain:
++  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
++    just testing or you want ot use that specific domain
++
+ ## Docker Compose
+ 
+ The following docker compose example has various applications suitable for setting up an example environment.
+Index: source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/traefik.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/traefik.md b/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/traefik.md
+--- a/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/traefik.md	(revision 6d35ed29a29ced99a0861924ffda779a2d612488)
++++ b/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/traefik.md	(date 1680480161889)
+@@ -76,6 +76,30 @@
+ Please ensure that you also setup the respective [ACME configuration](https://docs.traefik.io/https/acme/) for your
+ [Traefik] setup as this is not covered in the example below.
+ 
++## Assumptions and Adaptation
++
++This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
++can not reasonably have examples for every advanced configuration option that exists. The
++following are the assumptions we make:
++
++* Deployment Scenario:
++  * Single Host
++  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
++  * Proxy is deployed as a Container on a network shared with Authelia
++* The above assumption means that AUthelia should be accesible to the proxy on `http://authelia:9091` and as such:
++  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
++    certificate defined
++  * You will have to adapt all instances of `authelia` in the URL if:
++    * you're using a different container name
++    * you deployed the proxy to a different location
++  * You will have to adapt all instances of `9091` in the URL if:
++    * you have adjusted the default port in the configuration
++  * You will have to adapt the entire URL if:
++    * Authelia is on a different host to the proxy
++* All services are part of the `example.com` domain:
++  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
++    just testing or you want ot use that specific domain
++
+ ### Docker Compose
+ 
+ This is an example configuration using [docker compose] labels:
+Index: source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/traefikv1.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/traefikv1.md b/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/traefikv1.md
+--- a/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/traefikv1.md	(revision 6d35ed29a29ced99a0861924ffda779a2d612488)
++++ b/source/repos/github.com/authelia/authelia/docs/content/en/integration/proxies/traefikv1.md	(date 1680480161859)
+@@ -50,6 +50,30 @@
+ * 192.168.0.0/16
+ * fc00::/7
+ 
++## Assumptions and Adaptation
++
++This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
++can not reasonably have examples for every advanced configuration option that exists. The
++following are the assumptions we make:
++
++* Deployment Scenario:
++  * Single Host
++  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
++  * Proxy is deployed as a Container on a network shared with Authelia
++* The above assumption means that AUthelia should be accesible to the proxy on `http://authelia:9091` and as such:
++  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
++    certificate defined
++  * You will have to adapt all instances of `authelia` in the URL if:
++    * you're using a different container name
++    * you deployed the proxy to a different location
++  * You will have to adapt all instances of `9091` in the URL if:
++    * you have adjusted the default port in the configuration
++  * You will have to adapt the entire URL if:
++    * Authelia is on a different host to the proxy
++* All services are part of the `example.com` domain:
++  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
++    just testing or you want ot use that specific domain
++
+ ## Configuration
+ 
+ Below you will find commented examples of the following docker deployment:

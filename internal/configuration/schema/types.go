@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"bytes"
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
@@ -261,6 +262,9 @@ type CryptographicPrivateKey interface {
 	Equal(x crypto.PrivateKey) bool
 }
 
+// CryptographicKey represents an artificial cryptographic public or private key.
+type CryptographicKey any
+
 // X509CertificateChain is a helper struct that holds a list of *x509.Certificate's.
 type X509CertificateChain struct {
 	certs []*x509.Certificate
@@ -370,6 +374,24 @@ func (c *X509CertificateChain) Leaf() (leaf *x509.Certificate) {
 	}
 
 	return c.certs[0]
+}
+
+// EncodePEM encodes the entire chain as PEM bytes.
+func (c *X509CertificateChain) EncodePEM() (encoded []byte, err error) {
+	buf := &bytes.Buffer{}
+
+	for _, cert := range c.certs {
+		block := pem.Block{
+			Type:  blockCERTIFICATE,
+			Bytes: cert.Raw,
+		}
+
+		if err = pem.Encode(buf, &block); err != nil {
+			return nil, err
+		}
+	}
+
+	return buf.Bytes(), nil
 }
 
 // Validate the X509CertificateChain ensuring the certificates were provided in the correct order

@@ -17,6 +17,8 @@ type OpenIDConnectConfiguration struct {
 	IssuerCertificateChain X509CertificateChain `koanf:"issuer_certificate_chain"`
 	IssuerPrivateKey       *rsa.PrivateKey      `koanf:"issuer_private_key"`
 
+	IssuerJWKS []JWK `koanf:"issuer_jwks"`
+
 	AccessTokenLifespan   time.Duration `koanf:"access_token_lifespan"`
 	AuthorizeCodeLifespan time.Duration `koanf:"authorize_code_lifespan"`
 	IDTokenLifespan       time.Duration `koanf:"id_token_lifespan"`
@@ -32,6 +34,13 @@ type OpenIDConnectConfiguration struct {
 	PAR  OpenIDConnectPARConfiguration  `koanf:"pushed_authorizations"`
 
 	Clients []OpenIDConnectClientConfiguration `koanf:"clients"`
+
+	Discovery OpenIDConnectDiscovery // MetaData value. Not configurable by users.
+}
+
+type OpenIDConnectDiscovery struct {
+	DefaultKeyID             string
+	RegisteredJWKSigningAlgs []string
 }
 
 // OpenIDConnectPARConfiguration represents an OpenID Connect PAR config.
@@ -67,13 +76,17 @@ type OpenIDConnectClientConfiguration struct {
 	TokenEndpointAuthMethod     string `koanf:"token_endpoint_auth_method"`
 	TokenEndpointAuthSigningAlg string `koanf:"token_endpoint_auth_signing_alg"`
 
+	JWKS map[string]JWK `koanf:"jwks"`
+
+	IDTokenSigningAlg string `koanf:"id_token_signing_alg"`
+
 	Policy string `koanf:"authorization_policy"`
 
 	EnforcePAR  bool `koanf:"enforce_par"`
 	EnforcePKCE bool `koanf:"enforce_pkce"`
 
-	PKCEChallengeMethod      string `koanf:"pkce_challenge_method"`
-	UserinfoSigningAlgorithm string `koanf:"userinfo_signing_algorithm"`
+	PKCEChallengeMethod string `koanf:"pkce_challenge_method"`
+	UserinfoSigningAlg  string `koanf:"userinfo_signing_algorithm"`
 
 	ConsentMode                  string         `koanf:"consent_mode"`
 	ConsentPreConfiguredDuration *time.Duration `koanf:"pre_configured_consent_duration"`
@@ -97,7 +110,8 @@ var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClientConfiguration{
 	ResponseTypes: []string{"code"},
 	ResponseModes: []string{"form_post"},
 
-	UserinfoSigningAlgorithm:     "none",
+	IDTokenSigningAlg:            "RS256",
+	UserinfoSigningAlg:           "none",
 	ConsentMode:                  "auto",
 	ConsentPreConfiguredDuration: &defaultOIDCClientConsentPreConfiguredDuration,
 }

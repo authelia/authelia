@@ -26,8 +26,8 @@ func TestNewClient(t *testing.T) {
 
 	bclient, ok := client.(*BaseClient)
 	require.True(t, ok)
-	assert.Equal(t, "", bclient.UserinfoSigningAlgorithm)
-	assert.Equal(t, SigAlgNone, client.GetUserinfoSigningAlgorithm())
+	assert.Equal(t, "", bclient.UserinfoSigningAlg)
+	assert.Equal(t, SigningAlgNone, client.GetUserinfoSigningAlg())
 
 	_, ok = client.(*FullClient)
 	assert.False(t, ok)
@@ -61,12 +61,12 @@ func TestNewClient(t *testing.T) {
 	var niljwks *jose.JSONWebKeySet
 
 	require.True(t, ok)
-	assert.Equal(t, "", fclient.UserinfoSigningAlgorithm)
+	assert.Equal(t, "", fclient.UserinfoSigningAlg)
 	assert.Equal(t, ClientAuthMethodClientSecretBasic, fclient.TokenEndpointAuthMethod)
 	assert.Equal(t, ClientAuthMethodClientSecretBasic, fclient.GetTokenEndpointAuthMethod())
-	assert.Equal(t, SigAlgNone, client.GetUserinfoSigningAlgorithm())
+	assert.Equal(t, SigningAlgNone, client.GetUserinfoSigningAlg())
 	assert.Equal(t, "", fclient.TokenEndpointAuthSigningAlgorithm)
-	assert.Equal(t, SigAlgRSAUsingSHA256, fclient.GetTokenEndpointAuthSigningAlgorithm())
+	assert.Equal(t, SigningAlgRSAUsingSHA256, fclient.GetTokenEndpointAuthSigningAlgorithm())
 	assert.Equal(t, "", fclient.RequestObjectSigningAlgorithm)
 	assert.Equal(t, "", fclient.GetRequestObjectSigningAlgorithm())
 	assert.Equal(t, "", fclient.JSONWebKeysURI)

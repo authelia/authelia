@@ -11,14 +11,13 @@ import (
 )
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_NotConfigured(t *testing.T) {
-	provider, err := NewOpenIDConnectProvider(nil, nil, nil)
+	provider := NewOpenIDConnectProvider(nil, nil, nil)
 
-	assert.NoError(t, err)
 	assert.Nil(t, provider)
 }
 
 func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing.T) {
-	provider, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+	provider := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
 		IssuerCertificateChain:   schema.X509CertificateChain{},
 		IssuerPrivateKey:         MustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		EnablePKCEPlainChallenge: true,
@@ -36,7 +35,7 @@ func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing
 		},
 	}, nil, nil)
 
-	assert.NoError(t, err)
+	require.NotNil(t, provider)
 
 	disco := provider.GetOpenIDConnectWellKnownConfiguration(examplecom)
 
@@ -50,7 +49,7 @@ func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing
 }
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *testing.T) {
-	provider, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+	provider := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
 		IssuerCertificateChain: schema.X509CertificateChain{},
 		IssuerPrivateKey:       MustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		HMACSecret:             badhmac,
@@ -86,11 +85,10 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *tes
 	}, nil, nil)
 
 	assert.NotNil(t, provider)
-	assert.NoError(t, err)
 }
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *testing.T) {
-	provider, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+	provider := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
 		IssuerCertificateChain: schema.X509CertificateChain{},
 		IssuerPrivateKey:       MustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
@@ -106,7 +104,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 		},
 	}, nil, nil)
 
-	assert.NoError(t, err)
+	require.NotNil(t, provider)
 
 	disco := provider.GetOpenIDConnectWellKnownConfiguration(examplecom)
 
@@ -159,11 +157,11 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 	assert.Contains(t, disco.GrantTypesSupported, GrantTypeImplicit)
 
 	assert.Len(t, disco.IDTokenSigningAlgValuesSupported, 1)
-	assert.Contains(t, disco.IDTokenSigningAlgValuesSupported, SigAlgRSAUsingSHA256)
+	assert.Contains(t, disco.IDTokenSigningAlgValuesSupported, SigningAlgRSAUsingSHA256)
 
 	assert.Len(t, disco.UserinfoSigningAlgValuesSupported, 2)
-	assert.Contains(t, disco.UserinfoSigningAlgValuesSupported, SigAlgRSAUsingSHA256)
-	assert.Contains(t, disco.UserinfoSigningAlgValuesSupported, SigAlgNone)
+	assert.Contains(t, disco.UserinfoSigningAlgValuesSupported, SigningAlgRSAUsingSHA256)
+	assert.Contains(t, disco.UserinfoSigningAlgValuesSupported, SigningAlgNone)
 
 	assert.Len(t, disco.RequestObjectSigningAlgValuesSupported, 0)
 
@@ -189,7 +187,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 }
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfiguration(t *testing.T) {
-	provider, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+	provider := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
 		IssuerCertificateChain: schema.X509CertificateChain{},
 		IssuerPrivateKey:       MustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
@@ -205,7 +203,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfig
 		},
 	}, nil, nil)
 
-	assert.NoError(t, err)
+	require.NotNil(t, provider)
 
 	disco := provider.GetOAuth2WellKnownConfiguration(examplecom)
 
@@ -278,7 +276,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfig
 }
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfigurationWithPlainPKCE(t *testing.T) {
-	provider, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+	provider := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
 		IssuerCertificateChain:   schema.X509CertificateChain{},
 		IssuerPrivateKey:         MustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		HMACSecret:               "asbdhaaskmdlkamdklasmdlkams",
@@ -295,7 +293,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 		},
 	}, nil, nil)
 
-	assert.NoError(t, err)
+	require.NotNil(t, provider)
 
 	disco := provider.GetOpenIDConnectWellKnownConfiguration(examplecom)
 
