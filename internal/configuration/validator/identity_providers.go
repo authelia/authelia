@@ -513,7 +513,7 @@ func validateOIDCClientTokenEndpointAuth(c int, config *schema.OpenIDConnectConf
 	case oidc.ClientAuthMethodClientSecretJWT:
 		switch {
 		case config.Clients[c].TokenEndpointAuthSigningAlgorithm == "":
-			config.Clients[c].TokenEndpointAuthSigningAlgorithm = oidc.SigningAlgorithmHMACWithSHA256
+			config.Clients[c].TokenEndpointAuthSigningAlgorithm = oidc.SigAlgHMACUsingSHA256
 		case !utils.IsStringInSlice(config.Clients[c].TokenEndpointAuthSigningAlgorithm, validOIDCClientTokenEndpointAuthSigAlgsJWT):
 			val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthSigAlg, config.Clients[c].ID, strJoinOr(validOIDCClientTokenEndpointAuthSigAlgsJWT), config.Clients[c].TokenEndpointAuthMethod))
 		}

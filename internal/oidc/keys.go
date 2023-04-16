@@ -125,7 +125,7 @@ func NewJWK(chain schema.X509CertificateChain, key *rsa.PrivateKey) (j *JWK, err
 	}
 
 	jwk := &jose.JSONWebKey{
-		Algorithm: SigningAlgorithmRSAWithSHA256,
+		Algorithm: SigAlgRSAUsingSHA256,
 		Use:       "sig",
 		Key:       &key.PublicKey,
 	}

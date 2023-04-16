@@ -134,7 +134,7 @@ func (c *BaseClient) GetResponseModes() []fosite.ResponseModeType {
 // GetUserinfoSigningAlgorithm returns the UserinfoSigningAlgorithm.
 func (c *BaseClient) GetUserinfoSigningAlgorithm() string {
 	if c.UserinfoSigningAlgorithm == "" {
-		c.UserinfoSigningAlgorithm = SigningAlgorithmNone
+		c.UserinfoSigningAlgorithm = SigAlgNone
 	}
 
 	return c.UserinfoSigningAlgorithm
@@ -307,7 +307,7 @@ func (c *FullClient) GetTokenEndpointAuthMethod() string {
 // authentication methods.
 func (c *FullClient) GetTokenEndpointAuthSigningAlgorithm() string {
 	if c.TokenEndpointAuthSigningAlgorithm == "" {
-		c.TokenEndpointAuthSigningAlgorithm = SigningAlgorithmRSAWithSHA256
+		c.TokenEndpointAuthSigningAlgorithm = SigAlgRSAUsingSHA256
 	}
 
 	return c.TokenEndpointAuthSigningAlgorithm

@@ -100,7 +100,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	ctx.Logger.Tracef("UserInfo Response with id '%s' on client with id '%s' is being sent with the following claims: %+v", requester.GetID(), clientID, claims)
 
 	switch client.GetUserinfoSigningAlgorithm() {
-	case oidc.SigningAlgorithmRSAWithSHA256:
+	case oidc.SigAlgRSAUsingSHA256:
 		var jti uuid.UUID
 
 		if jti, err = uuid.NewRandom(); err != nil {
@@ -126,7 +126,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 		rw.Header().Set(fasthttp.HeaderContentType, "application/jwt")
 		_, _ = rw.Write([]byte(token))
-	case oidc.SigningAlgorithmNone, "":
+	case oidc.SigAlgNone, "":
 		ctx.Providers.OpenIDConnect.Write(rw, req, claims)
 	default:
 		ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(fosite.ErrServerError.WithHintf("Unsupported UserInfo signing algorithm '%s'.", client.GetUserinfoSigningAlgorithm())))

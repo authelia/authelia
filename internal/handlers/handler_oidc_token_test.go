@@ -7,8 +7,10 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"database/sql"
+	"encoding/base64"
 	"encoding/pem"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -55,15 +57,27 @@ func (s *ClientAuthenticationStrategySuite) GetTokenURL() *url.URL {
 	return s.GetIssuerURL().JoinPath(oidc.EndpointPathToken)
 }
 
-func (s *ClientAuthenticationStrategySuite) GetRequest(values *url.Values) (r *http.Request) {
+func (s *ClientAuthenticationStrategySuite) GetBaseRequest(body io.Reader) (r *http.Request) {
 	var err error
 
-	r, err = http.NewRequest(http.MethodPost, s.GetTokenURL().String(), strings.NewReader(values.Encode()))
+	r, err = http.NewRequest(http.MethodPost, s.GetTokenURL().String(), body)
 
 	s.Require().NoError(err)
 	s.Require().NotNil(r)
 
 	r.Header.Set(fasthttp.HeaderContentType, "application/x-www-form-urlencoded")
+
+	return r
+}
+
+func (s *ClientAuthenticationStrategySuite) GetRequest(values *url.Values) (r *http.Request) {
+	var body io.Reader
+
+	if values != nil {
+		body = strings.NewReader(values.Encode())
+	}
+
+	r = s.GetBaseRequest(body)
 
 	s.Require().NoError(r.ParseForm())
 
@@ -141,26 +155,6 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 		HMACSecret:             "abc123",
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
-				ID:     "hs512",
-				Secret: secret,
-				Policy: authorization.OneFactor.String(),
-				RedirectURIs: []string{
-					"https://client.example.com",
-				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigningAlgorithmHMACWithSHA512,
-			},
-			{
-				ID:     "hs5122",
-				Secret: secret,
-				Policy: authorization.OneFactor.String(),
-				RedirectURIs: []string{
-					"https://client.example.com",
-				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigningAlgorithmHMACWithSHA512,
-			},
-			{
 				ID:     "hs256",
 				Secret: secret,
 				Policy: authorization.OneFactor.String(),
@@ -168,7 +162,27 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigningAlgorithmHMACWithSHA256,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgHMACUsingSHA256,
+			},
+			{
+				ID:     "hs384",
+				Secret: secret,
+				Policy: authorization.OneFactor.String(),
+				RedirectURIs: []string{
+					"https://client.example.com",
+				},
+				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgHMACUsingSHA384,
+			},
+			{
+				ID:     "hs512",
+				Secret: secret,
+				Policy: authorization.OneFactor.String(),
+				RedirectURIs: []string{
+					"https://client.example.com",
+				},
+				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgHMACUsingSHA512,
 			},
 			{
 				ID:     "rs256",
@@ -178,7 +192,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigningAlgorithmRSAWithSHA256,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgRSAUsingSHA256,
 			},
 			{
 				ID:     "rs384",
@@ -188,7 +202,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigningAlgorithmRSAWithSHA384,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgRSAUsingSHA384,
 			},
 			{
 				ID:     "rs512",
@@ -198,7 +212,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigningAlgorithmRSAWithSHA512,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgRSAUsingSHA512,
 			},
 			{
 				ID:     "ps256",
@@ -208,7 +222,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigningAlgorithmRSASSAPSSWithSHA256,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgRSAPSSUsingSHA256,
 			},
 			{
 				ID:     "ps384",
@@ -218,7 +232,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigningAlgorithmRSASSAPSSWithSHA384,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgRSAPSSUsingSHA384,
 			},
 			{
 				ID:     "ps512",
@@ -228,7 +242,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigningAlgorithmRSASSAPSSWithSHA512,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgRSAPSSUsingSHA512,
 			},
 			{
 				ID:     "es256",
@@ -238,7 +252,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigningAlgorithmECDSAWithSHA256,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgECDSAUsingP256AndSHA256,
 			},
 			{
 				ID:     "es384",
@@ -248,7 +262,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigningAlgorithmECDSAWithSHA384,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgECDSAUsingP385AndSHA384,
 			},
 			{
 				ID:     "es512",
@@ -258,7 +272,17 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigningAlgorithmECDSAWithSHA512,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgECDSAUsingP521AndSHA512,
+			},
+			{
+				ID:     "hs5122",
+				Secret: secret,
+				Policy: authorization.OneFactor.String(),
+				RedirectURIs: []string{
+					"https://client.example.com",
+				},
+				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgHMACUsingSHA512,
 			},
 			{
 				ID:     "hashed",
@@ -268,7 +292,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigningAlgorithmHMACWithSHA512,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgHMACUsingSHA512,
 			},
 			{
 				ID:     oidc.ClientAuthMethodClientSecretBasic,
@@ -278,7 +302,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretBasic,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigningAlgorithmNone,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgNone,
 			},
 			{
 				ID:     oidc.ClientAuthMethodNone,
@@ -288,7 +312,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:           oidc.ClientAuthMethodNone,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigningAlgorithmNone,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgNone,
 			},
 			{
 				ID:     oidc.ClientAuthMethodClientSecretPost,
@@ -298,7 +322,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretPost,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigningAlgorithmNone,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgNone,
 			},
 			{
 				ID:     "bad_method",
@@ -308,7 +332,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:           "bad_method",
-				TokenEndpointAuthSigningAlgorithm: oidc.SigningAlgorithmNone,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgNone,
 			},
 			{
 				ID:     "base",
@@ -350,7 +374,73 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 	s.Require().NoError(err)
 }
 
-func (s *ClientAuthenticationStrategySuite) TestShouldValidateJWT() {
+func (s *ClientAuthenticationStrategySuite) TestShouldValidateAssertionHS256() {
+	assertion := NewAssertion("hs256", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodHS256, assertion)
+
+	token, err := assertionJWT.SignedString([]byte("client-secret"))
+
+	s.Require().NoError(err)
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	sig := fmt.Sprintf("%x", sha256.Sum256([]byte(assertion.ID)))
+
+	ctx := s.GetCtx()
+
+	gomock.InOrder(
+		s.store.
+			EXPECT().LoadOAuth2BlacklistedJTI(ctx, sig).
+			Return(nil, sql.ErrNoRows),
+
+		s.store.
+			EXPECT().SaveOAuth2BlacklistedJTI(ctx, model.OAuth2BlacklistedJTI{Signature: sig, ExpiresAt: assertion.ExpiresAt.Time}).
+			Return(nil),
+	)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
+
+	s.NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NotNil(client)
+	s.Equal("hs256", client.GetID())
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldValidateAssertionHS384() {
+	assertion := NewAssertion("hs384", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodHS384, assertion)
+
+	token, err := assertionJWT.SignedString([]byte("client-secret"))
+
+	s.Require().NoError(err)
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	sig := fmt.Sprintf("%x", sha256.Sum256([]byte(assertion.ID)))
+
+	ctx := s.GetCtx()
+
+	gomock.InOrder(
+		s.store.
+			EXPECT().LoadOAuth2BlacklistedJTI(ctx, sig).
+			Return(nil, sql.ErrNoRows),
+
+		s.store.
+			EXPECT().SaveOAuth2BlacklistedJTI(ctx, model.OAuth2BlacklistedJTI{Signature: sig, ExpiresAt: assertion.ExpiresAt.Time}).
+			Return(nil),
+	)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
+
+	s.NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NotNil(client)
+	s.Equal("hs384", client.GetID())
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldValidateAssertionHS512() {
 	assertion := NewAssertion("hs512", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodHS512, assertion)
@@ -849,6 +939,38 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateClientSecretBasic(
 	s.Equal(oidc.ClientAuthMethodClientSecretBasic, client.GetID())
 }
 
+func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnClientSecretPostWithoutClientID() {
+	r := s.GetRequest(&url.Values{oidc.FormParameterClientSecret: []string{"client-secret"}})
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(err, "invalid_request")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Client credentials missing or malformed in both HTTP Authorization header and HTTP POST body.")
+	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnClientSecretBasicWithMalformedClientID() {
+	r := s.GetRequest(&url.Values{oidc.FormParameterRequestURI: []string{"not applicable"}})
+
+	r.Header.Set(fasthttp.HeaderAuthorization, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte("abc@#%!@#(*%)#@!:client-secret"))))
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(err, "invalid_request")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The client id in the HTTP authorization header could not be decoded from 'application/x-www-form-urlencoded'. invalid URL escape '%!@'")
+	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnClientSecretBasicWithMalformedClientSecret() {
+	r := s.GetRequest(&url.Values{oidc.FormParameterRequestURI: []string{"not applicable"}})
+
+	r.Header.Set(fasthttp.HeaderAuthorization, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte("hs512:abc@#%!@#(*%)#@!"))))
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(err, "invalid_request")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The client secret in the HTTP authorization header could not be decoded from 'application/x-www-form-urlencoded'. invalid URL escape '%!@'")
+	s.Nil(client)
+}
+
 func (s *ClientAuthenticationStrategySuite) TestShouldErrorClientSecretBasicOnClientSecretPostClient() {
 	r := s.GetClientSecretBasicRequest(oidc.ClientAuthMethodClientSecretPost, "client-secret")
 
@@ -876,6 +998,26 @@ func (s *ClientAuthenticationStrategySuite) TestShouldErrorClientSecretBasicOnPu
 
 	s.EqualError(err, "invalid_client")
 	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client supports client authentication method 'none', but method 'client_secret_basic' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'client_secret_basic'.")
+	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldErrorClientSecretBasicOnPublicWithBasic() {
+	r := s.GetClientSecretBasicRequest("public-basic", "client-secret")
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(err, "invalid_client")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client supports client authentication method 'client_secret_basic', but method 'none' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'none'.")
+	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldErrorClientSecretBasicOnInvalidClient() {
+	r := s.GetClientSecretBasicRequest("not-a-client", "client-secret")
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(err, "invalid_client")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). invalid_client")
 	s.Nil(client)
 }
 
@@ -1220,7 +1362,7 @@ func TestOpenIDConnectProvider_DefaultClientAuthenticationStrategy_ShouldValidat
 					"https://google.com",
 				},
 				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigningAlgorithmHMACWithSHA512,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgHMACUsingSHA512,
 			},
 		},
 	}, store, nil)
@@ -1299,7 +1441,7 @@ func TestOpenIDConnectProvider_DefaultClientAuthenticationStrategy_ShouldErrorIn
 					"https://google.com",
 				},
 				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigningAlgorithmHMACWithSHA256,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgHMACUsingSHA256,
 			},
 		},
 	}, nil, nil)
@@ -1364,7 +1506,7 @@ func TestOpenIDConnectProvider_DefaultClientAuthenticationStrategy_ShouldErrorEm
 					"https://google.com",
 				},
 				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigningAlgorithmHMACWithSHA256,
+				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgHMACUsingSHA256,
 			},
 		},
 	}, nil, nil)

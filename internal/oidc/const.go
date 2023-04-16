@@ -96,25 +96,26 @@ const (
 	ResponseTypeHybridFlowBoth        = "code id_token token"
 )
 
-// Signing Algorithm strings.
+// JWS Algorithm strings.
+// See: https://datatracker.ietf.org/doc/html/rfc7518#section-3.1
 const (
-	SigningAlgorithmNone = none
+	SigAlgNone = none
 
-	SigningAlgorithmRSAWithSHA256 = "RS256"
-	SigningAlgorithmRSAWithSHA384 = "RS384"
-	SigningAlgorithmRSAWithSHA512 = "RS512"
+	SigAlgRSAUsingSHA256 = "RS256"
+	SigAlgRSAUsingSHA384 = "RS384"
+	SigAlgRSAUsingSHA512 = "RS512"
 
-	SigningAlgorithmRSASSAPSSWithSHA256 = "PS256"
-	SigningAlgorithmRSASSAPSSWithSHA384 = "PS384"
-	SigningAlgorithmRSASSAPSSWithSHA512 = "PS512"
+	SigAlgRSAPSSUsingSHA256 = "PS256"
+	SigAlgRSAPSSUsingSHA384 = "PS384"
+	SigAlgRSAPSSUsingSHA512 = "PS512"
 
-	SigningAlgorithmECDSAWithSHA256 = "ES256"
-	SigningAlgorithmECDSAWithSHA384 = "ES384"
-	SigningAlgorithmECDSAWithSHA512 = "ES512"
+	SigAlgECDSAUsingP256AndSHA256 = "ES256"
+	SigAlgECDSAUsingP385AndSHA384 = "ES384"
+	SigAlgECDSAUsingP521AndSHA512 = "ES512"
 
-	SigningAlgorithmHMACWithSHA256 = "HS256"
-	SigningAlgorithmHMACWithSHA384 = "HS384"
-	SigningAlgorithmHMACWithSHA512 = "HS512"
+	SigAlgHMACUsingSHA256 = "HS256"
+	SigAlgHMACUsingSHA384 = "HS384"
+	SigAlgHMACUsingSHA512 = "HS512"
 )
 
 // Subject Type strings.

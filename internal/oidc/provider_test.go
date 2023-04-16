@@ -159,11 +159,11 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 	assert.Contains(t, disco.GrantTypesSupported, GrantTypeImplicit)
 
 	assert.Len(t, disco.IDTokenSigningAlgValuesSupported, 1)
-	assert.Contains(t, disco.IDTokenSigningAlgValuesSupported, SigningAlgorithmRSAWithSHA256)
+	assert.Contains(t, disco.IDTokenSigningAlgValuesSupported, SigAlgRSAUsingSHA256)
 
 	assert.Len(t, disco.UserinfoSigningAlgValuesSupported, 2)
-	assert.Contains(t, disco.UserinfoSigningAlgValuesSupported, SigningAlgorithmRSAWithSHA256)
-	assert.Contains(t, disco.UserinfoSigningAlgValuesSupported, SigningAlgorithmNone)
+	assert.Contains(t, disco.UserinfoSigningAlgValuesSupported, SigAlgRSAUsingSHA256)
+	assert.Contains(t, disco.UserinfoSigningAlgValuesSupported, SigAlgNone)
 
 	assert.Len(t, disco.RequestObjectSigningAlgValuesSupported, 0)
 

@@ -411,7 +411,7 @@ var (
 	validOIDCCORSEndpoints = []string{oidc.EndpointAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
 
 	validOIDCClientScopes                    = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess}
-	validOIDCClientUserinfoAlgorithms        = []string{oidc.SigningAlgorithmNone, oidc.SigningAlgorithmRSAWithSHA256}
+	validOIDCClientUserinfoAlgorithms        = []string{oidc.SigAlgNone, oidc.SigAlgRSAUsingSHA256}
 	validOIDCClientConsentModes              = []string{auto, oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
 	validOIDCClientResponseModes             = []string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery, oidc.ResponseModeFragment}
 	validOIDCClientResponseTypes             = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth, oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
@@ -422,8 +422,8 @@ var (
 
 	validOIDCClientTokenEndpointAuthMethods             = []string{oidc.ClientAuthMethodNone, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodClientSecretJWT}
 	validOIDCClientTokenEndpointAuthMethodsConfidential = []string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic}
-	validOIDCClientTokenEndpointAuthSigAlgsJWT          = []string{oidc.SigningAlgorithmHMACWithSHA256, oidc.SigningAlgorithmHMACWithSHA384, oidc.SigningAlgorithmHMACWithSHA512}
-	validOIDCClientTokenEndpointAuthSigAlgsNotJWT       = []string{oidc.SigningAlgorithmNone}
+	validOIDCClientTokenEndpointAuthSigAlgsJWT          = []string{oidc.SigAlgHMACUsingSHA256, oidc.SigAlgHMACUsingSHA384, oidc.SigAlgHMACUsingSHA512}
+	validOIDCClientTokenEndpointAuthSigAlgsNotJWT       = []string{oidc.SigAlgNone}
 )
 
 var (

@@ -78,11 +78,11 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 
 		OpenIDConnectDiscoveryOptions: OpenIDConnectDiscoveryOptions{
 			IDTokenSigningAlgValuesSupported: []string{
-				SigningAlgorithmRSAWithSHA256,
+				SigAlgRSAUsingSHA256,
 			},
 			UserinfoSigningAlgValuesSupported: []string{
-				SigningAlgorithmNone,
-				SigningAlgorithmRSAWithSHA256,
+				SigAlgNone,
+				SigAlgRSAUsingSHA256,
 			},
 		},
 		OpenIDConnectFrontChannelLogoutDiscoveryOptions: &OpenIDConnectFrontChannelLogoutDiscoveryOptions{},

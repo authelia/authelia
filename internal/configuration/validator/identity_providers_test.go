@@ -1619,7 +1619,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			"ShouldSetDefaultUserInfoAlg",
 			nil,
 			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
-				assert.Equal(t, oidc.SigningAlgorithmNone, have.Clients[0].UserinfoSigningAlgorithm)
+				assert.Equal(t, oidc.SigAlgNone, have.Clients[0].UserinfoSigningAlgorithm)
 			},
 			tcv{
 				nil,
@@ -1639,10 +1639,10 @@ func TestValidateOIDCClients(t *testing.T) {
 		{
 			"ShouldNotOverrideUserInfoAlg",
 			func(have *schema.OpenIDConnectConfiguration) {
-				have.Clients[0].UserinfoSigningAlgorithm = oidc.SigningAlgorithmRSAWithSHA256
+				have.Clients[0].UserinfoSigningAlgorithm = oidc.SigAlgRSAUsingSHA256
 			},
 			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
-				assert.Equal(t, oidc.SigningAlgorithmRSAWithSHA256, have.Clients[0].UserinfoSigningAlgorithm)
+				assert.Equal(t, oidc.SigAlgRSAUsingSHA256, have.Clients[0].UserinfoSigningAlgorithm)
 			},
 			tcv{
 				nil,
