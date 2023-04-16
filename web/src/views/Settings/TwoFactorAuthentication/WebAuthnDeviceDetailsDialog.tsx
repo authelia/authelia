@@ -53,7 +53,7 @@ export default function WebAuthnDeviceDetailsDialog(props: Props) {
                     <PropertyText name={translate("Relying Party ID")} value={props.device.rpid} />
                     <PropertyText
                         name={translate("Authenticator GUID")}
-                        value={props.device.aaguid === undefined ? "N/A" : props.device.aaguid}
+                        value={props.device.aaguid === undefined ? translate("Unknown") : props.device.aaguid}
                     />
                     <PropertyText name={translate("Attestation Type")} value={props.device.attestation_type} />
                     <PropertyText
@@ -82,7 +82,7 @@ export default function WebAuthnDeviceDetailsDialog(props: Props) {
                         name={translate("Transports")}
                         value={
                             props.device.transports === null || props.device.transports.length === 0
-                                ? "N/A"
+                                ? translate("Unknown")
                                 : props.device.transports.map((transport) => toTransportName(transport)).join(", ")
                         }
                     />
