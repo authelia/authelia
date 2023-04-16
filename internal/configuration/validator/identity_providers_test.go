@@ -1828,6 +1828,85 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 			nil,
 		},
+		{
+			"ShouldSetDefaultTokenEndpointAuthSigAlg",
+			func(have *schema.OpenIDConnectConfiguration) {
+				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
+				have.Clients[0].Secret = MustDecodeSecret("$plaintext$abc123")
+			},
+			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+				assert.Equal(t, oidc.SigAlgHMACUsingSHA256, have.Clients[0].TokenEndpointAuthSigningAlg)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnInvalidPublicTokenAuthAlg",
+			func(have *schema.OpenIDConnectConfiguration) {
+				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
+				have.Clients[0].TokenEndpointAuthSigningAlg = oidc.SigAlgHMACUsingSHA256
+				have.Clients[0].Secret = nil
+				have.Clients[0].Public = true
+			},
+			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+				assert.Equal(t, oidc.SigAlgHMACUsingSHA256, have.Clients[0].TokenEndpointAuthSigningAlg)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: client 'test': option 'token_endpoint_auth_method' must be 'none' when configured as the public client type but it's configured as 'client_secret_jwt'",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnInvalidTokenAuthAlgClientTypeConfidential",
+			func(have *schema.OpenIDConnectConfiguration) {
+				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
+				have.Clients[0].TokenEndpointAuthSigningAlg = "abc"
+				have.Clients[0].Secret = MustDecodeSecret("$plaintext$abc123")
+			},
+			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+				assert.Equal(t, "abc", have.Clients[0].TokenEndpointAuthSigningAlg)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: client 'test': option 'token_endpoint_auth_signing_alg' must be 'HS256', 'HS384', or 'HS512' when option 'token_endpoint_auth_method' is client_secret_jwt",
+			},
+		},
 	}
 
 	errDeprecatedFunc := func() {}

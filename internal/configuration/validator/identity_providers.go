@@ -508,17 +508,10 @@ func validateOIDCClientTokenEndpointAuth(c int, config *schema.OpenIDConnectConf
 		break
 	case oidc.ClientAuthMethodClientSecretJWT:
 		switch {
-		case config.Clients[c].TokenEndpointAuthSigningAlgorithm == "":
-			config.Clients[c].TokenEndpointAuthSigningAlgorithm = oidc.SigAlgHMACUsingSHA256
-		case !utils.IsStringInSlice(config.Clients[c].TokenEndpointAuthSigningAlgorithm, validOIDCClientTokenEndpointAuthSigAlgsJWT):
-			val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthSigAlg, config.Clients[c].ID, strJoinOr(validOIDCClientTokenEndpointAuthSigAlgsJWT), config.Clients[c].TokenEndpointAuthMethod))
-		}
-	default:
-		switch {
-		case config.Clients[c].TokenEndpointAuthSigningAlgorithm == "":
-			break
-		case !utils.IsStringInSlice(config.Clients[c].TokenEndpointAuthSigningAlgorithm, validOIDCClientTokenEndpointAuthSigAlgsNotJWT):
-			val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthSigAlg, config.Clients[c].ID, strJoinOr(validOIDCClientTokenEndpointAuthSigAlgsNotJWT), config.Clients[c].TokenEndpointAuthMethod))
+		case config.Clients[c].TokenEndpointAuthSigningAlg == "":
+			config.Clients[c].TokenEndpointAuthSigningAlg = oidc.SigAlgHMACUsingSHA256
+		case !utils.IsStringInSlice(config.Clients[c].TokenEndpointAuthSigningAlg, validOIDCClientTokenEndpointAuthSigAlgs):
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthSigAlg, config.Clients[c].ID, strJoinOr(validOIDCClientTokenEndpointAuthSigAlgs), config.Clients[c].TokenEndpointAuthMethod))
 		}
 	}
 }

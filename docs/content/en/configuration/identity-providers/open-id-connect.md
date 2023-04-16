@@ -543,7 +543,7 @@ Supported values are `client_secret_basic`, `client_secret_post`, `client_secret
 See the [integration guide](../../integration/openid-connect/introduction.md#client-authentication-method) for
 more information.
 
-#### token_endpoint_auth_signing_algorithm
+#### token_endpoint_auth_signing_alg
 
 {{< confkey type="string" default="HS256" required="no" >}}
 

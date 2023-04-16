@@ -161,8 +161,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgHMACUsingSHA256,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgHMACUsingSHA256,
 			},
 			{
 				ID:     "hs384",
@@ -171,8 +171,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgHMACUsingSHA384,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgHMACUsingSHA384,
 			},
 			{
 				ID:     "hs512",
@@ -181,8 +181,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgHMACUsingSHA512,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgHMACUsingSHA512,
 			},
 			{
 				ID:     "rs256",
@@ -191,8 +191,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgRSAUsingSHA256,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgRSAUsingSHA256,
 			},
 			{
 				ID:     "rs384",
@@ -201,8 +201,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgRSAUsingSHA384,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgRSAUsingSHA384,
 			},
 			{
 				ID:     "rs512",
@@ -211,8 +211,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgRSAUsingSHA512,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgRSAUsingSHA512,
 			},
 			{
 				ID:     "ps256",
@@ -221,8 +221,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgRSAPSSUsingSHA256,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgRSAPSSUsingSHA256,
 			},
 			{
 				ID:     "ps384",
@@ -231,8 +231,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgRSAPSSUsingSHA384,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgRSAPSSUsingSHA384,
 			},
 			{
 				ID:     "ps512",
@@ -241,8 +241,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgRSAPSSUsingSHA512,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgRSAPSSUsingSHA512,
 			},
 			{
 				ID:     "es256",
@@ -251,8 +251,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgECDSAUsingP256AndSHA256,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgECDSAUsingP256AndSHA256,
 			},
 			{
 				ID:     "es384",
@@ -261,8 +261,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgECDSAUsingP385AndSHA384,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgECDSAUsingP385AndSHA384,
 			},
 			{
 				ID:     "es512",
@@ -271,8 +271,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgECDSAUsingP521AndSHA512,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgECDSAUsingP521AndSHA512,
 			},
 			{
 				ID:     "hs5122",
@@ -281,8 +281,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgHMACUsingSHA512,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgHMACUsingSHA512,
 			},
 			{
 				ID:     "hashed",
@@ -291,8 +291,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgHMACUsingSHA512,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgHMACUsingSHA512,
 			},
 			{
 				ID:     oidc.ClientAuthMethodClientSecretBasic,
@@ -301,8 +301,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretBasic,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgNone,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretBasic,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgNone,
 			},
 			{
 				ID:     oidc.ClientAuthMethodNone,
@@ -311,8 +311,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodNone,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgNone,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodNone,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgNone,
 			},
 			{
 				ID:     oidc.ClientAuthMethodClientSecretPost,
@@ -321,8 +321,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretPost,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgNone,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretPost,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgNone,
 			},
 			{
 				ID:     "bad_method",
@@ -331,8 +331,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:           "bad_method",
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgNone,
+				TokenEndpointAuthMethod:     "bad_method",
+				TokenEndpointAuthSigningAlg: oidc.SigAlgNone,
 			},
 			{
 				ID:     "base",
@@ -1362,7 +1362,7 @@ func TestOpenIDConnectProvider_DefaultClientAuthenticationStrategy_ShouldValidat
 					"https://google.com",
 				},
 				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgHMACUsingSHA512,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgHMACUsingSHA512,
 			},
 		},
 	}, store, nil)
@@ -1441,7 +1441,7 @@ func TestOpenIDConnectProvider_DefaultClientAuthenticationStrategy_ShouldErrorIn
 					"https://google.com",
 				},
 				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgHMACUsingSHA256,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgHMACUsingSHA256,
 			},
 		},
 	}, nil, nil)
@@ -1506,7 +1506,7 @@ func TestOpenIDConnectProvider_DefaultClientAuthenticationStrategy_ShouldErrorEm
 					"https://google.com",
 				},
 				TokenEndpointAuthMethod:           oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlgorithm: oidc.SigAlgHMACUsingSHA256,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgHMACUsingSHA256,
 			},
 		},
 	}, nil, nil)

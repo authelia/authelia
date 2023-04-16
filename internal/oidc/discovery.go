@@ -65,6 +65,11 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 					ClientAuthMethodClientSecretJWT,
 					ClientAuthMethodNone,
 				},
+				TokenEndpointAuthSigningAlgValuesSupported: []string{
+					SigAlgHMACUsingSHA256,
+					SigAlgHMACUsingSHA384,
+					SigAlgHMACUsingSHA512,
+				},
 			},
 			OAuth2DiscoveryOptions: OAuth2DiscoveryOptions{
 				CodeChallengeMethodsSupported: []string{

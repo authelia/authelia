@@ -184,7 +184,7 @@ const (
 	errFmtOIDCClientInvalidTokenEndpointAuthMethodPublic = "identity_providers: oidc: client '%s': option " +
 		"'token_endpoint_auth_method' must be 'none' when configured as the public client type but it's configured as '%s'"
 	errFmtOIDCClientInvalidTokenEndpointAuthSigAlg = "identity_providers: oidc: client '%s': option " +
-		"'token_endpoint_auth_signing_algorithm' must be %s when option 'token_endpoint_auth_method' is %s"
+		"'token_endpoint_auth_signing_alg' must be %s when option 'token_endpoint_auth_method' is %s"
 	errFmtOIDCClientInvalidSectorIdentifier = "identity_providers: oidc: client '%s': option " +
 		"'sector_identifier' with value '%s': must be a URL with only the host component for example '%s' but it has a %s with the value '%s'"
 	errFmtOIDCClientInvalidSectorIdentifierWithoutValue = "identity_providers: oidc: client '%s': option " +
@@ -422,8 +422,7 @@ var (
 
 	validOIDCClientTokenEndpointAuthMethods             = []string{oidc.ClientAuthMethodNone, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodClientSecretJWT}
 	validOIDCClientTokenEndpointAuthMethodsConfidential = []string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic}
-	validOIDCClientTokenEndpointAuthSigAlgsJWT          = []string{oidc.SigAlgHMACUsingSHA256, oidc.SigAlgHMACUsingSHA384, oidc.SigAlgHMACUsingSHA512}
-	validOIDCClientTokenEndpointAuthSigAlgsNotJWT       = []string{oidc.SigAlgNone}
+	validOIDCClientTokenEndpointAuthSigAlgs             = []string{oidc.SigAlgHMACUsingSHA256, oidc.SigAlgHMACUsingSHA384, oidc.SigAlgHMACUsingSHA512}
 )
 
 var (
