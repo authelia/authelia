@@ -110,12 +110,16 @@ const (
 	SigAlgRSAPSSUsingSHA512 = "PS512"
 
 	SigAlgECDSAUsingP256AndSHA256 = "ES256"
-	SigAlgECDSAUsingP385AndSHA384 = "ES384"
+	SigAlgECDSAUsingP384AndSHA384 = "ES384"
 	SigAlgECDSAUsingP521AndSHA512 = "ES512"
 
 	SigAlgHMACUsingSHA256 = "HS256"
 	SigAlgHMACUsingSHA384 = "HS384"
 	SigAlgHMACUsingSHA512 = "HS512"
+)
+
+const (
+	KeyUseSignature = "sig"
 )
 
 // Subject Type strings.

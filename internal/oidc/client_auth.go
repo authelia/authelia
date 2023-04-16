@@ -285,7 +285,7 @@ func findPublicKey(t *jwt.Token, set *jose.JSONWebKeySet, expectsRSAKey bool) (a
 	}
 
 	for _, key := range keys {
-		if key.Use != "sig" {
+		if key.Use != KeyUseSignature {
 			continue
 		}
 

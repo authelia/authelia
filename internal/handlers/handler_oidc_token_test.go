@@ -262,7 +262,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlg: oidc.SigAlgECDSAUsingP385AndSHA384,
+				TokenEndpointAuthSigningAlg: oidc.SigAlgECDSAUsingP384AndSHA384,
 			},
 			{
 				ID:     "es512",
