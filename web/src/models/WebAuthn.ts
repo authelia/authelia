@@ -115,7 +115,7 @@ export interface WebAuthnDevice {
     aaguid?: string;
     attestation_type: string;
     attachment: string;
-    transports: string[];
+    transports: null | string[];
     sign_count: number;
     clone_warning: boolean;
     discoverable: boolean;

@@ -81,7 +81,7 @@ export default function WebAuthnDeviceDetailsDialog(props: Props) {
                     <PropertyText
                         name={translate("Transports")}
                         value={
-                            props.device.transports.length === 0
+                            props.device.transports === null || props.device.transports.length === 0
                                 ? "N/A"
                                 : props.device.transports.map((transport) => toTransportName(transport)).join(", ")
                         }
