@@ -1446,51 +1446,6 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 		},
 		{
-			"ShouldSetDefaultTokenEndpointClientAuthMethodPublicClientType",
-			func(have *schema.OpenIDConnectConfiguration) {
-				have.Clients[0].Public = true
-				have.Clients[0].Secret = nil
-			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
-				assert.Equal(t, oidc.ClientAuthMethodNone, have.Clients[0].TokenEndpointAuthMethod)
-			},
-			tcv{
-				nil,
-				nil,
-				nil,
-				nil,
-			},
-			tcv{
-				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
-				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
-				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
-				[]string{oidc.GrantTypeAuthorizationCode},
-			},
-			nil,
-			nil,
-		},
-		{
-			"ShouldSetDefaultTokenEndpointClientAuthMethodConfidentialClientTypeImplicitFlow",
-			nil,
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
-				assert.Equal(t, oidc.ClientAuthMethodNone, have.Clients[0].TokenEndpointAuthMethod)
-			},
-			tcv{
-				nil,
-				[]string{oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth},
-				nil,
-				nil,
-			},
-			tcv{
-				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
-				[]string{oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth},
-				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeFragment},
-				[]string{oidc.GrantTypeImplicit},
-			},
-			nil,
-			nil,
-		},
-		{
 			"ShouldNotOverrideValidClientAuthMethod",
 			func(have *schema.OpenIDConnectConfiguration) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretPost
@@ -1937,7 +1892,6 @@ func TestValidateOIDCClientTokenEndpointAuthMethod(t *testing.T) {
 		errs     []string
 	}{
 		{"ShouldSetDefaultValueConfidential", "", false, "", nil},
-		{"ShouldSetDefaultValuePublic", "", true, oidc.ClientAuthMethodNone, nil},
 		{"ShouldErrorOnInvalidValue", "abc", false, "abc",
 			[]string{
 				"identity_providers: oidc: client 'test': option 'token_endpoint_auth_method' must be one of 'none', 'client_secret_post', 'client_secret_basic', or 'client_secret_jwt' but it's configured as 'abc'",

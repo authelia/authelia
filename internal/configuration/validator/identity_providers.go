@@ -489,10 +489,6 @@ func validateOIDCClientRedirectURIs(c int, config *schema.OpenIDConnectConfigura
 func validateOIDCClientTokenEndpointAuth(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
 	implcit := len(config.Clients[c].ResponseTypes) != 0 && utils.IsStringSliceContainsAll(config.Clients[c].ResponseTypes, validOIDCClientResponseTypesImplicitFlow)
 
-	if config.Clients[c].TokenEndpointAuthMethod == "" && (config.Clients[c].Public || implcit) {
-		config.Clients[c].TokenEndpointAuthMethod = oidc.ClientAuthMethodNone
-	}
-
 	switch {
 	case config.Clients[c].TokenEndpointAuthMethod == "":
 		break
