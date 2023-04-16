@@ -183,6 +183,8 @@ const (
 		"'token_endpoint_auth_method' must be one of %s when configured as the confidential client type unless it only includes implicit flow response types such as %s but it's configured as '%s'"
 	errFmtOIDCClientInvalidTokenEndpointAuthMethodPublic = "identity_providers: oidc: client '%s': option " +
 		"'token_endpoint_auth_method' must be 'none' when configured as the public client type but it's configured as '%s'"
+	errFmtOIDCClientInvalidTokenEndpointAuthSigAlg = "identity_providers: oidc: client '%s': option " +
+		"'token_endpoint_auth_signing_algorithm' must be %s when option 'token_endpoint_auth_method' is %s"
 	errFmtOIDCClientInvalidSectorIdentifier = "identity_providers: oidc: client '%s': option " +
 		"'sector_identifier' with value '%s': must be a URL with only the host component for example '%s' but it has a %s with the value '%s'"
 	errFmtOIDCClientInvalidSectorIdentifierWithoutValue = "identity_providers: oidc: client '%s': option " +
@@ -420,6 +422,8 @@ var (
 
 	validOIDCClientTokenEndpointAuthMethods             = []string{oidc.ClientAuthMethodNone, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodClientSecretJWT}
 	validOIDCClientTokenEndpointAuthMethodsConfidential = []string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic}
+	validOIDCClientTokenEndpointAuthSigAlgsJWT          = []string{oidc.SigningAlgorithmHMACWithSHA256, oidc.SigningAlgorithmHMACWithSHA384, oidc.SigningAlgorithmHMACWithSHA512}
+	validOIDCClientTokenEndpointAuthSigAlgsNotJWT       = []string{oidc.SigningAlgorithmNone}
 )
 
 var (

@@ -47,8 +47,9 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client Client) {
 
 	if config.TokenEndpointAuthMethod != "" && config.TokenEndpointAuthMethod != "auto" {
 		client = &FullClient{
-			BaseClient:              base,
-			TokenEndpointAuthMethod: config.TokenEndpointAuthMethod,
+			BaseClient:                        base,
+			TokenEndpointAuthMethod:           config.TokenEndpointAuthMethod,
+			TokenEndpointAuthSigningAlgorithm: config.TokenEndpointAuthSigningAlgorithm,
 		}
 	} else {
 		client = base

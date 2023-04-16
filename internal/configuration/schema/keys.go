@@ -46,6 +46,7 @@ var Keys = []string{
 	"identity_providers.oidc.clients[].response_types",
 	"identity_providers.oidc.clients[].response_modes",
 	"identity_providers.oidc.clients[].token_endpoint_auth_method",
+	"identity_providers.oidc.clients[].token_endpoint_auth_signing_algorithm",
 	"identity_providers.oidc.clients[].authorization_policy",
 	"identity_providers.oidc.clients[].enforce_par",
 	"identity_providers.oidc.clients[].enforce_pkce",

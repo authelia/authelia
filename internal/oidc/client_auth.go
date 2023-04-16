@@ -11,11 +11,13 @@ import (
 	"time"
 
 	"github.com/go-crypt/crypt/algorithm/plaintext"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/ory/fosite"
-	"github.com/ory/fosite/token/jwt"
 	"github.com/ory/x/errorsx"
 	"github.com/pkg/errors"
 	"gopkg.in/square/go-jose.v2"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // DefaultClientAuthenticationStrategy is a copy of fosite's with the addition of the client_secret_jwt method and some
@@ -41,7 +43,8 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 			}
 
 			if clientID == "" {
-				claims := t.Claims
+				claims := t.Claims.(jwt.MapClaims)
+
 				if sub, ok := claims[ClaimSubject].(string); !ok {
 					return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("The claim 'sub' from the client_assertion JSON Web Token is undefined."))
 				} else {
@@ -59,7 +62,7 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 			}
 
 			switch oidcClient.GetTokenEndpointAuthMethod() {
-			case ClientAuthMethodPrivateKeyJWT:
+			case ClientAuthMethodPrivateKeyJWT, ClientAuthMethodClientSecretJWT:
 				break
 			case ClientAuthMethodNone:
 				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("This requested OAuth 2.0 client does not support client authentication, however 'client_assertion' was provided in the request."))
@@ -67,8 +70,6 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 				fallthrough
 			case ClientAuthMethodClientSecretBasic:
 				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("This requested OAuth 2.0 client only supports client authentication method '%s', however 'client_assertion' was provided in the request.", oidcClient.GetTokenEndpointAuthMethod()))
-			case ClientAuthMethodClientSecretJWT:
-				fallthrough
 			default:
 				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("This requested OAuth 2.0 client only supports client authentication method '%s', however that method is not supported by this server.", oidcClient.GetTokenEndpointAuthMethod()))
 			}
@@ -77,19 +78,20 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The 'client_assertion' uses signing algorithm '%s' but the requested OAuth 2.0 Client enforces signing algorithm '%s'.", t.Header["alg"], oidcClient.GetTokenEndpointAuthSigningAlgorithm()))
 			}
 			switch t.Method {
-			case jose.RS256, jose.RS384, jose.RS512:
+			case jwt.SigningMethodRS256, jwt.SigningMethodRS384, jwt.SigningMethodRS512:
 				return p.findClientPublicJWK(ctx, oidcClient, t, true)
-			case jose.ES256, jose.ES384, jose.ES512:
+			case jwt.SigningMethodES256, jwt.SigningMethodES384, jwt.SigningMethodES512:
 				return p.findClientPublicJWK(ctx, oidcClient, t, false)
-			case jose.PS256, jose.PS384, jose.PS512:
+			case jwt.SigningMethodPS256, jwt.SigningMethodPS384, jwt.SigningMethodPS512:
 				return p.findClientPublicJWK(ctx, oidcClient, t, true)
-			case jose.HS256, jose.HS384, jose.HS512:
-				switch secret := oidcClient.Secret.(type) {
-				case *plaintext.Digest:
-					return secret.Key(), nil
-				default:
-					return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("This client does not support authentication method 'client_secret_jwt' as the client secret is not in plaintext."))
+			case jwt.SigningMethodHS256, jwt.SigningMethodHS384, jwt.SigningMethodHS512:
+				if spd, ok := oidcClient.Secret.(*schema.PasswordDigest); ok {
+					if secret, ok := spd.Digest.(*plaintext.Digest); ok {
+						return secret.Key(), nil
+					}
 				}
+
+				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("This client does not support authentication method 'client_secret_jwt' as the client secret is not in plaintext."))
 			default:
 				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The 'client_assertion' request parameter uses unsupported signing algorithm '%s'.", t.Header["alg"]))
 			}
@@ -111,7 +113,7 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Unable to verify the request object because its claims could not be validated, check if the expiry time is set correctly.").WithWrap(err).WithDebug(err.Error()))
 		}
 
-		claims := token.Claims
+		claims := token.Claims.(jwt.MapClaims)
 
 		tokenURL := p.Config.GetTokenURL(ctx)
 

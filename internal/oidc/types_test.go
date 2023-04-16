@@ -96,11 +96,3 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	assert.NotNil(t, session.Claims.Extra)
 	assert.Nil(t, session.Claims.AuthenticationMethodsReferences)
 }
-
-func MustParseRequestURI(input string) *url.URL {
-	if requestURI, err := url.ParseRequestURI(input); err != nil {
-		panic(err)
-	} else {
-		return requestURI
-	}
-}

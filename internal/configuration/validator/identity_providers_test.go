@@ -1969,7 +1969,7 @@ func TestValidateOIDCClientTokenEndpointAuthMethod(t *testing.T) {
 
 			val := schema.NewStructValidator()
 
-			validateOIDCClientTokenEndpointAuthMethod(0, have, val)
+			validateOIDCClientTokenEndpointAuth(0, have, val)
 
 			assert.Equal(t, tc.expected, have.Clients[0].TokenEndpointAuthMethod)
 			assert.Len(t, val.Warnings(), 0)

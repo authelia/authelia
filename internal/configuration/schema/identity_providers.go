@@ -64,7 +64,8 @@ type OpenIDConnectClientConfiguration struct {
 	ResponseTypes []string `koanf:"response_types"`
 	ResponseModes []string `koanf:"response_modes"`
 
-	TokenEndpointAuthMethod string `koanf:"token_endpoint_auth_method"`
+	TokenEndpointAuthMethod           string `koanf:"token_endpoint_auth_method"`
+	TokenEndpointAuthSigningAlgorithm string `koanf:"token_endpoint_auth_signing_algorithm"`
 
 	Policy string `koanf:"authorization_policy"`
 

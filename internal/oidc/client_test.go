@@ -545,11 +545,3 @@ func TestClient_IsPublic(t *testing.T) {
 	c.Public = true
 	assert.True(t, c.IsPublic())
 }
-
-func MustDecodeSecret(value string) *schema.PasswordDigest {
-	if secret, err := schema.DecodePasswordDigest(value); err != nil {
-		panic(err)
-	} else {
-		return secret
-	}
-}

@@ -100,6 +100,17 @@ const (
 const (
 	SigningAlgorithmNone          = none
 	SigningAlgorithmRSAWithSHA256 = "RS256"
+	/*
+		SigningAlgorithmRSAWithSHA384       = "RS384"
+		SigningAlgorithmRSAWithSHA512       = "RS512"
+		SigningAlgorithmRSASSAPSSWithSHA256 = "PS256"
+		SigningAlgorithmRSASSAPSSWithSHA384 = "PS384"
+		SigningAlgorithmRSASSAPSSWithSHA512 = "PS512"
+	*/
+
+	SigningAlgorithmHMACWithSHA256 = "HS256"
+	SigningAlgorithmHMACWithSHA384 = "HS384"
+	SigningAlgorithmHMACWithSHA512 = "HS512"
 )
 
 // Subject Type strings.
