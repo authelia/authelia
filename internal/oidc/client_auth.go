@@ -204,11 +204,11 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 	if oidcClient, ok := client.(fosite.OpenIDConnectClient); ok {
 		method := oidcClient.GetTokenEndpointAuthMethod()
 
-		if ok && form.Get(FormParameterClientID) != "" && form.Get(FormParameterClientSecret) != "" && method != ClientAuthMethodClientSecretPost {
+		if form.Get(FormParameterClientID) != "" && form.Get(FormParameterClientSecret) != "" && method != ClientAuthMethodClientSecretPost {
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The OAuth 2.0 Client supports client authentication method '%s', but method 'client_secret_post' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'client_secret_post'.", method))
-		} else if _, secret, basicOk := r.BasicAuth(); basicOk && ok && secret != "" && method != ClientAuthMethodClientSecretBasic {
+		} else if _, secret, basicOk := r.BasicAuth(); basicOk && secret != "" && method != ClientAuthMethodClientSecretBasic {
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The OAuth 2.0 Client supports client authentication method '%s', but method 'client_secret_basic' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'client_secret_basic'.", method))
-		} else if ok && method != ClientAuthMethodNone && client.IsPublic() {
+		} else if method != ClientAuthMethodNone && client.IsPublic() {
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The OAuth 2.0 Client supports client authentication method '%s', but method 'none' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'none'.", method))
 		}
 	}

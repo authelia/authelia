@@ -98,15 +98,19 @@ const (
 
 // Signing Algorithm strings.
 const (
-	SigningAlgorithmNone          = none
+	SigningAlgorithmNone = none
+
 	SigningAlgorithmRSAWithSHA256 = "RS256"
-	/*
-		SigningAlgorithmRSAWithSHA384       = "RS384"
-		SigningAlgorithmRSAWithSHA512       = "RS512"
-		SigningAlgorithmRSASSAPSSWithSHA256 = "PS256"
-		SigningAlgorithmRSASSAPSSWithSHA384 = "PS384"
-		SigningAlgorithmRSASSAPSSWithSHA512 = "PS512"
-	*/
+	SigningAlgorithmRSAWithSHA384 = "RS384"
+	SigningAlgorithmRSAWithSHA512 = "RS512"
+
+	SigningAlgorithmRSASSAPSSWithSHA256 = "PS256"
+	SigningAlgorithmRSASSAPSSWithSHA384 = "PS384"
+	SigningAlgorithmRSASSAPSSWithSHA512 = "PS512"
+
+	SigningAlgorithmECDSAWithSHA256 = "ES256"
+	SigningAlgorithmECDSAWithSHA384 = "ES384"
+	SigningAlgorithmECDSAWithSHA512 = "ES512"
 
 	SigningAlgorithmHMACWithSHA256 = "HS256"
 	SigningAlgorithmHMACWithSHA384 = "HS384"
