@@ -73,7 +73,7 @@
     "@testing-library/react": "14.0.0",
     "@types/node": "18.15.11",
     "@types/qrcode.react": "1.0.2",
-    "@types/react": "18.0.35",
+    "@types/react": "18.0.37",
     "@types/react-dom": "18.0.11",
     "@types/testing-library__jest-dom": "5.14.5",
     "@types/zxcvbn": "4.4.1",
