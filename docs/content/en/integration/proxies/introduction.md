@@ -28,6 +28,29 @@ bootstrapping *Authelia*.
 
 See [support](support.md) for support information.
 
+### Required Headers
+
+__Authelia__ itself requires the following headers are set when secured behind a reverse proxy:
+
+* Scheme Detection:
+  * Default: [X-Forwarded-Proto] (header)
+  * Fallback: TLS (listening socket state)
+* Host Detection:
+  * Default: [X-Forwarded-Host] (header)
+  * Fallback: [Host] (header)
+* Path Detection:
+  * Default: X-Forwarded-URI (header)
+  * Fallback: [Start Line] Request Target (start line)
+* Remote IP:
+  * Default: [X-Forwarded-For]
+  * Fallback: TCP source IP
+
+[Host]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host
+[Start Line]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages#start_line
+[X-Forwarded-For]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For
+[X-Forwarded-Proto]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto
+[X-Forwarded-Host]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host
+
 ## Integration Implementation
 
 Authelia is capable of being integrated into many proxies due to the decisions regarding the implementation. We handle
@@ -41,12 +64,14 @@ your reverse proxy. The headers we rely on at the authz endpoints are as follows
 
 * [X-Forwarded-Proto](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto)
 * [X-Forwarded-Host](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host)
-* X-Forwarded-Uri
+* X-Forwarded-URI
 * [X-Forwarded-For](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For)
 * X-Forwarded-Method / X-Original-Method
 * X-Original-URL
 
-The specifics however are dictated by the specific [Authorization Implementation](../../reference/guides/proxy-authorization.md) used.
+The specifics however are dictated by the specific
+[Authorization Implementation](../../reference/guides/proxy-authorization.md) used. Please refer to the specific
+implementation you're using.
 
 ### User Identification
 

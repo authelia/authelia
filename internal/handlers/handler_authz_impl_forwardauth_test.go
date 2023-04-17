@@ -240,7 +240,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleMissingHostDeny() {
 			mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 			mock.Ctx.Request.Header.Del(fasthttp.HeaderXForwardedHost)
-			mock.Ctx.Request.Header.Set("X-Forwarded-Uri", "/")
+			mock.Ctx.Request.Header.Set("X-Forwarded-URI", "/")
 			mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
 			authz.Handler(mock.Ctx)
@@ -395,7 +395,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 					mock.Ctx.Request.Header.SetBytesKV([]byte(fasthttp.HeaderXForwardedProto), tc.scheme)
 					mock.Ctx.Request.Header.SetBytesKV([]byte(fasthttp.HeaderXForwardedHost), tc.host)
-					mock.Ctx.Request.Header.Set("X-Forwarded-Uri", tc.path)
+					mock.Ctx.Request.Header.Set("X-Forwarded-URI", tc.path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
 					authz.Handler(mock.Ctx)
@@ -560,7 +560,7 @@ func setRequestForwardAuth(ctx *middlewares.AutheliaCtx, method string, targetUR
 	if targetURI != nil {
 		ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, targetURI.Scheme)
 		ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, targetURI.Host)
-		ctx.Request.Header.Set("X-Forwarded-Uri", targetURI.Path)
+		ctx.Request.Header.Set("X-Forwarded-URI", targetURI.Path)
 	}
 
 	setRequestXHRValues(ctx, accept, xhr)
