@@ -76,8 +76,6 @@ type OpenIDConnectClientConfiguration struct {
 	TokenEndpointAuthMethod     string `koanf:"token_endpoint_auth_method"`
 	TokenEndpointAuthSigningAlg string `koanf:"token_endpoint_auth_signing_alg"`
 
-	JWKS map[string]JWK `koanf:"jwks"`
-
 	IDTokenSigningAlg string `koanf:"id_token_signing_alg"`
 
 	Policy string `koanf:"authorization_policy"`

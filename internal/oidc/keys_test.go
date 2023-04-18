@@ -144,7 +144,6 @@ func TestKeyManager(t *testing.T) {
 			expectedKID := fmt.Sprintf("kid-%s-%s", alg, KeyUseSignature)
 
 			t.Run("ShouldGetCorrectKey", func(t *testing.T) {
-
 				jwk = manager.GetByKID(ctx, expectedKID)
 				assert.NotNil(t, jwk)
 				assert.Equal(t, expectedKID, jwk.KeyID())

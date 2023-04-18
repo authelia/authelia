@@ -2232,15 +2232,15 @@ func TestValidateOIDCIssuer(t *testing.T) {
 			},
 			schema.OpenIDConnectConfiguration{
 				IssuerJWKS: []schema.JWK{
-					{Key: publicRSA2048Pair, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "840b4e"},
+					{Key: publicRSA2048Pair, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "904c62"},
 				},
 				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:             "840b4e",
+					DefaultKeyID:             "904c62",
 					RegisteredJWKSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
 			[]string{
-				"identity_providers: oidc: issuer_jwks: key #1 with key id '840b4e': option 'key' must be a *rsa.PrivateKey or *ecdsa.PrivateKey but it's a *rsa.PublicKey",
+				"identity_providers: oidc: issuer_jwks: key #1 with key id '904c62': option 'key' must be a *rsa.PrivateKey or *ecdsa.PrivateKey but it's a *rsa.PublicKey",
 			},
 		},
 		{
@@ -2446,6 +2446,7 @@ const (
 	pathCrypto = "../test_resources/crypto/%s.%s"
 )
 
+//nolint:unused
 var (
 	tOpenIDConnectPBKDF2ClientSecret, tOpenIDConnectPlainTextClientSecret *schema.PasswordDigest
 
