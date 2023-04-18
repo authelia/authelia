@@ -59,10 +59,10 @@ func cmdFlagsCryptoCertificateRequest(cmd *cobra.Command) {
 
 func cmdFlagsCryptoPairGenerate(cmd *cobra.Command) {
 	cmd.Flags().String(cmdFlagNameFilePublicKey, "public.pem", "name of the file to export the public key data to")
-	cmd.Flags().Bool(cmdFlagNamePKCS8, false, "force PKCS #8 ASN.1 format")
 }
 
 func cmdFlagsCryptoPrivateKey(cmd *cobra.Command) {
+	cmd.Flags().Bool(cmdFlagNamePKCS8, false, "force PKCS #8 ASN.1 format")
 	cmd.Flags().String(cmdFlagNameFilePrivateKey, "private.pem", "name of the file to export the private key data to")
 	cmd.Flags().StringP(cmdFlagNameDirectory, "d", "", "directory where the generated keys, certificates, etc will be stored")
 }
