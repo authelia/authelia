@@ -259,7 +259,7 @@ func (j *Signer) GetPublicKey(ctx context.Context) (key crypto.PublicKey, err er
 
 	switch t := k.(type) {
 	case *jose.JSONWebKey:
-		return t.Key, nil
+		return t.Public().Key, nil
 	case jose.OpaqueSigner:
 		return t.Public().Key, nil
 	case schema.CryptographicPrivateKey:
@@ -297,7 +297,7 @@ func (j *Signer) Generate(ctx context.Context, claims fjwt.MapClaims, header fjw
 }
 
 // Validate validates a token and returns its signature or an error if the token is not valid.
-func (j *Signer) Validate(ctx context.Context, token string) (sig string, err error) {
+func (j *Signer) Validate(ctx context.Context, tokenString string) (sig string, err error) {
 	var (
 		key crypto.PublicKey
 	)
@@ -306,7 +306,7 @@ func (j *Signer) Validate(ctx context.Context, token string) (sig string, err er
 		return "", err
 	}
 
-	return validateToken(token, key)
+	return validateToken(tokenString, key)
 }
 
 // Decode will decode a JWT token.
@@ -323,8 +323,8 @@ func (j *Signer) Decode(ctx context.Context, tokenString string) (token *fjwt.To
 }
 
 // GetSignature will return the signature of a token.
-func (j *Signer) GetSignature(ctx context.Context, token string) (sig string, err error) {
-	return getTokenSignature(token)
+func (j *Signer) GetSignature(ctx context.Context, tokenString string) (sig string, err error) {
+	return getTokenSignature(tokenString)
 }
 
 // Hash will return a given hash based on the byte input or an error upon fail.

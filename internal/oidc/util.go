@@ -46,6 +46,7 @@ func (jwks SortedJSONWebKey) Swap(i, j int) {
 	jwks[i], jwks[j] = jwks[j], jwks[i]
 }
 
+//nolint:gocyclo // Low importance func.
 func isSigningAlgLess(i, j string) bool {
 	switch {
 	case i == j:

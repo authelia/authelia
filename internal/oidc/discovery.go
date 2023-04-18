@@ -138,6 +138,9 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 
 	sort.Sort(SortedSigningAlgs(config.IDTokenSigningAlgValuesSupported))
 	sort.Sort(SortedSigningAlgs(config.UserinfoSigningAlgValuesSupported))
+	sort.Sort(SortedSigningAlgs(config.RequestObjectSigningAlgValuesSupported))
+	sort.Sort(SortedSigningAlgs(config.RevocationEndpointAuthSigningAlgValuesSupported))
+	sort.Sort(SortedSigningAlgs(config.TokenEndpointAuthSigningAlgValuesSupported))
 
 	if c.EnablePKCEPlainChallenge {
 		config.CodeChallengeMethodsSupported = append(config.CodeChallengeMethodsSupported, PKCEChallengeMethodPlain)

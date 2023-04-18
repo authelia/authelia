@@ -258,7 +258,7 @@ func TestShouldLoadNewOIDCConfig(t *testing.T) {
 
 	assert.Contains(t, config.IdentityProviders.OIDC.Discovery.RegisteredJWKSigningAlgs, oidc.SigningAlgRSAUsingSHA256)
 	assert.Contains(t, config.IdentityProviders.OIDC.Discovery.RegisteredJWKSigningAlgs, oidc.SigningAlgECDSAUsingP521AndSHA512)
-}
+}.
 
 */
 

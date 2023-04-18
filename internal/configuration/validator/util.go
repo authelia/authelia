@@ -2,6 +2,7 @@ package validator
 
 import (
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rsa"
 	"fmt"
@@ -125,8 +126,23 @@ func schemaJWKGetProperties(jwk schema.JWK) (properties *JWKProperties, err erro
 	switch key := jwk.Key.(type) {
 	case nil:
 		return nil, fmt.Errorf("private key is nil")
+	case ed25519.PrivateKey, ed25519.PublicKey:
+		return &JWKProperties{}, nil
 	case *rsa.PrivateKey:
 		return &JWKProperties{oidc.KeyUseSignature, oidc.SigningAlgRSAUsingSHA256, key.Size(), nil}, nil
+	case *rsa.PublicKey:
+		return &JWKProperties{oidc.KeyUseSignature, oidc.SigningAlgRSAUsingSHA256, key.Size(), nil}, nil
+	case *ecdsa.PublicKey:
+		switch key.Curve {
+		case elliptic.P256():
+			return &JWKProperties{oidc.KeyUseSignature, oidc.SigningAlgECDSAUsingP256AndSHA256, -1, key.Curve}, nil
+		case elliptic.P384():
+			return &JWKProperties{oidc.KeyUseSignature, oidc.SigningAlgECDSAUsingP384AndSHA384, -1, key.Curve}, nil
+		case elliptic.P521():
+			return &JWKProperties{oidc.KeyUseSignature, oidc.SigningAlgECDSAUsingP521AndSHA512, -1, key.Curve}, nil
+		default:
+			return &JWKProperties{oidc.KeyUseSignature, "", -1, key.Curve}, nil
+		}
 	case *ecdsa.PrivateKey:
 		switch key.Curve {
 		case elliptic.P256():

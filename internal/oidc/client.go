@@ -305,7 +305,7 @@ func (c *FullClient) GetTokenEndpointAuthMethod() string {
 		if c.Public {
 			c.TokenEndpointAuthMethod = ClientAuthMethodNone
 		} else {
-			c.TokenEndpointAuthMethod = ClientAuthMethodClientSecretPost
+			c.TokenEndpointAuthMethod = ClientAuthMethodClientSecretBasic
 		}
 	}
 

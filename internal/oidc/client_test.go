@@ -3,6 +3,7 @@ package oidc
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
@@ -51,7 +52,7 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, authorization.TwoFactor, client.GetAuthorizationPolicy())
 
 	config = schema.OpenIDConnectClientConfiguration{
-		TokenEndpointAuthMethod: ClientAuthMethodClientSecretBasic,
+		TokenEndpointAuthMethod: ClientAuthMethodClientSecretPost,
 	}
 
 	client = NewClient(config)
@@ -61,18 +62,51 @@ func TestNewClient(t *testing.T) {
 	var niljwks *jose.JSONWebKeySet
 
 	require.True(t, ok)
+
 	assert.Equal(t, "", fclient.UserinfoSigningAlg)
-	assert.Equal(t, ClientAuthMethodClientSecretBasic, fclient.TokenEndpointAuthMethod)
-	assert.Equal(t, ClientAuthMethodClientSecretBasic, fclient.GetTokenEndpointAuthMethod())
 	assert.Equal(t, SigningAlgNone, client.GetUserinfoSigningAlg())
+	assert.Equal(t, SigningAlgNone, fclient.UserinfoSigningAlg)
+
+	assert.Equal(t, "", fclient.IDTokenSigningAlg)
+	assert.Equal(t, SigningAlgRSAUsingSHA256, client.GetIDTokenSigningAlg())
+	assert.Equal(t, SigningAlgRSAUsingSHA256, fclient.IDTokenSigningAlg)
+
+	assert.Equal(t, ClientAuthMethodClientSecretPost, fclient.TokenEndpointAuthMethod)
+	assert.Equal(t, ClientAuthMethodClientSecretPost, fclient.GetTokenEndpointAuthMethod())
+
 	assert.Equal(t, "", fclient.TokenEndpointAuthSigningAlgorithm)
 	assert.Equal(t, SigningAlgRSAUsingSHA256, fclient.GetTokenEndpointAuthSigningAlgorithm())
+	assert.Equal(t, SigningAlgRSAUsingSHA256, fclient.TokenEndpointAuthSigningAlgorithm)
+
 	assert.Equal(t, "", fclient.RequestObjectSigningAlgorithm)
 	assert.Equal(t, "", fclient.GetRequestObjectSigningAlgorithm())
+
+	fclient.RequestObjectSigningAlgorithm = SigningAlgRSAUsingSHA256
+	assert.Equal(t, SigningAlgRSAUsingSHA256, fclient.GetRequestObjectSigningAlgorithm())
+
 	assert.Equal(t, "", fclient.JSONWebKeysURI)
 	assert.Equal(t, "", fclient.GetJSONWebKeysURI())
+
+	fclient.JSONWebKeysURI = "https://example.com"
+	assert.Equal(t, "https://example.com", fclient.GetJSONWebKeysURI())
+
 	assert.Equal(t, niljwks, fclient.JSONWebKeys)
 	assert.Equal(t, niljwks, fclient.GetJSONWebKeys())
+
+	assert.Equal(t, ClientConsentMode(0), fclient.Consent.Mode)
+	assert.Equal(t, time.Second*0, fclient.Consent.Duration)
+	assert.Equal(t, ClientConsent{Mode: ClientConsentModeExplicit}, fclient.GetConsentPolicy())
+
+	fclient.TokenEndpointAuthMethod = ""
+	fclient.Public = false
+	assert.Equal(t, ClientAuthMethodClientSecretBasic, fclient.GetTokenEndpointAuthMethod())
+	assert.Equal(t, ClientAuthMethodClientSecretBasic, fclient.TokenEndpointAuthMethod)
+
+	fclient.TokenEndpointAuthMethod = ""
+	fclient.Public = true
+	assert.Equal(t, ClientAuthMethodNone, fclient.GetTokenEndpointAuthMethod())
+	assert.Equal(t, ClientAuthMethodNone, fclient.TokenEndpointAuthMethod)
+
 	assert.Equal(t, []string(nil), fclient.RequestURIs)
 	assert.Equal(t, []string(nil), fclient.GetRequestURIs())
 }

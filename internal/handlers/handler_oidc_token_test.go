@@ -148,7 +148,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 	secret := MustDecodeSecret("$plaintext$client-secret")
 
 	s.provider = oidc.NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
-		IssuerJWKS:             schema.OpenIDConnectIssuerJWKS{},
+		IssuerJWKS:             []schema.JWK{},
 		IssuerCertificateChain: schema.X509CertificateChain{},
 		IssuerPrivateKey:       MustParseRSAPrivateKey(exampleRSAPrivateKey),
 		HMACSecret:             "abc123",

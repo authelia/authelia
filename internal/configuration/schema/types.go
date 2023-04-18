@@ -197,6 +197,10 @@ func NewX509CertificateChain(in string) (chain *X509CertificateChain, err error)
 	return chain, nil
 }
 
+func NewX509CertificateChainFromCerts(in []*x509.Certificate) (chain X509CertificateChain) {
+	return X509CertificateChain{certs: in}
+}
+
 // NewTLSVersion returns a new TLSVersion given a string.
 func NewTLSVersion(input string) (version *TLSVersion, err error) {
 	switch strings.ReplaceAll(strings.ToUpper(input), " ", "") {
