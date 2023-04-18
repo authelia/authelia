@@ -350,7 +350,7 @@ use cases.
 
 The following is an example `proxy.conf`. The important directives include the `real_ip` directives which you should read
 [Trusted Proxies](#trusted-proxies) section to understand, or set the `X-Forwarded-Proto`, `X-Forwarded-Host`,
-`X-Forwarded-Uri`, and `X-Forwarded-For` headers.
+`X-Forwarded-URI`, and `X-Forwarded-For` headers.
 
 ##### Standard Variant
 
@@ -363,7 +363,7 @@ proxy_set_header Host $host;
 proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
 proxy_set_header X-Forwarded-Proto $scheme;
 proxy_set_header X-Forwarded-Host $http_host;
-proxy_set_header X-Forwarded-Uri $request_uri;
+proxy_set_header X-Forwarded-URI $request_uri;
 proxy_set_header X-Forwarded-Ssl on;
 proxy_set_header X-Forwarded-For $remote_addr;
 proxy_set_header X-Real-IP $remote_addr;
@@ -408,7 +408,7 @@ proxy_set_header Host $host;
 proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
 proxy_set_header X-Forwarded-Proto $scheme;
 proxy_set_header X-Forwarded-Host $http_host;
-proxy_set_header X-Forwarded-Uri $request_uri;
+proxy_set_header X-Forwarded-URI $request_uri;
 proxy_set_header X-Forwarded-Ssl on;
 proxy_set_header X-Forwarded-For $remote_addr;
 ```
@@ -539,7 +539,7 @@ location /internal/authelia/authz/basic {
     proxy_set_header X-Forwarded-Method $request_method;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-Host $http_host;
-    proxy_set_header X-Forwarded-Uri $request_uri;
+    proxy_set_header X-Forwarded-URI $request_uri;
     proxy_set_header X-Forwarded-For $remote_addr;
     proxy_set_header Content-Length "";
     proxy_set_header Connection "";

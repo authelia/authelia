@@ -155,7 +155,7 @@ paths:
           example: '{{ $.Domain | default "example.com" }}'
           schema:
             type: string
-        - name: X-Forwarded-Uri
+        - name: X-Forwarded-URI
           in: header
           description: Redirection URL (URI)
           required: false
@@ -1494,7 +1494,7 @@ components:
       schema:
         type: string
     forwardedURIParam:
-      name: X-Forwarded-Uri
+      name: X-Forwarded-URI
       in: header
       description: Redirection URL (URI)
       required: true
