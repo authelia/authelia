@@ -142,15 +142,26 @@ const (
 
 // OpenID Error constants.
 const (
-	errFmtOIDCNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +
+	errFmtOIDCProviderNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +
 		"more clients configured"
-	errFmtOIDCNoPrivateKey                               = "identity_providers: oidc: option 'issuer_private_key' or `issuer_jwks` is required"
-	errFmtOIDCInvalidPrivateKeyBitSize                   = "identity_providers: oidc: option 'issuer_private_key' must be an RSA private key with %d bits or more but it only has %d bits"
-	errFmtOIDCInvalidPrivateKeyMalformedMissingPublicKey = "identity_providers: oidc: option 'issuer_private_key' must be a valid RSA private key but the provided data is missing the public key bits"
-	errFmtOIDCCertificateMismatch                        = "identity_providers: oidc: option 'issuer_private_key' does not appear to be the private key the certificate provided by option 'issuer_certificate_chain'"
-	errFmtOIDCCertificateChain                           = "identity_providers: oidc: option 'issuer_certificate_chain' produced an error during validation of the chain: %w"
-	errFmtOIDCEnforcePKCEInvalidValue                    = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
+	errFmtOIDCProviderNoPrivateKey            = "identity_providers: oidc: option `issuer_private_keys` or 'issuer_private_key' is required"
+	errFmtOIDCProviderEnforcePKCEInvalidValue = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
 		"'public_clients_only' or 'always', but it's configured as '%s'"
+	errFmtOIDCProviderInsecureParameterEntropy = "openid connect provider: SECURITY ISSUE - minimum parameter entropy is " +
+		"configured to an unsafe value, it should be above 8 but it's configured to %d"
+
+	errFmtOIDCProviderPrivateKeysInvalid                 = "identity_providers: oidc: issuer_private_keys: key #%d: option 'key' must be a valid private key but the provided data is malformed as it's missing the public key bits"
+	errFmtOIDCProviderPrivateKeysCalcThumbprint          = "identity_providers: oidc: issuer_private_keys: key #%d: option 'key' failed to calculate thumbprint to configure key id value: %w"
+	errFmtOIDCProviderPrivateKeysKeyIDLength             = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option `key_id`` must be 7 characters or less"
+	errFmtOIDCProviderPrivateKeysAttributeNotUnique      = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option '%s' must be unique"
+	errFmtOIDCProviderPrivateKeysKeyIDNotAlphaNumeric    = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'key_id' must only have alphanumeric characters"
+	errFmtOIDCProviderPrivateKeysProperties              = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'key' failed to get key properties: %w"
+	errFmtOIDCProviderPrivateKeysInvalidOptionOneOf      = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option '%s' must be one of %s but it's configured as '%s'"
+	errFmtOIDCProviderPrivateKeysRSAKeyLessThan2048Bits  = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must at minimum be a RSA 2048 bit private key"
+	errFmtOIDCProviderPrivateKeysKeyNotRSAOrECDSA        = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'key' must be a RSA private key or ECDSA private key but it's type is %T"
+	errFmtOIDCProviderPrivateKeysKeyCertificateMismatch  = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the private key provided by option 'key'"
+	errFmtOIDCProviderPrivateKeysCertificateChainInvalid = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
+	errFmtOIDCProviderPrivateKeysNoRS256                 = "identity_providers: oidc: issuer_private_keys: keys: must at least have one key supporting the '%s' algorithm but only has %s"
 
 	errFmtOIDCCORSInvalidOrigin                    = "identity_providers: oidc: cors: option 'allowed_origins' contains an invalid value '%s' as it has a %s: origins must only be scheme, hostname, and an optional port"
 	errFmtOIDCCORSInvalidOriginWildcard            = "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' with more than one origin but the wildcard origin must be defined by itself"
@@ -161,45 +172,61 @@ const (
 	errFmtOIDCClientsWithEmptyID = "identity_providers: oidc: clients: option 'id' is required but was absent on the clients in positions %s"
 	errFmtOIDCClientsDeprecated  = "identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors"
 
-	errFmtOIDCClientInvalidSecret             = "identity_providers: oidc: client '%s': option 'secret' is required"
-	errFmtOIDCClientInvalidSecretPlainText    = "identity_providers: oidc: client '%s': option 'secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed when oidc becomes stable"
-	errFmtOIDCClientInvalidSecretNotPlainText = "identity_providers: oidc: client '%s': option 'secret' must be plaintext with option 'token_endpoint_auth_method' with a value of 'client_secret_jwt'"
-	errFmtOIDCClientPublicInvalidSecret       = "identity_providers: oidc: client '%s': option 'secret' is " +
+	errFmtOIDCClientInvalidSecret             = "identity_providers: oidc: clients: client '%s': option 'secret' is required"
+	errFmtOIDCClientInvalidSecretPlainText    = "identity_providers: oidc: clients: client '%s': option 'secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed when oidc becomes stable"
+	errFmtOIDCClientInvalidSecretNotPlainText = "identity_providers: oidc: clients: client '%s': option 'secret' must be plaintext with option 'token_endpoint_auth_method' with a value of 'client_secret_jwt'"
+	errFmtOIDCClientPublicInvalidSecret       = "identity_providers: oidc: clients: client '%s': option 'secret' is " +
 		"required to be empty when option 'public' is true"
-	errFmtOIDCClientRedirectURICantBeParsed = "identity_providers: oidc: client '%s': option 'redirect_uris' has an " +
+	errFmtOIDCClientRedirectURICantBeParsed = "identity_providers: oidc: clients: client '%s': option 'redirect_uris' has an " +
 		"invalid value: redirect uri '%s' could not be parsed: %v"
-	errFmtOIDCClientRedirectURIPublic = "identity_providers: oidc: client '%s': option 'redirect_uris' has the " +
+	errFmtOIDCClientRedirectURIPublic = "identity_providers: oidc: clients: client '%s': option 'redirect_uris' has the " +
 		"redirect uri '%s' when option 'public' is false but this is invalid as this uri is not valid " +
 		"for the openid connect confidential client type"
-	errFmtOIDCClientRedirectURIAbsolute = "identity_providers: oidc: client '%s': option 'redirect_uris' has an " +
+	errFmtOIDCClientRedirectURIAbsolute = "identity_providers: oidc: clients: client '%s': option 'redirect_uris' has an " +
 		"invalid value: redirect uri '%s' must have a scheme but it's absent"
-	errFmtOIDCClientInvalidConsentMode = "identity_providers: oidc: client '%s': consent: option 'mode' must be one of " +
+	errFmtOIDCClientInvalidConsentMode = "identity_providers: oidc: clients: client '%s': consent: option 'mode' must be one of " +
 		"%s but it's configured as '%s'"
-	errFmtOIDCClientInvalidEntries = "identity_providers: oidc: client '%s': option '%s' must only have the values " +
+	errFmtOIDCClientInvalidEntries = "identity_providers: oidc: clients: client '%s': option '%s' must only have the values " +
 		"%s but the values %s are present"
-	errFmtOIDCClientInvalidEntryDuplicates = "identity_providers: oidc: client '%s': option '%s' must have unique values but the values %s are duplicated"
-	errFmtOIDCClientInvalidValue           = "identity_providers: oidc: client '%s': option " +
+	errFmtOIDCClientInvalidEntryDuplicates = "identity_providers: oidc: clients: client '%s': option '%s' must have unique values but the values %s are duplicated"
+	errFmtOIDCClientInvalidValue           = "identity_providers: oidc: clients: client '%s': option " +
 		"'%s' must be one of %s but it's configured as '%s'"
-	errFmtOIDCClientInvalidTokenEndpointAuthMethod = "identity_providers: oidc: client '%s': option " +
+	errFmtOIDCClientInvalidTokenEndpointAuthMethod = "identity_providers: oidc: clients: client '%s': option " +
 		"'token_endpoint_auth_method' must be one of %s when configured as the confidential client type unless it only includes implicit flow response types such as %s but it's configured as '%s'"
-	errFmtOIDCClientInvalidTokenEndpointAuthMethodPublic = "identity_providers: oidc: client '%s': option " +
+	errFmtOIDCClientInvalidTokenEndpointAuthMethodPublic = "identity_providers: oidc: clients: client '%s': option " +
 		"'token_endpoint_auth_method' must be 'none' when configured as the public client type but it's configured as '%s'"
-	errFmtOIDCClientInvalidTokenEndpointAuthSigAlg = "identity_providers: oidc: client '%s': option " +
-		"'token_endpoint_auth_signing_alg' must be %s when option 'token_endpoint_auth_method' is %s"
-	errFmtOIDCClientInvalidSectorIdentifier = "identity_providers: oidc: client '%s': option " +
+	errFmtOIDCClientInvalidTokenEndpointAuthSigAlg = "identity_providers: oidc: clients: client '%s': option " +
+		"'token_endpoint_auth_signing_alg' must be one of %s when option 'token_endpoint_auth_method' is configured to '%s'"
+	errFmtOIDCClientInvalidTokenEndpointAuthSigAlgReg = "identity_providers: oidc: clients: client '%s': option " +
+		"'token_endpoint_auth_signing_alg' must be one of registered public key algorithm values %s when option 'token_endpoint_auth_method' is configured to '%s'"
+	errFmtOIDCClientInvalidTokenEndpointAuthSigAlgMissingPrivateKeyJWT = "identity_providers: oidc: clients: client '%s': option " +
+		"'token_endpoint_auth_signing_alg' is required when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'"
+	errFmtOIDCClientInvalidPublicKeysPrivateKeyJWT = "identity_providers: oidc: clients: client '%s': option " +
+		"'public_keys' is required with 'token_endpoint_auth_method' set to 'private_key_jwt'"
+	errFmtOIDCClientInvalidSectorIdentifier = "identity_providers: oidc: clients: client '%s': option " +
 		"'sector_identifier' with value '%s': must be a URL with only the host component for example '%s' but it has a %s with the value '%s'"
-	errFmtOIDCClientInvalidSectorIdentifierWithoutValue = "identity_providers: oidc: client '%s': option " +
+	errFmtOIDCClientInvalidSectorIdentifierWithoutValue = "identity_providers: oidc: clients: client '%s': option " +
 		"'sector_identifier' with value '%s': must be a URL with only the host component for example '%s' but it has a %s"
-	errFmtOIDCClientInvalidSectorIdentifierHost = "identity_providers: oidc: client '%s': option " +
+	errFmtOIDCClientInvalidSectorIdentifierHost = "identity_providers: oidc: clients: client '%s': option " +
 		"'sector_identifier' with value '%s': must be a URL with only the host component but appears to be invalid"
-	errFmtOIDCClientInvalidGrantTypeMatch = "identity_providers: oidc: client '%s': option " +
+	errFmtOIDCClientInvalidGrantTypeMatch = "identity_providers: oidc: clients: client '%s': option " +
 		"'grant_types' should only have grant type values which are valid with the configured 'response_types' for the client but '%s' expects a response type %s such as %s but the response types are %s"
-	errFmtOIDCClientInvalidGrantTypeRefresh = "identity_providers: oidc: client '%s': option " +
+	errFmtOIDCClientInvalidGrantTypeRefresh = "identity_providers: oidc: clients: client '%s': option " +
 		"'grant_types' should only have the 'refresh_token' value if the client is also configured with the 'offline_access' scope"
-	errFmtOIDCClientInvalidRefreshTokenOptionWithoutCodeResponseType = "identity_providers: oidc: client '%s': option " +
+	errFmtOIDCClientInvalidRefreshTokenOptionWithoutCodeResponseType = "identity_providers: oidc: clients: client '%s': option " +
 		"'%s' should only have the values %s if the client is also configured with a 'response_type' such as %s which respond with authorization codes"
-	errFmtOIDCServerInsecureParameterEntropy = "openid connect provider: SECURITY ISSUE - minimum parameter entropy is " +
-		"configured to an unsafe value, it should be above 8 but it's configured to %d"
+
+	errFmtOIDCClientPublicKeysBothURIAndValuesConfigured  = "identity_providers: oidc: clients: client '%s': public_keys: option 'uri' must not be defined at the same time as option 'values'"
+	errFmtOIDCClientPublicKeysURIInvalidScheme            = "identity_providers: oidc: clients: client '%s': public_keys: option 'uri' must have the 'https' scheme but the scheme is '%s'"
+	errFmtOIDCClientPublicKeysProperties                  = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d with key id '%s': option 'key' failed to get key properties: %w"
+	errFmtOIDCClientPublicKeysInvalidOptionOneOf          = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d with key id '%s': option '%s' must be one of %s but it's configured as '%s'"
+	errFmtOIDCClientPublicKeysInvalidOptionMissingOneOf   = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d: option '%s' must be provided"
+	errFmtOIDCClientPublicKeysKeyMalformed                = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d: option 'key' option 'key' must be a valid private key but the provided data is malformed as it's missing the public key bits"
+	errFmtOIDCClientPublicKeysRSAKeyLessThan2048Bits      = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must at minimum be a RSA 2048 bit private key"
+	errFmtOIDCClientPublicKeysKeyNotRSAOrECDSA            = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d with key id '%s': option 'key' must be a RSA public key or ECDSA public key but it's type is %T"
+	errFmtOIDCClientPublicKeysCertificateChainKeyMismatch = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the public key provided by option 'key'"
+	errFmtOIDCClientPublicKeysCertificateChainInvalid     = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
+	errFmtOIDCClientPublicKeysROSAMissingAlgorithm        = "identity_providers: oidc: clients: client '%s': option 'request_object_signing_alg' must be one of %s configured in the client option 'public_keys'"
 )
 
 // WebAuthn Error constants.
@@ -288,11 +315,8 @@ const (
 
 // Server Error constants.
 const (
-	errFmtServerTLSCert            = "server: tls: option 'key' must also be accompanied by option 'certificate'"
-	errFmtServerTLSKey             = "server: tls: option 'certificate' must also be accompanied by option 'key'"
-	errFmtServerTLSFileNotExist    = "server: tls: option '%s' the file '%s' does not exist"
-	errFmtServerTLSFileNotExistErr = "server: tls: option '%s' could not determine if the file '%s' exists: %w"
-
+	errFmtServerTLSCert             = "server: tls: option 'key' must also be accompanied by option 'certificate'"
+	errFmtServerTLSKey              = "server: tls: option 'certificate' must also be accompanied by option 'key'"
 	errFmtServerTLSClientAuthNoAuth = "server: tls: client authentication cannot be configured if no server certificate and key are provided"
 
 	errFmtServerAddressLegacyAndModern = "server: option 'host' and 'port' can't be configured at the same time as 'address'"
@@ -402,6 +426,10 @@ var (
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 
 const (
+	attrOIDCKey                 = "key"
+	attrOIDCKeyID               = "key_id"
+	attrOIDCKeyUse              = "use"
+	attrOIDCAlgorithm           = "algorithm"
 	attrOIDCScopes              = "scopes"
 	attrOIDCResponseTypes       = "response_types"
 	attrOIDCResponseModes       = "response_modes"
@@ -425,10 +453,10 @@ var (
 	validOIDCClientResponseTypesRefreshToken = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
 	validOIDCClientGrantTypes                = []string{oidc.GrantTypeImplicit, oidc.GrantTypeRefreshToken, oidc.GrantTypeAuthorizationCode}
 
-	validOIDCClientTokenEndpointAuthMethods             = []string{oidc.ClientAuthMethodNone, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodClientSecretJWT}
-	validOIDCClientTokenEndpointAuthMethodsConfidential = []string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic}
-	validOIDCClientTokenEndpointAuthSigAlgs             = []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512}
-	validOIDCIssuerJWKSigningAlgs                       = []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512}
+	validOIDCClientTokenEndpointAuthMethods                = []string{oidc.ClientAuthMethodNone, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT, oidc.ClientAuthMethodClientSecretJWT}
+	validOIDCClientTokenEndpointAuthMethodsConfidential    = []string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT}
+	validOIDCClientTokenEndpointAuthSigAlgsClientSecretJWT = []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512}
+	validOIDCIssuerJWKSigningAlgs                          = []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512}
 )
 
 var (

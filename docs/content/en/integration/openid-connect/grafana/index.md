@@ -87,7 +87,7 @@ Configure the following environment variables:
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Grafana]
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Grafana]
 which will operate with the above example:
 
 ```yaml

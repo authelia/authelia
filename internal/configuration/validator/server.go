@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"os"
 	"path"
 	"sort"
 	"strings"
@@ -19,11 +20,11 @@ func ValidateServerTLS(config *schema.Configuration, validator *schema.StructVal
 	}
 
 	if config.Server.TLS.Key != "" {
-		validateFileExists(config.Server.TLS.Key, validator, "key")
+		validateServerTLSFileExists("key", config.Server.TLS.Key, validator)
 	}
 
 	if config.Server.TLS.Certificate != "" {
-		validateFileExists(config.Server.TLS.Certificate, validator, "certificate")
+		validateServerTLSFileExists("certificate", config.Server.TLS.Certificate, validator)
 	}
 
 	if config.Server.TLS.Key == "" && config.Server.TLS.Certificate == "" &&
@@ -32,7 +33,24 @@ func ValidateServerTLS(config *schema.Configuration, validator *schema.StructVal
 	}
 
 	for _, clientCertPath := range config.Server.TLS.ClientCertificates {
-		validateFileExists(clientCertPath, validator, "client_certificates")
+		validateServerTLSFileExists("client_certificates", clientCertPath, validator)
+	}
+}
+
+// validateServerTLSFileExists checks whether a file exist.
+func validateServerTLSFileExists(name, path string, validator *schema.StructValidator) {
+	var (
+		info os.FileInfo
+		err  error
+	)
+
+	switch info, err = os.Stat(path); {
+	case os.IsNotExist(err):
+		validator.Push(fmt.Errorf("server: tls: option '%s' with path '%s' refers to a file that doesn't exist", name, path))
+	case err != nil:
+		validator.Push(fmt.Errorf("server: tls: option '%s' with path '%s' could not be verified due to a file system error: %w", name, path, err))
+	case info.IsDir():
+		validator.Push(fmt.Errorf("server: tls: option '%s' with path '%s' refers to a directory but it should refer to a file", name, path))
 	}
 }
 
@@ -195,15 +213,5 @@ func validateServerEndpointsAuthzStrategies(name string, strategies []schema.Ser
 		if !utils.IsStringInSlice(strategy.Name, validAuthzAuthnStrategies) {
 			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzStrategy, name, strJoinOr(validAuthzAuthnStrategies), strategy.Name))
 		}
-	}
-}
-
-// validateFileExists checks whether a file exist.
-func validateFileExists(path string, validator *schema.StructValidator, opt string) {
-	exist, err := utils.FileExists(path)
-	if err != nil {
-		validator.Push(fmt.Errorf(errFmtServerTLSFileNotExistErr, opt, path, err))
-	} else if !exist {
-		validator.Push(fmt.Errorf(errFmtServerTLSFileNotExist, opt, path))
 	}
 }

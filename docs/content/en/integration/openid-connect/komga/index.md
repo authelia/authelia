@@ -65,7 +65,7 @@ spring:
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Komga]
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Komga]
 which will operate with the above example:
 
 ```yaml

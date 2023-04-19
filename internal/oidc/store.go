@@ -235,7 +235,7 @@ func (s *Store) CreatePKCERequestSession(ctx context.Context, signature string, 
 // DeletePKCERequestSession marks the authorization request for a given PKCE request as deleted.
 // This implements a portion of pkce.PKCERequestStorage.
 func (s *Store) DeletePKCERequestSession(ctx context.Context, signature string) (err error) {
-	return s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeAccessToken, signature)
+	return s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypePKCEChallenge, signature)
 }
 
 // GetPKCERequestSession gets the authorization request for a given PKCE request.
@@ -254,7 +254,7 @@ func (s *Store) CreateOpenIDConnectSession(ctx context.Context, authorizeCode st
 // DeleteOpenIDConnectSession just implements the method required by fosite even though it's unused.
 // This implements a portion of openid.OpenIDConnectRequestStorage.
 func (s *Store) DeleteOpenIDConnectSession(ctx context.Context, authorizeCode string) (err error) {
-	return s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeAccessToken, authorizeCode)
+	return s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeOpenIDConnect, authorizeCode)
 }
 
 // GetOpenIDConnectSession returns error:

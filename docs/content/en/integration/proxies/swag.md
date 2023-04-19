@@ -58,7 +58,7 @@ In addition this represents a bad user experience in some instances such as:
 * Users sometimes visit the `https://app.example.com/authelia` URL which doesn't automatically redirect the user to
   `https://app.example.com` (if they visit `https://app.example.com` then they'll be redirected to authenticate then
   redirected back to their original URL)
-* Administrators may wish to setup [OpenID Connect 1.0](../../configuration/identity-providers/open-id-connect.md) in
+* Administrators may wish to setup [OpenID Connect 1.0](../../configuration/identity-providers/openid-connect/provider.md) in
   which case it also doesn't represent a good user experience as the `issuer` will be
   `https://app.example.com/authelia` for example
 * Using the [SWAG] default configurations are more difficult to support as our specific familiarity is with our own

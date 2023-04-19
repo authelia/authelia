@@ -1,4 +1,4 @@
-{{ $faq := "../frequently-asked-questions/" }}{{ $config := "../../../configuration/identity-providers/open-id-connect.md" }}
+{{ $faq := "../frequently-asked-questions/" }}{{ $config := "../../../configuration/identity-providers/openid-connect/" }}
 {{- with .Get "faq" }}{{ $faq = . }}{{ end }}
 {{- with .Get "config" }}{{ $config = . }}{{ end }}
 ### Common Notes
@@ -15,4 +15,6 @@
        guaranteed to be supported in the future. See the [Plaintext]({{ $faq }}#plaintext) guide for more
        information.
 3. The Configuration example for Authelia is only a portion of the required configuration and it should be used as a
-   guide in conjunction with the standard [OpenID Connect 1.0 Configuration]({{ $config }}) guide.
+   guide in conjunction with the standard
+   [OpenID Connect 1.0 Provider Configuration]({{ printf "%s/provider.md" $config }}) and
+   [OpenID Connect 1.0 Clients Configuration]({{ printf "%s/clients.md" $config }}) guides.

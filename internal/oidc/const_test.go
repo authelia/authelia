@@ -1,8 +1,7 @@
-package oidc
+package oidc_test
 
 import (
 	"crypto/ecdsa"
-	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/x509"
 	"fmt"
@@ -10,20 +9,26 @@ import (
 	"os"
 	"strings"
 
+	"github.com/ory/fosite"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 const (
-	pathCrypto    = "../configuration/test_resources/crypto/%s.%s"
-	myclient      = "myclient"
-	myclientdesc  = "My Client"
-	onefactor     = "one_factor"
-	twofactor     = "two_factor"
-	examplecom    = "https://example.com"
-	examplecomsid = "example.com"
-	badsecret     = "$plaintext$a_bad_secret"
-	badhmac       = "asbdhaaskmdlkamdklasmdlkams"
+	pathCrypto     = "../configuration/test_resources/crypto/%s.%s"
+	myclient       = "myclient"
+	myclientdesc   = "My Client"
+	onefactor      = "one_factor"
+	twofactor      = "two_factor"
+	examplecom     = "https://example.com"
+	examplecomsid  = "example.com"
+	badhmac        = "asbdhaaskmdlkamdklasmdlkams"
+	badTokenString = "badTokenString"
+)
+
+const (
+	rs256 = "rs256"
 )
 
 func MustDecodeSecret(value string) *schema.PasswordDigest {
@@ -78,28 +83,6 @@ func MustLoadCertificateChain(alg, op string) schema.X509CertificateChain {
 	}
 }
 
-func MustLoadCertificate(alg, op string) *x509.Certificate {
-	decoded := MustLoadCrypto(alg, op, "crt")
-
-	cert, ok := decoded.(*x509.Certificate)
-	if !ok {
-		panic(fmt.Errorf("the key was not a *x509.Certificate, it's a %T", cert))
-	}
-
-	return cert
-}
-
-func MustLoadEd15519PrivateKey(curve string, extra ...string) ed25519.PrivateKey {
-	decoded := MustLoadCrypto("ED25519", curve, "pem", extra...)
-
-	key, ok := decoded.(ed25519.PrivateKey)
-	if !ok {
-		panic(fmt.Errorf("the key was not a ed25519.PrivateKey, it's a %T", key))
-	}
-
-	return key
-}
-
 func MustLoadECDSAPrivateKey(curve string, extra ...string) *ecdsa.PrivateKey {
 	decoded := MustLoadCrypto("ECDSA", curve, "pem", extra...)
 
@@ -133,6 +116,24 @@ func MustLoadRSAPrivateKey(bits string, extra ...string) *rsa.PrivateKey {
 	return key
 }
 
+type RFC6749ErrorTest struct {
+	*fosite.RFC6749Error
+}
+
+func (err *RFC6749ErrorTest) Error() string {
+	return err.WithExposeDebug(true).GetDescription()
+}
+
+func ErrorToRFC6749ErrorTest(err error) (rfc error) {
+	if err == nil {
+		return nil
+	}
+
+	ferr := fosite.ErrorToRFC6749Error(err)
+
+	return &RFC6749ErrorTest{ferr}
+}
+
 var (
 	tOpenIDConnectPBKDF2ClientSecret, tOpenIDConnectPlainTextClientSecret *schema.PasswordDigest
 
@@ -146,8 +147,8 @@ var (
 )
 
 func init() {
-	tOpenIDConnectPBKDF2ClientSecret = MustDecodeSecret("$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng")
-	tOpenIDConnectPlainTextClientSecret = MustDecodeSecret("$plaintext$example")
+	tOpenIDConnectPBKDF2ClientSecret = MustDecodeSecret("$pbkdf2-sha512$100000$cfNEo93VkIUIvaXHqetFoQ$O6qFLAlwCMz6.hv9XqUEPnMtrFxODw70T7bmnfTzfNPi3iXbgUEmGiyA6msybOfmj7m3QJS6lLy4DglgJifkKw")
+	tOpenIDConnectPlainTextClientSecret = MustDecodeSecret("$plaintext$client-secret")
 
 	keyRSA1024 = MustLoadRSAPrivateKey("1024")
 	keyRSA2048 = MustLoadRSAPrivateKey("2048")

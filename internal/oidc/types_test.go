@@ -1,6 +1,7 @@
-package oidc
+package oidc_test
 
 import (
+	"context"
 	"net/url"
 	"testing"
 	"time"
@@ -11,10 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
 func TestNewSession(t *testing.T) {
-	session := NewSession()
+	session := oidc.NewSession()
 
 	require.NotNil(t, session)
 
@@ -34,24 +36,24 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 
 	formValues := url.Values{}
 
-	formValues.Set(ClaimNonce, "abc123xyzauthelia")
+	formValues.Set(oidc.ClaimNonce, "abc123xyzauthelia")
 
 	request := &fosite.AuthorizeRequest{
 		Request: fosite.Request{
 			ID:     requestID.String(),
 			Form:   formValues,
-			Client: &BaseClient{ID: "example"},
+			Client: &oidc.BaseClient{ID: "example"},
 		},
 	}
 
 	extra := map[string]any{
-		ClaimPreferredUsername: "john",
+		oidc.ClaimPreferredUsername: "john",
 	}
 
 	requested := time.Unix(1647332518, 0)
 	authAt := time.Unix(1647332500, 0)
 	issuer := examplecom
-	amr := []string{AMRPasswordBasedAuthentication}
+	amr := []string{oidc.AMRPasswordBasedAuthentication}
 
 	consent := &model.OAuth2ConsentSession{
 		ChallengeID: uuid.New(),
@@ -59,7 +61,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		Subject:     uuid.NullUUID{UUID: subject, Valid: true},
 	}
 
-	session := NewSessionWithAuthorizeRequest(MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request)
+	session := oidc.NewSessionWithAuthorizeRequest(MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Extra)
@@ -80,19 +82,36 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	assert.Equal(t, authAt, session.Claims.AuthTime)
 	assert.Equal(t, requested, session.Claims.RequestedAt)
 	assert.Equal(t, issuer, session.Claims.Issuer)
-	assert.Equal(t, "john", session.Claims.Extra[ClaimPreferredUsername])
+	assert.Equal(t, "john", session.Claims.Extra[oidc.ClaimPreferredUsername])
 
-	assert.Equal(t, "primary", session.Headers.Get(JWTHeaderKeyIdentifier))
+	assert.Equal(t, "primary", session.Headers.Get(oidc.JWTHeaderKeyIdentifier))
 
 	consent = &model.OAuth2ConsentSession{
 		ChallengeID: uuid.New(),
 		RequestedAt: requested,
 	}
 
-	session = NewSessionWithAuthorizeRequest(MustParseRequestURI(issuer), "primary", "john", nil, nil, authAt, consent, request)
+	session = oidc.NewSessionWithAuthorizeRequest(MustParseRequestURI(issuer), "primary", "john", nil, nil, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Claims)
 	assert.NotNil(t, session.Claims.Extra)
 	assert.Nil(t, session.Claims.AuthenticationMethodsReferences)
+}
+
+// MockOpenIDConnectContext is a minimal implementation of OpenIDConnectContext for the purpose of testing.
+type MockOpenIDConnectContext struct {
+	context.Context
+
+	MockIssuerURL *url.URL
+	IssuerURLFunc func() (issuerURL *url.URL, err error)
+}
+
+// IssuerURL returns the MockIssuerURL.
+func (m *MockOpenIDConnectContext) IssuerURL() (issuerURL *url.URL, err error) {
+	if m.IssuerURLFunc != nil {
+		return m.IssuerURLFunc()
+	}
+
+	return m.MockIssuerURL, nil
 }

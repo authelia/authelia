@@ -60,7 +60,7 @@ OIDC_SCOPES="openid offline_access profile email"
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Outline]
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Outline]
 which will operate with the above example:
 
 ```yaml

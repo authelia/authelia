@@ -1,14 +1,10 @@
-package handlers
+package oidc_test
 
 import (
 	"context"
-	"crypto/ecdsa"
-	"crypto/rsa"
 	"crypto/sha256"
-	"crypto/x509"
 	"database/sql"
 	"encoding/base64"
-	"encoding/pem"
 	"fmt"
 	"io"
 	"net/http"
@@ -21,6 +17,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
 
@@ -30,6 +28,58 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
+
+func TestShouldNotRaiseErrorOnEqualPasswordsPlainText(t *testing.T) {
+	hasher, err := oidc.NewHasher()
+
+	require.NoError(t, err)
+
+	a := []byte("$plaintext$abc")
+	b := []byte("abc")
+
+	ctx := context.Background()
+
+	assert.NoError(t, hasher.Compare(ctx, a, b))
+}
+
+func TestShouldNotRaiseErrorOnEqualPasswordsPlainTextWithSeparator(t *testing.T) {
+	hasher, err := oidc.NewHasher()
+
+	require.NoError(t, err)
+
+	a := []byte("$plaintext$abc$123")
+	b := []byte("abc$123")
+
+	ctx := context.Background()
+
+	assert.NoError(t, hasher.Compare(ctx, a, b))
+}
+
+func TestShouldRaiseErrorOnNonEqualPasswordsPlainText(t *testing.T) {
+	hasher, err := oidc.NewHasher()
+
+	require.NoError(t, err)
+
+	a := []byte("$plaintext$abc")
+	b := []byte("abcd")
+
+	ctx := context.Background()
+
+	assert.EqualError(t, hasher.Compare(ctx, a, b), "The provided client secret did not match the registered client secret.")
+}
+
+func TestShouldHashPassword(t *testing.T) {
+	hasher := oidc.Hasher{}
+
+	data := []byte("abc")
+
+	ctx := context.Background()
+
+	hash, err := hasher.Hash(ctx, data)
+
+	assert.NoError(t, err)
+	assert.Equal(t, data, hash)
+}
 
 func TestClientAuthenticationStrategySuite(t *testing.T) {
 	suite.Run(t, &ClientAuthenticationStrategySuite{})
@@ -135,7 +185,9 @@ func (s *ClientAuthenticationStrategySuite) GetAssertionRequest(token string) (r
 }
 
 func (s *ClientAuthenticationStrategySuite) GetCtx() oidc.OpenIDConnectContext {
-	return &oidc.MockOpenIDConnectContext{
+	fmt.Println(s.GetIssuerURL())
+
+	return &MockOpenIDConnectContext{
 		Context:       context.Background(),
 		MockIssuerURL: s.GetIssuerURL(),
 	}
@@ -145,13 +197,13 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 	s.store = mocks.NewMockStorage(s.ctrl)
 
-	secret := MustDecodeSecret("$plaintext$client-secret")
+	secret := tOpenIDConnectPlainTextClientSecret
 
 	s.provider = oidc.NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
-		IssuerJWKS:             []schema.JWK{},
-		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       MustParseRSAPrivateKey(exampleRSAPrivateKey),
-		HMACSecret:             "abc123",
+		IssuerPrivateKeys: []schema.JWK{
+			{Key: keyRSA2048, CertificateChain: certRSA2048, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAUsingSHA256},
+		},
+		HMACSecret: "abc123",
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
 				ID:     "hs256",
@@ -184,7 +236,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgHMACUsingSHA512,
 			},
 			{
-				ID:     "rs256",
+				ID:     rs256,
 				Secret: secret,
 				Policy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
@@ -272,6 +324,142 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP521AndSHA512,
+			},
+
+			{
+				ID:     "rs256k",
+				Secret: secret,
+				Policy: authorization.OneFactor.String(),
+				RedirectURIs: []string{
+					"https://client.example.com",
+				},
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA256,
+				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+					Values: []schema.JWK{
+						{KeyID: rs256, Key: keyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
+					},
+				},
+			},
+			{
+				ID:     "rs384k",
+				Secret: secret,
+				Policy: authorization.OneFactor.String(),
+				RedirectURIs: []string{
+					"https://client.example.com",
+				},
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA384,
+				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+					Values: []schema.JWK{
+						{KeyID: "rs384", Key: keyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAUsingSHA384, Use: oidc.KeyUseSignature},
+					},
+				},
+			},
+			{
+				ID:     "rs512k",
+				Secret: secret,
+				Policy: authorization.OneFactor.String(),
+				RedirectURIs: []string{
+					"https://client.example.com",
+				},
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA512,
+				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+					Values: []schema.JWK{
+						{KeyID: "rs512", Key: keyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAUsingSHA512, Use: oidc.KeyUseSignature},
+					},
+				},
+			},
+			{
+				ID:     "ps256k",
+				Secret: secret,
+				Policy: authorization.OneFactor.String(),
+				RedirectURIs: []string{
+					"https://client.example.com",
+				},
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA256,
+				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+					Values: []schema.JWK{
+						{KeyID: "ps256", Key: keyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAPSSUsingSHA256, Use: oidc.KeyUseSignature},
+					},
+				},
+			},
+			{
+				ID:     "ps384k",
+				Secret: secret,
+				Policy: authorization.OneFactor.String(),
+				RedirectURIs: []string{
+					"https://client.example.com",
+				},
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA384,
+				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+					Values: []schema.JWK{
+						{KeyID: "ps384", Key: keyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAPSSUsingSHA384, Use: oidc.KeyUseSignature},
+					},
+				},
+			},
+			{
+				ID:     "ps512k",
+				Secret: secret,
+				Policy: authorization.OneFactor.String(),
+				RedirectURIs: []string{
+					"https://client.example.com",
+				},
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA512,
+				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+					Values: []schema.JWK{
+						{KeyID: "ps512", Key: keyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAPSSUsingSHA512, Use: oidc.KeyUseSignature},
+					},
+				},
+			},
+			{
+				ID:     "es256k",
+				Secret: secret,
+				Policy: authorization.OneFactor.String(),
+				RedirectURIs: []string{
+					"https://client.example.com",
+				},
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP256AndSHA256,
+				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+					Values: []schema.JWK{
+						{KeyID: "es256", Key: keyECDSAP256.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP256AndSHA256, Use: oidc.KeyUseSignature},
+					},
+				},
+			},
+			{
+				ID:     "es384k",
+				Secret: secret,
+				Policy: authorization.OneFactor.String(),
+				RedirectURIs: []string{
+					"https://client.example.com",
+				},
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP384AndSHA384,
+				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+					Values: []schema.JWK{
+						{KeyID: "es384", Key: keyECDSAP384.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP384AndSHA384, Use: oidc.KeyUseSignature},
+					},
+				},
+			},
+			{
+				ID:     "es512k",
+				Secret: secret,
+				Policy: authorization.OneFactor.String(),
+				RedirectURIs: []string{
+					"https://client.example.com",
+				},
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP521AndSHA512,
+				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+					Values: []schema.JWK{
+						{KeyID: "es512", Key: keyECDSAP521.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature},
+					},
+				},
 			},
 			{
 				ID:     "hs5122",
@@ -471,7 +659,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateAssertionHS512() {
 }
 
 func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnMismatchedAlg() {
-	assertion := NewAssertion("rs256", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+	assertion := NewAssertion(rs256, s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodHS512, assertion)
 
@@ -507,11 +695,11 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnMismatchedAlgS
 }
 
 func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKeysRS256() {
-	assertion := NewAssertion("rs256", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+	assertion := NewAssertion(rs256, s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS256, assertion)
 
-	token, err := assertionJWT.SignedString(MustParseRSAPrivateKey(exampleRSAPrivateKey))
+	token, err := assertionJWT.SignedString(keyRSA2048)
 
 	s.Require().NoError(err)
 	s.Require().NotEqual("", token)
@@ -522,6 +710,94 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
 	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnBadAlgRS256() {
+	assertion := NewAssertion("rs256k", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodPS256, assertion)
+	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = rs256
+
+	token, err := assertionJWT.SignedString(keyRSA2048)
+	s.Require().NoError(err)
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The 'client_assertion' uses signing algorithm 'PS256' but the requested OAuth 2.0 Client enforces signing algorithm 'RS256'.")
+	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnBadKidRS256() {
+	assertion := NewAssertion("rs256k", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS256, assertion)
+	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "nokey"
+
+	token, err := assertionJWT.SignedString(keyRSA2048)
+	s.Require().NoError(err)
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The JSON Web Token uses signing key with kid 'nokey', which could not be found.")
+	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnBadTypRS256() {
+	assertion := NewAssertion("rs256k", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodES256, assertion)
+	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = rs256
+
+	token, err := assertionJWT.SignedString(keyECDSAP256)
+	s.Require().NoError(err)
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The 'client_assertion' uses signing algorithm 'ES256' but the requested OAuth 2.0 Client enforces signing algorithm 'RS256'.")
+	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysRS256() {
+	assertion := NewAssertion("rs256k", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS256, assertion)
+	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = rs256
+
+	token, err := assertionJWT.SignedString(keyRSA2048)
+	s.Require().NoError(err)
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	sig := fmt.Sprintf("%x", sha256.Sum256([]byte(assertion.ID)))
+
+	ctx := s.GetCtx()
+
+	gomock.InOrder(
+		s.store.
+			EXPECT().LoadOAuth2BlacklistedJTI(ctx, sig).
+			Return(nil, sql.ErrNoRows),
+
+		s.store.
+			EXPECT().SaveOAuth2BlacklistedJTI(ctx, model.OAuth2BlacklistedJTI{Signature: sig, ExpiresAt: assertion.ExpiresAt.Time}).
+			Return(nil),
+	)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.NoError(err)
+	s.Require().NotNil(client)
+
+	s.Equal("rs256k", client.GetID())
 }
 
 func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKeysRS384() {
@@ -529,7 +805,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS384, assertion)
 
-	token, err := assertionJWT.SignedString(MustParseRSAPrivateKey(exampleRSAPrivateKey))
+	token, err := assertionJWT.SignedString(keyRSA2048)
 
 	s.Require().NoError(err)
 	s.Require().NotEqual("", token)
@@ -540,6 +816,40 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
 	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysRS384() {
+	assertion := NewAssertion("rs384k", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS384, assertion)
+	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "rs384"
+
+	token, err := assertionJWT.SignedString(keyRSA2048)
+	s.Require().NoError(err)
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	sig := fmt.Sprintf("%x", sha256.Sum256([]byte(assertion.ID)))
+
+	ctx := s.GetCtx()
+
+	gomock.InOrder(
+		s.store.
+			EXPECT().LoadOAuth2BlacklistedJTI(ctx, sig).
+			Return(nil, sql.ErrNoRows),
+
+		s.store.
+			EXPECT().SaveOAuth2BlacklistedJTI(ctx, model.OAuth2BlacklistedJTI{Signature: sig, ExpiresAt: assertion.ExpiresAt.Time}).
+			Return(nil),
+	)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.NoError(err)
+	s.Require().NotNil(client)
+
+	s.Equal("rs384k", client.GetID())
 }
 
 func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKeysRS512() {
@@ -547,7 +857,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS512, assertion)
 
-	token, err := assertionJWT.SignedString(MustParseRSAPrivateKey(exampleRSAPrivateKey))
+	token, err := assertionJWT.SignedString(keyRSA2048)
 
 	s.Require().NoError(err)
 	s.Require().NotEqual("", token)
@@ -558,6 +868,40 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
 	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysRS512() {
+	assertion := NewAssertion("rs512k", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS512, assertion)
+	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "rs512"
+
+	token, err := assertionJWT.SignedString(keyRSA2048)
+	s.Require().NoError(err)
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	sig := fmt.Sprintf("%x", sha256.Sum256([]byte(assertion.ID)))
+
+	ctx := s.GetCtx()
+
+	gomock.InOrder(
+		s.store.
+			EXPECT().LoadOAuth2BlacklistedJTI(ctx, sig).
+			Return(nil, sql.ErrNoRows),
+
+		s.store.
+			EXPECT().SaveOAuth2BlacklistedJTI(ctx, model.OAuth2BlacklistedJTI{Signature: sig, ExpiresAt: assertion.ExpiresAt.Time}).
+			Return(nil),
+	)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.NoError(err)
+	s.Require().NotNil(client)
+
+	s.Equal("rs512k", client.GetID())
 }
 
 func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKeysPS256() {
@@ -565,7 +909,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodPS256, assertion)
 
-	token, err := assertionJWT.SignedString(MustParseRSAPrivateKey(exampleRSAPrivateKey))
+	token, err := assertionJWT.SignedString(keyRSA2048)
 
 	s.Require().NoError(err)
 	s.Require().NotEqual("", token)
@@ -576,6 +920,40 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
 	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysPS256() {
+	assertion := NewAssertion("ps256k", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodPS256, assertion)
+	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "ps256"
+
+	token, err := assertionJWT.SignedString(keyRSA2048)
+	s.Require().NoError(err)
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	sig := fmt.Sprintf("%x", sha256.Sum256([]byte(assertion.ID)))
+
+	ctx := s.GetCtx()
+
+	gomock.InOrder(
+		s.store.
+			EXPECT().LoadOAuth2BlacklistedJTI(ctx, sig).
+			Return(nil, sql.ErrNoRows),
+
+		s.store.
+			EXPECT().SaveOAuth2BlacklistedJTI(ctx, model.OAuth2BlacklistedJTI{Signature: sig, ExpiresAt: assertion.ExpiresAt.Time}).
+			Return(nil),
+	)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.NoError(err)
+	s.Require().NotNil(client)
+
+	s.Equal("ps256k", client.GetID())
 }
 
 func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKeysPS384() {
@@ -583,7 +961,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodPS384, assertion)
 
-	token, err := assertionJWT.SignedString(MustParseRSAPrivateKey(exampleRSAPrivateKey))
+	token, err := assertionJWT.SignedString(keyRSA2048)
 
 	s.Require().NoError(err)
 	s.Require().NotEqual("", token)
@@ -594,6 +972,40 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
 	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysPS384() {
+	assertion := NewAssertion("ps384k", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodPS384, assertion)
+	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "ps384"
+
+	token, err := assertionJWT.SignedString(keyRSA2048)
+	s.Require().NoError(err)
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	sig := fmt.Sprintf("%x", sha256.Sum256([]byte(assertion.ID)))
+
+	ctx := s.GetCtx()
+
+	gomock.InOrder(
+		s.store.
+			EXPECT().LoadOAuth2BlacklistedJTI(ctx, sig).
+			Return(nil, sql.ErrNoRows),
+
+		s.store.
+			EXPECT().SaveOAuth2BlacklistedJTI(ctx, model.OAuth2BlacklistedJTI{Signature: sig, ExpiresAt: assertion.ExpiresAt.Time}).
+			Return(nil),
+	)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.NoError(err)
+	s.Require().NotNil(client)
+
+	s.Equal("ps384k", client.GetID())
 }
 
 func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKeysPS512() {
@@ -601,7 +1013,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodPS512, assertion)
 
-	token, err := assertionJWT.SignedString(MustParseRSAPrivateKey(exampleRSAPrivateKey))
+	token, err := assertionJWT.SignedString(keyRSA2048)
 
 	s.Require().NoError(err)
 	s.Require().NotEqual("", token)
@@ -612,6 +1024,40 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
 	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysPS512() {
+	assertion := NewAssertion("ps512k", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodPS512, assertion)
+	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "ps512"
+
+	token, err := assertionJWT.SignedString(keyRSA2048)
+	s.Require().NoError(err)
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	sig := fmt.Sprintf("%x", sha256.Sum256([]byte(assertion.ID)))
+
+	ctx := s.GetCtx()
+
+	gomock.InOrder(
+		s.store.
+			EXPECT().LoadOAuth2BlacklistedJTI(ctx, sig).
+			Return(nil, sql.ErrNoRows),
+
+		s.store.
+			EXPECT().SaveOAuth2BlacklistedJTI(ctx, model.OAuth2BlacklistedJTI{Signature: sig, ExpiresAt: assertion.ExpiresAt.Time}).
+			Return(nil),
+	)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.NoError(err)
+	s.Require().NotNil(client)
+
+	s.Equal("ps512k", client.GetID())
 }
 
 func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKeysES256() {
@@ -619,7 +1065,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodES256, assertion)
 
-	token, err := assertionJWT.SignedString(MustParseECPrivateKey(exampleECP256PrivateKey))
+	token, err := assertionJWT.SignedString(keyECDSAP256)
 
 	s.Require().NoError(err)
 	s.Require().NotEqual("", token)
@@ -630,6 +1076,41 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
 	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES256() {
+	assertion := NewAssertion("es256k", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodES256, assertion)
+	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "es256"
+
+	token, err := assertionJWT.SignedString(keyECDSAP256)
+
+	s.Require().NoError(err)
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	sig := fmt.Sprintf("%x", sha256.Sum256([]byte(assertion.ID)))
+
+	ctx := s.GetCtx()
+
+	gomock.InOrder(
+		s.store.
+			EXPECT().LoadOAuth2BlacklistedJTI(ctx, sig).
+			Return(nil, sql.ErrNoRows),
+
+		s.store.
+			EXPECT().SaveOAuth2BlacklistedJTI(ctx, model.OAuth2BlacklistedJTI{Signature: sig, ExpiresAt: assertion.ExpiresAt.Time}).
+			Return(nil),
+	)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.NoError(err)
+	s.Require().NotNil(client)
+
+	s.Equal("es256k", client.GetID())
 }
 
 func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKeysES384() {
@@ -637,7 +1118,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodES384, assertion)
 
-	token, err := assertionJWT.SignedString(MustParseECPrivateKey(exampleECP384PrivateKey))
+	token, err := assertionJWT.SignedString(keyECDSAP384)
 
 	s.Require().NoError(err)
 	s.Require().NotEqual("", token)
@@ -650,12 +1131,46 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 	s.Nil(client)
 }
 
+func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES384() {
+	assertion := NewAssertion("es384k", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodES384, assertion)
+	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "es384"
+
+	token, err := assertionJWT.SignedString(keyECDSAP384)
+	s.Require().NoError(err)
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	sig := fmt.Sprintf("%x", sha256.Sum256([]byte(assertion.ID)))
+
+	ctx := s.GetCtx()
+
+	gomock.InOrder(
+		s.store.
+			EXPECT().LoadOAuth2BlacklistedJTI(ctx, sig).
+			Return(nil, sql.ErrNoRows),
+
+		s.store.
+			EXPECT().SaveOAuth2BlacklistedJTI(ctx, model.OAuth2BlacklistedJTI{Signature: sig, ExpiresAt: assertion.ExpiresAt.Time}).
+			Return(nil),
+	)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.NoError(err)
+	s.Require().NotNil(client)
+
+	s.Equal("es384k", client.GetID())
+}
+
 func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKeysES512() {
 	assertion := NewAssertion("es512", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodES512, assertion)
 
-	token, err := assertionJWT.SignedString(MustParseECPrivateKey(exampleECP521PrivateKey))
+	token, err := assertionJWT.SignedString(keyECDSAP521)
 
 	s.Require().NoError(err)
 	s.Require().NotEqual("", token)
@@ -666,6 +1181,40 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
 	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES512() {
+	assertion := NewAssertion("es512k", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodES512, assertion)
+	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "es512"
+
+	token, err := assertionJWT.SignedString(keyECDSAP521)
+	s.Require().NoError(err)
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	sig := fmt.Sprintf("%x", sha256.Sum256([]byte(assertion.ID)))
+
+	ctx := s.GetCtx()
+
+	gomock.InOrder(
+		s.store.
+			EXPECT().LoadOAuth2BlacklistedJTI(ctx, sig).
+			Return(nil, sql.ErrNoRows),
+
+		s.store.
+			EXPECT().SaveOAuth2BlacklistedJTI(ctx, model.OAuth2BlacklistedJTI{Signature: sig, ExpiresAt: assertion.ExpiresAt.Time}).
+			Return(nil),
+	)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.NoError(err)
+	s.Require().NotNil(client)
+
+	s.Equal("es512k", client.GetID())
 }
 
 func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnJTIKnown() {
@@ -1384,126 +1933,3 @@ func NewAssertion(clientID string, tokenURL *url.URL, iat, exp time.Time) Regist
 		},
 	}
 }
-
-type RFC6749ErrorTest struct {
-	*fosite.RFC6749Error
-}
-
-func (err *RFC6749ErrorTest) Error() string {
-	return err.WithExposeDebug(true).GetDescription()
-}
-
-func ErrorToRFC6749ErrorTest(err error) (rfc error) {
-	if err == nil {
-		return nil
-	}
-
-	ferr := fosite.ErrorToRFC6749Error(err)
-
-	return &RFC6749ErrorTest{ferr}
-}
-
-func MustDecodeSecret(value string) *schema.PasswordDigest {
-	if secret, err := schema.DecodePasswordDigest(value); err != nil {
-		panic(err)
-	} else {
-		return secret
-	}
-}
-
-func MustParseRequestURI(input string) *url.URL {
-	if requestURI, err := url.ParseRequestURI(input); err != nil {
-		panic(err)
-	} else {
-		return requestURI
-	}
-}
-
-func MustParseRSAPrivateKey(data string) *rsa.PrivateKey {
-	block, _ := pem.Decode([]byte(data))
-	if block == nil || block.Bytes == nil || len(block.Bytes) == 0 {
-		panic("not pem encoded")
-	}
-
-	if block.Type != "RSA PRIVATE KEY" {
-		panic("not private key")
-	}
-
-	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-	if err != nil {
-		panic(err)
-	}
-
-	return key
-}
-
-func MustParseECPrivateKey(data string) *ecdsa.PrivateKey {
-	block, _ := pem.Decode([]byte(data))
-	if block == nil || block.Bytes == nil || len(block.Bytes) == 0 {
-		panic("not pem encoded")
-	}
-
-	if block.Type != "EC PRIVATE KEY" {
-		panic("not private key")
-	}
-
-	key, err := x509.ParseECPrivateKey(block.Bytes)
-	if err != nil {
-		panic(err)
-	}
-
-	return key
-}
-
-const exampleRSAPrivateKey = `
------BEGIN RSA PRIVATE KEY-----
-MIIEpQIBAAKCAQEA60Vuz1N1wUHiCDIlbz8gE0dWPCmHEWnXKchEEISqIJ6j5Eah
-Q/GwX3WK0UV5ATRvWhg6o7/WfrLYcAsi4w79TgMjJHLWIY/jzAS3quEtzOLlLSWZ
-9FR9SomQm3T/ETOS8IvSGrksIj0WgX35jB1NnbqSTRnYx7Cg/TBJjmiaqd0b9G/8
-LlReaihwGf8tvPgnteWIdon3EI2MKDBkaesRjpL98Cz7VvD7dajseAlUh9jQWVge
-sN8qnm8pNPFAYsgxf//Jf0RfsND6H70zKKybDmyct4T4o/8qjivw4ly0XkArDCUj
-Qx2KUF7nN+Bo9wwnNppjdnsOPUbus8o1a9vY1QIDAQABAoIBAQDl1SBY3PlN36SF
-yScUtCALdUbi4taVxkVxBbioQlFIKHGGkRD9JN/dgSApK6r36FdXNhAi40cQ4nnZ
-iqd8FKqTSTFNa/mPM9ee+ITMI8nwOz8SiYcKTndPF2/yzapXDYDgCFcpz/czQ2X2
-/i+IFyA5k4dUVomVGhFLBZ71xW5BvGUBMUH0XkeR5+c4gLvgR209BlpBHlkX4tUQ
-+RQoxbKpkntl0mjqf91zcOe4LJVsXZFyN+NVSzLEbGC3lVSSiyjVQH3s7ExnTaHi
-PpwSoXzu5QJj5xRit/1B3/LEGpIlPGFrkhMzBDTN+HYV/VLbCHJzjg5GVJawA82E
-h2BY6YWJAoGBAPmGaZL5ggnTVR2XVBLDKbwL/sesqiPZk45B+I5eObHl+v236JH9
-RPMjdE10jOR1TzfQdmE2/RboKhiVn+osS+2W6VXSo7sMsSM1bLBPYhnwrNIqzrX8
-Vgi2bCl2S8ZhVo2R8c5WUaD0Gpxs6hwPIMOQWWwxDlsbg/UoLrhD3X4XAoGBAPFg
-VSvaWQdDVAqjM42ObhZtWxeLfEAcxRQDMQq7btrTwBZSrtP3S3Egu66cp/4PT4VD
-Hc8tYyT2rNETiqT6b2Rm1MgeoJ8wRqte6ZXSQVVQUOd42VG04O3aaleAGhXjEkM2
-avctRdKHDhQdIt+riPgaNj4FdYpmQ5zIrcZtBr/zAoGBAOBXzBX7xMHmwxEe3NUd
-qSlMM579C9+9oF/3ymzeJMtgtcBmGHEhoFtmVgvJrV8+ZaIOCFExam2tASQnaqbV
-etK7q0ChaNok+CJqxzThupcN/6PaHw4aOJQOx8KjfE95dqNEQ367txqaPk7D0dy2
-cUPDRdLzbC/X1lWV8iNzyPGzAoGBAN4R2epRpYz4Fa7/vWNkAcaib6c2zmaR0YN6
-+Di+ftvW6yfehDhBkWgQTHv2ZtxoK6oYOKmuQUP1qsNkbi8gtTEzJlrDStWKbcom
-tVMAsNkT3otHdPEmL7bFNwcvtVAjrF6oBztHrLBnTr2UnMwZnhdczkC7dwuQ0G3D
-d5VSI16fAoGAY7eeVDkic73GbZmtZibuodvPJ/z85RIBOrzf3ColO4jGI6Ej/EnD
-rMEe/mRC27CJzS9L9Jc0Kt66mGSvodDGl0nBsXGNfPog0cGwweCVN0Eo2VJZbRTT
-UoU05/Pvu2h3/E8gGTBY0/WPSo06YUsICjVDWNuOIa/7IY7SyE6Xxn0=
------END RSA PRIVATE KEY-----`
-
-const exampleECP256PrivateKey = `
------BEGIN EC PRIVATE KEY-----
-MHcCAQEEID1fSsJ8qyEqj2DVkrshaNiXqaSDX7qViASRkyGGJFbEoAoGCCqGSM49
-AwEHoUQDQgAENnBG+bBJIaIa+bRlHaLiXD86RAy+Ef9CVdAfpPGoNRfkOTcrrIV7
-2wv3Y5e0he63Tn9iVAFYRFexK1mjFw7TfA==
------END EC PRIVATE KEY-----`
-
-const exampleECP384PrivateKey = `
------BEGIN EC PRIVATE KEY-----
-MIGkAgEBBDBPoOfapxtgZ8XNE7Wwdlw+9oDc6x4m57MITZyWzN62jkFUAYsvPJDF
-9+g+e8CT5yqgBwYFK4EEACKhZANiAAQ2uZ0HIIxIavyjGyX13tIZVOaRB4+D64dF
-s3DXDrpXcuDTSohw9xBW5sLDqRVu2LkBsCUFXtEJUHgC+O7wToNw8nh+KdDrcu/J
-miNqbvEHuvlSlHWyx9HH8kAEuu1+SZg=
------END EC PRIVATE KEY-----`
-
-const exampleECP521PrivateKey = `
------BEGIN EC PRIVATE KEY-----
-MIHcAgEBBEIBT07AnitDd1Z01bl5W5VW8/vTWyu7w3MSqEmCeKcM19p/TAJAeS8L
-6UOig2fTUeuMeA2PoOUjI2Bid927VsWcxE2gBwYFK4EEACOhgYkDgYYABAGnV9mu
-xY0E7/k8b+glOOMaN0+Qt70H9OmSz6tC8tU3EayRwFlNPch9TlvEpbCS3MsDE9dN
-78EpFx45MUqzzdZcOgAu+EUC9Zas1YVK+WMo0GFy+XtFq3kxubOclBb52M/63mcd
-zZnA8aAu9iTK9YPfcw1YWTJliNdKUoxmGVV5Ca1W4w==
------END EC PRIVATE KEY-----`

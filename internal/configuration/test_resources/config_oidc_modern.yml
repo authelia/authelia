@@ -127,7 +127,7 @@ notifier:
 identity_providers:
   oidc:
     hmac_secret: 1nb2j3kh1b23kjh1b23jh1b23j1h2b3
-    issuer_jwks:
+    issuer_private_keys:
       keys:
         keya:
           key: |

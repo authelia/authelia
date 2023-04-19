@@ -37,13 +37,7 @@ func validateNotifierTemplates(config *schema.NotifierConfiguration, validator *
 		return
 	}
 
-	var (
-		err error
-	)
-
-	_, err = os.Stat(config.TemplatePath)
-
-	switch {
+	switch _, err := os.Stat(config.TemplatePath); {
 	case os.IsNotExist(err):
 		validator.Push(fmt.Errorf(errFmtNotifierTemplatePathNotExist, config.TemplatePath))
 		return

@@ -125,12 +125,20 @@ type JWKProperties struct {
 func schemaJWKGetProperties(jwk schema.JWK) (properties *JWKProperties, err error) {
 	switch key := jwk.Key.(type) {
 	case nil:
-		return nil, fmt.Errorf("private key is nil")
+		return nil, nil
 	case ed25519.PrivateKey, ed25519.PublicKey:
 		return &JWKProperties{}, nil
 	case *rsa.PrivateKey:
+		if key.PublicKey.N == nil {
+			return &JWKProperties{oidc.KeyUseSignature, oidc.SigningAlgRSAUsingSHA256, 0, nil}, nil
+		}
+
 		return &JWKProperties{oidc.KeyUseSignature, oidc.SigningAlgRSAUsingSHA256, key.Size(), nil}, nil
 	case *rsa.PublicKey:
+		if key.N == nil {
+			return &JWKProperties{oidc.KeyUseSignature, oidc.SigningAlgRSAUsingSHA256, 0, nil}, nil
+		}
+
 		return &JWKProperties{oidc.KeyUseSignature, oidc.SigningAlgRSAUsingSHA256, key.Size(), nil}, nil
 	case *ecdsa.PublicKey:
 		switch key.Curve {

@@ -69,7 +69,7 @@ OAUTH_ATTRIBUTE_MAP = {
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Seafile]
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Seafile]
 which will operate with the above example:
 
 ```yaml

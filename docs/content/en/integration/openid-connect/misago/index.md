@@ -79,7 +79,7 @@ To configure [Misago] to utilize Authelia as an [OpenID Connect 1.0](https://www
 
 ### Authelia
 
-The following YAML configuration is an example **Authelia** [client configuration](https://www.authelia.com/configuration/identity-providers/open-id-connect/#clients) for use with [Misago] which will operate with the above example:
+The following YAML configuration is an example **Authelia** [client configuration](https://www.authelia.com/configuration/identity-providers/openid-connect/#clients) for use with [Misago] which will operate with the above example:
 
 ```yaml
 identity_providers:

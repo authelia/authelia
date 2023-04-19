@@ -261,17 +261,17 @@ func TestShouldLoadNewOIDCConfig(t *testing.T) {
 
 	assert.Len(t, val.Errors(), 0)
 
-	assert.Len(t, config.IdentityProviders.OIDC.IssuerJWKS.Keys, 2)
-	assert.Equal(t, "keya", config.IdentityProviders.OIDC.IssuerJWKS.DefaultKeyID)
+	assert.Len(t, config.IdentityProviders.OIDC.IssuerPrivateKeys.Keys, 2)
+	assert.Equal(t, "keya", config.IdentityProviders.OIDC.IssuerPrivateKeys.DefaultKeyID)
 
-	assert.Equal(t, oidc.KeyUseSignature, config.IdentityProviders.OIDC.IssuerJWKS.Keys["keya"].Use)
-	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, config.IdentityProviders.OIDC.IssuerJWKS.Keys["keya"].Algorithm)
+	assert.Equal(t, oidc.KeyUseSignature, config.IdentityProviders.OIDC.IssuerPrivateKeys.Keys["keya"].Use)
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, config.IdentityProviders.OIDC.IssuerPrivateKeys.Keys["keya"].Algorithm)
 
-	assert.Equal(t, oidc.KeyUseSignature, config.IdentityProviders.OIDC.IssuerJWKS.Keys["ec521"].Use)
-	assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, config.IdentityProviders.OIDC.IssuerJWKS.Keys["ec521"].Algorithm)
+	assert.Equal(t, oidc.KeyUseSignature, config.IdentityProviders.OIDC.IssuerPrivateKeys.Keys["ec521"].Use)
+	assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, config.IdentityProviders.OIDC.IssuerPrivateKeys.Keys["ec521"].Algorithm)
 
-	assert.Contains(t, config.IdentityProviders.OIDC.Discovery.RegisteredJWKSigningAlgs, oidc.SigningAlgRSAUsingSHA256)
-	assert.Contains(t, config.IdentityProviders.OIDC.Discovery.RegisteredJWKSigningAlgs, oidc.SigningAlgECDSAUsingP521AndSHA512)
+	assert.Contains(t, config.IdentityProviders.OIDC.Discovery.ResponseObjectSigningAlgs, oidc.SigningAlgRSAUsingSHA256)
+	assert.Contains(t, config.IdentityProviders.OIDC.Discovery.ResponseObjectSigningAlgs, oidc.SigningAlgECDSAUsingP521AndSHA512)
 }.
 
 */

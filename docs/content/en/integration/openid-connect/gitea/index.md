@@ -77,7 +77,7 @@ descriptions.
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Gitea] which
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Gitea] which
 will operate with the above example:
 
 ```yaml

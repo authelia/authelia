@@ -66,6 +66,7 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 					ClientAuthMethodClientSecretBasic,
 					ClientAuthMethodClientSecretPost,
 					ClientAuthMethodClientSecretJWT,
+					ClientAuthMethodPrivateKeyJWT,
 					ClientAuthMethodNone,
 				},
 				TokenEndpointAuthSigningAlgValuesSupported: []string{
@@ -82,6 +83,7 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 					ClientAuthMethodClientSecretBasic,
 					ClientAuthMethodClientSecretPost,
 					ClientAuthMethodClientSecretJWT,
+					ClientAuthMethodPrivateKeyJWT,
 					ClientAuthMethodNone,
 				},
 				RevocationEndpointAuthSigningAlgValuesSupported: []string{
@@ -104,12 +106,12 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 				SigningAlgRSAUsingSHA256,
 			},
 			UserinfoSigningAlgValuesSupported: []string{
-				SigningAlgNone,
 				SigningAlgRSAUsingSHA256,
+				SigningAlgNone,
 			},
 			RequestObjectSigningAlgValuesSupported: []string{
-				SigningAlgNone,
 				SigningAlgRSAUsingSHA256,
+				SigningAlgNone,
 			},
 		},
 		OpenIDConnectFrontChannelLogoutDiscoveryOptions: &OpenIDConnectFrontChannelLogoutDiscoveryOptions{},
@@ -122,17 +124,27 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 		},
 	}
 
-	algs := make([]string, len(c.Discovery.RegisteredJWKSigningAlgs))
-
-	copy(algs, c.Discovery.RegisteredJWKSigningAlgs)
-
-	for _, alg := range algs {
+	for _, alg := range c.Discovery.ResponseObjectSigningAlgs {
 		if !utils.IsStringInSlice(alg, config.IDTokenSigningAlgValuesSupported) {
 			config.IDTokenSigningAlgValuesSupported = append(config.IDTokenSigningAlgValuesSupported, alg)
 		}
 
 		if !utils.IsStringInSlice(alg, config.UserinfoSigningAlgValuesSupported) {
 			config.UserinfoSigningAlgValuesSupported = append(config.UserinfoSigningAlgValuesSupported, alg)
+		}
+	}
+
+	for _, alg := range c.Discovery.RequestObjectSigningAlgs {
+		if !utils.IsStringInSlice(alg, config.RequestObjectSigningAlgValuesSupported) {
+			config.RequestObjectSigningAlgValuesSupported = append(config.RequestObjectSigningAlgValuesSupported, alg)
+		}
+
+		if !utils.IsStringInSlice(alg, config.RevocationEndpointAuthSigningAlgValuesSupported) {
+			config.RevocationEndpointAuthSigningAlgValuesSupported = append(config.RevocationEndpointAuthSigningAlgValuesSupported, alg)
+		}
+
+		if !utils.IsStringInSlice(alg, config.TokenEndpointAuthSigningAlgValuesSupported) {
+			config.TokenEndpointAuthSigningAlgValuesSupported = append(config.TokenEndpointAuthSigningAlgValuesSupported, alg)
 		}
 	}
 

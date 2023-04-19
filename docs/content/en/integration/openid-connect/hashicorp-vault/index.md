@@ -43,7 +43,7 @@ To configure [HashiCorp Vault] to utilize Authelia as an [OpenID Connect 1.0] Pr
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [HashiCorp Vault]
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [HashiCorp Vault]
 which will operate with the above example:
 
 ```yaml
