@@ -99,8 +99,18 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 	ctx.Logger.Tracef("UserInfo Response with id '%s' on client with id '%s' is being sent with the following claims: %+v", requester.GetID(), clientID, claims)
 
-	switch client.GetUserinfoSigningAlgorithm() {
-	case oidc.SigningAlgRSAUsingSHA256:
+	switch alg := client.GetUserinfoSigningAlg(); alg {
+	case oidc.SigningAlgNone, "":
+		ctx.Providers.OpenIDConnect.Write(rw, req, claims)
+	default:
+		var jwk *oidc.JWK
+
+		if jwk = ctx.Providers.OpenIDConnect.KeyManager.GetByAlg(ctx, alg); jwk == nil {
+			ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(fosite.ErrServerError.WithHintf("Unsupported UserInfo signing algorithm '%s'.", alg)))
+
+			return
+		}
+
 		var jti uuid.UUID
 
 		if jti, err = uuid.NewRandom(); err != nil {
@@ -114,11 +124,11 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 		headers := &jwt.Headers{
 			Extra: map[string]any{
-				oidc.JWTHeaderKeyIdentifier: ctx.Providers.OpenIDConnect.KeyManager.GetActiveKeyID(),
+				oidc.JWTHeaderKeyIdentifier: jwk.KeyID(),
 			},
 		}
 
-		if token, _, err = ctx.Providers.OpenIDConnect.KeyManager.Strategy().Generate(req.Context(), claims, headers); err != nil {
+		if token, _, err = jwk.Strategy().Generate(req.Context(), claims, headers); err != nil {
 			ctx.Providers.OpenIDConnect.WriteError(rw, req, err)
 
 			return
@@ -126,9 +136,5 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 		rw.Header().Set(fasthttp.HeaderContentType, "application/jwt")
 		_, _ = rw.Write([]byte(token))
-	case oidc.SigningAlgNone, "":
-		ctx.Providers.OpenIDConnect.Write(rw, req, claims)
-	default:
-		ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(fosite.ErrServerError.WithHintf("Unsupported UserInfo signing algorithm '%s'.", client.GetUserinfoSigningAlgorithm())))
 	}
 }

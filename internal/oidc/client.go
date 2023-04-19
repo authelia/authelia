@@ -34,7 +34,8 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client Client) {
 
 		EnforcePAR: config.EnforcePAR,
 
-		UserinfoSigningAlgorithm: config.UserinfoSigningAlgorithm,
+		IDTokenSigningAlg:  config.IDTokenSigningAlg,
+		UserinfoSigningAlg: config.UserinfoSigningAlg,
 
 		Policy: authorization.NewLevel(config.Policy),
 
@@ -131,13 +132,22 @@ func (c *BaseClient) GetResponseModes() []fosite.ResponseModeType {
 	return c.ResponseModes
 }
 
-// GetUserinfoSigningAlgorithm returns the UserinfoSigningAlgorithm.
-func (c *BaseClient) GetUserinfoSigningAlgorithm() string {
-	if c.UserinfoSigningAlgorithm == "" {
-		c.UserinfoSigningAlgorithm = SigningAlgNone
+// GetIDTokenSigningAlg returns the IDTokenSigningAlg.
+func (c *BaseClient) GetIDTokenSigningAlg() (alg string) {
+	if c.IDTokenSigningAlg == "" {
+		c.IDTokenSigningAlg = SigningAlgRSAUsingSHA256
 	}
 
-	return c.UserinfoSigningAlgorithm
+	return c.IDTokenSigningAlg
+}
+
+// GetUserinfoSigningAlg returns the UserinfoSigningAlg.
+func (c *BaseClient) GetUserinfoSigningAlg() string {
+	if c.UserinfoSigningAlg == "" {
+		c.UserinfoSigningAlg = SigningAlgNone
+	}
+
+	return c.UserinfoSigningAlg
 }
 
 // GetPAREnforcement returns EnforcePAR.
@@ -295,7 +305,7 @@ func (c *FullClient) GetTokenEndpointAuthMethod() string {
 		if c.Public {
 			c.TokenEndpointAuthMethod = ClientAuthMethodNone
 		} else {
-			c.TokenEndpointAuthMethod = ClientAuthMethodClientSecretPost
+			c.TokenEndpointAuthMethod = ClientAuthMethodClientSecretBasic
 		}
 	}
 

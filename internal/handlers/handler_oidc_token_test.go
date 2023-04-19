@@ -145,11 +145,10 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 	s.store = mocks.NewMockStorage(s.ctrl)
 
-	var err error
-
 	secret := MustDecodeSecret("$plaintext$client-secret")
 
-	s.provider, err = oidc.NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+	s.provider = oidc.NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+		IssuerJWKS:             []schema.JWK{},
 		IssuerCertificateChain: schema.X509CertificateChain{},
 		IssuerPrivateKey:       MustParseRSAPrivateKey(exampleRSAPrivateKey),
 		HMACSecret:             "abc123",
@@ -370,8 +369,6 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 			},
 		},
 	}, s.store, nil)
-
-	s.Require().NoError(err)
 }
 
 func (s *ClientAuthenticationStrategySuite) TestShouldValidateAssertionHS256() {

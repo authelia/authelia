@@ -74,8 +74,8 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("This requested OAuth 2.0 client only supports client authentication method '%s', however that method is not supported by this server.", oidcClient.GetTokenEndpointAuthMethod()))
 			}
 
-			if oidcClient.GetTokenEndpointAuthSigningAlgorithm() != fmt.Sprintf("%s", t.Header[HeaderParameterAlgorithm]) {
-				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The 'client_assertion' uses signing algorithm '%s' but the requested OAuth 2.0 Client enforces signing algorithm '%s'.", t.Header[HeaderParameterAlgorithm], oidcClient.GetTokenEndpointAuthSigningAlgorithm()))
+			if oidcClient.GetTokenEndpointAuthSigningAlgorithm() != fmt.Sprintf("%s", t.Header[JWTHeaderKeyAlgorithm]) {
+				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The 'client_assertion' uses signing algorithm '%s' but the requested OAuth 2.0 Client enforces signing algorithm '%s'.", t.Header[JWTHeaderKeyAlgorithm], oidcClient.GetTokenEndpointAuthSigningAlgorithm()))
 			}
 
 			switch t.Method {
@@ -94,7 +94,7 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 
 				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("This client does not support authentication method 'client_secret_jwt' as the client secret is not in plaintext."))
 			default:
-				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The 'client_assertion' request parameter uses unsupported signing algorithm '%s'.", t.Header[HeaderParameterAlgorithm]))
+				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The 'client_assertion' request parameter uses unsupported signing algorithm '%s'.", t.Header[JWTHeaderKeyAlgorithm]))
 			}
 		})
 

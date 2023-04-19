@@ -513,6 +513,30 @@ func StringToCryptoPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 	}
 }
 
+// StringToCryptographicKeyHookFunc decodes strings to schema.CryptographicKey's.
+func StringToCryptographicKeyHookFunc() mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		field, _ := reflect.TypeOf(schema.JWK{}).FieldByName("Key")
+		expectedType := field.Type
+
+		if t != expectedType {
+			return data, nil
+		}
+
+		dataStr := data.(string)
+
+		if value, err = utils.ParseX509FromPEM([]byte(dataStr)); err != nil {
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "", expectedType, err)
+		}
+
+		return value, nil
+	}
+}
+
 // StringToPrivateKeyHookFunc decodes strings to rsa.PrivateKey's.
 func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {

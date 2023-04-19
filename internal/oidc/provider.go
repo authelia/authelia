@@ -13,34 +13,31 @@ import (
 )
 
 // NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.
-func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, store storage.Provider, templates *templates.Provider) (provider *OpenIDConnectProvider, err error) {
+func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, store storage.Provider, templates *templates.Provider) (provider *OpenIDConnectProvider) {
 	if config == nil {
-		return nil, nil
+		return nil
 	}
 
 	provider = &OpenIDConnectProvider{
 		JSONWriter: herodot.NewJSONWriter(nil),
 		Store:      NewStore(config, store),
+		KeyManager: NewKeyManager(config),
 		Config:     NewConfig(config, templates),
 	}
 
 	provider.OAuth2Provider = fosite.NewOAuth2Provider(provider.Store, provider.Config)
 
-	if provider.KeyManager, err = NewKeyManagerWithConfiguration(config); err != nil {
-		return nil, err
-	}
-
 	provider.Config.Strategy.OpenID = &openid.DefaultStrategy{
-		Signer: provider.KeyManager.Strategy(),
+		Signer: provider.KeyManager,
 		Config: provider.Config,
 	}
 
-	provider.Config.LoadHandlers(provider.Store, provider.KeyManager.Strategy())
+	provider.Config.LoadHandlers(provider.Store, provider.KeyManager)
 	provider.Config.Strategy.ClientAuthentication = provider.DefaultClientAuthenticationStrategy
 
 	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config)
 
-	return provider, nil
+	return provider
 }
 
 // GetOAuth2WellKnownConfiguration returns the discovery document for the OAuth Configuration.

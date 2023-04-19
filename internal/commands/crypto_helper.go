@@ -198,7 +198,7 @@ func cryptoGenerateCertificateBundlesFromCmd(cmd *cobra.Command, b *strings.Buil
 
 		b.WriteString(fmt.Sprintf("\tCertificate (chain): %s\n", pathPEM))
 
-		if err = utils.WritePEM(pathPEM, blocks...); err != nil {
+		if err = utils.WritePEMBlocksToPath(pathPEM, blocks...); err != nil {
 			return err
 		}
 	}
@@ -220,7 +220,7 @@ func cryptoGenerateCertificateBundlesFromCmd(cmd *cobra.Command, b *strings.Buil
 
 		b.WriteString(fmt.Sprintf("\tCertificate (priv-chain): %s\n", pathPEM))
 
-		if err = utils.WritePEM(pathPEM, blocks...); err != nil {
+		if err = utils.WritePEMBlocksToPath(pathPEM, blocks...); err != nil {
 			return err
 		}
 	}

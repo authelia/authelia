@@ -31,6 +31,7 @@ const (
 	BlockTypePKIXPublicKey      = "PUBLIC KEY"
 	BlockTypeCertificate        = "CERTIFICATE"
 	BlockTypeCertificateRequest = "CERTIFICATE REQUEST"
+	BlockTypeX509CRL            = "X509 CRL"
 
 	KeyAlgorithmRSA     = "RSA"
 	KeyAlgorithmECDSA   = "ECDSA"

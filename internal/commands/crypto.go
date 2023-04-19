@@ -335,7 +335,7 @@ func (ctx *CmdCtx) CryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) 
 		return err
 	}
 
-	if err = utils.WriteCertificateBytesToPEM(csrPath, true, csr); err != nil {
+	if err = utils.WriteCertificateBytesAsPEMToPath(csrPath, true, csr); err != nil {
 		return err
 	}
 
@@ -430,7 +430,7 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 		return err
 	}
 
-	if err = utils.WriteCertificateBytesToPEM(certificatePath, false, certificate); err != nil {
+	if err = utils.WriteCertificateBytesAsPEMToPath(certificatePath, false, certificate); err != nil {
 		return err
 	}
 

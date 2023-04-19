@@ -13,6 +13,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"io"
 	"math/big"
 	"net"
 	"os"
@@ -188,28 +189,95 @@ func ParseX509FromPEM(data []byte) (key any, err error) {
 		return nil, errors.New("failed to parse PEM block containing the key")
 	}
 
+	return ParsePEMBlock(block)
+}
+
+// ParseX509FromPEMRecursive allows returning the appropriate key type given some PEM encoded input.
+// For Keys this is a single value of one of *rsa.PrivateKey, *rsa.PublicKey, *ecdsa.PrivateKey, *ecdsa.PublicKey,
+// ed25519.PrivateKey, or ed25519.PublicKey. For certificates this is
+// either a *X509.Certificate, or a []*X509.Certificate.
+func ParseX509FromPEMRecursive(data []byte) (decoded any, err error) {
+	var (
+		block        *pem.Block
+		multi        bool
+		certificates []*x509.Certificate
+	)
+
+	for i := 0; true; i++ {
+		block, data = pem.Decode(data)
+
+		n := len(data)
+
+		switch {
+		case block == nil:
+			return nil, fmt.Errorf("failed to parse PEM blocks: data does not appear to be PEM encoded")
+		case multi || n != 0:
+			switch block.Type {
+			case BlockTypeCertificate:
+				var certificate *x509.Certificate
+
+				if certificate, err = x509.ParseCertificate(block.Bytes); err != nil {
+					return nil, fmt.Errorf("failed to parse PEM blocks: data contains multiple blocks but #%d had an error during parsing: %w", i, err)
+				}
+
+				certificates = append(certificates, certificate)
+			default:
+				return nil, fmt.Errorf("failed to parse PEM blocks: data contains multiple blocks but #%d has a '%s' block type and should have a '%s' block type", i, block.Type, BlockTypeCertificate)
+			}
+
+			multi = true
+		default:
+			if decoded, err = ParsePEMBlock(block); err != nil {
+				return nil, err
+			}
+		}
+
+		if n == 0 {
+			break
+		}
+	}
+
+	switch {
+	case multi:
+		return certificates, nil
+	default:
+		return decoded, nil
+	}
+}
+
+// ParsePEMBlock parses a single PEM block into the relevant X509 data struct.
+func ParsePEMBlock(block *pem.Block) (key any, err error) {
+	if block == nil {
+		return nil, errors.New("failed to parse PEM block as it was empty")
+	}
+
 	switch block.Type {
 	case BlockTypeRSAPrivateKey:
-		key, err = x509.ParsePKCS1PrivateKey(block.Bytes)
+		return x509.ParsePKCS1PrivateKey(block.Bytes)
 	case BlockTypeECDSAPrivateKey:
-		key, err = x509.ParseECPrivateKey(block.Bytes)
+		return x509.ParseECPrivateKey(block.Bytes)
 	case BlockTypePKCS8PrivateKey:
-		key, err = x509.ParsePKCS8PrivateKey(block.Bytes)
+		return x509.ParsePKCS8PrivateKey(block.Bytes)
 	case BlockTypeRSAPublicKey:
-		key, err = x509.ParsePKCS1PublicKey(block.Bytes)
+		return x509.ParsePKCS1PublicKey(block.Bytes)
 	case BlockTypePKIXPublicKey:
-		key, err = x509.ParsePKIXPublicKey(block.Bytes)
+		return x509.ParsePKIXPublicKey(block.Bytes)
 	case BlockTypeCertificate:
-		key, err = x509.ParseCertificate(block.Bytes)
+		return x509.ParseCertificate(block.Bytes)
+	case BlockTypeCertificateRequest:
+		return x509.ParseCertificateRequest(block.Bytes)
+	case BlockTypeX509CRL:
+		return x509.ParseRevocationList(block.Bytes)
 	default:
-		return nil, fmt.Errorf("unknown block type: %s", block.Type)
+		switch {
+		case strings.Contains(block.Type, "PRIVATE KEY"):
+			return x509.ParsePKCS8PrivateKey(block.Bytes)
+		case strings.Contains(block.Type, "PUBLIC KEY"):
+			return x509.ParsePKIXPublicKey(block.Bytes)
+		default:
+			return nil, fmt.Errorf("unknown block type: %s", block.Type)
+		}
 	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return key, nil
 }
 
 // CastX509AsCertificate converts an interface to an *x509.Certificate.
@@ -306,8 +374,25 @@ func NewX509CertPool(directory string) (certPool *x509.CertPool, warnings []erro
 	return certPool, warnings, errors
 }
 
-// WriteCertificateBytesToPEM writes a certificate/csr to a file in the PEM format.
-func WriteCertificateBytesToPEM(path string, csr bool, certs ...[]byte) (err error) {
+// WriteCertificateBytesAsPEMToPath writes a certificate/csr to a file in the PEM format.
+func WriteCertificateBytesAsPEMToPath(path string, csr bool, certs ...[]byte) (err error) {
+	var out *os.File
+
+	if out, err = os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
+		return err
+	}
+
+	if err = WriteCertificateBytesAsPEMToWriter(out, csr, certs...); err != nil {
+		_ = out.Close()
+
+		return err
+	}
+
+	return nil
+}
+
+// WriteCertificateBytesAsPEMToWriter writes a certificate/csr to a io.Writer in the PEM format.
+func WriteCertificateBytesAsPEMToWriter(wr io.Writer, csr bool, certs ...[]byte) (err error) {
 	blockType := BlockTypeCertificate
 	if csr {
 		blockType = BlockTypeCertificateRequest
@@ -319,26 +404,34 @@ func WriteCertificateBytesToPEM(path string, csr bool, certs ...[]byte) (err err
 		blocks[i] = &pem.Block{Type: blockType, Bytes: cert}
 	}
 
-	return WritePEM(path, blocks...)
+	return WritePEMBlocksToWriter(wr, blocks...)
 }
 
-// WritePEM writes a set of *pem.Blocks to a file.
-func WritePEM(path string, blocks ...*pem.Block) (err error) {
+// WritePEMBlocksToPath writes a set of *pem.Blocks to a file.
+func WritePEMBlocksToPath(path string, blocks ...*pem.Block) (err error) {
 	var out *os.File
 
 	if out, err = os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
 		return err
 	}
 
-	for _, block := range blocks {
-		if err = pem.Encode(out, block); err != nil {
-			_ = out.Close()
+	if err = WritePEMBlocksToWriter(out, blocks...); err != nil {
+		_ = out.Close()
 
+		return err
+	}
+
+	return out.Close()
+}
+
+func WritePEMBlocksToWriter(wr io.Writer, blocks ...*pem.Block) (err error) {
+	for _, block := range blocks {
+		if err = pem.Encode(wr, block); err != nil {
 			return err
 		}
 	}
 
-	return out.Close()
+	return nil
 }
 
 // WriteKeyToPEM writes a key that can be encoded as a PEM to a file in the PEM format.
@@ -348,7 +441,7 @@ func WriteKeyToPEM(key any, path string, pkcs8 bool) (err error) {
 		return err
 	}
 
-	return WritePEM(path, block)
+	return WritePEMBlocksToPath(path, block)
 }
 
 // PEMBlockFromX509Key turns a PublicKey or PrivateKey into a pem.Block.
