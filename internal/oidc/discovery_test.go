@@ -32,7 +32,7 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 			pkcePlainChallenge: false,
 			clients:            map[string]Client{"a": &BaseClient{}},
 			discovery: schema.OpenIDConnectDiscovery{
-				RegisteredJWKSigningAlgs: []string{SigningAlgECDSAUsingP521AndSHA512},
+				ResponseObjectSigningAlgs: []string{SigningAlgECDSAUsingP521AndSHA512},
 			},
 			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256},
 			expectSubjectTypesSupported:         []string{SubjectTypePublic, SubjectTypePairwise},

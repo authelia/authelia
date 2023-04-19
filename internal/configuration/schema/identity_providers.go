@@ -39,8 +39,9 @@ type OpenIDConnectConfiguration struct {
 }
 
 type OpenIDConnectDiscovery struct {
-	DefaultKeyID             string
-	RegisteredJWKSigningAlgs []string
+	DefaultKeyID              string
+	ResponseObjectSigningAlgs []string
+	RequestObjectSigningAlgs  []string
 }
 
 // OpenIDConnectPARConfiguration represents an OpenID Connect PAR config.
@@ -76,7 +77,11 @@ type OpenIDConnectClientConfiguration struct {
 	TokenEndpointAuthMethod     string `koanf:"token_endpoint_auth_method"`
 	TokenEndpointAuthSigningAlg string `koanf:"token_endpoint_auth_signing_alg"`
 
-	IDTokenSigningAlg string `koanf:"id_token_signing_alg"`
+	JSONWebKeys    []JWK    `koanf:"json_web_keys"`
+	JSONWebKeysURI *url.URL `koanf:"json_web_keys_uri"`
+
+	IDTokenSigningAlg       string `koanf:"id_token_signing_alg"`
+	RequestObjectSigningAlg string `koanf:"request_object_signing_alg"`
 
 	Policy string `koanf:"authorization_policy"`
 

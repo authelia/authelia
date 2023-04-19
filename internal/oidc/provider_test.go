@@ -146,16 +146,18 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 	assert.Contains(t, disco.ResponseTypesSupported, ResponseTypeHybridFlowToken)
 	assert.Contains(t, disco.ResponseTypesSupported, ResponseTypeHybridFlowBoth)
 
-	assert.Len(t, disco.TokenEndpointAuthMethodsSupported, 4)
+	assert.Len(t, disco.TokenEndpointAuthMethodsSupported, 5)
 	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, ClientAuthMethodClientSecretBasic)
 	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, ClientAuthMethodClientSecretPost)
 	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, ClientAuthMethodClientSecretJWT)
+	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, ClientAuthMethodPrivateKeyJWT)
 	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, ClientAuthMethodNone)
 
-	assert.Len(t, disco.RevocationEndpointAuthMethodsSupported, 4)
+	assert.Len(t, disco.RevocationEndpointAuthMethodsSupported, 5)
 	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, ClientAuthMethodClientSecretBasic)
 	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, ClientAuthMethodClientSecretPost)
 	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, ClientAuthMethodClientSecretJWT)
+	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, ClientAuthMethodPrivateKeyJWT)
 	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, ClientAuthMethodNone)
 
 	assert.Len(t, disco.IntrospectionEndpointAuthMethodsSupported, 2)
@@ -270,10 +272,11 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfig
 	assert.Contains(t, disco.ResponseTypesSupported, ResponseTypeHybridFlowToken)
 	assert.Contains(t, disco.ResponseTypesSupported, ResponseTypeHybridFlowBoth)
 
-	assert.Len(t, disco.TokenEndpointAuthMethodsSupported, 4)
+	assert.Len(t, disco.TokenEndpointAuthMethodsSupported, 5)
 	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, ClientAuthMethodClientSecretBasic)
 	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, ClientAuthMethodClientSecretPost)
 	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, ClientAuthMethodClientSecretJWT)
+	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, ClientAuthMethodPrivateKeyJWT)
 	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, ClientAuthMethodNone)
 
 	assert.Len(t, disco.GrantTypesSupported, 3)

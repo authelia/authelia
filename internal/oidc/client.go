@@ -46,12 +46,22 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client Client) {
 		base.ResponseModes = append(base.ResponseModes, fosite.ResponseModeType(mode))
 	}
 
-	if config.TokenEndpointAuthMethod != "" && config.TokenEndpointAuthMethod != "auto" {
-		client = &FullClient{
+	if config.TokenEndpointAuthMethod != "" || config.TokenEndpointAuthSigningAlg != "" ||
+		len(config.JSONWebKeys) != 0 || config.JSONWebKeysURI != nil || config.RequestObjectSigningAlg != "" {
+		full := &FullClient{
 			BaseClient:                        base,
 			TokenEndpointAuthMethod:           config.TokenEndpointAuthMethod,
 			TokenEndpointAuthSigningAlgorithm: config.TokenEndpointAuthSigningAlg,
+			RequestObjectSigningAlgorithm:     config.RequestObjectSigningAlg,
+
+			JSONWebKeys: NewJSONWebKeySetFromSchemaJWK(config.JSONWebKeys),
 		}
+
+		if config.JSONWebKeysURI != nil {
+			full.JSONWebKeysURI = config.JSONWebKeysURI.String()
+		}
+
+		client = full
 	} else {
 		client = base
 	}

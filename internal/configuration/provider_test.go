@@ -256,8 +256,8 @@ func TestShouldLoadNewOIDCConfig(t *testing.T) {
 	assert.Equal(t, oidc.KeyUseSignature, config.IdentityProviders.OIDC.IssuerJWKS.Keys["ec521"].Use)
 	assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, config.IdentityProviders.OIDC.IssuerJWKS.Keys["ec521"].Algorithm)
 
-	assert.Contains(t, config.IdentityProviders.OIDC.Discovery.RegisteredJWKSigningAlgs, oidc.SigningAlgRSAUsingSHA256)
-	assert.Contains(t, config.IdentityProviders.OIDC.Discovery.RegisteredJWKSigningAlgs, oidc.SigningAlgECDSAUsingP521AndSHA512)
+	assert.Contains(t, config.IdentityProviders.OIDC.Discovery.ResponseObjectSigningAlgs, oidc.SigningAlgRSAUsingSHA256)
+	assert.Contains(t, config.IdentityProviders.OIDC.Discovery.ResponseObjectSigningAlgs, oidc.SigningAlgECDSAUsingP521AndSHA512)
 }.
 
 */

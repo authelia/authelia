@@ -172,6 +172,36 @@ func (m *KeyManager) GetSigningMethodLength(ctx context.Context) (size int) {
 	return m.GetByKID(ctx, "").Strategy().GetSigningMethodLength(ctx)
 }
 
+func NewJSONWebKeySetFromSchemaJWK(sjwks []schema.JWK) (jwks *jose.JSONWebKeySet) {
+	n := len(sjwks)
+
+	if n == 0 {
+		return nil
+	}
+
+	keys := make([]jose.JSONWebKey, n)
+
+	for i := 0; i < n; i++ {
+		keys[i] = NewJWK(sjwks[i]).DirectJWK()
+	}
+
+	return &jose.JSONWebKeySet{
+		Keys: keys,
+	}
+}
+
+func NewJWKSKeys(sjwks []schema.JWK) []jose.JSONWebKey {
+	n := len(sjwks)
+
+	jwks := make([]jose.JSONWebKey, n)
+
+	for i := 0; i < n; i++ {
+		jwks[i] = NewJWK(sjwks[i]).DirectJWK()
+	}
+
+	return jwks
+}
+
 func NewJWK(s schema.JWK) (jwk *JWK) {
 	jwk = &JWK{
 		kid: s.KeyID,
@@ -218,8 +248,8 @@ func (j *JWK) KeyID() string {
 	return j.kid
 }
 
-func (j *JWK) PrivateJWK() (jwk *jose.JSONWebKey) {
-	return &jose.JSONWebKey{
+func (j *JWK) DirectJWK() (jwk jose.JSONWebKey) {
+	return jose.JSONWebKey{
 		Key:                         j.key,
 		KeyID:                       j.kid,
 		Algorithm:                   j.alg.Alg(),
@@ -228,6 +258,12 @@ func (j *JWK) PrivateJWK() (jwk *jose.JSONWebKey) {
 		CertificateThumbprintSHA1:   j.thumbprintsha1,
 		CertificateThumbprintSHA256: j.thumbprint,
 	}
+}
+
+func (j *JWK) PrivateJWK() (jwk *jose.JSONWebKey) {
+	value := j.DirectJWK()
+
+	return &value
 }
 
 func (j *JWK) JWK() (jwk jose.JSONWebKey) {
