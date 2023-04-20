@@ -34,8 +34,10 @@ This example makes the following assumptions:
 * __Client ID:__ `tailscale`
 * __Client Secret:__ `insecure_secret`
 
+
 ## Configuration
 The configuration in Authelia is straightforwarded: Tailscale is just another `identity_provider/oidc` entry. Complicating things is the necessary WebFinger reply for your domain - see the following [Application](#application) section.
+
 
 ### Application
 
@@ -57,10 +59,10 @@ To configure [Tailscale] to utilize Authelia as an [OpenID Connect 1.0] Provider
 }
 ```
 4. For any other users that you want to add to Tailscale, you will need to to provide similar WebFinger replies (e.g. for `user2@example.com` or `user3@example.com`)
-5. Once you have the WebFinger reply set up and your [Authelia OpenID Connect Discovery endpoint](https://www.authelia.com/integration/openid-connect/introduction/#well-known-discovery-endpoints) is working (`https://auth.example.com/.well-known/openid-configuration`) is working, you can sign up for a **new Tailnet** (currently migration isn't supported) via the link: [Sign up with OIDC](https://login.tailscale.com/start/oidc) where you will see the following screen:  
+5. Once you have the WebFinger reply set up and your [Authelia OpenID Connect Discovery endpoint](https://www.authelia.com/integration/openid-connect/introduction/#well-known-discovery-endpoints) is working (e.g. `https://auth.example.com/.well-known/openid-configuration`), you can sign up for a **new Tailnet** (currently migration isn't supported) via the link: [Sign up with OIDC](https://login.tailscale.com/start/oidc) where you will see the following screen:  
 {{< figure src="tailscale_signup_1.png" alt="Tailscale Signup Screen 1" width="300" >}}
 6. After clicking on **Get OIDC Issuer**, Tailscale will fetch the WebFinger reply via `https://example.com/.well-known/webfinger/?resource=acct:user@example.com` and follow the set `href` to `https://auth.example.com/.well-known/openid-configuration`.  
-**Note:** make sure that the `href` URL matches the `issuer` URL returned from Authelia OIDC dicsovery
+**Note:** make sure that the `href` URL matches the `issuer` URL returned from the Authelia OIDC dicsovery endpoint
 7. On the next screen you will need to add your client ID & secret configured in Authelia to finish the OIDC provider registration in [Tailscale].
 
 
