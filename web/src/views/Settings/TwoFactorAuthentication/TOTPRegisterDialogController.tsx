@@ -107,6 +107,11 @@ export default function TOTPRegisterDialogController(props: Props) {
         })();
     }, [totpSecretURL, props]);
 
+    const handleFinished = useCallback(() => {
+        props.setClosed();
+        resetStates();
+    }, [props]);
+
     const handleOnClose = () => {
         if (!props.open) {
             return;
@@ -191,8 +196,12 @@ export default function TOTPRegisterDialogController(props: Props) {
             setDialState(State.InProgress);
 
             try {
-                await completeTOTPRegister(dialValue);
-                setDialState(State.Success);
+                const registerValue = dialValue;
+                setDialValue("");
+
+                await completeTOTPRegister(registerValue);
+
+                handleFinished();
             } catch (err) {
                 console.error(err);
                 setDialState(State.Failure);
