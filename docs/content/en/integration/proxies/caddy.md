@@ -230,7 +230,7 @@ nextcloud.example.com {
                 rewrite "/api/authz/forward-auth?authelia_url=https://auth.example.com/"
 
                 header_up X-Forwarded-Method {method}
-                header_up X-Forwarded-Uri {uri}
+                header_up X-Forwarded-URI {uri}
 
                 ## If the auth request:
                 ##   1. Responds with a status code IN the 200-299 range.

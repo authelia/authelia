@@ -177,7 +177,7 @@ func (ctx *AutheliaCtx) GetXForwardedHost() (host []byte) {
 	return host
 }
 
-// XForwardedURI returns the content of the X-Forwarded-Uri header.
+// XForwardedURI returns the content of the X-Forwarded-URI header.
 func (ctx *AutheliaCtx) XForwardedURI() (host []byte) {
 	return ctx.Request.Header.PeekBytes(headerXForwardedURI)
 }

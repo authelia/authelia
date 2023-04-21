@@ -60,7 +60,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsDeny() {
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, pairURI.TargetURI.Scheme)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, pairURI.TargetURI.Host)
-					mock.Ctx.Request.Header.Set("X-Forwarded-Uri", pairURI.TargetURI.Path)
+					mock.Ctx.Request.Header.Set("X-Forwarded-URI", pairURI.TargetURI.Path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
 					authz.Handler(mock.Ctx)
@@ -108,7 +108,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsOverrideAutheliaURLDeny() {
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, pairURI.TargetURI.Scheme)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, pairURI.TargetURI.Host)
-					mock.Ctx.Request.Header.Set("X-Forwarded-Uri", pairURI.TargetURI.Path)
+					mock.Ctx.Request.Header.Set("X-Forwarded-URI", pairURI.TargetURI.Path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
 					authz.Handler(mock.Ctx)
@@ -151,7 +151,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLBypassSta
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, targetURI.Scheme)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, targetURI.Host)
-					mock.Ctx.Request.Header.Set("X-Forwarded-Uri", targetURI.Path)
+					mock.Ctx.Request.Header.Set("X-Forwarded-URI", targetURI.Path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
 					authz.Handler(mock.Ctx)
@@ -183,7 +183,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLOneFactor
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, targetURI.Scheme)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, targetURI.Host)
-					mock.Ctx.Request.Header.Set("X-Forwarded-Uri", targetURI.Path)
+					mock.Ctx.Request.Header.Set("X-Forwarded-URI", targetURI.Path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
 					authz.Handler(mock.Ctx)
@@ -213,7 +213,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsRDAutheliaURLOneFactorStatu
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, targetURI.Scheme)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, targetURI.Host)
-					mock.Ctx.Request.Header.Set("X-Forwarded-Uri", targetURI.Path)
+					mock.Ctx.Request.Header.Set("X-Forwarded-URI", targetURI.Path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 					mock.Ctx.Request.SetRequestURI("/api/verify?rd=https%3A%2F%2Fauth.example.com")
 
@@ -263,7 +263,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsXHRDeny() {
 							mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 							mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, pairURI.TargetURI.Scheme)
 							mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, pairURI.TargetURI.Host)
-							mock.Ctx.Request.Header.Set("X-Forwarded-Uri", pairURI.TargetURI.Path)
+							mock.Ctx.Request.Header.Set("X-Forwarded-URI", pairURI.TargetURI.Path)
 
 							if x {
 								mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
@@ -311,7 +311,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, targetURI.Scheme)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, targetURI.Host)
-					mock.Ctx.Request.Header.Set("X-Forwarded-Uri", targetURI.Path)
+					mock.Ctx.Request.Header.Set("X-Forwarded-URI", targetURI.Path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
 					authz.Handler(mock.Ctx)
@@ -338,7 +338,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleMissingHostDeny() {
 			mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 			mock.Ctx.Request.Header.Del(fasthttp.HeaderXForwardedHost)
-			mock.Ctx.Request.Header.Set("X-Forwarded-Uri", "/")
+			mock.Ctx.Request.Header.Set("X-Forwarded-URI", "/")
 			mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
 			authz.Handler(mock.Ctx)
@@ -370,7 +370,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsAllow() {
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, targetURI.Scheme)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, targetURI.Host)
-					mock.Ctx.Request.Header.Set("X-Forwarded-Uri", targetURI.Path)
+					mock.Ctx.Request.Header.Set("X-Forwarded-URI", targetURI.Path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
 					authz.Handler(mock.Ctx)
@@ -454,7 +454,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsAllowXHR() {
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, targetURI.Scheme)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, targetURI.Host)
-					mock.Ctx.Request.Header.Set("X-Forwarded-Uri", targetURI.Path)
+					mock.Ctx.Request.Header.Set("X-Forwarded-URI", targetURI.Path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
 					authz.Handler(mock.Ctx)
@@ -613,7 +613,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 					mock.Ctx.Request.Header.Set("X-Forwarded-Method", method)
 					mock.Ctx.Request.Header.SetBytesKV([]byte(fasthttp.HeaderXForwardedProto), tc.scheme)
 					mock.Ctx.Request.Header.SetBytesKV([]byte(fasthttp.HeaderXForwardedHost), tc.host)
-					mock.Ctx.Request.Header.Set("X-Forwarded-Uri", tc.path)
+					mock.Ctx.Request.Header.Set("X-Forwarded-URI", tc.path)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
 
 					authz.Handler(mock.Ctx)

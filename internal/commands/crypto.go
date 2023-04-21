@@ -275,18 +275,20 @@ func (ctx *CmdCtx) CryptoGenerateRunE(cmd *cobra.Command, args []string) (err er
 // CryptoCertificateRequestRunE is the RunE for the authelia crypto certificate request command.
 func (ctx *CmdCtx) CryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		privateKey any
+		template                *x509.CertificateRequest
+		privateKey              any
+		csr                     []byte
+		privateKeyPath, csrPath string
+		pkcs8                   bool
 	)
 
 	if privateKey, err = ctx.cryptoGenPrivateKeyFromCmd(cmd); err != nil {
 		return err
 	}
 
-	var (
-		template                *x509.CertificateRequest
-		csr                     []byte
-		privateKeyPath, csrPath string
-	)
+	if pkcs8, err = cmd.Flags().GetBool(cmdFlagNamePKCS8); err != nil {
+		return err
+	}
 
 	if template, err = cryptoGetCSRFromCmd(cmd); err != nil {
 		return err
@@ -329,7 +331,7 @@ func (ctx *CmdCtx) CryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) 
 		return fmt.Errorf("failed to create certificate request: %w", err)
 	}
 
-	if err = utils.WriteKeyToPEM(privateKey, privateKeyPath, false); err != nil {
+	if err = utils.WriteKeyToPEM(privateKey, privateKeyPath, pkcs8); err != nil {
 		return err
 	}
 
@@ -345,7 +347,12 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 	var (
 		template, caCertificate, parent       *x509.Certificate
 		publicKey, caPrivateKey, signatureKey any
+		pkcs8                                 bool
 	)
+
+	if pkcs8, err = cmd.Flags().GetBool(cmdFlagNamePKCS8); err != nil {
+		return err
+	}
 
 	if publicKey = utils.PublicKeyFromPrivateKey(privateKey); publicKey == nil {
 		return fmt.Errorf("failed to obtain public key from private key")
@@ -419,7 +426,7 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 		return fmt.Errorf("failed to create certificate: %w", err)
 	}
 
-	if err = utils.WriteKeyToPEM(privateKey, privateKeyPath, false); err != nil {
+	if err = utils.WriteKeyToPEM(privateKey, privateKeyPath, pkcs8); err != nil {
 		return err
 	}
 
