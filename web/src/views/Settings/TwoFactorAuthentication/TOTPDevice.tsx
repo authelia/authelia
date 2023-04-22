@@ -15,7 +15,7 @@ interface Props {
     handleRefresh: () => void;
 }
 
-export default function TOTPDevice(props: Props) {
+const TOTPDevice = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const { createSuccessNotification, createErrorNotification } = useNotifications();
@@ -133,4 +133,6 @@ export default function TOTPDevice(props: Props) {
             </Paper>
         </Fragment>
     );
-}
+};
+
+export default TOTPDevice;

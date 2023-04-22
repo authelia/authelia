@@ -10,19 +10,19 @@ type TOTP struct {
 	Skew             *int   `koanf:"skew" json:"skew" jsonschema:"default=1,title=Skew" jsonschema_description:"The permitted skew for generated TOTP keys"`
 	SecretSize       int    `koanf:"secret_size" json:"secret_size" jsonschema:"default=32,minimum=20,title=Secret Size" jsonschema_description:"The secret size for generated TOTP keys"`
 
-	AllowedAlgorithms []string `koanf:"allowed_algorithms"`
-	AllowedDigits     []int    `koanf:"allowed_digits"`
-	AllowedPeriods    []int    `koanf:"allowed_periods"`
+	AllowedAlgorithms []string `koanf:"allowed_algorithms" json:"allowed_algorithms" jsonschema:"title=Allowed Algorithms,enum=SHA1,enum=SHA256,enum=SHA512" jsonschema_description:"List of algorithms the user is allowed to select in addition to the default"`
+	AllowedDigits     []int    `koanf:"allowed_digits" json:"allowed_digits" jsonschema:"title=Allowed Digits,enum=6,enum=8,default=6" jsonschema_description:"List of digits the user is allowed to select in addition to the default"`
+	AllowedPeriods    []int    `koanf:"allowed_periods" json:"allowed_periods" jsonschema:"title=Allowed Periods" jsonschema_description:"List of periods the user is allowed to select in addition to the default"`
 }
 
 var defaultTOTPSkew = 1
 
 // DefaultTOTPConfiguration represents default configuration parameters for TOTP generation.
 var DefaultTOTPConfiguration = TOTP{
-	Issuer:     "Authelia",
-	DefaultAlgorithm:  TOTPAlgorithmSHA1,
-	DefaultDigits:     6,
-	DefaultPeriod:     30,
+	Issuer:           "Authelia",
+	DefaultAlgorithm: TOTPAlgorithmSHA1,
+	DefaultDigits:    6,
+	DefaultPeriod:    30,
 	Skew:             &defaultTOTPSkew,
-	SecretSize: TOTPSecretSizeDefault,
+	SecretSize:       TOTPSecretSizeDefault,
 }

@@ -11,7 +11,7 @@ import WebAuthnDevicesPanel from "@views/Settings/TwoFactorAuthentication/WebAut
 
 interface Props {}
 
-export default function TwoFactorAuthSettings(props: Props) {
+const TwoFactorAuthSettings = function (props: Props) {
     const [refreshState, setRefreshState] = useState(0);
     const { createErrorNotification } = useNotifications();
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoPOST();
@@ -78,4 +78,6 @@ export default function TwoFactorAuthSettings(props: Props) {
             </Grid>
         </Grid>
     );
-}
+};
+
+export default TwoFactorAuthSettings;

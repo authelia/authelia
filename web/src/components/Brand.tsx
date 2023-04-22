@@ -37,11 +37,11 @@ const Brand = function (props: Props) {
     );
 };
 
-export default Brand;
-
 const useStyles = makeStyles((theme: Theme) => ({
     links: {
         fontSize: "0.7em",
         color: grey[500],
     },
 }));
+
+export default Brand;
