@@ -130,8 +130,6 @@ const SettingsLayout = function (props: Props) {
     );
 };
 
-export default SettingsLayout;
-
 interface NavItem {
     keyname?: string;
     text: string;
@@ -172,61 +170,4 @@ const DrawerNavItem = function (props: NavItem) {
     );
 };
 
-/*
-interface SettingsMenuProps {
-    isXL: boolean;
-    handleClickMenuItem: () => void;
-    handleToggleDrawer: (open: boolean) => (event: SyntheticEvent) => void;
-}
-
-const SettingsMenu = function (props: SettingsMenuProps) {
-    const { t: translate } = useTranslation("settings");
-    const navigate = useRouterNavigate();
-
-    return (
-        <Box
-            sx={{
-                p: 2,
-                height: 1,
-            }}
-        >
-            {props.isXL ? null : (
-                <Fragment>
-                    <IconButton sx={{ mb: 2 }} onClick={props.handleToggleDrawer(false)}>
-                        <Close />
-                    </IconButton>
-                    <Divider sx={{ mb: 2 }} />
-                </Fragment>
-            )}
-            <List sx={{ mb: 2 }}>
-                <SettingsMenuItem
-                    pathname={SettingsRoute}
-                    text={translate("Overview")}
-                    icon={<Dashboard color={"primary"} />}
-                    onClick={props.handleClickMenuItem}
-                />
-                <SettingsMenuItem
-                    pathname={`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`}
-                    text={translate("Two-Factor Authentication")}
-                    icon={<SystemSecurityUpdateGoodIcon color={"primary"} />}
-                    onClick={props.handleClickMenuItem}
-                />
-                <ListItem
-                    disablePadding
-                    onClick={() => {
-                        navigate(IndexRoute);
-                    }}
-                >
-                    <ListItemButton>
-                        <ListItemIcon>
-                            <Close color={"error"} />
-                        </ListItemIcon>
-                        <ListItemText primary={"Close"} />
-                    </ListItemButton>
-                </ListItem>
-            </List>
-        </Box>
-    );
-};
-
- */
+export default SettingsLayout;

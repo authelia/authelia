@@ -13,7 +13,7 @@ interface Props {
     handleRefreshState: () => void;
 }
 
-export default function TOTPPanel(props: Props) {
+const TOTPPanel = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const [showRegisterDialog, setShowRegisterDialog] = useState<boolean>(false);
@@ -68,4 +68,6 @@ export default function TOTPPanel(props: Props) {
             </Paper>
         </Fragment>
     );
-}
+};
+
+export default TOTPPanel;

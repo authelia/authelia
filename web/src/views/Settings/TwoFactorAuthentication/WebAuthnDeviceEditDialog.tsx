@@ -10,8 +10,7 @@ interface Props {
     device: WebAuthnDevice;
     handleClose: (ok: boolean, name: string) => void;
 }
-
-export default function WebAuthnDeviceEditDialog(props: Props) {
+const WebAuthnDeviceEditDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const [deviceName, setName] = useState("");
@@ -36,12 +35,14 @@ export default function WebAuthnDeviceEditDialog(props: Props) {
         <Dialog open={props.open} onClose={handleCancel}>
             <DialogTitle>{translate("Edit WebAuthn Credential")}</DialogTitle>
             <DialogContent>
-                <DialogContentText>{translate("Enter a new name for this WebAuthn credential")}</DialogContentText>
+                <DialogContentText>
+                    {translate("Enter a new description for this WebAuthn credential")}
+                </DialogContentText>
                 <TextField
                     autoFocus
                     inputRef={nameRef}
                     id="name-textfield"
-                    label={translate("Name")}
+                    label={translate("Description")}
                     variant="standard"
                     required
                     value={deviceName}
@@ -68,4 +69,6 @@ export default function WebAuthnDeviceEditDialog(props: Props) {
             </DialogActions>
         </Dialog>
     );
-}
+};
+
+export default WebAuthnDeviceEditDialog;

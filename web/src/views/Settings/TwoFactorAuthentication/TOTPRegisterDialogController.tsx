@@ -1,8 +1,7 @@
 import React, { Fragment, useCallback, useEffect, useState } from "react";
 
-import { IconDefinition, faCopy, faKey, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
+import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Visibility } from "@mui/icons-material";
 import {
     Box,
     Button,
@@ -15,13 +14,13 @@ import {
     FormControl,
     FormControlLabel,
     FormLabel,
-    IconButton,
     Link,
     Radio,
     RadioGroup,
     Step,
     StepLabel,
     Stepper,
+    Switch,
     TextField,
     Theme,
     Typography,
@@ -34,9 +33,11 @@ import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
 
 import AppStoreBadges from "@components/AppStoreBadges";
+import CopyButton from "@components/CopyButton";
+import SuccessIcon from "@components/SuccessIcon";
 import { GoogleAuthenticator } from "@constants/constants";
 import { useNotifications } from "@hooks/NotificationsContext";
-import { TOTPOptions, toAlgorithmString } from "@models/TOTPConfiguration";
+import { toAlgorithmString } from "@models/TOTPConfiguration";
 import { completeTOTPRegister, stopTOTPRegister } from "@services/OneTimePassword";
 import { getTOTPSecret } from "@services/RegisterDevice";
 import { getTOTPOptions } from "@services/UserInfoTOTPConfiguration";
@@ -50,52 +51,64 @@ interface Props {
     setClosed: () => void;
 }
 
-export default function TOTPRegisterDialogController(props: Props) {
+interface Options {
+    algorithm: string;
+    length: number;
+    period: number;
+}
+
+interface AvailableOptions {
+    algorithms: string[];
+    lengths: number[];
+    periods: number[];
+}
+
+const TOTPRegisterDialogController = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const styles = useStyles();
-    const { createErrorNotification, createSuccessNotification } = useNotifications();
+    const { createErrorNotification } = useNotifications();
+
+    const [selected, setSelected] = useState<Options>({ algorithm: "", length: 6, period: 30 });
+    const [defaults, setDefaults] = useState<Options | null>(null);
+    const [available, setAvailable] = useState<AvailableOptions>({
+        algorithms: [],
+        lengths: [],
+        periods: [],
+    });
 
     const [activeStep, setActiveStep] = useState(0);
-    const [options, setOptions] = useState<TOTPOptions | null>(null);
-    const [optionAlgorithm, setOptionAlgorithm] = useState("");
-    const [optionLength, setOptionLength] = useState(6);
-    const [optionPeriod, setOptionPeriod] = useState(30);
-    const [optionAlgorithms, setOptionAlgorithms] = useState<string[]>([]);
-    const [optionLengths, setOptionLengths] = useState<string[]>([]);
-    const [optionPeriods, setOptionPeriods] = useState<string[]>([]);
-    const [totpSecretURL, setTOTPSecretURL] = useState("");
-    const [totpSecretBase32, setTOTPSecretBase32] = useState<string | undefined>(undefined);
-    const [totpIsLoading, setTOTPIsLoading] = useState(false);
+
+    const [secretURL, setSecretURL] = useState<string | null>(null);
+    const [secretValue, setSecretValue] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [hasErrored, setHasErrored] = useState(false);
     const [dialValue, setDialValue] = useState("");
     const [dialState, setDialState] = useState(State.Idle);
-    const [totpSecretURLHidden, setTOTPSecretURLHidden] = useState(true);
+    const [showQRCode, setShowQRCode] = useState(true);
+    const [success, setSuccess] = useState(false);
 
-    const resetStates = () => {
-        setOptions(null);
-        setOptionAlgorithm("");
-        setOptionLength(6);
-        setOptionPeriod(30);
-        setOptionAlgorithms([]);
-        setOptionLengths([]);
-        setOptionPeriods([]);
-        setTOTPSecretURL("");
-        setTOTPSecretBase32(undefined);
-        setTOTPIsLoading(false);
+    const resetStates = useCallback(() => {
+        if (defaults) {
+            setSelected(defaults);
+        }
+
+        setSecretURL(null);
+        setSecretValue(null);
+        setIsLoading(false);
         setShowAdvanced(false);
         setActiveStep(0);
         setDialValue("");
         setDialState(State.Idle);
-        setTOTPSecretURLHidden(true);
-    };
+        setShowQRCode(true);
+    }, [defaults]);
 
     const handleClose = useCallback(() => {
         (async () => {
             props.setClosed();
 
-            if (totpSecretURL !== "") {
+            if (secretURL !== "") {
                 try {
                     await stopTOTPRegister();
                 } catch (err) {
@@ -105,12 +118,16 @@ export default function TOTPRegisterDialogController(props: Props) {
 
             resetStates();
         })();
-    }, [totpSecretURL, props]);
+    }, [props, secretURL, resetStates]);
 
     const handleFinished = useCallback(() => {
-        props.setClosed();
-        resetStates();
-    }, [props]);
+        setSuccess(true);
+
+        setTimeout(() => {
+            props.setClosed();
+            resetStates();
+        }, 750);
+    }, [props, resetStates]);
 
     const handleOnClose = () => {
         if (!props.open) {
@@ -121,21 +138,29 @@ export default function TOTPRegisterDialogController(props: Props) {
     };
 
     useEffect(() => {
-        if (!props.open || activeStep !== 0 || options !== null) {
+        if (!props.open || activeStep !== 0 || defaults !== null) {
             return;
         }
 
         (async () => {
             const opts = await getTOTPOptions();
-            setOptions(opts);
-            setOptionAlgorithm(toAlgorithmString(opts.algorithm));
-            setOptionAlgorithms(opts.algorithms.map((algorithm) => toAlgorithmString(algorithm)));
-            setOptionLength(opts.length);
-            setOptionLengths(opts.lengths.map((length) => length.toString()));
-            setOptionPeriod(opts.period);
-            setOptionPeriods(opts.periods.map((period) => period.toString()));
+
+            const decoded = {
+                algorithm: toAlgorithmString(opts.algorithm),
+                length: opts.length,
+                period: opts.period,
+            };
+
+            setAvailable({
+                algorithms: opts.algorithms.map((algorithm) => toAlgorithmString(algorithm)),
+                lengths: opts.lengths,
+                periods: opts.periods,
+            });
+
+            setDefaults(decoded);
+            setSelected(decoded);
         })();
-    }, [props.open, activeStep, options]);
+    }, [props.open, activeStep, defaults, selected]);
 
     const handleSetStepPrevious = useCallback(() => {
         if (activeStep === 0) {
@@ -143,7 +168,9 @@ export default function TOTPRegisterDialogController(props: Props) {
         }
 
         setShowAdvanced(false);
-        setActiveStep((prevState) => (prevState -= 1));
+        setActiveStep((prevState) => {
+            return prevState - 1;
+        });
     }, [activeStep]);
 
     const handleSetStepNext = useCallback(() => {
@@ -152,7 +179,9 @@ export default function TOTPRegisterDialogController(props: Props) {
         }
 
         setShowAdvanced(false);
-        setActiveStep((prevState) => (prevState += 1));
+        setActiveStep((prevState) => {
+            return prevState + 1;
+        });
     }, [activeStep]);
 
     useEffect(() => {
@@ -161,12 +190,12 @@ export default function TOTPRegisterDialogController(props: Props) {
         }
 
         (async () => {
-            setTOTPIsLoading(true);
+            setIsLoading(true);
 
             try {
-                const secret = await getTOTPSecret(optionAlgorithm, optionLength, optionPeriod);
-                setTOTPSecretURL(secret.otpauth_url);
-                setTOTPSecretBase32(secret.base32_secret);
+                const secret = await getTOTPSecret(selected.algorithm, selected.length, selected.period);
+                setSecretURL(secret.otpauth_url);
+                setSecretValue(secret.base32_secret);
             } catch (err) {
                 console.error(err);
                 if ((err as Error).message.includes("Request failed with status code 403")) {
@@ -183,12 +212,12 @@ export default function TOTPRegisterDialogController(props: Props) {
                 setHasErrored(true);
             }
 
-            setTOTPIsLoading(false);
+            setIsLoading(false);
         })();
-    }, [activeStep, createErrorNotification, optionAlgorithm, optionLength, optionPeriod, props.open, translate]);
+    }, [activeStep, createErrorNotification, selected, props.open, translate]);
 
     useEffect(() => {
-        if (!props.open || activeStep !== 2 || dialValue.length !== optionLength) {
+        if (!props.open || activeStep !== 2 || dialState === State.InProgress || dialValue.length !== selected.length) {
             return;
         }
 
@@ -207,63 +236,49 @@ export default function TOTPRegisterDialogController(props: Props) {
                 setDialState(State.Failure);
             }
         })();
-    }, [activeStep, dialValue, dialValue.length, optionLength, props.open]);
+    }, [activeStep, dialState, dialValue, dialValue.length, handleFinished, props.open, selected.length]);
 
     const toggleAdvanced = () => {
         setShowAdvanced((prevState) => !prevState);
     };
 
     const advanced =
-        options !== null &&
-        (optionAlgorithms.length !== 1 || optionAlgorithms.length !== 1 || optionPeriods.length !== 1);
+        defaults !== null &&
+        (available.algorithms.length !== 1 || available.lengths.length !== 1 || available.periods.length !== 1);
 
-    const hideAdvanced =
-        options === null || (optionAlgorithms.length <= 1 && optionPeriods.length <= 1 && optionLengths.length <= 1);
+    const disableAdvanced =
+        defaults === null ||
+        (available.algorithms.length <= 1 && available.lengths.length <= 1 && available.periods.length <= 1);
 
-    const hideAlgorithms = advanced && optionAlgorithms.length <= 1;
-    const hideLengths = advanced && optionLengths.length <= 1;
-    const hidePeriods = advanced && optionPeriods.length <= 1;
-    const qrcodeFuzzyStyle = totpIsLoading || hasErrored ? styles.fuzzy : undefined;
-
-    function SecretButton(text: string, action: string, icon: IconDefinition) {
-        const handleOnClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-            (async () => {
-                event.preventDefault();
-
-                await navigator.clipboard.writeText(text);
-                createSuccessNotification(action);
-            })();
-        };
-
-        return (
-            <IconButton color="primary" onClick={handleOnClick} size="large">
-                <FontAwesomeIcon icon={icon} />
-            </IconButton>
-        );
-    }
+    const hideAlgorithms = advanced && available.algorithms.length <= 1;
+    const hideLengths = advanced && available.lengths.length <= 1;
+    const hidePeriods = advanced && available.periods.length <= 1;
+    const qrcodeFuzzyStyle = isLoading || hasErrored ? styles.fuzzy : undefined;
 
     function renderStep(step: number) {
         switch (step) {
             case 0:
                 return (
                     <Fragment>
-                        {options === null ? (
-                            <Grid xs={12}>
+                        {defaults === null ? (
+                            <Grid xs={12} my={3}>
                                 <Typography>Loading...</Typography>
                             </Grid>
                         ) : (
                             <Grid container>
-                                <Grid xs={12}>
+                                <Grid xs={12} my={3}>
                                     <Typography>{translate("To begin select next")}</Typography>
                                 </Grid>
-                                <Grid xs={12} hidden={hideAdvanced}>
-                                    <Button variant={"outlined"} color={"warning"} onClick={toggleAdvanced}>
-                                        {showAdvanced ? translate("Hide Advanced") : translate("Show Advanced")}
-                                    </Button>
+                                <Grid xs={12} hidden={disableAdvanced}>
+                                    <FormControlLabel
+                                        disabled={disableAdvanced}
+                                        control={<Switch checked={showAdvanced} onChange={toggleAdvanced} />}
+                                        label={translate("Advanced")}
+                                    />
                                 </Grid>
                                 <Grid
                                     xs={12}
-                                    hidden={hideAdvanced || !showAdvanced}
+                                    hidden={disableAdvanced || !showAdvanced}
                                     justifyContent={"center"}
                                     alignItems={"center"}
                                 >
@@ -274,17 +289,23 @@ export default function TOTPRegisterDialogController(props: Props) {
                                         <RadioGroup
                                             row
                                             aria-labelledby={"lbl-adv-algorithms"}
-                                            value={optionAlgorithm}
+                                            value={selected.algorithm}
                                             hidden={hideAlgorithms}
                                             style={{
                                                 justifyContent: "center",
                                             }}
                                             onChange={(e, value) => {
-                                                setOptionAlgorithm(value);
+                                                setSelected((prevState) => {
+                                                    return {
+                                                        ...prevState,
+                                                        algorithm: value,
+                                                    };
+                                                });
+
                                                 e.preventDefault();
                                             }}
                                         >
-                                            {optionAlgorithms.map((algorithm) => (
+                                            {available.algorithms.map((algorithm) => (
                                                 <FormControlLabel
                                                     key={algorithm}
                                                     value={algorithm}
@@ -299,22 +320,28 @@ export default function TOTPRegisterDialogController(props: Props) {
                                         <RadioGroup
                                             row
                                             aria-labelledby={"lbl-adv-lengths"}
-                                            value={optionLength.toString()}
+                                            value={selected.length.toString()}
                                             hidden={hideLengths}
                                             style={{
                                                 justifyContent: "center",
                                             }}
                                             onChange={(e, value) => {
-                                                setOptionLength(parseInt(value));
+                                                setSelected((prevState) => {
+                                                    return {
+                                                        ...prevState,
+                                                        length: parseInt(value),
+                                                    };
+                                                });
+
                                                 e.preventDefault();
                                             }}
                                         >
-                                            {optionLengths.map((length) => (
+                                            {available.lengths.map((length) => (
                                                 <FormControlLabel
-                                                    key={length}
-                                                    value={length}
+                                                    key={length.toString()}
+                                                    value={length.toString()}
                                                     control={<Radio />}
-                                                    label={length}
+                                                    label={length.toString()}
                                                 />
                                             ))}
                                         </RadioGroup>
@@ -324,22 +351,28 @@ export default function TOTPRegisterDialogController(props: Props) {
                                         <RadioGroup
                                             row
                                             aria-labelledby={"lbl-adv-periods"}
-                                            value={optionPeriod.toString()}
+                                            value={selected.period.toString()}
                                             hidden={hidePeriods}
                                             style={{
                                                 justifyContent: "center",
                                             }}
                                             onChange={(e, value) => {
-                                                setOptionPeriod(parseInt(value));
+                                                setSelected((prevState) => {
+                                                    return {
+                                                        ...prevState,
+                                                        period: parseInt(value),
+                                                    };
+                                                });
+
                                                 e.preventDefault();
                                             }}
                                         >
-                                            {optionPeriods.map((period) => (
+                                            {available.periods.map((period) => (
                                                 <FormControlLabel
-                                                    key={period}
-                                                    value={period}
+                                                    key={period.toString()}
+                                                    value={period.toString()}
                                                     control={<Radio />}
-                                                    label={period}
+                                                    label={period.toString()}
                                                 />
                                             ))}
                                         </RadioGroup>
@@ -352,52 +385,63 @@ export default function TOTPRegisterDialogController(props: Props) {
             case 1:
                 return (
                     <Fragment>
-                        <Grid xs={12}>
+                        <Grid xs={12} my={2}>
+                            <FormControlLabel
+                                disabled={disableAdvanced}
+                                control={
+                                    <Switch
+                                        checked={showQRCode}
+                                        onChange={() => {
+                                            setShowQRCode((value) => !value);
+                                        }}
+                                    />
+                                }
+                                label={translate("QR Code")}
+                            />
+                        </Grid>
+                        <Grid xs={12} hidden={!showQRCode}>
                             <Box className={classnames(qrcodeFuzzyStyle, styles.qrcodeContainer)}>
-                                <Link href={totpSecretURL} underline="hover">
-                                    <QRCodeSVG value={totpSecretURL} className={styles.qrcode} size={150} />
-                                    {!hasErrored && totpIsLoading ? (
-                                        <CircularProgress className={styles.loader} size={128} />
-                                    ) : null}
-                                    {hasErrored ? (
-                                        <FontAwesomeIcon className={styles.failureIcon} icon={faTimesCircle} />
-                                    ) : null}
-                                </Link>
+                                {secretURL !== null ? (
+                                    <Link href={secretURL} underline="hover">
+                                        <QRCodeSVG value={secretURL} className={styles.qrcode} size={200} />
+                                        {!hasErrored && isLoading ? (
+                                            <CircularProgress className={styles.loader} size={128} />
+                                        ) : null}
+                                        {hasErrored ? (
+                                            <FontAwesomeIcon className={styles.failureIcon} icon={faTimesCircle} />
+                                        ) : null}
+                                    </Link>
+                                ) : null}
                             </Box>
                         </Grid>
-                        <Grid xs={12}>
+                        <Grid xs={12} hidden={showQRCode}>
                             <Grid container spacing={2} justifyContent={"center"}>
-                                <Grid xs={2}>
-                                    <IconButton
-                                        color="primary"
-                                        onClick={() => {
-                                            setTOTPSecretURLHidden((value) => !value);
-                                        }}
-                                        size="large"
+                                <Grid xs={4}>
+                                    <CopyButton
+                                        tooltip={translate("Click to Copy")}
+                                        value={secretURL}
+                                        childrenCopied={translate("Copied")}
+                                        fullWidth={true}
                                     >
-                                        <Visibility />
-                                    </IconButton>
+                                        {translate("OTP URL")}
+                                    </CopyButton>
                                 </Grid>
-                                <Grid xs={2}>
-                                    {totpSecretBase32
-                                        ? SecretButton(
-                                              totpSecretBase32,
-                                              translate("OTP Secret copied to clipboard"),
-                                              faKey,
-                                          )
-                                        : null}
+                                <Grid xs={4}>
+                                    <CopyButton
+                                        tooltip={translate("Click to Copy")}
+                                        value={secretValue}
+                                        childrenCopied={translate("Copied")}
+                                        fullWidth={true}
+                                    >
+                                        {translate("Secret")}
+                                    </CopyButton>
                                 </Grid>
-                                <Grid xs={2}>
-                                    {totpSecretURL !== ""
-                                        ? SecretButton(totpSecretURL, translate("OTP URL copied to clipboard"), faCopy)
-                                        : null}
-                                </Grid>
-                                <Grid xs={12} hidden={totpSecretURLHidden || totpSecretURL === ""}>
+                                <Grid xs={12}>
                                     <TextField
                                         id="secret-url"
                                         label={translate("Secret")}
                                         className={styles.secret}
-                                        value={totpSecretURL}
+                                        value={secretURL === null ? "" : secretURL}
                                         multiline={true}
                                         InputProps={{
                                             readOnly: true,
@@ -412,7 +456,7 @@ export default function TOTPRegisterDialogController(props: Props) {
                                     {translate("Need Google Authenticator?")}
                                 </Typography>
                                 <AppStoreBadges
-                                    iconSize={128}
+                                    iconSize={110}
                                     targetBlank
                                     className={styles.googleAuthenticatorBadges}
                                     googlePlayLink={GoogleAuthenticator.googlePlay}
@@ -426,13 +470,19 @@ export default function TOTPRegisterDialogController(props: Props) {
                 return (
                     <Fragment>
                         <Grid xs={12} paddingY={4}>
-                            <OTPDial
-                                passcode={dialValue}
-                                state={dialState}
-                                digits={optionLength}
-                                period={optionPeriod}
-                                onChange={setDialValue}
-                            />
+                            {success ? (
+                                <Box className={styles.success}>
+                                    <SuccessIcon />
+                                </Box>
+                            ) : (
+                                <OTPDial
+                                    passcode={dialValue}
+                                    state={dialState}
+                                    digits={selected.length}
+                                    period={selected.period}
+                                    onChange={setDialValue}
+                                />
+                            )}
                         </Grid>
                     </Fragment>
                 );
@@ -482,7 +532,7 @@ export default function TOTPRegisterDialogController(props: Props) {
             </DialogActions>
         </Dialog>
     );
-}
+};
 
 const useStyles = makeStyles((theme: Theme) => ({
     qrcode: {
@@ -520,4 +570,10 @@ const useStyles = makeStyles((theme: Theme) => ({
         color: red[400],
         fontSize: "128px",
     },
+    success: {
+        marginBottom: theme.spacing(2),
+        flex: "0 0 100%",
+    },
 }));
+
+export default TOTPRegisterDialogController;
