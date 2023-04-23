@@ -45,7 +45,7 @@ To configure [Tailscale] to utilize Authelia as an [OpenID Connect 1.0] Provider
 
 1. Your domain will need to reply to a WebFinger request for your Authelia account
 2. Your domain root is `example.com` and the Authelia account in question is `user@example.com`, the WebFinger request will be: `https://example.com/.well-known/webfinger/?resource=acct:user@example.com`
-3. The WebFinger request will need to be answered with the following example reply:  
+3. The WebFinger request will need to be answered with the following example reply:
 ```
 {
  "subject" : "acct:user@example.com",
@@ -59,9 +59,9 @@ To configure [Tailscale] to utilize Authelia as an [OpenID Connect 1.0] Provider
 }
 ```
 4. For any other users that you want to add to Tailscale, you will need to to provide similar WebFinger replies (e.g. for `user2@example.com` or `user3@example.com`)
-5. Once you have the WebFinger reply set up and your [Authelia OpenID Connect Discovery endpoint](https://www.authelia.com/integration/openid-connect/introduction/#well-known-discovery-endpoints) is working (e.g. `https://auth.example.com/.well-known/openid-configuration`), you can sign up for a **new Tailnet** (currently migration isn't supported) via the link: [Sign up with OIDC](https://login.tailscale.com/start/oidc) where you will see the following screen:  
+5. Once you have the WebFinger reply set up and your [Authelia OpenID Connect Discovery endpoint](https://www.authelia.com/integration/openid-connect/introduction/#well-known-discovery-endpoints) is working (e.g. `https://auth.example.com/.well-known/openid-configuration`), you can sign up for a **new Tailnet** (currently migration isn't supported) via the link: [Sign up with OIDC](https://login.tailscale.com/start/oidc) where you will see the following screen:
 {{< figure src="tailscale_signup_1.png" alt="Tailscale Signup Screen 1" width="300" >}}
-6. After clicking on **Get OIDC Issuer**, Tailscale will fetch the WebFinger reply via `https://example.com/.well-known/webfinger/?resource=acct:user@example.com` and follow the set `href` to `https://auth.example.com/.well-known/openid-configuration`.  
+6. After clicking on **Get OIDC Issuer**, Tailscale will fetch the WebFinger reply via `https://example.com/.well-known/webfinger/?resource=acct:user@example.com` and follow the set `href` to `https://auth.example.com/.well-known/openid-configuration`.
 **Note:** make sure that the `href` URL matches the `issuer` URL returned from the Authelia OIDC dicsovery endpoint
 7. On the next screen you will need to add your client ID & secret configured in Authelia to finish the OIDC provider registration in [Tailscale].
 
@@ -95,5 +95,6 @@ identity_providers:
 - [RFC 7033, Identity Provider Discovery for OpenID Connect](https://www.rfc-editor.org/rfc/rfc7033#section-3.1)
 - [WebFinger example implementations](https://webfinger.net/code/)
 
+[Authelia]: https://www.authelia.com
 [Tailscale]: https://tailscale.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
