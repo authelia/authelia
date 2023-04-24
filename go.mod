@@ -34,7 +34,7 @@ require (
 	github.com/ory/fosite v0.44.0
 	github.com/ory/herodot v0.10.2
 	github.com/ory/x v0.0.553
-	github.com/otiai10/copy v1.10.0
+	github.com/otiai10/copy v1.11.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.4.0
 	github.com/prometheus/client_golang v1.15.0
@@ -43,7 +43,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.2
 	github.com/trustelem/zxcvbn v1.0.1
-	github.com/valyala/fasthttp v1.45.0
+	github.com/valyala/fasthttp v1.46.0
 	github.com/wneessen/go-mail v0.3.9
 	golang.org/x/net v0.9.0
 	golang.org/x/sync v0.1.0

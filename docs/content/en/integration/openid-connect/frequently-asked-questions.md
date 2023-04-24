@@ -27,7 +27,7 @@ We strongly recommend the following guidelines for generating client secrets:
 
 Authelia provides an easy way to perform such actions via the [Generating a Random Password Hash] guide. Users can
 perform a command such as
-`authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random-charset rfc3986` command to
+`authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986` command to
 both generate a client secret with 72 characters which is printed and is to be used with the relying party and hash it
 using PBKDF2 which can be stored in the Authelia configuration. This random command also avoids issues with a relying
 party / client application encoding the characters correctly as it uses the
