@@ -59,8 +59,8 @@ dependencies:
     specifier: 18.2.0
     version: 18.2.0(react@18.2.0)
   react-i18next:
-    specifier: 12.2.0
-    version: 12.2.0(i18next@22.4.15)(react-dom@18.2.0)(react@18.2.0)
+    specifier: 12.2.1
+    version: 12.2.1(i18next@22.4.15)(react-dom@18.2.0)(react@18.2.0)
   react-loading:
     specifier: 2.0.3
     version: 2.0.3(prop-types@15.8.1)(react@18.2.0)
@@ -6504,8 +6504,8 @@ packages:
       react: 18.2.0
       scheduler: 0.23.0
 
-  /react-i18next@12.2.0(i18next@22.4.15)(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-5XeVgSygaGfyFmDd2WcXvINRw2WEC1XviW1LXY/xLOEMzsCFRwKqfnHN+hUjla8ZipbVJR27GCMSuTr0BhBBBQ==}
+  /react-i18next@12.2.1(i18next@22.4.15)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-gmNca0hYM+EhC1OiaAvSWsIDQVeStYObHX0xHM2GEv6Q39Mub+okwUBm2AyoivA4EYlHxoUDZ1IV5lIIiz/pEQ==}
     peerDependencies:
       i18next: '>= 19.0.0'
       react: '>= 16.8.0 || 18'
