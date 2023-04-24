@@ -6,7 +6,7 @@ require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/deckarep/golang-set/v2 v2.3.0
-	github.com/duosecurity/duo_api_golang v0.0.0-20230203160531-b221c950c2b0
+	github.com/duosecurity/duo_api_golang v0.0.0-20230418202038-096d3306c029
 	github.com/fasthttp/router v1.4.18
 	github.com/fasthttp/session/v2 v2.4.17
 	github.com/fsnotify/fsnotify v1.6.0
