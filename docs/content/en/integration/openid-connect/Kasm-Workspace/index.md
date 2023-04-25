@@ -31,7 +31,7 @@ This example makes the following assumptions:
 * __Authorization URL:__ `https://auth.example.com/api/oidc/authorization`
 * __Token URL:__ `https://auth.example.com/api/oidc/token`
 * __User Info URL:__ `https://auth.example.com/api/oidc/userinfo`
-* __Scope (One per line):__ `openid profile email`
+* __Scope (One per line):__ `openid profile groups email`
 * __Username Attribute:__ `preferred_username`
 * __Application Root URL:__ `https://kasm.example.com`
 * __Client ID:__ `kasm`
