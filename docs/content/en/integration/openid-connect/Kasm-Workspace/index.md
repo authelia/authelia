@@ -1,8 +1,8 @@
 ---
-title: "Apache Guacamole"
-description: "Integrating Apache Guacamole with the Authelia OpenID Connect Provider."
+title: "Kasm Workspaces"
+description: "Integrating Kasm Workspaces with the Authelia OpenID Connect Provider."
 lead: ""
-date: 2022-07-31T13:09:05+10:00
+date: 2023-04-25T23:07:05+2:00
 draft: false
 images: []
 menu:
@@ -75,8 +75,8 @@ identity_providers:
 
 ## See Also
 
-* [Apache Guacamole OpenID Connect Authentication Documentation](https://guacamole.apache.org/doc/gug/openid-auth.html)
+* [Kasm Workspaces OpenID Connect Authentication Documentation](https://kasmweb.com/docs/latest/guide/oidc.html)
 
 [Authelia]: https://www.authelia.com
-[Apache Guacamole]: https://guacamole.apache.org/
+[Kasm Workspaces]: https://kasmweb.com/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
