@@ -43,7 +43,7 @@ This example makes the following assumptions:
 
 To configure [Kasm Workspaces] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
 
-{{< figure src="kasm.png" alt="Kasm" width="300" >}}
+![Kasm](kasm.png)
 
 ### Authelia
 
