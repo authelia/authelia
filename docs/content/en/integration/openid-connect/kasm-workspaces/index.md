@@ -6,8 +6,8 @@ date: 2023-04-25T23:07:05+2:00
 draft: false
 images: []
 menu:
-integration:
-parent: "openid-connect"
+  integration:
+    parent: "openid-connect"
 weight: 620
 toc: true
 community: true
