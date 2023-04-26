@@ -39,6 +39,20 @@ This example makes the following assumptions:
 
 To configure [Kasm Workspaces] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
 
+1. Visit Authentication
+2. Visit OpenID
+3. Set the following values:
+   1. Enable *Automatic User Provision* if you want users to automatically be created in [Kasm Workspaces].
+   2. Enable *Auto Login* if you want automatic user login.
+   3. Enable *Default* if you want Authelia to be the default sign-in method.
+   4. Client ID: `kasm`
+   5. Client Secret: `insecure_secret`
+   6. Authorization URL: `https://auth.example.com/api/oidc/authorization`
+   7. Token URL: `https://auth.example.com/api/oidc/token`
+   8. User Info URL: `https://auth.example.com/api/oidc/userinfo`
+   9. Scope (One Per Line): `openid profile groups email`
+   10. User Identifier: `preferred_username`
+
 ![Kasm](kasm.png)
 
 ### Authelia
