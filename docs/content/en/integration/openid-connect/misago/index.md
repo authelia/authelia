@@ -15,10 +15,10 @@ community: true
 
 ## Tested Versions
 
-* [Authelia](https://www.authelia.com)
-  * [v4.37.5](https://github.com/authelia/authelia/releases/tag/v4.37.5)
-* [Misago](https://github.com/rafalp/Misago)
-  * [misago-image v0.29.1](https://github.com/tetricky/misago-image/releases/tag/v0.29.1)
+- [Authelia](https://www.authelia.com)
+  - [v4.37.5](https://github.com/authelia/authelia/releases/tag/v4.37.5)
+- [Misago](https://github.com/rafalp/Misago)
+  - [misago-image v0.29.1](https://github.com/tetricky/misago-image/releases/tag/v0.29.1)
 
 ## Before You Begin
 
@@ -109,6 +109,6 @@ identity_providers:
 ---
 ## See Also
 
--   [Misago] [OAuth 2 Client Configuration guide](https://misago-project.org/t/oauth-2-client-configuration-guide/1147/)
+- [Misago] [OAuth 2 Client Configuration guide](https://misago-project.org/t/oauth-2-client-configuration-guide/1147/)
 
 [Misago]: https://misago-project.org/

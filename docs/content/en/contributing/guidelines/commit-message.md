@@ -140,10 +140,55 @@ BREAKING CHANGE: <breaking change summary>
 <BLANK LINE>
 <BLANK LINE>
 Fixes #<issue number>
+
+Signed-off-by: <AUTHOR>
 ```
 
 Breaking Change section should start with the phrase "BREAKING CHANGE: " followed by a summary of the breaking change, a
 blank line, and a detailed description of the breaking change that also includes migration instructions.
+
+#### Developer Certificate of Origin
+
+The footer *__MUST__* include the formal and conventional notation indicating the users acceptance of the
+[Developer Certificate of Origin](https://developercertificate.org/) as described by the following agreement:
+
+```text
+Developer's Certificate of Origin 1.1
+
+By making a contribution to this project, I certify that:
+
+(a) The contribution was created in whole or in part by me and I
+    have the right to submit it under the open source license
+    indicated in the file; or
+
+(b) The contribution is based upon previous work that, to the best
+    of my knowledge, is covered under an appropriate open source
+    license and I have the right under that license to submit that
+    work with modifications, whether created in whole or in part
+    by me, under the same open source license (unless I am
+    permitted to submit under a different license), as indicated
+    in the file; or
+
+(c) The contribution was provided directly to me by some other
+    person who certified (a), (b) or (c) and I have not modified
+    it.
+
+(d) I understand and agree that this project and the contribution
+    are public and that a record of the contribution (including all
+    personal information I submit with it, including my sign-off) is
+    maintained indefinitely and may be redistributed consistent with
+    this project or the open source license(s) involved.
+```
+
+This can be achieved in the following ways:
+
+- While making the commit use `git commit --signoff`
+- To correct a single commit missing the sign off `git commit –-amend --signoff --no-edit`
+- To correct multiple commits missing the sign off `git rebase --signoff HEAD~2` (i.e. with 2 commits that are missing the sign off)
+
+This can be achieved by using `git commit --signoff`. A single previous commit can be signed using
+`git commit –-amend --signoff --no-edit`. Multiple previous commits can be signed using `git rebase --signoff HEAD~2`
+i.e. when 2 previous commits require the sign off.
 
 ### Revert Commits
 
@@ -165,6 +210,8 @@ This in turn will cause issues when attempting to utilise the log with the provi
 We now override any TTY detection/logging treatments and disable coloring/removal of the timestamp when a user is utilising the text based logger to a file.
 
 Fixes #1480.
+
+Signed-off-by: John Smith <jsmith@org.com>
 ```
 
 This document is based on [AngularJS Git Commit Message Format].

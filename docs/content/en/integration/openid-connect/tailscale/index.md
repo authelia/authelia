@@ -2,7 +2,7 @@
 title: "Tailscale"
 description: "Using Authelia as the Tailscale OpenID Connect Provider."
 lead: ""
-date: 2023-04-20T08:53:36.993Z
+date: 2023-04-23T10:06:28+10:00
 draft: false
 images: []
 menu:

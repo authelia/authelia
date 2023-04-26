@@ -53,6 +53,8 @@ module.exports = {
                 "web",
             ],
         ],
+        "signed-off-by": [2, "always", "Signed-off-by:"],
+        "trailer-exists": [2, "always", "Signed-off-by:"],
     },
     defaultIgnores: true,
     helpUrl: "https://www.authelia.com/contributing/guidelines/commit-message/",
