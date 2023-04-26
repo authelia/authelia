@@ -37,17 +37,14 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, store s
 
 	provider.Config.LoadHandlers(provider.Store, provider.KeyManager.Strategy())
 
-	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config, provider.Store.clients)
+	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config)
 
 	return provider, nil
 }
 
 // GetOAuth2WellKnownConfiguration returns the discovery document for the OAuth Configuration.
 func (p *OpenIDConnectProvider) GetOAuth2WellKnownConfiguration(issuer string) OAuth2WellKnownConfiguration {
-	options := OAuth2WellKnownConfiguration{
-		CommonDiscoveryOptions: p.discovery.CommonDiscoveryOptions,
-		OAuth2DiscoveryOptions: p.discovery.OAuth2DiscoveryOptions,
-	}
+	options := p.discovery.OAuth2WellKnownConfiguration.Copy()
 
 	options.Issuer = issuer
 
@@ -63,13 +60,7 @@ func (p *OpenIDConnectProvider) GetOAuth2WellKnownConfiguration(issuer string) O
 
 // GetOpenIDConnectWellKnownConfiguration returns the discovery document for the OpenID Configuration.
 func (p *OpenIDConnectProvider) GetOpenIDConnectWellKnownConfiguration(issuer string) OpenIDConnectWellKnownConfiguration {
-	options := OpenIDConnectWellKnownConfiguration{
-		CommonDiscoveryOptions:                          p.discovery.CommonDiscoveryOptions,
-		OAuth2DiscoveryOptions:                          p.discovery.OAuth2DiscoveryOptions,
-		OpenIDConnectDiscoveryOptions:                   p.discovery.OpenIDConnectDiscoveryOptions,
-		OpenIDConnectFrontChannelLogoutDiscoveryOptions: p.discovery.OpenIDConnectFrontChannelLogoutDiscoveryOptions,
-		OpenIDConnectBackChannelLogoutDiscoveryOptions:  p.discovery.OpenIDConnectBackChannelLogoutDiscoveryOptions,
-	}
+	options := p.discovery.Copy()
 
 	options.Issuer = issuer
 

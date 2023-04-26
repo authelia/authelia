@@ -4,8 +4,10 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/mail"
+	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -185,6 +187,32 @@ func (suite *NotifierSuite) TestSMTPShouldEnsureSenderIsProvided() {
 	suite.Assert().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], fmt.Sprintf(errFmtNotifierSMTPNotConfigured, "sender"))
+}
+
+func (suite *NotifierSuite) TestTemplatesEmptyDir() {
+	dir := suite.T().TempDir()
+
+	suite.config.TemplatePath = dir
+
+	ValidateNotifier(&suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
+}
+
+func (suite *NotifierSuite) TestTemplatesEmptyDirNoExist() {
+	dir := suite.T().TempDir()
+
+	p := filepath.Join(dir, "notexist")
+
+	suite.config.TemplatePath = p
+
+	ValidateNotifier(&suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 1)
+
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], fmt.Sprintf("notifier: option 'template_path' refers to location '%s' which does not exist", p))
 }
 
 /*

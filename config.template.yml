@@ -214,13 +214,13 @@ totp:
 ##
 ## Parameters used for WebAuthn.
 webauthn:
-  ## Disable Webauthn.
+  ## Disable WebAuthn.
   disable: false
 
-  ## Adjust the interaction timeout for Webauthn dialogues.
+  ## Adjust the interaction timeout for WebAuthn dialogues.
   timeout: 60s
 
-  ## The display name the browser should show the user for when using Webauthn to login/register.
+  ## The display name the browser should show the user for when using WebAuthn to login/register.
   display_name: Authelia
 
   ## Conveyance preference controls if we collect the attestation statement including the AAGUID from the device.
@@ -1167,7 +1167,7 @@ regulation:
 ##
 ## Notification Provider
 ##
-## Notifications are sent to users when they require a password reset, a Webauthn registration or a TOTP registration.
+## Notifications are sent to users when they require a password reset, a WebAuthn registration or a TOTP registration.
 ## The available providers are: filesystem, smtp. You must use only one of these providers.
 notifier:
   ## You can disable the notifier startup check by setting this to true.
@@ -1480,12 +1480,6 @@ notifier:
           # - email
           # - profile
 
-        ## Grant Types configures which grants this client can obtain.
-        ## It's not recommended to define this unless you know what you're doing.
-        # grant_types:
-          # - refresh_token
-          # - authorization_code
-
         ## Response Types configures which responses this client can be sent.
         ## It's not recommended to define this unless you know what you're doing.
         # response_types:
@@ -1495,7 +1489,14 @@ notifier:
         # response_modes:
           # - form_post
           # - query
-          # - fragment
+
+        ## Grant Types configures which grants this client can obtain.
+        ## It's not recommended to define this unless you know what you're doing.
+        # grant_types:
+        # - authorization_code
+
+        ## The permitted client authentication method for the Token Endpoint for this client.
+        # token_endpoint_auth_method: client_secret_basic
 
         ## The policy to require for this client; one_factor or two_factor.
         # authorization_policy: two_factor

@@ -11,6 +11,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/duo"
@@ -122,7 +123,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldAutoSelect() {
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
 	DuoPOST(duoMock)(s.mock.Ctx)
-	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldDenyAutoSelect() {
@@ -328,7 +329,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldUseInvalidMethodAndAutoSelect() {
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
 	DuoPOST(duoMock)(s.mock.Ctx)
-	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndAllowAccess() {
@@ -352,7 +353,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndAllowAccess() {
 
 	DuoPOST(duoMock)(s.mock.Ctx)
 
-	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndDenyAccess() {
@@ -382,7 +383,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndDenyAccess() {
 
 	DuoPOST(duoMock)(s.mock.Ctx)
 
-	assert.Equal(s.T(), 401, s.mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), fasthttp.StatusUnauthorized, s.mock.Ctx.Response.StatusCode())
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndFail() {
@@ -452,7 +453,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndDenyAccess() {
 
 	DuoPOST(duoMock)(s.mock.Ctx)
 
-	assert.Equal(s.T(), 401, s.mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), fasthttp.StatusUnauthorized, s.mock.Ctx.Response.StatusCode())
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {

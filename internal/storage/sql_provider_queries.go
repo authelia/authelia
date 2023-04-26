@@ -119,59 +119,59 @@ const (
 )
 
 const (
-	queryFmtSelectWebauthnDevices = `
+	queryFmtSelectWebAuthnDevices = `
 		SELECT id, created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning
 		FROM %s
 		LIMIT ?
 		OFFSET ?;`
 
-	queryFmtSelectWebauthnDevicesEncryptedData = `
+	queryFmtSelectWebAuthnDevicesEncryptedData = `
 		SELECT id, public_key
 		FROM %s;`
 
-	queryFmtSelectWebauthnDevicesByUsername = `
+	queryFmtSelectWebAuthnDevicesByUsername = `
 		SELECT id, created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning
 		FROM %s
 		WHERE username = ?;`
 
-	queryFmtUpdateWebauthnDevicePublicKey = `
+	queryFmtUpdateWebAuthnDevicePublicKey = `
 		UPDATE %s
 		SET public_key = ?
 		WHERE id = ?;`
 
-	queryFmtUpdateWebauthnDeviceRecordSignIn = `
+	queryFmtUpdateWebAuthnDeviceRecordSignIn = `
 		UPDATE %s
 		SET
 			rpid = ?, last_used_at = ?, sign_count = ?,
 			clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
 		WHERE id = ?;`
 
-	queryFmtUpdateWebauthnDeviceRecordSignInByUsername = `
+	queryFmtUpdateWebAuthnDeviceRecordSignInByUsername = `
 		UPDATE %s
 		SET
 			rpid = ?, last_used_at = ?, sign_count = ?,
 			clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
 		WHERE username = ? AND kid = ?;`
 
-	queryFmtUpsertWebauthnDevice = `
+	queryFmtUpsertWebAuthnDevice = `
 		REPLACE INTO %s (created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
-	queryFmtUpsertWebauthnDevicePostgreSQL = `
+	queryFmtUpsertWebAuthnDevicePostgreSQL = `
 		INSERT INTO %s (created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 			ON CONFLICT (username, description)
 			DO UPDATE SET created_at = $1, last_used_at = $2, rpid = $3, kid = $6, public_key = $7, attestation_type = $8, transport = $9, aaguid = $10, sign_count = $11, clone_warning = $12;`
 
-	queryFmtDeleteWebauthnDevice = `
+	queryFmtDeleteWebAuthnDevice = `
 		DELETE FROM %s
 		WHERE kid = ?;`
 
-	queryFmtDeleteWebauthnDeviceByUsername = `
+	queryFmtDeleteWebAuthnDeviceByUsername = `
 		DELETE FROM %s
 		WHERE username = ?;`
 
-	queryFmtDeleteWebauthnDeviceByUsernameAndDescription = `
+	queryFmtDeleteWebAuthnDeviceByUsernameAndDescription = `
 		DELETE FROM %s
 		WHERE username = ? AND description = ?;`
 )

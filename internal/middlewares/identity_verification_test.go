@@ -48,7 +48,7 @@ func TestShouldFailStartingProcessIfUserHasNoEmailAddress(t *testing.T) {
 
 	middlewares.IdentityVerificationStart(newArgs(retriever), nil)(mock.Ctx)
 
-	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "User does not have any email", mock.Hook.LastEntry().Message)
 }
 
@@ -65,7 +65,7 @@ func TestShouldFailIfJWTCannotBeSaved(t *testing.T) {
 	args := newArgs(defaultRetriever)
 	middlewares.IdentityVerificationStart(args, nil)(mock.Ctx)
 
-	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "cannot save", mock.Hook.LastEntry().Message)
 }
 
@@ -88,7 +88,7 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 	args := newArgs(defaultRetriever)
 	middlewares.IdentityVerificationStart(args, nil)(mock.Ctx)
 
-	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "no notif", mock.Hook.LastEntry().Message)
 }
 
@@ -110,7 +110,7 @@ func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 	args := newArgs(defaultRetriever)
 	middlewares.IdentityVerificationStart(args, nil)(mock.Ctx)
 
-	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 	defer mock.Close()
 }
@@ -272,7 +272,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldReturn200OnFinishComplete(
 
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
 
-	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 }
 
 func TestRunIdentityVerificationFinish(t *testing.T) {

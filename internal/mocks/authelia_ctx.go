@@ -219,7 +219,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	// request.Request.Header.SetCookie("authelia_session", "client_cookie").
 
 	// Set X-Forwarded-Host for compatibility with multi-root-domain implementation.
-	request.Request.Header.Set("X-Forwarded-Host", "example.com")
+	request.Request.Header.Set(fasthttp.HeaderXForwardedHost, "example.com")
 
 	ctx := middlewares.NewAutheliaCtx(request, config, providers)
 	mockAuthelia.Ctx = ctx
@@ -256,19 +256,19 @@ func (m *MockAutheliaCtx) SetRequestBody(t *testing.T, body interface{}) {
 
 // Assert401KO assert an error response from the service.
 func (m *MockAutheliaCtx) Assert401KO(t *testing.T, message string) {
-	assert.Equal(t, 401, m.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusUnauthorized, m.Ctx.Response.StatusCode())
 	assert.Equal(t, fmt.Sprintf("{\"status\":\"KO\",\"message\":\"%s\"}", message), string(m.Ctx.Response.Body()))
 }
 
 // Assert200KO assert an error response from the service.
 func (m *MockAutheliaCtx) Assert200KO(t *testing.T, message string) {
-	assert.Equal(t, 200, m.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, m.Ctx.Response.StatusCode())
 	assert.Equal(t, fmt.Sprintf("{\"status\":\"KO\",\"message\":\"%s\"}", message), string(m.Ctx.Response.Body()))
 }
 
 // Assert200OK assert a successful response from the service.
 func (m *MockAutheliaCtx) Assert200OK(t *testing.T, data interface{}) {
-	assert.Equal(t, 200, m.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, m.Ctx.Response.StatusCode())
 
 	response := middlewares.OKResponse{
 		Status: "OK",

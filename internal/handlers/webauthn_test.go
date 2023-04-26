@@ -7,13 +7,14 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-func TestWebauthnGetUser(t *testing.T) {
+func TestWebAuthnGetUser(t *testing.T) {
 	ctx := mocks.NewMockAutheliaCtx(t)
 
 	userSession := session.UserSession{
@@ -21,7 +22,7 @@ func TestWebauthnGetUser(t *testing.T) {
 		DisplayName: "John Smith",
 	}
 
-	ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "john").Return([]model.WebAuthnDevice{
+	ctx.StorageMock.EXPECT().LoadWebAuthnDevicesByUsername(ctx.Ctx, "john").Return([]model.WebAuthnDevice{
 		{
 			ID:              1,
 			RPID:            "https://example.com",
@@ -52,7 +53,7 @@ func TestWebauthnGetUser(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, user)
 
-	assert.Equal(t, []byte("john"), user.WebAuthnID())
+	assert.Equal(t, []byte{}, user.WebAuthnID())
 	assert.Equal(t, "john", user.WebAuthnName())
 	assert.Equal(t, "john", user.Username)
 
@@ -99,17 +100,17 @@ func TestWebauthnGetUser(t *testing.T) {
 	assert.Equal(t, protocol.AuthenticatorTransport("nfc"), descriptors[1].Transport[1])
 }
 
-func TestWebauthnGetUserWithoutDisplayName(t *testing.T) {
+func TestWebAuthnGetUserWithoutDisplayName(t *testing.T) {
 	ctx := mocks.NewMockAutheliaCtx(t)
 
 	userSession := session.UserSession{
 		Username: "john",
 	}
 
-	ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "john").Return([]model.WebAuthnDevice{
+	ctx.StorageMock.EXPECT().LoadWebAuthnDevicesByUsername(ctx.Ctx, "john").Return([]model.WebAuthnDevice{
 		{
 			ID:              1,
-			RPID:            "https://example.com",
+			RPID:            "example.com",
 			Username:        "john",
 			Description:     "Primary",
 			KID:             model.NewBase64([]byte("abc123")),
@@ -129,14 +130,14 @@ func TestWebauthnGetUserWithoutDisplayName(t *testing.T) {
 	assert.Equal(t, "john", user.DisplayName)
 }
 
-func TestWebauthnGetUserWithErr(t *testing.T) {
+func TestWebAuthnGetUserWithErr(t *testing.T) {
 	ctx := mocks.NewMockAutheliaCtx(t)
 
 	userSession := session.UserSession{
 		Username: "john",
 	}
 
-	ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "john").Return(nil, errors.New("not found"))
+	ctx.StorageMock.EXPECT().LoadWebAuthnDevicesByUsername(ctx.Ctx, "john").Return(nil, errors.New("not found"))
 
 	user, err := getWebAuthnUser(ctx.Ctx, userSession)
 
@@ -144,24 +145,24 @@ func TestWebauthnGetUserWithErr(t *testing.T) {
 	assert.Nil(t, user)
 }
 
-func TestWebauthnNewWebauthnShouldReturnErrWhenHeadersNotAvailable(t *testing.T) {
+func TestWebAuthnNewWebAuthnShouldReturnErrWhenHeadersNotAvailable(t *testing.T) {
 	ctx := mocks.NewMockAutheliaCtx(t)
-	ctx.Ctx.Request.Header.Del("X-Forwarded-Host")
+	ctx.Ctx.Request.Header.Del(fasthttp.HeaderXForwardedHost)
 
-	w, err := newWebauthn(ctx.Ctx)
+	w, err := newWebAuthn(ctx.Ctx)
 
 	assert.Nil(t, w)
 	assert.EqualError(t, err, "missing required X-Forwarded-Host header")
 }
 
-func TestWebauthnNewWebauthnShouldReturnErrWhenWebauthnNotConfigured(t *testing.T) {
+func TestWebAuthnNewWebAuthnShouldReturnErrWhenWebAuthnNotConfigured(t *testing.T) {
 	ctx := mocks.NewMockAutheliaCtx(t)
 
-	ctx.Ctx.Request.Header.Set("X-Forwarded-Host", "example.com")
+	ctx.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "example.com")
 	ctx.Ctx.Request.Header.Set("X-Forwarded-URI", "/")
-	ctx.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+	ctx.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 
-	w, err := newWebauthn(ctx.Ctx)
+	w, err := newWebAuthn(ctx.Ctx)
 
 	assert.Nil(t, w)
 	assert.EqualError(t, err, "Configuration error: Missing RPDisplayName")

@@ -16,18 +16,18 @@ import {
     PublicKeyCredentialJSON,
     PublicKeyCredentialRequestOptionsJSON,
     PublicKeyCredentialRequestOptionsStatus,
-} from "@models/Webauthn";
+} from "@models/WebAuthn";
 import {
     OptionalDataServiceResponse,
     ServiceResponse,
-    WebauthnAssertionPath,
-    WebauthnAttestationPath,
-    WebauthnIdentityFinishPath,
+    WebAuthnAssertionPath,
+    WebAuthnAttestationPath,
+    WebAuthnIdentityFinishPath,
 } from "@services/Api";
 import { SignInResponse } from "@services/SignIn";
 import { getBase64WebEncodingFromBytes, getBytesFromBase64 } from "@utils/Base64";
 
-export function isWebauthnSecure(): boolean {
+export function isWebAuthnSecure(): boolean {
     if (window.isSecureContext) {
         return true;
     }
@@ -35,12 +35,12 @@ export function isWebauthnSecure(): boolean {
     return window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 }
 
-export function isWebauthnSupported(): boolean {
+export function isWebAuthnSupported(): boolean {
     return window?.PublicKeyCredential !== undefined && typeof window.PublicKeyCredential === "function";
 }
 
-export async function isWebauthnPlatformAuthenticatorAvailable(): Promise<boolean> {
-    if (!isWebauthnSupported()) {
+export async function isWebAuthnPlatformAuthenticatorAvailable(): Promise<boolean> {
+    if (!isWebAuthnSupported()) {
         return false;
     }
 
@@ -215,7 +215,7 @@ function getAssertionResultFromDOMException(
 async function getAttestationCreationOptions(token: string): Promise<PublicKeyCredentialCreationOptionsStatus> {
     let response: AxiosResponse<ServiceResponse<CredentialCreation>>;
 
-    response = await axios.post<ServiceResponse<CredentialCreation>>(WebauthnIdentityFinishPath, {
+    response = await axios.post<ServiceResponse<CredentialCreation>>(WebAuthnIdentityFinishPath, {
         token: token,
     });
 
@@ -234,7 +234,7 @@ async function getAttestationCreationOptions(token: string): Promise<PublicKeyCr
 export async function getAssertionRequestOptions(): Promise<PublicKeyCredentialRequestOptionsStatus> {
     let response: AxiosResponse<ServiceResponse<CredentialRequest>>;
 
-    response = await axios.get<ServiceResponse<CredentialRequest>>(WebauthnAssertionPath);
+    response = await axios.get<ServiceResponse<CredentialRequest>>(WebAuthnAssertionPath);
 
     if (response.data.status !== "OK" || response.data.data == null) {
         return {
@@ -317,7 +317,7 @@ async function postAttestationPublicKeyCredentialResult(
 ): Promise<AxiosResponse<OptionalDataServiceResponse<any>>> {
     const credentialJSON = encodeAttestationPublicKeyCredential(credential);
 
-    return axios.post<OptionalDataServiceResponse<any>>(WebauthnAttestationPath, credentialJSON);
+    return axios.post<OptionalDataServiceResponse<any>>(WebAuthnAttestationPath, credentialJSON);
 }
 
 export async function postAssertionPublicKeyCredentialResult(
@@ -328,7 +328,7 @@ export async function postAssertionPublicKeyCredentialResult(
 ): Promise<AxiosResponse<ServiceResponse<SignInResponse>>> {
     const credentialJSON = encodeAssertionPublicKeyCredential(credential, targetURL, workflow, workflowID);
 
-    return axios.post<ServiceResponse<SignInResponse>>(WebauthnAssertionPath, credentialJSON);
+    return axios.post<ServiceResponse<SignInResponse>>(WebAuthnAssertionPath, credentialJSON);
 }
 
 export async function performAttestationCeremony(token: string): Promise<AttestationResult> {

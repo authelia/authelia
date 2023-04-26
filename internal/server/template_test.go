@@ -71,7 +71,7 @@ func TestShouldTemplateOpenAPI(t *testing.T) {
 
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "example.com")
-	mock.Ctx.Request.Header.Set("X-Forwarded-Uri", "/api/openapi.yml")
+	mock.Ctx.Request.Header.Set("X-Forwarded-URI", "/api/openapi.yml")
 
 	handler(mock.Ctx)
 

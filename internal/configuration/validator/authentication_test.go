@@ -256,7 +256,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidArgon2
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: argon2: option 'variant' is configured as 'invalid' but must be one of the following values: 'argon2id', 'id', 'argon2i', 'i', 'argon2d', 'd'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: argon2: option 'variant' must be one of 'argon2id', 'id', 'argon2i', 'i', 'argon2d', or 'd' but it's configured as 'invalid'")
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidSHA2CryptVariant() {
@@ -270,7 +270,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidSHA2Cr
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: sha2crypt: option 'variant' is configured as 'invalid' but must be one of the following values: 'sha256', 'sha512'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: sha2crypt: option 'variant' must be one of 'sha256' or 'sha512' but it's configured as 'invalid'")
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidSHA2CryptSaltLength() {
@@ -298,7 +298,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidPBKDF2
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: pbkdf2: option 'variant' is configured as 'invalid' but must be one of the following values: 'sha1', 'sha224', 'sha256', 'sha384', 'sha512'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: pbkdf2: option 'variant' must be one of 'sha1', 'sha224', 'sha256', 'sha384', or 'sha512' but it's configured as 'invalid'")
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidBCryptVariant() {
@@ -312,7 +312,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidBCrypt
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: bcrypt: option 'variant' is configured as 'invalid' but must be one of the following values: 'standard', 'sha256'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: bcrypt: option 'variant' must be one of 'standard' or 'sha256' but it's configured as 'invalid'")
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenSHA2CryptOptionsTooLow() {
@@ -497,7 +497,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenBadAlgorith
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: option 'algorithm' is configured as 'bogus' but must be one of the following values: 'sha2crypt', 'pbkdf2', 'scrypt', 'bcrypt', 'argon2'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: option 'algorithm' must be one of 'sha2crypt', 'pbkdf2', 'scrypt', 'bcrypt', or 'argon2' but it's configured as 'bogus'")
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldSetDefaultValues() {
@@ -609,7 +609,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenImplementat
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'implementation' is configured as 'masd' but must be one of the following values: 'custom', 'activedirectory', 'rfc2307bis', 'freeipa', 'lldap', 'glauth'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'implementation' must be one of 'custom', 'activedirectory', 'rfc2307bis', 'freeipa', 'lldap', or 'glauth' but it's configured as 'masd'")
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenURLNotProvided() {
@@ -755,7 +755,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorOnBadFilterPlac
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'users_filter' has an invalid placeholder: '{0}' has been removed, please use '{input}' instead")
 	suite.Assert().EqualError(suite.validator.Errors()[1], "authentication_backend: ldap: option 'groups_filter' has an invalid placeholder: '{0}' has been removed, please use '{input}' instead")
 	suite.Assert().EqualError(suite.validator.Errors()[2], "authentication_backend: ldap: option 'groups_filter' has an invalid placeholder: '{1}' has been removed, please use '{username}' instead")
-	suite.Assert().EqualError(suite.validator.Errors()[3], "authentication_backend: ldap: option 'users_filter' must contain the placeholder '{input}' but it is required")
+	suite.Assert().EqualError(suite.validator.Errors()[3], "authentication_backend: ldap: option 'users_filter' must contain the placeholder '{input}' but it's absent")
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultGroupNameAttribute() {
@@ -823,7 +823,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseWhenUsersFilterDoesN
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'users_filter' must contain the placeholder '{username_attribute}' but it is required")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'users_filter' must contain the placeholder '{username_attribute}' but it's absent")
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldHelpDetectNoInputPlaceholder() {
@@ -834,7 +834,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldHelpDetectNoInputPlacehol
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'users_filter' must contain the placeholder '{input}' but it is required")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'users_filter' must contain the placeholder '{input}' but it's absent")
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultTLSMinimumVersion() {
@@ -986,7 +986,7 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldRaiseErrorOnIn
 	validateLDAPAuthenticationBackendURL(suite.config.LDAP, suite.validator)
 
 	suite.Require().Len(suite.validator.Errors(), 1)
-	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'url' must have either the 'ldap' or 'ldaps' scheme but it is configured as 'http'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'url' must have either the 'ldap' or 'ldaps' scheme but it's configured as 'http'")
 }
 
 func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldRaiseErrorOnInvalidURLWithBadCharacters() {

@@ -9,11 +9,11 @@ import { IdentityToken } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useQueryParam } from "@hooks/QueryParam";
 import LoginLayout from "@layouts/LoginLayout";
-import { AttestationResult } from "@models/Webauthn";
+import { AttestationResult } from "@models/WebAuthn";
 import { FirstFactorPath } from "@services/Api";
-import { performAttestationCeremony } from "@services/Webauthn";
+import { performAttestationCeremony } from "@services/WebAuthn";
 
-const RegisterWebauthn = function () {
+const RegisterWebAuthn = function () {
     const styles = useStyles();
     const navigate = useNavigate();
     const { createErrorNotification } = useNotifications();
@@ -53,7 +53,7 @@ const RegisterWebauthn = function () {
                         "The attestation challenge was rejected as malformed or incompatible by your browser.",
                     );
                     break;
-                case AttestationResult.FailureWebauthnNotSupported:
+                case AttestationResult.FailureWebAuthnNotSupported:
                     createErrorNotification("Your browser does not support the WebAuthN protocol.");
                     break;
                 case AttestationResult.FailureUserConsent:
@@ -99,7 +99,7 @@ const RegisterWebauthn = function () {
     );
 };
 
-export default RegisterWebauthn;
+export default RegisterWebAuthn;
 
 const useStyles = makeStyles((theme: Theme) => ({
     icon: {

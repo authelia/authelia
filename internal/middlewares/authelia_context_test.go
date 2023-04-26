@@ -182,7 +182,7 @@ func TestShouldGetOriginalURLFromForwardedHeadersWithURI(t *testing.T) {
 
 func TestShouldFallbackToNonXForwardedHeaders(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
-	mock.Ctx.Request.Header.Del("X-Forwarded-Host")
+	mock.Ctx.Request.Header.Del(fasthttp.HeaderXForwardedHost)
 
 	defer mock.Close()
 
@@ -198,19 +198,19 @@ func TestShouldOnlyFallbackToNonXForwardedHeadersWhenNil(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	mock.Ctx.Request.Header.Del("X-Forwarded-Host")
+	mock.Ctx.Request.Header.Del(fasthttp.HeaderXForwardedHost)
 
 	mock.Ctx.RequestCtx.Request.SetRequestURI("/2fa/one-time-password")
 	mock.Ctx.RequestCtx.Request.SetHost("localhost")
 	mock.Ctx.RequestCtx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.example.com:1234")
 	mock.Ctx.RequestCtx.Request.Header.Set("X-Forwarded-URI", "/base/2fa/one-time-password")
 	mock.Ctx.RequestCtx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
-	mock.Ctx.RequestCtx.Request.Header.Set("X-Forwarded-Method", "GET")
+	mock.Ctx.RequestCtx.Request.Header.Set("X-Forwarded-Method", fasthttp.MethodGet)
 
 	assert.Equal(t, []byte("https"), mock.Ctx.XForwardedProto())
 	assert.Equal(t, []byte("auth.example.com:1234"), mock.Ctx.GetXForwardedHost())
 	assert.Equal(t, []byte("/base/2fa/one-time-password"), mock.Ctx.GetXForwardedURI())
-	assert.Equal(t, []byte("GET"), mock.Ctx.XForwardedMethod())
+	assert.Equal(t, []byte(fasthttp.MethodGet), mock.Ctx.XForwardedMethod())
 }
 
 func TestShouldDetectXHR(t *testing.T) {
@@ -245,7 +245,7 @@ func TestShouldReturnCorrectSecondFactorMethods(t *testing.T) {
 
 	assert.Equal(t, []string{model.SecondFactorMethodWebAuthn, model.SecondFactorMethodDuo}, mock.Ctx.AvailableSecondFactorMethods())
 
-	mock.Ctx.Configuration.Webauthn.Disable = true
+	mock.Ctx.Configuration.WebAuthn.Disable = true
 
 	assert.Equal(t, []string{model.SecondFactorMethodDuo}, mock.Ctx.AvailableSecondFactorMethods())
 

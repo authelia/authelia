@@ -49,7 +49,7 @@ func (ctx *AutheliaCtx) AvailableSecondFactorMethods() (methods []string) {
 		methods = append(methods, model.SecondFactorMethodTOTP)
 	}
 
-	if !ctx.Configuration.Webauthn.Disable {
+	if !ctx.Configuration.WebAuthn.Disable {
 		methods = append(methods, model.SecondFactorMethodWebAuthn)
 	}
 
@@ -166,7 +166,7 @@ func (ctx *AutheliaCtx) GetXForwardedHost() (host []byte) {
 	return host
 }
 
-// XForwardedURI returns the content of the X-Forwarded-Uri header.
+// XForwardedURI returns the content of the X-Forwarded-URI header.
 func (ctx *AutheliaCtx) XForwardedURI() (host []byte) {
 	return ctx.Request.Header.PeekBytes(headerXForwardedURI)
 }

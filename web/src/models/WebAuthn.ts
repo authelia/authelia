@@ -89,7 +89,7 @@ export enum AttestationResult {
     FailureSyntax,
     FailureSupport,
     FailureUnknown,
-    FailureWebauthnNotSupported,
+    FailureWebAuthnNotSupported,
     FailureToken,
 }
 
@@ -111,7 +111,7 @@ export enum AssertionResult {
     FailureSyntax,
     FailureUnknown,
     FailureUnknownSecurity,
-    FailureWebauthnNotSupported,
+    FailureWebAuthnNotSupported,
     FailureChallenge,
 }
 

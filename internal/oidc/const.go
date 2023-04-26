@@ -69,15 +69,12 @@ const (
 	GrantTypeImplicit          = implicit
 	GrantTypeRefreshToken      = "refresh_token"
 	GrantTypeAuthorizationCode = "authorization_code"
-	GrantTypePassword          = "password"
-	GrantTypeClientCredentials = "client_credentials"
 )
 
 // Client Auth Method strings.
 const (
 	ClientAuthMethodClientSecretBasic = "client_secret_basic"
 	ClientAuthMethodClientSecretPost  = "client_secret_post"
-	ClientAuthMethodClientSecretJWT   = "client_secret_jwt"
 	ClientAuthMethodNone              = "none"
 )
 
@@ -115,6 +112,13 @@ const (
 	FormParameterResponseMode        = "response_mode"
 	FormParameterCodeChallenge       = "code_challenge"
 	FormParameterCodeChallengeMethod = "code_challenge_method"
+)
+
+const (
+	PromptNone    = none
+	PromptLogin   = "login"
+	PromptConsent = "consent"
+	// PromptCreate  = "create" // This prompt value is currently unused.
 )
 
 // Endpoints.
@@ -191,7 +195,7 @@ const (
 	// a user presence test. Evidence that the end user is present and interacting with the device. This is sometimes
 	// also referred to as "test of user presence" as per W3C.WD-webauthn-20170216.
 	//
-	// Authelia utilizes this when a user has used Webauthn to authenticate and the user presence flag was set.
+	// Authelia utilizes this when a user has used WebAuthn to authenticate and the user presence flag was set.
 	// Factor: Meta, Channel: Meta.
 	//
 	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
@@ -204,7 +208,7 @@ const (
 	// containing only numbers) that a user enters to unlock a key on the device. This mechanism should have a way to
 	// deter an attacker from obtaining the PIN by trying repeated guesses.
 	//
-	// Authelia utilizes this when a user has used Webauthn to authenticate and the user verified flag was set.
+	// Authelia utilizes this when a user has used WebAuthn to authenticate and the user verified flag was set.
 	//	Factor: Meta, Channel: Meta.
 	//
 	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
@@ -240,7 +244,7 @@ const (
 	// AMRHardwareSecuredKey is an RFC8176 Authentication Method Reference Value that
 	// represents authentication via a proof-of-Possession (PoP) of a hardware-secured key.
 	//
-	// Authelia utilizes this when a user has used Webauthn to authenticate. Factor: Have, Channel: Browser.
+	// Authelia utilizes this when a user has used WebAuthn to authenticate. Factor: Have, Channel: Browser.
 	//
 	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
 	AMRHardwareSecuredKey = "hwk"

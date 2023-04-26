@@ -8,7 +8,7 @@ import {
     SecondFactorPushSubRoute,
     SecondFactorRoute,
     SecondFactorTOTPSubRoute,
-    SecondFactorWebauthnSubRoute,
+    SecondFactorWebAuthnSubRoute,
 } from "@constants/Routes";
 import { RedirectionURL } from "@constants/SearchParams";
 import { useConfiguration } from "@hooks/Configuration";
@@ -143,8 +143,8 @@ const LoginPortal = function (props: Props) {
                 if (configuration.available_methods.size === 0) {
                     redirect(AuthenticatedRoute, false);
                 } else {
-                    if (userInfo.method === SecondFactorMethod.Webauthn) {
-                        redirect(`${SecondFactorRoute}${SecondFactorWebauthnSubRoute}`);
+                    if (userInfo.method === SecondFactorMethod.WebAuthn) {
+                        redirect(`${SecondFactorRoute}${SecondFactorWebAuthnSubRoute}`);
                     } else if (userInfo.method === SecondFactorMethod.MobilePush) {
                         redirect(`${SecondFactorRoute}${SecondFactorPushSubRoute}`);
                     } else {

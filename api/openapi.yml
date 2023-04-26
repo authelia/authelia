@@ -29,9 +29,9 @@ tags:
   - name: User Information
     description: User configuration endpoints
   {{- end }}
-  {{- if (or .TOTP .Webauthn .Duo) }}
+  {{- if (or .TOTP .WebAuthn .Duo) }}
   - name: Second Factor
-    description: TOTP, Webauthn and Duo endpoints
+    description: TOTP, WebAuthn and Duo endpoints
     externalDocs:
       url: https://www.authelia.com/configuration/second-factor/introduction/
   {{- end }}
@@ -155,7 +155,7 @@ paths:
           example: '{{ $.Domain | default "example.com" }}'
           schema:
             type: string
-        - name: X-Forwarded-Uri
+        - name: X-Forwarded-URI
           in: header
           description: Redirection URL (URI)
           required: false
@@ -721,13 +721,13 @@ paths:
       security:
         - authelia_auth: []
   {{- end }}
-  {{- if .Webauthn }}
+  {{- if .WebAuthn }}
   /api/secondfactor/webauthn/assertion:
     get:
       tags:
         - Second Factor
-      summary: Second Factor Authentication - Webauthn (Request)
-      description: This endpoint starts the second factor authentication process with the FIDO2 Webauthn credential.
+      summary: Second Factor Authentication - WebAuthn (Request)
+      description: This endpoint starts the second factor authentication process with the FIDO2 WebAuthn credential.
       responses:
         "200":
           description: Successful Operation
@@ -742,8 +742,8 @@ paths:
     post:
       tags:
         - Second Factor
-      summary: Second Factor Authentication - Webauthn
-      description: This endpoint completes the second factor authentication process with the FIDO2 Webauthn credential.
+      summary: Second Factor Authentication - WebAuthn
+      description: This endpoint completes the second factor authentication process with the FIDO2 WebAuthn credential.
       requestBody:
         required: true
         content:
@@ -765,9 +765,9 @@ paths:
     post:
       tags:
         - Second Factor
-      summary: Identity Verification Webauthn Credential Creation
+      summary: Identity Verification WebAuthn Credential Creation
       description: >
-        This endpoint performs identity verification to begin the FIDO2 Webauthn credential attestation process
+        This endpoint performs identity verification to begin the FIDO2 WebAuthn credential attestation process
         (registration).
 
         The session generated from this endpoint must be utilised for the subsequent steps in the
@@ -785,9 +785,9 @@ paths:
     post:
       tags:
         - Second Factor
-      summary: Identity Verification FIDO2 Webauthn Credential Validation
+      summary: Identity Verification FIDO2 WebAuthn Credential Validation
       description: >
-        This endpoint performs identity and token verification, upon success generates a FIDO2 Webauthn device
+        This endpoint performs identity and token verification, upon success generates a FIDO2 WebAuthn device
         attestation challenge (registration).
 
         The session cookie generated from the `/api/secondfactor/webauthn/identity/start` endpoint must be utilised
@@ -811,8 +811,8 @@ paths:
     post:
       tags:
         - Second Factor
-      summary: Webauthn Credential Attestation
-      description: This endpoint performs Webauthn credential attestation (registration).
+      summary: WebAuthn Credential Attestation
+      description: This endpoint performs WebAuthn credential attestation (registration).
       requestBody:
         required: true
         content:
@@ -1494,7 +1494,7 @@ components:
       schema:
         type: string
     forwardedURIParam:
-      name: X-Forwarded-Uri
+      name: X-Forwarded-URI
       in: header
       description: Redirection URL (URI)
       required: true
@@ -1878,7 +1878,7 @@ components:
               type: string
               example: 'otpauth://totp/{{ .Domain | default "example.com" }}:john?algorithm=SHA1&digits=6&issuer=auth.{{ .Domain | default "example.com" }}&period=30&secret=5ZH7Y5CTFWOXN7EOLGBMMXADRNQFHVUDZSYKCN5HMFAIRSLAWY3Q'
     {{- end }}
-    {{- if .Webauthn }}
+    {{- if .WebAuthn }}
     webauthn.PublicKeyCredential:
       type: object
       properties:

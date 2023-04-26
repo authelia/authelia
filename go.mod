@@ -6,12 +6,12 @@ require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/deckarep/golang-set/v2 v2.3.0
-	github.com/duosecurity/duo_api_golang v0.0.0-20230203160531-b221c950c2b0
+	github.com/duosecurity/duo_api_golang v0.0.0-20230418202038-096d3306c029
 	github.com/fasthttp/router v1.4.18
 	github.com/fasthttp/session/v2 v2.4.17
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-asn1-ber/asn1-ber v1.5.4
-	github.com/go-crypt/crypt v0.2.6
+	github.com/go-crypt/crypt v0.2.7
 	github.com/go-ldap/ldap/v3 v3.4.4
 	github.com/go-rod/rod v0.112.8
 	github.com/go-sql-driver/mysql v1.7.0
@@ -27,23 +27,23 @@ require (
 	github.com/knadh/koanf/providers/env v0.1.0
 	github.com/knadh/koanf/providers/posflag v0.1.0
 	github.com/knadh/koanf/providers/rawbytes v0.1.0
-	github.com/knadh/koanf/v2 v2.0.0
+	github.com/knadh/koanf/v2 v2.0.1
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/ory/fosite v0.44.0
-	github.com/ory/herodot v0.10.1
-	github.com/ory/x v0.0.550
-	github.com/otiai10/copy v1.10.0
+	github.com/ory/herodot v0.10.2
+	github.com/ory/x v0.0.553
+	github.com/otiai10/copy v1.11.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.4.0
-	github.com/prometheus/client_golang v1.14.0
+	github.com/prometheus/client_golang v1.15.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.2
 	github.com/trustelem/zxcvbn v1.0.1
-	github.com/valyala/fasthttp v1.45.0
+	github.com/valyala/fasthttp v1.46.0
 	github.com/wneessen/go-mail v0.3.9
 	golang.org/x/net v0.9.0
 	golang.org/x/sync v0.1.0
@@ -70,7 +70,7 @@ require (
 	github.com/ecordell/optgen v0.0.6 // indirect
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
-	github.com/go-crypt/x v0.1.13 // indirect
+	github.com/go-crypt/x v0.2.0 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-webauthn/revoke v0.1.9 // indirect
 	github.com/golang/glog v1.0.0 // indirect
@@ -98,8 +98,8 @@ require (
 	github.com/philhofer/fwd v1.1.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
-	github.com/prometheus/common v0.37.0 // indirect
-	github.com/prometheus/procfs v0.8.0 // indirect
+	github.com/prometheus/common v0.42.0 // indirect
+	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
 	github.com/spf13/afero v1.9.5 // indirect
@@ -116,7 +116,7 @@ require (
 	github.com/ysmood/leakless v0.8.0 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
 	golang.org/x/mod v0.10.0 // indirect
-	golang.org/x/oauth2 v0.4.0 // indirect
+	golang.org/x/oauth2 v0.5.0 // indirect
 	golang.org/x/sys v0.7.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect

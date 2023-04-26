@@ -34,7 +34,7 @@ func (p *SQLProvider) SchemaEncryptionChangeKey(ctx context.Context, key string)
 
 	encChangeFuncs := []EncryptionChangeKeyFunc{
 		schemaEncryptionChangeKeyTOTP,
-		schemaEncryptionChangeKeyWebauthn,
+		schemaEncryptionChangeKeyWebAuthn,
 	}
 
 	for i := 0; true; i++ {
@@ -90,7 +90,7 @@ func (p *SQLProvider) SchemaEncryptionCheckKey(ctx context.Context, verbose bool
 	if verbose {
 		encCheckFuncs := []EncryptionCheckKeyFunc{
 			schemaEncryptionCheckKeyTOTP,
-			schemaEncryptionCheckKeyWebauthn,
+			schemaEncryptionCheckKeyWebAuthn,
 		}
 
 		for i := 0; true; i++ {
@@ -153,10 +153,10 @@ func schemaEncryptionChangeKeyTOTP(ctx context.Context, provider *SQLProvider, t
 	return nil
 }
 
-func schemaEncryptionChangeKeyWebauthn(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error) {
+func schemaEncryptionChangeKeyWebAuthn(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error) {
 	var count int
 
-	if err = tx.GetContext(ctx, &count, fmt.Sprintf(queryFmtSelectRowCount, tableWebauthnDevices)); err != nil {
+	if err = tx.GetContext(ctx, &count, fmt.Sprintf(queryFmtSelectRowCount, tableWebAuthnDevices)); err != nil {
 		return err
 	}
 
@@ -164,29 +164,29 @@ func schemaEncryptionChangeKeyWebauthn(ctx context.Context, provider *SQLProvide
 		return nil
 	}
 
-	devices := make([]encWebauthnDevice, 0, count)
+	devices := make([]encWebAuthnDevice, 0, count)
 
-	if err = tx.SelectContext(ctx, &devices, fmt.Sprintf(queryFmtSelectWebauthnDevicesEncryptedData, tableWebauthnDevices)); err != nil {
+	if err = tx.SelectContext(ctx, &devices, fmt.Sprintf(queryFmtSelectWebAuthnDevicesEncryptedData, tableWebAuthnDevices)); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
 		}
 
-		return fmt.Errorf("error selecting Webauthn devices: %w", err)
+		return fmt.Errorf("error selecting WebAuthn devices: %w", err)
 	}
 
-	query := provider.db.Rebind(fmt.Sprintf(queryFmtUpdateWebauthnDevicePublicKey, tableWebauthnDevices))
+	query := provider.db.Rebind(fmt.Sprintf(queryFmtUpdateWebAuthnDevicePublicKey, tableWebAuthnDevices))
 
 	for _, d := range devices {
 		if d.PublicKey, err = provider.decrypt(d.PublicKey); err != nil {
-			return fmt.Errorf("error decrypting Webauthn device public key with id '%d': %w", d.ID, err)
+			return fmt.Errorf("error decrypting WebAuthn device public key with id '%d': %w", d.ID, err)
 		}
 
 		if d.PublicKey, err = utils.Encrypt(d.PublicKey, &key); err != nil {
-			return fmt.Errorf("error encrypting Webauthn device public key with id '%d': %w", d.ID, err)
+			return fmt.Errorf("error encrypting WebAuthn device public key with id '%d': %w", d.ID, err)
 		}
 
 		if _, err = tx.ExecContext(ctx, query, d.PublicKey, d.ID); err != nil {
-			return fmt.Errorf("error updating Webauthn device public key with id '%d': %w", d.ID, err)
+			return fmt.Errorf("error updating WebAuthn device public key with id '%d': %w", d.ID, err)
 		}
 	}
 
@@ -262,17 +262,17 @@ func schemaEncryptionCheckKeyTOTP(ctx context.Context, provider *SQLProvider) (t
 	return tableTOTPConfigurations, result
 }
 
-func schemaEncryptionCheckKeyWebauthn(ctx context.Context, provider *SQLProvider) (table string, result EncryptionValidationTableResult) {
+func schemaEncryptionCheckKeyWebAuthn(ctx context.Context, provider *SQLProvider) (table string, result EncryptionValidationTableResult) {
 	var (
 		rows *sqlx.Rows
 		err  error
 	)
 
-	if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectWebauthnDevicesEncryptedData, tableWebauthnDevices)); err != nil {
-		return tableWebauthnDevices, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting Webauthn devices: %w", err)}
+	if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectWebAuthnDevicesEncryptedData, tableWebAuthnDevices)); err != nil {
+		return tableWebAuthnDevices, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting WebAuthn devices: %w", err)}
 	}
 
-	var device encWebauthnDevice
+	var device encWebAuthnDevice
 
 	for rows.Next() {
 		result.Total++
@@ -280,7 +280,7 @@ func schemaEncryptionCheckKeyWebauthn(ctx context.Context, provider *SQLProvider
 		if err = rows.StructScan(&device); err != nil {
 			_ = rows.Close()
 
-			return tableWebauthnDevices, EncryptionValidationTableResult{Error: fmt.Errorf("error scanning Webauthn device to struct: %w", err)}
+			return tableWebAuthnDevices, EncryptionValidationTableResult{Error: fmt.Errorf("error scanning WebAuthn device to struct: %w", err)}
 		}
 
 		if _, err = provider.decrypt(device.PublicKey); err != nil {
@@ -290,7 +290,7 @@ func schemaEncryptionCheckKeyWebauthn(ctx context.Context, provider *SQLProvider
 
 	_ = rows.Close()
 
-	return tableWebauthnDevices, result
+	return tableWebAuthnDevices, result
 }
 
 func schemaEncryptionCheckKeyOpenIDConnect(typeOAuth2Session OAuth2SessionType) EncryptionCheckKeyFunc {

@@ -23,24 +23,31 @@ common scenarios however those using more advanced architectures are likely goin
 help with answering less specific questions about this and it may be possible if provided adequate information more
 specific questions may be answered.
 
+1. Authelia *__MUST__* be served via the `https` scheme. This is not optional even for testing. This is a deliberate
+   design decision to improve security directly (by using encrypted communication) and indirectly by reducing complexity.
+
 ### Forwarded Authentication
 
 Forwarded Authentication is a simple per-request authorization flow that checks the metadata of a request and a session
 cookie to determine if a user must be forwarded to the authentication portal.
 
-Due to the fact a cookie is used, it's an intentional design decision that *__ALL__* applications/domains protected via
+In addition to the `https` scheme requirement for Authelia itself:
+
+1. Due to the fact a cookie is used, it's an intentional design decision that *__ALL__* applications/domains protected via
 this method *__MUST__* use secure schemes (`https` and `wss`) for all of their communication.
 
 ### OpenID Connect
 
-Only requires Authelia to be accessible via a secure scheme (`https`).
+No additional requirements other than the use of the `https` scheme for Authelia itself exist excluding those mandated
+by the relevant specifications.
 
 ## Configuration
 
 It's important to customize the configuration for *Authelia* in advance of deploying it. The configuration is static and
-not configured via web GUI. You can find a
-[configuration template](https://github.com/authelia/authelia/blob/master/config.template.yml) on GitHub which can be
-used as a basis for configuration.
+not configured via web GUI. You can find a configuration template named {{< github-link path="config.template.yml" >}}
+on GitHub which can be used as a basis for configuration, alternatively *Authelia* will write this template relevant for
+your version the first time it is started. Users should expect that they have to configure elements of this file as part
+of initial setup.
 
 The important sections to consider in initial configuration are as follows:
 

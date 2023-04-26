@@ -1,7 +1,7 @@
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:19-alpine AS builder-frontend
+FROM node:20-alpine AS builder-frontend
 
 WORKDIR /node/src/app
 

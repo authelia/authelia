@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -58,7 +59,7 @@ func (suite *AccessControl) TestShouldValidateEitherDomainsOrDomainsRegex() {
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	assert.EqualError(suite.T(), suite.validator.Errors()[0], "access control: rule #3: rule is invalid: must have the option 'domain' or 'domain_regex' configured")
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "access control: rule #3: option 'domain' or 'domain_regex' must be present but are both absent")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidDefaultPolicy() {
@@ -69,7 +70,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidDefaultPolicy() {
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: option 'default_policy' must be one of 'bypass', 'one_factor', 'two_factor', 'deny' but it is configured as 'invalid'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: option 'default_policy' must be one of 'bypass', 'one_factor', 'two_factor', or 'deny' but it's configured as 'invalid'")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidNetworkGroupNetwork() {
@@ -141,10 +142,10 @@ func (suite *AccessControl) TestShouldRaiseErrorsWithEmptyRules() {
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 4)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1: rule is invalid: must have the option 'domain' or 'domain_regex' configured")
-	suite.Assert().EqualError(suite.validator.Errors()[1], "access control: rule #1: rule 'policy' option '' is invalid: must be one of 'deny', 'two_factor', 'one_factor' or 'bypass'")
-	suite.Assert().EqualError(suite.validator.Errors()[2], "access control: rule #2: rule is invalid: must have the option 'domain' or 'domain_regex' configured")
-	suite.Assert().EqualError(suite.validator.Errors()[3], "access control: rule #2: rule 'policy' option 'wrong' is invalid: must be one of 'deny', 'two_factor', 'one_factor' or 'bypass'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1: option 'domain' or 'domain_regex' must be present but are both absent")
+	suite.Assert().EqualError(suite.validator.Errors()[1], "access control: rule #1: option 'policy' must be present but it's absent")
+	suite.Assert().EqualError(suite.validator.Errors()[2], "access control: rule #2: option 'domain' or 'domain_regex' must be present but are both absent")
+	suite.Assert().EqualError(suite.validator.Errors()[3], "access control: rule #2: option 'policy' must be one of 'bypass', 'one_factor', 'two_factor', or 'deny' but it's configured as 'wrong'")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidPolicy() {
@@ -160,7 +161,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidPolicy() {
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1 (domain 'public.example.com'): rule 'policy' option 'invalid' is invalid: must be one of 'deny', 'two_factor', 'one_factor' or 'bypass'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1 (domain 'public.example.com'): option 'policy' must be one of 'bypass', 'one_factor', 'two_factor', or 'deny' but it's configured as 'invalid'")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidNetwork() {
@@ -185,7 +186,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidMethod() {
 		{
 			Domains: []string{"public.example.com"},
 			Policy:  "bypass",
-			Methods: []string{"GET", "HOP"},
+			Methods: []string{fasthttp.MethodGet, "HOP"},
 		},
 	}
 
@@ -194,7 +195,24 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidMethod() {
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1 (domain 'public.example.com'): 'methods' option 'HOP' is invalid: must be one of 'GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'TRACE', 'CONNECT', 'OPTIONS', 'COPY', 'LOCK', 'MKCOL', 'MOVE', 'PROPFIND', 'PROPPATCH', 'UNLOCK'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1 (domain 'public.example.com'): option 'methods' must only have the values 'GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'TRACE', 'CONNECT', 'OPTIONS', 'COPY', 'LOCK', 'MKCOL', 'MOVE', 'PROPFIND', 'PROPPATCH', or 'UNLOCK' but the values 'HOP' are present")
+}
+
+func (suite *AccessControl) TestShouldRaiseErrorDuplicateMethod() {
+	suite.config.AccessControl.Rules = []schema.ACLRule{
+		{
+			Domains: []string{"public.example.com"},
+			Policy:  "bypass",
+			Methods: []string{fasthttp.MethodGet, fasthttp.MethodGet},
+		},
+	}
+
+	ValidateRules(suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1 (domain 'public.example.com'): option 'methods' must have unique values but the values 'GET' are duplicated")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidSubject() {
@@ -367,13 +385,13 @@ func (suite *AccessControl) TestShouldErrorOnInvalidRulesQuery() {
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 7)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1 (domain 'public.example.com'): 'query' option 'value' is invalid: must have a value when the operator is 'equal'")
-	suite.Assert().EqualError(suite.validator.Errors()[1], "access control: rule #2 (domain 'public.example.com'): 'query' option 'key' is invalid: must have a value")
-	suite.Assert().EqualError(suite.validator.Errors()[2], "access control: rule #5 (domain 'public.example.com'): 'query' option 'key' is invalid: must have a value")
-	suite.Assert().EqualError(suite.validator.Errors()[3], "access control: rule #6 (domain 'public.example.com'): 'query' option 'operator' with value 'not' is invalid: must be one of 'present', 'absent', 'equal', 'not equal', 'pattern', 'not pattern'")
-	suite.Assert().EqualError(suite.validator.Errors()[4], "access control: rule #7 (domain 'public.example.com'): 'query' option 'value' is invalid: error parsing regexp: missing closing ): `(bad pattern`")
-	suite.Assert().EqualError(suite.validator.Errors()[5], "access control: rule #8 (domain 'public.example.com'): 'query' option 'value' is invalid: must not have a value when the operator is 'present'")
-	suite.Assert().EqualError(suite.validator.Errors()[6], "access control: rule #9 (domain 'public.example.com'): 'query' option 'value' is invalid: expected type was string but got int")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1 (domain 'public.example.com'): query: option 'value' must be present when the option 'operator' is 'equal' but it's absent")
+	suite.Assert().EqualError(suite.validator.Errors()[1], "access control: rule #2 (domain 'public.example.com'): query: option 'key' is required but it's absent")
+	suite.Assert().EqualError(suite.validator.Errors()[2], "access control: rule #5 (domain 'public.example.com'): query: option 'key' is required but it's absent")
+	suite.Assert().EqualError(suite.validator.Errors()[3], "access control: rule #6 (domain 'public.example.com'): query: option 'operator' must be one of 'present', 'absent', 'equal', 'not equal', 'pattern', or 'not pattern' but it's configured as 'not'")
+	suite.Assert().EqualError(suite.validator.Errors()[4], "access control: rule #7 (domain 'public.example.com'): query: option 'value' is invalid: error parsing regexp: missing closing ): `(bad pattern`")
+	suite.Assert().EqualError(suite.validator.Errors()[5], "access control: rule #8 (domain 'public.example.com'): query: option 'value' must not be present when the option 'operator' is 'present' but it's present")
+	suite.Assert().EqualError(suite.validator.Errors()[6], "access control: rule #9 (domain 'public.example.com'): query: option 'value' is invalid: expected type was string but got int")
 }
 
 func TestAccessControl(t *testing.T) {

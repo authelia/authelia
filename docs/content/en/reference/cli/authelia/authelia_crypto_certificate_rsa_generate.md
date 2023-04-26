@@ -56,6 +56,7 @@ authelia crypto certificate rsa generate --help
   -o, --organization strings            certificate organization (default [Authelia])
       --organizational-unit strings     certificate organizational unit
       --path.ca string                  source directory of the certificate authority files, if not provided the certificate will be self-signed
+      --pkcs8                           force PKCS #8 ASN.1 format
   -p, --postcode strings                certificate postcode
       --province strings                certificate province
       --sans strings                    subject alternative names

@@ -25,6 +25,23 @@ func TestShouldGenerateConfiguration(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestNotShouldGenerateConfigurationifExists(t *testing.T) {
+	dir := t.TempDir()
+
+	cfg := filepath.Join(dir, "config.yml")
+
+	created, err := EnsureConfigurationExists(cfg)
+	assert.NoError(t, err)
+	assert.True(t, created)
+
+	created, err = EnsureConfigurationExists(cfg)
+	assert.NoError(t, err)
+	assert.False(t, created)
+
+	_, err = os.Stat(cfg)
+	assert.NoError(t, err)
+}
+
 func TestShouldNotGenerateConfigurationOnFSAccessDenied(t *testing.T) {
 	if runtime.GOOS == constWindows {
 		t.Skip("skipping test due to being on windows")

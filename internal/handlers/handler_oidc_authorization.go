@@ -21,7 +21,7 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 	var (
 		requester fosite.AuthorizeRequester
 		responder fosite.AuthorizeResponder
-		client    *oidc.Client
+		client    oidc.Client
 		authTime  time.Time
 		issuer    *url.URL
 		err       error
@@ -117,7 +117,7 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 	extraClaims := oidcGrantRequests(requester, consent, &userSession)
 
-	if authTime, err = userSession.AuthenticatedTime(client.Policy); err != nil {
+	if authTime, err = userSession.AuthenticatedTime(client.GetAuthorizationPolicy()); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred checking authentication time: %+v", requester.GetID(), client.GetID(), err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, fosite.ErrServerError.WithHint("Could not obtain the authentication time."))
@@ -178,7 +178,7 @@ func OpenIDConnectPushedAuthorizationRequest(ctx *middlewares.AutheliaCtx, rw ht
 		return
 	}
 
-	var client *oidc.Client
+	var client oidc.Client
 
 	clientID := requester.GetClient().GetID()
 
