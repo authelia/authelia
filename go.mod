@@ -14,7 +14,7 @@ require (
 	github.com/go-crypt/crypt v0.2.7
 	github.com/go-ldap/ldap/v3 v3.4.4
 	github.com/go-rod/rod v0.112.8
-	github.com/go-sql-driver/mysql v1.7.0
+	github.com/go-sql-driver/mysql v1.7.1
 	github.com/go-webauthn/webauthn v0.5.0
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/golang/mock v1.6.0
