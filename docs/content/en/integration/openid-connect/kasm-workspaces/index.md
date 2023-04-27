@@ -53,7 +53,7 @@ To configure [Kasm Workspaces] to utilize Authelia as an [OpenID Connect 1.0] Pr
    9. Scope (One Per Line): `openid profile groups email`
    10. User Identifier: `preferred_username`
 
-![Kasm](kasm.png)
+{{< figure src="kasm.png" alt="Kasam Workspaces" width="736" style="padding-right: 10px" >}}
 
 ### Authelia
 
