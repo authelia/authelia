@@ -1,6 +1,7 @@
 package middlewares_test
 
 import (
+	"net"
 	"net/url"
 	"testing"
 
@@ -16,6 +17,37 @@ import (
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/session"
 )
+
+func TestAutheliaCtx_RemoteIP(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     []byte
+		expected net.IP
+	}{
+		{"ShouldDefaultToRemoteAddr", nil, net.ParseIP("127.0.0.127")},
+		{"ShouldParseProperlyFormattedXFFWithIPv4", []byte("192.168.1.1, 127.0.0.1"), net.ParseIP("192.168.1.1")},
+		{"ShouldParseProperlyFormattedXFFWithIPv6", []byte("2001:db8:85a3:8d3:1319:8a2e:370:7348, 127.0.0.1"), net.ParseIP("2001:db8:85a3:8d3:1319:8a2e:370:7348")},
+		{"ShouldFallbackToRemoteAddrOnImproperlyFormattedXFFWithIPv6", []byte("[2001:db8:85a3:8d3:1319:8a2e:370:7348], 127.0.0.1"), net.ParseIP("127.0.0.127")},
+		{"ShouldFallbackToRemoteAddrOnBlankXFFHeader", []byte(""), net.ParseIP("127.0.0.127")},
+		{"ShouldFallbackToRemoteAddrOnBlankXFFEntry", []byte(", 127.0.0.1"), net.ParseIP("127.0.0.127")},
+		{"ShouldFallbackToRemoteAddrOnBadXFFEntry", []byte("abc, 127.0.0.1"), net.ParseIP("127.0.0.127")},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.SetRemoteAddr(&net.TCPAddr{Port: 80, IP: net.ParseIP("127.0.0.127")})
+
+			if tc.have != nil {
+				mock.Ctx.RequestCtx.Request.Header.SetBytesV(fasthttp.HeaderXForwardedFor, tc.have)
+			}
+
+			assert.Equal(t, tc.expected, mock.Ctx.RemoteIP())
+		})
+	}
+}
 
 func TestContentTypes(t *testing.T) {
 	testCases := []struct {
