@@ -2,7 +2,7 @@
 title: "Kasm Workspaces"
 description: "Integrating Kasm Workspaces with the Authelia OpenID Connect Provider."
 lead: ""
-date: 2023-04-25T23:07:05+2:00
+date: 2023-04-27T18:40:06+10:00
 draft: false
 images: []
 menu:

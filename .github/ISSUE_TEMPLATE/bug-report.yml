@@ -17,7 +17,9 @@ body:
         2. Please try to give as much information as possible for us to be able to reproduce the issue and provide a quick fix.
         3. Please ensure an issue does not already exist for this potential bug.
         4. Please only provide specific versions. Latest is not a version.
-        5. Please read the [Troubleshooting Sanitization](https://www.authelia.com/r/sanitize) reference guide if you plan on sanitizing, removing, or adjusting any values for the logs or configuration files.
+        5. Please read the [Troubleshooting](https://www.authelia.com/r/troubleshooting) reference guide:
+          - Do not truncate any logs unless you are complying with the specific instructions in the [Logs](https://www.authelia.com/r/troubleshooting#logs) section.
+          - If you plan on sanitizing, removing, or adjusting any values for the logs or configuration files please read the [Sanitization](https://www.authelia.com/r/troubleshooting#sanitization) section.
         6. Please consider including a [HTTP Archive File](https://www.authelia.com/r/har) if you're having redirection issues.
   - type: dropdown
     id: version
@@ -135,7 +137,10 @@ body:
       label: Logs (Authelia)
       description: |
         Provide complete logs with the log level set to debug or trace. Complete means from application start until the
-        issue occurring. The template will automatically put this content in a code block so you can just paste it.
+        issue occurring. This is clearly explained in the [Logs](https://www.authelia.com/r/troubleshooting#logs)
+        section of the troubleshooting guide.
+
+        The template will automatically put this content in a code block so you can just paste it.
       render: shell
     validations:
       required: true
