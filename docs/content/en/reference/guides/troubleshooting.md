@@ -30,6 +30,19 @@ log files. In addition the [log level](../../configuration/miscellaneous/logging
 Complete logs means at minimum from the [log severity line](#log-severity-line) until the actual issue occurs. Though
 more than this may be included at the users discretion.
 
+### Output
+
+Logging can be [configured](../../configuration/miscellaneous/logging.md) to output to both a file and stdout / console
+/ docker logs.
+
+- If you configure the [file_path] option with the [keep_stdout] configuration option enabled then you will only be
+  required to supply the stdout / console / docker logs and should ignore the file logs.
+- If you configure the [file_path] option without the [keep_stdout] configuration option enabled then you will be
+  required to join the stdout / console / docker logs with the file logs.
+
+[keep_stdout]: ../../configuration/miscellaneous/logging.md#keepstdout
+[file_path]: ../../configuration/miscellaneous/logging.md#filepath
+
 ### Large Amount of Logs
 
 In instances where the logs are substantial we will accept truncated logs. There are however some very intentional rules
