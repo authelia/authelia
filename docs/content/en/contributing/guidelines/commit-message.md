@@ -182,8 +182,8 @@ By making a contribution to this project, I certify that:
 
 This can be achieved in the following ways:
 
-- While making the commit use `git commit --signoff`
-- To correct a single commit missing the sign off `git commit –-amend --signoff --no-edit`
+- While making the commit use `git commit --signoff` or `git commit -s`
+- To correct a single commit missing the sign off `git commit –-amend --no-edit --signoff` or `git commit --amend --no-edit -s`
 - To correct multiple commits missing the sign off `git rebase --signoff HEAD~2` (i.e. with 2 commits that are missing the sign off)
 
 This can be achieved by using `git commit --signoff`. A single previous commit can be signed using
