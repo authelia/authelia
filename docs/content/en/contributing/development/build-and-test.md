@@ -144,8 +144,8 @@ go build -ldflags "-linkmode=external -s -w" -trimpath -buildmode=pie -o autheli
 *__Please Note:__ The reproducibility instructions only apply for v4.38.0 or above. Users interested in reproducibility
 of previous versions will have to carefully modify the linker flags to match the values outputted from the
 `authelia build-info` command. In particular the Build Date was set as the actual time previously rather than the
-commit time. If you have trouble reproducing a build please let us know so we can figure it out, assist you, and
-document it.*
+commit time. In addition to this the ability to print the commands did not exist until just before this tag. If you have
+trouble reproducing a build please let us know so we can figure it out, assist you, and document it.*
 
 Authelia allows production of reproducible builds that were built using our pipeline. The only variables injected into
 a build are from commit information other than the exceptions listed in this section. This means that we can provide the

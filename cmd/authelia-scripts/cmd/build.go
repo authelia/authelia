@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -240,12 +241,41 @@ func buildCmdPrint(cmd *exec.Cmd) {
 		b.WriteString(fmt.Sprintf("cd %s\n", cmd.Dir))
 	}
 
-	if len(cmd.Env) != 0 {
-		b.WriteString(strings.Join(cmd.Env, " "))
-		b.WriteString(" ")
-	}
-
-	b.WriteString(cmd.String())
+	buildCmdWriteCmd(b, cmd)
 
 	fmt.Println(b.String())
+}
+
+func buildCmdWriteCmd(wr io.StringWriter, cmd *exec.Cmd) {
+	buildCmdWriteEnv(wr, cmd)
+
+	_, _ = wr.WriteString(cmd.Path)
+
+	for _, arg := range cmd.Args[1:] {
+		_, _ = wr.WriteString(" ")
+		if strings.Contains(arg, " ") {
+			_, _ = wr.WriteString(fmt.Sprintf(`"%s"`, arg))
+		} else {
+			_, _ = wr.WriteString(arg)
+		}
+	}
+}
+
+func buildCmdWriteEnv(wr io.StringWriter, cmd *exec.Cmd) {
+	n := len(cmd.Env)
+
+	if n == 0 {
+		return
+	}
+
+	envs := make([]string, n)
+
+	for i, env := range cmd.Env {
+		parts := strings.SplitN(env, "=", 2)
+
+		envs[i] = fmt.Sprintf(`%s="%s"`, parts[0], parts[1])
+	}
+
+	_, _ = wr.WriteString(strings.Join(envs, " "))
+	_, _ = wr.WriteString(" ")
 }
