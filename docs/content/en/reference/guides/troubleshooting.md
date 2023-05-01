@@ -49,14 +49,14 @@ The following log lines are important and are referenced by other sections of th
 
 #### Log Severity Line
 
-The log severity line looks like the following examples:
+The log severity line will have a message which is similar to the following examples:
 
 - `Log severity set to debug`
 - `Log severity set to trace`
 
 #### Starting Line
 
-The starting line looks like the following examples:
+The starting line will have a message which is similar to the following examples:
 
 - `Authelia v4.37.5 is starting`
 - `Authelia v4.38.0 is starting`
@@ -64,7 +64,7 @@ The starting line looks like the following examples:
 
 #### Listening Line
 
-The listening line looks like the following examples:
+The listening line will have a message which is similar to the following examples:
 
 - `Listening for non-TLS connections on '0.0.0.0:9091' path '/'`
 - `Listening for TLS connections on '0.0.0.0:9091' path '/'`
