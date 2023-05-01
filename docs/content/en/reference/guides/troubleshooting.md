@@ -48,7 +48,8 @@ Logging can be [configured](../../configuration/miscellaneous/logging.md) to out
 In instances where the logs are substantial we will accept truncated logs. There are however some very intentional rules
 about truncation of logs.
 
-1. You must show more than 1 minute of logs prior to the issue occurring (i.e. show every log line )
+1. You must show more than 1 minute of logs prior to the issue occurring (i.e. show every log line that is within 1
+   minute of the log line where the issue occurred plus one additional line outside the minute).
 2. The level rule still applies.
 3. You must show:
    1. The [log severity line](#log-severity-line).
