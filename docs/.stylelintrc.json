@@ -2,7 +2,6 @@
   "extends": "stylelint-config-standard-scss",
   "rules": {
     "no-empty-source": null,
-    "string-quotes": "double",
     "scss/comment-no-empty": null,
     "max-line-length": null,
     "scss/at-extend-no-missing-placeholder": null,
