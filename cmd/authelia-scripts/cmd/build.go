@@ -104,14 +104,14 @@ func buildAutheliaBinaryGOX(buildPrint bool, buildMetaData *Build) {
 
 	cmds := make([]*exec.Cmd, 2)
 
-	cmds[0] = utils.CommandWithStdout("gox", "-output={{.Dir}}-{{.OS}}-{{.Arch}}-musl", "-buildmode=pie", "-trimpath", "-cgo", "-ldflags=-linkmode=external -s -w "+strings.Join(xflags, " "), "-osarch=linux/amd64 linux/arm linux/arm64", "./cmd/authelia/")
+	cmds[0] = utils.CommandWithStdout("gox", "-output={{.Dir}}-{{.OS}}-{{.Arch}}-musl", "-buildmode=pie", "-buildvcs=false", "-trimpath", "-cgo", "-ldflags=-linkmode=external -buildid= -s -w "+strings.Join(xflags, " "), "-osarch=linux/amd64 linux/arm linux/arm64", "./cmd/authelia/")
 
 	cmds[0].Env = append(cmds[0].Env,
 		"CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now",
 		"GOX_LINUX_ARM_CC=arm-linux-musleabihf-gcc", "GOX_LINUX_ARM64_CC=aarch64-linux-musl-gcc")
 
 	cmds[1] = utils.CommandWithStdout("bash", "-c", "docker run --rm -e GOX_LINUX_ARM_CC=arm-linux-gnueabihf-gcc -e GOX_LINUX_ARM64_CC=aarch64-linux-gnu-gcc -e GOX_FREEBSD_AMD64_CC=x86_64-pc-freebsd13-gcc -v ${PWD}:/workdir -v /buildkite/.go:/root/go authelia/crossbuild "+
-		"gox -output={{.Dir}}-{{.OS}}-{{.Arch}} -buildmode=pie -trimpath -cgo -ldflags=\"-linkmode=external -s -w "+strings.Join(xflags, " ")+"\" -osarch=\"linux/amd64 linux/arm linux/arm64 freebsd/amd64\" ./cmd/authelia/")
+		"gox -output={{.Dir}}-{{.OS}}-{{.Arch}} -buildmode=pie -buildvcs=false -trimpath -cgo -ldflags=\"-linkmode=external -buildid= -s -w "+strings.Join(xflags, " ")+"\" -osarch=\"linux/amd64 linux/arm linux/arm64 freebsd/amd64\" ./cmd/authelia/")
 
 	if buildPrint {
 		for _, cmd := range cmds {
@@ -143,7 +143,7 @@ func buildAutheliaBinaryGOX(buildPrint bool, buildMetaData *Build) {
 }
 
 func buildAutheliaBinaryGO(buildPrint bool, buildMetaData *Build) {
-	cmd := utils.CommandWithStdout("go", "build", "-buildmode=pie", "-trimpath", "-o", OutputDir+"/authelia", "-ldflags", "-linkmode=external -s -w "+strings.Join(buildMetaData.XFlags(), " "), "./cmd/authelia/")
+	cmd := utils.CommandWithStdout("go", "build", "-buildmode=pie", "-buildvcs=false", "-trimpath", "-o", OutputDir+"/authelia", "-ldflags", "-linkmode=external -buildid= -s -w "+strings.Join(buildMetaData.XFlags(), " "), "./cmd/authelia/")
 
 	cmd.Env = append(cmd.Env,
 		"CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now")
