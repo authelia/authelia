@@ -46,7 +46,7 @@ require (
 	github.com/valyala/fasthttp v1.47.0
 	github.com/wneessen/go-mail v0.3.9
 	golang.org/x/net v0.9.0
-	golang.org/x/sync v0.1.0
+	golang.org/x/sync v0.2.0
 	golang.org/x/term v0.7.0
 	golang.org/x/text v0.9.0
 	gopkg.in/square/go-jose.v2 v2.6.0
