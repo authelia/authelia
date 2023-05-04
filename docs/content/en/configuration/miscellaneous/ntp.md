@@ -23,6 +23,8 @@ unless configured otherwise.
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 ntp:
   address: "time.cloudflare.com:123"

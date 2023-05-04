@@ -23,6 +23,8 @@ There are two ways to integrate *Authelia* with an authentication backend:
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 authentication_backend:
   refresh_interval: 5m
@@ -32,6 +34,8 @@ authentication_backend:
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### refresh_interval
 

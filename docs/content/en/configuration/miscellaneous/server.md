@@ -17,6 +17,8 @@ aliases:
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 server:
   host: 0.0.0.0

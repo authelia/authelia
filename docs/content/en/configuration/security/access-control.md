@@ -17,6 +17,8 @@ aliases:
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 access_control:
   default_policy: deny
@@ -56,6 +58,8 @@ access_control:
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### default_policy
 
