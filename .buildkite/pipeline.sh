@@ -9,12 +9,12 @@ if [[ "${DIVERGED}" == 0 ]]; then
       BUILD_DUO=$(git diff --name-only HEAD~1 | grep -q ^internal/suites/example/compose/duo-api/Dockerfile && echo true || echo false)
       BUILD_HAPROXY=$(git diff --name-only HEAD~1 | grep -q ^internal/suites/example/compose/haproxy/Dockerfile && echo true || echo false)
       BUILD_SAMBA=$(git diff --name-only HEAD~1 | grep -q ^internal/suites/example/compose/samba/Dockerfile && echo true || echo false)
-      CI_BYPASS=$(git diff --name-only HEAD~1 | sed -rn '/^(CODE_OF_CONDUCT\.md|CONTRIBUTING\.md|README\.md|SECURITY\.md|crowdin\.yml|\.all-contributorsrc|\.editorconfig|\.github\/.*|docs\/.*|examples\/.*)/!{q1}' && echo true || echo false)
+      CI_BYPASS=$(git diff --name-only HEAD~1 | sed -rn '/^(CODE_OF_CONDUCT\.md|CONTRIBUTING\.md|README\.md|SECURITY\.md|crowdin\.yml|\.all-contributorsrc|\.editorconfig|\.github\/.*|docs\/.*|cmd\/authelia-gen\/templates\/.*|examples\/.*)/!{q1}' && echo true || echo false)
     else
       BUILD_DUO=$(git diff --name-only `git merge-base --fork-point origin/master` | grep -q ^internal/suites/example/compose/duo-api/Dockerfile && echo true || echo false)
       BUILD_HAPROXY=$(git diff --name-only `git merge-base --fork-point origin/master` | grep -q ^internal/suites/example/compose/haproxy/Dockerfile && echo true || echo false)
       BUILD_SAMBA=$(git diff --name-only `git merge-base --fork-point origin/master` | grep -q ^internal/suites/example/compose/samba/Dockerfile && echo true || echo false)
-      CI_BYPASS=$(git diff --name-only `git merge-base --fork-point origin/master` | sed -rn '/^(CODE_OF_CONDUCT\.md|CONTRIBUTING\.md|README\.md|SECURITY\.md|crowdin\.yml|\.all-contributorsrc|\.editorconfig|\.github\/.*|docs\/.*|examples\/.*)/!{q1}' && echo true || echo false)
+      CI_BYPASS=$(git diff --name-only `git merge-base --fork-point origin/master` | sed -rn '/^(CODE_OF_CONDUCT\.md|CONTRIBUTING\.md|README\.md|SECURITY\.md|crowdin\.yml|\.all-contributorsrc|\.editorconfig|\.github\/.*|docs\/.*|cmd\/authelia-gen\/templates\/.*|examples\/.*)/!{q1}' && echo true || echo false)
     fi
 
     if [[ "${CI_BYPASS}" == "true" ]]; then

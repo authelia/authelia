@@ -17,8 +17,14 @@ body:
         2. Please try to give as much information as possible for us to be able to reproduce the issue and provide a quick fix.
         3. Please ensure an issue does not already exist for this potential bug.
         4. Please only provide specific versions. Latest is not a version.
-        5. Please read the [Troubleshooting Sanitization](https://www.authelia.com/r/sanitize) reference guide if you plan on sanitizing, removing, or adjusting any values for the logs or configuration files.
-        6. Please consider including a [HTTP Archive File](https://www.authelia.com/r/har) if you're having redirection issues.
+        5. Please only report bugs with Authelia itself. Issues which match one of the following criteria should not be reported here but should be a [discussion](https://github.com/authelia/authelia/discussions/new/choose) instead:
+            - Bugs with third-party software.
+            - Mistakes in the documentation.
+            - Potential bugs where it is not somewhat clear that it's a bug with Authelia itself.
+        6. Please read the [Troubleshooting](https://www.authelia.com/r/troubleshooting) reference guide:
+            - Do not truncate any logs unless you are complying with the specific instructions in the [Logs](https://www.authelia.com/r/troubleshooting#logs) section.
+            - If you plan on sanitizing, removing, or adjusting any values for the logs or configuration files please read the [Sanitization](https://www.authelia.com/r/troubleshooting#sanitization) section.
+        7. Please consider including a [HTTP Archive File](https://www.authelia.com/r/har) if you're having redirection issues.
   - type: dropdown
     id: version
     attributes:
@@ -104,28 +110,28 @@ body:
     id: description
     attributes:
       label: Description
-      description: Describe the bug
+      description: Describe the bug.
     validations:
       required: true
   - type: textarea
     id: reproduction
     attributes:
       label: Reproduction
-      description: Describe how we can reproduce this issue
+      description: Describe how we can reproduce this issue. This should be step by step and should include detailed and specific information. Abstract or generic information should be avoided. For example this should include specific application names and versions if relevant. Reproducing the issue is important so we can verify it exists, add relevant tests, and verify it is solved.
     validations:
       required: true
   - type: textarea
     id: expectations
     attributes:
       label: Expectations
-      description: Describe the desired or expected results
+      description: Describe the desired or expected results.
     validations:
       required: false
   - type: textarea
     id: configuration
     attributes:
       label: Configuration (Authelia)
-      description: Provide a complete configuration file (the template will automatically put this content in a code block)
+      description: Provide a complete configuration file (the template will automatically put this content in a code block).
       render: yaml
     validations:
       required: false
@@ -134,8 +140,9 @@ body:
     attributes:
       label: Logs (Authelia)
       description: |
-        Provide complete logs with the log level set to debug or trace. Complete means from application start until the
-        issue occurring. The template will automatically put this content in a code block so you can just paste it.
+        Provide complete logs with the log level set to debug or trace. Complete means from application start until the issue occurring. This is clearly explained in the [Logs](https://www.authelia.com/r/troubleshooting#logs) section of the troubleshooting guide.
+
+        The template will automatically put this content in a code block so you can just paste it.
       render: shell
     validations:
       required: true
@@ -143,7 +150,7 @@ body:
     id: logs-other
     attributes:
       label: Logs (Proxy / Application)
-      description: Provide complete debug logs for the affected proxy and/or application if available and relevant (the template will automatically put this content in a code block)
+      description: Provide complete debug logs for the affected proxy and/or application if available and relevant (the template will automatically put this content in a code block).
       render: shell
     validations:
       required: false
@@ -151,14 +158,14 @@ body:
     id: documentation
     attributes:
       label: Documentation
-      description: Provide any relevant specification or other documentation if applicable
+      description: Provide any relevant specification or other documentation if applicable.
     validations:
       required: false
   - type: checkboxes
     id: checklist
     attributes:
       label: Pre-Submission Checklist
-      description: By submitting this issue confirm all of the following
+      description: By submitting this issue confirm all of the following.
       options:
         - label: I agree to follow the [Code of Conduct](http://www.authelia.com/code-of-conduct)
           required: true

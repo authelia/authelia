@@ -20,12 +20,29 @@ processing merges into the [master] branch.
 ## Overview
 
 * Ensure the `Allow edits by maintainers` checkbox is checked due to our [Squash Merge](#squash-merge) policy
-* Ensure you avoid a force push due to our [Squash Merge](#squash-merge) policy and [Review](#review) complications
+* Ensure you avoid a [force push](#force-push) excluding the specific exceptions listed in the
+  [force push section](#force-push)
+
+[Developer Certificate of Origin]: commit-message.md#developer-certificate-of-origin
 
 ## Squash Merge
 
 Every [Pull Request] will be squash merged into [master]. This requires the [Pull Request] branch to be up-to-date with
 the [master] branch.
+
+## Force Push
+
+Please do not force push to your PR's branch after you have created your PR especially when a maintainer has either
+performed a review or has indicated they are performing a review, as doing so makes it harder to review your commits
+accurately. PRs will always be squashed by us when we merge your work. Commit as many times as you need in your
+pull request branch.
+
+A few exceptions exist to this rule and are as follows:
+
+- Making adjustments to the commit message i.e. for the following reasons:
+  - To comply with the [Developer Certificate of Origin] sign off requirement
+  - To comply with the other [Commit Message] guidelines
+- To rebase your changes off of master or another branch
 
 ## Review
 
@@ -42,7 +59,7 @@ maintainers in their review process.
 - The changes must be [documented](../prologue/documentation-contributions.md) if they add or change behaviour
 - The changes must meet the following guidelines:
   - [General](introduction.md#general-guidelines)
-  - [Commit Message](commit-message.md)
+  - [Commit Message]
   - [Database Schema](database-schema.md)
   - [Documentation](documentation.md)
   - [Testing](testing.md)
@@ -58,5 +75,6 @@ maintainers in their review process.
   - Contribution includes DCO
   - Contribution includes REUSE-compliance requirements
 
+[Commit Message]: commit-message.md
 [Pull Request]: https://github.com/authelia/authelia/pulls
 [master]: https://github.com/authelia/authelia/tree/master/
