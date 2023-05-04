@@ -16,6 +16,8 @@ Authelia sends messages to users in order to verify their identity.
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 notifier:
   disable_startup_check: false
@@ -25,6 +27,8 @@ notifier:
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### disable_startup_check
 

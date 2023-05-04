@@ -16,6 +16,8 @@ toc: true
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 telemetry:
   metrics:
@@ -31,6 +33,8 @@ telemetry:
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### enabled
 

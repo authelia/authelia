@@ -20,6 +20,8 @@ authentication attempts. This helps prevent brute-force attacks.
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 regulation:
   max_retries: 3
@@ -28,6 +30,8 @@ regulation:
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### max_retries
 

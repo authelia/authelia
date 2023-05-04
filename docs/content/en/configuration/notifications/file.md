@@ -21,6 +21,8 @@ This method will use the plain text email template for readability purposes.
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 notifier:
   disable_startup_check: false
@@ -29,6 +31,8 @@ notifier:
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### filename
 

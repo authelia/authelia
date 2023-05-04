@@ -17,6 +17,8 @@ aliases:
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 certificates_directory: /config/certs/
 default_redirection_url: https://home.example.com:8080/

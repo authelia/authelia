@@ -184,7 +184,8 @@ especially for containerized deployments.*
 
 The private key to be used with the [certificate_chain](#certificatechain) for mutual TLS authentication.
 
-The value must be one private key encoded in the DER base64 ([RFC4648]) encoded PEM format.
+The value must be one private key encoded in the DER base64 ([RFC4648]) encoded PEM format. If more than one certificate
+is provided, in top down order, each certificate must be signed by the next certificate if provided.
 
 [RFC4648]: https://datatracker.ietf.org/doc/html/rfc4648
 

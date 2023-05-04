@@ -21,6 +21,8 @@ guide for supported version information.
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 storage:
   encryption_key: a_very_important_secret
@@ -106,6 +108,8 @@ storage:
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### encryption_key
 

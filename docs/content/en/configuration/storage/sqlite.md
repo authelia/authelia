@@ -24,6 +24,8 @@ but this requires you setup an external database such as [PostgreSQL](postgres.m
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 storage:
   encryption_key: a_very_important_secret
@@ -32,6 +34,8 @@ storage:
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### encryption_key
 
