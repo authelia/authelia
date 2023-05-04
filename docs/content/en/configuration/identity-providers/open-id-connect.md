@@ -28,7 +28,7 @@ More information about the beta can be found in the [roadmap](../../roadmap/acti
 
 ## Configuration
 
-The following snippet provides a sample-configuration for the OIDC identity provider explaining each field in detail.
+{{< config-alert-example >}}
 
 ```yaml
 identity_providers:
@@ -146,6 +146,8 @@ identity_providers:
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### hmac_secret
 

@@ -17,6 +17,8 @@ aliases:
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 authentication_backend:
   ldap:
@@ -112,6 +114,8 @@ authentication_backend:
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### implementation
 

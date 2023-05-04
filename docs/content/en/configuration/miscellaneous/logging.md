@@ -18,6 +18,8 @@ The logging section tunes the logging settings.
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 log:
   level: info

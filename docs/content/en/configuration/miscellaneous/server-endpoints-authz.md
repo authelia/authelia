@@ -16,6 +16,8 @@ aliases:
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 server:
   endpoints:

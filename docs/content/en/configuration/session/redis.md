@@ -20,6 +20,8 @@ this option and we highly recommend it in production environments. It requires y
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 session:
   redis:
@@ -118,6 +120,8 @@ session:
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### host
 

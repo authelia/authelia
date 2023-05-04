@@ -25,6 +25,8 @@ section of the configuration.
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 duo_api:
   disable: false
@@ -35,6 +37,8 @@ duo_api:
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### Disable
 

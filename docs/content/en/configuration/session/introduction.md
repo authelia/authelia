@@ -20,6 +20,8 @@ the session cookie behaviour and the domains which Authelia can service authoriz
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 session:
   secret: insecure_session_secret
@@ -55,6 +57,8 @@ scenarios like Kubernetes. Each provider has a note beside it indicating it is *
 providers are recommended.
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### secret
 

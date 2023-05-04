@@ -16,6 +16,8 @@ aliases:
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 webauthn:
   disable: false
@@ -26,6 +28,8 @@ webauthn:
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### disable
 

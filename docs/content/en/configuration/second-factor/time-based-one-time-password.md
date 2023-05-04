@@ -26,6 +26,8 @@ and many only support SHA1.
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 totp:
   disable: false
@@ -38,6 +40,8 @@ totp:
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### disable
 
