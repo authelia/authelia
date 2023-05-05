@@ -93,9 +93,6 @@ devDependencies:
   '@types/node':
     specifier: 18.16.4
     version: 18.16.4
-  '@types/qrcode.react':
-    specifier: 1.0.2
-    version: 1.0.2
   '@types/react':
     specifier: 18.2.5
     version: 18.2.5
@@ -2829,12 +2826,6 @@ packages:
 
   /@types/prop-types@15.7.5:
     resolution: {integrity: sha512-JCB8C6SnDoQf0cNycqd/35A7MjcnK+ZTqE7judS6o7utxUCg6imJg3QK2qzHKszlTjcj2cn+NwMB2i96ubpj7w==}
-
-  /@types/qrcode.react@1.0.2:
-    resolution: {integrity: sha512-I9Oq5Cjlkgy3Tw7krCnCXLw2/zMhizkTere49OOcta23tkvH0xBTP0yInimTh0gstLRtb8Ki9NZVujE5UI6ffQ==}
-    dependencies:
-      '@types/react': 18.2.5
-    dev: true
 
   /@types/qs@6.9.7:
     resolution: {integrity: sha512-FGa1F62FT09qcrueBA6qYTrJPVDzah9a+493+o2PCXsesWHIn27G98TsSMs3WPNbZIEj4+VJf6saSFpvD+3Zsw==}
