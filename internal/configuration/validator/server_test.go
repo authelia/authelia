@@ -35,6 +35,55 @@ func TestShouldSetDefaultServerValues(t *testing.T) {
 	assert.Equal(t, schema.DefaultServerConfiguration.Endpoints.Authz, config.Server.Endpoints.Authz)
 }
 
+func TestShouldSetDefaultServerValuesWithLegacyAddress(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.Configuration{
+		Server: schema.ServerConfiguration{
+			Host: "abc",
+			Port: 123,
+		},
+	}
+
+	ValidateServer(config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+	assert.Len(t, validator.Warnings(), 0)
+
+	assert.Equal(t, "abc", config.Server.Host) //nolint:staticcheck
+	assert.Equal(t, 123, config.Server.Port)   //nolint:staticcheck
+	assert.Equal(t, &schema.AddressTCP{Address: MustParseAddress("tcp://abc:123")}, config.Server.Address)
+
+	config = &schema.Configuration{
+		Server: schema.ServerConfiguration{
+			Host: "abc",
+		},
+	}
+
+	ValidateServer(config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+	assert.Len(t, validator.Warnings(), 0)
+
+	assert.Equal(t, "abc", config.Server.Host) //nolint:staticcheck
+	assert.Equal(t, 0, config.Server.Port)     //nolint:staticcheck
+	assert.Equal(t, &schema.AddressTCP{Address: MustParseAddress("tcp://abc:9091")}, config.Server.Address)
+
+	config = &schema.Configuration{
+		Server: schema.ServerConfiguration{
+			Port: 123,
+		},
+	}
+
+	ValidateServer(config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+	assert.Len(t, validator.Warnings(), 0)
+
+	assert.Equal(t, "", config.Server.Host)  //nolint:staticcheck
+	assert.Equal(t, 123, config.Server.Port) //nolint:staticcheck
+	assert.Equal(t, &schema.AddressTCP{Address: MustParseAddress("tcp://:123")}, config.Server.Address)
+}
+
 func TestShouldSetDefaultConfig(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{}

@@ -44,8 +44,8 @@ In your Authelia configuration you will need to enter and update the following v
 
 ```yaml
   ldap:
+    address: 'ldap://OpenLDAP:1389'
     implementation: custom
-    url: ldap://OpenLDAP:1389
     timeout: 5s
     start_tls: false
     tls:
@@ -91,8 +91,8 @@ In your Authelia configuration you will need to enter and update the following v
 
 ```yaml
  ldap:
+    address: 'ldaps://ldap.example.com'
     implementation: custom
-    url: ldaps://ldap.example.com
     timeout: 5s
     start_tls: false
     tls:
@@ -134,8 +134,8 @@ In your Authelia configuration you will need to enter and update the following v
 
 ```yaml
 ldap:
+    address: 'ldap://lldap:3890'
     implementation: custom
-    url: ldap://lldap:3890
     timeout: 5s
     start_tls: false
     base_dn: dc=example,DC=com

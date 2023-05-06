@@ -35,7 +35,7 @@ duo_api:
 
 authentication_backend:
   ldap:
-    url: ldap://127.0.0.1
+    address: 'ldap://127.0.0.1'
     tls:
       private_key: |
         -----BEGIN RSA PRIVATE KEY-----
@@ -158,16 +158,14 @@ regulation:
 
 storage:
   mysql:
-    host: 127.0.0.1
-    port: 3306
+    address: 'tcp://127.0.0.1:3306'
     database: authelia
     username: authelia
 
 notifier:
   smtp:
+    address: 'smtp://127.0.0.1:1025'
     username: test
-    host: 127.0.0.1
-    port: 1025
     sender: admin@example.com
     disable_require_tls: true
 ...

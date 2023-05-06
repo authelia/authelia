@@ -21,37 +21,37 @@ aliases:
 
 ```yaml
 server:
-  address: "tcp://:9091"
-  path: ""
+  address: 'tcp://:9091'
+  path: ''
   disable_healthcheck: false
   tls:
-    key: ""
-    certificate: ""
+    key: ''
+    certificate: ''
     client_certificates: []
   headers:
-    csp_template: ""
+    csp_template: ''
   buffers:
     read: 4096
     write: 4096
   timeouts:
-    read: 6s
-    write: 6s
-    idle: 30s
+    read: '6s'
+    write: '6s'
+    idle: '30s'
   endpoints:
     enable_pprof: false
     enable_expvars: false
     authz:
       forward-auth:
-        implementation: ForwardAuth
+        implementation: 'ForwardAuth'
         authn_strategies: []
       ext-authz:
-        implementation: ExtAuthz
+        implementation: 'ExtAuthz'
         authn_strategies: []
       auth-request:
-        implementation: AuthRequest
+        implementation: 'AuthRequest'
         authn_strategies: []
       legacy:
-        implementation: Legacy
+        implementation: 'Legacy'
         authn_strategies: []
 ```
 

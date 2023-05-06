@@ -22,13 +22,15 @@ The logging section tunes the logging settings.
 
 ```yaml
 log:
-  level: info
-  format: text
-  file_path: ""
+  level: 'info'
+  format: 'text'
+  file_path: ''
   keep_stdout: false
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### level
 

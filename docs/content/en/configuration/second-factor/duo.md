@@ -30,9 +30,9 @@ section of the configuration.
 ```yaml
 duo_api:
   disable: false
-  hostname: api-123456789.example.com
-  integration_key: ABCDEF
-  secret_key: 1234567890abcdefghifjkl
+  hostname: 'api-123456789.example.com'
+  integration_key: 'ABCDEF'
+  secret_key: '1234567890abcdefghifjkl'
   enable_self_enrollment: false
 ```
 

@@ -16,7 +16,7 @@ log:
 
 authentication_backend:
   ldap:
-    url: ldaps://ldap-service
+    address: 'ldaps://ldap-service'
     tls:
       skip_verify: true
     base_dn: dc=example,dc=com
@@ -102,15 +102,13 @@ regulation:
 
 storage:
   mysql:
-    host: mariadb-service
-    port: 3306
+    address: 'tcp://mariadb-service:3306'
     database: authelia
     username: admin
 
 notifier:
   smtp:
-    host: "mailcatcher-service"
-    port: 1025
+    address: 'smtp://"mailcatcher-service":1025'
     sender: admin@example.com
     disable_require_tls: true
 ...

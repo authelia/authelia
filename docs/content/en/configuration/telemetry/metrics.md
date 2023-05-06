@@ -22,14 +22,14 @@ toc: true
 telemetry:
   metrics:
     enabled: false
-    address: "tcp://:9959"
+    address: 'tcp://:9959'
     buffers:
       read: 4096
       write: 4096
     timeouts:
-      read: 6s
-      write: 6s
-      idle: 30s
+      read: '6s'
+      write: '6s'
+      idle: '30s'
 ```
 
 ## Options

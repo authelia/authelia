@@ -40,17 +40,15 @@ regulation:
 
 storage:
   mysql:
-    host: example.com
-    port: 3306
+    address: 'tcp://example.com:3306'
     database: authelia
     username: authelia
     password: example.com
 
 notifier:
   smtp:
+    address: 'submissions://smtp.gmail.com:465'
     username: example.com
     password: example.com
-    host: smtp.gmail.com
-    port: 465
     sender: example.com
 ...

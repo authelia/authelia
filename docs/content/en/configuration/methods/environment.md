@@ -39,7 +39,7 @@ For example this YAML configuration:
 
 ```yaml
 log:
-  level: info
+  level: 'info'
 server:
   buffers:
     read: 4096

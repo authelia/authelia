@@ -92,15 +92,29 @@ These values are more human readable but have only been available since v4.38.0.
 
 The base type for this syntax is a string.
 
-The address type is a string that indicates how to configure a listener or connector, which are the two primary
-categories of addresses.
+The address type is a string that indicates how to configure a listener (i.e. listening for connections) or connector
+(i.e. opening remote connections), which are the two primary categories of addresses.
 
-The address values take the following formats:
+
+#### Format
+
+This section outlines the format for these strings. The formats use a conventional POSIX format to indicate optional and
+required elements. The square brackets `[]` surround optional portions, and the angled brackets `<>` surround required
+portions. Required portions may exist within optional portions, in which case they are often accompanied with other
+format specific text which indicates if the accompanying text exists then it is actually required, otherwise it's
+entirely optional.
+
+The connector address values take the following formats:
 
 ```text
 [<scheme>://]<hostname>[:<port>]
-[<scheme>://]:<port>
 unix://<path>
+```
+
+The listener address values take the following additional formats:
+
+```text
+[<scheme>://]:<port>
 ```
 
 Examples:
@@ -121,7 +135,7 @@ The square brackets indicate optional sections, and the angled brackets indicate
 sections elaborate on this. Sections may only be optional for the purposes of parsing, there may be a configuration
 requirement that one of these is provided.
 
-### scheme
+#### scheme
 
 The entire scheme is optional, but if the scheme host delimiter `://` is in the string, the scheme must be present. The
 scheme must be one of the following (the listeners and connectors columns indicate support for the scheme on the
@@ -147,7 +161,7 @@ If the scheme is absent, the default scheme is assumed. If the address has a `/`
 otherwise it's assumed to be`tcp`. If the scheme is `unix` it must be suffixed with an absolute path i.e.
 `/var/local/authelia.sock` would be represented as `unix:///var/run/authelia.sock`.
 
-### hostname
+#### hostname
 
 The hostname is required if the scheme is one of the `tcp` or `udp` schemes and there is no [port](#port) specified. It
 can be any IP that is locally addressable or a hostname which resolves to a locally addressable IP.
@@ -155,7 +169,7 @@ can be any IP that is locally addressable or a hostname which resolves to a loca
 If specifying an IPv6 it should be wrapped in square brackets. For example for the IPv6 address `::1` with the `tcp`
 scheme and port `80` the correct address would be `tcp://[::1]:80`.
 
-### port
+#### port
 
 The hostname is required if the scheme is one of the `tcp` or `udp` schemes and there is no [hostname](#hostname)
 specified.

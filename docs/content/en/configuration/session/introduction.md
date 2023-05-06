@@ -24,22 +24,20 @@ the session cookie behaviour and the domains which Authelia can service authoriz
 
 ```yaml
 session:
-  secret: insecure_session_secret
-
-  name: authelia_session
-  same_site: lax
-  inactivity: 5m
-  expiration: 1h
-  remember_me: 1M
-
+  secret: 'insecure_session_secret'
+  name: 'authelia_session'
+  same_site: 'lax'
+  inactivity: '5m'
+  expiration: '1h'
+  remember_me: '1M'
   cookies:
-    - domain: example.com
-      authelia_url: https://auth.example.com
-      name: authelia_session
-      same_site: lax
-      inactivity: 5m
-      expiration: 1h
-      remember_me: 1d
+    - domain: 'example.com'
+      authelia_url: 'https://auth.example.com'
+      name: 'authelia_session'
+      same_site: 'lax'
+      inactivity: '5m'
+      expiration: '1h'
+      remember_me: '1d'
 ```
 
 ## Providers

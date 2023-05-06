@@ -33,7 +33,7 @@ More information about the beta can be found in the [roadmap](../../roadmap/acti
 ```yaml
 identity_providers:
   oidc:
-    hmac_secret: this_is_a_secret_abc123abc123abc
+    hmac_secret: 'this_is_a_secret_abc123abc123abc'
     issuer_certificate_chain: |
       -----BEGIN CERTIFICATE-----
       MIIC5jCCAc6gAwIBAgIRAK4Sj7FiN6PXo/urPfO4E7owDQYJKoZIhvcNAQELBQAw
@@ -101,48 +101,48 @@ identity_providers:
       27GoE2i5mh6Yez6VAYbUuns3FcwIsMyWLq043Tu2DNkx9ijOOAuQzw^invalid..
       DO NOT USE==
       -----END RSA PRIVATE KEY-----
-    access_token_lifespan: 1h
-    authorize_code_lifespan: 1m
-    id_token_lifespan: 1h
-    refresh_token_lifespan: 90m
+    access_token_lifespan: '1h'
+    authorize_code_lifespan: '1m'
+    id_token_lifespan: '1h'
+    refresh_token_lifespan: '90m'
     enable_client_debug_messages: false
-    enforce_pkce: public_clients_only
+    enforce_pkce: 'public_clients_only'
     cors:
       endpoints:
-        - authorization
-        - token
-        - revocation
-        - introspection
+        - 'authorization'
+        - 'token'
+        - 'revocation'
+        - 'introspection'
       allowed_origins:
-        - https://example.com
+        - 'https://example.com'
       allowed_origins_from_client_redirect_uris: false
     clients:
-      - id: myapp
-        description: My Application
+      - id: 'myapp'
+        description: 'My Application'
         secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         sector_identifier: ''
         public: false
-        authorization_policy: two_factor
-        consent_mode: explicit
-        pre_configured_consent_duration: 1w
+        authorization_policy: 'two_factor'
+        consent_mode: 'explicit'
+        pre_configured_consent_duration: '1w'
         audience: []
         scopes:
-          - openid
-          - groups
-          - email
-          - profile
+          - 'openid'
+          - 'groups'
+          - 'email'
+          - 'profile'
         redirect_uris:
-          - https://oidc.example.com:8080/oauth2/callback
+          - 'https://oidc.example.com:8080/oauth2/callback'
         grant_types:
-          - refresh_token
-          - authorization_code
+          - 'refresh_token'
+          - 'authorization_code'
         response_types:
-          - code
+          - 'code'
         response_modes:
-          - form_post
-          - query
-          - fragment
-        userinfo_signing_algorithm: none
+          - 'form_post'
+          - 'query'
+          - 'fragment'
+        userinfo_signing_algorithm: 'none'
 ```
 
 ## Options

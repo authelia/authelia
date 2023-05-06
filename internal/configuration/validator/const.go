@@ -45,8 +45,6 @@ const (
 
 // Scheme constants.
 const (
-	schemeLDAP  = "ldap"
-	schemeLDAPS = "ldaps"
 	schemeHTTP  = "http"
 	schemeHTTPS = "https"
 )
@@ -61,7 +59,10 @@ const (
 	errFmtNotifierFileSystemFileNameNotConfigured = "notifier: filesystem: option 'filename' is required"
 	errFmtNotifierSMTPNotConfigured               = "notifier: smtp: option '%s' is required"
 	errFmtNotifierSMTPTLSConfigInvalid            = "notifier: smtp: tls: %w"
-	errFmtNotifierStartTlsDisabled                = "notifier: smtp: option 'disable_starttls' is enabled: " +
+	errFmtNotifierSMTPAddress                     = "notifier: smtp: option 'address' with value '%s' is invalid: %w"
+	errFmtNotifierSMTPAddressLegacyAndModern      = "notifier: smtp: option 'host' and 'port' can't be configured at the same time as 'address'"
+
+	errFmtNotifierStartTlsDisabled = "notifier: smtp: option 'disable_starttls' is enabled: " +
 		"opportunistic STARTTLS is explicitly disabled which means all emails will be sent insecurely over plaintext " +
 		"and this setting is only necessary for non-compliant SMTP servers which advertise they support STARTTLS " +
 		"when they actually don't support STARTTLS"
@@ -103,10 +104,7 @@ const (
 		errSuffixMustBeOneOf
 	errFmtLDAPAuthBackendFilterReplacedPlaceholders = "authentication_backend: ldap: option " +
 		"'%s' has an invalid placeholder: '%s' has been removed, please use '%s' instead"
-	errFmtLDAPAuthBackendURLNotParsable = "authentication_backend: ldap: option " +
-		"'url' could not be parsed: %w"
-	errFmtLDAPAuthBackendURLInvalidScheme = "authentication_backend: ldap: option " +
-		"'url' must have either the 'ldap' or 'ldaps' scheme but it's configured as '%s'"
+	errFmtLDAPAuthBackendAddress                    = "authentication_backend: ldap: option 'address' with value '%s' is invalid: %w"
 	errFmtLDAPAuthBackendFilterEnclosingParenthesis = "authentication_backend: ldap: option " +
 		"'%s' must contain enclosing parenthesis: '%s' should probably be '(%s)'"
 	errFmtLDAPAuthBackendFilterMissingPlaceholder = "authentication_backend: ldap: option " +
@@ -123,11 +121,14 @@ const (
 
 // Storage Error constants.
 const (
-	errStrStorage                                 = "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided"
-	errStrStorageEncryptionKeyMustBeProvided      = "storage: option 'encryption_key' is required"
-	errStrStorageEncryptionKeyTooShort            = "storage: option 'encryption_key' must be 20 characters or longer"
-	errFmtStorageUserPassMustBeProvided           = "storage: %s: option 'username' and 'password' are required" //nolint:gosec
-	errFmtStorageOptionMustBeProvided             = "storage: %s: option '%s' is required"
+	errStrStorage                                  = "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided"
+	errStrStorageEncryptionKeyMustBeProvided       = "storage: option 'encryption_key' is required"
+	errStrStorageEncryptionKeyTooShort             = "storage: option 'encryption_key' must be 20 characters or longer"
+	errFmtStorageUserPassMustBeProvided            = "storage: %s: option 'username' and 'password' are required" //nolint:gosec
+	errFmtStorageOptionMustBeProvided              = "storage: %s: option '%s' is required"
+	errFmtStorageOptionAddressConflictWithHostPort = "storage: %s: option 'host' and 'port' can't be configured at the same time as 'address'"
+	errFmtStorageFailedToConvertHostPortToAddress  = "storage: %s: option 'address' failed to parse options 'host' and 'port' as address: %w"
+
 	errFmtStorageTLSConfigInvalid                 = "storage: %s: tls: %w"
 	errFmtStoragePostgreSQLInvalidSSLMode         = "storage: postgres: ssl: option 'mode' must be one of %s but it's configured as '%s'"
 	errFmtStoragePostgreSQLInvalidSSLAndTLSConfig = "storage: postgres: can't define both 'tls' and 'ssl' configuration options"
@@ -246,7 +247,8 @@ const (
 
 // NTP Error constants.
 const (
-	errFmtNTPVersion = "ntp: option 'version' must be either 3 or 4 but it's configured as '%d'"
+	errFmtNTPVersion       = "ntp: option 'version' must be either 3 or 4 but it's configured as '%d'"
+	errFmtNTPAddressScheme = "ntp: option 'address' with value '%s' is invalid: %w"
 )
 
 // Session error constants.
@@ -290,7 +292,6 @@ const (
 
 	errFmtServerTLSClientAuthNoAuth = "server: tls: client authentication cannot be configured if no server certificate and key are provided"
 
-	errFmtServerAddressWarnLegacy      = "server: option 'address' replaces options 'host' and 'port': these will automatically be mapped for you but we recommend adjusting your configuration: the equivalent address value based on your configuration is 'tcp://%s:%d'"
 	errFmtServerAddressLegacyAndModern = "server: option 'host' and 'port' can't be configured at the same time as 'address'"
 	errFmtServerAddress                = "server: option 'address' with value '%s' is invalid: %w"
 

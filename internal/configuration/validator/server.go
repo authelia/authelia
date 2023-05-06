@@ -98,12 +98,12 @@ func ValidateServerAddress(config *schema.Configuration, validator *schema.Struc
 		if config.Server.Host != "" || config.Server.Port != 0 { //nolint:staticcheck
 			validator.Push(fmt.Errorf(errFmtServerAddressLegacyAndModern))
 		}
-	}
 
-	var err error
+		var err error
 
-	if err = config.Server.Address.ValidateHTTP(); err != nil {
-		validator.Push(fmt.Errorf(errFmtServerAddress, config.Server.Address.String(), err))
+		if err = config.Server.Address.ValidateHTTP(); err != nil {
+			validator.Push(fmt.Errorf(errFmtServerAddress, config.Server.Address.String(), err))
+		}
 	}
 }
 

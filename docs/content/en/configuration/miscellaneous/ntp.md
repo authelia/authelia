@@ -27,14 +27,16 @@ unless configured otherwise.
 
 ```yaml
 ntp:
-  address: "time.cloudflare.com:123"
+  address: 'udp://time.cloudflare.com:123'
   version: 3
-  max_desync: 3s
+  max_desync: '3s'
   disable_startup_check: false
   disable_failure: false
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### address
 
@@ -42,6 +44,28 @@ ntp:
 
 Determines the address of the NTP server to retrieve the time from. The format is `<host>:<port>`, and both of these are
 required.
+
+### address
+
+{{< confkey type="address" default="udp://time.cloudflare.com:123" required="no" >}}
+
+*__Reference Note:__ This configuration option uses the [address common syntax](../prologue/common.md#address). Please
+see the [documentation](../prologue/common.md#address) on this format for more information.*
+
+Configures the address for the NTP Server. The address itself is a connector and the scheme must be `udp`,
+`udp4`, or `udp6`.
+
+__Examples:__
+
+```yaml
+ntp:
+  address: 'udp://127.0.0.1:123'
+```
+
+```yaml
+ntp:
+  address: 'udp6://[fd00:1111:2222:3333::1]:123'
+```
 
 ### version
 

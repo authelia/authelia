@@ -31,8 +31,8 @@ and many only support SHA1.
 ```yaml
 totp:
   disable: false
-  issuer: authelia.com
-  algorithm: sha1
+  issuer: 'authelia.com'
+  algorithm: 'sha1'
   digits: 6
   period: 30
   skew: 1

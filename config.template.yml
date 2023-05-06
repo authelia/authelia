@@ -9,14 +9,14 @@
 ## Certificates directory specifies where Authelia will load trusted certificates (public portion) from in addition to
 ## the system certificates store.
 ## They should be in base64 format, and have one of the following extensions: *.cer, *.crt, *.pem.
-# certificates_directory: /config/certificates/
+# certificates_directory: '/config/certificates/'
 
 ## The theme to display: light, dark, grey, auto.
-theme: light
+theme: 'light'
 
 ## The secret used to generate JWT tokens when validating user identity by email confirmation. JWT Secret can also be
 ## set using a secret: https://www.authelia.com/c/secrets
-jwt_secret: a_very_important_secret
+jwt_secret: 'a_very_important_secret'
 
 ## Default redirection URL
 ##
@@ -25,28 +25,32 @@ jwt_secret: a_very_important_secret
 ## in such a case.
 ##
 ## Note: this parameter is optional. If not provided, user won't be redirected upon successful authentication.
-default_redirection_url: https://home.example.com/
+default_redirection_url: 'https://home.example.com/'
 
 ## Set the default 2FA method for new users and for when a user has a preferred method configured that has been
 ## disabled. This setting must be a method that is enabled.
 ## Options are totp, webauthn, mobile_push.
-default_2fa_method: ""
+default_2fa_method: ''
 
 ##
 ## Server Configuration
 ##
 server:
-
-  ## The address to listen on. This must be a TCP or unix socket.
-  address: "tcp://:9091"
+  ## The address for the Main server to listen on in the address common syntax.
+  ## Formats:
+  ##  - [<scheme>://]<hostname>[:<port>]
+  ##  - [<scheme>://][hostname]:<port>
+  ## Square brackets indicate optional portions of the format. Scheme must be 'tcp', 'tcp4', 'tcp6', or 'unix'.
+  ## The default scheme is 'unix' if the address is an absolute path otherwise it's 'tcp'. The default port is '9091'.
+  address: 'tcp://:9091'
 
   ## Set the single level path Authelia listens on.
   ## Must be alphanumeric chars and should not contain any slashes.
-  path: ""
+  path: ''
 
   ## Set the path on disk to Authelia assets.
   ## Useful to allow overriding of specific static assets.
-  # asset_path: /config/assets/
+  # asset_path: '/config/assets/'
 
   ## Disables writing the health check vars to /app/.healthcheck.env which makes healthcheck.sh return exit code 0.
   ## This is disabled by default if either /app/.healthcheck.env or /app/healthcheck.sh do not exist.
@@ -55,10 +59,10 @@ server:
   ## Authelia by default doesn't accept TLS communication on the server port. This section overrides this behaviour.
   tls:
     ## The path to the DER base64/PEM format private key.
-    key: ""
+    key: ''
 
     ## The path to the DER base64/PEM format public certificate.
-    certificate: ""
+    certificate: ''
 
     ## The list of certificates for client authentication.
     client_certificates: []
@@ -67,7 +71,7 @@ server:
   headers:
 
     ## The CSP Template. Read the docs.
-    csp_template: ""
+    csp_template: ''
 
   ## Server Buffers configuration.
   # buffers:
@@ -87,13 +91,13 @@ server:
   # timeouts:
 
     ## Read timeout.
-    # read: 6s
+    # read: '6s'
 
     ## Write timeout.
-    # write: 6s
+    # write: '6s'
 
     ## Idle timeout.
-    # idle: 30s
+    # idle: '30s'
 
   ## Server Endpoints configuration.
   ## This section is considered advanced and it SHOULD NOT be configured unless you've read the relevant documentation.
@@ -107,16 +111,16 @@ server:
     ## Configure the authz endpoints.
     # authz:
       # forward-auth:
-        # implementation: ForwardAuth
+        # implementation: 'ForwardAuth'
         # authn_strategies: []
       # ext-authz:
-        # implementation: ExtAuthz
+        # implementation: 'ExtAuthz'
         # authn_strategies: []
       # auth-request:
-        # implementation: AuthRequest
+        # implementation: 'AuthRequest'
         # authn_strategies: []
       # legacy:
-        # implementation: Legacy
+        # implementation: 'Legacy'
         # authn_strategies: []
 
 ##
@@ -124,13 +128,13 @@ server:
 ##
 log:
   ## Level of verbosity for logs: info, debug, trace.
-  level: debug
+  level: 'debug'
 
   ## Format the logs are written as: json, text.
-  # format: json
+  # format: 'json'
 
   ## File path where the logs will be written. If not set logs are written to stdout.
-  # file_path: /config/authelia.log
+  # file_path: '/config/authelia.log'
 
   ## Whether to also log to stdout when a log_file_path is defined.
   # keep_stdout: false
@@ -147,8 +151,13 @@ telemetry:
     ## Enable Metrics.
     enabled: false
 
-    ## The address to listen on for metrics. This should be on a different port to the main server.port value.
-    address: tcp://0.0.0.0:9959
+    ## The address for the Metrics server to listen on in the address common syntax.
+    ## Formats:
+    ##  - [<scheme>://]<hostname>[:<port>]
+    ##  - [<scheme>://][hostname]:<port>
+    ## Square brackets indicate optional portions of the format. Scheme must be 'tcp', 'tcp4', 'tcp6', or 'unix'.
+    ## The default scheme is 'unix' if the address is an absolute path otherwise it's 'tcp'. The default port is '9959'.
+    address: 'tcp://:9959'
 
     ## Metrics Server Buffers configuration.
     # buffers:
@@ -163,13 +172,13 @@ telemetry:
     # timeouts:
 
       ## Read timeout.
-      # read: 6s
+      # read: '6s'
 
       ## Write timeout.
-      # write: 6s
+      # write: '6s'
 
       ## Idle timeout.
-      # idle: 30s
+      # idle: '30s'
 
 ##
 ## TOTP Configuration
@@ -180,12 +189,12 @@ totp:
   disable: false
 
   ## The issuer name displayed in the Authenticator application of your choice.
-  issuer: authelia.com
+  issuer: 'authelia.com'
 
   ## The TOTP algorithm to use.
   ## It is CRITICAL you read the documentation before changing this option:
   ## https://www.authelia.com/c/totp#algorithm
-  algorithm: sha1
+  algorithm: 'sha1'
 
   ## The number of digits a user has to input. Must either be 6 or 8.
   ## Changing this option only affects newly generated TOTP configurations.
@@ -215,18 +224,18 @@ webauthn:
   disable: false
 
   ## Adjust the interaction timeout for WebAuthn dialogues.
-  timeout: 60s
+  timeout: '60s'
 
   ## The display name the browser should show the user for when using WebAuthn to login/register.
-  display_name: Authelia
+  display_name: 'Authelia'
 
   ## Conveyance preference controls if we collect the attestation statement including the AAGUID from the device.
   ## Options are none, indirect, direct.
-  attestation_conveyance_preference: indirect
+  attestation_conveyance_preference: 'indirect'
 
   ## User verification controls if the user must make a gesture or action to confirm they are present.
   ## Options are required, preferred, discouraged.
-  user_verification: preferred
+  user_verification: 'preferred'
 
 ##
 ## Duo Push API Configuration
@@ -235,10 +244,10 @@ webauthn:
 ## "Partner Auth API" in the management panel.
 # duo_api:
   # disable: false
-  # hostname: api-123456789.example.com
-  # integration_key: ABCDEF
+  # hostname: 'api-123456789.example.com'
+  # integration_key: 'ABCDEF'
   ## Secret can also be set using a secret: https://www.authelia.com/c/secrets
-  # secret_key: 1234567890abcdefghifjkl
+  # secret_key: '1234567890abcdefghifjkl'
   # enable_self_enrollment: false
 
 ##
@@ -246,14 +255,17 @@ webauthn:
 ##
 ## This is used to validate the servers time is accurate enough to validate TOTP.
 ntp:
-  ## NTP server address.
-  address: "time.cloudflare.com:123"
+  ## The address of the NTP server to connect to in the address common syntax.
+  ## Format: [<scheme>://]<hostname>[:<port>].
+  ## Square brackets indicate optional portions of the format. Scheme must be 'udp', 'udp4', or 'udp6'.
+  ## The default scheme is 'udp'. The default port is '123'.
+  address: 'udp://time.cloudflare.com:123'
 
   ## NTP version.
   version: 4
 
-  ## Maximum allowed time offset between the host and the NTP server.
-  max_desync: 3s
+  ## Maximum allowed time offset between the host and the NTP server in duration common syntax.
+  max_desync: '3s'
 
   ## Disables the NTP check on startup entirely. This means Authelia will not contact a remote service at all if you
   ## set this to true, and can operate in a truly offline mode.
@@ -279,14 +291,14 @@ authentication_backend:
 
     ## External reset password url that redirects the user to an external reset portal. This disables the internal reset
     ## functionality.
-    custom_url: ""
+    custom_url: ''
 
   ## The amount of time to wait before we refresh data from the authentication backend. Uses duration notation.
   ## To disable this feature set it to 'disable', this will slightly reduce security because for Authelia, users will
   ## always belong to groups they belonged to at the time of login even if they have been removed from them in LDAP.
   ## To force update on every request you can set this to '0' or 'always', this will increase processor demand.
   ## See the below documentation for more information.
-  ## Duration Notation docs:  https://www.authelia.com/c/common#duration-notation-format
+  ## Duration Notation docs:  https://www.authelia.com/c/common#duration
   ## Refresh Interval docs: https://www.authelia.com/c/1fa#refresh-interval
   refresh_interval: 5m
 
@@ -297,6 +309,13 @@ authentication_backend:
   ## because it allows Authelia to offload the stateful operations
   ## onto the LDAP service.
   # ldap:
+    ## The address of the LDAP server to connect to in the address common syntax.
+    ## Format: [<scheme>://]<hostname>[:<port>].
+    ## Square brackets indicate optional portions of the format. Scheme must be 'ldap', 'ldaps', or 'ldapi`.
+    ## The default scheme is 'ldapi' if the address is an absolute path otherwise it's 'ldaps'.
+    ## The default port is '636', unless the scheme is 'ldap' in which case it's '389'.
+    # address: 'ldaps://127.0.0.1:636'
+
     ## The LDAP implementation, this affects elements like the attribute utilised for resetting a password.
     ## Acceptable options are as follows:
     ## - 'activedirectory' - for Microsoft Active Directory.
@@ -308,22 +327,18 @@ authentication_backend:
     ## Depending on the option here certain other values in this section have a default value, notably all of the
     ## attribute mappings have a default value that this config overrides, you can read more about these default values
     ## at https://www.authelia.com/c/ldap#defaults
-    # implementation: custom
+    # implementation: 'custom'
 
-    ## The url to the ldap server. Format: <scheme>://<address>[:<port>].
-    ## Scheme can be ldap or ldaps in the format (port optional).
-    # url: ldap://127.0.0.1
-
-    ## The dial timeout for LDAP.
-    # timeout: 5s
+    ## The dial timeout for LDAP in the duration common syntax.
+    # timeout: '5s'
 
     ## Use StartTLS with the LDAP connection.
     # start_tls: false
 
     # tls:
       ## The server subject name to check the servers certificate against during the validation process.
-      ## This option is not required if the certificate has a SAN which matches the host portion of the url option.
-      # server_name: ldap.example.com
+      ## This option is not required if the certificate has a SAN which matches the address options hostname.
+      # server_name: 'ldap.example.com'
 
       ## Skip verifying the server certificate entirely. In preference to setting this we strongly recommend you add the
       ## certificate or the certificate of the authority signing the certificate to the certificates directory which is
@@ -334,10 +349,10 @@ authentication_backend:
       # skip_verify: false
 
       ## Minimum TLS version for the connection.
-      # minimum_version: TLS1.2
+      # minimum_version: 'TLS1.2'
 
       ## Maximum TLS version for the connection.
-      # maximum_version: TLS1.3
+      # maximum_version: 'TLS1.3'
 
       ## The certificate chain used with the private_key if the server requests TLS Client Authentication
       ## i.e. Mutual TLS.
@@ -414,7 +429,7 @@ authentication_backend:
 
     ## The distinguished name of the container searched for objects in the directory information tree.
     ## See also: additional_users_dn, additional_groups_dn.
-    # base_dn: dc=example,dc=com
+    # base_dn: 'dc=example,dc=com'
 
     ## The attribute holding the username of the user. This attribute is used to populate the username in the session
     ## information. For your information, Microsoft Active Directory usually uses 'sAMAccountName' and OpenLDAP usually
@@ -424,11 +439,11 @@ authentication_backend:
     ## non-unique attributes like 'mail' can also be used but we don't recommend using them, we instead advise to use
     ## a filter to perform alternative lookups and the attributes mentioned above (sAMAccountName and uid) to
     ## follow https://datatracker.ietf.org/doc/html/rfc2307.
-    # username_attribute: uid
+    # username_attribute: 'uid'
 
     ## The additional_users_dn is prefixed to base_dn and delimited by a comma when searching for users.
     ## i.e. with this set to OU=Users and base_dn set to DC=a,DC=com; OU=Users,DC=a,DC=com is searched for users.
-    # additional_users_dn: ou=users
+    # additional_users_dn: 'ou=users'
 
     ## The users filter used in search queries to find the user profile based on input filled in login form.
     ## Various placeholders are available in the user filter which you can read about in the documentation which can
@@ -442,11 +457,11 @@ authentication_backend:
     ##
     ## To allow sign in both with username and email, one can use a filter like
     ## (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
-    # users_filter: (&({username_attribute}={input})(objectClass=person))
+    # users_filter: '(&({username_attribute}={input})(objectClass=person))'
 
     ## The additional_groups_dn is prefixed to base_dn and delimited by a comma when searching for groups.
     ## i.e. with this set to OU=Groups and base_dn set to DC=a,DC=com; OU=Groups,DC=a,DC=com is searched for groups.
-    # additional_groups_dn: ou=groups
+    # additional_groups_dn: 'ou=groups'
 
     ## The groups filter used in search queries to find the groups based on relevant authenticated user.
     ## Various placeholders are available in the groups filter which you can read about in the documentation which can
@@ -454,17 +469,17 @@ authentication_backend:
     ##
     ## If your groups use the `groupOfUniqueNames` structure use this instead:
     ##    (&(uniqueMember={dn})(objectClass=groupOfUniqueNames))
-    # groups_filter: (&(member={dn})(objectClass=groupOfNames))
+    # groups_filter: '(&(member={dn})(objectClass=groupOfNames))'
 
     ## The attribute holding the name of the group.
-    # group_name_attribute: cn
+    # group_name_attribute: 'cn'
 
     ## The attribute holding the mail address of the user. If multiple email addresses are defined for a user, only the
     ## first one returned by the LDAP server is used.
-    # mail_attribute: mail
+    # mail_attribute: 'mail'
 
     ## The attribute holding the display name of the user. This will be used to greet an authenticated user.
-    # display_name_attribute: displayName
+    # display_name_attribute: 'displayName'
 
     ## Follow referrals returned by the server.
     ## This is especially useful for environments where read-only servers exist. Only implemented for write operations.
@@ -473,7 +488,7 @@ authentication_backend:
     ## The username and password of the admin user.
     # user: cn=admin,dc=example,dc=com
     ## Password can also be set using a secret: https://www.authelia.com/c/secrets
-    # password: password
+    # password: 'password'
 
   ##
   ## File (Authentication Provider)
@@ -488,15 +503,15 @@ authentication_backend:
   ## Important: Kubernetes (or HA) users must read https://www.authelia.com/t/statelessness
   ##
   # file:
-    # path: /config/users_database.yml
+    # path: '/config/users_database.yml'
     # watch: false
     # search:
       # email: false
       # case_insensitive: false
     # password:
-      # algorithm: argon2
+      # algorithm: 'argon2'
       # argon2:
-        # variant: argon2id
+        # variant: 'argon2id'
         # iterations: 3
         # memory: 65536
         # parallelism: 4
@@ -509,15 +524,15 @@ authentication_backend:
         # key_length: 32
         # salt_length: 16
       # pbkdf2:
-        # variant: sha512
+        # variant: 'sha512'
         # iterations: 310000
         # salt_length: 16
       # sha2crypt:
-        # variant: sha512
+        # variant: 'sha512'
         # iterations: 50000
         # salt_length: 16
       # bcrypt:
-        # variant: standard
+        # variant: 'standard'
         # cost: 12
 
 ##
@@ -601,91 +616,91 @@ privacy_policy:
 access_control:
   ## Default policy can either be 'bypass', 'one_factor', 'two_factor' or 'deny'. It is the policy applied to any
   ## resource if there is no policy to be applied to the user.
-  default_policy: deny
+  default_policy: 'deny'
 
   # networks:
-    # - name: internal
+    # - name: 'internal'
     #   networks:
-        # - 10.10.0.0/16
-        # - 192.168.2.0/24
+        # - '10.10.0.0/16'
+        # - '192.168.2.0/24'
     # - name: VPN
-    #   networks: 10.9.0.0/16
+    #   networks: '10.9.0.0/16'
 
   # rules:
     ## Rules applied to everyone
     # - domain: 'public.example.com'
-    #   policy: bypass
+    #   policy: 'bypass'
 
     ## Domain Regex examples. Generally we recommend just using a standard domain.
     # - domain_regex: '^(?P<User>\w+)\.example\.com$'
-    #   policy: one_factor
+    #   policy: 'one_factor'
     # - domain_regex: '^(?P<Group>\w+)\.example\.com$'
-    #   policy: one_factor
+    #   policy: 'one_factor'
     # - domain_regex:
       #  - '^appgroup-.*\.example\.com$'
       #  - '^appgroup2-.*\.example\.com$'
-    #   policy: one_factor
+    #   policy: 'one_factor'
     # - domain_regex: '^.*\.example\.com$'
-    #   policy: two_factor
+    #   policy: 'two_factor'
 
     # - domain: 'secure.example.com'
-    #   policy: one_factor
+    #   policy: 'one_factor'
     ## Network based rule, if not provided any network matches.
     #   networks:
-        # - internal
-        # - VPN
-        # - 192.168.1.0/24
-        # - 10.0.0.1
+        # - 'internal'
+        # - 'VPN'
+        # - '192.168.1.0/24'
+        # - '10.0.0.1'
 
     # - domain:
         # - 'secure.example.com'
         # - 'private.example.com'
-    #   policy: two_factor
+    #   policy: 'two_factor'
 
     # - domain: 'singlefactor.example.com'
-    #   policy: one_factor
+    #   policy: 'one_factor'
 
     ## Rules applied to 'admins' group
     # - domain: 'mx2.mail.example.com'
     #   subject: 'group:admins'
-    #   policy: deny
+    #   policy: 'deny'
 
     # - domain: '*.example.com'
     #   subject:
         # - 'group:admins'
         # - 'group:moderators'
-    #   policy: two_factor
+    #   policy: 'two_factor'
 
     ## Rules applied to 'dev' group
     # - domain: 'dev.example.com'
     #   resources:
         # - '^/groups/dev/.*$'
     #   subject: 'group:dev'
-    #   policy: two_factor
+    #   policy: 'two_factor'
 
     ## Rules applied to user 'john'
     # - domain: 'dev.example.com'
     #   resources:
         # - '^/users/john/.*$'
     #   subject: 'user:john'
-    #   policy: two_factor
+    #   policy: 'two_factor'
 
     ## Rules applied to user 'harry'
     # - domain: 'dev.example.com'
     #   resources:
         # - '^/users/harry/.*$'
     #   subject: 'user:harry'
-    #   policy: two_factor
+    #   policy: 'two_factor'
 
     ## Rules applied to user 'bob'
     # - domain: '*.mail.example.com'
     #   subject: 'user:bob'
-    #   policy: two_factor
+    #   policy: 'two_factor'
     # - domain: 'dev.example.com'
     #   resources:
     #     - '^/users/bob/.*$'
     #   subject: 'user:bob'
-    #   policy: two_factor
+    #   policy: 'two_factor'
 
 ##
 ## Session Provider Configuration
@@ -720,8 +735,8 @@ session:
       ## Please read https://www.authelia.com/c/session#same_site
       # same_site: 'lax'
 
-      ## The value for inactivity, expiration, and remember_me are in seconds or the duration notation format.
-      ## See: https://www.authelia.com/c/common#duration-notation-format
+      ## The value for inactivity, expiration, and remember_me are in seconds or the duration common syntax.
+      ## See: https://www.authelia.com/c/common#duration
       ## All three of these values affect the cookie/session validity period. Longer periods are considered less secure
       ## because a stolen cookie will last longer giving attackers more time to spy or attack.
 
@@ -745,8 +760,8 @@ session:
   ## or strict. Please read https://www.authelia.com/c/session#same_site
   same_site: 'lax'
 
-  ## The value for inactivity, expiration, and remember_me are in seconds or the duration notation format.
-  ## See: https://www.authelia.com/c/common#duration-notation-format
+  ## The value for inactivity, expiration, and remember_me are in seconds or the duration common syntax.
+  ## See: https://www.authelia.com/c/common#duration
   ## All three of these values affect the cookie/session validity period. Longer periods are considered less secure
   ## because a stolen cookie will last longer giving attackers more time to spy or attack.
 
@@ -755,7 +770,7 @@ session:
   ## destroyed after 1h, or after 5m since the last time Authelia detected user activity.
   inactivity: '5m'
 
-  ## Cookie Session Domain default 'expiration' value.  The time before the session cookie expires and the session is
+  ## Cookie Session Domain default 'expiration' value. The time before the session cookie expires and the session is
   ## destroyed if remember me IS NOT selected by the user.
   expiration: '1h'
 
@@ -770,16 +785,16 @@ session:
   ## Important: Kubernetes (or HA) users must read https://www.authelia.com/t/statelessness
   ##
   # redis:
-    # host: 127.0.0.1
+    # host: '127.0.0.1'
     # port: 6379
     ## Use a unix socket instead
-    # host: /var/run/redis/redis.sock
+    # host: '/var/run/redis/redis.sock'
 
     ## Username used for redis authentication. This is optional and a new feature in redis 6.0.
-    # username: authelia
+    # username: 'authelia'
 
     ## Password can also be set using a secret: https://www.authelia.com/c/secrets
-    # password: authelia
+    # password: 'authelia'
 
     ## This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
     # database_index: 0
@@ -794,7 +809,7 @@ session:
     # tls:
       ## The server subject name to check the servers certificate against during the validation process.
       ## This option is not required if the certificate has a SAN which matches the host option.
-      # server_name: myredis.example.com
+      # server_name: 'myredis.example.com'
 
       ## Skip verifying the server certificate entirely. In preference to setting this we strongly recommend you add the
       ## certificate or the certificate of the authority signing the certificate to the certificates directory which is
@@ -805,10 +820,10 @@ session:
       # skip_verify: false
 
       ## Minimum TLS version for the connection.
-      # minimum_version: TLS1.2
+      # minimum_version: 'TLS1.2'
 
       ## Maximum TLS version for the connection.
-      # maximum_version: TLS1.3
+      # maximum_version: 'TLS1.3'
 
       ## The certificate chain used with the private_key if the server requests TLS Client Authentication
       ## i.e. Mutual TLS.
@@ -887,21 +902,21 @@ session:
     ## This provides specific options to Redis Sentinel, sentinel_name must be defined (Master Name).
     # high_availability:
       ## Sentinel Name / Master Name.
-      # sentinel_name: mysentinel
+      # sentinel_name: 'mysentinel'
 
       ## Specific username for Redis Sentinel. The node username and password is configured above.
-      # sentinel_username: sentinel_specific_user
+      # sentinel_username: 'sentinel_specific_user'
 
       ## Specific password for Redis Sentinel. The node username and password is configured above.
-      # sentinel_password: sentinel_specific_pass
+      # sentinel_password: 'sentinel_specific_pass'
 
       ## The additional nodes to pre-seed the redis provider with (for sentinel).
       ## If the host in the above section is defined, it will be combined with this list to connect to sentinel.
       ## For high availability to be used you must have either defined; the host above or at least one node below.
       # nodes:
-        # - host: sentinel-node1
+        # - host: 'sentinel-node1'
         #   port: 6379
-        # - host: sentinel-node2
+        # - host: 'sentinel-node2'
         #   port: 6379
 
       ## Choose the host with the lowest latency.
@@ -920,13 +935,13 @@ regulation:
   max_retries: 3
 
   ## The time range during which the user can attempt login before being banned. The user is banned if the
-  ## authentication failed 'max_retries' times in a 'find_time' seconds window. Find Time accepts duration notation.
-  ## See: https://www.authelia.com/c/common#duration-notation-format
-  find_time: 2m
+  ## authentication failed 'max_retries' times in a 'find_time' seconds window. Find Time accepts duration common syntax.
+  ## See: https://www.authelia.com/c/common#duration
+  find_time: '2m'
 
   ## The length of time before a banned user can login again. Ban Time accepts duration notation.
-  ## See: https://www.authelia.com/c/common#duration-notation-format
-  ban_time: 5m
+  ## See: https://www.authelia.com/c/common#duration
+  ban_time: '5m'
 
 ##
 ## Storage Provider Configuration
@@ -936,7 +951,7 @@ regulation:
   ## The encryption key that is used to encrypt sensitive information in the database. Must be a string with a minimum
   ## length of 20. Please see the docs if you configure this with an undesirable key and need to change it, you MUST use
   ## the CLI to change this in the database if you want to change it from a previously configured value.
-  # encryption_key: you_must_generate_a_random_string_of_more_than_twenty_chars_and_configure_this
+  # encryption_key: 'you_must_generate_a_random_string_of_more_than_twenty_chars_and_configure_this'
 
   ##
   ## Local (Storage Provider)
@@ -948,25 +963,36 @@ regulation:
   ##
   # local:
     ## Path to the SQLite3 Database.
-    # path: /config/db.sqlite3
+    # path: '/config/db.sqlite3'
 
   ##
   ## MySQL / MariaDB (Storage Provider)
   ##
   # mysql:
-    # host: 127.0.0.1
-    # port: 3306
-    # database: authelia
-    # username: authelia
-    ## Password can also be set using a secret: https://www.authelia.com/c/secrets
-    # password: mypassword
-    # timeout: 5s
+    ## The address of the MySQL server to connect to in the address common syntax.
+    ## Format: [<scheme>://]<hostname>[:<port>].
+    ## Square brackets indicate optional portions of the format. Scheme must be 'tcp', 'tcp4', 'tcp6', or 'unix`.
+    ## The default scheme is 'unix' if the address is an absolute path otherwise it's 'tcp'. The default port is '3306'.
+    # address: 'tcp://127.0.0.1:3306'
+
+    ## The database name to use.
+    # database: 'authelia'
+
+    ## The username used for SQL authentication.
+    # username: 'authelia'
+
+    ## The password used for SQL authentication.
+    ## Can also be set using a secret: https://www.authelia.com/c/secrets
+    # password: 'mypassword'
+
+    ## The connection timeout in the duration common syntax.
+    # timeout: '5s'
 
     ## MySQL TLS settings. Configuring this requires TLS.
     # tls:
       ## The server subject name to check the servers certificate against during the validation process.
-      ## This option is not required if the certificate has a SAN which matches the host option.
-      # server_name: mysql.example.com
+      ## This option is not required if the certificate has a SAN which matches the address options hostname.
+      # server_name: 'mysql.example.com'
 
       ## Skip verifying the server certificate entirely. In preference to setting this we strongly recommend you add the
       ## certificate or the certificate of the authority signing the certificate to the certificates directory which is
@@ -977,10 +1003,10 @@ regulation:
       # skip_verify: false
 
       ## Minimum TLS version for the connection.
-      # minimum_version: TLS1.2
+      # minimum_version: 'TLS1.2'
 
       ## Maximum TLS version for the connection.
-      # maximum_version: TLS1.3
+      # maximum_version: 'TLS1.3'
 
       ## The certificate chain used with the private_key if the server requests TLS Client Authentication
       ## i.e. Mutual TLS.
@@ -1059,20 +1085,33 @@ regulation:
   ## PostgreSQL (Storage Provider)
   ##
   # postgres:
-    # host: 127.0.0.1
-    # port: 5432
-    # database: authelia
-    # schema: public
-    # username: authelia
-    ## Password can also be set using a secret: https://www.authelia.com/c/secrets
-    # password: mypassword
-    # timeout: 5s
+    ## The address of the PostgreSQL server to connect to in the address common syntax.
+    ## Format: [<scheme>://]<hostname>[:<port>].
+    ## Square brackets indicate optional portions of the format. Scheme must be 'tcp', 'tcp4', 'tcp6', or 'unix`.
+    ## The default scheme is 'unix' if the address is an absolute path otherwise it's 'tcp'. The default port is '5432'.
+    # address: 'tcp://127.0.0.1:5432'
+
+    ## The database name to use.
+    # database: 'authelia'
+
+    ## The schema name to use.
+    # schema: 'public'
+
+    ## The username used for SQL authentication.
+    # username: 'authelia'
+
+    ## The password used for SQL authentication.
+    ## Can also be set using a secret: https://www.authelia.com/c/secrets
+    # password: 'mypassword'
+
+    ## The connection timeout in the duration common syntax.
+    # timeout: '5s'
 
     ## PostgreSQL TLS settings. Configuring this requires TLS.
     # tls:
       ## The server subject name to check the servers certificate against during the validation process.
-      ## This option is not required if the certificate has a SAN which matches the host option.
-      # server_name: postgres.example.com
+      ## This option is not required if the certificate has a SAN which matches the address options hostname.
+      # server_name: 'postgres.example.com'
 
       ## Skip verifying the server certificate entirely. In preference to setting this we strongly recommend you add the
       ## certificate or the certificate of the authority signing the certificate to the certificates directory which is
@@ -1083,10 +1122,10 @@ regulation:
       # skip_verify: false
 
       ## Minimum TLS version for the connection.
-      # minimum_version: TLS1.2
+      # minimum_version: 'TLS1.2'
 
       ## Maximum TLS version for the connection.
-      # maximum_version: TLS1.3
+      # maximum_version: 'TLS1.3'
 
       ## The certificate chain used with the private_key if the server requests TLS Client Authentication
       ## i.e. Mutual TLS.
@@ -1176,7 +1215,7 @@ notifier:
   ## Important: Kubernetes (or HA) users must read https://www.authelia.com/t/statelessness
   ##
   # filesystem:
-    # filename: /config/notification.txt
+    # filename: '/config/notification.txt'
 
   ##
   ## SMTP (Notification Provider)
@@ -1189,36 +1228,33 @@ notifier:
   ##   - validate the SMTP server x509 certificate during the TLS handshake against the hosts trusted certificates
   ##     (configure in tls section)
   # smtp:
-    ## The SMTP host to connect to.
-    # host: 127.0.0.1
+    ## The address of the SMTP server to connect to in the address common syntax.
+    # address: 'smtp://127.0.0.1:25'
 
-    ## The port to connect to the SMTP host on.
-    # port: 1025
-
-    ## The connection timeout.
-    # timeout: 5s
+    ## The connection timeout in the duration common syntax.
+    # timeout: '5s'
 
     ## The username used for SMTP authentication.
-    # username: test
+    # username: 'test'
 
     ## The password used for SMTP authentication.
     ## Can also be set using a secret: https://www.authelia.com/c/secrets
-    # password: password
+    # password: 'password'
 
     ## The sender is used to is used for the MAIL FROM command and the FROM header.
     ## If this is not defined and the username is an email, we use the username as this value. This can either be just
     ## an email address or the RFC5322 'Name <email address>' format.
-    # sender: "Authelia <admin@example.com>"
+    # sender: 'Authelia <admin@example.com>'
 
     ## HELO/EHLO Identifier. Some SMTP Servers may reject the default of localhost.
-    # identifier: localhost
+    # identifier: 'localhost'
 
     ## Subject configuration of the emails sent. {title} is replaced by the text from the notifier.
-    # subject: "[Authelia] {title}"
+    # subject: '[Authelia] {title}'
 
     ## This address is used during the startup check to verify the email configuration is correct.
     ## It's not important what it is except if your email server only allows local delivery.
-    # startup_check_address: test@authelia.com
+    # startup_check_address: 'test@authelia.com'
 
     ## By default we require some form of TLS. This disables this check though is not advised.
     # disable_require_tls: false
@@ -1228,8 +1264,8 @@ notifier:
 
     # tls:
       ## The server subject name to check the servers certificate against during the validation process.
-      ## This option is not required if the certificate has a SAN which matches the host option.
-      # server_name: smtp.example.com
+      ## This option is not required if the certificate has a SAN which matches the address options hostname.
+      # server_name: 'smtp.example.com'
 
       ## Skip verifying the server certificate entirely. In preference to setting this we strongly recommend you add the
       ## certificate or the certificate of the authority signing the certificate to the certificates directory which is
@@ -1240,10 +1276,10 @@ notifier:
       # skip_verify: false
 
       ## Minimum TLS version for the connection.
-      # minimum_version: TLS1.2
+      # minimum_version: 'TLS1.2'
 
       ## Maximum TLS version for the connection.
-      # maximum_version: TLS1.3
+      # maximum_version: 'TLS1.3'
 
       ## The certificate chain used with the private_key if the server requests TLS Client Authentication
       ## i.e. Mutual TLS.
@@ -1331,7 +1367,7 @@ notifier:
   # oidc:
     ## The hmac_secret is used to sign OAuth2 tokens (authorization code, access tokens and refresh tokens).
     ## HMAC Secret can also be set using a secret: https://www.authelia.com/c/secrets
-    # hmac_secret: this_is_a_secret_abc123abc123abc
+    # hmac_secret: 'this_is_a_secret_abc123abc123abc'
 
     ## The issuer_certificate_chain is an optional PEM encoded certificate chain. It's used in conjunction with the
     ## issuer_private_key to sign JWT's. All certificates in the chain must be within the validity period, and every
@@ -1408,10 +1444,10 @@ notifier:
       # -----END RSA PRIVATE KEY-----
 
     ## The lifespans configure the expiration for these token types.
-    # access_token_lifespan: 1h
-    # authorize_code_lifespan: 1m
-    # id_token_lifespan: 1h
-    # refresh_token_lifespan: 90m
+    # access_token_lifespan: '1h'
+    # authorize_code_lifespan: '1m'
+    # id_token_lifespan: '1h'
+    # refresh_token_lifespan: '90m'
 
     ## Enables additional debug messages.
     # enable_client_debug_messages: false
@@ -1421,23 +1457,23 @@ notifier:
 
     ## SECURITY NOTICE: It's not recommended changing this option, and highly discouraged to have it set to 'never'
     ## for security reasons.
-    # enforce_pkce: public_clients_only
+    # enforce_pkce: 'public_clients_only'
 
     ## Cross-Origin Resource Sharing (CORS) settings.
     # cors:
       ## List of endpoints in addition to the metadata endpoints to permit cross-origin requests on.
       # endpoints:
-        #  - authorization
-        #  - token
-        #  - revocation
-        #  - introspection
-        #  - userinfo
+        #  - 'authorization'
+        #  - 'token'
+        #  - 'revocation'
+        #  - 'introspection'
+        #  - 'userinfo'
 
       ## List of allowed origins.
       ## Any origin with https is permitted unless this option is configured or the
       ## allowed_origins_from_client_redirect_uris option is enabled.
       # allowed_origins:
-        # - https://example.com
+        # - 'https://example.com'
 
       ## Automatically adds the origin portion of all redirect URI's on all clients to the list of allowed_origins,
       ## provided they have the scheme http or https and do not have the hostname of localhost.
@@ -1447,71 +1483,71 @@ notifier:
     # clients:
       # -
         ## The ID is the OpenID Connect ClientID which is used to link an application to a configuration.
-        # id: myapp
+        # id: 'myapp'
 
         ## The description to show to users when they end up on the consent screen. Defaults to the ID above.
-        # description: My Application
+        # description: 'My Application'
 
         ## The client secret is a shared secret between Authelia and the consumer of this client.
-        # secret: this_is_a_secret
+        # secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
 
         ## Sector Identifiers are occasionally used to generate pairwise subject identifiers. In most cases this is not
         ## necessary. Read the documentation for more information.
         ## The subject identifier must be the host component of a URL, which is a domain name with an optional port.
-        # sector_identifier: example.com
+        # sector_identifier: 'example.com'
 
         ## Sets the client to public. This should typically not be set, please see the documentation for usage.
         # public: false
 
         ## Redirect URI's specifies a list of valid case-sensitive callbacks for this client.
         # redirect_uris:
-        # - https://oidc.example.com:8080/oauth2/callback
+        # - 'https://oidc.example.com:8080/oauth2/callback'
 
         ## Audience this client is allowed to request.
         # audience: []
 
         ## Scopes this client is allowed to request.
         # scopes:
-          # - openid
-          # - groups
-          # - email
-          # - profile
+          # - 'openid'
+          # - 'groups'
+          # - 'email'
+          # - 'profile'
 
         ## Response Types configures which responses this client can be sent.
         ## It's not recommended to define this unless you know what you're doing.
         # response_types:
-          # - code
+          # - 'code'
 
         ## Response Modes configures which response modes this client supports.
         # response_modes:
-          # - form_post
-          # - query
+          # - 'form_post'
+          # - 'query'
 
         ## Grant Types configures which grants this client can obtain.
         ## It's not recommended to define this unless you know what you're doing.
         # grant_types:
-        # - authorization_code
+        # - 'authorization_code'
 
         ## The permitted client authentication method for the Token Endpoint for this client.
-        # token_endpoint_auth_method: client_secret_basic
+        # token_endpoint_auth_method: 'client_secret_basic'
 
         ## The policy to require for this client; one_factor or two_factor.
-        # authorization_policy: two_factor
+        # authorization_policy: 'two_factor'
 
         ## Enforces the use of PKCE for this client when set to true.
         # enforce_pkce: false
 
         ## Enforces the use of PKCE for this client when configured, and enforces the specified challenge method.
         ## Options are 'plain' and 'S256'.
-        # pkce_challenge_method: S256
+        # pkce_challenge_method: 'S256'
 
         ## The algorithm used to sign userinfo endpoint responses for this client, either none or RS256.
-        # userinfo_signing_algorithm: none
+        # userinfo_signing_algorithm: 'none'
 
         ## The consent mode controls how consent is obtained.
-        # consent_mode: auto
+        # consent_mode: 'auto'
 
         ## This value controls the duration a consent on this client remains remembered when the consent mode is
         ## configured as 'auto' or 'pre-configured'.
-        # pre_configured_consent_duration: 1w
+        # pre_configured_consent_duration: '1w'
 ...

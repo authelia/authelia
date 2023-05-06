@@ -18,8 +18,8 @@ log:
 
 authentication_backend:
   ldap:
+    address: 'ldap://sambaldap'
     implementation: activedirectory
-    url: ldap://sambaldap
     tls:
       skip_verify: true
     start_tls: true
@@ -65,8 +65,7 @@ regulation:
 
 notifier:
   smtp:
-    host: smtp
-    port: 1025
+    address: 'smtp://smtp:1025'
     sender: admin@example.com
     disable_require_tls: true
 ...

@@ -95,8 +95,8 @@ type SCryptPassword struct {
 
 // LDAPAuthenticationBackend represents the configuration related to LDAP server.
 type LDAPAuthenticationBackend struct {
+	Address        *AddressLDAP  `koanf:"address"`
 	Implementation string        `koanf:"implementation"`
-	URL            string        `koanf:"url"`
 	Timeout        time.Duration `koanf:"timeout"`
 	StartTLS       bool          `koanf:"start_tls"`
 	TLS            *TLSConfig    `koanf:"tls"`
