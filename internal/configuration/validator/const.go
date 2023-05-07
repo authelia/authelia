@@ -98,9 +98,9 @@ const (
 	errFmtLDAPAuthBackendUnauthenticatedBindWithPassword     = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when a password is specified"
 	errFmtLDAPAuthBackendUnauthenticatedBindWithResetEnabled = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when password reset is enabled"
 
-	errFmtLDAPAuthBackendMissingOption    = "authentication_backend: ldap: option '%s' is required"
-	errFmtLDAPAuthBackendTLSConfigInvalid = "authentication_backend: ldap: tls: %w"
-	errFmtLDAPAuthBackendImplementation   = "authentication_backend: ldap: option 'implementation' " +
+	errFmtLDAPAuthBackendMissingOption     = "authentication_backend: ldap: option '%s' is required"
+	errFmtLDAPAuthBackendTLSConfigInvalid  = "authentication_backend: ldap: tls: %w"
+	errFmtLDAPAuthBackendOptionMustBeOneOf = "authentication_backend: ldap: option '%s' " +
 		errSuffixMustBeOneOf
 	errFmtLDAPAuthBackendFilterReplacedPlaceholders = "authentication_backend: ldap: option " +
 		"'%s' has an invalid placeholder: '%s' has been removed, please use '%s' instead"
@@ -109,6 +109,10 @@ const (
 		"'%s' must contain enclosing parenthesis: '%s' should probably be '(%s)'"
 	errFmtLDAPAuthBackendFilterMissingPlaceholder = "authentication_backend: ldap: option " +
 		"'%s' must contain the placeholder '{%s}' but it's absent"
+	errFmtLDAPAuthBackendFilterMissingPlaceholderGroupSearchMode = "authentication_backend: ldap: option " +
+		"'%s' must contain one of the %s placeholders when using a group_search_mode of '%s' but they're absent"
+	errFmtLDAPAuthBackendFilterMissingAttribute = "authentication_backend: ldap: attributes: option " +
+		"'%s' must be provided when using the %s placeholder but it's absent"
 )
 
 // TOTP Error constants.
@@ -371,17 +375,6 @@ const (
 	operatorNotPattern = "not pattern"
 )
 
-var (
-	validLDAPImplementations = []string{
-		schema.LDAPImplementationCustom,
-		schema.LDAPImplementationActiveDirectory,
-		schema.LDAPImplementationRFC2307bis,
-		schema.LDAPImplementationFreeIPA,
-		schema.LDAPImplementationLLDAP,
-		schema.LDAPImplementationGLAuth,
-	}
-)
-
 const (
 	legacy                      = "legacy"
 	authzImplementationLegacy   = "Legacy"
@@ -395,6 +388,22 @@ const (
 var (
 	validAuthzImplementations = []string{"AuthRequest", "ForwardAuth", authzImplementationExtAuthz, authzImplementationLegacy}
 	validAuthzAuthnStrategies = []string{"CookieSession", "HeaderAuthorization", "HeaderProxyAuthorization", "HeaderAuthRequestProxyAuthorization", "HeaderLegacy"}
+)
+
+var (
+	validLDAPImplementations = []string{
+		schema.LDAPImplementationCustom,
+		schema.LDAPImplementationActiveDirectory,
+		schema.LDAPImplementationRFC2307bis,
+		schema.LDAPImplementationFreeIPA,
+		schema.LDAPImplementationLLDAP,
+		schema.LDAPImplementationGLAuth,
+	}
+
+	validLDAPGroupSearchModes = []string{
+		schema.LDAPGroupSearchModeFilter,
+		schema.LDAPGroupSearchModeMemberOf,
+	}
 )
 
 var (

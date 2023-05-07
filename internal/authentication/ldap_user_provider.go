@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-ldap/ldap/v3"
+	ldap "github.com/go-ldap/ldap/v3"
 	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -40,11 +40,13 @@ type LDAPUserProvider struct {
 	usersFilterReplacementDateTimeMicrosoftNTTimeEpoch bool
 
 	// Dynamically generated groups values.
-	groupsBaseDN                    string
-	groupsAttributes                []string
-	groupsFilterReplacementInput    bool
-	groupsFilterReplacementUsername bool
-	groupsFilterReplacementDN       bool
+	groupsBaseDN                        string
+	groupsAttributes                    []string
+	groupsFilterReplacementInput        bool
+	groupsFilterReplacementUsername     bool
+	groupsFilterReplacementDN           bool
+	groupsFilterReplacementsMemberOfDN  bool
+	groupsFilterReplacementsMemberOfRDN bool
 }
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider with the ProductionLDAPClientFactory.
@@ -86,6 +88,7 @@ func NewLDAPUserProviderWithFactory(config schema.LDAPAuthenticationBackend, dis
 
 	provider.parseDynamicUsersConfiguration()
 	provider.parseDynamicGroupsConfiguration()
+	provider.parseDynamicConfiguration()
 
 	return provider
 }
@@ -134,38 +137,11 @@ func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, er
 	}
 
 	var (
-		request *ldap.SearchRequest
-		result  *ldap.SearchResult
+		groups []string
 	)
 
-	// Search for the users groups.
-	request = ldap.NewSearchRequest(
-		p.groupsBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		0, 0, false, p.resolveGroupsFilter(username, profile), p.groupsAttributes, nil,
-	)
-
-	p.log.
-		WithField("base_dn", request.BaseDN).
-		WithField("filter", request.Filter).
-		WithField("attr", request.Attributes).
-		WithField("scope", request.Scope).
-		WithField("deref", request.DerefAliases).
-		Trace("Performing group search")
-
-	if result, err = p.search(client, request); err != nil {
-		return nil, fmt.Errorf("unable to retrieve groups of user '%s'. Cause: %w", username, err)
-	}
-
-	groups := make([]string, 0)
-
-	for _, res := range result.Entries {
-		if len(res.Attributes) == 0 {
-			p.log.Warningf("No groups retrieved from LDAP for user %s", username)
-			break
-		}
-
-		// Append all values of the document. Normally there should be only one per document.
-		groups = append(groups, res.Attributes[0].Values...)
+	if groups, err = p.getUserGroups(client, username, profile); err != nil {
+		return nil, err
 	}
 
 	return &UserDetails{
@@ -275,6 +251,8 @@ func (p *LDAPUserProvider) search(client LDAPClient, request *ldap.SearchRequest
 			} else {
 				result.Referrals = append(result.Referrals, referral)
 			}
+		} else {
+			return nil, err
 		}
 	}
 
@@ -357,6 +335,11 @@ func (p *LDAPUserProvider) getUserProfile(client LDAPClient, username string) (p
 		return nil, fmt.Errorf("there were %d users found when searching for '%s' but there should only be 1", len(result.Entries), username)
 	}
 
+	return p.getUserProfileResultToProfile(username, result)
+}
+
+//nolint:gocyclo // Not overly complex.
+func (p *LDAPUserProvider) getUserProfileResultToProfile(username string, result *ldap.SearchResult) (profile *ldapUserProfile, err error) {
 	userProfile := ldapUserProfile{
 		DN: result.Entries[0].DN,
 	}
@@ -364,35 +347,50 @@ func (p *LDAPUserProvider) getUserProfile(client LDAPClient, username string) (p
 	for _, attr := range result.Entries[0].Attributes {
 		attrs := len(attr.Values)
 
-		if attr.Name == p.config.UsernameAttribute {
+		switch attr.Name {
+		case p.config.Attributes.Username:
 			switch attrs {
 			case 1:
 				userProfile.Username = attr.Values[0]
+
+				if attr.Name == p.config.Attributes.DisplayName && userProfile.DisplayName == "" {
+					userProfile.DisplayName = attr.Values[0]
+				}
+
+				if attr.Name == p.config.Attributes.Mail && len(userProfile.Emails) == 0 {
+					userProfile.Emails = []string{attr.Values[0]}
+				}
 			case 0:
 				return nil, fmt.Errorf("user '%s' must have value for attribute '%s'",
-					username, p.config.UsernameAttribute)
+					username, p.config.Attributes.Username)
 			default:
 				return nil, fmt.Errorf("user '%s' has %d values for for attribute '%s' but the attribute must be a single value attribute",
-					username, attrs, p.config.UsernameAttribute)
+					username, attrs, p.config.Attributes.Username)
 			}
-		}
+		case p.config.Attributes.Mail:
+			if attrs == 0 {
+				continue
+			}
 
-		if attrs == 0 {
-			continue
-		}
-
-		if attr.Name == p.config.MailAttribute {
 			userProfile.Emails = attr.Values
-		}
+		case p.config.Attributes.DisplayName:
+			if attrs == 0 {
+				continue
+			}
 
-		if attr.Name == p.config.DisplayNameAttribute {
 			userProfile.DisplayName = attr.Values[0]
+		case p.config.Attributes.MemberOf:
+			if attrs == 0 {
+				continue
+			}
+
+			userProfile.MemberOf = attr.Values
 		}
 	}
 
 	if userProfile.Username == "" {
 		return nil, fmt.Errorf("user '%s' must have value for attribute '%s'",
-			username, p.config.UsernameAttribute)
+			username, p.config.Attributes.Username)
 	}
 
 	if userProfile.DN == "" {
@@ -400,6 +398,124 @@ func (p *LDAPUserProvider) getUserProfile(client LDAPClient, username string) (p
 	}
 
 	return &userProfile, nil
+}
+
+func (p *LDAPUserProvider) getUserGroups(client LDAPClient, username string, profile *ldapUserProfile) (groups []string, err error) {
+	request := ldap.NewSearchRequest(
+		p.groupsBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		0, 0, false, p.resolveGroupsFilter(username, profile), p.groupsAttributes, nil,
+	)
+
+	p.log.
+		WithField("base_dn", request.BaseDN).
+		WithField("filter", request.Filter).
+		WithField("attributes", request.Attributes).
+		WithField("scope", request.Scope).
+		WithField("deref", request.DerefAliases).
+		WithField("mode", p.config.GroupSearchMode).
+		Trace("Performing group search")
+
+	switch p.config.GroupSearchMode {
+	case "", "filter":
+		return p.getUserGroupsRequestFilter(client, username, profile, request)
+	case "memberof":
+		return p.getUserGroupsRequestMemberOf(client, username, profile, request)
+	default:
+		return nil, fmt.Errorf("could not perform group search with mode '%s' as it's unknown", p.config.GroupSearchMode)
+	}
+}
+
+func (p *LDAPUserProvider) getUserGroupsRequestFilter(client LDAPClient, username string, _ *ldapUserProfile, request *ldap.SearchRequest) (groups []string, err error) {
+	var result *ldap.SearchResult
+
+	if result, err = p.search(client, request); err != nil {
+		return nil, fmt.Errorf("unable to retrieve groups of user '%s'. Cause: %w", username, err)
+	}
+
+	for _, entry := range result.Entries {
+	attributes:
+		for _, attr := range entry.Attributes {
+			switch attr.Name {
+			case p.config.Attributes.GroupName:
+				switch n := len(attr.Values); n {
+				case 0:
+					continue
+				case 1:
+					groups = append(groups, attr.Values[0])
+				default:
+					fmt.Println(attr.Name, n, attr.Values)
+					return nil, fmt.Errorf("unable to retrieve groups of user '%s': Cause: the group '%s' attribute '%s' (group name attribute) has more than one value", username, entry.DN, p.config.Attributes.GroupName)
+				}
+
+				break attributes
+			}
+		}
+	}
+
+	return groups, nil
+}
+
+func (p *LDAPUserProvider) getUserGroupsRequestMemberOf(client LDAPClient, username string, profile *ldapUserProfile, request *ldap.SearchRequest) (groups []string, err error) {
+	var result *ldap.SearchResult
+
+	if result, err = p.search(client, request); err != nil {
+		return nil, fmt.Errorf("unable to retrieve groups of user '%s'. Cause: %w", username, err)
+	}
+
+	for _, entry := range result.Entries {
+		if len(entry.Attributes) == 0 {
+			p.log.
+				WithField("dn", entry.DN).
+				WithField("attributes", request.Attributes).
+				WithField("mode", "memberof").
+				Trace("Skipping Group as the server did not return any requested attributes")
+
+			continue
+		}
+
+		if !utils.IsStringInSliceFold(entry.DN, profile.MemberOf) {
+			p.log.
+				WithField("dn", entry.DN).
+				WithField("mode", "memberof").
+				Trace("Skipping Group as it doesn't match the users memberof entries")
+
+			continue
+		}
+
+	attributes:
+		for _, attr := range entry.Attributes {
+			switch attr.Name {
+			case p.config.Attributes.GroupName:
+				switch len(attr.Values) {
+				case 0:
+					p.log.
+						WithField("dn", entry.DN).
+						WithField("attribute", attr.Name).
+						Trace("Group skipped as the server returned a null attribute")
+				case 1:
+					switch len(attr.Values[0]) {
+					case 0:
+						p.log.
+							WithField("dn", entry.DN).
+							WithField("attribute", attr.Name).
+							Trace("Skipping group as the configured group name attribute had no value")
+
+					default:
+						groups = append(groups, attr.Values[0])
+					}
+				default:
+					p.log.
+						WithField("dn", entry.DN).
+						WithField("attribute", attr.Name).
+						Trace("Group skipped as the server returned a multi-valued attribute but it should be a single-valued attribute")
+				}
+
+				break attributes
+			}
+		}
+	}
+
+	return groups, nil
 }
 
 func (p *LDAPUserProvider) resolveUsersFilter(input string) (filter string) {
@@ -443,6 +559,27 @@ func (p *LDAPUserProvider) resolveGroupsFilter(input string, profile *ldapUserPr
 		if p.groupsFilterReplacementDN {
 			filter = strings.ReplaceAll(filter, ldapPlaceholderDistinguishedName, ldap.EscapeFilter(profile.DN))
 		}
+	}
+
+	if p.groupsFilterReplacementsMemberOfDN {
+		sep := fmt.Sprintf(")(%s=", p.config.Attributes.DistinguishedName)
+		values := make([]string, len(profile.MemberOf))
+
+		for i, memberof := range profile.MemberOf {
+			values[i] = ldap.EscapeFilter(memberof)
+		}
+
+		filter = strings.ReplaceAll(filter, ldapPlaceholderMemberOfDistinguishedName, fmt.Sprintf("(%s=%s)", p.config.Attributes.DistinguishedName, strings.Join(values, sep)))
+	}
+
+	if p.groupsFilterReplacementsMemberOfRDN {
+		values := make([]string, len(profile.MemberOf))
+
+		for i, memberof := range profile.MemberOf {
+			values[i] = ldap.EscapeFilter(strings.SplitN(memberof, ",", 2)[0])
+		}
+
+		filter = strings.ReplaceAll(filter, ldapPlaceholderMemberOfRelativeDistinguishedName, fmt.Sprintf("(%s)", strings.Join(values, ")(")))
 	}
 
 	p.log.Tracef("Computed groups filter is %s", filter)

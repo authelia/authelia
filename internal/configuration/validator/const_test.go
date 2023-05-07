@@ -13,6 +13,11 @@ const (
 	testLDAPURL       = "ldap://ldap"
 	testLDAPUser      = "user"
 	testEncryptionKey = "a_not_so_secure_encryption_key"
+
+	member            = "member"
+	memberof          = "memberof"
+	memberOf          = "memberOf"
+	filterMemberOfRDN = "(|({memberof:rdn}))"
 )
 
 const (

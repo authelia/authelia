@@ -101,16 +101,20 @@ authentication_backend:
     base_dn: 'DC=example,DC=com'
     additional_users_dn: 'OU=users'
     users_filter: '(&({username_attribute}={input})(objectClass=person))'
-    username_attribute: 'uid'
-    mail_attribute: 'mail'
-    display_name_attribute: 'displayName'
     additional_groups_dn: 'OU=groups'
     groups_filter: '(&(member={dn})(objectClass=groupOfNames))'
-    group_name_attribute: 'cn'
+    group_search_mode: 'filter'
     permit_referrals: false
     permit_unauthenticated_bind: false
     user: 'CN=admin,DC=example,DC=com'
     password: 'password'
+    attributes:
+      distinguished_name: 'distinguishedName'
+      username: 'uid'
+      display_name: 'displayName'
+      mail: 'mail'
+      member_of: 'memberOf'
+      group_name: 'cn'
 ```
 
 ## Options
@@ -209,66 +213,33 @@ The LDAP filter to narrow down which users are valid. This is important to set c
 The default value is dependent on the [implementation](#implementation), refer to the
 [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
 
-### username_attribute
-
-{{< confkey type="string" required="situational" >}}
-
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults)
-for more information.*
-
-The LDAP attribute that maps to the username in *Authelia*. This must contain the `{username_attribute}`
-[placeholder](../../reference/guides/ldap.md#users-filter-replacements).
-
-### mail_attribute
-
-{{< confkey type="string" required="situational" >}}
-
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults)
-for more information.*
-
-The attribute to retrieve which contains the users email addresses. This is important for the device registration and
-password reset processes. The user must have an email address in order for Authelia to perform identity verification
-when a user attempts to reset their password or register a second factor device.
-
-### display_name_attribute
-
-{{< confkey type="string" required="situational" >}}
-
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults](#attribute-defaults) for more information.*
-
-The attribute to retrieve which is shown on the Web UI to the user when they log in.
-
 ### additional_groups_dn
 
 {{< confkey type="string" required="no" >}}
 
-Similar to [additional_users_dn](#additional_users_dn) but it applies to group searches.
+Similar to [additional_users_dn](#additionalusersdn) but it applies to group searches.
 
 ### groups_filter
 
 {{< confkey type="string" required="situational" >}}
 
 *__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [filter defaults](#filter-defaults) for more information.*
+default negating this requirement. Refer to the [filter defaults](../../reference/guides/ldap.md#filter-defaults) for
+more information.*
 
-Similar to [users_filter](#users_filter) but it applies to group searches. In order to include groups the member is not
+Similar to [users_filter](#usersfilter) but it applies to group searches. In order to include groups the member is not
 a direct member of, but is a member of another group that is a member of those (i.e. recursive groups), you may try
 using the following filter which is currently only tested against Microsoft Active Directory:
 
 `(&(member:1.2.840.113556.1.4.1941:={dn})(objectClass=group)(objectCategory=group))`
 
-### group_name_attribute
+### group_search_mode
 
-{{< confkey type="string" required="situational" >}}
+{{< confkey type="string" default="filter" required="no" >}}
 
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults](#attribute-defaults) for more
-information.*
-
-The LDAP attribute that is used by Authelia to determine the group name.
+The group search mode controls how user groups are discovered. The default of `filter` directly uses the filter to
+determine the result. The `memberof` experimental mode does another special filtered search. See the
+[Reference Documentation](../../reference/guides/ldap.md#group-search-modes) for more information.
 
 ### permit_referrals
 
@@ -313,6 +284,71 @@ It's __strongly recommended__ this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters and the user password is changed to this value.
 
+### attributes
+
+The following options configure The directory server attribute mappings.
+
+#### distinguished_name
+
+{{< confkey type="string" required="situational" >}}
+
+*__Note:__ This option is technically not required however it is required when using the group search mode
+`memberof` replacement `{memberof:dn}`.*
+
+The directory server attribute which contains the distinguished name, primarily used to perform filtered searches. There
+is a clear distinction between the actual distinguished name and a distinguished name attribute, all directories have
+distinguished names for objects, but not all have an attribute representing this that can be searched on.
+
+The only known support at this time is with Active Directory.
+
+#### username
+
+{{< confkey type="string" required="situational" >}}
+
+*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
+default negating this requirement. Refer to the [attribute defaults] for more information.*
+
+The directory server attribute that maps to the username in *Authelia*. This must contain the `{username_attribute}` [placeholder].
+
+#### display_name
+
+{{< confkey type="string" required="situational" >}}
+
+*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
+default negating this requirement. Refer to the [attribute defaults] for more information.*
+
+The directory server attribute to retrieve which is shown on the Web UI to the user when they log in.
+
+#### mail
+
+{{< confkey type="string" required="situational" >}}
+
+*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
+default negating this requirement. Refer to the [attribute defaults] for more information.*
+
+The directory server attribute to retrieve which contains the users email addresses. This is important for the device
+registration and password reset processes. The user must have an email address in order for Authelia to perform
+identity verification when a user attempts to reset their password or register a second factor device.
+
+#### member_of
+
+{{< confkey type="string" required="situational" >}}
+
+*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
+default negating this requirement. Refer to the [attribute defaults] for more information.*
+
+The directory server attribute which contains the groups a user is a member of. This is currently only used for the
+`memberof` group search mode.
+
+#### group_name
+
+{{< confkey type="string" required="situational" >}}
+
+*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
+default negating this requirement. Refer to the [attribute defaults] for more information.*
+
+The directory server attribute that is used by Authelia to determine the group name.
+
 ## Refresh Interval
 
 It's recommended you either use the default [refresh interval](introduction.md#refreshinterval) or configure this to
@@ -332,6 +368,8 @@ for your users.
 
 - [LDAP Reference Guide](../../reference/guides/ldap.md)
 
-[username attribute]: #usernameattribute
+[username attribute]: #username
 [TechNet wiki]: https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx
 [RFC2307]: https://datatracker.ietf.org/doc/html/rfc2307
+[attribute defaults]: ../../reference/guides/ldap.md#attribute-defaults
+[placeholder]: ../../reference/guides/ldap.md#users-filter-replacements

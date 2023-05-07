@@ -24,16 +24,24 @@ server:
     authz:
       forward-auth:
         implementation: 'ForwardAuth'
-        authn_strategies: []
+        authn_strategies:
+          - name: 'HeaderProxyAuthorization'
+          - name: 'CookieSession'
       ext-authz:
         implementation: 'ExtAuthz'
-        authn_strategies: []
+        authn_strategies:
+          - name: 'HeaderProxyAuthorization'
+          - name: 'CookieSession'
       auth-request:
         implementation: 'AuthRequest'
-        authn_strategies: []
+        authn_strategies:
+          - name: 'HeaderAuthRequestProxyAuthorization'
+          - name: 'CookieSession'
       legacy:
         implementation: 'Legacy'
-        authn_strategies: []
+        authn_strategies:
+          - name: 'HeaderLegacy'
+          - name: 'CookieSession'
 ```
 
 ## Name

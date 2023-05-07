@@ -92,35 +92,35 @@ Use this [Standalone Example](#standalone-example) if you want to use
 version: "3.8"
 secrets:
   JWT_SECRET:
-    file: ${PWD}/data/authelia/secrets/JWT_SECRET
+    file: '${PWD}/data/authelia/secrets/JWT_SECRET'
   SESSION_SECRET:
-    file: ${PWD}/data/authelia/secrets/SESSION_SECRET
+    file: '${PWD}/data/authelia/secrets/SESSION_SECRET'
   STORAGE_PASSWORD:
-    file: ${PWD}/data/authelia/secrets/STORAGE_PASSWORD
+    file: '${PWD}/data/authelia/secrets/STORAGE_PASSWORD'
   STORAGE_ENCRYPTION_KEY:
-    file: ${PWD}/data/authelia/secrets/STORAGE_ENCRYPTION_KEY
+    file: '${PWD}/data/authelia/secrets/STORAGE_ENCRYPTION_KEY'
 services:
   authelia:
-    container_name: authelia
-    image: docker.io/authelia/authelia:latest
-    restart: unless-stopped
+    container_name: 'authelia'
+    image: 'docker.io/authelia/authelia:latest'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []
     expose:
       - 9091
-    secrets: [JWT_SECRET, SESSION_SECRET, STORAGE_PASSWORD, STORAGE_ENCRYPTION_KEY]
+    secrets: ['JWT_SECRET', 'SESSION_SECRET', 'STORAGE_PASSWORD', 'STORAGE_ENCRYPTION_KEY']
     environment:
-      AUTHELIA_JWT_SECRET_FILE: /run/secrets/JWT_SECRET
-      AUTHELIA_SESSION_SECRET_FILE: /run/secrets/SESSION_SECRET
-      AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE: /run/secrets/STORAGE_PASSWORD
-      AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: /run/secrets/STORAGE_ENCRYPTION_KEY
+      AUTHELIA_JWT_SECRET_FILE: '/run/secrets/JWT_SECRET'
+      AUTHELIA_SESSION_SECRET_FILE: '/run/secrets/SESSION_SECRET'
+      AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE: '/run/secrets/STORAGE_PASSWORD'
+      AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: '/run/secrets/STORAGE_ENCRYPTION_KEY'
     volumes:
-      - ${PWD}/data/authelia/config:/config
+      - '${PWD}/data/authelia/config:/config'
 networks:
   net:
     external: true
-    name: net
+    name: 'net'
 ...
 ```
 {{< /details >}}
@@ -136,26 +136,26 @@ Use this [Standalone Example](#standalone-example) if you want to use a standard
 version: "3.8"
 services:
   authelia:
-    container_name: authelia
-    image: docker.io/authelia/authelia:latest
-    restart: unless-stopped
+    container_name: 'authelia'
+    image: 'docker.io/authelia/authelia:latest'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []
     expose:
       - 9091
     environment:
-      AUTHELIA_JWT_SECRET_FILE: /secrets/JWT_SECRET
-      AUTHELIA_SESSION_SECRET_FILE: /secrets/SESSION_SECRET
-      AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE: /secrets/STORAGE_PASSWORD
-      AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: /secrets/STORAGE_ENCRYPTION_KEY
+      AUTHELIA_JWT_SECRET_FILE: '/secrets/JWT_SECRET'
+      AUTHELIA_SESSION_SECRET_FILE: '/secrets/SESSION_SECRET'
+      AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE: '/secrets/STORAGE_PASSWORD'
+      AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: '/secrets/STORAGE_ENCRYPTION_KEY'
     volumes:
-      - ${PWD}/data/authelia/config:/config
-      - ${PWD}/data/authelia/secrets:/secrets
+      - '${PWD}/data/authelia/config:/config'
+      - '${PWD}/data/authelia/secrets:/secrets'
 networks:
   net:
     external: true
-    name: net
+    name: 'net'
 ```
 ...
 {{< /details >}}

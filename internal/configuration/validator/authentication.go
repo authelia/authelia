@@ -364,7 +364,7 @@ func validateLDAPAuthenticationBackendImplementation(config *schema.Authenticati
 	case schema.LDAPImplementationGLAuth:
 		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth
 	default:
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendImplementation, strJoinOr(validLDAPImplementations), config.LDAP.Implementation))
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendOptionMustBeOneOf, "implementation", strJoinOr(validLDAPImplementations), config.LDAP.Implementation))
 	}
 
 	tlsconfig := &schema.TLSConfig{}
@@ -394,32 +394,44 @@ func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *
 		config.AdditionalUsersDN = implementation.AdditionalUsersDN
 	}
 
-	if ldapImplementationShouldSetStr(config.AdditionalGroupsDN, implementation.AdditionalGroupsDN) {
-		config.AdditionalGroupsDN = implementation.AdditionalGroupsDN
-	}
-
 	if ldapImplementationShouldSetStr(config.UsersFilter, implementation.UsersFilter) {
 		config.UsersFilter = implementation.UsersFilter
 	}
 
-	if ldapImplementationShouldSetStr(config.UsernameAttribute, implementation.UsernameAttribute) {
-		config.UsernameAttribute = implementation.UsernameAttribute
-	}
-
-	if ldapImplementationShouldSetStr(config.DisplayNameAttribute, implementation.DisplayNameAttribute) {
-		config.DisplayNameAttribute = implementation.DisplayNameAttribute
-	}
-
-	if ldapImplementationShouldSetStr(config.MailAttribute, implementation.MailAttribute) {
-		config.MailAttribute = implementation.MailAttribute
+	if ldapImplementationShouldSetStr(config.AdditionalGroupsDN, implementation.AdditionalGroupsDN) {
+		config.AdditionalGroupsDN = implementation.AdditionalGroupsDN
 	}
 
 	if ldapImplementationShouldSetStr(config.GroupsFilter, implementation.GroupsFilter) {
 		config.GroupsFilter = implementation.GroupsFilter
 	}
 
-	if ldapImplementationShouldSetStr(config.GroupNameAttribute, implementation.GroupNameAttribute) {
-		config.GroupNameAttribute = implementation.GroupNameAttribute
+	if ldapImplementationShouldSetStr(config.GroupSearchMode, implementation.GroupSearchMode) {
+		config.GroupSearchMode = implementation.GroupSearchMode
+	}
+
+	if ldapImplementationShouldSetStr(config.Attributes.DistinguishedName, implementation.Attributes.DistinguishedName) {
+		config.Attributes.DistinguishedName = implementation.Attributes.DistinguishedName
+	}
+
+	if ldapImplementationShouldSetStr(config.Attributes.Username, implementation.Attributes.Username) {
+		config.Attributes.Username = implementation.Attributes.Username
+	}
+
+	if ldapImplementationShouldSetStr(config.Attributes.DisplayName, implementation.Attributes.DisplayName) {
+		config.Attributes.DisplayName = implementation.Attributes.DisplayName
+	}
+
+	if ldapImplementationShouldSetStr(config.Attributes.Mail, implementation.Attributes.Mail) {
+		config.Attributes.Mail = implementation.Attributes.Mail
+	}
+
+	if ldapImplementationShouldSetStr(config.Attributes.MemberOf, implementation.Attributes.MemberOf) {
+		config.Attributes.MemberOf = implementation.Attributes.MemberOf
+	}
+
+	if ldapImplementationShouldSetStr(config.Attributes.GroupName, implementation.Attributes.GroupName) {
+		config.Attributes.GroupName = implementation.Attributes.GroupName
 	}
 }
 
@@ -485,5 +497,33 @@ func validateLDAPRequiredParameters(config *schema.AuthenticationBackend, valida
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "groups_filter"))
 	} else if !strings.HasPrefix(config.LDAP.GroupsFilter, "(") || !strings.HasSuffix(config.LDAP.GroupsFilter, ")") {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterEnclosingParenthesis, "groups_filter", config.LDAP.GroupsFilter, config.LDAP.GroupsFilter))
+	}
+
+	validateLDAPGroupFilter(config, validator)
+}
+
+func validateLDAPGroupFilter(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
+	if config.LDAP.GroupSearchMode == "" {
+		config.LDAP.GroupSearchMode = schema.LDAPGroupSearchModeFilter
+	}
+
+	if !utils.IsStringInSlice(config.LDAP.GroupSearchMode, validLDAPGroupSearchModes) {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendOptionMustBeOneOf, "group_search_mode", strJoinOr(validLDAPGroupSearchModes), config.LDAP.GroupSearchMode))
+	}
+
+	pMemberOfDN, pMemberOfRDN := strings.Contains(config.LDAP.GroupsFilter, "{memberof:dn}"), strings.Contains(config.LDAP.GroupsFilter, "{memberof:rdn}")
+
+	if config.LDAP.GroupSearchMode == schema.LDAPGroupSearchModeMemberOf {
+		if !pMemberOfDN && !pMemberOfRDN {
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholderGroupSearchMode, "groups_filter", strJoinOr([]string{"{memberof:rdn}", "{memberof:dn}"}), config.LDAP.GroupSearchMode))
+		}
+	}
+
+	if pMemberOfDN && config.LDAP.Attributes.DistinguishedName == "" {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "distinguished_name", strJoinOr([]string{"{memberof:dn}"})))
+	}
+
+	if (pMemberOfDN || pMemberOfRDN) && config.LDAP.Attributes.MemberOf == "" {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "member_of", strJoinOr([]string{"{memberof:rdn}", "{memberof:dn}"})))
 	}
 }
