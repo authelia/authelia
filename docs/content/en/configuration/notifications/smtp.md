@@ -23,23 +23,22 @@ aliases:
 notifier:
   disable_startup_check: false
   smtp:
-    host: 127.0.0.1
-    port: 1025
-    timeout: 5s
-    username: test
-    password: password
+    address: 'smtp://127.0.0.1:25'
+    timeout: '5s'
+    username: 'test'
+    password: 'password'
     sender: "Authelia <admin@example.com>"
-    identifier: localhost
+    identifier: 'localhost'
     subject: "[Authelia] {title}"
-    startup_check_address: test@authelia.com
+    startup_check_address: 'test@authelia.com'
     disable_require_tls: false
     disable_starttls: false
     disable_html_emails: false
     tls:
-      server_name: smtp.example.com
+      server_name: 'smtp.example.com'
       skip_verify: false
-      minimum_version: TLS1.2
-      maximum_version: TLS1.3
+      minimum_version: 'TLS1.2'
+      maximum_version: 'TLS1.3'
       certificate_chain: |
         -----BEGIN CERTIFICATE-----
         MIIC5jCCAc6gAwIBAgIRAK4Sj7FiN6PXo/urPfO4E7owDQYJKoZIhvcNAQELBQAw
@@ -113,30 +112,33 @@ notifier:
 
 This section describes the individual configuration options.
 
-### host
+### address
 
-{{< confkey type="integer" required="yes" >}}
+{{< confkey type="address" required="yes" >}}
 
-The hostname of the SMTP server.
+*__Reference Note:__ This configuration option uses the [address common syntax](../prologue/common.md#address). Please
+see the [documentation](../prologue/common.md#address) on this format for more information.*
 
-If utilising an IPv6 literal address it must be enclosed by square brackets and quoted:
-
-```yaml
-host: "[fd00:1111:2222:3333::1]"
-```
-
-### port
-
-{{< confkey type="integer" required="yes" >}}
-
-The port the SMTP service is listening on.
-
-A connection is securely established with TLS after a succesful STARTTLS negotiation.
-
-[Port 465 is an exception][docs-security-smtp-port] when supported by the mail server as a `submissions` service port.
-STARTTLS negotiation is not required for this port, the connection is implicitly established with TLS.
+Configures the address for the SMTP Server. The address itself is a connector and the scheme must be `smtp`,
+`submission`, or `submissions`. The only difference between these schemes are the default ports and `submissions`
+requires a TLS transport per [SMTP Ports Security Measures][docs-security-smtp-port], whereas `submission` and `smtp`
+use a standard TCP transport and typically enforce StartTLS.
 
 [docs-security-smtp-port]: ../../overview/security/measures.md#smtp-ports
+
+__Examples:__
+
+```yaml
+notifier:
+  smtp:
+    address: 'smtp://127.0.0.1:25'
+```
+
+```yaml
+notifier:
+  smtp:
+    address: 'submissions://[fd00:1111:2222:3333::1]:465'
+```
 
 ### timeout
 
@@ -241,10 +243,10 @@ You need to generate an app password in order to use Gmail SMTP servers. The pro
 ```yaml
 notifier:
   smtp:
-    username: myaccount@gmail.com
+    username: 'myaccount@gmail.com'
     # Password can also be set using a secret: https://www.authelia.com/configuration/methods/secrets/
-    password: yourapppassword
-    sender: admin@example.com
-    host: smtp.gmail.com
+    password: 'yourapppassword'
+    sender: 'admin@example.com'
+    host: 'smtp.gmail.com'
     port: 587
 ```

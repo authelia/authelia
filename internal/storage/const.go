@@ -82,11 +82,6 @@ func (s OAuth2SessionType) Table() string {
 }
 
 const (
-	sqlNetworkTypeTCP        = "tcp"
-	sqlNetworkTypeUnixSocket = "unix"
-)
-
-const (
 	encryptionNameCheck = "check"
 )
 

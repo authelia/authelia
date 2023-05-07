@@ -1,22 +1,22 @@
 ---
 blank_issues_enabled: false
 contact_links:
-  - name: Idea
-    url: https://github.com/authelia/authelia/discussions/new?category=ideas
-    about: Submit an Idea for Voting
-  - name: Question
-    url: https://github.com/authelia/authelia/discussions/new?category=q-a
-    about: Ask a Question
-  - name: Discussion
-    url: https://github.com/authelia/authelia/discussions/new
-    about: Start a Discussion related to Ideas, Polls, Show and Tell, or General Topics
-  - name: Documentation
-    url: https://www.authelia.com/
-    about: Read the Documentation
-  - name: Matrix
-    url: https://matrix.to/#/#community:authelia.com
-    about: Discuss Authelia with the Developers on Matrix which is the preferred method of contact
-  - name: Discord
-    url: https://discord.authelia.com
-    about: Discuss Authelia with the Developers on Discord which is bridged to Matrix
+  - name: 'Idea'
+    url: 'https://github.com/authelia/authelia/discussions/new?category=ideas'
+    about: 'Submit an Idea for Voting'
+  - name: 'Question'
+    url: 'https://github.com/authelia/authelia/discussions/new?category=q-a'
+    about: 'Ask a Question'
+  - name: 'Discussion'
+    url: 'https://github.com/authelia/authelia/discussions/new'
+    about: 'Start a Discussion related to Ideas, Polls, Show and Tell, or General Topics'
+  - name: 'Documentation'
+    url: 'https://www.authelia.com/'
+    about: 'Read the Documentation'
+  - name: 'Matrix'
+    url: 'https://matrix.to/#/#community:authelia.com'
+    about: 'Discuss Authelia with the Developers on Matrix which is the preferred method of contact'
+  - name: 'Discord'
+    url: 'https://discord.authelia.com'
+    about: 'Discuss Authelia with the Developers on Discord which is bridged to Matrix'
 ...

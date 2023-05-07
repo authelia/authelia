@@ -87,23 +87,24 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-    - id: misago
+    - id: 'misago'
+      description: 'Misago'
       secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
       public: false
-      authorization_policy: two_factor
+      authorization_policy: 'two_factor'
       scopes:
-        - openid
-        - profile
-        - email
+        - 'openid'
+        - 'profile'
+        - 'email'
       redirect_uris:
-        - https://misago.example.com/oauth2/complete/
+        - 'https://misago.example.com/oauth2/complete/'
       grant_types:
-        - authorization_code
+        - 'authorization_code'
       response_types:
-        - code
+        - 'code'
       response_modes:
-        - query
-      userinfo_signing_algorithm: none
+        - 'query'
+      userinfo_signing_algorithm: 'none'
 ```
 
 ---

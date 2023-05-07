@@ -25,8 +25,8 @@ authentication attempts. This helps prevent brute-force attacks.
 ```yaml
 regulation:
   max_retries: 3
-  find_time: 2m
-  ban_time: 5m
+  find_time: '2m'
+  ban_time: '5m'
 ```
 
 ## Options

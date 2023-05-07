@@ -6,8 +6,8 @@
 jwt_secret: unsecure_secret
 
 server:
-  address: "tcp://:9091"
-  asset_path: /config/assets/
+  address: 'tcp://:9091'
+  asset_path: '/config/assets/'
   tls:
     certificate: /pki/public.backend.crt
     key: /pki/private.backend.pem
@@ -47,8 +47,7 @@ access_control:
 
 notifier:
   smtp:
-    host: smtp
-    port: 1025
+    address: 'smtp://smtp:1025'
     sender: admin@example.com
     disable_require_tls: true
 ...

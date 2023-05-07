@@ -7,7 +7,7 @@ jwt_secret: unsecure_secret
 theme: auto
 
 server:
-  address: "tcp://:9091"
+  address: 'tcp://:9091'
   tls:
     certificate: /pki/public.backend.crt
     key: /pki/private.backend.pem
@@ -15,7 +15,7 @@ server:
 telemetry:
   metrics:
     enabled: true
-    address: tcp://0.0.0.0:9959
+    address: 'tcp://:9959'
 
 log:
   level: debug
@@ -187,13 +187,12 @@ regulation:
 
 notifier:
   smtp:
-    host: smtp
-    port: 1025
+    address: 'smtp://smtp:1025'
     sender: admin@example.com
     disable_require_tls: true
 ntp:
   ## NTP server address
-  address: "time.cloudflare.com:123"
+  address: 'udp://time.cloudflare.com:123'
   ## ntp version
   version: 4
   ## "maximum desynchronization" is the allowed offset time between the host and the ntp server

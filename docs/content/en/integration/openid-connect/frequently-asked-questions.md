@@ -132,7 +132,7 @@ services:
       ## Mandatory that the proxy is on the same network as the application, and that it has this alias.
       proxy:
         aliases:
-          - auth.example.com
+          - 'auth.example.com'
   authelia:
     networks:
       proxy: {}
@@ -140,7 +140,7 @@ networks:
   proxy:
     ## An external network can be created manually and shared between multiple compose files. This is NOT mandatory.
     external: true
-    name: proxy-net
+    name: 'proxy-net'
 ```
 
 ```console

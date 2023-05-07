@@ -300,7 +300,7 @@ func StringToAddressHookFunc() mapstructure.DecodeHookFuncType {
 
 			return schema.AddressUDP{Address: *result}, nil
 		case expectedTypeLDAP:
-			if result, err = schema.NewAddressDefault(dataStr, schema.AddressSchemeLDAP, schema.AddressSchemeLDAPI); err != nil {
+			if result, err = schema.NewAddressDefault(dataStr, schema.AddressSchemeLDAPS, schema.AddressSchemeLDAPI); err != nil {
 				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
 			}
 

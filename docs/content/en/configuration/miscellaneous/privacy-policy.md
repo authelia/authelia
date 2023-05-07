@@ -25,6 +25,8 @@ privacy_policy:
 
 ## Options
 
+This section describes the individual configuration options.
+
 ### enabled
 
 {{< confkey type="boolean" default="false" required="no" >}}

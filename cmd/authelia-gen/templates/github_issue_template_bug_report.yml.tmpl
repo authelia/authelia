@@ -1,12 +1,12 @@
 ---
-name: Bug Report
-description: Report a bug
+name: 'Bug Report'
+description: 'Report a bug'
 labels:
 {{- range .Labels }}
-  - {{ . }}
+  - '{{ . }}'
 {{- end }}
 body:
-  - type: markdown
+  - type: 'markdown'
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report. If you are unsure if this is actually a bug and you still need some form of support we generally recommend creating a [Question and Answer Discussion](https://github.com/authelia/authelia/discussions/new?category=q-a) first.
@@ -25,122 +25,152 @@ body:
             - Do not truncate any logs unless you are complying with the specific instructions in the [Logs](https://www.authelia.com/r/troubleshooting#logs) section.
             - If you plan on sanitizing, removing, or adjusting any values for the logs or configuration files please read the [Sanitization](https://www.authelia.com/r/troubleshooting#sanitization) section.
         7. Please consider including a [HTTP Archive File](https://www.authelia.com/r/har) if you're having redirection issues.
-  - type: dropdown
-    id: version
+  - type: 'dropdown'
+    id: 'version'
     attributes:
-      label: Version
-      description: What version(s) of Authelia can you reproduce this bug on?
+      label: |
+      	Version
+      description: |
+      	What version(s) of Authelia can you reproduce this bug on?
       multiple: true
       options:
       {{- range .Versions }}
-        - {{ . }}
+        - '{{ . }}'
 	  {{- end }}
     validations:
       required: true
-  - type: dropdown
-    id: deployment
+  - type: 'dropdown'
+    id: 'deployment'
     attributes:
-      label: Deployment Method
-      description: How are you deploying Authelia?
+      label: |
+      	Deployment Method
+      description: |
+      	How are you deploying Authelia?
       options:
-        - Docker
-        - Kubernetes
-        - Bare-metal
-        - Other
+        - 'Docker'
+        - 'Kubernetes'
+        - 'Bare-metal'
+        - 'Other'
     validations:
       required: true
-  - type: dropdown
-    id: proxy
+  - type: 'dropdown'
+    id: 'proxy'
     attributes:
-      label: Reverse Proxy
-      description: What reverse proxy are you using?
+      label: |
+      	Reverse Proxy
+      description: |
+      	What reverse proxy are you using?
       options:
       {{- range .Proxies }}
-        - {{ . }}
+        - '{{ . }}'
 	  {{- end }}
     validations:
       required: true
-  - type: input
-    id: proxy-version
+  - type: 'input'
+    id: 'proxy-version'
     attributes:
-      label: Reverse Proxy Version
-      description: What is the version of your reverse proxy?
-      placeholder: x.x.x
+      label: |
+      	Reverse Proxy Version
+      description: |
+      	What is the version of your reverse proxy?
+      placeholder: 'x.x.x'
     validations:
       required: false
-  - type: textarea
-    id: description
+  - type: 'textarea'
+    id: 'description'
     attributes:
-      label: Description
-      description: Describe the bug.
+      label: |
+      	Description
+      description: |
+      	Describe the bug.
     validations:
       required: true
-  - type: textarea
-    id: reproduction
+  - type: 'textarea'
+    id: 'reproduction'
     attributes:
-      label: Reproduction
-      description: Describe how we can reproduce this issue. This should be step by step and should include detailed and specific information. Abstract or generic information should be avoided. For example this should include specific application names and versions if relevant. Reproducing the issue is important so we can verify it exists, add relevant tests, and verify it is solved.
+      label: |
+      	Reproduction
+      description: |
+      	Describe how we can reproduce this issue. This should be step by step and should include detailed and specific information. Abstract or generic information should be avoided. For example this should include specific application names and versions if relevant. Reproducing the issue is important so we can verify it exists, add relevant tests, and verify it is solved.
     validations:
       required: true
-  - type: textarea
-    id: expectations
+  - type: 'textarea'
+    id: 'expectations'
     attributes:
-      label: Expectations
-      description: Describe the desired or expected results.
+      label: |
+      	Expectations
+      description: |
+      	Describe the desired or expected results.
     validations:
       required: false
-  - type: textarea
-    id: configuration
+  - type: 'textarea'
+    id: 'configuration'
     attributes:
-      label: Configuration (Authelia)
-      description: Provide a complete configuration file (the template will automatically put this content in a code block).
-      render: yaml
+      label: |
+      	Configuration (Authelia)
+      description: |
+      	Provide a complete configuration file (the template will automatically put this content in a code block).
+      render: 'yaml'
     validations:
       required: false
-  - type: textarea
-    id: logs
+  - type: 'textarea'
+    id: 'logs'
     attributes:
-      label: Logs (Authelia)
+      label: |
+      	Logs (Authelia)
       description: |
         Provide complete logs with the log level set to debug or trace. Complete means from application start until the issue occurring. This is clearly explained in the [Logs](https://www.authelia.com/r/troubleshooting#logs) section of the troubleshooting guide.
 
         The template will automatically put this content in a code block so you can just paste it.
-      render: shell
+      render: 'shell'
     validations:
       required: true
-  - type: textarea
-    id: logs-other
+  - type: 'textarea'
+    id: 'logs-other'
     attributes:
-      label: Logs (Proxy / Application)
-      description: Provide complete debug logs for the affected proxy and/or application if available and relevant (the template will automatically put this content in a code block).
-      render: shell
+      label: |
+      	Logs (Proxy / Application)
+      description: |
+      	Provide complete debug logs for the affected proxy and/or application if available and relevant (the template will automatically put this content in a code block).
+      render: 'shell'
     validations:
       required: false
-  - type: textarea
-    id: documentation
+  - type: 'textarea'
+    id: 'documentation'
     attributes:
-      label: Documentation
-      description: Provide any relevant specification or other documentation if applicable.
+      label: |
+      	Documentation
+      description: |
+      	Provide any relevant specification or other documentation if applicable.
     validations:
       required: false
-  - type: checkboxes
-    id: checklist
+  - type: 'checkboxes'
+    id: 'checklist'
     attributes:
-      label: Pre-Submission Checklist
-      description: By submitting this issue confirm all of the following.
+      label: |
+      	Pre-Submission Checklist
+      description: |
+      	By submitting this issue confirm all of the following.
       options:
-        - label: I agree to follow the [Code of Conduct](http://www.authelia.com/code-of-conduct)
+        - label: |
+        	I agree to follow the [Code of Conduct](http://www.authelia.com/code-of-conduct)
           required: true
-        - label: This is a bug report and not a support request
+        - label: |
+        	This is a bug report and not a support request
           required: true
-        - label: I have read the security policy and this bug report is not a security issue or security related issue
+        - label: |
+        	I have read the security policy and this bug report is not a security issue or security related issue
           required: true
-        - label: I have either included the complete configuration file or I am sure it's unrelated to the configuration
+        - label: |
+        	I have either included the complete configuration file or I am sure it's unrelated to the configuration
           required: true
-        - label: I have provided all of the required information in full with the only alteration being reasonable sanitization in accordance with the [Troubleshooting Sanitization](https://www.authelia.com/r/sanitize) reference guide
+        - label: |
+        	I have provided all of the required information in full with the only alteration being reasonable sanitization in accordance with the [Troubleshooting Sanitization](https://www.authelia.com/r/sanitize) reference guide
           required: true
-        - label: I have checked for related proxy or application logs and included them if available
+        - label: |
+        	I have checked for related proxy or application logs and included them if available
           required: true
-        - label: I have checked for related issues and checked the documentation
+        - label: |
+        	I have checked for related issues and checked the documentation
           required: true
 ...

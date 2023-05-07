@@ -1,6 +1,6 @@
 ---
 server:
-  address: "tcp://:9091"
+  address: 'tcp://:9091'
   tls:
     certificate: /pki/public.backend.crt
     key: /pki/private.backend.pem
@@ -56,8 +56,7 @@ access_control:
 
 notifier:
   smtp:
-    host: smtp
-    port: 1025
+    address: 'smtp://smtp:1025'
     sender: admin@example.com
     disable_require_tls: true
 

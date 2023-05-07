@@ -13,6 +13,7 @@ type Deprecation struct {
 	Key     string
 	NewKey  string
 	AutoMap bool
+	Keep    bool
 	MapFunc func(value any) any
 	ErrFunc func(d Deprecation, keysFinal map[string]any, value any, val *schema.StructValidator)
 }
@@ -183,9 +184,10 @@ var deprecations = map[string]Deprecation{
 		Key:     "server.host",
 		NewKey:  "server.address",
 		AutoMap: false,
+		Keep:    true,
 		MapFunc: nil,
 		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf("configuration key 'server.host' is deprecated in %s and has been replaced by 'server.address' when combined with the 'server.port' in the format of 'tcp://<host>:<port>': this should be automatically mapped for you but you will need to adjust your configuration to remove this message", d.Version.String()))
+			val.PushWarning(fmt.Errorf("configuration key 'server.host' is deprecated in %s and has been replaced by 'server.address' when combined with the 'server.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message", d.Version.String()))
 		},
 	},
 	"server.port": {
@@ -193,9 +195,62 @@ var deprecations = map[string]Deprecation{
 		Key:     "server.port",
 		NewKey:  "server.address",
 		AutoMap: false,
+		Keep:    true,
 		MapFunc: nil,
 		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf("configuration key 'server.port' is deprecated in %s and has been replaced by 'server.address' when combined with the 'server.host' in the format of 'tcp://<host>:<port>': this should be automatically mapped for you but you will need to adjust your configuration to remove this message", d.Version.String()))
+			val.PushWarning(fmt.Errorf("configuration key 'server.port' is deprecated in %s and has been replaced by 'server.address' when combined with the 'server.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message", d.Version.String()))
 		},
+	},
+	"storage.mysql.host": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "storage.mysql.host",
+		NewKey:  "storage.mysql.address",
+		AutoMap: false,
+		Keep:    true,
+		MapFunc: nil,
+		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
+			val.PushWarning(fmt.Errorf("configuration key 'storage.mysql.host' is deprecated in %s and has been replaced by 'storage.mysql.address' when combined with the 'storage.mysql.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message", d.Version.String()))
+		},
+	},
+	"storage.mysql.port": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "storage.mysql.port",
+		NewKey:  "storage.mysql.address",
+		AutoMap: false,
+		Keep:    true,
+		MapFunc: nil,
+		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
+			val.PushWarning(fmt.Errorf("configuration key 'storage.mysql.port' is deprecated in %s and has been replaced by 'storage.mysql.address' when combined with the 'storage.mysql.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message", d.Version.String()))
+		},
+	},
+	"storage.postgres.host": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "storage.postgres.host",
+		NewKey:  "storage.postgres.address",
+		AutoMap: false,
+		Keep:    true,
+		MapFunc: nil,
+		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
+			val.PushWarning(fmt.Errorf("configuration key 'storage.postgres.host' is deprecated in %s and has been replaced by 'storage.postgres.address' when combined with the 'storage.postgres.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message", d.Version.String()))
+		},
+	},
+	"storage.postgres.port": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "storage.postgres.port",
+		NewKey:  "storage.postgres.address",
+		AutoMap: false,
+		Keep:    true,
+		MapFunc: nil,
+		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
+			val.PushWarning(fmt.Errorf("configuration key 'storage.postgres.port' is deprecated in %s and has been replaced by 'storage.postgres.address' when combined with the 'storage.postgres.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message", d.Version.String()))
+		},
+	},
+	"authentication_backend.ldap.url": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "authentication_backend.ldap.url",
+		NewKey:  "authentication_backend.ldap.address",
+		AutoMap: true,
+		MapFunc: nil,
+		ErrFunc: nil,
 	},
 }

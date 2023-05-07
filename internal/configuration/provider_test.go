@@ -120,7 +120,7 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 	require.Len(t, val.Warnings(), 0)
 
 	assert.Equal(t, "api-123456789.example.org", config.DuoAPI.Hostname)
-	assert.Equal(t, "10.10.10.10", config.Notifier.SMTP.Host)
+	assert.Equal(t, "smtp://10.10.10.10:1025", config.Notifier.SMTP.Address.String())
 	assert.Equal(t, "10.10.10.10", config.Session.Redis.Host)
 
 	require.Len(t, config.IdentityProviders.OIDC.Clients, 3)
@@ -135,7 +135,7 @@ func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 	testSetEnv(t, "STORAGE_MYSQL", "a bad env")
 	testSetEnv(t, "JWT_SECRET", "an env jwt secret")
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "an env authentication backend ldap password")
-	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_URL", "an env authentication backend ldap password")
+	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_ADDRESS", "an env authentication backend ldap password")
 
 	val := schema.NewStructValidator()
 	keys, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
@@ -145,9 +145,10 @@ func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
 
 	require.Len(t, val.Warnings(), 1)
-	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Errors(), 1)
 
 	assert.EqualError(t, val.Warnings()[0], fmt.Sprintf("configuration environment variable not expected: %sSTORAGE_MYSQL", DefaultEnvPrefix))
+	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: 1 error(s) decoding:\n\n* error decoding 'authentication_backend.ldap.address': could not decode 'an env authentication backend ldap password' to a *schema.AddressLDAP: could not parse string 'an env authentication backend ldap password' as address: expected format is [<scheme>://]<hostname>[:<port>]: parse \"ldaps://an env authentication backend ldap password\": invalid character \" \" in host name")
 }
 
 func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T) {
@@ -266,6 +267,75 @@ func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
 	assert.EqualError(t, val.Warnings()[0], "configuration key 'logs_level' is deprecated in 4.7.0 and has been replaced by 'log.level': this has been automatically mapped for you but you will need to adjust your configuration to remove this message")
 
 	assert.Equal(t, "debug", c.Log.Level)
+}
+
+func TestShouldValidateDeprecatedEnvNames(t *testing.T) {
+	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_URL", "ldap://from-env")
+
+	val := schema.NewStructValidator()
+	keys, c, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	require.Len(t, val.Warnings(), 1)
+
+	assert.EqualError(t, val.Warnings()[0], "configuration key 'authentication_backend.ldap.url' is deprecated in 4.38.0 and has been replaced by 'authentication_backend.ldap.address': this has not been automatically mapped for you because the replacement key also exists and you will need to adjust your configuration to remove this message")
+
+	assert.Equal(t, "ldap://127.0.0.1:389", c.AuthenticationBackend.LDAP.Address.String())
+}
+
+func TestShouldValidateDeprecatedEnvNamesWithDeprecatedKeys(t *testing.T) {
+	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_URL", "ldap://from-env")
+
+	val := schema.NewStructValidator()
+	keys, c, err := Load(val, NewDefaultSources([]string{"./test_resources/config.deprecated.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+
+	warnings := val.Warnings()
+	require.Len(t, warnings, 3)
+
+	sort.Sort(utils.ErrSliceSortAlphabetical(warnings))
+
+	assert.EqualError(t, warnings[0], "configuration key 'authentication_backend.ldap.url' is deprecated in 4.38.0 and has been replaced by 'authentication_backend.ldap.address': this has been automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[1], "configuration key 'storage.mysql.host' is deprecated in 4.38.0 and has been replaced by 'storage.mysql.address' when combined with the 'storage.mysql.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[2], "configuration key 'storage.mysql.port' is deprecated in 4.38.0 and has been replaced by 'storage.mysql.address' when combined with the 'storage.mysql.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+
+	assert.Equal(t, "ldap://from-env:389", c.AuthenticationBackend.LDAP.Address.String())
+}
+
+func TestShouldValidateDeprecatedEnvNamesWithDeprecatedKeysAlt(t *testing.T) {
+	val := schema.NewStructValidator()
+	keys, c, err := Load(val, NewDefaultSources([]string{"./test_resources/config.deprecated.alt.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+
+	warnings := val.Warnings()
+	require.Len(t, warnings, 3)
+
+	sort.Sort(utils.ErrSliceSortAlphabetical(warnings))
+
+	assert.EqualError(t, warnings[0], "configuration key 'authentication_backend.ldap.url' is deprecated in 4.38.0 and has been replaced by 'authentication_backend.ldap.address': this has been automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[1], "configuration key 'storage.postgres.host' is deprecated in 4.38.0 and has been replaced by 'storage.postgres.address' when combined with the 'storage.postgres.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[2], "configuration key 'storage.postgres.port' is deprecated in 4.38.0 and has been replaced by 'storage.postgres.address' when combined with the 'storage.postgres.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+
+	val.Clear()
+
+	validator.ValidateConfiguration(c, val)
+
+	require.NotNil(t, c.Storage.PostgreSQL.Address)
+	assert.Equal(t, "tcp://127.0.0.1:5432", c.Storage.PostgreSQL.Address.String())
 }
 
 func TestShouldRaiseErrOnInvalidNotifierSMTPSender(t *testing.T) {
@@ -411,7 +481,7 @@ func TestShouldLoadDirectoryConfiguration(t *testing.T) {
 	assert.Len(t, val.Errors(), 0)
 	require.Len(t, val.Warnings(), 1)
 
-	assert.EqualError(t, val.Warnings()[0], "configuration key 'server.port' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.host' in the format of 'tcp://<host>:<port>': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, val.Warnings()[0], "configuration key 'server.port' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
 }
 
 func testSetEnv(t *testing.T, key, value string) {

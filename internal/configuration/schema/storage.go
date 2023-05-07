@@ -2,6 +2,7 @@ package schema
 
 import (
 	"crypto/tls"
+	"net/url"
 	"time"
 )
 
@@ -12,12 +13,17 @@ type LocalStorageConfiguration struct {
 
 // SQLStorageConfiguration represents the configuration of the SQL database.
 type SQLStorageConfiguration struct {
-	Host     string        `koanf:"host"`
-	Port     int           `koanf:"port"`
+	Address  *AddressTCP   `koanf:"address"`
 	Database string        `koanf:"database"`
 	Username string        `koanf:"username"`
 	Password string        `koanf:"password"`
 	Timeout  time.Duration `koanf:"timeout"`
+
+	// Deprecated: use address instead.
+	Host string `koanf:"host"`
+
+	// Deprecated: use address instead.
+	Port int `koanf:"port"`
 }
 
 // MySQLStorageConfiguration represents the configuration of a MySQL database.
@@ -68,6 +74,9 @@ var DefaultMySQLStorageConfiguration = MySQLStorageConfiguration{
 
 // DefaultPostgreSQLStorageConfiguration represents the default PostgreSQL configuration.
 var DefaultPostgreSQLStorageConfiguration = PostgreSQLStorageConfiguration{
+	SQLStorageConfiguration: SQLStorageConfiguration{
+		Address: &AddressTCP{Address{true, false, 5432, &url.URL{Scheme: AddressSchemeTCP, Host: "localhost:5432"}}},
+	},
 	Schema: "public",
 	TLS: &TLSConfig{
 		MinimumVersion: TLSVersion{tls.VersionTLS12},

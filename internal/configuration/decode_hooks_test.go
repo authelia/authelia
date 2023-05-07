@@ -838,7 +838,7 @@ func TestStringToAddressHookFunc(t *testing.T) {
 			name:     "ShouldFailDecode",
 			have:     "tcp://&!@^#*&!@#&*@!:2020",
 			expected: schema.Address{},
-			err:      "could not decode 'tcp://&!@^#*&!@#&*@!:2020' to a schema.Address: could not parse string 'tcp://&!@^#*&!@#&*@!:2020' as address: expected format is [<scheme>://]<ip>[:<port>]: parse \"tcp://&!@^\": invalid character \"^\" in host name",
+			err:      "could not decode 'tcp://&!@^#*&!@#&*@!:2020' to a schema.Address: could not parse string 'tcp://&!@^#*&!@#&*@!:2020' as address: expected format is [<scheme>://]<hostname>[:<port>]: parse \"tcp://&!@^\": invalid character \"^\" in host name",
 			decode:   false,
 		},
 	}

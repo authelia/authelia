@@ -21,10 +21,10 @@ aliases:
 ```yaml
 webauthn:
   disable: false
-  display_name: Authelia
-  attestation_conveyance_preference: indirect
-  user_verification: preferred
-  timeout: 60s
+  display_name: 'Authelia'
+  attestation_conveyance_preference: 'indirect'
+  user_verification: 'preferred'
+  timeout: '60s'
 ```
 
 ## Options
