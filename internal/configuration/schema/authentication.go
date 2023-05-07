@@ -108,11 +108,9 @@ type LDAPAuthenticationBackend struct {
 
 	AdditionalGroupsDN string `koanf:"additional_groups_dn"`
 	GroupsFilter       string `koanf:"groups_filter"`
+	GroupSearchMode    string `koanf:"group_search_mode"`
 
-	GroupNameAttribute   string `koanf:"group_name_attribute"`
-	UsernameAttribute    string `koanf:"username_attribute"`
-	MailAttribute        string `koanf:"mail_attribute"`
-	DisplayNameAttribute string `koanf:"display_name_attribute"`
+	Attributes LDAPAuthenticationAttributes `koanf:"attributes"`
 
 	PermitReferrals               bool `koanf:"permit_referrals"`
 	PermitUnauthenticatedBind     bool `koanf:"permit_unauthenticated_bind"`
@@ -120,6 +118,16 @@ type LDAPAuthenticationBackend struct {
 
 	User     string `koanf:"user"`
 	Password string `koanf:"password"`
+}
+
+// LDAPAuthenticationAttributes represents the configuration related to LDAP server attributes.
+type LDAPAuthenticationAttributes struct {
+	DistinguishedName string `koanf:"distinguished_name"`
+	Username          string `koanf:"username"`
+	DisplayName       string `koanf:"display_name"`
+	Mail              string `koanf:"mail"`
+	MemberOf          string `koanf:"member_of"`
+	GroupName         string `koanf:"group_name"`
 }
 
 // DefaultPasswordConfig represents the default configuration related to Argon2id hashing.
@@ -175,11 +183,14 @@ var DefaultCIPasswordConfig = Password{
 
 // DefaultLDAPAuthenticationBackendConfigurationImplementationCustom represents the default LDAP config.
 var DefaultLDAPAuthenticationBackendConfigurationImplementationCustom = LDAPAuthenticationBackend{
-	UsernameAttribute:    ldapAttrUserID,
-	MailAttribute:        ldapAttrMail,
-	DisplayNameAttribute: ldapAttrDisplayName,
-	GroupNameAttribute:   ldapAttrCommonName,
-	Timeout:              time.Second * 5,
+	GroupSearchMode: ldapGroupSearchModeFilter,
+	Attributes: LDAPAuthenticationAttributes{
+		Username:    ldapAttrUserID,
+		DisplayName: ldapAttrDisplayName,
+		Mail:        ldapAttrMail,
+		GroupName:   ldapAttrCommonName,
+	},
+	Timeout: time.Second * 5,
 	TLS: &TLSConfig{
 		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
@@ -187,13 +198,18 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationCustom = LDAPAuth
 
 // DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory represents the default LDAP config for the LDAPImplementationActiveDirectory Implementation.
 var DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory = LDAPAuthenticationBackend{
-	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt})))",
-	UsernameAttribute:    "sAMAccountName",
-	MailAttribute:        ldapAttrMail,
-	DisplayNameAttribute: ldapAttrDisplayName,
-	GroupsFilter:         "(&(member={dn})(|(sAMAccountType=268435456)(sAMAccountType=536870912)))",
-	GroupNameAttribute:   ldapAttrCommonName,
-	Timeout:              time.Second * 5,
+	UsersFilter:     "(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt})))",
+	GroupsFilter:    "(&(member={dn})(|(sAMAccountType=268435456)(sAMAccountType=536870912)))",
+	GroupSearchMode: ldapGroupSearchModeFilter,
+	Attributes: LDAPAuthenticationAttributes{
+		DistinguishedName: ldapAttrDistinguishedName,
+		Username:          ldapAttrSAMAccountName,
+		DisplayName:       ldapAttrDisplayName,
+		Mail:              ldapAttrMail,
+		MemberOf:          ldapAttrMemberOf,
+		GroupName:         ldapAttrCommonName,
+	},
+	Timeout: time.Second * 5,
 	TLS: &TLSConfig{
 		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
@@ -201,13 +217,17 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory =
 
 // DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis represents the default LDAP config for the LDAPImplementationRFC2307bis Implementation.
 var DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis = LDAPAuthenticationBackend{
-	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(|(objectClass=inetOrgPerson)(objectClass=organizationalPerson)))",
-	UsernameAttribute:    ldapAttrUserID,
-	MailAttribute:        ldapAttrMail,
-	DisplayNameAttribute: ldapAttrDisplayName,
-	GroupsFilter:         "(&(|(member={dn})(uniqueMember={dn}))(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=groupOfMembers)))",
-	GroupNameAttribute:   ldapAttrCommonName,
-	Timeout:              time.Second * 5,
+	UsersFilter:     "(&(|({username_attribute}={input})({mail_attribute}={input}))(|(objectClass=inetOrgPerson)(objectClass=organizationalPerson)))",
+	GroupsFilter:    "(&(|(member={dn})(uniqueMember={dn}))(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=groupOfMembers)))",
+	GroupSearchMode: ldapGroupSearchModeFilter,
+	Attributes: LDAPAuthenticationAttributes{
+		Username:    ldapAttrUserID,
+		DisplayName: ldapAttrDisplayName,
+		Mail:        ldapAttrMail,
+		MemberOf:    ldapAttrMemberOf,
+		GroupName:   ldapAttrCommonName,
+	},
+	Timeout: time.Second * 5,
 	TLS: &TLSConfig{
 		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
@@ -215,13 +235,17 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis = LDAP
 
 // DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA represents the default LDAP config for the LDAPImplementationFreeIPA Implementation.
 var DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA = LDAPAuthenticationBackend{
-	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))",
-	UsernameAttribute:    ldapAttrUserID,
-	MailAttribute:        ldapAttrMail,
-	DisplayNameAttribute: ldapAttrDisplayName,
-	GroupsFilter:         "(&(member={dn})(objectClass=groupOfNames))",
-	GroupNameAttribute:   ldapAttrCommonName,
-	Timeout:              time.Second * 5,
+	UsersFilter:     "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))",
+	GroupsFilter:    "(&(member={dn})(objectClass=groupOfNames))",
+	GroupSearchMode: ldapGroupSearchModeFilter,
+	Attributes: LDAPAuthenticationAttributes{
+		Username:    ldapAttrUserID,
+		DisplayName: ldapAttrDisplayName,
+		Mail:        ldapAttrMail,
+		MemberOf:    ldapAttrMemberOf,
+		GroupName:   ldapAttrCommonName,
+	},
+	Timeout: time.Second * 5,
 	TLS: &TLSConfig{
 		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
@@ -229,15 +253,18 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA = LDAPAut
 
 // DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP represents the default LDAP config for the LDAPImplementationLLDAP Implementation.
 var DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP = LDAPAuthenticationBackend{
-	AdditionalUsersDN:    "OU=people",
-	AdditionalGroupsDN:   "OU=groups",
-	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))",
-	UsernameAttribute:    ldapAttrUserID,
-	MailAttribute:        ldapAttrMail,
-	DisplayNameAttribute: ldapAttrCommonName,
-	GroupsFilter:         "(&(member={dn})(objectClass=groupOfUniqueNames))",
-	GroupNameAttribute:   ldapAttrCommonName,
-	Timeout:              time.Second * 5,
+	AdditionalUsersDN:  "OU=people",
+	AdditionalGroupsDN: "OU=groups",
+	UsersFilter:        "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))",
+	GroupsFilter:       "(&(member={dn})(objectClass=groupOfUniqueNames))",
+	GroupSearchMode:    ldapGroupSearchModeFilter,
+	Attributes: LDAPAuthenticationAttributes{
+		Username:    ldapAttrUserID,
+		DisplayName: ldapAttrCommonName,
+		Mail:        ldapAttrMail,
+		GroupName:   ldapAttrCommonName,
+	},
+	Timeout: time.Second * 5,
 	TLS: &TLSConfig{
 		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
@@ -245,13 +272,16 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP = LDAPAuthe
 
 // DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth represents the default LDAP config for the LDAPImplementationGLAuth Implementation.
 var DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth = LDAPAuthenticationBackend{
-	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=posixAccount)(!(accountStatus=inactive)))",
-	UsernameAttribute:    ldapAttrCommonName,
-	MailAttribute:        ldapAttrMail,
-	DisplayNameAttribute: ldapAttrDescription,
-	GroupsFilter:         "(&(uniqueMember={dn})(objectClass=posixGroup))",
-	GroupNameAttribute:   ldapAttrCommonName,
-	Timeout:              time.Second * 5,
+	UsersFilter:     "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=posixAccount)(!(accountStatus=inactive)))",
+	GroupsFilter:    "(&(uniqueMember={dn})(objectClass=posixGroup))",
+	GroupSearchMode: ldapGroupSearchModeFilter,
+	Attributes: LDAPAuthenticationAttributes{
+		Username:    ldapAttrCommonName,
+		DisplayName: ldapAttrDescription,
+		Mail:        ldapAttrMail,
+		GroupName:   ldapAttrCommonName,
+	},
+	Timeout: time.Second * 5,
 	TLS: &TLSConfig{
 		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
