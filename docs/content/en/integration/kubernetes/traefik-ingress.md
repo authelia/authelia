@@ -51,14 +51,14 @@ __SHOULD NOT__ be applied to the Authelia [Ingress] / [IngressRoute] itself.*
 {{< details "middleware.yml" >}}
 ```yaml
 ---
-apiVersion: traefik.containo.us/v1alpha1
-kind: Middleware
+apiVersion: 'traefik.containo.us/v1alpha1'
+kind: 'Middleware'
 metadata:
-  name: forwardauth-authelia
-  namespace: default
+  name: 'forwardauth-authelia'
+  namespace: 'default'
   labels:
-    app.kubernetes.io/instance: authelia
-    app.kubernetes.io/name: authelia
+    app.kubernetes.io/instance: 'authelia'
+    app.kubernetes.io/name: 'authelia'
 spec:
   forwardAuth:
     address: 'http://authelia.default.svc.cluster.local/api/authz/forward-auth'
@@ -85,25 +85,25 @@ the `default` [Namespace] with TCP port `80` configured to route to the applicat
 {{< details "ingress.yml" >}}
 ```yaml
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: 'networking.k8s.io/v1'
+kind: 'Ingress'
 metadata:
-  name: app
-  namespace: default
+  name: 'app'
+  namespace: 'default'
   annotations:
-    traefik.ingress.kubernetes.io/router.entryPoints: websecure
-    traefik.ingress.kubernetes.io/router.middlewares: default-forwardauth-authelia@kubernetescrd
-    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entryPoints: 'websecure'
+    traefik.ingress.kubernetes.io/router.middlewares: 'default-forwardauth-authelia@kubernetescrd'
+    traefik.ingress.kubernetes.io/router.tls: 'true'
 spec:
   rules:
-    - host: app.example.com
+    - host: 'app.example.com'
       http:
         paths:
-          - path: /bar
-            pathType: Prefix
+          - path: '/bar'
+            pathType: 'Prefix'
             backend:
               service:
-                name:  app
+                name:  'app'
                 port:
                   number: 80
 ...
@@ -119,27 +119,27 @@ the `default` [Namespace] with TCP port `80` configured to route to the applicat
 {{< details "ingressRoute.yml" >}}
 ```yaml
 ---
-apiVersion: traefik.containo.us/v1alpha1
-kind: IngressRoute
+apiVersion: 'traefik.containo.us/v1alpha1'
+kind: 'IngressRoute'
 metadata:
-  name: app
-  namespace: default
+  name: 'app'
+  namespace: 'default'
 spec:
   entryPoints:
-    - websecure
+    - 'websecure'
   routes:
-    - kind: Rule
-      match: Host(`app.example.com`)
+    - kind: 'Rule'
+      match: 'Host(`app.example.com`)'
       middlewares:
-        - name: forwardauth-authelia
-          namespace: default
+        - name: 'forwardauth-authelia'
+          namespace: 'default'
       services:
-        - kind: Service
-          name: app
-          namespace: default
+        - kind: 'Service'
+          name: 'app'
+          namespace: 'default'
           port: 80
-          scheme: http
-          strategy: RoundRobin
+          scheme: 'http'
+          strategy: 'RoundRobin'
           weight: 10
 ...
 ```

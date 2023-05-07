@@ -6,7 +6,7 @@
 default_redirection_url: https://home.example.com:8080
 
 server:
-  port: 443
+  address: 'tcp://:443'
   tls:
     certificate: /pki/public.backend.crt
     key: /pki/private.backend.pem
@@ -108,7 +108,7 @@ storage:
 
 notifier:
   smtp:
-    address: 'smtp://"mailcatcher-service":1025'
-    sender: admin@example.com
+    address: 'smtp://mailcatcher-service:1025'
+    sender: 'admin@example.com'
     disable_require_tls: true
 ...

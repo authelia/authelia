@@ -934,13 +934,11 @@ regulation:
   ## The number of failed login attempts before user is banned. Set it to 0 to disable regulation.
   max_retries: 3
 
-  ## The time range during which the user can attempt login before being banned. The user is banned if the
-  ## authentication failed 'max_retries' times in a 'find_time' seconds window. Find Time accepts duration common syntax.
-  ## See: https://www.authelia.com/c/common#duration
+  ## The time range in duration common syntax during which the user can attempt login before being banned. The user is
+  ## banned if the authentication failed 'max_retries' times in a 'find_time' seconds window.
   find_time: '2m'
 
-  ## The length of time before a banned user can login again. Ban Time accepts duration notation.
-  ## See: https://www.authelia.com/c/common#duration
+  ## The length of time in duration common syntax before a banned user can login again.
   ban_time: '5m'
 
 ##
@@ -1489,6 +1487,7 @@ notifier:
         # description: 'My Application'
 
         ## The client secret is a shared secret between Authelia and the consumer of this client.
+        # yamllint disable-line rule:line-length
         # secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
 
         ## Sector Identifiers are occasionally used to generate pairwise subject identifiers. In most cases this is not

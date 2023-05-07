@@ -4,7 +4,7 @@
 ###############################################################
 
 server:
-  address: "tcp://:9091"
+  address: 'tcp://:9091'
   tls:
     certificate: /pki/public.backend.crt
     key: /pki/private.backend.pem
@@ -33,10 +33,10 @@ session:
 storage:
   encryption_key: a_not_so_secure_encryption_key
   mysql:
-    address: 'tcp:////mysql:3306'
-    database: authelia
-    username: admin
-    password: password
+    address: 'tcp://mysql:3306'
+    database: 'authelia'
+    username: 'admin'
+    password: 'password'
 
 # TOTP Issuer Name
 #

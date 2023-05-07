@@ -90,7 +90,7 @@ server:
   endpoints:
     authz:
       auth-request:
-        implementation: AuthRequest
+        implementation: 'AuthRequest'
 ```
 
 ## Docker Compose
