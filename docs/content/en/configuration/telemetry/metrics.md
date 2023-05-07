@@ -22,7 +22,7 @@ toc: true
 telemetry:
   metrics:
     enabled: false
-    address: "tcp://0.0.0.0:9959"
+    address: "tcp://:9959"
     buffers:
       read: 4096
       write: 4096
@@ -44,10 +44,20 @@ Determines if the [Prometheus] HTTP Metrics Exporter is enabled.
 
 ### address
 
-{{< confkey type="address" default="tcp://0.0.0.0:9959" required="no" >}}
+{{< confkey type="address" default="tcp://:9959" required="no" >}}
 
-Configures the listener address for the [Prometheus] HTTP Metrics Exporter. This configuration key uses the
-[Address](../prologue/common.md#address) format. The scheme must be `tcp://` or empty.
+*__Reference Note:__ This configuration option uses the [address common syntax](../prologue/common.md#address). Please
+see the [documentation](../prologue/common.md#address) on this format for more information.*
+
+Configures the listener address for the [Prometheus] Metrics Exporter HTTP Server. The address itself is a listener and
+the scheme must either be the `unix` scheme or one of the `tcp` schemes.
+
+### umask
+
+{{< confkey type="int" required="no" >}}
+
+If set temporarily changes the Umask during the creation of the unix domain socket if configured as such in the
+[address](#address).
 
 ### buffers
 

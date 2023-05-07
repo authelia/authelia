@@ -150,6 +150,9 @@ authentication_backend:
 
 {{< confkey type="duration" default="5s" required="no" >}}
 
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
+
 The timeout for dialing an LDAP connection.
 
 ### start_tls

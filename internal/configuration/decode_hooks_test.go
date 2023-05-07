@@ -756,7 +756,7 @@ func TestStringToRegexpFuncPointers(t *testing.T) {
 
 func TestStringToAddressHookFunc(t *testing.T) {
 	mustParseAddress := func(a string) (addr schema.Address) {
-		addrs, err := schema.NewAddressFromString(a)
+		addrs, err := schema.NewAddress(a)
 		if err != nil {
 			panic(err)
 		}
@@ -765,7 +765,7 @@ func TestStringToAddressHookFunc(t *testing.T) {
 	}
 
 	mustParseAddressPtr := func(a string) (addr *schema.Address) {
-		addr, err := schema.NewAddressFromString(a)
+		addr, err := schema.NewAddress(a)
 		if err != nil {
 			panic(err)
 		}

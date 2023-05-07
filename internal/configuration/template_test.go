@@ -25,7 +25,7 @@ func TestShouldGenerateConfiguration(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestNotShouldGenerateConfigurationifExists(t *testing.T) {
+func TestNotShouldGenerateConfigurationIfExists(t *testing.T) {
 	dir := t.TempDir()
 
 	cfg := filepath.Join(dir, "config.yml")

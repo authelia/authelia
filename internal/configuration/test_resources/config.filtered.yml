@@ -2,8 +2,7 @@
 default_redirection_url: 'https://home.{{ env "ROOT_DOMAIN" }}:8080/'
 
 server:
-  host: '{{ env "SERVICES_SERVER" }}'
-  port: 9091
+  address: 'tcp://{{ env "SERVICES_SERVER" }}:9091'
 
 log:
   level: debug

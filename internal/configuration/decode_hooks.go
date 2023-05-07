@@ -219,6 +219,8 @@ func StringToRegexpHookFunc() mapstructure.DecodeHookFuncType {
 }
 
 // StringToAddressHookFunc decodes a string into an Address or *Address.
+//
+//nolint:gocyclo // This is an adequately clear function even with the complexity.
 func StringToAddressHookFunc() mapstructure.DecodeHookFuncType {
 	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		var ptr bool
@@ -235,26 +237,99 @@ func StringToAddressHookFunc() mapstructure.DecodeHookFuncType {
 		}
 
 		expectedType := reflect.TypeOf(schema.Address{})
+		expectedTypeTCP := reflect.TypeOf(schema.AddressTCP{})
+		expectedTypeUDP := reflect.TypeOf(schema.AddressUDP{})
+		expectedTypeLDAP := reflect.TypeOf(schema.AddressLDAP{})
+		expectedTypeSMTP := reflect.TypeOf(schema.AddressSMTP{})
 
-		if ptr && t.Elem() != expectedType {
-			return data, nil
-		} else if !ptr && t != expectedType {
-			return data, nil
+		switch {
+		case ptr:
+			switch t.Elem() {
+			case expectedType:
+			case expectedTypeTCP:
+				expectedType = expectedTypeTCP
+			case expectedTypeUDP:
+				expectedType = expectedTypeUDP
+			case expectedTypeLDAP:
+				expectedType = expectedTypeLDAP
+			case expectedTypeSMTP:
+				expectedType = expectedTypeSMTP
+			default:
+				return data, nil
+			}
+		default:
+			switch t {
+			case expectedType:
+				break
+			case expectedTypeTCP:
+				expectedType = expectedTypeTCP
+			case expectedTypeUDP:
+				expectedType = expectedTypeUDP
+			case expectedTypeLDAP:
+				expectedType = expectedTypeLDAP
+			case expectedTypeSMTP:
+				expectedType = expectedTypeSMTP
+			default:
+				return data, nil
+			}
 		}
 
 		dataStr := data.(string)
 
 		var result *schema.Address
 
-		if result, err = schema.NewAddressFromString(dataStr); err != nil {
-			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
-		}
+		switch expectedType {
+		case expectedTypeTCP:
+			if result, err = schema.NewAddressDefault(dataStr, schema.AddressSchemeTCP, schema.AddressSchemeUnix); err != nil {
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
+			}
 
-		if ptr {
-			return result, nil
-		}
+			if ptr {
+				return &schema.AddressTCP{Address: *result}, nil
+			}
 
-		return *result, nil
+			return schema.AddressTCP{Address: *result}, nil
+		case expectedTypeUDP:
+			if result, err = schema.NewAddressDefault(dataStr, schema.AddressSchemeUDP, schema.AddressSchemeUnix); err != nil {
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
+			}
+
+			if ptr {
+				return &schema.AddressUDP{Address: *result}, nil
+			}
+
+			return schema.AddressUDP{Address: *result}, nil
+		case expectedTypeLDAP:
+			if result, err = schema.NewAddressDefault(dataStr, schema.AddressSchemeLDAP, schema.AddressSchemeLDAPI); err != nil {
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
+			}
+
+			if ptr {
+				return &schema.AddressLDAP{Address: *result}, nil
+			}
+
+			return schema.AddressLDAP{Address: *result}, nil
+		case expectedTypeSMTP:
+			if result, err = schema.NewAddressDefault(dataStr, schema.AddressSchemeSMTP, schema.AddressSchemeUnix); err != nil {
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
+			}
+
+			if ptr {
+				return &schema.AddressSMTP{Address: *result}, nil
+			}
+
+			return schema.AddressSMTP{Address: *result}, nil
+		default:
+			if result, err = schema.NewAddress(dataStr); err != nil {
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
+			}
+
+			if ptr {
+				return result, nil
+			}
+
+			return *result, nil
+		}
 	}
 }
 
