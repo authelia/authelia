@@ -759,7 +759,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseOnBadRefreshInterval
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.EqualError(suite.validator.Errors()[0], "authentication_backend: option 'refresh_interval' is configured to 'blah' but it must be either a duration notation or one of 'disable', or 'always': could not parse 'blah' as a duration")
+	suite.EqualError(suite.validator.Errors()[0], "authentication_backend: option 'refresh_interval' is configured to 'blah' but it must be either in duration common syntax or one of 'disable', or 'always': could not parse 'blah' as a duration")
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultImplementation() {

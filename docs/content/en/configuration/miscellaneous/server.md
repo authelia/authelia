@@ -22,6 +22,7 @@ aliases:
 ```yaml
 server:
   address: 'tcp://:9091'
+  umask: 0022
   path: ''
   disable_healthcheck: false
   tls:
@@ -67,7 +68,7 @@ see the [documentation](../prologue/common.md#address) on this format for more i
 Configures the listener address for the Main HTTP Server. The address itself is a listener and the scheme must either be
 the `unix` scheme or one of the `tcp` schemes.
 
-__Example:__
+__Examples:__
 
 ```yaml
 server:
@@ -83,8 +84,15 @@ server:
 
 {{< confkey type="int" required="no" >}}
 
-If set temporarily changes the Umask during the creation of the unix domain socket if configured as such in the
-[address](#address).
+If set temporarily changes the umask during the creation of the unix domain socket if configured as such in the
+[address](#address). Typically this should be set before the process is actually running and users should not use this
+option, however it's recognized in various specific scenarios this may not be completely adequate.
+
+One such example is when you want the proxy to have permission to the socket but not the files, in which case running a
+umask of `0077` by default is good, and running a umask of `0027` so that the group Authelia is running as has
+permission to the socket.
+
+This value should typically be prefixed with a `0` to ensure the relevant parsers handle it correctly.
 
 ### path
 
@@ -203,10 +211,10 @@ Enables the go [pprof](https://pkg.go.dev/net/http/pprof) endpoints.
 
 #### enable_expvars
 
+{{< confkey type="boolean" default="false" required="no" >}}
+
 *__Security Note:__ This is a developer endpoint. __DO NOT__ enable it unless you know why you're enabling it.
 __DO NOT__ enable this in production.*
-
-{{< confkey type="boolean" default="false" required="no" >}}
 
 Enables the go [expvar](https://pkg.go.dev/expvar) endpoints.
 
