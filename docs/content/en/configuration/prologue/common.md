@@ -28,11 +28,14 @@ If you supply an integer, it is considered a representation of seconds. If you s
 blocks of quantities and units (number followed by a unit letter).  For example `5h` indicates a quantity of 5 units
 of `h`.
 
-The following is ignored:
+The following is ignored or stripped from the input:
   - all spaces
   - leading zeros
+  - the word `and`
 
-While you can use multiple of these blocks in combination, we suggest keeping it simple and use a single value.
+While you can use multiple of these blocks in combination, we suggest keeping it simple and use a single value. In
+addition it's important to note that the format while somewhat human readable still requires you closely follow the
+expected formats.
 
 #### Unit Legend
 
@@ -52,11 +55,11 @@ v4.38.0 or newer.
 
 #### Examples
 
-|     Desired Value     |        Configuration Examples         |
-|:---------------------:|:-------------------------------------:|
-| 1 hour and 30 minutes | `90m` or `1h30m` or `5400` or `5400s` |
-|         1 day         | `1d` or `24h` or `86400` or `86400s`  |
-|       10 hours        | `10h` or `600m` or `9h60m` or `36000` |
+|     Desired Value     |    Configuration Examples (Short)     |      Configuration Examples (Long)      |
+|:---------------------:|:-------------------------------------:|:---------------------------------------:|
+| 1 hour and 30 minutes | `90m` or `1h30m` or `5400` or `5400s` |        `1 hour and 30 mninutes`         |
+|         1 day         | `1d` or `24h` or `86400` or `86400s`  |                 `1 day`                 |
+|       10 hours        | `10h` or `600m` or `9h60m` or `36000` |               `10 hours`                |
 
 ### Address
 
