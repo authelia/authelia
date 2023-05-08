@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -112,19 +113,14 @@ func StringToURLHookFunc() mapstructure.DecodeHookFuncType {
 }
 
 // ToTimeDurationHookFunc converts string and integer types to a time.Duration.
+//
+//nolint:gocyclo // Function is necessarily complex though flows well due to switch statement usage.
 func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
 	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
-		var ptr bool
-
-		switch f.Kind() {
-		case reflect.String, reflect.Int, reflect.Int32, reflect.Int64:
-			// We only allow string and integer from kinds to match.
-			break
-		default:
-			return data, nil
-		}
-
-		prefixType := ""
+		var (
+			ptr        bool
+			prefixType string
+		)
 
 		if t.Kind() == reflect.Ptr {
 			ptr = true
@@ -136,6 +132,14 @@ func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
 		if ptr && t.Elem() != expectedType {
 			return data, nil
 		} else if !ptr && t != expectedType {
+			return data, nil
+		}
+
+		switch f.Kind() {
+		case reflect.String, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Float64:
+			// We only allow string and integer from kinds to match.
+			break
+		default:
 			return data, nil
 		}
 
@@ -152,10 +156,28 @@ func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
 			seconds := data.(int)
 
 			result = time.Second * time.Duration(seconds)
+		case f.Kind() == reflect.Int8:
+			seconds := data.(int8)
+
+			result = time.Second * time.Duration(seconds)
+		case f.Kind() == reflect.Int16:
+			seconds := data.(int16)
+
+			result = time.Second * time.Duration(seconds)
 		case f.Kind() == reflect.Int32:
 			seconds := data.(int32)
 
 			result = time.Second * time.Duration(seconds)
+		case f.Kind() == reflect.Float64:
+			fseconds := data.(float64)
+
+			if fseconds > durationMax.Seconds() {
+				result = durationMax
+			} else {
+				seconds, _ := strconv.Atoi(fmt.Sprintf("%.0f", fseconds))
+
+				result = time.Second * time.Duration(seconds)
+			}
 		case f == expectedType:
 			result = data.(time.Duration)
 		case f.Kind() == reflect.Int64:

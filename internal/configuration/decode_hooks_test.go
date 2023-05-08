@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"math"
 	"net/mail"
 	"net/url"
 	"reflect"
@@ -346,9 +347,33 @@ func TestToTimeDurationHookFunc(t *testing.T) {
 			decode: true,
 		},
 		{
+			desc:   "ShouldDecodeInt8ToSeconds",
+			have:   int8(90),
+			want:   time.Second * 90,
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeInt16ToSeconds",
+			have:   int16(90),
+			want:   time.Second * 90,
+			decode: true,
+		},
+		{
 			desc:   "ShouldDecodeInt32ToSeconds",
 			have:   int32(90),
 			want:   time.Second * 90,
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeFloat64ToSeconds",
+			have:   float64(90),
+			want:   time.Second * 90,
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeFloat64ToSeconds",
+			have:   math.MaxFloat64,
+			want:   time.Duration(math.MaxInt64),
 			decode: true,
 		},
 		{
@@ -374,6 +399,12 @@ func TestToTimeDurationHookFunc(t *testing.T) {
 			have:   0,
 			want:   time.Duration(0),
 			decode: true,
+		},
+		{
+			desc:   "ShouldSkipParsingBoolean",
+			have:   true,
+			want:   time.Duration(0),
+			decode: false,
 		},
 		{
 			desc: "ShouldNotDecodeFromBool",

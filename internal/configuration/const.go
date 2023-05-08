@@ -2,6 +2,8 @@ package configuration
 
 import (
 	"errors"
+	"math"
+	"time"
 )
 
 // DefaultEnvPrefix is the default environment prefix.
@@ -36,6 +38,10 @@ const (
 	errFmtDecodeHookCouldNotParse           = "could not decode '%s' to a %s%s: %w"
 	errFmtDecodeHookCouldNotParseBasic      = "could not decode to a %s%s: %w"
 	errFmtDecodeHookCouldNotParseEmptyValue = "could not decode an empty value to a %s%s: %w"
+)
+
+const (
+	durationMax = time.Duration(math.MaxInt64)
 )
 
 // IMPORTANT: There is an uppercase copy of this in github.com/authelia/authelia/internal/templates named
