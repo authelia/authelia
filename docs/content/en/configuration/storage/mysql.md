@@ -182,8 +182,12 @@ The SQL connection timeout.
 
 ### tls
 
+*__Reference Note:__ This configuration option uses the
+[TLS configuration common structure](../prologue/common.md#tls-configuration). Please see the
+[documentation](../prologue/common.md#tls-configuration) on this structure for more information.*
+
 If defined enables connecting to [MySQL] or [MariaDB] over a TLS socket, and additionally controls the TLS connection
-validation process. You can see how to configure the tls section [here](../prologue/common.md#tls-configuration).
+validation parameters.
 
 [MySQL]: https://www.mysql.com/
 [MariaDB]: https://mariadb.org/

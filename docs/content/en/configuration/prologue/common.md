@@ -205,6 +205,11 @@ guide on configuring any particular instance.
 Various sections of the configuration use a uniform configuration section called TLS. Notably LDAP and SMTP.
 This section documents the usage.
 
+Various sections of the configuration use a uniform configuration section called `tls` which configure TLS socket and
+TLS verification parameters. Notably the [LDAP](../first-factor/ldap.md#tls), [SMTP](../notifications/smtp.md#tls),
+[PostgreSQL](../storage/postgres.md#tls), [MySQL](../storage/mysql.md#tls), and [Redis](../session/redis.md#tls)
+sections. This section documents the common parts of this structure.
+
 #### server_name
 
 {{< confkey type="string" required="no" >}}
@@ -263,6 +268,11 @@ is provided, in top down order, each certificate must be signed by the next cert
 
 ### Server Buffers
 
+Various sections of the configuration use a uniform configuration section called `buffers` which configure HTTP server
+buffers. Notably the [server](../miscellaneous/server.md#buffers) and
+[metrics telemetry](../telemetry/metrics.md#buffers) sections. This section documents the common parts of this
+structure.
+
 #### read
 
 {{< confkey type="integer" default="4096" required="no" >}}
@@ -276,6 +286,11 @@ Configures the maximum request size. The default of 4096 is generally sufficient
 Configures the maximum response size. The default of 4096 is generally sufficient for most use cases.
 
 ### Server Timeouts
+
+Various sections of the configuration use a uniform configuration section called `timeouts` which configure HTTP server
+timeouts. Notably the [server](../miscellaneous/server.md#timeouts) and
+[metrics telemetry](../telemetry/metrics.md#timeouts) sections. This section documents the common parts of this
+structure.
 
 #### read
 

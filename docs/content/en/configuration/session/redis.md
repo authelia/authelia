@@ -182,8 +182,12 @@ is useful if there are long delays in establishing connections.
 
 ### tls
 
-If defined enables [redis] over TLS, and additionally controls the TLS connection validation process. You can see how to
-configure the tls section [here](../prologue/common.md#tls-configuration).
+*__Reference Note:__ This configuration option uses the
+[TLS configuration common structure](../prologue/common.md#tls-configuration). Please see the
+[documentation](../prologue/common.md#tls-configuration) on this structure for more information.*
+
+If defined enables connecting to [redis] over a TLS socket, and additionally controls the TLS connection
+validation parameters.
 
 ### high_availability
 

@@ -121,8 +121,8 @@ This section describes the individual configuration options.
 
 {{< confkey type="string" required="yes" >}}
 
-*__Reference Note:__ This configuration option uses the [Address](../prologue/common.md#address) format. Please see the
-[documentation](../prologue/common.md#address) on this format for more information.*
+*__Reference Note:__ This configuration option uses the [address common syntax](../prologue/common.md#address). Please
+see the [documentation](../prologue/common.md#address) on this format for more information.*
 
 The LDAP URL which consists of a scheme, hostname, and port. Format is `[<scheme>://]<hostname>[:<port>]`. The default
 scheme is `ldapi` if the path is absolute otherwise it's `ldaps`, and the permitted schemes are `ldap`, `ldaps`, or
@@ -173,8 +173,11 @@ URL's are slightly more secure.
 
 ### tls
 
-Controls the TLS connection validation process. You can see how to configure the tls
-section [here](../prologue/common.md#tls-configuration).
+*__Reference Note:__ This configuration option uses the
+[TLS configuration common structure](../prologue/common.md#tls-configuration). Please see the
+[documentation](../prologue/common.md#tls-configuration) on this structure for more information.*
+
+Controls the TLS connection validation parameters for either StartTLS or the TLS socket.
 
 ### base_dn
 
