@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -84,6 +85,18 @@ func TestShouldHaveNotifier(t *testing.T) {
 	assert.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
 	assert.NotNil(t, config.Notifier)
+}
+
+func TestShouldParseLargeIntegerDurations(t *testing.T) {
+	val := schema.NewStructValidator()
+	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.durations.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	assert.Equal(t, durationMax, config.Regulation.FindTime)
+	assert.Equal(t, time.Second*1000, config.Regulation.BanTime)
 }
 
 func TestShouldValidateConfigurationWithEnv(t *testing.T) {
