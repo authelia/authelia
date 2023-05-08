@@ -90,13 +90,13 @@ server:
   ## Server Timeouts configuration.
   # timeouts:
 
-    ## Read timeout.
+    ## Read timeout in the duration common syntax.
     # read: '6s'
 
-    ## Write timeout.
+    ## Write timeout in the duration common syntax.
     # write: '6s'
 
-    ## Idle timeout.
+    ## Idle timeout in the duration common syntax.
     # idle: '30s'
 
   ## Server Endpoints configuration.
@@ -171,13 +171,13 @@ telemetry:
     ## Metrics Server Timeouts configuration.
     # timeouts:
 
-      ## Read timeout.
+      ## Read timeout in the duration common syntax.
       # read: '6s'
 
-      ## Write timeout.
+      ## Write timeout in the duration common syntax.
       # write: '6s'
 
-      ## Idle timeout.
+      ## Idle timeout in the duration common syntax.
       # idle: '30s'
 
 ##
@@ -223,7 +223,7 @@ webauthn:
   ## Disable WebAuthn.
   disable: false
 
-  ## Adjust the interaction timeout for WebAuthn dialogues.
+  ## The interaction timeout for WebAuthn dialogues in the duration common syntax.
   timeout: '60s'
 
   ## The display name the browser should show the user for when using WebAuthn to login/register.
@@ -264,7 +264,7 @@ ntp:
   ## NTP version.
   version: 4
 
-  ## Maximum allowed time offset between the host and the NTP server in duration common syntax.
+  ## Maximum allowed time offset between the host and the NTP server in the duration common syntax.
   max_desync: '3s'
 
   ## Disables the NTP check on startup entirely. This means Authelia will not contact a remote service at all if you
@@ -293,14 +293,13 @@ authentication_backend:
     ## functionality.
     custom_url: ''
 
-  ## The amount of time to wait before we refresh data from the authentication backend. Uses duration notation.
+  ## The amount of time to wait before we refresh data from the authentication backend in the duration common syntax.
   ## To disable this feature set it to 'disable', this will slightly reduce security because for Authelia, users will
   ## always belong to groups they belonged to at the time of login even if they have been removed from them in LDAP.
   ## To force update on every request you can set this to '0' or 'always', this will increase processor demand.
   ## See the below documentation for more information.
-  ## Duration Notation docs:  https://www.authelia.com/c/common#duration
   ## Refresh Interval docs: https://www.authelia.com/c/1fa#refresh-interval
-  refresh_interval: 5m
+  refresh_interval: '5m'
 
   ##
   ## LDAP (Authentication Provider)
@@ -736,7 +735,6 @@ session:
       # same_site: 'lax'
 
       ## The value for inactivity, expiration, and remember_me are in seconds or the duration common syntax.
-      ## See: https://www.authelia.com/c/common#duration
       ## All three of these values affect the cookie/session validity period. Longer periods are considered less secure
       ## because a stolen cookie will last longer giving attackers more time to spy or attack.
 
@@ -753,30 +751,19 @@ session:
       ## this value to -1 disables remember me for this session cookie domain.
       # remember_me: '1M'
 
-  ## Cookie Session Domain default 'name' value.  The name of the session cookie.
+  ## Cookie Session Domain default 'name' value.
   name: 'authelia_session'
 
-  ## Cookie Session Domain default 'same_site' value. Sets the Cookie SameSite value. Possible options are none, lax,
-  ## or strict. Please read https://www.authelia.com/c/session#same_site
+  ## Cookie Session Domain default 'same_site' value.
   same_site: 'lax'
 
-  ## The value for inactivity, expiration, and remember_me are in seconds or the duration common syntax.
-  ## See: https://www.authelia.com/c/common#duration
-  ## All three of these values affect the cookie/session validity period. Longer periods are considered less secure
-  ## because a stolen cookie will last longer giving attackers more time to spy or attack.
-
-  ## Cookie Session Domain default 'inactivity' value. The inactivity time before the session is reset. If expiration is
-  ## set to 1h, and this is set to 5m, if the user does not select the remember me option their session will get
-  ## destroyed after 1h, or after 5m since the last time Authelia detected user activity.
+  ## Cookie Session Domain default 'inactivity' value.
   inactivity: '5m'
 
-  ## Cookie Session Domain default 'expiration' value. The time before the session cookie expires and the session is
-  ## destroyed if remember me IS NOT selected by the user.
+  ## Cookie Session Domain default 'expiration' value.
   expiration: '1h'
 
-  ## Cookie Session Domain default 'remember_me' value. The time before the cookie expires and the session is destroyed
-  ## if remember me IS selected by the user. Setting this value to -1 disables remember me for all session cookie
-  ## domains which do not have a specific 'remember_me' value.
+  ## Cookie Session Domain default 'remember_me' value.
   remember_me: '1M'
 
   ##
@@ -934,11 +921,11 @@ regulation:
   ## The number of failed login attempts before user is banned. Set it to 0 to disable regulation.
   max_retries: 3
 
-  ## The time range in duration common syntax during which the user can attempt login before being banned. The user is
-  ## banned if the authentication failed 'max_retries' times in a 'find_time' seconds window.
+  ## The time range during which the user can attempt login before being banned in the duration common syntax. The user
+  ## is banned if the authentication failed 'max_retries' times in a 'find_time' seconds window.
   find_time: '2m'
 
-  ## The length of time in duration common syntax before a banned user can login again.
+  ## The length of time before a banned user can login again in the duration common syntax.
   ban_time: '5m'
 
 ##
@@ -1441,7 +1428,7 @@ notifier:
       # DO NOT USE==
       # -----END RSA PRIVATE KEY-----
 
-    ## The lifespans configure the expiration for these token types.
+    ## The lifespans configure the expiration for these token types in the duration common syntax.
     # access_token_lifespan: '1h'
     # authorize_code_lifespan: '1m'
     # id_token_lifespan: '1h'
@@ -1547,6 +1534,6 @@ notifier:
         # consent_mode: 'auto'
 
         ## This value controls the duration a consent on this client remains remembered when the consent mode is
-        ## configured as 'auto' or 'pre-configured'.
+        ## configured as 'auto' or 'pre-configured' in the duration common syntax.
         # pre_configured_consent_duration: '1w'
 ...

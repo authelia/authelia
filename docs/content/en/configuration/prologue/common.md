@@ -24,24 +24,9 @@ guide on configuring any particular instance.
 
 The base type for this syntax is a string, and it also handles integers however this is discouraged.
 
-We have implemented a string/integer based syntax for configuration options that take a duration of time. This section
-describes the implementation of this. You can use this implementation in various areas of configuration such as:
-
-* session:
-  * expiration
-  * inactivity
-  * remember_me
-* regulation:
-  * ban_time
-  * find_time
-* ntp:
-  * max_desync
-* webauthn:
-  * timeout
-
-The way this format works is you can either configure an integer or a string in the specific configuration areas. If you
-supply an integer, it is considered a representation of seconds. If you supply a string, it parses the string in blocks
-of quantities and units (number followed by a unit letter).  For example `5h` indicates a quantity of 5 units of `h`.
+If you supply an integer, it is considered a representation of seconds. If you supply a string, it parses the string in
+blocks of quantities and units (number followed by a unit letter).  For example `5h` indicates a quantity of 5 units
+of `h`.
 
 The following is ignored:
   - all spaces
@@ -104,20 +89,44 @@ portions. Required portions may exist within optional portions, in which case th
 format specific text which indicates if the accompanying text exists then it is actually required, otherwise it's
 entirely optional.
 
-The connector address values take the following formats:
+The square brackets indicate optional sections, and the angled brackets indicate required sections. The following
+sections elaborate on this. Sections may only be optional for the purposes of parsing, there may be a configuration
+requirement that one of these is provided.
+
+##### Hostname
+
+The following format represents the hostname format. It's valid for both a listener and connector in most instances.
+Refer to the individual documentation for an option for clarity. In this format as per the notation the scheme and port
+are optional. The default for these when not provided varies.
 
 ```text
 [<scheme>://]<hostname>[:<port>]
+```
+
+##### Port
+
+The following format represents the port format. It's valid only for a listener in most instances.
+Refer to the individual documentation for an option for clarity. In this format as per the notation the scheme and
+hostname are optional. The default for the scheme when not provided varies, and the default for the hostname is all
+available addresses when not provided.
+
+```text
+[<scheme>://][hostname]:<port>
+```
+
+##### Unix Domain Socket
+
+The following format represents the unix domain socket format. It's valid for both a listener and connector in most
+instances. Refer to the individual documentation for an option for clarity. In this format as per the notation there
+are no optional portions.
+
+```text
 unix://<path>
 ```
 
-The listener address values take the following additional formats:
+##### Examples
 
-```text
-[<scheme>://]:<port>
-```
-
-Examples:
+Various examples for these formats.
 
 ```text
 0.0.0.0
@@ -131,9 +140,6 @@ udp://:123
 
 unix:///var/lib/authelia.sock
 ```
-The square brackets indicate optional sections, and the angled brackets indicate required sections. The following
-sections elaborate on this. Sections may only be optional for the purposes of parsing, there may be a configuration
-requirement that one of these is provided.
 
 #### scheme
 
