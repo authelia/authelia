@@ -12,6 +12,7 @@ WORKDIR /app
 ENV PATH="/app:${PATH}" \
     PUID=0 \
     PGID=0 \
+    UMASK=0022 \
     X_AUTHELIA_CONFIG="/config/configuration.yml"
 
 RUN \
