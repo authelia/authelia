@@ -36,34 +36,19 @@ While you can use multiple of these blocks in combination, we suggest keeping it
 
 #### Unit Legend
 
-##### Short Units
+The following is a legend for the unit formats available in this syntax. The long form units are only available from
+v4.38.0 or newer.
 
-These values have been available for a long time.
-
-|  Unit   | Associated Letter |
-|:-------:|:-----------------:|
-|  Years  |         y         |
-| Months  |         M         |
-|  Weeks  |         w         |
-|  Days   |         d         |
-|  Hours  |         h         |
-| Minutes |         m         |
-| Seconds |         s         |
-
-##### Long Units
-
-These values are more human readable but have only been available since v4.38.0.
-
-|     Unit     |   Human Readable Long Unit    |
-|:------------:|:-----------------------------:|
-|    Years     |        `year`, `years`        |
-|    Months    |       `month`, `months`       |
-|    Weeks     |        `week`, `weeks`        |
-|     Days     |         `day`, `days`         |
-|    Hours     |        `hour`, `hours`        |
-|   Minutes    |      `minute`, `minutes`      |
-|   Seconds    |      `second`, `seconds`      |
-| Milliseconds | `millisecond`, `milliseconds` |
+|     Unit     | Short Unit |   Human Readable Long Unit    |
+|:------------:|:----------:|:-----------------------------:|
+|    Years     |    `y`     |        `year`, `years`        |
+|    Months    |    `M`     |       `month`, `months`       |
+|    Weeks     |    `w`     |        `week`, `weeks`        |
+|     Days     |    `d`     |         `day`, `days`         |
+|    Hours     |    `h`     |        `hour`, `hours`        |
+|   Minutes    |    `m`     |      `minute`, `minutes`      |
+|   Seconds    |    `s`     |      `second`, `seconds`      |
+| Milliseconds |    `ms`    | `millisecond`, `milliseconds` |
 
 #### Examples
 
