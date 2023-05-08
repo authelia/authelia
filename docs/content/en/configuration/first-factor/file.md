@@ -16,18 +16,20 @@ aliases:
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 authentication_backend:
   file:
-    path: /config/users.yml
+    path: '/config/users.yml'
     watch: false
     search:
       email: false
       case_insensitive: false
     password:
-      algorithm: argon2
+      algorithm: 'argon2'
       argon2:
-        variant: argon2id
+        variant: 'argon2id'
         iterations: 3
         memory: 65536
         parallelism: 4
@@ -40,19 +42,21 @@ authentication_backend:
         key_length: 32
         salt_length: 16
       pbkdf2:
-        variant: sha512
+        variant: 'sha512'
         iterations: 310000
         salt_length: 16
       sha2crypt:
-        variant: sha512
+        variant: 'sha512'
         iterations: 50000
         salt_length: 16
       bcrypt:
-        variant: standard
+        variant: 'standard'
         cost: 12
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### path
 

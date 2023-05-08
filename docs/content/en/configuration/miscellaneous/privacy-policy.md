@@ -14,6 +14,8 @@ toc: true
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 privacy_policy:
   enabled: false
@@ -22,6 +24,8 @@ privacy_policy:
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### enabled
 

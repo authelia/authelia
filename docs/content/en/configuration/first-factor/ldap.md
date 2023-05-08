@@ -17,18 +17,20 @@ aliases:
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 authentication_backend:
   ldap:
-    implementation: custom
-    url: ldap://127.0.0.1
-    timeout: 5s
+    address: 'ldap://127.0.0.1'
+    implementation: 'custom'
+    timeout: '5s'
     start_tls: false
     tls:
-      server_name: ldap.example.com
+      server_name: 'ldap.example.com'
       skip_verify: false
-      minimum_version: TLS1.2
-      maximum_version: TLS1.3
+      minimum_version: 'TLS1.2'
+      maximum_version: 'TLS1.3'
       certificate_chain: |
         -----BEGIN CERTIFICATE-----
         MIIC5jCCAc6gAwIBAgIRAK4Sj7FiN6PXo/urPfO4E7owDQYJKoZIhvcNAQELBQAw
@@ -96,22 +98,53 @@ authentication_backend:
         27GoE2i5mh6Yez6VAYbUuns3FcwIsMyWLq043Tu2DNkx9ijOOAuQzw^invalid..
         DO NOT USE==
         -----END RSA PRIVATE KEY-----
-    base_dn: DC=example,DC=com
-    additional_users_dn: OU=users
-    users_filter: (&({username_attribute}={input})(objectClass=person))
-    username_attribute: uid
-    mail_attribute: mail
-    display_name_attribute: displayName
-    additional_groups_dn: OU=groups
-    groups_filter: (&(member={dn})(objectClass=groupOfNames))
-    group_name_attribute: cn
+    base_dn: 'DC=example,DC=com'
+    additional_users_dn: 'OU=users'
+    users_filter: '(&({username_attribute}={input})(objectClass=person))'
+    username_attribute: 'uid'
+    mail_attribute: 'mail'
+    display_name_attribute: 'displayName'
+    additional_groups_dn: 'OU=groups'
+    groups_filter: '(&(member={dn})(objectClass=groupOfNames))'
+    group_name_attribute: 'cn'
     permit_referrals: false
     permit_unauthenticated_bind: false
-    user: CN=admin,DC=example,DC=com
-    password: password
+    user: 'CN=admin,DC=example,DC=com'
+    password: 'password'
 ```
 
 ## Options
+
+This section describes the individual configuration options.
+
+### address
+
+{{< confkey type="string" required="yes" >}}
+
+*__Reference Note:__ This configuration option uses the [address common syntax](../prologue/common.md#address). Please
+see the [documentation](../prologue/common.md#address) on this format for more information.*
+
+The LDAP URL which consists of a scheme, hostname, and port. Format is `[<scheme>://]<hostname>[:<port>]`. The default
+scheme is `ldapi` if the path is absolute otherwise it's `ldaps`, and the permitted schemes are `ldap`, `ldaps`, or
+`ldapi` (a unix domain socket).
+
+If the scheme is `ldapi` it must be followed by an absolute path to an existing unix domain socket that the
+user/group the Authelia process is running as has the appropriate permissions to access. For example if the socket is
+located at `/var/run/slapd.sock` the address should be `ldapi:///var/run/slapd.sock`.
+
+__Examples:__
+
+```yaml
+authentication_backend:
+  ldap:
+    address: 'ldaps://dc1.example.com'
+```
+
+```yaml
+authentication_backend:
+  ldap:
+    address: 'ldap://[fd00:1111:2222:3333::1]'
+```
 
 ### implementation
 
@@ -121,30 +154,12 @@ Configures the LDAP implementation used by Authelia.
 
 See the [Implementation Guide](../../reference/guides/ldap.md#implementation-guide) for information.
 
-### url
-
-{{< confkey type="string" required="yes" >}}
-
-The LDAP URL which consists of a scheme, address, and port. Format is `<scheme>://<address>:<port>` or
-`<scheme>://<address>` where scheme is either `ldap` or `ldaps`.
-
-```yaml
-authentication_backend:
-  ldap:
-    url: ldaps://dc1.example.com
-```
-
-If utilising an IPv6 literal address it must be enclosed by square brackets:
-
-```yaml
-authentication_backend:
-  ldap:
-    url: ldap://[fd00:1111:2222:3333::1]
-```
-
 ### timeout
 
 {{< confkey type="duration" default="5s" required="no" >}}
+
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
 
 The timeout for dialing an LDAP connection.
 
@@ -158,8 +173,11 @@ URL's are slightly more secure.
 
 ### tls
 
-Controls the TLS connection validation process. You can see how to configure the tls
-section [here](../prologue/common.md#tls-configuration).
+*__Reference Note:__ This configuration option uses the
+[TLS configuration common structure](../prologue/common.md#tls-configuration). Please see the
+[documentation](../prologue/common.md#tls-configuration) on this structure for more information.*
+
+Controls the TLS connection validation parameters for either StartTLS or the TLS socket.
 
 ### base_dn
 

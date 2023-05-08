@@ -20,14 +20,18 @@ authentication attempts. This helps prevent brute-force attacks.
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 regulation:
   max_retries: 3
-  find_time: 2m
-  ban_time: 5m
+  find_time: '2m'
+  ban_time: '5m'
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### max_retries
 
@@ -39,8 +43,8 @@ The number of failed login attempts before a user may be banned. Setting this op
 
 {{< confkey type="duration" default="2m" required="no" >}}
 
-*__Note:__ This setting uses the [duration notation format](../prologue/common.md#duration-notation-format). Please see
-the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
 
 The period of time analyzed for failed attempts. For
 example if you set `max_retries` to 3 and `find_time` to `2m` this means the user must have 3 failed logins in
@@ -50,8 +54,8 @@ example if you set `max_retries` to 3 and `find_time` to `2m` this means the use
 
 {{< confkey type="duration" default="5m" required="no" >}}
 
-*__Note:__ This setting uses the [duration notation format](../prologue/common.md#duration-notation-format). Please see
-the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
 
 The period of time the user is banned for after meeting the `max_retries` and `find_time` configuration. After this
 duration the account will be able to login again.

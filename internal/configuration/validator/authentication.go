@@ -2,7 +2,6 @@ package validator
 
 import (
 	"fmt"
-	"net/url"
 	"strings"
 
 	"github.com/go-crypt/crypt/algorithm/argon2"
@@ -323,11 +322,7 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 
 	defaultTLS := validateLDAPAuthenticationBackendImplementation(config, validator)
 
-	if config.LDAP.URL == "" {
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "url"))
-	} else {
-		defaultTLS.ServerName = validateLDAPAuthenticationBackendURL(config.LDAP, validator)
-	}
+	defaultTLS.ServerName = validateLDAPAuthenticationAddress(config.LDAP, validator)
 
 	if config.LDAP.TLS == nil {
 		config.LDAP.TLS = &schema.TLSConfig{}
@@ -428,27 +423,22 @@ func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *
 	}
 }
 
-func validateLDAPAuthenticationBackendURL(config *schema.LDAPAuthenticationBackend, validator *schema.StructValidator) (hostname string) {
+func validateLDAPAuthenticationAddress(config *schema.LDAPAuthenticationBackend, validator *schema.StructValidator) (hostname string) {
+	if config.Address == nil {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "address"))
+
+		return
+	}
+
 	var (
-		parsedURL *url.URL
-		err       error
+		err error
 	)
 
-	if parsedURL, err = url.Parse(config.URL); err != nil {
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendURLNotParsable, err))
-
-		return
+	if err = config.Address.ValidateLDAP(); err != nil {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendAddress, config.Address.String(), err))
 	}
 
-	if parsedURL.Scheme != schemeLDAP && parsedURL.Scheme != schemeLDAPS {
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendURLInvalidScheme, parsedURL.Scheme))
-
-		return
-	}
-
-	config.URL = parsedURL.String()
-
-	return parsedURL.Hostname()
+	return config.Address.Hostname()
 }
 
 func validateLDAPRequiredParameters(config *schema.AuthenticationBackend, validator *schema.StructValidator) {

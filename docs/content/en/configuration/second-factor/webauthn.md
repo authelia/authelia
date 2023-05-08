@@ -16,16 +16,20 @@ aliases:
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 webauthn:
   disable: false
-  display_name: Authelia
-  attestation_conveyance_preference: indirect
-  user_verification: preferred
-  timeout: 60s
+  display_name: 'Authelia'
+  attestation_conveyance_preference: 'indirect'
+  user_verification: 'preferred'
+  timeout: '60s'
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### disable
 
@@ -80,8 +84,8 @@ Available Options:
 
 {{< confkey type="duration" default="60s" required="no" >}}
 
-*__Note:__ This setting uses the [duration notation format](../prologue/common.md#duration-notation-format). Please see
-the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
 
 This adjusts the requested timeout for a WebAuthn interaction.
 

@@ -42,6 +42,16 @@ on most Debian based operating systems.
 
 In addition to the `.deb` packages we also have an [APT Repository](https://apt.authelia.com).
 
+## Nix
+
+Using the Nix package manager Authelia is available via the `https://nixos.org/channels/nixpkgs-unstable` channel.
+
+```shell
+$ nix-channel --add https://nixos.org/channels/nixpkgs-unstable
+$ nix-channel --update
+$ nix-env -iA nixpkgs.authelia
+```
+
 ## FreeBSD
 
 In addition to the [binaries](#binaries) we publish, [FreshPorts](https://www.freshports.org/www/authelia/) offer a

@@ -75,13 +75,13 @@ version: "3.8"
 
 networks:
   net:
-    driver: bridge
+    driver: 'bridge'
 
 services:
   nginx:
-    container_name: nginx
-    image: jc21/nginx-proxy-manager
-    restart: unless-stopped
+    container_name: 'nginx'
+    image: 'jc21/nginx-proxy-manager'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []
@@ -90,44 +90,44 @@ services:
       - '81:81'
       - '443:443'
     volumes:
-      - ${PWD}/data/nginx-proxy-manager/data:/data
-      - ${PWD}/data/nginx-proxy-manager/letsencrypt:/etc/letsencrypt
-      - ${PWD}/data/nginx/snippets:/snippets:ro
+      - '${PWD}/data/nginx-proxy-manager/data:/data'
+      - '${PWD}/data/nginx-proxy-manager/letsencrypt:/etc/letsencrypt'
+      - '${PWD}/data/nginx/snippets:/snippets:ro'
     environment:
       TZ: 'Australia/Melbourne'
   authelia:
-    container_name: authelia
-    image: authelia/authelia
-    restart: unless-stopped
+    container_name: 'authelia'
+    image: 'authelia/authelia'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []
     expose:
       - 9091
     volumes:
-      - ${PWD}/data/authelia/config:/config
+      - '${PWD}/data/authelia/config:/config'
     environment:
       TZ: 'Australia/Melbourne'
   nextcloud:
-    container_name: nextcloud
-    image: lscr.io/linuxserver/nextcloud
-    restart: unless-stopped
+    container_name: 'nextcloud'
+    image: 'lscr.io/linuxserver/nextcloud'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []
     expose:
       - 443
     volumes:
-      - ${PWD}/data/nextcloud/config:/config
-      - ${PWD}/data/nextcloud/data:/data
+      - '${PWD}/data/nextcloud/config:/config'
+      - '${PWD}/data/nextcloud/data:/data'
     environment:
       PUID: '1000'
       PGID: '1000'
       TZ: 'Australia/Melbourne'
   whoami:
-    container_name: whoami
-    image: docker.io/traefik/whoami
-    restart: unless-stopped
+    container_name: 'whoami'
+    image: 'docker.io/traefik/whoami'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []

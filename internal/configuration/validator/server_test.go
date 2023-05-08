@@ -22,8 +22,9 @@ func TestShouldSetDefaultServerValues(t *testing.T) {
 	assert.Len(t, validator.Errors(), 0)
 	assert.Len(t, validator.Warnings(), 0)
 
-	assert.Equal(t, schema.DefaultServerConfiguration.Host, config.Server.Host)
-	assert.Equal(t, schema.DefaultServerConfiguration.Port, config.Server.Port)
+	assert.Equal(t, "", config.Server.Host) //nolint:staticcheck
+	assert.Equal(t, 0, config.Server.Port)  //nolint:staticcheck
+	assert.Equal(t, schema.DefaultServerConfiguration.Address, config.Server.Address)
 	assert.Equal(t, schema.DefaultServerConfiguration.Buffers.Read, config.Server.Buffers.Read)
 	assert.Equal(t, schema.DefaultServerConfiguration.Buffers.Write, config.Server.Buffers.Write)
 	assert.Equal(t, schema.DefaultServerConfiguration.TLS.Key, config.Server.TLS.Key)
@@ -32,6 +33,55 @@ func TestShouldSetDefaultServerValues(t *testing.T) {
 	assert.Equal(t, schema.DefaultServerConfiguration.Endpoints.EnableExpvars, config.Server.Endpoints.EnableExpvars)
 	assert.Equal(t, schema.DefaultServerConfiguration.Endpoints.EnablePprof, config.Server.Endpoints.EnablePprof)
 	assert.Equal(t, schema.DefaultServerConfiguration.Endpoints.Authz, config.Server.Endpoints.Authz)
+}
+
+func TestShouldSetDefaultServerValuesWithLegacyAddress(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.Configuration{
+		Server: schema.ServerConfiguration{
+			Host: "abc",
+			Port: 123,
+		},
+	}
+
+	ValidateServer(config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+	assert.Len(t, validator.Warnings(), 0)
+
+	assert.Equal(t, "abc", config.Server.Host) //nolint:staticcheck
+	assert.Equal(t, 123, config.Server.Port)   //nolint:staticcheck
+	assert.Equal(t, &schema.AddressTCP{Address: MustParseAddress("tcp://abc:123")}, config.Server.Address)
+
+	config = &schema.Configuration{
+		Server: schema.ServerConfiguration{
+			Host: "abc",
+		},
+	}
+
+	ValidateServer(config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+	assert.Len(t, validator.Warnings(), 0)
+
+	assert.Equal(t, "abc", config.Server.Host) //nolint:staticcheck
+	assert.Equal(t, 0, config.Server.Port)     //nolint:staticcheck
+	assert.Equal(t, &schema.AddressTCP{Address: MustParseAddress("tcp://abc:9091")}, config.Server.Address)
+
+	config = &schema.Configuration{
+		Server: schema.ServerConfiguration{
+			Port: 123,
+		},
+	}
+
+	ValidateServer(config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+	assert.Len(t, validator.Warnings(), 0)
+
+	assert.Equal(t, "", config.Server.Host)  //nolint:staticcheck
+	assert.Equal(t, 123, config.Server.Port) //nolint:staticcheck
+	assert.Equal(t, &schema.AddressTCP{Address: MustParseAddress("tcp://:123")}, config.Server.Address)
 }
 
 func TestShouldSetDefaultConfig(t *testing.T) {
@@ -61,6 +111,62 @@ func TestShouldParsePathCorrectly(t *testing.T) {
 	assert.Len(t, validator.Warnings(), 0)
 
 	assert.Equal(t, "/apple", config.Server.Path)
+}
+
+func TestValidateServerShouldCorrectlyIdentifyValidAddressSchemes(t *testing.T) {
+	testCases := []struct {
+		have     string
+		expected string
+	}{
+		{schema.AddressSchemeTCP, ""},
+		{schema.AddressSchemeTCP4, ""},
+		{schema.AddressSchemeTCP6, ""},
+		{schema.AddressSchemeUDP, "server: option 'address' with value 'udp://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'udp'"},
+		{schema.AddressSchemeUDP4, "server: option 'address' with value 'udp4://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'udp4'"},
+		{schema.AddressSchemeUDP6, "server: option 'address' with value 'udp6://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'udp6'"},
+		{schema.AddressSchemeUnix, ""},
+		{"http", "server: option 'address' with value 'http://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'http'"},
+	}
+
+	have := &schema.Configuration{
+		Server: schema.ServerConfiguration{
+			Buffers: schema.ServerBuffers{
+				Read:  -1,
+				Write: -1,
+			},
+			Timeouts: schema.ServerTimeouts{
+				Read:  time.Second * -1,
+				Write: time.Second * -1,
+				Idle:  time.Second * -1,
+			},
+		},
+	}
+
+	validator := schema.NewStructValidator()
+
+	for _, tc := range testCases {
+		t.Run(tc.have, func(t *testing.T) {
+			validator.Clear()
+
+			switch tc.have {
+			case schema.AddressSchemeUnix:
+				have.Server.Address = &schema.AddressTCP{Address: schema.NewAddressUnix("/path/to/authelia.sock")}
+			default:
+				have.Server.Address = &schema.AddressTCP{Address: schema.NewAddressFromNetworkValues(tc.have, "", 9091)}
+			}
+
+			ValidateServer(have, validator)
+
+			assert.Len(t, validator.Warnings(), 0)
+
+			if tc.expected == "" {
+				assert.Len(t, validator.Errors(), 0)
+			} else {
+				require.Len(t, validator.Errors(), 1)
+				assert.EqualError(t, validator.Errors()[0], tc.expected)
+			}
+		})
+	}
 }
 
 func TestShouldDefaultOnNegativeValues(t *testing.T) {
@@ -121,15 +227,43 @@ func TestShouldRaiseOnForwardSlashInPath(t *testing.T) {
 	assert.Error(t, validator.Errors()[0], "server path must not contain any forward slashes")
 }
 
-func TestShouldValidateAndUpdateHost(t *testing.T) {
+func TestShouldValidateAndUpdateAddress(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.Server.Host = ""
+	config.Server.Address = nil
 
 	ValidateServer(&config, validator)
 
 	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, "0.0.0.0", config.Server.Host)
+	assert.Equal(t, "tcp://:9091", config.Server.Address.String())
+}
+
+func TestShouldRaiseErrorOnLegacyAndModernValues(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+	config.Server.Host = local25 //nolint:staticcheck
+	config.Server.Port = 9999    //nolint:staticcheck
+
+	ValidateServer(&config, validator)
+
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "server: option 'host' and 'port' can't be configured at the same time as 'address'")
+}
+
+func TestShouldValidateAndUpdateAddressWithOldValues(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+	config.Server.Address = nil
+	config.Server.Host = local25 //nolint:staticcheck
+	config.Server.Port = 9999    //nolint:staticcheck
+
+	ValidateServer(&config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+	assert.Len(t, validator.Warnings(), 0)
+
+	require.NotNil(t, config.Server.Address)
+	assert.Equal(t, "tcp://127.0.0.25:9999", config.Server.Address.String())
 }
 
 func TestShouldRaiseErrorWhenTLSCertWithoutKeyIsProvided(t *testing.T) {
@@ -162,7 +296,7 @@ func TestShouldRaiseErrorWhenTLSCertDoesNotExist(t *testing.T) {
 
 	ValidateServer(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "server: tls: file path /tmp/unexisting_file provided in 'certificate' does not exist")
+	assert.EqualError(t, validator.Errors()[0], "server: tls: option 'certificate' the file '/tmp/unexisting_file' does not exist")
 }
 
 func TestShouldRaiseErrorWhenTLSKeyWithoutCertIsProvided(t *testing.T) {
@@ -195,7 +329,7 @@ func TestShouldRaiseErrorWhenTLSKeyDoesNotExist(t *testing.T) {
 
 	ValidateServer(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "server: tls: file path /tmp/unexisting_file provided in 'key' does not exist")
+	assert.EqualError(t, validator.Errors()[0], "server: tls: option 'key' the file '/tmp/unexisting_file' does not exist")
 }
 
 func TestShouldNotRaiseErrorWhenBothTLSCertificateAndKeyAreProvided(t *testing.T) {
@@ -239,7 +373,7 @@ func TestShouldRaiseErrorWhenTLSClientCertificateDoesNotExist(t *testing.T) {
 
 	ValidateServer(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "server: tls: client_certificates: certificates: file path /tmp/unexisting does not exist")
+	assert.EqualError(t, validator.Errors()[0], "server: tls: option 'client_certificates' the file '/tmp/unexisting' does not exist")
 }
 
 func TestShouldRaiseErrorWhenTLSClientAuthIsDefinedButNotServerCertificate(t *testing.T) {
@@ -265,19 +399,7 @@ func TestShouldNotUpdateConfig(t *testing.T) {
 	ValidateServer(&config, validator)
 
 	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, 9090, config.Server.Port)
-	assert.Equal(t, loopback, config.Server.Host)
-}
-
-func TestShouldValidateAndUpdatePort(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-	config.Server.Port = 0
-
-	ValidateServer(&config, validator)
-
-	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, 9091, config.Server.Port)
+	assert.Equal(t, "tcp://127.0.0.1:9090", config.Server.Address.String())
 }
 
 func TestServerEndpointsDevelShouldWarn(t *testing.T) {

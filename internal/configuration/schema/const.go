@@ -105,7 +105,7 @@ const (
 
 // regexpHasScheme checks if a string has a scheme. Valid characters for schemes include alphanumeric, hyphen,
 // period, and plus characters.
-var regexpHasScheme = regexp.MustCompile(`^[-+.a-zA-Z\d]+://`)
+var regexpHasScheme = regexp.MustCompile(`^[-+.a-zA-Z\d]*(://|:$)`)
 
 const (
 	blockCERTIFICATE   = "CERTIFICATE"
@@ -118,4 +118,21 @@ const (
 	ldapAttrDisplayName = "displayName"
 	ldapAttrDescription = "description"
 	ldapAttrCommonName  = "cn"
+)
+
+// Address Schemes.
+const (
+	AddressSchemeTCP         = "tcp"
+	AddressSchemeTCP4        = "tcp4"
+	AddressSchemeTCP6        = "tcp6"
+	AddressSchemeUDP         = "udp"
+	AddressSchemeUDP4        = "udp4"
+	AddressSchemeUDP6        = "udp6"
+	AddressSchemeUnix        = "unix"
+	AddressSchemeLDAP        = "ldap"
+	AddressSchemeLDAPS       = "ldaps"
+	AddressSchemeLDAPI       = "ldapi"
+	AddressSchemeSMTP        = "smtp"
+	AddressSchemeSUBMISSION  = "submission"
+	AddressSchemeSUBMISSIONS = "submissions"
 )

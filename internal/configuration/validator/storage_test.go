@@ -61,7 +61,7 @@ func (suite *StorageSuite) TestShouldValidateMySQLHostUsernamePasswordAndDatabas
 	ValidateStorage(suite.config, suite.validator)
 
 	suite.Require().Len(suite.validator.Errors(), 3)
-	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: mysql: option 'host' is required")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: mysql: option 'address' is required")
 	suite.Assert().EqualError(suite.validator.Errors()[1], "storage: mysql: option 'username' and 'password' are required")
 	suite.Assert().EqualError(suite.validator.Errors()[2], "storage: mysql: option 'database' is required")
 
@@ -83,7 +83,7 @@ func (suite *StorageSuite) TestShouldValidateMySQLHostUsernamePasswordAndDatabas
 func (suite *StorageSuite) TestShouldSetDefaultMySQLTLSServerName() {
 	suite.config.MySQL = &schema.MySQLStorageConfiguration{
 		SQLStorageConfiguration: schema.SQLStorageConfiguration{
-			Host:     "mysql1",
+			Address:  &schema.AddressTCP{Address: MustParseAddress("tcp://mysql:1234")},
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
@@ -98,7 +98,8 @@ func (suite *StorageSuite) TestShouldSetDefaultMySQLTLSServerName() {
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
-	suite.Assert().Equal(suite.config.MySQL.Host, suite.config.MySQL.TLS.ServerName)
+	suite.Assert().Equal(suite.config.MySQL.Address.Hostname(), suite.config.MySQL.TLS.ServerName)
+	suite.Assert().Equal("mysql", suite.config.MySQL.TLS.ServerName)
 }
 
 func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSVersion() {
@@ -150,7 +151,7 @@ func (suite *StorageSuite) TestShouldValidatePostgreSQLHostUsernamePasswordAndDa
 	ValidateStorage(suite.config, suite.validator)
 
 	suite.Require().Len(suite.validator.Errors(), 3)
-	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: postgres: option 'host' is required")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: postgres: option 'address' is required")
 	suite.Assert().EqualError(suite.validator.Errors()[1], "storage: postgres: option 'username' and 'password' are required")
 	suite.Assert().EqualError(suite.validator.Errors()[2], "storage: postgres: option 'database' is required")
 
@@ -230,7 +231,7 @@ func (suite *StorageSuite) TestShouldSetDefaultPostgreSQLTLSServerName() {
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
-	suite.Assert().Equal(suite.config.PostgreSQL.Host, suite.config.PostgreSQL.TLS.ServerName)
+	suite.Assert().Equal(suite.config.PostgreSQL.Address.Hostname(), suite.config.PostgreSQL.TLS.ServerName)
 }
 
 func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidPostgreSQLTLSVersion() {

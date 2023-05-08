@@ -16,21 +16,23 @@ aliases:
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 server:
   endpoints:
     authz:
       forward-auth:
-        implementation: ForwardAuth
+        implementation: 'ForwardAuth'
         authn_strategies: []
       ext-authz:
-        implementation: ExtAuthz
+        implementation: 'ExtAuthz'
         authn_strategies: []
       auth-request:
-        implementation: AuthRequest
+        implementation: 'AuthRequest'
         authn_strategies: []
       legacy:
-        implementation: Legacy
+        implementation: 'Legacy'
         authn_strategies: []
 ```
 

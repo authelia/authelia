@@ -75,7 +75,7 @@ server:
   endpoints:
     authz:
       forward-auth:
-        implementation: ForwardAuth
+        implementation: 'ForwardAuth'
 ```
 
 ## Configuration
@@ -130,9 +130,9 @@ networks:
     driver: bridge
 services:
   traefik:
-    container_name: traefik
-    image: traefik:v2.9
-    restart: unless-stopped
+    container_name: 'traefik'
+    image: 'traefik:v2.9'
+    restart: 'unless-stopped'
     command:
       - '--api=true'
       - '--api.dashboard=true'
@@ -164,11 +164,11 @@ services:
     networks:
       net: {}
     ports:
-      - "80:8080"
-      - "443:8443"
+      - '80:8080'
+      - '443:8443'
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ${PWD}/data/traefik:/config
+      - '/var/run/docker.sock:/var/run/docker.sock'
+      - '${PWD}/data/traefik:/config'
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.api.rule=Host(`traefik.example.com`)'
@@ -177,15 +177,15 @@ services:
       - 'traefik.http.routers.api.service=api@internal'
       - 'traefik.http.routers.api.middlewares=authelia@docker'
   authelia:
-    container_name: authelia
-    image: authelia/authelia
-    restart: unless-stopped
+    container_name: 'authelia'
+    image: 'authelia/authelia'
+    restart: 'unless-stopped'
     networks:
       net: {}
     expose:
       - 9091
     volumes:
-      - ${PWD}/data/authelia/config:/config
+      - '${PWD}/data/authelia/config:/config'
     environment:
       TZ: "Australia/Melbourne"
     labels:
@@ -200,20 +200,20 @@ services:
       - 'traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader=true'
       - 'traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Email,Remote-Name'
   nextcloud:
-    container_name: nextcloud
-    image: linuxserver/nextcloud
-    restart: unless-stopped
+    container_name: 'nextcloud'
+    image: 'linuxserver/nextcloud'
+    restart: 'unless-stopped'
     networks:
       net: {}
     expose:
       - 443
     volumes:
-      - ${PWD}/data/nextcloud/config:/config
-      - ${PWD}/data/nextcloud/data:/data
+      - '${PWD}/data/nextcloud/config:/config'
+      - '${PWD}/data/nextcloud/data:/data'
     environment:
-      PUID: "1000"
-      PGID: "1000"
-      TZ: "Australia/Melbourne"
+      PUID: '1000'
+      PGID: '1000'
+      TZ: 'Australia/Melbourne'
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.nextcloud.rule=Host(`nextcloud.example.com`)'
@@ -221,19 +221,19 @@ services:
       - 'traefik.http.routers.nextcloud.tls=true'
       - 'traefik.http.routers.nextcloud.middlewares=authelia@docker'
   heimdall:
-    container_name: heimdall
-    image: linuxserver/heimdall
-    restart: unless-stopped
+    container_name: 'heimdall'
+    image: 'linuxserver/heimdall'
+    restart: 'unless-stopped'
     networks:
       net: {}
     expose:
       - 443
     volumes:
-      - ${PWD}/data/heimdall/config:/config
+      - '${PWD}/data/heimdall/config:/config'
     environment:
-      PUID: "1000"
-      PGID: "1000"
-      TZ: "Australia/Melbourne"
+      PUID: '1000'
+      PGID: '1000'
+      TZ: 'Australia/Melbourne'
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.heimdall.rule=Host(`heimdall.example.com`)'
@@ -264,12 +264,12 @@ This example uses a `docker-compose.yml` similar to the one above however it has
 version: "3.8"
 networks:
   net:
-    driver: bridge
+    driver: 'bridge'
 services:
   traefik:
-    container_name: traefik
-    image: traefik:v2.9
-    restart: unless-stopped
+    container_name: 'traefik'
+    image: 'traefik:v2.9'
+    restart: 'unless-stopped'
     command:
       - '--api=true'
       - '--api.dashboard=true'
@@ -294,74 +294,74 @@ services:
     networks:
       net: {}
     ports:
-      - "80:8080"
-      - "443:8443"
+      - '80:8080'
+      - '443:8443'
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ${PWD}/data/traefik/config:/config
-      - ${PWD}/data/traefik/certificates:/certificates
+      - '/var/run/docker.sock:/var/run/docker.sock'
+      - '${PWD}/data/traefik/config:/config'
+      - '${PWD}/data/traefik/certificates:/certificates'
     labels:
       - 'traefik.enable=true'
   authelia:
-    container_name: authelia
-    image: authelia/authelia
-    restart: unless-stopped
+    container_name: 'authelia'
+    image: 'authelia/authelia'
+    restart: 'unless-stopped'
     networks:
       net: {}
     expose:
       - 9091
     volumes:
-      - ${PWD}/data/authelia/config:/config
-      - ${PWD}/data/authelia/certificates:/certificates
+      - '${PWD}/data/authelia/config:/config'
+      - '${PWD}/data/authelia/certificates:/certificates'
     environment:
-      TZ: "Australia/Melbourne"
+      TZ: 'Australia/Melbourne'
     labels:
       - 'traefik.enable=true'
   nextcloud:
-    container_name: nextcloud
-    image: linuxserver/nextcloud
-    restart: unless-stopped
+    container_name: 'nextcloud'
+    image: 'linuxserver/nextcloud'
+    restart: 'unless-stopped'
     networks:
       net: {}
     expose:
       - 443
     volumes:
-      - ${PWD}/data/nextcloud/config:/config
-      - ${PWD}/data/nextcloud/data:/data
+      - '${PWD}/data/nextcloud/config:/config'
+      - '${PWD}/data/nextcloud/data:/data'
     environment:
-      PUID: "1000"
-      PGID: "1000"
-      TZ: "Australia/Melbourne"
+      PUID: '1000'
+      PGID: '1000'
+      TZ: 'Australia/Melbourne'
     labels:
       - 'traefik.enable=true'
   heimdall:
-    container_name: heimdall
-    image: linuxserver/heimdall
-    restart: unless-stopped
+    container_name: 'heimdall'
+    image: 'linuxserver/heimdall'
+    restart: 'unless-stopped'
     networks:
       net: {}
     expose:
       - 443
     volumes:
-      - ${PWD}/data/heimdall/config:/config
+      - '${PWD}/data/heimdall/config:/config'
     environment:
-      PUID: "1000"
-      PGID: "1000"
-      TZ: "Australia/Melbourne"
+      PUID: '1000'
+      PGID: '1000'
+      TZ: 'Australia/Melbourne'
     labels:
       - 'traefik.enable=true'
   whoami:
-    container_name: whoami
-    image: traefik/whoami:latest
-    restart: unless-stopped
+    container_name: 'whoami'
+    image: 'traefik/whoami:latest'
+    restart: 'unless-stopped'
     networks:
       net: {}
     expose:
       - 80
     environment:
-      TZ: "Australia/Melbourne"
+      TZ: 'Australia/Melbourne'
     labels:
-      - "traefik.enable=true"
+      - 'traefik.enable=true'
 ...
 ```
 {{< /details >}}
@@ -391,16 +391,16 @@ entryPoints:
 tls:
   options:
     modern:
-      minVersion: "VersionTLS13"
+      minVersion: 'VersionTLS13'
     intermediate:
-      minVersion: "VersionTLS12"
+      minVersion: 'VersionTLS12'
       cipherSuites:
-        - "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"
-        - "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
-        - "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"
-        - "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
-        - "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305"
-        - "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
+        - 'TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256'
+        - 'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256'
+        - 'TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384'
+        - 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384'
+        - 'TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305'
+        - 'TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305'
 http:
   middlewares:
     authelia:
@@ -418,9 +418,9 @@ http:
           - 'Remote-Email'
           - 'Remote-Name'
         tls:
-          ca: /certificates/ca.public.crt
-          cert: /certificates/traefik.public.crt
-          key: /certificates/traefik.private.pem
+          ca: '/certificates/ca.public.crt'
+          cert: '/certificates/traefik.public.crt'
+          key: '/certificates/traefik.private.pem'
     authelia-basic:
       forwardAuth:
         address: 'https://authelia:9091/api/verify?auth=basic'
@@ -433,86 +433,86 @@ http:
           - 'Remote-Email'
           - 'Remote-Name'
         tls:
-          ca: /certificates/ca.public.crt
-          cert: /certificates/traefik.public.crt
-          key: /certificates/traefik.private.pem
+          ca: '/certificates/ca.public.crt'
+          cert: '/certificates/traefik.public.crt'
+          key: '/certificates/traefik.private.pem'
   routers:
     traefik:
-      rule: Host(`traefik.example.com`)
-      entryPoints: websecure
-      service: api@internal
+      rule: 'Host(`traefik.example.com`)'
+      entryPoints: 'websecure'
+      service: 'api@internal'
       middlewares:
-        - authelia@file
+        - 'authelia@file'
       tls:
-        options: modern@file
-        certResolver: default
+        options: 'modern@file'
+        certResolver: 'default'
         domains:
-          - main: "example.com"
+          - main: 'example.com'
             sans:
-              - "*.example.com"
+              - '*.example.com'
     whoami:
-      rule: Host(`whoami.example.com`)
-      entryPoints: websecure
-      service: whoami-net@docker
+      rule: 'Host(`whoami.example.com`)'
+      entryPoints: 'websecure'
+      service: 'whoami-net@docker'
       middlewares:
-        - authelia@file
+        - 'authelia@file'
       tls:
-        options: modern@file
-        certResolver: default
+        options: 'modern@file'
+        certResolver: 'default'
         domains:
-          - main: "example.com"
+          - main: 'example.com'
             sans:
-              - "*.example.com"
+              - '*.example.com'
     nextcloud:
-      rule: Host(`nextcloud.example.com`)
-      entryPoints: websecure
-      service: nextcloud-net@docker
+      rule: 'Host(`nextcloud.example.com`)'
+      entryPoints: 'websecure'
+      service: 'nextcloud-net@docker'
       middlewares:
-        - authelia@file
+        - 'authelia@file'
       tls:
-        options: modern@file
-        certResolver: default
+        options: 'modern@file'
+        certResolver: 'default'
         domains:
-          - main: "example.com"
+          - main: 'example.com'
             sans:
-              - "*.example.com"
+              - '*.example.com'
     heimdall:
-      rule: Host(`heimdall.example.com`)
-      entryPoints: websecure
-      service: heimdall-net@docker
+      rule: 'Host(`heimdall.example.com`)'
+      entryPoints: 'websecure'
+      service: 'heimdall-net@docker'
       middlewares:
-        - authelia-basic@file
+        - 'authelia-basic@file'
       tls:
-        options: modern@file
-        certResolver: default
+        options: 'modern@file'
+        certResolver: 'default'
         domains:
-          - main: "example.com"
+          - main: 'example.com'
             sans:
-              - "*.example.com"
+              - '*.example.com'
     authelia:
-      rule: Host(`auth.example.com`)
-      entryPoints: websecure
-      service: authelia@file
+      rule: 'Host(`auth.example.com`)'
+      entryPoints: 'websecure'
+      service: 'authelia@file'
       tls:
-        options: modern@file
-        certResolver: default
+        options: 'modern@file'
+        certResolver: 'default'
         domains:
-          - main: "example.com"
+          - main: 'example.com'
             sans:
-              - "*.example.com"
+              - '*.example.com'
   services:
     authelia:
       loadBalancer:
         servers:
-          - url: https://authelia:9091/
-        serversTransport: autheliaMutualTLS
+          - url: 'https://authelia:9091/'
+        serversTransport: 'autheliaMutualTLS'
   serversTransports:
     autheliaMutualTLS:
       certificates:
-        - certFile: /certificates/traefik.public.crt
-          keyFile: /certificates/traefik.private.pem
+        - certFile: '/certificates/traefik.public.crt'
+          keyFile: '/certificates/traefik.private.pem'
       rootCAs:
-        - /certificates/ca.public.crt
+        - '/certificates/ca.public.crt'
 ...
 ```
 {{< /details >}}

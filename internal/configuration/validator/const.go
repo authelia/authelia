@@ -45,8 +45,6 @@ const (
 
 // Scheme constants.
 const (
-	schemeLDAP  = "ldap"
-	schemeLDAPS = "ldaps"
 	schemeHTTP  = "http"
 	schemeHTTPS = "https"
 )
@@ -61,7 +59,10 @@ const (
 	errFmtNotifierFileSystemFileNameNotConfigured = "notifier: filesystem: option 'filename' is required"
 	errFmtNotifierSMTPNotConfigured               = "notifier: smtp: option '%s' is required"
 	errFmtNotifierSMTPTLSConfigInvalid            = "notifier: smtp: tls: %w"
-	errFmtNotifierStartTlsDisabled                = "notifier: smtp: option 'disable_starttls' is enabled: " +
+	errFmtNotifierSMTPAddress                     = "notifier: smtp: option 'address' with value '%s' is invalid: %w"
+	errFmtNotifierSMTPAddressLegacyAndModern      = "notifier: smtp: option 'host' and 'port' can't be configured at the same time as 'address'"
+
+	errFmtNotifierStartTlsDisabled = "notifier: smtp: option 'disable_starttls' is enabled: " +
 		"opportunistic STARTTLS is explicitly disabled which means all emails will be sent insecurely over plaintext " +
 		"and this setting is only necessary for non-compliant SMTP servers which advertise they support STARTTLS " +
 		"when they actually don't support STARTTLS"
@@ -78,7 +79,7 @@ const (
 	errFmtAuthBackendMultipleConfigured = "authentication_backend: please ensure only one of the 'file' or 'ldap' " +
 		"backend is configured"
 	errFmtAuthBackendRefreshInterval = "authentication_backend: option 'refresh_interval' is configured to '%s' but " +
-		"it must be either a duration notation or one of 'disable', or 'always': %w"
+		"it must be either in duration common syntax or one of 'disable', or 'always': %w"
 	errFmtAuthBackendPasswordResetCustomURLScheme = "authentication_backend: password_reset: option 'custom_url' is" +
 		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
 
@@ -103,10 +104,7 @@ const (
 		errSuffixMustBeOneOf
 	errFmtLDAPAuthBackendFilterReplacedPlaceholders = "authentication_backend: ldap: option " +
 		"'%s' has an invalid placeholder: '%s' has been removed, please use '%s' instead"
-	errFmtLDAPAuthBackendURLNotParsable = "authentication_backend: ldap: option " +
-		"'url' could not be parsed: %w"
-	errFmtLDAPAuthBackendURLInvalidScheme = "authentication_backend: ldap: option " +
-		"'url' must have either the 'ldap' or 'ldaps' scheme but it's configured as '%s'"
+	errFmtLDAPAuthBackendAddress                    = "authentication_backend: ldap: option 'address' with value '%s' is invalid: %w"
 	errFmtLDAPAuthBackendFilterEnclosingParenthesis = "authentication_backend: ldap: option " +
 		"'%s' must contain enclosing parenthesis: '%s' should probably be '(%s)'"
 	errFmtLDAPAuthBackendFilterMissingPlaceholder = "authentication_backend: ldap: option " +
@@ -123,11 +121,14 @@ const (
 
 // Storage Error constants.
 const (
-	errStrStorage                                 = "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided"
-	errStrStorageEncryptionKeyMustBeProvided      = "storage: option 'encryption_key' is required"
-	errStrStorageEncryptionKeyTooShort            = "storage: option 'encryption_key' must be 20 characters or longer"
-	errFmtStorageUserPassMustBeProvided           = "storage: %s: option 'username' and 'password' are required" //nolint:gosec
-	errFmtStorageOptionMustBeProvided             = "storage: %s: option '%s' is required"
+	errStrStorage                                  = "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided"
+	errStrStorageEncryptionKeyMustBeProvided       = "storage: option 'encryption_key' is required"
+	errStrStorageEncryptionKeyTooShort             = "storage: option 'encryption_key' must be 20 characters or longer"
+	errFmtStorageUserPassMustBeProvided            = "storage: %s: option 'username' and 'password' are required" //nolint:gosec
+	errFmtStorageOptionMustBeProvided              = "storage: %s: option '%s' is required"
+	errFmtStorageOptionAddressConflictWithHostPort = "storage: %s: option 'host' and 'port' can't be configured at the same time as 'address'"
+	errFmtStorageFailedToConvertHostPortToAddress  = "storage: %s: option 'address' failed to parse options 'host' and 'port' as address: %w"
+
 	errFmtStorageTLSConfigInvalid                 = "storage: %s: tls: %w"
 	errFmtStoragePostgreSQLInvalidSSLMode         = "storage: postgres: ssl: option 'mode' must be one of %s but it's configured as '%s'"
 	errFmtStoragePostgreSQLInvalidSSLAndTLSConfig = "storage: postgres: can't define both 'tls' and 'ssl' configuration options"
@@ -136,7 +137,7 @@ const (
 
 // Telemetry Error constants.
 const (
-	errFmtTelemetryMetricsScheme = "telemetry: metrics: option 'address' must have a scheme 'tcp://' but it's configured as '%s'"
+	errFmtTelemetryMetricsAddress = "telemetry: metrics: option 'address' with value '%s' is invalid: %w"
 )
 
 // OpenID Error constants.
@@ -246,7 +247,8 @@ const (
 
 // NTP Error constants.
 const (
-	errFmtNTPVersion = "ntp: option 'version' must be either 3 or 4 but it's configured as '%d'"
+	errFmtNTPVersion       = "ntp: option 'version' must be either 3 or 4 but it's configured as '%d'"
+	errFmtNTPAddressScheme = "ntp: option 'address' with value '%s' is invalid: %w"
 )
 
 // Session error constants.
@@ -283,12 +285,15 @@ const (
 
 // Server Error constants.
 const (
-	errFmtServerTLSCert                           = "server: tls: option 'key' must also be accompanied by option 'certificate'"
-	errFmtServerTLSKey                            = "server: tls: option 'certificate' must also be accompanied by option 'key'"
-	errFmtServerTLSCertFileDoesNotExist           = "server: tls: file path %s provided in 'certificate' does not exist"
-	errFmtServerTLSKeyFileDoesNotExist            = "server: tls: file path %s provided in 'key' does not exist"
-	errFmtServerTLSClientAuthCertFileDoesNotExist = "server: tls: client_certificates: certificates: file path %s does not exist"
-	errFmtServerTLSClientAuthNoAuth               = "server: tls: client authentication cannot be configured if no server certificate and key are provided"
+	errFmtServerTLSCert            = "server: tls: option 'key' must also be accompanied by option 'certificate'"
+	errFmtServerTLSKey             = "server: tls: option 'certificate' must also be accompanied by option 'key'"
+	errFmtServerTLSFileNotExist    = "server: tls: option '%s' the file '%s' does not exist"
+	errFmtServerTLSFileNotExistErr = "server: tls: option '%s' could not determine if the file '%s' exists: %w"
+
+	errFmtServerTLSClientAuthNoAuth = "server: tls: client authentication cannot be configured if no server certificate and key are provided"
+
+	errFmtServerAddressLegacyAndModern = "server: option 'host' and 'port' can't be configured at the same time as 'address'"
+	errFmtServerAddress                = "server: option 'address' with value '%s' is invalid: %w"
 
 	errFmtServerPathNoForwardSlashes = "server: option 'path' must not contain any forward slashes"
 	errFmtServerPathAlphaNum         = "server: option 'path' must only contain alpha numeric characters"

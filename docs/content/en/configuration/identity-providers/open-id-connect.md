@@ -28,12 +28,12 @@ More information about the beta can be found in the [roadmap](../../roadmap/acti
 
 ## Configuration
 
-The following snippet provides a sample-configuration for the OIDC identity provider explaining each field in detail.
+{{< config-alert-example >}}
 
 ```yaml
 identity_providers:
   oidc:
-    hmac_secret: this_is_a_secret_abc123abc123abc
+    hmac_secret: 'this_is_a_secret_abc123abc123abc'
     issuer_certificate_chain: |
       -----BEGIN CERTIFICATE-----
       MIIC5jCCAc6gAwIBAgIRAK4Sj7FiN6PXo/urPfO4E7owDQYJKoZIhvcNAQELBQAw
@@ -101,51 +101,53 @@ identity_providers:
       27GoE2i5mh6Yez6VAYbUuns3FcwIsMyWLq043Tu2DNkx9ijOOAuQzw^invalid..
       DO NOT USE==
       -----END RSA PRIVATE KEY-----
-    access_token_lifespan: 1h
-    authorize_code_lifespan: 1m
-    id_token_lifespan: 1h
-    refresh_token_lifespan: 90m
+    access_token_lifespan: '1h'
+    authorize_code_lifespan: '1m'
+    id_token_lifespan: '1h'
+    refresh_token_lifespan: '90m'
     enable_client_debug_messages: false
-    enforce_pkce: public_clients_only
+    enforce_pkce: 'public_clients_only'
     cors:
       endpoints:
-        - authorization
-        - token
-        - revocation
-        - introspection
+        - 'authorization'
+        - 'token'
+        - 'revocation'
+        - 'introspection'
       allowed_origins:
-        - https://example.com
+        - 'https://example.com'
       allowed_origins_from_client_redirect_uris: false
     clients:
-      - id: myapp
-        description: My Application
+      - id: 'myapp'
+        description: 'My Application'
         secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         sector_identifier: ''
         public: false
-        authorization_policy: two_factor
-        consent_mode: explicit
-        pre_configured_consent_duration: 1w
+        authorization_policy: 'two_factor'
+        consent_mode: 'explicit'
+        pre_configured_consent_duration: '1w'
         audience: []
         scopes:
-          - openid
-          - groups
-          - email
-          - profile
+          - 'openid'
+          - 'groups'
+          - 'email'
+          - 'profile'
         redirect_uris:
-          - https://oidc.example.com:8080/oauth2/callback
+          - 'https://oidc.example.com:8080/oauth2/callback'
         grant_types:
-          - refresh_token
-          - authorization_code
+          - 'refresh_token'
+          - 'authorization_code'
         response_types:
-          - code
+          - 'code'
         response_modes:
-          - form_post
-          - query
-          - fragment
-        userinfo_signing_algorithm: none
+          - 'form_post'
+          - 'query'
+          - 'fragment'
+        userinfo_signing_algorithm: 'none'
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### hmac_secret
 
@@ -201,12 +203,18 @@ key data for the first certificate in the chain.
 
 {{< confkey type="duration" default="1h" required="no" >}}
 
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
+
 The maximum lifetime of an access token. It's generally recommended keeping this short similar to the default.
 For more information read these docs about [token lifespan].
 
 ### authorize_code_lifespan
 
 {{< confkey type="duration" default="1m" required="no" >}}
+
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
 
 The maximum lifetime of an authorize code. This can be rather short, as the authorize code should only be needed to
 obtain the other token types. For more information read these docs about [token lifespan].
@@ -215,11 +223,17 @@ obtain the other token types. For more information read these docs about [token 
 
 {{< confkey type="duration" default="1h" required="no" >}}
 
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
+
 The maximum lifetime of an ID token. For more information read these docs about [token lifespan].
 
 ### refresh_token_lifespan
 
 {{< confkey type="string" default="90m" required="no" >}}
+
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
 
 The maximum lifetime of a refresh token. The
 refresh token can be used to obtain new refresh tokens as well as access tokens or id tokens with an
@@ -285,6 +299,9 @@ When enabled all authorization requests must use the [Pushed Authorization Reque
 #### context_lifespan
 
 {{< confkey type="duration" default="5m" required="no" >}}
+
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
 
 The maximum amount of time between the [Pushed Authorization Requests] flow being initiated and the generated
 `request_uri` being utilized by a client.
@@ -566,8 +583,8 @@ Configures the consent mode. The following table describes the different modes:
 
 {{< confkey type="duration" default="1w" required="no" >}}
 
-*__Note:__ This setting uses the [duration notation format](../prologue/common.md#duration-notation-format). Please see
-the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
 
 Specifying this in the configuration without a consent [consent_mode] enables the `pre-configured` mode. If this is
 specified as well as the [consent_mode] then it only has an effect if the [consent_mode] is `pre-configured` or `auto`.

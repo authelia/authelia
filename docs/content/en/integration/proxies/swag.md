@@ -156,13 +156,13 @@ version: "3.8"
 
 networks:
   net:
-    driver: bridge
+    driver: 'bridge'
 
 services:
   swag:
-    container_name: swag
-    image: lscr.io/linuxserver/swag
-    restart: unless-stopped
+    container_name: 'swag'
+    image: 'lscr.io/linuxserver/swag'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []
@@ -170,7 +170,7 @@ services:
       - '80:80'
       - '443:443'
     volumes:
-      - ${PWD}/data/swag:/config
+      - '${PWD}/data/swag:/config'
       ## Uncomment the line below if you want to use the Authelia configuration snippets.
       #- ${PWD}/data/nginx/snippets:/snippets:ro
     environment:
@@ -184,40 +184,40 @@ services:
       ONLY_SUBDOMAINS: 'false'
       STAGING: 'true'
     cap_add:
-      - NET_ADMIN
+      - 'NET_ADMIN'
   authelia:
-    container_name: authelia
-    image: authelia/authelia
-    restart: unless-stopped
+    container_name: 'authelia'
+    image: 'authelia/authelia'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []
     expose:
       - 9091
     volumes:
-      - ${PWD}/data/authelia/config:/config
+      - '${PWD}/data/authelia/config:/config'
     environment:
       TZ: 'Australia/Melbourne'
   nextcloud:
-    container_name: nextcloud
-    image: lscr.io/linuxserver/nextcloud
-    restart: unless-stopped
+    container_name: 'nextcloud'
+    image: 'lscr.io/linuxserver/nextcloud'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []
     expose:
       - 443
     volumes:
-      - ${PWD}/data/nextcloud/config:/config
-      - ${PWD}/data/nextcloud/data:/data
+      - '${PWD}/data/nextcloud/config:/config'
+      - '${PWD}/data/nextcloud/data:/data'
     environment:
       PUID: '1000'
       PGID: '1000'
       TZ: 'Australia/Melbourne'
   whoami:
-    container_name: whoami
-    image: docker.io/traefik/whoami
-    restart: unless-stopped
+    container_name: 'whoami'
+    image: 'docker.io/traefik/whoami'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []

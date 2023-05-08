@@ -25,16 +25,20 @@ section of the configuration.
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 duo_api:
   disable: false
-  hostname: api-123456789.example.com
-  integration_key: ABCDEF
-  secret_key: 1234567890abcdefghifjkl
+  hostname: 'api-123456789.example.com'
+  integration_key: 'ABCDEF'
+  secret_key: '1234567890abcdefghifjkl'
   enable_self_enrollment: false
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### Disable
 
