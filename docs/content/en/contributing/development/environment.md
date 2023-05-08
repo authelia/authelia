@@ -24,6 +24,7 @@ In order to build and contribute to __Authelia__, you need to make sure the foll
   * [go] *(v1.20 or greater)*
   * [gcc]
   * [gomock]
+  * [gox] (if you wish to use it to cross compile)
 * Frontend Development
   * [Node.js] *(v18 or greater)*
   * [pnpm]
@@ -96,6 +97,7 @@ listed subdomains from your browser, and they will be served by the reverse prox
 [Buildkite]: https://buildkite.com/
 [React]: https://reactjs.org/
 [go]: https://go.dev/dl/
+[gox]: https://github.com/authelia/gox
 [gomock]: https://github.com/golang/mock
 [Node.js]: https://nodejs.org/en/download/
 [pnpm]: https://pnpm.io/installation

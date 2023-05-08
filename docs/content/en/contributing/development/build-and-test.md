@@ -141,19 +141,24 @@ go build -ldflags "-linkmode=external -s -w" -trimpath -buildmode=pie -o autheli
 
 #### Reproducible Builds
 
-*__Please Note:__ The reproducibility instructions only apply for v4.38.0 or above. Users interested in reproducibility
-of previous versions will have to carefully modify the linker flags to match the values outputted from the
-`authelia build-info` command. In particular the Build Date was set as the actual time previously rather than the
-commit time. In addition to this the ability to print the commands did not exist until just before this tag. If you have
-trouble reproducing a build please let us know so we can figure it out, assist you, and document it.*
+*__Important Note:__ At the time of this writing an unknown variance exists between our build system and the builds
+produced via these instructions. We are investigating the cause and are intending to release proper instructions once
+the underlying cause is identified.*
 
-Authelia allows production of reproducible builds that were built using our pipeline. The only variables injected into
-a build are from commit information other than the exceptions listed in this section. This means that we can provide the
-exact build commands for any given build with very limited input from users. The elements injected into the binary as
-part of the build process (using linker flags) are:
+*__Please Note:__ The reproducibility instructions only apply for v4.38.0 or above.
+Users interested in reproducibility of previous versions will have to carefully modify the linker flags to match the
+values outputted from the `authelia build-info` command. In particular the Build Date was set as the actual time
+previously rather than the commit time. In addition to this the ability to print the commands did not exist until just
+before this tag. If you have trouble reproducing a build please let us know so we can figure it out, assist you, and
+document it.*
+
+Authelia intends to allow production of reproducible builds that were built using our pipeline. The only variables
+injected into a build are from commit information other than the exceptions listed in this section. This means that we
+can provide the exact build commands for any given build with very limited input from users. The elements injected into
+the binary as part of the build process (using linker flags) are:
 
 - Commit SHA1
-- Commit Date (using the RFC1123 layout strictly using the UTC timezone)
+- Commit Date (using the RFC3339 layout strictly using the UTC timezone)
 - Latest Tag
 - Tag State (i.e. if the HEAD commit has the latest tag)
 - Working Tree State (dirty, clean, etc)
@@ -166,6 +171,10 @@ variable or CLI argument):
 - Build Number
 
 ##### Instructions
+
+*__Important Note:__ If you wish to use [gox](https://gitihub.com/authelia/gox) to build Authelia please run the
+`go run ./cmd/authelia-scripts build --print --buildkite --build-number 100` command instead of the above command (i.e.
+adding the `--buildkite` flag).*
 
 To perform a reproducible build users should follow these steps:
 
@@ -182,10 +191,6 @@ go run ./cmd/authelia-scripts build --print --build-number 100
 ```
 
 The output of the above command may be ran to perform all of the build steps manually.
-
-*__Important Note:__ If you wish to use [gox](https://gitihub.com/authelia/gox) to build Authelia please run the
-`go run ./cmd/authelia-scripts build --print --buildkite --build-number 100` command instead of the above command (i.e.
-adding the `--buildkite` flag).*
 
 [suites]: ./integration-suites.md
 [React]: https://reactjs.org/

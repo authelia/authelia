@@ -85,7 +85,7 @@ func (b Build) XFlags() []string {
 		fmt.Sprintf(fmtLDFLAGSX, "BuildBranch", b.Branch),
 		fmt.Sprintf(fmtLDFLAGSX, "BuildTag", b.Tag),
 		fmt.Sprintf(fmtLDFLAGSX, "BuildCommit", b.Commit),
-		fmt.Sprintf(fmtLDFLAGSX, "BuildDate", b.Date.Format(time.RFC1123)),
+		fmt.Sprintf(fmtLDFLAGSX, "BuildDate", b.Date.Format(time.RFC3339)),
 		fmt.Sprintf(fmtLDFLAGSX, "BuildState", b.State()),
 		fmt.Sprintf(fmtLDFLAGSX, "BuildExtra", b.Extra),
 		fmt.Sprintf(fmtLDFLAGSX, "BuildNumber", strconv.Itoa(b.Number)),
