@@ -55,11 +55,11 @@ v4.38.0 or newer.
 
 #### Examples
 
-|     Desired Value     |    Configuration Examples (Short)     |      Configuration Examples (Long)      |
-|:---------------------:|:-------------------------------------:|:---------------------------------------:|
-| 1 hour and 30 minutes | `90m` or `1h30m` or `5400` or `5400s` |        `1 hour and 30 mninutes`         |
-|         1 day         | `1d` or `24h` or `86400` or `86400s`  |                 `1 day`                 |
-|       10 hours        | `10h` or `600m` or `9h60m` or `36000` |               `10 hours`                |
+|     Desired Value     |    Configuration Examples (Short)     |     Configuration Examples (Long)      |
+|:---------------------:|:-------------------------------------:|:--------------------------------------:|
+| 1 hour and 30 minutes | `90m` or `1h30m` or `5400` or `5400s` |        `1 hour and 30 minutes`         |
+|         1 day         | `1d` or `24h` or `86400` or `86400s`  |                `1 day`                 |
+|       10 hours        | `10h` or `600m` or `9h60m` or `36000` |               `10 hours`               |
 
 ### Address
 
