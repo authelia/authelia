@@ -232,8 +232,11 @@ mixed emails which contain both HTML and text so this option is rarely necessary
 
 ### tls
 
-Controls the TLS connection validation process. You can see how to configure the tls section
-[here](../prologue/common.md#tls-configuration).
+*__Reference Note:__ This configuration option uses the
+[TLS configuration common structure](../prologue/common.md#tls-configuration). Please see the
+[documentation](../prologue/common.md#tls-configuration) on this structure for more information.*
+
+Controls the TLS connection validation parameters for either StartTLS or the TLS socket.
 
 ## Using Gmail
 

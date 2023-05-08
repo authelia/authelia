@@ -69,13 +69,19 @@ This value should typically be prefixed with a `0` to ensure the relevant parser
 
 ### buffers
 
-Configures the server buffers. See the [Server Buffers](../prologue/common.md#server-buffers) documentation for more
-information.
+*__Reference Note:__ This configuration option uses the
+[Server buffers common structure](../prologue/common.md#server-buffers). Please see the
+[documentation](../prologue/common.md#server-buffers) on this structure for more information.*
+
+Configures the server buffers.
 
 ### timeouts
 
-Configures the server timeouts. See the [Server Timeouts](../prologue/common.md#server-timeouts) documentation for more
-information.
+*__Reference Note:__ This configuration option uses the
+[Server timeouts common structure](../prologue/common.md#server-timeouts). Please see the
+[documentation](../prologue/common.md#server-timeouts) on this structure for more information.*
+
+Configures the server timeouts.
 
 ## See More
 
