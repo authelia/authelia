@@ -109,6 +109,23 @@ func TestParseDurationString(t *testing.T) {
 	}
 }
 
+func TestStandardizeDurationString(t *testing.T) {
+	var (
+		actual string
+		err    error
+	)
+
+	actual, err = StandardizeDurationString("1 hour and 20 minutes")
+
+	assert.NoError(t, err)
+	assert.Equal(t, "1h20m", actual)
+
+	actual, err = StandardizeDurationString("1 hour    and 20 minutes")
+
+	assert.NoError(t, err)
+	assert.Equal(t, "1h20m", actual)
+}
+
 func TestParseDurationString_ShouldNotParseDurationStringWithOutOfOrderQuantitiesAndUnits(t *testing.T) {
 	duration, err := ParseDurationString("h1")
 
