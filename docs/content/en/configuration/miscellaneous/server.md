@@ -22,7 +22,6 @@ aliases:
 ```yaml
 server:
   address: 'tcp://:9091'
-  umask: 0022
   path: ''
   disable_healthcheck: false
   tls:
@@ -79,20 +78,6 @@ server:
 server:
   address: unix:///var/run/authelia.sock
 ```
-
-### umask
-
-{{< confkey type="int" required="no" >}}
-
-If set temporarily changes the umask during the creation of the unix domain socket if configured as such in the
-[address](#address). Typically this should be set before the process is actually running and users should not use this
-option, however it's recognized in various specific scenarios this may not be completely adequate.
-
-One such example is when you want the proxy to have permission to the socket but not the files, in which case running a
-umask of `0077` by default is good, and running a umask of `0027` so that the group Authelia is running as has
-permission to the socket.
-
-This value should typically be prefixed with a `0` to ensure the relevant parsers handle it correctly.
 
 ### path
 
