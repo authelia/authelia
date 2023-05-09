@@ -12,10 +12,8 @@ type TelemetryConfig struct {
 
 // TelemetryMetricsConfig represents the telemetry metrics config.
 type TelemetryMetricsConfig struct {
-	Enabled bool        `koanf:"enabled"`
-	Address *AddressTCP `koanf:"address"`
-	UMask   *int        `koanf:"umask"`
-
+	Enabled  bool           `koanf:"enabled"`
+	Address  *AddressTCP    `koanf:"address"`
 	Buffers  ServerBuffers  `koanf:"buffers"`
 	Timeouts ServerTimeouts `koanf:"timeouts"`
 }
@@ -23,7 +21,7 @@ type TelemetryMetricsConfig struct {
 // DefaultTelemetryConfig is the default telemetry configuration.
 var DefaultTelemetryConfig = TelemetryConfig{
 	Metrics: TelemetryMetricsConfig{
-		Address: &AddressTCP{Address{true, false, 9959, &url.URL{Scheme: AddressSchemeTCP, Host: ":9959"}}},
+		Address: &AddressTCP{Address{true, false, -1, 9959, &url.URL{Scheme: AddressSchemeTCP, Host: ":9959"}}},
 		Buffers: ServerBuffers{
 			Read:  4096,
 			Write: 4096,

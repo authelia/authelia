@@ -37,14 +37,7 @@ func CreateDefaultServer(config *schema.Configuration, providers middlewares.Pro
 		connectionScheme = schemeHTTP
 	)
 
-	switch config.Server.UMask {
-	case nil:
-		listener, err = config.Server.Address.Listener()
-	default:
-		listener, err = config.Server.Address.ListenerWithUMask(*config.Server.UMask)
-	}
-
-	if err != nil {
+	if listener, err = config.Server.Address.Listener(); err != nil {
 		return nil, nil, nil, false, fmt.Errorf("error occurred while attempting to initialize main server listener for address '%s': %w", config.Server.Address.String(), err)
 	}
 
@@ -109,14 +102,7 @@ func CreateMetricsServer(config *schema.Configuration, providers middlewares.Pro
 		Logger:                logging.LoggerPrintf(logrus.DebugLevel),
 	}
 
-	switch config.Telemetry.Metrics.UMask {
-	case nil:
-		listener, err = config.Telemetry.Metrics.Address.Listener()
-	default:
-		listener, err = config.Telemetry.Metrics.Address.ListenerWithUMask(*config.Telemetry.Metrics.UMask)
-	}
-
-	if err != nil {
+	if listener, err = config.Telemetry.Metrics.Address.Listener(); err != nil {
 		return nil, nil, nil, false, fmt.Errorf("error occurred while attempting to initialize metrics telemetry server listener for address '%s': %w", config.Telemetry.Metrics.Address.String(), err)
 	}
 
