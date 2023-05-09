@@ -45,7 +45,7 @@ require (
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.47.0
 	github.com/wneessen/go-mail v0.3.9
-	golang.org/x/net v0.9.0
+	golang.org/x/net v0.10.0
 	golang.org/x/sync v0.2.0
 	golang.org/x/term v0.8.0
 	golang.org/x/text v0.9.0
