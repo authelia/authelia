@@ -108,8 +108,20 @@ The following format represents the unix domain socket format. It's valid for bo
 instances. Refer to the individual documentation for an option for clarity. In this format as per the notation there
 are no optional portions.
 
+The Unix Domain Socket format also accepts a query string. The following query parameters control certain behaviour of
+this address type.
+
+| Parameter | Listeners | Connectors |                                                               Purpose                                                                |
+|:---------:|:---------:|:----------:|:------------------------------------------------------------------------------------------------------------------------------------:|
+|  `umask`  |    Yes    |     No     | Sets the umask prior to creating the socket and restores it after creating it. The value must be an octal number with 3 or 4 digits. |
+
+
 ```text
 unix://<path>
+```
+
+```text
+unix://<path>?umask=0022
 ```
 
 ##### Examples

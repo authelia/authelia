@@ -75,7 +75,7 @@ var DefaultMySQLStorageConfiguration = MySQLStorageConfiguration{
 // DefaultPostgreSQLStorageConfiguration represents the default PostgreSQL configuration.
 var DefaultPostgreSQLStorageConfiguration = PostgreSQLStorageConfiguration{
 	SQLStorageConfiguration: SQLStorageConfiguration{
-		Address: &AddressTCP{Address{true, false, 5432, &url.URL{Scheme: AddressSchemeTCP, Host: "localhost:5432"}}},
+		Address: &AddressTCP{Address{true, false, -1, 5432, &url.URL{Scheme: AddressSchemeTCP, Host: "localhost:5432"}}},
 	},
 	Schema: "public",
 	TLS: &TLSConfig{

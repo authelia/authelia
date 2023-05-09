@@ -44,7 +44,7 @@ type NotifierConfiguration struct {
 
 // DefaultSMTPNotifierConfiguration represents default configuration parameters for the SMTP notifier.
 var DefaultSMTPNotifierConfiguration = SMTPNotifierConfiguration{
-	Address:             &AddressSMTP{Address{true, false, 25, &url.URL{Scheme: AddressSchemeSMTP, Host: "localhost:25"}}},
+	Address:             &AddressSMTP{Address{true, false, -1, 25, &url.URL{Scheme: AddressSchemeSMTP, Host: "localhost:25"}}},
 	Timeout:             time.Second * 5,
 	Subject:             "[Authelia] {title}",
 	Identifier:          "localhost",
