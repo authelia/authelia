@@ -7,12 +7,10 @@ import (
 
 // ServerConfiguration represents the configuration of the http server.
 type ServerConfiguration struct {
-	Address *AddressTCP `koanf:"address"`
-	UMask   *int        `koanf:"umask"`
-
-	Path               string `koanf:"path"`
-	AssetPath          string `koanf:"asset_path"`
-	DisableHealthcheck bool   `koanf:"disable_healthcheck"`
+	Address            *AddressTCP `koanf:"address"`
+	Path               string      `koanf:"path"`
+	AssetPath          string      `koanf:"asset_path"`
+	DisableHealthcheck bool        `koanf:"disable_healthcheck"`
 
 	TLS       ServerTLS       `koanf:"tls"`
 	Headers   ServerHeaders   `koanf:"headers"`
@@ -62,7 +60,7 @@ type ServerHeaders struct {
 
 // DefaultServerConfiguration represents the default values of the ServerConfiguration.
 var DefaultServerConfiguration = ServerConfiguration{
-	Address: &AddressTCP{Address{true, false, 9091, &url.URL{Scheme: AddressSchemeTCP, Host: ":9091"}}},
+	Address: &AddressTCP{Address{true, false, -1, 9091, &url.URL{Scheme: AddressSchemeTCP, Host: ":9091"}}},
 	Buffers: ServerBuffers{
 		Read:  4096,
 		Write: 4096,
