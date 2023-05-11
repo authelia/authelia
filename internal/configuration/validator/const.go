@@ -149,7 +149,6 @@ const (
 		"'public_clients_only' or 'always', but it's configured as '%s'"
 	errFmtOIDCProviderInsecureParameterEntropy = "openid connect provider: SECURITY ISSUE - minimum parameter entropy is " +
 		"configured to an unsafe value, it should be above 8 but it's configured to %d"
-
 	errFmtOIDCProviderPrivateKeysInvalid                 = "identity_providers: oidc: issuer_private_keys: key #%d: option 'key' must be a valid private key but the provided data is malformed as it's missing the public key bits"
 	errFmtOIDCProviderPrivateKeysCalcThumbprint          = "identity_providers: oidc: issuer_private_keys: key #%d: option 'key' failed to calculate thumbprint to configure key id value: %w"
 	errFmtOIDCProviderPrivateKeysKeyIDLength             = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option `key_id`` must be 7 characters or less"
@@ -436,7 +435,7 @@ const (
 	attrOIDCGrantTypes          = "grant_types"
 	attrOIDCRedirectURIs        = "redirect_uris"
 	attrOIDCTokenAuthMethod     = "token_endpoint_auth_method"
-	attrOIDCUsrSigAlg           = "userinfo_signing_algorithm"
+	attrOIDCUsrSigAlg           = "userinfo_signing_alg"
 	attrOIDCIDTokenSigAlg       = "id_token_signing_alg"
 	attrOIDCPKCEChallengeMethod = "pkce_challenge_method"
 )

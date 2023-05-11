@@ -77,7 +77,7 @@ identity_providers:
         - 'groups'
         - 'email'
         - 'profile'
-      userinfo_signing_algorithm: 'none'
+      userinfo_signing_alg: 'none'
     - id: 'argocd-cli'
       description: 'Argo CD (CLI)'
       public: true
@@ -90,7 +90,7 @@ identity_providers:
         - 'email'
         - 'profile'
         - 'offline_access'
-      userinfo_signing_algorithm: 'none'
+      userinfo_signing_alg: 'none'
 ```
 
 ## See Also

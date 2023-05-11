@@ -87,7 +87,7 @@ identity_providers:
         - 'email'
       grant_types:
         - 'authorization_code'
-      userinfo_signing_algorithm: 'none'
+      userinfo_signing_alg: 'none'
 ```
 
 ## See Also

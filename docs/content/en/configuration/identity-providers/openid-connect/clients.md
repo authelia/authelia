@@ -16,7 +16,7 @@ This section covers specifics regarding configuring the providers registered cli
 provider specific configuration and information not related to clients see the [OpenID Connect 1.0 Provider](provider.md)
 documentation.
 
-More information about the beta can be found in the [roadmap](../../../roadmap/active/openid-connect.md) and in the
+More information about OpenID Connect can be found in the [roadmap](../../../roadmap/active/openid-connect.md) and in the
 [integration](../../../integration/openid-connect/introduction.md) documentation.
 
 ## Configuration
@@ -60,7 +60,7 @@ identity_providers:
         token_endpoint_auth_signing_alg: RS256
         id_token_signing_alg: RS256
         request_object_signing_alg: RS256
-        userinfo_signing_algorithm: none
+        userinfo_signing_alg: none
 ```
 
 ## Options
@@ -319,7 +319,7 @@ See the response object section of the [integration guide](../../../integration/
 for more information including the algorithm column for supported values. In addition to the values listed we also
 support `none` as a value for this endpoint.
 
-### userinfo_signing_algorithm
+### userinfo_signing_alg
 
 {{< confkey type="string" default="none" required="no" >}}
 

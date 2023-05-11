@@ -89,7 +89,7 @@ type OpenIDConnectClientConfiguration struct {
 	TokenEndpointAuthSigningAlg string `koanf:"token_endpoint_auth_signing_alg"`
 	RequestObjectSigningAlg     string `koanf:"request_object_signing_alg"`
 	IDTokenSigningAlg           string `koanf:"id_token_signing_alg"`
-	UserinfoSigningAlg          string `koanf:"userinfo_signing_algorithm"`
+	UserinfoSigningAlg          string `koanf:"userinfo_signing_alg"`
 
 	PublicKeys OpenIDConnectClientPublicKeys `koanf:"public_keys"`
 

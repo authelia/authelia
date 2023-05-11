@@ -85,7 +85,7 @@ identity_providers:
         - 'openid'
         - 'profile'
         - 'email'
-      userinfo_signing_algorithm: 'none'
+      userinfo_signing_alg: 'none'
 ```
 
 ## See Also

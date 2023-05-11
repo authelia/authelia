@@ -11,7 +11,7 @@
 ##    - when using docker the container expects this by default to be at /config/configuration.yml
 ##    - the default location where this file is loaded from can be overridden with the X_AUTHELIA_CONFIG environment var
 ##    - the comments in this configuration file are helpful but users should consult the official documentation on the
-##      website at https://www.authellia.com/ or https://www.authelia.com/configuration/prologue/introduction/
+##      website at https://www.authelia.com/ or https://www.authelia.com/configuration/prologue/introduction/
 ##    - this configuration file template is not automatically updated
 ##
 
@@ -1387,7 +1387,7 @@ notifier:
         # id_token_signing_alg: 'RS256'
 
         ## The algorithm used to sign userinfo endpoint responses for this client, either none or RS256.
-        # userinfo_signing_algorithm: 'none'
+        # userinfo_signing_alg: 'none'
 
         ## Trusted public keys configuration for request object signing for things such as private_key_jwt
         # public_keys:

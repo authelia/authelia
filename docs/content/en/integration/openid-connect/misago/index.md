@@ -104,7 +104,7 @@ identity_providers:
         - 'code'
       response_modes:
         - 'query'
-      userinfo_signing_algorithm: 'none'
+      userinfo_signing_alg: 'none'
 ```
 
 ---

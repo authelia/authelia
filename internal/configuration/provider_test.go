@@ -245,37 +245,6 @@ func TestShouldLoadURLList(t *testing.T) {
 	assert.Equal(t, "https://example.com", config.IdentityProviders.OIDC.CORS.AllowedOrigins[1].String())
 }
 
-/*
-func TestShouldLoadNewOIDCConfig(t *testing.T) {
-	val := schema.NewStructValidator()
-	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc_modern.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
-
-	assert.NoError(t, err)
-
-	assert.Len(t, val.Errors(), 0)
-	assert.Len(t, val.Warnings(), 0)
-
-	val.Clear()
-
-	validator.ValidateIdentityProviders(&config.IdentityProviders, val)
-
-	assert.Len(t, val.Errors(), 0)
-
-	assert.Len(t, config.IdentityProviders.OIDC.IssuerPrivateKeys.Keys, 2)
-	assert.Equal(t, "keya", config.IdentityProviders.OIDC.IssuerPrivateKeys.DefaultKeyID)
-
-	assert.Equal(t, oidc.KeyUseSignature, config.IdentityProviders.OIDC.IssuerPrivateKeys.Keys["keya"].Use)
-	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, config.IdentityProviders.OIDC.IssuerPrivateKeys.Keys["keya"].Algorithm)
-
-	assert.Equal(t, oidc.KeyUseSignature, config.IdentityProviders.OIDC.IssuerPrivateKeys.Keys["ec521"].Use)
-	assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, config.IdentityProviders.OIDC.IssuerPrivateKeys.Keys["ec521"].Algorithm)
-
-	assert.Contains(t, config.IdentityProviders.OIDC.Discovery.ResponseObjectSigningAlgs, oidc.SigningAlgRSAUsingSHA256)
-	assert.Contains(t, config.IdentityProviders.OIDC.Discovery.ResponseObjectSigningAlgs, oidc.SigningAlgECDSAUsingP521AndSHA512)
-}.
-
-*/
-
 func TestShouldConfigureConsent(t *testing.T) {
 	val := schema.NewStructValidator()
 	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
@@ -289,6 +258,7 @@ func TestShouldConfigureConsent(t *testing.T) {
 
 	require.Len(t, config.IdentityProviders.OIDC.Clients, 1)
 	assert.Equal(t, config.IdentityProviders.OIDC.Clients[0].ConsentMode, "explicit")
+	assert.Equal(t, "none", config.IdentityProviders.OIDC.Clients[0].UserinfoSigningAlg)
 }
 
 func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {

@@ -81,7 +81,7 @@ identity_providers:
         - 'offline_access'
         - 'profile'
         - 'email'
-      userinfo_signing_algorithm: 'none'
+      userinfo_signing_alg: 'none'
 ```
 
 ## See Also

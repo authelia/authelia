@@ -255,7 +255,7 @@ Below is a list of the potential values we place in the [Claim] and their meanin
 ## User Information Signing Algorithm
 
 The following table describes the response from the [UserInfo] endpoint depending on the
-[userinfo_signing_algorithm](../../configuration/identity-providers/openid-connect/clients.md#userinfosigningalgorithm).
+[userinfo_signing_alg](../../configuration/identity-providers/openid-connect/clients.md#userinfosigningalg).
 
 | Signing Algorithm |   Encoding   |            Content Type             |
 |:-----------------:|:------------:|:-----------------------------------:|

@@ -78,7 +78,7 @@ identity_providers:
         - 'id_token'
       grant_types:
         - 'implicit'
-      userinfo_signing_algorithm: 'none'
+      userinfo_signing_alg: 'none'
 ```
 
 ## See Also

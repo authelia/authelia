@@ -209,7 +209,7 @@ func TestNewOpenIDConnectProviderDiscovery(t *testing.T) {
 	assert.Equal(t, y, z)
 }
 
-func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *testing.T) {
+func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *testing.T) {
 	provider := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
 		IssuerCertificateChain: schema.X509CertificateChain{},
 		IssuerPrivateKey:       keyRSA2048,
@@ -336,7 +336,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 	assert.Contains(t, disco.PromptValuesSupported, oidc.PromptNone)
 }
 
-func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfiguration(t *testing.T) {
+func TestNewOpenIDConnectProvider_GetOAuth2WellKnownConfiguration(t *testing.T) {
 	provider := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
 		IssuerCertificateChain: schema.X509CertificateChain{},
 		IssuerPrivateKey:       keyRSA2048,
@@ -426,7 +426,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfig
 	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimFullName)
 }
 
-func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfigurationWithPlainPKCE(t *testing.T) {
+func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfigurationWithPlainPKCE(t *testing.T) {
 	provider := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
 		IssuerCertificateChain:   schema.X509CertificateChain{},
 		IssuerPrivateKey:         keyRSA2048,
