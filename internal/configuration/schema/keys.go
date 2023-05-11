@@ -116,6 +116,7 @@ var Keys = []string{
 	"authentication_backend.ldap.base_dn",
 	"authentication_backend.ldap.additional_users_dn",
 	"authentication_backend.ldap.users_filter",
+	"authentication_backend.ldap.users_reset_filter",
 	"authentication_backend.ldap.additional_groups_dn",
 	"authentication_backend.ldap.groups_filter",
 	"authentication_backend.ldap.group_search_mode",

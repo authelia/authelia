@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-ldap/ldap/v3"
+	ldap "github.com/go-ldap/ldap/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -757,7 +757,7 @@ func TestShouldEscapeUserInput(t *testing.T) {
 		Search(NewSearchRequestMatcher("(|(uid=john\\=abc)(mail=john\\=abc))")).
 		Return(&ldap.SearchResult{}, nil)
 
-	_, err := provider.getUserProfile(mockClient, "john=abc")
+	_, err := provider.getUserProfile(mockClient, "john=abc", false)
 	require.Error(t, err)
 	assert.EqualError(t, err, "user not found")
 }
@@ -823,7 +823,7 @@ func TestShouldReturnEmailWhenAttributeSameAsUsername(t *testing.T) {
 	client, err := provider.connect()
 	assert.NoError(t, err)
 
-	profile, err := provider.getUserProfile(client, "john@example.com")
+	profile, err := provider.getUserProfile(client, "john@example.com", false)
 
 	assert.NoError(t, err)
 	require.NotNil(t, profile)
@@ -897,7 +897,7 @@ func TestShouldReturnUsernameAndBlankDisplayNameWhenAttributesTheSame(t *testing
 	client, err := provider.connect()
 	assert.NoError(t, err)
 
-	profile, err := provider.getUserProfile(client, "john@example.com")
+	profile, err := provider.getUserProfile(client, "john@example.com", false)
 
 	assert.NoError(t, err)
 	require.NotNil(t, profile)
@@ -975,7 +975,7 @@ func TestShouldReturnBlankEmailAndDisplayNameWhenAttrsLenZero(t *testing.T) {
 	client, err := provider.connect()
 	assert.NoError(t, err)
 
-	profile, err := provider.getUserProfile(client, "john@example.com")
+	profile, err := provider.getUserProfile(client, "john@example.com", false)
 
 	assert.NoError(t, err)
 	require.NotNil(t, profile)
@@ -1022,7 +1022,7 @@ func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
 		Search(NewSearchRequestMatcher("(&(uid=john)(&(objectCategory=person)(objectClass=user)))")).
 		Return(&ldap.SearchResult{}, nil)
 
-	_, err := provider.getUserProfile(mockClient, "john")
+	_, err := provider.getUserProfile(mockClient, "john", false)
 	require.Error(t, err)
 	assert.EqualError(t, err, "user not found")
 }
@@ -3975,7 +3975,7 @@ func TestShouldReturnErrorWhenMultipleUsernameAttributes(t *testing.T) {
 	client, err := provider.connect()
 	assert.NoError(t, err)
 
-	profile, err := provider.getUserProfile(client, "john")
+	profile, err := provider.getUserProfile(client, "john", false)
 
 	assert.Nil(t, profile)
 	assert.EqualError(t, err, "user 'john' has 2 values for for attribute 'uid' but the attribute must be a single value attribute")
@@ -4044,7 +4044,7 @@ func TestShouldReturnErrorWhenZeroUsernameAttributes(t *testing.T) {
 	client, err := provider.connect()
 	assert.NoError(t, err)
 
-	profile, err := provider.getUserProfile(client, "john")
+	profile, err := provider.getUserProfile(client, "john", false)
 
 	assert.Nil(t, profile)
 	assert.EqualError(t, err, "user 'john' must have value for attribute 'uid'")
@@ -4109,7 +4109,7 @@ func TestShouldReturnErrorWhenUsernameAttributeNotReturned(t *testing.T) {
 	client, err := provider.connect()
 	assert.NoError(t, err)
 
-	profile, err := provider.getUserProfile(client, "john")
+	profile, err := provider.getUserProfile(client, "john", false)
 
 	assert.Nil(t, profile)
 	assert.EqualError(t, err, "user 'john' must have value for attribute 'uid'")
@@ -4195,7 +4195,7 @@ func TestShouldReturnErrorWhenMultipleUsersFound(t *testing.T) {
 	client, err := provider.connect()
 	assert.NoError(t, err)
 
-	profile, err := provider.getUserProfile(client, "john")
+	profile, err := provider.getUserProfile(client, "john", false)
 
 	assert.Nil(t, profile)
 	assert.EqualError(t, err, "there were 2 users found when searching for 'john' but there should only be 1")
@@ -4264,7 +4264,7 @@ func TestShouldReturnErrorWhenNoDN(t *testing.T) {
 	client, err := provider.connect()
 	assert.NoError(t, err)
 
-	profile, err := provider.getUserProfile(client, "john")
+	profile, err := provider.getUserProfile(client, "john", false)
 
 	assert.Nil(t, profile)
 	assert.EqualError(t, err, "user 'john' must have a distinguished name but the result returned an empty distinguished name")
@@ -4581,7 +4581,7 @@ func TestShouldParseDynamicConfiguration(t *testing.T) {
 	assert.Equal(t, "ou=users,dc=example,dc=com", provider.usersBaseDN)
 	assert.Equal(t, "ou=groups,dc=example,dc=com", provider.groupsBaseDN)
 
-	assert.Equal(t, "(&(|(uid=test@example.com)(mail=test@example.com))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>=133147241190000000)(accountExpires>=20221205142839.0Z)))", provider.resolveUsersFilter("test@example.com"))
+	assert.Equal(t, "(&(|(uid=test@example.com)(mail=test@example.com))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>=133147241190000000)(accountExpires>=20221205142839.0Z)))", provider.resolveUsersFilter("test@example.com", false))
 	assert.Equal(t, "(&(|(member=cn=admin,dc=example,dc=com)(member=test@example.com)(member=test))(objectClass=group))", provider.resolveGroupsFilter("test@example.com", &ldapUserProfile{Username: "test", DN: "cn=admin,dc=example,dc=com"}))
 }
 

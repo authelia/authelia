@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	ldap "github.com/go-ldap/ldap/v3"
+	"github.com/go-ldap/ldap/v3"
 	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -106,7 +106,7 @@ func (p *LDAPUserProvider) CheckUserPassword(username string, password string) (
 
 	defer client.Close()
 
-	if profile, err = p.getUserProfile(client, username); err != nil {
+	if profile, err = p.getUserProfile(client, username, false); err != nil {
 		return false, err
 	}
 
@@ -132,7 +132,7 @@ func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, er
 
 	defer client.Close()
 
-	if profile, err = p.getUserProfile(client, username); err != nil {
+	if profile, err = p.getUserProfile(client, username, false); err != nil {
 		return nil, err
 	}
 
@@ -165,7 +165,7 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 
 	defer client.Close()
 
-	if profile, err = p.getUserProfile(client, username); err != nil {
+	if profile, err = p.getUserProfile(client, username, true); err != nil {
 		return fmt.Errorf("unable to update password. Cause: %w", err)
 	}
 
@@ -306,11 +306,11 @@ func (p *LDAPUserProvider) searchReferrals(request *ldap.SearchRequest, result *
 	return nil
 }
 
-func (p *LDAPUserProvider) getUserProfile(client LDAPClient, username string) (profile *ldapUserProfile, err error) {
+func (p *LDAPUserProvider) getUserProfile(client LDAPClient, username string, reset bool) (profile *ldapUserProfile, err error) {
 	// Search for the given username.
 	request := ldap.NewSearchRequest(
 		p.usersBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		1, 0, false, p.resolveUsersFilter(username), p.usersAttributes, nil,
+		1, 0, false, p.resolveUsersFilter(username, reset), p.usersAttributes, nil,
 	)
 
 	p.log.
@@ -518,8 +518,12 @@ func (p *LDAPUserProvider) getUserGroupsRequestMemberOf(client LDAPClient, usern
 	return groups, nil
 }
 
-func (p *LDAPUserProvider) resolveUsersFilter(input string) (filter string) {
-	filter = p.config.UsersFilter
+func (p *LDAPUserProvider) resolveUsersFilter(input string, reset bool) (filter string) {
+	if reset {
+		filter = p.config.UsersResetFilter
+	} else {
+		filter = p.config.UsersFilter
+	}
 
 	if p.usersFilterReplacementInput {
 		// The {input} placeholder is replaced by the username input.

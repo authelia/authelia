@@ -105,6 +105,7 @@ type LDAPAuthenticationBackend struct {
 
 	AdditionalUsersDN string `koanf:"additional_users_dn"`
 	UsersFilter       string `koanf:"users_filter"`
+	UsersResetFilter  string `koanf:"users_reset_filter"`
 
 	AdditionalGroupsDN string `koanf:"additional_groups_dn"`
 	GroupsFilter       string `koanf:"groups_filter"`

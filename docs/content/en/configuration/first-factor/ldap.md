@@ -209,9 +209,17 @@ exactly which OU to get users from for either security or performance reasons. F
 default negating this requirement. Refer to the [filter defaults](../../reference/guides/ldap.md#filter-defaults) for
 more information.*
 
-The LDAP filter to narrow down which users are valid. This is important to set correctly as to exclude disabled users.
-The default value is dependent on the [implementation](#implementation), refer to the
+The LDAP filter to determine users are valid. This is important to set correctly as to exclude disabled users. The
+default value is dependent on the [implementation](#implementation), refer to the
 [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
+
+### users_reset_filter
+
+{{< confkey type="string" required="no" >}}
+
+The LDAP filter to narrow down which users are valid. This is important to set correctly as to exclude disabled users.
+The default value is the same as [users_filter](#usersfilter). This can be leveraged to allow users who cannot login
+due to restrictions in the [users_filter](#usersfilter) to still be able to reset their password.
 
 ### additional_groups_dn
 

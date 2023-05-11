@@ -421,6 +421,11 @@ authentication_backend:
     ## (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
     # users_filter: '(&({username_attribute}={input})(objectClass=person))'
 
+    ## Defaults to the users_filter. This filter is used exclusively for password resets. So you can leverage it to
+    ## prevent users who must change their password from logging in, but if you set a separate filter here they could
+    ## theoretically still reset their password.
+    # users_reset_filter: '(&({username_attribute}={input})(objectClass=person))'
+
     ## The additional_groups_dn is prefixed to base_dn and delimited by a comma when searching for groups.
     ## i.e. with this set to OU=Groups and base_dn set to DC=a,DC=com; OU=Groups,DC=a,DC=com is searched for groups.
     # additional_groups_dn: 'ou=groups'

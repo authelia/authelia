@@ -91,6 +91,16 @@ func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {
 	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, ldapPlaceholderMailAttribute, p.config.Attributes.Mail)
 	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, ldapPlaceholderMemberOfAttribute, p.config.Attributes.MemberOf)
 
+	if p.config.UsersResetFilter == "" {
+		p.config.UsersResetFilter = p.config.UsersFilter
+	} else {
+		p.config.UsersResetFilter = strings.ReplaceAll(p.config.UsersResetFilter, ldapPlaceholderDistinguishedNameAttribute, p.config.Attributes.DistinguishedName)
+		p.config.UsersResetFilter = strings.ReplaceAll(p.config.UsersResetFilter, ldapPlaceholderUsernameAttribute, p.config.Attributes.Username)
+		p.config.UsersResetFilter = strings.ReplaceAll(p.config.UsersResetFilter, ldapPlaceholderDisplayNameAttribute, p.config.Attributes.DisplayName)
+		p.config.UsersResetFilter = strings.ReplaceAll(p.config.UsersResetFilter, ldapPlaceholderMailAttribute, p.config.Attributes.Mail)
+		p.config.UsersResetFilter = strings.ReplaceAll(p.config.UsersResetFilter, ldapPlaceholderMemberOfAttribute, p.config.Attributes.MemberOf)
+	}
+
 	p.log.Tracef("Dynamically generated users filter is %s", p.config.UsersFilter)
 
 	if len(p.config.Attributes.Username) != 0 && !utils.IsStringInSlice(p.config.Attributes.Username, p.usersAttributes) {

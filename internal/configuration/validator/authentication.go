@@ -479,30 +479,45 @@ func validateLDAPRequiredParameters(config *schema.AuthenticationBackend, valida
 	if config.LDAP.UsersFilter == "" {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "users_filter"))
 	} else {
-		if !strings.HasPrefix(config.LDAP.UsersFilter, "(") || !strings.HasSuffix(config.LDAP.UsersFilter, ")") {
-			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterEnclosingParenthesis, "users_filter", config.LDAP.UsersFilter, config.LDAP.UsersFilter))
-		}
-
-		if !strings.Contains(config.LDAP.UsersFilter, "{username_attribute}") {
-			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholder, "users_filter", "username_attribute"))
-		}
-
-		// This test helps the user know that users_filter is broken after the breaking change induced by this commit.
-		if !strings.Contains(config.LDAP.UsersFilter, "{input}") {
-			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholder, "users_filter", "input"))
-		}
+		validateLDAPUsersFilter(config, "users_filter", config.LDAP.UsersFilter, validator)
 	}
 
+	if config.LDAP.UsersResetFilter != "" {
+		validateLDAPUsersFilter(config, "users_reset_filter", config.LDAP.UsersFilter, validator)
+	}
+
+	validateLDAPGroupFilter(config, validator)
+}
+
+func validateLDAPUsersFilter(config *schema.AuthenticationBackend, name, filter string, val *schema.StructValidator) {
+	if !strings.HasPrefix(filter, "(") || !strings.HasSuffix(filter, ")") {
+		val.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterEnclosingParenthesis, name, filter, filter))
+	}
+
+	if !strings.Contains(filter, "{username_attribute}") {
+		val.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholder, name, "username_attribute"))
+	}
+
+	if !strings.Contains(filter, "{input}") {
+		val.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholder, name, "input"))
+	}
+
+	if config.LDAP.Attributes.DistinguishedName == "" && strings.Contains(filter, "{distinguished_name_attribute}") {
+		val.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "distinguished_name", strJoinOr([]string{"{distinguished_name_attribute}"})))
+	}
+
+	if config.LDAP.Attributes.MemberOf == "" && strings.Contains(filter, "{member_of_attribute}") {
+		val.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "member_of", strJoinOr([]string{"{member_of_attribute}"})))
+	}
+}
+
+func validateLDAPGroupFilter(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
 	if config.LDAP.GroupsFilter == "" {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "groups_filter"))
 	} else if !strings.HasPrefix(config.LDAP.GroupsFilter, "(") || !strings.HasSuffix(config.LDAP.GroupsFilter, ")") {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterEnclosingParenthesis, "groups_filter", config.LDAP.GroupsFilter, config.LDAP.GroupsFilter))
 	}
 
-	validateLDAPGroupFilter(config, validator)
-}
-
-func validateLDAPGroupFilter(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
 	if config.LDAP.GroupSearchMode == "" {
 		config.LDAP.GroupSearchMode = schema.LDAPGroupSearchModeFilter
 	}
@@ -511,7 +526,7 @@ func validateLDAPGroupFilter(config *schema.AuthenticationBackend, validator *sc
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendOptionMustBeOneOf, "group_search_mode", strJoinOr(validLDAPGroupSearchModes), config.LDAP.GroupSearchMode))
 	}
 
-	pMemberOfDN, pMemberOfRDN := strings.Contains(config.LDAP.GroupsFilter, "{memberof:dn}"), strings.Contains(config.LDAP.GroupsFilter, "{memberof:rdn}")
+	pMemberOf, pMemberOfDN, pMemberOfRDN := strings.Contains(config.LDAP.GroupsFilter, "{member_of_attribute}"), strings.Contains(config.LDAP.GroupsFilter, "{memberof:dn}"), strings.Contains(config.LDAP.GroupsFilter, "{memberof:rdn}")
 
 	if config.LDAP.GroupSearchMode == schema.LDAPGroupSearchModeMemberOf {
 		if !pMemberOfDN && !pMemberOfRDN {
@@ -523,7 +538,13 @@ func validateLDAPGroupFilter(config *schema.AuthenticationBackend, validator *sc
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "distinguished_name", strJoinOr([]string{"{memberof:dn}"})))
 	}
 
-	if (pMemberOfDN || pMemberOfRDN) && config.LDAP.Attributes.MemberOf == "" {
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "member_of", strJoinOr([]string{"{memberof:rdn}", "{memberof:dn}"})))
+	if config.LDAP.Attributes.MemberOf == "" {
+		if pMemberOfDN || pMemberOfRDN {
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "member_of", strJoinOr([]string{"{memberof:rdn}", "{memberof:dn}"})))
+		}
+
+		if pMemberOf {
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "member_of", strJoinOr([]string{"{member_of_attribute}"})))
+		}
 	}
 }
