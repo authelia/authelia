@@ -151,8 +151,8 @@ devDependencies:
     specifier: 4.6.0
     version: 4.6.0(eslint@8.40.0)
   happy-dom:
-    specifier: 9.13.1
-    version: 9.13.1
+    specifier: 9.16.0
+    version: 9.16.0
   husky:
     specifier: 8.0.3
     version: 8.0.3
@@ -182,7 +182,7 @@ devDependencies:
     version: 4.2.0(typescript@5.0.4)(vite@4.3.5)
   vitest:
     specifier: 0.31.0
-    version: 0.31.0(happy-dom@9.13.1)
+    version: 0.31.0(happy-dom@9.16.0)
   vitest-preview:
     specifier: 0.0.1
     version: 0.0.1
@@ -2649,7 +2649,7 @@ packages:
     engines: {node: '>=14'}
     dependencies:
       '@babel/types': 7.21.4
-      entities: 4.4.0
+      entities: 4.5.0
     dev: true
 
   /@svgr/plugin-jsx@7.0.0:
@@ -3143,7 +3143,7 @@ packages:
       istanbul-lib-source-maps: 4.0.1
       istanbul-reports: 3.1.5
       test-exclude: 6.0.0
-      vitest: 0.31.0(happy-dom@9.13.1)
+      vitest: 0.31.0(happy-dom@9.16.0)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -4014,8 +4014,8 @@ packages:
       tapable: 2.2.1
     dev: true
 
-  /entities@4.4.0:
-    resolution: {integrity: sha512-oYp7156SP8LkeGD0GF85ad1X9Ai79WtRsZ2gxJqtBuzH+98YUV6jkHEKlZkMbcrjJjIVJNIDP/3WL9wQkoPbWA==}
+  /entities@4.5.0:
+    resolution: {integrity: sha512-V0hjH4dGPh9Ao5p0MoRY6BVqtwCjhz6vI5LT8AJ55H+4g9/4vbHx1I54fS0XuclLhDHArPQCiMjDxjaL8fPxhw==}
     engines: {node: '>=0.12'}
     dev: true
 
@@ -5156,11 +5156,11 @@ packages:
     resolution: {integrity: sha512-bzh50DW9kTPM00T8y4o8vQg89Di9oLJVLW/KaOGIXJWP/iqCN6WKYkbNOF04vFLJhwcpYUh9ydh/+5vpOqV4YQ==}
     dev: true
 
-  /happy-dom@9.13.1:
-    resolution: {integrity: sha512-JAMroi7AJi7Ypn6MjxBi2qGVfPay3FORtPn7A+J6Wn1tP+8BTv8conDFS/s2FR2K7ssfwZ3tTUxNCocjEIRgZw==}
+  /happy-dom@9.16.0:
+    resolution: {integrity: sha512-goq7grRjIiV2Svb251LWQOo/xm04za2mJ9+assbZJx1KnaVOX1gZBBp4MHbiFNkR6JW7UL81iCtZxCVu+qU5ng==}
     dependencies:
       css.escape: 1.5.1
-      he: 1.2.0
+      entities: 4.5.0
       iconv-lite: 0.6.3
       webidl-conversions: 7.0.0
       whatwg-encoding: 2.0.0
@@ -5213,11 +5213,6 @@ packages:
     engines: {node: '>= 0.4.0'}
     dependencies:
       function-bind: 1.1.1
-
-  /he@1.2.0:
-    resolution: {integrity: sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==}
-    hasBin: true
-    dev: true
 
   /hoist-non-react-statics@3.3.2:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==}
@@ -7569,7 +7564,7 @@ packages:
       - terser
     dev: true
 
-  /vitest@0.31.0(happy-dom@9.13.1):
+  /vitest@0.31.0(happy-dom@9.16.0):
     resolution: {integrity: sha512-JwWJS9p3GU9GxkG7eBSmr4Q4x4bvVBSswaCFf1PBNHiPx00obfhHRJfgHcnI0ffn+NMlIh9QGvG75FlaIBdKGA==}
     engines: {node: '>=v14.18.0'}
     hasBin: true
@@ -7614,7 +7609,7 @@ packages:
       chai: 4.3.7
       concordance: 5.0.4
       debug: 4.3.4
-      happy-dom: 9.13.1
+      happy-dom: 9.16.0
       local-pkg: 0.4.3
       magic-string: 0.30.0
       pathe: 1.1.0
