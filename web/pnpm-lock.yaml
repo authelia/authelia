@@ -151,8 +151,8 @@ devDependencies:
     specifier: 4.6.0
     version: 4.6.0(eslint@8.40.0)
   happy-dom:
-    specifier: 9.13.0
-    version: 9.13.0
+    specifier: 9.13.1
+    version: 9.13.1
   husky:
     specifier: 8.0.3
     version: 8.0.3
@@ -182,7 +182,7 @@ devDependencies:
     version: 4.2.0(typescript@5.0.4)(vite@4.3.5)
   vitest:
     specifier: 0.31.0
-    version: 0.31.0(happy-dom@9.13.0)
+    version: 0.31.0(happy-dom@9.13.1)
   vitest-preview:
     specifier: 0.0.1
     version: 0.0.1
@@ -3143,7 +3143,7 @@ packages:
       istanbul-lib-source-maps: 4.0.1
       istanbul-reports: 3.1.5
       test-exclude: 6.0.0
-      vitest: 0.31.0(happy-dom@9.13.0)
+      vitest: 0.31.0(happy-dom@9.13.1)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -5156,8 +5156,8 @@ packages:
     resolution: {integrity: sha512-bzh50DW9kTPM00T8y4o8vQg89Di9oLJVLW/KaOGIXJWP/iqCN6WKYkbNOF04vFLJhwcpYUh9ydh/+5vpOqV4YQ==}
     dev: true
 
-  /happy-dom@9.13.0:
-    resolution: {integrity: sha512-/gBB1MmiFTg5U7IwZz2r69tHSGBnzMabw+cvxHcckCpvOaJx+XA7K4AiP84HAFfk8zKqAq3X4Px9EkuUCnTeDg==}
+  /happy-dom@9.13.1:
+    resolution: {integrity: sha512-JAMroi7AJi7Ypn6MjxBi2qGVfPay3FORtPn7A+J6Wn1tP+8BTv8conDFS/s2FR2K7ssfwZ3tTUxNCocjEIRgZw==}
     dependencies:
       css.escape: 1.5.1
       he: 1.2.0
@@ -7569,7 +7569,7 @@ packages:
       - terser
     dev: true
 
-  /vitest@0.31.0(happy-dom@9.13.0):
+  /vitest@0.31.0(happy-dom@9.13.1):
     resolution: {integrity: sha512-JwWJS9p3GU9GxkG7eBSmr4Q4x4bvVBSswaCFf1PBNHiPx00obfhHRJfgHcnI0ffn+NMlIh9QGvG75FlaIBdKGA==}
     engines: {node: '>=v14.18.0'}
     hasBin: true
@@ -7614,7 +7614,7 @@ packages:
       chai: 4.3.7
       concordance: 5.0.4
       debug: 4.3.4
-      happy-dom: 9.13.0
+      happy-dom: 9.13.1
       local-pkg: 0.4.3
       magic-string: 0.30.0
       pathe: 1.1.0
