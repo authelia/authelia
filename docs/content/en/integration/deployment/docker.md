@@ -18,6 +18,44 @@ The [Docker] container is deployed with the following image names:
 * [docker.io/authelia/authelia](https://hub.docker.com/r/authelia/authelia)
 * [ghcr.io/authelia/authelia](https://github.com/authelia/authelia/pkgs/container/authelia)
 
+## Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping *Authelia*.
+
+## Container
+
+### Environment Variables
+
+Several environment variables apply specifically to the official container. This table documents them. It is important
+to note these environment variables are specific to the container and have no effect on the *Authelia* daemon itself and
+this section is not meant to document the daemon environment variables.
+
+| Name  | Default |                                             Usage                                             |
+|:-----:|:-------:|:---------------------------------------------------------------------------------------------:|
+| PUID  |    0    | If the container is running as UID 0, it will drop privileges to this UID via the entrypoint  |
+| PGID  |    0    | If the container is running as UID 0, it will drop privileges to this GID via the entrypoint  |
+| UMASK |   N/A   | If set the container will run with the provided UMASK by running the `umask ${UMASK}` command |
+
+### Permission Context
+
+By default the container runs as the configured [Docker] daemon user. Users can control this behaviour in several ways.
+
+The first and recommended way is instructing the [Docker] daemon to run the *Authelia* container as another user. See
+the [docker run] or [Docker Compose file reference documentation](https://docs.docker.com/compose/compose-file/05-services/#user)
+for more information. The best part of this method is the process will never have privileged access, and the only
+negative is the user must manually configure the filesystem permissions correctly.
+
+The second method is by using the environment variables listed above. The downside to this method is that the entrypoint
+itself will run as UID 0 (root). The advantage is the container will automatically set owner and permissions on the
+filesystem correctly.
+
+The last method which is beyond our documentation or support is using the
+[user namespace](https://docs.docker.com/engine/security/userns-remap/) facility [Docker] provides.
+
+[docker run]: https://docs.docker.com/engine/reference/commandline/run/
+
 ## Docker Compose
 
 We provide two main [Docker Compose] examples which can be utilized to help test *Authelia* or can be adapted into your
@@ -26,12 +64,6 @@ existing [Docker Compose].
 * [Unbundled Example](#standalone-example)
 * [Bundle: lite](#lite)
 * [Bundle: local](#local)
-
-### Get Started
-
-It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
-bootstrapping *Authelia*.
 
 ### Standalone Example
 
