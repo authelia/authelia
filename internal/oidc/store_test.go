@@ -15,7 +15,7 @@ import (
 func TestOpenIDConnectStore_GetClientPolicy(t *testing.T) {
 	s := NewStore(&schema.OpenIDConnectConfiguration{
 		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
+		IssuerPrivateKey:       MustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
 				ID:          myclient,
@@ -47,7 +47,7 @@ func TestOpenIDConnectStore_GetClientPolicy(t *testing.T) {
 func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 	s := NewStore(&schema.OpenIDConnectConfiguration{
 		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
+		IssuerPrivateKey:       MustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
 				ID:          myclient,
@@ -82,7 +82,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 
 	s := NewStore(&schema.OpenIDConnectConfiguration{
 		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
+		IssuerPrivateKey:       MustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		Clients:                []schema.OpenIDConnectClientConfiguration{c1},
 	}, nil)
 
@@ -110,7 +110,7 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 
 	s := NewStore(&schema.OpenIDConnectConfiguration{
 		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
+		IssuerPrivateKey:       MustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		Clients:                []schema.OpenIDConnectClientConfiguration{c1},
 	}, nil)
 
@@ -122,7 +122,7 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
 	s := NewStore(&schema.OpenIDConnectConfiguration{
 		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
+		IssuerPrivateKey:       MustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
 				ID:          myclient,
