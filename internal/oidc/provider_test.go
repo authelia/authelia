@@ -1,6 +1,7 @@
 package oidc
 
 import (
+	"encoding/json"
 	"net/url"
 	"testing"
 
@@ -11,16 +12,15 @@ import (
 )
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_NotConfigured(t *testing.T) {
-	provider, err := NewOpenIDConnectProvider(nil, nil, nil)
+	provider := NewOpenIDConnectProvider(nil, nil, nil)
 
-	assert.NoError(t, err)
 	assert.Nil(t, provider)
 }
 
 func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing.T) {
-	provider, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+	provider := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
 		IssuerCertificateChain:   schema.X509CertificateChain{},
-		IssuerPrivateKey:         MustParseRSAPrivateKey(exampleIssuerPrivateKey),
+		IssuerPrivateKey:         keyRSA2048,
 		EnablePKCEPlainChallenge: true,
 		HMACSecret:               badhmac,
 		Clients: []schema.OpenIDConnectClientConfiguration{
@@ -36,7 +36,7 @@ func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing
 		},
 	}, nil, nil)
 
-	assert.NoError(t, err)
+	require.NotNil(t, provider)
 
 	disco := provider.GetOpenIDConnectWellKnownConfiguration(examplecom)
 
@@ -50,9 +50,9 @@ func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing
 }
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *testing.T) {
-	provider, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+	provider := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
 		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       MustParseRSAPrivateKey(exampleIssuerPrivateKey),
+		IssuerPrivateKey:       keyRSA2048,
 		HMACSecret:             badhmac,
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
@@ -86,13 +86,12 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *tes
 	}, nil, nil)
 
 	assert.NotNil(t, provider)
-	assert.NoError(t, err)
 }
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *testing.T) {
-	provider, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+	provider := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
 		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       MustParseRSAPrivateKey(exampleIssuerPrivateKey),
+		IssuerPrivateKey:       keyRSA2048,
 		HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
@@ -106,7 +105,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 		},
 	}, nil, nil)
 
-	assert.NoError(t, err)
+	require.NotNil(t, provider)
 
 	disco := provider.GetOpenIDConnectWellKnownConfiguration(examplecom)
 
@@ -153,19 +152,41 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, ClientAuthMethodClientSecretJWT)
 	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, ClientAuthMethodNone)
 
+	assert.Len(t, disco.RevocationEndpointAuthMethodsSupported, 4)
+	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, ClientAuthMethodClientSecretBasic)
+	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, ClientAuthMethodClientSecretPost)
+	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, ClientAuthMethodClientSecretJWT)
+	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, ClientAuthMethodNone)
+
+	assert.Len(t, disco.IntrospectionEndpointAuthMethodsSupported, 2)
+	assert.Contains(t, disco.IntrospectionEndpointAuthMethodsSupported, ClientAuthMethodClientSecretBasic)
+	assert.Contains(t, disco.IntrospectionEndpointAuthMethodsSupported, ClientAuthMethodNone)
+
 	assert.Len(t, disco.GrantTypesSupported, 3)
 	assert.Contains(t, disco.GrantTypesSupported, GrantTypeAuthorizationCode)
 	assert.Contains(t, disco.GrantTypesSupported, GrantTypeRefreshToken)
 	assert.Contains(t, disco.GrantTypesSupported, GrantTypeImplicit)
 
+	assert.Len(t, disco.RevocationEndpointAuthSigningAlgValuesSupported, 3)
+	assert.Equal(t, disco.RevocationEndpointAuthSigningAlgValuesSupported[0], SigningAlgHMACUsingSHA256)
+	assert.Equal(t, disco.RevocationEndpointAuthSigningAlgValuesSupported[1], SigningAlgHMACUsingSHA384)
+	assert.Equal(t, disco.RevocationEndpointAuthSigningAlgValuesSupported[2], SigningAlgHMACUsingSHA512)
+
+	assert.Len(t, disco.TokenEndpointAuthSigningAlgValuesSupported, 3)
+	assert.Equal(t, disco.TokenEndpointAuthSigningAlgValuesSupported[0], SigningAlgHMACUsingSHA256)
+	assert.Equal(t, disco.TokenEndpointAuthSigningAlgValuesSupported[1], SigningAlgHMACUsingSHA384)
+	assert.Equal(t, disco.TokenEndpointAuthSigningAlgValuesSupported[2], SigningAlgHMACUsingSHA512)
+
 	assert.Len(t, disco.IDTokenSigningAlgValuesSupported, 1)
 	assert.Contains(t, disco.IDTokenSigningAlgValuesSupported, SigningAlgRSAUsingSHA256)
 
 	assert.Len(t, disco.UserinfoSigningAlgValuesSupported, 2)
-	assert.Contains(t, disco.UserinfoSigningAlgValuesSupported, SigningAlgRSAUsingSHA256)
-	assert.Contains(t, disco.UserinfoSigningAlgValuesSupported, SigningAlgNone)
+	assert.Equal(t, disco.UserinfoSigningAlgValuesSupported[0], SigningAlgRSAUsingSHA256)
+	assert.Equal(t, disco.UserinfoSigningAlgValuesSupported[1], SigningAlgNone)
 
-	assert.Len(t, disco.RequestObjectSigningAlgValuesSupported, 0)
+	require.Len(t, disco.RequestObjectSigningAlgValuesSupported, 2)
+	assert.Equal(t, SigningAlgRSAUsingSHA256, disco.RequestObjectSigningAlgValuesSupported[0])
+	assert.Equal(t, SigningAlgNone, disco.RequestObjectSigningAlgValuesSupported[1])
 
 	assert.Len(t, disco.ClaimsSupported, 18)
 	assert.Contains(t, disco.ClaimsSupported, ClaimAuthenticationMethodsReference)
@@ -186,12 +207,16 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 	assert.Contains(t, disco.ClaimsSupported, ClaimGroups)
 	assert.Contains(t, disco.ClaimsSupported, ClaimPreferredUsername)
 	assert.Contains(t, disco.ClaimsSupported, ClaimFullName)
+
+	assert.Len(t, disco.PromptValuesSupported, 2)
+	assert.Contains(t, disco.PromptValuesSupported, PromptConsent)
+	assert.Contains(t, disco.PromptValuesSupported, PromptNone)
 }
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfiguration(t *testing.T) {
-	provider, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+	provider := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
 		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       MustParseRSAPrivateKey(exampleIssuerPrivateKey),
+		IssuerPrivateKey:       keyRSA2048,
 		HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
@@ -205,7 +230,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfig
 		},
 	}, nil, nil)
 
-	assert.NoError(t, err)
+	require.NotNil(t, provider)
 
 	disco := provider.GetOAuth2WellKnownConfiguration(examplecom)
 
@@ -278,9 +303,9 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfig
 }
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfigurationWithPlainPKCE(t *testing.T) {
-	provider, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+	provider := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
 		IssuerCertificateChain:   schema.X509CertificateChain{},
-		IssuerPrivateKey:         MustParseRSAPrivateKey(exampleIssuerPrivateKey),
+		IssuerPrivateKey:         keyRSA2048,
 		HMACSecret:               "asbdhaaskmdlkamdklasmdlkams",
 		EnablePKCEPlainChallenge: true,
 		Clients: []schema.OpenIDConnectClientConfiguration{
@@ -295,11 +320,52 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 		},
 	}, nil, nil)
 
-	assert.NoError(t, err)
+	require.NotNil(t, provider)
 
 	disco := provider.GetOpenIDConnectWellKnownConfiguration(examplecom)
 
 	require.Len(t, disco.CodeChallengeMethodsSupported, 2)
 	assert.Equal(t, PKCEChallengeMethodSHA256, disco.CodeChallengeMethodsSupported[0])
 	assert.Equal(t, PKCEChallengeMethodPlain, disco.CodeChallengeMethodsSupported[1])
+}
+
+func TestNewOpenIDConnectProviderDiscovery(t *testing.T) {
+	provider := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+		IssuerCertificateChain:   schema.X509CertificateChain{},
+		IssuerPrivateKey:         keyRSA2048,
+		HMACSecret:               "asbdhaaskmdlkamdklasmdlkams",
+		EnablePKCEPlainChallenge: true,
+		Clients: []schema.OpenIDConnectClientConfiguration{
+			{
+				ID:     "a-client",
+				Secret: MustDecodeSecret("$plaintext$a-client-secret"),
+				Policy: onefactor,
+				RedirectURIs: []string{
+					"https://google.com",
+				},
+			},
+		},
+	}, nil, nil)
+
+	a := provider.GetOpenIDConnectWellKnownConfiguration("https://auth.example.com")
+
+	data, err := json.Marshal(&a)
+	assert.NoError(t, err)
+
+	b := OpenIDConnectWellKnownConfiguration{}
+
+	assert.NoError(t, json.Unmarshal(data, &b))
+
+	assert.Equal(t, a, b)
+
+	y := provider.GetOAuth2WellKnownConfiguration("https://auth.example.com")
+
+	data, err = json.Marshal(&y)
+	assert.NoError(t, err)
+
+	z := OAuth2WellKnownConfiguration{}
+
+	assert.NoError(t, json.Unmarshal(data, &z))
+
+	assert.Equal(t, y, z)
 }

@@ -122,7 +122,8 @@ type BaseClient struct {
 	ResponseTypes []string
 	ResponseModes []fosite.ResponseModeType
 
-	UserinfoSigningAlgorithm string
+	IDTokenSigningAlg  string
+	UserinfoSigningAlg string
 
 	Policy authorization.Level
 
@@ -150,7 +151,9 @@ type Client interface {
 	GetSecret() algorithm.Digest
 	GetSectorIdentifier() string
 	GetConsentResponseBody(consent *model.OAuth2ConsentSession) ConsentGetResponseBody
-	GetUserinfoSigningAlgorithm() string
+
+	GetUserinfoSigningAlg() string
+	GetIDTokenSigningAlg() string
 
 	GetPAREnforcement() bool
 	GetPKCEEnforcement() bool
@@ -220,13 +223,6 @@ func (c ClientConsentMode) String() string {
 	default:
 		return ""
 	}
-}
-
-// KeyManager keeps track of all of the active/inactive rsa keys and provides them to services requiring them.
-// It additionally allows us to add keys for the purpose of key rotation in the future.
-type KeyManager struct {
-	jwk  *JWK
-	jwks *jose.JSONWebKeySet
 }
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.

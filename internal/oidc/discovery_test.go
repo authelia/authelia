@@ -14,8 +14,9 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 		pkcePlainChallenge bool
 		enforcePAR         bool
 		clients            map[string]Client
+		discovery          schema.OpenIDConnectDiscovery
 
-		expectCodeChallengeMethodsSupported, expectSubjectTypesSupported []string
+		expectCodeChallengeMethodsSupported, expectSubjectTypesSupported, expectedIDTokenSigAlgsSupported, expectedUserInfoSigAlgsSupported []string
 	}{
 		{
 			desc:                                "ShouldHaveChallengeMethodsS256ANDSubjectTypesSupportedPublic",
@@ -23,6 +24,20 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 			clients:                             map[string]Client{"a": &BaseClient{}},
 			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256},
 			expectSubjectTypesSupported:         []string{SubjectTypePublic, SubjectTypePairwise},
+			expectedIDTokenSigAlgsSupported:     []string{SigningAlgRSAUsingSHA256},
+			expectedUserInfoSigAlgsSupported:    []string{SigningAlgRSAUsingSHA256, SigningAlgNone},
+		},
+		{
+			desc:               "ShouldIncludDiscoveryInfo",
+			pkcePlainChallenge: false,
+			clients:            map[string]Client{"a": &BaseClient{}},
+			discovery: schema.OpenIDConnectDiscovery{
+				RegisteredJWKSigningAlgs: []string{SigningAlgECDSAUsingP521AndSHA512},
+			},
+			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256},
+			expectSubjectTypesSupported:         []string{SubjectTypePublic, SubjectTypePairwise},
+			expectedIDTokenSigAlgsSupported:     []string{SigningAlgRSAUsingSHA256, SigningAlgECDSAUsingP521AndSHA512},
+			expectedUserInfoSigAlgsSupported:    []string{SigningAlgRSAUsingSHA256, SigningAlgECDSAUsingP521AndSHA512, SigningAlgNone},
 		},
 		{
 			desc:                                "ShouldHaveChallengeMethodsS256PlainANDSubjectTypesSupportedPublic",
@@ -30,6 +45,8 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 			clients:                             map[string]Client{"a": &BaseClient{}},
 			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256, PKCEChallengeMethodPlain},
 			expectSubjectTypesSupported:         []string{SubjectTypePublic, SubjectTypePairwise},
+			expectedIDTokenSigAlgsSupported:     []string{SigningAlgRSAUsingSHA256},
+			expectedUserInfoSigAlgsSupported:    []string{SigningAlgRSAUsingSHA256, SigningAlgNone},
 		},
 		{
 			desc:                                "ShouldHaveChallengeMethodsS256ANDSubjectTypesSupportedPublicPairwise",
@@ -37,6 +54,8 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 			clients:                             map[string]Client{"a": &BaseClient{SectorIdentifier: "yes"}},
 			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256},
 			expectSubjectTypesSupported:         []string{SubjectTypePublic, SubjectTypePairwise},
+			expectedIDTokenSigAlgsSupported:     []string{SigningAlgRSAUsingSHA256},
+			expectedUserInfoSigAlgsSupported:    []string{SigningAlgRSAUsingSHA256, SigningAlgNone},
 		},
 		{
 			desc:                                "ShouldHaveChallengeMethodsS256PlainANDSubjectTypesSupportedPublicPairwise",
@@ -44,6 +63,8 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 			clients:                             map[string]Client{"a": &BaseClient{SectorIdentifier: "yes"}},
 			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256, PKCEChallengeMethodPlain},
 			expectSubjectTypesSupported:         []string{SubjectTypePublic, SubjectTypePairwise},
+			expectedIDTokenSigAlgsSupported:     []string{SigningAlgRSAUsingSHA256},
+			expectedUserInfoSigAlgsSupported:    []string{SigningAlgRSAUsingSHA256, SigningAlgNone},
 		},
 		{
 			desc:                                "ShouldHaveTokenAuthMethodsNone",
@@ -51,6 +72,8 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 			clients:                             map[string]Client{"a": &BaseClient{SectorIdentifier: "yes"}},
 			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256, PKCEChallengeMethodPlain},
 			expectSubjectTypesSupported:         []string{SubjectTypePublic, SubjectTypePairwise},
+			expectedIDTokenSigAlgsSupported:     []string{SigningAlgRSAUsingSHA256},
+			expectedUserInfoSigAlgsSupported:    []string{SigningAlgRSAUsingSHA256, SigningAlgNone},
 		},
 		{
 			desc:               "ShouldHaveTokenAuthMethodsNone",
@@ -61,6 +84,20 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 			},
 			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256, PKCEChallengeMethodPlain},
 			expectSubjectTypesSupported:         []string{SubjectTypePublic, SubjectTypePairwise},
+			expectedIDTokenSigAlgsSupported:     []string{SigningAlgRSAUsingSHA256},
+			expectedUserInfoSigAlgsSupported:    []string{SigningAlgRSAUsingSHA256, SigningAlgNone},
+		},
+		{
+			desc:               "ShouldHaveTokenAuthMethodsNone",
+			pkcePlainChallenge: true,
+			clients: map[string]Client{
+				"a": &BaseClient{SectorIdentifier: "yes"},
+				"b": &BaseClient{SectorIdentifier: "yes"},
+			},
+			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256, PKCEChallengeMethodPlain},
+			expectSubjectTypesSupported:         []string{SubjectTypePublic, SubjectTypePairwise},
+			expectedIDTokenSigAlgsSupported:     []string{SigningAlgRSAUsingSHA256},
+			expectedUserInfoSigAlgsSupported:    []string{SigningAlgRSAUsingSHA256, SigningAlgNone},
 		},
 	}
 
@@ -71,6 +108,7 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 				PAR: schema.OpenIDConnectPARConfiguration{
 					Enforce: tc.enforcePAR,
 				},
+				Discovery: tc.discovery,
 			}
 
 			actual := NewOpenIDConnectWellKnownConfiguration(&c)
@@ -89,6 +127,9 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 			for _, subjectType := range actual.SubjectTypesSupported {
 				assert.Contains(t, tc.expectSubjectTypesSupported, subjectType)
 			}
+
+			assert.Equal(t, tc.expectedUserInfoSigAlgsSupported, actual.UserinfoSigningAlgValuesSupported)
+			assert.Equal(t, tc.expectedIDTokenSigAlgsSupported, actual.IDTokenSigningAlgValuesSupported)
 		})
 	}
 }

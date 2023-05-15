@@ -1,7 +1,10 @@
 package oidc
 
 import (
+	"sort"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewOpenIDConnectWellKnownConfiguration generates a new OpenIDConnectWellKnownConfiguration.
@@ -75,6 +78,21 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 				CodeChallengeMethodsSupported: []string{
 					PKCEChallengeMethodSHA256,
 				},
+				RevocationEndpointAuthMethodsSupported: []string{
+					ClientAuthMethodClientSecretBasic,
+					ClientAuthMethodClientSecretPost,
+					ClientAuthMethodClientSecretJWT,
+					ClientAuthMethodNone,
+				},
+				RevocationEndpointAuthSigningAlgValuesSupported: []string{
+					SigningAlgHMACUsingSHA256,
+					SigningAlgHMACUsingSHA384,
+					SigningAlgHMACUsingSHA512,
+				},
+				IntrospectionEndpointAuthMethodsSupported: []string{
+					ClientAuthMethodClientSecretBasic,
+					ClientAuthMethodNone,
+				},
 			},
 			OAuth2PushedAuthorizationDiscoveryOptions: &OAuth2PushedAuthorizationDiscoveryOptions{
 				RequirePushedAuthorizationRequests: c.PAR.Enforce,
@@ -89,6 +107,10 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 				SigningAlgNone,
 				SigningAlgRSAUsingSHA256,
 			},
+			RequestObjectSigningAlgValuesSupported: []string{
+				SigningAlgNone,
+				SigningAlgRSAUsingSHA256,
+			},
 		},
 		OpenIDConnectFrontChannelLogoutDiscoveryOptions: &OpenIDConnectFrontChannelLogoutDiscoveryOptions{},
 		OpenIDConnectBackChannelLogoutDiscoveryOptions:  &OpenIDConnectBackChannelLogoutDiscoveryOptions{},
@@ -99,6 +121,26 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 			},
 		},
 	}
+
+	algs := make([]string, len(c.Discovery.RegisteredJWKSigningAlgs))
+
+	copy(algs, c.Discovery.RegisteredJWKSigningAlgs)
+
+	for _, alg := range algs {
+		if !utils.IsStringInSlice(alg, config.IDTokenSigningAlgValuesSupported) {
+			config.IDTokenSigningAlgValuesSupported = append(config.IDTokenSigningAlgValuesSupported, alg)
+		}
+
+		if !utils.IsStringInSlice(alg, config.UserinfoSigningAlgValuesSupported) {
+			config.UserinfoSigningAlgValuesSupported = append(config.UserinfoSigningAlgValuesSupported, alg)
+		}
+	}
+
+	sort.Sort(SortedSigningAlgs(config.IDTokenSigningAlgValuesSupported))
+	sort.Sort(SortedSigningAlgs(config.UserinfoSigningAlgValuesSupported))
+	sort.Sort(SortedSigningAlgs(config.RequestObjectSigningAlgValuesSupported))
+	sort.Sort(SortedSigningAlgs(config.RevocationEndpointAuthSigningAlgValuesSupported))
+	sort.Sort(SortedSigningAlgs(config.TokenEndpointAuthSigningAlgValuesSupported))
 
 	if c.EnablePKCEPlainChallenge {
 		config.CodeChallengeMethodsSupported = append(config.CodeChallengeMethodsSupported, PKCEChallengeMethodPlain)
