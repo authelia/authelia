@@ -69,7 +69,7 @@ gitlab_rails['omniauth_providers'] = [
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [GitLab]
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [GitLab]
 which will operate with the above example:
 
 ```yaml
@@ -90,7 +90,7 @@ identity_providers:
         - 'profile'
         - 'groups'
         - 'email'
-      userinfo_signing_algorithm: 'none'
+      userinfo_signing_alg: 'none'
 ```
 
 ## See Also

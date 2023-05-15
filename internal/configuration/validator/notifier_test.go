@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -283,4 +284,18 @@ func (suite *NotifierSuite) TestFileShouldEnsureFilenameIsProvided() {
 
 func TestNotifierSuite(t *testing.T) {
 	suite.Run(t, new(NotifierSuite))
+}
+
+func TestNotifierMiscMissingTemplateTests(t *testing.T) {
+	config := &schema.NotifierConfiguration{
+		TemplatePath: string([]byte{0x0, 0x1}),
+	}
+
+	val := schema.NewStructValidator()
+
+	validateNotifierTemplates(config, val)
+
+	require.Len(t, val.Errors(), 1)
+
+	assert.EqualError(t, val.Errors()[0], "notifier: option 'template_path' refers to location '\x00\x01' which couldn't be opened: stat \x00\x01: invalid argument")
 }

@@ -218,6 +218,11 @@ func TestNewX509CertificateChain(t *testing.T) {
 	}
 }
 
+func TestNewX509CertificateChainFromCerts(t *testing.T) {
+	have := NewX509CertificateChainFromCerts(nil)
+	assert.NotNil(t, have)
+}
+
 func TestX509CertificateChain(t *testing.T) {
 	chain := &X509CertificateChain{}
 

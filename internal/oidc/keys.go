@@ -26,7 +26,7 @@ func NewKeyManager(config *schema.OpenIDConnectConfiguration) (manager *KeyManag
 		algs: map[string]*JWK{},
 	}
 
-	for _, sjwk := range config.IssuerJWKS {
+	for _, sjwk := range config.IssuerPrivateKeys {
 		jwk := NewJWK(sjwk)
 
 		manager.kids[sjwk.KeyID] = jwk
@@ -47,7 +47,13 @@ type KeyManager struct {
 	algs map[string]*JWK
 }
 
-func (m *KeyManager) GetKIDFromAlgStrict(ctx context.Context, alg string) (kid string, err error) {
+// GetKeyID returns the default key id.
+func (m *KeyManager) GetKeyID(ctx context.Context) string {
+	return m.kid
+}
+
+// GetKeyIDFromAlgStrict returns the key id given an alg or an error if it doesn't exist.
+func (m *KeyManager) GetKeyIDFromAlgStrict(ctx context.Context, alg string) (kid string, err error) {
 	if jwks, ok := m.algs[alg]; ok {
 		return jwks.kid, nil
 	}
@@ -55,7 +61,8 @@ func (m *KeyManager) GetKIDFromAlgStrict(ctx context.Context, alg string) (kid s
 	return "", fmt.Errorf("alg not found")
 }
 
-func (m *KeyManager) GetKIDFromAlg(ctx context.Context, alg string) string {
+// GetKeyIDFromAlg returns the key id given an alg or the default if it doesn't exist.
+func (m *KeyManager) GetKeyIDFromAlg(ctx context.Context, alg string) string {
 	if jwks, ok := m.algs[alg]; ok {
 		return jwks.kid
 	}
@@ -63,6 +70,7 @@ func (m *KeyManager) GetKIDFromAlg(ctx context.Context, alg string) string {
 	return m.kid
 }
 
+// GetByAlg returns the JWK given an alg or nil if it doesn't exist.
 func (m *KeyManager) GetByAlg(ctx context.Context, alg string) *JWK {
 	if jwk, ok := m.algs[alg]; ok {
 		return jwk
@@ -71,6 +79,7 @@ func (m *KeyManager) GetByAlg(ctx context.Context, alg string) *JWK {
 	return nil
 }
 
+// GetByKID returns the JWK given an key id or nil if it doesn't exist. If given a blank string it returns the default.
 func (m *KeyManager) GetByKID(ctx context.Context, kid string) *JWK {
 	if kid == "" {
 		return m.kids[m.kid]
@@ -83,6 +92,7 @@ func (m *KeyManager) GetByKID(ctx context.Context, kid string) *JWK {
 	return nil
 }
 
+// GetByHeader returns the JWK a JWT header with the appropriate kid value or returns an error.
 func (m *KeyManager) GetByHeader(ctx context.Context, header fjwt.Mapper) (jwk *JWK, err error) {
 	var (
 		kid string
@@ -104,6 +114,7 @@ func (m *KeyManager) GetByHeader(ctx context.Context, header fjwt.Mapper) (jwk *
 	return jwk, nil
 }
 
+// GetByTokenString does an invalidated decode of a token to get the  header, then calls GetByHeader.
 func (m *KeyManager) GetByTokenString(ctx context.Context, tokenString string) (jwk *JWK, err error) {
 	var (
 		token *jwt.Token
@@ -116,6 +127,7 @@ func (m *KeyManager) GetByTokenString(ctx context.Context, tokenString string) (
 	return m.GetByHeader(ctx, &fjwt.Headers{Extra: token.Header})
 }
 
+// Set returns the *jose.JSONWebKeySet.
 func (m *KeyManager) Set(ctx context.Context) *jose.JSONWebKeySet {
 	keys := make([]jose.JSONWebKey, 0, len(m.kids))
 
@@ -130,6 +142,7 @@ func (m *KeyManager) Set(ctx context.Context) *jose.JSONWebKeySet {
 	}
 }
 
+// Generate implements the fosite jwt.Signer interface and automatically maps the underlying keys based on the JWK Header kid.
 func (m *KeyManager) Generate(ctx context.Context, claims fjwt.MapClaims, header fjwt.Mapper) (tokenString string, sig string, err error) {
 	var jwk *JWK
 
@@ -140,6 +153,7 @@ func (m *KeyManager) Generate(ctx context.Context, claims fjwt.MapClaims, header
 	return jwk.Strategy().Generate(ctx, claims, header)
 }
 
+// Validate implements the fosite jwt.Signer interface and automatically maps the underlying keys based on the JWK Header kid.
 func (m *KeyManager) Validate(ctx context.Context, tokenString string) (sig string, err error) {
 	var jwk *JWK
 
@@ -150,10 +164,12 @@ func (m *KeyManager) Validate(ctx context.Context, tokenString string) (sig stri
 	return jwk.Strategy().Validate(ctx, tokenString)
 }
 
+// Hash implements the fosite jwt.Signer interface.
 func (m *KeyManager) Hash(ctx context.Context, in []byte) (sum []byte, err error) {
 	return m.GetByKID(ctx, "").Strategy().Hash(ctx, in)
 }
 
+// Decode implements the fosite jwt.Signer interface and automatically maps the underlying keys based on the JWK Header kid.
 func (m *KeyManager) Decode(ctx context.Context, tokenString string) (token *fjwt.Token, err error) {
 	var jwk *JWK
 
@@ -164,14 +180,58 @@ func (m *KeyManager) Decode(ctx context.Context, tokenString string) (token *fjw
 	return jwk.Strategy().Decode(ctx, tokenString)
 }
 
+// GetSignature implements the fosite jwt.Signer interface.
 func (m *KeyManager) GetSignature(ctx context.Context, tokenString string) (sig string, err error) {
 	return getTokenSignature(tokenString)
 }
 
+// GetSigningMethodLength implements the fosite jwt.Signer interface.
 func (m *KeyManager) GetSigningMethodLength(ctx context.Context) (size int) {
 	return m.GetByKID(ctx, "").Strategy().GetSigningMethodLength(ctx)
 }
 
+// NewPublicJSONWebKeySetFromSchemaJWK creates a *jose.JSONWebKeySet from a slice of schema.JWK.
+func NewPublicJSONWebKeySetFromSchemaJWK(sjwks []schema.JWK) (jwks *jose.JSONWebKeySet) {
+	n := len(sjwks)
+
+	if n == 0 {
+		return nil
+	}
+
+	keys := make([]jose.JSONWebKey, n)
+
+	for i := 0; i < n; i++ {
+		jwk := jose.JSONWebKey{
+			KeyID:        sjwks[i].KeyID,
+			Algorithm:    sjwks[i].Algorithm,
+			Use:          sjwks[i].Use,
+			Certificates: sjwks[i].CertificateChain.Certificates(),
+		}
+
+		switch key := sjwks[i].Key.(type) {
+		case *rsa.PublicKey:
+			jwk.Key = key
+		case rsa.PublicKey:
+			jwk.Key = &key
+		case *rsa.PrivateKey:
+			jwk.Key = key.PublicKey
+		case *ecdsa.PublicKey:
+			jwk.Key = key
+		case ecdsa.PublicKey:
+			jwk.Key = &key
+		case *ecdsa.PrivateKey:
+			jwk.Key = key.PublicKey
+		}
+
+		keys[i] = jwk
+	}
+
+	return &jose.JSONWebKeySet{
+		Keys: keys,
+	}
+}
+
+// NewJWK creates a *JWK f rom a schema.JWK.
 func NewJWK(s schema.JWK) (jwk *JWK) {
 	jwk = &JWK{
 		kid: s.KeyID,
@@ -198,6 +258,7 @@ func NewJWK(s schema.JWK) (jwk *JWK) {
 	return jwk
 }
 
+// JWK is a representation layer over the *jose.JSONWebKey for convenience.
 type JWK struct {
 	kid  string
 	use  string
@@ -210,16 +271,24 @@ type JWK struct {
 	thumbprint     []byte
 }
 
+// GetSigningMethod returns the jwt.SigningMethod for this *JWK.
+func (j *JWK) GetSigningMethod() jwt.SigningMethod {
+	return j.alg
+}
+
+// GetPrivateKey returns the Private Key for this *JWK.
 func (j *JWK) GetPrivateKey(ctx context.Context) (any, error) {
 	return j.PrivateJWK(), nil
 }
 
+// KeyID returns the Key ID for this *JWK.
 func (j *JWK) KeyID() string {
 	return j.kid
 }
 
-func (j *JWK) PrivateJWK() (jwk *jose.JSONWebKey) {
-	return &jose.JSONWebKey{
+// DirectJWK directly returns the *JWK as a jose.JSONWebKey with the private key if appropriate.
+func (j *JWK) DirectJWK() (jwk jose.JSONWebKey) {
+	return jose.JSONWebKey{
 		Key:                         j.key,
 		KeyID:                       j.kid,
 		Algorithm:                   j.alg.Alg(),
@@ -230,10 +299,23 @@ func (j *JWK) PrivateJWK() (jwk *jose.JSONWebKey) {
 	}
 }
 
-func (j *JWK) JWK() (jwk jose.JSONWebKey) {
-	return j.PrivateJWK().Public()
+// PrivateJWK directly returns the *JWK as a *jose.JSONWebKey with the private key if appropriate.
+func (j *JWK) PrivateJWK() (jwk *jose.JSONWebKey) {
+	value := j.DirectJWK()
+
+	return &value
 }
 
+// JWK directly returns the *JWK as a jose.JSONWebKey specifically without the private key.
+func (j *JWK) JWK() (jwk jose.JSONWebKey) {
+	if jwk = j.DirectJWK(); jwk.IsPublic() {
+		return jwk
+	}
+
+	return jwk.Public()
+}
+
+// Strategy returns the fosite jwt.Signer.
 func (j *JWK) Strategy() (strategy fjwt.Signer) {
 	return &Signer{
 		hash:          j.hash,
@@ -250,6 +332,7 @@ type Signer struct {
 	GetPrivateKey fjwt.GetPrivateKeyFunc
 }
 
+// GetPublicKey returns the PublicKey for this Signer.
 func (j *Signer) GetPublicKey(ctx context.Context) (key crypto.PublicKey, err error) {
 	var k any
 

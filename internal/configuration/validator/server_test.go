@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -296,7 +297,7 @@ func TestShouldRaiseErrorWhenTLSCertDoesNotExist(t *testing.T) {
 
 	ValidateServer(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "server: tls: option 'certificate' the file '/tmp/unexisting_file' does not exist")
+	assert.EqualError(t, validator.Errors()[0], "server: tls: option 'certificate' with path '/tmp/unexisting_file' refers to a file that doesn't exist")
 }
 
 func TestShouldRaiseErrorWhenTLSKeyWithoutCertIsProvided(t *testing.T) {
@@ -329,7 +330,7 @@ func TestShouldRaiseErrorWhenTLSKeyDoesNotExist(t *testing.T) {
 
 	ValidateServer(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "server: tls: option 'key' the file '/tmp/unexisting_file' does not exist")
+	assert.EqualError(t, validator.Errors()[0], "server: tls: option 'key' with path '/tmp/unexisting_file' refers to a file that doesn't exist")
 }
 
 func TestShouldNotRaiseErrorWhenBothTLSCertificateAndKeyAreProvided(t *testing.T) {
@@ -373,7 +374,7 @@ func TestShouldRaiseErrorWhenTLSClientCertificateDoesNotExist(t *testing.T) {
 
 	ValidateServer(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "server: tls: option 'client_certificates' the file '/tmp/unexisting' does not exist")
+	assert.EqualError(t, validator.Errors()[0], "server: tls: option 'client_certificates' with path '/tmp/unexisting' refers to a file that doesn't exist")
 }
 
 func TestShouldRaiseErrorWhenTLSClientAuthIsDefinedButNotServerCertificate(t *testing.T) {
@@ -568,4 +569,26 @@ func TestServerAuthzEndpointLegacyAsImplementationLegacyWhenBlank(t *testing.T) 
 	assert.Len(t, validator.Errors(), 0)
 
 	assert.Equal(t, authzImplementationLegacy, config.Server.Endpoints.Authz[legacy].Implementation)
+}
+
+func TestValidateTLSPathStatInvalidArgument(t *testing.T) {
+	val := schema.NewStructValidator()
+
+	validateServerTLSFileExists("key", string([]byte{0x0, 0x1}), val)
+
+	require.Len(t, val.Errors(), 1)
+
+	assert.EqualError(t, val.Errors()[0], "server: tls: option 'key' with path '\x00\x01' could not be verified due to a file system error: stat \x00\x01: invalid argument")
+}
+
+func TestValidateTLSPathIsDir(t *testing.T) {
+	dir := t.TempDir()
+
+	val := schema.NewStructValidator()
+
+	validateServerTLSFileExists("key", dir, val)
+
+	require.Len(t, val.Errors(), 1)
+
+	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("server: tls: option 'key' with path '%s' refers to a directory but it should refer to a file", dir))
 }

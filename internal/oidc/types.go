@@ -515,18 +515,20 @@ type OAuth2MutualTLSClientAuthenticationDiscoveryOptions struct {
 		within mtls_endpoint_aliases that do not define endpoints to which an OAuth client makes a direct request have
 		no meaning and SHOULD be ignored.
 	*/
-	MutualTLSEndpointAliases struct {
-		AuthorizationEndpoint              string `json:"authorization_endpoint,omitempty"`
-		TokenEndpoint                      string `json:"token_endpoint,omitempty"`
-		IntrospectionEndpoint              string `json:"introspection_endpoint,omitempty"`
-		RevocationEndpoint                 string `json:"revocation_endpoint,omitempty"`
-		EndSessionEndpoint                 string `json:"end_session_endpoint,omitempty"`
-		UserinfoEndpoint                   string `json:"userinfo_endpoint,omitempty"`
-		BackChannelAuthenticationEndpoint  string `json:"backchannel_authentication_endpoint,omitempty"`
-		FederationRegistrationEndpoint     string `json:"federation_registration_endpoint,omitempty"`
-		PushedAuthorizationRequestEndpoint string `json:"pushed_authorization_request_endpoint,omitempty"`
-		RegistrationEndpoint               string `json:"registration_endpoint,omitempty"`
-	} `json:"mtls_endpoint_aliases"`
+	MutualTLSEndpointAliases OAuth2MutualTLSClientAuthenticationAliasesDiscoveryOptions `json:"mtls_endpoint_aliases"`
+}
+
+type OAuth2MutualTLSClientAuthenticationAliasesDiscoveryOptions struct {
+	AuthorizationEndpoint              string `json:"authorization_endpoint,omitempty"`
+	TokenEndpoint                      string `json:"token_endpoint,omitempty"`
+	IntrospectionEndpoint              string `json:"introspection_endpoint,omitempty"`
+	RevocationEndpoint                 string `json:"revocation_endpoint,omitempty"`
+	EndSessionEndpoint                 string `json:"end_session_endpoint,omitempty"`
+	UserinfoEndpoint                   string `json:"userinfo_endpoint,omitempty"`
+	BackChannelAuthenticationEndpoint  string `json:"backchannel_authentication_endpoint,omitempty"`
+	FederationRegistrationEndpoint     string `json:"federation_registration_endpoint,omitempty"`
+	PushedAuthorizationRequestEndpoint string `json:"pushed_authorization_request_endpoint,omitempty"`
+	RegistrationEndpoint               string `json:"registration_endpoint,omitempty"`
 }
 
 type OAuth2JWTSecuredAuthorizationRequestDiscoveryOptions struct {
@@ -953,16 +955,4 @@ type OpenIDConnectContext interface {
 	context.Context
 
 	IssuerURL() (issuerURL *url.URL, err error)
-}
-
-// MockOpenIDConnectContext is a minimal implementation of OpenIDConnectContext for the purpose of testing.
-type MockOpenIDConnectContext struct {
-	context.Context
-
-	MockIssuerURL *url.URL
-}
-
-// IssuerURL returns the MockIssuerURL.
-func (m *MockOpenIDConnectContext) IssuerURL() (issuerURL *url.URL, err error) {
-	return m.MockIssuerURL, nil
 }

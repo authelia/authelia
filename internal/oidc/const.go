@@ -53,7 +53,7 @@ const (
 )
 
 const (
-	urnPARPrefix = "urn:ietf:params:oauth:request_uri:"
+	RedirectURIPrefixPushedAuthorizationRequestURN = "urn:ietf:params:oauth:request_uri:"
 )
 
 const (
@@ -175,9 +175,9 @@ const (
 	tokenPrefixOrgAutheliaFmt = "authelia_%s_" //nolint:gosec
 	tokenPrefixOrgOryFmt      = "ory_%s_"      //nolint:gosec
 
-	tokenPrefixPartAccessToken   = "at"
-	tokenPrefixPartRefreshToken  = "rt"
-	tokenPrefixPartAuthorizeCode = "ac"
+	TokenPrefixPartAccessToken   = "at"
+	TokenPrefixPartRefreshToken  = "rt"
+	TokenPrefixPartAuthorizeCode = "ac"
 )
 
 // Paths.

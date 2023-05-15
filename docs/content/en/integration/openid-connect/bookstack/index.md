@@ -58,7 +58,7 @@ To configure [BookStack] to utilize Authelia as an [OpenID Connect 1.0] Provider
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [BookStack]
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [BookStack]
 which will operate with the above example:
 
 ```yaml
@@ -78,7 +78,7 @@ identity_providers:
         - 'openid'
         - 'profile'
         - 'email'
-      userinfo_signing_algorithm: 'none'
+      userinfo_signing_alg: 'none'
 ```
 
 ## See Also

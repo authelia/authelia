@@ -65,7 +65,7 @@ To configure [Proxmox] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Proxmox]
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Proxmox]
 which will operate with the above example:
 
 ```yaml
@@ -85,7 +85,7 @@ identity_providers:
         - 'openid'
         - 'profile'
         - 'email'
-      userinfo_signing_algorithm: 'none'
+      userinfo_signing_alg: 'none'
 ```
 
 ## See Also

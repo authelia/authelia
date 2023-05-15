@@ -53,7 +53,7 @@ openid-groups-claim-type: groups
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with
 [Apache Guacamole] which will operate with the above example:
 
 ```yaml
@@ -78,7 +78,7 @@ identity_providers:
         - 'id_token'
       grant_types:
         - 'implicit'
-      userinfo_signing_algorithm: 'none'
+      userinfo_signing_alg: 'none'
 ```
 
 ## See Also

@@ -115,8 +115,15 @@ Feature List:
 
 {{< roadmap-status stage="in-progress" version="v4.38.0" >}}
 
-* [OAuth 2.0 Pushed Authorization Requests](https://datatracker.ietf.org/doc/html/rfc9126)
+* [RFC9126: OAuth 2.0 Pushed Authorization Requests](https://datatracker.ietf.org/doc/html/rfc9126)
+* [RFC7523: JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants](https://datatracker.ietf.org/doc/html/rfc7523):
+  * Client Auth Method `client_secret_jwt`
+  * Client Auth Method `private_key_jwt`
 * Per-Client [Proof Key Code Exchange (PKCE)] Policy
+* Multiple Issuer JWKs:
+  * RS256, RS384, RS512
+  * PS256, PS384, PS512
+  * ES256, ES384, ES512
 
 ### Beta 7
 

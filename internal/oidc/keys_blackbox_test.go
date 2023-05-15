@@ -1,7 +1,8 @@
-package oidc
+package oidc_test
 
 import (
 	"context"
+	"crypto"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -12,6 +13,7 @@ import (
 	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
 func TestKeyManager(t *testing.T) {
@@ -19,82 +21,82 @@ func TestKeyManager(t *testing.T) {
 		Discovery: schema.OpenIDConnectDiscovery{
 			DefaultKeyID: "kid-RS256-sig",
 		},
-		IssuerJWKS: []schema.JWK{
+		IssuerPrivateKeys: []schema.JWK{
 			{
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgRSAUsingSHA256,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgRSAUsingSHA256,
 				Key:              keyRSA2048,
 				CertificateChain: certRSA2048,
 			},
 			{
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgRSAUsingSHA384,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgRSAUsingSHA384,
 				Key:              keyRSA2048,
 				CertificateChain: certRSA2048,
 			},
 			{
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgRSAUsingSHA512,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgRSAUsingSHA512,
 				Key:              keyRSA4096,
 				CertificateChain: certRSA4096,
 			},
 			{
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgRSAPSSUsingSHA256,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgRSAPSSUsingSHA256,
 				Key:              keyRSA2048,
 				CertificateChain: certRSA2048,
 			},
 			{
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgRSAPSSUsingSHA384,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgRSAPSSUsingSHA384,
 				Key:              keyRSA2048,
 				CertificateChain: certRSA2048,
 			},
 			{
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgRSAPSSUsingSHA512,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgRSAPSSUsingSHA512,
 				Key:              keyRSA4096,
 				CertificateChain: certRSA4096,
 			},
 			{
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgECDSAUsingP256AndSHA256,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgECDSAUsingP256AndSHA256,
 				Key:              keyECDSAP256,
 				CertificateChain: certECDSAP256,
 			},
 			{
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgECDSAUsingP384AndSHA384,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgECDSAUsingP384AndSHA384,
 				Key:              keyECDSAP384,
 				CertificateChain: certECDSAP384,
 			},
 			{
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgECDSAUsingP521AndSHA512,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgECDSAUsingP521AndSHA512,
 				Key:              keyECDSAP521,
 				CertificateChain: certECDSAP521,
 			},
 		},
 	}
 
-	for i, key := range config.IssuerJWKS {
-		config.IssuerJWKS[i].KeyID = fmt.Sprintf("kid-%s-%s", key.Algorithm, key.Use)
+	for i, key := range config.IssuerPrivateKeys {
+		config.IssuerPrivateKeys[i].KeyID = fmt.Sprintf("kid-%s-%s", key.Algorithm, key.Use)
 	}
 
-	manager := NewKeyManager(config)
+	manager := oidc.NewKeyManager(config)
 
 	assert.NotNil(t, manager)
 
-	assert.Len(t, manager.kids, len(config.IssuerJWKS))
-	assert.Len(t, manager.algs, len(config.IssuerJWKS))
-
-	assert.Equal(t, "kid-RS256-sig", manager.kid)
-
 	ctx := context.Background()
 
+	assert.Equal(t, "kid-RS256-sig", manager.GetKeyID(ctx))
+
 	var (
-		jwk *JWK
-		err error
+		jwk              *oidc.JWK
+		tokenString, sig string
+		sum              []byte
+		token            *fjwt.Token
+		err              error
 	)
 
 	jwk = manager.GetByAlg(ctx, "notalg")
@@ -107,7 +109,7 @@ func TestKeyManager(t *testing.T) {
 	assert.NotNil(t, jwk)
 	assert.Equal(t, config.Discovery.DefaultKeyID, jwk.KeyID())
 
-	jwk, err = manager.GetByHeader(ctx, &fjwt.Headers{Extra: map[string]any{JWTHeaderKeyIdentifier: "notalg"}})
+	jwk, err = manager.GetByHeader(ctx, &fjwt.Headers{Extra: map[string]any{oidc.JWTHeaderKeyIdentifier: "notalg"}})
 	assert.EqualError(t, err, "jwt header 'kid' with value 'notalg' does not match a managed jwk")
 	assert.Nil(t, jwk)
 
@@ -119,17 +121,17 @@ func TestKeyManager(t *testing.T) {
 	assert.EqualError(t, err, "jwt header was nil")
 	assert.Nil(t, jwk)
 
-	kid, err := manager.GetKIDFromAlgStrict(ctx, "notalg")
+	kid, err := manager.GetKeyIDFromAlgStrict(ctx, "notalg")
 	assert.EqualError(t, err, "alg not found")
 	assert.Equal(t, "", kid)
 
-	kid = manager.GetKIDFromAlg(ctx, "notalg")
+	kid = manager.GetKeyIDFromAlg(ctx, "notalg")
 	assert.Equal(t, config.Discovery.DefaultKeyID, kid)
 
 	set := manager.Set(ctx)
 
 	assert.NotNil(t, set)
-	assert.Len(t, set.Keys, len(config.IssuerJWKS))
+	assert.Len(t, set.Keys, len(config.IssuerPrivateKeys))
 
 	data, err := json.Marshal(&set)
 	assert.NoError(t, err)
@@ -139,9 +141,32 @@ func TestKeyManager(t *testing.T) {
 	assert.NoError(t, json.Unmarshal(data, &out))
 	assert.Equal(t, *set, out)
 
-	for _, alg := range []string{SigningAlgRSAUsingSHA256, SigningAlgRSAUsingSHA384, SigningAlgRSAPSSUsingSHA512, SigningAlgRSAPSSUsingSHA256, SigningAlgRSAPSSUsingSHA384, SigningAlgRSAPSSUsingSHA512, SigningAlgECDSAUsingP256AndSHA256, SigningAlgECDSAUsingP384AndSHA384, SigningAlgECDSAUsingP521AndSHA512} {
+	jwk, err = manager.GetByTokenString(ctx, badTokenString)
+	assert.EqualError(t, err, "token contains an invalid number of segments")
+	assert.Nil(t, jwk)
+
+	tokenString, sig, err = manager.Generate(ctx, nil, nil)
+	assert.EqualError(t, err, "error getting jwk from header: jwt header was nil")
+	assert.Equal(t, "", tokenString)
+	assert.Equal(t, "", sig)
+
+	sig, err = manager.Validate(ctx, badTokenString)
+	assert.EqualError(t, err, "error getting jwk from token string: token contains an invalid number of segments")
+	assert.Equal(t, "", sig)
+
+	token, err = manager.Decode(ctx, badTokenString)
+	assert.EqualError(t, err, "error getting jwk from token string: token contains an invalid number of segments")
+	assert.Nil(t, token)
+
+	sum, err = manager.Hash(ctx, []byte("abc"))
+	assert.NoError(t, err)
+	assert.Equal(t, "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", fmt.Sprintf("%x", sum))
+
+	assert.Equal(t, crypto.SHA256.Size(), manager.GetSigningMethodLength(ctx))
+
+	for _, alg := range []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512} {
 		t.Run(alg, func(t *testing.T) {
-			expectedKID := fmt.Sprintf("kid-%s-%s", alg, KeyUseSignature)
+			expectedKID := fmt.Sprintf("kid-%s-%s", alg, oidc.KeyUseSignature)
 
 			t.Run("ShouldGetCorrectKey", func(t *testing.T) {
 				jwk = manager.GetByKID(ctx, expectedKID)
@@ -151,17 +176,17 @@ func TestKeyManager(t *testing.T) {
 				jwk = manager.GetByAlg(ctx, alg)
 				assert.NotNil(t, jwk)
 
-				assert.Equal(t, alg, jwk.alg.Alg())
+				assert.Equal(t, alg, jwk.GetSigningMethod().Alg())
 				assert.Equal(t, expectedKID, jwk.KeyID())
 
-				kid, err = manager.GetKIDFromAlgStrict(ctx, alg)
+				kid, err = manager.GetKeyIDFromAlgStrict(ctx, alg)
 				assert.NoError(t, err)
 				assert.Equal(t, expectedKID, kid)
 
-				kid = manager.GetKIDFromAlg(ctx, alg)
+				kid = manager.GetKeyIDFromAlg(ctx, alg)
 				assert.Equal(t, expectedKID, kid)
 
-				jwk, err = manager.GetByHeader(ctx, &fjwt.Headers{Extra: map[string]any{JWTHeaderKeyIdentifier: expectedKID}})
+				jwk, err = manager.GetByHeader(ctx, &fjwt.Headers{Extra: map[string]any{oidc.JWTHeaderKeyIdentifier: expectedKID}})
 				assert.NoError(t, err)
 				assert.NotNil(t, jwk)
 
@@ -169,10 +194,9 @@ func TestKeyManager(t *testing.T) {
 			})
 
 			t.Run("ShouldUseCorrectSigner", func(t *testing.T) {
-				var tokenString, sig, sigb string
-				var token *fjwt.Token
+				var sigb string
 
-				tokenString, sig, err = manager.Generate(ctx, fjwt.MapClaims{}, &fjwt.Headers{Extra: map[string]any{JWTHeaderKeyIdentifier: expectedKID}})
+				tokenString, sig, err = manager.Generate(ctx, fjwt.MapClaims{}, &fjwt.Headers{Extra: map[string]any{oidc.JWTHeaderKeyIdentifier: expectedKID}})
 				assert.NoError(t, err)
 
 				sigb, err = manager.GetSignature(ctx, tokenString)
@@ -185,10 +209,9 @@ func TestKeyManager(t *testing.T) {
 
 				token, err = manager.Decode(ctx, tokenString)
 				assert.NoError(t, err)
-				assert.Equal(t, expectedKID, token.Header[JWTHeaderKeyIdentifier])
+				assert.Equal(t, expectedKID, token.Header[oidc.JWTHeaderKeyIdentifier])
 
 				jwk, err = manager.GetByTokenString(ctx, tokenString)
-
 				assert.NoError(t, err)
 
 				sigb, err = jwk.Strategy().Validate(ctx, tokenString)
@@ -206,8 +229,8 @@ func TestJWKFunctionality(t *testing.T) {
 		{
 			schema.JWK{
 				KeyID:            "rsa2048-rs256",
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgRSAUsingSHA256,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgRSAUsingSHA256,
 				Key:              keyRSA2048,
 				CertificateChain: certRSA2048,
 			},
@@ -215,8 +238,8 @@ func TestJWKFunctionality(t *testing.T) {
 		{
 			schema.JWK{
 				KeyID:            "rsa2048-rs384",
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgRSAUsingSHA384,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgRSAUsingSHA384,
 				Key:              keyRSA2048,
 				CertificateChain: certRSA2048,
 			},
@@ -224,8 +247,8 @@ func TestJWKFunctionality(t *testing.T) {
 		{
 			schema.JWK{
 				KeyID:            "rsa2048-rs512",
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgRSAUsingSHA512,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgRSAUsingSHA512,
 				Key:              keyRSA2048,
 				CertificateChain: certRSA2048,
 			},
@@ -233,8 +256,8 @@ func TestJWKFunctionality(t *testing.T) {
 		{
 			schema.JWK{
 				KeyID:            "rsa4096-rs256",
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgRSAUsingSHA256,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgRSAUsingSHA256,
 				Key:              keyRSA4096,
 				CertificateChain: certRSA4096,
 			},
@@ -242,8 +265,8 @@ func TestJWKFunctionality(t *testing.T) {
 		{
 			schema.JWK{
 				KeyID:            "rsa4096-rs384",
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgRSAUsingSHA384,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgRSAUsingSHA384,
 				Key:              keyRSA4096,
 				CertificateChain: certRSA4096,
 			},
@@ -251,8 +274,8 @@ func TestJWKFunctionality(t *testing.T) {
 		{
 			schema.JWK{
 				KeyID:            "rsa4096-rs512",
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgRSAUsingSHA512,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgRSAUsingSHA512,
 				Key:              keyRSA4096,
 				CertificateChain: certRSA4096,
 			},
@@ -260,8 +283,8 @@ func TestJWKFunctionality(t *testing.T) {
 		{
 			schema.JWK{
 				KeyID:            "rsa2048-rs256",
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgRSAPSSUsingSHA256,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgRSAPSSUsingSHA256,
 				Key:              keyRSA2048,
 				CertificateChain: certRSA2048,
 			},
@@ -269,8 +292,8 @@ func TestJWKFunctionality(t *testing.T) {
 		{
 			schema.JWK{
 				KeyID:            "rsa2048-ps384",
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgRSAPSSUsingSHA384,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgRSAPSSUsingSHA384,
 				Key:              keyRSA2048,
 				CertificateChain: certRSA2048,
 			},
@@ -278,8 +301,8 @@ func TestJWKFunctionality(t *testing.T) {
 		{
 			schema.JWK{
 				KeyID:            "rsa2048-ps512",
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgRSAPSSUsingSHA512,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgRSAPSSUsingSHA512,
 				Key:              keyRSA2048,
 				CertificateChain: certRSA2048,
 			},
@@ -287,8 +310,8 @@ func TestJWKFunctionality(t *testing.T) {
 		{
 			schema.JWK{
 				KeyID:            "rsa4096-ps256",
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgRSAPSSUsingSHA256,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgRSAPSSUsingSHA256,
 				Key:              keyRSA4096,
 				CertificateChain: certRSA4096,
 			},
@@ -296,8 +319,8 @@ func TestJWKFunctionality(t *testing.T) {
 		{
 			schema.JWK{
 				KeyID:            "rsa4096-ps384",
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgRSAPSSUsingSHA384,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgRSAPSSUsingSHA384,
 				Key:              keyRSA4096,
 				CertificateChain: certRSA4096,
 			},
@@ -305,8 +328,8 @@ func TestJWKFunctionality(t *testing.T) {
 		{
 			schema.JWK{
 				KeyID:            "rsa4096-ps512",
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgRSAPSSUsingSHA512,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgRSAPSSUsingSHA512,
 				Key:              keyRSA4096,
 				CertificateChain: certRSA4096,
 			},
@@ -314,8 +337,8 @@ func TestJWKFunctionality(t *testing.T) {
 		{
 			schema.JWK{
 				KeyID:            "ecdsaP256",
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgECDSAUsingP256AndSHA256,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgECDSAUsingP256AndSHA256,
 				Key:              keyECDSAP256,
 				CertificateChain: certECDSAP256,
 			},
@@ -323,8 +346,8 @@ func TestJWKFunctionality(t *testing.T) {
 		{
 			schema.JWK{
 				KeyID:            "ecdsaP384",
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgECDSAUsingP384AndSHA384,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgECDSAUsingP384AndSHA384,
 				Key:              keyECDSAP384,
 				CertificateChain: certECDSAP384,
 			},
@@ -332,8 +355,8 @@ func TestJWKFunctionality(t *testing.T) {
 		{
 			schema.JWK{
 				KeyID:            "ecdsaP521",
-				Use:              KeyUseSignature,
-				Algorithm:        SigningAlgECDSAUsingP521AndSHA512,
+				Use:              oidc.KeyUseSignature,
+				Algorithm:        oidc.SigningAlgECDSAUsingP521AndSHA512,
 				Key:              keyECDSAP521,
 				CertificateChain: certECDSAP521,
 			},
@@ -344,24 +367,28 @@ func TestJWKFunctionality(t *testing.T) {
 		t.Run(tc.have.KeyID, func(t *testing.T) {
 			t.Run("Generating", func(t *testing.T) {
 				var (
-					jwk *JWK
+					jwk *oidc.JWK
 				)
 
 				ctx := context.Background()
 
-				jwk = NewJWK(tc.have)
+				jwk = oidc.NewJWK(tc.have)
 
 				signer := jwk.Strategy()
 
 				claims := fjwt.MapClaims{}
 				header := &fjwt.Headers{
 					Extra: map[string]any{
-						"kid": jwk.kid,
+						oidc.JWTHeaderKeyIdentifier: jwk.KeyID(),
 					},
 				}
 
-				tokenString, sig, err := signer.Generate(ctx, claims, header)
+				tokenString, sig, err := signer.Generate(ctx, nil, nil)
+				assert.EqualError(t, err, "either claims or header is nil")
+				assert.Equal(t, "", tokenString)
+				assert.Equal(t, "", sig)
 
+				tokenString, sig, err = signer.Generate(ctx, claims, header)
 				assert.NoError(t, err)
 				assert.NotEqual(t, "", tokenString)
 				assert.NotEqual(t, "", sig)
@@ -376,7 +403,7 @@ func TestJWKFunctionality(t *testing.T) {
 				fmt.Println(tokenString)
 
 				assert.True(t, token.Valid())
-				assert.Equal(t, jwk.alg.Alg(), string(token.Method))
+				assert.Equal(t, jwk.GetSigningMethod().Alg(), string(token.Method))
 
 				sigv, err := signer.Validate(ctx, tokenString)
 				assert.NoError(t, err)
@@ -385,19 +412,19 @@ func TestJWKFunctionality(t *testing.T) {
 
 			t.Run("Marshalling", func(t *testing.T) {
 				var (
-					jwk  *JWK
+					jwk  *oidc.JWK
 					out  jose.JSONWebKey
 					data []byte
 					err  error
 				)
 
-				jwk = NewJWK(tc.have)
+				jwk = oidc.NewJWK(tc.have)
 
 				strategy := jwk.Strategy()
 
 				assert.NotNil(t, strategy)
 
-				signer, ok := strategy.(*Signer)
+				signer, ok := strategy.(*oidc.Signer)
 
 				require.True(t, ok)
 

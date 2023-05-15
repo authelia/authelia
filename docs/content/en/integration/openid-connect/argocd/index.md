@@ -56,7 +56,7 @@ requestedScopes:
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Argo CD]
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Argo CD]
 which will operate with the above example:
 
 ```yaml
@@ -77,7 +77,7 @@ identity_providers:
         - 'groups'
         - 'email'
         - 'profile'
-      userinfo_signing_algorithm: 'none'
+      userinfo_signing_alg: 'none'
     - id: 'argocd-cli'
       description: 'Argo CD (CLI)'
       public: true
@@ -90,7 +90,7 @@ identity_providers:
         - 'email'
         - 'profile'
         - 'offline_access'
-      userinfo_signing_algorithm: 'none'
+      userinfo_signing_alg: 'none'
 ```
 
 ## See Also

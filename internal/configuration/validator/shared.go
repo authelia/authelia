@@ -10,6 +10,10 @@ import (
 
 // ValidateTLSConfig sets the default values and validates a schema.TLSConfig.
 func ValidateTLSConfig(config *schema.TLSConfig, configDefault *schema.TLSConfig) (err error) {
+	if configDefault == nil {
+		return errors.New("must provide configDefault")
+	}
+
 	if config == nil {
 		return
 	}
@@ -35,7 +39,7 @@ func ValidateTLSConfig(config *schema.TLSConfig, configDefault *schema.TLSConfig
 	}
 
 	if (config.CertificateChain.HasCertificates() || config.PrivateKey != nil) && !config.CertificateChain.EqualKey(config.PrivateKey) {
-		return errors.New("option 'certificates' is invalid: provided certificate is not the public key for the private key provided")
+		return errors.New("option 'certificates' is invalid: provided certificate does not contain the public key for the private key provided")
 	}
 
 	return nil

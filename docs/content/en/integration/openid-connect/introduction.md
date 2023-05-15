@@ -18,8 +18,10 @@ Authelia can act as an [OpenID Connect 1.0] Provider as part of an open beta. Th
 specifics that can be used for integrating Authelia with an [OpenID Connect 1.0] Relying Party, as well as specific
 documentation for some [OpenID Connect 1.0] Relying Party implementations.
 
-See the [configuration documentation](../../configuration/identity-providers/open-id-connect.md) for information on how
-to configure the Authelia [OpenID Connect 1.0] Provider.
+See the [OpenID Connect 1.0 Provider](../../configuration/identity-providers/openid-connect/provider.md) and
+[OpenID Connect 1.0 Clients](../../configuration/identity-providers/openid-connect/clients.md) configuration guides for
+information on how to configure the Authelia [OpenID Connect 1.0] Provider (note the clients guide is for configuring
+the registered clients in the provider).
 
 This page is intended as an integration reference point for any implementers who wish to integrate an
 [OpenID Connect 1.0] Relying Party (client application) either as a developer or user of the third party Reyling Party.
@@ -124,6 +126,7 @@ Authelia's response objects can have the following signature algorithms:
 
 ### Request Object
 
+Authelia accepts a wide variety of request object types.
 
 | Algorithm |      Key Type      | Hashing Algorithm |    Use    |                       Notes                        |
 |:---------:|:------------------:|:-----------------:|:---------:|:--------------------------------------------------:|
@@ -131,6 +134,15 @@ Authelia's response objects can have the following signature algorithms:
 |   HS256   | HMAC Shared Secret |      SHA-256      | Signature | [Client Authentication Method] `client_secret_jwt` |
 |   HS384   | HMAC Shared Secret |      SHA-384      | Signature | [Client Authentication Method] `client_secret_jwt` |
 |   HS512   | HMAC Shared Secret |      SHA-512      | Signature | [Client Authentication Method] `client_secret_jwt` |
+|   RS256   |        RSA         |      SHA-256      | Signature |  [Client Authentication Method] `private_key_jwt`  |
+|   RS384   |        RSA         |      SHA-384      | Signature |  [Client Authentication Method] `private_key_jwt`  |
+|   RS512   |        RSA         |      SHA-512      | Signature |  [Client Authentication Method] `private_key_jwt`  |
+|   ES256   |    ECDSA P-256     |      SHA-256      | Signature |  [Client Authentication Method] `private_key_jwt`  |
+|   ES384   |    ECDSA P-384     |      SHA-384      | Signature |  [Client Authentication Method] `private_key_jwt`  |
+|   ES512   |    ECDSA P-521     |      SHA-512      | Signature |  [Client Authentication Method] `private_key_jwt`  |
+|   PS256   |     RSA (MFG1)     |      SHA-256      | Signature |  [Client Authentication Method] `private_key_jwt`  |
+|   PS384   |     RSA (MFG1)     |      SHA-384      | Signature |  [Client Authentication Method] `private_key_jwt`  |
+|   PS512   |     RSA (MFG1)     |      SHA-512      | Signature |  [Client Authentication Method] `private_key_jwt`  |
 
 [Client Authentication Method]: #client-authentication-method
 
@@ -208,7 +220,7 @@ specification and the [OAuth 2.0 - Client Types] specification for more informat
 |  Secret via HTTP Basic Auth Scheme   |     `client_secret_basic`     |     `confidential`     |           N/A           |                           N/A                            |
 |      Secret via HTTP POST Body       |     `client_secret_post`      |     `confidential`     |           N/A           |                           N/A                            |
 |        JWT (signed by secret)        |      `client_secret_jwt`      |     `confidential`     |           N/A           | `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` |
-|     JWT (signed by private key)      |       `private_key_jwt`       |     Not Supported      |           N/A           | `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` |
+|     JWT (signed by private key)      |       `private_key_jwt`       |     `confidential`     |           N/A           | `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` |
 |        [OAuth 2.0 Mutual-TLS]        |       `tls_client_auth`       |     Not Supported      |           N/A           |                           N/A                            |
 | [OAuth 2.0 Mutual-TLS] (Self Signed) | `self_signed_tls_client_auth` |     Not Supported      |           N/A           |                           N/A                            |
 |          No Authentication           |            `none`             |        `public`        |        `public`         |                           N/A                            |
@@ -243,7 +255,7 @@ Below is a list of the potential values we place in the [Claim] and their meanin
 ## User Information Signing Algorithm
 
 The following table describes the response from the [UserInfo] endpoint depending on the
-[userinfo_signing_algorithm](../../configuration/identity-providers/open-id-connect.md#userinfosigningalgorithm).
+[userinfo_signing_alg](../../configuration/identity-providers/openid-connect/clients.md#userinfosigningalg).
 
 | Signing Algorithm |   Encoding   |            Content Type             |
 |:-----------------:|:------------:|:-----------------------------------:|

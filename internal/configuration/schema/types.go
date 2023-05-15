@@ -102,6 +102,7 @@ func NewX509CertificateChain(in string) (chain *X509CertificateChain, err error)
 	return chain, nil
 }
 
+// NewX509CertificateChainFromCerts returns a chain from a given list of certificates without validation.
 func NewX509CertificateChainFromCerts(in []*x509.Certificate) (chain X509CertificateChain) {
 	return X509CertificateChain{certs: in}
 }

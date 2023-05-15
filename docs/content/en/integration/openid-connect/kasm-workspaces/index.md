@@ -80,7 +80,7 @@ identity_providers:
           - 'groups'
           - 'email'
         consent_mode: 'implicit'
-        userinfo_signing_algorithm: 'none'
+        userinfo_signing_alg: 'none'
 ```
 
 ## See Also

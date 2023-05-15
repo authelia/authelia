@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"gopkg.in/square/go-jose.v2"
+	jose "gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -33,20 +33,23 @@ func validateOIDC(config *schema.OpenIDConnectConfiguration, val *schema.StructV
 
 	validateOIDCIssuer(config, val)
 
-	sort.Sort(oidc.SortedSigningAlgs(config.Discovery.RegisteredJWKSigningAlgs))
+	sort.Sort(oidc.SortedSigningAlgs(config.Discovery.ResponseObjectSigningAlgs))
 
 	if config.MinimumParameterEntropy != 0 && config.MinimumParameterEntropy < 8 {
-		val.PushWarning(fmt.Errorf(errFmtOIDCServerInsecureParameterEntropy, config.MinimumParameterEntropy))
+		val.PushWarning(fmt.Errorf(errFmtOIDCProviderInsecureParameterEntropy, config.MinimumParameterEntropy))
 	}
 
-	if config.EnforcePKCE != "never" && config.EnforcePKCE != "public_clients_only" && config.EnforcePKCE != "always" {
-		val.Push(fmt.Errorf(errFmtOIDCEnforcePKCEInvalidValue, config.EnforcePKCE))
+	switch config.EnforcePKCE {
+	case "always", "never", "public_clients_only":
+		break
+	default:
+		val.Push(fmt.Errorf(errFmtOIDCProviderEnforcePKCEInvalidValue, config.EnforcePKCE))
 	}
 
 	validateOIDCOptionsCORS(config, val)
 
 	if len(config.Clients) == 0 {
-		val.Push(fmt.Errorf(errFmtOIDCNoClientsConfigured))
+		val.Push(fmt.Errorf(errFmtOIDCProviderNoClientsConfigured))
 	} else {
 		validateOIDCClients(config, val)
 	}
@@ -55,157 +58,158 @@ func validateOIDC(config *schema.OpenIDConnectConfiguration, val *schema.StructV
 func validateOIDCIssuer(config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
 	switch {
 	case config.IssuerPrivateKey != nil:
-		validateOIDCIssuerLegacy(config, val)
+		validateOIDCIssuerPrivateKey(config)
 
 		fallthrough
-	case len(config.IssuerJWKS) != 0:
-		validateOIDCIssuerModern(config, val)
+	case len(config.IssuerPrivateKeys) != 0:
+		validateOIDCIssuerPrivateKeys(config, val)
 	default:
-		val.Push(fmt.Errorf(errFmtOIDCNoPrivateKey))
+		val.Push(fmt.Errorf(errFmtOIDCProviderNoPrivateKey))
 	}
 }
 
-func validateOIDCIssuerLegacy(config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
-	j := &jose.JSONWebKey{Key: &config.IssuerPrivateKey.PublicKey}
-
-	thumbprint, err := j.Thumbprint(crypto.SHA1)
-	if err != nil {
-		val.Push(fmt.Errorf("identity_providers: oidc: option 'issuer_private_key' failed to calculate thumbprint to configure key id value: %w", err))
-
-		return
-	}
-
-	config.IssuerJWKS = append(config.IssuerJWKS, schema.JWK{
-		KeyID:            fmt.Sprintf("%x", thumbprint)[:6],
+func validateOIDCIssuerPrivateKey(config *schema.OpenIDConnectConfiguration) {
+	config.IssuerPrivateKeys = append([]schema.JWK{{
 		Algorithm:        oidc.SigningAlgRSAUsingSHA256,
 		Use:              oidc.KeyUseSignature,
 		Key:              config.IssuerPrivateKey,
 		CertificateChain: config.IssuerCertificateChain,
-	})
+	}}, config.IssuerPrivateKeys...)
 }
 
-//nolint:gocyclo // Refactor time permitting.
-func validateOIDCIssuerModern(config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+func jwkCalculateThumbprint(key schema.CryptographicKey) (thumbprintStr string, err error) {
+	j := jose.JSONWebKey{}
+
+	switch k := key.(type) {
+	case schema.CryptographicPrivateKey:
+		j.Key = k.Public()
+	case *rsa.PublicKey, *ecdsa.PublicKey, ed25519.PublicKey:
+		j.Key = k
+	default:
+		return "", nil
+	}
+
+	var thumbprint []byte
+
+	if thumbprint, err = j.Thumbprint(crypto.SHA256); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%x", thumbprint)[:6], nil
+}
+
+func validateOIDCIssuerPrivateKeys(config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
 	var (
 		props *JWKProperties
 		err   error
 	)
 
-	kids := make([]string, len(config.IssuerJWKS))
+	kids := make([]string, len(config.IssuerPrivateKeys))
 
-	for i := 0; i < len(config.IssuerJWKS); i++ {
-		if key, ok := config.IssuerJWKS[i].Key.(*rsa.PrivateKey); ok && key.PublicKey.N == nil {
-			val.Push(fmt.Errorf("identity_providers: oidc: issuer_jwks: key #%d: option 'key' must be a valid RSA private key but the provided data is malformed as it's missing the public key bits", i+1))
+	for i := 0; i < len(config.IssuerPrivateKeys); i++ {
+		if key, ok := config.IssuerPrivateKeys[i].Key.(*rsa.PrivateKey); ok && key.PublicKey.N == nil {
+			val.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysInvalid, i+1))
 
 			continue
 		}
 
-		switch n := len(config.IssuerJWKS[i].KeyID); {
+		switch n := len(config.IssuerPrivateKeys[i].KeyID); {
 		case n == 0:
-			j := jose.JSONWebKey{}
-
-			switch key := config.IssuerJWKS[i].Key.(type) {
-			case schema.CryptographicPrivateKey:
-				j.Key = key.Public()
-			case *rsa.PublicKey, *ecdsa.PublicKey, ed25519.PublicKey:
-				j.Key = key
-			default:
-				break
-			}
-
-			if j.Key == nil {
-				break
-			}
-
-			var thumbprint []byte
-
-			if thumbprint, err = j.Thumbprint(crypto.SHA1); err != nil {
-				val.Push(fmt.Errorf("identity_providers: oidc: issuer_jwks: key #%d: option 'key' failed to calculate thumbprint to configure key id value: %w", i+1, err))
+			if config.IssuerPrivateKeys[i].KeyID, err = jwkCalculateThumbprint(config.IssuerPrivateKeys[i].Key); err != nil {
+				val.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysCalcThumbprint, i+1, err))
 
 				continue
 			}
-
-			config.IssuerJWKS[i].KeyID = fmt.Sprintf("%x", thumbprint)[:6]
 		case n > 7:
-			val.Push(fmt.Errorf("identity_providers: oidc: issuer_jwks: key #%d with key id '%s': option `key_id`` must be 7 characters or less", i+1, config.IssuerJWKS[i].KeyID))
+			val.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysKeyIDLength, i+1, config.IssuerPrivateKeys[i].KeyID))
 		}
 
-		if config.IssuerJWKS[i].KeyID != "" && utils.IsStringInSlice(config.IssuerJWKS[i].KeyID, kids) {
-			val.Push(fmt.Errorf("identity_providers: oidc: issuer_jwks: key #%d with key id '%s': option 'key_id' must be unique", i+1, config.IssuerJWKS[i].KeyID))
+		if config.IssuerPrivateKeys[i].KeyID != "" && utils.IsStringInSlice(config.IssuerPrivateKeys[i].KeyID, kids) {
+			val.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysAttributeNotUnique, i+1, config.IssuerPrivateKeys[i].KeyID, attrOIDCKeyID))
 		}
 
-		kids[i] = config.IssuerJWKS[i].KeyID
+		kids[i] = config.IssuerPrivateKeys[i].KeyID
 
-		if !utils.IsStringAlphaNumeric(config.IssuerJWKS[i].KeyID) {
-			val.Push(fmt.Errorf("identity_providers: oidc: issuer_jwks: key #%d with key id '%s': option 'key_id' must only have alphanumeric characters", i+1, config.IssuerJWKS[i].KeyID))
+		if !utils.IsStringAlphaNumeric(config.IssuerPrivateKeys[i].KeyID) {
+			val.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysKeyIDNotAlphaNumeric, i+1, config.IssuerPrivateKeys[i].KeyID))
 		}
 
-		if props, err = schemaJWKGetProperties(config.IssuerJWKS[i]); err != nil {
-			val.Push(fmt.Errorf("identity_providers: oidc: issuer_jwks: key #%d with key id '%s': option 'key' failed to get key properties: %w", i+1, config.IssuerJWKS[i].KeyID, err))
+		if props, err = schemaJWKGetProperties(config.IssuerPrivateKeys[i]); err != nil {
+			val.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysProperties, i+1, config.IssuerPrivateKeys[i].KeyID, err))
 
 			continue
 		}
 
-		switch config.IssuerJWKS[i].Use {
-		case "":
-			config.IssuerJWKS[i].Use = props.Use
-		case oidc.KeyUseSignature:
-			break
-		default:
-			val.Push(fmt.Errorf("identity_providers: oidc: issuer_jwks: key #%d with key id '%s': option '%s' must be one of %s but it's configured as '%s'", i+1, config.IssuerJWKS[i].KeyID, "use", strJoinOr([]string{oidc.KeyUseSignature}), config.IssuerJWKS[i].Use))
-		}
+		validateOIDCIssuerPrivateKeysUseAlg(i, props, config, val)
+		validateOIDCIssuerPrivateKeyPair(i, config, val)
+	}
 
-		switch {
-		case config.IssuerJWKS[i].Algorithm == "":
-			config.IssuerJWKS[i].Algorithm = props.Algorithm
-		case utils.IsStringInSlice(config.IssuerJWKS[i].Algorithm, validOIDCIssuerJWKSigningAlgs):
-			break
-		default:
-			val.Push(fmt.Errorf("identity_providers: oidc: issuer_jwks: key #%d with key id '%s': option '%s' must be one of %s but it's configured as '%s'", i+1, config.IssuerJWKS[i].KeyID, "algorithm", strJoinOr(validOIDCIssuerJWKSigningAlgs), config.IssuerJWKS[i].Algorithm))
-		}
+	if len(config.Discovery.ResponseObjectSigningAlgs) != 0 && !utils.IsStringInSlice(oidc.SigningAlgRSAUsingSHA256, config.Discovery.ResponseObjectSigningAlgs) {
+		val.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysNoRS256, oidc.SigningAlgRSAUsingSHA256, strJoinAnd(config.Discovery.ResponseObjectSigningAlgs)))
+	}
+}
 
-		if config.IssuerJWKS[i].Algorithm != "" {
-			if utils.IsStringInSlice(config.IssuerJWKS[i].Algorithm, config.Discovery.RegisteredJWKSigningAlgs) {
-				val.Push(fmt.Errorf("identity_providers: oidc: issuer_jwks: key #%d with key id '%s': option 'algorithm' must be unique but another key is using it", i+1, config.IssuerJWKS[i].KeyID))
-			} else {
-				config.Discovery.RegisteredJWKSigningAlgs = append(config.Discovery.RegisteredJWKSigningAlgs, config.IssuerJWKS[i].Algorithm)
-			}
-		}
+func validateOIDCIssuerPrivateKeysUseAlg(i int, props *JWKProperties, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+	switch config.IssuerPrivateKeys[i].Use {
+	case "":
+		config.IssuerPrivateKeys[i].Use = props.Use
+	case oidc.KeyUseSignature:
+		break
+	default:
+		val.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysInvalidOptionOneOf, i+1, config.IssuerPrivateKeys[i].KeyID, attrOIDCKeyUse, strJoinOr([]string{oidc.KeyUseSignature}), config.IssuerPrivateKeys[i].Use))
+	}
 
-		if config.IssuerJWKS[i].Algorithm == oidc.SigningAlgRSAUsingSHA256 && config.Discovery.DefaultKeyID == "" {
-			config.Discovery.DefaultKeyID = config.IssuerJWKS[i].KeyID
-		}
+	switch {
+	case config.IssuerPrivateKeys[i].Algorithm == "":
+		config.IssuerPrivateKeys[i].Algorithm = props.Algorithm
+	case utils.IsStringInSlice(config.IssuerPrivateKeys[i].Algorithm, validOIDCIssuerJWKSigningAlgs):
+		break
+	default:
+		val.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysInvalidOptionOneOf, i+1, config.IssuerPrivateKeys[i].KeyID, attrOIDCAlgorithm, strJoinOr(validOIDCIssuerJWKSigningAlgs), config.IssuerPrivateKeys[i].Algorithm))
+	}
 
-		var checkEqualKey bool
-
-		switch key := config.IssuerJWKS[i].Key.(type) {
-		case *rsa.PrivateKey:
-			checkEqualKey = true
-
-			if key.Size() < 256 {
-				checkEqualKey = false
-
-				val.Push(fmt.Errorf("identity_providers: oidc: issuer_jwks: key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must be a RSA 2048 bit private key", i+1, config.IssuerJWKS[i].KeyID, key.Size()*8))
-			}
-		case *ecdsa.PrivateKey:
-			checkEqualKey = true
-		default:
-			val.Push(fmt.Errorf("identity_providers: oidc: issuer_jwks: key #%d with key id '%s': option 'key' must be a *rsa.PrivateKey or *ecdsa.PrivateKey but it's a %T", i+1, config.IssuerJWKS[i].KeyID, key))
-		}
-
-		if config.IssuerJWKS[i].CertificateChain.HasCertificates() {
-			if checkEqualKey && !config.IssuerJWKS[i].CertificateChain.EqualKey(config.IssuerJWKS[i].Key) {
-				val.Push(fmt.Errorf("identity_providers: oidc: issuer_jwks: key #%d with key id '%s': option 'key' does not appear to be the private key the certificate provided by option 'certificate_chain'", i+1, config.IssuerJWKS[i].KeyID))
-			}
-
-			if err = config.IssuerJWKS[i].CertificateChain.Validate(); err != nil {
-				val.Push(fmt.Errorf("identity_providers: oidc: issuer_jwks: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w", i+1, config.IssuerJWKS[i].KeyID, err))
-			}
+	if config.IssuerPrivateKeys[i].Algorithm != "" {
+		if utils.IsStringInSlice(config.IssuerPrivateKeys[i].Algorithm, config.Discovery.ResponseObjectSigningAlgs) {
+			val.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysAttributeNotUnique, i+1, config.IssuerPrivateKeys[i].KeyID, attrOIDCAlgorithm))
+		} else {
+			config.Discovery.ResponseObjectSigningAlgs = append(config.Discovery.ResponseObjectSigningAlgs, config.IssuerPrivateKeys[i].Algorithm)
 		}
 	}
 
-	if len(config.Discovery.RegisteredJWKSigningAlgs) != 0 && !utils.IsStringInSlice(oidc.SigningAlgRSAUsingSHA256, config.Discovery.RegisteredJWKSigningAlgs) {
-		val.Push(fmt.Errorf("identity_providers: oidc: issuer_jwks: keys: must at least have one key supporting the '%s' algorithm but only has %s", oidc.SigningAlgRSAUsingSHA256, strJoinAnd(config.Discovery.RegisteredJWKSigningAlgs)))
+	if config.IssuerPrivateKeys[i].Algorithm == oidc.SigningAlgRSAUsingSHA256 && config.Discovery.DefaultKeyID == "" {
+		config.Discovery.DefaultKeyID = config.IssuerPrivateKeys[i].KeyID
+	}
+}
+
+func validateOIDCIssuerPrivateKeyPair(i int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+	var (
+		checkEqualKey bool
+		err           error
+	)
+
+	switch key := config.IssuerPrivateKeys[i].Key.(type) {
+	case *rsa.PrivateKey:
+		checkEqualKey = true
+
+		if key.Size() < 256 {
+			checkEqualKey = false
+
+			val.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysRSAKeyLessThan2048Bits, i+1, config.IssuerPrivateKeys[i].KeyID, key.Size()*8))
+		}
+	case *ecdsa.PrivateKey:
+		checkEqualKey = true
+	default:
+		val.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysKeyNotRSAOrECDSA, i+1, config.IssuerPrivateKeys[i].KeyID, key))
+	}
+
+	if config.IssuerPrivateKeys[i].CertificateChain.HasCertificates() {
+		if checkEqualKey && !config.IssuerPrivateKeys[i].CertificateChain.EqualKey(config.IssuerPrivateKeys[i].Key) {
+			val.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysKeyCertificateMismatch, i+1, config.IssuerPrivateKeys[i].KeyID))
+		}
+
+		if err = config.IssuerPrivateKeys[i].CertificateChain.Validate(); err != nil {
+			val.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysCertificateChainInvalid, i+1, config.IssuerPrivateKeys[i].KeyID, err))
+		}
 	}
 }
 
@@ -356,7 +360,7 @@ func validateOIDCClient(c int, config *schema.OpenIDConnectConfiguration, val *s
 	case policyOneFactor, policyTwoFactor:
 		break
 	default:
-		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, "policy", strJoinOr([]string{policyOneFactor, policyTwoFactor}), config.Clients[c].Policy))
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, "authorization_policy", strJoinOr([]string{policyOneFactor, policyTwoFactor}), config.Clients[c].Policy))
 	}
 
 	switch config.Clients[c].PKCEChallengeMethod {
@@ -374,10 +378,113 @@ func validateOIDCClient(c int, config *schema.OpenIDConnectConfiguration, val *s
 	validateOIDCClientGrantTypes(c, config, val, errDeprecatedFunc)
 	validateOIDCClientRedirectURIs(c, config, val, errDeprecatedFunc)
 
-	validateOIDCClientTokenEndpointAuth(c, config, val)
 	validateOIDDClientSigningAlgs(c, config, val)
 
 	validateOIDCClientSectorIdentifier(c, config, val)
+
+	validateOIDCClientPublicKeys(c, config, val)
+	validateOIDCClientTokenEndpointAuth(c, config, val)
+}
+
+func validateOIDCClientPublicKeys(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+	switch {
+	case config.Clients[c].PublicKeys.URI != nil && len(config.Clients[c].PublicKeys.Values) != 0:
+		val.Push(fmt.Errorf(errFmtOIDCClientPublicKeysBothURIAndValuesConfigured, config.Clients[c].ID))
+	case config.Clients[c].PublicKeys.URI != nil:
+		if config.Clients[c].PublicKeys.URI.Scheme != schemeHTTPS {
+			val.Push(fmt.Errorf(errFmtOIDCClientPublicKeysURIInvalidScheme, config.Clients[c].ID, config.Clients[c].PublicKeys.URI.Scheme))
+		}
+	case len(config.Clients[c].PublicKeys.Values) != 0:
+		validateOIDCClientJSONWebKeysList(c, config, val)
+	}
+}
+
+func validateOIDCClientJSONWebKeysList(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+	var (
+		props *JWKProperties
+		err   error
+	)
+
+	for i := 0; i < len(config.Clients[c].PublicKeys.Values); i++ {
+		if config.Clients[c].PublicKeys.Values[i].KeyID == "" {
+			val.Push(fmt.Errorf(errFmtOIDCClientPublicKeysInvalidOptionMissingOneOf, config.Clients[c].ID, i+1, attrOIDCKeyID))
+		}
+
+		if props, err = schemaJWKGetProperties(config.Clients[c].PublicKeys.Values[i]); err != nil {
+			val.Push(fmt.Errorf(errFmtOIDCClientPublicKeysProperties, config.Clients[c].ID, i+1, config.Clients[c].PublicKeys.Values[i].KeyID, err))
+
+			continue
+		}
+
+		validateOIDCClientJSONWebKeysListKeyUseAlg(c, i, props, config, val)
+
+		var checkEqualKey bool
+
+		switch key := config.Clients[c].PublicKeys.Values[i].Key.(type) {
+		case nil:
+			val.Push(fmt.Errorf(errFmtOIDCClientPublicKeysInvalidOptionMissingOneOf, config.Clients[c].ID, i+1, attrOIDCKey))
+		case *rsa.PublicKey:
+			checkEqualKey = true
+
+			if key.N == nil {
+				checkEqualKey = false
+
+				val.Push(fmt.Errorf(errFmtOIDCClientPublicKeysKeyMalformed, config.Clients[c].ID, i+1))
+			} else if key.Size() < 256 {
+				checkEqualKey = false
+
+				val.Push(fmt.Errorf(errFmtOIDCClientPublicKeysRSAKeyLessThan2048Bits, config.Clients[c].ID, i+1, config.Clients[c].PublicKeys.Values[i].KeyID, key.Size()*8))
+			}
+		case *ecdsa.PublicKey:
+			checkEqualKey = true
+		default:
+			val.Push(fmt.Errorf(errFmtOIDCClientPublicKeysKeyNotRSAOrECDSA, config.Clients[c].ID, i+1, config.Clients[c].PublicKeys.Values[i].KeyID, key))
+		}
+
+		if config.Clients[c].PublicKeys.Values[i].CertificateChain.HasCertificates() {
+			if checkEqualKey && !config.Clients[c].PublicKeys.Values[i].CertificateChain.EqualKey(config.Clients[c].PublicKeys.Values[i].Key) {
+				val.Push(fmt.Errorf(errFmtOIDCClientPublicKeysCertificateChainKeyMismatch, config.Clients[c].ID, i+1, config.Clients[c].PublicKeys.Values[i].KeyID))
+			}
+
+			if err = config.Clients[c].PublicKeys.Values[i].CertificateChain.Validate(); err != nil {
+				val.Push(fmt.Errorf(errFmtOIDCClientPublicKeysCertificateChainInvalid, config.Clients[c].ID, i+1, config.Clients[c].PublicKeys.Values[i].KeyID, err))
+			}
+		}
+	}
+
+	if config.Clients[c].RequestObjectSigningAlg != "" && !utils.IsStringInSlice(config.Clients[c].RequestObjectSigningAlg, config.Clients[c].Discovery.RequestObjectSigningAlgs) {
+		val.Push(fmt.Errorf(errFmtOIDCClientPublicKeysROSAMissingAlgorithm, config.Clients[c].ID, strJoinOr(config.Clients[c].Discovery.RequestObjectSigningAlgs)))
+	}
+}
+
+func validateOIDCClientJSONWebKeysListKeyUseAlg(c, i int, props *JWKProperties, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+	switch config.Clients[c].PublicKeys.Values[i].Use {
+	case "":
+		config.Clients[c].PublicKeys.Values[i].Use = props.Use
+	case oidc.KeyUseSignature:
+		break
+	default:
+		val.Push(fmt.Errorf(errFmtOIDCClientPublicKeysInvalidOptionOneOf, config.Clients[c].ID, i+1, config.Clients[c].PublicKeys.Values[i].KeyID, attrOIDCKeyUse, strJoinOr([]string{oidc.KeyUseSignature}), config.Clients[c].PublicKeys.Values[i].Use))
+	}
+
+	switch {
+	case config.Clients[c].PublicKeys.Values[i].Algorithm == "":
+		config.Clients[c].PublicKeys.Values[i].Algorithm = props.Algorithm
+	case utils.IsStringInSlice(config.Clients[c].PublicKeys.Values[i].Algorithm, validOIDCIssuerJWKSigningAlgs):
+		break
+	default:
+		val.Push(fmt.Errorf(errFmtOIDCClientPublicKeysInvalidOptionOneOf, config.Clients[c].ID, i+1, config.Clients[c].PublicKeys.Values[i].KeyID, attrOIDCAlgorithm, strJoinOr(validOIDCIssuerJWKSigningAlgs), config.Clients[c].PublicKeys.Values[i].Algorithm))
+	}
+
+	if config.Clients[c].PublicKeys.Values[i].Algorithm != "" {
+		if !utils.IsStringInSlice(config.Clients[c].PublicKeys.Values[i].Algorithm, config.Discovery.RequestObjectSigningAlgs) {
+			config.Discovery.RequestObjectSigningAlgs = append(config.Discovery.RequestObjectSigningAlgs, config.Clients[c].PublicKeys.Values[i].Algorithm)
+		}
+
+		if !utils.IsStringInSlice(config.Clients[c].PublicKeys.Values[i].Algorithm, config.Clients[c].Discovery.RequestObjectSigningAlgs) {
+			config.Clients[c].Discovery.RequestObjectSigningAlgs = append(config.Clients[c].Discovery.RequestObjectSigningAlgs, config.Clients[c].PublicKeys.Values[i].Algorithm)
+		}
+	}
 }
 
 func validateOIDCClientSectorIdentifier(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
@@ -654,11 +761,34 @@ func validateOIDCClientTokenEndpointAuth(c int, config *schema.OpenIDConnectConf
 	case "":
 		break
 	case oidc.ClientAuthMethodClientSecretJWT:
-		switch {
-		case config.Clients[c].TokenEndpointAuthSigningAlg == "":
-			config.Clients[c].TokenEndpointAuthSigningAlg = oidc.SigningAlgHMACUsingSHA256
-		case !utils.IsStringInSlice(config.Clients[c].TokenEndpointAuthSigningAlg, validOIDCClientTokenEndpointAuthSigAlgs):
-			val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthSigAlg, config.Clients[c].ID, strJoinOr(validOIDCClientTokenEndpointAuthSigAlgs), config.Clients[c].TokenEndpointAuthMethod))
+		validateOIDCClientTokenEndpointAuthClientSecretJWT(c, config, val)
+	case oidc.ClientAuthMethodPrivateKeyJWT:
+		validateOIDCClientTokenEndpointAuthPublicKeyJWT(config.Clients[c], val)
+	}
+}
+
+func validateOIDCClientTokenEndpointAuthClientSecretJWT(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+	switch {
+	case config.Clients[c].TokenEndpointAuthSigningAlg == "":
+		config.Clients[c].TokenEndpointAuthSigningAlg = oidc.SigningAlgHMACUsingSHA256
+	case !utils.IsStringInSlice(config.Clients[c].TokenEndpointAuthSigningAlg, validOIDCClientTokenEndpointAuthSigAlgsClientSecretJWT):
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthSigAlg, config.Clients[c].ID, strJoinOr(validOIDCClientTokenEndpointAuthSigAlgsClientSecretJWT), config.Clients[c].TokenEndpointAuthMethod))
+	}
+}
+
+func validateOIDCClientTokenEndpointAuthPublicKeyJWT(config schema.OpenIDConnectClientConfiguration, val *schema.StructValidator) {
+	switch {
+	case config.TokenEndpointAuthSigningAlg == "":
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthSigAlgMissingPrivateKeyJWT, config.ID))
+	case !utils.IsStringInSlice(config.TokenEndpointAuthSigningAlg, validOIDCIssuerJWKSigningAlgs):
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthSigAlg, config.ID, strJoinOr(validOIDCIssuerJWKSigningAlgs), config.TokenEndpointAuthMethod))
+	}
+
+	if config.PublicKeys.URI == nil {
+		if len(config.PublicKeys.Values) == 0 {
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidPublicKeysPrivateKeyJWT, config.ID))
+		} else if len(config.Discovery.RequestObjectSigningAlgs) != 0 && !utils.IsStringInSlice(config.TokenEndpointAuthSigningAlg, config.Discovery.RequestObjectSigningAlgs) {
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthSigAlgReg, config.ID, strJoinOr(config.Discovery.RequestObjectSigningAlgs), config.TokenEndpointAuthMethod))
 		}
 	}
 }
@@ -666,15 +796,15 @@ func validateOIDCClientTokenEndpointAuth(c int, config *schema.OpenIDConnectConf
 func validateOIDDClientSigningAlgs(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
 	if config.Clients[c].UserinfoSigningAlg == "" {
 		config.Clients[c].UserinfoSigningAlg = schema.DefaultOpenIDConnectClientConfiguration.UserinfoSigningAlg
-	} else if config.Clients[c].UserinfoSigningAlg != oidc.SigningAlgNone && !utils.IsStringInSlice(config.Clients[c].UserinfoSigningAlg, config.Discovery.RegisteredJWKSigningAlgs) {
+	} else if config.Clients[c].UserinfoSigningAlg != oidc.SigningAlgNone && !utils.IsStringInSlice(config.Clients[c].UserinfoSigningAlg, config.Discovery.ResponseObjectSigningAlgs) {
 		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
-			config.Clients[c].ID, attrOIDCUsrSigAlg, strJoinOr(append(config.Discovery.RegisteredJWKSigningAlgs, oidc.SigningAlgNone)), config.Clients[c].UserinfoSigningAlg))
+			config.Clients[c].ID, attrOIDCUsrSigAlg, strJoinOr(append(config.Discovery.ResponseObjectSigningAlgs, oidc.SigningAlgNone)), config.Clients[c].UserinfoSigningAlg))
 	}
 
 	if config.Clients[c].IDTokenSigningAlg == "" {
 		config.Clients[c].IDTokenSigningAlg = schema.DefaultOpenIDConnectClientConfiguration.IDTokenSigningAlg
-	} else if !utils.IsStringInSlice(config.Clients[c].IDTokenSigningAlg, config.Discovery.RegisteredJWKSigningAlgs) {
+	} else if !utils.IsStringInSlice(config.Clients[c].IDTokenSigningAlg, config.Discovery.ResponseObjectSigningAlgs) {
 		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
-			config.Clients[c].ID, attrOIDCIDTokenSigAlg, strJoinOr(config.Discovery.RegisteredJWKSigningAlgs), config.Clients[c].IDTokenSigningAlg))
+			config.Clients[c].ID, attrOIDCIDTokenSigAlg, strJoinOr(config.Discovery.ResponseObjectSigningAlgs), config.Clients[c].IDTokenSigningAlg))
 	}
 }
