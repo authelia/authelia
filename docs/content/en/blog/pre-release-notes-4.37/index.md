@@ -31,14 +31,14 @@ with all major proxies supported excluding Microsoft IIS.
 [Envoy]: https://www.envoyproxy.io/
 [Istio]: https://istio.io/
 
-## OpenID Connect Improvements
+## OpenID Connect 1.0 Improvements
 
-Several items from the [OpenID Connect Roadmap](../../roadmap/active/openid-connect.md) are being checked off in this
+Several items from the [OpenID Connect 1.0 Roadmap](../../roadmap/active/openid-connect.md) are being checked off in this
 release.
 
 ### Hashed Client Secrets
 
-We'll be supporting hashed OpenID Connect client secrets in this release. People will still be able to use plaintext
+We'll be supporting hashed OpenID Connect 1.0 client secrets in this release. People will still be able to use plaintext
 secrets if they wish however we'll be recommending people utilize PBKDF2, BCrypt or SHA512 SHA2CRYPT (see
 [Password Algorithms](#password-algorithms) for a full compatibility list). This doesn't change anything for OpenID
 Connect Relying Parties, it only requires a change in the Authelia configuration.

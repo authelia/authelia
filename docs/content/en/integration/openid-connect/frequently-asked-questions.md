@@ -1,7 +1,7 @@
 ---
 title: "Frequently Asked Questions"
-description: "Frequently Asked Questions regarding integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party"
-lead: "Frequently Asked Questions regarding integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party."
+description: "Frequently Asked Questions regarding integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party"
+lead: "Frequently Asked Questions regarding integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party."
 date: 2022-10-20T15:27:09+11:00
 draft: false
 images: []

@@ -1,7 +1,7 @@
 ---
 title: "OpenID Connect"
-description: "An introduction into integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party"
-lead: "An introduction into integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party."
+description: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party"
+lead: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -265,7 +265,7 @@ The following table describes the response from the [UserInfo] endpoint dependin
 ## Endpoint Implementations
 
 The following section documents the endpoints we implement and their respective paths. This information can
-traditionally be discovered by relying parties that utilize [OpenID Connect Discovery], however this information may be
+traditionally be discovered by relying parties that utilize [OpenID Connect Discovery 1.0], however this information may be
 useful for clients which do not implement this.
 
 The endpoints can be discovered easily by visiting the Discovery and Metadata endpoints. It is recommended regardless
@@ -275,7 +275,7 @@ below.
 
 These tables document the endpoints we currently support and their paths in the most recent version of Authelia. The
 paths are appended to the end of the primary URL used to access Authelia. The tables use the url
-https://auth.example.com as an example of the Authelia root URL which is also the OpenID Connect issuer.
+https://auth.example.com as an example of the Authelia root URL which is also the OpenID Connect 1.0 Issuer.
 
 ### Well Known Discovery Endpoints
 
@@ -283,12 +283,12 @@ These endpoints can be utilized to discover other endpoints and metadata about t
 
 |                 Endpoint                  |                              Path                               |
 |:-----------------------------------------:|:---------------------------------------------------------------:|
-|        [OpenID Connect Discovery]         |    https://auth.example.com/.well-known/openid-configuration    |
+|        [OpenID Connect Discovery 1.0]         |    https://auth.example.com/.well-known/openid-configuration    |
 | [OAuth 2.0 Authorization Server Metadata] | https://auth.example.com/.well-known/oauth-authorization-server |
 
 ### Discoverable Endpoints
 
-These endpoints implement OpenID Connect elements.
+These endpoints implement OpenID Connect 1.0 Provider specifications.
 
 |            Endpoint             |                              Path                              |          Discovery Attribute          |
 |:-------------------------------:|:--------------------------------------------------------------:|:-------------------------------------:|
@@ -365,7 +365,7 @@ The advantages of this approach are as follows:
 
 [OpenID Connect 1.0]: https://openid.net/connect/
 
-[OpenID Connect Discovery]: https://openid.net/specs/openid-connect-discovery-1_0.html
+[OpenID Connect Discovery 1.0]: https://openid.net/specs/openid-connect-discovery-1_0.html
 [OAuth 2.0 Authorization Server Metadata]: https://datatracker.ietf.org/doc/html/rfc8414
 
 [JSON Web Key Set]: https://datatracker.ietf.org/doc/html/rfc7517#section-5

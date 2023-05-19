@@ -466,14 +466,6 @@ and is paired with [authelia-location.conf](#authelia-locationconf).*
 ## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
 auth_request /internal/authelia/authz;
 
-## Save the upstream authorization response headers from Authelia to variables.
-auth_request_set $authorization $upstream_http_authorization;
-auth_request_set $proxy_authorization $upstream_http_proxy_authorization;
-
-## Inject the authorization response headers from the variables into the request made to the backend.
-proxy_set_header Authorization $authorization;
-proxy_set_header Proxy-Authorization $proxy_authorization;
-
 ## Save the upstream metadata response headers from Authelia to variables.
 auth_request_set $user $upstream_http_remote_user;
 auth_request_set $groups $upstream_http_remote_groups;
@@ -485,10 +477,6 @@ proxy_set_header Remote-User $user;
 proxy_set_header Remote-Groups $groups;
 proxy_set_header Remote-Email $email;
 proxy_set_header Remote-Name $name;
-
-## Include the Set-Cookie header if present.
-auth_request_set $cookie $upstream_http_set_cookie;
-add_header Set-Cookie $cookie;
 
 ## Configure the redirection when the authz failure occurs. Lines starting with 'Modern Method' and 'Legacy Method'
 ## should be commented / uncommented as pairs. The modern method uses the session cookies configuration's authelia_url

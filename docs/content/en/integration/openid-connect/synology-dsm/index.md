@@ -1,6 +1,6 @@
 ---
 title: "Synology DSM"
-description: "Integrating Synology DSM with the Authelia OpenID Connect Provider."
+description: "Integrating Synology DSM with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
 date: 2022-10-18T21:22:13+11:00
 draft: false

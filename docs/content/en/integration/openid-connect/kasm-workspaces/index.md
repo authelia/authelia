@@ -1,6 +1,6 @@
 ---
 title: "Kasm Workspaces"
-description: "Integrating Kasm Workspaces with the Authelia OpenID Connect Provider."
+description: "Integrating Kasm Workspaces with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
 date: 2023-04-27T18:40:06+10:00
 draft: false

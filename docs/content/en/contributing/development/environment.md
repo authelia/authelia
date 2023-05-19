@@ -62,7 +62,7 @@ There is a scripting context provided with __Authelia__ which can easily be conf
 [suites] and various other tasks. Read more about it in the [authelia-scripts](reference-authelia-scripts.md) reference
 guide.
 
-## FAQ
+## Frequently Asked Questions
 
 ### Do you support development under Windows or OSX?
 
