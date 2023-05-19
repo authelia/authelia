@@ -25,7 +25,7 @@ The available storage backends are listed in the table of contents below.
 
 ```yaml
 storage:
-  encryption_key: a_very_important_secret
+  encryption_key: 'a_very_important_secret'
   local: {}
   mysql: {}
   postgres: {}

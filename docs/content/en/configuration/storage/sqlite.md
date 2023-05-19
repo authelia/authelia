@@ -28,9 +28,9 @@ but this requires you setup an external database such as [PostgreSQL](postgres.m
 
 ```yaml
 storage:
-  encryption_key: a_very_important_secret
+  encryption_key: 'a_very_important_secret'
   local:
-    path: /config/db.sqlite3
+    path: '/config/db.sqlite3'
 ```
 
 ## Options

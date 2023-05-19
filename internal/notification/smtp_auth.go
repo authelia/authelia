@@ -20,7 +20,7 @@ func NewOpportunisticSMTPAuth(config *schema.SMTPNotifierConfiguration) *Opportu
 	return &OpportunisticSMTPAuth{
 		username: config.Username,
 		password: config.Password,
-		host:     config.Host,
+		host:     config.Address.Hostname(),
 	}
 }
 

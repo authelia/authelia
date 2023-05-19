@@ -21,61 +21,63 @@ aliases:
 
 ```yaml
 server:
-  host: 0.0.0.0
-  port: 9091
-  path: ""
+  address: 'tcp://:9091'
+  path: ''
   disable_healthcheck: false
   tls:
-    key: ""
-    certificate: ""
+    key: ''
+    certificate: ''
     client_certificates: []
   headers:
-    csp_template: ""
+    csp_template: ''
   buffers:
     read: 4096
     write: 4096
   timeouts:
-    read: 6s
-    write: 6s
-    idle: 30s
+    read: '6s'
+    write: '6s'
+    idle: '30s'
   endpoints:
     enable_pprof: false
     enable_expvars: false
     authz:
       forward-auth:
-        implementation: ForwardAuth
+        implementation: 'ForwardAuth'
         authn_strategies: []
       ext-authz:
-        implementation: ExtAuthz
+        implementation: 'ExtAuthz'
         authn_strategies: []
       auth-request:
-        implementation: AuthRequest
+        implementation: 'AuthRequest'
         authn_strategies: []
       legacy:
-        implementation: Legacy
+        implementation: 'Legacy'
         authn_strategies: []
 ```
 
 ## Options
 
-## host
+### address
 
-{{< confkey type="string" default="0.0.0.0" required="no" >}}
+{{< confkey type="address" default="tcp://:9091" required="no" >}}
 
-Defines the address to listen on. See also [port](#port). Should typically be `0.0.0.0` or `127.0.0.1`, the former for
-containerized environments and the later for daemonized environments like init.d and systemd.
+*__Reference Note:__ This configuration option uses the [address common syntax](../prologue/common.md#address). Please
+see the [documentation](../prologue/common.md#address) on this format for more information.*
 
-Note: If utilising an IPv6 literal address it must be enclosed by square brackets and quoted:
+Configures the listener address for the Main HTTP Server. The address itself is a listener and the scheme must either be
+the `unix` scheme or one of the `tcp` schemes.
+
+__Examples:__
 
 ```yaml
-host: "[fd00:1111:2222:3333::1]"
+server:
+  address: tcp://127.0.0.1:9091
 ```
 
-### port
-
-{{< confkey type="integer" default="9091" required="no" >}}
-
-Defines the port to listen on. See also [host](#host).
+```yaml
+server:
+  address: unix:///var/run/authelia.sock
+```
 
 ### path
 
@@ -173,13 +175,19 @@ research about how browsers utilize and understand this header before attempting
 
 ### buffers
 
-Configures the server buffers. See the [Server Buffers](../prologue/common.md#server-buffers) documentation for more
-information.
+*__Reference Note:__ This configuration option uses the
+[Server buffers common structure](../prologue/common.md#server-buffers). Please see the
+[documentation](../prologue/common.md#server-buffers) on this structure for more information.*
+
+Configures the server buffers.
 
 ### timeouts
 
-Configures the server timeouts. See the [Server Timeouts](../prologue/common.md#server-timeouts) documentation for more
-information.
+*__Reference Note:__ This configuration option uses the
+[Server timeouts common structure](../prologue/common.md#server-timeouts). Please see the
+[documentation](../prologue/common.md#server-timeouts) on this structure for more information.*
+
+Configures the server timeouts.
 
 ### endpoints
 
@@ -194,10 +202,10 @@ Enables the go [pprof](https://pkg.go.dev/net/http/pprof) endpoints.
 
 #### enable_expvars
 
+{{< confkey type="boolean" default="false" required="no" >}}
+
 *__Security Note:__ This is a developer endpoint. __DO NOT__ enable it unless you know why you're enabling it.
 __DO NOT__ enable this in production.*
-
-{{< confkey type="boolean" default="false" required="no" >}}
 
 Enables the go [expvar](https://pkg.go.dev/expvar) endpoints.
 

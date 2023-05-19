@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"bytes"
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
@@ -9,9 +10,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"net"
-	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
@@ -19,98 +17,6 @@ import (
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/go-crypt/crypt/algorithm/plaintext"
 )
-
-// NewAddressFromString returns an *Address and error depending on the ability to parse the string as an Address.
-func NewAddressFromString(a string) (addr *Address, err error) {
-	if len(a) == 0 {
-		return &Address{true, "tcp", net.ParseIP("0.0.0.0"), 0}, nil
-	}
-
-	var u *url.URL
-
-	if regexpHasScheme.MatchString(a) {
-		u, err = url.Parse(a)
-	} else {
-		u, err = url.Parse("tcp://" + a)
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("could not parse string '%s' as address: expected format is [<scheme>://]<ip>[:<port>]: %w", a, err)
-	}
-
-	return NewAddressFromURL(u)
-}
-
-// NewAddressFromURL returns an *Address and error depending on the ability to parse the *url.URL as an Address.
-func NewAddressFromURL(u *url.URL) (addr *Address, err error) {
-	addr = &Address{
-		Scheme: strings.ToLower(u.Scheme),
-		IP:     net.ParseIP(u.Hostname()),
-	}
-
-	if addr.IP == nil {
-		return nil, fmt.Errorf("could not parse ip for address '%s': %s does not appear to be an IP", u.String(), u.Hostname())
-	}
-
-	port := u.Port()
-	switch port {
-	case "":
-		break
-	default:
-		addr.Port, err = strconv.Atoi(port)
-		if err != nil {
-			return nil, fmt.Errorf("could not parse port for address '%s': %w", u.String(), err)
-		}
-	}
-
-	switch addr.Scheme {
-	case "tcp", "udp":
-		break
-	default:
-		return nil, fmt.Errorf("could not parse scheme for address '%s': scheme '%s' is not valid, expected to be one of 'tcp://', 'udp://'", u.String(), addr.Scheme)
-	}
-
-	addr.valid = true
-
-	return addr, nil
-}
-
-// Address represents an address.
-type Address struct {
-	valid bool
-
-	Scheme string
-	IP     net.IP
-	Port   int
-}
-
-// Valid returns true if the Address is valid.
-func (a Address) Valid() bool {
-	return a.valid
-}
-
-// String returns a string representation of the Address.
-func (a Address) String() string {
-	if !a.valid {
-		return ""
-	}
-
-	return fmt.Sprintf("%s://%s:%d", a.Scheme, a.IP.String(), a.Port)
-}
-
-// HostPort returns a string representation of the Address with just the host and port.
-func (a Address) HostPort() string {
-	if !a.valid {
-		return ""
-	}
-
-	return fmt.Sprintf("%s:%d", a.IP.String(), a.Port)
-}
-
-// Listener creates and returns a net.Listener.
-func (a Address) Listener() (net.Listener, error) {
-	return net.Listen(a.Scheme, a.HostPort())
-}
 
 var cdecoder algorithm.DecoderRegister
 
@@ -196,6 +102,11 @@ func NewX509CertificateChain(in string) (chain *X509CertificateChain, err error)
 	return chain, nil
 }
 
+// NewX509CertificateChainFromCerts returns a chain from a given list of certificates without validation.
+func NewX509CertificateChainFromCerts(in []*x509.Certificate) (chain X509CertificateChain) {
+	return X509CertificateChain{certs: in}
+}
+
 // NewTLSVersion returns a new TLSVersion given a string.
 func NewTLSVersion(input string) (version *TLSVersion, err error) {
 	switch strings.ReplaceAll(strings.ToUpper(input), " ", "") {
@@ -260,6 +171,9 @@ type CryptographicPrivateKey interface {
 	Public() crypto.PublicKey
 	Equal(x crypto.PrivateKey) bool
 }
+
+// CryptographicKey represents an artificial cryptographic public or private key.
+type CryptographicKey any
 
 // X509CertificateChain is a helper struct that holds a list of *x509.Certificate's.
 type X509CertificateChain struct {
@@ -370,6 +284,24 @@ func (c *X509CertificateChain) Leaf() (leaf *x509.Certificate) {
 	}
 
 	return c.certs[0]
+}
+
+// EncodePEM encodes the entire chain as PEM bytes.
+func (c *X509CertificateChain) EncodePEM() (encoded []byte, err error) {
+	buf := &bytes.Buffer{}
+
+	for _, cert := range c.certs {
+		block := pem.Block{
+			Type:  blockCERTIFICATE,
+			Bytes: cert.Raw,
+		}
+
+		if err = pem.Encode(buf, &block); err != nil {
+			return nil, err
+		}
+	}
+
+	return buf.Bytes(), nil
 }
 
 // Validate the X509CertificateChain ensuring the certificates were provided in the correct order

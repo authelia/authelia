@@ -122,7 +122,8 @@ type BaseClient struct {
 	ResponseTypes []string
 	ResponseModes []fosite.ResponseModeType
 
-	UserinfoSigningAlgorithm string
+	IDTokenSigningAlg  string
+	UserinfoSigningAlg string
 
 	Policy authorization.Level
 
@@ -150,7 +151,9 @@ type Client interface {
 	GetSecret() algorithm.Digest
 	GetSectorIdentifier() string
 	GetConsentResponseBody(consent *model.OAuth2ConsentSession) ConsentGetResponseBody
-	GetUserinfoSigningAlgorithm() string
+
+	GetUserinfoSigningAlg() string
+	GetIDTokenSigningAlg() string
 
 	GetPAREnforcement() bool
 	GetPKCEEnforcement() bool
@@ -220,13 +223,6 @@ func (c ClientConsentMode) String() string {
 	default:
 		return ""
 	}
-}
-
-// KeyManager keeps track of all of the active/inactive rsa keys and provides them to services requiring them.
-// It additionally allows us to add keys for the purpose of key rotation in the future.
-type KeyManager struct {
-	jwk  *JWK
-	jwks *jose.JSONWebKeySet
 }
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
@@ -519,18 +515,20 @@ type OAuth2MutualTLSClientAuthenticationDiscoveryOptions struct {
 		within mtls_endpoint_aliases that do not define endpoints to which an OAuth client makes a direct request have
 		no meaning and SHOULD be ignored.
 	*/
-	MutualTLSEndpointAliases struct {
-		AuthorizationEndpoint              string `json:"authorization_endpoint,omitempty"`
-		TokenEndpoint                      string `json:"token_endpoint,omitempty"`
-		IntrospectionEndpoint              string `json:"introspection_endpoint,omitempty"`
-		RevocationEndpoint                 string `json:"revocation_endpoint,omitempty"`
-		EndSessionEndpoint                 string `json:"end_session_endpoint,omitempty"`
-		UserinfoEndpoint                   string `json:"userinfo_endpoint,omitempty"`
-		BackChannelAuthenticationEndpoint  string `json:"backchannel_authentication_endpoint,omitempty"`
-		FederationRegistrationEndpoint     string `json:"federation_registration_endpoint,omitempty"`
-		PushedAuthorizationRequestEndpoint string `json:"pushed_authorization_request_endpoint,omitempty"`
-		RegistrationEndpoint               string `json:"registration_endpoint,omitempty"`
-	} `json:"mtls_endpoint_aliases"`
+	MutualTLSEndpointAliases OAuth2MutualTLSClientAuthenticationAliasesDiscoveryOptions `json:"mtls_endpoint_aliases"`
+}
+
+type OAuth2MutualTLSClientAuthenticationAliasesDiscoveryOptions struct {
+	AuthorizationEndpoint              string `json:"authorization_endpoint,omitempty"`
+	TokenEndpoint                      string `json:"token_endpoint,omitempty"`
+	IntrospectionEndpoint              string `json:"introspection_endpoint,omitempty"`
+	RevocationEndpoint                 string `json:"revocation_endpoint,omitempty"`
+	EndSessionEndpoint                 string `json:"end_session_endpoint,omitempty"`
+	UserinfoEndpoint                   string `json:"userinfo_endpoint,omitempty"`
+	BackChannelAuthenticationEndpoint  string `json:"backchannel_authentication_endpoint,omitempty"`
+	FederationRegistrationEndpoint     string `json:"federation_registration_endpoint,omitempty"`
+	PushedAuthorizationRequestEndpoint string `json:"pushed_authorization_request_endpoint,omitempty"`
+	RegistrationEndpoint               string `json:"registration_endpoint,omitempty"`
 }
 
 type OAuth2JWTSecuredAuthorizationRequestDiscoveryOptions struct {

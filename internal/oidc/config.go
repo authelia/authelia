@@ -6,7 +6,6 @@ import (
 	"hash"
 	"html/template"
 	"net/url"
-	"path"
 	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
@@ -43,7 +42,7 @@ func NewConfig(config *schema.OpenIDConnectConfiguration, templates *templates.P
 		PAR: PARConfig{
 			Enforced:        config.PAR.Enforce,
 			ContextLifespan: config.PAR.ContextLifespan,
-			URIPrefix:       urnPARPrefix,
+			URIPrefix:       RedirectURIPrefixPushedAuthorizationRequestURN,
 		},
 		Templates: templates,
 	}
@@ -90,9 +89,8 @@ type Config struct {
 	AllowedPrompts      []string
 	RefreshTokenScopes  []string
 
-	HTTPClient           *retryablehttp.Client
-	FormPostHTMLTemplate *template.Template
-	MessageCatalog       i18n.MessageCatalog
+	HTTPClient     *retryablehttp.Client
+	MessageCatalog i18n.MessageCatalog
 
 	Templates *templates.Provider
 }
@@ -386,8 +384,8 @@ func (c *Config) GetDisableRefreshTokenValidation(ctx context.Context) (disable 
 
 // GetAuthorizeCodeLifespan returns the authorization code lifespan.
 func (c *Config) GetAuthorizeCodeLifespan(ctx context.Context) (lifespan time.Duration) {
-	if c.Lifespans.AuthorizeCode <= 0 {
-		c.Lifespans.AccessToken = lifespanAuthorizeCodeDefault
+	if c.Lifespans.AuthorizeCode.Seconds() <= 0 {
+		c.Lifespans.AuthorizeCode = lifespanAuthorizeCodeDefault
 	}
 
 	return c.Lifespans.AuthorizeCode
@@ -395,8 +393,8 @@ func (c *Config) GetAuthorizeCodeLifespan(ctx context.Context) (lifespan time.Du
 
 // GetRefreshTokenLifespan returns the refresh token lifespan.
 func (c *Config) GetRefreshTokenLifespan(ctx context.Context) (lifespan time.Duration) {
-	if c.Lifespans.RefreshToken <= 0 {
-		c.Lifespans.AccessToken = lifespanRefreshTokenDefault
+	if c.Lifespans.RefreshToken.Seconds() <= 0 {
+		c.Lifespans.RefreshToken = lifespanRefreshTokenDefault
 	}
 
 	return c.Lifespans.RefreshToken
@@ -404,8 +402,8 @@ func (c *Config) GetRefreshTokenLifespan(ctx context.Context) (lifespan time.Dur
 
 // GetIDTokenLifespan returns the ID token lifespan.
 func (c *Config) GetIDTokenLifespan(ctx context.Context) (lifespan time.Duration) {
-	if c.Lifespans.IDToken <= 0 {
-		c.Lifespans.AccessToken = lifespanTokenDefault
+	if c.Lifespans.IDToken.Seconds() <= 0 {
+		c.Lifespans.IDToken = lifespanTokenDefault
 	}
 
 	return c.Lifespans.IDToken
@@ -413,7 +411,7 @@ func (c *Config) GetIDTokenLifespan(ctx context.Context) (lifespan time.Duration
 
 // GetAccessTokenLifespan returns the access token lifespan.
 func (c *Config) GetAccessTokenLifespan(ctx context.Context) (lifespan time.Duration) {
-	if c.Lifespans.AccessToken <= 0 {
+	if c.Lifespans.AccessToken.Seconds() <= 0 {
 		c.Lifespans.AccessToken = lifespanTokenDefault
 	}
 
@@ -528,15 +526,13 @@ func (c *Config) GetFormPostHTMLTemplate(ctx context.Context) (tmpl *template.Te
 
 // GetTokenURL returns the token URL.
 func (c *Config) GetTokenURL(ctx context.Context) (tokenURL string) {
-	if ctx, ok := ctx.(OpenIDConnectContext); ok {
-		tokenURI, err := ctx.IssuerURL()
-		if err != nil {
+	if octx, ok := ctx.(OpenIDConnectContext); ok {
+		switch issuerURL, err := octx.IssuerURL(); err {
+		case nil:
+			return issuerURL.JoinPath(EndpointPathToken).String()
+		default:
 			return c.TokenURL
 		}
-
-		tokenURI.Path = path.Join(tokenURI.Path, EndpointPathToken)
-
-		return tokenURI.String()
 	}
 
 	return c.TokenURL
@@ -592,7 +588,7 @@ func (c *Config) GetResponseModeHandlerExtension(ctx context.Context) (handler f
 // usually 'urn:ietf:params:oauth:request_uri:'.
 func (c *Config) GetPushedAuthorizeRequestURIPrefix(ctx context.Context) string {
 	if c.PAR.URIPrefix == "" {
-		c.PAR.URIPrefix = urnPARPrefix
+		c.PAR.URIPrefix = RedirectURIPrefixPushedAuthorizationRequestURN
 	}
 
 	return c.PAR.URIPrefix
@@ -607,7 +603,7 @@ func (c *Config) EnforcePushedAuthorize(ctx context.Context) bool {
 
 // GetPushedAuthorizeContextLifespan is the lifespan of the short-lived PAR context.
 func (c *Config) GetPushedAuthorizeContextLifespan(ctx context.Context) (lifespan time.Duration) {
-	if c.PAR.ContextLifespan.Seconds() == 0 {
+	if c.PAR.ContextLifespan.Seconds() <= 0 {
 		c.PAR.ContextLifespan = lifespanPARContextDefault
 	}
 

@@ -25,6 +25,8 @@ privacy_policy:
 
 ## Options
 
+This section describes the individual configuration options.
+
 ### enabled
 
 {{< confkey type="boolean" default="false" required="no" >}}
@@ -42,7 +44,7 @@ accepted is recorded and checked in the browser
 If the user has not accepted the policy they should not be able to interact with the Authelia UI via normal means.
 
 Administrators who are required to abide by the [GDPR] or other privacy laws should be advised that
-[OpenID Connect 1.0](../identity-providers/open-id-connect.md) clients configured with the `implicit` consent mode are
+[OpenID Connect 1.0](../identity-providers/openid-connect.md) clients configured with the `implicit` consent mode are
 unlikely to trigger the display of the Authelia UI if the user is already authenticated.
 
 We wont be adding checks like this to the `implicit` consent mode when that mode in particular is unlikely to be

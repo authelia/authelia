@@ -22,7 +22,7 @@ const (
 	SecondFactorMethodDuo = "mobile_push"
 )
 
-var reSemanticVersion = regexp.MustCompile(`^v?(?P<Major>\d+)\.(?P<Minor>\d+)\.(?P<Patch>\d+)(\-(?P<PreRelease>[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*))?(\+(?P<Metadata>[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*))?$`)
+var reSemanticVersion = regexp.MustCompile(`^v?(?P<Major>0|[1-9]\d*)\.(?P<Minor>0|[1-9]\d*)\.(?P<Patch>0|[1-9]\d*)(?:-(?P<PreRelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<Metadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$`)
 
 const (
 	semverRegexpGroupPreRelease = "PreRelease"

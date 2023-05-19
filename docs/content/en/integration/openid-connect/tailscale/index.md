@@ -84,15 +84,15 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-    - id: tailscale
-      description: Tailscale SSO
+    - id: 'tailscale'
+      description: 'Tailscale'
       secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
       redirect_uris:
-        - https://login.tailscale.com/a/oauth_response
+        - 'https://login.tailscale.com/a/oauth_response'
       scopes:
-        - openid
-        - email
-        - profile
+        - 'openid'
+        - 'email'
+        - 'profile'
 ```
 
 ## See Also

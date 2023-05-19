@@ -1,8 +1,9 @@
-package oidc
+package oidc_test
 
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
@@ -13,30 +14,31 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
 func TestNewClient(t *testing.T) {
 	config := schema.OpenIDConnectClientConfiguration{}
-	client := NewClient(config)
+	client := oidc.NewClient(config)
 	assert.Equal(t, "", client.GetID())
 	assert.Equal(t, "", client.GetDescription())
 	assert.Len(t, client.GetResponseModes(), 0)
 	assert.Len(t, client.GetResponseTypes(), 1)
 	assert.Equal(t, "", client.GetSectorIdentifier())
 
-	bclient, ok := client.(*BaseClient)
+	bclient, ok := client.(*oidc.BaseClient)
 	require.True(t, ok)
-	assert.Equal(t, "", bclient.UserinfoSigningAlgorithm)
-	assert.Equal(t, SigningAlgorithmNone, client.GetUserinfoSigningAlgorithm())
+	assert.Equal(t, "", bclient.UserinfoSigningAlg)
+	assert.Equal(t, oidc.SigningAlgNone, client.GetUserinfoSigningAlg())
 
-	_, ok = client.(*FullClient)
+	_, ok = client.(*oidc.FullClient)
 	assert.False(t, ok)
 
 	config = schema.OpenIDConnectClientConfiguration{
 		ID:            myclient,
 		Description:   myclientdesc,
 		Policy:        twofactor,
-		Secret:        MustDecodeSecret(badsecret),
+		Secret:        tOpenIDConnectPlainTextClientSecret,
 		RedirectURIs:  []string{examplecom},
 		Scopes:        schema.DefaultOpenIDConnectClientConfiguration.Scopes,
 		ResponseTypes: schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes,
@@ -44,35 +46,68 @@ func TestNewClient(t *testing.T) {
 		ResponseModes: schema.DefaultOpenIDConnectClientConfiguration.ResponseModes,
 	}
 
-	client = NewClient(config)
+	client = oidc.NewClient(config)
 	assert.Equal(t, myclient, client.GetID())
 	require.Len(t, client.GetResponseModes(), 1)
 	assert.Equal(t, fosite.ResponseModeFormPost, client.GetResponseModes()[0])
 	assert.Equal(t, authorization.TwoFactor, client.GetAuthorizationPolicy())
 
 	config = schema.OpenIDConnectClientConfiguration{
-		TokenEndpointAuthMethod: ClientAuthMethodClientSecretBasic,
+		TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
 	}
 
-	client = NewClient(config)
+	client = oidc.NewClient(config)
 
-	fclient, ok := client.(*FullClient)
+	fclient, ok := client.(*oidc.FullClient)
+
+	require.True(t, ok)
+
+	assert.Equal(t, "", fclient.UserinfoSigningAlg)
+	assert.Equal(t, oidc.SigningAlgNone, client.GetUserinfoSigningAlg())
+	assert.Equal(t, oidc.SigningAlgNone, fclient.UserinfoSigningAlg)
+
+	assert.Equal(t, "", fclient.IDTokenSigningAlg)
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, client.GetIDTokenSigningAlg())
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.IDTokenSigningAlg)
+
+	assert.Equal(t, oidc.ClientAuthMethodClientSecretPost, fclient.TokenEndpointAuthMethod)
+	assert.Equal(t, oidc.ClientAuthMethodClientSecretPost, fclient.GetTokenEndpointAuthMethod())
+
+	assert.Equal(t, "", fclient.TokenEndpointAuthSigningAlgorithm)
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetTokenEndpointAuthSigningAlgorithm())
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.TokenEndpointAuthSigningAlgorithm)
+
+	assert.Equal(t, "", fclient.RequestObjectSigningAlgorithm)
+	assert.Equal(t, "", fclient.GetRequestObjectSigningAlgorithm())
+
+	fclient.RequestObjectSigningAlgorithm = oidc.SigningAlgRSAUsingSHA256
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetRequestObjectSigningAlgorithm())
+
+	assert.Equal(t, "", fclient.JSONWebKeysURI)
+	assert.Equal(t, "", fclient.GetJSONWebKeysURI())
+
+	fclient.JSONWebKeysURI = "https://example.com"
+	assert.Equal(t, "https://example.com", fclient.GetJSONWebKeysURI())
 
 	var niljwks *jose.JSONWebKeySet
 
-	require.True(t, ok)
-	assert.Equal(t, "", fclient.UserinfoSigningAlgorithm)
-	assert.Equal(t, ClientAuthMethodClientSecretBasic, fclient.TokenEndpointAuthMethod)
-	assert.Equal(t, ClientAuthMethodClientSecretBasic, fclient.GetTokenEndpointAuthMethod())
-	assert.Equal(t, SigningAlgorithmNone, client.GetUserinfoSigningAlgorithm())
-	assert.Equal(t, "", fclient.TokenEndpointAuthSigningAlgorithm)
-	assert.Equal(t, SigningAlgorithmRSAWithSHA256, fclient.GetTokenEndpointAuthSigningAlgorithm())
-	assert.Equal(t, "", fclient.RequestObjectSigningAlgorithm)
-	assert.Equal(t, "", fclient.GetRequestObjectSigningAlgorithm())
-	assert.Equal(t, "", fclient.JSONWebKeysURI)
-	assert.Equal(t, "", fclient.GetJSONWebKeysURI())
 	assert.Equal(t, niljwks, fclient.JSONWebKeys)
 	assert.Equal(t, niljwks, fclient.GetJSONWebKeys())
+
+	assert.Equal(t, oidc.ClientConsentMode(0), fclient.Consent.Mode)
+	assert.Equal(t, time.Second*0, fclient.Consent.Duration)
+	assert.Equal(t, oidc.ClientConsent{Mode: oidc.ClientConsentModeExplicit}, fclient.GetConsentPolicy())
+
+	fclient.TokenEndpointAuthMethod = ""
+	fclient.Public = false
+	assert.Equal(t, oidc.ClientAuthMethodClientSecretBasic, fclient.GetTokenEndpointAuthMethod())
+	assert.Equal(t, oidc.ClientAuthMethodClientSecretBasic, fclient.TokenEndpointAuthMethod)
+
+	fclient.TokenEndpointAuthMethod = ""
+	fclient.Public = true
+	assert.Equal(t, oidc.ClientAuthMethodNone, fclient.GetTokenEndpointAuthMethod())
+	assert.Equal(t, oidc.ClientAuthMethodNone, fclient.TokenEndpointAuthMethod)
+
 	assert.Equal(t, []string(nil), fclient.RequestURIs)
 	assert.Equal(t, []string(nil), fclient.GetRequestURIs())
 }
@@ -80,13 +115,13 @@ func TestNewClient(t *testing.T) {
 func TestBaseClient_ValidatePARPolicy(t *testing.T) {
 	testCases := []struct {
 		name     string
-		client   *BaseClient
+		client   *oidc.BaseClient
 		have     *fosite.Request
 		expected string
 	}{
 		{
 			"ShouldNotEnforcePAR",
-			&BaseClient{
+			&oidc.BaseClient{
 				EnforcePAR: false,
 			},
 			&fosite.Request{},
@@ -94,36 +129,36 @@ func TestBaseClient_ValidatePARPolicy(t *testing.T) {
 		},
 		{
 			"ShouldEnforcePARAndErrorWithoutCorrectRequestURI",
-			&BaseClient{
+			&oidc.BaseClient{
 				EnforcePAR: true,
 			},
 			&fosite.Request{
 				Form: map[string][]string{
-					FormParameterRequestURI: {"https://google.com"},
+					oidc.FormParameterRequestURI: {"https://google.com"},
 				},
 			},
 			"invalid_request",
 		},
 		{
 			"ShouldEnforcePARAndErrorWithEmptyRequestURI",
-			&BaseClient{
+			&oidc.BaseClient{
 				EnforcePAR: true,
 			},
 			&fosite.Request{
 				Form: map[string][]string{
-					FormParameterRequestURI: {""},
+					oidc.FormParameterRequestURI: {""},
 				},
 			},
 			"invalid_request",
 		},
 		{
 			"ShouldEnforcePARAndNotErrorWithCorrectRequestURI",
-			&BaseClient{
+			&oidc.BaseClient{
 				EnforcePAR: true,
 			},
 			&fosite.Request{
 				Form: map[string][]string{
-					FormParameterRequestURI: {urnPARPrefix + "abc"},
+					oidc.FormParameterRequestURI: {oidc.RedirectURIPrefixPushedAuthorizationRequestURN + "abc"},
 				},
 			},
 			"",
@@ -132,7 +167,7 @@ func TestBaseClient_ValidatePARPolicy(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := tc.client.ValidatePARPolicy(tc.have, urnPARPrefix)
+			err := tc.client.ValidatePARPolicy(tc.have, oidc.RedirectURIPrefixPushedAuthorizationRequestURN)
 
 			switch tc.expected {
 			case "":
@@ -145,7 +180,7 @@ func TestBaseClient_ValidatePARPolicy(t *testing.T) {
 }
 
 func TestIsAuthenticationLevelSufficient(t *testing.T) {
-	c := &FullClient{BaseClient: &BaseClient{}}
+	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
 
 	c.Policy = authorization.Bypass
 	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated))
@@ -169,7 +204,7 @@ func TestIsAuthenticationLevelSufficient(t *testing.T) {
 }
 
 func TestClient_GetConsentResponseBody(t *testing.T) {
-	c := &FullClient{BaseClient: &BaseClient{}}
+	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
 
 	consentRequestBody := c.GetConsentResponseBody(nil)
 	assert.Equal(t, "", consentRequestBody.ClientID)
@@ -182,10 +217,10 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 
 	consent := &model.OAuth2ConsentSession{
 		RequestedAudience: []string{examplecom},
-		RequestedScopes:   []string{ScopeOpenID, ScopeGroups},
+		RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeGroups},
 	}
 
-	expectedScopes := []string{ScopeOpenID, ScopeGroups}
+	expectedScopes := []string{oidc.ScopeOpenID, oidc.ScopeGroups}
 	expectedAudiences := []string{examplecom}
 
 	consentRequestBody = c.GetConsentResponseBody(consent)
@@ -196,7 +231,7 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 }
 
 func TestClient_GetAudience(t *testing.T) {
-	c := &FullClient{BaseClient: &BaseClient{}}
+	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
 
 	audience := c.GetAudience()
 	assert.Len(t, audience, 0)
@@ -209,24 +244,24 @@ func TestClient_GetAudience(t *testing.T) {
 }
 
 func TestClient_GetScopes(t *testing.T) {
-	c := &FullClient{BaseClient: &BaseClient{}}
+	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
 
 	scopes := c.GetScopes()
 	assert.Len(t, scopes, 0)
 
-	c.Scopes = []string{ScopeOpenID}
+	c.Scopes = []string{oidc.ScopeOpenID}
 
 	scopes = c.GetScopes()
 	require.Len(t, scopes, 1)
-	assert.Equal(t, ScopeOpenID, scopes[0])
+	assert.Equal(t, oidc.ScopeOpenID, scopes[0])
 }
 
 func TestClient_GetGrantTypes(t *testing.T) {
-	c := &FullClient{BaseClient: &BaseClient{}}
+	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
 
 	grantTypes := c.GetGrantTypes()
 	require.Len(t, grantTypes, 1)
-	assert.Equal(t, GrantTypeAuthorizationCode, grantTypes[0])
+	assert.Equal(t, oidc.GrantTypeAuthorizationCode, grantTypes[0])
 
 	c.GrantTypes = []string{"device_code"}
 
@@ -236,30 +271,30 @@ func TestClient_GetGrantTypes(t *testing.T) {
 }
 
 func TestClient_Hashing(t *testing.T) {
-	c := &FullClient{BaseClient: &BaseClient{}}
+	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
 
 	hashedSecret := c.GetHashedSecret()
 	assert.Equal(t, []byte(nil), hashedSecret)
 
-	c.Secret = MustDecodeSecret(badsecret)
+	c.Secret = tOpenIDConnectPlainTextClientSecret
 
-	assert.True(t, c.Secret.MatchBytes([]byte("a_bad_secret")))
+	assert.True(t, c.Secret.MatchBytes([]byte("client-secret")))
 }
 
 func TestClient_GetHashedSecret(t *testing.T) {
-	c := &FullClient{BaseClient: &BaseClient{}}
+	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
 
 	hashedSecret := c.GetHashedSecret()
 	assert.Equal(t, []byte(nil), hashedSecret)
 
-	c.Secret = MustDecodeSecret(badsecret)
+	c.Secret = tOpenIDConnectPlainTextClientSecret
 
 	hashedSecret = c.GetHashedSecret()
-	assert.Equal(t, []byte(badsecret), hashedSecret)
+	assert.Equal(t, []byte("$plaintext$client-secret"), hashedSecret)
 }
 
 func TestClient_GetID(t *testing.T) {
-	c := &FullClient{BaseClient: &BaseClient{}}
+	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
 
 	id := c.GetID()
 	assert.Equal(t, "", id)
@@ -271,7 +306,7 @@ func TestClient_GetID(t *testing.T) {
 }
 
 func TestClient_GetRedirectURIs(t *testing.T) {
-	c := &FullClient{BaseClient: &BaseClient{}}
+	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
 
 	redirectURIs := c.GetRedirectURIs()
 	require.Len(t, redirectURIs, 0)
@@ -284,7 +319,7 @@ func TestClient_GetRedirectURIs(t *testing.T) {
 }
 
 func TestClient_GetResponseModes(t *testing.T) {
-	c := &FullClient{BaseClient: &BaseClient{}}
+	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
 
 	responseModes := c.GetResponseModes()
 	require.Len(t, responseModes, 0)
@@ -303,18 +338,18 @@ func TestClient_GetResponseModes(t *testing.T) {
 }
 
 func TestClient_GetResponseTypes(t *testing.T) {
-	c := &FullClient{BaseClient: &BaseClient{}}
+	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
 
 	responseTypes := c.GetResponseTypes()
 	require.Len(t, responseTypes, 1)
-	assert.Equal(t, ResponseTypeAuthorizationCodeFlow, responseTypes[0])
+	assert.Equal(t, oidc.ResponseTypeAuthorizationCodeFlow, responseTypes[0])
 
-	c.ResponseTypes = []string{ResponseTypeAuthorizationCodeFlow, ResponseTypeImplicitFlowIDToken}
+	c.ResponseTypes = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeImplicitFlowIDToken}
 
 	responseTypes = c.GetResponseTypes()
 	require.Len(t, responseTypes, 2)
-	assert.Equal(t, ResponseTypeAuthorizationCodeFlow, responseTypes[0])
-	assert.Equal(t, ResponseTypeImplicitFlowIDToken, responseTypes[1])
+	assert.Equal(t, oidc.ResponseTypeAuthorizationCodeFlow, responseTypes[0])
+	assert.Equal(t, oidc.ResponseTypeImplicitFlowIDToken, responseTypes[1])
 }
 
 func TestNewClientPKCE(t *testing.T) {
@@ -389,7 +424,7 @@ func TestNewClientPKCE(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			client := NewClient(tc.have)
+			client := oidc.NewClient(tc.have)
 
 			assert.Equal(t, tc.expectedEnforcePKCE, client.GetPKCEEnforcement())
 			assert.Equal(t, tc.expectedEnforcePKCEChallengeMethod, client.GetPKCEChallengeMethodEnforcement())
@@ -439,14 +474,14 @@ func TestNewClientPAR(t *testing.T) {
 			"ShouldEnforcePARAndErrorOnNonPARRequest",
 			schema.OpenIDConnectClientConfiguration{EnforcePAR: true},
 			true,
-			&fosite.Request{Form: map[string][]string{FormParameterRequestURI: {"https://example.com"}}},
+			&fosite.Request{Form: map[string][]string{oidc.FormParameterRequestURI: {"https://example.com"}}},
 			"invalid_request",
 			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Pushed Authorization Requests are enforced for this client but no such request was sent. The request_uri parameter 'https://example.com' is malformed."},
 		{
 			"ShouldEnforcePARAndNotErrorOnPARRequest",
 			schema.OpenIDConnectClientConfiguration{EnforcePAR: true},
 			true,
-			&fosite.Request{Form: map[string][]string{FormParameterRequestURI: {fmt.Sprintf("%sabc", urnPARPrefix)}}},
+			&fosite.Request{Form: map[string][]string{oidc.FormParameterRequestURI: {fmt.Sprintf("%sabc", oidc.RedirectURIPrefixPushedAuthorizationRequestURN)}}},
 			"",
 			"",
 		},
@@ -454,12 +489,12 @@ func TestNewClientPAR(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			client := NewClient(tc.have)
+			client := oidc.NewClient(tc.have)
 
 			assert.Equal(t, tc.expected, client.GetPAREnforcement())
 
 			if tc.r != nil {
-				err := client.ValidatePARPolicy(tc.r, urnPARPrefix)
+				err := client.ValidatePARPolicy(tc.r, oidc.RedirectURIPrefixPushedAuthorizationRequestURN)
 
 				if tc.err != "" {
 					require.NotNil(t, err)
@@ -484,25 +519,25 @@ func TestNewClientResponseModes(t *testing.T) {
 	}{
 		{
 			"ShouldEnforceResponseModePolicyAndAllowDefaultModeQuery",
-			schema.OpenIDConnectClientConfiguration{ResponseModes: []string{ResponseModeQuery}},
+			schema.OpenIDConnectClientConfiguration{ResponseModes: []string{oidc.ResponseModeQuery}},
 			[]fosite.ResponseModeType{fosite.ResponseModeQuery},
-			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeDefault, Request: fosite.Request{Form: map[string][]string{FormParameterResponseMode: nil}}},
+			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeDefault, Request: fosite.Request{Form: map[string][]string{oidc.FormParameterResponseMode: nil}}},
 			"",
 			"",
 		},
 		{
 			"ShouldEnforceResponseModePolicyAndFailOnDefaultMode",
-			schema.OpenIDConnectClientConfiguration{ResponseModes: []string{ResponseModeFormPost}},
+			schema.OpenIDConnectClientConfiguration{ResponseModes: []string{oidc.ResponseModeFormPost}},
 			[]fosite.ResponseModeType{fosite.ResponseModeFormPost},
-			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeDefault, Request: fosite.Request{Form: map[string][]string{FormParameterResponseMode: nil}}},
+			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeDefault, Request: fosite.Request{Form: map[string][]string{oidc.FormParameterResponseMode: nil}}},
 			"unsupported_response_mode",
 			"The authorization server does not support obtaining a response using this response mode. The request omitted the response_mode making the default response_mode 'query' based on the other authorization request parameters but registered OAuth 2.0 client doesn't support this response_mode",
 		},
 		{
 			"ShouldNotEnforceConfiguredResponseMode",
-			schema.OpenIDConnectClientConfiguration{ResponseModes: []string{ResponseModeFormPost}},
+			schema.OpenIDConnectClientConfiguration{ResponseModes: []string{oidc.ResponseModeFormPost}},
 			[]fosite.ResponseModeType{fosite.ResponseModeFormPost},
-			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeQuery, Request: fosite.Request{Form: map[string][]string{FormParameterResponseMode: {ResponseModeQuery}}}},
+			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeQuery, Request: fosite.Request{Form: map[string][]string{oidc.FormParameterResponseMode: {oidc.ResponseModeQuery}}}},
 			"",
 			"",
 		},
@@ -510,7 +545,7 @@ func TestNewClientResponseModes(t *testing.T) {
 			"ShouldNotEnforceUnconfiguredResponseMode",
 			schema.OpenIDConnectClientConfiguration{ResponseModes: []string{}},
 			[]fosite.ResponseModeType{},
-			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeDefault, Request: fosite.Request{Form: map[string][]string{FormParameterResponseMode: {ResponseModeQuery}}}},
+			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeDefault, Request: fosite.Request{Form: map[string][]string{oidc.FormParameterResponseMode: {oidc.ResponseModeQuery}}}},
 			"",
 			"",
 		},
@@ -518,7 +553,7 @@ func TestNewClientResponseModes(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			client := NewClient(tc.have)
+			client := oidc.NewClient(tc.have)
 
 			assert.Equal(t, tc.expected, client.GetResponseModes())
 
@@ -538,7 +573,7 @@ func TestNewClientResponseModes(t *testing.T) {
 }
 
 func TestClient_IsPublic(t *testing.T) {
-	c := &FullClient{BaseClient: &BaseClient{}}
+	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
 
 	assert.False(t, c.IsPublic())
 
@@ -546,10 +581,40 @@ func TestClient_IsPublic(t *testing.T) {
 	assert.True(t, c.IsPublic())
 }
 
-func MustDecodeSecret(value string) *schema.PasswordDigest {
-	if secret, err := schema.DecodePasswordDigest(value); err != nil {
-		panic(err)
-	} else {
-		return secret
-	}
+func TestNewClient_JSONWebKeySetURI(t *testing.T) {
+	var (
+		client  oidc.Client
+		clientf *oidc.FullClient
+		ok      bool
+	)
+
+	client = oidc.NewClient(schema.OpenIDConnectClientConfiguration{
+		TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
+		PublicKeys: schema.OpenIDConnectClientPublicKeys{
+			URI: MustParseRequestURI("https://google.com"),
+		},
+	})
+
+	require.NotNil(t, client)
+
+	clientf, ok = client.(*oidc.FullClient)
+
+	require.True(t, ok)
+
+	assert.Equal(t, "https://google.com", clientf.GetJSONWebKeysURI())
+
+	client = oidc.NewClient(schema.OpenIDConnectClientConfiguration{
+		TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
+		PublicKeys: schema.OpenIDConnectClientPublicKeys{
+			URI: nil,
+		},
+	})
+
+	require.NotNil(t, client)
+
+	clientf, ok = client.(*oidc.FullClient)
+
+	require.True(t, ok)
+
+	assert.Equal(t, "", clientf.GetJSONWebKeysURI())
 }

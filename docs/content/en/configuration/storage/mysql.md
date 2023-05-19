@@ -26,19 +26,18 @@ guide for supported version information.
 
 ```yaml
 storage:
-  encryption_key: a_very_important_secret
+  encryption_key: 'a_very_important_secret'
   mysql:
-    host: 127.0.0.1
-    port: 3306
-    database: authelia
-    username: authelia
-    password: mypassword
-    timeout: 5s
+    address: 'tcp://127.0.0.1:3306'
+    database: 'authelia'
+    username: 'authelia'
+    password: 'mypassword'
+    timeout: '5s'
     tls:
-      server_name: mysql.example.com
+      server_name: 'mysql.example.com'
       skip_verify: false
-      minimum_version: TLS1.2
-      maximum_version: TLS1.3
+      minimum_version: 'TLS1.2'
+      maximum_version: 'TLS1.3'
       certificate_chain: |
         -----BEGIN CERTIFICATE-----
         MIIC5jCCAc6gAwIBAgIRAK4Sj7FiN6PXo/urPfO4E7owDQYJKoZIhvcNAQELBQAw
@@ -116,33 +115,35 @@ This section describes the individual configuration options.
 
 See the [encryption_key docs](introduction.md#encryption_key).
 
-### host
+### address
 
-{{< confkey type="string" default="localhost" required="no" >}}
+{{< confkey type="address" required="yes" >}}
 
-The database server host. This can also be a unix socket.
+*__Reference Note:__ This configuration option uses the [address common syntax](../prologue/common.md#address). Please
+see the [documentation](../prologue/common.md#address) on this format for more information.*
 
-If utilising an IPv6 literal address it must be enclosed by square brackets and quoted:
+Configures the address for the MySQL/MariaDB Server. The address itself is a connector and the scheme must either be
+the `unix` scheme or one of the `tcp` schemes.
 
-```yaml
-storage:
-  mysql:
-    host: "[fd00:1111:2222:3333::1]"
-```
-
-If utilizing a unix socket it must have the `/` prefix:
+__Examples:__
 
 ```yaml
 storage:
   mysql:
-    host: /var/run/mysqld.sock
+    address: 'tcp://127.0.0.1:3306'
 ```
 
-### port
+```yaml
+storage:
+  mysql:
+    address: 'tcp://[fd00:1111:2222:3333::1]:3306'
+```
 
-{{< confkey type="integer" default="3306" required="no" >}}
-
-The port the database server is listening on.
+```yaml
+storage:
+  mysql:
+    address: 'unix:///var/run/mysqld.sock'
+```
 
 ### database
 
@@ -174,12 +175,19 @@ characters and the user password is changed to this value.
 
 {{< confkey type="duration" default="5s" required="no" >}}
 
+*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
+Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
+
 The SQL connection timeout.
 
 ### tls
 
+*__Reference Note:__ This configuration option uses the
+[TLS configuration common structure](../prologue/common.md#tls-configuration). Please see the
+[documentation](../prologue/common.md#tls-configuration) on this structure for more information.*
+
 If defined enables connecting to [MySQL] or [MariaDB] over a TLS socket, and additionally controls the TLS connection
-validation process. You can see how to configure the tls section [here](../prologue/common.md#tls-configuration).
+validation parameters.
 
 [MySQL]: https://www.mysql.com/
 [MariaDB]: https://mariadb.org/

@@ -63,7 +63,7 @@ oidc_providers:
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Synapse]
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Synapse]
 which will operate with the above example:
 
 ```yaml
@@ -72,18 +72,18 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-    - id: synapse
-      description: Synapse
+    - id: 'synapse'
+      description: 'Synapse'
       secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
       public: false
-      authorization_policy: two_factor
+      authorization_policy: 'two_factor'
       redirect_uris:
-        - https://synapse.example.com/_synapse/client/oidc/callback
+        - 'https://synapse.example.com/_synapse/client/oidc/callback'
       scopes:
-        - openid
-        - profile
-        - email
-      userinfo_signing_algorithm: none
+        - 'openid'
+        - 'profile'
+        - 'email'
+      userinfo_signing_alg: 'none'
 ```
 
 ## See Also

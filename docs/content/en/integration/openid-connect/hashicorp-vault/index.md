@@ -43,7 +43,7 @@ To configure [HashiCorp Vault] to utilize Authelia as an [OpenID Connect 1.0] Pr
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [HashiCorp Vault]
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [HashiCorp Vault]
 which will operate with the above example:
 
 ```yaml
@@ -52,20 +52,20 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-    - id: vault
-      description: HashiCorp Vault
+    - id: 'vault'
+      description: 'HashiCorp Vault'
       secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
       public: false
-      authorization_policy: two_factor
+      authorization_policy: 'two_factor'
       redirect_uris:
-        - https://vault.example.com/oidc/callback
-        - https://vault.example.com/ui/vault/auth/oidc/oidc/callback
+        - 'https://vault.example.com/oidc/callback'
+        - 'https://vault.example.com/ui/vault/auth/oidc/oidc/callback'
       scopes:
-        - openid
-        - profile
-        - groups
-        - email
-      userinfo_signing_algorithm: none
+        - 'openid'
+        - 'profile'
+        - 'groups'
+        - 'email'
+      userinfo_signing_alg: 'none'
 ```
 
 ## See Also

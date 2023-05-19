@@ -34,3 +34,12 @@ type ServerBuffers struct {
 	Read  int `koanf:"read"`
 	Write int `koanf:"write"`
 }
+
+// JWK represents a JWK.
+type JWK struct {
+	KeyID            string `koanf:"key_id"`
+	Use              string
+	Algorithm        string               `koanf:"algorithm"`
+	Key              CryptographicKey     `koanf:"key"`
+	CertificateChain X509CertificateChain `koanf:"certificate_chain"`
+}

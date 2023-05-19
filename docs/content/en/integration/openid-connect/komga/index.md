@@ -50,22 +50,22 @@ spring:
       client:
         registration:
           authelia:
-            client-id: `komga`
-            client-secret: `insecure_secret`
-            client-name: Authelia
-            scope: openid,profile,email
-            authorization-grant-type: authorization_code
+            client-id: 'komga'
+            client-secret: 'insecure_secret'
+            client-name: 'Authelia'
+            scope: 'openid,profile,email'
+            authorization-grant-type: 'authorization_code'
             redirect-uri: "{baseScheme}://{baseHost}{basePort}{basePath}/login/oauth2/code/authelia"
         provider:
           authelia:
-            issuer-uri: https://auth.example.com
-            user-name-attribute: preferred_username
+            issuer-uri: 'https://auth.example.com'
+            user-name-attribute: 'preferred_username'
 ````
 
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Komga]
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Komga]
 which will operate with the above example:
 
 ```yaml
@@ -74,20 +74,20 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-    - id: komga
-      description: Komga
+    - id: 'komga'
+      description: 'Komga'
       secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
       public: false
-      authorization_policy: two_factor
+      authorization_policy: 'two_factor'
       redirect_uris:
-        - https://komga.example.com/login/oauth2/code/authelia
+        - 'https://komga.example.com/login/oauth2/code/authelia'
       scopes:
-        - openid
-        - profile
-        - email
+        - 'openid'
+        - 'profile'
+        - 'email'
       grant_types:
-        - authorization_code
-      userinfo_signing_algorithm: none
+        - 'authorization_code'
+      userinfo_signing_alg: 'none'
 ```
 
 ## See Also

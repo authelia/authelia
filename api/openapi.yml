@@ -200,6 +200,9 @@ paths:
             location:
               description: Redirect Location for user authorization
               example: '{{ $redir }}'
+              schema:
+                type: string
+                format: uri
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -210,6 +213,9 @@ paths:
             location:
               description: Redirect Location for user authorization
               example: '{{ $redir }}'
+              schema:
+                type: string
+                format: uri
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -273,6 +279,9 @@ paths:
             location:
               description: Redirect Location for user authorization
               example: '{{ $redir }}'
+              schema:
+                type: string
+                format: uri
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -283,6 +292,9 @@ paths:
             location:
               description: Redirect Location for user authorization
               example: '{{ $redir }}'
+              schema:
+                type: string
+                format: uri
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -342,6 +354,9 @@ paths:
             location:
               description: Redirect Location for user authorization
               example: '{{ $redir }}'
+              schema:
+                type: string
+                format: uri
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -352,6 +367,9 @@ paths:
             location:
               description: Redirect Location for user authorization
               example: '{{ $redir }}'
+              schema:
+                type: string
+                format: uri
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -411,6 +429,9 @@ paths:
             location:
               description: Redirect Location for user authorization
               example: '{{ $redir }}'
+              schema:
+                type: string
+                format: uri
             set-cookie:
               description: Sets a new cookie value
               schema:

@@ -25,7 +25,7 @@ func TestShouldCreateRawConnectionWhenSchemeIsLDAP(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:      "ldap://127.0.0.1:389",
+			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
 		},
@@ -57,7 +57,7 @@ func TestShouldCreateTLSConnectionWhenSchemeIsLDAPS(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:      "ldaps://127.0.0.1:389",
+			Address:  testLDAPSAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
 		},
@@ -107,7 +107,7 @@ func TestEscapeSpecialCharsInGroupsFilter(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:          "ldaps://127.0.0.1:389",
+			Address:      testLDAPSAddress,
 			GroupsFilter: "(|(member={dn})(uid={username})(uid={input}))",
 		},
 		false,
@@ -165,7 +165,7 @@ func TestShouldCheckLDAPServerExtensions(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
 			UsernameAttribute:    "uid",
@@ -230,7 +230,7 @@ func TestShouldNotCheckLDAPServerExtensionsWhenRootDSEReturnsMoreThanOneEntry(t 
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
 			UsernameAttribute:    "uid",
@@ -296,7 +296,7 @@ func TestShouldCheckLDAPServerControlTypes(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
 			UsernameAttribute:    "uid",
@@ -361,7 +361,7 @@ func TestShouldNotEnablePasswdModifyExtensionOrControlTypes(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
 			UsernameAttribute:    "uid",
@@ -426,7 +426,7 @@ func TestShouldReturnCheckServerConnectError(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
 			UsernameAttribute:    "uid",
@@ -459,7 +459,7 @@ func TestShouldReturnCheckServerSearchError(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
 			UsernameAttribute:    "uid",
@@ -521,7 +521,7 @@ func TestShouldEscapeUserInput(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
 			UsernameAttribute:    "uid",
@@ -555,7 +555,7 @@ func TestShouldReturnEmailWhenAttributeSameAsUsername(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "mail",
@@ -626,7 +626,7 @@ func TestShouldReturnUsernameAndBlankDisplayNameWhenAttributesTheSame(t *testing
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -697,7 +697,7 @@ func TestShouldReturnBlankEmailAndDisplayNameWhenAttrsLenZero(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -771,7 +771,7 @@ func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			UsernameAttribute:    "uid",
 			UsersFilter:          "(&({username_attribute}={input})(&(objectCategory=person)(objectClass=user)))",
@@ -822,7 +822,7 @@ func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -895,7 +895,7 @@ func TestShouldNotCrashWhenEmailsAreNotRetrievedFromLDAP(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:               "ldap://127.0.0.1:389",
+			Address:           testLDAPAddress,
 			User:              "cn=admin,dc=example,dc=com",
 			Password:          "password",
 			UsernameAttribute: "uid",
@@ -956,7 +956,7 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -1029,7 +1029,7 @@ func TestShouldReturnUsernameFromLDAPWithReferrals(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -1121,7 +1121,7 @@ func TestShouldReturnUsernameFromLDAPWithReferralsInErrorAndResult(t *testing.T)
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -1246,7 +1246,7 @@ func TestShouldReturnUsernameFromLDAPWithReferralsErr(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -1333,7 +1333,7 @@ func TestShouldNotUpdateUserPasswordConnect(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -1400,7 +1400,7 @@ func TestShouldNotUpdateUserPasswordGetDetails(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -1477,7 +1477,7 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -1585,7 +1585,7 @@ func TestShouldUpdateUserPasswordMSAD(t *testing.T) {
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
 			Implementation:       "activedirectory",
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -1695,7 +1695,7 @@ func TestShouldUpdateUserPasswordMSADWithReferrals(t *testing.T) {
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
 			Implementation:       "activedirectory",
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -1823,7 +1823,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralConnectErr(t *test
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
 			Implementation:       "activedirectory",
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -1942,7 +1942,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralModifyErr(t *testi
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
 			Implementation:       "activedirectory",
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -2074,7 +2074,7 @@ func TestShouldUpdateUserPasswordMSADWithoutReferrals(t *testing.T) {
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
 			Implementation:       "activedirectory",
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -2187,7 +2187,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtension(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -2294,7 +2294,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferrals(t *testing.T
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -2421,7 +2421,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithoutReferrals(t *testin
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -2534,7 +2534,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsReferralConne
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -2652,7 +2652,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsReferralPassw
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -2784,7 +2784,7 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHints(t *testing
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
 			Implementation:       "activedirectory",
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "sAMAccountName",
@@ -2895,7 +2895,7 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHintsDeprecated(
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
 			Implementation:       "activedirectory",
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "sAMAccountName",
@@ -3006,7 +3006,7 @@ func TestShouldUpdateUserPasswordActiveDirectory(t *testing.T) {
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
 			Implementation:       "activedirectory",
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "sAMAccountName",
@@ -3117,7 +3117,7 @@ func TestShouldUpdateUserPasswordBasic(t *testing.T) {
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
 			Implementation:       "custom",
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "uid=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -3224,7 +3224,7 @@ func TestShouldReturnErrorWhenMultipleUsernameAttributes(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -3290,7 +3290,7 @@ func TestShouldReturnErrorWhenZeroUsernameAttributes(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -3356,7 +3356,7 @@ func TestShouldReturnErrorWhenUsernameAttributeNotReturned(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -3418,7 +3418,7 @@ func TestShouldReturnErrorWhenMultipleUsersFound(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -3501,7 +3501,7 @@ func TestShouldReturnErrorWhenNoDN(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -3567,7 +3567,7 @@ func TestShouldCheckValidUserPassword(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -3635,7 +3635,7 @@ func TestShouldNotCheckValidUserPasswordWithConnectError(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -3674,7 +3674,7 @@ func TestShouldCheckInvalidUserPassword(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -3742,7 +3742,7 @@ func TestShouldCallStartTLSWhenEnabled(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -3817,7 +3817,7 @@ func TestShouldParseDynamicConfiguration(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -3866,7 +3866,7 @@ func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
+			Address:              testLDAPAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",
@@ -3949,7 +3949,7 @@ func TestShouldReturnLDAPSAlreadySecuredWhenStartTLSAttempted(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldaps://127.0.0.1:389",
+			Address:              testLDAPSAddress,
 			User:                 "cn=admin,dc=example,dc=com",
 			Password:             "password",
 			UsernameAttribute:    "uid",

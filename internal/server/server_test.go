@@ -190,6 +190,7 @@ func TestShouldRaiseErrorWhenClientDoesNotSkipVerify(t *testing.T) {
 
 	tlsServerContext, err := NewTLSServerContext(schema.Configuration{
 		Server: schema.ServerConfiguration{
+			Address: &schema.AddressTCP{Address: schema.NewAddressFromNetworkValues("tcp", "0.0.0.0", 9091)},
 			TLS: schema.ServerTLS{
 				Certificate: certificateContext.Certificates[0].CertFile.Name(),
 				Key:         certificateContext.Certificates[0].KeyFile.Name(),
@@ -218,6 +219,7 @@ func TestShouldServeOverTLSWhenClientDoesSkipVerify(t *testing.T) {
 
 	tlsServerContext, err := NewTLSServerContext(schema.Configuration{
 		Server: schema.ServerConfiguration{
+			Address: schema.DefaultServerConfiguration.Address,
 			TLS: schema.ServerTLS{
 				Certificate: certificateContext.Certificates[0].CertFile.Name(),
 				Key:         certificateContext.Certificates[0].KeyFile.Name(),
@@ -255,6 +257,7 @@ func TestShouldServeOverTLSWhenClientHasProperRootCA(t *testing.T) {
 
 	tlsServerContext, err := NewTLSServerContext(schema.Configuration{
 		Server: schema.ServerConfiguration{
+			Address: schema.DefaultServerConfiguration.Address,
 			TLS: schema.ServerTLS{
 				Certificate: certificateContext.Certificates[0].CertFile.Name(),
 				Key:         certificateContext.Certificates[0].KeyFile.Name(),
@@ -306,6 +309,7 @@ func TestShouldRaiseWhenMutualTLSIsConfiguredAndClientIsNotAuthenticated(t *test
 
 	tlsServerContext, err := NewTLSServerContext(schema.Configuration{
 		Server: schema.ServerConfiguration{
+			Address: schema.DefaultServerConfiguration.Address,
 			TLS: schema.ServerTLS{
 				Certificate:        certificateContext.Certificates[0].CertFile.Name(),
 				Key:                certificateContext.Certificates[0].KeyFile.Name(),
@@ -349,6 +353,7 @@ func TestShouldServeProperlyWhenMutualTLSIsConfiguredAndClientIsAuthenticated(t 
 
 	tlsServerContext, err := NewTLSServerContext(schema.Configuration{
 		Server: schema.ServerConfiguration{
+			Address: schema.DefaultServerConfiguration.Address,
 			TLS: schema.ServerTLS{
 				Certificate:        certificateContext.Certificates[0].CertFile.Name(),
 				Key:                certificateContext.Certificates[0].KeyFile.Name(),

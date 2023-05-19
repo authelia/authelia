@@ -2,8 +2,6 @@ package storage
 
 import (
 	"crypto/x509"
-	"fmt"
-	"path"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
@@ -35,29 +33,13 @@ func NewMySQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (
 func dsnMySQL(config *schema.MySQLStorageConfiguration, caCertPool *x509.CertPool) (dataSourceName string) {
 	dsnConfig := mysql.NewConfig()
 
-	switch {
-	case path.IsAbs(config.Host):
-		dsnConfig.Net = sqlNetworkTypeUnixSocket
-		dsnConfig.Addr = config.Host
-	case config.Port == 0:
-		dsnConfig.Net = sqlNetworkTypeTCP
-		dsnConfig.Addr = fmt.Sprintf("%s:%d", config.Host, 3306)
-	default:
-		dsnConfig.Net = sqlNetworkTypeTCP
-		dsnConfig.Addr = fmt.Sprintf("%s:%d", config.Host, config.Port)
-	}
+	dsnConfig.Net = config.Address.Network()
+	dsnConfig.Addr = config.Address.NetworkAddress()
 
 	if config.TLS != nil {
 		_ = mysql.RegisterTLSConfig("storage", utils.NewTLSConfig(config.TLS, caCertPool))
 
 		dsnConfig.TLSConfig = "storage"
-	}
-
-	switch config.Port {
-	case 0:
-		dsnConfig.Addr = config.Host
-	default:
-		dsnConfig.Addr = fmt.Sprintf("%s:%d", config.Host, config.Port)
 	}
 
 	dsnConfig.DBName = config.Database

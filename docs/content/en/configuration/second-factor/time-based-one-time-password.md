@@ -31,8 +31,8 @@ and many only support SHA1.
 ```yaml
 totp:
   disable: false
-  issuer: authelia.com
-  algorithm: sha1
+  issuer: 'authelia.com'
+  algorithm: 'sha1'
   digits: 6
   period: 30
   skew: 1
@@ -65,9 +65,8 @@ by Authelia from others.
 
 *__Important Note:__ Many TOTP applications do not support this option. It is strongly advised you find out which
 applications your users use and test them before changing this option. It is insufficient to test that the application
-can add the key, it must also authenticate with Authelia as some applications silently ignore these options. [Bitwarden]
-is the only one that has been tested at this time. If you'd like to contribute to documenting support for this option
-please see [Issue 2650](https://github.com/authelia/authelia/issues/2650).*
+can add the key, it must also authenticate with Authelia as some applications silently ignore these options. See the
+[Reference Guide](../../reference/integrations/time-based-one-time-password-apps.md) for tested applications.*
 
 [Bitwarden]: https://bitwarden.com/
 
@@ -88,9 +87,8 @@ information.
 
 *__Important Note:__ Some TOTP applications do not support this option. It is strongly advised you find out which
 applications your users use and test them before changing this option. It is insufficient to test that the application
-can add the key, it must also authenticate with Authelia as some applications silently ignore these options. [Bitwarden]
-is the only one that has been tested at this time. If you'd like to contribute to documenting support for this option
-please see [Issue 2650](https://github.com/authelia/authelia/issues/2650).*
+can add the key, it must also authenticate with Authelia as some applications silently ignore these options. See the
+[Reference Guide](../../reference/integrations/time-based-one-time-password-apps.md) for tested applications.*
 
 The number of digits a user needs to input to perform authentication. It's generally not recommended for this to be
 altered as many TOTP applications do not support anything other than 6. What's worse is some TOTP applications allow

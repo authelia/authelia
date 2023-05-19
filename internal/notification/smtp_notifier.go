@@ -28,14 +28,14 @@ func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.Ce
 	}
 
 	opts := []gomail.Option{
-		gomail.WithPort(config.Port),
+		gomail.WithPort(config.Address.Port()),
 		gomail.WithTLSConfig(tlsconfig),
 		gomail.WithHELO(config.Identifier),
 		gomail.WithTimeout(config.Timeout),
 		gomail.WithoutNoop(),
 	}
 
-	ssl := config.Port == smtpPortSUBMISSIONS
+	ssl := config.Address.IsExplicitlySecure()
 
 	if ssl {
 		opts = append(opts, gomail.WithSSL())
@@ -86,7 +86,7 @@ type SMTPNotifier struct {
 func (n *SMTPNotifier) StartupCheck() (err error) {
 	var client *gomail.Client
 
-	if client, err = gomail.NewClient(n.config.Host, n.opts...); err != nil {
+	if client, err = gomail.NewClient(n.config.Address.Hostname(), n.opts...); err != nil {
 		return fmt.Errorf("failed to establish client: %w", err)
 	}
 
@@ -139,7 +139,7 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 
 	var client *gomail.Client
 
-	if client, err = gomail.NewClient(n.config.Host, n.opts...); err != nil {
+	if client, err = gomail.NewClient(n.config.Address.Hostname(), n.opts...); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to establish client: %w", err)
 	}
 

@@ -160,7 +160,7 @@ values.
 
 As such all SMTP connections require the following:
 
-1. A TLS Connection (STARTTLS or implicit) has been negotiated before authentication or sending emails (_unauthenticated
+1. A TLS Connection (StartTLS or implicit) has been negotiated before authentication or sending emails (_unauthenticated
  connections require it as well_)
 2. Valid X509 Certificate presented to the client during the TLS handshake
 
@@ -207,22 +207,22 @@ for SMTP servers that allow unauthenticated relaying (bad practice).
 
 ### SMTP Ports
 
-All SMTP connections begin as [cleartext], and then negotiate to upgrade to a secure TLS connection via STARTTLS.
+All SMTP connections begin as [cleartext], and then negotiate to upgrade to a secure TLS connection via StartTLS.
 
 The [`submissions` service][service-submissions] (_typically port 465_) is an exception to this rule, where the
-connection begins immediately secured with TLS (_similar to HTTPS_). When the configured [port for
-SMTP][docs-config-smtp-port] is set to `465`, Authelia will initiate TLS connections without requiring STARTTLS
+connection begins immediately secured with TLS (_similar to HTTPS_). When the configured [scheme for
+SMTP][docs-config-smtp-port] is set to `submissions`, Authelia will initiate TLS connections without requiring StartTLS
 negotiation.
 
-When the `submissions` service port is available, it [should be preferred][port-465] over any STARTTLS port for
+When the `submissions` service port is available, it [should be preferred][port-465] over any StartTLS port for
 submitting mail.
 
 **NOTE:** Prior to 2018, port 465 was previously assigned for a similar purpose known as [`smtps`][port-465] (_A TLS
 only equivalent of the `smtp` port 25_), which it had been deprecated for. Port 465 has since been re-assigned for only
 supporting mail submission (_which unlike SMTP transfers via port 25, [requires authentication][smtp-auth]_), similar
-to port 587 (_the `submission` port, a common alternative that uses STARTTLS instead_).
+to port 587 (_the `submission` port, a common alternative that uses StartTLS instead_).
 
-[docs-config-smtp-port]: ../../configuration/notifications/smtp.md#port
+[docs-config-smtp-port]: ../../configuration/notifications/smtp.md#address
 [cleartext]: https://cwe.mitre.org/data/definitions/312.html
 [service-submissions]: https://datatracker.ietf.org/doc/html/rfc8314#section-7.3
 [port-465]: https://datatracker.ietf.org/doc/html/rfc8314#section-3.3

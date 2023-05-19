@@ -107,7 +107,7 @@ func (p *LDAPUserProvider) CheckUserPassword(username string, password string) (
 		return false, err
 	}
 
-	if clientUser, err = p.connectCustom(p.config.URL, profile.DN, password, p.config.StartTLS, p.dialOpts...); err != nil {
+	if clientUser, err = p.connectCustom(p.config.Address.String(), profile.DN, password, p.config.StartTLS, p.dialOpts...); err != nil {
 		return false, fmt.Errorf("authentication failed. Cause: %w", err)
 	}
 
@@ -234,7 +234,7 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 }
 
 func (p *LDAPUserProvider) connect() (client LDAPClient, err error) {
-	return p.connectCustom(p.config.URL, p.config.User, p.config.Password, p.config.StartTLS, p.dialOpts...)
+	return p.connectCustom(p.config.Address.String(), p.config.User, p.config.Password, p.config.StartTLS, p.dialOpts...)
 }
 
 func (p *LDAPUserProvider) connectCustom(url, username, password string, startTLS bool, opts ...ldap.DialOpt) (client LDAPClient, err error) {

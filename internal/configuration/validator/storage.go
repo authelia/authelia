@@ -31,12 +31,29 @@ func ValidateStorage(config schema.StorageConfiguration, validator *schema.Struc
 }
 
 func validateSQLConfiguration(config *schema.SQLStorageConfiguration, validator *schema.StructValidator, provider string) {
-	if config.Timeout == 0 {
-		config.Timeout = schema.DefaultSQLStorageConfiguration.Timeout
-	}
+	if config.Address == nil {
+		if config.Host == "" { //nolint:staticcheck
+			validator.Push(fmt.Errorf(errFmtStorageOptionMustBeProvided, provider, "address"))
+		} else {
+			host := config.Host //nolint:staticcheck
+			port := config.Port //nolint:staticcheck
 
-	if config.Host == "" {
-		validator.Push(fmt.Errorf(errFmtStorageOptionMustBeProvided, provider, "host"))
+			if address, err := schema.NewAddressFromNetworkValuesDefault(host, port, schema.AddressSchemeTCP, schema.AddressSchemeUnix); err != nil {
+				validator.Push(fmt.Errorf(errFmtStorageFailedToConvertHostPortToAddress, provider, err))
+			} else {
+				config.Address = &schema.AddressTCP{Address: *address}
+			}
+		}
+	} else {
+		if config.Host != "" || config.Port != 0 { //nolint:staticcheck
+			validator.Push(fmt.Errorf(errFmtStorageOptionAddressConflictWithHostPort, provider))
+		}
+
+		var err error
+
+		if err = config.Address.ValidateSQL(); err != nil {
+			validator.Push(fmt.Errorf(errFmtServerAddress, config.Address.String(), err))
+		}
 	}
 
 	if config.Username == "" || config.Password == "" {
@@ -46,6 +63,10 @@ func validateSQLConfiguration(config *schema.SQLStorageConfiguration, validator 
 	if config.Database == "" {
 		validator.Push(fmt.Errorf(errFmtStorageOptionMustBeProvided, provider, "database"))
 	}
+
+	if config.Timeout == 0 {
+		config.Timeout = schema.DefaultSQLStorageConfiguration.Timeout
+	}
 }
 
 func validateMySQLConfiguration(config *schema.MySQLStorageConfiguration, validator *schema.StructValidator) {
@@ -53,9 +74,12 @@ func validateMySQLConfiguration(config *schema.MySQLStorageConfiguration, valida
 
 	if config.TLS != nil {
 		configDefaultTLS := &schema.TLSConfig{
-			ServerName:     config.Host,
 			MinimumVersion: schema.DefaultMySQLStorageConfiguration.TLS.MinimumVersion,
 			MaximumVersion: schema.DefaultMySQLStorageConfiguration.TLS.MaximumVersion,
+		}
+
+		if config.Address != nil {
+			configDefaultTLS.ServerName = config.Address.Hostname()
 		}
 
 		if err := ValidateTLSConfig(config.TLS, configDefaultTLS); err != nil {
@@ -76,7 +100,7 @@ func validatePostgreSQLConfiguration(config *schema.PostgreSQLStorageConfigurati
 		validator.Push(fmt.Errorf(errFmtStoragePostgreSQLInvalidSSLAndTLSConfig))
 	case config.TLS != nil:
 		configDefaultTLS := &schema.TLSConfig{
-			ServerName:     config.Host,
+			ServerName:     config.Address.Hostname(),
 			MinimumVersion: schema.DefaultPostgreSQLStorageConfiguration.TLS.MinimumVersion,
 			MaximumVersion: schema.DefaultPostgreSQLStorageConfiguration.TLS.MaximumVersion,
 		}

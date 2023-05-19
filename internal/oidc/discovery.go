@@ -1,7 +1,10 @@
 package oidc
 
 import (
+	"sort"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewOpenIDConnectWellKnownConfiguration generates a new OpenIDConnectWellKnownConfiguration.
@@ -62,12 +65,35 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 				TokenEndpointAuthMethodsSupported: []string{
 					ClientAuthMethodClientSecretBasic,
 					ClientAuthMethodClientSecretPost,
+					ClientAuthMethodClientSecretJWT,
+					ClientAuthMethodPrivateKeyJWT,
 					ClientAuthMethodNone,
+				},
+				TokenEndpointAuthSigningAlgValuesSupported: []string{
+					SigningAlgHMACUsingSHA256,
+					SigningAlgHMACUsingSHA384,
+					SigningAlgHMACUsingSHA512,
 				},
 			},
 			OAuth2DiscoveryOptions: OAuth2DiscoveryOptions{
 				CodeChallengeMethodsSupported: []string{
 					PKCEChallengeMethodSHA256,
+				},
+				RevocationEndpointAuthMethodsSupported: []string{
+					ClientAuthMethodClientSecretBasic,
+					ClientAuthMethodClientSecretPost,
+					ClientAuthMethodClientSecretJWT,
+					ClientAuthMethodPrivateKeyJWT,
+					ClientAuthMethodNone,
+				},
+				RevocationEndpointAuthSigningAlgValuesSupported: []string{
+					SigningAlgHMACUsingSHA256,
+					SigningAlgHMACUsingSHA384,
+					SigningAlgHMACUsingSHA512,
+				},
+				IntrospectionEndpointAuthMethodsSupported: []string{
+					ClientAuthMethodClientSecretBasic,
+					ClientAuthMethodNone,
 				},
 			},
 			OAuth2PushedAuthorizationDiscoveryOptions: &OAuth2PushedAuthorizationDiscoveryOptions{
@@ -77,11 +103,15 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 
 		OpenIDConnectDiscoveryOptions: OpenIDConnectDiscoveryOptions{
 			IDTokenSigningAlgValuesSupported: []string{
-				SigningAlgorithmRSAWithSHA256,
+				SigningAlgRSAUsingSHA256,
 			},
 			UserinfoSigningAlgValuesSupported: []string{
-				SigningAlgorithmNone,
-				SigningAlgorithmRSAWithSHA256,
+				SigningAlgRSAUsingSHA256,
+				SigningAlgNone,
+			},
+			RequestObjectSigningAlgValuesSupported: []string{
+				SigningAlgRSAUsingSHA256,
+				SigningAlgNone,
 			},
 		},
 		OpenIDConnectFrontChannelLogoutDiscoveryOptions: &OpenIDConnectFrontChannelLogoutDiscoveryOptions{},
@@ -93,6 +123,36 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 			},
 		},
 	}
+
+	for _, alg := range c.Discovery.ResponseObjectSigningAlgs {
+		if !utils.IsStringInSlice(alg, config.IDTokenSigningAlgValuesSupported) {
+			config.IDTokenSigningAlgValuesSupported = append(config.IDTokenSigningAlgValuesSupported, alg)
+		}
+
+		if !utils.IsStringInSlice(alg, config.UserinfoSigningAlgValuesSupported) {
+			config.UserinfoSigningAlgValuesSupported = append(config.UserinfoSigningAlgValuesSupported, alg)
+		}
+	}
+
+	for _, alg := range c.Discovery.RequestObjectSigningAlgs {
+		if !utils.IsStringInSlice(alg, config.RequestObjectSigningAlgValuesSupported) {
+			config.RequestObjectSigningAlgValuesSupported = append(config.RequestObjectSigningAlgValuesSupported, alg)
+		}
+
+		if !utils.IsStringInSlice(alg, config.RevocationEndpointAuthSigningAlgValuesSupported) {
+			config.RevocationEndpointAuthSigningAlgValuesSupported = append(config.RevocationEndpointAuthSigningAlgValuesSupported, alg)
+		}
+
+		if !utils.IsStringInSlice(alg, config.TokenEndpointAuthSigningAlgValuesSupported) {
+			config.TokenEndpointAuthSigningAlgValuesSupported = append(config.TokenEndpointAuthSigningAlgValuesSupported, alg)
+		}
+	}
+
+	sort.Sort(SortedSigningAlgs(config.IDTokenSigningAlgValuesSupported))
+	sort.Sort(SortedSigningAlgs(config.UserinfoSigningAlgValuesSupported))
+	sort.Sort(SortedSigningAlgs(config.RequestObjectSigningAlgValuesSupported))
+	sort.Sort(SortedSigningAlgs(config.RevocationEndpointAuthSigningAlgValuesSupported))
+	sort.Sort(SortedSigningAlgs(config.TokenEndpointAuthSigningAlgValuesSupported))
 
 	if c.EnablePKCEPlainChallenge {
 		config.CodeChallengeMethodsSupported = append(config.CodeChallengeMethodsSupported, PKCEChallengeMethodPlain)

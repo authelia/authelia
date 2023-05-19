@@ -60,7 +60,7 @@ OIDC_SCOPES="openid offline_access profile email"
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Outline]
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Outline]
 which will operate with the above example:
 
 ```yaml
@@ -69,19 +69,19 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-    - id: outline
-      description: Outline
+    - id: 'outline'
+      description: 'Outline'
       secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
       public: false
-      authorization_policy: two_factor
+      authorization_policy: 'two_factor'
       redirect_uris:
-        - https://outline.example.com/auth/oidc.callback
+        - 'https://outline.example.com/auth/oidc.callback'
       scopes:
-        - openid
-        - offline_access
-        - profile
-        - email
-      userinfo_signing_algorithm: none
+        - 'openid'
+        - 'offline_access'
+        - 'profile'
+        - 'email'
+      userinfo_signing_alg: 'none'
 ```
 
 ## See Also

@@ -1,16 +1,16 @@
 package schema
 
 import (
+	"net/url"
 	"time"
 )
 
 // ServerConfiguration represents the configuration of the http server.
 type ServerConfiguration struct {
-	Host               string `koanf:"host"`
-	Port               int    `koanf:"port"`
-	Path               string `koanf:"path"`
-	AssetPath          string `koanf:"asset_path"`
-	DisableHealthcheck bool   `koanf:"disable_healthcheck"`
+	Address            *AddressTCP `koanf:"address"`
+	Path               string      `koanf:"path"`
+	AssetPath          string      `koanf:"asset_path"`
+	DisableHealthcheck bool        `koanf:"disable_healthcheck"`
 
 	TLS       ServerTLS       `koanf:"tls"`
 	Headers   ServerHeaders   `koanf:"headers"`
@@ -18,6 +18,12 @@ type ServerConfiguration struct {
 
 	Buffers  ServerBuffers  `koanf:"buffers"`
 	Timeouts ServerTimeouts `koanf:"timeouts"`
+
+	// Deprecated: use address instead.
+	Host string `koanf:"host"`
+
+	// Deprecated: use address instead.
+	Port int `koanf:"port"`
 }
 
 // ServerEndpoints is the endpoints configuration for the HTTP server.
@@ -54,8 +60,7 @@ type ServerHeaders struct {
 
 // DefaultServerConfiguration represents the default values of the ServerConfiguration.
 var DefaultServerConfiguration = ServerConfiguration{
-	Host: "0.0.0.0",
-	Port: 9091,
+	Address: &AddressTCP{Address{true, false, -1, 9091, &url.URL{Scheme: AddressSchemeTCP, Host: ":9091"}}},
 	Buffers: ServerBuffers{
 		Read:  4096,
 		Write: 4096,

@@ -66,7 +66,7 @@ To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect 1
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Cloudflare]
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Cloudflare]
 which will operate with the above example:
 
 ```yaml
@@ -75,18 +75,18 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-    - id: cloudflare
-      description: Cloudflare ZeroTrust
+    - id: 'cloudflare'
+      description: 'Cloudflare ZeroTrust'
       secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
       public: false
-      authorization_policy: two_factor
+      authorization_policy: 'two_factor'
       redirect_uris:
-        - https://example-team.cloudflareaccess.com/cdn-cgi/access/callback
+        - 'https://example-team.cloudflareaccess.com/cdn-cgi/access/callback'
       scopes:
-        - openid
-        - profile
-        - email
-      userinfo_signing_algorithm: none
+        - 'openid'
+        - 'profile'
+        - 'email'
+      userinfo_signing_alg: 'none'
 ```
 
 ## See Also

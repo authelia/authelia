@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
@@ -141,8 +140,8 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 func dsnPostgreSQL(config *schema.PostgreSQLStorageConfiguration, globalCACertPool *x509.CertPool) (dsn string) {
 	dsnConfig, _ := pgx.ParseConfig("")
 
-	dsnConfig.Host = config.Host
-	dsnConfig.Port = uint16(config.Port)
+	dsnConfig.Host = config.Address.SocketHostname()
+	dsnConfig.Port = uint16(config.Address.Port())
 	dsnConfig.Database = config.Database
 	dsnConfig.User = config.Username
 	dsnConfig.Password = config.Password
@@ -152,7 +151,7 @@ func dsnPostgreSQL(config *schema.PostgreSQLStorageConfiguration, globalCACertPo
 		"search_path": config.Schema,
 	}
 
-	if dsnConfig.Port == 0 && !path.IsAbs(dsnConfig.Host) {
+	if dsnConfig.Port == 0 && config.Address.IsUnixDomainSocket() {
 		dsnConfig.Port = 5432
 	}
 
@@ -195,7 +194,7 @@ func loadPostgreSQLTLSConfig(config *schema.PostgreSQLStorageConfiguration, glob
 			tlsConfig.VerifyPeerCertificate = newPostgreSQLVerifyCAFunc(tlsConfig)
 		case config.SSL.Mode == "verify-full":
 			tlsConfig.InsecureSkipVerify = false
-			tlsConfig.ServerName = config.Host
+			tlsConfig.ServerName = config.Address.Hostname()
 		}
 	}
 

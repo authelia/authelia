@@ -1,0 +1,211 @@
+---
+default_redirection_url: https://home.example.com:8080/
+
+server:
+  host: 127.0.0.1
+  port: 9091
+
+log:
+  level: debug
+
+totp:
+  issuer: authelia.com
+
+duo_api:
+  hostname: api-123456789.example.com
+  integration_key: ABCDEF
+
+authentication_backend:
+  ldap:
+    url: ldap://127.0.0.1
+    base_dn: dc=example,dc=com
+    username_attribute: uid
+    additional_users_dn: ou=users
+    users_filter: (&({username_attribute}={input})(objectCategory=person)(objectClass=user))
+    additional_groups_dn: ou=groups
+    groups_filter: (&(member={dn})(objectClass=groupOfNames))
+    group_name_attribute: cn
+    mail_attribute: mail
+    user: cn=admin,dc=example,dc=com
+
+access_control:
+  default_policy: deny
+
+  rules:
+    # Rules applied to everyone
+    - domain: public.example.com
+      policy: bypass
+
+    - domain: secure.example.com
+      policy: one_factor
+      # Network based rule, if not provided any network matches.
+      networks:
+        - 192.168.1.0/24
+    - domain: secure.example.com
+      policy: two_factor
+
+    - domain: [singlefactor.example.com, onefactor.example.com]
+      policy: one_factor
+
+    # Rules applied to 'admins' group
+    - domain: "mx2.mail.example.com"
+      subject: "group:admins"
+      policy: deny
+    - domain: "*.example.com"
+      subject: "group:admins"
+      policy: two_factor
+
+    # Rules applied to 'dev' group
+    - domain: dev.example.com
+      resources:
+        - "^/groups/dev/.*$"
+      subject: "group:dev"
+      policy: two_factor
+
+    # Rules applied to user 'john'
+    - domain: dev.example.com
+      resources:
+        - "^/users/john/.*$"
+      subject: "user:john"
+      policy: two_factor
+
+    # Rules applied to 'dev' group and user 'john'
+    - domain: dev.example.com
+      resources:
+        - "^/deny-all.*$"
+      subject: ["group:dev", "user:john"]
+      policy: deny
+
+    # Rules applied to user 'harry'
+    - domain: dev.example.com
+      resources:
+        - "^/users/harry/.*$"
+      subject: "user:harry"
+      policy: two_factor
+
+    # Rules applied to user 'bob'
+    - domain: "*.mail.example.com"
+      subject: "user:bob"
+      policy: two_factor
+    - domain: "dev.example.com"
+      resources:
+        - "^/users/bob/.*$"
+      subject: "user:bob"
+      policy: two_factor
+
+session:
+  name: authelia_session
+  expiration: 3600000  # 1 hour
+  inactivity: 300000  # 5 minutes
+  domain: example.com
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    high_availability:
+      sentinel_name: test
+
+regulation:
+  max_retries: 3
+  find_time: 120
+  ban_time: 300
+
+storage:
+  mysql:
+    host: 127.0.0.1
+    port: 3306
+    database: authelia
+    username: authelia
+
+notifier:
+  smtp:
+    username: test
+    host: 127.0.0.1
+    port: 1025
+    sender: admin@example.com
+    disable_require_tls: true
+
+identity_providers:
+  oidc:
+    hmac_secret: 1nb2j3kh1b23kjh1b23jh1b23j1h2b3
+    issuer_private_keys:
+      keys:
+        keya:
+          key: |
+            -----BEGIN RSA PRIVATE KEY-----
+            MIIEpQIBAAKCAQEAs5BZdREjkceDvty5c+qBski4XXiMubVyGFLazoNumhMbgjA7
+            DoCLglCrIRcYd4Wn4CEe4KJzghIdfijDCIQ6V+wrm/KR3iMvBdkPYVC7vGXYY5kx
+            WtAT5qejuxKXHQK2/jWSO6tOxFRGxA/nE4A9cm8FH6/lfz05ci1h63gAOVQpkvcj
+            JMHlGqTHt93HOTBVFQpi9zpTdDKQx3yq4ttfh49vUwWBsXe640Y+soaGjTMJS8IT
+            kGktwOxwRfGJ1PRHVF9FnRm7nhf53hFat/k3mbbyV8rnlmVLPqZ+KIqH5/rjYh3K
+            Rr71WAptFnHtoiT2SNfwDh+8iqo3QlWtW24iAwIDAQABAoIBAQCLKVkbMEA3z79b
+            4SZdHqaLbG5uCmpN1sBo93WaTSQfhqVwHT73u0njoe8ugv60SsJTIngSsfQBH1b6
+            Gk8kv42T7HXTs4e299+Oka2oxu/oT6oHbodgkRiLTurGpd61XhBCLXR6iAZQg9wg
+            QQ7d/yogEMiQyTp8hQ+LXH6iBetugW0l0Uz2pbJNi4c4qqXm5BYoQaJ0RjqQI5C5
+            5ZPiX/1yn3bWbJRhSK5FfnEdO/3LclfQMvMOaipH4CXOjYcFSxVP1vVL6Jli92+j
+            tVApsnSZiEZ3kB4jRqDZnV9xQhfTXVyfopCNL1a3LkbE171GStd5eib7ESydTik7
+            DhFqTdpZAoGBAOgEPAmFKi9z40umcN27+dd6CAXfjy2dqkuM8hGshQiGnH9bAAl+
+            hhr3u5AvbxZ/qsD0KAAEReD3cY0OFTPfl2qD0nsleqUt6N6gM+j6596jVNnOlW9A
+            0y0Lssobh8DrvXoDTBCL1wdcQXknoyUm8lkpVhSm6PmLFAS2lnBFJBJvAoGBAMYg
+            FGeSQ0kRWmmVnfibcHqHerD5FK6AvciYg/ycjKUA9Fde0gon1v/M1TWAhT6mqjjv
+            uSX2c3eEpzAjoJxd5bPgxfEWIM6ygn1N5fka1re5d5pHOAMJB9AAz3A3PZJP8ANt
+            ES51dO0rYAuKdBuza9eSyj9/JPDh7QdE47ZvP6OtAoGBAI4aAddm2uaDWOP9hcUY
+            mzXRBNbsDJpIpYNuSNhwTG5jW7hYuNYXyvT7Y8I0expRiPhy0YjpFQ9rHf3hcTT7
+            LZbMM/6+frZqPuUTQ5ffDGJ8sLxR3Y5tKqm9L3y/jc6n073GBTFhJIragzM8Bpz7
+            lJTtT06Ix8oG13Tni44pmqU7AoGBAJPS56aHSNDBs9XHnkAZqgiiAPb+QWIaCIAc
+            242lOIL8fVKbGtgc9ZuSNxpeNAyUybkFk/0xLuHkBeIzEujYXkSh1s6UlhHiut3H
+            O2lrjv0x0n032iDZogyeLigp7zS1k/zaadFiLcWvcU/rE8p/Sl1j1qcdtHBOAU5F
+            Jim+Q5tZAoGAbNaUs05FPastfdmZCp5Pj1sbnRZdwUZH1AeZuhuSfbS6aA/wB3VA
+            i/LTu4Z3iR0M0p8HeNy/YBKl0MrRc0nE/UkV66kOQH3az/N39i2KsTBzMsvlByWd
+            ofwOgCjgkIviNDIXikLBEWZFwr/4mQkN91YoFY37pteS3sVYQpVbQeA=
+            -----END RSA PRIVATE KEY-----
+          certificate_chain: |
+            -----BEGIN CERTIFICATE-----
+            MIIC5jCCAc6gAwIBAgIRAMMH7qhte0VDXdnbHMy43dUwDQYJKoZIhvcNAQELBQAw
+            EzERMA8GA1UEChMIQXV0aGVsaWEwHhcNMjMwNDE2MTEyMjU0WhcNMjQwNDE1MTEy
+            MjU0WjATMREwDwYDVQQKEwhBdXRoZWxpYTCCASIwDQYJKoZIhvcNAQEBBQADggEP
+            ADCCAQoCggEBALOQWXURI5HHg77cuXPqgbJIuF14jLm1chhS2s6DbpoTG4IwOw6A
+            i4JQqyEXGHeFp+AhHuCic4ISHX4owwiEOlfsK5vykd4jLwXZD2FQu7xl2GOZMVrQ
+            E+ano7sSlx0Ctv41kjurTsRURsQP5xOAPXJvBR+v5X89OXItYet4ADlUKZL3IyTB
+            5Rqkx7fdxzkwVRUKYvc6U3QykMd8quLbX4ePb1MFgbF3uuNGPrKGho0zCUvCE5Bp
+            LcDscEXxidT0R1RfRZ0Zu54X+d4RWrf5N5m28lfK55ZlSz6mfiiKh+f642Idyka+
+            9VgKbRZx7aIk9kjX8A4fvIqqN0JVrVtuIgMCAwEAAaM1MDMwDgYDVR0PAQH/BAQD
+            AgWgMBMGA1UdJQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcN
+            AQELBQADggEBAKT2CQNx/JlutnsMHYBoOLfr8Vpz3/PTx0rAgxptgp1CDkTBxIah
+            7rmGuHX0qDKbqINr4DmFhkKeIPSMux11xzW6MW83ZN8WZCTkAiPPIGTNGWccJONl
+            lpX5dIPdpXGoXA7T31Gto3FPmsgxQ2jK/mpok20J6EFkkpUuXxSxjwO1zd56iMxQ
+            FuSLo8J/uI/T4aj7Wrk6fFI5z7gjP8BjVFAsYkTYUhkLatnbuQstx+R2p7hjv50G
+            weBOw5YW8JWLRRJ2A5FBJsZekiNdpIa+CmH7v0SICAHaTKdR3RVgQfa8zvbzW/d8
+            qXsSjjBkmEkKUFoFi/fxTQuqseQC0h+P5N8=
+            -----END CERTIFICATE-----
+        ec521:
+          key: |
+            -----BEGIN EC PRIVATE KEY-----
+            MIHcAgEBBEIA5s1+7OZClSDG3Ro7FFJjR2J6cBFimlR/sNcZ4ljFjDaef4vNw2DU
+            Eq1x5gkj888I1/BXV+/KVc+dtYDGKeGSxvagBwYFK4EEACOhgYkDgYYABADXFb5h
+            KymYeOH8Em1VJvOsc9mUi6Gr0AAiseu5G0HofN+GzxD7GBDAE9plkRhd8QfmuwZy
+            S0rUlTXhvZMARuujnABxJ7FnPp81osndv/vk9ujUTZsK0UPaLJ189NuR6VwImUQK
+            c/xWqI9AC99VchRw6fw7smpn6lCmVkHNRJFL1Bs4iA==
+            -----END EC PRIVATE KEY-----
+          certificate_chain: |
+            -----BEGIN CERTIFICATE-----
+            MIIB4jCCAUOgAwIBAgIRAKhDsoaXc69n4uH0CB31XfswCgYIKoZIzj0EAwIwEzER
+            MA8GA1UEChMIQXV0aGVsaWEwHhcNMjMwNDE2MTEyMTQxWhcNMjQwNDE1MTEyMTQx
+            WjATMREwDwYDVQQKEwhBdXRoZWxpYTCBmzAQBgcqhkjOPQIBBgUrgQQAIwOBhgAE
+            ANcVvmErKZh44fwSbVUm86xz2ZSLoavQACKx67kbQeh834bPEPsYEMAT2mWRGF3x
+            B+a7BnJLStSVNeG9kwBG66OcAHEnsWc+nzWiyd2/++T26NRNmwrRQ9osnXz025Hp
+            XAiZRApz/Faoj0AL31VyFHDp/DuyamfqUKZWQc1EkUvUGziIozUwMzAOBgNVHQ8B
+            Af8EBAMCBaAwEwYDVR0lBAwwCgYIKwYBBQUHAwEwDAYDVR0TAQH/BAIwADAKBggq
+            hkjOPQQDAgOBjAAwgYgCQgCBXWYXKn7aANz5JC8sXLJSOkNMF6vbd/T96KoLSBT+
+            +l6KKwKg5evolAKync1ksGAzNidFKqjhwG4BZj10YnowPQJCAWjb/3KeRN1RmGOc
+            abG/6Y0USqC3LUb/ZrtVwRYvQYZYi1R7OJx7cTJcVy1yBwfJa5IcPJwjEiQI3CXV
+            3AGOvhz+
+            -----END CERTIFICATE-----
+    cors:
+      allowed_origins:
+        - https://google.com
+        - https://example.com
+    clients:
+      - id: abc
+        secret: '123'
+        consent_mode: explicit
+...

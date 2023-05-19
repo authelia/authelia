@@ -104,7 +104,7 @@ server:
   endpoints:
     authz:
       forward-auth:
-        implementation: ForwardAuth
+        implementation: 'ForwardAuth'
 ```
 
 ## Configuration

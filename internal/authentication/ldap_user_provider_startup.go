@@ -31,7 +31,7 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 			"attribute when users reset their password via Authelia.")
 	}
 
-	if p.features.Extensions.TLS && !p.config.StartTLS && !strings.HasPrefix(p.config.URL, "ldaps://") {
+	if p.features.Extensions.TLS && !p.config.StartTLS && !p.config.Address.IsExplicitlySecure() {
 		p.log.Error("Your LDAP Server supports TLS but you don't appear to be utilizing it. We strongly " +
 			"recommend using the scheme 'ldaps://' or enabling the StartTLS option to secure connections with your " +
 			"LDAP Server.")

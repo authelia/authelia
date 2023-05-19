@@ -7,7 +7,7 @@ jwt_secret: very_important_secret
 default_redirection_url: https://home.example.com:8080/
 
 server:
-  port: 9091
+  address: 'tcp://:9091'
   tls:
     certificate: /pki/public.backend.crt
     key: /pki/private.backend.pem
@@ -32,8 +32,7 @@ session:
 storage:
   encryption_key: a_not_so_secure_encryption_key
   mysql:
-    host: mariadb
-    port: 3306
+    address: 'tcp://mariadb:3306'
     database: authelia
     username: admin
     password: password
@@ -71,8 +70,7 @@ regulation:
 notifier:
   # Use a SMTP server for sending notifications
   smtp:
-    host: smtp
-    port: 1025
+    address: 'smtp://smtp:1025'
     sender: admin@example.com
     disable_require_tls: true
 ...

@@ -65,9 +65,11 @@ func (mr *MockLDAPClientMockRecorder) Bind(arg0, arg1 interface{}) *gomock.Call 
 }
 
 // Close mocks base method.
-func (m *MockLDAPClient) Close() {
+func (m *MockLDAPClient) Close() error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Close")
+	ret := m.ctrl.Call(m, "Close")
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Close indicates an expected call of Close.
@@ -332,18 +334,6 @@ func (m *MockLDAPClient) SimpleBind(arg0 *ldap.SimpleBindRequest) (*ldap.SimpleB
 func (mr *MockLDAPClientMockRecorder) SimpleBind(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SimpleBind", reflect.TypeOf((*MockLDAPClient)(nil).SimpleBind), arg0)
-}
-
-// Start mocks base method.
-func (m *MockLDAPClient) Start() {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Start")
-}
-
-// Start indicates an expected call of Start.
-func (mr *MockLDAPClientMockRecorder) Start() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockLDAPClient)(nil).Start))
 }
 
 // StartTLS mocks base method.
