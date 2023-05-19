@@ -41,7 +41,7 @@ require (
 	github.com/sirupsen/logrus v1.9.2
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.3
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.47.0
 	github.com/wneessen/go-mail v0.3.9
