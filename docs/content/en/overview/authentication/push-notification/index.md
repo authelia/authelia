@@ -39,7 +39,7 @@ Now that Authelia is configured, pass the first factor and select the Push notif
 You should now receive a notification on your mobile phone with all the details about the authentication request. In
 case you have multiple devices available, you will be asked to select your preferred device.
 
-## FAQ
+## Frequently Asked Questions
 
 ### Why don't I have access to the *Push Notification* option?
 

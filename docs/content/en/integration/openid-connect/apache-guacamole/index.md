@@ -1,6 +1,6 @@
 ---
 title: "Apache Guacamole"
-description: "Integrating Apache Guacamole with the Authelia OpenID Connect Provider."
+description: "Integrating Apache Guacamole with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
 date: 2022-07-31T13:09:05+10:00
 draft: false

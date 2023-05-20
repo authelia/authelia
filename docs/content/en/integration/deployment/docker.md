@@ -210,7 +210,7 @@ running the following command:
 grep -Eo '"https://.*" ' ./authelia/notification.txt.
 ```
 
-## FAQ
+## Frequently Asked Questions
 
 #### Running the Proxy on the Host Instead of in a Container
 

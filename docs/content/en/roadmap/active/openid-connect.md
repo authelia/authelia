@@ -1,7 +1,7 @@
 ---
-title: "OpenID Connect"
-description: "Authelia OpenID Connect Implementation"
-lead: "The OpenID Connect Provider role is a very useful but complex feature to enhance interoperability of Authelia with other products. "
+title: "OpenID Connect 1.0"
+description: "Authelia OpenID Connect 1.0 Provider Implementation"
+lead: "The OpenID Connect 1.0 Provider role is a very useful but complex feature to enhance interoperability of Authelia with other products. "
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -15,14 +15,15 @@ aliases:
   - /docs/roadmap/oidc.html
 ---
 
-We have decided to implement [OpenID Connect] as a beta feature, it's suggested you only utilize it for testing and
-providing feedback, and should take caution in relying on it in production as of now. [OpenID Connect] and it's related
-endpoints are not enabled by default unless you specifically configure the [OpenID Connect] section.
+We have decided to implement [OpenID Connect 1.0] as a beta feature, it's suggested you only utilize it for testing and
+providing feedback, and should take caution in relying on it in production as of now. [OpenID Connect 1.0] and it's
+related endpoints are not enabled by default unless you specifically configure the [OpenID Connect 1.0] section.
 
-As [OpenID Connect] is fairly complex (the [OpenID Connect] Provider role especially so) it's intentional that it is
-both a beta and that the implemented features are part of a thoughtful roadmap. Items that are not immediately obvious
-as required (i.e. bug fixes or spec features), will likely be discussed in team meetings or on GitHub issues before
-being added to the list. We want to implement this feature in a very thoughtful way in order to avoid security issues.
+As [OpenID Connect 1.0] is fairly complex (the [OpenID Connect 1.0] Provider role especially so) it's intentional that
+it is both a beta and that the implemented features are part of a thoughtful roadmap. Items that are not immediately
+obvious as required (i.e. bug fixes or spec features), will likely be discussed in team meetings or on GitHub issues
+before being added to the list. We want to implement this feature in a very thoughtful way in order to avoid security
+issues.
 
 ## Stages
 
@@ -38,7 +39,7 @@ Feature List:
 
 * [User Consent](https://openid.net/specs/openid-connect-core-1_0.html#Consent)
 * [Authorization Code Flow](https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowSteps)
-* [OpenID Connect Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html)
+* [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html)
 * [RS256 Signature Strategy](https://datatracker.ietf.org/doc/html/rfc7518#section-3.1)
 * Per Client Scope/Grant Type/Response Type Restriction
 * Per Client Authorization Policy (1FA/2FA)
@@ -64,7 +65,7 @@ Feature List:
 
 Feature List:
 
-* [Proof Key Code Exchange (PKCE)] for Authorization Code Flow
+* [RFC7636: Proof Key for Code Exchange (PKCE)] for Authorization Code Flow
 * Claims:
   * `preferred_username` - sending the username in this claim instead of the `sub` claim.
 
@@ -79,12 +80,12 @@ Feature List:
   * Auditable Information
   * Subject to User Mapping
 * Opaque [RFC4122] UUID v4's for subject identifiers
-* Support for Pairwise and Plain subject identifier types as per [OpenID Connect Core (Subject Identifier Types)]
-  * Utilize the pairwise example method 3 as per [OpenID Connect Core (Pairwise Identifier Algorithm)]
+* Support for Pairwise and Plain subject identifier types as per [OpenID Connect Core 1.0 (Subject Identifier Types)]
+  * Utilize the pairwise example method 3 as per [OpenID Connect Core 1.0 (Pairwise Identifier Algorithm)]
 * Claims:
   * `sub` - replace username with opaque random [RFC4122] UUID v4
   * `amr` - authentication method references as per [RFC8176]
-  * `azp` - authorized party as per [OpenID Connect Core (ID Token)]
+  * `azp` - authorized party as per [OpenID Connect Core 1.0 (ID Token)]
   * `client_id` - the Client ID as per [RFC8693 Section 4.3]
 * [Cross Origin Resource Sharing] (CORS):
   * Automatically allow all cross-origin requests to the discovery endpoints
@@ -106,7 +107,7 @@ Feature List:
   * Implicit:
     * Not expressly standards compliant
     * Never asks for end-user consent
-    * Not compatible with the consent prompt type
+    * Not compatible with the `consent` prompt type
   * Pre-Configured:
     * Allows users to save consent sessions for a duration configured by the administrator
     * Operates nearly identically to the explicit consent mode
@@ -115,15 +116,15 @@ Feature List:
 
 {{< roadmap-status stage="in-progress" version="v4.38.0" >}}
 
-* [RFC9126: OAuth 2.0 Pushed Authorization Requests](https://datatracker.ietf.org/doc/html/rfc9126)
-* [RFC7523: JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants](https://datatracker.ietf.org/doc/html/rfc7523):
+* [RFC9126: OAuth 2.0 Pushed Authorization Requests]
+* [RFC7523: JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants]:
   * Client Auth Method `client_secret_jwt`
   * Client Auth Method `private_key_jwt`
-* Per-Client [Proof Key Code Exchange (PKCE)] Policy
+* Per-Client [RFC7636: Proof Key for Code Exchange (PKCE)] Policy
 * Multiple Issuer JWKs:
-  * RS256, RS384, RS512
-  * PS256, PS384, PS512
-  * ES256, ES384, ES512
+  * `RS256`, `RS384`, `RS512`
+  * `PS256`, `PS384`, `PS512`
+  * `ES256`, `ES384`, `ES512`
 
 ### Beta 7
 
@@ -134,7 +135,7 @@ Feature List:
 * Prompt Handling
 * Display Handling
 
-See [OpenID Connect Core (Mandatory to Implement Features for All OpenID Providers)].
+See [OpenID Connect Core 1.0 (Mandatory to Implement Features for All OpenID Providers)].
 
 ### Beta 8
 
@@ -144,6 +145,15 @@ Feature List:
 
 * Revoke Tokens on User Logout or Expiration
 * [JSON Web Key Rotation](https://openid.net/specs/openid-connect-messages-1_0-20.html#rotate.sig.keys)
+* In-Storage Configuration:
+  * Multi-Issuer Configuration (require one per Issuer URL)
+  * Dynamically Configured via CLI
+  * Import from YAML:
+    * Manual method
+    * Bootstrap method:
+      * Defaults to one time only
+      * Can optionally override the database configuration
+  * Salt (random) and/or Peppered (storage encryption) Client Credentials
 
 ### General Availability
 
@@ -151,7 +161,7 @@ Feature List:
 
 Feature List:
 
-* Enable by Default
+* ~~Enable by Default~~
 * Only after all previous stages are checked for bugs
 
 ### Miscellaneous
@@ -162,13 +172,13 @@ This stage lists features which individually do not fit into a specific stage an
 
 {{< roadmap-status >}}
 
-See the [OpenID Connect] website for the [OpenID Connect Dynamic Client Registration] specification.
+See the [OpenID Connect 1.0] website for the [OpenID Connect Dynamic Client Registration 1.0] specification.
 
 #### OpenID Connect Back-Channel Logout
 
 {{< roadmap-status >}}
 
-See the [OpenID Connect] website for the [OpenID Connect Back-Channel Logout] specification.
+See the [OpenID Connect 1.0] website for the [OpenID Connect Back-Channel Logout 1.0] specification.
 
 Should be implemented alongside [Dynamic Client Registration](#openid-connect-dynamic-client-registration).
 
@@ -176,7 +186,7 @@ Should be implemented alongside [Dynamic Client Registration](#openid-connect-dy
 
 {{< roadmap-status >}}
 
-See the [OpenID Connect] website for the [OpenID Connect Front-Channel Logout] specification.
+See the [OpenID Connect 1.0] website for the [OpenID Connect Front-Channel Logout 1.0] specification.
 
 Should be implemented alongside [Dynamic Client Registration](#openid-connect-dynamic-client-registration).
 
@@ -190,7 +200,7 @@ See the [IETF Specification RFC8414](https://datatracker.ietf.org/doc/html/rfc84
 
 {{< roadmap-status >}}
 
-See the [OpenID Connect] website for the [OpenID Connect Session Management] specification.
+See the [OpenID Connect 1.0] website for the [OpenID Connect Session Management 1.0] specification.
 
 #### End-User Scope Grants
 
@@ -216,14 +226,17 @@ The `preferred_username` claim was missing and was fixed.
 [RFC8693 Section 4.3]: https://datatracker.ietf.org/doc/html/rfc8693/#section-4.3
 [RFC4122]: https://datatracker.ietf.org/doc/html/rfc4122
 
-[OpenID Connect]: https://openid.net/connect/
-[OpenID Connect Front-Channel Logout]: https://openid.net/specs/openid-connect-frontchannel-1_0.html
-[OpenID Connect Back-Channel Logout]: https://openid.net/specs/openid-connect-backchannel-1_0.html
-[OpenID Connect Session Management]: https://openid.net/specs/openid-connect-session-1_0.html
-[OpenID Connect Dynamic Client Registration]: https://openid.net/specs/openid-connect-registration-1_0.html
+[OpenID Connect 1.0]: https://openid.net/connect/
+[OpenID Connect Front-Channel Logout 1.0]: https://openid.net/specs/openid-connect-frontchannel-1_0.html
+[OpenID Connect Back-Channel Logout 1.0]: https://openid.net/specs/openid-connect-backchannel-1_0.html
+[OpenID Connect Session Management 1.0]: https://openid.net/specs/openid-connect-session-1_0.html
+[OpenID Connect Dynamic Client Registration 1.0]: https://openid.net/specs/openid-connect-registration-1_0.html
 
-[OpenID Connect Core (ID Token)]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
-[OpenID Connect Core (Subject Identifier Types)]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
-[OpenID Connect Core (Pairwise Identifier Algorithm)]: https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg
-[OpenID Connect Core (Mandatory to Implement Features for All OpenID Providers)]: https://openid.net/specs/openid-connect-core-1_0.html#ServerMTI
-[Proof Key Code Exchange (PKCE)]: https://datatracker.ietf.org/doc/html/rfc7636
+[OpenID Connect Core 1.0 (ID Token)]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
+[OpenID Connect Core 1.0 (Subject Identifier Types)]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
+[OpenID Connect Core 1.0 (Pairwise Identifier Algorithm)]: https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg
+[OpenID Connect Core 1.0 (Mandatory to Implement Features for All OpenID Providers)]: https://openid.net/specs/openid-connect-core-1_0.html#ServerMTI
+
+[RFC7636: Proof Key for Code Exchange (PKCE)]: https://datatracker.ietf.org/doc/html/rfc7636
+[RFC7523: JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants]: https://datatracker.ietf.org/doc/html/rfc7523
+[RFC9126: OAuth 2.0 Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126

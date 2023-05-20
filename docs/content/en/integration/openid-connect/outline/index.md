@@ -1,6 +1,6 @@
 ---
 title: "Outline"
-description: "Integrating Outline with the Authelia OpenID Connect Provider."
+description: "Integrating Outline with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
 date: 2022-08-12T09:11:42+10:00
 draft: false

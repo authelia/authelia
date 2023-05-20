@@ -43,7 +43,7 @@ requested:
 
 Easy, right?!
 
-## FAQ
+## Frequently Asked Questions
 
 ### Can I register multiple FIDO2 WebAuthn credentials?
 

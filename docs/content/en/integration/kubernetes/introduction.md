@@ -63,7 +63,7 @@ spec:
 ...
 ```
 
-## FAQ
+## Frequently Asked Questions
 
 ### RAM usage
 

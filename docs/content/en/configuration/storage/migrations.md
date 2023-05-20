@@ -32,9 +32,9 @@ this instance if you wanted to downgrade to pre1 you would need to use an Authel
 |       1        |      4.33.0      |                                 Initial migration managed version                                  |
 |       2        |      4.34.0      | WebAuthn - added webauthn_devices table, altered totp_config to include device created/used dates  |
 |       3        |      4.34.2      |     WebAuthn - fix V2 migration kid column length and provide migration path for anyone on V2      |
-|       4        |      4.35.0      |               Added OpenID Connect storage tables and opaque user identifier tables                |
+|       4        |      4.35.0      |             Added OpenID Connect 1.0 storage tables and opaque user identifier tables              |
 |       5        |      4.35.1      | Fixed the oauth2_consent_session table to accept NULL subjects for users who are not yet signed in |
-|       6        |      4.37.0      |          Adjusted the OpenID Connect tables to allow pre-configured consent improvements           |
+|       6        |      4.37.0      |        Adjusted the OpenID Connect 1.0 tables to allow pre-configured consent improvements         |
 |       7        |      4.37.3      |       Fixed some schema inconsistencies most notably the MySQL/MariaDB Engine and Collation        |
 |       8        |      4.38.0      |                          OpenID Connect 1.0 Pushed Authorization Requests                          |
 |       9        |      4.38.0      | Fix a PostgreSQL NOT NULL constraint issue on the `aaguid` column of the `webauthn_devices` table  |

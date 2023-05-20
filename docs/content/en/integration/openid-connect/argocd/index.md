@@ -1,6 +1,6 @@
 ---
 title: "Argo CD"
-description: "Integrating Argo CD with the Authelia OpenID Connect Provider."
+description: "Integrating Argo CD with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
 date: 2022-07-13T04:27:30+10:00
 draft: false

@@ -89,6 +89,6 @@ Please see the [documentation](../prologue/common.md#duration) on this format fo
 
 This adjusts the requested timeout for a WebAuthn interaction.
 
-## FAQ
+## Frequently Asked Questions
 
-See the [Security Key FAQ](../../overview/authentication/security-key/index.md#faq) for the FAQ.
+See the [Security Key FAQ](../../overview/authentication/security-key/index.md#frequently-asked-questions) for the FAQ.

@@ -63,9 +63,9 @@ authelia --config configuration.yml,config-acl.yml,config-other.yml
 Authelia's configuration files use the YAML format. A template with all possible options can be found at the root of the
 repository {{< github-link name="here" path="config.template.yml" >}}.
 
-*__Important Note:__ You should not have configuration sections such as Access Control Rules or OpenID Connect clients
-configured in multiple files. If you wish to split these into their own files that is fine, but if you have two files that
-specify these sections and expect them to merge properly you are asking for trouble.*
+*__Important Note:__ You should not have configuration sections such as Access Control Rules or OpenID Connect 1.0
+clients configured in multiple files. If you wish to split these into their own files that is fine, but if you have two
+files that specify these sections and expect them to merge properly you are asking for trouble.*
 
 ### Container
 
