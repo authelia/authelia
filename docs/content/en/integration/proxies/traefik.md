@@ -517,7 +517,7 @@ http:
 ```
 {{< /details >}}
 
-## FAQ
+## Frequently Asked Questions
 
 ### Basic Authentication
 

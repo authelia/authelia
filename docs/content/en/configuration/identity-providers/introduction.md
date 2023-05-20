@@ -14,6 +14,6 @@ aliases:
   - /docs/configuration/identity-providers/
 ---
 
-## OpenID Connect
+## OpenID Connect 1.0
 
 The only identity provider implementation supported at this time is [OpenID Connect 1.0](openid-connect/provider.md).

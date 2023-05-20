@@ -244,8 +244,8 @@ func (s *Store) GetPKCERequestSession(ctx context.Context, signature string, ses
 	return s.loadRequesterBySignature(ctx, storage.OAuth2SessionTypePKCEChallenge, signature, session)
 }
 
-// CreateOpenIDConnectSession creates an open id connect session for a given authorize code.
-// This is relevant for explicit open id connect flow.
+// CreateOpenIDConnectSession creates an OpenID Connect 1.0 connect session for a given authorize code.
+// This is relevant for explicit OpenID Connect 1.0 flow.
 // This implements a portion of openid.OpenIDConnectRequestStorage.
 func (s *Store) CreateOpenIDConnectSession(ctx context.Context, authorizeCode string, request fosite.Requester) (err error) {
 	return s.saveSession(ctx, storage.OAuth2SessionTypeOpenIDConnect, authorizeCode, request)

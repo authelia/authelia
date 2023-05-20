@@ -1,6 +1,6 @@
 ---
 title: "Komga"
-description: "Integrating Komga with the Authelia OpenID Connect Provider."
+description: "Integrating Komga with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
 date: 2022-08-26T11:39:00+10:00
 draft: false

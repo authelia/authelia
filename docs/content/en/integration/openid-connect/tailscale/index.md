@@ -1,6 +1,6 @@
 ---
 title: "Tailscale"
-description: "Using Authelia as the Tailscale OpenID Connect Provider."
+description: "Integrating Tailscale with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
 date: 2023-04-23T10:06:28+10:00
 draft: false

@@ -16,8 +16,8 @@ This section covers specifics regarding configuring the providers registered cli
 provider specific configuration and information not related to clients see the [OpenID Connect 1.0 Provider](provider.md)
 documentation.
 
-More information about OpenID Connect can be found in the [roadmap](../../../roadmap/active/openid-connect.md) and in the
-[integration](../../../integration/openid-connect/introduction.md) documentation.
+More information about OpenID Connect 1.0 can be found in the [roadmap](../../../roadmap/active/openid-connect.md) and
+in the [integration](../../../integration/openid-connect/introduction.md) documentation.
 
 ## Configuration
 

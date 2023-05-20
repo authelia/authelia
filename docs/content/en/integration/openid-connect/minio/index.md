@@ -1,6 +1,6 @@
 ---
 title: "MinIO"
-description: "Integrating MinIO with the Authelia OpenID Connect Provider."
+description: "Integrating MinIO with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
 date: 2023-03-21T11:21:23+11:00
 draft: false
