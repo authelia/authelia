@@ -12,7 +12,7 @@ require (
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-asn1-ber/asn1-ber v1.5.4
 	github.com/go-crypt/crypt v0.2.7
-	github.com/go-ldap/ldap/v3 v3.4.5-0.20230506142018-039466e6b835
+	github.com/go-ldap/ldap/v3 v3.4.5-0.20230521105649-cdb0754f6668
 	github.com/go-rod/rod v0.113.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/go-webauthn/webauthn v0.5.0
