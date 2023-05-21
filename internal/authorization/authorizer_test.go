@@ -1069,9 +1069,9 @@ func TestAuthorizerIsSecondFactorEnabledRuleWithOIDC(t *testing.T) {
 				},
 			},
 		},
-		IdentityProviders: schema.IdentityProvidersConfiguration{
-			OIDC: &schema.OpenIDConnectConfiguration{
-				Clients: []schema.OpenIDConnectClientConfiguration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.OpenIDConnect{
+				Clients: []schema.OpenIDConnectClient{
 					{
 						Policy: oneFactor,
 					},

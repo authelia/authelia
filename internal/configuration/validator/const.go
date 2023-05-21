@@ -151,9 +151,9 @@ const (
 		"configured to an unsafe value, it should be above 8 but it's configured to %d"
 	errFmtOIDCProviderPrivateKeysInvalid                 = "identity_providers: oidc: issuer_private_keys: key #%d: option 'key' must be a valid private key but the provided data is malformed as it's missing the public key bits"
 	errFmtOIDCProviderPrivateKeysCalcThumbprint          = "identity_providers: oidc: issuer_private_keys: key #%d: option 'key' failed to calculate thumbprint to configure key id value: %w"
-	errFmtOIDCProviderPrivateKeysKeyIDLength             = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option `key_id`` must be 7 characters or less"
+	errFmtOIDCProviderPrivateKeysKeyIDLength             = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option `key_id` must be 100 characters or less"
 	errFmtOIDCProviderPrivateKeysAttributeNotUnique      = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option '%s' must be unique"
-	errFmtOIDCProviderPrivateKeysKeyIDNotAlphaNumeric    = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'key_id' must only have alphanumeric characters"
+	errFmtOIDCProviderPrivateKeysKeyIDNotValid           = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'key_id' must only contain RFC3986 unreserved characters and must only start and end with alphanumeric characters"
 	errFmtOIDCProviderPrivateKeysProperties              = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'key' failed to get key properties: %w"
 	errFmtOIDCProviderPrivateKeysInvalidOptionOneOf      = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option '%s' must be one of %s but it's configured as '%s'"
 	errFmtOIDCProviderPrivateKeysRSAKeyLessThan2048Bits  = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must at minimum be a RSA 2048 bit private key"
@@ -436,7 +436,9 @@ const (
 	attrOIDCRedirectURIs        = "redirect_uris"
 	attrOIDCTokenAuthMethod     = "token_endpoint_auth_method"
 	attrOIDCUsrSigAlg           = "userinfo_signing_alg"
+	attrOIDCUsrSigKID           = "userinfo_signing_key_id"
 	attrOIDCIDTokenSigAlg       = "id_token_signing_alg"
+	attrOIDCIDTokenSigKID       = "id_token_signing_key_id"
 	attrOIDCPKCEChallengeMethod = "pkce_challenge_method"
 )
 
@@ -462,6 +464,7 @@ var (
 	reKeyReplacer       = regexp.MustCompile(`\[\d+]`)
 	reDomainCharacters  = regexp.MustCompile(`^[a-z0-9-]+(\.[a-z0-9-]+)+[a-z0-9]$`)
 	reAuthzEndpointName = regexp.MustCompile(`^[a-zA-Z](([a-zA-Z0-9/._-]*)([a-zA-Z]))?$`)
+	reOpenIDConnectKID  = regexp.MustCompile(`^([a-zA-Z0-9](([a-zA-Z0-9._~-]*)([a-zA-Z0-9]))?)?$`)
 )
 
 var replacedKeys = map[string]string{

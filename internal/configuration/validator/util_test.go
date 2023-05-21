@@ -79,3 +79,16 @@ func TestSchemaJWKGetPropertiesMissingTests(t *testing.T) {
 	assert.Equal(t, nil, props.Curve)
 	assert.Equal(t, 0, props.Bits)
 }
+
+func TestGetResponseObjectAlgFromKID(t *testing.T) {
+	c := &schema.OpenIDConnect{
+		IssuerPrivateKeys: []schema.JWK{
+			{KeyID: "abc", Algorithm: "EX256"},
+			{KeyID: "123", Algorithm: "EX512"},
+		},
+	}
+
+	assert.Equal(t, "EX256", getResponseObjectAlgFromKID(c, "abc", "not"))
+	assert.Equal(t, "EX512", getResponseObjectAlgFromKID(c, "123", "not"))
+	assert.Equal(t, "not", getResponseObjectAlgFromKID(c, "111111", "not"))
+}

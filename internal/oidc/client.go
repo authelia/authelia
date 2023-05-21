@@ -13,7 +13,7 @@ import (
 )
 
 // NewClient creates a new Client.
-func NewClient(config schema.OpenIDConnectClientConfiguration) (client Client) {
+func NewClient(config schema.OpenIDConnectClient) (client Client) {
 	base := &BaseClient{
 		ID:               config.ID,
 		Description:      config.Description,
@@ -34,8 +34,10 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client Client) {
 
 		EnforcePAR: config.EnforcePAR,
 
-		IDTokenSigningAlg:  config.IDTokenSigningAlg,
-		UserinfoSigningAlg: config.UserinfoSigningAlg,
+		IDTokenSigningAlg:    config.IDTokenSigningAlg,
+		IDTokenSigningKeyID:  config.IDTokenSigningKeyID,
+		UserinfoSigningAlg:   config.UserinfoSigningAlg,
+		UserinfoSigningKeyID: config.UserinfoSigningKeyID,
 
 		Policy: authorization.NewLevel(config.Policy),
 
@@ -151,6 +153,11 @@ func (c *BaseClient) GetIDTokenSigningAlg() (alg string) {
 	return c.IDTokenSigningAlg
 }
 
+// GetIDTokenSigningKeyID returns the IDTokenSigningKeyID.
+func (c *BaseClient) GetIDTokenSigningKeyID() (alg string) {
+	return c.IDTokenSigningKeyID
+}
+
 // GetUserinfoSigningAlg returns the UserinfoSigningAlg.
 func (c *BaseClient) GetUserinfoSigningAlg() string {
 	if c.UserinfoSigningAlg == "" {
@@ -158,6 +165,11 @@ func (c *BaseClient) GetUserinfoSigningAlg() string {
 	}
 
 	return c.UserinfoSigningAlg
+}
+
+// GetUserinfoSigningKeyID returns the UserinfoSigningKeyID.
+func (c *BaseClient) GetUserinfoSigningKeyID() (kid string) {
+	return c.UserinfoSigningKeyID
 }
 
 // GetPAREnforcement returns EnforcePAR.

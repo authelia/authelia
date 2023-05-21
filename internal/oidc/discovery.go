@@ -8,7 +8,7 @@ import (
 )
 
 // NewOpenIDConnectWellKnownConfiguration generates a new OpenIDConnectWellKnownConfiguration.
-func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration) (config OpenIDConnectWellKnownConfiguration) {
+func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnect) (config OpenIDConnectWellKnownConfiguration) {
 	config = OpenIDConnectWellKnownConfiguration{
 		OAuth2WellKnownConfiguration: OAuth2WellKnownConfiguration{
 			CommonDiscoveryOptions: CommonDiscoveryOptions{
@@ -73,6 +73,15 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 					SigningAlgHMACUsingSHA256,
 					SigningAlgHMACUsingSHA384,
 					SigningAlgHMACUsingSHA512,
+					SigningAlgRSAUsingSHA256,
+					SigningAlgRSAUsingSHA384,
+					SigningAlgRSAUsingSHA512,
+					SigningAlgECDSAUsingP256AndSHA256,
+					SigningAlgECDSAUsingP384AndSHA384,
+					SigningAlgECDSAUsingP521AndSHA512,
+					SigningAlgRSAPSSUsingSHA256,
+					SigningAlgRSAPSSUsingSHA384,
+					SigningAlgRSAPSSUsingSHA512,
 				},
 			},
 			OAuth2DiscoveryOptions: OAuth2DiscoveryOptions{
@@ -90,6 +99,15 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 					SigningAlgHMACUsingSHA256,
 					SigningAlgHMACUsingSHA384,
 					SigningAlgHMACUsingSHA512,
+					SigningAlgRSAUsingSHA256,
+					SigningAlgRSAUsingSHA384,
+					SigningAlgRSAUsingSHA512,
+					SigningAlgECDSAUsingP256AndSHA256,
+					SigningAlgECDSAUsingP384AndSHA384,
+					SigningAlgECDSAUsingP521AndSHA512,
+					SigningAlgRSAPSSUsingSHA256,
+					SigningAlgRSAPSSUsingSHA384,
+					SigningAlgRSAPSSUsingSHA512,
 				},
 				IntrospectionEndpointAuthMethodsSupported: []string{
 					ClientAuthMethodClientSecretBasic,
@@ -104,6 +122,7 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 		OpenIDConnectDiscoveryOptions: OpenIDConnectDiscoveryOptions{
 			IDTokenSigningAlgValuesSupported: []string{
 				SigningAlgRSAUsingSHA256,
+				SigningAlgNone,
 			},
 			UserinfoSigningAlgValuesSupported: []string{
 				SigningAlgRSAUsingSHA256,
@@ -111,11 +130,17 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 			},
 			RequestObjectSigningAlgValuesSupported: []string{
 				SigningAlgRSAUsingSHA256,
+				SigningAlgRSAUsingSHA384,
+				SigningAlgRSAUsingSHA512,
+				SigningAlgECDSAUsingP256AndSHA256,
+				SigningAlgECDSAUsingP384AndSHA384,
+				SigningAlgECDSAUsingP521AndSHA512,
+				SigningAlgRSAPSSUsingSHA256,
+				SigningAlgRSAPSSUsingSHA384,
+				SigningAlgRSAPSSUsingSHA512,
 				SigningAlgNone,
 			},
 		},
-		OpenIDConnectFrontChannelLogoutDiscoveryOptions: &OpenIDConnectFrontChannelLogoutDiscoveryOptions{},
-		OpenIDConnectBackChannelLogoutDiscoveryOptions:  &OpenIDConnectBackChannelLogoutDiscoveryOptions{},
 		OpenIDConnectPromptCreateDiscoveryOptions: &OpenIDConnectPromptCreateDiscoveryOptions{
 			PromptValuesSupported: []string{
 				PromptNone,
@@ -134,25 +159,8 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnectConfiguration
 		}
 	}
 
-	for _, alg := range c.Discovery.RequestObjectSigningAlgs {
-		if !utils.IsStringInSlice(alg, config.RequestObjectSigningAlgValuesSupported) {
-			config.RequestObjectSigningAlgValuesSupported = append(config.RequestObjectSigningAlgValuesSupported, alg)
-		}
-
-		if !utils.IsStringInSlice(alg, config.RevocationEndpointAuthSigningAlgValuesSupported) {
-			config.RevocationEndpointAuthSigningAlgValuesSupported = append(config.RevocationEndpointAuthSigningAlgValuesSupported, alg)
-		}
-
-		if !utils.IsStringInSlice(alg, config.TokenEndpointAuthSigningAlgValuesSupported) {
-			config.TokenEndpointAuthSigningAlgValuesSupported = append(config.TokenEndpointAuthSigningAlgValuesSupported, alg)
-		}
-	}
-
 	sort.Sort(SortedSigningAlgs(config.IDTokenSigningAlgValuesSupported))
 	sort.Sort(SortedSigningAlgs(config.UserinfoSigningAlgValuesSupported))
-	sort.Sort(SortedSigningAlgs(config.RequestObjectSigningAlgValuesSupported))
-	sort.Sort(SortedSigningAlgs(config.RevocationEndpointAuthSigningAlgValuesSupported))
-	sort.Sort(SortedSigningAlgs(config.TokenEndpointAuthSigningAlgValuesSupported))
 
 	if c.EnablePKCEPlainChallenge {
 		config.CodeChallengeMethodsSupported = append(config.CodeChallengeMethodsSupported, PKCEChallengeMethodPlain)

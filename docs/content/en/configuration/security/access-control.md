@@ -15,6 +15,11 @@ aliases:
   - /docs/configuration/access-control.html
 ---
 
+*__Important Note:__ This section does not apply to OpenID Connect 1.0. See the [Frequently Asked Questions] for more
+information.*
+
+[Frequently Asked Questions]: ../../integration/openid-connect/frequently-asked-questions.md#why-doesnt-the-access-control-configuration-work-with-openid-connect-10
+
 ## Configuration
 
 {{< config-alert-example >}}
@@ -58,11 +63,6 @@ access_control:
 ```
 
 ## Options
-
-*__Important Note:__ This section does not apply to OpenID Connect 1.0. See the [Frequently Asked Questions] for more
-information.*
-
-[Frequently Asked Questions]: ../../integration/openid-connect/frequently-asked-questions.md#why-doesnt-the-access-control-configuration-work-with-openid-connect-10
 
 This section describes the individual configuration options.
 

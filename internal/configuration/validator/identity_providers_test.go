@@ -23,8 +23,8 @@ import (
 
 func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
+	config := &schema.IdentityProviders{
+		OIDC: &schema.OpenIDConnect{
 			HMACSecret: "abc",
 		},
 	}
@@ -39,14 +39,14 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 
 func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
+	config := &schema.IdentityProviders{
+		OIDC: &schema.OpenIDConnect{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 			IssuerPrivateKey: keyRSA2048,
-			CORS: schema.OpenIDConnectCORSConfiguration{
+			CORS: schema.OpenIDConnectCORS{
 				Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo},
 			},
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:     "example",
 					Secret: tOpenIDConnectPlainTextClientSecret,
@@ -62,14 +62,14 @@ func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 
 func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
+	config := &schema.IdentityProviders{
+		OIDC: &schema.OpenIDConnect{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 			IssuerPrivateKey: keyRSA2048,
-			CORS: schema.OpenIDConnectCORSConfiguration{
+			CORS: schema.OpenIDConnectCORS{
 				Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, "invalid_endpoint"},
 			},
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:     "example",
 					Secret: tOpenIDConnectPlainTextClientSecret,
@@ -87,8 +87,8 @@ func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 
 func TestShouldRaiseErrorWhenOIDCPKCEEnforceValueInvalid(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
+	config := &schema.IdentityProviders{
+		OIDC: &schema.OpenIDConnect{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 			IssuerPrivateKey: keyRSA2048,
 			EnforcePKCE:      testInvalid,
@@ -106,15 +106,15 @@ func TestShouldRaiseErrorWhenOIDCPKCEEnforceValueInvalid(t *testing.T) {
 func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
+	config := &schema.IdentityProviders{
+		OIDC: &schema.OpenIDConnect{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 			IssuerPrivateKey: keyRSA2048,
-			CORS: schema.OpenIDConnectCORSConfiguration{
+			CORS: schema.OpenIDConnectCORS{
 				AllowedOrigins:                       utils.URLsFromStringSlice([]string{"https://example.com/", "https://site.example.com/subpath", "https://site.example.com?example=true", "*"}),
 				AllowedOriginsFromClientRedirectURIs: true,
 			},
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:           "myclient",
 					Secret:       tOpenIDConnectPlainTextClientSecret,
@@ -141,8 +141,8 @@ func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 
 func TestShouldRaiseErrorWhenOIDCServerNoClients(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
+	config := &schema.IdentityProviders{
+		OIDC: &schema.OpenIDConnect{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 			IssuerPrivateKey: keyRSA2048,
 		},
@@ -167,12 +167,12 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 
 	testCases := []struct {
 		Name    string
-		Clients []schema.OpenIDConnectClientConfiguration
+		Clients []schema.OpenIDConnectClient
 		Errors  []string
 	}{
 		{
 			Name: "EmptyIDAndSecret",
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:           "",
 					Secret:       nil,
@@ -187,7 +187,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 		},
 		{
 			Name: "InvalidPolicy",
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:     "client-1",
 					Secret: tOpenIDConnectPlainTextClientSecret,
@@ -203,7 +203,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 		},
 		{
 			Name: "ClientIDDuplicated",
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:           "client-x",
 					Secret:       tOpenIDConnectPlainTextClientSecret,
@@ -223,7 +223,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 		},
 		{
 			Name: "RedirectURIInvalid",
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:     "client-check-uri-parse",
 					Secret: tOpenIDConnectPlainTextClientSecret,
@@ -239,7 +239,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 		},
 		{
 			Name: "RedirectURINotAbsolute",
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:     "client-check-uri-abs",
 					Secret: tOpenIDConnectPlainTextClientSecret,
@@ -255,7 +255,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 		},
 		{
 			Name: "ValidSectorIdentifier",
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:     "client-valid-sector",
 					Secret: tOpenIDConnectPlainTextClientSecret,
@@ -269,7 +269,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 		},
 		{
 			Name: "ValidSectorIdentifierWithPort",
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:     "client-valid-sector",
 					Secret: tOpenIDConnectPlainTextClientSecret,
@@ -283,7 +283,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 		},
 		{
 			Name: "InvalidSectorIdentifierInvalidURL",
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:     "client-invalid-sector",
 					Secret: tOpenIDConnectPlainTextClientSecret,
@@ -305,7 +305,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 		},
 		{
 			Name: "InvalidSectorIdentifierInvalidHost",
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:     "client-invalid-sector",
 					Secret: tOpenIDConnectPlainTextClientSecret,
@@ -322,7 +322,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 		},
 		{
 			Name: "InvalidConsentMode",
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:     "client-bad-consent-mode",
 					Secret: tOpenIDConnectPlainTextClientSecret,
@@ -339,7 +339,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 		},
 		{
 			Name: "InvalidPKCEChallengeMethod",
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:     "client-bad-pkce-mode",
 					Secret: tOpenIDConnectPlainTextClientSecret,
@@ -356,7 +356,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 		},
 		{
 			Name: "InvalidPKCEChallengeMethodLowerCaseS256",
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:     "client-bad-pkce-mode-s256",
 					Secret: tOpenIDConnectPlainTextClientSecret,
@@ -376,8 +376,8 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			validator := schema.NewStructValidator()
-			config := &schema.IdentityProvidersConfiguration{
-				OIDC: &schema.OpenIDConnectConfiguration{
+			config := &schema.IdentityProviders{
+				OIDC: &schema.OpenIDConnect{
 					HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 					IssuerPrivateKey: keyRSA2048,
 					Clients:          tc.Clients,
@@ -400,11 +400,11 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 
 func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadScopes(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
+	config := &schema.IdentityProviders{
+		OIDC: &schema.OpenIDConnect{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 			IssuerPrivateKey: keyRSA2048,
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:     "good_id",
 					Secret: tOpenIDConnectPlainTextClientSecret,
@@ -426,11 +426,11 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadScopes(t *testing.T) {
 
 func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
+	config := &schema.IdentityProviders{
+		OIDC: &schema.OpenIDConnect{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 			IssuerPrivateKey: keyRSA2048,
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:         "good_id",
 					Secret:     tOpenIDConnectPBKDF2ClientSecret,
@@ -452,12 +452,12 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 
 func TestShouldNotErrorOnCertificateValid(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
+	config := &schema.IdentityProviders{
+		OIDC: &schema.OpenIDConnect{
 			HMACSecret:             "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 			IssuerCertificateChain: certRSA2048,
 			IssuerPrivateKey:       keyRSA2048,
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:     "good_id",
 					Secret: tOpenIDConnectPBKDF2ClientSecret,
@@ -478,12 +478,12 @@ func TestShouldNotErrorOnCertificateValid(t *testing.T) {
 
 func TestShouldRaiseErrorOnCertificateNotValid(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
+	config := &schema.IdentityProviders{
+		OIDC: &schema.OpenIDConnect{
 			HMACSecret:             "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 			IssuerCertificateChain: certRSA2048,
 			IssuerPrivateKey:       keyRSA4096,
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:     "good_id",
 					Secret: tOpenIDConnectPBKDF2ClientSecret,
@@ -506,12 +506,12 @@ func TestShouldRaiseErrorOnCertificateNotValid(t *testing.T) {
 
 func TestValidateIdentityProvidersShouldRaiseWarningOnSecurityIssue(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
+	config := &schema.IdentityProviders{
+		OIDC: &schema.OpenIDConnect{
 			HMACSecret:              "abc",
 			IssuerPrivateKey:        keyRSA2048,
 			MinimumParameterEntropy: 1,
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:     "good_id",
 					Secret: tOpenIDConnectPBKDF2ClientSecret,
@@ -534,11 +534,11 @@ func TestValidateIdentityProvidersShouldRaiseWarningOnSecurityIssue(t *testing.T
 
 func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
+	config := &schema.IdentityProviders{
+		OIDC: &schema.OpenIDConnect{
 			HMACSecret:       "hmac1",
 			IssuerPrivateKey: keyRSA2048,
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:     "client-with-invalid-secret",
 					Secret: tOpenIDConnectPlainTextClientSecret,
@@ -572,11 +572,11 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testi
 
 func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidClientOptions(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
+	config := &schema.IdentityProviders{
+		OIDC: &schema.OpenIDConnect{
 			HMACSecret:       "hmac1",
 			IssuerPrivateKey: keyRSA2048,
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:     "installed-app-client",
 					Public: true,
@@ -631,11 +631,11 @@ func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidClientOptions(t *te
 
 func TestValidateIdentityProvidersShouldRaiseWarningOnPlainTextClients(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
+	config := &schema.IdentityProviders{
+		OIDC: &schema.OpenIDConnect{
 			HMACSecret:       "hmac1",
 			IssuerPrivateKey: keyRSA2048,
-			Clients: []schema.OpenIDConnectClientConfiguration{
+			Clients: []schema.OpenIDConnectClient{
 				{
 					ID:     "client-with-invalid-secret_standard",
 					Secret: tOpenIDConnectPlainTextClientSecret,
@@ -658,8 +658,8 @@ func TestValidateIdentityProvidersShouldRaiseWarningOnPlainTextClients(t *testin
 
 // All valid schemes are supported as defined in https://datatracker.ietf.org/doc/html/rfc8252#section-7.1
 func TestValidateOIDCClientRedirectURIsSupportingPrivateUseURISchemes(t *testing.T) {
-	have := &schema.OpenIDConnectConfiguration{
-		Clients: []schema.OpenIDConnectClientConfiguration{
+	have := &schema.OpenIDConnect{
+		Clients: []schema.OpenIDConnectClient{
 			{
 				ID: "owncloud",
 				RedirectURIs: []string{
@@ -706,8 +706,8 @@ func TestValidateOIDCClients(t *testing.T) {
 
 	testCasses := []struct {
 		name     string
-		setup    func(have *schema.OpenIDConnectConfiguration)
-		validate func(t *testing.T, have *schema.OpenIDConnectConfiguration)
+		setup    func(have *schema.OpenIDConnect)
+		validate func(t *testing.T, have *schema.OpenIDConnect)
 		have     tcv
 		expected tcv
 		serrs    []string // Soft errors which will be warnings before GA.
@@ -1160,12 +1160,12 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldValidateCorrectRedirectURIsConfidentialClientType",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].RedirectURIs = []string{
 					"https://google.com",
 				}
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, []string{"https://google.com"}, have.Clients[0].RedirectURIs)
 			},
 			tcv{
@@ -1185,14 +1185,14 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldValidateCorrectRedirectURIsPublicClientType",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].Public = true
 				have.Clients[0].Secret = nil
 				have.Clients[0].RedirectURIs = []string{
 					oauth2InstalledApp,
 				}
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, []string{oauth2InstalledApp}, have.Clients[0].RedirectURIs)
 			},
 			tcv{
@@ -1212,12 +1212,12 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnInvalidRedirectURIsPublicOnly",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].RedirectURIs = []string{
 					"urn:ietf:wg:oauth:2.0:oob",
 				}
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, []string{oauth2InstalledApp}, have.Clients[0].RedirectURIs)
 			},
 			tcv{
@@ -1239,12 +1239,12 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnInvalidRedirectURIsMalformedURI",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].RedirectURIs = []string{
 					"http://abc@%two",
 				}
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, []string{"http://abc@%two"}, have.Clients[0].RedirectURIs)
 			},
 			tcv{
@@ -1266,12 +1266,12 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnInvalidRedirectURIsNotAbsolute",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].RedirectURIs = []string{
 					"google.com",
 				}
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, []string{"google.com"}, have.Clients[0].RedirectURIs)
 			},
 			tcv{
@@ -1293,13 +1293,13 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnDuplicateRedirectURI",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].RedirectURIs = []string{
 					"https://google.com",
 					"https://google.com",
 				}
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, []string{"https://google.com", "https://google.com"}, have.Clients[0].RedirectURIs)
 			},
 			tcv{
@@ -1322,7 +1322,7 @@ func TestValidateOIDCClients(t *testing.T) {
 		{
 			"ShouldNotSetDefaultTokenEndpointClientAuthMethodConfidentialClientType",
 			nil,
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, "", have.Clients[0].TokenEndpointAuthMethod)
 			},
 			tcv{
@@ -1342,10 +1342,10 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldNotOverrideValidClientAuthMethod",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretPost
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, oidc.ClientAuthMethodClientSecretPost, have.Clients[0].TokenEndpointAuthMethod)
 			},
 			tcv{
@@ -1365,10 +1365,10 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnInvalidClientAuthMethod",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = "client_credentials"
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, "client_credentials", have.Clients[0].TokenEndpointAuthMethod)
 			},
 			tcv{
@@ -1390,12 +1390,12 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnInvalidClientAuthMethodForPublicClientType",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretBasic
 				have.Clients[0].Public = true
 				have.Clients[0].Secret = nil
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, oidc.ClientAuthMethodClientSecretBasic, have.Clients[0].TokenEndpointAuthMethod)
 			},
 			tcv{
@@ -1417,10 +1417,10 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnInvalidClientAuthMethodForConfidentialClientTypeAuthorizationCodeFlow",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodNone
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, oidc.ClientAuthMethodNone, have.Clients[0].TokenEndpointAuthMethod)
 			},
 			tcv{
@@ -1442,10 +1442,10 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnInvalidClientAuthMethodForConfidentialClientTypeHybridFlow",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodNone
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, oidc.ClientAuthMethodNone, have.Clients[0].TokenEndpointAuthMethod)
 			},
 			tcv{
@@ -1468,7 +1468,7 @@ func TestValidateOIDCClients(t *testing.T) {
 		{
 			"ShouldSetDefaultUserInfoAlg",
 			nil,
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, oidc.SigningAlgNone, have.Clients[0].UserinfoSigningAlg)
 			},
 			tcv{
@@ -1488,10 +1488,10 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldNotOverrideUserInfoAlg",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].UserinfoSigningAlg = oidc.SigningAlgRSAUsingSHA256
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, have.Clients[0].UserinfoSigningAlg)
 			},
 			tcv{
@@ -1511,10 +1511,10 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnInvalidUserInfoSigningAlg",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].UserinfoSigningAlg = rs256
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, rs256, have.Clients[0].UserinfoSigningAlg)
 			},
 			tcv{
@@ -1536,10 +1536,10 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnInvalidIDTokenSigningAlg",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].IDTokenSigningAlg = rs256
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, rs256, have.Clients[0].IDTokenSigningAlg)
 			},
 			tcv{
@@ -1562,7 +1562,7 @@ func TestValidateOIDCClients(t *testing.T) {
 		{
 			"ShouldSetDefaultConsentMode",
 			nil,
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, "explicit", have.Clients[0].ConsentMode)
 			},
 			tcv{
@@ -1582,10 +1582,10 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldSetDefaultConsentModeAuto",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].ConsentMode = auto
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, "explicit", have.Clients[0].ConsentMode)
 			},
 			tcv{
@@ -1605,13 +1605,13 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldSetDefaultConsentModePreConfigured",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				d := time.Minute
 
 				have.Clients[0].ConsentMode = ""
 				have.Clients[0].ConsentPreConfiguredDuration = &d
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, "pre-configured", have.Clients[0].ConsentMode)
 			},
 			tcv{
@@ -1631,13 +1631,13 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldSetDefaultConsentModeAutoPreConfigured",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				d := time.Minute
 
 				have.Clients[0].ConsentMode = auto
 				have.Clients[0].ConsentPreConfiguredDuration = &d
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, "pre-configured", have.Clients[0].ConsentMode)
 			},
 			tcv{
@@ -1657,10 +1657,10 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldNotOverrideConsentMode",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].ConsentMode = "implicit"
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, "implicit", have.Clients[0].ConsentMode)
 			},
 			tcv{
@@ -1680,10 +1680,10 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldSentConsentPreConfiguredDefaultDuration",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].ConsentMode = "pre-configured"
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, "pre-configured", have.Clients[0].ConsentMode)
 				assert.Equal(t, schema.DefaultOpenIDConnectClientConfiguration.ConsentPreConfiguredDuration, have.Clients[0].ConsentPreConfiguredDuration)
 			},
@@ -1704,7 +1704,7 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnTokenEndpointClientAuthMethodPrivateKeyJWTMustSetAlg",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodPrivateKeyJWT
 				have.Clients[0].Secret = tOpenIDConnectPBKDF2ClientSecret
 			},
@@ -1729,7 +1729,7 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnTokenEndpointClientAuthMethodPrivateKeyJWTMustSetAlg",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodPrivateKeyJWT
 				have.Clients[0].TokenEndpointAuthSigningAlg = "nope"
 				have.Clients[0].Secret = tOpenIDConnectPBKDF2ClientSecret
@@ -1755,7 +1755,7 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnTokenEndpointClientAuthMethodPrivateKeyJWTMustSetKnownAlg",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodPrivateKeyJWT
 				have.Clients[0].TokenEndpointAuthSigningAlg = oidc.SigningAlgECDSAUsingP384AndSHA384
 				have.Clients[0].Secret = tOpenIDConnectPBKDF2ClientSecret
@@ -1787,7 +1787,7 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnTokenEndpointClientAuthMethodPrivateKeyJWTMustSetKnownAlg",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodPrivateKeyJWT
 				have.Clients[0].TokenEndpointAuthSigningAlg = oidc.SigningAlgECDSAUsingP384AndSHA384
 				have.Clients[0].Secret = tOpenIDConnectPBKDF2ClientSecret
@@ -1812,7 +1812,7 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnIncorrectlyConfiguredTokenEndpointClientAuthMethodClientSecretJWT",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
 				have.Clients[0].Secret = tOpenIDConnectPBKDF2ClientSecret
 			},
@@ -1836,7 +1836,7 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldNotRaiseWarningOrErrorOnCorrectlyConfiguredTokenEndpointClientAuthMethodClientSecretJWT",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
 				have.Clients[0].Secret = tOpenIDConnectPlainTextClientSecret
 			},
@@ -1858,7 +1858,7 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnIncorrectlyConfiguredTokenEndpointClientAuthMethodClientSecretJWT",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
 				have.Clients[0].Secret = MustDecodeSecret("$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng")
 			},
@@ -1882,7 +1882,7 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldNotRaiseWarningOrErrorOnCorrectlyConfiguredTokenEndpointClientAuthMethodClientSecretJWT",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
 				have.Clients[0].Secret = MustDecodeSecret("$plaintext$abc123")
 			},
@@ -1903,12 +1903,61 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 		},
 		{
+			"ShouldSetValidDefaultKeyID",
+			func(have *schema.OpenIDConnect) {
+				have.Clients[0].IDTokenSigningKeyID = "abcabc123"
+				have.Clients[0].UserinfoSigningKeyID = "abc123abc"
+				have.Discovery.ResponseObjectSigningKeyIDs = []string{"abcabc123", "abc123abc"}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnInvalidKeyID",
+			func(have *schema.OpenIDConnect) {
+				have.Clients[0].IDTokenSigningKeyID = "ab"
+				have.Clients[0].UserinfoSigningKeyID = "cd"
+				have.Discovery.ResponseObjectSigningKeyIDs = []string{"abc123xyz"}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'userinfo_signing_key_id' must be one of 'abc123xyz' but it's configured as 'cd'",
+				"identity_providers: oidc: clients: client 'test': option 'id_token_signing_key_id' must be one of 'abc123xyz' but it's configured as 'ab'",
+			},
+		},
+		{
 			"ShouldSetDefaultTokenEndpointAuthSigAlg",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
 				have.Clients[0].Secret = tOpenIDConnectPlainTextClientSecret
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, oidc.SigningAlgHMACUsingSHA256, have.Clients[0].TokenEndpointAuthSigningAlg)
 			},
 			tcv{
@@ -1928,13 +1977,13 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnInvalidPublicTokenAuthAlg",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
 				have.Clients[0].TokenEndpointAuthSigningAlg = oidc.SigningAlgHMACUsingSHA256
 				have.Clients[0].Secret = nil
 				have.Clients[0].Public = true
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, oidc.SigningAlgHMACUsingSHA256, have.Clients[0].TokenEndpointAuthSigningAlg)
 			},
 			tcv{
@@ -1956,12 +2005,12 @@ func TestValidateOIDCClients(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnInvalidTokenAuthAlgClientTypeConfidential",
-			func(have *schema.OpenIDConnectConfiguration) {
+			func(have *schema.OpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
 				have.Clients[0].TokenEndpointAuthSigningAlg = oidc.EndpointToken
 				have.Clients[0].Secret = tOpenIDConnectPlainTextClientSecret
 			},
-			func(t *testing.T, have *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, have *schema.OpenIDConnect) {
 				assert.Equal(t, oidc.EndpointToken, have.Clients[0].TokenEndpointAuthSigningAlg)
 			},
 			tcv{
@@ -1987,11 +2036,11 @@ func TestValidateOIDCClients(t *testing.T) {
 
 	for _, tc := range testCasses {
 		t.Run(tc.name, func(t *testing.T) {
-			have := &schema.OpenIDConnectConfiguration{
+			have := &schema.OpenIDConnect{
 				Discovery: schema.OpenIDConnectDiscovery{
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
-				Clients: []schema.OpenIDConnectClientConfiguration{
+				Clients: []schema.OpenIDConnectClient{
 					{
 						ID:            "test",
 						Secret:        tOpenIDConnectPBKDF2ClientSecret,
@@ -2067,8 +2116,8 @@ func TestValidateOIDCClientTokenEndpointAuthMethod(t *testing.T) {
 
 	for _, tc := range testCasses {
 		t.Run(tc.name, func(t *testing.T) {
-			have := &schema.OpenIDConnectConfiguration{
-				Clients: []schema.OpenIDConnectClientConfiguration{
+			have := &schema.OpenIDConnect{
+				Clients: []schema.OpenIDConnectClient{
 					{
 						ID:                      "test",
 						Public:                  tc.public,
@@ -2106,8 +2155,8 @@ func TestValidateOIDCClientJWKS(t *testing.T) {
 		name     string
 		haveURI  *url.URL
 		haveJWKS []schema.JWK
-		setup    func(config *schema.OpenIDConnectConfiguration)
-		expected func(t *testing.T, config *schema.OpenIDConnectConfiguration)
+		setup    func(config *schema.OpenIDConnect)
+		expected func(t *testing.T, config *schema.OpenIDConnect)
 		errs     []string
 	}{
 		{
@@ -2276,7 +2325,7 @@ func TestValidateOIDCClientJWKS(t *testing.T) {
 				{KeyID: "test", Use: "", Algorithm: "", Key: keyRSA2048PKCS8.Public()},
 			},
 			nil,
-			func(t *testing.T, config *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, config *schema.OpenIDConnect) {
 				assert.Equal(t, oidc.KeyUseSignature, config.Clients[0].PublicKeys.Values[0].Use)
 				assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, config.Clients[0].PublicKeys.Values[0].Algorithm)
 			},
@@ -2289,7 +2338,7 @@ func TestValidateOIDCClientJWKS(t *testing.T) {
 				{KeyID: "test", Use: "", Algorithm: "", Key: keyECDSAP256.Public()},
 			},
 			nil,
-			func(t *testing.T, config *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, config *schema.OpenIDConnect) {
 				assert.Equal(t, oidc.KeyUseSignature, config.Clients[0].PublicKeys.Values[0].Use)
 				assert.Equal(t, oidc.SigningAlgECDSAUsingP256AndSHA256, config.Clients[0].PublicKeys.Values[0].Algorithm)
 			},
@@ -2302,7 +2351,7 @@ func TestValidateOIDCClientJWKS(t *testing.T) {
 				{KeyID: "test", Use: "", Algorithm: "", Key: keyECDSAP384.Public()},
 			},
 			nil,
-			func(t *testing.T, config *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, config *schema.OpenIDConnect) {
 				assert.Equal(t, oidc.KeyUseSignature, config.Clients[0].PublicKeys.Values[0].Use)
 				assert.Equal(t, oidc.SigningAlgECDSAUsingP384AndSHA384, config.Clients[0].PublicKeys.Values[0].Algorithm)
 			},
@@ -2315,7 +2364,7 @@ func TestValidateOIDCClientJWKS(t *testing.T) {
 				{KeyID: "test", Use: "", Algorithm: "", Key: keyECDSAP521.Public()},
 			},
 			nil,
-			func(t *testing.T, config *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, config *schema.OpenIDConnect) {
 				assert.Equal(t, oidc.KeyUseSignature, config.Clients[0].PublicKeys.Values[0].Use)
 				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, config.Clients[0].PublicKeys.Values[0].Algorithm)
 			},
@@ -2328,7 +2377,7 @@ func TestValidateOIDCClientJWKS(t *testing.T) {
 				{KeyID: "test", Use: "", Algorithm: "", Key: keyECDSAP521.Public()},
 			},
 			nil,
-			func(t *testing.T, config *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, config *schema.OpenIDConnect) {
 				assert.Equal(t, oidc.KeyUseSignature, config.Clients[0].PublicKeys.Values[0].Use)
 				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, config.Clients[0].PublicKeys.Values[0].Algorithm)
 
@@ -2342,10 +2391,10 @@ func TestValidateOIDCClientJWKS(t *testing.T) {
 			[]schema.JWK{
 				{KeyID: "test", Use: "", Algorithm: "", Key: keyECDSAP521.Public()},
 			},
-			func(config *schema.OpenIDConnectConfiguration) {
+			func(config *schema.OpenIDConnect) {
 				config.Clients[0].RequestObjectSigningAlg = oidc.SigningAlgRSAUsingSHA512
 			},
-			func(t *testing.T, config *schema.OpenIDConnectConfiguration) {
+			func(t *testing.T, config *schema.OpenIDConnect) {
 				assert.Equal(t, oidc.KeyUseSignature, config.Clients[0].PublicKeys.Values[0].Use)
 				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, config.Clients[0].PublicKeys.Values[0].Algorithm)
 
@@ -2359,8 +2408,8 @@ func TestValidateOIDCClientJWKS(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			config := &schema.OpenIDConnectConfiguration{
-				Clients: []schema.OpenIDConnectClientConfiguration{
+			config := &schema.OpenIDConnect{
+				Clients: []schema.OpenIDConnectClient{
 					{
 						ID: "test",
 						PublicKeys: schema.OpenIDConnectClientPublicKeys{
@@ -2407,22 +2456,22 @@ func TestValidateOIDCIssuer(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		have     schema.OpenIDConnectConfiguration
-		expected schema.OpenIDConnectConfiguration
+		have     schema.OpenIDConnect
+		expected schema.OpenIDConnect
 		errs     []string
 	}{
 		{
 			"ShouldMapLegacyConfiguration",
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKey: keyRSA2048,
 			},
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKey: keyRSA2048,
 				IssuerPrivateKeys: []schema.JWK{
 					{KeyID: "1f8bfc", Key: keyRSA2048, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
 				},
 				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:              "1f8bfc",
+					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "1f8bfc"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
@@ -2430,7 +2479,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldSetDefaultKeyValues",
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA2048, CertificateChain: certRSA2048},
 					{Key: keyECDSAP256, CertificateChain: certECDSAP256},
@@ -2438,7 +2487,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: keyECDSAP521, CertificateChain: certECDSAP521},
 				},
 			},
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "1f8bfc"},
 					{Key: keyECDSAP256, CertificateChain: certECDSAP256, Algorithm: oidc.SigningAlgECDSAUsingP256AndSHA256, Use: oidc.KeyUseSignature, KeyID: "1e7788"},
@@ -2446,47 +2495,50 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: keyECDSAP521, CertificateChain: certECDSAP521, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature, KeyID: "7ecbac"},
 				},
 				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:              "1f8bfc",
+					DefaultKeyIDs: map[string]string{
+						oidc.SigningAlgRSAUsingSHA256:          "1f8bfc",
+						oidc.SigningAlgECDSAUsingP256AndSHA256: "1e7788",
+						oidc.SigningAlgECDSAUsingP384AndSHA384: "ba8508",
+						oidc.SigningAlgECDSAUsingP521AndSHA512: "7ecbac",
+					},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512},
 				},
 			},
 			nil,
 		},
 		{
-			"ShouldRaiseErrorsDuplicateRSA256Keys",
-			schema.OpenIDConnectConfiguration{
+			"ShouldNotRaiseErrorsMultipleRSA256Keys",
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA2048, CertificateChain: certRSA2048},
 					{Key: keyRSA4096, CertificateChain: certRSA4096},
 				},
 			},
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "1f8bfc"},
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "bf1e10"},
 				},
 				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:              "1f8bfc",
+					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "1f8bfc"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
-			[]string{
-				"identity_providers: oidc: issuer_private_keys: key #2 with key id 'bf1e10': option 'algorithm' must be unique",
-			},
+			nil,
 		},
 		{
 			"ShouldRaiseErrorsDuplicateRSA256Keys",
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA512},
 				},
 			},
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA512, Use: oidc.KeyUseSignature, KeyID: "bf1e10"},
 				},
 				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:              "",
+					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA512: "bf1e10"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA512},
 				},
 			},
@@ -2496,19 +2548,19 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnBadCurve",
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096},
 					{Key: keyECDSAP224, CertificateChain: certECDSAP224},
 				},
 			},
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "bf1e10"},
 					{Key: keyECDSAP224, CertificateChain: certECDSAP224},
 				},
 				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:              "bf1e10",
+					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "bf1e10"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
@@ -2518,17 +2570,17 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnBadRSAKey",
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA1024, CertificateChain: certRSA1024},
 				},
 			},
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA1024, CertificateChain: certRSA1024, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "cf375e"},
 				},
 				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:              "cf375e",
+					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "cf375e"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
@@ -2538,17 +2590,17 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnBadAlg",
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: "invalid"},
 				},
 			},
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: "invalid", Use: oidc.KeyUseSignature, KeyID: "bf1e10"},
 				},
 				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:              "",
+					DefaultKeyIDs:             map[string]string{},
 					ResponseObjectSigningAlgs: []string{"invalid"},
 				},
 			},
@@ -2559,17 +2611,17 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnBadUse",
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Use: "invalid"},
 				},
 			},
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: "invalid", KeyID: "bf1e10"},
 				},
 				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:              "bf1e10",
+					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "bf1e10"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
@@ -2579,59 +2631,87 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnBadKeyIDLength",
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "thisistoolong"},
+					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "thisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolong"},
 				},
 			},
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "thisistoolong"},
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "thisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolong"},
 				},
 				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:              "thisistoolong",
+					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "thisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolong"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
 			[]string{
-				"identity_providers: oidc: issuer_private_keys: key #1 with key id 'thisistoolong': option `key_id`` must be 7 characters or less",
+				"identity_providers: oidc: issuer_private_keys: key #1 with key id 'thisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolong': option `key_id` must be 100 characters or less",
 			},
 		},
 		{
 			"ShouldRaiseErrorOnBadKeyIDCharacters",
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "x@x"},
+					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "-xx"},
+					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "xx."},
 				},
 			},
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "x@x"},
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "-xx"},
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "xx."},
 				},
 				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:              "x@x",
+					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "x@x"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
 			[]string{
-				"identity_providers: oidc: issuer_private_keys: key #1 with key id 'x@x': option 'key_id' must only have alphanumeric characters",
+				"identity_providers: oidc: issuer_private_keys: key #1 with key id 'x@x': option 'key_id' must only contain RFC3986 unreserved characters and must only start and end with alphanumeric characters",
+				"identity_providers: oidc: issuer_private_keys: key #2 with key id '-xx': option 'key_id' must only contain RFC3986 unreserved characters and must only start and end with alphanumeric characters",
+				"identity_providers: oidc: issuer_private_keys: key #3 with key id 'xx.': option 'key_id' must only contain RFC3986 unreserved characters and must only start and end with alphanumeric characters",
 			},
 		},
 		{
+			"ShouldNotRaiseErrorOnGoodKeyIDCharacters",
+			schema.OpenIDConnect{
+				IssuerPrivateKeys: []schema.JWK{
+					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "x-x"},
+					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "x"},
+					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "xx"},
+				},
+			},
+			schema.OpenIDConnect{
+				IssuerPrivateKeys: []schema.JWK{
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "x-x"},
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "x"},
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "xx"},
+				},
+				Discovery: schema.OpenIDConnectDiscovery{
+					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "x-x"},
+					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
+				},
+			},
+			nil,
+		},
+		{
 			"ShouldRaiseErrorOnBadKeyIDDuplicates",
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "x"},
 					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAPSSUsingSHA256, KeyID: "x"},
 				},
 			},
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "x"},
 					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAPSSUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "x"},
 				},
 				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:              "x",
+					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "x", oidc.SigningAlgRSAPSSUsingSHA256: "x"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA256},
 				},
 			},
@@ -2641,17 +2721,17 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnEd25519Keys",
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyEd2519, CertificateChain: certEd15519},
 				},
 			},
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyEd2519, CertificateChain: certEd15519, KeyID: "14dfd3"},
 				},
 				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:              "",
+					DefaultKeyIDs:             map[string]string{},
 					ResponseObjectSigningAlgs: []string(nil),
 				},
 			},
@@ -2661,17 +2741,17 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnCertificateAsKey",
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: publicRSA2048Pair},
 				},
 			},
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: publicRSA2048Pair, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "9a0e71"},
 				},
 				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:              "9a0e71",
+					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "9a0e71"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
@@ -2681,17 +2761,17 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnInvalidChain",
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA2048, CertificateChain: frankenchain},
 				},
 			},
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA2048, CertificateChain: frankenchain, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "1f8bfc"},
 				},
 				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:              "1f8bfc",
+					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "1f8bfc"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
@@ -2701,17 +2781,17 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnInvalidPrivateKeyN",
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: frankenkey},
 				},
 			},
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: frankenkey},
 				},
 				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:              "",
+					DefaultKeyIDs:             map[string]string{},
 					ResponseObjectSigningAlgs: []string(nil),
 				},
 			},
@@ -2721,17 +2801,17 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnCertForKey",
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: certRSA2048},
 				},
 			},
-			schema.OpenIDConnectConfiguration{
+			schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: certRSA2048},
 				},
 				Discovery: schema.OpenIDConnectDiscovery{
-					DefaultKeyID:              "",
+					DefaultKeyIDs:             map[string]string{},
 					ResponseObjectSigningAlgs: []string(nil),
 				},
 			},
@@ -2749,7 +2829,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 
 			validateOIDCIssuer(&tc.have, val)
 
-			assert.Equal(t, tc.expected.Discovery.DefaultKeyID, tc.have.Discovery.DefaultKeyID)
+			assert.Equal(t, tc.expected.Discovery.DefaultKeyIDs, tc.have.Discovery.DefaultKeyIDs)
 			assert.Equal(t, tc.expected.Discovery.ResponseObjectSigningAlgs, tc.have.Discovery.ResponseObjectSigningAlgs)
 			assert.Equal(t, tc.expected.IssuerPrivateKey, tc.have.IssuerPrivateKey)
 			assert.Equal(t, tc.expected.IssuerCertificateChain, tc.have.IssuerCertificateChain)

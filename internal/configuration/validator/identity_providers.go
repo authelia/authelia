@@ -1,9 +1,7 @@
 package validator
 
 import (
-	"crypto"
 	"crypto/ecdsa"
-	"crypto/ed25519"
 	"crypto/rsa"
 	"fmt"
 	"net/url"
@@ -12,19 +10,17 @@ import (
 	"strings"
 	"time"
 
-	jose "gopkg.in/square/go-jose.v2"
-
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // ValidateIdentityProviders validates and updates the IdentityProviders configuration.
-func ValidateIdentityProviders(config *schema.IdentityProvidersConfiguration, val *schema.StructValidator) {
+func ValidateIdentityProviders(config *schema.IdentityProviders, val *schema.StructValidator) {
 	validateOIDC(config.OIDC, val)
 }
 
-func validateOIDC(config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+func validateOIDC(config *schema.OpenIDConnect, val *schema.StructValidator) {
 	if config == nil {
 		return
 	}
@@ -55,7 +51,7 @@ func validateOIDC(config *schema.OpenIDConnectConfiguration, val *schema.StructV
 	}
 }
 
-func validateOIDCIssuer(config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+func validateOIDCIssuer(config *schema.OpenIDConnect, val *schema.StructValidator) {
 	switch {
 	case config.IssuerPrivateKey != nil:
 		validateOIDCIssuerPrivateKey(config)
@@ -68,7 +64,7 @@ func validateOIDCIssuer(config *schema.OpenIDConnectConfiguration, val *schema.S
 	}
 }
 
-func validateOIDCIssuerPrivateKey(config *schema.OpenIDConnectConfiguration) {
+func validateOIDCIssuerPrivateKey(config *schema.OpenIDConnect) {
 	config.IssuerPrivateKeys = append([]schema.JWK{{
 		Algorithm:        oidc.SigningAlgRSAUsingSHA256,
 		Use:              oidc.KeyUseSignature,
@@ -77,34 +73,14 @@ func validateOIDCIssuerPrivateKey(config *schema.OpenIDConnectConfiguration) {
 	}}, config.IssuerPrivateKeys...)
 }
 
-func jwkCalculateThumbprint(key schema.CryptographicKey) (thumbprintStr string, err error) {
-	j := jose.JSONWebKey{}
-
-	switch k := key.(type) {
-	case schema.CryptographicPrivateKey:
-		j.Key = k.Public()
-	case *rsa.PublicKey, *ecdsa.PublicKey, ed25519.PublicKey:
-		j.Key = k
-	default:
-		return "", nil
-	}
-
-	var thumbprint []byte
-
-	if thumbprint, err = j.Thumbprint(crypto.SHA256); err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf("%x", thumbprint)[:6], nil
-}
-
-func validateOIDCIssuerPrivateKeys(config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+func validateOIDCIssuerPrivateKeys(config *schema.OpenIDConnect, val *schema.StructValidator) {
 	var (
 		props *JWKProperties
 		err   error
 	)
 
-	kids := make([]string, len(config.IssuerPrivateKeys))
+	config.Discovery.ResponseObjectSigningKeyIDs = make([]string, len(config.IssuerPrivateKeys))
+	config.Discovery.DefaultKeyIDs = map[string]string{}
 
 	for i := 0; i < len(config.IssuerPrivateKeys); i++ {
 		if key, ok := config.IssuerPrivateKeys[i].Key.(*rsa.PrivateKey); ok && key.PublicKey.N == nil {
@@ -120,18 +96,18 @@ func validateOIDCIssuerPrivateKeys(config *schema.OpenIDConnectConfiguration, va
 
 				continue
 			}
-		case n > 7:
+		case n > 100:
 			val.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysKeyIDLength, i+1, config.IssuerPrivateKeys[i].KeyID))
 		}
 
-		if config.IssuerPrivateKeys[i].KeyID != "" && utils.IsStringInSlice(config.IssuerPrivateKeys[i].KeyID, kids) {
+		if config.IssuerPrivateKeys[i].KeyID != "" && utils.IsStringInSlice(config.IssuerPrivateKeys[i].KeyID, config.Discovery.ResponseObjectSigningKeyIDs) {
 			val.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysAttributeNotUnique, i+1, config.IssuerPrivateKeys[i].KeyID, attrOIDCKeyID))
 		}
 
-		kids[i] = config.IssuerPrivateKeys[i].KeyID
+		config.Discovery.ResponseObjectSigningKeyIDs[i] = config.IssuerPrivateKeys[i].KeyID
 
-		if !utils.IsStringAlphaNumeric(config.IssuerPrivateKeys[i].KeyID) {
-			val.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysKeyIDNotAlphaNumeric, i+1, config.IssuerPrivateKeys[i].KeyID))
+		if !reOpenIDConnectKID.MatchString(config.IssuerPrivateKeys[i].KeyID) {
+			val.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysKeyIDNotValid, i+1, config.IssuerPrivateKeys[i].KeyID))
 		}
 
 		if props, err = schemaJWKGetProperties(config.IssuerPrivateKeys[i]); err != nil {
@@ -149,7 +125,7 @@ func validateOIDCIssuerPrivateKeys(config *schema.OpenIDConnectConfiguration, va
 	}
 }
 
-func validateOIDCIssuerPrivateKeysUseAlg(i int, props *JWKProperties, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+func validateOIDCIssuerPrivateKeysUseAlg(i int, props *JWKProperties, config *schema.OpenIDConnect, val *schema.StructValidator) {
 	switch config.IssuerPrivateKeys[i].Use {
 	case "":
 		config.IssuerPrivateKeys[i].Use = props.Use
@@ -162,26 +138,26 @@ func validateOIDCIssuerPrivateKeysUseAlg(i int, props *JWKProperties, config *sc
 	switch {
 	case config.IssuerPrivateKeys[i].Algorithm == "":
 		config.IssuerPrivateKeys[i].Algorithm = props.Algorithm
+
+		fallthrough
 	case utils.IsStringInSlice(config.IssuerPrivateKeys[i].Algorithm, validOIDCIssuerJWKSigningAlgs):
-		break
+		if config.IssuerPrivateKeys[i].KeyID != "" && config.IssuerPrivateKeys[i].Algorithm != "" {
+			if _, ok := config.Discovery.DefaultKeyIDs[config.IssuerPrivateKeys[i].Algorithm]; !ok {
+				config.Discovery.DefaultKeyIDs[config.IssuerPrivateKeys[i].Algorithm] = config.IssuerPrivateKeys[i].KeyID
+			}
+		}
 	default:
 		val.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysInvalidOptionOneOf, i+1, config.IssuerPrivateKeys[i].KeyID, attrOIDCAlgorithm, strJoinOr(validOIDCIssuerJWKSigningAlgs), config.IssuerPrivateKeys[i].Algorithm))
 	}
 
 	if config.IssuerPrivateKeys[i].Algorithm != "" {
-		if utils.IsStringInSlice(config.IssuerPrivateKeys[i].Algorithm, config.Discovery.ResponseObjectSigningAlgs) {
-			val.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysAttributeNotUnique, i+1, config.IssuerPrivateKeys[i].KeyID, attrOIDCAlgorithm))
-		} else {
+		if !utils.IsStringInSlice(config.IssuerPrivateKeys[i].Algorithm, config.Discovery.ResponseObjectSigningAlgs) {
 			config.Discovery.ResponseObjectSigningAlgs = append(config.Discovery.ResponseObjectSigningAlgs, config.IssuerPrivateKeys[i].Algorithm)
 		}
 	}
-
-	if config.IssuerPrivateKeys[i].Algorithm == oidc.SigningAlgRSAUsingSHA256 && config.Discovery.DefaultKeyID == "" {
-		config.Discovery.DefaultKeyID = config.IssuerPrivateKeys[i].KeyID
-	}
 }
 
-func validateOIDCIssuerPrivateKeyPair(i int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+func validateOIDCIssuerPrivateKeyPair(i int, config *schema.OpenIDConnect, val *schema.StructValidator) {
 	var (
 		checkEqualKey bool
 		err           error
@@ -213,7 +189,7 @@ func validateOIDCIssuerPrivateKeyPair(i int, config *schema.OpenIDConnectConfigu
 	}
 }
 
-func setOIDCDefaults(config *schema.OpenIDConnectConfiguration) {
+func setOIDCDefaults(config *schema.OpenIDConnect) {
 	if config.AccessTokenLifespan == time.Duration(0) {
 		config.AccessTokenLifespan = schema.DefaultOpenIDConnectConfiguration.AccessTokenLifespan
 	}
@@ -235,7 +211,7 @@ func setOIDCDefaults(config *schema.OpenIDConnectConfiguration) {
 	}
 }
 
-func validateOIDCOptionsCORS(config *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
+func validateOIDCOptionsCORS(config *schema.OpenIDConnect, validator *schema.StructValidator) {
 	validateOIDCOptionsCORSAllowedOrigins(config, validator)
 
 	if config.CORS.AllowedOriginsFromClientRedirectURIs {
@@ -245,7 +221,7 @@ func validateOIDCOptionsCORS(config *schema.OpenIDConnectConfiguration, validato
 	validateOIDCOptionsCORSEndpoints(config, validator)
 }
 
-func validateOIDCOptionsCORSAllowedOrigins(config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+func validateOIDCOptionsCORSAllowedOrigins(config *schema.OpenIDConnect, val *schema.StructValidator) {
 	for _, origin := range config.CORS.AllowedOrigins {
 		if origin.String() == "*" {
 			if len(config.CORS.AllowedOrigins) != 1 {
@@ -269,7 +245,7 @@ func validateOIDCOptionsCORSAllowedOrigins(config *schema.OpenIDConnectConfigura
 	}
 }
 
-func validateOIDCOptionsCORSAllowedOriginsFromClientRedirectURIs(config *schema.OpenIDConnectConfiguration) {
+func validateOIDCOptionsCORSAllowedOriginsFromClientRedirectURIs(config *schema.OpenIDConnect) {
 	for _, client := range config.Clients {
 		for _, redirectURI := range client.RedirectURIs {
 			uri, err := url.ParseRequestURI(redirectURI)
@@ -286,7 +262,7 @@ func validateOIDCOptionsCORSAllowedOriginsFromClientRedirectURIs(config *schema.
 	}
 }
 
-func validateOIDCOptionsCORSEndpoints(config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+func validateOIDCOptionsCORSEndpoints(config *schema.OpenIDConnect, val *schema.StructValidator) {
 	for _, endpoint := range config.CORS.Endpoints {
 		if !utils.IsStringInSlice(endpoint, validOIDCCORSEndpoints) {
 			val.Push(fmt.Errorf(errFmtOIDCCORSInvalidEndpoint, endpoint, strJoinOr(validOIDCCORSEndpoints)))
@@ -294,7 +270,7 @@ func validateOIDCOptionsCORSEndpoints(config *schema.OpenIDConnectConfiguration,
 	}
 }
 
-func validateOIDCClients(config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+func validateOIDCClients(config *schema.OpenIDConnect, val *schema.StructValidator) {
 	var (
 		errDeprecated bool
 
@@ -336,7 +312,7 @@ func validateOIDCClients(config *schema.OpenIDConnectConfiguration, val *schema.
 	}
 }
 
-func validateOIDCClient(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator, errDeprecatedFunc func()) {
+func validateOIDCClient(c int, config *schema.OpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
 	if config.Clients[c].Public {
 		if config.Clients[c].Secret != nil {
 			val.Push(fmt.Errorf(errFmtOIDCClientPublicInvalidSecret, config.Clients[c].ID))
@@ -386,7 +362,7 @@ func validateOIDCClient(c int, config *schema.OpenIDConnectConfiguration, val *s
 	validateOIDCClientTokenEndpointAuth(c, config, val)
 }
 
-func validateOIDCClientPublicKeys(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+func validateOIDCClientPublicKeys(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
 	switch {
 	case config.Clients[c].PublicKeys.URI != nil && len(config.Clients[c].PublicKeys.Values) != 0:
 		val.Push(fmt.Errorf(errFmtOIDCClientPublicKeysBothURIAndValuesConfigured, config.Clients[c].ID))
@@ -399,7 +375,7 @@ func validateOIDCClientPublicKeys(c int, config *schema.OpenIDConnectConfigurati
 	}
 }
 
-func validateOIDCClientJSONWebKeysList(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+func validateOIDCClientJSONWebKeysList(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
 	var (
 		props *JWKProperties
 		err   error
@@ -457,7 +433,7 @@ func validateOIDCClientJSONWebKeysList(c int, config *schema.OpenIDConnectConfig
 	}
 }
 
-func validateOIDCClientJSONWebKeysListKeyUseAlg(c, i int, props *JWKProperties, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+func validateOIDCClientJSONWebKeysListKeyUseAlg(c, i int, props *JWKProperties, config *schema.OpenIDConnect, val *schema.StructValidator) {
 	switch config.Clients[c].PublicKeys.Values[i].Use {
 	case "":
 		config.Clients[c].PublicKeys.Values[i].Use = props.Use
@@ -487,7 +463,7 @@ func validateOIDCClientJSONWebKeysListKeyUseAlg(c, i int, props *JWKProperties, 
 	}
 }
 
-func validateOIDCClientSectorIdentifier(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+func validateOIDCClientSectorIdentifier(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
 	if config.Clients[c].SectorIdentifier.String() != "" {
 		if utils.IsURLHostComponent(config.Clients[c].SectorIdentifier) || utils.IsURLHostComponentWithPort(config.Clients[c].SectorIdentifier) {
 			return
@@ -523,7 +499,7 @@ func validateOIDCClientSectorIdentifier(c int, config *schema.OpenIDConnectConfi
 	}
 }
 
-func validateOIDCClientConsentMode(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+func validateOIDCClientConsentMode(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
 	switch {
 	case utils.IsStringInSlice(config.Clients[c].ConsentMode, []string{"", auto}):
 		if config.Clients[c].ConsentPreConfiguredDuration != nil {
@@ -542,7 +518,7 @@ func validateOIDCClientConsentMode(c int, config *schema.OpenIDConnectConfigurat
 	}
 }
 
-func validateOIDCClientScopes(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator, errDeprecatedFunc func()) {
+func validateOIDCClientScopes(c int, config *schema.OpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
 	if len(config.Clients[c].Scopes) == 0 {
 		config.Clients[c].Scopes = schema.DefaultOpenIDConnectClientConfiguration.Scopes
 	}
@@ -575,7 +551,7 @@ func validateOIDCClientScopes(c int, config *schema.OpenIDConnectConfiguration, 
 	}
 }
 
-func validateOIDCClientResponseTypes(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator, errDeprecatedFunc func()) {
+func validateOIDCClientResponseTypes(c int, config *schema.OpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
 	if len(config.Clients[c].ResponseTypes) == 0 {
 		config.Clients[c].ResponseTypes = schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes
 	}
@@ -593,7 +569,7 @@ func validateOIDCClientResponseTypes(c int, config *schema.OpenIDConnectConfigur
 	}
 }
 
-func validateOIDCClientResponseModes(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator, errDeprecatedFunc func()) {
+func validateOIDCClientResponseModes(c int, config *schema.OpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
 	if len(config.Clients[c].ResponseModes) == 0 {
 		config.Clients[c].ResponseModes = schema.DefaultOpenIDConnectClientConfiguration.ResponseModes
 
@@ -625,7 +601,7 @@ func validateOIDCClientResponseModes(c int, config *schema.OpenIDConnectConfigur
 	}
 }
 
-func validateOIDCClientGrantTypes(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator, errDeprecatedFunc func()) {
+func validateOIDCClientGrantTypes(c int, config *schema.OpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
 	if len(config.Clients[c].GrantTypes) == 0 {
 		validateOIDCClientGrantTypesSetDefaults(c, config)
 	}
@@ -645,7 +621,7 @@ func validateOIDCClientGrantTypes(c int, config *schema.OpenIDConnectConfigurati
 	}
 }
 
-func validateOIDCClientGrantTypesSetDefaults(c int, config *schema.OpenIDConnectConfiguration) {
+func validateOIDCClientGrantTypesSetDefaults(c int, config *schema.OpenIDConnect) {
 	for _, responseType := range config.Clients[c].ResponseTypes {
 		switch responseType {
 		case oidc.ResponseTypeAuthorizationCodeFlow:
@@ -668,7 +644,7 @@ func validateOIDCClientGrantTypesSetDefaults(c int, config *schema.OpenIDConnect
 	}
 }
 
-func validateOIDCClientGrantTypesCheckRelated(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator, errDeprecatedFunc func()) {
+func validateOIDCClientGrantTypesCheckRelated(c int, config *schema.OpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
 	for _, grantType := range config.Clients[c].GrantTypes {
 		switch grantType {
 		case oidc.GrantTypeImplicit:
@@ -703,7 +679,7 @@ func validateOIDCClientGrantTypesCheckRelated(c int, config *schema.OpenIDConnec
 	}
 }
 
-func validateOIDCClientRedirectURIs(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator, errDeprecatedFunc func()) {
+func validateOIDCClientRedirectURIs(c int, config *schema.OpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
 	var (
 		parsedRedirectURI *url.URL
 		err               error
@@ -740,7 +716,7 @@ func validateOIDCClientRedirectURIs(c int, config *schema.OpenIDConnectConfigura
 	}
 }
 
-func validateOIDCClientTokenEndpointAuth(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+func validateOIDCClientTokenEndpointAuth(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
 	implcit := len(config.Clients[c].ResponseTypes) != 0 && utils.IsStringSliceContainsAll(config.Clients[c].ResponseTypes, validOIDCClientResponseTypesImplicitFlow)
 
 	switch {
@@ -767,7 +743,7 @@ func validateOIDCClientTokenEndpointAuth(c int, config *schema.OpenIDConnectConf
 	}
 }
 
-func validateOIDCClientTokenEndpointAuthClientSecretJWT(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
+func validateOIDCClientTokenEndpointAuthClientSecretJWT(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
 	switch {
 	case config.Clients[c].TokenEndpointAuthSigningAlg == "":
 		config.Clients[c].TokenEndpointAuthSigningAlg = oidc.SigningAlgHMACUsingSHA256
@@ -776,7 +752,7 @@ func validateOIDCClientTokenEndpointAuthClientSecretJWT(c int, config *schema.Op
 	}
 }
 
-func validateOIDCClientTokenEndpointAuthPublicKeyJWT(config schema.OpenIDConnectClientConfiguration, val *schema.StructValidator) {
+func validateOIDCClientTokenEndpointAuthPublicKeyJWT(config schema.OpenIDConnectClient, val *schema.StructValidator) {
 	switch {
 	case config.TokenEndpointAuthSigningAlg == "":
 		val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthSigAlgMissingPrivateKeyJWT, config.ID))
@@ -793,18 +769,38 @@ func validateOIDCClientTokenEndpointAuthPublicKeyJWT(config schema.OpenIDConnect
 	}
 }
 
-func validateOIDDClientSigningAlgs(c int, config *schema.OpenIDConnectConfiguration, val *schema.StructValidator) {
-	if config.Clients[c].UserinfoSigningAlg == "" {
-		config.Clients[c].UserinfoSigningAlg = schema.DefaultOpenIDConnectClientConfiguration.UserinfoSigningAlg
-	} else if config.Clients[c].UserinfoSigningAlg != oidc.SigningAlgNone && !utils.IsStringInSlice(config.Clients[c].UserinfoSigningAlg, config.Discovery.ResponseObjectSigningAlgs) {
-		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
-			config.Clients[c].ID, attrOIDCUsrSigAlg, strJoinOr(append(config.Discovery.ResponseObjectSigningAlgs, oidc.SigningAlgNone)), config.Clients[c].UserinfoSigningAlg))
+func validateOIDDClientSigningAlgs(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
+	switch config.Clients[c].UserinfoSigningKeyID {
+	case "":
+		if config.Clients[c].UserinfoSigningAlg == "" {
+			config.Clients[c].UserinfoSigningAlg = schema.DefaultOpenIDConnectClientConfiguration.UserinfoSigningAlg
+		} else if config.Clients[c].UserinfoSigningAlg != oidc.SigningAlgNone && !utils.IsStringInSlice(config.Clients[c].UserinfoSigningAlg, config.Discovery.ResponseObjectSigningAlgs) {
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
+				config.Clients[c].ID, attrOIDCUsrSigAlg, strJoinOr(append(config.Discovery.ResponseObjectSigningAlgs, oidc.SigningAlgNone)), config.Clients[c].UserinfoSigningAlg))
+		}
+	default:
+		if !utils.IsStringInSlice(config.Clients[c].UserinfoSigningKeyID, config.Discovery.ResponseObjectSigningKeyIDs) {
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
+				config.Clients[c].ID, attrOIDCUsrSigKID, strJoinOr(config.Discovery.ResponseObjectSigningKeyIDs), config.Clients[c].UserinfoSigningKeyID))
+		} else {
+			config.Clients[c].UserinfoSigningAlg = getResponseObjectAlgFromKID(config, config.Clients[c].UserinfoSigningKeyID, config.Clients[c].UserinfoSigningAlg)
+		}
 	}
 
-	if config.Clients[c].IDTokenSigningAlg == "" {
-		config.Clients[c].IDTokenSigningAlg = schema.DefaultOpenIDConnectClientConfiguration.IDTokenSigningAlg
-	} else if !utils.IsStringInSlice(config.Clients[c].IDTokenSigningAlg, config.Discovery.ResponseObjectSigningAlgs) {
-		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
-			config.Clients[c].ID, attrOIDCIDTokenSigAlg, strJoinOr(config.Discovery.ResponseObjectSigningAlgs), config.Clients[c].IDTokenSigningAlg))
+	switch config.Clients[c].IDTokenSigningKeyID {
+	case "":
+		if config.Clients[c].IDTokenSigningAlg == "" {
+			config.Clients[c].IDTokenSigningAlg = schema.DefaultOpenIDConnectClientConfiguration.IDTokenSigningAlg
+		} else if !utils.IsStringInSlice(config.Clients[c].IDTokenSigningAlg, config.Discovery.ResponseObjectSigningAlgs) {
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
+				config.Clients[c].ID, attrOIDCIDTokenSigAlg, strJoinOr(config.Discovery.ResponseObjectSigningAlgs), config.Clients[c].IDTokenSigningAlg))
+		}
+	default:
+		if !utils.IsStringInSlice(config.Clients[c].IDTokenSigningKeyID, config.Discovery.ResponseObjectSigningKeyIDs) {
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
+				config.Clients[c].ID, attrOIDCIDTokenSigKID, strJoinOr(config.Discovery.ResponseObjectSigningKeyIDs), config.Clients[c].IDTokenSigningKeyID))
+		} else {
+			config.Clients[c].IDTokenSigningAlg = getResponseObjectAlgFromKID(config, config.Clients[c].IDTokenSigningKeyID, config.Clients[c].IDTokenSigningAlg)
+		}
 	}
 }

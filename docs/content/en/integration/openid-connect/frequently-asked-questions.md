@@ -100,11 +100,13 @@ some degree so are the [domain](../../configuration/security/access-control.md#d
 [domain regex](../../configuration/security/access-control.md#domainregex) criteria as the token is issued to the client
 not a specific domain.
 
-As such we implemented the
+For these reasons we implemented the
 [authorization policy](../../configuration/identity-providers/openid-connect/clients.md#authorizationpolicy) as a direct
 option in the client. It's likely in the future that we'll expand this option to encompass the features that work well
 with OpenID Connect 1.0 such as the [subject](../../configuration/security/access-control.md#subject) criteria which
-reasonably be matched to an individual authorization policy.
+reasonably be matched to an individual authorization policy. Because the other criteria are mostly geared towards
+per-request authorization these criteria types are fairly unlikely to become part of OpenID Connect 1.0 as there are no
+ways to apply these criteria except during the initial authorization request.
 
 ## Solutions
 

@@ -25,118 +25,51 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 		expectedRequestObjectSigAlgsSupported, expectedRevocationSigAlgsSupported, expectedTokenAuthSigAlgsSupported []string
 	}{
 		{
-			desc:                                  "ShouldHaveChallengeMethodsS256ANDSubjectTypesSupportedPublic",
+			desc:                                  "ShouldHaveStandardCodeChallengeMethods",
 			pkcePlainChallenge:                    false,
 			clients:                               map[string]oidc.Client{"a": &oidc.BaseClient{}},
 			expectCodeChallengeMethodsSupported:   []string{oidc.PKCEChallengeMethodSHA256},
 			expectSubjectTypesSupported:           []string{oidc.SubjectTypePublic, oidc.SubjectTypePairwise},
-			expectedIDTokenSigAlgsSupported:       []string{oidc.SigningAlgRSAUsingSHA256},
+			expectedIDTokenSigAlgsSupported:       []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone},
 			expectedUserInfoSigAlgsSupported:      []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone},
-			expectedRequestObjectSigAlgsSupported: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone},
-			expectedRevocationSigAlgsSupported:    []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512},
-			expectedTokenAuthSigAlgsSupported:     []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512},
+			expectedRequestObjectSigAlgsSupported: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgNone},
+			expectedRevocationSigAlgsSupported:    []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512},
+			expectedTokenAuthSigAlgsSupported:     []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512},
 		},
 		{
-			desc:               "ShouldIncludeDiscoveryInfo",
+			desc:                                  "ShouldHaveAllCodeChallengeMethods",
+			pkcePlainChallenge:                    true,
+			clients:                               map[string]oidc.Client{"a": &oidc.BaseClient{}},
+			expectCodeChallengeMethodsSupported:   []string{oidc.PKCEChallengeMethodSHA256, oidc.PKCEChallengeMethodPlain},
+			expectSubjectTypesSupported:           []string{oidc.SubjectTypePublic, oidc.SubjectTypePairwise},
+			expectedIDTokenSigAlgsSupported:       []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone},
+			expectedUserInfoSigAlgsSupported:      []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone},
+			expectedRequestObjectSigAlgsSupported: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgNone},
+			expectedRevocationSigAlgsSupported:    []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512},
+			expectedTokenAuthSigAlgsSupported:     []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512},
+		},
+		{
+			desc:               "ShouldIncludeDiscoveredResponseObjectSigningAlgs",
 			pkcePlainChallenge: false,
 			clients:            map[string]oidc.Client{"a": &oidc.BaseClient{}},
 			discovery: schema.OpenIDConnectDiscovery{
 				ResponseObjectSigningAlgs: []string{oidc.SigningAlgECDSAUsingP521AndSHA512},
-				RequestObjectSigningAlgs:  []string{oidc.SigningAlgECDSAUsingP256AndSHA256},
 			},
 			expectCodeChallengeMethodsSupported:   []string{oidc.PKCEChallengeMethodSHA256},
 			expectSubjectTypesSupported:           []string{oidc.SubjectTypePublic, oidc.SubjectTypePairwise},
-			expectedIDTokenSigAlgsSupported:       []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgECDSAUsingP521AndSHA512},
+			expectedIDTokenSigAlgsSupported:       []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgNone},
 			expectedUserInfoSigAlgsSupported:      []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgNone},
-			expectedRequestObjectSigAlgsSupported: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgNone},
-			expectedRevocationSigAlgsSupported:    []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256},
-			expectedTokenAuthSigAlgsSupported:     []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256},
-		},
-		{
-			desc:                                  "ShouldHaveChallengeMethodsS256PlainANDSubjectTypesSupportedPublic",
-			pkcePlainChallenge:                    true,
-			clients:                               map[string]oidc.Client{"a": &oidc.BaseClient{}},
-			expectCodeChallengeMethodsSupported:   []string{oidc.PKCEChallengeMethodSHA256, oidc.PKCEChallengeMethodPlain},
-			expectSubjectTypesSupported:           []string{oidc.SubjectTypePublic, oidc.SubjectTypePairwise},
-			expectedIDTokenSigAlgsSupported:       []string{oidc.SigningAlgRSAUsingSHA256},
-			expectedUserInfoSigAlgsSupported:      []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone},
-			expectedRequestObjectSigAlgsSupported: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone},
-			expectedRevocationSigAlgsSupported:    []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512},
-			expectedTokenAuthSigAlgsSupported:     []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512},
-		},
-		{
-			desc:                                  "ShouldHaveChallengeMethodsS256ANDSubjectTypesSupportedPublicPairwise",
-			pkcePlainChallenge:                    false,
-			clients:                               map[string]oidc.Client{"a": &oidc.BaseClient{SectorIdentifier: "yes"}},
-			expectCodeChallengeMethodsSupported:   []string{oidc.PKCEChallengeMethodSHA256},
-			expectSubjectTypesSupported:           []string{oidc.SubjectTypePublic, oidc.SubjectTypePairwise},
-			expectedIDTokenSigAlgsSupported:       []string{oidc.SigningAlgRSAUsingSHA256},
-			expectedUserInfoSigAlgsSupported:      []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone},
-			expectedRequestObjectSigAlgsSupported: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone},
-			expectedRevocationSigAlgsSupported:    []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512},
-			expectedTokenAuthSigAlgsSupported:     []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512},
-		},
-		{
-			desc:                                  "ShouldHaveChallengeMethodsS256PlainANDSubjectTypesSupportedPublicPairwise",
-			pkcePlainChallenge:                    true,
-			clients:                               map[string]oidc.Client{"a": &oidc.BaseClient{SectorIdentifier: "yes"}},
-			expectCodeChallengeMethodsSupported:   []string{oidc.PKCEChallengeMethodSHA256, oidc.PKCEChallengeMethodPlain},
-			expectSubjectTypesSupported:           []string{oidc.SubjectTypePublic, oidc.SubjectTypePairwise},
-			expectedIDTokenSigAlgsSupported:       []string{oidc.SigningAlgRSAUsingSHA256},
-			expectedUserInfoSigAlgsSupported:      []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone},
-			expectedRequestObjectSigAlgsSupported: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone},
-			expectedRevocationSigAlgsSupported:    []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512},
-			expectedTokenAuthSigAlgsSupported:     []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512},
-		},
-		{
-			desc:                                  "ShouldHaveTokenAuthMethodsNone",
-			pkcePlainChallenge:                    true,
-			clients:                               map[string]oidc.Client{"a": &oidc.BaseClient{SectorIdentifier: "yes"}},
-			expectCodeChallengeMethodsSupported:   []string{oidc.PKCEChallengeMethodSHA256, oidc.PKCEChallengeMethodPlain},
-			expectSubjectTypesSupported:           []string{oidc.SubjectTypePublic, oidc.SubjectTypePairwise},
-			expectedIDTokenSigAlgsSupported:       []string{oidc.SigningAlgRSAUsingSHA256},
-			expectedUserInfoSigAlgsSupported:      []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone},
-			expectedRequestObjectSigAlgsSupported: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone},
-			expectedRevocationSigAlgsSupported:    []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512},
-			expectedTokenAuthSigAlgsSupported:     []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512},
-		},
-		{
-			desc:               "ShouldHaveTokenAuthMethodsNone",
-			pkcePlainChallenge: true,
-			clients: map[string]oidc.Client{
-				"a": &oidc.BaseClient{SectorIdentifier: "yes"},
-				"b": &oidc.BaseClient{SectorIdentifier: "yes"},
-			},
-			expectCodeChallengeMethodsSupported:   []string{oidc.PKCEChallengeMethodSHA256, oidc.PKCEChallengeMethodPlain},
-			expectSubjectTypesSupported:           []string{oidc.SubjectTypePublic, oidc.SubjectTypePairwise},
-			expectedIDTokenSigAlgsSupported:       []string{oidc.SigningAlgRSAUsingSHA256},
-			expectedUserInfoSigAlgsSupported:      []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone},
-			expectedRequestObjectSigAlgsSupported: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone},
-			expectedRevocationSigAlgsSupported:    []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512},
-			expectedTokenAuthSigAlgsSupported:     []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512},
-		},
-		{
-			desc:               "ShouldHaveTokenAuthMethodsNone",
-			pkcePlainChallenge: true,
-			clients: map[string]oidc.Client{
-				"a": &oidc.BaseClient{SectorIdentifier: "yes"},
-				"b": &oidc.BaseClient{SectorIdentifier: "yes"},
-			},
-			expectCodeChallengeMethodsSupported:   []string{oidc.PKCEChallengeMethodSHA256, oidc.PKCEChallengeMethodPlain},
-			expectSubjectTypesSupported:           []string{oidc.SubjectTypePublic, oidc.SubjectTypePairwise},
-			expectedIDTokenSigAlgsSupported:       []string{oidc.SigningAlgRSAUsingSHA256},
-			expectedUserInfoSigAlgsSupported:      []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone},
-			expectedRequestObjectSigAlgsSupported: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone},
-			expectedRevocationSigAlgsSupported:    []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512},
-			expectedTokenAuthSigAlgsSupported:     []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512},
+			expectedRequestObjectSigAlgsSupported: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgNone},
+			expectedRevocationSigAlgsSupported:    []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512},
+			expectedTokenAuthSigAlgsSupported:     []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			c := schema.OpenIDConnectConfiguration{
+			c := schema.OpenIDConnect{
 				EnablePKCEPlainChallenge: tc.pkcePlainChallenge,
-				PAR: schema.OpenIDConnectPARConfiguration{
+				PAR: schema.OpenIDConnectPAR{
 					Enforce: tc.enforcePAR,
 				},
 				Discovery: tc.discovery,
@@ -169,12 +102,12 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 }
 
 func TestNewOpenIDConnectProviderDiscovery(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+	provider := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnect{
 		IssuerCertificateChain:   schema.X509CertificateChain{},
 		IssuerPrivateKey:         keyRSA2048,
 		HMACSecret:               "asbdhaaskmdlkamdklasmdlkams",
 		EnablePKCEPlainChallenge: true,
-		Clients: []schema.OpenIDConnectClientConfiguration{
+		Clients: []schema.OpenIDConnectClient{
 			{
 				ID:     "a-client",
 				Secret: tOpenIDConnectPlainTextClientSecret,
@@ -210,11 +143,11 @@ func TestNewOpenIDConnectProviderDiscovery(t *testing.T) {
 }
 
 func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+	provider := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
 		IssuerPrivateKey:       keyRSA2048,
 		HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
-		Clients: []schema.OpenIDConnectClientConfiguration{
+		Clients: []schema.OpenIDConnectClient{
 			{
 				ID:     "a-client",
 				Secret: tOpenIDConnectPlainTextClientSecret,
@@ -281,35 +214,13 @@ func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *test
 	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, oidc.ClientAuthMethodPrivateKeyJWT)
 	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, oidc.ClientAuthMethodNone)
 
-	assert.Len(t, disco.IntrospectionEndpointAuthMethodsSupported, 2)
-	assert.Contains(t, disco.IntrospectionEndpointAuthMethodsSupported, oidc.ClientAuthMethodClientSecretBasic)
-	assert.Contains(t, disco.IntrospectionEndpointAuthMethodsSupported, oidc.ClientAuthMethodNone)
-
-	assert.Len(t, disco.GrantTypesSupported, 3)
-	assert.Contains(t, disco.GrantTypesSupported, oidc.GrantTypeAuthorizationCode)
-	assert.Contains(t, disco.GrantTypesSupported, oidc.GrantTypeRefreshToken)
-	assert.Contains(t, disco.GrantTypesSupported, oidc.GrantTypeImplicit)
-
-	assert.Len(t, disco.RevocationEndpointAuthSigningAlgValuesSupported, 3)
-	assert.Equal(t, disco.RevocationEndpointAuthSigningAlgValuesSupported[0], oidc.SigningAlgHMACUsingSHA256)
-	assert.Equal(t, disco.RevocationEndpointAuthSigningAlgValuesSupported[1], oidc.SigningAlgHMACUsingSHA384)
-	assert.Equal(t, disco.RevocationEndpointAuthSigningAlgValuesSupported[2], oidc.SigningAlgHMACUsingSHA512)
-
-	assert.Len(t, disco.TokenEndpointAuthSigningAlgValuesSupported, 3)
-	assert.Equal(t, disco.TokenEndpointAuthSigningAlgValuesSupported[0], oidc.SigningAlgHMACUsingSHA256)
-	assert.Equal(t, disco.TokenEndpointAuthSigningAlgValuesSupported[1], oidc.SigningAlgHMACUsingSHA384)
-	assert.Equal(t, disco.TokenEndpointAuthSigningAlgValuesSupported[2], oidc.SigningAlgHMACUsingSHA512)
-
-	assert.Len(t, disco.IDTokenSigningAlgValuesSupported, 1)
-	assert.Contains(t, disco.IDTokenSigningAlgValuesSupported, oidc.SigningAlgRSAUsingSHA256)
-
-	assert.Len(t, disco.UserinfoSigningAlgValuesSupported, 2)
-	assert.Equal(t, disco.UserinfoSigningAlgValuesSupported[0], oidc.SigningAlgRSAUsingSHA256)
-	assert.Equal(t, disco.UserinfoSigningAlgValuesSupported[1], oidc.SigningAlgNone)
-
-	require.Len(t, disco.RequestObjectSigningAlgValuesSupported, 2)
-	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, disco.RequestObjectSigningAlgValuesSupported[0])
-	assert.Equal(t, oidc.SigningAlgNone, disco.RequestObjectSigningAlgValuesSupported[1])
+	assert.Equal(t, []string{oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodNone}, disco.IntrospectionEndpointAuthMethodsSupported)
+	assert.Equal(t, []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeRefreshToken}, disco.GrantTypesSupported)
+	assert.Equal(t, []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512}, disco.RevocationEndpointAuthSigningAlgValuesSupported)
+	assert.Equal(t, []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512}, disco.TokenEndpointAuthSigningAlgValuesSupported)
+	assert.Equal(t, []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone}, disco.IDTokenSigningAlgValuesSupported)
+	assert.Equal(t, []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone}, disco.UserinfoSigningAlgValuesSupported)
+	assert.Equal(t, []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgNone}, disco.RequestObjectSigningAlgValuesSupported)
 
 	assert.Len(t, disco.ClaimsSupported, 18)
 	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimAuthenticationMethodsReference)
@@ -337,11 +248,11 @@ func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *test
 }
 
 func TestNewOpenIDConnectProvider_GetOAuth2WellKnownConfiguration(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+	provider := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
 		IssuerPrivateKey:       keyRSA2048,
 		HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
-		Clients: []schema.OpenIDConnectClientConfiguration{
+		Clients: []schema.OpenIDConnectClient{
 			{
 				ID:     "a-client",
 				Secret: tOpenIDConnectPlainTextClientSecret,
@@ -427,12 +338,12 @@ func TestNewOpenIDConnectProvider_GetOAuth2WellKnownConfiguration(t *testing.T) 
 }
 
 func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfigurationWithPlainPKCE(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+	provider := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnect{
 		IssuerCertificateChain:   schema.X509CertificateChain{},
 		IssuerPrivateKey:         keyRSA2048,
 		HMACSecret:               "asbdhaaskmdlkamdklasmdlkams",
 		EnablePKCEPlainChallenge: true,
-		Clients: []schema.OpenIDConnectClientConfiguration{
+		Clients: []schema.OpenIDConnectClient{
 			{
 				ID:     "a-client",
 				Secret: tOpenIDConnectPlainTextClientSecret,

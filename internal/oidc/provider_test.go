@@ -18,12 +18,12 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_NotConfigured(t *testing
 }
 
 func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+	provider := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnect{
 		IssuerCertificateChain:   schema.X509CertificateChain{},
 		IssuerPrivateKey:         keyRSA2048,
 		EnablePKCEPlainChallenge: true,
 		HMACSecret:               badhmac,
-		Clients: []schema.OpenIDConnectClientConfiguration{
+		Clients: []schema.OpenIDConnectClient{
 			{
 				ID:               myclient,
 				Secret:           tOpenIDConnectPlainTextClientSecret,
@@ -50,11 +50,11 @@ func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing
 }
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+	provider := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
 		IssuerPrivateKey:       keyRSA2048,
 		HMACSecret:             badhmac,
-		Clients: []schema.OpenIDConnectClientConfiguration{
+		Clients: []schema.OpenIDConnectClient{
 			{
 				ID:     "a-client",
 				Secret: tOpenIDConnectPlainTextClientSecret,
