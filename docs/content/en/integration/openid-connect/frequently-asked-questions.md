@@ -88,6 +88,24 @@ If you've configured Authelia alongside a proxy and are making a request directl
 request via the proxy. If you're avoiding the proxy due to a DNS limitation see
 [Solution: Configure DNS Appropriately](#configure-dns-appropriately) section.
 
+### Why doesn't the access control configuration work with OpenID Connect 1.0?
+
+The [access control](../../configuration/security/access-control.md) configuration contains several elements which are
+not very compatible with OpenID Connect 1.0. They were designed with per-request authorizations in mind. In particular
+the [resources](../../configuration/security/access-control.md#resources),
+[query](../../configuration/security/access-control.md#query),
+[methods](../../configuration/security/access-control.md#methods), and
+[networks](../../configuration/security/access-control.md#networks) criteria are very specific to each request and to
+some degree so are the [domain](../../configuration/security/access-control.md#domain) and
+[domain regex](../../configuration/security/access-control.md#domainregex) criteria as the token is issued to the client
+not a specific domain.
+
+As such we implemented the
+[authorization policy](../../configuration/identity-providers/openid-connect/clients.md#authorizationpolicy) as a direct
+option in the client. It's likely in the future that we'll expand this option to encompass the features that work well
+with OpenID Connect 1.0 such as the [subject](../../configuration/security/access-control.md#subject) criteria which
+reasonably be matched to an individual authorization policy.
+
 ## Solutions
 
 The following section details solutions for multiple of the questions above.
