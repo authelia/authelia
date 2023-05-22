@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
@@ -9,6 +10,7 @@ import (
 	"strings"
 
 	"golang.org/x/net/publicsuffix"
+	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -165,4 +167,35 @@ func schemaJWKGetProperties(jwk schema.JWK) (properties *JWKProperties, err erro
 	default:
 		return nil, fmt.Errorf("the key type '%T' is unknown or not valid for the configuration", key)
 	}
+}
+
+func jwkCalculateThumbprint(key schema.CryptographicKey) (thumbprintStr string, err error) {
+	j := jose.JSONWebKey{}
+
+	switch k := key.(type) {
+	case schema.CryptographicPrivateKey:
+		j.Key = k.Public()
+	case *rsa.PublicKey, *ecdsa.PublicKey, ed25519.PublicKey:
+		j.Key = k
+	default:
+		return "", nil
+	}
+
+	var thumbprint []byte
+
+	if thumbprint, err = j.Thumbprint(crypto.SHA256); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%x", thumbprint)[:6], nil
+}
+
+func getResponseObjectAlgFromKID(config *schema.OpenIDConnect, kid, alg string) string {
+	for _, jwk := range config.IssuerPrivateKeys {
+		if kid == jwk.KeyID {
+			return jwk.Algorithm
+		}
+	}
+
+	return alg
 }

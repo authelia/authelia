@@ -18,8 +18,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-// NewStore returns a Store when provided with a schema.OpenIDConnectConfiguration and storage.Provider.
-func NewStore(config *schema.OpenIDConnectConfiguration, provider storage.Provider) (store *Store) {
+// NewStore returns a Store when provided with a schema.OpenIDConnect and storage.Provider.
+func NewStore(config *schema.OpenIDConnect, provider storage.Provider) (store *Store) {
 	logger := logging.Logger()
 
 	store = &Store{

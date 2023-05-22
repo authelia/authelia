@@ -2,7 +2,7 @@
 title: "OpenID Connect 1.0 Clients"
 description: "OpenID Connect 1.0 Registered Clients Configuration"
 lead: "Authelia can operate as an OpenID Connect 1.0 Provider. This section describes how to configure the registered clients."
-date: 2023-05-08T13:38:08+10:00
+date: 2023-05-15T10:32:10+10:00
 draft: false
 images: []
 menu:
@@ -306,8 +306,9 @@ otherwise we assume the default value:
 
 The JWT signing algorithm accepted for request objects.
 
-See the request object section of the [integration guide](../../../integration/openid-connect/introduction.md#request-object)
-for more information including the algorithm column for supported values.
+See the request object section of the
+[integration guide](../../../integration/openid-connect/introduction.md#request-object) for more information including
+the algorithm column for supported values.
 
 ### id_token_signing_alg
 
@@ -315,9 +316,24 @@ for more information including the algorithm column for supported values.
 
 The algorithm used to sign the ID Tokens in the token responses.
 
-See the response object section of the [integration guide](../../../integration/openid-connect/introduction.md#response-object)
-for more information including the algorithm column for supported values. In addition to the values listed we also
-support `none` as a value for this endpoint.
+See the response object section of the
+[integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information including
+the algorithm column for supported values. In addition to the values listed we also support `none` as a value for this
+endpoint.
+
+The algorithm chosen must have a key configured in the [issuer_private_keys](provider.md#issuerprivatekeys) section to
+be considered valid.
+
+This option has no effect if the [id_token_signing_key_id](#idtokensigningkid) is specified as the algorithm is
+automatically assumed by the configured key.
+
+### id_token_signing_key_id
+
+{{< confkey type="string" required="no" >}}
+
+The key id of the JWK used to sign the ID Tokens in the token responses. This option takes precedence over
+[id_token_signing_alg](#idtokensigningalg). The value of this must one of those provided or calculated in the
+[issuer_private_keys](provider.md#issuerprivatekeys).
 
 ### userinfo_signing_alg
 
@@ -328,6 +344,20 @@ The algorithm used to sign the userinfo endpoint responses.
 See the response object section of the [integration guide](../../../integration/openid-connect/introduction.md#response-object)
 for more information including the algorithm column for supported values. In addition to the values listed we also
 support `none` as a value for this endpoint.
+
+The algorithm chosen must have a key configured in the [issuer_private_keys](provider.md#issuerprivatekeys) section to
+be considered valid.
+
+This option has no effect if the [userinfo_signing_key_id](#userinfosigningkeyid) is specified as the algorithm is
+automatically assumed by the configured key.
+
+### userinfo_signing_key_id
+
+{{< confkey type="string" required="no" >}}
+
+The key id of the JWK used to sign the userinfo endpoint responses in the token responses. This option takes precedence
+over  [userinfo_signing_alg](#userinfosigningalg). The value of this must one of those provided or calculated in the
+[issuer_private_keys](provider.md#issuerprivatekeys).
 
 ### public_keys
 

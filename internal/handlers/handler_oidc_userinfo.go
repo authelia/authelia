@@ -105,7 +105,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	default:
 		var jwk *oidc.JWK
 
-		if jwk = ctx.Providers.OpenIDConnect.KeyManager.GetByAlg(ctx, alg); jwk == nil {
+		if jwk = ctx.Providers.OpenIDConnect.KeyManager.Get(ctx, client.GetUserinfoSigningKeyID(), alg); jwk == nil {
 			ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(fosite.ErrServerError.WithHintf("Unsupported UserInfo signing algorithm '%s'.", alg)))
 
 			return
