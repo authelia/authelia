@@ -163,9 +163,10 @@ hexadecimal.
 
 #### algorithm
 
-{{< confkey type="string" default="RS256" required="no" >}}
+{{< confkey type="string" default="RS256" required="situational" >}}
 
-The algorithm for this key. This value is automatically detected based on the type of key.
+The algorithm for this key. This value typically optional as it can be automatically detected based on the type of key
+in some situations.
 
 See the response object table in the [integration guide](../../../integration/openid-connect/introduction.md#response-object)
 for more information. The `Algorithm` column lists supported values, the `Key` column references the required
@@ -225,8 +226,8 @@ administrator and can be done by following the
 [Generating an RSA Keypair](../../../reference/guides/generating-secure-values.md#generating-an-rsa-keypair) guide.
 
 This private key is automatically appended to the [issuer_private_keys](#issuerprivatekeys) and assumed to be for the
-RS256 algorithm. If provided it is always the first key in this list. As such this key is assumed to be the default for
-RS256 if provided.
+`RS256` algorithm. If provided it is always the first key in this list. As such this key is assumed to be the default
+for `RS256` if provided.
 
 The issuer private key *__MUST__*:
 
@@ -241,7 +242,7 @@ key data for the first certificate in the chain.
 
 {{< confkey type="string" required="no" >}}
 
-The certificate chain/bundle to be used with the [issuer_private_key](#issuer_private_key) DER base64 ([RFC4648])
+The certificate chain/bundle to be used with the [issuer_private_key](#issuerprivatekey) DER base64 ([RFC4648])
 encoded PEM format used to sign/encrypt the [OpenID Connect 1.0] [JWT]'s. When configured it enables the [x5c] and [x5t]
 JSON key's in the JWKs [Discoverable Endpoint](../../../integration/openid-connect/introduction.md#discoverable-endpoints)
 as per [RFC7517].
@@ -412,7 +413,7 @@ See the [OpenID Connect 1.0 Registered Clients](clients.md) documentation for co
 ## Integration
 
 To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party please see the
-[integration docs](../../integration/openid-connect/introduction.md).
+[integration docs](../../../integration/openid-connect/introduction.md).
 
 [token lifespan]: https://docs.apigee.com/api-platform/antipatterns/oauth-long-expiration
 [OpenID Connect 1.0]: https://openid.net/connect/
