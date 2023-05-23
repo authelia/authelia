@@ -1,59 +1,166 @@
 package authentication
 
 import (
-	"log"
+	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
+	"github.com/go-crypt/crypt/algorithm/bcrypt"
+	"github.com/go-crypt/crypt/algorithm/pbkdf2"
+	"github.com/go-crypt/crypt/algorithm/scrypt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-func WithDatabase(content []byte, f func(path string)) {
-	tmpfile, err := os.CreateTemp("", "users_database.*.yaml")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer os.Remove(tmpfile.Name()) // Clean up.
-
-	if _, err := tmpfile.Write(content); err != nil {
-		tmpfile.Close()
-		log.Panic(err)
-	}
-
-	f(tmpfile.Name())
-
-	if err := tmpfile.Close(); err != nil {
-		log.Panic(err)
-	}
-}
-
 func TestShouldErrorPermissionsOnLocalFS(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("skipping test due to being on windows")
 	}
 
-	_ = os.Mkdir("/tmp/noperms/", 0000)
-	err := checkDatabase("/tmp/noperms/users_database.yml")
+	dir := t.TempDir()
 
-	require.EqualError(t, err, "error checking user authentication database file: stat /tmp/noperms/users_database.yml: permission denied")
+	_ = os.Mkdir(filepath.Join(dir, "noperms"), 0000)
+
+	f := filepath.Join(dir, "noperms", "users_database.yml")
+	require.EqualError(t, checkDatabase(f), fmt.Sprintf("error checking user authentication database file: stat %s: permission denied", f))
 }
 
 func TestShouldErrorAndGenerateUserDB(t *testing.T) {
-	err := checkDatabase("./nonexistent.yml")
-	_ = os.Remove("./nonexistent.yml")
+	dir := t.TempDir()
 
-	require.EqualError(t, err, "user authentication database file doesn't exist at path './nonexistent.yml' and has been generated")
+	f := filepath.Join(dir, "users_database.yml")
+
+	require.EqualError(t, checkDatabase(f), fmt.Sprintf("user authentication database file doesn't exist at path '%s' and has been generated", f))
+}
+
+func TestShouldErrorFailCreateDB(t *testing.T) {
+	dir := t.TempDir()
+
+	assert.NoError(t, os.Mkdir(filepath.Join(dir, "x"), 0000))
+
+	f := filepath.Join(dir, "x", "users.yml")
+
+	provider := NewFileUserProvider(&schema.FileAuthenticationBackend{Path: f, Password: schema.DefaultPasswordConfig})
+
+	require.NotNil(t, provider)
+
+	assert.EqualError(t, provider.StartupCheck(), "one or more errors occurred checking the authentication database")
+
+	assert.NotNil(t, provider.database)
+
+	reloaded, err := provider.Reload()
+
+	assert.False(t, reloaded)
+	assert.EqualError(t, err, fmt.Sprintf("failed to reload: error reading the authentication database: failed to read the '%s' file: open %s: permission denied", f, f))
+}
+
+func TestShouldErrorBadPasswordConfig(t *testing.T) {
+	dir := t.TempDir()
+
+	f := filepath.Join(dir, "users.yml")
+
+	require.NoError(t, os.WriteFile(f, UserDatabaseContent, 0600))
+
+	provider := NewFileUserProvider(&schema.FileAuthenticationBackend{Path: f})
+
+	require.NotNil(t, provider)
+
+	assert.EqualError(t, provider.StartupCheck(), "failed to initialize hash settings: argon2 validation error: parameter is invalid: parameter 't' must be between 1 and 2147483647 but is set to '0'")
+}
+
+func TestShouldNotPanicOnNilDB(t *testing.T) {
+	dir := t.TempDir()
+
+	f := filepath.Join(dir, "users.yml")
+
+	assert.NoError(t, os.WriteFile(f, UserDatabaseContent, 0600))
+
+	provider := &FileUserProvider{
+		config:        &schema.FileAuthenticationBackend{Path: f, Password: schema.DefaultPasswordConfig},
+		mutex:         &sync.Mutex{},
+		timeoutReload: time.Now().Add(-1 * time.Second),
+	}
+
+	assert.NoError(t, provider.StartupCheck())
+}
+
+func TestShouldReloadDatabase(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "users.yml")
+
+	testCases := []struct {
+		name     string
+		setup    func(t *testing.T, provider *FileUserProvider)
+		expected bool
+		err      string
+	}{
+		{
+			"ShouldSkipReloadRecentlyReloaded",
+			func(t *testing.T, provider *FileUserProvider) {
+				provider.timeoutReload = time.Now().Add(time.Minute)
+			},
+			false,
+			"",
+		},
+		{
+			"ShouldReloadWithoutError",
+			func(t *testing.T, provider *FileUserProvider) {
+				provider.timeoutReload = time.Now().Add(time.Minute * -1)
+			},
+			true,
+			"",
+		},
+		{
+			"ShouldNotReloadWithNoContent",
+			func(t *testing.T, provider *FileUserProvider) {
+				p := filepath.Join(dir, "empty.yml")
+
+				_, _ = os.Create(p)
+
+				provider.timeoutReload = time.Now().Add(time.Minute * -1)
+
+				provider.config.Path = p
+
+				provider.database = NewFileUserDatabase(p, provider.config.Search.Email, provider.config.Search.CaseInsensitive)
+			},
+			false,
+			"",
+		},
+	}
+
+	require.NoError(t, os.WriteFile(path, UserDatabaseContent, 0600))
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := NewFileUserProvider(&schema.FileAuthenticationBackend{
+				Path:     path,
+				Password: schema.DefaultPasswordConfig,
+			})
+
+			tc.setup(t, provider)
+
+			actual, theError := provider.Reload()
+
+			assert.Equal(t, tc.expected, actual)
+			if tc.err == "" {
+				assert.NoError(t, theError)
+			} else {
+				assert.EqualError(t, theError, tc.err)
+			}
+		})
+	}
 }
 
 func TestShouldCheckUserArgon2idPasswordIsCorrect(t *testing.T) {
-	WithDatabase(UserDatabaseContent, func(path string) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		provider := NewFileUserProvider(&config)
@@ -68,7 +175,7 @@ func TestShouldCheckUserArgon2idPasswordIsCorrect(t *testing.T) {
 }
 
 func TestShouldCheckUserSHA512PasswordIsCorrect(t *testing.T) {
-	WithDatabase(UserDatabaseContent, func(path string) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
@@ -84,7 +191,7 @@ func TestShouldCheckUserSHA512PasswordIsCorrect(t *testing.T) {
 }
 
 func TestShouldCheckUserPasswordIsWrong(t *testing.T) {
-	WithDatabase(UserDatabaseContent, func(path string) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
@@ -100,7 +207,7 @@ func TestShouldCheckUserPasswordIsWrong(t *testing.T) {
 }
 
 func TestShouldCheckUserPasswordIsWrongForEnumerationCompare(t *testing.T) {
-	WithDatabase(UserDatabaseContent, func(path string) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
@@ -115,7 +222,7 @@ func TestShouldCheckUserPasswordIsWrongForEnumerationCompare(t *testing.T) {
 }
 
 func TestShouldCheckUserPasswordOfUserThatDoesNotExist(t *testing.T) {
-	WithDatabase(UserDatabaseContent, func(path string) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
@@ -131,7 +238,7 @@ func TestShouldCheckUserPasswordOfUserThatDoesNotExist(t *testing.T) {
 }
 
 func TestShouldRetrieveUserDetails(t *testing.T) {
-	WithDatabase(UserDatabaseContent, func(path string) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
@@ -147,8 +254,27 @@ func TestShouldRetrieveUserDetails(t *testing.T) {
 	})
 }
 
+func TestShouldErrOnUserDetailsNoUser(t *testing.T) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+
+		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
+		details, err := provider.GetDetails("nouser")
+		assert.Nil(t, details)
+		assert.Equal(t, err, ErrUserNotFound)
+
+		details, err = provider.GetDetails("dis")
+		assert.Nil(t, details)
+		assert.Equal(t, err, ErrUserNotFound)
+	})
+}
+
 func TestShouldUpdatePassword(t *testing.T) {
-	WithDatabase(UserDatabaseContent, func(path string) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
@@ -172,7 +298,7 @@ func TestShouldUpdatePassword(t *testing.T) {
 
 // Checks both that the hashing algo changes and that it removes {CRYPT} from the start.
 func TestShouldUpdatePasswordHashingAlgorithmToArgon2id(t *testing.T) {
-	WithDatabase(UserDatabaseContent, func(path string) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
@@ -197,7 +323,7 @@ func TestShouldUpdatePasswordHashingAlgorithmToArgon2id(t *testing.T) {
 }
 
 func TestShouldUpdatePasswordHashingAlgorithmToSHA512(t *testing.T) {
-	WithDatabase(UserDatabaseContent, func(path string) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		config.Password.Algorithm = "sha2crypt"
@@ -223,8 +349,22 @@ func TestShouldUpdatePasswordHashingAlgorithmToSHA512(t *testing.T) {
 	})
 }
 
+func TestShouldErrOnUpdatePasswordNoUser(t *testing.T) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+
+		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
+		assert.Equal(t, provider.UpdatePassword("nousers", "newpassword"), ErrUserNotFound)
+		assert.Equal(t, provider.UpdatePassword("dis", "example"), ErrUserNotFound)
+	})
+}
+
 func TestShouldRaiseWhenLoadingMalformedDatabaseForFirstTime(t *testing.T) {
-	WithDatabase(MalformedUserDatabaseContent, func(path string) {
+	WithDatabase(t, MalformedUserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
@@ -235,7 +375,7 @@ func TestShouldRaiseWhenLoadingMalformedDatabaseForFirstTime(t *testing.T) {
 }
 
 func TestShouldRaiseWhenLoadingDatabaseWithBadSchemaForFirstTime(t *testing.T) {
-	WithDatabase(BadSchemaUserDatabaseContent, func(path string) {
+	WithDatabase(t, BadSchemaUserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
@@ -246,7 +386,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadSchemaForFirstTime(t *testing.T) {
 }
 
 func TestShouldRaiseWhenLoadingDatabaseWithBadSHA512HashesForTheFirstTime(t *testing.T) {
-	WithDatabase(BadSHA512HashContent, func(path string) {
+	WithDatabase(t, BadSHA512HashContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
@@ -257,7 +397,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadSHA512HashesForTheFirstTime(t *tes
 }
 
 func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashSettingsForTheFirstTime(t *testing.T) {
-	WithDatabase(BadArgon2idHashSettingsContent, func(path string) {
+	WithDatabase(t, BadArgon2idHashSettingsContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
@@ -268,7 +408,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashSettingsForTheFirstTim
 }
 
 func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashKeyForTheFirstTime(t *testing.T) {
-	WithDatabase(BadArgon2idHashKeyContent, func(path string) {
+	WithDatabase(t, BadArgon2idHashKeyContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
@@ -279,7 +419,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashKeyForTheFirstTime(t *
 }
 
 func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashSaltForTheFirstTime(t *testing.T) {
-	WithDatabase(BadArgon2idHashSaltContent, func(path string) {
+	WithDatabase(t, BadArgon2idHashSaltContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
@@ -290,7 +430,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashSaltForTheFirstTime(t 
 }
 
 func TestShouldSupportHashPasswordWithoutCRYPT(t *testing.T) {
-	WithDatabase(UserDatabaseWithoutCryptContent, func(path string) {
+	WithDatabase(t, UserDatabaseWithoutCryptContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
@@ -306,7 +446,7 @@ func TestShouldSupportHashPasswordWithoutCRYPT(t *testing.T) {
 }
 
 func TestShouldNotAllowLoginOfDisabledUsers(t *testing.T) {
-	WithDatabase(UserDatabaseContent, func(path string) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
@@ -322,7 +462,7 @@ func TestShouldNotAllowLoginOfDisabledUsers(t *testing.T) {
 }
 
 func TestShouldErrorOnInvalidCaseSensitiveFile(t *testing.T) {
-	WithDatabase(UserDatabaseContentInvalidSearchCaseInsenstive, func(path string) {
+	WithDatabase(t, UserDatabaseContentInvalidSearchCaseInsenstive, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		config.Search.Email = false
@@ -335,7 +475,7 @@ func TestShouldErrorOnInvalidCaseSensitiveFile(t *testing.T) {
 }
 
 func TestShouldErrorOnDuplicateEmail(t *testing.T) {
-	WithDatabase(UserDatabaseContentInvalidSearchEmail, func(path string) {
+	WithDatabase(t, UserDatabaseContentInvalidSearchEmail, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		config.Search.Email = true
@@ -349,7 +489,7 @@ func TestShouldErrorOnDuplicateEmail(t *testing.T) {
 }
 
 func TestShouldNotErrorOnEmailAsUsername(t *testing.T) {
-	WithDatabase(UserDatabaseContentSearchEmailAsUsername, func(path string) {
+	WithDatabase(t, UserDatabaseContentSearchEmailAsUsername, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		config.Search.Email = true
@@ -362,7 +502,7 @@ func TestShouldNotErrorOnEmailAsUsername(t *testing.T) {
 }
 
 func TestShouldErrorOnEmailAsUsernameWithDuplicateEmail(t *testing.T) {
-	WithDatabase(UserDatabaseContentInvalidSearchEmailAsUsername, func(path string) {
+	WithDatabase(t, UserDatabaseContentInvalidSearchEmailAsUsername, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		config.Search.Email = true
@@ -375,7 +515,7 @@ func TestShouldErrorOnEmailAsUsernameWithDuplicateEmail(t *testing.T) {
 }
 
 func TestShouldErrorOnEmailAsUsernameWithDuplicateEmailCase(t *testing.T) {
-	WithDatabase(UserDatabaseContentInvalidSearchEmailAsUsernameCase, func(path string) {
+	WithDatabase(t, UserDatabaseContentInvalidSearchEmailAsUsernameCase, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		config.Search.Email = false
@@ -388,7 +528,7 @@ func TestShouldErrorOnEmailAsUsernameWithDuplicateEmailCase(t *testing.T) {
 }
 
 func TestShouldAllowLookupByEmail(t *testing.T) {
-	WithDatabase(UserDatabaseContent, func(path string) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		config.Search.Email = true
@@ -415,7 +555,7 @@ func TestShouldAllowLookupByEmail(t *testing.T) {
 }
 
 func TestShouldAllowLookupCI(t *testing.T) {
-	WithDatabase(UserDatabaseContent, func(path string) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		config.Search.CaseInsensitive = true
@@ -434,6 +574,87 @@ func TestShouldAllowLookupCI(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, ok)
 	})
+}
+
+func TestNewFileCryptoHashFromConfig(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     schema.Password
+		expected any
+		err      string
+	}{
+		{
+			"ShouldCreatePBKDF2",
+			schema.Password{
+				Algorithm: "pbkdf2",
+				PBKDF2: schema.PBKDF2Password{
+					Variant:    "sha256",
+					Iterations: 100000,
+					SaltLength: 16,
+				},
+			},
+			&pbkdf2.Hasher{},
+			"",
+		},
+		{
+			"ShouldCreateSCrypt",
+			schema.Password{
+				Algorithm: "scrypt",
+				SCrypt: schema.SCryptPassword{
+					Iterations:  12,
+					SaltLength:  16,
+					Parallelism: 1,
+					BlockSize:   1,
+					KeyLength:   32,
+				},
+			},
+			&scrypt.Hasher{},
+			"",
+		},
+		{
+			"ShouldCreateBCrypt",
+			schema.Password{
+				Algorithm: "bcrypt",
+				BCrypt: schema.BCryptPassword{
+					Variant: "standard",
+					Cost:    12,
+				},
+			},
+			&bcrypt.Hasher{},
+			"",
+		},
+		{
+			"ShouldFailToCreateSCryptInvalidParameter",
+			schema.Password{
+				Algorithm: "scrypt",
+			},
+			nil,
+			"failed to initialize hash settings: scrypt validation error: parameter is invalid: parameter 'iterations' must be between 1 and 58 but is set to '0'",
+		},
+		{
+			"ShouldFailUnknown",
+			schema.Password{
+				Algorithm: "unknown",
+			},
+			nil,
+			"algorithm 'unknown' is unknown",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, theError := NewFileCryptoHashFromConfig(tc.have)
+
+			if tc.err == "" {
+				assert.NoError(t, theError)
+				require.NotNil(t, actual)
+				assert.IsType(t, tc.expected, actual)
+			} else {
+				assert.EqualError(t, theError, tc.err)
+				assert.Nil(t, actual)
+			}
+		})
+	}
 }
 
 var (
@@ -657,3 +878,17 @@ users:
       - admins
       - dev
 `)
+
+func WithDatabase(t *testing.T, content []byte, f func(path string)) {
+	dir := t.TempDir()
+
+	db, err := os.CreateTemp(dir, "users_database.*.yaml")
+	require.NoError(t, err)
+
+	_, err = db.Write(content)
+	require.NoError(t, err)
+
+	f(db.Name())
+
+	require.NoError(t, db.Close())
+}

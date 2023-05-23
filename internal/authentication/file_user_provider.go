@@ -34,6 +34,7 @@ func NewFileUserProvider(config *schema.FileAuthenticationBackend) (provider *Fi
 		config:        config,
 		mutex:         &sync.Mutex{},
 		timeoutReload: time.Now().Add(-1 * time.Second),
+		database:      NewFileUserDatabase(config.Path, config.Search.Email, config.Search.CaseInsensitive),
 	}
 }
 
@@ -136,7 +137,9 @@ func (p *FileUserProvider) StartupCheck() (err error) {
 		return err
 	}
 
-	p.database = NewFileUserDatabase(p.config.Path, p.config.Search.Email, p.config.Search.CaseInsensitive)
+	if p.database == nil {
+		p.database = NewFileUserDatabase(p.config.Path, p.config.Search.Email, p.config.Search.CaseInsensitive)
+	}
 
 	if err = p.database.Load(); err != nil {
 		return err
