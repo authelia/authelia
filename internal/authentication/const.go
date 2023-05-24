@@ -72,12 +72,19 @@ const (
 )
 
 const (
-	ldapPlaceholderInput                        = "{input}"
-	ldapPlaceholderDistinguishedName            = "{dn}"
-	ldapPlaceholderUsername                     = "{username}"
-	ldapPlaceholderDateTimeGeneralized          = "{date-time:generalized}"
-	ldapPlaceholderDateTimeMicrosoftNTTimeEpoch = "{date-time:microsoft-nt}"
-	ldapPlaceholderDateTimeUnixEpoch            = "{date-time:unix}"
+	ldapPlaceholderInput                             = "{input}"
+	ldapPlaceholderDistinguishedName                 = "{dn}"
+	ldapPlaceholderMemberOfDistinguishedName         = "{memberof:dn}"
+	ldapPlaceholderMemberOfRelativeDistinguishedName = "{memberof:rdn}"
+	ldapPlaceholderUsername                          = "{username}"
+	ldapPlaceholderDateTimeGeneralized               = "{date-time:generalized}"
+	ldapPlaceholderDateTimeMicrosoftNTTimeEpoch      = "{date-time:microsoft-nt}"
+	ldapPlaceholderDateTimeUnixEpoch                 = "{date-time:unix}"
+	ldapPlaceholderDistinguishedNameAttribute        = "{distinguished_name_attribute}"
+	ldapPlaceholderUsernameAttribute                 = "{username_attribute}"
+	ldapPlaceholderDisplayNameAttribute              = "{display_name_attribute}"
+	ldapPlaceholderMailAttribute                     = "{mail_attribute}"
+	ldapPlaceholderMemberOfAttribute                 = "{member_of_attribute}"
 )
 
 const (

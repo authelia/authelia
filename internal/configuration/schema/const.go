@@ -78,6 +78,14 @@ const (
 	LDAPImplementationGLAuth = "glauth"
 )
 
+const (
+	// LDAPGroupSearchModeFilter is the string for the filter group search mode.
+	LDAPGroupSearchModeFilter = "filter"
+
+	// LDAPGroupSearchModeMemberOf is the string for the memberOf group search mode.
+	LDAPGroupSearchModeMemberOf = "memberof"
+)
+
 // TOTP Algorithm.
 const (
 	TOTPAlgorithmSHA1   = "SHA1"
@@ -121,11 +129,18 @@ const (
 )
 
 const (
-	ldapAttrMail        = "mail"
-	ldapAttrUserID      = "uid"
-	ldapAttrDisplayName = "displayName"
-	ldapAttrDescription = "description"
-	ldapAttrCommonName  = "cn"
+	ldapGroupSearchModeFilter = "filter"
+)
+
+const (
+	ldapAttrDistinguishedName = "distinguishedName"
+	ldapAttrMail              = "mail"
+	ldapAttrUserID            = "uid"
+	ldapAttrSAMAccountName    = "sAMAccountName"
+	ldapAttrDisplayName       = "displayName"
+	ldapAttrDescription       = "description"
+	ldapAttrCommonName        = "cn"
+	ldapAttrMemberOf          = "memberOf"
 )
 
 // Address Schemes.
