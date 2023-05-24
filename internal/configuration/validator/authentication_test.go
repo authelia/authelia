@@ -967,9 +967,7 @@ func TestLDAPAuthenticationBackend(t *testing.T) {
 }
 
 type ActiveDirectoryAuthenticationBackendSuite struct {
-	suite.Suite
-	config    schema.AuthenticationBackend
-	validator *schema.StructValidator
+	LDAPImplementationSuite
 }
 
 func (suite *ActiveDirectoryAuthenticationBackendSuite) SetupTest() {
@@ -990,43 +988,7 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldSetActiveDirec
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Len(suite.validator.Errors(), 0)
 
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.Timeout,
-		suite.config.LDAP.Timeout)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.AdditionalUsersDN,
-		suite.config.LDAP.AdditionalUsersDN)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.AdditionalGroupsDN,
-		suite.config.LDAP.AdditionalGroupsDN)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.AdditionalUsersDN,
-		suite.config.LDAP.AdditionalUsersDN)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.AdditionalGroupsDN,
-		suite.config.LDAP.AdditionalGroupsDN)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.UsersFilter,
-		suite.config.LDAP.UsersFilter)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.Attributes.Username,
-		suite.config.LDAP.Attributes.Username)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.Attributes.DisplayName,
-		suite.config.LDAP.Attributes.DisplayName)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.Attributes.Mail,
-		suite.config.LDAP.Attributes.Mail)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.GroupsFilter,
-		suite.config.LDAP.GroupsFilter)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.Attributes.GroupName,
-		suite.config.LDAP.Attributes.GroupName)
-
-	suite.Equal(memberOf, suite.config.LDAP.Attributes.MemberOf)
-	suite.Equal("distinguishedName", suite.config.LDAP.Attributes.DistinguishedName)
-	suite.Equal(schema.LDAPGroupSearchModeFilter, suite.config.LDAP.GroupSearchMode)
+	suite.EqualImplementationDefaults(schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory)
 }
 
 func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotManuallyConfigured() {
@@ -1045,33 +1007,7 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldOnlySetDefault
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.Timeout,
-		suite.config.LDAP.Timeout)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.AdditionalUsersDN,
-		suite.config.LDAP.AdditionalUsersDN)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.AdditionalGroupsDN,
-		suite.config.LDAP.AdditionalGroupsDN)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.UsersFilter,
-		suite.config.LDAP.UsersFilter)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.Attributes.Username,
-		suite.config.LDAP.Attributes.Username)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.Attributes.DisplayName,
-		suite.config.LDAP.Attributes.DisplayName)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.Attributes.Mail,
-		suite.config.LDAP.Attributes.Mail)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.GroupsFilter,
-		suite.config.LDAP.GroupsFilter)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.Attributes.GroupName,
-		suite.config.LDAP.Attributes.GroupName)
+	suite.NotEqualImplementationDefaults(schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory)
 
 	suite.Equal(member, suite.config.LDAP.Attributes.MemberOf)
 	suite.Equal("objectGUID", suite.config.LDAP.Attributes.DistinguishedName)
@@ -1092,9 +1028,7 @@ func TestActiveDirectoryAuthenticationBackend(t *testing.T) {
 }
 
 type RFC2307bisAuthenticationBackendSuite struct {
-	suite.Suite
-	config    schema.AuthenticationBackend
-	validator *schema.StructValidator
+	LDAPImplementationSuite
 }
 
 func (suite *RFC2307bisAuthenticationBackendSuite) SetupTest() {
@@ -1115,37 +1049,7 @@ func (suite *RFC2307bisAuthenticationBackendSuite) TestShouldSetDefaults() {
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Len(suite.validator.Errors(), 0)
 
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.Timeout,
-		suite.config.LDAP.Timeout)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.AdditionalUsersDN,
-		suite.config.LDAP.AdditionalUsersDN)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.AdditionalGroupsDN,
-		suite.config.LDAP.AdditionalGroupsDN)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.UsersFilter,
-		suite.config.LDAP.UsersFilter)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.Attributes.Username,
-		suite.config.LDAP.Attributes.Username)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.Attributes.DisplayName,
-		suite.config.LDAP.Attributes.DisplayName)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.Attributes.Mail,
-		suite.config.LDAP.Attributes.Mail)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.GroupsFilter,
-		suite.config.LDAP.GroupsFilter)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.Attributes.GroupName,
-		suite.config.LDAP.Attributes.GroupName)
-
-	suite.Equal(memberOf, suite.config.LDAP.Attributes.MemberOf)
-	suite.Equal("", suite.config.LDAP.Attributes.DistinguishedName)
-	suite.Equal(schema.LDAPGroupSearchModeFilter, suite.config.LDAP.GroupSearchMode)
+	suite.EqualImplementationDefaults(schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis)
 }
 
 func (suite *RFC2307bisAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotManuallyConfigured() {
@@ -1163,40 +1067,11 @@ func (suite *RFC2307bisAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNo
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.Timeout,
-		suite.config.LDAP.Timeout)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.AdditionalUsersDN,
-		suite.config.LDAP.AdditionalUsersDN)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.AdditionalGroupsDN,
-		suite.config.LDAP.AdditionalGroupsDN)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.Timeout,
-		suite.config.LDAP.Timeout)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.UsersFilter,
-		suite.config.LDAP.UsersFilter)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.Attributes.Username,
-		suite.config.LDAP.Attributes.Username)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.Attributes.DisplayName,
-		suite.config.LDAP.Attributes.DisplayName)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.Attributes.Mail,
-		suite.config.LDAP.Attributes.Mail)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.GroupsFilter,
-		suite.config.LDAP.GroupsFilter)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.Attributes.GroupName,
-		suite.config.LDAP.Attributes.GroupName)
+	suite.NotEqualImplementationDefaults(schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis)
 
 	suite.Equal(member, suite.config.LDAP.Attributes.MemberOf)
 	suite.Equal("", suite.config.LDAP.Attributes.DistinguishedName)
-	suite.Equal(memberof, suite.config.LDAP.GroupSearchMode)
+	suite.Equal(schema.LDAPGroupSearchModeMemberOf, suite.config.LDAP.GroupSearchMode)
 }
 
 func TestRFC2307bisAuthenticationBackend(t *testing.T) {
@@ -1204,9 +1079,7 @@ func TestRFC2307bisAuthenticationBackend(t *testing.T) {
 }
 
 type FreeIPAAuthenticationBackendSuite struct {
-	suite.Suite
-	config    schema.AuthenticationBackend
-	validator *schema.StructValidator
+	LDAPImplementationSuite
 }
 
 func (suite *FreeIPAAuthenticationBackendSuite) SetupTest() {
@@ -1227,37 +1100,7 @@ func (suite *FreeIPAAuthenticationBackendSuite) TestShouldSetDefaults() {
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Len(suite.validator.Errors(), 0)
 
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.Timeout,
-		suite.config.LDAP.Timeout)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.AdditionalUsersDN,
-		suite.config.LDAP.AdditionalUsersDN)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.AdditionalGroupsDN,
-		suite.config.LDAP.AdditionalGroupsDN)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.UsersFilter,
-		suite.config.LDAP.UsersFilter)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.Attributes.Username,
-		suite.config.LDAP.Attributes.Username)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.Attributes.DisplayName,
-		suite.config.LDAP.Attributes.DisplayName)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.Attributes.Mail,
-		suite.config.LDAP.Attributes.Mail)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.GroupsFilter,
-		suite.config.LDAP.GroupsFilter)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.Attributes.GroupName,
-		suite.config.LDAP.Attributes.GroupName)
-
-	suite.Equal(memberOf, suite.config.LDAP.Attributes.MemberOf)
-	suite.Equal("", suite.config.LDAP.Attributes.DistinguishedName)
-	suite.Equal(schema.LDAPGroupSearchModeFilter, suite.config.LDAP.GroupSearchMode)
+	suite.EqualImplementationDefaults(schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA)
 }
 
 func (suite *FreeIPAAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotManuallyConfigured() {
@@ -1267,6 +1110,7 @@ func (suite *FreeIPAAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotMa
 	suite.config.LDAP.Attributes.Mail = "email"
 	suite.config.LDAP.Attributes.DisplayName = "gecos"
 	suite.config.LDAP.GroupsFilter = "(&(member={dn})(objectClass=posixgroup))"
+	suite.config.LDAP.GroupSearchMode = schema.LDAPGroupSearchModeMemberOf
 	suite.config.LDAP.Attributes.GroupName = "groupName"
 	suite.config.LDAP.Attributes.MemberOf = member
 	suite.config.LDAP.AdditionalUsersDN = "OU=people"
@@ -1274,37 +1118,11 @@ func (suite *FreeIPAAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotMa
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.Timeout,
-		suite.config.LDAP.Timeout)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.AdditionalUsersDN,
-		suite.config.LDAP.AdditionalUsersDN)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.AdditionalGroupsDN,
-		suite.config.LDAP.AdditionalGroupsDN)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.UsersFilter,
-		suite.config.LDAP.UsersFilter)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.Attributes.Username,
-		suite.config.LDAP.Attributes.Username)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.Attributes.DisplayName,
-		suite.config.LDAP.Attributes.DisplayName)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.Attributes.Mail,
-		suite.config.LDAP.Attributes.Mail)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.GroupsFilter,
-		suite.config.LDAP.GroupsFilter)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.Attributes.GroupName,
-		suite.config.LDAP.Attributes.GroupName)
+	suite.NotEqualImplementationDefaults(schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA)
 
 	suite.Equal(member, suite.config.LDAP.Attributes.MemberOf)
 	suite.Equal("", suite.config.LDAP.Attributes.DistinguishedName)
-	suite.Equal(schema.LDAPGroupSearchModeFilter, suite.config.LDAP.GroupSearchMode)
+	suite.Equal(schema.LDAPGroupSearchModeMemberOf, suite.config.LDAP.GroupSearchMode)
 }
 
 func TestFreeIPAAuthenticationBackend(t *testing.T) {
@@ -1312,9 +1130,7 @@ func TestFreeIPAAuthenticationBackend(t *testing.T) {
 }
 
 type LLDAPAuthenticationBackendSuite struct {
-	suite.Suite
-	config    schema.AuthenticationBackend
-	validator *schema.StructValidator
+	LDAPImplementationSuite
 }
 
 func (suite *LLDAPAuthenticationBackendSuite) SetupTest() {
@@ -1335,37 +1151,7 @@ func (suite *LLDAPAuthenticationBackendSuite) TestShouldSetDefaults() {
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Len(suite.validator.Errors(), 0)
 
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.Timeout,
-		suite.config.LDAP.Timeout)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.AdditionalUsersDN,
-		suite.config.LDAP.AdditionalUsersDN)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.AdditionalGroupsDN,
-		suite.config.LDAP.AdditionalGroupsDN)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.UsersFilter,
-		suite.config.LDAP.UsersFilter)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.Attributes.Username,
-		suite.config.LDAP.Attributes.Username)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.Attributes.DisplayName,
-		suite.config.LDAP.Attributes.DisplayName)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.Attributes.Mail,
-		suite.config.LDAP.Attributes.Mail)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.GroupsFilter,
-		suite.config.LDAP.GroupsFilter)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.Attributes.GroupName,
-		suite.config.LDAP.Attributes.GroupName)
-
-	suite.Equal("", suite.config.LDAP.Attributes.MemberOf)
-	suite.Equal("", suite.config.LDAP.Attributes.DistinguishedName)
-	suite.Equal(schema.LDAPGroupSearchModeFilter, suite.config.LDAP.GroupSearchMode)
+	suite.EqualImplementationDefaults(schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP)
 }
 
 func (suite *LLDAPAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotManuallyConfigured() {
@@ -1374,47 +1160,20 @@ func (suite *LLDAPAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotManu
 	suite.config.LDAP.Attributes.Username = "username"
 	suite.config.LDAP.Attributes.Mail = "m"
 	suite.config.LDAP.Attributes.DisplayName = "fn"
+	suite.config.LDAP.Attributes.MemberOf = member
 	suite.config.LDAP.GroupsFilter = "(&(member={dn})(!(objectClass=posixGroup)))"
 	suite.config.LDAP.Attributes.GroupName = "grpz"
 	suite.config.LDAP.AdditionalUsersDN = "OU=no"
 	suite.config.LDAP.AdditionalGroupsDN = "OU=yes"
+	suite.config.LDAP.GroupSearchMode = memberof
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.Timeout,
-		suite.config.LDAP.Timeout)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.AdditionalUsersDN,
-		suite.config.LDAP.AdditionalUsersDN)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.AdditionalGroupsDN,
-		suite.config.LDAP.AdditionalGroupsDN)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.Timeout,
-		suite.config.LDAP.Timeout)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.UsersFilter,
-		suite.config.LDAP.UsersFilter)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.Attributes.Username,
-		suite.config.LDAP.Attributes.Username)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.Attributes.DisplayName,
-		suite.config.LDAP.Attributes.DisplayName)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.Attributes.Mail,
-		suite.config.LDAP.Attributes.Mail)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.GroupsFilter,
-		suite.config.LDAP.GroupsFilter)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP.Attributes.GroupName,
-		suite.config.LDAP.Attributes.GroupName)
+	suite.NotEqualImplementationDefaults(schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP)
 
-	suite.Equal("", suite.config.LDAP.Attributes.MemberOf)
+	suite.Equal(member, suite.config.LDAP.Attributes.MemberOf)
 	suite.Equal("", suite.config.LDAP.Attributes.DistinguishedName)
-	suite.Equal(schema.LDAPGroupSearchModeFilter, suite.config.LDAP.GroupSearchMode)
+	suite.Equal(schema.LDAPGroupSearchModeMemberOf, suite.config.LDAP.GroupSearchMode)
 }
 
 func TestLLDAPAuthenticationBackend(t *testing.T) {
@@ -1422,9 +1181,7 @@ func TestLLDAPAuthenticationBackend(t *testing.T) {
 }
 
 type GLAuthAuthenticationBackendSuite struct {
-	suite.Suite
-	config    schema.AuthenticationBackend
-	validator *schema.StructValidator
+	LDAPImplementationSuite
 }
 
 func (suite *GLAuthAuthenticationBackendSuite) SetupTest() {
@@ -1445,37 +1202,7 @@ func (suite *GLAuthAuthenticationBackendSuite) TestShouldSetDefaults() {
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Len(suite.validator.Errors(), 0)
 
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.Timeout,
-		suite.config.LDAP.Timeout)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.AdditionalUsersDN,
-		suite.config.LDAP.AdditionalUsersDN)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.AdditionalGroupsDN,
-		suite.config.LDAP.AdditionalGroupsDN)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.UsersFilter,
-		suite.config.LDAP.UsersFilter)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.Attributes.Username,
-		suite.config.LDAP.Attributes.Username)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.Attributes.DisplayName,
-		suite.config.LDAP.Attributes.DisplayName)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.Attributes.Mail,
-		suite.config.LDAP.Attributes.Mail)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.GroupsFilter,
-		suite.config.LDAP.GroupsFilter)
-	suite.Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.Attributes.GroupName,
-		suite.config.LDAP.Attributes.GroupName)
-
-	suite.Equal("", suite.config.LDAP.Attributes.MemberOf)
-	suite.Equal("", suite.config.LDAP.Attributes.DistinguishedName)
-	suite.Equal(schema.LDAPGroupSearchModeFilter, suite.config.LDAP.GroupSearchMode)
+	suite.EqualImplementationDefaults(schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth)
 }
 
 func (suite *GLAuthAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotManuallyConfigured() {
@@ -1488,45 +1215,67 @@ func (suite *GLAuthAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotMan
 	suite.config.LDAP.Attributes.GroupName = "grp"
 	suite.config.LDAP.AdditionalUsersDN = "OU=users,OU=GlAuth"
 	suite.config.LDAP.AdditionalGroupsDN = "OU=groups,OU=GLAuth"
+	suite.config.LDAP.Attributes.MemberOf = member
+	suite.config.LDAP.GroupSearchMode = memberof
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.Timeout,
-		suite.config.LDAP.Timeout)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.AdditionalUsersDN,
-		suite.config.LDAP.AdditionalUsersDN)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.AdditionalGroupsDN,
-		suite.config.LDAP.AdditionalGroupsDN)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.Timeout,
-		suite.config.LDAP.Timeout)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.UsersFilter,
-		suite.config.LDAP.UsersFilter)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.Attributes.Username,
-		suite.config.LDAP.Attributes.Username)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.Attributes.DisplayName,
-		suite.config.LDAP.Attributes.DisplayName)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.Attributes.Mail,
-		suite.config.LDAP.Attributes.Mail)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.GroupsFilter,
-		suite.config.LDAP.GroupsFilter)
-	suite.NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.Attributes.GroupName,
-		suite.config.LDAP.Attributes.GroupName)
+	suite.NotEqualImplementationDefaults(schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth)
 
-	suite.Equal("", suite.config.LDAP.Attributes.MemberOf)
+	suite.Equal(member, suite.config.LDAP.Attributes.MemberOf)
 	suite.Equal("", suite.config.LDAP.Attributes.DistinguishedName)
-	suite.Equal(schema.LDAPGroupSearchModeFilter, suite.config.LDAP.GroupSearchMode)
+	suite.Equal(schema.LDAPGroupSearchModeMemberOf, suite.config.LDAP.GroupSearchMode)
 }
 
 func TestGLAuthAuthenticationBackend(t *testing.T) {
 	suite.Run(t, new(GLAuthAuthenticationBackendSuite))
+}
+
+type LDAPImplementationSuite struct {
+	suite.Suite
+	config    schema.AuthenticationBackend
+	validator *schema.StructValidator
+}
+
+func (suite *LDAPImplementationSuite) EqualImplementationDefaults(expected schema.LDAPAuthenticationBackend) {
+	suite.Equal(expected.Timeout, suite.config.LDAP.Timeout)
+	suite.Equal(expected.AdditionalUsersDN, suite.config.LDAP.AdditionalUsersDN)
+	suite.Equal(expected.AdditionalGroupsDN, suite.config.LDAP.AdditionalGroupsDN)
+	suite.Equal(expected.UsersFilter, suite.config.LDAP.UsersFilter)
+	suite.Equal(expected.GroupsFilter, suite.config.LDAP.GroupsFilter)
+	suite.Equal(expected.GroupSearchMode, suite.config.LDAP.GroupSearchMode)
+
+	suite.Equal(expected.Attributes.DistinguishedName, suite.config.LDAP.Attributes.DistinguishedName)
+	suite.Equal(expected.Attributes.Username, suite.config.LDAP.Attributes.Username)
+	suite.Equal(expected.Attributes.DisplayName, suite.config.LDAP.Attributes.DisplayName)
+	suite.Equal(expected.Attributes.Mail, suite.config.LDAP.Attributes.Mail)
+	suite.Equal(expected.Attributes.MemberOf, suite.config.LDAP.Attributes.MemberOf)
+	suite.Equal(expected.Attributes.GroupName, suite.config.LDAP.Attributes.GroupName)
+}
+
+func (suite *LDAPImplementationSuite) NotEqualImplementationDefaults(expected schema.LDAPAuthenticationBackend) {
+	suite.NotEqual(expected.Timeout, suite.config.LDAP.Timeout)
+	suite.NotEqual(expected.UsersFilter, suite.config.LDAP.UsersFilter)
+	suite.NotEqual(expected.GroupsFilter, suite.config.LDAP.GroupsFilter)
+	suite.NotEqual(expected.GroupSearchMode, suite.config.LDAP.GroupSearchMode)
+	suite.NotEqual(expected.Attributes.Username, suite.config.LDAP.Attributes.Username)
+	suite.NotEqual(expected.Attributes.DisplayName, suite.config.LDAP.Attributes.DisplayName)
+	suite.NotEqual(expected.Attributes.Mail, suite.config.LDAP.Attributes.Mail)
+	suite.NotEqual(expected.Attributes.GroupName, suite.config.LDAP.Attributes.GroupName)
+
+	if expected.Attributes.DistinguishedName != "" {
+		suite.NotEqual(expected.Attributes.DistinguishedName, suite.config.LDAP.Attributes.DistinguishedName)
+	}
+
+	if expected.AdditionalUsersDN != "" {
+		suite.NotEqual(expected.AdditionalUsersDN, suite.config.LDAP.AdditionalUsersDN)
+	}
+
+	if expected.AdditionalGroupsDN != "" {
+		suite.NotEqual(expected.AdditionalGroupsDN, suite.config.LDAP.AdditionalGroupsDN)
+	}
+
+	if expected.Attributes.MemberOf != "" {
+		suite.NotEqual(expected.Attributes.MemberOf, suite.config.LDAP.Attributes.MemberOf)
+	}
 }

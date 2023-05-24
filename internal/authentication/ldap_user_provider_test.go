@@ -2184,11 +2184,11 @@ func TestShouldReturnUsernameFromLDAPWithReferralsInErrorAndResult(t *testing.T)
 		Search(gomock.Any()).
 		Return(&ldap.SearchResult{
 			Entries:   []*ldap.Entry{},
-			Referrals: []string{"ldap://192.168.2.1"},
+			Referrals: []string{"ldap://192.168.0.1"},
 		}, &ldap.Error{ResultCode: ldap.LDAPResultReferral, Err: errors.New("referral"), Packet: &testBERPacketReferral})
 
 	dialURLReferral := mockFactory.EXPECT().
-		DialURL(gomock.Eq("ldap://192.168.2.1"), gomock.Any()).
+		DialURL(gomock.Eq("ldap://192.168.0.1"), gomock.Any()).
 		Return(mockClientReferral, nil)
 
 	connBindReferral := mockClientReferral.EXPECT().
@@ -2264,6 +2264,266 @@ func TestShouldReturnUsernameFromLDAPWithReferralsInErrorAndResult(t *testing.T)
 	assert.ElementsMatch(t, details.Emails, []string{"test@example.com"})
 	assert.Equal(t, details.DisplayName, "John Doe")
 	assert.Equal(t, details.Username, "John")
+}
+
+func TestShouldReturnUsernameFromLDAPWithReferralsInErrorAndNoResult(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+	mockClientReferral := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackend{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				GroupName:   "cn",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchGroups := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(createGroupSearchResultModeFilter(provider.config.Attributes.GroupName, "group1", "group2"), nil)
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(nil, &ldap.Error{ResultCode: ldap.LDAPResultReferral, Err: errors.New("referral"), Packet: &testBERPacketReferral})
+
+	dialURLReferral := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://192.168.0.1"), gomock.Any()).
+		Return(mockClientReferral, nil)
+
+	connBindReferral := mockClientReferral.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connCloseReferral := mockClientReferral.EXPECT().Close()
+
+	searchProfileReferral := mockClientReferral.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "uid",
+							Values: []string{"John"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(dialURL, connBind, searchProfile, dialURLReferral, connBindReferral, searchProfileReferral, connCloseReferral, searchGroups, connClose)
+
+	details, err := provider.GetDetails("john")
+	require.NoError(t, err)
+
+	assert.ElementsMatch(t, details.Groups, []string{"group1", "group2"})
+	assert.ElementsMatch(t, details.Emails, []string{"test@example.com"})
+	assert.Equal(t, details.DisplayName, "John Doe")
+	assert.Equal(t, details.Username, "John")
+}
+
+func TestShouldReturnDialErrDuringReferralSearchUsernameFromLDAPWithReferralsInErrorAndNoResult(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackend{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				GroupName:   "cn",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(nil, &ldap.Error{ResultCode: ldap.LDAPResultReferral, Err: errors.New("referral"), Packet: &testBERPacketReferral})
+
+	dialURLReferral := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://192.168.0.1"), gomock.Any()).
+		Return(nil, fmt.Errorf("failed to connect"))
+
+	gomock.InOrder(dialURL, connBind, searchProfile, dialURLReferral, connClose)
+
+	details, err := provider.GetDetails("john")
+
+	assert.Nil(t, details)
+	assert.EqualError(t, err, "cannot find user DN of user 'john'. Cause: error occurred connecting to referred LDAP server 'ldap://192.168.0.1': dial failed with error: failed to connect")
+}
+
+func TestShouldReturnSearchErrDuringReferralSearchUsernameFromLDAPWithReferralsInErrorAndNoResult(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+	mockClientReferral := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackend{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				GroupName:   "cn",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(nil, &ldap.Error{ResultCode: ldap.LDAPResultReferral, Err: errors.New("referral"), Packet: &testBERPacketReferral})
+
+	dialURLReferral := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://192.168.0.1"), gomock.Any()).
+		Return(mockClientReferral, nil)
+
+	connBindReferral := mockClientReferral.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connCloseReferral := mockClientReferral.EXPECT().Close()
+
+	searchProfileReferral := mockClientReferral.EXPECT().
+		Search(gomock.Any()).
+		Return(nil, fmt.Errorf("not found"))
+
+	gomock.InOrder(dialURL, connBind, searchProfile, dialURLReferral, connBindReferral, searchProfileReferral, connCloseReferral, connClose)
+
+	details, err := provider.GetDetails("john")
+
+	assert.Nil(t, details)
+	assert.EqualError(t, err, "cannot find user DN of user 'john'. Cause: error occurred performing search on referred LDAP server 'ldap://192.168.0.1': not found")
+}
+
+func TestShouldNotReturnUsernameFromLDAPWithReferralsInErrorAndReferralsNotPermitted(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackend{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				GroupName:   "cn",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   false,
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(nil, &ldap.Error{ResultCode: ldap.LDAPResultReferral, Err: errors.New("referral"), Packet: &testBERPacketReferral})
+
+	gomock.InOrder(dialURL, connBind, searchProfile, connClose)
+
+	details, err := provider.GetDetails("john")
+	assert.EqualError(t, err, "cannot find user DN of user 'john'. Cause: LDAP Result Code 10 \"Referral\": referral")
+	assert.Nil(t, details)
 }
 
 func TestShouldReturnUsernameFromLDAPWithReferralsErr(t *testing.T) {

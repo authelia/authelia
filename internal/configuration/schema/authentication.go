@@ -218,7 +218,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory =
 // DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis represents the default LDAP config for the LDAPImplementationRFC2307bis Implementation.
 var DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis = LDAPAuthenticationBackend{
 	UsersFilter:     "(&(|({username_attribute}={input})({mail_attribute}={input}))(|(objectClass=inetOrgPerson)(objectClass=organizationalPerson)))",
-	GroupsFilter:    "(&(|(member={dn})(uniqueMember={dn}))(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=groupOfMembers)))",
+	GroupsFilter:    "(&(|(member={dn})(uniqueMember={dn}))(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=groupOfMembers))(!(pwdReset=TRUE)))",
 	GroupSearchMode: ldapGroupSearchModeFilter,
 	Attributes: LDAPAuthenticationAttributes{
 		Username:    ldapAttrUserID,
@@ -262,6 +262,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP = LDAPAuthe
 		Username:    ldapAttrUserID,
 		DisplayName: ldapAttrCommonName,
 		Mail:        ldapAttrMail,
+		MemberOf:    ldapAttrMemberOf,
 		GroupName:   ldapAttrCommonName,
 	},
 	Timeout: time.Second * 5,
@@ -279,6 +280,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth = LDAPAuth
 		Username:    ldapAttrCommonName,
 		DisplayName: ldapAttrDescription,
 		Mail:        ldapAttrMail,
+		MemberOf:    ldapAttrMemberOf,
 		GroupName:   ldapAttrCommonName,
 	},
 	Timeout: time.Second * 5,

@@ -257,10 +257,6 @@ func (p *LDAPUserProvider) search(client LDAPClient, request *ldap.SearchRequest
 	}
 
 	if !p.config.PermitReferrals || len(result.Referrals) == 0 {
-		if err != nil {
-			return nil, err
-		}
-
 		return result, nil
 	}
 

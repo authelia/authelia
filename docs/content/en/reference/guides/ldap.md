@@ -194,8 +194,8 @@ Username column.
 | activedirectory | sAMAccountName | displayName  | mail |     cn     | distinguishedName  | memberOf  |
 |   rfc2307bis    |      uid       | displayName  | mail |     cn     |        N/A         | memberOf  |
 |     freeipa     |      uid       | displayName  | mail |     cn     |        N/A         | memberOf  |
-|      lldap      |      uid       |      cn      | mail |     cn     |        N/A         |    N/A    |
-|     glauth      |       cn       | description  | mail |     cn     |        N/A         |    N/A    |
+|      lldap      |      uid       |      cn      | mail |     cn     |        N/A         | memberOf  |
+|     glauth      |       cn       | description  | mail |     cn     |        N/A         | memberOf  |
 
 #### Filter defaults
 
@@ -212,8 +212,8 @@ the following conditions:
 - Their password is expired:
   - The [Active Directory] implementation achieves this via the `(!(pwdLastSet=0))` filter.
   - The [FreeIPA] implementation achieves this via the `(krbPasswordExpiration>={date-time:generalized})` filter.
+  - The [RFC2307bis] implementation achieves this via the `(!(pwdReset=TRUE))` filter.
   - The following implementations have no suitable attribute for this as far as we're aware:
-    - [RFC2307bis]
     - [GLAuth]
     - [lldap]
 - Their account is expired:
@@ -228,7 +228,7 @@ the following conditions:
 |:---------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------------:|
 |     custom      |                                                                                                                           N/A                                                                                                                            |                                                                    N/A                                                                    |
 | activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(&#124;(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt}))) |                               (&(member={dn})(&#124;(sAMAccountType=268435456)(sAMAccountType=536870912)))                                |
-|   rfc2307bis    |                                                         (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(&#124;(objectClass=inetOrgPerson)(objectClass=organizationalPerson)))                                                         | (&(&#124;(member={dn})(uniqueMember={dn}))(&#124;(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=groupOfMembers))) |
+|   rfc2307bis    |                                                (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(&#124;(objectClass=inetOrgPerson)(objectClass=organizationalPerson))(!(pwdReset=TRUE)))                                                | (&(&#124;(member={dn})(uniqueMember={dn}))(&#124;(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=groupOfMembers))) |
 |     freeipa     |   (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(&#124;(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))   |                                                (&(member={dn})(objectClass=groupOfNames))                                                 |
 |      lldap      |                                                                                 (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))                                                                                  |                                                (&(member={dn})(objectClass=groupOfNames))                                                 |
 |     glauth      |                                                                 (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=posixAccount)(!(accountStatus=inactive)))                                                                 |                                              (&(uniqueMember={dn})(objectClass=posixGroup))                                               |
