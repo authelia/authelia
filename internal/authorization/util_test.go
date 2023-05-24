@@ -2,6 +2,7 @@ package authorization
 
 import (
 	"net"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -216,4 +217,77 @@ func TestIsAuthLevelSufficient(t *testing.T) {
 	assert.False(t, IsAuthLevelSufficient(authentication.NotAuthenticated, TwoFactor))
 	assert.False(t, IsAuthLevelSufficient(authentication.OneFactor, TwoFactor))
 	assert.True(t, IsAuthLevelSufficient(authentication.TwoFactor, TwoFactor))
+}
+
+func TestStringSliceToRegexpSlice(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     []string
+		expected []regexp.Regexp
+		err      string
+	}{
+		{
+			"ShouldNotParseBadRegex",
+			[]string{`\q`},
+			[]regexp.Regexp(nil),
+			"error parsing regexp: invalid escape sequence: `\\q`",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, theError := stringSliceToRegexpSlice(tc.have)
+
+			assert.Equal(t, tc.expected, actual)
+
+			if tc.err == "" {
+				assert.NoError(t, theError)
+			} else {
+				assert.EqualError(t, theError, tc.err)
+			}
+		})
+	}
+}
+
+func TestSchemaNetworksToACL(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     []string
+		globals  map[string][]*net.IPNet
+		cache    map[string]*net.IPNet
+		expected []*net.IPNet
+	}{
+		{
+			"ShouldLoadFromCache",
+			[]string{"192.168.0.0/24"},
+			nil,
+			map[string]*net.IPNet{"192.168.0.0/24": MustParseCIDR("192.168.0.0/24")},
+			[]*net.IPNet{MustParseCIDR("192.168.0.0/24")},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.globals == nil {
+				tc.globals = map[string][]*net.IPNet{}
+			}
+
+			if tc.cache == nil {
+				tc.cache = map[string]*net.IPNet{}
+			}
+
+			actual := schemaNetworksToACL(tc.have, tc.globals, tc.cache)
+
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func MustParseCIDR(input string) *net.IPNet {
+	_, out, err := net.ParseCIDR(input)
+	if err != nil {
+		panic(err)
+	}
+
+	return out
 }

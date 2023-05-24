@@ -16,7 +16,8 @@ type RegexpGroupStringSubjectMatcher struct {
 
 // IsMatch returns true if the underlying pattern matches the input given the subject.
 func (r RegexpGroupStringSubjectMatcher) IsMatch(input string, subject Subject) (match bool) {
-	if !r.Pattern.MatchString(input) {
+	matches := r.Pattern.FindStringSubmatch(input)
+	if matches == nil {
 		return false
 	}
 
@@ -24,16 +25,11 @@ func (r RegexpGroupStringSubjectMatcher) IsMatch(input string, subject Subject) 
 		return true
 	}
 
-	matches := r.Pattern.FindAllStringSubmatch(input, -1)
-	if matches == nil {
+	if r.SubexpNameUser != -1 && !strings.EqualFold(subject.Username, matches[r.SubexpNameUser]) {
 		return false
 	}
 
-	if r.SubexpNameUser != -1 && !strings.EqualFold(subject.Username, matches[0][r.SubexpNameUser]) {
-		return false
-	}
-
-	if r.SubexpNameGroup != -1 && !utils.IsStringInSliceFold(matches[0][r.SubexpNameGroup], subject.Groups) {
+	if r.SubexpNameGroup != -1 && !utils.IsStringInSliceFold(matches[r.SubexpNameGroup], subject.Groups) {
 		return false
 	}
 

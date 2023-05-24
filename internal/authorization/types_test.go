@@ -85,3 +85,33 @@ func TestShouldCleanURL(t *testing.T) {
 		})
 	}
 }
+
+func TestRuleMatchResult_IsPotentialMatch(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     RuleMatchResult
+		expected bool
+	}{
+		{
+			"ShouldNotMatch",
+			RuleMatchResult{},
+			false,
+		},
+		{
+			"ShouldMatch",
+			RuleMatchResult{nil, true, true, true, true, true, true, true, false},
+			true,
+		},
+		{
+			"ShouldMatchExact",
+			RuleMatchResult{nil, true, true, true, true, true, true, true, true},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.have.IsPotentialMatch())
+		})
+	}
+}
