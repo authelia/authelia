@@ -8,6 +8,97 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestIsStringAbsURL(t *testing.T) {
+	testCases := []struct {
+		name string
+		have string
+		err  string
+	}{
+		{
+			"ShouldBeAbs",
+			"https://google.com",
+			"",
+		},
+		{
+			"ShouldNotBeAbs",
+			"google.com",
+			"could not parse 'google.com' as a URL",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			theError := IsStringAbsURL(tc.have)
+
+			if tc.err == "" {
+				assert.NoError(t, theError)
+			} else {
+				assert.EqualError(t, theError, tc.err)
+			}
+		})
+	}
+}
+
+func TestIsStringInSliceF(t *testing.T) {
+	testCases := []struct {
+		name     string
+		needle   string
+		haystack []string
+		isEqual  func(needle, item string) bool
+		expected bool
+	}{
+		{
+			"ShouldBePresent",
+			"good",
+			[]string{"good"},
+			func(needle, item string) bool {
+				return needle == item
+			},
+			true,
+		},
+		{
+			"ShouldNotBePresent",
+			"bad",
+			[]string{"good"},
+			func(needle, item string) bool {
+				return needle == item
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, IsStringInSliceF(tc.needle, tc.haystack, tc.isEqual))
+		})
+	}
+}
+
+func TestStringHTMLEscape(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		expected string
+	}{
+		{
+			"ShouldNotAlterAlphaNum",
+			"abc123",
+			"abc123",
+		},
+		{
+			"ShouldEscapeSpecial",
+			"abc123><@#@",
+			"abc123&gt;&lt;@#@",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, StringHTMLEscape(tc.have))
+		})
+	}
+}
+
 func TestStringSplitDelimitedEscaped(t *testing.T) {
 	testCases := []struct {
 		desc, have string

@@ -209,11 +209,51 @@ func TestParseTimeString(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			index, actual, err := matchParseTimeStringWithLayouts(tc.have, StandardTimeLayouts)
+			index, actualA, errA := matchParseTimeStringWithLayouts(tc.have, StandardTimeLayouts)
+			actualB, errB := ParseTimeStringWithLayouts(tc.have, StandardTimeLayouts)
+			actualC, errC := ParseTimeString(tc.have)
+
+			if tc.err == "" {
+				assert.NoError(t, errA)
+				assert.NoError(t, errB)
+				assert.NoError(t, errC)
+
+				assert.Equal(t, tc.index, index)
+				assert.Equal(t, tc.expected.UnixNano(), actualA.UnixNano())
+				assert.Equal(t, tc.expected.UnixNano(), actualB.UnixNano())
+				assert.Equal(t, tc.expected.UnixNano(), actualC.UnixNano())
+			} else {
+				assert.EqualError(t, errA, tc.err)
+				assert.EqualError(t, errB, tc.err)
+				assert.EqualError(t, errC, tc.err)
+			}
+		})
+	}
+}
+
+func TestParseTimeStringWithLayouts(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		index    int
+		expected time.Time
+		err      string
+	}{
+		{"ShouldParseIntegerAsUnix", "1675899060", -1, time.Unix(1675899060, 0), ""},
+		{"ShouldParseIntegerAsUnixMilli", "1675899060000", -2, time.Unix(1675899060, 0), ""},
+		{"ShouldParseIntegerAsUnixMicro", "1675899060000000", -3, time.Unix(1675899060, 0), ""},
+		{"ShouldNotParseSuperLargeInteger", "9999999999999999999999999999999999999999", -999, time.Unix(0, 0), "time value was detected as an integer but the integer could not be parsed: strconv.ParseInt: parsing \"9999999999999999999999999999999999999999\": value out of range"},
+		{"ShouldParseSimpleTime", "Jan 2 15:04:05 2006", 0, time.Unix(1136214245, 0), ""},
+		{"ShouldNotParseInvalidTime", "abc", -998, time.Unix(0, 0), "failed to find a suitable time layout for time 'abc'"},
+		{"ShouldMatchDate", "2020-05-01", 6, time.Unix(1588291200, 0), ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := ParseTimeStringWithLayouts(tc.have, StandardTimeLayouts)
 
 			if tc.err == "" {
 				assert.NoError(t, err)
-				assert.Equal(t, tc.index, index)
 				assert.Equal(t, tc.expected.UnixNano(), actual.UnixNano())
 			} else {
 				assert.EqualError(t, err, tc.err)

@@ -28,59 +28,6 @@ const (
 	tableEncryption = "encryption"
 )
 
-// OAuth2SessionType represents the potential OAuth 2.0 session types.
-type OAuth2SessionType int
-
-// Representation of specific OAuth 2.0 session types.
-const (
-	OAuth2SessionTypeAccessToken OAuth2SessionType = iota
-	OAuth2SessionTypeAuthorizeCode
-	OAuth2SessionTypeOpenIDConnect
-	OAuth2SessionTypePAR
-	OAuth2SessionTypePKCEChallenge
-	OAuth2SessionTypeRefreshToken
-)
-
-// String returns a string representation of this OAuth2SessionType.
-func (s OAuth2SessionType) String() string {
-	switch s {
-	case OAuth2SessionTypeAccessToken:
-		return "access token"
-	case OAuth2SessionTypeAuthorizeCode:
-		return "authorization code"
-	case OAuth2SessionTypeOpenIDConnect:
-		return "openid connect"
-	case OAuth2SessionTypePAR:
-		return "pushed authorization request context"
-	case OAuth2SessionTypePKCEChallenge:
-		return "pkce challenge"
-	case OAuth2SessionTypeRefreshToken:
-		return "refresh token"
-	default:
-		return "invalid"
-	}
-}
-
-// Table returns the table name for this session type.
-func (s OAuth2SessionType) Table() string {
-	switch s {
-	case OAuth2SessionTypeAccessToken:
-		return tableOAuth2AccessTokenSession
-	case OAuth2SessionTypeAuthorizeCode:
-		return tableOAuth2AuthorizeCodeSession
-	case OAuth2SessionTypeOpenIDConnect:
-		return tableOAuth2OpenIDConnectSession
-	case OAuth2SessionTypePAR:
-		return tableOAuth2PARContext
-	case OAuth2SessionTypePKCEChallenge:
-		return tableOAuth2PKCERequestSession
-	case OAuth2SessionTypeRefreshToken:
-		return tableOAuth2RefreshTokenSession
-	default:
-		return ""
-	}
-}
-
 const (
 	encryptionNameCheck = "check"
 )
