@@ -215,7 +215,7 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 		modifyRequest := ldap.NewModifyRequest(profile.DN, controls)
 		// The password needs to be enclosed in quotes
 		// https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/6e803168-f140-4d23-b2d3-c3a8ab5917d2
-		pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", password))
+		pwdEncoded, _ := encodingUTF16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", password))
 		modifyRequest.Replace(ldapAttributeUnicodePwd, []string{pwdEncoded})
 
 		err = p.modify(client, modifyRequest)
