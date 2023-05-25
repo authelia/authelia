@@ -23,40 +23,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-func TestOpenIDConnectStore_GetClientPolicy(t *testing.T) {
-	ctx := context.Background()
-
-	s := oidc.NewStore(&schema.OpenIDConnect{
-		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       keyRSA2048,
-		Clients: []schema.OpenIDConnectClient{
-			{
-				ID:          myclient,
-				Description: myclientdesc,
-				Policy:      onefactor,
-				Scopes:      []string{oidc.ScopeOpenID, oidc.ScopeProfile},
-				Secret:      tOpenIDConnectPlainTextClientSecret,
-			},
-			{
-				ID:          "myotherclient",
-				Description: myclientdesc,
-				Policy:      twofactor,
-				Scopes:      []string{oidc.ScopeOpenID, oidc.ScopeProfile},
-				Secret:      tOpenIDConnectPlainTextClientSecret,
-			},
-		},
-	}, nil)
-
-	policyOne := s.GetClientPolicy(ctx, myclient)
-	assert.Equal(t, authorization.OneFactor, policyOne)
-
-	policyTwo := s.GetClientPolicy(ctx, "myotherclient")
-	assert.Equal(t, authorization.TwoFactor, policyTwo)
-
-	policyInvalid := s.GetClientPolicy(ctx, "invalidclient")
-	assert.Equal(t, authorization.TwoFactor, policyInvalid)
-}
-
 func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 	s := oidc.NewStore(&schema.OpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
@@ -110,7 +76,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 	assert.Equal(t, fosite.Arguments([]string{oidc.GrantTypeAuthorizationCode}), client.GetGrantTypes())
 	assert.Equal(t, fosite.Arguments([]string{oidc.ResponseTypeAuthorizationCodeFlow}), client.GetResponseTypes())
 	assert.Equal(t, []string(nil), client.GetRedirectURIs())
-	assert.Equal(t, authorization.OneFactor, client.GetAuthorizationPolicy())
+	assert.Equal(t, authorization.OneFactor, client.GetAuthorizationPolicy(authorization.Subject{}))
 	assert.Equal(t, "$plaintext$client-secret", client.GetSecret().Encode())
 }
 

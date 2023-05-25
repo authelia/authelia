@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
 
+	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -31,7 +32,7 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.UR
 	switch {
 	case userSession.IsAnonymous():
 		handler = handleOIDCAuthorizationConsentNotAuthenticated
-	case client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel):
+	case client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}):
 		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
 			ctx.Logger.Errorf(logFmtErrConsentCantGetSubject, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.Username, client.GetSectorIdentifier(), err)
 
@@ -121,7 +122,7 @@ func handleOIDCAuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issuer
 	userSession session.UserSession, rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) {
 	var location *url.URL
 
-	if client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
+	if client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
 		location, _ = url.ParseRequestURI(issuer.String())
 		location.Path = path.Join(location.Path, oidc.EndpointPathConsent)
 
@@ -130,11 +131,11 @@ func handleOIDCAuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issuer
 
 		location.RawQuery = query.Encode()
 
-		ctx.Logger.Debugf(logFmtDbgConsentAuthenticationSufficiency, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.AuthenticationLevel.String(), "sufficient", client.GetAuthorizationPolicy())
+		ctx.Logger.Debugf(logFmtDbgConsentAuthenticationSufficiency, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.AuthenticationLevel.String(), "sufficient", client.GetAuthorizationPolicy(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}))
 	} else {
 		location = handleOIDCAuthorizationConsentGetRedirectionURL(issuer, consent, requester)
 
-		ctx.Logger.Debugf(logFmtDbgConsentAuthenticationSufficiency, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.AuthenticationLevel.String(), "insufficient", client.GetAuthorizationPolicy())
+		ctx.Logger.Debugf(logFmtDbgConsentAuthenticationSufficiency, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.AuthenticationLevel.String(), "insufficient", client.GetAuthorizationPolicy(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}))
 	}
 
 	ctx.Logger.Debugf(logFmtDbgConsentRedirect, requester.GetID(), client.GetID(), client.GetConsentPolicy(), location)

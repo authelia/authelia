@@ -19,7 +19,7 @@ import (
 
 func TestNewClient(t *testing.T) {
 	config := schema.OpenIDConnectClient{}
-	client := oidc.NewClient(config)
+	client := oidc.NewClient(config, &schema.OpenIDConnect{})
 	assert.Equal(t, "", client.GetID())
 	assert.Equal(t, "", client.GetDescription())
 	assert.Len(t, client.GetResponseModes(), 0)
@@ -47,17 +47,17 @@ func TestNewClient(t *testing.T) {
 		ResponseModes: schema.DefaultOpenIDConnectClientConfiguration.ResponseModes,
 	}
 
-	client = oidc.NewClient(config)
+	client = oidc.NewClient(config, &schema.OpenIDConnect{})
 	assert.Equal(t, myclient, client.GetID())
 	require.Len(t, client.GetResponseModes(), 1)
 	assert.Equal(t, fosite.ResponseModeFormPost, client.GetResponseModes()[0])
-	assert.Equal(t, authorization.TwoFactor, client.GetAuthorizationPolicy())
+	assert.Equal(t, authorization.TwoFactor, client.GetAuthorizationPolicy(authorization.Subject{}))
 
 	config = schema.OpenIDConnectClient{
 		TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
 	}
 
-	client = oidc.NewClient(config)
+	client = oidc.NewClient(config, &schema.OpenIDConnect{})
 
 	fclient, ok := client.(*oidc.FullClient)
 
@@ -204,25 +204,25 @@ func TestBaseClient_ValidatePARPolicy(t *testing.T) {
 func TestIsAuthenticationLevelSufficient(t *testing.T) {
 	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
 
-	c.Policy = authorization.Bypass
-	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated))
-	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor))
-	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor))
+	c.Policy = oidc.ClientPolicy{DefaultPolicy: authorization.Bypass}
+	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated, authorization.Subject{}))
+	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor, authorization.Subject{}))
+	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor, authorization.Subject{}))
 
-	c.Policy = authorization.OneFactor
-	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated))
-	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor))
-	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor))
+	c.Policy = oidc.ClientPolicy{DefaultPolicy: authorization.OneFactor}
+	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated, authorization.Subject{}))
+	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor, authorization.Subject{}))
+	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor, authorization.Subject{}))
 
-	c.Policy = authorization.TwoFactor
-	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated))
-	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor))
-	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor))
+	c.Policy = oidc.ClientPolicy{DefaultPolicy: authorization.TwoFactor}
+	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated, authorization.Subject{}))
+	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor, authorization.Subject{}))
+	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor, authorization.Subject{}))
 
-	c.Policy = authorization.Denied
-	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated))
-	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor))
-	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor))
+	c.Policy = oidc.ClientPolicy{DefaultPolicy: authorization.Denied}
+	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated, authorization.Subject{}))
+	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor, authorization.Subject{}))
+	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor, authorization.Subject{}))
 }
 
 func TestClient_GetConsentResponseBody(t *testing.T) {
@@ -446,7 +446,7 @@ func TestNewClientPKCE(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			client := oidc.NewClient(tc.have)
+			client := oidc.NewClient(tc.have, &schema.OpenIDConnect{})
 
 			assert.Equal(t, tc.expectedEnforcePKCE, client.GetPKCEEnforcement())
 			assert.Equal(t, tc.expectedEnforcePKCEChallengeMethod, client.GetPKCEChallengeMethodEnforcement())
@@ -511,7 +511,7 @@ func TestNewClientPAR(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			client := oidc.NewClient(tc.have)
+			client := oidc.NewClient(tc.have, &schema.OpenIDConnect{})
 
 			assert.Equal(t, tc.expected, client.GetPAREnforcement())
 
@@ -575,7 +575,7 @@ func TestNewClientResponseModes(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			client := oidc.NewClient(tc.have)
+			client := oidc.NewClient(tc.have, &schema.OpenIDConnect{})
 
 			assert.Equal(t, tc.expected, client.GetResponseModes())
 
@@ -615,7 +615,7 @@ func TestNewClient_JSONWebKeySetURI(t *testing.T) {
 		PublicKeys: schema.OpenIDConnectClientPublicKeys{
 			URI: MustParseRequestURI("https://google.com"),
 		},
-	})
+	}, &schema.OpenIDConnect{})
 
 	require.NotNil(t, client)
 
@@ -630,7 +630,7 @@ func TestNewClient_JSONWebKeySetURI(t *testing.T) {
 		PublicKeys: schema.OpenIDConnectClientPublicKeys{
 			URI: nil,
 		},
-	})
+	}, &schema.OpenIDConnect{})
 
 	require.NotNil(t, client)
 

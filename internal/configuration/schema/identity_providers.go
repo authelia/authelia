@@ -35,11 +35,25 @@ type OpenIDConnect struct {
 
 	Clients []OpenIDConnectClient `koanf:"clients"`
 
+	Policies map[string]OpenIDConnectPolicy `koanf:"policies"`
+
 	Discovery OpenIDConnectDiscovery // MetaData value. Not configurable by users.
+}
+
+type OpenIDConnectPolicy struct {
+	DefaultPolicy string `koanf:"default_policy"`
+
+	Rules []OpenIDConnectPolicyRule `koanf:"rules"`
+}
+
+type OpenIDConnectPolicyRule struct {
+	Policy   string     `koanf:"policy"`
+	Subjects [][]string `koanf:"subject"`
 }
 
 // OpenIDConnectDiscovery is information discovered during validation reused for the discovery handlers.
 type OpenIDConnectDiscovery struct {
+	Policies                    []string
 	DefaultKeyIDs               map[string]string
 	DefaultKeyID                string
 	ResponseObjectSigningKeyIDs []string

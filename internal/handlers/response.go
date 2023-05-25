@@ -221,7 +221,7 @@ func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, id string) {
 		return
 	}
 
-	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
+	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
 		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", client.GetID())
 		ctx.ReplyOK()
 

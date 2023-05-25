@@ -11,7 +11,7 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/ory/herodot"
-	"gopkg.in/square/go-jose.v2"
+	jose "gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -129,7 +129,7 @@ type BaseClient struct {
 	UserinfoSigningAlg   string
 	UserinfoSigningKeyID string
 
-	Policy authorization.Level
+	Policy ClientPolicy
 
 	Consent ClientConsent
 }
@@ -166,14 +166,14 @@ type Client interface {
 	GetPKCEEnforcement() bool
 	GetPKCEChallengeMethodEnforcement() bool
 	GetPKCEChallengeMethod() string
-	GetAuthorizationPolicy() authorization.Level
-	GetConsentPolicy() ClientConsent
-
-	IsAuthenticationLevelSufficient(level authentication.Level) bool
 
 	ValidatePKCEPolicy(r fosite.Requester) (err error)
 	ValidatePARPolicy(r fosite.Requester, prefix string) (err error)
 	ValidateResponseModePolicy(r fosite.AuthorizeRequester) (err error)
+
+	GetConsentPolicy() ClientConsent
+	IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) bool
+	GetAuthorizationPolicy(subject authorization.Subject) authorization.Level
 }
 
 // NewClientConsent converts the schema.OpenIDConnectClientConsentConfig into a oidc.ClientConsent.

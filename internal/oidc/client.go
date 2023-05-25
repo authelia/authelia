@@ -13,7 +13,7 @@ import (
 )
 
 // NewClient creates a new Client.
-func NewClient(config schema.OpenIDConnectClient) (client Client) {
+func NewClient(config schema.OpenIDConnectClient, c *schema.OpenIDConnect) (client Client) {
 	base := &BaseClient{
 		ID:               config.ID,
 		Description:      config.Description,
@@ -39,8 +39,7 @@ func NewClient(config schema.OpenIDConnectClient) (client Client) {
 		UserinfoSigningAlg:   config.UserinfoSigningAlg,
 		UserinfoSigningKeyID: config.UserinfoSigningKeyID,
 
-		Policy: authorization.NewLevel(config.Policy),
-
+		Policy:  NewClientPolicy(config.Policy, c),
 		Consent: NewClientConsent(config.ConsentMode, config.ConsentPreConfiguredDuration),
 	}
 
@@ -192,9 +191,18 @@ func (c *BaseClient) GetPKCEChallengeMethod() string {
 	return c.PKCEChallengeMethod
 }
 
+// IsAuthenticationLevelSufficient returns if the provided authentication.Level is sufficient for the client of the AutheliaClient.
+func (c *BaseClient) IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) bool {
+	if level == authentication.NotAuthenticated {
+		return false
+	}
+
+	return authorization.IsAuthLevelSufficient(level, c.GetAuthorizationPolicy(subject))
+}
+
 // GetAuthorizationPolicy returns Policy.
-func (c *BaseClient) GetAuthorizationPolicy() authorization.Level {
-	return c.Policy
+func (c *BaseClient) GetAuthorizationPolicy(subject authorization.Subject) authorization.Level {
+	return c.Policy.GetRequiredLevel(subject)
 }
 
 // GetConsentPolicy returns Consent.
@@ -221,15 +229,6 @@ func (c *BaseClient) GetConsentResponseBody(consent *model.OAuth2ConsentSession)
 // IsPublic returns the value of the Public property.
 func (c *BaseClient) IsPublic() bool {
 	return c.Public
-}
-
-// IsAuthenticationLevelSufficient returns if the provided authentication.Level is sufficient for the client of the AutheliaClient.
-func (c *BaseClient) IsAuthenticationLevelSufficient(level authentication.Level) bool {
-	if level == authentication.NotAuthenticated {
-		return false
-	}
-
-	return authorization.IsAuthLevelSufficient(level, c.Policy)
 }
 
 // ValidatePKCEPolicy is a helper function to validate PKCE policy constraints on a per-client basis.

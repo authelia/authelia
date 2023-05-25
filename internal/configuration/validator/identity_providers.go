@@ -30,6 +30,7 @@ func validateOIDC(config *schema.OpenIDConnect, val *schema.StructValidator) {
 	setOIDCDefaults(config)
 
 	validateOIDCIssuer(config, val)
+	validateOIDCPolicies(config, val)
 
 	sort.Sort(oidc.SortedSigningAlgs(config.Discovery.ResponseObjectSigningAlgs))
 
@@ -55,6 +56,53 @@ func validateOIDC(config *schema.OpenIDConnect, val *schema.StructValidator) {
 		val.Push(fmt.Errorf(errFmtOIDCProviderNoClientsConfigured))
 	} else {
 		validateOIDCClients(config, val)
+	}
+}
+
+func validateOIDCPolicies(config *schema.OpenIDConnect, val *schema.StructValidator) {
+	config.Discovery.Policies = []string{policyOneFactor, policyTwoFactor}
+
+	for name, policy := range config.Policies {
+		switch name {
+		case "":
+			val.Push(fmt.Errorf("policy must have a name"))
+		case policyOneFactor, policyTwoFactor:
+			val.Push(fmt.Errorf("policy names can't be named one_factor or two_factor"))
+		default:
+			break
+		}
+
+		switch policy.DefaultPolicy {
+		case "":
+			policy.DefaultPolicy = policyTwoFactor
+		case policyOneFactor, policyTwoFactor:
+			break
+		default:
+			val.Push(fmt.Errorf("policy must be one of one_factor or two_factor"))
+		}
+
+		if len(policy.Rules) == 0 {
+			val.Push(fmt.Errorf("policy must include at least one rule"))
+		}
+
+		for i, rule := range policy.Rules {
+			switch rule.Policy {
+			case "":
+				policy.Rules[i].Policy = policyTwoFactor
+			case policyOneFactor, policyTwoFactor:
+				break
+			default:
+				val.Push(fmt.Errorf("policy must be one of one_factor or two_factor"))
+			}
+
+			if len(rule.Subjects) == 0 {
+				val.Push(fmt.Errorf("policy must include at least one criteria"))
+			}
+		}
+
+		config.Policies[name] = policy
+
+		config.Discovery.Policies = append(config.Discovery.Policies, name)
 	}
 }
 
@@ -337,13 +385,13 @@ func validateOIDCClient(c int, config *schema.OpenIDConnect, val *schema.StructV
 		}
 	}
 
-	switch config.Clients[c].Policy {
-	case "":
+	switch {
+	case config.Clients[c].Policy == "":
 		config.Clients[c].Policy = schema.DefaultOpenIDConnectClientConfiguration.Policy
-	case policyOneFactor, policyTwoFactor:
+	case utils.IsStringInSlice(config.Clients[c].Policy, config.Discovery.Policies):
 		break
 	default:
-		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, "authorization_policy", strJoinOr([]string{policyOneFactor, policyTwoFactor}), config.Clients[c].Policy))
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, "authorization_policy", strJoinOr(config.Discovery.Policies), config.Clients[c].Policy))
 	}
 
 	switch config.Clients[c].PKCEChallengeMethod {

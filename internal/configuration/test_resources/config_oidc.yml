@@ -124,6 +124,12 @@ notifier:
 
 identity_providers:
   oidc:
+    policies:
+      abc:
+        default_policy: 'two_factor'
+        rules:
+          - subject: 'group:admin'
+            policy: 'one_factor'
     cors:
       allowed_origins:
         - 'https://google.com'
