@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
 

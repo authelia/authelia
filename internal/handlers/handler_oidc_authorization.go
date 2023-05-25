@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/ory/fosite"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
