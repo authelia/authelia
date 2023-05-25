@@ -268,6 +268,21 @@ func TestX509CertificateChain(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile(`^certificate #1 in chain is invalid before 13569465600 but the time is \d+$`), err.Error())
 }
 
+func TestPasswordDigest_IsPlainText(t *testing.T) {
+	digest, err := DecodePasswordDigest("$plaintext$exam")
+	assert.NoError(t, err)
+	assert.True(t, digest.IsPlainText())
+
+	digest = &PasswordDigest{}
+
+	assert.False(t, digest.IsPlainText())
+
+	digest, err = DecodePasswordDigest("$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng")
+	assert.NoError(t, err)
+
+	assert.False(t, digest.IsPlainText())
+}
+
 func MustParseX509CertificateChain(data string) *X509CertificateChain {
 	chain, err := NewX509CertificateChain(data)
 	if err != nil {

@@ -21,7 +21,7 @@ type FileSource struct {
 	filters []FileFilter
 }
 
-// EnvironmentSource is a configuration configuration.Source which loads values from the environment.
+// EnvironmentSource is a configuration.Source which loads values from the environment.
 type EnvironmentSource struct {
 	koanf     *koanf.Koanf
 	prefix    string
