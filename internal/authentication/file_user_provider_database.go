@@ -12,9 +12,16 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// NewFileUserDatabase creates a new FileUserDatabase.
-func NewFileUserDatabase(filePath string, searchEmail, searchCI bool) (database *FileUserDatabase) {
-	return &FileUserDatabase{
+type FileUserDatabase interface {
+	Save() (err error)
+	Load() (err error)
+	GetUserDetails(username string) (user DatabaseUserDetails, err error)
+	SetUserDetails(username string, details *DatabaseUserDetails)
+}
+
+// NewYAMLUserDatabase creates a new YAMLUserDatabase.
+func NewYAMLUserDatabase(filePath string, searchEmail, searchCI bool) (database *YAMLUserDatabase) {
+	return &YAMLUserDatabase{
 		RWMutex:     &sync.RWMutex{},
 		Path:        filePath,
 		Users:       map[string]DatabaseUserDetails{},
@@ -25,8 +32,8 @@ func NewFileUserDatabase(filePath string, searchEmail, searchCI bool) (database 
 	}
 }
 
-// FileUserDatabase is a user details database that is concurrency safe database and can be reloaded.
-type FileUserDatabase struct {
+// YAMLUserDatabase is a user details database that is concurrency safe database and can be reloaded.
+type YAMLUserDatabase struct {
 	*sync.RWMutex
 
 	Path    string
@@ -39,7 +46,7 @@ type FileUserDatabase struct {
 }
 
 // Save the database to disk.
-func (m *FileUserDatabase) Save() (err error) {
+func (m *YAMLUserDatabase) Save() (err error) {
 	m.RLock()
 
 	defer m.RUnlock()
@@ -52,7 +59,7 @@ func (m *FileUserDatabase) Save() (err error) {
 }
 
 // Load the database from disk.
-func (m *FileUserDatabase) Load() (err error) {
+func (m *YAMLUserDatabase) Load() (err error) {
 	yml := &DatabaseModel{Users: map[string]UserDetailsModel{}}
 
 	if err = yml.Read(m.Path); err != nil {
@@ -71,7 +78,7 @@ func (m *FileUserDatabase) Load() (err error) {
 }
 
 // LoadAliases performs the loading of alias information from the database.
-func (m *FileUserDatabase) LoadAliases() (err error) {
+func (m *YAMLUserDatabase) LoadAliases() (err error) {
 	if m.SearchEmail || m.SearchCI {
 		for k, user := range m.Users {
 			if m.SearchEmail && user.Email != "" {
@@ -91,7 +98,7 @@ func (m *FileUserDatabase) LoadAliases() (err error) {
 	return nil
 }
 
-func (m *FileUserDatabase) loadAlias(k string) (err error) {
+func (m *YAMLUserDatabase) loadAlias(k string) (err error) {
 	u := strings.ToLower(k)
 
 	if u != k {
@@ -113,7 +120,7 @@ func (m *FileUserDatabase) loadAlias(k string) (err error) {
 	return nil
 }
 
-func (m *FileUserDatabase) loadAliasEmail(k string, user DatabaseUserDetails) (err error) {
+func (m *YAMLUserDatabase) loadAliasEmail(k string, user DatabaseUserDetails) (err error) {
 	e := strings.ToLower(user.Email)
 
 	var duplicates []string
@@ -145,7 +152,7 @@ func (m *FileUserDatabase) loadAliasEmail(k string, user DatabaseUserDetails) (e
 
 // GetUserDetails get a DatabaseUserDetails given a username as a value type where the username must be the users actual
 // username.
-func (m *FileUserDatabase) GetUserDetails(username string) (user DatabaseUserDetails, err error) {
+func (m *YAMLUserDatabase) GetUserDetails(username string) (user DatabaseUserDetails, err error) {
 	m.RLock()
 
 	defer m.RUnlock()
@@ -172,7 +179,7 @@ func (m *FileUserDatabase) GetUserDetails(username string) (user DatabaseUserDet
 }
 
 // SetUserDetails sets the DatabaseUserDetails for a given user.
-func (m *FileUserDatabase) SetUserDetails(username string, details *DatabaseUserDetails) {
+func (m *YAMLUserDatabase) SetUserDetails(username string, details *DatabaseUserDetails) {
 	if details == nil {
 		return
 	}
@@ -184,8 +191,8 @@ func (m *FileUserDatabase) SetUserDetails(username string, details *DatabaseUser
 	m.Unlock()
 }
 
-// ToDatabaseModel converts the FileUserDatabase into the DatabaseModel for saving.
-func (m *FileUserDatabase) ToDatabaseModel() (model *DatabaseModel) {
+// ToDatabaseModel converts the YAMLUserDatabase into the DatabaseModel for saving.
+func (m *YAMLUserDatabase) ToDatabaseModel() (model *DatabaseModel) {
 	model = &DatabaseModel{
 		Users: map[string]UserDetailsModel{},
 	}
@@ -236,8 +243,8 @@ type DatabaseModel struct {
 	Users map[string]UserDetailsModel `yaml:"users" valid:"required"`
 }
 
-// ReadToFileUserDatabase reads the DatabaseModel into a FileUserDatabase.
-func (m *DatabaseModel) ReadToFileUserDatabase(db *FileUserDatabase) (err error) {
+// ReadToFileUserDatabase reads the DatabaseModel into a YAMLUserDatabase.
+func (m *DatabaseModel) ReadToFileUserDatabase(db *YAMLUserDatabase) (err error) {
 	users := map[string]DatabaseUserDetails{}
 
 	var udm *DatabaseUserDetails
