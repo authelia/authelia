@@ -154,6 +154,8 @@ func TestIssuerURL(t *testing.T) {
 
 func TestShouldCallNextWithAutheliaCtx(t *testing.T) {
 	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	ctx := &fasthttp.RequestCtx{}
 	configuration := schema.Configuration{}
 	userProvider := mocks.NewMockUserProvider(ctrl)

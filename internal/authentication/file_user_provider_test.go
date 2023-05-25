@@ -14,6 +14,7 @@ import (
 	"github.com/go-crypt/crypt/algorithm/bcrypt"
 	"github.com/go-crypt/crypt/algorithm/pbkdf2"
 	"github.com/go-crypt/crypt/algorithm/scrypt"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -129,7 +130,7 @@ func TestShouldReloadDatabase(t *testing.T) {
 
 				provider.config.Path = p
 
-				provider.database = NewFileUserDatabase(p, provider.config.Search.Email, provider.config.Search.CaseInsensitive)
+				provider.database = NewYAMLUserDatabase(p, provider.config.Search.Email, provider.config.Search.CaseInsensitive)
 			},
 			false,
 			"",
@@ -306,7 +307,10 @@ func TestShouldUpdatePasswordHashingAlgorithmToArgon2id(t *testing.T) {
 
 		assert.NoError(t, provider.StartupCheck())
 
-		assert.True(t, strings.HasPrefix(provider.database.Users["harry"].Digest.Encode(), "$6$"))
+		db, ok := provider.database.(*YAMLUserDatabase)
+		require.True(t, ok)
+
+		assert.True(t, strings.HasPrefix(db.Users["harry"].Digest.Encode(), "$6$"))
 		err := provider.UpdatePassword("harry", "newpassword")
 		assert.NoError(t, err)
 
@@ -315,10 +319,10 @@ func TestShouldUpdatePasswordHashingAlgorithmToArgon2id(t *testing.T) {
 
 		assert.NoError(t, provider.StartupCheck())
 
-		ok, err := provider.CheckUserPassword("harry", "newpassword")
+		ok, err = provider.CheckUserPassword("harry", "newpassword")
 		assert.NoError(t, err)
 		assert.True(t, ok)
-		assert.True(t, strings.HasPrefix(provider.database.Users["harry"].Digest.Encode(), "$argon2id$"))
+		assert.True(t, strings.HasPrefix(db.Users["harry"].Digest.Encode(), "$argon2id$"))
 	})
 }
 
@@ -333,7 +337,10 @@ func TestShouldUpdatePasswordHashingAlgorithmToSHA512(t *testing.T) {
 
 		assert.NoError(t, provider.StartupCheck())
 
-		assert.True(t, strings.HasPrefix(provider.database.Users["john"].Digest.Encode(), "$argon2id$"))
+		db, ok := provider.database.(*YAMLUserDatabase)
+		require.True(t, ok)
+
+		assert.True(t, strings.HasPrefix(db.Users["john"].Digest.Encode(), "$argon2id$"))
 		err := provider.UpdatePassword("john", "newpassword")
 		assert.NoError(t, err)
 
@@ -342,10 +349,10 @@ func TestShouldUpdatePasswordHashingAlgorithmToSHA512(t *testing.T) {
 
 		assert.NoError(t, provider.StartupCheck())
 
-		ok, err := provider.CheckUserPassword("john", "newpassword")
+		ok, err = provider.CheckUserPassword("john", "newpassword")
 		assert.NoError(t, err)
 		assert.True(t, ok)
-		assert.True(t, strings.HasPrefix(provider.database.Users["john"].Digest.Encode(), "$6$"))
+		assert.True(t, strings.HasPrefix(db.Users["john"].Digest.Encode(), "$6$"))
 	})
 }
 
@@ -655,6 +662,58 @@ func TestNewFileCryptoHashFromConfig(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestHashError(t *testing.T) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Search.CaseInsensitive = true
+		config.Path = path
+
+		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mock := NewMockHash(ctrl)
+		provider.hash = mock
+
+		mock.EXPECT().Hash("apple123").Return(nil, fmt.Errorf("failed to mock hash"))
+
+		assert.EqualError(t, provider.UpdatePassword("john", "apple123"), "failed to mock hash")
+	})
+}
+
+func TestDatabaseError(t *testing.T) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
+		db := NewYAMLUserDatabase(path, false, false)
+		assert.NoError(t, db.Load())
+
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Search.CaseInsensitive = true
+		config.Path = path
+
+		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mock := NewMockFileUserDatabase(ctrl)
+
+		provider.database = mock
+
+		gomock.InOrder(
+			mock.EXPECT().GetUserDetails("john").Return(db.GetUserDetails("john")),
+			mock.EXPECT().SetUserDetails("john", gomock.Any()),
+			mock.EXPECT().Save().Return(fmt.Errorf("failed to mock save")),
+		)
+
+		assert.EqualError(t, provider.UpdatePassword("john", "apple123"), "failed to mock save")
+	})
 }
 
 var (
