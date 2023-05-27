@@ -20,6 +20,10 @@ func ValidateTelemetry(config *schema.Configuration, validator *schema.StructVal
 		config.Telemetry.Metrics.Address.SetPort(schema.DefaultTelemetryConfig.Metrics.Address.Port())
 	}
 
+	if config.Telemetry.Metrics.Address.Path() == "" {
+		config.Telemetry.Metrics.Address.SetPath(schema.DefaultTelemetryConfig.Metrics.Address.Path())
+	}
+
 	if config.Telemetry.Metrics.Buffers.Read <= 0 {
 		config.Telemetry.Metrics.Buffers.Read = schema.DefaultTelemetryConfig.Metrics.Buffers.Read
 	}

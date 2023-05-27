@@ -323,8 +323,9 @@ const (
 	errFmtServerAddressLegacyAndModern = "server: option 'host' and 'port' can't be configured at the same time as 'address'"
 	errFmtServerAddress                = "server: option 'address' with value '%s' is invalid: %w"
 
-	errFmtServerPathNoForwardSlashes = "server: option 'path' must not contain any forward slashes"
-	errFmtServerPathAlphaNum         = "server: option 'path' must only contain alpha numeric characters"
+	errFmtServerPathNoForwardSlashes   = "server: option 'path' must not contain any forward slashes"
+	errFmtServerPathNotEndForwardSlash = "server: option 'address' must not and with a forward slash but it's configured as '%s'"
+	errFmtServerPathAlphaNum           = "server: option 'path' must only contain alpha numeric characters"
 
 	errFmtServerEndpointsAuthzImplementation    = "server: endpoints: authz: %s: option 'implementation' must be one of %s but it's configured as '%s'"
 	errFmtServerEndpointsAuthzStrategy          = "server: endpoints: authz: %s: authn_strategies: option 'name' must be one of %s but it's configured as '%s'"

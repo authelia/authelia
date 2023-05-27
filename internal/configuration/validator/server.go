@@ -59,17 +59,6 @@ func ValidateServer(config *schema.Configuration, validator *schema.StructValida
 	ValidateServerAddress(config, validator)
 	ValidateServerTLS(config, validator)
 
-	switch {
-	case strings.Contains(config.Server.Path, "/"):
-		validator.Push(fmt.Errorf(errFmtServerPathNoForwardSlashes))
-	case !utils.IsStringAlphaNumeric(config.Server.Path):
-		validator.Push(fmt.Errorf(errFmtServerPathAlphaNum))
-	case config.Server.Path == "": // Don't do anything if it's blank.
-		break
-	default:
-		config.Server.Path = path.Clean("/" + config.Server.Path)
-	}
-
 	if config.Server.Buffers.Read <= 0 {
 		config.Server.Buffers.Read = schema.DefaultServerConfiguration.Buffers.Read
 	}
@@ -96,11 +85,12 @@ func ValidateServer(config *schema.Configuration, validator *schema.StructValida
 // ValidateServerAddress checks the configured server address is correct.
 func ValidateServerAddress(config *schema.Configuration, validator *schema.StructValidator) {
 	if config.Server.Address == nil {
-		if config.Server.Host == "" && config.Server.Port == 0 { //nolint:staticcheck
+		if config.Server.Host == "" && config.Server.Port == 0 && config.Server.Path == "" { //nolint:staticcheck
 			config.Server.Address = schema.DefaultServerConfiguration.Address
 		} else {
-			host := config.Server.Host //nolint:staticcheck
-			port := config.Server.Port //nolint:staticcheck
+			host := config.Server.Host    //nolint:staticcheck
+			port := config.Server.Port    //nolint:staticcheck
+			subpath := config.Server.Path //nolint:staticcheck
 
 			if host == "" {
 				host = schema.DefaultServerConfiguration.Address.Hostname()
@@ -110,7 +100,20 @@ func ValidateServerAddress(config *schema.Configuration, validator *schema.Struc
 				port = schema.DefaultServerConfiguration.Address.Port()
 			}
 
+			switch {
+			case strings.Contains(subpath, "/"):
+				validator.Push(fmt.Errorf(errFmtServerPathNoForwardSlashes))
+			case !utils.IsStringAlphaNumeric(config.Server.Path): //nolint:staticcheck
+				validator.Push(fmt.Errorf(errFmtServerPathAlphaNum))
+			case subpath == "":
+				subpath = schema.DefaultServerConfiguration.Address.Path()
+			default:
+				subpath = path.Clean("/" + config.Server.Path) //nolint:staticcheck
+			}
+
 			config.Server.Address = &schema.AddressTCP{Address: schema.NewAddressFromNetworkValues(schema.AddressSchemeTCP, host, port)}
+
+			config.Server.Address.SetPath(subpath)
 		}
 	} else {
 		if config.Server.Host != "" || config.Server.Port != 0 { //nolint:staticcheck
@@ -122,6 +125,10 @@ func ValidateServerAddress(config *schema.Configuration, validator *schema.Struc
 		if err = config.Server.Address.ValidateHTTP(); err != nil {
 			validator.Push(fmt.Errorf(errFmtServerAddress, config.Server.Address.String(), err))
 		}
+	}
+
+	if path := config.Server.Address.Path(); path != "/" && strings.HasSuffix(path, "/") {
+		validator.Push(fmt.Errorf(errFmtServerPathNotEndForwardSlash, path))
 	}
 }
 

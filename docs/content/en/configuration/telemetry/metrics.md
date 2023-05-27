@@ -22,7 +22,7 @@ toc: true
 telemetry:
   metrics:
     enabled: false
-    address: 'tcp://:9959'
+    address: 'tcp://:9959/'
     buffers:
       read: 4096
       write: 4096
@@ -44,7 +44,7 @@ Determines if the [Prometheus] HTTP Metrics Exporter is enabled.
 
 ### address
 
-{{< confkey type="address" default="tcp://:9959" required="no" >}}
+{{< confkey type="address" default="tcp://:9959/" required="no" >}}
 
 *__Reference Note:__ This configuration option uses the [address common syntax](../prologue/common.md#address). Please
 see the [documentation](../prologue/common.md#address) on this format for more information.*

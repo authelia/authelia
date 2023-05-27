@@ -8,7 +8,6 @@ import (
 // ServerConfiguration represents the configuration of the http server.
 type ServerConfiguration struct {
 	Address            *AddressTCP `koanf:"address"`
-	Path               string      `koanf:"path"`
 	AssetPath          string      `koanf:"asset_path"`
 	DisableHealthcheck bool        `koanf:"disable_healthcheck"`
 
@@ -24,6 +23,9 @@ type ServerConfiguration struct {
 
 	// Deprecated: use address instead.
 	Port int `koanf:"port"`
+
+	// Deprecated: use address instead.
+	Path string `koanf:"path"`
 }
 
 // ServerEndpoints is the endpoints configuration for the HTTP server.
@@ -60,7 +62,7 @@ type ServerHeaders struct {
 
 // DefaultServerConfiguration represents the default values of the ServerConfiguration.
 var DefaultServerConfiguration = ServerConfiguration{
-	Address: &AddressTCP{Address{true, false, -1, 9091, &url.URL{Scheme: AddressSchemeTCP, Host: ":9091"}}},
+	Address: &AddressTCP{Address{true, false, -1, 9091, &url.URL{Scheme: AddressSchemeTCP, Host: ":9091", Path: "/"}}},
 	Buffers: ServerBuffers{
 		Read:  4096,
 		Write: 4096,

@@ -314,42 +314,22 @@ func TestShouldValidateDeprecatedEnvNamesWithDeprecatedKeys(t *testing.T) {
 	assert.Len(t, val.Errors(), 0)
 
 	warnings := val.Warnings()
-	require.Len(t, warnings, 3)
+	require.Len(t, warnings, 10)
 
 	sort.Sort(utils.ErrSliceSortAlphabetical(warnings))
 
 	assert.EqualError(t, warnings[0], "configuration key 'authentication_backend.ldap.url' is deprecated in 4.38.0 and has been replaced by 'authentication_backend.ldap.address': this has been automatically mapped for you but you will need to adjust your configuration to remove this message")
-	assert.EqualError(t, warnings[1], "configuration key 'storage.mysql.host' is deprecated in 4.38.0 and has been replaced by 'storage.mysql.address' when combined with the 'storage.mysql.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
-	assert.EqualError(t, warnings[2], "configuration key 'storage.mysql.port' is deprecated in 4.38.0 and has been replaced by 'storage.mysql.address' when combined with the 'storage.mysql.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[1], "configuration key 'notifier.smtp.host' is deprecated in 4.38.0 and has been replaced by 'notifier.smtp.address' when combined with the 'notifier.smtp.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[2], "configuration key 'notifier.smtp.port' is deprecated in 4.38.0 and has been replaced by 'notifier.smtp.address' when combined with the 'notifier.smtp.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[3], "configuration key 'server.host' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.port' and 'server.path' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[4], "configuration key 'server.path' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.host' and 'server.port' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[5], "configuration key 'server.port' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.host' and 'server.path' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[6], "configuration key 'storage.mysql.host' is deprecated in 4.38.0 and has been replaced by 'storage.mysql.address' when combined with the 'storage.mysql.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[7], "configuration key 'storage.mysql.port' is deprecated in 4.38.0 and has been replaced by 'storage.mysql.address' when combined with the 'storage.mysql.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[8], "configuration key 'storage.postgres.host' is deprecated in 4.38.0 and has been replaced by 'storage.postgres.address' when combined with the 'storage.postgres.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[9], "configuration key 'storage.postgres.port' is deprecated in 4.38.0 and has been replaced by 'storage.postgres.address' when combined with the 'storage.postgres.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
 
 	assert.Equal(t, "ldap://from-env:389", c.AuthenticationBackend.LDAP.Address.String())
-}
-
-func TestShouldValidateDeprecatedEnvNamesWithDeprecatedKeysAlt(t *testing.T) {
-	val := schema.NewStructValidator()
-	keys, c, err := Load(val, NewDefaultSources([]string{"./test_resources/config.deprecated.alt.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
-
-	assert.NoError(t, err)
-
-	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
-
-	assert.Len(t, val.Errors(), 0)
-
-	warnings := val.Warnings()
-	require.Len(t, warnings, 3)
-
-	sort.Sort(utils.ErrSliceSortAlphabetical(warnings))
-
-	assert.EqualError(t, warnings[0], "configuration key 'authentication_backend.ldap.url' is deprecated in 4.38.0 and has been replaced by 'authentication_backend.ldap.address': this has been automatically mapped for you but you will need to adjust your configuration to remove this message")
-	assert.EqualError(t, warnings[1], "configuration key 'storage.postgres.host' is deprecated in 4.38.0 and has been replaced by 'storage.postgres.address' when combined with the 'storage.postgres.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
-	assert.EqualError(t, warnings[2], "configuration key 'storage.postgres.port' is deprecated in 4.38.0 and has been replaced by 'storage.postgres.address' when combined with the 'storage.postgres.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
-
-	val.Clear()
-
-	validator.ValidateConfiguration(c, val)
-
-	require.NotNil(t, c.Storage.PostgreSQL.Address)
-	assert.Equal(t, "tcp://127.0.0.1:5432", c.Storage.PostgreSQL.Address.String())
 }
 
 func TestShouldRaiseErrOnInvalidNotifierSMTPSender(t *testing.T) {
@@ -495,7 +475,7 @@ func TestShouldLoadDirectoryConfiguration(t *testing.T) {
 	assert.Len(t, val.Errors(), 0)
 	require.Len(t, val.Warnings(), 1)
 
-	assert.EqualError(t, val.Warnings()[0], "configuration key 'server.port' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, val.Warnings()[0], "configuration key 'server.port' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.host' and 'server.path' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
 }
 
 func testSetEnv(t *testing.T, key, value string) {
