@@ -32,6 +32,7 @@ storage:
     schema: 'public'
     username: 'authelia'
     password: 'mypassword'
+    timeout: '5s'
     tls:
       server_name: 'postgres.example.com'
       skip_verify: false
