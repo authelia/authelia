@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ory/fosite"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -31,8 +33,13 @@ func validateOIDC(config *schema.OpenIDConnect, val *schema.StructValidator) {
 
 	sort.Sort(oidc.SortedSigningAlgs(config.Discovery.ResponseObjectSigningAlgs))
 
-	if config.MinimumParameterEntropy != 0 && config.MinimumParameterEntropy < 8 {
-		val.PushWarning(fmt.Errorf(errFmtOIDCProviderInsecureParameterEntropy, config.MinimumParameterEntropy))
+	switch {
+	case config.MinimumParameterEntropy == -1:
+		val.PushWarning(fmt.Errorf(errFmtOIDCProviderInsecureDisabledParameterEntropy))
+	case config.MinimumParameterEntropy <= 0:
+		config.MinimumParameterEntropy = fosite.MinParameterEntropy
+	case config.MinimumParameterEntropy < fosite.MinParameterEntropy:
+		val.PushWarning(fmt.Errorf(errFmtOIDCProviderInsecureParameterEntropy, fosite.MinParameterEntropy, config.MinimumParameterEntropy))
 	}
 
 	switch config.EnforcePKCE {

@@ -504,32 +504,97 @@ func TestShouldRaiseErrorOnCertificateNotValid(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: issuer_private_keys: key #1 with key id 'bf1e10': option 'certificate_chain' does not appear to contain the public key for the private key provided by option 'key'")
 }
 
-func TestValidateIdentityProvidersShouldRaiseWarningOnSecurityIssue(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.OpenIDConnect{
-			HMACSecret:              "abc",
-			IssuerPrivateKey:        keyRSA2048,
-			MinimumParameterEntropy: 1,
-			Clients: []schema.OpenIDConnectClient{
-				{
-					ID:     "good_id",
-					Secret: tOpenIDConnectPBKDF2ClientSecret,
-					Policy: "two_factor",
-					RedirectURIs: []string{
-						"https://google.com/callback",
-					},
-				},
-			},
+func TestValidateIdentityProvidersOpenIDConnectMinimumParameterEntropy(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     int
+		expected int
+		warnings []string
+		errors   []string
+	}{
+		{
+			"ShouldNotOverrideCustomValue",
+			20,
+			20,
+			nil,
+			nil,
+		},
+		{
+			"ShouldSetDefault",
+			0,
+			8,
+			nil,
+			nil,
+		},
+		{
+			"ShouldSetDefaultNegative",
+			-2,
+			8,
+			nil,
+			nil,
+		},
+		{
+			"ShouldAllowDisabledAndWarn",
+			-1,
+			-1,
+			[]string{"identity_providers: oidc: option 'minimum_parameter_entropy' is disabled which is considered unsafe and insecure"},
+			nil,
+		},
+		{
+			"ShouldWarnOnTooLow",
+			2,
+			2,
+			[]string{"identity_providers: oidc: option 'minimum_parameter_entropy' is configured to an unsafe and insecure value, it should at least be 8 but it's configured to 2"},
+			nil,
 		},
 	}
 
-	ValidateIdentityProviders(config, validator)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+			config := &schema.IdentityProviders{
+				OIDC: &schema.OpenIDConnect{
+					HMACSecret:              "abc",
+					IssuerPrivateKey:        keyRSA2048,
+					MinimumParameterEntropy: tc.have,
+					Clients: []schema.OpenIDConnectClient{
+						{
+							ID:     "good_id",
+							Secret: tOpenIDConnectPBKDF2ClientSecret,
+							Policy: "two_factor",
+							RedirectURIs: []string{
+								"https://google.com/callback",
+							},
+						},
+					},
+				},
+			}
 
-	assert.Len(t, validator.Errors(), 0)
-	require.Len(t, validator.Warnings(), 1)
+			ValidateIdentityProviders(config, validator)
 
-	assert.EqualError(t, validator.Warnings()[0], "openid connect provider: SECURITY ISSUE - minimum parameter entropy is configured to an unsafe value, it should be above 8 but it's configured to 1")
+			assert.Equal(t, tc.expected, config.OIDC.MinimumParameterEntropy)
+
+			if n := len(tc.warnings); n == 0 {
+				assert.Len(t, validator.Warnings(), 0)
+			} else {
+				require.Len(t, validator.Warnings(), n)
+
+				for i := 0; i < n; i++ {
+					assert.EqualError(t, validator.Warnings()[i], tc.warnings[i])
+				}
+			}
+
+			if n := len(tc.errors); n == 0 {
+				assert.Len(t, validator.Errors(), 0)
+			} else {
+				require.Len(t, validator.Errors(), n)
+
+				for i := 0; i < n; i++ {
+					assert.EqualError(t, validator.Errors()[i], tc.errors[i])
+				}
+			}
+		})
+	}
 }
 
 func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testing.T) {

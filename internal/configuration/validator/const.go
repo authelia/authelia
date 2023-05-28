@@ -147,8 +147,10 @@ const (
 	errFmtOIDCProviderNoPrivateKey            = "identity_providers: oidc: option `issuer_private_keys` or 'issuer_private_key' is required"
 	errFmtOIDCProviderEnforcePKCEInvalidValue = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
 		"'public_clients_only' or 'always', but it's configured as '%s'"
-	errFmtOIDCProviderInsecureParameterEntropy = "openid connect provider: SECURITY ISSUE - minimum parameter entropy is " +
-		"configured to an unsafe value, it should be above 8 but it's configured to %d"
+	errFmtOIDCProviderInsecureParameterEntropy = "identity_providers: oidc: option 'minimum_parameter_entropy' is " +
+		"configured to an unsafe and insecure value, it should at least be %d but it's configured to %d"
+	errFmtOIDCProviderInsecureDisabledParameterEntropy = "identity_providers: oidc: option 'minimum_parameter_entropy' is " +
+		"disabled which is considered unsafe and insecure"
 	errFmtOIDCProviderPrivateKeysInvalid                 = "identity_providers: oidc: issuer_private_keys: key #%d: option 'key' must be a valid private key but the provided data is malformed as it's missing the public key bits"
 	errFmtOIDCProviderPrivateKeysCalcThumbprint          = "identity_providers: oidc: issuer_private_keys: key #%d: option 'key' failed to calculate thumbprint to configure key id value: %w"
 	errFmtOIDCProviderPrivateKeysKeyIDLength             = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option `key_id` must be 100 characters or less"
