@@ -305,6 +305,8 @@ make certain scenarios less secure. It is highly encouraged that if your OpenID 
 these parameters or sends parameters with a lower length than the default that they implement a change rather than
 changing this value.
 
+This restriction can also be disabled entirely when set to `-1`.
+
 ### enforce_pkce
 
 {{< confkey type="string" default="public_clients_only" required="no" >}}
