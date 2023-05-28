@@ -61,6 +61,24 @@ func rootSubCommandsRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	subCmds := sortCmds(cmd)
+
+	for _, subCmd := range subCmds {
+		if subCmd.Use == cmdUseCompletion || strings.HasPrefix(subCmd.Use, "help ") || utils.IsStringSliceContainsAny([]string{resolveCmdName(subCmd), subCmd.Use}, exclude) {
+			continue
+		}
+
+		rootCmd.SetArgs(rootCmdGetArgs(subCmd, args))
+
+		if err = rootCmd.Execute(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func sortCmds(cmd *cobra.Command) []*cobra.Command {
 	subCmds := cmd.Commands()
 
 	switch cmd.Use {
@@ -90,19 +108,7 @@ func rootSubCommandsRunE(cmd *cobra.Command, args []string) (err error) {
 		})
 	}
 
-	for _, subCmd := range subCmds {
-		if subCmd.Use == cmdUseCompletion || strings.HasPrefix(subCmd.Use, "help ") || utils.IsStringSliceContainsAny([]string{resolveCmdName(subCmd), subCmd.Use}, exclude) {
-			continue
-		}
-
-		rootCmd.SetArgs(rootCmdGetArgs(subCmd, args))
-
-		if err = rootCmd.Execute(); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return subCmds
 }
 
 func resolveCmdName(cmd *cobra.Command) string {
@@ -117,7 +123,7 @@ func resolveCmdName(cmd *cobra.Command) string {
 
 func rootCmdGetArgs(cmd *cobra.Command, args []string) []string {
 	for {
-		if cmd == rootCmd {
+		if cmd == nil || cmd == rootCmd {
 			break
 		}
 
