@@ -28,39 +28,41 @@ intended for production use it's used to provide context and an indentation exam
 identity_providers:
   oidc:
     clients:
-      - id: myapp
-        description: My Application
+      - id: 'myapp'
+        description: 'My Application'
         secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         sector_identifier: ''
         public: false
         redirect_uris:
-          - https://oidc.example.com:8080/oauth2/callback
+          - 'https://oidc.example.com:8080/oauth2/callback'
         audience: []
         scopes:
-          - openid
-          - groups
-          - email
-          - profile
+          - 'openid'
+          - 'groups'
+          - 'email'
+          - 'profile'
         grant_types:
-          - refresh_token
-          - authorization_code
+          - 'refresh_token'
+          - 'authorization_code'
         response_types:
-          - code
+          - 'code'
         response_modes:
-          - form_post
-          - query
-          - fragment
-        authorization_policy: two_factor
-        consent_mode: explicit
-        pre_configured_consent_duration: 1w
+          - 'form_post'
+          - 'query'
+          - 'fragment'
+        authorization_policy: 'two_factor'
+        consent_mode: 'explicit'
+        pre_configured_consent_duration: '1 week'
         enforce_par: false
         enforce_pkce: false
-        pkce_challenge_method: S256
+        pkce_challenge_method: 'S256'
+        id_token_signing_alg: 'RS256'
+        id_token_signing_key_id: ''
+        userinfo_signing_alg: 'none'
+        userinfo_signing_key_id: ''
+        request_object_signing_alg: 'RS256'
+        token_endpoint_auth_signing_alg: 'RS256'
         token_endpoint_auth_method: ''
-        token_endpoint_auth_signing_alg: RS256
-        id_token_signing_alg: RS256
-        request_object_signing_alg: RS256
-        userinfo_signing_alg: none
 ```
 
 ## Options
@@ -270,46 +272,6 @@ effectively enables the [enforce_pkce](#enforcepkce) option for this client.
 Valid values are an empty string, `plain`, or `S256`. It should be noted that `S256` is strongly recommended if the
 relying party supports it.
 
-### token_endpoint_auth_method
-
-{{< confkey type="string" default="" required="no" >}}
-
-The registered client authentication mechanism used by this client for the [Token Endpoint]. If no method is defined
-the confidential client type will accept any supported method. The public client type defaults to `none` as this
-is required by the specification. This may be required as a breaking change in future versions.
-Supported values are `client_secret_basic`, `client_secret_post`, `client_secret_jwt`, `private_key_jwt`, and `none`.
-
-See the [integration guide](../../../integration/openid-connect/introduction.md#client-authentication-method) for
-more information.
-
-### token_endpoint_auth_signing_alg
-
-{{< confkey type="string" default="RS256" required="no" >}}
-
-The JWT signing algorithm accepted when the [token_endpoint_auth_method](#tokenendpointauthmethod) is configured as
-`client_secret_jwt` or `private_key_jwt`.
-
-See the request object section of the [integration guide](../../../integration/openid-connect/introduction.md#request-object)
-for more information including the algorithm column for supported values.
-
-It's recommended that you specifically configure this when the following options are configured to specific values
-otherwise we assume the default value:
-
-|                    Configuration Option                    |        Value        | Default |
-|:----------------------------------------------------------:|:-------------------:|:-------:|
-| [token_endpoint_auth_method](#tokenendpointauthsigningalg) |  `private_key_jwt`  | `RS256` |
-| [token_endpoint_auth_method](#tokenendpointauthsigningalg) | `client_secret_jwt` | `HS256` |
-
-### request_object_signing_alg
-
-{{< confkey type="string" default="RSA256" required="no" >}}
-
-The JWT signing algorithm accepted for request objects.
-
-See the request object section of the
-[integration guide](../../../integration/openid-connect/introduction.md#request-object) for more information including
-the algorithm column for supported values.
-
 ### id_token_signing_alg
 
 {{< confkey type="string" default="RS256" required="no" >}}
@@ -359,6 +321,46 @@ The key id of the JWK used to sign the userinfo endpoint responses in the token 
 over  [userinfo_signing_alg](#userinfosigningalg). The value of this must one of those provided or calculated in the
 [issuer_private_keys](provider.md#issuerprivatekeys).
 
+### request_object_signing_alg
+
+{{< confkey type="string" default="RSA256" required="no" >}}
+
+The JWT signing algorithm accepted for request objects.
+
+See the request object section of the
+[integration guide](../../../integration/openid-connect/introduction.md#request-object) for more information including
+the algorithm column for supported values.
+
+### token_endpoint_auth_method
+
+{{< confkey type="string" default="" required="no" >}}
+
+The registered client authentication mechanism used by this client for the [Token Endpoint]. If no method is defined
+the confidential client type will accept any supported method. The public client type defaults to `none` as this
+is required by the specification. This may be required as a breaking change in future versions.
+Supported values are `client_secret_basic`, `client_secret_post`, `client_secret_jwt`, `private_key_jwt`, and `none`.
+
+See the [integration guide](../../../integration/openid-connect/introduction.md#client-authentication-method) for
+more information.
+
+### token_endpoint_auth_signing_alg
+
+{{< confkey type="string" default="RS256" required="no" >}}
+
+The JWT signing algorithm accepted when the [token_endpoint_auth_method](#tokenendpointauthmethod) is configured as
+`client_secret_jwt` or `private_key_jwt`.
+
+See the request object section of the [integration guide](../../../integration/openid-connect/introduction.md#request-object)
+for more information including the algorithm column for supported values.
+
+It's recommended that you specifically configure this when the following options are configured to specific values
+otherwise we assume the default value:
+
+|                    Configuration Option                    |        Value        | Default |
+|:----------------------------------------------------------:|:-------------------:|:-------:|
+| [token_endpoint_auth_method](#tokenendpointauthsigningalg) |  `private_key_jwt`  | `RS256` |
+| [token_endpoint_auth_method](#tokenendpointauthsigningalg) | `client_secret_jwt` | `HS256` |
+
 ### public_keys
 
 This section configures the trusted JSON Web Keys or JWKS for this registered client. This can either be static values
@@ -398,11 +400,29 @@ A list of static keys.
 
 The Key ID used to match the request object's JWT header `kid` value against.
 
+##### use
+
+{{< confkey type="string" default="sig" required="no" >}}
+
+The key usage. Defaults to `sig` which is the only available option at this time.
+
+##### algorithm
+
+{{< confkey type="string" default="RS256" required="situational" >}}
+
+The algorithm for this key. This value typically optional as it can be automatically detected based on the type of key
+in some situations. It is however strongly recommended this is set.
+
+See the request object table in the [integration guide](../../../integration/openid-connect/introduction.md#request-object)
+for more information. The `Algorithm` column lists supported values, the `Key` column references the required
+[key](#key) type constraints that exist for the algorithm, and the `JWK Default Conditions` column briefly explains the
+conditions under which it's the default algorithm.
+
 ##### key
 
 {{< confkey type="string" required="yes" >}}
 
-The public key portion of the JSON Web Key
+The public key portion of the JSON Web Key.
 
 The public key the clients use to sign/encrypt the [OpenID Connect 1.0] asserted [JWT]'s. The key is generated by the
 client application or the administrator of the client application.
@@ -418,9 +438,15 @@ The key *__MUST__*:
     * A P-384 elliptical curve.
     * A P-512 elliptical curve.
 
-If the [issuer_certificate_chain](#issuercertificatechain) is provided the private key must include matching public
+If the [certificate_chain](#certificatechain) is provided the private key must include matching public
 key data for the first certificate in the chain.
 
+##### certificate_chain
+
+{{< confkey type="string" required="no" >}}
+
+The certificate chain/bundle to be used with the [key](#key) DER base64 ([RFC4648])
+encoded PEM format used to sign/encrypt the [OpenID Connect 1.0] [JWT]'s.
 
 ## Integration
 
