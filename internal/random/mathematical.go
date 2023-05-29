@@ -112,6 +112,10 @@ func (r *Mathematical) Intn(n int) int {
 
 // IntnErr returns a random int error combination with a maximum of n.
 func (r *Mathematical) IntnErr(n int) (output int, err error) {
+	if n <= 0 {
+		return 0, fmt.Errorf("n must be more than 0")
+	}
+
 	return r.Intn(n), nil
 }
 
@@ -132,15 +136,11 @@ func (r *Mathematical) IntErr(max *big.Int) (value *big.Int, err error) {
 		return nil, fmt.Errorf("max is required")
 	}
 
-	if max.Sign() <= 0 {
+	if max.Int64() <= 0 {
 		return nil, fmt.Errorf("max must be 1 or more")
 	}
 
-	r.lock.Lock()
-
-	defer r.lock.Unlock()
-
-	return big.NewInt(int64(r.Intn(max.Sign()))), nil
+	return big.NewInt(int64(r.Intn(int(max.Int64())))), nil
 }
 
 // Prime returns a number of the given bit length that is prime with high probability. Prime will return error for any

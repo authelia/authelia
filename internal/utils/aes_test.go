@@ -8,7 +8,7 @@ import (
 )
 
 func TestShouldEncryptAndDecriptUsingAES(t *testing.T) {
-	var key [32]byte = sha256.Sum256([]byte("the key"))
+	var key = sha256.Sum256([]byte("the key"))
 
 	var secret = "the secret"
 
@@ -22,7 +22,7 @@ func TestShouldEncryptAndDecriptUsingAES(t *testing.T) {
 }
 
 func TestShouldFailDecryptOnInvalidKey(t *testing.T) {
-	var key [32]byte = sha256.Sum256([]byte("the key"))
+	var key = sha256.Sum256([]byte("the key"))
 
 	var secret = "the secret"
 
@@ -37,7 +37,7 @@ func TestShouldFailDecryptOnInvalidKey(t *testing.T) {
 }
 
 func TestShouldFailDecryptOnInvalidCypherText(t *testing.T) {
-	var key [32]byte = sha256.Sum256([]byte("the key"))
+	var key = sha256.Sum256([]byte("the key"))
 
 	encryptedSecret := []byte("abc123")
 

@@ -23,7 +23,7 @@ import (
 type FileUserProvider struct {
 	config        *schema.FileAuthenticationBackend
 	hash          algorithm.Hash
-	database      *FileUserDatabase
+	database      FileUserDatabase
 	mutex         *sync.Mutex
 	timeoutReload time.Time
 }
@@ -34,6 +34,7 @@ func NewFileUserProvider(config *schema.FileAuthenticationBackend) (provider *Fi
 		config:        config,
 		mutex:         &sync.Mutex{},
 		timeoutReload: time.Now().Add(-1 * time.Second),
+		database:      NewYAMLUserDatabase(config.Path, config.Search.Email, config.Search.CaseInsensitive),
 	}
 }
 
@@ -136,7 +137,9 @@ func (p *FileUserProvider) StartupCheck() (err error) {
 		return err
 	}
 
-	p.database = NewFileUserDatabase(p.config.Path, p.config.Search.Email, p.config.Search.CaseInsensitive)
+	if p.database == nil {
+		p.database = NewYAMLUserDatabase(p.config.Path, p.config.Search.Email, p.config.Search.CaseInsensitive)
+	}
 
 	if err = p.database.Load(); err != nil {
 		return err
@@ -192,10 +195,6 @@ func NewFileCryptoHashFromConfig(config schema.Password) (hash algorithm.Hash, e
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize hash settings: %w", err)
-	}
-
-	if err = hash.Validate(); err != nil {
-		return nil, fmt.Errorf("failed to validate hash settings: %w", err)
 	}
 
 	return hash, nil

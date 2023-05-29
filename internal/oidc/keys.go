@@ -13,17 +13,17 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/ory/x/errorsx"
-
 	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // NewKeyManager news up a KeyManager.
-func NewKeyManager(config *schema.OpenIDConnectConfiguration) (manager *KeyManager) {
+func NewKeyManager(config *schema.OpenIDConnect) (manager *KeyManager) {
 	manager = &KeyManager{
-		kids: map[string]*JWK{},
-		algs: map[string]*JWK{},
+		alg2kid: config.Discovery.DefaultKeyIDs,
+		kids:    map[string]*JWK{},
+		algs:    map[string]*JWK{},
 	}
 
 	for _, sjwk := range config.IssuerPrivateKeys {
@@ -31,10 +31,6 @@ func NewKeyManager(config *schema.OpenIDConnectConfiguration) (manager *KeyManag
 
 		manager.kids[sjwk.KeyID] = jwk
 		manager.algs[jwk.alg.Alg()] = jwk
-
-		if jwk.kid == config.Discovery.DefaultKeyID {
-			manager.kid = jwk.kid
-		}
 	}
 
 	return manager
@@ -42,14 +38,29 @@ func NewKeyManager(config *schema.OpenIDConnectConfiguration) (manager *KeyManag
 
 // The KeyManager type handles JWKs and signing operations.
 type KeyManager struct {
-	kid  string
-	kids map[string]*JWK
-	algs map[string]*JWK
+	alg2kid map[string]string
+	kids    map[string]*JWK
+	algs    map[string]*JWK
 }
 
-// GetKeyID returns the default key id.
-func (m *KeyManager) GetKeyID(ctx context.Context) string {
-	return m.kid
+// GetDefaultKeyID returns the default key id.
+func (m *KeyManager) GetDefaultKeyID(ctx context.Context) string {
+	return m.alg2kid[SigningAlgRSAUsingSHA256]
+}
+
+// GetKeyID returns the JWK Key ID given an kid/alg or the default if it doesn't exist.
+func (m *KeyManager) GetKeyID(ctx context.Context, kid, alg string) string {
+	if kid != "" {
+		if jwk, ok := m.kids[kid]; ok {
+			return jwk.KeyID()
+		}
+	}
+
+	if jwk, ok := m.algs[alg]; ok {
+		return jwk.KeyID()
+	}
+
+	return m.alg2kid[SigningAlgRSAUsingSHA256]
 }
 
 // GetKeyIDFromAlgStrict returns the key id given an alg or an error if it doesn't exist.
@@ -67,7 +78,20 @@ func (m *KeyManager) GetKeyIDFromAlg(ctx context.Context, alg string) string {
 		return jwks.kid
 	}
 
-	return m.kid
+	return m.alg2kid[SigningAlgRSAUsingSHA256]
+}
+
+// Get returns the JWK given an kid/alg or nil if it doesn't exist.
+func (m *KeyManager) Get(ctx context.Context, kid, alg string) *JWK {
+	if kid != "" {
+		return m.kids[kid]
+	}
+
+	if jwk, ok := m.algs[alg]; ok {
+		return jwk
+	}
+
+	return nil
 }
 
 // GetByAlg returns the JWK given an alg or nil if it doesn't exist.
@@ -82,7 +106,7 @@ func (m *KeyManager) GetByAlg(ctx context.Context, alg string) *JWK {
 // GetByKID returns the JWK given an key id or nil if it doesn't exist. If given a blank string it returns the default.
 func (m *KeyManager) GetByKID(ctx context.Context, kid string) *JWK {
 	if kid == "" {
-		return m.kids[m.kid]
+		return m.kids[m.alg2kid[SigningAlgRSAUsingSHA256]]
 	}
 
 	if jwk, ok := m.kids[kid]; ok {

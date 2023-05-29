@@ -2,20 +2,8 @@ package authentication
 
 import (
 	"errors"
-)
 
-// Level is the type representing a level of authentication.
-type Level int
-
-const (
-	// NotAuthenticated if the user is not authenticated yet.
-	NotAuthenticated Level = iota
-
-	// OneFactor if the user has passed first factor only.
-	OneFactor
-
-	// TwoFactor if the user has passed two factors.
-	TwoFactor
+	"golang.org/x/text/encoding/unicode"
 )
 
 const (
@@ -109,3 +97,7 @@ const fileAuthenticationMode = 0600
 // OWASP recommends to escape some special characters.
 // https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.md
 const specialLDAPRunes = ",#+<>;\"="
+
+var (
+	encodingUTF16LittleEndian = unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)
+)

@@ -16,7 +16,7 @@ type Regulator struct {
 
 	config schema.RegulationConfiguration
 
-	storageProvider storage.RegulatorProvider
+	store storage.RegulatorProvider
 
 	clock utils.Clock
 }

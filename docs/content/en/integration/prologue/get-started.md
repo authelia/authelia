@@ -36,7 +36,7 @@ In addition to the `https` scheme requirement for Authelia itself:
 1. Due to the fact a cookie is used, it's an intentional design decision that *__ALL__* applications/domains protected via
 this method *__MUST__* use secure schemes (`https` and `wss`) for all of their communication.
 
-### OpenID Connect
+### OpenID Connect 1.0
 
 No additional requirements other than the use of the `https` scheme for Authelia itself exist excluding those mandated
 by the relevant specifications.
@@ -92,6 +92,11 @@ recommended that you read the relevant [Proxy Integration Documentation](../prox
 *__Important Note:__ When your [Deployment](#deployment) is on [Kubernetes](../kubernetes/introduction.md) we
 recommend viewing the dedicated [Kubernetes Documentation](../kubernetes/introduction.md) prior to viewing the
 [Proxy Integration Documentation](../proxies/introduction.md).*
+
+## Additional Useful Links
+
+See the [Frequently Asked Questions](../../reference/guides/frequently-asked-questions.md) for helpful sections of the
+documentation which may answer specific questions.
 
 ## Moving to Production
 

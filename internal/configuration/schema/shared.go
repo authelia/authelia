@@ -37,8 +37,8 @@ type ServerBuffers struct {
 
 // JWK represents a JWK.
 type JWK struct {
-	KeyID            string `koanf:"key_id"`
-	Use              string
+	KeyID            string               `koanf:"key_id"`
+	Use              string               `koanf:"use"`
 	Algorithm        string               `koanf:"algorithm"`
 	Key              CryptographicKey     `koanf:"key"`
 	CertificateChain X509CertificateChain `koanf:"certificate_chain"`

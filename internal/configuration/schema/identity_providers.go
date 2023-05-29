@@ -6,13 +6,13 @@ import (
 	"time"
 )
 
-// IdentityProvidersConfiguration represents the IdentityProviders 2.0 configuration for Authelia.
-type IdentityProvidersConfiguration struct {
-	OIDC *OpenIDConnectConfiguration `koanf:"oidc"`
+// IdentityProviders represents the Identity Providers configuration for Authelia.
+type IdentityProviders struct {
+	OIDC *OpenIDConnect `koanf:"oidc"`
 }
 
-// OpenIDConnectConfiguration configuration for OpenID Connect.
-type OpenIDConnectConfiguration struct {
+// OpenIDConnect configuration for OpenID Connect 1.0.
+type OpenIDConnect struct {
 	HMACSecret        string `koanf:"hmac_secret"`
 	IssuerPrivateKeys []JWK  `koanf:"issuer_private_keys"`
 
@@ -30,36 +30,39 @@ type OpenIDConnectConfiguration struct {
 	EnforcePKCE              string `koanf:"enforce_pkce"`
 	EnablePKCEPlainChallenge bool   `koanf:"enable_pkce_plain_challenge"`
 
-	PAR  OpenIDConnectPARConfiguration  `koanf:"pushed_authorizations"`
-	CORS OpenIDConnectCORSConfiguration `koanf:"cors"`
+	PAR  OpenIDConnectPAR  `koanf:"pushed_authorizations"`
+	CORS OpenIDConnectCORS `koanf:"cors"`
 
-	Clients []OpenIDConnectClientConfiguration `koanf:"clients"`
+	Clients []OpenIDConnectClient `koanf:"clients"`
 
 	Discovery OpenIDConnectDiscovery // MetaData value. Not configurable by users.
 }
 
+// OpenIDConnectDiscovery is information discovered during validation reused for the discovery handlers.
 type OpenIDConnectDiscovery struct {
-	DefaultKeyID              string
-	ResponseObjectSigningAlgs []string
-	RequestObjectSigningAlgs  []string
+	DefaultKeyIDs               map[string]string
+	DefaultKeyID                string
+	ResponseObjectSigningKeyIDs []string
+	ResponseObjectSigningAlgs   []string
+	RequestObjectSigningAlgs    []string
 }
 
-// OpenIDConnectPARConfiguration represents an OpenID Connect PAR config.
-type OpenIDConnectPARConfiguration struct {
+// OpenIDConnectPAR represents an OpenID Connect 1.0 PAR config.
+type OpenIDConnectPAR struct {
 	Enforce         bool          `koanf:"enforce"`
 	ContextLifespan time.Duration `koanf:"context_lifespan"`
 }
 
-// OpenIDConnectCORSConfiguration represents an OpenID Connect CORS config.
-type OpenIDConnectCORSConfiguration struct {
+// OpenIDConnectCORS represents an OpenID Connect 1.0 CORS config.
+type OpenIDConnectCORS struct {
 	Endpoints      []string  `koanf:"endpoints"`
 	AllowedOrigins []url.URL `koanf:"allowed_origins"`
 
 	AllowedOriginsFromClientRedirectURIs bool `koanf:"allowed_origins_from_client_redirect_uris"`
 }
 
-// OpenIDConnectClientConfiguration configuration for an OpenID Connect client.
-type OpenIDConnectClientConfiguration struct {
+// OpenIDConnectClient represents a configuration for an OpenID Connect 1.0 client.
+type OpenIDConnectClient struct {
 	ID               string          `koanf:"id"`
 	Description      string          `koanf:"description"`
 	Secret           *PasswordDigest `koanf:"secret"`
@@ -84,25 +87,28 @@ type OpenIDConnectClientConfiguration struct {
 
 	PKCEChallengeMethod string `koanf:"pkce_challenge_method"`
 
-	TokenEndpointAuthMethod string `koanf:"token_endpoint_auth_method"`
-
-	TokenEndpointAuthSigningAlg string `koanf:"token_endpoint_auth_signing_alg"`
-	RequestObjectSigningAlg     string `koanf:"request_object_signing_alg"`
 	IDTokenSigningAlg           string `koanf:"id_token_signing_alg"`
+	IDTokenSigningKeyID         string `koanf:"id_token_signing_key_id"`
 	UserinfoSigningAlg          string `koanf:"userinfo_signing_alg"`
+	UserinfoSigningKeyID        string `koanf:"userinfo_signing_key_id"`
+	RequestObjectSigningAlg     string `koanf:"request_object_signing_alg"`
+	TokenEndpointAuthSigningAlg string `koanf:"token_endpoint_auth_signing_alg"`
+
+	TokenEndpointAuthMethod string `koanf:"token_endpoint_auth_method"`
 
 	PublicKeys OpenIDConnectClientPublicKeys `koanf:"public_keys"`
 
 	Discovery OpenIDConnectDiscovery
 }
 
+// OpenIDConnectClientPublicKeys represents the Client Public Keys configuration for an OpenID Connect 1.0 client.
 type OpenIDConnectClientPublicKeys struct {
 	URI    *url.URL `koanf:"uri"`
 	Values []JWK    `koanf:"values"`
 }
 
 // DefaultOpenIDConnectConfiguration contains defaults for OIDC.
-var DefaultOpenIDConnectConfiguration = OpenIDConnectConfiguration{
+var DefaultOpenIDConnectConfiguration = OpenIDConnect{
 	AccessTokenLifespan:   time.Hour,
 	AuthorizeCodeLifespan: time.Minute,
 	IDTokenLifespan:       time.Hour,
@@ -113,12 +119,11 @@ var DefaultOpenIDConnectConfiguration = OpenIDConnectConfiguration{
 var defaultOIDCClientConsentPreConfiguredDuration = time.Hour * 24 * 7
 
 // DefaultOpenIDConnectClientConfiguration contains defaults for OIDC Clients.
-var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClientConfiguration{
-	Policy:        "two_factor",
-	Scopes:        []string{"openid", "groups", "profile", "email"},
-	ResponseTypes: []string{"code"},
-	ResponseModes: []string{"form_post"},
-
+var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClient{
+	Policy:                       "two_factor",
+	Scopes:                       []string{"openid", "groups", "profile", "email"},
+	ResponseTypes:                []string{"code"},
+	ResponseModes:                []string{"form_post"},
 	IDTokenSigningAlg:            "RS256",
 	UserinfoSigningAlg:           "none",
 	ConsentMode:                  "auto",

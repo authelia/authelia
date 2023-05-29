@@ -122,8 +122,10 @@ type BaseClient struct {
 	ResponseTypes []string
 	ResponseModes []fosite.ResponseModeType
 
-	IDTokenSigningAlg  string
-	UserinfoSigningAlg string
+	IDTokenSigningAlg    string
+	IDTokenSigningKeyID  string
+	UserinfoSigningAlg   string
+	UserinfoSigningKeyID string
 
 	Policy authorization.Level
 
@@ -152,8 +154,11 @@ type Client interface {
 	GetSectorIdentifier() string
 	GetConsentResponseBody(consent *model.OAuth2ConsentSession) ConsentGetResponseBody
 
-	GetUserinfoSigningAlg() string
 	GetIDTokenSigningAlg() string
+	GetIDTokenSigningKeyID() string
+
+	GetUserinfoSigningAlg() string
+	GetUserinfoSigningKeyID() string
 
 	GetPAREnforcement() bool
 	GetPKCEEnforcement() bool

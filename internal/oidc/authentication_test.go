@@ -199,12 +199,12 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 
 	secret := tOpenIDConnectPlainTextClientSecret
 
-	s.provider = oidc.NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+	s.provider = oidc.NewOpenIDConnectProvider(&schema.OpenIDConnect{
 		IssuerPrivateKeys: []schema.JWK{
 			{Key: keyRSA2048, CertificateChain: certRSA2048, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAUsingSHA256},
 		},
 		HMACSecret: "abc123",
-		Clients: []schema.OpenIDConnectClientConfiguration{
+		Clients: []schema.OpenIDConnectClient{
 			{
 				ID:     "hs256",
 				Secret: secret,

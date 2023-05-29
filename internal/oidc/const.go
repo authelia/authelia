@@ -118,6 +118,14 @@ const (
 	SigningAlgHMACUsingSHA512 = "HS512"
 )
 
+// JWS Algorithm Prefixes.
+const (
+	SigningAlgPrefixRSA    = "RS"
+	SigningAlgPrefixHMAC   = "HS"
+	SigningAlgPrefixRSAPSS = "PS"
+	SigningAlgPrefixECDSA  = "ES"
+)
+
 const (
 	KeyUseSignature = "sig"
 )

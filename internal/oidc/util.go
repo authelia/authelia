@@ -95,10 +95,3 @@ func isSigningAlgLess(i, j string) bool {
 		}
 	}
 }
-
-const (
-	SigningAlgPrefixRSA    = "RS"
-	SigningAlgPrefixHMAC   = "HS"
-	SigningAlgPrefixRSAPSS = "PS"
-	SigningAlgPrefixECDSA  = "ES"
-)

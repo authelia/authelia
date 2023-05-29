@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/go-ldap/ldap/v3"
-	"golang.org/x/text/encoding/unicode"
 )
 
 // LDAPClientFactory an interface of factory of LDAP clients.
@@ -103,4 +102,30 @@ type LDAPSupportedControlTypes struct {
 	MsftPwdPolHintsDeprecated bool
 }
 
-var utf16LittleEndian = unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)
+// Level is the type representing a level of authentication.
+type Level int
+
+const (
+	// NotAuthenticated if the user is not authenticated yet.
+	NotAuthenticated Level = iota
+
+	// OneFactor if the user has passed first factor only.
+	OneFactor
+
+	// TwoFactor if the user has passed two factors.
+	TwoFactor
+)
+
+// String returns a string representation of an authentication.Level.
+func (l Level) String() string {
+	switch l {
+	case NotAuthenticated:
+		return "not_authenticated"
+	case OneFactor:
+		return "one_factor"
+	case TwoFactor:
+		return "two_factor"
+	default:
+		return "invalid"
+	}
+}

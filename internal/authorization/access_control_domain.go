@@ -66,13 +66,13 @@ func (m AccessControlDomainMatcher) IsMatch(domain string, subject Subject) (mat
 		return strings.HasSuffix(domain, m.Name)
 	case m.UserWildcard:
 		if subject.IsAnonymous() && strings.HasSuffix(domain, m.Name) {
-			return true
+			return len(domain) > len(m.Name)
 		}
 
 		return domain == fmt.Sprintf("%s%s", subject.Username, m.Name)
 	case m.GroupWildcard:
 		if subject.IsAnonymous() && strings.HasSuffix(domain, m.Name) {
-			return true
+			return len(domain) > len(m.Name)
 		}
 
 		i := strings.Index(domain, ".")

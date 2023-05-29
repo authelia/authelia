@@ -17,10 +17,7 @@ import (
 )
 
 func TestKeyManager(t *testing.T) {
-	config := &schema.OpenIDConnectConfiguration{
-		Discovery: schema.OpenIDConnectDiscovery{
-			DefaultKeyID: "kid-RS256-sig",
-		},
+	config := &schema.OpenIDConnect{
 		IssuerPrivateKeys: []schema.JWK{
 			{
 				Use:              oidc.KeyUseSignature,
@@ -79,8 +76,16 @@ func TestKeyManager(t *testing.T) {
 		},
 	}
 
+	config.Discovery.DefaultKeyIDs = map[string]string{}
+
 	for i, key := range config.IssuerPrivateKeys {
-		config.IssuerPrivateKeys[i].KeyID = fmt.Sprintf("kid-%s-%s", key.Algorithm, key.Use)
+		kid := fmt.Sprintf("kid-%s-%s", key.Algorithm, key.Use)
+
+		config.IssuerPrivateKeys[i].KeyID = kid
+
+		if _, ok := config.Discovery.DefaultKeyIDs[key.Algorithm]; !ok {
+			config.Discovery.DefaultKeyIDs[key.Algorithm] = kid
+		}
 	}
 
 	manager := oidc.NewKeyManager(config)
@@ -89,7 +94,18 @@ func TestKeyManager(t *testing.T) {
 
 	ctx := context.Background()
 
-	assert.Equal(t, "kid-RS256-sig", manager.GetKeyID(ctx))
+	assert.Equal(t, "kid-RS256-sig", manager.GetDefaultKeyID(ctx))
+
+	require.NotNil(t, manager.Get(ctx, "kid-RS256-sig", oidc.SigningAlgRSAUsingSHA256))
+	assert.Equal(t, "kid-RS256-sig", manager.Get(ctx, "kid-RS256-sig", oidc.SigningAlgRSAUsingSHA256).KeyID())
+	assert.Equal(t, "kid-RS256-sig", manager.Get(ctx, "", oidc.SigningAlgRSAUsingSHA256).KeyID())
+	assert.Nil(t, manager.Get(ctx, "", "NOKEY"))
+
+	assert.Equal(t, "kid-RS256-sig", manager.GetKeyID(ctx, "", oidc.SigningAlgRSAUsingSHA256))
+	assert.Equal(t, "kid-RS256-sig", manager.GetKeyID(ctx, "kid-RS256-sig", oidc.SigningAlgRSAPSSUsingSHA256))
+	assert.Equal(t, "kid-RS256-sig", manager.GetKeyID(ctx, "", ""))
+	assert.Equal(t, "kid-PS256-sig", manager.GetKeyID(ctx, "kid-PS256-sig", oidc.SigningAlgRSAPSSUsingSHA256))
+	assert.Equal(t, "kid-PS256-sig", manager.GetKeyID(ctx, "", oidc.SigningAlgRSAPSSUsingSHA256))
 
 	var (
 		jwk              *oidc.JWK
@@ -107,7 +123,7 @@ func TestKeyManager(t *testing.T) {
 
 	jwk = manager.GetByKID(ctx, "")
 	assert.NotNil(t, jwk)
-	assert.Equal(t, config.Discovery.DefaultKeyID, jwk.KeyID())
+	assert.Equal(t, config.Discovery.DefaultKeyIDs[oidc.SigningAlgRSAUsingSHA256], jwk.KeyID())
 
 	jwk, err = manager.GetByHeader(ctx, &fjwt.Headers{Extra: map[string]any{oidc.JWTHeaderKeyIdentifier: "notalg"}})
 	assert.EqualError(t, err, "jwt header 'kid' with value 'notalg' does not match a managed jwk")
@@ -126,7 +142,7 @@ func TestKeyManager(t *testing.T) {
 	assert.Equal(t, "", kid)
 
 	kid = manager.GetKeyIDFromAlg(ctx, "notalg")
-	assert.Equal(t, config.Discovery.DefaultKeyID, kid)
+	assert.Equal(t, config.Discovery.DefaultKeyIDs[oidc.SigningAlgRSAUsingSHA256], kid)
 
 	set := manager.Set(ctx)
 

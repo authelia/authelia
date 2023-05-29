@@ -1604,7 +1604,7 @@ func TestShouldUpdateUserPasswordMSAD(t *testing.T) {
 		[]ldap.Control{&controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHints}},
 	)
 
-	pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
+	pwdEncoded, _ := encodingUTF16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
 	modifyRequest.Replace(ldapAttributeUnicodePwd, []string{pwdEncoded})
 
 	dialURLOIDs := mockFactory.EXPECT().
@@ -1715,7 +1715,7 @@ func TestShouldUpdateUserPasswordMSADWithReferrals(t *testing.T) {
 		[]ldap.Control{&controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHints}},
 	)
 
-	pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
+	pwdEncoded, _ := encodingUTF16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
 	modifyRequest.Replace(ldapAttributeUnicodePwd, []string{pwdEncoded})
 
 	dialURLOIDs := mockFactory.EXPECT().
@@ -1843,7 +1843,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralConnectErr(t *test
 		[]ldap.Control{&controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHints}},
 	)
 
-	pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
+	pwdEncoded, _ := encodingUTF16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
 	modifyRequest.Replace(ldapAttributeUnicodePwd, []string{pwdEncoded})
 
 	dialURLOIDs := mockFactory.EXPECT().
@@ -1962,7 +1962,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralModifyErr(t *testi
 		[]ldap.Control{&controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHints}},
 	)
 
-	pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
+	pwdEncoded, _ := encodingUTF16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
 	modifyRequest.Replace(ldapAttributeUnicodePwd, []string{pwdEncoded})
 
 	dialURLOIDs := mockFactory.EXPECT().
@@ -2094,7 +2094,7 @@ func TestShouldUpdateUserPasswordMSADWithoutReferrals(t *testing.T) {
 		[]ldap.Control{&controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHints}},
 	)
 
-	pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
+	pwdEncoded, _ := encodingUTF16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
 	modifyRequest.Replace(ldapAttributeUnicodePwd, []string{pwdEncoded})
 
 	dialURLOIDs := mockFactory.EXPECT().
