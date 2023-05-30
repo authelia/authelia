@@ -47,15 +47,12 @@ default_redirection_url: 'https://home.example.com/'
 server:
   ## The address for the Main server to listen on in the address common syntax.
   ## Formats:
-  ##  - [<scheme>://]<hostname>[:<port>]
-  ##  - [<scheme>://][hostname]:<port>
+  ##  - [<scheme>://]<hostname>[:<port>][/<path>]
+  ##  - [<scheme>://][hostname]:<port>[/<path>]
   ## Square brackets indicate optional portions of the format. Scheme must be 'tcp', 'tcp4', 'tcp6', or 'unix'.
   ## The default scheme is 'unix' if the address is an absolute path otherwise it's 'tcp'. The default port is '9091'.
-  address: 'tcp://:9091'
-
-  ## Set the single level path Authelia listens on.
-  ## Must be alphanumeric chars and should not contain any slashes.
-  path: ''
+  ## If the path is specified this configures the router to handle both the `/` path and the configured path.
+  address: 'tcp://:9091/'
 
   ## Set the path on disk to Authelia assets.
   ## Useful to allow overriding of specific static assets.
@@ -162,11 +159,12 @@ telemetry:
 
     ## The address for the Metrics server to listen on in the address common syntax.
     ## Formats:
-    ##  - [<scheme>://]<hostname>[:<port>]
-    ##  - [<scheme>://][hostname]:<port>
+    ##  - [<scheme>://]<hostname>[:<port>][/<path>]
+    ##  - [<scheme>://][hostname]:<port>[/<path>]
     ## Square brackets indicate optional portions of the format. Scheme must be 'tcp', 'tcp4', 'tcp6', or 'unix'.
     ## The default scheme is 'unix' if the address is an absolute path otherwise it's 'tcp'. The default port is '9959'.
-    address: 'tcp://:9959'
+    ## If the path is not specified it defaults to `/metrics`.
+    address: 'tcp://:9959/metrics'
 
     ## Metrics Server Buffers configuration.
     # buffers:

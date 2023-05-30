@@ -21,8 +21,7 @@ aliases:
 
 ```yaml
 server:
-  address: 'tcp://:9091'
-  path: ''
+  address: 'tcp://:9091/'
   disable_healthcheck: false
   tls:
     key: ''
@@ -59,53 +58,31 @@ server:
 
 ### address
 
-{{< confkey type="address" default="tcp://:9091" required="no" >}}
+{{< confkey type="address" default="tcp://:9091/" required="no" >}}
 
 *__Reference Note:__ This configuration option uses the [address common syntax](../prologue/common.md#address). Please
 see the [documentation](../prologue/common.md#address) on this format for more information.*
 
 Configures the listener address for the Main HTTP Server. The address itself is a listener and the scheme must either be
-the `unix` scheme or one of the `tcp` schemes.
+the `unix` scheme or one of the `tcp` schemes. It can configure the host, port, and path the listener responds to. If
+the path is configured to anything other than `/` Authelia will handle requests for both `/` and the configured path.
 
 __Examples:__
 
 ```yaml
 server:
-  address: tcp://127.0.0.1:9091
+  address: tcp://127.0.0.1:9091/
+```
+
+```yaml
+server:
+  address: tcp://127.0.0.1:9091/subpath
 ```
 
 ```yaml
 server:
   address: unix:///var/run/authelia.sock
 ```
-
-### path
-
-{{< confkey type="string " required="no" >}}
-
-Authelia by default is served from the root `/` location, either via its own domain or subdomain.
-
-Modifying this setting will allow you to serve Authelia out from a specified base path. Please note
-that currently only a single level path is supported meaning slashes are not allowed, and only
-alphanumeric characters are supported.
-
-__Example:__
-
-```yaml
-server:
-  path: ""
-```
-
-*Works for https://auth.example.com/, https://example.com/, etc*.
-
-__Example:__
-
-```yaml
-server:
-  path: authelia
-```
-
-*Works for https://auth.example.com/authelia/,  https://example.com/authelia/, etc*.
 
 ### asset_path
 

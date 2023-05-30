@@ -71,14 +71,14 @@ func CreateDefaultServer(config *schema.Configuration, providers middlewares.Pro
 	}
 
 	if err = writeHealthCheckEnv(config.Server.DisableHealthcheck, connectionScheme, config.Server.Address.Hostname(),
-		config.Server.Path, config.Server.Address.Port()); err != nil {
+		config.Server.Address.Path(), config.Server.Address.Port()); err != nil {
 		return nil, nil, nil, false, fmt.Errorf("unable to configure healthcheck: %w", err)
 	}
 
 	paths = []string{"/"}
 
-	if config.Server.Path != "" {
-		paths = append(paths, config.Server.Path)
+	if config.Server.Address.Path() != "/" {
+		paths = append(paths, config.Server.Address.Path())
 	}
 
 	return server, listener, paths, isTLS, nil
@@ -93,7 +93,7 @@ func CreateMetricsServer(config *schema.Configuration, providers middlewares.Pro
 	server = &fasthttp.Server{
 		ErrorHandler:          handleError(),
 		NoDefaultServerHeader: true,
-		Handler:               handleMetrics(),
+		Handler:               handleMetrics(config.Telemetry.Metrics.Address.Path()),
 		ReadBufferSize:        config.Telemetry.Metrics.Buffers.Read,
 		WriteBufferSize:       config.Telemetry.Metrics.Buffers.Write,
 		ReadTimeout:           config.Telemetry.Metrics.Timeouts.Read,
@@ -106,5 +106,5 @@ func CreateMetricsServer(config *schema.Configuration, providers middlewares.Pro
 		return nil, nil, nil, false, fmt.Errorf("error occurred while attempting to initialize metrics telemetry server listener for address '%s': %w", config.Telemetry.Metrics.Address.String(), err)
 	}
 
-	return server, listener, []string{"/metrics"}, false, nil
+	return server, listener, []string{config.Telemetry.Metrics.Address.Path()}, false, nil
 }

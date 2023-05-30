@@ -395,8 +395,8 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	r.NotFound = handleNotFound(bridge(serveIndexHandler))
 
 	handler := middlewares.LogRequest(r.Handler)
-	if config.Server.Path != "" {
-		handler = middlewares.StripPath(config.Server.Path)(handler)
+	if config.Server.Address.Path() != "/" {
+		handler = middlewares.StripPath(config.Server.Address.Path())(handler)
 	}
 
 	handler = middlewares.Wrap(middlewares.NewMetricsRequest(providers.Metrics), handler)
@@ -404,10 +404,10 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	return handler
 }
 
-func handleMetrics() fasthttp.RequestHandler {
+func handleMetrics(path string) fasthttp.RequestHandler {
 	r := router.New()
 
-	r.GET("/metrics", fasthttpadaptor.NewFastHTTPHandler(promhttp.Handler()))
+	r.GET(path, fasthttpadaptor.NewFastHTTPHandler(promhttp.Handler()))
 
 	r.HandleMethodNotAllowed = true
 	r.MethodNotAllowed = handlers.Status(fasthttp.StatusMethodNotAllowed)
