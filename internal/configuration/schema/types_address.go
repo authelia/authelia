@@ -336,6 +336,15 @@ func (a *Address) Path() string {
 	return a.url.Path
 }
 
+// SetPath sets the path.
+func (a *Address) SetPath(path string) {
+	if !a.valid || a.url == nil {
+		return
+	}
+
+	a.url.Path = path
+}
+
 // SocketHostname returns the correct hostname for a socket connection.
 func (a *Address) SocketHostname() string {
 	if !a.valid || a.url == nil {

@@ -161,6 +161,12 @@ than 10. In addition it must meet the following rules:
 The default if this value is omitted is the first 7 characters of the public key SHA256 thumbprint encoded into
 hexadecimal.
 
+#### use
+
+{{< confkey type="string" default="sig" required="no" >}}
+
+The key usage. Defaults to `sig` which is the only available option at this time.
+
 #### algorithm
 
 {{< confkey type="string" default="RS256" required="situational" >}}
@@ -174,12 +180,6 @@ for more information. The `Algorithm` column lists supported values, the `Key` c
 conditions under which it's the default algorithm.
 
 At least one `RSA256` key must be provided.
-
-#### use
-
-{{< confkey type="string" default="sig" required="no" >}}
-
-The key usage. Defaults to `sig` which is the only available option at this time.
 
 #### key
 

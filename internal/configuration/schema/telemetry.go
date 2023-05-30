@@ -21,7 +21,7 @@ type TelemetryMetricsConfig struct {
 // DefaultTelemetryConfig is the default telemetry configuration.
 var DefaultTelemetryConfig = TelemetryConfig{
 	Metrics: TelemetryMetricsConfig{
-		Address: &AddressTCP{Address{true, false, -1, 9959, &url.URL{Scheme: AddressSchemeTCP, Host: ":9959"}}},
+		Address: &AddressTCP{Address{true, false, -1, 9959, &url.URL{Scheme: AddressSchemeTCP, Host: ":9959", Path: "/metrics"}}},
 		Buffers: ServerBuffers{
 			Read:  4096,
 			Write: 4096,
