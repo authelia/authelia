@@ -161,6 +161,12 @@ than 10. In addition it must meet the following rules:
 The default if this value is omitted is the first 7 characters of the public key SHA256 thumbprint encoded into
 hexadecimal.
 
+#### use
+
+{{< confkey type="string" default="sig" required="no" >}}
+
+The key usage. Defaults to `sig` which is the only available option at this time.
+
 #### algorithm
 
 {{< confkey type="string" default="RS256" required="situational" >}}
@@ -174,12 +180,6 @@ for more information. The `Algorithm` column lists supported values, the `Key` c
 conditions under which it's the default algorithm.
 
 At least one `RSA256` key must be provided.
-
-#### use
-
-{{< confkey type="string" default="sig" required="no" >}}
-
-The key usage. Defaults to `sig` which is the only available option at this time.
 
 #### key
 
@@ -304,6 +304,8 @@ This controls the minimum length of the `nonce` and `state` parameters.
 make certain scenarios less secure. It is highly encouraged that if your OpenID Connect 1.0 Relying Party does not send
 these parameters or sends parameters with a lower length than the default that they implement a change rather than
 changing this value.
+
+This restriction can also be disabled entirely when set to `-1`.
 
 ### enforce_pkce
 

@@ -256,6 +256,10 @@ func writeHealthCheckEnv(disabled bool, scheme, host, path string, port int) (er
 		host = "[" + host + "]"
 	}
 
+	if path == "/" {
+		path = ""
+	}
+
 	_, err = file.WriteString(fmt.Sprintf(healthCheckEnv, scheme, host, port, path))
 
 	return err

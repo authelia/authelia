@@ -88,7 +88,7 @@ Refer to the individual documentation for an option for clarity. In this format 
 are optional. The default for these when not provided varies.
 
 ```text
-[<scheme>://]<hostname>[:<port>]
+[<scheme>://]<hostname>[:<port>][/<path>]
 ```
 
 ##### Port
@@ -99,7 +99,7 @@ hostname are optional. The default for the scheme when not provided varies, and 
 available addresses when not provided.
 
 ```text
-[<scheme>://][hostname]:<port>
+[<scheme>://][hostname]:<port>[/<path>]
 ```
 
 ##### Unix Domain Socket
@@ -131,8 +131,11 @@ Various examples for these formats.
 ```text
 0.0.0.0
 tcp://0.0.0.0
+tcp://0.0.0.0/subpath
 tcp://0.0.0.0:9091
+tcp://0.0.0.0:9091/subpath
 tcp://:9091
+tcp://:9091/subpath
 0.0.0.0:9091
 
 udp://0.0.0.0:123
