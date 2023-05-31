@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -124,4 +125,86 @@ func TestKoanfSecretCallbackShouldErrorOnFSError(t *testing.T) {
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
 	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("secrets: error loading secret path %s into key 'theme': file permission error occurred: open %s: permission denied", secret, secret))
+}
+
+func TestKoanfCommandLineWithMappingCallback(t *testing.T) {
+	testCases := []struct {
+		name          string
+		have          []string
+		flagName      string
+		flagValue     string
+		mapped        string
+		valid         bool
+		unchanged     bool
+		expectedName  string
+		expectedValue any
+	}{
+		{
+			"ShouldDecodeStandard",
+			[]string{"--commands", "abc"},
+			"commands",
+			"",
+			"command.another",
+			false,
+			false,
+			"command.another",
+			"abc",
+		},
+		{
+			"ShouldSkipUnchangedKey",
+			[]string{},
+			"commands",
+			"abc",
+			"command.another",
+			false,
+			false,
+			"",
+			nil,
+		},
+		{
+			"ShouldLookupNormalizedKey",
+			[]string{"--log.file-path", "abc"},
+			"log.file-path",
+			"",
+			"",
+			true,
+			false,
+			"log.file_path",
+			"abc",
+		},
+		{
+			"ShouldReturnUnmodified",
+			[]string{"--commands", "abc"},
+			"commands",
+			"",
+			"",
+			false,
+			false,
+			"",
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			flagset := pflag.NewFlagSet("test", pflag.ContinueOnError)
+
+			flagset.String(tc.flagName, tc.flagValue, "")
+
+			assert.NoError(t, flagset.Parse(tc.have))
+
+			mapper := map[string]string{}
+
+			if tc.mapped != "" {
+				mapper[tc.flagName] = tc.mapped
+			}
+
+			callback := koanfCommandLineWithMappingCallback(mapper, tc.valid, tc.unchanged)
+
+			actualName, actualValue := callback(flagset.Lookup(tc.flagName))
+
+			assert.Equal(t, tc.expectedName, actualName)
+			assert.Equal(t, tc.expectedValue, actualValue)
+		})
+	}
 }

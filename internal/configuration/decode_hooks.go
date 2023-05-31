@@ -634,11 +634,11 @@ func StringToPasswordDigestHookFunc() mapstructure.DecodeHookFuncType {
 
 		var result *schema.PasswordDigest
 
-		if !strings.HasPrefix(dataStr, "$") {
-			dataStr = fmt.Sprintf(plaintext.EncodingFmt, plaintext.AlgIdentifierPlainText, dataStr)
-		}
-
 		if dataStr != "" {
+			if !strings.HasPrefix(dataStr, "$") {
+				dataStr = fmt.Sprintf(plaintext.EncodingFmt, plaintext.AlgIdentifierPlainText, dataStr)
+			}
+
 			if result, err = schema.DecodePasswordDigest(dataStr); err != nil {
 				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType.String(), err)
 			}
