@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"syscall"
 )
 
 // NewAddress returns an *Address and error depending on the ability to parse the string as an Address.
@@ -379,25 +378,6 @@ func (a *Address) NetworkAddress() string {
 	}
 
 	return a.url.Host
-}
-
-// Listener creates and returns a net.Listener.
-func (a *Address) Listener() (ln net.Listener, err error) {
-	if a.url == nil {
-		return nil, fmt.Errorf("address url is nil")
-	}
-
-	if a.socket && a.umask != -1 {
-		umask := syscall.Umask(a.umask)
-
-		ln, err = net.Listen(a.Network(), a.NetworkAddress())
-
-		_ = syscall.Umask(umask)
-
-		return ln, err
-	}
-
-	return net.Listen(a.Network(), a.NetworkAddress())
 }
 
 // Dial creates and returns a dialed net.Conn.
