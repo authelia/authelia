@@ -128,6 +128,7 @@ identity_providers:
       allowed_origins:
         - 'https://google.com'
         - 'https://example.com'
+    minimum_parameter_entropy: -1
     clients:
       - id: 'abc'
         secret: '123'

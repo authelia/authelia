@@ -245,6 +245,28 @@ func TestShouldLoadURLList(t *testing.T) {
 	assert.Equal(t, "https://example.com", config.IdentityProviders.OIDC.CORS.AllowedOrigins[1].String())
 }
 
+func TestShouldDisableOIDCEntropy(t *testing.T) {
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc_disable_entropy.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	assert.Equal(t, -1, config.IdentityProviders.OIDC.MinimumParameterEntropy)
+
+	validator.ValidateIdentityProviders(&config.IdentityProviders, val)
+
+	assert.Len(t, val.Errors(), 1)
+	require.Len(t, val.Warnings(), 2)
+
+	assert.EqualError(t, val.Warnings()[0], "identity_providers: oidc: option 'minimum_parameter_entropy' is disabled which is considered unsafe and insecure")
+	assert.Equal(t, -1, config.IdentityProviders.OIDC.MinimumParameterEntropy)
+}
+
 func TestShouldConfigureConsent(t *testing.T) {
 	val := schema.NewStructValidator()
 	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)

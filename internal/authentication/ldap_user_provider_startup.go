@@ -37,11 +37,6 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 			"LDAP Server.")
 	}
 
-	if !p.features.Extensions.TLS && p.config.StartTLS {
-		p.log.Info("Your LDAP Server does not appear to support TLS but you enabled StartTLS which may result " +
-			"in an error.")
-	}
-
 	return nil
 }
 
@@ -90,22 +85,24 @@ func (p *LDAPUserProvider) getServerSupportedFeatures(client LDAPClient) (featur
 }
 
 func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {
-	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, "{username_attribute}", p.config.UsernameAttribute)
-	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, "{mail_attribute}", p.config.MailAttribute)
-	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, "{display_name_attribute}", p.config.DisplayNameAttribute)
+	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, ldapPlaceholderDistinguishedNameAttribute, p.config.Attributes.DistinguishedName)
+	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, ldapPlaceholderUsernameAttribute, p.config.Attributes.Username)
+	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, ldapPlaceholderDisplayNameAttribute, p.config.Attributes.DisplayName)
+	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, ldapPlaceholderMailAttribute, p.config.Attributes.Mail)
+	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, ldapPlaceholderMemberOfAttribute, p.config.Attributes.MemberOf)
 
 	p.log.Tracef("Dynamically generated users filter is %s", p.config.UsersFilter)
 
-	if !utils.IsStringInSlice(p.config.UsernameAttribute, p.usersAttributes) {
-		p.usersAttributes = append(p.usersAttributes, p.config.UsernameAttribute)
+	if len(p.config.Attributes.Username) != 0 && !utils.IsStringInSlice(p.config.Attributes.Username, p.usersAttributes) {
+		p.usersAttributes = append(p.usersAttributes, p.config.Attributes.Username)
 	}
 
-	if !utils.IsStringInSlice(p.config.MailAttribute, p.usersAttributes) {
-		p.usersAttributes = append(p.usersAttributes, p.config.MailAttribute)
+	if len(p.config.Attributes.Mail) != 0 && !utils.IsStringInSlice(p.config.Attributes.Mail, p.usersAttributes) {
+		p.usersAttributes = append(p.usersAttributes, p.config.Attributes.Mail)
 	}
 
-	if !utils.IsStringInSlice(p.config.DisplayNameAttribute, p.usersAttributes) {
-		p.usersAttributes = append(p.usersAttributes, p.config.DisplayNameAttribute)
+	if len(p.config.Attributes.DisplayName) != 0 && !utils.IsStringInSlice(p.config.Attributes.DisplayName, p.usersAttributes) {
+		p.usersAttributes = append(p.usersAttributes, p.config.Attributes.DisplayName)
 	}
 
 	if p.config.AdditionalUsersDN != "" {
@@ -137,8 +134,14 @@ func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {
 }
 
 func (p *LDAPUserProvider) parseDynamicGroupsConfiguration() {
-	p.groupsAttributes = []string{
-		p.config.GroupNameAttribute,
+	p.config.GroupsFilter = strings.ReplaceAll(p.config.GroupsFilter, ldapPlaceholderDistinguishedNameAttribute, p.config.Attributes.DistinguishedName)
+	p.config.GroupsFilter = strings.ReplaceAll(p.config.GroupsFilter, ldapPlaceholderUsernameAttribute, p.config.Attributes.Username)
+	p.config.GroupsFilter = strings.ReplaceAll(p.config.GroupsFilter, ldapPlaceholderDisplayNameAttribute, p.config.Attributes.DisplayName)
+	p.config.GroupsFilter = strings.ReplaceAll(p.config.GroupsFilter, ldapPlaceholderMailAttribute, p.config.Attributes.Mail)
+	p.config.GroupsFilter = strings.ReplaceAll(p.config.GroupsFilter, ldapPlaceholderMemberOfAttribute, p.config.Attributes.MemberOf)
+
+	if len(p.config.Attributes.GroupName) != 0 && !utils.IsStringInSlice(p.config.Attributes.GroupName, p.groupsAttributes) {
+		p.groupsAttributes = append(p.groupsAttributes, p.config.Attributes.GroupName)
 	}
 
 	if p.config.AdditionalGroupsDN != "" {
@@ -161,5 +164,25 @@ func (p *LDAPUserProvider) parseDynamicGroupsConfiguration() {
 		p.groupsFilterReplacementDN = true
 	}
 
+	if strings.Contains(p.config.GroupsFilter, ldapPlaceholderMemberOfDistinguishedName) {
+		p.groupsFilterReplacementsMemberOfDN = true
+	}
+
+	if strings.Contains(p.config.GroupsFilter, ldapPlaceholderMemberOfRelativeDistinguishedName) {
+		p.groupsFilterReplacementsMemberOfRDN = true
+	}
+
 	p.log.Tracef("Detected group filter replacements that need to be resolved per lookup are: input=%v, username=%v, dn=%v", p.groupsFilterReplacementInput, p.groupsFilterReplacementUsername, p.groupsFilterReplacementDN)
+}
+
+func (p *LDAPUserProvider) parseDynamicConfiguration() {
+	if len(p.config.Attributes.MemberOf) != 0 {
+		if !utils.IsStringInSlice(p.config.Attributes.MemberOf, p.usersAttributes) {
+			p.usersAttributes = append(p.usersAttributes, p.config.Attributes.MemberOf)
+		}
+
+		if !utils.IsStringInSlice(p.config.Attributes.MemberOf, p.groupsAttributes) {
+			p.groupsAttributes = append(p.groupsAttributes, p.config.Attributes.MemberOf)
+		}
+	}
 }

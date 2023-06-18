@@ -193,6 +193,12 @@ func TestLDAPGetReferral(t *testing.T) {
 			expectedReferral: "",
 			expectedOK:       false,
 		},
+		{
+			description:      "ShouldNotGetInvalidErrType",
+			have:             errors.New("not an err"),
+			expectedReferral: "",
+			expectedOK:       false,
+		},
 	}
 
 	for _, tc := range testCases {
