@@ -66,8 +66,8 @@ func validateOIDCPolicies(config *schema.OpenIDConnect, val *schema.StructValida
 		switch name {
 		case "":
 			val.Push(fmt.Errorf("policy must have a name"))
-		case policyOneFactor, policyTwoFactor:
-			val.Push(fmt.Errorf("policy names can't be named one_factor or two_factor"))
+		case policyOneFactor, policyTwoFactor, policyDeny:
+			val.Push(fmt.Errorf("policy names can't be named any of %s", strJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny})))
 		default:
 			break
 		}
@@ -75,10 +75,10 @@ func validateOIDCPolicies(config *schema.OpenIDConnect, val *schema.StructValida
 		switch policy.DefaultPolicy {
 		case "":
 			policy.DefaultPolicy = policyTwoFactor
-		case policyOneFactor, policyTwoFactor:
+		case policyOneFactor, policyTwoFactor, policyDeny:
 			break
 		default:
-			val.Push(fmt.Errorf("policy must be one of one_factor or two_factor"))
+			val.Push(fmt.Errorf("policy must be one of %s", strJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny})))
 		}
 
 		if len(policy.Rules) == 0 {
@@ -89,10 +89,10 @@ func validateOIDCPolicies(config *schema.OpenIDConnect, val *schema.StructValida
 			switch rule.Policy {
 			case "":
 				policy.Rules[i].Policy = policyTwoFactor
-			case policyOneFactor, policyTwoFactor:
+			case policyOneFactor, policyTwoFactor, policyDeny:
 				break
 			default:
-				val.Push(fmt.Errorf("policy must be one of one_factor or two_factor"))
+				val.Push(fmt.Errorf("policy must be one of %s", strJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny})))
 			}
 
 			if len(rule.Subjects) == 0 {

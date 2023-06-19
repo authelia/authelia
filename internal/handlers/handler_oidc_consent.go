@@ -8,7 +8,6 @@ import (
 	"path"
 	"time"
 
-	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/google/uuid"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -83,6 +82,14 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 	if consent.ClientID != bodyJSON.ClientID {
 		ctx.Logger.Errorf("User '%s' consented to scopes of another client (%s) than expected (%s). Beware this can be a sign of attack",
 			userSession.Username, bodyJSON.ClientID, consent.ClientID)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
+		ctx.Logger.Errorf("User '%s' can't consent to authorization request for client with id '%s' as they are not sufficiently authenticated",
+			userSession.Username, consent.ClientID)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return

@@ -8,7 +8,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
 
@@ -30,10 +29,12 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.UR
 
 	var handler handlerAuthorizationConsent
 
+	policy := client.GetAuthorizationPolicy(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()})
+
 	switch {
 	case userSession.IsAnonymous():
 		handler = handleOIDCAuthorizationConsentNotAuthenticated
-	case client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}):
+	case authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel, policy):
 		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
 			ctx.Logger.Errorf(logFmtErrConsentCantGetSubject, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.Username, client.GetSectorIdentifier(), err)
 
@@ -57,6 +58,14 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.UR
 			return nil, true
 		}
 	default:
+		if policy == authorization.Denied {
+			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: the user '%s' is not authorized to use this client", requester.GetID(), client.GetID(), userSession.Username)
+
+			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrClientAuthorizationUserAccessDenied)
+
+			return nil, true
+		}
+
 		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
 			ctx.Logger.Errorf(logFmtErrConsentCantGetSubject, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.Username, client.GetSectorIdentifier(), err)
 
