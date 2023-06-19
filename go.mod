@@ -20,7 +20,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-retryablehttp v0.7.4
-	github.com/jackc/pgx/v5 v5.4.0
+	github.com/jackc/pgx/v5 v5.4.1
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/knadh/koanf/parsers/yaml v0.1.0
 	github.com/knadh/koanf/providers/confmap v0.1.0
@@ -34,7 +34,7 @@ require (
 	github.com/ory/fosite v0.44.0
 	github.com/ory/herodot v0.10.2
 	github.com/ory/x v0.0.561
-	github.com/otiai10/copy v1.11.0
+	github.com/otiai10/copy v1.12.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.4.0
 	github.com/prometheus/client_golang v1.16.0
