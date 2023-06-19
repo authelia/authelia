@@ -34,7 +34,7 @@ require (
 	github.com/ory/fosite v0.44.0
 	github.com/ory/herodot v0.10.2
 	github.com/ory/x v0.0.561
-	github.com/otiai10/copy v1.11.0
+	github.com/otiai10/copy v1.12.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.4.0
 	github.com/prometheus/client_golang v1.16.0
