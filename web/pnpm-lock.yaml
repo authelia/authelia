@@ -48,8 +48,8 @@ dependencies:
     specifier: 23.2.3
     version: 23.2.3
   i18next-browser-languagedetector:
-    specifier: 7.0.2
-    version: 7.0.2
+    specifier: 7.1.0
+    version: 7.1.0
   i18next-http-backend:
     specifier: 2.2.1
     version: 2.2.1
@@ -5594,10 +5594,10 @@ packages:
     resolution: {integrity: sha512-ygGZLjmXfPHj+ZWh6LwbC37l43MhfztxetbFCoYTM2VjkIUpeHgSNn7QIyVFj7YQ1Wl9Cbw5sholVJPzWvC2MQ==}
     dev: false
 
-  /i18next-browser-languagedetector@7.0.2:
-    resolution: {integrity: sha512-5ViaK+gikxfqZ9M3jJ7gJkUzzu/p3HwiqfLoL1bdiL7CUb0IylcTyVLdPaTU3pH5VFWFCiGFuJDg3VkLUikWgg==}
+  /i18next-browser-languagedetector@7.1.0:
+    resolution: {integrity: sha512-cr2k7u1XJJ4HTOjM9GyOMtbOA47RtUoWRAtt52z43r3AoMs2StYKyjS3URPhzHaf+mn10hY9dZWamga5WPQjhA==}
     dependencies:
-      '@babel/runtime': 7.21.0
+      '@babel/runtime': 7.22.5
     dev: false
 
   /i18next-http-backend@2.2.1:

@@ -25,7 +25,7 @@
     "broadcast-channel": "5.1.0",
     "classnames": "2.3.2",
     "i18next": "23.2.3",
-    "i18next-browser-languagedetector": "7.0.2",
+    "i18next-browser-languagedetector": "7.1.0",
     "i18next-http-backend": "2.2.1",
     "qrcode.react": "3.1.0",
     "react": "18.2.0",
