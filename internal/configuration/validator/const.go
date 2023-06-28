@@ -173,6 +173,13 @@ const (
 	errFmtOIDCCORSInvalidOriginWildcardWithClients = "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' cannot be specified with option 'allowed_origins_from_client_redirect_uris' enabled"
 	errFmtOIDCCORSInvalidEndpoint                  = "identity_providers: oidc: cors: option 'endpoints' contains an invalid value '%s': must be one of %s"
 
+	errFmtOIDCPolicyInvalidName          = "identity_providers: oidc: policies: policies must have a name but a policy with a blank name exists"
+	errFmtOIDCPolicyInvalidNameStandard  = "identity_providers: oidc: policies: policy '%s': option '%s' must not be one of %s but it's configured as '%s'"
+	errFmtOIDCPolicyMissingOption        = "identity_providers: oidc: policies: policy '%s': option '%s' is required"
+	errFmtOIDCPolicyRuleMissingOption    = "identity_providers: oidc: policies: policy '%s': rules: rule #%d: option '%s' is required"
+	errFmtOIDCPolicyInvalidDefaultPolicy = "identity_providers: oidc: policies: policy '%s': option 'default_policy' must be one of %s but it's configured as '%s'"
+	errFmtOIDCPolicyRuleInvalidPolicy    = "identity_providers: oidc: policies: policy '%s': rules: rule #%d: option 'policy' must be one of %s but it's configured as '%s'"
+
 	errFmtOIDCClientsDuplicateID = "identity_providers: oidc: clients: option 'id' must be unique for every client but one or more clients share the following 'id' values %s"
 	errFmtOIDCClientsWithEmptyID = "identity_providers: oidc: clients: option 'id' is required but was absent on the clients in positions %s"
 	errFmtOIDCClientsDeprecated  = "identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors"

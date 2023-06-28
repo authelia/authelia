@@ -40,12 +40,14 @@ type OpenIDConnect struct {
 	Discovery OpenIDConnectDiscovery // MetaData value. Not configurable by users.
 }
 
+// OpenIDConnectPolicy configuration for OpenID Connect 1.0 authorization policies.
 type OpenIDConnectPolicy struct {
 	DefaultPolicy string `koanf:"default_policy"`
 
 	Rules []OpenIDConnectPolicyRule `koanf:"rules"`
 }
 
+// OpenIDConnectPolicyRule configuration for OpenID Connect 1.0 authorization policies rules.
 type OpenIDConnectPolicyRule struct {
 	Policy   string     `koanf:"policy"`
 	Subjects [][]string `koanf:"subject"`
@@ -130,11 +132,15 @@ var DefaultOpenIDConnectConfiguration = OpenIDConnect{
 	EnforcePKCE:           "public_clients_only",
 }
 
+var DefaultOpenIDConnectPolicyConfiguration = OpenIDConnectPolicy{
+	DefaultPolicy: policyTwoFactor,
+}
+
 var defaultOIDCClientConsentPreConfiguredDuration = time.Hour * 24 * 7
 
 // DefaultOpenIDConnectClientConfiguration contains defaults for OIDC Clients.
 var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClient{
-	Policy:                       "two_factor",
+	Policy:                       policyTwoFactor,
 	Scopes:                       []string{"openid", "groups", "profile", "email"},
 	ResponseTypes:                []string{"code"},
 	ResponseModes:                []string{"form_post"},

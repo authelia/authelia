@@ -1295,6 +1295,14 @@ notifier:
     ## for security reasons.
     # enforce_pkce: 'public_clients_only'
 
+    ## Policies.
+    # policies:
+      # policy_name:
+        # default_policy: 'two_factor'
+        # rules:
+          # - policy: 'one_factor'
+          #   subject: 'group:services'
+
     ## Cross-Origin Resource Sharing (CORS) settings.
     # cors:
       ## List of endpoints in addition to the metadata endpoints to permit cross-origin requests on.
@@ -1366,7 +1374,8 @@ notifier:
           # - 'form_post'
           # - 'query'
 
-        ## The policy to require for this client; one_factor or two_factor.
+        ## The policy to require for this client; one_factor or two_factor. Can also be the key names for the policies
+        ## section.
         # authorization_policy: 'two_factor'
 
         ## The consent mode controls how consent is obtained.

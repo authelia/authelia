@@ -125,6 +125,10 @@ Feature List:
   * `RS256`, `RS384`, `RS512`
   * `PS256`, `PS384`, `PS512`
   * `ES256`, `ES384`, `ES512`
+* [Custom Authorization Policies / RBAC](#client-rbac):
+  * Policies can be mapped to individual clients and reused
+  * Match criteria is only subjects as this is the only effective thing that is constant during the life of an
+    authorization
 
 ### Beta 7
 
@@ -210,9 +214,9 @@ Allow users to choose which scopes they grant.
 
 #### Client RBAC
 
-{{< roadmap-status >}}
+{{< roadmap-status stage="in-progress" version="v4.38.0" >}}
 
-Allow clients to be configured with a list of users and groups who have access to them.
+Allow clients to be configured with a list of users and groups who have access to them. See [Beta 6](#beta-6).
 
 #### Preferred Username Claim
 

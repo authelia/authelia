@@ -65,38 +65,38 @@ func validateOIDCPolicies(config *schema.OpenIDConnect, val *schema.StructValida
 	for name, policy := range config.Policies {
 		switch name {
 		case "":
-			val.Push(fmt.Errorf("policy must have a name"))
+			val.Push(fmt.Errorf(errFmtOIDCPolicyInvalidName))
 		case policyOneFactor, policyTwoFactor, policyDeny:
-			val.Push(fmt.Errorf("policy names can't be named any of %s", strJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny})))
+			val.Push(fmt.Errorf(errFmtOIDCPolicyInvalidNameStandard, name, "name", strJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny}), name))
 		default:
 			break
 		}
 
 		switch policy.DefaultPolicy {
 		case "":
-			policy.DefaultPolicy = policyTwoFactor
+			policy.DefaultPolicy = schema.DefaultOpenIDConnectPolicyConfiguration.DefaultPolicy
 		case policyOneFactor, policyTwoFactor, policyDeny:
 			break
 		default:
-			val.Push(fmt.Errorf("policy must be one of %s", strJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny})))
+			val.Push(fmt.Errorf(errFmtOIDCPolicyInvalidDefaultPolicy, name, strJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny}), policy.DefaultPolicy))
 		}
 
 		if len(policy.Rules) == 0 {
-			val.Push(fmt.Errorf("policy must include at least one rule"))
+			val.Push(fmt.Errorf(errFmtOIDCPolicyMissingOption, name, "rules"))
 		}
 
 		for i, rule := range policy.Rules {
 			switch rule.Policy {
 			case "":
-				policy.Rules[i].Policy = policyTwoFactor
+				policy.Rules[i].Policy = schema.DefaultOpenIDConnectPolicyConfiguration.DefaultPolicy
 			case policyOneFactor, policyTwoFactor, policyDeny:
 				break
 			default:
-				val.Push(fmt.Errorf("policy must be one of %s", strJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny})))
+				val.Push(fmt.Errorf(errFmtOIDCPolicyRuleInvalidPolicy, name, i+1, strJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny}), rule.Policy))
 			}
 
 			if len(rule.Subjects) == 0 {
-				val.Push(fmt.Errorf("policy must include at least one criteria"))
+				val.Push(fmt.Errorf(errFmtOIDCPolicyRuleMissingOption, name, i+1, "subject"))
 			}
 		}
 

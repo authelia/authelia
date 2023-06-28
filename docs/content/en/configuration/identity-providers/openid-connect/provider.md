@@ -38,11 +38,11 @@ intended for production use it's used to provide context and an indentation exam
 ```yaml
 identity_providers:
   oidc:
-    hmac_secret: this_is_a_secret_abc123abc123abc
+    hmac_secret: 'this_is_a_secret_abc123abc123abc'
     issuer_private_keys:
-      - key_id: example
-        algorithm: RS256
-        use: sig
+      - key_id: 'example'
+        algorithm: 'RS256'
+        use: 'sig'
         key: |
           -----BEGIN RSA PUBLIC KEY-----
           MEgCQQDAwV26ZA1lodtOQxNrJ491gWT+VzFum9IeZ+WTmMypYWyW1CzXKwsvTHDz
@@ -95,25 +95,31 @@ identity_providers:
       Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
       1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
       -----END CERTIFICATE-----
-    access_token_lifespan: 1h
-    authorize_code_lifespan: 1m
-    id_token_lifespan: 1h
-    refresh_token_lifespan: 90m
+    access_token_lifespan: '1h'
+    authorize_code_lifespan: '1m'
+    id_token_lifespan: '1h'
+    refresh_token_lifespan: '90m'
     enable_client_debug_messages: false
     minimum_parameter_entropy: 8
-    enforce_pkce: public_clients_only
+    enforce_pkce: 'public_clients_only'
     enable_pkce_plain_challenge: false
     pushed_authorizations:
       enforce: false
-      context_lifespan: 5m
+      context_lifespan: '5m'
+    policies:
+      policy_name:
+        default_policy: 'two_factor'
+        rules:
+          - policy: 'deny'
+            subject: 'group:services'
     cors:
       endpoints:
-        - authorization
-        - token
-        - revocation
-        - introspection
+        - 'authorization'
+        - 'token'
+        - 'revocation'
+        - 'introspection'
       allowed_origins:
-        - https://example.com
+        - 'https://example.com'
       allowed_origins_from_client_redirect_uris: false
 ```
 
@@ -348,6 +354,50 @@ When enabled all authorization requests must use the [Pushed Authorization Reque
 
 The maximum amount of time between the [Pushed Authorization Requests] flow being initiated and the generated
 `request_uri` being utilized by a client.
+
+### policies
+
+{{< confkey type="dictionary(object)" required="no" >}}
+
+The policies section allows creating custom authorization policies which can be applied to clients. This is useful
+if you wish to only allow specific users to access specific clients i.e. RBAC. It's generally recommended however that
+users rely on the [OpenID Connect 1.0] relying party to provide RBAC controls based on the available claims.
+
+Each policy applies one of the effective policies which can be either `one_factor` or `two_factor` as per the standard
+policies, or also the `deny` policy which is exclusively available via these configuration options.
+
+Each rule within a policy is matched in order where the first fully matching rule is the applied policy. If the `deny`
+rule is matched the user is not asked for consent and it is considered a rejected consent and returns an
+[OpenID Connect 1.0] `access_denied` error.
+
+The key for the policy itself is the name of the policy, which is used when configuring the client
+`authorization_policy` option. In the example we name the policy `policy_name`.
+
+#### default_policy
+
+{{< confkey type="string" default="two_factor" required="no" >}}
+
+The default effective policy of none of the rules are able to determine the effective policy.
+
+#### rules
+
+{{< confkey type="list(object)" required="yes" >}}
+
+The list of rules which this policy should consider when choosing the effective policy. This must be included for the
+policy to be considered valid.
+
+##### policy
+
+{{< confkey type="string" default="two_factor" required="no" >}}
+
+The policy which is applied if this rule matches. Valid values are `one_factor`, `two_factor`, and `deny`.
+
+##### subject
+
+{{< confkey type="list(string(string))" required="yes" >}}
+
+The subjects criteria as per the [Access Control Configuration](../../security/access-control.md#subject). This must be
+included for the rule to be considered valid.
 
 ### cors
 
