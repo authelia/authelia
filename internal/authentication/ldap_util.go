@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	ber "github.com/go-asn1-ber/asn1-ber"
-	"github.com/go-ldap/ldap/v3"
+	ldap "github.com/go-ldap/ldap/v3"
 )
 
 func ldapEntriesContainsEntry(needle *ldap.Entry, haystack []*ldap.Entry) bool {
@@ -67,12 +67,12 @@ func ldapEscape(inputUsername string) string {
 }
 
 func ldapGetReferral(err error) (referral string, ok bool) {
-	if !ldap.IsErrorWithCode(err, ldap.LDAPResultReferral) {
-		return "", false
-	}
-
 	switch e := err.(type) {
 	case *ldap.Error:
+		if e.ResultCode != ldap.LDAPResultReferral {
+			return "", false
+		}
+
 		if e.Packet == nil {
 			return "", false
 		}

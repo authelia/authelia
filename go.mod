@@ -11,7 +11,7 @@ require (
 	github.com/fasthttp/session/v2 v2.5.0
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-asn1-ber/asn1-ber v1.5.4
-	github.com/go-crypt/crypt v0.2.9
+	github.com/go-crypt/crypt v0.2.10
 	github.com/go-ldap/ldap/v3 v3.4.5
 	github.com/go-rod/rod v0.113.3
 	github.com/go-sql-driver/mysql v1.7.1
@@ -20,7 +20,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-retryablehttp v0.7.4
-	github.com/jackc/pgx/v5 v5.4.0
+	github.com/jackc/pgx/v5 v5.4.1
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/knadh/koanf/parsers/yaml v0.1.0
 	github.com/knadh/koanf/providers/confmap v0.1.0
@@ -33,8 +33,8 @@ require (
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/ory/fosite v0.44.0
 	github.com/ory/herodot v0.10.2
-	github.com/ory/x v0.0.561
-	github.com/otiai10/copy v1.11.0
+	github.com/ory/x v0.0.565
+	github.com/otiai10/copy v1.12.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.4.0
 	github.com/prometheus/client_golang v1.16.0
@@ -43,7 +43,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
 	github.com/trustelem/zxcvbn v1.0.1
-	github.com/valyala/fasthttp v1.47.0
+	github.com/valyala/fasthttp v1.48.0
 	github.com/wneessen/go-mail v0.3.9
 	golang.org/x/net v0.11.0
 	golang.org/x/sync v0.3.0
@@ -70,7 +70,7 @@ require (
 	github.com/ecordell/optgen v0.0.6 // indirect
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
-	github.com/go-crypt/x v0.2.1 // indirect
+	github.com/go-crypt/x v0.2.3 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-webauthn/revoke v0.1.9 // indirect
 	github.com/golang/glog v1.0.0 // indirect
