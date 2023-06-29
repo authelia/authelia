@@ -28,5 +28,7 @@ services:
       - '--serversTransport.insecureSkipVerify=true'
     networks:
       authelianet:
+        aliases:
+          - login.example.com
         ipv4_address: 192.168.240.100
 ...
