@@ -128,12 +128,12 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 			return fmt.Errorf("notifier: smtp: failed to set body: text template errored: %w", err)
 		}
 	default:
-		if err = msg.AddAlternativeHTMLTemplate(et.HTML, data); err != nil {
-			return fmt.Errorf("notifier: smtp: failed to set body: html template errored: %w", err)
-		}
-
 		if err = msg.AddAlternativeTextTemplate(et.Text, data); err != nil {
 			return fmt.Errorf("notifier: smtp: failed to set body: text template errored: %w", err)
+		}
+
+		if err = msg.AddAlternativeHTMLTemplate(et.HTML, data); err != nil {
+			return fmt.Errorf("notifier: smtp: failed to set body: html template errored: %w", err)
 		}
 	}
 
