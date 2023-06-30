@@ -37,11 +37,12 @@ authentication_backend:
 
 access_control:
   default_policy: deny
-
   rules:
     # Rules applied to everyone
     - domain: public.example.com
       policy: bypass
+    - domain: "deny.example.com"
+      policy: deny
     - domain: secure.example.com
       policy: two_factor
     - domain: singlefactor.example.com

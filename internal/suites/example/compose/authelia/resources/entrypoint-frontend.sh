@@ -2,4 +2,4 @@
 
 set -x
 
-pnpm install --frozen-lockfile && pnpm start
+pnpm install --force --frozen-lockfile && pnpm start

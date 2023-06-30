@@ -58,6 +58,8 @@ access_control:
   rules:
     - domain: "public.example.com"
       policy: bypass
+    - domain: "deny.example.com"
+      policy: deny
     - domain: "admin.example.com"
       policy: two_factor
     - domain: "secure.example.com"
