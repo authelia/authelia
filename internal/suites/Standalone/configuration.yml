@@ -50,9 +50,11 @@ access_control:
         - OPTIONS
     - domain: "deny.example.com"
       policy: deny
-    - domain: secure.example.com
+    - domain: "admin.example.com"
       policy: two_factor
-    - domain: singlefactor.example.com
+    - domain: "secure.example.com"
+      policy: two_factor
+    - domain: "singlefactor.example.com"
       policy: one_factor
 
 regulation:
