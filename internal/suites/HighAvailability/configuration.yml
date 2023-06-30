@@ -37,18 +37,19 @@ authentication_backend:
 
 access_control:
   default_policy: deny
-
   rules:
     # Rules applied to everyone
-    - domain: public.example.com
+    - domain: ["home.example.com", "public.example.com"]
       policy: bypass
-    - domain: secure.example.com
+    - domain: "deny.example.com"
+      policy: deny
+    - domain: "secure.example.com"
       policy: two_factor
-    - domain: singlefactor.example.com
+    - domain: "singlefactor.example.com"
       policy: one_factor
 
     # Rules applied to 'admins' group
-    - domain: mx2.mail.example.com
+    - domain: "mx2.mail.example.com"
       subject: "group:admins"
       policy: deny
 
@@ -62,14 +63,14 @@ access_control:
       policy: two_factor
 
     # Rules applied to 'dev' group
-    - domain: dev.example.com
+    - domain: "dev.example.com"
       resources:
         - "^/groups/dev/.*$"
       subject: "group:dev"
       policy: two_factor
 
     # Rules applied to user 'harry'
-    - domain: dev.example.com
+    - domain: "dev.example.com"
       resources:
         - "^/users/harry/.*$"
       subject: "user:harry"

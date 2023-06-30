@@ -35,56 +35,17 @@ authentication_backend:
 
 access_control:
   default_policy: deny
-
   rules:
-    # Rules applied to everyone
-    - domain: home.example.com
+    - domain: ["home.example.com", "public.example.com"]
       policy: bypass
-    - domain: public.example.com
-      policy: bypass
-    - domain: secure.example.com
-      policy: two_factor
-    - domain: singlefactor.example.com
-      policy: one_factor
-
-    # Rules applied to 'admins' group
-    - domain: "mx2.mail.example.com"
-      subject: "group:admins"
+    - domain: "deny.example.com"
       policy: deny
-    - domain: "*.example.com"
-      subject: "group:admins"
+    - domain: "admin.example.com"
       policy: two_factor
-
-    # Rules applied to 'dev' group
-    - domain: dev.example.com
-      resources:
-        - "^/groups/dev/.*$"
-      subject: "group:dev"
+    - domain: "secure.example.com"
       policy: two_factor
-
-    # Rules applied to user 'john'
-    - domain: dev.example.com
-      resources:
-        - "^/users/john/.*$"
-      subject: "user:john"
-      policy: two_factor
-
-    # Rules applied to user 'harry'
-    - domain: dev.example.com
-      resources:
-        - "^/users/harry/.*$"
-      subject: "user:harry"
-      policy: two_factor
-
-    # Rules applied to user 'bob'
-    - domain: "*.mail.example.com"
-      subject: "user:bob"
-      policy: two_factor
-    - domain: "dev.example.com"
-      resources:
-        - "^/users/bob/.*$"
-      subject: "user:bob"
-      policy: two_factor
+    - domain: "singlefactor.example.com"
+      policy: one_factor
 
 session:
   expiration: 3600  # 1 hour

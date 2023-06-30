@@ -56,8 +56,10 @@ totp:
 access_control:
   default_policy: deny
   rules:
-    - domain: "public.example.com"
+    - domain: ["home.example.com", "public.example.com"]
       policy: bypass
+    - domain: "deny.example.com"
+      policy: deny
     - domain: "admin.example.com"
       policy: two_factor
     - domain: "secure.example.com"
