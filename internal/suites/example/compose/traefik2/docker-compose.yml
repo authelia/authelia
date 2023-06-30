@@ -28,10 +28,5 @@ services:
       - '--serversTransport.insecureSkipVerify=true'
     networks:
       authelianet:
-        aliases:
-          - public.example.com
-          - secure.example.com
-          - login.example.com
-        # Set the IP to be able to query on port 8080
         ipv4_address: 192.168.240.100
 ...
