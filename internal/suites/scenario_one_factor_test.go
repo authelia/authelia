@@ -126,6 +126,7 @@ func (s *OneFactorSuite) TestShouldDenyAccessOnForbidden() {
 
 	targetURL := fmt.Sprintf("%s/secret.html", DenyBaseURL)
 	s.doVisit(s.T(), s.Context(ctx), targetURL)
+	s.verifyURLIs(s.T(), s.Context(ctx), targetURL)
 	s.verifyBodyContains(s.T(), s.Context(ctx), "403 Forbidden")
 }
 
