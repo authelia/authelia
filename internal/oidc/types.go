@@ -177,62 +177,6 @@ type Client interface {
 	GetAuthorizationPolicy() ClientAuthorizationPolicy
 }
 
-// NewClientConsentPolicy converts the config options into an oidc.ClientConsentPolicy.
-func NewClientConsentPolicy(mode string, duration *time.Duration) ClientConsentPolicy {
-	switch mode {
-	case ClientConsentModeImplicit.String():
-		return ClientConsentPolicy{Mode: ClientConsentModeImplicit}
-	case ClientConsentModePreConfigured.String():
-		return ClientConsentPolicy{Mode: ClientConsentModePreConfigured, Duration: *duration}
-	case ClientConsentModeExplicit.String():
-		return ClientConsentPolicy{Mode: ClientConsentModeExplicit}
-	default:
-		return ClientConsentPolicy{Mode: ClientConsentModeExplicit}
-	}
-}
-
-// ClientConsentPolicy is the consent configuration for a client.
-type ClientConsentPolicy struct {
-	Mode     ClientConsentMode
-	Duration time.Duration
-}
-
-// String returns the string representation of the ClientConsentMode.
-func (c ClientConsentPolicy) String() string {
-	return c.Mode.String()
-}
-
-// ClientConsentMode represents the consent mode for a client.
-type ClientConsentMode int
-
-const (
-	// ClientConsentModeExplicit means the client does not implicitly assume consent, and does not allow pre-configured
-	// consent sessions.
-	ClientConsentModeExplicit ClientConsentMode = iota
-
-	// ClientConsentModePreConfigured means the client does not implicitly assume consent, but does allow pre-configured
-	// consent sessions.
-	ClientConsentModePreConfigured
-
-	// ClientConsentModeImplicit means the client does implicitly assume consent, and does not allow pre-configured
-	// consent sessions.
-	ClientConsentModeImplicit
-)
-
-// String returns the string representation of the ClientConsentMode.
-func (c ClientConsentMode) String() string {
-	switch c {
-	case ClientConsentModeExplicit:
-		return explicit
-	case ClientConsentModeImplicit:
-		return implicit
-	case ClientConsentModePreConfigured:
-		return preconfigured
-	default:
-		return ""
-	}
-}
-
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
 type ConsentGetResponseBody struct {
 	ClientID          string   `json:"client_id"`
