@@ -5,16 +5,20 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-func NewClientPolicy(name string, config *schema.OpenIDConnect) (policy ClientPolicy) {
+// NewClientAuthorizationPolicy creates a new ClientAuthorizationPolicy.
+func NewClientAuthorizationPolicy(name string, config *schema.OpenIDConnect) (policy ClientAuthorizationPolicy) {
 	switch name {
 	case authorization.OneFactor.String(), authorization.TwoFactor.String():
-		return ClientPolicy{DefaultPolicy: authorization.NewLevel(name)}
+		return ClientAuthorizationPolicy{Name: name, DefaultPolicy: authorization.NewLevel(name)}
 	default:
 		if p, ok := config.Policies[name]; ok {
-			policy.DefaultPolicy = authorization.NewLevel(p.DefaultPolicy)
+			policy = ClientAuthorizationPolicy{
+				Name:          name,
+				DefaultPolicy: authorization.NewLevel(p.DefaultPolicy),
+			}
 
 			for _, r := range p.Rules {
-				policy.Rules = append(policy.Rules, ClientPolicyRule{
+				policy.Rules = append(policy.Rules, ClientAuthorizationPolicyRule{
 					Policy:   authorization.NewLevel(r.Policy),
 					Subjects: authorization.NewSubjects(r.Subjects),
 				})
@@ -23,17 +27,19 @@ func NewClientPolicy(name string, config *schema.OpenIDConnect) (policy ClientPo
 			return policy
 		}
 
-		return ClientPolicy{DefaultPolicy: authorization.TwoFactor}
+		return ClientAuthorizationPolicy{DefaultPolicy: authorization.TwoFactor}
 	}
 }
 
-// ClientPolicy controls and represents a client policy.
-type ClientPolicy struct {
+// ClientAuthorizationPolicy controls and represents a client policy.
+type ClientAuthorizationPolicy struct {
+	Name          string
 	DefaultPolicy authorization.Level
-	Rules         []ClientPolicyRule
+	Rules         []ClientAuthorizationPolicyRule
 }
 
-func (p *ClientPolicy) GetRequiredLevel(subject authorization.Subject) authorization.Level {
+// GetRequiredLevel returns the required authorization.Level given an authorization.Subject.
+func (p *ClientAuthorizationPolicy) GetRequiredLevel(subject authorization.Subject) authorization.Level {
 	for _, rule := range p.Rules {
 		if rule.IsMatch(subject) {
 			return rule.Policy
@@ -43,13 +49,14 @@ func (p *ClientPolicy) GetRequiredLevel(subject authorization.Subject) authoriza
 	return p.DefaultPolicy
 }
 
-type ClientPolicyRule struct {
+// ClientAuthorizationPolicyRule describes the authorization.Level for particular criteria relevant to OpenID Connect 1.0 Clients.
+type ClientAuthorizationPolicyRule struct {
 	Subjects []authorization.AccessControlSubjects
 	Policy   authorization.Level
 }
 
 // MatchesSubjects returns true if the rule matches the subjects.
-func (p *ClientPolicyRule) MatchesSubjects(subject authorization.Subject) (match bool) {
+func (p *ClientAuthorizationPolicyRule) MatchesSubjects(subject authorization.Subject) (match bool) {
 	// If there are no subjects in this rule then the subject condition is a match.
 	if len(p.Subjects) == 0 {
 		return true
@@ -68,6 +75,6 @@ func (p *ClientPolicyRule) MatchesSubjects(subject authorization.Subject) (match
 }
 
 // IsMatch returns true if all elements of an AccessControlRule match the object and subject.
-func (p *ClientPolicyRule) IsMatch(subject authorization.Subject) (match bool) {
+func (p *ClientAuthorizationPolicyRule) IsMatch(subject authorization.Subject) (match bool) {
 	return p.MatchesSubjects(subject)
 }

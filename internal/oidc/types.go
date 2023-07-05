@@ -129,9 +129,9 @@ type BaseClient struct {
 	UserinfoSigningAlg   string
 	UserinfoSigningKeyID string
 
-	Policy ClientPolicy
+	AuthorizationPolicy ClientAuthorizationPolicy
 
-	Consent ClientConsent
+	ConsentPolicy ClientConsentPolicy
 }
 
 // FullClient is the client with comprehensive supported features.
@@ -171,33 +171,34 @@ type Client interface {
 	ValidatePARPolicy(r fosite.Requester, prefix string) (err error)
 	ValidateResponseModePolicy(r fosite.AuthorizeRequester) (err error)
 
-	GetConsentPolicy() ClientConsent
+	GetConsentPolicy() ClientConsentPolicy
 	IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) bool
-	GetAuthorizationPolicy(subject authorization.Subject) authorization.Level
+	GetAuthorizationPolicyRequiredLevel(subject authorization.Subject) authorization.Level
+	GetAuthorizationPolicy() ClientAuthorizationPolicy
 }
 
-// NewClientConsent converts the schema.OpenIDConnectClientConsentConfig into a oidc.ClientConsent.
-func NewClientConsent(mode string, duration *time.Duration) ClientConsent {
+// NewClientConsentPolicy converts the config options into an oidc.ClientConsentPolicy.
+func NewClientConsentPolicy(mode string, duration *time.Duration) ClientConsentPolicy {
 	switch mode {
 	case ClientConsentModeImplicit.String():
-		return ClientConsent{Mode: ClientConsentModeImplicit}
+		return ClientConsentPolicy{Mode: ClientConsentModeImplicit}
 	case ClientConsentModePreConfigured.String():
-		return ClientConsent{Mode: ClientConsentModePreConfigured, Duration: *duration}
+		return ClientConsentPolicy{Mode: ClientConsentModePreConfigured, Duration: *duration}
 	case ClientConsentModeExplicit.String():
-		return ClientConsent{Mode: ClientConsentModeExplicit}
+		return ClientConsentPolicy{Mode: ClientConsentModeExplicit}
 	default:
-		return ClientConsent{Mode: ClientConsentModeExplicit}
+		return ClientConsentPolicy{Mode: ClientConsentModeExplicit}
 	}
 }
 
-// ClientConsent is the consent configuration for a client.
-type ClientConsent struct {
+// ClientConsentPolicy is the consent configuration for a client.
+type ClientConsentPolicy struct {
 	Mode     ClientConsentMode
 	Duration time.Duration
 }
 
 // String returns the string representation of the ClientConsentMode.
-func (c ClientConsent) String() string {
+func (c ClientConsentPolicy) String() string {
 	return c.Mode.String()
 }
 

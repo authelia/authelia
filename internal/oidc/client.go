@@ -4,7 +4,7 @@ import (
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/ory/fosite"
 	"github.com/ory/x/errorsx"
-	"gopkg.in/square/go-jose.v2"
+	jose "gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -39,8 +39,8 @@ func NewClient(config schema.OpenIDConnectClient, c *schema.OpenIDConnect) (clie
 		UserinfoSigningAlg:   config.UserinfoSigningAlg,
 		UserinfoSigningKeyID: config.UserinfoSigningKeyID,
 
-		Policy:  NewClientPolicy(config.Policy, c),
-		Consent: NewClientConsent(config.ConsentMode, config.ConsentPreConfiguredDuration),
+		AuthorizationPolicy: NewClientAuthorizationPolicy(config.Policy, c),
+		ConsentPolicy:       NewClientConsentPolicy(config.ConsentMode, config.ConsentPreConfiguredDuration),
 	}
 
 	for _, mode := range config.ResponseModes {
@@ -197,17 +197,22 @@ func (c *BaseClient) IsAuthenticationLevelSufficient(level authentication.Level,
 		return false
 	}
 
-	return authorization.IsAuthLevelSufficient(level, c.GetAuthorizationPolicy(subject))
+	return authorization.IsAuthLevelSufficient(level, c.GetAuthorizationPolicyRequiredLevel(subject))
 }
 
-// GetAuthorizationPolicy returns Policy.
-func (c *BaseClient) GetAuthorizationPolicy(subject authorization.Subject) authorization.Level {
-	return c.Policy.GetRequiredLevel(subject)
+// GetAuthorizationPolicyRequiredLevel returns the required authorization.Level given an authorization.Subject.
+func (c *BaseClient) GetAuthorizationPolicyRequiredLevel(subject authorization.Subject) authorization.Level {
+	return c.AuthorizationPolicy.GetRequiredLevel(subject)
+}
+
+// GetAuthorizationPolicy returns the ClientAuthorizationPolicy from the Policy.
+func (c *BaseClient) GetAuthorizationPolicy() ClientAuthorizationPolicy {
+	return c.AuthorizationPolicy
 }
 
 // GetConsentPolicy returns Consent.
-func (c *BaseClient) GetConsentPolicy() ClientConsent {
-	return c.Consent
+func (c *BaseClient) GetConsentPolicy() ClientConsentPolicy {
+	return c.ConsentPolicy
 }
 
 // GetConsentResponseBody returns the proper consent response body for this session.OIDCWorkflowSession.
@@ -215,7 +220,7 @@ func (c *BaseClient) GetConsentResponseBody(consent *model.OAuth2ConsentSession)
 	body := ConsentGetResponseBody{
 		ClientID:          c.ID,
 		ClientDescription: c.Description,
-		PreConfiguration:  c.Consent.Mode == ClientConsentModePreConfigured,
+		PreConfiguration:  c.ConsentPolicy.Mode == ClientConsentModePreConfigured,
 	}
 
 	if consent != nil {

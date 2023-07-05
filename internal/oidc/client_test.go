@@ -51,7 +51,7 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, myclient, client.GetID())
 	require.Len(t, client.GetResponseModes(), 1)
 	assert.Equal(t, fosite.ResponseModeFormPost, client.GetResponseModes()[0])
-	assert.Equal(t, authorization.TwoFactor, client.GetAuthorizationPolicy(authorization.Subject{}))
+	assert.Equal(t, authorization.TwoFactor, client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{}))
 
 	config = schema.OpenIDConnectClient{
 		TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
@@ -116,9 +116,9 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, niljwks, fclient.JSONWebKeys)
 	assert.Equal(t, niljwks, fclient.GetJSONWebKeys())
 
-	assert.Equal(t, oidc.ClientConsentMode(0), fclient.Consent.Mode)
-	assert.Equal(t, time.Second*0, fclient.Consent.Duration)
-	assert.Equal(t, oidc.ClientConsent{Mode: oidc.ClientConsentModeExplicit}, fclient.GetConsentPolicy())
+	assert.Equal(t, oidc.ClientConsentMode(0), fclient.ConsentPolicy.Mode)
+	assert.Equal(t, time.Second*0, fclient.ConsentPolicy.Duration)
+	assert.Equal(t, oidc.ClientConsentPolicy{Mode: oidc.ClientConsentModeExplicit}, fclient.GetConsentPolicy())
 
 	fclient.TokenEndpointAuthMethod = ""
 	fclient.Public = false
@@ -204,22 +204,22 @@ func TestBaseClient_ValidatePARPolicy(t *testing.T) {
 func TestIsAuthenticationLevelSufficient(t *testing.T) {
 	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
 
-	c.Policy = oidc.ClientPolicy{DefaultPolicy: authorization.Bypass}
+	c.AuthorizationPolicy = oidc.ClientAuthorizationPolicy{DefaultPolicy: authorization.Bypass}
 	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated, authorization.Subject{}))
 	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor, authorization.Subject{}))
 	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor, authorization.Subject{}))
 
-	c.Policy = oidc.ClientPolicy{DefaultPolicy: authorization.OneFactor}
+	c.AuthorizationPolicy = oidc.ClientAuthorizationPolicy{DefaultPolicy: authorization.OneFactor}
 	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated, authorization.Subject{}))
 	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor, authorization.Subject{}))
 	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor, authorization.Subject{}))
 
-	c.Policy = oidc.ClientPolicy{DefaultPolicy: authorization.TwoFactor}
+	c.AuthorizationPolicy = oidc.ClientAuthorizationPolicy{DefaultPolicy: authorization.TwoFactor}
 	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated, authorization.Subject{}))
 	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor, authorization.Subject{}))
 	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor, authorization.Subject{}))
 
-	c.Policy = oidc.ClientPolicy{DefaultPolicy: authorization.Denied}
+	c.AuthorizationPolicy = oidc.ClientAuthorizationPolicy{DefaultPolicy: authorization.Denied}
 	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated, authorization.Subject{}))
 	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor, authorization.Subject{}))
 	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor, authorization.Subject{}))
