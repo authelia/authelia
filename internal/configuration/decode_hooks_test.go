@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"crypto/rsa"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
 	"math"
 	"net/mail"
 	"net/url"
@@ -786,24 +788,6 @@ func TestStringToRegexpFuncPointers(t *testing.T) {
 }
 
 func TestStringToAddressHookFunc(t *testing.T) {
-	mustParseAddress := func(a string) (addr schema.Address) {
-		addrs, err := schema.NewAddress(a)
-		if err != nil {
-			panic(err)
-		}
-
-		return *addrs
-	}
-
-	mustParseAddressPtr := func(a string) (addr *schema.Address) {
-		addr, err := schema.NewAddress(a)
-		if err != nil {
-			panic(err)
-		}
-
-		return addr
-	}
-
 	testCases := []struct {
 		name     string
 		have     any
@@ -814,13 +798,13 @@ func TestStringToAddressHookFunc(t *testing.T) {
 		{
 			name:     "ShouldDecodeNonPtr",
 			have:     "tcp://0.0.0.0:2020",
-			expected: mustParseAddress("tcp://0.0.0.0:2020"),
+			expected: MustParseAddress("tcp://0.0.0.0:2020"),
 			decode:   true,
 		},
 		{
 			name:     "ShouldDecodePtr",
 			have:     "tcp://0.0.0.0:2020",
-			expected: mustParseAddressPtr("tcp://0.0.0.0:2020"),
+			expected: MustParseAddressPtr("tcp://0.0.0.0:2020"),
 			decode:   true,
 		},
 		{
@@ -870,6 +854,90 @@ func TestStringToAddressHookFunc(t *testing.T) {
 			have:     "tcp://&!@^#*&!@#&*@!:2020",
 			expected: schema.Address{},
 			err:      "could not decode 'tcp://&!@^#*&!@#&*@!:2020' to a schema.Address: could not parse string 'tcp://&!@^#*&!@#&*@!:2020' as address: expected format is [<scheme>://]<hostname>[:<port>]: parse \"tcp://&!@^\": invalid character \"^\" in host name",
+			decode:   false,
+		},
+		{
+			name:     "ShouldDecodeTCP",
+			have:     "tcp://127.0.0.1",
+			expected: schema.AddressTCP{Address: MustParseAddress("tcp://127.0.0.1")},
+			err:      "",
+			decode:   true,
+		},
+		{
+			name:     "ShouldDecodeTCPPtr",
+			have:     "tcp://127.0.0.1",
+			expected: &schema.AddressTCP{Address: MustParseAddress("tcp://127.0.0.1")},
+			err:      "",
+			decode:   true,
+		},
+		{
+			name:     "ShouldDecodeUDP",
+			have:     "udp://127.0.0.1",
+			expected: schema.AddressUDP{Address: MustParseAddress("udp://127.0.0.1")},
+			err:      "",
+			decode:   true,
+		},
+		{
+			name:     "ShouldDecodeUDPPtr",
+			have:     "udp://127.0.0.1",
+			expected: &schema.AddressUDP{Address: MustParseAddress("udp://127.0.0.1")},
+			err:      "",
+			decode:   true,
+		},
+		{
+			name:     "ShouldDecodeLDAP",
+			have:     "ldap://127.0.0.1",
+			expected: schema.AddressLDAP{Address: MustParseAddress("ldap://127.0.0.1")},
+			err:      "",
+			decode:   true,
+		},
+		{
+			name:     "ShouldDecodeLDAPPtr",
+			have:     "ldap://127.0.0.1",
+			expected: &schema.AddressLDAP{Address: MustParseAddress("ldap://127.0.0.1")},
+			err:      "",
+			decode:   true,
+		},
+		{
+			name:     "ShouldDecodeSMTP",
+			have:     "smtp://127.0.0.1",
+			expected: schema.AddressSMTP{Address: MustParseAddress("smtp://127.0.0.1")},
+			err:      "",
+			decode:   true,
+		},
+		{
+			name:     "ShouldDecodeSMTPPtr",
+			have:     "smtp://127.0.0.1",
+			expected: &schema.AddressSMTP{Address: MustParseAddress("smtp://127.0.0.1")},
+			err:      "",
+			decode:   true,
+		},
+		{
+			name:     "ShouldFailDecodeTCP",
+			have:     "@@@@@@@",
+			expected: schema.AddressTCP{Address: MustParseAddress("tcp://127.0.0.1")},
+			err:      "could not decode '@@@@@@@' to a schema.AddressTCP: error validating the address: the url 'tcp://%40%40%40%40%40%40@' appears to have user info but this is not valid for addresses",
+			decode:   false,
+		},
+		{
+			name:     "ShouldFailDecodeUDP",
+			have:     "@@@@@@@",
+			expected: schema.AddressUDP{Address: MustParseAddress("udp://127.0.0.1")},
+			err:      "could not decode '@@@@@@@' to a schema.AddressUDP: error validating the address: the url 'udp://%40%40%40%40%40%40@' appears to have user info but this is not valid for addresses",
+			decode:   false,
+		},
+		{
+			name:     "ShouldFailDecodeLDAP",
+			have:     "@@@@@@@",
+			expected: schema.AddressLDAP{Address: MustParseAddress("ldap://127.0.0.1")},
+			err:      "could not decode '@@@@@@@' to a schema.AddressLDAP: error validating the address: the url 'ldaps://%40%40%40%40%40%40@' appears to have user info but this is not valid for addresses",
+			decode:   false,
+		},
+		{
+			name:     "ShouldFailDecodeSMTP",
+			have:     "@@@@@@@",
+			expected: schema.AddressSMTP{Address: MustParseAddress("smtp://127.0.0.1")},
+			err:      "could not decode '@@@@@@@' to a schema.AddressSMTP: error validating the address: the url 'smtp://%40%40%40%40%40%40@' appears to have user info but this is not valid for addresses",
 			decode:   false,
 		},
 	}
@@ -1090,6 +1158,160 @@ func TestStringToX509CertificateHookFunc(t *testing.T) {
 			default:
 				assert.EqualError(t, err, tc.err)
 				assert.Nil(t, result)
+			}
+		})
+	}
+}
+
+func TestStringToPasswordDigestHookFunc(t *testing.T) {
+	var nilvalue *schema.PasswordDigest
+
+	testCases := []struct {
+		name     string
+		have     any
+		expected any
+		err      string
+		decode   bool
+	}{
+		{
+			"ShouldParse",
+			"$plaintext$example",
+			MustParsePasswordDigest("$plaintext$example"),
+			"",
+			true,
+		},
+		{
+			"ShouldParsePtr",
+			"$plaintext$example",
+			MustParsePasswordDigestPtr("$plaintext$example"),
+			"",
+			true,
+		},
+		{
+			"ShouldNotParseUnknown",
+			"$abc$example",
+			schema.PasswordDigest{},
+			"could not decode '$abc$example' to a schema.PasswordDigest: provided encoded hash has an invalid identifier: the identifier 'abc' is unknown to the decoder",
+			false,
+		},
+		{
+			"ShouldNotParseWrongType",
+			"$abc$example",
+			schema.TLSVersion{},
+			"",
+			false,
+		},
+		{
+			"ShouldNotParseWrongTypePtr",
+			"$abc$example",
+			&schema.TLSVersion{},
+			"",
+			false,
+		},
+		{
+			"ShouldNotParseEmptyString",
+			"",
+			schema.PasswordDigest{},
+			"could not decode an empty value to a schema.PasswordDigest: must have a non-empty value",
+			false,
+		},
+		{
+			"ShouldParseEmptyStringPtr",
+			"",
+			nilvalue,
+			"",
+			true,
+		},
+	}
+
+	hook := configuration.StringToPasswordDigestHookFunc()
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.expected), tc.have)
+			if tc.err != "" {
+				assert.EqualError(t, err, tc.err)
+
+				if !tc.decode {
+					assert.Nil(t, actual)
+				}
+			} else {
+				assert.NoError(t, err)
+
+				if tc.decode {
+					assert.Equal(t, tc.expected, actual)
+				} else {
+					assert.Equal(t, tc.have, actual)
+				}
+			}
+		})
+	}
+}
+
+func TestStringToTLSVersionHookFunc(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     any
+		expected any
+		err      string
+		decode   bool
+	}{
+		{
+			"ShouldParseTLS1.3",
+			"TLS1.3",
+			schema.TLSVersion{Value: tls.VersionTLS13},
+			"",
+			true,
+		},
+		{
+			"ShouldParseTLS1.3PTR",
+			"TLS1.3",
+			&schema.TLSVersion{Value: tls.VersionTLS13},
+			"",
+			true,
+		},
+		{
+			"ShouldParseTLS1.2",
+			"TLS1.2",
+			schema.TLSVersion{Value: tls.VersionTLS12},
+			"",
+			true,
+		},
+		{
+			"ShouldNotParseInt",
+			1,
+			&schema.TLSVersion{},
+			"",
+			false,
+		},
+		{
+			"ShouldNotParseNonVersion",
+			"1",
+			&schema.TLSVersion{},
+			"could not decode '1' to a *schema.TLSVersion: supplied tls version isn't supported",
+			false,
+		},
+	}
+
+	hook := configuration.StringToTLSVersionHookFunc()
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.expected), tc.have)
+			if tc.err != "" {
+				assert.EqualError(t, err, tc.err)
+
+				if !tc.decode {
+					assert.Nil(t, actual)
+				}
+			} else {
+				assert.NoError(t, err)
+
+				if tc.decode {
+					assert.Equal(t, tc.expected, actual)
+				} else {
+					assert.Equal(t, tc.have, actual)
+				}
 			}
 		})
 	}
@@ -1411,3 +1633,42 @@ var (
 	testZero   int32
 	testString = ""
 )
+
+func MustParseAddress(input string) schema.Address {
+	address, err := schema.NewAddress(input)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(address.String())
+	addr := *address
+
+	return addr
+}
+
+func MustParseAddressPtr(input string) *schema.Address {
+	address, err := schema.NewAddress(input)
+	if err != nil {
+		panic(err)
+	}
+
+	return address
+}
+
+func MustParsePasswordDigest(input string) schema.PasswordDigest {
+	digest, err := schema.DecodePasswordDigest(input)
+	if err != nil {
+		panic(err)
+	}
+
+	return *digest
+}
+
+func MustParsePasswordDigestPtr(input string) *schema.PasswordDigest {
+	digest, err := schema.DecodePasswordDigest(input)
+	if err != nil {
+		panic(err)
+	}
+
+	return digest
+}

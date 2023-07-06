@@ -39,7 +39,7 @@ default_redirection_url: 'https://home.example.com/'
 ## Set the default 2FA method for new users and for when a user has a preferred method configured that has been
 ## disabled. This setting must be a method that is enabled.
 ## Options are totp, webauthn, mobile_push.
-default_2fa_method: ''
+# default_2fa_method: ''
 
 ##
 ## Server Configuration
@@ -47,15 +47,12 @@ default_2fa_method: ''
 server:
   ## The address for the Main server to listen on in the address common syntax.
   ## Formats:
-  ##  - [<scheme>://]<hostname>[:<port>]
-  ##  - [<scheme>://][hostname]:<port>
+  ##  - [<scheme>://]<hostname>[:<port>][/<path>]
+  ##  - [<scheme>://][hostname]:<port>[/<path>]
   ## Square brackets indicate optional portions of the format. Scheme must be 'tcp', 'tcp4', 'tcp6', or 'unix'.
   ## The default scheme is 'unix' if the address is an absolute path otherwise it's 'tcp'. The default port is '9091'.
-  address: 'tcp://:9091'
-
-  ## Set the single level path Authelia listens on.
-  ## Must be alphanumeric chars and should not contain any slashes.
-  path: ''
+  ## If the path is specified this configures the router to handle both the `/` path and the configured path.
+  address: 'tcp://:9091/'
 
   ## Set the path on disk to Authelia assets.
   ## Useful to allow overriding of specific static assets.
@@ -162,11 +159,12 @@ telemetry:
 
     ## The address for the Metrics server to listen on in the address common syntax.
     ## Formats:
-    ##  - [<scheme>://]<hostname>[:<port>]
-    ##  - [<scheme>://][hostname]:<port>
+    ##  - [<scheme>://]<hostname>[:<port>][/<path>]
+    ##  - [<scheme>://][hostname]:<port>[/<path>]
     ## Square brackets indicate optional portions of the format. Scheme must be 'tcp', 'tcp4', 'tcp6', or 'unix'.
     ## The default scheme is 'unix' if the address is an absolute path otherwise it's 'tcp'. The default port is '9959'.
-    address: 'tcp://:9959'
+    ## If the path is not specified it defaults to `/metrics`.
+    address: 'tcp://:9959/metrics'
 
     ## Metrics Server Buffers configuration.
     # buffers:
@@ -203,7 +201,7 @@ totp:
   ## The TOTP algorithm to use.
   ## It is CRITICAL you read the documentation before changing this option:
   ## https://www.authelia.com/c/totp#algorithm
-  algorithm: 'sha1'
+  algorithm: 'SHA1'
 
   ## The number of digits a user has to input. Must either be 6 or 8.
   ## Changing this option only affects newly generated TOTP configurations.
@@ -300,7 +298,7 @@ authentication_backend:
 
     ## External reset password url that redirects the user to an external reset portal. This disables the internal reset
     ## functionality.
-    custom_url: ''
+    # custom_url: ''
 
   ## The amount of time to wait before we refresh data from the authentication backend in the duration common syntax.
   ## To disable this feature set it to 'disable', this will slightly reduce security because for Authelia, users will
@@ -317,7 +315,7 @@ authentication_backend:
   ## because it allows Authelia to offload the stateful operations
   ## onto the LDAP service.
   # ldap:
-    ## The address of the LDAP server to connect to in the address common syntax.
+    ## The address of the directory server to connect to in the address common syntax.
     ## Format: [<scheme>://]<hostname>[:<port>].
     ## Square brackets indicate optional portions of the format. Scheme must be 'ldap', 'ldaps', or 'ldapi`.
     ## The default scheme is 'ldapi' if the address is an absolute path otherwise it's 'ldaps'.
@@ -396,22 +394,12 @@ authentication_backend:
         # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
         # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
         # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRsDO_NOT_USE=
+        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
         # -----END RSA PRIVATE KEY-----
 
     ## The distinguished name of the container searched for objects in the directory information tree.
     ## See also: additional_users_dn, additional_groups_dn.
     # base_dn: 'dc=example,dc=com'
-
-    ## The attribute holding the username of the user. This attribute is used to populate the username in the session
-    ## information. For your information, Microsoft Active Directory usually uses 'sAMAccountName' and OpenLDAP usually
-    ## uses 'uid'. Beware that this attribute holds the unique identifiers for the users binding the user and the
-    ## configuration stored in database. Therefore only single value attributes are allowed and the value must never be
-    ## changed once attributed to a user otherwise it would break the configuration for that user. Technically,
-    ## non-unique attributes like 'mail' can also be used but we don't recommend using them, we instead advise to use
-    ## a filter to perform alternative lookups and the attributes mentioned above (sAMAccountName and uid) to
-    ## follow https://datatracker.ietf.org/doc/html/rfc2307.
-    # username_attribute: 'uid'
 
     ## The additional_users_dn is prefixed to base_dn and delimited by a comma when searching for users.
     ## i.e. with this set to OU=Users and base_dn set to DC=a,DC=com; OU=Users,DC=a,DC=com is searched for users.
@@ -443,15 +431,9 @@ authentication_backend:
     ##    (&(uniqueMember={dn})(objectClass=groupOfUniqueNames))
     # groups_filter: '(&(member={dn})(objectClass=groupOfNames))'
 
-    ## The attribute holding the name of the group.
-    # group_name_attribute: 'cn'
-
-    ## The attribute holding the mail address of the user. If multiple email addresses are defined for a user, only the
-    ## first one returned by the LDAP server is used.
-    # mail_attribute: 'mail'
-
-    ## The attribute holding the display name of the user. This will be used to greet an authenticated user.
-    # display_name_attribute: 'displayName'
+    ## The group search mode to use. Options are 'filter' or 'memberof'. It's essential to read the docs if you wish to
+    ## use 'memberof'. Also 'filter' is the best choice for most use cases.
+    # group_search_mode: 'filter'
 
     ## Follow referrals returned by the server.
     ## This is especially useful for environments where read-only servers exist. Only implemented for write operations.
@@ -461,6 +443,37 @@ authentication_backend:
     # user: 'cn=admin,dc=example,dc=com'
     ## Password can also be set using a secret: https://www.authelia.com/c/secrets
     # password: 'password'
+
+    ## The attributes for users and objects from the directory server.
+    # attributes:
+
+      ## The distinguished name attribute if your directory server supports it. Users should read the docs before
+      ## configuring. Only used for the 'memberof' group search mode.
+      # distinguished_name: ''
+
+      ## The attribute holding the username of the user. This attribute is used to populate the username in the session
+      ## information. For your information, Microsoft Active Directory usually uses 'sAMAccountName' and OpenLDAP
+      ## usually uses 'uid'. Beware that this attribute holds the unique identifiers for the users binding the user and
+      ## the configuration stored in database; therefore only single value attributes are allowed and the value must
+      ## never be changed once attributed to a user otherwise it would break the configuration for that user.
+      ## Technically non-unique attributes like 'mail' can also be used but we don't recommend using them, we instead
+      ## advise to use a filter to perform alternative lookups and the attributes mentioned above
+      ## (sAMAccountName and uid) to follow https://datatracker.ietf.org/doc/html/rfc2307.
+      # username: 'uid'
+
+      ## The attribute holding the display name of the user. This will be used to greet an authenticated user.
+      # display_name: 'displayName'
+
+      ## The attribute holding the mail address of the user. If multiple email addresses are defined for a user, only
+      ## the first one returned by the directory server is used.
+      # mail: 'mail'
+
+      ## The attribute which provides distinguished names of groups an object is a member of.
+      ## Only used for the 'memberof' group search mode.
+      # member_of: 'memberOf'
+
+      ## The attribute holding the name of the group.
+      # group_name: 'cn'
 
   ##
   ## File (Authentication Provider)
@@ -820,7 +833,7 @@ session:
         # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
         # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
         # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRsDO_NOT_USE=
+        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
         # -----END RSA PRIVATE KEY-----
 
     ## The Redis HA configuration options.
@@ -965,7 +978,7 @@ regulation:
         # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
         # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
         # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRsDO_NOT_USE=
+        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
         # -----END RSA PRIVATE KEY-----
 
   ##
@@ -1048,8 +1061,8 @@ regulation:
         # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
         # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
         # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRsDO_NOT_USE=
-      # -----END RSA PRIVATE KEY-----
+        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
+        # -----END RSA PRIVATE KEY-----
 
 ##
 ## Notification Provider
@@ -1166,7 +1179,7 @@ notifier:
         # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
         # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
         # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRsDO_NOT_USE=
+        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
         # -----END RSA PRIVATE KEY-----
 
 ##
@@ -1208,7 +1221,7 @@ notifier:
         # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
         # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
         # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRsDO_NOT_USE=
+        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
         # -----END RSA PRIVATE KEY-----
 
 
@@ -1238,7 +1251,7 @@ notifier:
       # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
       # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
       # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-      # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRsDO_NOT_USE=
+      # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
       # -----END RSA PRIVATE KEY-----
 
     ## Optional matching certificate chain in PEM DER form that matches the issuer_private_key. All certificates within
@@ -1287,6 +1300,7 @@ notifier:
       ## List of endpoints in addition to the metadata endpoints to permit cross-origin requests on.
       # endpoints:
         #  - 'authorization'
+        #  - 'pushed-authorization-request'
         #  - 'token'
         #  - 'revocation'
         #  - 'introspection'
@@ -1325,7 +1339,7 @@ notifier:
 
         ## Redirect URI's specifies a list of valid case-sensitive callbacks for this client.
         # redirect_uris:
-        # - 'https://oidc.example.com:8080/oauth2/callback'
+          # - 'https://oidc.example.com:8080/oauth2/callback'
 
         ## Audience this client is allowed to request.
         # audience: []
@@ -1340,7 +1354,7 @@ notifier:
         ## Grant Types configures which grants this client can obtain.
         ## It's not recommended to define this unless you know what you're doing.
         # grant_types:
-        # - 'authorization_code'
+          # - 'authorization_code'
 
         ## Response Types configures which responses this client can be sent.
         ## It's not recommended to define this unless you know what you're doing.
@@ -1412,7 +1426,7 @@ notifier:
               # key: |
                 # -----BEGIN RSA PUBLIC KEY-----
                 # MEgCQQDAwV26ZA1lodtOQxNrJ491gWT+VzFum9IeZ+WTmMypYWyW1CzXKwsvTHDz
-                # 9ec+jserR3EMQ0Rr24lj13FL1ib5AgMBAAE=
+                # 9ec+jserR3EMQ0Rr24lj13FL1ib5AgMBAAE_DO_NOT_USE=
                 # -----END RSA PUBLIC KEY----
 
               ## The matching certificate chain in PEM DER form that matches the key if available.

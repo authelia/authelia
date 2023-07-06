@@ -187,7 +187,7 @@ var deprecations = map[string]Deprecation{
 		Keep:    true,
 		MapFunc: nil,
 		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf("configuration key 'server.host' is deprecated in %s and has been replaced by 'server.address' when combined with the 'server.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message", d.Version.String()))
+			val.PushWarning(fmt.Errorf("configuration key '%s' is deprecated in %s and has been replaced by '%s' when combined with the 'server.port' and 'server.path' in the format of %s: this should be automatically mapped for you but you will need to adjust your configuration to remove this message", d.Key, d.Version.String(), d.NewKey, "'[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]'"))
 		},
 	},
 	"server.port": {
@@ -198,7 +198,18 @@ var deprecations = map[string]Deprecation{
 		Keep:    true,
 		MapFunc: nil,
 		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf("configuration key 'server.port' is deprecated in %s and has been replaced by 'server.address' when combined with the 'server.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message", d.Version.String()))
+			val.PushWarning(fmt.Errorf("configuration key '%s' is deprecated in %s and has been replaced by '%s' when combined with the 'server.host' and 'server.path' in the format of %s: this should be automatically mapped for you but you will need to adjust your configuration to remove this message", d.Key, d.Version.String(), d.NewKey, "'[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]'"))
+		},
+	},
+	"server.path": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "server.path",
+		NewKey:  "server.address",
+		AutoMap: false,
+		Keep:    true,
+		MapFunc: nil,
+		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
+			val.PushWarning(fmt.Errorf("configuration key '%s' is deprecated in %s and has been replaced by '%s' when combined with the 'server.host' and 'server.port' in the format of %s: this should be automatically mapped for you but you will need to adjust your configuration to remove this message", d.Key, d.Version.String(), d.NewKey, "'[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]'"))
 		},
 	},
 	"storage.mysql.host": {
@@ -209,7 +220,7 @@ var deprecations = map[string]Deprecation{
 		Keep:    true,
 		MapFunc: nil,
 		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf("configuration key 'storage.mysql.host' is deprecated in %s and has been replaced by 'storage.mysql.address' when combined with the 'storage.mysql.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message", d.Version.String()))
+			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version.String(), d.NewKey, "storage.mysql.port", "[tcp://]<hostname>[:<port>]"))
 		},
 	},
 	"storage.mysql.port": {
@@ -220,7 +231,7 @@ var deprecations = map[string]Deprecation{
 		Keep:    true,
 		MapFunc: nil,
 		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf("configuration key 'storage.mysql.port' is deprecated in %s and has been replaced by 'storage.mysql.address' when combined with the 'storage.mysql.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message", d.Version.String()))
+			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version.String(), d.NewKey, "storage.mysql.host", "[tcp://]<hostname>[:<port>]"))
 		},
 	},
 	"storage.postgres.host": {
@@ -231,7 +242,7 @@ var deprecations = map[string]Deprecation{
 		Keep:    true,
 		MapFunc: nil,
 		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf("configuration key 'storage.postgres.host' is deprecated in %s and has been replaced by 'storage.postgres.address' when combined with the 'storage.postgres.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message", d.Version.String()))
+			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version.String(), d.NewKey, "storage.postgres.port", "[tcp://]<hostname>[:<port>]"))
 		},
 	},
 	"storage.postgres.port": {
@@ -242,7 +253,29 @@ var deprecations = map[string]Deprecation{
 		Keep:    true,
 		MapFunc: nil,
 		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf("configuration key 'storage.postgres.port' is deprecated in %s and has been replaced by 'storage.postgres.address' when combined with the 'storage.postgres.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message", d.Version.String()))
+			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version.String(), d.NewKey, "storage.postgres.host", "[tcp://]<hostname>[:<port>]"))
+		},
+	},
+	"notifier.smtp.host": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "notifier.smtp.host",
+		NewKey:  "notifier.smtp.address",
+		AutoMap: false,
+		Keep:    true,
+		MapFunc: nil,
+		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
+			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version.String(), d.NewKey, "notifier.smtp.port", "[tcp://]<hostname>[:<port>]"))
+		},
+	},
+	"notifier.smtp.port": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "notifier.smtp.port",
+		NewKey:  "notifier.smtp.address",
+		AutoMap: false,
+		Keep:    true,
+		MapFunc: nil,
+		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
+			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version.String(), d.NewKey, "notifier.smtp.host", "[tcp://]<hostname>[:<port>]"))
 		},
 	},
 	"authentication_backend.ldap.url": {
@@ -257,6 +290,38 @@ var deprecations = map[string]Deprecation{
 		Version: model.SemanticVersion{Major: 4, Minor: 38},
 		Key:     "identity_providers.oidc.clients[].userinfo_signing_algorithm",
 		NewKey:  "identity_providers.oidc.clients[].userinfo_signing_alg",
+		AutoMap: true,
+		MapFunc: nil,
+		ErrFunc: nil,
+	},
+	"authentication_backend.ldap.username_attribute": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "authentication_backend.ldap.username_attribute",
+		NewKey:  "authentication_backend.ldap.attributes.username",
+		AutoMap: true,
+		MapFunc: nil,
+		ErrFunc: nil,
+	},
+	"authentication_backend.ldap.mail_attribute": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "authentication_backend.ldap.mail_attribute",
+		NewKey:  "authentication_backend.ldap.attributes.mail",
+		AutoMap: true,
+		MapFunc: nil,
+		ErrFunc: nil,
+	},
+	"authentication_backend.ldap.display_name_attribute": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "authentication_backend.ldap.display_name_attribute",
+		NewKey:  "authentication_backend.ldap.attributes.display_name",
+		AutoMap: true,
+		MapFunc: nil,
+		ErrFunc: nil,
+	},
+	"authentication_backend.ldap.group_name_attribute": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "authentication_backend.ldap.group_name_attribute",
+		NewKey:  "authentication_backend.ldap.attributes.group_name",
 		AutoMap: true,
 		MapFunc: nil,
 		ErrFunc: nil,
