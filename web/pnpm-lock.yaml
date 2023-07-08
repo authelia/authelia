@@ -134,8 +134,8 @@ devDependencies:
     specifier: 7.0.1
     version: 7.0.1(@babel/plugin-syntax-flow@7.21.4)(@babel/plugin-transform-react-jsx@7.21.0)(eslint-import-resolver-typescript@3.5.5)(eslint@8.44.0)(typescript@5.1.6)
   eslint-formatter-rdjson:
-    specifier: 1.0.5
-    version: 1.0.5
+    specifier: 1.0.6
+    version: 1.0.6
   eslint-import-resolver-typescript:
     specifier: 3.5.5
     version: 3.5.5(@typescript-eslint/parser@5.61.0)(eslint-plugin-import@2.27.5)(eslint@8.44.0)
@@ -4507,8 +4507,8 @@ packages:
       - supports-color
     dev: true
 
-  /eslint-formatter-rdjson@1.0.5:
-    resolution: {integrity: sha512-z275VEQgzmAF04yTRvvl1DbEMEczVb9pGUoj31zzydBTn/gYcKLUIxLEXRzpWqh4llOYMuICICAHFbdF/yA28A==}
+  /eslint-formatter-rdjson@1.0.6:
+    resolution: {integrity: sha512-RiBsXfe340Mof5pVkg7u0UXiLTm3cRhF9XYUf4hVHEzpIwk5jAIbkifugPpn51CeNxj00RkJU1MfJYoHbUwLFg==}
     dev: true
 
   /eslint-import-resolver-node@0.3.7:
