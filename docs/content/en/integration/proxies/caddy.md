@@ -159,15 +159,7 @@ nextcloud.example.com {
 #### Subpath
 
 *__Important:__ In order to use a subpath, you must also update your Authelia
-[server address configuration](../../configuration/miscellaneous/server.md#address) to listen on the new endpoint:*
-
-```yaml
-# configuration.yml
-server:
-  # address: "tcp://:9091"         # implicit default
-  address: "tcp://:9091/authelia"  # with subpath support.
-```
-
+[server address configuration](../../configuration/miscellaneous/server.md#address) to listen on the new endpoint.*
 
 {{< details "Caddyfile" >}}
 ```caddyfile
