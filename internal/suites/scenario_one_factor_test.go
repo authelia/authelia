@@ -117,6 +117,19 @@ func (s *OneFactorSuite) TestShouldDenyAccessOnBadPassword() {
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Incorrect username or password.")
 }
 
+func (s *OneFactorSuite) TestShouldDenyAccessOnForbidden() {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
+	targetURL := fmt.Sprintf("%s/secret.html", DenyBaseURL)
+	s.doVisit(s.T(), s.Context(ctx), targetURL)
+	s.verifyURLIs(s.T(), s.Context(ctx), targetURL)
+	s.verifyBodyContains(s.T(), s.Context(ctx), "403 Forbidden")
+}
+
 func TestRunOneFactor(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
