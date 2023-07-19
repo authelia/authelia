@@ -50,7 +50,7 @@ following are the assumptions we make:
   * Single Host
   * Authelia is deployed as a Container with the container name `authelia` on port `9091`
   * Proxy is deployed as a Container on a network shared with Authelia
-* The above assumption means that AUthelia should be accesible to the proxy on `http://authelia:9091` and as such:
+* The above assumption means that Authelia should be accessible to the proxy on `http://authelia:9091` and as such:
   * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
     certificate defined
   * You will have to adapt all instances of `authelia` in the URL if:
@@ -146,7 +146,7 @@ services:
 *__Important:__ Our examples make assumptions about your configuration. These assumptions represent sections that
 either most likely require an adjustment, or may require an adjustment if you're not configuring it in the same way.*
 
-* The domain for Authelia is `auth.example.com` which shoud be adjusted in all examples and snippets to your actual
+* The domain for Authelia is `auth.example.com` which should be adjusted in all examples and snippets to your actual
   domain.
 * The required configuration snippets are mounted in the container or otherwise available in the `/snippets/` directory.
   If you choose a different directory you're required to adjust every instance of `/snippets/` appropriately to your
