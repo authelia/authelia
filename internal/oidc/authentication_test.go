@@ -1495,25 +1495,54 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnClientSecretPo
 	s.Nil(client)
 }
 
-func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnClientSecretBasicWithMalformedClientID() {
+func (s *ClientAuthenticationStrategySuite) TestShouldHandleBasicAuth() {
 	r := s.GetRequest(&url.Values{oidc.FormParameterRequestURI: []string{"not applicable"}})
 
-	r.Header.Set(fasthttp.HeaderAuthorization, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte("abc@#%!@#(*%)#@!:client-secret"))))
+	r.Header.Set(fasthttp.HeaderAuthorization, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte("client_secret_basic:client-secret"))))
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.NoError(err)
+	s.Require().NotNil(client)
+	s.Equal("client_secret_basic", client.GetID())
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldErrorWithBasicAuthBadBas64Data() {
+	r := s.GetRequest(&url.Values{oidc.FormParameterRequestURI: []string{"not applicable"}})
+
+	r.Header.Set(fasthttp.HeaderAuthorization, fmt.Sprintf("Basic %s", "!@#&!@*&#(!*@#(*!@#"))
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
 	s.EqualError(err, "invalid_request")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The client id in the HTTP authorization header could not be decoded from 'application/x-www-form-urlencoded'. invalid URL escape '%!@'")
 	s.Nil(client)
 }
 
-func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnClientSecretBasicWithMalformedClientSecret() {
+func (s *ClientAuthenticationStrategySuite) TestShouldErrorWithBasicAuthBadBasicData() {
 	r := s.GetRequest(&url.Values{oidc.FormParameterRequestURI: []string{"not applicable"}})
 
-	r.Header.Set(fasthttp.HeaderAuthorization, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte("hs512:abc@#%!@#(*%)#@!"))))
+	r.Header.Set(fasthttp.HeaderAuthorization, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte("client_secret_basic"))))
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
 	s.EqualError(err, "invalid_request")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The client secret in the HTTP authorization header could not be decoded from 'application/x-www-form-urlencoded'. invalid URL escape '%!@'")
+	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldErrorWithBasicAuthNoScheme() {
+	r := s.GetRequest(&url.Values{oidc.FormParameterRequestURI: []string{"not applicable"}})
+
+	r.Header.Set(fasthttp.HeaderAuthorization, fmt.Sprintf("Basic%s", base64.StdEncoding.EncodeToString([]byte("client_secret_basic:client-secret"))))
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(err, "invalid_request")
+	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldErrorWithBasicAuthInvalidScheme() {
+	r := s.GetRequest(&url.Values{oidc.FormParameterRequestURI: []string{"not applicable"}})
+
+	r.Header.Set(fasthttp.HeaderAuthorization, fmt.Sprintf("Bassic %s", base64.StdEncoding.EncodeToString([]byte("client_secret_basic:client-secret"))))
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(err, "invalid_request")
 	s.Nil(client)
 }
 
