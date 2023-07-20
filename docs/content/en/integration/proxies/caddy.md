@@ -73,7 +73,7 @@ following are the assumptions we make:
   * Single Host
   * Authelia is deployed as a Container with the container name `authelia` on port `9091`
   * Proxy is deployed as a Container on a network shared with Authelia
-* The above assumption means that AUthelia should be accesible to the proxy on `http://authelia:9091` and as such:
+* The above assumption means that Authelia should be accessible to the proxy on `http://authelia:9091` and as such:
   * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
     certificate defined
   * You will have to adapt all instances of `authelia` in the URL if:
@@ -157,6 +157,9 @@ nextcloud.example.com {
 {{< /details >}}
 
 #### Subpath
+
+*__Important:__ In order to use a subpath, you must also update your Authelia
+[server address configuration](../../configuration/miscellaneous/server.md#address) to listen on the new endpoint.*
 
 {{< details "Caddyfile" >}}
 ```caddyfile
