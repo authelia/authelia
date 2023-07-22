@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
@@ -185,8 +185,6 @@ func (s *ClientAuthenticationStrategySuite) GetAssertionRequest(token string) (r
 }
 
 func (s *ClientAuthenticationStrategySuite) GetCtx() oidc.OpenIDConnectContext {
-	fmt.Println(s.GetIssuerURL())
-
 	return &MockOpenIDConnectContext{
 		Context:       context.Background(),
 		MockIssuerURL: s.GetIssuerURL(),
@@ -1323,7 +1321,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithInvalidExpClaim() 
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Unable to verify the integrity of the 'client_assertion' value. The token is expired.")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Unable to verify the integrity of the 'client_assertion' value. The token claims are invalid.")
 	s.Nil(client)
 }
 
@@ -1421,7 +1419,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMissingJTIClaim() 
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'jti' from 'client_assertion' must be set but is not.")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'jti' from 'client_assertion' must be set but it is not.")
 	s.Nil(client)
 }
 

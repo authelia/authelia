@@ -5,7 +5,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -15,13 +14,11 @@ import (
 	"github.com/go-crypt/crypt"
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/go-crypt/crypt/algorithm/plaintext"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/ory/fosite"
 	"github.com/ory/x/errorsx"
 	"github.com/pkg/errors"
 	"gopkg.in/square/go-jose.v2"
-
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // NewHasher returns a new Hasher.
@@ -76,20 +73,30 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 		}
 
 		var (
-			token    *jwt.Token
+			claims   jwt.MapClaims
 			clientID string
 		)
 
-		token, err = jwt.ParseWithClaims(assertion, jwt.MapClaims{}, func(t *jwt.Token) (any, error) {
-			clientID, _, err = clientCredentialsFromRequestBody(form, false)
-			if err != nil {
-				return nil, err
+		clientID = form.Get(FormParameterClientID)
+
+		parserOpts := []jwt.ParserOption{
+			jwt.WithIssuedAt(),
+		}
+
+		_, err = jwt.ParseWithClaims(assertion, jwt.MapClaims{}, func(token *jwt.Token) (any, error) {
+			var (
+				ok bool
+			)
+
+			claims, ok = token.Claims.(jwt.MapClaims)
+			if !ok {
+				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("The claims could not be parsed due to an unknown error."))
 			}
 
 			if clientID == "" {
-				claims := t.Claims.(jwt.MapClaims)
+				var sub string
 
-				if sub, ok := claims[ClaimSubject].(string); !ok {
+				if sub, ok = claims[ClaimSubject].(string); !ok {
 					return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("The claim 'sub' from the client_assertion JSON Web Token is undefined."))
 				} else {
 					clientID = sub
@@ -100,12 +107,12 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithWrap(err).WithDebug(err.Error()))
 			}
 
-			oidcClient, ok := client.(*FullClient)
+			fclient, ok := client.(*FullClient)
 			if !ok {
 				return nil, errorsx.WithStack(fosite.ErrInvalidRequest.WithHint("The client configuration does not support OpenID Connect specific authentication methods."))
 			}
 
-			switch oidcClient.GetTokenEndpointAuthMethod() {
+			switch fclient.GetTokenEndpointAuthMethod() {
 			case ClientAuthMethodPrivateKeyJWT, ClientAuthMethodClientSecretJWT:
 				break
 			case ClientAuthMethodNone:
@@ -113,114 +120,126 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 			case ClientAuthMethodClientSecretPost:
 				fallthrough
 			case ClientAuthMethodClientSecretBasic:
-				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("This requested OAuth 2.0 client only supports client authentication method '%s', however 'client_assertion' was provided in the request.", oidcClient.GetTokenEndpointAuthMethod()))
+				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("This requested OAuth 2.0 client only supports client authentication method '%s', however 'client_assertion' was provided in the request.", fclient.GetTokenEndpointAuthMethod()))
 			default:
-				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("This requested OAuth 2.0 client only supports client authentication method '%s', however that method is not supported by this server.", oidcClient.GetTokenEndpointAuthMethod()))
+				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("This requested OAuth 2.0 client only supports client authentication method '%s', however that method is not supported by this server.", fclient.GetTokenEndpointAuthMethod()))
 			}
 
-			if oidcClient.GetTokenEndpointAuthSigningAlgorithm() != fmt.Sprintf("%s", t.Header[JWTHeaderKeyAlgorithm]) {
-				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The 'client_assertion' uses signing algorithm '%s' but the requested OAuth 2.0 Client enforces signing algorithm '%s'.", t.Header[JWTHeaderKeyAlgorithm], oidcClient.GetTokenEndpointAuthSigningAlgorithm()))
+			if fclient.GetTokenEndpointAuthSigningAlgorithm() != fmt.Sprintf("%s", token.Header[JWTHeaderKeyAlgorithm]) {
+				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The 'client_assertion' uses signing algorithm '%s' but the requested OAuth 2.0 Client enforces signing algorithm '%s'.", token.Header[JWTHeaderKeyAlgorithm], fclient.GetTokenEndpointAuthSigningAlgorithm()))
 			}
 
-			switch t.Method {
+			switch token.Method {
 			case jwt.SigningMethodRS256, jwt.SigningMethodRS384, jwt.SigningMethodRS512:
-				return p.findClientPublicJWK(ctx, oidcClient, t, true)
+				return p.findClientPublicJWK(ctx, fclient, token, true)
 			case jwt.SigningMethodES256, jwt.SigningMethodES384, jwt.SigningMethodES512:
-				return p.findClientPublicJWK(ctx, oidcClient, t, false)
+				return p.findClientPublicJWK(ctx, fclient, token, false)
 			case jwt.SigningMethodPS256, jwt.SigningMethodPS384, jwt.SigningMethodPS512:
-				return p.findClientPublicJWK(ctx, oidcClient, t, true)
+				return p.findClientPublicJWK(ctx, fclient, token, true)
 			case jwt.SigningMethodHS256, jwt.SigningMethodHS384, jwt.SigningMethodHS512:
-				if spd, ok := oidcClient.Secret.(*schema.PasswordDigest); ok {
-					if secret, ok := spd.Digest.(*plaintext.Digest); ok {
-						return secret.Key(), nil
-					}
+				var secret *plaintext.Digest
+
+				if secret, ok = fclient.Secret.PlainText(); ok {
+					return secret.Key(), nil
 				}
 
 				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("This client does not support authentication method 'client_secret_jwt' as the client secret is not in plaintext."))
 			default:
-				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The 'client_assertion' request parameter uses unsupported signing algorithm '%s'.", t.Header[JWTHeaderKeyAlgorithm]))
+				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The 'client_assertion' request parameter uses unsupported signing algorithm '%s'.", token.Header[JWTHeaderKeyAlgorithm]))
 			}
-		})
+		}, parserOpts...)
 
-		if err != nil {
-			var r *fosite.RFC6749Error
-
-			if errors.As(err, &r) {
-				return nil, err
-			}
-
-			var e *jwt.ValidationError
+		switch {
+		case err == nil:
+			break
+		default:
+			var e *fosite.RFC6749Error
 
 			if errors.As(err, &e) {
-				rfc := fosite.ErrInvalidClient.WithHint("Unable to verify the integrity of the 'client_assertion' value.").WithWrap(err)
-
-				switch {
-				case e.Errors&jwt.ValidationErrorMalformed != 0:
-					return nil, errorsx.WithStack(rfc.WithDebug("The token is malformed."))
-				case e.Errors&jwt.ValidationErrorIssuedAt != 0:
-					return nil, errorsx.WithStack(rfc.WithDebug("The token was used before it was issued."))
-				case e.Errors&jwt.ValidationErrorExpired != 0:
-					return nil, errorsx.WithStack(rfc.WithDebug("The token is expired."))
-				case e.Errors&jwt.ValidationErrorNotValidYet != 0:
-					return nil, errorsx.WithStack(rfc.WithDebug("The token isn't valid yet."))
-				case e.Errors&jwt.ValidationErrorSignatureInvalid != 0:
-					return nil, errorsx.WithStack(rfc.WithDebug("The signature is invalid."))
-				}
-
-				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Unable to verify the integrity of the 'client_assertion' value.").WithWrap(err).WithDebug(err.Error()))
+				return nil, e
 			}
 
-			return nil, err
-		} else if err = token.Claims.Valid(); err != nil {
-			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Unable to verify the request object because its claims could not be validated, check if the expiry time is set correctly.").WithWrap(err).WithDebug(err.Error()))
-		}
+			rfc := fosite.ErrInvalidClient.WithHint("Unable to verify the integrity of the 'client_assertion' value.").WithWrap(err)
 
-		claims := token.Claims.(jwt.MapClaims)
+			switch {
+			case errors.Is(err, jwt.ErrTokenMalformed):
+				return nil, errorsx.WithStack(rfc.WithDebug("The token is malformed."))
+			case errors.Is(err, jwt.ErrTokenUsedBeforeIssued):
+				return nil, errorsx.WithStack(rfc.WithDebug("The token was used before it was issued."))
+			case errors.Is(err, jwt.ErrTokenExpired):
+				return nil, errorsx.WithStack(rfc.WithDebug("The token is expired."))
+			case errors.Is(err, jwt.ErrTokenNotValidYet):
+				return nil, errorsx.WithStack(rfc.WithDebug("The token isn't valid yet."))
+			case errors.Is(err, jwt.ErrTokenSignatureInvalid):
+				return nil, errorsx.WithStack(rfc.WithDebug("The signature is invalid."))
+			case errors.Is(err, jwt.ErrTokenInvalidClaims):
+				return nil, errorsx.WithStack(rfc.WithDebug("The token claims are invalid."))
+			case errors.Is(err, jwt.ErrTokenInvalidIssuer):
+				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'iss' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client."))
+			default:
+				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Unable to verify the integrity of the 'client_assertion' value.").WithWrap(err).WithDebug(err.Error()))
+			}
+		}
 
 		tokenURL := p.Config.GetTokenURL(ctx)
 
-		var jti string
+		var (
+			iss, sub, jti string
+			raw           any
+			ok            bool
+			exp           *jwt.NumericDate
+		)
 
-		if !claims.VerifyIssuer(clientID, true) {
+		if iss, err = claims.GetIssuer(); err != nil {
+			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'iss' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client.").WithWrap(err))
+		}
+
+		if sub, err = claims.GetSubject(); err != nil {
+			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'sub' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client.").WithWrap(err))
+		}
+
+		if raw, ok = claims[ClaimJWTID]; !ok {
+			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'jti' from 'client_assertion' must be set but it is not."))
+		}
+
+		if jti, ok = raw.(string); !ok {
+			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'jti' from 'client_assertion' must be a string but it is not."))
+		}
+
+		switch {
+		case iss != clientID:
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'iss' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client."))
-		} else if tokenURL == "" {
-			return nil, errorsx.WithStack(fosite.ErrMisconfiguration.WithHint("The authorization server's token endpoint URL has not been set."))
-		} else if sub, ok := claims[ClaimSubject].(string); !ok || sub != clientID {
+		case sub != clientID:
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'sub' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client."))
-		} else if jti, ok = claims[ClaimJWTID].(string); !ok || len(jti) == 0 {
+		case tokenURL == "":
+			return nil, errorsx.WithStack(fosite.ErrMisconfiguration.WithHint("The authorization server's token endpoint URL has not been set."))
+		case len(jti) == 0:
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'jti' from 'client_assertion' must be set but is not."))
-		} else if p.Store.ClientAssertionJWTValid(ctx, jti) != nil {
+		case p.Store.ClientAssertionJWTValid(ctx, jti) != nil:
 			return nil, errorsx.WithStack(fosite.ErrJTIKnown.WithHint("Claim 'jti' from 'client_assertion' MUST only be used once."))
 		}
 
-		err = nil
+		if exp, err = claims.GetExpirationTime(); err != nil {
+			var epoch int64
 
-		var expiry int64
-
-		switch exp := claims[ClaimExpirationTime].(type) {
-		case float64:
-			expiry = int64(exp)
-		case int64:
-			expiry = exp
-		case json.Number:
-			expiry, err = exp.Int64()
-		default:
-			err = fosite.ErrInvalidClient.WithHint("Unable to type assert the expiry time from claims. This should not happen as we validate the expiry time already earlier with token.Claims.Valid()")
+			if epoch, ok = claims[ClaimExpirationTime].(int64); ok {
+				exp = jwt.NewNumericDate(time.Unix(epoch, 0))
+			} else {
+				return nil, errorsx.WithStack(err)
+			}
 		}
 
-		if err != nil {
-			return nil, errorsx.WithStack(err)
-		}
-
-		if err = p.Store.SetClientAssertionJWT(ctx, jti, time.Unix(expiry, 0)); err != nil {
+		if err = p.Store.SetClientAssertionJWT(ctx, jti, exp.Time); err != nil {
 			return nil, err
 		}
 
-		var found bool
+		var (
+			found bool
+		)
 
 		if auds, ok := claims[ClaimAudience].([]any); ok {
 			for _, aud := range auds {
-				if a, ok := aud.(string); ok && a == tokenURL {
+				if audience, ok := aud.(string); ok && audience == tokenURL {
 					found = true
 					break
 				}

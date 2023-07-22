@@ -46,6 +46,15 @@ type PasswordDigest struct {
 	algorithm.Digest
 }
 
+func (d *PasswordDigest) PlainText() (digest *plaintext.Digest, ok bool) {
+	switch raw := d.Digest.(type) {
+	case *plaintext.Digest:
+		return raw, true
+	default:
+		return nil, false
+	}
+}
+
 // IsPlainText returns true if the underlying algorithm.Digest is a *plaintext.Digest.
 func (d *PasswordDigest) IsPlainText() bool {
 	if d == nil || d.Digest == nil {

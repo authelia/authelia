@@ -14,6 +14,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -105,7 +106,7 @@ type Store struct {
 type BaseClient struct {
 	ID               string
 	Description      string
-	Secret           algorithm.Digest
+	Secret           *schema.PasswordDigest
 	SectorIdentifier string
 	Public           bool
 
