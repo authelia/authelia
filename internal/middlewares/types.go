@@ -1,6 +1,8 @@
 package middlewares
 
 import (
+	"time"
+
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -120,4 +122,9 @@ type OKResponse struct {
 type ErrorResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
+}
+
+// Delayer is a implementation can be use to delay events.
+type Delayer interface {
+	Delay(successful bool, elapsed time.Duration)
 }

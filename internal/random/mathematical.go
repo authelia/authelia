@@ -9,7 +9,8 @@ import (
 	"time"
 )
 
-// NewMathematical runs rand.Seed with the current time and returns a random.Provider, specifically *random.Mathematical.
+// NewMathematical creates a new random source seeded with the current time and returns a random.Provider, specifically
+// *random.Mathematical.
 func NewMathematical() *Mathematical {
 	return &Mathematical{
 		rand: rand.New(rand.NewSource(time.Now().UnixNano())), //nolint:gosec

@@ -7,6 +7,11 @@ import (
 	"math/big"
 )
 
+// NewCryptographical returns a random.Provider, specifically *random.Cryptographical.
+func NewCryptographical() *Cryptographical {
+	return &Cryptographical{}
+}
+
 // Cryptographical is the production random.Provider which uses crypto/rand.
 type Cryptographical struct{}
 

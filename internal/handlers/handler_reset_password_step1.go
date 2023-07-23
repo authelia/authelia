@@ -42,7 +42,7 @@ var ResetPasswordIdentityStart = middlewares.IdentityVerificationStart(middlewar
 	TargetEndpoint:        "/reset-password/step2",
 	ActionClaim:           ActionResetPassword,
 	IdentityRetrieverFunc: identityRetrieverFromStorage,
-}, middlewares.TimingAttackDelay(10, 250, 85, time.Millisecond*500, false))
+}, middlewares.NewTimingAttackDelayer("password reset", time.Millisecond*500, time.Millisecond*250, time.Millisecond*85, 10))
 
 func resetPasswordIdentityFinish(ctx *middlewares.AutheliaCtx, username string) {
 	var (
