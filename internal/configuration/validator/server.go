@@ -127,7 +127,10 @@ func ValidateServerAddress(config *schema.Configuration, validator *schema.Struc
 		}
 	}
 
-	if path := config.Server.Address.Path(); path != "/" && strings.HasSuffix(path, "/") {
+	switch path := config.Server.Address.Path(); {
+	case path == "":
+		config.Server.Address.SetPath("/")
+	case path != "/" && strings.HasSuffix(path, "/"):
 		validator.Push(fmt.Errorf(errFmtServerPathNotEndForwardSlash, path))
 	}
 }
