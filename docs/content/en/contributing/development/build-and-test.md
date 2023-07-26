@@ -102,6 +102,8 @@ If you want to manually build the binary from source you will require the open s
 [Development Environment](./environment.md#setup) documentation. Then you can follow the below steps on Linux (you may
 have to adapt them on other systems).
 
+#### Basic Steps
+
 Clone the Repository:
 
 ```bash
@@ -136,6 +138,59 @@ Build the Binary (without debug symbols):
 CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LDFLAGS="-Wl,-z,relro,-z,now" \
 go build -ldflags "-linkmode=external -s -w" -trimpath -buildmode=pie -o authelia ./cmd/authelia
 ```
+
+#### Reproducible Builds
+
+*__Important Note:__ At the time of this writing an unknown variance exists between our build system and the builds
+produced via these instructions. We are investigating the cause and are intending to release proper instructions once
+the underlying cause is identified.*
+
+*__Please Note:__ The reproducibility instructions only apply for v4.38.0 or above.
+Users interested in reproducibility of previous versions will have to carefully modify the linker flags to match the
+values outputted from the `authelia build-info` command. In particular the Build Date was set as the actual time
+previously rather than the commit time. In addition to this the ability to print the commands did not exist until just
+before this tag. If you have trouble reproducing a build please let us know so we can figure it out, assist you, and
+document it.*
+
+Authelia intends to allow production of reproducible builds that were built using our pipeline. The only variables
+injected into a build are from commit information other than the exceptions listed in this section. This means that we
+can provide the exact build commands for any given build with very limited input from users. The elements injected into
+the binary as part of the build process (using linker flags) are:
+
+- Commit SHA1
+- Commit Date (using the RFC3339 layout strictly using the UTC timezone)
+- Latest Tag
+- Tag State (i.e. if the HEAD commit has the latest tag)
+- Working Tree State (dirty, clean, etc)
+- Branch Name
+- Build Number
+
+The exceptions of this list which cannot be obtained from commit information (but can be supplied by an environment
+variable or CLI argument):
+
+- Build Number
+
+##### Instructions
+
+*__Important Note:__ If you wish to use [gox](https://gitihub.com/authelia/gox) to build Authelia please run the
+`go run ./cmd/authelia-scripts build --print --buildkite --build-number 100` command instead of the above command (i.e.
+adding the `--buildkite` flag).*
+
+To perform a reproducible build users should follow these steps:
+
+1. Run the `authelia build-info` command which contains useful information for reproducing the build including:
+   1. The `Build Number` field.
+   2. The `Build Go Version` field.
+2. Install all of the required dependencies. It's recommended if you're looking for a reproducible build that you use
+   the same Go version from step 1.
+3. Run the following command from the root of the repository to output the build commands (where 100 is the number from
+   step 1):
+
+```bash
+go run ./cmd/authelia-scripts build --print --build-number 100
+```
+
+The output of the above command may be ran to perform all of the build steps manually.
 
 [suites]: ./integration-suites.md
 [React]: https://reactjs.org/
