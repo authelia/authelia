@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { Box, Theme } from "@mui/material";
+import { Alert, AlertTitle, Box, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
@@ -20,9 +20,12 @@ const PasswordMeter = function (props: Props) {
     const [passwordScore, setPasswordScore] = useState(0);
     const [maxScores, setMaxScores] = useState(0);
     const [feedback, setFeedback] = useState("");
+    const [feedbackTitle, setFeedbackTitle] = useState("");
 
     useEffect(() => {
         const password = props.value;
+        setFeedback("");
+        setFeedbackTitle("");
         if (props.policy.mode === PasswordPolicyMode.Standard) {
             //use mode mode
             setMaxScores(4);
@@ -87,14 +90,16 @@ const PasswordMeter = function (props: Props) {
             score += hits > 0 ? 1 : 0;
             score += required === hits ? 1 : 0;
             if (warning !== "") {
-                setFeedback(translate("The password does not meet the password policy") + ":\n" + warning);
+                setFeedbackTitle(translate("The password does not meet the password policy"));
             }
+            setFeedback(translate(warning));
+
             setPasswordScore(score);
         } else if (props.policy.mode === PasswordPolicyMode.ZXCVBN) {
             //use zxcvbn mode
             setMaxScores(5);
             const { score, feedback } = zxcvbn(password);
-            setFeedback(feedback.warning);
+            setFeedbackTitle(feedback.warning);
             setPasswordScore(score);
         }
     }, [props, translate]);
@@ -110,11 +115,31 @@ const PasswordMeter = function (props: Props) {
         progressContainer: {
             width: "100%",
         },
+        feedbackTitle: {
+            whiteSpace: "break-spaces",
+            textAlign: "left",
+            fontSize: "0.85rem",
+        },
+        feedback: {
+            whiteSpace: "break-spaces",
+            textAlign: "left",
+            fontSize: "0.7rem",
+        },
     }))();
 
     return (
         <Box className={styles.progressContainer}>
-            <Box title={feedback} className={classnames(styles.progressBar)} />
+            <Box className={classnames(styles.progressBar)} />
+            {(feedbackTitle !== "" || feedback !== "") && (
+                <Alert severity="warning">
+                    {feedbackTitle !== "" && (
+                        <AlertTitle className={classnames(styles.feedbackTitle)}>
+                            <p>{feedbackTitle}</p>
+                        </AlertTitle>
+                    )}
+                    <p className={classnames(styles.feedback)}>{feedback}</p>
+                </Alert>
+            )}
         </Box>
     );
 };
