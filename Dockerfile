@@ -15,7 +15,7 @@ ENV PATH="/app:${PATH}" \
     X_AUTHELIA_CONFIG="/config/configuration.yml"
 
 RUN \
-	apk --no-cache add ca-certificates su-exec tzdata
+	apk --no-cache add ca-certificates gettext su-exec tzdata
 
 COPY LICENSE .healthcheck.env entrypoint.sh healthcheck.sh ./
 
