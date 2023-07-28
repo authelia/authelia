@@ -112,7 +112,7 @@ func (s *ClientAuthenticationStrategySuite) GetBaseRequest(body io.Reader) (r *h
 
 	r, err = http.NewRequest(http.MethodPost, s.GetTokenURL().String(), body)
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotNil(r)
 
 	r.Header.Set(fasthttp.HeaderContentType, "application/x-www-form-urlencoded")
@@ -235,103 +235,93 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 			},
 			{
 				ID:     rs256,
-				Secret: secret,
 				Policy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA256,
 			},
 			{
 				ID:     "rs384",
-				Secret: secret,
 				Policy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA384,
 			},
 			{
 				ID:     "rs512",
-				Secret: secret,
 				Policy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA512,
 			},
 			{
 				ID:     "ps256",
-				Secret: secret,
 				Policy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA256,
 			},
 			{
 				ID:     "ps384",
-				Secret: secret,
 				Policy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA384,
 			},
 			{
 				ID:     "ps512",
-				Secret: secret,
 				Policy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA512,
 			},
 			{
 				ID:     "es256",
-				Secret: secret,
 				Policy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP256AndSHA256,
 			},
 			{
 				ID:     "es384",
-				Secret: secret,
 				Policy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP384AndSHA384,
 			},
 			{
 				ID:     "es512",
-				Secret: secret,
 				Policy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP521AndSHA512,
 			},
 
 			{
 				ID:     "rs256k",
-				Secret: secret,
 				Policy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA256,
 				PublicKeys: schema.OpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
@@ -341,12 +331,11 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 			},
 			{
 				ID:     "rs384k",
-				Secret: secret,
 				Policy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA384,
 				PublicKeys: schema.OpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
@@ -356,12 +345,11 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 			},
 			{
 				ID:     "rs512k",
-				Secret: secret,
 				Policy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA512,
 				PublicKeys: schema.OpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
@@ -371,12 +359,11 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 			},
 			{
 				ID:     "ps256k",
-				Secret: secret,
 				Policy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA256,
 				PublicKeys: schema.OpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
@@ -386,12 +373,11 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 			},
 			{
 				ID:     "ps384k",
-				Secret: secret,
 				Policy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA384,
 				PublicKeys: schema.OpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
@@ -401,12 +387,11 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 			},
 			{
 				ID:     "ps512k",
-				Secret: secret,
 				Policy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA512,
 				PublicKeys: schema.OpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
@@ -416,12 +401,11 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 			},
 			{
 				ID:     "es256k",
-				Secret: secret,
 				Policy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP256AndSHA256,
 				PublicKeys: schema.OpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
@@ -431,12 +415,11 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 			},
 			{
 				ID:     "es384k",
-				Secret: secret,
 				Policy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP384AndSHA384,
 				PublicKeys: schema.OpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
@@ -446,12 +429,11 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 			},
 			{
 				ID:     "es512k",
-				Secret: secret,
 				Policy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
-				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP521AndSHA512,
 				PublicKeys: schema.OpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
@@ -564,7 +546,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateAssertionHS256() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -597,7 +579,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateAssertionHS384() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -630,7 +612,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateAssertionHS512() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -656,21 +638,95 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateAssertionHS512() {
 	s.Equal("hs512", client.GetID())
 }
 
-func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnMismatchedAlg() {
+func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnMismatchedAssertionAuthMethodPrivateKeyJWT() {
 	assertion := NewAssertion(rs256, s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodHS512, assertion)
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The 'client_assertion' uses signing algorithm 'HS512' but the requested OAuth 2.0 Client enforces signing algorithm 'RS256'.")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). This requested OAuth 2.0 client supports client authentication method 'private_key_jwt', however the 'HS512' JWA is not supported with this method.")
+	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnMismatchedAssertionAuthMethodClientSecretJWT() {
+	assertion := NewAssertion("hs256", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodPS256, assertion)
+
+	token, err := assertionJWT.SignedString(keyRSA2048)
+
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). This requested OAuth 2.0 client supports client authentication method 'client_secret_jwt', however the 'PS256' JWA is not supported with this method.")
+	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnMismatchedAlg() {
+	assertion := NewAssertion(rs256, s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodPS256, assertion)
+
+	token, err := assertionJWT.SignedString(keyRSA2048)
+
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The 'client_assertion' uses signing algorithm 'PS256' but the requested OAuth 2.0 Client enforces signing algorithm 'RS256'.")
+	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnClientAssertionWithClientSecret() {
+	assertion := NewAssertion(rs256, s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS256, assertion)
+
+	token, err := assertionJWT.SignedString(keyRSA2048)
+
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+	r.PostForm.Set(oidc.FormParameterClientSecret, "abc123")
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The client_secret request parameter must not be set when using client_assertion_type of 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'.")
+	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnClientAssertionWithAuthorizationHeader() {
+	assertion := NewAssertion(rs256, s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS256, assertion)
+
+	token, err := assertionJWT.SignedString(keyRSA2048)
+
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+	r.Header.Set(fasthttp.HeaderAuthorization, "abc123")
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The Authorization request header must not be set when using client_assertion_type of 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'.")
 	s.Nil(client)
 }
 
@@ -681,7 +737,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnMismatchedAlgS
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -699,7 +755,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -717,7 +773,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnBadAlgRS256() 
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = rs256
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -735,7 +791,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnBadKidRS256() 
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "nokey"
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -753,7 +809,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnBadTypRS256() 
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = rs256
 
 	token, err := assertionJWT.SignedString(keyECDSAP256)
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -771,7 +827,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysRS256() {
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = rs256
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -792,7 +848,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysRS256() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(err)
+	s.NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotNil(client)
 
 	s.Equal("rs256k", client.GetID())
@@ -805,7 +861,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -823,7 +879,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysRS384() {
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "rs384"
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -844,7 +900,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysRS384() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(err)
+	s.NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotNil(client)
 
 	s.Equal("rs384k", client.GetID())
@@ -857,7 +913,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -875,7 +931,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysRS512() {
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "rs512"
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -896,7 +952,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysRS512() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(err)
+	s.NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotNil(client)
 
 	s.Equal("rs512k", client.GetID())
@@ -909,7 +965,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -927,7 +983,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysPS256() {
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "ps256"
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -948,7 +1004,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysPS256() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(err)
+	s.NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotNil(client)
 
 	s.Equal("ps256k", client.GetID())
@@ -961,7 +1017,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -979,7 +1035,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysPS384() {
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "ps384"
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1000,7 +1056,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysPS384() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(err)
+	s.NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotNil(client)
 
 	s.Equal("ps384k", client.GetID())
@@ -1013,7 +1069,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1031,7 +1087,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysPS512() {
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "ps512"
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1052,7 +1108,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysPS512() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(err)
+	s.NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotNil(client)
 
 	s.Equal("ps512k", client.GetID())
@@ -1065,7 +1121,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	token, err := assertionJWT.SignedString(keyECDSAP256)
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1084,7 +1140,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES256() {
 
 	token, err := assertionJWT.SignedString(keyECDSAP256)
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1105,7 +1161,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES256() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(err)
+	s.NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotNil(client)
 
 	s.Equal("es256k", client.GetID())
@@ -1118,7 +1174,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	token, err := assertionJWT.SignedString(keyECDSAP384)
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1136,7 +1192,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES384() {
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "es384"
 
 	token, err := assertionJWT.SignedString(keyECDSAP384)
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1157,7 +1213,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES384() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(err)
+	s.NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotNil(client)
 
 	s.Equal("es384k", client.GetID())
@@ -1170,7 +1226,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	token, err := assertionJWT.SignedString(keyECDSAP521)
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1188,7 +1244,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES512() {
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "es512"
 
 	token, err := assertionJWT.SignedString(keyECDSAP521)
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1209,7 +1265,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES512() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(err)
+	s.NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotNil(client)
 
 	s.Equal("es512k", client.GetID())
@@ -1222,7 +1278,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnJTIKnown() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1257,7 +1313,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateJWTWithArbitraryCl
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1293,7 +1349,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMissingSubClaim() 
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1314,7 +1370,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithInvalidExpClaim() 
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1335,7 +1391,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMissingIssClaim() 
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1355,7 +1411,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithInvalidAudClaim() 
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1387,7 +1443,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithInvalidAssertionTy
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	v := s.GetAssertionValues(token)
@@ -1412,7 +1468,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMissingJTIClaim() 
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1432,7 +1488,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMismatchedIssClaim
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1448,7 +1504,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateClientSecretPost()
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(err)
+	s.NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotNil(client)
 	s.Equal(oidc.ClientAuthMethodClientSecretPost, client.GetID())
 }
@@ -1478,7 +1534,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateClientSecretBasic(
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(err)
+	s.NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotNil(client)
 	s.Equal(oidc.ClientAuthMethodClientSecretBasic, client.GetID())
 }
@@ -1499,7 +1555,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldHandleBasicAuth() {
 	r.Header.Set(fasthttp.HeaderAuthorization, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte("client_secret_basic:client-secret"))))
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(err)
+	s.NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotNil(client)
 	s.Equal("client_secret_basic", client.GetID())
 }
@@ -1601,7 +1657,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidatePublic() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(err)
+	s.NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotNil(client)
 	s.Equal("public", client.GetID())
 }
@@ -1615,7 +1671,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMismatchedFormClie
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	values := s.GetAssertionValues(token)
@@ -1637,7 +1693,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMismatchedFormClie
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	values := s.GetAssertionValues(token)
@@ -1659,7 +1715,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMissingClient() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1677,7 +1733,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailBadSecret() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret-wrong"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1698,7 +1754,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailMethodNone() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1719,7 +1775,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailAssertionMethodClientS
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1740,7 +1796,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailAssertionMethodBad() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1761,7 +1817,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailAssertionBaseClient() 
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1782,7 +1838,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailAssertionMethodClientS
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1803,7 +1859,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailHashedSecret() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1824,7 +1880,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailExpiredToken() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1847,7 +1903,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailNotYetValid() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1870,7 +1926,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailTokenUsedBeforeIssued(
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(err)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)

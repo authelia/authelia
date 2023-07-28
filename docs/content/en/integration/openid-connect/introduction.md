@@ -126,7 +126,7 @@ Authelia's response objects can have the following signature algorithms:
 
 ### Request Object
 
-Authelia accepts a wide variety of request object types.
+Authelia accepts a wide variety of request object types. The below table describes these request objects.
 
 | Algorithm |      Key Type      | Hashing Algorithm |    Use    |                       Notes                        |
 |:---------:|:------------------:|:-----------------:|:---------:|:--------------------------------------------------:|
@@ -225,10 +225,19 @@ specification and the [OAuth 2.0 - Client Types] specification for more informat
 | [OAuth 2.0 Mutual-TLS] (Self Signed) | `self_signed_tls_client_auth` |     Not Supported      |           N/A           |                           N/A                            |
 |          No Authentication           |            `none`             |        `public`        |        `public`         |                           N/A                            |
 
-
 [OpenID Connect 1.0 Client Authentication]: https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
 [OAuth 2.0 Mutual-TLS]: https://datatracker.ietf.org/doc/html/rfc8705
 [OAuth 2.0 - Client Types]: https://datatracker.ietf.org/doc/html/rfc8705#section-2.1
+
+#### Client Assertion Audience
+
+The client authentication methods which use the JWT Bearer Client Assertions such as `client_secret_jwt` and
+`private_key_jwt` **require** that the JWT contains an audience (i.e. the `aud` claim) which exactly matches the
+full URL for the [token endpoint](#endpoint-implementations) and it **must** be lowercase.
+
+Per the [RFC7523 Section 3: JWT Format and Processing Requirements](https://datatracker.ietf.org/doc/html/rfc7523#section-3)
+this claim must be compared using [RFC3987 Section 6.2.1: Simple String Comparison] and to assist with making this
+predictable for implementers we ensure the comparison is done against the lowercase form of this URL.
 
 ## Authentication Method References
 
@@ -391,3 +400,5 @@ The advantages of this approach are as follows:
 [RFC7636]: https://datatracker.ietf.org/doc/html/rfc7636
 [RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176
 [RFC9126]: https://datatracker.ietf.org/doc/html/rfc9126
+
+[RFC3987 Section 6.2.1: Simple String Comparison]: https://datatracker.ietf.org/doc/html/rfc3986#section-6.2.1

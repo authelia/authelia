@@ -471,9 +471,13 @@ func generateToken(claims jwt.MapClaims, header fjwt.Mapper, signingMethod jwt.S
 }
 
 func decodeToken(tokenString string, key any) (token *fjwt.Token, err error) {
-	return fjwt.ParseWithClaims(tokenString, fjwt.MapClaims{}, func(*fjwt.Token) (any, error) {
+	return fjwt.ParseWithClaims(tokenString, fjwt.MapClaims{}, keyFromValue(key))
+}
+
+func keyFromValue(key any) func(*fjwt.Token) (any, error) {
+	return func(_ *fjwt.Token) (any, error) {
 		return key, nil
-	})
+	}
 }
 
 func validateToken(tokenString string, key any) (sig string, err error) {

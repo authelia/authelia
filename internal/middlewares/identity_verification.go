@@ -8,7 +8,7 @@ import (
 	"path"
 	"time"
 
-	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 
 	"github.com/authelia/authelia/v4/internal/model"
@@ -118,7 +118,12 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 		token, err := jwt.ParseWithClaims(finishBody.Token, &model.IdentityVerificationClaim{},
 			func(token *jwt.Token) (any, error) {
 				return []byte(ctx.Configuration.JWTSecret), nil
-			})
+			},
+			jwt.WithIssuedAt(),
+			jwt.WithIssuer("Authelia"),
+			jwt.WithStrictDecoding(),
+			jwt.WithTimeFunc(ctx.Clock.Now),
+		)
 
 		switch {
 		case err == nil:

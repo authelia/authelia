@@ -6,6 +6,7 @@ import (
 	"hash"
 	"html/template"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
@@ -529,7 +530,7 @@ func (c *Config) GetTokenURL(ctx context.Context) (tokenURL string) {
 	if octx, ok := ctx.(OpenIDConnectContext); ok {
 		switch issuerURL, err := octx.IssuerURL(); err {
 		case nil:
-			return issuerURL.JoinPath(EndpointPathToken).String()
+			return strings.ToLower(issuerURL.JoinPath(EndpointPathToken).String())
 		default:
 			return c.TokenURL
 		}
