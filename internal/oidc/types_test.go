@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func TestNewSession(t *testing.T) {
@@ -105,6 +107,7 @@ type MockOpenIDConnectContext struct {
 
 	MockIssuerURL *url.URL
 	IssuerURLFunc func() (issuerURL *url.URL, err error)
+	Clock         utils.Clock
 }
 
 // IssuerURL returns the MockIssuerURL.
@@ -114,4 +117,16 @@ func (m *MockOpenIDConnectContext) IssuerURL() (issuerURL *url.URL, err error) {
 	}
 
 	return m.MockIssuerURL, nil
+}
+
+func (m *MockOpenIDConnectContext) GetClock() utils.Clock {
+	if m.Clock == nil {
+		m.Clock = &utils.RealClock{}
+	}
+
+	return m.Clock
+}
+
+func (m *MockOpenIDConnectContext) GetJWTWithTimeFuncOption() jwt.ParserOption {
+	return jwt.WithTimeFunc(m.GetClock().Now)
 }

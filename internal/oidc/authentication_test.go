@@ -28,6 +28,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func TestShouldNotRaiseErrorOnEqualPasswordsPlainText(t *testing.T) {
@@ -189,6 +190,7 @@ func (s *ClientAuthenticationStrategySuite) GetCtx() oidc.OpenIDConnectContext {
 	return &MockOpenIDConnectContext{
 		Context:       context.Background(),
 		MockIssuerURL: s.GetIssuerURL(),
+		Clock:         &utils.RealClock{},
 	}
 }
 

@@ -124,7 +124,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 			jwt.WithIssuedAt(),
 			jwt.WithIssuer("Authelia"),
 			jwt.WithStrictDecoding(),
-			jwt.WithTimeFunc(ctx.Clock.Now),
+			ctx.GetJWTWithTimeFuncOption(),
 		)
 
 		switch {

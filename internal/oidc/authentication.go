@@ -237,6 +237,15 @@ func (p *OpenIDConnectProvider) parseJWTAssertion(ctx context.Context, form url.
 
 	clientID = form.Get(FormParameterClientID)
 
+	parserOpts := []jwt.ParserOption{
+		jwt.WithIssuedAt(),
+		jwt.WithStrictDecoding(),
+	}
+
+	if octx, ok := ctx.(OpenIDConnectContext); ok {
+		parserOpts = append(parserOpts, octx.GetJWTWithTimeFuncOption())
+	}
+
 	token, err = jwt.ParseWithClaims(assertion, jwt.MapClaims{}, func(token *jwt.Token) (any, error) {
 		var (
 			ok bool
@@ -313,7 +322,7 @@ func (p *OpenIDConnectProvider) parseJWTAssertion(ctx context.Context, form url.
 		default:
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The 'client_assertion' request parameter uses unsupported signing algorithm '%s'.", token.Header[JWTHeaderKeyAlgorithm]))
 		}
-	}, jwt.WithIssuedAt())
+	}, parserOpts...)
 
 	if err != nil {
 		return
