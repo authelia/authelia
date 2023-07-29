@@ -535,6 +535,23 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 					"https://client.example.com",
 				},
 			},
+			{
+				ID:                      "public-post",
+				Public:                  true,
+				Policy:                  authorization.OneFactor.String(),
+				TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
+				RedirectURIs: []string{
+					"https://client.example.com",
+				},
+			},
+			{
+				ID:                      "confidential-none",
+				Policy:                  authorization.OneFactor.String(),
+				TokenEndpointAuthMethod: oidc.ClientAuthMethodNone,
+				RedirectURIs: []string{
+					"https://client.example.com",
+				},
+			},
 		},
 	}, s.store, nil)
 }
@@ -653,6 +670,42 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnMismatchedAsse
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
 	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). This requested OAuth 2.0 client supports client authentication method 'private_key_jwt', however the 'HS512' JWA is not supported with this method.")
+	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnInvalidIssuerValue() {
+	assertion := NewAssertionMapClaims("hs512", 123, s.GetTokenURL(), &jwt.NumericDate{Time: time.Now().Add(time.Second * -3)}, &jwt.NumericDate{Time: time.Unix(time.Now().Add(time.Minute).Unix(), 0)})
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodHS512, assertion)
+
+	token, err := assertionJWT.SignedString([]byte("client-secret"))
+
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'iss' from 'client_assertion' is invalid.")
+	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnInvalidSubjectValue() {
+	assertion := NewAssertionMapClaims(123, "hs512", s.GetTokenURL(), &jwt.NumericDate{Time: time.Now().Add(time.Second * -3)}, &jwt.NumericDate{Time: time.Unix(time.Now().Add(time.Minute).Unix(), 0)})
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodHS512, assertion)
+
+	token, err := assertionJWT.SignedString([]byte("client-secret"))
+
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'sub' from 'client_assertion' is invalid.")
 	s.Nil(client)
 }
 
@@ -1356,7 +1409,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMissingSubClaim() 
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The claim 'sub' from the client_assertion JSON Web Token is undefined.")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'sub' from 'client_assertion' is missing but it is required.")
 	s.Nil(client)
 }
 
@@ -1636,7 +1689,27 @@ func (s *ClientAuthenticationStrategySuite) TestShouldErrorClientSecretBasicOnPu
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client supports client authentication method 'client_secret_basic', but method 'none' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'none'.")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client is not a confidential client however the client authentication method 'client_secret_basic' was used which is not permitted as it's only permitted on confidential clients.")
+	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldErrorClientSecretPostOnPublicWithPost() {
+	r := s.GetClientSecretPostRequest("public-post", "client-secret")
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(err, "invalid_client")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client is not a confidential client however the client authentication method 'client_secret_post' was used which is not permitted as it's only permitted on confidential clients.")
+	s.Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldErrorNoneOnConfidentialWithNone() {
+	r := s.GetClientSecretPostRequest("confidential-none", "")
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(err, "invalid_client")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client is a confidential client however the client authentication method 'none' was used which is not permitted as it's not permitted on confidential clients.")
 	s.Nil(client)
 }
 
@@ -2013,6 +2086,19 @@ func NewAssertion(clientID string, tokenURL *url.URL, iat, exp time.Time) Regist
 			Subject:   clientID,
 			IssuedAt:  jwt.NewNumericDate(iat),
 			ExpiresAt: jwt.NewNumericDate(exp),
+		},
+	}
+}
+
+func NewAssertionMapClaims(subject, issuer any, tokenURL *url.URL, iat, exp any) jwt.MapClaims {
+	return jwt.MapClaims{
+		oidc.ClaimJWTID:          uuid.Must(uuid.NewRandom()).String(),
+		oidc.ClaimIssuer:         issuer,
+		oidc.ClaimSubject:        subject,
+		oidc.ClaimIssuedAt:       iat,
+		oidc.ClaimExpirationTime: exp,
+		oidc.ClaimAudience: []string{
+			tokenURL.String(),
 		},
 	}
 }

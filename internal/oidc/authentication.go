@@ -64,9 +64,7 @@ func (h Hasher) Hash(_ context.Context, data []byte) (hash []byte, err error) {
 
 // DefaultClientAuthenticationStrategy is a copy of fosite's with the addition of the client_secret_jwt method and some
 // minor superficial changes.
-//
-//nolint:gocyclo // Complexity is necessary to remain in feature parity.
-func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.Context, r *http.Request, form url.Values) (client fosite.Client, err error) {
+func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.Context, r *http.Request, form url.Values) (fclient fosite.Client, err error) {
 	switch assertionType := form.Get(FormParameterClientAssertionType); assertionType {
 	case "":
 		break
@@ -76,24 +74,30 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 		return nil, errorsx.WithStack(fosite.ErrInvalidRequest.WithHintf("Unknown client_assertion_type '%s'.", assertionType))
 	}
 
-	clientID, clientSecret, err := clientCredentialsFromRequest(r, form)
+	clientID, clientSecret, method, err := clientCredentialsFromRequest(r, form)
 	if err != nil {
 		return nil, err
 	}
 
-	if client, err = p.Store.GetClient(ctx, clientID); err != nil {
+	if fclient, err = p.Store.GetClient(ctx, clientID); err != nil {
 		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithWrap(err).WithDebug(err.Error()))
 	}
 
-	if oidcClient, ok := client.(fosite.OpenIDConnectClient); ok {
-		method := oidcClient.GetTokenEndpointAuthMethod()
+	var (
+		client *FullClient
+		ok     bool
+	)
 
-		if form.Get(FormParameterClientID) != "" && form.Get(FormParameterClientSecret) != "" && method != ClientAuthMethodClientSecretPost {
-			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The OAuth 2.0 Client supports client authentication method '%s', but method 'client_secret_post' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'client_secret_post'.", method))
-		} else if _, secret, basicOk := r.BasicAuth(); basicOk && secret != "" && method != ClientAuthMethodClientSecretBasic {
-			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The OAuth 2.0 Client supports client authentication method '%s', but method 'client_secret_basic' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'client_secret_basic'.", method))
-		} else if method != ClientAuthMethodNone && client.IsPublic() {
-			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The OAuth 2.0 Client supports client authentication method '%s', but method 'none' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'none'.", method))
+	if client, ok = fclient.(*FullClient); ok {
+		cmethod := client.GetTokenEndpointAuthMethod()
+
+		switch {
+		case method != cmethod:
+			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf(errHintFmtClientAuthMethodMismatch, cmethod, method, method))
+		case method != ClientAuthMethodNone && fclient.IsPublic():
+			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The OAuth 2.0 Client is not a confidential client however the client authentication method '%s' was used which is not permitted as it's only permitted on confidential clients.", method))
+		case method == ClientAuthMethodNone && !fclient.IsPublic():
+			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("The OAuth 2.0 Client is a confidential client however the client authentication method '%s' was used which is not permitted as it's not permitted on confidential clients.", method))
 		}
 	}
 
@@ -153,8 +157,6 @@ func (p *OpenIDConnectProvider) JWTBearerClientAuthenticationStrategy(ctx contex
 		}
 	}
 
-	tokenURL := p.Config.GetTokenURL(ctx)
-
 	var (
 		iss, sub, jti string
 		raw           any
@@ -163,11 +165,11 @@ func (p *OpenIDConnectProvider) JWTBearerClientAuthenticationStrategy(ctx contex
 	)
 
 	if iss, err = claims.GetIssuer(); err != nil {
-		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'iss' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client.").WithWrap(err))
+		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'iss' from 'client_assertion' is invalid.").WithWrap(err))
 	}
 
 	if sub, err = claims.GetSubject(); err != nil {
-		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'sub' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client.").WithWrap(err))
+		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'sub' from 'client_assertion' is invalid.").WithWrap(err))
 	}
 
 	if raw, ok = claims[ClaimJWTID]; !ok {
@@ -175,8 +177,10 @@ func (p *OpenIDConnectProvider) JWTBearerClientAuthenticationStrategy(ctx contex
 	}
 
 	if jti, ok = raw.(string); !ok {
-		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'jti' from 'client_assertion' must be a string but it is not."))
+		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'jti' from 'client_assertion' is invalid."))
 	}
+
+	tokenURL := p.Config.GetTokenURL(ctx)
 
 	switch {
 	case iss != client.GetID():
@@ -250,11 +254,15 @@ func (p *OpenIDConnectProvider) parseJWTAssertion(ctx context.Context, form url.
 		if clientID == "" {
 			var sub string
 
-			if sub, ok = claims[ClaimSubject].(string); !ok {
-				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("The claim 'sub' from the client_assertion JSON Web Token is undefined."))
-			} else {
-				clientID = sub
+			if sub, err = claims.GetSubject(); err != nil {
+				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'sub' from 'client_assertion' is invalid.").WithWrap(err))
 			}
+
+			if sub == "" {
+				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'sub' from 'client_assertion' is missing but it is required.").WithWrap(err))
+			}
+
+			clientID = sub
 		}
 
 		if client, err = p.Store.GetClient(ctx, clientID); err != nil {
@@ -317,7 +325,11 @@ func (p *OpenIDConnectProvider) parseJWTAssertion(ctx context.Context, form url.
 		}
 	}, jwt.WithIssuedAt())
 
-	return client, token, claims, err
+	if err != nil {
+		return
+	}
+
+	return client, token, token.Claims.(jwt.MapClaims), err
 }
 
 func (p *OpenIDConnectProvider) checkClientSecret(ctx context.Context, client fosite.Client, clientSecret []byte) (err error) {
@@ -429,16 +441,25 @@ func findPublicKey(t *jwt.Token, set *jose.JSONWebKeySet, expectsRSAKey bool) (a
 	}
 }
 
-func clientCredentialsFromRequest(r *http.Request, form url.Values) (clientID, clientSecret string, err error) {
+func clientCredentialsFromRequest(r *http.Request, form url.Values) (clientID, clientSecret, method string, err error) {
 	var ok bool
 
 	switch clientID, clientSecret, ok, err = clientCredentialsFromBasicAuth(r); {
 	case err != nil:
-		return "", "", errorsx.WithStack(fosite.ErrInvalidRequest.WithHint("The client credentials in the HTTP authorization header could not be parsed. Either the scheme was missing, the scheme was invalid, or the value had malformed data.").WithWrap(err).WithDebug(err.Error()))
+		return "", "", "", errorsx.WithStack(fosite.ErrInvalidRequest.WithHint("The client credentials in the HTTP authorization header could not be parsed. Either the scheme was missing, the scheme was invalid, or the value had malformed data.").WithWrap(err).WithDebug(err.Error()))
 	case ok:
-		return clientID, clientSecret, nil
+		return clientID, clientSecret, ClientAuthMethodClientSecretBasic, nil
 	default:
-		return clientCredentialsFromRequestBody(form, true)
+		clientID, clientSecret = form.Get(FormParameterClientID), form.Get(FormParameterClientSecret)
+
+		switch {
+		case clientID == "":
+			return "", "", "", errorsx.WithStack(fosite.ErrInvalidRequest.WithHint("Client credentials missing or malformed in both HTTP Authorization header and HTTP POST body."))
+		case clientSecret == "":
+			return clientID, "", ClientAuthMethodNone, nil
+		default:
+			return clientID, clientSecret, ClientAuthMethodClientSecretPost, nil
+		}
 	}
 }
 
