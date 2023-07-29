@@ -308,6 +308,11 @@ func (c *FullClient) GetJSONWebKeys() *jose.JSONWebKeySet {
 	return c.JSONWebKeys
 }
 
+// SetJSONWebKeys sets the JSON Web Key Set containing the public key used by the client to authenticate.
+func (c *FullClient) SetJSONWebKeys(jwks *jose.JSONWebKeySet) {
+	c.JSONWebKeys = jwks
+}
+
 // GetJSONWebKeysURI returns the URL for lookup of JSON Web Key Set containing the
 // public key used by the client to authenticate.
 func (c *FullClient) GetJSONWebKeysURI() string {

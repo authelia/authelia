@@ -97,6 +97,8 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 }
 
 // IdentityVerificationFinish the middleware for finishing the identity validation process.
+//
+//nolint:gocyclo
 func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(ctx *AutheliaCtx, username string)) RequestHandler {
 	return func(ctx *AutheliaCtx) {
 		var finishBody IdentityVerificationFinishBody

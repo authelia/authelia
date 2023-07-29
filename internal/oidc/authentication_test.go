@@ -21,6 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
+	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -306,7 +307,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP384AndSHA384,
 			},
 			{
-				ID:     "es512",
+				ID:     es512,
 				Policy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
@@ -437,7 +438,47 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP521AndSHA512,
 				PublicKeys: schema.OpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
-						{KeyID: "es512", Key: keyECDSAP521.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature},
+						{KeyID: es512, Key: keyECDSAP521.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature},
+					},
+				},
+			},
+			{
+				ID:     "mismatched-alg",
+				Policy: authorization.OneFactor.String(),
+				RedirectURIs: []string{
+					"https://client.example.com",
+				},
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA256,
+				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+					Values: []schema.JWK{
+						{KeyID: es512, Key: keyECDSAP521.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature},
+					},
+				},
+			},
+			{
+				ID:     "no-key",
+				Policy: authorization.OneFactor.String(),
+				RedirectURIs: []string{
+					"https://client.example.com",
+				},
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA256,
+				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+					Values: []schema.JWK{},
+				},
+			},
+			{
+				ID:     "es512u",
+				Policy: authorization.OneFactor.String(),
+				RedirectURIs: []string{
+					"https://client.example.com",
+				},
+				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
+				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP521AndSHA512,
+				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+					Values: []schema.JWK{
+						{KeyID: es512, Key: keyECDSAP521.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: "enc"},
 					},
 				},
 			},
@@ -554,6 +595,11 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 			},
 		},
 	}, s.store, nil)
+
+	c, _ := s.provider.Store.GetFullClient(context.Background(), "no-key")
+	client := c.(*oidc.FullClient)
+
+	client.SetJSONWebKeys(&jose.JSONWebKeySet{})
 }
 
 func (s *ClientAuthenticationStrategySuite) TestShouldValidateAssertionHS256() {
@@ -1293,7 +1339,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES384() {
 }
 
 func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKeysES512() {
-	assertion := NewAssertion("es512", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+	assertion := NewAssertion(es512, s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodES512, assertion)
 
@@ -1314,7 +1360,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES512() {
 	assertion := NewAssertion("es512k", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodES512, assertion)
-	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "es512"
+	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = es512
 
 	token, err := assertionJWT.SignedString(keyECDSAP521)
 	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
@@ -1342,6 +1388,60 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES512() {
 	s.Require().NotNil(client)
 
 	s.Equal("es512k", client.GetID())
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldFailKeysES512Enc() {
+	assertion := NewAssertion("es512u", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodES512, assertion)
+	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = es512
+
+	token, err := assertionJWT.SignedString(keyECDSAP521)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Unable to find ECDSA public key with a 'use' value of 'sig' for kid 'es512' in JSON Web Key Set.")
+	s.Require().Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldFailKeysRS256MismatchedKIDAndAlg() {
+	assertion := NewAssertion("mismatched-alg", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS256, assertion)
+	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = es512
+
+	token, err := assertionJWT.SignedString(keyRSA2048)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Unable to find RSA public key with a 'use' value of 'sig' for kid 'es512' in JSON Web Key Set.")
+	s.Require().Nil(client)
+}
+
+func (s *ClientAuthenticationStrategySuite) TestShouldFailWithoutKeys() {
+	assertion := NewAssertion("no-key", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS256, assertion)
+	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "rs256"
+
+	token, err := assertionJWT.SignedString(keyRSA2048)
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The retrieved JSON Web Key Set does not contain any key.")
+	s.Require().Nil(client)
 }
 
 func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnJTIKnown() {

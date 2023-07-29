@@ -74,7 +74,7 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 		return nil, errorsx.WithStack(fosite.ErrInvalidRequest.WithHintf("Unknown client_assertion_type '%s'.", assertionType))
 	}
 
-	clientID, clientSecret, method, err := clientCredentialsFromRequest(r, form)
+	clientID, clientSecret, method, err := clientCredentialsFromRequest(r.Header, form)
 	if err != nil {
 		return nil, err
 	}
@@ -111,6 +111,7 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 	return client, nil
 }
 
+//nolint:gocyclo
 func (p *OpenIDConnectProvider) JWTBearerClientAuthenticationStrategy(ctx context.Context, r *http.Request, form url.Values) (client fosite.Client, err error) {
 	if form.Has(FormParameterClientSecret) {
 		return nil, errorsx.WithStack(fosite.ErrInvalidRequest.WithHintf("The client_secret request parameter must not be set when using client_assertion_type of '%s'.", ClientAssertionJWTBearerType))
@@ -223,6 +224,7 @@ func (p *OpenIDConnectProvider) JWTBearerClientAuthenticationStrategy(ctx contex
 	return client, nil
 }
 
+//nolint:gocyclo
 func (p *OpenIDConnectProvider) parseJWTAssertion(ctx context.Context, form url.Values) (client fosite.Client, token *jwt.Token, claims jwt.MapClaims, err error) {
 	assertion := form.Get(FormParameterClientAssertion)
 	if len(assertion) == 0 {
@@ -388,10 +390,11 @@ func (p *OpenIDConnectProvider) findClientPublicJWK(ctx context.Context, oidcCli
 }
 
 func findPublicKey(t *jwt.Token, set *jose.JSONWebKeySet, expectsRSAKey bool) (any, error) {
-	keys := set.Keys
-	if len(keys) == 0 {
+	if len(set.Keys) == 0 {
 		return nil, errorsx.WithStack(fosite.ErrInvalidRequest.WithHintf("The retrieved JSON Web Key Set does not contain any key."))
 	}
+
+	keys := set.Keys
 
 	kid, ok := t.Header[JWTHeaderKeyIdentifier].(string)
 	if ok {
@@ -419,16 +422,16 @@ func findPublicKey(t *jwt.Token, set *jose.JSONWebKeySet, expectsRSAKey bool) (a
 	}
 
 	if expectsRSAKey {
-		return nil, errorsx.WithStack(fosite.ErrInvalidRequest.WithHintf("Unable to find RSA public key with use='sig' for kid '%s' in JSON Web Key Set.", kid))
+		return nil, errorsx.WithStack(fosite.ErrInvalidRequest.WithHintf("Unable to find RSA public key with a 'use' value of 'sig' for kid '%s' in JSON Web Key Set.", kid))
 	} else {
-		return nil, errorsx.WithStack(fosite.ErrInvalidRequest.WithHintf("Unable to find ECDSA public key with use='sig' for kid '%s' in JSON Web Key Set.", kid))
+		return nil, errorsx.WithStack(fosite.ErrInvalidRequest.WithHintf("Unable to find ECDSA public key with a 'use' value of 'sig' for kid '%s' in JSON Web Key Set.", kid))
 	}
 }
 
-func clientCredentialsFromRequest(r *http.Request, form url.Values) (clientID, clientSecret, method string, err error) {
+func clientCredentialsFromRequest(header http.Header, form url.Values) (clientID, clientSecret, method string, err error) {
 	var ok bool
 
-	switch clientID, clientSecret, ok, err = clientCredentialsFromBasicAuth(r); {
+	switch clientID, clientSecret, ok, err = clientCredentialsFromBasicAuth(header); {
 	case err != nil:
 		return "", "", "", errorsx.WithStack(fosite.ErrInvalidRequest.WithHint("The client credentials in the HTTP authorization header could not be parsed. Either the scheme was missing, the scheme was invalid, or the value had malformed data.").WithWrap(err).WithDebug(err.Error()))
 	case ok:
@@ -447,8 +450,8 @@ func clientCredentialsFromRequest(r *http.Request, form url.Values) (clientID, c
 	}
 }
 
-func clientCredentialsFromBasicAuth(r *http.Request) (clientID, clientSecret string, ok bool, err error) {
-	auth := r.Header.Get(fasthttp.HeaderAuthorization)
+func clientCredentialsFromBasicAuth(header http.Header) (clientID, clientSecret string, ok bool, err error) {
+	auth := header.Get(fasthttp.HeaderAuthorization)
 
 	if auth == "" {
 		return "", "", false, nil
