@@ -64,7 +64,7 @@ func (h Hasher) Hash(_ context.Context, data []byte) (hash []byte, err error) {
 
 // DefaultClientAuthenticationStrategy is a copy of fosite's with the addition of the client_secret_jwt method and some
 // minor superficial changes.
-func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.Context, r *http.Request, form url.Values) (fclient fosite.Client, err error) {
+func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.Context, r *http.Request, form url.Values) (client fosite.Client, err error) {
 	switch assertionType := form.Get(FormParameterClientAssertionType); assertionType {
 	case "":
 		break
@@ -79,17 +79,16 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 		return nil, err
 	}
 
-	if fclient, err = p.Store.GetClient(ctx, clientID); err != nil {
+	if client, err = p.Store.GetFullClient(ctx, clientID); err != nil {
+		if errors.Is(err, fosite.ErrInvalidClient) {
+			return nil, err
+		}
+
 		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithWrap(err).WithDebug(err.Error()))
 	}
 
-	var (
-		client *FullClient
-		ok     bool
-	)
-
-	if client, ok = fclient.(*FullClient); ok {
-		cmethod := client.GetTokenEndpointAuthMethod()
+	if fclient, ok := client.(*FullClient); ok {
+		cmethod := fclient.GetTokenEndpointAuthMethod()
 
 		switch {
 		case method != cmethod:
@@ -159,7 +158,6 @@ func (p *OpenIDConnectProvider) JWTBearerClientAuthenticationStrategy(ctx contex
 
 	var (
 		iss, sub, jti string
-		raw           any
 		ok            bool
 		exp           *jwt.NumericDate
 	)
@@ -172,25 +170,21 @@ func (p *OpenIDConnectProvider) JWTBearerClientAuthenticationStrategy(ctx contex
 		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'sub' from 'client_assertion' is invalid.").WithWrap(err))
 	}
 
-	if raw, ok = claims[ClaimJWTID]; !ok {
-		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'jti' from 'client_assertion' must be set but it is not."))
-	}
-
-	if jti, ok = raw.(string); !ok {
-		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'jti' from 'client_assertion' is invalid."))
+	if jti, err = JTIFromMapClaims(claims); err != nil {
+		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'jti' from 'client_assertion' is invalid.").WithWrap(err))
 	}
 
 	tokenURL := p.Config.GetTokenURL(ctx)
 
 	switch {
 	case iss != client.GetID():
-		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'iss' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client."))
+		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'iss' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client.").WithDebugf(errDebugFmtParameterMatchClaim, ClaimIssuer, iss, FormParameterClientID, client.GetID()))
 	case sub != client.GetID():
-		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'sub' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client."))
+		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'sub' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client.").WithDebugf(errDebugFmtParameterMatchClaim, ClaimSubject, sub, FormParameterClientID, client.GetID()))
 	case tokenURL == "":
 		return nil, errorsx.WithStack(fosite.ErrMisconfiguration.WithHint("The authorization server's token endpoint URL has not been set."))
 	case len(jti) == 0:
-		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'jti' from 'client_assertion' must be set but is not."))
+		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'jti' from 'client_assertion' must be set but it is not."))
 	case p.Store.ClientAssertionJWTValid(ctx, jti) != nil:
 		return nil, errorsx.WithStack(fosite.ErrJTIKnown.WithHint("Claim 'jti' from 'client_assertion' MUST only be used once."))
 	}
@@ -223,7 +217,7 @@ func (p *OpenIDConnectProvider) JWTBearerClientAuthenticationStrategy(ctx contex
 	}
 
 	if !found {
-		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("Claim 'audience' from 'client_assertion' must match the authorization server's token endpoint '%s'.", tokenURL))
+		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHintf("Claim 'aud' from 'client_assertion' must match the authorization server's token endpoint '%s'.", tokenURL))
 	}
 
 	return client, nil
@@ -232,7 +226,7 @@ func (p *OpenIDConnectProvider) JWTBearerClientAuthenticationStrategy(ctx contex
 func (p *OpenIDConnectProvider) parseJWTAssertion(ctx context.Context, form url.Values) (client fosite.Client, token *jwt.Token, claims jwt.MapClaims, err error) {
 	assertion := form.Get(FormParameterClientAssertion)
 	if len(assertion) == 0 {
-		return nil, nil, nil, errorsx.WithStack(fosite.ErrInvalidRequest.WithHintf("The client_assertion request parameter must be set when using client_assertion_type of '%s'.", ClientAssertionJWTBearerType))
+		return nil, nil, nil, errorsx.WithStack(fosite.ErrInvalidRequest.WithHintf("The 'client_assertion' request parameter must be set when using 'client_assertion_type' of '%s'.", ClientAssertionJWTBearerType))
 	}
 
 	var (
@@ -251,21 +245,15 @@ func (p *OpenIDConnectProvider) parseJWTAssertion(ctx context.Context, form url.
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("The claims could not be parsed due to an unknown error."))
 		}
 
-		if clientID == "" {
-			var sub string
-
-			if sub, err = claims.GetSubject(); err != nil {
-				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'sub' from 'client_assertion' is invalid.").WithWrap(err))
-			}
-
-			if sub == "" {
-				return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'sub' from 'client_assertion' is missing but it is required.").WithWrap(err))
-			}
-
-			clientID = sub
+		if clientID, err = parseJWTAssertionClientID(clientID, claims); err != nil {
+			return nil, err
 		}
 
-		if client, err = p.Store.GetClient(ctx, clientID); err != nil {
+		if client, err = p.Store.GetFullClient(ctx, clientID); err != nil {
+			if errors.Is(err, fosite.ErrInvalidClient) {
+				return nil, err
+			}
+
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithWrap(err).WithDebug(err.Error()))
 		}
 
@@ -332,6 +320,28 @@ func (p *OpenIDConnectProvider) parseJWTAssertion(ctx context.Context, form url.
 	return client, token, token.Claims.(jwt.MapClaims), err
 }
 
+func parseJWTAssertionClientID(clientID string, claims jwt.MapClaims) (string, error) {
+	if len(clientID) > 0 {
+		return clientID, nil
+	}
+
+	var err error
+
+	if clientID, err = claims.GetSubject(); err != nil {
+		return "", errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'sub' from 'client_assertion' is invalid.").WithWrap(err))
+	} else if len(clientID) > 0 {
+		return clientID, nil
+	}
+
+	if clientID, err = claims.GetIssuer(); err != nil {
+		return "", errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'iss' from 'client_assertion' is invalid.").WithWrap(err))
+	} else if len(clientID) > 0 {
+		return clientID, nil
+	}
+
+	return "", fosite.ErrInvalidClient.WithHint("There was insufficient information in the request to identify the client this request is for.")
+}
+
 func (p *OpenIDConnectProvider) checkClientSecret(ctx context.Context, client fosite.Client, clientSecret []byte) (err error) {
 	if err = p.Config.GetSecretsHasher(ctx).Compare(ctx, client.GetHashedSecret(), clientSecret); err == nil {
 		return nil
@@ -349,32 +359,6 @@ func (p *OpenIDConnectProvider) checkClientSecret(ctx context.Context, client fo
 	}
 
 	return err
-}
-
-func resolveClientPublicJWK(ctx context.Context, oidcClient fosite.OpenIDConnectClient, fetcher fosite.JWKSFetcherStrategy, t *jwt.Token, expectsRSAKey bool) (any, error) {
-	if set := oidcClient.GetJSONWebKeys(); set != nil {
-		return findPublicKey(t, set, expectsRSAKey)
-	}
-
-	if location := oidcClient.GetJSONWebKeysURI(); len(location) > 0 {
-		keys, err := fetcher.Resolve(ctx, location, false)
-		if err != nil {
-			return nil, err
-		}
-
-		if key, err := findPublicKey(t, keys, expectsRSAKey); err == nil {
-			return key, nil
-		}
-
-		keys, err = fetcher.Resolve(ctx, location, true)
-		if err != nil {
-			return nil, err
-		}
-
-		return findPublicKey(t, keys, expectsRSAKey)
-	}
-
-	return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request."))
 }
 
 func (p *OpenIDConnectProvider) findClientPublicJWK(ctx context.Context, oidcClient fosite.OpenIDConnectClient, t *jwt.Token, expectsRSAKey bool) (any, error) {
@@ -493,15 +477,4 @@ func clientCredentialsFromBasicAuth(r *http.Request) (clientID, clientSecret str
 	}
 
 	return clientID, clientSecret, true, nil
-}
-
-func clientCredentialsFromRequestBody(form url.Values, forceID bool) (clientID, clientSecret string, err error) {
-	clientID = form.Get(FormParameterClientID)
-	clientSecret = form.Get(FormParameterClientSecret)
-
-	if clientID == "" && forceID {
-		return "", "", errorsx.WithStack(fosite.ErrInvalidRequest.WithHint("Client credentials missing or malformed in both HTTP Authorization header and HTTP POST body."))
-	}
-
-	return clientID, clientSecret, nil
 }

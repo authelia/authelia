@@ -174,7 +174,7 @@ func verifyOIDCUserAuthorizedForConsent(ctx *middlewares.AutheliaCtx, client oid
 	var sid uint32
 
 	if client == nil {
-		if client, err = ctx.Providers.OpenIDConnect.GetFullClient(consent.ClientID); err != nil {
+		if client, err = ctx.Providers.OpenIDConnect.GetFullClient(ctx, consent.ClientID); err != nil {
 			return fmt.Errorf("failed to retrieve client: %w", err)
 		}
 	}

@@ -709,6 +709,26 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnInvalidSubject
 	s.Nil(client)
 }
 
+func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnInvalidJTIValue() {
+	assertion := NewAssertionMapClaims("hs512", "hs512", s.GetTokenURL(), &jwt.NumericDate{Time: time.Now().Add(time.Second * -3)}, &jwt.NumericDate{Time: time.Unix(time.Now().Add(time.Minute).Unix(), 0)})
+
+	assertion[oidc.ClaimJWTID] = 123
+
+	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodHS512, assertion)
+
+	token, err := assertionJWT.SignedString([]byte("client-secret"))
+
+	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NotEqual("", token)
+
+	r := s.GetAssertionRequest(token)
+
+	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
+
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'jti' from 'client_assertion' is invalid.")
+	s.Nil(client)
+}
+
 func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnMismatchedAssertionAuthMethodClientSecretJWT() {
 	assertion := NewAssertion("hs256", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
 
@@ -1409,7 +1429,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMissingSubClaim() 
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'sub' from 'client_assertion' is missing but it is required.")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'sub' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client. The claim 'sub' with value '' did not match the 'client_id' with value 'hs512'.")
 	s.Nil(client)
 }
 
@@ -1451,7 +1471,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMissingIssClaim() 
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'iss' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client.")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'iss' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client. The claim 'iss' with value '' did not match the 'client_id' with value 'hs512'.")
 	s.Nil(client)
 }
 
@@ -1485,7 +1505,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithInvalidAudClaim() 
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'audience' from 'client_assertion' must match the authorization server's token endpoint 'https://auth.example.com/api/oidc/token'.")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'aud' from 'client_assertion' must match the authorization server's token endpoint 'https://auth.example.com/api/oidc/token'.")
 	s.Nil(client)
 }
 
@@ -1548,7 +1568,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMismatchedIssClaim
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'iss' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client.")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'iss' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client. The claim 'iss' with value 'hs256' did not match the 'client_id' with value 'hs512'.")
 	s.Nil(client)
 }
 
@@ -1719,7 +1739,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldErrorClientSecretBasicOnIn
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). invalid_client")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Client with id 'not-a-client' does not appear to be a registered client.")
 	s.Nil(client)
 }
 
@@ -1755,7 +1775,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMismatchedFormClie
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'sub' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client.")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'sub' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client. The claim 'sub' with value 'hs512' did not match the 'client_id' with value 'hs5122'.")
 	s.Nil(client)
 }
 
@@ -1777,7 +1797,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMismatchedFormClie
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'iss' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client.")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'iss' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client. The claim 'iss' with value 'hs512' did not match the 'client_id' with value 'hs5122'.")
 	s.Nil(client)
 }
 
@@ -1795,7 +1815,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMissingClient() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). invalid_client")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Client with id 'noclient' does not appear to be a registered client.")
 	s.Nil(client)
 }
 
@@ -2033,7 +2053,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailMissingAssertion() {
 	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
 
 	s.EqualError(err, "invalid_request")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The client_assertion request parameter must be set when using client_assertion_type of 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'.")
+	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The 'client_assertion' request parameter must be set when using 'client_assertion_type' of 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'.")
 	s.Nil(client)
 }
 

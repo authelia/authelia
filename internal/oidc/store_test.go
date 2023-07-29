@@ -24,6 +24,8 @@ import (
 )
 
 func TestOpenIDConnectStore_GetClientPolicy(t *testing.T) {
+	ctx := context.Background()
+
 	s := oidc.NewStore(&schema.OpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
 		IssuerPrivateKey:       keyRSA2048,
@@ -45,13 +47,13 @@ func TestOpenIDConnectStore_GetClientPolicy(t *testing.T) {
 		},
 	}, nil)
 
-	policyOne := s.GetClientPolicy(myclient)
+	policyOne := s.GetClientPolicy(ctx, myclient)
 	assert.Equal(t, authorization.OneFactor, policyOne)
 
-	policyTwo := s.GetClientPolicy("myotherclient")
+	policyTwo := s.GetClientPolicy(ctx, "myotherclient")
 	assert.Equal(t, authorization.TwoFactor, policyTwo)
 
-	policyInvalid := s.GetClientPolicy("invalidclient")
+	policyInvalid := s.GetClientPolicy(ctx, "invalidclient")
 	assert.Equal(t, authorization.TwoFactor, policyInvalid)
 }
 
@@ -81,6 +83,8 @@ func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 }
 
 func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
+	ctx := context.Background()
+
 	id := myclient
 
 	c1 := schema.OpenIDConnectClient{
@@ -97,7 +101,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 		Clients:                []schema.OpenIDConnectClient{c1},
 	}, nil)
 
-	client, err := s.GetFullClient(id)
+	client, err := s.GetFullClient(ctx, id)
 	require.NoError(t, err)
 	require.NotNil(t, client)
 	assert.Equal(t, id, client.GetID())
@@ -111,6 +115,8 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 }
 
 func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
+	ctx := context.Background()
+
 	c1 := schema.OpenIDConnectClient{
 		ID:          myclient,
 		Description: myclientdesc,
@@ -125,12 +131,14 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 		Clients:                []schema.OpenIDConnectClient{c1},
 	}, nil)
 
-	client, err := s.GetFullClient("another-client")
+	client, err := s.GetFullClient(ctx, "another-client")
 	assert.Nil(t, client)
 	assert.EqualError(t, err, "invalid_client")
 }
 
 func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
+	ctx := context.Background()
+
 	s := oidc.NewStore(&schema.OpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
 		IssuerPrivateKey:       keyRSA2048,
@@ -145,8 +153,8 @@ func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
 		},
 	}, nil)
 
-	validClient := s.IsValidClientID(myclient)
-	invalidClient := s.IsValidClientID("myinvalidclient")
+	validClient := s.IsValidClientID(ctx, myclient)
+	invalidClient := s.IsValidClientID(ctx, "myinvalidclient")
 
 	assert.True(t, validClient)
 	assert.False(t, invalidClient)

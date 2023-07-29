@@ -41,7 +41,7 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' is being processed", requester.GetID(), clientID)
 
-	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(clientID); err != nil {
+	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(ctx, clientID); err != nil {
 		if errors.Is(err, fosite.ErrNotFound) {
 			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: client was not found", requester.GetID(), clientID)
 		} else {
@@ -181,7 +181,7 @@ func OpenIDConnectPushedAuthorizationRequest(ctx *middlewares.AutheliaCtx, rw ht
 
 	clientID := requester.GetClient().GetID()
 
-	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(clientID); err != nil {
+	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(ctx, clientID); err != nil {
 		if errors.Is(err, fosite.ErrNotFound) {
 			ctx.Logger.Errorf("Pushed Authorization Request with id '%s' on client with id '%s' could not be processed: client was not found", requester.GetID(), clientID)
 		} else {
