@@ -447,7 +447,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'good_id': option 'grant_types' must only have the values 'implicit', 'refresh_token', or 'authorization_code' but the values 'bad_grant_type' are present")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'good_id': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', or 'refresh_token' but the values 'bad_grant_type' are present")
 }
 
 func TestShouldNotErrorOnCertificateValid(t *testing.T) {
@@ -1136,7 +1136,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 			nil,
 			[]string{
-				"identity_providers: oidc: clients: client 'test': option 'grant_types' must only have the values 'implicit', 'refresh_token', or 'authorization_code' but the values 'invalid' are present",
+				"identity_providers: oidc: clients: client 'test': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', or 'refresh_token' but the values 'invalid' are present",
 			},
 		},
 		{
@@ -1158,6 +1158,51 @@ func TestValidateOIDCClients(t *testing.T) {
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'grant_types' must have unique values but the values 'authorization_code' are duplicated",
 			},
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnInvalidGrantTypesForPublicClient",
+			func(have *schema.OpenIDConnect) {
+				have.Clients[0].Public = true
+				have.Clients[0].Secret = nil
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				[]string{oidc.GrantTypeClientCredentials},
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeClientCredentials},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'grant_types' should only have the 'client_credentials' value if it is of the confidential client type but it's of the public client type",
+			},
+		},
+		{
+			"ShouldNotRaiseErrorOnValidGrantTypesForConfidentialClient",
+			func(have *schema.OpenIDConnect) {
+				have.Clients[0].Public = false
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				[]string{oidc.GrantTypeClientCredentials},
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeClientCredentials},
+			},
+			nil,
 			nil,
 		},
 		{
@@ -1431,10 +1476,10 @@ func TestValidateOIDCClients(t *testing.T) {
 		{
 			"ShouldRaiseErrorOnInvalidClientAuthMethod",
 			func(have *schema.OpenIDConnect) {
-				have.Clients[0].TokenEndpointAuthMethod = "client_credentials"
+				have.Clients[0].TokenEndpointAuthMethod = oidc.GrantTypeClientCredentials
 			},
 			func(t *testing.T, have *schema.OpenIDConnect) {
-				assert.Equal(t, "client_credentials", have.Clients[0].TokenEndpointAuthMethod)
+				assert.Equal(t, oidc.GrantTypeClientCredentials, have.Clients[0].TokenEndpointAuthMethod)
 			},
 			tcv{
 				nil,

@@ -121,6 +121,7 @@ Feature List:
   * Client Auth Method `client_secret_jwt`
   * Client Auth Method `private_key_jwt`
 * Per-Client [RFC7636: Proof Key for Code Exchange (PKCE)] Policy
+* [OAuth 2.0 Client Credentials Grant](https://datatracker.ietf.org/doc/html/rfc6749#section-4.4)
 * Multiple Issuer JWKs:
   * `RS256`, `RS384`, `RS512`
   * `PS256`, `PS384`, `PS512`
@@ -168,13 +169,25 @@ Feature List:
 
 This stage lists features which individually do not fit into a specific stage and may or may not be implemented.
 
-#### OpenID Connect Dynamic Client Registration
+#### OAuth 2.0 Authorization Server Metadata
+
+{{< roadmap-status stage="complete" version="v4.34.0" >}}
+
+See the [RFC8414: OAuth 2.0 Authorization Server Metadata] specification for more information.
+
+#### OpenID Connect Dynamic Client Registration 1.0
 
 {{< roadmap-status >}}
 
 See the [OpenID Connect 1.0] website for the [OpenID Connect Dynamic Client Registration 1.0] specification.
 
-#### OpenID Connect Back-Channel Logout
+#### OpenID Connect Session Management 1.0
+
+{{< roadmap-status >}}
+
+See the [OpenID Connect 1.0] website for the [OpenID Connect Session Management 1.0] specification.
+
+#### OpenID Connect Back-Channel Logout 1.0
 
 {{< roadmap-status >}}
 
@@ -182,7 +195,7 @@ See the [OpenID Connect 1.0] website for the [OpenID Connect Back-Channel Logout
 
 Should be implemented alongside [Dynamic Client Registration](#openid-connect-dynamic-client-registration).
 
-#### OpenID Connect Front-Channel Logout
+#### OpenID Connect Front-Channel Logout 1.0
 
 {{< roadmap-status >}}
 
@@ -190,17 +203,11 @@ See the [OpenID Connect 1.0] website for the [OpenID Connect Front-Channel Logou
 
 Should be implemented alongside [Dynamic Client Registration](#openid-connect-dynamic-client-registration).
 
-#### OAuth 2.0 Authorization Server Metadata
-
-{{< roadmap-status stage="complete" version="v4.34.0" >}}
-
-See the [IETF Specification RFC8414](https://datatracker.ietf.org/doc/html/rfc8414) for more information.
-
-#### OpenID Connect Session Management
+#### OpenID Connect RP-Initiated Logout 1.0
 
 {{< roadmap-status >}}
 
-See the [OpenID Connect 1.0] website for the [OpenID Connect Session Management 1.0] specification.
+See the [OpenID Connect 1.0] website for the [OpenID Connect RP-Initiated Logout 1.0] specification.
 
 #### End-User Scope Grants
 
@@ -227,10 +234,11 @@ The `preferred_username` claim was missing and was fixed.
 [RFC4122]: https://datatracker.ietf.org/doc/html/rfc4122
 
 [OpenID Connect 1.0]: https://openid.net/connect/
-[OpenID Connect Front-Channel Logout 1.0]: https://openid.net/specs/openid-connect-frontchannel-1_0.html
-[OpenID Connect Back-Channel Logout 1.0]: https://openid.net/specs/openid-connect-backchannel-1_0.html
-[OpenID Connect Session Management 1.0]: https://openid.net/specs/openid-connect-session-1_0.html
 [OpenID Connect Dynamic Client Registration 1.0]: https://openid.net/specs/openid-connect-registration-1_0.html
+[OpenID Connect Session Management 1.0]: https://openid.net/specs/openid-connect-session-1_0.html
+[OpenID Connect Back-Channel Logout 1.0]: https://openid.net/specs/openid-connect-backchannel-1_0.html
+[OpenID Connect Front-Channel Logout 1.0]: https://openid.net/specs/openid-connect-frontchannel-1_0.html
+[OpenID Connect RP-Initiated Logout 1.0]: https://openid.net/specs/openid-connect-rpinitiated-1_0.html
 
 [OpenID Connect Core 1.0 (ID Token)]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
 [OpenID Connect Core 1.0 (Subject Identifier Types)]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
@@ -240,3 +248,4 @@ The `preferred_username` claim was missing and was fixed.
 [RFC7636: Proof Key for Code Exchange (PKCE)]: https://datatracker.ietf.org/doc/html/rfc7636
 [RFC7523: JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants]: https://datatracker.ietf.org/doc/html/rfc7523
 [RFC9126: OAuth 2.0 Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
+[RFC8414: OAuth 2.0 Authorization Server Metadata]: https://datatracker.ietf.org/doc/html/rfc8414
