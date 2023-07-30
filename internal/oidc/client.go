@@ -1,6 +1,8 @@
 package oidc
 
 import (
+	"time"
+
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/ory/fosite"
 	"github.com/ory/x/errorsx"
@@ -348,4 +350,40 @@ func (c *FullClient) GetTokenEndpointAuthSigningAlgorithm() string {
 	}
 
 	return c.TokenEndpointAuthSigningAlgorithm
+}
+
+func (c *FullClient) GetEffectiveLifespan(gt fosite.GrantType, tt fosite.TokenType, fallback time.Duration) time.Duration {
+	var lifespans schema.OpenIDConnectLifespan
+
+	switch gt {
+	case fosite.GrantTypeAuthorizationCode:
+		lifespans = c.Lifespans.AuthorizeCodeGrant
+	case fosite.GrantTypeImplicit:
+		lifespans = c.Lifespans.ImplicitGrant
+	case fosite.GrantTypeClientCredentials:
+		lifespans = c.Lifespans.ClientCredentialsGrant
+	case fosite.GrantTypeRefreshToken:
+		lifespans = c.Lifespans.RefreshTokenGrant
+	case fosite.GrantTypeJWTBearer:
+		lifespans = c.Lifespans.JWTBearerGrant
+	}
+
+	var effective time.Duration
+
+	switch tt {
+	case fosite.AccessToken:
+		effective = lifespans.AccessToken
+	case fosite.AuthorizeCode:
+		effective = lifespans.AuthorizeCode
+	case fosite.IDToken:
+		effective = lifespans.IDToken
+	case fosite.RefreshToken:
+		effective = lifespans.RefreshToken
+	}
+
+	if effective <= durationZero {
+		return fallback
+	}
+
+	return effective
 }

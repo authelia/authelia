@@ -4,13 +4,11 @@ import (
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"fmt"
+	"github.com/ory/fosite"
 	"net/url"
 	"sort"
 	"strconv"
 	"strings"
-	"time"
-
-	"github.com/ory/fosite"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -197,19 +195,35 @@ func validateOIDCIssuerPrivateKeyPair(i int, config *schema.OpenIDConnect, val *
 }
 
 func setOIDCDefaults(config *schema.OpenIDConnect) {
-	if config.AccessTokenLifespan == time.Duration(0) {
+	if config.Lifespans.Default.AccessToken == durationZero {
+		config.Lifespans.Default.AccessToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.Default.AccessToken
+	}
+
+	if config.Lifespans.Default.AuthorizeCode == durationZero {
+		config.Lifespans.Default.AuthorizeCode = schema.DefaultOpenIDConnectConfiguration.Lifespans.Default.AuthorizeCode
+	}
+
+	if config.Lifespans.Default.IDToken == durationZero {
+		config.Lifespans.Default.IDToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.Default.IDToken
+	}
+
+	if config.Lifespans.Default.RefreshToken == durationZero {
+		config.Lifespans.Default.RefreshToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.Default.RefreshToken
+	}
+
+	if config.AccessTokenLifespan == durationZero {
 		config.AccessTokenLifespan = schema.DefaultOpenIDConnectConfiguration.AccessTokenLifespan
 	}
 
-	if config.AuthorizeCodeLifespan == time.Duration(0) {
+	if config.AuthorizeCodeLifespan == durationZero {
 		config.AuthorizeCodeLifespan = schema.DefaultOpenIDConnectConfiguration.AuthorizeCodeLifespan
 	}
 
-	if config.IDTokenLifespan == time.Duration(0) {
+	if config.IDTokenLifespan == durationZero {
 		config.IDTokenLifespan = schema.DefaultOpenIDConnectConfiguration.IDTokenLifespan
 	}
 
-	if config.RefreshTokenLifespan == time.Duration(0) {
+	if config.RefreshTokenLifespan == durationZero {
 		config.RefreshTokenLifespan = schema.DefaultOpenIDConnectConfiguration.RefreshTokenLifespan
 	}
 

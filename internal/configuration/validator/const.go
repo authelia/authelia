@@ -2,6 +2,7 @@ package validator
 
 import (
 	"regexp"
+	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/valyala/fasthttp"
@@ -21,6 +22,10 @@ const (
 	policyOneFactor = "one_factor"
 	policyTwoFactor = "two_factor"
 	policyDeny      = "deny"
+)
+
+const (
+	durationZero = time.Duration(0)
 )
 
 const (

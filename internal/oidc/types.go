@@ -144,6 +144,7 @@ type FullClient struct {
 	RequestObjectSigningAlgorithm     string
 	TokenEndpointAuthMethod           string
 	TokenEndpointAuthSigningAlgorithm string
+	Lifespans                         schema.OpenIDConnectGrantLifespan
 }
 
 // Client represents the internal client definitions.

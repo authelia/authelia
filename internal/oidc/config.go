@@ -29,12 +29,7 @@ func NewConfig(config *schema.OpenIDConnect, templates *templates.Provider) (c *
 		GlobalSecret:               []byte(utils.HashSHA256FromString(config.HMACSecret)),
 		SendDebugMessagesToClients: config.EnableClientDebugMessages,
 		MinParameterEntropy:        config.MinimumParameterEntropy,
-		Lifespans: LifespanConfig{
-			AccessToken:   config.AccessTokenLifespan,
-			AuthorizeCode: config.AuthorizeCodeLifespan,
-			IDToken:       config.IDTokenLifespan,
-			RefreshToken:  config.RefreshTokenLifespan,
-		},
+		Lifespans:                  config.Lifespans.Default,
 		ProofKeyCodeExchange: ProofKeyCodeExchangeConfig{
 			Enforce:                   config.EnforcePKCE == "always",
 			EnforcePublicClients:      config.EnforcePKCE != "never",
@@ -78,7 +73,7 @@ type Config struct {
 	Strategy             StrategyConfig
 	PAR                  PARConfig
 	Handlers             HandlersConfig
-	Lifespans            LifespanConfig
+	Lifespans            schema.OpenIDConnectLifespan
 	ProofKeyCodeExchange ProofKeyCodeExchangeConfig
 	GrantTypeJWTBearer   GrantTypeJWTBearerConfig
 
@@ -166,6 +161,22 @@ type LifespanConfig struct {
 	AuthorizeCode time.Duration
 	IDToken       time.Duration
 	RefreshToken  time.Duration
+}
+
+type ClientLifespansConfig struct {
+	Default                *ClientLifespanConfig
+	AuthorizeCodeGrant     *ClientLifespanConfig
+	ClientCredentialsGrant *ClientLifespanConfig
+	ImplicitGrant          *ClientLifespanConfig
+	RefreshGrant           *ClientLifespanConfig
+	JWTBearerGrant         *ClientLifespanConfig
+}
+
+type ClientLifespanConfig struct {
+	AccessToken   *time.Duration
+	AuthorizeCode *time.Duration
+	IDToken       *time.Duration
+	RefreshToken  *time.Duration
 }
 
 // LoadHandlers reloads the handlers based on the current configuration.

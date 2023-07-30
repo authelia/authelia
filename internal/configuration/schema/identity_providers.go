@@ -19,10 +19,7 @@ type OpenIDConnect struct {
 	IssuerCertificateChain X509CertificateChain `koanf:"issuer_certificate_chain"`
 	IssuerPrivateKey       *rsa.PrivateKey      `koanf:"issuer_private_key"`
 
-	AccessTokenLifespan   time.Duration `koanf:"access_token_lifespan"`
-	AuthorizeCodeLifespan time.Duration `koanf:"authorize_code_lifespan"`
-	IDTokenLifespan       time.Duration `koanf:"id_token_lifespan"`
-	RefreshTokenLifespan  time.Duration `koanf:"refresh_token_lifespan"`
+	Lifespans OpenIDConnectLifespans `koanf:"lifespans"`
 
 	EnableClientDebugMessages bool `koanf:"enable_client_debug_messages"`
 	MinimumParameterEntropy   int  `koanf:"minimum_parameter_entropy"`
@@ -45,6 +42,26 @@ type OpenIDConnectDiscovery struct {
 	ResponseObjectSigningKeyIDs []string
 	ResponseObjectSigningAlgs   []string
 	RequestObjectSigningAlgs    []string
+}
+
+type OpenIDConnectLifespans struct {
+	Default OpenIDConnectLifespan                 `koanf:"default"`
+	Custom  map[string]OpenIDConnectGrantLifespan `koanf:"custom"`
+}
+
+type OpenIDConnectGrantLifespan struct {
+	AuthorizeCodeGrant     OpenIDConnectLifespan `koanf:"authorize_code_grant"`
+	ImplicitGrant          OpenIDConnectLifespan `koanf:"implicit_grant"`
+	ClientCredentialsGrant OpenIDConnectLifespan `koanf:"client_credentials_grant"`
+	RefreshTokenGrant      OpenIDConnectLifespan `koanf:"refresh_token_grant"`
+	JWTBearerGrant         OpenIDConnectLifespan `koanf:"jwt_bearer_grant"`
+}
+
+type OpenIDConnectLifespan struct {
+	AccessToken   time.Duration `koanf:"access_token"`
+	AuthorizeCode time.Duration `koanf:"authorize_code"`
+	IDToken       time.Duration `koanf:"id_token"`
+	RefreshToken  time.Duration `koanf:"refresh_token"`
 }
 
 // OpenIDConnectPAR represents an OpenID Connect 1.0 PAR config.
@@ -77,7 +94,8 @@ type OpenIDConnectClient struct {
 	ResponseTypes []string `koanf:"response_types"`
 	ResponseModes []string `koanf:"response_modes"`
 
-	Policy string `koanf:"authorization_policy"`
+	Policy   string `koanf:"authorization_policy"`
+	Lifespan string `koanf:"lifespan_policy"`
 
 	ConsentMode                  string         `koanf:"consent_mode"`
 	ConsentPreConfiguredDuration *time.Duration `koanf:"pre_configured_consent_duration"`
@@ -109,11 +127,15 @@ type OpenIDConnectClientPublicKeys struct {
 
 // DefaultOpenIDConnectConfiguration contains defaults for OIDC.
 var DefaultOpenIDConnectConfiguration = OpenIDConnect{
-	AccessTokenLifespan:   time.Hour,
-	AuthorizeCodeLifespan: time.Minute,
-	IDTokenLifespan:       time.Hour,
-	RefreshTokenLifespan:  time.Minute * 90,
-	EnforcePKCE:           "public_clients_only",
+	Lifespans: OpenIDConnectLifespans{
+		Default: OpenIDConnectLifespan{
+			AccessToken:   time.Hour,
+			AuthorizeCode: time.Minute,
+			IDToken:       time.Hour,
+			RefreshToken:  time.Minute * 90,
+		},
+	},
+	EnforcePKCE: "public_clients_only",
 }
 
 var defaultOIDCClientConsentPreConfiguredDuration = time.Hour * 24 * 7
