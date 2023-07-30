@@ -80,6 +80,7 @@ identity_providers:
         - 'email'
       userinfo_signing_alg: 'none'
 ```
+Note: Bookstack currently (checked on v23.02.2) has a fixed timeout of 3s on its requests to OIDC providers. If you are seeing timeout issues, check that the client secret digest calculation doesn't take too long (refer to ).
 
 ## See Also
 
