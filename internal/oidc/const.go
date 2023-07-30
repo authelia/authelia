@@ -45,6 +45,8 @@ const (
 	ClientAssertionJWTBearerType = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer" //nolint:gosec // False Positive.
 )
 
+const httpAuthSchemeBasic = "Basic"
+
 const (
 	lifespanTokenDefault         = time.Hour
 	lifespanRefreshTokenDefault  = time.Hour * 24 * 30

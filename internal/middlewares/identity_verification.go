@@ -2,12 +2,13 @@ package middlewares
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/mail"
 	"path"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 
 	"github.com/authelia/authelia/v4/internal/model"
@@ -96,6 +97,8 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 }
 
 // IdentityVerificationFinish the middleware for finishing the identity validation process.
+//
+//nolint:gocyclo
 func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(ctx *AutheliaCtx, username string)) RequestHandler {
 	return func(ctx *AutheliaCtx) {
 		var finishBody IdentityVerificationFinishBody
@@ -117,26 +120,30 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 		token, err := jwt.ParseWithClaims(finishBody.Token, &model.IdentityVerificationClaim{},
 			func(token *jwt.Token) (any, error) {
 				return []byte(ctx.Configuration.JWTSecret), nil
-			})
+			},
+			jwt.WithIssuedAt(),
+			jwt.WithIssuer("Authelia"),
+			jwt.WithStrictDecoding(),
+			ctx.GetJWTWithTimeFuncOption(),
+		)
 
-		if err != nil {
-			if ve, ok := err.(*jwt.ValidationError); ok {
-				switch {
-				case ve.Errors&jwt.ValidationErrorMalformed != 0:
-					ctx.Error(fmt.Errorf("Cannot parse token"), messageOperationFailed)
-					return
-				case ve.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0:
-					// Token is either expired or not active yet.
-					ctx.Error(fmt.Errorf("Token expired"), messageIdentityVerificationTokenHasExpired)
-					return
-				default:
-					ctx.Error(fmt.Errorf("Cannot handle this token: %s", ve), messageOperationFailed)
-					return
-				}
-			}
-
-			ctx.Error(err, messageOperationFailed)
-
+		switch {
+		case err == nil:
+			break
+		case errors.Is(err, jwt.ErrTokenMalformed):
+			ctx.Error(fmt.Errorf("Cannot parse token"), messageOperationFailed)
+			return
+		case errors.Is(err, jwt.ErrTokenExpired):
+			ctx.Error(fmt.Errorf("Token expired"), messageIdentityVerificationTokenHasExpired)
+			return
+		case errors.Is(err, jwt.ErrTokenNotValidYet):
+			ctx.Error(fmt.Errorf("Token is only valid in the future"), messageIdentityVerificationTokenNotValidYet)
+			return
+		case errors.Is(err, jwt.ErrTokenSignatureInvalid):
+			ctx.Error(fmt.Errorf("Token signature does't match"), messageIdentityVerificationTokenSig)
+			return
+		default:
+			ctx.Error(fmt.Errorf("Cannot handle this token: %w", err), messageOperationFailed)
 			return
 		}
 
