@@ -176,8 +176,8 @@ devDependencies:
     specifier: 1.8.1
     version: 1.8.1(eslint@8.44.0)(vite@4.4.7)
   vite-plugin-istanbul:
-    specifier: 4.1.0
-    version: 4.1.0(vite@4.4.7)
+    specifier: 5.0.0
+    version: 5.0.0(vite@4.4.7)
   vite-plugin-svgr:
     specifier: 3.2.0
     version: 3.2.0(vite@4.4.7)
@@ -4862,9 +4862,19 @@ packages:
       eslint-visitor-keys: 3.4.1
     dev: true
 
+  /espree@9.6.1:
+    resolution: {integrity: sha512-oruZaFkjorTpF32kDSI5/75ViwGeZginGGy2NoOSg3Q9bnwlnmDm4HLnkl0RE3n+njDXR037aY1+x58Z/zFdwQ==}
+    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    dependencies:
+      acorn: 8.9.0
+      acorn-jsx: 5.3.2(acorn@8.9.0)
+      eslint-visitor-keys: 3.4.1
+    dev: true
+
   /esprima@4.0.1:
     resolution: {integrity: sha512-eGuFFw7Upda+g4p+QHvnW0RyTX/SVeJBDM/gCtMARO0cLuT2HcEKnTPvhjV6aGeqrCB/sbNop0Kszm0jsaWU4A==}
     engines: {node: '>=4'}
+    hasBin: true
     dev: true
 
   /esquery@1.5.0:
@@ -7586,12 +7596,13 @@ packages:
       vite: 4.4.7(@types/node@20.4.5)
     dev: true
 
-  /vite-plugin-istanbul@4.1.0(vite@4.4.7):
-    resolution: {integrity: sha512-d8FRxaswOUYlGqCCNv2BTbt9pyqt7J4RPgab3WmMf+T2TflLlCmC7S26zDRfL9Ve4JSHrcf5bdzt+E0n9CrPvA==}
+  /vite-plugin-istanbul@5.0.0(vite@4.4.7):
+    resolution: {integrity: sha512-Tg9zDmm/u4SdEDFbEWHBz7mmFe7jhLRmArA2XCmw5yydEFCARU9r4TxqFFnBFWCL63D9A7XA7VELulOO5T5o/g==}
     peerDependencies:
       vite: '>=2.9.1 <= 5'
     dependencies:
       '@istanbuljs/load-nyc-config': 1.1.0
+      espree: 9.6.1
       istanbul-lib-instrument: 5.2.1
       picocolors: 1.0.0
       test-exclude: 6.0.0
