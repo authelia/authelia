@@ -207,9 +207,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 		HMACSecret: "abc123",
 		Clients: []schema.OpenIDConnectClient{
 			{
-				ID:     "hs256",
-				Secret: secret,
-				Policy: authorization.OneFactor.String(),
+				ID:                  "hs256",
+				Secret:              secret,
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -217,9 +217,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgHMACUsingSHA256,
 			},
 			{
-				ID:     "hs384",
-				Secret: secret,
-				Policy: authorization.OneFactor.String(),
+				ID:                  "hs384",
+				Secret:              secret,
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -227,9 +227,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgHMACUsingSHA384,
 			},
 			{
-				ID:     "hs512",
-				Secret: secret,
-				Policy: authorization.OneFactor.String(),
+				ID:                  "hs512",
+				Secret:              secret,
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -237,8 +237,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgHMACUsingSHA512,
 			},
 			{
-				ID:     rs256,
-				Policy: authorization.OneFactor.String(),
+				ID:                  rs256,
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -246,8 +246,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA256,
 			},
 			{
-				ID:     "rs384",
-				Policy: authorization.OneFactor.String(),
+				ID:                  "rs384",
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -255,8 +255,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA384,
 			},
 			{
-				ID:     "rs512",
-				Policy: authorization.OneFactor.String(),
+				ID:                  "rs512",
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -264,8 +264,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA512,
 			},
 			{
-				ID:     "ps256",
-				Policy: authorization.OneFactor.String(),
+				ID:                  "ps256",
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -273,8 +273,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA256,
 			},
 			{
-				ID:     "ps384",
-				Policy: authorization.OneFactor.String(),
+				ID:                  "ps384",
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -282,8 +282,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA384,
 			},
 			{
-				ID:     "ps512",
-				Policy: authorization.OneFactor.String(),
+				ID:                  "ps512",
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -291,8 +291,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA512,
 			},
 			{
-				ID:     "es256",
-				Policy: authorization.OneFactor.String(),
+				ID:                  "es256",
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -300,8 +300,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP256AndSHA256,
 			},
 			{
-				ID:     "es384",
-				Policy: authorization.OneFactor.String(),
+				ID:                  "es384",
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -309,8 +309,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP384AndSHA384,
 			},
 			{
-				ID:     es512,
-				Policy: authorization.OneFactor.String(),
+				ID:                  es512,
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -319,8 +319,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 			},
 
 			{
-				ID:     "rs256k",
-				Policy: authorization.OneFactor.String(),
+				ID:                  "rs256k",
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -333,8 +333,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 			},
 			{
-				ID:     "rs384k",
-				Policy: authorization.OneFactor.String(),
+				ID:                  "rs384k",
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -347,8 +347,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 			},
 			{
-				ID:     "rs512k",
-				Policy: authorization.OneFactor.String(),
+				ID:                  "rs512k",
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -361,8 +361,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 			},
 			{
-				ID:     "ps256k",
-				Policy: authorization.OneFactor.String(),
+				ID:                  "ps256k",
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -375,8 +375,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 			},
 			{
-				ID:     "ps384k",
-				Policy: authorization.OneFactor.String(),
+				ID:                  "ps384k",
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -389,8 +389,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 			},
 			{
-				ID:     "ps512k",
-				Policy: authorization.OneFactor.String(),
+				ID:                  "ps512k",
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -403,8 +403,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 			},
 			{
-				ID:     "es256k",
-				Policy: authorization.OneFactor.String(),
+				ID:                  "es256k",
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -417,8 +417,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 			},
 			{
-				ID:     "es384k",
-				Policy: authorization.OneFactor.String(),
+				ID:                  "es384k",
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -431,8 +431,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 			},
 			{
-				ID:     "es512k",
-				Policy: authorization.OneFactor.String(),
+				ID:                  "es512k",
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -445,8 +445,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 			},
 			{
-				ID:     "mismatched-alg",
-				Policy: authorization.OneFactor.String(),
+				ID:                  "mismatched-alg",
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -459,8 +459,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 			},
 			{
-				ID:     "no-key",
-				Policy: authorization.OneFactor.String(),
+				ID:                  "no-key",
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -471,8 +471,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 			},
 			{
-				ID:     "es512u",
-				Policy: authorization.OneFactor.String(),
+				ID:                  "es512u",
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -485,9 +485,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 			},
 			{
-				ID:     "hs5122",
-				Secret: secret,
-				Policy: authorization.OneFactor.String(),
+				ID:                  "hs5122",
+				Secret:              secret,
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -495,9 +495,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgHMACUsingSHA512,
 			},
 			{
-				ID:     "hashed",
-				Secret: MustDecodeSecret("$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng"),
-				Policy: authorization.OneFactor.String(),
+				ID:                  "hashed",
+				Secret:              MustDecodeSecret("$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng"),
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -505,9 +505,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgHMACUsingSHA512,
 			},
 			{
-				ID:     oidc.ClientAuthMethodClientSecretBasic,
-				Secret: secret,
-				Policy: authorization.OneFactor.String(),
+				ID:                  oidc.ClientAuthMethodClientSecretBasic,
+				Secret:              secret,
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -515,9 +515,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgNone,
 			},
 			{
-				ID:     oidc.ClientAuthMethodNone,
-				Secret: secret,
-				Policy: authorization.OneFactor.String(),
+				ID:                  oidc.ClientAuthMethodNone,
+				Secret:              secret,
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -525,9 +525,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgNone,
 			},
 			{
-				ID:     oidc.ClientAuthMethodClientSecretPost,
-				Secret: secret,
-				Policy: authorization.OneFactor.String(),
+				ID:                  oidc.ClientAuthMethodClientSecretPost,
+				Secret:              secret,
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -535,9 +535,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgNone,
 			},
 			{
-				ID:     "bad_method",
-				Secret: secret,
-				Policy: authorization.OneFactor.String(),
+				ID:                  "bad_method",
+				Secret:              secret,
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -545,9 +545,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgNone,
 			},
 			{
-				ID:     "base",
-				Secret: secret,
-				Policy: authorization.OneFactor.String(),
+				ID:                  "base",
+				Secret:              secret,
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -555,16 +555,16 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 			{
 				ID:                      "public",
 				Public:                  true,
-				Policy:                  authorization.OneFactor.String(),
+				AuthorizationPolicy:     authorization.OneFactor.String(),
 				TokenEndpointAuthMethod: oidc.ClientAuthMethodNone,
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
 			},
 			{
-				ID:     "public-nomethod",
-				Public: true,
-				Policy: authorization.OneFactor.String(),
+				ID:                  "public-nomethod",
+				Public:              true,
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
@@ -572,7 +572,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 			{
 				ID:                      "public-basic",
 				Public:                  true,
-				Policy:                  authorization.OneFactor.String(),
+				AuthorizationPolicy:     authorization.OneFactor.String(),
 				TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretBasic,
 				RedirectURIs: []string{
 					"https://client.example.com",
@@ -581,7 +581,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 			{
 				ID:                      "public-post",
 				Public:                  true,
-				Policy:                  authorization.OneFactor.String(),
+				AuthorizationPolicy:     authorization.OneFactor.String(),
 				TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
 				RedirectURIs: []string{
 					"https://client.example.com",
@@ -589,7 +589,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 			},
 			{
 				ID:                      "confidential-none",
-				Policy:                  authorization.OneFactor.String(),
+				AuthorizationPolicy:     authorization.OneFactor.String(),
 				TokenEndpointAuthMethod: oidc.ClientAuthMethodNone,
 				RedirectURIs: []string{
 					"https://client.example.com",

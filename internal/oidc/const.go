@@ -76,6 +76,7 @@ const (
 	GrantTypeImplicit          = implicit
 	GrantTypeRefreshToken      = "refresh_token"
 	GrantTypeAuthorizationCode = "authorization_code"
+	GrantTypeClientCredentials = "client_credentials"
 )
 
 // Client Auth Method strings.

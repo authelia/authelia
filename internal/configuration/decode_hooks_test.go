@@ -7,7 +7,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
-	"fmt"
 	"math"
 	"net/mail"
 	"net/url"
@@ -1640,7 +1639,6 @@ func MustParseAddress(input string) schema.Address {
 		panic(err)
 	}
 
-	fmt.Println(address.String())
 	addr := *address
 
 	return addr

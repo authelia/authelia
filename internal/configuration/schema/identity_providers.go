@@ -32,11 +32,27 @@ type OpenIDConnect struct {
 
 	Clients []OpenIDConnectClient `koanf:"clients"`
 
+	AuthorizationPolicies map[string]OpenIDConnectPolicy `koanf:"authorization_policies"`
+
 	Discovery OpenIDConnectDiscovery // MetaData value. Not configurable by users.
+}
+
+// OpenIDConnectPolicy configuration for OpenID Connect 1.0 authorization policies.
+type OpenIDConnectPolicy struct {
+	DefaultPolicy string `koanf:"default_policy"`
+
+	Rules []OpenIDConnectPolicyRule `koanf:"rules"`
+}
+
+// OpenIDConnectPolicyRule configuration for OpenID Connect 1.0 authorization policies rules.
+type OpenIDConnectPolicyRule struct {
+	Policy   string     `koanf:"policy"`
+	Subjects [][]string `koanf:"subject"`
 }
 
 // OpenIDConnectDiscovery is information discovered during validation reused for the discovery handlers.
 type OpenIDConnectDiscovery struct {
+	Policies                    []string
 	DefaultKeyIDs               map[string]string
 	DefaultKeyID                string
 	ResponseObjectSigningKeyIDs []string
@@ -94,7 +110,7 @@ type OpenIDConnectClient struct {
 	ResponseTypes []string `koanf:"response_types"`
 	ResponseModes []string `koanf:"response_modes"`
 
-	Policy   string `koanf:"authorization_policy"`
+	AuthorizationPolicy string `koanf:"authorization_policy"`
 	Lifespan string `koanf:"lifespan_policy"`
 
 	ConsentMode                  string         `koanf:"consent_mode"`
@@ -138,11 +154,15 @@ var DefaultOpenIDConnectConfiguration = OpenIDConnect{
 	EnforcePKCE: "public_clients_only",
 }
 
+var DefaultOpenIDConnectPolicyConfiguration = OpenIDConnectPolicy{
+	DefaultPolicy: policyTwoFactor,
+}
+
 var defaultOIDCClientConsentPreConfiguredDuration = time.Hour * 24 * 7
 
 // DefaultOpenIDConnectClientConfiguration contains defaults for OIDC Clients.
 var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClient{
-	Policy:                       "two_factor",
+	AuthorizationPolicy:          policyTwoFactor,
 	Scopes:                       []string{"openid", "groups", "profile", "email"},
 	ResponseTypes:                []string{"code"},
 	ResponseModes:                []string{"form_post"},

@@ -28,10 +28,10 @@ func NewStore(config *schema.OpenIDConnect, provider storage.Provider) (store *S
 	}
 
 	for _, client := range config.Clients {
-		policy := authorization.NewLevel(client.Policy)
-		logger.Debugf("Registering client %s with policy %s (%v)", client.ID, client.Policy, policy)
+		policy := authorization.NewLevel(client.AuthorizationPolicy)
+		logger.Debugf("Registering client %s with policy %s (%v)", client.ID, client.AuthorizationPolicy, policy)
 
-		store.clients[client.ID] = NewClient(client)
+		store.clients[client.ID] = NewClient(client, config)
 	}
 
 	return store
@@ -63,16 +63,6 @@ func (s *Store) GetSubject(ctx context.Context, sectorID, username string) (subj
 	}
 
 	return opaqueID.Identifier, nil
-}
-
-// GetClientPolicy retrieves the policy from the client with the matching provided id.
-func (s *Store) GetClientPolicy(ctx context.Context, id string) (level authorization.Level) {
-	client, err := s.GetFullClient(ctx, id)
-	if err != nil {
-		return authorization.TwoFactor
-	}
-
-	return client.GetAuthorizationPolicy()
 }
 
 // GetFullClient returns a fosite.Client asserted as an Client matching the provided id.
