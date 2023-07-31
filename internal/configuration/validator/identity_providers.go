@@ -702,17 +702,21 @@ func validateOIDCClientGrantTypesSetDefaults(c int, config *schema.OpenIDConnect
 func validateOIDCClientGrantTypesCheckRelated(c int, config *schema.OpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
 	for _, grantType := range config.Clients[c].GrantTypes {
 		switch grantType {
+		case oidc.GrantTypeAuthorizationCode:
+			if !utils.IsStringInSlice(oidc.ResponseTypeAuthorizationCodeFlow, config.Clients[c].ResponseTypes) && !utils.IsStringSliceContainsAny(validOIDCClientResponseTypesHybridFlow, config.Clients[c].ResponseTypes) {
+				errDeprecatedFunc()
+
+				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidGrantTypeMatch, config.Clients[c].ID, grantType, "for either the authorization code or hybrid flow", strJoinOr(append([]string{oidc.ResponseTypeAuthorizationCodeFlow}, validOIDCClientResponseTypesHybridFlow...)), strJoinAnd(config.Clients[c].ResponseTypes)))
+			}
 		case oidc.GrantTypeImplicit:
 			if !utils.IsStringSliceContainsAny(validOIDCClientResponseTypesImplicitFlow, config.Clients[c].ResponseTypes) && !utils.IsStringSliceContainsAny(validOIDCClientResponseTypesHybridFlow, config.Clients[c].ResponseTypes) {
 				errDeprecatedFunc()
 
 				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidGrantTypeMatch, config.Clients[c].ID, grantType, "for either the implicit or hybrid flow", strJoinOr(append(append([]string{}, validOIDCClientResponseTypesImplicitFlow...), validOIDCClientResponseTypesHybridFlow...)), strJoinAnd(config.Clients[c].ResponseTypes)))
 			}
-		case oidc.GrantTypeAuthorizationCode:
-			if !utils.IsStringInSlice(oidc.ResponseTypeAuthorizationCodeFlow, config.Clients[c].ResponseTypes) && !utils.IsStringSliceContainsAny(validOIDCClientResponseTypesHybridFlow, config.Clients[c].ResponseTypes) {
-				errDeprecatedFunc()
-
-				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidGrantTypeMatch, config.Clients[c].ID, grantType, "for either the authorization code or hybrid flow", strJoinOr(append([]string{oidc.ResponseTypeAuthorizationCodeFlow}, validOIDCClientResponseTypesHybridFlow...)), strJoinAnd(config.Clients[c].ResponseTypes)))
+		case oidc.GrantTypeClientCredentials:
+			if config.Clients[c].Public {
+				val.Push(fmt.Errorf(errFmtOIDCClientInvalidGrantTypePublic, config.Clients[c].ID, oidc.GrantTypeClientCredentials))
 			}
 		case oidc.GrantTypeRefreshToken:
 			if !utils.IsStringSliceContainsAny([]string{oidc.ScopeOfflineAccess, oidc.ScopeOffline}, config.Clients[c].Scopes) {
