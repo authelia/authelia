@@ -6,7 +6,7 @@ import (
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/ory/fosite"
 	"github.com/ory/x/errorsx"
-	jose "gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -43,6 +43,12 @@ func NewClient(config schema.OpenIDConnectClient, c *schema.OpenIDConnect) (clie
 
 		AuthorizationPolicy: NewClientAuthorizationPolicy(config.AuthorizationPolicy, c),
 		ConsentPolicy:       NewClientConsentPolicy(config.ConsentMode, config.ConsentPreConfiguredDuration),
+	}
+
+	if len(config.Lifespan) != 0 {
+		if lifespans, ok := c.Lifespans.Custom[config.Lifespan]; ok {
+			base.Lifespans = lifespans
+		}
 	}
 
 	for _, mode := range config.ResponseModes {
@@ -301,6 +307,66 @@ func (c *BaseClient) ValidateResponseModePolicy(r fosite.AuthorizeRequester) (er
 	return errorsx.WithStack(fosite.ErrUnsupportedResponseMode.WithHintf(`The request omitted the response_mode making the default response_mode "%s" based on the other authorization request parameters but registered OAuth 2.0 client doesn't support this response_mode`, m))
 }
 
+// GetEffectiveLifespan returns the effective lifespan for a grant type and token type otherwise returns the fallback
+// value. This implements the fosite.ClientWithCustomTokenLifespans interface.
+func (c *BaseClient) GetEffectiveLifespan(gt fosite.GrantType, tt fosite.TokenType, fallback time.Duration) time.Duration {
+	var lifespans schema.OpenIDConnectLifespanToken
+
+	switch gt {
+	case fosite.GrantTypeAuthorizationCode:
+		lifespans = c.Lifespans.Grants.AuthorizeCode
+	case fosite.GrantTypeImplicit:
+		lifespans = c.Lifespans.Grants.Implicit
+	case fosite.GrantTypeClientCredentials:
+		lifespans = c.Lifespans.Grants.ClientCredentials
+	case fosite.GrantTypeRefreshToken:
+		lifespans = c.Lifespans.Grants.RefreshToken
+	case fosite.GrantTypeJWTBearer:
+		lifespans = c.Lifespans.Grants.JWTBearer
+	}
+
+	switch tt {
+	case fosite.AccessToken:
+		switch {
+		case lifespans.AccessToken > durationZero:
+			return lifespans.AccessToken
+		case c.Lifespans.AccessToken > durationZero:
+			return c.Lifespans.AccessToken
+		default:
+			return fallback
+		}
+	case fosite.AuthorizeCode:
+		switch {
+		case lifespans.AuthorizeCode > durationZero:
+			return lifespans.AuthorizeCode
+		case c.Lifespans.AuthorizeCode > durationZero:
+			return c.Lifespans.AuthorizeCode
+		default:
+			return fallback
+		}
+	case fosite.IDToken:
+		switch {
+		case lifespans.IDToken > durationZero:
+			return lifespans.IDToken
+		case c.Lifespans.IDToken > durationZero:
+			return c.Lifespans.IDToken
+		default:
+			return fallback
+		}
+	case fosite.RefreshToken:
+		switch {
+		case lifespans.RefreshToken > durationZero:
+			return lifespans.RefreshToken
+		case c.Lifespans.RefreshToken > durationZero:
+			return c.Lifespans.RefreshToken
+		default:
+			return fallback
+		}
+	default:
+		return fallback
+	}
+}
+
 // GetRequestURIs is an array of request_uri values that are pre-registered by the RP for use at the OP. Servers MAY
 // cache the contents of the files referenced by these URIs and not retrieve them at the time they are used in a request.
 // OPs can require that request_uri values used be pre-registered with the require_request_uri_registration
@@ -354,40 +420,4 @@ func (c *FullClient) GetTokenEndpointAuthSigningAlgorithm() string {
 	}
 
 	return c.TokenEndpointAuthSigningAlgorithm
-}
-
-func (c *FullClient) GetEffectiveLifespan(gt fosite.GrantType, tt fosite.TokenType, fallback time.Duration) time.Duration {
-	var lifespans schema.OpenIDConnectLifespan
-
-	switch gt {
-	case fosite.GrantTypeAuthorizationCode:
-		lifespans = c.Lifespans.AuthorizeCodeGrant
-	case fosite.GrantTypeImplicit:
-		lifespans = c.Lifespans.ImplicitGrant
-	case fosite.GrantTypeClientCredentials:
-		lifespans = c.Lifespans.ClientCredentialsGrant
-	case fosite.GrantTypeRefreshToken:
-		lifespans = c.Lifespans.RefreshTokenGrant
-	case fosite.GrantTypeJWTBearer:
-		lifespans = c.Lifespans.JWTBearerGrant
-	}
-
-	var effective time.Duration
-
-	switch tt {
-	case fosite.AccessToken:
-		effective = lifespans.AccessToken
-	case fosite.AuthorizeCode:
-		effective = lifespans.AuthorizeCode
-	case fosite.IDToken:
-		effective = lifespans.IDToken
-	case fosite.RefreshToken:
-		effective = lifespans.RefreshToken
-	}
-
-	if effective <= durationZero {
-		return fallback
-	}
-
-	return effective
 }

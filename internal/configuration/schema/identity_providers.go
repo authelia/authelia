@@ -19,8 +19,6 @@ type OpenIDConnect struct {
 	IssuerCertificateChain X509CertificateChain `koanf:"issuer_certificate_chain"`
 	IssuerPrivateKey       *rsa.PrivateKey      `koanf:"issuer_private_key"`
 
-	Lifespans OpenIDConnectLifespans `koanf:"lifespans"`
-
 	EnableClientDebugMessages bool `koanf:"enable_client_debug_messages"`
 	MinimumParameterEntropy   int  `koanf:"minimum_parameter_entropy"`
 
@@ -33,6 +31,7 @@ type OpenIDConnect struct {
 	Clients []OpenIDConnectClient `koanf:"clients"`
 
 	AuthorizationPolicies map[string]OpenIDConnectPolicy `koanf:"authorization_policies"`
+	Lifespans             OpenIDConnectLifespans         `koanf:"lifespans"`
 
 	Discovery OpenIDConnectDiscovery // MetaData value. Not configurable by users.
 }
@@ -52,7 +51,8 @@ type OpenIDConnectPolicyRule struct {
 
 // OpenIDConnectDiscovery is information discovered during validation reused for the discovery handlers.
 type OpenIDConnectDiscovery struct {
-	Policies                    []string
+	AuthorizationPolicies       []string
+	Lifespans                   []string
 	DefaultKeyIDs               map[string]string
 	DefaultKeyID                string
 	ResponseObjectSigningKeyIDs []string
@@ -61,19 +61,25 @@ type OpenIDConnectDiscovery struct {
 }
 
 type OpenIDConnectLifespans struct {
-	Default OpenIDConnectLifespan                 `koanf:"default"`
-	Custom  map[string]OpenIDConnectGrantLifespan `koanf:"custom"`
-}
-
-type OpenIDConnectGrantLifespan struct {
-	AuthorizeCodeGrant     OpenIDConnectLifespan `koanf:"authorize_code_grant"`
-	ImplicitGrant          OpenIDConnectLifespan `koanf:"implicit_grant"`
-	ClientCredentialsGrant OpenIDConnectLifespan `koanf:"client_credentials_grant"`
-	RefreshTokenGrant      OpenIDConnectLifespan `koanf:"refresh_token_grant"`
-	JWTBearerGrant         OpenIDConnectLifespan `koanf:"jwt_bearer_grant"`
+	OpenIDConnectLifespanToken `koanf:",squash"`
+	Custom                     map[string]OpenIDConnectLifespan `koanf:"custom"`
 }
 
 type OpenIDConnectLifespan struct {
+	OpenIDConnectLifespanToken `koanf:",squash"`
+
+	Grants OpenIDConnectLifespanGrants `koanf:"grants"`
+}
+
+type OpenIDConnectLifespanGrants struct {
+	AuthorizeCode     OpenIDConnectLifespanToken `koanf:"authorize_code"`
+	Implicit          OpenIDConnectLifespanToken `koanf:"implicit"`
+	ClientCredentials OpenIDConnectLifespanToken `koanf:"client_credentials"`
+	RefreshToken      OpenIDConnectLifespanToken `koanf:"refresh_token"`
+	JWTBearer         OpenIDConnectLifespanToken `koanf:"jwt_bearer"`
+}
+
+type OpenIDConnectLifespanToken struct {
 	AccessToken   time.Duration `koanf:"access_token"`
 	AuthorizeCode time.Duration `koanf:"authorize_code"`
 	IDToken       time.Duration `koanf:"id_token"`
@@ -111,7 +117,7 @@ type OpenIDConnectClient struct {
 	ResponseModes []string `koanf:"response_modes"`
 
 	AuthorizationPolicy string `koanf:"authorization_policy"`
-	Lifespan string `koanf:"lifespan_policy"`
+	Lifespan            string `koanf:"lifespan"`
 
 	ConsentMode                  string         `koanf:"consent_mode"`
 	ConsentPreConfiguredDuration *time.Duration `koanf:"pre_configured_consent_duration"`
@@ -144,7 +150,7 @@ type OpenIDConnectClientPublicKeys struct {
 // DefaultOpenIDConnectConfiguration contains defaults for OIDC.
 var DefaultOpenIDConnectConfiguration = OpenIDConnect{
 	Lifespans: OpenIDConnectLifespans{
-		Default: OpenIDConnectLifespan{
+		OpenIDConnectLifespanToken: OpenIDConnectLifespanToken{
 			AccessToken:   time.Hour,
 			AuthorizeCode: time.Minute,
 			IDToken:       time.Hour,

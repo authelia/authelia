@@ -4,11 +4,12 @@ import (
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"fmt"
-	"github.com/ory/fosite"
 	"net/url"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/ory/fosite"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -28,7 +29,8 @@ func validateOIDC(config *schema.OpenIDConnect, val *schema.StructValidator) {
 	setOIDCDefaults(config)
 
 	validateOIDCIssuer(config, val)
-	validateOIDCPolicies(config, val)
+	validateOIDCAuthorizationPolicies(config, val)
+	validateOIDCLifespans(config, val)
 
 	sort.Sort(oidc.SortedSigningAlgs(config.Discovery.ResponseObjectSigningAlgs))
 
@@ -57,8 +59,8 @@ func validateOIDC(config *schema.OpenIDConnect, val *schema.StructValidator) {
 	}
 }
 
-func validateOIDCPolicies(config *schema.OpenIDConnect, val *schema.StructValidator) {
-	config.Discovery.Policies = []string{policyOneFactor, policyTwoFactor}
+func validateOIDCAuthorizationPolicies(config *schema.OpenIDConnect, val *schema.StructValidator) {
+	config.Discovery.AuthorizationPolicies = []string{policyOneFactor, policyTwoFactor}
 
 	for name, policy := range config.AuthorizationPolicies {
 		switch name {
@@ -66,8 +68,6 @@ func validateOIDCPolicies(config *schema.OpenIDConnect, val *schema.StructValida
 			val.Push(fmt.Errorf(errFmtOIDCPolicyInvalidName))
 		case policyOneFactor, policyTwoFactor, policyDeny:
 			val.Push(fmt.Errorf(errFmtOIDCPolicyInvalidNameStandard, name, "name", strJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny}), name))
-		default:
-			break
 		}
 
 		switch policy.DefaultPolicy {
@@ -100,7 +100,13 @@ func validateOIDCPolicies(config *schema.OpenIDConnect, val *schema.StructValida
 
 		config.AuthorizationPolicies[name] = policy
 
-		config.Discovery.Policies = append(config.Discovery.Policies, name)
+		config.Discovery.AuthorizationPolicies = append(config.Discovery.AuthorizationPolicies, name)
+	}
+}
+
+func validateOIDCLifespans(config *schema.OpenIDConnect, _ *schema.StructValidator) {
+	for name := range config.Lifespans.Custom {
+		config.Discovery.Lifespans = append(config.Discovery.Lifespans, name)
 	}
 }
 
@@ -243,36 +249,20 @@ func validateOIDCIssuerPrivateKeyPair(i int, config *schema.OpenIDConnect, val *
 }
 
 func setOIDCDefaults(config *schema.OpenIDConnect) {
-	if config.Lifespans.Default.AccessToken == durationZero {
-		config.Lifespans.Default.AccessToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.Default.AccessToken
+	if config.Lifespans.AccessToken == durationZero {
+		config.Lifespans.AccessToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.AccessToken
 	}
 
-	if config.Lifespans.Default.AuthorizeCode == durationZero {
-		config.Lifespans.Default.AuthorizeCode = schema.DefaultOpenIDConnectConfiguration.Lifespans.Default.AuthorizeCode
+	if config.Lifespans.AuthorizeCode == durationZero {
+		config.Lifespans.AuthorizeCode = schema.DefaultOpenIDConnectConfiguration.Lifespans.AuthorizeCode
 	}
 
-	if config.Lifespans.Default.IDToken == durationZero {
-		config.Lifespans.Default.IDToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.Default.IDToken
+	if config.Lifespans.IDToken == durationZero {
+		config.Lifespans.IDToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.IDToken
 	}
 
-	if config.Lifespans.Default.RefreshToken == durationZero {
-		config.Lifespans.Default.RefreshToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.Default.RefreshToken
-	}
-
-	if config.AccessTokenLifespan == durationZero {
-		config.AccessTokenLifespan = schema.DefaultOpenIDConnectConfiguration.AccessTokenLifespan
-	}
-
-	if config.AuthorizeCodeLifespan == durationZero {
-		config.AuthorizeCodeLifespan = schema.DefaultOpenIDConnectConfiguration.AuthorizeCodeLifespan
-	}
-
-	if config.IDTokenLifespan == durationZero {
-		config.IDTokenLifespan = schema.DefaultOpenIDConnectConfiguration.IDTokenLifespan
-	}
-
-	if config.RefreshTokenLifespan == durationZero {
-		config.RefreshTokenLifespan = schema.DefaultOpenIDConnectConfiguration.RefreshTokenLifespan
+	if config.Lifespans.RefreshToken == durationZero {
+		config.Lifespans.RefreshToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.RefreshToken
 	}
 
 	if config.EnforcePKCE == "" {
@@ -402,10 +392,17 @@ func validateOIDCClient(c int, config *schema.OpenIDConnect, val *schema.StructV
 	switch {
 	case config.Clients[c].AuthorizationPolicy == "":
 		config.Clients[c].AuthorizationPolicy = schema.DefaultOpenIDConnectClientConfiguration.AuthorizationPolicy
-	case utils.IsStringInSlice(config.Clients[c].AuthorizationPolicy, config.Discovery.Policies):
+	case utils.IsStringInSlice(config.Clients[c].AuthorizationPolicy, config.Discovery.AuthorizationPolicies):
 		break
 	default:
-		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, "authorization_policy", strJoinOr(config.Discovery.Policies), config.Clients[c].AuthorizationPolicy))
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, "authorization_policy", strJoinOr(config.Discovery.AuthorizationPolicies), config.Clients[c].AuthorizationPolicy))
+	}
+
+	switch {
+	case config.Clients[c].Lifespan == "", utils.IsStringInSlice(config.Clients[c].Lifespan, config.Discovery.Lifespans):
+		break
+	default:
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, "lifespan", strJoinOr(config.Discovery.Lifespans), config.Clients[c].Lifespan))
 	}
 
 	switch config.Clients[c].PKCEChallengeMethod {
