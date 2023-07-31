@@ -36,15 +36,15 @@ func TestNewClient(t *testing.T) {
 	assert.False(t, ok)
 
 	config = schema.OpenIDConnectClient{
-		ID:            myclient,
-		Description:   myclientdesc,
-		Policy:        twofactor,
-		Secret:        tOpenIDConnectPlainTextClientSecret,
-		RedirectURIs:  []string{examplecom},
-		Scopes:        schema.DefaultOpenIDConnectClientConfiguration.Scopes,
-		ResponseTypes: schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes,
-		GrantTypes:    schema.DefaultOpenIDConnectClientConfiguration.GrantTypes,
-		ResponseModes: schema.DefaultOpenIDConnectClientConfiguration.ResponseModes,
+		ID:                  myclient,
+		Description:         myclientdesc,
+		AuthorizationPolicy: twofactor,
+		Secret:              tOpenIDConnectPlainTextClientSecret,
+		RedirectURIs:        []string{examplecom},
+		Scopes:              schema.DefaultOpenIDConnectClientConfiguration.Scopes,
+		ResponseTypes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes,
+		GrantTypes:          schema.DefaultOpenIDConnectClientConfiguration.GrantTypes,
+		ResponseModes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseModes,
 	}
 
 	client = oidc.NewClient(config, &schema.OpenIDConnect{})

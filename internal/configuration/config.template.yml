@@ -1295,8 +1295,8 @@ notifier:
     ## for security reasons.
     # enforce_pkce: 'public_clients_only'
 
-    ## Policies.
-    # policies:
+    ## Authorization Policies which can be utilized by clients.
+    # authorization_policies:
       # policy_name:
         # default_policy: 'two_factor'
         # rules:
@@ -1374,8 +1374,8 @@ notifier:
           # - 'form_post'
           # - 'query'
 
-        ## The policy to require for this client; one_factor or two_factor. Can also be the key names for the policies
-        ## section.
+        ## The policy to require for this client; one_factor or two_factor. Can also be the key names for the
+        ## authorization policies section.
         # authorization_policy: 'two_factor'
 
         ## The consent mode controls how consent is obtained.

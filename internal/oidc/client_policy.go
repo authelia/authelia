@@ -13,7 +13,7 @@ func NewClientAuthorizationPolicy(name string, config *schema.OpenIDConnect) (po
 	case authorization.OneFactor.String(), authorization.TwoFactor.String():
 		return ClientAuthorizationPolicy{Name: name, DefaultPolicy: authorization.NewLevel(name)}
 	default:
-		if p, ok := config.Policies[name]; ok {
+		if p, ok := config.AuthorizationPolicies[name]; ok {
 			policy = ClientAuthorizationPolicy{
 				Name:          name,
 				DefaultPolicy: authorization.NewLevel(p.DefaultPolicy),

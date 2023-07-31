@@ -355,13 +355,14 @@ When enabled all authorization requests must use the [Pushed Authorization Reque
 The maximum amount of time between the [Pushed Authorization Requests] flow being initiated and the generated
 `request_uri` being utilized by a client.
 
-### policies
+### authorization_policies
 
 {{< confkey type="dictionary(object)" required="no" >}}
 
-The policies section allows creating custom authorization policies which can be applied to clients. This is useful
-if you wish to only allow specific users to access specific clients i.e. RBAC. It's generally recommended however that
-users rely on the [OpenID Connect 1.0] relying party to provide RBAC controls based on the available claims.
+The authorization policies section allows creating custom authorization policies which can be applied to clients. This
+is useful if you wish to only allow specific users to access specific clients i.e. RBAC. It's generally recommended
+however that users rely on the [OpenID Connect 1.0] relying party to provide RBAC controls based on the available
+claims.
 
 Each policy applies one of the effective policies which can be either `one_factor` or `two_factor` as per the standard
 policies, or also the `deny` policy which is exclusively available via these configuration options.

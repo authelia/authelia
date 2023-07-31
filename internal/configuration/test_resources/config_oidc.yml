@@ -124,7 +124,7 @@ notifier:
 
 identity_providers:
   oidc:
-    policies:
+    authorization_policies:
       abc:
         default_policy: 'two_factor'
         rules:

@@ -29,11 +29,11 @@ func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 		IssuerPrivateKey:       keyRSA2048,
 		Clients: []schema.OpenIDConnectClient{
 			{
-				ID:          myclient,
-				Description: myclientdesc,
-				Policy:      onefactor,
-				Scopes:      []string{oidc.ScopeOpenID, oidc.ScopeProfile},
-				Secret:      tOpenIDConnectPlainTextClientSecret,
+				ID:                  myclient,
+				Description:         myclientdesc,
+				AuthorizationPolicy: onefactor,
+				Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				Secret:              tOpenIDConnectPlainTextClientSecret,
 			},
 		},
 	}, nil)
@@ -54,11 +54,11 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 	id := myclient
 
 	c1 := schema.OpenIDConnectClient{
-		ID:          id,
-		Description: myclientdesc,
-		Policy:      onefactor,
-		Scopes:      []string{oidc.ScopeOpenID, oidc.ScopeProfile},
-		Secret:      tOpenIDConnectPlainTextClientSecret,
+		ID:                  id,
+		Description:         myclientdesc,
+		AuthorizationPolicy: onefactor,
+		Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+		Secret:              tOpenIDConnectPlainTextClientSecret,
 	}
 
 	s := oidc.NewStore(&schema.OpenIDConnect{
@@ -84,11 +84,11 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 	ctx := context.Background()
 
 	c1 := schema.OpenIDConnectClient{
-		ID:          myclient,
-		Description: myclientdesc,
-		Policy:      onefactor,
-		Scopes:      []string{oidc.ScopeOpenID, oidc.ScopeProfile},
-		Secret:      tOpenIDConnectPlainTextClientSecret,
+		ID:                  myclient,
+		Description:         myclientdesc,
+		AuthorizationPolicy: onefactor,
+		Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+		Secret:              tOpenIDConnectPlainTextClientSecret,
 	}
 
 	s := oidc.NewStore(&schema.OpenIDConnect{
@@ -110,11 +110,11 @@ func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
 		IssuerPrivateKey:       keyRSA2048,
 		Clients: []schema.OpenIDConnectClient{
 			{
-				ID:          myclient,
-				Description: myclientdesc,
-				Policy:      onefactor,
-				Scopes:      []string{oidc.ScopeOpenID, oidc.ScopeProfile},
-				Secret:      tOpenIDConnectPlainTextClientSecret,
+				ID:                  myclient,
+				Description:         myclientdesc,
+				AuthorizationPolicy: onefactor,
+				Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				Secret:              tOpenIDConnectPlainTextClientSecret,
 			},
 		},
 	}, nil)
@@ -146,9 +146,9 @@ func (s *StoreSuite) SetupTest() {
 	s.store = oidc.NewStore(&schema.OpenIDConnect{
 		Clients: []schema.OpenIDConnectClient{
 			{
-				ID:     "hs256",
-				Secret: tOpenIDConnectPBKDF2ClientSecret,
-				Policy: authorization.OneFactor.String(),
+				ID:                  "hs256",
+				Secret:              tOpenIDConnectPBKDF2ClientSecret,
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},

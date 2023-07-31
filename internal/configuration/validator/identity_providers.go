@@ -62,7 +62,7 @@ func validateOIDC(config *schema.OpenIDConnect, val *schema.StructValidator) {
 func validateOIDCPolicies(config *schema.OpenIDConnect, val *schema.StructValidator) {
 	config.Discovery.Policies = []string{policyOneFactor, policyTwoFactor}
 
-	for name, policy := range config.Policies {
+	for name, policy := range config.AuthorizationPolicies {
 		switch name {
 		case "":
 			val.Push(fmt.Errorf(errFmtOIDCPolicyInvalidName))
@@ -100,7 +100,7 @@ func validateOIDCPolicies(config *schema.OpenIDConnect, val *schema.StructValida
 			}
 		}
 
-		config.Policies[name] = policy
+		config.AuthorizationPolicies[name] = policy
 
 		config.Discovery.Policies = append(config.Discovery.Policies, name)
 	}
@@ -386,12 +386,12 @@ func validateOIDCClient(c int, config *schema.OpenIDConnect, val *schema.StructV
 	}
 
 	switch {
-	case config.Clients[c].Policy == "":
-		config.Clients[c].Policy = schema.DefaultOpenIDConnectClientConfiguration.Policy
-	case utils.IsStringInSlice(config.Clients[c].Policy, config.Discovery.Policies):
+	case config.Clients[c].AuthorizationPolicy == "":
+		config.Clients[c].AuthorizationPolicy = schema.DefaultOpenIDConnectClientConfiguration.AuthorizationPolicy
+	case utils.IsStringInSlice(config.Clients[c].AuthorizationPolicy, config.Discovery.Policies):
 		break
 	default:
-		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, "authorization_policy", strJoinOr(config.Discovery.Policies), config.Clients[c].Policy))
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, "authorization_policy", strJoinOr(config.Discovery.Policies), config.Clients[c].AuthorizationPolicy))
 	}
 
 	switch config.Clients[c].PKCEChallengeMethod {

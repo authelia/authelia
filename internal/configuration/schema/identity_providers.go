@@ -35,7 +35,7 @@ type OpenIDConnect struct {
 
 	Clients []OpenIDConnectClient `koanf:"clients"`
 
-	Policies map[string]OpenIDConnectPolicy `koanf:"policies"`
+	AuthorizationPolicies map[string]OpenIDConnectPolicy `koanf:"authorization_policies"`
 
 	Discovery OpenIDConnectDiscovery // MetaData value. Not configurable by users.
 }
@@ -93,7 +93,7 @@ type OpenIDConnectClient struct {
 	ResponseTypes []string `koanf:"response_types"`
 	ResponseModes []string `koanf:"response_modes"`
 
-	Policy string `koanf:"authorization_policy"`
+	AuthorizationPolicy string `koanf:"authorization_policy"`
 
 	ConsentMode                  string         `koanf:"consent_mode"`
 	ConsentPreConfiguredDuration *time.Duration `koanf:"pre_configured_consent_duration"`
@@ -140,7 +140,7 @@ var defaultOIDCClientConsentPreConfiguredDuration = time.Hour * 24 * 7
 
 // DefaultOpenIDConnectClientConfiguration contains defaults for OIDC Clients.
 var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClient{
-	Policy:                       policyTwoFactor,
+	AuthorizationPolicy:          policyTwoFactor,
 	Scopes:                       []string{"openid", "groups", "profile", "email"},
 	ResponseTypes:                []string{"code"},
 	ResponseModes:                []string{"form_post"},
