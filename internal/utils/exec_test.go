@@ -2,7 +2,6 @@ package utils
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -16,8 +15,6 @@ func TestShouldExecCommandOnAutheliaRootPath(t *testing.T) {
 	assert.NoError(t, err, "")
 
 	str := strings.Trim(string(result), "\n")
-
-	fmt.Println(string(result))
 
 	assert.NoError(t, err, "")
 	assert.Equal(t, true, strings.HasSuffix(str, "authelia"))

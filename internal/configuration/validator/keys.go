@@ -67,16 +67,18 @@ KEYS:
 // NewKeyPattern returns patterns which are required to match key patterns.
 func NewKeyPattern(key string) (pattern *regexp.Regexp, err error) {
 	switch {
-	case strings.Contains(key, ".*."):
+	case reIsMapKey.MatchString(key):
 		return NewKeyMapPattern(key)
 	default:
 		return nil, nil
 	}
 }
 
+var reIsMapKey = regexp.MustCompile(`\.\*(\[]|\.)`)
+
 // NewKeyMapPattern returns a pattern required to match map keys.
 func NewKeyMapPattern(key string) (pattern *regexp.Regexp, err error) {
-	parts := strings.Split(key, ".*.")
+	parts := strings.Split(key, ".*")
 
 	buf := &strings.Builder{}
 
@@ -85,11 +87,16 @@ func NewKeyMapPattern(key string) (pattern *regexp.Regexp, err error) {
 	n := len(parts) - 1
 
 	for i, part := range parts {
-		if i != 0 {
+		if i != 0 && !strings.HasPrefix(part, "[]") {
 			buf.WriteString("\\.")
 		}
 
-		for _, r := range part {
+		for j, r := range part {
+			// Skip prefixed period.
+			if j == 0 && r == '.' {
+				continue
+			}
+
 			switch r {
 			case '[', ']', '.', '{', '}':
 				buf.WriteRune('\\')

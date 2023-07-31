@@ -109,9 +109,9 @@ func TestNewOpenIDConnectProviderDiscovery(t *testing.T) {
 		EnablePKCEPlainChallenge: true,
 		Clients: []schema.OpenIDConnectClient{
 			{
-				ID:     "a-client",
-				Secret: tOpenIDConnectPlainTextClientSecret,
-				Policy: onefactor,
+				ID:                  "a-client",
+				Secret:              tOpenIDConnectPlainTextClientSecret,
+				AuthorizationPolicy: onefactor,
 				RedirectURIs: []string{
 					"https://google.com",
 				},
@@ -149,9 +149,9 @@ func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *test
 		HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
 		Clients: []schema.OpenIDConnectClient{
 			{
-				ID:     "a-client",
-				Secret: tOpenIDConnectPlainTextClientSecret,
-				Policy: onefactor,
+				ID:                  "a-client",
+				Secret:              tOpenIDConnectPlainTextClientSecret,
+				AuthorizationPolicy: onefactor,
 				RedirectURIs: []string{
 					"https://google.com",
 				},
@@ -254,9 +254,9 @@ func TestNewOpenIDConnectProvider_GetOAuth2WellKnownConfiguration(t *testing.T) 
 		HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
 		Clients: []schema.OpenIDConnectClient{
 			{
-				ID:     "a-client",
-				Secret: tOpenIDConnectPlainTextClientSecret,
-				Policy: onefactor,
+				ID:                  "a-client",
+				Secret:              tOpenIDConnectPlainTextClientSecret,
+				AuthorizationPolicy: onefactor,
 				RedirectURIs: []string{
 					"https://google.com",
 				},
@@ -346,9 +346,9 @@ func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfigurationWithPlai
 		EnablePKCEPlainChallenge: true,
 		Clients: []schema.OpenIDConnectClient{
 			{
-				ID:     "a-client",
-				Secret: tOpenIDConnectPlainTextClientSecret,
-				Policy: onefactor,
+				ID:                  "a-client",
+				Secret:              tOpenIDConnectPlainTextClientSecret,
+				AuthorizationPolicy: onefactor,
 				RedirectURIs: []string{
 					"https://google.com",
 				},

@@ -4,7 +4,7 @@ import (
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/ory/fosite"
 	"github.com/ory/x/errorsx"
-	"gopkg.in/square/go-jose.v2"
+	jose "gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -13,7 +13,7 @@ import (
 )
 
 // NewClient creates a new Client.
-func NewClient(config schema.OpenIDConnectClient) (client Client) {
+func NewClient(config schema.OpenIDConnectClient, c *schema.OpenIDConnect) (client Client) {
 	base := &BaseClient{
 		ID:               config.ID,
 		Description:      config.Description,
@@ -39,9 +39,8 @@ func NewClient(config schema.OpenIDConnectClient) (client Client) {
 		UserinfoSigningAlg:   config.UserinfoSigningAlg,
 		UserinfoSigningKeyID: config.UserinfoSigningKeyID,
 
-		Policy: authorization.NewLevel(config.Policy),
-
-		Consent: NewClientConsent(config.ConsentMode, config.ConsentPreConfiguredDuration),
+		AuthorizationPolicy: NewClientAuthorizationPolicy(config.AuthorizationPolicy, c),
+		ConsentPolicy:       NewClientConsentPolicy(config.ConsentMode, config.ConsentPreConfiguredDuration),
 	}
 
 	for _, mode := range config.ResponseModes {
@@ -192,14 +191,28 @@ func (c *BaseClient) GetPKCEChallengeMethod() string {
 	return c.PKCEChallengeMethod
 }
 
-// GetAuthorizationPolicy returns Policy.
-func (c *BaseClient) GetAuthorizationPolicy() authorization.Level {
-	return c.Policy
+// IsAuthenticationLevelSufficient returns if the provided authentication.Level is sufficient for the client of the AutheliaClient.
+func (c *BaseClient) IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) bool {
+	if level == authentication.NotAuthenticated {
+		return false
+	}
+
+	return authorization.IsAuthLevelSufficient(level, c.GetAuthorizationPolicyRequiredLevel(subject))
+}
+
+// GetAuthorizationPolicyRequiredLevel returns the required authorization.Level given an authorization.Subject.
+func (c *BaseClient) GetAuthorizationPolicyRequiredLevel(subject authorization.Subject) authorization.Level {
+	return c.AuthorizationPolicy.GetRequiredLevel(subject)
+}
+
+// GetAuthorizationPolicy returns the ClientAuthorizationPolicy from the Policy.
+func (c *BaseClient) GetAuthorizationPolicy() ClientAuthorizationPolicy {
+	return c.AuthorizationPolicy
 }
 
 // GetConsentPolicy returns Consent.
-func (c *BaseClient) GetConsentPolicy() ClientConsent {
-	return c.Consent
+func (c *BaseClient) GetConsentPolicy() ClientConsentPolicy {
+	return c.ConsentPolicy
 }
 
 // GetConsentResponseBody returns the proper consent response body for this session.OIDCWorkflowSession.
@@ -207,7 +220,7 @@ func (c *BaseClient) GetConsentResponseBody(consent *model.OAuth2ConsentSession)
 	body := ConsentGetResponseBody{
 		ClientID:          c.ID,
 		ClientDescription: c.Description,
-		PreConfiguration:  c.Consent.Mode == ClientConsentModePreConfigured,
+		PreConfiguration:  c.ConsentPolicy.Mode == ClientConsentModePreConfigured,
 	}
 
 	if consent != nil {
@@ -221,15 +234,6 @@ func (c *BaseClient) GetConsentResponseBody(consent *model.OAuth2ConsentSession)
 // IsPublic returns the value of the Public property.
 func (c *BaseClient) IsPublic() bool {
 	return c.Public
-}
-
-// IsAuthenticationLevelSufficient returns if the provided authentication.Level is sufficient for the client of the AutheliaClient.
-func (c *BaseClient) IsAuthenticationLevelSufficient(level authentication.Level) bool {
-	if level == authentication.NotAuthenticated {
-		return false
-	}
-
-	return authorization.IsAuthLevelSufficient(level, c.Policy)
 }
 
 // ValidatePKCEPolicy is a helper function to validate PKCE policy constraints on a per-client basis.

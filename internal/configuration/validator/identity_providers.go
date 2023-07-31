@@ -30,6 +30,7 @@ func validateOIDC(config *schema.OpenIDConnect, val *schema.StructValidator) {
 	setOIDCDefaults(config)
 
 	validateOIDCIssuer(config, val)
+	validateOIDCPolicies(config, val)
 
 	sort.Sort(oidc.SortedSigningAlgs(config.Discovery.ResponseObjectSigningAlgs))
 
@@ -55,6 +56,53 @@ func validateOIDC(config *schema.OpenIDConnect, val *schema.StructValidator) {
 		val.Push(fmt.Errorf(errFmtOIDCProviderNoClientsConfigured))
 	} else {
 		validateOIDCClients(config, val)
+	}
+}
+
+func validateOIDCPolicies(config *schema.OpenIDConnect, val *schema.StructValidator) {
+	config.Discovery.Policies = []string{policyOneFactor, policyTwoFactor}
+
+	for name, policy := range config.AuthorizationPolicies {
+		switch name {
+		case "":
+			val.Push(fmt.Errorf(errFmtOIDCPolicyInvalidName))
+		case policyOneFactor, policyTwoFactor, policyDeny:
+			val.Push(fmt.Errorf(errFmtOIDCPolicyInvalidNameStandard, name, "name", strJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny}), name))
+		default:
+			break
+		}
+
+		switch policy.DefaultPolicy {
+		case "":
+			policy.DefaultPolicy = schema.DefaultOpenIDConnectPolicyConfiguration.DefaultPolicy
+		case policyOneFactor, policyTwoFactor, policyDeny:
+			break
+		default:
+			val.Push(fmt.Errorf(errFmtOIDCPolicyInvalidDefaultPolicy, name, strJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny}), policy.DefaultPolicy))
+		}
+
+		if len(policy.Rules) == 0 {
+			val.Push(fmt.Errorf(errFmtOIDCPolicyMissingOption, name, "rules"))
+		}
+
+		for i, rule := range policy.Rules {
+			switch rule.Policy {
+			case "":
+				policy.Rules[i].Policy = schema.DefaultOpenIDConnectPolicyConfiguration.DefaultPolicy
+			case policyOneFactor, policyTwoFactor, policyDeny:
+				break
+			default:
+				val.Push(fmt.Errorf(errFmtOIDCPolicyRuleInvalidPolicy, name, i+1, strJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny}), rule.Policy))
+			}
+
+			if len(rule.Subjects) == 0 {
+				val.Push(fmt.Errorf(errFmtOIDCPolicyRuleMissingOption, name, i+1, "subject"))
+			}
+		}
+
+		config.AuthorizationPolicies[name] = policy
+
+		config.Discovery.Policies = append(config.Discovery.Policies, name)
 	}
 }
 
@@ -337,13 +385,13 @@ func validateOIDCClient(c int, config *schema.OpenIDConnect, val *schema.StructV
 		}
 	}
 
-	switch config.Clients[c].Policy {
-	case "":
-		config.Clients[c].Policy = schema.DefaultOpenIDConnectClientConfiguration.Policy
-	case policyOneFactor, policyTwoFactor:
+	switch {
+	case config.Clients[c].AuthorizationPolicy == "":
+		config.Clients[c].AuthorizationPolicy = schema.DefaultOpenIDConnectClientConfiguration.AuthorizationPolicy
+	case utils.IsStringInSlice(config.Clients[c].AuthorizationPolicy, config.Discovery.Policies):
 		break
 	default:
-		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, "authorization_policy", strJoinOr([]string{policyOneFactor, policyTwoFactor}), config.Clients[c].Policy))
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, "authorization_policy", strJoinOr(config.Discovery.Policies), config.Clients[c].AuthorizationPolicy))
 	}
 
 	switch config.Clients[c].PKCEChallengeMethod {
