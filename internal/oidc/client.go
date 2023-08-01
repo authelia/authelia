@@ -1,10 +1,12 @@
 package oidc
 
 import (
+	"time"
+
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/ory/fosite"
 	"github.com/ory/x/errorsx"
-	jose "gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -41,6 +43,12 @@ func NewClient(config schema.OpenIDConnectClient, c *schema.OpenIDConnect) (clie
 
 		AuthorizationPolicy: NewClientAuthorizationPolicy(config.AuthorizationPolicy, c),
 		ConsentPolicy:       NewClientConsentPolicy(config.ConsentMode, config.ConsentPreConfiguredDuration),
+	}
+
+	if len(config.Lifespan) != 0 {
+		if lifespans, ok := c.Lifespans.Custom[config.Lifespan]; ok {
+			base.Lifespans = lifespans
+		}
 	}
 
 	for _, mode := range config.ResponseModes {
@@ -297,6 +305,70 @@ func (c *BaseClient) ValidateResponseModePolicy(r fosite.AuthorizeRequester) (er
 	}
 
 	return errorsx.WithStack(fosite.ErrUnsupportedResponseMode.WithHintf(`The request omitted the response_mode making the default response_mode "%s" based on the other authorization request parameters but registered OAuth 2.0 client doesn't support this response_mode`, m))
+}
+
+func (c *BaseClient) getGrantTypeLifespan(gt fosite.GrantType) (gtl schema.OpenIDConnectLifespanToken) {
+	switch gt {
+	case fosite.GrantTypeAuthorizationCode:
+		return c.Lifespans.Grants.AuthorizeCode
+	case fosite.GrantTypeImplicit:
+		return c.Lifespans.Grants.Implicit
+	case fosite.GrantTypeClientCredentials:
+		return c.Lifespans.Grants.ClientCredentials
+	case fosite.GrantTypeRefreshToken:
+		return c.Lifespans.Grants.RefreshToken
+	case fosite.GrantTypeJWTBearer:
+		return c.Lifespans.Grants.JWTBearer
+	default:
+		return gtl
+	}
+}
+
+// GetEffectiveLifespan returns the effective lifespan for a grant type and token type otherwise returns the fallback
+// value. This implements the fosite.ClientWithCustomTokenLifespans interface.
+func (c *BaseClient) GetEffectiveLifespan(gt fosite.GrantType, tt fosite.TokenType, fallback time.Duration) time.Duration {
+	gtl := c.getGrantTypeLifespan(gt)
+
+	switch tt {
+	case fosite.AccessToken:
+		switch {
+		case gtl.AccessToken > durationZero:
+			return gtl.AccessToken
+		case c.Lifespans.AccessToken > durationZero:
+			return c.Lifespans.AccessToken
+		default:
+			return fallback
+		}
+	case fosite.AuthorizeCode:
+		switch {
+		case gtl.AuthorizeCode > durationZero:
+			return gtl.AuthorizeCode
+		case c.Lifespans.AuthorizeCode > durationZero:
+			return c.Lifespans.AuthorizeCode
+		default:
+			return fallback
+		}
+	case fosite.IDToken:
+		switch {
+		case gtl.IDToken > durationZero:
+			return gtl.IDToken
+		case c.Lifespans.IDToken > durationZero:
+			return c.Lifespans.IDToken
+		default:
+			return fallback
+		}
+	case fosite.RefreshToken:
+		switch {
+		case gtl.RefreshToken > durationZero:
+			return gtl.RefreshToken
+		case c.Lifespans.RefreshToken > durationZero:
+			return c.Lifespans.RefreshToken
+		default:
+			return fallback
+		}
+	default:
+		return fallback
+	}
 }
 
 // GetRequestURIs is an array of request_uri values that are pre-registered by the RP for use at the OP. Servers MAY

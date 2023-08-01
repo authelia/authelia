@@ -11,7 +11,7 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/ory/herodot"
-	jose "gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -124,6 +124,8 @@ type BaseClient struct {
 	ResponseTypes []string
 	ResponseModes []fosite.ResponseModeType
 
+	Lifespans schema.OpenIDConnectLifespan
+
 	IDTokenSigningAlg    string
 	IDTokenSigningKeyID  string
 	UserinfoSigningAlg   string
@@ -175,6 +177,8 @@ type Client interface {
 	IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) bool
 	GetAuthorizationPolicyRequiredLevel(subject authorization.Subject) authorization.Level
 	GetAuthorizationPolicy() ClientAuthorizationPolicy
+
+	GetEffectiveLifespan(gt fosite.GrantType, tt fosite.TokenType, fallback time.Duration) time.Duration
 }
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.

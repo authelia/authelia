@@ -29,12 +29,7 @@ func NewConfig(config *schema.OpenIDConnect, templates *templates.Provider) (c *
 		GlobalSecret:               []byte(utils.HashSHA256FromString(config.HMACSecret)),
 		SendDebugMessagesToClients: config.EnableClientDebugMessages,
 		MinParameterEntropy:        config.MinimumParameterEntropy,
-		Lifespans: LifespanConfig{
-			AccessToken:   config.AccessTokenLifespan,
-			AuthorizeCode: config.AuthorizeCodeLifespan,
-			IDToken:       config.IDTokenLifespan,
-			RefreshToken:  config.RefreshTokenLifespan,
-		},
+		Lifespans:                  config.Lifespans.OpenIDConnectLifespanToken,
 		ProofKeyCodeExchange: ProofKeyCodeExchangeConfig{
 			Enforce:                   config.EnforcePKCE == "always",
 			EnforcePublicClients:      config.EnforcePKCE != "never",
@@ -78,7 +73,7 @@ type Config struct {
 	Strategy             StrategyConfig
 	PAR                  PARConfig
 	Handlers             HandlersConfig
-	Lifespans            LifespanConfig
+	Lifespans            schema.OpenIDConnectLifespanToken
 	ProofKeyCodeExchange ProofKeyCodeExchangeConfig
 	GrantTypeJWTBearer   GrantTypeJWTBearerConfig
 
@@ -158,14 +153,6 @@ type ProofKeyCodeExchangeConfig struct {
 	Enforce                   bool
 	EnforcePublicClients      bool
 	AllowPlainChallengeMethod bool
-}
-
-// LifespanConfig holds specific fosite.Configurator information for various lifespans.
-type LifespanConfig struct {
-	AccessToken   time.Duration
-	AuthorizeCode time.Duration
-	IDToken       time.Duration
-	RefreshToken  time.Duration
 }
 
 // LoadHandlers reloads the handlers based on the current configuration.

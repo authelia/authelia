@@ -309,3 +309,7 @@ const (
 	preconfigured = "pre-configured"
 	none          = "none"
 )
+
+const (
+	durationZero = time.Duration(0)
+)

@@ -51,6 +51,7 @@ identity_providers:
           - 'query'
           - 'fragment'
         authorization_policy: 'two_factor'
+        lifespan: ''
         consent_mode: 'explicit'
         pre_configured_consent_duration: '1 week'
         enforce_par: false
@@ -210,6 +211,13 @@ type, but when it is supported it will include the `query` response mode.
 {{< confkey type="string" default="two_factor" required="no" >}}
 
 The authorization policy for this client: either `one_factor` or `two_factor`.
+
+### lifespan
+
+{{< confkey type="string" default="" required="no" >}}
+
+The name of the custom lifespan that this client uses. A custom lifespan is named and configured globally via the
+[custom](provider.md#custom) section within [lifespans](provider.md#lifespans).
 
 ### consent_mode
 

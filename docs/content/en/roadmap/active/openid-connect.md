@@ -121,6 +121,7 @@ Feature List:
   * Client Auth Method `client_secret_jwt`
   * Client Auth Method `private_key_jwt`
 * Per-Client [RFC7636: Proof Key for Code Exchange (PKCE)] Policy
+* Per-Client Token Lifespans
 * [OAuth 2.0 Client Credentials Grant](https://datatracker.ietf.org/doc/html/rfc6749#section-4.4)
 * Multiple Issuer JWKs:
   * `RS256`, `RS384`, `RS512`
