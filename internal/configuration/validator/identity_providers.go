@@ -773,7 +773,6 @@ func validateOIDCClientRedirectURIs(c int, config *schema.OpenIDConnect, val *sc
 
 		if !parsedRedirectURI.IsAbs() || (!config.Clients[c].Public && parsedRedirectURI.Scheme == "") {
 			val.Push(fmt.Errorf(errFmtOIDCClientRedirectURIAbsolute, config.Clients[c].ID, redirectURI))
-			return
 		}
 	}
 

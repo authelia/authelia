@@ -1279,16 +1279,6 @@ notifier:
       # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
       # -----END CERTIFICATE-----
 
-    ## The lifespans configure the expiration for these token types in the duration common syntax. In addition to this
-    ## syntax the lifespans can be customized per-client.
-    # lifespans:
-      ## Configures the default/fallback lifespan for given token types. This behaviour applies to all clients and all
-      ## grant types but you can override this behaviour using the custom lifespans.
-      # access_token: '1h'
-      # authorize_code: '1m'
-      # id_token: '1h'
-      # refresh_token: '90m'
-
     ## Enables additional debug messages.
     # enable_client_debug_messages: false
 
@@ -1307,6 +1297,16 @@ notifier:
         # rules:
           # - policy: 'one_factor'
           #   subject: 'group:services'
+
+    ## The lifespans configure the expiration for these token types in the duration common syntax. In addition to this
+    ## syntax the lifespans can be customized per-client.
+    # lifespans:
+      ## Configures the default/fallback lifespan for given token types. This behaviour applies to all clients and all
+      ## grant types but you can override this behaviour using the custom lifespans.
+      # access_token: '1h'
+      # authorize_code: '1m'
+      # id_token: '1h'
+      # refresh_token: '90m'
 
     ## Cross-Origin Resource Sharing (CORS) settings.
     # cors:

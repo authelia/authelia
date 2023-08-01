@@ -95,11 +95,6 @@ identity_providers:
       Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
       1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
       -----END CERTIFICATE-----
-    lifespans:
-      access_token: '1h'
-      authorize_code: '1m'
-      id_token: '1h'
-      refresh_token: '90m'
     enable_client_debug_messages: false
     minimum_parameter_entropy: 8
     enforce_pkce: 'public_clients_only'
@@ -113,6 +108,11 @@ identity_providers:
         rules:
           - policy: 'deny'
             subject: 'group:services'
+    lifespans:
+      access_token: '1h'
+      authorize_code: '1m'
+      id_token: '1h'
+      refresh_token: '90m'
     cors:
       endpoints:
         - 'authorization'
