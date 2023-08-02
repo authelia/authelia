@@ -2,6 +2,7 @@ package validator
 
 import (
 	"regexp"
+	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/valyala/fasthttp"
@@ -21,6 +22,10 @@ const (
 	policyOneFactor = "one_factor"
 	policyTwoFactor = "two_factor"
 	policyDeny      = "deny"
+)
+
+const (
+	durationZero = time.Duration(0)
 )
 
 const (
@@ -173,6 +178,13 @@ const (
 	errFmtOIDCCORSInvalidOriginWildcardWithClients = "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' cannot be specified with option 'allowed_origins_from_client_redirect_uris' enabled"
 	errFmtOIDCCORSInvalidEndpoint                  = "identity_providers: oidc: cors: option 'endpoints' contains an invalid value '%s': must be one of %s"
 
+	errFmtOIDCPolicyInvalidName          = "identity_providers: oidc: authorization_policies: authorization policies must have a name but one with a blank name exists"
+	errFmtOIDCPolicyInvalidNameStandard  = "identity_providers: oidc: authorization_policies: policy '%s': option '%s' must not be one of %s but it's configured as '%s'"
+	errFmtOIDCPolicyMissingOption        = "identity_providers: oidc: authorization_policies: policy '%s': option '%s' is required"
+	errFmtOIDCPolicyRuleMissingOption    = "identity_providers: oidc: authorization_policies: policy '%s': rules: rule #%d: option '%s' is required"
+	errFmtOIDCPolicyInvalidDefaultPolicy = "identity_providers: oidc: authorization_policies: policy '%s': option 'default_policy' must be one of %s but it's configured as '%s'"
+	errFmtOIDCPolicyRuleInvalidPolicy    = "identity_providers: oidc: authorization_policies: policy '%s': rules: rule #%d: option 'policy' must be one of %s but it's configured as '%s'"
+
 	errFmtOIDCClientsDuplicateID = "identity_providers: oidc: clients: option 'id' must be unique for every client but one or more clients share the following 'id' values %s"
 	errFmtOIDCClientsWithEmptyID = "identity_providers: oidc: clients: option 'id' is required but was absent on the clients in positions %s"
 	errFmtOIDCClientsDeprecated  = "identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors"
@@ -218,6 +230,9 @@ const (
 		"'grant_types' should only have grant type values which are valid with the configured 'response_types' for the client but '%s' expects a response type %s such as %s but the response types are %s"
 	errFmtOIDCClientInvalidGrantTypeRefresh = "identity_providers: oidc: clients: client '%s': option " +
 		"'grant_types' should only have the 'refresh_token' value if the client is also configured with the 'offline_access' scope"
+	errFmtOIDCClientInvalidGrantTypePublic = "identity_providers: oidc: clients: client '%s': option 'grant_types' " +
+		"should only have the '%s' value if it is of the confidential client type but it's of the public client type"
+
 	errFmtOIDCClientInvalidRefreshTokenOptionWithoutCodeResponseType = "identity_providers: oidc: clients: client '%s': option " +
 		"'%s' should only have the values %s if the client is also configured with a 'response_type' such as %s which respond with authorization codes"
 
@@ -308,8 +323,8 @@ const (
 	errFmtSessionDomainDuplicateCookieScope      = "session: domain config %s: option 'domain' shares the same cookie domain scope as another configured session domain"
 	errFmtSessionDomainPortalURLInsecure         = "session: domain config %s: option 'authelia_url' does not have a secure scheme with a value of '%s'"
 	errFmtSessionDomainPortalURLNotInCookieScope = "session: domain config %s: option 'authelia_url' does not share a cookie scope with domain '%s' with a value of '%s'"
-	errFmtSessionDomainInvalidDomain             = "session: domain config %s: option 'domain' is not a valid cookie domain"
-	errFmtSessionDomainInvalidDomainNoDots       = "session: domain config %s: option 'domain' is not a valid cookie domain: must have at least a single period"
+	errFmtSessionDomainInvalidDomain             = "session: domain config %s: option 'domain' does not appear to be a valid cookie domain or an ip address"
+	errFmtSessionDomainInvalidDomainNoDots       = "session: domain config %s: option 'domain' is not a valid cookie domain: must have at least a single period or be an ip address"
 	errFmtSessionDomainInvalidDomainPublic       = "session: domain config %s: option 'domain' is not a valid cookie domain: the domain is part of the special public suffix list"
 )
 
@@ -464,7 +479,7 @@ var (
 	validOIDCClientResponseTypesImplicitFlow = []string{oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth}
 	validOIDCClientResponseTypesHybridFlow   = []string{oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
 	validOIDCClientResponseTypesRefreshToken = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
-	validOIDCClientGrantTypes                = []string{oidc.GrantTypeImplicit, oidc.GrantTypeRefreshToken, oidc.GrantTypeAuthorizationCode}
+	validOIDCClientGrantTypes                = []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeClientCredentials, oidc.GrantTypeRefreshToken}
 
 	validOIDCClientTokenEndpointAuthMethods                = []string{oidc.ClientAuthMethodNone, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT, oidc.ClientAuthMethodClientSecretJWT}
 	validOIDCClientTokenEndpointAuthMethodsConfidential    = []string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT}

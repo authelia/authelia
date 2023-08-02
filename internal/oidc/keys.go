@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/ory/x/errorsx"
 	"gopkg.in/square/go-jose.v2"
@@ -386,15 +386,15 @@ func (j *Signer) Generate(ctx context.Context, claims fjwt.MapClaims, header fjw
 
 	switch t := key.(type) {
 	case *jose.JSONWebKey:
-		return generateToken(claims, header, j.alg, t.Key)
+		return generateToken(jwt.MapClaims(claims), header, j.alg, t.Key)
 	case jose.JSONWebKey:
-		return generateToken(claims, header, j.alg, t.Key)
+		return generateToken(jwt.MapClaims(claims), header, j.alg, t.Key)
 	case *rsa.PrivateKey, *ecdsa.PrivateKey:
-		return generateToken(claims, header, j.alg, t)
+		return generateToken(jwt.MapClaims(claims), header, j.alg, t)
 	case jose.OpaqueSigner:
 		switch tt := t.Public().Key.(type) {
 		case *rsa.PrivateKey, *ecdsa.PrivateKey:
-			return generateToken(claims, header, j.alg, t)
+			return generateToken(jwt.MapClaims(claims), header, j.alg, t)
 		default:
 			return "", "", fmt.Errorf("unsupported private / public key pairs: %T, %T", t, tt)
 		}
@@ -450,7 +450,7 @@ func (j *Signer) GetSigningMethodLength(ctx context.Context) (size int) {
 	return j.hash.Size()
 }
 
-func generateToken(claims fjwt.MapClaims, header fjwt.Mapper, signingMethod jwt.SigningMethod, key any) (rawToken string, sig string, err error) {
+func generateToken(claims jwt.MapClaims, header fjwt.Mapper, signingMethod jwt.SigningMethod, key any) (rawToken string, sig string, err error) {
 	if header == nil || claims == nil {
 		return "", "", errors.New("either claims or header is nil")
 	}
@@ -471,9 +471,13 @@ func generateToken(claims fjwt.MapClaims, header fjwt.Mapper, signingMethod jwt.
 }
 
 func decodeToken(tokenString string, key any) (token *fjwt.Token, err error) {
-	return fjwt.ParseWithClaims(tokenString, fjwt.MapClaims{}, func(*fjwt.Token) (any, error) {
+	return fjwt.ParseWithClaims(tokenString, fjwt.MapClaims{}, keyFromValue(key))
+}
+
+func keyFromValue(key any) func(*fjwt.Token) (any, error) {
+	return func(_ *fjwt.Token) (any, error) {
 		return key, nil
-	})
+	}
 }
 
 func validateToken(tokenString string, key any) (sig string, err error) {

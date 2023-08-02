@@ -41,7 +41,7 @@ func NewAuthorizer(config *schema.Configuration) (authorizer *Authorizer) {
 
 	if authorizer.config.IdentityProviders.OIDC != nil {
 		for _, client := range authorizer.config.IdentityProviders.OIDC.Clients {
-			if client.Policy == twoFactor {
+			if client.AuthorizationPolicy == twoFactor {
 				authorizer.mfa = true
 
 				return authorizer

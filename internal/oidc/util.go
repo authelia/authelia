@@ -1,8 +1,10 @@
 package oidc
 
 import (
+	"fmt"
 	"strings"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/ory/fosite"
 	"gopkg.in/square/go-jose.v2"
 )
@@ -94,4 +96,21 @@ func isSigningAlgLess(i, j string) bool {
 			return false
 		}
 	}
+}
+
+func JTIFromMapClaims(m jwt.MapClaims) (jti string, err error) {
+	var (
+		ok  bool
+		raw any
+	)
+
+	if raw, ok = m[ClaimJWTID]; !ok {
+		return "", nil
+	}
+
+	if jti, ok = raw.(string); !ok {
+		return "", fmt.Errorf("invalid type for claim: jti is invalid")
+	}
+
+	return jti, nil
 }

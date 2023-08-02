@@ -201,7 +201,7 @@ func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, id string) {
 		return
 	}
 
-	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(consent.ClientID); err != nil {
+	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(ctx, consent.ClientID); err != nil {
 		ctx.Error(fmt.Errorf("unable to get client for client with id '%s' with consent challenge id '%s': %w", id, consent.ChallengeID, err), messageAuthenticationFailed)
 
 		return
@@ -221,33 +221,36 @@ func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, id string) {
 		return
 	}
 
-	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
+	level := client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()})
+
+	switch {
+	case authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel, level), level == authorization.Denied:
+		var (
+			targetURL *url.URL
+			form      url.Values
+		)
+
+		targetURL = ctx.RootURL()
+
+		if form, err = consent.GetForm(); err != nil {
+			ctx.Error(fmt.Errorf("unable to get authorization form values from consent session with challenge id '%s': %w", consent.ChallengeID, err), messageAuthenticationFailed)
+
+			return
+		}
+
+		form.Set(queryArgConsentID, workflowID.String())
+
+		targetURL.Path = path.Join(targetURL.Path, oidc.EndpointPathAuthorization)
+		targetURL.RawQuery = form.Encode()
+
+		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
+			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+		}
+	default:
 		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", client.GetID())
 		ctx.ReplyOK()
 
 		return
-	}
-
-	var (
-		targetURL *url.URL
-		form      url.Values
-	)
-
-	targetURL = ctx.RootURL()
-
-	if form, err = consent.GetForm(); err != nil {
-		ctx.Error(fmt.Errorf("unable to get authorization form values from consent session with challenge id '%s': %w", consent.ChallengeID, err), messageAuthenticationFailed)
-
-		return
-	}
-
-	form.Set(queryArgConsentID, workflowID.String())
-
-	targetURL.Path = path.Join(targetURL.Path, oidc.EndpointPathAuthorization)
-	targetURL.RawQuery = form.Encode()
-
-	if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
-		ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 	}
 }
 

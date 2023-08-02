@@ -77,7 +77,10 @@ func CreateDefaultServer(config *schema.Configuration, providers middlewares.Pro
 
 	paths = []string{"/"}
 
-	if config.Server.Address.Path() != "/" {
+	switch config.Server.Address.Path() {
+	case "/", "":
+		break
+	default:
 		paths = append(paths, config.Server.Address.Path())
 	}
 

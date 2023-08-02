@@ -13,10 +13,10 @@ require (
 	github.com/go-asn1-ber/asn1-ber v1.5.4
 	github.com/go-crypt/crypt v0.2.11
 	github.com/go-ldap/ldap/v3 v3.4.5
-	github.com/go-rod/rod v0.113.4
+	github.com/go-rod/rod v0.114.2
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/go-webauthn/webauthn v0.5.0
-	github.com/golang-jwt/jwt/v4 v4.5.0
+	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-retryablehttp v0.7.4
@@ -33,7 +33,7 @@ require (
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/ory/fosite v0.44.0
 	github.com/ory/herodot v0.10.2
-	github.com/ory/x v0.0.572
+	github.com/ory/x v0.0.573
 	github.com/otiai10/copy v1.12.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.4.0
@@ -45,7 +45,7 @@ require (
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.48.0
 	github.com/wneessen/go-mail v0.4.0
-	golang.org/x/net v0.12.0
+	golang.org/x/net v0.13.0
 	golang.org/x/sync v0.3.0
 	golang.org/x/term v0.10.0
 	golang.org/x/text v0.11.0
@@ -73,6 +73,7 @@ require (
 	github.com/go-crypt/x v0.2.4 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-webauthn/revoke v0.1.9 // indirect
+	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-tpm v0.3.3 // indirect

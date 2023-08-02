@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -608,4 +609,14 @@ func (ctx *AutheliaCtx) RecordAuthn(success, regulated bool, method string) {
 	}
 
 	ctx.Providers.Metrics.RecordAuthn(success, regulated, method)
+}
+
+// GetClock returns the clock. For use with interface fulfillment.
+func (ctx *AutheliaCtx) GetClock() utils.Clock {
+	return ctx.Clock
+}
+
+// GetJWTWithTimeFuncOption returns the WithTimeFunc jwt.ParserOption. For use with interface fulfillment.
+func (ctx *AutheliaCtx) GetJWTWithTimeFuncOption() jwt.ParserOption {
+	return jwt.WithTimeFunc(ctx.Clock.Now)
 }
