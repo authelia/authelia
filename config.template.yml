@@ -1279,12 +1279,6 @@ notifier:
       # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
       # -----END CERTIFICATE-----
 
-    ## The lifespans configure the expiration for these token types in the duration common syntax.
-    # access_token_lifespan: '1h'
-    # authorize_code_lifespan: '1m'
-    # id_token_lifespan: '1h'
-    # refresh_token_lifespan: '90m'
-
     ## Enables additional debug messages.
     # enable_client_debug_messages: false
 
@@ -1295,13 +1289,24 @@ notifier:
     ## for security reasons.
     # enforce_pkce: 'public_clients_only'
 
-    ## Authorization Policies which can be utilized by clients.
+    ## Authorization Policies which can be utilized by clients. The 'policy_name' is an arbitrary value that you pick
+    ## which is utilized as the value for the 'authorization_policy' on the client.
     # authorization_policies:
       # policy_name:
         # default_policy: 'two_factor'
         # rules:
           # - policy: 'one_factor'
           #   subject: 'group:services'
+
+    ## The lifespans configure the expiration for these token types in the duration common syntax. In addition to this
+    ## syntax the lifespans can be customized per-client.
+    # lifespans:
+      ## Configures the default/fallback lifespan for given token types. This behaviour applies to all clients and all
+      ## grant types but you can override this behaviour using the custom lifespans.
+      # access_token: '1h'
+      # authorize_code: '1m'
+      # id_token: '1h'
+      # refresh_token: '90m'
 
     ## Cross-Origin Resource Sharing (CORS) settings.
     # cors:
@@ -1377,6 +1382,10 @@ notifier:
         ## The policy to require for this client; one_factor or two_factor. Can also be the key names for the
         ## authorization policies section.
         # authorization_policy: 'two_factor'
+
+        ## The custom lifespan name to use for this client. This must be configured independent of the client before
+        ## utilization. Custom lifespans are reusable similar to authorization policies.
+        # lifespan: ''
 
         ## The consent mode controls how consent is obtained.
         # consent_mode: 'auto'

@@ -530,6 +530,555 @@ func TestNewClientPAR(t *testing.T) {
 	}
 }
 
+func TestClient_GetEffectiveLifespan(t *testing.T) {
+	type subcase struct {
+		name     string
+		gt       fosite.GrantType
+		tt       fosite.TokenType
+		fallback time.Duration
+		expected time.Duration
+	}
+
+	testCases := []struct {
+		name     string
+		have     schema.OpenIDConnectLifespan
+		subcases []subcase
+	}{
+		{
+			"ShouldHandleEdgeCases",
+			schema.OpenIDConnectLifespan{
+				OpenIDConnectLifespanToken: schema.OpenIDConnectLifespanToken{
+					AccessToken:   time.Hour * 1,
+					RefreshToken:  time.Hour * 2,
+					IDToken:       time.Hour * 3,
+					AuthorizeCode: time.Minute * 5,
+				},
+			},
+			[]subcase{
+				{
+					"ShouldHandleInvalidTokenTypeFallbackToProvidedFallback",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.TokenType("abc"),
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleInvalidGrantTypeFallbackToTokenType",
+					fosite.GrantType("abc"),
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 5,
+				},
+			},
+		},
+		{
+			"ShouldHandleUnconfiguredClient",
+			schema.OpenIDConnectLifespan{},
+			[]subcase{
+				{
+					"ShouldHandleAuthorizationCodeFlowAuthorizationCode",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleAuthorizationCodeFlowAccessToken",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.AccessToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleAuthorizationCodeFlowRefreshToken",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleAuthorizationCodeFlowIDToken",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.IDToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleImplicitFlowAuthorizationCode",
+					fosite.GrantTypeImplicit,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleImplicitFlowAccessToken",
+					fosite.GrantTypeImplicit,
+					fosite.AccessToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleImplicitFlowRefreshToken",
+					fosite.GrantTypeImplicit,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleImplicitFlowIDToken",
+					fosite.GrantTypeImplicit,
+					fosite.IDToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowAuthorizationCode",
+					fosite.GrantTypeClientCredentials,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowAccessToken",
+					fosite.GrantTypeClientCredentials,
+					fosite.AccessToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowRefreshToken",
+					fosite.GrantTypeClientCredentials,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowIDToken",
+					fosite.GrantTypeClientCredentials,
+					fosite.IDToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowAuthorizationCode",
+					fosite.GrantTypeRefreshToken,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowAccessToken",
+					fosite.GrantTypeRefreshToken,
+					fosite.AccessToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowRefreshToken",
+					fosite.GrantTypeRefreshToken,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowIDToken",
+					fosite.GrantTypeRefreshToken,
+					fosite.IDToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleJWTBearerFlowAuthorizationCode",
+					fosite.GrantTypeJWTBearer,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleJWTBearerFlowAccessToken",
+					fosite.GrantTypeJWTBearer,
+					fosite.AccessToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleJWTBearerFlowRefreshToken",
+					fosite.GrantTypeJWTBearer,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleJWTBearerFlowIDToken",
+					fosite.GrantTypeJWTBearer,
+					fosite.IDToken,
+					time.Minute,
+					time.Minute,
+				},
+			},
+		},
+		{
+			"ShouldHandleConfiguredClientByTokenType",
+			schema.OpenIDConnectLifespan{
+				OpenIDConnectLifespanToken: schema.OpenIDConnectLifespanToken{
+					AccessToken:   time.Hour * 1,
+					RefreshToken:  time.Hour * 2,
+					IDToken:       time.Hour * 3,
+					AuthorizeCode: time.Minute * 5,
+				},
+			},
+			[]subcase{
+				{
+					"ShouldHandleAuthorizationCodeFlowAuthorizationCode",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 5,
+				},
+				{
+					"ShouldHandleAuthorizationCodeFlowAccessToken",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.AccessToken,
+					time.Minute,
+					time.Hour * 1,
+				},
+				{
+					"ShouldHandleAuthorizationCodeFlowRefreshToken",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Hour * 2,
+				},
+				{
+					"ShouldHandleAuthorizationCodeFlowIDToken",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.IDToken,
+					time.Minute,
+					time.Hour * 3,
+				},
+				{
+					"ShouldHandleImplicitFlowAuthorizationCode",
+					fosite.GrantTypeImplicit,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 5,
+				},
+				{
+					"ShouldHandleImplicitFlowAccessToken",
+					fosite.GrantTypeImplicit,
+					fosite.AccessToken,
+					time.Minute,
+					time.Hour * 1,
+				},
+				{
+					"ShouldHandleImplicitFlowRefreshToken",
+					fosite.GrantTypeImplicit,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Hour * 2,
+				},
+				{
+					"ShouldHandleImplicitFlowIDToken",
+					fosite.GrantTypeImplicit,
+					fosite.IDToken,
+					time.Minute,
+					time.Hour * 3,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowAuthorizationCode",
+					fosite.GrantTypeClientCredentials,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 5,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowAccessToken",
+					fosite.GrantTypeClientCredentials,
+					fosite.AccessToken,
+					time.Minute,
+					time.Hour * 1,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowRefreshToken",
+					fosite.GrantTypeClientCredentials,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Hour * 2,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowIDToken",
+					fosite.GrantTypeClientCredentials,
+					fosite.IDToken,
+					time.Minute,
+					time.Hour * 3,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowAuthorizationCode",
+					fosite.GrantTypeRefreshToken,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 5,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowAccessToken",
+					fosite.GrantTypeRefreshToken,
+					fosite.AccessToken,
+					time.Minute,
+					time.Hour * 1,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowRefreshToken",
+					fosite.GrantTypeRefreshToken,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Hour * 2,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowIDToken",
+					fosite.GrantTypeRefreshToken,
+					fosite.IDToken,
+					time.Minute,
+					time.Hour * 3,
+				},
+				{
+					"ShouldHandleJWTBearerFlowAuthorizationCode",
+					fosite.GrantTypeJWTBearer,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 5,
+				},
+				{
+					"ShouldHandleJWTBearerFlowAccessToken",
+					fosite.GrantTypeJWTBearer,
+					fosite.AccessToken,
+					time.Minute,
+					time.Hour * 1,
+				},
+				{
+					"ShouldHandleJWTBearerFlowRefreshToken",
+					fosite.GrantTypeJWTBearer,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Hour * 2,
+				},
+				{
+					"ShouldHandleJWTBearerFlowIDToken",
+					fosite.GrantTypeJWTBearer,
+					fosite.IDToken,
+					time.Minute,
+					time.Hour * 3,
+				},
+			},
+		},
+		{
+			"ShouldHandleConfiguredClientByTokenTypeByGrantType",
+			schema.OpenIDConnectLifespan{
+				OpenIDConnectLifespanToken: schema.OpenIDConnectLifespanToken{
+					AccessToken:   time.Hour * 1,
+					RefreshToken:  time.Hour * 2,
+					IDToken:       time.Hour * 3,
+					AuthorizeCode: time.Minute * 5,
+				},
+				Grants: schema.OpenIDConnectLifespanGrants{
+					AuthorizeCode: schema.OpenIDConnectLifespanToken{
+						AccessToken:   time.Hour * 11,
+						RefreshToken:  time.Hour * 12,
+						IDToken:       time.Hour * 13,
+						AuthorizeCode: time.Minute * 15,
+					},
+					Implicit: schema.OpenIDConnectLifespanToken{
+						AccessToken:   time.Hour * 21,
+						RefreshToken:  time.Hour * 22,
+						IDToken:       time.Hour * 23,
+						AuthorizeCode: time.Minute * 25,
+					},
+					ClientCredentials: schema.OpenIDConnectLifespanToken{
+						AccessToken:   time.Hour * 31,
+						RefreshToken:  time.Hour * 32,
+						IDToken:       time.Hour * 33,
+						AuthorizeCode: time.Minute * 35,
+					},
+					RefreshToken: schema.OpenIDConnectLifespanToken{
+						AccessToken:   time.Hour * 41,
+						RefreshToken:  time.Hour * 42,
+						IDToken:       time.Hour * 43,
+						AuthorizeCode: time.Minute * 45,
+					},
+					JWTBearer: schema.OpenIDConnectLifespanToken{
+						AccessToken:   time.Hour * 51,
+						RefreshToken:  time.Hour * 52,
+						IDToken:       time.Hour * 53,
+						AuthorizeCode: time.Minute * 55,
+					},
+				},
+			},
+			[]subcase{
+				{
+					"ShouldHandleAuthorizationCodeFlowAuthorizationCode",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 15,
+				},
+				{
+					"ShouldHandleAuthorizationCodeFlowAccessToken",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.AccessToken,
+					time.Minute,
+					time.Hour * 11,
+				},
+				{
+					"ShouldHandleAuthorizationCodeFlowRefreshToken",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Hour * 12,
+				},
+				{
+					"ShouldHandleAuthorizationCodeFlowIDToken",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.IDToken,
+					time.Minute,
+					time.Hour * 13,
+				},
+				{
+					"ShouldHandleImplicitFlowAuthorizationCode",
+					fosite.GrantTypeImplicit,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 25,
+				},
+				{
+					"ShouldHandleImplicitFlowAccessToken",
+					fosite.GrantTypeImplicit,
+					fosite.AccessToken,
+					time.Minute,
+					time.Hour * 21,
+				},
+				{
+					"ShouldHandleImplicitFlowRefreshToken",
+					fosite.GrantTypeImplicit,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Hour * 22,
+				},
+				{
+					"ShouldHandleImplicitFlowIDToken",
+					fosite.GrantTypeImplicit,
+					fosite.IDToken,
+					time.Minute,
+					time.Hour * 23,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowAuthorizationCode",
+					fosite.GrantTypeClientCredentials,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 35,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowAccessToken",
+					fosite.GrantTypeClientCredentials,
+					fosite.AccessToken,
+					time.Minute,
+					time.Hour * 31,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowRefreshToken",
+					fosite.GrantTypeClientCredentials,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Hour * 32,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowIDToken",
+					fosite.GrantTypeClientCredentials,
+					fosite.IDToken,
+					time.Minute,
+					time.Hour * 33,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowAuthorizationCode",
+					fosite.GrantTypeRefreshToken,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 45,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowAccessToken",
+					fosite.GrantTypeRefreshToken,
+					fosite.AccessToken,
+					time.Minute,
+					time.Hour * 41,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowRefreshToken",
+					fosite.GrantTypeRefreshToken,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Hour * 42,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowIDToken",
+					fosite.GrantTypeRefreshToken,
+					fosite.IDToken,
+					time.Minute,
+					time.Hour * 43,
+				},
+				{
+					"ShouldHandleJWTBearerFlowAuthorizationCode",
+					fosite.GrantTypeJWTBearer,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 55,
+				},
+				{
+					"ShouldHandleJWTBearerFlowAccessToken",
+					fosite.GrantTypeJWTBearer,
+					fosite.AccessToken,
+					time.Minute,
+					time.Hour * 51,
+				},
+				{
+					"ShouldHandleJWTBearerFlowRefreshToken",
+					fosite.GrantTypeJWTBearer,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Hour * 52,
+				},
+				{
+					"ShouldHandleJWTBearerFlowIDToken",
+					fosite.GrantTypeJWTBearer,
+					fosite.IDToken,
+					time.Minute,
+					time.Hour * 53,
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := oidc.NewClient(schema.OpenIDConnectClient{
+				ID:       "test",
+				Lifespan: "test",
+			}, &schema.OpenIDConnect{
+				Lifespans: schema.OpenIDConnectLifespans{
+					Custom: map[string]schema.OpenIDConnectLifespan{
+						"test": tc.have,
+					},
+				},
+			})
+
+			for _, stc := range tc.subcases {
+				t.Run(stc.name, func(t *testing.T) {
+					assert.Equal(t, stc.expected, client.GetEffectiveLifespan(stc.gt, stc.tt, stc.fallback))
+				})
+			}
+		})
+	}
+}
+
 func TestNewClientResponseModes(t *testing.T) {
 	testCases := []struct {
 		name     string
