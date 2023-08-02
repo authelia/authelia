@@ -316,7 +316,7 @@ func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
 		configs []string
 
-		filters []configuration.FileFilter
+		filters []configuration.BytesFilter
 	)
 
 	if configs, filters, err = loadXEnvCLIConfigValues(cmd); err != nil {
