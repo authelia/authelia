@@ -83,6 +83,8 @@ func ValidateServer(config *schema.Configuration, validator *schema.StructValida
 }
 
 // ValidateServerAddress checks the configured server address is correct.
+//
+//nolint:gocyclo
 func ValidateServerAddress(config *schema.Configuration, validator *schema.StructValidator) {
 	if config.Server.Address == nil {
 		if config.Server.Host == "" && config.Server.Port == 0 && config.Server.Path == "" { //nolint:staticcheck
