@@ -415,7 +415,7 @@ func TestShouldNotUpdateConfig(t *testing.T) {
 	ValidateServer(&config, validator)
 
 	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, "tcp://127.0.0.1:9090", config.Server.Address.String())
+	assert.Equal(t, "tcp://127.0.0.1:9090/", config.Server.Address.String())
 }
 
 func TestServerEndpointsDevelShouldWarn(t *testing.T) {

@@ -76,7 +76,7 @@ following are the assumptions we make:
   * Single Host
   * Authelia is deployed as a Container with the container name `authelia` on port `9091`
   * Proxy is deployed as a Container on a network shared with Authelia
-* The above assumption means that AUthelia should be accesible to the proxy on `http://authelia:9091` and as such:
+* The above assumption means that Authelia should be accessible to the proxy on `http://authelia:9091` and as such:
   * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
     certificate defined
   * You will have to adapt all instances of `authelia` in the URL if:
@@ -221,7 +221,8 @@ frontend fe_http
     http-request set-header X-Forwarded-URI    %[path]%[var(req.questionmark)]%[query]
 
     # Protect endpoints with haproxy-auth-request and Authelia
-    http-request lua.auth-intercept be_authelia /api/authz/forward-auth HEAD * authorization,proxy-authorization,remote_user,remote-user,remote-groups,remote-name,remote-email - if protected-frontends
+    http-request lua.auth-intercept be_authelia /api/authz/forward-auth HEAD * authorization,proxy-authorization,remote-user,remote-groups,remote-name,remote-email - if protected-frontends
+    http-request deny if protected-frontends !{ var(txn.auth_response_successful) -m bool } { var(txn.auth_response_code) -m int 403 }
     http-request redirect location %[var(txn.auth_response_location)] if protected-frontends !{ var(txn.auth_response_successful) -m bool }
 
     # Authelia backend route
@@ -297,7 +298,8 @@ frontend fe_http
     http-request set-header X-Forwarded-URI    %[path]%[var(req.questionmark)]%[query]
 
     # Protect endpoints with haproxy-auth-request and Authelia
-    http-request lua.auth-intercept be_authelia_proxy /api/authz/forward-auth HEAD * authorization,proxy-authorization,remote_user,remote-user,remote-groups,remote-name,remote-email - if protected-frontends
+    http-request lua.auth-intercept be_authelia_proxy /api/authz/forward-auth HEAD * authorization,proxy-authorization,remote-user,remote-groups,remote-name,remote-email - if protected-frontends
+    http-request deny if protected-frontends !{ var(txn.auth_response_successful) -m bool } { var(txn.auth_response_code) -m int 403 }
     http-request redirect location %[var(txn.auth_response_location)] if protected-frontends !{ var(txn.auth_response_successful) -m bool }
 
     # Authelia backend route

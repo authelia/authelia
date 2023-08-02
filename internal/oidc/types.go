@@ -6,14 +6,16 @@ import (
 	"time"
 
 	"github.com/go-crypt/crypt/algorithm"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
-	"github.com/ory/fosite/token/jwt"
+	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/ory/herodot"
 	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -23,10 +25,10 @@ import (
 func NewSession() (session *model.OpenIDSession) {
 	return &model.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
-			Claims: &jwt.IDTokenClaims{
+			Claims: &fjwt.IDTokenClaims{
 				Extra: map[string]any{},
 			},
-			Headers: &jwt.Headers{
+			Headers: &fjwt.Headers{
 				Extra: map[string]any{},
 			},
 		},
@@ -43,7 +45,7 @@ func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr [
 
 	session = &model.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
-			Claims: &jwt.IDTokenClaims{
+			Claims: &fjwt.IDTokenClaims{
 				Subject:     consent.Subject.UUID.String(),
 				Issuer:      issuer.String(),
 				AuthTime:    authTime,
@@ -55,7 +57,7 @@ func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr [
 
 				AuthenticationMethodsReferences: amr,
 			},
-			Headers: &jwt.Headers{
+			Headers: &fjwt.Headers{
 				Extra: map[string]any{
 					JWTHeaderKeyIdentifier: kid,
 				},
@@ -105,7 +107,7 @@ type Store struct {
 type BaseClient struct {
 	ID               string
 	Description      string
-	Secret           algorithm.Digest
+	Secret           *schema.PasswordDigest
 	SectorIdentifier string
 	Public           bool
 
@@ -122,14 +124,16 @@ type BaseClient struct {
 	ResponseTypes []string
 	ResponseModes []fosite.ResponseModeType
 
+	Lifespans schema.IdentityProvidersOpenIDConnectLifespan
+
 	IDTokenSigningAlg    string
 	IDTokenSigningKeyID  string
 	UserinfoSigningAlg   string
 	UserinfoSigningKeyID string
 
-	Policy authorization.Level
+	AuthorizationPolicy ClientAuthorizationPolicy
 
-	Consent ClientConsent
+	ConsentPolicy ClientConsentPolicy
 }
 
 // FullClient is the client with comprehensive supported features.
@@ -164,70 +168,17 @@ type Client interface {
 	GetPKCEEnforcement() bool
 	GetPKCEChallengeMethodEnforcement() bool
 	GetPKCEChallengeMethod() string
-	GetAuthorizationPolicy() authorization.Level
-	GetConsentPolicy() ClientConsent
-
-	IsAuthenticationLevelSufficient(level authentication.Level) bool
 
 	ValidatePKCEPolicy(r fosite.Requester) (err error)
 	ValidatePARPolicy(r fosite.Requester, prefix string) (err error)
 	ValidateResponseModePolicy(r fosite.AuthorizeRequester) (err error)
-}
 
-// NewClientConsent converts the schema.OpenIDConnectClientConsentConfig into a oidc.ClientConsent.
-func NewClientConsent(mode string, duration *time.Duration) ClientConsent {
-	switch mode {
-	case ClientConsentModeImplicit.String():
-		return ClientConsent{Mode: ClientConsentModeImplicit}
-	case ClientConsentModePreConfigured.String():
-		return ClientConsent{Mode: ClientConsentModePreConfigured, Duration: *duration}
-	case ClientConsentModeExplicit.String():
-		return ClientConsent{Mode: ClientConsentModeExplicit}
-	default:
-		return ClientConsent{Mode: ClientConsentModeExplicit}
-	}
-}
+	GetConsentPolicy() ClientConsentPolicy
+	IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) bool
+	GetAuthorizationPolicyRequiredLevel(subject authorization.Subject) authorization.Level
+	GetAuthorizationPolicy() ClientAuthorizationPolicy
 
-// ClientConsent is the consent configuration for a client.
-type ClientConsent struct {
-	Mode     ClientConsentMode
-	Duration time.Duration
-}
-
-// String returns the string representation of the ClientConsentMode.
-func (c ClientConsent) String() string {
-	return c.Mode.String()
-}
-
-// ClientConsentMode represents the consent mode for a client.
-type ClientConsentMode int
-
-const (
-	// ClientConsentModeExplicit means the client does not implicitly assume consent, and does not allow pre-configured
-	// consent sessions.
-	ClientConsentModeExplicit ClientConsentMode = iota
-
-	// ClientConsentModePreConfigured means the client does not implicitly assume consent, but does allow pre-configured
-	// consent sessions.
-	ClientConsentModePreConfigured
-
-	// ClientConsentModeImplicit means the client does implicitly assume consent, and does not allow pre-configured
-	// consent sessions.
-	ClientConsentModeImplicit
-)
-
-// String returns the string representation of the ClientConsentMode.
-func (c ClientConsentMode) String() string {
-	switch c {
-	case ClientConsentModeExplicit:
-		return explicit
-	case ClientConsentModeImplicit:
-		return implicit
-	case ClientConsentModePreConfigured:
-		return preconfigured
-	default:
-		return ""
-	}
+	GetEffectiveLifespan(gt fosite.GrantType, tt fosite.TokenType, fallback time.Duration) time.Duration
 }
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
@@ -960,4 +911,6 @@ type OpenIDConnectContext interface {
 	context.Context
 
 	IssuerURL() (issuerURL *url.URL, err error)
+	GetClock() utils.Clock
+	GetJWTWithTimeFuncOption() jwt.ParserOption
 }

@@ -109,9 +109,9 @@ func TestNewOpenIDConnectProviderDiscovery(t *testing.T) {
 		EnablePKCEPlainChallenge: true,
 		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
-				ID:     "a-client",
-				Secret: tOpenIDConnectPlainTextClientSecret,
-				Policy: onefactor,
+				ID:                  "a-client",
+				Secret:              tOpenIDConnectPlainTextClientSecret,
+				AuthorizationPolicy: onefactor,
 				RedirectURIs: []string{
 					"https://google.com",
 				},
@@ -149,9 +149,9 @@ func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *test
 		HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
 		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
-				ID:     "a-client",
-				Secret: tOpenIDConnectPlainTextClientSecret,
-				Policy: onefactor,
+				ID:                  "a-client",
+				Secret:              tOpenIDConnectPlainTextClientSecret,
+				AuthorizationPolicy: onefactor,
 				RedirectURIs: []string{
 					"https://google.com",
 				},
@@ -215,7 +215,7 @@ func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *test
 	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, oidc.ClientAuthMethodNone)
 
 	assert.Equal(t, []string{oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodNone}, disco.IntrospectionEndpointAuthMethodsSupported)
-	assert.Equal(t, []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeRefreshToken}, disco.GrantTypesSupported)
+	assert.Equal(t, []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeClientCredentials, oidc.GrantTypeRefreshToken}, disco.GrantTypesSupported)
 	assert.Equal(t, []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512}, disco.RevocationEndpointAuthSigningAlgValuesSupported)
 	assert.Equal(t, []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512}, disco.TokenEndpointAuthSigningAlgValuesSupported)
 	assert.Equal(t, []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone}, disco.IDTokenSigningAlgValuesSupported)
@@ -254,9 +254,9 @@ func TestNewOpenIDConnectProvider_GetOAuth2WellKnownConfiguration(t *testing.T) 
 		HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
 		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
-				ID:     "a-client",
-				Secret: tOpenIDConnectPlainTextClientSecret,
-				Policy: onefactor,
+				ID:                  "a-client",
+				Secret:              tOpenIDConnectPlainTextClientSecret,
+				AuthorizationPolicy: onefactor,
 				RedirectURIs: []string{
 					"https://google.com",
 				},
@@ -311,10 +311,11 @@ func TestNewOpenIDConnectProvider_GetOAuth2WellKnownConfiguration(t *testing.T) 
 	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, oidc.ClientAuthMethodPrivateKeyJWT)
 	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, oidc.ClientAuthMethodNone)
 
-	assert.Len(t, disco.GrantTypesSupported, 3)
+	assert.Len(t, disco.GrantTypesSupported, 4)
 	assert.Contains(t, disco.GrantTypesSupported, oidc.GrantTypeAuthorizationCode)
-	assert.Contains(t, disco.GrantTypesSupported, oidc.GrantTypeRefreshToken)
 	assert.Contains(t, disco.GrantTypesSupported, oidc.GrantTypeImplicit)
+	assert.Contains(t, disco.GrantTypesSupported, oidc.GrantTypeClientCredentials)
+	assert.Contains(t, disco.GrantTypesSupported, oidc.GrantTypeRefreshToken)
 
 	assert.Len(t, disco.ClaimsSupported, 18)
 	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimAuthenticationMethodsReference)
@@ -345,9 +346,9 @@ func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfigurationWithPlai
 		EnablePKCEPlainChallenge: true,
 		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
-				ID:     "a-client",
-				Secret: tOpenIDConnectPlainTextClientSecret,
-				Policy: onefactor,
+				ID:                  "a-client",
+				Secret:              tOpenIDConnectPlainTextClientSecret,
+				AuthorizationPolicy: onefactor,
 				RedirectURIs: []string{
 					"https://google.com",
 				},

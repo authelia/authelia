@@ -1,6 +1,8 @@
 package oidc
 
 import (
+	"time"
+
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/ory/fosite"
 	"github.com/ory/x/errorsx"
@@ -13,7 +15,7 @@ import (
 )
 
 // NewClient creates a new Client.
-func NewClient(config schema.IdentityProvidersOpenIDConnectClient) (client Client) {
+func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.IdentityProvidersOpenIDConnect) (client Client) {
 	base := &BaseClient{
 		ID:               config.ID,
 		Description:      config.Description,
@@ -39,9 +41,14 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient) (client Clien
 		UserinfoSigningAlg:   config.UserinfoSigningAlg,
 		UserinfoSigningKeyID: config.UserinfoSigningKeyID,
 
-		Policy: authorization.NewLevel(config.Policy),
+		AuthorizationPolicy: NewClientAuthorizationPolicy(config.AuthorizationPolicy, c),
+		ConsentPolicy:       NewClientConsentPolicy(config.ConsentMode, config.ConsentPreConfiguredDuration),
+	}
 
-		Consent: NewClientConsent(config.ConsentMode, config.ConsentPreConfiguredDuration),
+	if len(config.Lifespan) != 0 {
+		if lifespans, ok := c.Lifespans.Custom[config.Lifespan]; ok {
+			base.Lifespans = lifespans
+		}
 	}
 
 	for _, mode := range config.ResponseModes {
@@ -192,14 +199,28 @@ func (c *BaseClient) GetPKCEChallengeMethod() string {
 	return c.PKCEChallengeMethod
 }
 
-// GetAuthorizationPolicy returns Policy.
-func (c *BaseClient) GetAuthorizationPolicy() authorization.Level {
-	return c.Policy
+// IsAuthenticationLevelSufficient returns if the provided authentication.Level is sufficient for the client of the AutheliaClient.
+func (c *BaseClient) IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) bool {
+	if level == authentication.NotAuthenticated {
+		return false
+	}
+
+	return authorization.IsAuthLevelSufficient(level, c.GetAuthorizationPolicyRequiredLevel(subject))
+}
+
+// GetAuthorizationPolicyRequiredLevel returns the required authorization.Level given an authorization.Subject.
+func (c *BaseClient) GetAuthorizationPolicyRequiredLevel(subject authorization.Subject) authorization.Level {
+	return c.AuthorizationPolicy.GetRequiredLevel(subject)
+}
+
+// GetAuthorizationPolicy returns the ClientAuthorizationPolicy from the Policy.
+func (c *BaseClient) GetAuthorizationPolicy() ClientAuthorizationPolicy {
+	return c.AuthorizationPolicy
 }
 
 // GetConsentPolicy returns Consent.
-func (c *BaseClient) GetConsentPolicy() ClientConsent {
-	return c.Consent
+func (c *BaseClient) GetConsentPolicy() ClientConsentPolicy {
+	return c.ConsentPolicy
 }
 
 // GetConsentResponseBody returns the proper consent response body for this session.OIDCWorkflowSession.
@@ -207,7 +228,7 @@ func (c *BaseClient) GetConsentResponseBody(consent *model.OAuth2ConsentSession)
 	body := ConsentGetResponseBody{
 		ClientID:          c.ID,
 		ClientDescription: c.Description,
-		PreConfiguration:  c.Consent.Mode == ClientConsentModePreConfigured,
+		PreConfiguration:  c.ConsentPolicy.Mode == ClientConsentModePreConfigured,
 	}
 
 	if consent != nil {
@@ -221,15 +242,6 @@ func (c *BaseClient) GetConsentResponseBody(consent *model.OAuth2ConsentSession)
 // IsPublic returns the value of the Public property.
 func (c *BaseClient) IsPublic() bool {
 	return c.Public
-}
-
-// IsAuthenticationLevelSufficient returns if the provided authentication.Level is sufficient for the client of the AutheliaClient.
-func (c *BaseClient) IsAuthenticationLevelSufficient(level authentication.Level) bool {
-	if level == authentication.NotAuthenticated {
-		return false
-	}
-
-	return authorization.IsAuthLevelSufficient(level, c.Policy)
 }
 
 // ValidatePKCEPolicy is a helper function to validate PKCE policy constraints on a per-client basis.
@@ -295,6 +307,70 @@ func (c *BaseClient) ValidateResponseModePolicy(r fosite.AuthorizeRequester) (er
 	return errorsx.WithStack(fosite.ErrUnsupportedResponseMode.WithHintf(`The request omitted the response_mode making the default response_mode "%s" based on the other authorization request parameters but registered OAuth 2.0 client doesn't support this response_mode`, m))
 }
 
+func (c *BaseClient) getGrantTypeLifespan(gt fosite.GrantType) (gtl schema.IdentityProvidersOpenIDConnectLifespanToken) {
+	switch gt {
+	case fosite.GrantTypeAuthorizationCode:
+		return c.Lifespans.Grants.AuthorizeCode
+	case fosite.GrantTypeImplicit:
+		return c.Lifespans.Grants.Implicit
+	case fosite.GrantTypeClientCredentials:
+		return c.Lifespans.Grants.ClientCredentials
+	case fosite.GrantTypeRefreshToken:
+		return c.Lifespans.Grants.RefreshToken
+	case fosite.GrantTypeJWTBearer:
+		return c.Lifespans.Grants.JWTBearer
+	default:
+		return gtl
+	}
+}
+
+// GetEffectiveLifespan returns the effective lifespan for a grant type and token type otherwise returns the fallback
+// value. This implements the fosite.ClientWithCustomTokenLifespans interface.
+func (c *BaseClient) GetEffectiveLifespan(gt fosite.GrantType, tt fosite.TokenType, fallback time.Duration) time.Duration {
+	gtl := c.getGrantTypeLifespan(gt)
+
+	switch tt {
+	case fosite.AccessToken:
+		switch {
+		case gtl.AccessToken > durationZero:
+			return gtl.AccessToken
+		case c.Lifespans.AccessToken > durationZero:
+			return c.Lifespans.AccessToken
+		default:
+			return fallback
+		}
+	case fosite.AuthorizeCode:
+		switch {
+		case gtl.AuthorizeCode > durationZero:
+			return gtl.AuthorizeCode
+		case c.Lifespans.AuthorizeCode > durationZero:
+			return c.Lifespans.AuthorizeCode
+		default:
+			return fallback
+		}
+	case fosite.IDToken:
+		switch {
+		case gtl.IDToken > durationZero:
+			return gtl.IDToken
+		case c.Lifespans.IDToken > durationZero:
+			return c.Lifespans.IDToken
+		default:
+			return fallback
+		}
+	case fosite.RefreshToken:
+		switch {
+		case gtl.RefreshToken > durationZero:
+			return gtl.RefreshToken
+		case c.Lifespans.RefreshToken > durationZero:
+			return c.Lifespans.RefreshToken
+		default:
+			return fallback
+		}
+	default:
+		return fallback
+	}
+}
+
 // GetRequestURIs is an array of request_uri values that are pre-registered by the RP for use at the OP. Servers MAY
 // cache the contents of the files referenced by these URIs and not retrieve them at the time they are used in a request.
 // OPs can require that request_uri values used be pre-registered with the require_request_uri_registration
@@ -306,6 +382,11 @@ func (c *FullClient) GetRequestURIs() []string {
 // GetJSONWebKeys returns the JSON Web Key Set containing the public key used by the client to authenticate.
 func (c *FullClient) GetJSONWebKeys() *jose.JSONWebKeySet {
 	return c.JSONWebKeys
+}
+
+// SetJSONWebKeys sets the JSON Web Key Set containing the public key used by the client to authenticate.
+func (c *FullClient) SetJSONWebKeys(jwks *jose.JSONWebKeySet) {
+	c.JSONWebKeys = jwks
 }
 
 // GetJSONWebKeysURI returns the URL for lookup of JSON Web Key Set containing the

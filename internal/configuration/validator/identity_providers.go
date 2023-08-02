@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/ory/fosite"
 
@@ -30,6 +29,8 @@ func validateOIDC(config *schema.IdentityProvidersOpenIDConnect, val *schema.Str
 	setOIDCDefaults(config)
 
 	validateOIDCIssuer(config, val)
+	validateOIDCAuthorizationPolicies(config, val)
+	validateOIDCLifespans(config, val)
 
 	sort.Sort(oidc.SortedSigningAlgs(config.Discovery.ResponseObjectSigningAlgs))
 
@@ -55,6 +56,57 @@ func validateOIDC(config *schema.IdentityProvidersOpenIDConnect, val *schema.Str
 		val.Push(fmt.Errorf(errFmtOIDCProviderNoClientsConfigured))
 	} else {
 		validateOIDCClients(config, val)
+	}
+}
+
+func validateOIDCAuthorizationPolicies(config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
+	config.Discovery.AuthorizationPolicies = []string{policyOneFactor, policyTwoFactor}
+
+	for name, policy := range config.AuthorizationPolicies {
+		switch name {
+		case "":
+			val.Push(fmt.Errorf(errFmtOIDCPolicyInvalidName))
+		case policyOneFactor, policyTwoFactor, policyDeny:
+			val.Push(fmt.Errorf(errFmtOIDCPolicyInvalidNameStandard, name, "name", strJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny}), name))
+		}
+
+		switch policy.DefaultPolicy {
+		case "":
+			policy.DefaultPolicy = schema.DefaultOpenIDConnectPolicyConfiguration.DefaultPolicy
+		case policyOneFactor, policyTwoFactor, policyDeny:
+			break
+		default:
+			val.Push(fmt.Errorf(errFmtOIDCPolicyInvalidDefaultPolicy, name, strJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny}), policy.DefaultPolicy))
+		}
+
+		if len(policy.Rules) == 0 {
+			val.Push(fmt.Errorf(errFmtOIDCPolicyMissingOption, name, "rules"))
+		}
+
+		for i, rule := range policy.Rules {
+			switch rule.Policy {
+			case "":
+				policy.Rules[i].Policy = schema.DefaultOpenIDConnectPolicyConfiguration.DefaultPolicy
+			case policyOneFactor, policyTwoFactor, policyDeny:
+				break
+			default:
+				val.Push(fmt.Errorf(errFmtOIDCPolicyRuleInvalidPolicy, name, i+1, strJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny}), rule.Policy))
+			}
+
+			if len(rule.Subjects) == 0 {
+				val.Push(fmt.Errorf(errFmtOIDCPolicyRuleMissingOption, name, i+1, "subject"))
+			}
+		}
+
+		config.AuthorizationPolicies[name] = policy
+
+		config.Discovery.AuthorizationPolicies = append(config.Discovery.AuthorizationPolicies, name)
+	}
+}
+
+func validateOIDCLifespans(config *schema.IdentityProvidersOpenIDConnect, _ *schema.StructValidator) {
+	for name := range config.Lifespans.Custom {
+		config.Discovery.Lifespans = append(config.Discovery.Lifespans, name)
 	}
 }
 
@@ -197,20 +249,20 @@ func validateOIDCIssuerPrivateKeyPair(i int, config *schema.IdentityProvidersOpe
 }
 
 func setOIDCDefaults(config *schema.IdentityProvidersOpenIDConnect) {
-	if config.AccessTokenLifespan == time.Duration(0) {
-		config.AccessTokenLifespan = schema.DefaultOpenIDConnectConfiguration.AccessTokenLifespan
+	if config.Lifespans.AccessToken == durationZero {
+		config.Lifespans.AccessToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.AccessToken
 	}
 
-	if config.AuthorizeCodeLifespan == time.Duration(0) {
-		config.AuthorizeCodeLifespan = schema.DefaultOpenIDConnectConfiguration.AuthorizeCodeLifespan
+	if config.Lifespans.AuthorizeCode == durationZero {
+		config.Lifespans.AuthorizeCode = schema.DefaultOpenIDConnectConfiguration.Lifespans.AuthorizeCode
 	}
 
-	if config.IDTokenLifespan == time.Duration(0) {
-		config.IDTokenLifespan = schema.DefaultOpenIDConnectConfiguration.IDTokenLifespan
+	if config.Lifespans.IDToken == durationZero {
+		config.Lifespans.IDToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.IDToken
 	}
 
-	if config.RefreshTokenLifespan == time.Duration(0) {
-		config.RefreshTokenLifespan = schema.DefaultOpenIDConnectConfiguration.RefreshTokenLifespan
+	if config.Lifespans.RefreshToken == durationZero {
+		config.Lifespans.RefreshToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.RefreshToken
 	}
 
 	if config.EnforcePKCE == "" {
@@ -337,13 +389,20 @@ func validateOIDCClient(c int, config *schema.IdentityProvidersOpenIDConnect, va
 		}
 	}
 
-	switch config.Clients[c].Policy {
-	case "":
-		config.Clients[c].Policy = schema.DefaultOpenIDConnectClientConfiguration.Policy
-	case policyOneFactor, policyTwoFactor:
+	switch {
+	case config.Clients[c].AuthorizationPolicy == "":
+		config.Clients[c].AuthorizationPolicy = schema.DefaultOpenIDConnectClientConfiguration.AuthorizationPolicy
+	case utils.IsStringInSlice(config.Clients[c].AuthorizationPolicy, config.Discovery.AuthorizationPolicies):
 		break
 	default:
-		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, "authorization_policy", strJoinOr([]string{policyOneFactor, policyTwoFactor}), config.Clients[c].Policy))
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, "authorization_policy", strJoinOr(config.Discovery.AuthorizationPolicies), config.Clients[c].AuthorizationPolicy))
+	}
+
+	switch {
+	case config.Clients[c].Lifespan == "", utils.IsStringInSlice(config.Clients[c].Lifespan, config.Discovery.Lifespans):
+		break
+	default:
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, "lifespan", strJoinOr(config.Discovery.Lifespans), config.Clients[c].Lifespan))
 	}
 
 	switch config.Clients[c].PKCEChallengeMethod {
@@ -654,17 +713,21 @@ func validateOIDCClientGrantTypesSetDefaults(c int, config *schema.IdentityProvi
 func validateOIDCClientGrantTypesCheckRelated(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
 	for _, grantType := range config.Clients[c].GrantTypes {
 		switch grantType {
+		case oidc.GrantTypeAuthorizationCode:
+			if !utils.IsStringInSlice(oidc.ResponseTypeAuthorizationCodeFlow, config.Clients[c].ResponseTypes) && !utils.IsStringSliceContainsAny(validOIDCClientResponseTypesHybridFlow, config.Clients[c].ResponseTypes) {
+				errDeprecatedFunc()
+
+				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidGrantTypeMatch, config.Clients[c].ID, grantType, "for either the authorization code or hybrid flow", strJoinOr(append([]string{oidc.ResponseTypeAuthorizationCodeFlow}, validOIDCClientResponseTypesHybridFlow...)), strJoinAnd(config.Clients[c].ResponseTypes)))
+			}
 		case oidc.GrantTypeImplicit:
 			if !utils.IsStringSliceContainsAny(validOIDCClientResponseTypesImplicitFlow, config.Clients[c].ResponseTypes) && !utils.IsStringSliceContainsAny(validOIDCClientResponseTypesHybridFlow, config.Clients[c].ResponseTypes) {
 				errDeprecatedFunc()
 
 				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidGrantTypeMatch, config.Clients[c].ID, grantType, "for either the implicit or hybrid flow", strJoinOr(append(append([]string{}, validOIDCClientResponseTypesImplicitFlow...), validOIDCClientResponseTypesHybridFlow...)), strJoinAnd(config.Clients[c].ResponseTypes)))
 			}
-		case oidc.GrantTypeAuthorizationCode:
-			if !utils.IsStringInSlice(oidc.ResponseTypeAuthorizationCodeFlow, config.Clients[c].ResponseTypes) && !utils.IsStringSliceContainsAny(validOIDCClientResponseTypesHybridFlow, config.Clients[c].ResponseTypes) {
-				errDeprecatedFunc()
-
-				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidGrantTypeMatch, config.Clients[c].ID, grantType, "for either the authorization code or hybrid flow", strJoinOr(append([]string{oidc.ResponseTypeAuthorizationCodeFlow}, validOIDCClientResponseTypesHybridFlow...)), strJoinAnd(config.Clients[c].ResponseTypes)))
+		case oidc.GrantTypeClientCredentials:
+			if config.Clients[c].Public {
+				val.Push(fmt.Errorf(errFmtOIDCClientInvalidGrantTypePublic, config.Clients[c].ID, oidc.GrantTypeClientCredentials))
 			}
 		case oidc.GrantTypeRefreshToken:
 			if !utils.IsStringSliceContainsAny([]string{oidc.ScopeOfflineAccess, oidc.ScopeOffline}, config.Clients[c].Scopes) {
@@ -710,7 +773,6 @@ func validateOIDCClientRedirectURIs(c int, config *schema.IdentityProvidersOpenI
 
 		if !parsedRedirectURI.IsAbs() || (!config.Clients[c].Public && parsedRedirectURI.Scheme == "") {
 			val.Push(fmt.Errorf(errFmtOIDCClientRedirectURIAbsolute, config.Clients[c].ID, redirectURI))
-			return
 		}
 	}
 

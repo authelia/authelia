@@ -461,7 +461,7 @@ The examples below assume you'd like to run the container as UID 8000 and GID 90
 Example for the docker CLI:
 
 ```shell
-docker run -e PUID=1000 -e PGID=1000 -v /authelia:/config authelia/authelia:latest
+docker run -e PUID=8000 -e PGID=9000 -v /authelia:/config authelia/authelia:latest
 ```
 
 Example for docker-compose:
@@ -473,8 +473,8 @@ services:
     image: authelia/authelia
     container_name: authelia
     environment:
-      PUID: 1000
-      PGID: 1000
+      PUID: 8000
+      PGID: 9000
     volumes:
       - ./authelia:/config
 ```

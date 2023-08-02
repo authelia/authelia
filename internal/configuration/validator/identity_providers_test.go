@@ -116,10 +116,10 @@ func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 			},
 			Clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
-					ID:           "myclient",
-					Secret:       tOpenIDConnectPlainTextClientSecret,
-					Policy:       "two_factor",
-					RedirectURIs: []string{"https://example.com/oauth2_callback", "https://localhost:566/callback", "http://an.example.com/callback", "file://a/file"},
+					ID:                  "myclient",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: "two_factor",
+					RedirectURIs:        []string{"https://example.com/oauth2_callback", "https://localhost:566/callback", "http://an.example.com/callback", "file://a/file"},
 				},
 			},
 		},
@@ -174,10 +174,10 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Name: "EmptyIDAndSecret",
 			Clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
-					ID:           "",
-					Secret:       nil,
-					Policy:       "",
-					RedirectURIs: []string{},
+					ID:                  "",
+					Secret:              nil,
+					AuthorizationPolicy: "",
+					RedirectURIs:        []string{},
 				},
 			},
 			Errors: []string{
@@ -189,9 +189,9 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Name: "InvalidPolicy",
 			Clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
-					ID:     "client-1",
-					Secret: tOpenIDConnectPlainTextClientSecret,
-					Policy: "a-policy",
+					ID:                  "client-1",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: "a-policy",
 					RedirectURIs: []string{
 						"https://google.com",
 					},
@@ -205,16 +205,16 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Name: "ClientIDDuplicated",
 			Clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
-					ID:           "client-x",
-					Secret:       tOpenIDConnectPlainTextClientSecret,
-					Policy:       policyTwoFactor,
-					RedirectURIs: []string{},
+					ID:                  "client-x",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs:        []string{},
 				},
 				{
-					ID:           "client-x",
-					Secret:       tOpenIDConnectPlainTextClientSecret,
-					Policy:       policyTwoFactor,
-					RedirectURIs: []string{},
+					ID:                  "client-x",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs:        []string{},
 				},
 			},
 			Errors: []string{
@@ -225,9 +225,9 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Name: "RedirectURIInvalid",
 			Clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
-					ID:     "client-check-uri-parse",
-					Secret: tOpenIDConnectPlainTextClientSecret,
-					Policy: policyTwoFactor,
+					ID:                  "client-check-uri-parse",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
 					RedirectURIs: []string{
 						"http://abc@%two",
 					},
@@ -241,9 +241,9 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Name: "RedirectURINotAbsolute",
 			Clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
-					ID:     "client-check-uri-abs",
-					Secret: tOpenIDConnectPlainTextClientSecret,
-					Policy: policyTwoFactor,
+					ID:                  "client-check-uri-abs",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
 					RedirectURIs: []string{
 						"google.com",
 					},
@@ -257,9 +257,9 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Name: "ValidSectorIdentifier",
 			Clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
-					ID:     "client-valid-sector",
-					Secret: tOpenIDConnectPlainTextClientSecret,
-					Policy: policyTwoFactor,
+					ID:                  "client-valid-sector",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
 					},
@@ -271,9 +271,9 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Name: "ValidSectorIdentifierWithPort",
 			Clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
-					ID:     "client-valid-sector",
-					Secret: tOpenIDConnectPlainTextClientSecret,
-					Policy: policyTwoFactor,
+					ID:                  "client-valid-sector",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
 					},
@@ -285,9 +285,9 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Name: "InvalidSectorIdentifierInvalidURL",
 			Clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
-					ID:     "client-invalid-sector",
-					Secret: tOpenIDConnectPlainTextClientSecret,
-					Policy: policyTwoFactor,
+					ID:                  "client-invalid-sector",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
 					},
@@ -307,9 +307,9 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Name: "InvalidSectorIdentifierInvalidHost",
 			Clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
-					ID:     "client-invalid-sector",
-					Secret: tOpenIDConnectPlainTextClientSecret,
-					Policy: policyTwoFactor,
+					ID:                  "client-invalid-sector",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
 					},
@@ -324,9 +324,9 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Name: "InvalidConsentMode",
 			Clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
-					ID:     "client-bad-consent-mode",
-					Secret: tOpenIDConnectPlainTextClientSecret,
-					Policy: policyTwoFactor,
+					ID:                  "client-bad-consent-mode",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
 					},
@@ -341,9 +341,9 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Name: "InvalidPKCEChallengeMethod",
 			Clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
-					ID:     "client-bad-pkce-mode",
-					Secret: tOpenIDConnectPlainTextClientSecret,
-					Policy: policyTwoFactor,
+					ID:                  "client-bad-pkce-mode",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
 					},
@@ -358,9 +358,9 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Name: "InvalidPKCEChallengeMethodLowerCaseS256",
 			Clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
-					ID:     "client-bad-pkce-mode-s256",
-					Secret: tOpenIDConnectPlainTextClientSecret,
-					Policy: policyTwoFactor,
+					ID:                  "client-bad-pkce-mode-s256",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
 					},
@@ -406,10 +406,10 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadScopes(t *testing.T) {
 			IssuerPrivateKey: keyRSA2048,
 			Clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
-					ID:     "good_id",
-					Secret: tOpenIDConnectPlainTextClientSecret,
-					Policy: "two_factor",
-					Scopes: []string{"openid", "bad_scope"},
+					ID:                  "good_id",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: "two_factor",
+					Scopes:              []string{"openid", "bad_scope"},
 					RedirectURIs: []string{
 						"https://google.com/callback",
 					},
@@ -432,10 +432,10 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 			IssuerPrivateKey: keyRSA2048,
 			Clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
-					ID:         "good_id",
-					Secret:     tOpenIDConnectPBKDF2ClientSecret,
-					Policy:     "two_factor",
-					GrantTypes: []string{"bad_grant_type"},
+					ID:                  "good_id",
+					Secret:              tOpenIDConnectPBKDF2ClientSecret,
+					AuthorizationPolicy: "two_factor",
+					GrantTypes:          []string{"bad_grant_type"},
 					RedirectURIs: []string{
 						"https://google.com/callback",
 					},
@@ -447,7 +447,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'good_id': option 'grant_types' must only have the values 'implicit', 'refresh_token', or 'authorization_code' but the values 'bad_grant_type' are present")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'good_id': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', or 'refresh_token' but the values 'bad_grant_type' are present")
 }
 
 func TestShouldNotErrorOnCertificateValid(t *testing.T) {
@@ -459,9 +459,9 @@ func TestShouldNotErrorOnCertificateValid(t *testing.T) {
 			IssuerPrivateKey:       keyRSA2048,
 			Clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
-					ID:     "good_id",
-					Secret: tOpenIDConnectPBKDF2ClientSecret,
-					Policy: "two_factor",
+					ID:                  "good_id",
+					Secret:              tOpenIDConnectPBKDF2ClientSecret,
+					AuthorizationPolicy: "two_factor",
 					RedirectURIs: []string{
 						"https://google.com/callback",
 					},
@@ -485,9 +485,9 @@ func TestShouldRaiseErrorOnCertificateNotValid(t *testing.T) {
 			IssuerPrivateKey:       keyRSA4096,
 			Clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
-					ID:     "good_id",
-					Secret: tOpenIDConnectPBKDF2ClientSecret,
-					Policy: "two_factor",
+					ID:                  "good_id",
+					Secret:              tOpenIDConnectPBKDF2ClientSecret,
+					AuthorizationPolicy: "two_factor",
 					RedirectURIs: []string{
 						"https://google.com/callback",
 					},
@@ -559,9 +559,9 @@ func TestValidateIdentityProvidersOpenIDConnectMinimumParameterEntropy(t *testin
 					MinimumParameterEntropy: tc.have,
 					Clients: []schema.IdentityProvidersOpenIDConnectClient{
 						{
-							ID:     "good_id",
-							Secret: tOpenIDConnectPBKDF2ClientSecret,
-							Policy: "two_factor",
+							ID:                  "good_id",
+							Secret:              tOpenIDConnectPBKDF2ClientSecret,
+							AuthorizationPolicy: "two_factor",
 							RedirectURIs: []string{
 								"https://google.com/callback",
 							},
@@ -605,19 +605,19 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testi
 			IssuerPrivateKey: keyRSA2048,
 			Clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
-					ID:     "client-with-invalid-secret",
-					Secret: tOpenIDConnectPlainTextClientSecret,
-					Public: true,
-					Policy: "two_factor",
+					ID:                  "client-with-invalid-secret",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					Public:              true,
+					AuthorizationPolicy: "two_factor",
 					RedirectURIs: []string{
 						"https://localhost",
 					},
 				},
 				{
-					ID:     "client-with-bad-redirect-uri",
-					Secret: tOpenIDConnectPBKDF2ClientSecret,
-					Public: false,
-					Policy: "two_factor",
+					ID:                  "client-with-bad-redirect-uri",
+					Secret:              tOpenIDConnectPBKDF2ClientSecret,
+					Public:              false,
+					AuthorizationPolicy: "two_factor",
 					RedirectURIs: []string{
 						oauth2InstalledApp,
 					},
@@ -643,42 +643,42 @@ func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidClientOptions(t *te
 			IssuerPrivateKey: keyRSA2048,
 			Clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
-					ID:     "installed-app-client",
-					Public: true,
-					Policy: "two_factor",
+					ID:                  "installed-app-client",
+					Public:              true,
+					AuthorizationPolicy: "two_factor",
 					RedirectURIs: []string{
 						oauth2InstalledApp,
 					},
 				},
 				{
-					ID:     "client-with-https-scheme",
-					Public: true,
-					Policy: "two_factor",
+					ID:                  "client-with-https-scheme",
+					Public:              true,
+					AuthorizationPolicy: "two_factor",
 					RedirectURIs: []string{
 						"https://localhost:9000",
 					},
 				},
 				{
-					ID:     "client-with-loopback",
-					Public: true,
-					Policy: "two_factor",
+					ID:                  "client-with-loopback",
+					Public:              true,
+					AuthorizationPolicy: "two_factor",
 					RedirectURIs: []string{
 						"http://127.0.0.1",
 					},
 				},
 				{
-					ID:     "client-with-pkce-mode-plain",
-					Public: true,
-					Policy: "two_factor",
+					ID:                  "client-with-pkce-mode-plain",
+					Public:              true,
+					AuthorizationPolicy: "two_factor",
 					RedirectURIs: []string{
 						"https://pkce.com",
 					},
 					PKCEChallengeMethod: "plain",
 				},
 				{
-					ID:     "client-with-pkce-mode-S256",
-					Public: true,
-					Policy: "two_factor",
+					ID:                  "client-with-pkce-mode-S256",
+					Public:              true,
+					AuthorizationPolicy: "two_factor",
 					RedirectURIs: []string{
 						"https://pkce.com",
 					},
@@ -702,9 +702,9 @@ func TestValidateIdentityProvidersShouldRaiseWarningOnPlainTextClients(t *testin
 			IssuerPrivateKey: keyRSA2048,
 			Clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
-					ID:     "client-with-invalid-secret_standard",
-					Secret: tOpenIDConnectPlainTextClientSecret,
-					Policy: "two_factor",
+					ID:                  "client-with-invalid-secret_standard",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: "two_factor",
 					RedirectURIs: []string{
 						"https://localhost",
 					},
@@ -1136,7 +1136,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 			nil,
 			[]string{
-				"identity_providers: oidc: clients: client 'test': option 'grant_types' must only have the values 'implicit', 'refresh_token', or 'authorization_code' but the values 'invalid' are present",
+				"identity_providers: oidc: clients: client 'test': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', or 'refresh_token' but the values 'invalid' are present",
 			},
 		},
 		{
@@ -1158,6 +1158,51 @@ func TestValidateOIDCClients(t *testing.T) {
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'grant_types' must have unique values but the values 'authorization_code' are duplicated",
 			},
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnInvalidGrantTypesForPublicClient",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].Public = true
+				have.Clients[0].Secret = nil
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				[]string{oidc.GrantTypeClientCredentials},
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeClientCredentials},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'grant_types' should only have the 'client_credentials' value if it is of the confidential client type but it's of the public client type",
+			},
+		},
+		{
+			"ShouldNotRaiseErrorOnValidGrantTypesForConfidentialClient",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].Public = false
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				[]string{oidc.GrantTypeClientCredentials},
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeClientCredentials},
+			},
+			nil,
 			nil,
 		},
 		{
@@ -1431,10 +1476,10 @@ func TestValidateOIDCClients(t *testing.T) {
 		{
 			"ShouldRaiseErrorOnInvalidClientAuthMethod",
 			func(have *schema.IdentityProvidersOpenIDConnect) {
-				have.Clients[0].TokenEndpointAuthMethod = "client_credentials"
+				have.Clients[0].TokenEndpointAuthMethod = oidc.GrantTypeClientCredentials
 			},
 			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
-				assert.Equal(t, "client_credentials", have.Clients[0].TokenEndpointAuthMethod)
+				assert.Equal(t, oidc.GrantTypeClientCredentials, have.Clients[0].TokenEndpointAuthMethod)
 			},
 			tcv{
 				nil,

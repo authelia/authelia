@@ -56,7 +56,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		return
 	}
 
-	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(clientID); err != nil {
+	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(ctx, clientID); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
 		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed to retrieve client configuration with error: %s", requester.GetID(), client.GetID(), rfc.WithExposeDebug(true).GetDescription())

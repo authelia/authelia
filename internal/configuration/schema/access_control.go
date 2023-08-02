@@ -61,6 +61,6 @@ var DefaultACLRule = []AccessControlRule{
 	},
 	{
 		Domains: []string{"secure.example.com"},
-		Policy:  "two_factor",
+		Policy:  policyTwoFactor,
 	},
 }

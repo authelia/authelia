@@ -38,42 +38,17 @@ totp:
 
 access_control:
   default_policy: deny
-
   rules:
-    - domain: singlefactor.example.com
-      policy: one_factor
-
-    - domain: public.example.com
+    - domain: ["home.example.com", "public.example.com"]
       policy: bypass
-
-    - domain: secure.example.com
+    - domain: "deny.example.com"
+      policy: deny
+    - domain: "admin.example.com"
       policy: two_factor
-
-    - domain: "*.example.com"
-      subject: "group:admins"
+    - domain: "secure.example.com"
       policy: two_factor
-
-    - domain: dev.example.com
-      resources:
-        - "^/users/john/.*$"
-      subject: "user:john"
-      policy: two_factor
-
-    - domain: dev.example.com
-      resources:
-        - "^/users/harry/.*$"
-      subject: "user:harry"
-      policy: two_factor
-
-    - domain: "*.mail.example.com"
-      subject: "user:bob"
-      policy: two_factor
-
-    - domain: dev.example.com
-      resources:
-        - "^/users/bob/.*$"
-      subject: "user:bob"
-      policy: two_factor
+    - domain: "singlefactor.example.com"
+      policy: one_factor
 
 regulation:
   # Set it to 0 to disable max_retries.

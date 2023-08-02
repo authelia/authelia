@@ -32,4 +32,11 @@ var (
 
 	// ErrPAREnforcedClientMissingPAR is sent when a client has EnforcePAR configured but the Authorization Request was not Pushed.
 	ErrPAREnforcedClientMissingPAR = fosite.ErrInvalidRequest.WithHint("Pushed Authorization Requests are enforced for this client but no such request was sent.")
+
+	ErrClientAuthorizationUserAccessDenied = fosite.ErrAccessDenied.WithHint("The user was denied access to this client.")
+)
+
+const (
+	errHintFmtClientAuthMethodMismatch = "The OAuth 2.0 Client supports client authentication method '%s', but method '%s' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept '%s'."
+	errDebugFmtParameterMatchClaim     = "The claim '%s' with value '%s' did not match the '%s' with value '%s'."
 )

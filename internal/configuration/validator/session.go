@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"net"
 	"path"
 	"strings"
 
@@ -110,6 +111,8 @@ func validateSessionDomainName(i int, config *schema.Session, validator *schema.
 		return
 	case strings.HasPrefix(d.Domain, "."):
 		validator.PushWarning(fmt.Errorf(errFmtSessionDomainHasPeriodPrefix, sessionDomainDescriptor(i, d)))
+	case net.ParseIP(d.Domain) != nil:
+		return
 	case !strings.Contains(d.Domain, "."):
 		validator.Push(fmt.Errorf(errFmtSessionDomainInvalidDomainNoDots, sessionDomainDescriptor(i, d)))
 		return

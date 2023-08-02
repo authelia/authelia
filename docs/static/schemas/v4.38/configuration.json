@@ -1022,66 +1022,6 @@
           "title": "Issuer Private Key",
           "description": "The Issuer Private Key with an RSA Private Key used to sign ID Tokens"
         },
-        "access_token_lifespan": {
-          "oneOf": [
-            {
-              "$comment": "Example comment",
-              "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
-            },
-            {
-              "type": "integer",
-              "description": "The duration in seconds"
-            }
-          ],
-          "title": "Access Token Lifespan",
-          "description": "The duration an Access Token is valid for"
-        },
-        "authorize_code_lifespan": {
-          "oneOf": [
-            {
-              "$comment": "Example comment",
-              "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
-            },
-            {
-              "type": "integer",
-              "description": "The duration in seconds"
-            }
-          ],
-          "title": "Authorize Code Lifespan",
-          "description": "The duration an Authorization Code is valid for"
-        },
-        "id_token_lifespan": {
-          "oneOf": [
-            {
-              "$comment": "Example comment",
-              "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
-            },
-            {
-              "type": "integer",
-              "description": "The duration in seconds"
-            }
-          ],
-          "title": "ID Token Lifespan",
-          "description": "The duration an ID Token is valid for"
-        },
-        "refresh_token_lifespan": {
-          "oneOf": [
-            {
-              "$comment": "Example comment",
-              "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
-            },
-            {
-              "type": "integer",
-              "description": "The duration in seconds"
-            }
-          ],
-          "title": "Refresh Token Lifespan",
-          "description": "The duration a Refresh Token is valid for"
-        },
         "enable_client_debug_messages": {
           "type": "boolean",
           "title": "Enable Client Debug Messages",
@@ -1129,6 +1069,21 @@
           "type": "array",
           "title": "Clients",
           "description": "OpenID Connect 1.0 clients registry"
+        },
+        "authorization_policies": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/OpenIDConnectPolicy"
+            }
+          },
+          "type": "object",
+          "title": "Authorization Policies",
+          "description": "Custom client authorization policies"
+        },
+        "lifespans": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespans",
+          "title": "Lifespans",
+          "description": "Token lifespans configuration"
         }
       },
       "additionalProperties": false,
@@ -1284,6 +1239,11 @@
           "type": "string",
           "title": "Authorization Policy",
           "description": "The Authorization Policy to apply to this client"
+        },
+        "lifespan": {
+          "type": "string",
+          "title": "Lifespan Name",
+          "description": "The name of the custom lifespan to utilize for this client"
         },
         "consent_mode": {
           "type": "string",
@@ -1487,6 +1447,253 @@
           "uniqueItems": true
         }
       ]
+    },
+    "IdentityProvidersOpenIDConnectLifespan": {
+      "properties": {
+        "access_token": {
+          "oneOf": [
+            {
+              "$comment": "Example comment",
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Access Token Lifespan",
+          "description": "The duration an Access Token is valid for"
+        },
+        "authorize_code": {
+          "oneOf": [
+            {
+              "$comment": "Example comment",
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Authorize Code Lifespan",
+          "description": "The duration an Authorization Code is valid for"
+        },
+        "id_token": {
+          "oneOf": [
+            {
+              "$comment": "Example comment",
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "ID Token Lifespan",
+          "description": "The duration an ID Token is valid for"
+        },
+        "refresh_token": {
+          "oneOf": [
+            {
+              "$comment": "Example comment",
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Refresh Token Lifespan",
+          "description": "The duration a Refresh Token is valid for"
+        },
+        "grants": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanGrants",
+          "title": "Grant Types",
+          "description": "Allows tuning the token lifespans for individual grant types"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectLifespan allows tuning the lifespans for OpenID Connect 1.0 issued tokens."
+    },
+    "IdentityProvidersOpenIDConnectLifespanGrants": {
+      "properties": {
+        "authorize_code": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanToken",
+          "title": "Authorize Code Grant",
+          "description": "Allows tuning the token lifespans for the authorize code grant"
+        },
+        "implicit": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanToken",
+          "title": "Implicit Grant",
+          "description": "Allows tuning the token lifespans for the implicit flow and grant"
+        },
+        "client_credentials": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanToken",
+          "title": "Client Credentials Grant",
+          "description": "Allows tuning the token lifespans for the client credentials grant"
+        },
+        "refresh_token": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanToken",
+          "title": "Refresh Token Grant",
+          "description": "Allows tuning the token lifespans for the refresh token grant"
+        },
+        "jwt_bearer": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanToken",
+          "title": "JWT Bearer Grant",
+          "description": "Allows tuning the token lifespans for the JWT bearer grant"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectLifespanGrants allows tuning the lifespans for each grant type."
+    },
+    "IdentityProvidersOpenIDConnectLifespanToken": {
+      "properties": {
+        "access_token": {
+          "oneOf": [
+            {
+              "$comment": "Example comment",
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Access Token Lifespan",
+          "description": "The duration an Access Token is valid for"
+        },
+        "authorize_code": {
+          "oneOf": [
+            {
+              "$comment": "Example comment",
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Authorize Code Lifespan",
+          "description": "The duration an Authorization Code is valid for"
+        },
+        "id_token": {
+          "oneOf": [
+            {
+              "$comment": "Example comment",
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "ID Token Lifespan",
+          "description": "The duration an ID Token is valid for"
+        },
+        "refresh_token": {
+          "oneOf": [
+            {
+              "$comment": "Example comment",
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Refresh Token Lifespan",
+          "description": "The duration a Refresh Token is valid for"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectLifespanToken allows tuning the lifespans for each token type."
+    },
+    "IdentityProvidersOpenIDConnectLifespans": {
+      "properties": {
+        "access_token": {
+          "oneOf": [
+            {
+              "$comment": "Example comment",
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Access Token Lifespan",
+          "description": "The duration an Access Token is valid for"
+        },
+        "authorize_code": {
+          "oneOf": [
+            {
+              "$comment": "Example comment",
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Authorize Code Lifespan",
+          "description": "The duration an Authorization Code is valid for"
+        },
+        "id_token": {
+          "oneOf": [
+            {
+              "$comment": "Example comment",
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "ID Token Lifespan",
+          "description": "The duration an ID Token is valid for"
+        },
+        "refresh_token": {
+          "oneOf": [
+            {
+              "$comment": "Example comment",
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Refresh Token Lifespan",
+          "description": "The duration a Refresh Token is valid for"
+        },
+        "custom": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespan"
+            }
+          },
+          "type": "object",
+          "title": "Custom Lifespans",
+          "description": "Allows creating custom lifespans to be used by individual clients"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "IdentityProvidersOpenIDConnectPAR": {
       "properties": {
@@ -1800,6 +2007,53 @@
       "additionalProperties": false,
       "type": "object",
       "description": "NotifierSMTP represents the configuration of the SMTP server to send emails with."
+    },
+    "OpenIDConnectPolicy": {
+      "properties": {
+        "default_policy": {
+          "type": "string",
+          "enum": [
+            "one_factor",
+            "two_factor",
+            "deny"
+          ],
+          "title": "Default Policy",
+          "description": "The default policy action for this policy"
+        },
+        "rules": {
+          "items": {
+            "$ref": "#/$defs/OpenIDConnectPolicyRule"
+          },
+          "type": "array",
+          "title": "Rules",
+          "description": "The list of rules for this policy"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "OpenIDConnectPolicy configuration for OpenID Connect 1.0 authorization policies."
+    },
+    "OpenIDConnectPolicyRule": {
+      "properties": {
+        "policy": {
+          "type": "string",
+          "enum": [
+            "one_factor",
+            "two_factor",
+            "deny"
+          ],
+          "title": "Policy",
+          "description": "The policy to apply to this rule"
+        },
+        "subject": {
+          "$ref": "#/$defs/AccessControlRuleSubjects",
+          "title": "Subject",
+          "description": "Allows tuning the token lifespans for the authorize code grant"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "OpenIDConnectPolicyRule configuration for OpenID Connect 1.0 authorization policies rules."
     },
     "PasswordDigest": {
       "type": "string",

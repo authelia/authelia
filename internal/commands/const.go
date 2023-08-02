@@ -785,4 +785,12 @@ const (
 
 	serviceTypeServer  = "server"
 	serviceTypeWatcher = "watcher"
+
+	logFieldProvider            = "provider"
+	logMessageStartupCheckError = "Error occurred running a startup check"
+
+	providerNameNTP          = "ntp"
+	providerNameStorage      = "storage"
+	providerNameUser         = "user"
+	providerNameNotification = "notification"
 )

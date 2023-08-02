@@ -1073,7 +1073,7 @@ func TestAuthorizerIsSecondFactorEnabledRuleWithOIDC(t *testing.T) {
 			OIDC: &schema.IdentityProvidersOpenIDConnect{
 				Clients: []schema.IdentityProvidersOpenIDConnectClient{
 					{
-						Policy: oneFactor,
+						AuthorizationPolicy: oneFactor,
 					},
 				},
 			},
@@ -1091,12 +1091,12 @@ func TestAuthorizerIsSecondFactorEnabledRuleWithOIDC(t *testing.T) {
 	authorizer = NewAuthorizer(config)
 	assert.False(t, authorizer.IsSecondFactorEnabled())
 
-	config.IdentityProviders.OIDC.Clients[0].Policy = twoFactor
+	config.IdentityProviders.OIDC.Clients[0].AuthorizationPolicy = twoFactor
 	authorizer = NewAuthorizer(config)
 	assert.True(t, authorizer.IsSecondFactorEnabled())
 
 	config.AccessControl.Rules[0].Policy = oneFactor
-	config.IdentityProviders.OIDC.Clients[0].Policy = oneFactor
+	config.IdentityProviders.OIDC.Clients[0].AuthorizationPolicy = oneFactor
 	authorizer = NewAuthorizer(config)
 	assert.False(t, authorizer.IsSecondFactorEnabled())
 

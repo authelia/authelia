@@ -10,6 +10,7 @@ import (
 	"github.com/ory/fosite/token/hmac"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -20,7 +21,7 @@ func TestHMACStrategy(t *testing.T) {
 	config := &oidc.Config{
 		TokenEntropy: 10,
 		GlobalSecret: secreta,
-		Lifespans: oidc.LifespanConfig{
+		Lifespans: schema.IdentityProvidersOpenIDConnectLifespanToken{
 			AccessToken:   time.Hour,
 			RefreshToken:  time.Hour,
 			AuthorizeCode: time.Minute,

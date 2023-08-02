@@ -6,6 +6,7 @@ import (
 	"hash"
 	"html/template"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
@@ -28,12 +29,7 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, templates *templat
 		GlobalSecret:               []byte(utils.HashSHA256FromString(config.HMACSecret)),
 		SendDebugMessagesToClients: config.EnableClientDebugMessages,
 		MinParameterEntropy:        config.MinimumParameterEntropy,
-		Lifespans: LifespanConfig{
-			AccessToken:   config.AccessTokenLifespan,
-			AuthorizeCode: config.AuthorizeCodeLifespan,
-			IDToken:       config.IDTokenLifespan,
-			RefreshToken:  config.RefreshTokenLifespan,
-		},
+		Lifespans:                  config.Lifespans.IdentityProvidersOpenIDConnectLifespanToken,
 		ProofKeyCodeExchange: ProofKeyCodeExchangeConfig{
 			Enforce:                   config.EnforcePKCE == "always",
 			EnforcePublicClients:      config.EnforcePKCE != "never",
@@ -77,7 +73,7 @@ type Config struct {
 	Strategy             StrategyConfig
 	PAR                  PARConfig
 	Handlers             HandlersConfig
-	Lifespans            LifespanConfig
+	Lifespans            schema.IdentityProvidersOpenIDConnectLifespanToken
 	ProofKeyCodeExchange ProofKeyCodeExchangeConfig
 	GrantTypeJWTBearer   GrantTypeJWTBearerConfig
 
@@ -157,14 +153,6 @@ type ProofKeyCodeExchangeConfig struct {
 	Enforce                   bool
 	EnforcePublicClients      bool
 	AllowPlainChallengeMethod bool
-}
-
-// LifespanConfig holds specific fosite.Configurator information for various lifespans.
-type LifespanConfig struct {
-	AccessToken   time.Duration
-	AuthorizeCode time.Duration
-	IDToken       time.Duration
-	RefreshToken  time.Duration
 }
 
 // LoadHandlers reloads the handlers based on the current configuration.
@@ -529,7 +517,7 @@ func (c *Config) GetTokenURL(ctx context.Context) (tokenURL string) {
 	if octx, ok := ctx.(OpenIDConnectContext); ok {
 		switch issuerURL, err := octx.IssuerURL(); err {
 		case nil:
-			return issuerURL.JoinPath(EndpointPathToken).String()
+			return strings.ToLower(issuerURL.JoinPath(EndpointPathToken).String())
 		default:
 			return c.TokenURL
 		}

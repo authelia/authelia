@@ -19,11 +19,6 @@ type IdentityProvidersOpenIDConnect struct {
 	IssuerCertificateChain X509CertificateChain `koanf:"issuer_certificate_chain" json:"issuer_certificate_chain" jsonschema:"title=Issuer Certificate Chain" jsonschema_description:"The Issuer Certificate Chain with an RSA Public Key used to sign ID Tokens"`
 	IssuerPrivateKey       *rsa.PrivateKey      `koanf:"issuer_private_key" json:"issuer_private_key" jsonschema:"title=Issuer Private Key" jsonschema_description:"The Issuer Private Key with an RSA Private Key used to sign ID Tokens"`
 
-	AccessTokenLifespan   time.Duration `koanf:"access_token_lifespan" json:"access_token_lifespan" jsonschema:"default=60 minutes,title=Access Token Lifespan" jsonschema_description:"The duration an Access Token is valid for"`
-	AuthorizeCodeLifespan time.Duration `koanf:"authorize_code_lifespan" json:"authorize_code_lifespan" jsonschema:"default=1 minute,title=Authorize Code Lifespan" jsonschema_description:"The duration an Authorization Code is valid for"`
-	IDTokenLifespan       time.Duration `koanf:"id_token_lifespan" json:"id_token_lifespan" jsonschema:"default=60 minutes,title=ID Token Lifespan" jsonschema_description:"The duration an ID Token is valid for"`
-	RefreshTokenLifespan  time.Duration `koanf:"refresh_token_lifespan" json:"refresh_token_lifespan" jsonschema:"default=90 minutes,title=Refresh Token Lifespan" jsonschema_description:"The duration a Refresh Token is valid for"`
-
 	EnableClientDebugMessages bool `koanf:"enable_client_debug_messages" json:"enable_client_debug_messages" jsonschema:"default=false,title=Enable Client Debug Messages" jsonschema_description:"Enables additional debug messages for clients"`
 	MinimumParameterEntropy   int  `koanf:"minimum_parameter_entropy" json:"minimum_parameter_entropy" jsonschema:"default=8,minimum=-1,title=Minimum Parameter Entropy" jsonschema_description:"The minimum entropy of the nonce parameter"`
 
@@ -35,16 +30,63 @@ type IdentityProvidersOpenIDConnect struct {
 
 	Clients []IdentityProvidersOpenIDConnectClient `koanf:"clients" json:"clients" jsonschema:"title=Clients" jsonschema_description:"OpenID Connect 1.0 clients registry"`
 
+	AuthorizationPolicies map[string]OpenIDConnectPolicy          `koanf:"authorization_policies" json:"authorization_policies" jsonschema:"title=Authorization Policies" jsonschema_description:"Custom client authorization policies"`
+	Lifespans             IdentityProvidersOpenIDConnectLifespans `koanf:"lifespans" json:"lifespans" jsonschema:"title=Lifespans" jsonschema_description:"Token lifespans configuration"`
+
 	Discovery OpenIDConnectDiscovery `json:"-"` // MetaData value. Not configurable by users.
+}
+
+// OpenIDConnectPolicy configuration for OpenID Connect 1.0 authorization policies.
+type OpenIDConnectPolicy struct {
+	DefaultPolicy string `koanf:"default_policy" json:"default_policy" jsonschema:"enum=one_factor,enum=two_factor,enum=deny,title=Default Policy" jsonschema_description:"The default policy action for this policy"`
+
+	Rules []OpenIDConnectPolicyRule `koanf:"rules" json:"rules" jsonschema:"title=Rules" jsonschema_description:"The list of rules for this policy"`
+}
+
+// OpenIDConnectPolicyRule configuration for OpenID Connect 1.0 authorization policies rules.
+type OpenIDConnectPolicyRule struct {
+	Policy   string                    `koanf:"policy" json:"policy" jsonschema:"enum=one_factor,enum=two_factor,enum=deny,title=Policy" jsonschema_description:"The policy to apply to this rule"`
+	Subjects AccessControlRuleSubjects `koanf:"subject" json:"subject" jsonschema:"title=Subject" jsonschema_description:"Allows tuning the token lifespans for the authorize code grant"`
 }
 
 // OpenIDConnectDiscovery is information discovered during validation reused for the discovery handlers.
 type OpenIDConnectDiscovery struct {
+	AuthorizationPolicies       []string
+	Lifespans                   []string
 	DefaultKeyIDs               map[string]string
 	DefaultKeyID                string
 	ResponseObjectSigningKeyIDs []string
 	ResponseObjectSigningAlgs   []string
 	RequestObjectSigningAlgs    []string
+}
+
+type IdentityProvidersOpenIDConnectLifespans struct {
+	IdentityProvidersOpenIDConnectLifespanToken `koanf:",squash"`
+	Custom                                      map[string]IdentityProvidersOpenIDConnectLifespan `koanf:"custom" json:"custom" jsonschema:"title=Custom Lifespans" jsonschema_description:"Allows creating custom lifespans to be used by individual clients"`
+}
+
+// IdentityProvidersOpenIDConnectLifespan allows tuning the lifespans for OpenID Connect 1.0 issued tokens.
+type IdentityProvidersOpenIDConnectLifespan struct {
+	IdentityProvidersOpenIDConnectLifespanToken `koanf:",squash"`
+
+	Grants IdentityProvidersOpenIDConnectLifespanGrants `koanf:"grants" json:"grants" jsonschema:"title=Grant Types" jsonschema_description:"Allows tuning the token lifespans for individual grant types"`
+}
+
+// IdentityProvidersOpenIDConnectLifespanGrants allows tuning the lifespans for each grant type.
+type IdentityProvidersOpenIDConnectLifespanGrants struct {
+	AuthorizeCode     IdentityProvidersOpenIDConnectLifespanToken `koanf:"authorize_code" json:"authorize_code" jsonschema:"title=Authorize Code Grant" jsonschema_description:"Allows tuning the token lifespans for the authorize code grant"`
+	Implicit          IdentityProvidersOpenIDConnectLifespanToken `koanf:"implicit" json:"implicit" jsonschema:"title=Implicit Grant" jsonschema_description:"Allows tuning the token lifespans for the implicit flow and grant"`
+	ClientCredentials IdentityProvidersOpenIDConnectLifespanToken `koanf:"client_credentials" json:"client_credentials" jsonschema:"title=Client Credentials Grant" jsonschema_description:"Allows tuning the token lifespans for the client credentials grant"`
+	RefreshToken      IdentityProvidersOpenIDConnectLifespanToken `koanf:"refresh_token" json:"refresh_token" jsonschema:"title=Refresh Token Grant" jsonschema_description:"Allows tuning the token lifespans for the refresh token grant"`
+	JWTBearer         IdentityProvidersOpenIDConnectLifespanToken `koanf:"jwt_bearer" json:"jwt_bearer" jsonschema:"title=JWT Bearer Grant" jsonschema_description:"Allows tuning the token lifespans for the JWT bearer grant"`
+}
+
+// IdentityProvidersOpenIDConnectLifespanToken allows tuning the lifespans for each token type.
+type IdentityProvidersOpenIDConnectLifespanToken struct {
+	AccessToken   time.Duration `koanf:"access_token" json:"access_token" jsonschema:"default=60 minutes,title=Access Token Lifespan" jsonschema_description:"The duration an Access Token is valid for"`
+	AuthorizeCode time.Duration `koanf:"authorize_code" json:"authorize_code" jsonschema:"default=1 minute,title=Authorize Code Lifespan" jsonschema_description:"The duration an Authorization Code is valid for"`
+	IDToken       time.Duration `koanf:"id_token" json:"id_token" jsonschema:"default=60 minutes,title=ID Token Lifespan" jsonschema_description:"The duration an ID Token is valid for"`
+	RefreshToken  time.Duration `koanf:"refresh_token" json:"refresh_token" jsonschema:"default=90 minutes,title=Refresh Token Lifespan" jsonschema_description:"The duration a Refresh Token is valid for"`
 }
 
 // IdentityProvidersOpenIDConnectPAR represents an OpenID Connect 1.0 PAR config.
@@ -77,7 +119,8 @@ type IdentityProvidersOpenIDConnectClient struct {
 	ResponseTypes []string `koanf:"response_types" json:"response_types" jsonschema:"enum=code,enum=id_token token,enum=id_token,enum=token,enum=code token,enum=code id_token,enum=code id_token token,uniqueItems,title=Response Types" jsonschema_description:"The Response Types the client is authorized to request"`
 	ResponseModes []string `koanf:"response_modes" json:"response_modes" jsonschema:"enum=form_post,enum=query,enum=fragment,uniqueItems,title=Response Modes" jsonschema_description:"The Response Modes this client is authorized request"`
 
-	Policy string `koanf:"authorization_policy" json:"authorization_policy" jsonschema:"title=Authorization Policy" jsonschema_description:"The Authorization Policy to apply to this client"`
+	AuthorizationPolicy string `koanf:"authorization_policy" json:"authorization_policy" jsonschema:"title=Authorization Policy" jsonschema_description:"The Authorization Policy to apply to this client"`
+	Lifespan            string `koanf:"lifespan" json:"lifespan" jsonschema:"title=Lifespan Name" jsonschema_description:"The name of the custom lifespan to utilize for this client"`
 
 	ConsentMode                  string         `koanf:"consent_mode" json:"consent_mode" jsonschema:"enum=auto,enum=explicit,enum=implicit,enum=pre-configured,title=Consent Mode" jsonschema_description:"The Consent Mode used for this client"`
 	ConsentPreConfiguredDuration *time.Duration `koanf:"pre_configured_consent_duration" json:"pre_configured_consent_duration" jsonschema:"default=7 days,title=Pre-Configured Consent Duration" jsonschema_description:"The Pre-Configured Consent Duration when using Consent Mode pre-configured for this client"`
@@ -109,18 +152,26 @@ type IdentityProvidersOpenIDConnectClientPublicKeys struct {
 
 // DefaultOpenIDConnectConfiguration contains defaults for OIDC.
 var DefaultOpenIDConnectConfiguration = IdentityProvidersOpenIDConnect{
-	AccessTokenLifespan:   time.Hour,
-	AuthorizeCodeLifespan: time.Minute,
-	IDTokenLifespan:       time.Hour,
-	RefreshTokenLifespan:  time.Minute * 90,
-	EnforcePKCE:           "public_clients_only",
+	Lifespans: IdentityProvidersOpenIDConnectLifespans{
+		IdentityProvidersOpenIDConnectLifespanToken: IdentityProvidersOpenIDConnectLifespanToken{
+			AccessToken:   time.Hour,
+			AuthorizeCode: time.Minute,
+			IDToken:       time.Hour,
+			RefreshToken:  time.Minute * 90,
+		},
+	},
+	EnforcePKCE: "public_clients_only",
+}
+
+var DefaultOpenIDConnectPolicyConfiguration = OpenIDConnectPolicy{
+	DefaultPolicy: policyTwoFactor,
 }
 
 var defaultOIDCClientConsentPreConfiguredDuration = time.Hour * 24 * 7
 
 // DefaultOpenIDConnectClientConfiguration contains defaults for OIDC Clients.
 var DefaultOpenIDConnectClientConfiguration = IdentityProvidersOpenIDConnectClient{
-	Policy:                       "two_factor",
+	AuthorizationPolicy:          policyTwoFactor,
 	Scopes:                       []string{"openid", "groups", "profile", "email"},
 	ResponseTypes:                []string{"code"},
 	ResponseModes:                []string{"form_post"},

@@ -25,10 +25,10 @@ func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing
 		HMACSecret:               badhmac,
 		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
-				ID:               myclient,
-				Secret:           tOpenIDConnectPlainTextClientSecret,
-				SectorIdentifier: url.URL{Host: examplecomsid},
-				Policy:           onefactor,
+				ID:                  myclient,
+				Secret:              tOpenIDConnectPlainTextClientSecret,
+				SectorIdentifier:    url.URL{Host: examplecomsid},
+				AuthorizationPolicy: onefactor,
 				RedirectURIs: []string{
 					examplecom,
 				},
@@ -56,18 +56,18 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *tes
 		HMACSecret:             badhmac,
 		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
-				ID:     "a-client",
-				Secret: tOpenIDConnectPlainTextClientSecret,
-				Policy: onefactor,
+				ID:                  "a-client",
+				Secret:              tOpenIDConnectPlainTextClientSecret,
+				AuthorizationPolicy: onefactor,
 				RedirectURIs: []string{
 					"https://google.com",
 				},
 			},
 			{
-				ID:          "b-client",
-				Description: "Normal Description",
-				Secret:      tOpenIDConnectPlainTextClientSecret,
-				Policy:      twofactor,
+				ID:                  "b-client",
+				Description:         "Normal Description",
+				Secret:              tOpenIDConnectPlainTextClientSecret,
+				AuthorizationPolicy: twofactor,
 				RedirectURIs: []string{
 					"https://google.com",
 				},

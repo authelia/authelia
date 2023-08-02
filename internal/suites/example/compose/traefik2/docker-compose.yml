@@ -2,7 +2,7 @@
 version: '3'
 services:
   traefik:
-    image: traefik:v2.10.1
+    image: traefik:v2.10.4
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
     labels:
@@ -29,9 +29,6 @@ services:
     networks:
       authelianet:
         aliases:
-          - public.example.com
-          - secure.example.com
           - login.example.com
-        # Set the IP to be able to query on port 8080
         ipv4_address: 192.168.240.100
 ...

@@ -23,49 +23,17 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-func TestOpenIDConnectStore_GetClientPolicy(t *testing.T) {
-	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
-		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       keyRSA2048,
-		Clients: []schema.IdentityProvidersOpenIDConnectClient{
-			{
-				ID:          myclient,
-				Description: myclientdesc,
-				Policy:      onefactor,
-				Scopes:      []string{oidc.ScopeOpenID, oidc.ScopeProfile},
-				Secret:      tOpenIDConnectPlainTextClientSecret,
-			},
-			{
-				ID:          "myotherclient",
-				Description: myclientdesc,
-				Policy:      twofactor,
-				Scopes:      []string{oidc.ScopeOpenID, oidc.ScopeProfile},
-				Secret:      tOpenIDConnectPlainTextClientSecret,
-			},
-		},
-	}, nil)
-
-	policyOne := s.GetClientPolicy(myclient)
-	assert.Equal(t, authorization.OneFactor, policyOne)
-
-	policyTwo := s.GetClientPolicy("myotherclient")
-	assert.Equal(t, authorization.TwoFactor, policyTwo)
-
-	policyInvalid := s.GetClientPolicy("invalidclient")
-	assert.Equal(t, authorization.TwoFactor, policyInvalid)
-}
-
 func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
 		IssuerPrivateKey:       keyRSA2048,
 		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
-				ID:          myclient,
-				Description: myclientdesc,
-				Policy:      onefactor,
-				Scopes:      []string{oidc.ScopeOpenID, oidc.ScopeProfile},
-				Secret:      tOpenIDConnectPlainTextClientSecret,
+				ID:                  myclient,
+				Description:         myclientdesc,
+				AuthorizationPolicy: onefactor,
+				Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				Secret:              tOpenIDConnectPlainTextClientSecret,
 			},
 		},
 	}, nil)
@@ -81,14 +49,16 @@ func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 }
 
 func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
+	ctx := context.Background()
+
 	id := myclient
 
 	c1 := schema.IdentityProvidersOpenIDConnectClient{
-		ID:          id,
-		Description: myclientdesc,
-		Policy:      onefactor,
-		Scopes:      []string{oidc.ScopeOpenID, oidc.ScopeProfile},
-		Secret:      tOpenIDConnectPlainTextClientSecret,
+		ID:                  id,
+		Description:         myclientdesc,
+		AuthorizationPolicy: onefactor,
+		Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+		Secret:              tOpenIDConnectPlainTextClientSecret,
 	}
 
 	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
@@ -97,7 +67,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 		Clients:                []schema.IdentityProvidersOpenIDConnectClient{c1},
 	}, nil)
 
-	client, err := s.GetFullClient(id)
+	client, err := s.GetFullClient(ctx, id)
 	require.NoError(t, err)
 	require.NotNil(t, client)
 	assert.Equal(t, id, client.GetID())
@@ -106,17 +76,19 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 	assert.Equal(t, fosite.Arguments([]string{oidc.GrantTypeAuthorizationCode}), client.GetGrantTypes())
 	assert.Equal(t, fosite.Arguments([]string{oidc.ResponseTypeAuthorizationCodeFlow}), client.GetResponseTypes())
 	assert.Equal(t, []string(nil), client.GetRedirectURIs())
-	assert.Equal(t, authorization.OneFactor, client.GetAuthorizationPolicy())
+	assert.Equal(t, authorization.OneFactor, client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{}))
 	assert.Equal(t, "$plaintext$client-secret", client.GetSecret().Encode())
 }
 
 func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
+	ctx := context.Background()
+
 	c1 := schema.IdentityProvidersOpenIDConnectClient{
-		ID:          myclient,
-		Description: myclientdesc,
-		Policy:      onefactor,
-		Scopes:      []string{oidc.ScopeOpenID, oidc.ScopeProfile},
-		Secret:      tOpenIDConnectPlainTextClientSecret,
+		ID:                  myclient,
+		Description:         myclientdesc,
+		AuthorizationPolicy: onefactor,
+		Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+		Secret:              tOpenIDConnectPlainTextClientSecret,
 	}
 
 	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
@@ -125,28 +97,30 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 		Clients:                []schema.IdentityProvidersOpenIDConnectClient{c1},
 	}, nil)
 
-	client, err := s.GetFullClient("another-client")
+	client, err := s.GetFullClient(ctx, "another-client")
 	assert.Nil(t, client)
 	assert.EqualError(t, err, "invalid_client")
 }
 
 func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
+	ctx := context.Background()
+
 	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
 		IssuerPrivateKey:       keyRSA2048,
 		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
-				ID:          myclient,
-				Description: myclientdesc,
-				Policy:      onefactor,
-				Scopes:      []string{oidc.ScopeOpenID, oidc.ScopeProfile},
-				Secret:      tOpenIDConnectPlainTextClientSecret,
+				ID:                  myclient,
+				Description:         myclientdesc,
+				AuthorizationPolicy: onefactor,
+				Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				Secret:              tOpenIDConnectPlainTextClientSecret,
 			},
 		},
 	}, nil)
 
-	validClient := s.IsValidClientID(myclient)
-	invalidClient := s.IsValidClientID("myinvalidclient")
+	validClient := s.IsValidClientID(ctx, myclient)
+	invalidClient := s.IsValidClientID(ctx, "myinvalidclient")
 
 	assert.True(t, validClient)
 	assert.False(t, invalidClient)
@@ -172,9 +146,9 @@ func (s *StoreSuite) SetupTest() {
 	s.store = oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
 		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
-				ID:     "hs256",
-				Secret: tOpenIDConnectPBKDF2ClientSecret,
-				Policy: authorization.OneFactor.String(),
+				ID:                  "hs256",
+				Secret:              tOpenIDConnectPBKDF2ClientSecret,
+				AuthorizationPolicy: authorization.OneFactor.String(),
 				RedirectURIs: []string{
 					"https://client.example.com",
 				},
