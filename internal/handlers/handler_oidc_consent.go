@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -81,6 +82,14 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 	if consent.ClientID != bodyJSON.ClientID {
 		ctx.Logger.Errorf("User '%s' consented to scopes of another client (%s) than expected (%s). Beware this can be a sign of attack",
 			userSession.Username, bodyJSON.ClientID, consent.ClientID)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
+		ctx.Logger.Errorf("User '%s' can't consent to authorization request for client with id '%s' as they are not sufficiently authenticated",
+			userSession.Username, consent.ClientID)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
@@ -170,7 +179,7 @@ func oidcConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, consentID uui
 		return userSession, nil, nil, true
 	}
 
-	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(consent.ClientID); err != nil {
+	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(ctx, consent.ClientID); err != nil {
 		ctx.Logger.Errorf("Unable to find related client configuration with name '%s': %v", consent.ClientID, err)
 		ctx.ReplyForbidden()
 
@@ -206,7 +215,7 @@ func oidcConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, consentID uui
 		}
 	}
 
-	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
+	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
 		ctx.Logger.Errorf("Unable to perform OpenID Connect Consent for user '%s' and client id '%s': the user is not sufficiently authenticated", userSession.Username, consent.ClientID)
 		ctx.ReplyForbidden()
 
