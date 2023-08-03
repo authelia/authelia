@@ -32,8 +32,8 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/ory/fosite v0.44.0
-	github.com/ory/herodot v0.10.2
-	github.com/ory/x v0.0.573
+	github.com/ory/herodot v0.10.3-0.20230626083119-d7e5192f0d88
+	github.com/ory/x v0.0.575
 	github.com/otiai10/copy v1.12.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.4.0
