@@ -367,7 +367,8 @@ proxy_set_header X-Forwarded-URI $request_uri;
 proxy_set_header X-Forwarded-Ssl on;
 proxy_set_header X-Forwarded-For $remote_addr;
 proxy_set_header X-Real-IP $remote_addr;
-proxy_set_header Connection "";
+proxy_set_header Upgrade $http_upgrade;
+proxy_set_header Connection $connection_upgrade;
 
 ## Basic Proxy Configuration
 client_body_buffer_size 128k;
