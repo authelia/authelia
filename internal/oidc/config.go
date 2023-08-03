@@ -14,7 +14,6 @@ import (
 	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/handler/par"
-	"github.com/ory/fosite/handler/pkce"
 	"github.com/ory/fosite/i18n"
 	"github.com/ory/fosite/token/hmac"
 	"github.com/ory/fosite/token/jwt"
@@ -243,7 +242,7 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 			RefreshTokenStrategy:   c.Strategy.Core,
 			TokenRevocationStorage: store,
 		},
-		&pkce.Handler{
+		&PKCEHandler{
 			AuthorizeCodeStrategy: c.Strategy.Core,
 			Storage:               store,
 			Config:                c,
