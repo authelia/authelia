@@ -146,11 +146,13 @@ const (
 )
 
 const (
+	FormParameterAuthorizationCode   = "code"
 	FormParameterClientID            = "client_id"
 	FormParameterClientSecret        = "client_secret"
 	FormParameterRequestURI          = "request_uri"
 	FormParameterResponseMode        = "response_mode"
 	FormParameterCodeChallenge       = "code_challenge"
+	FormParameterCodeVerifier        = "code_verifier"
 	FormParameterCodeChallengeMethod = "code_challenge_method"
 	FormParameterClientAssertionType = "client_assertion_type"
 	FormParameterClientAssertion     = "client_assertion"

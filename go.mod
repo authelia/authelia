@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
-	github.com/deckarep/golang-set/v2 v2.3.0
+	github.com/deckarep/golang-set/v2 v2.3.1
 	github.com/duosecurity/duo_api_golang v0.0.0-20230418202038-096d3306c029
 	github.com/fasthttp/router v1.4.20
 	github.com/fasthttp/session/v2 v2.5.1
@@ -32,8 +32,8 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/ory/fosite v0.44.0
-	github.com/ory/herodot v0.10.2
-	github.com/ory/x v0.0.573
+	github.com/ory/herodot v0.10.3-0.20230803153933-8e3bd4b8fc78
+	github.com/ory/x v0.0.576
 	github.com/otiai10/copy v1.12.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.4.0

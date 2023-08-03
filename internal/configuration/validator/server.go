@@ -105,12 +105,12 @@ func ValidateServerAddress(config *schema.Configuration, validator *schema.Struc
 			switch {
 			case strings.Contains(subpath, "/"):
 				validator.Push(fmt.Errorf(errFmtServerPathNoForwardSlashes))
-			case !utils.IsStringAlphaNumeric(config.Server.Path): //nolint:staticcheck
+			case !utils.IsStringAlphaNumeric(subpath):
 				validator.Push(fmt.Errorf(errFmtServerPathAlphaNum))
 			case subpath == "":
 				subpath = schema.DefaultServerConfiguration.Address.Path()
 			default:
-				subpath = path.Clean("/" + config.Server.Path) //nolint:staticcheck
+				subpath = path.Clean("/" + subpath)
 			}
 
 			config.Server.Address = &schema.AddressTCP{Address: schema.NewAddressFromNetworkValues(schema.AddressSchemeTCP, host, port)}
