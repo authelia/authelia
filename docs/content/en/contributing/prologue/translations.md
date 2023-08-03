@@ -17,7 +17,7 @@ aliases:
 The way the translation process is facilitated is via [Crowdin]. We encourage members of the community to
 [join the Authelia Crowdin project](https://translate.authelia.com) and help translate their preferred language.
 
-## New Langauges
+## New Languages
 
 If the language you wish to translate is not on [Crowdin] then you have a few options:
 
