@@ -14,7 +14,7 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0
   version: 1.0.0
 servers:
-  - url: "{{ .BaseURL }}"
+  - url: '{{ .BaseURL }}'
     description: Authelia API
 tags:
   - name: State
@@ -1283,7 +1283,7 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/openid.spec.IntrospectionRequest'
+              $ref: '#/components/schemas/openid.spec.AccessServerTokenAssertionRequest'
       responses:
         "200":
           description: OK
@@ -1308,14 +1308,14 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/openid.spec.IntrospectionRequest'
+              $ref: '#/components/schemas/openid.spec.AccessServerTokenAssertionRequest'
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/openid.implementation.Claims.Object'
+                $ref: '#/components/schemas/openid.spec.IntrospectionResponse'
         "401":
           description: Forbidden
         "403":
@@ -1443,22 +1443,22 @@ components:
       schema:
         type: string
         enum:
-          - "GET"
-          - "HEAD"
-          - "POST"
-          - "PUT"
-          - "PATCH"
-          - "DELETE"
-          - "TRACE"
-          - "CONNECT"
-          - "OPTIONS"
-          - "COPY"
-          - "LOCK"
-          - "MKCOL"
-          - "MOVE"
-          - "PROPFIND"
-          - "PROPPATCH"
-          - "UNLOCK"
+          - 'GET'
+          - 'HEAD'
+          - 'POST'
+          - 'PUT'
+          - 'PATCH'
+          - 'DELETE'
+          - 'TRACE'
+          - 'CONNECT'
+          - 'OPTIONS'
+          - 'COPY'
+          - 'LOCK'
+          - 'MKCOL'
+          - 'MOVE'
+          - 'PROPFIND'
+          - 'PROPPATCH'
+          - 'UNLOCK'
     originalURLParam:
       name: X-Original-URL
       in: header
@@ -1478,22 +1478,22 @@ components:
       schema:
         type: string
         enum:
-          - "GET"
-          - "HEAD"
-          - "POST"
-          - "PUT"
-          - "PATCH"
-          - "DELETE"
-          - "TRACE"
-          - "CONNECT"
-          - "OPTIONS"
-          - "COPY"
-          - "LOCK"
-          - "MKCOL"
-          - "MOVE"
-          - "PROPFIND"
-          - "PROPPATCH"
-          - "UNLOCK"
+          - 'GET'
+          - 'HEAD'
+          - 'POST'
+          - 'PUT'
+          - 'PATCH'
+          - 'DELETE'
+          - 'TRACE'
+          - 'CONNECT'
+          - 'OPTIONS'
+          - 'COPY'
+          - 'LOCK'
+          - 'MKCOL'
+          - 'MOVE'
+          - 'PROPFIND'
+          - 'PROPPATCH'
+          - 'UNLOCK'
     forwardedProtoParam:
       name: X-Forwarded-Proto
       in: header
@@ -1587,9 +1587,9 @@ components:
               description: List of available 2FA methods. If no methods exist 2FA is disabled.
               items:
                 enum:
-                  - "totp"
-                  - "webauthn"
-                  - "mobile_push"
+                  - 'totp'
+                  - 'webauthn'
+                  - 'mobile_push'
               example: [totp, webauthn, mobile_push]
     handlers.configuration.PasswordPolicyConfigurationBody:
       type: object
@@ -1604,9 +1604,9 @@ components:
               type: string
               description: The password policy mode.
               enum:
-                - "disabled"
-                - "standard"
-                - "zxcvbn"
+                - 'disabled'
+                - 'standard'
+                - 'zxcvbn'
             min_length:
               type: integer
               description: The minimum password length when using the standard mode.
@@ -1821,9 +1821,9 @@ components:
             method:
               type: string
               enum:
-                - "totp"
-                - "webauthn"
-                - "mobile_push"
+                - 'totp'
+                - 'webauthn'
+                - 'mobile_push'
               example: totp
             has_webauthn:
               type: boolean
@@ -1842,9 +1842,9 @@ components:
         method:
           type: string
           enum:
-            - "totp"
-            - "webauthn"
-            - "mobile_push"
+            - 'totp'
+            - 'webauthn'
+            - 'mobile_push'
           example: totp
     {{- if .TOTP }}
     handlers.UserInfoTOTP:
@@ -1988,8 +1988,8 @@ components:
                 - $ref: '#/components/schemas/webauthn.CredentialRPEntity'
                 - type: object
                   required:
-                    - "challenge"
-                    - "pubKeyCredParams"
+                    - 'challenge'
+                    - 'pubKeyCredParams'
                   properties:
                     challenge:
                       type: string
@@ -1999,8 +1999,8 @@ components:
                       items:
                         type: object
                         required:
-                          - "alg"
-                          - "type"
+                          - 'alg'
+                          - 'type'
                         properties:
                           alg:
                             type: integer
@@ -2008,7 +2008,7 @@ components:
                             type: string
                             example: public-key
                             enum:
-                              - "public-key"
+                              - 'public-key'
                     timeout:
                       type: integer
                       example: 60000
@@ -2037,7 +2037,7 @@ components:
                 - $ref: '#/components/schemas/webauthn.UserVerification'
                 - type: object
                   required:
-                    - "challenge"
+                    - 'challenge'
                   properties:
                     challenge:
                       type: string
@@ -2066,13 +2066,13 @@ components:
           items:
             type: string
             example:
-              - "usb"
-              - "nfc"
+              - 'usb'
+              - 'nfc'
             enum:
-              - "usb"
-              - "nfc"
-              - "ble"
-              - "internal"
+              - 'usb'
+              - 'nfc'
+              - 'ble'
+              - 'internal'
     webauthn.UserVerification:
       type: object
       properties:
@@ -2080,9 +2080,9 @@ components:
           type: string
           example: preferred
           enum:
-            - "required"
-            - "preferred"
-            - "discouraged"
+            - 'required'
+            - 'preferred'
+            - 'discouraged'
     webauthn.AttestationType:
       type: object
       properties:
@@ -2090,9 +2090,9 @@ components:
           type: string
           example: direct
           enum:
-            - "none"
-            - "indirect"
-            - "direct"
+            - 'none'
+            - 'indirect'
+            - 'direct'
     webauthn.AuthenticatorSelectionCriteria:
       type: object
       properties:
@@ -2103,15 +2103,15 @@ components:
               type: string
               example: cross-platform
               enum:
-                - "platform"
-                - "cross-platform"
+                - 'platform'
+                - 'cross-platform'
             residentKey:
               type: string
               example: discouraged
               enum:
-                - "discouraged"
-                - "preferred"
-                - "required"
+                - 'discouraged'
+                - 'preferred'
+                - 'required'
             requireResidentKey:
               type: boolean
     webauthn.CredentialDescriptor:
@@ -2119,8 +2119,8 @@ components:
         - $ref: '#/components/schemas/webauthn.Transports'
         - type: object
           required:
-            - "id"
-            - "type"
+            - 'id'
+            - 'type'
           properties:
             id:
               type: string
@@ -2129,12 +2129,12 @@ components:
               type: string
               example: public-key
               enum:
-                - "public-key"
+                - 'public-key'
     webauthn.CredentialEntity:
       type: object
       required:
-        - "id"
-        - "name"
+        - 'id'
+        - 'name'
       properties:
         id:
           type: string
@@ -2145,7 +2145,7 @@ components:
     webauthn.CredentialRPEntity:
       type: object
       required:
-        - "rp"
+        - 'rp'
       properties:
         rp:
           allOf:
@@ -2153,14 +2153,14 @@ components:
     webauthn.CredentialUserEntity:
       type: object
       required:
-        - "user"
+        - 'user'
       properties:
         user:
           allOf:
             - $ref: '#/components/schemas/webauthn.CredentialEntity'
             - type: object
               required:
-                - "displayName"
+                - 'displayName'
               properties:
                 displayName:
                   type: string
@@ -2223,11 +2223,11 @@ components:
               items:
                 type: string
                 enum:
-                  - "openid"
-                  - "offline_access"
-                  - "groups"
-                  - "email"
-                  - "profile"
+                  - 'openid'
+                  - 'offline_access'
+                  - 'groups'
+                  - 'email'
+                  - 'profile'
             audience:
               description: The list of the requested audiences for the user to provide consent for.
               type: array
@@ -2285,24 +2285,24 @@ components:
             values for. Note that for privacy or other reasons, this might not be an exhaustive list.
           type: array
           example:
-            - "amr"
-            - "aud"
-            - "azp"
-            - "client_id"
-            - "exp"
-            - "iat"
-            - "iss"
-            - "jti"
-            - "rat"
-            - "sub"
-            - "auth_time"
-            - "nonce"
-            - "email"
-            - "email_verified"
-            - "alt_emails"
-            - "groups"
-            - "preferred_username"
-            - "name"
+            - 'amr'
+            - 'aud'
+            - 'azp'
+            - 'client_id'
+            - 'exp'
+            - 'iat'
+            - 'iss'
+            - 'jti'
+            - 'rat'
+            - 'sub'
+            - 'auth_time'
+            - 'nonce'
+            - 'email'
+            - 'email_verified'
+            - 'alt_emails'
+            - 'groups'
+            - 'preferred_username'
+            - 'name'
           items:
             $ref: '#/components/schemas/openid.implementation.Claims.Array'
         code_challenge_methods_supported:
@@ -2460,11 +2460,11 @@ components:
             See Also: OAuth 2.0: https://datatracker.ietf.org/doc/html/rfc6749 OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
           type: array
           example:
-            - "openid"
-            - "offline_access"
-            - "profile"
-            - "email"
-            - "groups"
+            - 'openid'
+            - 'offline_access'
+            - 'profile'
+            - 'email'
+            - 'groups'
           items:
             $ref: '#/components/schemas/openid.implementation.Scopes.Object'
         service_documentation:
@@ -2521,18 +2521,18 @@ components:
     openid.spec.Metadata.OpenIDConfiguration:
       type: object
       required:
-        - "issuer"
-        - "authorization_endpoint"
-        - "subject_types_supported"
-        - "response_types_supported"
-        - "require_pushed_authorization_requests"
-        - "request_uri_parameter_supported"
-        - "require_request_uri_registration"
-        - "claims_parameter_supported"
-        - "frontchannel_logout_supported"
-        - "frontchannel_logout_session_supported"
-        - "backchannel_logout_supported"
-        - "backchannel_logout_session_supported"
+        - 'issuer'
+        - 'authorization_endpoint'
+        - 'subject_types_supported'
+        - 'response_types_supported'
+        - 'require_pushed_authorization_requests'
+        - 'request_uri_parameter_supported'
+        - 'require_request_uri_registration'
+        - 'claims_parameter_supported'
+        - 'frontchannel_logout_supported'
+        - 'frontchannel_logout_session_supported'
+        - 'backchannel_logout_supported'
+        - 'backchannel_logout_session_supported'
       properties:
         acr_values_supported:
           description:
@@ -2590,24 +2590,24 @@ components:
             values for. Note that for privacy or other reasons, this might not be an exhaustive list.
           type: array
           example:
-            - "amr"
-            - "aud"
-            - "azp"
-            - "client_id"
-            - "exp"
-            - "iat"
-            - "iss"
-            - "jti"
-            - "rat"
-            - "sub"
-            - "auth_time"
-            - "nonce"
-            - "email"
-            - "email_verified"
-            - "alt_emails"
-            - "groups"
-            - "preferred_username"
-            - "name"
+            - 'amr'
+            - 'aud'
+            - 'azp'
+            - 'client_id'
+            - 'exp'
+            - 'iat'
+            - 'iss'
+            - 'jti'
+            - 'rat'
+            - 'sub'
+            - 'auth_time'
+            - 'nonce'
+            - 'email'
+            - 'email_verified'
+            - 'alt_emails'
+            - 'groups'
+            - 'preferred_username'
+            - 'name'
           items:
             $ref: '#/components/schemas/openid.implementation.Claims.Array'
         code_challenge_methods_supported:
@@ -2860,11 +2860,11 @@ components:
             https://openid.net/specs/openid-connect-core-1_0.html
           type: array
           example:
-            - "openid"
-            - "offline_access"
-            - "profile"
-            - "email"
-            - "groups"
+            - 'openid'
+            - 'offline_access'
+            - 'profile'
+            - 'email'
+            - 'groups'
           items:
             $ref: '#/components/schemas/openid.implementation.Scopes.Object'
         service_documentation:
@@ -2954,29 +2954,99 @@ components:
           example: ["none", "RS256"]
           items:
             $ref: '#/components/schemas/jose.spec.JWS.None'
+    openid.spec.IntrospectionResponse:
+      type: object
+      required:
+        - 'active'
+      properties:
+        active:
+          type: boolean
+          description: >
+            REQUIRED. Boolean indicator of whether or not the presented token is currently active. The specifics of a
+            token's "active" state will vary depending on the implementation of the authorization server and the
+            information it keeps about its tokens, but a "true" value return for the "active" property will generally
+            indicate that a given token has been issued by this authorization server, has not been revoked by the
+            resource owner, and is within its given time window of validity (e.g., after its issuance time and before
+            its expiration time).  See Section 4 for information on implementation of such checks.
+        scope:
+          type: string
+          description: >
+            OPTIONAL. A JSON string containing a space-separated list of scopes associated with this token, in the
+            format described in Section 3.3 of OAuth 2.0 [RFC6749].
+        client_id:
+          type: string
+          description: 'OPTIONAL. Client identifier for the OAuth 2.0 client that requested this token.'
+        username:
+          type: string
+          description: 'OPTIONAL. Human-readable identifier for the resource owner who authorized this token.'
+        token_type:
+          type: string
+          enum:
+            - 'bearer'
+          example: 'bearer'
+          description: 'OPTIONAL. Type of the token as defined in Section 5.1 of OAuth 2.0 [RFC6749].'
+        exp:
+          type: integer
+          description: >
+            OPTIONAL. Integer timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when
+            this token will expire, as defined in JWT [RFC7519].
+        iat:
+          type: integer
+          description: >
+            OPTIONAL. Integer timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when
+            this token was originally issued, as defined in JWT [RFC7519].
+        nbf:
+          type: integer
+          description: >
+            OPTIONAL. Integer timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when
+            this token is not to be used before, as defined in JWT [RFC7519].
+        sub:
+          type: string
+          description: >
+            OPTIONAL. Subject of the token, as defined in JWT [RFC7519]. Usually a machine-readable identifier of the
+            resource owner who authorized this token.
+        aud:
+          oneOf:
+            - type: array
+              items:
+                type: string
+                description: >
+                  OPTIONAL. Service-specific string identifier or list of string identifiers representing the intended
+                  audience for this token, as defined in JWT [RFC7519].
+            - type: string
+              description: >
+                OPTIONAL. Service-specific string identifier or list of string identifiers representing the intended
+                audience for this token, as defined in JWT [RFC7519].
+        iss:
+          type: string
+          description: 'OPTIONAL. String representing the issuer of this token, as defined in JWT [RFC7519].'
+        jti:
+          type: string
+          description: 'OPTIONAL. String identifier for the token, as defined in JWT [RFC7519].'
+
     openid.implementation.Claims.Array:
       type: array
       items:
         type: string
         enum:
-          - "amr"
-          - "aud"
-          - "azp"
-          - "client_id"
-          - "exp"
-          - "iat"
-          - "iss"
-          - "jti"
-          - "rat"
-          - "sub"
-          - "auth_time"
-          - "nonce"
-          - "email"
-          - "email_verified"
-          - "alt_emails"
-          - "groups"
-          - "preferred_username"
-          - "name"
+          - 'amr'
+          - 'aud'
+          - 'azp'
+          - 'client_id'
+          - 'exp'
+          - 'iat'
+          - 'iss'
+          - 'jti'
+          - 'rat'
+          - 'sub'
+          - 'auth_time'
+          - 'nonce'
+          - 'email'
+          - 'email_verified'
+          - 'alt_emails'
+          - 'groups'
+          - 'preferred_username'
+          - 'name'
     openid.implementation.Claims.Object:
       description: OpenID Connect 1.0 User Claims.
       type: object
@@ -2986,14 +3056,14 @@ components:
           items:
             type: string
             enum:
-              - "mfa"
-              - "mca"
-              - "user"
-              - "pin"
-              - "pwd"
-              - "otp"
-              - "hwk"
-              - "sms"
+              - 'mfa'
+              - 'mca'
+              - 'user'
+              - 'pin'
+              - 'pwd'
+              - 'otp'
+              - 'hwk'
+              - 'sms'
         aud:
           type: array
           items:
@@ -3047,25 +3117,25 @@ components:
         - $ref: '#/components/schemas/openid.spec.Scopes'
         - type: string
           enum:
-            - "groups"
+            - 'groups'
     openid.spec.Scopes:
       type: string
       enum:
-        - "openid"
-        - "offline_access"
-        - "profile"
-        - "email"
-        - "address"
-        - "phone"
-    openid.spec.IntrospectionRequest:
+        - 'openid'
+        - 'offline_access'
+        - 'profile'
+        - 'email'
+        - 'address'
+        - 'phone'
+    openid.spec.AccessServerTokenAssertionRequest:
       required:
-        - "token"
+        - 'token'
       type: object
       properties:
         token:
           description: >
             The string value of the token. For access tokens, this
-            is the "access_token" value returned from the token endpoint
+            is the 'access_token" value returned from the token endpoint
             defined in OAuth 2.0 [RFC6749], Section 5.1. For refresh tokens,
             this is the "refresh_token" value returned from the token endpoint
             as defined in OAuth 2.0 [RFC6749], Section 5.1. Other token types
@@ -3084,8 +3154,8 @@ components:
             field are defined in the "OAuth Token Type Hints" registry defined
             in OAuth Token Revocation [RFC7009].
           enum:
-            - "access_token"
-            - "refresh_token"
+            - 'access_token'
+            - 'refresh_token'
           example: 'access_token'
           type: string
     openid.spec.AccessRequest.ClientAuth:
@@ -3095,7 +3165,7 @@ components:
         - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth.JWT'
     openid.spec.AccessRequest.ClientAuth.Base:
       required:
-        - "client_id"
+        - 'client_id'
       type: object
       properties:
         client_id:
@@ -3106,7 +3176,7 @@ components:
           type: string
     openid.spec.AccessRequest.ClientAuth.Secret:
       required:
-        - "client_secret"
+        - 'client_secret'
       type: object
       properties:
         client_secret:
@@ -3120,15 +3190,15 @@ components:
         - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth.Base'
         - type: object
           required:
-            - "client_assertion"
-            - "client_assertion_type"
+            - 'client_assertion'
+            - 'client_assertion_type'
           properties:
             client_assertion:
               description: >
                 The value of the client_assertion_type parameter MUST be
                 "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
               enum:
-                - "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                - 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
               example: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
               type: string
             client_assertion_type:
@@ -3143,13 +3213,13 @@ components:
         - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
         - type: object
           required:
-            - "code"
-            - "grant_type"
+            - 'code'
+            - 'grant_type'
           properties:
             grant_type:
               description: Value MUST be set to "code".
               enum:
-                - "authorization_code"
+                - 'authorization_code'
               type: string
             code:
               description: The Authorization Code.
@@ -3168,13 +3238,13 @@ components:
         - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
         - type: object
           required:
-            - "grant_type"
-            - "device_code"
+            - 'grant_type'
+            - 'device_code'
           properties:
             grant_type:
               description: Value MUST be set to "urn:ietf:params:oauth:grant-type:device_code".
               enum:
-                - "urn:ietf:params:oauth:grant-type:device_code"
+                - 'urn:ietf:params:oauth:grant-type:device_code'
               type: string
             device_code:
               description: The Device Authorization Code.
@@ -3185,13 +3255,13 @@ components:
         - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
         - type: object
           required:
-            - "grant_type"
-            - "device_code"
+            - 'grant_type'
+            - 'device_code'
           properties:
             grant_type:
               description: Value MUST be set to "refresh_token".
               enum:
-                - "refresh_token"
+                - 'refresh_token'
               type: string
             refresh_token:
               description: The Refresh Token.
@@ -3209,9 +3279,9 @@ components:
     openid.spec.AccessResponse:
       type: object
       required:
-        - "access_token"
-        - "token_type"
-        - "expires_in"
+        - 'access_token'
+        - 'token_type'
+        - 'expires_in'
       properties:
         access_token:
           description: The access token issued by the authorization server.
@@ -3235,7 +3305,7 @@ components:
             MUST NOT use an access token if it does not understand the token
             type.
           enum:
-            - "bearer"
+            - 'bearer'
           example: 'bearer'
           type: string
         expires_in:
@@ -3259,10 +3329,10 @@ components:
     openid.spec.AuthorizeRequest:
       type: object
       required:
-        - "scope"
-        - "response_type"
-        - "client_id"
-        - "redirect_uri"
+        - 'scope'
+        - 'response_type'
+        - 'client_id'
+        - 'redirect_uri'
       properties:
         scope:
           description: The requested scope.
@@ -3309,13 +3379,13 @@ components:
             Not Supported: Space delimited, case sensitive list of ASCII string values that specifies whether
             the Authorization Server prompts the End-User for reauthentication and consent.
           enum:
-            - "none"
-            - "login"
-            - "consent"
-            - "select_account"
-            - "login consent"
-            - "login select_account"
-            - "consent select_account"
+            - 'none'
+            - 'login'
+            - 'consent'
+            - 'select_account'
+            - 'login consent'
+            - 'login select_account'
+            - 'consent select_account'
           example: 'consent'
           type: string
         max_age:
@@ -3395,40 +3465,40 @@ components:
         A Subject Identifier is a locally unique and never reassigned identifier within the Issuer for the
         End-User, which is intended to be consumed by the Client.
       enum:
-        - "public"
-        - "pairwise"
+        - 'public'
+        - 'pairwise'
       type: string
     openid.spec.ClientAuthMethod:
       description: The OAuth 2.0 / OpenID Connect 1.0 Client Authentication Method.
       enum:
-        - "client_secret_basic"
-        - "client_secret_post"
-        - "client_secret_jwt"
-        - "private_key_jwt"
-        - "none"
+        - 'client_secret_basic'
+        - 'client_secret_post'
+        - 'client_secret_jwt'
+        - 'private_key_jwt'
+        - 'none'
       type: string
     openid.spec.DisplayType:
       description: >
         ASCII string value that specifies how the Authorization Server displays the authentication and consent user
         interface pages to the End-User.
       enum:
-        - "page"
-        - "popup"
-        - "touch"
-        - "wap"
+        - 'page'
+        - 'popup'
+        - 'touch'
+        - 'wap'
       example: 'page'
       type: string
     openid.spec.ResponseType:
       description: The OAuth 2.0 / OpenID Connect 1.0 Response Type.
       enum:
-        - "code"
-        - "id_token"
-        - "token"
+        - 'code'
+        - 'id_token'
+        - 'token'
         - "code token"
         - "code id_token"
         - "token id_token"
         - "code id_token token"
-        - "none"
+        - 'none'
       example: 'code'
       type: string
     openid.spec.ResponseMode:
@@ -3437,42 +3507,42 @@ components:
         Endpoint. This use of this parameter is NOT RECOMMENDED when the Response Mode that would be requested is
         the default mode specified for the Response Type.
       enum:
-        - "query"
-        - "fragment"
-        - "form_post"
+        - 'query'
+        - 'fragment'
+        - 'form_post'
       example: 'query'
       type: string
     openid.spec.GrantType:
       description: The OAuth 2.0 / OpenID Connect 1.0 Grant Type.
       enum:
-        - "authorization_code"
-        - "refresh_token"
-        - "implicit"
-        - "password"
-        - "client_credentials"
+        - 'authorization_code'
+        - 'refresh_token'
+        - 'implicit'
+        - 'password'
+        - 'client_credentials'
         - "urn:ietf:params:oauth:grant-type:device_code"
       example: 'authorization_code'
       type: string
     openid.spec.CodeChallengeMethod:
       description: The RFC7636 Code Challenge Verifier Method.
       enum:
-        - "plain"
-        - "S256"
+        - 'plain'
+        - 'S256'
       example: 'S256'
       type: string
     openid.spec.ClaimType:
       description: The representation of claims.
       enum:
-        - "normal"
-        - "aggregated"
-        - "distributed"
+        - 'normal'
+        - 'aggregated'
+        - 'distributed'
       example: 'normal'
       type: string
     jose.spec.None:
       description: The JSON Web Signature Algorithm
       type: string
       enum:
-        - "none"
+        - 'none'
     jose.spec.JWS.None:
       description: The JSON Web Signature Algorithm
       oneOf:
@@ -3482,50 +3552,50 @@ components:
     jose.spec.jws:
       description: The JSON Web Signature Algorithm
       enum:
-        - "HS256"
-        - "HS384"
-        - "HS512"
-        - "RS256"
-        - "RS384"
-        - "RS512"
-        - "ES256"
-        - "ES384"
-        - "ES512"
-        - "PS256"
-        - "PS384"
-        - "PS512"
+        - 'HS256'
+        - 'HS384'
+        - 'HS512'
+        - 'RS256'
+        - 'RS384'
+        - 'RS512'
+        - 'ES256'
+        - 'ES384'
+        - 'ES512'
+        - 'PS256'
+        - 'PS384'
+        - 'PS512'
       type: string
     jose.spec.JWE.alg:
       description: The JSON Web Encryption Algorithm (CEK)
       enum:
-        - "RSA1_5"
-        - "RSA-OAEP"
-        - "RSA-OAEP-256"
-        - "A128KW"
-        - "A192KW"
-        - "A256KW"
-        - "dir"
-        - "ECDH-ES"
-        - "ECDH-ES+A128KW"
-        - "ECDH-ES+A192KW"
-        - "ECDH-ES+A256KW"
-        - "A128GCMKW"
-        - "A192GCMKW"
-        - "A256GCMKW"
-        - "PBES2-HS256+A128KW"
-        - "PBES2-HS384+A192KW"
-        - "PBES2-HS512+A256KW"
+        - 'RSA1_5'
+        - 'RSA-OAEP'
+        - 'RSA-OAEP-256'
+        - 'A128KW'
+        - 'A192KW'
+        - 'A256KW'
+        - 'dir'
+        - 'ECDH-ES'
+        - 'ECDH-ES+A128KW'
+        - 'ECDH-ES+A192KW'
+        - 'ECDH-ES+A256KW'
+        - 'A128GCMKW'
+        - 'A192GCMKW'
+        - 'A256GCMKW'
+        - 'PBES2-HS256+A128KW'
+        - 'PBES2-HS384+A192KW'
+        - 'PBES2-HS512+A256KW'
       type: string
     jose.spec.JWE.enc:
       description: The JSON Web Encryption Algorithm (Claims)
       enum:
-        - "A128CBC-HS256"
-        - "A192CBC-HS384"
-        - "A256CBC-HS512"
-        - "A128CBC"
-        - "A256CBC"
-        - "A128GCM"
-        - "A256GCM"
+        - 'A128CBC-HS256'
+        - 'A192CBC-HS384'
+        - 'A256CBC-HS512'
+        - 'A128CBC'
+        - 'A256CBC'
+        - 'A128GCM'
+        - 'A256GCM'
       type: string
     jose.spec.JWK.base:
       type: object
@@ -3537,8 +3607,8 @@ components:
             a public key is used for encrypting data or verifying the signature
             on data.
           enum:
-            - "sig"
-            - "enc"
+            - 'sig'
+            - 'enc'
           example: 'sig'
           type: string
         key_ops:
@@ -3547,18 +3617,18 @@ components:
             for which the key is intended to be used. The "key_ops" parameter is
             intended for use cases in which public, private, or symmetric keys
             may be present.
-          example: ["sign"]
+          example: ['sign']
           type: array
           items:
             enum:
-              - "sign"
-              - "verify"
-              - "encrypt"
-              - "decrypt"
-              - "wrapKey"
-              - "unwrapKey"
-              - "deriveKey"
-              - "deriveBits"
+              - 'sign'
+              - 'verify'
+              - 'encrypt'
+              - 'decrypt'
+              - 'wrapKey'
+              - 'unwrapKey'
+              - 'deriveKey'
+              - 'deriveBits'
             type: string
         kid:
           description: >
@@ -3631,9 +3701,9 @@ components:
       allOf:
         - $ref: '#/components/schemas/jose.spec.JWK.base'
         - required:
-            - "kty"
-            - "n"
-            - "e"
+            - 'kty'
+            - 'n'
+            - 'e'
           type: object
           properties:
             kty:
@@ -3643,18 +3713,18 @@ components:
               type: string
               example: 'RSA'
               enum:
-                - "RSA"
+                - 'RSA'
             alg:
               description: The JSON Web Signature Algorithm
               type: string
               example: 'RS256'
               enum:
-                - "RS256"
-                - "RS384"
-                - "RS512"
-                - "PS256"
-                - "PS384"
-                - "PS512"
+                - 'RS256'
+                - 'RS384'
+                - 'RS512'
+                - 'PS256'
+                - 'PS384'
+                - 'PS512'
             n:
               description: >
                 RSA Public Key: The "n" (modulus) parameter contains the modulus value for the RSA public key. It is
@@ -3674,7 +3744,7 @@ components:
         - $ref: '#/components/schemas/jose.spec.JWK.RSA'
         - type: object
           required:
-            - "d"
+            - 'd'
           properties:
             d:
               description: >
@@ -3718,9 +3788,9 @@ components:
               items:
                 type: object
                 required:
-                  - "r"
-                  - "d"
-                  - "t"
+                  - 'r'
+                  - 'd'
+                  - 't'
                 properties:
                   r:
                     description: >
@@ -3749,9 +3819,9 @@ components:
         - $ref: '#/components/schemas/jose.spec.JWK.base'
         - type: object
           required:
-            - "kty"
-            - "crv"
-            - "x"
+            - 'kty'
+            - 'crv'
+            - 'x'
           properties:
             kty:
               description: >
@@ -3760,15 +3830,15 @@ components:
               type: string
               example: 'EC'
               enum:
-                - "EC"
+                - 'EC'
             alg:
               description: The JSON Web Signature Algorithm
               type: string
               example: 'ES256'
               enum:
-                - "ES256"
-                - "ES384"
-                - "ES512"
+                - 'ES256'
+                - 'ES384'
+                - 'ES512'
             x:
               description: >
                 EC Public Key: The x coordinate parameter contains the x coordinate for the Elliptic Curve point.
@@ -3790,14 +3860,14 @@ components:
               type: string
               example: 'P-521'
               enum:
-                - "P-256"
-                - "P-384"
-                - "P-521"
-                - "Ed25519"
-                - "Ed448"
-                - "X25519"
-                - "X448"
-                - "secp256k1"
+                - 'P-256'
+                - 'P-384'
+                - 'P-521'
+                - 'Ed25519'
+                - 'Ed448'
+                - 'X25519'
+                - 'X448'
+                - 'secp256k1'
     jose.spec.JWK.EC.Private:
       description: Elliptic Curve Private Key in JSON Web Key format as defined by RFC7517 and RFC7518.
       allOf:
@@ -3805,7 +3875,7 @@ components:
         - $ref: '#/components/schemas/jose.spec.JWK.EC'
         - type: object
           required:
-            - "d"
+            - 'd'
           properties:
             d:
               description: >
@@ -3821,7 +3891,7 @@ components:
         - $ref: '#/components/schemas/jose.spec.JWK.base'
         - type: object
           required:
-            - "k"
+            - 'k'
           properties:
             kty:
               description: >
@@ -3830,7 +3900,7 @@ components:
               type: string
               example: 'oct'
               enum:
-                - "oct"
+                - 'oct'
             k:
               description: >
                 The "k" (key value) parameter contains the value of the symmetric (or
@@ -3859,11 +3929,11 @@ components:
   securitySchemes:
     authelia_auth:
       type: apiKey
-      name: "{{ .Session }}"
+      name: '{{ .Session }}'
       in: cookie
     {{- if .OpenIDConnect }}
     openid:
       type: openIdConnect
-      openIdConnectUrl: "{{ .BaseURL }}.well-known/openid-configuration"
+      openIdConnectUrl: '{{ .BaseURL }}.well-known/openid-configuration'
     {{- end }}
 ...
