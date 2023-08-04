@@ -29,6 +29,13 @@ Build OS: %s
 Build Arch: %s
 Build Date: %s
 Extra: %s
+
+Go: %s
+`
+	fmtAutheliaBuildGo = `
+    Version: %s
+    Module Path: %s
+    Executable Path: %s
 `
 
 	cmdAutheliaBuildInfoShort = "Show the build information of Authelia"
