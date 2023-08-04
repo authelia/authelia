@@ -22,19 +22,28 @@ import (
 // https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
 func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
 	var (
+		requestID uuid.UUID
 		tokenType fosite.TokenType
 		requester fosite.AccessRequester
 		client    oidc.Client
 		err       error
 	)
 
+	if requestID, err = uuid.NewRandom(); err != nil {
+		ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError)
+
+		return
+	}
+
 	oidcSession := oidc.NewSession()
+
+	ctx.Logger.Debugf("UserInfo Request with id '%s' is being processed", requestID)
 
 	if tokenType, requester, err = ctx.Providers.OpenIDConnect.IntrospectToken(
 		req.Context(), fosite.AccessTokenFromRequest(req), fosite.AccessToken, oidcSession); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
-		ctx.Logger.Errorf("UserInfo Request failed with error: %s", rfc.WithExposeDebug(true).GetDescription())
+		ctx.Logger.Errorf("UserInfo Request with id '%s' failed with error: %s", requestID, rfc.WithExposeDebug(true).GetDescription())
 
 		if rfc.StatusCode() == http.StatusUnauthorized {
 			rw.Header().Set(fasthttp.HeaderWWWAuthenticate, fmt.Sprintf(`Bearer error="%s",error_description="%s"`, rfc.ErrorField, rfc.GetDescription()))
@@ -48,7 +57,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	clientID := requester.GetClient().GetID()
 
 	if tokenType != fosite.AccessToken {
-		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed with error: bearer authorization failed as the token is not an access token", requester.GetID(), client.GetID())
+		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed with error: bearer authorization failed as the token is not an access token", requestID, client.GetID())
 
 		errStr := "Only access tokens are allowed in the authorization header."
 		rw.Header().Set(fasthttp.HeaderWWWAuthenticate, fmt.Sprintf(`Bearer error="invalid_token",error_description="%s"`, errStr))
@@ -60,7 +69,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(ctx, clientID); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
-		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed to retrieve client configuration with error: %s", requester.GetID(), client.GetID(), rfc.WithExposeDebug(true).GetDescription())
+		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed to retrieve client configuration with error: %s", requestID, client.GetID(), rfc.WithExposeDebug(true).GetDescription())
 
 		ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(rfc))
 
@@ -87,10 +96,12 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 	var token string
 
-	ctx.Logger.Tracef("UserInfo Response with id '%s' on client with id '%s' is being sent with the following claims: %+v", requester.GetID(), clientID, claims)
+	ctx.Logger.Tracef("UserInfo Response with id '%s' on client with id '%s' is being sent with the following claims: %+v", requestID, clientID, claims)
 
 	switch alg := client.GetUserinfoSigningAlg(); alg {
 	case oidc.SigningAlgNone, "":
+		ctx.Logger.Debugf("UserInfo Request with id '%s' on client with id '%s' is being returned unsigned as per the registered client configuration", requestID, client.GetID())
+
 		ctx.Providers.OpenIDConnect.Write(rw, req, claims)
 	default:
 		var jwk *oidc.JWK
@@ -100,6 +111,8 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 			return
 		}
+
+		ctx.Logger.Debugf("UserInfo Request with id '%s' on client with id '%s' is being returned signed as per the registered client configuration with key id '%s' using the '%s' algorithm", requestID, client.GetID(), jwk.KeyID(), jwk.JWK().Algorithm)
 
 		var jti uuid.UUID
 
@@ -127,4 +140,6 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		rw.Header().Set(fasthttp.HeaderContentType, "application/jwt")
 		_, _ = rw.Write([]byte(token))
 	}
+
+	ctx.Logger.Debugf("UserInfo Request with id '%s' on client with id '%s' was successfully processed", requestID, client.GetID())
 }
