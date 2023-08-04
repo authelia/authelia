@@ -39,9 +39,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 	ctx.Logger.Debugf("UserInfo Request with id '%s' is being processed", requestID)
 
-	if tokenType, requester, err = ctx.Providers.OpenIDConnect.IntrospectToken(
-		req.Context(), fosite.AccessTokenFromRequest(req), fosite.AccessToken, oidcSession); err != nil {
-
+	if tokenType, requester, err = ctx.Providers.OpenIDConnect.IntrospectToken(req.Context(), fosite.AccessTokenFromRequest(req), fosite.AccessToken, oidcSession); err != nil {
 		ctx.Logger.Errorf("UserInfo Request with id '%s' failed with error: %s", requestID, oidc.ErrorToDebugRFC6749Error(err))
 
 		if rfc := fosite.ErrorToRFC6749Error(err); rfc.StatusCode() == http.StatusUnauthorized {

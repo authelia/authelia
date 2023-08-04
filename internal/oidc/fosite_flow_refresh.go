@@ -52,25 +52,28 @@ func (c *RefreshTokenGrantHandler) HandleTokenEndpointRequest(ctx context.Contex
 	signature := c.RefreshTokenStrategy.RefreshTokenSignature(ctx, refresh)
 	originalRequest, err := c.TokenRevocationStorage.GetRefreshTokenSession(ctx, signature, request.GetSession())
 
-	if errors.Is(err, fosite.ErrInactiveToken) {
+	switch {
+	case err == nil:
+		if err = c.RefreshTokenStrategy.ValidateRefreshToken(ctx, originalRequest, refresh); err != nil {
+			// The authorization server MUST ... validate the refresh token.
+			// This needs to happen after store retrieval for the session to be hydrated properly.
+			if errors.Is(err, fosite.ErrTokenExpired) {
+				return errorsx.WithStack(fosite.ErrInvalidGrant.WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
+			}
+
+			return errorsx.WithStack(fosite.ErrInvalidRequest.WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
+		}
+	case errors.Is(err, fosite.ErrInactiveToken):
 		// Detected refresh token reuse.
-		if rErr := c.handleRefreshTokenReuse(ctx, signature, originalRequest); rErr != nil {
-			return errorsx.WithStack(rErr)
+		if e := c.handleRefreshTokenReuse(ctx, signature, originalRequest); e != nil {
+			return errorsx.WithStack(e)
 		}
 
-		return errorsx.WithStack(fosite.ErrInactiveToken.WithWrap(err).WithDebug(err.Error()))
-	} else if errors.Is(err, fosite.ErrNotFound) {
-		return errorsx.WithStack(fosite.ErrInvalidGrant.WithWrap(err).WithDebugf("The refresh token has not been found: %s", err.Error()))
-	} else if err != nil {
-		return errorsx.WithStack(fosite.ErrServerError.WithWrap(err).WithDebug(err.Error()))
-	} else if err := c.RefreshTokenStrategy.ValidateRefreshToken(ctx, originalRequest, refresh); err != nil {
-		// The authorization server MUST ... validate the refresh token.
-		// This needs to happen after store retrieval for the session to be hydrated properly.
-		if errors.Is(err, fosite.ErrTokenExpired) {
-			return errorsx.WithStack(fosite.ErrInvalidGrant.WithWrap(err).WithDebug(err.Error()))
-		}
-
-		return errorsx.WithStack(fosite.ErrInvalidRequest.WithWrap(err).WithDebug(err.Error()))
+		return errorsx.WithStack(fosite.ErrInactiveToken.WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
+	case errors.Is(err, fosite.ErrNotFound):
+		return errorsx.WithStack(fosite.ErrInvalidGrant.WithWrap(err).WithDebugf("The refresh token has not been found: %s", ErrorToDebugRFC6749Error(err).Error()))
+	default:
+		return errorsx.WithStack(fosite.ErrServerError.WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 	}
 
 	if !(len(c.Config.GetRefreshTokenScopes(ctx)) == 0 || originalRequest.GetGrantedScopes().HasOneOf(c.Config.GetRefreshTokenScopes(ctx)...)) {

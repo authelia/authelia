@@ -111,7 +111,7 @@ func TestRefreshFlow_HandleTokenEndpointRequest(t *testing.T) {
 							RequestedScope: fosite.Arguments{"foo", "bar", "offline"},
 							Session:        expiredSess,
 							Form:           url.Values{"foo": []string{"bar"}},
-							RequestedAt:    time.Now().UTC().Add(-time.Hour).Round(time.Hour),
+							RequestedAt:    time.Now().UTC().Add(-time.Hour * 2).Round(time.Hour),
 						})
 						require.NoError(t, err)
 					},
