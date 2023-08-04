@@ -74,7 +74,7 @@ const (
 // Grant Type strings.
 const (
 	GrantTypeImplicit          = implicit
-	GrantTypeRefreshToken      = "refresh_token"
+	GrantTypeRefreshToken      = refreshtoken
 	GrantTypeAuthorizationCode = "authorization_code"
 	GrantTypeClientCredentials = "client_credentials"
 )
@@ -156,6 +156,7 @@ const (
 	FormParameterCodeChallengeMethod = "code_challenge_method"
 	FormParameterClientAssertionType = "client_assertion_type"
 	FormParameterClientAssertion     = "client_assertion"
+	FormParameterRefreshToken        = refreshtoken
 )
 
 const (
@@ -310,6 +311,7 @@ const (
 	explicit      = "explicit"
 	preconfigured = "pre-configured"
 	none          = "none"
+	refreshtoken  = "refresh_token"
 )
 
 const (

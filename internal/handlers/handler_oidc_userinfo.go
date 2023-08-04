@@ -41,11 +41,10 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 	if tokenType, requester, err = ctx.Providers.OpenIDConnect.IntrospectToken(
 		req.Context(), fosite.AccessTokenFromRequest(req), fosite.AccessToken, oidcSession); err != nil {
-		rfc := fosite.ErrorToRFC6749Error(err)
 
-		ctx.Logger.Errorf("UserInfo Request with id '%s' failed with error: %s", requestID, rfc.WithExposeDebug(true).GetDescription())
+		ctx.Logger.Errorf("UserInfo Request with id '%s' failed with error: %s", requestID, oidc.ErrorToDebugRFC6749Error(err))
 
-		if rfc.StatusCode() == http.StatusUnauthorized {
+		if rfc := fosite.ErrorToRFC6749Error(err); rfc.StatusCode() == http.StatusUnauthorized {
 			rw.Header().Set(fasthttp.HeaderWWWAuthenticate, fmt.Sprintf(`Bearer error="%s",error_description="%s"`, rfc.ErrorField, rfc.GetDescription()))
 		}
 
@@ -67,11 +66,9 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	}
 
 	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(ctx, clientID); err != nil {
-		rfc := fosite.ErrorToRFC6749Error(err)
+		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed to retrieve client configuration with error: %s", requestID, client.GetID(), oidc.ErrorToDebugRFC6749Error(err))
 
-		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed to retrieve client configuration with error: %s", requestID, client.GetID(), rfc.WithExposeDebug(true).GetDescription())
-
-		ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(rfc))
+		ctx.Providers.OpenIDConnect.WriteError(rw, req, err)
 
 		return
 	}

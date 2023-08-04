@@ -204,7 +204,7 @@ func TestPKCEHandler_HandleAuthorizeEndpointRequest(t *testing.T) {
 
 			err := handler.HandleAuthorizeEndpointRequest(context.Background(), requester, responder)
 
-			err = ErrorToRFC6749ErrorTest(err)
+			err = oidc.ErrorToDebugRFC6749Error(err)
 
 			if len(tc.expected) == 0 {
 				assert.NoError(t, err)
@@ -532,7 +532,7 @@ func TestPKCEHandler_HandleTokenEndpointRequest(t *testing.T) {
 			}
 
 			err := handler.HandleTokenEndpointRequest(context.Background(), r)
-			err = ErrorToRFC6749ErrorTest(err)
+			err = oidc.ErrorToDebugRFC6749Error(err)
 
 			if len(tc.expected) == 0 {
 				assert.NoError(t, err)
