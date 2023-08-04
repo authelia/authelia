@@ -158,7 +158,7 @@ func TestKeyManager(t *testing.T) {
 	assert.Equal(t, *set, out)
 
 	jwk, err = manager.GetByTokenString(ctx, badTokenString)
-	assert.EqualError(t, err, "token contains an invalid number of segments")
+	assert.EqualError(t, err, "token is malformed: token contains an invalid number of segments")
 	assert.Nil(t, jwk)
 
 	tokenString, sig, err = manager.Generate(ctx, nil, nil)
@@ -167,11 +167,11 @@ func TestKeyManager(t *testing.T) {
 	assert.Equal(t, "", sig)
 
 	sig, err = manager.Validate(ctx, badTokenString)
-	assert.EqualError(t, err, "error getting jwk from token string: token contains an invalid number of segments")
+	assert.EqualError(t, err, "error getting jwk from token string: token is malformed: token contains an invalid number of segments")
 	assert.Equal(t, "", sig)
 
 	token, err = manager.Decode(ctx, badTokenString)
-	assert.EqualError(t, err, "error getting jwk from token string: token contains an invalid number of segments")
+	assert.EqualError(t, err, "error getting jwk from token string: token is malformed: token contains an invalid number of segments")
 	assert.Nil(t, token)
 
 	sum, err = manager.Hash(ctx, []byte("abc"))
@@ -416,7 +416,6 @@ func TestJWKFunctionality(t *testing.T) {
 				token, err := signer.Decode(ctx, tokenString)
 				assert.NoError(t, err)
 				assert.NotNil(t, token)
-				fmt.Println(tokenString)
 
 				assert.True(t, token.Valid())
 				assert.Equal(t, jwk.GetSigningMethod().Alg(), string(token.Method))

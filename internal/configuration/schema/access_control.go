@@ -60,6 +60,6 @@ var DefaultACLRule = []ACLRule{
 	},
 	{
 		Domains: []string{"secure.example.com"},
-		Policy:  "two_factor",
+		Policy:  policyTwoFactor,
 	},
 }

@@ -283,6 +283,28 @@ func TestPasswordDigest_IsPlainText(t *testing.T) {
 	assert.False(t, digest.IsPlainText())
 }
 
+func TestPasswordDigest_PlainText(t *testing.T) {
+	digest, err := DecodePasswordDigest("$plaintext$exam")
+	assert.NoError(t, err)
+
+	v, ok := digest.PlainText()
+
+	assert.NotNil(t, v)
+	assert.True(t, ok)
+
+	digest = &PasswordDigest{}
+
+	assert.False(t, digest.IsPlainText())
+
+	digest, err = DecodePasswordDigest("$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng")
+	assert.NoError(t, err)
+
+	v, ok = digest.PlainText()
+
+	assert.Nil(t, v)
+	assert.False(t, ok)
+}
+
 func MustParseX509CertificateChain(data string) *X509CertificateChain {
 	chain, err := NewX509CertificateChain(data)
 	if err != nil {

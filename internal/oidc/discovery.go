@@ -28,6 +28,7 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnect) (config Ope
 				GrantTypesSupported: []string{
 					GrantTypeAuthorizationCode,
 					GrantTypeImplicit,
+					GrantTypeClientCredentials,
 					GrantTypeRefreshToken,
 				},
 				ResponseModesSupported: []string{
