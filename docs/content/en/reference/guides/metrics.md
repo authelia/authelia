@@ -20,7 +20,7 @@ to be used by administrators of their individual *Authelia* installs.
 ### Prometheus
 
 *Authelia* supports exporting [Prometheus] metrics. These metrics are served on a separate port at the `/metrics` path
-when configured. If metrics are enabled the metrics listener listens on `0.0.0.0:9959` as per the officially
+when configured. If metrics are enabled the metrics listener listens on `:9959` as per the officially
 [registered port] unless configured otherwise.
 
 #### Recorded Metrics

@@ -2,10 +2,11 @@ package commands
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"runtime"
 	"runtime/debug"
 	"strings"
+
+	"github.com/spf13/cobra"
 
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -42,6 +43,7 @@ func (ctx *CmdCtx) BuildInfoRunE(_ *cobra.Command, _ []string) (err error) {
 
 	if len(info.Settings) != 0 {
 		b.WriteString("    Settings:\n")
+
 		for _, setting := range info.Settings {
 			b.WriteString(fmt.Sprintf("        %s: %s\n", setting.Key, setting.Value))
 		}
@@ -49,6 +51,7 @@ func (ctx *CmdCtx) BuildInfoRunE(_ *cobra.Command, _ []string) (err error) {
 
 	if len(info.Deps) != 0 {
 		b.WriteString("    Dependencies:\n")
+
 		for _, dep := range info.Deps {
 			b.WriteString(fmt.Sprintf("        %s@%s (%s)\n", dep.Path, dep.Version, dep.Sum))
 		}
