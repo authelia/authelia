@@ -181,6 +181,35 @@ type Client interface {
 	GetEffectiveLifespan(gt fosite.GrantType, tt fosite.TokenType, fallback time.Duration) time.Duration
 }
 
+// RefreshTokenAccessRequester is an extended AccessRequester implementation that allows preserving
+// the original Requester.
+type RefreshTokenAccessRequester interface {
+	// SanitizeRestoreRefreshTokenOriginalRequester returns a sanitized copy of this Requester and mutates the relevant
+	// values from the provided Requester which is the original refresh token session Requester.
+	SanitizeRestoreRefreshTokenOriginalRequester(requester fosite.Requester) fosite.Requester
+
+	fosite.AccessRequester
+}
+
+type RefreshTokenAccessRequest struct {
+	*fosite.AccessRequest
+}
+
+func (a *RefreshTokenAccessRequest) SanitizeRestoreRefreshTokenOriginalRequester(requester fosite.Requester) fosite.Requester {
+	r := a.Sanitize(nil).(*fosite.Request)
+
+	ar := &fosite.AccessRequest{
+		Request: *r,
+	}
+
+	ar.SetID(requester.GetID())
+
+	ar.SetRequestedScopes(requester.GetRequestedScopes())
+	ar.GrantedScope = requester.GetGrantedScopes()
+
+	return ar
+}
+
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
 type ConsentGetResponseBody struct {
 	ClientID          string   `json:"client_id"`

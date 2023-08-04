@@ -3,6 +3,7 @@ package oidc
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ory/fosite"
@@ -113,4 +114,12 @@ func JTIFromMapClaims(m jwt.MapClaims) (jti string, err error) {
 	}
 
 	return jti, nil
+}
+
+func getExpiresIn(r fosite.Requester, key fosite.TokenType, defaultLifespan time.Duration, now time.Time) time.Duration {
+	if r.GetSession().GetExpiresAt(key).IsZero() {
+		return defaultLifespan
+	}
+
+	return time.Duration(r.GetSession().GetExpiresAt(key).UnixNano() - now.UnixNano())
 }
