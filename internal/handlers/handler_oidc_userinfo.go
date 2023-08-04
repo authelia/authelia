@@ -14,6 +14,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // OpenIDConnectUserinfo handles GET/POST requests to the OpenID Connect 1.0 UserInfo endpoint.
@@ -78,19 +79,8 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 	if !ok || len(audience) == 0 {
 		audience = []string{client.GetID()}
-	} else {
-		found := false
-
-		for _, aud := range audience {
-			if aud == clientID {
-				found = true
-				break
-			}
-		}
-
-		if found {
-			audience = append(audience, clientID)
-		}
+	} else if !utils.IsStringInSlice(clientID, audience) {
+		audience = append(audience, clientID)
 	}
 
 	claims[oidc.ClaimAudience] = audience
