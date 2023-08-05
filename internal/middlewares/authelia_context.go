@@ -24,9 +24,9 @@ import (
 // NewRequestLogger create a new request logger for the given request.
 func NewRequestLogger(ctx *AutheliaCtx) *logrus.Entry {
 	return logging.Logger().WithFields(logrus.Fields{
-		"method":    string(ctx.Method()),
-		"path":      string(ctx.Path()),
-		"remote_ip": ctx.RemoteIP().String(),
+		logging.FieldMethod:   string(ctx.Method()),
+		logging.FieldPath:     string(ctx.Path()),
+		logging.FieldRemoteIP: ctx.RemoteIP().String(),
 	})
 }
 
