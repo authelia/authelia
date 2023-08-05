@@ -18,6 +18,7 @@ import (
 
 var _ fosite.TokenEndpointHandler = (*RefreshTokenGrantHandler)(nil)
 
+// RefreshTokenGrantHandler handles access requests for the Refresh Token Flow.
 type RefreshTokenGrantHandler struct {
 	AccessTokenStrategy    oauth2.AccessTokenStrategy
 	RefreshTokenStrategy   oauth2.RefreshTokenStrategy
@@ -29,11 +30,6 @@ type RefreshTokenGrantHandler struct {
 		fosite.AudienceStrategyProvider
 		fosite.RefreshTokenScopesProvider
 	}
-
-	// IgnoreRequestedScopeNotInOriginalGrant determines the action to take when the requested scopes in the refresh
-	// flow were not originally granted. If false which is the default the handler will automatically return an error.
-	// If true the handler will filter out / ignore the scopes which were not originally granted.
-	IgnoreRequestedScopeNotInOriginalGrant bool
 }
 
 // HandleTokenEndpointRequest implements https://tools.ietf.org/html/rfc6749#section-6
@@ -157,13 +153,16 @@ func (c *RefreshTokenGrantHandler) PopulateTokenEndpointResponse(ctx context.Con
 		return errorsx.WithStack(fosite.ErrUnknownRequest)
 	}
 
-	accessToken, accessSignature, err := c.AccessTokenStrategy.GenerateAccessToken(ctx, requester)
-	if err != nil {
+	var (
+		accessToken, refreshToken         string
+		accessSignature, refreshSignature string
+	)
+
+	if accessToken, accessSignature, err = c.AccessTokenStrategy.GenerateAccessToken(ctx, requester); err != nil {
 		return errorsx.WithStack(fosite.ErrServerError.WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 	}
 
-	refreshToken, refreshSignature, err := c.RefreshTokenStrategy.GenerateRefreshToken(ctx, requester)
-	if err != nil {
+	if refreshToken, refreshSignature, err = c.RefreshTokenStrategy.GenerateRefreshToken(ctx, requester); err != nil {
 		return errorsx.WithStack(fosite.ErrServerError.WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 	}
 
@@ -177,42 +176,31 @@ func (c *RefreshTokenGrantHandler) PopulateTokenEndpointResponse(ctx context.Con
 		err = c.handleRefreshTokenEndpointStorageError(ctx, err)
 	}()
 
-	originalRequest, err := c.TokenRevocationStorage.GetRefreshTokenSession(ctx, signature, nil)
-	if err != nil {
-		return err
-	} else if err := c.TokenRevocationStorage.RevokeAccessToken(ctx, originalRequest.GetID()); err != nil {
-		return err
-	}
+	var original fosite.Requester
 
-	if err = c.TokenRevocationStorage.RevokeRefreshTokenMaybeGracePeriod(ctx, originalRequest.GetID(), signature); err != nil {
+	if original, err = c.TokenRevocationStorage.GetRefreshTokenSession(ctx, signature, nil); err != nil {
 		return err
 	}
 
-	storeReq := requester.Sanitize([]string{})
-	storeReq.SetID(originalRequest.GetID())
-
-	if err = c.TokenRevocationStorage.CreateAccessTokenSession(ctx, accessSignature, storeReq); err != nil {
+	if err = c.TokenRevocationStorage.RevokeAccessToken(ctx, original.GetID()); err != nil {
 		return err
 	}
 
-	if rtRequest, ok := requester.(RefreshTokenAccessRequester); ok {
-		rtStoreReq := rtRequest.SanitizeRestoreRefreshTokenOriginalRequester(originalRequest)
+	if err = c.TokenRevocationStorage.RevokeRefreshTokenMaybeGracePeriod(ctx, original.GetID(), signature); err != nil {
+		return err
+	}
 
-		rtStoreReq.SetSession(requester.GetSession().Clone())
+	if err = c.TokenRevocationStorage.CreateAccessTokenSession(ctx, accessSignature, RefreshFlowSanitizeRestoreOriginalRequestBasic(requester, original)); err != nil {
+		return err
+	}
 
-		if err = c.TokenRevocationStorage.CreateRefreshTokenSession(ctx, refreshSignature, rtStoreReq); err != nil {
-			return err
-		}
-	} else {
-		if err = c.TokenRevocationStorage.CreateRefreshTokenSession(ctx, refreshSignature, storeReq); err != nil {
-			return err
-		}
+	if err = c.TokenRevocationStorage.CreateRefreshTokenSession(ctx, refreshSignature, RefreshFlowSanitizeRestoreOriginalRequest(requester, original)); err != nil {
+		return err
 	}
 
 	responder.SetAccessToken(accessToken)
 	responder.SetTokenType(fosite.BearerAccessToken)
-	atLifespan := fosite.GetEffectiveLifespan(requester.GetClient(), fosite.GrantTypeRefreshToken, fosite.AccessToken, c.Config.GetAccessTokenLifespan(ctx))
-	responder.SetExpiresIn(getExpiresIn(requester, fosite.AccessToken, atLifespan, time.Now().UTC()))
+	responder.SetExpiresIn(getExpiresIn(requester, fosite.AccessToken, fosite.GetEffectiveLifespan(requester.GetClient(), fosite.GrantTypeRefreshToken, fosite.AccessToken, c.Config.GetAccessTokenLifespan(ctx)), time.Now().UTC()))
 	responder.SetScopes(requester.GetGrantedScopes())
 	responder.SetExtra(GrantTypeRefreshToken, refreshToken)
 
@@ -233,18 +221,13 @@ func (c *RefreshTokenGrantHandler) PopulateTokenEndpointResponse(ctx context.Con
 //	attempt the valid refresh token and the access authorization
 //	associated with it are both revoked.
 func (c *RefreshTokenGrantHandler) handleRefreshTokenReuse(ctx context.Context, signature string, req fosite.Requester) (err error) {
-	ctx, err = storage.MaybeBeginTx(ctx, c.TokenRevocationStorage)
-	if err != nil {
+	if ctx, err = storage.MaybeBeginTx(ctx, c.TokenRevocationStorage); err != nil {
 		return errorsx.WithStack(fosite.ErrServerError.WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 	}
 
 	defer func() {
 		err = c.handleRefreshTokenEndpointStorageError(ctx, err)
 	}()
-
-	if err = c.TokenRevocationStorage.DeleteRefreshTokenSession(ctx, signature); err != nil {
-		return err
-	}
 
 	if err = c.TokenRevocationStorage.DeleteRefreshTokenSession(ctx, signature); err != nil {
 		return err
@@ -299,4 +282,41 @@ func (c *RefreshTokenGrantHandler) CanHandleTokenEndpointRequest(ctx context.Con
 	// grant_type REQUIRED.
 	// Value MUST be set to "refresh_token".
 	return requester.GetGrantTypes().ExactOne(GrantTypeRefreshToken)
+}
+
+// RefreshFlowSanitizeRestoreOriginalRequest sanitizes input requester with the ID of original, and if the underlying type
+// of requester is a *fosite.AccessRequest it also restores the originally granted scopes. This ensures the granted
+// scopes for the refresh token session never change and can be referenced when determining if a session can grant
+// the respective scopes.
+func RefreshFlowSanitizeRestoreOriginalRequest(requester, original fosite.Requester) fosite.Requester {
+	var (
+		ar *fosite.AccessRequest
+		ok bool
+	)
+
+	if ar, ok = requester.(*fosite.AccessRequest); !ok {
+		return RefreshFlowSanitizeRestoreOriginalRequestBasic(requester, original)
+	}
+
+	var sr *fosite.Request
+
+	if sr, ok = ar.Sanitize(nil).(*fosite.Request); !ok {
+		return RefreshFlowSanitizeRestoreOriginalRequestBasic(requester, original)
+	}
+
+	sr.SetID(original.GetID())
+
+	sr.SetRequestedScopes(original.GetRequestedScopes())
+	sr.GrantedScope = original.GetGrantedScopes()
+
+	return sr
+}
+
+// RefreshFlowSanitizeRestoreOriginalRequestBasic is the fallback sanitizer if the RefreshFlowSanitizeRestoreOriginalRequest
+// function fails to assert the requester as *fosite.AccessRequest.
+func RefreshFlowSanitizeRestoreOriginalRequestBasic(r, o fosite.Requester) fosite.Requester {
+	sr := r.Sanitize(nil)
+	sr.SetID(o.GetID())
+
+	return sr
 }

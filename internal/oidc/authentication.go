@@ -442,7 +442,7 @@ func clientCredentialsFromRequest(header http.Header, form url.Values) (clientID
 
 	switch clientID, clientSecret, ok, err = clientCredentialsFromBasicAuth(header); {
 	case err != nil:
-		return "", "", "", errorsx.WithStack(fosite.ErrInvalidRequest.WithHint("The client credentials in the HTTP authorization header could not be parsed. Either the scheme was missing, the scheme was invalid, or the value had malformed data.").WithWrap(err).WithDebug(err.Error()))
+		return "", "", "", errorsx.WithStack(fosite.ErrInvalidRequest.WithHint("The client credentials in the HTTP authorization header could not be parsed. Either the scheme was missing, the scheme was invalid, or the value had malformed data.").WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 	case ok:
 		return clientID, clientSecret, ClientAuthMethodClientSecretBasic, nil
 	default:

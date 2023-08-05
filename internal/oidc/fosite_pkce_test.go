@@ -462,7 +462,7 @@ func TestPKCEHandler_HandleTokenEndpointRequest(t *testing.T) {
 			"",
 			"abc123",
 			"",
-			"The provided authorization grant (e.g., authorization code, resource owner credentials) or refresh token is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client. Unable to find initial PKCE data tied to this request The recorded error is: not_found.",
+			"The provided authorization grant (e.g., authorization code, resource owner credentials) or refresh token is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client. Unable to find initial PKCE data tied to this request. Could not find the requested resource(s).",
 			clientConfidential,
 		},
 		{
@@ -475,7 +475,7 @@ func TestPKCEHandler_HandleTokenEndpointRequest(t *testing.T) {
 			"WXNqfH6FCXcJH5oT9eqTM3HTdTh4b2aSvVe9KWkxcHCJJ3FaXF",
 			"WXNqfH6FCXcJH5oT9eqTM3HTdTh4b2aSvVe9KWkxcHCJJ3FaXF",
 			"BADCODE",
-			"The provided authorization grant (e.g., authorization code, resource owner credentials) or refresh token is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client. Unable to find initial PKCE data tied to this request The recorded error is: not_found.",
+			"The provided authorization grant (e.g., authorization code, resource owner credentials) or refresh token is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client. Unable to find initial PKCE data tied to this request. Could not find the requested resource(s).",
 			clientConfidential,
 		},
 		{
