@@ -156,6 +156,7 @@ const (
 	FormParameterCodeChallengeMethod = "code_challenge_method"
 	FormParameterClientAssertionType = "client_assertion_type"
 	FormParameterClientAssertion     = "client_assertion"
+	FormParameterScope               = "scope"
 	FormParameterRefreshToken        = refreshtoken
 )
 

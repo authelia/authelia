@@ -115,14 +115,14 @@ func (c *RefreshTokenGrantHandler) HandleTokenEndpointRequest(ctx context.Contex
 
 	for _, scope := range request.GetRequestedScopes() {
 		if !strategy(originalScopes, scope) {
-			if c.IgnoreRequestedScopeNotInOriginalGrant {
+			if client, ok := request.GetClient().(RefreshFlowScopeClient); ok && client.GetRefreshFlowIgnoreOriginalGrantedScopes(ctx) {
 				// Skips addressing point 2 of the text in RFC6749 Section 6 and instead just prevents the scope
 				// requested from being granted.
 				continue
-			} else {
-				// Addresses point 2 of the text in RFC6749 Section 6.
-				return errorsx.WithStack(fosite.ErrInvalidScope.WithHintf("The requested scope '%s' was not originally granted by the resource owner.", scope))
 			}
+
+			// Addresses point 2 of the text in RFC6749 Section 6.
+			return errorsx.WithStack(fosite.ErrInvalidScope.WithHintf("The requested scope '%s' was not originally granted by the resource owner.", scope))
 		}
 
 		if !strategy(request.GetClient().GetScopes(), scope) {
@@ -132,7 +132,7 @@ func (c *RefreshTokenGrantHandler) HandleTokenEndpointRequest(ctx context.Contex
 		request.GrantScope(scope)
 	}
 
-	if err := c.Config.GetAudienceStrategy(ctx)(request.GetClient().GetAudience(), originalRequest.GetGrantedAudience()); err != nil {
+	if err = c.Config.GetAudienceStrategy(ctx)(request.GetClient().GetAudience(), originalRequest.GetGrantedAudience()); err != nil {
 		return err
 	}
 
@@ -169,8 +169,7 @@ func (c *RefreshTokenGrantHandler) PopulateTokenEndpointResponse(ctx context.Con
 
 	signature := c.RefreshTokenStrategy.RefreshTokenSignature(ctx, requester.GetRequestForm().Get(GrantTypeRefreshToken))
 
-	ctx, err = storage.MaybeBeginTx(ctx, c.TokenRevocationStorage)
-	if err != nil {
+	if ctx, err = storage.MaybeBeginTx(ctx, c.TokenRevocationStorage); err != nil {
 		return errorsx.WithStack(fosite.ErrServerError.WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 	}
 
@@ -185,7 +184,7 @@ func (c *RefreshTokenGrantHandler) PopulateTokenEndpointResponse(ctx context.Con
 		return err
 	}
 
-	if err := c.TokenRevocationStorage.RevokeRefreshTokenMaybeGracePeriod(ctx, originalRequest.GetID(), signature); err != nil {
+	if err = c.TokenRevocationStorage.RevokeRefreshTokenMaybeGracePeriod(ctx, originalRequest.GetID(), signature); err != nil {
 		return err
 	}
 
@@ -245,13 +244,17 @@ func (c *RefreshTokenGrantHandler) handleRefreshTokenReuse(ctx context.Context, 
 
 	if err = c.TokenRevocationStorage.DeleteRefreshTokenSession(ctx, signature); err != nil {
 		return err
-	} else if err = c.TokenRevocationStorage.RevokeRefreshToken(
-		ctx, req.GetID(),
-	); err != nil && !errors.Is(err, fosite.ErrNotFound) {
+	}
+
+	if err = c.TokenRevocationStorage.DeleteRefreshTokenSession(ctx, signature); err != nil {
 		return err
-	} else if err = c.TokenRevocationStorage.RevokeAccessToken(
-		ctx, req.GetID(),
-	); err != nil && !errors.Is(err, fosite.ErrNotFound) {
+	}
+
+	if err = c.TokenRevocationStorage.RevokeRefreshToken(ctx, req.GetID()); err != nil && !errors.Is(err, fosite.ErrNotFound) {
+		return err
+	}
+
+	if err = c.TokenRevocationStorage.RevokeAccessToken(ctx, req.GetID()); err != nil && !errors.Is(err, fosite.ErrNotFound) {
 		return err
 	}
 
