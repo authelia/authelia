@@ -1,0 +1,8 @@
+{{ $ref := .Get "ref" }}{{ $description := .Get "description" | default "common syntax" }}{{ $text := .Get "text" | default "This configuration option or section uses common configuration syntax. " }}
+<div class="alert alert-success d-flex" role="alert">
+  <div class="flex-shrink-1 alert-icon">⚠️</div>
+  <div class="w-100">
+    <b>Reference Note:</b> {{ $text }}For more information please see both the <a href="#configuration" class="alert-link">configuration example</a> and the <a href="/configuration/prologue/common/#{{ $ref }}" class="alert-link">{{ $description }}</a> reference guide.
+  </div>
+</div>
+<br />
