@@ -105,7 +105,7 @@ func TestContentTypes(t *testing.T) {
 	}
 }
 
-func TestIssuerURL(t *testing.T) {
+func TestAutheliaCtx_RootURL(t *testing.T) {
 	testCases := []struct {
 		name              string
 		proto, host, base string
@@ -137,7 +137,7 @@ func TestIssuerURL(t *testing.T) {
 			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, tc.host)
 
 			if tc.base != "" {
-				mock.Ctx.SetUserValue("base_url", tc.base)
+				mock.Ctx.SetUserValue(middlewares.UserValueKeyBaseURL, tc.base)
 			}
 
 			actual := mock.Ctx.RootURL()
@@ -148,6 +148,163 @@ func TestIssuerURL(t *testing.T) {
 			assert.Equal(t, tc.proto, actual.Scheme)
 			assert.Equal(t, tc.host, actual.Host)
 			assert.Equal(t, tc.base, actual.Path)
+		})
+	}
+}
+
+func TestAutheliaCtx_AuthzPath(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     any
+		expected []byte
+	}{
+		{
+			"ShouldReturnValue",
+			"exy",
+			[]byte("exy"),
+		},
+		{
+			"ShouldReturnValue",
+			nil,
+			[]byte(nil),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.SetUserValue(middlewares.UserValueRouterKeyExtAuthzPath, tc.have)
+
+			assert.Equal(t, tc.expected, mock.Ctx.AuthzPath())
+		})
+	}
+}
+
+func TestAutheliaCtx_RootURLSlash(t *testing.T) {
+	testCases := []struct {
+		name              string
+		proto, host, base string
+		expected          string
+		expectedPath      string
+	}{
+		{
+			name:  "Standard",
+			proto: "https", host: "auth.example.com", base: "",
+			expected:     "https://auth.example.com/",
+			expectedPath: "/",
+		},
+		{
+			name:  "StandardWithSlash",
+			proto: "https", host: "auth.example.com", base: "/",
+			expected:     "https://auth.example.com/",
+			expectedPath: "/",
+		},
+		{
+			name:  "Base",
+			proto: "https", host: "example.com", base: "auth",
+			expected:     "https://example.com/auth/",
+			expectedPath: "auth/",
+		},
+		{
+			name:  "NoHost",
+			proto: "https", host: "", base: "",
+			expected:     "https:///",
+			expectedPath: "/",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, tc.proto)
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, tc.host)
+
+			if tc.base != "" {
+				mock.Ctx.SetUserValue(middlewares.UserValueKeyBaseURL, tc.base)
+			}
+
+			actual := mock.Ctx.RootURLSlash()
+
+			require.NotNil(t, actual)
+
+			assert.Equal(t, tc.expected, actual.String())
+			assert.Equal(t, tc.proto, actual.Scheme)
+			assert.Equal(t, tc.host, actual.Host)
+			assert.Equal(t, tc.expectedPath, actual.Path)
+		})
+	}
+}
+
+func TestAutheliaCtx_IssuerURL(t *testing.T) {
+	testCases := []struct {
+		name              string
+		proto, host, base string
+		expectedProto     string
+		expected          string
+		err               string
+	}{
+		{
+			name:  "Standard",
+			proto: "https", host: "auth.example.com", base: "",
+			expected: "https://auth.example.com",
+		},
+		{
+			name:  "StandardHTTP",
+			proto: "http", host: "auth.example.com", base: "",
+			expected: "http://auth.example.com",
+		},
+		{
+			name:  "NoProto",
+			proto: "", host: "auth.example.com", base: "",
+			expected:      "https://auth.example.com",
+			expectedProto: "https",
+		},
+		{
+			name:  "Base",
+			proto: "https", host: "example.com", base: "auth",
+			expected: "https://example.com/auth",
+		},
+		{
+			name:  "NoHost",
+			proto: "https", host: "", base: "",
+			err: "missing required X-Forwarded-Host header",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, tc.proto)
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, tc.host)
+
+			if tc.base != "" {
+				mock.Ctx.SetUserValue(middlewares.UserValueKeyBaseURL, tc.base)
+			}
+
+			actual, theError := mock.Ctx.IssuerURL()
+
+			if len(tc.err) == 0 {
+				assert.NoError(t, theError)
+				require.NotNil(t, actual)
+
+				assert.Equal(t, tc.expected, actual.String())
+				if len(tc.expectedProto) == 0 {
+					assert.Equal(t, tc.proto, actual.Scheme)
+				} else {
+					assert.Equal(t, tc.expectedProto, actual.Scheme)
+				}
+				assert.Equal(t, tc.host, actual.Host)
+				assert.Equal(t, tc.base, actual.Path)
+			} else {
+				assert.Nil(t, actual)
+				assert.EqualError(t, theError, tc.err)
+			}
 		})
 	}
 }
@@ -286,4 +443,108 @@ func TestShouldReturnCorrectSecondFactorMethods(t *testing.T) {
 	mock.Ctx.Configuration.DuoAPI.Disable = true
 
 	assert.Equal(t, []string{}, mock.Ctx.AvailableSecondFactorMethods())
+}
+
+func TestAutheliaCtx_QueryFuncs(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Request.SetHost("example.com")
+	mock.Ctx.Request.SetRequestURI("/?rd=example&authelia_url=example2")
+
+	assert.Equal(t, []byte("example"), mock.Ctx.QueryArgRedirect())
+	assert.Equal(t, []byte("example2"), mock.Ctx.QueryArgAutheliaURL())
+}
+
+func TestAutheliaCtx_HeaderFuncs(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("X-Authelia-URL", "abc")
+	mock.Ctx.Request.Header.Set("X-Original-Method", "cheese")
+
+	assert.Equal(t, []byte("abc"), mock.Ctx.XAutheliaURL())
+	assert.Equal(t, []byte("cheese"), mock.Ctx.XOriginalMethod())
+}
+
+func TestAutheliaCtx_SetStatusCodes(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+
+	mock.Ctx.ReplyBadRequest()
+
+	assert.Equal(t, 400, mock.Ctx.Response.StatusCode())
+
+	mock.Ctx.ReplyUnauthorized()
+
+	assert.Equal(t, 401, mock.Ctx.Response.StatusCode())
+
+	mock.Ctx.ReplyForbidden()
+
+	assert.Equal(t, 403, mock.Ctx.Response.StatusCode())
+}
+
+func TestAutheliaCtx_GetTargetURICookieDomain(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *url.URL
+		config   []schema.SessionCookieConfiguration
+		expected string
+		secure   bool
+	}{
+		{
+			"ShouldReturnEmptyNil",
+			nil,
+			[]schema.SessionCookieConfiguration{},
+			"",
+			false,
+		},
+		{
+			"ShouldReturnEmptyNoMatch",
+			&url.URL{Scheme: "https", Host: "example.com"},
+			[]schema.SessionCookieConfiguration{},
+			"",
+			false,
+		},
+		{
+			"ShouldReturnDomain",
+			&url.URL{Scheme: "https", Host: "example.com"},
+			[]schema.SessionCookieConfiguration{
+				{
+					SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+						Domain: "example.com",
+					},
+				},
+			},
+			"example.com",
+			true,
+		},
+		{
+			"ShouldReturnDomain",
+			&url.URL{Scheme: "http", Host: "example.com"},
+			[]schema.SessionCookieConfiguration{
+				{
+					SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
+						Domain: "example.com",
+					},
+				},
+			},
+			"example.com",
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.Configuration.Session.Cookies = tc.config
+
+			assert.Equal(t, tc.expected, mock.Ctx.GetTargetURICookieDomain(tc.have))
+			assert.Equal(t, tc.secure, mock.Ctx.IsSafeRedirectionTargetURI(tc.have))
+		})
+	}
 }

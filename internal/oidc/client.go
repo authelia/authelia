@@ -315,6 +315,12 @@ func (c *BaseClient) GetRefreshFlowIgnoreOriginalGrantedScopes(ctx context.Conte
 	return c.RefreshFlowIgnoreOriginalGrantedScopes
 }
 
+// GetClientCredentialsFlowGrantAllScopesWhenOmitted returns the value which indicates if the client should grant all
+// of it's authorized scopes during the client credentials flow.
+func (c *BaseClient) GetClientCredentialsFlowGrantAllScopesWhenOmitted(ctx context.Context) (grant bool) {
+	return c.ClientCredentialsFlowGrantAllScopesWhenOmitted
+}
+
 func (c *BaseClient) getGrantTypeLifespan(gt fosite.GrantType) (gtl schema.OpenIDConnectLifespanToken) {
 	switch gt {
 	case fosite.GrantTypeAuthorizationCode:

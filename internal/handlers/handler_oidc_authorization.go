@@ -140,7 +140,7 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 	}
 
 	if requester.GetResponseMode() == oidc.ResponseModeFormPost {
-		ctx.SetUserValueBytes(middlewares.UserValueKeyFormPost, true)
+		ctx.SetUserValue(middlewares.UserValueKeyOpenIDConnectResponseModeFormPost, true)
 	}
 
 	ctx.Providers.OpenIDConnect.WriteAuthorizeResponse(ctx, rw, requester, responder)
