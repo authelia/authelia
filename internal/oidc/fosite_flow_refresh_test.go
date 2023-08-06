@@ -212,6 +212,42 @@ func TestRefreshTokenGrantHandler_HandleTokenEndpointRequest(t *testing.T) {
 			},
 		},
 		{
+			name: "ShouldPassKeepOriginalID",
+			setup: func(config *fosite.Config, strategy oauth2.RefreshTokenStrategy, store *storage.MemoryStore, requester *fosite.AccessRequest) {
+				requester.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
+				requester.Client = &fosite.DefaultClient{
+					ID:         "foo",
+					GrantTypes: fosite.Arguments{oidc.GrantTypeRefreshToken},
+					Scopes:     []string{"foo", "bar", oidc.ScopeOffline},
+				}
+
+				token, sig, err := strategy.GenerateRefreshToken(context.TODO(), nil)
+				require.NoError(t, err)
+
+				requester.Form.Add(oidc.FormParameterRefreshToken, token)
+				err = store.CreateRefreshTokenSession(context.TODO(), sig, &fosite.Request{
+					ID:             "foo",
+					Client:         requester.Client,
+					GrantedScope:   fosite.Arguments{"foo", oidc.ScopeOffline},
+					RequestedScope: fosite.Arguments{"foo", "bar", oidc.ScopeOffline},
+					Session:        sess,
+					Form:           url.Values{"foo": []string{"bar"}},
+					RequestedAt:    time.Now().UTC().Add(-time.Hour).Round(time.Hour),
+				})
+				require.NoError(t, err)
+			},
+			texpected: func(t *testing.T, requester *fosite.AccessRequest) {
+				assert.Equal(t, "foo", requester.GetID())
+				assert.NotEqual(t, sess, requester.Session)
+				assert.NotEqual(t, time.Now().UTC().Add(-time.Hour).Round(time.Hour), requester.RequestedAt)
+				assert.Equal(t, fosite.Arguments{"foo", oidc.ScopeOffline}, requester.GrantedScope)
+				assert.Equal(t, fosite.Arguments{"foo", oidc.ScopeOffline}, requester.RequestedScope)
+				assert.NotEqual(t, url.Values{"foo": []string{"bar"}}, requester.Form)
+				assert.Equal(t, time.Now().Add(time.Hour).UTC().Round(time.Second), requester.GetSession().GetExpiresAt(fosite.AccessToken))
+				assert.Equal(t, time.Now().Add(time.Hour).UTC().Round(time.Second), requester.GetSession().GetExpiresAt(fosite.RefreshToken))
+			},
+		},
+		{
 			name: "ShouldPassWithScope",
 			setup: func(config *fosite.Config, strategy oauth2.RefreshTokenStrategy, store *storage.MemoryStore, requester *fosite.AccessRequest) {
 				requester.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
