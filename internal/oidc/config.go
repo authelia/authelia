@@ -180,7 +180,7 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 			},
 			Config: c,
 		},
-		&oauth2.RefreshTokenGrantHandler{
+		&RefreshTokenGrantHandler{
 			AccessTokenStrategy:    c.Strategy.Core,
 			RefreshTokenStrategy:   c.Strategy.Core,
 			TokenRevocationStorage: store,

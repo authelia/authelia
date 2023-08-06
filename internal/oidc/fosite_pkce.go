@@ -1,3 +1,6 @@
+// Copyright © 2023 Ory Corp.
+// SPDX-License-Identifier: Apache-2.0.
+
 package oidc
 
 import (
@@ -62,13 +65,13 @@ func (c *PKCEHandler) HandleAuthorizeEndpointRequest(ctx context.Context, reques
 		FormParameterCodeChallenge,
 		FormParameterCodeChallengeMethod,
 	})); err != nil {
-		return errorsx.WithStack(fosite.ErrServerError.WithWrap(err).WithDebugf("The recorded error is: %s.", err.Error()))
+		return errorsx.WithStack(fosite.ErrServerError.WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 	}
 
 	return nil
 }
 
-func (c *PKCEHandler) validate(ctx context.Context, challenge, method string, client fosite.Client) error {
+func (c *PKCEHandler) validate(ctx context.Context, challenge, method string, client fosite.Client) (err error) {
 	if len(challenge) == 0 {
 		// If the server requires Proof Key for Code Exchange (PKCE) by OAuth
 		// clients and the client does not send the "code_challenge" in
@@ -130,7 +133,7 @@ func (c *PKCEHandler) validateNoPKCE(ctx context.Context, client fosite.Client) 
 // HandleTokenEndpointRequest implements fosite.TokenEndpointHandler partially.
 //
 //nolint:gocyclo
-func (c *PKCEHandler) HandleTokenEndpointRequest(ctx context.Context, requester fosite.AccessRequester) error {
+func (c *PKCEHandler) HandleTokenEndpointRequest(ctx context.Context, requester fosite.AccessRequester) (err error) {
 	if !c.CanHandleTokenEndpointRequest(ctx, requester) {
 		return errorsx.WithStack(fosite.ErrUnknownRequest)
 	}
@@ -154,13 +157,13 @@ func (c *PKCEHandler) HandleTokenEndpointRequest(ctx context.Context, requester 
 			return c.validateNoPKCE(ctx, requester.GetClient())
 		}
 
-		return errorsx.WithStack(fosite.ErrInvalidGrant.WithHint("Unable to find initial PKCE data tied to this request").WithWrap(err).WithDebugf("The recorded error is: %s.", err.Error()))
+		return errorsx.WithStack(fosite.ErrInvalidGrant.WithHint("Unable to find initial PKCE data tied to this request.").WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 	} else if err != nil {
-		return errorsx.WithStack(fosite.ErrServerError.WithWrap(err).WithDebugf("The recorded error is: %s.", err.Error()))
+		return errorsx.WithStack(fosite.ErrServerError.WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 	}
 
 	if err = c.Storage.DeletePKCERequestSession(ctx, signature); err != nil {
-		return errorsx.WithStack(fosite.ErrServerError.WithWrap(err).WithDebugf("The recorded error is: %s.", err.Error()))
+		return errorsx.WithStack(fosite.ErrServerError.WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 	}
 
 	challenge := pkceRequest.GetRequestForm().Get(FormParameterCodeChallenge)
@@ -224,7 +227,7 @@ func (c *PKCEHandler) HandleTokenEndpointRequest(ctx context.Context, requester 
 	case PKCEChallengeMethodSHA256:
 		hash := sha256.New()
 		if _, err = hash.Write([]byte(verifier)); err != nil {
-			return errorsx.WithStack(fosite.ErrServerError.WithWrap(err).WithDebugf("The recorded error is: %s.", err.Error()))
+			return errorsx.WithStack(fosite.ErrServerError.WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 		}
 
 		sum := hash.Sum([]byte{})
@@ -250,7 +253,7 @@ func (c *PKCEHandler) HandleTokenEndpointRequest(ctx context.Context, requester 
 }
 
 // PopulateTokenEndpointResponse implements fosite.TokenEndpointHandler partially.
-func (c *PKCEHandler) PopulateTokenEndpointResponse(ctx context.Context, requester fosite.AccessRequester, responder fosite.AccessResponder) error {
+func (c *PKCEHandler) PopulateTokenEndpointResponse(ctx context.Context, requester fosite.AccessRequester, responder fosite.AccessResponder) (err error) {
 	return nil
 }
 

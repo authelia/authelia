@@ -84,7 +84,7 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 			return nil, err
 		}
 
-		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithWrap(err).WithDebug(err.Error()))
+		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 	}
 
 	if fclient, ok := client.(*FullClient); ok {
@@ -105,7 +105,7 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 	}
 
 	if err = p.checkClientSecret(ctx, client, []byte(clientSecret)); err != nil {
-		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithWrap(err).WithDebug(err.Error()))
+		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 	}
 
 	return client, nil
@@ -153,7 +153,7 @@ func (p *OpenIDConnectProvider) JWTBearerClientAuthenticationStrategy(ctx contex
 		case errors.Is(err, jwt.ErrTokenInvalidClaims):
 			return nil, errorsx.WithStack(rfc.WithDebug("The token claims are invalid."))
 		default:
-			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Unable to verify the integrity of the 'client_assertion' value.").WithWrap(err).WithDebug(err.Error()))
+			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Unable to verify the integrity of the 'client_assertion' value.").WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 		}
 	}
 
@@ -265,7 +265,7 @@ func (p *OpenIDConnectProvider) parseJWTAssertion(ctx context.Context, form url.
 				return nil, err
 			}
 
-			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithWrap(err).WithDebug(err.Error()))
+			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 		}
 
 		fclient, ok := client.(*FullClient)
@@ -442,7 +442,7 @@ func clientCredentialsFromRequest(header http.Header, form url.Values) (clientID
 
 	switch clientID, clientSecret, ok, err = clientCredentialsFromBasicAuth(header); {
 	case err != nil:
-		return "", "", "", errorsx.WithStack(fosite.ErrInvalidRequest.WithHint("The client credentials in the HTTP authorization header could not be parsed. Either the scheme was missing, the scheme was invalid, or the value had malformed data.").WithWrap(err).WithDebug(err.Error()))
+		return "", "", "", errorsx.WithStack(fosite.ErrInvalidRequest.WithHint("The client credentials in the HTTP authorization header could not be parsed. Either the scheme was missing, the scheme was invalid, or the value had malformed data.").WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 	case ok:
 		return clientID, clientSecret, ClientAuthMethodClientSecretBasic, nil
 	default:

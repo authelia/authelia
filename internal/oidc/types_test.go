@@ -6,10 +6,9 @@ import (
 	"testing"
 	"time"
 
-	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -146,26 +145,4 @@ func (m *MockCodeStrategy) GenerateAuthorizeCode(ctx context.Context, requester 
 
 func (m *MockCodeStrategy) ValidateAuthorizeCode(ctx context.Context, requester fosite.Requester, token string) (err error) {
 	return nil
-}
-
-type RFC6749ErrorTest struct {
-	*fosite.RFC6749Error
-}
-
-func (err *RFC6749ErrorTest) Error() string {
-	return err.WithExposeDebug(true).GetDescription()
-}
-
-func ErrorToRFC6749ErrorTest(err error) (rfc error) {
-	if err == nil {
-		return nil
-	}
-
-	var e *fosite.RFC6749Error
-
-	if errors.As(err, &e) {
-		return &RFC6749ErrorTest{e}
-	}
-
-	return err
 }

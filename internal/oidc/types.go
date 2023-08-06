@@ -131,6 +131,8 @@ type BaseClient struct {
 	UserinfoSigningAlg   string
 	UserinfoSigningKeyID string
 
+	RefreshFlowIgnoreOriginalGrantedScopes bool
+
 	AuthorizationPolicy ClientAuthorizationPolicy
 
 	ConsentPolicy ClientConsentPolicy
@@ -152,6 +154,7 @@ type FullClient struct {
 type Client interface {
 	fosite.Client
 	fosite.ResponseModeClient
+	RefreshFlowScopeClient
 
 	GetDescription() string
 	GetSecret() algorithm.Digest
@@ -179,6 +182,40 @@ type Client interface {
 	GetAuthorizationPolicy() ClientAuthorizationPolicy
 
 	GetEffectiveLifespan(gt fosite.GrantType, tt fosite.TokenType, fallback time.Duration) time.Duration
+}
+
+// RefreshFlowScopeClient is a client which can be customized to ignore scopes that were not originally granted.
+type RefreshFlowScopeClient interface {
+	GetRefreshFlowIgnoreOriginalGrantedScopes(ctx context.Context) (ignoreOriginalGrantedScopes bool)
+}
+
+// RefreshTokenAccessRequester is an extended AccessRequester implementation that allows preserving
+// the original Requester.
+type RefreshTokenAccessRequester interface {
+	// SanitizeRestoreRefreshTokenOriginalRequester returns a sanitized copy of this Requester and mutates the relevant
+	// values from the provided Requester which is the original refresh token session Requester.
+	SanitizeRestoreRefreshTokenOriginalRequester(requester fosite.Requester) fosite.Requester
+
+	fosite.AccessRequester
+}
+
+type RefreshTokenAccessRequest struct {
+	*fosite.AccessRequest
+}
+
+func (a *RefreshTokenAccessRequest) SanitizeRestoreRefreshTokenOriginalRequester(requester fosite.Requester) fosite.Requester {
+	r := a.Sanitize(nil).(*fosite.Request)
+
+	ar := &fosite.AccessRequest{
+		Request: *r,
+	}
+
+	ar.SetID(requester.GetID())
+
+	ar.SetRequestedScopes(requester.GetRequestedScopes())
+	ar.GrantedScope = requester.GetGrantedScopes()
+
+	return ar
 }
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.

@@ -114,7 +114,7 @@ func (s *ClientAuthenticationStrategySuite) GetBaseRequest(body io.Reader) (r *h
 
 	r, err = http.NewRequest(http.MethodPost, s.GetTokenURL().String(), body)
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotNil(r)
 
 	r.Header.Set(fasthttp.HeaderContentType, "application/x-www-form-urlencoded")
@@ -611,7 +611,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateAssertionHS256() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -632,7 +632,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateAssertionHS256() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
 
-	s.NoError(ErrorToRFC6749ErrorTest(err))
+	s.NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotNil(client)
 	s.Equal("hs256", client.GetID())
 }
@@ -644,7 +644,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateAssertionHS384() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -665,7 +665,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateAssertionHS384() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
 
-	s.NoError(ErrorToRFC6749ErrorTest(err))
+	s.NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotNil(client)
 	s.Equal("hs384", client.GetID())
 }
@@ -677,7 +677,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateAssertionHS512() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -698,7 +698,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateAssertionHS512() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
 
-	s.NoError(ErrorToRFC6749ErrorTest(err))
+	s.NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotNil(client)
 	s.Equal("hs512", client.GetID())
 }
@@ -710,14 +710,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnMismatchedAsse
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). This requested OAuth 2.0 client supports client authentication method 'private_key_jwt', however the 'HS512' JWA is not supported with this method.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). This requested OAuth 2.0 client supports client authentication method 'private_key_jwt', however the 'HS512' JWA is not supported with this method.")
 	s.Nil(client)
 }
 
@@ -728,14 +728,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnInvalidIssuerV
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'iss' from 'client_assertion' is invalid.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'iss' from 'client_assertion' is invalid.")
 	s.Nil(client)
 }
 
@@ -746,14 +746,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnInvalidSubject
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'sub' from 'client_assertion' is invalid.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'sub' from 'client_assertion' is invalid.")
 	s.Nil(client)
 }
 
@@ -766,14 +766,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnInvalidJTIValu
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'jti' from 'client_assertion' is invalid.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'jti' from 'client_assertion' is invalid.")
 	s.Nil(client)
 }
 
@@ -784,14 +784,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnMismatchedAsse
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). This requested OAuth 2.0 client supports client authentication method 'client_secret_jwt', however the 'PS256' JWA is not supported with this method.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). This requested OAuth 2.0 client supports client authentication method 'client_secret_jwt', however the 'PS256' JWA is not supported with this method.")
 	s.Nil(client)
 }
 
@@ -802,14 +802,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnMismatchedAlg(
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The 'client_assertion' uses signing algorithm 'PS256' but the requested OAuth 2.0 Client enforces signing algorithm 'RS256'.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The 'client_assertion' uses signing algorithm 'PS256' but the requested OAuth 2.0 Client enforces signing algorithm 'RS256'.")
 	s.Nil(client)
 }
 
@@ -820,7 +820,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnClientAssertio
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -828,7 +828,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnClientAssertio
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The client_secret request parameter must not be set when using client_assertion_type of 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The client_secret request parameter must not be set when using client_assertion_type of 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'.")
 	s.Nil(client)
 }
 
@@ -839,7 +839,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnClientAssertio
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -847,7 +847,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnClientAssertio
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The Authorization request header must not be set when using client_assertion_type of 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The Authorization request header must not be set when using client_assertion_type of 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'.")
 	s.Nil(client)
 }
 
@@ -858,14 +858,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnMismatchedAlgS
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The 'client_assertion' uses signing algorithm 'HS512' but the requested OAuth 2.0 Client enforces signing algorithm 'HS256'.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The 'client_assertion' uses signing algorithm 'HS512' but the requested OAuth 2.0 Client enforces signing algorithm 'HS256'.")
 	s.Nil(client)
 }
 
@@ -876,14 +876,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
 	s.Nil(client)
 }
 
@@ -894,14 +894,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnBadAlgRS256() 
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = rs256
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The 'client_assertion' uses signing algorithm 'PS256' but the requested OAuth 2.0 Client enforces signing algorithm 'RS256'.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The 'client_assertion' uses signing algorithm 'PS256' but the requested OAuth 2.0 Client enforces signing algorithm 'RS256'.")
 	s.Nil(client)
 }
 
@@ -912,14 +912,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnBadKidRS256() 
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "nokey"
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The JSON Web Token uses signing key with kid 'nokey', which could not be found.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The JSON Web Token uses signing key with kid 'nokey', which could not be found.")
 	s.Nil(client)
 }
 
@@ -930,14 +930,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnBadTypRS256() 
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = rs256
 
 	token, err := assertionJWT.SignedString(keyECDSAP256)
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The 'client_assertion' uses signing algorithm 'ES256' but the requested OAuth 2.0 Client enforces signing algorithm 'RS256'.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The 'client_assertion' uses signing algorithm 'ES256' but the requested OAuth 2.0 Client enforces signing algorithm 'RS256'.")
 	s.Nil(client)
 }
 
@@ -948,7 +948,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysRS256() {
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = rs256
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -969,7 +969,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysRS256() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(ErrorToRFC6749ErrorTest(err))
+	s.NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotNil(client)
 
 	s.Equal("rs256k", client.GetID())
@@ -982,14 +982,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
 	s.Nil(client)
 }
 
@@ -1000,7 +1000,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysRS384() {
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "rs384"
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1021,7 +1021,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysRS384() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(ErrorToRFC6749ErrorTest(err))
+	s.NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotNil(client)
 
 	s.Equal("rs384k", client.GetID())
@@ -1034,14 +1034,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
 	s.Nil(client)
 }
 
@@ -1052,7 +1052,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysRS512() {
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "rs512"
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1073,7 +1073,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysRS512() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(ErrorToRFC6749ErrorTest(err))
+	s.NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotNil(client)
 
 	s.Equal("rs512k", client.GetID())
@@ -1086,14 +1086,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
 	s.Nil(client)
 }
 
@@ -1104,7 +1104,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysPS256() {
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "ps256"
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1125,7 +1125,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysPS256() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(ErrorToRFC6749ErrorTest(err))
+	s.NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotNil(client)
 
 	s.Equal("ps256k", client.GetID())
@@ -1138,14 +1138,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
 	s.Nil(client)
 }
 
@@ -1156,7 +1156,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysPS384() {
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "ps384"
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1177,7 +1177,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysPS384() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(ErrorToRFC6749ErrorTest(err))
+	s.NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotNil(client)
 
 	s.Equal("ps384k", client.GetID())
@@ -1190,14 +1190,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
 	s.Nil(client)
 }
 
@@ -1208,7 +1208,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysPS512() {
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "ps512"
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1229,7 +1229,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysPS512() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(ErrorToRFC6749ErrorTest(err))
+	s.NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotNil(client)
 
 	s.Equal("ps512k", client.GetID())
@@ -1242,14 +1242,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	token, err := assertionJWT.SignedString(keyECDSAP256)
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
 	s.Nil(client)
 }
 
@@ -1261,7 +1261,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES256() {
 
 	token, err := assertionJWT.SignedString(keyECDSAP256)
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1282,7 +1282,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES256() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(ErrorToRFC6749ErrorTest(err))
+	s.NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotNil(client)
 
 	s.Equal("es256k", client.GetID())
@@ -1295,14 +1295,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	token, err := assertionJWT.SignedString(keyECDSAP384)
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
 	s.Nil(client)
 }
 
@@ -1313,7 +1313,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES384() {
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "es384"
 
 	token, err := assertionJWT.SignedString(keyECDSAP384)
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1334,7 +1334,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES384() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(ErrorToRFC6749ErrorTest(err))
+	s.NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotNil(client)
 
 	s.Equal("es384k", client.GetID())
@@ -1347,14 +1347,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	token, err := assertionJWT.SignedString(keyECDSAP521)
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client has no JSON Web Keys set registered, but they are needed to complete the request.")
 	s.Nil(client)
 }
 
@@ -1365,7 +1365,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES512() {
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = es512
 
 	token, err := assertionJWT.SignedString(keyECDSAP521)
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1386,7 +1386,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES512() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(ErrorToRFC6749ErrorTest(err))
+	s.NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotNil(client)
 
 	s.Equal("es512k", client.GetID())
@@ -1399,14 +1399,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailKeysES512Enc() {
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = es512
 
 	token, err := assertionJWT.SignedString(keyECDSAP521)
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Unable to find ECDSA public key with a 'use' value of 'sig' for kid 'es512' in JSON Web Key Set.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Unable to find ECDSA public key with a 'use' value of 'sig' for kid 'es512' in JSON Web Key Set.")
 	s.Require().Nil(client)
 }
 
@@ -1417,14 +1417,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailKeysRS256MismatchedKID
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = es512
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Unable to find RSA public key with a 'use' value of 'sig' for kid 'es512' in JSON Web Key Set.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Unable to find RSA public key with a 'use' value of 'sig' for kid 'es512' in JSON Web Key Set.")
 	s.Require().Nil(client)
 }
 
@@ -1435,14 +1435,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithoutKeys() {
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "rs256"
 
 	token, err := assertionJWT.SignedString(keyRSA2048)
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The retrieved JSON Web Key Set does not contain any key.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The retrieved JSON Web Key Set does not contain any key.")
 	s.Require().Nil(client)
 }
 
@@ -1453,7 +1453,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnJTIKnown() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1474,7 +1474,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnJTIKnown() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "The jti was already used.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "The jti was already used.")
 	s.Nil(client)
 }
 
@@ -1488,7 +1488,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateJWTWithArbitraryCl
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1509,7 +1509,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateJWTWithArbitraryCl
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
 
-	s.NoError(ErrorToRFC6749ErrorTest(err))
+	s.NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotNil(client)
 	s.Equal("hs512", client.GetID())
 }
@@ -1524,14 +1524,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMissingSubClaim() 
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'sub' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client. The claim 'sub' with value '' did not match the 'client_id' with value 'hs512'.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'sub' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client. The claim 'sub' with value '' did not match the 'client_id' with value 'hs512'.")
 	s.Nil(client)
 }
 
@@ -1545,14 +1545,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithInvalidExpClaim() 
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Unable to verify the integrity of the 'client_assertion' value. The token claims are invalid.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Unable to verify the integrity of the 'client_assertion' value. The token claims are invalid.")
 	s.Nil(client)
 }
 
@@ -1566,14 +1566,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMissingIssClaim() 
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'iss' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client. The claim 'iss' with value '' did not match the 'client_id' with value 'hs512'.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'iss' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client. The claim 'iss' with value '' did not match the 'client_id' with value 'hs512'.")
 	s.Nil(client)
 }
 
@@ -1586,7 +1586,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithInvalidAudClaim() 
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1607,7 +1607,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithInvalidAudClaim() 
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'aud' from 'client_assertion' must match the authorization server's token endpoint 'https://auth.example.com/api/oidc/token'.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'aud' from 'client_assertion' must match the authorization server's token endpoint 'https://auth.example.com/api/oidc/token'.")
 	s.Nil(client)
 }
 
@@ -1618,7 +1618,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithInvalidAssertionTy
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	v := s.GetAssertionValues(token)
@@ -1629,7 +1629,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithInvalidAssertionTy
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Unknown client_assertion_type 'not_valid'.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Unknown client_assertion_type 'not_valid'.")
 	s.Nil(client)
 }
 
@@ -1643,14 +1643,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMissingJTIClaim() 
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'jti' from 'client_assertion' must be set but it is not.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'jti' from 'client_assertion' must be set but it is not.")
 	s.Nil(client)
 }
 
@@ -1663,14 +1663,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMismatchedIssClaim
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'iss' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client. The claim 'iss' with value 'hs256' did not match the 'client_id' with value 'hs512'.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'iss' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client. The claim 'iss' with value 'hs256' did not match the 'client_id' with value 'hs512'.")
 	s.Nil(client)
 }
 
@@ -1679,7 +1679,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateClientSecretPost()
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(ErrorToRFC6749ErrorTest(err))
+	s.NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotNil(client)
 	s.Equal(oidc.ClientAuthMethodClientSecretPost, client.GetID())
 }
@@ -1690,7 +1690,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldErrorClientSecretPostOnCli
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client supports client authentication method 'client_secret_basic', but method 'client_secret_post' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'client_secret_post'.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client supports client authentication method 'client_secret_basic', but method 'client_secret_post' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'client_secret_post'.")
 	s.Nil(client)
 }
 
@@ -1700,7 +1700,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldErrorClientSecretPostWrong
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The provided client secret did not match the registered client secret.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The provided client secret did not match the registered client secret.")
 	s.Nil(client)
 }
 
@@ -1709,7 +1709,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateClientSecretBasic(
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(ErrorToRFC6749ErrorTest(err))
+	s.NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotNil(client)
 	s.Equal(oidc.ClientAuthMethodClientSecretBasic, client.GetID())
 }
@@ -1720,7 +1720,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnClientSecretPo
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
 	s.EqualError(err, "invalid_request")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Client credentials missing or malformed in both HTTP Authorization header and HTTP POST body.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Client credentials missing or malformed in both HTTP Authorization header and HTTP POST body.")
 	s.Nil(client)
 }
 
@@ -1730,7 +1730,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldHandleBasicAuth() {
 	r.Header.Set(fasthttp.HeaderAuthorization, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte("client_secret_basic:client-secret"))))
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(ErrorToRFC6749ErrorTest(err))
+	s.NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotNil(client)
 	s.Equal("client_secret_basic", client.GetID())
 }
@@ -1781,7 +1781,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldErrorClientSecretBasicOnCl
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client supports client authentication method 'client_secret_post', but method 'client_secret_basic' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'client_secret_basic'.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client supports client authentication method 'client_secret_post', but method 'client_secret_basic' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'client_secret_basic'.")
 	s.Nil(client)
 }
 
@@ -1791,7 +1791,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldErrorClientSecretBasicWron
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The provided client secret did not match the registered client secret.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The provided client secret did not match the registered client secret.")
 	s.Nil(client)
 }
 
@@ -1801,7 +1801,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldErrorClientSecretBasicOnPu
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client supports client authentication method 'none', but method 'client_secret_basic' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'client_secret_basic'.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client supports client authentication method 'none', but method 'client_secret_basic' was requested. You must configure the OAuth 2.0 client's 'token_endpoint_auth_method' value to accept 'client_secret_basic'.")
 	s.Nil(client)
 }
 
@@ -1811,7 +1811,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldErrorClientSecretBasicOnPu
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client is not a confidential client however the client authentication method 'client_secret_basic' was used which is not permitted as it's only permitted on confidential clients.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client is not a confidential client however the client authentication method 'client_secret_basic' was used which is not permitted as it's only permitted on confidential clients.")
 	s.Nil(client)
 }
 
@@ -1821,7 +1821,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldErrorClientSecretPostOnPub
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client is not a confidential client however the client authentication method 'client_secret_post' was used which is not permitted as it's only permitted on confidential clients.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client is not a confidential client however the client authentication method 'client_secret_post' was used which is not permitted as it's only permitted on confidential clients.")
 	s.Nil(client)
 }
 
@@ -1831,7 +1831,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldErrorNoneOnConfidentialWit
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client is a confidential client however the client authentication method 'none' was used which is not permitted as it's not permitted on confidential clients.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). The OAuth 2.0 Client is a confidential client however the client authentication method 'none' was used which is not permitted as it's not permitted on confidential clients.")
 	s.Nil(client)
 }
 
@@ -1841,7 +1841,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldErrorClientSecretBasicOnIn
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Client with id 'not-a-client' does not appear to be a registered client.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Client with id 'not-a-client' does not appear to be a registered client.")
 	s.Nil(client)
 }
 
@@ -1852,7 +1852,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidatePublic() {
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.NoError(ErrorToRFC6749ErrorTest(err))
+	s.NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotNil(client)
 	s.Equal("public", client.GetID())
 }
@@ -1866,7 +1866,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMismatchedFormClie
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	values := s.GetAssertionValues(token)
@@ -1877,7 +1877,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMismatchedFormClie
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'sub' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client. The claim 'sub' with value 'hs512' did not match the 'client_id' with value 'hs5122'.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'sub' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client. The claim 'sub' with value 'hs512' did not match the 'client_id' with value 'hs5122'.")
 	s.Nil(client)
 }
 
@@ -1888,7 +1888,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMismatchedFormClie
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	values := s.GetAssertionValues(token)
@@ -1899,7 +1899,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMismatchedFormClie
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'iss' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client. The claim 'iss' with value 'hs512' did not match the 'client_id' with value 'hs5122'.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Claim 'iss' from 'client_assertion' must match the 'client_id' of the OAuth 2.0 Client. The claim 'iss' with value 'hs512' did not match the 'client_id' with value 'hs5122'.")
 	s.Nil(client)
 }
 
@@ -1910,14 +1910,14 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithMissingClient() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(s.GetCtx(), r, r.PostForm)
 
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Client with id 'noclient' does not appear to be a registered client.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Client with id 'noclient' does not appear to be a registered client.")
 	s.Nil(client)
 }
 
@@ -1928,7 +1928,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailBadSecret() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret-wrong"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1938,7 +1938,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailBadSecret() {
 	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Unable to verify the integrity of the 'client_assertion' value. The signature is invalid.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Unable to verify the integrity of the 'client_assertion' value. The signature is invalid.")
 	s.Nil(client)
 }
 
@@ -1949,7 +1949,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailMethodNone() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1959,7 +1959,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailMethodNone() {
 	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). This requested OAuth 2.0 client does not support client authentication, however 'client_assertion' was provided in the request.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). This requested OAuth 2.0 client does not support client authentication, however 'client_assertion' was provided in the request.")
 	s.Nil(client)
 }
 
@@ -1970,7 +1970,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailAssertionMethodClientS
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -1980,7 +1980,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailAssertionMethodClientS
 	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). This requested OAuth 2.0 client only supports client authentication method 'client_secret_post', however 'client_assertion' was provided in the request.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). This requested OAuth 2.0 client only supports client authentication method 'client_secret_post', however 'client_assertion' was provided in the request.")
 	s.Nil(client)
 }
 
@@ -1991,7 +1991,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailAssertionMethodBad() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -2001,7 +2001,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailAssertionMethodBad() {
 	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). This requested OAuth 2.0 client only supports client authentication method 'bad_method', however that method is not supported by this server.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). This requested OAuth 2.0 client only supports client authentication method 'bad_method', however that method is not supported by this server.")
 	s.Nil(client)
 }
 
@@ -2012,7 +2012,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailAssertionBaseClient() 
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -2022,7 +2022,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailAssertionBaseClient() 
 	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
 
 	s.EqualError(err, "invalid_request")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The client configuration does not support OpenID Connect specific authentication methods.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The client configuration does not support OpenID Connect specific authentication methods.")
 	s.Nil(client)
 }
 
@@ -2033,7 +2033,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailAssertionMethodClientS
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -2043,7 +2043,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailAssertionMethodClientS
 	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). This requested OAuth 2.0 client only supports client authentication method 'client_secret_basic', however 'client_assertion' was provided in the request.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). This requested OAuth 2.0 client only supports client authentication method 'client_secret_basic', however 'client_assertion' was provided in the request.")
 	s.Nil(client)
 }
 
@@ -2054,7 +2054,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailHashedSecret() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -2064,7 +2064,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailHashedSecret() {
 	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). This client does not support authentication method 'client_secret_jwt' as the client secret is not in plaintext.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). This client does not support authentication method 'client_secret_jwt' as the client secret is not in plaintext.")
 	s.Nil(client)
 }
 
@@ -2075,7 +2075,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailExpiredToken() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -2085,7 +2085,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailExpiredToken() {
 	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Unable to verify the integrity of the 'client_assertion' value. The token is expired.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Unable to verify the integrity of the 'client_assertion' value. The token is expired.")
 	s.Nil(client)
 }
 
@@ -2098,7 +2098,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailNotYetValid() {
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -2110,7 +2110,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailNotYetValid() {
 	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Unable to verify the integrity of the 'client_assertion' value. The token isn't valid yet.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Unable to verify the integrity of the 'client_assertion' value. The token isn't valid yet.")
 	s.Nil(client)
 }
 
@@ -2121,7 +2121,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailTokenUsedBeforeIssued(
 
 	token, err := assertionJWT.SignedString([]byte("client-secret"))
 
-	s.Require().NoError(ErrorToRFC6749ErrorTest(err))
+	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
 	r := s.GetAssertionRequest(token)
@@ -2131,7 +2131,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailTokenUsedBeforeIssued(
 	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Unable to verify the integrity of the 'client_assertion' value. The token was used before it was issued.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Unable to verify the integrity of the 'client_assertion' value. The token was used before it was issued.")
 	s.Nil(client)
 }
 
@@ -2143,7 +2143,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailMalformed() {
 	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
 
 	s.EqualError(err, "invalid_client")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Unable to verify the integrity of the 'client_assertion' value. The token is malformed.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method). Unable to verify the integrity of the 'client_assertion' value. The token is malformed.")
 	s.Nil(client)
 }
 
@@ -2155,7 +2155,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailMissingAssertion() {
 	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
 
 	s.EqualError(err, "invalid_request")
-	s.EqualError(ErrorToRFC6749ErrorTest(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The 'client_assertion' request parameter must be set when using 'client_assertion_type' of 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'.")
+	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The 'client_assertion' request parameter must be set when using 'client_assertion_type' of 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'.")
 	s.Nil(client)
 }
 
