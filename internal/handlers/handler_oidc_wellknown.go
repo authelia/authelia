@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"net/url"
+
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -13,10 +15,22 @@ import (
 //
 // OpenID Connect Discovery 1.0 (https://openid.net/specs/openid-connect-discovery-1_0.html)
 func OpenIDConnectConfigurationWellKnownGET(ctx *middlewares.AutheliaCtx) {
-	if err := ctx.ReplyJSON(ctx.Providers.OpenIDConnect.GetOpenIDConnectWellKnownConfiguration(ctx.RootURL().String()), fasthttp.StatusOK); err != nil {
-		ctx.Logger.Errorf("Error occurred in JSON encode: %+v", err)
+	var (
+		issuer *url.URL
+		err    error
+	)
 
-		// TODO: Determine if this is the appropriate error code here.
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred determining issuer")
+
+		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
+
+		return
+	}
+
+	if err = ctx.ReplyJSON(ctx.Providers.OpenIDConnect.GetOpenIDConnectWellKnownConfiguration(issuer.String()), fasthttp.StatusOK); err != nil {
+		ctx.Logger.WithError(err).Error("Error occurred encoding JSON response")
+
 		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
 
 		return
@@ -30,10 +44,22 @@ func OpenIDConnectConfigurationWellKnownGET(ctx *middlewares.AutheliaCtx) {
 //
 // RFC8414: OAuth 2.0 Authorization Server Metadata (https://datatracker.ietf.org/doc/html/rfc8414)
 func OAuthAuthorizationServerWellKnownGET(ctx *middlewares.AutheliaCtx) {
-	if err := ctx.ReplyJSON(ctx.Providers.OpenIDConnect.GetOAuth2WellKnownConfiguration(ctx.RootURL().String()), fasthttp.StatusOK); err != nil {
-		ctx.Logger.Errorf("Error occurred in JSON encode: %+v", err)
+	var (
+		issuer *url.URL
+		err    error
+	)
 
-		// TODO: Determine if this is the appropriate error code here.
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred determining issuer")
+
+		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
+
+		return
+	}
+
+	if err = ctx.ReplyJSON(ctx.Providers.OpenIDConnect.GetOAuth2WellKnownConfiguration(issuer.String()), fasthttp.StatusOK); err != nil {
+		ctx.Logger.WithError(err).Error("Error occurred encoding JSON response")
+
 		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
 
 		return
