@@ -9,8 +9,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ory/fosite"
-
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -115,24 +113,6 @@ func MustLoadRSAPrivateKey(bits string, extra ...string) *rsa.PrivateKey {
 	}
 
 	return key
-}
-
-type RFC6749ErrorTest struct {
-	*fosite.RFC6749Error
-}
-
-func (err *RFC6749ErrorTest) Error() string {
-	return err.WithExposeDebug(true).GetDescription()
-}
-
-func ErrorToRFC6749ErrorTest(err error) (rfc error) {
-	if err == nil {
-		return nil
-	}
-
-	ferr := fosite.ErrorToRFC6749Error(err)
-
-	return &RFC6749ErrorTest{ferr}
 }
 
 var (

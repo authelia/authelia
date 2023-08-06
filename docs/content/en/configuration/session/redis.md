@@ -182,9 +182,8 @@ is useful if there are long delays in establishing connections.
 
 ### tls
 
-*__Reference Note:__ This configuration option uses the
-[TLS configuration common structure](../prologue/common.md#tls-configuration). Please see the
-[documentation](../prologue/common.md#tls-configuration) on this structure for more information.*
+{{< confkey type="structure" required="no" >}}
+{{< ref-common ref="tls" description="Common Structure: TLS" text="This option uses a common structure. " >}}
 
 If defined enables connecting to [redis] over a TLS socket, and additionally controls the TLS connection
 validation parameters.

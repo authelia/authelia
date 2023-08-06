@@ -50,9 +50,7 @@ required.
 ### address
 
 {{< confkey type="address" default="udp://time.cloudflare.com:123" required="no" >}}
-
-*__Reference Note:__ This configuration option uses the [address common syntax](../prologue/common.md#address). Please
-see the [documentation](../prologue/common.md#address) on this format for more information.*
+{{< ref-common ref="address" description="Common Syntax: Address" text="This option uses a common syntax. " >}}
 
 Configures the address for the NTP Server. The address itself is a connector and the scheme must be `udp`,
 `udp4`, or `udp6`.
@@ -78,9 +76,7 @@ Determines the NTP version supported. Valid values are 3 or 4.
 ### max_desync
 
 {{< confkey type="duration" default="3s" required="no" >}}
-
-*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
-Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
+{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
 
 This is used to tune the acceptable desync from the time reported from the NTP server.
 
