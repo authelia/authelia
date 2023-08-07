@@ -96,7 +96,7 @@
     "prettier": "3.0.1",
     "react-test-renderer": "18.2.0",
     "typescript": "5.1.6",
-    "vite": "4.4.8",
+    "vite": "4.4.9",
     "vite-plugin-eslint": "1.8.1",
     "vite-plugin-istanbul": "5.0.0",
     "vite-plugin-svgr": "3.2.0",
