@@ -51,6 +51,7 @@ var Keys = []string{
 	"identity_providers.oidc.clients[].lifespan",
 	"identity_providers.oidc.clients[].consent_mode",
 	"identity_providers.oidc.clients[].pre_configured_consent_duration",
+	"identity_providers.oidc.clients[].client_credentials_flow_grant_all_scopes_when_omitted",
 	"identity_providers.oidc.clients[].enforce_par",
 	"identity_providers.oidc.clients[].enforce_pkce",
 	"identity_providers.oidc.clients[].pkce_challenge_method",

@@ -205,6 +205,8 @@ const (
 		"%s but it's configured as '%s'"
 	errFmtOIDCClientInvalidEntries = "identity_providers: oidc: clients: client '%s': option '%s' must only have the values " +
 		"%s but the values %s are present"
+	errFmtOIDCClientInvalidEntriesClientCredentials = "identity_providers: oidc: clients: client '%s': option 'scopes' has the values " +
+		"%s however when exclusively utilizing the 'client_credentials' value for the 'grant_types' the values %s are not allowed"
 	errFmtOIDCClientInvalidEntryDuplicates = "identity_providers: oidc: clients: client '%s': option '%s' must have unique values but the values %s are duplicated"
 	errFmtOIDCClientInvalidValue           = "identity_providers: oidc: clients: client '%s': option " +
 		"'%s' must be one of %s but it's configured as '%s'"

@@ -122,6 +122,8 @@ type OpenIDConnectClient struct {
 	ConsentMode                  string         `koanf:"consent_mode"`
 	ConsentPreConfiguredDuration *time.Duration `koanf:"pre_configured_consent_duration"`
 
+	ClientCredentialsFlowGrantAllScopesWhenOmitted bool `koanf:"client_credentials_flow_grant_all_scopes_when_omitted"`
+
 	EnforcePAR  bool `koanf:"enforce_par"`
 	EnforcePKCE bool `koanf:"enforce_pkce"`
 

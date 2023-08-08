@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/google/uuid"
 	"github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -259,7 +258,7 @@ func (s *StoreSuite) TestClientAssertionJWTValid() {
 }
 
 func (s *StoreSuite) TestCreateSessions() {
-	challenge := uuid.Must(uuid.NewRandom())
+	challenge := model.MustNullUUID(model.NewRandomNullUUID())
 	session := &model.OpenIDSession{
 		ChallengeID: challenge,
 	}
@@ -268,27 +267,27 @@ func (s *StoreSuite) TestCreateSessions() {
 	gomock.InOrder(
 		s.mock.
 			EXPECT().
-			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeAuthorizeCode, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData}).
+			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeAuthorizeCode, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
 			Return(nil),
 		s.mock.
 			EXPECT().
-			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeAuthorizeCode, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData}).
+			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeAuthorizeCode, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
 			Return(fmt.Errorf("duplicate key")),
 		s.mock.
 			EXPECT().
-			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeAccessToken, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData}).
+			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeAccessToken, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
 			Return(nil),
 		s.mock.
 			EXPECT().
-			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData}).
+			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
 			Return(nil),
 		s.mock.
 			EXPECT().
-			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeOpenIDConnect, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData}).
+			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeOpenIDConnect, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
 			Return(nil),
 		s.mock.
 			EXPECT().
-			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypePKCEChallenge, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData}).
+			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypePKCEChallenge, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
 			Return(nil),
 		s.mock.
 			EXPECT().
@@ -491,7 +490,7 @@ func (s *StoreSuite) TestRevokeSessions() {
 }
 
 func (s *StoreSuite) TestGetSessions() {
-	challenge := uuid.Must(uuid.NewRandom())
+	challenge := model.MustNullUUID(model.NewRandomNullUUID())
 	session := &model.OpenIDSession{
 		ChallengeID: challenge,
 		ClientID:    "hs256",

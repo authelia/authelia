@@ -2247,7 +2247,7 @@ func TestPKCEHandler_HandleAuthorizeEndpointRequest_Mock(t *testing.T) {
 		Request: fosite.Request{
 			Client: &fosite.DefaultClient{ID: "test"},
 			Form: url.Values{
-				oidc.FormParameterCodeChallenge: []string{verifier},
+				oidc.FormParameterCodeChallenge: []string{pkceVerifier},
 			},
 		},
 	}
@@ -2498,8 +2498,8 @@ func TestPKCEHandler_HandleTokenEndpointRequest(t *testing.T) {
 			false,
 			false,
 			oidc.PKCEChallengeMethodSHA256,
-			challenge,
-			verifier,
+			pkceChallenge,
+			pkceVerifier,
 			"code-0",
 			"The handler is not responsible for this request.",
 			clientConfidential,
@@ -2576,8 +2576,8 @@ func TestPKCEHandler_HandleTokenEndpointRequest(t *testing.T) {
 			true,
 			true,
 			oidc.PKCEChallengeMethodSHA256,
-			challenge,
-			verifier,
+			pkceChallenge,
+			pkceVerifier,
 			"code-6",
 			"",
 			clientConfidential,
@@ -2589,8 +2589,8 @@ func TestPKCEHandler_HandleTokenEndpointRequest(t *testing.T) {
 			true,
 			false,
 			oidc.PKCEChallengeMethodSHA256,
-			challenge,
-			verifier,
+			pkceChallenge,
+			pkceVerifier,
 			"code-7",
 			"",
 			clientConfidential,
@@ -2602,7 +2602,7 @@ func TestPKCEHandler_HandleTokenEndpointRequest(t *testing.T) {
 			true,
 			true,
 			oidc.PKCEChallengeMethodSHA256,
-			challenge,
+			pkceChallenge,
 			"jSfm3f5nS9eD4eYSHaeQxVBVKxXnfmbWAFQiiAdMAK98EhNifm",
 			"code-8",
 			"The provided authorization grant (e.g., authorization code, resource owner credentials) or refresh token is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client. The PKCE code challenge did not match the code verifier.",
@@ -2615,7 +2615,7 @@ func TestPKCEHandler_HandleTokenEndpointRequest(t *testing.T) {
 			true,
 			true,
 			oidc.PKCEChallengeMethodSHA256,
-			challenge,
+			pkceChallenge,
 			"aaaaaaaaaaaaa",
 			"code-9",
 			"The provided authorization grant (e.g., authorization code, resource owner credentials) or refresh token is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client. The PKCE code verifier must be at least 43 characters.",
@@ -2815,8 +2815,8 @@ func TestPKCEHandler_HandleTokenEndpointRequest_Mock(t *testing.T) {
 			true,
 			true,
 			oidc.PKCEChallengeMethodSHA256,
-			challenge,
-			verifier,
+			pkceChallenge,
+			pkceVerifier,
 			"The provided authorization grant (e.g., authorization code, resource owner credentials) or refresh token is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client. Unable to find initial PKCE data tied to this request. Could not find the requested resource(s). A bad error!",
 			client,
 		},
@@ -2830,8 +2830,8 @@ func TestPKCEHandler_HandleTokenEndpointRequest_Mock(t *testing.T) {
 			true,
 			true,
 			oidc.PKCEChallengeMethodSHA256,
-			challenge,
-			verifier,
+			pkceChallenge,
+			pkceVerifier,
 			"The authorization server encountered an unexpected condition that prevented it from fulfilling the request. A really bad error!",
 			client,
 		},
@@ -2846,8 +2846,8 @@ func TestPKCEHandler_HandleTokenEndpointRequest_Mock(t *testing.T) {
 			true,
 			true,
 			oidc.PKCEChallengeMethodSHA256,
-			challenge,
-			verifier,
+			pkceChallenge,
+			pkceVerifier,
 			"The authorization server encountered an unexpected condition that prevented it from fulfilling the request. Could not delete!",
 			client,
 		},
@@ -2893,6 +2893,6 @@ func TestPKCEHandler_HandleTokenEndpointRequest_Mock(t *testing.T) {
 }
 
 const (
-	challenge = "GM6jKJIR6JxgxU5m5Y79WzudqoNmo7PogrhI1_F8eGw"
-	verifier  = "Nt6MpT7QXtfme55cKv9b23KEAvSEHyjRVtQt5jcjUUmWU9bTzd"
+	pkceChallenge = "GM6jKJIR6JxgxU5m5Y79WzudqoNmo7PogrhI1_F8eGw"
+	pkceVerifier  = "Nt6MpT7QXtfme55cKv9b23KEAvSEHyjRVtQt5jcjUUmWU9bTzd"
 )

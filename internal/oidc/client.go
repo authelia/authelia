@@ -35,6 +35,8 @@ func NewClient(config schema.OpenIDConnectClient, c *schema.OpenIDConnect) (clie
 		ResponseTypes: config.ResponseTypes,
 		ResponseModes: []fosite.ResponseModeType{},
 
+		ClientCredentialsFlowGrantAllScopesWhenOmitted: config.ClientCredentialsFlowGrantAllScopesWhenOmitted,
+
 		EnforcePAR: config.EnforcePAR,
 
 		IDTokenSigningAlg:    config.IDTokenSigningAlg,

@@ -67,7 +67,7 @@ func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr [
 		},
 		Extra:       map[string]any{},
 		ClientID:    requester.GetClient().GetID(),
-		ChallengeID: consent.ChallengeID,
+		ChallengeID: model.NullUUID(consent.ChallengeID),
 	}
 
 	// Ensure required audience value of the client_id exists.
@@ -97,7 +97,7 @@ func PopulateClientCredentialsFlowSessionWithAccessRequest(ctx Context, request 
 		return fosite.ErrServerError.WithDebugf("Failed to get the client for the request.")
 	}
 
-	session.Subject = client.GetID()
+	session.Subject = ""
 	session.Claims.Subject = client.GetID()
 	session.ClientID = client.GetID()
 	session.DefaultSession.Claims.Issuer = issuer.String()
