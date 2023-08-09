@@ -170,7 +170,8 @@ or claims required which can be matched with the above guide.
 
 *__Important Note:__ It is recommended that this isn't configured at this time unless you know what you're doing.*
 
-The list of grant types this client is permitted to use in order to obtain access to the relevant tokens.
+The list of grant types this client is permitted to use in order to obtain access to the token endpoint to obtain the
+granted tokens.
 
 See the [Grant Types](../../../integration/openid-connect/introduction.md#grant-types) section of the
 [OpenID Connect 1.0 Integration Guide](../../../integration/openid-connect/introduction.md#grant-types) for more information.
@@ -190,7 +191,7 @@ See the [Response Types](../../../integration/openid-connect/introduction.md#res
 
 ### response_modes
 
-{{< confkey type="list(string)" default="form_post, query" required="no" >}}
+{{< confkey type="list(string)" default="form_post,query" required="no" >}}
 
 *__Important Note:__ It is recommended that this isn't configured at this time unless you know what you're doing.*
 
