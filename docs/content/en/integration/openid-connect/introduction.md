@@ -1,5 +1,5 @@
 ---
-title: "OpenID Connect"
+title: "OpenID Connect 1.0"
 description: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party"
 lead: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party."
 date: 2022-06-15T17:51:47+10:00
@@ -181,7 +181,7 @@ option.
 The following describes the supported response modes. See the [OAuth 2.0 Multiple Response Type Encoding Practices] for
 more technical information. The default response modes of a client is based on the [Response Types](#response-types)
 configuration. The value field is both the required value for the `response_mode` parameter in the authorization request
-and the [grant_types](../../configuration/identity-providers/openid-connect/clients.md#responsemodes) client
+and the [response_modes](../../configuration/identity-providers/openid-connect/clients.md#responsemodes) client
 configuration option.
 
 |         Name          |    Value    |
