@@ -1,6 +1,7 @@
 package oidc
 
 import (
+	"context"
 	"time"
 
 	"github.com/go-crypt/crypt/algorithm"
@@ -305,6 +306,19 @@ func (c *BaseClient) ValidateResponseModePolicy(r fosite.AuthorizeRequester) (er
 	}
 
 	return errorsx.WithStack(fosite.ErrUnsupportedResponseMode.WithHintf(`The request omitted the response_mode making the default response_mode "%s" based on the other authorization request parameters but registered OAuth 2.0 client doesn't support this response_mode`, m))
+}
+
+// GetRefreshFlowIgnoreOriginalGrantedScopes returns the value which indicates if the client should ignore the
+// originally granted scopes when the scope parameter is present. The specification requires that this is always false,
+// however some misbehaving clients may need this option.
+func (c *BaseClient) GetRefreshFlowIgnoreOriginalGrantedScopes(ctx context.Context) (ignoreOriginalGrantedScopes bool) {
+	return c.RefreshFlowIgnoreOriginalGrantedScopes
+}
+
+// GetClientCredentialsFlowGrantAllScopesWhenOmitted returns the value which indicates if the client should grant all
+// of it's authorized scopes during the client credentials flow.
+func (c *BaseClient) GetClientCredentialsFlowGrantAllScopesWhenOmitted(ctx context.Context) (grant bool) {
+	return c.ClientCredentialsFlowGrantAllScopesWhenOmitted
 }
 
 func (c *BaseClient) getGrantTypeLifespan(gt fosite.GrantType) (gtl schema.OpenIDConnectLifespanToken) {

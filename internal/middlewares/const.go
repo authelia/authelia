@@ -76,18 +76,21 @@ const (
 	queryArgToken       = "token"
 )
 
+const (
+	UserValueKeyBaseURL int8 = iota
+	UserValueKeyOpenIDConnectResponseModeFormPost
+)
+
+const (
+	UserValueRouterKeyExtAuthzPath = "extauthz"
+)
+
 var (
 	protoHTTPS = []byte(strProtoHTTPS)
 	protoHTTP  = []byte(strProtoHTTP)
 
 	qryArgRedirect    = []byte(queryArgRedirect)
 	qryArgAutheliaURL = []byte(queryArgAutheliaURL)
-
-	keyUserValueBaseURL   = []byte("base_url")
-	keyUserValueAuthzPath = []byte("authz_path")
-
-	// UserValueKeyFormPost is the User Value key where we indicate the form_post response mode.
-	UserValueKeyFormPost = []byte("form_post")
 
 	headerSeparator = []byte(", ")
 

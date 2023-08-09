@@ -319,8 +319,13 @@ func (s *Store) loadRequesterBySignature(ctx context.Context, sessionType storag
 		return nil, err
 	}
 
-	if !sessionModel.Active && sessionType == storage.OAuth2SessionTypeAuthorizeCode {
-		return r, fosite.ErrInvalidatedAuthorizeCode
+	if !sessionModel.Active {
+		switch sessionType {
+		case storage.OAuth2SessionTypeAuthorizeCode:
+			return r, fosite.ErrInvalidatedAuthorizeCode
+		default:
+			return r, fosite.ErrInactiveToken
+		}
 	}
 
 	return r, nil

@@ -115,9 +115,7 @@ This section describes the individual configuration options.
 ### address
 
 {{< confkey type="address" required="yes" >}}
-
-*__Reference Note:__ This configuration option uses the [address common syntax](../prologue/common.md#address). Please
-see the [documentation](../prologue/common.md#address) on this format for more information.*
+{{< ref-common ref="address" description="Common Syntax: Address" text="This option uses a common syntax. " >}}
 
 Configures the address for the SMTP Server. The address itself is a connector and the scheme must be `smtp`,
 `submission`, or `submissions`. The only difference between these schemes are the default ports and `submissions`
@@ -143,9 +141,7 @@ notifier:
 ### timeout
 
 {{< confkey type="duration" default="5s" required="no" >}}
-
-*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
-Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
+{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
 
 The SMTP connection timeout.
 
@@ -232,9 +228,8 @@ mixed emails which contain both HTML and text so this option is rarely necessary
 
 ### tls
 
-*__Reference Note:__ This configuration option uses the
-[TLS configuration common structure](../prologue/common.md#tls-configuration). Please see the
-[documentation](../prologue/common.md#tls-configuration) on this structure for more information.*
+{{< confkey type="structure" required="no" >}}
+{{< ref-common ref="tls" description="Common Structure: TLS" text="This option uses a common structure. " >}}
 
 Controls the TLS connection validation parameters for either StartTLS or the TLS socket.
 

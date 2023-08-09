@@ -27,7 +27,7 @@ import (
 )
 
 // Replacement for the default error handler in fasthttp.
-func handleError() func(ctx *fasthttp.RequestCtx, err error) {
+func handleError(cpath string) func(ctx *fasthttp.RequestCtx, err error) {
 	headerXForwardedFor := []byte(fasthttp.HeaderXForwardedFor)
 
 	getRemoteIP := func(ctx *fasthttp.RequestCtx) string {
@@ -51,25 +51,25 @@ func handleError() func(ctx *fasthttp.RequestCtx, err error) {
 		switch e := err.(type) {
 		case *fasthttp.ErrSmallBuffer:
 			statusCode = fasthttp.StatusRequestHeaderFieldsTooLarge
-			message = "Request from client exceeded the server buffer sizes."
+			message = fmt.Sprintf(errFmtMessageServerReadBuffer, cpath)
 		case *net.OpError:
 			if e.Timeout() {
 				statusCode = fasthttp.StatusRequestTimeout
-				message = "Request timeout occurred while handling request from client."
+				message = errMessageServerRequestTimeout
 			} else {
 				statusCode = fasthttp.StatusBadRequest
-				message = "An unknown network error occurred while handling a request from client."
+				message = errMessageServerNetwork
 			}
 		default:
 			statusCode = fasthttp.StatusBadRequest
-			message = "An unknown error occurred while handling a request from client."
+			message = errMessageServerGeneric
 		}
 
 		logging.Logger().WithFields(logrus.Fields{
-			"method":      string(ctx.Method()),
-			"path":        string(ctx.Path()),
-			"remote_ip":   getRemoteIP(ctx),
-			"status_code": statusCode,
+			logging.FieldMethod:     string(ctx.Method()),
+			logging.FieldPath:       string(ctx.Path()),
+			logging.FieldRemoteIP:   getRemoteIP(ctx),
+			logging.FieldStatusCode: statusCode,
 		}).WithError(err).Error(message)
 
 		handlers.SetStatusCodeResponse(ctx, statusCode)

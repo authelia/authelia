@@ -17,7 +17,7 @@ const (
 const (
 	pathAuthz           = "/api/authz"
 	pathAuthzLegacy     = "/api/verify"
-	pathParamAuthzEnvoy = "{authz_path:*}"
+	pathParamAuthzEnvoy = "{extauthz:*}"
 )
 
 var (
@@ -78,6 +78,13 @@ X_AUTHELIA_HEALTHCHECK_HOST=%s
 X_AUTHELIA_HEALTHCHECK_PORT=%d
 X_AUTHELIA_HEALTHCHECK_PATH=%s
 `
+
+const (
+	errFmtMessageServerReadBuffer  = "Request from client exceeded the server read buffer. The read buffer can be adjusted by modifying the '%s.buffers.read' configuration value."
+	errMessageServerRequestTimeout = "Request timeout occurred while handling request from client."
+	errMessageServerNetwork        = "An unknown network error occurred while handling a request from client."
+	errMessageServerGeneric        = "An unknown error occurred while handling a request from client."
+)
 
 const (
 	tmplCSPSwaggerNonce = "default-src 'self'; img-src 'self' https://validator.swagger.io data:; object-src 'none'; script-src 'self' 'unsafe-inline' 'nonce-%s'; style-src 'self' 'nonce-%s'; base-uri 'self'"

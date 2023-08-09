@@ -172,7 +172,7 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 			AccessTokenStorage:  store,
 			Config:              c,
 		},
-		&oauth2.ClientCredentialsGrantHandler{
+		&ClientCredentialsGrantHandler{
 			HandleHelper: &oauth2.HandleHelper{
 				AccessTokenStrategy: c.Strategy.Core,
 				AccessTokenStorage:  store,
@@ -180,7 +180,7 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 			},
 			Config: c,
 		},
-		&oauth2.RefreshTokenGrantHandler{
+		&RefreshTokenGrantHandler{
 			AccessTokenStrategy:    c.Strategy.Core,
 			RefreshTokenStrategy:   c.Strategy.Core,
 			TokenRevocationStorage: store,
@@ -513,7 +513,7 @@ func (c *Config) GetFormPostHTMLTemplate(ctx context.Context) (tmpl *template.Te
 
 // GetTokenURL returns the token URL.
 func (c *Config) GetTokenURL(ctx context.Context) (tokenURL string) {
-	if octx, ok := ctx.(OpenIDConnectContext); ok {
+	if octx, ok := ctx.(Context); ok {
 		switch issuerURL, err := octx.IssuerURL(); err {
 		case nil:
 			return strings.ToLower(issuerURL.JoinPath(EndpointPathToken).String())

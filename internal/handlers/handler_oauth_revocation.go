@@ -7,6 +7,7 @@ import (
 	"github.com/ory/fosite"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
 // OAuthRevocationPOST handles POST requests to the OAuth 2.0 Revocation endpoint.
@@ -27,9 +28,7 @@ func OAuthRevocationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r
 	ctx.Logger.Debugf("Revocation Request with id '%s' is being processed", requestID)
 
 	if err = ctx.Providers.OpenIDConnect.NewRevocationRequest(ctx, req); err != nil {
-		rfc := fosite.ErrorToRFC6749Error(err)
-
-		ctx.Logger.Errorf("Revocation Request with id '%s' failed with error: %s", requestID, rfc.WithExposeDebug(true).GetDescription())
+		ctx.Logger.Errorf("Revocation Request with id '%s' failed with error: %s", requestID, oidc.ErrorToDebugRFC6749Error(err))
 	}
 
 	ctx.Providers.OpenIDConnect.WriteRevocationResponse(ctx, rw, err)
