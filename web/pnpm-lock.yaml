@@ -63,8 +63,8 @@ dependencies:
     specifier: 18.2.0
     version: 18.2.0(react@18.2.0)
   react-i18next:
-    specifier: 13.1.0
-    version: 13.1.0(i18next@23.4.4)(react-dom@18.2.0)(react@18.2.0)
+    specifier: 13.1.1
+    version: 13.1.1(i18next@23.4.4)(react-dom@18.2.0)(react@18.2.0)
   react-loading:
     specifier: 2.0.3
     version: 2.0.3(prop-types@15.8.1)(react@18.2.0)
@@ -6839,8 +6839,8 @@ packages:
       react: 18.2.0
       scheduler: 0.23.0
 
-  /react-i18next@13.1.0(i18next@23.4.4)(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-TlDz4761vJe810o5nEzRkblfS0FQz+k9R5BLOPVhn0Ds6WMDcwGSMbU5fne9WSd4/vLgKg7fEJ7/JboWdmsHOw==}
+  /react-i18next@13.1.1(i18next@23.4.4)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-V81cspLxZd37/ltd8Md5Lz99cfeqIn7vJCAUsCXuaTi1vRPKVr0dWq1DhVFUJBHpAi3PJsmFAR3/YstpP+CDYg==}
     peerDependencies:
       i18next: '>= 23.2.3'
       react: '>= 16.8.0 || 18'
