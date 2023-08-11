@@ -115,6 +115,12 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnect) (config Ope
 					ClientAuthMethodNone,
 				},
 			},
+			OAuth2JWTIntrospectionResponseDiscoveryOptions: &OAuth2JWTIntrospectionResponseDiscoveryOptions{
+				IntrospectionSigningAlgValuesSupported: []string{
+					SigningAlgRSAUsingSHA256,
+					SigningAlgNone,
+				},
+			},
 			OAuth2PushedAuthorizationDiscoveryOptions: &OAuth2PushedAuthorizationDiscoveryOptions{
 				RequirePushedAuthorizationRequests: c.PAR.Enforce,
 			},
@@ -158,10 +164,15 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnect) (config Ope
 		if !utils.IsStringInSlice(alg, config.UserinfoSigningAlgValuesSupported) {
 			config.UserinfoSigningAlgValuesSupported = append(config.UserinfoSigningAlgValuesSupported, alg)
 		}
+
+		if !utils.IsStringInSlice(alg, config.IntrospectionSigningAlgValuesSupported) {
+			config.IntrospectionSigningAlgValuesSupported = append(config.IntrospectionSigningAlgValuesSupported, alg)
+		}
 	}
 
 	sort.Sort(SortedSigningAlgs(config.IDTokenSigningAlgValuesSupported))
 	sort.Sort(SortedSigningAlgs(config.UserinfoSigningAlgValuesSupported))
+	sort.Sort(SortedSigningAlgs(config.IntrospectionSigningAlgValuesSupported))
 
 	if c.EnablePKCEPlainChallenge {
 		config.CodeChallengeMethodsSupported = append(config.CodeChallengeMethodsSupported, PKCEChallengeMethodPlain)

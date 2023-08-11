@@ -150,3 +150,64 @@ type DebugRFC6749Error struct {
 func (err *DebugRFC6749Error) Error() string {
 	return err.WithExposeDebug(true).GetDescription()
 }
+
+// IntrospectionResponseToMap converts a fosite.IntrospectionResponder into a map[string]any which is used to either
+// respond to the introspection request with JSON or a JWT.
+func IntrospectionResponseToMap(response fosite.IntrospectionResponder) (aud []string, introspection map[string]any) {
+	introspection = map[string]any{
+		ClaimActive: false,
+	}
+
+	if response.IsActive() {
+		introspection[ClaimActive] = true
+
+		var (
+			extra fosite.ExtraClaimsSession
+			ok    bool
+		)
+
+		if extra, ok = response.GetAccessRequester().GetSession().(fosite.ExtraClaimsSession); ok {
+			claims := extra.GetExtraClaims()
+
+			for name, value := range claims {
+				switch name {
+				// We do not allow these to be set through extra claims.
+				case ClaimExpirationTime, ClaimClientIdentifier, ClaimScope, ClaimIssuedAt, ClaimSubject, ClaimAudience, ClaimUsername:
+					continue
+				default:
+					introspection[name] = value
+				}
+			}
+		}
+
+		if exp := response.GetAccessRequester().GetSession().GetExpiresAt(fosite.AccessToken); !exp.IsZero() {
+			introspection[ClaimExpirationTime] = exp.Unix()
+		}
+
+		if id := response.GetAccessRequester().GetClient().GetID(); id != "" {
+			introspection[ClaimClientIdentifier] = id
+		}
+
+		if scope := response.GetAccessRequester().GetGrantedScopes(); len(scope) > 0 {
+			introspection[ClaimScope] = strings.Join(scope, " ")
+		}
+
+		if rat := response.GetAccessRequester().GetRequestedAt(); !rat.IsZero() {
+			introspection[ClaimIssuedAt] = rat.Unix()
+		}
+
+		if sub := response.GetAccessRequester().GetSession().GetSubject(); sub != "" {
+			introspection[ClaimSubject] = sub
+		}
+
+		if aud = response.GetAccessRequester().GetGrantedAudience(); len(aud) > 0 {
+			introspection[ClaimAudience] = aud
+		}
+
+		if username := response.GetAccessRequester().GetSession().GetUsername(); username != "" {
+			introspection[ClaimUsername] = username
+		}
+	}
+
+	return aud, introspection
+}

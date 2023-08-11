@@ -37,7 +37,11 @@ const (
 	ClaimAuthorizedParty                     = "azp"
 	ClaimAuthenticationContextClassReference = "acr"
 	ClaimAuthenticationMethodsReference      = "amr"
-	ClaimClientIdentifier                    = "client_id"
+	ClaimClientIdentifier                    = clientid
+	ClaimScope                               = scope
+	ClaimActive                              = "active"
+	ClaimUsername                            = "username"
+	ClaimTokenIntrospection                  = "token_introspection"
 )
 
 const (
@@ -147,7 +151,7 @@ const (
 
 const (
 	FormParameterAuthorizationCode   = "code"
-	FormParameterClientID            = "client_id"
+	FormParameterClientID            = clientid
 	FormParameterClientSecret        = "client_secret"
 	FormParameterRequestURI          = "request_uri"
 	FormParameterResponseMode        = "response_mode"
@@ -156,7 +160,7 @@ const (
 	FormParameterCodeChallengeMethod = "code_challenge_method"
 	FormParameterClientAssertionType = "client_assertion_type"
 	FormParameterClientAssertion     = "client_assertion"
-	FormParameterScope               = "scope"
+	FormParameterScope               = scope
 	FormParameterRefreshToken        = refreshtoken
 )
 
@@ -184,6 +188,13 @@ const (
 
 	// JWTHeaderKeyAlgorithm is the JWT Header referencing the JWS Key algorithm used to sign a token.
 	JWTHeaderKeyAlgorithm = "alg"
+
+	// JWTHeaderKeyType is the JWT Header referencing the JWT type.
+	JWTHeaderKeyType = "typ"
+)
+
+const (
+	JWTHeaderTypeValueTokenIntrospectionJWT = "token-introspection+jwt"
 )
 
 const (
@@ -308,6 +319,8 @@ const (
 )
 
 const (
+	scope         = "scope"
+	clientid      = "client_id"
 	implicit      = "implicit"
 	explicit      = "explicit"
 	preconfigured = "pre-configured"

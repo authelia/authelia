@@ -58,6 +58,8 @@ var Keys = []string{
 	"identity_providers.oidc.clients[].id_token_signing_key_id",
 	"identity_providers.oidc.clients[].userinfo_signing_alg",
 	"identity_providers.oidc.clients[].userinfo_signing_key_id",
+	"identity_providers.oidc.clients[].introspection_signed_response_alg",
+	"identity_providers.oidc.clients[].introspection_signed_response_key_id",
 	"identity_providers.oidc.clients[].request_object_signing_alg",
 	"identity_providers.oidc.clients[].token_endpoint_auth_signing_alg",
 	"identity_providers.oidc.clients[].token_endpoint_auth_method",

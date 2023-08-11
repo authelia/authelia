@@ -294,8 +294,7 @@ The algorithm used to sign the ID Tokens in the token responses.
 
 See the response object section of the
 [integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information including
-the algorithm column for supported values. In addition to the values listed we also support `none` as a value for this
-endpoint.
+the algorithm column for supported values. This value can not be set to `none`.
 
 The algorithm chosen must have a key configured in the [issuer_private_keys](provider.md#issuerprivatekeys) section to
 be considered valid.
@@ -334,6 +333,33 @@ automatically assumed by the configured key.
 The key id of the JWK used to sign the userinfo endpoint responses in the token responses. This option takes precedence
 over  [userinfo_signing_alg](#userinfosigningalg). The value of this must one of those provided or calculated in the
 [issuer_private_keys](provider.md#issuerprivatekeys).
+
+### introspection_signed_response_alg
+
+{{< confkey type="string" default="none" required="no" >}}
+
+The algorithm used to sign the Introspection response. By default it is set to `none` which results in the response
+not being signed and the encoding being JSON.
+
+If configured to any other value the response is a JWT in the `application/token-introspection+jwt` format.
+
+See the response object section of the
+[integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information including
+the algorithm column for supported values.
+
+The algorithm chosen must have a key configured in the [issuer_private_keys](provider.md#issuerprivatekeys) section to
+be considered valid.
+
+This option has no effect if the [id_token_signing_key_id](#idtokensigningkid) is specified as the algorithm is
+automatically assumed by the configured key.
+
+### introspection_signed_response_key_id
+
+{{< confkey type="string" required="no" >}}
+
+The key id of the JWK used to sign the Introspection responses. This option takes precedence over
+[introspection_signed_response_alg](#introspectionsignedresponsealg). The value of this must one of those provided or
+calculated in the [issuer_private_keys](provider.md#issuerprivatekeys).
 
 ### request_object_signing_alg
 

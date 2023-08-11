@@ -465,6 +465,7 @@ const (
 	attrOIDCRedirectURIs        = "redirect_uris"
 	attrOIDCTokenAuthMethod     = "token_endpoint_auth_method"
 	attrOIDCUsrSigAlg           = "userinfo_signing_alg"
+	attrOIDCIntrospectionSigAlg = "introspection_signed_response_alg"
 	attrOIDCUsrSigKID           = "userinfo_signing_key_id"
 	attrOIDCIDTokenSigAlg       = "id_token_signing_alg"
 	attrOIDCIDTokenSigKID       = "id_token_signing_key_id"

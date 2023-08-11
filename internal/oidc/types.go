@@ -152,10 +152,12 @@ type BaseClient struct {
 
 	Lifespans schema.OpenIDConnectLifespan
 
-	IDTokenSigningAlg    string
-	IDTokenSigningKeyID  string
-	UserinfoSigningAlg   string
-	UserinfoSigningKeyID string
+	IDTokenSigningAlg                string
+	IDTokenSigningKeyID              string
+	UserinfoSigningAlg               string
+	UserinfoSigningKeyID             string
+	IntrospectionSignedResponseAlg   string
+	IntrospectionSignedResponseKeyID string
 
 	RefreshFlowIgnoreOriginalGrantedScopes bool
 
@@ -182,32 +184,35 @@ type Client interface {
 	fosite.ResponseModeClient
 	RefreshFlowScopeClient
 
-	GetDescription() string
-	GetSecret() algorithm.Digest
-	GetSectorIdentifier() string
-	GetConsentResponseBody(consent *model.OAuth2ConsentSession) ConsentGetResponseBody
+	GetDescription() (description string)
+	GetSecret() (secret algorithm.Digest)
+	GetSectorIdentifier() (sector string)
+	GetConsentResponseBody(consent *model.OAuth2ConsentSession) (body ConsentGetResponseBody)
 
-	GetIDTokenSigningAlg() string
-	GetIDTokenSigningKeyID() string
+	GetIDTokenSigningAlg() (alg string)
+	GetIDTokenSigningKeyID() (kid string)
 
-	GetUserinfoSigningAlg() string
-	GetUserinfoSigningKeyID() string
+	GetUserinfoSigningAlg() (alg string)
+	GetUserinfoSigningKeyID() (kid string)
 
-	GetPAREnforcement() bool
-	GetPKCEEnforcement() bool
-	GetPKCEChallengeMethodEnforcement() bool
-	GetPKCEChallengeMethod() string
+	GetIntrospectionSignedResponseAlg() (alg string)
+	GetIntrospectionSignedResponseKeyID() (kid string)
+
+	GetPAREnforcement() (enforce bool)
+	GetPKCEEnforcement() (enforce bool)
+	GetPKCEChallengeMethodEnforcement() (enforce bool)
+	GetPKCEChallengeMethod() (method string)
 
 	ValidatePKCEPolicy(r fosite.Requester) (err error)
 	ValidatePARPolicy(r fosite.Requester, prefix string) (err error)
 	ValidateResponseModePolicy(r fosite.AuthorizeRequester) (err error)
 
 	GetConsentPolicy() ClientConsentPolicy
-	IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) bool
-	GetAuthorizationPolicyRequiredLevel(subject authorization.Subject) authorization.Level
-	GetAuthorizationPolicy() ClientAuthorizationPolicy
+	IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) (sufficient bool)
+	GetAuthorizationPolicyRequiredLevel(subject authorization.Subject) (level authorization.Level)
+	GetAuthorizationPolicy() (policy ClientAuthorizationPolicy)
 
-	GetEffectiveLifespan(gt fosite.GrantType, tt fosite.TokenType, fallback time.Duration) time.Duration
+	GetEffectiveLifespan(gt fosite.GrantType, tt fosite.TokenType, fallback time.Duration) (lifespan time.Duration)
 }
 
 // RefreshFlowScopeClient is a client which can be customized to ignore scopes that were not originally granted.
