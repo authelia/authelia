@@ -39,8 +39,8 @@ dependencies:
     specifier: 1.4.0
     version: 1.4.0
   broadcast-channel:
-    specifier: 5.1.0
-    version: 5.1.0
+    specifier: 5.2.0
+    version: 5.2.0
   classnames:
     specifier: 2.3.2
     version: 2.3.2
@@ -1563,6 +1563,13 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.13.11
+
+  /@babel/runtime@7.22.10:
+    resolution: {integrity: sha512-21t/fkKLMZI4pqP2wlmsQAWnYW1PDyKyyUV4vCi+B25ydmdaYTKXPwCj0BzSUnZf4seIiYvSA3jcZ3gdsMFkLQ==}
+    engines: {node: '>=6.9.0'}
+    dependencies:
+      regenerator-runtime: 0.14.0
+    dev: false
 
   /@babel/runtime@7.22.5:
     resolution: {integrity: sha512-ecjvYlnAaZ/KVneE/OdKYBYfgXV3Ptu6zQWmgEF7vwKhQnvVS6bjMD2XYgj+SNvQ1GfK/pjgokfPkC/2CO8CuA==}
@@ -3828,10 +3835,10 @@ packages:
       fill-range: 7.0.1
     dev: true
 
-  /broadcast-channel@5.1.0:
-    resolution: {integrity: sha512-wAbP+mtQ28N+iX3scX6Q97UN39ER5jRWOtM3r1BNPLWFOMt3AGmwN9kS3fqwgaUW0tbWHRSfTpsT+pAvrzQz0Q==}
+  /broadcast-channel@5.2.0:
+    resolution: {integrity: sha512-6MUmM/qDuJrgkD/HVtJl6CSNVQ1ym5fyeXrZbaqkPQNw5g08RQyjPpMGvWZ6KXNz0fQOWPK0DAsUwZetX9630A==}
     dependencies:
-      '@babel/runtime': 7.21.0
+      '@babel/runtime': 7.22.10
       oblivious-set: 1.1.1
       p-queue: 6.6.2
       rimraf: 3.0.2
@@ -7008,6 +7015,10 @@ packages:
   /regenerator-runtime@0.13.11:
     resolution: {integrity: sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==}
 
+  /regenerator-runtime@0.14.0:
+    resolution: {integrity: sha512-srw17NI0TUWHuGa5CFGGmhfNIeja30WMBfbslPNhf6JrqQlLN5gcrvig1oqPxiVaXb0oW0XRKtH6Nngs5lKCIA==}
+    dev: false
+
   /regenerator-transform@0.15.1:
     resolution: {integrity: sha512-knzmNAcuyxV+gQCufkYcvOqX/qIIfHLv0u5x79kRxuGojfYVky1f15TzZEu2Avte8QGepvUNTnLskf8E6X6Vyg==}
     dependencies:
@@ -7091,6 +7102,7 @@ packages:
 
   /rimraf@3.0.2:
     resolution: {integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==}
+    hasBin: true
     dependencies:
       glob: 7.2.3
 
