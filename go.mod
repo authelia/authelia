@@ -1,6 +1,8 @@
 module github.com/authelia/authelia/v4
 
-go 1.20
+go 1.21
+
+toolchain go1.21.0
 
 require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
@@ -11,7 +13,7 @@ require (
 	github.com/fasthttp/session/v2 v2.5.1
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-asn1-ber/asn1-ber v1.5.4
-	github.com/go-crypt/crypt v0.2.11
+	github.com/go-crypt/crypt v0.2.12
 	github.com/go-ldap/ldap/v3 v3.4.5
 	github.com/go-rod/rod v0.114.2
 	github.com/go-sql-driver/mysql v1.7.1
@@ -70,7 +72,7 @@ require (
 	github.com/ecordell/optgen v0.0.6 // indirect
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
-	github.com/go-crypt/x v0.2.4 // indirect
+	github.com/go-crypt/x v0.2.6 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-webauthn/revoke v0.1.9 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
