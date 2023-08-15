@@ -42,7 +42,7 @@
     "build": "vite build",
     "coverage": "VITE_COVERAGE=true vite build",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
-    "test": "vitest run --coverage",
+    "test": "NODE_OPTIONS=--no-deprecation vitest run --coverage",
     "test:watch": "vitest --coverage",
     "test:preview": "vitest-preview",
     "report": "nyc report -r clover -r json -r lcov -r text"
