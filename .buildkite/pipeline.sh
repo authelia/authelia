@@ -53,6 +53,8 @@ steps:
       - "authelia-*.tar.gz"
       - "authelia-*.tar.gz.sha256"
     key: "unit-test"
+    env:
+      NODE_OPTIONS: "--no-deprecation"
     if: build.env("CI_BYPASS") != "true"
 
   - wait:
