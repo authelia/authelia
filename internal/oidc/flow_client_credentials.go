@@ -40,9 +40,7 @@ func (c *ClientCredentialsGrantHandler) HandleTokenEndpointRequest(ctx context.C
 	scopes := request.GetRequestedScopes()
 
 	if len(scopes) == 0 {
-		if clientCCFS, ok := client.(ClientCredentialsFlowScopeClient); ok && clientCCFS.GetClientCredentialsFlowGrantAllScopesWhenOmitted(ctx) {
-			scopes = clientCCFS.GetScopes()
-		}
+		scopes = client.GetScopes()
 	}
 
 	for _, scope := range scopes {

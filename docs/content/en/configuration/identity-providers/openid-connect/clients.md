@@ -54,7 +54,6 @@ identity_providers:
         lifespan: ''
         consent_mode: 'explicit'
         pre_configured_consent_duration: '1 week'
-        client_credentials_flow_grant_all_scopes_when_omitted: false
         enforce_par: false
         enforce_pkce: false
         pkce_challenge_method: 'S256'
@@ -166,8 +165,9 @@ documentation for the application you are trying to configure [OpenID Connect 1.
 or claims required which can be matched with the above guide.
 
 The scope values must be one of those documented in the
-[scope definitions](../../../integration/openid-connect/introduction.md#scope-definitions) with one exception. If the
-
+[scope definitions](../../../integration/openid-connect/introduction.md#scope-definitions) with the exception of when
+the configured [grant_types](#granttypes) includes the `client_credentials` grant in which case arbitrary scopes are
+also allowed,
 
 ### grant_types
 
@@ -260,13 +260,6 @@ Pre-configured consents are only valid if the subject, client id are exactly the
 match exactly with the granted scopes/audience.
 
 [consent_mode]: #consentmode
-
-### client_credentials_flow_grant_all_scopes_when_omitted
-
-{{< confkey type="boolean" default="false" required="no" >}}
-
-This configuration option ensures the provider grants all scopes the client is permitted to request when the scope
-parameter is omitted from the token access request.
 
 ### enforce_par
 

@@ -35,8 +35,6 @@ func NewClient(config schema.OpenIDConnectClient, c *schema.OpenIDConnect) (clie
 		ResponseTypes: config.ResponseTypes,
 		ResponseModes: []fosite.ResponseModeType{},
 
-		ClientCredentialsFlowGrantAllScopesWhenOmitted: config.ClientCredentialsFlowGrantAllScopesWhenOmitted,
-
 		EnforcePAR: config.EnforcePAR,
 
 		IDTokenSigningAlg:    config.IDTokenSigningAlg,
@@ -315,12 +313,6 @@ func (c *BaseClient) ValidateResponseModePolicy(r fosite.AuthorizeRequester) (er
 // however some misbehaving clients may need this option.
 func (c *BaseClient) GetRefreshFlowIgnoreOriginalGrantedScopes(ctx context.Context) (ignoreOriginalGrantedScopes bool) {
 	return c.RefreshFlowIgnoreOriginalGrantedScopes
-}
-
-// GetClientCredentialsFlowGrantAllScopesWhenOmitted returns the value which indicates if the client should grant all
-// of it's authorized scopes during the client credentials flow.
-func (c *BaseClient) GetClientCredentialsFlowGrantAllScopesWhenOmitted(ctx context.Context) (grant bool) {
-	return c.ClientCredentialsFlowGrantAllScopesWhenOmitted
 }
 
 func (c *BaseClient) getGrantTypeLifespan(gt fosite.GrantType) (gtl schema.OpenIDConnectLifespanToken) {

@@ -157,8 +157,7 @@ type BaseClient struct {
 	UserinfoSigningAlg   string
 	UserinfoSigningKeyID string
 
-	RefreshFlowIgnoreOriginalGrantedScopes         bool
-	ClientCredentialsFlowGrantAllScopesWhenOmitted bool
+	RefreshFlowIgnoreOriginalGrantedScopes bool
 
 	AuthorizationPolicy ClientAuthorizationPolicy
 
@@ -216,16 +215,6 @@ type RefreshFlowScopeClient interface {
 	fosite.Client
 
 	GetRefreshFlowIgnoreOriginalGrantedScopes(ctx context.Context) (ignoreOriginalGrantedScopes bool)
-}
-
-// ClientCredentialsFlowScopeClient is a client which can be customized to grant scopes that were not requested during
-// the client credentials flow.
-type ClientCredentialsFlowScopeClient interface {
-	fosite.Client
-
-	// GetClientCredentialsFlowGrantAllScopesWhenOmitted should return true if all scopes permitted for a given client
-	// should be granted during the client credentials flow if the scope parameter is omitted.
-	GetClientCredentialsFlowGrantAllScopesWhenOmitted(ctx context.Context) (grant bool)
 }
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.

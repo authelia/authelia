@@ -124,7 +124,6 @@ func TestClientCredentialsGrantHandler_HandleTokenEndpointRequest(t *testing.T) 
 				mock.EXPECT().GetClient().Return(&oidc.BaseClient{
 					GrantTypes: fosite.Arguments{oidc.GrantTypeClientCredentials},
 					Scopes:     []string{"foo", "bar", "baz"},
-					ClientCredentialsFlowGrantAllScopesWhenOmitted: false,
 				})
 
 				mock.EXPECT().GrantScope("foo")
@@ -142,8 +141,11 @@ func TestClientCredentialsGrantHandler_HandleTokenEndpointRequest(t *testing.T) 
 				mock.EXPECT().GetClient().Return(&oidc.BaseClient{
 					GrantTypes: fosite.Arguments{oidc.GrantTypeClientCredentials},
 					Scopes:     []string{"foo", "bar", "baz"},
-					ClientCredentialsFlowGrantAllScopesWhenOmitted: false,
 				})
+
+				mock.EXPECT().GrantScope("foo")
+				mock.EXPECT().GrantScope("bar")
+				mock.EXPECT().GrantScope("baz")
 			},
 		},
 		{
@@ -156,7 +158,6 @@ func TestClientCredentialsGrantHandler_HandleTokenEndpointRequest(t *testing.T) 
 				mock.EXPECT().GetClient().Return(&oidc.BaseClient{
 					GrantTypes: fosite.Arguments{oidc.GrantTypeClientCredentials},
 					Scopes:     []string{"foo", "bar", "baz"},
-					ClientCredentialsFlowGrantAllScopesWhenOmitted: true,
 				})
 
 				mock.EXPECT().GrantScope("foo")

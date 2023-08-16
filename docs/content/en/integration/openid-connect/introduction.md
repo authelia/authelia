@@ -198,15 +198,14 @@ The following describes the various [OAuth 2.0] and [OpenID Connect 1.0] grant t
 field is both the required value for the `grant_type` parameter in the access / token request and the
 [grant_types](../../configuration/identity-providers/openid-connect/clients.md#granttypes) client configuration option.
 
-|                   Grant Type                    | Supported |                     Value                      |                                            Notes                                            |
-|:-----------------------------------------------:|:---------:|:----------------------------------------------:|:-------------------------------------------------------------------------------------------:|
-|         [OAuth 2.0 Authorization Code]          |    Yes    |              `authorization_code`              |                                                                                             |
-| [OAuth 2.0 Resource Owner Password Credentials] |    No     |                   `password`                   | This Grant Type has been deprecated as it's highly insecure and should not normally be used |
-|         [OAuth 2.0 Client Credentials]          |    Yes    |              `client_credentials`              |                                                                                             |
-|              [OAuth 2.0 Implicit]               |    Yes    |                   `implicit`                   |             This Grant Type has been deprecated and should not normally be used             |
-|            [OAuth 2.0 Refresh Token]            |    Yes    |                `refresh_token`                 |    This Grant Type should only be used for clients which have the `offline_access` scope    |
-|             [OAuth 2.0 Device Code]             |    No     | `urn:ietf:params:oauth:grant-type:device_code` |                                                                                             |
-|
+|                   Grant Type                    | Supported |                     Value                      |                                                         Notes                                                         |
+|:-----------------------------------------------:|:---------:|:----------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------:|
+|         [OAuth 2.0 Authorization Code]          |    Yes    |              `authorization_code`              |                                                                                                                       |
+| [OAuth 2.0 Resource Owner Password Credentials] |    No     |                   `password`                   |              This Grant Type has been deprecated as it's highly insecure and should not normally be used              |
+|         [OAuth 2.0 Client Credentials]          |    Yes    |              `client_credentials`              | If this is the only grant type for a client then the `openid`, `offline`, and `offline_access` scopes are not allowed |
+|              [OAuth 2.0 Implicit]               |    Yes    |                   `implicit`                   |                          This Grant Type has been deprecated and should not normally be used                          |
+|            [OAuth 2.0 Refresh Token]            |    Yes    |                `refresh_token`                 |                 This Grant Type should only be used for clients which have the `offline_access` scope                 |
+|             [OAuth 2.0 Device Code]             |    No     | `urn:ietf:params:oauth:grant-type:device_code` |                                                                                                                       |
 
 [OAuth 2.0 Authorization Code]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.1
 [OAuth 2.0 Implicit]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.2

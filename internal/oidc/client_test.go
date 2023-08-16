@@ -160,24 +160,6 @@ func TestBaseClient_Misc(t *testing.T) {
 			},
 		},
 		{
-			"ShouldReturnGetClientCredentialsFlowGrantAllScopesWhenOmitted",
-			func(client *oidc.BaseClient) {
-				client.ClientCredentialsFlowGrantAllScopesWhenOmitted = true
-			},
-			func(t *testing.T, client *oidc.BaseClient) {
-				assert.True(t, client.GetClientCredentialsFlowGrantAllScopesWhenOmitted(context.TODO()))
-			},
-		},
-		{
-			"ShouldReturnGetClientCredentialsFlowGrantAllScopesWhenOmittedFalse",
-			func(client *oidc.BaseClient) {
-				client.ClientCredentialsFlowGrantAllScopesWhenOmitted = false
-			},
-			func(t *testing.T, client *oidc.BaseClient) {
-				assert.False(t, client.GetClientCredentialsFlowGrantAllScopesWhenOmitted(context.TODO()))
-			},
-		},
-		{
 			"ShouldReturnClientAuthorizationPolicy",
 			func(client *oidc.BaseClient) {
 				client.AuthorizationPolicy = oidc.ClientAuthorizationPolicy{

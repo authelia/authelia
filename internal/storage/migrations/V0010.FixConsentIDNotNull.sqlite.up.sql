@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS oauth2_access_token_session (
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
     signature VARCHAR(255) NOT NULL,
-	subject CHAR(36) NULL DEFAULT NULL,
+    subject CHAR(36) NULL DEFAULT NULL,
     requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     requested_scopes TEXT NOT NULL,
     granted_scopes TEXT NOT NULL,
