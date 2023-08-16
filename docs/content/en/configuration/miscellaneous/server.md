@@ -59,9 +59,7 @@ server:
 ### address
 
 {{< confkey type="address" default="tcp://:9091/" required="no" >}}
-
-*__Reference Note:__ This configuration option uses the [address common syntax](../prologue/common.md#address). Please
-see the [documentation](../prologue/common.md#address) on this format for more information.*
+{{< ref-common ref="address" description="Common Syntax: Address" text="This option uses a common syntax. " >}}
 
 Configures the listener address for the Main HTTP Server. The address itself is a listener and the scheme must either be
 the `unix` scheme or one of the `tcp` schemes. It can configure the host, port, and path the listener responds to. If
@@ -152,17 +150,13 @@ research about how browsers utilize and understand this header before attempting
 
 ### buffers
 
-*__Reference Note:__ This configuration option uses the
-[Server buffers common structure](../prologue/common.md#server-buffers). Please see the
-[documentation](../prologue/common.md#server-buffers) on this structure for more information.*
+{{< confkey type="structure" required="no" common="../../prologue/common#server-buffers" common-name="Server buffers common structure" >}}
 
 Configures the server buffers.
 
 ### timeouts
 
-*__Reference Note:__ This configuration option uses the
-[Server timeouts common structure](../prologue/common.md#server-timeouts). Please see the
-[documentation](../prologue/common.md#server-timeouts) on this structure for more information.*
+{{< confkey type="structure" required="no" common="../../prologue/common#server-timeouts" common-name="Server timeouts common structure" >}}
 
 Configures the server timeouts.
 

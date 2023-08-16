@@ -32,6 +32,8 @@ var (
 
 	// ErrPAREnforcedClientMissingPAR is sent when a client has EnforcePAR configured but the Authorization Request was not Pushed.
 	ErrPAREnforcedClientMissingPAR = fosite.ErrInvalidRequest.WithHint("Pushed Authorization Requests are enforced for this client but no such request was sent.")
+
+	ErrClientAuthorizationUserAccessDenied = fosite.ErrAccessDenied.WithHint("The user was denied access to this client.")
 )
 
 const (

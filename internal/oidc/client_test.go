@@ -1,6 +1,7 @@
 package oidc_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -19,7 +20,7 @@ import (
 
 func TestNewClient(t *testing.T) {
 	config := schema.OpenIDConnectClient{}
-	client := oidc.NewClient(config)
+	client := oidc.NewClient(config, &schema.OpenIDConnect{})
 	assert.Equal(t, "", client.GetID())
 	assert.Equal(t, "", client.GetDescription())
 	assert.Len(t, client.GetResponseModes(), 0)
@@ -36,28 +37,28 @@ func TestNewClient(t *testing.T) {
 	assert.False(t, ok)
 
 	config = schema.OpenIDConnectClient{
-		ID:            myclient,
-		Description:   myclientdesc,
-		Policy:        twofactor,
-		Secret:        tOpenIDConnectPlainTextClientSecret,
-		RedirectURIs:  []string{examplecom},
-		Scopes:        schema.DefaultOpenIDConnectClientConfiguration.Scopes,
-		ResponseTypes: schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes,
-		GrantTypes:    schema.DefaultOpenIDConnectClientConfiguration.GrantTypes,
-		ResponseModes: schema.DefaultOpenIDConnectClientConfiguration.ResponseModes,
+		ID:                  myclient,
+		Description:         myclientdesc,
+		AuthorizationPolicy: twofactor,
+		Secret:              tOpenIDConnectPlainTextClientSecret,
+		RedirectURIs:        []string{examplecom},
+		Scopes:              schema.DefaultOpenIDConnectClientConfiguration.Scopes,
+		ResponseTypes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes,
+		GrantTypes:          schema.DefaultOpenIDConnectClientConfiguration.GrantTypes,
+		ResponseModes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseModes,
 	}
 
-	client = oidc.NewClient(config)
+	client = oidc.NewClient(config, &schema.OpenIDConnect{})
 	assert.Equal(t, myclient, client.GetID())
 	require.Len(t, client.GetResponseModes(), 1)
 	assert.Equal(t, fosite.ResponseModeFormPost, client.GetResponseModes()[0])
-	assert.Equal(t, authorization.TwoFactor, client.GetAuthorizationPolicy())
+	assert.Equal(t, authorization.TwoFactor, client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{}))
 
 	config = schema.OpenIDConnectClient{
 		TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
 	}
 
-	client = oidc.NewClient(config)
+	client = oidc.NewClient(config, &schema.OpenIDConnect{})
 
 	fclient, ok := client.(*oidc.FullClient)
 
@@ -116,9 +117,9 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, niljwks, fclient.JSONWebKeys)
 	assert.Equal(t, niljwks, fclient.GetJSONWebKeys())
 
-	assert.Equal(t, oidc.ClientConsentMode(0), fclient.Consent.Mode)
-	assert.Equal(t, time.Second*0, fclient.Consent.Duration)
-	assert.Equal(t, oidc.ClientConsent{Mode: oidc.ClientConsentModeExplicit}, fclient.GetConsentPolicy())
+	assert.Equal(t, oidc.ClientConsentMode(0), fclient.ConsentPolicy.Mode)
+	assert.Equal(t, time.Second*0, fclient.ConsentPolicy.Duration)
+	assert.Equal(t, oidc.ClientConsentPolicy{Mode: oidc.ClientConsentModeExplicit}, fclient.GetConsentPolicy())
 
 	fclient.TokenEndpointAuthMethod = ""
 	fclient.Public = false
@@ -132,6 +133,81 @@ func TestNewClient(t *testing.T) {
 
 	assert.Equal(t, []string(nil), fclient.RequestURIs)
 	assert.Equal(t, []string(nil), fclient.GetRequestURIs())
+}
+
+func TestBaseClient_Misc(t *testing.T) {
+	testCases := []struct {
+		name     string
+		setup    func(client *oidc.BaseClient)
+		expected func(t *testing.T, client *oidc.BaseClient)
+	}{
+		{
+			"ShouldReturnGetRefreshFlowIgnoreOriginalGrantedScopes",
+			func(client *oidc.BaseClient) {
+				client.RefreshFlowIgnoreOriginalGrantedScopes = true
+			},
+			func(t *testing.T, client *oidc.BaseClient) {
+				assert.True(t, client.GetRefreshFlowIgnoreOriginalGrantedScopes(context.TODO()))
+			},
+		},
+		{
+			"ShouldReturnGetRefreshFlowIgnoreOriginalGrantedScopesFalse",
+			func(client *oidc.BaseClient) {
+				client.RefreshFlowIgnoreOriginalGrantedScopes = false
+			},
+			func(t *testing.T, client *oidc.BaseClient) {
+				assert.False(t, client.GetRefreshFlowIgnoreOriginalGrantedScopes(context.TODO()))
+			},
+		},
+		{
+			"ShouldReturnGetClientCredentialsFlowGrantAllScopesWhenOmitted",
+			func(client *oidc.BaseClient) {
+				client.ClientCredentialsFlowGrantAllScopesWhenOmitted = true
+			},
+			func(t *testing.T, client *oidc.BaseClient) {
+				assert.True(t, client.GetClientCredentialsFlowGrantAllScopesWhenOmitted(context.TODO()))
+			},
+		},
+		{
+			"ShouldReturnGetClientCredentialsFlowGrantAllScopesWhenOmittedFalse",
+			func(client *oidc.BaseClient) {
+				client.ClientCredentialsFlowGrantAllScopesWhenOmitted = false
+			},
+			func(t *testing.T, client *oidc.BaseClient) {
+				assert.False(t, client.GetClientCredentialsFlowGrantAllScopesWhenOmitted(context.TODO()))
+			},
+		},
+		{
+			"ShouldReturnClientAuthorizationPolicy",
+			func(client *oidc.BaseClient) {
+				client.AuthorizationPolicy = oidc.ClientAuthorizationPolicy{
+					DefaultPolicy: authorization.OneFactor,
+				}
+			},
+			func(t *testing.T, client *oidc.BaseClient) {
+				assert.Equal(t, authorization.OneFactor, client.GetAuthorizationPolicy().DefaultPolicy)
+			},
+		},
+		{
+			"ShouldReturnClientAuthorizationPolicyEmpty",
+			func(client *oidc.BaseClient) {
+				client.AuthorizationPolicy = oidc.ClientAuthorizationPolicy{}
+			},
+			func(t *testing.T, client *oidc.BaseClient) {
+				assert.Equal(t, authorization.Bypass, client.GetAuthorizationPolicy().DefaultPolicy)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := &oidc.BaseClient{}
+
+			tc.setup(client)
+
+			tc.expected(t, client)
+		})
+	}
 }
 
 func TestBaseClient_ValidatePARPolicy(t *testing.T) {
@@ -204,25 +280,25 @@ func TestBaseClient_ValidatePARPolicy(t *testing.T) {
 func TestIsAuthenticationLevelSufficient(t *testing.T) {
 	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
 
-	c.Policy = authorization.Bypass
-	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated))
-	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor))
-	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor))
+	c.AuthorizationPolicy = oidc.ClientAuthorizationPolicy{DefaultPolicy: authorization.Bypass}
+	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated, authorization.Subject{}))
+	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor, authorization.Subject{}))
+	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor, authorization.Subject{}))
 
-	c.Policy = authorization.OneFactor
-	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated))
-	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor))
-	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor))
+	c.AuthorizationPolicy = oidc.ClientAuthorizationPolicy{DefaultPolicy: authorization.OneFactor}
+	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated, authorization.Subject{}))
+	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor, authorization.Subject{}))
+	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor, authorization.Subject{}))
 
-	c.Policy = authorization.TwoFactor
-	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated))
-	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor))
-	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor))
+	c.AuthorizationPolicy = oidc.ClientAuthorizationPolicy{DefaultPolicy: authorization.TwoFactor}
+	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated, authorization.Subject{}))
+	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor, authorization.Subject{}))
+	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor, authorization.Subject{}))
 
-	c.Policy = authorization.Denied
-	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated))
-	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor))
-	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor))
+	c.AuthorizationPolicy = oidc.ClientAuthorizationPolicy{DefaultPolicy: authorization.Denied}
+	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated, authorization.Subject{}))
+	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor, authorization.Subject{}))
+	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor, authorization.Subject{}))
 }
 
 func TestClient_GetConsentResponseBody(t *testing.T) {
@@ -446,7 +522,7 @@ func TestNewClientPKCE(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			client := oidc.NewClient(tc.have)
+			client := oidc.NewClient(tc.have, &schema.OpenIDConnect{})
 
 			assert.Equal(t, tc.expectedEnforcePKCE, client.GetPKCEEnforcement())
 			assert.Equal(t, tc.expectedEnforcePKCEChallengeMethod, client.GetPKCEChallengeMethodEnforcement())
@@ -511,7 +587,7 @@ func TestNewClientPAR(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			client := oidc.NewClient(tc.have)
+			client := oidc.NewClient(tc.have, &schema.OpenIDConnect{})
 
 			assert.Equal(t, tc.expected, client.GetPAREnforcement())
 
@@ -525,6 +601,555 @@ func TestNewClientPAR(t *testing.T) {
 				} else {
 					assert.NoError(t, err)
 				}
+			}
+		})
+	}
+}
+
+func TestClient_GetEffectiveLifespan(t *testing.T) {
+	type subcase struct {
+		name     string
+		gt       fosite.GrantType
+		tt       fosite.TokenType
+		fallback time.Duration
+		expected time.Duration
+	}
+
+	testCases := []struct {
+		name     string
+		have     schema.OpenIDConnectLifespan
+		subcases []subcase
+	}{
+		{
+			"ShouldHandleEdgeCases",
+			schema.OpenIDConnectLifespan{
+				OpenIDConnectLifespanToken: schema.OpenIDConnectLifespanToken{
+					AccessToken:   time.Hour * 1,
+					RefreshToken:  time.Hour * 2,
+					IDToken:       time.Hour * 3,
+					AuthorizeCode: time.Minute * 5,
+				},
+			},
+			[]subcase{
+				{
+					"ShouldHandleInvalidTokenTypeFallbackToProvidedFallback",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.TokenType("abc"),
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleInvalidGrantTypeFallbackToTokenType",
+					fosite.GrantType("abc"),
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 5,
+				},
+			},
+		},
+		{
+			"ShouldHandleUnconfiguredClient",
+			schema.OpenIDConnectLifespan{},
+			[]subcase{
+				{
+					"ShouldHandleAuthorizationCodeFlowAuthorizationCode",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleAuthorizationCodeFlowAccessToken",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.AccessToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleAuthorizationCodeFlowRefreshToken",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleAuthorizationCodeFlowIDToken",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.IDToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleImplicitFlowAuthorizationCode",
+					fosite.GrantTypeImplicit,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleImplicitFlowAccessToken",
+					fosite.GrantTypeImplicit,
+					fosite.AccessToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleImplicitFlowRefreshToken",
+					fosite.GrantTypeImplicit,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleImplicitFlowIDToken",
+					fosite.GrantTypeImplicit,
+					fosite.IDToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowAuthorizationCode",
+					fosite.GrantTypeClientCredentials,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowAccessToken",
+					fosite.GrantTypeClientCredentials,
+					fosite.AccessToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowRefreshToken",
+					fosite.GrantTypeClientCredentials,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowIDToken",
+					fosite.GrantTypeClientCredentials,
+					fosite.IDToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowAuthorizationCode",
+					fosite.GrantTypeRefreshToken,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowAccessToken",
+					fosite.GrantTypeRefreshToken,
+					fosite.AccessToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowRefreshToken",
+					fosite.GrantTypeRefreshToken,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowIDToken",
+					fosite.GrantTypeRefreshToken,
+					fosite.IDToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleJWTBearerFlowAuthorizationCode",
+					fosite.GrantTypeJWTBearer,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleJWTBearerFlowAccessToken",
+					fosite.GrantTypeJWTBearer,
+					fosite.AccessToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleJWTBearerFlowRefreshToken",
+					fosite.GrantTypeJWTBearer,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Minute,
+				},
+				{
+					"ShouldHandleJWTBearerFlowIDToken",
+					fosite.GrantTypeJWTBearer,
+					fosite.IDToken,
+					time.Minute,
+					time.Minute,
+				},
+			},
+		},
+		{
+			"ShouldHandleConfiguredClientByTokenType",
+			schema.OpenIDConnectLifespan{
+				OpenIDConnectLifespanToken: schema.OpenIDConnectLifespanToken{
+					AccessToken:   time.Hour * 1,
+					RefreshToken:  time.Hour * 2,
+					IDToken:       time.Hour * 3,
+					AuthorizeCode: time.Minute * 5,
+				},
+			},
+			[]subcase{
+				{
+					"ShouldHandleAuthorizationCodeFlowAuthorizationCode",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 5,
+				},
+				{
+					"ShouldHandleAuthorizationCodeFlowAccessToken",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.AccessToken,
+					time.Minute,
+					time.Hour * 1,
+				},
+				{
+					"ShouldHandleAuthorizationCodeFlowRefreshToken",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Hour * 2,
+				},
+				{
+					"ShouldHandleAuthorizationCodeFlowIDToken",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.IDToken,
+					time.Minute,
+					time.Hour * 3,
+				},
+				{
+					"ShouldHandleImplicitFlowAuthorizationCode",
+					fosite.GrantTypeImplicit,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 5,
+				},
+				{
+					"ShouldHandleImplicitFlowAccessToken",
+					fosite.GrantTypeImplicit,
+					fosite.AccessToken,
+					time.Minute,
+					time.Hour * 1,
+				},
+				{
+					"ShouldHandleImplicitFlowRefreshToken",
+					fosite.GrantTypeImplicit,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Hour * 2,
+				},
+				{
+					"ShouldHandleImplicitFlowIDToken",
+					fosite.GrantTypeImplicit,
+					fosite.IDToken,
+					time.Minute,
+					time.Hour * 3,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowAuthorizationCode",
+					fosite.GrantTypeClientCredentials,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 5,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowAccessToken",
+					fosite.GrantTypeClientCredentials,
+					fosite.AccessToken,
+					time.Minute,
+					time.Hour * 1,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowRefreshToken",
+					fosite.GrantTypeClientCredentials,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Hour * 2,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowIDToken",
+					fosite.GrantTypeClientCredentials,
+					fosite.IDToken,
+					time.Minute,
+					time.Hour * 3,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowAuthorizationCode",
+					fosite.GrantTypeRefreshToken,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 5,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowAccessToken",
+					fosite.GrantTypeRefreshToken,
+					fosite.AccessToken,
+					time.Minute,
+					time.Hour * 1,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowRefreshToken",
+					fosite.GrantTypeRefreshToken,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Hour * 2,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowIDToken",
+					fosite.GrantTypeRefreshToken,
+					fosite.IDToken,
+					time.Minute,
+					time.Hour * 3,
+				},
+				{
+					"ShouldHandleJWTBearerFlowAuthorizationCode",
+					fosite.GrantTypeJWTBearer,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 5,
+				},
+				{
+					"ShouldHandleJWTBearerFlowAccessToken",
+					fosite.GrantTypeJWTBearer,
+					fosite.AccessToken,
+					time.Minute,
+					time.Hour * 1,
+				},
+				{
+					"ShouldHandleJWTBearerFlowRefreshToken",
+					fosite.GrantTypeJWTBearer,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Hour * 2,
+				},
+				{
+					"ShouldHandleJWTBearerFlowIDToken",
+					fosite.GrantTypeJWTBearer,
+					fosite.IDToken,
+					time.Minute,
+					time.Hour * 3,
+				},
+			},
+		},
+		{
+			"ShouldHandleConfiguredClientByTokenTypeByGrantType",
+			schema.OpenIDConnectLifespan{
+				OpenIDConnectLifespanToken: schema.OpenIDConnectLifespanToken{
+					AccessToken:   time.Hour * 1,
+					RefreshToken:  time.Hour * 2,
+					IDToken:       time.Hour * 3,
+					AuthorizeCode: time.Minute * 5,
+				},
+				Grants: schema.OpenIDConnectLifespanGrants{
+					AuthorizeCode: schema.OpenIDConnectLifespanToken{
+						AccessToken:   time.Hour * 11,
+						RefreshToken:  time.Hour * 12,
+						IDToken:       time.Hour * 13,
+						AuthorizeCode: time.Minute * 15,
+					},
+					Implicit: schema.OpenIDConnectLifespanToken{
+						AccessToken:   time.Hour * 21,
+						RefreshToken:  time.Hour * 22,
+						IDToken:       time.Hour * 23,
+						AuthorizeCode: time.Minute * 25,
+					},
+					ClientCredentials: schema.OpenIDConnectLifespanToken{
+						AccessToken:   time.Hour * 31,
+						RefreshToken:  time.Hour * 32,
+						IDToken:       time.Hour * 33,
+						AuthorizeCode: time.Minute * 35,
+					},
+					RefreshToken: schema.OpenIDConnectLifespanToken{
+						AccessToken:   time.Hour * 41,
+						RefreshToken:  time.Hour * 42,
+						IDToken:       time.Hour * 43,
+						AuthorizeCode: time.Minute * 45,
+					},
+					JWTBearer: schema.OpenIDConnectLifespanToken{
+						AccessToken:   time.Hour * 51,
+						RefreshToken:  time.Hour * 52,
+						IDToken:       time.Hour * 53,
+						AuthorizeCode: time.Minute * 55,
+					},
+				},
+			},
+			[]subcase{
+				{
+					"ShouldHandleAuthorizationCodeFlowAuthorizationCode",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 15,
+				},
+				{
+					"ShouldHandleAuthorizationCodeFlowAccessToken",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.AccessToken,
+					time.Minute,
+					time.Hour * 11,
+				},
+				{
+					"ShouldHandleAuthorizationCodeFlowRefreshToken",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Hour * 12,
+				},
+				{
+					"ShouldHandleAuthorizationCodeFlowIDToken",
+					fosite.GrantTypeAuthorizationCode,
+					fosite.IDToken,
+					time.Minute,
+					time.Hour * 13,
+				},
+				{
+					"ShouldHandleImplicitFlowAuthorizationCode",
+					fosite.GrantTypeImplicit,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 25,
+				},
+				{
+					"ShouldHandleImplicitFlowAccessToken",
+					fosite.GrantTypeImplicit,
+					fosite.AccessToken,
+					time.Minute,
+					time.Hour * 21,
+				},
+				{
+					"ShouldHandleImplicitFlowRefreshToken",
+					fosite.GrantTypeImplicit,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Hour * 22,
+				},
+				{
+					"ShouldHandleImplicitFlowIDToken",
+					fosite.GrantTypeImplicit,
+					fosite.IDToken,
+					time.Minute,
+					time.Hour * 23,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowAuthorizationCode",
+					fosite.GrantTypeClientCredentials,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 35,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowAccessToken",
+					fosite.GrantTypeClientCredentials,
+					fosite.AccessToken,
+					time.Minute,
+					time.Hour * 31,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowRefreshToken",
+					fosite.GrantTypeClientCredentials,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Hour * 32,
+				},
+				{
+					"ShouldHandleClientCredentialsFlowIDToken",
+					fosite.GrantTypeClientCredentials,
+					fosite.IDToken,
+					time.Minute,
+					time.Hour * 33,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowAuthorizationCode",
+					fosite.GrantTypeRefreshToken,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 45,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowAccessToken",
+					fosite.GrantTypeRefreshToken,
+					fosite.AccessToken,
+					time.Minute,
+					time.Hour * 41,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowRefreshToken",
+					fosite.GrantTypeRefreshToken,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Hour * 42,
+				},
+				{
+					"ShouldHandleRefreshTokenFlowIDToken",
+					fosite.GrantTypeRefreshToken,
+					fosite.IDToken,
+					time.Minute,
+					time.Hour * 43,
+				},
+				{
+					"ShouldHandleJWTBearerFlowAuthorizationCode",
+					fosite.GrantTypeJWTBearer,
+					fosite.AuthorizeCode,
+					time.Minute,
+					time.Minute * 55,
+				},
+				{
+					"ShouldHandleJWTBearerFlowAccessToken",
+					fosite.GrantTypeJWTBearer,
+					fosite.AccessToken,
+					time.Minute,
+					time.Hour * 51,
+				},
+				{
+					"ShouldHandleJWTBearerFlowRefreshToken",
+					fosite.GrantTypeJWTBearer,
+					fosite.RefreshToken,
+					time.Minute,
+					time.Hour * 52,
+				},
+				{
+					"ShouldHandleJWTBearerFlowIDToken",
+					fosite.GrantTypeJWTBearer,
+					fosite.IDToken,
+					time.Minute,
+					time.Hour * 53,
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := oidc.NewClient(schema.OpenIDConnectClient{
+				ID:       "test",
+				Lifespan: "test",
+			}, &schema.OpenIDConnect{
+				Lifespans: schema.OpenIDConnectLifespans{
+					Custom: map[string]schema.OpenIDConnectLifespan{
+						"test": tc.have,
+					},
+				},
+			})
+
+			for _, stc := range tc.subcases {
+				t.Run(stc.name, func(t *testing.T) {
+					assert.Equal(t, stc.expected, client.GetEffectiveLifespan(stc.gt, stc.tt, stc.fallback))
+				})
 			}
 		})
 	}
@@ -575,7 +1200,7 @@ func TestNewClientResponseModes(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			client := oidc.NewClient(tc.have)
+			client := oidc.NewClient(tc.have, &schema.OpenIDConnect{})
 
 			assert.Equal(t, tc.expected, client.GetResponseModes())
 
@@ -615,7 +1240,7 @@ func TestNewClient_JSONWebKeySetURI(t *testing.T) {
 		PublicKeys: schema.OpenIDConnectClientPublicKeys{
 			URI: MustParseRequestURI("https://google.com"),
 		},
-	})
+	}, &schema.OpenIDConnect{})
 
 	require.NotNil(t, client)
 
@@ -630,7 +1255,7 @@ func TestNewClient_JSONWebKeySetURI(t *testing.T) {
 		PublicKeys: schema.OpenIDConnectClientPublicKeys{
 			URI: nil,
 		},
-	})
+	}, &schema.OpenIDConnect{})
 
 	require.NotNil(t, client)
 

@@ -416,7 +416,6 @@ func TestJWKFunctionality(t *testing.T) {
 				token, err := signer.Decode(ctx, tokenString)
 				assert.NoError(t, err)
 				assert.NotNil(t, token)
-				fmt.Println(tokenString)
 
 				assert.True(t, token.Valid())
 				assert.Equal(t, jwk.GetSigningMethod().Alg(), string(token.Method))

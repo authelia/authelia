@@ -118,9 +118,7 @@ See the [encryption_key docs](introduction.md#encryption_key).
 ### address
 
 {{< confkey type="address" required="yes" >}}
-
-*__Reference Note:__ This configuration option uses the [address common syntax](../prologue/common.md#address). Please
-see the [documentation](../prologue/common.md#address) on this format for more information.*
+{{< ref-common ref="address" description="Common Syntax: Address" text="This option uses a common syntax. " >}}
 
 Configures the address for the MySQL/MariaDB Server. The address itself is a connector and the scheme must either be
 the `unix` scheme or one of the `tcp` schemes.
@@ -174,17 +172,14 @@ characters and the user password is changed to this value.
 ### timeout
 
 {{< confkey type="duration" default="5s" required="no" >}}
-
-*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
-Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
+{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
 
 The SQL connection timeout.
 
 ### tls
 
-*__Reference Note:__ This configuration option uses the
-[TLS configuration common structure](../prologue/common.md#tls-configuration). Please see the
-[documentation](../prologue/common.md#tls-configuration) on this structure for more information.*
+{{< confkey type="structure" required="no" >}}
+{{< ref-common ref="tls" description="Common Structure: TLS" text="This option uses a common structure. " >}}
 
 If defined enables connecting to [MySQL] or [MariaDB] over a TLS socket, and additionally controls the TLS connection
 validation parameters.

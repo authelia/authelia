@@ -196,7 +196,7 @@ func TestConfig_Misc(t *testing.T) {
 
 	assert.Equal(t, "", config.GetTokenURL(ctx))
 
-	octx := &MockOpenIDConnectContext{
+	octx := &TestContext{
 		Context: ctx,
 		IssuerURLFunc: func() (issuerURL *url.URL, err error) {
 			return nil, fmt.Errorf("test error")

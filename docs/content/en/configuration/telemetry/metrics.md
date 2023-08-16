@@ -45,26 +45,22 @@ Determines if the [Prometheus] HTTP Metrics Exporter is enabled.
 ### address
 
 {{< confkey type="address" default="tcp://:9959/" required="no" >}}
-
-*__Reference Note:__ This configuration option uses the [address common syntax](../prologue/common.md#address). Please
-see the [documentation](../prologue/common.md#address) on this format for more information.*
+{{< ref-common ref="address" description="Common Syntax: Address" text="This option uses a common syntax. " >}}
 
 Configures the listener address for the [Prometheus] Metrics Exporter HTTP Server. The address itself is a listener and
 the scheme must either be the `unix` scheme or one of the `tcp` schemes.
 
 ### buffers
 
-*__Reference Note:__ This configuration option uses the
-[Server buffers common structure](../prologue/common.md#server-buffers). Please see the
-[documentation](../prologue/common.md#server-buffers) on this structure for more information.*
+{{< confkey type="structure" required="no" >}}
+{{< ref-common ref="server-buffers" description="Common Structures: Buffers" text="This option uses a common structure. " >}}
 
 Configures the server buffers.
 
 ### timeouts
 
-*__Reference Note:__ This configuration option uses the
-[Server timeouts common structure](../prologue/common.md#server-timeouts). Please see the
-[documentation](../prologue/common.md#server-timeouts) on this structure for more information.*
+{{< confkey type="structure" required="no" >}}
+{{< ref-common ref="server-timeouts" description="Common Structures: Timeouts" text="This option uses a common structure. " >}}
 
 Configures the server timeouts.
 

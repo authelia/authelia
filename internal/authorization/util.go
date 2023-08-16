@@ -208,6 +208,10 @@ func domainToPrefixSuffix(domain string) (prefix, suffix string) {
 	return parts[0], strings.Join(parts[1:], ".")
 }
 
+func NewSubjects(subjectRules [][]string) (subjects []AccessControlSubjects) {
+	return schemaSubjectsToACL(subjectRules)
+}
+
 // IsAuthLevelSufficient returns true if the current authenticationLevel is above the authorizationLevel.
 func IsAuthLevelSufficient(authenticationLevel authentication.Level, authorizationLevel Level) bool {
 	switch authorizationLevel {

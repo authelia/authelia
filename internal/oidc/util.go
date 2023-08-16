@@ -1,8 +1,10 @@
 package oidc
 
 import (
+	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ory/fosite"
@@ -113,4 +115,38 @@ func JTIFromMapClaims(m jwt.MapClaims) (jti string, err error) {
 	}
 
 	return jti, nil
+}
+
+func getExpiresIn(r fosite.Requester, key fosite.TokenType, defaultLifespan time.Duration, now time.Time) time.Duration {
+	if r.GetSession().GetExpiresAt(key).IsZero() {
+		return defaultLifespan
+	}
+
+	return time.Duration(r.GetSession().GetExpiresAt(key).UnixNano() - now.UnixNano())
+}
+
+// ErrorToDebugRFC6749Error converts the provided error to a *DebugRFC6749Error provided it is not nil and can be
+// cast as a *fosite.RFC6749Error.
+func ErrorToDebugRFC6749Error(err error) (rfc error) {
+	if err == nil {
+		return nil
+	}
+
+	var e *fosite.RFC6749Error
+
+	if errors.As(err, &e) {
+		return &DebugRFC6749Error{e}
+	}
+
+	return err
+}
+
+// DebugRFC6749Error is a decorator type which makes the underlying *fosite.RFC6749Error expose debug information and
+// show the full error description.
+type DebugRFC6749Error struct {
+	*fosite.RFC6749Error
+}
+
+func (err *DebugRFC6749Error) Error() string {
+	return err.WithExposeDebug(true).GetDescription()
 }

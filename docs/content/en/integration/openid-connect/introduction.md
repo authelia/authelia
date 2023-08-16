@@ -1,5 +1,5 @@
 ---
-title: "OpenID Connect"
+title: "OpenID Connect 1.0"
 description: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party"
 lead: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party."
 date: 2022-06-15T17:51:47+10:00
@@ -155,7 +155,10 @@ configuration options.
 
 The following describes the supported response types. See the [OAuth 2.0 Multiple Response Type Encoding Practices] for
 more technical information. The default response modes column indicates which response modes are allowed by default on
-clients configured with this flow type value. If more than a single response type is configured
+clients configured with this flow type value. The value field is both the required value for the `response_type`
+parameter in the authorization request and the
+[response_types](../../configuration/identity-providers/openid-connect/clients.md#responsetypes) client configuration
+option.
 
 |         Flow Type         |         Value         | Default [Response Modes](#response-modes) Values |
 |:-------------------------:|:---------------------:|:------------------------------------------------:|
@@ -177,7 +180,9 @@ clients configured with this flow type value. If more than a single response typ
 
 The following describes the supported response modes. See the [OAuth 2.0 Multiple Response Type Encoding Practices] for
 more technical information. The default response modes of a client is based on the [Response Types](#response-types)
-configuration.
+configuration. The value field is both the required value for the `response_mode` parameter in the authorization request
+and the [response_modes](../../configuration/identity-providers/openid-connect/clients.md#responsemodes) client
+configuration option.
 
 |         Name          |    Value    |
 |:---------------------:|:-----------:|
@@ -190,17 +195,17 @@ configuration.
 ### Grant Types
 
 The following describes the various [OAuth 2.0] and [OpenID Connect 1.0] grant types and their support level. The value
-field is both the required value for the `grant_type` parameter in the authorization request and the `grant_types`
-configuration option.
+field is both the required value for the `grant_type` parameter in the access / token request and the
+[grant_types](../../configuration/identity-providers/openid-connect/clients.md#granttypes) client configuration option.
 
-|                   Grant Type                    | Supported |                     Value                      |                                              Notes                                              |
-|:-----------------------------------------------:|:---------:|:----------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
-|         [OAuth 2.0 Authorization Code]          |    Yes    |              `authorization_code`              |                                                                                                 |
-| [OAuth 2.0 Resource Owner Password Credentials] |    No     |                   `password`                   |               This Grant Type has been deprecated and should not normally be used               |
-|         [OAuth 2.0 Client Credentials]          |    No     |              `client_credentials`              |                                                                                                 |
-|              [OAuth 2.0 Implicit]               |    Yes    |                   `implicit`                   |               This Grant Type has been deprecated and should not normally be used               |
-|            [OAuth 2.0 Refresh Token]            |    Yes    |                `refresh_token`                 | This Grant Type should genreally only be used for clients which have the `offline_access` scope |
-|             [OAuth 2.0 Device Code]             |    No     | `urn:ietf:params:oauth:grant-type:device_code` |                                                                                                 |
+|                   Grant Type                    | Supported |                     Value                      |                                            Notes                                            |
+|:-----------------------------------------------:|:---------:|:----------------------------------------------:|:-------------------------------------------------------------------------------------------:|
+|         [OAuth 2.0 Authorization Code]          |    Yes    |              `authorization_code`              |                                                                                             |
+| [OAuth 2.0 Resource Owner Password Credentials] |    No     |                   `password`                   | This Grant Type has been deprecated as it's highly insecure and should not normally be used |
+|         [OAuth 2.0 Client Credentials]          |    Yes    |              `client_credentials`              |                                                                                             |
+|              [OAuth 2.0 Implicit]               |    Yes    |                   `implicit`                   |             This Grant Type has been deprecated and should not normally be used             |
+|            [OAuth 2.0 Refresh Token]            |    Yes    |                `refresh_token`                 |    This Grant Type should only be used for clients which have the `offline_access` scope    |
+|             [OAuth 2.0 Device Code]             |    No     | `urn:ietf:params:oauth:grant-type:device_code` |                                                                                             |
 |
 
 [OAuth 2.0 Authorization Code]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.1
@@ -213,9 +218,12 @@ configuration option.
 ### Client Authentication Method
 
 The following describes the supported client authentication methods. See the [OpenID Connect 1.0 Client Authentication]
-specification and the [OAuth 2.0 - Client Types] specification for more information.
+specification and the [OAuth 2.0 - Client Types] specification for more information. The value
+field is the valid values for the
+[token_endpoint_auth_method](../../configuration/identity-providers/openid-connect/clients.md#tokenendpointauthmethod)
+client configuration option.
 
-|             Description              |         Value / Name          | Supported Client Types | Default for Client Type |                      Assertion Type                      |
+|             Description              |             Value             | Supported Client Types | Default for Client Type |                      Assertion Type                      |
 |:------------------------------------:|:-----------------------------:|:----------------------:|:-----------------------:|:--------------------------------------------------------:|
 |  Secret via HTTP Basic Auth Scheme   |     `client_secret_basic`     |     `confidential`     |           N/A           |                           N/A                            |
 |      Secret via HTTP POST Body       |     `client_secret_post`      |     `confidential`     |           N/A           |                           N/A                            |
@@ -372,6 +380,7 @@ The advantages of this approach are as follows:
 [Claims]: https://openid.net/specs/openid-connect-core-1_0.html#Claims
 [Claim]: https://openid.net/specs/openid-connect-core-1_0.html#Claims
 
+[OAuth 2.0]: https://oauth.net/2/
 [OpenID Connect 1.0]: https://openid.net/connect/
 
 [OpenID Connect Discovery 1.0]: https://openid.net/specs/openid-connect-discovery-1_0.html

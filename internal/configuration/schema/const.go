@@ -120,6 +120,10 @@ var (
 )
 
 const (
+	policyTwoFactor = "two_factor"
+)
+
+const (
 	addressQueryParamUmask = "umask"
 )
 

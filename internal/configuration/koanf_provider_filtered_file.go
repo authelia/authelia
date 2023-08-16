@@ -19,11 +19,11 @@ import (
 // FilteredFile implements a koanf.Provider.
 type FilteredFile struct {
 	path    string
-	filters []FileFilter
+	filters []BytesFilter
 }
 
 // FilteredFileProvider returns a koanf.Provider which provides filtered file output.
-func FilteredFileProvider(path string, filters ...FileFilter) *FilteredFile {
+func FilteredFileProvider(path string, filters ...BytesFilter) *FilteredFile {
 	return &FilteredFile{
 		path:    filepath.Clean(path),
 		filters: filters,
@@ -54,20 +54,20 @@ func (f *FilteredFile) Read() (map[string]any, error) {
 	return nil, errors.New("filtered file provider does not support this method")
 }
 
-// FileFilter describes a func used to filter files.
-type FileFilter func(in []byte) (out []byte, err error)
+// BytesFilter describes a func used to filter files.
+type BytesFilter func(in []byte) (out []byte, err error)
 
-// NewFileFiltersDefault returns the default list of FileFilter.
-func NewFileFiltersDefault() []FileFilter {
-	return []FileFilter{
+// NewFileFiltersDefault returns the default list of BytesFilter.
+func NewFileFiltersDefault() []BytesFilter {
+	return []BytesFilter{
 		NewTemplateFileFilter(),
 		NewExpandEnvFileFilter(),
 	}
 }
 
-// NewFileFilters returns a list of FileFilter provided they are valid.
-func NewFileFilters(names []string) (filters []FileFilter, err error) {
-	filters = make([]FileFilter, len(names))
+// NewFileFilters returns a list of BytesFilter provided they are valid.
+func NewFileFilters(names []string) (filters []BytesFilter, err error) {
+	filters = make([]BytesFilter, len(names))
 
 	filterMap := map[string]int{}
 
@@ -93,8 +93,8 @@ func NewFileFilters(names []string) (filters []FileFilter, err error) {
 	return filters, nil
 }
 
-// NewExpandEnvFileFilter is a FileFilter which passes the bytes through os.ExpandEnv.
-func NewExpandEnvFileFilter() FileFilter {
+// NewExpandEnvFileFilter is a BytesFilter which passes the bytes through os.ExpandEnv.
+func NewExpandEnvFileFilter() BytesFilter {
 	log := logging.Logger()
 
 	return func(in []byte) (out []byte, err error) {
@@ -110,8 +110,8 @@ func NewExpandEnvFileFilter() FileFilter {
 	}
 }
 
-// NewTemplateFileFilter is a FileFilter which passes the bytes through text/template.
-func NewTemplateFileFilter() FileFilter {
+// NewTemplateFileFilter is a BytesFilter which passes the bytes through text/template.
+func NewTemplateFileFilter() BytesFilter {
 	t := template.New("config.template").Funcs(templates.FuncMap())
 
 	log := logging.Logger()

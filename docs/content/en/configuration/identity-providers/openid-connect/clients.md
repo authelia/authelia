@@ -51,6 +51,7 @@ identity_providers:
           - 'query'
           - 'fragment'
         authorization_policy: 'two_factor'
+        lifespan: ''
         consent_mode: 'explicit'
         pre_configured_consent_duration: '1 week'
         enforce_par: false
@@ -169,7 +170,8 @@ or claims required which can be matched with the above guide.
 
 *__Important Note:__ It is recommended that this isn't configured at this time unless you know what you're doing.*
 
-The list of grant types this client is permitted to use in order to obtain access to the relevant tokens.
+The list of grant types this client is permitted to use in order to obtain access to the token endpoint to obtain the
+granted tokens.
 
 See the [Grant Types](../../../integration/openid-connect/introduction.md#grant-types) section of the
 [OpenID Connect 1.0 Integration Guide](../../../integration/openid-connect/introduction.md#grant-types) for more information.
@@ -189,7 +191,7 @@ See the [Response Types](../../../integration/openid-connect/introduction.md#res
 
 ### response_modes
 
-{{< confkey type="list(string)" default="form_post, query" required="no" >}}
+{{< confkey type="list(string)" default="form_post,query" required="no" >}}
 
 *__Important Note:__ It is recommended that this isn't configured at this time unless you know what you're doing.*
 
@@ -210,6 +212,13 @@ type, but when it is supported it will include the `query` response mode.
 {{< confkey type="string" default="two_factor" required="no" >}}
 
 The authorization policy for this client: either `one_factor` or `two_factor`.
+
+### lifespan
+
+{{< confkey type="string" default="" required="no" >}}
+
+The name of the custom lifespan that this client uses. A custom lifespan is named and configured globally via the
+[custom](provider.md#custom) section within [lifespans](provider.md#lifespans).
 
 ### consent_mode
 
