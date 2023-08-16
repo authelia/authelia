@@ -16,9 +16,9 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.35.5](https://github.com/authelia/authelia/releases/tag/v4.35.5)
+  * [v4.37.5](https://github.com/authelia/authelia/releases/tag/v4.37.5)
 * [BookStack]
-  * 20.10
+  * 23.02.2
 
 ## Before You Begin
 
