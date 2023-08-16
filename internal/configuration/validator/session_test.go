@@ -299,7 +299,7 @@ func TestShouldRaiseErrorWhenRedisIsUsedAndSecretNotSet(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionSecretRequired, "redis"))
 }
 
-func TestShouldRaiseErrorWhenRedisHasHostnameButNoPort(t *testing.T) {
+func TestShouldNotRaiseErrorWhenRedisHasHostnameButNoPort(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
@@ -319,8 +319,9 @@ func TestShouldRaiseErrorWhenRedisHasHostnameButNoPort(t *testing.T) {
 	ValidateSession(&config, validator)
 
 	assert.False(t, validator.HasWarnings())
-	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "session: redis: option 'port' must be between 1 and 65535 but it's configured as '0'")
+	assert.False(t, validator.HasErrors())
+
+	assert.Equal(t, 26379, config.Redis.Port)
 }
 
 func TestShouldRaiseOneErrorWhenRedisHighAvailabilityHasNodesWithNoHost(t *testing.T) {
