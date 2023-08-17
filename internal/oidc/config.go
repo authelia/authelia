@@ -6,6 +6,7 @@ import (
 	"hash"
 	"html/template"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
@@ -13,7 +14,6 @@ import (
 	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/handler/par"
-	"github.com/ory/fosite/handler/pkce"
 	"github.com/ory/fosite/i18n"
 	"github.com/ory/fosite/token/hmac"
 	"github.com/ory/fosite/token/jwt"
@@ -28,12 +28,7 @@ func NewConfig(config *schema.OpenIDConnect, templates *templates.Provider) (c *
 		GlobalSecret:               []byte(utils.HashSHA256FromString(config.HMACSecret)),
 		SendDebugMessagesToClients: config.EnableClientDebugMessages,
 		MinParameterEntropy:        config.MinimumParameterEntropy,
-		Lifespans: LifespanConfig{
-			AccessToken:   config.AccessTokenLifespan,
-			AuthorizeCode: config.AuthorizeCodeLifespan,
-			IDToken:       config.IDTokenLifespan,
-			RefreshToken:  config.RefreshTokenLifespan,
-		},
+		Lifespans:                  config.Lifespans.OpenIDConnectLifespanToken,
 		ProofKeyCodeExchange: ProofKeyCodeExchangeConfig{
 			Enforce:                   config.EnforcePKCE == "always",
 			EnforcePublicClients:      config.EnforcePKCE != "never",
@@ -77,7 +72,7 @@ type Config struct {
 	Strategy             StrategyConfig
 	PAR                  PARConfig
 	Handlers             HandlersConfig
-	Lifespans            LifespanConfig
+	Lifespans            schema.OpenIDConnectLifespanToken
 	ProofKeyCodeExchange ProofKeyCodeExchangeConfig
 	GrantTypeJWTBearer   GrantTypeJWTBearerConfig
 
@@ -159,14 +154,6 @@ type ProofKeyCodeExchangeConfig struct {
 	AllowPlainChallengeMethod bool
 }
 
-// LifespanConfig holds specific fosite.Configurator information for various lifespans.
-type LifespanConfig struct {
-	AccessToken   time.Duration
-	AuthorizeCode time.Duration
-	IDToken       time.Duration
-	RefreshToken  time.Duration
-}
-
 // LoadHandlers reloads the handlers based on the current configuration.
 func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 	validator := openid.NewOpenIDConnectRequestValidator(strategy, c)
@@ -185,7 +172,7 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 			AccessTokenStorage:  store,
 			Config:              c,
 		},
-		&oauth2.ClientCredentialsGrantHandler{
+		&ClientCredentialsGrantHandler{
 			HandleHelper: &oauth2.HandleHelper{
 				AccessTokenStrategy: c.Strategy.Core,
 				AccessTokenStorage:  store,
@@ -193,7 +180,7 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 			},
 			Config: c,
 		},
-		&oauth2.RefreshTokenGrantHandler{
+		&RefreshTokenGrantHandler{
 			AccessTokenStrategy:    c.Strategy.Core,
 			RefreshTokenStrategy:   c.Strategy.Core,
 			TokenRevocationStorage: store,
@@ -255,7 +242,7 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 			RefreshTokenStrategy:   c.Strategy.Core,
 			TokenRevocationStorage: store,
 		},
-		&pkce.Handler{
+		&PKCEHandler{
 			AuthorizeCodeStrategy: c.Strategy.Core,
 			Storage:               store,
 			Config:                c,
@@ -526,10 +513,10 @@ func (c *Config) GetFormPostHTMLTemplate(ctx context.Context) (tmpl *template.Te
 
 // GetTokenURL returns the token URL.
 func (c *Config) GetTokenURL(ctx context.Context) (tokenURL string) {
-	if octx, ok := ctx.(OpenIDConnectContext); ok {
+	if octx, ok := ctx.(Context); ok {
 		switch issuerURL, err := octx.IssuerURL(); err {
 		case nil:
-			return issuerURL.JoinPath(EndpointPathToken).String()
+			return strings.ToLower(issuerURL.JoinPath(EndpointPathToken).String())
 		default:
 			return c.TokenURL
 		}

@@ -1,5 +1,5 @@
 ---
-title: "OpenID Connect"
+title: "OpenID Connect 1.0"
 description: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party"
 lead: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party."
 date: 2022-06-15T17:51:47+10:00
@@ -126,7 +126,7 @@ Authelia's response objects can have the following signature algorithms:
 
 ### Request Object
 
-Authelia accepts a wide variety of request object types.
+Authelia accepts a wide variety of request object types. The below table describes these request objects.
 
 | Algorithm |      Key Type      | Hashing Algorithm |    Use    |                       Notes                        |
 |:---------:|:------------------:|:-----------------:|:---------:|:--------------------------------------------------:|
@@ -155,7 +155,10 @@ configuration options.
 
 The following describes the supported response types. See the [OAuth 2.0 Multiple Response Type Encoding Practices] for
 more technical information. The default response modes column indicates which response modes are allowed by default on
-clients configured with this flow type value. If more than a single response type is configured
+clients configured with this flow type value. The value field is both the required value for the `response_type`
+parameter in the authorization request and the
+[response_types](../../configuration/identity-providers/openid-connect/clients.md#responsetypes) client configuration
+option.
 
 |         Flow Type         |         Value         | Default [Response Modes](#response-modes) Values |
 |:-------------------------:|:---------------------:|:------------------------------------------------:|
@@ -177,7 +180,9 @@ clients configured with this flow type value. If more than a single response typ
 
 The following describes the supported response modes. See the [OAuth 2.0 Multiple Response Type Encoding Practices] for
 more technical information. The default response modes of a client is based on the [Response Types](#response-types)
-configuration.
+configuration. The value field is both the required value for the `response_mode` parameter in the authorization request
+and the [response_modes](../../configuration/identity-providers/openid-connect/clients.md#responsemodes) client
+configuration option.
 
 |         Name          |    Value    |
 |:---------------------:|:-----------:|
@@ -190,18 +195,17 @@ configuration.
 ### Grant Types
 
 The following describes the various [OAuth 2.0] and [OpenID Connect 1.0] grant types and their support level. The value
-field is both the required value for the `grant_type` parameter in the authorization request and the `grant_types`
-configuration option.
+field is both the required value for the `grant_type` parameter in the access / token request and the
+[grant_types](../../configuration/identity-providers/openid-connect/clients.md#granttypes) client configuration option.
 
-|                   Grant Type                    | Supported |                     Value                      |                                              Notes                                              |
-|:-----------------------------------------------:|:---------:|:----------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
-|         [OAuth 2.0 Authorization Code]          |    Yes    |              `authorization_code`              |                                                                                                 |
-| [OAuth 2.0 Resource Owner Password Credentials] |    No     |                   `password`                   |               This Grant Type has been deprecated and should not normally be used               |
-|         [OAuth 2.0 Client Credentials]          |    No     |              `client_credentials`              |                                                                                                 |
-|              [OAuth 2.0 Implicit]               |    Yes    |                   `implicit`                   |               This Grant Type has been deprecated and should not normally be used               |
-|            [OAuth 2.0 Refresh Token]            |    Yes    |                `refresh_token`                 | This Grant Type should genreally only be used for clients which have the `offline_access` scope |
-|             [OAuth 2.0 Device Code]             |    No     | `urn:ietf:params:oauth:grant-type:device_code` |                                                                                                 |
-|
+|                   Grant Type                    | Supported |                     Value                      |                                                         Notes                                                         |
+|:-----------------------------------------------:|:---------:|:----------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------:|
+|         [OAuth 2.0 Authorization Code]          |    Yes    |              `authorization_code`              |                                                                                                                       |
+| [OAuth 2.0 Resource Owner Password Credentials] |    No     |                   `password`                   |              This Grant Type has been deprecated as it's highly insecure and should not normally be used              |
+|         [OAuth 2.0 Client Credentials]          |    Yes    |              `client_credentials`              | If this is the only grant type for a client then the `openid`, `offline`, and `offline_access` scopes are not allowed |
+|              [OAuth 2.0 Implicit]               |    Yes    |                   `implicit`                   |                          This Grant Type has been deprecated and should not normally be used                          |
+|            [OAuth 2.0 Refresh Token]            |    Yes    |                `refresh_token`                 |                 This Grant Type should only be used for clients which have the `offline_access` scope                 |
+|             [OAuth 2.0 Device Code]             |    No     | `urn:ietf:params:oauth:grant-type:device_code` |                                                                                                                       |
 
 [OAuth 2.0 Authorization Code]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.1
 [OAuth 2.0 Implicit]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.2
@@ -213,9 +217,12 @@ configuration option.
 ### Client Authentication Method
 
 The following describes the supported client authentication methods. See the [OpenID Connect 1.0 Client Authentication]
-specification and the [OAuth 2.0 - Client Types] specification for more information.
+specification and the [OAuth 2.0 - Client Types] specification for more information. The value
+field is the valid values for the
+[token_endpoint_auth_method](../../configuration/identity-providers/openid-connect/clients.md#tokenendpointauthmethod)
+client configuration option.
 
-|             Description              |         Value / Name          | Supported Client Types | Default for Client Type |                      Assertion Type                      |
+|             Description              |             Value             | Supported Client Types | Default for Client Type |                      Assertion Type                      |
 |:------------------------------------:|:-----------------------------:|:----------------------:|:-----------------------:|:--------------------------------------------------------:|
 |  Secret via HTTP Basic Auth Scheme   |     `client_secret_basic`     |     `confidential`     |           N/A           |                           N/A                            |
 |      Secret via HTTP POST Body       |     `client_secret_post`      |     `confidential`     |           N/A           |                           N/A                            |
@@ -225,10 +232,19 @@ specification and the [OAuth 2.0 - Client Types] specification for more informat
 | [OAuth 2.0 Mutual-TLS] (Self Signed) | `self_signed_tls_client_auth` |     Not Supported      |           N/A           |                           N/A                            |
 |          No Authentication           |            `none`             |        `public`        |        `public`         |                           N/A                            |
 
-
 [OpenID Connect 1.0 Client Authentication]: https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
 [OAuth 2.0 Mutual-TLS]: https://datatracker.ietf.org/doc/html/rfc8705
 [OAuth 2.0 - Client Types]: https://datatracker.ietf.org/doc/html/rfc8705#section-2.1
+
+#### Client Assertion Audience
+
+The client authentication methods which use the JWT Bearer Client Assertions such as `client_secret_jwt` and
+`private_key_jwt` **require** that the JWT contains an audience (i.e. the `aud` claim) which exactly matches the
+full URL for the [token endpoint](#endpoint-implementations) and it **must** be lowercase.
+
+Per the [RFC7523 Section 3: JWT Format and Processing Requirements](https://datatracker.ietf.org/doc/html/rfc7523#section-3)
+this claim must be compared using [RFC3987 Section 6.2.1: Simple String Comparison] and to assist with making this
+predictable for implementers we ensure the comparison is done against the lowercase form of this URL.
 
 ## Authentication Method References
 
@@ -363,6 +379,7 @@ The advantages of this approach are as follows:
 [Claims]: https://openid.net/specs/openid-connect-core-1_0.html#Claims
 [Claim]: https://openid.net/specs/openid-connect-core-1_0.html#Claims
 
+[OAuth 2.0]: https://oauth.net/2/
 [OpenID Connect 1.0]: https://openid.net/connect/
 
 [OpenID Connect Discovery 1.0]: https://openid.net/specs/openid-connect-discovery-1_0.html
@@ -391,3 +408,5 @@ The advantages of this approach are as follows:
 [RFC7636]: https://datatracker.ietf.org/doc/html/rfc7636
 [RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176
 [RFC9126]: https://datatracker.ietf.org/doc/html/rfc9126
+
+[RFC3987 Section 6.2.1: Simple String Comparison]: https://datatracker.ietf.org/doc/html/rfc3986#section-6.2.1

@@ -2,17 +2,22 @@ package oidc_test
 
 import (
 	"context"
+	"errors"
 	"net/url"
 	"testing"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
+	"github.com/ory/fosite/handler/openid"
+	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func TestNewSession(t *testing.T) {
@@ -99,19 +104,147 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	assert.Nil(t, session.Claims.AuthenticationMethodsReferences)
 }
 
-// MockOpenIDConnectContext is a minimal implementation of OpenIDConnectContext for the purpose of testing.
-type MockOpenIDConnectContext struct {
+func TestPopulateClientCredentialsFlowSessionWithAccessRequest(t *testing.T) {
+	testCases := []struct {
+		name     string
+		setup    func(ctx oidc.Context)
+		ctx      oidc.Context
+		request  fosite.AccessRequester
+		have     *model.OpenIDSession
+		expected *model.OpenIDSession
+		err      string
+	}{
+		{
+			"ShouldHandleIssuerError",
+			nil,
+			&TestContext{
+				IssuerURLFunc: func() (issuerURL *url.URL, err error) {
+					return nil, errors.New("an error")
+				},
+			},
+			&fosite.AccessRequest{},
+			oidc.NewSession(),
+			nil,
+			"The authorization server encountered an unexpected condition that prevented it from fulfilling the request. Failed to determine the issuer with error: an error.",
+		},
+		{
+			"ShouldHandleClientError",
+			nil,
+			&TestContext{
+				IssuerURLFunc: func() (issuerURL *url.URL, err error) {
+					return &url.URL{Scheme: "https", Host: "example.com"}, nil
+				},
+			},
+			&fosite.AccessRequest{},
+			oidc.NewSession(),
+			nil,
+			"The authorization server encountered an unexpected condition that prevented it from fulfilling the request. Failed to get the client for the request.",
+		},
+		{
+			"ShouldUpdateValues",
+			func(ctx oidc.Context) {
+				c := ctx.(*TestContext)
+
+				clock := &utils.TestingClock{}
+
+				clock.Set(time.Unix(10000000000, 0))
+
+				c.Clock = clock
+			},
+			&TestContext{
+				IssuerURLFunc: func() (issuerURL *url.URL, err error) {
+					return &url.URL{Scheme: "https", Host: "example.com"}, nil
+				},
+			},
+			&fosite.AccessRequest{
+				Request: fosite.Request{
+					Client: &oidc.BaseClient{
+						ID: "abc",
+					},
+				},
+			},
+			oidc.NewSession(),
+			&model.OpenIDSession{
+				Extra: map[string]any{},
+				DefaultSession: &openid.DefaultSession{
+					Headers: &fjwt.Headers{
+						Extra: map[string]any{},
+					},
+					Claims: &fjwt.IDTokenClaims{
+						Issuer:      "https://example.com",
+						IssuedAt:    time.Unix(10000000000, 0),
+						RequestedAt: time.Unix(10000000000, 0),
+						Subject:     "abc",
+						Extra:       map[string]any{},
+					},
+				},
+				ClientID: "abc",
+			},
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.setup != nil {
+				tc.setup(tc.ctx)
+			}
+
+			err := oidc.PopulateClientCredentialsFlowSessionWithAccessRequest(tc.ctx, tc.request, tc.have, nil)
+
+			assert.Equal(t, "", tc.have.GetSubject())
+			if len(tc.err) == 0 {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expected, tc.have)
+			} else {
+				assert.EqualError(t, oidc.ErrorToDebugRFC6749Error(err), tc.err)
+			}
+		})
+	}
+}
+
+// TestContext is a minimal implementation of Context for the purpose of testing.
+type TestContext struct {
 	context.Context
 
 	MockIssuerURL *url.URL
 	IssuerURLFunc func() (issuerURL *url.URL, err error)
+	Clock         utils.Clock
 }
 
 // IssuerURL returns the MockIssuerURL.
-func (m *MockOpenIDConnectContext) IssuerURL() (issuerURL *url.URL, err error) {
+func (m *TestContext) IssuerURL() (issuerURL *url.URL, err error) {
 	if m.IssuerURLFunc != nil {
 		return m.IssuerURLFunc()
 	}
 
 	return m.MockIssuerURL, nil
+}
+
+func (m *TestContext) GetClock() utils.Clock {
+	if m.Clock != nil {
+		return m.Clock
+	}
+
+	return &utils.RealClock{}
+}
+
+func (m *TestContext) GetJWTWithTimeFuncOption() jwt.ParserOption {
+	return jwt.WithTimeFunc(m.GetClock().Now)
+}
+
+type TestCodeStrategy struct {
+	signature string
+}
+
+func (m *TestCodeStrategy) AuthorizeCodeSignature(ctx context.Context, token string) string {
+	return m.signature
+}
+
+func (m *TestCodeStrategy) GenerateAuthorizeCode(ctx context.Context, requester fosite.Requester) (token string, signature string, err error) {
+	return "", "", nil
+}
+
+func (m *TestCodeStrategy) ValidateAuthorizeCode(ctx context.Context, requester fosite.Requester, token string) (err error) {
+	return nil
 }

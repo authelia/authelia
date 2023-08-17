@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"net"
 	"net/url"
-	"path"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -23,9 +23,9 @@ import (
 // NewRequestLogger create a new request logger for the given request.
 func NewRequestLogger(ctx *AutheliaCtx) *logrus.Entry {
 	return logging.Logger().WithFields(logrus.Fields{
-		"method":    string(ctx.Method()),
-		"path":      string(ctx.Path()),
-		"remote_ip": ctx.RemoteIP().String(),
+		logging.FieldMethod:   string(ctx.Method()),
+		logging.FieldPath:     string(ctx.Path()),
+		logging.FieldRemoteIP: ctx.RemoteIP().String(),
 	})
 }
 
@@ -221,7 +221,7 @@ func (ctx *AutheliaCtx) QueryArgAutheliaURL() []byte {
 
 // AuthzPath returns the 'authz_path' value.
 func (ctx *AutheliaCtx) AuthzPath() (uri []byte) {
-	if uv := ctx.UserValueBytes(keyUserValueAuthzPath); uv != nil {
+	if uv := ctx.UserValue(UserValueRouterKeyExtAuthzPath); uv != nil {
 		return []byte(uv.(string))
 	}
 
@@ -230,7 +230,7 @@ func (ctx *AutheliaCtx) AuthzPath() (uri []byte) {
 
 // BasePath returns the base_url as per the path visited by the client.
 func (ctx *AutheliaCtx) BasePath() string {
-	if baseURL := ctx.UserValueBytes(keyUserValueBaseURL); baseURL != nil {
+	if baseURL := ctx.UserValue(UserValueKeyBaseURL); baseURL != nil {
 		return baseURL.(string)
 	}
 
@@ -239,8 +239,12 @@ func (ctx *AutheliaCtx) BasePath() string {
 
 // BasePathSlash is the same as BasePath but returns a final slash as well.
 func (ctx *AutheliaCtx) BasePathSlash() string {
-	if baseURL := ctx.UserValueBytes(keyUserValueBaseURL); baseURL != nil {
-		return baseURL.(string) + strSlash
+	if baseURL := ctx.UserValue(UserValueKeyBaseURL); baseURL != nil {
+		if value := baseURL.(string); value[len(value)-1] == '/' {
+			return value
+		} else {
+			return value + strSlash
+		}
 	}
 
 	return strSlash
@@ -283,6 +287,10 @@ func (ctx *AutheliaCtx) GetTargetURICookieDomain(targetURI *url.URL) string {
 
 // IsSafeRedirectionTargetURI returns true if the targetURI is within the scope of a cookie domain and secure.
 func (ctx *AutheliaCtx) IsSafeRedirectionTargetURI(targetURI *url.URL) bool {
+	if targetURI == nil {
+		return false
+	}
+
 	if !utils.IsURISecure(targetURI) {
 		return false
 	}
@@ -543,21 +551,17 @@ func (ctx *AutheliaCtx) GetOrigin() (origin *url.URL, err error) {
 // IssuerURL returns the expected Issuer.
 func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
 	issuerURL = &url.URL{
-		Scheme: strProtoHTTPS,
+		Scheme: string(ctx.XForwardedProto()),
+		Host:   string(ctx.GetXForwardedHost()),
+		Path:   ctx.BasePath(),
 	}
 
-	if scheme := ctx.XForwardedProto(); scheme != nil {
-		issuerURL.Scheme = string(scheme)
+	if len(issuerURL.Scheme) == 0 {
+		issuerURL.Scheme = strProtoHTTPS
 	}
 
-	if host := ctx.GetXForwardedHost(); len(host) != 0 {
-		issuerURL.Host = string(host)
-	} else {
+	if len(issuerURL.Host) == 0 {
 		return nil, ErrMissingXForwardedHost
-	}
-
-	if base := ctx.BasePath(); base != "" {
-		issuerURL.Path = path.Join(issuerURL.Path, base)
 	}
 
 	return issuerURL, nil
@@ -631,4 +635,14 @@ func (ctx *AutheliaCtx) RecordAuthn(success, regulated bool, method string) {
 	}
 
 	ctx.Providers.Metrics.RecordAuthn(success, regulated, method)
+}
+
+// GetClock returns the clock. For use with interface fulfillment.
+func (ctx *AutheliaCtx) GetClock() utils.Clock {
+	return ctx.Clock
+}
+
+// GetJWTWithTimeFuncOption returns the WithTimeFunc jwt.ParserOption. For use with interface fulfillment.
+func (ctx *AutheliaCtx) GetJWTWithTimeFuncOption() jwt.ParserOption {
+	return jwt.WithTimeFunc(ctx.Clock.Now)
 }

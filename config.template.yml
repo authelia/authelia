@@ -34,7 +34,7 @@ jwt_secret: 'a_very_important_secret'
 ## in such a case.
 ##
 ## Note: this parameter is optional. If not provided, user won't be redirected upon successful authentication.
-default_redirection_url: 'https://home.example.com/'
+# default_redirection_url: 'https://home.example.com/'
 
 ## Set the default 2FA method for new users and for when a user has a preferred method configured that has been
 ## disabled. This setting must be a method that is enabled.
@@ -52,7 +52,7 @@ server:
   ## Square brackets indicate optional portions of the format. Scheme must be 'tcp', 'tcp4', 'tcp6', or 'unix'.
   ## The default scheme is 'unix' if the address is an absolute path otherwise it's 'tcp'. The default port is '9091'.
   ## If the path is specified this configures the router to handle both the `/` path and the configured path.
-  address: 'tcp://:9091/'
+  # address: 'tcp://:9091/'
 
   ## Set the path on disk to Authelia assets.
   ## Useful to allow overriding of specific static assets.
@@ -60,7 +60,7 @@ server:
 
   ## Disables writing the health check vars to /app/.healthcheck.env which makes healthcheck.sh return exit code 0.
   ## This is disabled by default if either /app/.healthcheck.env or /app/healthcheck.sh do not exist.
-  disable_healthcheck: false
+  # disable_healthcheck: false
 
   ## Authelia by default doesn't accept TLS communication on the server port. This section overrides this behaviour.
   tls:
@@ -164,7 +164,7 @@ telemetry:
     ## Square brackets indicate optional portions of the format. Scheme must be 'tcp', 'tcp4', 'tcp6', or 'unix'.
     ## The default scheme is 'unix' if the address is an absolute path otherwise it's 'tcp'. The default port is '9959'.
     ## If the path is not specified it defaults to `/metrics`.
-    address: 'tcp://:9959/metrics'
+    # address: 'tcp://:9959/metrics'
 
     ## Metrics Server Buffers configuration.
     # buffers:
@@ -231,18 +231,18 @@ webauthn:
   disable: false
 
   ## The interaction timeout for WebAuthn dialogues in the duration common syntax.
-  timeout: '60s'
+  # timeout: '60s'
 
   ## The display name the browser should show the user for when using WebAuthn to login/register.
-  display_name: 'Authelia'
+  # display_name: 'Authelia'
 
   ## Conveyance preference controls if we collect the attestation statement including the AAGUID from the device.
   ## Options are none, indirect, direct.
-  attestation_conveyance_preference: 'indirect'
+  # attestation_conveyance_preference: 'indirect'
 
   ## User verification controls if the user must make a gesture or action to confirm they are present.
   ## Options are required, preferred, discouraged.
-  user_verification: 'preferred'
+  # user_verification: 'preferred'
 
 ##
 ## Duo Push API Configuration
@@ -266,13 +266,13 @@ ntp:
   ## Format: [<scheme>://]<hostname>[:<port>].
   ## Square brackets indicate optional portions of the format. Scheme must be 'udp', 'udp4', or 'udp6'.
   ## The default scheme is 'udp'. The default port is '123'.
-  address: 'udp://time.cloudflare.com:123'
+  # address: 'udp://time.cloudflare.com:123'
 
   ## NTP version.
   version: 4
 
   ## Maximum allowed time offset between the host and the NTP server in the duration common syntax.
-  max_desync: '3s'
+  # max_desync: '3s'
 
   ## Disables the NTP check on startup entirely. This means Authelia will not contact a remote service at all if you
   ## set this to true, and can operate in a truly offline mode.
@@ -306,7 +306,7 @@ authentication_backend:
   ## To force update on every request you can set this to '0' or 'always', this will increase processor demand.
   ## See the below documentation for more information.
   ## Refresh Interval docs: https://www.authelia.com/c/1fa#refresh-interval
-  refresh_interval: '5m'
+  # refresh_interval: '5m'
 
   ##
   ## LDAP (Authentication Provider)
@@ -1279,12 +1279,6 @@ notifier:
       # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
       # -----END CERTIFICATE-----
 
-    ## The lifespans configure the expiration for these token types in the duration common syntax.
-    # access_token_lifespan: '1h'
-    # authorize_code_lifespan: '1m'
-    # id_token_lifespan: '1h'
-    # refresh_token_lifespan: '90m'
-
     ## Enables additional debug messages.
     # enable_client_debug_messages: false
 
@@ -1294,6 +1288,25 @@ notifier:
     ## SECURITY NOTICE: It's not recommended changing this option, and highly discouraged to have it set to 'never'
     ## for security reasons.
     # enforce_pkce: 'public_clients_only'
+
+    ## Authorization Policies which can be utilized by clients. The 'policy_name' is an arbitrary value that you pick
+    ## which is utilized as the value for the 'authorization_policy' on the client.
+    # authorization_policies:
+      # policy_name:
+        # default_policy: 'two_factor'
+        # rules:
+          # - policy: 'one_factor'
+          #   subject: 'group:services'
+
+    ## The lifespans configure the expiration for these token types in the duration common syntax. In addition to this
+    ## syntax the lifespans can be customized per-client.
+    # lifespans:
+      ## Configures the default/fallback lifespan for given token types. This behaviour applies to all clients and all
+      ## grant types but you can override this behaviour using the custom lifespans.
+      # access_token: '1h'
+      # authorize_code: '1m'
+      # id_token: '1h'
+      # refresh_token: '90m'
 
     ## Cross-Origin Resource Sharing (CORS) settings.
     # cors:
@@ -1366,8 +1379,13 @@ notifier:
           # - 'form_post'
           # - 'query'
 
-        ## The policy to require for this client; one_factor or two_factor.
+        ## The policy to require for this client; one_factor or two_factor. Can also be the key names for the
+        ## authorization policies section.
         # authorization_policy: 'two_factor'
+
+        ## The custom lifespan name to use for this client. This must be configured independent of the client before
+        ## utilization. Custom lifespans are reusable similar to authorization policies.
+        # lifespan: ''
 
         ## The consent mode controls how consent is obtained.
         # consent_mode: 'auto'

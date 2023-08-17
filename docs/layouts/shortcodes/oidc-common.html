@@ -14,6 +14,8 @@
     2. This string may be stored as plaintext in the Authelia configuration but this behaviour is deprecated and is not
        guaranteed to be supported in the future. See the [Plaintext]({{ $faq }}#plaintext) guide for more
        information.
+    3. When the secret is stored in hashed form in the authelia configuration (*__heavily recommended__*), the cost of hashing can, if too great,
+       cause timeouts for clients. See the [Tuning the work factors]({{ $faq }}#tuning-work-factors) guide for more information.
 3. The Configuration example for Authelia is only a portion of the required configuration and it should be used as a
    guide in conjunction with the standard
    [OpenID Connect 1.0 Provider Configuration]({{ printf "%s/provider.md" $config }}) and

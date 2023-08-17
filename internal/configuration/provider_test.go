@@ -164,6 +164,172 @@ func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: 1 error(s) decoding:\n\n* error decoding 'authentication_backend.ldap.address': could not decode 'an env authentication backend ldap password' to a *schema.AddressLDAP: could not parse string 'an env authentication backend ldap password' as address: expected format is [<scheme>://]<hostname>[:<port>]: parse \"ldaps://an env authentication backend ldap password\": invalid character \" \" in host name")
 }
 
+func TestShouldValidateServerAddressValues(t *testing.T) {
+	testCases := []struct {
+		name string
+		data []byte
+
+		envHost, envPort, envAddress string
+
+		envMetricsAddress      string
+		expectedHTTP           string
+		expectedNetAddrHTTP    string
+		expectedMetrics        string
+		expectedNetAddrMetrics string
+		errs                   []string
+	}{
+		{
+			"ShouldSetDefaultValues",
+			nil,
+			"",
+			"",
+			"",
+			"",
+			"tcp://:9091/",
+			":9091",
+			"tcp://:9959/metrics",
+			":9959",
+			nil,
+		},
+		{
+			"ShouldMapEnvValuesWithConfigTemplate",
+			func() []byte {
+				data, err := os.ReadFile("config.template.yml")
+				if err != nil {
+					panic(err)
+				}
+
+				return data
+			}(),
+			"127.0.0.1",
+			"8080",
+			"",
+			"",
+			"tcp://127.0.0.1:8080/",
+			"127.0.0.1:8080",
+			"tcp://:9959/metrics",
+			":9959",
+			nil,
+		},
+		{
+			"ShouldOverrideDefault",
+			func() []byte {
+				data, err := os.ReadFile("config.template.yml")
+				if err != nil {
+					panic(err)
+				}
+
+				return data
+			}(),
+			"",
+			"",
+			"tcp://127.0.0.2:7071",
+			"tcp://127.0.0.3:8080",
+			"tcp://127.0.0.2:7071/",
+			"127.0.0.2:7071",
+			"tcp://127.0.0.3:8080/metrics",
+			"127.0.0.3:8080",
+			nil,
+		},
+		{
+			"ShouldErrorOnDeprecatedEnvAndModernConfigFileListenerOptions",
+			[]byte("server:\n  address: 'tcp://:1000'"),
+			"127.0.0.1",
+			"8080",
+			"",
+			"tcp://:",
+			"tcp://:1000/",
+			":1000",
+			"tcp://:9959/metrics",
+			":9959",
+			[]string{
+				"server: option 'host' and 'port' can't be configured at the same time as 'address'",
+			},
+		},
+		{
+			"ShouldErrorOnDeprecatedEnvAndModernEnvListenerOptions",
+			nil,
+			"127.0.0.1",
+			"8080",
+			"tcp://:10000",
+			"tcp://:",
+			"tcp://:10000/",
+			":10000",
+			"tcp://:9959/metrics",
+			":9959",
+			[]string{
+				"server: option 'host' and 'port' can't be configured at the same time as 'address'",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			testSetEnv(t, "TELEMETRY_METRICS_ENABLED", "true")
+
+			if tc.envHost != "" {
+				testSetEnv(t, "SERVER_HOST", tc.envHost)
+			}
+
+			if tc.envPort != "" {
+				testSetEnv(t, "SERVER_PORT", tc.envPort)
+			}
+
+			if tc.envAddress != "" {
+				testSetEnv(t, "SERVER_ADDRESS", tc.envAddress)
+			}
+
+			if tc.envMetricsAddress != "" {
+				testSetEnv(t, "TELEMETRY_METRICS_ADDRESS", tc.envMetricsAddress)
+			}
+
+			sources := []Source{
+				NewBytesSource(tc.data),
+				NewEnvironmentSource(DefaultEnvPrefix, DefaultEnvDelimiter),
+				NewSecretsSource(DefaultEnvPrefix, DefaultEnvDelimiter),
+			}
+
+			val := schema.NewStructValidator()
+			keys, config, err := Load(val, sources...)
+
+			assert.NoError(t, err)
+
+			validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+			assert.Len(t, val.Errors(), 0)
+
+			assert.NotEmpty(t, config)
+
+			val.Clear()
+
+			validator.ValidateServer(config, val)
+			validator.ValidateTelemetry(config, val)
+
+			assert.Len(t, val.Warnings(), 0)
+
+			errs := val.Errors()
+
+			if n := len(tc.errs); n == 0 {
+				assert.Len(t, errs, 0)
+			} else {
+				require.Len(t, errs, n)
+
+				for i := 0; i < n; i++ {
+					assert.EqualError(t, errs[i], tc.errs[i])
+				}
+			}
+
+			assert.Equal(t, tc.expectedHTTP, config.Server.Address.String())
+			assert.Equal(t, "tcp", config.Server.Address.Network())
+			assert.Equal(t, tc.expectedNetAddrHTTP, config.Server.Address.NetworkAddress())
+
+			assert.Equal(t, tc.expectedMetrics, config.Telemetry.Metrics.Address.String())
+			assert.Equal(t, "tcp", config.Telemetry.Metrics.Address.Network())
+			assert.Equal(t, tc.expectedNetAddrMetrics, config.Telemetry.Metrics.Address.NetworkAddress())
+		})
+	}
+}
+
 func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T) {
 	testSetEnv(t, "SESSION_SECRET", "an env session secret")
 	testSetEnv(t, "SESSION_SECRET_FILE", "./test_resources/example_secret")

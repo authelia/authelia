@@ -29,6 +29,13 @@ Build OS: %s
 Build Arch: %s
 Build Date: %s
 Extra: %s
+
+Go: %s
+`
+	fmtAutheliaBuildGo = `
+    Version: %s
+    Module Path: %s
+    Executable Path: %s
 `
 
 	cmdAutheliaBuildInfoShort = "Show the build information of Authelia"
@@ -785,4 +792,12 @@ const (
 
 	serviceTypeServer  = "server"
 	serviceTypeWatcher = "watcher"
+
+	logFieldProvider            = "provider"
+	logMessageStartupCheckError = "Error occurred running a startup check"
+
+	providerNameNTP          = "ntp"
+	providerNameStorage      = "storage"
+	providerNameUser         = "user"
+	providerNameNotification = "notification"
 )

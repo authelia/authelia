@@ -45,6 +45,8 @@ const (
 	ClientAssertionJWTBearerType = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer" //nolint:gosec // False Positive.
 )
 
+const httpAuthSchemeBasic = "Basic"
+
 const (
 	lifespanTokenDefault         = time.Hour
 	lifespanRefreshTokenDefault  = time.Hour * 24 * 30
@@ -72,8 +74,9 @@ const (
 // Grant Type strings.
 const (
 	GrantTypeImplicit          = implicit
-	GrantTypeRefreshToken      = "refresh_token"
+	GrantTypeRefreshToken      = refreshtoken
 	GrantTypeAuthorizationCode = "authorization_code"
+	GrantTypeClientCredentials = "client_credentials"
 )
 
 // Client Auth Method strings.
@@ -143,14 +146,18 @@ const (
 )
 
 const (
+	FormParameterAuthorizationCode   = "code"
 	FormParameterClientID            = "client_id"
 	FormParameterClientSecret        = "client_secret"
 	FormParameterRequestURI          = "request_uri"
 	FormParameterResponseMode        = "response_mode"
 	FormParameterCodeChallenge       = "code_challenge"
+	FormParameterCodeVerifier        = "code_verifier"
 	FormParameterCodeChallengeMethod = "code_challenge_method"
 	FormParameterClientAssertionType = "client_assertion_type"
 	FormParameterClientAssertion     = "client_assertion"
+	FormParameterScope               = "scope"
+	FormParameterRefreshToken        = refreshtoken
 )
 
 const (
@@ -305,4 +312,9 @@ const (
 	explicit      = "explicit"
 	preconfigured = "pre-configured"
 	none          = "none"
+	refreshtoken  = "refresh_token"
+)
+
+const (
+	durationZero = time.Duration(0)
 )

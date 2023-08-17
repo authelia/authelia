@@ -174,7 +174,7 @@ func (s *ExtAuthzAuthzSuite) TestShouldHandleAllMethodsXHRDeny() {
 
 							s.setRequest(mock.Ctx, method, pairURI.TargetURI, x, x)
 
-							mock.Ctx.SetUserValue("authz_path", pairURI.TargetURI.Path)
+							mock.Ctx.SetUserValue(middlewares.UserValueRouterKeyExtAuthzPath, pairURI.TargetURI.Path)
 
 							authz.Handler(mock.Ctx)
 
@@ -397,7 +397,7 @@ func (s *ExtAuthzAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 					mock.Ctx.Request.Header.SetBytesKV([]byte(fasthttp.HeaderXForwardedProto), tc.scheme)
 					mock.Ctx.Request.Header.Del(fasthttp.HeaderXForwardedHost)
 					mock.Ctx.Request.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf-8")
-					mock.Ctx.SetUserValue("authz_path", tc.path)
+					mock.Ctx.SetUserValue(middlewares.UserValueRouterKeyExtAuthzPath, tc.path)
 
 					authz.Handler(mock.Ctx)
 
@@ -563,7 +563,7 @@ func setRequestExtAuthz(ctx *middlewares.AutheliaCtx, method string, targetURI *
 	if targetURI != nil {
 		ctx.Request.SetHost(targetURI.Host)
 		ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, targetURI.Scheme)
-		ctx.SetUserValue("authz_path", targetURI.Path)
+		ctx.SetUserValue(middlewares.UserValueRouterKeyExtAuthzPath, targetURI.Path)
 	}
 
 	setRequestXHRValues(ctx, accept, xhr)

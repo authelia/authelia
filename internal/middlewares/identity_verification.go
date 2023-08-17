@@ -2,12 +2,13 @@ package middlewares
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/mail"
 	"path"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 
 	"github.com/authelia/authelia/v4/internal/model"
@@ -95,55 +96,54 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 	}
 }
 
-func identityVerificationValidateToken(ctx *AutheliaCtx) (*jwt.Token, error) {
-	var bodyJSON IdentityVerificationFinishBody
-
-	err := json.Unmarshal(ctx.PostBody(), &bodyJSON)
-
-	if err != nil {
-		ctx.Error(err, messageOperationFailed)
-		return nil, err
-	}
-
-	if bodyJSON.Token == "" {
-		ctx.Error(fmt.Errorf("No token provided"), messageOperationFailed)
-		return nil, err
-	}
-
-	token, err := jwt.ParseWithClaims(bodyJSON.Token, &model.IdentityVerificationClaim{},
-		func(token *jwt.Token) (any, error) {
-			return []byte(ctx.Configuration.JWTSecret), nil
-		})
-
-	if err != nil {
-		if ve, ok := err.(*jwt.ValidationError); ok {
-			switch {
-			case ve.Errors&jwt.ValidationErrorMalformed != 0:
-				ctx.Error(fmt.Errorf("Cannot parse token"), messageOperationFailed)
-				return nil, err
-			case ve.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0:
-				// Token is either expired or not active yet.
-				ctx.Error(fmt.Errorf("Token expired"), messageIdentityVerificationTokenHasExpired)
-				return nil, err
-			default:
-				ctx.Error(fmt.Errorf("Cannot handle this token: %s", ve), messageOperationFailed)
-				return nil, err
-			}
-		}
-
-		ctx.Error(err, messageOperationFailed)
-
-		return nil, err
-	}
-
-	return token, nil
-}
-
 // IdentityVerificationFinish the middleware for finishing the identity validation process.
+//
+//nolint:gocyclo
 func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(ctx *AutheliaCtx, username string)) RequestHandler {
 	return func(ctx *AutheliaCtx) {
-		token, err := identityVerificationValidateToken(ctx)
-		if token == nil || err != nil {
+		var finishBody IdentityVerificationFinishBody
+
+		b := ctx.PostBody()
+
+		err := json.Unmarshal(b, &finishBody)
+
+		if err != nil {
+			ctx.Error(err, messageOperationFailed)
+			return
+		}
+
+		if finishBody.Token == "" {
+			ctx.Error(fmt.Errorf("No token provided"), messageOperationFailed)
+			return
+		}
+
+		token, err := jwt.ParseWithClaims(finishBody.Token, &model.IdentityVerificationClaim{},
+			func(token *jwt.Token) (any, error) {
+				return []byte(ctx.Configuration.JWTSecret), nil
+			},
+			jwt.WithIssuedAt(),
+			jwt.WithIssuer("Authelia"),
+			jwt.WithStrictDecoding(),
+			ctx.GetJWTWithTimeFuncOption(),
+		)
+
+		switch {
+		case err == nil:
+			break
+		case errors.Is(err, jwt.ErrTokenMalformed):
+			ctx.Error(fmt.Errorf("Cannot parse token"), messageOperationFailed)
+			return
+		case errors.Is(err, jwt.ErrTokenExpired):
+			ctx.Error(fmt.Errorf("Token expired"), messageIdentityVerificationTokenHasExpired)
+			return
+		case errors.Is(err, jwt.ErrTokenNotValidYet):
+			ctx.Error(fmt.Errorf("Token is only valid in the future"), messageIdentityVerificationTokenNotValidYet)
+			return
+		case errors.Is(err, jwt.ErrTokenSignatureInvalid):
+			ctx.Error(fmt.Errorf("Token signature does't match"), messageIdentityVerificationTokenSig)
+			return
+		default:
+			ctx.Error(fmt.Errorf("Cannot handle this token: %w", err), messageOperationFailed)
 			return
 		}
 

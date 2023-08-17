@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -98,36 +97,36 @@ func doStartupChecks(ctx *CmdCtx) {
 		err      error
 	)
 
-	if err = doStartupCheck(ctx, "storage", ctx.providers.StorageProvider, false); err != nil {
-		ctx.log.Errorf("Failure running the storage provider startup check: %+v", err)
+	if err = doStartupCheck(ctx, providerNameStorage, ctx.providers.StorageProvider, false); err != nil {
+		ctx.log.WithError(err).WithField(logFieldProvider, providerNameStorage).Error(logMessageStartupCheckError)
 
-		failures = append(failures, "storage")
+		failures = append(failures, providerNameStorage)
 	}
 
-	if err = doStartupCheck(ctx, "user", ctx.providers.UserProvider, false); err != nil {
-		ctx.log.Errorf("Failure running the user provider startup check: %+v", err)
+	if err = doStartupCheck(ctx, providerNameUser, ctx.providers.UserProvider, false); err != nil {
+		ctx.log.WithError(err).WithField(logFieldProvider, providerNameUser).Error(logMessageStartupCheckError)
 
-		failures = append(failures, "user")
+		failures = append(failures, providerNameUser)
 	}
 
-	if err = doStartupCheck(ctx, "notification", ctx.providers.Notifier, ctx.config.Notifier.DisableStartupCheck); err != nil {
-		ctx.log.Errorf("Failure running the notification provider startup check: %+v", err)
+	if err = doStartupCheck(ctx, providerNameNotification, ctx.providers.Notifier, ctx.config.Notifier.DisableStartupCheck); err != nil {
+		ctx.log.WithError(err).WithField(logFieldProvider, providerNameNotification).Error(logMessageStartupCheckError)
 
-		failures = append(failures, "notification")
+		failures = append(failures, providerNameNotification)
 	}
 
-	if !ctx.config.NTP.DisableStartupCheck && !ctx.providers.Authorizer.IsSecondFactorEnabled() {
-		ctx.log.Debug("The NTP startup check was skipped due to there being no configured 2FA access control rules")
-	} else if err = doStartupCheck(ctx, "ntp", ctx.providers.NTP, ctx.config.NTP.DisableStartupCheck); err != nil {
-		ctx.log.Errorf("Failure running the ntp provider startup check: %+v", err)
-
+	if err = doStartupCheck(ctx, providerNameNTP, ctx.providers.NTP, ctx.config.NTP.DisableStartupCheck); err != nil {
 		if !ctx.config.NTP.DisableFailure {
-			failures = append(failures, "ntp")
+			ctx.log.WithError(err).WithField(logFieldProvider, providerNameNTP).Error(logMessageStartupCheckError)
+
+			failures = append(failures, providerNameNTP)
+		} else {
+			ctx.log.WithError(err).WithField(logFieldProvider, providerNameNTP).Warn(logMessageStartupCheckError)
 		}
 	}
 
 	if len(failures) != 0 {
-		ctx.log.Fatalf("The following providers had fatal failures during startup: %s", strings.Join(failures, ", "))
+		ctx.log.WithField("providers", failures).Fatalf("One or more providers had fatal failures performing startup checks, for more detail check the error level logs")
 	}
 }
 

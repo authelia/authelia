@@ -15,11 +15,13 @@ aliases:
 ---
 
 Authelia has the ability to check the system time against an NTP server, which at the present time is checked only
-during startup. This section configures and tunes the settings for this check which is primarily used to ensure
-[TOTP](../second-factor/time-based-one-time-password.md) can be accurately validated.
+during startup. This section configures and tunes the settings for this check.
 
 In the instance of inability to contact the NTP server or an issue with the synchronization Authelia will fail to start
-unless configured otherwise.
+unless configured otherwise. It should however be noted that disabling this check is not a supported configuration and
+instead administrators should correct the underlying time issue. i.e. if this check is disabled and a service reliant on
+the time being accurate has a failure, it's very unlikely we will produce/accept a fix in this scenario without
+additional benefits.
 
 ## Configuration
 
@@ -48,9 +50,7 @@ required.
 ### address
 
 {{< confkey type="address" default="udp://time.cloudflare.com:123" required="no" >}}
-
-*__Reference Note:__ This configuration option uses the [address common syntax](../prologue/common.md#address). Please
-see the [documentation](../prologue/common.md#address) on this format for more information.*
+{{< ref-common ref="address" description="Common Syntax: Address" text="This option uses a common syntax. " >}}
 
 Configures the address for the NTP Server. The address itself is a connector and the scheme must be `udp`,
 `udp4`, or `udp6`.
@@ -76,9 +76,7 @@ Determines the NTP version supported. Valid values are 3 or 4.
 ### max_desync
 
 {{< confkey type="duration" default="3s" required="no" >}}
-
-*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
-Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
+{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
 
 This is used to tune the acceptable desync from the time reported from the NTP server.
 
@@ -86,12 +84,49 @@ This is used to tune the acceptable desync from the time reported from the NTP s
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
+_**Important Note:** Administrators are strongly urged to fix the underlying time issue instead of utilizing this
+option. See the [FAQ](#why-should-this-check-not-be-disabled) for more information._
+
 Setting this to true will disable the startup check entirely.
 
 ### disable_failure
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
+_**Important Note:** Administrators are strongly urged to fix the underlying time issue instead of utilizing this
+option. See the [FAQ](#why-should-this-check-not-be-disabled) for more information._
+
 Setting this to true will allow Authelia to start and just log an error instead of exiting. The default is that if
 Authelia can contact the NTP server successfully, and the time reported by the server is greater than what is configured
 in [max_desync](#maxdesync) that Authelia fails to start and logs a fatal error.
+
+
+## Frequently Asked Questions
+
+This section acts as a frequently asked questions for the NTP behaviour and configuration.
+
+### Why is this check important and enabled by default?
+
+This check is essential to validate the system time is accurate which ensures the following:
+
+- The [Session](../session/introduction.md) cookie expiration times are accurately set which is important because:
+  - If the time is too far in the past sessions could:
+    - Be considered already expired by browsers leading to strange redirect issues.
+    - Be considered expired by browsers much sooner than intended.
+  - If the time is too far into the future sessions could:
+    - Be considered expired by browsers much later than intended.
+- The [OpenID Connect](../identity-providers/openid-connect/provider.md) JWT issued at/not before/expiration times are
+  set correctly which is important because:
+  - If the time is too far in the past the OpenID Connect issued JWT's could:
+    - Be considered already expired by relying parties at the time of issue.
+    - Be considered expired by relying parties much sooner than intended.
+  - If the time is too far into the future OpenID Connect issued JWT's could:
+    - Be considered invalid by correctly configured relying parties as the issue time is too far in the future.
+    - Be considered invalid by badly configured relying parties much later than intended.
+- The [TOTP](../second-factor/time-based-one-time-password.md) verification codes could:
+  - Be considered invalid when they are technically correct.
+
+### Why should this check not be disabled?
+
+Due to the fact this can affect elements such as the JWT validity and session validity it's important for security this
+check is operational.

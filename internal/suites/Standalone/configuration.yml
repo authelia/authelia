@@ -94,6 +94,6 @@ password_policy:
     ##  zxcvbn: uses zxcvbn for password strength checking (see: https://github.com/dropbox/zxcvbn)
     ##    Note that the zxcvbn option does not prohibit the user from using a weak password,
     ##    it only offers feedback about the strength of the password they are entering.
-    ##    if you need to enforce password rules, you should use `mode=classic`
+    ##    if you need to enforce password rules, you should use the standard password policy
     enabled: false
 ...

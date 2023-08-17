@@ -6,14 +6,16 @@ import (
 	"time"
 
 	"github.com/go-crypt/crypt/algorithm"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
-	"github.com/ory/fosite/token/jwt"
+	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/ory/herodot"
 	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -23,10 +25,10 @@ import (
 func NewSession() (session *model.OpenIDSession) {
 	return &model.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
-			Claims: &jwt.IDTokenClaims{
+			Claims: &fjwt.IDTokenClaims{
 				Extra: map[string]any{},
 			},
-			Headers: &jwt.Headers{
+			Headers: &fjwt.Headers{
 				Extra: map[string]any{},
 			},
 		},
@@ -43,7 +45,7 @@ func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr [
 
 	session = &model.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
-			Claims: &jwt.IDTokenClaims{
+			Claims: &fjwt.IDTokenClaims{
 				Subject:     consent.Subject.UUID.String(),
 				Issuer:      issuer.String(),
 				AuthTime:    authTime,
@@ -55,7 +57,7 @@ func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr [
 
 				AuthenticationMethodsReferences: amr,
 			},
-			Headers: &jwt.Headers{
+			Headers: &fjwt.Headers{
 				Extra: map[string]any{
 					JWTHeaderKeyIdentifier: kid,
 				},
@@ -65,7 +67,7 @@ func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr [
 		},
 		Extra:       map[string]any{},
 		ClientID:    requester.GetClient().GetID(),
-		ChallengeID: consent.ChallengeID,
+		ChallengeID: model.NullUUID(consent.ChallengeID),
 	}
 
 	// Ensure required audience value of the client_id exists.
@@ -77,6 +79,32 @@ func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr [
 	session.Claims.Add(ClaimClientIdentifier, session.ClientID)
 
 	return session
+}
+
+// PopulateClientCredentialsFlowSessionWithAccessRequest is used to configure a session when performing a client credentials grant.
+func PopulateClientCredentialsFlowSessionWithAccessRequest(ctx Context, request fosite.AccessRequester, session *model.OpenIDSession, funcGetKID func(ctx context.Context, kid, alg string) string) (err error) {
+	var (
+		issuer *url.URL
+		client Client
+		ok     bool
+	)
+
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		return fosite.ErrServerError.WithWrap(err).WithDebugf("Failed to determine the issuer with error: %s.", err.Error())
+	}
+
+	if client, ok = request.GetClient().(Client); !ok {
+		return fosite.ErrServerError.WithDebugf("Failed to get the client for the request.")
+	}
+
+	session.Subject = ""
+	session.Claims.Subject = client.GetID()
+	session.ClientID = client.GetID()
+	session.DefaultSession.Claims.Issuer = issuer.String()
+	session.DefaultSession.Claims.IssuedAt = ctx.GetClock().Now()
+	session.DefaultSession.Claims.RequestedAt = ctx.GetClock().Now()
+
+	return nil
 }
 
 // OpenIDConnectProvider for OpenID Connect.
@@ -105,7 +133,7 @@ type Store struct {
 type BaseClient struct {
 	ID               string
 	Description      string
-	Secret           algorithm.Digest
+	Secret           *schema.PasswordDigest
 	SectorIdentifier string
 	Public           bool
 
@@ -122,14 +150,18 @@ type BaseClient struct {
 	ResponseTypes []string
 	ResponseModes []fosite.ResponseModeType
 
+	Lifespans schema.OpenIDConnectLifespan
+
 	IDTokenSigningAlg    string
 	IDTokenSigningKeyID  string
 	UserinfoSigningAlg   string
 	UserinfoSigningKeyID string
 
-	Policy authorization.Level
+	RefreshFlowIgnoreOriginalGrantedScopes bool
 
-	Consent ClientConsent
+	AuthorizationPolicy ClientAuthorizationPolicy
+
+	ConsentPolicy ClientConsentPolicy
 }
 
 // FullClient is the client with comprehensive supported features.
@@ -148,6 +180,7 @@ type FullClient struct {
 type Client interface {
 	fosite.Client
 	fosite.ResponseModeClient
+	RefreshFlowScopeClient
 
 	GetDescription() string
 	GetSecret() algorithm.Digest
@@ -164,70 +197,24 @@ type Client interface {
 	GetPKCEEnforcement() bool
 	GetPKCEChallengeMethodEnforcement() bool
 	GetPKCEChallengeMethod() string
-	GetAuthorizationPolicy() authorization.Level
-	GetConsentPolicy() ClientConsent
-
-	IsAuthenticationLevelSufficient(level authentication.Level) bool
 
 	ValidatePKCEPolicy(r fosite.Requester) (err error)
 	ValidatePARPolicy(r fosite.Requester, prefix string) (err error)
 	ValidateResponseModePolicy(r fosite.AuthorizeRequester) (err error)
+
+	GetConsentPolicy() ClientConsentPolicy
+	IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) bool
+	GetAuthorizationPolicyRequiredLevel(subject authorization.Subject) authorization.Level
+	GetAuthorizationPolicy() ClientAuthorizationPolicy
+
+	GetEffectiveLifespan(gt fosite.GrantType, tt fosite.TokenType, fallback time.Duration) time.Duration
 }
 
-// NewClientConsent converts the schema.OpenIDConnectClientConsentConfig into a oidc.ClientConsent.
-func NewClientConsent(mode string, duration *time.Duration) ClientConsent {
-	switch mode {
-	case ClientConsentModeImplicit.String():
-		return ClientConsent{Mode: ClientConsentModeImplicit}
-	case ClientConsentModePreConfigured.String():
-		return ClientConsent{Mode: ClientConsentModePreConfigured, Duration: *duration}
-	case ClientConsentModeExplicit.String():
-		return ClientConsent{Mode: ClientConsentModeExplicit}
-	default:
-		return ClientConsent{Mode: ClientConsentModeExplicit}
-	}
-}
+// RefreshFlowScopeClient is a client which can be customized to ignore scopes that were not originally granted.
+type RefreshFlowScopeClient interface {
+	fosite.Client
 
-// ClientConsent is the consent configuration for a client.
-type ClientConsent struct {
-	Mode     ClientConsentMode
-	Duration time.Duration
-}
-
-// String returns the string representation of the ClientConsentMode.
-func (c ClientConsent) String() string {
-	return c.Mode.String()
-}
-
-// ClientConsentMode represents the consent mode for a client.
-type ClientConsentMode int
-
-const (
-	// ClientConsentModeExplicit means the client does not implicitly assume consent, and does not allow pre-configured
-	// consent sessions.
-	ClientConsentModeExplicit ClientConsentMode = iota
-
-	// ClientConsentModePreConfigured means the client does not implicitly assume consent, but does allow pre-configured
-	// consent sessions.
-	ClientConsentModePreConfigured
-
-	// ClientConsentModeImplicit means the client does implicitly assume consent, and does not allow pre-configured
-	// consent sessions.
-	ClientConsentModeImplicit
-)
-
-// String returns the string representation of the ClientConsentMode.
-func (c ClientConsentMode) String() string {
-	switch c {
-	case ClientConsentModeExplicit:
-		return explicit
-	case ClientConsentModeImplicit:
-		return implicit
-	case ClientConsentModePreConfigured:
-		return preconfigured
-	default:
-		return ""
-	}
+	GetRefreshFlowIgnoreOriginalGrantedScopes(ctx context.Context) (ignoreOriginalGrantedScopes bool)
 }
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
@@ -955,9 +942,19 @@ type OpenIDConnectWellKnownConfiguration struct {
 	*OpenIDFederationDiscoveryOptions
 }
 
-// OpenIDConnectContext represents the context implementation that is used by some OpenID Connect 1.0 implementations.
+// Context represents the context implementation that is used by some OpenID Connect 1.0 implementations.
+type Context interface {
+	context.Context
+
+	IssuerURL() (issuerURL *url.URL, err error)
+	GetClock() utils.Clock
+	GetJWTWithTimeFuncOption() jwt.ParserOption
+}
+
 type OpenIDConnectContext interface {
 	context.Context
 
 	IssuerURL() (issuerURL *url.URL, err error)
+	GetClock() utils.Clock
+	GetJWTWithTimeFuncOption() jwt.ParserOption
 }

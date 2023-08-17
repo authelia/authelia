@@ -212,7 +212,7 @@ const (
 	XEnvCLIResultEnvironment
 )
 
-func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []configuration.FileFilter, err error) {
+func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []configuration.BytesFilter, err error) {
 	var (
 		filterNames []string
 		result      XEnvCLIResult

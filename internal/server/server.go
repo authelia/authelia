@@ -22,7 +22,7 @@ func CreateDefaultServer(config *schema.Configuration, providers middlewares.Pro
 	}
 
 	server = &fasthttp.Server{
-		ErrorHandler:          handleError(),
+		ErrorHandler:          handleError("server"),
 		Handler:               handleRouter(config, providers),
 		NoDefaultServerHeader: true,
 		ReadBufferSize:        config.Server.Buffers.Read,
@@ -77,7 +77,10 @@ func CreateDefaultServer(config *schema.Configuration, providers middlewares.Pro
 
 	paths = []string{"/"}
 
-	if config.Server.Address.Path() != "/" {
+	switch config.Server.Address.Path() {
+	case "/", "":
+		break
+	default:
 		paths = append(paths, config.Server.Address.Path())
 	}
 
@@ -91,7 +94,7 @@ func CreateMetricsServer(config *schema.Configuration, providers middlewares.Pro
 	}
 
 	server = &fasthttp.Server{
-		ErrorHandler:          handleError(),
+		ErrorHandler:          handleError("telemetry.metrics"),
 		NoDefaultServerHeader: true,
 		Handler:               handleMetrics(config.Telemetry.Metrics.Address.Path()),
 		ReadBufferSize:        config.Telemetry.Metrics.Buffers.Read,

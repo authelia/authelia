@@ -62,7 +62,7 @@ following are the assumptions we make:
   * Single Host
   * Authelia is deployed as a Container with the container name `authelia` on port `9091`
   * Proxy is deployed as a Container on a network shared with Authelia
-* The above assumption means that AUthelia should be accesible to the proxy on `http://authelia:9091` and as such:
+* The above assumption means that Authelia should be accessible to the proxy on `http://authelia:9091` and as such:
   * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
     certificate defined
   * You will have to adapt all instances of `authelia` in the URL if:
@@ -367,7 +367,8 @@ proxy_set_header X-Forwarded-URI $request_uri;
 proxy_set_header X-Forwarded-Ssl on;
 proxy_set_header X-Forwarded-For $remote_addr;
 proxy_set_header X-Real-IP $remote_addr;
-proxy_set_header Connection "";
+proxy_set_header Upgrade $http_upgrade;
+proxy_set_header Connection $connection_upgrade;
 
 ## Basic Proxy Configuration
 client_body_buffer_size 128k;

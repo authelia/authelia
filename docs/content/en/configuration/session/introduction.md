@@ -96,27 +96,21 @@ The default `same_site` value for all `cookies` configurations.
 ### inactivity
 
 {{< confkey type="duration" default="5m" required="no" >}}
-
-*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
-Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
+{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
 
 The default `inactivity` value for all [cookies](#cookies) configurations.
 
 ### expiration
 
 {{< confkey type="duration" default="1h" required="no" >}}
-
-*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
-Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
+{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
 
 The default `expiration` value for all [cookies](#cookies) configurations.
 
 ### remember_me
 
 {{< confkey type="duration" default="1M" required="no" >}}
-
-*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
-Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
+{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
 
 The default `remember_me` value for all [cookies](#cookies) configurations.
 
@@ -192,11 +186,9 @@ state but it's available as an option anyway.
 #### inactivity
 
 {{< confkey type="duration" required="no" >}}
+{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
 
 *__Default Value:__ This option takes its default value from the [inactivity](#inactivity) setting above.*
-
-*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
-Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
 
 The period of time the user can be inactive for until the session is destroyed. Useful if you want long session timers
 but don't want unused devices to be vulnerable.
@@ -204,11 +196,9 @@ but don't want unused devices to be vulnerable.
 #### expiration
 
 {{< confkey type="duration" required="no" >}}
+{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
 
 *__Default Value:__ This option takes its default value from the [expiration](#expiration) setting above.*
-
-*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
-Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
 
 The period of time before the cookie expires and the session is destroyed. This is overriden by
 [remember_me](#rememberme) when the remember me box is checked.
@@ -216,11 +206,9 @@ The period of time before the cookie expires and the session is destroyed. This 
 #### remember_me
 
 {{< confkey type="duration" required="no" >}}
+{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
 
 *__Default Value:__ This option takes its default value from the [remember_me](#rememberme) setting above.*
-
-*__Reference Note:__ This configuration option uses the [duration common syntax](../prologue/common.md#duration).
-Please see the [documentation](../prologue/common.md#duration) on this format for more information.*
 
 The period of time before the cookie expires and the session is destroyed when the remember me box is checked. Setting
 this to `-1` disables this feature entirely for this session cookie domain.

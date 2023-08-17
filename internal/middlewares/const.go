@@ -76,18 +76,21 @@ const (
 	queryArgToken       = "token"
 )
 
+const (
+	UserValueKeyBaseURL int8 = iota
+	UserValueKeyOpenIDConnectResponseModeFormPost
+)
+
+const (
+	UserValueRouterKeyExtAuthzPath = "extauthz"
+)
+
 var (
 	protoHTTPS = []byte(strProtoHTTPS)
 	protoHTTP  = []byte(strProtoHTTP)
 
 	qryArgRedirect    = []byte(queryArgRedirect)
 	qryArgAutheliaURL = []byte(queryArgAutheliaURL)
-
-	keyUserValueBaseURL   = []byte("base_url")
-	keyUserValueAuthzPath = []byte("authz_path")
-
-	// UserValueKeyFormPost is the User Value key where we indicate the form_post response mode.
-	UserValueKeyFormPost = []byte("form_post")
 
 	headerSeparator = []byte(", ")
 
@@ -107,6 +110,8 @@ const (
 	messageOperationFailed                      = "Operation failed"
 	messageIdentityVerificationTokenAlreadyUsed = "The identity verification token has already been used"
 	messageIdentityVerificationTokenHasExpired  = "The identity verification token has expired"
+	messageIdentityVerificationTokenNotValidYet = "The identity verification token is only valid in the future"
+	messageIdentityVerificationTokenSig         = "The identity verification token has an invalid signature"
 )
 
 var protoHostSeparator = []byte("://")
