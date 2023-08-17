@@ -82,6 +82,16 @@ func buildJoinedString(sep, sepFinal, quote string, items []string) string {
 	return b.String()
 }
 
+func validateListNotAllowed(values, filter []string) (invalid []string) {
+	for _, value := range values {
+		if utils.IsStringInSlice(value, filter) {
+			invalid = append(invalid, value)
+		}
+	}
+
+	return invalid
+}
+
 func validateList(values, valid []string, chkDuplicate bool) (invalid, duplicates []string) { //nolint:unparam
 	chkValid := len(valid) != 0
 

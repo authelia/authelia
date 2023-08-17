@@ -1165,6 +1165,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			func(have *schema.OpenIDConnect) {
 				have.Clients[0].Public = true
 				have.Clients[0].Secret = nil
+				have.Clients[0].Scopes = []string{"abc", "123"}
 			},
 			nil,
 			tcv{
@@ -1174,7 +1175,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				[]string{oidc.GrantTypeClientCredentials},
 			},
 			tcv{
-				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{"abc", "123"},
 				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
 				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
 				[]string{oidc.GrantTypeClientCredentials},
@@ -1188,6 +1189,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			"ShouldNotRaiseErrorOnValidGrantTypesForConfidentialClient",
 			func(have *schema.OpenIDConnect) {
 				have.Clients[0].Public = false
+				have.Clients[0].Scopes = []string{"scope1"}
 			},
 			nil,
 			tcv{
@@ -1197,12 +1199,63 @@ func TestValidateOIDCClients(t *testing.T) {
 				[]string{oidc.GrantTypeClientCredentials},
 			},
 			tcv{
-				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{"scope1"},
 				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
 				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
 				[]string{oidc.GrantTypeClientCredentials},
 			},
 			nil,
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnInvalidScopeGrantTypesForConfidentialClient",
+			func(have *schema.OpenIDConnect) {
+				have.Clients[0].Public = false
+				have.Clients[0].Scopes = []string{oidc.ScopeOpenID, oidc.ScopeOffline, oidc.ScopeOfflineAccess}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				[]string{oidc.GrantTypeClientCredentials},
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeOffline, oidc.ScopeOfflineAccess},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeClientCredentials},
+			},
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'scopes' should only have the values 'offline_access' or 'offline' if the client is also configured with a 'response_type' such as 'code', 'code id_token', 'code token', or 'code id_token token' which respond with authorization codes",
+			},
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'scopes' has the values 'openid', 'offline', and 'offline_access' however when exclusively utilizing the 'client_credentials' value for the 'grant_types' the values 'openid', 'offline', or 'offline_access' are not allowed",
+			},
+		},
+		{
+			"ShouldNotRestrictRefreshOpenIDScopesWithMultipleGrantTypesAndAllowCustomClientCredentials",
+			func(have *schema.OpenIDConnect) {
+				have.Clients[0].Public = false
+				have.Clients[0].Scopes = []string{oidc.ScopeOpenID, oidc.ScopeOffline, oidc.ScopeOfflineAccess, "custom"}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				[]string{oidc.GrantTypeClientCredentials, oidc.GrantTypeImplicit},
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeOffline, oidc.ScopeOfflineAccess, "custom"},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeClientCredentials, oidc.GrantTypeImplicit},
+			},
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'scopes' should only have the values 'offline_access' or 'offline' if the client is also configured with a 'response_type' such as 'code', 'code id_token', 'code token', or 'code id_token token' which respond with authorization codes",
+				"identity_providers: oidc: clients: client 'test': option 'grant_types' should only have grant type values which are valid with the configured 'response_types' for the client but 'implicit' expects a response type for either the implicit or hybrid flow such as 'id_token', 'token', 'id_token token', 'code id_token', 'code token', or 'code id_token token' but the response types are 'code'",
+			},
 			nil,
 		},
 		{

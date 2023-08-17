@@ -19,11 +19,9 @@ import (
 
 // NewOAuth2ConsentSession creates a new OAuth2ConsentSession.
 func NewOAuth2ConsentSession(subject uuid.UUID, r fosite.Requester) (consent *OAuth2ConsentSession, err error) {
-	valid := subject.ID() != 0
-
 	consent = &OAuth2ConsentSession{
 		ClientID:          r.GetClient().GetID(),
-		Subject:           uuid.NullUUID{UUID: subject, Valid: valid},
+		Subject:           NullUUID(subject),
 		Form:              r.GetRequestForm().Encode(),
 		RequestedAt:       r.GetRequestedAt(),
 		RequestedScopes:   StringSlicePipeDelimited(r.GetRequestedScopes()),
@@ -49,8 +47,12 @@ func NewOAuth2BlacklistedJTI(jti string, exp time.Time) (jtiBlacklist OAuth2Blac
 
 // NewOAuth2SessionFromRequest creates a new OAuth2Session from a signature and fosite.Requester.
 func NewOAuth2SessionFromRequest(signature string, r fosite.Requester) (session *OAuth2Session, err error) {
+	if r == nil {
+		return nil, fmt.Errorf("failed to create new *model.OAuth2Session: the fosite.Requester was nil")
+	}
+
 	var (
-		subject       string
+		subject       sql.NullString
 		sessionOpenID *OpenIDSession
 		ok            bool
 		sessionData   []byte
@@ -58,13 +60,25 @@ func NewOAuth2SessionFromRequest(signature string, r fosite.Requester) (session 
 
 	sessionOpenID, ok = r.GetSession().(*OpenIDSession)
 	if !ok {
-		return nil, fmt.Errorf("can't convert type '%T' to an *OAuth2Session", r.GetSession())
+		return nil, fmt.Errorf("failed to create new *model.OAuth2Session: the session type *model.OpenIDSession was expected but the type '%T' was used", r.GetSession())
 	}
 
-	subject = sessionOpenID.GetSubject()
+	subject = sql.NullString{String: sessionOpenID.GetSubject()}
+
+	subject.Valid = len(subject.String) > 0
 
 	if sessionData, err = json.Marshal(sessionOpenID); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create new *model.OAuth2Session: an error was returned while attempting to marshal the session data to json: %w", err)
+	}
+
+	requested, granted := r.GetRequestedScopes(), r.GetGrantedScopes()
+
+	if requested == nil {
+		requested = fosite.Arguments{}
+	}
+
+	if granted == nil {
+		granted = fosite.Arguments{}
 	}
 
 	return &OAuth2Session{
@@ -74,8 +88,8 @@ func NewOAuth2SessionFromRequest(signature string, r fosite.Requester) (session 
 		Signature:         signature,
 		RequestedAt:       r.GetRequestedAt(),
 		Subject:           subject,
-		RequestedScopes:   StringSlicePipeDelimited(r.GetRequestedScopes()),
-		GrantedScopes:     StringSlicePipeDelimited(r.GetGrantedScopes()),
+		RequestedScopes:   StringSlicePipeDelimited(requested),
+		GrantedScopes:     StringSlicePipeDelimited(granted),
 		RequestedAudience: StringSlicePipeDelimited(r.GetRequestedAudience()),
 		GrantedAudience:   StringSlicePipeDelimited(r.GetGrantedAudience()),
 		Active:            true,
@@ -249,12 +263,12 @@ type OAuth2BlacklistedJTI struct {
 // OAuth2Session represents a OAuth2.0 session.
 type OAuth2Session struct {
 	ID                int                      `db:"id"`
-	ChallengeID       uuid.UUID                `db:"challenge_id"`
+	ChallengeID       uuid.NullUUID            `db:"challenge_id"`
 	RequestID         string                   `db:"request_id"`
 	ClientID          string                   `db:"client_id"`
 	Signature         string                   `db:"signature"`
 	RequestedAt       time.Time                `db:"requested_at"`
-	Subject           string                   `db:"subject"`
+	Subject           sql.NullString           `db:"subject"`
 	RequestedScopes   StringSlicePipeDelimited `db:"requested_scopes"`
 	GrantedScopes     StringSlicePipeDelimited `db:"granted_scopes"`
 	RequestedAudience StringSlicePipeDelimited `db:"requested_audience"`
@@ -267,7 +281,7 @@ type OAuth2Session struct {
 
 // SetSubject implements an interface required for RFC7523.
 func (s *OAuth2Session) SetSubject(subject string) {
-	s.Subject = subject
+	s.Subject = sql.NullString{String: subject, Valid: len(subject) > 0}
 }
 
 // ToRequest converts an OAuth2Session into a fosite.Request given a fosite.Session and fosite.Storage.
@@ -371,7 +385,7 @@ func (par *OAuth2PARContext) ToAuthorizeRequest(ctx context.Context, session fos
 type OpenIDSession struct {
 	*openid.DefaultSession `json:"id_token"`
 
-	ChallengeID uuid.UUID `db:"challenge_id"`
+	ChallengeID uuid.NullUUID `db:"challenge_id"`
 	ClientID    string
 
 	Extra map[string]any `json:"extra"`
