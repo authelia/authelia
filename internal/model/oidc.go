@@ -47,6 +47,10 @@ func NewOAuth2BlacklistedJTI(jti string, exp time.Time) (jtiBlacklist OAuth2Blac
 
 // NewOAuth2SessionFromRequest creates a new OAuth2Session from a signature and fosite.Requester.
 func NewOAuth2SessionFromRequest(signature string, r fosite.Requester) (session *OAuth2Session, err error) {
+	if r == nil {
+		return nil, fmt.Errorf("failed to create new *model.OAuth2Session: the fosite.Requester was nil")
+	}
+
 	var (
 		subject       sql.NullString
 		sessionOpenID *OpenIDSession
@@ -56,7 +60,7 @@ func NewOAuth2SessionFromRequest(signature string, r fosite.Requester) (session 
 
 	sessionOpenID, ok = r.GetSession().(*OpenIDSession)
 	if !ok {
-		return nil, fmt.Errorf("can't convert type '%T' to an *OAuth2Session", r.GetSession())
+		return nil, fmt.Errorf("failed to create new *model.OAuth2Session: the session type *model.OpenIDSession was expected but the type '%T' was used", r.GetSession())
 	}
 
 	subject = sql.NullString{String: sessionOpenID.GetSubject()}
@@ -64,7 +68,7 @@ func NewOAuth2SessionFromRequest(signature string, r fosite.Requester) (session 
 	subject.Valid = len(subject.String) > 0
 
 	if sessionData, err = json.Marshal(sessionOpenID); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create new *model.OAuth2Session: an error was returned while attempting to marshal the session data to json: %w", err)
 	}
 
 	requested, granted := r.GetRequestedScopes(), r.GetGrantedScopes()

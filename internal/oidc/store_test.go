@@ -317,7 +317,7 @@ func (s *StoreSuite) TestCreateSessions() {
 			ID: "example",
 		},
 		Session: nil,
-	}), "can't convert type '<nil>' to an *OAuth2Session")
+	}), "failed to create new *model.OAuth2Session: the session type *model.OpenIDSession was expected but the type '<nil>' was used")
 
 	s.NoError(s.store.CreateAccessTokenSession(s.ctx, "abc", &fosite.Request{
 		ID: "abc",
