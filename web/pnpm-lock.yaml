@@ -116,8 +116,8 @@ devDependencies:
     specifier: 4.0.4
     version: 4.0.4(vite@4.4.9)
   '@vitest/coverage-istanbul':
-    specifier: 0.34.1
-    version: 0.34.1(vitest@0.34.1)
+    specifier: 0.34.2
+    version: 0.34.2(vitest@0.34.1)
   esbuild:
     specifier: 0.19.2
     version: 0.19.2
@@ -3483,8 +3483,8 @@ packages:
       open: 8.4.2
     dev: true
 
-  /@vitest/coverage-istanbul@0.34.1(vitest@0.34.1):
-    resolution: {integrity: sha512-5GprlyY2t1g6+RrssWcN/w5RnZV3qIOM0eoaSDJw3jXbHpBpMvAfTg791zXo7PIqNYs5ORUqBWXIIU0gyAfZxA==}
+  /@vitest/coverage-istanbul@0.34.2(vitest@0.34.1):
+    resolution: {integrity: sha512-rf6nY80ieYDGBg+50Sm1XTeYkrAF2sJu3pqL4IddBakxddTNUjEWY90Bv3LvspII6Bd/fiVcestozShQ/NVDtQ==}
     peerDependencies:
       vitest: '>=0.32.0 <1'
     dependencies:
