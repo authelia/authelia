@@ -49,4 +49,8 @@ const (
 // IMPORTANT: There is an uppercase copy of this in github.com/authelia/authelia/internal/templates named
 // envSecretSuffixes.
 // Make sure you update these at the same time.
-var secretSuffixes = []string{"key", "secret", "password", "token", "certificate_chain"}
+var (
+	secretSuffix          = []string{"key", "secret", "password", "token", "certificate_chain"}
+	secretExclusionPrefix = []string{"identity_providers.oidc.lifespans."}
+	secretExclusionExact  = []string{"server.tls.key"}
+)

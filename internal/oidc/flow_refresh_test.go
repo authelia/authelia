@@ -1,15 +1,14 @@
-// Copyright © 2023 Ory Corp.
-// SPDX-License-Identifier: Apache-2.0.
-
 package oidc_test
 
 import (
 	"context"
+	"errors"
 	"net/url"
 	"regexp"
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/storage"
@@ -17,6 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -682,7 +682,7 @@ func TestRefreshTokenGrantHandler_HandleTokenEndpointRequest(t *testing.T) {
 	}
 }
 
-func TestRefreshFlow_PopulateTokenEndpointResponse(t *testing.T) {
+func TestRefreshTokenGrantHandler_PopulateTokenEndpointResponse(t *testing.T) {
 	testCases := []struct {
 		name     string
 		setup    func(config *fosite.Config, strategy oauth2.CoreStrategy, store *storage.MemoryStore, requester *fosite.AccessRequest)
@@ -818,6 +818,709 @@ func TestRefreshFlowSanitizeRestoreOriginalRequest(t *testing.T) {
 
 			assert.Equal(t, tc.original.GetID(), actual.GetID())
 			assert.Equal(t, tc.expected, actual.GetGrantedScopes())
+		})
+	}
+}
+
+func TestRefreshTokenGrantHandler_HandleTokenEndpointRequest_Tx(t *testing.T) {
+	type store struct {
+		storage.Transactional
+		oauth2.TokenRevocationStorage
+	}
+
+	testCases := []struct {
+		name      string
+		setup     func(ctx context.Context, request *fosite.AccessRequest, transactional *mocks.MockTransactional, revocation *mocks.MockTokenRevocationStorage)
+		err       error
+		expected  string
+		texpected func(t *testing.T, request *fosite.AccessRequest)
+	}{
+		{
+			name: "ShouldRevokeSessionOnTokenReuse",
+			setup: func(ctx context.Context, request *fosite.AccessRequest, transactional *mocks.MockTransactional, revocation *mocks.MockTokenRevocationStorage) {
+				request.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
+				request.Client = &fosite.DefaultClient{
+					ID:         "foo",
+					GrantTypes: fosite.Arguments{oidc.GrantTypeRefreshToken},
+				}
+				revocation.
+					EXPECT().
+					GetRefreshTokenSession(ctx, gomock.Any(), gomock.Any()).
+					Return(request, fosite.ErrInactiveToken).
+					Times(1)
+				transactional.
+					EXPECT().
+					BeginTX(ctx).
+					Return(ctx, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					DeleteRefreshTokenSession(ctx, gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeRefreshToken(ctx, gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeAccessToken(ctx, gomock.Any()).
+					Return(nil).
+					Times(1)
+				transactional.
+					EXPECT().
+					Commit(ctx).
+					Return(nil).
+					Times(1)
+			},
+			err:      fosite.ErrInactiveToken,
+			expected: "Token is inactive because it is malformed, expired or otherwise invalid. Token validation failed. Token is inactive because it is malformed, expired or otherwise invalid. Token validation failed.",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
+			request := fosite.NewAccessRequest(&fosite.DefaultSession{})
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			transactional := mocks.NewMockTransactional(ctrl)
+			revocation := mocks.NewMockTokenRevocationStorage(ctrl)
+			tc.setup(ctx, request, transactional, revocation)
+
+			strategy := &oauth2.HMACSHAStrategy{
+				Enigma: &hmac.HMACStrategy{Config: &fosite.Config{GlobalSecret: []byte("foobarfoobarfoobarfoobarfoobarfoobarfoobarfoobar")}},
+				Config: &fosite.Config{
+					AccessTokenLifespan:   time.Hour * 24,
+					AuthorizeCodeLifespan: time.Hour * 24,
+				},
+			}
+
+			handler := oidc.RefreshTokenGrantHandler{
+				TokenRevocationStorage: store{
+					transactional,
+					revocation,
+				},
+				AccessTokenStrategy:  strategy,
+				RefreshTokenStrategy: strategy,
+				Config: &fosite.Config{
+					AccessTokenLifespan:      time.Hour,
+					ScopeStrategy:            fosite.HierarchicScopeStrategy,
+					AudienceMatchingStrategy: fosite.DefaultAudienceMatchingStrategy,
+				},
+			}
+
+			err := handler.HandleTokenEndpointRequest(ctx, request)
+
+			if tc.err != nil {
+				assert.EqualError(t, err, tc.err.Error())
+				assert.EqualError(t, oidc.ErrorToDebugRFC6749Error(err), tc.expected)
+			} else {
+				assert.NoError(t, oidc.ErrorToDebugRFC6749Error(err))
+			}
+
+			if tc.texpected != nil {
+				tc.texpected(t, request)
+			}
+		})
+	}
+}
+
+func TestRefreshTokenGrantHandler_PopulateTokenEndpointResponse_Tx(t *testing.T) {
+	type store struct {
+		storage.Transactional
+		oauth2.TokenRevocationStorage
+	}
+
+	testCases := []struct {
+		name      string
+		setup     func(ctx context.Context, request *fosite.AccessRequest, transactional *mocks.MockTransactional, revocation *mocks.MockTokenRevocationStorage)
+		err       error
+		expected  string
+		texpected func(t *testing.T, request *fosite.AccessRequest, response *fosite.AccessResponse)
+	}{
+		{
+			name: "ShouldSuccessfullyCommitTxWhenNoErrors",
+			setup: func(ctx context.Context, request *fosite.AccessRequest, transactional *mocks.MockTransactional, revocation *mocks.MockTokenRevocationStorage) {
+				request.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
+				transactional.
+					EXPECT().
+					BeginTX(ctx).
+					Return(ctx, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					GetRefreshTokenSession(ctx, gomock.Any(), nil).
+					Return(request, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeAccessToken(ctx, gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeRefreshTokenMaybeGracePeriod(ctx, gomock.Any(), gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					CreateAccessTokenSession(ctx, gomock.Any(), gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					CreateRefreshTokenSession(ctx, gomock.Any(), gomock.Any()).
+					Return(nil).
+					Times(1)
+				transactional.
+					EXPECT().
+					Commit(ctx).
+					Return(nil).
+					Times(1)
+			},
+		},
+		{
+			name: "ShouldSuccessfullyRollbackTxWhenErrorsFromGetRefreshTokenSession",
+			setup: func(ctx context.Context, request *fosite.AccessRequest, transactional *mocks.MockTransactional, revocation *mocks.MockTokenRevocationStorage) {
+				request.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
+				transactional.
+					EXPECT().
+					BeginTX(ctx).
+					Return(ctx, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					GetRefreshTokenSession(ctx, gomock.Any(), nil).
+					Return(nil, errors.New("Whoops, a nasty database error occurred!")).
+					Times(1)
+				transactional.
+					EXPECT().
+					Rollback(ctx).
+					Return(nil).
+					Times(1)
+			},
+			err:      fosite.ErrServerError,
+			expected: "The authorization server encountered an unexpected condition that prevented it from fulfilling the request. Whoops, a nasty database error occurred!",
+		},
+		{
+			name: "ShouldErrorErrInvalidRequestWhenGetRefreshTokenSessionErrNotFound",
+			setup: func(ctx context.Context, request *fosite.AccessRequest, transactional *mocks.MockTransactional, revocation *mocks.MockTokenRevocationStorage) {
+				request.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
+				transactional.
+					EXPECT().
+					BeginTX(ctx).
+					Return(ctx, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					GetRefreshTokenSession(ctx, gomock.Any(), nil).
+					Return(nil, fosite.ErrNotFound).
+					Times(1)
+				transactional.
+					EXPECT().
+					Rollback(ctx).
+					Return(nil).
+					Times(1)
+			},
+			err:      fosite.ErrInvalidRequest,
+			expected: "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Failed to refresh token because of multiple concurrent requests using the same token which is not allowed. Could not find the requested resource(s).",
+		},
+		{
+			name: "ShouldSuccessfullyRollbackTxWhenErrorsFromRevokeAccessToken",
+			setup: func(ctx context.Context, request *fosite.AccessRequest, transactional *mocks.MockTransactional, revocation *mocks.MockTokenRevocationStorage) {
+				request.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
+				transactional.
+					EXPECT().
+					BeginTX(ctx).
+					Return(ctx, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					GetRefreshTokenSession(ctx, gomock.Any(), nil).
+					Return(request, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeAccessToken(ctx, gomock.Any()).
+					Return(errors.New("Whoops, a nasty database error occurred!")).
+					Times(1)
+				transactional.
+					EXPECT().
+					Rollback(ctx).
+					Return(nil).
+					Times(1)
+			},
+			err:      fosite.ErrServerError,
+			expected: "The authorization server encountered an unexpected condition that prevented it from fulfilling the request. Whoops, a nasty database error occurred!",
+		},
+		{
+			name: "ShouldErrorErrInvalidRequestWhenRevokeAccessTokenErrSerializationFailure",
+			setup: func(ctx context.Context, request *fosite.AccessRequest, transactional *mocks.MockTransactional, revocation *mocks.MockTokenRevocationStorage) {
+				request.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
+				transactional.
+					EXPECT().
+					BeginTX(ctx).
+					Return(ctx, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					GetRefreshTokenSession(ctx, gomock.Any(), nil).
+					Return(request, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeAccessToken(ctx, gomock.Any()).
+					Return(fosite.ErrSerializationFailure).
+					Times(1)
+				transactional.
+					EXPECT().
+					Rollback(ctx).
+					Return(nil).
+					Times(1)
+			},
+			err:      fosite.ErrInvalidRequest,
+			expected: "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Failed to refresh token because of multiple concurrent requests using the same token which is not allowed. The request could not be completed due to concurrent access",
+		},
+		{
+			name: "ShouldErrorErrInactiveTokenWhenRevokeAccessTokenErrInvalidRequest",
+			setup: func(ctx context.Context, request *fosite.AccessRequest, transactional *mocks.MockTransactional, revocation *mocks.MockTokenRevocationStorage) {
+				request.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
+				transactional.
+					EXPECT().
+					BeginTX(ctx).
+					Return(ctx, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					GetRefreshTokenSession(ctx, gomock.Any(), nil).
+					Return(nil, fosite.ErrInactiveToken).
+					Times(1)
+				transactional.
+					EXPECT().
+					Rollback(ctx).
+					Return(nil).
+					Times(1)
+			},
+			err:      fosite.ErrInvalidRequest,
+			expected: "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Failed to refresh token because of multiple concurrent requests using the same token which is not allowed. Token is inactive because it is malformed, expired or otherwise invalid. Token validation failed.",
+		},
+		{
+			name: "ShouldSuccessfullyRollbackTxWhenErrorsFromRevokeRefreshTokenMaybeGracePeriod",
+			setup: func(ctx context.Context, request *fosite.AccessRequest, transactional *mocks.MockTransactional, revocation *mocks.MockTokenRevocationStorage) {
+				request.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
+				transactional.
+					EXPECT().
+					BeginTX(ctx).
+					Return(ctx, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					GetRefreshTokenSession(ctx, gomock.Any(), nil).
+					Return(request, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeAccessToken(ctx, gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeRefreshTokenMaybeGracePeriod(ctx, gomock.Any(), gomock.Any()).
+					Return(errors.New("Whoops, a nasty database error occurred!")).
+					Times(1)
+				transactional.
+					EXPECT().
+					Rollback(ctx).
+					Return(nil).
+					Times(1)
+			},
+			err:      fosite.ErrServerError,
+			expected: "The authorization server encountered an unexpected condition that prevented it from fulfilling the request. Whoops, a nasty database error occurred!",
+		},
+		{
+			name: "ShouldErrorErrInvalidRequestWhenRevokeRefreshTokenMaybeGracePeriodErrSerializationFailure",
+			setup: func(ctx context.Context, request *fosite.AccessRequest, transactional *mocks.MockTransactional, revocation *mocks.MockTokenRevocationStorage) {
+				request.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
+				transactional.
+					EXPECT().
+					BeginTX(ctx).
+					Return(ctx, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					GetRefreshTokenSession(ctx, gomock.Any(), nil).
+					Return(request, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeAccessToken(ctx, gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeRefreshTokenMaybeGracePeriod(ctx, gomock.Any(), gomock.Any()).
+					Return(fosite.ErrSerializationFailure).
+					Times(1)
+				transactional.
+					EXPECT().
+					Rollback(ctx).
+					Return(nil).
+					Times(1)
+			},
+			err:      fosite.ErrInvalidRequest,
+			expected: "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Failed to refresh token because of multiple concurrent requests using the same token which is not allowed. The request could not be completed due to concurrent access",
+		},
+		{
+			name: "ShouldErrorErrInvalidRequestWhenCreateAccessTokenSessionErrSerializationFailure",
+			setup: func(ctx context.Context, request *fosite.AccessRequest, transactional *mocks.MockTransactional, revocation *mocks.MockTokenRevocationStorage) {
+				request.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
+				transactional.
+					EXPECT().
+					BeginTX(ctx).
+					Return(ctx, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					GetRefreshTokenSession(ctx, gomock.Any(), nil).
+					Return(request, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeAccessToken(ctx, gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeRefreshTokenMaybeGracePeriod(ctx, gomock.Any(), gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					CreateAccessTokenSession(ctx, gomock.Any(), gomock.Any()).
+					Return(fosite.ErrSerializationFailure).
+					Times(1)
+				transactional.
+					EXPECT().
+					Rollback(ctx).
+					Return(nil).
+					Times(1)
+			},
+			err:      fosite.ErrInvalidRequest,
+			expected: "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Failed to refresh token because of multiple concurrent requests using the same token which is not allowed. The request could not be completed due to concurrent access",
+		},
+		{
+			name: "ShouldSuccessfullyRollbackTxWhenErrorsFromCreateAccessTokenSession",
+			setup: func(ctx context.Context, request *fosite.AccessRequest, transactional *mocks.MockTransactional, revocation *mocks.MockTokenRevocationStorage) {
+				request.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
+				transactional.
+					EXPECT().
+					BeginTX(ctx).
+					Return(ctx, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					GetRefreshTokenSession(ctx, gomock.Any(), nil).
+					Return(request, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeAccessToken(ctx, gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeRefreshTokenMaybeGracePeriod(ctx, gomock.Any(), gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					CreateAccessTokenSession(ctx, gomock.Any(), gomock.Any()).
+					Return(errors.New("Whoops, a nasty database error occurred!")).
+					Times(1)
+				transactional.
+					EXPECT().
+					Rollback(ctx).
+					Return(nil).
+					Times(1)
+			},
+			err:      fosite.ErrServerError,
+			expected: "The authorization server encountered an unexpected condition that prevented it from fulfilling the request. Whoops, a nasty database error occurred!",
+		},
+		{
+			name: "ShouldSuccessfullyRollbackTxWhenErrorsFromCreateRefreshTokenSession",
+			setup: func(ctx context.Context, request *fosite.AccessRequest, transactional *mocks.MockTransactional, revocation *mocks.MockTokenRevocationStorage) {
+				request.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
+				transactional.
+					EXPECT().
+					BeginTX(ctx).
+					Return(ctx, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					GetRefreshTokenSession(ctx, gomock.Any(), nil).
+					Return(request, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeAccessToken(ctx, gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeRefreshTokenMaybeGracePeriod(ctx, gomock.Any(), gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					CreateAccessTokenSession(ctx, gomock.Any(), gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					CreateRefreshTokenSession(ctx, gomock.Any(), gomock.Any()).
+					Return(errors.New("Whoops, a nasty database error occurred!")).
+					Times(1)
+				transactional.
+					EXPECT().
+					Rollback(ctx).
+					Return(nil).
+					Times(1)
+			},
+			err:      fosite.ErrServerError,
+			expected: "The authorization server encountered an unexpected condition that prevented it from fulfilling the request. Whoops, a nasty database error occurred!",
+		},
+		{
+			name: "ShouldErrorErrInvalidRequestWhenCreateRefreshTokenSessionErrSerializationFailure",
+			setup: func(ctx context.Context, request *fosite.AccessRequest, transactional *mocks.MockTransactional, revocation *mocks.MockTokenRevocationStorage) {
+				request.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
+				transactional.
+					EXPECT().
+					BeginTX(ctx).
+					Return(ctx, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					GetRefreshTokenSession(ctx, gomock.Any(), nil).
+					Return(request, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeAccessToken(ctx, gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeRefreshTokenMaybeGracePeriod(ctx, gomock.Any(), gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					CreateAccessTokenSession(ctx, gomock.Any(), gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					CreateRefreshTokenSession(ctx, gomock.Any(), gomock.Any()).
+					Return(fosite.ErrSerializationFailure).
+					Times(1)
+				transactional.
+					EXPECT().
+					Rollback(ctx).
+					Return(nil).
+					Times(1)
+			},
+			err:      fosite.ErrInvalidRequest,
+			expected: "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Failed to refresh token because of multiple concurrent requests using the same token which is not allowed. The request could not be completed due to concurrent access",
+		},
+		{
+			name: "ShouldErrorErrServerErrorWhenBeginTxFailure",
+			setup: func(ctx context.Context, request *fosite.AccessRequest, transactional *mocks.MockTransactional, revocation *mocks.MockTokenRevocationStorage) {
+				request.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
+				transactional.
+					EXPECT().
+					BeginTX(ctx).
+					Return(nil, errors.New("Could not create transaction!")).
+					Times(1)
+			},
+			err:      fosite.ErrServerError,
+			expected: "The authorization server encountered an unexpected condition that prevented it from fulfilling the request. Could not create transaction!",
+		},
+		{
+			name: "ShouldErrorErrServerErrorWhenRollbackTxFailure",
+			setup: func(ctx context.Context, request *fosite.AccessRequest, transactional *mocks.MockTransactional, revocation *mocks.MockTokenRevocationStorage) {
+				request.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
+				transactional.
+					EXPECT().
+					BeginTX(ctx).
+					Return(ctx, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					GetRefreshTokenSession(ctx, gomock.Any(), nil).
+					Return(nil, fosite.ErrNotFound).
+					Times(1)
+				transactional.
+					EXPECT().
+					Rollback(ctx).
+					Return(errors.New("Could not rollback transaction!")).
+					Times(1)
+			},
+			err:      fosite.ErrServerError,
+			expected: "The authorization server encountered an unexpected condition that prevented it from fulfilling the request. error: invalid_request; rollback error: Could not rollback transaction!",
+		},
+		{
+			name: "ShouldErrorErrServerErrorWhenCommitTxFailure",
+			setup: func(ctx context.Context, request *fosite.AccessRequest, transactional *mocks.MockTransactional, revocation *mocks.MockTokenRevocationStorage) {
+				request.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
+				transactional.
+					EXPECT().
+					BeginTX(ctx).
+					Return(ctx, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					GetRefreshTokenSession(ctx, gomock.Any(), nil).
+					Return(request, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeAccessToken(ctx, gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeRefreshTokenMaybeGracePeriod(ctx, gomock.Any(), gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					CreateAccessTokenSession(ctx, gomock.Any(), gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					CreateRefreshTokenSession(ctx, gomock.Any(), gomock.Any()).
+					Return(nil).
+					Times(1)
+				transactional.
+					EXPECT().
+					Commit(ctx).
+					Return(errors.New("Could not commit transaction!")).
+					Times(1)
+				transactional.
+					EXPECT().
+					Rollback(ctx).
+					Return(nil).
+					Times(1)
+			},
+			err:      fosite.ErrServerError,
+			expected: "The authorization server encountered an unexpected condition that prevented it from fulfilling the request. Could not commit transaction!",
+		},
+		{
+			name: "ShouldErrorErrInvalidRequestWhenCommitTxErrSerializationFailure",
+			setup: func(ctx context.Context, request *fosite.AccessRequest, transactional *mocks.MockTransactional, revocation *mocks.MockTokenRevocationStorage) {
+				request.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
+				transactional.
+					EXPECT().
+					BeginTX(ctx).
+					Return(ctx, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					GetRefreshTokenSession(ctx, gomock.Any(), nil).
+					Return(request, nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeAccessToken(ctx, gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					RevokeRefreshTokenMaybeGracePeriod(ctx, gomock.Any(), gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					CreateAccessTokenSession(ctx, gomock.Any(), gomock.Any()).
+					Return(nil).
+					Times(1)
+				revocation.
+					EXPECT().
+					CreateRefreshTokenSession(ctx, gomock.Any(), gomock.Any()).
+					Return(nil).
+					Times(1)
+				transactional.
+					EXPECT().
+					Commit(ctx).
+					Return(fosite.ErrSerializationFailure).
+					Times(1)
+				transactional.
+					EXPECT().
+					Rollback(ctx).
+					Return(nil).
+					Times(1)
+			},
+			err:      fosite.ErrInvalidRequest,
+			expected: "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Failed to refresh token because of multiple concurrent requests using the same token which is not allowed. The request could not be completed due to concurrent access",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			transactional := mocks.NewMockTransactional(ctrl)
+			revocation := mocks.NewMockTokenRevocationStorage(ctrl)
+
+			ctx := context.Background()
+
+			request := fosite.NewAccessRequest(&fosite.DefaultSession{})
+
+			tc.setup(ctx, request, transactional, revocation)
+
+			strategy := &oauth2.HMACSHAStrategy{
+				Enigma: &hmac.HMACStrategy{Config: &fosite.Config{GlobalSecret: []byte("foobarfoobarfoobarfoobarfoobarfoobarfoobarfoobar")}},
+				Config: &fosite.Config{
+					AccessTokenLifespan:   time.Hour * 24,
+					AuthorizeCodeLifespan: time.Hour * 24,
+				},
+			}
+
+			handler := oidc.RefreshTokenGrantHandler{
+				// Notice how we are passing in a store that has support for transactions!
+				TokenRevocationStorage: store{
+					transactional,
+					revocation,
+				},
+				AccessTokenStrategy:  strategy,
+				RefreshTokenStrategy: strategy,
+				Config: &fosite.Config{
+					AccessTokenLifespan:      time.Hour,
+					ScopeStrategy:            fosite.HierarchicScopeStrategy,
+					AudienceMatchingStrategy: fosite.DefaultAudienceMatchingStrategy,
+				},
+			}
+
+			response := fosite.NewAccessResponse()
+
+			err := handler.PopulateTokenEndpointResponse(ctx, request, response)
+
+			if tc.err != nil {
+				assert.EqualError(t, err, tc.err.Error())
+				assert.EqualError(t, oidc.ErrorToDebugRFC6749Error(err), tc.expected)
+			} else {
+				assert.NoError(t, oidc.ErrorToDebugRFC6749Error(err))
+			}
+
+			if tc.texpected != nil {
+				tc.texpected(t, request, response)
+			}
 		})
 	}
 }

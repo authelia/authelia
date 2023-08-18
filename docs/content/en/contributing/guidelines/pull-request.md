@@ -23,8 +23,6 @@ processing merges into the [master] branch.
 * Ensure you avoid a [force push](#force-push) excluding the specific exceptions listed in the
   [force push section](#force-push)
 
-[Developer Certificate of Origin]: commit-message.md#developer-certificate-of-origin
-
 ## Squash Merge
 
 Every [Pull Request] will be squash merged into [master]. This requires the [Pull Request] branch to be up-to-date with
@@ -40,8 +38,7 @@ pull request branch.
 A few exceptions exist to this rule and are as follows:
 
 - Making adjustments to the commit message i.e. for the following reasons:
-  - To comply with the [Developer Certificate of Origin] sign off requirement
-  - To comply with the other [Commit Message] guidelines
+  - To comply with the [Commit Message] guidelines
 - To rebase your changes off of master or another branch
 
 ## Review
@@ -72,7 +69,6 @@ maintainers in their review process.
   - Disallows critically insecure settings
   - Requires explicit awareness by users that specific settings may reduce security
 - Potential future items:
-  - Contribution includes DCO
   - Contribution includes REUSE-compliance requirements
 
 [Commit Message]: commit-message.md

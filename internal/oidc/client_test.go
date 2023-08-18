@@ -1,6 +1,7 @@
 package oidc_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -132,6 +133,63 @@ func TestNewClient(t *testing.T) {
 
 	assert.Equal(t, []string(nil), fclient.RequestURIs)
 	assert.Equal(t, []string(nil), fclient.GetRequestURIs())
+}
+
+func TestBaseClient_Misc(t *testing.T) {
+	testCases := []struct {
+		name     string
+		setup    func(client *oidc.BaseClient)
+		expected func(t *testing.T, client *oidc.BaseClient)
+	}{
+		{
+			"ShouldReturnGetRefreshFlowIgnoreOriginalGrantedScopes",
+			func(client *oidc.BaseClient) {
+				client.RefreshFlowIgnoreOriginalGrantedScopes = true
+			},
+			func(t *testing.T, client *oidc.BaseClient) {
+				assert.True(t, client.GetRefreshFlowIgnoreOriginalGrantedScopes(context.TODO()))
+			},
+		},
+		{
+			"ShouldReturnGetRefreshFlowIgnoreOriginalGrantedScopesFalse",
+			func(client *oidc.BaseClient) {
+				client.RefreshFlowIgnoreOriginalGrantedScopes = false
+			},
+			func(t *testing.T, client *oidc.BaseClient) {
+				assert.False(t, client.GetRefreshFlowIgnoreOriginalGrantedScopes(context.TODO()))
+			},
+		},
+		{
+			"ShouldReturnClientAuthorizationPolicy",
+			func(client *oidc.BaseClient) {
+				client.AuthorizationPolicy = oidc.ClientAuthorizationPolicy{
+					DefaultPolicy: authorization.OneFactor,
+				}
+			},
+			func(t *testing.T, client *oidc.BaseClient) {
+				assert.Equal(t, authorization.OneFactor, client.GetAuthorizationPolicy().DefaultPolicy)
+			},
+		},
+		{
+			"ShouldReturnClientAuthorizationPolicyEmpty",
+			func(client *oidc.BaseClient) {
+				client.AuthorizationPolicy = oidc.ClientAuthorizationPolicy{}
+			},
+			func(t *testing.T, client *oidc.BaseClient) {
+				assert.Equal(t, authorization.Bypass, client.GetAuthorizationPolicy().DefaultPolicy)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := &oidc.BaseClient{}
+
+			tc.setup(client)
+
+			tc.expected(t, client)
+		})
+	}
 }
 
 func TestBaseClient_ValidatePARPolicy(t *testing.T) {

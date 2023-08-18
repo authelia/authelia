@@ -589,20 +589,24 @@ func validateOIDCClientScopes(c int, config *schema.OpenIDConnect, val *schema.S
 		config.Clients[c].Scopes = schema.DefaultOpenIDConnectClientConfiguration.Scopes
 	}
 
-	if !utils.IsStringInSlice(oidc.ScopeOpenID, config.Clients[c].Scopes) {
-		config.Clients[c].Scopes = append([]string{oidc.ScopeOpenID}, config.Clients[c].Scopes...)
-	}
-
 	invalid, duplicates := validateList(config.Clients[c].Scopes, validOIDCClientScopes, true)
-
-	if len(invalid) != 0 {
-		val.Push(fmt.Errorf(errFmtOIDCClientInvalidEntries, config.Clients[c].ID, attrOIDCScopes, strJoinOr(validOIDCClientScopes), strJoinAnd(invalid)))
-	}
 
 	if len(duplicates) != 0 {
 		errDeprecatedFunc()
 
 		val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, attrOIDCScopes, strJoinAnd(duplicates)))
+	}
+
+	if utils.IsStringInSlice(oidc.GrantTypeClientCredentials, config.Clients[c].GrantTypes) {
+		validateOIDCClientScopesClientCredentialsGrant(c, config, val)
+	} else {
+		if !utils.IsStringInSlice(oidc.ScopeOpenID, config.Clients[c].Scopes) {
+			config.Clients[c].Scopes = append([]string{oidc.ScopeOpenID}, config.Clients[c].Scopes...)
+		}
+
+		if len(invalid) != 0 {
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidEntries, config.Clients[c].ID, attrOIDCScopes, strJoinOr(validOIDCClientScopes), strJoinAnd(invalid)))
+		}
 	}
 
 	if utils.IsStringSliceContainsAny([]string{oidc.ScopeOfflineAccess, oidc.ScopeOffline}, config.Clients[c].Scopes) &&
@@ -614,6 +618,18 @@ func validateOIDCClientScopes(c int, config *schema.OpenIDConnect, val *schema.S
 			strJoinOr([]string{oidc.ScopeOfflineAccess, oidc.ScopeOffline}),
 			strJoinOr(validOIDCClientResponseTypesRefreshToken)),
 		)
+	}
+}
+
+func validateOIDCClientScopesClientCredentialsGrant(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
+	if len(config.Clients[c].GrantTypes) != 1 {
+		return
+	}
+
+	invalid := validateListNotAllowed(config.Clients[c].Scopes, []string{oidc.ScopeOpenID, oidc.ScopeOffline, oidc.ScopeOfflineAccess})
+
+	if len(invalid) > 0 {
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidEntriesClientCredentials, config.Clients[c].ID, strJoinAnd(config.Clients[c].Scopes), strJoinOr(invalid)))
 	}
 }
 

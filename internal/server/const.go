@@ -17,7 +17,7 @@ const (
 const (
 	pathAuthz           = "/api/authz"
 	pathAuthzLegacy     = "/api/verify"
-	pathParamAuthzEnvoy = "{authz_path:*}"
+	pathParamAuthzEnvoy = "{extauthz:*}"
 )
 
 var (

@@ -1,6 +1,3 @@
-// Copyright © 2023 Ory Corp.
-// SPDX-License-Identifier: Apache-2.0.
-
 package oidc
 
 import (
@@ -301,7 +298,9 @@ func RefreshFlowSanitizeRestoreOriginalRequest(requester, original fosite.Reques
 
 	var sr *fosite.Request
 
-	sr = ar.Sanitize(nil).(*fosite.Request)
+	if sr, ok = ar.Sanitize(nil).(*fosite.Request); !ok {
+		return RefreshFlowSanitizeRestoreOriginalRequestBasic(requester, original)
+	}
 
 	sr.SetID(original.GetID())
 

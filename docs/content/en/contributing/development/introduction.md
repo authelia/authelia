@@ -20,5 +20,13 @@ It's also important that you read guidelines and try to follow them. The develop
 we recommend reading it, and you can utilize the pagination at the bottom to navigate to the next part of the
 development guide.
 
+## Licensing
+
+As the main Authelia repository and all supporting Authelia repositories are hosted on [GitHub](https://github.com)
+users are explicitly making all contributions under the license agreement included with the repository. This is a
+commonly accepted practice in Open Source and it is also explicitly expressed here and in the
+[GitHub Terms of Service](https://docs.github.com/en/site-policy/github-terms/github-terms-of-service#6-contributions-under-repository-license)
+ which users must have agreed to in order to attempt a contribution.
+
 [Issues]: https://github.com/authelia/authelia/issues
 [Discussions]: https://github.com/authelia/authelia/discussions
