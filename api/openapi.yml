@@ -1397,6 +1397,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/openid.spec.IntrospectionResponse'
+            application/token-introspection+jwt:
+              schema:
+                description: |
+                  The RFC7519 encoded JWT with the nested 'token_introspection' claim which contains the same structure
+                  as the openid.spec.IntrospectionResponse described in this OpenAPI 3.0 specification.
+                type: string
+                example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2F1dGguZXhhbXBsZS5jb20vIiwiYXVkIjoiaHR0cHM6Ly9hcHAuZXhhbXBsZS5jb20vcmVzb3VyY2UiLCJpYXQiOjE1MTQ3OTc4OTIsInRva2VuX2ludHJvc3BlY3Rpb24iOnsiYWN0aXZlIjp0cnVlLCJleHAiOjE1MTQ3OTc5NDIsImNsaWVudF9pZCI6ImV4YW1wbGUiLCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIiwiaWF0IjoxNTE0Nzk3ODIyLCJzdWIiOiI5Y2JhMzJhMC02M2EyLTQyZDUtODNlYi1kZmM3NTc4OGEyMjIiLCJhdWQiOiJodHRwczovL2FwcC5leGFtcGxlLmNvbS9yZXNvdXJjZSIsInVzZXJuYW1lIjoiam9obiJ9fQ.9rN-G3uaj28Geiktfvknl-G6EnZxOGJjpXcemvsllYA'
         "401":
           description: Forbidden
         "403":

@@ -192,8 +192,10 @@ func IntrospectionResponseToMap(response fosite.IntrospectionResponder) (aud []s
 			introspection[ClaimScope] = strings.Join(scope, " ")
 		}
 
-		if rat := response.GetAccessRequester().GetRequestedAt(); !rat.IsZero() {
-			introspection[ClaimIssuedAt] = rat.Unix()
+		if _, ok = introspection[ClaimIssuedAt]; !ok {
+			if rat := response.GetAccessRequester().GetRequestedAt(); !rat.IsZero() {
+				introspection[ClaimIssuedAt] = rat.Unix()
+			}
 		}
 
 		if sub := response.GetAccessRequester().GetSession().GetSubject(); sub != "" {
