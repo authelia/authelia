@@ -204,7 +204,7 @@ func verifyOIDCUserAuthorizedForConsent(ctx *middlewares.AutheliaCtx, client oid
 			return fmt.Errorf("the consent subject is null for consent session with id '%d' for anonymous user", consent.ID)
 		}
 
-		consent.Subject = uuid.NullUUID{UUID: subject, Valid: true}
+		consent.Subject = model.NullUUID(subject)
 
 		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionSubject(ctx, *consent); err != nil {
 			return fmt.Errorf("failed to update the consent subject: %w", err)

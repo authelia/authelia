@@ -62,7 +62,19 @@ func IsSecretKey(key string) (isSecretKey bool) {
 		return false
 	}
 
-	return utils.IsStringInSliceSuffix(key, secretSuffixes)
+	if strings.Contains(key, ".*.") {
+		return false
+	}
+
+	if utils.IsStringInSlice(key, secretExclusionExact) {
+		return false
+	}
+
+	if utils.IsStringInSliceF(key, secretExclusionPrefix, strings.HasPrefix) {
+		return false
+	}
+
+	return utils.IsStringInSliceF(key, secretSuffix, strings.HasSuffix)
 }
 
 func loadSecret(path string) (value string, err error) {

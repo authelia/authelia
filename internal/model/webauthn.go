@@ -135,8 +135,8 @@ func NewWebAuthnDeviceFromCredential(rpid, username, description string, credent
 	}
 
 	aaguid, err := uuid.Parse(hex.EncodeToString(credential.Authenticator.AAGUID))
-	if err == nil && aaguid.ID() != 0 {
-		device.AAGUID = uuid.NullUUID{Valid: true, UUID: aaguid}
+	if err == nil {
+		device.AAGUID = NullUUID(aaguid)
 	}
 
 	return device
@@ -251,9 +251,7 @@ func (d *WebAuthnDevice) UnmarshalYAML(value *yaml.Node) (err error) {
 			return err
 		}
 
-		if aaguid.ID() != 0 {
-			d.AAGUID = uuid.NullUUID{Valid: true, UUID: aaguid}
-		}
+		d.AAGUID = NullUUID(aaguid)
 	}
 
 	var kid []byte
@@ -320,9 +318,7 @@ func (d *WebAuthnDeviceData) ToDevice() (device *WebAuthnDevice, err error) {
 			return nil, err
 		}
 
-		if aaguid.ID() != 0 {
-			device.AAGUID = uuid.NullUUID{Valid: true, UUID: aaguid}
-		}
+		device.AAGUID = NullUUID(aaguid)
 	}
 
 	var kid []byte

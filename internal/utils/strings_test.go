@@ -269,17 +269,6 @@ func TestShouldNotFindStringInSliceFold(t *testing.T) {
 	assert.False(t, IsStringInSliceFold(b, slice))
 }
 
-func TestIsStringInSliceSuffix(t *testing.T) {
-	suffixes := []string{"apple", "banana"}
-
-	assert.True(t, IsStringInSliceSuffix("apple.banana", suffixes))
-	assert.True(t, IsStringInSliceSuffix("a.banana", suffixes))
-	assert.True(t, IsStringInSliceSuffix("a_banana", suffixes))
-	assert.True(t, IsStringInSliceSuffix("an.apple", suffixes))
-	assert.False(t, IsStringInSliceSuffix("an.orange", suffixes))
-	assert.False(t, IsStringInSliceSuffix("an.apple.orange", suffixes))
-}
-
 func TestIsStringSliceContainsAll(t *testing.T) {
 	needles := []string{"abc", "123", "xyz"}
 	haystackOne := []string{"abc", "tvu", "123", "456", "xyz"}
