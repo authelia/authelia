@@ -3256,7 +3256,7 @@ components:
         - type: object
           required:
             - 'grant_type'
-            - 'device_code'
+            - 'refresh_token'
           properties:
             grant_type:
               description: Value MUST be set to "refresh_token".
