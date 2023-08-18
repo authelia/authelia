@@ -152,11 +152,13 @@ func readTags(prefix string, t reflect.Type, envSkip, deprecatedSkip bool) (tags
 				continue
 			}
 		case reflect.Slice, reflect.Map:
-			if envSkip {
+			k := field.Type.Elem().Kind()
+
+			if envSkip && !isValueKind(k) {
 				continue
 			}
 
-			switch field.Type.Elem().Kind() {
+			switch k {
 			case reflect.Struct:
 				if !containsType(field.Type.Elem(), decodedTypes) {
 					tags = append(tags, getKeyNameFromTagAndPrefix(prefix, tag, false, false))
@@ -176,11 +178,13 @@ func readTags(prefix string, t reflect.Type, envSkip, deprecatedSkip bool) (tags
 					continue
 				}
 			case reflect.Slice, reflect.Map:
-				if envSkip {
+				k := field.Type.Elem().Elem().Kind()
+
+				if envSkip && !isValueKind(k) {
 					continue
 				}
 
-				if field.Type.Elem().Elem().Kind() == reflect.Struct {
+				if k == reflect.Struct {
 					if !containsType(field.Type.Elem(), decodedTypes) {
 						tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, true, false), field.Type.Elem(), envSkip, deprecatedSkip)...)
 
@@ -194,6 +198,15 @@ func readTags(prefix string, t reflect.Type, envSkip, deprecatedSkip bool) (tags
 	}
 
 	return tags
+}
+
+func isValueKind(kind reflect.Kind) bool {
+	switch kind {
+	case reflect.Struct, reflect.Map, reflect.Slice, reflect.Array, reflect.Chan, reflect.Func, reflect.Interface, reflect.Pointer, reflect.UnsafePointer, reflect.Invalid, reflect.Uintptr:
+		return false
+	default:
+		return true
+	}
 }
 
 func isDeprecated(field reflect.StructField) bool {

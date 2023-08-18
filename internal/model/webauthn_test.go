@@ -26,7 +26,7 @@ func TestWebAuthnDeviceImportExport(t *testing.T) {
 				PublicKey:       MustRead(128),
 				AttestationType: "fido-u2f",
 				Transport:       "",
-				AAGUID:          uuid.NullUUID{UUID: uuid.New(), Valid: true},
+				AAGUID:          MustNullUUID(NewRandomNullUUID()),
 				SignCount:       20,
 				CloneWarning:    false,
 			},

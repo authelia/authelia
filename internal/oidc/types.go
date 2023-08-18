@@ -67,7 +67,7 @@ func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr [
 		},
 		Extra:       map[string]any{},
 		ClientID:    requester.GetClient().GetID(),
-		ChallengeID: consent.ChallengeID,
+		ChallengeID: model.NullUUID(consent.ChallengeID),
 	}
 
 	// Ensure required audience value of the client_id exists.
@@ -79,6 +79,32 @@ func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr [
 	session.Claims.Add(ClaimClientIdentifier, session.ClientID)
 
 	return session
+}
+
+// PopulateClientCredentialsFlowSessionWithAccessRequest is used to configure a session when performing a client credentials grant.
+func PopulateClientCredentialsFlowSessionWithAccessRequest(ctx Context, request fosite.AccessRequester, session *model.OpenIDSession, funcGetKID func(ctx context.Context, kid, alg string) string) (err error) {
+	var (
+		issuer *url.URL
+		client Client
+		ok     bool
+	)
+
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		return fosite.ErrServerError.WithWrap(err).WithDebugf("Failed to determine the issuer with error: %s.", err.Error())
+	}
+
+	if client, ok = request.GetClient().(Client); !ok {
+		return fosite.ErrServerError.WithDebugf("Failed to get the client for the request.")
+	}
+
+	session.Subject = ""
+	session.Claims.Subject = client.GetID()
+	session.ClientID = client.GetID()
+	session.DefaultSession.Claims.Issuer = issuer.String()
+	session.DefaultSession.Claims.IssuedAt = ctx.GetClock().Now()
+	session.DefaultSession.Claims.RequestedAt = ctx.GetClock().Now()
+
+	return nil
 }
 
 // OpenIDConnectProvider for OpenID Connect.
@@ -131,6 +157,8 @@ type BaseClient struct {
 	UserinfoSigningAlg   string
 	UserinfoSigningKeyID string
 
+	RefreshFlowIgnoreOriginalGrantedScopes bool
+
 	AuthorizationPolicy ClientAuthorizationPolicy
 
 	ConsentPolicy ClientConsentPolicy
@@ -152,6 +180,7 @@ type FullClient struct {
 type Client interface {
 	fosite.Client
 	fosite.ResponseModeClient
+	RefreshFlowScopeClient
 
 	GetDescription() string
 	GetSecret() algorithm.Digest
@@ -179,6 +208,13 @@ type Client interface {
 	GetAuthorizationPolicy() ClientAuthorizationPolicy
 
 	GetEffectiveLifespan(gt fosite.GrantType, tt fosite.TokenType, fallback time.Duration) time.Duration
+}
+
+// RefreshFlowScopeClient is a client which can be customized to ignore scopes that were not originally granted.
+type RefreshFlowScopeClient interface {
+	fosite.Client
+
+	GetRefreshFlowIgnoreOriginalGrantedScopes(ctx context.Context) (ignoreOriginalGrantedScopes bool)
 }
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
@@ -906,7 +942,15 @@ type OpenIDConnectWellKnownConfiguration struct {
 	*OpenIDFederationDiscoveryOptions
 }
 
-// OpenIDConnectContext represents the context implementation that is used by some OpenID Connect 1.0 implementations.
+// Context represents the context implementation that is used by some OpenID Connect 1.0 implementations.
+type Context interface {
+	context.Context
+
+	IssuerURL() (issuerURL *url.URL, err error)
+	GetClock() utils.Clock
+	GetJWTWithTimeFuncOption() jwt.ParserOption
+}
+
 type OpenIDConnectContext interface {
 	context.Context
 

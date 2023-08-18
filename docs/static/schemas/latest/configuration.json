@@ -1073,7 +1073,7 @@
         "authorization_policies": {
           "patternProperties": {
             ".*": {
-              "$ref": "#/$defs/OpenIDConnectPolicy"
+              "$ref": "#/$defs/IdentityProvidersOpenIDConnectPolicy"
             }
           },
           "type": "object",
@@ -1723,6 +1723,53 @@
       "type": "object",
       "description": "IdentityProvidersOpenIDConnectPAR represents an OpenID Connect 1.0 PAR config."
     },
+    "IdentityProvidersOpenIDConnectPolicy": {
+      "properties": {
+        "default_policy": {
+          "type": "string",
+          "enum": [
+            "one_factor",
+            "two_factor",
+            "deny"
+          ],
+          "title": "Default Policy",
+          "description": "The default policy action for this policy"
+        },
+        "rules": {
+          "items": {
+            "$ref": "#/$defs/IdentityProvidersOpenIDConnectPolicyRule"
+          },
+          "type": "array",
+          "title": "Rules",
+          "description": "The list of rules for this policy"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectPolicy configuration for OpenID Connect 1.0 authorization policies."
+    },
+    "IdentityProvidersOpenIDConnectPolicyRule": {
+      "properties": {
+        "policy": {
+          "type": "string",
+          "enum": [
+            "one_factor",
+            "two_factor",
+            "deny"
+          ],
+          "title": "Policy",
+          "description": "The policy to apply to this rule"
+        },
+        "subject": {
+          "$ref": "#/$defs/AccessControlRuleSubjects",
+          "title": "Subject",
+          "description": "Allows tuning the token lifespans for the authorize code grant"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectPolicyRule configuration for OpenID Connect 1.0 authorization policies rules."
+    },
     "JWK": {
       "properties": {
         "key_id": {
@@ -2007,53 +2054,6 @@
       "additionalProperties": false,
       "type": "object",
       "description": "NotifierSMTP represents the configuration of the SMTP server to send emails with."
-    },
-    "OpenIDConnectPolicy": {
-      "properties": {
-        "default_policy": {
-          "type": "string",
-          "enum": [
-            "one_factor",
-            "two_factor",
-            "deny"
-          ],
-          "title": "Default Policy",
-          "description": "The default policy action for this policy"
-        },
-        "rules": {
-          "items": {
-            "$ref": "#/$defs/OpenIDConnectPolicyRule"
-          },
-          "type": "array",
-          "title": "Rules",
-          "description": "The list of rules for this policy"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object",
-      "description": "OpenIDConnectPolicy configuration for OpenID Connect 1.0 authorization policies."
-    },
-    "OpenIDConnectPolicyRule": {
-      "properties": {
-        "policy": {
-          "type": "string",
-          "enum": [
-            "one_factor",
-            "two_factor",
-            "deny"
-          ],
-          "title": "Policy",
-          "description": "The policy to apply to this rule"
-        },
-        "subject": {
-          "$ref": "#/$defs/AccessControlRuleSubjects",
-          "title": "Subject",
-          "description": "Allows tuning the token lifespans for the authorize code grant"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object",
-      "description": "OpenIDConnectPolicyRule configuration for OpenID Connect 1.0 authorization policies rules."
     },
     "PasswordDigest": {
       "type": "string",

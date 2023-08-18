@@ -338,7 +338,7 @@ func TestShouldRaiseWhenMutualTLSIsConfiguredAndClientIsNotAuthenticated(t *test
 
 	_, err = client.Do(req)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "remote error: tls: bad certificate")
+	assert.Contains(t, err.Error(), "remote error: tls: certificate required")
 }
 
 func TestShouldServeProperlyWhenMutualTLSIsConfiguredAndClientIsAuthenticated(t *testing.T) {

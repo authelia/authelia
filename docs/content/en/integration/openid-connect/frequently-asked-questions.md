@@ -39,6 +39,19 @@ party / client application encoding the characters correctly as it uses the
 
 [Generating a Random Password Hash]: ../../reference/guides/generating-secure-values.md#generating-a-random-password-hash
 
+#### Tuning work factors
+
+When hashing the client secrets, authelia performs the hashing operation to authenticate the client when receiving requests.
+This hashing operation takes time by design (the *work* part of the work factor) to hinder an attacker trying to obtain the client secret.
+The amount of time taken depends on your hardware and the work factor.
+
+If your client operations time out, you might need to reduce the work factor to a level appropriate for your client and
+your hardware's capabilities.
+
+To test the duration of different work factors, you can measure it like this:
+`time authelia crypto hash generate pbkdf2 --variant sha512 --iterations 310000 --password insecure_password`.
+Note: You should not use your actual passwords for this test, the time taken should be the same for any reasonable password length.
+
 #### Plaintext
 
 Authelia *technically* supports storing the plaintext secret in the configuration. This will likely be completely

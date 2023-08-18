@@ -1165,6 +1165,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			func(have *schema.IdentityProvidersOpenIDConnect) {
 				have.Clients[0].Public = true
 				have.Clients[0].Secret = nil
+				have.Clients[0].Scopes = []string{"abc", "123"}
 			},
 			nil,
 			tcv{
@@ -1174,7 +1175,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				[]string{oidc.GrantTypeClientCredentials},
 			},
 			tcv{
-				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{"abc", "123"},
 				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
 				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
 				[]string{oidc.GrantTypeClientCredentials},
@@ -1188,6 +1189,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			"ShouldNotRaiseErrorOnValidGrantTypesForConfidentialClient",
 			func(have *schema.IdentityProvidersOpenIDConnect) {
 				have.Clients[0].Public = false
+				have.Clients[0].Scopes = []string{"scope1"}
 			},
 			nil,
 			tcv{
@@ -1197,12 +1199,63 @@ func TestValidateOIDCClients(t *testing.T) {
 				[]string{oidc.GrantTypeClientCredentials},
 			},
 			tcv{
-				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{"scope1"},
 				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
 				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
 				[]string{oidc.GrantTypeClientCredentials},
 			},
 			nil,
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnInvalidScopeGrantTypesForConfidentialClient",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].Public = false
+				have.Clients[0].Scopes = []string{oidc.ScopeOpenID, oidc.ScopeOffline, oidc.ScopeOfflineAccess}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				[]string{oidc.GrantTypeClientCredentials},
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeOffline, oidc.ScopeOfflineAccess},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeClientCredentials},
+			},
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'scopes' should only have the values 'offline_access' or 'offline' if the client is also configured with a 'response_type' such as 'code', 'code id_token', 'code token', or 'code id_token token' which respond with authorization codes",
+			},
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'scopes' has the values 'openid', 'offline', and 'offline_access' however when exclusively utilizing the 'client_credentials' value for the 'grant_types' the values 'openid', 'offline', or 'offline_access' are not allowed",
+			},
+		},
+		{
+			"ShouldNotRestrictRefreshOpenIDScopesWithMultipleGrantTypesAndAllowCustomClientCredentials",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].Public = false
+				have.Clients[0].Scopes = []string{oidc.ScopeOpenID, oidc.ScopeOffline, oidc.ScopeOfflineAccess, "custom"}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				[]string{oidc.GrantTypeClientCredentials, oidc.GrantTypeImplicit},
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeOffline, oidc.ScopeOfflineAccess, "custom"},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeClientCredentials, oidc.GrantTypeImplicit},
+			},
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'scopes' should only have the values 'offline_access' or 'offline' if the client is also configured with a 'response_type' such as 'code', 'code id_token', 'code token', or 'code id_token token' which respond with authorization codes",
+				"identity_providers: oidc: clients: client 'test': option 'grant_types' should only have grant type values which are valid with the configured 'response_types' for the client but 'implicit' expects a response type for either the implicit or hybrid flow such as 'id_token', 'token', 'id_token token', 'code id_token', 'code token', or 'code id_token token' but the response types are 'code'",
+			},
 			nil,
 		},
 		{
@@ -2147,7 +2200,7 @@ func TestValidateOIDCClients(t *testing.T) {
 	for _, tc := range testCasses {
 		t.Run(tc.name, func(t *testing.T) {
 			have := &schema.IdentityProvidersOpenIDConnect{
-				Discovery: schema.OpenIDConnectDiscovery{
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 				Clients: []schema.IdentityProvidersOpenIDConnectClient{
@@ -2580,7 +2633,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				IssuerPrivateKeys: []schema.JWK{
 					{KeyID: "1f8bfc", Key: keyRSA2048, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
 				},
-				Discovery: schema.OpenIDConnectDiscovery{
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "1f8bfc"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
@@ -2604,7 +2657,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: keyECDSAP384, CertificateChain: certECDSAP384, Algorithm: oidc.SigningAlgECDSAUsingP384AndSHA384, Use: oidc.KeyUseSignature, KeyID: "ba8508"},
 					{Key: keyECDSAP521, CertificateChain: certECDSAP521, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature, KeyID: "7ecbac"},
 				},
-				Discovery: schema.OpenIDConnectDiscovery{
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs: map[string]string{
 						oidc.SigningAlgRSAUsingSHA256:          "1f8bfc",
 						oidc.SigningAlgECDSAUsingP256AndSHA256: "1e7788",
@@ -2629,7 +2682,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "1f8bfc"},
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "bf1e10"},
 				},
-				Discovery: schema.OpenIDConnectDiscovery{
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "1f8bfc"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
@@ -2647,7 +2700,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA512, Use: oidc.KeyUseSignature, KeyID: "bf1e10"},
 				},
-				Discovery: schema.OpenIDConnectDiscovery{
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA512: "bf1e10"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA512},
 				},
@@ -2669,7 +2722,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "bf1e10"},
 					{Key: keyECDSAP224, CertificateChain: certECDSAP224},
 				},
-				Discovery: schema.OpenIDConnectDiscovery{
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "bf1e10"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
@@ -2689,7 +2742,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA1024, CertificateChain: certRSA1024, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "cf375e"},
 				},
-				Discovery: schema.OpenIDConnectDiscovery{
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "cf375e"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
@@ -2709,7 +2762,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: "invalid", Use: oidc.KeyUseSignature, KeyID: "bf1e10"},
 				},
-				Discovery: schema.OpenIDConnectDiscovery{
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs:             map[string]string{},
 					ResponseObjectSigningAlgs: []string{"invalid"},
 				},
@@ -2730,7 +2783,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: "invalid", KeyID: "bf1e10"},
 				},
-				Discovery: schema.OpenIDConnectDiscovery{
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "bf1e10"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
@@ -2750,7 +2803,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "thisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolong"},
 				},
-				Discovery: schema.OpenIDConnectDiscovery{
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "thisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolong"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
@@ -2774,7 +2827,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "-xx"},
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "xx."},
 				},
-				Discovery: schema.OpenIDConnectDiscovery{
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "x@x"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
@@ -2800,7 +2853,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "x"},
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "xx"},
 				},
-				Discovery: schema.OpenIDConnectDiscovery{
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "x-x"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
@@ -2820,7 +2873,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "x"},
 					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAPSSUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "x"},
 				},
-				Discovery: schema.OpenIDConnectDiscovery{
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "x", oidc.SigningAlgRSAPSSUsingSHA256: "x"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA256},
 				},
@@ -2840,7 +2893,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyEd2519, CertificateChain: certEd15519, KeyID: "14dfd3"},
 				},
-				Discovery: schema.OpenIDConnectDiscovery{
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs:             map[string]string{},
 					ResponseObjectSigningAlgs: []string(nil),
 				},
@@ -2860,7 +2913,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: publicRSA2048Pair, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "9a0e71"},
 				},
-				Discovery: schema.OpenIDConnectDiscovery{
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "9a0e71"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
@@ -2880,7 +2933,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA2048, CertificateChain: frankenchain, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "1f8bfc"},
 				},
-				Discovery: schema.OpenIDConnectDiscovery{
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "1f8bfc"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
@@ -2900,7 +2953,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: frankenkey},
 				},
-				Discovery: schema.OpenIDConnectDiscovery{
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs:             map[string]string{},
 					ResponseObjectSigningAlgs: []string(nil),
 				},
@@ -2920,7 +2973,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: certRSA2048},
 				},
-				Discovery: schema.OpenIDConnectDiscovery{
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs:             map[string]string{},
 					ResponseObjectSigningAlgs: []string(nil),
 				},

@@ -30,27 +30,27 @@ type IdentityProvidersOpenIDConnect struct {
 
 	Clients []IdentityProvidersOpenIDConnectClient `koanf:"clients" json:"clients" jsonschema:"title=Clients" jsonschema_description:"OpenID Connect 1.0 clients registry"`
 
-	AuthorizationPolicies map[string]OpenIDConnectPolicy          `koanf:"authorization_policies" json:"authorization_policies" jsonschema:"title=Authorization Policies" jsonschema_description:"Custom client authorization policies"`
-	Lifespans             IdentityProvidersOpenIDConnectLifespans `koanf:"lifespans" json:"lifespans" jsonschema:"title=Lifespans" jsonschema_description:"Token lifespans configuration"`
+	AuthorizationPolicies map[string]IdentityProvidersOpenIDConnectPolicy `koanf:"authorization_policies" json:"authorization_policies" jsonschema:"title=Authorization Policies" jsonschema_description:"Custom client authorization policies"`
+	Lifespans             IdentityProvidersOpenIDConnectLifespans         `koanf:"lifespans" json:"lifespans" jsonschema:"title=Lifespans" jsonschema_description:"Token lifespans configuration"`
 
-	Discovery OpenIDConnectDiscovery `json:"-"` // MetaData value. Not configurable by users.
+	Discovery IdentityProvidersOpenIDConnectDiscovery `json:"-"` // MetaData value. Not configurable by users.
 }
 
-// OpenIDConnectPolicy configuration for OpenID Connect 1.0 authorization policies.
-type OpenIDConnectPolicy struct {
+// IdentityProvidersOpenIDConnectPolicy configuration for OpenID Connect 1.0 authorization policies.
+type IdentityProvidersOpenIDConnectPolicy struct {
 	DefaultPolicy string `koanf:"default_policy" json:"default_policy" jsonschema:"enum=one_factor,enum=two_factor,enum=deny,title=Default Policy" jsonschema_description:"The default policy action for this policy"`
 
-	Rules []OpenIDConnectPolicyRule `koanf:"rules" json:"rules" jsonschema:"title=Rules" jsonschema_description:"The list of rules for this policy"`
+	Rules []IdentityProvidersOpenIDConnectPolicyRule `koanf:"rules" json:"rules" jsonschema:"title=Rules" jsonschema_description:"The list of rules for this policy"`
 }
 
-// OpenIDConnectPolicyRule configuration for OpenID Connect 1.0 authorization policies rules.
-type OpenIDConnectPolicyRule struct {
+// IdentityProvidersOpenIDConnectPolicyRule configuration for OpenID Connect 1.0 authorization policies rules.
+type IdentityProvidersOpenIDConnectPolicyRule struct {
 	Policy   string                    `koanf:"policy" json:"policy" jsonschema:"enum=one_factor,enum=two_factor,enum=deny,title=Policy" jsonschema_description:"The policy to apply to this rule"`
 	Subjects AccessControlRuleSubjects `koanf:"subject" json:"subject" jsonschema:"title=Subject" jsonschema_description:"Allows tuning the token lifespans for the authorize code grant"`
 }
 
-// OpenIDConnectDiscovery is information discovered during validation reused for the discovery handlers.
-type OpenIDConnectDiscovery struct {
+// IdentityProvidersOpenIDConnectDiscovery is information discovered during validation reused for the discovery handlers.
+type IdentityProvidersOpenIDConnectDiscovery struct {
 	AuthorizationPolicies       []string
 	Lifespans                   []string
 	DefaultKeyIDs               map[string]string
@@ -141,7 +141,7 @@ type IdentityProvidersOpenIDConnectClient struct {
 
 	PublicKeys IdentityProvidersOpenIDConnectClientPublicKeys `koanf:"public_keys" json:"public_keys,omitempty" jsonschema:"title=Public Keys" jsonschema_description:"Public Key options used to validate request objects and the 'private_key_jwt' client authentication method for this client"`
 
-	Discovery OpenIDConnectDiscovery `json:"-"` // MetaData value. Not configurable by users.
+	Discovery IdentityProvidersOpenIDConnectDiscovery `json:"-"` // MetaData value. Not configurable by users.
 }
 
 // IdentityProvidersOpenIDConnectClientPublicKeys represents the Client Public Keys configuration for an OpenID Connect 1.0 client.
@@ -163,7 +163,7 @@ var DefaultOpenIDConnectConfiguration = IdentityProvidersOpenIDConnect{
 	EnforcePKCE: "public_clients_only",
 }
 
-var DefaultOpenIDConnectPolicyConfiguration = OpenIDConnectPolicy{
+var DefaultOpenIDConnectPolicyConfiguration = IdentityProvidersOpenIDConnectPolicy{
 	DefaultPolicy: policyTwoFactor,
 }
 

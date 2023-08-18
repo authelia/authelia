@@ -164,13 +164,19 @@ A list of scopes to allow this client to consume. See
 documentation for the application you are trying to configure [OpenID Connect 1.0] for will likely have a list of scopes
 or claims required which can be matched with the above guide.
 
+The scope values must be one of those documented in the
+[scope definitions](../../../integration/openid-connect/introduction.md#scope-definitions) with the exception of when
+the configured [grant_types](#granttypes) includes the `client_credentials` grant in which case arbitrary scopes are
+also allowed,
+
 ### grant_types
 
 {{< confkey type="list(string)" default="authorization_code" required="no" >}}
 
 *__Important Note:__ It is recommended that this isn't configured at this time unless you know what you're doing.*
 
-The list of grant types this client is permitted to use in order to obtain access to the relevant tokens.
+The list of grant types this client is permitted to use in order to obtain access to the token endpoint to obtain the
+granted tokens.
 
 See the [Grant Types](../../../integration/openid-connect/introduction.md#grant-types) section of the
 [OpenID Connect 1.0 Integration Guide](../../../integration/openid-connect/introduction.md#grant-types) for more information.
@@ -190,7 +196,7 @@ See the [Response Types](../../../integration/openid-connect/introduction.md#res
 
 ### response_modes
 
-{{< confkey type="list(string)" default="form_post, query" required="no" >}}
+{{< confkey type="list(string)" default="form_post,query" required="no" >}}
 
 *__Important Note:__ It is recommended that this isn't configured at this time unless you know what you're doing.*
 

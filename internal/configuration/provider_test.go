@@ -29,7 +29,6 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 	testSetEnv(t, "SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE", filepath.Join(dir, "redis-sentinel"))
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD_FILE", filepath.Join(dir, "mysql"))
 	testSetEnv(t, "STORAGE_POSTGRES_PASSWORD_FILE", filepath.Join(dir, "postgres"))
-	testSetEnv(t, "SERVER_TLS_KEY_FILE", filepath.Join(dir, "tls"))
 	testSetEnv(t, "IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE", filepath.Join(dir, "oidc-key"))
 	testSetEnv(t, "IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE", filepath.Join(dir, "oidc-hmac"))
 
@@ -40,7 +39,7 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 	assert.Len(t, val.Warnings(), 0)
 
 	errs := val.Errors()
-	require.Len(t, errs, 12)
+	require.Len(t, errs, 11)
 
 	sort.Sort(utils.ErrSliceSortAlphabetical(errs))
 
@@ -59,7 +58,6 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 	assert.EqualError(t, errs[8], fmt.Sprintf("secrets: error loading secret path %s into key 'session.redis.password': file does not exist error occurred: %s", filepath.Join(dir, "redis"), fmt.Sprintf(errFmt, filepath.Join(dir, "redis"))))
 	assert.EqualError(t, errs[9], fmt.Sprintf("secrets: error loading secret path %s into key 'session.redis.high_availability.sentinel_password': file does not exist error occurred: %s", filepath.Join(dir, "redis-sentinel"), fmt.Sprintf(errFmt, filepath.Join(dir, "redis-sentinel"))))
 	assert.EqualError(t, errs[10], fmt.Sprintf("secrets: error loading secret path %s into key 'session.secret': file does not exist error occurred: %s", filepath.Join(dir, "session"), fmt.Sprintf(errFmt, filepath.Join(dir, "session"))))
-	assert.EqualError(t, errs[11], fmt.Sprintf("secrets: error loading secret path %s into key 'server.tls.key': file does not exist error occurred: %s", filepath.Join(dir, "tls"), fmt.Sprintf(errFmt, filepath.Join(dir, "tls"))))
 }
 
 func TestLoadShouldReturnErrWithoutValidator(t *testing.T) {
@@ -569,6 +567,26 @@ func TestShouldDecodeSMTPSenderWithoutName(t *testing.T) {
 
 	assert.Equal(t, "", config.Notifier.SMTP.Sender.Name)
 	assert.Equal(t, "admin@example.com", config.Notifier.SMTP.Sender.Address)
+}
+
+func TestShouldDecodeServerTLS(t *testing.T) {
+	testSetEnv(t, "SERVER_TLS_KEY", "abc")
+	testSetEnv(t, "SERVER_TLS_CERTIFICATE", "123")
+	testSetEnv(t, "SERVER_TLS_CLIENT_CERTIFICATES", "abc,123")
+
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	assert.Equal(t, "abc", config.Server.TLS.Key)
+	assert.Equal(t, "123", config.Server.TLS.Certificate)
+	assert.Equal(t, []string{"abc", "123"}, config.Server.TLS.ClientCertificates)
 }
 
 func TestShouldDecodeSMTPSenderWithName(t *testing.T) {

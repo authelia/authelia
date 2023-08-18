@@ -1,6 +1,8 @@
 module github.com/authelia/authelia/v4
 
-go 1.20
+go 1.21
+
+toolchain go1.21.0
 
 require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
@@ -12,7 +14,7 @@ require (
 	github.com/fasthttp/session/v2 v2.5.1
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-asn1-ber/asn1-ber v1.5.4
-	github.com/go-crypt/crypt v0.2.11
+	github.com/go-crypt/crypt v0.2.12
 	github.com/go-ldap/ldap/v3 v3.4.5
 	github.com/go-rod/rod v0.114.2
 	github.com/go-sql-driver/mysql v1.7.1
@@ -21,7 +23,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-retryablehttp v0.7.4
-	github.com/jackc/pgx/v5 v5.4.2
+	github.com/jackc/pgx/v5 v5.4.3
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/knadh/koanf/parsers/yaml v0.1.0
 	github.com/knadh/koanf/providers/confmap v0.1.0
@@ -33,8 +35,8 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/ory/fosite v0.44.0
-	github.com/ory/herodot v0.10.3-0.20230803153933-8e3bd4b8fc78
-	github.com/ory/x v0.0.576
+	github.com/ory/herodot v0.10.3-0.20230807143059-27cd6936499b
+	github.com/ory/x v0.0.582
 	github.com/otiai10/copy v1.12.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.4.0
@@ -71,7 +73,7 @@ require (
 	github.com/ecordell/optgen v0.0.6 // indirect
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
-	github.com/go-crypt/x v0.2.4 // indirect
+	github.com/go-crypt/x v0.2.6 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-webauthn/revoke v0.1.9 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
