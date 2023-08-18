@@ -89,8 +89,8 @@ devDependencies:
     specifier: 1.0.6
     version: 1.0.6(eslint@8.47.0)
   '@testing-library/jest-dom':
-    specifier: 6.0.0
-    version: 6.0.0(vitest@0.34.2)
+    specifier: 6.0.1
+    version: 6.0.1(vitest@0.34.2)
   '@testing-library/react':
     specifier: 14.0.0
     version: 14.0.0(react-dom@18.2.0)(react@18.2.0)
@@ -2915,8 +2915,8 @@ packages:
       pretty-format: 27.5.1
     dev: true
 
-  /@testing-library/jest-dom@6.0.0(vitest@0.34.2):
-    resolution: {integrity: sha512-Ye2R3+/oM27jir8CzYPmuWdavTaKwNZcu0d22L9pO/vnOYE0wmrtpw79TQJa8H6gV8/i7yd+pLaqeLlA0rTMfg==}
+  /@testing-library/jest-dom@6.0.1(vitest@0.34.2):
+    resolution: {integrity: sha512-0hx/AWrJp8EKr8LmC5jrV3Lx8TZySH7McU1Ix2czBPQnLd458CefSEGjZy7w8kaBRA6LhoPkGjoZ3yqSs338IQ==}
     engines: {node: '>=14', npm: '>=6', yarn: '>=1'}
     peerDependencies:
       '@jest/globals': '>= 28'
@@ -4241,11 +4241,11 @@ packages:
       object-is: 1.1.5
       object-keys: 1.1.1
       object.assign: 4.1.4
-      regexp.prototype.flags: 1.4.3
+      regexp.prototype.flags: 1.5.0
       side-channel: 1.0.4
       which-boxed-primitive: 1.0.2
       which-collection: 1.0.1
-      which-typed-array: 1.1.9
+      which-typed-array: 1.1.11
     dev: true
 
   /deep-is@0.1.4:
@@ -7489,7 +7489,7 @@ packages:
       get-intrinsic: 1.2.1
       has-symbols: 1.0.3
       internal-slot: 1.0.5
-      regexp.prototype.flags: 1.4.3
+      regexp.prototype.flags: 1.5.0
       side-channel: 1.0.4
     dev: true
 
@@ -8223,7 +8223,7 @@ packages:
       isarray: 2.0.5
       which-boxed-primitive: 1.0.2
       which-collection: 1.0.1
-      which-typed-array: 1.1.9
+      which-typed-array: 1.1.11
     dev: true
 
   /which-collection@1.0.1:
