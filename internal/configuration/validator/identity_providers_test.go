@@ -1606,6 +1606,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'token_endpoint_auth_method' must be one of 'client_secret_post', 'client_secret_basic', or 'private_key_jwt' when configured as the confidential client type unless it only includes implicit flow response types such as 'id_token', 'token', and 'id_token token' but it's configured as 'none'",
+				"identity_providers: oidc: clients: client 'test': option 'secret' is required to be empty when option 'token_endpoint_auth_method' is configured as 'none'",
 			},
 		},
 		{
@@ -1631,6 +1632,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'token_endpoint_auth_method' must be one of 'client_secret_post', 'client_secret_basic', or 'private_key_jwt' when configured as the confidential client type unless it only includes implicit flow response types such as 'id_token', 'token', and 'id_token token' but it's configured as 'none'",
+				"identity_providers: oidc: clients: client 'test': option 'secret' is required to be empty when option 'token_endpoint_auth_method' is configured as 'none'",
 			},
 		},
 		{
@@ -1880,14 +1882,15 @@ func TestValidateOIDCClients(t *testing.T) {
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'token_endpoint_auth_signing_alg' is required when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'",
 				"identity_providers: oidc: clients: client 'test': option 'public_keys' is required with 'token_endpoint_auth_method' set to 'private_key_jwt'",
+				"identity_providers: oidc: clients: client 'test': option 'secret' is required to be empty when option 'token_endpoint_auth_method' is configured as 'private_key_jwt'",
 			},
 		},
 		{
-			"ShouldRaiseErrorOnTokenEndpointClientAuthMethodPrivateKeyJWTMustSetAlg",
+			"ShouldRaiseErrorOnTokenEndpointClientAuthMethodPrivateKeyJWTMustSetKnownAlg",
 			func(have *schema.OpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodPrivateKeyJWT
 				have.Clients[0].TokenEndpointAuthSigningAlg = "nope"
-				have.Clients[0].Secret = tOpenIDConnectPBKDF2ClientSecret
+				have.Clients[0].Secret = nil
 			},
 			nil,
 			tcv{
@@ -1909,11 +1912,11 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 		},
 		{
-			"ShouldRaiseErrorOnTokenEndpointClientAuthMethodPrivateKeyJWTMustSetKnownAlg",
+			"ShouldRaiseErrorOnTokenEndpointClientAuthMethodPrivateKeyJWTMustSetRegisteredAlg",
 			func(have *schema.OpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodPrivateKeyJWT
 				have.Clients[0].TokenEndpointAuthSigningAlg = oidc.SigningAlgECDSAUsingP384AndSHA384
-				have.Clients[0].Secret = tOpenIDConnectPBKDF2ClientSecret
+				have.Clients[0].Secret = nil
 				have.Clients[0].PublicKeys.Values = []schema.JWK{
 					{
 						KeyID:     "test",
@@ -1937,15 +1940,15 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 			nil,
 			[]string{
-				"identity_providers: oidc: clients: client 'test': option 'token_endpoint_auth_signing_alg' must be one of registered public key algorithm values 'RS256' when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'",
+				"identity_providers: oidc: clients: client 'test': option 'token_endpoint_auth_signing_alg' must be one of the registered public key algorithm values 'RS256' when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'",
 			},
 		},
 		{
-			"ShouldRaiseErrorOnTokenEndpointClientAuthMethodPrivateKeyJWTMustSetKnownAlg",
+			"ShouldRaiseErrorOnTokenEndpointClientAuthMethodPrivateKeyJWTMustHavePublicKeys",
 			func(have *schema.OpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodPrivateKeyJWT
 				have.Clients[0].TokenEndpointAuthSigningAlg = oidc.SigningAlgECDSAUsingP384AndSHA384
-				have.Clients[0].Secret = tOpenIDConnectPBKDF2ClientSecret
+				have.Clients[0].Secret = nil
 			},
 			nil,
 			tcv{
@@ -2256,13 +2259,29 @@ func TestValidateOIDCClientTokenEndpointAuthMethod(t *testing.T) {
 		expected string
 		errs     []string
 	}{
-		{"ShouldSetDefaultValueConfidential", "", false, "", nil},
-		{"ShouldErrorOnInvalidValue", "abc", false, "abc",
+		{
+			"ShouldSetDefaultValueConfidential",
+			"",
+			false,
+			"",
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'secret' is required",
+			},
+		},
+		{
+			"ShouldErrorOnInvalidValue",
+			"abc",
+			false,
+			"abc",
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'token_endpoint_auth_method' must be one of 'none', 'client_secret_post', 'client_secret_basic', 'private_key_jwt', or 'client_secret_jwt' but it's configured as 'abc'",
 			},
 		},
-		{"ShouldErrorOnInvalidValueForPublicClient", "client_secret_post", true, "client_secret_post",
+		{
+			"ShouldErrorOnInvalidValueForPublicClient",
+			"client_secret_post",
+			true,
+			"client_secret_post",
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'token_endpoint_auth_method' must be 'none' when configured as the public client type but it's configured as 'client_secret_post'",
 			},

@@ -372,23 +372,6 @@ func validateOIDCClients(config *schema.OpenIDConnect, val *schema.StructValidat
 }
 
 func validateOIDCClient(c int, config *schema.OpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
-	if config.Clients[c].Public {
-		if config.Clients[c].Secret != nil {
-			val.Push(fmt.Errorf(errFmtOIDCClientPublicInvalidSecret, config.Clients[c].ID))
-		}
-	} else {
-		if config.Clients[c].Secret == nil {
-			val.Push(fmt.Errorf(errFmtOIDCClientInvalidSecret, config.Clients[c].ID))
-		} else {
-			switch {
-			case config.Clients[c].Secret.IsPlainText() && config.Clients[c].TokenEndpointAuthMethod != oidc.ClientAuthMethodClientSecretJWT:
-				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidSecretPlainText, config.Clients[c].ID))
-			case !config.Clients[c].Secret.IsPlainText() && config.Clients[c].TokenEndpointAuthMethod == oidc.ClientAuthMethodClientSecretJWT:
-				val.Push(fmt.Errorf(errFmtOIDCClientInvalidSecretNotPlainText, config.Clients[c].ID))
-			}
-		}
-	}
-
 	switch {
 	case config.Clients[c].AuthorizationPolicy == "":
 		config.Clients[c].AuthorizationPolicy = schema.DefaultOpenIDConnectClientConfiguration.AuthorizationPolicy
@@ -801,8 +784,9 @@ func validateOIDCClientRedirectURIs(c int, config *schema.OpenIDConnect, val *sc
 	}
 }
 
+//nolint:gocyclo
 func validateOIDCClientTokenEndpointAuth(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
-	implcit := len(config.Clients[c].ResponseTypes) != 0 && utils.IsStringSliceContainsAll(config.Clients[c].ResponseTypes, validOIDCClientResponseTypesImplicitFlow)
+	implicit := len(config.Clients[c].ResponseTypes) != 0 && utils.IsStringSliceContainsAll(config.Clients[c].ResponseTypes, validOIDCClientResponseTypesImplicitFlow)
 
 	switch {
 	case config.Clients[c].TokenEndpointAuthMethod == "":
@@ -810,7 +794,9 @@ func validateOIDCClientTokenEndpointAuth(c int, config *schema.OpenIDConnect, va
 	case !utils.IsStringInSlice(config.Clients[c].TokenEndpointAuthMethod, validOIDCClientTokenEndpointAuthMethods):
 		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
 			config.Clients[c].ID, attrOIDCTokenAuthMethod, strJoinOr(validOIDCClientTokenEndpointAuthMethods), config.Clients[c].TokenEndpointAuthMethod))
-	case config.Clients[c].TokenEndpointAuthMethod == oidc.ClientAuthMethodNone && !config.Clients[c].Public && !implcit:
+
+		return
+	case config.Clients[c].TokenEndpointAuthMethod == oidc.ClientAuthMethodNone && !config.Clients[c].Public && !implicit:
 		val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthMethod,
 			config.Clients[c].ID, strJoinOr(validOIDCClientTokenEndpointAuthMethodsConfidential), strJoinAnd(validOIDCClientResponseTypesImplicitFlow), config.Clients[c].TokenEndpointAuthMethod))
 	case config.Clients[c].TokenEndpointAuthMethod != oidc.ClientAuthMethodNone && config.Clients[c].Public:
@@ -818,13 +804,44 @@ func validateOIDCClientTokenEndpointAuth(c int, config *schema.OpenIDConnect, va
 			config.Clients[c].ID, config.Clients[c].TokenEndpointAuthMethod))
 	}
 
+	secret := false
+
 	switch config.Clients[c].TokenEndpointAuthMethod {
-	case "":
-		break
 	case oidc.ClientAuthMethodClientSecretJWT:
 		validateOIDCClientTokenEndpointAuthClientSecretJWT(c, config, val)
+
+		secret = true
+	case "":
+		if !config.Clients[c].Public {
+			secret = true
+		}
+	case oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic:
+		secret = true
 	case oidc.ClientAuthMethodPrivateKeyJWT:
 		validateOIDCClientTokenEndpointAuthPublicKeyJWT(config.Clients[c], val)
+	}
+
+	if secret {
+		if config.Clients[c].Public {
+			return
+		}
+
+		if config.Clients[c].Secret == nil {
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidSecret, config.Clients[c].ID))
+		} else {
+			switch {
+			case config.Clients[c].Secret.IsPlainText() && config.Clients[c].TokenEndpointAuthMethod != oidc.ClientAuthMethodClientSecretJWT:
+				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidSecretPlainText, config.Clients[c].ID))
+			case !config.Clients[c].Secret.IsPlainText() && config.Clients[c].TokenEndpointAuthMethod == oidc.ClientAuthMethodClientSecretJWT:
+				val.Push(fmt.Errorf(errFmtOIDCClientInvalidSecretNotPlainText, config.Clients[c].ID))
+			}
+		}
+	} else if config.Clients[c].Secret != nil {
+		if config.Clients[c].Public {
+			val.Push(fmt.Errorf(errFmtOIDCClientPublicInvalidSecret, config.Clients[c].ID))
+		} else {
+			val.Push(fmt.Errorf(errFmtOIDCClientPublicInvalidSecretClientAuthMethod, config.Clients[c].ID, config.Clients[c].TokenEndpointAuthMethod))
+		}
 	}
 }
 
