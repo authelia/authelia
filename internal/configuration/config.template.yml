@@ -1400,6 +1400,10 @@ notifier:
         ## Enforces the use of PKCE for this client when set to true.
         # enforce_pkce: false
 
+        ## Enables stateless introspection for RFC9068 JWT Access Tokens. This should be false unless you have a
+        ## specific use case as it effectively prevents revocation of these access tokens.
+        # enable_jwt_access_token_stateless_introspection: false
+
         ## Enforces the use of PKCE for this client when configured, and enforces the specified challenge method.
         ## Options are 'plain' and 'S256'.
         # pkce_challenge_method: 'S256'
@@ -1435,6 +1439,15 @@ notifier:
         ## The signing key id used for ID Tokens. An issuer JWK with a matching key id must be available when
         ## configured.
         # id_token_signed_response_key_id: ''
+
+        ## The signing algorithm used for Access Tokens. An issuer JWK with a matching algorithm must be available.
+        ## Has no effect if access_token_signed_response_key_id is configured. Values other than 'none' enable RFC9068
+        ## for this client.
+        # access_token_signed_response_alg: 'none'
+
+        ## The signing key id used for Access Tokens. An issuer JWK with a matching key id must be available when
+        ## configured. Values other than a blank value enable RFC9068 for this client.
+        # access_token_signed_response_key_id: ''
 
         ## The signing algorithm used for User Info responses. An issuer JWK with a matching algorithm must be
         ## available. Has no effect if userinfo_signing_key_id is configured.

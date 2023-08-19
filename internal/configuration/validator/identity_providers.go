@@ -63,11 +63,17 @@ func validateOIDCAuthorizationPolicies(config *schema.OpenIDConnect, val *schema
 	config.Discovery.AuthorizationPolicies = []string{policyOneFactor, policyTwoFactor}
 
 	for name, policy := range config.AuthorizationPolicies {
+		add := true
+
 		switch name {
 		case "":
 			val.Push(fmt.Errorf(errFmtOIDCPolicyInvalidName))
+
+			add = false
 		case policyOneFactor, policyTwoFactor, policyDeny:
 			val.Push(fmt.Errorf(errFmtOIDCPolicyInvalidNameStandard, name, "name", strJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny}), name))
+
+			add = false
 		}
 
 		switch policy.DefaultPolicy {
@@ -100,7 +106,9 @@ func validateOIDCAuthorizationPolicies(config *schema.OpenIDConnect, val *schema
 
 		config.AuthorizationPolicies[name] = policy
 
-		config.Discovery.AuthorizationPolicies = append(config.Discovery.AuthorizationPolicies, name)
+		if add {
+			config.Discovery.AuthorizationPolicies = append(config.Discovery.AuthorizationPolicies, name)
+		}
 	}
 }
 
@@ -878,6 +886,7 @@ func validateOIDCClientTokenEndpointAuthPublicKeyJWT(config schema.OpenIDConnect
 func validateOIDDClientSigningAlgs(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
 	validateOIDDClientSigningAlgsJARM(c, config, val)
 	validateOIDDClientSigningAlgsIDToken(c, config, val)
+	validateOIDDClientSigningAlgsAccessToken(c, config, val)
 	validateOIDDClientSigningAlgsUserInfo(c, config, val)
 	validateOIDDClientSigningAlgsIntrospection(c, config, val)
 }
@@ -897,6 +906,30 @@ func validateOIDDClientSigningAlgsIDToken(c int, config *schema.OpenIDConnect, v
 				config.Clients[c].ID, attrOIDCIDTokenSigKID, strJoinOr(config.Discovery.ResponseObjectSigningKeyIDs), config.Clients[c].IDTokenSignedResponseKeyID))
 		} else {
 			config.Clients[c].IDTokenSignedResponseAlg = getResponseObjectAlgFromKID(config, config.Clients[c].IDTokenSignedResponseKeyID, config.Clients[c].IDTokenSignedResponseAlg)
+		}
+	}
+}
+
+func validateOIDDClientSigningAlgsAccessToken(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
+	switch config.Clients[c].AccessTokenSignedResponseKeyID {
+	case "":
+		switch {
+		case config.Clients[c].AccessTokenSignedResponseAlg == "":
+			config.Clients[c].AccessTokenSignedResponseAlg = schema.DefaultOpenIDConnectClientConfiguration.AccessTokenSignedResponseAlg
+		case !utils.IsStringInSlice(config.Clients[c].AccessTokenSignedResponseAlg, config.Discovery.ResponseObjectSigningAlgs):
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
+				config.Clients[c].ID, attrOIDCAccessTokenSigAlg, strJoinOr(config.Discovery.ResponseObjectSigningAlgs), config.Clients[c].AccessTokenSignedResponseAlg))
+		default:
+			config.Discovery.JWTResponseAccessTokens = true
+		}
+	default:
+		switch {
+		case !utils.IsStringInSlice(config.Clients[c].AccessTokenSignedResponseKeyID, config.Discovery.ResponseObjectSigningKeyIDs):
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
+				config.Clients[c].ID, attrOIDCAccessTokenSigKID, strJoinOr(config.Discovery.ResponseObjectSigningKeyIDs), config.Clients[c].AccessTokenSignedResponseKeyID))
+		default:
+			config.Clients[c].AccessTokenSignedResponseAlg = getResponseObjectAlgFromKID(config, config.Clients[c].AccessTokenSignedResponseKeyID, config.Clients[c].AccessTokenSignedResponseAlg)
+			config.Discovery.JWTResponseAccessTokens = true
 		}
 	}
 }

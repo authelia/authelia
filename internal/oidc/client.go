@@ -7,7 +7,7 @@ import (
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/ory/fosite"
 	"github.com/ory/x/errorsx"
-	jose "gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -41,6 +41,8 @@ func NewClient(config schema.OpenIDConnectClient, c *schema.OpenIDConnect) (clie
 		AuthorizationSignedResponseKeyID: config.AuthorizationSignedResponseKeyID,
 		IDTokenSignedResponseAlg:         config.IDTokenSignedResponseAlg,
 		IDTokenSignedResponseKeyID:       config.IDTokenSignedResponseKeyID,
+		AccessTokenSignedResponseAlg:     config.AccessTokenSignedResponseAlg,
+		AccessTokenSignedResponseKeyID:   config.AccessTokenSignedResponseKeyID,
 		UserinfoSignedResponseAlg:        config.UserinfoSignedResponseAlg,
 		UserinfoSignedResponseKeyID:      config.UserinfoSignedResponseKeyID,
 		IntrospectionSignedResponseAlg:   config.IntrospectionSignedResponseAlg,
@@ -63,10 +65,10 @@ func NewClient(config schema.OpenIDConnectClient, c *schema.OpenIDConnect) (clie
 	if config.TokenEndpointAuthMethod != "" || config.TokenEndpointAuthSigningAlg != "" ||
 		len(config.PublicKeys.Values) != 0 || config.PublicKeys.URI != nil || config.RequestObjectSigningAlg != "" {
 		full := &FullClient{
-			BaseClient:                        base,
-			TokenEndpointAuthMethod:           config.TokenEndpointAuthMethod,
-			TokenEndpointAuthSigningAlgorithm: config.TokenEndpointAuthSigningAlg,
-			RequestObjectSigningAlgorithm:     config.RequestObjectSigningAlg,
+			BaseClient:                  base,
+			TokenEndpointAuthMethod:     config.TokenEndpointAuthMethod,
+			TokenEndpointAuthSigningAlg: config.TokenEndpointAuthSigningAlg,
+			RequestObjectSigningAlg:     config.RequestObjectSigningAlg,
 
 			JSONWebKeys: NewPublicJSONWebKeySetFromSchemaJWK(config.PublicKeys.Values),
 		}
@@ -178,6 +180,26 @@ func (c *BaseClient) GetIDTokenSignedResponseAlg() (alg string) {
 // GetIDTokenSignedResponseKeyID returns the IDTokenSignedResponseKeyID.
 func (c *BaseClient) GetIDTokenSignedResponseKeyID() (alg string) {
 	return c.IDTokenSignedResponseKeyID
+}
+
+// GetAccessTokenSignedResponseAlg returns the AccessTokenSignedResponseAlg.
+func (c *BaseClient) GetAccessTokenSignedResponseAlg() (alg string) {
+	if c.AccessTokenSignedResponseAlg == "" {
+		c.AccessTokenSignedResponseAlg = SigningAlgNone
+	}
+
+	return c.AccessTokenSignedResponseAlg
+}
+
+// GetAccessTokenSignedResponseKeyID returns the AccessTokenSignedResponseKeyID.
+func (c *BaseClient) GetAccessTokenSignedResponseKeyID() (alg string) {
+	return c.AccessTokenSignedResponseKeyID
+}
+
+// GetJWTProfileOAuthAccessTokensEnabled returns true if this client is configured to return the
+// RFC9068 JWT Profile for OAuth 2.0 Access Tokens.
+func (c *BaseClient) GetJWTProfileOAuthAccessTokensEnabled() bool {
+	return c.GetAccessTokenSignedResponseAlg() != SigningAlgNone || len(c.GetAccessTokenSignedResponseKeyID()) > 0
 }
 
 // GetUserinfoSignedResponseAlg returns the UserinfoSignedResponseAlg.
@@ -434,7 +456,7 @@ func (c *FullClient) GetJSONWebKeysURI() string {
 // GetRequestObjectSigningAlgorithm returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing Request
 // Objects sent to the OP. All Request Objects from this Client MUST be rejected, if not signed with this algorithm.
 func (c *FullClient) GetRequestObjectSigningAlgorithm() string {
-	return c.RequestObjectSigningAlgorithm
+	return c.RequestObjectSigningAlg
 }
 
 // GetTokenEndpointAuthMethod returns the requested Client Authentication Method for the Token Endpoint. The options are
@@ -455,9 +477,9 @@ func (c *FullClient) GetTokenEndpointAuthMethod() string {
 // [JWT] used to authenticate the Client at the Token Endpoint for the private_key_jwt and client_secret_jwt
 // authentication methods.
 func (c *FullClient) GetTokenEndpointAuthSigningAlgorithm() string {
-	if c.TokenEndpointAuthSigningAlgorithm == "" {
-		c.TokenEndpointAuthSigningAlgorithm = SigningAlgRSAUsingSHA256
+	if c.TokenEndpointAuthSigningAlg == "" {
+		c.TokenEndpointAuthSigningAlg = SigningAlgRSAUsingSHA256
 	}
 
-	return c.TokenEndpointAuthSigningAlgorithm
+	return c.TokenEndpointAuthSigningAlg
 }

@@ -39,6 +39,8 @@ const (
 	ClaimAuthenticationMethodsReference      = "amr"
 	ClaimClientIdentifier                    = valueClientID
 	ClaimScope                               = valueScope
+	ClaimScopeNonStandard                    = "scp"
+	ClaimExtra                               = "ext"
 	ClaimActive                              = "active"
 	ClaimUsername                            = "username"
 	ClaimTokenIntrospection                  = "token_introspection"
@@ -207,6 +209,7 @@ const (
 
 const (
 	JWTHeaderTypeValueTokenIntrospectionJWT = "token-introspection+jwt"
+	JWTHeaderTypeValueAccessTokenJWT        = "at+jwt"
 )
 
 const (

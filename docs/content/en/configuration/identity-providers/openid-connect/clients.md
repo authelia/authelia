@@ -61,6 +61,8 @@ identity_providers:
         authorization_signed_response_key_id: ''
         id_token_signed_response_alg: 'RS256'
         id_token_signed_response_key_id: ''
+        access_token_signed_response_alg: 'none'
+        access_token_signed_response_key_id: ''
         userinfo_signed_response_alg: 'none'
         userinfo_signed_response_key_id: ''
         request_object_signing_alg: 'RS256'
@@ -344,6 +346,36 @@ of the specified key._
 
 The key id of the JWK used to sign the ID Tokens in the token responses. The value of this must one of those provided or
 calculated in the [issuer_private_keys](provider.md#issuerprivatekeys).
+
+### access_token_signed_response_alg
+
+{{< confkey type="string" default="none" required="no" >}}
+
+_**Note:** This value is completely ignored if the [access_token_signed_response_key_id](#accesstokensignedresponsekeyid) is defined._
+
+The algorithm used to sign the ID Tokens in the token responses.
+
+See the response object section of the
+[integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information including
+the algorithm column for supported values. This value can not be set to `none`.
+
+The algorithm chosen must have a key configured in the [issuer_private_keys](provider.md#issuerprivatekeys) section to
+be considered valid. In addition to the values listed we also support `none` as a value
+for this endpoint. When using the `none` value the Access Token is completely opaque and is not a JWT.
+
+See the response object section of the [integration guide](../../../integration/openid-connect/introduction.md#response-object)
+for more information including the algorithm column for supported values.
+
+### access_token_signed_response_key_id
+
+{{< confkey type="string" required="no" >}}
+
+_**Note:** This value automatically configures the [access_token_signed_response_alg](#accesstokensignedresponsealg) value with the
+algorithm of the specified key._
+
+The key id of the JWK used to sign the [JWT Access Tokens](https://oauth.net/2/jwt-access-tokens/) in the token
+responses. The value of this must one of those provided or calculated in the
+[issuer_private_keys](provider.md#issuerprivatekeys).
 
 ### userinfo_signed_response_alg
 

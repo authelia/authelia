@@ -3,18 +3,20 @@ package oidc_test
 import (
 	"context"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/token/hmac"
+	"github.com/ory/fosite/token/jwt"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
-func TestHMACCoreStrategy(t *testing.T) {
+func TestJWTCoreStrategy(t *testing.T) {
 	goodsecret := []byte("R7VCSUfnKc7Y5zE84q6GstYqfMGjL4wM")
 	secreta := []byte("a")
 
@@ -28,8 +30,16 @@ func TestHMACCoreStrategy(t *testing.T) {
 		},
 	}
 
-	strategy := &oidc.HMACCoreStrategy{
-		Enigma: &hmac.HMACStrategy{Config: config},
+	strategy := &oidc.JWTCoreStrategy{
+		Signer: &jwt.DefaultSigner{
+			GetPrivateKey: func(ctx context.Context) (interface{}, error) {
+				return keyRSA2048, nil
+			},
+		},
+		HMACCoreStrategy: &oidc.HMACCoreStrategy{
+			Enigma: &hmac.HMACStrategy{Config: config},
+			Config: config,
+		},
 		Config: config,
 	}
 
@@ -83,8 +93,21 @@ func TestHMACCoreStrategy(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile(`^authelia_at_`), token)
 
 	assert.NoError(t, strategy.ValidateAccessToken(ctx, &fosite.Request{RequestedAt: time.Now(), Session: &fosite.DefaultSession{}}, token))
-	assert.NoError(t, strategy.ValidateAccessToken(ctx, &fosite.Request{RequestedAt: time.Now(), Session: &fosite.DefaultSession{}}, token))
 	assert.EqualError(t, strategy.ValidateAccessToken(ctx, &fosite.Request{RequestedAt: time.Now().Add(time.Hour * -2400), Session: &fosite.DefaultSession{}}, token), "invalid_token")
 	assert.NoError(t, strategy.ValidateAccessToken(ctx, &fosite.Request{RequestedAt: time.Now().Add(time.Hour * -2400), Session: &fosite.DefaultSession{ExpiresAt: map[fosite.TokenType]time.Time{fosite.AccessToken: time.Now().Add(100 * time.Hour)}}}, token))
 	assert.EqualError(t, strategy.ValidateAccessToken(ctx, &fosite.Request{RequestedAt: time.Now(), Session: &fosite.DefaultSession{ExpiresAt: map[fosite.TokenType]time.Time{fosite.AccessToken: time.Now().Add(-100 * time.Second)}}}, token), "invalid_token")
+
+	token, signature, err = strategy.GenerateAccessToken(ctx, &fosite.Request{Client: &oidc.BaseClient{AccessTokenSignedResponseAlg: oidc.SigningAlgRSAUsingSHA256}})
+	assert.Equal(t, "", token)
+	assert.Equal(t, "", signature)
+	assert.EqualError(t, err, "Session must be of type JWTSessionContainer but got type: <nil>")
+
+	token, signature, err = strategy.GenerateAccessToken(ctx, &fosite.Request{Client: &oidc.BaseClient{AccessTokenSignedResponseAlg: oidc.SigningAlgRSAUsingSHA256}, Session: oidc.NewSession()})
+	assert.Regexp(t, regexp.MustCompile(`^[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+$`), token)
+	assert.Regexp(t, regexp.MustCompile(`^[a-zA-Z0-9-_]+$`), signature)
+	assert.True(t, strings.HasSuffix(token, signature))
+	assert.NoError(t, err)
+
+	assert.NoError(t, strategy.ValidateAccessToken(ctx, &fosite.Request{RequestedAt: time.Now(), Session: &fosite.DefaultSession{}}, token))
+	assert.Equal(t, signature, strategy.AccessTokenSignature(ctx, token))
 }

@@ -306,6 +306,18 @@ Allows [PKCE] `plain` challenges when set to `true`.
 *__Security Notice:__* Changing this value is generally discouraged. Applications should use the `S256` [PKCE] challenge
 method instead.
 
+### enable_jwt_access_token_stateless_introspection
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Allows [JWT Access Tokens](https://oauth.net/2/jwt-access-tokens/) to be introspected using a stateless model where
+the JWT claims have all of the required introspection information, and assumes that they have not been revoked. This is
+strongly discouraged unless you have a very specific use case.
+
+A client with an [access_token_signed_response_alg](clients.md#accesstokensignedresponsealg) or
+[access_token_signed_response_key_id](clients.md#accesstokensignedresponsekeyid) must be configured for this option to
+be enabled.
+
 ### pushed_authorizations
 
 Controls the behaviour of [Pushed Authorization Requests].

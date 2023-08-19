@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"golang.org/x/net/publicsuffix"
-	"gopkg.in/square/go-jose.v2"
+	jose "gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"

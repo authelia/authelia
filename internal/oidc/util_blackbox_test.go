@@ -8,12 +8,11 @@ import (
 
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
-	"github.com/ory/fosite/token/jwt"
+	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/text/language"
-	"gopkg.in/square/go-jose.v2"
+	jose "gopkg.in/square/go-jose.v2"
 
-	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -115,13 +114,13 @@ func TestIntrospectionResponseToMap(t *testing.T) {
 						GrantedScope:    fosite.Arguments{oidc.ScopeOpenID, oidc.ScopeProfile},
 						GrantedAudience: fosite.Arguments{"https://example.com", "aclient"},
 						Client:          &oidc.BaseClient{ID: "aclient"},
-						Session: &model.OpenIDSession{
+						Session: &oidc.Session{
 							DefaultSession: &openid.DefaultSession{
 								ExpiresAt: map[fosite.TokenType]time.Time{
 									fosite.AccessToken: time.Unix(1000000, 0).UTC(),
 								},
 								Subject: "asubj",
-								Claims: &jwt.IDTokenClaims{
+								Claims: &fjwt.IDTokenClaims{
 									Extra: map[string]any{
 										"aclaim":                 1,
 										oidc.ClaimExpirationTime: 0,
@@ -158,13 +157,13 @@ func TestIntrospectionResponseToMap(t *testing.T) {
 						GrantedScope:    fosite.Arguments{oidc.ScopeOpenID, oidc.ScopeProfile},
 						GrantedAudience: fosite.Arguments{"https://example.com", "aclient"},
 						Client:          &oidc.BaseClient{ID: "aclient"},
-						Session: &model.OpenIDSession{
+						Session: &oidc.Session{
 							DefaultSession: &openid.DefaultSession{
 								ExpiresAt: map[fosite.TokenType]time.Time{
 									fosite.AccessToken: time.Unix(1000000, 0).UTC(),
 								},
 								Username: "auser",
-								Claims: &jwt.IDTokenClaims{
+								Claims: &fjwt.IDTokenClaims{
 									Subject: "asubj",
 									Extra: map[string]any{
 										"aclaim":                 1,
@@ -197,6 +196,51 @@ func TestIntrospectionResponseToMap(t *testing.T) {
 
 			assert.Equal(t, tc.expectedaud, aud)
 			assert.Equal(t, tc.expected, introspection)
+		})
+	}
+}
+
+func TestIsJWTProfileAccessToken(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *fjwt.Token
+		expected bool
+	}{
+		{
+			"ShouldReturnFalseOnNilToken",
+			nil,
+			false,
+		},
+		{
+			"ShouldReturnFalseOnNilTokenHeader",
+			&fjwt.Token{Header: nil},
+			false,
+		},
+		{
+			"ShouldReturnFalseOnEmptyHeader",
+			&fjwt.Token{Header: map[string]any{}},
+			false,
+		},
+		{
+			"ShouldReturnFalseOnInvalidKeyTypeHeaderType",
+			&fjwt.Token{Header: map[string]any{oidc.JWTHeaderKeyType: 123}},
+			false,
+		},
+		{
+			"ShouldReturnFalseOnInvalidKeyTypeHeaderValue",
+			&fjwt.Token{Header: map[string]any{oidc.JWTHeaderKeyType: "JWT"}},
+			false,
+		},
+		{
+			"ShouldReturnTrue",
+			&fjwt.Token{Header: map[string]any{oidc.JWTHeaderKeyType: oidc.JWTHeaderTypeValueAccessTokenJWT}},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, oidc.IsJWTProfileAccessToken(tc.have))
 		})
 	}
 }

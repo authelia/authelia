@@ -25,6 +25,8 @@ type OpenIDConnect struct {
 	EnforcePKCE              string `koanf:"enforce_pkce"`
 	EnablePKCEPlainChallenge bool   `koanf:"enable_pkce_plain_challenge"`
 
+	EnableJWTAccessTokenStatelessIntrospection bool `koanf:"enable_jwt_access_token_stateless_introspection"`
+
 	PAR  OpenIDConnectPAR  `koanf:"pushed_authorizations"`
 	CORS OpenIDConnectCORS `koanf:"cors"`
 
@@ -58,6 +60,7 @@ type OpenIDConnectDiscovery struct {
 	ResponseObjectSigningKeyIDs []string
 	ResponseObjectSigningAlgs   []string
 	RequestObjectSigningAlgs    []string
+	JWTResponseAccessTokens     bool
 }
 
 type OpenIDConnectLifespans struct {
@@ -133,6 +136,8 @@ type OpenIDConnectClient struct {
 	AuthorizationSignedResponseKeyID string `koanf:"authorization_signed_response_key_id"`
 	IDTokenSignedResponseAlg         string `koanf:"id_token_signed_response_alg"`
 	IDTokenSignedResponseKeyID       string `koanf:"id_token_signed_response_key_id"`
+	AccessTokenSignedResponseAlg     string `koanf:"access_token_signed_response_alg"`
+	AccessTokenSignedResponseKeyID   string `koanf:"access_token_signed_response_key_id"`
 	UserinfoSignedResponseAlg        string `koanf:"userinfo_signed_response_alg"`
 	UserinfoSignedResponseKeyID      string `koanf:"userinfo_signed_response_key_id"`
 	IntrospectionSignedResponseAlg   string `koanf:"introspection_signed_response_alg"`

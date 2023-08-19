@@ -40,15 +40,30 @@ func NewConfig(config *schema.OpenIDConnect, signer jwt.Signer, templates *templ
 			ContextLifespan: config.PAR.ContextLifespan,
 			URIPrefix:       RedirectURIPrefixPushedAuthorizationRequestURN,
 		},
+		JWTAccessToken: JWTAccessTokenConfig{
+			Enable:                       config.Discovery.JWTResponseAccessTokens,
+			EnableStatelessIntrospection: config.EnableJWTAccessTokenStatelessIntrospection,
+		},
 		JWTSecuredAuthorizationLifespan: config.Lifespans.JWTSecuredAuthorization,
 		Templates:                       templates,
 	}
 
 	c.Handlers.ResponseMode = &ResponseModeHandler{c}
 
-	c.Strategy.Core = &HMACCoreStrategy{
-		Enigma: &hmac.HMACStrategy{Config: c},
-		Config: c,
+	if config.Discovery.JWTResponseAccessTokens {
+		c.Strategy.Core = &JWTCoreStrategy{
+			Signer: signer,
+			HMACCoreStrategy: &HMACCoreStrategy{
+				Enigma: &hmac.HMACStrategy{Config: c},
+				Config: c,
+			},
+			Config: c,
+		}
+	} else {
+		c.Strategy.Core = &HMACCoreStrategy{
+			Enigma: &hmac.HMACStrategy{Config: c},
+			Config: c,
+		}
 	}
 
 	c.Strategy.OpenID = &openid.DefaultStrategy{
@@ -80,6 +95,8 @@ type Config struct {
 
 	JWTSecuredAuthorizationLifespan time.Duration
 
+	JWTAccessToken JWTAccessTokenConfig
+
 	Hasher               *Hasher
 	Hash                 HashConfig
 	Strategy             StrategyConfig
@@ -101,6 +118,11 @@ type Config struct {
 	MessageCatalog i18n.MessageCatalog
 
 	Templates *templates.Provider
+}
+
+type JWTAccessTokenConfig struct {
+	Enable                       bool
+	EnableStatelessIntrospection bool
 }
 
 // HashConfig holds specific fosite.Configurator information for hashing.
@@ -179,6 +201,15 @@ type ProofKeyCodeExchangeConfig struct {
 func (c *Config) LoadHandlers(store *Store) {
 	validator := openid.NewOpenIDConnectRequestValidator(c.Signer, c)
 
+	var statelessJWT any
+
+	if c.JWTAccessToken.Enable && c.JWTAccessToken.EnableStatelessIntrospection {
+		statelessJWT = &StatelessJWTValidator{
+			Signer: c.Signer,
+			Config: c,
+		}
+	}
+
 	handlers := []any{
 		&oauth2.AuthorizeExplicitGrantHandler{
 			AccessTokenStrategy:    c.Strategy.Core,
@@ -253,6 +284,7 @@ func (c *Config) LoadHandlers(store *Store) {
 			},
 			Config: c,
 		},
+		statelessJWT,
 		&oauth2.CoreValidator{
 			CoreStrategy: c.Strategy.Core,
 			CoreStorage:  store,
@@ -282,6 +314,10 @@ func (c *Config) LoadHandlers(store *Store) {
 	}
 
 	for _, handler := range handlers {
+		if handler == nil {
+			continue
+		}
+
 		if h, ok := handler.(fosite.AuthorizeEndpointHandler); ok {
 			x.AuthorizeEndpoint.Append(h)
 		}
