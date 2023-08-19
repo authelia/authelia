@@ -139,7 +139,5 @@ func OAuthIntrospectionPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 		_, _ = rw.Write([]byte(token))
 	}
 
-	ctx.Providers.OpenIDConnect.WriteIntrospectionResponse(ctx, rw, responder)
-
 	ctx.Logger.Debugf("Introspection Request with id '%s' was processed successfully", requestID)
 }
