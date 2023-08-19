@@ -8,6 +8,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ory/fosite"
+	fjwt "github.com/ory/fosite/token/jwt"
 	"gopkg.in/square/go-jose.v2"
 )
 
@@ -198,8 +199,12 @@ func IntrospectionResponseToMap(response fosite.IntrospectionResponder) (aud []s
 			}
 		}
 
+		var session IDTokenClaimsSession
+
 		if sub := response.GetAccessRequester().GetSession().GetSubject(); sub != "" {
 			introspection[ClaimSubject] = sub
+		} else if session, ok = response.GetAccessRequester().GetSession().(IDTokenClaimsSession); ok && session.GetIDTokenClaims().Subject != "" {
+			introspection[ClaimSubject] = session.GetIDTokenClaims().Subject
 		}
 
 		if aud = response.GetAccessRequester().GetGrantedAudience(); len(aud) > 0 {
@@ -212,4 +217,8 @@ func IntrospectionResponseToMap(response fosite.IntrospectionResponder) (aud []s
 	}
 
 	return aud, introspection
+}
+
+type IDTokenClaimsSession interface {
+	GetIDTokenClaims() *fjwt.IDTokenClaims
 }

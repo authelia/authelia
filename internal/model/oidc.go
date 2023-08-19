@@ -14,6 +14,7 @@ import (
 	"github.com/mohae/deepcopy"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
+	"github.com/ory/fosite/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -402,6 +403,10 @@ type OpenIDSession struct {
 	ClientID    string
 
 	Extra map[string]any `json:"extra"`
+}
+
+func (s *OpenIDSession) GetIDTokenClaims() *jwt.IDTokenClaims {
+	return s.Claims
 }
 
 // Clone copies the OpenIDSession to a new fosite.Session.
