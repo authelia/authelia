@@ -276,12 +276,32 @@ This document previously detailed additional per-proxy configuration options tha
 improve security. These headers are now documented here and implemented by default in all responses due to the fact
 the experience should be the same regardless of which proxy you're utilizing and the area is rapidly evolving.
 
-Users who need custom behaviours in this area can submit a request or remove/replace the headers as necessary.
+Users who need custom behaviours in this area can submit a request or remove/replace the headers as necessary. These
+headers will evolve over time just as the web standards and security recommendations evolve. These headers prevent
+loading Authelia in specific scenarios, primarily in an
+[Inline Frame](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe) which is generally considered a high
+security risk.
+
+The [OWASP](https://owasp.org/) helpful
+[HTTP Security Response Headers Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html)
+was used as a basis for most of the decisions regarding these headers. Users who which to customize the behaviour should
+consider this cheat sheet mandatory reading before they do so.
+
+#### X-XSS-Protection
+
+__Value:__ N/A
+__Endpoints:__ All
+__Status:__ Unsupported Non-standard
+
+We do not include this header as this feature is not present in any modern browser and could introduce vulnerabilities
+if enabled at all. Going forward [CORS], [CORP], CORB, and [COEP] are the standards for browser centric site security.
+See the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection) for more information.
 
 #### X-Content-Type-Options
 
 __Value:__ `nosniff`
 __Endpoints:__ All
+__Status:__ Supported Standard
 
 Prevents MIME type sniffing. See the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options) for more information.
@@ -290,6 +310,7 @@ Prevents MIME type sniffing. See the
 
 __Value:__ `strict-origin-when-cross-origin`
 __Endpoints:__ All
+__Status:__ Supported Standard
 
 Sends only the origin as the referrer in cross-origin requests, but sends the origin, path, and query string in
 same-origin requests. See the
@@ -297,32 +318,70 @@ same-origin requests. See the
 
 #### X-Frame-Options
 
-__Value:__ `SAMEORIGIN`
+__Value:__ `DENY`
 __Endpoints:__ All
+__Status:__ Supported Standard
 
 Prevents Authelia rendering in a `frame`, `iframe`, `embed`, or `object` element. See the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options) for more information.
 
-#### X-XSS-Protection
-
-__Value:__ `0`
-__Endpoints:__ All
-
-We disable this as this feature is not present in any modern browser and could introduce vulnerabilities if enabled at
-all. Going forward [CORS], [CORP], CORB, and [COEP] are the standards for browser centric site security. See the
-[MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection) for more information.
-
 #### Permissions-Policy
 
-__Value:__ `interest-cohort=()`
+__Value:__ `accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), screen-wake-lock=(), sync-xhr=(), xr-spatial-tracking=(), interest-cohort=()`
 __Endpoints:__ All
+__Status:__ Supported Standard
 
-Disables FLoC Cohorts.
+Disables browser features not required by Authelia including the
+[Federated Learning of Cohorts](https://en.wikipedia.org/wiki/Federated_Learning_of_Cohorts). It should be noted while
+this is a supported standard individual features of the permissions policy may not be supported by some browsers or
+browser configurations. See the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy) and
+the [Permissions Policy website](https://www.permissionspolicy.com/) for
+more information.
+
+#### X-DNS-Prefetch-Control
+
+__Value:__ `off`
+__Endpoints:__ All
+__Status:__ Non-standard
+
+Prevents browsers from performing a DNS prefetch for links displayed on Authelia pages. Not all browsers support this.
+See the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-DNS-Prefetch-Control) for more information.
+
+
+#### Cross-Origin-Opener-Policy
+
+__Value:__ `same-origin`
+__Endpoints:__ All
+__Status:__ Supported Standard
+
+Enables context isolation for the Authelia page so only pages with the same origin are using the same browsing context.
+See the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy) for more
+information.
+
+#### Cross-Origin-Embedder-Policy
+
+__Value:__ `require-corp`
+__Endpoints:__ All
+__Status:__ Supported Standard
+
+Prevents embedding of resources that do not have the [Cross-Origin-Resource-Policy](#cross-origin-resource-policy)
+header. See the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Embedder-Policy) for more
+information.
+
+#### Cross-Origin-Resource-Policy
+
+__Value:__ `same-origin`
+__Endpoints:__ All
+__Status:__ Supported Standard
+
+Prevents inclusion of resources that do not share the same origin. See the
+[MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Resource-Policy) for more information.
 
 #### Pragma
 
 __Value:__ `no-cache`
 __Endpoints:__ API
+__Status:__ Supported Standard
 
 Disables caching of API requests on HTTP/1.0 browsers. See the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma) for more information.
@@ -331,6 +390,7 @@ Disables caching of API requests on HTTP/1.0 browsers. See the
 
 __Value:__ `no-store`
 __Endpoints:__ API
+__Status:__ Supported Standard
 
 Disables caching responses entirely on HTTP/1.1 browsers. See the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) for more information.
