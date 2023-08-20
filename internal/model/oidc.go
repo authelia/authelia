@@ -292,18 +292,18 @@ func (s *OAuth2Session) ToRequest(ctx context.Context, session fosite.Session, s
 
 	if session != nil {
 		if err = json.Unmarshal(sessionData, session); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error occurred while mapping OAuth 2.0 Session back to a Request while trying to unmarshal the JSON session data: %w", err)
 		}
 	}
 
 	client, err := store.GetClient(ctx, s.ClientID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error occurred while mapping OAuth 2.0 Session back to a Request while trying to lookup the registered client: %w", err)
 	}
 
 	values, err := url.ParseQuery(s.Form)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error occurred while mapping OAuth 2.0 Session back to a Request while trying to parse the original form: %w", err)
 	}
 
 	return &fosite.Request{

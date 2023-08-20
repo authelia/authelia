@@ -555,7 +555,7 @@ func (s *StoreSuite) TestGetSessions() {
 
 	r, err = s.store.GetAuthorizeCodeSession(s.ctx, "ac_badclient", &model.OpenIDSession{})
 	s.Nil(r)
-	s.EqualError(err, "invalid_client")
+	s.EqualError(err, "error occurred while mapping OAuth 2.0 Session back to a Request while trying to lookup the registered client: invalid_client")
 
 	r, err = s.store.GetAccessTokenSession(s.ctx, "at", &model.OpenIDSession{})
 	s.NotNil(r)

@@ -388,6 +388,232 @@ func TestOpenIDSession(t *testing.T) {
 	assert.Nil(t, session.Clone())
 }
 
+func TestOAuth2Session_ToRequest(t *testing.T) {
+	const (
+		parclientid = "par-client-id"
+		requestid   = "rid123"
+	)
+
+	testCases := []struct {
+		name     string
+		setup    func(mock *mocks.MockFositeStorage)
+		have     *model.OAuth2Session
+		expected *fosite.Request
+		err      string
+	}{
+		{
+			"ShouldErrorInvalidJSONData",
+			nil,
+			&model.OAuth2Session{},
+			&fosite.Request{},
+			"error occurred while mapping OAuth 2.0 Session back to a Request while trying to unmarshal the JSON session data: unexpected end of JSON input",
+		},
+		{
+			"ShouldErrorInvalidClient",
+			func(mock *mocks.MockFositeStorage) {
+				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(nil, fosite.ErrNotFound)
+			},
+			&model.OAuth2Session{
+				ClientID: parclientid,
+				Session:  []byte("{}"),
+			},
+			&fosite.Request{},
+			"error occurred while mapping OAuth 2.0 Session back to a Request while trying to lookup the registered client: not_found",
+		},
+		{
+			"ShouldErrorOnBadForm",
+			func(mock *mocks.MockFositeStorage) {
+				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.BaseClient{ID: parclientid}, nil)
+			},
+			&model.OAuth2Session{
+				ID:        1,
+				Signature: fmt.Sprintf("%sexample", oidc.RedirectURIPrefixPushedAuthorizationRequestURN),
+				RequestID: requestid,
+				ClientID:  parclientid,
+				Session:   []byte("{}"),
+				Form:      ";;;&;;;!@IO#JNM@($*!H@#(&*)!H#E*()!@&GE*)!@QGE*)@G#E*!@&G",
+			},
+			nil,
+			"error occurred while mapping OAuth 2.0 Session back to a Request while trying to parse the original form: invalid semicolon separator in query",
+		},
+		{
+			"ShouldRestoreRequest",
+			func(mock *mocks.MockFositeStorage) {
+				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.BaseClient{ID: parclientid}, nil)
+			},
+			&model.OAuth2Session{
+				ID:                1,
+				Signature:         fmt.Sprintf("%sexample", oidc.RedirectURIPrefixPushedAuthorizationRequestURN),
+				RequestID:         requestid,
+				ClientID:          parclientid,
+				Session:           []byte("{}"),
+				RequestedAt:       time.Unix(10000000, 0),
+				RequestedScopes:   model.StringSlicePipeDelimited{oidc.ScopeOpenID, oidc.ScopeOffline},
+				RequestedAudience: model.StringSlicePipeDelimited{parclientid},
+				Form: url.Values{
+					oidc.FormParameterRedirectURI:  []string{"https://example.com"},
+					oidc.FormParameterState:        []string{"abc123"},
+					oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
+				}.Encode(),
+			},
+			&fosite.Request{
+				ID:                requestid,
+				Client:            &oidc.BaseClient{ID: parclientid},
+				RequestedScope:    fosite.Arguments{oidc.ScopeOpenID, oidc.ScopeOffline},
+				RequestedAudience: fosite.Arguments{parclientid},
+				RequestedAt:       time.Unix(10000000, 0),
+				Session:           oidc.NewSession(),
+				Form: url.Values{
+					oidc.FormParameterRedirectURI:  []string{"https://example.com"},
+					oidc.FormParameterState:        []string{"abc123"},
+					oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
+				},
+			},
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+
+			defer ctrl.Finish()
+
+			mock := mocks.NewMockFositeStorage(ctrl)
+
+			if tc.setup != nil {
+				tc.setup(mock)
+			}
+
+			actual, err := tc.have.ToRequest(context.TODO(), oidc.NewSession(), mock)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expected, actual)
+			} else {
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, actual)
+			}
+		})
+	}
+}
+
+func TestOAuth2ConsentPreConfig(t *testing.T) {
+	config := &model.OAuth2ConsentPreConfig{
+		ClientID: "abc",
+	}
+
+	assert.True(t, config.CanConsent())
+
+	config.Revoked = true
+
+	assert.False(t, config.CanConsent())
+
+	config.Revoked = false
+	config.ExpiresAt = sql.NullTime{Valid: true}
+
+	assert.False(t, config.CanConsent())
+
+	assert.False(t, config.HasExactGrants([]string{oidc.ScopeProfile}, []string{"abc"}))
+
+	config.Scopes = []string{oidc.ScopeProfile}
+
+	assert.False(t, config.HasExactGrants([]string{oidc.ScopeProfile}, []string{"abc"}))
+
+	config.Audience = []string{"abc"}
+
+	assert.True(t, config.HasExactGrants([]string{oidc.ScopeProfile}, []string{"abc"}))
+}
+
+func TestOAuth2ConsentSession(t *testing.T) {
+	session := &model.OAuth2ConsentSession{
+		ID:       0,
+		ClientID: "a-client",
+	}
+
+	assert.False(t, session.CanGrant())
+
+	session.Subject = uuid.NullUUID{Valid: true}
+
+	assert.True(t, session.CanGrant())
+	assert.False(t, session.IsDenied())
+	assert.False(t, session.Responded())
+	assert.False(t, session.IsAuthorized())
+
+	session.RespondedAt = sql.NullTime{Valid: true}
+
+	assert.True(t, session.Responded())
+	assert.True(t, session.IsDenied())
+
+	session.Authorized = true
+
+	assert.True(t, session.IsAuthorized())
+	assert.False(t, session.IsDenied())
+
+	session.Granted = true
+
+	assert.False(t, session.CanGrant())
+
+	assert.False(t, session.HasExactGrants([]string{oidc.ScopeOpenID}, []string{"abc"}))
+
+	session.GrantedScopes = model.StringSlicePipeDelimited{oidc.ScopeOpenID}
+
+	assert.False(t, session.HasExactGrants([]string{oidc.ScopeOpenID}, []string{"abc"}))
+
+	session.GrantedAudience = model.StringSlicePipeDelimited{"abc"}
+
+	assert.True(t, session.HasExactGrants([]string{oidc.ScopeOpenID}, []string{"abc"}))
+
+	session.GrantedScopes = nil
+	session.GrantedAudience = nil
+
+	session.Grant()
+
+	assert.Nil(t, session.GrantedScopes)
+	session.HasExactGrantedAudience([]string{"a-client"})
+
+	session.RequestedScopes = []string{oidc.ScopeOpenID}
+	session.RequestedAudience = []string{"abc"}
+
+	session.Grant()
+
+	session.HasExactGrantedScopes([]string{oidc.ScopeOpenID})
+	session.HasExactGrantedAudience([]string{"abc", "a-client"})
+
+	form, err := session.GetForm()
+
+	assert.NoError(t, err)
+	assert.Equal(t, url.Values{}, form)
+
+	session.Form = "scope=abc"
+
+	form, err = session.GetForm()
+
+	assert.NoError(t, err)
+	assert.Equal(t, url.Values{oidc.FormParameterScope: []string{"abc"}}, form)
+
+	session.Form = ";;;&;;;;"
+
+	form, err = session.GetForm()
+
+	assert.EqualError(t, err, "invalid semicolon separator in query")
+	assert.Equal(t, url.Values{}, form)
+}
+
+func TestMisc(t *testing.T) {
+	jti := model.NewOAuth2BlacklistedJTI("abc", time.Unix(10000, 0).UTC())
+
+	assert.Equal(t, "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", jti.Signature)
+	assert.Equal(t, time.Unix(10000, 0).UTC(), jti.ExpiresAt)
+
+	sub := uuid.MustParse("b9423f3a-65da-4ea8-8f6b-1dafb141f3a8")
+
+	session, err := model.NewOAuth2ConsentSession(sub, &fosite.Request{Client: &oidc.BaseClient{ID: "abc"}})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, session)
+}
+
 func MustParseRequestURI(uri string) (parsed *url.URL) {
 	var err error
 
