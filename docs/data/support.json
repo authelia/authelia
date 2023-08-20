@@ -1,0 +1,12 @@
+{
+  "totp": [
+    {"name": "Google Authenticator", "clear": false, "algorithms": {"SHA1": true, "SHA256": false, "SHA512": false}, "digits": {"six": true, "eight": false}, "url": "https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en&gl=US&pli=1"},
+    {"name": "Bitwarden", "clear": true, "algorithms": {"SHA1": true, "SHA256": true, "SHA512": true}, "digits": {"six": true, "eight": true}, "url": "https://bitwarden.com/"},
+    {"name": "Yubico Authenticator", "clear": true, "algorithms": {"SHA1": true, "SHA256": false, "SHA512": false}, "digits": {"six": true, "eight": true}, "url": "https://www.yubico.com/products/yubico-authenticator/"},
+    {"name": "Authenticator Plus", "clear": false, "algorithms": {"SHA1": true, "SHA256": false, "SHA512": false}, "digits": {"six": true, "eight": false}, "url": "https://www.authenticatorplus.com/"},
+    {"name": "1Password", "clear": false, "algorithms": {"SHA1": true, "SHA256": true, "SHA512": false}, "digits": {"six": true, "eight": false}, "url": "https://1password.com/"},
+    {"name": "Ravio", "clear": false, "algorithms": {"SHA1": true, "SHA256": true, "SHA512": false}, "digits": {"six": true, "eight": false}, "url": "https://raivo-otp.com/"},
+    {"name": "Authy", "clear": false, "algorithms": {"SHA1": true, "SHA256": false, "SHA512": false}, "digits": {"six": false, "eight": true}, "url": "https://authy.com/"},
+    {"name": "Aegis", "clear": false, "algorithms": {"SHA1": true, "SHA256": false, "SHA512": true}, "digits": {"six": true, "eight": true}, "url": "https://getaegis.app/"}
+  ]
+}

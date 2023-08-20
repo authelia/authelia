@@ -1,5 +1,9 @@
 package model
 
+import (
+	"strings"
+)
+
 // SchemaMigration represents an intended migration.
 type SchemaMigration struct {
 	Version  int
@@ -7,6 +11,11 @@ type SchemaMigration struct {
 	Provider string
 	Up       bool
 	Query    string
+}
+
+// NotEmpty returns true if the SchemaMigration is not an empty string.
+func (m SchemaMigration) NotEmpty() bool {
+	return len(strings.TrimSpace(m.Query)) != 0
 }
 
 // Before returns the version the schema should be at Before the migration is applied.

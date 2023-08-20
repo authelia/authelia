@@ -6,7 +6,7 @@
 jwt_secret: unsecure_secret
 
 server:
-  port: 9091
+  address: 'tcp://:9091'
   tls:
     certificate: /pki/public.backend.crt
     key: /pki/private.backend.pem
@@ -19,33 +19,37 @@ totp:
 
 authentication_backend:
   ldap:
-    url: ldap://openldap
+    address: 'ldap://openldap'
     base_dn: dc=example,dc=com
-    username_attribute: uid
     additional_users_dn: ou=users
     users_filter: (&({username_attribute}={input})(objectClass=person))
     additional_groups_dn: ou=groups
     groups_filter: (&(member={dn})(objectClass=groupOfNames))
-    group_name_attribute: cn
-    mail_attribute: mail
-    display_name_attribute: displayName
     user: cn=admin,dc=example,dc=com
     password: password
+    attributes:
+      distinguished_name: 'distinguishedName'
+      username: 'uid'
+      display_name: 'displayName'
+      mail: 'mail'
+      member_of: 'memberOf'
+      group_name: 'cn'
 
 access_control:
   default_policy: deny
-
   rules:
     # Rules applied to everyone
-    - domain: public.example.com
+    - domain: ["home.example.com", "public.example.com"]
       policy: bypass
-    - domain: secure.example.com
+    - domain: "deny.example.com"
+      policy: deny
+    - domain: "secure.example.com"
       policy: two_factor
-    - domain: singlefactor.example.com
+    - domain: "singlefactor.example.com"
       policy: one_factor
 
     # Rules applied to 'admins' group
-    - domain: mx2.mail.example.com
+    - domain: "mx2.mail.example.com"
       subject: "group:admins"
       policy: deny
 
@@ -59,14 +63,14 @@ access_control:
       policy: two_factor
 
     # Rules applied to 'dev' group
-    - domain: dev.example.com
+    - domain: "dev.example.com"
       resources:
         - "^/groups/dev/.*$"
       subject: "group:dev"
       policy: two_factor
 
     # Rules applied to user 'harry'
-    - domain: dev.example.com
+    - domain: "dev.example.com"
       resources:
         - "^/users/harry/.*$"
       subject: "user:harry"
@@ -87,7 +91,9 @@ session:
   secret: unsecure_session_secret
   expiration: 3600  # 1 hour
   inactivity: 300  # 5 minutes
-  domain: example.com
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
   redis:
     username: authelia
     password: redis-user-password
@@ -112,16 +118,14 @@ regulation:
 storage:
   encryption_key: a_not_so_secure_encryption_key
   mysql:
-    host: mariadb
-    port: 3306
+    address: 'tcp://mariadb:3306'
     database: authelia
     username: admin
     password: password
 
 notifier:
   smtp:
-    host: smtp
-    port: 1025
+    address: 'smtp://smtp:1025'
     sender: admin@example.com
     disable_require_tls: true
 ...

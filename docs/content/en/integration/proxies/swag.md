@@ -55,13 +55,13 @@ possible that due to web standards this will never change.
 
 In addition this represents a bad user experience in some instances such as:
 
-- Users sometimes visit the `https://app.example.com/authelia` URL which doesn't automatically redirect the user to
+* Users sometimes visit the `https://app.example.com/authelia` URL which doesn't automatically redirect the user to
   `https://app.example.com` (if they visit `https://app.example.com` then they'll be redirected to authenticate then
   redirected back to their original URL)
-- Administrators may wish to setup [OpenID Connect 1.0](../../configuration/identity-providers/open-id-connect.md) in
+* Administrators may wish to setup [OpenID Connect 1.0](../../configuration/identity-providers/openid-connect/provider.md) in
   which case it also doesn't represent a good user experience as the `issuer` will be
   `https://app.example.com/authelia` for example
-- Using the [SWAG] default configurations are more difficult to support as our specific familiarity is with our own
+* Using the [SWAG] default configurations are more difficult to support as our specific familiarity is with our own
   example snippets
 
 #### Option 1: Adjusting the Default Configuration
@@ -73,7 +73,7 @@ serving Authelia at `auth.example.com`.
 ```nginx
     ## Set $authelia_backend to route requests to the current domain by default
     set $authelia_backend $http_host;
-    ## In order for Webauthn to work with multiple domains authelia must operate on a separate subdomain
+    ## In order for WebAuthn to work with multiple domains authelia must operate on a separate subdomain
     ## To use authelia on a separate subdomain:
     ##  * comment the $authelia_backend line above
     ##  * rename /config/nginx/proxy-confs/authelia.conf.sample to /config/nginx/proxy-confs/authelia.conf
@@ -88,7 +88,7 @@ serving Authelia at `auth.example.com`.
 ```nginx
     ## Set $authelia_backend to route requests to the current domain by default
     # set $authelia_backend $http_host;
-    ## In order for Webauthn to work with multiple domains authelia must operate on a separate subdomain
+    ## In order for WebAuthn to work with multiple domains authelia must operate on a separate subdomain
     ## To use authelia on a separate subdomain:
     ##  * comment the $authelia_backend line above
     ##  * rename /config/nginx/proxy-confs/authelia.conf.sample to /config/nginx/proxy-confs/authelia.conf
@@ -112,6 +112,30 @@ Especially if you have never read it before.*
 To configure trusted proxies for [SWAG] see the [NGINX] section on [Trusted Proxies](nginx.md#trusted-proxies).
 Adapting this to [SWAG] is beyond the scope of this documentation.
 
+## Assumptions and Adaptation
+
+This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
+can not reasonably have examples for every advanced configuration option that exists. The
+following are the assumptions we make:
+
+* Deployment Scenario:
+  * Single Host
+  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
+  * Proxy is deployed as a Container on a network shared with Authelia
+* The above assumption means that Authelia should be accessible to the proxy on `http://authelia:9091` and as such:
+  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
+    certificate defined
+  * You will have to adapt all instances of `authelia` in the URL if:
+    * you're using a different container name
+    * you deployed the proxy to a different location
+  * You will have to adapt all instances of `9091` in the URL if:
+    * you have adjusted the default port in the configuration
+  * You will have to adapt the entire URL if:
+    * Authelia is on a different host to the proxy
+* All services are part of the `example.com` domain:
+  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
+    just testing or you want ot use that specific domain
+
 ## Docker Compose
 
 The following docker compose example has various applications suitable for setting up an example environment.
@@ -132,13 +156,13 @@ version: "3.8"
 
 networks:
   net:
-    driver: bridge
+    driver: 'bridge'
 
 services:
   swag:
-    container_name: swag
-    image: lscr.io/linuxserver/swag
-    restart: unless-stopped
+    container_name: 'swag'
+    image: 'lscr.io/linuxserver/swag'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []
@@ -146,7 +170,7 @@ services:
       - '80:80'
       - '443:443'
     volumes:
-      - ${PWD}/data/swag:/config
+      - '${PWD}/data/swag:/config'
       ## Uncomment the line below if you want to use the Authelia configuration snippets.
       #- ${PWD}/data/nginx/snippets:/snippets:ro
     environment:
@@ -160,40 +184,40 @@ services:
       ONLY_SUBDOMAINS: 'false'
       STAGING: 'true'
     cap_add:
-      - NET_ADMIN
+      - 'NET_ADMIN'
   authelia:
-    container_name: authelia
-    image: authelia/authelia
-    restart: unless-stopped
+    container_name: 'authelia'
+    image: 'authelia/authelia'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []
     expose:
       - 9091
     volumes:
-      - ${PWD}/data/authelia/config:/config
+      - '${PWD}/data/authelia/config:/config'
     environment:
       TZ: 'Australia/Melbourne'
   nextcloud:
-    container_name: nextcloud
-    image: lscr.io/linuxserver/nextcloud
-    restart: unless-stopped
+    container_name: 'nextcloud'
+    image: 'lscr.io/linuxserver/nextcloud'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []
     expose:
       - 443
     volumes:
-      - ${PWD}/data/nextcloud/config:/config
-      - ${PWD}/data/nextcloud/data:/data
+      - '${PWD}/data/nextcloud/config:/config'
+      - '${PWD}/data/nextcloud/data:/data'
     environment:
       PUID: '1000'
       PGID: '1000'
       TZ: 'Australia/Melbourne'
   whoami:
-    container_name: whoami
-    image: docker.io/traefik/whoami
-    restart: unless-stopped
+    container_name: 'whoami'
+    image: 'docker.io/traefik/whoami'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []

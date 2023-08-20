@@ -1,7 +1,7 @@
 ---
-title: "OpenID Connect"
-description: "An introduction into integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party"
-lead: "An introduction into integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party."
+title: "OpenID Connect 1.0"
+description: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party"
+lead: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -18,10 +18,19 @@ Authelia can act as an [OpenID Connect 1.0] Provider as part of an open beta. Th
 specifics that can be used for integrating Authelia with an [OpenID Connect 1.0] Relying Party, as well as specific
 documentation for some [OpenID Connect 1.0] Relying Party implementations.
 
-See the [configuration documentation](../../configuration/identity-providers/open-id-connect.md) for information on how
-to configure the Authelia [OpenID Connect 1.0] Provider.
+See the [OpenID Connect 1.0 Provider](../../configuration/identity-providers/openid-connect/provider.md) and
+[OpenID Connect 1.0 Clients](../../configuration/identity-providers/openid-connect/clients.md) configuration guides for
+information on how to configure the Authelia [OpenID Connect 1.0] Provider (note the clients guide is for configuring
+the registered clients in the provider).
+
+This page is intended as an integration reference point for any implementers who wish to integrate an
+[OpenID Connect 1.0] Relying Party (client application) either as a developer or user of the third party Reyling Party.
 
 ## Scope Definitions
+
+The following scope definitions describe each scope supported and the associated effects including the individual claims
+returned by granting this scope. By default we do not issue any claims which reveal the users identity which allows
+administrators semi-granular control over which claims the client is entitled to.
 
 ### openid
 
@@ -54,8 +63,15 @@ This scope is a special scope designed to allow applications to obtain a [Refres
 an application on behalf of a user. A [Refresh Token] is a special [Access Token] that allows refreshing previously
 issued token credentials, effectively it allows the relying party to obtain new tokens periodically.
 
+As per [OpenID Connect 1.0] Section 11 [Offline Access] can only be granted during the [Authorization Code Flow] or a
+[Hybrid Flow]. The [Refresh Token] will only ever be returned at the [Token Endpoint] when the client is exchanging
+their [OAuth 2.0 Authorization Code].
+
 Generally unless an application supports this and actively requests this scope they should not be granted this scope via
 the client configuration.
+
+It is also important to note that we treat a [Refresh Token] as single use and reissue a new [Refresh Token] during the
+refresh flow.
 
 ### groups
 
@@ -87,48 +103,72 @@ This scope includes the profile information the authentication backend reports a
 | preferred_username |  string  |      username      | The username the user used to login with |
 |        name        |  string  |    display_name    |          The users display name          |
 
+## Signing and Encryption Algorithms
+
+[OpenID Connect 1.0] and OAuth 2.0 support a wide variety of signature and encryption algorithms. Authelia supports
+a subset of these.
+
+### Response Object
+
+Authelia's response objects can have the following signature algorithms:
+
+| Algorithm |  Key Type   | Hashing Algorithm |    Use    |            JWK Default Conditions            |                        Notes                         |
+|:---------:|:-----------:|:-----------------:|:---------:|:--------------------------------------------:|:----------------------------------------------------:|
+|   RS256   |     RSA     |      SHA-256      | Signature | RSA Private Key without a specific algorithm |  Requires an RSA Private Key with 2048 bits or more  |
+|   RS384   |     RSA     |      SHA-384      | Signature |                     N/A                      |  Requires an RSA Private Key with 2048 bits or more  |
+|   RS512   |     RSA     |      SHA-512      | Signature |                     N/A                      |  Requires an RSA Private Key with 2048 bits or more  |
+|   ES256   | ECDSA P-256 |      SHA-256      | Signature |    ECDSA Private Key with the P-256 curve    |                                                      |
+|   ES384   | ECDSA P-384 |      SHA-384      | Signature |    ECDSA Private Key with the P-384 curve    |                                                      |
+|   ES512   | ECDSA P-521 |      SHA-512      | Signature |    ECDSA Private Key with the P-521 curve    | Requires an ECDSA Private Key with 2048 bits or more |
+|   PS256   | RSA (MGF1)  |      SHA-256      | Signature |                     N/A                      |  Requires an RSA Private Key with 2048 bits or more  |
+|   PS384   | RSA (MGF1)  |      SHA-384      | Signature |                     N/A                      |  Requires an RSA Private Key with 2048 bits or more  |
+|   PS512   | RSA (MGF1)  |      SHA-512      | Signature |                     N/A                      |  Requires an RSA Private Key with 2048 bits or more  |
+
+### Request Object
+
+Authelia accepts a wide variety of request object types. The below table describes these request objects.
+
+| Algorithm |      Key Type      | Hashing Algorithm |    Use    |                       Notes                        |
+|:---------:|:------------------:|:-----------------:|:---------:|:--------------------------------------------------:|
+|   none    |        None        |       None        |    N/A    |                        N/A                         |
+|   HS256   | HMAC Shared Secret |      SHA-256      | Signature | [Client Authentication Method] `client_secret_jwt` |
+|   HS384   | HMAC Shared Secret |      SHA-384      | Signature | [Client Authentication Method] `client_secret_jwt` |
+|   HS512   | HMAC Shared Secret |      SHA-512      | Signature | [Client Authentication Method] `client_secret_jwt` |
+|   RS256   |        RSA         |      SHA-256      | Signature |  [Client Authentication Method] `private_key_jwt`  |
+|   RS384   |        RSA         |      SHA-384      | Signature |  [Client Authentication Method] `private_key_jwt`  |
+|   RS512   |        RSA         |      SHA-512      | Signature |  [Client Authentication Method] `private_key_jwt`  |
+|   ES256   |    ECDSA P-256     |      SHA-256      | Signature |  [Client Authentication Method] `private_key_jwt`  |
+|   ES384   |    ECDSA P-384     |      SHA-384      | Signature |  [Client Authentication Method] `private_key_jwt`  |
+|   ES512   |    ECDSA P-521     |      SHA-512      | Signature |  [Client Authentication Method] `private_key_jwt`  |
+|   PS256   |     RSA (MFG1)     |      SHA-256      | Signature |  [Client Authentication Method] `private_key_jwt`  |
+|   PS384   |     RSA (MFG1)     |      SHA-384      | Signature |  [Client Authentication Method] `private_key_jwt`  |
+|   PS512   |     RSA (MFG1)     |      SHA-512      | Signature |  [Client Authentication Method] `private_key_jwt`  |
+
+[Client Authentication Method]: #client-authentication-method
+
 ## Parameters
 
 The following section describes advanced parameters which can be used in various endpoints as well as their related
 configuration options.
 
-### Grant Types
-
-The following describes the various [OAuth 2.0] and [OpenID Connect 1.0] grant types and their support level. The value
-field is both the required value for the `grant_type` parameter in the authorization request and the `grant_types`
-configuration option.
-
-|                   Grant Type                    | Supported |                     Value                      |                                Notes                                |
-|:-----------------------------------------------:|:---------:|:----------------------------------------------:|:-------------------------------------------------------------------:|
-|         [OAuth 2.0 Authorization Code]          |    Yes    |              `authorization_code`              |                                                                     |
-| [OAuth 2.0 Resource Owner Password Credentials] |    No     |                   `password`                   | This Grant Type has been deprecated and should not normally be used |
-|         [OAuth 2.0 Client Credentials]          |    Yes    |              `client_credentials`              |                                                                     |
-|              [OAuth 2.0 Implicit]               |    Yes    |                   `implicit`                   | This Grant Type has been deprecated and should not normally be used |
-|            [OAuth 2.0 Refresh Token]            |    Yes    |                `refresh_token`                 |                                                                     |
-|             [OAuth 2.0 Device Code]             |    No     | `urn:ietf:params:oauth:grant-type:device_code` |                                                                     |
-|
-
-[OAuth 2.0 Authorization Code]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.1
-[OAuth 2.0 Implicit]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.2
-[OAuth 2.0 Resource Owner Password Credentials]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.3
-[OAuth 2.0 Client Credentials]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.4
-[OAuth 2.0 Refresh Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.5
-[OAuth 2.0 Device Code]: https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
-
 ### Response Types
 
 The following describes the supported response types. See the [OAuth 2.0 Multiple Response Type Encoding Practices] for
-more technical information.
+more technical information. The default response modes column indicates which response modes are allowed by default on
+clients configured with this flow type value. The value field is both the required value for the `response_type`
+parameter in the authorization request and the
+[response_types](../../configuration/identity-providers/openid-connect/clients.md#responsetypes) client configuration
+option.
 
-|         Flow Type         |        Values         |
-|:-------------------------:|:---------------------:|
-| [Authorization Code Flow] |        `code`         |
-|      [Implicit Flow]      |   `token id_token`    |
-|      [Implicit Flow]      |      `id_token`       |
-|      [Implicit Flow]      |        `token`        |
-|       [Hybrid Flow]       |     `code token`      |
-|       [Hybrid Flow]       |    `code id_token`    |
-|       [Hybrid Flow]       | `code token id_token` |
+|         Flow Type         |         Value         | Default [Response Modes](#response-modes) Values |
+|:-------------------------:|:---------------------:|:------------------------------------------------:|
+| [Authorization Code Flow] |        `code`         |               `form_post`, `query`               |
+|      [Implicit Flow]      |   `id_token token`    |             `form_post`, `fragment`              |
+|      [Implicit Flow]      |      `id_token`       |             `form_post`, `fragment`              |
+|      [Implicit Flow]      |        `token`        |             `form_post`, `fragment`              |
+|       [Hybrid Flow]       |     `code token`      |             `form_post`, `fragment`              |
+|       [Hybrid Flow]       |    `code id_token`    |             `form_post`, `fragment`              |
+|       [Hybrid Flow]       | `code id_token token` |             `form_post`, `fragment`              |
 
 [Authorization Code Flow]: https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth
 [Implicit Flow]: https://openid.net/specs/openid-connect-core-1_0.html#ImplicitFlowAuth
@@ -139,15 +179,72 @@ more technical information.
 ### Response Modes
 
 The following describes the supported response modes. See the [OAuth 2.0 Multiple Response Type Encoding Practices] for
-more technical information.
+more technical information. The default response modes of a client is based on the [Response Types](#response-types)
+configuration. The value field is both the required value for the `response_mode` parameter in the authorization request
+and the [response_modes](../../configuration/identity-providers/openid-connect/clients.md#responsemodes) client
+configuration option.
 
 |         Name          |    Value    |
 |:---------------------:|:-----------:|
+| [OAuth 2.0 Form Post] | `form_post` |
 |     Query String      |   `query`   |
 |       Fragment        | `fragment`  |
-| [OAuth 2.0 Form Post] | `form_post` |
 
 [OAuth 2.0 Form Post]: https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
+
+### Grant Types
+
+The following describes the various [OAuth 2.0] and [OpenID Connect 1.0] grant types and their support level. The value
+field is both the required value for the `grant_type` parameter in the access / token request and the
+[grant_types](../../configuration/identity-providers/openid-connect/clients.md#granttypes) client configuration option.
+
+|                   Grant Type                    | Supported |                     Value                      |                                                         Notes                                                         |
+|:-----------------------------------------------:|:---------:|:----------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------:|
+|         [OAuth 2.0 Authorization Code]          |    Yes    |              `authorization_code`              |                                                                                                                       |
+| [OAuth 2.0 Resource Owner Password Credentials] |    No     |                   `password`                   |              This Grant Type has been deprecated as it's highly insecure and should not normally be used              |
+|         [OAuth 2.0 Client Credentials]          |    Yes    |              `client_credentials`              | If this is the only grant type for a client then the `openid`, `offline`, and `offline_access` scopes are not allowed |
+|              [OAuth 2.0 Implicit]               |    Yes    |                   `implicit`                   |                          This Grant Type has been deprecated and should not normally be used                          |
+|            [OAuth 2.0 Refresh Token]            |    Yes    |                `refresh_token`                 |                 This Grant Type should only be used for clients which have the `offline_access` scope                 |
+|             [OAuth 2.0 Device Code]             |    No     | `urn:ietf:params:oauth:grant-type:device_code` |                                                                                                                       |
+
+[OAuth 2.0 Authorization Code]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.1
+[OAuth 2.0 Implicit]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.2
+[OAuth 2.0 Resource Owner Password Credentials]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.3
+[OAuth 2.0 Client Credentials]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.4
+[OAuth 2.0 Refresh Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.5
+[OAuth 2.0 Device Code]: https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
+
+### Client Authentication Method
+
+The following describes the supported client authentication methods. See the [OpenID Connect 1.0 Client Authentication]
+specification and the [OAuth 2.0 - Client Types] specification for more information. The value
+field is the valid values for the
+[token_endpoint_auth_method](../../configuration/identity-providers/openid-connect/clients.md#tokenendpointauthmethod)
+client configuration option.
+
+|             Description              |             Value             | Supported Client Types | Default for Client Type |                      Assertion Type                      |
+|:------------------------------------:|:-----------------------------:|:----------------------:|:-----------------------:|:--------------------------------------------------------:|
+|  Secret via HTTP Basic Auth Scheme   |     `client_secret_basic`     |     `confidential`     |           N/A           |                           N/A                            |
+|      Secret via HTTP POST Body       |     `client_secret_post`      |     `confidential`     |           N/A           |                           N/A                            |
+|        JWT (signed by secret)        |      `client_secret_jwt`      |     `confidential`     |           N/A           | `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` |
+|     JWT (signed by private key)      |       `private_key_jwt`       |     `confidential`     |           N/A           | `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` |
+|        [OAuth 2.0 Mutual-TLS]        |       `tls_client_auth`       |     Not Supported      |           N/A           |                           N/A                            |
+| [OAuth 2.0 Mutual-TLS] (Self Signed) | `self_signed_tls_client_auth` |     Not Supported      |           N/A           |                           N/A                            |
+|          No Authentication           |            `none`             |        `public`        |        `public`         |                           N/A                            |
+
+[OpenID Connect 1.0 Client Authentication]: https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
+[OAuth 2.0 Mutual-TLS]: https://datatracker.ietf.org/doc/html/rfc8705
+[OAuth 2.0 - Client Types]: https://datatracker.ietf.org/doc/html/rfc8705#section-2.1
+
+#### Client Assertion Audience
+
+The client authentication methods which use the JWT Bearer Client Assertions such as `client_secret_jwt` and
+`private_key_jwt` **require** that the JWT contains an audience (i.e. the `aud` claim) which exactly matches the
+full URL for the [token endpoint](#endpoint-implementations) and it **must** be lowercase.
+
+Per the [RFC7523 Section 3: JWT Format and Processing Requirements](https://datatracker.ietf.org/doc/html/rfc7523#section-3)
+this claim must be compared using [RFC3987 Section 6.2.1: Simple String Comparison] and to assist with making this
+predictable for implementers we ensure the comparison is done against the lowercase form of this URL.
 
 ## Authentication Method References
 
@@ -174,7 +271,7 @@ Below is a list of the potential values we place in the [Claim] and their meanin
 ## User Information Signing Algorithm
 
 The following table describes the response from the [UserInfo] endpoint depending on the
-[userinfo_signing_algorithm](../../configuration/identity-providers/open-id-connect.md#userinfosigningalgorithm).
+[userinfo_signing_alg](../../configuration/identity-providers/openid-connect/clients.md#userinfosigningalg).
 
 | Signing Algorithm |   Encoding   |            Content Type             |
 |:-----------------:|:------------:|:-----------------------------------:|
@@ -184,7 +281,7 @@ The following table describes the response from the [UserInfo] endpoint dependin
 ## Endpoint Implementations
 
 The following section documents the endpoints we implement and their respective paths. This information can
-traditionally be discovered by relying parties that utilize [OpenID Connect Discovery], however this information may be
+traditionally be discovered by relying parties that utilize [OpenID Connect Discovery 1.0], however this information may be
 useful for clients which do not implement this.
 
 The endpoints can be discovered easily by visiting the Discovery and Metadata endpoints. It is recommended regardless
@@ -194,7 +291,7 @@ below.
 
 These tables document the endpoints we currently support and their paths in the most recent version of Authelia. The
 paths are appended to the end of the primary URL used to access Authelia. The tables use the url
-https://auth.example.com as an example of the Authelia root URL which is also the OpenID Connect issuer.
+https://auth.example.com as an example of the Authelia root URL which is also the OpenID Connect 1.0 Issuer.
 
 ### Well Known Discovery Endpoints
 
@@ -202,12 +299,12 @@ These endpoints can be utilized to discover other endpoints and metadata about t
 
 |                 Endpoint                  |                              Path                               |
 |:-----------------------------------------:|:---------------------------------------------------------------:|
-|        [OpenID Connect Discovery]         |    https://auth.example.com/.well-known/openid-configuration    |
+|        [OpenID Connect Discovery 1.0]         |    https://auth.example.com/.well-known/openid-configuration    |
 | [OAuth 2.0 Authorization Server Metadata] | https://auth.example.com/.well-known/oauth-authorization-server |
 
 ### Discoverable Endpoints
 
-These endpoints implement OpenID Connect elements.
+These endpoints implement OpenID Connect 1.0 Provider specifications.
 
 |            Endpoint             |                              Path                              |          Discovery Attribute          |
 |:-------------------------------:|:--------------------------------------------------------------:|:-------------------------------------:|
@@ -282,17 +379,21 @@ The advantages of this approach are as follows:
 [Claims]: https://openid.net/specs/openid-connect-core-1_0.html#Claims
 [Claim]: https://openid.net/specs/openid-connect-core-1_0.html#Claims
 
+[OAuth 2.0]: https://oauth.net/2/
 [OpenID Connect 1.0]: https://openid.net/connect/
 
-[OpenID Connect Discovery]: https://openid.net/specs/openid-connect-discovery-1_0.html
+[OpenID Connect Discovery 1.0]: https://openid.net/specs/openid-connect-discovery-1_0.html
 [OAuth 2.0 Authorization Server Metadata]: https://datatracker.ietf.org/doc/html/rfc8414
 
 [JSON Web Key Set]: https://datatracker.ietf.org/doc/html/rfc7517#section-5
 
+[Offline Access]: https://openid.net/specs/openid-connect-core-1_0.html#OfflineAccess
+
 [Authorization]: https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
-[Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
 [Token]: https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
 [UserInfo]: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
+
+[Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
 [Introspection]: https://datatracker.ietf.org/doc/html/rfc7662
 [Revocation]: https://datatracker.ietf.org/doc/html/rfc7009
 [Proof Key Code Exchange]: https://www.rfc-editor.org/rfc/rfc7636.html
@@ -307,3 +408,5 @@ The advantages of this approach are as follows:
 [RFC7636]: https://datatracker.ietf.org/doc/html/rfc7636
 [RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176
 [RFC9126]: https://datatracker.ietf.org/doc/html/rfc9126
+
+[RFC3987 Section 6.2.1: Simple String Comparison]: https://datatracker.ietf.org/doc/html/rfc3986#section-6.2.1

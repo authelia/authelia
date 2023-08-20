@@ -119,59 +119,59 @@ const (
 )
 
 const (
-	queryFmtSelectWebauthnDevices = `
+	queryFmtSelectWebAuthnDevices = `
 		SELECT id, created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning
 		FROM %s
 		LIMIT ?
 		OFFSET ?;`
 
-	queryFmtSelectWebauthnDevicesEncryptedData = `
+	queryFmtSelectWebAuthnDevicesEncryptedData = `
 		SELECT id, public_key
 		FROM %s;`
 
-	queryFmtSelectWebauthnDevicesByUsername = `
+	queryFmtSelectWebAuthnDevicesByUsername = `
 		SELECT id, created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning
 		FROM %s
 		WHERE username = ?;`
 
-	queryFmtUpdateWebauthnDevicePublicKey = `
+	queryFmtUpdateWebAuthnDevicePublicKey = `
 		UPDATE %s
 		SET public_key = ?
 		WHERE id = ?;`
 
-	queryFmtUpdateWebauthnDeviceRecordSignIn = `
+	queryFmtUpdateWebAuthnDeviceRecordSignIn = `
 		UPDATE %s
 		SET
 			rpid = ?, last_used_at = ?, sign_count = ?,
 			clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
 		WHERE id = ?;`
 
-	queryFmtUpdateWebauthnDeviceRecordSignInByUsername = `
+	queryFmtUpdateWebAuthnDeviceRecordSignInByUsername = `
 		UPDATE %s
 		SET
 			rpid = ?, last_used_at = ?, sign_count = ?,
 			clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
 		WHERE username = ? AND kid = ?;`
 
-	queryFmtUpsertWebauthnDevice = `
+	queryFmtUpsertWebAuthnDevice = `
 		REPLACE INTO %s (created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
-	queryFmtUpsertWebauthnDevicePostgreSQL = `
+	queryFmtUpsertWebAuthnDevicePostgreSQL = `
 		INSERT INTO %s (created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 			ON CONFLICT (username, description)
 			DO UPDATE SET created_at = $1, last_used_at = $2, rpid = $3, kid = $6, public_key = $7, attestation_type = $8, transport = $9, aaguid = $10, sign_count = $11, clone_warning = $12;`
 
-	queryFmtDeleteWebauthnDevice = `
+	queryFmtDeleteWebAuthnDevice = `
 		DELETE FROM %s
 		WHERE kid = ?;`
 
-	queryFmtDeleteWebauthnDeviceByUsername = `
+	queryFmtDeleteWebAuthnDeviceByUsername = `
 		DELETE FROM %s
 		WHERE username = ?;`
 
-	queryFmtDeleteWebauthnDeviceByUsernameAndDescription = `
+	queryFmtDeleteWebAuthnDeviceByUsernameAndDescription = `
 		DELETE FROM %s
 		WHERE username = ? AND description = ?;`
 )
@@ -319,13 +319,20 @@ const (
 		handled_response_types, response_mode, response_mode_default, revoked,
 		form_data, session_data
 		FROM %s
-		WHERE signature = ? AND revoked = FALSE;`
+		WHERE signature = ?;`
 
 	queryFmtInsertOAuth2PARContext = `
 		INSERT INTO %s (signature, request_id, client_id, requested_at, scopes, audience,
 		handled_response_types, response_mode, response_mode_default, revoked,
 		form_data, session_data)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtUpdateOAuth2PARContext = `
+	UPDATE %s
+	SET signature = ?, request_id = ?, client_id = ?, requested_at = ?, scopes = ?, audience = ?,
+	    handled_response_types = ?, response_mode = ?, response_mode_default = ?, revoked = ?,
+	    form_data = ?, session_data = ?
+	WHERE id = ?;`
 
 	queryFmtSelectOAuth2BlacklistedJTI = `
 		SELECT id, signature, expires_at

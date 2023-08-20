@@ -13,7 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func TestRunAuthRequestAuthzSuite(t *testing.T) {
@@ -35,26 +35,36 @@ type AuthRequestAuthzSuite struct {
 
 func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsDeny() {
 	for _, method := range testRequestMethods {
-		s.T().Run(fmt.Sprintf("OriginalMethod%s", method), func(t *testing.T) {
-			for _, targetURI := range []*url.URL{
-				s.RequireParseRequestURI("https://one-factor.example.com"),
-				s.RequireParseRequestURI("https://one-factor.example.com/subpath"),
-				s.RequireParseRequestURI("https://one-factor.example2.com"),
-				s.RequireParseRequestURI("https://one-factor.example2.com/subpath"),
+		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
+			for _, pairURI := range []urlpair{
+				{s.RequireParseRequestURI("https://one-factor.example.com"), s.RequireParseRequestURI("https://auth.example.com/")},
+				{s.RequireParseRequestURI("https://one-factor.example.com/subpath"), s.RequireParseRequestURI("https://auth.example.com/")},
+				{s.RequireParseRequestURI("https://one-factor.example2.com"), s.RequireParseRequestURI("https://auth.example2.com/")},
+				{s.RequireParseRequestURI("https://one-factor.example2.com/subpath"), s.RequireParseRequestURI("https://auth.example2.com/")},
 			} {
-				t.Run(targetURI.String(), func(t *testing.T) {
+				t.Run(pairURI.TargetURI.String(), func(t *testing.T) {
+					expected := s.RequireParseRequestURI(pairURI.AutheliaURI.String())
+
 					authz := s.Builder().Build()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
 					defer mock.Close()
 
-					s.setRequest(mock.Ctx, method, targetURI, true, false)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+
+					s.setRequest(mock.Ctx, method, pairURI.TargetURI, true, false)
 
 					authz.Handler(mock.Ctx)
 
+					query := expected.Query()
+					query.Set(queryArgRD, pairURI.TargetURI.String())
+					query.Set(queryArgRM, method)
+					expected.RawQuery = query.Encode()
 					assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
-					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
+					assert.Equal(t, expected.String(), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
 				})
 			}
 		})
@@ -83,7 +93,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 
 					authz.Handler(mock.Ctx)
 
-					assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+					assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 				})
 			}
@@ -109,7 +119,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleMissingXOriginalMethodDeny() {
 
 			authz.Handler(mock.Ctx)
 
-			assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+			assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 			assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 		})
 	}
@@ -128,7 +138,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleMissingXOriginalURLDeny() {
 
 			authz.Handler(mock.Ctx)
 
-			assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+			assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 			assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 		})
 	}
@@ -149,6 +159,8 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsAllow() {
 					mock := mocks.NewMockAutheliaCtx(t)
 
 					defer mock.Close()
+
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					s.setRequest(mock.Ctx, method, targetURI, true, false)
 
@@ -174,11 +186,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsWithMethodsACL() {
 
 					defer mock.Close()
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
-
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					s.setRequest(mock.Ctx, method, targetURI, true, false)
 
@@ -188,8 +196,21 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsWithMethodsACL() {
 						assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 						assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 					} else {
-						assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
-						assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
+						expected := s.RequireParseRequestURI("https://auth.example.com/")
+
+						query := expected.Query()
+						query.Set(queryArgRD, targetURI.String())
+						query.Set(queryArgRM, method)
+						expected.RawQuery = query.Encode()
+
+						switch method {
+						case fasthttp.MethodHead:
+							assert.Nil(t, mock.Ctx.Response.Body())
+						default:
+							assert.Equal(t, fmt.Sprintf(`<a href="%s">%d %s</a>`, utils.StringHTMLEscape(expected.String()), fasthttp.StatusUnauthorized, fasthttp.StatusMessage(fasthttp.StatusUnauthorized)), string(mock.Ctx.Response.Body()))
+						}
+
+						assert.Equal(t, expected.String(), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
 					}
 				})
 			}
@@ -205,7 +226,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 	}{
 		{"Should401UnauthorizedWithNullByte",
 			[]byte{104, 116, 116, 112, 115, 58, 47, 47, 0, 110, 111, 116, 45, 111, 110, 101, 45, 102, 97, 99, 116, 111, 114, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109},
-			fasthttp.StatusUnauthorized,
+			fasthttp.StatusBadRequest,
 		},
 		{"Should200OkWithoutNullByte",
 			[]byte{104, 116, 116, 112, 115, 58, 47, 47, 110, 111, 116, 45, 111, 110, 101, 45, 102, 97, 99, 116, 111, 114, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109},
@@ -225,6 +246,8 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 
 					mock.Ctx.Configuration.AccessControl.DefaultPolicy = testBypass
 					mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&mock.Ctx.Configuration)
+
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					mock.Ctx.Request.Header.Set(testXOriginalMethod, method)
 					mock.Ctx.Request.Header.SetBytesKV([]byte(testXOriginalUrl), tc.uri)
@@ -255,17 +278,13 @@ func (s *AuthRequestAuthzSuite) TestShouldNotHandleExtAuthzAllMethodsAllow() {
 
 					defer mock.Close()
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
-
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					setRequestExtAuthz(mock.Ctx, method, targetURI, true, false)
 
 					authz.Handler(mock.Ctx)
 
-					assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+					assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 				})
 			}
@@ -291,17 +310,13 @@ func (s *AuthRequestAuthzSuite) TestShouldNotHandleExtAuthzAllMethodsAllowXHR() 
 
 							defer mock.Close()
 
-							for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-								mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-							}
-
-							mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+							s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 							setRequestExtAuthz(mock.Ctx, method, targetURI, x, x)
 
 							authz.Handler(mock.Ctx)
 
-							assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+							assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 							assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 						})
 					}
@@ -323,17 +338,13 @@ func (s *AuthRequestAuthzSuite) TestShouldNotHandleExtAuthzAllMethodsWithMethods
 
 					defer mock.Close()
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
-
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					setRequestExtAuthz(mock.Ctx, method, targetURI, true, false)
 
 					authz.Handler(mock.Ctx)
 
-					assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+					assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 				})
 			}
@@ -357,17 +368,13 @@ func (s *AuthRequestAuthzSuite) TestShouldNotHandleForwardAuthAllMethodsAllow() 
 
 					defer mock.Close()
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
-
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					setRequestForwardAuth(mock.Ctx, method, targetURI, true, false)
 
 					authz.Handler(mock.Ctx)
 
-					assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+					assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 				})
 			}
@@ -393,17 +400,13 @@ func (s *AuthRequestAuthzSuite) TestShouldNotHandleForwardAuthAllMethodsAllowXHR
 
 							defer mock.Close()
 
-							for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-								mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-							}
-
-							mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+							s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 							setRequestForwardAuth(mock.Ctx, method, targetURI, x, x)
 
 							authz.Handler(mock.Ctx)
 
-							assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+							assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 							assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 						})
 					}
@@ -425,17 +428,13 @@ func (s *AuthRequestAuthzSuite) TestShouldNotHandleForwardAuthAllMethodsWithMeth
 
 					defer mock.Close()
 
-					for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-						mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
-					}
-
-					mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					setRequestForwardAuth(mock.Ctx, method, targetURI, true, false)
 
 					authz.Handler(mock.Ctx)
 
-					assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+					assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 				})
 			}

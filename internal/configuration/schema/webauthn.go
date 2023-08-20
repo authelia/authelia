@@ -6,8 +6,8 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 )
 
-// WebauthnConfiguration represents the webauthn config.
-type WebauthnConfiguration struct {
+// WebAuthnConfiguration represents the webauthn config.
+type WebAuthnConfiguration struct {
 	Disable     bool   `koanf:"disable"`
 	DisplayName string `koanf:"display_name"`
 
@@ -17,8 +17,8 @@ type WebauthnConfiguration struct {
 	Timeout time.Duration `koanf:"timeout"`
 }
 
-// DefaultWebauthnConfiguration describes the default values for the WebauthnConfiguration.
-var DefaultWebauthnConfiguration = WebauthnConfiguration{
+// DefaultWebAuthnConfiguration describes the default values for the WebAuthnConfiguration.
+var DefaultWebAuthnConfiguration = WebAuthnConfiguration{
 	DisplayName: "Authelia",
 	Timeout:     time.Second * 60,
 

@@ -35,8 +35,8 @@ type UserSession struct {
 
 	AuthenticationMethodRefs oidc.AuthenticationMethodsReferences
 
-	// Webauthn holds the session registration data for this session.
-	Webauthn *webauthn.SessionData
+	// WebAuthn holds the session registration data for this session.
+	WebAuthn *webauthn.SessionData
 
 	// This boolean is set to true after identity verification and checked
 	// while doing the query actually updating the password.

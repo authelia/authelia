@@ -39,12 +39,12 @@ Now that Authelia is configured, pass the first factor and select the Push notif
 You should now receive a notification on your mobile phone with all the details about the authentication request. In
 case you have multiple devices available, you will be asked to select your preferred device.
 
-## FAQ
+## Frequently Asked Questions
 
 ### Why don't I have access to the *Push Notification* option?
 
 It's likely that you have not configured __Authelia__ correctly. Please read this documentation again and be sure you
-had a look at [config.template.yml](https://github.com/authelia/authelia/blob/master/config.template.yml) and
+had a look at {{< github-link path="config.template.yml" >}} and
 [configuration documentation](../../../configuration/second-factor/duo.md).
 
 [Duo]: https://duo.com/

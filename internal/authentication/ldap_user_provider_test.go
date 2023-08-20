@@ -16,6 +16,20 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+func TestNewLDAPUserProvider(t *testing.T) {
+	provider := NewLDAPUserProvider(schema.AuthenticationBackend{LDAP: &schema.LDAPAuthenticationBackend{}}, nil)
+
+	assert.NotNil(t, provider)
+}
+
+func TestNewLDAPUserProviderWithFactoryWithoutFactory(t *testing.T) {
+	provider := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackend{}, false, nil, nil)
+
+	assert.NotNil(t, provider)
+
+	assert.IsType(t, &ProductionLDAPClientFactory{}, provider.factory)
+}
+
 func TestShouldCreateRawConnectionWhenSchemeIsLDAP(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -25,7 +39,7 @@ func TestShouldCreateRawConnectionWhenSchemeIsLDAP(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:      "ldap://127.0.0.1:389",
+			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
 		},
@@ -57,7 +71,7 @@ func TestShouldCreateTLSConnectionWhenSchemeIsLDAPS(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:      "ldaps://127.0.0.1:389",
+			Address:  testLDAPSAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
 		},
@@ -107,7 +121,7 @@ func TestEscapeSpecialCharsInGroupsFilter(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:          "ldaps://127.0.0.1:389",
+			Address:      testLDAPSAddress,
 			GroupsFilter: "(|(member={dn})(uid={username})(uid={input}))",
 		},
 		false,
@@ -126,6 +140,79 @@ func TestEscapeSpecialCharsInGroupsFilter(t *testing.T) {
 
 	filter = provider.resolveGroupsFilter("john#=(abc,def)", &profile)
 	assert.Equal(t, "(|(member=cn=john \\28external\\29,dc=example,dc=com)(uid=john)(uid=john\\#\\=\\28abc\\,def\\29))", filter)
+}
+
+func TestResolveGroupsFilter(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+
+	testCases := []struct {
+		name     string
+		have     schema.LDAPAuthenticationBackend
+		input    string
+		profile  ldapUserProfile
+		expected string
+	}{
+		{
+			"ShouldResolveEmptyFilter",
+			schema.LDAPAuthenticationBackend{},
+			"",
+			ldapUserProfile{},
+			"",
+		},
+		{
+			"ShouldResolveMemberOfRDNFilter",
+			schema.LDAPAuthenticationBackend{
+				GroupsFilter: "(|{memberof:rdn})",
+				Attributes: schema.LDAPAuthenticationAttributes{
+					DistinguishedName: "distinguishedName",
+					GroupName:         "cn",
+					MemberOf:          "memberOf",
+					Username:          "uid",
+					Mail:              "mail",
+					DisplayName:       "displayName",
+				},
+			},
+			"",
+			ldapUserProfile{
+				MemberOf: []string{"CN=abc,DC=example,DC=com", "CN=xyz,DC=example,DC=com"},
+			},
+			"(|(CN=abc)(CN=xyz))",
+		},
+		{
+			"ShouldResolveMemberOfDNFilter",
+			schema.LDAPAuthenticationBackend{
+				GroupsFilter: "(|{memberof:dn})",
+				Attributes: schema.LDAPAuthenticationAttributes{
+					DistinguishedName: "distinguishedName",
+					GroupName:         "cn",
+					MemberOf:          "memberOf",
+					Username:          "uid",
+					Mail:              "mail",
+					DisplayName:       "displayName",
+				},
+			},
+			"",
+			ldapUserProfile{
+				MemberOf: []string{"CN=abc,DC=example,DC=com", "CN=xyz,DC=example,DC=com"},
+			},
+			"(|(distinguishedName=CN=abc,DC=example,DC=com)(distinguishedName=CN=xyz,DC=example,DC=com))",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := NewLDAPUserProviderWithFactory(
+				tc.have,
+				false,
+				nil,
+				mockFactory)
+
+			assert.Equal(t, tc.expected, provider.resolveGroupsFilter("", &tc.profile))
+		})
+	}
 }
 
 type ExtendedSearchRequestMatcher struct {
@@ -156,6 +243,81 @@ func (e *ExtendedSearchRequestMatcher) String() string {
 	return fmt.Sprintf("baseDN: %s, filter %s", e.baseDN, e.filter)
 }
 
+func TestShouldCheckLDAPEpochFilters(t *testing.T) {
+	type have struct {
+		users string
+		attr  schema.LDAPAuthenticationAttributes
+	}
+
+	type expected struct {
+		dtgeneralized bool
+		dtmsftnt      bool
+		dtunix        bool
+	}
+
+	testCases := []struct {
+		name     string
+		have     have
+		expected expected
+	}{
+		{
+			"ShouldNotEnableAny",
+			have{},
+			expected{},
+		},
+		{
+			"ShouldNotEnableMSFTNT",
+			have{
+				users: "(abc={date-time:microsoft-nt})",
+			},
+			expected{
+				dtmsftnt: true,
+			},
+		},
+		{
+			"ShouldNotEnableUnix",
+			have{
+				users: "(abc={date-time:unix})",
+			},
+			expected{
+				dtunix: true,
+			},
+		},
+		{
+			"ShouldNotEnableGeneralized",
+			have{
+				users: "(abc={date-time:generalized})",
+			},
+			expected{
+				dtgeneralized: true,
+			},
+		},
+	}
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := NewLDAPUserProviderWithFactory(
+				schema.LDAPAuthenticationBackend{
+					UsersFilter: tc.have.users,
+					Attributes:  tc.have.attr,
+					BaseDN:      "dc=example,dc=com",
+				},
+				false,
+				nil,
+				mockFactory)
+
+			assert.Equal(t, tc.expected.dtgeneralized, provider.usersFilterReplacementDateTimeGeneralized)
+			assert.Equal(t, tc.expected.dtmsftnt, provider.usersFilterReplacementDateTimeMicrosoftNTTimeEpoch)
+			assert.Equal(t, tc.expected.dtunix, provider.usersFilterReplacementDateTimeUnixEpoch)
+		})
+	}
+}
+
 func TestShouldCheckLDAPServerExtensions(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -165,15 +327,18 @@ func TestShouldCheckLDAPServerExtensions(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			Password:             "password",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Address:     testLDAPAddress,
+			User:        "cn=admin,dc=example,dc=com",
+			UsersFilter: "(|({username_attribute}={input})({mail_attribute}={input}))",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			Password:          "password",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -230,15 +395,18 @@ func TestShouldNotCheckLDAPServerExtensionsWhenRootDSEReturnsMoreThanOneEntry(t 
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			Password:             "password",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Address:     testLDAPAddress,
+			User:        "cn=admin,dc=example,dc=com",
+			UsersFilter: "(|({username_attribute}={input})({mail_attribute}={input}))",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			Password:          "password",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -296,15 +464,18 @@ func TestShouldCheckLDAPServerControlTypes(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			Password:             "password",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Address:     testLDAPAddress,
+			User:        "cn=admin,dc=example,dc=com",
+			UsersFilter: "(|({username_attribute}={input})({mail_attribute}={input}))",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			Password:          "password",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -361,15 +532,18 @@ func TestShouldNotEnablePasswdModifyExtensionOrControlTypes(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			Password:             "password",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Address:     testLDAPAddress,
+			User:        "cn=admin,dc=example,dc=com",
+			UsersFilter: "(|({username_attribute}={input})({mail_attribute}={input}))",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			Password:          "password",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -426,15 +600,18 @@ func TestShouldReturnCheckServerConnectError(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			Password:             "password",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Address:     testLDAPAddress,
+			User:        "cn=admin,dc=example,dc=com",
+			UsersFilter: "(|({username_attribute}={input})({mail_attribute}={input}))",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			Password:          "password",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -459,15 +636,18 @@ func TestShouldReturnCheckServerSearchError(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			Password:             "password",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Address:     testLDAPAddress,
+			User:        "cn=admin,dc=example,dc=com",
+			UsersFilter: "(|({username_attribute}={input})({mail_attribute}={input}))",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			Password:          "password",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -493,6 +673,53 @@ func TestShouldReturnCheckServerSearchError(t *testing.T) {
 	assert.EqualError(t, err, "error occurred during RootDSE search: could not perform the search")
 
 	assert.False(t, provider.features.Extensions.PwdModifyExOp)
+}
+
+func TestShouldPermitRootDSEFailure(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackend{
+			PermitFeatureDetectionFailure: true,
+			Address:                       testLDAPAddress,
+			User:                          "cn=admin,dc=example,dc=com",
+			UsersFilter:                   "(|({username_attribute}={input})({mail_attribute}={input}))",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			Password:          "password",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	searchOIDs := mockClient.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(nil, errors.New("could not perform the search"))
+
+	connClose := mockClient.EXPECT().Close()
+
+	gomock.InOrder(dialURL, connBind, searchOIDs, connClose)
+
+	err := provider.StartupCheck()
+	assert.NoError(t, err)
 }
 
 type SearchRequestMatcher struct {
@@ -521,16 +748,19 @@ func TestShouldEscapeUserInput(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			Password:             "password",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
-			PermitReferrals:      true,
+			Address:     testLDAPAddress,
+			User:        "cn=admin,dc=example,dc=com",
+			UsersFilter: "(|({username_attribute}={input})({mail_attribute}={input}))",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			Password:          "password",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
 		},
 		false,
 		nil,
@@ -555,21 +785,24 @@ func TestShouldReturnEmailWhenAttributeSameAsUsername(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "mail",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "(&({username_attribute}={input})(objectClass=inetOrgPerson))",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "mail",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "(&({username_attribute}={input})(objectClass=inetOrgPerson))",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
 		mockFactory)
 
-	assert.Equal(t, []string{"mail", "displayName"}, provider.usersAttributes)
+	assert.Equal(t, []string{"mail", "displayName", "memberOf"}, provider.usersAttributes)
 
 	dialURL := mockFactory.EXPECT().
 		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
@@ -626,21 +859,24 @@ func TestShouldReturnUsernameAndBlankDisplayNameWhenAttributesTheSame(t *testing
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "uid",
-			UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=inetOrgPerson))",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "uid",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=inetOrgPerson))",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
 		mockFactory)
 
-	assert.Equal(t, []string{"uid", "mail"}, provider.usersAttributes)
+	assert.Equal(t, []string{"uid", "mail", "memberOf"}, provider.usersAttributes)
 
 	dialURL := mockFactory.EXPECT().
 		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
@@ -697,21 +933,24 @@ func TestShouldReturnBlankEmailAndDisplayNameWhenAttrsLenZero(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=inetOrgPerson))",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=inetOrgPerson))",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
 		mockFactory)
 
-	assert.Equal(t, []string{"uid", "mail", "displayName"}, provider.usersAttributes)
+	assert.Equal(t, []string{"uid", "mail", "displayName", "memberOf"}, provider.usersAttributes)
 
 	dialURL := mockFactory.EXPECT().
 		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
@@ -738,6 +977,10 @@ func TestShouldReturnBlankEmailAndDisplayNameWhenAttrsLenZero(t *testing.T) {
 						},
 						{
 							Name:   "displayName",
+							Values: []string{},
+						},
+						{
+							Name:   "memberOf",
 							Values: []string{},
 						},
 					},
@@ -771,22 +1014,25 @@ func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			UsernameAttribute:    "uid",
-			UsersFilter:          "(&({username_attribute}={input})(&(objectCategory=person)(objectClass=user)))",
-			Password:             "password",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			PermitReferrals:      true,
+			Address:     testLDAPAddress,
+			User:        "cn=admin,dc=example,dc=com",
+			UsersFilter: "(&({username_attribute}={input})(&(objectCategory=person)(objectClass=user)))",
+			Password:    "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
 		},
 		false,
 		nil,
 		mockFactory)
 
-	assert.Equal(t, []string{"uid", "mail", "displayName"}, provider.usersAttributes)
+	assert.Equal(t, []string{"uid", "mail", "displayName", "memberOf"}, provider.usersAttributes)
 
 	assert.True(t, provider.usersFilterReplacementInput)
 
@@ -807,10 +1053,35 @@ func createSearchResultWithAttributes(attributes ...*ldap.EntryAttribute) *ldap.
 	}
 }
 
-func createSearchResultWithAttributeValues(values ...string) *ldap.SearchResult {
-	return createSearchResultWithAttributes(&ldap.EntryAttribute{
-		Values: values,
-	})
+func createGroupSearchResultModeFilter(name string, groupNames ...string) *ldap.SearchResult {
+	result := &ldap.SearchResult{
+		Entries: make([]*ldap.Entry, len(groupNames)),
+	}
+
+	for i, groupName := range groupNames {
+		result.Entries[i] = &ldap.Entry{Attributes: []*ldap.EntryAttribute{{Name: name, Values: []string{groupName}}}}
+	}
+
+	return result
+}
+
+func createGroupSearchResultModeFilterWithDN(name string, groupNames []string, groupDNs []string) *ldap.SearchResult {
+	if len(groupNames) != len(groupDNs) {
+		panic("input sizes mismatch")
+	}
+
+	result := &ldap.SearchResult{
+		Entries: make([]*ldap.Entry, len(groupNames)),
+	}
+
+	for i, groupName := range groupNames {
+		result.Entries[i] = &ldap.Entry{
+			DN:         groupDNs[i],
+			Attributes: []*ldap.EntryAttribute{{Name: name, Values: []string{groupName}}},
+		}
+	}
+
+	return result
 }
 
 func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
@@ -822,16 +1093,20 @@ func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
-			PermitReferrals:      true,
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				GroupName:   "cn",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
 		},
 		false,
 		nil,
@@ -886,6 +1161,127 @@ func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
 	assert.Equal(t, details.Username, "john")
 }
 
+func TestLDAPUserProvider_GetDetails_ShouldReturnOnUserError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackend{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(nil, fmt.Errorf("failed to search"))
+
+	gomock.InOrder(dialURL, connBind, searchProfile, connClose)
+
+	details, err := provider.GetDetails("john")
+	assert.Nil(t, details)
+	assert.EqualError(t, err, "cannot find user DN of user 'john'. Cause: failed to search")
+}
+
+func TestLDAPUserProvider_GetDetails_ShouldReturnOnGroupsError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackend{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchGroups := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(nil, fmt.Errorf("failed to search groups"))
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "uid",
+							Values: []string{"john"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(dialURL, connBind, searchProfile, searchGroups, connClose)
+
+	details, err := provider.GetDetails("john")
+
+	assert.Nil(t, details)
+	assert.EqualError(t, err, "unable to retrieve groups of user 'john'. Cause: failed to search groups")
+}
+
 func TestShouldNotCrashWhenEmailsAreNotRetrievedFromLDAP(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -895,10 +1291,15 @@ func TestShouldNotCrashWhenEmailsAreNotRetrievedFromLDAP(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:               "ldap://127.0.0.1:389",
-			User:              "cn=admin,dc=example,dc=com",
-			Password:          "password",
-			UsernameAttribute: "uid",
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				GroupName:   "displayName",
+			},
 			UsersFilter:       "uid={input}",
 			AdditionalUsersDN: "ou=users",
 			BaseDN:            "dc=example,dc=com",
@@ -919,7 +1320,73 @@ func TestShouldNotCrashWhenEmailsAreNotRetrievedFromLDAP(t *testing.T) {
 
 	searchGroups := mockClient.EXPECT().
 		Search(gomock.Any()).
-		Return(createSearchResultWithAttributeValues("group1", "group2"), nil)
+		Return(createGroupSearchResultModeFilter(provider.config.Attributes.GroupName, "group1", "group2"), nil)
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "uid",
+							Values: []string{"john"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(dialURL, connBind, searchProfile, searchGroups, connClose)
+
+	details, err := provider.GetDetails("john")
+	require.NoError(t, err)
+
+	assert.ElementsMatch(t, details.Groups, []string{"group1", "group2"})
+	assert.ElementsMatch(t, details.Emails, []string{})
+	assert.Equal(t, details.Username, "john")
+}
+
+func TestShouldUnauthenticatedBind(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackend{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				GroupName:   "displayName",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		UnauthenticatedBind(gomock.Eq("cn=admin,dc=example,dc=com")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchGroups := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(createGroupSearchResultModeFilter(provider.config.Attributes.GroupName, "group1", "group2"), nil)
 
 	searchProfile := mockClient.EXPECT().
 		Search(gomock.Any()).
@@ -956,15 +1423,19 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				GroupName:   "cn",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -982,7 +1453,7 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 
 	searchGroups := mockClient.EXPECT().
 		Search(gomock.Any()).
-		Return(createSearchResultWithAttributeValues("group1", "group2"), nil)
+		Return(createGroupSearchResultModeFilter(provider.config.Attributes.GroupName, "group1", "group2"), nil)
 
 	searchProfile := mockClient.EXPECT().
 		Search(gomock.Any()).
@@ -1019,26 +1490,595 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 	assert.Equal(t, details.Username, "John")
 }
 
-func TestShouldReturnUsernameFromLDAPWithReferrals(t *testing.T) {
+func TestShouldReturnUsernameFromLDAPSearchModeMemberOfRDN(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	mockFactory := NewMockLDAPClientFactory(ctrl)
 	mockClient := NewMockLDAPClient(ctrl)
-	mockClientReferral := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
-			PermitReferrals:      true,
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				GroupName:   "cn",
+			},
+			GroupSearchMode:   "memberof",
+			UsersFilter:       "uid={input}",
+			GroupsFilter:      "(|{memberof:rdn})",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "DC=example,DC=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	requestGroups := ldap.NewSearchRequest(
+		provider.groupsBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		0, 0, false, "(|(CN=admins)(CN=users))", provider.groupsAttributes, nil,
+	)
+
+	// This ensures the filtering works correctly in the following ways:
+	// Item 1 (0th element), has the wrong case.
+	// Item 2 (1st element), has the wrong DN.
+	searchGroups := mockClient.EXPECT().
+		Search(requestGroups).
+		Return(createGroupSearchResultModeFilterWithDN(provider.config.Attributes.GroupName, []string{"admins", "notadmins", "users"}, []string{"CN=ADMINS,OU=groups,DC=example,DC=com", "CN=notadmins,OU=wronggroups,DC=example,DC=com", "CN=users,OU=groups,DC=example,DC=com"}), nil)
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "uid",
+							Values: []string{"John"},
+						},
+						{
+							Name:   "memberOf",
+							Values: []string{"CN=admins,OU=groups,DC=example,DC=com", "CN=users,OU=groups,DC=example,DC=com"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(dialURL, connBind, searchProfile, searchGroups, connClose)
+
+	details, err := provider.GetDetails("john")
+	require.NoError(t, err)
+
+	assert.ElementsMatch(t, details.Groups, []string{"admins", "users"})
+	assert.ElementsMatch(t, details.Emails, []string{"test@example.com"})
+	assert.Equal(t, details.DisplayName, "John Doe")
+	assert.Equal(t, details.Username, "John")
+}
+
+func TestShouldReturnUsernameFromLDAPSearchModeMemberOfDN(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackend{
+			Address:  testLDAPAddress,
+			User:     "CN=Administrator,CN=Users,DC=example,DC=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				DistinguishedName: "distinguishedName",
+				Username:          "sAMAccountName",
+				Mail:              "mail",
+				DisplayName:       "displayName",
+				MemberOf:          "memberOf",
+				GroupName:         "cn",
+			},
+			GroupSearchMode:   "memberof",
+			UsersFilter:       "sAMAccountName={input}",
+			GroupsFilter:      "(|{memberof:dn})",
+			AdditionalUsersDN: "CN=users",
+			BaseDN:            "DC=example,DC=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("CN=Administrator,CN=Users,DC=example,DC=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	requestGroups := ldap.NewSearchRequest(
+		provider.groupsBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		0, 0, false, "(|(distinguishedName=CN=admins,OU=groups,DC=example,DC=com)(distinguishedName=CN=users,OU=groups,DC=example,DC=com))", provider.groupsAttributes, nil,
+	)
+
+	searchGroups := mockClient.EXPECT().
+		Search(requestGroups).
+		Return(createGroupSearchResultModeFilterWithDN(provider.config.Attributes.GroupName, []string{"admins", "admins", "users"}, []string{"CN=admins,OU=groups,DC=example,DC=com", "CN=admins,OU=wronggroups,DC=example,DC=com", "CN=users,OU=groups,DC=example,DC=com"}), nil)
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "sAMAccountName",
+							Values: []string{"John"},
+						},
+						{
+							Name:   "memberOf",
+							Values: []string{"CN=admins,OU=groups,DC=example,DC=com", "CN=users,OU=groups,DC=example,DC=com"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(dialURL, connBind, searchProfile, searchGroups, connClose)
+
+	details, err := provider.GetDetails("john")
+	require.NoError(t, err)
+
+	assert.ElementsMatch(t, details.Groups, []string{"admins", "users"})
+	assert.ElementsMatch(t, details.Emails, []string{"test@example.com"})
+	assert.Equal(t, details.DisplayName, "John Doe")
+	assert.Equal(t, details.Username, "John")
+}
+
+func TestShouldReturnErrSearchMemberOf(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackend{
+			Address:  testLDAPAddress,
+			User:     "CN=Administrator,CN=Users,DC=example,DC=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				DistinguishedName: "distinguishedName",
+				Username:          "sAMAccountName",
+				Mail:              "mail",
+				DisplayName:       "displayName",
+				MemberOf:          "memberOf",
+				GroupName:         "cn",
+			},
+			GroupSearchMode:   "memberof",
+			UsersFilter:       "sAMAccountName={input}",
+			GroupsFilter:      "(|{memberof:dn})",
+			AdditionalUsersDN: "CN=users",
+			BaseDN:            "DC=example,DC=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("CN=Administrator,CN=Users,DC=example,DC=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	requestGroups := ldap.NewSearchRequest(
+		provider.groupsBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		0, 0, false, "(|(distinguishedName=CN=admins,OU=groups,DC=example,DC=com)(distinguishedName=CN=users,OU=groups,DC=example,DC=com))", provider.groupsAttributes, nil,
+	)
+
+	searchGroups := mockClient.EXPECT().
+		Search(requestGroups).
+		Return(nil, fmt.Errorf("failed to get groups"))
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "sAMAccountName",
+							Values: []string{"John"},
+						},
+						{
+							Name:   "memberOf",
+							Values: []string{"CN=admins,OU=groups,DC=example,DC=com", "CN=users,OU=groups,DC=example,DC=com"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(dialURL, connBind, searchProfile, searchGroups, connClose)
+
+	details, err := provider.GetDetails("john")
+	assert.Nil(t, details)
+	assert.EqualError(t, err, "unable to retrieve groups of user 'john'. Cause: failed to get groups")
+}
+
+func TestShouldReturnErrUnknownSearchMode(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackend{
+			Address:  testLDAPAddress,
+			User:     "CN=Administrator,CN=Users,DC=example,DC=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				DistinguishedName: "distinguishedName",
+				Username:          "sAMAccountName",
+				Mail:              "mail",
+				DisplayName:       "displayName",
+				MemberOf:          "memberOf",
+				GroupName:         "cn",
+			},
+			GroupSearchMode:   "bad",
+			UsersFilter:       "sAMAccountName={input}",
+			GroupsFilter:      "(|{memberof:dn})",
+			AdditionalUsersDN: "CN=users",
+			BaseDN:            "DC=example,DC=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("CN=Administrator,CN=Users,DC=example,DC=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "sAMAccountName",
+							Values: []string{"John"},
+						},
+						{
+							Name:   "memberOf",
+							Values: []string{"CN=admins,OU=groups,DC=example,DC=com", "CN=users,OU=groups,DC=example,DC=com"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(dialURL, connBind, searchProfile, connClose)
+
+	details, err := provider.GetDetails("john")
+	assert.Nil(t, details)
+
+	assert.EqualError(t, err, "could not perform group search with mode 'bad' as it's unknown")
+}
+
+func TestShouldSkipEmptyAttributesSearchModeMemberOf(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackend{
+			Address:  testLDAPAddress,
+			User:     "CN=Administrator,CN=Users,DC=example,DC=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				DistinguishedName: "distinguishedName",
+				Username:          "sAMAccountName",
+				Mail:              "mail",
+				DisplayName:       "displayName",
+				MemberOf:          "memberOf",
+				GroupName:         "cn",
+			},
+			GroupSearchMode:   "memberof",
+			UsersFilter:       "sAMAccountName={input}",
+			GroupsFilter:      "(|{memberof:dn})",
+			AdditionalUsersDN: "CN=users",
+			BaseDN:            "DC=example,DC=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("CN=Administrator,CN=Users,DC=example,DC=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "sAMAccountName",
+							Values: []string{"John"},
+						},
+						{
+							Name:   "memberOf",
+							Values: []string{"CN=admins,OU=groups,DC=example,DC=com", "CN=users,OU=groups,DC=example,DC=com", "CN=multi,OU=groups,DC=example,DC=com"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	searchGroups := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN:         "uid=grp,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{},
+				},
+				{
+					DN: "CN=users,OU=groups,DC=example,DC=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "cn",
+							Values: []string{},
+						},
+					},
+				},
+				{
+					DN: "CN=admins,OU=groups,DC=example,DC=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "cn",
+							Values: []string{""},
+						},
+					},
+				},
+				{
+					DN: "CN=multi,OU=groups,DC=example,DC=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "cn",
+							Values: []string{"a", "b"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(dialURL, connBind, searchProfile, searchGroups, connClose)
+
+	details, err := provider.GetDetails("john")
+
+	assert.NoError(t, err)
+	assert.NotNil(t, details)
+}
+
+func TestShouldSkipEmptyAttributesSearchModeFilter(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackend{
+			Address:  testLDAPAddress,
+			User:     "CN=Administrator,CN=Users,DC=example,DC=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				DistinguishedName: "distinguishedName",
+				Username:          "sAMAccountName",
+				Mail:              "mail",
+				DisplayName:       "displayName",
+				MemberOf:          "memberOf",
+				GroupName:         "cn",
+			},
+			GroupSearchMode:   "filter",
+			UsersFilter:       "sAMAccountName={input}",
+			GroupsFilter:      "(|{memberof:dn})",
+			AdditionalUsersDN: "CN=users",
+			BaseDN:            "DC=example,DC=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("CN=Administrator,CN=Users,DC=example,DC=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "sAMAccountName",
+							Values: []string{"John"},
+						},
+						{
+							Name:   "memberOf",
+							Values: []string{"CN=admins,OU=groups,DC=example,DC=com", "CN=users,OU=groups,DC=example,DC=com", "CN=multi,OU=groups,DC=example,DC=com"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	searchGroups := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN:         "uid=grp,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{},
+				},
+				{
+					DN: "CN=users,OU=groups,DC=example,DC=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "cn",
+							Values: []string{},
+						},
+					},
+				},
+				{
+					DN: "CN=admins,OU=groups,DC=example,DC=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "cn",
+							Values: []string{""},
+						},
+					},
+				},
+				{
+					DN: "CN=multi,OU=groups,DC=example,DC=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "cn",
+							Values: []string{"a", "b"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(dialURL, connBind, searchProfile, searchGroups, connClose)
+
+	details, err := provider.GetDetails("john")
+
+	assert.NoError(t, err)
+	assert.NotNil(t, details)
+}
+
+func TestShouldSkipEmptyGroupsResultMemberOf(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackend{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				GroupName:   "cn",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
 		},
 		false,
 		nil,
@@ -1056,26 +2096,13 @@ func TestShouldReturnUsernameFromLDAPWithReferrals(t *testing.T) {
 
 	searchGroups := mockClient.EXPECT().
 		Search(gomock.Any()).
-		Return(createSearchResultWithAttributeValues("group1", "group2"), nil)
-
-	searchProfile := mockClient.EXPECT().
-		Search(gomock.Any()).
 		Return(&ldap.SearchResult{
-			Entries:   []*ldap.Entry{},
-			Referrals: []string{"ldap://192.168.2.1"},
+			Entries: []*ldap.Entry{
+				{},
+			},
 		}, nil)
 
-	dialURLReferral := mockFactory.EXPECT().
-		DialURL(gomock.Eq("ldap://192.168.2.1"), gomock.Any()).
-		Return(mockClientReferral, nil)
-
-	connBindReferral := mockClientReferral.EXPECT().
-		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
-		Return(nil)
-
-	connCloseReferral := mockClientReferral.EXPECT().Close()
-
-	searchProfileReferral := mockClientReferral.EXPECT().
+	searchProfile := mockClient.EXPECT().
 		Search(gomock.Any()).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
@@ -1099,12 +2126,11 @@ func TestShouldReturnUsernameFromLDAPWithReferrals(t *testing.T) {
 			},
 		}, nil)
 
-	gomock.InOrder(dialURL, connBind, searchProfile, dialURLReferral, connBindReferral, searchProfileReferral, connCloseReferral, searchGroups, connClose)
+	gomock.InOrder(dialURL, connBind, searchProfile, searchGroups, connClose)
 
 	details, err := provider.GetDetails("john")
 	require.NoError(t, err)
 
-	assert.ElementsMatch(t, details.Groups, []string{"group1", "group2"})
 	assert.ElementsMatch(t, details.Emails, []string{"test@example.com"})
 	assert.Equal(t, details.DisplayName, "John Doe")
 	assert.Equal(t, details.Username, "John")
@@ -1121,16 +2147,20 @@ func TestShouldReturnUsernameFromLDAPWithReferralsInErrorAndResult(t *testing.T)
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
-			PermitReferrals:      true,
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				GroupName:   "cn",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
 		},
 		false,
 		nil,
@@ -1148,17 +2178,17 @@ func TestShouldReturnUsernameFromLDAPWithReferralsInErrorAndResult(t *testing.T)
 
 	searchGroups := mockClient.EXPECT().
 		Search(gomock.Any()).
-		Return(createSearchResultWithAttributeValues("group1", "group2"), nil)
+		Return(createGroupSearchResultModeFilter(provider.config.Attributes.GroupName, "group1", "group2"), nil)
 
 	searchProfile := mockClient.EXPECT().
 		Search(gomock.Any()).
 		Return(&ldap.SearchResult{
 			Entries:   []*ldap.Entry{},
-			Referrals: []string{"ldap://192.168.2.1"},
+			Referrals: []string{"ldap://192.168.0.1"},
 		}, &ldap.Error{ResultCode: ldap.LDAPResultReferral, Err: errors.New("referral"), Packet: &testBERPacketReferral})
 
 	dialURLReferral := mockFactory.EXPECT().
-		DialURL(gomock.Eq("ldap://192.168.2.1"), gomock.Any()).
+		DialURL(gomock.Eq("ldap://192.168.0.1"), gomock.Any()).
 		Return(mockClientReferral, nil)
 
 	connBindReferral := mockClientReferral.EXPECT().
@@ -1236,7 +2266,7 @@ func TestShouldReturnUsernameFromLDAPWithReferralsInErrorAndResult(t *testing.T)
 	assert.Equal(t, details.Username, "John")
 }
 
-func TestShouldReturnUsernameFromLDAPWithReferralsErr(t *testing.T) {
+func TestShouldReturnUsernameFromLDAPWithReferralsInErrorAndNoResult(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -1246,16 +2276,20 @@ func TestShouldReturnUsernameFromLDAPWithReferralsErr(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
-			PermitReferrals:      true,
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				GroupName:   "cn",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
 		},
 		false,
 		nil,
@@ -1273,7 +2307,267 @@ func TestShouldReturnUsernameFromLDAPWithReferralsErr(t *testing.T) {
 
 	searchGroups := mockClient.EXPECT().
 		Search(gomock.Any()).
-		Return(createSearchResultWithAttributeValues("group1", "group2"), nil)
+		Return(createGroupSearchResultModeFilter(provider.config.Attributes.GroupName, "group1", "group2"), nil)
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(nil, &ldap.Error{ResultCode: ldap.LDAPResultReferral, Err: errors.New("referral"), Packet: &testBERPacketReferral})
+
+	dialURLReferral := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://192.168.0.1"), gomock.Any()).
+		Return(mockClientReferral, nil)
+
+	connBindReferral := mockClientReferral.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connCloseReferral := mockClientReferral.EXPECT().Close()
+
+	searchProfileReferral := mockClientReferral.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "uid",
+							Values: []string{"John"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(dialURL, connBind, searchProfile, dialURLReferral, connBindReferral, searchProfileReferral, connCloseReferral, searchGroups, connClose)
+
+	details, err := provider.GetDetails("john")
+	require.NoError(t, err)
+
+	assert.ElementsMatch(t, details.Groups, []string{"group1", "group2"})
+	assert.ElementsMatch(t, details.Emails, []string{"test@example.com"})
+	assert.Equal(t, details.DisplayName, "John Doe")
+	assert.Equal(t, details.Username, "John")
+}
+
+func TestShouldReturnDialErrDuringReferralSearchUsernameFromLDAPWithReferralsInErrorAndNoResult(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackend{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				GroupName:   "cn",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(nil, &ldap.Error{ResultCode: ldap.LDAPResultReferral, Err: errors.New("referral"), Packet: &testBERPacketReferral})
+
+	dialURLReferral := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://192.168.0.1"), gomock.Any()).
+		Return(nil, fmt.Errorf("failed to connect"))
+
+	gomock.InOrder(dialURL, connBind, searchProfile, dialURLReferral, connClose)
+
+	details, err := provider.GetDetails("john")
+
+	assert.Nil(t, details)
+	assert.EqualError(t, err, "cannot find user DN of user 'john'. Cause: error occurred connecting to referred LDAP server 'ldap://192.168.0.1': dial failed with error: failed to connect")
+}
+
+func TestShouldReturnSearchErrDuringReferralSearchUsernameFromLDAPWithReferralsInErrorAndNoResult(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+	mockClientReferral := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackend{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				GroupName:   "cn",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(nil, &ldap.Error{ResultCode: ldap.LDAPResultReferral, Err: errors.New("referral"), Packet: &testBERPacketReferral})
+
+	dialURLReferral := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://192.168.0.1"), gomock.Any()).
+		Return(mockClientReferral, nil)
+
+	connBindReferral := mockClientReferral.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connCloseReferral := mockClientReferral.EXPECT().Close()
+
+	searchProfileReferral := mockClientReferral.EXPECT().
+		Search(gomock.Any()).
+		Return(nil, fmt.Errorf("not found"))
+
+	gomock.InOrder(dialURL, connBind, searchProfile, dialURLReferral, connBindReferral, searchProfileReferral, connCloseReferral, connClose)
+
+	details, err := provider.GetDetails("john")
+
+	assert.Nil(t, details)
+	assert.EqualError(t, err, "cannot find user DN of user 'john'. Cause: error occurred performing search on referred LDAP server 'ldap://192.168.0.1': not found")
+}
+
+func TestShouldNotReturnUsernameFromLDAPWithReferralsInErrorAndReferralsNotPermitted(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackend{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				GroupName:   "cn",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   false,
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(nil, &ldap.Error{ResultCode: ldap.LDAPResultReferral, Err: errors.New("referral"), Packet: &testBERPacketReferral})
+
+	gomock.InOrder(dialURL, connBind, searchProfile, connClose)
+
+	details, err := provider.GetDetails("john")
+	assert.EqualError(t, err, "cannot find user DN of user 'john'. Cause: LDAP Result Code 10 \"Referral\": referral")
+	assert.Nil(t, details)
+}
+
+func TestShouldReturnUsernameFromLDAPWithReferralsErr(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+	mockClientReferral := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackend{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				GroupName:   "cn",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchGroups := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(createGroupSearchResultModeFilter(provider.config.Attributes.GroupName, "group1", "group2"), nil)
 
 	searchProfile := mockClient.EXPECT().
 		Search(gomock.Any()).
@@ -1333,16 +2627,19 @@ func TestShouldNotUpdateUserPasswordConnect(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
-			PermitReferrals:      false,
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   false,
 		},
 		false,
 		nil,
@@ -1400,16 +2697,19 @@ func TestShouldNotUpdateUserPasswordGetDetails(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
-			PermitReferrals:      false,
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   false,
 		},
 		false,
 		nil,
@@ -1477,15 +2777,18 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -1584,16 +2887,19 @@ func TestShouldUpdateUserPasswordMSAD(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			Implementation:       "activedirectory",
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Implementation: "activedirectory",
+			Address:        testLDAPAddress,
+			User:           "cn=admin,dc=example,dc=com",
+			Password:       "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -1604,7 +2910,7 @@ func TestShouldUpdateUserPasswordMSAD(t *testing.T) {
 		[]ldap.Control{&controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHints}},
 	)
 
-	pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
+	pwdEncoded, _ := encodingUTF16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
 	modifyRequest.Replace(ldapAttributeUnicodePwd, []string{pwdEncoded})
 
 	dialURLOIDs := mockFactory.EXPECT().
@@ -1694,17 +3000,20 @@ func TestShouldUpdateUserPasswordMSADWithReferrals(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			Implementation:       "activedirectory",
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
-			PermitReferrals:      true,
+			Implementation: "activedirectory",
+			Address:        testLDAPAddress,
+			User:           "cn=admin,dc=example,dc=com",
+			Password:       "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
 		},
 		false,
 		nil,
@@ -1715,7 +3024,7 @@ func TestShouldUpdateUserPasswordMSADWithReferrals(t *testing.T) {
 		[]ldap.Control{&controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHints}},
 	)
 
-	pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
+	pwdEncoded, _ := encodingUTF16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
 	modifyRequest.Replace(ldapAttributeUnicodePwd, []string{pwdEncoded})
 
 	dialURLOIDs := mockFactory.EXPECT().
@@ -1822,17 +3131,20 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralConnectErr(t *test
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			Implementation:       "activedirectory",
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
-			PermitReferrals:      true,
+			Implementation: "activedirectory",
+			Address:        testLDAPAddress,
+			User:           "cn=admin,dc=example,dc=com",
+			Password:       "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
 		},
 		false,
 		nil,
@@ -1843,7 +3155,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralConnectErr(t *test
 		[]ldap.Control{&controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHints}},
 	)
 
-	pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
+	pwdEncoded, _ := encodingUTF16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
 	modifyRequest.Replace(ldapAttributeUnicodePwd, []string{pwdEncoded})
 
 	dialURLOIDs := mockFactory.EXPECT().
@@ -1941,17 +3253,20 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralModifyErr(t *testi
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			Implementation:       "activedirectory",
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
-			PermitReferrals:      true,
+			Implementation: "activedirectory",
+			Address:        testLDAPAddress,
+			User:           "cn=admin,dc=example,dc=com",
+			Password:       "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
 		},
 		false,
 		nil,
@@ -1962,7 +3277,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralModifyErr(t *testi
 		[]ldap.Control{&controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHints}},
 	)
 
-	pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
+	pwdEncoded, _ := encodingUTF16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
 	modifyRequest.Replace(ldapAttributeUnicodePwd, []string{pwdEncoded})
 
 	dialURLOIDs := mockFactory.EXPECT().
@@ -2073,17 +3388,20 @@ func TestShouldUpdateUserPasswordMSADWithoutReferrals(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			Implementation:       "activedirectory",
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
-			PermitReferrals:      false,
+			Implementation: "activedirectory",
+			Address:        testLDAPAddress,
+			User:           "cn=admin,dc=example,dc=com",
+			Password:       "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   false,
 		},
 		false,
 		nil,
@@ -2094,7 +3412,7 @@ func TestShouldUpdateUserPasswordMSADWithoutReferrals(t *testing.T) {
 		[]ldap.Control{&controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHints}},
 	)
 
-	pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
+	pwdEncoded, _ := encodingUTF16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
 	modifyRequest.Replace(ldapAttributeUnicodePwd, []string{pwdEncoded})
 
 	dialURLOIDs := mockFactory.EXPECT().
@@ -2187,15 +3505,18 @@ func TestShouldUpdateUserPasswordPasswdModifyExtension(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -2294,16 +3615,19 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferrals(t *testing.T
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
-			PermitReferrals:      true,
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
 		},
 		false,
 		nil,
@@ -2421,16 +3745,19 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithoutReferrals(t *testin
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
-			PermitReferrals:      false,
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   false,
 		},
 		false,
 		nil,
@@ -2534,16 +3861,19 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsReferralConne
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
-			PermitReferrals:      true,
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
 		},
 		false,
 		nil,
@@ -2652,16 +3982,19 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsReferralPassw
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
-			PermitReferrals:      true,
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
 		},
 		false,
 		nil,
@@ -2783,16 +4116,20 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHints(t *testing
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			Implementation:       "activedirectory",
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "sAMAccountName",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "cn={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Implementation: "activedirectory",
+			Address:        testLDAPAddress,
+			User:           "cn=admin,dc=example,dc=com",
+			Password:       "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				DistinguishedName: "distinguishedName",
+				Username:          "sAMAccountName",
+				Mail:              "mail",
+				DisplayName:       "displayName",
+				MemberOf:          "memberOf",
+			},
+			UsersFilter:       "cn={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -2894,16 +4231,20 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHintsDeprecated(
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			Implementation:       "activedirectory",
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "sAMAccountName",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "cn={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Implementation: "activedirectory",
+			Address:        testLDAPAddress,
+			User:           "cn=admin,dc=example,dc=com",
+			Password:       "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				DistinguishedName: "distinguishedName",
+				Username:          "sAMAccountName",
+				Mail:              "mail",
+				DisplayName:       "displayName",
+				MemberOf:          "memberOf",
+			},
+			UsersFilter:       "cn={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -3005,16 +4346,20 @@ func TestShouldUpdateUserPasswordActiveDirectory(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			Implementation:       "activedirectory",
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "sAMAccountName",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "cn={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Implementation: "activedirectory",
+			Address:        testLDAPAddress,
+			User:           "cn=admin,dc=example,dc=com",
+			Password:       "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				DistinguishedName: "distinguishedName",
+				Username:          "sAMAccountName",
+				Mail:              "mail",
+				DisplayName:       "displayName",
+				MemberOf:          "memberOf",
+			},
+			UsersFilter:       "cn={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -3116,16 +4461,19 @@ func TestShouldUpdateUserPasswordBasic(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			Implementation:       "custom",
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "uid=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Implementation: "custom",
+			Address:        testLDAPAddress,
+			User:           "uid=admin,dc=example,dc=com",
+			Password:       "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -3224,15 +4572,18 @@ func TestShouldReturnErrorWhenMultipleUsernameAttributes(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -3290,15 +4641,18 @@ func TestShouldReturnErrorWhenZeroUsernameAttributes(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -3356,15 +4710,18 @@ func TestShouldReturnErrorWhenUsernameAttributeNotReturned(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -3418,15 +4775,18 @@ func TestShouldReturnErrorWhenMultipleUsersFound(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "(|(uid={input})(uid=*))",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "(|(uid={input})(uid=*))",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -3501,15 +4861,18 @@ func TestShouldReturnErrorWhenNoDN(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "(|(uid={input})(uid=*))",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "(|(uid={input})(uid=*))",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -3567,15 +4930,18 @@ func TestShouldCheckValidUserPassword(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -3635,15 +5001,18 @@ func TestShouldNotCheckValidUserPasswordWithConnectError(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -3665,6 +5034,51 @@ func TestShouldNotCheckValidUserPasswordWithConnectError(t *testing.T) {
 	assert.EqualError(t, err, "bind failed with error: LDAP Result Code 49 \"Invalid Credentials\": invalid username or password")
 }
 
+func TestShouldNotCheckValidUserPasswordWithGetProfileError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackend{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	gomock.InOrder(
+		mockFactory.EXPECT().
+			DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+			Return(mockClient, nil),
+		mockClient.EXPECT().
+			Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+			Return(nil),
+		mockClient.EXPECT().
+			Search(gomock.Any()).
+			Return(nil, &ldap.Error{ResultCode: ldap.LDAPResultBusy, Err: errors.New("directory server busy")}),
+		mockClient.EXPECT().Close(),
+	)
+
+	valid, err := provider.CheckUserPassword("john", "password")
+
+	assert.False(t, valid)
+	assert.EqualError(t, err, "cannot find user DN of user 'john'. Cause: LDAP Result Code 51 \"Busy\": directory server busy")
+}
+
 func TestShouldCheckInvalidUserPassword(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -3674,15 +5088,18 @@ func TestShouldCheckInvalidUserPassword(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
 		},
 		false,
 		nil,
@@ -3742,16 +5159,20 @@ func TestShouldCallStartTLSWhenEnabled(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
-			StartTLS:             true,
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				GroupName:   "cn",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			StartTLS:          true,
 		},
 		false,
 		nil,
@@ -3817,18 +5238,21 @@ func TestShouldParseDynamicConfiguration(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt})(accountExpires>={date-time:generalized})))",
-			GroupsFilter:         "(&(|(member={dn})(member={input})(member={username}))(objectClass=group))",
-			AdditionalUsersDN:    "ou=users",
-			AdditionalGroupsDN:   "ou=groups",
-			BaseDN:               "dc=example,dc=com",
-			StartTLS:             true,
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:        "(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpiresM>={date-time:microsoft-nt})(accountExpiresU>={date-time:unix})(accountExpiresG>={date-time:generalized})))",
+			GroupsFilter:       "(&(|(member={dn})(member={input})(member={username}))(objectClass=group))",
+			AdditionalUsersDN:  "ou=users",
+			AdditionalGroupsDN: "ou=groups",
+			BaseDN:             "dc=example,dc=com",
+			StartTLS:           true,
 		},
 		false,
 		nil,
@@ -3848,12 +5272,12 @@ func TestShouldParseDynamicConfiguration(t *testing.T) {
 	assert.True(t, provider.usersFilterReplacementDateTimeGeneralized)
 	assert.True(t, provider.usersFilterReplacementDateTimeMicrosoftNTTimeEpoch)
 
-	assert.Equal(t, "(&(|(uid={input})(mail={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt})(accountExpires>={date-time:generalized})))", provider.config.UsersFilter)
+	assert.Equal(t, "(&(|(uid={input})(mail={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpiresM>={date-time:microsoft-nt})(accountExpiresU>={date-time:unix})(accountExpiresG>={date-time:generalized})))", provider.config.UsersFilter)
 	assert.Equal(t, "(&(|(member={dn})(member={input})(member={username}))(objectClass=group))", provider.config.GroupsFilter)
 	assert.Equal(t, "ou=users,dc=example,dc=com", provider.usersBaseDN)
 	assert.Equal(t, "ou=groups,dc=example,dc=com", provider.groupsBaseDN)
 
-	assert.Equal(t, "(&(|(uid=test@example.com)(mail=test@example.com))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>=133147241190000000)(accountExpires>=20221205142839.0Z)))", provider.resolveUsersFilter("test@example.com"))
+	assert.Equal(t, "(&(|(uid=test@example.com)(mail=test@example.com))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpiresM>=133147241190000000)(accountExpiresU>=1670250519)(accountExpiresG>=20221205142839.0Z)))", provider.resolveUsersFilter("test@example.com"))
 	assert.Equal(t, "(&(|(member=cn=admin,dc=example,dc=com)(member=test@example.com)(member=test))(objectClass=group))", provider.resolveGroupsFilter("test@example.com", &ldapUserProfile{Username: "test", DN: "cn=admin,dc=example,dc=com"}))
 }
 
@@ -3866,16 +5290,20 @@ func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
-			StartTLS:             true,
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				GroupName:   "cn",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			StartTLS:          true,
 			TLS: &schema.TLSConfig{
 				SkipVerify: true,
 			},
@@ -3924,6 +5352,10 @@ func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T
 							Name:   "uid",
 							Values: []string{"john"},
 						},
+						{
+							Name:   "memberOf",
+							Values: []string{"CN=example,DC=corp,DC=com"},
+						},
 					},
 				},
 			},
@@ -3949,16 +5381,19 @@ func TestShouldReturnLDAPSAlreadySecuredWhenStartTLSAttempted(t *testing.T) {
 
 	provider := NewLDAPUserProviderWithFactory(
 		schema.LDAPAuthenticationBackend{
-			URL:                  "ldaps://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			Password:             "password",
-			UsernameAttribute:    "uid",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-			UsersFilter:          "uid={input}",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
-			StartTLS:             true,
+			Address:  testLDAPSAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.LDAPAuthenticationAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			StartTLS:          true,
 			TLS: &schema.TLSConfig{
 				SkipVerify: true,
 			},

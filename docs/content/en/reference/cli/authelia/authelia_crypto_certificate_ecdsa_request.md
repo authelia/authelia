@@ -48,6 +48,7 @@ authelia crypto certificate ecdsa request --help
       --not-before string             earliest date and time the certificate is considered valid in various formats (default is now)
   -o, --organization strings          certificate organization (default [Authelia])
       --organizational-unit strings   certificate organizational unit
+      --pkcs8                         force PKCS #8 ASN.1 format
   -p, --postcode strings              certificate postcode
       --province strings              certificate province
       --sans strings                  subject alternative names

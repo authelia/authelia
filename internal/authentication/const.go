@@ -2,20 +2,8 @@ package authentication
 
 import (
 	"errors"
-)
 
-// Level is the type representing a level of authentication.
-type Level int
-
-const (
-	// NotAuthenticated if the user is not authenticated yet.
-	NotAuthenticated Level = iota
-
-	// OneFactor if the user has passed first factor only.
-	OneFactor
-
-	// TwoFactor if the user has passed two factors.
-	TwoFactor
+	"golang.org/x/text/encoding/unicode"
 )
 
 const (
@@ -72,12 +60,19 @@ const (
 )
 
 const (
-	ldapPlaceholderInput                        = "{input}"
-	ldapPlaceholderDistinguishedName            = "{dn}"
-	ldapPlaceholderUsername                     = "{username}"
-	ldapPlaceholderDateTimeGeneralized          = "{date-time:generalized}"
-	ldapPlaceholderDateTimeMicrosoftNTTimeEpoch = "{date-time:microsoft-nt}"
-	ldapPlaceholderDateTimeUnixEpoch            = "{date-time:unix}"
+	ldapPlaceholderInput                             = "{input}"
+	ldapPlaceholderDistinguishedName                 = "{dn}"
+	ldapPlaceholderMemberOfDistinguishedName         = "{memberof:dn}"
+	ldapPlaceholderMemberOfRelativeDistinguishedName = "{memberof:rdn}"
+	ldapPlaceholderUsername                          = "{username}"
+	ldapPlaceholderDateTimeGeneralized               = "{date-time:generalized}"
+	ldapPlaceholderDateTimeMicrosoftNTTimeEpoch      = "{date-time:microsoft-nt}"
+	ldapPlaceholderDateTimeUnixEpoch                 = "{date-time:unix}"
+	ldapPlaceholderDistinguishedNameAttribute        = "{distinguished_name_attribute}"
+	ldapPlaceholderUsernameAttribute                 = "{username_attribute}"
+	ldapPlaceholderDisplayNameAttribute              = "{display_name_attribute}"
+	ldapPlaceholderMailAttribute                     = "{mail_attribute}"
+	ldapPlaceholderMemberOfAttribute                 = "{member_of_attribute}"
 )
 
 const (
@@ -109,3 +104,7 @@ const fileAuthenticationMode = 0600
 // OWASP recommends to escape some special characters.
 // https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.md
 const specialLDAPRunes = ",#+<>;\"="
+
+var (
+	encodingUTF16LittleEndian = unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)
+)

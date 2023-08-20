@@ -120,6 +120,11 @@ const (
 	labelAreaPrefixStatus   = "status"
 )
 
+type label interface {
+	String() string
+	LabelDescription() string
+}
+
 type labelPriority int
 
 //nolint:deadcode,varcheck // Kept for future use.
@@ -129,6 +134,7 @@ const (
 	labelPriorityMedium
 	labelPriorityNormal
 	labelPriorityLow
+	labelPriorityVeryLow
 )
 
 var labelPriorityDescriptions = [...]string{
@@ -137,14 +143,15 @@ var labelPriorityDescriptions = [...]string{
 	"Medium",
 	"Normal",
 	"Low",
+	"Very Low",
 }
 
-func (p labelPriority) String() string {
-	return fmt.Sprintf("%s/%d/%s", labelAreaPrefixPriority, p+1, strings.ToLower(labelPriorityDescriptions[p]))
+func (l labelPriority) String() string {
+	return fmt.Sprintf("%s/%d/%s", labelAreaPrefixPriority, l+1, labelFormatString(labelPriorityDescriptions[l]))
 }
 
-func (p labelPriority) Description() string {
-	return labelPriorityDescriptions[p]
+func (l labelPriority) LabelDescription() string {
+	return labelPriorityDescriptions[l]
 }
 
 type labelStatus int
@@ -155,12 +162,16 @@ const (
 )
 
 var labelStatusDescriptions = [...]string{
-	"needs-design",
-	"needs-triage",
+	"Needs Design",
+	"Needs Triage",
 }
 
-func (s labelStatus) String() string {
-	return fmt.Sprintf("%s/%s", labelAreaPrefixStatus, labelStatusDescriptions[s])
+func (l labelStatus) String() string {
+	return fmt.Sprintf("%s/%s", labelAreaPrefixStatus, labelFormatString(labelStatusDescriptions[l]))
+}
+
+func (l labelStatus) LabelDescription() string {
+	return labelStatusDescriptions[l]
 }
 
 type labelType int
@@ -173,13 +184,24 @@ const (
 )
 
 var labelTypeDescriptions = [...]string{
-	"feature",
-	"bug/unconfirmed",
-	"bug",
+	"Feature",
+	"Bug: Unconfirmed",
+	"Bug",
 }
 
-func (t labelType) String() string {
-	return fmt.Sprintf("%s/%s", labelAreaPrefixType, labelTypeDescriptions[t])
+func (l labelType) String() string {
+	return fmt.Sprintf("%s/%s", labelAreaPrefixType, labelFormatString(labelTypeDescriptions[l]))
+}
+
+func (l labelType) LabelDescription() string {
+	return labelTypeDescriptions[l]
+}
+
+func labelFormatString(in string) string {
+	in = strings.ReplaceAll(in, ": ", "/")
+	in = strings.ReplaceAll(in, " ", "-")
+
+	return strings.ToLower(in)
 }
 
 // CSPValue represents individual CSP values.

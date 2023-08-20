@@ -56,7 +56,9 @@ func TestValidateTOTP(t *testing.T) {
 				Skew:       schema.DefaultTOTPConfiguration.Skew,
 				Issuer:     "abc",
 			},
-			errs: []string{"totp: option 'algorithm' must be one of 'SHA1', 'SHA256', 'SHA512' but it is configured as 'SHA3'"},
+			errs: []string{
+				"totp: option 'algorithm' must be one of 'SHA1', 'SHA256', or 'SHA512' but it's configured as 'SHA3'",
+			},
 		},
 		{
 			desc: "ShouldRaiseErrorWhenInvalidTOTPValue",
@@ -69,10 +71,10 @@ func TestValidateTOTP(t *testing.T) {
 				Issuer:     "abc",
 			},
 			errs: []string{
-				"totp: option 'algorithm' must be one of 'SHA1', 'SHA256', 'SHA512' but it is configured as 'SHA3'",
-				"totp: option 'period' option must be 15 or more but it is configured as '5'",
-				"totp: option 'digits' must be 6 or 8 but it is configured as '20'",
-				"totp: option 'secret_size' must be 20 or higher but it is configured as '10'",
+				"totp: option 'algorithm' must be one of 'SHA1', 'SHA256', or 'SHA512' but it's configured as 'SHA3'",
+				"totp: option 'period' option must be 15 or more but it's configured as '5'",
+				"totp: option 'digits' must be 6 or 8 but it's configured as '20'",
+				"totp: option 'secret_size' must be 20 or higher but it's configured as '10'",
 			},
 		},
 	}

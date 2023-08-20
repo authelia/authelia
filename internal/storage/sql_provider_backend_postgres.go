@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
@@ -31,7 +30,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 
 	// Specific alterations to this provider.
 	// PostgreSQL doesn't have a UPSERT statement but has an ON CONFLICT operation instead.
-	provider.sqlUpsertWebauthnDevice = fmt.Sprintf(queryFmtUpsertWebauthnDevicePostgreSQL, tableWebauthnDevices)
+	provider.sqlUpsertWebAuthnDevice = fmt.Sprintf(queryFmtUpsertWebAuthnDevicePostgreSQL, tableWebAuthnDevices)
 	provider.sqlUpsertDuoDevice = fmt.Sprintf(queryFmtUpsertDuoDevicePostgreSQL, tableDuoDevices)
 	provider.sqlUpsertTOTPConfig = fmt.Sprintf(queryFmtUpsertTOTPConfigurationPostgreSQL, tableTOTPConfigurations)
 	provider.sqlUpsertPreferred2FAMethod = fmt.Sprintf(queryFmtUpsertPreferred2FAMethodPostgreSQL, tableUserPreferences)
@@ -59,13 +58,13 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlDeleteTOTPConfig = provider.db.Rebind(provider.sqlDeleteTOTPConfig)
 	provider.sqlSelectTOTPConfigs = provider.db.Rebind(provider.sqlSelectTOTPConfigs)
 
-	provider.sqlSelectWebauthnDevices = provider.db.Rebind(provider.sqlSelectWebauthnDevices)
-	provider.sqlSelectWebauthnDevicesByUsername = provider.db.Rebind(provider.sqlSelectWebauthnDevicesByUsername)
-	provider.sqlUpdateWebauthnDeviceRecordSignIn = provider.db.Rebind(provider.sqlUpdateWebauthnDeviceRecordSignIn)
-	provider.sqlUpdateWebauthnDeviceRecordSignInByUsername = provider.db.Rebind(provider.sqlUpdateWebauthnDeviceRecordSignInByUsername)
-	provider.sqlDeleteWebauthnDevice = provider.db.Rebind(provider.sqlDeleteWebauthnDevice)
-	provider.sqlDeleteWebauthnDeviceByUsername = provider.db.Rebind(provider.sqlDeleteWebauthnDeviceByUsername)
-	provider.sqlDeleteWebauthnDeviceByUsernameAndDescription = provider.db.Rebind(provider.sqlDeleteWebauthnDeviceByUsernameAndDescription)
+	provider.sqlSelectWebAuthnDevices = provider.db.Rebind(provider.sqlSelectWebAuthnDevices)
+	provider.sqlSelectWebAuthnDevicesByUsername = provider.db.Rebind(provider.sqlSelectWebAuthnDevicesByUsername)
+	provider.sqlUpdateWebAuthnDeviceRecordSignIn = provider.db.Rebind(provider.sqlUpdateWebAuthnDeviceRecordSignIn)
+	provider.sqlUpdateWebAuthnDeviceRecordSignInByUsername = provider.db.Rebind(provider.sqlUpdateWebAuthnDeviceRecordSignInByUsername)
+	provider.sqlDeleteWebAuthnDevice = provider.db.Rebind(provider.sqlDeleteWebAuthnDevice)
+	provider.sqlDeleteWebAuthnDeviceByUsername = provider.db.Rebind(provider.sqlDeleteWebAuthnDeviceByUsername)
+	provider.sqlDeleteWebAuthnDeviceByUsernameAndDescription = provider.db.Rebind(provider.sqlDeleteWebAuthnDeviceByUsernameAndDescription)
 
 	provider.sqlSelectDuoDevice = provider.db.Rebind(provider.sqlSelectDuoDevice)
 	provider.sqlDeleteDuoDevice = provider.db.Rebind(provider.sqlDeleteDuoDevice)
@@ -109,6 +108,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectOAuth2OpenIDConnectSession = provider.db.Rebind(provider.sqlSelectOAuth2OpenIDConnectSession)
 
 	provider.sqlInsertOAuth2PARContext = provider.db.Rebind(provider.sqlInsertOAuth2PARContext)
+	provider.sqlUpdateOAuth2PARContext = provider.db.Rebind(provider.sqlUpdateOAuth2PARContext)
 	provider.sqlRevokeOAuth2PARContext = provider.db.Rebind(provider.sqlRevokeOAuth2PARContext)
 	provider.sqlSelectOAuth2PARContext = provider.db.Rebind(provider.sqlSelectOAuth2PARContext)
 
@@ -136,8 +136,8 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 func dsnPostgreSQL(config *schema.PostgreSQLStorageConfiguration, globalCACertPool *x509.CertPool) (dsn string) {
 	dsnConfig, _ := pgx.ParseConfig("")
 
-	dsnConfig.Host = config.Host
-	dsnConfig.Port = uint16(config.Port)
+	dsnConfig.Host = config.Address.SocketHostname()
+	dsnConfig.Port = uint16(config.Address.Port())
 	dsnConfig.Database = config.Database
 	dsnConfig.User = config.Username
 	dsnConfig.Password = config.Password
@@ -147,7 +147,7 @@ func dsnPostgreSQL(config *schema.PostgreSQLStorageConfiguration, globalCACertPo
 		"search_path": config.Schema,
 	}
 
-	if dsnConfig.Port == 0 && !path.IsAbs(dsnConfig.Host) {
+	if dsnConfig.Port == 0 && config.Address.IsUnixDomainSocket() {
 		dsnConfig.Port = 5432
 	}
 
@@ -190,7 +190,7 @@ func loadPostgreSQLTLSConfig(config *schema.PostgreSQLStorageConfiguration, glob
 			tlsConfig.VerifyPeerCertificate = newPostgreSQLVerifyCAFunc(tlsConfig)
 		case config.SSL.Mode == "verify-full":
 			tlsConfig.InsecureSkipVerify = false
-			tlsConfig.ServerName = config.Host
+			tlsConfig.ServerName = config.Address.Hostname()
 		}
 	}
 

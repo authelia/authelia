@@ -101,6 +101,20 @@ func TestSpecificErrorKeys(t *testing.T) {
 	assert.EqualError(t, errs[4], specificErrorKeys["authentication_backend.file.hashing.algorithm"])
 }
 
+func TestPatternKeys(t *testing.T) {
+	configKeys := []string{
+		"server.endpoints.authz.xx.implementation",
+		"server.endpoints.authz.x.implementation",
+	}
+
+	val := schema.NewStructValidator()
+	ValidateKeys(configKeys, "AUTHELIA_", val)
+
+	errs := val.Errors()
+
+	require.Len(t, errs, 0)
+}
+
 func TestReplacedErrors(t *testing.T) {
 	configKeys := []string{
 		"authentication_backend.ldap.skip_verify",

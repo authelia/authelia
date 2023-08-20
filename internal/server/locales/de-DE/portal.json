@@ -39,6 +39,7 @@
 	"Password": "Passwort",
 	"Passwords do not match": "Die Passwörter stimmen nicht überein.",
 	"Powered by": "Betrieben mit",
+	"Privacy Policy": "Datenschutzerklärung",
 	"Push Notification": "Push-Benachrichtigung",
 	"Register device": "Gerät registrieren",
 	"Register your first device by clicking on the link below": "Registrieren Sie Ihr erstes Gerät, indem Sie auf den unten stehenden Link klicken.",
@@ -67,6 +68,7 @@
 	"Use OpenID to verify your identity": "Verwenden Sie OpenID, um Ihre Identität zu überprüfen",
 	"Username": "Benutzername",
 	"You must open the link from the same device and browser that initiated the registration process": "Sie müssen den Link mit demselben Gerät und demselben Browser öffnen, mit dem Sie den Registrierungsprozess gestartet haben.",
+	"You must view and accept the Privacy Policy before using": "Sie müssen erst die <0>Datenschutzerklärung</0> ansehen und akzeptieren",
 	"You're being signed out and redirected": "Sie werden abgemeldet und umgeleitet",
 	"Your supplied password does not meet the password policy requirements": "Ihr angegebenes Passwort entspricht nicht den Anforderungen der Passwortrichtlinie."
 }

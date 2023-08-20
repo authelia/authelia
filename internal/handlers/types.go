@@ -30,8 +30,8 @@ type bodySignTOTPRequest struct {
 	WorkflowID string `json:"workflowID"`
 }
 
-// bodySignWebauthnRequest is the  model of the request body of WebAuthn 2FA authentication endpoint.
-type bodySignWebauthnRequest struct {
+// bodySignWebAuthnRequest is the  model of the request body of WebAuthn 2FA authentication endpoint.
+type bodySignWebAuthnRequest struct {
 	TargetURL  string `json:"targetURL"`
 	Workflow   string `json:"workflow"`
 	WorkflowID string `json:"workflowID"`
@@ -143,7 +143,7 @@ type PasswordPolicyBody struct {
 }
 
 type handlerAuthorizationConsent func(
-	ctx *middlewares.AutheliaCtx, issuer *url.URL, client *oidc.Client,
+	ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
 	userSession session.UserSession, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request,
 	requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool)

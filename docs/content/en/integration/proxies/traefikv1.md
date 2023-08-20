@@ -50,6 +50,47 @@ networks to the trusted proxy list in [Traefik]:
 * 192.168.0.0/16
 * fc00::/7
 
+## Assumptions and Adaptation
+
+This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
+can not reasonably have examples for every advanced configuration option that exists. The
+following are the assumptions we make:
+
+* Deployment Scenario:
+  * Single Host
+  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
+  * Proxy is deployed as a Container on a network shared with Authelia
+* The above assumption means that Authelia should be accessible to the proxy on `http://authelia:9091` and as such:
+  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
+    certificate defined
+  * You will have to adapt all instances of `authelia` in the URL if:
+    * you're using a different container name
+    * you deployed the proxy to a different location
+  * You will have to adapt all instances of `9091` in the URL if:
+    * you have adjusted the default port in the configuration
+  * You will have to adapt the entire URL if:
+    * Authelia is on a different host to the proxy
+* All services are part of the `example.com` domain:
+  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
+    just testing or you want ot use that specific domain
+
+## Implementation
+
+[Traefik] utilizes the [ForwardAuth](../../reference/guides/proxy-authorization.md#forwardauth) Authz implementation. The
+associated [Metadata](../../reference/guides/proxy-authorization.md#forwardauth-metadata) should be considered required.
+
+The examples below assume you are using the default
+[Authz Endpoints Configuration](../../configuration/miscellaneous/server-endpoints-authz.md) or one similar to the
+following minimal configuration:
+
+```yaml
+server:
+  endpoints:
+    authz:
+      forward-auth:
+        implementation: 'ForwardAuth'
+```
+
 ## Configuration
 
 Below you will find commented examples of the following docker deployment:
@@ -78,15 +119,15 @@ version: '3'
 
 networks:
   net:
-    driver: bridge
+    driver: 'bridge'
 services:
   traefik:
-    image: traefik:v1.7.34-alpine
-    container_name: traefik
+    image: 'traefik:v1.7.34-alpine'
+    container_name: 'traefik'
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - '/var/run/docker.sock:/var/run/docker.sock'
     networks:
-      - net
+      - 'net'
     labels:
       - 'traefik.frontend.rule=Host:traefik.example.com'
       - 'traefik.port=8081'
@@ -94,7 +135,7 @@ services:
       - '80:80'
       - '443:443'
       - '8081:8081'
-    restart: unless-stopped
+    restart: 'unless-stopped'
     command:
       - '--api'
       - '--api.entrypoint=api'
@@ -110,27 +151,27 @@ services:
       # - '--entryPoints=Name:https Address::443 TLS ForwardedHeaders.TrustedIPs:10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7 ProxyProtocol.TrustedIPs:10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7'
       - '--entryPoints=Name:api Address::8081'
   authelia:
-    image: authelia/authelia
-    container_name: authelia
+    image: 'authelia/authelia'
+    container_name: 'authelia'
     volumes:
-      - /path/to/authelia:/config
+      - '/path/to/authelia:/config'
     networks:
-      - net
+      - 'net'
     labels:
       - 'traefik.frontend.rule=Host:auth.example.com'
     expose:
       - 9091
-    restart: unless-stopped
+    restart: 'unless-stopped'
     environment:
-      - TZ=Australia/Melbourne
+      TZ: 'Australia/Melbourne'
   nextcloud:
-    image: linuxserver/nextcloud
-    container_name: nextcloud
+    image: 'linuxserver/nextcloud'
+    container_name: 'nextcloud'
     volumes:
-      - /path/to/nextcloud/config:/config
-      - /path/to/nextcloud/data:/data
+      - '/path/to/nextcloud/config:/config'
+      - '/path/to/nextcloud/data:/data'
     networks:
-      - net
+      - 'net'
     labels:
       - 'traefik.frontend.rule=Host:nextcloud.example.com'
       - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/authz/forward-auth'
@@ -141,18 +182,18 @@ services:
       - 'traefik.frontend.auth.forward.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Email,Remote-Name'
     expose:
       - 443
-    restart: unless-stopped
+    restart: 'unless-stopped'
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Australia/Melbourne
+      PUID: '1000'
+      PGID: '1000'
+      TZ: 'Australia/Melbourne'
   heimdall:
-    image: linuxserver/heimdall
-    container_name: heimdall
+    image: 'linuxserver/heimdall'
+    container_name: 'heimdall'
     volumes:
-      - /path/to/heimdall/config:/config
+      - '/path/to/heimdall/config:/config'
     networks:
-      - net
+      - 'net'
     labels:
       - 'traefik.frontend.rule=Host:heimdall.example.com'
       - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/authz/forward-auth/basic'
@@ -160,11 +201,11 @@ services:
       - 'traefik.frontend.auth.forward.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Email,Remote-Name'
     expose:
       - 443
-    restart: unless-stopped
+    restart: 'unless-stopped'
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Australia/Melbourne
+      PUID: '1000'
+      PGID: '1000'
+      TZ: 'Australia/Melbourne'
 ```
 
 ## See Also

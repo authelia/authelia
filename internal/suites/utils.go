@@ -17,6 +17,7 @@ import (
 	"github.com/go-rod/rod"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
+	"github.com/valyala/fasthttp"
 )
 
 var browserPaths = []string{"/usr/bin/chromium-browser", "/usr/bin/chromium"}
@@ -264,8 +265,8 @@ func getDomainEnvInfo(domain string) (info map[string]string, err error) {
 		return info, err
 	}
 
-	req.Header.Set("X-Forwarded-Proto", "https")
-	req.Header.Set("X-Forwarded-Host", domain)
+	req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
+	req.Header.Set(fasthttp.HeaderXForwardedHost, domain)
 
 	if resp, err = client.Do(req); err != nil {
 		return info, err

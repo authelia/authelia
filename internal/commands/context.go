@@ -162,9 +162,7 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 		ctx.providers.Notifier = notification.NewFileNotifier(*ctx.config.Notifier.FileSystem)
 	}
 
-	if ctx.providers.OpenIDConnect, err = oidc.NewOpenIDConnectProvider(ctx.config.IdentityProviders.OIDC, ctx.providers.StorageProvider, ctx.providers.Templates); err != nil {
-		errs = append(errs, err)
-	}
+	ctx.providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(ctx.config.IdentityProviders.OIDC, ctx.providers.StorageProvider, ctx.providers.Templates)
 
 	if ctx.config.Telemetry.Metrics.Enabled {
 		ctx.providers.Metrics = metrics.NewPrometheus()
@@ -318,7 +316,7 @@ func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
 		configs []string
 
-		filters []configuration.FileFilter
+		filters []configuration.BytesFilter
 	)
 
 	if configs, filters, err = loadXEnvCLIConfigValues(cmd); err != nil {

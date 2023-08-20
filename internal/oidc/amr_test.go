@@ -1,10 +1,12 @@
-package oidc
+package oidc_test
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
 type testAMRWant struct {
@@ -17,13 +19,13 @@ type testAMRWant struct {
 func TestAuthenticationMethodsReferences(t *testing.T) {
 	testCases := []struct {
 		desc string
-		is   AuthenticationMethodsReferences
+		is   oidc.AuthenticationMethodsReferences
 		want testAMRWant
 	}{
 		{
 			desc: "Username and Password",
 
-			is: AuthenticationMethodsReferences{UsernameAndPassword: true},
+			is: oidc.AuthenticationMethodsReferences{UsernameAndPassword: true},
 			want: testAMRWant{
 				FactorKnowledge:            true,
 				FactorPossession:           false,
@@ -37,7 +39,7 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 		{
 			desc: "TOTP",
 
-			is: AuthenticationMethodsReferences{TOTP: true},
+			is: oidc.AuthenticationMethodsReferences{TOTP: true},
 			want: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           true,
@@ -49,9 +51,9 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 			},
 		},
 		{
-			desc: "Webauthn",
+			desc: "WebAuthn",
 
-			is: AuthenticationMethodsReferences{Webauthn: true},
+			is: oidc.AuthenticationMethodsReferences{WebAuthn: true},
 			want: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           true,
@@ -63,9 +65,9 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 			},
 		},
 		{
-			desc: "Webauthn User Presence",
+			desc: "WebAuthn User Presence",
 
-			is: AuthenticationMethodsReferences{WebauthnUserPresence: true},
+			is: oidc.AuthenticationMethodsReferences{WebAuthnUserPresence: true},
 			want: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           false,
@@ -77,9 +79,9 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 			},
 		},
 		{
-			desc: "Webauthn User Verified",
+			desc: "WebAuthn User Verified",
 
-			is: AuthenticationMethodsReferences{WebauthnUserVerified: true},
+			is: oidc.AuthenticationMethodsReferences{WebAuthnUserVerified: true},
 			want: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           false,
@@ -91,9 +93,9 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 			},
 		},
 		{
-			desc: "Webauthn with User Presence and Verified",
+			desc: "WebAuthn with User Presence and Verified",
 
-			is: AuthenticationMethodsReferences{Webauthn: true, WebauthnUserVerified: true, WebauthnUserPresence: true},
+			is: oidc.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnUserVerified: true, WebAuthnUserPresence: true},
 			want: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           true,
@@ -107,7 +109,7 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 		{
 			desc: "Duo",
 
-			is: AuthenticationMethodsReferences{Duo: true},
+			is: oidc.AuthenticationMethodsReferences{Duo: true},
 			want: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           true,
@@ -119,9 +121,9 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 			},
 		},
 		{
-			desc: "Duo Webauthn TOTP",
+			desc: "Duo WebAuthn TOTP",
 
-			is: AuthenticationMethodsReferences{Duo: true, Webauthn: true, TOTP: true},
+			is: oidc.AuthenticationMethodsReferences{Duo: true, WebAuthn: true, TOTP: true},
 			want: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           true,
@@ -135,7 +137,7 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 		{
 			desc: "Duo TOTP",
 
-			is: AuthenticationMethodsReferences{Duo: true, TOTP: true},
+			is: oidc.AuthenticationMethodsReferences{Duo: true, TOTP: true},
 			want: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           true,
@@ -149,7 +151,7 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 		{
 			desc: "Username and Password with Duo",
 
-			is: AuthenticationMethodsReferences{Duo: true, UsernameAndPassword: true},
+			is: oidc.AuthenticationMethodsReferences{Duo: true, UsernameAndPassword: true},
 			want: testAMRWant{
 				FactorKnowledge:            true,
 				FactorPossession:           true,

@@ -23,6 +23,8 @@ There are two ways to integrate *Authelia* with an authentication backend:
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 authentication_backend:
   refresh_interval: 5m
@@ -33,9 +35,12 @@ authentication_backend:
 
 ## Options
 
+This section describes the individual configuration options.
+
 ### refresh_interval
 
 {{< confkey type="duration" default="5m" required="no" >}}
+{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
 
 This setting controls the interval at which details are refreshed from the backend. Particularly useful for
 [LDAP](#ldap).

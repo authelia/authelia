@@ -14,8 +14,8 @@ aliases:
   - /r/dashboard
 ---
 
-This feature has several major impacts on other roadmap items. For example several OpenID Connect features would greatly
-benefit from a dashboard. It would also be important when we implement WebAuthn features like passwordless
+This feature has several major impacts on other roadmap items. For example several OpenID Connect 1.0 features would
+greatly benefit from a dashboard. It would also be important when we implement WebAuthn features like passwordless
 authentication allowing users to intentionally register a passwordless credential.
 
 ## Stages

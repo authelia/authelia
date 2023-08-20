@@ -13,8 +13,7 @@ import (
 
 func newDefaultConfig() schema.Configuration {
 	config := schema.Configuration{}
-	config.Server.Host = loopback
-	config.Server.Port = 9090
+	config.Server.Address = &schema.AddressTCP{Address: schema.NewAddressFromNetworkValues("tcp", loopback, 9090)}
 	config.Log.Level = "info"
 	config.Log.Format = "text"
 	config.JWTSecret = testJWTSecret
@@ -188,7 +187,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 			},
 		},
 		{
-			desc: "ShouldAllowConfiguredMethodWebauthn",
+			desc: "ShouldAllowConfiguredMethodWebAuthn",
 			have: &schema.Configuration{
 				Default2FAMethod: "webauthn",
 				DuoAPI: schema.DuoAPIConfiguration{
@@ -221,11 +220,11 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 				TOTP: schema.TOTPConfiguration{Disable: true},
 			},
 			expectedErrs: []string{
-				"option 'default_2fa_method' is configured as 'totp' but must be one of the following enabled method values: 'webauthn', 'mobile_push'",
+				"option 'default_2fa_method' must be one of the enabled options 'webauthn' or 'mobile_push' but it's configured as 'totp'",
 			},
 		},
 		{
-			desc: "ShouldNotAllowDisabledMethodWebauthn",
+			desc: "ShouldNotAllowDisabledMethodWebAuthn",
 			have: &schema.Configuration{
 				Default2FAMethod: "webauthn",
 				DuoAPI: schema.DuoAPIConfiguration{
@@ -233,10 +232,10 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 					IntegrationKey: "another key",
 					Hostname:       "none",
 				},
-				Webauthn: schema.WebauthnConfiguration{Disable: true},
+				WebAuthn: schema.WebAuthnConfiguration{Disable: true},
 			},
 			expectedErrs: []string{
-				"option 'default_2fa_method' is configured as 'webauthn' but must be one of the following enabled method values: 'totp', 'mobile_push'",
+				"option 'default_2fa_method' must be one of the enabled options 'totp' or 'mobile_push' but it's configured as 'webauthn'",
 			},
 		},
 		{
@@ -246,7 +245,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 				DuoAPI:           schema.DuoAPIConfiguration{Disable: true},
 			},
 			expectedErrs: []string{
-				"option 'default_2fa_method' is configured as 'mobile_push' but must be one of the following enabled method values: 'totp', 'webauthn'",
+				"option 'default_2fa_method' must be one of the enabled options 'totp' or 'webauthn' but it's configured as 'mobile_push'",
 			},
 		},
 		{
@@ -255,7 +254,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 				Default2FAMethod: "duo",
 			},
 			expectedErrs: []string{
-				"option 'default_2fa_method' is configured as 'duo' but must be one of the following values: 'totp', 'webauthn', 'mobile_push'",
+				"option 'default_2fa_method' must be one of 'totp', 'webauthn', or 'mobile_push' but it's configured as 'duo'",
 			},
 		},
 	}

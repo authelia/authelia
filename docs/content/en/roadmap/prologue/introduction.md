@@ -25,7 +25,7 @@ be glad to share ideas and plans with you.
 This is a summary of the features which are currently on the roadmap with links to further details:
 
 1. [WebAuthn](../active/webauthn.md)
-2. [OpenID Connect Provider](../active/openid-connect.md)
+2. [OpenID Connect 1.0 Provider](../active/openid-connect.md)
 3. [Internationalization or Multilingual Support](../active/internationalization.md)
 4. [Multiple Domain Protection](../active/multi-domain-protection.md)
 5. [Control Panel / Dashboard for User / Administration Settings](../active/dashboard-control-panel.md)

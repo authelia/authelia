@@ -17,91 +17,70 @@ aliases:
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 server:
-  host: 0.0.0.0
-  port: 9091
-  path: ""
+  address: 'tcp://:9091/'
   disable_healthcheck: false
   tls:
-    key: ""
-    certificate: ""
+    key: ''
+    certificate: ''
     client_certificates: []
   headers:
-    csp_template: ""
+    csp_template: ''
   buffers:
     read: 4096
     write: 4096
   timeouts:
-    read: 6s
-    write: 6s
-    idle: 30s
+    read: '6s'
+    write: '6s'
+    idle: '30s'
   endpoints:
     enable_pprof: false
     enable_expvars: false
     authz:
       forward-auth:
-        implementation: ForwardAuth
+        implementation: 'ForwardAuth'
         authn_strategies: []
       ext-authz:
-        implementation: ExtAuthz
+        implementation: 'ExtAuthz'
         authn_strategies: []
       auth-request:
-        implementation: AuthRequest
+        implementation: 'AuthRequest'
         authn_strategies: []
       legacy:
-        implementation: Legacy
+        implementation: 'Legacy'
         authn_strategies: []
 ```
 
 ## Options
 
-## host
+### address
 
-{{< confkey type="string" default="0.0.0.0" required="no" >}}
+{{< confkey type="address" default="tcp://:9091/" required="no" >}}
+{{< ref-common ref="address" description="Common Syntax: Address" text="This option uses a common syntax. " >}}
 
-Defines the address to listen on. See also [port](#port). Should typically be `0.0.0.0` or `127.0.0.1`, the former for
-containerized environments and the later for daemonized environments like init.d and systemd.
+Configures the listener address for the Main HTTP Server. The address itself is a listener and the scheme must either be
+the `unix` scheme or one of the `tcp` schemes. It can configure the host, port, and path the listener responds to. If
+the path is configured to anything other than `/` Authelia will handle requests for both `/` and the configured path.
 
-Note: If utilising an IPv6 literal address it must be enclosed by square brackets and quoted:
-
-```yaml
-host: "[fd00:1111:2222:3333::1]"
-```
-
-### port
-
-{{< confkey type="integer" default="9091" required="no" >}}
-
-Defines the port to listen on. See also [host](#host).
-
-### path
-
-{{< confkey type="string " required="no" >}}
-
-Authelia by default is served from the root `/` location, either via its own domain or subdomain.
-
-Modifying this setting will allow you to serve Authelia out from a specified base path. Please note
-that currently only a single level path is supported meaning slashes are not allowed, and only
-alphanumeric characters are supported.
-
-__Example:__
+__Examples:__
 
 ```yaml
 server:
-  path: ""
+  address: tcp://127.0.0.1:9091/
 ```
-
-*Works for https://auth.example.com/, https://example.com/, etc*.
-
-__Example:__
 
 ```yaml
 server:
-  path: authelia
+  address: tcp://127.0.0.1:9091/subpath
 ```
 
-*Works for https://auth.example.com/authelia/,  https://example.com/authelia/, etc*.
+```yaml
+server:
+  address: unix:///var/run/authelia.sock
+```
 
 ### asset_path
 
@@ -171,13 +150,15 @@ research about how browsers utilize and understand this header before attempting
 
 ### buffers
 
-Configures the server buffers. See the [Server Buffers](../prologue/common.md#server-buffers) documentation for more
-information.
+{{< confkey type="structure" required="no" common="../../prologue/common#server-buffers" common-name="Server buffers common structure" >}}
+
+Configures the server buffers.
 
 ### timeouts
 
-Configures the server timeouts. See the [Server Timeouts](../prologue/common.md#server-timeouts) documentation for more
-information.
+{{< confkey type="structure" required="no" common="../../prologue/common#server-timeouts" common-name="Server timeouts common structure" >}}
+
+Configures the server timeouts.
 
 ### endpoints
 
@@ -192,10 +173,10 @@ Enables the go [pprof](https://pkg.go.dev/net/http/pprof) endpoints.
 
 #### enable_expvars
 
+{{< confkey type="boolean" default="false" required="no" >}}
+
 *__Security Note:__ This is a developer endpoint. __DO NOT__ enable it unless you know why you're enabling it.
 __DO NOT__ enable this in production.*
-
-{{< confkey type="boolean" default="false" required="no" >}}
 
 Enables the go [expvar](https://pkg.go.dev/expvar) endpoints.
 

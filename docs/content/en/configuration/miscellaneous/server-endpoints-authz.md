@@ -16,22 +16,32 @@ aliases:
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 server:
   endpoints:
     authz:
       forward-auth:
-        implementation: ForwardAuth
-        authn_strategies: []
+        implementation: 'ForwardAuth'
+        authn_strategies:
+          - name: 'HeaderProxyAuthorization'
+          - name: 'CookieSession'
       ext-authz:
-        implementation: ExtAuthz
-        authn_strategies: []
+        implementation: 'ExtAuthz'
+        authn_strategies:
+          - name: 'HeaderProxyAuthorization'
+          - name: 'CookieSession'
       auth-request:
-        implementation: AuthRequest
-        authn_strategies: []
+        implementation: 'AuthRequest'
+        authn_strategies:
+          - name: 'HeaderAuthRequestProxyAuthorization'
+          - name: 'CookieSession'
       legacy:
-        implementation: Legacy
-        authn_strategies: []
+        implementation: 'Legacy'
+        authn_strategies:
+          - name: 'HeaderLegacy'
+          - name: 'CookieSession'
 ```
 
 ## Name

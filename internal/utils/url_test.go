@@ -59,3 +59,8 @@ func TestIsRedirectionSafe_ShouldReturnFalseOnBadDomain(t *testing.T) {
 	assert.False(t, isURLSafe("https://secure.example.comc", "example.com"))
 	assert.False(t, isURLSafe("https://secure.example.co", "example.com"))
 }
+
+func TestHasDomainSuffix(t *testing.T) {
+	assert.False(t, HasDomainSuffix("abc", ""))
+	assert.False(t, HasDomainSuffix("", ""))
+}

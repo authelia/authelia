@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -136,7 +137,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondOK() {
 
 	DuoDevicePOST(s.mock.Ctx)
 
-	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldRespondKOOnInvalidMethod() {

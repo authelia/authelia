@@ -1,0 +1,28 @@
+<table class="table table-hover">
+  <thead>
+  <tr>
+    <th style="text-align: center;" rowspan="2">Application</th>
+    <th style="text-align: center;" colspan="3" class="border-end">Algorithm</th>
+    <th style="text-align: center;" colspan="2">Digits</th>
+  </tr>
+  <tr>
+    <th style="text-align: center;">SHA1</th>
+    <th style="text-align: center;">SHA256</th>
+    <th style="text-align: center;" class="border-end">SHA512</th>
+    <th style="text-align: center;">6</th>
+    <th style="text-align: center;">8</th>
+  </tr>
+  </thead>
+  <tbody>
+  {{- range $.Site.Data.support.totp }}
+  <tr>
+    <td style="text-align: center;"><a href="{{ .url }}" target="_blank">{{ .name }}</a></td>
+    <td style="text-align: center;"><i class="{{ cond .algorithms.SHA1 "icon-support-full" "icon-support-none" }}" data-toggle="tooltip" data-placement="top" title="{{ cond .algorithms.SHA1 "" "Not " }}Supported"></i></td>
+    <td style="text-align: center;"><i class="{{ cond .algorithms.SHA256 "icon-support-full" "icon-support-none" }}" data-toggle="tooltip" data-placement="top" title="{{ cond .algorithms.SHA256 "" "Not " }}Supported"></i></td>
+    <td style="text-align: center;" class="border-end"><i class="{{ cond .algorithms.SHA512 "icon-support-full" "icon-support-none" }}" data-toggle="tooltip" data-placement="top" title="{{ cond .algorithms.SHA512 "" "Not " }}Supported"></i></td>
+    <td style="text-align: center;"><i class="{{ cond .digits.six "icon-support-full" "icon-support-none" }}" data-toggle="tooltip" data-placement="top" title="{{ cond .digits.six "" "Not " }}Supported"></i></td>
+    <td style="text-align: center;"><i class="{{ cond .digits.eight "icon-support-full" "icon-support-none" }}" data-toggle="tooltip" data-placement="top" title="{{ cond .digits.eight "" "Not " }}Supported"></i></td>
+  </tr>
+  {{- end }}
+  </tbody>
+</table>

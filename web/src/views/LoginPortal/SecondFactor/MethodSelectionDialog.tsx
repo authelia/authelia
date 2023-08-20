@@ -39,12 +39,12 @@ const MethodSelectionDialog = function (props: Props) {
                             onClick={() => props.onClick(SecondFactorMethod.TOTP)}
                         />
                     ) : null}
-                    {props.methods.has(SecondFactorMethod.Webauthn) && props.webauthnSupported ? (
+                    {props.methods.has(SecondFactorMethod.WebAuthn) && props.webauthnSupported ? (
                         <MethodItem
                             id="webauthn-option"
                             method={translate("Security Key - WebAuthN")}
                             icon={<FingerTouchIcon size={32} />}
-                            onClick={() => props.onClick(SecondFactorMethod.Webauthn)}
+                            onClick={() => props.onClick(SecondFactorMethod.WebAuthn)}
                         />
                     ) : null}
                     {props.methods.has(SecondFactorMethod.MobilePush) ? (

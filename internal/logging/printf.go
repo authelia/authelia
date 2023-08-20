@@ -13,7 +13,7 @@ type PrintfLogger struct {
 }
 
 // Printf is the implementation of the interface.
-func (l *PrintfLogger) Printf(format string, args ...interface{}) {
+func (l *PrintfLogger) Printf(format string, args ...any) {
 	l.logrus.Logf(l.level, format, args...)
 }
 
@@ -24,6 +24,6 @@ type CtxPrintfLogger struct {
 }
 
 // Printf is the implementation of the interface.
-func (l *CtxPrintfLogger) Printf(_ context.Context, format string, args ...interface{}) {
+func (l *CtxPrintfLogger) Printf(_ context.Context, format string, args ...any) {
 	l.logrus.Logf(l.level, format, args...)
 }

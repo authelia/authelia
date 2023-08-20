@@ -17,18 +17,20 @@ aliases:
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 authentication_backend:
   ldap:
-    implementation: custom
-    url: ldap://127.0.0.1
-    timeout: 5s
+    address: 'ldap://127.0.0.1'
+    implementation: 'custom'
+    timeout: '5s'
     start_tls: false
     tls:
-      server_name: ldap.example.com
+      server_name: 'ldap.example.com'
       skip_verify: false
-      minimum_version: TLS1.2
-      maximum_version: TLS1.3
+      minimum_version: 'TLS1.2'
+      maximum_version: 'TLS1.3'
       certificate_chain: |
         -----BEGIN CERTIFICATE-----
         MIIC5jCCAc6gAwIBAgIRAK4Sj7FiN6PXo/urPfO4E7owDQYJKoZIhvcNAQELBQAw
@@ -96,22 +98,55 @@ authentication_backend:
         27GoE2i5mh6Yez6VAYbUuns3FcwIsMyWLq043Tu2DNkx9ijOOAuQzw^invalid..
         DO NOT USE==
         -----END RSA PRIVATE KEY-----
-    base_dn: DC=example,DC=com
-    additional_users_dn: OU=users
-    users_filter: (&({username_attribute}={input})(objectClass=person))
-    username_attribute: uid
-    mail_attribute: mail
-    display_name_attribute: displayName
-    additional_groups_dn: OU=groups
-    groups_filter: (&(member={dn})(objectClass=groupOfNames))
-    group_name_attribute: cn
+    base_dn: 'DC=example,DC=com'
+    additional_users_dn: 'OU=users'
+    users_filter: '(&({username_attribute}={input})(objectClass=person))'
+    additional_groups_dn: 'OU=groups'
+    groups_filter: '(&(member={dn})(objectClass=groupOfNames))'
+    group_search_mode: 'filter'
     permit_referrals: false
     permit_unauthenticated_bind: false
-    user: CN=admin,DC=example,DC=com
-    password: password
+    user: 'CN=admin,DC=example,DC=com'
+    password: 'password'
+    attributes:
+      distinguished_name: 'distinguishedName'
+      username: 'uid'
+      display_name: 'displayName'
+      mail: 'mail'
+      member_of: 'memberOf'
+      group_name: 'cn'
 ```
 
 ## Options
+
+This section describes the individual configuration options.
+
+### address
+
+{{< confkey type="string" required="yes" >}}
+{{< ref-common ref="address" description="Common Syntax: Address" text="This option uses a common syntax. " >}}
+
+The LDAP URL which consists of a scheme, hostname, and port. Format is `[<scheme>://]<hostname>[:<port>]`. The default
+scheme is `ldapi` if the path is absolute otherwise it's `ldaps`, and the permitted schemes are `ldap`, `ldaps`, or
+`ldapi` (a unix domain socket).
+
+If the scheme is `ldapi` it must be followed by an absolute path to an existing unix domain socket that the
+user/group the Authelia process is running as has the appropriate permissions to access. For example if the socket is
+located at `/var/run/slapd.sock` the address should be `ldapi:///var/run/slapd.sock`.
+
+__Examples:__
+
+```yaml
+authentication_backend:
+  ldap:
+    address: 'ldaps://dc1.example.com'
+```
+
+```yaml
+authentication_backend:
+  ldap:
+    address: 'ldap://[fd00:1111:2222:3333::1]'
+```
 
 ### implementation
 
@@ -121,30 +156,10 @@ Configures the LDAP implementation used by Authelia.
 
 See the [Implementation Guide](../../reference/guides/ldap.md#implementation-guide) for information.
 
-### url
-
-{{< confkey type="string" required="yes" >}}
-
-The LDAP URL which consists of a scheme, address, and port. Format is `<scheme>://<address>:<port>` or
-`<scheme>://<address>` where scheme is either `ldap` or `ldaps`.
-
-```yaml
-authentication_backend:
-  ldap:
-    url: ldaps://dc1.example.com
-```
-
-If utilising an IPv6 literal address it must be enclosed by square brackets:
-
-```yaml
-authentication_backend:
-  ldap:
-    url: ldap://[fd00:1111:2222:3333::1]
-```
-
 ### timeout
 
 {{< confkey type="duration" default="5s" required="no" >}}
+{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
 
 The timeout for dialing an LDAP connection.
 
@@ -158,8 +173,10 @@ URL's are slightly more secure.
 
 ### tls
 
-Controls the TLS connection validation process. You can see how to configure the tls
-section [here](../prologue/common.md#tls-configuration).
+{{< confkey type="structure" required="no" >}}
+{{< ref-common ref="tls" description="Common Structure: TLS" text="This option uses a common structure. " >}}
+
+Controls the TLS connection validation parameters for either StartTLS or the TLS socket.
 
 ### base_dn
 
@@ -191,66 +208,33 @@ The LDAP filter to narrow down which users are valid. This is important to set c
 The default value is dependent on the [implementation](#implementation), refer to the
 [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
 
-### username_attribute
-
-{{< confkey type="string" required="situational" >}}
-
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults)
-for more information.*
-
-The LDAP attribute that maps to the username in *Authelia*. This must contain the `{username_attribute}`
-[placeholder](../../reference/guides/ldap.md#users-filter-replacements).
-
-### mail_attribute
-
-{{< confkey type="string" required="situational" >}}
-
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults)
-for more information.*
-
-The attribute to retrieve which contains the users email addresses. This is important for the device registration and
-password reset processes. The user must have an email address in order for Authelia to perform identity verification
-when a user attempts to reset their password or register a second factor device.
-
-### display_name_attribute
-
-{{< confkey type="string" required="situational" >}}
-
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults](#attribute-defaults) for more information.*
-
-The attribute to retrieve which is shown on the Web UI to the user when they log in.
-
 ### additional_groups_dn
 
 {{< confkey type="string" required="no" >}}
 
-Similar to [additional_users_dn](#additional_users_dn) but it applies to group searches.
+Similar to [additional_users_dn](#additionalusersdn) but it applies to group searches.
 
 ### groups_filter
 
 {{< confkey type="string" required="situational" >}}
 
 *__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [filter defaults](#filter-defaults) for more information.*
+default negating this requirement. Refer to the [filter defaults](../../reference/guides/ldap.md#filter-defaults) for
+more information.*
 
-Similar to [users_filter](#users_filter) but it applies to group searches. In order to include groups the member is not
+Similar to [users_filter](#usersfilter) but it applies to group searches. In order to include groups the member is not
 a direct member of, but is a member of another group that is a member of those (i.e. recursive groups), you may try
 using the following filter which is currently only tested against Microsoft Active Directory:
 
 `(&(member:1.2.840.113556.1.4.1941:={dn})(objectClass=group)(objectCategory=group))`
 
-### group_name_attribute
+### group_search_mode
 
-{{< confkey type="string" required="situational" >}}
+{{< confkey type="string" default="filter" required="no" >}}
 
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults](#attribute-defaults) for more
-information.*
-
-The LDAP attribute that is used by Authelia to determine the group name.
+The group search mode controls how user groups are discovered. The default of `filter` directly uses the filter to
+determine the result. The `memberof` experimental mode does another special filtered search. See the
+[Reference Documentation](../../reference/guides/ldap.md#group-search-modes) for more information.
 
 ### permit_referrals
 
@@ -295,6 +279,71 @@ It's __strongly recommended__ this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters and the user password is changed to this value.
 
+### attributes
+
+The following options configure The directory server attribute mappings.
+
+#### distinguished_name
+
+{{< confkey type="string" required="situational" >}}
+
+*__Note:__ This option is technically not required however it is required when using the group search mode
+`memberof` replacement `{memberof:dn}`.*
+
+The directory server attribute which contains the distinguished name, primarily used to perform filtered searches. There
+is a clear distinction between the actual distinguished name and a distinguished name attribute, all directories have
+distinguished names for objects, but not all have an attribute representing this that can be searched on.
+
+The only known support at this time is with Active Directory.
+
+#### username
+
+{{< confkey type="string" required="situational" >}}
+
+*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
+default negating this requirement. Refer to the [attribute defaults] for more information.*
+
+The directory server attribute that maps to the username in *Authelia*. This must contain the `{username_attribute}` [placeholder].
+
+#### display_name
+
+{{< confkey type="string" required="situational" >}}
+
+*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
+default negating this requirement. Refer to the [attribute defaults] for more information.*
+
+The directory server attribute to retrieve which is shown on the Web UI to the user when they log in.
+
+#### mail
+
+{{< confkey type="string" required="situational" >}}
+
+*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
+default negating this requirement. Refer to the [attribute defaults] for more information.*
+
+The directory server attribute to retrieve which contains the users email addresses. This is important for the device
+registration and password reset processes. The user must have an email address in order for Authelia to perform
+identity verification when a user attempts to reset their password or register a second factor device.
+
+#### member_of
+
+{{< confkey type="string" required="situational" >}}
+
+*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
+default negating this requirement. Refer to the [attribute defaults] for more information.*
+
+The directory server attribute which contains the groups a user is a member of. This is currently only used for the
+`memberof` group search mode.
+
+#### group_name
+
+{{< confkey type="string" required="situational" >}}
+
+*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
+default negating this requirement. Refer to the [attribute defaults] for more information.*
+
+The directory server attribute that is used by Authelia to determine the group name.
+
 ## Refresh Interval
 
 It's recommended you either use the default [refresh interval](introduction.md#refreshinterval) or configure this to
@@ -314,6 +363,8 @@ for your users.
 
 - [LDAP Reference Guide](../../reference/guides/ldap.md)
 
-[username attribute]: #usernameattribute
+[username attribute]: #username
 [TechNet wiki]: https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx
 [RFC2307]: https://datatracker.ietf.org/doc/html/rfc2307
+[attribute defaults]: ../../reference/guides/ldap.md#attribute-defaults
+[placeholder]: ../../reference/guides/ldap.md#users-filter-replacements

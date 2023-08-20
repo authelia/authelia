@@ -50,6 +50,12 @@ func handleAuthzUnauthorizedExtAuthz(ctx *middlewares.AutheliaCtx, authn *Authn,
 		}
 	}
 
-	ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s", authn.Object.String(), authn.Method, authn.Username, statusCode, redirectionURL)
-	ctx.SpecialRedirect(redirectionURL.String(), statusCode)
+	ctx.Logger.Infof(logFmtAuthzRedirect, authn.Object.String(), authn.Method, authn.Username, statusCode, redirectionURL)
+
+	switch authn.Object.Method {
+	case fasthttp.MethodHead:
+		ctx.SpecialRedirectNoBody(redirectionURL.String(), statusCode)
+	default:
+		ctx.SpecialRedirect(redirectionURL.String(), statusCode)
+	}
 }

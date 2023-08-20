@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"net"
 	"path"
 	"strings"
 
@@ -45,7 +46,7 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 	if config.SameSite == "" {
 		config.SameSite = schema.DefaultSessionConfiguration.SameSite
 	} else if !utils.IsStringInSlice(config.SameSite, validSessionSameSiteValues) {
-		validator.Push(fmt.Errorf(errFmtSessionSameSite, strings.Join(validSessionSameSiteValues, "', '"), config.SameSite))
+		validator.Push(fmt.Errorf(errFmtSessionSameSite, strJoinOr(validSessionSameSiteValues), config.SameSite))
 	}
 
 	cookies := len(config.Cookies)
@@ -73,7 +74,7 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 
 func validateSessionCookieDomains(config *schema.SessionConfiguration, validator *schema.StructValidator) {
 	if len(config.Cookies) == 0 {
-		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "domain"))
+		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "cookies"))
 	}
 
 	domains := make([]string, 0)
@@ -110,6 +111,8 @@ func validateSessionDomainName(i int, config *schema.SessionConfiguration, valid
 		return
 	case strings.HasPrefix(d.Domain, "."):
 		validator.PushWarning(fmt.Errorf(errFmtSessionDomainHasPeriodPrefix, sessionDomainDescriptor(i, d)))
+	case net.ParseIP(d.Domain) != nil:
+		return
 	case !strings.Contains(d.Domain, "."):
 		validator.Push(fmt.Errorf(errFmtSessionDomainInvalidDomainNoDots, sessionDomainDescriptor(i, d)))
 		return
@@ -182,7 +185,7 @@ func validateSessionSameSite(i int, config *schema.SessionConfiguration, validat
 			config.Cookies[i].SameSite = schema.DefaultSessionConfiguration.SameSite
 		}
 	} else if !utils.IsStringInSlice(config.Cookies[i].SameSite, validSessionSameSiteValues) {
-		validator.Push(fmt.Errorf(errFmtSessionDomainSameSite, sessionDomainDescriptor(i, config.Cookies[i]), strings.Join(validSessionSameSiteValues, "', '"), config.Cookies[i].SameSite))
+		validator.Push(fmt.Errorf(errFmtSessionDomainSameSite, sessionDomainDescriptor(i, config.Cookies[i]), strJoinOr(validSessionSameSiteValues), config.Cookies[i].SameSite))
 	}
 }
 
@@ -215,7 +218,9 @@ func validateRedis(config *schema.SessionConfiguration, validator *schema.Struct
 
 	validateRedisCommon(config, validator)
 
-	if !path.IsAbs(config.Redis.Host) && (config.Redis.Port < 1 || config.Redis.Port > 65535) {
+	if config.Redis.Port == 0 {
+		config.Redis.Port = schema.DefaultRedisConfiguration.Port
+	} else if !path.IsAbs(config.Redis.Host) && (config.Redis.Port < 1 || config.Redis.Port > 65535) {
 		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, config.Redis.Port))
 	}
 
@@ -231,7 +236,7 @@ func validateRedisSentinel(config *schema.SessionConfiguration, validator *schem
 
 	if config.Redis.Port == 0 {
 		config.Redis.Port = 26379
-	} else if config.Redis.Port < 0 || config.Redis.Port > 65535 {
+	} else if config.Redis.Port < 1 || config.Redis.Port > 65535 {
 		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, config.Redis.Port))
 	}
 

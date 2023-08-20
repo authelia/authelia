@@ -2,8 +2,10 @@ package validator
 
 import (
 	"regexp"
+	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -20,6 +22,10 @@ const (
 	policyOneFactor = "one_factor"
 	policyTwoFactor = "two_factor"
 	policyDeny      = "deny"
+)
+
+const (
+	durationZero = time.Duration(0)
 )
 
 const (
@@ -44,8 +50,6 @@ const (
 
 // Scheme constants.
 const (
-	schemeLDAP  = "ldap"
-	schemeLDAPS = "ldaps"
 	schemeHTTP  = "http"
 	schemeHTTPS = "https"
 )
@@ -60,14 +64,17 @@ const (
 	errFmtNotifierFileSystemFileNameNotConfigured = "notifier: filesystem: option 'filename' is required"
 	errFmtNotifierSMTPNotConfigured               = "notifier: smtp: option '%s' is required"
 	errFmtNotifierSMTPTLSConfigInvalid            = "notifier: smtp: tls: %w"
-	errFmtNotifierStartTlsDisabled                = "notifier: smtp: option 'disable_starttls' is enabled: " +
+	errFmtNotifierSMTPAddress                     = "notifier: smtp: option 'address' with value '%s' is invalid: %w"
+	errFmtNotifierSMTPAddressLegacyAndModern      = "notifier: smtp: option 'host' and 'port' can't be configured at the same time as 'address'"
+
+	errFmtNotifierStartTlsDisabled = "notifier: smtp: option 'disable_starttls' is enabled: " +
 		"opportunistic STARTTLS is explicitly disabled which means all emails will be sent insecurely over plaintext " +
 		"and this setting is only necessary for non-compliant SMTP servers which advertise they support STARTTLS " +
 		"when they actually don't support STARTTLS"
 )
 
 const (
-	errSuffixMustBeOneOf = "is configured as '%s' but must be one of the following values: '%s'"
+	errSuffixMustBeOneOf = "must be one of %s but it's configured as '%s'"
 )
 
 // Authentication Backend Error constants.
@@ -77,7 +84,7 @@ const (
 	errFmtAuthBackendMultipleConfigured = "authentication_backend: please ensure only one of the 'file' or 'ldap' " +
 		"backend is configured"
 	errFmtAuthBackendRefreshInterval = "authentication_backend: option 'refresh_interval' is configured to '%s' but " +
-		"it must be either a duration notation or one of 'disable', or 'always': %w"
+		"it must be either in duration common syntax or one of 'disable', or 'always': %w"
 	errFmtAuthBackendPasswordResetCustomURLScheme = "authentication_backend: password_reset: option 'custom_url' is" +
 		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
 
@@ -96,109 +103,163 @@ const (
 	errFmtLDAPAuthBackendUnauthenticatedBindWithPassword     = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when a password is specified"
 	errFmtLDAPAuthBackendUnauthenticatedBindWithResetEnabled = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when password reset is enabled"
 
-	errFmtLDAPAuthBackendMissingOption    = "authentication_backend: ldap: option '%s' is required"
-	errFmtLDAPAuthBackendTLSConfigInvalid = "authentication_backend: ldap: tls: %w"
-	errFmtLDAPAuthBackendImplementation   = "authentication_backend: ldap: option 'implementation' " +
+	errFmtLDAPAuthBackendMissingOption     = "authentication_backend: ldap: option '%s' is required"
+	errFmtLDAPAuthBackendTLSConfigInvalid  = "authentication_backend: ldap: tls: %w"
+	errFmtLDAPAuthBackendOptionMustBeOneOf = "authentication_backend: ldap: option '%s' " +
 		errSuffixMustBeOneOf
 	errFmtLDAPAuthBackendFilterReplacedPlaceholders = "authentication_backend: ldap: option " +
 		"'%s' has an invalid placeholder: '%s' has been removed, please use '%s' instead"
-	errFmtLDAPAuthBackendURLNotParsable = "authentication_backend: ldap: option " +
-		"'url' could not be parsed: %w"
-	errFmtLDAPAuthBackendURLInvalidScheme = "authentication_backend: ldap: option " +
-		"'url' must have either the 'ldap' or 'ldaps' scheme but it is configured as '%s'"
+	errFmtLDAPAuthBackendAddress                    = "authentication_backend: ldap: option 'address' with value '%s' is invalid: %w"
 	errFmtLDAPAuthBackendFilterEnclosingParenthesis = "authentication_backend: ldap: option " +
 		"'%s' must contain enclosing parenthesis: '%s' should probably be '(%s)'"
 	errFmtLDAPAuthBackendFilterMissingPlaceholder = "authentication_backend: ldap: option " +
-		"'%s' must contain the placeholder '{%s}' but it is required"
+		"'%s' must contain the placeholder '{%s}' but it's absent"
+	errFmtLDAPAuthBackendFilterMissingPlaceholderGroupSearchMode = "authentication_backend: ldap: option " +
+		"'%s' must contain one of the %s placeholders when using a group_search_mode of '%s' but they're absent"
+	errFmtLDAPAuthBackendFilterMissingAttribute = "authentication_backend: ldap: attributes: option " +
+		"'%s' must be provided when using the %s placeholder but it's absent"
 )
 
 // TOTP Error constants.
 const (
-	errFmtTOTPInvalidAlgorithm  = "totp: option 'algorithm' must be one of '%s' but it is configured as '%s'"
-	errFmtTOTPInvalidPeriod     = "totp: option 'period' option must be 15 or more but it is configured as '%d'"
-	errFmtTOTPInvalidDigits     = "totp: option 'digits' must be 6 or 8 but it is configured as '%d'"
-	errFmtTOTPInvalidSecretSize = "totp: option 'secret_size' must be %d or higher but it is configured as '%d'" //nolint:gosec
+	errFmtTOTPInvalidAlgorithm  = "totp: option 'algorithm' must be one of %s but it's configured as '%s'"
+	errFmtTOTPInvalidPeriod     = "totp: option 'period' option must be 15 or more but it's configured as '%d'"
+	errFmtTOTPInvalidDigits     = "totp: option 'digits' must be 6 or 8 but it's configured as '%d'"
+	errFmtTOTPInvalidSecretSize = "totp: option 'secret_size' must be %d or higher but it's configured as '%d'" //nolint:gosec
 )
 
 // Storage Error constants.
 const (
-	errStrStorage                                 = "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided"
-	errStrStorageEncryptionKeyMustBeProvided      = "storage: option 'encryption_key' is required"
-	errStrStorageEncryptionKeyTooShort            = "storage: option 'encryption_key' must be 20 characters or longer"
-	errFmtStorageUserPassMustBeProvided           = "storage: %s: option 'username' and 'password' are required" //nolint:gosec
-	errFmtStorageOptionMustBeProvided             = "storage: %s: option '%s' is required"
+	errStrStorage                                  = "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided"
+	errStrStorageEncryptionKeyMustBeProvided       = "storage: option 'encryption_key' is required"
+	errStrStorageEncryptionKeyTooShort             = "storage: option 'encryption_key' must be 20 characters or longer"
+	errFmtStorageUserPassMustBeProvided            = "storage: %s: option 'username' and 'password' are required" //nolint:gosec
+	errFmtStorageOptionMustBeProvided              = "storage: %s: option '%s' is required"
+	errFmtStorageOptionAddressConflictWithHostPort = "storage: %s: option 'host' and 'port' can't be configured at the same time as 'address'"
+	errFmtStorageFailedToConvertHostPortToAddress  = "storage: %s: option 'address' failed to parse options 'host' and 'port' as address: %w"
+
 	errFmtStorageTLSConfigInvalid                 = "storage: %s: tls: %w"
-	errFmtStoragePostgreSQLInvalidSSLMode         = "storage: postgres: ssl: option 'mode' must be one of '%s' but it is configured as '%s'"
+	errFmtStoragePostgreSQLInvalidSSLMode         = "storage: postgres: ssl: option 'mode' must be one of %s but it's configured as '%s'"
 	errFmtStoragePostgreSQLInvalidSSLAndTLSConfig = "storage: postgres: can't define both 'tls' and 'ssl' configuration options"
 	warnFmtStoragePostgreSQLInvalidSSLDeprecated  = "storage: postgres: ssl: the ssl configuration options are deprecated and we recommend the tls options instead"
 )
 
 // Telemetry Error constants.
 const (
-	errFmtTelemetryMetricsScheme = "telemetry: metrics: option 'address' must have a scheme 'tcp://' but it is configured as '%s'"
+	errFmtTelemetryMetricsAddress = "telemetry: metrics: option 'address' with value '%s' is invalid: %w"
 )
 
 // OpenID Error constants.
 const (
-	errFmtOIDCNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +
+	errFmtOIDCProviderNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +
 		"more clients configured"
-	errFmtOIDCNoPrivateKey             = "identity_providers: oidc: option 'issuer_private_key' is required"
-	errFmtOIDCInvalidPrivateKeyBitSize = "identity_providers: oidc: option 'issuer_private_key' must be an RSA private key with %d bits or more but it only has %d bits"
-	errFmtOIDCCertificateMismatch      = "identity_providers: oidc: option 'issuer_private_key' does not appear to be the private key the certificate provided by option 'issuer_certificate_chain'"
-	errFmtOIDCCertificateChain         = "identity_providers: oidc: option 'issuer_certificate_chain' produced an error during validation of the chain: %w"
-	errFmtOIDCEnforcePKCEInvalidValue  = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
-		"'public_clients_only' or 'always', but it is configured as '%s'"
+	errFmtOIDCProviderNoPrivateKey            = "identity_providers: oidc: option `issuer_private_keys` or 'issuer_private_key' is required"
+	errFmtOIDCProviderEnforcePKCEInvalidValue = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
+		"'public_clients_only' or 'always', but it's configured as '%s'"
+	errFmtOIDCProviderInsecureParameterEntropy = "identity_providers: oidc: option 'minimum_parameter_entropy' is " +
+		"configured to an unsafe and insecure value, it should at least be %d but it's configured to %d"
+	errFmtOIDCProviderInsecureDisabledParameterEntropy = "identity_providers: oidc: option 'minimum_parameter_entropy' is " +
+		"disabled which is considered unsafe and insecure"
+	errFmtOIDCProviderPrivateKeysInvalid                 = "identity_providers: oidc: issuer_private_keys: key #%d: option 'key' must be a valid private key but the provided data is malformed as it's missing the public key bits"
+	errFmtOIDCProviderPrivateKeysCalcThumbprint          = "identity_providers: oidc: issuer_private_keys: key #%d: option 'key' failed to calculate thumbprint to configure key id value: %w"
+	errFmtOIDCProviderPrivateKeysKeyIDLength             = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option `key_id` must be 100 characters or less"
+	errFmtOIDCProviderPrivateKeysAttributeNotUnique      = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option '%s' must be unique"
+	errFmtOIDCProviderPrivateKeysKeyIDNotValid           = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'key_id' must only contain RFC3986 unreserved characters and must only start and end with alphanumeric characters"
+	errFmtOIDCProviderPrivateKeysProperties              = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'key' failed to get key properties: %w"
+	errFmtOIDCProviderPrivateKeysInvalidOptionOneOf      = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option '%s' must be one of %s but it's configured as '%s'"
+	errFmtOIDCProviderPrivateKeysRSAKeyLessThan2048Bits  = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must at minimum be a RSA 2048 bit private key"
+	errFmtOIDCProviderPrivateKeysKeyNotRSAOrECDSA        = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'key' must be a RSA private key or ECDSA private key but it's type is %T"
+	errFmtOIDCProviderPrivateKeysKeyCertificateMismatch  = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the private key provided by option 'key'"
+	errFmtOIDCProviderPrivateKeysCertificateChainInvalid = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
+	errFmtOIDCProviderPrivateKeysNoRS256                 = "identity_providers: oidc: issuer_private_keys: keys: must at least have one key supporting the '%s' algorithm but only has %s"
 
 	errFmtOIDCCORSInvalidOrigin                    = "identity_providers: oidc: cors: option 'allowed_origins' contains an invalid value '%s' as it has a %s: origins must only be scheme, hostname, and an optional port"
 	errFmtOIDCCORSInvalidOriginWildcard            = "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' with more than one origin but the wildcard origin must be defined by itself"
 	errFmtOIDCCORSInvalidOriginWildcardWithClients = "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' cannot be specified with option 'allowed_origins_from_client_redirect_uris' enabled"
-	errFmtOIDCCORSInvalidEndpoint                  = "identity_providers: oidc: cors: option 'endpoints' contains an invalid value '%s': must be one of '%s'"
+	errFmtOIDCCORSInvalidEndpoint                  = "identity_providers: oidc: cors: option 'endpoints' contains an invalid value '%s': must be one of %s"
 
-	errFmtOIDCClientsDuplicateID = "identity_providers: oidc: one or more clients have the same id but all client" +
-		"id's must be unique"
-	errFmtOIDCClientsWithEmptyID = "identity_providers: oidc: one or more clients have been configured with " +
-		"an empty id"
+	errFmtOIDCPolicyInvalidName          = "identity_providers: oidc: authorization_policies: authorization policies must have a name but one with a blank name exists"
+	errFmtOIDCPolicyInvalidNameStandard  = "identity_providers: oidc: authorization_policies: policy '%s': option '%s' must not be one of %s but it's configured as '%s'"
+	errFmtOIDCPolicyMissingOption        = "identity_providers: oidc: authorization_policies: policy '%s': option '%s' is required"
+	errFmtOIDCPolicyRuleMissingOption    = "identity_providers: oidc: authorization_policies: policy '%s': rules: rule #%d: option '%s' is required"
+	errFmtOIDCPolicyInvalidDefaultPolicy = "identity_providers: oidc: authorization_policies: policy '%s': option 'default_policy' must be one of %s but it's configured as '%s'"
+	errFmtOIDCPolicyRuleInvalidPolicy    = "identity_providers: oidc: authorization_policies: policy '%s': rules: rule #%d: option 'policy' must be one of %s but it's configured as '%s'"
 
-	errFmtOIDCClientInvalidSecret          = "identity_providers: oidc: client '%s': option 'secret' is required"
-	errFmtOIDCClientInvalidSecretPlainText = "identity_providers: oidc: client '%s': option 'secret' is plaintext but it should be a hashed value as plaintext values are deprecated and will be removed when oidc becomes stable"
-	errFmtOIDCClientPublicInvalidSecret    = "identity_providers: oidc: client '%s': option 'secret' is " +
+	errFmtOIDCClientsDuplicateID = "identity_providers: oidc: clients: option 'id' must be unique for every client but one or more clients share the following 'id' values %s"
+	errFmtOIDCClientsWithEmptyID = "identity_providers: oidc: clients: option 'id' is required but was absent on the clients in positions %s"
+	errFmtOIDCClientsDeprecated  = "identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors"
+
+	errFmtOIDCClientInvalidSecret             = "identity_providers: oidc: clients: client '%s': option 'secret' is required"
+	errFmtOIDCClientInvalidSecretPlainText    = "identity_providers: oidc: clients: client '%s': option 'secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed when oidc becomes stable"
+	errFmtOIDCClientInvalidSecretNotPlainText = "identity_providers: oidc: clients: client '%s': option 'secret' must be plaintext with option 'token_endpoint_auth_method' with a value of 'client_secret_jwt'"
+	errFmtOIDCClientPublicInvalidSecret       = "identity_providers: oidc: clients: client '%s': option 'secret' is " +
 		"required to be empty when option 'public' is true"
-	errFmtOIDCClientRedirectURICantBeParsed = "identity_providers: oidc: client '%s': option 'redirect_uris' has an " +
+	errFmtOIDCClientRedirectURICantBeParsed = "identity_providers: oidc: clients: client '%s': option 'redirect_uris' has an " +
 		"invalid value: redirect uri '%s' could not be parsed: %v"
-	errFmtOIDCClientRedirectURIPublic = "identity_providers: oidc: client '%s': option 'redirect_uris' has the " +
+	errFmtOIDCClientRedirectURIPublic = "identity_providers: oidc: clients: client '%s': option 'redirect_uris' has the " +
 		"redirect uri '%s' when option 'public' is false but this is invalid as this uri is not valid " +
 		"for the openid connect confidential client type"
-	errFmtOIDCClientRedirectURIAbsolute = "identity_providers: oidc: client '%s': option 'redirect_uris' has an " +
-		"invalid value: redirect uri '%s' must have the scheme but it is absent"
-	errFmtOIDCClientInvalidPolicy = "identity_providers: oidc: client '%s': option 'policy' must be 'one_factor' " +
-		"or 'two_factor' but it is configured as '%s'"
-	errFmtOIDCClientInvalidPKCEChallengeMethod = "identity_providers: oidc: client '%s': option 'pkce_challenge_method' must be 'plain' " +
-		"or 'S256' but it is configured as '%s'"
-	errFmtOIDCClientInvalidConsentMode = "identity_providers: oidc: client '%s': consent: option 'mode' must be one of " +
-		"'%s' but it is configured as '%s'"
-	errFmtOIDCClientInvalidEntry = "identity_providers: oidc: client '%s': option '%s' must only have the values " +
-		"'%s' but one option is configured as '%s'"
-	errFmtOIDCClientInvalidUserinfoAlgorithm = "identity_providers: oidc: client '%s': option " +
-		"'userinfo_signing_algorithm' must be one of '%s' but it is configured as '%s'"
-	errFmtOIDCClientInvalidSectorIdentifier = "identity_providers: oidc: client '%s': option " +
+	errFmtOIDCClientRedirectURIAbsolute = "identity_providers: oidc: clients: client '%s': option 'redirect_uris' has an " +
+		"invalid value: redirect uri '%s' must have a scheme but it's absent"
+	errFmtOIDCClientInvalidConsentMode = "identity_providers: oidc: clients: client '%s': consent: option 'mode' must be one of " +
+		"%s but it's configured as '%s'"
+	errFmtOIDCClientInvalidEntries = "identity_providers: oidc: clients: client '%s': option '%s' must only have the values " +
+		"%s but the values %s are present"
+	errFmtOIDCClientInvalidEntriesClientCredentials = "identity_providers: oidc: clients: client '%s': option 'scopes' has the values " +
+		"%s however when exclusively utilizing the 'client_credentials' value for the 'grant_types' the values %s are not allowed"
+	errFmtOIDCClientInvalidEntryDuplicates = "identity_providers: oidc: clients: client '%s': option '%s' must have unique values but the values %s are duplicated"
+	errFmtOIDCClientInvalidValue           = "identity_providers: oidc: clients: client '%s': option " +
+		"'%s' must be one of %s but it's configured as '%s'"
+	errFmtOIDCClientInvalidTokenEndpointAuthMethod = "identity_providers: oidc: clients: client '%s': option " +
+		"'token_endpoint_auth_method' must be one of %s when configured as the confidential client type unless it only includes implicit flow response types such as %s but it's configured as '%s'"
+	errFmtOIDCClientInvalidTokenEndpointAuthMethodPublic = "identity_providers: oidc: clients: client '%s': option " +
+		"'token_endpoint_auth_method' must be 'none' when configured as the public client type but it's configured as '%s'"
+	errFmtOIDCClientInvalidTokenEndpointAuthSigAlg = "identity_providers: oidc: clients: client '%s': option " +
+		"'token_endpoint_auth_signing_alg' must be one of %s when option 'token_endpoint_auth_method' is configured to '%s'"
+	errFmtOIDCClientInvalidTokenEndpointAuthSigAlgReg = "identity_providers: oidc: clients: client '%s': option " +
+		"'token_endpoint_auth_signing_alg' must be one of registered public key algorithm values %s when option 'token_endpoint_auth_method' is configured to '%s'"
+	errFmtOIDCClientInvalidTokenEndpointAuthSigAlgMissingPrivateKeyJWT = "identity_providers: oidc: clients: client '%s': option " +
+		"'token_endpoint_auth_signing_alg' is required when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'"
+	errFmtOIDCClientInvalidPublicKeysPrivateKeyJWT = "identity_providers: oidc: clients: client '%s': option " +
+		"'public_keys' is required with 'token_endpoint_auth_method' set to 'private_key_jwt'"
+	errFmtOIDCClientInvalidSectorIdentifier = "identity_providers: oidc: clients: client '%s': option " +
 		"'sector_identifier' with value '%s': must be a URL with only the host component for example '%s' but it has a %s with the value '%s'"
-	errFmtOIDCClientInvalidSectorIdentifierWithoutValue = "identity_providers: oidc: client '%s': option " +
+	errFmtOIDCClientInvalidSectorIdentifierWithoutValue = "identity_providers: oidc: clients: client '%s': option " +
 		"'sector_identifier' with value '%s': must be a URL with only the host component for example '%s' but it has a %s"
-	errFmtOIDCClientInvalidSectorIdentifierHost = "identity_providers: oidc: client '%s': option " +
+	errFmtOIDCClientInvalidSectorIdentifierHost = "identity_providers: oidc: clients: client '%s': option " +
 		"'sector_identifier' with value '%s': must be a URL with only the host component but appears to be invalid"
-	errFmtOIDCServerInsecureParameterEntropy = "openid connect provider: SECURITY ISSUE - minimum parameter entropy is " +
-		"configured to an unsafe value, it should be above 8 but it's configured to %d"
+	errFmtOIDCClientInvalidGrantTypeMatch = "identity_providers: oidc: clients: client '%s': option " +
+		"'grant_types' should only have grant type values which are valid with the configured 'response_types' for the client but '%s' expects a response type %s such as %s but the response types are %s"
+	errFmtOIDCClientInvalidGrantTypeRefresh = "identity_providers: oidc: clients: client '%s': option " +
+		"'grant_types' should only have the 'refresh_token' value if the client is also configured with the 'offline_access' scope"
+	errFmtOIDCClientInvalidGrantTypePublic = "identity_providers: oidc: clients: client '%s': option 'grant_types' " +
+		"should only have the '%s' value if it is of the confidential client type but it's of the public client type"
+
+	errFmtOIDCClientInvalidRefreshTokenOptionWithoutCodeResponseType = "identity_providers: oidc: clients: client '%s': option " +
+		"'%s' should only have the values %s if the client is also configured with a 'response_type' such as %s which respond with authorization codes"
+
+	errFmtOIDCClientPublicKeysBothURIAndValuesConfigured  = "identity_providers: oidc: clients: client '%s': public_keys: option 'uri' must not be defined at the same time as option 'values'"
+	errFmtOIDCClientPublicKeysURIInvalidScheme            = "identity_providers: oidc: clients: client '%s': public_keys: option 'uri' must have the 'https' scheme but the scheme is '%s'"
+	errFmtOIDCClientPublicKeysProperties                  = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d with key id '%s': option 'key' failed to get key properties: %w"
+	errFmtOIDCClientPublicKeysInvalidOptionOneOf          = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d with key id '%s': option '%s' must be one of %s but it's configured as '%s'"
+	errFmtOIDCClientPublicKeysInvalidOptionMissingOneOf   = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d: option '%s' must be provided"
+	errFmtOIDCClientPublicKeysKeyMalformed                = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d: option 'key' option 'key' must be a valid private key but the provided data is malformed as it's missing the public key bits"
+	errFmtOIDCClientPublicKeysRSAKeyLessThan2048Bits      = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must at minimum be a RSA 2048 bit private key"
+	errFmtOIDCClientPublicKeysKeyNotRSAOrECDSA            = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d with key id '%s': option 'key' must be a RSA public key or ECDSA public key but it's type is %T"
+	errFmtOIDCClientPublicKeysCertificateChainKeyMismatch = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the public key provided by option 'key'"
+	errFmtOIDCClientPublicKeysCertificateChainInvalid     = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
+	errFmtOIDCClientPublicKeysROSAMissingAlgorithm        = "identity_providers: oidc: clients: client '%s': option 'request_object_signing_alg' must be one of %s configured in the client option 'public_keys'"
 )
 
-// Webauthn Error constants.
+// WebAuthn Error constants.
 const (
-	errFmtWebauthnConveyancePreference = "webauthn: option 'attestation_conveyance_preference' must be one of '%s' but it is configured as '%s'"
-	errFmtWebauthnUserVerification     = "webauthn: option 'user_verification' must be one of 'discouraged', 'preferred', 'required' but it is configured as '%s'"
+	errFmtWebAuthnConveyancePreference = "webauthn: option 'attestation_conveyance_preference' must be one of %s but it's configured as '%s'"
+	errFmtWebAuthnUserVerification     = "webauthn: option 'user_verification' must be one of %s but it's configured as '%s'"
 )
 
 // Access Control error constants.
 const (
-	errFmtAccessControlDefaultPolicyValue = "access control: option 'default_policy' must be one of '%s' but it is " +
+	errFmtAccessControlDefaultPolicyValue = "access control: option 'default_policy' must be one of %s but it's " +
 		"configured as '%s'"
 	errFmtAccessControlDefaultPolicyWithoutRules = "access control: 'default_policy' option '%s' is invalid: when " +
 		"no rules are specified it must be 'two_factor' or 'one_factor'"
@@ -206,10 +267,9 @@ const (
 		"network '%s' is not a valid IP or CIDR notation"
 	errFmtAccessControlWarnNoRulesDefaultPolicy = "access control: no rules have been specified so the " +
 		"'default_policy' of '%s' is going to be applied to all requests"
-	errFmtAccessControlRuleNoDomains = "access control: rule %s: rule is invalid: must have the option " +
-		"'domain' or 'domain_regex' configured"
-	errFmtAccessControlRuleInvalidPolicy = "access control: rule %s: rule 'policy' option '%s' " +
-		"is invalid: must be one of 'deny', 'two_factor', 'one_factor' or 'bypass'"
+	errFmtAccessControlRuleNoDomains                    = "access control: rule %s: option 'domain' or 'domain_regex' must be present but are both absent"
+	errFmtAccessControlRuleNoPolicy                     = "access control: rule %s: option 'policy' must be present but it's absent"
+	errFmtAccessControlRuleInvalidPolicy                = "access control: rule %s: option 'policy' must be one of %s but it's configured as '%s'"
 	errAccessControlRuleBypassPolicyInvalidWithSubjects = "access control: rule %s: 'policy' option 'bypass' is " +
 		"not supported when 'subject' option is configured: see " +
 		"https://www.authelia.com/c/acl#bypass"
@@ -220,39 +280,36 @@ const (
 		"valid Group Name, IP, or CIDR notation"
 	errFmtAccessControlRuleSubjectInvalid = "access control: rule %s: 'subject' option '%s' is " +
 		"invalid: must start with 'user:' or 'group:'"
-	errFmtAccessControlRuleMethodInvalid = "access control: rule %s: 'methods' option '%s' is " +
-		"invalid: must be one of '%s'"
-	errFmtAccessControlRuleQueryInvalid = "access control: rule %s: 'query' option 'operator' with value '%s' is " +
-		"invalid: must be one of '%s'"
-	errFmtAccessControlRuleQueryInvalidNoValue = "access control: rule %s: 'query' option '%s' is " +
-		"invalid: must have a value"
-	errFmtAccessControlRuleQueryInvalidNoValueOperator = "access control: rule %s: 'query' option '%s' is " +
-		"invalid: must have a value when the operator is '%s'"
-	errFmtAccessControlRuleQueryInvalidValue = "access control: rule %s: 'query' option '%s' is " +
-		"invalid: must not have a value when the operator is '%s'"
-	errFmtAccessControlRuleQueryInvalidValueParse = "access control: rule %s: 'query' option '%s' is " +
+	errFmtAccessControlRuleInvalidEntries              = "access control: rule %s: option '%s' must only have the values %s but the values %s are present"
+	errFmtAccessControlRuleInvalidDuplicates           = "access control: rule %s: option '%s' must have unique values but the values %s are duplicated"
+	errFmtAccessControlRuleQueryInvalid                = "access control: rule %s: query: option 'operator' must be one of %s but it's configured as '%s'"
+	errFmtAccessControlRuleQueryInvalidNoValue         = "access control: rule %s: query: option '%s' is required but it's absent"
+	errFmtAccessControlRuleQueryInvalidNoValueOperator = "access control: rule %s: query: option '%s' must be present when the option 'operator' is '%s' but it's absent"
+	errFmtAccessControlRuleQueryInvalidValue           = "access control: rule %s: query: option '%s' must not be present when the option 'operator' is '%s' but it's present"
+	errFmtAccessControlRuleQueryInvalidValueParse      = "access control: rule %s: query: option '%s' is " +
 		"invalid: %w"
-	errFmtAccessControlRuleQueryInvalidValueType = "access control: rule %s: 'query' option 'value' is " +
+	errFmtAccessControlRuleQueryInvalidValueType = "access control: rule %s: query: option 'value' is " +
 		"invalid: expected type was string but got %T"
 )
 
 // Theme Error constants.
 const (
-	errFmtThemeName = "option 'theme' must be one of '%s' but it is configured as '%s'"
+	errFmtThemeName = "option 'theme' must be one of %s but it's configured as '%s'"
 )
 
 // NTP Error constants.
 const (
-	errFmtNTPVersion = "ntp: option 'version' must be either 3 or 4 but it is configured as '%d'"
+	errFmtNTPVersion       = "ntp: option 'version' must be either 3 or 4 but it's configured as '%d'"
+	errFmtNTPAddressScheme = "ntp: option 'address' with value '%s' is invalid: %w"
 )
 
 // Session error constants.
 const (
 	errFmtSessionOptionRequired           = "session: option '%s' is required"
 	errFmtSessionLegacyAndWarning         = "session: option 'domain' and option 'cookies' can't be specified at the same time"
-	errFmtSessionSameSite                 = "session: option 'same_site' must be one of '%s' but is configured as '%s'"
+	errFmtSessionSameSite                 = "session: option 'same_site' must be one of %s but it's configured as '%s'"
 	errFmtSessionSecretRequired           = "session: option 'secret' is required when using the '%s' provider"
-	errFmtSessionRedisPortRange           = "session: redis: option 'port' must be between 1 and 65535 but is configured as '%d'"
+	errFmtSessionRedisPortRange           = "session: redis: option 'port' must be between 1 and 65535 but it's configured as '%d'"
 	errFmtSessionRedisHostRequired        = "session: redis: option 'host' is required"
 	errFmtSessionRedisHostOrNodesRequired = "session: redis: option 'host' or the 'high_availability' option 'nodes' is required"
 	errFmtSessionRedisTLSConfigInvalid    = "session: redis: tls: %w"
@@ -260,16 +317,16 @@ const (
 	errFmtSessionRedisSentinelMissingName     = "session: redis: high_availability: option 'sentinel_name' is required"
 	errFmtSessionRedisSentinelNodeHostMissing = "session: redis: high_availability: option 'nodes': option 'host' is required for each node but one or more nodes are missing this"
 
-	errFmtSessionDomainMustBeRoot                = "session: domain config %s: option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '%s'"
-	errFmtSessionDomainSameSite                  = "session: domain config %s: option 'same_site' must be one of '%s' but is configured as '%s'"
+	errFmtSessionDomainMustBeRoot                = "session: domain config %s: option 'domain' must be the domain you wish to protect not a wildcard domain but it's configured as '%s'"
+	errFmtSessionDomainSameSite                  = "session: domain config %s: option 'same_site' must be one of %s but it's configured as '%s'"
 	errFmtSessionDomainRequired                  = "session: domain config %s: option 'domain' is required"
 	errFmtSessionDomainHasPeriodPrefix           = "session: domain config %s: option 'domain' has a prefix of '.' which is not supported or intended behaviour: you can use this at your own risk but we recommend removing it"
 	errFmtSessionDomainDuplicate                 = "session: domain config %s: option 'domain' is a duplicate value for another configured session domain"
 	errFmtSessionDomainDuplicateCookieScope      = "session: domain config %s: option 'domain' shares the same cookie domain scope as another configured session domain"
 	errFmtSessionDomainPortalURLInsecure         = "session: domain config %s: option 'authelia_url' does not have a secure scheme with a value of '%s'"
 	errFmtSessionDomainPortalURLNotInCookieScope = "session: domain config %s: option 'authelia_url' does not share a cookie scope with domain '%s' with a value of '%s'"
-	errFmtSessionDomainInvalidDomain             = "session: domain config %s: option 'domain' is not a valid cookie domain"
-	errFmtSessionDomainInvalidDomainNoDots       = "session: domain config %s: option 'domain' is not a valid cookie domain: must have at least a single period"
+	errFmtSessionDomainInvalidDomain             = "session: domain config %s: option 'domain' does not appear to be a valid cookie domain or an ip address"
+	errFmtSessionDomainInvalidDomainNoDots       = "session: domain config %s: option 'domain' is not a valid cookie domain: must have at least a single period or be an ip address"
 	errFmtSessionDomainInvalidDomainPublic       = "session: domain config %s: option 'domain' is not a valid cookie domain: the domain is part of the special public suffix list"
 )
 
@@ -280,18 +337,19 @@ const (
 
 // Server Error constants.
 const (
-	errFmtServerTLSCert                           = "server: tls: option 'key' must also be accompanied by option 'certificate'"
-	errFmtServerTLSKey                            = "server: tls: option 'certificate' must also be accompanied by option 'key'"
-	errFmtServerTLSCertFileDoesNotExist           = "server: tls: file path %s provided in 'certificate' does not exist"
-	errFmtServerTLSKeyFileDoesNotExist            = "server: tls: file path %s provided in 'key' does not exist"
-	errFmtServerTLSClientAuthCertFileDoesNotExist = "server: tls: client_certificates: certificates: file path %s does not exist"
-	errFmtServerTLSClientAuthNoAuth               = "server: tls: client authentication cannot be configured if no server certificate and key are provided"
+	errFmtServerTLSCert             = "server: tls: option 'key' must also be accompanied by option 'certificate'"
+	errFmtServerTLSKey              = "server: tls: option 'certificate' must also be accompanied by option 'key'"
+	errFmtServerTLSClientAuthNoAuth = "server: tls: client authentication cannot be configured if no server certificate and key are provided"
 
-	errFmtServerPathNoForwardSlashes = "server: option 'path' must not contain any forward slashes"
-	errFmtServerPathAlphaNum         = "server: option 'path' must only contain alpha numeric characters"
+	errFmtServerAddressLegacyAndModern = "server: option 'host' and 'port' can't be configured at the same time as 'address'"
+	errFmtServerAddress                = "server: option 'address' with value '%s' is invalid: %w"
 
-	errFmtServerEndpointsAuthzImplementation    = "server: endpoints: authz: %s: option 'implementation' must be one of '%s' but is configured as '%s'"
-	errFmtServerEndpointsAuthzStrategy          = "server: endpoints: authz: %s: authn_strategies: option 'name' must be one of '%s' but is configured as '%s'"
+	errFmtServerPathNoForwardSlashes   = "server: option 'path' must not contain any forward slashes"
+	errFmtServerPathNotEndForwardSlash = "server: option 'address' must not and with a forward slash but it's configured as '%s'"
+	errFmtServerPathAlphaNum           = "server: option 'path' must only contain alpha numeric characters"
+
+	errFmtServerEndpointsAuthzImplementation    = "server: endpoints: authz: %s: option 'implementation' must be one of %s but it's configured as '%s'"
+	errFmtServerEndpointsAuthzStrategy          = "server: endpoints: authz: %s: authn_strategies: option 'name' must be one of %s but it's configured as '%s'"
 	errFmtServerEndpointsAuthzStrategyDuplicate = "server: endpoints: authz: %s: authn_strategies: duplicate strategy name detected with name '%s'"
 	errFmtServerEndpointsAuthzPrefixDuplicate   = "server: endpoints: authz: %s: endpoint starts with the same prefix as the '%s' endpoint with the '%s' implementation which accepts prefixes as part of its implementation"
 	errFmtServerEndpointsAuthzInvalidName       = "server: endpoints: authz: %s: contains invalid characters"
@@ -301,7 +359,7 @@ const (
 
 const (
 	errPasswordPolicyMultipleDefined                        = "password_policy: only a single password policy mechanism can be specified"
-	errFmtPasswordPolicyStandardMinLengthNotGreaterThanZero = "password_policy: standard: option 'min_length' must be greater than 0 but is configured as %d"
+	errFmtPasswordPolicyStandardMinLengthNotGreaterThanZero = "password_policy: standard: option 'min_length' must be greater than 0 but it's configured as %d"
 	errFmtPasswordPolicyZXCVBNMinScoreInvalid               = "password_policy: zxcvbn: option 'min_score' is invalid: must be between 1 and 4 but it's configured as %d"
 )
 
@@ -311,19 +369,17 @@ const (
 )
 
 const (
-	errFmtDuoMissingOption = "duo_api: option '%s' is required when duo is enabled but it is missing"
+	errFmtDuoMissingOption = "duo_api: option '%s' is required when duo is enabled but it's absent"
 )
 
 // Error constants.
 const (
-	errFmtInvalidDefault2FAMethod = "option 'default_2fa_method' is configured as '%s' but must be one of " +
-		"the following values: '%s'"
-	errFmtInvalidDefault2FAMethodDisabled = "option 'default_2fa_method' is configured as '%s' " +
-		"but must be one of the following enabled method values: '%s'"
+	errFmtInvalidDefault2FAMethod         = "option 'default_2fa_method' must be one of %s but it's configured as '%s'"
+	errFmtInvalidDefault2FAMethodDisabled = "option 'default_2fa_method' must be one of the enabled options %s but it's configured as '%s'"
 
 	errFmtReplacedConfigurationKey = "invalid configuration key '%s' was replaced by '%s'"
 
-	errFmtLoggingLevelInvalid = "log: option 'level' must be one of '%s' but it is configured as '%s'"
+	errFmtLoggingLevelInvalid = "log: option 'level' must be one of %s but it's configured as '%s'"
 
 	errFileHashing  = "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password"
 	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
@@ -339,6 +395,21 @@ const (
 	operatorNotPattern = "not pattern"
 )
 
+const (
+	legacy                      = "legacy"
+	authzImplementationLegacy   = "Legacy"
+	authzImplementationExtAuthz = "ExtAuthz"
+)
+
+const (
+	auto = "auto"
+)
+
+var (
+	validAuthzImplementations = []string{"AuthRequest", "ForwardAuth", authzImplementationExtAuthz, authzImplementationLegacy}
+	validAuthzAuthnStrategies = []string{"CookieSession", "HeaderAuthorization", "HeaderProxyAuthorization", "HeaderAuthRequestProxyAuthorization", "HeaderLegacy"}
+)
+
 var (
 	validLDAPImplementations = []string{
 		schema.LDAPImplementationCustom,
@@ -348,17 +419,11 @@ var (
 		schema.LDAPImplementationLLDAP,
 		schema.LDAPImplementationGLAuth,
 	}
-)
 
-const (
-	legacy                      = "legacy"
-	authzImplementationLegacy   = "Legacy"
-	authzImplementationExtAuthz = "ExtAuthz"
-)
-
-var (
-	validAuthzImplementations = []string{"AuthRequest", "ForwardAuth", authzImplementationExtAuthz, authzImplementationLegacy}
-	validAuthzAuthnStrategies = []string{"CookieSession", "HeaderAuthorization", "HeaderProxyAuthorization", "HeaderAuthRequestProxyAuthorization", "HeaderLegacy"}
+	validLDAPGroupSearchModes = []string{
+		schema.LDAPGroupSearchModeFilter,
+		schema.LDAPGroupSearchModeMemberOf,
+	}
 )
 
 var (
@@ -371,12 +436,12 @@ var (
 
 var (
 	validStoragePostgreSQLSSLModes           = []string{"disable", "require", "verify-ca", "verify-full"}
-	validThemeNames                          = []string{"light", "dark", "grey", "auto"}
+	validThemeNames                          = []string{"light", "dark", "grey", auto}
 	validSessionSameSiteValues               = []string{"none", "lax", "strict"}
 	validLogLevels                           = []string{"trace", "debug", "info", "warn", "error"}
-	validWebauthnConveyancePreferences       = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
-	validWebauthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
-	validRFC7231HTTPMethodVerbs              = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
+	validWebAuthnConveyancePreferences       = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
+	validWebAuthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
+	validRFC7231HTTPMethodVerbs              = []string{fasthttp.MethodGet, fasthttp.MethodHead, fasthttp.MethodPost, fasthttp.MethodPut, fasthttp.MethodPatch, fasthttp.MethodDelete, fasthttp.MethodTrace, fasthttp.MethodConnect, fasthttp.MethodOptions}
 	validRFC4918HTTPMethodVerbs              = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
 )
 
@@ -388,19 +453,47 @@ var (
 
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 
+const (
+	attrOIDCKey                 = "key"
+	attrOIDCKeyID               = "key_id"
+	attrOIDCKeyUse              = "use"
+	attrOIDCAlgorithm           = "algorithm"
+	attrOIDCScopes              = "scopes"
+	attrOIDCResponseTypes       = "response_types"
+	attrOIDCResponseModes       = "response_modes"
+	attrOIDCGrantTypes          = "grant_types"
+	attrOIDCRedirectURIs        = "redirect_uris"
+	attrOIDCTokenAuthMethod     = "token_endpoint_auth_method"
+	attrOIDCUsrSigAlg           = "userinfo_signing_alg"
+	attrOIDCUsrSigKID           = "userinfo_signing_key_id"
+	attrOIDCIDTokenSigAlg       = "id_token_signing_alg"
+	attrOIDCIDTokenSigKID       = "id_token_signing_key_id"
+	attrOIDCPKCEChallengeMethod = "pkce_challenge_method"
+)
+
 var (
-	validOIDCScopes             = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess}
-	validOIDCGrantTypes         = []string{oidc.GrantTypeImplicit, oidc.GrantTypeRefreshToken, oidc.GrantTypeAuthorizationCode, oidc.GrantTypePassword, oidc.GrantTypeClientCredentials}
-	validOIDCResponseModes      = []string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery, oidc.ResponseModeFragment}
-	validOIDCUserinfoAlgorithms = []string{oidc.SigningAlgorithmNone, oidc.SigningAlgorithmRSAWithSHA256}
-	validOIDCCORSEndpoints      = []string{oidc.EndpointAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
-	validOIDCClientConsentModes = []string{"auto", oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
+	validOIDCCORSEndpoints = []string{oidc.EndpointAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
+
+	validOIDCClientScopes                    = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess}
+	validOIDCClientConsentModes              = []string{auto, oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
+	validOIDCClientResponseModes             = []string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery, oidc.ResponseModeFragment}
+	validOIDCClientResponseTypes             = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth, oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
+	validOIDCClientResponseTypesImplicitFlow = []string{oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth}
+	validOIDCClientResponseTypesHybridFlow   = []string{oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
+	validOIDCClientResponseTypesRefreshToken = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
+	validOIDCClientGrantTypes                = []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeClientCredentials, oidc.GrantTypeRefreshToken}
+
+	validOIDCClientTokenEndpointAuthMethods                = []string{oidc.ClientAuthMethodNone, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT, oidc.ClientAuthMethodClientSecretJWT}
+	validOIDCClientTokenEndpointAuthMethodsConfidential    = []string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT}
+	validOIDCClientTokenEndpointAuthSigAlgsClientSecretJWT = []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512}
+	validOIDCIssuerJWKSigningAlgs                          = []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512}
 )
 
 var (
 	reKeyReplacer       = regexp.MustCompile(`\[\d+]`)
 	reDomainCharacters  = regexp.MustCompile(`^[a-z0-9-]+(\.[a-z0-9-]+)+[a-z0-9]$`)
-	reAuthzEndpointName = regexp.MustCompile(`^[a-zA-Z](([a-zA-Z0-9/\._-]*)([a-zA-Z]))?$`)
+	reAuthzEndpointName = regexp.MustCompile(`^[a-zA-Z](([a-zA-Z0-9/._-]*)([a-zA-Z]))?$`)
+	reOpenIDConnectKID  = regexp.MustCompile(`^([a-zA-Z0-9](([a-zA-Z0-9._~-]*)([a-zA-Z0-9]))?)?$`)
 )
 
 var replacedKeys = map[string]string{

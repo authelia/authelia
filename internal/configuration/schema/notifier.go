@@ -3,6 +3,7 @@ package schema
 import (
 	"crypto/tls"
 	"net/mail"
+	"net/url"
 	"time"
 )
 
@@ -13,8 +14,7 @@ type FileSystemNotifierConfiguration struct {
 
 // SMTPNotifierConfiguration represents the configuration of the SMTP server to send emails with.
 type SMTPNotifierConfiguration struct {
-	Host                string        `koanf:"host"`
-	Port                int           `koanf:"port"`
+	Address             *AddressSMTP  `koanf:"address"`
 	Timeout             time.Duration `koanf:"timeout"`
 	Username            string        `koanf:"username"`
 	Password            string        `koanf:"password"`
@@ -26,6 +26,12 @@ type SMTPNotifierConfiguration struct {
 	DisableHTMLEmails   bool          `koanf:"disable_html_emails"`
 	DisableStartTLS     bool          `koanf:"disable_starttls"`
 	TLS                 *TLSConfig    `koanf:"tls"`
+
+	// Deprecated: use address instead.
+	Host string `koanf:"host"`
+
+	// Deprecated: use address instead.
+	Port int `koanf:"port"`
 }
 
 // NotifierConfiguration represents the configuration of the notifier to use when sending notifications to users.
@@ -38,6 +44,7 @@ type NotifierConfiguration struct {
 
 // DefaultSMTPNotifierConfiguration represents default configuration parameters for the SMTP notifier.
 var DefaultSMTPNotifierConfiguration = SMTPNotifierConfiguration{
+	Address:             &AddressSMTP{Address{true, false, -1, 25, &url.URL{Scheme: AddressSchemeSMTP, Host: "localhost:25"}}},
 	Timeout:             time.Second * 5,
 	Subject:             "[Authelia] {title}",
 	Identifier:          "localhost",

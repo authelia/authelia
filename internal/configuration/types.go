@@ -18,10 +18,17 @@ type Source interface {
 type FileSource struct {
 	koanf   *koanf.Koanf
 	path    string
-	filters []FileFilter
+	filters []BytesFilter
 }
 
-// EnvironmentSource is a configuration configuration.Source which loads values from the environment.
+// BytesSource is a raw bytes configuration.Source.
+type BytesSource struct {
+	koanf   *koanf.Koanf
+	data    []byte
+	filters []BytesFilter
+}
+
+// EnvironmentSource is a configuration.Source which loads values from the environment.
 type EnvironmentSource struct {
 	koanf     *koanf.Koanf
 	prefix    string

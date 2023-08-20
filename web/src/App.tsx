@@ -12,7 +12,7 @@ import {
     IndexRoute,
     LogoutRoute,
     RegisterOneTimePasswordRoute,
-    RegisterWebauthnRoute,
+    RegisterWebAuthnRoute,
     ResetPasswordStep1Route,
     ResetPasswordStep2Route,
 } from "@constants/Routes";
@@ -28,7 +28,7 @@ import {
     getTheme,
 } from "@utils/Configuration";
 import RegisterOneTimePassword from "@views/DeviceRegistration/RegisterOneTimePassword";
-import RegisterWebauthn from "@views/DeviceRegistration/RegisterWebauthn";
+import RegisterWebAuthn from "@views/DeviceRegistration/RegisterWebAuthn";
 import BaseLoadingPage from "@views/LoadingPage/BaseLoadingPage";
 import ConsentView from "@views/LoginPortal/ConsentView/ConsentView";
 import LoginPortal from "@views/LoginPortal/LoginPortal";
@@ -89,7 +89,7 @@ const App: React.FC<Props> = (props: Props) => {
                             <Routes>
                                 <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
                                 <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
-                                <Route path={RegisterWebauthnRoute} element={<RegisterWebauthn />} />
+                                <Route path={RegisterWebAuthnRoute} element={<RegisterWebAuthn />} />
                                 <Route path={RegisterOneTimePasswordRoute} element={<RegisterOneTimePassword />} />
                                 <Route path={LogoutRoute} element={<SignOut />} />
                                 <Route path={ConsentRoute} element={<ConsentView />} />

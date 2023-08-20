@@ -1,6 +1,6 @@
 ---
 title: "Nextcloud"
-description: "Integrating Nextcloud with the Authelia OpenID Connect Provider."
+description: "Integrating Nextcloud with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
@@ -32,6 +32,11 @@ This example makes the following assumptions:
 * __Authelia Root URL:__ `https://auth.example.com`
 * __Client ID:__ `nextcloud`
 * __Client Secret:__ `insecure_secret`
+
+*__Important Note:__ it has been reported that some of the [Nextcloud] plugins do not properly encode the client secret.
+as such it's important to only use alphanumeric characters as well as the other
+[RFC3986 Unreserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3). We recommend using the
+generating client secrets guidance above.*
 
 ## Configuration
 
@@ -81,7 +86,7 @@ $CONFIG = array (
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Nextcloud]
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Nextcloud]
 which will operate with the above example:
 
 ```yaml
@@ -90,19 +95,19 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-    - id: nextcloud
-      description: NextCloud
+    - id: 'nextcloud'
+      description: 'NextCloud'
       secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
       public: false
-      authorization_policy: two_factor
+      authorization_policy: 'two_factor'
       redirect_uris:
-        - https://nextcloud.example.com/apps/oidc_login/oidc
+        - 'https://nextcloud.example.com/apps/oidc_login/oidc'
       scopes:
-        - openid
-        - profile
-        - email
-        - groups
-      userinfo_signing_algorithm: none
+        - 'openid'
+        - 'profile'
+        - 'email'
+        - 'groups'
+      userinfo_signing_alg: 'none'
 ```
 
 ## See Also

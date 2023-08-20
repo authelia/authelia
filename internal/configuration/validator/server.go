@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"os"
 	"path"
 	"sort"
 	"strings"
@@ -9,18 +10,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
-
-// validateFileExists checks whether a file exist.
-func validateFileExists(path string, validator *schema.StructValidator, errTemplate string) {
-	exist, err := utils.FileExists(path)
-	if err != nil {
-		validator.Push(fmt.Errorf("tls: unable to check if file %s exists: %s", path, err))
-	}
-
-	if !exist {
-		validator.Push(fmt.Errorf(errTemplate, path))
-	}
-}
 
 // ValidateServerTLS checks a server TLS configuration is correct.
 func ValidateServerTLS(config *schema.Configuration, validator *schema.StructValidator) {
@@ -31,11 +20,11 @@ func ValidateServerTLS(config *schema.Configuration, validator *schema.StructVal
 	}
 
 	if config.Server.TLS.Key != "" {
-		validateFileExists(config.Server.TLS.Key, validator, errFmtServerTLSKeyFileDoesNotExist)
+		validateServerTLSFileExists("key", config.Server.TLS.Key, validator)
 	}
 
 	if config.Server.TLS.Certificate != "" {
-		validateFileExists(config.Server.TLS.Certificate, validator, errFmtServerTLSCertFileDoesNotExist)
+		validateServerTLSFileExists("certificate", config.Server.TLS.Certificate, validator)
 	}
 
 	if config.Server.TLS.Key == "" && config.Server.TLS.Certificate == "" &&
@@ -44,32 +33,31 @@ func ValidateServerTLS(config *schema.Configuration, validator *schema.StructVal
 	}
 
 	for _, clientCertPath := range config.Server.TLS.ClientCertificates {
-		validateFileExists(clientCertPath, validator, errFmtServerTLSClientAuthCertFileDoesNotExist)
+		validateServerTLSFileExists("client_certificates", clientCertPath, validator)
 	}
 }
 
-// ValidateServer checks a server configuration is correct.
+// validateServerTLSFileExists checks whether a file exist.
+func validateServerTLSFileExists(name, path string, validator *schema.StructValidator) {
+	var (
+		info os.FileInfo
+		err  error
+	)
+
+	switch info, err = os.Stat(path); {
+	case os.IsNotExist(err):
+		validator.Push(fmt.Errorf("server: tls: option '%s' with path '%s' refers to a file that doesn't exist", name, path))
+	case err != nil:
+		validator.Push(fmt.Errorf("server: tls: option '%s' with path '%s' could not be verified due to a file system error: %w", name, path, err))
+	case info.IsDir():
+		validator.Push(fmt.Errorf("server: tls: option '%s' with path '%s' refers to a directory but it should refer to a file", name, path))
+	}
+}
+
+// ValidateServer checks the server configuration is correct.
 func ValidateServer(config *schema.Configuration, validator *schema.StructValidator) {
-	if config.Server.Host == "" {
-		config.Server.Host = schema.DefaultServerConfiguration.Host
-	}
-
-	if config.Server.Port == 0 {
-		config.Server.Port = schema.DefaultServerConfiguration.Port
-	}
-
+	ValidateServerAddress(config, validator)
 	ValidateServerTLS(config, validator)
-
-	switch {
-	case strings.Contains(config.Server.Path, "/"):
-		validator.Push(fmt.Errorf(errFmtServerPathNoForwardSlashes))
-	case !utils.IsStringAlphaNumeric(config.Server.Path):
-		validator.Push(fmt.Errorf(errFmtServerPathAlphaNum))
-	case config.Server.Path == "": // Don't do anything if it's blank.
-		break
-	default:
-		config.Server.Path = path.Clean("/" + config.Server.Path)
-	}
 
 	if config.Server.Buffers.Read <= 0 {
 		config.Server.Buffers.Read = schema.DefaultServerConfiguration.Buffers.Read
@@ -92,6 +80,61 @@ func ValidateServer(config *schema.Configuration, validator *schema.StructValida
 	}
 
 	ValidateServerEndpoints(config, validator)
+}
+
+// ValidateServerAddress checks the configured server address is correct.
+//
+//nolint:gocyclo
+func ValidateServerAddress(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.Server.Address == nil {
+		if config.Server.Host == "" && config.Server.Port == 0 && config.Server.Path == "" { //nolint:staticcheck
+			config.Server.Address = schema.DefaultServerConfiguration.Address
+		} else {
+			host := config.Server.Host    //nolint:staticcheck
+			port := config.Server.Port    //nolint:staticcheck
+			subpath := config.Server.Path //nolint:staticcheck
+
+			if host == "" {
+				host = schema.DefaultServerConfiguration.Address.Hostname()
+			}
+
+			if port == 0 {
+				port = schema.DefaultServerConfiguration.Address.Port()
+			}
+
+			switch {
+			case strings.Contains(subpath, "/"):
+				validator.Push(fmt.Errorf(errFmtServerPathNoForwardSlashes))
+			case !utils.IsStringAlphaNumeric(subpath):
+				validator.Push(fmt.Errorf(errFmtServerPathAlphaNum))
+			case subpath == "":
+				subpath = schema.DefaultServerConfiguration.Address.Path()
+			default:
+				subpath = path.Clean("/" + subpath)
+			}
+
+			config.Server.Address = &schema.AddressTCP{Address: schema.NewAddressFromNetworkValues(schema.AddressSchemeTCP, host, port)}
+
+			config.Server.Address.SetPath(subpath)
+		}
+	} else {
+		if config.Server.Host != "" || config.Server.Port != 0 { //nolint:staticcheck
+			validator.Push(fmt.Errorf(errFmtServerAddressLegacyAndModern))
+		}
+
+		var err error
+
+		if err = config.Server.Address.ValidateHTTP(); err != nil {
+			validator.Push(fmt.Errorf(errFmtServerAddress, config.Server.Address.String(), err))
+		}
+	}
+
+	switch path := config.Server.Address.Path(); {
+	case path == "":
+		config.Server.Address.SetPath("/")
+	case path != "/" && strings.HasSuffix(path, "/"):
+		validator.Push(fmt.Errorf(errFmtServerPathNotEndForwardSlash, path))
+	}
 }
 
 // ValidateServerEndpoints configures the default endpoints and checks the configuration of custom endpoints.
@@ -155,13 +198,13 @@ func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name str
 			config.Server.Endpoints.Authz[name] = endpoint
 		default:
 			if !utils.IsStringInSlice(endpoint.Implementation, validAuthzImplementations) {
-				validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzImplementation, name, strings.Join(validAuthzImplementations, "', '"), endpoint.Implementation))
+				validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzImplementation, name, strJoinOr(validAuthzImplementations), endpoint.Implementation))
 			} else {
 				validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzLegacyInvalidImplementation, name))
 			}
 		}
 	} else if !utils.IsStringInSlice(endpoint.Implementation, validAuthzImplementations) {
-		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzImplementation, name, strings.Join(validAuthzImplementations, "', '"), endpoint.Implementation))
+		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzImplementation, name, strJoinOr(validAuthzImplementations), endpoint.Implementation))
 	}
 
 	if !reAuthzEndpointName.MatchString(name) {
@@ -180,7 +223,7 @@ func validateServerEndpointsAuthzStrategies(name string, strategies []schema.Ser
 		names = append(names, strategy.Name)
 
 		if !utils.IsStringInSlice(strategy.Name, validAuthzAuthnStrategies) {
-			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzStrategy, name, strings.Join(validAuthzAuthnStrategies, "', '"), strategy.Name))
+			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzStrategy, name, strJoinOr(validAuthzAuthnStrategies), strategy.Name))
 		}
 	}
 }

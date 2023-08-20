@@ -6,7 +6,7 @@ import (
 	"hash"
 	"html/template"
 	"net/url"
-	"path"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
@@ -14,7 +14,6 @@ import (
 	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/handler/par"
-	"github.com/ory/fosite/handler/pkce"
 	"github.com/ory/fosite/i18n"
 	"github.com/ory/fosite/token/hmac"
 	"github.com/ory/fosite/token/jwt"
@@ -24,17 +23,12 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func NewConfig(config *schema.OpenIDConnectConfiguration, templates *templates.Provider) (c *Config) {
+func NewConfig(config *schema.OpenIDConnect, templates *templates.Provider) (c *Config) {
 	c = &Config{
 		GlobalSecret:               []byte(utils.HashSHA256FromString(config.HMACSecret)),
 		SendDebugMessagesToClients: config.EnableClientDebugMessages,
 		MinParameterEntropy:        config.MinimumParameterEntropy,
-		Lifespans: LifespanConfig{
-			AccessToken:   config.AccessTokenLifespan,
-			AuthorizeCode: config.AuthorizeCodeLifespan,
-			IDToken:       config.IDTokenLifespan,
-			RefreshToken:  config.RefreshTokenLifespan,
-		},
+		Lifespans:                  config.Lifespans.OpenIDConnectLifespanToken,
 		ProofKeyCodeExchange: ProofKeyCodeExchangeConfig{
 			Enforce:                   config.EnforcePKCE == "always",
 			EnforcePublicClients:      config.EnforcePKCE != "never",
@@ -43,7 +37,7 @@ func NewConfig(config *schema.OpenIDConnectConfiguration, templates *templates.P
 		PAR: PARConfig{
 			Enforced:        config.PAR.Enforce,
 			ContextLifespan: config.PAR.ContextLifespan,
-			URIPrefix:       urnPARPrefix,
+			URIPrefix:       RedirectURIPrefixPushedAuthorizationRequestURN,
 		},
 		Templates: templates,
 	}
@@ -78,7 +72,7 @@ type Config struct {
 	Strategy             StrategyConfig
 	PAR                  PARConfig
 	Handlers             HandlersConfig
-	Lifespans            LifespanConfig
+	Lifespans            schema.OpenIDConnectLifespanToken
 	ProofKeyCodeExchange ProofKeyCodeExchangeConfig
 	GrantTypeJWTBearer   GrantTypeJWTBearerConfig
 
@@ -90,9 +84,8 @@ type Config struct {
 	AllowedPrompts      []string
 	RefreshTokenScopes  []string
 
-	HTTPClient           *retryablehttp.Client
-	FormPostHTMLTemplate *template.Template
-	MessageCatalog       i18n.MessageCatalog
+	HTTPClient     *retryablehttp.Client
+	MessageCatalog i18n.MessageCatalog
 
 	Templates *templates.Provider
 }
@@ -161,20 +154,6 @@ type ProofKeyCodeExchangeConfig struct {
 	AllowPlainChallengeMethod bool
 }
 
-// LifespanConfig holds specific fosite.Configurator information for various lifespans.
-type LifespanConfig struct {
-	AccessToken   time.Duration
-	AuthorizeCode time.Duration
-	IDToken       time.Duration
-	RefreshToken  time.Duration
-}
-
-const (
-	PromptNone    = none
-	PromptLogin   = "login"
-	PromptConsent = "consent"
-)
-
 // LoadHandlers reloads the handlers based on the current configuration.
 func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 	validator := openid.NewOpenIDConnectRequestValidator(strategy, c)
@@ -193,7 +172,7 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 			AccessTokenStorage:  store,
 			Config:              c,
 		},
-		&oauth2.ClientCredentialsGrantHandler{
+		&ClientCredentialsGrantHandler{
 			HandleHelper: &oauth2.HandleHelper{
 				AccessTokenStrategy: c.Strategy.Core,
 				AccessTokenStorage:  store,
@@ -201,7 +180,7 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 			},
 			Config: c,
 		},
-		&oauth2.RefreshTokenGrantHandler{
+		&RefreshTokenGrantHandler{
 			AccessTokenStrategy:    c.Strategy.Core,
 			RefreshTokenStrategy:   c.Strategy.Core,
 			TokenRevocationStorage: store,
@@ -263,7 +242,7 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 			RefreshTokenStrategy:   c.Strategy.Core,
 			TokenRevocationStorage: store,
 		},
-		&pkce.Handler{
+		&PKCEHandler{
 			AuthorizeCodeStrategy: c.Strategy.Core,
 			Storage:               store,
 			Config:                c,
@@ -392,8 +371,8 @@ func (c *Config) GetDisableRefreshTokenValidation(ctx context.Context) (disable 
 
 // GetAuthorizeCodeLifespan returns the authorization code lifespan.
 func (c *Config) GetAuthorizeCodeLifespan(ctx context.Context) (lifespan time.Duration) {
-	if c.Lifespans.AuthorizeCode <= 0 {
-		c.Lifespans.AccessToken = lifespanAuthorizeCodeDefault
+	if c.Lifespans.AuthorizeCode.Seconds() <= 0 {
+		c.Lifespans.AuthorizeCode = lifespanAuthorizeCodeDefault
 	}
 
 	return c.Lifespans.AuthorizeCode
@@ -401,8 +380,8 @@ func (c *Config) GetAuthorizeCodeLifespan(ctx context.Context) (lifespan time.Du
 
 // GetRefreshTokenLifespan returns the refresh token lifespan.
 func (c *Config) GetRefreshTokenLifespan(ctx context.Context) (lifespan time.Duration) {
-	if c.Lifespans.RefreshToken <= 0 {
-		c.Lifespans.AccessToken = lifespanRefreshTokenDefault
+	if c.Lifespans.RefreshToken.Seconds() <= 0 {
+		c.Lifespans.RefreshToken = lifespanRefreshTokenDefault
 	}
 
 	return c.Lifespans.RefreshToken
@@ -410,8 +389,8 @@ func (c *Config) GetRefreshTokenLifespan(ctx context.Context) (lifespan time.Dur
 
 // GetIDTokenLifespan returns the ID token lifespan.
 func (c *Config) GetIDTokenLifespan(ctx context.Context) (lifespan time.Duration) {
-	if c.Lifespans.IDToken <= 0 {
-		c.Lifespans.AccessToken = lifespanTokenDefault
+	if c.Lifespans.IDToken.Seconds() <= 0 {
+		c.Lifespans.IDToken = lifespanTokenDefault
 	}
 
 	return c.Lifespans.IDToken
@@ -419,7 +398,7 @@ func (c *Config) GetIDTokenLifespan(ctx context.Context) (lifespan time.Duration
 
 // GetAccessTokenLifespan returns the access token lifespan.
 func (c *Config) GetAccessTokenLifespan(ctx context.Context) (lifespan time.Duration) {
-	if c.Lifespans.AccessToken <= 0 {
+	if c.Lifespans.AccessToken.Seconds() <= 0 {
 		c.Lifespans.AccessToken = lifespanTokenDefault
 	}
 
@@ -534,15 +513,13 @@ func (c *Config) GetFormPostHTMLTemplate(ctx context.Context) (tmpl *template.Te
 
 // GetTokenURL returns the token URL.
 func (c *Config) GetTokenURL(ctx context.Context) (tokenURL string) {
-	if ctx, ok := ctx.(OpenIDConnectContext); ok {
-		tokenURI, err := ctx.IssuerURL()
-		if err != nil {
+	if octx, ok := ctx.(Context); ok {
+		switch issuerURL, err := octx.IssuerURL(); err {
+		case nil:
+			return strings.ToLower(issuerURL.JoinPath(EndpointPathToken).String())
+		default:
 			return c.TokenURL
 		}
-
-		tokenURI.Path = path.Join(tokenURI.Path, EndpointPathToken)
-
-		return tokenURI.String()
 	}
 
 	return c.TokenURL
@@ -598,7 +575,7 @@ func (c *Config) GetResponseModeHandlerExtension(ctx context.Context) (handler f
 // usually 'urn:ietf:params:oauth:request_uri:'.
 func (c *Config) GetPushedAuthorizeRequestURIPrefix(ctx context.Context) string {
 	if c.PAR.URIPrefix == "" {
-		c.PAR.URIPrefix = urnPARPrefix
+		c.PAR.URIPrefix = RedirectURIPrefixPushedAuthorizationRequestURN
 	}
 
 	return c.PAR.URIPrefix
@@ -613,7 +590,7 @@ func (c *Config) EnforcePushedAuthorize(ctx context.Context) bool {
 
 // GetPushedAuthorizeContextLifespan is the lifespan of the short-lived PAR context.
 func (c *Config) GetPushedAuthorizeContextLifespan(ctx context.Context) (lifespan time.Duration) {
-	if c.PAR.ContextLifespan.Seconds() == 0 {
+	if c.PAR.ContextLifespan.Seconds() <= 0 {
 		c.PAR.ContextLifespan = lifespanPARContextDefault
 	}
 

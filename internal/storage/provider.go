@@ -38,12 +38,12 @@ type Provider interface {
 	LoadTOTPConfiguration(ctx context.Context, username string) (config *model.TOTPConfiguration, err error)
 	LoadTOTPConfigurations(ctx context.Context, limit, page int) (configs []model.TOTPConfiguration, err error)
 
-	SaveWebauthnDevice(ctx context.Context, device model.WebauthnDevice) (err error)
-	UpdateWebauthnDeviceSignIn(ctx context.Context, id int, rpid string, lastUsedAt sql.NullTime, signCount uint32, cloneWarning bool) (err error)
-	DeleteWebauthnDevice(ctx context.Context, kid string) (err error)
-	DeleteWebauthnDeviceByUsername(ctx context.Context, username, description string) (err error)
-	LoadWebauthnDevices(ctx context.Context, limit, page int) (devices []model.WebauthnDevice, err error)
-	LoadWebauthnDevicesByUsername(ctx context.Context, username string) (devices []model.WebauthnDevice, err error)
+	SaveWebAuthnDevice(ctx context.Context, device model.WebAuthnDevice) (err error)
+	UpdateWebAuthnDeviceSignIn(ctx context.Context, id int, rpid string, lastUsedAt sql.NullTime, signCount uint32, cloneWarning bool) (err error)
+	DeleteWebAuthnDevice(ctx context.Context, kid string) (err error)
+	DeleteWebAuthnDeviceByUsername(ctx context.Context, username, description string) (err error)
+	LoadWebAuthnDevices(ctx context.Context, limit, page int) (devices []model.WebAuthnDevice, err error)
+	LoadWebAuthnDevicesByUsername(ctx context.Context, username string) (devices []model.WebAuthnDevice, err error)
 
 	SavePreferredDuoDevice(ctx context.Context, device model.DuoDevice) (err error)
 	DeletePreferredDuoDevice(ctx context.Context, username string) (err error)
@@ -68,6 +68,7 @@ type Provider interface {
 	SaveOAuth2PARContext(ctx context.Context, par model.OAuth2PARContext) (err error)
 	LoadOAuth2PARContext(ctx context.Context, signature string) (par *model.OAuth2PARContext, err error)
 	RevokeOAuth2PARContext(ctx context.Context, signature string) (err error)
+	UpdateOAuth2PARContext(ctx context.Context, par model.OAuth2PARContext) (err error)
 
 	SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI model.OAuth2BlacklistedJTI) (err error)
 	LoadOAuth2BlacklistedJTI(ctx context.Context, signature string) (blacklistedJTI *model.OAuth2BlacklistedJTI, err error)

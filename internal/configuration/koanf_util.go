@@ -53,35 +53,42 @@ func koanfRemapKeys(val *schema.StructValidator, ko *koanf.Koanf, ds map[string]
 	return final, nil
 }
 
-func koanfRemapKeysStandard(keys map[string]any, val *schema.StructValidator, ds map[string]Deprecation) (keysFinal map[string]interface{}) {
+func koanfRemapKeysStandard(keys map[string]any, val *schema.StructValidator, ds map[string]Deprecation) (keysFinal map[string]any) {
 	var (
 		ok    bool
 		d     Deprecation
 		key   string
-		value interface{}
+		value any
 	)
 
-	keysFinal = make(map[string]interface{})
+	keysFinal = make(map[string]any)
 
 	for key, value = range keys {
 		if d, ok = ds[key]; ok {
 			if !d.AutoMap {
-				val.Push(fmt.Errorf("invalid configuration key '%s' was replaced by '%s'", d.Key, d.NewKey))
-
 				keysFinal[key] = value
 
+				if d.ErrFunc != nil {
+					d.ErrFunc(d, keysFinal, value, val)
+				} else {
+					val.Push(fmt.Errorf("invalid configuration key '%s' was replaced by '%s'", d.Key, d.NewKey))
+				}
+
 				continue
-			} else {
-				val.PushWarning(fmt.Errorf("configuration key '%s' is deprecated in %s and has been replaced by '%s': "+
-					"this has been automatically mapped for you but you will need to adjust your configuration to remove this message", d.Key, d.Version.String(), d.NewKey))
 			}
 
 			if !mapHasKey(d.NewKey, keys) && !mapHasKey(d.NewKey, keysFinal) {
+				val.PushWarning(fmt.Errorf("configuration key '%s' is deprecated in %s and has been replaced by '%s': "+
+					"this has been automatically mapped for you but you will need to adjust your configuration to remove this message", d.Key, d.Version.String(), d.NewKey))
+
 				if d.MapFunc != nil {
 					keysFinal[d.NewKey] = d.MapFunc(value)
 				} else {
 					keysFinal[d.NewKey] = value
 				}
+			} else {
+				val.PushWarning(fmt.Errorf("configuration key '%s' is deprecated in %s and has been replaced by '%s': "+
+					"this has not been automatically mapped for you because the replacement key also exists and you will need to adjust your configuration to remove this message", d.Key, d.Version.String(), d.NewKey))
 			}
 
 			continue
@@ -93,35 +100,35 @@ func koanfRemapKeysStandard(keys map[string]any, val *schema.StructValidator, ds
 	return keysFinal
 }
 
-func koanfRemapKeysMapped(keys map[string]interface{}, val *schema.StructValidator, ds map[string]Deprecation) (keysFinal map[string]interface{}) {
+func koanfRemapKeysMapped(keys map[string]any, val *schema.StructValidator, ds map[string]Deprecation) (keysFinal map[string]any) {
 	var (
 		key           string
-		value         interface{}
-		slc, slcFinal []interface{}
+		value         any
+		slc, slcFinal []any
 		ok            bool
-		m             map[string]interface{}
+		m             map[string]any
 		d             Deprecation
 	)
 
-	keysFinal = make(map[string]interface{})
+	keysFinal = make(map[string]any)
 
 	for key, value = range keys {
-		if slc, ok = value.([]interface{}); !ok {
+		if slc, ok = value.([]any); !ok {
 			keysFinal[key] = value
 
 			continue
 		}
 
-		slcFinal = make([]interface{}, len(slc))
+		slcFinal = make([]any, len(slc))
 
 		for i, item := range slc {
-			if m, ok = item.(map[string]interface{}); !ok {
+			if m, ok = item.(map[string]any); !ok {
 				slcFinal[i] = item
 
 				continue
 			}
 
-			itemFinal := make(map[string]interface{})
+			itemFinal := make(map[string]any)
 
 			for subkey, element := range m {
 				prefix := fmt.Sprintf("%s[].", key)

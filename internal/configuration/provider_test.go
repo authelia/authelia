@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -22,13 +23,12 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 	testSetEnv(t, "JWT_SECRET_FILE", filepath.Join(dir, "jwt"))
 	testSetEnv(t, "DUO_API_SECRET_KEY_FILE", filepath.Join(dir, "duo"))
 	testSetEnv(t, "SESSION_SECRET_FILE", filepath.Join(dir, "session"))
-	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", filepath.Join(dir, "authentication"))
+	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", dir)
 	testSetEnv(t, "NOTIFIER_SMTP_PASSWORD_FILE", filepath.Join(dir, "notifier"))
 	testSetEnv(t, "SESSION_REDIS_PASSWORD_FILE", filepath.Join(dir, "redis"))
 	testSetEnv(t, "SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE", filepath.Join(dir, "redis-sentinel"))
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD_FILE", filepath.Join(dir, "mysql"))
 	testSetEnv(t, "STORAGE_POSTGRES_PASSWORD_FILE", filepath.Join(dir, "postgres"))
-	testSetEnv(t, "SERVER_TLS_KEY_FILE", filepath.Join(dir, "tls"))
 	testSetEnv(t, "IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE", filepath.Join(dir, "oidc-key"))
 	testSetEnv(t, "IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE", filepath.Join(dir, "oidc-hmac"))
 
@@ -39,25 +39,25 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 	assert.Len(t, val.Warnings(), 0)
 
 	errs := val.Errors()
-	require.Len(t, errs, 12)
+	require.Len(t, errs, 11)
 
 	sort.Sort(utils.ErrSliceSortAlphabetical(errs))
 
 	errFmt := utils.GetExpectedErrTxt("filenotfound")
+	errFmtDir := utils.GetExpectedErrTxt("isdir")
 
 	// ignore the errors before this as they are checked by the validator.
-	assert.EqualError(t, errs[0], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "authentication"), "authentication_backend.ldap.password", fmt.Sprintf(errFmt, filepath.Join(dir, "authentication"))))
-	assert.EqualError(t, errs[1], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "duo"), "duo_api.secret_key", fmt.Sprintf(errFmt, filepath.Join(dir, "duo"))))
-	assert.EqualError(t, errs[2], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "jwt"), "jwt_secret", fmt.Sprintf(errFmt, filepath.Join(dir, "jwt"))))
-	assert.EqualError(t, errs[3], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "mysql"), "storage.mysql.password", fmt.Sprintf(errFmt, filepath.Join(dir, "mysql"))))
-	assert.EqualError(t, errs[4], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "notifier"), "notifier.smtp.password", fmt.Sprintf(errFmt, filepath.Join(dir, "notifier"))))
-	assert.EqualError(t, errs[5], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "oidc-hmac"), "identity_providers.oidc.hmac_secret", fmt.Sprintf(errFmt, filepath.Join(dir, "oidc-hmac"))))
-	assert.EqualError(t, errs[6], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "oidc-key"), "identity_providers.oidc.issuer_private_key", fmt.Sprintf(errFmt, filepath.Join(dir, "oidc-key"))))
-	assert.EqualError(t, errs[7], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "postgres"), "storage.postgres.password", fmt.Sprintf(errFmt, filepath.Join(dir, "postgres"))))
-	assert.EqualError(t, errs[8], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "redis"), "session.redis.password", fmt.Sprintf(errFmt, filepath.Join(dir, "redis"))))
-	assert.EqualError(t, errs[9], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "redis-sentinel"), "session.redis.high_availability.sentinel_password", fmt.Sprintf(errFmt, filepath.Join(dir, "redis-sentinel"))))
-	assert.EqualError(t, errs[10], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "session"), "session.secret", fmt.Sprintf(errFmt, filepath.Join(dir, "session"))))
-	assert.EqualError(t, errs[11], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "tls"), "server.tls.key", fmt.Sprintf(errFmt, filepath.Join(dir, "tls"))))
+	assert.EqualError(t, errs[0], fmt.Sprintf("secrets: error loading secret path %s into key 'authentication_backend.ldap.password': %s", dir, fmt.Sprintf(errFmtDir, dir)))
+	assert.EqualError(t, errs[1], fmt.Sprintf("secrets: error loading secret path %s into key 'duo_api.secret_key': file does not exist error occurred: %s", filepath.Join(dir, "duo"), fmt.Sprintf(errFmt, filepath.Join(dir, "duo"))))
+	assert.EqualError(t, errs[2], fmt.Sprintf("secrets: error loading secret path %s into key 'jwt_secret': file does not exist error occurred: %s", filepath.Join(dir, "jwt"), fmt.Sprintf(errFmt, filepath.Join(dir, "jwt"))))
+	assert.EqualError(t, errs[3], fmt.Sprintf("secrets: error loading secret path %s into key 'storage.mysql.password': file does not exist error occurred: %s", filepath.Join(dir, "mysql"), fmt.Sprintf(errFmt, filepath.Join(dir, "mysql"))))
+	assert.EqualError(t, errs[4], fmt.Sprintf("secrets: error loading secret path %s into key 'notifier.smtp.password': file does not exist error occurred: %s", filepath.Join(dir, "notifier"), fmt.Sprintf(errFmt, filepath.Join(dir, "notifier"))))
+	assert.EqualError(t, errs[5], fmt.Sprintf("secrets: error loading secret path %s into key 'identity_providers.oidc.hmac_secret': file does not exist error occurred: %s", filepath.Join(dir, "oidc-hmac"), fmt.Sprintf(errFmt, filepath.Join(dir, "oidc-hmac"))))
+	assert.EqualError(t, errs[6], fmt.Sprintf("secrets: error loading secret path %s into key 'identity_providers.oidc.issuer_private_key': file does not exist error occurred: %s", filepath.Join(dir, "oidc-key"), fmt.Sprintf(errFmt, filepath.Join(dir, "oidc-key"))))
+	assert.EqualError(t, errs[7], fmt.Sprintf("secrets: error loading secret path %s into key 'storage.postgres.password': file does not exist error occurred: %s", filepath.Join(dir, "postgres"), fmt.Sprintf(errFmt, filepath.Join(dir, "postgres"))))
+	assert.EqualError(t, errs[8], fmt.Sprintf("secrets: error loading secret path %s into key 'session.redis.password': file does not exist error occurred: %s", filepath.Join(dir, "redis"), fmt.Sprintf(errFmt, filepath.Join(dir, "redis"))))
+	assert.EqualError(t, errs[9], fmt.Sprintf("secrets: error loading secret path %s into key 'session.redis.high_availability.sentinel_password': file does not exist error occurred: %s", filepath.Join(dir, "redis-sentinel"), fmt.Sprintf(errFmt, filepath.Join(dir, "redis-sentinel"))))
+	assert.EqualError(t, errs[10], fmt.Sprintf("secrets: error loading secret path %s into key 'session.secret': file does not exist error occurred: %s", filepath.Join(dir, "session"), fmt.Sprintf(errFmt, filepath.Join(dir, "session"))))
 }
 
 func TestLoadShouldReturnErrWithoutValidator(t *testing.T) {
@@ -83,6 +83,18 @@ func TestShouldHaveNotifier(t *testing.T) {
 	assert.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
 	assert.NotNil(t, config.Notifier)
+}
+
+func TestShouldParseLargeIntegerDurations(t *testing.T) {
+	val := schema.NewStructValidator()
+	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.durations.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	assert.Equal(t, durationMax, config.Regulation.FindTime)
+	assert.Equal(t, time.Second*1000, config.Regulation.BanTime)
 }
 
 func TestShouldValidateConfigurationWithEnv(t *testing.T) {
@@ -119,7 +131,7 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 	require.Len(t, val.Warnings(), 0)
 
 	assert.Equal(t, "api-123456789.example.org", config.DuoAPI.Hostname)
-	assert.Equal(t, "10.10.10.10", config.Notifier.SMTP.Host)
+	assert.Equal(t, "smtp://10.10.10.10:1025", config.Notifier.SMTP.Address.String())
 	assert.Equal(t, "10.10.10.10", config.Session.Redis.Host)
 
 	require.Len(t, config.IdentityProviders.OIDC.Clients, 3)
@@ -134,7 +146,7 @@ func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 	testSetEnv(t, "STORAGE_MYSQL", "a bad env")
 	testSetEnv(t, "JWT_SECRET", "an env jwt secret")
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "an env authentication backend ldap password")
-	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_URL", "an env authentication backend ldap password")
+	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_ADDRESS", "an env authentication backend ldap password")
 
 	val := schema.NewStructValidator()
 	keys, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
@@ -144,9 +156,176 @@ func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
 
 	require.Len(t, val.Warnings(), 1)
-	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Errors(), 1)
 
 	assert.EqualError(t, val.Warnings()[0], fmt.Sprintf("configuration environment variable not expected: %sSTORAGE_MYSQL", DefaultEnvPrefix))
+	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: 1 error(s) decoding:\n\n* error decoding 'authentication_backend.ldap.address': could not decode 'an env authentication backend ldap password' to a *schema.AddressLDAP: could not parse string 'an env authentication backend ldap password' as address: expected format is [<scheme>://]<hostname>[:<port>]: parse \"ldaps://an env authentication backend ldap password\": invalid character \" \" in host name")
+}
+
+func TestShouldValidateServerAddressValues(t *testing.T) {
+	testCases := []struct {
+		name string
+		data []byte
+
+		envHost, envPort, envAddress string
+
+		envMetricsAddress      string
+		expectedHTTP           string
+		expectedNetAddrHTTP    string
+		expectedMetrics        string
+		expectedNetAddrMetrics string
+		errs                   []string
+	}{
+		{
+			"ShouldSetDefaultValues",
+			nil,
+			"",
+			"",
+			"",
+			"",
+			"tcp://:9091/",
+			":9091",
+			"tcp://:9959/metrics",
+			":9959",
+			nil,
+		},
+		{
+			"ShouldMapEnvValuesWithConfigTemplate",
+			func() []byte {
+				data, err := os.ReadFile("config.template.yml")
+				if err != nil {
+					panic(err)
+				}
+
+				return data
+			}(),
+			"127.0.0.1",
+			"8080",
+			"",
+			"",
+			"tcp://127.0.0.1:8080/",
+			"127.0.0.1:8080",
+			"tcp://:9959/metrics",
+			":9959",
+			nil,
+		},
+		{
+			"ShouldOverrideDefault",
+			func() []byte {
+				data, err := os.ReadFile("config.template.yml")
+				if err != nil {
+					panic(err)
+				}
+
+				return data
+			}(),
+			"",
+			"",
+			"tcp://127.0.0.2:7071",
+			"tcp://127.0.0.3:8080",
+			"tcp://127.0.0.2:7071/",
+			"127.0.0.2:7071",
+			"tcp://127.0.0.3:8080/metrics",
+			"127.0.0.3:8080",
+			nil,
+		},
+		{
+			"ShouldErrorOnDeprecatedEnvAndModernConfigFileListenerOptions",
+			[]byte("server:\n  address: 'tcp://:1000'"),
+			"127.0.0.1",
+			"8080",
+			"",
+			"tcp://:",
+			"tcp://:1000/",
+			":1000",
+			"tcp://:9959/metrics",
+			":9959",
+			[]string{
+				"server: option 'host' and 'port' can't be configured at the same time as 'address'",
+			},
+		},
+		{
+			"ShouldErrorOnDeprecatedEnvAndModernEnvListenerOptions",
+			nil,
+			"127.0.0.1",
+			"8080",
+			"tcp://:10000",
+			"tcp://:",
+			"tcp://:10000/",
+			":10000",
+			"tcp://:9959/metrics",
+			":9959",
+			[]string{
+				"server: option 'host' and 'port' can't be configured at the same time as 'address'",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			testSetEnv(t, "TELEMETRY_METRICS_ENABLED", "true")
+
+			if tc.envHost != "" {
+				testSetEnv(t, "SERVER_HOST", tc.envHost)
+			}
+
+			if tc.envPort != "" {
+				testSetEnv(t, "SERVER_PORT", tc.envPort)
+			}
+
+			if tc.envAddress != "" {
+				testSetEnv(t, "SERVER_ADDRESS", tc.envAddress)
+			}
+
+			if tc.envMetricsAddress != "" {
+				testSetEnv(t, "TELEMETRY_METRICS_ADDRESS", tc.envMetricsAddress)
+			}
+
+			sources := []Source{
+				NewBytesSource(tc.data),
+				NewEnvironmentSource(DefaultEnvPrefix, DefaultEnvDelimiter),
+				NewSecretsSource(DefaultEnvPrefix, DefaultEnvDelimiter),
+			}
+
+			val := schema.NewStructValidator()
+			keys, config, err := Load(val, sources...)
+
+			assert.NoError(t, err)
+
+			validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+			assert.Len(t, val.Errors(), 0)
+
+			assert.NotEmpty(t, config)
+
+			val.Clear()
+
+			validator.ValidateServer(config, val)
+			validator.ValidateTelemetry(config, val)
+
+			assert.Len(t, val.Warnings(), 0)
+
+			errs := val.Errors()
+
+			if n := len(tc.errs); n == 0 {
+				assert.Len(t, errs, 0)
+			} else {
+				require.Len(t, errs, n)
+
+				for i := 0; i < n; i++ {
+					assert.EqualError(t, errs[i], tc.errs[i])
+				}
+			}
+
+			assert.Equal(t, tc.expectedHTTP, config.Server.Address.String())
+			assert.Equal(t, "tcp", config.Server.Address.Network())
+			assert.Equal(t, tc.expectedNetAddrHTTP, config.Server.Address.NetworkAddress())
+
+			assert.Equal(t, tc.expectedMetrics, config.Telemetry.Metrics.Address.String())
+			assert.Equal(t, "tcp", config.Telemetry.Metrics.Address.Network())
+			assert.Equal(t, tc.expectedNetAddrMetrics, config.Telemetry.Metrics.Address.NetworkAddress())
+		})
+	}
 }
 
 func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T) {
@@ -230,6 +409,28 @@ func TestShouldLoadURLList(t *testing.T) {
 	assert.Equal(t, "https://example.com", config.IdentityProviders.OIDC.CORS.AllowedOrigins[1].String())
 }
 
+func TestShouldDisableOIDCEntropy(t *testing.T) {
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc_disable_entropy.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	assert.Equal(t, -1, config.IdentityProviders.OIDC.MinimumParameterEntropy)
+
+	validator.ValidateIdentityProviders(&config.IdentityProviders, val)
+
+	assert.Len(t, val.Errors(), 1)
+	require.Len(t, val.Warnings(), 2)
+
+	assert.EqualError(t, val.Warnings()[0], "identity_providers: oidc: option 'minimum_parameter_entropy' is disabled which is considered unsafe and insecure")
+	assert.Equal(t, -1, config.IdentityProviders.OIDC.MinimumParameterEntropy)
+}
+
 func TestShouldConfigureConsent(t *testing.T) {
 	val := schema.NewStructValidator()
 	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
@@ -243,6 +444,7 @@ func TestShouldConfigureConsent(t *testing.T) {
 
 	require.Len(t, config.IdentityProviders.OIDC.Clients, 1)
 	assert.Equal(t, config.IdentityProviders.OIDC.Clients[0].ConsentMode, "explicit")
+	assert.Equal(t, "none", config.IdentityProviders.OIDC.Clients[0].UserinfoSigningAlg)
 }
 
 func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
@@ -265,6 +467,55 @@ func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
 	assert.EqualError(t, val.Warnings()[0], "configuration key 'logs_level' is deprecated in 4.7.0 and has been replaced by 'log.level': this has been automatically mapped for you but you will need to adjust your configuration to remove this message")
 
 	assert.Equal(t, "debug", c.Log.Level)
+}
+
+func TestShouldValidateDeprecatedEnvNames(t *testing.T) {
+	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_URL", "ldap://from-env")
+
+	val := schema.NewStructValidator()
+	keys, c, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	require.Len(t, val.Warnings(), 1)
+
+	assert.EqualError(t, val.Warnings()[0], "configuration key 'authentication_backend.ldap.url' is deprecated in 4.38.0 and has been replaced by 'authentication_backend.ldap.address': this has not been automatically mapped for you because the replacement key also exists and you will need to adjust your configuration to remove this message")
+
+	assert.Equal(t, "ldap://127.0.0.1:389", c.AuthenticationBackend.LDAP.Address.String())
+}
+
+func TestShouldValidateDeprecatedEnvNamesWithDeprecatedKeys(t *testing.T) {
+	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_URL", "ldap://from-env")
+
+	val := schema.NewStructValidator()
+	keys, c, err := Load(val, NewDefaultSources([]string{"./test_resources/config.deprecated.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+
+	warnings := val.Warnings()
+	require.Len(t, warnings, 10)
+
+	sort.Sort(utils.ErrSliceSortAlphabetical(warnings))
+
+	assert.EqualError(t, warnings[0], "configuration key 'authentication_backend.ldap.url' is deprecated in 4.38.0 and has been replaced by 'authentication_backend.ldap.address': this has been automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[1], "configuration key 'notifier.smtp.host' is deprecated in 4.38.0 and has been replaced by 'notifier.smtp.address' when combined with the 'notifier.smtp.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[2], "configuration key 'notifier.smtp.port' is deprecated in 4.38.0 and has been replaced by 'notifier.smtp.address' when combined with the 'notifier.smtp.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[3], "configuration key 'server.host' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.port' and 'server.path' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[4], "configuration key 'server.path' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.host' and 'server.port' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[5], "configuration key 'server.port' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.host' and 'server.path' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[6], "configuration key 'storage.mysql.host' is deprecated in 4.38.0 and has been replaced by 'storage.mysql.address' when combined with the 'storage.mysql.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[7], "configuration key 'storage.mysql.port' is deprecated in 4.38.0 and has been replaced by 'storage.mysql.address' when combined with the 'storage.mysql.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[8], "configuration key 'storage.postgres.host' is deprecated in 4.38.0 and has been replaced by 'storage.postgres.address' when combined with the 'storage.postgres.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[9], "configuration key 'storage.postgres.port' is deprecated in 4.38.0 and has been replaced by 'storage.postgres.address' when combined with the 'storage.postgres.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+
+	assert.Equal(t, "ldap://from-env:389", c.AuthenticationBackend.LDAP.Address.String())
 }
 
 func TestShouldRaiseErrOnInvalidNotifierSMTPSender(t *testing.T) {
@@ -316,6 +567,26 @@ func TestShouldDecodeSMTPSenderWithoutName(t *testing.T) {
 
 	assert.Equal(t, "", config.Notifier.SMTP.Sender.Name)
 	assert.Equal(t, "admin@example.com", config.Notifier.SMTP.Sender.Address)
+}
+
+func TestShouldDecodeServerTLS(t *testing.T) {
+	testSetEnv(t, "SERVER_TLS_KEY", "abc")
+	testSetEnv(t, "SERVER_TLS_CERTIFICATE", "123")
+	testSetEnv(t, "SERVER_TLS_CLIENT_CERTIFICATES", "abc,123")
+
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	assert.Equal(t, "abc", config.Server.TLS.Key)
+	assert.Equal(t, "123", config.Server.TLS.Certificate)
+	assert.Equal(t, []string{"abc", "123"}, config.Server.TLS.ClientCertificates)
 }
 
 func TestShouldDecodeSMTPSenderWithName(t *testing.T) {
@@ -400,12 +671,17 @@ func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
 func TestShouldLoadDirectoryConfiguration(t *testing.T) {
 	dir := t.TempDir()
 
+	cfg := filepath.Join(dir, "myconf.yml")
+	assert.NoError(t, testCreateFile(cfg, "server:\n  port: 9091\n", 0700))
+
 	val := schema.NewStructValidator()
 	_, _, err := Load(val, NewFileSource(dir))
 
 	assert.NoError(t, err)
 	assert.Len(t, val.Errors(), 0)
-	assert.Len(t, val.Warnings(), 0)
+	require.Len(t, val.Warnings(), 1)
+
+	assert.EqualError(t, val.Warnings()[0], "configuration key 'server.port' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.host' and 'server.path' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
 }
 
 func testSetEnv(t *testing.T, key, value string) {
@@ -414,4 +690,71 @@ func testSetEnv(t *testing.T, key, value string) {
 
 func testCreateFile(path, value string, perm os.FileMode) (err error) {
 	return os.WriteFile(path, []byte(value), perm)
+}
+
+func TestShouldErrorOnNoPath(t *testing.T) {
+	val := schema.NewStructValidator()
+	_, _, err := Load(val, NewFileSource(""))
+
+	assert.NoError(t, err)
+	assert.Len(t, val.Errors(), 1)
+	assert.ErrorContains(t, val.Errors()[0], "invalid file path source configuration")
+}
+
+func TestShouldErrorOnInvalidPath(t *testing.T) {
+	dir := t.TempDir()
+	cfg := filepath.Join(dir, "invalid-folder/config")
+
+	val := schema.NewStructValidator()
+	_, _, err := Load(val, NewFileSource(cfg))
+
+	assert.NoError(t, err)
+	assert.Len(t, val.Errors(), 1)
+	assert.ErrorContains(t, val.Errors()[0], fmt.Sprintf("stat %s: no such file or directory", cfg))
+}
+
+func TestShouldErrorOnDirFSPermissionDenied(t *testing.T) {
+	if runtime.GOOS == constWindows {
+		t.Skip("skipping test due to being on windows")
+	}
+
+	dir := t.TempDir()
+	err := os.Chmod(dir, 0200)
+	assert.NoError(t, err)
+
+	val := schema.NewStructValidator()
+	_, _, err = Load(val, NewFileSource(dir))
+
+	assert.NoError(t, err)
+	assert.Len(t, val.Errors(), 1)
+	assert.ErrorContains(t, val.Errors()[0], fmt.Sprintf("open %s: permission denied", dir))
+}
+
+func TestShouldSkipDirOnLoad(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "some-dir")
+
+	err := os.Mkdir(path, 0700)
+	assert.NoError(t, err)
+
+	val := schema.NewStructValidator()
+	_, _, err = Load(val, NewFileSource(dir))
+
+	assert.NoError(t, err)
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+}
+
+func TestShouldFailIfYmlIsInvalid(t *testing.T) {
+	dir := t.TempDir()
+
+	cfg := filepath.Join(dir, "myconf.yml")
+	assert.NoError(t, testCreateFile(cfg, "an invalid contend\n", 0700))
+
+	val := schema.NewStructValidator()
+	_, _, err := Load(val, NewFileSource(dir))
+
+	assert.NoError(t, err)
+	assert.Len(t, val.Errors(), 1)
+	assert.ErrorContains(t, val.Errors()[0], "unmarshal errors")
 }

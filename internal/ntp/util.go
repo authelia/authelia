@@ -38,3 +38,11 @@ func ntpIsOffsetTooLarge(maxOffset time.Duration, first, second time.Time) (tooL
 
 	return offset > maxOffset
 }
+
+func calcOffset(first, second time.Time) time.Duration {
+	if first.After(second) {
+		return first.Sub(second)
+	}
+
+	return second.Sub(first)
+}

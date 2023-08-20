@@ -25,9 +25,12 @@ type TOTPConfiguration struct {
 	Secret     []byte       `db:"secret" json:"-"`
 }
 
+// LastUsed provides LastUsedAt as a *time.Time instead of sql.NullTime.
 func (c *TOTPConfiguration) LastUsed() *time.Time {
 	if c.LastUsedAt.Valid {
-		return &c.LastUsedAt.Time
+		value := time.Unix(c.LastUsedAt.Time.Unix(), int64(c.LastUsedAt.Time.Nanosecond()))
+
+		return &value
 	}
 
 	return nil
@@ -73,9 +76,9 @@ func (c *TOTPConfiguration) Image(width, height int) (img image.Image, err error
 	return key.Image(width, height)
 }
 
-// MarshalYAML marshals this model into YAML.
-func (c *TOTPConfiguration) MarshalYAML() (any, error) {
-	o := TOTPConfigurationData{
+// ToData converts this TOTPConfiguration into the data format for exporting etc.
+func (c *TOTPConfiguration) ToData() TOTPConfigurationData {
+	return TOTPConfigurationData{
 		CreatedAt:  c.CreatedAt,
 		LastUsedAt: c.LastUsed(),
 		Username:   c.Username,
@@ -85,8 +88,11 @@ func (c *TOTPConfiguration) MarshalYAML() (any, error) {
 		Period:     c.Period,
 		Secret:     base64.StdEncoding.EncodeToString(c.Secret),
 	}
+}
 
-	return yaml.Marshal(o)
+// MarshalYAML marshals this model into YAML.
+func (c *TOTPConfiguration) MarshalYAML() (any, error) {
+	return c.ToData(), nil
 }
 
 // UnmarshalYAML unmarshalls YAML into this model.
@@ -127,7 +133,30 @@ type TOTPConfigurationData struct {
 	Secret     string     `yaml:"secret"`
 }
 
+// TOTPConfigurationDataExport represents a TOTPConfiguration export file.
+type TOTPConfigurationDataExport struct {
+	TOTPConfigurations []TOTPConfigurationData `yaml:"totp_configurations"`
+}
+
 // TOTPConfigurationExport represents a TOTPConfiguration export file.
 type TOTPConfigurationExport struct {
 	TOTPConfigurations []TOTPConfiguration `yaml:"totp_configurations"`
+}
+
+// ToData converts this TOTPConfigurationExport into a TOTPConfigurationDataExport.
+func (export TOTPConfigurationExport) ToData() TOTPConfigurationDataExport {
+	data := TOTPConfigurationDataExport{
+		TOTPConfigurations: make([]TOTPConfigurationData, len(export.TOTPConfigurations)),
+	}
+
+	for i, config := range export.TOTPConfigurations {
+		data.TOTPConfigurations[i] = config.ToData()
+	}
+
+	return data
+}
+
+// MarshalYAML marshals this model into YAML.
+func (export TOTPConfigurationExport) MarshalYAML() (any, error) {
+	return export.ToData(), nil
 }

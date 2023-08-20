@@ -58,6 +58,9 @@ var PublicBaseURL = fmt.Sprintf("https://public.%s", BaseDomain)
 // SecureBaseURL the base URL of the secure domain.
 var SecureBaseURL = fmt.Sprintf("https://secure.%s", BaseDomain)
 
+// DenyBaseURL the base URL of the dev domain.
+var DenyBaseURL = fmt.Sprintf("https://deny.%s", BaseDomain)
+
 // DevBaseURL the base URL of the dev domain.
 var DevBaseURL = fmt.Sprintf("https://dev.%s", BaseDomain)
 

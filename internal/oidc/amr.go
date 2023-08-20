@@ -5,9 +5,9 @@ type AuthenticationMethodsReferences struct {
 	UsernameAndPassword  bool
 	TOTP                 bool
 	Duo                  bool
-	Webauthn             bool
-	WebauthnUserPresence bool
-	WebauthnUserVerified bool
+	WebAuthn             bool
+	WebAuthnUserPresence bool
+	WebAuthnUserVerified bool
 }
 
 // FactorKnowledge returns true if a "something you know" factor of authentication was used.
@@ -17,7 +17,7 @@ func (r AuthenticationMethodsReferences) FactorKnowledge() bool {
 
 // FactorPossession returns true if a "something you have" factor of authentication was used.
 func (r AuthenticationMethodsReferences) FactorPossession() bool {
-	return r.TOTP || r.Webauthn || r.Duo
+	return r.TOTP || r.WebAuthn || r.Duo
 }
 
 // MultiFactorAuthentication returns true if multiple factors were used.
@@ -27,7 +27,7 @@ func (r AuthenticationMethodsReferences) MultiFactorAuthentication() bool {
 
 // ChannelBrowser returns true if a browser was used to authenticate.
 func (r AuthenticationMethodsReferences) ChannelBrowser() bool {
-	return r.UsernameAndPassword || r.TOTP || r.Webauthn
+	return r.UsernameAndPassword || r.TOTP || r.WebAuthn
 }
 
 // ChannelService returns true if a non-browser service was used to authenticate.
@@ -57,15 +57,15 @@ func (r AuthenticationMethodsReferences) MarshalRFC8176() []string {
 		amr = append(amr, AMRShortMessageService)
 	}
 
-	if r.Webauthn {
+	if r.WebAuthn {
 		amr = append(amr, AMRHardwareSecuredKey)
 	}
 
-	if r.WebauthnUserPresence {
+	if r.WebAuthnUserPresence {
 		amr = append(amr, AMRUserPresence)
 	}
 
-	if r.WebauthnUserVerified {
+	if r.WebAuthnUserVerified {
 		amr = append(amr, AMRPersonalIdentificationNumber)
 	}
 

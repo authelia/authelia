@@ -39,7 +39,7 @@ func TestValidatePasswordPolicy(t *testing.T) {
 			},
 			expectedErrs: []string{
 				"password_policy: only a single password policy mechanism can be specified",
-				"password_policy: standard: option 'min_length' must be greater than 0 but is configured as -1",
+				"password_policy: standard: option 'min_length' must be greater than 0 but it's configured as -1",
 			},
 		},
 		{

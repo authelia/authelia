@@ -21,7 +21,7 @@ var (
 
 const (
 	testXOriginalMethod = "X-Original-Method"
-	testXOriginalUrl    = "X-Original-Url"
+	testXOriginalUrl    = "X-Original-URL"
 	testBypass          = "bypass"
 	testWithoutAccept   = "WithoutAccept"
 	testWithXHRHeader   = "WithXHRHeader"

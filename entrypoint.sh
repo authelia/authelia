@@ -1,5 +1,7 @@
 #!/bin/sh
 
+[[ ! -z ${UMASK} ]] && umask ${UMASK}
+
 if [[ ! -z ${1} ]] && [[ ${1} != "--config" ]]; then
   exec "$@"
 elif [[ $(id -u) != 0 ]] || [[ $(id -g) != 0 ]]; then

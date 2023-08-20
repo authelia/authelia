@@ -10,7 +10,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-// Authz is a type which is a effectively is a middlewares.RequestHandler for authorization requests.
+// Authz is a type which is a effectively is a middlewares.RequestHandler for authorization requests. This should NOT be
+// manually used and developers should instead use NewAuthzBuilder.
 type Authz struct {
 	config AuthzConfig
 
@@ -23,7 +24,7 @@ type Authz struct {
 	handleAuthorized   HandlerAuthzAuthorized
 	handleUnauthorized HandlerAuthzUnauthorized
 
-	legacy bool
+	implementation AuthzImplementation
 }
 
 // HandlerAuthzUnauthorized is a Authz handler func that handles unauthorized responses.
@@ -75,20 +76,17 @@ type Authn struct {
 // AuthzConfig represents the configuration elements of the Authz type.
 type AuthzConfig struct {
 	RefreshInterval time.Duration
-	Domains         []AuthzDomain
-}
 
-// AuthzDomain represents a domain for the AuthzConfig.
-type AuthzDomain struct {
-	Name      string
-	PortalURL *url.URL
+	// StatusCodeBadRequest is sent for configuration issues prior to performing authorization checks. It's set by the
+	// builder.
+	StatusCodeBadRequest int
 }
 
 // AuthzBuilder is a builder pattern for the Authz type.
 type AuthzBuilder struct {
-	config     AuthzConfig
-	impl       AuthzImplementation
-	strategies []AuthnStrategy
+	config         AuthzConfig
+	implementation AuthzImplementation
+	strategies     []AuthnStrategy
 }
 
 // AuthnStrategy is a strategy used for Authz authentication.

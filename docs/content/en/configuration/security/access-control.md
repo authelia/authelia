@@ -15,13 +15,20 @@ aliases:
   - /docs/configuration/access-control.html
 ---
 
+*__Important Note:__ This section does not apply to OpenID Connect 1.0. See the [Frequently Asked Questions] for more
+information.*
+
+[Frequently Asked Questions]: ../../integration/openid-connect/frequently-asked-questions.md#why-doesnt-the-access-control-configuration-work-with-openid-connect-10
+
 ## Configuration
+
+{{< config-alert-example >}}
 
 ```yaml
 access_control:
-  default_policy: deny
+  default_policy: 'deny'
   networks:
-  - name: internal
+  - name: 'internal'
     networks:
     - '10.0.0.0/8'
     - '172.16.0.0/12'
@@ -29,7 +36,7 @@ access_control:
   rules:
   - domain: 'private.example.com'
     domain_regex: '^(\d+\-)?priv-img.example.com$'
-    policy: one_factor
+    policy: 'one_factor'
     networks:
     - 'internal'
     - '1.1.1.1'
@@ -38,8 +45,8 @@ access_control:
     - ['user:fred']
     - ['group:admins']
     methods:
-    - GET
-    - HEAD
+    - 'GET'
+    - 'HEAD'
     resources:
     - '^/api.*'
     query:
@@ -56,6 +63,8 @@ access_control:
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### default_policy
 
@@ -150,10 +159,10 @@ different ways.*
 access_control:
   rules:
   - domain: '*.example.com'
-    policy: bypass
+    policy: 'bypass'
   - domain:
     - '*.example.com'
-    policy: bypass
+    policy: 'bypass'
 ```
 
 *Multiple domains matched. These rules will match either `apple.example.com` or `orange.example.com`. All rules in this
@@ -163,11 +172,11 @@ list are effectively the same rule just expressed in different ways.*
 access_control:
   rules:
   - domain: ['apple.example.com', 'banana.example.com']
-    policy: bypass
+    policy: 'bypass'
   - domain:
-    - apple.example.com
-    - banana.example.com
-    policy: bypass
+    - 'apple.example.com'
+    - 'banana.example.com'
+    policy: 'bypass'
 ```
 
 *Multiple domains matched either via a static domain or via a [domain_regex]. This rule will match
@@ -213,7 +222,7 @@ access_control:
   - domain_regex:
     - '^user-(?P<User>\w+)\.example\.com$'
     - '^group-(?P<Group>\w+)\.example\.com$'
-    policy: one_factor
+    policy: 'one_factor'
 ```
 
 *Multiple domains example, one with a static domain and one with a regex domain. This will match requests to
@@ -224,7 +233,7 @@ access_control:
   rules:
   - domain: 'protected.example.com'
   - domain_regex: '^(img|data)-private\.example\.com'
-    policy: one_factor
+    policy: 'one_factor'
 ```
 
 #### policy
@@ -263,14 +272,14 @@ ways.*
 ```yaml
 access_control:
   rules:
-  - domain: example.com
-    policy: two_factor
+  - domain: 'example.com'
+    policy: 'two_factor'
     subject:
     - 'user:john'
     - ['group:admin', 'group:app-name']
     - 'group:super-admin'
-  - domain: example.com
-    policy: two_factor
+  - domain: 'example.com'
+    policy: 'two_factor'
     subject:
     - ['user:john']
     - ['group:admin', 'group:app-name']
@@ -283,15 +292,15 @@ expressed in different ways.*
 ```yaml
 access_control:
   rules:
-  - domain: example.com
-    policy: one_factor
+  - domain: 'example.com'
+    policy: 'one_factor'
     subject: 'group:super-admin'
-  - domain: example.com
-    policy: one_factor
+  - domain: 'example.com'
+    policy: 'one_factor'
     subject:
     - 'group:super-admin'
-  - domain: example.com
-    policy: one_factor
+  - domain: 'example.com'
+    policy: 'one_factor'
     subject:
     - ['group:super-admin']
 ```
@@ -328,10 +337,10 @@ relevant methods are listed in this table:
 ```yaml
 access_control:
   rules:
-  - domain: example.com
-    policy: bypass
+  - domain: 'example.com'
+    policy: 'bypass'
     methods:
-    - OPTIONS
+    - 'OPTIONS'
 ```
 
 #### networks
@@ -365,28 +374,28 @@ rules in this list are effectively the same rule just expressed in different way
 
 ```yaml
 access_control:
-  default_policy: two_factor
+  default_policy: 'two_factor'
   networks:
-  - name: internal
+  - name: 'internal'
     networks:
       - '10.0.0.0/8'
       - '172.16.0.0/12'
       - '192.168.0.0/18'
   rules:
-  - domain: secure.example.com
-    policy: one_factor
+  - domain: 'secure.example.com'
+    policy: 'one_factor'
     networks:
     - '10.0.0.0/8'
     - '172.16.0.0/12'
     - '192.168.0.0/18'
     - '112.134.145.167/32'
-  - domain: secure.example.com
-    policy: one_factor
+  - domain: 'secure.example.com'
+    policy: 'one_factor'
     networks:
     - 'internal'
     - '112.134.145.167/32'
-  - domain: secure.example.com
-    policy: two_factor
+  - domain: 'secure.example.com'
+    policy: 'two_factor'
 ```
 
 #### resources
@@ -421,8 +430,8 @@ likely save you a lot of time if you do it for all resource rules.
 ```yaml
 access_control:
   rules:
-  - domain: app.example.com
-    policy: bypass
+  - domain: 'app.example.com'
+    policy: 'bypass'
     resources:
     - '^/api([/?].*)?$'
 ```
@@ -467,8 +476,8 @@ defaults to `present`.
 ```yaml
 access_control:
   rules:
-    - domain: app.example.com
-      policy: bypass
+    - domain: 'app.example.com'
+      policy: 'bypass'
       query:
       - - operator: 'present'
           key: 'secure'
@@ -545,13 +554,13 @@ a match for that request.
 - domain:
     - 'example.com'
     - '*.example.com'
-  policy: bypass
+  policy: 'bypass'
   resources:
     - '^/api$'
     - '^/api/'
 - domain:
     - 'app.example.com'
-  policy: two_factor
+  policy: 'two_factor'
 ```
 
 [Rule Matching Concept 1]: #rule-matching-concept-1-sequential-order
@@ -603,25 +612,25 @@ Here is a detailed example of an example access control section:
 
 ```yaml
 access_control:
-  default_policy: deny
+  default_policy: 'deny'
   networks:
-    - name: internal
+    - name: 'internal'
       networks:
         - '10.10.0.0/16'
         - '192.168.2.0/24'
-    - name: VPN
-      networks: 10.9.0.0/16
+    - name: 'VPN'
+      networks: '10.9.0.0/16'
   rules:
     - domain: 'public.example.com'
-      policy: bypass
+      policy: 'bypass'
 
     - domain: '*.example.com'
-      policy: bypass
+      policy: 'bypass'
       methods:
-        - OPTIONS
+        - 'OPTIONS'
 
     - domain: 'secure.example.com'
-      policy: one_factor
+      policy: 'one_factor'
       networks:
         - 'internal'
         - 'VPN'
@@ -631,37 +640,37 @@ access_control:
     - domain:
       - 'secure.example.com'
       - 'private.example.com'
-      policy: two_factor
+      policy: 'two_factor'
 
     - domain: 'singlefactor.example.com'
-      policy: one_factor
+      policy: 'one_factor'
 
     - domain: 'mx2.mail.example.com'
       subject: 'group:admins'
-      policy: deny
+      policy: 'deny'
 
     - domain: '*.example.com'
       subject:
         - 'group:admins'
         - 'group:moderators'
-      policy: two_factor
+      policy: 'two_factor'
 
-    - domain: dev.example.com
+    - domain: 'dev.example.com'
       resources:
       - '^/groups/dev/.*$'
       subject: 'group:dev'
-      policy: two_factor
+      policy: 'two_factor'
 
-    - domain: dev.example.com
+    - domain: 'dev.example.com'
       resources:
       - '^/users/john/.*$'
       subject:
       - ['group:dev', 'user:john']
       - 'group:admins'
-      policy: two_factor
+      policy: 'two_factor'
 
     - domain: '{user}.example.com'
-      policy: bypass
+      policy: 'bypass'
 ```
 
 [RFC7231]: https://datatracker.ietf.org/doc/html/rfc7231

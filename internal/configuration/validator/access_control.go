@@ -59,15 +59,13 @@ func ValidateAccessControl(config *schema.Configuration, validator *schema.Struc
 	}
 
 	if !IsPolicyValid(config.AccessControl.DefaultPolicy) {
-		validator.Push(fmt.Errorf(errFmtAccessControlDefaultPolicyValue, strings.Join(validACLRulePolicies, "', '"), config.AccessControl.DefaultPolicy))
+		validator.Push(fmt.Errorf(errFmtAccessControlDefaultPolicyValue, strJoinOr(validACLRulePolicies), config.AccessControl.DefaultPolicy))
 	}
 
-	if config.AccessControl.Networks != nil {
-		for _, n := range config.AccessControl.Networks {
-			for _, networks := range n.Networks {
-				if !IsNetworkValid(networks) {
-					validator.Push(fmt.Errorf(errFmtAccessControlNetworkGroupIPCIDRInvalid, n.Name, networks))
-				}
+	for _, n := range config.AccessControl.Networks {
+		for _, networks := range n.Networks {
+			if !IsNetworkValid(networks) {
+				validator.Push(fmt.Errorf(errFmtAccessControlNetworkGroupIPCIDRInvalid, n.Name, networks))
 			}
 		}
 	}
@@ -92,8 +90,13 @@ func ValidateRules(config *schema.Configuration, validator *schema.StructValidat
 
 		validateDomains(rulePosition, rule, validator)
 
-		if !IsPolicyValid(rule.Policy) {
-			validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidPolicy, ruleDescriptor(rulePosition, rule), rule.Policy))
+		switch rule.Policy {
+		case "":
+			validator.Push(fmt.Errorf(errFmtAccessControlRuleNoPolicy, ruleDescriptor(rulePosition, rule)))
+		default:
+			if !IsPolicyValid(rule.Policy) {
+				validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidPolicy, ruleDescriptor(rulePosition, rule), strJoinOr(validACLRulePolicies), rule.Policy))
+			}
 		}
 
 		validateNetworks(rulePosition, rule, config.AccessControl, validator)
@@ -156,10 +159,14 @@ func validateSubjects(rulePosition int, rule schema.ACLRule, validator *schema.S
 }
 
 func validateMethods(rulePosition int, rule schema.ACLRule, validator *schema.StructValidator) {
-	for _, method := range rule.Methods {
-		if !utils.IsStringInSliceFold(method, validACLHTTPMethodVerbs) {
-			validator.Push(fmt.Errorf(errFmtAccessControlRuleMethodInvalid, ruleDescriptor(rulePosition, rule), method, strings.Join(validACLHTTPMethodVerbs, "', '")))
-		}
+	invalid, duplicates := validateList(rule.Methods, validACLHTTPMethodVerbs, true)
+
+	if len(invalid) != 0 {
+		validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidEntries, ruleDescriptor(rulePosition, rule), "methods", strJoinOr(validACLHTTPMethodVerbs), strJoinAnd(invalid)))
+	}
+
+	if len(duplicates) != 0 {
+		validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidDuplicates, ruleDescriptor(rulePosition, rule), "methods", strJoinAnd(duplicates)))
 	}
 }
 
@@ -177,7 +184,7 @@ func validateQuery(i int, rule schema.ACLRule, config *schema.Configuration, val
 					}
 				}
 			} else if !utils.IsStringInSliceFold(config.AccessControl.Rules[i].Query[j][k].Operator, validACLRuleOperators) {
-				validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalid, ruleDescriptor(i+1, rule), config.AccessControl.Rules[i].Query[j][k].Operator, strings.Join(validACLRuleOperators, "', '")))
+				validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalid, ruleDescriptor(i+1, rule), strJoinOr(validACLRuleOperators), config.AccessControl.Rules[i].Query[j][k].Operator))
 			}
 
 			if config.AccessControl.Rules[i].Query[j][k].Key == "" {

@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"net"
 	"net/url"
-	"path"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -23,9 +23,9 @@ import (
 // NewRequestLogger create a new request logger for the given request.
 func NewRequestLogger(ctx *AutheliaCtx) *logrus.Entry {
 	return logging.Logger().WithFields(logrus.Fields{
-		"method":    string(ctx.Method()),
-		"path":      string(ctx.Path()),
-		"remote_ip": ctx.RemoteIP().String(),
+		logging.FieldMethod:   string(ctx.Method()),
+		logging.FieldPath:     string(ctx.Path()),
+		logging.FieldRemoteIP: ctx.RemoteIP().String(),
 	})
 }
 
@@ -49,8 +49,8 @@ func (ctx *AutheliaCtx) AvailableSecondFactorMethods() (methods []string) {
 		methods = append(methods, model.SecondFactorMethodTOTP)
 	}
 
-	if !ctx.Configuration.Webauthn.Disable {
-		methods = append(methods, model.SecondFactorMethodWebauthn)
+	if !ctx.Configuration.WebAuthn.Disable {
+		methods = append(methods, model.SecondFactorMethodWebAuthn)
 	}
 
 	if !ctx.Configuration.DuoAPI.Disable {
@@ -166,7 +166,7 @@ func (ctx *AutheliaCtx) GetXForwardedHost() (host []byte) {
 	return host
 }
 
-// XForwardedURI returns the content of the X-Forwarded-Uri header.
+// XForwardedURI returns the content of the X-Forwarded-URI header.
 func (ctx *AutheliaCtx) XForwardedURI() (host []byte) {
 	return ctx.Request.Header.PeekBytes(headerXForwardedURI)
 }
@@ -210,7 +210,7 @@ func (ctx *AutheliaCtx) QueryArgAutheliaURL() []byte {
 
 // AuthzPath returns the 'authz_path' value.
 func (ctx *AutheliaCtx) AuthzPath() (uri []byte) {
-	if uv := ctx.UserValueBytes(keyUserValueAuthzPath); uv != nil {
+	if uv := ctx.UserValue(UserValueRouterKeyExtAuthzPath); uv != nil {
 		return []byte(uv.(string))
 	}
 
@@ -219,7 +219,7 @@ func (ctx *AutheliaCtx) AuthzPath() (uri []byte) {
 
 // BasePath returns the base_url as per the path visited by the client.
 func (ctx *AutheliaCtx) BasePath() string {
-	if baseURL := ctx.UserValueBytes(keyUserValueBaseURL); baseURL != nil {
+	if baseURL := ctx.UserValue(UserValueKeyBaseURL); baseURL != nil {
 		return baseURL.(string)
 	}
 
@@ -228,8 +228,12 @@ func (ctx *AutheliaCtx) BasePath() string {
 
 // BasePathSlash is the same as BasePath but returns a final slash as well.
 func (ctx *AutheliaCtx) BasePathSlash() string {
-	if baseURL := ctx.UserValueBytes(keyUserValueBaseURL); baseURL != nil {
-		return baseURL.(string) + strSlash
+	if baseURL := ctx.UserValue(UserValueKeyBaseURL); baseURL != nil {
+		if value := baseURL.(string); value[len(value)-1] == '/' {
+			return value
+		} else {
+			return value + strSlash
+		}
 	}
 
 	return strSlash
@@ -272,6 +276,10 @@ func (ctx *AutheliaCtx) GetTargetURICookieDomain(targetURI *url.URL) string {
 
 // IsSafeRedirectionTargetURI returns true if the targetURI is within the scope of a cookie domain and secure.
 func (ctx *AutheliaCtx) IsSafeRedirectionTargetURI(targetURI *url.URL) bool {
+	if targetURI == nil {
+		return false
+	}
+
 	if !utils.IsURISecure(targetURI) {
 		return false
 	}
@@ -452,12 +460,13 @@ func (ctx *AutheliaCtx) SetJSONBody(value any) error {
 
 // RemoteIP return the remote IP taking X-Forwarded-For header into account if provided.
 func (ctx *AutheliaCtx) RemoteIP() net.IP {
-	XForwardedFor := ctx.Request.Header.PeekBytes(headerXForwardedFor)
-	if XForwardedFor != nil {
-		ips := strings.Split(string(XForwardedFor), ",")
+	if header := ctx.Request.Header.PeekBytes(headerXForwardedFor); len(header) != 0 {
+		ips := strings.SplitN(string(header), ",", 2)
 
-		if len(ips) > 0 {
-			return net.ParseIP(strings.Trim(ips[0], " "))
+		if len(ips) != 0 {
+			if ip := net.ParseIP(strings.Trim(ips[0], " ")); ip != nil {
+				return ip
+			}
 		}
 	}
 
@@ -519,21 +528,17 @@ func (ctx *AutheliaCtx) GetXOriginalURLOrXForwardedURL() (requestURI *url.URL, e
 // IssuerURL returns the expected Issuer.
 func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
 	issuerURL = &url.URL{
-		Scheme: strProtoHTTPS,
+		Scheme: string(ctx.XForwardedProto()),
+		Host:   string(ctx.GetXForwardedHost()),
+		Path:   ctx.BasePath(),
 	}
 
-	if scheme := ctx.XForwardedProto(); scheme != nil {
-		issuerURL.Scheme = string(scheme)
+	if len(issuerURL.Scheme) == 0 {
+		issuerURL.Scheme = strProtoHTTPS
 	}
 
-	if host := ctx.GetXForwardedHost(); len(host) != 0 {
-		issuerURL.Host = string(host)
-	} else {
+	if len(issuerURL.Host) == 0 {
 		return nil, ErrMissingXForwardedHost
-	}
-
-	if base := ctx.BasePath(); base != "" {
-		issuerURL.Path = path.Join(issuerURL.Path, base)
 	}
 
 	return issuerURL, nil
@@ -563,13 +568,27 @@ func (ctx *AutheliaCtx) AcceptsMIME(mime string) (acceptsMime bool) {
 }
 
 // SpecialRedirect performs a redirect similar to fasthttp.RequestCtx except it allows statusCode 401 and includes body
-// content in the form of a link to the location.
+// content in the form of a link to the location if the request method was not head.
 func (ctx *AutheliaCtx) SpecialRedirect(uri string, statusCode int) {
+	var u []byte
+
+	u, statusCode = ctx.setSpecialRedirect(uri, statusCode)
+
+	ctx.SetContentTypeTextHTML()
+	ctx.SetBodyString(fmt.Sprintf("<a href=\"%s\">%d %s</a>", utils.StringHTMLEscape(string(u)), statusCode, fasthttp.StatusMessage(statusCode)))
+}
+
+// SpecialRedirectNoBody performs a redirect similar to fasthttp.RequestCtx except it allows statusCode 401 and includes
+// no body.
+func (ctx *AutheliaCtx) SpecialRedirectNoBody(uri string, statusCode int) {
+	_, _ = ctx.setSpecialRedirect(uri, statusCode)
+}
+
+func (ctx *AutheliaCtx) setSpecialRedirect(uri string, statusCode int) ([]byte, int) {
 	if statusCode < fasthttp.StatusMovedPermanently || (statusCode > fasthttp.StatusSeeOther && statusCode != fasthttp.StatusTemporaryRedirect && statusCode != fasthttp.StatusPermanentRedirect && statusCode != fasthttp.StatusUnauthorized) {
 		statusCode = fasthttp.StatusFound
 	}
 
-	ctx.SetContentTypeTextHTML()
 	ctx.SetStatusCode(statusCode)
 
 	u := fasthttp.AcquireURI()
@@ -577,11 +596,13 @@ func (ctx *AutheliaCtx) SpecialRedirect(uri string, statusCode int) {
 	ctx.URI().CopyTo(u)
 	u.Update(uri)
 
-	ctx.Response.Header.SetBytesKV(headerLocation, u.FullURI())
+	raw := u.FullURI()
 
-	ctx.SetBodyString(fmt.Sprintf("<a href=\"%s\">%d %s</a>", utils.StringHTMLEscape(string(u.FullURI())), statusCode, fasthttp.StatusMessage(statusCode)))
+	ctx.Response.Header.SetBytesKV(headerLocation, raw)
 
 	fasthttp.ReleaseURI(u)
+
+	return raw, statusCode
 }
 
 // RecordAuthn records authentication metrics.
@@ -591,4 +612,14 @@ func (ctx *AutheliaCtx) RecordAuthn(success, regulated bool, method string) {
 	}
 
 	ctx.Providers.Metrics.RecordAuthn(success, regulated, method)
+}
+
+// GetClock returns the clock. For use with interface fulfillment.
+func (ctx *AutheliaCtx) GetClock() utils.Clock {
+	return ctx.Clock
+}
+
+// GetJWTWithTimeFuncOption returns the WithTimeFunc jwt.ParserOption. For use with interface fulfillment.
+func (ctx *AutheliaCtx) GetJWTWithTimeFuncOption() jwt.ParserOption {
+	return jwt.WithTimeFunc(ctx.Clock.Now)
 }

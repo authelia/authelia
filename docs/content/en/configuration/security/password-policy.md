@@ -18,6 +18,8 @@ aliases:
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 password_policy:
   standard:
@@ -34,6 +36,8 @@ password_policy:
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### standard
 

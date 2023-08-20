@@ -140,6 +140,8 @@ BREAKING CHANGE: <breaking change summary>
 <BLANK LINE>
 <BLANK LINE>
 Fixes #<issue number>
+
+Signed-off-by: <AUTHOR>
 ```
 
 Breaking Change section should start with the phrase "BREAKING CHANGE: " followed by a summary of the breaking change, a
@@ -165,6 +167,8 @@ This in turn will cause issues when attempting to utilise the log with the provi
 We now override any TTY detection/logging treatments and disable coloring/removal of the timestamp when a user is utilising the text based logger to a file.
 
 Fixes #1480.
+
+Signed-off-by: John Smith <jsmith@org.com>
 ```
 
 This document is based on [AngularJS Git Commit Message Format].

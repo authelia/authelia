@@ -25,8 +25,8 @@ bootstrapping *Authelia*.
 
 We publish two example [systemd] unit files:
 
-* [authelia.service](https://github.com/authelia/authelia/blob/master/authelia.service)
-* [authelia@.service](https://github.com/authelia/authelia/blob/master/authelia%40.service)
+* {{< github-link path="authelia.service" >}}
+* {{< github-link path="authelia@.service" >}}
 
 ## Arch Linux
 
@@ -41,6 +41,16 @@ on most Debian based operating systems.
 ### APT Repository
 
 In addition to the `.deb` packages we also have an [APT Repository](https://apt.authelia.com).
+
+## Nix
+
+Using the Nix package manager Authelia is available via the `https://nixos.org/channels/nixpkgs-unstable` channel.
+
+```shell
+$ nix-channel --add https://nixos.org/channels/nixpkgs-unstable
+$ nix-channel --update
+$ nix-env -iA nixpkgs.authelia
+```
 
 ## FreeBSD
 

@@ -6,10 +6,6 @@ const (
 )
 
 const (
-	smtpPortSUBMISSIONS = 465
-)
-
-const (
 	posixNewLine = "\n"
 )
 

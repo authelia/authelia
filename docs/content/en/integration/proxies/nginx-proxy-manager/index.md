@@ -40,6 +40,30 @@ To configure trusted proxies for [NGINX Proxy Manager] see the [NGINX] section o
 [Trusted Proxies](../nginx.md#trusted-proxies). Adapting this to [NGINX Proxy Manager] is beyond the scope of
 this documentation.
 
+## Assumptions and Adaptation
+
+This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
+can not reasonably have examples for every advanced configuration option that exists. The
+following are the assumptions we make:
+
+* Deployment Scenario:
+  * Single Host
+  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
+  * Proxy is deployed as a Container on a network shared with Authelia
+* The above assumption means that Authelia should be accessible to the proxy on `http://authelia:9091` and as such:
+  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
+    certificate defined
+  * You will have to adapt all instances of `authelia` in the URL if:
+    * you're using a different container name
+    * you deployed the proxy to a different location
+  * You will have to adapt all instances of `9091` in the URL if:
+    * you have adjusted the default port in the configuration
+  * You will have to adapt the entire URL if:
+    * Authelia is on a different host to the proxy
+* All services are part of the `example.com` domain:
+  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
+    just testing or you want ot use that specific domain
+
 ## Docker Compose
 
 The following docker compose example has various applications suitable for setting up an example environment.
@@ -51,13 +75,13 @@ version: "3.8"
 
 networks:
   net:
-    driver: bridge
+    driver: 'bridge'
 
 services:
   nginx:
-    container_name: nginx
-    image: jc21/nginx-proxy-manager
-    restart: unless-stopped
+    container_name: 'nginx'
+    image: 'jc21/nginx-proxy-manager'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []
@@ -66,44 +90,44 @@ services:
       - '81:81'
       - '443:443'
     volumes:
-      - ${PWD}/data/nginx-proxy-manager/data:/data
-      - ${PWD}/data/nginx-proxy-manager/letsencrypt:/etc/letsencrypt
-      - ${PWD}/data/nginx/snippets:/snippets:ro
+      - '${PWD}/data/nginx-proxy-manager/data:/data'
+      - '${PWD}/data/nginx-proxy-manager/letsencrypt:/etc/letsencrypt'
+      - '${PWD}/data/nginx/snippets:/snippets:ro'
     environment:
       TZ: 'Australia/Melbourne'
   authelia:
-    container_name: authelia
-    image: authelia/authelia
-    restart: unless-stopped
+    container_name: 'authelia'
+    image: 'authelia/authelia'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []
     expose:
       - 9091
     volumes:
-      - ${PWD}/data/authelia/config:/config
+      - '${PWD}/data/authelia/config:/config'
     environment:
       TZ: 'Australia/Melbourne'
   nextcloud:
-    container_name: nextcloud
-    image: lscr.io/linuxserver/nextcloud
-    restart: unless-stopped
+    container_name: 'nextcloud'
+    image: 'lscr.io/linuxserver/nextcloud'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []
     expose:
       - 443
     volumes:
-      - ${PWD}/data/nextcloud/config:/config
-      - ${PWD}/data/nextcloud/data:/data
+      - '${PWD}/data/nextcloud/config:/config'
+      - '${PWD}/data/nextcloud/data:/data'
     environment:
       PUID: '1000'
       PGID: '1000'
       TZ: 'Australia/Melbourne'
   whoami:
-    container_name: whoami
-    image: docker.io/traefik/whoami
-    restart: unless-stopped
+    container_name: 'whoami'
+    image: 'docker.io/traefik/whoami'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []
@@ -122,7 +146,7 @@ services:
 *__Important:__ Our examples make assumptions about your configuration. These assumptions represent sections that
 either most likely require an adjustment, or may require an adjustment if you're not configuring it in the same way.*
 
-* The domain for Authelia is `auth.example.com` which shoud be adjusted in all examples and snippets to your actual
+* The domain for Authelia is `auth.example.com` which should be adjusted in all examples and snippets to your actual
   domain.
 * The required configuration snippets are mounted in the container or otherwise available in the `/snippets/` directory.
   If you choose a different directory you're required to adjust every instance of `/snippets/` appropriately to your

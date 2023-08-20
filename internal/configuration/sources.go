@@ -27,7 +27,7 @@ func NewFileSource(path string) (source *FileSource) {
 
 // NewFilteredFileSource returns a configuration.Source configured to load from a specified path. If there is
 // an issue accessing this path it also returns an error.
-func NewFilteredFileSource(path string, filters ...FileFilter) (source *FileSource) {
+func NewFilteredFileSource(path string, filters ...BytesFilter) (source *FileSource) {
 	return &FileSource{
 		koanf:   koanf.New(constDelimiter),
 		path:    path,
@@ -47,7 +47,7 @@ func NewFileSources(paths []string) (sources []*FileSource) {
 }
 
 // NewFilteredFileSources returns a slice of configuration.Source configured to load from specified files.
-func NewFilteredFileSources(paths []string, filters []FileFilter) (sources []*FileSource) {
+func NewFilteredFileSources(paths []string, filters []BytesFilter) (sources []*FileSource) {
 	for _, path := range paths {
 		source := NewFilteredFileSource(path, filters...)
 
@@ -109,6 +109,57 @@ func (s *FileSource) loadDir(_ *schema.StructValidator) (err error) {
 	}
 
 	return nil
+}
+
+// NewBytesSource returns a configuration.Source configured to load from a specified bytes.
+func NewBytesSource(data []byte) (source *BytesSource) {
+	return &BytesSource{
+		koanf: koanf.New(constDelimiter),
+		data:  data,
+	}
+}
+
+// Name of the Source.
+func (b *BytesSource) Name() (name string) {
+	return fmt.Sprintf("bytes data(%s)", b.data)
+}
+
+// Merge the FileSource koanf.Koanf into the provided one.
+func (b *BytesSource) Merge(ko *koanf.Koanf, _ *schema.StructValidator) (err error) {
+	return ko.Merge(b.koanf)
+}
+
+// Load the Source into the FileSource koanf.Koanf.
+func (b *BytesSource) Load(val *schema.StructValidator) (err error) {
+	if b.data == nil {
+		return nil
+	}
+
+	return b.koanf.Load(b, yaml.Parser())
+}
+
+// ReadBytes reads the contents of a file on disk, passes it through any configured filters, and returns the bytes.
+func (b *BytesSource) ReadBytes() (data []byte, err error) {
+	if len(b.filters) == 0 {
+		return b.data, nil
+	}
+
+	data = make([]byte, len(b.data))
+
+	copy(data, b.data)
+
+	for _, filter := range b.filters {
+		if data, err = filter(data); err != nil {
+			return nil, err
+		}
+	}
+
+	return data, nil
+}
+
+// Read is not supported by the filtered file koanf.Provider.
+func (b *BytesSource) Read() (map[string]any, error) {
+	return nil, errors.New("filtered bytes provider does not support this method")
 }
 
 // NewEnvironmentSource returns a Source configured to load from environment variables.
@@ -243,7 +294,7 @@ func NewDefaultSources(paths []string, prefix, delimiter string, additionalSourc
 }
 
 // NewDefaultSourcesFiltered returns a slice of Source configured to load from specified YAML files.
-func NewDefaultSourcesFiltered(paths []string, filters []FileFilter, prefix, delimiter string, additionalSources ...Source) (sources []Source) {
+func NewDefaultSourcesFiltered(paths []string, filters []BytesFilter, prefix, delimiter string, additionalSources ...Source) (sources []Source) {
 	fileSources := NewFilteredFileSources(paths, filters)
 	for _, source := range fileSources {
 		sources = append(sources, source)
@@ -260,7 +311,7 @@ func NewDefaultSourcesFiltered(paths []string, filters []FileFilter, prefix, del
 }
 
 // NewDefaultSourcesWithDefaults returns a slice of Source configured to load from specified YAML files with additional sources.
-func NewDefaultSourcesWithDefaults(paths []string, filters []FileFilter, prefix, delimiter string, defaults Source, additionalSources ...Source) (sources []Source) {
+func NewDefaultSourcesWithDefaults(paths []string, filters []BytesFilter, prefix, delimiter string, defaults Source, additionalSources ...Source) (sources []Source) {
 	if defaults != nil {
 		sources = []Source{defaults}
 	}

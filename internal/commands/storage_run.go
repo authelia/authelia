@@ -415,7 +415,7 @@ func (ctx *CmdCtx) StorageSchemaInfoRunE(_ *cobra.Command, _ []string) (err erro
 	return nil
 }
 
-func (ctx *CmdCtx) StorageUserWebauthnExportRunE(cmd *cobra.Command, args []string) (err error) {
+func (ctx *CmdCtx) StorageUserWebAuthnExportRunE(cmd *cobra.Command, args []string) (err error) {
 	defer func() {
 		_ = ctx.providers.StorageProvider.Close()
 	}()
@@ -443,19 +443,19 @@ func (ctx *CmdCtx) StorageUserWebauthnExportRunE(cmd *cobra.Command, args []stri
 	count := 0
 
 	var (
-		devices []model.WebauthnDevice
+		devices []model.WebAuthnDevice
 	)
 
-	export := &model.WebauthnDeviceExport{
-		WebauthnDevices: nil,
+	export := &model.WebAuthnDeviceExport{
+		WebAuthnDevices: nil,
 	}
 
 	for page := 0; true; page++ {
-		if devices, err = ctx.providers.StorageProvider.LoadWebauthnDevices(ctx, limit, page); err != nil {
+		if devices, err = ctx.providers.StorageProvider.LoadWebAuthnDevices(ctx, limit, page); err != nil {
 			return err
 		}
 
-		export.WebauthnDevices = append(export.WebauthnDevices, devices...)
+		export.WebAuthnDevices = append(export.WebAuthnDevices, devices...)
 
 		l := len(devices)
 
@@ -476,12 +476,12 @@ func (ctx *CmdCtx) StorageUserWebauthnExportRunE(cmd *cobra.Command, args []stri
 		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
 	}
 
-	fmt.Printf(cliOutputFmtSuccessfulUserExportFile, count, "Webauthn devices", "YAML", filename)
+	fmt.Printf(cliOutputFmtSuccessfulUserExportFile, count, "WebAuthn devices", "YAML", filename)
 
 	return nil
 }
 
-func (ctx *CmdCtx) StorageUserWebauthnImportRunE(cmd *cobra.Command, args []string) (err error) {
+func (ctx *CmdCtx) StorageUserWebAuthnImportRunE(cmd *cobra.Command, args []string) (err error) {
 	defer func() {
 		_ = ctx.providers.StorageProvider.Close()
 	}()
@@ -507,58 +507,58 @@ func (ctx *CmdCtx) StorageUserWebauthnImportRunE(cmd *cobra.Command, args []stri
 		return err
 	}
 
-	export := &model.WebauthnDeviceExport{}
+	export := &model.WebAuthnDeviceExport{}
 
 	if err = yaml.Unmarshal(data, export); err != nil {
 		return err
 	}
 
-	if len(export.WebauthnDevices) == 0 {
-		return fmt.Errorf("can't import a YAML file without Webauthn devices data")
+	if len(export.WebAuthnDevices) == 0 {
+		return fmt.Errorf("can't import a YAML file without WebAuthn devices data")
 	}
 
 	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
 	}
 
-	for _, device := range export.WebauthnDevices {
-		if err = ctx.providers.StorageProvider.SaveWebauthnDevice(ctx, device); err != nil {
+	for _, device := range export.WebAuthnDevices {
+		if err = ctx.providers.StorageProvider.SaveWebAuthnDevice(ctx, device); err != nil {
 			return err
 		}
 	}
 
-	fmt.Printf(cliOutputFmtSuccessfulUserImportFile, len(export.WebauthnDevices), "Webauthn devices", "YAML", filename)
+	fmt.Printf(cliOutputFmtSuccessfulUserImportFile, len(export.WebAuthnDevices), "WebAuthn devices", "YAML", filename)
 
 	return nil
 }
 
-// StorageUserWebauthnListRunE is the RunE for the authelia storage user webauthn list command.
-func (ctx *CmdCtx) StorageUserWebauthnListRunE(cmd *cobra.Command, args []string) (err error) {
+// StorageUserWebAuthnListRunE is the RunE for the authelia storage user webauthn list command.
+func (ctx *CmdCtx) StorageUserWebAuthnListRunE(cmd *cobra.Command, args []string) (err error) {
 	defer func() {
 		_ = ctx.providers.StorageProvider.Close()
 	}()
 
 	if len(args) == 0 || args[0] == "" {
-		return ctx.StorageUserWebauthnListAllRunE(cmd, args)
+		return ctx.StorageUserWebAuthnListAllRunE(cmd, args)
 	}
 
 	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
 	}
 
-	var devices []model.WebauthnDevice
+	var devices []model.WebAuthnDevice
 
 	user := args[0]
 
-	devices, err = ctx.providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, user)
+	devices, err = ctx.providers.StorageProvider.LoadWebAuthnDevicesByUsername(ctx, user)
 
 	switch {
-	case len(devices) == 0 || (err != nil && errors.Is(err, storage.ErrNoWebauthnDevice)):
+	case len(devices) == 0 || (err != nil && errors.Is(err, storage.ErrNoWebAuthnDevice)):
 		return fmt.Errorf("user '%s' has no webauthn devices", user)
 	case err != nil:
 		return fmt.Errorf("can't list devices for user '%s': %w", user, err)
 	default:
-		fmt.Printf("Webauthn Devices for user '%s':\n\n", user)
+		fmt.Printf("WebAuthn Devices for user '%s':\n\n", user)
 		fmt.Printf("ID\tKID\tDescription\n")
 
 		for _, device := range devices {
@@ -569,8 +569,8 @@ func (ctx *CmdCtx) StorageUserWebauthnListRunE(cmd *cobra.Command, args []string
 	return nil
 }
 
-// StorageUserWebauthnListAllRunE is the RunE for the authelia storage user webauthn list command when no args are specified.
-func (ctx *CmdCtx) StorageUserWebauthnListAllRunE(_ *cobra.Command, _ []string) (err error) {
+// StorageUserWebAuthnListAllRunE is the RunE for the authelia storage user webauthn list command when no args are specified.
+func (ctx *CmdCtx) StorageUserWebAuthnListAllRunE(_ *cobra.Command, _ []string) (err error) {
 	defer func() {
 		_ = ctx.providers.StorageProvider.Close()
 	}()
@@ -579,14 +579,14 @@ func (ctx *CmdCtx) StorageUserWebauthnListAllRunE(_ *cobra.Command, _ []string) 
 		return storageWrapCheckSchemaErr(err)
 	}
 
-	var devices []model.WebauthnDevice
+	var devices []model.WebAuthnDevice
 
 	limit := 10
 
 	output := strings.Builder{}
 
 	for page := 0; true; page++ {
-		if devices, err = ctx.providers.StorageProvider.LoadWebauthnDevices(ctx, limit, page); err != nil {
+		if devices, err = ctx.providers.StorageProvider.LoadWebAuthnDevices(ctx, limit, page); err != nil {
 			return fmt.Errorf("failed to list devices: %w", err)
 		}
 
@@ -603,14 +603,14 @@ func (ctx *CmdCtx) StorageUserWebauthnListAllRunE(_ *cobra.Command, _ []string) 
 		}
 	}
 
-	fmt.Printf("Webauthn Devices:\n\nID\tKID\tDescription\tUsername\n")
+	fmt.Printf("WebAuthn Devices:\n\nID\tKID\tDescription\tUsername\n")
 	fmt.Println(output.String())
 
 	return nil
 }
 
-// StorageUserWebauthnDeleteRunE is the RunE for the authelia storage user webauthn delete command.
-func (ctx *CmdCtx) StorageUserWebauthnDeleteRunE(cmd *cobra.Command, args []string) (err error) {
+// StorageUserWebAuthnDeleteRunE is the RunE for the authelia storage user webauthn delete command.
+func (ctx *CmdCtx) StorageUserWebAuthnDeleteRunE(cmd *cobra.Command, args []string) (err error) {
 	defer func() {
 		_ = ctx.providers.StorageProvider.Close()
 	}()
@@ -624,31 +624,31 @@ func (ctx *CmdCtx) StorageUserWebauthnDeleteRunE(cmd *cobra.Command, args []stri
 		description, kid, user string
 	)
 
-	if all, byKID, description, kid, user, err = storageWebauthnDeleteRunEOptsFromFlags(cmd.Flags(), args); err != nil {
+	if all, byKID, description, kid, user, err = storageWebAuthnDeleteRunEOptsFromFlags(cmd.Flags(), args); err != nil {
 		return err
 	}
 
 	if byKID {
-		if err = ctx.providers.StorageProvider.DeleteWebauthnDevice(ctx, kid); err != nil {
+		if err = ctx.providers.StorageProvider.DeleteWebAuthnDevice(ctx, kid); err != nil {
 			return fmt.Errorf("failed to delete webauthn device with kid '%s': %w", kid, err)
 		}
 
-		fmt.Printf("Successfully deleted Webauthn device with key id '%s'\n", kid)
+		fmt.Printf("Successfully deleted WebAuthn device with key id '%s'\n", kid)
 	} else {
-		err = ctx.providers.StorageProvider.DeleteWebauthnDeviceByUsername(ctx, user, description)
+		err = ctx.providers.StorageProvider.DeleteWebAuthnDeviceByUsername(ctx, user, description)
 
 		if all {
 			if err != nil {
 				return fmt.Errorf("failed to delete all webauthn devices with username '%s': %w", user, err)
 			}
 
-			fmt.Printf("Successfully deleted all Webauthn devices for user '%s'\n", user)
+			fmt.Printf("Successfully deleted all WebAuthn devices for user '%s'\n", user)
 		} else {
 			if err != nil {
 				return fmt.Errorf("failed to delete webauthn device with username '%s' and description '%s': %w", user, description, err)
 			}
 
-			fmt.Printf("Successfully deleted Webauthn device with description '%s' for user '%s'\n", description, user)
+			fmt.Printf("Successfully deleted WebAuthn device with description '%s' for user '%s'\n", description, user)
 		}
 	}
 

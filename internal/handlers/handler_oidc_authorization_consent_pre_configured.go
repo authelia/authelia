@@ -17,7 +17,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-func handleOIDCAuthorizationConsentModePreConfigured(ctx *middlewares.AutheliaCtx, issuer *url.URL, client *oidc.Client,
+func handleOIDCAuthorizationConsentModePreConfigured(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
 	userSession session.UserSession, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
@@ -32,7 +32,7 @@ func handleOIDCAuthorizationConsentModePreConfigured(ctx *middlewares.AutheliaCt
 		return handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx, issuer, client, userSession, subject, rw, r, requester)
 	default:
 		if consentID, err = uuid.ParseBytes(bytesConsentID); err != nil {
-			ctx.Logger.Errorf(logFmtErrConsentParseChallengeID, requester.GetID(), client.GetID(), client.Consent, bytesConsentID, err)
+			ctx.Logger.Errorf(logFmtErrConsentParseChallengeID, requester.GetID(), client.GetID(), client.GetConsentPolicy(), bytesConsentID, err)
 
 			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentMalformedChallengeID)
 
@@ -43,7 +43,7 @@ func handleOIDCAuthorizationConsentModePreConfigured(ctx *middlewares.AutheliaCt
 	}
 }
 
-func handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx *middlewares.AutheliaCtx, issuer *url.URL, client *oidc.Client,
+func handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
 	userSession session.UserSession, subject uuid.UUID, consentID uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
@@ -52,7 +52,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Auth
 	)
 
 	if consentID.ID() == 0 {
-		ctx.Logger.Errorf(logFmtErrConsentZeroID, requester.GetID(), client.GetID(), client.Consent)
+		ctx.Logger.Errorf(logFmtErrConsentZeroID, requester.GetID(), client.GetID(), client.GetConsentPolicy())
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
 
@@ -60,7 +60,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Auth
 	}
 
 	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, consentID); err != nil {
-		ctx.Logger.Errorf(logFmtErrConsentLookupLoadingSession, requester.GetID(), client.GetID(), client.Consent, consentID, err)
+		ctx.Logger.Errorf(logFmtErrConsentLookupLoadingSession, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consentID, err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
 
@@ -68,7 +68,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Auth
 	}
 
 	if subject.ID() != consent.Subject.UUID.ID() {
-		ctx.Logger.Errorf(logFmtErrConsentSessionSubjectNotAuthorized, requester.GetID(), client.GetID(), client.Consent, consent.ChallengeID, userSession.Username, subject, consent.Subject.UUID)
+		ctx.Logger.Errorf(logFmtErrConsentSessionSubjectNotAuthorized, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, userSession.Username, subject, consent.Subject.UUID)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
 
@@ -76,7 +76,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Auth
 	}
 
 	if !consent.CanGrant() {
-		ctx.Logger.Errorf(logFmtErrConsentCantGrantPreConf, requester.GetID(), client.GetID(), client.Consent, consent.ChallengeID)
+		ctx.Logger.Errorf(logFmtErrConsentCantGrantPreConf, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotPerform)
 
@@ -84,7 +84,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Auth
 	}
 
 	if config, err = handleOIDCAuthorizationConsentModePreConfiguredGetPreConfig(ctx, client, subject, requester); err != nil {
-		ctx.Logger.Errorf(logFmtErrConsentPreConfLookup, requester.GetID(), client.GetID(), client.Consent, err)
+		ctx.Logger.Errorf(logFmtErrConsentPreConfLookup, requester.GetID(), client.GetID(), client.GetConsentPolicy(), err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
 
@@ -97,7 +97,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Auth
 		consent.PreConfiguration = sql.NullInt64{Int64: config.ID, Valid: true}
 
 		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, *consent, false); err != nil {
-			ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.Consent, consent.ChallengeID, err)
+			ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
 
 			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
 
@@ -109,7 +109,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Auth
 
 	if !consent.IsAuthorized() {
 		if consent.Responded() {
-			ctx.Logger.Errorf(logFmtErrConsentCantGrantRejected, requester.GetID(), client.GetID(), client.Consent, consent.ChallengeID)
+			ctx.Logger.Errorf(logFmtErrConsentCantGrantRejected, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID)
 
 			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, fosite.ErrAccessDenied)
 
@@ -124,7 +124,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Auth
 	return consent, false
 }
 
-func handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.AutheliaCtx, issuer *url.URL, client *oidc.Client,
+func handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
 	userSession session.UserSession, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
@@ -133,7 +133,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.A
 	)
 
 	if config, err = handleOIDCAuthorizationConsentModePreConfiguredGetPreConfig(ctx, client, subject, requester); err != nil {
-		ctx.Logger.Errorf(logFmtErrConsentPreConfLookup, requester.GetID(), client.GetID(), client.Consent, err)
+		ctx.Logger.Errorf(logFmtErrConsentPreConfLookup, requester.GetID(), client.GetID(), client.GetConsentPolicy(), err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
 
@@ -145,7 +145,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.A
 	}
 
 	if consent, err = model.NewOAuth2ConsentSession(subject, requester); err != nil {
-		ctx.Logger.Errorf(logFmtErrConsentGenerate, requester.GetID(), client.GetID(), client.Consent, err)
+		ctx.Logger.Errorf(logFmtErrConsentGenerate, requester.GetID(), client.GetID(), client.GetConsentPolicy(), err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotGenerate)
 
@@ -153,7 +153,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.A
 	}
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSession(ctx, *consent); err != nil {
-		ctx.Logger.Errorf(logFmtErrConsentSaveSession, requester.GetID(), client.GetID(), client.Consent, consent.ChallengeID, err)
+		ctx.Logger.Errorf(logFmtErrConsentSaveSession, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
 
@@ -161,7 +161,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.A
 	}
 
 	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, consent.ChallengeID); err != nil {
-		ctx.Logger.Errorf(logFmtErrConsentSaveSession, requester.GetID(), client.GetID(), client.Consent, consent.ChallengeID, err)
+		ctx.Logger.Errorf(logFmtErrConsentSaveSession, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
 
@@ -173,7 +173,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.A
 	consent.PreConfiguration = sql.NullInt64{Int64: config.ID, Valid: true}
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, *consent, false); err != nil {
-		ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.Consent, consent.ChallengeID, err)
+		ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
 
@@ -183,12 +183,12 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.A
 	return consent, false
 }
 
-func handleOIDCAuthorizationConsentModePreConfiguredGetPreConfig(ctx *middlewares.AutheliaCtx, client *oidc.Client, subject uuid.UUID, requester fosite.Requester) (config *model.OAuth2ConsentPreConfig, err error) {
+func handleOIDCAuthorizationConsentModePreConfiguredGetPreConfig(ctx *middlewares.AutheliaCtx, client oidc.Client, subject uuid.UUID, requester fosite.Requester) (config *model.OAuth2ConsentPreConfig, err error) {
 	var (
 		rows *storage.ConsentPreConfigRows
 	)
 
-	ctx.Logger.Debugf(logFmtDbgConsentPreConfTryingLookup, requester.GetID(), client.GetID(), client.Consent, client.GetID(), subject, strings.Join(requester.GetRequestedScopes(), " "))
+	ctx.Logger.Debugf(logFmtDbgConsentPreConfTryingLookup, requester.GetID(), client.GetID(), client.GetConsentPolicy(), client.GetID(), subject, strings.Join(requester.GetRequestedScopes(), " "))
 
 	if rows, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentPreConfigurations(ctx, client.GetID(), subject); err != nil {
 		return nil, fmt.Errorf("error loading rows: %w", err)
@@ -196,7 +196,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredGetPreConfig(ctx *middleware
 
 	defer func() {
 		if err := rows.Close(); err != nil {
-			ctx.Logger.Errorf(logFmtErrConsentPreConfRowsClose, requester.GetID(), client.GetID(), client.Consent, err)
+			ctx.Logger.Errorf(logFmtErrConsentPreConfRowsClose, requester.GetID(), client.GetID(), client.GetConsentPolicy(), err)
 		}
 	}()
 
@@ -208,13 +208,13 @@ func handleOIDCAuthorizationConsentModePreConfiguredGetPreConfig(ctx *middleware
 		}
 
 		if config.HasExactGrants(scopes, audience) && config.CanConsent() {
-			ctx.Logger.Debugf(logFmtDbgConsentPreConfSuccessfulLookup, requester.GetID(), client.GetID(), client.Consent, client.GetID(), subject, strings.Join(requester.GetRequestedScopes(), " "), config.ID)
+			ctx.Logger.Debugf(logFmtDbgConsentPreConfSuccessfulLookup, requester.GetID(), client.GetID(), client.GetConsentPolicy(), client.GetID(), subject, strings.Join(requester.GetRequestedScopes(), " "), config.ID)
 
 			return config, nil
 		}
 	}
 
-	ctx.Logger.Debugf(logFmtDbgConsentPreConfUnsuccessfulLookup, requester.GetID(), client.GetID(), client.Consent, client.GetID(), subject, strings.Join(requester.GetRequestedScopes(), " "))
+	ctx.Logger.Debugf(logFmtDbgConsentPreConfUnsuccessfulLookup, requester.GetID(), client.GetID(), client.GetConsentPolicy(), client.GetID(), subject, strings.Join(requester.GetRequestedScopes(), " "))
 
 	return nil, nil
 }

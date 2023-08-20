@@ -95,6 +95,16 @@ spec:
                 name: nginx-backend-service
                 port:
                   number: 80
+    - host: deny.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-backend-service
+                port:
+                  number: 80
     - host: dev.example.com
       http:
         paths:

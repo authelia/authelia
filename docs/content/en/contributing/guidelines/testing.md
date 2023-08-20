@@ -2,7 +2,7 @@
 title: "Testing"
 description: "Authelia Development Testing Guidelines"
 lead: "This section covers the testing guidelines."
-date: 2022-06-15T17:51:47+10:00
+date: 2023-03-20T15:03:52+11:00
 draft: false
 images: []
 menu:

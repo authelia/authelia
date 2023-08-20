@@ -10,6 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/valyala/fasthttp"
 )
 
 type HighAvailabilityWebDriverSuite struct {
@@ -282,7 +283,7 @@ func NewHighAvailabilitySuite() *HighAvailabilitySuite {
 
 func DoGetWithAuth(t *testing.T, username, password string) int {
 	client := NewHTTPClient()
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/secret.html", SingleFactorBaseURL), nil)
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/secret.html", SingleFactorBaseURL), nil)
 	assert.NoError(t, err)
 	req.SetBasicAuth(username, password)
 
@@ -293,9 +294,9 @@ func DoGetWithAuth(t *testing.T, username, password string) int {
 }
 
 func (s *HighAvailabilitySuite) TestBasicAuth() {
-	s.Assert().Equal(DoGetWithAuth(s.T(), "john", "password"), 200)
-	s.Assert().Equal(DoGetWithAuth(s.T(), "john", "bad-password"), 302)
-	s.Assert().Equal(DoGetWithAuth(s.T(), "dontexist", "password"), 302)
+	s.Assert().Equal(fasthttp.StatusOK, DoGetWithAuth(s.T(), "john", "password"))
+	s.Assert().Equal(fasthttp.StatusFound, DoGetWithAuth(s.T(), "john", "bad-password"))
+	s.Assert().Equal(fasthttp.StatusFound, DoGetWithAuth(s.T(), "dontexist", "password"))
 }
 
 func (s *HighAvailabilitySuite) Test1FAScenario() {

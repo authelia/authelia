@@ -12,6 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -185,55 +186,55 @@ func NewStandaloneSuite() *StandaloneSuite {
 }
 
 func (s *StandaloneSuite) TestShouldRespectMethodsACL() {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL(BaseDomain)), nil)
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL(BaseDomain)), nil)
 	s.Assert().NoError(err)
-	req.Header.Set("X-Forwarded-Method", "GET")
-	req.Header.Set("X-Forwarded-Proto", "https")
-	req.Header.Set("X-Forwarded-Host", fmt.Sprintf("secure.%s", BaseDomain))
+	req.Header.Set("X-Forwarded-Method", fasthttp.MethodGet)
+	req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
+	req.Header.Set(fasthttp.HeaderXForwardedHost, fmt.Sprintf("secure.%s", BaseDomain))
 	req.Header.Set("X-Forwarded-URI", "/")
-	req.Header.Set("Accept", "text/html; charset=utf8")
+	req.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf8")
 
 	client := NewHTTPClient()
 	res, err := client.Do(req)
 	s.Assert().NoError(err)
-	s.Assert().Equal(res.StatusCode, 302)
+	s.Assert().Equal(fasthttp.StatusFound, res.StatusCode)
 	body, err := io.ReadAll(res.Body)
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
 	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=GET", GetLoginBaseURL(BaseDomain), urlEncodedAdminURL))), string(body))
 
-	req.Header.Set("X-Forwarded-Method", "OPTIONS")
+	req.Header.Set("X-Forwarded-Method", fasthttp.MethodOptions)
 
 	res, err = client.Do(req)
 	s.Assert().NoError(err)
-	s.Assert().Equal(res.StatusCode, 200)
+	s.Assert().Equal(fasthttp.StatusOK, res.StatusCode)
 }
 
 func (s *StandaloneSuite) TestShouldRespondWithCorrectStatusCode() {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL(BaseDomain)), nil)
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL(BaseDomain)), nil)
 	s.Assert().NoError(err)
-	req.Header.Set("X-Forwarded-Method", "GET")
-	req.Header.Set("X-Forwarded-Proto", "https")
-	req.Header.Set("X-Forwarded-Host", fmt.Sprintf("secure.%s", BaseDomain))
+	req.Header.Set("X-Forwarded-Method", fasthttp.MethodGet)
+	req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
+	req.Header.Set(fasthttp.HeaderXForwardedHost, fmt.Sprintf("secure.%s", BaseDomain))
 	req.Header.Set("X-Forwarded-URI", "/")
-	req.Header.Set("Accept", "text/html; charset=utf8")
+	req.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf8")
 
 	client := NewHTTPClient()
 	res, err := client.Do(req)
 	s.Assert().NoError(err)
-	s.Assert().Equal(res.StatusCode, 302)
+	s.Assert().Equal(fasthttp.StatusFound, res.StatusCode)
 	body, err := io.ReadAll(res.Body)
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
 	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">302 Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=GET", GetLoginBaseURL(BaseDomain), urlEncodedAdminURL))), string(body))
 
-	req.Header.Set("X-Forwarded-Method", "POST")
+	req.Header.Set("X-Forwarded-Method", fasthttp.MethodPost)
 
 	res, err = client.Do(req)
 	s.Assert().NoError(err)
-	s.Assert().Equal(res.StatusCode, 303)
+	s.Assert().Equal(fasthttp.StatusSeeOther, res.StatusCode)
 	body, err = io.ReadAll(res.Body)
 	s.Assert().NoError(err)
 
@@ -243,16 +244,16 @@ func (s *StandaloneSuite) TestShouldRespondWithCorrectStatusCode() {
 
 // Standard case using nginx.
 func (s *StandaloneSuite) TestShouldVerifyAPIVerifyUnauthorized() {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify", AutheliaBaseURL), nil)
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/api/verify", AutheliaBaseURL), nil)
 	s.Assert().NoError(err)
-	req.Header.Set("X-Forwarded-Proto", "https")
+	req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 	req.Header.Set("X-Original-URL", AdminBaseURL)
-	req.Header.Set("Accept", "text/html; charset=utf8")
+	req.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf8")
 
 	client := NewHTTPClient()
 	res, err := client.Do(req)
 	s.Assert().NoError(err)
-	s.Assert().Equal(res.StatusCode, 401)
+	s.Assert().Equal(fasthttp.StatusUnauthorized, res.StatusCode)
 	body, err := io.ReadAll(res.Body)
 	s.Assert().NoError(err)
 	s.Assert().Equal("401 Unauthorized", string(body))
@@ -260,16 +261,16 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyUnauthorized() {
 
 // Standard case using Kubernetes.
 func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalURL() {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL(BaseDomain)), nil)
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL(BaseDomain)), nil)
 	s.Assert().NoError(err)
-	req.Header.Set("X-Forwarded-Proto", "https")
+	req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 	req.Header.Set("X-Original-URL", AdminBaseURL)
-	req.Header.Set("Accept", "text/html; charset=utf8")
+	req.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf8")
 
 	client := NewHTTPClient()
 	res, err := client.Do(req)
 	s.Assert().NoError(err)
-	s.Assert().Equal(res.StatusCode, 302)
+	s.Assert().Equal(fasthttp.StatusFound, res.StatusCode)
 	body, err := io.ReadAll(res.Body)
 	s.Assert().NoError(err)
 
@@ -278,17 +279,17 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalURL() {
 }
 
 func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI() {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL(BaseDomain)), nil)
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL(BaseDomain)), nil)
 	s.Assert().NoError(err)
-	req.Header.Set("X-Forwarded-Proto", "https")
-	req.Header.Set("X-Forwarded-Host", "secure.example.com:8080")
+	req.Header.Set(fasthttp.HeaderXForwardedProto, "https")
+	req.Header.Set(fasthttp.HeaderXForwardedHost, "secure.example.com:8080")
 	req.Header.Set("X-Forwarded-URI", "/")
-	req.Header.Set("Accept", "text/html; charset=utf8")
+	req.Header.Set(fasthttp.HeaderAccept, "text/html; charset=utf8")
 
 	client := NewHTTPClient()
 	res, err := client.Do(req)
 	s.Assert().NoError(err)
-	s.Assert().Equal(res.StatusCode, 302)
+	s.Assert().Equal(fasthttp.StatusFound, res.StatusCode)
 	body, err := io.ReadAll(res.Body)
 	s.Assert().NoError(err)
 
@@ -299,19 +300,19 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI(
 func (s *StandaloneSuite) TestShouldRecordMetrics() {
 	client := NewHTTPClient()
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/health", LoginBaseURL), nil)
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/api/health", LoginBaseURL), nil)
 	s.Require().NoError(err)
 
 	res, err := client.Do(req)
 	s.Require().NoError(err)
-	s.Assert().Equal(res.StatusCode, 200)
+	s.Assert().Equal(fasthttp.StatusOK, fasthttp.StatusOK, res.StatusCode)
 
-	req, err = http.NewRequest("GET", fmt.Sprintf("%s/metrics", LoginBaseURL), nil)
+	req, err = http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/metrics", LoginBaseURL), nil)
 	s.Require().NoError(err)
 
 	res, err = client.Do(req)
 	s.Require().NoError(err)
-	s.Assert().Equal(res.StatusCode, 200)
+	s.Assert().Equal(fasthttp.StatusOK, res.StatusCode)
 
 	body, err := io.ReadAll(res.Body)
 	s.Require().NoError(err)

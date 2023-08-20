@@ -78,6 +78,14 @@ const (
 	LDAPImplementationGLAuth = "glauth"
 )
 
+const (
+	// LDAPGroupSearchModeFilter is the string for the filter group search mode.
+	LDAPGroupSearchModeFilter = "filter"
+
+	// LDAPGroupSearchModeMemberOf is the string for the memberOf group search mode.
+	LDAPGroupSearchModeMemberOf = "memberof"
+)
+
 // TOTP Algorithm.
 const (
 	TOTPAlgorithmSHA1   = "SHA1"
@@ -103,9 +111,21 @@ const (
 	TOTPSecretSizeMinimum = 20
 )
 
-// regexpHasScheme checks if a string has a scheme. Valid characters for schemes include alphanumeric, hyphen,
-// period, and plus characters.
-var regexpHasScheme = regexp.MustCompile(`^[-+.a-zA-Z\d]+://`)
+var (
+	// regexpHasScheme checks if a string has a scheme. Valid characters for schemes include alphanumeric, hyphen,
+	// period, and plus characters.
+	regexpHasScheme = regexp.MustCompile(`^[-+.a-zA-Z\d]*(://|:$)`)
+
+	regexpIsUmask = regexp.MustCompile(`^[0-7]{3,4}$`)
+)
+
+const (
+	policyTwoFactor = "two_factor"
+)
+
+const (
+	addressQueryParamUmask = "umask"
+)
 
 const (
 	blockCERTIFICATE   = "CERTIFICATE"
@@ -113,9 +133,33 @@ const (
 )
 
 const (
-	ldapAttrMail        = "mail"
-	ldapAttrUserID      = "uid"
-	ldapAttrDisplayName = "displayName"
-	ldapAttrDescription = "description"
-	ldapAttrCommonName  = "cn"
+	ldapGroupSearchModeFilter = "filter"
+)
+
+const (
+	ldapAttrDistinguishedName = "distinguishedName"
+	ldapAttrMail              = "mail"
+	ldapAttrUserID            = "uid"
+	ldapAttrSAMAccountName    = "sAMAccountName"
+	ldapAttrDisplayName       = "displayName"
+	ldapAttrDescription       = "description"
+	ldapAttrCommonName        = "cn"
+	ldapAttrMemberOf          = "memberOf"
+)
+
+// Address Schemes.
+const (
+	AddressSchemeTCP         = "tcp"
+	AddressSchemeTCP4        = "tcp4"
+	AddressSchemeTCP6        = "tcp6"
+	AddressSchemeUDP         = "udp"
+	AddressSchemeUDP4        = "udp4"
+	AddressSchemeUDP6        = "udp6"
+	AddressSchemeUnix        = "unix"
+	AddressSchemeLDAP        = "ldap"
+	AddressSchemeLDAPS       = "ldaps"
+	AddressSchemeLDAPI       = "ldapi"
+	AddressSchemeSMTP        = "smtp"
+	AddressSchemeSUBMISSION  = "submission"
+	AddressSchemeSUBMISSIONS = "submissions"
 )

@@ -18,6 +18,44 @@ The [Docker] container is deployed with the following image names:
 * [docker.io/authelia/authelia](https://hub.docker.com/r/authelia/authelia)
 * [ghcr.io/authelia/authelia](https://github.com/authelia/authelia/pkgs/container/authelia)
 
+## Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping *Authelia*.
+
+## Container
+
+### Environment Variables
+
+Several environment variables apply specifically to the official container. This table documents them. It is important
+to note these environment variables are specific to the container and have no effect on the *Authelia* daemon itself and
+this section is not meant to document the daemon environment variables.
+
+| Name  | Default |                                             Usage                                             |
+|:-----:|:-------:|:---------------------------------------------------------------------------------------------:|
+| PUID  |    0    | If the container is running as UID 0, it will drop privileges to this UID via the entrypoint  |
+| PGID  |    0    | If the container is running as UID 0, it will drop privileges to this GID via the entrypoint  |
+| UMASK |   N/A   | If set the container will run with the provided UMASK by running the `umask ${UMASK}` command |
+
+### Permission Context
+
+By default the container runs as the configured [Docker] daemon user. Users can control this behaviour in several ways.
+
+The first and recommended way is instructing the [Docker] daemon to run the *Authelia* container as another user. See
+the [docker run] or [Docker Compose file reference documentation](https://docs.docker.com/compose/compose-file/05-services/#user)
+for more information. The best part of this method is the process will never have privileged access, and the only
+negative is the user must manually configure the filesystem permissions correctly.
+
+The second method is by using the environment variables listed above. The downside to this method is that the entrypoint
+itself will run as UID 0 (root). The advantage is the container will automatically set owner and permissions on the
+filesystem correctly.
+
+The last method which is beyond our documentation or support is using the
+[user namespace](https://docs.docker.com/engine/security/userns-remap/) facility [Docker] provides.
+
+[docker run]: https://docs.docker.com/engine/reference/commandline/run/
+
 ## Docker Compose
 
 We provide two main [Docker Compose] examples which can be utilized to help test *Authelia* or can be adapted into your
@@ -26,12 +64,6 @@ existing [Docker Compose].
 * [Unbundled Example](#standalone-example)
 * [Bundle: lite](#lite)
 * [Bundle: local](#local)
-
-### Get Started
-
-It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
-bootstrapping *Authelia*.
 
 ### Standalone Example
 
@@ -60,35 +92,35 @@ Use this [Standalone Example](#standalone-example) if you want to use
 version: "3.8"
 secrets:
   JWT_SECRET:
-    file: ${PWD}/data/authelia/secrets/JWT_SECRET
+    file: '${PWD}/data/authelia/secrets/JWT_SECRET'
   SESSION_SECRET:
-    file: ${PWD}/data/authelia/secrets/SESSION_SECRET
+    file: '${PWD}/data/authelia/secrets/SESSION_SECRET'
   STORAGE_PASSWORD:
-    file: ${PWD}/data/authelia/secrets/STORAGE_PASSWORD
+    file: '${PWD}/data/authelia/secrets/STORAGE_PASSWORD'
   STORAGE_ENCRYPTION_KEY:
-    file: ${PWD}/data/authelia/secrets/STORAGE_ENCRYPTION_KEY
+    file: '${PWD}/data/authelia/secrets/STORAGE_ENCRYPTION_KEY'
 services:
   authelia:
-    container_name: authelia
-    image: docker.io/authelia/authelia:latest
-    restart: unless-stopped
+    container_name: 'authelia'
+    image: 'docker.io/authelia/authelia:latest'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []
     expose:
       - 9091
-    secrets: [JWT_SECRET, SESSION_SECRET, STORAGE_PASSWORD, STORAGE_ENCRYPTION_KEY]
+    secrets: ['JWT_SECRET', 'SESSION_SECRET', 'STORAGE_PASSWORD', 'STORAGE_ENCRYPTION_KEY']
     environment:
-      AUTHELIA_JWT_SECRET_FILE: /run/secrets/JWT_SECRET
-      AUTHELIA_SESSION_SECRET_FILE: /run/secrets/SESSION_SECRET
-      AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE: /run/secrets/STORAGE_PASSWORD
-      AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: /run/secrets/STORAGE_ENCRYPTION_KEY
+      AUTHELIA_JWT_SECRET_FILE: '/run/secrets/JWT_SECRET'
+      AUTHELIA_SESSION_SECRET_FILE: '/run/secrets/SESSION_SECRET'
+      AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE: '/run/secrets/STORAGE_PASSWORD'
+      AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: '/run/secrets/STORAGE_ENCRYPTION_KEY'
     volumes:
-      - ${PWD}/data/authelia/config:/config
+      - '${PWD}/data/authelia/config:/config'
 networks:
   net:
     external: true
-    name: net
+    name: 'net'
 ...
 ```
 {{< /details >}}
@@ -104,26 +136,26 @@ Use this [Standalone Example](#standalone-example) if you want to use a standard
 version: "3.8"
 services:
   authelia:
-    container_name: authelia
-    image: docker.io/authelia/authelia:latest
-    restart: unless-stopped
+    container_name: 'authelia'
+    image: 'docker.io/authelia/authelia:latest'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []
     expose:
       - 9091
     environment:
-      AUTHELIA_JWT_SECRET_FILE: /secrets/JWT_SECRET
-      AUTHELIA_SESSION_SECRET_FILE: /secrets/SESSION_SECRET
-      AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE: /secrets/STORAGE_PASSWORD
-      AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: /secrets/STORAGE_ENCRYPTION_KEY
+      AUTHELIA_JWT_SECRET_FILE: '/secrets/JWT_SECRET'
+      AUTHELIA_SESSION_SECRET_FILE: '/secrets/SESSION_SECRET'
+      AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE: '/secrets/STORAGE_PASSWORD'
+      AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: '/secrets/STORAGE_ENCRYPTION_KEY'
     volumes:
-      - ${PWD}/data/authelia/config:/config
-      - ${PWD}/data/authelia/secrets:/secrets
+      - '${PWD}/data/authelia/config:/config'
+      - '${PWD}/data/authelia/secrets:/secrets'
 networks:
   net:
     external: true
-    name: net
+    name: 'net'
 ```
 ...
 {{< /details >}}
@@ -178,7 +210,7 @@ running the following command:
 grep -Eo '"https://.*" ' ./authelia/notification.txt.
 ```
 
-## FAQ
+## Frequently Asked Questions
 
 #### Running the Proxy on the Host Instead of in a Container
 

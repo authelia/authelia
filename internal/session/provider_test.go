@@ -179,7 +179,7 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 		AuthenticationMethodRefs:  oidc.AuthenticationMethodsReferences{UsernameAndPassword: true},
 	}, session)
 
-	session.SetTwoFactorWebauthn(timeTwoFactor, false, false)
+	session.SetTwoFactorWebAuthn(timeTwoFactor, false, false)
 
 	err = provider.SaveSession(ctx, session)
 	assert.NoError(t, err)
@@ -187,7 +187,7 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	session, err = provider.GetSession(ctx)
 	assert.NoError(t, err)
 
-	assert.Equal(t, oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true}, session.AuthenticationMethodRefs)
+	assert.Equal(t, oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, WebAuthn: true}, session.AuthenticationMethodRefs)
 	assert.True(t, session.AuthenticationMethodRefs.MultiFactorAuthentication())
 
 	authAt, err = session.AuthenticatedTime(authorization.OneFactor)
@@ -202,7 +202,7 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	assert.EqualError(t, err, "invalid authorization level")
 	assert.Equal(t, timeZeroFactor, authAt)
 
-	session.SetTwoFactorWebauthn(timeTwoFactor, false, false)
+	session.SetTwoFactorWebAuthn(timeTwoFactor, false, false)
 
 	err = provider.SaveSession(ctx, session)
 	assert.NoError(t, err)
@@ -211,10 +211,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t,
-		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true},
+		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, WebAuthn: true},
 		session.AuthenticationMethodRefs)
 
-	session.SetTwoFactorWebauthn(timeTwoFactor, false, false)
+	session.SetTwoFactorWebAuthn(timeTwoFactor, false, false)
 
 	err = provider.SaveSession(ctx, session)
 	assert.NoError(t, err)
@@ -223,10 +223,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t,
-		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true},
+		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, WebAuthn: true},
 		session.AuthenticationMethodRefs)
 
-	session.SetTwoFactorWebauthn(timeTwoFactor, true, false)
+	session.SetTwoFactorWebAuthn(timeTwoFactor, true, false)
 
 	err = provider.SaveSession(ctx, session)
 	assert.NoError(t, err)
@@ -235,10 +235,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t,
-		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true, WebauthnUserPresence: true},
+		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, WebAuthn: true, WebAuthnUserPresence: true},
 		session.AuthenticationMethodRefs)
 
-	session.SetTwoFactorWebauthn(timeTwoFactor, true, false)
+	session.SetTwoFactorWebAuthn(timeTwoFactor, true, false)
 
 	err = provider.SaveSession(ctx, session)
 	assert.NoError(t, err)
@@ -247,10 +247,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t,
-		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true, WebauthnUserPresence: true},
+		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, WebAuthn: true, WebAuthnUserPresence: true},
 		session.AuthenticationMethodRefs)
 
-	session.SetTwoFactorWebauthn(timeTwoFactor, false, true)
+	session.SetTwoFactorWebAuthn(timeTwoFactor, false, true)
 
 	err = provider.SaveSession(ctx, session)
 	assert.NoError(t, err)
@@ -259,10 +259,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t,
-		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true, WebauthnUserVerified: true},
+		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, WebAuthn: true, WebAuthnUserVerified: true},
 		session.AuthenticationMethodRefs)
 
-	session.SetTwoFactorWebauthn(timeTwoFactor, false, true)
+	session.SetTwoFactorWebAuthn(timeTwoFactor, false, true)
 
 	err = provider.SaveSession(ctx, session)
 	assert.NoError(t, err)
@@ -271,19 +271,7 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t,
-		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true, WebauthnUserVerified: true},
-		session.AuthenticationMethodRefs)
-
-	session.SetTwoFactorTOTP(timeTwoFactor)
-
-	err = provider.SaveSession(ctx, session)
-	assert.NoError(t, err)
-
-	session, err = provider.GetSession(ctx)
-	assert.NoError(t, err)
-
-	assert.Equal(t,
-		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, TOTP: true, Webauthn: true, WebauthnUserVerified: true},
+		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, WebAuthn: true, WebAuthnUserVerified: true},
 		session.AuthenticationMethodRefs)
 
 	session.SetTwoFactorTOTP(timeTwoFactor)
@@ -295,7 +283,19 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t,
-		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, TOTP: true, Webauthn: true, WebauthnUserVerified: true},
+		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, TOTP: true, WebAuthn: true, WebAuthnUserVerified: true},
+		session.AuthenticationMethodRefs)
+
+	session.SetTwoFactorTOTP(timeTwoFactor)
+
+	err = provider.SaveSession(ctx, session)
+	assert.NoError(t, err)
+
+	session, err = provider.GetSession(ctx)
+	assert.NoError(t, err)
+
+	assert.Equal(t,
+		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, TOTP: true, WebAuthn: true, WebAuthnUserVerified: true},
 		session.AuthenticationMethodRefs)
 }
 

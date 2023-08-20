@@ -13,6 +13,8 @@ func StandardizeDurationString(input string) (output string, err error) {
 		return "0s", nil
 	}
 
+	input = strings.ReplaceAll(input, "and", "")
+
 	matches := reDurationStandard.FindAllStringSubmatch(strings.ReplaceAll(input, " ", ""), -1)
 
 	if len(matches) == 0 {

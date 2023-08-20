@@ -8,7 +8,7 @@ import { Route, Routes, useNavigate } from "react-router-dom";
 import {
     SecondFactorPushSubRoute,
     SecondFactorTOTPSubRoute,
-    SecondFactorWebauthnSubRoute,
+    SecondFactorWebAuthnSubRoute,
     LogoutRoute as SignOutRoute,
 } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
@@ -16,14 +16,14 @@ import LoginLayout from "@layouts/LoginLayout";
 import { Configuration } from "@models/Configuration";
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
-import { initiateTOTPRegistrationProcess, initiateWebauthnRegistrationProcess } from "@services/RegisterDevice";
+import { initiateTOTPRegistrationProcess, initiateWebAuthnRegistrationProcess } from "@services/RegisterDevice";
 import { AuthenticationLevel } from "@services/State";
 import { setPreferred2FAMethod } from "@services/UserInfo";
-import { isWebauthnSupported } from "@services/Webauthn";
+import { isWebAuthnSupported } from "@services/WebAuthn";
 import MethodSelectionDialog from "@views/LoginPortal/SecondFactor/MethodSelectionDialog";
 import OneTimePasswordMethod from "@views/LoginPortal/SecondFactor/OneTimePasswordMethod";
 import PushNotificationMethod from "@views/LoginPortal/SecondFactor/PushNotificationMethod";
-import WebauthnMethod from "@views/LoginPortal/SecondFactor/WebauthnMethod";
+import WebAuthnMethod from "@views/LoginPortal/SecondFactor/WebAuthnMethod";
 
 export interface Props {
     authenticationLevel: AuthenticationLevel;
@@ -41,12 +41,12 @@ const SecondFactorForm = function (props: Props) {
     const [methodSelectionOpen, setMethodSelectionOpen] = useState(false);
     const { createInfoNotification, createErrorNotification } = useNotifications();
     const [registrationInProgress, setRegistrationInProgress] = useState(false);
-    const [webauthnSupported, setWebauthnSupported] = useState(false);
+    const [stateWebAuthnSupported, setStateWebAuthnSupported] = useState(false);
     const { t: translate } = useTranslation();
 
     useEffect(() => {
-        setWebauthnSupported(isWebauthnSupported());
-    }, [setWebauthnSupported]);
+        setStateWebAuthnSupported(isWebAuthnSupported());
+    }, [setStateWebAuthnSupported]);
 
     const initiateRegistration = (initiateRegistrationFunc: () => Promise<void>) => {
         return async () => {
@@ -90,7 +90,7 @@ const SecondFactorForm = function (props: Props) {
                 <MethodSelectionDialog
                     open={methodSelectionOpen}
                     methods={props.configuration.available_methods}
-                    webauthnSupported={webauthnSupported}
+                    webauthnSupported={stateWebAuthnSupported}
                     onClose={() => setMethodSelectionOpen(false)}
                     onClick={handleMethodSelected}
                 />
@@ -124,14 +124,14 @@ const SecondFactorForm = function (props: Props) {
                             }
                         />
                         <Route
-                            path={SecondFactorWebauthnSubRoute}
+                            path={SecondFactorWebAuthnSubRoute}
                             element={
-                                <WebauthnMethod
+                                <WebAuthnMethod
                                     id="webauthn-method"
                                     authenticationLevel={props.authenticationLevel}
-                                    // Whether the user has a Webauthn device registered already
+                                    // Whether the user has a WebAuthn device registered already
                                     registered={props.userInfo.has_webauthn}
-                                    onRegisterClick={initiateRegistration(initiateWebauthnRegistrationProcess)}
+                                    onRegisterClick={initiateRegistration(initiateWebAuthnRegistrationProcess)}
                                     onSignInError={(err) => createErrorNotification(err.message)}
                                     onSignInSuccess={props.onAuthenticationSuccess}
                                 />

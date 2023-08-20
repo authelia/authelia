@@ -17,14 +17,18 @@ aliases:
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
-certificates_directory: /config/certs/
-default_redirection_url: https://home.example.com:8080/
-jwt_secret: v3ry_important_s3cr3t
-theme: light
+certificates_directory: '/config/certs/'
+default_redirection_url: 'https://home.example.com:8080/'
+jwt_secret: 'v3ry_important_s3cr3t'
+theme: 'light'
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### certificates_directory
 

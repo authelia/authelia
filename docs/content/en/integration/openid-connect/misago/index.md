@@ -1,8 +1,8 @@
 ---
 title: "Misago"
-description: "Integrating Misago with the Authelia OpenID Connect Provider."
+description: "Integrating Misago with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
-date: 2023-03-04T13:20:00+00:00
+date: 2023-03-14T08:51:13+11:00
 draft: false
 images: []
 menu:
@@ -15,10 +15,10 @@ community: true
 
 ## Tested Versions
 
-* [Authelia](https://www.authelia.com)
-  * [v4.37.5](https://github.com/authelia/authelia/releases/tag/v4.37.5)
-* [Misago](https://github.com/rafalp/Misago)
-  * [misago-image v0.29.1](https://github.com/tetricky/misago-image/releases/tag/v0.29.1)
+- [Authelia](https://www.authelia.com)
+  - [v4.37.5](https://github.com/authelia/authelia/releases/tag/v4.37.5)
+- [Misago](https://github.com/rafalp/Misago)
+  - [misago-image v0.29.1](https://github.com/tetricky/misago-image/releases/tag/v0.29.1)
 
 ## Before You Begin
 
@@ -79,7 +79,7 @@ To configure [Misago] to utilize Authelia as an [OpenID Connect 1.0](https://www
 
 ### Authelia
 
-The following YAML configuration is an example **Authelia** [client configuration](https://www.authelia.com/configuration/identity-providers/open-id-connect/#clients) for use with [Misago] which will operate with the above example:
+The following YAML configuration is an example **Authelia** [client configuration](https://www.authelia.com/configuration/identity-providers/openid-connect/#clients) for use with [Misago] which will operate with the above example:
 
 ```yaml
 identity_providers:
@@ -87,28 +87,29 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-    - id: misago
+    - id: 'misago'
+      description: 'Misago'
       secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
       public: false
-      authorization_policy: two_factor
+      authorization_policy: 'two_factor'
       scopes:
-        - openid
-        - profile
-        - email
+        - 'openid'
+        - 'profile'
+        - 'email'
       redirect_uris:
-        - https://misago.example.com/oauth2/complete/
+        - 'https://misago.example.com/oauth2/complete/'
       grant_types:
-        - authorization_code
+        - 'authorization_code'
       response_types:
-        - code
+        - 'code'
       response_modes:
-        - query
-      userinfo_signing_algorithm: none
+        - 'query'
+      userinfo_signing_alg: 'none'
 ```
 
 ---
 ## See Also
 
--   [Misago] [OAuth 2 Client Configuration guide](https://misago-project.org/t/oauth-2-client-configuration-guide/1147/)
+- [Misago] [OAuth 2 Client Configuration guide](https://misago-project.org/t/oauth-2-client-configuration-guide/1147/)
 
 [Misago]: https://misago-project.org/

@@ -41,6 +41,13 @@ const (
 )
 
 const (
+	// ClientAssertionJWTBearerType is the JWT bearer assertion.
+	ClientAssertionJWTBearerType = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer" //nolint:gosec // False Positive.
+)
+
+const httpAuthSchemeBasic = "Basic"
+
+const (
 	lifespanTokenDefault         = time.Hour
 	lifespanRefreshTokenDefault  = time.Hour * 24 * 30
 	lifespanAuthorizeCodeDefault = time.Minute * 15
@@ -48,7 +55,7 @@ const (
 )
 
 const (
-	urnPARPrefix = "urn:ietf:params:oauth:request_uri:"
+	RedirectURIPrefixPushedAuthorizationRequestURN = "urn:ietf:params:oauth:request_uri:"
 )
 
 const (
@@ -67,9 +74,8 @@ const (
 // Grant Type strings.
 const (
 	GrantTypeImplicit          = implicit
-	GrantTypeRefreshToken      = "refresh_token"
+	GrantTypeRefreshToken      = refreshtoken
 	GrantTypeAuthorizationCode = "authorization_code"
-	GrantTypePassword          = "password"
 	GrantTypeClientCredentials = "client_credentials"
 )
 
@@ -78,6 +84,7 @@ const (
 	ClientAuthMethodClientSecretBasic = "client_secret_basic"
 	ClientAuthMethodClientSecretPost  = "client_secret_post"
 	ClientAuthMethodClientSecretJWT   = "client_secret_jwt"
+	ClientAuthMethodPrivateKeyJWT     = "private_key_jwt"
 	ClientAuthMethodNone              = "none"
 )
 
@@ -92,10 +99,38 @@ const (
 	ResponseTypeHybridFlowBoth        = "code id_token token"
 )
 
-// Signing Algorithm strings.
+// JWS Algorithm strings.
+// See: https://datatracker.ietf.org/doc/html/rfc7518#section-3.1
 const (
-	SigningAlgorithmNone          = none
-	SigningAlgorithmRSAWithSHA256 = "RS256"
+	SigningAlgNone = none
+
+	SigningAlgRSAUsingSHA256 = "RS256"
+	SigningAlgRSAUsingSHA384 = "RS384"
+	SigningAlgRSAUsingSHA512 = "RS512"
+
+	SigningAlgRSAPSSUsingSHA256 = "PS256"
+	SigningAlgRSAPSSUsingSHA384 = "PS384"
+	SigningAlgRSAPSSUsingSHA512 = "PS512"
+
+	SigningAlgECDSAUsingP256AndSHA256 = "ES256"
+	SigningAlgECDSAUsingP384AndSHA384 = "ES384"
+	SigningAlgECDSAUsingP521AndSHA512 = "ES512"
+
+	SigningAlgHMACUsingSHA256 = "HS256"
+	SigningAlgHMACUsingSHA384 = "HS384"
+	SigningAlgHMACUsingSHA512 = "HS512"
+)
+
+// JWS Algorithm Prefixes.
+const (
+	SigningAlgPrefixRSA    = "RS"
+	SigningAlgPrefixHMAC   = "HS"
+	SigningAlgPrefixRSAPSS = "PS"
+	SigningAlgPrefixECDSA  = "ES"
+)
+
+const (
+	KeyUseSignature = "sig"
 )
 
 // Subject Type strings.
@@ -111,9 +146,25 @@ const (
 )
 
 const (
+	FormParameterAuthorizationCode   = "code"
+	FormParameterClientID            = "client_id"
+	FormParameterClientSecret        = "client_secret"
 	FormParameterRequestURI          = "request_uri"
+	FormParameterResponseMode        = "response_mode"
 	FormParameterCodeChallenge       = "code_challenge"
+	FormParameterCodeVerifier        = "code_verifier"
 	FormParameterCodeChallengeMethod = "code_challenge_method"
+	FormParameterClientAssertionType = "client_assertion_type"
+	FormParameterClientAssertion     = "client_assertion"
+	FormParameterScope               = "scope"
+	FormParameterRefreshToken        = refreshtoken
+)
+
+const (
+	PromptNone    = none
+	PromptLogin   = "login"
+	PromptConsent = "consent"
+	// PromptCreate  = "create" // This prompt value is currently unused.
 )
 
 // Endpoints.
@@ -130,15 +181,18 @@ const (
 const (
 	// JWTHeaderKeyIdentifier is the JWT Header referencing the JWS Key Identifier used to sign a token.
 	JWTHeaderKeyIdentifier = "kid"
+
+	// JWTHeaderKeyAlgorithm is the JWT Header referencing the JWS Key algorithm used to sign a token.
+	JWTHeaderKeyAlgorithm = "alg"
 )
 
 const (
 	tokenPrefixOrgAutheliaFmt = "authelia_%s_" //nolint:gosec
 	tokenPrefixOrgOryFmt      = "ory_%s_"      //nolint:gosec
 
-	tokenPrefixPartAccessToken   = "at"
-	tokenPrefixPartRefreshToken  = "rt"
-	tokenPrefixPartAuthorizeCode = "ac"
+	TokenPrefixPartAccessToken   = "at"
+	TokenPrefixPartRefreshToken  = "rt"
+	TokenPrefixPartAuthorizeCode = "ac"
 )
 
 // Paths.
@@ -190,7 +244,7 @@ const (
 	// a user presence test. Evidence that the end user is present and interacting with the device. This is sometimes
 	// also referred to as "test of user presence" as per W3C.WD-webauthn-20170216.
 	//
-	// Authelia utilizes this when a user has used Webauthn to authenticate and the user presence flag was set.
+	// Authelia utilizes this when a user has used WebAuthn to authenticate and the user presence flag was set.
 	// Factor: Meta, Channel: Meta.
 	//
 	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
@@ -203,7 +257,7 @@ const (
 	// containing only numbers) that a user enters to unlock a key on the device. This mechanism should have a way to
 	// deter an attacker from obtaining the PIN by trying repeated guesses.
 	//
-	// Authelia utilizes this when a user has used Webauthn to authenticate and the user verified flag was set.
+	// Authelia utilizes this when a user has used WebAuthn to authenticate and the user verified flag was set.
 	//	Factor: Meta, Channel: Meta.
 	//
 	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
@@ -239,7 +293,7 @@ const (
 	// AMRHardwareSecuredKey is an RFC8176 Authentication Method Reference Value that
 	// represents authentication via a proof-of-Possession (PoP) of a hardware-secured key.
 	//
-	// Authelia utilizes this when a user has used Webauthn to authenticate. Factor: Have, Channel: Browser.
+	// Authelia utilizes this when a user has used WebAuthn to authenticate. Factor: Have, Channel: Browser.
 	//
 	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
 	AMRHardwareSecuredKey = "hwk"
@@ -258,4 +312,9 @@ const (
 	explicit      = "explicit"
 	preconfigured = "pre-configured"
 	none          = "none"
+	refreshtoken  = "refresh_token"
+)
+
+const (
+	durationZero = time.Duration(0)
 )

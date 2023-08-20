@@ -14,13 +14,13 @@ toc: true
 
 ## authelia storage user webauthn
 
-Manage Webauthn devices
+Manage WebAuthn devices
 
 ### Synopsis
 
-Manage Webauthn devices.
+Manage WebAuthn devices.
 
-This subcommand allows interacting with Webauthn devices.
+This subcommand allows interacting with WebAuthn devices.
 
 ### Examples
 
@@ -61,8 +61,8 @@ authelia storage user webauthn --help
 ### SEE ALSO
 
 * [authelia storage user](authelia_storage_user.md)	 - Manages user settings
-* [authelia storage user webauthn delete](authelia_storage_user_webauthn_delete.md)	 - Delete a Webauthn device
-* [authelia storage user webauthn export](authelia_storage_user_webauthn_export.md)	 - Perform exports of the Webauthn devices
-* [authelia storage user webauthn import](authelia_storage_user_webauthn_import.md)	 - Perform imports of the Webauthn devices
-* [authelia storage user webauthn list](authelia_storage_user_webauthn_list.md)	 - List Webauthn devices
+* [authelia storage user webauthn delete](authelia_storage_user_webauthn_delete.md)	 - Delete a WebAuthn device
+* [authelia storage user webauthn export](authelia_storage_user_webauthn_export.md)	 - Perform exports of the WebAuthn devices
+* [authelia storage user webauthn import](authelia_storage_user_webauthn_import.md)	 - Perform imports of the WebAuthn devices
+* [authelia storage user webauthn list](authelia_storage_user_webauthn_list.md)	 - List WebAuthn devices
 

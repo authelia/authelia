@@ -14,13 +14,13 @@ toc: true
 
 ## authelia storage user webauthn export
 
-Perform exports of the Webauthn devices
+Perform exports of the WebAuthn devices
 
 ### Synopsis
 
-Perform exports of the Webauthn devices.
+Perform exports of the WebAuthn devices.
 
-This subcommand allows exporting Webauthn devices to various formats.
+This subcommand allows exporting WebAuthn devices to various formats.
 
 ```
 authelia storage user webauthn export [flags]
@@ -68,5 +68,5 @@ authelia storage user webauthn export--encryption-key b3453fde-ecc2-4a1f-9422-27
 
 ### SEE ALSO
 
-* [authelia storage user webauthn](authelia_storage_user_webauthn.md)	 - Manage Webauthn devices
+* [authelia storage user webauthn](authelia_storage_user_webauthn.md)	 - Manage WebAuthn devices
 

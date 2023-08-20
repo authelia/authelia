@@ -77,6 +77,7 @@ var DefaultSessionConfiguration = SessionConfiguration{
 
 // DefaultRedisConfiguration is the default redis configuration.
 var DefaultRedisConfiguration = RedisSessionConfiguration{
+	Port: 6379,
 	TLS: &TLSConfig{
 		MinimumVersion: TLSVersion{Value: tls.VersionTLS12},
 	},

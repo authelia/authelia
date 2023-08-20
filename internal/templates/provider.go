@@ -1,9 +1,9 @@
 package templates
 
 import (
-	"embed"
 	"fmt"
 	th "html/template"
+	"io/fs"
 	"path"
 	tt "text/template"
 )
@@ -28,7 +28,7 @@ type Provider struct {
 }
 
 // LoadTemplatedAssets takes an embed.FS and loads each templated asset document into a Template.
-func (p *Provider) LoadTemplatedAssets(fs embed.FS) (err error) {
+func (p *Provider) LoadTemplatedAssets(fs fs.ReadFileFS) (err error) {
 	var (
 		data []byte
 	)

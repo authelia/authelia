@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -21,6 +22,6 @@ func TestHealthOk(t *testing.T) {
 
 	HealthGET(mock.Ctx)
 
-	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, okMessageBytes, mock.Ctx.Response.Body())
 }

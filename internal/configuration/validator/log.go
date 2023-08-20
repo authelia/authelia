@@ -2,7 +2,6 @@ package validator
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -19,6 +18,6 @@ func ValidateLog(config *schema.Configuration, validator *schema.StructValidator
 	}
 
 	if !utils.IsStringInSlice(config.Log.Level, validLogLevels) {
-		validator.Push(fmt.Errorf(errFmtLoggingLevelInvalid, strings.Join(validLogLevels, "', '"), config.Log.Level))
+		validator.Push(fmt.Errorf(errFmtLoggingLevelInvalid, strJoinOr(validLogLevels), config.Log.Level))
 	}
 }
