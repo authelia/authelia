@@ -131,7 +131,7 @@ Feature List:
   * Policies can be mapped to individual clients and reused
   * Match criteria is only subjects as this is the only effective thing that is constant during the life of an
     authorization
-* [JWT Response for OAuth Token Inspection](https://www.ietf.org/id/draft-ietf-oauth-jwt-introspection-response-12.html)
+* [JWT Response for OAuth Token Inspection](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-jwt-introspection-response)
 
 ### Beta 7
 

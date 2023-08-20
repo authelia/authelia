@@ -18,7 +18,7 @@ func (p *OpenIDConnectProvider) NewIntrospectionRequest(ctx context.Context, r *
 	if r.Method != fasthttp.MethodPost {
 		return &IntrospectionResponse{Active: false}, errorsx.WithStack(fosite.ErrInvalidRequest.WithHintf("HTTP method is '%s' but expected 'POST'.", r.Method))
 	} else if err := r.ParseMultipartForm(1 << 20); err != nil && err != http.ErrNotMultipart {
-		return &IntrospectionResponse{Active: false}, errorsx.WithStack(fosite.ErrInvalidRequest.WithHint("Unable to parse HTTP body, make sure to send a properly formatted form request body.").WithWrap(err).WithDebug(err.Error()))
+		return &IntrospectionResponse{Active: false}, errorsx.WithStack(fosite.ErrInvalidRequest.WithHint("Unable to parse HTTP body, make sure to send a properly formatted form request body.").WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 	} else if len(r.PostForm) == 0 {
 		return &IntrospectionResponse{Active: false}, errorsx.WithStack(fosite.ErrInvalidRequest.WithHint("The POST body can not be empty."))
 	}
@@ -38,7 +38,7 @@ func (p *OpenIDConnectProvider) NewIntrospectionRequest(ctx context.Context, r *
 	)
 
 	if use, ar, err = p.IntrospectToken(ctx, token, fosite.TokenUse(tokenTypeHint), session, fosite.RemoveEmpty(strings.Split(r.PostForm.Get(FormParameterScope), " "))...); err != nil {
-		return &IntrospectionResponse{Active: false}, errorsx.WithStack(fosite.ErrInactiveToken.WithHint("An introspection strategy indicated that the token is inactive.").WithWrap(err).WithDebug(err.Error()))
+		return &IntrospectionResponse{Active: false}, errorsx.WithStack(fosite.ErrInactiveToken.WithHint("An introspection strategy indicated that the token is inactive.").WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 	}
 
 	accessTokenType := ""
@@ -68,7 +68,7 @@ func (p *OpenIDConnectProvider) handleNewIntrospectionRequestClientAuthenticatio
 		)
 
 		if use, ar, err = p.IntrospectToken(ctx, clientToken, fosite.AccessToken, session.Clone()); err != nil {
-			return nil, errorsx.WithStack(fosite.ErrRequestUnauthorized.WithHint("HTTP Authorization header missing, malformed, or credentials used are invalid."))
+			return nil, errorsx.WithStack(fosite.ErrRequestUnauthorized.WithHint("HTTP Authorization header missing, malformed, or credentials used are invalid.").WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 		} else if use != "" && use != fosite.AccessToken {
 			return nil, errorsx.WithStack(fosite.ErrRequestUnauthorized.WithHintf("HTTP Authorization header did not provide a token of type 'access_token', got type '%s'.", use))
 		}
@@ -88,7 +88,7 @@ func (p *OpenIDConnectProvider) handleNewIntrospectionRequestClientAuthenticatio
 		}
 
 		if client, err = p.Store.GetClient(ctx, clientID); err != nil {
-			return nil, errorsx.WithStack(fosite.ErrRequestUnauthorized.WithHint("Unable to find OAuth 2.0 Client from HTTP basic authorization header.").WithWrap(err).WithDebug(err.Error()))
+			return nil, errorsx.WithStack(fosite.ErrRequestUnauthorized.WithHint("Unable to find OAuth 2.0 Client from HTTP basic authorization header.").WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 		}
 
 		// Enforce client authentication.
