@@ -8,7 +8,6 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ory/fosite"
-	fjwt "github.com/ory/fosite/token/jwt"
 	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -233,8 +232,4 @@ func IntrospectionResponseToRequesterAudience(response fosite.IntrospectionRespo
 	}
 
 	return nil
-}
-
-type IDTokenClaimsSession interface {
-	GetIDTokenClaims() *fjwt.IDTokenClaims
 }

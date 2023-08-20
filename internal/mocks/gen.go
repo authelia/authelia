@@ -22,3 +22,4 @@ package mocks
 //go:generate mockgen -package mocks -destination fosite_transactional.go -mock_names Provider=MockTransactional github.com/ory/fosite/storage Transactional
 
 //go:generate mockgen -package mocks -destination fosite_token_introspector.go -mock_names TokenIntrospector=MockTokenIntrospector github.com/ory/fosite TokenIntrospector
+//go:generate mockgen -package mocks -destination fosite_storage.go -mock_names Storage=MockFositeStorage github.com/ory/fosite Storage

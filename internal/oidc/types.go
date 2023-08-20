@@ -222,6 +222,25 @@ type RefreshFlowScopeClient interface {
 	GetRefreshFlowIgnoreOriginalGrantedScopes(ctx context.Context) (ignoreOriginalGrantedScopes bool)
 }
 
+// Context represents the context implementation that is used by some OpenID Connect 1.0 implementations.
+type Context interface {
+	context.Context
+
+	IssuerURL() (issuerURL *url.URL, err error)
+	GetClock() utils.Clock
+	GetJWTWithTimeFuncOption() jwt.ParserOption
+}
+
+// ClientRequesterResponder is a fosite.Requster or fosite.Responder with a GetClient method.
+type ClientRequesterResponder interface {
+	GetClient() fosite.Client
+}
+
+// IDTokenClaimsSession is a session which can return the IDTokenClaims type.
+type IDTokenClaimsSession interface {
+	GetIDTokenClaims() *fjwt.IDTokenClaims
+}
+
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
 type ConsentGetResponseBody struct {
 	ClientID          string   `json:"client_id"`
@@ -945,25 +964,4 @@ type OpenIDConnectWellKnownConfiguration struct {
 	*OpenIDConnectClientInitiatedBackChannelAuthFlowDiscoveryOptions
 	*OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions
 	*OpenIDFederationDiscoveryOptions
-}
-
-// Context represents the context implementation that is used by some OpenID Connect 1.0 implementations.
-type Context interface {
-	context.Context
-
-	IssuerURL() (issuerURL *url.URL, err error)
-	GetClock() utils.Clock
-	GetJWTWithTimeFuncOption() jwt.ParserOption
-}
-
-type OpenIDConnectContext interface {
-	context.Context
-
-	IssuerURL() (issuerURL *url.URL, err error)
-	GetClock() utils.Clock
-	GetJWTWithTimeFuncOption() jwt.ParserOption
-}
-
-type ClientRequesterResponder interface {
-	GetClient() fosite.Client
 }

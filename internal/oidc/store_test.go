@@ -367,7 +367,7 @@ func (s *StoreSuite) TestCreateSessions() {
 				ID: "example",
 			},
 			Session: nil,
-		}}), "can't convert type '<nil>' to an *OAuth2Session")
+		}}), "failed to create new PAR context: can't assert type '<nil>' to an *OAuth2Session")
 }
 
 func (s *StoreSuite) TestRevokeSessions() {

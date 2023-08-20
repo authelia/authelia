@@ -111,7 +111,7 @@ func NewOAuth2PARContext(contextID string, r fosite.AuthorizeRequester) (context
 	)
 
 	if s, ok = r.GetSession().(*OpenIDSession); !ok {
-		return nil, fmt.Errorf("can't convert type '%T' to an *OAuth2Session", r.GetSession())
+		return nil, fmt.Errorf("failed to create new PAR context: can't assert type '%T' to an *OAuth2Session", r.GetSession())
 	}
 
 	if session, err = json.Marshal(s); err != nil {
@@ -339,7 +339,7 @@ type OAuth2PARContext struct {
 func (par *OAuth2PARContext) ToAuthorizeRequest(ctx context.Context, session fosite.Session, store fosite.Storage) (request *fosite.AuthorizeRequest, err error) {
 	if session != nil {
 		if err = json.Unmarshal(par.Session, session); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error occurred while mapping PAR context back to an Authorize Request while trying to unmarshal the JSON session data: %w", err)
 		}
 	}
 
@@ -349,11 +349,11 @@ func (par *OAuth2PARContext) ToAuthorizeRequest(ctx context.Context, session fos
 	)
 
 	if client, err = store.GetClient(ctx, par.ClientID); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error occurred while mapping PAR context back to an Authorize Request while trying to lookup the registered client: %w", err)
 	}
 
 	if form, err = url.ParseQuery(par.Form); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error occurred while mapping PAR context back to an Authorize Request while trying to parse the original form: %w", err)
 	}
 
 	request = fosite.NewAuthorizeRequest()
@@ -372,7 +372,7 @@ func (par *OAuth2PARContext) ToAuthorizeRequest(ctx context.Context, session fos
 
 	if form.Has("redirect_uri") {
 		if request.RedirectURI, err = url.Parse(form.Get("redirect_uri")); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error occurred while mapping PAR context back to an Authorize Request while trying to parse the original redirect uri: %w", err)
 		}
 	}
 
