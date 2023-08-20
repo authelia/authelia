@@ -162,6 +162,8 @@ const (
 	FormParameterClientAssertion     = "client_assertion"
 	FormParameterScope               = scope
 	FormParameterRefreshToken        = refreshtoken
+	FormParameterToken               = "token"
+	FormParameterTokenTypeHint       = "token_type_hint"
 )
 
 const (

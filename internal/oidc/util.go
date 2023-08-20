@@ -10,6 +10,8 @@ import (
 	"github.com/ory/fosite"
 	fjwt "github.com/ory/fosite/token/jwt"
 	"gopkg.in/square/go-jose.v2"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // IsPushedAuthorizedRequest returns true if the requester has a PushedAuthorizationRequest redirect_uri value.
@@ -216,7 +218,21 @@ func IntrospectionResponseToMap(response fosite.IntrospectionResponder) (aud []s
 		}
 	}
 
-	return aud, introspection
+	return IntrospectionResponseToRequesterAudience(response), introspection
+}
+
+func IntrospectionResponseToRequesterAudience(response fosite.IntrospectionResponder) (aud []string) {
+	if cr, ok := response.(ClientRequesterResponder); ok && cr.GetClient() != nil {
+		aud = cr.GetClient().GetAudience()
+
+		if !utils.IsStringInSlice(cr.GetClient().GetID(), aud) {
+			aud = append(aud, cr.GetClient().GetID())
+		}
+
+		return aud
+	}
+
+	return nil
 }
 
 type IDTokenClaimsSession interface {

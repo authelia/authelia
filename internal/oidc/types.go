@@ -963,3 +963,7 @@ type OpenIDConnectContext interface {
 	GetClock() utils.Clock
 	GetJWTWithTimeFuncOption() jwt.ParserOption
 }
+
+type ClientRequesterResponder interface {
+	GetClient() fosite.Client
+}
