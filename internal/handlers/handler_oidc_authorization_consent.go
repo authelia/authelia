@@ -81,10 +81,12 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.UR
 	return handler(ctx, issuer, client, userSession, subject, rw, r, requester)
 }
 
-func handleOIDCAuthorizationConsentNotAuthenticated(_ *middlewares.AutheliaCtx, issuer *url.URL, _ oidc.Client,
+func handleOIDCAuthorizationConsentNotAuthenticated(ctx *middlewares.AutheliaCtx, issuer *url.URL, _ oidc.Client,
 	_ session.UserSession, _ uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
-	redirectionURL := handleOIDCAuthorizationConsentGetRedirectionURL(issuer, nil, requester)
+	redirectionURL := handleOIDCAuthorizationConsentGetRedirectionURL(ctx, issuer, nil, requester, r.Form)
+
+	handleOIDCPushedAuthorizeConsent(ctx, requester, r.Form)
 
 	http.Redirect(rw, r, redirectionURL.String(), http.StatusFound)
 
@@ -144,17 +146,40 @@ func handleOIDCAuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issuer
 
 		ctx.Logger.Debugf(logFmtDbgConsentAuthenticationSufficiency, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.AuthenticationLevel.String(), "sufficient", client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}))
 	} else {
-		location = handleOIDCAuthorizationConsentGetRedirectionURL(issuer, consent, requester)
+		location = handleOIDCAuthorizationConsentGetRedirectionURL(ctx, issuer, consent, requester, r.Form)
 
 		ctx.Logger.Debugf(logFmtDbgConsentAuthenticationSufficiency, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.AuthenticationLevel.String(), "insufficient", client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}))
 	}
+
+	handleOIDCPushedAuthorizeConsent(ctx, requester, r.Form)
 
 	ctx.Logger.Debugf(logFmtDbgConsentRedirect, requester.GetID(), client.GetID(), client.GetConsentPolicy(), location)
 
 	http.Redirect(rw, r, location.String(), http.StatusFound)
 }
 
-func handleOIDCAuthorizationConsentGetRedirectionURL(issuer *url.URL, consent *model.OAuth2ConsentSession, requester fosite.AuthorizeRequester) (redirectURL *url.URL) {
+func handleOIDCPushedAuthorizeConsent(ctx *middlewares.AutheliaCtx, requester fosite.AuthorizeRequester, form url.Values) {
+	if !oidc.IsPushedAuthorizedRequest(requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)) {
+		return
+	}
+
+	par, err := ctx.Providers.StorageProvider.LoadOAuth2PARContext(ctx, form.Get(oidc.FormParameterRequestURI))
+	if err != nil {
+		ctx.Logger.WithError(err).Warnf("Authorization Request with id '%s' on client with id '%s' encountered a storage error while trying to make the Pushed Authorize Request session available for consent", requester.GetID(), requester.GetClient().GetID())
+
+		return
+	}
+
+	par.Revoked = false
+
+	if err = ctx.Providers.StorageProvider.UpdateOAuth2PARContext(ctx, *par); err != nil {
+		ctx.Logger.WithError(err).Warnf("Authorization Request with id '%s' on client with id '%s' encountered a storage error while trying to make the Pushed Authorize Request session available for consent", requester.GetID(), requester.GetClient().GetID())
+
+		return
+	}
+}
+
+func handleOIDCAuthorizationConsentGetRedirectionURL(_ *middlewares.AutheliaCtx, issuer *url.URL, consent *model.OAuth2ConsentSession, requester fosite.AuthorizeRequester, form url.Values) (redirectURL *url.URL) {
 	iss := issuer.String()
 
 	if !strings.HasSuffix(iss, "/") {
@@ -169,6 +194,12 @@ func handleOIDCAuthorizationConsentGetRedirectionURL(issuer *url.URL, consent *m
 	switch {
 	case consent != nil:
 		query.Set(queryArgWorkflowID, consent.ChallengeID.String())
+	case form != nil:
+		rd, _ := url.ParseRequestURI(iss)
+		rd.Path = path.Join(rd.Path, oidc.EndpointPathAuthorization)
+		rd.RawQuery = form.Encode()
+
+		query.Set(queryArgRD, rd.String())
 	case requester != nil:
 		rd, _ := url.ParseRequestURI(iss)
 		rd.Path = path.Join(rd.Path, oidc.EndpointPathAuthorization)
