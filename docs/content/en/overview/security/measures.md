@@ -370,7 +370,7 @@ information.
 
 #### Cross-Origin-Resource-Policy
 
-__Value:__ `same-origin`
+__Value:__ `same-site`
 __Endpoints:__ All
 __Status:__ Supported Standard
 
