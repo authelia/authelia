@@ -119,6 +119,8 @@ func OAuthIntrospectionPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 		// 		- the same as the original token; or
 		//      - the permitted scopes of the ORIGINAL client; or
 		//      - the permitted scopes of the REQUESTING client
+		//
+		// This is probably fine as is?
 		if len(aud) != 0 {
 			claims[oidc.ClaimAudience] = aud
 		}

@@ -3298,6 +3298,12 @@ components:
             conform to the URI-reference syntax and thus MUST NOT include characters outside the set %x21 / %x23-5B /
             %x5D-7E.
           type: string
+        error_hint:
+          description: An additional hint about the cause of the error.
+          type: string
+        error_debug:
+          description: Additional debug information about the cause of the error.
+          type: string
         state:
           description: >
             OAuth 2.0 state value. REQUIRED if the Authorization Request included the state parameter. Set to the value
