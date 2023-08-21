@@ -160,72 +160,111 @@ func IntrospectionResponseToMap(response fosite.IntrospectionResponder) (aud []s
 		ClaimActive: false,
 	}
 
+	if response == nil {
+		return nil, introspection
+	}
+
 	if response.IsActive() {
 		introspection[ClaimActive] = true
 
-		var (
-			extra fosite.ExtraClaimsSession
-			ok    bool
-		)
+		mapIntrospectionAccessRequesterToMap(response.GetAccessRequester(), introspection)
+	}
 
-		if extra, ok = response.GetAccessRequester().GetSession().(fosite.ExtraClaimsSession); ok {
-			claims := extra.GetExtraClaims()
+	return sliceIntrospectionResponseToRequesterAudience(response), introspection
+}
 
-			for name, value := range claims {
-				switch name {
-				// We do not allow these to be set through extra claims.
-				case ClaimExpirationTime, ClaimClientIdentifier, ClaimScope, ClaimIssuedAt, ClaimSubject, ClaimAudience, ClaimUsername:
-					continue
-				default:
-					introspection[name] = value
-				}
-			}
-		}
+func mapIntrospectionAccessRequesterToMap(ar fosite.AccessRequester, introspection map[string]any) {
+	if ar == nil {
+		return
+	}
 
-		if exp := response.GetAccessRequester().GetSession().GetExpiresAt(fosite.AccessToken); !exp.IsZero() {
-			introspection[ClaimExpirationTime] = exp.Unix()
-		}
+	var (
+		ok  bool
+		aud fosite.Arguments
+	)
 
-		if id := response.GetAccessRequester().GetClient().GetID(); id != "" {
+	if client := ar.GetClient(); client != nil {
+		if id := client.GetID(); id != "" {
 			introspection[ClaimClientIdentifier] = id
-		}
-
-		if scope := response.GetAccessRequester().GetGrantedScopes(); len(scope) > 0 {
-			introspection[ClaimScope] = strings.Join(scope, " ")
-		}
-
-		if _, ok = introspection[ClaimIssuedAt]; !ok {
-			if rat := response.GetAccessRequester().GetRequestedAt(); !rat.IsZero() {
-				introspection[ClaimIssuedAt] = rat.Unix()
-			}
-		}
-
-		var session IDTokenClaimsSession
-
-		if sub := response.GetAccessRequester().GetSession().GetSubject(); sub != "" {
-			introspection[ClaimSubject] = sub
-		} else if session, ok = response.GetAccessRequester().GetSession().(IDTokenClaimsSession); ok && session.GetIDTokenClaims().Subject != "" {
-			introspection[ClaimSubject] = session.GetIDTokenClaims().Subject
-		}
-
-		if aud = response.GetAccessRequester().GetGrantedAudience(); len(aud) > 0 {
-			introspection[ClaimAudience] = aud
-		}
-
-		if username := response.GetAccessRequester().GetSession().GetUsername(); username != "" {
-			introspection[ClaimUsername] = username
 		}
 	}
 
-	return IntrospectionResponseToRequesterAudience(response), introspection
+	if scope := ar.GetGrantedScopes(); len(scope) > 0 {
+		introspection[ClaimScope] = strings.Join(scope, " ")
+	}
+
+	if _, ok = introspection[ClaimIssuedAt]; !ok {
+		if rat := ar.GetRequestedAt(); !rat.IsZero() {
+			introspection[ClaimIssuedAt] = rat.Unix()
+		}
+	}
+
+	if aud = ar.GetGrantedAudience(); len(aud) > 0 {
+		introspection[ClaimAudience] = []string(aud)
+	}
+
+	mapIntrospectionAccessRequesterSessionToMap(ar, introspection)
 }
 
-func IntrospectionResponseToRequesterAudience(response fosite.IntrospectionResponder) (aud []string) {
-	if cr, ok := response.(ClientRequesterResponder); ok && cr.GetClient() != nil {
-		aud = cr.GetClient().GetAudience()
+func mapIntrospectionAccessRequesterSessionToMap(ar fosite.AccessRequester, introspection map[string]any) {
+	session := ar.GetSession()
 
-		if !utils.IsStringInSlice(cr.GetClient().GetID(), aud) {
-			aud = append(aud, cr.GetClient().GetID())
+	if session == nil {
+		return
+	}
+
+	var (
+		ok    bool
+		extra fosite.ExtraClaimsSession
+	)
+
+	if extra, ok = session.(fosite.ExtraClaimsSession); ok {
+		claims := extra.GetExtraClaims()
+
+		for name, value := range claims {
+			switch name {
+			// We do not allow these to be set through extra claims.
+			case ClaimExpirationTime, ClaimClientIdentifier, ClaimScope, ClaimIssuedAt, ClaimSubject, ClaimAudience, ClaimUsername:
+				continue
+			default:
+				introspection[name] = value
+			}
+		}
+	}
+
+	if exp := session.GetExpiresAt(fosite.AccessToken); !exp.IsZero() {
+		introspection[ClaimExpirationTime] = exp.Unix()
+	}
+
+	var claimsSession IDTokenClaimsSession
+
+	if sub := session.GetSubject(); sub != "" {
+		introspection[ClaimSubject] = sub
+	} else if claimsSession, ok = session.(IDTokenClaimsSession); ok {
+		claims := claimsSession.GetIDTokenClaims()
+
+		if claims != nil && claims.Subject != "" {
+			introspection[ClaimSubject] = claims.Subject
+		}
+	}
+
+	if username := session.GetUsername(); username != "" {
+		introspection[ClaimUsername] = username
+	}
+}
+
+func sliceIntrospectionResponseToRequesterAudience(response fosite.IntrospectionResponder) (aud []string) {
+	if cr, ok := response.(ClientRequesterResponder); ok {
+		var client fosite.Client
+
+		if client = cr.GetClient(); client == nil {
+			return
+		}
+
+		aud = client.GetAudience()
+
+		if !utils.IsStringInSlice(client.GetID(), aud) {
+			aud = append(aud, client.GetID())
 		}
 
 		return aud

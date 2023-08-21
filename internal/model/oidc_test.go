@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
+	"github.com/ory/fosite/token/jwt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -598,6 +599,55 @@ func TestOAuth2ConsentSession(t *testing.T) {
 
 	assert.EqualError(t, err, "invalid semicolon separator in query")
 	assert.Equal(t, url.Values{}, form)
+}
+
+func TestOpenIDSession_GetExtraClaims(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *model.OpenIDSession
+		expected map[string]any
+	}{
+		{
+			"ShouldReturnNil",
+			&model.OpenIDSession{},
+			nil,
+		},
+		{
+			"ShouldReturnExtra",
+			&model.OpenIDSession{
+				Extra: map[string]any{
+					"a": 1,
+				},
+			},
+			map[string]any{
+				"a": 1,
+			},
+		},
+		{
+			"ShouldReturnIDTokenClaimsExtra",
+			&model.OpenIDSession{
+				DefaultSession: &openid.DefaultSession{
+					Claims: &jwt.IDTokenClaims{
+						Extra: map[string]any{
+							"b": 2,
+						},
+					},
+				},
+				Extra: map[string]any{
+					"a": 1,
+				},
+			},
+			map[string]any{
+				"b": 2,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.have.GetExtraClaims())
+		})
+	}
 }
 
 func TestMisc(t *testing.T) {

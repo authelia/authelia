@@ -405,6 +405,14 @@ type OpenIDSession struct {
 	Extra map[string]any `json:"extra"`
 }
 
+func (s *OpenIDSession) GetExtraClaims() map[string]any {
+	if s.DefaultSession != nil && s.DefaultSession.Claims != nil {
+		return s.Claims.Extra
+	}
+
+	return s.Extra
+}
+
 func (s *OpenIDSession) GetIDTokenClaims() *jwt.IDTokenClaims {
 	return s.Claims
 }
