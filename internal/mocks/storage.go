@@ -893,6 +893,20 @@ func (mr *MockStorageMockRecorder) StartupCheck() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartupCheck", reflect.TypeOf((*MockStorage)(nil).StartupCheck))
 }
 
+// UpdateOAuth2PARContext mocks base method.
+func (m *MockStorage) UpdateOAuth2PARContext(arg0 context.Context, arg1 model.OAuth2PARContext) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOAuth2PARContext", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateOAuth2PARContext indicates an expected call of UpdateOAuth2PARContext.
+func (mr *MockStorageMockRecorder) UpdateOAuth2PARContext(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2PARContext", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2PARContext), arg0, arg1)
+}
+
 // UpdateTOTPConfigurationSignIn mocks base method.
 func (m *MockStorage) UpdateTOTPConfigurationSignIn(arg0 context.Context, arg1 int, arg2 sql.NullTime) error {
 	m.ctrl.T.Helper()

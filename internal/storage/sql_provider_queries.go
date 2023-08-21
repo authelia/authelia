@@ -332,13 +332,20 @@ const (
 		handled_response_types, response_mode, response_mode_default, revoked,
 		form_data, session_data
 		FROM %s
-		WHERE signature = ? AND revoked = FALSE;`
+		WHERE signature = ?;`
 
 	queryFmtInsertOAuth2PARContext = `
 		INSERT INTO %s (signature, request_id, client_id, requested_at, scopes, audience,
 		handled_response_types, response_mode, response_mode_default, revoked,
 		form_data, session_data)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtUpdateOAuth2PARContext = `
+	UPDATE %s
+	SET signature = ?, request_id = ?, client_id = ?, requested_at = ?, scopes = ?, audience = ?,
+	    handled_response_types = ?, response_mode = ?, response_mode_default = ?, revoked = ?,
+	    form_data = ?, session_data = ?
+	WHERE id = ?;`
 
 	queryFmtSelectOAuth2BlacklistedJTI = `
 		SELECT id, signature, expires_at

@@ -73,6 +73,7 @@ type Provider interface {
 	SaveOAuth2PARContext(ctx context.Context, par model.OAuth2PARContext) (err error)
 	LoadOAuth2PARContext(ctx context.Context, signature string) (par *model.OAuth2PARContext, err error)
 	RevokeOAuth2PARContext(ctx context.Context, signature string) (err error)
+	UpdateOAuth2PARContext(ctx context.Context, par model.OAuth2PARContext) (err error)
 
 	SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI model.OAuth2BlacklistedJTI) (err error)
 	LoadOAuth2BlacklistedJTI(ctx context.Context, signature string) (blacklistedJTI *model.OAuth2BlacklistedJTI, err error)

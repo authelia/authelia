@@ -24,3 +24,7 @@ indent_style = space
 
 [{web/package.json,web/pnpm-lock.yaml}]
 indent_size = 2
+
+[internal/suites/example/compose/nginx/*/*.conf]
+charset                     = UTF-8
+indent_style                = space

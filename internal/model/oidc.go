@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -364,6 +365,18 @@ func (par *OAuth2PARContext) ToAuthorizeRequest(ctx context.Context, session fos
 		RequestedAudience: fosite.Arguments(par.Audience),
 		Form:              form,
 		Session:           session,
+	}
+
+	request.State = form.Get("state")
+
+	if form.Has("redirect_uri") {
+		if request.RedirectURI, err = url.Parse(form.Get("redirect_uri")); err != nil {
+			return nil, err
+		}
+	}
+
+	if form.Has("response_type") {
+		request.ResponseTypes = fosite.RemoveEmpty(strings.Split(form.Get("response_type"), " "))
 	}
 
 	if par.ResponseMode != "" {

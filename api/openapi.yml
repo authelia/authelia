@@ -1221,14 +1221,16 @@ paths:
             $ref: '#/components/schemas/openid.spec.CodeChallengeMethod'
       responses:
         "200":
-          description: OK
+          description: >
+            OK Response. It should be noted that it is not possible to properly describe responses for this endpoint.
           content:
             text/html:
               schema:
                 type: string
                 description: The Form Post Response Mode content.
         "303":
-          description: See Other
+          description: >
+            See Other. It should be noted that it is not possible to properly describe responses for this endpoint.
           headers:
             Location:
               schema:
@@ -1238,8 +1240,16 @@ paths:
                 the Query or Fragment Response Modes.
         "400":
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "500":
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
     post:
       tags:
         - OpenID Connect 1.0
@@ -1276,6 +1286,73 @@ paths:
           description: Internal Server Error
       security:
         - authelia_auth: []
+  /api/oidc/pushed-authorization-request:
+    post:
+      tags:
+        - OpenID Connect 1.0
+      summary: OAuth 2.0 Pushed Authorization Endpoint
+      description: >
+        This endpoint performs OAuth 2.0 Pushed Authorization.
+      requestBody:
+        description: Pushed Authorize Request Parameters.
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/openid.spec.AuthorizeRequest'
+                - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                description: The Pushed Authorize Request Successful Response.
+                properties:
+                  request_uri:
+                    type: string
+                    description: >
+                      The request URI corresponding to the authorization request posted. This URI is a single-use
+                      reference to the respective request data in the subsequent authorization request. The way the
+                      authorization process obtains the authorization request data is at the discretion of the
+                      authorization server and is out of scope of this specification. There is no need to make the
+                      authorization request data available to other parties via this URI.
+                    example: 'urn:ietf:params:oauth:request_uri:lXtUUGsLrMxI5cogDk6Zk1pc5-Zw95lT4fzY0eAbdiU'
+                  expires_in:
+                    type: integer
+                    description: >
+                      A JSON number that represents the lifetime of the request URI in seconds as a positive integer.
+                      The request URI lifetime is at the discretion of the authorization server but will typically be
+                      relatively short (e.g., between 5 and 600 seconds).
+                    example: 300
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+        "413":
+          description: Content Too Large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+      security:
+        - openid: []
   /api/oidc/token:
     post:
       tags:
@@ -1322,7 +1399,9 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/openid.spec.AccessServerTokenAssertionRequest'
+              allOf:
+                - $ref: '#/components/schemas/openid.spec.AccessServerTokenAssertionRequest'
+                - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
       responses:
         "200":
           description: OK
@@ -1347,7 +1426,9 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/openid.spec.AccessServerTokenAssertionRequest'
+              allOf:
+                - $ref: '#/components/schemas/openid.spec.AccessServerTokenAssertionRequest'
+                - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
       responses:
         "200":
           description: OK
@@ -3183,6 +3264,57 @@ components:
         - 'email'
         - 'address'
         - 'phone'
+    openid.spec.ErrorResponseGeneric:
+      description: >
+        An OpenID Connect 1.0 and OAuth 2.0 error response Note this is a generic error response and may describe a
+        possible response for a given endpoint that is not entirely accurate or possible. This is only meant to
+        represent all of the potential response typesThe enum may also not be exhaustive as the relevant specifications
+        are incredibly vast.
+      required:
+        - 'error'
+      properties:
+        error:
+          description: REQUIRED. A single ASCII [USASCII] error code from the enum.
+          type: string
+          enum:
+            - 'invalid_request'
+            - 'invalid_client'
+            - 'invalid_grant'
+            - 'invalid_scope'
+            - 'invalid_request_uri'
+            - 'invalid_request_object'
+            - 'unauthorized_client'
+            - 'unsupported_grant_type'
+            - 'unsupported_response_type'
+            - 'request_not_supported'
+            - 'request_uri_not_supported'
+            - 'registration_not_supported'
+            - 'access_denied'
+            - 'server_error'
+            - 'temporarily_unavailable'
+            - 'unmet_authentication_requirements'
+            - 'interaction_required'
+            - 'login_required'
+            - 'account_selection_required'
+            - 'consent_required'
+        error_description:
+          description: >
+            OPTIONAL. Human-readable ASCII [USASCII] text providing additional information, used to assist the client
+            developer in understanding the error that occurred. Values for the "error_description" parameter MUST NOT
+            include characters outside the set %x20-21 / %x23-5B / %x5D-7E.
+          type: string
+        error_uri:
+          description: >
+            OPTIONAL. A URI identifying a human-readable web page with information about the error, used to provide the
+            client developer with additional information about the error. Values for the "error_uri" parameter MUST
+            conform to the URI-reference syntax and thus MUST NOT include characters outside the set %x21 / %x23-5B /
+            %x5D-7E.
+          type: string
+        state:
+          description: >
+            OAuth 2.0 state value. REQUIRED if the Authorization Request included the state parameter. Set to the value
+            received from the Client.
+          type: string
     openid.spec.AccessServerTokenAssertionRequest:
       required:
         - 'token'
@@ -3216,12 +3348,12 @@ components:
           type: string
     openid.spec.AccessRequest.ClientAuth:
       oneOf:
-        - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth.Base'
         - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth.Secret'
         - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth.JWT'
-    openid.spec.AccessRequest.ClientAuth.Base:
+    openid.spec.AccessRequest.ClientAuth.Secret:
       required:
         - 'client_id'
+        - 'client_secret'
       type: object
       properties:
         client_id:
@@ -3230,11 +3362,6 @@ components:
             Section 3.2.1. of [RFC6749]. The client identifier as described in Section 2.2 of [RFC6749].
           example: 'my_client'
           type: string
-    openid.spec.AccessRequest.ClientAuth.Secret:
-      required:
-        - 'client_secret'
-      type: object
-      properties:
         client_secret:
           description: >
             REQUIRED. The client secret. The client MAY omit the
@@ -3242,28 +3369,31 @@ components:
           format: password
           type: string
     openid.spec.AccessRequest.ClientAuth.JWT:
-      allOf:
-        - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth.Base'
-        - type: object
-          required:
-            - 'client_assertion'
-            - 'client_assertion_type'
-          properties:
-            client_assertion:
-              description: >
-                The value of the client_assertion_type parameter MUST be
-                "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
-              enum:
-                - 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
-              example: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
-              type: string
-            client_assertion_type:
-              description: >
-                A JWT signed with HS256 using the client secret value or RS256 using a registered public key.
-                Theoretically a properly formed JWT signed using HS256 with the client secret as the HMAC key should
-                work but this has not been tested.
-              format: password
-              type: string
+      required:
+        - 'client_assertion'
+        - 'client_assertion_type'
+      properties:
+        client_id:
+          description: >
+            REQUIRED if the client is not authenticating with the authorization server as described in
+            Section 3.2.1. of [RFC6749]. The client identifier as described in Section 2.2 of [RFC6749].
+          example: 'my_client'
+          type: string
+        client_assertion:
+          description: >
+            The value of the client_assertion_type parameter MUST be
+            "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+          enum:
+            - 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
+          example: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
+          type: string
+        client_assertion_type:
+          description: >
+            A JWT signed with HS256 using the client secret value or RS256 using a registered public key.
+            Theoretically a properly formed JWT signed using HS256 with the client secret as the HMAC key should
+            work but this has not been tested.
+          format: password
+          type: string
     openid.spec.AccessRequest.AuthorizationCodeFlow:
       allOf:
         - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
@@ -3312,7 +3442,7 @@ components:
         - type: object
           required:
             - 'grant_type'
-            - 'device_code'
+            - 'refresh_token'
           properties:
             grant_type:
               description: Value MUST be set to "refresh_token".

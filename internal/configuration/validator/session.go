@@ -218,7 +218,9 @@ func validateRedis(config *schema.SessionConfiguration, validator *schema.Struct
 
 	validateRedisCommon(config, validator)
 
-	if !path.IsAbs(config.Redis.Host) && (config.Redis.Port < 1 || config.Redis.Port > 65535) {
+	if config.Redis.Port == 0 {
+		config.Redis.Port = schema.DefaultRedisConfiguration.Port
+	} else if !path.IsAbs(config.Redis.Host) && (config.Redis.Port < 1 || config.Redis.Port > 65535) {
 		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, config.Redis.Port))
 	}
 
@@ -234,7 +236,7 @@ func validateRedisSentinel(config *schema.SessionConfiguration, validator *schem
 
 	if config.Redis.Port == 0 {
 		config.Redis.Port = 26379
-	} else if config.Redis.Port < 0 || config.Redis.Port > 65535 {
+	} else if config.Redis.Port < 1 || config.Redis.Port > 65535 {
 		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, config.Redis.Port))
 	}
 

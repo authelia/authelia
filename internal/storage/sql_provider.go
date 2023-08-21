@@ -77,6 +77,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 
 		sqlInsertOAuth2PARContext: fmt.Sprintf(queryFmtInsertOAuth2PARContext, tableOAuth2PARContext),
+		sqlUpdateOAuth2PARContext: fmt.Sprintf(queryFmtUpdateOAuth2PARContext, tableOAuth2PARContext),
 		sqlSelectOAuth2PARContext: fmt.Sprintf(queryFmtSelectOAuth2PARContext, tableOAuth2PARContext),
 		sqlRevokeOAuth2PARContext: fmt.Sprintf(queryFmtRevokeOAuth2Session, tableOAuth2PARContext),
 
@@ -247,6 +248,7 @@ type SQLProvider struct {
 
 	// Table: oauth2_par_context.
 	sqlInsertOAuth2PARContext string
+	sqlUpdateOAuth2PARContext string
 	sqlSelectOAuth2PARContext string
 	sqlRevokeOAuth2PARContext string
 
@@ -691,6 +693,25 @@ func (p *SQLProvider) SaveOAuth2PARContext(ctx context.Context, par model.OAuth2
 		par.Signature, par.RequestID, par.ClientID, par.RequestedAt, par.Scopes, par.Audience, par.HandledResponseTypes,
 		par.ResponseMode, par.DefaultResponseMode, par.Revoked, par.Form, par.Session); err != nil {
 		return fmt.Errorf("error inserting oauth2 pushed authorization request context data for with signature '%s' and request id '%s': %w", par.Signature, par.RequestID, err)
+	}
+
+	return nil
+}
+
+// UpdateOAuth2PARContext updates an existing OAuth2PARContext in the database.
+func (p *SQLProvider) UpdateOAuth2PARContext(ctx context.Context, par model.OAuth2PARContext) (err error) {
+	if par.ID == 0 {
+		return fmt.Errorf("error updating oauth2 pushed authorization request context data with signature '%s' and request id '%s': the id was a zero value", par.Signature, par.RequestID)
+	}
+
+	if par.Session, err = p.encrypt(par.Session); err != nil {
+		return fmt.Errorf("error encrypting oauth2 pushed authorization request context data with id '%d' and signature '%s' and request id '%s': %w", par.ID, par.Signature, par.RequestID, err)
+	}
+
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2PARContext,
+		par.Signature, par.RequestID, par.ClientID, par.RequestedAt, par.Scopes, par.Audience, par.HandledResponseTypes,
+		par.ResponseMode, par.DefaultResponseMode, par.Revoked, par.Form, par.Session, par.ID); err != nil {
+		return fmt.Errorf("error updating oauth2 pushed authorization request context data with id '%d' and signature '%s' and request id '%s': %w", par.ID, par.Signature, par.RequestID, err)
 	}
 
 	return nil
