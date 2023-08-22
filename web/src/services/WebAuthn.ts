@@ -165,7 +165,6 @@ function encodeAssertionPublicKeyCredential(
 
 function getAttestationResultFromDOMException(exception: DOMException): AttestationResult {
     console.error(exception);
-    console.log("logging exception b ");
 
     // Docs for this section:
     // https://w3c.github.io/webauthn/#sctn-op-make-cred
@@ -196,7 +195,6 @@ function getAssertionResultFromDOMException(
     requestOptions: PublicKeyCredentialRequestOptions,
 ): AssertionResult {
     console.error(exception);
-    console.log("logging exception a");
 
     // Docs for this section:
     // https://w3c.github.io/webauthn/#sctn-op-get-assertion
