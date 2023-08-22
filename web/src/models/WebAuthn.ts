@@ -45,19 +45,12 @@ export interface AuthenticatorAssertionResponseJSON
     userHandle: string;
 }
 
-export interface AuthenticatorAttestationResponseFuture extends AuthenticatorAttestationResponse {
-    getTransports?: () => AuthenticatorTransport[];
-    getAuthenticatorData?: () => ArrayBuffer;
-    getPublicKey?: () => ArrayBuffer;
-    getPublicKeyAlgorithm?: () => COSEAlgorithmIdentifier[];
-}
-
 export interface AttestationPublicKeyCredential extends PublicKeyCredential {
-    response: AuthenticatorAttestationResponseFuture;
+    response: AuthenticatorAttestationResponse;
 }
 
 export interface AuthenticatorAttestationResponseJSON
-    extends Omit<AuthenticatorAttestationResponseFuture, "clientDataJSON" | "attestationObject"> {
+    extends Omit<AuthenticatorAttestationResponse, "clientDataJSON" | "attestationObject"> {
     clientDataJSON: string;
     attestationObject: string;
 }
@@ -67,7 +60,7 @@ export interface AttestationPublicKeyCredentialJSON
     rawId: string;
     response: AuthenticatorAttestationResponseJSON;
     clientExtensionResults: AuthenticationExtensionsClientOutputs;
-    transports?: AuthenticatorTransport[];
+    transports?: string[];
 }
 
 export interface PublicKeyCredentialJSON

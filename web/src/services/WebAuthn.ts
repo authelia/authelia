@@ -7,7 +7,6 @@ import {
     AttestationPublicKeyCredentialJSON,
     AttestationPublicKeyCredentialResult,
     AttestationResult,
-    AuthenticatorAttestationResponseFuture,
     CredentialCreation,
     CredentialRequest,
     PublicKeyCredentialCreationOptionsJSON,
@@ -107,9 +106,9 @@ function decodePublicKeyCredentialRequestOptions(
 function encodeAttestationPublicKeyCredential(
     credential: AttestationPublicKeyCredential,
 ): AttestationPublicKeyCredentialJSON {
-    const response = credential.response as AuthenticatorAttestationResponseFuture;
+    const response = credential.response as AuthenticatorAttestationResponse;
 
-    let transports: AuthenticatorTransport[] | undefined;
+    let transports: string[] | undefined;
 
     if (response?.getTransports !== undefined && typeof response.getTransports === "function") {
         transports = response.getTransports();
@@ -118,9 +117,11 @@ function encodeAttestationPublicKeyCredential(
     return {
         id: credential.id,
         type: credential.type,
+        authenticatorAttachment: credential.authenticatorAttachment,
         rawId: arrayBufferEncode(credential.rawId),
         clientExtensionResults: credential.getClientExtensionResults(),
         response: {
+            ...response,
             attestationObject: arrayBufferEncode(response.attestationObject),
             clientDataJSON: arrayBufferEncode(response.clientDataJSON),
         },
@@ -147,6 +148,7 @@ function encodeAssertionPublicKeyCredential(
     return {
         id: credential.id,
         type: credential.type,
+        authenticatorAttachment: credential.authenticatorAttachment,
         rawId: arrayBufferEncode(credential.rawId),
         clientExtensionResults: credential.getClientExtensionResults(),
         response: {
@@ -162,6 +164,9 @@ function encodeAssertionPublicKeyCredential(
 }
 
 function getAttestationResultFromDOMException(exception: DOMException): AttestationResult {
+    console.error(exception);
+    console.log("logging exception b ");
+
     // Docs for this section:
     // https://w3c.github.io/webauthn/#sctn-op-make-cred
     switch (exception.name) {
@@ -190,6 +195,9 @@ function getAssertionResultFromDOMException(
     exception: DOMException,
     requestOptions: PublicKeyCredentialRequestOptions,
 ): AssertionResult {
+    console.error(exception);
+    console.log("logging exception a");
+
     // Docs for this section:
     // https://w3c.github.io/webauthn/#sctn-op-get-assertion
     switch (exception.name) {
