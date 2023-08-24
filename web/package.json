@@ -94,7 +94,7 @@
     "husky": "8.0.3",
     "prettier": "3.0.2",
     "react-test-renderer": "18.2.0",
-    "typescript": "5.1.6",
+    "typescript": "5.2.2",
     "vite": "4.4.9",
     "vite-plugin-eslint": "1.8.1",
     "vite-plugin-istanbul": "5.0.0",
