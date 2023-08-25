@@ -1,6 +1,6 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import eslintPlugin from "vite-plugin-eslint";
+import checkerPlugin from "vite-plugin-checker";
 import istanbul from "vite-plugin-istanbul";
 import svgr from "vite-plugin-svgr";
 import tsconfigPaths from "vite-tsconfig-paths";
@@ -51,11 +51,17 @@ export default defineConfig(({ mode }) => {
             },
             environment: "happy-dom",
             globals: true,
-            onConsoleLog(log) {
-                if (log.includes('No routes matched location "blank"')) return false;
+            onConsoleLog() {
+                return false;
             },
             setupFiles: ["src/setupTests.ts"],
         },
-        plugins: [eslintPlugin({ cache: false }), istanbulPlugin, react(), svgr(), tsconfigPaths()],
+        plugins: [
+            checkerPlugin({ eslint: { lintCommand: "eslint . --ext .js,.jsx,.ts,.tsx" }, typescript: true }),
+            istanbulPlugin,
+            react(),
+            svgr(),
+            tsconfigPaths(),
+        ],
     };
 });
