@@ -60,7 +60,7 @@ func (p *Provider) LoadTemplatedAssets(fs fs.ReadFileFS) (err error) {
 	}
 
 	if p.templates.asset.api.spec, err = tt.
-		New("api/public_html/openapi.yaml").
+		New("assets/public_html/api/openapi.yml").
 		Funcs(FuncMap()).
 		Parse(string(data)); err != nil {
 		return err
