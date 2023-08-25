@@ -178,8 +178,8 @@ devDependencies:
     specifier: 4.4.9
     version: 4.4.9(@types/node@20.5.6)
   vite-plugin-checker:
-    specifier: 0.6.1
-    version: 0.6.1(eslint@8.47.0)(typescript@5.2.2)(vite@4.4.9)
+    specifier: 0.6.2
+    version: 0.6.2(eslint@8.47.0)(typescript@5.2.2)(vite@4.4.9)
   vite-plugin-istanbul:
     specifier: 5.0.0
     version: 5.0.0(vite@4.4.9)
@@ -7680,8 +7680,8 @@ packages:
       - terser
     dev: true
 
-  /vite-plugin-checker@0.6.1(eslint@8.47.0)(typescript@5.2.2)(vite@4.4.9):
-    resolution: {integrity: sha512-4fAiu3W/IwRJuJkkUZlWbLunSzsvijDf0eDN6g/MGh6BUK4SMclOTGbLJCPvdAcMOQvVmm8JyJeYLYd4//8CkA==}
+  /vite-plugin-checker@0.6.2(eslint@8.47.0)(typescript@5.2.2)(vite@4.4.9):
+    resolution: {integrity: sha512-YvvvQ+IjY09BX7Ab+1pjxkELQsBd4rPhWNw8WLBeFVxu/E7O+n6VYAqNsKdK/a2luFlX/sMpoWdGFfg4HvwdJQ==}
     engines: {node: '>=14.16'}
     peerDependencies:
       eslint: '>=7'
