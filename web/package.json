@@ -3,6 +3,14 @@
   "version": "4.37.5",
   "private": true,
   "pnpm": {
+    "overrides": {
+      "@typescript-eslint/eslint-plugin": "6.4.1",
+      "@typescript-eslint/parser": "6.4.1",
+      "@typescript-eslint/typescript-estree": "6.4.1",
+      "@typescript-eslint/utils": "6.4.1",
+      "eslint-plugin-jest": "27.2.3",
+      "eslint-plugin-testing-library": "6.0.1"
+    },
     "peerDependencyRules": {
       "allowedVersions": {
         "@types/react": "18",
@@ -96,7 +104,7 @@
     "react-test-renderer": "18.2.0",
     "typescript": "5.2.2",
     "vite": "4.4.9",
-    "vite-plugin-eslint": "1.8.1",
+    "vite-plugin-checker": "0.6.1",
     "vite-plugin-istanbul": "5.0.0",
     "vite-plugin-svgr": "3.2.0",
     "vite-tsconfig-paths": "4.2.0",
