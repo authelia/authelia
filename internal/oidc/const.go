@@ -25,7 +25,7 @@ const (
 	ClaimRequestedAt                         = "rat"
 	ClaimExpirationTime                      = "exp"
 	ClaimAuthenticationTime                  = "auth_time"
-	ClaimIssuer                              = "iss"
+	ClaimIssuer                              = valueIss
 	ClaimSubject                             = "sub"
 	ClaimNonce                               = "nonce"
 	ClaimAudience                            = "aud"
@@ -37,8 +37,8 @@ const (
 	ClaimAuthorizedParty                     = "azp"
 	ClaimAuthenticationContextClassReference = "acr"
 	ClaimAuthenticationMethodsReference      = "amr"
-	ClaimClientIdentifier                    = clientid
-	ClaimScope                               = scope
+	ClaimClientIdentifier                    = valueClientID
+	ClaimScope                               = valueScope
 	ClaimActive                              = "active"
 	ClaimUsername                            = "username"
 	ClaimTokenIntrospection                  = "token_introspection"
@@ -77,8 +77,8 @@ const (
 
 // Grant Type strings.
 const (
-	GrantTypeImplicit          = implicit
-	GrantTypeRefreshToken      = refreshtoken
+	GrantTypeImplicit          = valueImplicit
+	GrantTypeRefreshToken      = valueRefreshToken
 	GrantTypeAuthorizationCode = "authorization_code"
 	GrantTypeClientCredentials = "client_credentials"
 )
@@ -106,7 +106,7 @@ const (
 // JWS Algorithm strings.
 // See: https://datatracker.ietf.org/doc/html/rfc7518#section-3.1
 const (
-	SigningAlgNone = none
+	SigningAlgNone = valueNone
 
 	SigningAlgRSAUsingSHA256 = "RS256"
 	SigningAlgRSAUsingSHA384 = "RS384"
@@ -152,7 +152,7 @@ const (
 const (
 	FormParameterState               = "state"
 	FormParameterAuthorizationCode   = "code"
-	FormParameterClientID            = clientid
+	FormParameterClientID            = valueClientID
 	FormParameterClientSecret        = "client_secret"
 	FormParameterRequestURI          = "request_uri"
 	FormParameterRedirectURI         = "redirect_uri"
@@ -163,14 +163,15 @@ const (
 	FormParameterCodeChallengeMethod = "code_challenge_method"
 	FormParameterClientAssertionType = "client_assertion_type"
 	FormParameterClientAssertion     = "client_assertion"
-	FormParameterScope               = scope
-	FormParameterRefreshToken        = refreshtoken
+	FormParameterScope               = valueScope
+	FormParameterRefreshToken        = valueRefreshToken
+	FormParameterIssuer              = valueIss
 	FormParameterToken               = "token"
 	FormParameterTokenTypeHint       = "token_type_hint"
 )
 
 const (
-	PromptNone    = none
+	PromptNone    = valueNone
 	PromptLogin   = "login"
 	PromptConsent = "consent"
 	// PromptCreate  = "create" // This prompt value is currently unused.
@@ -200,6 +201,11 @@ const (
 
 const (
 	JWTHeaderTypeValueTokenIntrospectionJWT = "token-introspection+jwt"
+)
+
+const (
+	headerContentTypeTextHTML        = "text/html; charset=utf-8"
+	headerContentTypeApplicationJSON = "application/json; charset=utf-8"
 )
 
 const (
@@ -324,13 +330,14 @@ const (
 )
 
 const (
-	scope         = "scope"
-	clientid      = "client_id"
-	implicit      = "implicit"
-	explicit      = "explicit"
-	preconfigured = "pre-configured"
-	none          = "none"
-	refreshtoken  = "refresh_token"
+	valueScope         = "scope"
+	valueClientID      = "client_id"
+	valueImplicit      = "implicit"
+	valueExplicit      = "explicit"
+	valuePreconfigured = "pre-configured"
+	valueNone          = "none"
+	valueRefreshToken  = "refresh_token"
+	valueIss           = "iss"
 )
 
 const (

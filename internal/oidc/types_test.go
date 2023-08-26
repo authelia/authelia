@@ -213,6 +213,19 @@ type TestContext struct {
 }
 
 // IssuerURL returns the MockIssuerURL.
+func (m *TestContext) RootURL() (issuerURL *url.URL) {
+	if m.IssuerURLFunc != nil {
+		if issuer, err := m.IssuerURLFunc(); err != nil {
+			panic(err)
+		} else {
+			return issuer
+		}
+	}
+
+	return m.MockIssuerURL
+}
+
+// IssuerURL returns the MockIssuerURL.
 func (m *TestContext) IssuerURL() (issuerURL *url.URL, err error) {
 	if m.IssuerURLFunc != nil {
 		return m.IssuerURLFunc()

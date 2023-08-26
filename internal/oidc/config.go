@@ -42,6 +42,8 @@ func NewConfig(config *schema.OpenIDConnect, templates *templates.Provider) (c *
 		Templates: templates,
 	}
 
+	c.Handlers.ResponseMode = &ResponseModeHandler{c}
+
 	c.Strategy.Core = &HMACCoreStrategy{
 		Enigma: &hmac.HMACStrategy{Config: c},
 		Config: c,
@@ -253,7 +255,9 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 		},
 	}
 
-	x := HandlersConfig{}
+	x := HandlersConfig{
+		ResponseMode: c.Handlers.ResponseMode,
+	}
 
 	for _, handler := range handlers {
 		if h, ok := handler.(fosite.AuthorizeEndpointHandler); ok {
