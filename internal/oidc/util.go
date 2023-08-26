@@ -3,6 +3,7 @@ package oidc
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
