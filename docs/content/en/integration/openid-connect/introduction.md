@@ -268,15 +268,43 @@ Below is a list of the potential values we place in the [Claim] and their meanin
 |  hwk  |                User used a hardware key to login                 |  Have  | Browser  |
 |  sms  |                      User used Duo to login                      |  Have  | External |
 
+## Introspection Signing Algorithm
+
+The following table describes the response from the [Introspection] endpoint depending on the
+[introspection_signing_alg](../../configuration/identity-providers/openid-connect/clients.md#introspectionsignedresponsealg).
+
+When responding with the Signed JWT the JWT `typ` header has the value of `token-introspection+jwt`.
+
+| Signing Algorithm |   Encoding   |                     Content Type                     |
+|:-----------------:|:------------:|:----------------------------------------------------:|
+|      `none`       |     JSON     |          `application/json; charset=utf-8`           |
+|      `RS256`      | JWT (Signed) | `application/token-introspection+jwt; charset=utf-8` |
+|      `RS384`      | JWT (Signed) | `application/token-introspection+jwt; charset=utf-8` |
+|      `RS512`      | JWT (Signed) | `application/token-introspection+jwt; charset=utf-8` |
+|      `PS256`      | JWT (Signed) | `application/token-introspection+jwt; charset=utf-8` |
+|      `PS384`      | JWT (Signed) | `application/token-introspection+jwt; charset=utf-8` |
+|      `PS512`      | JWT (Signed) | `application/token-introspection+jwt; charset=utf-8` |
+|      `ES256`      | JWT (Signed) | `application/token-introspection+jwt; charset=utf-8` |
+|      `ES384`      | JWT (Signed) | `application/token-introspection+jwt; charset=utf-8` |
+|      `ES512`      | JWT (Signed) | `application/token-introspection+jwt; charset=utf-8` |
+
 ## User Information Signing Algorithm
 
 The following table describes the response from the [UserInfo] endpoint depending on the
 [userinfo_signing_alg](../../configuration/identity-providers/openid-connect/clients.md#userinfosigningalg).
 
-| Signing Algorithm |   Encoding   |            Content Type             |
-|:-----------------:|:------------:|:-----------------------------------:|
-|      `none`       |     JSON     | `application/json; charset="UTF-8"` |
-|      `RS256`      | JWT (Signed) | `application/jwt; charset="UTF-8"`  |
+| Signing Algorithm |   Encoding   |           Content Type            |
+|:-----------------:|:------------:|:---------------------------------:|
+|      `none`       |     JSON     | `application/json; charset=utf-8` |
+|      `RS256`      | JWT (Signed) | `application/jwt; charset=utf-8`  |
+|      `RS384`      | JWT (Signed) | `application/jwt; charset=utf-8`  |
+|      `RS512`      | JWT (Signed) | `application/jwt; charset=utf-8`  |
+|      `PS256`      | JWT (Signed) | `application/jwt; charset=utf-8`  |
+|      `PS384`      | JWT (Signed) | `application/jwt; charset=utf-8`  |
+|      `PS512`      | JWT (Signed) | `application/jwt; charset=utf-8`  |
+|      `ES256`      | JWT (Signed) | `application/jwt; charset=utf-8`  |
+|      `ES384`      | JWT (Signed) | `application/jwt; charset=utf-8`  |
+|      `ES512`      | JWT (Signed) | `application/jwt; charset=utf-8`  |
 
 ## Endpoint Implementations
 
@@ -299,7 +327,7 @@ These endpoints can be utilized to discover other endpoints and metadata about t
 
 |                 Endpoint                  |                              Path                               |
 |:-----------------------------------------:|:---------------------------------------------------------------:|
-|        [OpenID Connect Discovery 1.0]         |    https://auth.example.com/.well-known/openid-configuration    |
+|      [OpenID Connect Discovery 1.0]       |    https://auth.example.com/.well-known/openid-configuration    |
 | [OAuth 2.0 Authorization Server Metadata] | https://auth.example.com/.well-known/oauth-authorization-server |
 
 ### Discoverable Endpoints
