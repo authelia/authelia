@@ -37,10 +37,12 @@ func NewClient(config schema.OpenIDConnectClient, c *schema.OpenIDConnect) (clie
 
 		EnforcePAR: config.EnforcePAR,
 
-		IDTokenSigningAlg:    config.IDTokenSigningAlg,
-		IDTokenSigningKeyID:  config.IDTokenSigningKeyID,
-		UserinfoSigningAlg:   config.UserinfoSigningAlg,
-		UserinfoSigningKeyID: config.UserinfoSigningKeyID,
+		IDTokenSigningAlg:                config.IDTokenSigningAlg,
+		IDTokenSigningKeyID:              config.IDTokenSigningKeyID,
+		UserinfoSigningAlg:               config.UserinfoSigningAlg,
+		UserinfoSigningKeyID:             config.UserinfoSigningKeyID,
+		IntrospectionSignedResponseAlg:   config.IntrospectionSignedResponseAlg,
+		IntrospectionSignedResponseKeyID: config.IntrospectionSignedResponseKeyID,
 
 		AuthorizationPolicy: NewClientAuthorizationPolicy(config.AuthorizationPolicy, c),
 		ConsentPolicy:       NewClientConsentPolicy(config.ConsentMode, config.ConsentPreConfiguredDuration),
@@ -178,6 +180,20 @@ func (c *BaseClient) GetUserinfoSigningAlg() string {
 // GetUserinfoSigningKeyID returns the UserinfoSigningKeyID.
 func (c *BaseClient) GetUserinfoSigningKeyID() (kid string) {
 	return c.UserinfoSigningKeyID
+}
+
+// GetIntrospectionSignedResponseAlg returns the IntrospectionSignedResponseAlg.
+func (c *BaseClient) GetIntrospectionSignedResponseAlg() (alg string) {
+	if c.IntrospectionSignedResponseAlg == "" {
+		c.IntrospectionSignedResponseAlg = SigningAlgNone
+	}
+
+	return c.IntrospectionSignedResponseAlg
+}
+
+// GetIntrospectionSignedResponseKeyID returns the IntrospectionSignedResponseKeyID.
+func (c *BaseClient) GetIntrospectionSignedResponseKeyID() (alg string) {
+	return c.IntrospectionSignedResponseKeyID
 }
 
 // GetPAREnforcement returns EnforcePAR.

@@ -14,6 +14,7 @@ import (
 	"github.com/mohae/deepcopy"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
+	"github.com/ory/fosite/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -110,7 +111,7 @@ func NewOAuth2PARContext(contextID string, r fosite.AuthorizeRequester) (context
 	)
 
 	if s, ok = r.GetSession().(*OpenIDSession); !ok {
-		return nil, fmt.Errorf("can't convert type '%T' to an *OAuth2Session", r.GetSession())
+		return nil, fmt.Errorf("failed to create new PAR context: can't assert type '%T' to an *OAuth2Session", r.GetSession())
 	}
 
 	if session, err = json.Marshal(s); err != nil {
@@ -291,18 +292,18 @@ func (s *OAuth2Session) ToRequest(ctx context.Context, session fosite.Session, s
 
 	if session != nil {
 		if err = json.Unmarshal(sessionData, session); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error occurred while mapping OAuth 2.0 Session back to a Request while trying to unmarshal the JSON session data: %w", err)
 		}
 	}
 
 	client, err := store.GetClient(ctx, s.ClientID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error occurred while mapping OAuth 2.0 Session back to a Request while trying to lookup the registered client: %w", err)
 	}
 
 	values, err := url.ParseQuery(s.Form)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error occurred while mapping OAuth 2.0 Session back to a Request while trying to parse the original form: %w", err)
 	}
 
 	return &fosite.Request{
@@ -338,7 +339,7 @@ type OAuth2PARContext struct {
 func (par *OAuth2PARContext) ToAuthorizeRequest(ctx context.Context, session fosite.Session, store fosite.Storage) (request *fosite.AuthorizeRequest, err error) {
 	if session != nil {
 		if err = json.Unmarshal(par.Session, session); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error occurred while mapping PAR context back to an Authorize Request while trying to unmarshal the JSON session data: %w", err)
 		}
 	}
 
@@ -348,11 +349,11 @@ func (par *OAuth2PARContext) ToAuthorizeRequest(ctx context.Context, session fos
 	)
 
 	if client, err = store.GetClient(ctx, par.ClientID); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error occurred while mapping PAR context back to an Authorize Request while trying to lookup the registered client: %w", err)
 	}
 
 	if form, err = url.ParseQuery(par.Form); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error occurred while mapping PAR context back to an Authorize Request while trying to parse the original form: %w", err)
 	}
 
 	request = fosite.NewAuthorizeRequest()
@@ -371,7 +372,7 @@ func (par *OAuth2PARContext) ToAuthorizeRequest(ctx context.Context, session fos
 
 	if form.Has("redirect_uri") {
 		if request.RedirectURI, err = url.Parse(form.Get("redirect_uri")); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error occurred while mapping PAR context back to an Authorize Request while trying to parse the original redirect uri: %w", err)
 		}
 	}
 
@@ -402,6 +403,18 @@ type OpenIDSession struct {
 	ClientID    string
 
 	Extra map[string]any `json:"extra"`
+}
+
+func (s *OpenIDSession) GetExtraClaims() map[string]any {
+	if s.DefaultSession != nil && s.DefaultSession.Claims != nil {
+		return s.Claims.Extra
+	}
+
+	return s.Extra
+}
+
+func (s *OpenIDSession) GetIDTokenClaims() *jwt.IDTokenClaims {
+	return s.Claims
 }
 
 // Clone copies the OpenIDSession to a new fosite.Session.

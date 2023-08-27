@@ -372,23 +372,6 @@ func validateOIDCClients(config *schema.OpenIDConnect, val *schema.StructValidat
 }
 
 func validateOIDCClient(c int, config *schema.OpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
-	if config.Clients[c].Public {
-		if config.Clients[c].Secret != nil {
-			val.Push(fmt.Errorf(errFmtOIDCClientPublicInvalidSecret, config.Clients[c].ID))
-		}
-	} else {
-		if config.Clients[c].Secret == nil {
-			val.Push(fmt.Errorf(errFmtOIDCClientInvalidSecret, config.Clients[c].ID))
-		} else {
-			switch {
-			case config.Clients[c].Secret.IsPlainText() && config.Clients[c].TokenEndpointAuthMethod != oidc.ClientAuthMethodClientSecretJWT:
-				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidSecretPlainText, config.Clients[c].ID))
-			case !config.Clients[c].Secret.IsPlainText() && config.Clients[c].TokenEndpointAuthMethod == oidc.ClientAuthMethodClientSecretJWT:
-				val.Push(fmt.Errorf(errFmtOIDCClientInvalidSecretNotPlainText, config.Clients[c].ID))
-			}
-		}
-	}
-
 	switch {
 	case config.Clients[c].AuthorizationPolicy == "":
 		config.Clients[c].AuthorizationPolicy = schema.DefaultOpenIDConnectClientConfiguration.AuthorizationPolicy
@@ -801,8 +784,9 @@ func validateOIDCClientRedirectURIs(c int, config *schema.OpenIDConnect, val *sc
 	}
 }
 
+//nolint:gocyclo
 func validateOIDCClientTokenEndpointAuth(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
-	implcit := len(config.Clients[c].ResponseTypes) != 0 && utils.IsStringSliceContainsAll(config.Clients[c].ResponseTypes, validOIDCClientResponseTypesImplicitFlow)
+	implicit := len(config.Clients[c].ResponseTypes) != 0 && utils.IsStringSliceContainsAll(config.Clients[c].ResponseTypes, validOIDCClientResponseTypesImplicitFlow)
 
 	switch {
 	case config.Clients[c].TokenEndpointAuthMethod == "":
@@ -810,7 +794,9 @@ func validateOIDCClientTokenEndpointAuth(c int, config *schema.OpenIDConnect, va
 	case !utils.IsStringInSlice(config.Clients[c].TokenEndpointAuthMethod, validOIDCClientTokenEndpointAuthMethods):
 		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
 			config.Clients[c].ID, attrOIDCTokenAuthMethod, strJoinOr(validOIDCClientTokenEndpointAuthMethods), config.Clients[c].TokenEndpointAuthMethod))
-	case config.Clients[c].TokenEndpointAuthMethod == oidc.ClientAuthMethodNone && !config.Clients[c].Public && !implcit:
+
+		return
+	case config.Clients[c].TokenEndpointAuthMethod == oidc.ClientAuthMethodNone && !config.Clients[c].Public && !implicit:
 		val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthMethod,
 			config.Clients[c].ID, strJoinOr(validOIDCClientTokenEndpointAuthMethodsConfidential), strJoinAnd(validOIDCClientResponseTypesImplicitFlow), config.Clients[c].TokenEndpointAuthMethod))
 	case config.Clients[c].TokenEndpointAuthMethod != oidc.ClientAuthMethodNone && config.Clients[c].Public:
@@ -818,13 +804,44 @@ func validateOIDCClientTokenEndpointAuth(c int, config *schema.OpenIDConnect, va
 			config.Clients[c].ID, config.Clients[c].TokenEndpointAuthMethod))
 	}
 
+	secret := false
+
 	switch config.Clients[c].TokenEndpointAuthMethod {
-	case "":
-		break
 	case oidc.ClientAuthMethodClientSecretJWT:
 		validateOIDCClientTokenEndpointAuthClientSecretJWT(c, config, val)
+
+		secret = true
+	case "":
+		if !config.Clients[c].Public {
+			secret = true
+		}
+	case oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic:
+		secret = true
 	case oidc.ClientAuthMethodPrivateKeyJWT:
 		validateOIDCClientTokenEndpointAuthPublicKeyJWT(config.Clients[c], val)
+	}
+
+	if secret {
+		if config.Clients[c].Public {
+			return
+		}
+
+		if config.Clients[c].Secret == nil {
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidSecret, config.Clients[c].ID))
+		} else {
+			switch {
+			case config.Clients[c].Secret.IsPlainText() && config.Clients[c].TokenEndpointAuthMethod != oidc.ClientAuthMethodClientSecretJWT:
+				val.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidSecretPlainText, config.Clients[c].ID))
+			case !config.Clients[c].Secret.IsPlainText() && config.Clients[c].TokenEndpointAuthMethod == oidc.ClientAuthMethodClientSecretJWT:
+				val.Push(fmt.Errorf(errFmtOIDCClientInvalidSecretNotPlainText, config.Clients[c].ID))
+			}
+		}
+	} else if config.Clients[c].Secret != nil {
+		if config.Clients[c].Public {
+			val.Push(fmt.Errorf(errFmtOIDCClientPublicInvalidSecret, config.Clients[c].ID))
+		} else {
+			val.Push(fmt.Errorf(errFmtOIDCClientPublicInvalidSecretClientAuthMethod, config.Clients[c].ID, config.Clients[c].TokenEndpointAuthMethod))
+		}
 	}
 }
 
@@ -855,6 +872,23 @@ func validateOIDCClientTokenEndpointAuthPublicKeyJWT(config schema.OpenIDConnect
 }
 
 func validateOIDDClientSigningAlgs(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
+	switch config.Clients[c].IDTokenSigningKeyID {
+	case "":
+		if config.Clients[c].IDTokenSigningAlg == "" {
+			config.Clients[c].IDTokenSigningAlg = schema.DefaultOpenIDConnectClientConfiguration.IDTokenSigningAlg
+		} else if !utils.IsStringInSlice(config.Clients[c].IDTokenSigningAlg, config.Discovery.ResponseObjectSigningAlgs) {
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
+				config.Clients[c].ID, attrOIDCIDTokenSigAlg, strJoinOr(config.Discovery.ResponseObjectSigningAlgs), config.Clients[c].IDTokenSigningAlg))
+		}
+	default:
+		if !utils.IsStringInSlice(config.Clients[c].IDTokenSigningKeyID, config.Discovery.ResponseObjectSigningKeyIDs) {
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
+				config.Clients[c].ID, attrOIDCIDTokenSigKID, strJoinOr(config.Discovery.ResponseObjectSigningKeyIDs), config.Clients[c].IDTokenSigningKeyID))
+		} else {
+			config.Clients[c].IDTokenSigningAlg = getResponseObjectAlgFromKID(config, config.Clients[c].IDTokenSigningKeyID, config.Clients[c].IDTokenSigningAlg)
+		}
+	}
+
 	switch config.Clients[c].UserinfoSigningKeyID {
 	case "":
 		if config.Clients[c].UserinfoSigningAlg == "" {
@@ -872,20 +906,20 @@ func validateOIDDClientSigningAlgs(c int, config *schema.OpenIDConnect, val *sch
 		}
 	}
 
-	switch config.Clients[c].IDTokenSigningKeyID {
+	switch config.Clients[c].IntrospectionSignedResponseKeyID {
 	case "":
-		if config.Clients[c].IDTokenSigningAlg == "" {
-			config.Clients[c].IDTokenSigningAlg = schema.DefaultOpenIDConnectClientConfiguration.IDTokenSigningAlg
-		} else if !utils.IsStringInSlice(config.Clients[c].IDTokenSigningAlg, config.Discovery.ResponseObjectSigningAlgs) {
+		if config.Clients[c].IntrospectionSignedResponseAlg == "" {
+			config.Clients[c].IntrospectionSignedResponseAlg = schema.DefaultOpenIDConnectClientConfiguration.IntrospectionSignedResponseAlg
+		} else if config.Clients[c].IntrospectionSignedResponseAlg != oidc.SigningAlgNone && !utils.IsStringInSlice(config.Clients[c].IntrospectionSignedResponseAlg, config.Discovery.ResponseObjectSigningAlgs) {
 			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
-				config.Clients[c].ID, attrOIDCIDTokenSigAlg, strJoinOr(config.Discovery.ResponseObjectSigningAlgs), config.Clients[c].IDTokenSigningAlg))
+				config.Clients[c].ID, attrOIDCIntrospectionSigAlg, strJoinOr(append(config.Discovery.ResponseObjectSigningAlgs, oidc.SigningAlgNone)), config.Clients[c].IntrospectionSignedResponseAlg))
 		}
 	default:
-		if !utils.IsStringInSlice(config.Clients[c].IDTokenSigningKeyID, config.Discovery.ResponseObjectSigningKeyIDs) {
+		if !utils.IsStringInSlice(config.Clients[c].IntrospectionSignedResponseKeyID, config.Discovery.ResponseObjectSigningKeyIDs) {
 			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
-				config.Clients[c].ID, attrOIDCIDTokenSigKID, strJoinOr(config.Discovery.ResponseObjectSigningKeyIDs), config.Clients[c].IDTokenSigningKeyID))
+				config.Clients[c].ID, attrOIDCIntrospectionSigAlg, strJoinOr(config.Discovery.ResponseObjectSigningKeyIDs), config.Clients[c].IntrospectionSignedResponseKeyID))
 		} else {
-			config.Clients[c].IDTokenSigningAlg = getResponseObjectAlgFromKID(config, config.Clients[c].IDTokenSigningKeyID, config.Clients[c].IDTokenSigningAlg)
+			config.Clients[c].IntrospectionSignedResponseAlg = getResponseObjectAlgFromKID(config, config.Clients[c].IntrospectionSignedResponseKeyID, config.Clients[c].IntrospectionSignedResponseAlg)
 		}
 	}
 }

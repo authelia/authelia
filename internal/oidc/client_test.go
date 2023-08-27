@@ -32,6 +32,8 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, "", bclient.UserinfoSigningAlg)
 	assert.Equal(t, oidc.SigningAlgNone, client.GetUserinfoSigningAlg())
 	assert.Equal(t, "", client.GetUserinfoSigningKeyID())
+	assert.Equal(t, oidc.SigningAlgNone, client.GetIntrospectionSignedResponseAlg())
+	assert.Equal(t, "", client.GetIntrospectionSignedResponseKeyID())
 
 	_, ok = client.(*oidc.FullClient)
 	assert.False(t, ok)
@@ -77,6 +79,25 @@ func TestNewClient(t *testing.T) {
 
 	assert.Equal(t, "aukeyid", client.GetUserinfoSigningKeyID())
 	assert.Equal(t, "aukeyid", fclient.GetUserinfoSigningKeyID())
+
+	assert.Equal(t, "", fclient.IntrospectionSignedResponseAlg)
+	assert.Equal(t, oidc.SigningAlgNone, client.GetIntrospectionSignedResponseAlg())
+	assert.Equal(t, oidc.SigningAlgNone, fclient.GetIntrospectionSignedResponseAlg())
+	assert.Equal(t, oidc.SigningAlgNone, fclient.IntrospectionSignedResponseAlg)
+
+	assert.Equal(t, "", fclient.IntrospectionSignedResponseKeyID)
+	assert.Equal(t, "", client.GetIntrospectionSignedResponseKeyID())
+	assert.Equal(t, "", fclient.GetIntrospectionSignedResponseKeyID())
+
+	fclient.IntrospectionSignedResponseKeyID = "aikeyid"
+
+	assert.Equal(t, "aikeyid", client.GetIntrospectionSignedResponseKeyID())
+	assert.Equal(t, "aikeyid", fclient.GetIntrospectionSignedResponseKeyID())
+
+	fclient.IntrospectionSignedResponseAlg = oidc.SigningAlgRSAUsingSHA512
+
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA512, client.GetIntrospectionSignedResponseAlg())
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA512, fclient.GetIntrospectionSignedResponseAlg())
 
 	assert.Equal(t, "", fclient.IDTokenSigningAlg)
 	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, client.GetIDTokenSigningAlg())

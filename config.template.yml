@@ -1412,14 +1412,32 @@ notifier:
         # token_endpoint_auth_signing_alg: 'RS256'
 
         ## The signing algorithm which must be used for request objects. A client JWK with a matching algorithm must be
-        ## included if configured.
+        ## available if configured.
         # request_object_signing_alg: 'RS256'
 
-        ## The signing algorithm used for ID Tokens. Am issuer JWK with a matching algorithm must be included.
+        ## The signing algorithm used for ID Tokens. An issuer JWK with a matching algorithm must be available.
+        ## Has no effect if id_token_signing_key_id is configured.
         # id_token_signing_alg: 'RS256'
 
-        ## The algorithm used to sign userinfo endpoint responses for this client, either none or RS256.
+        ## The signing key id used for ID Tokens. An issuer JWK with a matching key id must be available when
+        ## configured.
+        # id_token_signing_key_id: ''
+
+        ## The signing algorithm used for User Info responses. An issuer JWK with a matching algorithm must be
+        ## available. Has no effect if userinfo_signing_key_id is configured.
         # userinfo_signing_alg: 'none'
+
+        ## The signing key id used for User Info responses. An issuer JWK with a matching key id must be available when
+        ## configured.
+        # userinfo_signing_key_id: ''
+
+        ## The signing algorithm used for Introspection responses. An issuer JWK with a matching algorithm must be
+        ## available. Has no effect if introspection_signed_response_key_id is configured.
+        # introspection_signed_response_alg: 'none'
+
+        ## The signing key id used for Introspection responses. An issuer JWK with a matching key id must be available
+        ## when configured.
+        # introspection_signed_response_key_id: ''
 
         ## Trusted public keys configuration for request object signing for things such as private_key_jwt
         # public_keys:

@@ -1341,10 +1341,22 @@ paths:
                   - $ref: '#/components/schemas/openid.spec.AccessResponse'
         "401":
           description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "403":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "500":
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
       security:
         - openid: []
   /api/oidc/revocation:
@@ -1368,10 +1380,22 @@ paths:
           description: OK
         "401":
           description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "403":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "500":
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
       security:
         - openid: []
   /api/oidc/introspection:
@@ -1397,12 +1421,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/openid.spec.IntrospectionResponse'
+            application/token-introspection+jwt:
+              schema:
+                description: |
+                  The RFC7519 encoded JWT with the nested 'token_introspection' claim which contains the same structure
+                  as the openid.spec.IntrospectionResponse described in this OpenAPI 3.0 specification.
+                type: string
+                example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2F1dGguZXhhbXBsZS5jb20vIiwiYXVkIjoiaHR0cHM6Ly9hcHAuZXhhbXBsZS5jb20vcmVzb3VyY2UiLCJpYXQiOjE1MTQ3OTc4OTIsInRva2VuX2ludHJvc3BlY3Rpb24iOnsiYWN0aXZlIjp0cnVlLCJleHAiOjE1MTQ3OTc5NDIsImNsaWVudF9pZCI6ImV4YW1wbGUiLCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIiwiaWF0IjoxNTE0Nzk3ODIyLCJzdWIiOiI5Y2JhMzJhMC02M2EyLTQyZDUtODNlYi1kZmM3NTc4OGEyMjIiLCJhdWQiOiJodHRwczovL2FwcC5leGFtcGxlLmNvbS9yZXNvdXJjZSIsInVzZXJuYW1lIjoiam9obiJ9fQ.9rN-G3uaj28Geiktfvknl-G6EnZxOGJjpXcemvsllYA'
         "401":
           description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "403":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "500":
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
       security:
         - openid: []
   /api/oidc/userinfo:
@@ -3230,6 +3273,7 @@ components:
             - 'unauthorized_client'
             - 'unsupported_grant_type'
             - 'unsupported_response_type'
+            - 'unsupported_token_type'
             - 'request_not_supported'
             - 'request_uri_not_supported'
             - 'registration_not_supported'
@@ -3253,6 +3297,12 @@ components:
             client developer with additional information about the error. Values for the "error_uri" parameter MUST
             conform to the URI-reference syntax and thus MUST NOT include characters outside the set %x21 / %x23-5B /
             %x5D-7E.
+          type: string
+        error_hint:
+          description: An additional hint about the cause of the error.
+          type: string
+        error_debug:
+          description: Additional debug information about the cause of the error.
           type: string
         state:
           description: >

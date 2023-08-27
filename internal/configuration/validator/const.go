@@ -194,6 +194,8 @@ const (
 	errFmtOIDCClientInvalidSecretNotPlainText = "identity_providers: oidc: clients: client '%s': option 'secret' must be plaintext with option 'token_endpoint_auth_method' with a value of 'client_secret_jwt'"
 	errFmtOIDCClientPublicInvalidSecret       = "identity_providers: oidc: clients: client '%s': option 'secret' is " +
 		"required to be empty when option 'public' is true"
+	errFmtOIDCClientPublicInvalidSecretClientAuthMethod = "identity_providers: oidc: clients: client '%s': option 'secret' is " +
+		"required to be empty when option 'token_endpoint_auth_method' is configured as '%s'"
 	errFmtOIDCClientRedirectURICantBeParsed = "identity_providers: oidc: clients: client '%s': option 'redirect_uris' has an " +
 		"invalid value: redirect uri '%s' could not be parsed: %v"
 	errFmtOIDCClientRedirectURIPublic = "identity_providers: oidc: clients: client '%s': option 'redirect_uris' has the " +
@@ -217,7 +219,7 @@ const (
 	errFmtOIDCClientInvalidTokenEndpointAuthSigAlg = "identity_providers: oidc: clients: client '%s': option " +
 		"'token_endpoint_auth_signing_alg' must be one of %s when option 'token_endpoint_auth_method' is configured to '%s'"
 	errFmtOIDCClientInvalidTokenEndpointAuthSigAlgReg = "identity_providers: oidc: clients: client '%s': option " +
-		"'token_endpoint_auth_signing_alg' must be one of registered public key algorithm values %s when option 'token_endpoint_auth_method' is configured to '%s'"
+		"'token_endpoint_auth_signing_alg' must be one of the registered public key algorithm values %s when option 'token_endpoint_auth_method' is configured to '%s'"
 	errFmtOIDCClientInvalidTokenEndpointAuthSigAlgMissingPrivateKeyJWT = "identity_providers: oidc: clients: client '%s': option " +
 		"'token_endpoint_auth_signing_alg' is required when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'"
 	errFmtOIDCClientInvalidPublicKeysPrivateKeyJWT = "identity_providers: oidc: clients: client '%s': option " +
@@ -465,6 +467,7 @@ const (
 	attrOIDCRedirectURIs        = "redirect_uris"
 	attrOIDCTokenAuthMethod     = "token_endpoint_auth_method"
 	attrOIDCUsrSigAlg           = "userinfo_signing_alg"
+	attrOIDCIntrospectionSigAlg = "introspection_signed_response_alg"
 	attrOIDCUsrSigKID           = "userinfo_signing_key_id"
 	attrOIDCIDTokenSigAlg       = "id_token_signing_alg"
 	attrOIDCIDTokenSigKID       = "id_token_signing_key_id"

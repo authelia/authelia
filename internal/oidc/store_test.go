@@ -367,7 +367,7 @@ func (s *StoreSuite) TestCreateSessions() {
 				ID: "example",
 			},
 			Session: nil,
-		}}), "can't convert type '<nil>' to an *OAuth2Session")
+		}}), "failed to create new PAR context: can't assert type '<nil>' to an *OAuth2Session")
 }
 
 func (s *StoreSuite) TestRevokeSessions() {
@@ -555,7 +555,7 @@ func (s *StoreSuite) TestGetSessions() {
 
 	r, err = s.store.GetAuthorizeCodeSession(s.ctx, "ac_badclient", &model.OpenIDSession{})
 	s.Nil(r)
-	s.EqualError(err, "invalid_client")
+	s.EqualError(err, "error occurred while mapping OAuth 2.0 Session back to a Request while trying to lookup the registered client: invalid_client")
 
 	r, err = s.store.GetAccessTokenSession(s.ctx, "at", &model.OpenIDSession{})
 	s.NotNil(r)

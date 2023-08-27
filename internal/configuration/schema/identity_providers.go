@@ -127,12 +127,14 @@ type OpenIDConnectClient struct {
 
 	PKCEChallengeMethod string `koanf:"pkce_challenge_method"`
 
-	IDTokenSigningAlg           string `koanf:"id_token_signing_alg"`
-	IDTokenSigningKeyID         string `koanf:"id_token_signing_key_id"`
-	UserinfoSigningAlg          string `koanf:"userinfo_signing_alg"`
-	UserinfoSigningKeyID        string `koanf:"userinfo_signing_key_id"`
-	RequestObjectSigningAlg     string `koanf:"request_object_signing_alg"`
-	TokenEndpointAuthSigningAlg string `koanf:"token_endpoint_auth_signing_alg"`
+	IDTokenSigningAlg                string `koanf:"id_token_signing_alg"`
+	IDTokenSigningKeyID              string `koanf:"id_token_signing_key_id"`
+	UserinfoSigningAlg               string `koanf:"userinfo_signing_alg"`
+	UserinfoSigningKeyID             string `koanf:"userinfo_signing_key_id"`
+	IntrospectionSignedResponseAlg   string `koanf:"introspection_signed_response_alg"`
+	IntrospectionSignedResponseKeyID string `koanf:"introspection_signed_response_key_id"`
+	RequestObjectSigningAlg          string `koanf:"request_object_signing_alg"`
+	TokenEndpointAuthSigningAlg      string `koanf:"token_endpoint_auth_signing_alg"`
 
 	TokenEndpointAuthMethod string `koanf:"token_endpoint_auth_method"`
 
@@ -168,12 +170,13 @@ var defaultOIDCClientConsentPreConfiguredDuration = time.Hour * 24 * 7
 
 // DefaultOpenIDConnectClientConfiguration contains defaults for OIDC Clients.
 var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClient{
-	AuthorizationPolicy:          policyTwoFactor,
-	Scopes:                       []string{"openid", "groups", "profile", "email"},
-	ResponseTypes:                []string{"code"},
-	ResponseModes:                []string{"form_post"},
-	IDTokenSigningAlg:            "RS256",
-	UserinfoSigningAlg:           "none",
-	ConsentMode:                  "auto",
-	ConsentPreConfiguredDuration: &defaultOIDCClientConsentPreConfiguredDuration,
+	AuthorizationPolicy:            policyTwoFactor,
+	Scopes:                         []string{"openid", "groups", "profile", "email"},
+	ResponseTypes:                  []string{"code"},
+	ResponseModes:                  []string{"form_post"},
+	IDTokenSigningAlg:              "RS256",
+	UserinfoSigningAlg:             "none",
+	IntrospectionSignedResponseAlg: "none",
+	ConsentMode:                    "auto",
+	ConsentPreConfiguredDuration:   &defaultOIDCClientConsentPreConfiguredDuration,
 }

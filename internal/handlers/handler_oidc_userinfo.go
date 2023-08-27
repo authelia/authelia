@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -97,7 +98,12 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	case oidc.SigningAlgNone, "":
 		ctx.Logger.Debugf("UserInfo Request with id '%s' on client with id '%s' is being returned unsigned as per the registered client configuration", requestID, client.GetID())
 
-		ctx.Providers.OpenIDConnect.Write(rw, req, claims)
+		rw.Header().Set(fasthttp.HeaderContentType, "application/json; charset=utf-8")
+		rw.Header().Set(fasthttp.HeaderCacheControl, "no-store")
+		rw.Header().Set(fasthttp.HeaderPragma, "no-cache")
+		rw.WriteHeader(http.StatusOK)
+
+		_ = json.NewEncoder(rw).Encode(claims)
 	default:
 		var jwk *oidc.JWK
 
@@ -118,7 +124,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		}
 
 		claims[oidc.ClaimJWTID] = jti.String()
-		claims[oidc.ClaimIssuedAt] = time.Now().Unix()
+		claims[oidc.ClaimIssuedAt] = time.Now().UTC().Unix()
 
 		headers := &jwt.Headers{
 			Extra: map[string]any{
@@ -132,7 +138,11 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 			return
 		}
 
-		rw.Header().Set(fasthttp.HeaderContentType, "application/jwt")
+		rw.Header().Set(fasthttp.HeaderContentType, "application/jwt; charset=utf-8")
+		rw.Header().Set(fasthttp.HeaderCacheControl, "no-store")
+		rw.Header().Set(fasthttp.HeaderPragma, "no-cache")
+		rw.WriteHeader(http.StatusOK)
+
 		_, _ = rw.Write([]byte(token))
 	}
 
