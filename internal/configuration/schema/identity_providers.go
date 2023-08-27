@@ -127,6 +127,8 @@ type OpenIDConnectClient struct {
 
 	PKCEChallengeMethod string `koanf:"pkce_challenge_method"`
 
+	AuthorizationSigningAlg          string `koanf:"authorization_signing_alg"`
+	AuthorizationSigningKeyID        string `koanf:"authorization_signing_key_id"`
 	IDTokenSigningAlg                string `koanf:"id_token_signing_alg"`
 	IDTokenSigningKeyID              string `koanf:"id_token_signing_key_id"`
 	UserinfoSigningAlg               string `koanf:"userinfo_signing_alg"`

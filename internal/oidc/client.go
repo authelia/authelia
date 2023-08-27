@@ -7,7 +7,7 @@ import (
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/ory/fosite"
 	"github.com/ory/x/errorsx"
-	"gopkg.in/square/go-jose.v2"
+	jose "gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -37,6 +37,8 @@ func NewClient(config schema.OpenIDConnectClient, c *schema.OpenIDConnect) (clie
 
 		EnforcePAR: config.EnforcePAR,
 
+		AuthorizationSigningAlg:          config.AuthorizationSigningAlg,
+		AuthorizationSigningKeyID:        config.AuthorizationSigningKeyID,
 		IDTokenSigningAlg:                config.IDTokenSigningAlg,
 		IDTokenSigningKeyID:              config.IDTokenSigningKeyID,
 		UserinfoSigningAlg:               config.UserinfoSigningAlg,
@@ -152,6 +154,16 @@ func (c *BaseClient) GetAudience() fosite.Arguments {
 // Implements the fosite.ResponseModeClient.
 func (c *BaseClient) GetResponseModes() []fosite.ResponseModeType {
 	return c.ResponseModes
+}
+
+// GetAuthorizationSigningAlg returns the AuthorizationSigningAlg.
+func (c *BaseClient) GetAuthorizationSigningAlg() (alg string) {
+	return c.AuthorizationSigningAlg
+}
+
+// GetAuthorizationSigningKeyID returns the AuthorizationSigningKeyID.
+func (c *BaseClient) GetAuthorizationSigningKeyID() (kid string) {
+	return c.AuthorizationSigningKeyID
 }
 
 // GetIDTokenSigningAlg returns the IDTokenSigningAlg.

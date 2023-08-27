@@ -35,6 +35,10 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnect) (config Ope
 					ResponseModeFormPost,
 					ResponseModeQuery,
 					ResponseModeFragment,
+					ResponseModeJWT,
+					ResponseModeFormPostJWT,
+					ResponseModeQueryJWT,
+					ResponseModeFragmentJWT,
 				},
 				ScopesSupported: []string{
 					ScopeOfflineAccess,
@@ -157,6 +161,11 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnect) (config Ope
 				PromptConsent,
 			},
 		},
+		OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions: &OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions{
+			AuthorizationSigningAlgValuesSupported: []string{
+				SigningAlgRSAUsingSHA256,
+			},
+		},
 	}
 
 	for _, alg := range c.Discovery.ResponseObjectSigningAlgs {
@@ -171,11 +180,16 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnect) (config Ope
 		if !utils.IsStringInSlice(alg, config.IntrospectionSigningAlgValuesSupported) {
 			config.IntrospectionSigningAlgValuesSupported = append(config.IntrospectionSigningAlgValuesSupported, alg)
 		}
+
+		if !utils.IsStringInSlice(alg, config.AuthorizationSigningAlgValuesSupported) {
+			config.AuthorizationSigningAlgValuesSupported = append(config.AuthorizationSigningAlgValuesSupported, alg)
+		}
 	}
 
 	sort.Sort(SortedSigningAlgs(config.IDTokenSigningAlgValuesSupported))
 	sort.Sort(SortedSigningAlgs(config.UserinfoSigningAlgValuesSupported))
 	sort.Sort(SortedSigningAlgs(config.IntrospectionSigningAlgValuesSupported))
+	sort.Sort(SortedSigningAlgs(config.AuthorizationSigningAlgValuesSupported))
 
 	if c.EnablePKCEPlainChallenge {
 		config.CodeChallengeMethodsSupported = append(config.CodeChallengeMethodsSupported, PKCEChallengeMethodPlain)

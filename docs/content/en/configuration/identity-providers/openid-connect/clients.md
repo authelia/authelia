@@ -286,6 +286,35 @@ effectively enables the [enforce_pkce](#enforcepkce) option for this client.
 Valid values are an empty string, `plain`, or `S256`. It should be noted that `S256` is strongly recommended if the
 relying party supports it.
 
+### authorization_signing_alg
+
+{{< confkey type="string" default="RS256" required="no" >}}
+
+_**Note:** This value is completely ignored if the [authorization_signing_key_id](#authorizationsigningkeyid) is
+defined._
+
+The algorithm used to sign the authorization responses.
+
+See the response object section of the
+[integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information including
+the algorithm column for supported values. This value can not be set to `none`.
+
+The algorithm chosen must have a key configured in the [issuer_private_keys](provider.md#issuerprivatekeys) section to
+be considered valid.
+
+See the response object section of the [integration guide](../../../integration/openid-connect/introduction.md#response-object)
+for more information including the algorithm column for supported values.
+
+### authorization_signing_key_id
+
+{{< confkey type="string" required="no" >}}
+
+_**Note:** This value automatically configures the [id_token_signing_alg](#idtokensigningalg) value with the algorithm
+of the specified key._
+
+The key id of the JWK used to sign the ID Tokens in the token responses. The value of this must one of those provided or
+calculated in the [issuer_private_keys](provider.md#issuerprivatekeys).
+
 ### id_token_signing_alg
 
 {{< confkey type="string" default="RS256" required="no" >}}

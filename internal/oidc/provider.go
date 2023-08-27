@@ -22,8 +22,9 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnect, store storage.Provid
 		JSONWriter: herodot.NewJSONWriter(nil),
 		Store:      NewStore(config, store),
 		KeyManager: NewKeyManager(config),
-		Config:     NewConfig(config, templates),
 	}
+
+	provider.Config = NewConfig(config, provider.KeyManager, templates)
 
 	provider.OAuth2Provider = fosite.NewOAuth2Provider(provider.Store, provider.Config)
 
@@ -32,7 +33,7 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnect, store storage.Provid
 		Config: provider.Config,
 	}
 
-	provider.Config.LoadHandlers(provider.Store, provider.KeyManager)
+	provider.Config.LoadHandlers(provider.Store)
 	provider.Config.Strategy.ClientAuthentication = provider.DefaultClientAuthenticationStrategy
 
 	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config)

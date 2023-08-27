@@ -54,6 +54,8 @@ var Keys = []string{
 	"identity_providers.oidc.clients[].enforce_par",
 	"identity_providers.oidc.clients[].enforce_pkce",
 	"identity_providers.oidc.clients[].pkce_challenge_method",
+	"identity_providers.oidc.clients[].authorization_signing_alg",
+	"identity_providers.oidc.clients[].authorization_signing_key_id",
 	"identity_providers.oidc.clients[].id_token_signing_alg",
 	"identity_providers.oidc.clients[].id_token_signing_key_id",
 	"identity_providers.oidc.clients[].userinfo_signing_alg",

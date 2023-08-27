@@ -152,6 +152,8 @@ type BaseClient struct {
 
 	Lifespans schema.OpenIDConnectLifespan
 
+	AuthorizationSigningAlg          string
+	AuthorizationSigningKeyID        string
 	IDTokenSigningAlg                string
 	IDTokenSigningKeyID              string
 	UserinfoSigningAlg               string
@@ -188,6 +190,9 @@ type Client interface {
 	GetSecret() (secret algorithm.Digest)
 	GetSectorIdentifier() (sector string)
 	GetConsentResponseBody(consent *model.OAuth2ConsentSession) (body ConsentGetResponseBody)
+
+	GetAuthorizationSigningAlg() (alg string)
+	GetAuthorizationSigningKeyID() (kid string)
 
 	GetIDTokenSigningAlg() (alg string)
 	GetIDTokenSigningKeyID() (kid string)
@@ -240,6 +245,26 @@ type ClientRequesterResponder interface {
 // IDTokenClaimsSession is a session which can return the IDTokenClaims type.
 type IDTokenClaimsSession interface {
 	GetIDTokenClaims() *fjwt.IDTokenClaims
+}
+
+// Configurator is an internal extension to the fosite.Configurator.
+type Configurator interface {
+	fosite.Configurator
+
+	JARMConfigurator
+}
+
+// JARMConfigurator provides JARM related methods.
+type JARMConfigurator interface {
+	GetJWTSecuredAuthorizeResponseModeLifespan(ctx context.Context) (lifespan time.Duration)
+	GetJWTSecuredAuthorizeResponseModeSigner(ctx context.Context) (signer fjwt.Signer)
+	GetJWTSecuredAuthorizeResponseModeIssuer(ctx context.Context) (issuer string)
+}
+
+// IDTokenSessionContainer is similar to the oauth2.JWTSessionContainer to facilitate obtaining the headers as appropriate.
+type IDTokenSessionContainer interface {
+	IDTokenHeaders() *fjwt.Headers
+	IDTokenClaims() *fjwt.IDTokenClaims
 }
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.

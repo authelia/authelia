@@ -1,0 +1,180 @@
+package oidc
+
+import (
+	"context"
+	"errors"
+	"net/url"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/ory/fosite/handler/oauth2"
+	"github.com/ory/fosite/token/jwt"
+)
+
+// EncodeJWTSecuredResponseParameters takes the result from GenerateJWTSecuredResponse and turns it into parameters in the form of url.Values.
+func EncodeJWTSecuredResponseParameters(token, _ string, tErr error) (parameters url.Values, err error) {
+	if tErr != nil {
+		return nil, tErr
+	}
+
+	return url.Values{FormParameterResponse: []string{token}}, nil
+}
+
+func GenerateJWTSecuredResponse(ctx context.Context, config JARMConfigurator, client Client, session any, in url.Values) (token, signature string, err error) {
+	var (
+		headers map[string]any
+		src     jwt.MapClaims
+	)
+
+	switch s := session.(type) {
+	case nil:
+		return "", "", errors.New("The JARM response modes require the Authorize Requester session to be set but it wasn't.")
+	case IDTokenSessionContainer:
+		headers = s.IDTokenHeaders().ToMap()
+		src = s.IDTokenClaims().ToMapClaims()
+	case oauth2.JWTSessionContainer:
+		headers = s.GetJWTHeader().ToMap()
+		src = s.GetJWTClaims().ToMapClaims()
+	default:
+		return "", "", errors.New("The JARM response modes require the Authorize Requester session to implement either the IDTokenSessionContainer or oauth2.JWTSessionContainer interfaces but it doesn't.")
+	}
+
+	if alg := client.GetAuthorizationSigningAlg(); len(alg) > 0 {
+		headers[JWTHeaderKeyAlgorithm] = alg
+	}
+
+	if kid := client.GetAuthorizationSigningAlg(); len(kid) > 0 {
+		headers[JWTHeaderKeyIdentifier] = kid
+	}
+
+	var (
+		issuer string
+		ok     bool
+		value  any
+	)
+
+	issuer = config.GetJWTSecuredAuthorizeResponseModeIssuer(ctx)
+
+	if len(issuer) == 0 {
+		if value, ok = src[ClaimIssuer]; ok {
+			issuer, _ = value.(string)
+		}
+	}
+
+	claims := &JARMClaims{
+		JTI:       uuid.New().String(),
+		Issuer:    issuer,
+		Audience:  []string{client.GetID()},
+		IssuedAt:  time.Now().UTC(),
+		ExpiresAt: time.Now().UTC().Add(config.GetJWTSecuredAuthorizeResponseModeLifespan(ctx)),
+	}
+
+	for param := range in {
+		claims.Extra[param] = in.Get(param)
+	}
+
+	var signer jwt.Signer
+
+	if signer = config.GetJWTSecuredAuthorizeResponseModeSigner(ctx); signer == nil {
+		return "", "", errors.New("The JARM response modes require the JWTSecuredAuthorizeResponseModeSignerProvider to return a jwt.Signer but it didn't.")
+	}
+
+	return signer.Generate(ctx, claims.ToMapClaims(), &jwt.Headers{Extra: headers})
+}
+
+// JARMClaims represent a token's claims.
+type JARMClaims struct {
+	Issuer    string
+	Audience  []string
+	JTI       string
+	IssuedAt  time.Time
+	ExpiresAt time.Time
+	Extra     map[string]any
+}
+
+// ToMap will transform the headers to a map structure.
+func (c *JARMClaims) ToMap() map[string]any {
+	var ret = mapCopy(c.Extra)
+
+	if c.Issuer != "" {
+		ret[ClaimIssuer] = c.Issuer
+	} else {
+		delete(ret, ClaimIssuer)
+	}
+
+	if c.JTI != "" {
+		ret[ClaimJWTID] = c.JTI
+	} else {
+		ret[ClaimJWTID] = uuid.New().String()
+	}
+
+	if len(c.Audience) > 0 {
+		ret[ClaimAudience] = c.Audience
+	} else {
+		ret[ClaimAudience] = []string{}
+	}
+
+	if !c.IssuedAt.IsZero() {
+		ret[ClaimIssuedAt] = c.IssuedAt.Unix()
+	} else {
+		delete(ret, ClaimIssuedAt)
+	}
+
+	if !c.ExpiresAt.IsZero() {
+		ret[ClaimExpirationTime] = c.ExpiresAt.Unix()
+	} else {
+		delete(ret, ClaimExpirationTime)
+	}
+
+	return ret
+}
+
+// FromMap will set the claims based on a mapping.
+func (c *JARMClaims) FromMap(m map[string]any) {
+	c.Extra = make(map[string]any)
+
+	for k, v := range m {
+		switch k {
+		case ClaimJWTID:
+			if s, ok := v.(string); ok {
+				c.JTI = s
+			}
+		case ClaimIssuer:
+			if s, ok := v.(string); ok {
+				c.Issuer = s
+			}
+		case ClaimAudience:
+			c.Audience = toStringSlice(v)
+		case ClaimIssuedAt:
+			c.IssuedAt = toTime(v, c.IssuedAt)
+		case ClaimExpirationTime:
+			c.ExpiresAt = toTime(v, c.ExpiresAt)
+		default:
+			c.Extra[k] = v
+		}
+	}
+}
+
+// Add will add a key-value pair to the extra field.
+func (c *JARMClaims) Add(key string, value any) {
+	if c.Extra == nil {
+		c.Extra = make(map[string]any)
+	}
+
+	c.Extra[key] = value
+}
+
+// Get will get a value from the extra field based on a given key.
+func (c *JARMClaims) Get(key string) any {
+	return c.ToMap()[key]
+}
+
+// ToMapClaims will return a jwt-go MapClaims representation.
+func (c *JARMClaims) ToMapClaims() jwt.MapClaims {
+	return c.ToMap()
+}
+
+// FromMapClaims will populate claims from a jwt-go MapClaims representation.
+func (c *JARMClaims) FromMapClaims(mc jwt.MapClaims) {
+	c.FromMap(mc)
+}

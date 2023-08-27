@@ -872,6 +872,23 @@ func validateOIDCClientTokenEndpointAuthPublicKeyJWT(config schema.OpenIDConnect
 }
 
 func validateOIDDClientSigningAlgs(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
+	switch config.Clients[c].AuthorizationSigningKeyID {
+	case "":
+		if config.Clients[c].AuthorizationSigningAlg == "" {
+			config.Clients[c].AuthorizationSigningAlg = schema.DefaultOpenIDConnectClientConfiguration.AuthorizationSigningAlg
+		} else if !utils.IsStringInSlice(config.Clients[c].AuthorizationSigningAlg, config.Discovery.ResponseObjectSigningAlgs) {
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
+				config.Clients[c].ID, attrOIDCAuthorizationSigAlg, strJoinOr(config.Discovery.ResponseObjectSigningAlgs), config.Clients[c].AuthorizationSigningAlg))
+		}
+	default:
+		if !utils.IsStringInSlice(config.Clients[c].AuthorizationSigningKeyID, config.Discovery.ResponseObjectSigningKeyIDs) {
+			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
+				config.Clients[c].ID, attrOIDCAuthorizationSigAlg, strJoinOr(config.Discovery.ResponseObjectSigningKeyIDs), config.Clients[c].AuthorizationSigningKeyID))
+		} else {
+			config.Clients[c].AuthorizationSigningAlg = getResponseObjectAlgFromKID(config, config.Clients[c].AuthorizationSigningKeyID, config.Clients[c].AuthorizationSigningAlg)
+		}
+	}
+
 	switch config.Clients[c].IDTokenSigningKeyID {
 	case "":
 		if config.Clients[c].IDTokenSigningAlg == "" {

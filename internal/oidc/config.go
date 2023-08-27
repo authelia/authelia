@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-retryablehttp"
+	retryablehttp "github.com/hashicorp/go-retryablehttp"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/handler/openid"
@@ -23,8 +23,9 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func NewConfig(config *schema.OpenIDConnect, templates *templates.Provider) (c *Config) {
+func NewConfig(config *schema.OpenIDConnect, km *KeyManager, templates *templates.Provider) (c *Config) {
 	c = &Config{
+		KeyManager:                 km,
 		GlobalSecret:               []byte(utils.HashSHA256FromString(config.HMACSecret)),
 		SendDebugMessagesToClients: config.EnableClientDebugMessages,
 		MinParameterEntropy:        config.MinimumParameterEntropy,
@@ -54,6 +55,8 @@ func NewConfig(config *schema.OpenIDConnect, templates *templates.Provider) (c *
 
 // Config is an implementation of the fosite.Configurator.
 type Config struct {
+	KeyManager *KeyManager
+
 	// GlobalSecret is the global secret used to sign and verify signatures.
 	GlobalSecret []byte
 
@@ -73,6 +76,7 @@ type Config struct {
 	Hash                 HashConfig
 	Strategy             StrategyConfig
 	PAR                  PARConfig
+	JARMLifespan         time.Duration
 	Handlers             HandlersConfig
 	Lifespans            schema.OpenIDConnectLifespanToken
 	ProofKeyCodeExchange ProofKeyCodeExchangeConfig
@@ -108,6 +112,11 @@ type StrategyConfig struct {
 	ClientAuthentication fosite.ClientAuthenticationStrategy
 }
 
+// JARMConfig holds specific fosite.Configurator information for JWT Secured Response Modes.
+type JARMConfig struct {
+	Lifespan time.Duration
+}
+
 // PARConfig holds specific fosite.Configurator information for Pushed Authorization Requests.
 type PARConfig struct {
 	Enforced        bool
@@ -117,8 +126,9 @@ type PARConfig struct {
 
 // IssuersConfig holds specific fosite.Configurator information for the issuer.
 type IssuersConfig struct {
-	IDToken     string
-	AccessToken string
+	JWTSecuredResponseMode string
+	IDToken                string
+	AccessToken            string
 }
 
 // HandlersConfig holds specific fosite.Configurator handlers configuration information.
@@ -157,8 +167,8 @@ type ProofKeyCodeExchangeConfig struct {
 }
 
 // LoadHandlers reloads the handlers based on the current configuration.
-func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
-	validator := openid.NewOpenIDConnectRequestValidator(strategy, c)
+func (c *Config) LoadHandlers(store *Store) {
+	validator := openid.NewOpenIDConnectRequestValidator(c.KeyManager, c)
 
 	handlers := []any{
 		&oauth2.AuthorizeExplicitGrantHandler{
@@ -358,19 +368,45 @@ func (c *Config) GetJWTScopeField(ctx context.Context) (field jwt.JWTScopeFieldE
 	return c.JWTScopeField
 }
 
+func (c *Config) GetIssuerFallback(ctx context.Context, fallback string) (issuer string) {
+	if octx, ok := ctx.(Context); ok {
+		if iss, err := octx.IssuerURL(); err == nil {
+			return iss.String()
+		}
+	}
+
+	return fallback
+}
+
 // GetIDTokenIssuer returns the ID token issuer.
 func (c *Config) GetIDTokenIssuer(ctx context.Context) (issuer string) {
-	return c.Issuers.IDToken
+	return c.GetIssuerFallback(ctx, c.Issuers.IDToken)
 }
 
 // GetAccessTokenIssuer returns the access token issuer.
 func (c *Config) GetAccessTokenIssuer(ctx context.Context) (issuer string) {
-	return c.Issuers.AccessToken
+	return c.GetIssuerFallback(ctx, c.Issuers.AccessToken)
 }
 
 // GetDisableRefreshTokenValidation returns the disable refresh token validation flag.
 func (c *Config) GetDisableRefreshTokenValidation(ctx context.Context) (disable bool) {
 	return c.DisableRefreshTokenValidation
+}
+
+func (c *Config) GetJWTSecuredAuthorizeResponseModeLifespan(ctx context.Context) (lifespan time.Duration) {
+	if c.JARMLifespan.Seconds() <= 0 {
+		c.JARMLifespan = lifespanAuthorizeCodeDefault
+	}
+
+	return c.JARMLifespan
+}
+
+func (c *Config) GetJWTSecuredAuthorizeResponseModeSigner(ctx context.Context) (signer jwt.Signer) {
+	return c.KeyManager
+}
+
+func (c *Config) GetJWTSecuredAuthorizeResponseModeIssuer(ctx context.Context) string {
+	return c.GetIssuerFallback(ctx, c.Issuers.JWTSecuredResponseMode)
 }
 
 // GetAuthorizeCodeLifespan returns the authorization code lifespan.

@@ -70,9 +70,13 @@ const (
 
 // Response Mode strings.
 const (
-	ResponseModeQuery    = "query"
-	ResponseModeFormPost = "form_post"
-	ResponseModeFragment = "fragment"
+	ResponseModeFormPost    = "form_post"
+	ResponseModeQuery       = "query"
+	ResponseModeFragment    = "fragment"
+	ResponseModeJWT         = "jwt"
+	ResponseModeFormPostJWT = "form_post.jwt"
+	ResponseModeQueryJWT    = "query.jwt"
+	ResponseModeFragmentJWT = "fragment.jwt"
 )
 
 // Grant Type strings.
@@ -156,6 +160,7 @@ const (
 	FormParameterClientSecret        = "client_secret"
 	FormParameterRequestURI          = "request_uri"
 	FormParameterRedirectURI         = "redirect_uri"
+	FormParameterResponse            = "response"
 	FormParameterResponseMode        = "response_mode"
 	FormParameterResponseType        = "response_type"
 	FormParameterCodeChallenge       = "code_challenge"

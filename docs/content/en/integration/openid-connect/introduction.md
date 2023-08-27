@@ -24,7 +24,7 @@ information on how to configure the Authelia [OpenID Connect 1.0] Provider (note
 the registered clients in the provider).
 
 This page is intended as an integration reference point for any implementers who wish to integrate an
-[OpenID Connect 1.0] Relying Party (client application) either as a developer or user of the third party Reyling Party.
+[OpenID Connect 1.0] Relying Party (client application) either as a developer or user of the third party Relying Party.
 
 ## Scope Definitions
 
@@ -189,10 +189,10 @@ configuration option.
 | [OAuth 2.0 Form Post] |    Yes    |   `form_post`   |
 |     Query String      |    Yes    |     `query`     |
 |       Fragment        |    Yes    |   `fragment`    |
-|        [JARM]         |    No     |      `jwt`      |
-|  [Form Post (JARM)]   |    No     | `form_post.jwt` |
-| [Query String (JARM)] |    No     |   `query.jwt`   |
-|   [Fragment (JARM)]   |    No     | `fragment.jwt`  |
+|        [JARM]         |    Yes    |      `jwt`      |
+|  [Form Post (JARM)]   |    Yes    | `form_post.jwt` |
+| [Query String (JARM)] |    Yes    |   `query.jwt`   |
+|   [Fragment (JARM)]   |    Yes    | `fragment.jwt`  |
 
 [OAuth 2.0 Form Post]: https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
 [Form Post (JARM)]: https://openid.net/specs/openid-financial-api-jarm.html#response-mode-form_post.jwt

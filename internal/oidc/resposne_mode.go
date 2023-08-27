@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"net/url"
 
 	"github.com/ory/fosite"
 	"github.com/valyala/fasthttp"
@@ -25,12 +26,21 @@ func (p *OpenIDConnectProvider) WriteAuthorizeResponse(ctx context.Context, rw h
 // ResponseModeHandler is the custom response mode handler for Authelia.
 // Implements the fosite.ResponseModeHandler interface.
 type ResponseModeHandler struct {
-	fosite.Configurator
+	Configurator
 }
 
 // ResponseModes returns the response modes this fosite.ResponseModeHandler is responsible for.
 func (h *ResponseModeHandler) ResponseModes() fosite.ResponseModeTypes {
-	return fosite.ResponseModeTypes{fosite.ResponseModeDefault, fosite.ResponseModeQuery, fosite.ResponseModeFragment, fosite.ResponseModeFormPost}
+	return fosite.ResponseModeTypes{
+		fosite.ResponseModeDefault,
+		fosite.ResponseModeQuery,
+		fosite.ResponseModeFragment,
+		fosite.ResponseModeFormPost,
+		ResponseModeJWT,
+		ResponseModeQueryJWT,
+		ResponseModeFragmentJWT,
+		ResponseModeFormPostJWT,
+	}
 }
 
 // GetPostFormHTMLTemplate returns the 'form_post' response mode template or returns the default.
@@ -40,6 +50,29 @@ func (h *ResponseModeHandler) GetPostFormHTMLTemplate(ctx context.Context) (t *t
 	}
 
 	return fosite.DefaultFormPostTemplate
+}
+
+func (h *ResponseModeHandler) EncodeResponseForm(ctx context.Context, rm fosite.ResponseModeType, config JARMConfigurator, client Client, session any, parameters url.Values) (form url.Values, err error) {
+	var issuer string
+
+	if octx, ok := ctx.(Context); ok {
+		issuer = octx.RootURL().String()
+
+		parameters.Set(FormParameterIssuer, issuer)
+	}
+
+	switch rm {
+	case ResponseModeFormPostJWT, ResponseModeQueryJWT, ResponseModeFragment:
+		form, err = EncodeJWTSecuredResponseParameters(GenerateJWTSecuredResponse(ctx, config, client, session, parameters))
+
+		if len(issuer) > 0 {
+			form.Set(FormParameterIssuer, issuer)
+		}
+
+		return
+	default:
+		return parameters, nil
+	}
 }
 
 // WriteAuthorizeResponse writes authorization responses.
@@ -53,41 +86,74 @@ func (h *ResponseModeHandler) WriteAuthorizeResponse(ctx context.Context, rw htt
 
 	redirectURI := requester.GetRedirectURI()
 
+	var (
+		client Client
+		ok     bool
+	)
+
+	if client, ok = requester.GetClient().(Client); !ok {
+		handleWriteAuthorizeErrorJSON(ctx, h.Configurator, rw, fosite.ErrServerError.WithDebug("The client had an unexpected type."))
+
+		return
+	}
+
 	var location string
 
-	switch rm := requester.GetResponseMode(); rm {
+	rm := requester.GetResponseMode()
+
+	if rm == ResponseModeJWT {
+		switch requester.GetDefaultResponseMode() {
+		case fosite.ResponseModeFragment:
+			rm = ResponseModeFragmentJWT
+		case fosite.ResponseModeQuery:
+			rm = ResponseModeQueryJWT
+		}
+	}
+
+	switch rm {
 	case fosite.ResponseModeFormPost:
+		form, err := h.EncodeResponseForm(ctx, rm, h.Configurator, client, requester.GetSession(), responder.GetParameters())
+		if err != nil {
+			handleWriteAuthorizeErrorJSON(ctx, h.Configurator, rw, fosite.ErrServerError.WithWrap(err).WithDebug(err.Error()))
+
+			return
+		}
+
 		rw.Header().Add(fasthttp.HeaderContentType, headerContentTypeTextHTML)
-		fosite.WriteAuthorizeFormPostResponse(redirectURI.String(), responder.GetParameters(), h.GetPostFormHTMLTemplate(ctx), rw)
+		fosite.WriteAuthorizeFormPostResponse(redirectURI.String(), form, h.GetPostFormHTMLTemplate(ctx), rw)
 
 		return
 	case fosite.ResponseModeFragment:
 		redirectURI.Fragment = ""
 
-		response := responder.GetParameters()
+		form, err := h.EncodeResponseForm(ctx, rm, h.Configurator, client, requester.GetSession(), responder.GetParameters())
+		if err != nil {
+			handleWriteAuthorizeErrorJSON(ctx, h.Configurator, rw, fosite.ErrServerError.WithWrap(err).WithDebug(err.Error()))
 
-		if octx, ok := ctx.(Context); ok {
-			response.Set(FormParameterIssuer, octx.RootURL().String())
+			return
 		}
 
-		if len(response) > 0 {
-			location = redirectURI.String() + "#" + response.Encode()
+		if len(form) > 0 {
+			location = redirectURI.String() + "#" + form.Encode()
 		} else {
 			location = redirectURI.String()
 		}
 	case fosite.ResponseModeQuery, fosite.ResponseModeDefault:
-		response := redirectURI.Query()
+		query := redirectURI.Query()
 		parameters := responder.GetParameters()
 
 		for k := range parameters {
-			response.Set(k, parameters.Get(k))
+			query.Set(k, parameters.Get(k))
 		}
 
-		if octx, ok := ctx.(Context); ok {
-			response.Set(FormParameterIssuer, octx.RootURL().String())
+		form, err := h.EncodeResponseForm(ctx, rm, h.Configurator, client, requester.GetSession(), query)
+		if err != nil {
+			handleWriteAuthorizeErrorJSON(ctx, h.Configurator, rw, fosite.ErrServerError.WithWrap(err).WithDebug(err.Error()))
+
+			return
 		}
 
-		redirectURI.RawQuery = response.Encode()
+		redirectURI.RawQuery = form.Encode()
 
 		location = redirectURI.String()
 	}
