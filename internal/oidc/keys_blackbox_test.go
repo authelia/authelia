@@ -130,7 +130,15 @@ func TestKeyManager(t *testing.T) {
 	assert.Nil(t, jwk)
 
 	jwk, err = manager.GetByHeader(ctx, &fjwt.Headers{Extra: map[string]any{}})
-	assert.EqualError(t, err, "jwt header did not have a kid")
+	assert.EqualError(t, err, "jwt header did not match a known jwk")
+	assert.Nil(t, jwk)
+
+	jwk, err = manager.GetByHeader(ctx, &fjwt.Headers{Extra: map[string]any{oidc.JWTHeaderKeyIdentifier: "x"}})
+	assert.EqualError(t, err, "jwt header 'kid' with value 'x' does not match a managed jwk")
+	assert.Nil(t, jwk)
+
+	jwk, err = manager.GetByHeader(ctx, &fjwt.Headers{Extra: map[string]any{oidc.JWTHeaderKeyAlgorithm: "x"}})
+	assert.EqualError(t, err, "jwt header 'alg' with value 'x' does not match a managed jwk")
 	assert.Nil(t, jwk)
 
 	jwk, err = manager.GetByHeader(ctx, nil)

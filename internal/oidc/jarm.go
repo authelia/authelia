@@ -21,41 +21,40 @@ func EncodeJWTSecuredResponseParameters(token, _ string, tErr error) (parameters
 }
 
 func GenerateJWTSecuredResponse(ctx context.Context, config JARMConfigurator, client Client, session any, in url.Values) (token, signature string, err error) {
-	var (
-		headers map[string]any
-		src     jwt.MapClaims
-	)
-
-	switch s := session.(type) {
-	case nil:
-		return "", "", errors.New("The JARM response modes require the Authorize Requester session to be set but it wasn't.")
-	case IDTokenSessionContainer:
-		headers = s.IDTokenHeaders().ToMap()
-		src = s.IDTokenClaims().ToMapClaims()
-	case oauth2.JWTSessionContainer:
-		headers = s.GetJWTHeader().ToMap()
-		src = s.GetJWTClaims().ToMapClaims()
-	default:
-		return "", "", errors.New("The JARM response modes require the Authorize Requester session to implement either the IDTokenSessionContainer or oauth2.JWTSessionContainer interfaces but it doesn't.")
-	}
+	headers := map[string]any{}
 
 	if alg := client.GetAuthorizationSigningAlg(); len(alg) > 0 {
 		headers[JWTHeaderKeyAlgorithm] = alg
 	}
 
-	if kid := client.GetAuthorizationSigningAlg(); len(kid) > 0 {
+	if kid := client.GetAuthorizationSigningKeyID(); len(kid) > 0 {
 		headers[JWTHeaderKeyIdentifier] = kid
 	}
 
 	var (
 		issuer string
-		ok     bool
-		value  any
 	)
 
 	issuer = config.GetJWTSecuredAuthorizeResponseModeIssuer(ctx)
 
 	if len(issuer) == 0 {
+		var (
+			src   jwt.MapClaims
+			value any
+			ok    bool
+		)
+
+		switch s := session.(type) {
+		case nil:
+			return "", "", errors.New("The JARM response modes require the Authorize Requester session to be set but it wasn't.")
+		case IDTokenSessionContainer:
+			src = s.IDTokenClaims().ToMapClaims()
+		case oauth2.JWTSessionContainer:
+			src = s.GetJWTClaims().ToMapClaims()
+		default:
+			return "", "", errors.New("The JARM response modes require the Authorize Requester session to implement either the IDTokenSessionContainer or oauth2.JWTSessionContainer interfaces but it doesn't.")
+		}
+
 		if value, ok = src[ClaimIssuer]; ok {
 			issuer, _ = value.(string)
 		}
@@ -67,6 +66,7 @@ func GenerateJWTSecuredResponse(ctx context.Context, config JARMConfigurator, cl
 		Audience:  []string{client.GetID()},
 		IssuedAt:  time.Now().UTC(),
 		ExpiresAt: time.Now().UTC().Add(config.GetJWTSecuredAuthorizeResponseModeLifespan(ctx)),
+		Extra:     map[string]any{},
 	}
 
 	for param := range in {
