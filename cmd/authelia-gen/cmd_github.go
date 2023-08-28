@@ -5,10 +5,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
+
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 func newGitHubCmd() *cobra.Command {
@@ -130,8 +131,8 @@ func cmdGitHubIssueTemplatesFeatureRunE(cmd *cobra.Command, args []string) (err 
 
 func cmdGitHubIssueTemplatesBugReportRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		cwd, file, dirRoot    string
-		latestMinor, versions int
+		cwd, file, dirRoot string
+		versions           int
 
 		tags []string
 	)
@@ -156,39 +157,36 @@ func cmdGitHubIssueTemplatesBugReportRunE(cmd *cobra.Command, args []string) (er
 		return err
 	}
 
-	latest := tags[0]
+	var latest, version *model.SemanticVersion
 
-	latestParts := strings.Split(latest, ".")
-
-	if len(latestParts) < 2 {
-		return fmt.Errorf("error extracting latest minor version from tag: %s does not appear to be a semver", latest)
-	}
-
-	if latestMinor, err = strconv.Atoi(latestParts[1]); err != nil {
+	if latest, err = model.NewSemanticVersion(tags[0]); err != nil {
 		return fmt.Errorf("error extracting latest minor version from tag: %w", err)
 	}
 
+	minimum := latest.Copy()
+
+	minimum.Patch = 0
+	minimum.Minor = minimum.Minor - versions
+
 	//nolint:prealloc
-	var (
-		tagsRecent []string
-		parts      []string
-		minor      int
-	)
+	var tagsRecent []string
 
 	for _, tag := range tags {
-		if parts = strings.Split(tag, "."); len(parts) < 2 {
-			return fmt.Errorf("error extracting minor version from tag: %s does not appear to be a semver", tag)
+		if len(tag) == 0 {
+			continue
 		}
 
-		if minor, err = strconv.Atoi(parts[1]); err != nil {
+		if version, err = model.NewSemanticVersion(tag); err != nil {
 			return fmt.Errorf("error extracting minor version from tag: %w", err)
 		}
 
-		if minor < latestMinor-versions {
-			break
+		if !version.IsStable() {
+			continue
 		}
 
-		tagsRecent = append(tagsRecent, tag)
+		if version.GreaterThanOrEqual(minimum) {
+			tagsRecent = append(tagsRecent, tag)
+		}
 	}
 
 	var (
