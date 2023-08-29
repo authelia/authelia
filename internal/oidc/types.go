@@ -251,11 +251,17 @@ type IDTokenClaimsSession interface {
 type Configurator interface {
 	fosite.Configurator
 
-	JARMConfigurator
+	AuthorizationServerIssuerIdentificationProvider
+	JWTSecuredResponseModeProvider
 }
 
-// JARMConfigurator provides JARM related methods.
-type JARMConfigurator interface {
+// AuthorizationServerIssuerIdentificationProvider provides OAuth 2.0 Authorization Server Issuer Identification related methods.
+type AuthorizationServerIssuerIdentificationProvider interface {
+	GetAuthorizationServerIdentificationIssuer(ctx context.Context) (issuer string)
+}
+
+// JWTSecuredResponseModeProvider provides JARM related methods.
+type JWTSecuredResponseModeProvider interface {
 	GetJWTSecuredAuthorizeResponseModeLifespan(ctx context.Context) (lifespan time.Duration)
 	GetJWTSecuredAuthorizeResponseModeSigner(ctx context.Context) (signer fjwt.Signer)
 	GetJWTSecuredAuthorizeResponseModeIssuer(ctx context.Context) (issuer string)

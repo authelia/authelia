@@ -131,3 +131,7 @@ func (r *IntrospectionResponse) GetTokenUse() fosite.TokenUse {
 func (r *IntrospectionResponse) GetAccessTokenType() string {
 	return r.AccessTokenType
 }
+
+var (
+	_ fosite.IntrospectionResponder = (*IntrospectionResponse)(nil)
+)

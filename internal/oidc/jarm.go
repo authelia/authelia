@@ -20,7 +20,7 @@ func EncodeJWTSecuredResponseParameters(token, _ string, tErr error) (parameters
 	return url.Values{FormParameterResponse: []string{token}}, nil
 }
 
-func GenerateJWTSecuredResponse(ctx context.Context, config JARMConfigurator, client Client, session any, in url.Values) (token, signature string, err error) {
+func GenerateJWTSecuredResponse(ctx context.Context, config JWTSecuredResponseModeProvider, client Client, session any, in url.Values) (token, signature string, err error) {
 	headers := map[string]any{}
 
 	if alg := client.GetAuthorizationSigningAlg(); len(alg) > 0 {

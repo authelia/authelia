@@ -2,6 +2,8 @@ package oidc
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"html/template"
 	"net/http"
 	"net/url"
@@ -24,7 +26,7 @@ func (p *OpenIDConnectProvider) WriteAuthorizeResponse(ctx context.Context, rw h
 // ResponseModeHandler is the custom response mode handler for Authelia.
 // Implements the fosite.ResponseModeHandler interface.
 type ResponseModeHandler struct {
-	Configurator
+	Config Configurator
 }
 
 // ResponseModes returns the response modes this fosite.ResponseModeHandler is responsible for.
@@ -43,7 +45,7 @@ func (h *ResponseModeHandler) ResponseModes() fosite.ResponseModeTypes {
 
 // GetPostFormHTMLTemplate returns the 'form_post' response mode template or returns the default.
 func (h *ResponseModeHandler) GetPostFormHTMLTemplate(ctx context.Context) (t *template.Template) {
-	if t = h.Configurator.GetFormPostHTMLTemplate(ctx); t != nil {
+	if t = h.Config.GetFormPostHTMLTemplate(ctx); t != nil {
 		return t
 	}
 
@@ -51,15 +53,11 @@ func (h *ResponseModeHandler) GetPostFormHTMLTemplate(ctx context.Context) (t *t
 }
 
 // EncodeResponseForm encodes the response form if necessary.
-func (h *ResponseModeHandler) EncodeResponseForm(ctx context.Context, rm fosite.ResponseModeType, config JARMConfigurator, client Client, session any, parameters url.Values) (form url.Values, err error) {
+func (h *ResponseModeHandler) EncodeResponseForm(ctx context.Context, rm fosite.ResponseModeType, client Client, session any, parameters url.Values) (form url.Values, err error) {
 	switch rm {
 	case ResponseModeFormPostJWT, ResponseModeQueryJWT, ResponseModeFragmentJWT:
-		return EncodeJWTSecuredResponseParameters(GenerateJWTSecuredResponse(ctx, config, client, session, parameters))
+		return EncodeJWTSecuredResponseParameters(GenerateJWTSecuredResponse(ctx, h.Config, client, session, parameters))
 	default:
-		if octx, ok := ctx.(Context); ok {
-			parameters.Set(FormParameterIssuer, octx.RootURL().String())
-		}
-
 		return parameters, nil
 	}
 }
@@ -79,19 +77,28 @@ func (h *ResponseModeHandler) WriteAuthorizeResponse(ctx context.Context, rw htt
 // WriteAuthorizeError writes authorization errors.
 func (h *ResponseModeHandler) WriteAuthorizeError(ctx context.Context, rw http.ResponseWriter, requester fosite.AuthorizeRequester, e error) {
 	rfc := fosite.ErrorToRFC6749Error(e).
-		WithLegacyFormat(h.GetUseLegacyErrorFormat(ctx)).
-		WithExposeDebug(h.GetSendDebugMessagesToClients(ctx)).
-		WithLocalizer(h.GetMessageCatalog(ctx), GetLangFromRequester(requester))
+		WithLegacyFormat(h.Config.GetUseLegacyErrorFormat(ctx)).
+		WithExposeDebug(h.Config.GetSendDebugMessagesToClients(ctx)).
+		WithLocalizer(h.Config.GetMessageCatalog(ctx), GetLangFromRequester(requester))
 
 	if !requester.IsRedirectURIValid() {
-		handleWriteAuthorizeErrorJSON(ctx, h.Configurator, rw, rfc)
+		h.doWriteAuthorizeErrorJSON(ctx, rw, rfc)
 
 		return
 	}
 
 	parameters := rfc.ToValues()
 
-	parameters.Set(FormParameterState, requester.GetState())
+	if state := requester.GetState(); len(state) != 0 {
+		parameters.Set(FormParameterState, state)
+	}
+
+	switch requester.GetResponseMode() {
+	case fosite.ResponseModeFormPost, fosite.ResponseModeQuery, fosite.ResponseModeFragment, fosite.ResponseModeDefault:
+		if issuer := h.Config.GetAuthorizationServerIdentificationIssuer(ctx); len(issuer) != 0 {
+			parameters.Set(FormParameterIssuer, issuer)
+		}
+	}
 
 	h.doWriteAuthorizeResponse(ctx, rw, requester, parameters)
 }
@@ -106,7 +113,7 @@ func (h *ResponseModeHandler) doWriteAuthorizeResponse(ctx context.Context, rw h
 	)
 
 	if client, ok = requester.GetClient().(Client); !ok {
-		handleWriteAuthorizeErrorJSON(ctx, h.Configurator, rw, fosite.ErrServerError.WithDebug("The client had an unexpected type."))
+		h.doWriteAuthorizeErrorJSON(ctx, rw, fosite.ErrServerError.WithDebug("The client had an unexpected type."))
 
 		return
 	}
@@ -129,14 +136,14 @@ func (h *ResponseModeHandler) doWriteAuthorizeResponse(ctx context.Context, rw h
 
 	switch rm {
 	case fosite.ResponseModeFormPost, ResponseModeFormPostJWT:
-		if form, err = h.EncodeResponseForm(ctx, rm, h.Configurator, client, requester.GetSession(), parameters); err != nil {
-			handleWriteAuthorizeErrorJSON(ctx, h.Configurator, rw, fosite.ErrServerError.WithWrap(err).WithDebug(err.Error()))
+		if form, err = h.EncodeResponseForm(ctx, rm, client, requester.GetSession(), parameters); err != nil {
+			h.doWriteAuthorizeErrorJSON(ctx, rw, fosite.ErrServerError.WithWrap(err).WithDebug(err.Error()))
 
 			return
 		}
 
 		rw.Header().Set(fasthttp.HeaderContentType, headerContentTypeTextHTML)
-		fosite.WriteAuthorizeFormPostResponse(redirectURI.String(), form, h.GetFormPostHTMLTemplate(ctx), rw)
+		fosite.WriteAuthorizeFormPostResponse(redirectURI.String(), form, h.Config.GetFormPostHTMLTemplate(ctx), rw)
 
 		return
 	case fosite.ResponseModeQuery, fosite.ResponseModeDefault, ResponseModeQueryJWT, ResponseModeJWT:
@@ -146,8 +153,8 @@ func (h *ResponseModeHandler) doWriteAuthorizeResponse(ctx context.Context, rw h
 			}
 		}
 
-		if form, err = h.EncodeResponseForm(ctx, rm, h.Configurator, client, requester.GetSession(), parameters); err != nil {
-			handleWriteAuthorizeErrorJSON(ctx, h.Configurator, rw, fosite.ErrServerError.WithWrap(err).WithDebug(err.Error()))
+		if form, err = h.EncodeResponseForm(ctx, rm, client, requester.GetSession(), parameters); err != nil {
+			h.doWriteAuthorizeErrorJSON(ctx, rw, fosite.ErrServerError.WithWrap(err).WithDebug(err.Error()))
 
 			return
 		}
@@ -156,8 +163,8 @@ func (h *ResponseModeHandler) doWriteAuthorizeResponse(ctx context.Context, rw h
 
 		location = redirectURI.String()
 	case fosite.ResponseModeFragment, ResponseModeFragmentJWT:
-		if form, err = h.EncodeResponseForm(ctx, rm, h.Configurator, client, requester.GetSession(), parameters); err != nil {
-			handleWriteAuthorizeErrorJSON(ctx, h.Configurator, rw, fosite.ErrServerError.WithWrap(err).WithDebug(err.Error()))
+		if form, err = h.EncodeResponseForm(ctx, rm, client, requester.GetSession(), parameters); err != nil {
+			h.doWriteAuthorizeErrorJSON(ctx, rw, fosite.ErrServerError.WithWrap(err).WithDebug(err.Error()))
 
 			return
 		}
@@ -167,6 +174,28 @@ func (h *ResponseModeHandler) doWriteAuthorizeResponse(ctx context.Context, rw h
 
 	rw.Header().Set(fasthttp.HeaderLocation, location)
 	rw.WriteHeader(http.StatusSeeOther)
+}
+
+func (h *ResponseModeHandler) doWriteAuthorizeErrorJSON(ctx context.Context, rw http.ResponseWriter, rfc *fosite.RFC6749Error) {
+	rw.Header().Set(fasthttp.HeaderContentType, headerContentTypeApplicationJSON)
+
+	var (
+		data []byte
+		err  error
+	)
+
+	if data, err = json.Marshal(rfc); err != nil {
+		if h.Config.GetSendDebugMessagesToClients(ctx) {
+			http.Error(rw, fmt.Sprintf(`{"error":"server_error","error_description":"%s"}`, fosite.EscapeJSONString(err.Error())), http.StatusInternalServerError)
+		} else {
+			http.Error(rw, `{"error":"server_error"}`, http.StatusInternalServerError)
+		}
+
+		return
+	}
+
+	rw.WriteHeader(rfc.CodeField)
+	_, _ = rw.Write(data)
 }
 
 // ResponseModeHandler returns the response mode handler.

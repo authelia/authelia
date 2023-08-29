@@ -1,18 +1,13 @@
 package oidc
 
 import (
-	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ory/fosite"
-	"github.com/valyala/fasthttp"
 	"golang.org/x/text/language"
 	"gopkg.in/square/go-jose.v2"
 
@@ -332,26 +327,4 @@ func toTime(v any, def time.Time) (t time.Time) {
 	default:
 		return def
 	}
-}
-
-func handleWriteAuthorizeErrorJSON(ctx context.Context, config fosite.Configurator, rw http.ResponseWriter, rfc *fosite.RFC6749Error) {
-	rw.Header().Set(fasthttp.HeaderContentType, headerContentTypeApplicationJSON)
-
-	var (
-		data []byte
-		err  error
-	)
-
-	if data, err = json.Marshal(rfc); err != nil {
-		if config.GetSendDebugMessagesToClients(ctx) {
-			http.Error(rw, fmt.Sprintf(`{"error":"server_error","error_description":"%s"}`, fosite.EscapeJSONString(err.Error())), http.StatusInternalServerError)
-		} else {
-			http.Error(rw, `{"error":"server_error"}`, http.StatusInternalServerError)
-		}
-
-		return
-	}
-
-	rw.WriteHeader(rfc.CodeField)
-	_, _ = rw.Write(data)
 }

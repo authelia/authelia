@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	retryablehttp "github.com/hashicorp/go-retryablehttp"
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/handler/openid"
@@ -133,9 +133,11 @@ type PARConfig struct {
 
 // IssuersConfig holds specific fosite.Configurator information for the issuer.
 type IssuersConfig struct {
-	JWTSecuredResponseMode string
-	IDToken                string
-	AccessToken            string
+	IDToken     string
+	AccessToken string
+
+	AuthorizationServerIssuerIdentification string
+	JWTSecuredResponseMode                  string
 }
 
 // HandlersConfig holds specific fosite.Configurator handlers configuration information.
@@ -270,6 +272,9 @@ func (c *Config) LoadHandlers(store *Store) {
 			Storage: store,
 			Config:  c,
 		},
+		&AuthorizationServerIssuerIdentificationHandler{
+			Config: c,
+		},
 	}
 
 	x := HandlersConfig{
@@ -394,6 +399,11 @@ func (c *Config) GetIDTokenIssuer(ctx context.Context) (issuer string) {
 // GetAccessTokenIssuer returns the access token issuer.
 func (c *Config) GetAccessTokenIssuer(ctx context.Context) (issuer string) {
 	return c.GetIssuerFallback(ctx, c.Issuers.AccessToken)
+}
+
+// GetAuthorizationServerIdentificationIssuer returns the Authorization Server Identification issuer.
+func (c *Config) GetAuthorizationServerIdentificationIssuer(ctx context.Context) (issuer string) {
+	return c.GetIssuerFallback(ctx, c.Issuers.AuthorizationServerIssuerIdentification)
 }
 
 // GetDisableRefreshTokenValidation returns the disable refresh token validation flag.
