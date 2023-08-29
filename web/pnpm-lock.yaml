@@ -160,8 +160,8 @@ devDependencies:
     specifier: 4.6.0
     version: 4.6.0(eslint@8.48.0)
   happy-dom:
-    specifier: 10.11.1
-    version: 10.11.1
+    specifier: 10.11.2
+    version: 10.11.2
   husky:
     specifier: 8.0.3
     version: 8.0.3
@@ -191,7 +191,7 @@ devDependencies:
     version: 4.2.0(typescript@5.2.2)(vite@4.4.9)
   vitest:
     specifier: 0.34.3
-    version: 0.34.3(happy-dom@10.11.1)
+    version: 0.34.3(happy-dom@10.11.2)
   vitest-preview:
     specifier: 0.0.1
     version: 0.0.1
@@ -2963,7 +2963,7 @@ packages:
       dom-accessibility-api: 0.5.16
       lodash: 4.17.21
       redent: 3.0.0
-      vitest: 0.34.3(happy-dom@10.11.1)
+      vitest: 0.34.3(happy-dom@10.11.2)
     dev: true
 
   /@testing-library/react@14.0.0(react-dom@18.2.0)(react@18.2.0):
@@ -3296,7 +3296,7 @@ packages:
       istanbul-lib-source-maps: 4.0.1
       istanbul-reports: 3.1.5
       test-exclude: 6.0.0
-      vitest: 0.34.3(happy-dom@10.11.1)
+      vitest: 0.34.3(happy-dom@10.11.2)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -5373,8 +5373,8 @@ packages:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
     dev: true
 
-  /happy-dom@10.11.1:
-    resolution: {integrity: sha512-5Aeg19sIaq5/+T6wH0skohsY223D9Mx32AsNOldd5VHqvQsE+xiqB54Q30RcyUxZSaUZF39WpmjF0SrDCBOi8g==}
+  /happy-dom@10.11.2:
+    resolution: {integrity: sha512-rzgmLjLkhyaOdFEyU8CWXzbgyCyM7wJHLqhaoeEVSTyur1fjcUaiNTHx+D4CPaLvx16tGy+SBPd9TVnP/kzL3w==}
     dependencies:
       css.escape: 1.5.1
       entities: 4.5.0
@@ -7866,7 +7866,7 @@ packages:
       - terser
     dev: true
 
-  /vitest@0.34.3(happy-dom@10.11.1):
+  /vitest@0.34.3(happy-dom@10.11.2):
     resolution: {integrity: sha512-7+VA5Iw4S3USYk+qwPxHl8plCMhA5rtfwMjgoQXMT7rO5ldWcdsdo3U1QD289JgglGK4WeOzgoLTsGFu6VISyQ==}
     engines: {node: '>=v14.18.0'}
     hasBin: true
@@ -7910,7 +7910,7 @@ packages:
       cac: 6.7.14
       chai: 4.3.7
       debug: 4.3.4
-      happy-dom: 10.11.1
+      happy-dom: 10.11.2
       local-pkg: 0.4.3
       magic-string: 0.30.1
       pathe: 1.1.1
