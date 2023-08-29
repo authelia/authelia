@@ -31,9 +31,7 @@ func GenerateJWTSecuredResponse(ctx context.Context, config JARMConfigurator, cl
 		headers[JWTHeaderKeyIdentifier] = kid
 	}
 
-	var (
-		issuer string
-	)
+	var issuer string
 
 	issuer = config.GetJWTSecuredAuthorizeResponseModeIssuer(ctx)
 
@@ -63,9 +61,9 @@ func GenerateJWTSecuredResponse(ctx context.Context, config JARMConfigurator, cl
 	claims := &JARMClaims{
 		JTI:       uuid.New().String(),
 		Issuer:    issuer,
-		Audience:  []string{client.GetID()},
 		IssuedAt:  time.Now().UTC(),
 		ExpiresAt: time.Now().UTC().Add(config.GetJWTSecuredAuthorizeResponseModeLifespan(ctx)),
+		Audience:  []string{client.GetID()},
 		Extra:     map[string]any{},
 	}
 
@@ -84,11 +82,11 @@ func GenerateJWTSecuredResponse(ctx context.Context, config JARMConfigurator, cl
 
 // JARMClaims represent a token's claims.
 type JARMClaims struct {
-	Issuer    string
-	Audience  []string
 	JTI       string
+	Issuer    string
 	IssuedAt  time.Time
 	ExpiresAt time.Time
+	Audience  []string
 	Extra     map[string]any
 }
 

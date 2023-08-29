@@ -62,7 +62,9 @@ type OpenIDConnectDiscovery struct {
 
 type OpenIDConnectLifespans struct {
 	OpenIDConnectLifespanToken `koanf:",squash"`
-	Custom                     map[string]OpenIDConnectLifespan `koanf:"custom"`
+	JWTSecuredAuthorization    time.Duration `koanf:"jwt_secured_authorization"`
+
+	Custom map[string]OpenIDConnectLifespan `koanf:"custom"`
 }
 
 type OpenIDConnectLifespan struct {
@@ -127,12 +129,12 @@ type OpenIDConnectClient struct {
 
 	PKCEChallengeMethod string `koanf:"pkce_challenge_method"`
 
-	AuthorizationSigningAlg          string `koanf:"authorization_signing_alg"`
-	AuthorizationSigningKeyID        string `koanf:"authorization_signing_key_id"`
-	IDTokenSigningAlg                string `koanf:"id_token_signing_alg"`
-	IDTokenSigningKeyID              string `koanf:"id_token_signing_key_id"`
-	UserinfoSigningAlg               string `koanf:"userinfo_signing_alg"`
-	UserinfoSigningKeyID             string `koanf:"userinfo_signing_key_id"`
+	AuthorizationSigningAlg          string `koanf:"authorization_signed_response_alg"`
+	AuthorizationSigningKeyID        string `koanf:"authorization_signed_response_key_id"`
+	IDTokenSignedResponseAlg         string `koanf:"id_token_signed_response_alg"`
+	IDTokenSignedResponseKeyID       string `koanf:"id_token_signed_response_key_id"`
+	UserinfoSignedResponseAlg        string `koanf:"userinfo_signed_response_alg"`
+	UserinfoSignedResponseKeyID      string `koanf:"userinfo_signed_response_key_id"`
 	IntrospectionSignedResponseAlg   string `koanf:"introspection_signed_response_alg"`
 	IntrospectionSignedResponseKeyID string `koanf:"introspection_signed_response_key_id"`
 	RequestObjectSigningAlg          string `koanf:"request_object_signing_alg"`
@@ -176,8 +178,8 @@ var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClient{
 	Scopes:                         []string{"openid", "groups", "profile", "email"},
 	ResponseTypes:                  []string{"code"},
 	ResponseModes:                  []string{"form_post"},
-	IDTokenSigningAlg:              "RS256",
-	UserinfoSigningAlg:             "none",
+	IDTokenSignedResponseAlg:       "RS256",
+	UserinfoSignedResponseAlg:      "none",
 	IntrospectionSignedResponseAlg: "none",
 	ConsentMode:                    "auto",
 	ConsentPreConfiguredDuration:   &defaultOIDCClientConsentPreConfiguredDuration,

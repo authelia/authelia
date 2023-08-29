@@ -23,9 +23,9 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func NewConfig(config *schema.OpenIDConnect, km *KeyManager, templates *templates.Provider) (c *Config) {
+func NewConfig(config *schema.OpenIDConnect, signer jwt.Signer, templates *templates.Provider) (c *Config) {
 	c = &Config{
-		KeyManager:                 km,
+		Signer:                     signer,
 		GlobalSecret:               []byte(utils.HashSHA256FromString(config.HMACSecret)),
 		SendDebugMessagesToClients: config.EnableClientDebugMessages,
 		MinParameterEntropy:        config.MinimumParameterEntropy,
@@ -40,7 +40,8 @@ func NewConfig(config *schema.OpenIDConnect, km *KeyManager, templates *template
 			ContextLifespan: config.PAR.ContextLifespan,
 			URIPrefix:       RedirectURIPrefixPushedAuthorizationRequestURN,
 		},
-		Templates: templates,
+		JWTSecuredAuthorizationLifespan: config.Lifespans.JWTSecuredAuthorization,
+		Templates:                       templates,
 	}
 
 	c.Handlers.ResponseMode = &ResponseModeHandler{c}
@@ -50,12 +51,17 @@ func NewConfig(config *schema.OpenIDConnect, km *KeyManager, templates *template
 		Config: c,
 	}
 
+	c.Strategy.OpenID = &openid.DefaultStrategy{
+		Signer: signer,
+		Config: c,
+	}
+
 	return c
 }
 
 // Config is an implementation of the fosite.Configurator.
 type Config struct {
-	KeyManager *KeyManager
+	Signer jwt.Signer
 
 	// GlobalSecret is the global secret used to sign and verify signatures.
 	GlobalSecret []byte
@@ -72,11 +78,12 @@ type Config struct {
 	JWTScopeField  jwt.JWTScopeFieldEnum
 	JWTMaxDuration time.Duration
 
+	JWTSecuredAuthorizationLifespan time.Duration
+
 	Hasher               *Hasher
 	Hash                 HashConfig
 	Strategy             StrategyConfig
 	PAR                  PARConfig
-	JARMLifespan         time.Duration
 	Handlers             HandlersConfig
 	Lifespans            schema.OpenIDConnectLifespanToken
 	ProofKeyCodeExchange ProofKeyCodeExchangeConfig
@@ -168,7 +175,7 @@ type ProofKeyCodeExchangeConfig struct {
 
 // LoadHandlers reloads the handlers based on the current configuration.
 func (c *Config) LoadHandlers(store *Store) {
-	validator := openid.NewOpenIDConnectRequestValidator(c.KeyManager, c)
+	validator := openid.NewOpenIDConnectRequestValidator(c.Signer, c)
 
 	handlers := []any{
 		&oauth2.AuthorizeExplicitGrantHandler{
@@ -368,6 +375,7 @@ func (c *Config) GetJWTScopeField(ctx context.Context) (field jwt.JWTScopeFieldE
 	return c.JWTScopeField
 }
 
+// GetIssuerFallback returns the issuer from the ctx or returns the fallback value.
 func (c *Config) GetIssuerFallback(ctx context.Context, fallback string) (issuer string) {
 	if octx, ok := ctx.(Context); ok {
 		if iss, err := octx.IssuerURL(); err == nil {
@@ -393,18 +401,21 @@ func (c *Config) GetDisableRefreshTokenValidation(ctx context.Context) (disable 
 	return c.DisableRefreshTokenValidation
 }
 
+// GetJWTSecuredAuthorizeResponseModeLifespan returns the configured JWT Secured Authorization lifespan.
 func (c *Config) GetJWTSecuredAuthorizeResponseModeLifespan(ctx context.Context) (lifespan time.Duration) {
-	if c.JARMLifespan.Seconds() <= 0 {
-		c.JARMLifespan = lifespanAuthorizeCodeDefault
+	if c.JWTSecuredAuthorizationLifespan.Seconds() <= 0 {
+		c.JWTSecuredAuthorizationLifespan = lifespanJWTSecuredAuthorizationDefault
 	}
 
-	return c.JARMLifespan
+	return c.JWTSecuredAuthorizationLifespan
 }
 
+// GetJWTSecuredAuthorizeResponseModeSigner returns jwt.Signer for JWT Secured Authorization Responses.
 func (c *Config) GetJWTSecuredAuthorizeResponseModeSigner(ctx context.Context) (signer jwt.Signer) {
-	return c.KeyManager
+	return c.Signer
 }
 
+// GetJWTSecuredAuthorizeResponseModeIssuer returns the issuer for JWT Secured Authorization Responses.
 func (c *Config) GetJWTSecuredAuthorizeResponseModeIssuer(ctx context.Context) string {
 	return c.GetIssuerFallback(ctx, c.Issuers.JWTSecuredResponseMode)
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/ory/fosite"
 	"github.com/ory/x/errorsx"
-	jose "gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -39,10 +39,10 @@ func NewClient(config schema.OpenIDConnectClient, c *schema.OpenIDConnect) (clie
 
 		AuthorizationSigningAlg:          config.AuthorizationSigningAlg,
 		AuthorizationSigningKeyID:        config.AuthorizationSigningKeyID,
-		IDTokenSigningAlg:                config.IDTokenSigningAlg,
-		IDTokenSigningKeyID:              config.IDTokenSigningKeyID,
-		UserinfoSigningAlg:               config.UserinfoSigningAlg,
-		UserinfoSigningKeyID:             config.UserinfoSigningKeyID,
+		IDTokenSigningAlg:                config.IDTokenSignedResponseAlg,
+		IDTokenSigningKeyID:              config.IDTokenSignedResponseKeyID,
+		UserinfoSigningAlg:               config.UserinfoSignedResponseAlg,
+		UserinfoSigningKeyID:             config.UserinfoSignedResponseKeyID,
 		IntrospectionSignedResponseAlg:   config.IntrospectionSignedResponseAlg,
 		IntrospectionSignedResponseKeyID: config.IntrospectionSignedResponseKeyID,
 

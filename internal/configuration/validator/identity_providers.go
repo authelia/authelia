@@ -871,6 +871,7 @@ func validateOIDCClientTokenEndpointAuthPublicKeyJWT(config schema.OpenIDConnect
 	}
 }
 
+//nolint:gocyclo
 func validateOIDDClientSigningAlgs(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
 	switch config.Clients[c].AuthorizationSigningKeyID {
 	case "":
@@ -883,43 +884,43 @@ func validateOIDDClientSigningAlgs(c int, config *schema.OpenIDConnect, val *sch
 	default:
 		if !utils.IsStringInSlice(config.Clients[c].AuthorizationSigningKeyID, config.Discovery.ResponseObjectSigningKeyIDs) {
 			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
-				config.Clients[c].ID, attrOIDCAuthorizationSigAlg, strJoinOr(config.Discovery.ResponseObjectSigningKeyIDs), config.Clients[c].AuthorizationSigningKeyID))
+				config.Clients[c].ID, attrOIDCAuthorizationSigKID, strJoinOr(config.Discovery.ResponseObjectSigningKeyIDs), config.Clients[c].AuthorizationSigningKeyID))
 		} else {
 			config.Clients[c].AuthorizationSigningAlg = getResponseObjectAlgFromKID(config, config.Clients[c].AuthorizationSigningKeyID, config.Clients[c].AuthorizationSigningAlg)
 		}
 	}
 
-	switch config.Clients[c].IDTokenSigningKeyID {
+	switch config.Clients[c].IDTokenSignedResponseKeyID {
 	case "":
-		if config.Clients[c].IDTokenSigningAlg == "" {
-			config.Clients[c].IDTokenSigningAlg = schema.DefaultOpenIDConnectClientConfiguration.IDTokenSigningAlg
-		} else if !utils.IsStringInSlice(config.Clients[c].IDTokenSigningAlg, config.Discovery.ResponseObjectSigningAlgs) {
+		if config.Clients[c].IDTokenSignedResponseAlg == "" {
+			config.Clients[c].IDTokenSignedResponseAlg = schema.DefaultOpenIDConnectClientConfiguration.IDTokenSignedResponseAlg
+		} else if !utils.IsStringInSlice(config.Clients[c].IDTokenSignedResponseAlg, config.Discovery.ResponseObjectSigningAlgs) {
 			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
-				config.Clients[c].ID, attrOIDCIDTokenSigAlg, strJoinOr(config.Discovery.ResponseObjectSigningAlgs), config.Clients[c].IDTokenSigningAlg))
+				config.Clients[c].ID, attrOIDCIDTokenSigAlg, strJoinOr(config.Discovery.ResponseObjectSigningAlgs), config.Clients[c].IDTokenSignedResponseAlg))
 		}
 	default:
-		if !utils.IsStringInSlice(config.Clients[c].IDTokenSigningKeyID, config.Discovery.ResponseObjectSigningKeyIDs) {
+		if !utils.IsStringInSlice(config.Clients[c].IDTokenSignedResponseKeyID, config.Discovery.ResponseObjectSigningKeyIDs) {
 			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
-				config.Clients[c].ID, attrOIDCIDTokenSigKID, strJoinOr(config.Discovery.ResponseObjectSigningKeyIDs), config.Clients[c].IDTokenSigningKeyID))
+				config.Clients[c].ID, attrOIDCIDTokenSigKID, strJoinOr(config.Discovery.ResponseObjectSigningKeyIDs), config.Clients[c].IDTokenSignedResponseKeyID))
 		} else {
-			config.Clients[c].IDTokenSigningAlg = getResponseObjectAlgFromKID(config, config.Clients[c].IDTokenSigningKeyID, config.Clients[c].IDTokenSigningAlg)
+			config.Clients[c].IDTokenSignedResponseAlg = getResponseObjectAlgFromKID(config, config.Clients[c].IDTokenSignedResponseKeyID, config.Clients[c].IDTokenSignedResponseAlg)
 		}
 	}
 
-	switch config.Clients[c].UserinfoSigningKeyID {
+	switch config.Clients[c].UserinfoSignedResponseKeyID {
 	case "":
-		if config.Clients[c].UserinfoSigningAlg == "" {
-			config.Clients[c].UserinfoSigningAlg = schema.DefaultOpenIDConnectClientConfiguration.UserinfoSigningAlg
-		} else if config.Clients[c].UserinfoSigningAlg != oidc.SigningAlgNone && !utils.IsStringInSlice(config.Clients[c].UserinfoSigningAlg, config.Discovery.ResponseObjectSigningAlgs) {
+		if config.Clients[c].UserinfoSignedResponseAlg == "" {
+			config.Clients[c].UserinfoSignedResponseAlg = schema.DefaultOpenIDConnectClientConfiguration.UserinfoSignedResponseAlg
+		} else if config.Clients[c].UserinfoSignedResponseAlg != oidc.SigningAlgNone && !utils.IsStringInSlice(config.Clients[c].UserinfoSignedResponseAlg, config.Discovery.ResponseObjectSigningAlgs) {
 			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
-				config.Clients[c].ID, attrOIDCUsrSigAlg, strJoinOr(append(config.Discovery.ResponseObjectSigningAlgs, oidc.SigningAlgNone)), config.Clients[c].UserinfoSigningAlg))
+				config.Clients[c].ID, attrOIDCUsrSigAlg, strJoinOr(append(config.Discovery.ResponseObjectSigningAlgs, oidc.SigningAlgNone)), config.Clients[c].UserinfoSignedResponseAlg))
 		}
 	default:
-		if !utils.IsStringInSlice(config.Clients[c].UserinfoSigningKeyID, config.Discovery.ResponseObjectSigningKeyIDs) {
+		if !utils.IsStringInSlice(config.Clients[c].UserinfoSignedResponseKeyID, config.Discovery.ResponseObjectSigningKeyIDs) {
 			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
-				config.Clients[c].ID, attrOIDCUsrSigKID, strJoinOr(config.Discovery.ResponseObjectSigningKeyIDs), config.Clients[c].UserinfoSigningKeyID))
+				config.Clients[c].ID, attrOIDCUsrSigKID, strJoinOr(config.Discovery.ResponseObjectSigningKeyIDs), config.Clients[c].UserinfoSignedResponseKeyID))
 		} else {
-			config.Clients[c].UserinfoSigningAlg = getResponseObjectAlgFromKID(config, config.Clients[c].UserinfoSigningKeyID, config.Clients[c].UserinfoSigningAlg)
+			config.Clients[c].UserinfoSignedResponseAlg = getResponseObjectAlgFromKID(config, config.Clients[c].UserinfoSignedResponseKeyID, config.Clients[c].UserinfoSignedResponseAlg)
 		}
 	}
 
@@ -934,7 +935,7 @@ func validateOIDDClientSigningAlgs(c int, config *schema.OpenIDConnect, val *sch
 	default:
 		if !utils.IsStringInSlice(config.Clients[c].IntrospectionSignedResponseKeyID, config.Discovery.ResponseObjectSigningKeyIDs) {
 			val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
-				config.Clients[c].ID, attrOIDCIntrospectionSigAlg, strJoinOr(config.Discovery.ResponseObjectSigningKeyIDs), config.Clients[c].IntrospectionSignedResponseKeyID))
+				config.Clients[c].ID, attrOIDCIntrospectionSigKID, strJoinOr(config.Discovery.ResponseObjectSigningKeyIDs), config.Clients[c].IntrospectionSignedResponseKeyID))
 		} else {
 			config.Clients[c].IntrospectionSignedResponseAlg = getResponseObjectAlgFromKID(config, config.Clients[c].IntrospectionSignedResponseKeyID, config.Clients[c].IntrospectionSignedResponseAlg)
 		}
