@@ -166,9 +166,8 @@ func cmdGitHubIssueTemplatesBugReportRunE(cmd *cobra.Command, args []string) (er
 	minimum := latest.Copy()
 
 	minimum.Patch = 0
-	minimum.Minor = minimum.Minor - versions
+	minimum.Minor -= versions
 
-	//nolint:prealloc
 	var tagsRecent []string
 
 	for _, tag := range tags {
