@@ -152,12 +152,12 @@ type BaseClient struct {
 
 	Lifespans schema.OpenIDConnectLifespan
 
-	AuthorizationSigningAlg          string
-	AuthorizationSigningKeyID        string
-	IDTokenSigningAlg                string
-	IDTokenSigningKeyID              string
-	UserinfoSigningAlg               string
-	UserinfoSigningKeyID             string
+	AuthorizationSignedResponseAlg   string
+	AuthorizationSignedResponseKeyID string
+	IDTokenSignedResponseAlg         string
+	IDTokenSignedResponseKeyID       string
+	UserinfoSignedResponseAlg        string
+	UserinfoSignedResponseKeyID      string
 	IntrospectionSignedResponseAlg   string
 	IntrospectionSignedResponseKeyID string
 
@@ -191,14 +191,14 @@ type Client interface {
 	GetSectorIdentifier() (sector string)
 	GetConsentResponseBody(consent *model.OAuth2ConsentSession) (body ConsentGetResponseBody)
 
-	GetAuthorizationSigningAlg() (alg string)
-	GetAuthorizationSigningKeyID() (kid string)
+	GetAuthorizationSignedResponseAlg() (alg string)
+	GetAuthorizationSignedResponseKeyID() (kid string)
 
-	GetIDTokenSigningAlg() (alg string)
-	GetIDTokenSigningKeyID() (kid string)
+	GetIDTokenSignedResponseAlg() (alg string)
+	GetIDTokenSignedResponseKeyID() (kid string)
 
-	GetUserinfoSigningAlg() (alg string)
-	GetUserinfoSigningKeyID() (kid string)
+	GetUserinfoSignedResponseAlg() (alg string)
+	GetUserinfoSignedResponseKeyID() (kid string)
 
 	GetIntrospectionSignedResponseAlg() (alg string)
 	GetIntrospectionSignedResponseKeyID() (kid string)

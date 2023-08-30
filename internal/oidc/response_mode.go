@@ -4,13 +4,21 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
 	"net/url"
 
 	"github.com/ory/fosite"
 	"github.com/valyala/fasthttp"
 )
+
+// ResponseModeHandler returns the response mode handler.
+func (p *OpenIDConnectProvider) ResponseModeHandler(ctx context.Context) fosite.ResponseModeHandler {
+	if ext := p.Config.GetResponseModeHandlerExtension(ctx); ext != nil {
+		return ext
+	}
+
+	return handlerDefaultResponseMode
+}
 
 // WriteAuthorizeResponse decorates the fosite.WriteAuthorizeResponse so that we can ensure our response mode handler is used first.
 func (p *OpenIDConnectProvider) WriteAuthorizeResponse(ctx context.Context, rw http.ResponseWriter, requester fosite.AuthorizeRequester, responder fosite.AuthorizeResponder) {
@@ -41,15 +49,6 @@ func (h *ResponseModeHandler) ResponseModes() fosite.ResponseModeTypes {
 		ResponseModeFragmentJWT,
 		ResponseModeFormPostJWT,
 	}
-}
-
-// GetPostFormHTMLTemplate returns the 'form_post' response mode template or returns the default.
-func (h *ResponseModeHandler) GetPostFormHTMLTemplate(ctx context.Context) (t *template.Template) {
-	if t = h.Config.GetFormPostHTMLTemplate(ctx); t != nil {
-		return t
-	}
-
-	return fosite.DefaultFormPostTemplate
 }
 
 // EncodeResponseForm encodes the response form if necessary.
@@ -196,15 +195,6 @@ func (h *ResponseModeHandler) doWriteAuthorizeErrorJSON(ctx context.Context, rw 
 
 	rw.WriteHeader(rfc.CodeField)
 	_, _ = rw.Write(data)
-}
-
-// ResponseModeHandler returns the response mode handler.
-func (p *OpenIDConnectProvider) ResponseModeHandler(ctx context.Context) fosite.ResponseModeHandler {
-	if ext := p.Config.GetResponseModeHandlerExtension(ctx); ext != nil {
-		return ext
-	}
-
-	return handlerDefaultResponseMode
 }
 
 var (

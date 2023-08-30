@@ -1688,14 +1688,12 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 		},
 		{
-			"ShouldRaiseErrorOnInvalidResponseSigningAlg",
+			"ShouldRaiseErrorOnInvalidLifespanNone",
 			func(have *schema.OpenIDConnect) {
-				have.Clients[0].IntrospectionSignedResponseAlg = rs256
-				have.Clients[0].IDTokenSignedResponseAlg = rs256
-				have.Clients[0].UserinfoSignedResponseAlg = rs256
+				have.Clients[0].Lifespan = rs256
 			},
 			func(t *testing.T, have *schema.OpenIDConnect) {
-				assert.Equal(t, rs256, have.Clients[0].IntrospectionSignedResponseAlg)
+				assert.Equal(t, rs256, have.Clients[0].Lifespan)
 			},
 			tcv{
 				nil,
@@ -1711,6 +1709,63 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 			nil,
 			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'lifespan' must not be configured when no custom lifespans are configured but it's configured as 'rs256'",
+			},
+		},
+		{
+			name: "ShouldRaiseErrorOnInvalidLifespan",
+			setup: func(have *schema.OpenIDConnect) {
+				have.Clients[0].Lifespan = rs256
+				have.Discovery.Lifespans = []string{"example"}
+			},
+			validate: func(t *testing.T, have *schema.OpenIDConnect) {
+				assert.Equal(t, rs256, have.Clients[0].Lifespan)
+			},
+			have: tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			expected: tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			errs: []string{
+				"identity_providers: oidc: clients: client 'test': option 'lifespan' must be one of 'example' but it's configured as 'rs256'",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnInvalidResponseSigningAlg",
+			func(have *schema.OpenIDConnect) {
+				have.Clients[0].AuthorizationSignedResponseAlg = rs256
+				have.Clients[0].IntrospectionSignedResponseAlg = rs256
+				have.Clients[0].IDTokenSignedResponseAlg = rs256
+				have.Clients[0].UserinfoSignedResponseAlg = rs256
+			},
+			func(t *testing.T, have *schema.OpenIDConnect) {
+				assert.Equal(t, rs256, have.Clients[0].IntrospectionSignedResponseAlg)
+				assert.Equal(t, rs256, have.Clients[0].AuthorizationSignedResponseAlg)
+				assert.Equal(t, rs256, have.Clients[0].IDTokenSignedResponseAlg)
+				assert.Equal(t, rs256, have.Clients[0].UserinfoSignedResponseAlg)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'authorization_signed_response_alg' must be one of 'RS256' but it's configured as 'rs256'",
 				"identity_providers: oidc: clients: client 'test': option 'id_token_signed_response_alg' must be one of 'RS256' but it's configured as 'rs256'",
 				"identity_providers: oidc: clients: client 'test': option 'userinfo_signed_response_alg' must be one of 'RS256' or 'none' but it's configured as 'rs256'",
 				"identity_providers: oidc: clients: client 'test': option 'introspection_signed_response_alg' must be one of 'RS256' or 'none' but it's configured as 'rs256'",
@@ -2063,6 +2118,7 @@ func TestValidateOIDCClients(t *testing.T) {
 		{
 			"ShouldSetValidDefaultKeyID",
 			func(have *schema.OpenIDConnect) {
+				have.Clients[0].AuthorizationSignedResponseKeyID = abcabc123
 				have.Clients[0].IDTokenSignedResponseKeyID = abcabc123
 				have.Clients[0].UserinfoSignedResponseKeyID = abc123abc
 				have.Clients[0].IntrospectionSignedResponseKeyID = abc123abc
@@ -2087,6 +2143,7 @@ func TestValidateOIDCClients(t *testing.T) {
 		{
 			"ShouldRaiseErrorOnInvalidKeyID",
 			func(have *schema.OpenIDConnect) {
+				have.Clients[0].AuthorizationSignedResponseKeyID = "01"
 				have.Clients[0].IDTokenSignedResponseKeyID = "ab"
 				have.Clients[0].UserinfoSignedResponseKeyID = "cd"
 				have.Clients[0].IntrospectionSignedResponseKeyID = "ef"
@@ -2107,6 +2164,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 			nil,
 			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'authorization_signed_response_key_id' must be one of 'abc123xyz' but it's configured as '01'",
 				"identity_providers: oidc: clients: client 'test': option 'id_token_signed_response_key_id' must be one of 'abc123xyz' but it's configured as 'ab'",
 				"identity_providers: oidc: clients: client 'test': option 'userinfo_signed_response_key_id' must be one of 'abc123xyz' but it's configured as 'cd'",
 				"identity_providers: oidc: clients: client 'test': option 'introspection_signed_response_key_id' must be one of 'abc123xyz' but it's configured as 'ef'",

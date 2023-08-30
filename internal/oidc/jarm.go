@@ -23,11 +23,11 @@ func EncodeJWTSecuredResponseParameters(token, _ string, tErr error) (parameters
 func GenerateJWTSecuredResponse(ctx context.Context, config JWTSecuredResponseModeProvider, client Client, session any, in url.Values) (token, signature string, err error) {
 	headers := map[string]any{}
 
-	if alg := client.GetAuthorizationSigningAlg(); len(alg) > 0 {
+	if alg := client.GetAuthorizationSignedResponseAlg(); len(alg) > 0 {
 		headers[JWTHeaderKeyAlgorithm] = alg
 	}
 
-	if kid := client.GetAuthorizationSigningKeyID(); len(kid) > 0 {
+	if kid := client.GetAuthorizationSignedResponseKeyID(); len(kid) > 0 {
 		headers[JWTHeaderKeyIdentifier] = kid
 	}
 
@@ -58,7 +58,7 @@ func GenerateJWTSecuredResponse(ctx context.Context, config JWTSecuredResponseMo
 		}
 	}
 
-	claims := &JARMClaims{
+	claims := &JWTSecuredAuthorizationResponseModeClaims{
 		JTI:       uuid.New().String(),
 		Issuer:    issuer,
 		IssuedAt:  time.Now().UTC(),
@@ -80,8 +80,8 @@ func GenerateJWTSecuredResponse(ctx context.Context, config JWTSecuredResponseMo
 	return signer.Generate(ctx, claims.ToMapClaims(), &jwt.Headers{Extra: headers})
 }
 
-// JARMClaims represent a token's claims.
-type JARMClaims struct {
+// JWTSecuredAuthorizationResponseModeClaims represent the JWT claims for JARM.
+type JWTSecuredAuthorizationResponseModeClaims struct {
 	JTI       string
 	Issuer    string
 	IssuedAt  time.Time
@@ -91,7 +91,7 @@ type JARMClaims struct {
 }
 
 // ToMap will transform the headers to a map structure.
-func (c *JARMClaims) ToMap() map[string]any {
+func (c *JWTSecuredAuthorizationResponseModeClaims) ToMap() map[string]any {
 	var ret = mapCopy(c.Extra)
 
 	if c.Issuer != "" {
@@ -128,7 +128,7 @@ func (c *JARMClaims) ToMap() map[string]any {
 }
 
 // FromMap will set the claims based on a mapping.
-func (c *JARMClaims) FromMap(m map[string]any) {
+func (c *JWTSecuredAuthorizationResponseModeClaims) FromMap(m map[string]any) {
 	c.Extra = make(map[string]any)
 
 	for k, v := range m {
@@ -154,7 +154,7 @@ func (c *JARMClaims) FromMap(m map[string]any) {
 }
 
 // Add will add a key-value pair to the extra field.
-func (c *JARMClaims) Add(key string, value any) {
+func (c *JWTSecuredAuthorizationResponseModeClaims) Add(key string, value any) {
 	if c.Extra == nil {
 		c.Extra = make(map[string]any)
 	}
@@ -163,16 +163,16 @@ func (c *JARMClaims) Add(key string, value any) {
 }
 
 // Get will get a value from the extra field based on a given key.
-func (c *JARMClaims) Get(key string) any {
+func (c *JWTSecuredAuthorizationResponseModeClaims) Get(key string) any {
 	return c.ToMap()[key]
 }
 
 // ToMapClaims will return a jwt-go MapClaims representation.
-func (c *JARMClaims) ToMapClaims() jwt.MapClaims {
+func (c *JWTSecuredAuthorizationResponseModeClaims) ToMapClaims() jwt.MapClaims {
 	return c.ToMap()
 }
 
 // FromMapClaims will populate claims from a jwt-go MapClaims representation.
-func (c *JARMClaims) FromMapClaims(mc jwt.MapClaims) {
+func (c *JWTSecuredAuthorizationResponseModeClaims) FromMapClaims(mc jwt.MapClaims) {
 	c.FromMap(mc)
 }

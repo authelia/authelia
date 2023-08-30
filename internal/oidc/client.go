@@ -7,7 +7,7 @@ import (
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/ory/fosite"
 	"github.com/ory/x/errorsx"
-	"gopkg.in/square/go-jose.v2"
+	jose "gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -37,12 +37,12 @@ func NewClient(config schema.OpenIDConnectClient, c *schema.OpenIDConnect) (clie
 
 		EnforcePAR: config.EnforcePAR,
 
-		AuthorizationSigningAlg:          config.AuthorizationSigningAlg,
-		AuthorizationSigningKeyID:        config.AuthorizationSigningKeyID,
-		IDTokenSigningAlg:                config.IDTokenSignedResponseAlg,
-		IDTokenSigningKeyID:              config.IDTokenSignedResponseKeyID,
-		UserinfoSigningAlg:               config.UserinfoSignedResponseAlg,
-		UserinfoSigningKeyID:             config.UserinfoSignedResponseKeyID,
+		AuthorizationSignedResponseAlg:   config.AuthorizationSignedResponseAlg,
+		AuthorizationSignedResponseKeyID: config.AuthorizationSignedResponseKeyID,
+		IDTokenSignedResponseAlg:         config.IDTokenSignedResponseAlg,
+		IDTokenSignedResponseKeyID:       config.IDTokenSignedResponseKeyID,
+		UserinfoSignedResponseAlg:        config.UserinfoSignedResponseAlg,
+		UserinfoSignedResponseKeyID:      config.UserinfoSignedResponseKeyID,
 		IntrospectionSignedResponseAlg:   config.IntrospectionSignedResponseAlg,
 		IntrospectionSignedResponseKeyID: config.IntrospectionSignedResponseKeyID,
 
@@ -156,42 +156,42 @@ func (c *BaseClient) GetResponseModes() []fosite.ResponseModeType {
 	return c.ResponseModes
 }
 
-// GetAuthorizationSigningAlg returns the AuthorizationSigningAlg.
-func (c *BaseClient) GetAuthorizationSigningAlg() (alg string) {
-	return c.AuthorizationSigningAlg
+// GetAuthorizationSignedResponseAlg returns the AuthorizationSignedResponseAlg.
+func (c *BaseClient) GetAuthorizationSignedResponseAlg() (alg string) {
+	return c.AuthorizationSignedResponseAlg
 }
 
-// GetAuthorizationSigningKeyID returns the AuthorizationSigningKeyID.
-func (c *BaseClient) GetAuthorizationSigningKeyID() (kid string) {
-	return c.AuthorizationSigningKeyID
+// GetAuthorizationSignedResponseKeyID returns the AuthorizationSignedResponseKeyID.
+func (c *BaseClient) GetAuthorizationSignedResponseKeyID() (kid string) {
+	return c.AuthorizationSignedResponseKeyID
 }
 
-// GetIDTokenSigningAlg returns the IDTokenSigningAlg.
-func (c *BaseClient) GetIDTokenSigningAlg() (alg string) {
-	if c.IDTokenSigningAlg == "" {
-		c.IDTokenSigningAlg = SigningAlgRSAUsingSHA256
+// GetIDTokenSignedResponseAlg returns the IDTokenSignedResponseAlg.
+func (c *BaseClient) GetIDTokenSignedResponseAlg() (alg string) {
+	if c.IDTokenSignedResponseAlg == "" {
+		c.IDTokenSignedResponseAlg = SigningAlgRSAUsingSHA256
 	}
 
-	return c.IDTokenSigningAlg
+	return c.IDTokenSignedResponseAlg
 }
 
-// GetIDTokenSigningKeyID returns the IDTokenSigningKeyID.
-func (c *BaseClient) GetIDTokenSigningKeyID() (alg string) {
-	return c.IDTokenSigningKeyID
+// GetIDTokenSignedResponseKeyID returns the IDTokenSignedResponseKeyID.
+func (c *BaseClient) GetIDTokenSignedResponseKeyID() (alg string) {
+	return c.IDTokenSignedResponseKeyID
 }
 
-// GetUserinfoSigningAlg returns the UserinfoSigningAlg.
-func (c *BaseClient) GetUserinfoSigningAlg() string {
-	if c.UserinfoSigningAlg == "" {
-		c.UserinfoSigningAlg = SigningAlgNone
+// GetUserinfoSignedResponseAlg returns the UserinfoSignedResponseAlg.
+func (c *BaseClient) GetUserinfoSignedResponseAlg() string {
+	if c.UserinfoSignedResponseAlg == "" {
+		c.UserinfoSignedResponseAlg = SigningAlgNone
 	}
 
-	return c.UserinfoSigningAlg
+	return c.UserinfoSignedResponseAlg
 }
 
-// GetUserinfoSigningKeyID returns the UserinfoSigningKeyID.
-func (c *BaseClient) GetUserinfoSigningKeyID() (kid string) {
-	return c.UserinfoSigningKeyID
+// GetUserinfoSignedResponseKeyID returns the UserinfoSignedResponseKeyID.
+func (c *BaseClient) GetUserinfoSignedResponseKeyID() (kid string) {
+	return c.UserinfoSignedResponseKeyID
 }
 
 // GetIntrospectionSignedResponseAlg returns the IntrospectionSignedResponseAlg.
