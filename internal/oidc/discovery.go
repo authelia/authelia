@@ -124,6 +124,9 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnect) (config Ope
 			OAuth2PushedAuthorizationDiscoveryOptions: &OAuth2PushedAuthorizationDiscoveryOptions{
 				RequirePushedAuthorizationRequests: c.PAR.Enforce,
 			},
+			OAuth2IssuerIdentificationDiscoveryOptions: &OAuth2IssuerIdentificationDiscoveryOptions{
+				AuthorizationResponseIssuerParameterSupported: true,
+			},
 		},
 
 		OpenIDConnectDiscoveryOptions: OpenIDConnectDiscoveryOptions{

@@ -13,8 +13,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-var _ fosite.TokenEndpointHandler = (*RefreshTokenGrantHandler)(nil)
-
 // RefreshTokenGrantHandler handles access requests for the Refresh Token Flow.
 type RefreshTokenGrantHandler struct {
 	AccessTokenStrategy    oauth2.AccessTokenStrategy
@@ -318,3 +316,7 @@ func RefreshFlowSanitizeRestoreOriginalRequestBasic(r, o fosite.Requester) fosit
 
 	return sr
 }
+
+var (
+	_ fosite.TokenEndpointHandler = (*RefreshTokenGrantHandler)(nil)
+)

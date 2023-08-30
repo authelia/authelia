@@ -8,6 +8,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ory/fosite"
+	"golang.org/x/text/language"
 	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -102,6 +103,7 @@ func isSigningAlgLess(i, j string) bool {
 	}
 }
 
+// JTIFromMapClaims returns a JTI from a jwt.MapClaims.
 func JTIFromMapClaims(m jwt.MapClaims) (jti string, err error) {
 	var (
 		ok  bool
@@ -149,8 +151,23 @@ type DebugRFC6749Error struct {
 	*fosite.RFC6749Error
 }
 
+// Error implements the builtin error interface and shows the error with its debug info and description.
 func (err *DebugRFC6749Error) Error() string {
 	return err.WithExposeDebug(true).GetDescription()
+}
+
+// GetLangFromRequester gets the expected language for a requester.
+func GetLangFromRequester(requester fosite.Requester) language.Tag {
+	var (
+		ctx fosite.G11NContext
+		ok  bool
+	)
+
+	if ctx, ok = requester.(fosite.G11NContext); ok {
+		return ctx.GetLang()
+	}
+
+	return language.English
 }
 
 // IntrospectionResponseToMap converts a fosite.IntrospectionResponder into a map[string]any which is used to either

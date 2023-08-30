@@ -86,8 +86,6 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return
 	}
 
-	issuer = ctx.RootURL()
-
 	var (
 		userSession session.UserSession
 		consent     *model.OAuth2ConsentSession
@@ -101,6 +99,8 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 		return
 	}
+
+	issuer = ctx.RootURL()
 
 	if consent, handled = handleOIDCAuthorizationConsent(ctx, issuer, client, userSession, rw, r, requester); handled {
 		return
@@ -145,6 +145,8 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		ctx.SetUserValue(middlewares.UserValueKeyOpenIDConnectResponseModeFormPost, true)
 	}
 
+	responder.GetParameters().Set(oidc.FormParameterIssuer, issuer.String())
+
 	ctx.Providers.OpenIDConnect.WriteAuthorizeResponse(ctx, rw, requester, responder)
 }
 
@@ -185,7 +187,7 @@ func OpenIDConnectPushedAuthorizationRequest(ctx *middlewares.AutheliaCtx, rw ht
 	if err = client.ValidatePKCEPolicy(requester); err != nil {
 		ctx.Logger.Errorf("Pushed Authorization Request with id '%s' on client with id '%s' failed to validate the PKCE policy: %s", requester.GetID(), client.GetID(), oidc.ErrorToDebugRFC6749Error(err))
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
+		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, err)
 
 		return
 	}
@@ -193,7 +195,7 @@ func OpenIDConnectPushedAuthorizationRequest(ctx *middlewares.AutheliaCtx, rw ht
 	if err = client.ValidateResponseModePolicy(requester); err != nil {
 		ctx.Logger.Errorf("Pushed Authorization Request with id '%s' on client with id '%s' failed to validate the Response Mode: %s", requester.GetID(), client.GetID(), oidc.ErrorToDebugRFC6749Error(err))
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
+		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, err)
 
 		return
 	}

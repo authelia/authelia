@@ -226,6 +226,7 @@ type RefreshFlowScopeClient interface {
 type Context interface {
 	context.Context
 
+	RootURL() (issuerURL *url.URL)
 	IssuerURL() (issuerURL *url.URL, err error)
 	GetClock() utils.Clock
 	GetJWTWithTimeFuncOption() jwt.ParserOption
