@@ -152,10 +152,12 @@ type BaseClient struct {
 
 	Lifespans schema.OpenIDConnectLifespan
 
-	IDTokenSigningAlg                string
-	IDTokenSigningKeyID              string
-	UserinfoSigningAlg               string
-	UserinfoSigningKeyID             string
+	AuthorizationSignedResponseAlg   string
+	AuthorizationSignedResponseKeyID string
+	IDTokenSignedResponseAlg         string
+	IDTokenSignedResponseKeyID       string
+	UserinfoSignedResponseAlg        string
+	UserinfoSignedResponseKeyID      string
 	IntrospectionSignedResponseAlg   string
 	IntrospectionSignedResponseKeyID string
 
@@ -189,11 +191,14 @@ type Client interface {
 	GetSectorIdentifier() (sector string)
 	GetConsentResponseBody(consent *model.OAuth2ConsentSession) (body ConsentGetResponseBody)
 
-	GetIDTokenSigningAlg() (alg string)
-	GetIDTokenSigningKeyID() (kid string)
+	GetAuthorizationSignedResponseAlg() (alg string)
+	GetAuthorizationSignedResponseKeyID() (kid string)
 
-	GetUserinfoSigningAlg() (alg string)
-	GetUserinfoSigningKeyID() (kid string)
+	GetIDTokenSignedResponseAlg() (alg string)
+	GetIDTokenSignedResponseKeyID() (kid string)
+
+	GetUserinfoSignedResponseAlg() (alg string)
+	GetUserinfoSignedResponseKeyID() (kid string)
 
 	GetIntrospectionSignedResponseAlg() (alg string)
 	GetIntrospectionSignedResponseKeyID() (kid string)
@@ -240,6 +245,32 @@ type ClientRequesterResponder interface {
 // IDTokenClaimsSession is a session which can return the IDTokenClaims type.
 type IDTokenClaimsSession interface {
 	GetIDTokenClaims() *fjwt.IDTokenClaims
+}
+
+// Configurator is an internal extension to the fosite.Configurator.
+type Configurator interface {
+	fosite.Configurator
+
+	AuthorizationServerIssuerIdentificationProvider
+	JWTSecuredResponseModeProvider
+}
+
+// AuthorizationServerIssuerIdentificationProvider provides OAuth 2.0 Authorization Server Issuer Identification related methods.
+type AuthorizationServerIssuerIdentificationProvider interface {
+	GetAuthorizationServerIdentificationIssuer(ctx context.Context) (issuer string)
+}
+
+// JWTSecuredResponseModeProvider provides JARM related methods.
+type JWTSecuredResponseModeProvider interface {
+	GetJWTSecuredAuthorizeResponseModeLifespan(ctx context.Context) (lifespan time.Duration)
+	GetJWTSecuredAuthorizeResponseModeSigner(ctx context.Context) (signer fjwt.Signer)
+	GetJWTSecuredAuthorizeResponseModeIssuer(ctx context.Context) (issuer string)
+}
+
+// IDTokenSessionContainer is similar to the oauth2.JWTSessionContainer to facilitate obtaining the headers as appropriate.
+type IDTokenSessionContainer interface {
+	IDTokenHeaders() *fjwt.Headers
+	IDTokenClaims() *fjwt.IDTokenClaims
 }
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.

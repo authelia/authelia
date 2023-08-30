@@ -117,6 +117,9 @@ Feature List:
 {{< roadmap-status stage="in-progress" version="v4.38.0" >}}
 
 * [RFC9126: OAuth 2.0 Pushed Authorization Requests]
+* [RFC9207: OAuth 2.0 Authorization Server Issuer Identification]
+* [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)]
+* [JWT Response for OAuth Token Inspection]
 * [RFC7523: JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants]:
   * Client Auth Method `client_secret_jwt`
   * Client Auth Method `private_key_jwt`
@@ -131,7 +134,6 @@ Feature List:
   * Policies can be mapped to individual clients and reused
   * Match criteria is only subjects as this is the only effective thing that is constant during the life of an
     authorization
-* [JWT Response for OAuth Token Inspection](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-jwt-introspection-response)
 
 ### Beta 7
 
@@ -255,3 +257,7 @@ The `preferred_username` claim was missing and was fixed.
 [RFC7523: JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants]: https://datatracker.ietf.org/doc/html/rfc7523
 [RFC9126: OAuth 2.0 Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
 [RFC8414: OAuth 2.0 Authorization Server Metadata]: https://datatracker.ietf.org/doc/html/rfc8414
+[RFC9207: OAuth 2.0 Authorization Server Issuer Identification]: https://datatracker.ietf.org/doc/html/rfc9207
+
+[JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)]: https://openid.net/specs/oauth-v2-jarm.html
+[JWT Response for OAuth Token Inspection]: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-jwt-introspection-response

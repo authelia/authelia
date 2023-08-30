@@ -444,7 +444,7 @@ func TestShouldConfigureConsent(t *testing.T) {
 
 	require.Len(t, config.IdentityProviders.OIDC.Clients, 1)
 	assert.Equal(t, config.IdentityProviders.OIDC.Clients[0].ConsentMode, "explicit")
-	assert.Equal(t, "none", config.IdentityProviders.OIDC.Clients[0].UserinfoSigningAlg)
+	assert.Equal(t, "none", config.IdentityProviders.OIDC.Clients[0].UserinfoSignedResponseAlg)
 }
 
 func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {

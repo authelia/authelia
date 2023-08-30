@@ -149,7 +149,7 @@ The list of JWKS instead of or in addition to the [issuer_private_key](#issuerpr
 
 The default key for each algorithm is is decided based on the order of this list. The first key for each algorithm is
 considered the default if a client is not configured to use a specific key id. For example if a client has
-[id_token_signing_alg](clients.md#idtokensigningalg) `ES256` and [id_token_signing_key_id](clients.md#idtokensigningkid) is
+[id_token_signed_response_alg](clients.md#idtokensignedresponsealg) `ES256` and [id_token_signed_response_key_id](clients.md#idtokensignedresponsekeyid) is
 not specified then the first `ES256` key in this list is used.
 
 #### key_id

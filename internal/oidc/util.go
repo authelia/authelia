@@ -289,3 +289,42 @@ func sliceIntrospectionResponseToRequesterAudience(response fosite.Introspection
 
 	return nil
 }
+
+func mapCopy(src map[string]any) (dst map[string]any) {
+	dst = make(map[string]any, len(src))
+	for k, v := range src {
+		dst[k] = v
+	}
+
+	return dst
+}
+
+func toStringSlice(v any) (result []string) {
+	switch s := v.(type) {
+	case string:
+		return []string{s}
+	case []string:
+		return s
+	case []any:
+		for _, sv := range s {
+			if ss, ok := sv.(string); ok {
+				result = append(result, ss)
+			}
+		}
+
+		return result
+	default:
+		return nil
+	}
+}
+
+func toTime(v any, def time.Time) (t time.Time) {
+	switch a := v.(type) {
+	case float64:
+		return time.Unix(int64(a), 0).UTC()
+	case int64:
+		return time.Unix(a, 0).UTC()
+	default:
+		return def
+	}
+}

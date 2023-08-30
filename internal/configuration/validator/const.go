@@ -212,6 +212,8 @@ const (
 	errFmtOIDCClientInvalidEntryDuplicates = "identity_providers: oidc: clients: client '%s': option '%s' must have unique values but the values %s are duplicated"
 	errFmtOIDCClientInvalidValue           = "identity_providers: oidc: clients: client '%s': option " +
 		"'%s' must be one of %s but it's configured as '%s'"
+	errFmtOIDCClientInvalidLifespan = "identity_providers: oidc: clients: client '%s': option " +
+		"'lifespan' must not be configured when no custom lifespans are configured but it's configured as '%s'"
 	errFmtOIDCClientInvalidTokenEndpointAuthMethod = "identity_providers: oidc: clients: client '%s': option " +
 		"'token_endpoint_auth_method' must be one of %s when configured as the confidential client type unless it only includes implicit flow response types such as %s but it's configured as '%s'"
 	errFmtOIDCClientInvalidTokenEndpointAuthMethodPublic = "identity_providers: oidc: clients: client '%s': option " +
@@ -466,11 +468,14 @@ const (
 	attrOIDCGrantTypes          = "grant_types"
 	attrOIDCRedirectURIs        = "redirect_uris"
 	attrOIDCTokenAuthMethod     = "token_endpoint_auth_method"
-	attrOIDCUsrSigAlg           = "userinfo_signing_alg"
+	attrOIDCUsrSigAlg           = "userinfo_signed_response_alg"
+	attrOIDCUsrSigKID           = "userinfo_signed_response_key_id"
 	attrOIDCIntrospectionSigAlg = "introspection_signed_response_alg"
-	attrOIDCUsrSigKID           = "userinfo_signing_key_id"
-	attrOIDCIDTokenSigAlg       = "id_token_signing_alg"
-	attrOIDCIDTokenSigKID       = "id_token_signing_key_id"
+	attrOIDCIntrospectionSigKID = "introspection_signed_response_key_id"
+	attrOIDCAuthorizationSigAlg = "authorization_signed_response_alg"
+	attrOIDCAuthorizationSigKID = "authorization_signed_response_key_id"
+	attrOIDCIDTokenSigAlg       = "id_token_signed_response_alg"
+	attrOIDCIDTokenSigKID       = "id_token_signed_response_key_id"
 	attrOIDCPKCEChallengeMethod = "pkce_challenge_method"
 )
 
@@ -479,7 +484,7 @@ var (
 
 	validOIDCClientScopes                    = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess}
 	validOIDCClientConsentModes              = []string{auto, oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
-	validOIDCClientResponseModes             = []string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery, oidc.ResponseModeFragment}
+	validOIDCClientResponseModes             = []string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery, oidc.ResponseModeFragment, oidc.ResponseModeJWT, oidc.ResponseModeFormPostJWT, oidc.ResponseModeQueryJWT, oidc.ResponseModeFragmentJWT}
 	validOIDCClientResponseTypes             = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth, oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
 	validOIDCClientResponseTypesImplicitFlow = []string{oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth}
 	validOIDCClientResponseTypesHybridFlow   = []string{oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}

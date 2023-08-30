@@ -24,7 +24,7 @@ information on how to configure the Authelia [OpenID Connect 1.0] Provider (note
 the registered clients in the provider).
 
 This page is intended as an integration reference point for any implementers who wish to integrate an
-[OpenID Connect 1.0] Relying Party (client application) either as a developer or user of the third party Reyling Party.
+[OpenID Connect 1.0] Relying Party (client application) either as a developer or user of the third party Relying Party.
 
 ## Scope Definitions
 
@@ -189,10 +189,10 @@ configuration option.
 | [OAuth 2.0 Form Post] |    Yes    |   `form_post`   |
 |     Query String      |    Yes    |     `query`     |
 |       Fragment        |    Yes    |   `fragment`    |
-|        [JARM]         |    No     |      `jwt`      |
-|  [Form Post (JARM)]   |    No     | `form_post.jwt` |
-| [Query String (JARM)] |    No     |   `query.jwt`   |
-|   [Fragment (JARM)]   |    No     | `fragment.jwt`  |
+|        [JARM]         |    Yes    |      `jwt`      |
+|  [Form Post (JARM)]   |    Yes    | `form_post.jwt` |
+| [Query String (JARM)] |    Yes    |   `query.jwt`   |
+|   [Fragment (JARM)]   |    Yes    | `fragment.jwt`  |
 
 [OAuth 2.0 Form Post]: https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
 [Form Post (JARM)]: https://openid.net/specs/openid-financial-api-jarm.html#response-mode-form_post.jwt
@@ -299,7 +299,7 @@ When responding with the Signed JWT the JWT `typ` header has the value of `token
 ## User Information Signing Algorithm
 
 The following table describes the response from the [UserInfo] endpoint depending on the
-[userinfo_signing_alg](../../configuration/identity-providers/openid-connect/clients.md#userinfosigningalg).
+[userinfo_signed_response_alg](../../configuration/identity-providers/openid-connect/clients.md#userinfosignedresponsealg).
 
 | Signing Algorithm |   Encoding   |           Content Type            |
 |:-----------------:|:------------:|:---------------------------------:|
@@ -354,7 +354,9 @@ These endpoints implement OpenID Connect 1.0 Provider specifications.
 
 ## Security
 
-The following information covers some security topics some users may wish to be familiar with.
+The following information covers some security topics some users may wish to be familiar with. All of these elements
+offer hardening to the flows in differing ways (i.e. some validate the authorization server and some validate the
+client / relying party) which are not essential but recommended.
 
 #### Pushed Authorization Requests Endpoint
 
@@ -388,6 +390,23 @@ The advantages of this approach are as follows:
       have the credentials.
    2. Clients using the public [Client Type] and utilizing [Proof Key Code Exchange](#proof-key-code-exchange) never
       transmit the verifier over any front-channel making even the `plain` challenge method relatively secure.
+
+#### OAuth 2.0 Authorization Server Issuer Identification
+
+The [RFC9207: OAuth 2.0 Authorization Server Issuer Identification] implementation allows relying parties to validate
+the Authorization Response was returned by the expected issuer by ensuring the response includes the exact issuer in
+the response. This is an additional check in addition to the `state` parameter.
+
+This validation is not supported by many clients but it should be utilized if it is supported.
+
+#### JWT Secured Authorization Response Mode (JARM)
+
+The [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)] implementation similar to
+[OAuth 2.0 Authorization Server Issuer Identification](#oauth-20-authorization-server-issuer-identification) allows a
+relying party to ensure the Authorization Response was returned by the expected issuer and also ensures the response
+was not tampered with or forged as it is cryptographically signed.
+
+This response mode is not supported by many clients but we recommend it is used if it's supported.
 
 #### Proof Key Code Exchange
 
@@ -446,3 +465,5 @@ The advantages of this approach are as follows:
 [RFC9126]: https://datatracker.ietf.org/doc/html/rfc9126
 
 [RFC3987 Section 6.2.1: Simple String Comparison]: https://datatracker.ietf.org/doc/html/rfc3986#section-6.2.1
+[JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)]: https://openid.net/specs/oauth-v2-jarm.html
+[RFC9207: OAuth 2.0 Authorization Server Issuer Identification]: https://datatracker.ietf.org/doc/html/rfc9207

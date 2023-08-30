@@ -57,10 +57,12 @@ identity_providers:
         enforce_par: false
         enforce_pkce: false
         pkce_challenge_method: 'S256'
-        id_token_signing_alg: 'RS256'
-        id_token_signing_key_id: ''
-        userinfo_signing_alg: 'none'
-        userinfo_signing_key_id: ''
+        authorization_signed_response_alg: 'RS256'
+        authorization_signed_response_key_id: ''
+        id_token_signed_response_alg: 'RS256'
+        id_token_signed_response_key_id: ''
+        userinfo_signed_response_alg: 'none'
+        userinfo_signed_response_key_id: ''
         request_object_signing_alg: 'RS256'
         token_endpoint_auth_signing_alg: 'RS256'
         token_endpoint_auth_method: ''
@@ -286,11 +288,40 @@ effectively enables the [enforce_pkce](#enforcepkce) option for this client.
 Valid values are an empty string, `plain`, or `S256`. It should be noted that `S256` is strongly recommended if the
 relying party supports it.
 
-### id_token_signing_alg
+### authorization_signed_response_alg
 
 {{< confkey type="string" default="RS256" required="no" >}}
 
-_**Note:** This value is completely ignored if the [id_token_signing_key_id](#idtokensigningkeyid) is defined._
+_**Note:** This value is completely ignored if the [authorization_signed_response_key_id](#authorizationsignedresponsekeyid) is
+defined._
+
+The algorithm used to sign the authorization responses.
+
+See the response object section of the
+[integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information including
+the algorithm column for supported values. This value can not be set to `none`.
+
+The algorithm chosen must have a key configured in the [issuer_private_keys](provider.md#issuerprivatekeys) section to
+be considered valid.
+
+See the response object section of the [integration guide](../../../integration/openid-connect/introduction.md#response-object)
+for more information including the algorithm column for supported values.
+
+### authorization_signed_response_key_id
+
+{{< confkey type="string" required="no" >}}
+
+_**Note:** This value automatically configures the [authorization_signed_response_alg](#authorizationsignedresponsealg) value with the algorithm
+of the specified key._
+
+The key id of the JWK used to sign the ID Tokens in the token responses. The value of this must one of those provided or
+calculated in the [issuer_private_keys](provider.md#issuerprivatekeys).
+
+### id_token_signed_response_alg
+
+{{< confkey type="string" default="RS256" required="no" >}}
+
+_**Note:** This value is completely ignored if the [id_token_signed_response_key_id](#idtokensignedresponsekeyid) is defined._
 
 The algorithm used to sign the ID Tokens in the token responses.
 
@@ -304,21 +335,21 @@ be considered valid.
 See the response object section of the [integration guide](../../../integration/openid-connect/introduction.md#response-object)
 for more information including the algorithm column for supported values.
 
-### id_token_signing_key_id
+### id_token_signed_response_key_id
 
 {{< confkey type="string" required="no" >}}
 
-_**Note:** This value automatically configures the [id_token_signing_alg](#idtokensigningalg) value with the algorithm
+_**Note:** This value automatically configures the [id_token_signed_response_alg](#idtokensignedresponsealg) value with the algorithm
 of the specified key._
 
 The key id of the JWK used to sign the ID Tokens in the token responses. The value of this must one of those provided or
 calculated in the [issuer_private_keys](provider.md#issuerprivatekeys).
 
-### userinfo_signing_alg
+### userinfo_signed_response_alg
 
 {{< confkey type="string" default="none" required="no" >}}
 
-_**Note:** This value is completely ignored if the [userinfo_signing_key_id](#userinfosigningkeyid) is defined._
+_**Note:** This value is completely ignored if the [userinfo_signed_response_key_id](#userinfosignedresponsealg) is defined._
 
 The algorithm used to sign the userinfo endpoint responses.
 
@@ -329,12 +360,12 @@ support `none` as a value for this endpoint.
 The algorithm chosen must have a key configured in the [issuer_private_keys](provider.md#issuerprivatekeys) section to
 be considered valid.
 
-### userinfo_signing_key_id
+### userinfo_signed_response_key_id
 
 {{< confkey type="string" required="no" >}}
 
-_**Note:** This value automatically configures the [userinfo_signing_alg](#userinfosigningalg) value with the algorithm
-of the specified key._
+_**Note:** This value automatically configures the [userinfo_signed_response_alg](#userinfosignedresponsealg) value
+with the algorithm of the specified key._
 
 The key id of the JWK used to sign the userinfo endpoint responses in the token responses. The value of this must one of
 those provided or calculated in the

@@ -1415,24 +1415,37 @@ notifier:
         ## available if configured.
         # request_object_signing_alg: 'RS256'
 
-        ## The signing algorithm used for ID Tokens. An issuer JWK with a matching algorithm must be available.
-        ## Has no effect if id_token_signing_key_id is configured.
-        # id_token_signing_alg: 'RS256'
+        ## The signing algorithm used for signing the authorization response. An issuer JWK with a matching algorithm
+        ## must be available when configured. Configuring this value enables the  JWT Secured Authorization Response
+        ## Mode (JARM) for this client. JARM is not understood by a majority of clients so you should only configure
+        ## this when you know it's supported.
+        ## Has no effect if authorization_signed_response_key_id is configured.
+        # authorization_signed_response_alg: 'none'
+
+        ## The signing key id used for signing the authorization response. An issuer JWK with a matching key id must be
+        ## available when configured. Configuring this value enables the JWT Secured Authorization Response Mode (JARM)
+        ## for this client. JARM is not understood by a majority of clients so you should only configure this when you
+        ## know it's supported.
+        # authorization_signed_response_key_id: ''
+
+        ## The signing algorithm used for ID Tokens. An issuer JWK with a matching algorithm must be available when
+        ## configured. Has no effect if id_token_signed_response_key_id is configured.
+        # id_token_signed_response_alg: 'RS256'
 
         ## The signing key id used for ID Tokens. An issuer JWK with a matching key id must be available when
         ## configured.
-        # id_token_signing_key_id: ''
+        # id_token_signed_response_key_id: ''
 
         ## The signing algorithm used for User Info responses. An issuer JWK with a matching algorithm must be
         ## available. Has no effect if userinfo_signing_key_id is configured.
-        # userinfo_signing_alg: 'none'
+        # userinfo_signed_response_alg: 'none'
 
         ## The signing key id used for User Info responses. An issuer JWK with a matching key id must be available when
         ## configured.
-        # userinfo_signing_key_id: ''
+        # userinfo_signed_response_key_id: ''
 
         ## The signing algorithm used for Introspection responses. An issuer JWK with a matching algorithm must be
-        ## available. Has no effect if introspection_signed_response_key_id is configured.
+        ## available when configured. Has no effect if introspection_signed_response_key_id is configured.
         # introspection_signed_response_alg: 'none'
 
         ## The signing key id used for Introspection responses. An issuer JWK with a matching key id must be available

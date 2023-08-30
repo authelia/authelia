@@ -1,6 +1,7 @@
 package oidc_test
 
 import (
+	"net/url"
 	"sort"
 	"testing"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/text/language"
 	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/model"
@@ -197,4 +199,95 @@ func TestIntrospectionResponseToMap(t *testing.T) {
 			assert.Equal(t, tc.expected, introspection)
 		})
 	}
+}
+
+func TestGetLangFromRequester(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     fosite.Requester
+		expected language.Tag
+	}{
+		{
+			"ShouldReturnDefault",
+			&TestGetLangRequester{},
+			language.English,
+		},
+		{
+			"ShouldReturnEmpty",
+			&fosite.Request{},
+			language.Tag{},
+		},
+		{
+			"ShouldReturnValueFromRequest",
+			&fosite.Request{
+				Lang: language.French,
+			},
+			language.French,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, oidc.GetLangFromRequester(tc.have))
+		})
+	}
+}
+
+type TestGetLangRequester struct {
+}
+
+func (t TestGetLangRequester) SetID(id string) {}
+
+func (t TestGetLangRequester) GetID() string {
+	return ""
+}
+
+func (t TestGetLangRequester) GetRequestedAt() (requestedAt time.Time) {
+	return time.Now().UTC()
+}
+
+func (t TestGetLangRequester) GetClient() (client fosite.Client) {
+	return nil
+}
+
+func (t TestGetLangRequester) GetRequestedScopes() (scopes fosite.Arguments) {
+	return nil
+}
+
+func (t TestGetLangRequester) GetRequestedAudience() (audience fosite.Arguments) {
+	return nil
+}
+
+func (t TestGetLangRequester) SetRequestedScopes(scopes fosite.Arguments) {}
+
+func (t TestGetLangRequester) SetRequestedAudience(audience fosite.Arguments) {}
+
+func (t TestGetLangRequester) AppendRequestedScope(scope string) {}
+
+func (t TestGetLangRequester) GetGrantedScopes() (grantedScopes fosite.Arguments) {
+	return nil
+}
+
+func (t TestGetLangRequester) GetGrantedAudience() (grantedAudience fosite.Arguments) {
+	return nil
+}
+
+func (t TestGetLangRequester) GrantScope(scope string) {}
+
+func (t TestGetLangRequester) GrantAudience(audience string) {}
+
+func (t TestGetLangRequester) GetSession() (session fosite.Session) {
+	return nil
+}
+
+func (t TestGetLangRequester) SetSession(session fosite.Session) {}
+
+func (t TestGetLangRequester) GetRequestForm() url.Values {
+	return nil
+}
+
+func (t TestGetLangRequester) Merge(requester fosite.Requester) {}
+
+func (t TestGetLangRequester) Sanitize(allowedParameters []string) fosite.Requester {
+	return nil
 }

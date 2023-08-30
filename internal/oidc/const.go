@@ -52,10 +52,11 @@ const (
 const httpAuthSchemeBasic = "Basic"
 
 const (
-	lifespanTokenDefault         = time.Hour
-	lifespanRefreshTokenDefault  = time.Hour * 24 * 30
-	lifespanAuthorizeCodeDefault = time.Minute * 15
-	lifespanPARContextDefault    = time.Minute * 5
+	lifespanTokenDefault                   = time.Hour
+	lifespanRefreshTokenDefault            = time.Hour * 24 * 30
+	lifespanAuthorizeCodeDefault           = time.Minute * 15
+	lifespanJWTSecuredAuthorizationDefault = time.Minute * 5
+	lifespanPARContextDefault              = time.Minute * 5
 )
 
 const (
@@ -70,9 +71,13 @@ const (
 
 // Response Mode strings.
 const (
-	ResponseModeQuery    = "query"
-	ResponseModeFormPost = "form_post"
-	ResponseModeFragment = "fragment"
+	ResponseModeFormPost    = "form_post"
+	ResponseModeQuery       = "query"
+	ResponseModeFragment    = "fragment"
+	ResponseModeJWT         = "jwt"
+	ResponseModeFormPostJWT = "form_post.jwt"
+	ResponseModeQueryJWT    = "query.jwt"
+	ResponseModeFragmentJWT = "fragment.jwt"
 )
 
 // Grant Type strings.
@@ -156,6 +161,7 @@ const (
 	FormParameterClientSecret        = "client_secret"
 	FormParameterRequestURI          = "request_uri"
 	FormParameterRedirectURI         = "redirect_uri"
+	FormParameterResponse            = "response"
 	FormParameterResponseMode        = "response_mode"
 	FormParameterResponseType        = "response_type"
 	FormParameterCodeChallenge       = "code_challenge"
