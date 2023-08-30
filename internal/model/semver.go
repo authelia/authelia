@@ -51,6 +51,27 @@ type SemanticVersion struct {
 	Metadata   []string
 }
 
+// Copy the values for this SemanticVersion.
+func (v SemanticVersion) Copy() SemanticVersion {
+	return SemanticVersion{
+		Major:      v.Major,
+		Minor:      v.Minor,
+		Patch:      v.Patch,
+		PreRelease: v.PreRelease,
+		Metadata:   v.Metadata,
+	}
+}
+
+// IsStable returns true if the pre release and metadata values are empty and the major value is above 0.
+func (v SemanticVersion) IsStable() bool {
+	return v.IsAbsolute() && v.Major > 0
+}
+
+// IsAbsolute returns true if the pre release and metadata values are empty.
+func (v SemanticVersion) IsAbsolute() bool {
+	return len(v.PreRelease) == 0 && len(v.Metadata) == 0
+}
+
 // String is a function to provide a nice representation of a SemanticVersion.
 func (v SemanticVersion) String() (value string) {
 	builder := strings.Builder{}
