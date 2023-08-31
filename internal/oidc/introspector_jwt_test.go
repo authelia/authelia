@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/ory/fosite"
 	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/stretchr/testify/assert"

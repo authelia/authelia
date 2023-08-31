@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
@@ -66,7 +66,15 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		Subject:     uuid.NullUUID{UUID: subject, Valid: true},
 	}
 
-	session := oidc.NewSessionWithAuthorizeRequest(MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request)
+	ctx := &TestContext{}
+
+	clock := &utils.TestingClock{}
+
+	clock.Set(time.Unix(10000000000, 0))
+
+	ctx.Clock = clock
+
+	session := oidc.NewSessionWithAuthorizeRequest(ctx, MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Extra)
@@ -96,7 +104,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		RequestedAt: requested,
 	}
 
-	session = oidc.NewSessionWithAuthorizeRequest(MustParseRequestURI(issuer), "primary", "john", nil, nil, authAt, consent, request)
+	session = oidc.NewSessionWithAuthorizeRequest(ctx, MustParseRequestURI(issuer), "primary", "john", nil, nil, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Claims)

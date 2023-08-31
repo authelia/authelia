@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/handler/openid"
 	fjwt "github.com/ory/fosite/token/jwt"

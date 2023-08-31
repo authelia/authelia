@@ -2,6 +2,7 @@ package oidc_test
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"testing"
 	"time"
@@ -87,4 +88,37 @@ func TestHMACCoreStrategy(t *testing.T) {
 	assert.EqualError(t, strategy.ValidateAccessToken(ctx, &fosite.Request{RequestedAt: time.Now().Add(time.Hour * -2400), Session: &fosite.DefaultSession{}}, token), "invalid_token")
 	assert.NoError(t, strategy.ValidateAccessToken(ctx, &fosite.Request{RequestedAt: time.Now().Add(time.Hour * -2400), Session: &fosite.DefaultSession{ExpiresAt: map[fosite.TokenType]time.Time{fosite.AccessToken: time.Now().Add(100 * time.Hour)}}}, token))
 	assert.EqualError(t, strategy.ValidateAccessToken(ctx, &fosite.Request{RequestedAt: time.Now(), Session: &fosite.DefaultSession{ExpiresAt: map[fosite.TokenType]time.Time{fosite.AccessToken: time.Now().Add(-100 * time.Second)}}}, token), "invalid_token")
+
+	badconfig := &BadGlobalSecretConfig{
+		Config: config,
+	}
+
+	badstrategy := &oidc.HMACCoreStrategy{
+		Enigma: &hmac.HMACStrategy{Config: badconfig},
+		Config: badconfig,
+	}
+
+	token, signature, err = badstrategy.GenerateRefreshToken(ctx, &fosite.Request{})
+	assert.Equal(t, "", token)
+	assert.Equal(t, "", signature)
+	assert.EqualError(t, oidc.ErrorToDebugRFC6749Error(err), "bad secret")
+
+	token, signature, err = badstrategy.GenerateAccessToken(ctx, &fosite.Request{})
+	assert.Equal(t, "", token)
+	assert.Equal(t, "", signature)
+	assert.EqualError(t, oidc.ErrorToDebugRFC6749Error(err), "bad secret")
+
+	token, signature, err = badstrategy.GenerateAuthorizeCode(ctx, &fosite.Request{})
+
+	assert.Equal(t, "", token)
+	assert.Equal(t, "", signature)
+	assert.EqualError(t, oidc.ErrorToDebugRFC6749Error(err), "bad secret")
+}
+
+type BadGlobalSecretConfig struct {
+	*oidc.Config
+}
+
+func (*BadGlobalSecretConfig) GetGlobalSecret(ctx context.Context) ([]byte, error) {
+	return nil, fmt.Errorf("bad secret")
 }

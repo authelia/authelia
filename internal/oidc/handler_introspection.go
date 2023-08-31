@@ -112,22 +112,27 @@ type IntrospectionResponse struct {
 	Lang            language.Tag           `json:"-"`
 }
 
+// IsActive returns if the introspected token is active.
 func (r *IntrospectionResponse) IsActive() bool {
 	return r.Active
 }
 
+// GetClient returns the client related to the introspected token.
 func (r *IntrospectionResponse) GetClient() fosite.Client {
 	return r.Client
 }
 
+// GetAccessRequester returns the attached fosite.AccessRequester for the introspected token.
 func (r *IntrospectionResponse) GetAccessRequester() fosite.AccessRequester {
 	return r.AccessRequester
 }
 
+// GetTokenUse returns the fosite.TokenUse for the introspected token.
 func (r *IntrospectionResponse) GetTokenUse() fosite.TokenUse {
 	return r.TokenUse
 }
 
+// GetAccessTokenType returns the type for the introspected token.
 func (r *IntrospectionResponse) GetAccessTokenType() string {
 	return r.AccessTokenType
 }

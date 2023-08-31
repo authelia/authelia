@@ -364,10 +364,6 @@ func TestNewOAuth2PARContext(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			actual, err := model.NewOAuth2PARContext(tc.id, tc.have)
 
-			if tc.name == "ShouldCreatePARContext" {
-				fmt.Println(string(actual.Session))
-			}
-
 			if tc.err == "" {
 				assert.NoError(t, err)
 				assert.Equal(t, tc.expected, actual)

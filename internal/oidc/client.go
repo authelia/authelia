@@ -165,6 +165,10 @@ func (c *BaseClient) GetAuthorizationSignedResponseAlg() (alg string) {
 
 // GetAuthorizationSignedResponseKeyID returns the AuthorizationSignedResponseKeyID.
 func (c *BaseClient) GetAuthorizationSignedResponseKeyID() (kid string) {
+	if c.AuthorizationSignedResponseKeyID == "" {
+		c.AuthorizationSignedResponseKeyID = SigningAlgNone
+	}
+
 	return c.AuthorizationSignedResponseKeyID
 }
 

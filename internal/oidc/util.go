@@ -21,6 +21,7 @@ func IsPushedAuthorizedRequest(r fosite.Requester, prefix string) bool {
 	return strings.HasPrefix(r.GetRequestForm().Get(FormParameterRequestURI), prefix)
 }
 
+// MatchScopes uses a fosite.ScopeStrategy to check if scopes match.
 func MatchScopes(strategy fosite.ScopeStrategy, granted, scopes []string) error {
 	for _, scope := range scopes {
 		if scope == "" {

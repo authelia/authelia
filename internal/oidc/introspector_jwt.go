@@ -9,6 +9,7 @@ import (
 	"github.com/ory/x/errorsx"
 )
 
+// StatelessJWTValidator is a stateless introspect for the JWT Access Tokens.
 type StatelessJWTValidator struct {
 	jwt.Signer
 	Config interface {
@@ -16,8 +17,9 @@ type StatelessJWTValidator struct {
 	}
 }
 
+// IntrospectToken handles stateless token introspection if the token is a JWT Access Token.
 func (v *StatelessJWTValidator) IntrospectToken(ctx context.Context, token string, tokenUse fosite.TokenUse, accessRequest fosite.AccessRequester, scopes []string) (fosite.TokenUse, error) {
-	if !isJWT(token) {
+	if ok, _ := isAccessTokenJWT(token); !ok {
 		return "", fosite.ErrUnknownRequest.WithDebug("The provided token appears to be an opaque token not a JWT.")
 	}
 
@@ -40,3 +42,7 @@ func (v *StatelessJWTValidator) IntrospectToken(ctx context.Context, token strin
 
 	return fosite.AccessToken, nil
 }
+
+var (
+	_ fosite.TokenIntrospector = (*StatelessJWTValidator)(nil)
+)

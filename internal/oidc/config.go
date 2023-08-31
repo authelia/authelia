@@ -120,11 +120,6 @@ type Config struct {
 	Templates *templates.Provider
 }
 
-type JWTAccessTokenConfig struct {
-	Enable                       bool
-	EnableStatelessIntrospection bool
-}
-
 // HashConfig holds specific fosite.Configurator information for hashing.
 type HashConfig struct {
 	ClientSecrets fosite.Hasher
@@ -141,9 +136,10 @@ type StrategyConfig struct {
 	ClientAuthentication fosite.ClientAuthenticationStrategy
 }
 
-// JARMConfig holds specific fosite.Configurator information for JWT Secured Response Modes.
-type JARMConfig struct {
-	Lifespan time.Duration
+// JWTAccessTokenConfig represents the JWT Access Token config.
+type JWTAccessTokenConfig struct {
+	Enable                       bool
+	EnableStatelessIntrospection bool
 }
 
 // PARConfig holds specific fosite.Configurator information for Pushed Authorization Requests.

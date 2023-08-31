@@ -1660,6 +1660,169 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 		},
 		{
+			"ShouldConfigureKID",
+			func(have *schema.OpenIDConnect) {
+				have.IssuerPrivateKeys = []schema.JWK{
+					{
+						KeyID:     "idES512",
+						Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512,
+					},
+					{
+						KeyID:     "idRS384",
+						Algorithm: oidc.SigningAlgRSAUsingSHA384,
+					},
+					{
+						KeyID:     "idRS512",
+						Algorithm: oidc.SigningAlgRSAUsingSHA512,
+					},
+				}
+
+				have.Clients[0].IntrospectionSignedResponseAlg = oidc.SigningAlgRSAUsingSHA384
+				have.Clients[0].UserinfoSignedResponseAlg = oidc.SigningAlgRSAUsingSHA512
+				have.Clients[0].IDTokenSignedResponseAlg = oidc.SigningAlgECDSAUsingP521AndSHA512
+				have.Clients[0].AccessTokenSignedResponseAlg = oidc.SigningAlgECDSAUsingP521AndSHA512
+				have.Clients[0].AuthorizationSignedResponseAlg = oidc.SigningAlgECDSAUsingP521AndSHA512
+
+				have.Discovery.ResponseObjectSigningAlgs = []string{oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512}
+				have.Discovery.ResponseObjectSigningKeyIDs = []string{"id" + oidc.SigningAlgRSAUsingSHA384, "id" + oidc.SigningAlgRSAUsingSHA512, "id" + oidc.SigningAlgECDSAUsingP521AndSHA512}
+			},
+			func(t *testing.T, have *schema.OpenIDConnect) {
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA384, have.Clients[0].IntrospectionSignedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA512, have.Clients[0].UserinfoSignedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].IDTokenSignedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].AccessTokenSignedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].AuthorizationSignedResponseAlg)
+
+				assert.Equal(t, "id"+oidc.SigningAlgRSAUsingSHA384, have.Clients[0].IntrospectionSignedResponseKeyID)
+				assert.Equal(t, "id"+oidc.SigningAlgRSAUsingSHA512, have.Clients[0].UserinfoSignedResponseKeyID)
+				assert.Equal(t, "id"+oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].IDTokenSignedResponseKeyID)
+				assert.Equal(t, "id"+oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].AccessTokenSignedResponseKeyID)
+				assert.Equal(t, "id"+oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].AuthorizationSignedResponseKeyID)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldConfigureAlg",
+			func(have *schema.OpenIDConnect) {
+				have.IssuerPrivateKeys = []schema.JWK{
+					{
+						KeyID:     "idES512",
+						Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512,
+					},
+					{
+						KeyID:     "idRS384",
+						Algorithm: oidc.SigningAlgRSAUsingSHA384,
+					},
+					{
+						KeyID:     "idRS512",
+						Algorithm: oidc.SigningAlgRSAUsingSHA512,
+					},
+				}
+
+				have.Clients[0].IntrospectionSignedResponseKeyID = "id" + oidc.SigningAlgRSAUsingSHA384
+				have.Clients[0].UserinfoSignedResponseKeyID = "id" + oidc.SigningAlgRSAUsingSHA512
+				have.Clients[0].IDTokenSignedResponseKeyID = "id" + oidc.SigningAlgECDSAUsingP521AndSHA512
+				have.Clients[0].AccessTokenSignedResponseKeyID = "id" + oidc.SigningAlgECDSAUsingP521AndSHA512
+				have.Clients[0].AuthorizationSignedResponseKeyID = "id" + oidc.SigningAlgECDSAUsingP521AndSHA512
+
+				have.Discovery.ResponseObjectSigningAlgs = []string{oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512}
+				have.Discovery.ResponseObjectSigningKeyIDs = []string{"id" + oidc.SigningAlgRSAUsingSHA384, "id" + oidc.SigningAlgRSAUsingSHA512, "id" + oidc.SigningAlgECDSAUsingP521AndSHA512}
+			},
+			func(t *testing.T, have *schema.OpenIDConnect) {
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA384, have.Clients[0].IntrospectionSignedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA512, have.Clients[0].UserinfoSignedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].IDTokenSignedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].AccessTokenSignedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].AuthorizationSignedResponseAlg)
+
+				assert.Equal(t, "id"+oidc.SigningAlgRSAUsingSHA384, have.Clients[0].IntrospectionSignedResponseKeyID)
+				assert.Equal(t, "id"+oidc.SigningAlgRSAUsingSHA512, have.Clients[0].UserinfoSignedResponseKeyID)
+				assert.Equal(t, "id"+oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].IDTokenSignedResponseKeyID)
+				assert.Equal(t, "id"+oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].AccessTokenSignedResponseKeyID)
+				assert.Equal(t, "id"+oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].AuthorizationSignedResponseKeyID)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldSetDefaultAlgKID",
+			func(have *schema.OpenIDConnect) {
+				have.IssuerPrivateKeys = []schema.JWK{
+					{
+						KeyID:     "idRS256",
+						Algorithm: oidc.SigningAlgRSAUsingSHA256,
+					},
+					{
+						KeyID:     "idES512",
+						Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512,
+					},
+					{
+						KeyID:     "idRS384",
+						Algorithm: oidc.SigningAlgRSAUsingSHA384,
+					},
+					{
+						KeyID:     "idRS512",
+						Algorithm: oidc.SigningAlgRSAUsingSHA512,
+					},
+				}
+
+				have.Discovery.ResponseObjectSigningAlgs = []string{oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512}
+				have.Discovery.ResponseObjectSigningKeyIDs = []string{"id" + oidc.SigningAlgRSAUsingSHA256, "id" + oidc.SigningAlgRSAUsingSHA384, "id" + oidc.SigningAlgRSAUsingSHA512, "id" + oidc.SigningAlgECDSAUsingP521AndSHA512}
+			},
+			func(t *testing.T, have *schema.OpenIDConnect) {
+				assert.Equal(t, oidc.SigningAlgNone, have.Clients[0].IntrospectionSignedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgNone, have.Clients[0].UserinfoSignedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, have.Clients[0].IDTokenSignedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgNone, have.Clients[0].AccessTokenSignedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgNone, have.Clients[0].AuthorizationSignedResponseAlg)
+
+				assert.Equal(t, "", have.Clients[0].IntrospectionSignedResponseKeyID)
+				assert.Equal(t, "", have.Clients[0].UserinfoSignedResponseKeyID)
+				assert.Equal(t, "idRS256", have.Clients[0].IDTokenSignedResponseKeyID)
+				assert.Equal(t, "", have.Clients[0].AccessTokenSignedResponseKeyID)
+				assert.Equal(t, "", have.Clients[0].AuthorizationSignedResponseKeyID)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
 			"ShouldNotOverrideResponseSigningAlg",
 			func(have *schema.OpenIDConnect) {
 				have.Clients[0].IntrospectionSignedResponseAlg = oidc.SigningAlgRSAUsingSHA384
@@ -1708,6 +1871,38 @@ func TestValidateOIDCClients(t *testing.T) {
 				assert.Equal(t, oidc.SigningAlgRSAUsingSHA512, have.Clients[0].UserinfoSignedResponseAlg)
 				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].IDTokenSignedResponseAlg)
 				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].AccessTokenSignedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].AuthorizationSignedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].AuthorizationSignedResponseAlg)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldConfigureKeyIDFromAlg",
+			func(have *schema.OpenIDConnect) {
+				have.Clients[0].IntrospectionSignedResponseAlg = oidc.SigningAlgRSAUsingSHA384
+				have.Clients[0].UserinfoSignedResponseAlg = oidc.SigningAlgRSAUsingSHA512
+				have.Clients[0].IDTokenSignedResponseAlg = oidc.SigningAlgECDSAUsingP521AndSHA512
+				have.Clients[0].AuthorizationSignedResponseAlg = oidc.SigningAlgECDSAUsingP521AndSHA512
+
+				have.Discovery.ResponseObjectSigningAlgs = []string{oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512}
+			},
+			func(t *testing.T, have *schema.OpenIDConnect) {
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA384, have.Clients[0].IntrospectionSignedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA512, have.Clients[0].UserinfoSignedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].IDTokenSignedResponseAlg)
 				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].AuthorizationSignedResponseAlg)
 			},
 			tcv{
@@ -2743,13 +2938,13 @@ func TestValidateOIDCIssuer(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		have     schema.OpenIDConnect
+		have     *schema.OpenIDConnect
 		expected schema.OpenIDConnect
 		errs     []string
 	}{
 		{
 			"ShouldMapLegacyConfiguration",
-			schema.OpenIDConnect{
+			&schema.OpenIDConnect{
 				IssuerPrivateKey: keyRSA2048,
 			},
 			schema.OpenIDConnect{
@@ -2766,7 +2961,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldSetDefaultKeyValues",
-			schema.OpenIDConnect{
+			&schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA2048, CertificateChain: certRSA2048},
 					{Key: keyECDSAP256, CertificateChain: certECDSAP256},
@@ -2795,7 +2990,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldNotRaiseErrorsMultipleRSA256Keys",
-			schema.OpenIDConnect{
+			&schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA2048, CertificateChain: certRSA2048},
 					{Key: keyRSA4096, CertificateChain: certRSA4096},
@@ -2815,7 +3010,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorsDuplicateRSA256Keys",
-			schema.OpenIDConnect{
+			&schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA512},
 				},
@@ -2835,7 +3030,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnBadCurve",
-			schema.OpenIDConnect{
+			&schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096},
 					{Key: keyECDSAP224, CertificateChain: certECDSAP224},
@@ -2857,7 +3052,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnBadRSAKey",
-			schema.OpenIDConnect{
+			&schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA1024, CertificateChain: certRSA1024},
 				},
@@ -2877,7 +3072,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnBadAlg",
-			schema.OpenIDConnect{
+			&schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: "invalid"},
 				},
@@ -2898,7 +3093,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnBadUse",
-			schema.OpenIDConnect{
+			&schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Use: "invalid"},
 				},
@@ -2918,7 +3113,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnBadKeyIDLength",
-			schema.OpenIDConnect{
+			&schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "thisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolong"},
 				},
@@ -2938,7 +3133,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnBadKeyIDCharacters",
-			schema.OpenIDConnect{
+			&schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "x@x"},
 					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "-xx"},
@@ -2964,7 +3159,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldNotRaiseErrorOnGoodKeyIDCharacters",
-			schema.OpenIDConnect{
+			&schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "x-x"},
 					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "x"},
@@ -2986,7 +3181,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnBadKeyIDDuplicates",
-			schema.OpenIDConnect{
+			&schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "x"},
 					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAPSSUsingSHA256, KeyID: "x"},
@@ -3008,7 +3203,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnEd25519Keys",
-			schema.OpenIDConnect{
+			&schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyEd2519, CertificateChain: certEd15519},
 				},
@@ -3028,7 +3223,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnCertificateAsKey",
-			schema.OpenIDConnect{
+			&schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: publicRSA2048Pair},
 				},
@@ -3048,7 +3243,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnInvalidChain",
-			schema.OpenIDConnect{
+			&schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: keyRSA2048, CertificateChain: frankenchain},
 				},
@@ -3068,7 +3263,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnInvalidPrivateKeyN",
-			schema.OpenIDConnect{
+			&schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: frankenkey},
 				},
@@ -3088,7 +3283,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		},
 		{
 			"ShouldRaiseErrorOnCertForKey",
-			schema.OpenIDConnect{
+			&schema.OpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
 					{Key: certRSA2048},
 				},
@@ -3114,7 +3309,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			val := schema.NewStructValidator()
 
-			validateOIDCIssuer(&tc.have, val)
+			validateOIDCIssuer(tc.have, val)
 
 			assert.Equal(t, tc.expected.Discovery.DefaultKeyIDs, tc.have.Discovery.DefaultKeyIDs)
 			assert.Equal(t, tc.expected.Discovery.ResponseObjectSigningAlgs, tc.have.Discovery.ResponseObjectSigningAlgs)

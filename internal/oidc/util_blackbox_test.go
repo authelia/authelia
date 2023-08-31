@@ -11,7 +11,7 @@ import (
 	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/text/language"
-	jose "gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/oidc"
 )

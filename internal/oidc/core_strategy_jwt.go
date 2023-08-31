@@ -17,6 +17,7 @@ import (
 // implementing RFC9068 JWT Profile for OAuth 2.0 Access Tokens.
 type JWTCoreStrategy struct {
 	jwt.Signer
+
 	HMACCoreStrategy *HMACCoreStrategy
 	Config           interface {
 		fosite.AccessTokenIssuerProvider
@@ -26,8 +27,10 @@ type JWTCoreStrategy struct {
 
 // AccessTokenSignature implements oauth2.AccessTokenStrategy.
 func (s *JWTCoreStrategy) AccessTokenSignature(ctx context.Context, token string) (signature string) {
-	if isJWT(token) {
-		return s.jwtSignature(token)
+	var ok bool
+
+	if ok, signature = isAccessTokenJWT(token); ok {
+		return signature
 	}
 
 	return s.HMACCoreStrategy.AccessTokenSignature(ctx, token)
@@ -41,7 +44,7 @@ func (s *JWTCoreStrategy) GenerateAccessToken(ctx context.Context, requester fos
 	)
 
 	if client, ok = requester.GetClient().(Client); ok && client.GetJWTProfileOAuthAccessTokensEnabled() {
-		return s.jwtGenerate(ctx, fosite.AccessToken, requester)
+		return s.GenerateJWT(ctx, fosite.AccessToken, requester)
 	}
 
 	return s.HMACCoreStrategy.GenerateAccessToken(ctx, requester)
@@ -49,7 +52,7 @@ func (s *JWTCoreStrategy) GenerateAccessToken(ctx context.Context, requester fos
 
 // ValidateAccessToken implements oauth2.AccessTokenStrategy.
 func (s *JWTCoreStrategy) ValidateAccessToken(ctx context.Context, requester fosite.Requester, token string) (err error) {
-	if isJWT(token) {
+	if ok, _ := isAccessTokenJWT(token); ok {
 		_, err = jwtValidate(ctx, s.Signer, token)
 
 		return err
@@ -88,10 +91,6 @@ func (s *JWTCoreStrategy) ValidateAuthorizeCode(ctx context.Context, req fosite.
 	return s.HMACCoreStrategy.ValidateAuthorizeCode(ctx, req, token)
 }
 
-func (s *JWTCoreStrategy) jwtSignature(token string) (signature string) {
-	return strings.Split(token, ".")[2]
-}
-
 func jwtValidate(ctx context.Context, signer jwt.Signer, rawToken string) (token *jwt.Token, err error) {
 	if token, err = signer.Decode(ctx, rawToken); err == nil {
 		return token, token.Claims.Valid()
@@ -106,15 +105,15 @@ func jwtValidate(ctx context.Context, signer jwt.Signer, rawToken string) (token
 	return token, nil
 }
 
-func (s *JWTCoreStrategy) jwtGenerate(ctx context.Context, tokenType fosite.TokenType, requester fosite.Requester) (string, string, error) {
-	if jwtSession, ok := requester.GetSession().(oauth2.JWTSessionContainer); !ok {
+func (s *JWTCoreStrategy) GenerateJWT(ctx context.Context, tokenType fosite.TokenType, requester fosite.Requester) (string, string, error) {
+	if session, ok := requester.GetSession().(oauth2.JWTSessionContainer); !ok {
 		return "", "", errors.Errorf("Session must be of type JWTSessionContainer but got type: %T", requester.GetSession())
-	} else if jwtSession.GetJWTClaims() == nil {
+	} else if session.GetJWTClaims() == nil {
 		return "", "", errors.New("GetTokenClaims() must not be nil")
 	} else {
-		claims := jwtSession.GetJWTClaims().
+		claims := session.GetJWTClaims().
 			With(
-				jwtSession.GetExpiresAt(tokenType),
+				session.GetExpiresAt(tokenType),
 				requester.GetGrantedScopes(),
 				requester.GetGrantedAudience(),
 			).
@@ -126,16 +125,22 @@ func (s *JWTCoreStrategy) jwtGenerate(ctx context.Context, tokenType fosite.Toke
 				s.Config.GetJWTScopeField(ctx),
 			)
 
-		return s.Signer.Generate(ctx, claims.ToMapClaims(), jwtSession.GetJWTHeader())
+		return s.Signer.Generate(ctx, claims.ToMapClaims(), session.GetJWTHeader())
 	}
 }
 
-func isJWT(token string) bool {
-	if strings.Count(token, ".") != 2 {
-		return false
+func isAccessTokenJWT(token string) (jwt bool, signature string) {
+	parts := strings.Split(token, ".")
+
+	if len(parts) != 3 {
+		return false, ""
 	}
 
-	return !strings.HasPrefix(token, fmt.Sprintf(tokenPrefixOrgAutheliaFmt, TokenPrefixPartAccessToken))
+	if strings.HasPrefix(token, fmt.Sprintf(tokenPrefixOrgAutheliaFmt, TokenPrefixPartAccessToken)) {
+		return false, ""
+	}
+
+	return true, parts[2]
 }
 
 func jwtValidationErrorToRFC6749Error(v *jwt.ValidationError) *fosite.RFC6749Error {
