@@ -28,26 +28,6 @@ import {
 } from "@services/Api";
 import { SignInResponse } from "@services/SignIn";
 
-export function isWebAuthnSecure(): boolean {
-    if (window.isSecureContext) {
-        return true;
-    }
-
-    return window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-}
-
-export function isWebAuthnSupported(): boolean {
-    return window?.PublicKeyCredential !== undefined && typeof window.PublicKeyCredential === "function";
-}
-
-export async function isWebAuthnPlatformAuthenticatorAvailable(): Promise<boolean> {
-    if (!isWebAuthnSupported()) {
-        return false;
-    }
-
-    return window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-}
-
 function getAttestationResultFromDOMException(exception: DOMException): AttestationResult {
     // Docs for this section:
     // https://w3c.github.io/webauthn/#sctn-op-make-cred
@@ -246,7 +226,7 @@ export async function finishRegistration(response: RegistrationResponseJSON) {
 }
 
 export async function deleteUserWebAuthnDevice(deviceID: string) {
-    return await axios<AuthenticationOKResponse>({
+    return axios<AuthenticationOKResponse>({
         method: "DELETE",
         url: `${WebAuthnDevicePath}/${deviceID}`,
         validateStatus: validateStatusAuthentication,
@@ -254,7 +234,7 @@ export async function deleteUserWebAuthnDevice(deviceID: string) {
 }
 
 export async function updateUserWebAuthnDevice(deviceID: string, description: string) {
-    return await axios<AuthenticationOKResponse>({
+    return axios<AuthenticationOKResponse>({
         method: "PUT",
         url: `${WebAuthnDevicePath}/${deviceID}`,
         data: { description: description },

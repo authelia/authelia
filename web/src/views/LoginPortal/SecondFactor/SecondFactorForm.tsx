@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import { Button, Grid, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
+import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
 import { Route, Routes, useNavigate } from "react-router-dom";
 
@@ -22,7 +23,6 @@ import { UserInfo } from "@models/UserInfo";
 import { initiateTOTPRegistrationProcess } from "@services/RegisterDevice";
 import { AuthenticationLevel } from "@services/State";
 import { setPreferred2FAMethod } from "@services/UserInfo";
-import { isWebAuthnSupported } from "@services/WebAuthn";
 import MethodSelectionDialog from "@views/LoginPortal/SecondFactor/MethodSelectionDialog";
 import OneTimePasswordMethod from "@views/LoginPortal/SecondFactor/OneTimePasswordMethod";
 import PushNotificationMethod from "@views/LoginPortal/SecondFactor/PushNotificationMethod";
@@ -48,7 +48,7 @@ const SecondFactorForm = function (props: Props) {
     const { t: translate } = useTranslation();
 
     useEffect(() => {
-        setStateWebAuthnSupported(isWebAuthnSupported());
+        setStateWebAuthnSupported(browserSupportsWebAuthn());
     }, [setStateWebAuthnSupported]);
 
     const initiateRegistration = (initiateRegistrationFunc: () => Promise<void>, redirectRoute: string) => {
