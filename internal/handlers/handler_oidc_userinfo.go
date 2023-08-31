@@ -8,12 +8,12 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
+	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/token/jwt"
 	"github.com/pkg/errors"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -72,7 +72,21 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		return
 	}
 
-	claims := requester.GetSession().(*model.OpenIDSession).IDTokenClaims().ToMap()
+	var claims map[string]any
+
+	switch session := requester.GetSession().(type) {
+	case *oidc.Session:
+		claims = session.IDTokenClaims().ToMap()
+	case *oauth2.JWTSession:
+		claims = session.JWTClaims.ToMap()
+	default:
+		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed to handle session with type '%T'", requestID, client.GetID(), session)
+
+		ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError.WithDebugf("Failed to handle session with type '%T'.", session))
+
+		return
+	}
+
 	delete(claims, oidc.ClaimJWTID)
 	delete(claims, oidc.ClaimSessionID)
 	delete(claims, oidc.ClaimAccessTokenHash)

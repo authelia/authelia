@@ -13,7 +13,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
-	"github.com/ory/fosite/token/jwt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -24,7 +23,7 @@ import (
 
 func TestNewOAuth2SessionFromRequest(t *testing.T) {
 	challenge := model.NullUUID(uuid.Must(uuid.Parse("a9e4638d-e273-4636-a43e-3b34cc9a76ee")))
-	session := &model.OpenIDSession{
+	session := &oidc.Session{
 		ChallengeID: challenge,
 		DefaultSession: &openid.DefaultSession{
 			Subject: "sub",
@@ -103,7 +102,7 @@ func TestNewOAuth2SessionFromRequest(t *testing.T) {
 				GrantedScope:   nil,
 			},
 			nil,
-			"failed to create new *model.OAuth2Session: the session type *model.OpenIDSession was expected but the type '*openid.DefaultSession' was used",
+			"failed to create new *model.OAuth2Session: the session type OpenIDSession was expected but the type '*openid.DefaultSession' was used",
 		},
 		{
 			"ShouldRaiseErrorOnNilRequester",
@@ -319,7 +318,7 @@ func TestNewOAuth2PARContext(t *testing.T) {
 					Client:            &oidc.BaseClient{ID: "a-client"},
 					RequestedScope:    fosite.Arguments{oidc.ScopeOpenID},
 					Form:              url.Values{oidc.FormParameterRedirectURI: []string{"https://example.com"}},
-					Session:           &model.OpenIDSession{},
+					Session:           &oidc.Session{},
 					RequestedAudience: fosite.Arguments{"a-client"},
 				},
 			},
@@ -335,7 +334,7 @@ func TestNewOAuth2PARContext(t *testing.T) {
 				ResponseMode:         oidc.ResponseModeQuery,
 				DefaultResponseMode:  oidc.ResponseModeFragment,
 				Form:                 "redirect_uri=https%3A%2F%2Fexample.com",
-				Session:              []byte{0x7b, 0x22, 0x69, 0x64, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c, 0x2c, 0x22, 0x43, 0x68, 0x61, 0x6c, 0x6c, 0x65, 0x6e, 0x67, 0x65, 0x49, 0x44, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c, 0x2c, 0x22, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x49, 0x44, 0x22, 0x3a, 0x22, 0x22, 0x2c, 0x22, 0x65, 0x78, 0x74, 0x72, 0x61, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c, 0x7d},
+				Session:              []byte(`{"id_token":null,"challenge_id":null,"kid":"","client_id":"","exclude_nbf_claim":false,"allowed_top_level_claims":null,"extra":null}`),
 			},
 			"",
 		},
@@ -374,19 +373,6 @@ func TestNewOAuth2PARContext(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestOpenIDSession(t *testing.T) {
-	session := &model.OpenIDSession{
-		DefaultSession: &openid.DefaultSession{},
-	}
-
-	assert.Nil(t, session.GetIDTokenClaims())
-	assert.NotNil(t, session.Clone())
-
-	session = nil
-
-	assert.Nil(t, session.Clone())
 }
 
 func TestOAuth2Session_ToRequest(t *testing.T) {
@@ -599,55 +585,6 @@ func TestOAuth2ConsentSession(t *testing.T) {
 
 	assert.EqualError(t, err, "invalid semicolon separator in query")
 	assert.Equal(t, url.Values{}, form)
-}
-
-func TestOpenIDSession_GetExtraClaims(t *testing.T) {
-	testCases := []struct {
-		name     string
-		have     *model.OpenIDSession
-		expected map[string]any
-	}{
-		{
-			"ShouldReturnNil",
-			&model.OpenIDSession{},
-			nil,
-		},
-		{
-			"ShouldReturnExtra",
-			&model.OpenIDSession{
-				Extra: map[string]any{
-					"a": 1,
-				},
-			},
-			map[string]any{
-				"a": 1,
-			},
-		},
-		{
-			"ShouldReturnIDTokenClaimsExtra",
-			&model.OpenIDSession{
-				DefaultSession: &openid.DefaultSession{
-					Claims: &jwt.IDTokenClaims{
-						Extra: map[string]any{
-							"b": 2,
-						},
-					},
-				},
-				Extra: map[string]any{
-					"a": 1,
-				},
-			},
-			map[string]any{
-				"b": 2,
-			},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, tc.have.GetExtraClaims())
-		})
-	}
 }
 
 func TestMisc(t *testing.T) {
