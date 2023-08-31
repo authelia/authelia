@@ -14,7 +14,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
-func TestHMACStrategy(t *testing.T) {
+func TestHMACCoreStrategy(t *testing.T) {
 	goodsecret := []byte("R7VCSUfnKc7Y5zE84q6GstYqfMGjL4wM")
 	secreta := []byte("a")
 

@@ -259,7 +259,7 @@ func (s *StoreSuite) TestClientAssertionJWTValid() {
 
 func (s *StoreSuite) TestCreateSessions() {
 	challenge := model.MustNullUUID(model.NewRandomNullUUID())
-	session := &model.OpenIDSession{
+	session := &oidc.Session{
 		ChallengeID: challenge,
 	}
 	sessionData, _ := json.Marshal(session)
@@ -317,7 +317,7 @@ func (s *StoreSuite) TestCreateSessions() {
 			ID: "example",
 		},
 		Session: nil,
-	}), "failed to create new *model.OAuth2Session: the session type *model.OpenIDSession was expected but the type '<nil>' was used")
+	}), "failed to create new *model.OAuth2Session: the session type OpenIDSession was expected but the type '<nil>' was used")
 
 	s.NoError(s.store.CreateAccessTokenSession(s.ctx, "abc", &fosite.Request{
 		ID: "abc",
@@ -491,13 +491,13 @@ func (s *StoreSuite) TestRevokeSessions() {
 
 func (s *StoreSuite) TestGetSessions() {
 	challenge := model.MustNullUUID(model.NewRandomNullUUID())
-	session := &model.OpenIDSession{
+	session := &oidc.Session{
 		ChallengeID: challenge,
 		ClientID:    "hs256",
 	}
 	sessionData, _ := json.Marshal(session)
 
-	sessionb := &model.OpenIDSession{
+	sessionb := &oidc.Session{
 		ChallengeID: challenge,
 		ClientID:    "hs256",
 	}
@@ -537,35 +537,35 @@ func (s *StoreSuite) TestGetSessions() {
 		err error
 	)
 
-	r, err = s.store.GetAuthorizeCodeSession(s.ctx, "ac_123", &model.OpenIDSession{})
+	r, err = s.store.GetAuthorizeCodeSession(s.ctx, "ac_123", &oidc.Session{})
 	s.NotNil(r)
 	s.NoError(err)
 
-	r, err = s.store.GetAuthorizeCodeSession(s.ctx, "ac_456", &model.OpenIDSession{})
+	r, err = s.store.GetAuthorizeCodeSession(s.ctx, "ac_456", &oidc.Session{})
 	s.NotNil(r)
 	s.EqualError(err, "Authorization code has ben invalidated")
 
-	r, err = s.store.GetAuthorizeCodeSession(s.ctx, "ac_aaa", &model.OpenIDSession{})
+	r, err = s.store.GetAuthorizeCodeSession(s.ctx, "ac_aaa", &oidc.Session{})
 	s.Nil(r)
 	s.EqualError(err, "not_found")
 
-	r, err = s.store.GetAuthorizeCodeSession(s.ctx, "ac_130", &model.OpenIDSession{})
+	r, err = s.store.GetAuthorizeCodeSession(s.ctx, "ac_130", &oidc.Session{})
 	s.Nil(r)
 	s.EqualError(err, "timeout")
 
-	r, err = s.store.GetAuthorizeCodeSession(s.ctx, "ac_badclient", &model.OpenIDSession{})
+	r, err = s.store.GetAuthorizeCodeSession(s.ctx, "ac_badclient", &oidc.Session{})
 	s.Nil(r)
 	s.EqualError(err, "error occurred while mapping OAuth 2.0 Session back to a Request while trying to lookup the registered client: invalid_client")
 
-	r, err = s.store.GetAccessTokenSession(s.ctx, "at", &model.OpenIDSession{})
+	r, err = s.store.GetAccessTokenSession(s.ctx, "at", &oidc.Session{})
 	s.NotNil(r)
 	s.NoError(err)
 
-	r, err = s.store.GetRefreshTokenSession(s.ctx, "rt", &model.OpenIDSession{})
+	r, err = s.store.GetRefreshTokenSession(s.ctx, "rt", &oidc.Session{})
 	s.NotNil(r)
 	s.NoError(err)
 
-	r, err = s.store.GetPKCERequestSession(s.ctx, "pkce", &model.OpenIDSession{})
+	r, err = s.store.GetPKCERequestSession(s.ctx, "pkce", &oidc.Session{})
 	s.NotNil(r)
 	s.NoError(err)
 

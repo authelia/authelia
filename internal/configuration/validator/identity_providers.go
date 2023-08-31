@@ -63,11 +63,17 @@ func validateOIDCAuthorizationPolicies(config *schema.OpenIDConnect, val *schema
 	config.Discovery.AuthorizationPolicies = []string{policyOneFactor, policyTwoFactor}
 
 	for name, policy := range config.AuthorizationPolicies {
+		add := true
+
 		switch name {
 		case "":
 			val.Push(fmt.Errorf(errFmtOIDCPolicyInvalidName))
+
+			add = false
 		case policyOneFactor, policyTwoFactor, policyDeny:
 			val.Push(fmt.Errorf(errFmtOIDCPolicyInvalidNameStandard, name, "name", strJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny}), name))
+
+			add = false
 		}
 
 		switch policy.DefaultPolicy {
@@ -100,7 +106,9 @@ func validateOIDCAuthorizationPolicies(config *schema.OpenIDConnect, val *schema
 
 		config.AuthorizationPolicies[name] = policy
 
-		config.Discovery.AuthorizationPolicies = append(config.Discovery.AuthorizationPolicies, name)
+		if add {
+			config.Discovery.AuthorizationPolicies = append(config.Discovery.AuthorizationPolicies, name)
+		}
 	}
 }
 

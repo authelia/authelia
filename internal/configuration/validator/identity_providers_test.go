@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -1664,6 +1665,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				have.Clients[0].IntrospectionSignedResponseAlg = oidc.SigningAlgRSAUsingSHA384
 				have.Clients[0].UserinfoSignedResponseAlg = oidc.SigningAlgRSAUsingSHA512
 				have.Clients[0].IDTokenSignedResponseAlg = oidc.SigningAlgECDSAUsingP521AndSHA512
+				have.Clients[0].AuthorizationSignedResponseAlg = oidc.SigningAlgECDSAUsingP521AndSHA512
 
 				have.Discovery.ResponseObjectSigningAlgs = []string{oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512}
 			},
@@ -1671,6 +1673,38 @@ func TestValidateOIDCClients(t *testing.T) {
 				assert.Equal(t, oidc.SigningAlgRSAUsingSHA384, have.Clients[0].IntrospectionSignedResponseAlg)
 				assert.Equal(t, oidc.SigningAlgRSAUsingSHA512, have.Clients[0].UserinfoSignedResponseAlg)
 				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].IDTokenSignedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].AuthorizationSignedResponseAlg)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldConfigureKeyIDFromAlg",
+			func(have *schema.OpenIDConnect) {
+				have.Clients[0].IntrospectionSignedResponseAlg = oidc.SigningAlgRSAUsingSHA384
+				have.Clients[0].UserinfoSignedResponseAlg = oidc.SigningAlgRSAUsingSHA512
+				have.Clients[0].IDTokenSignedResponseAlg = oidc.SigningAlgECDSAUsingP521AndSHA512
+				have.Clients[0].AuthorizationSignedResponseAlg = oidc.SigningAlgECDSAUsingP521AndSHA512
+
+				have.Discovery.ResponseObjectSigningAlgs = []string{oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512}
+			},
+			func(t *testing.T, have *schema.OpenIDConnect) {
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA384, have.Clients[0].IntrospectionSignedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA512, have.Clients[0].UserinfoSignedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].IDTokenSignedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].AuthorizationSignedResponseAlg)
 			},
 			tcv{
 				nil,
@@ -2149,7 +2183,12 @@ func TestValidateOIDCClients(t *testing.T) {
 				have.Clients[0].IntrospectionSignedResponseKeyID = "ef"
 				have.Discovery.ResponseObjectSigningKeyIDs = []string{"abc123xyz"}
 			},
-			nil,
+			func(t *testing.T, have *schema.OpenIDConnect) {
+				assert.Equal(t, "ef", have.Clients[0].IntrospectionSignedResponseKeyID)
+				assert.Equal(t, "01", have.Clients[0].AuthorizationSignedResponseKeyID)
+				assert.Equal(t, "ab", have.Clients[0].IDTokenSignedResponseKeyID)
+				assert.Equal(t, "cd", have.Clients[0].UserinfoSignedResponseKeyID)
+			},
 			tcv{
 				nil,
 				nil,
@@ -3091,6 +3130,201 @@ func TestValidateOIDCIssuer(t *testing.T) {
 
 			for i := 0; i < n; i++ {
 				assert.EqualError(t, val.Errors()[i], tc.errs[i])
+			}
+		})
+	}
+}
+
+func TestValidateLifespans(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *schema.OpenIDConnect
+		expected []string
+		errors   []string
+	}{
+		{
+			"ShouldHandleNone",
+			&schema.OpenIDConnect{},
+			nil,
+			nil,
+		},
+		{
+			"ShouldHandleCustom",
+			&schema.OpenIDConnect{
+				Lifespans: schema.OpenIDConnectLifespans{
+					Custom: map[string]schema.OpenIDConnectLifespan{
+						"custom": {},
+					},
+				},
+			},
+			[]string{"custom"},
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			val := schema.NewStructValidator()
+
+			validateOIDCLifespans(tc.have, val)
+
+			assert.Equal(t, tc.expected, tc.have.Discovery.Lifespans)
+			require.Len(t, val.Errors(), len(tc.errors))
+
+			for i, err := range tc.errors {
+				t.Run(fmt.Sprintf("Error%d", i+1), func(t *testing.T) {
+					assert.EqualError(t, val.Errors()[i], err)
+				})
+			}
+		})
+	}
+}
+
+func TestValidateOIDCAuthorizationPolicies(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *schema.OpenIDConnect
+		expected []string
+		expectf  func(t *testing.T, actual *schema.OpenIDConnect)
+		errors   []string
+	}{
+		{
+			"ShouldIncludeDefaults",
+			&schema.OpenIDConnect{},
+			[]string{"one_factor", "two_factor"},
+			nil,
+			nil,
+		},
+		{
+			"ShouldErrorOnInvalidPoliciesNoRules",
+			&schema.OpenIDConnect{
+				AuthorizationPolicies: map[string]schema.OpenIDConnectPolicy{
+					"example": {
+						DefaultPolicy: "two_factor",
+					},
+				},
+			},
+			[]string{"one_factor", "two_factor", "example"},
+			nil,
+			[]string{
+				"identity_providers: oidc: authorization_policies: policy 'example': option 'rules' is required",
+			},
+		},
+		{
+			"ShouldIncludeValidPolicies",
+			&schema.OpenIDConnect{
+				AuthorizationPolicies: map[string]schema.OpenIDConnectPolicy{
+					"example": {
+						DefaultPolicy: "two_factor",
+						Rules: []schema.OpenIDConnectPolicyRule{
+							{
+								Policy: "deny",
+								Subjects: [][]string{
+									{"user:john"},
+								},
+							},
+						},
+					},
+				},
+			},
+			[]string{"one_factor", "two_factor", "example"},
+			nil,
+			nil,
+		},
+		{
+			"ShouldSetDefaultPoliciesAndErrorOnSubject",
+			&schema.OpenIDConnect{
+				AuthorizationPolicies: map[string]schema.OpenIDConnectPolicy{
+					"example": {
+						DefaultPolicy: "",
+						Rules: []schema.OpenIDConnectPolicyRule{
+							{
+								Policy: "",
+							},
+						},
+					},
+					"": {
+						DefaultPolicy: "two_factor",
+						Rules: []schema.OpenIDConnectPolicyRule{
+							{
+								Policy: "two_factor",
+								Subjects: [][]string{
+									{"user:john"},
+								},
+							},
+						},
+					},
+					"two_factor": {
+						DefaultPolicy: "two_factor",
+						Rules: []schema.OpenIDConnectPolicyRule{
+							{
+								Policy: "two_factor",
+								Subjects: [][]string{
+									{"user:john"},
+								},
+							},
+						},
+					},
+				},
+			},
+			[]string{"one_factor", "two_factor", "example"},
+			func(t *testing.T, actual *schema.OpenIDConnect) {
+				assert.Equal(t, "two_factor", actual.AuthorizationPolicies["example"].DefaultPolicy)
+				assert.Equal(t, "two_factor", actual.AuthorizationPolicies["example"].Rules[0].Policy)
+			},
+			[]string{
+				"identity_providers: oidc: authorization_policies: authorization policies must have a name but one with a blank name exists",
+				"identity_providers: oidc: authorization_policies: policy 'example': rules: rule #1: option 'subject' is required",
+				"identity_providers: oidc: authorization_policies: policy 'two_factor': option 'name' must not be one of 'one_factor', 'two_factor', and 'deny' but it's configured as 'two_factor'",
+			},
+		},
+		{
+			"ShouldErrorBadPolicyValues",
+			&schema.OpenIDConnect{
+				AuthorizationPolicies: map[string]schema.OpenIDConnectPolicy{
+					"example": {
+						DefaultPolicy: "abc",
+						Rules: []schema.OpenIDConnectPolicyRule{
+							{
+								Policy: "xyz",
+								Subjects: [][]string{
+									{"user:john"},
+								},
+							},
+						},
+					},
+				},
+			},
+			[]string{"one_factor", "two_factor", "example"},
+			nil,
+			[]string{
+				"identity_providers: oidc: authorization_policies: policy 'example': option 'default_policy' must be one of 'one_factor', 'two_factor', and 'deny' but it's configured as 'abc'",
+				"identity_providers: oidc: authorization_policies: policy 'example': rules: rule #1: option 'policy' must be one of 'one_factor', 'two_factor', and 'deny' but it's configured as 'xyz'",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			val := schema.NewStructValidator()
+
+			validateOIDCAuthorizationPolicies(tc.have, val)
+
+			assert.Equal(t, tc.expected, tc.have.Discovery.AuthorizationPolicies)
+
+			errs := val.Errors()
+			sort.Sort(utils.ErrSliceSortAlphabetical(errs))
+
+			require.Len(t, val.Errors(), len(tc.errors))
+
+			for i, err := range tc.errors {
+				t.Run(fmt.Sprintf("Error%d", i+1), func(t *testing.T) {
+					assert.EqualError(t, errs[i], err)
+				})
+			}
+
+			if tc.expectf != nil {
+				tc.expectf(t, tc.have)
 			}
 		})
 	}

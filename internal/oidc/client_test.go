@@ -116,14 +116,14 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, oidc.ClientAuthMethodClientSecretPost, fclient.TokenEndpointAuthMethod)
 	assert.Equal(t, oidc.ClientAuthMethodClientSecretPost, fclient.GetTokenEndpointAuthMethod())
 
-	assert.Equal(t, "", fclient.TokenEndpointAuthSigningAlgorithm)
+	assert.Equal(t, "", fclient.TokenEndpointAuthSigningAlg)
 	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetTokenEndpointAuthSigningAlgorithm())
-	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.TokenEndpointAuthSigningAlgorithm)
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.TokenEndpointAuthSigningAlg)
 
-	assert.Equal(t, "", fclient.RequestObjectSigningAlgorithm)
+	assert.Equal(t, "", fclient.RequestObjectSigningAlg)
 	assert.Equal(t, "", fclient.GetRequestObjectSigningAlgorithm())
 
-	fclient.RequestObjectSigningAlgorithm = oidc.SigningAlgRSAUsingSHA256
+	fclient.RequestObjectSigningAlg = oidc.SigningAlgRSAUsingSHA256
 
 	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetRequestObjectSigningAlgorithm())
 

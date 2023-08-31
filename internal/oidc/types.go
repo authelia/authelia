@@ -22,8 +22,8 @@ import (
 )
 
 // NewSession creates a new empty OpenIDSession struct.
-func NewSession() (session *model.OpenIDSession) {
-	return &model.OpenIDSession{
+func NewSession() (session *Session) {
+	return &Session{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &fjwt.IDTokenClaims{
 				Extra: map[string]any{},
@@ -37,20 +37,20 @@ func NewSession() (session *model.OpenIDSession) {
 }
 
 // NewSessionWithAuthorizeRequest uses details from an AuthorizeRequester to generate an OpenIDSession.
-func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr []string, extra map[string]any,
-	authTime time.Time, consent *model.OAuth2ConsentSession, requester fosite.AuthorizeRequester) (session *model.OpenIDSession) {
+func NewSessionWithAuthorizeRequest(ctx Context, issuer *url.URL, kid, username string, amr []string, extra map[string]any,
+	authTime time.Time, consent *model.OAuth2ConsentSession, requester fosite.AuthorizeRequester) (session *Session) {
 	if extra == nil {
 		extra = map[string]any{}
 	}
 
-	session = &model.OpenIDSession{
+	session = &Session{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &fjwt.IDTokenClaims{
 				Subject:     consent.Subject.UUID.String(),
 				Issuer:      issuer.String(),
 				AuthTime:    authTime,
 				RequestedAt: consent.RequestedAt,
-				IssuedAt:    time.Now(),
+				IssuedAt:    ctx.GetClock().Now().UTC(),
 				Nonce:       requester.GetRequestForm().Get(ClaimNonce),
 				Audience:    requester.GetGrantedAudience(),
 				Extra:       extra,
@@ -65,9 +65,12 @@ func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr [
 			Subject:  consent.Subject.UUID.String(),
 			Username: username,
 		},
-		Extra:       map[string]any{},
-		ClientID:    requester.GetClient().GetID(),
-		ChallengeID: model.NullUUID(consent.ChallengeID),
+		ChallengeID:           model.NullUUID(consent.ChallengeID),
+		KID:                   kid,
+		ClientID:              requester.GetClient().GetID(),
+		ExcludeNotBeforeClaim: false,
+		AllowedTopLevelClaims: nil,
+		Extra:                 map[string]any{},
 	}
 
 	// Ensure required audience value of the client_id exists.
@@ -82,7 +85,7 @@ func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr [
 }
 
 // PopulateClientCredentialsFlowSessionWithAccessRequest is used to configure a session when performing a client credentials grant.
-func PopulateClientCredentialsFlowSessionWithAccessRequest(ctx Context, request fosite.AccessRequester, session *model.OpenIDSession, funcGetKID func(ctx context.Context, kid, alg string) string) (err error) {
+func PopulateClientCredentialsFlowSessionWithAccessRequest(ctx Context, request fosite.AccessRequester, session *Session, funcGetKID func(ctx context.Context, kid, alg string) string) (err error) {
 	var (
 		issuer *url.URL
 		client Client
@@ -101,8 +104,8 @@ func PopulateClientCredentialsFlowSessionWithAccessRequest(ctx Context, request 
 	session.Claims.Subject = client.GetID()
 	session.ClientID = client.GetID()
 	session.DefaultSession.Claims.Issuer = issuer.String()
-	session.DefaultSession.Claims.IssuedAt = ctx.GetClock().Now()
-	session.DefaultSession.Claims.RequestedAt = ctx.GetClock().Now()
+	session.DefaultSession.Claims.IssuedAt = ctx.GetClock().Now().UTC()
+	session.DefaultSession.Claims.RequestedAt = ctx.GetClock().Now().UTC()
 
 	return nil
 }
@@ -172,12 +175,12 @@ type BaseClient struct {
 type FullClient struct {
 	*BaseClient
 
-	RequestURIs                       []string
-	JSONWebKeys                       *jose.JSONWebKeySet
-	JSONWebKeysURI                    string
-	RequestObjectSigningAlgorithm     string
-	TokenEndpointAuthMethod           string
-	TokenEndpointAuthSigningAlgorithm string
+	RequestURIs                 []string
+	JSONWebKeys                 *jose.JSONWebKeySet
+	JSONWebKeysURI              string
+	RequestObjectSigningAlg     string
+	TokenEndpointAuthMethod     string
+	TokenEndpointAuthSigningAlg string
 }
 
 // Client represents the internal client definitions.

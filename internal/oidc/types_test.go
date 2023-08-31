@@ -66,7 +66,15 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		Subject:     uuid.NullUUID{UUID: subject, Valid: true},
 	}
 
-	session := oidc.NewSessionWithAuthorizeRequest(MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request)
+	ctx := &TestContext{}
+
+	clock := &utils.TestingClock{}
+
+	clock.Set(time.Unix(10000000000, 0))
+
+	ctx.Clock = clock
+
+	session := oidc.NewSessionWithAuthorizeRequest(ctx, MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Extra)
@@ -96,7 +104,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		RequestedAt: requested,
 	}
 
-	session = oidc.NewSessionWithAuthorizeRequest(MustParseRequestURI(issuer), "primary", "john", nil, nil, authAt, consent, request)
+	session = oidc.NewSessionWithAuthorizeRequest(ctx, MustParseRequestURI(issuer), "primary", "john", nil, nil, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Claims)
@@ -110,8 +118,8 @@ func TestPopulateClientCredentialsFlowSessionWithAccessRequest(t *testing.T) {
 		setup    func(ctx oidc.Context)
 		ctx      oidc.Context
 		request  fosite.AccessRequester
-		have     *model.OpenIDSession
-		expected *model.OpenIDSession
+		have     *oidc.Session
+		expected *oidc.Session
 		err      string
 	}{
 		{
@@ -164,7 +172,7 @@ func TestPopulateClientCredentialsFlowSessionWithAccessRequest(t *testing.T) {
 				},
 			},
 			oidc.NewSession(),
-			&model.OpenIDSession{
+			&oidc.Session{
 				Extra: map[string]any{},
 				DefaultSession: &openid.DefaultSession{
 					Headers: &fjwt.Headers{
@@ -172,8 +180,8 @@ func TestPopulateClientCredentialsFlowSessionWithAccessRequest(t *testing.T) {
 					},
 					Claims: &fjwt.IDTokenClaims{
 						Issuer:      "https://example.com",
-						IssuedAt:    time.Unix(10000000000, 0),
-						RequestedAt: time.Unix(10000000000, 0),
+						IssuedAt:    time.Unix(10000000000, 0).UTC(),
+						RequestedAt: time.Unix(10000000000, 0).UTC(),
 						Subject:     "abc",
 						Extra:       map[string]any{},
 					},
@@ -195,7 +203,7 @@ func TestPopulateClientCredentialsFlowSessionWithAccessRequest(t *testing.T) {
 			assert.Equal(t, "", tc.have.GetSubject())
 			if len(tc.err) == 0 {
 				assert.NoError(t, err)
-				assert.Equal(t, tc.expected, tc.have)
+				assert.EqualValues(t, tc.expected, tc.have)
 			} else {
 				assert.EqualError(t, oidc.ErrorToDebugRFC6749Error(err), tc.err)
 			}

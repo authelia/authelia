@@ -63,10 +63,10 @@ func NewClient(config schema.OpenIDConnectClient, c *schema.OpenIDConnect) (clie
 	if config.TokenEndpointAuthMethod != "" || config.TokenEndpointAuthSigningAlg != "" ||
 		len(config.PublicKeys.Values) != 0 || config.PublicKeys.URI != nil || config.RequestObjectSigningAlg != "" {
 		full := &FullClient{
-			BaseClient:                        base,
-			TokenEndpointAuthMethod:           config.TokenEndpointAuthMethod,
-			TokenEndpointAuthSigningAlgorithm: config.TokenEndpointAuthSigningAlg,
-			RequestObjectSigningAlgorithm:     config.RequestObjectSigningAlg,
+			BaseClient:                  base,
+			TokenEndpointAuthMethod:     config.TokenEndpointAuthMethod,
+			TokenEndpointAuthSigningAlg: config.TokenEndpointAuthSigningAlg,
+			RequestObjectSigningAlg:     config.RequestObjectSigningAlg,
 
 			JSONWebKeys: NewPublicJSONWebKeySetFromSchemaJWK(config.PublicKeys.Values),
 		}
@@ -434,7 +434,7 @@ func (c *FullClient) GetJSONWebKeysURI() string {
 // GetRequestObjectSigningAlgorithm returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing Request
 // Objects sent to the OP. All Request Objects from this Client MUST be rejected, if not signed with this algorithm.
 func (c *FullClient) GetRequestObjectSigningAlgorithm() string {
-	return c.RequestObjectSigningAlgorithm
+	return c.RequestObjectSigningAlg
 }
 
 // GetTokenEndpointAuthMethod returns the requested Client Authentication Method for the Token Endpoint. The options are
@@ -455,9 +455,9 @@ func (c *FullClient) GetTokenEndpointAuthMethod() string {
 // [JWT] used to authenticate the Client at the Token Endpoint for the private_key_jwt and client_secret_jwt
 // authentication methods.
 func (c *FullClient) GetTokenEndpointAuthSigningAlgorithm() string {
-	if c.TokenEndpointAuthSigningAlgorithm == "" {
-		c.TokenEndpointAuthSigningAlgorithm = SigningAlgRSAUsingSHA256
+	if c.TokenEndpointAuthSigningAlg == "" {
+		c.TokenEndpointAuthSigningAlg = SigningAlgRSAUsingSHA256
 	}
 
-	return c.TokenEndpointAuthSigningAlgorithm
+	return c.TokenEndpointAuthSigningAlg
 }

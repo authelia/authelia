@@ -8,12 +8,11 @@ import (
 
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
-	"github.com/ory/fosite/token/jwt"
+	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/text/language"
 	"gopkg.in/square/go-jose.v2"
 
-	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -115,13 +114,13 @@ func TestIntrospectionResponseToMap(t *testing.T) {
 						GrantedScope:    fosite.Arguments{oidc.ScopeOpenID, oidc.ScopeProfile},
 						GrantedAudience: fosite.Arguments{"https://example.com", "aclient"},
 						Client:          &oidc.BaseClient{ID: "aclient"},
-						Session: &model.OpenIDSession{
+						Session: &oidc.Session{
 							DefaultSession: &openid.DefaultSession{
 								ExpiresAt: map[fosite.TokenType]time.Time{
 									fosite.AccessToken: time.Unix(1000000, 0).UTC(),
 								},
 								Subject: "asubj",
-								Claims: &jwt.IDTokenClaims{
+								Claims: &fjwt.IDTokenClaims{
 									Extra: map[string]any{
 										"aclaim":                 1,
 										oidc.ClaimExpirationTime: 0,
@@ -158,13 +157,13 @@ func TestIntrospectionResponseToMap(t *testing.T) {
 						GrantedScope:    fosite.Arguments{oidc.ScopeOpenID, oidc.ScopeProfile},
 						GrantedAudience: fosite.Arguments{"https://example.com", "aclient"},
 						Client:          &oidc.BaseClient{ID: "aclient"},
-						Session: &model.OpenIDSession{
+						Session: &oidc.Session{
 							DefaultSession: &openid.DefaultSession{
 								ExpiresAt: map[fosite.TokenType]time.Time{
 									fosite.AccessToken: time.Unix(1000000, 0).UTC(),
 								},
 								Username: "auser",
-								Claims: &jwt.IDTokenClaims{
+								Claims: &fjwt.IDTokenClaims{
 									Subject: "asubj",
 									Extra: map[string]any{
 										"aclaim":                 1,
