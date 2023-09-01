@@ -7,7 +7,7 @@ import (
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/ory/fosite"
 	"github.com/ory/x/errorsx"
-	jose "gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -41,6 +41,8 @@ func NewClient(config schema.OpenIDConnectClient, c *schema.OpenIDConnect) (clie
 		AuthorizationSignedResponseKeyID: config.AuthorizationSignedResponseKeyID,
 		IDTokenSignedResponseAlg:         config.IDTokenSignedResponseAlg,
 		IDTokenSignedResponseKeyID:       config.IDTokenSignedResponseKeyID,
+		AccessTokenSignedResponseAlg:     config.AccessTokenSignedResponseAlg,
+		AccessTokenSignedResponseKeyID:   config.AccessTokenSignedResponseKeyID,
 		UserinfoSignedResponseAlg:        config.UserinfoSignedResponseAlg,
 		UserinfoSignedResponseKeyID:      config.UserinfoSignedResponseKeyID,
 		IntrospectionSignedResponseAlg:   config.IntrospectionSignedResponseAlg,
@@ -163,6 +165,10 @@ func (c *BaseClient) GetAuthorizationSignedResponseAlg() (alg string) {
 
 // GetAuthorizationSignedResponseKeyID returns the AuthorizationSignedResponseKeyID.
 func (c *BaseClient) GetAuthorizationSignedResponseKeyID() (kid string) {
+	if c.AuthorizationSignedResponseKeyID == "" {
+		c.AuthorizationSignedResponseKeyID = SigningAlgNone
+	}
+
 	return c.AuthorizationSignedResponseKeyID
 }
 
@@ -178,6 +184,26 @@ func (c *BaseClient) GetIDTokenSignedResponseAlg() (alg string) {
 // GetIDTokenSignedResponseKeyID returns the IDTokenSignedResponseKeyID.
 func (c *BaseClient) GetIDTokenSignedResponseKeyID() (alg string) {
 	return c.IDTokenSignedResponseKeyID
+}
+
+// GetAccessTokenSignedResponseAlg returns the AccessTokenSignedResponseAlg.
+func (c *BaseClient) GetAccessTokenSignedResponseAlg() (alg string) {
+	if c.AccessTokenSignedResponseAlg == "" {
+		c.AccessTokenSignedResponseAlg = SigningAlgNone
+	}
+
+	return c.AccessTokenSignedResponseAlg
+}
+
+// GetAccessTokenSignedResponseKeyID returns the AccessTokenSignedResponseKeyID.
+func (c *BaseClient) GetAccessTokenSignedResponseKeyID() (alg string) {
+	return c.AccessTokenSignedResponseKeyID
+}
+
+// GetJWTProfileOAuthAccessTokensEnabled returns true if this client is configured to return the
+// RFC9068 JWT Profile for OAuth 2.0 Access Tokens.
+func (c *BaseClient) GetJWTProfileOAuthAccessTokensEnabled() bool {
+	return c.GetAccessTokenSignedResponseAlg() != SigningAlgNone || len(c.GetAccessTokenSignedResponseKeyID()) > 0
 }
 
 // GetUserinfoSignedResponseAlg returns the UserinfoSignedResponseAlg.

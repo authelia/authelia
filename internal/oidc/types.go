@@ -159,6 +159,8 @@ type BaseClient struct {
 	AuthorizationSignedResponseKeyID string
 	IDTokenSignedResponseAlg         string
 	IDTokenSignedResponseKeyID       string
+	AccessTokenSignedResponseAlg     string
+	AccessTokenSignedResponseKeyID   string
 	UserinfoSignedResponseAlg        string
 	UserinfoSignedResponseKeyID      string
 	IntrospectionSignedResponseAlg   string
@@ -199,6 +201,10 @@ type Client interface {
 
 	GetIDTokenSignedResponseAlg() (alg string)
 	GetIDTokenSignedResponseKeyID() (kid string)
+
+	GetAccessTokenSignedResponseAlg() (alg string)
+	GetAccessTokenSignedResponseKeyID() (kid string)
+	GetJWTProfileOAuthAccessTokensEnabled() bool
 
 	GetUserinfoSignedResponseAlg() (alg string)
 	GetUserinfoSignedResponseKeyID() (kid string)

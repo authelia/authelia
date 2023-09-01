@@ -2,20 +2,21 @@ package oidc_test
 
 import (
 	"context"
-	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/token/hmac"
+	"github.com/ory/fosite/token/jwt"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
-func TestHMACCoreStrategy(t *testing.T) {
+func TestJWTCoreStrategy(t *testing.T) {
 	goodsecret := []byte("R7VCSUfnKc7Y5zE84q6GstYqfMGjL4wM")
 	secreta := []byte("a")
 
@@ -29,8 +30,16 @@ func TestHMACCoreStrategy(t *testing.T) {
 		},
 	}
 
-	strategy := &oidc.HMACCoreStrategy{
-		Enigma: &hmac.HMACStrategy{Config: config},
+	strategy := &oidc.JWTCoreStrategy{
+		Signer: &jwt.DefaultSigner{
+			GetPrivateKey: func(ctx context.Context) (interface{}, error) {
+				return keyRSA2048, nil
+			},
+		},
+		HMACCoreStrategy: &oidc.HMACCoreStrategy{
+			Enigma: &hmac.HMACStrategy{Config: config},
+			Config: config,
+		},
 		Config: config,
 	}
 
@@ -84,41 +93,39 @@ func TestHMACCoreStrategy(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile(`^authelia_at_`), token)
 
 	assert.NoError(t, strategy.ValidateAccessToken(ctx, &fosite.Request{RequestedAt: time.Now(), Session: &fosite.DefaultSession{}}, token))
-	assert.NoError(t, strategy.ValidateAccessToken(ctx, &fosite.Request{RequestedAt: time.Now(), Session: &fosite.DefaultSession{}}, token))
 	assert.EqualError(t, strategy.ValidateAccessToken(ctx, &fosite.Request{RequestedAt: time.Now().Add(time.Hour * -2400), Session: &fosite.DefaultSession{}}, token), "invalid_token")
 	assert.NoError(t, strategy.ValidateAccessToken(ctx, &fosite.Request{RequestedAt: time.Now().Add(time.Hour * -2400), Session: &fosite.DefaultSession{ExpiresAt: map[fosite.TokenType]time.Time{fosite.AccessToken: time.Now().Add(100 * time.Hour)}}}, token))
 	assert.EqualError(t, strategy.ValidateAccessToken(ctx, &fosite.Request{RequestedAt: time.Now(), Session: &fosite.DefaultSession{ExpiresAt: map[fosite.TokenType]time.Time{fosite.AccessToken: time.Now().Add(-100 * time.Second)}}}, token), "invalid_token")
 
-	badconfig := &BadGlobalSecretConfig{
-		Config: config,
-	}
-
-	badstrategy := &oidc.HMACCoreStrategy{
-		Enigma: &hmac.HMACStrategy{Config: badconfig},
-		Config: badconfig,
-	}
-
-	token, signature, err = badstrategy.GenerateRefreshToken(ctx, &fosite.Request{})
+	token, signature, err = strategy.GenerateAccessToken(ctx, &fosite.Request{Client: &oidc.BaseClient{AccessTokenSignedResponseAlg: oidc.SigningAlgRSAUsingSHA256}})
 	assert.Equal(t, "", token)
 	assert.Equal(t, "", signature)
-	assert.EqualError(t, oidc.ErrorToDebugRFC6749Error(err), "bad secret")
+	assert.EqualError(t, err, "Session must be of type JWTSessionContainer but got type: <nil>")
 
-	token, signature, err = badstrategy.GenerateAccessToken(ctx, &fosite.Request{})
-	assert.Equal(t, "", token)
-	assert.Equal(t, "", signature)
-	assert.EqualError(t, oidc.ErrorToDebugRFC6749Error(err), "bad secret")
+	token, signature, err = strategy.GenerateAccessToken(ctx, &fosite.Request{Client: &oidc.BaseClient{AccessTokenSignedResponseAlg: oidc.SigningAlgRSAUsingSHA256}, Session: oidc.NewSession()})
+	assert.Regexp(t, regexp.MustCompile(`^[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+$`), token)
+	assert.Regexp(t, regexp.MustCompile(`^[a-zA-Z0-9-_]+$`), signature)
+	assert.True(t, strings.HasSuffix(token, signature))
+	assert.NoError(t, err)
 
-	token, signature, err = badstrategy.GenerateAuthorizeCode(ctx, &fosite.Request{})
+	assert.NoError(t, strategy.ValidateAccessToken(ctx, &fosite.Request{RequestedAt: time.Now(), Session: &fosite.DefaultSession{}}, token))
+	assert.Equal(t, signature, strategy.AccessTokenSignature(ctx, token))
+	assert.EqualError(t, oidc.ErrorToDebugRFC6749Error(strategy.ValidateAccessToken(ctx, &fosite.Request{RequestedAt: time.Now(), Session: &fosite.DefaultSession{}}, strings.Replace(token, signature, "qePeTyHu389VN_1woLEGR2v1LDJxUWhxrZZfDgUEf_hPtdnRKZv9fVLWJFNI06r87sC9Uu7IjuLqzAuqjwnE86BKZLYkMf780fPr-73Ohoq4jXUQI40uUodxaY4LVPuvq_5W2bAqLm5F03snKOYDQc_GQggek4SVmyDKqSUdvH4M5KXFhp2XyCu7BYv-retZG3K5Z0s_VS_tE8FF_S7_k1MXqSv_wwndmrn8ik-58bXlQe1bAHpvWCrtVQFJWEdtGaQoVDK40PHzLEaWEx47ys8jnAM4-rwNoBbxbP9NnK4Y1XRD1hzOpMYJ7UGa7hUwaIoOkmfEuhWGUZnNeyQRHQ", 1))), "Token signature mismatch. Check that you provided  a valid token in the right format. square/go-jose: error in cryptographic primitive")
 
-	assert.Equal(t, "", token)
-	assert.Equal(t, "", signature)
-	assert.EqualError(t, oidc.ErrorToDebugRFC6749Error(err), "bad secret")
+	token, signature, err = strategy.GenerateAccessToken(ctx, &fosite.Request{Client: &oidc.BaseClient{AccessTokenSignedResponseAlg: oidc.SigningAlgRSAUsingSHA256}, Session: &BadJWTSessionContainer{Session: &fosite.DefaultSession{}}})
+	assert.EqualError(t, err, "GetTokenClaims() must not be nil")
+	assert.Empty(t, token)
+	assert.Empty(t, signature)
 }
 
-type BadGlobalSecretConfig struct {
-	*oidc.Config
+type BadJWTSessionContainer struct {
+	fosite.Session
 }
 
-func (*BadGlobalSecretConfig) GetGlobalSecret(ctx context.Context) ([]byte, error) {
-	return nil, fmt.Errorf("bad secret")
+func (c *BadJWTSessionContainer) GetJWTClaims() jwt.JWTClaimsContainer {
+	return nil
+}
+
+func (c *BadJWTSessionContainer) GetJWTHeader() *jwt.Headers {
+	return nil
 }

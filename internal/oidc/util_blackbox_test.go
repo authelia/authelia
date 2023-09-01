@@ -200,6 +200,51 @@ func TestIntrospectionResponseToMap(t *testing.T) {
 	}
 }
 
+func TestIsJWTProfileAccessToken(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *fjwt.Token
+		expected bool
+	}{
+		{
+			"ShouldReturnFalseOnNilToken",
+			nil,
+			false,
+		},
+		{
+			"ShouldReturnFalseOnNilTokenHeader",
+			&fjwt.Token{Header: nil},
+			false,
+		},
+		{
+			"ShouldReturnFalseOnEmptyHeader",
+			&fjwt.Token{Header: map[string]any{}},
+			false,
+		},
+		{
+			"ShouldReturnFalseOnInvalidKeyTypeHeaderType",
+			&fjwt.Token{Header: map[string]any{oidc.JWTHeaderKeyType: 123}},
+			false,
+		},
+		{
+			"ShouldReturnFalseOnInvalidKeyTypeHeaderValue",
+			&fjwt.Token{Header: map[string]any{oidc.JWTHeaderKeyType: "JWT"}},
+			false,
+		},
+		{
+			"ShouldReturnTrue",
+			&fjwt.Token{Header: map[string]any{oidc.JWTHeaderKeyType: oidc.JWTHeaderTypeValueAccessTokenJWT}},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, oidc.IsJWTProfileAccessToken(tc.have))
+		})
+	}
+}
+
 func TestGetLangFromRequester(t *testing.T) {
 	testCases := []struct {
 		name     string

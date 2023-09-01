@@ -476,6 +476,8 @@ const (
 	attrOIDCAuthorizationSigKID = "authorization_signed_response_key_id"
 	attrOIDCIDTokenSigAlg       = "id_token_signed_response_alg"
 	attrOIDCIDTokenSigKID       = "id_token_signed_response_key_id"
+	attrOIDCAccessTokenSigAlg   = "access_token_signed_response_alg"
+	attrOIDCAccessTokenSigKID   = "access_token_signed_response_key_id"
 	attrOIDCPKCEChallengeMethod = "pkce_challenge_method"
 )
 

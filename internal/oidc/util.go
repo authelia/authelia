@@ -8,6 +8,8 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ory/fosite"
+	fjwt "github.com/ory/fosite/token/jwt"
+	"github.com/ory/x/errorsx"
 	"golang.org/x/text/language"
 	"gopkg.in/square/go-jose.v2"
 
@@ -17,6 +19,21 @@ import (
 // IsPushedAuthorizedRequest returns true if the requester has a PushedAuthorizationRequest redirect_uri value.
 func IsPushedAuthorizedRequest(r fosite.Requester, prefix string) bool {
 	return strings.HasPrefix(r.GetRequestForm().Get(FormParameterRequestURI), prefix)
+}
+
+// MatchScopes uses a fosite.ScopeStrategy to check if scopes match.
+func MatchScopes(strategy fosite.ScopeStrategy, granted, scopes []string) error {
+	for _, scope := range scopes {
+		if scope == "" {
+			continue
+		}
+
+		if !strategy(granted, scope) {
+			return errorsx.WithStack(fosite.ErrInvalidScope.WithHintf("The request scope '%s' has not been granted or is not allowed to be requested.", scope))
+		}
+	}
+
+	return nil
 }
 
 // SortedSigningAlgs is a sorting type which allows the use of sort.Sort to order a list of OAuth 2.0 Signing Algs.
@@ -327,4 +344,27 @@ func toTime(v any, def time.Time) (t time.Time) {
 	default:
 		return def
 	}
+}
+
+// IsJWTProfileAccessToken validates a *jwt.Token is actually a RFC9068 JWT Profile Access Token by checking the
+// relevant header as per https://datatracker.ietf.org/doc/html/rfc9068#section-2.1 which explicitly states that
+// the header MUST include a typ of 'at+jwt' or 'application/at+jwt' with a preference of 'at+jwt'.
+func IsJWTProfileAccessToken(token *fjwt.Token) bool {
+	if token == nil || token.Header == nil {
+		return false
+	}
+
+	var (
+		raw any
+		typ string
+		ok  bool
+	)
+
+	if raw, ok = token.Header[JWTHeaderKeyType]; !ok {
+		return false
+	}
+
+	typ, ok = raw.(string)
+
+	return ok && (typ == JWTHeaderTypeValueAccessTokenJWT)
 }

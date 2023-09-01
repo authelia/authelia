@@ -40,15 +40,30 @@ func NewConfig(config *schema.OpenIDConnect, signer jwt.Signer, templates *templ
 			ContextLifespan: config.PAR.ContextLifespan,
 			URIPrefix:       RedirectURIPrefixPushedAuthorizationRequestURN,
 		},
+		JWTAccessToken: JWTAccessTokenConfig{
+			Enable:                       config.Discovery.JWTResponseAccessTokens,
+			EnableStatelessIntrospection: config.EnableJWTAccessTokenStatelessIntrospection,
+		},
 		JWTSecuredAuthorizationLifespan: config.Lifespans.JWTSecuredAuthorization,
 		Templates:                       templates,
 	}
 
 	c.Handlers.ResponseMode = &ResponseModeHandler{c}
 
-	c.Strategy.Core = &HMACCoreStrategy{
-		Enigma: &hmac.HMACStrategy{Config: c},
-		Config: c,
+	if config.Discovery.JWTResponseAccessTokens {
+		c.Strategy.Core = &JWTCoreStrategy{
+			Signer: signer,
+			HMACCoreStrategy: &HMACCoreStrategy{
+				Enigma: &hmac.HMACStrategy{Config: c},
+				Config: c,
+			},
+			Config: c,
+		}
+	} else {
+		c.Strategy.Core = &HMACCoreStrategy{
+			Enigma: &hmac.HMACStrategy{Config: c},
+			Config: c,
+		}
 	}
 
 	c.Strategy.OpenID = &openid.DefaultStrategy{
@@ -79,6 +94,8 @@ type Config struct {
 	JWTMaxDuration time.Duration
 
 	JWTSecuredAuthorizationLifespan time.Duration
+
+	JWTAccessToken JWTAccessTokenConfig
 
 	Hasher               *Hasher
 	Hash                 HashConfig
@@ -119,9 +136,10 @@ type StrategyConfig struct {
 	ClientAuthentication fosite.ClientAuthenticationStrategy
 }
 
-// JARMConfig holds specific fosite.Configurator information for JWT Secured Response Modes.
-type JARMConfig struct {
-	Lifespan time.Duration
+// JWTAccessTokenConfig represents the JWT Access Token config.
+type JWTAccessTokenConfig struct {
+	Enable                       bool
+	EnableStatelessIntrospection bool
 }
 
 // PARConfig holds specific fosite.Configurator information for Pushed Authorization Requests.
@@ -178,6 +196,15 @@ type ProofKeyCodeExchangeConfig struct {
 // LoadHandlers reloads the handlers based on the current configuration.
 func (c *Config) LoadHandlers(store *Store) {
 	validator := openid.NewOpenIDConnectRequestValidator(c.Signer, c)
+
+	var statelessJWT any
+
+	if c.JWTAccessToken.Enable && c.JWTAccessToken.EnableStatelessIntrospection {
+		statelessJWT = &StatelessJWTValidator{
+			Signer: c.Signer,
+			Config: c,
+		}
+	}
 
 	handlers := []any{
 		&oauth2.AuthorizeExplicitGrantHandler{
@@ -253,6 +280,7 @@ func (c *Config) LoadHandlers(store *Store) {
 			},
 			Config: c,
 		},
+		statelessJWT,
 		&oauth2.CoreValidator{
 			CoreStrategy: c.Strategy.Core,
 			CoreStorage:  store,
@@ -282,6 +310,10 @@ func (c *Config) LoadHandlers(store *Store) {
 	}
 
 	for _, handler := range handlers {
+		if handler == nil {
+			continue
+		}
+
 		if h, ok := handler.(fosite.AuthorizeEndpointHandler); ok {
 			x.AuthorizeEndpoint.Append(h)
 		}

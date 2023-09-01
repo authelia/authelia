@@ -20,6 +20,7 @@ func EncodeJWTSecuredResponseParameters(token, _ string, tErr error) (parameters
 	return url.Values{FormParameterResponse: []string{token}}, nil
 }
 
+// GenerateJWTSecuredResponse generates the token and signature for a JARM response.
 func GenerateJWTSecuredResponse(ctx context.Context, config JWTSecuredResponseModeProvider, client Client, session any, in url.Values) (token, signature string, err error) {
 	headers := map[string]any{}
 
