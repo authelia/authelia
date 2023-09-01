@@ -113,6 +113,20 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, "akeyid", client.GetIDTokenSignedResponseKeyID())
 	assert.Equal(t, "akeyid", fclient.GetIDTokenSignedResponseKeyID())
 
+	assert.Equal(t, "", fclient.AccessTokenSignedResponseAlg)
+	assert.Equal(t, oidc.SigningAlgNone, client.GetAccessTokenSignedResponseAlg())
+	assert.Equal(t, oidc.SigningAlgNone, fclient.GetAccessTokenSignedResponseAlg())
+	assert.Equal(t, oidc.SigningAlgNone, fclient.AccessTokenSignedResponseAlg)
+
+	assert.Equal(t, "", fclient.AccessTokenSignedResponseKeyID)
+	assert.Equal(t, "", client.GetAccessTokenSignedResponseKeyID())
+	assert.Equal(t, "", fclient.GetAccessTokenSignedResponseKeyID())
+
+	fclient.AccessTokenSignedResponseKeyID = "atkeyid"
+
+	assert.Equal(t, "atkeyid", client.GetAccessTokenSignedResponseKeyID())
+	assert.Equal(t, "atkeyid", fclient.GetAccessTokenSignedResponseKeyID())
+
 	assert.Equal(t, oidc.ClientAuthMethodClientSecretPost, fclient.TokenEndpointAuthMethod)
 	assert.Equal(t, oidc.ClientAuthMethodClientSecretPost, fclient.GetTokenEndpointAuthMethod())
 
