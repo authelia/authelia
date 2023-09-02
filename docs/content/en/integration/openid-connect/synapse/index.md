@@ -83,7 +83,7 @@ identity_providers:
         - 'openid'
         - 'profile'
         - 'email'
-      userinfo_signing_alg: 'none'
+      userinfo_signed_response_alg: 'none'
 ```
 
 ## See Also

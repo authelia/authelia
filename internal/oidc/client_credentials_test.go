@@ -119,7 +119,7 @@ func (s *ClientAuthenticationStrategySuite) GetBaseRequest(body io.Reader) (r *h
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotNil(r)
 
-	r.Header.Set(fasthttp.HeaderContentType, "application/x-www-form-urlencoded")
+	r.Header.Set(fasthttp.HeaderContentType, "application/x-www-form-urlencoded; charset=utf8")
 
 	return r
 }

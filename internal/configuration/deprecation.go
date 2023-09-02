@@ -289,7 +289,7 @@ var deprecations = map[string]Deprecation{
 	"identity_providers.oidc.clients[].userinfo_signing_algorithm": {
 		Version: model.SemanticVersion{Major: 4, Minor: 38},
 		Key:     "identity_providers.oidc.clients[].userinfo_signing_algorithm",
-		NewKey:  "identity_providers.oidc.clients[].userinfo_signing_alg",
+		NewKey:  "identity_providers.oidc.clients[].userinfo_signed_response_alg",
 		AutoMap: true,
 		MapFunc: nil,
 		ErrFunc: nil,

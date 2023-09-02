@@ -1,14 +1,18 @@
 import "@testing-library/jest-dom/vitest";
 
-const localStorageMock = (function () {
-    let store = {};
+interface LocalStorageMock {
+    [key: string]: any;
+}
+
+const localStorageMock: LocalStorageMock = (function () {
+    let store: LocalStorageMock = {};
 
     return {
-        getItem(key) {
+        getItem(key: string | number) {
             return store[key];
         },
 
-        setItem(key, value) {
+        setItem(key: string | number, value: any) {
             store[key] = value;
         },
 
@@ -16,7 +20,7 @@ const localStorageMock = (function () {
             store = {};
         },
 
-        removeItem(key) {
+        removeItem(key: string | number) {
             delete store[key];
         },
 

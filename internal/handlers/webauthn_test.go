@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/golang/mock/gomock"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
@@ -22,38 +24,47 @@ func TestWebAuthnGetUser(t *testing.T) {
 		DisplayName: "John Smith",
 	}
 
-	ctx.StorageMock.EXPECT().LoadWebAuthnDevicesByUsername(ctx.Ctx, "john").Return([]model.WebAuthnDevice{
-		{
-			ID:              1,
-			RPID:            "https://example.com",
-			Username:        "john",
-			Description:     "Primary",
-			KID:             model.NewBase64([]byte("abc123")),
-			AttestationType: "fido-u2f",
-			PublicKey:       []byte("data"),
-			SignCount:       0,
-			CloneWarning:    false,
-		},
-		{
-			ID:              2,
-			RPID:            "example.com",
-			Username:        "john",
-			Description:     "Secondary",
-			KID:             model.NewBase64([]byte("123abc")),
-			AttestationType: "packed",
-			Transport:       "usb,nfc",
-			PublicKey:       []byte("data"),
-			SignCount:       100,
-			CloneWarning:    false,
-		},
-	}, nil)
+	gomock.InOrder(
+		ctx.StorageMock.EXPECT().LoadWebAuthnDevicesByUsername(ctx.Ctx, "john").Return([]model.WebAuthnDevice{
+			{
+				ID:              1,
+				RPID:            "https://example.com",
+				Username:        "john",
+				Description:     "Primary",
+				KID:             model.NewBase64([]byte("abc123")),
+				AttestationType: "fido-u2f",
+				PublicKey:       []byte("data"),
+				SignCount:       0,
+				CloneWarning:    false,
+			},
+			{
+				ID:              2,
+				RPID:            "example.com",
+				Username:        "john",
+				Description:     "Secondary",
+				KID:             model.NewBase64([]byte("123abc")),
+				AttestationType: "packed",
+				Transport:       "usb,nfc",
+				PublicKey:       []byte("data"),
+				SignCount:       100,
+				CloneWarning:    false,
+			},
+		}, nil),
+		ctx.StorageMock.EXPECT().LoadUserOpaqueIdentifierBySignature(ctx.Ctx, "webauthn", "pre", "john").Return(&model.UserOpaqueIdentifier{
+			ID:         1,
+			Service:    "webauthn",
+			SectorID:   "pre",
+			Username:   "john",
+			Identifier: uuid.MustParse("4333ef7b-ea69-40fc-8030-55610954ff3f"),
+		}, nil),
+	)
 
 	user, err := getWebAuthnUser(ctx.Ctx, userSession)
 
 	require.NoError(t, err)
 	require.NotNil(t, user)
 
-	assert.Equal(t, []byte{}, user.WebAuthnID())
+	assert.Equal(t, []byte{0x34, 0x33, 0x33, 0x33, 0x65, 0x66, 0x37, 0x62, 0x2d, 0x65, 0x61, 0x36, 0x39, 0x2d, 0x34, 0x30, 0x66, 0x63, 0x2d, 0x38, 0x30, 0x33, 0x30, 0x2d, 0x35, 0x35, 0x36, 0x31, 0x30, 0x39, 0x35, 0x34, 0x66, 0x66, 0x33, 0x66}, user.WebAuthnID())
 	assert.Equal(t, "john", user.WebAuthnName())
 	assert.Equal(t, "john", user.Username)
 
@@ -107,19 +118,28 @@ func TestWebAuthnGetUserWithoutDisplayName(t *testing.T) {
 		Username: "john",
 	}
 
-	ctx.StorageMock.EXPECT().LoadWebAuthnDevicesByUsername(ctx.Ctx, "john").Return([]model.WebAuthnDevice{
-		{
-			ID:              1,
-			RPID:            "example.com",
-			Username:        "john",
-			Description:     "Primary",
-			KID:             model.NewBase64([]byte("abc123")),
-			AttestationType: "fido-u2f",
-			PublicKey:       []byte("data"),
-			SignCount:       0,
-			CloneWarning:    false,
-		},
-	}, nil)
+	gomock.InOrder(
+		ctx.StorageMock.EXPECT().LoadWebAuthnDevicesByUsername(ctx.Ctx, "john").Return([]model.WebAuthnDevice{
+			{
+				ID:              1,
+				RPID:            "example.com",
+				Username:        "john",
+				Description:     "Primary",
+				KID:             model.NewBase64([]byte("abc123")),
+				AttestationType: "fido-u2f",
+				PublicKey:       []byte("data"),
+				SignCount:       0,
+				CloneWarning:    false,
+			},
+		}, nil),
+		ctx.StorageMock.EXPECT().LoadUserOpaqueIdentifierBySignature(ctx.Ctx, "webauthn", "pre", "john").Return(&model.UserOpaqueIdentifier{
+			ID:         1,
+			Service:    "webauthn",
+			SectorID:   "pre",
+			Username:   "john",
+			Identifier: uuid.MustParse("4333ef7b-ea69-40fc-8030-55610954ff3f"),
+		}, nil),
+	)
 
 	user, err := getWebAuthnUser(ctx.Ctx, userSession)
 
@@ -128,6 +148,7 @@ func TestWebAuthnGetUserWithoutDisplayName(t *testing.T) {
 
 	assert.Equal(t, "john", user.WebAuthnDisplayName())
 	assert.Equal(t, "john", user.DisplayName)
+	assert.Equal(t, "4333ef7b-ea69-40fc-8030-55610954ff3f", user.UserID)
 }
 
 func TestWebAuthnGetUserWithErr(t *testing.T) {

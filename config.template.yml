@@ -1400,6 +1400,10 @@ notifier:
         ## Enforces the use of PKCE for this client when set to true.
         # enforce_pkce: false
 
+        ## Enables stateless introspection for RFC9068 JWT Access Tokens. This should be false unless you have a
+        ## specific use case as it effectively prevents revocation of these access tokens.
+        # enable_jwt_access_token_stateless_introspection: false
+
         ## Enforces the use of PKCE for this client when configured, and enforces the specified challenge method.
         ## Options are 'plain' and 'S256'.
         # pkce_challenge_method: 'S256'
@@ -1412,14 +1416,54 @@ notifier:
         # token_endpoint_auth_signing_alg: 'RS256'
 
         ## The signing algorithm which must be used for request objects. A client JWK with a matching algorithm must be
-        ## included if configured.
+        ## available if configured.
         # request_object_signing_alg: 'RS256'
 
-        ## The signing algorithm used for ID Tokens. Am issuer JWK with a matching algorithm must be included.
-        # id_token_signing_alg: 'RS256'
+        ## The signing algorithm used for signing the authorization response. An issuer JWK with a matching algorithm
+        ## must be available when configured. Configuring this value enables the  JWT Secured Authorization Response
+        ## Mode (JARM) for this client. JARM is not understood by a majority of clients so you should only configure
+        ## this when you know it's supported.
+        ## Has no effect if authorization_signed_response_key_id is configured.
+        # authorization_signed_response_alg: 'none'
 
-        ## The algorithm used to sign userinfo endpoint responses for this client, either none or RS256.
-        # userinfo_signing_alg: 'none'
+        ## The signing key id used for signing the authorization response. An issuer JWK with a matching key id must be
+        ## available when configured. Configuring this value enables the JWT Secured Authorization Response Mode (JARM)
+        ## for this client. JARM is not understood by a majority of clients so you should only configure this when you
+        ## know it's supported.
+        # authorization_signed_response_key_id: ''
+
+        ## The signing algorithm used for ID Tokens. An issuer JWK with a matching algorithm must be available when
+        ## configured. Has no effect if id_token_signed_response_key_id is configured.
+        # id_token_signed_response_alg: 'RS256'
+
+        ## The signing key id used for ID Tokens. An issuer JWK with a matching key id must be available when
+        ## configured.
+        # id_token_signed_response_key_id: ''
+
+        ## The signing algorithm used for Access Tokens. An issuer JWK with a matching algorithm must be available.
+        ## Has no effect if access_token_signed_response_key_id is configured. Values other than 'none' enable RFC9068
+        ## for this client.
+        # access_token_signed_response_alg: 'none'
+
+        ## The signing key id used for Access Tokens. An issuer JWK with a matching key id must be available when
+        ## configured. Values other than a blank value enable RFC9068 for this client.
+        # access_token_signed_response_key_id: ''
+
+        ## The signing algorithm used for User Info responses. An issuer JWK with a matching algorithm must be
+        ## available. Has no effect if userinfo_signing_key_id is configured.
+        # userinfo_signed_response_alg: 'none'
+
+        ## The signing key id used for User Info responses. An issuer JWK with a matching key id must be available when
+        ## configured.
+        # userinfo_signed_response_key_id: ''
+
+        ## The signing algorithm used for Introspection responses. An issuer JWK with a matching algorithm must be
+        ## available when configured. Has no effect if introspection_signed_response_key_id is configured.
+        # introspection_signed_response_alg: 'none'
+
+        ## The signing key id used for Introspection responses. An issuer JWK with a matching key id must be available
+        ## when configured.
+        # introspection_signed_response_key_id: ''
 
         ## Trusted public keys configuration for request object signing for things such as private_key_jwt
         # public_keys:

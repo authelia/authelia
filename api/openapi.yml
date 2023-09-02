@@ -1341,10 +1341,22 @@ paths:
                   - $ref: '#/components/schemas/openid.spec.AccessResponse'
         "401":
           description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "403":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "500":
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
       security:
         - openid: []
   /api/oidc/revocation:
@@ -1368,10 +1380,22 @@ paths:
           description: OK
         "401":
           description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "403":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "500":
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
       security:
         - openid: []
   /api/oidc/introspection:
@@ -1397,12 +1421,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/openid.spec.IntrospectionResponse'
+            application/token-introspection+jwt:
+              schema:
+                description: |
+                  The RFC7519 encoded JWT with the nested 'token_introspection' claim which contains the same structure
+                  as the openid.spec.IntrospectionResponse described in this OpenAPI 3.0 specification.
+                type: string
+                example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2F1dGguZXhhbXBsZS5jb20vIiwiYXVkIjoiaHR0cHM6Ly9hcHAuZXhhbXBsZS5jb20vcmVzb3VyY2UiLCJpYXQiOjE1MTQ3OTc4OTIsInRva2VuX2ludHJvc3BlY3Rpb24iOnsiYWN0aXZlIjp0cnVlLCJleHAiOjE1MTQ3OTc5NDIsImNsaWVudF9pZCI6ImV4YW1wbGUiLCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIiwiaWF0IjoxNTE0Nzk3ODIyLCJzdWIiOiI5Y2JhMzJhMC02M2EyLTQyZDUtODNlYi1kZmM3NTc4OGEyMjIiLCJhdWQiOiJodHRwczovL2FwcC5leGFtcGxlLmNvbS9yZXNvdXJjZSIsInVzZXJuYW1lIjoiam9obiJ9fQ.9rN-G3uaj28Geiktfvknl-G6EnZxOGJjpXcemvsllYA'
         "401":
           description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "403":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "500":
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
       security:
         - openid: []
   /api/oidc/userinfo:
@@ -1711,8 +1754,8 @@ components:
               description: If special characters are required when using the standard mode.
     handlers.DuoDeviceBody:
       required:
-        - device
-        - method
+        - 'device'
+        - 'method'
       type: object
       properties:
         device:
@@ -1751,8 +1794,8 @@ components:
                       example: push
     handlers.bodyFirstFactorRequest:
       required:
-        - username
-        - password
+        - 'username'
+        - 'password'
       type: object
       properties:
         username:
@@ -1811,7 +1854,7 @@ components:
     {{- if .PasswordReset }}
     handlers.PasswordResetStep1RequestBody:
       required:
-        - username
+        - 'username'
       type: object
       properties:
         username:
@@ -1819,7 +1862,7 @@ components:
           example: john
     handlers.PasswordResetStep2RequestBody:
       required:
-        - password
+        - 'password'
       type: object
       properties:
         password:
@@ -1873,7 +1916,7 @@ components:
           example: Authentication failed, please retry later.
     middlewares.IdentityVerificationFinishBody:
       required:
-        - token
+        - 'token'
       type: object
       properties:
         token:
@@ -1917,7 +1960,7 @@ components:
               example: true
     handlers.UserInfo.MethodBody:
       required:
-        - method
+        - 'method'
       type: object
       properties:
         method:
@@ -2024,7 +2067,10 @@ components:
               allOf:
                 - $ref: '#/components/schemas/webauthn.AuthenticatorResponse'
                 - type: object
-                  required: [authenticatorData, clientDataJSON, signature]
+                  required:
+                    - 'authenticatorData'
+                    - 'clientDataJSON'
+                    - 'signature'
                   properties:
                     authenticatorData:
                       type: string
@@ -2348,11 +2394,11 @@ components:
     openid.spec.Metadata.OAuth2AuthorizationServer:
       type: object
       required:
-        - issuer
-        - authorization_endpoint
-        - subject_types_supported
-        - response_types_supported
-        - require_pushed_authorization_requests
+        - 'issuer'
+        - 'authorization_endpoint'
+        - 'subject_types_supported'
+        - 'response_types_supported'
+        - 'require_pushed_authorization_requests'
       properties:
         authorization_endpoint:
           description: >
@@ -2437,7 +2483,7 @@ components:
           type: array
           example: ["RS256"]
           items:
-            $ref: '#/components/schemas/jose.spec.jws'
+            $ref: '#/components/schemas/jose.spec.JWS'
         issuer:
           description:
             URL using the https scheme with no query or fragment component that the OP asserts as its Issuer Identifier.
@@ -2532,7 +2578,7 @@ components:
           type: array
           example: ["RS256"]
           items:
-            $ref: '#/components/schemas/jose.spec.jws'
+            $ref: '#/components/schemas/jose.spec.JWS'
         scopes_supported:
           description: >
             JSON array containing a list of the OAuth 2.0 [RFC6749] scope values that this server supports. The server
@@ -2590,7 +2636,7 @@ components:
           type: array
           example: ["RS256"]
           items:
-            $ref: '#/components/schemas/jose.spec.jws'
+            $ref: '#/components/schemas/jose.spec.JWS'
         ui_locales_supported:
           type: array
           description: >
@@ -2599,6 +2645,12 @@ components:
           example: ["en-US"]
           items:
             type: string
+        authorization_response_iss_parameter_supported:
+          description: >
+            Boolean parameter indicating whether the authorization server provides the iss parameter in the
+            authorization response as defined in Section 2. If omitted, the default value is false.
+          type: boolean
+          example: true
     openid.spec.Metadata.OpenIDConfiguration:
       type: object
       required:
@@ -2794,7 +2846,7 @@ components:
           type: array
           example: ["RS256"]
           items:
-            $ref: '#/components/schemas/jose.spec.jws'
+            $ref: '#/components/schemas/jose.spec.JWS'
         issuer:
           description: >
             URL using the https scheme with no query or fragment component that the OP asserts as its Issuer Identifier.
@@ -2931,7 +2983,7 @@ components:
           type: array
           example: ["RS256"]
           items:
-            $ref: '#/components/schemas/jose.spec.jws'
+            $ref: '#/components/schemas/jose.spec.JWS'
         scopes_supported:
           description: >
             JSON array containing a list of the OAuth 2.0 [RFC6749] scope values that this server supports.
@@ -2990,7 +3042,7 @@ components:
           type: array
           example: ["RS256"]
           items:
-            $ref: '#/components/schemas/jose.spec.jws'
+            $ref: '#/components/schemas/jose.spec.JWS'
         ui_locales_supported:
           description: >
             Languages and scripts supported for the user interface, represented as a JSON array of BCP47
@@ -3035,6 +3087,20 @@ components:
           example: ["none", "RS256"]
           items:
             $ref: '#/components/schemas/jose.spec.JWS.None'
+        authorization_signing_alg_values_supported:
+          description: >
+            OPTIONAL. A JSON array containing a list of the JWS [RFC7515] signing algorithms (alg values) supported by
+            the authorization endpoint to sign the response.
+          type: array
+          example: ["RS256"]
+          items:
+            $ref: '#/components/schemas/jose.spec.JWS'
+        authorization_response_iss_parameter_supported:
+          description: >
+            Boolean parameter indicating whether the authorization server provides the iss parameter in the
+            authorization response as defined in Section 2. If omitted, the default value is false.
+          type: boolean
+          example: true
     openid.spec.IntrospectionResponse:
       type: object
       required:
@@ -3230,6 +3296,7 @@ components:
             - 'unauthorized_client'
             - 'unsupported_grant_type'
             - 'unsupported_response_type'
+            - 'unsupported_token_type'
             - 'request_not_supported'
             - 'request_uri_not_supported'
             - 'registration_not_supported'
@@ -3253,6 +3320,12 @@ components:
             client developer with additional information about the error. Values for the "error_uri" parameter MUST
             conform to the URI-reference syntax and thus MUST NOT include characters outside the set %x21 / %x23-5B /
             %x5D-7E.
+          type: string
+        error_hint:
+          description: An additional hint about the cause of the error.
+          type: string
+        error_debug:
+          description: Additional debug information about the cause of the error.
           type: string
         state:
           description: >
@@ -3637,9 +3710,13 @@ components:
         Endpoint. This use of this parameter is NOT RECOMMENDED when the Response Mode that would be requested is
         the default mode specified for the Response Type.
       enum:
+        - 'form_post'
         - 'query'
         - 'fragment'
-        - 'form_post'
+        - 'jwt'
+        - 'form_post.jwt'
+        - 'query.jwt'
+        -  'fragment.jwt'
       example: 'query'
       type: string
     openid.spec.GrantType:
@@ -3677,9 +3754,9 @@ components:
       description: The JSON Web Signature Algorithm
       oneOf:
         - $ref: '#/components/schemas/jose.spec.None'
-        - $ref: '#/components/schemas/jose.spec.jws'
+        - $ref: '#/components/schemas/jose.spec.JWS'
       type: string
-    jose.spec.jws:
+    jose.spec.JWS:
       description: The JSON Web Signature Algorithm
       enum:
         - 'HS256'

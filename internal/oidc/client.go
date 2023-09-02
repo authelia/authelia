@@ -37,10 +37,16 @@ func NewClient(config schema.OpenIDConnectClient, c *schema.OpenIDConnect) (clie
 
 		EnforcePAR: config.EnforcePAR,
 
-		IDTokenSigningAlg:    config.IDTokenSigningAlg,
-		IDTokenSigningKeyID:  config.IDTokenSigningKeyID,
-		UserinfoSigningAlg:   config.UserinfoSigningAlg,
-		UserinfoSigningKeyID: config.UserinfoSigningKeyID,
+		AuthorizationSignedResponseAlg:   config.AuthorizationSignedResponseAlg,
+		AuthorizationSignedResponseKeyID: config.AuthorizationSignedResponseKeyID,
+		IDTokenSignedResponseAlg:         config.IDTokenSignedResponseAlg,
+		IDTokenSignedResponseKeyID:       config.IDTokenSignedResponseKeyID,
+		AccessTokenSignedResponseAlg:     config.AccessTokenSignedResponseAlg,
+		AccessTokenSignedResponseKeyID:   config.AccessTokenSignedResponseKeyID,
+		UserinfoSignedResponseAlg:        config.UserinfoSignedResponseAlg,
+		UserinfoSignedResponseKeyID:      config.UserinfoSignedResponseKeyID,
+		IntrospectionSignedResponseAlg:   config.IntrospectionSignedResponseAlg,
+		IntrospectionSignedResponseKeyID: config.IntrospectionSignedResponseKeyID,
 
 		AuthorizationPolicy: NewClientAuthorizationPolicy(config.AuthorizationPolicy, c),
 		ConsentPolicy:       NewClientConsentPolicy(config.ConsentMode, config.ConsentPreConfiguredDuration),
@@ -59,10 +65,10 @@ func NewClient(config schema.OpenIDConnectClient, c *schema.OpenIDConnect) (clie
 	if config.TokenEndpointAuthMethod != "" || config.TokenEndpointAuthSigningAlg != "" ||
 		len(config.PublicKeys.Values) != 0 || config.PublicKeys.URI != nil || config.RequestObjectSigningAlg != "" {
 		full := &FullClient{
-			BaseClient:                        base,
-			TokenEndpointAuthMethod:           config.TokenEndpointAuthMethod,
-			TokenEndpointAuthSigningAlgorithm: config.TokenEndpointAuthSigningAlg,
-			RequestObjectSigningAlgorithm:     config.RequestObjectSigningAlg,
+			BaseClient:                  base,
+			TokenEndpointAuthMethod:     config.TokenEndpointAuthMethod,
+			TokenEndpointAuthSigningAlg: config.TokenEndpointAuthSigningAlg,
+			RequestObjectSigningAlg:     config.RequestObjectSigningAlg,
 
 			JSONWebKeys: NewPublicJSONWebKeySetFromSchemaJWK(config.PublicKeys.Values),
 		}
@@ -152,32 +158,80 @@ func (c *BaseClient) GetResponseModes() []fosite.ResponseModeType {
 	return c.ResponseModes
 }
 
-// GetIDTokenSigningAlg returns the IDTokenSigningAlg.
-func (c *BaseClient) GetIDTokenSigningAlg() (alg string) {
-	if c.IDTokenSigningAlg == "" {
-		c.IDTokenSigningAlg = SigningAlgRSAUsingSHA256
+// GetAuthorizationSignedResponseAlg returns the AuthorizationSignedResponseAlg.
+func (c *BaseClient) GetAuthorizationSignedResponseAlg() (alg string) {
+	return c.AuthorizationSignedResponseAlg
+}
+
+// GetAuthorizationSignedResponseKeyID returns the AuthorizationSignedResponseKeyID.
+func (c *BaseClient) GetAuthorizationSignedResponseKeyID() (kid string) {
+	if c.AuthorizationSignedResponseKeyID == "" {
+		c.AuthorizationSignedResponseKeyID = SigningAlgNone
 	}
 
-	return c.IDTokenSigningAlg
+	return c.AuthorizationSignedResponseKeyID
 }
 
-// GetIDTokenSigningKeyID returns the IDTokenSigningKeyID.
-func (c *BaseClient) GetIDTokenSigningKeyID() (alg string) {
-	return c.IDTokenSigningKeyID
-}
-
-// GetUserinfoSigningAlg returns the UserinfoSigningAlg.
-func (c *BaseClient) GetUserinfoSigningAlg() string {
-	if c.UserinfoSigningAlg == "" {
-		c.UserinfoSigningAlg = SigningAlgNone
+// GetIDTokenSignedResponseAlg returns the IDTokenSignedResponseAlg.
+func (c *BaseClient) GetIDTokenSignedResponseAlg() (alg string) {
+	if c.IDTokenSignedResponseAlg == "" {
+		c.IDTokenSignedResponseAlg = SigningAlgRSAUsingSHA256
 	}
 
-	return c.UserinfoSigningAlg
+	return c.IDTokenSignedResponseAlg
 }
 
-// GetUserinfoSigningKeyID returns the UserinfoSigningKeyID.
-func (c *BaseClient) GetUserinfoSigningKeyID() (kid string) {
-	return c.UserinfoSigningKeyID
+// GetIDTokenSignedResponseKeyID returns the IDTokenSignedResponseKeyID.
+func (c *BaseClient) GetIDTokenSignedResponseKeyID() (alg string) {
+	return c.IDTokenSignedResponseKeyID
+}
+
+// GetAccessTokenSignedResponseAlg returns the AccessTokenSignedResponseAlg.
+func (c *BaseClient) GetAccessTokenSignedResponseAlg() (alg string) {
+	if c.AccessTokenSignedResponseAlg == "" {
+		c.AccessTokenSignedResponseAlg = SigningAlgNone
+	}
+
+	return c.AccessTokenSignedResponseAlg
+}
+
+// GetAccessTokenSignedResponseKeyID returns the AccessTokenSignedResponseKeyID.
+func (c *BaseClient) GetAccessTokenSignedResponseKeyID() (alg string) {
+	return c.AccessTokenSignedResponseKeyID
+}
+
+// GetJWTProfileOAuthAccessTokensEnabled returns true if this client is configured to return the
+// RFC9068 JWT Profile for OAuth 2.0 Access Tokens.
+func (c *BaseClient) GetJWTProfileOAuthAccessTokensEnabled() bool {
+	return c.GetAccessTokenSignedResponseAlg() != SigningAlgNone || len(c.GetAccessTokenSignedResponseKeyID()) > 0
+}
+
+// GetUserinfoSignedResponseAlg returns the UserinfoSignedResponseAlg.
+func (c *BaseClient) GetUserinfoSignedResponseAlg() string {
+	if c.UserinfoSignedResponseAlg == "" {
+		c.UserinfoSignedResponseAlg = SigningAlgNone
+	}
+
+	return c.UserinfoSignedResponseAlg
+}
+
+// GetUserinfoSignedResponseKeyID returns the UserinfoSignedResponseKeyID.
+func (c *BaseClient) GetUserinfoSignedResponseKeyID() (kid string) {
+	return c.UserinfoSignedResponseKeyID
+}
+
+// GetIntrospectionSignedResponseAlg returns the IntrospectionSignedResponseAlg.
+func (c *BaseClient) GetIntrospectionSignedResponseAlg() (alg string) {
+	if c.IntrospectionSignedResponseAlg == "" {
+		c.IntrospectionSignedResponseAlg = SigningAlgNone
+	}
+
+	return c.IntrospectionSignedResponseAlg
+}
+
+// GetIntrospectionSignedResponseKeyID returns the IntrospectionSignedResponseKeyID.
+func (c *BaseClient) GetIntrospectionSignedResponseKeyID() (alg string) {
+	return c.IntrospectionSignedResponseKeyID
 }
 
 // GetPAREnforcement returns EnforcePAR.
@@ -406,7 +460,7 @@ func (c *FullClient) GetJSONWebKeysURI() string {
 // GetRequestObjectSigningAlgorithm returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing Request
 // Objects sent to the OP. All Request Objects from this Client MUST be rejected, if not signed with this algorithm.
 func (c *FullClient) GetRequestObjectSigningAlgorithm() string {
-	return c.RequestObjectSigningAlgorithm
+	return c.RequestObjectSigningAlg
 }
 
 // GetTokenEndpointAuthMethod returns the requested Client Authentication Method for the Token Endpoint. The options are
@@ -427,9 +481,9 @@ func (c *FullClient) GetTokenEndpointAuthMethod() string {
 // [JWT] used to authenticate the Client at the Token Endpoint for the private_key_jwt and client_secret_jwt
 // authentication methods.
 func (c *FullClient) GetTokenEndpointAuthSigningAlgorithm() string {
-	if c.TokenEndpointAuthSigningAlgorithm == "" {
-		c.TokenEndpointAuthSigningAlgorithm = SigningAlgRSAUsingSHA256
+	if c.TokenEndpointAuthSigningAlg == "" {
+		c.TokenEndpointAuthSigningAlg = SigningAlgRSAUsingSHA256
 	}
 
-	return c.TokenEndpointAuthSigningAlgorithm
+	return c.TokenEndpointAuthSigningAlg
 }

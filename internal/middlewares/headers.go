@@ -7,22 +7,45 @@ import (
 // The SecurityHeaders middleware adds several modern recommended security headers with safe values.
 func SecurityHeaders(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
-		SetSecurityHeaders(ctx)
+		SetStandardSecurityHeaders(ctx)
 
 		next(ctx)
 	}
 }
 
-// The SetSecurityHeaders function adds several modern recommended security headers with safe values.
-func SetSecurityHeaders(ctx *fasthttp.RequestCtx) {
+// The SecurityHeadersRelaxed middleware adds several modern recommended security headers with relaxed values.
+func SecurityHeadersRelaxed(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+	return func(ctx *fasthttp.RequestCtx) {
+		SetRelaxedSecurityHeaders(ctx)
+
+		next(ctx)
+	}
+}
+
+// The SetStandardSecurityHeaders function adds several modern recommended security headers with safe values.
+func SetStandardSecurityHeaders(ctx *fasthttp.RequestCtx) {
+	SetBaseSecurityHeaders(ctx)
+
+	ctx.Response.Header.SetBytesKV(headerCrossOriginOpenerPolicy, headerValueSameOrigin)
+	ctx.Response.Header.SetBytesKV(headerCrossOriginEmbedderPolicy, headerValueRequireCORP)
+	ctx.Response.Header.SetBytesKV(headerCrossOriginResourcePolicy, headerValueSameSite)
+}
+
+// The SetRelaxedSecurityHeaders function adds several modern recommended security headers with relaxed values.
+func SetRelaxedSecurityHeaders(ctx *fasthttp.RequestCtx) {
+	SetBaseSecurityHeaders(ctx)
+
+	ctx.Response.Header.SetBytesKV(headerCrossOriginOpenerPolicy, headerValueSameOrigin)
+	ctx.Response.Header.SetBytesKV(headerCrossOriginEmbedderPolicy, headerValueUnsafeNone)
+	ctx.Response.Header.SetBytesKV(headerCrossOriginResourcePolicy, headerValueCrossOrigin)
+}
+
+func SetBaseSecurityHeaders(ctx *fasthttp.RequestCtx) {
 	ctx.Response.Header.SetBytesKV(headerXContentTypeOptions, headerValueNoSniff)
 	ctx.Response.Header.SetBytesKV(headerReferrerPolicy, headerValueStrictOriginCrossOrigin)
 	ctx.Response.Header.SetBytesKV(headerPermissionsPolicy, headerValuePermissionsPolicy)
 	ctx.Response.Header.SetBytesKV(headerXFrameOptions, headerValueDENY)
 	ctx.Response.Header.SetBytesKV(headerXDNSPrefetchControl, headerValueOff)
-	ctx.Response.Header.SetBytesKV(headerCrossOriginOpenerPolicy, headerValueSameOrigin)
-	ctx.Response.Header.SetBytesKV(headerCrossOriginEmbedderPolicy, headerValueRequireCORP)
-	ctx.Response.Header.SetBytesKV(headerCrossOriginResourcePolicy, headerValueSameSite)
 }
 
 // SecurityHeadersCSPNone middleware adds the Content-Security-Policy header with the value "default-src 'none';".
