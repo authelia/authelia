@@ -127,11 +127,11 @@ const (
 func (c ClientConsentMode) String() string {
 	switch c {
 	case ClientConsentModeExplicit:
-		return explicit
+		return valueExplicit
 	case ClientConsentModeImplicit:
-		return implicit
+		return valueImplicit
 	case ClientConsentModePreConfigured:
-		return preconfigured
+		return valuePreconfigured
 	default:
 		return ""
 	}

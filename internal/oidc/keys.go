@@ -119,23 +119,34 @@ func (m *KeyManager) GetByKID(ctx context.Context, kid string) *JWK {
 // GetByHeader returns the JWK a JWT header with the appropriate kid value or returns an error.
 func (m *KeyManager) GetByHeader(ctx context.Context, header fjwt.Mapper) (jwk *JWK, err error) {
 	var (
-		kid string
-		ok  bool
+		kid, alg string
+		ok       bool
 	)
 
 	if header == nil {
 		return nil, fmt.Errorf("jwt header was nil")
 	}
 
-	if kid, ok = header.Get(JWTHeaderKeyIdentifier).(string); !ok {
-		return nil, fmt.Errorf("jwt header did not have a kid")
-	}
+	kid, _ = header.Get(JWTHeaderKeyIdentifier).(string)
+	alg, _ = header.Get(JWTHeaderKeyAlgorithm).(string)
 
-	if jwk, ok = m.kids[kid]; !ok {
+	if len(kid) != 0 {
+		if jwk, ok = m.kids[kid]; ok {
+			return jwk, nil
+		}
+
 		return nil, fmt.Errorf("jwt header '%s' with value '%s' does not match a managed jwk", JWTHeaderKeyIdentifier, kid)
 	}
 
-	return jwk, nil
+	if len(alg) != 0 {
+		if jwk, ok = m.algs[alg]; ok {
+			return jwk, nil
+		}
+
+		return nil, fmt.Errorf("jwt header '%s' with value '%s' does not match a managed jwk", JWTHeaderKeyAlgorithm, alg)
+	}
+
+	return nil, fmt.Errorf("jwt header did not match a known jwk")
 }
 
 // GetByTokenString does an invalidated decode of a token to get the  header, then calls GetByHeader.
@@ -174,7 +185,12 @@ func (m *KeyManager) Generate(ctx context.Context, claims fjwt.MapClaims, header
 		return "", "", fmt.Errorf("error getting jwk from header: %w", err)
 	}
 
-	return jwk.Strategy().Generate(ctx, claims, header)
+	extra := header.ToMap()
+
+	extra[JWTHeaderKeyIdentifier] = jwk.KeyID()
+	extra[JWTHeaderKeyAlgorithm] = jwk.Algorithm()
+
+	return jwk.Strategy().Generate(ctx, claims, &fjwt.Headers{Extra: extra})
 }
 
 // Validate implements the fosite jwt.Signer interface and automatically maps the underlying keys based on the JWK Header kid.
@@ -308,6 +324,11 @@ func (j *JWK) GetPrivateKey(ctx context.Context) (any, error) {
 // KeyID returns the Key ID for this *JWK.
 func (j *JWK) KeyID() string {
 	return j.kid
+}
+
+// Algorithm returns the Algorithm for this *JWK.
+func (j *JWK) Algorithm() string {
+	return j.alg.Alg()
 }
 
 // DirectJWK directly returns the *JWK as a jose.JSONWebKey with the private key if appropriate.
@@ -457,7 +478,11 @@ func generateToken(claims jwt.MapClaims, header fjwt.Mapper, signingMethod jwt.S
 
 	token := jwt.NewWithClaims(signingMethod, claims)
 
-	token.Header = assign(token.Header, header.ToMap())
+	assign(token.Header, header.ToMap())
+
+	if typ := header.Get(JWTHeaderKeyType); typ != nil {
+		token.Header[JWTHeaderKeyType] = typ
+	}
 
 	if rawToken, err = token.SignedString(key); err != nil {
 		return "", "", err

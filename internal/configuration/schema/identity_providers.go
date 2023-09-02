@@ -25,6 +25,8 @@ type OpenIDConnect struct {
 	EnforcePKCE              string `koanf:"enforce_pkce"`
 	EnablePKCEPlainChallenge bool   `koanf:"enable_pkce_plain_challenge"`
 
+	EnableJWTAccessTokenStatelessIntrospection bool `koanf:"enable_jwt_access_token_stateless_introspection"`
+
 	PAR  OpenIDConnectPAR  `koanf:"pushed_authorizations"`
 	CORS OpenIDConnectCORS `koanf:"cors"`
 
@@ -58,11 +60,14 @@ type OpenIDConnectDiscovery struct {
 	ResponseObjectSigningKeyIDs []string
 	ResponseObjectSigningAlgs   []string
 	RequestObjectSigningAlgs    []string
+	JWTResponseAccessTokens     bool
 }
 
 type OpenIDConnectLifespans struct {
 	OpenIDConnectLifespanToken `koanf:",squash"`
-	Custom                     map[string]OpenIDConnectLifespan `koanf:"custom"`
+	JWTSecuredAuthorization    time.Duration `koanf:"jwt_secured_authorization"`
+
+	Custom map[string]OpenIDConnectLifespan `koanf:"custom"`
 }
 
 type OpenIDConnectLifespan struct {
@@ -127,12 +132,18 @@ type OpenIDConnectClient struct {
 
 	PKCEChallengeMethod string `koanf:"pkce_challenge_method"`
 
-	IDTokenSigningAlg           string `koanf:"id_token_signing_alg"`
-	IDTokenSigningKeyID         string `koanf:"id_token_signing_key_id"`
-	UserinfoSigningAlg          string `koanf:"userinfo_signing_alg"`
-	UserinfoSigningKeyID        string `koanf:"userinfo_signing_key_id"`
-	RequestObjectSigningAlg     string `koanf:"request_object_signing_alg"`
-	TokenEndpointAuthSigningAlg string `koanf:"token_endpoint_auth_signing_alg"`
+	AuthorizationSignedResponseAlg   string `koanf:"authorization_signed_response_alg"`
+	AuthorizationSignedResponseKeyID string `koanf:"authorization_signed_response_key_id"`
+	IDTokenSignedResponseAlg         string `koanf:"id_token_signed_response_alg"`
+	IDTokenSignedResponseKeyID       string `koanf:"id_token_signed_response_key_id"`
+	AccessTokenSignedResponseAlg     string `koanf:"access_token_signed_response_alg"`
+	AccessTokenSignedResponseKeyID   string `koanf:"access_token_signed_response_key_id"`
+	UserinfoSignedResponseAlg        string `koanf:"userinfo_signed_response_alg"`
+	UserinfoSignedResponseKeyID      string `koanf:"userinfo_signed_response_key_id"`
+	IntrospectionSignedResponseAlg   string `koanf:"introspection_signed_response_alg"`
+	IntrospectionSignedResponseKeyID string `koanf:"introspection_signed_response_key_id"`
+	RequestObjectSigningAlg          string `koanf:"request_object_signing_alg"`
+	TokenEndpointAuthSigningAlg      string `koanf:"token_endpoint_auth_signing_alg"`
 
 	TokenEndpointAuthMethod string `koanf:"token_endpoint_auth_method"`
 
@@ -168,12 +179,15 @@ var defaultOIDCClientConsentPreConfiguredDuration = time.Hour * 24 * 7
 
 // DefaultOpenIDConnectClientConfiguration contains defaults for OIDC Clients.
 var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClient{
-	AuthorizationPolicy:          policyTwoFactor,
-	Scopes:                       []string{"openid", "groups", "profile", "email"},
-	ResponseTypes:                []string{"code"},
-	ResponseModes:                []string{"form_post"},
-	IDTokenSigningAlg:            "RS256",
-	UserinfoSigningAlg:           "none",
-	ConsentMode:                  "auto",
-	ConsentPreConfiguredDuration: &defaultOIDCClientConsentPreConfiguredDuration,
+	AuthorizationPolicy:            policyTwoFactor,
+	Scopes:                         []string{"openid", "groups", "profile", "email"},
+	ResponseTypes:                  []string{"code"},
+	ResponseModes:                  []string{"form_post"},
+	AuthorizationSignedResponseAlg: "none",
+	IDTokenSignedResponseAlg:       "RS256",
+	AccessTokenSignedResponseAlg:   "none",
+	UserinfoSignedResponseAlg:      "none",
+	IntrospectionSignedResponseAlg: "none",
+	ConsentMode:                    "auto",
+	ConsentPreConfiguredDuration:   &defaultOIDCClientConsentPreConfiguredDuration,
 }

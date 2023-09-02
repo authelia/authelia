@@ -1,5 +1,5 @@
 ALTER TABLE webauthn_devices
-	ALTER COLUMN aaguid DROP NOT NULL;
+    ALTER COLUMN aaguid DROP NOT NULL;
 
 UPDATE webauthn_devices
 SET aaguid = NULL

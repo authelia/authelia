@@ -12,7 +12,7 @@ vi.mock("react-i18next", () => ({
     Trans: ({ children }: any) => children,
     useTranslation: () => {
         return {
-            t: (str) => str,
+            t: (str: any) => str,
             i18n: {
                 changeLanguage: () => new Promise(() => {}),
             },

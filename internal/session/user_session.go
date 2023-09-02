@@ -69,10 +69,10 @@ func (s *UserSession) SetTwoFactorWebAuthn(now time.Time, userPresence, userVeri
 func (s *UserSession) AuthenticatedTime(level authorization.Level) (authenticatedTime time.Time, err error) {
 	switch level {
 	case authorization.OneFactor:
-		return time.Unix(s.FirstFactorAuthnTimestamp, 0), nil
+		return time.Unix(s.FirstFactorAuthnTimestamp, 0).UTC(), nil
 	case authorization.TwoFactor:
-		return time.Unix(s.SecondFactorAuthnTimestamp, 0), nil
+		return time.Unix(s.SecondFactorAuthnTimestamp, 0).UTC(), nil
 	default:
-		return time.Unix(0, 0), errors.New("invalid authorization level")
+		return time.Unix(0, 0).UTC(), errors.New("invalid authorization level")
 	}
 }

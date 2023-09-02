@@ -47,7 +47,7 @@ func ConfigureDuoPreAuth(t *testing.T, response duo.PreAuthResponse) {
 	require.NoError(t, err)
 
 	req, err := http.NewRequest(fasthttp.MethodPost, url, bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(fasthttp.HeaderContentType, "application/json; charset=utf-8")
 	require.NoError(t, err)
 
 	client := NewHTTPClient()

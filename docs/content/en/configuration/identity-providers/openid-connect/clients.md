@@ -57,10 +57,14 @@ identity_providers:
         enforce_par: false
         enforce_pkce: false
         pkce_challenge_method: 'S256'
-        id_token_signing_alg: 'RS256'
-        id_token_signing_key_id: ''
-        userinfo_signing_alg: 'none'
-        userinfo_signing_key_id: ''
+        authorization_signed_response_alg: 'RS256'
+        authorization_signed_response_key_id: ''
+        id_token_signed_response_alg: 'RS256'
+        id_token_signed_response_key_id: ''
+        access_token_signed_response_alg: 'none'
+        access_token_signed_response_key_id: ''
+        userinfo_signed_response_alg: 'none'
+        userinfo_signed_response_key_id: ''
         request_object_signing_alg: 'RS256'
         token_endpoint_auth_signing_alg: 'RS256'
         token_endpoint_auth_method: ''
@@ -286,34 +290,98 @@ effectively enables the [enforce_pkce](#enforcepkce) option for this client.
 Valid values are an empty string, `plain`, or `S256`. It should be noted that `S256` is strongly recommended if the
 relying party supports it.
 
-### id_token_signing_alg
+### authorization_signed_response_alg
 
 {{< confkey type="string" default="RS256" required="no" >}}
+
+_**Note:** This value is completely ignored if the [authorization_signed_response_key_id](#authorizationsignedresponsekeyid) is
+defined._
+
+The algorithm used to sign the authorization responses.
+
+See the response object section of the
+[integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information including
+the algorithm column for supported values. This value can not be set to `none`.
+
+The algorithm chosen must have a key configured in the [issuer_private_keys](provider.md#issuerprivatekeys) section to
+be considered valid.
+
+See the response object section of the [integration guide](../../../integration/openid-connect/introduction.md#response-object)
+for more information including the algorithm column for supported values.
+
+### authorization_signed_response_key_id
+
+{{< confkey type="string" required="no" >}}
+
+_**Note:** This value automatically configures the [authorization_signed_response_alg](#authorizationsignedresponsealg) value with the algorithm
+of the specified key._
+
+The key id of the JWK used to sign the ID Tokens in the token responses. The value of this must one of those provided or
+calculated in the [issuer_private_keys](provider.md#issuerprivatekeys).
+
+### id_token_signed_response_alg
+
+{{< confkey type="string" default="RS256" required="no" >}}
+
+_**Note:** This value is completely ignored if the [id_token_signed_response_key_id](#idtokensignedresponsekeyid) is defined._
 
 The algorithm used to sign the ID Tokens in the token responses.
 
 See the response object section of the
 [integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information including
-the algorithm column for supported values. In addition to the values listed we also support `none` as a value for this
-endpoint.
+the algorithm column for supported values. This value can not be set to `none`.
 
 The algorithm chosen must have a key configured in the [issuer_private_keys](provider.md#issuerprivatekeys) section to
 be considered valid.
 
-This option has no effect if the [id_token_signing_key_id](#idtokensigningkid) is specified as the algorithm is
-automatically assumed by the configured key.
+See the response object section of the [integration guide](../../../integration/openid-connect/introduction.md#response-object)
+for more information including the algorithm column for supported values.
 
-### id_token_signing_key_id
+### id_token_signed_response_key_id
 
 {{< confkey type="string" required="no" >}}
 
-The key id of the JWK used to sign the ID Tokens in the token responses. This option takes precedence over
-[id_token_signing_alg](#idtokensigningalg). The value of this must one of those provided or calculated in the
-[issuer_private_keys](provider.md#issuerprivatekeys).
+_**Note:** This value automatically configures the [id_token_signed_response_alg](#idtokensignedresponsealg) value with the algorithm
+of the specified key._
 
-### userinfo_signing_alg
+The key id of the JWK used to sign the ID Tokens in the token responses. The value of this must one of those provided or
+calculated in the [issuer_private_keys](provider.md#issuerprivatekeys).
+
+### access_token_signed_response_alg
 
 {{< confkey type="string" default="none" required="no" >}}
+
+_**Note:** This value is completely ignored if the [access_token_signed_response_key_id](#accesstokensignedresponsekeyid) is defined._
+
+The algorithm used to sign the ID Tokens in the token responses.
+
+See the response object section of the
+[integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information including
+the algorithm column for supported values. This value can not be set to `none`.
+
+The algorithm chosen must have a key configured in the [issuer_private_keys](provider.md#issuerprivatekeys) section to
+be considered valid. In addition to the values listed we also support `none` as a value
+for this endpoint. When using the `none` value the Access Token is completely opaque and is not a JWT.
+
+See the response object section of the [integration guide](../../../integration/openid-connect/introduction.md#response-object)
+for more information including the algorithm column for supported values.
+
+### access_token_signed_response_key_id
+
+{{< confkey type="string" required="no" >}}
+
+_**Note:** This value automatically configures the [access_token_signed_response_alg](#accesstokensignedresponsealg) value with the
+algorithm of the specified key._
+
+The key id of the JWK used to sign the [JWT Access Tokens](https://oauth.net/2/jwt-access-tokens/) in the token
+responses. The value of this must one of those provided or calculated in the
+[issuer_private_keys](provider.md#issuerprivatekeys).
+
+### userinfo_signed_response_alg
+
+{{< confkey type="string" default="none" required="no" >}}
+
+_**Note:** This value is completely ignored if the [userinfo_signed_response_key_id](#userinfosignedresponsealg) is defined._
 
 The algorithm used to sign the userinfo endpoint responses.
 
@@ -324,16 +392,44 @@ support `none` as a value for this endpoint.
 The algorithm chosen must have a key configured in the [issuer_private_keys](provider.md#issuerprivatekeys) section to
 be considered valid.
 
-This option has no effect if the [userinfo_signing_key_id](#userinfosigningkeyid) is specified as the algorithm is
-automatically assumed by the configured key.
-
-### userinfo_signing_key_id
+### userinfo_signed_response_key_id
 
 {{< confkey type="string" required="no" >}}
 
-The key id of the JWK used to sign the userinfo endpoint responses in the token responses. This option takes precedence
-over  [userinfo_signing_alg](#userinfosigningalg). The value of this must one of those provided or calculated in the
+_**Note:** This value automatically configures the [userinfo_signed_response_alg](#userinfosignedresponsealg) value
+with the algorithm of the specified key._
+
+The key id of the JWK used to sign the userinfo endpoint responses in the token responses. The value of this must one of
+those provided or calculated in the
 [issuer_private_keys](provider.md#issuerprivatekeys).
+
+### introspection_signed_response_alg
+
+{{< confkey type="string" default="none" required="no" >}}
+
+_**Note:** This value is completely ignored if the
+[introspection_signed_response_key_id](#introspectionsignedresponsekeyid) is defined._
+
+The algorithm used to sign the Introspection response. By default it is set to `none` which results in the response
+not being signed and the encoding being JSON.
+
+If configured to any other value the response is a JWT in the `application/token-introspection+jwt` format.
+
+See the response object section of the [integration guide](../../../integration/openid-connect/introduction.md#response-object)
+for more information including the algorithm column for supported values.
+
+The algorithm chosen must have a key configured in the [issuer_private_keys](provider.md#issuerprivatekeys) section to
+be considered valid.
+
+### introspection_signed_response_key_id
+
+{{< confkey type="string" required="no" >}}
+
+_**Note:** This value automatically configures the [introspection_signed_response_alg](#introspectionsignedresponsealg)
+value with the algorithm of the specified key._
+
+The key id of the JWK used to sign the Introspection responses. The value of this must one of those provided or
+calculated in the [issuer_private_keys](provider.md#issuerprivatekeys).
 
 ### request_object_signing_alg
 

@@ -69,9 +69,9 @@ func TestShouldUpdateSession(t *testing.T) {
 func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 	ctx := &fasthttp.RequestCtx{}
 
-	timeOneFactor := time.Unix(1625048140, 0)
-	timeTwoFactor := time.Unix(1625048150, 0)
-	timeZeroFactor := time.Unix(0, 0)
+	timeOneFactor := time.Unix(1625048140, 0).UTC()
+	timeTwoFactor := time.Unix(1625048150, 0).UTC()
+	timeZeroFactor := time.Unix(0, 0).UTC()
 
 	provider, err := newTestSession()
 	assert.NoError(t, err)
@@ -141,9 +141,9 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	ctx := &fasthttp.RequestCtx{}
 
-	timeOneFactor := time.Unix(1625048140, 0)
-	timeTwoFactor := time.Unix(1625048150, 0)
-	timeZeroFactor := time.Unix(0, 0)
+	timeOneFactor := time.Unix(1625048140, 0).UTC()
+	timeTwoFactor := time.Unix(1625048150, 0).UTC()
+	timeZeroFactor := time.Unix(0, 0).UTC()
 
 	provider, err := newTestSession()
 	assert.NoError(t, err)

@@ -25,7 +25,7 @@ const (
 	ClaimRequestedAt                         = "rat"
 	ClaimExpirationTime                      = "exp"
 	ClaimAuthenticationTime                  = "auth_time"
-	ClaimIssuer                              = "iss"
+	ClaimIssuer                              = valueIss
 	ClaimSubject                             = "sub"
 	ClaimNonce                               = "nonce"
 	ClaimAudience                            = "aud"
@@ -37,7 +37,13 @@ const (
 	ClaimAuthorizedParty                     = "azp"
 	ClaimAuthenticationContextClassReference = "acr"
 	ClaimAuthenticationMethodsReference      = "amr"
-	ClaimClientIdentifier                    = "client_id"
+	ClaimClientIdentifier                    = valueClientID
+	ClaimScope                               = valueScope
+	ClaimScopeNonStandard                    = "scp"
+	ClaimExtra                               = "ext"
+	ClaimActive                              = "active"
+	ClaimUsername                            = "username"
+	ClaimTokenIntrospection                  = "token_introspection"
 )
 
 const (
@@ -48,10 +54,11 @@ const (
 const httpAuthSchemeBasic = "Basic"
 
 const (
-	lifespanTokenDefault         = time.Hour
-	lifespanRefreshTokenDefault  = time.Hour * 24 * 30
-	lifespanAuthorizeCodeDefault = time.Minute * 15
-	lifespanPARContextDefault    = time.Minute * 5
+	lifespanTokenDefault                   = time.Hour
+	lifespanRefreshTokenDefault            = time.Hour * 24 * 30
+	lifespanAuthorizeCodeDefault           = time.Minute * 15
+	lifespanJWTSecuredAuthorizationDefault = time.Minute * 5
+	lifespanPARContextDefault              = time.Minute * 5
 )
 
 const (
@@ -66,15 +73,19 @@ const (
 
 // Response Mode strings.
 const (
-	ResponseModeQuery    = "query"
-	ResponseModeFormPost = "form_post"
-	ResponseModeFragment = "fragment"
+	ResponseModeFormPost    = "form_post"
+	ResponseModeQuery       = "query"
+	ResponseModeFragment    = "fragment"
+	ResponseModeJWT         = "jwt"
+	ResponseModeFormPostJWT = "form_post.jwt"
+	ResponseModeQueryJWT    = "query.jwt"
+	ResponseModeFragmentJWT = "fragment.jwt"
 )
 
 // Grant Type strings.
 const (
-	GrantTypeImplicit          = implicit
-	GrantTypeRefreshToken      = refreshtoken
+	GrantTypeImplicit          = valueImplicit
+	GrantTypeRefreshToken      = valueRefreshToken
 	GrantTypeAuthorizationCode = "authorization_code"
 	GrantTypeClientCredentials = "client_credentials"
 )
@@ -102,7 +113,7 @@ const (
 // JWS Algorithm strings.
 // See: https://datatracker.ietf.org/doc/html/rfc7518#section-3.1
 const (
-	SigningAlgNone = none
+	SigningAlgNone = valueNone
 
 	SigningAlgRSAUsingSHA256 = "RS256"
 	SigningAlgRSAUsingSHA384 = "RS384"
@@ -146,22 +157,29 @@ const (
 )
 
 const (
+	FormParameterState               = "state"
 	FormParameterAuthorizationCode   = "code"
-	FormParameterClientID            = "client_id"
+	FormParameterClientID            = valueClientID
 	FormParameterClientSecret        = "client_secret"
 	FormParameterRequestURI          = "request_uri"
+	FormParameterRedirectURI         = "redirect_uri"
+	FormParameterResponse            = "response"
 	FormParameterResponseMode        = "response_mode"
+	FormParameterResponseType        = "response_type"
 	FormParameterCodeChallenge       = "code_challenge"
 	FormParameterCodeVerifier        = "code_verifier"
 	FormParameterCodeChallengeMethod = "code_challenge_method"
 	FormParameterClientAssertionType = "client_assertion_type"
 	FormParameterClientAssertion     = "client_assertion"
-	FormParameterScope               = "scope"
-	FormParameterRefreshToken        = refreshtoken
+	FormParameterScope               = valueScope
+	FormParameterRefreshToken        = valueRefreshToken
+	FormParameterIssuer              = valueIss
+	FormParameterToken               = "token"
+	FormParameterTokenTypeHint       = "token_type_hint"
 )
 
 const (
-	PromptNone    = none
+	PromptNone    = valueNone
 	PromptLogin   = "login"
 	PromptConsent = "consent"
 	// PromptCreate  = "create" // This prompt value is currently unused.
@@ -184,6 +202,19 @@ const (
 
 	// JWTHeaderKeyAlgorithm is the JWT Header referencing the JWS Key algorithm used to sign a token.
 	JWTHeaderKeyAlgorithm = "alg"
+
+	// JWTHeaderKeyType is the JWT Header referencing the JWT type.
+	JWTHeaderKeyType = "typ"
+)
+
+const (
+	JWTHeaderTypeValueTokenIntrospectionJWT = "token-introspection+jwt"
+	JWTHeaderTypeValueAccessTokenJWT        = "at+jwt"
+)
+
+const (
+	headerContentTypeTextHTML        = "text/html; charset=utf-8"
+	headerContentTypeApplicationJSON = "application/json; charset=utf-8"
 )
 
 const (
@@ -308,11 +339,14 @@ const (
 )
 
 const (
-	implicit      = "implicit"
-	explicit      = "explicit"
-	preconfigured = "pre-configured"
-	none          = "none"
-	refreshtoken  = "refresh_token"
+	valueScope         = "scope"
+	valueClientID      = "client_id"
+	valueImplicit      = "implicit"
+	valueExplicit      = "explicit"
+	valuePreconfigured = "pre-configured"
+	valueNone          = "none"
+	valueRefreshToken  = "refresh_token"
+	valueIss           = "iss"
 )
 
 const (
