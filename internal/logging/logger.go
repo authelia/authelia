@@ -33,60 +33,70 @@ func LoggerCtxPrintf(level logrus.Level) (logger *CtxPrintfLogger) {
 	}
 }
 
-// InitializeLogger configures the default loggers stack levels, formatting, and the output destinations.
-func InitializeLogger(config schema.LogConfiguration, log bool) error {
-	setLevelStr(config.Level, log)
-
+// InitializeLogger configures the default logger similar to ConfigureLogger but also configures the stack levels hook.
+func InitializeLogger(config schema.LogConfiguration, log bool) (err error) {
 	var callerLevels []logrus.Level
 
 	stackLevels := []logrus.Level{logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel}
 
 	logrus.AddHook(logrus_stack.NewHook(callerLevels, stackLevels))
 
-	if config.Format == logFormatJSON {
+	return ConfigureLogger(config, log)
+}
+
+// ConfigureLogger configures the default loggers level, formatting, and the output destinations.
+func ConfigureLogger(config schema.LogConfiguration, log bool) (err error) {
+	setLevelStr(config.Level, log)
+
+	switch config.Format {
+	case FormatJSON:
 		logrus.SetFormatter(&logrus.JSONFormatter{})
-	} else {
+	default:
 		logrus.SetFormatter(&logrus.TextFormatter{})
 	}
 
-	if config.FilePath != "" {
-		filePath := strings.ReplaceAll(config.FilePath, "%d", time.Now().Format(time.RFC3339))
+	var writers []io.Writer
 
-		f, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	switch {
+	case config.FilePath != "":
+		var file *os.File
 
-		if err != nil {
+		if file, err = os.OpenFile(strings.ReplaceAll(config.FilePath, "%d", time.Now().Format(time.RFC3339)), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600); err != nil {
 			return err
 		}
 
-		if config.Format != logFormatJSON {
+		if config.Format != FormatJSON {
 			logrus.SetFormatter(&logrus.TextFormatter{
 				DisableColors: true,
 				FullTimestamp: true,
 			})
 		}
 
+		writers = []io.Writer{file}
+
 		if config.KeepStdout {
-			logLocations := io.MultiWriter(os.Stdout, f)
-			logrus.SetOutput(logLocations)
-		} else {
-			logrus.SetOutput(f)
+			writers = append(writers, os.Stdout)
 		}
+	default:
+		writers = []io.Writer{os.Stdout}
 	}
+
+	logrus.SetOutput(io.MultiWriter(writers...))
 
 	return nil
 }
 
 func setLevelStr(level string, log bool) {
 	switch level {
-	case "error":
+	case LevelError:
 		logrus.SetLevel(logrus.ErrorLevel)
-	case "warn":
+	case LevelWarn:
 		logrus.SetLevel(logrus.WarnLevel)
-	case "info":
+	case LevelInfo:
 		logrus.SetLevel(logrus.InfoLevel)
-	case "debug":
+	case LevelDebug:
 		logrus.SetLevel(logrus.DebugLevel)
-	case "trace":
+	case LevelTrace:
 		logrus.SetLevel(logrus.TraceLevel)
 	default:
 		level = "info (default)"
