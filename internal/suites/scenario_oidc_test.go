@@ -98,6 +98,7 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 
 	// Verify that the app is showing the info related to the user stored in the JWT token.
 
+	rAuthCodeURL := regexp.MustCompile(`/oauth2/callback\?code=authelia_ac_([^&=]+)&iss=https%3A%2F%2Flogin\.example\.com%3A8080&scope=openid\+profile\+email\+groups&state=random-string-here$`)
 	rUUID := regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
 	rInteger := regexp.MustCompile(`^\d+$`)
 	rBoolean := regexp.MustCompile(`^(true|false)$`)
@@ -108,6 +109,7 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 		expected        any
 	}{
 		{"welcome", "welcome", "Logged in as john!"},
+		{"AuthorizeCodeURL", "auth-code-url", rAuthCodeURL},
 		{oidc.ClaimAccessTokenHash, "", rBase64},
 		{oidc.ClaimJWTID, "", rUUID},
 		{oidc.ClaimIssuedAt, "", rInteger},
@@ -171,7 +173,7 @@ func (s *OIDCScenario) TestShouldDenyConsent() {
 	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "deny-button").Click("left", 1)
 	assert.NoError(s.T(), err)
 
-	s.verifyIsOIDC(s.T(), s.Context(ctx), "access_denied", "https://oidc.example.com:8080/error?error=access_denied&error_description=The+resource+owner+or+authorization+server+denied+the+request.+Make+sure+that+the+request+you+are+making+is+valid.+Maybe+the+credential+or+request+parameters+you+are+using+are+limited+in+scope+or+otherwise+restricted.&state=random-string-here")
+	s.verifyIsOIDC(s.T(), s.Context(ctx), "access_denied", "https://oidc.example.com:8080/error?error=access_denied&error_description=The+resource+owner+or+authorization+server+denied+the+request.+Make+sure+that+the+request+you+are+making+is+valid.+Maybe+the+credential+or+request+parameters+you+are+using+are+limited+in+scope+or+otherwise+restricted.&iss=https%3A%2F%2Flogin.example.com%3A8080&state=random-string-here")
 
 	errorDescription := "The resource owner or authorization server denied the request. Make sure that the request " +
 		"you are making is valid. Maybe the credential or request parameters you are using are limited in scope or " +

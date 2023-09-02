@@ -133,5 +133,5 @@ identity_providers:
       - id: 'abc'
         secret: '123'
         consent_mode: 'explicit'
-        userinfo_signing_alg: 'none'
+        userinfo_signed_response_alg: 'none'
 ...

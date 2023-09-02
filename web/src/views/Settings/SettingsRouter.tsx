@@ -31,10 +31,7 @@ const SettingsRouter = function (props: Props) {
         <SettingsLayout>
             <Routes>
                 <Route path={IndexRoute} element={<SettingsView />} />
-                <Route
-                    path={SettingsTwoFactorAuthenticationSubRoute}
-                    element={<TwoFactorAuthenticationView state={state} />}
-                />
+                <Route path={SettingsTwoFactorAuthenticationSubRoute} element={<TwoFactorAuthenticationView />} />
             </Routes>
         </SettingsLayout>
     );

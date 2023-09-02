@@ -1,18 +1,19 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
+	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/token/jwt"
 	"github.com/pkg/errors"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -71,7 +72,21 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		return
 	}
 
-	claims := requester.GetSession().(*model.OpenIDSession).IDTokenClaims().ToMap()
+	var claims map[string]any
+
+	switch session := requester.GetSession().(type) {
+	case *oidc.Session:
+		claims = session.IDTokenClaims().ToMap()
+	case *oauth2.JWTSession:
+		claims = session.JWTClaims.ToMap()
+	default:
+		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed to handle session with type '%T'", requestID, client.GetID(), session)
+
+		ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError.WithDebugf("Failed to handle session with type '%T'.", session))
+
+		return
+	}
+
 	delete(claims, oidc.ClaimJWTID)
 	delete(claims, oidc.ClaimSessionID)
 	delete(claims, oidc.ClaimAccessTokenHash)
@@ -93,15 +108,20 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 	ctx.Logger.Tracef("UserInfo Response with id '%s' on client with id '%s' is being sent with the following claims: %+v", requestID, clientID, claims)
 
-	switch alg := client.GetUserinfoSigningAlg(); alg {
-	case oidc.SigningAlgNone, "":
+	switch alg := client.GetUserinfoSignedResponseAlg(); alg {
+	case oidc.SigningAlgNone:
 		ctx.Logger.Debugf("UserInfo Request with id '%s' on client with id '%s' is being returned unsigned as per the registered client configuration", requestID, client.GetID())
 
-		ctx.Providers.OpenIDConnect.Write(rw, req, claims)
+		rw.Header().Set(fasthttp.HeaderContentType, "application/json; charset=utf-8")
+		rw.Header().Set(fasthttp.HeaderCacheControl, "no-store")
+		rw.Header().Set(fasthttp.HeaderPragma, "no-cache")
+		rw.WriteHeader(http.StatusOK)
+
+		_ = json.NewEncoder(rw).Encode(claims)
 	default:
 		var jwk *oidc.JWK
 
-		if jwk = ctx.Providers.OpenIDConnect.KeyManager.Get(ctx, client.GetUserinfoSigningKeyID(), alg); jwk == nil {
+		if jwk = ctx.Providers.OpenIDConnect.KeyManager.Get(ctx, client.GetUserinfoSignedResponseKeyID(), alg); jwk == nil {
 			ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(fosite.ErrServerError.WithHintf("Unsupported UserInfo signing algorithm '%s'.", alg)))
 
 			return
@@ -118,7 +138,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		}
 
 		claims[oidc.ClaimJWTID] = jti.String()
-		claims[oidc.ClaimIssuedAt] = time.Now().Unix()
+		claims[oidc.ClaimIssuedAt] = time.Now().UTC().Unix()
 
 		headers := &jwt.Headers{
 			Extra: map[string]any{
@@ -132,7 +152,11 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 			return
 		}
 
-		rw.Header().Set(fasthttp.HeaderContentType, "application/jwt")
+		rw.Header().Set(fasthttp.HeaderContentType, "application/jwt; charset=utf-8")
+		rw.Header().Set(fasthttp.HeaderCacheControl, "no-store")
+		rw.Header().Set(fasthttp.HeaderPragma, "no-cache")
+		rw.WriteHeader(http.StatusOK)
+
 		_, _ = rw.Write([]byte(token))
 	}
 

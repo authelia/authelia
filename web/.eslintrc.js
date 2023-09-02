@@ -10,17 +10,9 @@ module.exports = {
         },
     },
     plugins: ["@limegrass/import-alias"],
-    extends: ["react-app", "plugin:prettier/recommended", "prettier"],
+    extends: ["react-app", "plugin:import/errors", "plugin:import/warnings", "plugin:prettier/recommended", "prettier"],
     rules: {
         "@limegrass/import-alias/import-alias": "error",
-        "import/no-named-as-default": "warn",
-        "import/no-named-as-default-member": "warn",
-        "import/no-duplicates": "warn",
-        "import/no-unresolved": "error",
-        "import/named": "error",
-        "import/namespace": "error",
-        "import/default": "error",
-        "import/export": "error",
         "import/order": [
             "error",
             {

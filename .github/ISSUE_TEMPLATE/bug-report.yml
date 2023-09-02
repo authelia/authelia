@@ -152,6 +152,18 @@ body:
     validations:
       required: false
   - type: 'textarea'
+    id: 'build-info'
+    attributes:
+      label: |
+        Build Information
+      description: |
+        You **_MUST_** provide the output of the `authelia build-info` command.
+
+        The template will automatically put this content in a code block so you can just paste it.
+      render: 'shell'
+    validations:
+      required: true
+  - type: 'textarea'
     id: 'logs'
     attributes:
       label: |
@@ -201,6 +213,9 @@ body:
           required: true
         - label: |
             I have either included the complete configuration file or I am sure it's unrelated to the configuration
+          required: true
+        - label: |
+            I have either included the complete debug / trace logs or the output of the build-info command if the logs are not relevant
           required: true
         - label: |
             I have provided all of the required information in full with the only alteration being reasonable sanitization in accordance with the [Troubleshooting Sanitization](https://www.authelia.com/r/sanitize) reference guide

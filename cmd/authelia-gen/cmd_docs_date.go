@@ -13,7 +13,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/valyala/fasthttp"
-	yaml "gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v3"
 )
 
 func newDocsDateCmd() *cobra.Command {
