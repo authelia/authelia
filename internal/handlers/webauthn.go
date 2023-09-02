@@ -40,7 +40,33 @@ func getWebAuthnUserByRPID(ctx *middlewares.AutheliaCtx, username, displayname s
 		return nil, err
 	}
 
+	var (
+		opaqueID *model.UserOpaqueIdentifier
+	)
+
+	if opaqueID, err = getWebAuthnUserOpaqueID(ctx, user.Username); err != nil {
+		return nil, err
+	}
+
+	user.UserID = opaqueID.Identifier.String()
+
 	return user, nil
+}
+
+func getWebAuthnUserOpaqueID(ctx *middlewares.AutheliaCtx, username string) (opaqueID *model.UserOpaqueIdentifier, err error) {
+	if opaqueID, err = ctx.Providers.StorageProvider.LoadUserOpaqueIdentifierBySignature(ctx, "webauthn", "pre", username); err != nil {
+		return nil, err
+	} else if opaqueID == nil {
+		if opaqueID, err = model.NewUserOpaqueIdentifier("webauthn", "pre", username); err != nil {
+			return nil, err
+		}
+
+		if err = ctx.Providers.StorageProvider.SaveUserOpaqueIdentifier(ctx, *opaqueID); err != nil {
+			return nil, err
+		}
+	}
+
+	return opaqueID, nil
 }
 
 func newWebAuthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error) {
