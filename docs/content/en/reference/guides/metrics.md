@@ -23,6 +23,18 @@ to be used by administrators of their individual *Authelia* installs.
 when configured. If metrics are enabled the metrics listener listens on `:9959` as per the officially
 [registered port] unless configured otherwise.
 
+#### Example Prometheus Job  
+```yaml
+# Authelia
+  - job_name: authelia
+    scrape_interval: 60s
+    scheme: http
+    static_configs:
+    - targets: [authelia_address:9959]
+```  
+*Notes: Replace 'authelia_address' with the URL or IP of your Authelia container.*  
+
+
 #### Recorded Metrics
 
 ##### Vectored Counters
@@ -82,3 +94,4 @@ OpenID Connect 1.0 Endpoint Names:
 
 [Prometheus]: https://prometheus.io/
 [registered port]: https://github.com/prometheus/prometheus/wiki/Default-port-allocations
+
