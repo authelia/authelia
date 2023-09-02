@@ -121,3 +121,11 @@ type ErrorResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
 }
+
+// AuthenticationErrorResponse model of an error response.
+type AuthenticationErrorResponse struct {
+	Status         string `json:"status"`
+	Message        string `json:"message"`
+	Authentication bool   `json:"authentication"`
+	Elevation      bool   `json:"elevation"`
+}

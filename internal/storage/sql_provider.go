@@ -46,16 +46,19 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlUpdateTOTPConfigRecordSignIn:           fmt.Sprintf(queryFmtUpdateTOTPConfigRecordSignIn, tableTOTPConfigurations),
 		sqlUpdateTOTPConfigRecordSignInByUsername: fmt.Sprintf(queryFmtUpdateTOTPConfigRecordSignInByUsername, tableTOTPConfigurations),
 
-		sqlUpsertWebAuthnDevice:            fmt.Sprintf(queryFmtUpsertWebAuthnDevice, tableWebAuthnDevices),
-		sqlSelectWebAuthnDevices:           fmt.Sprintf(queryFmtSelectWebAuthnDevices, tableWebAuthnDevices),
-		sqlSelectWebAuthnDevicesByUsername: fmt.Sprintf(queryFmtSelectWebAuthnDevicesByUsername, tableWebAuthnDevices),
+		sqlInsertWebAuthnUser: fmt.Sprintf(queryFmtInsertWebAuthnUser, tableWebAuthnUsers),
+		sqlSelectWebAuthnUser: fmt.Sprintf(queryFmtSelectWebAuthnUser, tableWebAuthnUsers),
 
-		sqlUpdateWebAuthnDeviceRecordSignIn:           fmt.Sprintf(queryFmtUpdateWebAuthnDeviceRecordSignIn, tableWebAuthnDevices),
-		sqlUpdateWebAuthnDeviceRecordSignInByUsername: fmt.Sprintf(queryFmtUpdateWebAuthnDeviceRecordSignInByUsername, tableWebAuthnDevices),
-
-		sqlDeleteWebAuthnDevice:                         fmt.Sprintf(queryFmtDeleteWebAuthnDevice, tableWebAuthnDevices),
-		sqlDeleteWebAuthnDeviceByUsername:               fmt.Sprintf(queryFmtDeleteWebAuthnDeviceByUsername, tableWebAuthnDevices),
-		sqlDeleteWebAuthnDeviceByUsernameAndDescription: fmt.Sprintf(queryFmtDeleteWebAuthnDeviceByUsernameAndDescription, tableWebAuthnDevices),
+		sqlInsertWebAuthnDevice:                           fmt.Sprintf(queryFmtInsertWebAuthnDevice, tableWebAuthnDevices),
+		sqlSelectWebAuthnDevices:                          fmt.Sprintf(queryFmtSelectWebAuthnDevices, tableWebAuthnDevices),
+		sqlSelectWebAuthnDevicesByUsername:                fmt.Sprintf(queryFmtSelectWebAuthnDevicesByUsername, tableWebAuthnDevices),
+		sqlSelectWebAuthnDevicesByRPIDByUsername:          fmt.Sprintf(queryFmtSelectWebAuthnDevicesByRPIDByUsername, tableWebAuthnDevices),
+		sqlSelectWebAuthnDeviceByID:                       fmt.Sprintf(queryFmtSelectWebAuthnDeviceByID, tableWebAuthnDevices),
+		sqlUpdateWebAuthnDeviceDescriptionByUsernameAndID: fmt.Sprintf(queryFmtUpdateUpdateWebAuthnDeviceDescriptionByUsernameAndID, tableWebAuthnDevices),
+		sqlUpdateWebAuthnDeviceRecordSignIn:               fmt.Sprintf(queryFmtUpdateWebAuthnDeviceRecordSignIn, tableWebAuthnDevices),
+		sqlDeleteWebAuthnDevice:                           fmt.Sprintf(queryFmtDeleteWebAuthnDevice, tableWebAuthnDevices),
+		sqlDeleteWebAuthnDeviceByUsername:                 fmt.Sprintf(queryFmtDeleteWebAuthnDeviceByUsername, tableWebAuthnDevices),
+		sqlDeleteWebAuthnDeviceByUsernameAndDisplayName:   fmt.Sprintf(queryFmtDeleteWebAuthnDeviceByUsernameAndDescription, tableWebAuthnDevices),
 
 		sqlUpsertDuoDevice: fmt.Sprintf(queryFmtUpsertDuoDevice, tableDuoDevices),
 		sqlDeleteDuoDevice: fmt.Sprintf(queryFmtDeleteDuoDevice, tableDuoDevices),
@@ -165,17 +168,23 @@ type SQLProvider struct {
 	sqlUpdateTOTPConfigRecordSignIn           string
 	sqlUpdateTOTPConfigRecordSignInByUsername string
 
-	// Table: webauthn_devices.
-	sqlUpsertWebAuthnDevice            string
-	sqlSelectWebAuthnDevices           string
-	sqlSelectWebAuthnDevicesByUsername string
+	// Table: webauthn_users.
+	sqlInsertWebAuthnUser string
+	sqlSelectWebAuthnUser string
 
-	sqlUpdateWebAuthnDeviceRecordSignIn           string
-	sqlUpdateWebAuthnDeviceRecordSignInByUsername string
+	// Table: webauthn_devices.
+	sqlInsertWebAuthnDevice                  string
+	sqlSelectWebAuthnDevices                 string
+	sqlSelectWebAuthnDevicesByUsername       string
+	sqlSelectWebAuthnDevicesByRPIDByUsername string
+	sqlSelectWebAuthnDeviceByID              string
+
+	sqlUpdateWebAuthnDeviceDescriptionByUsernameAndID string
+	sqlUpdateWebAuthnDeviceRecordSignIn               string
 
 	sqlDeleteWebAuthnDevice                         string
 	sqlDeleteWebAuthnDeviceByUsername               string
-	sqlDeleteWebAuthnDeviceByUsernameAndDescription string
+	sqlDeleteWebAuthnDeviceByUsernameAndDisplayName string
 
 	// Table: duo_devices.
 	sqlUpsertDuoDevice string
@@ -367,7 +376,7 @@ func (p *SQLProvider) LoadUserOpaqueIdentifier(ctx context.Context, identifier u
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, nil
 		default:
-			return nil, err
+			return nil, fmt.Errorf("error selecting user opaque id with value '%s': %w", identifier.String(), err)
 		}
 	}
 
@@ -406,7 +415,7 @@ func (p *SQLProvider) LoadUserOpaqueIdentifierBySignature(ctx context.Context, s
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, nil
 		default:
-			return nil, err
+			return nil, fmt.Errorf("error selecting user opaque with service '%s' and sector '%s' for username '%s': %w", service, sectorID, username, err)
 		}
 	}
 
@@ -866,7 +875,7 @@ func (p *SQLProvider) DeleteTOTPConfiguration(ctx context.Context, username stri
 func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string) (config *model.TOTPConfiguration, err error) {
 	config = &model.TOTPConfiguration{}
 
-	if err = p.db.QueryRowxContext(ctx, p.sqlSelectTOTPConfig, username).StructScan(config); err != nil {
+	if err = p.db.GetContext(ctx, config, p.sqlSelectTOTPConfig, username); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNoTOTPConfiguration
 		}
@@ -902,28 +911,65 @@ func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, limit, page in
 	return configs, nil
 }
 
+// SaveWebAuthnUser saves a registered WebAuthn user.
+func (p *SQLProvider) SaveWebAuthnUser(ctx context.Context, user model.WebAuthnUser) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertWebAuthnUser, user.RPID, user.Username, user.UserID); err != nil {
+		return fmt.Errorf("error inserting WebAuthn user '%s' with relying party id '%s': %w", user.Username, user.RPID, err)
+	}
+
+	return nil
+}
+
+// LoadWebAuthnUser loads a registered WebAuthn user.
+func (p *SQLProvider) LoadWebAuthnUser(ctx context.Context, rpid, username string) (user *model.WebAuthnUser, err error) {
+	user = &model.WebAuthnUser{}
+
+	if err = p.db.GetContext(ctx, user, p.sqlSelectWebAuthnUser, rpid, username); err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, nil
+		default:
+			return nil, fmt.Errorf("error selecting WebAuthn user '%s' with relying party id '%s': %w", user.Username, user.RPID, err)
+		}
+	}
+
+	return user, nil
+}
+
 // SaveWebAuthnDevice saves a registered WebAuthn device.
 func (p *SQLProvider) SaveWebAuthnDevice(ctx context.Context, device model.WebAuthnDevice) (err error) {
 	if device.PublicKey, err = p.encrypt(device.PublicKey); err != nil {
 		return fmt.Errorf("error encrypting WebAuthn device public key for user '%s' kid '%x': %w", device.Username, device.KID, err)
 	}
 
-	if _, err = p.db.ExecContext(ctx, p.sqlUpsertWebAuthnDevice,
-		device.CreatedAt, device.LastUsedAt,
-		device.RPID, device.Username, device.Description,
-		device.KID, device.PublicKey,
-		device.AttestationType, device.Transport, device.AAGUID, device.SignCount, device.CloneWarning,
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertWebAuthnDevice,
+		device.CreatedAt, device.LastUsedAt, device.RPID, device.Username, device.Description,
+		device.KID, device.AAGUID, device.AttestationType, device.Attachment, device.Transport,
+		device.SignCount, device.CloneWarning, device.Discoverable, device.Present, device.Verified,
+		device.BackupEligible, device.BackupState, device.PublicKey,
 	); err != nil {
-		return fmt.Errorf("error upserting WebAuthn device for user '%s' kid '%x': %w", device.Username, device.KID, err)
+		return fmt.Errorf("error inserting WebAuthn device for user '%s' kid '%x': %w", device.Username, device.KID, err)
+	}
+
+	return nil
+}
+
+// UpdateWebAuthnDeviceDescription updates a registered WebAuthn device's description.
+func (p *SQLProvider) UpdateWebAuthnDeviceDescription(ctx context.Context, username string, deviceID int, description string) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateWebAuthnDeviceDescriptionByUsernameAndID, description, username, deviceID); err != nil {
+		return fmt.Errorf("error updating WebAuthn device description to '%s' for device id '%d': %w", description, deviceID, err)
 	}
 
 	return nil
 }
 
 // UpdateWebAuthnDeviceSignIn updates a registered WebAuthn devices sign in information.
-func (p *SQLProvider) UpdateWebAuthnDeviceSignIn(ctx context.Context, id int, rpid string, lastUsedAt sql.NullTime, signCount uint32, cloneWarning bool) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlUpdateWebAuthnDeviceRecordSignIn, rpid, lastUsedAt, signCount, cloneWarning, id); err != nil {
-		return fmt.Errorf("error updating WebAuthn signin metadata for id '%x': %w", id, err)
+func (p *SQLProvider) UpdateWebAuthnDeviceSignIn(ctx context.Context, device model.WebAuthnDevice) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateWebAuthnDeviceRecordSignIn,
+		device.RPID, device.LastUsedAt, device.SignCount, device.Discoverable, device.Present, device.Verified,
+		device.BackupEligible, device.BackupState, device.CloneWarning, device.ID,
+	); err != nil {
+		return fmt.Errorf("error updating WebAuthn authentication metadata for id '%x': %w", device.ID, err)
 	}
 
 	return nil
@@ -939,18 +985,18 @@ func (p *SQLProvider) DeleteWebAuthnDevice(ctx context.Context, kid string) (err
 }
 
 // DeleteWebAuthnDeviceByUsername deletes registered WebAuthn devices by username or username and description.
-func (p *SQLProvider) DeleteWebAuthnDeviceByUsername(ctx context.Context, username, description string) (err error) {
+func (p *SQLProvider) DeleteWebAuthnDeviceByUsername(ctx context.Context, username, displayname string) (err error) {
 	if len(username) == 0 {
-		return fmt.Errorf("error deleting WebAuthn device with username '%s' and description '%s': username must not be empty", username, description)
+		return fmt.Errorf("error deleting WebAuthn device with username '%s' and displayname '%s': username must not be empty", username, displayname)
 	}
 
-	if len(description) == 0 {
+	if len(displayname) == 0 {
 		if _, err = p.db.ExecContext(ctx, p.sqlDeleteWebAuthnDeviceByUsername, username); err != nil {
 			return fmt.Errorf("error deleting WebAuthn devices for username '%s': %w", username, err)
 		}
 	} else {
-		if _, err = p.db.ExecContext(ctx, p.sqlDeleteWebAuthnDeviceByUsernameAndDescription, username, description); err != nil {
-			return fmt.Errorf("error deleting WebAuthn device with username '%s' and description '%s': %w", username, description, err)
+		if _, err = p.db.ExecContext(ctx, p.sqlDeleteWebAuthnDeviceByUsernameAndDisplayName, username, displayname); err != nil {
+			return fmt.Errorf("error deleting WebAuthn device with username '%s' and displayname '%s': %w", username, displayname, err)
 		}
 	}
 
@@ -978,11 +1024,33 @@ func (p *SQLProvider) LoadWebAuthnDevices(ctx context.Context, limit, page int) 
 	return devices, nil
 }
 
-// LoadWebAuthnDevicesByUsername loads all WebAuthn devices registration for a given username.
-func (p *SQLProvider) LoadWebAuthnDevicesByUsername(ctx context.Context, username string) (devices []model.WebAuthnDevice, err error) {
-	if err = p.db.SelectContext(ctx, &devices, p.sqlSelectWebAuthnDevicesByUsername, username); err != nil {
+// LoadWebAuthnDeviceByID loads a WebAuthn device registration for a given id.
+func (p *SQLProvider) LoadWebAuthnDeviceByID(ctx context.Context, id int) (device *model.WebAuthnDevice, err error) {
+	device = &model.WebAuthnDevice{}
+
+	if err = p.db.GetContext(ctx, device, p.sqlSelectWebAuthnDeviceByID, id); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNoWebAuthnDevice
+			return nil, sql.ErrNoRows
+		}
+
+		return nil, fmt.Errorf("error selecting WebAuthn device with id '%d': %w", id, err)
+	}
+
+	return device, nil
+}
+
+// LoadWebAuthnDevicesByUsername loads all WebAuthn devices registration for a given username.
+func (p *SQLProvider) LoadWebAuthnDevicesByUsername(ctx context.Context, rpid, username string) (devices []model.WebAuthnDevice, err error) {
+	switch len(rpid) {
+	case 0:
+		err = p.db.SelectContext(ctx, &devices, p.sqlSelectWebAuthnDevicesByUsername, username)
+	default:
+		err = p.db.SelectContext(ctx, &devices, p.sqlSelectWebAuthnDevicesByRPIDByUsername, rpid, username)
+	}
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return devices, ErrNoWebAuthnDevice
 		}
 
 		return nil, fmt.Errorf("error selecting WebAuthn devices for user '%s': %w", username, err)

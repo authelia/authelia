@@ -69,8 +69,19 @@ func (ctx *AutheliaCtx) Error(err error, message string) {
 
 // SetJSONError sets the body of the response to an JSON error KO message.
 func (ctx *AutheliaCtx) SetJSONError(message string) {
-	if replyErr := ctx.ReplyJSON(ErrorResponse{Status: "KO", Message: message}, 0); replyErr != nil {
-		ctx.Logger.Error(replyErr)
+	if err := ctx.ReplyJSON(ErrorResponse{Status: "KO", Message: message}, 0); err != nil {
+		ctx.Logger.Error(err)
+	}
+}
+
+// SetAuthenticationErrorJSON sets the body of the response to an JSON error KO message.
+func (ctx *AutheliaCtx) SetAuthenticationErrorJSON(status int, message string, authentication, elevation bool) {
+	if status > fasthttp.StatusOK {
+		ctx.SetStatusCode(status)
+	}
+
+	if err := ctx.ReplyJSON(AuthenticationErrorResponse{Status: "KO", Message: message, Authentication: authentication, Elevation: elevation}, 0); err != nil {
+		ctx.Logger.Error(err)
 	}
 }
 
@@ -523,6 +534,18 @@ func (ctx *AutheliaCtx) GetXOriginalURLOrXForwardedURL() (requestURI *url.URL, e
 	default:
 		return requestURI, err
 	}
+}
+
+// GetOrigin returns the expected origin for requests from this endpoint.
+func (ctx *AutheliaCtx) GetOrigin() (origin *url.URL, err error) {
+	if origin, err = ctx.GetXOriginalURLOrXForwardedURL(); err != nil {
+		return nil, err
+	}
+
+	origin.Path = ""
+	origin.RawPath = ""
+
+	return origin, nil
 }
 
 // IssuerURL returns the expected Issuer.

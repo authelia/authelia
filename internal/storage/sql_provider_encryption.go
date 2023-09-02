@@ -174,7 +174,7 @@ func schemaEncryptionChangeKeyWebAuthn(ctx context.Context, provider *SQLProvide
 		return fmt.Errorf("error selecting WebAuthn devices: %w", err)
 	}
 
-	query := provider.db.Rebind(fmt.Sprintf(queryFmtUpdateWebAuthnDevicePublicKey, tableWebAuthnDevices))
+	query := provider.db.Rebind(fmt.Sprintf(queryFmtUpdateWebAuthnDevicesEncryptedData, tableWebAuthnDevices))
 
 	for _, d := range devices {
 		if d.PublicKey, err = provider.decrypt(d.PublicKey); err != nil {

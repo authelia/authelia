@@ -8,6 +8,7 @@ export async function PostWithOptionalResponse<T = undefined>(path: string, body
     if (res.status !== 200 || hasServiceError(res).errored) {
         throw new Error(`Failed POST to ${path}. Code: ${res.status}. Message: ${hasServiceError(res).message}`);
     }
+
     return toData<T>(res);
 }
 
@@ -27,6 +28,24 @@ export async function Get<T = undefined>(path: string): Promise<T> {
     }
 
     const d = toData<T>(res);
+    if (!d) {
+        throw new Error("unexpected type of response");
+    }
+    return d;
+}
+
+export async function GetWithOptionalData<T = undefined>(path: string): Promise<T | null> {
+    const res = await axios.get<ServiceResponse<T>>(path);
+
+    if (res.status !== 200 || hasServiceError(res).errored) {
+        throw new Error(`Failed GET from ${path}. Code: ${res.status}.`);
+    }
+
+    const d = toData<T>(res);
+    if (d === null) {
+        return null;
+    }
+
     if (!d) {
         throw new Error("unexpected type of response");
     }
