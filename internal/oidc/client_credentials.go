@@ -496,8 +496,6 @@ func clientCredentialsFromBasicAuth(header http.Header) (clientID, clientSecret 
 	return clientID, clientSecret, true, nil
 }
 
-var _ fosite.TokenEndpointHandler = (*PKCEHandler)(nil)
-
 // PKCEHandler is a fork of pkce.Handler with modifications to rectify bugs. It implements the
 // fosite.TokenEndpointHandler.
 type PKCEHandler struct {
@@ -743,3 +741,7 @@ func (c *PKCEHandler) CanSkipClientAuth(ctx context.Context, requester fosite.Ac
 func (c *PKCEHandler) CanHandleTokenEndpointRequest(ctx context.Context, requester fosite.AccessRequester) bool {
 	return requester.GetGrantTypes().ExactOne(GrantTypeAuthorizationCode)
 }
+
+var (
+	_ fosite.TokenEndpointHandler = (*PKCEHandler)(nil)
+)

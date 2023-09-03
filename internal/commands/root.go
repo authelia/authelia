@@ -27,6 +27,8 @@ func NewRootCmd() (cmd *cobra.Command) {
 		PreRunE: ctx.ChainRunE(
 			ctx.ConfigEnsureExistsRunE,
 			ctx.ConfigLoadRunE,
+			ctx.LogConfigure,
+			ctx.LogProcessCurrentUserRunE,
 			ctx.ConfigValidateKeysRunE,
 			ctx.ConfigValidateRunE,
 			ctx.ConfigValidateLogRunE,
@@ -62,8 +64,8 @@ func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 		ctx.log.Info("===> Authelia is running in development mode. <===")
 	}
 
-	if err = logging.InitializeLogger(ctx.config.Log, true); err != nil {
-		ctx.log.Fatalf("Cannot initialize logger: %v", err)
+	if err = logging.ConfigureLogger(ctx.config.Log, true); err != nil {
+		ctx.log.Fatalf("Cannot configure logger: %v", err)
 	}
 
 	warns, errs := ctx.LoadProviders()

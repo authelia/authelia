@@ -29,9 +29,11 @@ func TestNewClient(t *testing.T) {
 
 	bclient, ok := client.(*oidc.BaseClient)
 	require.True(t, ok)
-	assert.Equal(t, "", bclient.UserinfoSigningAlg)
-	assert.Equal(t, oidc.SigningAlgNone, client.GetUserinfoSigningAlg())
-	assert.Equal(t, "", client.GetUserinfoSigningKeyID())
+	assert.Equal(t, "", bclient.UserinfoSignedResponseAlg)
+	assert.Equal(t, oidc.SigningAlgNone, client.GetUserinfoSignedResponseAlg())
+	assert.Equal(t, "", client.GetUserinfoSignedResponseKeyID())
+	assert.Equal(t, oidc.SigningAlgNone, client.GetIntrospectionSignedResponseAlg())
+	assert.Equal(t, "", client.GetIntrospectionSignedResponseKeyID())
 
 	_, ok = client.(*oidc.FullClient)
 	assert.False(t, ok)
@@ -64,45 +66,78 @@ func TestNewClient(t *testing.T) {
 
 	require.True(t, ok)
 
-	assert.Equal(t, "", fclient.UserinfoSigningAlg)
-	assert.Equal(t, oidc.SigningAlgNone, client.GetUserinfoSigningAlg())
-	assert.Equal(t, oidc.SigningAlgNone, fclient.GetUserinfoSigningAlg())
-	assert.Equal(t, oidc.SigningAlgNone, fclient.UserinfoSigningAlg)
+	assert.Equal(t, "", fclient.UserinfoSignedResponseAlg)
+	assert.Equal(t, oidc.SigningAlgNone, client.GetUserinfoSignedResponseAlg())
+	assert.Equal(t, oidc.SigningAlgNone, fclient.GetUserinfoSignedResponseAlg())
+	assert.Equal(t, oidc.SigningAlgNone, fclient.UserinfoSignedResponseAlg)
 
-	assert.Equal(t, "", fclient.UserinfoSigningKeyID)
-	assert.Equal(t, "", client.GetUserinfoSigningKeyID())
-	assert.Equal(t, "", fclient.GetUserinfoSigningKeyID())
+	assert.Equal(t, "", fclient.UserinfoSignedResponseKeyID)
+	assert.Equal(t, "", client.GetUserinfoSignedResponseKeyID())
+	assert.Equal(t, "", fclient.GetUserinfoSignedResponseKeyID())
 
-	fclient.UserinfoSigningKeyID = "aukeyid"
+	fclient.UserinfoSignedResponseKeyID = "aukeyid"
 
-	assert.Equal(t, "aukeyid", client.GetUserinfoSigningKeyID())
-	assert.Equal(t, "aukeyid", fclient.GetUserinfoSigningKeyID())
+	assert.Equal(t, "aukeyid", client.GetUserinfoSignedResponseKeyID())
+	assert.Equal(t, "aukeyid", fclient.GetUserinfoSignedResponseKeyID())
 
-	assert.Equal(t, "", fclient.IDTokenSigningAlg)
-	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, client.GetIDTokenSigningAlg())
-	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetIDTokenSigningAlg())
-	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.IDTokenSigningAlg)
+	assert.Equal(t, "", fclient.IntrospectionSignedResponseAlg)
+	assert.Equal(t, oidc.SigningAlgNone, client.GetIntrospectionSignedResponseAlg())
+	assert.Equal(t, oidc.SigningAlgNone, fclient.GetIntrospectionSignedResponseAlg())
+	assert.Equal(t, oidc.SigningAlgNone, fclient.IntrospectionSignedResponseAlg)
 
-	assert.Equal(t, "", fclient.IDTokenSigningKeyID)
-	assert.Equal(t, "", client.GetIDTokenSigningKeyID())
-	assert.Equal(t, "", fclient.GetIDTokenSigningKeyID())
+	assert.Equal(t, "", fclient.IntrospectionSignedResponseKeyID)
+	assert.Equal(t, "", client.GetIntrospectionSignedResponseKeyID())
+	assert.Equal(t, "", fclient.GetIntrospectionSignedResponseKeyID())
 
-	fclient.IDTokenSigningKeyID = "akeyid"
+	fclient.IntrospectionSignedResponseKeyID = "aikeyid"
 
-	assert.Equal(t, "akeyid", client.GetIDTokenSigningKeyID())
-	assert.Equal(t, "akeyid", fclient.GetIDTokenSigningKeyID())
+	assert.Equal(t, "aikeyid", client.GetIntrospectionSignedResponseKeyID())
+	assert.Equal(t, "aikeyid", fclient.GetIntrospectionSignedResponseKeyID())
+
+	fclient.IntrospectionSignedResponseAlg = oidc.SigningAlgRSAUsingSHA512
+
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA512, client.GetIntrospectionSignedResponseAlg())
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA512, fclient.GetIntrospectionSignedResponseAlg())
+
+	assert.Equal(t, "", fclient.IDTokenSignedResponseAlg)
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, client.GetIDTokenSignedResponseAlg())
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetIDTokenSignedResponseAlg())
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.IDTokenSignedResponseAlg)
+
+	assert.Equal(t, "", fclient.IDTokenSignedResponseKeyID)
+	assert.Equal(t, "", client.GetIDTokenSignedResponseKeyID())
+	assert.Equal(t, "", fclient.GetIDTokenSignedResponseKeyID())
+
+	fclient.IDTokenSignedResponseKeyID = "akeyid"
+
+	assert.Equal(t, "akeyid", client.GetIDTokenSignedResponseKeyID())
+	assert.Equal(t, "akeyid", fclient.GetIDTokenSignedResponseKeyID())
+
+	assert.Equal(t, "", fclient.AccessTokenSignedResponseAlg)
+	assert.Equal(t, oidc.SigningAlgNone, client.GetAccessTokenSignedResponseAlg())
+	assert.Equal(t, oidc.SigningAlgNone, fclient.GetAccessTokenSignedResponseAlg())
+	assert.Equal(t, oidc.SigningAlgNone, fclient.AccessTokenSignedResponseAlg)
+
+	assert.Equal(t, "", fclient.AccessTokenSignedResponseKeyID)
+	assert.Equal(t, "", client.GetAccessTokenSignedResponseKeyID())
+	assert.Equal(t, "", fclient.GetAccessTokenSignedResponseKeyID())
+
+	fclient.AccessTokenSignedResponseKeyID = "atkeyid"
+
+	assert.Equal(t, "atkeyid", client.GetAccessTokenSignedResponseKeyID())
+	assert.Equal(t, "atkeyid", fclient.GetAccessTokenSignedResponseKeyID())
 
 	assert.Equal(t, oidc.ClientAuthMethodClientSecretPost, fclient.TokenEndpointAuthMethod)
 	assert.Equal(t, oidc.ClientAuthMethodClientSecretPost, fclient.GetTokenEndpointAuthMethod())
 
-	assert.Equal(t, "", fclient.TokenEndpointAuthSigningAlgorithm)
+	assert.Equal(t, "", fclient.TokenEndpointAuthSigningAlg)
 	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetTokenEndpointAuthSigningAlgorithm())
-	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.TokenEndpointAuthSigningAlgorithm)
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.TokenEndpointAuthSigningAlg)
 
-	assert.Equal(t, "", fclient.RequestObjectSigningAlgorithm)
+	assert.Equal(t, "", fclient.RequestObjectSigningAlg)
 	assert.Equal(t, "", fclient.GetRequestObjectSigningAlgorithm())
 
-	fclient.RequestObjectSigningAlgorithm = oidc.SigningAlgRSAUsingSHA256
+	fclient.RequestObjectSigningAlg = oidc.SigningAlgRSAUsingSHA256
 
 	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetRequestObjectSigningAlgorithm())
 

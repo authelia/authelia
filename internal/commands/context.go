@@ -5,6 +5,10 @@ import (
 	"crypto/x509"
 	"fmt"
 	"os"
+	"os/user"
+	"strconv"
+	"strings"
+	"syscall"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -222,6 +226,72 @@ func (ctx *CmdCtx) ConfigValidateKeysRunE(_ *cobra.Command, _ []string) (err err
 // ConfigValidateRunE validates the configuration (structure).
 func (ctx *CmdCtx) ConfigValidateRunE(_ *cobra.Command, _ []string) (err error) {
 	validator.ValidateConfiguration(ctx.config, ctx.cconfig.validator)
+
+	return nil
+}
+
+func (ctx *CmdCtx) LogConfigure(_ *cobra.Command, _ []string) (err error) {
+	config := ctx.config.Log
+
+	switch config.Level {
+	case logging.LevelError, logging.LevelWarn, logging.LevelInfo, logging.LevelDebug, logging.LevelTrace:
+		break
+	default:
+		config.Level = logging.LevelTrace
+	}
+
+	switch config.Format {
+	case logging.FormatText, logging.FormatJSON:
+		break
+	default:
+		config.Format = logging.FormatText
+	}
+
+	config.KeepStdout = true
+
+	if err = logging.InitializeLogger(config, false); err != nil {
+		return fmt.Errorf("Cannot initialize logger: %w", err)
+	}
+
+	return nil
+}
+
+func (ctx *CmdCtx) LogProcessCurrentUserRunE(_ *cobra.Command, _ []string) (err error) {
+	var current *user.User
+
+	if current, err = user.Current(); err != nil {
+		current = &user.User{Uid: strconv.Itoa(syscall.Getuid()), Gid: strconv.Itoa(syscall.Getuid())}
+	}
+
+	fields := map[string]any{"uid": current.Uid, "gid": current.Gid}
+
+	if current.Username != "" {
+		fields["username"] = current.Username
+	}
+
+	if current.Name != "" {
+		fields["name"] = current.Name
+	}
+
+	var gids []string
+
+	if gids, err = current.GroupIds(); err == nil && len(gids) != 0 {
+		gidsFinal := []string{}
+
+		for _, gid := range gids {
+			if gid == current.Gid {
+				continue
+			}
+
+			gidsFinal = append(gidsFinal, gid)
+		}
+
+		if len(gidsFinal) != 0 {
+			fields["gids"] = strings.Join(gidsFinal, ",")
+		}
+	}
+
+	ctx.log.WithFields(fields).Debug("Process user information")
 
 	return nil
 }

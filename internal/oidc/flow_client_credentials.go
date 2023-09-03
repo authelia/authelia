@@ -9,8 +9,6 @@ import (
 	"github.com/ory/x/errorsx"
 )
 
-var _ fosite.TokenEndpointHandler = (*ClientCredentialsGrantHandler)(nil)
-
 // ClientCredentialsGrantHandler handles access requests for the Client Credentials Flow.
 type ClientCredentialsGrantHandler struct {
 	*oauth2.HandleHelper
@@ -90,3 +88,7 @@ func (c *ClientCredentialsGrantHandler) CanHandleTokenEndpointRequest(ctx contex
 	// Value MUST be set to "client_credentials".
 	return requester.GetGrantTypes().ExactOne(GrantTypeClientCredentials)
 }
+
+var (
+	_ fosite.TokenEndpointHandler = (*ClientCredentialsGrantHandler)(nil)
+)

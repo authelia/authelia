@@ -86,7 +86,7 @@ identity_providers:
         - 'profile'
         - 'groups'
         - 'email'
-      userinfo_signing_alg: 'none'
+      userinfo_signed_response_alg: 'none'
 ```
 
 ## See Also

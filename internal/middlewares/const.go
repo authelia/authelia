@@ -40,15 +40,19 @@ var (
 	headerXFrameOptions         = []byte(fasthttp.HeaderXFrameOptions)
 	headerPragma                = []byte(fasthttp.HeaderPragma)
 	headerCacheControl          = []byte(fasthttp.HeaderCacheControl)
-	headerXXSSProtection        = []byte(fasthttp.HeaderXXSSProtection)
 	headerContentSecurityPolicy = []byte(fasthttp.HeaderContentSecurityPolicy)
 
-	headerPermissionsPolicy = []byte("Permissions-Policy")
+	headerPermissionsPolicy         = []byte("Permissions-Policy")
+	headerCrossOriginOpenerPolicy   = []byte("Cross-Origin-Opener-Policy")
+	headerCrossOriginEmbedderPolicy = []byte("Cross-Origin-Embedder-Policy")
+	headerCrossOriginResourcePolicy = []byte("Cross-Origin-Resource-Policy")
+	headerXDNSPrefetchControl       = []byte("X-DNS-Prefetch-Control")
 )
 
 var (
 	headerValueFalse           = []byte("false")
 	headerValueTrue            = []byte("true")
+	headerValueOff             = []byte("off")
 	headerValueMaxAge          = []byte("100")
 	headerValueVary            = []byte("Accept-Encoding, Origin")
 	headerValueVaryWildcard    = []byte("Accept-Encoding")
@@ -59,11 +63,15 @@ var (
 
 	headerValueNoSniff                 = []byte("nosniff")
 	headerValueStrictOriginCrossOrigin = []byte("strict-origin-when-cross-origin")
-	headerValueSameOrigin              = []byte("SAMEORIGIN")
+	headerValueDENY                    = []byte("DENY")
+	headerValueSameOrigin              = []byte("same-origin")
+	headerValueCrossOrigin             = []byte("cross-origin")
+	headerValueSameSite                = []byte("same-site")
+	headerValueUnsafeNone              = []byte("unsafe-none")
+	headerValueRequireCORP             = []byte("require-corp")
 	headerValueNoCache                 = []byte("no-cache")
 	headerValueNoStore                 = []byte("no-store")
-	headerValueXSSModeBlock            = []byte("1; mode=block")
-	headerValueCohort                  = []byte("interest-cohort=()")
+	headerValuePermissionsPolicy       = []byte("accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), screen-wake-lock=(), sync-xhr=(), xr-spatial-tracking=(), interest-cohort=()")
 )
 
 const (

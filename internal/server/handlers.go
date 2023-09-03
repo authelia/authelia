@@ -115,6 +115,9 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	bridge := middlewares.NewBridgeBuilder(*config, providers).
 		WithPreMiddlewares(middlewares.SecurityHeaders).Build()
 
+	bridgeSwagger := middlewares.NewBridgeBuilder(*config, providers).
+		WithPreMiddlewares(middlewares.SecurityHeadersRelaxed).Build()
+
 	policyCORSPublicGET := middlewares.NewCORSPolicyBuilder().
 		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodGet).
 		WithAllowedOrigins("*").
@@ -148,16 +151,16 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
 
 	// Swagger.
-	r.HEAD("/api/", bridge(serveOpenAPIHandler))
-	r.GET("/api/", bridge(serveOpenAPIHandler))
+	r.HEAD("/api/", bridgeSwagger(serveOpenAPIHandler))
+	r.GET("/api/", bridgeSwagger(serveOpenAPIHandler))
 	r.OPTIONS("/api/", policyCORSPublicGET.HandleOPTIONS)
 
-	r.HEAD("/api/index.html", bridge(serveOpenAPIHandler))
-	r.GET("/api/index.html", bridge(serveOpenAPIHandler))
+	r.HEAD("/api/index.html", bridgeSwagger(serveOpenAPIHandler))
+	r.GET("/api/index.html", bridgeSwagger(serveOpenAPIHandler))
 	r.OPTIONS("/api/index.html", policyCORSPublicGET.HandleOPTIONS)
 
-	r.HEAD("/api/openapi.yml", policyCORSPublicGET.Middleware(bridge(serveOpenAPISpecHandler)))
-	r.GET("/api/openapi.yml", policyCORSPublicGET.Middleware(bridge(serveOpenAPISpecHandler)))
+	r.HEAD("/api/openapi.yml", policyCORSPublicGET.Middleware(bridgeSwagger(serveOpenAPISpecHandler)))
+	r.GET("/api/openapi.yml", policyCORSPublicGET.Middleware(bridgeSwagger(serveOpenAPISpecHandler)))
 	r.OPTIONS("/api/openapi.yml", policyCORSPublicGET.HandleOPTIONS)
 
 	for _, file := range filesSwagger {

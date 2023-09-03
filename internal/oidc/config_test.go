@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
@@ -226,4 +227,30 @@ func TestConfig_PAR(t *testing.T) {
 	assert.Equal(t, time.Duration(0), config.PAR.ContextLifespan)
 	assert.Equal(t, time.Minute*5, config.GetPushedAuthorizeContextLifespan(ctx))
 	assert.Equal(t, time.Minute*5, config.PAR.ContextLifespan)
+}
+
+func TestNewConfig(t *testing.T) {
+	c := &schema.IdentityProvidersOpenIDConnect{
+		Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
+			JWTResponseAccessTokens: true,
+		},
+	}
+
+	tmpl, err := templates.New(templates.Config{})
+
+	require.NoError(t, err)
+
+	config := oidc.NewConfig(c, nil, tmpl)
+
+	assert.IsType(t, &oidc.JWTCoreStrategy{}, config.Strategy.Core)
+
+	config.LoadHandlers(nil)
+
+	assert.Len(t, config.Handlers.TokenIntrospection, 1)
+
+	config.JWTAccessToken.EnableStatelessIntrospection = true
+
+	config.LoadHandlers(nil)
+
+	assert.Len(t, config.Handlers.TokenIntrospection, 2)
 }

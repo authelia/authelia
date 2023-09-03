@@ -8,6 +8,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -194,6 +195,8 @@ const (
 	errFmtOIDCClientInvalidSecretNotPlainText = "identity_providers: oidc: clients: client '%s': option 'secret' must be plaintext with option 'token_endpoint_auth_method' with a value of 'client_secret_jwt'"
 	errFmtOIDCClientPublicInvalidSecret       = "identity_providers: oidc: clients: client '%s': option 'secret' is " +
 		"required to be empty when option 'public' is true"
+	errFmtOIDCClientPublicInvalidSecretClientAuthMethod = "identity_providers: oidc: clients: client '%s': option 'secret' is " +
+		"required to be empty when option 'token_endpoint_auth_method' is configured as '%s'"
 	errFmtOIDCClientRedirectURICantBeParsed = "identity_providers: oidc: clients: client '%s': option 'redirect_uris' has an " +
 		"invalid value: redirect uri '%s' could not be parsed: %v"
 	errFmtOIDCClientRedirectURIPublic = "identity_providers: oidc: clients: client '%s': option 'redirect_uris' has the " +
@@ -210,6 +213,8 @@ const (
 	errFmtOIDCClientInvalidEntryDuplicates = "identity_providers: oidc: clients: client '%s': option '%s' must have unique values but the values %s are duplicated"
 	errFmtOIDCClientInvalidValue           = "identity_providers: oidc: clients: client '%s': option " +
 		"'%s' must be one of %s but it's configured as '%s'"
+	errFmtOIDCClientInvalidLifespan = "identity_providers: oidc: clients: client '%s': option " +
+		"'lifespan' must not be configured when no custom lifespans are configured but it's configured as '%s'"
 	errFmtOIDCClientInvalidTokenEndpointAuthMethod = "identity_providers: oidc: clients: client '%s': option " +
 		"'token_endpoint_auth_method' must be one of %s when configured as the confidential client type unless it only includes implicit flow response types such as %s but it's configured as '%s'"
 	errFmtOIDCClientInvalidTokenEndpointAuthMethodPublic = "identity_providers: oidc: clients: client '%s': option " +
@@ -217,7 +222,7 @@ const (
 	errFmtOIDCClientInvalidTokenEndpointAuthSigAlg = "identity_providers: oidc: clients: client '%s': option " +
 		"'token_endpoint_auth_signing_alg' must be one of %s when option 'token_endpoint_auth_method' is configured to '%s'"
 	errFmtOIDCClientInvalidTokenEndpointAuthSigAlgReg = "identity_providers: oidc: clients: client '%s': option " +
-		"'token_endpoint_auth_signing_alg' must be one of registered public key algorithm values %s when option 'token_endpoint_auth_method' is configured to '%s'"
+		"'token_endpoint_auth_signing_alg' must be one of the registered public key algorithm values %s when option 'token_endpoint_auth_method' is configured to '%s'"
 	errFmtOIDCClientInvalidTokenEndpointAuthSigAlgMissingPrivateKeyJWT = "identity_providers: oidc: clients: client '%s': option " +
 		"'token_endpoint_auth_signing_alg' is required when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'"
 	errFmtOIDCClientInvalidPublicKeysPrivateKeyJWT = "identity_providers: oidc: clients: client '%s': option " +
@@ -379,7 +384,7 @@ const (
 
 	errFmtReplacedConfigurationKey = "invalid configuration key '%s' was replaced by '%s'"
 
-	errFmtLoggingLevelInvalid = "log: option 'level' must be one of %s but it's configured as '%s'"
+	errFmtLoggingInvalid = "log: option '%s' must be one of %s but it's configured as '%s'"
 
 	errFileHashing  = "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password"
 	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
@@ -438,7 +443,8 @@ var (
 	validStoragePostgreSQLSSLModes           = []string{"disable", "require", "verify-ca", "verify-full"}
 	validThemeNames                          = []string{"light", "dark", "grey", auto}
 	validSessionSameSiteValues               = []string{"none", "lax", "strict"}
-	validLogLevels                           = []string{"trace", "debug", "info", "warn", "error"}
+	validLogLevels                           = []string{logging.LevelTrace, logging.LevelDebug, logging.LevelInfo, logging.LevelWarn, logging.LevelError}
+	validLogFormats                          = []string{logging.FormatText, logging.FormatJSON}
 	validWebAuthnConveyancePreferences       = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
 	validWebAuthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
 	validRFC7231HTTPMethodVerbs              = []string{fasthttp.MethodGet, fasthttp.MethodHead, fasthttp.MethodPost, fasthttp.MethodPut, fasthttp.MethodPatch, fasthttp.MethodDelete, fasthttp.MethodTrace, fasthttp.MethodConnect, fasthttp.MethodOptions}
@@ -464,10 +470,16 @@ const (
 	attrOIDCGrantTypes          = "grant_types"
 	attrOIDCRedirectURIs        = "redirect_uris"
 	attrOIDCTokenAuthMethod     = "token_endpoint_auth_method"
-	attrOIDCUsrSigAlg           = "userinfo_signing_alg"
-	attrOIDCUsrSigKID           = "userinfo_signing_key_id"
-	attrOIDCIDTokenSigAlg       = "id_token_signing_alg"
-	attrOIDCIDTokenSigKID       = "id_token_signing_key_id"
+	attrOIDCUsrSigAlg           = "userinfo_signed_response_alg"
+	attrOIDCUsrSigKID           = "userinfo_signed_response_key_id"
+	attrOIDCIntrospectionSigAlg = "introspection_signed_response_alg"
+	attrOIDCIntrospectionSigKID = "introspection_signed_response_key_id"
+	attrOIDCAuthorizationSigAlg = "authorization_signed_response_alg"
+	attrOIDCAuthorizationSigKID = "authorization_signed_response_key_id"
+	attrOIDCIDTokenSigAlg       = "id_token_signed_response_alg"
+	attrOIDCIDTokenSigKID       = "id_token_signed_response_key_id"
+	attrOIDCAccessTokenSigAlg   = "access_token_signed_response_alg"
+	attrOIDCAccessTokenSigKID   = "access_token_signed_response_key_id"
 	attrOIDCPKCEChallengeMethod = "pkce_challenge_method"
 )
 
@@ -476,7 +488,7 @@ var (
 
 	validOIDCClientScopes                    = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess}
 	validOIDCClientConsentModes              = []string{auto, oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
-	validOIDCClientResponseModes             = []string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery, oidc.ResponseModeFragment}
+	validOIDCClientResponseModes             = []string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery, oidc.ResponseModeFragment, oidc.ResponseModeJWT, oidc.ResponseModeFormPostJWT, oidc.ResponseModeQueryJWT, oidc.ResponseModeFragmentJWT}
 	validOIDCClientResponseTypes             = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth, oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
 	validOIDCClientResponseTypesImplicitFlow = []string{oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth}
 	validOIDCClientResponseTypesHybridFlow   = []string{oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}

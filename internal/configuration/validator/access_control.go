@@ -62,12 +62,10 @@ func ValidateAccessControl(config *schema.Configuration, validator *schema.Struc
 		validator.Push(fmt.Errorf(errFmtAccessControlDefaultPolicyValue, strJoinOr(validACLRulePolicies), config.AccessControl.DefaultPolicy))
 	}
 
-	if config.AccessControl.Networks != nil {
-		for _, n := range config.AccessControl.Networks {
-			for _, networks := range n.Networks {
-				if !IsNetworkValid(networks) {
-					validator.Push(fmt.Errorf(errFmtAccessControlNetworkGroupIPCIDRInvalid, n.Name, networks))
-				}
+	for _, n := range config.AccessControl.Networks {
+		for _, networks := range n.Networks {
+			if !IsNetworkValid(networks) {
+				validator.Push(fmt.Errorf(errFmtAccessControlNetworkGroupIPCIDRInvalid, n.Name, networks))
 			}
 		}
 	}

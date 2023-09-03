@@ -94,7 +94,7 @@ func cmdGitHubIssueTemplatesFeatureRunE(cmd *cobra.Command, args []string) (err 
 	var latest *model.SemanticVersion
 
 	if latest, err = model.NewSemanticVersion(tags[0]); err != nil {
-		return fmt.Errorf("error occurred trying to parse tag as version '%s': %w", tags[0], err)
+		return fmt.Errorf("error extracting latest minor version from tag: %w", err)
 	}
 
 	for i := 0; i < versions; i++ {
@@ -151,21 +151,18 @@ func cmdGitHubIssueTemplatesBugReportRunE(cmd *cobra.Command, args []string) (er
 		return err
 	}
 
-	var version, latest *model.SemanticVersion
+	var latest, version *model.SemanticVersion
 
 	if latest, err = model.NewSemanticVersion(tags[0]); err != nil {
-		return fmt.Errorf("error occurred trying to parse tag as version '%s': %w", tags[0], err)
+		return fmt.Errorf("error extracting latest minor version from tag: %w", err)
 	}
 
-	minimum := *latest
+	minimum := latest.Copy()
 
 	minimum.Patch = 0
-	minimum.Minor = latest.Minor - versions
+	minimum.Minor -= versions
 
-	//nolint:prealloc
-	var (
-		tagsRecent []string
-	)
+	var tagsRecent []string
 
 	for _, tag := range tags {
 		if len(tag) == 0 {
@@ -173,14 +170,16 @@ func cmdGitHubIssueTemplatesBugReportRunE(cmd *cobra.Command, args []string) (er
 		}
 
 		if version, err = model.NewSemanticVersion(tag); err != nil {
-			return fmt.Errorf("error occurred trying to parse tag as version '%s': %w", tag, err)
+			return fmt.Errorf("error extracting minor version from tag: %w", err)
 		}
 
-		if version.LessThan(minimum) {
+		if !version.IsStable() {
 			continue
 		}
 
-		tagsRecent = append(tagsRecent, tag)
+		if version.GreaterThanOrEqual(minimum) {
+			tagsRecent = append(tagsRecent, tag)
+		}
 	}
 
 	var (

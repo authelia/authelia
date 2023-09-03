@@ -25,6 +25,8 @@ type IdentityProvidersOpenIDConnect struct {
 	EnforcePKCE              string `koanf:"enforce_pkce" json:"enforce_pkce" jsonschema:"default=public_clients_only,enum=public_clients_only,enum=never,enum=always,title=Enforce PKCE" jsonschema_description:"Controls enforcement of the use of Proof Key for Code Exchange on all clients"`
 	EnablePKCEPlainChallenge bool   `koanf:"enable_pkce_plain_challenge" json:"enable_pkce_plain_challenge" jsonschema:"default=false,title=Enable PKCE Plain Challenge" jsonschema_description:"Enables use of the discouraged plain Proof Key for Code Exchange challenges"`
 
+	EnableJWTAccessTokenStatelessIntrospection bool `koanf:"enable_jwt_access_token_stateless_introspection" json:"enable_jwt_access_token_stateless_introspection" jsonschema:"title=Enable JWT Access Token Stateless Introspection" jsonschema_description:"Allows the use of stateless introspection of JWT Access Tokens which is not recommended"`
+
 	PAR  IdentityProvidersOpenIDConnectPAR  `koanf:"pushed_authorizations" json:"pushed_authorizations" jsonschema:"title=Pushed Authorizations" jsonschema_description:"Configuration options for Pushed Authorization Requests"`
 	CORS IdentityProvidersOpenIDConnectCORS `koanf:"cors" json:"cors" jsonschema:"title=CORS" jsonschema_description:"Configuration options for Cross-Origin Request Sharing"`
 
@@ -58,11 +60,14 @@ type IdentityProvidersOpenIDConnectDiscovery struct {
 	ResponseObjectSigningKeyIDs []string
 	ResponseObjectSigningAlgs   []string
 	RequestObjectSigningAlgs    []string
+	JWTResponseAccessTokens     bool
 }
 
 type IdentityProvidersOpenIDConnectLifespans struct {
 	IdentityProvidersOpenIDConnectLifespanToken `koanf:",squash"`
-	Custom                                      map[string]IdentityProvidersOpenIDConnectLifespan `koanf:"custom" json:"custom" jsonschema:"title=Custom Lifespans" jsonschema_description:"Allows creating custom lifespans to be used by individual clients"`
+	JWTSecuredAuthorization                     time.Duration `koanf:"jwt_secured_authorization" json:"jwt_secured_authorization" jsonschema:"title=JARM" jsonschema_description:"Allows tuning the token lifespan for the JWT Secured Authorization Response Mode (JARM)"`
+
+	Custom map[string]IdentityProvidersOpenIDConnectLifespan `koanf:"custom" json:"custom" jsonschema:"title=Custom Lifespans" jsonschema_description:"Allows creating custom lifespans to be used by individual clients"`
 }
 
 // IdentityProvidersOpenIDConnectLifespan allows tuning the lifespans for OpenID Connect 1.0 issued tokens.
@@ -130,12 +135,18 @@ type IdentityProvidersOpenIDConnectClient struct {
 
 	PKCEChallengeMethod string `koanf:"pkce_challenge_method" json:"pkce_challenge_method" jsonschema:"enum=plain,enum=S256,title=PKCE Challenge Method" jsonschema_description:"The PKCE Challenge Method enforced on this client"`
 
-	IDTokenSigningAlg           string `koanf:"id_token_signing_alg" json:"id_token_signing_alg" jsonschema:"eneum=none,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,title=ID Token Signing Algorithm" jsonschema_description:"The algorithm (JWA) this client uses to sign ID Tokens"`
-	IDTokenSigningKeyID         string `koanf:"id_token_signing_key_id" json:"id_token_signing_key_id" jsonschema:"title=ID Token Signing Key ID" jsonschema_description:"The Key ID this client uses to sign ID Tokens (overrides the 'id_token_signing_alg')"`
-	UserinfoSigningAlg          string `koanf:"userinfo_signing_alg" json:"userinfo_signing_alg" jsonschema:"enum=none,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,title=Userinfo Signing Algorithm" jsonschema_description:"The Userinfo Endpoint Signing Algorithm this client uses"`
-	UserinfoSigningKeyID        string `koanf:"userinfo_signing_key_id" json:"userinfo_signing_key_id" jsonschema:"title=Userinfo Signing Key ID" jsonschema_description:"The Key ID this client uses to sign the userinfo responses (overrides the 'userinfo_token_signing_alg')"`
-	RequestObjectSigningAlg     string `koanf:"request_object_signing_alg" json:"request_object_signing_alg" jsonschema:"enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,title=Request Object Signing Algorithm" jsonschema_description:"The Request Object Signing Algorithm the provider accepts for this client"`
-	TokenEndpointAuthSigningAlg string `koanf:"token_endpoint_auth_signing_alg" json:"token_endpoint_auth_signing_alg" jsonschema:"enum=HS256,enum=HS384,enum=HS512,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,title=Token Endpoint Auth Signing Algorithm" jsonschema_description:"The Token Endpoint Auth Signing Algorithm the provider accepts for this client"`
+	AuthorizationSignedResponseAlg   string `koanf:"authorization_signed_response_alg" json:"authorization_signed_response_alg" jsonschema:"enum=none,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,title=Authorization Response Signing Algorithm" jsonschema_description:"The Authorization Endpoint Signing Algorithm this client uses"`
+	AuthorizationSignedResponseKeyID string `koanf:"authorization_signed_response_key_id" json:"authorization_signed_response_key_id" jsonschema:"title=Authorization Response Signing Key ID" jsonschema_description:"The Key ID this client uses to sign the Authorization responses (overrides the 'authorization_signed_response_alg')"`
+	IDTokenSignedResponseAlg         string `koanf:"id_token_signed_response_alg" json:"id_token_signed_response_alg" jsonschema:"enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,title=ID Token Signing Algorithm" jsonschema_description:"The algorithm (JWA) this client uses to sign ID Tokens"`
+	IDTokenSignedResponseKeyID       string `koanf:"id_token_signed_response_key_id" json:"id_token_signed_response_key_id" jsonschema:"title=ID Token Signing Key ID" jsonschema_description:"The Key ID this client uses to sign ID Tokens (overrides the 'id_token_signing_alg')"`
+	AccessTokenSignedResponseAlg     string `koanf:"access_token_signed_response_alg" json:"access_token_signed_response_alg" jsonschema:"enum=none,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,title=Access Token Signing Algorithm" jsonschema_description:"The algorithm (JWA) this client uses to sign Access Tokens"`
+	AccessTokenSignedResponseKeyID   string `koanf:"access_token_signed_response_key_id" json:"access_token_signed_response_key_id" jsonschema:"title=Access Token Signing Key ID" jsonschema_description:"The Key ID this client uses to sign Access Tokens (overrides the 'access_token_signed_response_alg')"`
+	UserinfoSignedResponseAlg        string `koanf:"userinfo_signed_response_alg" json:"userinfo_signed_response_alg" jsonschema:"enum=none,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,title=UserInfo Response Signing Algorithm" jsonschema_description:"The UserInfo Endpoint Signing Algorithm this client uses"`
+	UserinfoSignedResponseKeyID      string `koanf:"userinfo_signed_response_key_id" json:"userinfo_signed_response_key_id" jsonschema:"title=UserInfo Response Signing Key ID" jsonschema_description:"The Key ID this client uses to sign the UserInfo responses (overrides the 'userinfo_signed_response_alg')"`
+	IntrospectionSignedResponseAlg   string `koanf:"introspection_signed_response_alg" json:"introspection_signed_response_alg" jsonschema:"enum=none,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,title=Introspection Response Signing Algorithm" jsonschema_description:"The Introspection Endpoint Signing Algorithm this client uses"`
+	IntrospectionSignedResponseKeyID string `koanf:"introspection_signed_response_key_id" json:"introspection_signed_response_key_id" jsonschema:"title=Introspection Response Signing Key ID" jsonschema_description:"The Key ID this client uses to sign the Introspection responses (overrides the 'introspection_signed_response_alg')"`
+	RequestObjectSigningAlg          string `koanf:"request_object_signing_alg" json:"request_object_signing_alg" jsonschema:"enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,title=Request Object Signing Algorithm" jsonschema_description:"The Request Object Signing Algorithm the provider accepts for this client"`
+	TokenEndpointAuthSigningAlg      string `koanf:"token_endpoint_auth_signing_alg" json:"token_endpoint_auth_signing_alg" jsonschema:"enum=HS256,enum=HS384,enum=HS512,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,title=Token Endpoint Auth Signing Algorithm" jsonschema_description:"The Token Endpoint Auth Signing Algorithm the provider accepts for this client"`
 
 	TokenEndpointAuthMethod string `koanf:"token_endpoint_auth_method" json:"token_endpoint_auth_method" jsonschema:"enum=none,enum=client_secret_post,enum=client_secret_basic,enum=private_key_jwt,enum=client_secret_jwt,title=Token Endpoint Auth Method" jsonschema_description:"The Token Endpoint Auth Method enforced by the provider for this client"`
 
@@ -171,12 +182,15 @@ var defaultOIDCClientConsentPreConfiguredDuration = time.Hour * 24 * 7
 
 // DefaultOpenIDConnectClientConfiguration contains defaults for OIDC Clients.
 var DefaultOpenIDConnectClientConfiguration = IdentityProvidersOpenIDConnectClient{
-	AuthorizationPolicy:          policyTwoFactor,
-	Scopes:                       []string{"openid", "groups", "profile", "email"},
-	ResponseTypes:                []string{"code"},
-	ResponseModes:                []string{"form_post"},
-	IDTokenSigningAlg:            "RS256",
-	UserinfoSigningAlg:           "none",
-	ConsentMode:                  "auto",
-	ConsentPreConfiguredDuration: &defaultOIDCClientConsentPreConfiguredDuration,
+	AuthorizationPolicy:            policyTwoFactor,
+	Scopes:                         []string{"openid", "groups", "profile", "email"},
+	ResponseTypes:                  []string{"code"},
+	ResponseModes:                  []string{"form_post"},
+	AuthorizationSignedResponseAlg: "none",
+	IDTokenSignedResponseAlg:       "RS256",
+	AccessTokenSignedResponseAlg:   "none",
+	UserinfoSignedResponseAlg:      "none",
+	IntrospectionSignedResponseAlg: "none",
+	ConsentMode:                    "auto",
+	ConsentPreConfiguredDuration:   &defaultOIDCClientConsentPreConfiguredDuration,
 }

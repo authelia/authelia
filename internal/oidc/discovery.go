@@ -35,6 +35,10 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 					ResponseModeFormPost,
 					ResponseModeQuery,
 					ResponseModeFragment,
+					ResponseModeJWT,
+					ResponseModeFormPostJWT,
+					ResponseModeQueryJWT,
+					ResponseModeFragmentJWT,
 				},
 				ScopesSupported: []string{
 					ScopeOfflineAccess,
@@ -115,8 +119,17 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 					ClientAuthMethodNone,
 				},
 			},
+			OAuth2JWTIntrospectionResponseDiscoveryOptions: &OAuth2JWTIntrospectionResponseDiscoveryOptions{
+				IntrospectionSigningAlgValuesSupported: []string{
+					SigningAlgRSAUsingSHA256,
+					SigningAlgNone,
+				},
+			},
 			OAuth2PushedAuthorizationDiscoveryOptions: &OAuth2PushedAuthorizationDiscoveryOptions{
 				RequirePushedAuthorizationRequests: c.PAR.Enforce,
+			},
+			OAuth2IssuerIdentificationDiscoveryOptions: &OAuth2IssuerIdentificationDiscoveryOptions{
+				AuthorizationResponseIssuerParameterSupported: true,
 			},
 		},
 
@@ -148,6 +161,11 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 				PromptConsent,
 			},
 		},
+		OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions: &OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions{
+			AuthorizationSigningAlgValuesSupported: []string{
+				SigningAlgRSAUsingSHA256,
+			},
+		},
 	}
 
 	for _, alg := range c.Discovery.ResponseObjectSigningAlgs {
@@ -158,10 +176,20 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 		if !utils.IsStringInSlice(alg, config.UserinfoSigningAlgValuesSupported) {
 			config.UserinfoSigningAlgValuesSupported = append(config.UserinfoSigningAlgValuesSupported, alg)
 		}
+
+		if !utils.IsStringInSlice(alg, config.IntrospectionSigningAlgValuesSupported) {
+			config.IntrospectionSigningAlgValuesSupported = append(config.IntrospectionSigningAlgValuesSupported, alg)
+		}
+
+		if !utils.IsStringInSlice(alg, config.AuthorizationSigningAlgValuesSupported) {
+			config.AuthorizationSigningAlgValuesSupported = append(config.AuthorizationSigningAlgValuesSupported, alg)
+		}
 	}
 
 	sort.Sort(SortedSigningAlgs(config.IDTokenSigningAlgValuesSupported))
 	sort.Sort(SortedSigningAlgs(config.UserinfoSigningAlgValuesSupported))
+	sort.Sort(SortedSigningAlgs(config.IntrospectionSigningAlgValuesSupported))
+	sort.Sort(SortedSigningAlgs(config.AuthorizationSigningAlgValuesSupported))
 
 	if c.EnablePKCEPlainChallenge {
 		config.CodeChallengeMethodsSupported = append(config.CodeChallengeMethodsSupported, PKCEChallengeMethodPlain)
