@@ -3,6 +3,14 @@ run:
   timeout: 3m
 
 linters-settings:
+  forbidigo:
+    forbid:
+      - p: ^print.*$
+        msg: Do not commit print statements.
+      - p: ^fmt\.Print.*$
+        pkg: ^fmt$
+        msg: Do not commit print statements.
+    analyze-types: true
   goconst:
     min-len: 2
     min-occurrences: 2
@@ -18,6 +26,7 @@ linters-settings:
 linters:
   enable:
     - asciicheck
+    - forbidigo
     - goconst
     - gocritic
     - gocyclo
@@ -45,6 +54,19 @@ issues:
     - (G104|G307)
     - (Expect directory permissions to be 0750 or less|Expect file permissions to be 0600 or less)
     - Potential file inclusion via variable
+  exclude-rules:
+    - path: internal/commands/
+      linters:
+        - forbidigo
+    - path: internal/suites/suite_(traefik2?|haproxy|envoy|caddy|oidc(_traefik)?|one_factor_only|short_timeouts|pathprefix|network_acl|standalone|postgres|mysql|mariadb|multi_cookie_domain|ldap|high_availability|duo_push|docker|cli|bypass_all|activedirectory)\.go  # yamllint disable-line rule:line-length
+      linters:
+        - forbidigo
+    - path: internal/utils/exec\.go
+      linters:
+        - forbidigo
+    - path: cmd/
+      linters:
+        - forbidigo
   exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0
