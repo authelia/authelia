@@ -1,9 +1,3 @@
-ALTER TABLE webauthn_devices
-    RENAME TO _bkp_DOWN_V0012_webauthn_devices;
-
-DROP INDEX IF EXISTS webauthn_devices_kid_key;
-DROP INDEX IF EXISTS webauthn_devices_lookup_key;
-
 CREATE TABLE IF NOT EXISTS webauthn_devices (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -25,8 +19,8 @@ CREATE UNIQUE INDEX webauthn_devices_kid_key ON webauthn_devices (kid);
 
 INSERT INTO webauthn_devices (created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
 SELECT created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning
-FROM _bkp_DOWN_V0012_webauthn_devices
+FROM webauthn_credentials
 WHERE legacy = TRUE;
 
-DROP TABLE IF EXISTS _bkp_DOWN_V0012_webauthn_devices;
+DROP TABLE IF EXISTS webauthn_credentials;
 DROP TABLE IF EXISTS webauthn_users;

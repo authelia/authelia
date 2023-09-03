@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://www.authelia.com/schemas/v4.38/json-schema/exports.webauthn.json",
-  "$ref": "#/$defs/WebAuthnDeviceDataExport",
+  "$ref": "#/$defs/WebAuthnCredentialDataExport",
   "$defs": {
-    "WebAuthnDeviceData": {
+    "WebAuthnCredentialData": {
       "properties": {
         "id": {
           "type": "integer"
@@ -101,21 +101,21 @@
         "public_key": {
           "type": "string",
           "title": "Public Key",
-          "description": "The device public key"
+          "description": "The credential public key"
         }
       },
       "additionalProperties": false,
       "type": "object"
     },
-    "WebAuthnDeviceDataExport": {
+    "WebAuthnCredentialDataExport": {
       "properties": {
-        "webauthn_devices": {
+        "webauthn_credentials": {
           "items": {
-            "$ref": "#/$defs/WebAuthnDeviceData"
+            "$ref": "#/$defs/WebAuthnCredentialData"
           },
           "type": "array",
-          "title": "WebAuthn Devices",
-          "description": "The list of WebAuthn devices"
+          "title": "WebAuthn Credentials",
+          "description": "The list of WebAuthn credentials"
         }
       },
       "additionalProperties": false,

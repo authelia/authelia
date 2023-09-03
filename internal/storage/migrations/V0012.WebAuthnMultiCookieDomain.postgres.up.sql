@@ -1,15 +1,5 @@
-ALTER TABLE webauthn_devices
-    DROP CONSTRAINT IF EXISTS webauthn_devices_pkey;
-
-DROP INDEX IF EXISTS webauthn_devices_pkey;
-DROP INDEX IF EXISTS webauthn_devices_kid_key;
-DROP INDEX IF EXISTS webauthn_devices_lookup_key;
-
-ALTER TABLE webauthn_devices
-    RENAME TO _bkp_UP_V0012_webauthn_devices;
-
-CREATE TABLE IF NOT EXISTS webauthn_devices (
-    id SERIAL CONSTRAINT webauthn_devices_pkey PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS webauthn_credentials (
+    id SERIAL CONSTRAINT webauthn_credentials_pkey PRIMARY KEY,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_used_at TIMESTAMP WITH TIME ZONE NULL DEFAULT NULL,
     rpid VARCHAR(512) NOT NULL,
@@ -31,14 +21,14 @@ CREATE TABLE IF NOT EXISTS webauthn_devices (
     public_key BYTEA NOT NULL
 );
 
-CREATE UNIQUE INDEX webauthn_devices_kid_key ON webauthn_devices (kid);
-CREATE UNIQUE INDEX webauthn_devices_lookup_key ON webauthn_devices (rpid, username, description);
+CREATE UNIQUE INDEX webauthn_credentials_kid_key ON webauthn_credentials (kid);
+CREATE UNIQUE INDEX webauthn_credentials_lookup_key ON webauthn_credentials (rpid, username, description);
 
-INSERT INTO webauthn_devices (created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key)
+INSERT INTO webauthn_credentials (created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key)
 SELECT created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, 'cross-platform', transport, sign_count, clone_warning, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, public_key
-FROM _bkp_UP_V0012_webauthn_devices;
+FROM webauthn_devices;
 
-DROP TABLE IF EXISTS _bkp_UP_V0012_webauthn_devices;
+DROP TABLE IF EXISTS webauthn_devices;
 
 CREATE TABLE IF NOT EXISTS webauthn_users (
     id SERIAL CONSTRAINT webauthn_users_pkey PRIMARY KEY,

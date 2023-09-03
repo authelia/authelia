@@ -1,13 +1,3 @@
-ALTER TABLE webauthn_devices
-    DROP CONSTRAINT IF EXISTS webauthn_devices_pkey;
-
-DROP INDEX IF EXISTS webauthn_devices_pkey;
-DROP INDEX IF EXISTS webauthn_devices_kid_key;
-DROP INDEX IF EXISTS webauthn_devices_lookup_key;
-
-ALTER TABLE webauthn_devices
-    RENAME TO _bkp_DOWN_V0012_webauthn_devices;
-
 CREATE TABLE IF NOT EXISTS webauthn_devices (
     id SERIAL CONSTRAINT webauthn_devices_pkey PRIMARY KEY,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -29,8 +19,8 @@ CREATE UNIQUE INDEX webauthn_devices_lookup_key ON webauthn_devices (username, d
 
 INSERT INTO webauthn_devices (created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
 SELECT created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning
-FROM _bkp_DOWN_V0012_webauthn_devices
+FROM webauthn_credentials
 WHERE legacy = TRUE;
 
-DROP TABLE IF EXISTS _bkp_DOWN_V0012_webauthn_devices;
+DROP TABLE IF EXISTS webauthn_credentials;
 DROP TABLE IF EXISTS webauthn_users;

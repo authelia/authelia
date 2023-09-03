@@ -32,7 +32,7 @@ type encOAuth2Session struct {
 	Session []byte `db:"session_data"`
 }
 
-type encWebAuthnDevice struct {
+type encWebAuthnCredential struct {
 	ID        int    `db:"id"`
 	PublicKey []byte `db:"public_key"`
 }

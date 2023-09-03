@@ -808,7 +808,7 @@ paths:
         - Second Factor
       summary: Identity Verification FIDO2 WebAuthn Credential Validation
       description: >
-        This endpoint performs identity and token verification, upon success generates a FIDO2 WebAuthn device
+        This endpoint performs identity and token verification, upon success generates a FIDO2 WebAuthn credential
         attestation challenge (registration).
 
         The session cookie generated from the `/api/secondfactor/webauthn/identity/start` endpoint must be utilised
@@ -849,11 +849,11 @@ paths:
                 $ref: '#/components/schemas/middlewares.OkResponse'
       security:
         - authelia_auth: []
-  /api/secondfactor/webauthn/devices/{deviceID}:
+  /api/secondfactor/webauthn/credentials/{credentialID}:
     delete:
       tags:
         - Second Factor
-      summary: WebAuthn Device Deletion
+      summary: WebAuthn Credential Deletion
       description: This endpoint deletes the specified WebAuthn credential.
       responses:
         "200":
@@ -869,14 +869,14 @@ paths:
     put:
       tags:
         - Second Factor
-      summary: WebAuthn Device Update
+      summary: WebAuthn Credential Update
       description: This endpoint updates the description of the specified WebAuthn credential.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/webauthn.DeviceUpdateRequest'
+              $ref: '#/components/schemas/webauthn.CredentialUpdateRequest'
       responses:
         "200":
           description: Successful Operation
@@ -1598,11 +1598,11 @@ components:
   parameters:
     deviceID:
       in: path
-      name: deviceID
+      name: credentialID
       schema:
         type: integer
       required: true
-      description: Numeric WebAuthn Device ID
+      description: Numeric WebAuthn Credential ID
     originalMethodParam:
       name: X-Original-Method
       in: header
@@ -2149,7 +2149,7 @@ components:
                       format: uuid
                       pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
                       example: '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
-    webauthn.DeviceUpdateRequest:
+    webauthn.CredentialUpdateRequest:
       type: object
       properties:
         description:

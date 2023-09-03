@@ -28,7 +28,7 @@ func TestWebAuthnGetUser(t *testing.T) {
 		LoadWebAuthnUser(ctx.Ctx, "example.com", "john").
 		Return(&model.WebAuthnUser{ID: 1, RPID: "example.com", Username: "john", UserID: "john123"}, nil)
 
-	ctx.StorageMock.EXPECT().LoadWebAuthnDevicesByUsername(ctx.Ctx, "example.com", "john").Return([]model.WebAuthnDevice{
+	ctx.StorageMock.EXPECT().LoadWebAuthnCredentialsByUsername(ctx.Ctx, "example.com", "john").Return([]model.WebAuthnCredential{
 		{
 			ID:              1,
 			RPID:            "example.com",
@@ -68,17 +68,17 @@ func TestWebAuthnGetUser(t *testing.T) {
 	assert.Equal(t, "John Smith", user.WebAuthnDisplayName())
 	assert.Equal(t, "John Smith", user.DisplayName)
 
-	require.Len(t, user.Devices, 2)
+	require.Len(t, user.Credentials, 2)
 
-	assert.Equal(t, 1, user.Devices[0].ID)
-	assert.Equal(t, "example.com", user.Devices[0].RPID)
-	assert.Equal(t, "john", user.Devices[0].Username)
-	assert.Equal(t, "Primary", user.Devices[0].Description)
-	assert.Equal(t, "", user.Devices[0].Transport)
-	assert.Equal(t, "fido-u2f", user.Devices[0].AttestationType)
-	assert.Equal(t, []byte("data"), user.Devices[0].PublicKey)
-	assert.Equal(t, uint32(0), user.Devices[0].SignCount)
-	assert.False(t, user.Devices[0].CloneWarning)
+	assert.Equal(t, 1, user.Credentials[0].ID)
+	assert.Equal(t, "example.com", user.Credentials[0].RPID)
+	assert.Equal(t, "john", user.Credentials[0].Username)
+	assert.Equal(t, "Primary", user.Credentials[0].Description)
+	assert.Equal(t, "", user.Credentials[0].Transport)
+	assert.Equal(t, "fido-u2f", user.Credentials[0].AttestationType)
+	assert.Equal(t, []byte("data"), user.Credentials[0].PublicKey)
+	assert.Equal(t, uint32(0), user.Credentials[0].SignCount)
+	assert.False(t, user.Credentials[0].CloneWarning)
 
 	descriptors := user.WebAuthnCredentialDescriptors()
 	assert.Equal(t, "fido-u2f", descriptors[0].AttestationType)
@@ -87,15 +87,15 @@ func TestWebAuthnGetUser(t *testing.T) {
 
 	assert.Len(t, descriptors[0].Transport, 0)
 
-	assert.Equal(t, 2, user.Devices[1].ID)
-	assert.Equal(t, "example.com", user.Devices[1].RPID)
-	assert.Equal(t, "john", user.Devices[1].Username)
-	assert.Equal(t, "Secondary", user.Devices[1].Description)
-	assert.Equal(t, "usb,nfc", user.Devices[1].Transport)
-	assert.Equal(t, "packed", user.Devices[1].AttestationType)
-	assert.Equal(t, []byte("data"), user.Devices[1].PublicKey)
-	assert.Equal(t, uint32(100), user.Devices[1].SignCount)
-	assert.False(t, user.Devices[1].CloneWarning)
+	assert.Equal(t, 2, user.Credentials[1].ID)
+	assert.Equal(t, "example.com", user.Credentials[1].RPID)
+	assert.Equal(t, "john", user.Credentials[1].Username)
+	assert.Equal(t, "Secondary", user.Credentials[1].Description)
+	assert.Equal(t, "usb,nfc", user.Credentials[1].Transport)
+	assert.Equal(t, "packed", user.Credentials[1].AttestationType)
+	assert.Equal(t, []byte("data"), user.Credentials[1].PublicKey)
+	assert.Equal(t, uint32(100), user.Credentials[1].SignCount)
+	assert.False(t, user.Credentials[1].CloneWarning)
 
 	assert.Equal(t, "packed", descriptors[1].AttestationType)
 	assert.Equal(t, "123abc", string(descriptors[1].CredentialID))
@@ -127,7 +127,7 @@ func TestWebAuthnGetNewUser(t *testing.T) {
 		ctx.StorageMock.EXPECT().
 			SaveWebAuthnUser(ctx.Ctx, model.WebAuthnUser{RPID: "example.com", Username: "john", DisplayName: "John Smith", UserID: "=ckBRe.%fp{w#K[qw4)AWMZrAP)(z3NUt5n3g?;>'^Rp>+eE4z>[^.<3?&n;LM#w"}).
 			Return(nil),
-		ctx.StorageMock.EXPECT().LoadWebAuthnDevicesByUsername(ctx.Ctx, "example.com", "john").Return([]model.WebAuthnDevice{
+		ctx.StorageMock.EXPECT().LoadWebAuthnCredentialsByUsername(ctx.Ctx, "example.com", "john").Return([]model.WebAuthnCredential{
 			{
 				ID:              1,
 				RPID:            "example.com",
@@ -168,17 +168,17 @@ func TestWebAuthnGetNewUser(t *testing.T) {
 	assert.Equal(t, "John Smith", user.WebAuthnDisplayName())
 	assert.Equal(t, "John Smith", user.DisplayName)
 
-	require.Len(t, user.Devices, 2)
+	require.Len(t, user.Credentials, 2)
 
-	assert.Equal(t, 1, user.Devices[0].ID)
-	assert.Equal(t, "example.com", user.Devices[0].RPID)
-	assert.Equal(t, "john", user.Devices[0].Username)
-	assert.Equal(t, "Primary", user.Devices[0].Description)
-	assert.Equal(t, "", user.Devices[0].Transport)
-	assert.Equal(t, "fido-u2f", user.Devices[0].AttestationType)
-	assert.Equal(t, []byte("data"), user.Devices[0].PublicKey)
-	assert.Equal(t, uint32(0), user.Devices[0].SignCount)
-	assert.False(t, user.Devices[0].CloneWarning)
+	assert.Equal(t, 1, user.Credentials[0].ID)
+	assert.Equal(t, "example.com", user.Credentials[0].RPID)
+	assert.Equal(t, "john", user.Credentials[0].Username)
+	assert.Equal(t, "Primary", user.Credentials[0].Description)
+	assert.Equal(t, "", user.Credentials[0].Transport)
+	assert.Equal(t, "fido-u2f", user.Credentials[0].AttestationType)
+	assert.Equal(t, []byte("data"), user.Credentials[0].PublicKey)
+	assert.Equal(t, uint32(0), user.Credentials[0].SignCount)
+	assert.False(t, user.Credentials[0].CloneWarning)
 
 	descriptors := user.WebAuthnCredentialDescriptors()
 	assert.Equal(t, "fido-u2f", descriptors[0].AttestationType)
@@ -187,15 +187,15 @@ func TestWebAuthnGetNewUser(t *testing.T) {
 
 	assert.Len(t, descriptors[0].Transport, 0)
 
-	assert.Equal(t, 2, user.Devices[1].ID)
-	assert.Equal(t, "example.com", user.Devices[1].RPID)
-	assert.Equal(t, "john", user.Devices[1].Username)
-	assert.Equal(t, "Secondary", user.Devices[1].Description)
-	assert.Equal(t, "usb,nfc", user.Devices[1].Transport)
-	assert.Equal(t, "packed", user.Devices[1].AttestationType)
-	assert.Equal(t, []byte("data"), user.Devices[1].PublicKey)
-	assert.Equal(t, uint32(100), user.Devices[1].SignCount)
-	assert.False(t, user.Devices[1].CloneWarning)
+	assert.Equal(t, 2, user.Credentials[1].ID)
+	assert.Equal(t, "example.com", user.Credentials[1].RPID)
+	assert.Equal(t, "john", user.Credentials[1].Username)
+	assert.Equal(t, "Secondary", user.Credentials[1].Description)
+	assert.Equal(t, "usb,nfc", user.Credentials[1].Transport)
+	assert.Equal(t, "packed", user.Credentials[1].AttestationType)
+	assert.Equal(t, []byte("data"), user.Credentials[1].PublicKey)
+	assert.Equal(t, uint32(100), user.Credentials[1].SignCount)
+	assert.False(t, user.Credentials[1].CloneWarning)
 
 	assert.Equal(t, "packed", descriptors[1].AttestationType)
 	assert.Equal(t, "123abc", string(descriptors[1].CredentialID))
@@ -217,7 +217,7 @@ func TestWebAuthnGetUserWithoutDisplayName(t *testing.T) {
 		LoadWebAuthnUser(ctx.Ctx, "example.com", "john").
 		Return(&model.WebAuthnUser{ID: 1, RPID: "example.com", Username: "john", UserID: "john123"}, nil)
 
-	ctx.StorageMock.EXPECT().LoadWebAuthnDevicesByUsername(ctx.Ctx, "example.com", "john").Return([]model.WebAuthnDevice{
+	ctx.StorageMock.EXPECT().LoadWebAuthnCredentialsByUsername(ctx.Ctx, "example.com", "john").Return([]model.WebAuthnCredential{
 		{
 			ID:              1,
 			RPID:            "example.com",
@@ -252,7 +252,7 @@ func TestWebAuthnGetUserWithErr(t *testing.T) {
 		Return(&model.WebAuthnUser{ID: 1, RPID: "example.com", Username: "john", UserID: "john123"}, nil)
 
 	ctx.StorageMock.EXPECT().
-		LoadWebAuthnDevicesByUsername(ctx.Ctx, "example.com", "john").
+		LoadWebAuthnCredentialsByUsername(ctx.Ctx, "example.com", "john").
 		Return(nil, errors.New("not found"))
 
 	user, err := getWebAuthnUserByRPID(ctx.Ctx, userSession.Username, userSession.DisplayName, "example.com")

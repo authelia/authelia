@@ -146,7 +146,7 @@ func docsJSONSchemaExportsWebAuthnRunE(cmd *cobra.Command, args []string) (err e
 		return err
 	}
 
-	return docsJSONSchemaGenerateRunE(cmd, args, version, schemaDir, &model.WebAuthnDeviceDataExport{}, dir, file, nil)
+	return docsJSONSchemaGenerateRunE(cmd, args, version, schemaDir, &model.WebAuthnCredentialDataExport{}, dir, file, nil)
 }
 
 func docsJSONSchemaExportsIdentifiersRunE(cmd *cobra.Command, args []string) (err error) {

@@ -44,7 +44,7 @@ type bodyRegisterWebAuthnPUTRequest struct {
 	Description string `json:"description"`
 }
 
-type bodyEditWebAuthnDeviceRequest struct {
+type bodyEditWebAuthnCredentialRequest struct {
 	Description string `json:"description"`
 }
 

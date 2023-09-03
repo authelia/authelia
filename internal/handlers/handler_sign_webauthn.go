@@ -168,13 +168,13 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 
 	var found bool
 
-	for _, device := range user.Devices {
+	for _, device := range user.Credentials {
 		if bytes.Equal(device.KID.Bytes(), credential.ID) {
 			device.UpdateSignInInfo(w.Config, ctx.Clock.Now(), credential.Authenticator.SignCount)
 
 			found = true
 
-			if err = ctx.Providers.StorageProvider.UpdateWebAuthnDeviceSignIn(ctx, device); err != nil {
+			if err = ctx.Providers.StorageProvider.UpdateWebAuthnCredentialSignIn(ctx, device); err != nil {
 				ctx.Logger.Errorf("Unable to save %s device signin count for authentication challenge for user '%s': %+v", regulation.AuthTypeWebAuthn, userSession.Username, err)
 
 				respondUnauthorized(ctx, messageMFAValidationFailed)

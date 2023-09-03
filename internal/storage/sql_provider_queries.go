@@ -118,61 +118,62 @@ const (
 		WHERE username = ?;`
 )
 
+//nolint:gosec // The following queries are not hard coded credentials.
 const (
-	queryFmtSelectWebAuthnDevices = `
+	queryFmtSelectWebAuthnCredentials = `
 		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key
 		FROM %s
 		LIMIT ?
 		OFFSET ?;`
 
-	queryFmtSelectWebAuthnDevicesByUsername = `
+	queryFmtSelectWebAuthnCredentialsByUsername = `
 		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key
 		FROM %s
 		WHERE username = ?;`
 
-	queryFmtSelectWebAuthnDevicesByRPIDByUsername = `
+	queryFmtSelectWebAuthnCredentialsByRPIDByUsername = `
 		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key
 		FROM %s
 		WHERE rpid = ? AND username = ?;`
 
-	queryFmtSelectWebAuthnDeviceByID = `
+	queryFmtSelectWebAuthnCredentialByID = `
 		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key
 		FROM %s
 		WHERE id = ?;`
 
-	queryFmtUpdateUpdateWebAuthnDeviceDescriptionByUsernameAndID = `
+	queryFmtUpdateUpdateWebAuthnCredentialDescriptionByUsernameAndID = `
 		UPDATE %s
 		SET description = ?
 		WHERE username = ? AND id = ?;`
 
-	queryFmtUpdateWebAuthnDeviceRecordSignIn = `
+	queryFmtUpdateWebAuthnCredentialRecordSignIn = `
 		UPDATE %s
 		SET
 			rpid = ?, last_used_at = ?, sign_count = ?, discoverable = ?, present = ?, verified = ?, backup_eligible = ?, backup_state = ?,
 			clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
 		WHERE id = ?;`
 
-	queryFmtInsertWebAuthnDevice = `
+	queryFmtInsertWebAuthnCredential = `
 		INSERT INTO %s (created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
-	queryFmtDeleteWebAuthnDevice = `
+	queryFmtDeleteWebAuthnCredential = `
 		DELETE FROM %s
 		WHERE kid = ?;`
 
-	queryFmtDeleteWebAuthnDeviceByUsername = `
+	queryFmtDeleteWebAuthnCredentialByUsername = `
 		DELETE FROM %s
 		WHERE username = ?;`
 
-	queryFmtDeleteWebAuthnDeviceByUsernameAndDescription = `
+	queryFmtDeleteWebAuthnCredentialByUsernameAndDescription = `
 		DELETE FROM %s
 		WHERE username = ? AND description = ?;`
 
-	queryFmtSelectWebAuthnDevicesEncryptedData = `
+	queryFmtSelectWebAuthnCredentialsEncryptedData = `
 		SELECT id, public_key
 		FROM %s;`
 
-	queryFmtUpdateWebAuthnDevicesEncryptedData = `
+	queryFmtUpdateWebAuthnCredentialsEncryptedData = `
 		UPDATE %s
 		SET public_key = ?
 		WHERE id = ?;`

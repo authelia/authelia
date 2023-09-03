@@ -58,8 +58,8 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	devices, err := ctx.Providers.StorageProvider.LoadWebAuthnDevicesByUsername(ctx, w.Config.RPID, userSession.Username)
-	if err != nil && err != storage.ErrNoWebAuthnDevice {
+	devices, err := ctx.Providers.StorageProvider.LoadWebAuthnCredentialsByUsername(ctx, w.Config.RPID, userSession.Username)
+	if err != nil && err != storage.ErrNoWebAuthnCredential {
 		ctx.Logger.Errorf("Unable to load existing %s devices for user '%s': %+v", regulation.AuthTypeWebAuthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
@@ -199,11 +199,11 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	device := model.NewWebAuthnDeviceFromCredential(w.Config.RPID, userSession.Username, userSession.WebAuthn.Description, credential)
+	device := model.NewWebAuthnCredential(w.Config.RPID, userSession.Username, userSession.WebAuthn.Description, credential)
 
 	device.Discoverable = webauthnCredentialCreationIsDiscoverable(ctx, response)
 
-	if err = ctx.Providers.StorageProvider.SaveWebAuthnDevice(ctx, device); err != nil {
+	if err = ctx.Providers.StorageProvider.SaveWebAuthnCredential(ctx, device); err != nil {
 		ctx.Logger.Errorf("Unable to save %s device registration for user '%s': %+v", regulation.AuthTypeWebAuthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)

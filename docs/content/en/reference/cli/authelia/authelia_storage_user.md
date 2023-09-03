@@ -63,5 +63,5 @@ authelia storage user --help
 * [authelia storage](authelia_storage.md)	 - Manage the Authelia storage
 * [authelia storage user identifiers](authelia_storage_user_identifiers.md)	 - Manage user opaque identifiers
 * [authelia storage user totp](authelia_storage_user_totp.md)	 - Manage TOTP configurations
-* [authelia storage user webauthn](authelia_storage_user_webauthn.md)	 - Manage WebAuthn devices
+* [authelia storage user webauthn](authelia_storage_user_webauthn.md)	 - Manage WebAuthn credentials
 

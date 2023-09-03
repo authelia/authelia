@@ -1,7 +1,4 @@
-ALTER TABLE webauthn_devices
-    RENAME _bkp_UP_V0012_webauthn_devices;
-
-CREATE TABLE IF NOT EXISTS webauthn_devices (
+CREATE TABLE IF NOT EXISTS webauthn_credentials (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_used_at TIMESTAMP NULL DEFAULT NULL,
@@ -24,14 +21,14 @@ CREATE TABLE IF NOT EXISTS webauthn_devices (
     public_key BLOB NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
-CREATE UNIQUE INDEX webauthn_devices_kid_key ON webauthn_devices (kid);
-CREATE UNIQUE INDEX webauthn_devices_lookup_key ON webauthn_devices (rpid, username, description);
+CREATE UNIQUE INDEX webauthn_credentials_kid_key ON webauthn_credentials (kid);
+CREATE UNIQUE INDEX webauthn_credentials_lookup_key ON webauthn_credentials (rpid, username, description);
 
-INSERT INTO webauthn_devices (created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key)
+INSERT INTO webauthn_credentials (created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key)
 SELECT id, created_at, last_used_at, CAST(rpid AS CHAR) AS rpid, username, description, kid, aaguid, attestation_type, 'cross-platform', transport, sign_count, clone_warning, TRUE, FALSE, FALSE, FALSE, FALSE, public_key
-FROM _bkp_UP_V0012_webauthn_devices;
+FROM webauthn_devices;
 
-DROP TABLE IF EXISTS _bkp_UP_V0012_webauthn_devices;
+DROP TABLE IF EXISTS webauthn_devices;
 
 CREATE TABLE IF NOT EXISTS webauthn_users (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
