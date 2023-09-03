@@ -19,7 +19,7 @@ import (
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/go-crypt/crypt/algorithm/plaintext"
 	"github.com/valyala/fasthttp"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 )
 
 var cdecoder algorithm.DecoderRegister
@@ -63,7 +63,7 @@ type PasswordDigest struct {
 // JSONSchema returns the JSON Schema information for the PasswordDigest type.
 func (PasswordDigest) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
-		Type:    "string",
+		Type:    jsonschema.TypeString,
 		Pattern: `^\$((argon2(id|i|d)\$v=19\$m=\d+,t=\d+,p=\d+|scrypt\$ln=\d+,r=\d+,p=\d+)\$[a-zA-Z0-9\/+]+\$[a-zA-Z0-9\/+]+|pbkdf2(-sha(224|256|384|512))?\$\d+\$[a-zA-Z0-9\/.]+\$[a-zA-Z0-9\/.]+|bcrypt-sha256\$v=2,t=2b,r=\d+\$[a-zA-Z0-9\/.]+\$[a-zA-Z0-9\/.]+|2(a|b|y)?\$\d+\$[a-zA-Z0-9.\/]+|(5|6)\$rounds=\d+\$[a-zA-Z0-9.\/]+\$[a-zA-Z0-9.\/]+|plaintext\$.+|base64\$[a-zA-Z0-9.=\/]+)$`,
 	}
 }
@@ -180,7 +180,7 @@ type TLSVersion struct {
 // JSONSchema returns the JSON Schema information for the TLSVersion type.
 func (TLSVersion) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
-		Type: "string",
+		Type: jsonschema.TypeString,
 		Enum: []any{
 			"TLS1.0",
 			"TLS1.1",
@@ -243,7 +243,7 @@ type X509CertificateChain struct {
 // JSONSchema returns the JSON Schema information for the X509CertificateChain type.
 func (X509CertificateChain) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
-		Type:    "string",
+		Type:    jsonschema.TypeString,
 		Pattern: `^(-{5}BEGIN CERTIFICATE-{5}\n([a-zA-Z0-9/+]{1,64}\n)+([a-zA-Z0-9/+]{1,64}[=]{0,2})\n-{5}END CERTIFICATE-{5}\n?)+$`,
 	}
 }
@@ -416,7 +416,7 @@ func (IdentityProvidersOpenIDConnectClientRedirectURIs) JSONSchema() *jsonschema
 		OneOf: []*jsonschema.Schema{
 			&jsonschemaURI,
 			{
-				Type:        "array",
+				Type:        jsonschema.TypeArray,
 				Items:       &jsonschemaURI,
 				UniqueItems: true,
 			},
@@ -432,7 +432,7 @@ func (AccessControlNetworkNetworks) JSONSchema() *jsonschema.Schema {
 		OneOf: []*jsonschema.Schema{
 			&jsonschemaACLNetwork,
 			{
-				Type:        "array",
+				Type:        jsonschema.TypeArray,
 				Items:       &jsonschemaACLNetwork,
 				UniqueItems: true,
 			},
@@ -453,7 +453,7 @@ func (AccessControlRuleMethods) JSONSchema() *jsonschema.Schema {
 		OneOf: []*jsonschema.Schema{
 			&jsonschemaACLMethod,
 			{
-				Type:        "array",
+				Type:        jsonschema.TypeArray,
 				Items:       &jsonschemaACLMethod,
 				UniqueItems: true,
 			},
@@ -468,14 +468,14 @@ func (AccessControlRuleRegex) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		OneOf: []*jsonschema.Schema{
 			{
-				Type:   "string",
-				Format: "regex",
+				Type:   jsonschema.TypeString,
+				Format: jsonschema.FormatStringRegex,
 			},
 			{
-				Type: "array",
+				Type: jsonschema.TypeArray,
 				Items: &jsonschema.Schema{
-					Type:   "string",
-					Format: "regex",
+					Type:   jsonschema.TypeString,
+					Format: jsonschema.FormatStringRegex,
 				},
 				UniqueItems: true,
 			},
@@ -491,13 +491,13 @@ func (AccessControlRuleSubjects) JSONSchema() *jsonschema.Schema {
 		OneOf: []*jsonschema.Schema{
 			&jsonschemaACLSubject,
 			{
-				Type:  "array",
+				Type:  jsonschema.TypeArray,
 				Items: &jsonschemaACLSubject,
 			},
 			{
-				Type: "array",
+				Type: jsonschema.TypeArray,
 				Items: &jsonschema.Schema{
-					Type:  "array",
+					Type:  jsonschema.TypeArray,
 					Items: &jsonschemaACLSubject,
 				},
 				UniqueItems: true,
@@ -509,19 +509,19 @@ func (AccessControlRuleSubjects) JSONSchema() *jsonschema.Schema {
 type CSPTemplate string
 
 var jsonschemaURI = jsonschema.Schema{
-	Type:   "string",
-	Format: "uri",
+	Type:   jsonschema.TypeString,
+	Format: jsonschema.FormatStringURI,
 }
 
 var jsonschemaWeakStringUniqueSlice = jsonschema.Schema{
 	OneOf: []*jsonschema.Schema{
 		{
-			Type: "string",
+			Type: jsonschema.TypeString,
 		},
 		{
-			Type: "array",
+			Type: jsonschema.TypeArray,
 			Items: &jsonschema.Schema{
-				Type: "string",
+				Type: jsonschema.TypeString,
 			},
 			UniqueItems: true,
 		},
@@ -529,17 +529,17 @@ var jsonschemaWeakStringUniqueSlice = jsonschema.Schema{
 }
 
 var jsonschemaACLNetwork = jsonschema.Schema{
-	Type:    "string",
+	Type:    jsonschema.TypeString,
 	Pattern: `((^((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))(\/([0-2]?[0-9]|3[0-2]))?$)|(^((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))?(\/(12[0-8]|1[0-1][0-9]|[0-9]{1,2}))?$))`,
 }
 
 var jsonschemaACLSubject = jsonschema.Schema{
-	Type:    "string",
+	Type:    jsonschema.TypeString,
 	Pattern: "^(user|group):.+$",
 }
 
 var jsonschemaACLMethod = jsonschema.Schema{
-	Type: "string",
+	Type: jsonschema.TypeString,
 	Enum: []any{
 		fasthttp.MethodGet,
 		fasthttp.MethodHead,
