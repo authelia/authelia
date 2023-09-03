@@ -59,8 +59,8 @@ dependencies:
     specifier: 7.1.0
     version: 7.1.0
   i18next-http-backend:
-    specifier: 2.2.1
-    version: 2.2.1
+    specifier: 2.2.2
+    version: 2.2.2
   qrcode.react:
     specifier: 3.1.0
     version: 3.1.0(react@18.2.0)
@@ -5489,8 +5489,8 @@ packages:
       '@babel/runtime': 7.22.5
     dev: false
 
-  /i18next-http-backend@2.2.1:
-    resolution: {integrity: sha512-ZXIdn/8NJIBJ0X4hzXfc3STYxKrCKh1fYjji9HPyIpEJfvTvy8/ZlTl8RuTizzCPj2ZcWrfaecyOMKs6bQ7u5A==}
+  /i18next-http-backend@2.2.2:
+    resolution: {integrity: sha512-mJu4ZqzDtBiU3O4GV9AbK5ekEqoDMdMnCl3pkdXmb5b8yoIH//u8FsmIe6C5qXb3teZu+j6VMi20tjUgzeABiw==}
     dependencies:
       cross-fetch: 3.1.6
     transitivePeerDependencies:
