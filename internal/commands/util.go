@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"golang.org/x/term"
+	"gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/random"
@@ -335,4 +336,33 @@ func newHelpTopic(topic, short, body string) (cmd *cobra.Command) {
 	})
 
 	return cmd
+}
+
+func exportYAMLWithJSONSchema(name, filename string, v any) (err error) {
+	var f *os.File
+
+	if f, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
+		return err
+	}
+
+	defer func() {
+		if err := f.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	// TODO: Get binary version here.
+	version := "v4.38"
+
+	if _, err = f.WriteString(fmt.Sprintf("# yaml-language-server: $schema=https://www.authelia.com/schemas/%s/json-schemas/%s.json\n\n", version, name)); err != nil {
+		return err
+	}
+
+	encoder := yaml.NewEncoder(f)
+
+	if err = encoder.Encode(v); err != nil {
+		return fmt.Errorf("error occurred marshalling data to YAML: %w", err)
+	}
+
+	return nil
 }

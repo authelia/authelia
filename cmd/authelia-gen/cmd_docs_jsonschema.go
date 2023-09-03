@@ -124,7 +124,7 @@ func docsJSONSchemaExportsTOTPRunE(cmd *cobra.Command, args []string) (err error
 		return err
 	}
 
-	return docsJSONSchemaGenerateRunE(cmd, args, version, false, schemaDir, &model.TOTPConfigurationDataExport{}, dir, file, nil)
+	return docsJSONSchemaGenerateRunE(cmd, args, version, schemaDir, &model.TOTPConfigurationDataExport{}, dir, file, nil)
 }
 
 func docsJSONSchemaExportsWebAuthnRunE(cmd *cobra.Command, args []string) (err error) {
@@ -146,7 +146,7 @@ func docsJSONSchemaExportsWebAuthnRunE(cmd *cobra.Command, args []string) (err e
 		return err
 	}
 
-	return docsJSONSchemaGenerateRunE(cmd, args, version, false, schemaDir, &model.WebAuthnDeviceDataExport{}, dir, file, nil)
+	return docsJSONSchemaGenerateRunE(cmd, args, version, schemaDir, &model.WebAuthnDeviceDataExport{}, dir, file, nil)
 }
 
 func docsJSONSchemaExportsIdentifiersRunE(cmd *cobra.Command, args []string) (err error) {
@@ -168,7 +168,7 @@ func docsJSONSchemaExportsIdentifiersRunE(cmd *cobra.Command, args []string) (er
 		return err
 	}
 
-	return docsJSONSchemaGenerateRunE(cmd, args, version, false, schemaDir, &model.UserOpaqueIdentifiersExport{}, dir, file, nil)
+	return docsJSONSchemaGenerateRunE(cmd, args, version, schemaDir, &model.UserOpaqueIdentifiersExport{}, dir, file, nil)
 }
 
 func docsJSONSchemaConfigurationRunE(cmd *cobra.Command, args []string) (err error) {
@@ -190,7 +190,7 @@ func docsJSONSchemaConfigurationRunE(cmd *cobra.Command, args []string) (err err
 		return err
 	}
 
-	return docsJSONSchemaGenerateRunE(cmd, args, version, false, schemaDir, &schema.Configuration{}, dir, file, jsonschemaKoanfMapper)
+	return docsJSONSchemaGenerateRunE(cmd, args, version, schemaDir, &schema.Configuration{}, dir, file, jsonschemaKoanfMapper)
 }
 
 func docsJSONSchemaUserDatabaseRunE(cmd *cobra.Command, args []string) (err error) {
@@ -212,10 +212,10 @@ func docsJSONSchemaUserDatabaseRunE(cmd *cobra.Command, args []string) (err erro
 		return err
 	}
 
-	return docsJSONSchemaGenerateRunE(cmd, args, version, false, schemaDir, &authentication.FileUserDatabase{}, dir, file, jsonschemaKoanfMapper)
+	return docsJSONSchemaGenerateRunE(cmd, args, version, schemaDir, &authentication.FileUserDatabase{}, dir, file, jsonschemaKoanfMapper)
 }
 
-func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.SemanticVersion, patch bool, schemaDir string, v any, dir, file string, mapper func(reflect.Type) *jsonschema.Schema) (err error) {
+func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.SemanticVersion, schemaDir string, v any, dir, file string, mapper func(reflect.Type) *jsonschema.Schema) (err error) {
 	r := &jsonschema.Reflector{
 		RequiredFromJSONSchemaTags: true,
 		Mapper:                     mapper,
@@ -250,16 +250,9 @@ func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.S
 
 	var schemaVersion string
 
-	if patch {
-		schemaVersion = fmt.Sprintf("v%d.%d.%d", version.Major, version.Minor, version.Patch)
-		if next {
-			schemaVersion = fmt.Sprintf("v%d.%d.%d", version.Major, version.Minor+1, 0)
-		}
-	} else {
-		schemaVersion = fmt.Sprintf("v%d.%d", version.Major, version.Minor)
-		if next {
-			schemaVersion = fmt.Sprintf("v%d.%d", version.Major, version.Minor+1)
-		}
+	schemaVersion = fmt.Sprintf("v%d.%d", version.Major, version.Minor)
+	if next {
+		schemaVersion = fmt.Sprintf("v%d.%d", version.Major, version.Minor+1)
 	}
 
 	schema := r.Reflect(v)
@@ -289,13 +282,13 @@ func writeJSONSchema(schema *jsonschema.Schema, dir, version, file string) (err 
 		return err
 	}
 
-	if _, err = os.Stat(filepath.Join(dir, version)); err != nil && os.IsNotExist(err) {
-		if err = os.Mkdir(filepath.Join(dir, version), 0755); err != nil {
+	if _, err = os.Stat(filepath.Join(dir, version, "json-schema")); err != nil && os.IsNotExist(err) {
+		if err = os.Mkdir(filepath.Join(dir, version, "json-schema"), 0755); err != nil {
 			return err
 		}
 	}
 
-	if f, err = os.Create(filepath.Join(dir, version, file)); err != nil {
+	if f, err = os.Create(filepath.Join(dir, version, "json-schema", file)); err != nil {
 		return err
 	}
 

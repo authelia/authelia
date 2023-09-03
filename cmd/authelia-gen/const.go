@@ -40,7 +40,7 @@ const (
 )
 
 const (
-	fmtJSONSchemaIdentifier = "https://schemas.authelia.com/%s/json-schema/%s"
+	fmtJSONSchemaIdentifier = "https://www.authelia.com/schemas/%s/json-schema/%s"
 )
 
 const (
