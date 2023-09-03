@@ -26,7 +26,57 @@ func newDocsJSONSchemaCmd() *cobra.Command {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.AddCommand(newDocsJSONSchemaConfigurationCmd(), newDocsJSONSchemaUserDatabaseCmd())
+	cmd.AddCommand(newDocsJSONSchemaConfigurationCmd(), newDocsJSONSchemaUserDatabaseCmd(), newDocsJSONSchemaExportsCmd())
+
+	return cmd
+}
+
+func newDocsJSONSchemaExportsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "exports",
+		Short: "Generate docs JSON schema for the various exports",
+		RunE:  rootSubCommandsRunE,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(newDocsJSONSchemaExportsTOTPCmd(), newDocsJSONSchemaExportsWebAuthnCmd(), newDocsJSONSchemaExportsIdentifiersCmd())
+
+	return cmd
+}
+
+func newDocsJSONSchemaExportsTOTPCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "totp",
+		Short: "Generate docs JSON schema for the TOTP exports",
+		RunE:  docsJSONSchemaExportsTOTPRunE,
+
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newDocsJSONSchemaExportsWebAuthnCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "webauthn",
+		Short: "Generate docs JSON schema for the WebAuthn exports",
+		RunE:  docsJSONSchemaExportsWebAuthnRunE,
+
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newDocsJSONSchemaExportsIdentifiersCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "identifiers",
+		Short: "Generate docs JSON schema for the identifiers exports",
+		RunE:  docsJSONSchemaExportsIdentifiersRunE,
+
+		DisableAutoGenTag: true,
+	}
 
 	return cmd
 }
@@ -55,6 +105,72 @@ func newDocsJSONSchemaUserDatabaseCmd() *cobra.Command {
 	return cmd
 }
 
+func docsJSONSchemaExportsTOTPRunE(cmd *cobra.Command, args []string) (err error) {
+	var version *model.SemanticVersion
+
+	if version, err = readVersion(cmd); err != nil {
+		return err
+	}
+
+	var (
+		dir, file, schemaDir string
+	)
+
+	if schemaDir, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagDirSchema); err != nil {
+		return err
+	}
+
+	if dir, file, err = getJSONSchemaOutputPath(cmd, cmdFlagDocsStaticJSONSchemaExportsTOTP); err != nil {
+		return err
+	}
+
+	return docsJSONSchemaGenerateRunE(cmd, args, version, false, schemaDir, &model.TOTPConfigurationDataExport{}, dir, file, nil)
+}
+
+func docsJSONSchemaExportsWebAuthnRunE(cmd *cobra.Command, args []string) (err error) {
+	var version *model.SemanticVersion
+
+	if version, err = readVersion(cmd); err != nil {
+		return err
+	}
+
+	var (
+		dir, file, schemaDir string
+	)
+
+	if schemaDir, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagDirSchema); err != nil {
+		return err
+	}
+
+	if dir, file, err = getJSONSchemaOutputPath(cmd, cmdFlagDocsStaticJSONSchemaExportsWebAuthn); err != nil {
+		return err
+	}
+
+	return docsJSONSchemaGenerateRunE(cmd, args, version, false, schemaDir, &model.WebAuthnDeviceDataExport{}, dir, file, nil)
+}
+
+func docsJSONSchemaExportsIdentifiersRunE(cmd *cobra.Command, args []string) (err error) {
+	var version *model.SemanticVersion
+
+	if version, err = readVersion(cmd); err != nil {
+		return err
+	}
+
+	var (
+		dir, file, schemaDir string
+	)
+
+	if schemaDir, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagDirSchema); err != nil {
+		return err
+	}
+
+	if dir, file, err = getJSONSchemaOutputPath(cmd, cmdFlagDocsStaticJSONSchemaExportsIdentifiers); err != nil {
+		return err
+	}
+
+	return docsJSONSchemaGenerateRunE(cmd, args, version, false, schemaDir, &model.UserOpaqueIdentifiersExport{}, dir, file, nil)
+}
+
 func docsJSONSchemaConfigurationRunE(cmd *cobra.Command, args []string) (err error) {
 	var version *model.SemanticVersion
 
@@ -74,7 +190,7 @@ func docsJSONSchemaConfigurationRunE(cmd *cobra.Command, args []string) (err err
 		return err
 	}
 
-	return docsJSONSchemaGenerateRunE(cmd, args, version, false, schemaDir, "https://schemas.authelia.com/%s/json-schema/configuration.json", &schema.Configuration{}, dir, file)
+	return docsJSONSchemaGenerateRunE(cmd, args, version, false, schemaDir, &schema.Configuration{}, dir, file, jsonschemaKoanfMapper)
 }
 
 func docsJSONSchemaUserDatabaseRunE(cmd *cobra.Command, args []string) (err error) {
@@ -96,10 +212,10 @@ func docsJSONSchemaUserDatabaseRunE(cmd *cobra.Command, args []string) (err erro
 		return err
 	}
 
-	return docsJSONSchemaGenerateRunE(cmd, args, version, false, schemaDir, "https://schemas.authelia.com/%s/json-schema/user-database.json", &authentication.FileUserDatabase{}, dir, file)
+	return docsJSONSchemaGenerateRunE(cmd, args, version, false, schemaDir, &authentication.FileUserDatabase{}, dir, file, jsonschemaKoanfMapper)
 }
 
-func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.SemanticVersion, patch bool, schemaDir, id string, v any, dir, file string) (err error) {
+func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.SemanticVersion, patch bool, schemaDir string, v any, dir, file string, mapper func(reflect.Type) *jsonschema.Schema) (err error) {
 	r := &jsonschema.Reflector{
 		RequiredFromJSONSchemaTags: true,
 		Mapper:                     mapper,
@@ -148,7 +264,7 @@ func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.S
 
 	schema := r.Reflect(v)
 
-	schema.ID = jsonschema.ID(fmt.Sprintf(id, schemaVersion))
+	schema.ID = jsonschema.ID(fmt.Sprintf(fmtJSONSchemaIdentifier, schemaVersion, file))
 
 	if err = writeJSONSchema(schema, dir, schemaVersion, file); err != nil {
 		return err
@@ -202,7 +318,7 @@ func getJSONSchemaOutputPath(cmd *cobra.Command, flag string) (dir, file string,
 	return dir, file, nil
 }
 
-func mapper(t reflect.Type) *jsonschema.Schema {
+func jsonschemaKoanfMapper(t reflect.Type) *jsonschema.Schema {
 	switch t.String() {
 	case "regexp.Regexp", "*regexp.Regexp":
 		return &jsonschema.Schema{

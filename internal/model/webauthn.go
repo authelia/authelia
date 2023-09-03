@@ -281,18 +281,18 @@ func (d *WebAuthnDevice) UnmarshalYAML(value *yaml.Node) (err error) {
 // WebAuthnDeviceData represents a WebAuthn Device in the database storage.
 type WebAuthnDeviceData struct {
 	ID              int        `json:"id" yaml:"-"`
-	CreatedAt       time.Time  `json:"created_at" yaml:"created_at"`
-	LastUsedAt      *time.Time `json:"last_used_at,omitempty" yaml:"last_used_at,omitempty"`
-	RPID            string     `json:"rpid" yaml:"rpid"`
-	Username        string     `json:"-" yaml:"username"`
-	Description     string     `json:"description" yaml:"description"`
-	KID             string     `json:"kid" yaml:"kid"`
-	AAGUID          *string    `json:"aaguid,omitempty" yaml:"aaguid,omitempty"`
-	AttestationType string     `json:"attestation_type" yaml:"attestation_type"`
-	Transports      []string   `json:"transports" yaml:"transports"`
-	SignCount       uint32     `json:"sign_count" yaml:"sign_count"`
-	CloneWarning    bool       `json:"clone_warning" yaml:"clone_warning"`
-	PublicKey       string     `json:"public_key" yaml:"public_key"`
+	CreatedAt       time.Time  `yaml:"created_at" json:"created_at" jsonschema:"title=Created At" jsonschema_description:"The time this device was created"`
+	LastUsedAt      *time.Time `yaml:"last_used_at,omitempty" json:"last_used_at,omitempty" jsonschema:"title=Last Used At" jsonschema_description:"The last time this device was used"`
+	RPID            string     `yaml:"rpid" json:"rpid" jsonschema:"title=Relying Party ID" jsonschema_description:"The Relying Party ID used to register this device"`
+	Username        string     `yaml:"username" json:"username" jsonschema:"title=Username" jsonschema_description:"The username of the user this device belongs to"`
+	Description     string     `yaml:"description" json:"description" jsonschema:"title=Description" jsonschema_description:"The user description of this device"`
+	KID             string     `yaml:"kid" json:"kid" jsonschema:"title=Public Key ID" jsonschema_description:"The Public Key ID of this device"`
+	AAGUID          *string    `yaml:"aaguid,omitempty" json:"aaguid,omitempty" jsonschema:"title=AAGUID" jsonschema_description:"The Authenticator Attestation Global Unique Identifier of this device"`
+	AttestationType string     `yaml:"attestation_type" json:"attestation_type" jsonschema:"title=Attestation Type" jsonschema_description:"The attestation format type this device uses"`
+	Transports      []string   `yaml:"transports" json:"transports" jsonschema:"title=Transports" jsonschema_description:"The last recorded device transports"`
+	SignCount       uint32     `yaml:"sign_count" json:"sign_count" jsonschema:"title=Sign Count" jsonschema_description:"The last recorded device sign count"`
+	CloneWarning    bool       `yaml:"clone_warning" json:"clone_warning" jsonschema:"title=Clone Warning" jsonschema_description:"The clone warning status of the device"`
+	PublicKey       string     `yaml:"public_key" json:"public_key" jsonschema:"title=Public Key" jsonschema_description:"The device public key"`
 }
 
 func (d *WebAuthnDeviceData) ToDevice() (device *WebAuthnDevice, err error) {
@@ -343,7 +343,7 @@ type WebAuthnDeviceExport struct {
 
 // WebAuthnDeviceDataExport represents a WebAuthnDevice export file.
 type WebAuthnDeviceDataExport struct {
-	WebAuthnDevices []WebAuthnDeviceData `yaml:"webauthn_devices"`
+	WebAuthnDevices []WebAuthnDeviceData `yaml:"webauthn_devices" json:"webauthn_devices" jsonschema:"title=WebAuthn Devices" jsonschema_description:"The list of WebAuthn devices"`
 }
 
 // ToData converts this WebAuthnDeviceExport into a WebAuthnDeviceDataExport.
