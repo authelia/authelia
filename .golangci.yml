@@ -58,12 +58,6 @@ issues:
     - path: internal/commands/
       linters:
         - forbidigo
-    - path: internal/suites/suite_(traefik2?|haproxy|envoy|caddy|oidc(_traefik)?|one_factor_only|short_timeouts|pathprefix|network_acl|standalone|postgres|mysql|mariadb|multi_cookie_domain|ldap|high_availability|duo_push|docker|cli|bypass_all|activedirectory)\.go  # yamllint disable-line rule:line-length
-      linters:
-        - forbidigo
-    - path: internal/utils/exec\.go
-      linters:
-        - forbidigo
     - path: cmd/
       linters:
         - forbidigo
