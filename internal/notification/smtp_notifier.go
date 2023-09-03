@@ -20,7 +20,7 @@ import (
 )
 
 // NewSMTPNotifier creates a SMTPNotifier using the notifier configuration.
-func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.CertPool) *SMTPNotifier {
+func NewSMTPNotifier(config *schema.NotifierSMTP, certPool *x509.CertPool) *SMTPNotifier {
 	var tlsconfig *tls.Config
 
 	if config.TLS != nil {
@@ -74,7 +74,7 @@ func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.Ce
 
 // SMTPNotifier a notifier to send emails to SMTP servers.
 type SMTPNotifier struct {
-	config *schema.SMTPNotifierConfiguration
+	config *schema.NotifierSMTP
 	domain string
 	random random.Provider
 	tls    *tls.Config

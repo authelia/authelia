@@ -16,7 +16,7 @@ import (
 )
 
 // NewClient creates a new Client.
-func NewClient(config schema.OpenIDConnectClient, c *schema.OpenIDConnect) (client Client) {
+func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.IdentityProvidersOpenIDConnect) (client Client) {
 	base := &BaseClient{
 		ID:               config.ID,
 		Description:      config.Description,
@@ -369,7 +369,7 @@ func (c *BaseClient) GetRefreshFlowIgnoreOriginalGrantedScopes(ctx context.Conte
 	return c.RefreshFlowIgnoreOriginalGrantedScopes
 }
 
-func (c *BaseClient) getGrantTypeLifespan(gt fosite.GrantType) (gtl schema.OpenIDConnectLifespanToken) {
+func (c *BaseClient) getGrantTypeLifespan(gt fosite.GrantType) (gtl schema.IdentityProvidersOpenIDConnectLifespanToken) {
 	switch gt {
 	case fosite.GrantTypeAuthorizationCode:
 		return c.Lifespans.Grants.AuthorizeCode

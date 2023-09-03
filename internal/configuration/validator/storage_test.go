@@ -11,7 +11,7 @@ import (
 
 type StorageSuite struct {
 	suite.Suite
-	config    schema.StorageConfiguration
+	config    schema.Storage
 	validator *schema.StructValidator
 }
 
@@ -36,7 +36,7 @@ func (suite *StorageSuite) TestShouldValidateOneStorageIsConfigured() {
 }
 
 func (suite *StorageSuite) TestShouldValidateLocalPathIsProvided() {
-	suite.config.Local = &schema.LocalStorageConfiguration{
+	suite.config.Local = &schema.StorageLocal{
 		Path: "",
 	}
 
@@ -57,7 +57,7 @@ func (suite *StorageSuite) TestShouldValidateLocalPathIsProvided() {
 }
 
 func (suite *StorageSuite) TestShouldValidateMySQLHostUsernamePasswordAndDatabaseAreProvided() {
-	suite.config.MySQL = &schema.MySQLStorageConfiguration{}
+	suite.config.MySQL = &schema.StorageMySQL{}
 	ValidateStorage(suite.config, suite.validator)
 
 	suite.Require().Len(suite.validator.Errors(), 3)
@@ -66,8 +66,8 @@ func (suite *StorageSuite) TestShouldValidateMySQLHostUsernamePasswordAndDatabas
 	suite.Assert().EqualError(suite.validator.Errors()[2], "storage: mysql: option 'database' is required")
 
 	suite.validator.Clear()
-	suite.config.MySQL = &schema.MySQLStorageConfiguration{
-		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+	suite.config.MySQL = &schema.StorageMySQL{
+		StorageSQL: schema.StorageSQL{
 			Host:     "localhost",
 			Username: "myuser",
 			Password: "pass",
@@ -81,14 +81,14 @@ func (suite *StorageSuite) TestShouldValidateMySQLHostUsernamePasswordAndDatabas
 }
 
 func (suite *StorageSuite) TestShouldSetDefaultMySQLTLSServerName() {
-	suite.config.MySQL = &schema.MySQLStorageConfiguration{
-		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+	suite.config.MySQL = &schema.StorageMySQL{
+		StorageSQL: schema.StorageSQL{
 			Address:  &schema.AddressTCP{Address: MustParseAddress("tcp://mysql:1234")},
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
 		},
-		TLS: &schema.TLSConfig{
+		TLS: &schema.TLS{
 			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS12},
 		},
 	}
@@ -103,14 +103,14 @@ func (suite *StorageSuite) TestShouldSetDefaultMySQLTLSServerName() {
 }
 
 func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSVersion() {
-	suite.config.MySQL = &schema.MySQLStorageConfiguration{
-		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+	suite.config.MySQL = &schema.StorageMySQL{
+		StorageSQL: schema.StorageSQL{
 			Host:     "db1",
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
 		},
-		TLS: &schema.TLSConfig{
+		TLS: &schema.TLS{
 			MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
 		},
 	}
@@ -124,14 +124,14 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSVersion() {
 }
 
 func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSMinVersionGreaterThanMaximum() {
-	suite.config.MySQL = &schema.MySQLStorageConfiguration{
-		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+	suite.config.MySQL = &schema.StorageMySQL{
+		StorageSQL: schema.StorageSQL{
 			Host:     "db1",
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
 		},
-		TLS: &schema.TLSConfig{
+		TLS: &schema.TLS{
 			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
 			MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS11},
 		},
@@ -146,7 +146,7 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSMinVersionGreate
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgreSQLHostUsernamePasswordAndDatabaseAreProvided() {
-	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{}
+	suite.config.PostgreSQL = &schema.StoragePostgreSQL{}
 	suite.config.MySQL = nil
 	ValidateStorage(suite.config, suite.validator)
 
@@ -156,8 +156,8 @@ func (suite *StorageSuite) TestShouldValidatePostgreSQLHostUsernamePasswordAndDa
 	suite.Assert().EqualError(suite.validator.Errors()[2], "storage: postgres: option 'database' is required")
 
 	suite.validator.Clear()
-	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
-		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
+		StorageSQL: schema.StorageSQL{
 			Host:     "postgre",
 			Username: "myuser",
 			Password: "pass",
@@ -171,8 +171,8 @@ func (suite *StorageSuite) TestShouldValidatePostgreSQLHostUsernamePasswordAndDa
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgresSchemaDefault() {
-	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
-		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
+		StorageSQL: schema.StorageSQL{
 			Host:     "db1",
 			Username: "myuser",
 			Password: "pass",
@@ -185,21 +185,21 @@ func (suite *StorageSuite) TestShouldValidatePostgresSchemaDefault() {
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
-	suite.Assert().Nil(suite.config.PostgreSQL.SSL)
+	suite.Assert().Nil(suite.config.PostgreSQL.SSL) //nolint:staticcheck
 	suite.Assert().Nil(suite.config.PostgreSQL.TLS)
 
 	suite.Assert().Equal("public", suite.config.PostgreSQL.Schema)
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgresTLSDefaults() {
-	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
-		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
+		StorageSQL: schema.StorageSQL{
 			Host:     "db1",
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
 		},
-		TLS: &schema.TLSConfig{},
+		TLS: &schema.TLS{},
 	}
 
 	ValidateStorage(suite.config, suite.validator)
@@ -207,21 +207,21 @@ func (suite *StorageSuite) TestShouldValidatePostgresTLSDefaults() {
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
-	suite.Assert().Nil(suite.config.PostgreSQL.SSL)
+	suite.Assert().Nil(suite.config.PostgreSQL.SSL) //nolint:staticcheck
 	suite.Require().NotNil(suite.config.PostgreSQL.TLS)
 
 	suite.Assert().Equal(uint16(tls.VersionTLS12), suite.config.PostgreSQL.TLS.MinimumVersion.Value)
 }
 
 func (suite *StorageSuite) TestShouldSetDefaultPostgreSQLTLSServerName() {
-	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
-		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
+		StorageSQL: schema.StorageSQL{
 			Host:     "mysql1",
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
 		},
-		TLS: &schema.TLSConfig{
+		TLS: &schema.TLS{
 			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS12},
 		},
 	}
@@ -235,14 +235,14 @@ func (suite *StorageSuite) TestShouldSetDefaultPostgreSQLTLSServerName() {
 }
 
 func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidPostgreSQLTLSVersion() {
-	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
-		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
+		StorageSQL: schema.StorageSQL{
 			Host:     "db1",
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
 		},
-		TLS: &schema.TLSConfig{
+		TLS: &schema.TLS{
 			MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
 		},
 	}
@@ -256,14 +256,14 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidPostgreSQLTLSVersion() {
 }
 
 func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidPostgreSQLMinVersionGreaterThanMaximum() {
-	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
-		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
+		StorageSQL: schema.StorageSQL{
 			Host:     "db1",
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
 		},
-		TLS: &schema.TLSConfig{
+		TLS: &schema.TLS{
 			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
 			MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS11},
 		},
@@ -278,14 +278,14 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidPostgreSQLMinVersionGrea
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgresSSLDefaults() {
-	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
-		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
+		StorageSQL: schema.StorageSQL{
 			Host:     "db1",
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
 		},
-		SSL: &schema.PostgreSQLSSLStorageConfiguration{},
+		SSL: &schema.StoragePostgreSQLSSL{},
 	}
 
 	ValidateStorage(suite.config, suite.validator)
@@ -293,22 +293,22 @@ func (suite *StorageSuite) TestShouldValidatePostgresSSLDefaults() {
 	suite.Assert().Len(suite.validator.Warnings(), 1)
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
-	suite.Assert().NotNil(suite.config.PostgreSQL.SSL)
+	suite.Assert().NotNil(suite.config.PostgreSQL.SSL) //nolint:staticcheck
 	suite.Require().Nil(suite.config.PostgreSQL.TLS)
 
-	suite.Assert().Equal(schema.DefaultPostgreSQLStorageConfiguration.SSL.Mode, suite.config.PostgreSQL.SSL.Mode)
+	suite.Assert().Equal(schema.DefaultPostgreSQLStorageConfiguration.SSL.Mode, suite.config.PostgreSQL.SSL.Mode) //nolint:staticcheck
 }
 
 func (suite *StorageSuite) TestShouldRaiseErrorOnTLSAndLegacySSL() {
-	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
-		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
+		StorageSQL: schema.StorageSQL{
 			Host:     "db1",
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
 		},
-		SSL: &schema.PostgreSQLSSLStorageConfiguration{},
-		TLS: &schema.TLSConfig{},
+		SSL: &schema.StoragePostgreSQLSSL{},
+		TLS: &schema.TLS{},
 	}
 
 	ValidateStorage(suite.config, suite.validator)
@@ -320,15 +320,15 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnTLSAndLegacySSL() {
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgresDefaultsDontOverrideConfiguration() {
-	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
-		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
+		StorageSQL: schema.StorageSQL{
 			Host:     "db1",
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
 		},
 		Schema: "authelia",
-		SSL: &schema.PostgreSQLSSLStorageConfiguration{
+		SSL: &schema.StoragePostgreSQLSSL{
 			Mode: "require",
 		},
 	}
@@ -338,21 +338,21 @@ func (suite *StorageSuite) TestShouldValidatePostgresDefaultsDontOverrideConfigu
 	suite.Require().Len(suite.validator.Warnings(), 1)
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
-	suite.Assert().Equal("require", suite.config.PostgreSQL.SSL.Mode)
+	suite.Assert().Equal("require", suite.config.PostgreSQL.SSL.Mode) //nolint:staticcheck
 	suite.Assert().Equal("authelia", suite.config.PostgreSQL.Schema)
 
 	suite.Assert().EqualError(suite.validator.Warnings()[0], "storage: postgres: ssl: the ssl configuration options are deprecated and we recommend the tls options instead")
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgresSSLModeMustBeValid() {
-	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
-		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
+		StorageSQL: schema.StorageSQL{
 			Host:     "db2",
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
 		},
-		SSL: &schema.PostgreSQLSSLStorageConfiguration{
+		SSL: &schema.StoragePostgreSQLSSL{
 			Mode: "unknown",
 		},
 	}
@@ -366,7 +366,7 @@ func (suite *StorageSuite) TestShouldValidatePostgresSSLModeMustBeValid() {
 
 func (suite *StorageSuite) TestShouldRaiseErrorOnNoEncryptionKey() {
 	suite.config.EncryptionKey = ""
-	suite.config.Local = &schema.LocalStorageConfiguration{
+	suite.config.Local = &schema.StorageLocal{
 		Path: "/this/is/a/path",
 	}
 
@@ -379,7 +379,7 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnNoEncryptionKey() {
 
 func (suite *StorageSuite) TestShouldRaiseErrorOnShortEncryptionKey() {
 	suite.config.EncryptionKey = "abc"
-	suite.config.Local = &schema.LocalStorageConfiguration{
+	suite.config.Local = &schema.StorageLocal{
 		Path: "/this/is/a/path",
 	}
 

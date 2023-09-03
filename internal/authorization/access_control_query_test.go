@@ -11,13 +11,13 @@ import (
 func TestNewAccessControlQuery(t *testing.T) {
 	testCases := []struct {
 		name     string
-		have     [][]schema.ACLQueryRule
+		have     [][]schema.AccessControlRuleQuery
 		expected []AccessControlQuery
 		matches  [][]Object
 	}{
 		{
 			"ShouldSkipInvalidTypeEqual",
-			[][]schema.ACLQueryRule{
+			[][]schema.AccessControlRuleQuery{
 				{
 					{Operator: operatorEqual, Key: "example", Value: 1},
 				},
@@ -27,7 +27,7 @@ func TestNewAccessControlQuery(t *testing.T) {
 		},
 		{
 			"ShouldSkipInvalidTypePattern",
-			[][]schema.ACLQueryRule{
+			[][]schema.AccessControlRuleQuery{
 				{
 					{Operator: operatorPattern, Key: "example", Value: 1},
 				},
@@ -37,7 +37,7 @@ func TestNewAccessControlQuery(t *testing.T) {
 		},
 		{
 			"ShouldSkipInvalidOperator",
-			[][]schema.ACLQueryRule{
+			[][]schema.AccessControlRuleQuery{
 				{
 					{Operator: "nop", Key: "example", Value: 1},
 				},

@@ -200,7 +200,7 @@ func jwkCalculateThumbprint(key schema.CryptographicKey) (thumbprintStr string, 
 	return fmt.Sprintf("%x", thumbprint)[:6], nil
 }
 
-func getResponseObjectAlgFromKID(config *schema.OpenIDConnect, kid, alg string) string {
+func getResponseObjectAlgFromKID(config *schema.IdentityProvidersOpenIDConnect, kid, alg string) string {
 	for _, jwk := range config.IssuerPrivateKeys {
 		if kid == jwk.KeyID {
 			return jwk.Algorithm

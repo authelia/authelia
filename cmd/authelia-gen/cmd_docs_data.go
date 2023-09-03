@@ -51,41 +51,35 @@ func docsDataMiscRunE(cmd *cobra.Command, args []string) (err error) {
 	data.CSP.TemplateDefault = strings.ReplaceAll(data.CSP.TemplateDefault, "%s", codeCSPNonce)
 	data.CSP.TemplateDevelopment = strings.ReplaceAll(data.CSP.TemplateDevelopment, "%s", codeCSPNonce)
 
-	var (
-		pathPackageJSON string
-		dataPackageJSON []byte
-		packageJSON     PackageJSON
-	)
-
-	if pathPackageJSON, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagWeb, cmdFlagFileWebPackage); err != nil {
+	version, err := readVersion(cmd)
+	if err != nil {
 		return err
 	}
 
-	if dataPackageJSON, err = os.ReadFile(pathPackageJSON); err != nil {
-		return err
-	}
-
-	if err = json.Unmarshal(dataPackageJSON, &packageJSON); err != nil {
-		return fmt.Errorf("failed to unmarshall package.json: %w", err)
-	}
-
-	data.Latest = packageJSON.Version
+	data.Latest = version.String()
 
 	var (
 		outputPath string
-		dataJSON   []byte
 	)
 
 	if outputPath, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagDocs, cmdFlagDocsData, cmdFlagDocsDataMisc); err != nil {
 		return err
 	}
 
-	if dataJSON, err = json.Marshal(data); err != nil {
-		return err
+	var (
+		f *os.File
+	)
+
+	if f, err = os.OpenFile(outputPath, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0600); err != nil {
+		return fmt.Errorf("failed to write file '%s': %w", outputPath, err)
 	}
 
-	if err = os.WriteFile(outputPath, dataJSON, 0600); err != nil {
-		return fmt.Errorf("failed to write file '%s': %w", outputPath, err)
+	encoder := json.NewEncoder(f)
+
+	encoder.SetIndent("", "    ")
+
+	if err = encoder.Encode(data); err != nil {
+		return fmt.Errorf("failed to encode json data: %w", err)
 	}
 
 	return nil
@@ -109,7 +103,7 @@ func docsKeysRunE(cmd *cobra.Command, args []string) (err error) {
 		data []ConfigurationKey
 	)
 
-	keys := readTags("", reflect.TypeOf(schema.Configuration{}), true)
+	keys := readTags("", reflect.TypeOf(schema.Configuration{}), true, true)
 
 	for _, key := range keys {
 		ck := ConfigurationKey{
@@ -128,7 +122,6 @@ func docsKeysRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	var (
-		dataJSON   []byte
 		outputPath string
 	)
 
@@ -136,12 +129,20 @@ func docsKeysRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if dataJSON, err = json.Marshal(data); err != nil {
-		return err
+	var (
+		f *os.File
+	)
+
+	if f, err = os.OpenFile(outputPath, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0600); err != nil {
+		return fmt.Errorf("failed to write file '%s': %w", outputPath, err)
 	}
 
-	if err = os.WriteFile(outputPath, dataJSON, 0600); err != nil {
-		return fmt.Errorf("failed to write file '%s': %w", outputPath, err)
+	encoder := json.NewEncoder(f)
+
+	encoder.SetIndent("", "    ")
+
+	if err = encoder.Encode(data); err != nil {
+		return fmt.Errorf("failed to encode json data: %w", err)
 	}
 
 	return nil

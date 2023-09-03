@@ -12,7 +12,7 @@ import (
 )
 
 // NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.
-func NewOpenIDConnectProvider(config *schema.OpenIDConnect, store storage.Provider, templates *templates.Provider) (provider *OpenIDConnectProvider) {
+func NewOpenIDConnectProvider(config *schema.IdentityProvidersOpenIDConnect, store storage.Provider, templates *templates.Provider) (provider *OpenIDConnectProvider) {
 	if config == nil {
 		return nil
 	}

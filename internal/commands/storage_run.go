@@ -466,13 +466,11 @@ func (ctx *CmdCtx) StorageUserWebAuthnExportRunE(cmd *cobra.Command, args []stri
 		}
 	}
 
-	var data []byte
-
-	if data, err = yaml.Marshal(export); err != nil {
-		return fmt.Errorf("error occurred marshalling data to YAML: %w", err)
+	if len(export.WebAuthnDevices) == 0 {
+		return fmt.Errorf("no data to export")
 	}
 
-	if err = os.WriteFile(filename, data, 0600); err != nil {
+	if err = exportYAMLWithJSONSchema("export.webauthn", filename, export); err != nil {
 		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
 	}
 
@@ -802,13 +800,11 @@ func (ctx *CmdCtx) StorageUserTOTPExportRunE(cmd *cobra.Command, _ []string) (er
 		}
 	}
 
-	var data []byte
-
-	if data, err = yaml.Marshal(export); err != nil {
-		return fmt.Errorf("error occurred marshalling data to YAML: %w", err)
+	if len(export.TOTPConfigurations) == 0 {
+		return fmt.Errorf("no data to export")
 	}
 
-	if err = os.WriteFile(filename, data, 0600); err != nil {
+	if err = exportYAMLWithJSONSchema("export.totp", filename, export); err != nil {
 		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
 	}
 
@@ -1077,13 +1073,7 @@ func (ctx *CmdCtx) StorageUserIdentifiersExportRunE(cmd *cobra.Command, _ []stri
 		return fmt.Errorf("no data to export")
 	}
 
-	var data []byte
-
-	if data, err = yaml.Marshal(export); err != nil {
-		return fmt.Errorf("error occurred marshalling data to YAML: %w", err)
-	}
-
-	if err = os.WriteFile(filename, data, 0600); err != nil {
+	if err = exportYAMLWithJSONSchema("export.identifiers", filename, export); err != nil {
 		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
 	}
 

@@ -81,7 +81,7 @@ func TestSchemaJWKGetPropertiesMissingTests(t *testing.T) {
 }
 
 func TestGetResponseObjectAlgFromKID(t *testing.T) {
-	c := &schema.OpenIDConnect{
+	c := &schema.IdentityProvidersOpenIDConnect{
 		IssuerPrivateKeys: []schema.JWK{
 			{KeyID: "abc", Algorithm: "EX256"},
 			{KeyID: "123", Algorithm: "EX512"},

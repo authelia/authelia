@@ -153,7 +153,7 @@ type BaseClient struct {
 	ResponseTypes []string
 	ResponseModes []fosite.ResponseModeType
 
-	Lifespans schema.OpenIDConnectLifespan
+	Lifespans schema.IdentityProvidersOpenIDConnectLifespan
 
 	AuthorizationSignedResponseAlg   string
 	AuthorizationSignedResponseKeyID string

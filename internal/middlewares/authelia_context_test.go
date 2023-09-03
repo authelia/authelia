@@ -490,32 +490,31 @@ func TestAutheliaCtx_GetTargetURICookieDomain(t *testing.T) {
 	testCases := []struct {
 		name     string
 		have     *url.URL
-		config   []schema.SessionCookieConfiguration
+		config   []schema.SessionCookie
 		expected string
 		secure   bool
 	}{
 		{
 			"ShouldReturnEmptyNil",
 			nil,
-			[]schema.SessionCookieConfiguration{},
+			[]schema.SessionCookie{},
 			"",
 			false,
 		},
 		{
 			"ShouldReturnEmptyNoMatch",
 			&url.URL{Scheme: "https", Host: "example.com"},
-			[]schema.SessionCookieConfiguration{},
+			[]schema.SessionCookie{},
 			"",
 			false,
 		},
 		{
 			"ShouldReturnDomain",
 			&url.URL{Scheme: "https", Host: "example.com"},
-			[]schema.SessionCookieConfiguration{
+			[]schema.SessionCookie{
 				{
-					SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-						Domain: "example.com",
-					},
+					Domain:              "example.com",
+					SessionCookieCommon: schema.SessionCookieCommon{},
 				},
 			},
 			"example.com",
@@ -524,11 +523,10 @@ func TestAutheliaCtx_GetTargetURICookieDomain(t *testing.T) {
 		{
 			"ShouldReturnDomain",
 			&url.URL{Scheme: "http", Host: "example.com"},
-			[]schema.SessionCookieConfiguration{
+			[]schema.SessionCookie{
 				{
-					SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-						Domain: "example.com",
-					},
+					Domain:              "example.com",
+					SessionCookieCommon: schema.SessionCookieCommon{},
 				},
 			},
 			"example.com",

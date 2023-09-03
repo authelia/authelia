@@ -54,7 +54,7 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 
 		switch {
 		case ctx.Configuration.Server.Headers.CSPTemplate != "":
-			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, strings.ReplaceAll(ctx.Configuration.Server.Headers.CSPTemplate, placeholderCSPNonce, nonce))
+			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, strings.ReplaceAll(string(ctx.Configuration.Server.Headers.CSPTemplate), placeholderCSPNonce, nonce))
 		case isDevEnvironment:
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPDevelopment, nonce))
 		default:
@@ -315,7 +315,7 @@ type TemplatedFileOptions struct {
 	EndpointsDuo           bool
 	EndpointsOpenIDConnect bool
 
-	EndpointsAuthz map[string]schema.ServerAuthzEndpoint
+	EndpointsAuthz map[string]schema.ServerEndpointsAuthz
 }
 
 // CommonData returns a TemplatedFileCommonData with the dynamic options.
@@ -406,5 +406,5 @@ type TemplatedFileOpenAPIData struct {
 	Duo           bool
 	OpenIDConnect bool
 
-	EndpointsAuthz map[string]schema.ServerAuthzEndpoint
+	EndpointsAuthz map[string]schema.ServerEndpointsAuthz
 }

@@ -14,27 +14,27 @@ func TestValidateDuo(t *testing.T) {
 	testCases := []struct {
 		desc     string
 		have     *schema.Configuration
-		expected schema.DuoAPIConfiguration
+		expected schema.DuoAPI
 		errs     []string
 	}{
 		{
 			desc:     "ShouldDisableDuo",
 			have:     &schema.Configuration{},
-			expected: schema.DuoAPIConfiguration{Disable: true},
+			expected: schema.DuoAPI{Disable: true},
 		},
 		{
 			desc:     "ShouldDisableDuoConfigured",
-			have:     &schema.Configuration{DuoAPI: schema.DuoAPIConfiguration{Disable: true, Hostname: "example.com"}},
-			expected: schema.DuoAPIConfiguration{Disable: true, Hostname: "example.com"},
+			have:     &schema.Configuration{DuoAPI: schema.DuoAPI{Disable: true, Hostname: "example.com"}},
+			expected: schema.DuoAPI{Disable: true, Hostname: "example.com"},
 		},
 		{
 			desc: "ShouldNotDisableDuo",
-			have: &schema.Configuration{DuoAPI: schema.DuoAPIConfiguration{
+			have: &schema.Configuration{DuoAPI: schema.DuoAPI{
 				Hostname:       "test",
 				IntegrationKey: "test",
 				SecretKey:      "test",
 			}},
-			expected: schema.DuoAPIConfiguration{
+			expected: schema.DuoAPI{
 				Hostname:       "test",
 				IntegrationKey: "test",
 				SecretKey:      "test",
@@ -42,11 +42,11 @@ func TestValidateDuo(t *testing.T) {
 		},
 		{
 			desc: "ShouldDetectMissingSecretKey",
-			have: &schema.Configuration{DuoAPI: schema.DuoAPIConfiguration{
+			have: &schema.Configuration{DuoAPI: schema.DuoAPI{
 				Hostname:       "test",
 				IntegrationKey: "test",
 			}},
-			expected: schema.DuoAPIConfiguration{
+			expected: schema.DuoAPI{
 				Hostname:       "test",
 				IntegrationKey: "test",
 			},
@@ -56,11 +56,11 @@ func TestValidateDuo(t *testing.T) {
 		},
 		{
 			desc: "ShouldDetectMissingIntegrationKey",
-			have: &schema.Configuration{DuoAPI: schema.DuoAPIConfiguration{
+			have: &schema.Configuration{DuoAPI: schema.DuoAPI{
 				Hostname:  "test",
 				SecretKey: "test",
 			}},
-			expected: schema.DuoAPIConfiguration{
+			expected: schema.DuoAPI{
 				Hostname:  "test",
 				SecretKey: "test",
 			},
@@ -70,11 +70,11 @@ func TestValidateDuo(t *testing.T) {
 		},
 		{
 			desc: "ShouldDetectMissingHostname",
-			have: &schema.Configuration{DuoAPI: schema.DuoAPIConfiguration{
+			have: &schema.Configuration{DuoAPI: schema.DuoAPI{
 				IntegrationKey: "test",
 				SecretKey:      "test",
 			}},
-			expected: schema.DuoAPIConfiguration{
+			expected: schema.DuoAPI{
 				IntegrationKey: "test",
 				SecretKey:      "test",
 			},

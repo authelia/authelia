@@ -27,3 +27,8 @@ var reSemanticVersion = regexp.MustCompile(`^v?(?P<Major>0|[1-9]\d*)\.(?P<Minor>
 const (
 	semverRegexpGroupPreRelease = "PreRelease"
 )
+
+const (
+	FormatJSONSchemaIdentifier         = "https://www.authelia.com/schemas/%s/json-schema/%s.json"
+	FormatJSONSchemaYAMLLanguageServer = "# yaml-language-server: $schema=" + FormatJSONSchemaIdentifier
+)

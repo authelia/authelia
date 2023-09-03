@@ -206,7 +206,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 				HasWebAuthn: false,
 				HasDuo:      true,
 			},
-			config:  &schema.Configuration{DuoAPI: schema.DuoAPIConfiguration{Disable: true}},
+			config:  &schema.Configuration{DuoAPI: schema.DuoAPI{Disable: true}},
 			loadErr: nil,
 			saveErr: nil,
 		},
@@ -225,7 +225,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 				HasDuo:      true,
 			},
 			config: &schema.Configuration{
-				TOTP: schema.TOTPConfiguration{
+				TOTP: schema.TOTP{
 					Disable: true,
 				},
 			},

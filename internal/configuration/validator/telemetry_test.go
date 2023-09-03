@@ -35,9 +35,9 @@ func TestValidateTelemetry(t *testing.T) {
 		},
 		{
 			"ShouldSetDefaultPort",
-			&schema.Configuration{Telemetry: schema.TelemetryConfig{Metrics: schema.TelemetryMetricsConfig{Address: mustParseAddress("tcp://0.0.0.0")}}},
-			&schema.Configuration{Telemetry: schema.TelemetryConfig{
-				Metrics: schema.TelemetryMetricsConfig{
+			&schema.Configuration{Telemetry: schema.Telemetry{Metrics: schema.TelemetryMetrics{Address: mustParseAddress("tcp://0.0.0.0")}}},
+			&schema.Configuration{Telemetry: schema.Telemetry{
+				Metrics: schema.TelemetryMetrics{
 					Address: mustParseAddress("tcp://0.0.0.0:9959/metrics"),
 					Buffers: schema.ServerBuffers{
 						Read:  4096,
@@ -55,22 +55,22 @@ func TestValidateTelemetry(t *testing.T) {
 		},
 		{
 			"ShouldSetDefaultPortAlt",
-			&schema.Configuration{Telemetry: schema.TelemetryConfig{Metrics: schema.TelemetryMetricsConfig{Address: mustParseAddress("tcp://:0/metrics")}}},
+			&schema.Configuration{Telemetry: schema.Telemetry{Metrics: schema.TelemetryMetrics{Address: mustParseAddress("tcp://:0/metrics")}}},
 			&schema.Configuration{Telemetry: schema.DefaultTelemetryConfig},
 			nil,
 			nil,
 		},
 		{
 			"ShouldSetDefaultPortWithCustomIP",
-			&schema.Configuration{Telemetry: schema.TelemetryConfig{Metrics: schema.TelemetryMetricsConfig{Address: mustParseAddress("tcp://127.0.0.1")}}},
-			&schema.Configuration{Telemetry: schema.TelemetryConfig{Metrics: schema.TelemetryMetricsConfig{Address: mustParseAddress("tcp://127.0.0.1:9959/metrics")}}},
+			&schema.Configuration{Telemetry: schema.Telemetry{Metrics: schema.TelemetryMetrics{Address: mustParseAddress("tcp://127.0.0.1")}}},
+			&schema.Configuration{Telemetry: schema.Telemetry{Metrics: schema.TelemetryMetrics{Address: mustParseAddress("tcp://127.0.0.1:9959/metrics")}}},
 			nil,
 			nil,
 		},
 		{
 			"ShouldNotValidateUDP",
-			&schema.Configuration{Telemetry: schema.TelemetryConfig{Metrics: schema.TelemetryMetricsConfig{Address: mustParseAddress("udp://0.0.0.0")}}},
-			&schema.Configuration{Telemetry: schema.TelemetryConfig{Metrics: schema.TelemetryMetricsConfig{Address: mustParseAddress("udp://0.0.0.0:9959/metrics")}}},
+			&schema.Configuration{Telemetry: schema.Telemetry{Metrics: schema.TelemetryMetrics{Address: mustParseAddress("udp://0.0.0.0")}}},
+			&schema.Configuration{Telemetry: schema.Telemetry{Metrics: schema.TelemetryMetrics{Address: mustParseAddress("udp://0.0.0.0:9959/metrics")}}},
 			nil,
 			[]string{"telemetry: metrics: option 'address' with value 'udp://0.0.0.0:0' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'udp'"},
 		},

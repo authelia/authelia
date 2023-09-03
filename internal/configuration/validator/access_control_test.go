@@ -21,7 +21,7 @@ type AccessControl struct {
 func (suite *AccessControl) SetupTest() {
 	suite.validator = schema.NewStructValidator()
 	suite.config = &schema.Configuration{
-		AccessControl: schema.AccessControlConfiguration{
+		AccessControl: schema.AccessControl{
 			DefaultPolicy: policyDeny,
 
 			Networks: schema.DefaultACLNetwork,
@@ -40,7 +40,7 @@ func (suite *AccessControl) TestShouldValidateCompleteConfiguration() {
 func (suite *AccessControl) TestShouldValidateEitherDomainsOrDomainsRegex() {
 	domainsRegex := regexp.MustCompile(`^abc.example.com$`)
 
-	suite.config.AccessControl.Rules = []schema.ACLRule{
+	suite.config.AccessControl.Rules = []schema.AccessControlRule{
 		{
 			Domains: []string{"abc.example.com"},
 			Policy:  "bypass",
@@ -74,7 +74,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidDefaultPolicy() {
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidNetworkGroupNetwork() {
-	suite.config.AccessControl.Networks = []schema.ACLNetwork{
+	suite.config.AccessControl.Networks = []schema.AccessControlNetwork{
 		{
 			Name:     "internal",
 			Networks: []string{"abc.def.ghi.jkl"},
@@ -90,7 +90,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidNetworkGroupNetwork() {
 }
 
 func (suite *AccessControl) TestShouldRaiseWarningOnBadDomain() {
-	suite.config.AccessControl.Rules = []schema.ACLRule{
+	suite.config.AccessControl.Rules = []schema.AccessControlRule{
 		{
 			Domains: []string{"*example.com"},
 			Policy:  "one_factor",
@@ -106,7 +106,7 @@ func (suite *AccessControl) TestShouldRaiseWarningOnBadDomain() {
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorWithNoRulesDefined() {
-	suite.config.AccessControl.Rules = []schema.ACLRule{}
+	suite.config.AccessControl.Rules = []schema.AccessControlRule{}
 
 	ValidateRules(suite.config, suite.validator)
 
@@ -117,7 +117,7 @@ func (suite *AccessControl) TestShouldRaiseErrorWithNoRulesDefined() {
 }
 
 func (suite *AccessControl) TestShouldRaiseWarningWithNoRulesDefined() {
-	suite.config.AccessControl.Rules = []schema.ACLRule{}
+	suite.config.AccessControl.Rules = []schema.AccessControlRule{}
 
 	suite.config.AccessControl.DefaultPolicy = policyTwoFactor
 
@@ -130,7 +130,7 @@ func (suite *AccessControl) TestShouldRaiseWarningWithNoRulesDefined() {
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorsWithEmptyRules() {
-	suite.config.AccessControl.Rules = []schema.ACLRule{
+	suite.config.AccessControl.Rules = []schema.AccessControlRule{
 		{},
 		{
 			Policy: "wrong",
@@ -149,7 +149,7 @@ func (suite *AccessControl) TestShouldRaiseErrorsWithEmptyRules() {
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidPolicy() {
-	suite.config.AccessControl.Rules = []schema.ACLRule{
+	suite.config.AccessControl.Rules = []schema.AccessControlRule{
 		{
 			Domains: []string{"public.example.com"},
 			Policy:  testInvalid,
@@ -165,7 +165,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidPolicy() {
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidNetwork() {
-	suite.config.AccessControl.Rules = []schema.ACLRule{
+	suite.config.AccessControl.Rules = []schema.AccessControlRule{
 		{
 			Domains:  []string{"public.example.com"},
 			Policy:   "bypass",
@@ -182,7 +182,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidNetwork() {
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidMethod() {
-	suite.config.AccessControl.Rules = []schema.ACLRule{
+	suite.config.AccessControl.Rules = []schema.AccessControlRule{
 		{
 			Domains: []string{"public.example.com"},
 			Policy:  "bypass",
@@ -199,7 +199,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidMethod() {
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorDuplicateMethod() {
-	suite.config.AccessControl.Rules = []schema.ACLRule{
+	suite.config.AccessControl.Rules = []schema.AccessControlRule{
 		{
 			Domains: []string{"public.example.com"},
 			Policy:  "bypass",
@@ -218,7 +218,7 @@ func (suite *AccessControl) TestShouldRaiseErrorDuplicateMethod() {
 func (suite *AccessControl) TestShouldRaiseErrorInvalidSubject() {
 	domains := []string{"public.example.com"}
 	subjects := [][]string{{testInvalid}}
-	suite.config.AccessControl.Rules = []schema.ACLRule{
+	suite.config.AccessControl.Rules = []schema.AccessControlRule{
 		{
 			Domains:  domains,
 			Policy:   "bypass",
@@ -236,7 +236,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidSubject() {
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorBypassWithSubjectDomainRegexGroup() {
-	suite.config.AccessControl.Rules = []schema.ACLRule{
+	suite.config.AccessControl.Rules = []schema.AccessControlRule{
 		{
 			DomainsRegex: MustCompileRegexps([]string{`^(?P<User>\w+)\.example\.com$`}),
 			Policy:       "bypass",
@@ -253,11 +253,11 @@ func (suite *AccessControl) TestShouldRaiseErrorBypassWithSubjectDomainRegexGrou
 
 func (suite *AccessControl) TestShouldSetQueryDefaults() {
 	domains := []string{"public.example.com"}
-	suite.config.AccessControl.Rules = []schema.ACLRule{
+	suite.config.AccessControl.Rules = []schema.AccessControlRule{
 		{
 			Domains: domains,
 			Policy:  "bypass",
-			Query: [][]schema.ACLQueryRule{
+			Query: [][]schema.AccessControlRuleQuery{
 				{
 					{Operator: "", Key: "example"},
 				},
@@ -269,7 +269,7 @@ func (suite *AccessControl) TestShouldSetQueryDefaults() {
 		{
 			Domains: domains,
 			Policy:  "bypass",
-			Query: [][]schema.ACLQueryRule{
+			Query: [][]schema.AccessControlRuleQuery{
 				{
 					{Operator: "pattern", Key: "a", Value: "^(x|y|z)$"},
 				},
@@ -296,11 +296,11 @@ func (suite *AccessControl) TestShouldSetQueryDefaults() {
 
 func (suite *AccessControl) TestShouldErrorOnInvalidRulesQuery() {
 	domains := []string{"public.example.com"}
-	suite.config.AccessControl.Rules = []schema.ACLRule{
+	suite.config.AccessControl.Rules = []schema.AccessControlRule{
 		{
 			Domains: domains,
 			Policy:  "bypass",
-			Query: [][]schema.ACLQueryRule{
+			Query: [][]schema.AccessControlRuleQuery{
 				{
 					{Operator: "equal", Key: "example"},
 				},
@@ -309,7 +309,7 @@ func (suite *AccessControl) TestShouldErrorOnInvalidRulesQuery() {
 		{
 			Domains: domains,
 			Policy:  "bypass",
-			Query: [][]schema.ACLQueryRule{
+			Query: [][]schema.AccessControlRuleQuery{
 				{
 					{Operator: "present"},
 				},
@@ -318,7 +318,7 @@ func (suite *AccessControl) TestShouldErrorOnInvalidRulesQuery() {
 		{
 			Domains: domains,
 			Policy:  "bypass",
-			Query: [][]schema.ACLQueryRule{
+			Query: [][]schema.AccessControlRuleQuery{
 				{
 					{Operator: "present", Key: "a"},
 				},
@@ -327,7 +327,7 @@ func (suite *AccessControl) TestShouldErrorOnInvalidRulesQuery() {
 		{
 			Domains: domains,
 			Policy:  "bypass",
-			Query: [][]schema.ACLQueryRule{
+			Query: [][]schema.AccessControlRuleQuery{
 				{
 					{Operator: "absent", Key: "a"},
 				},
@@ -336,7 +336,7 @@ func (suite *AccessControl) TestShouldErrorOnInvalidRulesQuery() {
 		{
 			Domains: domains,
 			Policy:  "bypass",
-			Query: [][]schema.ACLQueryRule{
+			Query: [][]schema.AccessControlRuleQuery{
 				{
 					{},
 				},
@@ -345,7 +345,7 @@ func (suite *AccessControl) TestShouldErrorOnInvalidRulesQuery() {
 		{
 			Domains: domains,
 			Policy:  "bypass",
-			Query: [][]schema.ACLQueryRule{
+			Query: [][]schema.AccessControlRuleQuery{
 				{
 					{Operator: "not", Key: "a", Value: "a"},
 				},
@@ -354,7 +354,7 @@ func (suite *AccessControl) TestShouldErrorOnInvalidRulesQuery() {
 		{
 			Domains: domains,
 			Policy:  "bypass",
-			Query: [][]schema.ACLQueryRule{
+			Query: [][]schema.AccessControlRuleQuery{
 				{
 					{Operator: "pattern", Key: "a", Value: "(bad pattern"},
 				},
@@ -363,7 +363,7 @@ func (suite *AccessControl) TestShouldErrorOnInvalidRulesQuery() {
 		{
 			Domains: domains,
 			Policy:  "bypass",
-			Query: [][]schema.ACLQueryRule{
+			Query: [][]schema.AccessControlRuleQuery{
 				{
 					{Operator: "present", Key: "a", Value: "not good"},
 				},
@@ -372,7 +372,7 @@ func (suite *AccessControl) TestShouldErrorOnInvalidRulesQuery() {
 		{
 			Domains: domains,
 			Policy:  "bypass",
-			Query: [][]schema.ACLQueryRule{
+			Query: [][]schema.AccessControlRuleQuery{
 				{
 					{Operator: "present", Key: "a", Value: 5},
 				},
@@ -399,7 +399,7 @@ func TestAccessControl(t *testing.T) {
 }
 
 func TestShouldReturnCorrectResultsForValidNetworkGroups(t *testing.T) {
-	config := schema.AccessControlConfiguration{
+	config := schema.AccessControl{
 		Networks: schema.DefaultACLNetwork,
 	}
 

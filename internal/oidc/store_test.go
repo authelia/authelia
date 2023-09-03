@@ -23,10 +23,10 @@ import (
 )
 
 func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
-	s := oidc.NewStore(&schema.OpenIDConnect{
+	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
 		IssuerPrivateKey:       keyRSA2048,
-		Clients: []schema.OpenIDConnectClient{
+		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
 				ID:                  myclient,
 				Description:         myclientdesc,
@@ -52,7 +52,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 
 	id := myclient
 
-	c1 := schema.OpenIDConnectClient{
+	c1 := schema.IdentityProvidersOpenIDConnectClient{
 		ID:                  id,
 		Description:         myclientdesc,
 		AuthorizationPolicy: onefactor,
@@ -60,10 +60,10 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 		Secret:              tOpenIDConnectPlainTextClientSecret,
 	}
 
-	s := oidc.NewStore(&schema.OpenIDConnect{
+	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
 		IssuerPrivateKey:       keyRSA2048,
-		Clients:                []schema.OpenIDConnectClient{c1},
+		Clients:                []schema.IdentityProvidersOpenIDConnectClient{c1},
 	}, nil)
 
 	client, err := s.GetFullClient(ctx, id)
@@ -82,7 +82,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 	ctx := context.Background()
 
-	c1 := schema.OpenIDConnectClient{
+	c1 := schema.IdentityProvidersOpenIDConnectClient{
 		ID:                  myclient,
 		Description:         myclientdesc,
 		AuthorizationPolicy: onefactor,
@@ -90,10 +90,10 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 		Secret:              tOpenIDConnectPlainTextClientSecret,
 	}
 
-	s := oidc.NewStore(&schema.OpenIDConnect{
+	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
 		IssuerPrivateKey:       keyRSA2048,
-		Clients:                []schema.OpenIDConnectClient{c1},
+		Clients:                []schema.IdentityProvidersOpenIDConnectClient{c1},
 	}, nil)
 
 	client, err := s.GetFullClient(ctx, "another-client")
@@ -104,10 +104,10 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
 	ctx := context.Background()
 
-	s := oidc.NewStore(&schema.OpenIDConnect{
+	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
 		IssuerPrivateKey:       keyRSA2048,
-		Clients: []schema.OpenIDConnectClient{
+		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
 				ID:                  myclient,
 				Description:         myclientdesc,
@@ -142,8 +142,8 @@ func (s *StoreSuite) SetupTest() {
 	s.ctx = context.Background()
 	s.ctrl = gomock.NewController(s.T())
 	s.mock = mocks.NewMockStorage(s.ctrl)
-	s.store = oidc.NewStore(&schema.OpenIDConnect{
-		Clients: []schema.OpenIDConnectClient{
+	s.store = oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
+		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
 				ID:                  "hs256",
 				Secret:              tOpenIDConnectPBKDF2ClientSecret,

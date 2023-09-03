@@ -19,7 +19,7 @@ import (
 )
 
 // NewStore returns a Store when provided with a schema.OpenIDConnect and storage.Provider.
-func NewStore(config *schema.OpenIDConnect, provider storage.Provider) (store *Store) {
+func NewStore(config *schema.IdentityProvidersOpenIDConnect, provider storage.Provider) (store *Store) {
 	logger := logging.Logger()
 
 	store = &Store{

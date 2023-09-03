@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/authelia/jsonschema"
 )
 
 // NewAddress returns an *Address and error depending on the ability to parse the string as an Address.
@@ -129,9 +131,27 @@ type AddressTCP struct {
 	Address
 }
 
+// JSONSchema returns the appropriate *jsonschema.Schema for this type.
+func (AddressTCP) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		Type:    "string",
+		Format:  "uri",
+		Pattern: `^((tcp(4|6)?:\/\/)?([^:\/]*(:\d+)|[^:\/]+(:\d+)?)(\/.*)?|unix:\/\/\/[^?\n]+(\?umask=[0-7]{3,4})?)$`,
+	}
+}
+
 // AddressUDP is just a type with an underlying type of Address.
 type AddressUDP struct {
 	Address
+}
+
+// JSONSchema returns the appropriate *jsonschema.Schema for this type.
+func (AddressUDP) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		Type:    "string",
+		Format:  "uri",
+		Pattern: `^(udp(4|6)?:\/\/)?([^:\/]*(:\d+)|[^:\/]+(:\d+)?)(\/.*)?$`,
+	}
 }
 
 // AddressLDAP is just a type with an underlying type of Address.
@@ -139,9 +159,27 @@ type AddressLDAP struct {
 	Address
 }
 
+// JSONSchema returns the appropriate *jsonschema.Schema for this type.
+func (AddressLDAP) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		Type:    "string",
+		Format:  "uri",
+		Pattern: `^((ldaps?:\/\/)?([^:\/]*(:\d+)|[^:\/]+(:\d+)?)?|ldapi:\/\/(\/[^?\n]+)?)$`,
+	}
+}
+
 // AddressSMTP is just a type with an underlying type of Address.
 type AddressSMTP struct {
 	Address
+}
+
+// JSONSchema returns the appropriate *jsonschema.Schema for this type.
+func (AddressSMTP) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		Type:    "string",
+		Format:  "uri",
+		Pattern: `^((smtp|submissions?):\/\/)?([^:\/]*(:\d+)|[^:\/]+(:\d+)?)?$`,
+	}
 }
 
 // Address represents an address.
@@ -152,6 +190,15 @@ type Address struct {
 	port   int
 
 	url *url.URL
+}
+
+// JSONSchema returns the appropriate *jsonschema.Schema for this type.
+func (Address) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		Type:    "string",
+		Format:  "uri",
+		Pattern: `^((unix:\/\/)?\/[^?\n]+(\?umask=[0-7]{3,4})?|ldapi:\/\/(\/[^?\n]+)?|(((tcp|udp)(4|6)?|ldaps?|smtp|submissions?):\/\/)?[^:\/]*(:\d+)?(\/.*)?)$`,
+	}
 }
 
 // Valid returns true if the Address is valid.

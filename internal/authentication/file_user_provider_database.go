@@ -10,21 +10,23 @@ import (
 	"github.com/go-crypt/crypt"
 	"github.com/go-crypt/crypt/algorithm"
 	"gopkg.in/yaml.v3"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-type FileUserDatabase interface {
+type FileUserProviderDatabase interface {
 	Save() (err error)
 	Load() (err error)
-	GetUserDetails(username string) (user DatabaseUserDetails, err error)
-	SetUserDetails(username string, details *DatabaseUserDetails)
+	GetUserDetails(username string) (user FileUserDatabaseUserDetails, err error)
+	SetUserDetails(username string, details *FileUserDatabaseUserDetails)
 }
 
-// NewYAMLUserDatabase creates a new YAMLUserDatabase.
-func NewYAMLUserDatabase(filePath string, searchEmail, searchCI bool) (database *YAMLUserDatabase) {
-	return &YAMLUserDatabase{
+// NewFileUserDatabase creates a new FileUserDatabase.
+func NewFileUserDatabase(filePath string, searchEmail, searchCI bool) (database *FileUserDatabase) {
+	return &FileUserDatabase{
 		RWMutex:     &sync.RWMutex{},
 		Path:        filePath,
-		Users:       map[string]DatabaseUserDetails{},
+		Users:       map[string]FileUserDatabaseUserDetails{},
 		Emails:      map[string]string{},
 		Aliases:     map[string]string{},
 		SearchEmail: searchEmail,
@@ -32,21 +34,22 @@ func NewYAMLUserDatabase(filePath string, searchEmail, searchCI bool) (database 
 	}
 }
 
-// YAMLUserDatabase is a user details database that is concurrency safe database and can be reloaded.
-type YAMLUserDatabase struct {
-	*sync.RWMutex
+// FileUserDatabase is a user details database that is concurrency safe database and can be reloaded.
+type FileUserDatabase struct {
+	*sync.RWMutex `json:"-"`
 
-	Path    string
-	Users   map[string]DatabaseUserDetails
-	Emails  map[string]string
-	Aliases map[string]string
+	Users map[string]FileUserDatabaseUserDetails `json:"users" jsonschema:"required,title=Users" jsonschema_description:"The dictionary of users"`
 
-	SearchEmail bool
-	SearchCI    bool
+	Path    string            `json:"-"`
+	Emails  map[string]string `json:"-"`
+	Aliases map[string]string `json:"-"`
+
+	SearchEmail bool `json:"-"`
+	SearchCI    bool `json:"-"`
 }
 
 // Save the database to disk.
-func (m *YAMLUserDatabase) Save() (err error) {
+func (m *FileUserDatabase) Save() (err error) {
 	m.RLock()
 
 	defer m.RUnlock()
@@ -59,8 +62,8 @@ func (m *YAMLUserDatabase) Save() (err error) {
 }
 
 // Load the database from disk.
-func (m *YAMLUserDatabase) Load() (err error) {
-	yml := &DatabaseModel{Users: map[string]UserDetailsModel{}}
+func (m *FileUserDatabase) Load() (err error) {
+	yml := &FileDatabaseModel{Users: map[string]FileDatabaseUserDetailsModel{}}
 
 	if err = yml.Read(m.Path); err != nil {
 		return fmt.Errorf("error reading the authentication database: %w", err)
@@ -78,7 +81,7 @@ func (m *YAMLUserDatabase) Load() (err error) {
 }
 
 // LoadAliases performs the loading of alias information from the database.
-func (m *YAMLUserDatabase) LoadAliases() (err error) {
+func (m *FileUserDatabase) LoadAliases() (err error) {
 	if m.SearchEmail || m.SearchCI {
 		for k, user := range m.Users {
 			if m.SearchEmail && user.Email != "" {
@@ -98,7 +101,7 @@ func (m *YAMLUserDatabase) LoadAliases() (err error) {
 	return nil
 }
 
-func (m *YAMLUserDatabase) loadAlias(k string) (err error) {
+func (m *FileUserDatabase) loadAlias(k string) (err error) {
 	u := strings.ToLower(k)
 
 	if u != k {
@@ -120,7 +123,7 @@ func (m *YAMLUserDatabase) loadAlias(k string) (err error) {
 	return nil
 }
 
-func (m *YAMLUserDatabase) loadAliasEmail(k string, user DatabaseUserDetails) (err error) {
+func (m *FileUserDatabase) loadAliasEmail(k string, user FileUserDatabaseUserDetails) (err error) {
 	e := strings.ToLower(user.Email)
 
 	var duplicates []string
@@ -150,9 +153,9 @@ func (m *YAMLUserDatabase) loadAliasEmail(k string, user DatabaseUserDetails) (e
 	return nil
 }
 
-// GetUserDetails get a DatabaseUserDetails given a username as a value type where the username must be the users actual
+// GetUserDetails get a FileUserDatabaseUserDetails given a username as a value type where the username must be the users actual
 // username.
-func (m *YAMLUserDatabase) GetUserDetails(username string) (user DatabaseUserDetails, err error) {
+func (m *FileUserDatabase) GetUserDetails(username string) (user FileUserDatabaseUserDetails, err error) {
 	m.RLock()
 
 	defer m.RUnlock()
@@ -178,8 +181,8 @@ func (m *YAMLUserDatabase) GetUserDetails(username string) (user DatabaseUserDet
 	return user, ErrUserNotFound
 }
 
-// SetUserDetails sets the DatabaseUserDetails for a given user.
-func (m *YAMLUserDatabase) SetUserDetails(username string, details *DatabaseUserDetails) {
+// SetUserDetails sets the FileUserDatabaseUserDetails for a given user.
+func (m *FileUserDatabase) SetUserDetails(username string, details *FileUserDatabaseUserDetails) {
 	if details == nil {
 		return
 	}
@@ -191,10 +194,10 @@ func (m *YAMLUserDatabase) SetUserDetails(username string, details *DatabaseUser
 	m.Unlock()
 }
 
-// ToDatabaseModel converts the YAMLUserDatabase into the DatabaseModel for saving.
-func (m *YAMLUserDatabase) ToDatabaseModel() (model *DatabaseModel) {
-	model = &DatabaseModel{
-		Users: map[string]UserDetailsModel{},
+// ToDatabaseModel converts the FileUserDatabase into the FileDatabaseModel for saving.
+func (m *FileUserDatabase) ToDatabaseModel() (model *FileDatabaseModel) {
+	model = &FileDatabaseModel{
+		Users: map[string]FileDatabaseUserDetailsModel{},
 	}
 
 	m.RLock()
@@ -208,18 +211,18 @@ func (m *YAMLUserDatabase) ToDatabaseModel() (model *DatabaseModel) {
 	return model
 }
 
-// DatabaseUserDetails is the model of user details in the file database.
-type DatabaseUserDetails struct {
-	Username    string
-	Digest      algorithm.Digest
-	Disabled    bool
-	DisplayName string
-	Email       string
-	Groups      []string
+// FileUserDatabaseUserDetails is the model of user details in the file database.
+type FileUserDatabaseUserDetails struct {
+	Username    string                 `json:"-"`
+	Password    *schema.PasswordDigest `json:"password" jsonschema:"required,title=Password" jsonschema_description:"The hashed password for the user"`
+	DisplayName string                 `json:"displayname" jsonschema:"required,title=Display Name" jsonschema_description:"The display name for the user"`
+	Email       string                 `json:"email" jsonschema:"title=Email" jsonschema_description:"The email for the user"`
+	Groups      []string               `json:"groups" jsonschema:"title=Groups" jsonschema_description:"The groups list for the user"`
+	Disabled    bool                   `json:"disabled" jsonschema:"default=false,title=Disabled" jsonschema_description:"The disabled status for the user"`
 }
 
-// ToUserDetails converts DatabaseUserDetails into a *UserDetails given a username.
-func (m DatabaseUserDetails) ToUserDetails() (details *UserDetails) {
+// ToUserDetails converts FileUserDatabaseUserDetails into a *UserDetails given a username.
+func (m FileUserDatabaseUserDetails) ToUserDetails() (details *UserDetails) {
 	return &UserDetails{
 		Username:    m.Username,
 		DisplayName: m.DisplayName,
@@ -228,26 +231,26 @@ func (m DatabaseUserDetails) ToUserDetails() (details *UserDetails) {
 	}
 }
 
-// ToUserDetailsModel converts DatabaseUserDetails into a UserDetailsModel.
-func (m DatabaseUserDetails) ToUserDetailsModel() (model UserDetailsModel) {
-	return UserDetailsModel{
-		HashedPassword: m.Digest.Encode(),
-		DisplayName:    m.DisplayName,
-		Email:          m.Email,
-		Groups:         m.Groups,
+// ToUserDetailsModel converts FileUserDatabaseUserDetails into a FileDatabaseUserDetailsModel.
+func (m FileUserDatabaseUserDetails) ToUserDetailsModel() (model FileDatabaseUserDetailsModel) {
+	return FileDatabaseUserDetailsModel{
+		Password:    m.Password.Encode(),
+		DisplayName: m.DisplayName,
+		Email:       m.Email,
+		Groups:      m.Groups,
 	}
 }
 
-// DatabaseModel is the model of users file database.
-type DatabaseModel struct {
-	Users map[string]UserDetailsModel `yaml:"users" valid:"required"`
+// FileDatabaseModel is the model of users file database.
+type FileDatabaseModel struct {
+	Users map[string]FileDatabaseUserDetailsModel `yaml:"users" json:"users" valid:"required" jsonschema:"required,title=Users" jsonschema_description:"The dictionary of users"`
 }
 
-// ReadToFileUserDatabase reads the DatabaseModel into a YAMLUserDatabase.
-func (m *DatabaseModel) ReadToFileUserDatabase(db *YAMLUserDatabase) (err error) {
-	users := map[string]DatabaseUserDetails{}
+// ReadToFileUserDatabase reads the FileDatabaseModel into a FileUserDatabase.
+func (m *FileDatabaseModel) ReadToFileUserDatabase(db *FileUserDatabase) (err error) {
+	users := map[string]FileUserDatabaseUserDetails{}
 
-	var udm *DatabaseUserDetails
+	var udm *FileUserDatabaseUserDetails
 
 	for user, details := range m.Users {
 		if udm, err = details.ToDatabaseUserDetailsModel(user); err != nil {
@@ -262,8 +265,8 @@ func (m *DatabaseModel) ReadToFileUserDatabase(db *YAMLUserDatabase) (err error)
 	return nil
 }
 
-// Read a DatabaseModel from disk.
-func (m *DatabaseModel) Read(filePath string) (err error) {
+// Read a FileDatabaseModel from disk.
+func (m *FileDatabaseModel) Read(filePath string) (err error) {
 	var (
 		content []byte
 		ok      bool
@@ -292,8 +295,8 @@ func (m *DatabaseModel) Read(filePath string) (err error) {
 	return nil
 }
 
-// Write a DatabaseModel to disk.
-func (m *DatabaseModel) Write(fileName string) (err error) {
+// Write a FileDatabaseModel to disk.
+func (m *FileDatabaseModel) Write(fileName string) (err error) {
 	var (
 		data []byte
 	)
@@ -305,26 +308,26 @@ func (m *DatabaseModel) Write(fileName string) (err error) {
 	return os.WriteFile(fileName, data, fileAuthenticationMode)
 }
 
-// UserDetailsModel is the model of user details in the file database.
-type UserDetailsModel struct {
-	HashedPassword string   `yaml:"password" valid:"required"`
-	DisplayName    string   `yaml:"displayname" valid:"required"`
-	Email          string   `yaml:"email"`
-	Groups         []string `yaml:"groups"`
-	Disabled       bool     `yaml:"disabled"`
+// FileDatabaseUserDetailsModel is the model of user details in the file database.
+type FileDatabaseUserDetailsModel struct {
+	Password    string   `yaml:"password" valid:"required"`
+	DisplayName string   `yaml:"displayname" valid:"required"`
+	Email       string   `yaml:"email"`
+	Groups      []string `yaml:"groups"`
+	Disabled    bool     `yaml:"disabled"`
 }
 
-// ToDatabaseUserDetailsModel converts a UserDetailsModel into a *DatabaseUserDetails.
-func (m UserDetailsModel) ToDatabaseUserDetailsModel(username string) (model *DatabaseUserDetails, err error) {
+// ToDatabaseUserDetailsModel converts a FileDatabaseUserDetailsModel into a *FileUserDatabaseUserDetails.
+func (m FileDatabaseUserDetailsModel) ToDatabaseUserDetailsModel(username string) (model *FileUserDatabaseUserDetails, err error) {
 	var d algorithm.Digest
 
-	if d, err = crypt.Decode(m.HashedPassword); err != nil {
+	if d, err = crypt.Decode(m.Password); err != nil {
 		return nil, err
 	}
 
-	return &DatabaseUserDetails{
+	return &FileUserDatabaseUserDetails{
 		Username:    username,
-		Digest:      d,
+		Password:    schema.NewPasswordDigest(d),
 		Disabled:    m.Disabled,
 		DisplayName: m.DisplayName,
 		Email:       m.Email,

@@ -8,7 +8,7 @@ import (
 )
 
 // ValidatePasswordPolicy validates and updates the Password Policy configuration.
-func ValidatePasswordPolicy(config *schema.PasswordPolicyConfiguration, validator *schema.StructValidator) {
+func ValidatePasswordPolicy(config *schema.PasswordPolicy, validator *schema.StructValidator) {
 	if !utils.IsBoolCountLessThanN(1, true, config.Standard.Enabled, config.ZXCVBN.Enabled) {
 		validator.Push(fmt.Errorf(errPasswordPolicyMultipleDefined))
 	}

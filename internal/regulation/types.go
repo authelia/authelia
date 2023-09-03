@@ -14,7 +14,7 @@ type Regulator struct {
 	// Is the regulation enabled.
 	enabled bool
 
-	config schema.RegulationConfiguration
+	config schema.Regulation
 
 	store storage.RegulatorProvider
 

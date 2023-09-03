@@ -12,7 +12,7 @@ import (
 )
 
 // NewRegulator create a regulator instance.
-func NewRegulator(config schema.RegulationConfiguration, store storage.RegulatorProvider, clock utils.Clock) *Regulator {
+func NewRegulator(config schema.Regulation, store storage.RegulatorProvider, clock utils.Clock) *Regulator {
 	return &Regulator{
 		enabled: config.MaxRetries > 0,
 		store:   store,

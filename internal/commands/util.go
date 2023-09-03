@@ -12,9 +12,12 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"golang.org/x/term"
+	"gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func recoverErr(i any) error {
@@ -335,4 +338,44 @@ func newHelpTopic(topic, short, body string) (cmd *cobra.Command) {
 	})
 
 	return cmd
+}
+
+func exportYAMLWithJSONSchema(name, filename string, v any) (err error) {
+	var f *os.File
+
+	if f, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
+		return err
+	}
+
+	defer func() {
+		if err := f.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	var (
+		semver *model.SemanticVersion
+	)
+
+	version := "latest"
+
+	if semver, err = model.NewSemanticVersion(utils.BuildTag); err == nil {
+		version = fmt.Sprintf("v%d.%d", semver.Major, semver.Minor+1)
+	}
+
+	if _, err = f.WriteString(fmt.Sprintf(model.FormatJSONSchemaYAMLLanguageServer, version, name)); err != nil {
+		return err
+	}
+
+	if _, err = f.WriteString("\n\n"); err != nil {
+		return err
+	}
+
+	encoder := yaml.NewEncoder(f)
+
+	if err = encoder.Encode(v); err != nil {
+		return fmt.Errorf("error occurred marshalling data to YAML: %w", err)
+	}
+
+	return nil
 }

@@ -14,7 +14,7 @@ type PasswordPolicyProvider interface {
 }
 
 // NewPasswordPolicyProvider returns a new password policy provider.
-func NewPasswordPolicyProvider(config schema.PasswordPolicyConfiguration) (provider PasswordPolicyProvider) {
+func NewPasswordPolicyProvider(config schema.PasswordPolicy) (provider PasswordPolicyProvider) {
 	if !config.Standard.Enabled && !config.ZXCVBN.Enabled {
 		return &StandardPasswordPolicyProvider{}
 	}

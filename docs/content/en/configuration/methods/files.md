@@ -50,6 +50,11 @@ authelia --config config.custom.yml
 We recommend utilizing [VSCodium](https://vscodium.com/) or [VSCode](https://code.visualstudio.com/), both with the
 [YAML Extension](https://open-vsx.org/extension/redhat/vscode-yaml) by RedHat to validate this file type.
 
+This extension allows validation of the format and schema of a YAML file. To facilitate schema validation we publish
+a set of JSON schemas which you can include as a special comment in order to validate the YAML file further. See the
+[JSON Schema reference guide](../../reference/guides/schemas.md#json-schema) for more information including instructions
+on how to utilize the schemas.
+
 ## Multiple Configuration Files
 
 You can have multiple configuration files which will be merged in the order specified. If duplicate keys are specified

@@ -95,13 +95,13 @@ const (
 
 var (
 	storageLocalTmpConfig = schema.Configuration{
-		TOTP: schema.TOTPConfiguration{
+		TOTP: schema.TOTP{
 			Issuer: "Authelia",
 			Period: 6,
 		},
-		Storage: schema.StorageConfiguration{
+		Storage: schema.Storage{
 			EncryptionKey: "a_not_so_secure_encryption_key",
-			Local: &schema.LocalStorageConfiguration{
+			Local: &schema.StorageLocal{
 				Path: "/tmp/db.sqlite3",
 			},
 		},

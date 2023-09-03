@@ -138,7 +138,7 @@ func schemaNetworksToACL(networkRules []string, networksMap map[string][]*net.IP
 	return networks
 }
 
-func parseSchemaNetworks(schemaNetworks []schema.ACLNetwork) (networksMap map[string][]*net.IPNet, networksCacheMap map[string]*net.IPNet) {
+func parseSchemaNetworks(schemaNetworks []schema.AccessControlNetwork) (networksMap map[string][]*net.IPNet, networksCacheMap map[string]*net.IPNet) {
 	// These maps store pointers to the net.IPNet values so we can reuse them efficiently.
 	// The networksMap contains the named networks as keys, the networksCacheMap contains the CIDR notations as keys.
 	networksMap = map[string][]*net.IPNet{}

@@ -311,24 +311,24 @@ func (d *WebAuthnDevice) UnmarshalYAML(value *yaml.Node) (err error) {
 // WebAuthnDeviceData represents a WebAuthn Device in the database storage.
 type WebAuthnDeviceData struct {
 	ID              int        `json:"id" yaml:"-"`
-	CreatedAt       time.Time  `json:"created_at" yaml:"created_at"`
-	LastUsedAt      *time.Time `json:"last_used_at,omitempty" yaml:"last_used_at,omitempty"`
-	RPID            string     `json:"rpid" yaml:"rpid"`
-	Username        string     `json:"-" yaml:"username"`
-	Description     string     `json:"description" yaml:"description"`
-	KID             string     `json:"kid" yaml:"kid"`
-	AAGUID          *string    `json:"aaguid,omitempty" yaml:"aaguid,omitempty"`
-	AttestationType string     `json:"attestation_type" yaml:"attestation_type"`
-	Attachment      string     `json:"attachment" yaml:"attachment"`
-	Transports      []string   `json:"transports" yaml:"transports"`
-	SignCount       uint32     `json:"sign_count" yaml:"sign_count"`
-	CloneWarning    bool       `json:"clone_warning" yaml:"clone_warning"`
-	Discoverable    bool       `json:"discoverable" yaml:"discoverable"`
-	Present         bool       `json:"present" yaml:"present"`
-	Verified        bool       `json:"verified" yaml:"verified"`
-	BackupEligible  bool       `json:"backup_eligible" yaml:"backup_eligible"`
-	BackupState     bool       `json:"backup_state" yaml:"backup_state"`
-	PublicKey       string     `json:"public_key" yaml:"public_key"`
+	CreatedAt       time.Time  `yaml:"created_at" json:"created_at" jsonschema:"title=Created At" jsonschema_description:"The time this credential was created"`
+	LastUsedAt      *time.Time `yaml:"last_used_at,omitempty" json:"last_used_at,omitempty" jsonschema:"title=Last Used At" jsonschema_description:"The last time this credential was used"`
+	RPID            string     `yaml:"rpid" json:"rpid" jsonschema:"title=Relying Party ID" jsonschema_description:"The Relying Party ID used to register this credential"`
+	Username        string     `yaml:"username" json:"username" jsonschema:"title=Username" jsonschema_description:"The username of the user this credential belongs to"`
+	Description     string     `yaml:"description" json:"description" jsonschema:"title=Description" jsonschema_description:"The user description of this credential"`
+	KID             string     `yaml:"kid" json:"kid" jsonschema:"title=Public Key ID" jsonschema_description:"The Public Key ID of this credential"`
+	AAGUID          *string    `yaml:"aaguid,omitempty" json:"aaguid,omitempty" jsonschema:"title=AAGUID" jsonschema_description:"The Authenticator Attestation Global Unique Identifier of this credential"`
+	AttestationType string     `yaml:"attestation_type" json:"attestation_type" jsonschema:"title=Attestation Type" jsonschema_description:"The attestation format type this credential uses"`
+	Attachment      string     `yaml:"attachment" json:"attachment" jsonschema:"title=Attachment" jsonschema_description:"The last recorded credential attachment type"`
+	Transports      []string   `yaml:"transports" json:"transports" jsonschema:"title=Transports" jsonschema_description:"The last recorded credential transports"`
+	SignCount       uint32     `yaml:"sign_count" json:"sign_count" jsonschema:"title=Sign Count" jsonschema_description:"The last recorded credential sign count"`
+	CloneWarning    bool       `yaml:"clone_warning" json:"clone_warning" jsonschema:"title=Clone Warning" jsonschema_description:"The clone warning status of the credential"`
+	Discoverable    bool       `yaml:"discoverable" json:"discoverable" jsonschema:"title=Discoverable" jsonschema_description:"The discoverable status of this credential"`
+	Present         bool       `yaml:"present" json:"present" jsonschema:"title=Present" jsonschema_description:"The user presence status of this credential"`
+	Verified        bool       `yaml:"verified" json:"verified" jsonschema:"title=Verified" jsonschema_description:"The verified status of this credential"`
+	BackupEligible  bool       `yaml:"backup_eligible" json:"backup_eligible" jsonschema:"title=Backup Eligible" jsonschema_description:"The backup eligible status of this credential"`
+	BackupState     bool       `yaml:"backup_state" json:"backup_state" jsonschema:"title=Backup Eligible" jsonschema_description:"The backup eligible status of this credential"`
+	PublicKey       string     `yaml:"public_key" json:"public_key" jsonschema:"title=Public Key" jsonschema_description:"The device public key"`
 }
 
 func (d *WebAuthnDeviceData) ToDevice() (device *WebAuthnDevice, err error) {
@@ -385,7 +385,7 @@ type WebAuthnDeviceExport struct {
 
 // WebAuthnDeviceDataExport represents a WebAuthnDevice export file.
 type WebAuthnDeviceDataExport struct {
-	WebAuthnDevices []WebAuthnDeviceData `yaml:"webauthn_devices"`
+	WebAuthnDevices []WebAuthnDeviceData `yaml:"webauthn_devices" json:"webauthn_devices" jsonschema:"title=WebAuthn Devices" jsonschema_description:"The list of WebAuthn devices"`
 }
 
 // ToData converts this WebAuthnDeviceExport into a WebAuthnDeviceDataExport.

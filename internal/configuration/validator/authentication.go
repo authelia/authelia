@@ -52,7 +52,7 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 }
 
 // validateFileAuthenticationBackend validates and updates the file authentication backend configuration.
-func validateFileAuthenticationBackend(config *schema.FileAuthenticationBackend, validator *schema.StructValidator) {
+func validateFileAuthenticationBackend(config *schema.AuthenticationBackendFile, validator *schema.StructValidator) {
 	if config.Path == "" {
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPathNotConfigured))
 	}
@@ -61,7 +61,7 @@ func validateFileAuthenticationBackend(config *schema.FileAuthenticationBackend,
 }
 
 // ValidatePasswordConfiguration validates the file auth backend password configuration.
-func ValidatePasswordConfiguration(config *schema.Password, validator *schema.StructValidator) {
+func ValidatePasswordConfiguration(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
 	validateFileAuthenticationBackendPasswordConfigLegacy(config)
 
 	switch {
@@ -81,7 +81,7 @@ func ValidatePasswordConfiguration(config *schema.Password, validator *schema.St
 }
 
 //nolint:gocyclo // Function is well formed.
-func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Password, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
 	switch {
 	case config.Argon2.Variant == "":
 		config.Argon2.Variant = schema.DefaultPasswordConfig.Argon2.Variant
@@ -139,7 +139,7 @@ func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Passwo
 	}
 }
 
-func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.Password, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
 	switch {
 	case config.SHA2Crypt.Variant == "":
 		config.SHA2Crypt.Variant = schema.DefaultPasswordConfig.SHA2Crypt.Variant
@@ -168,7 +168,7 @@ func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.Pas
 	}
 }
 
-func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.Password, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
 	switch {
 	case config.PBKDF2.Variant == "":
 		config.PBKDF2.Variant = schema.DefaultPasswordConfig.PBKDF2.Variant
@@ -197,7 +197,7 @@ func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.Passwo
 	}
 }
 
-func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.Password, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
 	switch {
 	case config.BCrypt.Variant == "":
 		config.BCrypt.Variant = schema.DefaultPasswordConfig.BCrypt.Variant
@@ -218,7 +218,7 @@ func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.Passwo
 }
 
 //nolint:gocyclo
-func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.Password, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
 	switch {
 	case config.SCrypt.Iterations == 0:
 		config.SCrypt.Iterations = schema.DefaultPasswordConfig.SCrypt.Iterations
@@ -265,8 +265,8 @@ func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.Passwo
 	}
 }
 
-//nolint:gocyclo // Function is clear enough.
-func validateFileAuthenticationBackendPasswordConfigLegacy(config *schema.Password) {
+//nolint:gocyclo,staticcheck // Function is clear enough and being used for deprecated functionality mapping.
+func validateFileAuthenticationBackendPasswordConfigLegacy(config *schema.AuthenticationBackendFilePassword) {
 	switch config.Algorithm {
 	case hashLegacySHA512:
 		config.Algorithm = hashSHA2Crypt
@@ -325,7 +325,7 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 	defaultTLS.ServerName = validateLDAPAuthenticationAddress(config.LDAP, validator)
 
 	if config.LDAP.TLS == nil {
-		config.LDAP.TLS = &schema.TLSConfig{}
+		config.LDAP.TLS = &schema.TLS{}
 	}
 
 	if err := ValidateTLSConfig(config.LDAP.TLS, defaultTLS); err != nil {
@@ -347,8 +347,8 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 	validateLDAPRequiredParameters(config, validator)
 }
 
-func validateLDAPAuthenticationBackendImplementation(config *schema.AuthenticationBackend, validator *schema.StructValidator) *schema.TLSConfig {
-	var implementation *schema.LDAPAuthenticationBackend
+func validateLDAPAuthenticationBackendImplementation(config *schema.AuthenticationBackend, validator *schema.StructValidator) *schema.TLS {
+	var implementation *schema.AuthenticationBackendLDAP
 
 	switch config.LDAP.Implementation {
 	case schema.LDAPImplementationCustom:
@@ -367,14 +367,14 @@ func validateLDAPAuthenticationBackendImplementation(config *schema.Authenticati
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendOptionMustBeOneOf, "implementation", strJoinOr(validLDAPImplementations), config.LDAP.Implementation))
 	}
 
-	tlsconfig := &schema.TLSConfig{}
+	tlsconfig := &schema.TLS{}
 
 	if implementation != nil {
 		if config.LDAP.Timeout == 0 {
 			config.LDAP.Timeout = implementation.Timeout
 		}
 
-		tlsconfig = &schema.TLSConfig{
+		tlsconfig = &schema.TLS{
 			MinimumVersion: implementation.TLS.MinimumVersion,
 			MaximumVersion: implementation.TLS.MaximumVersion,
 		}
@@ -389,7 +389,7 @@ func ldapImplementationShouldSetStr(config, implementation string) bool {
 	return config == "" && implementation != ""
 }
 
-func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *schema.LDAPAuthenticationBackend, implementation *schema.LDAPAuthenticationBackend) {
+func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *schema.AuthenticationBackendLDAP, implementation *schema.AuthenticationBackendLDAP) {
 	if ldapImplementationShouldSetStr(config.AdditionalUsersDN, implementation.AdditionalUsersDN) {
 		config.AdditionalUsersDN = implementation.AdditionalUsersDN
 	}
@@ -435,7 +435,7 @@ func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *
 	}
 }
 
-func validateLDAPAuthenticationAddress(config *schema.LDAPAuthenticationBackend, validator *schema.StructValidator) (hostname string) {
+func validateLDAPAuthenticationAddress(config *schema.AuthenticationBackendLDAP, validator *schema.StructValidator) (hostname string) {
 	if config.Address == nil {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "address"))
 
