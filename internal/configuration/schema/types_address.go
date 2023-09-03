@@ -131,6 +131,7 @@ type AddressTCP struct {
 	Address
 }
 
+// JSONSchema returns the appropriate *jsonschema.Schema for this type.
 func (AddressTCP) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		Type:    "string",
@@ -144,6 +145,7 @@ type AddressUDP struct {
 	Address
 }
 
+// JSONSchema returns the appropriate *jsonschema.Schema for this type.
 func (AddressUDP) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		Type:    "string",
@@ -157,6 +159,7 @@ type AddressLDAP struct {
 	Address
 }
 
+// JSONSchema returns the appropriate *jsonschema.Schema for this type.
 func (AddressLDAP) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		Type:    "string",
@@ -170,6 +173,7 @@ type AddressSMTP struct {
 	Address
 }
 
+// JSONSchema returns the appropriate *jsonschema.Schema for this type.
 func (AddressSMTP) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		Type:    "string",
@@ -188,7 +192,7 @@ type Address struct {
 	url *url.URL
 }
 
-// JSONSchema returns the appropriate jsonsch	ema for this type.
+// JSONSchema returns the appropriate *jsonschema.Schema for this type.
 func (Address) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		Type:    "string",

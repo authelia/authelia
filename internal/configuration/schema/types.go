@@ -356,6 +356,10 @@ func (c *X509CertificateChain) Leaf() (leaf *x509.Certificate) {
 
 // EncodePEM encodes the entire chain as PEM bytes.
 func (c *X509CertificateChain) EncodePEM() (encoded []byte, err error) {
+	if !c.HasCertificates() {
+		return nil, nil
+	}
+
 	buf := &bytes.Buffer{}
 
 	for _, cert := range c.certs {
