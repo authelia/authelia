@@ -41,7 +41,7 @@ party / client application encoding the characters correctly as it uses the
 
 #### Tuning work factors
 
-When hashing the client secrets, authelia performs the hashing operation to authenticate the client when receiving requests.
+When hashing the client secrets, Authelia performs the hashing operation to authenticate the client when receiving requests.
 This hashing operation takes time by design (the *work* part of the work factor) to hinder an attacker trying to obtain the client secret.
 The amount of time taken depends on your hardware and the work factor.
 
@@ -51,6 +51,9 @@ your hardware's capabilities.
 To test the duration of different work factors, you can measure it like this:
 `time authelia crypto hash generate pbkdf2 --variant sha512 --iterations 310000 --password insecure_password`.
 Note: You should not use your actual passwords for this test, the time taken should be the same for any reasonable password length.
+
+You can read more about password hashing tuning in the
+[Passwords reference guide](../../reference/guides/passwords.md#tuning).
 
 #### Plaintext
 

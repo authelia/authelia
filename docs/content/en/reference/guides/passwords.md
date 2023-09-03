@@ -162,7 +162,9 @@ considered as sane for a reasonable system however we still recommend taking tim
 adequately determine the [cost](#cost).
 
 While there are recommended parameters for each algorithm it's your responsibility to tune these individually for your
-particular system.
+particular system. We strongly recommend reading other sources such as the
+[OWASP Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html) when tuning these
+algorithms.
 
 #### Algorithm Choice
 
@@ -177,6 +179,9 @@ All other algorithms and variants available exist only for interoperability and 
 algorithm is available in your scenario.
 
 #### Recommended Parameters: Argon2
+
+**_Important Note:_ The memory parameter assumes you're utilizing the new configuration with the explicit names
+detailed in the [Argon2 configuration](../../configuration/first-factor/file.md#argon2) documentation.**
 
 This table adapts the [RFC9106 Parameter Choice] recommendations to our configuration options:
 
