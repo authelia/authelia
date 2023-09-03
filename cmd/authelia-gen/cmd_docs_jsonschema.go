@@ -315,52 +315,43 @@ func jsonschemaKoanfMapper(t reflect.Type) *jsonschema.Schema {
 	switch t.String() {
 	case "regexp.Regexp", "*regexp.Regexp":
 		return &jsonschema.Schema{
-			Type:   "string",
-			Format: "regex",
+			Type:   jsonschema.TypeString,
+			Format: jsonschema.FormatStringRegex,
 		}
 	case "time.Duration", "*time.Duration":
 		return &jsonschema.Schema{
 			OneOf: []*jsonschema.Schema{
 				{
-					Type:     "string",
-					Pattern:  `^\d+\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\s*\d+\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$`,
-					Comments: "Example comment",
+					Type:    jsonschema.TypeString,
+					Pattern: `^\d+\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\s*\d+\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$`,
 				},
 				{
-					Type:        "integer",
+					Type:        jsonschema.TypeInteger,
 					Description: "The duration in seconds",
 				},
 			},
 		}
 	case "schema.CryptographicKey":
 		return &jsonschema.Schema{
-			Type: "string",
+			Type: jsonschema.TypeString,
 		}
 	case "schema.CryptographicPrivateKey":
 		return &jsonschema.Schema{
-			Type:    "string",
+			Type:    jsonschema.TypeString,
 			Pattern: `^-{5}(BEGIN ((RSA|EC) )?PRIVATE KEY-{5}\n([a-zA-Z0-9/+]{1,64}\n)+([a-zA-Z0-9/+]{1,64}[=]{0,2})\n-{5}END ((RSA|EC) )?PRIVATE KEY-{5}\n?)+$`,
 		}
 	case "rsa.PrivateKey", "*rsa.PrivateKey", "ecdsa.PrivateKey", "*.ecdsa.PrivateKey":
 		return &jsonschema.Schema{
-			Type: "string",
+			Type: jsonschema.TypeString,
 		}
 	case "mail.Address", "*mail.Address":
 		return &jsonschema.Schema{
-			OneOf: []*jsonschema.Schema{
-				{
-					Type:    "string",
-					Pattern: `^[a-zA-Z0-9.!#$%&'*+/=?^_{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$`,
-				},
-				{
-					Type:    "string",
-					Pattern: `^[^<]+ <[a-zA-Z0-9.!#$%&'*+/=?^_{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*>$`,
-				},
-			},
+			Type:   jsonschema.TypeString,
+			Format: jsonschema.FormatStringEmail,
 		}
 	case "schema.CSPTemplate":
 		return &jsonschema.Schema{
-			Type:    "string",
+			Type:    jsonschema.TypeString,
 			Default: buildCSP(codeCSPProductionDefaultSrc, codeCSPValuesCommon, codeCSPValuesProduction),
 		}
 	}
