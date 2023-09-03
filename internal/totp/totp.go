@@ -77,13 +77,9 @@ func (p TimeBased) GenerateCustom(username, algorithm, secret string, digits, pe
 		Algorithm:   otpStringToAlgo(algorithm),
 	}
 
-	fmt.Println("secret before", opts.Secret)
-
 	if key, err = totp.Generate(opts); err != nil {
 		return nil, err
 	}
-
-	fmt.Println("secret key", key)
 
 	config = &model.TOTPConfiguration{
 		CreatedAt: time.Now(),
@@ -94,8 +90,6 @@ func (p TimeBased) GenerateCustom(username, algorithm, secret string, digits, pe
 		Secret:    []byte(key.Secret()),
 		Period:    period,
 	}
-
-	fmt.Println("secret after", config.Secret)
 
 	return config, nil
 }

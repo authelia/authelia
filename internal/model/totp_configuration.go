@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/pquerna/otp"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 )
 
 type TOTPOptions struct {
@@ -37,32 +37,7 @@ type TOTPConfiguration struct {
 	Secret     []byte       `db:"secret"`
 }
 
-type TOTPConfigurationJSON struct {
-	CreatedAt  time.Time  `json:"created_at"`
-	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
-	Issuer     string     `json:"issuer"`
-	Algorithm  string     `json:"algorithm"`
-	Digits     int        `json:"digits"`
-	Period     int        `json:"period"`
-}
-
-// MarshalJSON returns the TOTPConfiguration in a JSON friendly manner.
-func (c *TOTPConfiguration) MarshalJSON() (data []byte, err error) {
-	o := TOTPConfigurationJSON{
-		CreatedAt: c.CreatedAt,
-		Issuer:    c.Issuer,
-		Algorithm: c.Algorithm,
-		Digits:    int(c.Digits),
-		Period:    int(c.Period),
-	}
-
-	if c.LastUsedAt.Valid {
-		o.LastUsedAt = &c.LastUsedAt.Time
-	}
-
-	return json.Marshal(o)
-}
-
+// TOTPConfigurationJSON is the JSON representation
 type TOTPConfigurationJSON struct {
 	CreatedAt  time.Time  `json:"created_at"`
 	LastUsedAt *time.Time `json:"last_used_at,omitempty"`

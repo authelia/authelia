@@ -8,8 +8,6 @@ import {
     DialogContent,
     DialogContentText,
     DialogTitle,
-    Paper,
-    PaperProps,
     Step,
     StepLabel,
     Stepper,
@@ -20,7 +18,6 @@ import {
 import Grid from "@mui/material/Unstable_Grid2";
 import makeStyles from "@mui/styles/makeStyles";
 import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/typescript-types";
-import Draggable from "react-draggable";
 import { useTranslation } from "react-i18next";
 
 import InformationIcon from "@components/InformationIcon";
@@ -293,14 +290,6 @@ const WebAuthnDeviceRegisterDialog = function (props: Props) {
         </Dialog>
     );
 };
-
-function PaperComponent(props: PaperProps) {
-    return (
-        <Draggable handle="#webauthn-device-details-dialog-title" cancel={'[class*="MuiDialogContent-root"]'}>
-            <Paper {...props} />
-        </Draggable>
-    );
-}
 
 export default WebAuthnDeviceRegisterDialog;
 

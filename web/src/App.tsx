@@ -11,7 +11,6 @@ import {
     ConsentRoute,
     IndexRoute,
     LogoutRoute,
-    RegisterOneTimePasswordRoute,
     ResetPasswordStep1Route,
     ResetPasswordStep2Route,
     SettingsRoute,
