@@ -1,7 +1,6 @@
 package suites
 
 import (
-	"fmt"
 	"os"
 	"time"
 )
@@ -32,28 +31,7 @@ func init() {
 	}
 
 	displayAutheliaLogs := func() error {
-		backendLogs, err := dockerEnvironment.Logs("authelia-backend", nil)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(backendLogs)
-
-		frontendLogs, err := dockerEnvironment.Logs("authelia-frontend", nil)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(frontendLogs)
-
-		duoAPILogs, err := dockerEnvironment.Logs("duo-api", nil)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(duoAPILogs)
-
-		return nil
+		return dockerEnvironment.PrintLogs(false, "authelia-backend", "authelia-frontend", "duo-api")
 	}
 
 	teardown := func(suitePath string) error {

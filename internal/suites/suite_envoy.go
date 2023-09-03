@@ -1,7 +1,6 @@
 package suites
 
 import (
-	"fmt"
 	"os"
 	"time"
 )
@@ -45,30 +44,7 @@ func init() {
 	}
 
 	displayAutheliaLogs := func() error {
-		backendLogs, err := dockerEnvironment.Logs("authelia-backend", nil)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(backendLogs)
-
-		if os.Getenv("CI") != t {
-			frontendLogs, err := dockerEnvironment.Logs("authelia-frontend", nil)
-			if err != nil {
-				return err
-			}
-
-			fmt.Println(frontendLogs)
-		}
-
-		envoyLogs, err := dockerEnvironment.Logs("envoy", nil)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(envoyLogs)
-
-		return nil
+		return dockerEnvironment.PrintLogs(true, "authelia-backend", "authelia-frontend", "envoy")
 	}
 
 	teardown := func(suitePath string) error {

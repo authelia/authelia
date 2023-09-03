@@ -73,12 +73,12 @@ func RunCommandUntilCtrlC(cmd *exec.Cmd) {
 		f := bufio.NewWriter(os.Stdout)
 		defer f.Flush()
 
-		fmt.Println("Hit Ctrl+C to shutdown...")
+		fmt.Println("Hit Ctrl+C to shutdown...") //nolint:forbidigo
 
 		err := cmd.Run()
 
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println(err) //nolint:forbidigo
 			cond.Broadcast()
 			mutex.Unlock()
 
@@ -109,13 +109,13 @@ func RunFuncUntilCtrlC(fn func() error) error {
 		f := bufio.NewWriter(os.Stdout)
 		defer f.Flush()
 
-		fmt.Println("Hit Ctrl+C to shutdown...")
+		fmt.Println("Hit Ctrl+C to shutdown...") //nolint:forbidigo
 
 		err := fn()
 
 		if err != nil {
 			errorChannel <- err
-			fmt.Println(err)
+			fmt.Println(err) //nolint:forbidigo
 			cond.Broadcast()
 			mutex.Unlock()
 
@@ -150,7 +150,7 @@ func RunCommandWithTimeout(cmd *exec.Cmd, timeout time.Duration) error {
 
 	select {
 	case <-time.After(timeout):
-		fmt.Printf("Timeout of %ds reached... Killing process...\n", int64(timeout/time.Second))
+		fmt.Printf("Timeout of %ds reached... Killing process...\n", int64(timeout/time.Second)) //nolint:forbidigo
 
 		if err := cmd.Process.Kill(); err != nil {
 			return err

@@ -90,3 +90,21 @@ func (de *DockerEnvironment) Logs(service string, flags []string) (string, error
 
 	return string(content), err
 }
+
+func (de *DockerEnvironment) PrintLogs(ci bool, services ...string) (err error) {
+	var logs string
+
+	for _, service := range services {
+		if ci && service == "authelia-frontend" && os.Getenv("CI") != t {
+			continue
+		}
+
+		if logs, err = de.Logs(service, nil); err != nil {
+			return err
+		}
+
+		fmt.Println(logs) //nolint:forbidigo
+	}
+
+	return nil
+}
