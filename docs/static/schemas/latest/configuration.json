@@ -734,8 +734,15 @@
           "title": "Groups Filter",
           "description": "The LDAP filter used to search for group objects"
         },
-        "GroupSearchMode": {
-          "type": "string"
+        "group_search_mode": {
+          "type": "string",
+          "enum": [
+            "filter",
+            "memberof"
+          ],
+          "title": "Groups Search Mode",
+          "description": "The LDAP group search mode used to search for group objects",
+          "default": "filter"
         },
         "attributes": {
           "$ref": "#/$defs/AuthenticationBackendLDAPAttributes"
@@ -1052,6 +1059,11 @@
           "description": "Enables use of the discouraged plain Proof Key for Code Exchange challenges",
           "default": false
         },
+        "enable_jwt_access_token_stateless_introspection": {
+          "type": "boolean",
+          "title": "Enable JWT Access Token Stateless Introspection",
+          "description": "Allows the use of stateless introspection of JWT Access Tokens which is not recommended"
+        },
         "pushed_authorizations": {
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectPAR",
           "title": "Pushed Authorizations",
@@ -1292,28 +1304,7 @@
           "title": "PKCE Challenge Method",
           "description": "The PKCE Challenge Method enforced on this client"
         },
-        "id_token_signing_alg": {
-          "type": "string",
-          "enum": [
-            "RS256",
-            "RS384",
-            "RS512",
-            "ES256",
-            "ES384",
-            "ES512",
-            "PS256",
-            "PS384",
-            "PS512"
-          ],
-          "title": "ID Token Signing Algorithm",
-          "description": "The algorithm (JWA) this client uses to sign ID Tokens"
-        },
-        "id_token_signing_key_id": {
-          "type": "string",
-          "title": "ID Token Signing Key ID",
-          "description": "The Key ID this client uses to sign ID Tokens (overrides the 'id_token_signing_alg')"
-        },
-        "userinfo_signing_alg": {
+        "authorization_signed_response_alg": {
           "type": "string",
           "enum": [
             "none",
@@ -1327,13 +1318,105 @@
             "PS384",
             "PS512"
           ],
-          "title": "Userinfo Signing Algorithm",
-          "description": "The Userinfo Endpoint Signing Algorithm this client uses"
+          "title": "Authorization Response Signing Algorithm",
+          "description": "The Authorization Endpoint Signing Algorithm this client uses",
+          "default": "none"
         },
-        "userinfo_signing_key_id": {
+        "authorization_signed_response_key_id": {
           "type": "string",
-          "title": "Userinfo Signing Key ID",
-          "description": "The Key ID this client uses to sign the userinfo responses (overrides the 'userinfo_token_signing_alg')"
+          "title": "Authorization Response Signing Key ID",
+          "description": "The Key ID this client uses to sign the Authorization responses (overrides the 'authorization_signed_response_alg')"
+        },
+        "id_token_signed_response_alg": {
+          "type": "string",
+          "enum": [
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "ID Token Signing Algorithm",
+          "description": "The algorithm (JWA) this client uses to sign ID Tokens",
+          "default": "RS256"
+        },
+        "id_token_signed_response_key_id": {
+          "type": "string",
+          "title": "ID Token Signing Key ID",
+          "description": "The Key ID this client uses to sign ID Tokens (overrides the 'id_token_signing_alg')"
+        },
+        "access_token_signed_response_alg": {
+          "type": "string",
+          "enum": [
+            "none",
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "Access Token Signing Algorithm",
+          "description": "The algorithm (JWA) this client uses to sign Access Tokens",
+          "default": "none"
+        },
+        "access_token_signed_response_key_id": {
+          "type": "string",
+          "title": "Access Token Signing Key ID",
+          "description": "The Key ID this client uses to sign Access Tokens (overrides the 'access_token_signed_response_alg')"
+        },
+        "userinfo_signed_response_alg": {
+          "type": "string",
+          "enum": [
+            "none",
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "UserInfo Response Signing Algorithm",
+          "description": "The UserInfo Endpoint Signing Algorithm this client uses",
+          "default": "none"
+        },
+        "userinfo_signed_response_key_id": {
+          "type": "string",
+          "title": "UserInfo Response Signing Key ID",
+          "description": "The Key ID this client uses to sign the UserInfo responses (overrides the 'userinfo_signed_response_alg')"
+        },
+        "introspection_signed_response_alg": {
+          "type": "string",
+          "enum": [
+            "none",
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "Introspection Response Signing Algorithm",
+          "description": "The Introspection Endpoint Signing Algorithm this client uses",
+          "default": "none"
+        },
+        "introspection_signed_response_key_id": {
+          "type": "string",
+          "title": "Introspection Response Signing Key ID",
+          "description": "The Key ID this client uses to sign the Introspection responses (overrides the 'introspection_signed_response_alg')"
         },
         "request_object_signing_alg": {
           "type": "string",
@@ -1680,6 +1763,21 @@
           ],
           "title": "Refresh Token Lifespan",
           "description": "The duration a Refresh Token is valid for"
+        },
+        "jwt_secured_authorization": {
+          "oneOf": [
+            {
+              "$comment": "Example comment",
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "JARM",
+          "description": "Allows tuning the token lifespan for the JWT Secured Authorization Response Mode (JARM)"
         },
         "custom": {
           "patternProperties": {
