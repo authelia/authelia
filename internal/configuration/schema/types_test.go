@@ -7,9 +7,11 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"reflect"
 	"regexp"
 	"testing"
 
+	"github.com/authelia/jsonschema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -205,9 +207,10 @@ func TestNewX509CertificateChain(t *testing.T) {
 					assert.Nil(t, actual)
 				default:
 					assert.NotNil(t, actual)
-
 					assert.Equal(t, tc.thumbprintSHA256, fmt.Sprintf("%x", actual.Thumbprint(crypto.SHA256)))
 					assert.True(t, actual.HasCertificates())
+					assert.NotNil(t, actual.Leaf())
+					assert.NotNil(t, actual.CertificatesRaw())
 				}
 				assert.NoError(t, err)
 			default:
@@ -216,6 +219,44 @@ func TestNewX509CertificateChain(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestTX509CertificateChain_EncodePEM(t *testing.T) {
+	testCases := []struct {
+		name string
+		have string
+	}{
+		{
+			"ShouldEncodeSingle",
+			x509CertificateRSA + "\n",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			have, err := NewX509CertificateChain(tc.have)
+
+			require.NoError(t, err)
+			require.NotNil(t, have)
+
+			actual, err := have.EncodePEM()
+			assert.NoError(t, err)
+
+			assert.Equal(t, tc.have, string(actual))
+		})
+	}
+}
+
+func TestX509CertificateChain_Empty(t *testing.T) {
+	have := &X509CertificateChain{}
+
+	assert.Nil(t, have.Leaf())
+	assert.Nil(t, have.CertificatesRaw())
+
+	encoded, err := have.EncodePEM()
+
+	assert.Nil(t, encoded)
+	assert.Nil(t, err)
 }
 
 func TestNewX509CertificateChainFromCerts(t *testing.T) {
@@ -303,6 +344,32 @@ func TestPasswordDigest_PlainText(t *testing.T) {
 
 	assert.Nil(t, v)
 	assert.False(t, ok)
+}
+
+func TestJSONSchema(t *testing.T) {
+	testCases := []customSchemaImpl{
+		&Address{},
+		&AddressSMTP{},
+		&AddressTCP{},
+		&AddressLDAP{},
+		&AddressUDP{},
+		&PasswordDigest{},
+		&TLSVersion{},
+		&X509CertificateChain{},
+		&AccessControlRuleNetworks{},
+		&AccessControlNetworkNetworks{},
+		&AccessControlRuleDomains{},
+		&AccessControlRuleMethods{},
+		&AccessControlRuleRegex{},
+		&AccessControlRuleSubjects{},
+		&IdentityProvidersOpenIDConnectClientRedirectURIs{},
+	}
+
+	for _, tc := range testCases {
+		t.Run(reflect.TypeOf(tc).String(), func(t *testing.T) {
+			assert.NotNil(t, tc.JSONSchema())
+		})
+	}
 }
 
 func MustParseX509CertificateChain(data string) *X509CertificateChain {
@@ -711,3 +778,7 @@ ZsjNr9jqHTjhyLVbDRlmJzcqoj4JhbKs6/I=
 	x509CertificateEmpty = `-----BEGIN CERTIFICATE-----
 -----END CERTIFICATE-----`
 )
+
+type customSchemaImpl interface {
+	JSONSchema() *jsonschema.Schema
+}

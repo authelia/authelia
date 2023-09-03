@@ -187,7 +187,7 @@ func ValidateServerEndpoints(config *schema.Configuration, validator *schema.Str
 	}
 }
 
-func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name string, endpoint schema.ServerAuthzEndpoint, validator *schema.StructValidator) {
+func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name string, endpoint schema.ServerEndpointsAuthz, validator *schema.StructValidator) {
 	if name == legacy {
 		switch endpoint.Implementation {
 		case authzImplementationLegacy:
@@ -212,7 +212,7 @@ func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name str
 	}
 }
 
-func validateServerEndpointsAuthzStrategies(name string, strategies []schema.ServerAuthzEndpointAuthnStrategy, validator *schema.StructValidator) {
+func validateServerEndpointsAuthzStrategies(name string, strategies []schema.ServerEndpointsAuthzAuthnStrategy, validator *schema.StructValidator) {
 	names := make([]string, len(strategies))
 
 	for _, strategy := range strategies {

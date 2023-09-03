@@ -23,13 +23,13 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func NewConfig(config *schema.OpenIDConnect, signer jwt.Signer, templates *templates.Provider) (c *Config) {
+func NewConfig(config *schema.IdentityProvidersOpenIDConnect, signer jwt.Signer, templates *templates.Provider) (c *Config) {
 	c = &Config{
 		Signer:                     signer,
 		GlobalSecret:               []byte(utils.HashSHA256FromString(config.HMACSecret)),
 		SendDebugMessagesToClients: config.EnableClientDebugMessages,
 		MinParameterEntropy:        config.MinimumParameterEntropy,
-		Lifespans:                  config.Lifespans.OpenIDConnectLifespanToken,
+		Lifespans:                  config.Lifespans.IdentityProvidersOpenIDConnectLifespanToken,
 		ProofKeyCodeExchange: ProofKeyCodeExchangeConfig{
 			Enforce:                   config.EnforcePKCE == "always",
 			EnforcePublicClients:      config.EnforcePKCE != "never",
@@ -102,7 +102,7 @@ type Config struct {
 	Strategy             StrategyConfig
 	PAR                  PARConfig
 	Handlers             HandlersConfig
-	Lifespans            schema.OpenIDConnectLifespanToken
+	Lifespans            schema.IdentityProvidersOpenIDConnectLifespanToken
 	ProofKeyCodeExchange ProofKeyCodeExchangeConfig
 	GrantTypeJWTBearer   GrantTypeJWTBearerConfig
 

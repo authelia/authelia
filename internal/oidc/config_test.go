@@ -230,8 +230,8 @@ func TestConfig_PAR(t *testing.T) {
 }
 
 func TestNewConfig(t *testing.T) {
-	c := &schema.OpenIDConnect{
-		Discovery: schema.OpenIDConnectDiscovery{
+	c := &schema.IdentityProvidersOpenIDConnect{
+		Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 			JWTResponseAccessTokens: true,
 		},
 	}

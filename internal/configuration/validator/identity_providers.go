@@ -21,7 +21,7 @@ func ValidateIdentityProviders(config *schema.IdentityProviders, val *schema.Str
 	validateOIDC(config.OIDC, val)
 }
 
-func validateOIDC(config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDC(config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	if config == nil {
 		return
 	}
@@ -59,7 +59,7 @@ func validateOIDC(config *schema.OpenIDConnect, val *schema.StructValidator) {
 	}
 }
 
-func validateOIDCAuthorizationPolicies(config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDCAuthorizationPolicies(config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	config.Discovery.AuthorizationPolicies = []string{policyOneFactor, policyTwoFactor}
 
 	for name, policy := range config.AuthorizationPolicies {
@@ -112,13 +112,13 @@ func validateOIDCAuthorizationPolicies(config *schema.OpenIDConnect, val *schema
 	}
 }
 
-func validateOIDCLifespans(config *schema.OpenIDConnect, _ *schema.StructValidator) {
+func validateOIDCLifespans(config *schema.IdentityProvidersOpenIDConnect, _ *schema.StructValidator) {
 	for name := range config.Lifespans.Custom {
 		config.Discovery.Lifespans = append(config.Discovery.Lifespans, name)
 	}
 }
 
-func validateOIDCIssuer(config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDCIssuer(config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	switch {
 	case config.IssuerPrivateKey != nil:
 		validateOIDCIssuerPrivateKey(config)
@@ -131,7 +131,7 @@ func validateOIDCIssuer(config *schema.OpenIDConnect, val *schema.StructValidato
 	}
 }
 
-func validateOIDCIssuerPrivateKey(config *schema.OpenIDConnect) {
+func validateOIDCIssuerPrivateKey(config *schema.IdentityProvidersOpenIDConnect) {
 	config.IssuerPrivateKeys = append([]schema.JWK{{
 		Algorithm:        oidc.SigningAlgRSAUsingSHA256,
 		Use:              oidc.KeyUseSignature,
@@ -140,7 +140,7 @@ func validateOIDCIssuerPrivateKey(config *schema.OpenIDConnect) {
 	}}, config.IssuerPrivateKeys...)
 }
 
-func validateOIDCIssuerPrivateKeys(config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDCIssuerPrivateKeys(config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	var (
 		props *JWKProperties
 		err   error
@@ -192,7 +192,7 @@ func validateOIDCIssuerPrivateKeys(config *schema.OpenIDConnect, val *schema.Str
 	}
 }
 
-func validateOIDCIssuerPrivateKeysUseAlg(i int, props *JWKProperties, config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDCIssuerPrivateKeysUseAlg(i int, props *JWKProperties, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	switch config.IssuerPrivateKeys[i].Use {
 	case "":
 		config.IssuerPrivateKeys[i].Use = props.Use
@@ -224,7 +224,7 @@ func validateOIDCIssuerPrivateKeysUseAlg(i int, props *JWKProperties, config *sc
 	}
 }
 
-func validateOIDCIssuerPrivateKeyPair(i int, config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDCIssuerPrivateKeyPair(i int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	var (
 		checkEqualKey bool
 		err           error
@@ -256,7 +256,7 @@ func validateOIDCIssuerPrivateKeyPair(i int, config *schema.OpenIDConnect, val *
 	}
 }
 
-func setOIDCDefaults(config *schema.OpenIDConnect) {
+func setOIDCDefaults(config *schema.IdentityProvidersOpenIDConnect) {
 	if config.Lifespans.AccessToken == durationZero {
 		config.Lifespans.AccessToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.AccessToken
 	}
@@ -278,7 +278,7 @@ func setOIDCDefaults(config *schema.OpenIDConnect) {
 	}
 }
 
-func validateOIDCOptionsCORS(config *schema.OpenIDConnect, validator *schema.StructValidator) {
+func validateOIDCOptionsCORS(config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
 	validateOIDCOptionsCORSAllowedOrigins(config, validator)
 
 	if config.CORS.AllowedOriginsFromClientRedirectURIs {
@@ -288,7 +288,7 @@ func validateOIDCOptionsCORS(config *schema.OpenIDConnect, validator *schema.Str
 	validateOIDCOptionsCORSEndpoints(config, validator)
 }
 
-func validateOIDCOptionsCORSAllowedOrigins(config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDCOptionsCORSAllowedOrigins(config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	for _, origin := range config.CORS.AllowedOrigins {
 		if origin.String() == "*" {
 			if len(config.CORS.AllowedOrigins) != 1 {
@@ -312,7 +312,7 @@ func validateOIDCOptionsCORSAllowedOrigins(config *schema.OpenIDConnect, val *sc
 	}
 }
 
-func validateOIDCOptionsCORSAllowedOriginsFromClientRedirectURIs(config *schema.OpenIDConnect) {
+func validateOIDCOptionsCORSAllowedOriginsFromClientRedirectURIs(config *schema.IdentityProvidersOpenIDConnect) {
 	for _, client := range config.Clients {
 		for _, redirectURI := range client.RedirectURIs {
 			uri, err := url.ParseRequestURI(redirectURI)
@@ -329,7 +329,7 @@ func validateOIDCOptionsCORSAllowedOriginsFromClientRedirectURIs(config *schema.
 	}
 }
 
-func validateOIDCOptionsCORSEndpoints(config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDCOptionsCORSEndpoints(config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	for _, endpoint := range config.CORS.Endpoints {
 		if !utils.IsStringInSlice(endpoint, validOIDCCORSEndpoints) {
 			val.Push(fmt.Errorf(errFmtOIDCCORSInvalidEndpoint, endpoint, strJoinOr(validOIDCCORSEndpoints)))
@@ -337,7 +337,7 @@ func validateOIDCOptionsCORSEndpoints(config *schema.OpenIDConnect, val *schema.
 	}
 }
 
-func validateOIDCClients(config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDCClients(config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	var (
 		errDeprecated bool
 
@@ -379,7 +379,7 @@ func validateOIDCClients(config *schema.OpenIDConnect, val *schema.StructValidat
 	}
 }
 
-func validateOIDCClient(c int, config *schema.OpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
+func validateOIDCClient(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
 	switch {
 	case config.Clients[c].AuthorizationPolicy == "":
 		config.Clients[c].AuthorizationPolicy = schema.DefaultOpenIDConnectClientConfiguration.AuthorizationPolicy
@@ -423,7 +423,7 @@ func validateOIDCClient(c int, config *schema.OpenIDConnect, val *schema.StructV
 	validateOIDCClientTokenEndpointAuth(c, config, val)
 }
 
-func validateOIDCClientPublicKeys(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDCClientPublicKeys(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	switch {
 	case config.Clients[c].PublicKeys.URI != nil && len(config.Clients[c].PublicKeys.Values) != 0:
 		val.Push(fmt.Errorf(errFmtOIDCClientPublicKeysBothURIAndValuesConfigured, config.Clients[c].ID))
@@ -436,7 +436,7 @@ func validateOIDCClientPublicKeys(c int, config *schema.OpenIDConnect, val *sche
 	}
 }
 
-func validateOIDCClientJSONWebKeysList(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDCClientJSONWebKeysList(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	var (
 		props *JWKProperties
 		err   error
@@ -494,7 +494,7 @@ func validateOIDCClientJSONWebKeysList(c int, config *schema.OpenIDConnect, val 
 	}
 }
 
-func validateOIDCClientJSONWebKeysListKeyUseAlg(c, i int, props *JWKProperties, config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDCClientJSONWebKeysListKeyUseAlg(c, i int, props *JWKProperties, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	switch config.Clients[c].PublicKeys.Values[i].Use {
 	case "":
 		config.Clients[c].PublicKeys.Values[i].Use = props.Use
@@ -524,7 +524,7 @@ func validateOIDCClientJSONWebKeysListKeyUseAlg(c, i int, props *JWKProperties, 
 	}
 }
 
-func validateOIDCClientSectorIdentifier(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDCClientSectorIdentifier(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	if config.Clients[c].SectorIdentifier.String() != "" {
 		if utils.IsURLHostComponent(config.Clients[c].SectorIdentifier) || utils.IsURLHostComponentWithPort(config.Clients[c].SectorIdentifier) {
 			return
@@ -560,7 +560,7 @@ func validateOIDCClientSectorIdentifier(c int, config *schema.OpenIDConnect, val
 	}
 }
 
-func validateOIDCClientConsentMode(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDCClientConsentMode(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	switch {
 	case utils.IsStringInSlice(config.Clients[c].ConsentMode, []string{"", auto}):
 		if config.Clients[c].ConsentPreConfiguredDuration != nil {
@@ -579,7 +579,7 @@ func validateOIDCClientConsentMode(c int, config *schema.OpenIDConnect, val *sch
 	}
 }
 
-func validateOIDCClientScopes(c int, config *schema.OpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
+func validateOIDCClientScopes(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
 	if len(config.Clients[c].Scopes) == 0 {
 		config.Clients[c].Scopes = schema.DefaultOpenIDConnectClientConfiguration.Scopes
 	}
@@ -616,7 +616,7 @@ func validateOIDCClientScopes(c int, config *schema.OpenIDConnect, val *schema.S
 	}
 }
 
-func validateOIDCClientScopesClientCredentialsGrant(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDCClientScopesClientCredentialsGrant(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	if len(config.Clients[c].GrantTypes) != 1 {
 		return
 	}
@@ -628,7 +628,7 @@ func validateOIDCClientScopesClientCredentialsGrant(c int, config *schema.OpenID
 	}
 }
 
-func validateOIDCClientResponseTypes(c int, config *schema.OpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
+func validateOIDCClientResponseTypes(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
 	if len(config.Clients[c].ResponseTypes) == 0 {
 		config.Clients[c].ResponseTypes = schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes
 	}
@@ -646,7 +646,7 @@ func validateOIDCClientResponseTypes(c int, config *schema.OpenIDConnect, val *s
 	}
 }
 
-func validateOIDCClientResponseModes(c int, config *schema.OpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
+func validateOIDCClientResponseModes(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
 	if len(config.Clients[c].ResponseModes) == 0 {
 		config.Clients[c].ResponseModes = schema.DefaultOpenIDConnectClientConfiguration.ResponseModes
 
@@ -678,7 +678,7 @@ func validateOIDCClientResponseModes(c int, config *schema.OpenIDConnect, val *s
 	}
 }
 
-func validateOIDCClientGrantTypes(c int, config *schema.OpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
+func validateOIDCClientGrantTypes(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
 	if len(config.Clients[c].GrantTypes) == 0 {
 		validateOIDCClientGrantTypesSetDefaults(c, config)
 	}
@@ -698,7 +698,7 @@ func validateOIDCClientGrantTypes(c int, config *schema.OpenIDConnect, val *sche
 	}
 }
 
-func validateOIDCClientGrantTypesSetDefaults(c int, config *schema.OpenIDConnect) {
+func validateOIDCClientGrantTypesSetDefaults(c int, config *schema.IdentityProvidersOpenIDConnect) {
 	for _, responseType := range config.Clients[c].ResponseTypes {
 		switch responseType {
 		case oidc.ResponseTypeAuthorizationCodeFlow:
@@ -721,7 +721,7 @@ func validateOIDCClientGrantTypesSetDefaults(c int, config *schema.OpenIDConnect
 	}
 }
 
-func validateOIDCClientGrantTypesCheckRelated(c int, config *schema.OpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
+func validateOIDCClientGrantTypesCheckRelated(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
 	for _, grantType := range config.Clients[c].GrantTypes {
 		switch grantType {
 		case oidc.GrantTypeAuthorizationCode:
@@ -760,7 +760,7 @@ func validateOIDCClientGrantTypesCheckRelated(c int, config *schema.OpenIDConnec
 	}
 }
 
-func validateOIDCClientRedirectURIs(c int, config *schema.OpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
+func validateOIDCClientRedirectURIs(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator, errDeprecatedFunc func()) {
 	var (
 		parsedRedirectURI *url.URL
 		err               error
@@ -797,7 +797,7 @@ func validateOIDCClientRedirectURIs(c int, config *schema.OpenIDConnect, val *sc
 }
 
 //nolint:gocyclo
-func validateOIDCClientTokenEndpointAuth(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDCClientTokenEndpointAuth(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	implicit := len(config.Clients[c].ResponseTypes) != 0 && utils.IsStringSliceContainsAll(config.Clients[c].ResponseTypes, validOIDCClientResponseTypesImplicitFlow)
 
 	switch {
@@ -857,7 +857,7 @@ func validateOIDCClientTokenEndpointAuth(c int, config *schema.OpenIDConnect, va
 	}
 }
 
-func validateOIDCClientTokenEndpointAuthClientSecretJWT(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDCClientTokenEndpointAuthClientSecretJWT(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	switch {
 	case config.Clients[c].TokenEndpointAuthSigningAlg == "":
 		config.Clients[c].TokenEndpointAuthSigningAlg = oidc.SigningAlgHMACUsingSHA256
@@ -866,7 +866,7 @@ func validateOIDCClientTokenEndpointAuthClientSecretJWT(c int, config *schema.Op
 	}
 }
 
-func validateOIDCClientTokenEndpointAuthPublicKeyJWT(config schema.OpenIDConnectClient, val *schema.StructValidator) {
+func validateOIDCClientTokenEndpointAuthPublicKeyJWT(config schema.IdentityProvidersOpenIDConnectClient, val *schema.StructValidator) {
 	switch {
 	case config.TokenEndpointAuthSigningAlg == "":
 		val.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthSigAlgMissingPrivateKeyJWT, config.ID))
@@ -883,7 +883,7 @@ func validateOIDCClientTokenEndpointAuthPublicKeyJWT(config schema.OpenIDConnect
 	}
 }
 
-func validateOIDDClientSigningAlgs(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDDClientSigningAlgs(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	validateOIDDClientSigningAlgsJARM(c, config, val)
 	validateOIDDClientSigningAlgsIDToken(c, config, val)
 	validateOIDDClientSigningAlgsAccessToken(c, config, val)
@@ -891,7 +891,7 @@ func validateOIDDClientSigningAlgs(c int, config *schema.OpenIDConnect, val *sch
 	validateOIDDClientSigningAlgsIntrospection(c, config, val)
 }
 
-func validateOIDDClientSigningAlgsIDToken(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDDClientSigningAlgsIDToken(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	config.Clients[c].IDTokenSignedResponseAlg, config.Clients[c].IDTokenSignedResponseKeyID = validateOIDCClientAlgKIDDefault(config, config.Clients[c].IDTokenSignedResponseAlg, config.Clients[c].IDTokenSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.IDTokenSignedResponseAlg)
 
 	switch config.Clients[c].IDTokenSignedResponseKeyID {
@@ -915,7 +915,7 @@ func validateOIDDClientSigningAlgsIDToken(c int, config *schema.OpenIDConnect, v
 	}
 }
 
-func validateOIDDClientSigningAlgsAccessToken(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDDClientSigningAlgsAccessToken(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	config.Clients[c].AccessTokenSignedResponseAlg, config.Clients[c].AccessTokenSignedResponseKeyID = validateOIDCClientAlgKIDDefault(config, config.Clients[c].AccessTokenSignedResponseAlg, config.Clients[c].AccessTokenSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.AccessTokenSignedResponseAlg)
 
 	switch config.Clients[c].AccessTokenSignedResponseKeyID {
@@ -943,7 +943,7 @@ func validateOIDDClientSigningAlgsAccessToken(c int, config *schema.OpenIDConnec
 	}
 }
 
-func validateOIDDClientSigningAlgsUserInfo(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDDClientSigningAlgsUserInfo(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	config.Clients[c].UserinfoSignedResponseAlg, config.Clients[c].UserinfoSignedResponseKeyID = validateOIDCClientAlgKIDDefault(config, config.Clients[c].UserinfoSignedResponseAlg, config.Clients[c].UserinfoSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.UserinfoSignedResponseAlg)
 
 	switch config.Clients[c].UserinfoSignedResponseKeyID {
@@ -967,7 +967,7 @@ func validateOIDDClientSigningAlgsUserInfo(c int, config *schema.OpenIDConnect, 
 	}
 }
 
-func validateOIDDClientSigningAlgsIntrospection(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDDClientSigningAlgsIntrospection(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	config.Clients[c].IntrospectionSignedResponseAlg, config.Clients[c].IntrospectionSignedResponseKeyID = validateOIDCClientAlgKIDDefault(config, config.Clients[c].IntrospectionSignedResponseAlg, config.Clients[c].IntrospectionSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.IntrospectionSignedResponseAlg)
 
 	switch config.Clients[c].IntrospectionSignedResponseKeyID {
@@ -991,7 +991,7 @@ func validateOIDDClientSigningAlgsIntrospection(c int, config *schema.OpenIDConn
 	}
 }
 
-func validateOIDDClientSigningAlgsJARM(c int, config *schema.OpenIDConnect, val *schema.StructValidator) {
+func validateOIDDClientSigningAlgsJARM(c int, config *schema.IdentityProvidersOpenIDConnect, val *schema.StructValidator) {
 	config.Clients[c].AuthorizationSignedResponseAlg, config.Clients[c].AuthorizationSignedResponseKeyID = validateOIDCClientAlgKIDDefault(config, config.Clients[c].AuthorizationSignedResponseAlg, config.Clients[c].AuthorizationSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.AuthorizationSignedResponseAlg)
 
 	switch config.Clients[c].AuthorizationSignedResponseKeyID {
@@ -1015,7 +1015,7 @@ func validateOIDDClientSigningAlgsJARM(c int, config *schema.OpenIDConnect, val 
 	}
 }
 
-func validateOIDCClientAlgKIDDefault(config *schema.OpenIDConnect, algCurrent, kidCurrent, algDefault string) (alg, kid string) {
+func validateOIDCClientAlgKIDDefault(config *schema.IdentityProvidersOpenIDConnect, algCurrent, kidCurrent, algDefault string) (alg, kid string) {
 	alg, kid = algCurrent, kidCurrent
 
 	switch balg, bkid := len(alg) != 0, len(kid) != 0; {

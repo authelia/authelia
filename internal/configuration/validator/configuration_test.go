@@ -17,29 +17,29 @@ func newDefaultConfig() schema.Configuration {
 	config.Log.Level = "info"
 	config.Log.Format = "text"
 	config.JWTSecret = testJWTSecret
-	config.AuthenticationBackend.File = &schema.FileAuthenticationBackend{
+	config.AuthenticationBackend.File = &schema.AuthenticationBackendFile{
 		Path: "/a/path",
 	}
-	config.AccessControl = schema.AccessControlConfiguration{
+	config.AccessControl = schema.AccessControl{
 		DefaultPolicy: "two_factor",
 	}
-	config.Session = schema.SessionConfiguration{
+	config.Session = schema.Session{
 		Secret: "secret",
-		Cookies: []schema.SessionCookieConfiguration{
+		Cookies: []schema.SessionCookie{
 			{
-				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-					Name:   "authelia_session",
-					Domain: exampleDotCom,
+				SessionCookieCommon: schema.SessionCookieCommon{
+					Name: "authelia_session",
 				},
+				Domain: exampleDotCom,
 			},
 		},
 	}
 	config.Storage.EncryptionKey = testEncryptionKey
-	config.Storage.Local = &schema.LocalStorageConfiguration{
+	config.Storage.Local = &schema.StorageLocal{
 		Path: "abc",
 	}
-	config.Notifier = schema.NotifierConfiguration{
-		FileSystem: &schema.FileSystemNotifierConfiguration{
+	config.Notifier = schema.Notifier{
+		FileSystem: &schema.NotifierFileSystem{
 			Filename: "/tmp/file",
 		},
 	}
@@ -69,7 +69,7 @@ func TestShouldAddDefaultAccessControl(t *testing.T) {
 	config := newDefaultConfig()
 
 	config.AccessControl.DefaultPolicy = ""
-	config.AccessControl.Rules = []schema.ACLRule{
+	config.AccessControl.Rules = []schema.AccessControlRule{
 		{
 			Policy: "bypass",
 			Domains: []string{
@@ -179,7 +179,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 			desc: "ShouldAllowConfiguredMethodTOTP",
 			have: &schema.Configuration{
 				Default2FAMethod: "totp",
-				DuoAPI: schema.DuoAPIConfiguration{
+				DuoAPI: schema.DuoAPI{
 					SecretKey:      "a key",
 					IntegrationKey: "another key",
 					Hostname:       "none",
@@ -190,7 +190,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 			desc: "ShouldAllowConfiguredMethodWebAuthn",
 			have: &schema.Configuration{
 				Default2FAMethod: "webauthn",
-				DuoAPI: schema.DuoAPIConfiguration{
+				DuoAPI: schema.DuoAPI{
 					SecretKey:      "a key",
 					IntegrationKey: "another key",
 					Hostname:       "none",
@@ -201,7 +201,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 			desc: "ShouldAllowConfiguredMethodMobilePush",
 			have: &schema.Configuration{
 				Default2FAMethod: "mobile_push",
-				DuoAPI: schema.DuoAPIConfiguration{
+				DuoAPI: schema.DuoAPI{
 					SecretKey:      "a key",
 					IntegrationKey: "another key",
 					Hostname:       "none",
@@ -212,12 +212,12 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 			desc: "ShouldNotAllowDisabledMethodTOTP",
 			have: &schema.Configuration{
 				Default2FAMethod: "totp",
-				DuoAPI: schema.DuoAPIConfiguration{
+				DuoAPI: schema.DuoAPI{
 					SecretKey:      "a key",
 					IntegrationKey: "another key",
 					Hostname:       "none",
 				},
-				TOTP: schema.TOTPConfiguration{Disable: true},
+				TOTP: schema.TOTP{Disable: true},
 			},
 			expectedErrs: []string{
 				"option 'default_2fa_method' must be one of the enabled options 'webauthn' or 'mobile_push' but it's configured as 'totp'",
@@ -227,12 +227,12 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 			desc: "ShouldNotAllowDisabledMethodWebAuthn",
 			have: &schema.Configuration{
 				Default2FAMethod: "webauthn",
-				DuoAPI: schema.DuoAPIConfiguration{
+				DuoAPI: schema.DuoAPI{
 					SecretKey:      "a key",
 					IntegrationKey: "another key",
 					Hostname:       "none",
 				},
-				WebAuthn: schema.WebAuthnConfiguration{Disable: true},
+				WebAuthn: schema.WebAuthn{Disable: true},
 			},
 			expectedErrs: []string{
 				"option 'default_2fa_method' must be one of the enabled options 'totp' or 'mobile_push' but it's configured as 'webauthn'",
@@ -242,7 +242,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 			desc: "ShouldNotAllowDisabledMethodMobilePush",
 			have: &schema.Configuration{
 				Default2FAMethod: "mobile_push",
-				DuoAPI:           schema.DuoAPIConfiguration{Disable: true},
+				DuoAPI:           schema.DuoAPI{Disable: true},
 			},
 			expectedErrs: []string{
 				"option 'default_2fa_method' must be one of the enabled options 'totp' or 'webauthn' but it's configured as 'mobile_push'",

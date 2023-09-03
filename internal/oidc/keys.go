@@ -19,7 +19,7 @@ import (
 )
 
 // NewKeyManager news up a KeyManager.
-func NewKeyManager(config *schema.OpenIDConnect) (manager *KeyManager) {
+func NewKeyManager(config *schema.IdentityProvidersOpenIDConnect) (manager *KeyManager) {
 	manager = &KeyManager{
 		alg2kid: config.Discovery.DefaultKeyIDs,
 		kids:    map[string]*JWK{},

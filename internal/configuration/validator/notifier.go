@@ -8,7 +8,7 @@ import (
 )
 
 // ValidateNotifier validates and update notifier configuration.
-func ValidateNotifier(config *schema.NotifierConfiguration, validator *schema.StructValidator) {
+func ValidateNotifier(config *schema.Notifier, validator *schema.StructValidator) {
 	if config.SMTP == nil && config.FileSystem == nil {
 		validator.Push(fmt.Errorf(errFmtNotifierNotConfigured))
 
@@ -32,7 +32,7 @@ func ValidateNotifier(config *schema.NotifierConfiguration, validator *schema.St
 	validateNotifierTemplates(config, validator)
 }
 
-func validateNotifierTemplates(config *schema.NotifierConfiguration, validator *schema.StructValidator) {
+func validateNotifierTemplates(config *schema.Notifier, validator *schema.StructValidator) {
 	if config.TemplatePath == "" {
 		return
 	}
@@ -47,7 +47,7 @@ func validateNotifierTemplates(config *schema.NotifierConfiguration, validator *
 	}
 }
 
-func validateSMTPNotifier(config *schema.SMTPNotifierConfiguration, validator *schema.StructValidator) {
+func validateSMTPNotifier(config *schema.NotifierSMTP, validator *schema.StructValidator) {
 	validateSMTPNotifierAddress(config, validator)
 
 	if config.StartupCheckAddress.Address == "" {
@@ -71,10 +71,10 @@ func validateSMTPNotifier(config *schema.SMTPNotifierConfiguration, validator *s
 	}
 
 	if config.TLS == nil {
-		config.TLS = &schema.TLSConfig{}
+		config.TLS = &schema.TLS{}
 	}
 
-	configDefaultTLS := &schema.TLSConfig{
+	configDefaultTLS := &schema.TLS{
 		MinimumVersion: schema.DefaultSMTPNotifierConfiguration.TLS.MinimumVersion,
 		MaximumVersion: schema.DefaultSMTPNotifierConfiguration.TLS.MaximumVersion,
 	}
@@ -92,7 +92,7 @@ func validateSMTPNotifier(config *schema.SMTPNotifierConfiguration, validator *s
 	}
 }
 
-func validateSMTPNotifierAddress(config *schema.SMTPNotifierConfiguration, validator *schema.StructValidator) {
+func validateSMTPNotifierAddress(config *schema.NotifierSMTP, validator *schema.StructValidator) {
 	if config.Address == nil {
 		if config.Host == "" && config.Port == 0 { //nolint:staticcheck
 			validator.Push(fmt.Errorf(errFmtNotifierSMTPNotConfigured, "address"))

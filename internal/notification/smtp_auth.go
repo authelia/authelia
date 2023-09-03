@@ -12,7 +12,7 @@ import (
 )
 
 // NewOpportunisticSMTPAuth is an opportunistic smtp.Auth implementation.
-func NewOpportunisticSMTPAuth(config *schema.SMTPNotifierConfiguration) *OpportunisticSMTPAuth {
+func NewOpportunisticSMTPAuth(config *schema.NotifierSMTP) *OpportunisticSMTPAuth {
 	if config.Username == "" && config.Password == "" {
 		return nil
 	}

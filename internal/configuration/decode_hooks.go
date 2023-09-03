@@ -490,7 +490,7 @@ func StringToCryptoPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 			return data, nil
 		}
 
-		field, _ := reflect.TypeOf(schema.TLSConfig{}).FieldByName("PrivateKey")
+		field, _ := reflect.TypeOf(schema.TLS{}).FieldByName("PrivateKey")
 		expectedType := field.Type
 
 		if t != expectedType {

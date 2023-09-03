@@ -82,7 +82,7 @@ func (b *AuthzBuilder) WithConfig(config *schema.Configuration) *AuthzBuilder {
 
 // WithEndpointConfig configures the AuthzBuilder with a *schema.ServerAuthzEndpointConfig. Should be called AFTER
 // WithConfig or WithAuthzConfig.
-func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerAuthzEndpoint) *AuthzBuilder {
+func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerEndpointsAuthz) *AuthzBuilder {
 	switch config.Implementation {
 	case AuthzImplForwardAuth.String():
 		b.WithImplementationForwardAuth()

@@ -260,31 +260,6 @@
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SCRYPT_SALT_LENGTH"
     },
     {
-        "path": "authentication_backend.file.password.iterations",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_ITERATIONS"
-    },
-    {
-        "path": "authentication_backend.file.password.memory",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_MEMORY"
-    },
-    {
-        "path": "authentication_backend.file.password.parallelism",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_PARALLELISM"
-    },
-    {
-        "path": "authentication_backend.file.password.key_length",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_KEY_LENGTH"
-    },
-    {
-        "path": "authentication_backend.file.password.salt_length",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SALT_LENGTH"
-    },
-    {
         "path": "authentication_backend.file.search.email",
         "secret": false,
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_SEARCH_EMAIL"
@@ -430,19 +405,9 @@
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE"
     },
     {
-        "path": "session.secret",
-        "secret": true,
-        "env": "AUTHELIA_SESSION_SECRET_FILE"
-    },
-    {
         "path": "session.name",
         "secret": false,
         "env": "AUTHELIA_SESSION_NAME"
-    },
-    {
-        "path": "session.domain",
-        "secret": false,
-        "env": "AUTHELIA_SESSION_DOMAIN"
     },
     {
         "path": "session.same_site",
@@ -468,6 +433,11 @@
         "path": "session",
         "secret": false,
         "env": "AUTHELIA_SESSION"
+    },
+    {
+        "path": "session.secret",
+        "secret": true,
+        "env": "AUTHELIA_SESSION_SECRET_FILE"
     },
     {
         "path": "session.redis.host",
@@ -695,16 +665,6 @@
         "env": "AUTHELIA_STORAGE_MYSQL_TIMEOUT"
     },
     {
-        "path": "storage.mysql.host",
-        "secret": false,
-        "env": "AUTHELIA_STORAGE_MYSQL_HOST"
-    },
-    {
-        "path": "storage.mysql.port",
-        "secret": false,
-        "env": "AUTHELIA_STORAGE_MYSQL_PORT"
-    },
-    {
         "path": "storage.mysql.tls.minimum_version",
         "secret": false,
         "env": "AUTHELIA_STORAGE_MYSQL_TLS_MINIMUM_VERSION"
@@ -760,16 +720,6 @@
         "env": "AUTHELIA_STORAGE_POSTGRES_TIMEOUT"
     },
     {
-        "path": "storage.postgres.host",
-        "secret": false,
-        "env": "AUTHELIA_STORAGE_POSTGRES_HOST"
-    },
-    {
-        "path": "storage.postgres.port",
-        "secret": false,
-        "env": "AUTHELIA_STORAGE_POSTGRES_PORT"
-    },
-    {
         "path": "storage.postgres.schema",
         "secret": false,
         "env": "AUTHELIA_STORAGE_POSTGRES_SCHEMA"
@@ -803,26 +753,6 @@
         "path": "storage.postgres.tls.certificate_chain",
         "secret": true,
         "env": "AUTHELIA_STORAGE_POSTGRES_TLS_CERTIFICATE_CHAIN_FILE"
-    },
-    {
-        "path": "storage.postgres.ssl.mode",
-        "secret": false,
-        "env": "AUTHELIA_STORAGE_POSTGRES_SSL_MODE"
-    },
-    {
-        "path": "storage.postgres.ssl.root_certificate",
-        "secret": false,
-        "env": "AUTHELIA_STORAGE_POSTGRES_SSL_ROOT_CERTIFICATE"
-    },
-    {
-        "path": "storage.postgres.ssl.certificate",
-        "secret": false,
-        "env": "AUTHELIA_STORAGE_POSTGRES_SSL_CERTIFICATE"
-    },
-    {
-        "path": "storage.postgres.ssl.key",
-        "secret": true,
-        "env": "AUTHELIA_STORAGE_POSTGRES_SSL_KEY_FILE"
     },
     {
         "path": "storage.encryption_key",
@@ -925,16 +855,6 @@
         "env": "AUTHELIA_NOTIFIER_SMTP_TLS_CERTIFICATE_CHAIN_FILE"
     },
     {
-        "path": "notifier.smtp.host",
-        "secret": false,
-        "env": "AUTHELIA_NOTIFIER_SMTP_HOST"
-    },
-    {
-        "path": "notifier.smtp.port",
-        "secret": false,
-        "env": "AUTHELIA_NOTIFIER_SMTP_PORT"
-    },
-    {
         "path": "notifier.template_path",
         "secret": false,
         "env": "AUTHELIA_NOTIFIER_TEMPLATE_PATH"
@@ -1008,21 +928,6 @@
         "path": "server.timeouts.idle",
         "secret": false,
         "env": "AUTHELIA_SERVER_TIMEOUTS_IDLE"
-    },
-    {
-        "path": "server.host",
-        "secret": false,
-        "env": "AUTHELIA_SERVER_HOST"
-    },
-    {
-        "path": "server.port",
-        "secret": false,
-        "env": "AUTHELIA_SERVER_PORT"
-    },
-    {
-        "path": "server.path",
-        "secret": false,
-        "env": "AUTHELIA_SERVER_PATH"
     },
     {
         "path": "telemetry.metrics.enabled",

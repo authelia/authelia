@@ -144,16 +144,12 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 
 func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 	config := model.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
-	s.mock.Ctx.Configuration.Session.Cookies = []schema.SessionCookieConfiguration{
+	s.mock.Ctx.Configuration.Session.Cookies = []schema.SessionCookie{
 		{
-			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-				Domain: "example.com",
-			},
+			Domain: "example.com",
 		},
 		{
-			SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-				Domain: "mydomain.local",
-			},
+			Domain: "mydomain.local",
 		},
 	}
 

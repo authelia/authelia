@@ -14,7 +14,7 @@ import (
 func TestWebAuthnShouldSetDefaultValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
-		WebAuthn: schema.WebAuthnConfiguration{},
+		WebAuthn: schema.WebAuthn{},
 	}
 
 	ValidateWebAuthn(config, validator)
@@ -29,7 +29,7 @@ func TestWebAuthnShouldSetDefaultValues(t *testing.T) {
 func TestWebAuthnShouldSetDefaultTimeoutWhenNegative(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
-		WebAuthn: schema.WebAuthnConfiguration{
+		WebAuthn: schema.WebAuthn{
 			Timeout: -1,
 		},
 	}
@@ -43,7 +43,7 @@ func TestWebAuthnShouldSetDefaultTimeoutWhenNegative(t *testing.T) {
 func TestWebAuthnShouldNotSetDefaultValuesWhenConfigured(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
-		WebAuthn: schema.WebAuthnConfiguration{
+		WebAuthn: schema.WebAuthn{
 			DisplayName:          "Test",
 			Timeout:              time.Second * 50,
 			ConveyancePreference: protocol.PreferNoAttestation,
@@ -81,7 +81,7 @@ func TestWebAuthnShouldNotSetDefaultValuesWhenConfigured(t *testing.T) {
 func TestWebAuthnShouldRaiseErrorsOnInvalidOptions(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
-		WebAuthn: schema.WebAuthnConfiguration{
+		WebAuthn: schema.WebAuthn{
 			DisplayName:          "Test",
 			Timeout:              time.Second * 50,
 			ConveyancePreference: "no",

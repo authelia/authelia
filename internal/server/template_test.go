@@ -52,12 +52,11 @@ func TestShouldTemplateOpenAPI(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 
 	mock.Ctx.Configuration.Server = schema.DefaultServerConfiguration
-	mock.Ctx.Configuration.Session = schema.SessionConfiguration{
-		Cookies: []schema.SessionCookieConfiguration{
+	mock.Ctx.Configuration.Session = schema.Session{
+		Cookies: []schema.SessionCookie{
 			{
-				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-					Domain: "example.com",
-				},
+				Domain: "example.com",
+
 				AutheliaURL: &url.URL{Scheme: "https", Host: "auth.example.com", Path: "/"},
 			},
 		},

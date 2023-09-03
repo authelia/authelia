@@ -30,7 +30,7 @@ func NewMySQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (
 	return provider
 }
 
-func dsnMySQL(config *schema.MySQLStorageConfiguration, caCertPool *x509.CertPool) (dataSourceName string) {
+func dsnMySQL(config *schema.StorageMySQL, caCertPool *x509.CertPool) (dataSourceName string) {
 	dsnConfig := mysql.NewConfig()
 
 	dsnConfig.Net = config.Address.Network()

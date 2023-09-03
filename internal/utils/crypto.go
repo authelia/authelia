@@ -302,8 +302,8 @@ func IsX509PrivateKey(i any) bool {
 	}
 }
 
-// NewTLSConfig generates a tls.Config from a schema.TLSConfig and a x509.CertPool.
-func NewTLSConfig(config *schema.TLSConfig, rootCAs *x509.CertPool) (tlsConfig *tls.Config) {
+// NewTLSConfig generates a tls.Config from a schema.TLS and a x509.CertPool.
+func NewTLSConfig(config *schema.TLS, rootCAs *x509.CertPool) (tlsConfig *tls.Config) {
 	var certificates []tls.Certificate
 
 	if config.PrivateKey != nil && config.CertificateChain.HasCertificates() {

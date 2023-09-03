@@ -13,8 +13,8 @@ import (
 func TestValidateTOTP(t *testing.T) {
 	testCases := []struct {
 		desc     string
-		have     schema.TOTPConfiguration
-		expected schema.TOTPConfiguration
+		have     schema.TOTP
+		expected schema.TOTP
 		errs     []string
 		warns    []string
 	}{
@@ -24,12 +24,12 @@ func TestValidateTOTP(t *testing.T) {
 		},
 		{
 			desc:     "ShouldNotSetDefaultTOTPValuesWhenDisabled",
-			have:     schema.TOTPConfiguration{Disable: true},
-			expected: schema.TOTPConfiguration{Disable: true},
+			have:     schema.TOTP{Disable: true},
+			expected: schema.TOTP{Disable: true},
 		},
 		{
 			desc: "ShouldNormalizeTOTPAlgorithm",
-			have: schema.TOTPConfiguration{
+			have: schema.TOTP{
 				Algorithm:  digestSHA1,
 				Digits:     6,
 				Period:     30,
@@ -37,7 +37,7 @@ func TestValidateTOTP(t *testing.T) {
 				Skew:       schema.DefaultTOTPConfiguration.Skew,
 				Issuer:     "abc",
 			},
-			expected: schema.TOTPConfiguration{
+			expected: schema.TOTP{
 				Algorithm:  "SHA1",
 				Digits:     6,
 				Period:     30,
@@ -48,7 +48,7 @@ func TestValidateTOTP(t *testing.T) {
 		},
 		{
 			desc: "ShouldRaiseErrorWhenInvalidTOTPAlgorithm",
-			have: schema.TOTPConfiguration{
+			have: schema.TOTP{
 				Algorithm:  "sha3",
 				Digits:     6,
 				Period:     30,
@@ -62,7 +62,7 @@ func TestValidateTOTP(t *testing.T) {
 		},
 		{
 			desc: "ShouldRaiseErrorWhenInvalidTOTPValue",
-			have: schema.TOTPConfiguration{
+			have: schema.TOTP{
 				Algorithm:  "sha3",
 				Period:     5,
 				Digits:     20,

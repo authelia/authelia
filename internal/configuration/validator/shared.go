@@ -8,8 +8,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-// ValidateTLSConfig sets the default values and validates a schema.TLSConfig.
-func ValidateTLSConfig(config *schema.TLSConfig, configDefault *schema.TLSConfig) (err error) {
+// ValidateTLSConfig sets the default values and validates a schema.TLS.
+func ValidateTLSConfig(config *schema.TLS, configDefault *schema.TLS) (err error) {
 	if configDefault == nil {
 		return errors.New("must provide configDefault")
 	}

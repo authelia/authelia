@@ -189,7 +189,7 @@ func TestShouldRaiseErrorWhenClientDoesNotSkipVerify(t *testing.T) {
 	defer certificateContext.Close()
 
 	tlsServerContext, err := NewTLSServerContext(schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.Server{
 			Address: &schema.AddressTCP{Address: schema.NewAddressFromNetworkValues("tcp", "0.0.0.0", 9091)},
 			TLS: schema.ServerTLS{
 				Certificate: certificateContext.Certificates[0].CertFile.Name(),
@@ -218,7 +218,7 @@ func TestShouldServeOverTLSWhenClientDoesSkipVerify(t *testing.T) {
 	defer certificateContext.Close()
 
 	tlsServerContext, err := NewTLSServerContext(schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.Server{
 			Address: schema.DefaultServerConfiguration.Address,
 			TLS: schema.ServerTLS{
 				Certificate: certificateContext.Certificates[0].CertFile.Name(),
@@ -256,7 +256,7 @@ func TestShouldServeOverTLSWhenClientHasProperRootCA(t *testing.T) {
 	defer certificateContext.Close()
 
 	tlsServerContext, err := NewTLSServerContext(schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.Server{
 			Address: schema.DefaultServerConfiguration.Address,
 			TLS: schema.ServerTLS{
 				Certificate: certificateContext.Certificates[0].CertFile.Name(),
@@ -308,7 +308,7 @@ func TestShouldRaiseWhenMutualTLSIsConfiguredAndClientIsNotAuthenticated(t *test
 	require.NoError(t, err)
 
 	tlsServerContext, err := NewTLSServerContext(schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.Server{
 			Address: schema.DefaultServerConfiguration.Address,
 			TLS: schema.ServerTLS{
 				Certificate:        certificateContext.Certificates[0].CertFile.Name(),
@@ -352,7 +352,7 @@ func TestShouldServeProperlyWhenMutualTLSIsConfiguredAndClientIsAuthenticated(t 
 	require.NoError(t, err)
 
 	tlsServerContext, err := NewTLSServerContext(schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.Server{
 			Address: schema.DefaultServerConfiguration.Address,
 			TLS: schema.ServerTLS{
 				Certificate:        certificateContext.Certificates[0].CertFile.Name(),

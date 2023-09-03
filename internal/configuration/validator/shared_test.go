@@ -10,16 +10,16 @@ import (
 
 func TestValidateTLSConfig(t *testing.T) {
 	var (
-		config, configDefault *schema.TLSConfig
+		config, configDefault *schema.TLS
 	)
 
 	assert.EqualError(t, ValidateTLSConfig(config, configDefault), "must provide configDefault")
 
-	configDefault = &schema.TLSConfig{}
+	configDefault = &schema.TLS{}
 
 	assert.NoError(t, ValidateTLSConfig(config, configDefault))
 
-	config = &schema.TLSConfig{}
+	config = &schema.TLS{}
 
 	assert.NoError(t, ValidateTLSConfig(config, configDefault))
 

@@ -12,7 +12,7 @@ import (
 
 func TestShouldCheckNTPV4(t *testing.T) {
 	config := &schema.Configuration{
-		NTP: schema.NTPConfiguration{
+		NTP: schema.NTP{
 			Address:       &schema.AddressUDP{Address: schema.NewAddressFromNetworkValues(schema.AddressSchemeUDP, "time.cloudflare.com", 123)},
 			Version:       4,
 			MaximumDesync: time.Second * 3,
@@ -29,7 +29,7 @@ func TestShouldCheckNTPV4(t *testing.T) {
 
 func TestShouldCheckNTPV3(t *testing.T) {
 	config := &schema.Configuration{
-		NTP: schema.NTPConfiguration{
+		NTP: schema.NTP{
 			Address:       &schema.AddressUDP{Address: schema.NewAddressFromNetworkValues(schema.AddressSchemeUDP, "time.cloudflare.com", 123)},
 			Version:       3,
 			MaximumDesync: time.Second * 3,

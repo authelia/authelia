@@ -9,7 +9,7 @@ import (
 	"github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/square/go-jose.v2"
+	jose "gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -19,8 +19,8 @@ import (
 )
 
 func TestNewClient(t *testing.T) {
-	config := schema.OpenIDConnectClient{}
-	client := oidc.NewClient(config, &schema.OpenIDConnect{})
+	config := schema.IdentityProvidersOpenIDConnectClient{}
+	client := oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{})
 	assert.Equal(t, "", client.GetID())
 	assert.Equal(t, "", client.GetDescription())
 	assert.Len(t, client.GetResponseModes(), 0)
@@ -38,7 +38,7 @@ func TestNewClient(t *testing.T) {
 	_, ok = client.(*oidc.FullClient)
 	assert.False(t, ok)
 
-	config = schema.OpenIDConnectClient{
+	config = schema.IdentityProvidersOpenIDConnectClient{
 		ID:                  myclient,
 		Description:         myclientdesc,
 		AuthorizationPolicy: twofactor,
@@ -50,17 +50,17 @@ func TestNewClient(t *testing.T) {
 		ResponseModes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseModes,
 	}
 
-	client = oidc.NewClient(config, &schema.OpenIDConnect{})
+	client = oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{})
 	assert.Equal(t, myclient, client.GetID())
 	require.Len(t, client.GetResponseModes(), 1)
 	assert.Equal(t, fosite.ResponseModeFormPost, client.GetResponseModes()[0])
 	assert.Equal(t, authorization.TwoFactor, client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{}))
 
-	config = schema.OpenIDConnectClient{
+	config = schema.IdentityProvidersOpenIDConnectClient{
 		TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
 	}
 
-	client = oidc.NewClient(config, &schema.OpenIDConnect{})
+	client = oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{})
 
 	fclient, ok := client.(*oidc.FullClient)
 
@@ -470,7 +470,7 @@ func TestClient_GetResponseTypes(t *testing.T) {
 func TestNewClientPKCE(t *testing.T) {
 	testCases := []struct {
 		name                               string
-		have                               schema.OpenIDConnectClient
+		have                               schema.IdentityProvidersOpenIDConnectClient
 		expectedEnforcePKCE                bool
 		expectedEnforcePKCEChallengeMethod bool
 		expected                           string
@@ -480,7 +480,7 @@ func TestNewClientPKCE(t *testing.T) {
 	}{
 		{
 			"ShouldNotEnforcePKCEAndNotErrorOnNonPKCERequest",
-			schema.OpenIDConnectClient{},
+			schema.IdentityProvidersOpenIDConnectClient{},
 			false,
 			false,
 			"",
@@ -490,7 +490,7 @@ func TestNewClientPKCE(t *testing.T) {
 		},
 		{
 			"ShouldEnforcePKCEAndErrorOnNonPKCERequest",
-			schema.OpenIDConnectClient{EnforcePKCE: true},
+			schema.IdentityProvidersOpenIDConnectClient{EnforcePKCE: true},
 			true,
 			false,
 			"",
@@ -500,7 +500,7 @@ func TestNewClientPKCE(t *testing.T) {
 		},
 		{
 			"ShouldEnforcePKCEAndNotErrorOnPKCERequest",
-			schema.OpenIDConnectClient{EnforcePKCE: true},
+			schema.IdentityProvidersOpenIDConnectClient{EnforcePKCE: true},
 			true,
 			false,
 			"",
@@ -509,7 +509,7 @@ func TestNewClientPKCE(t *testing.T) {
 			"",
 		},
 		{"ShouldEnforcePKCEFromChallengeMethodAndErrorOnNonPKCERequest",
-			schema.OpenIDConnectClient{PKCEChallengeMethod: "S256"},
+			schema.IdentityProvidersOpenIDConnectClient{PKCEChallengeMethod: "S256"},
 			true,
 			true,
 			"S256",
@@ -518,7 +518,7 @@ func TestNewClientPKCE(t *testing.T) {
 			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Clients must include a code_challenge when performing the authorize code flow, but it is missing. The server is configured in a way that enforces PKCE for this client.",
 		},
 		{"ShouldEnforcePKCEFromChallengeMethodAndErrorOnInvalidChallengeMethod",
-			schema.OpenIDConnectClient{PKCEChallengeMethod: "S256"},
+			schema.IdentityProvidersOpenIDConnectClient{PKCEChallengeMethod: "S256"},
 			true,
 			true,
 			"S256",
@@ -527,7 +527,7 @@ func TestNewClientPKCE(t *testing.T) {
 			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Client must use code_challenge_method=S256,  is not allowed. The server is configured in a way that enforces PKCE S256 as challenge method for this client.",
 		},
 		{"ShouldEnforcePKCEFromChallengeMethodAndNotErrorOnValidRequest",
-			schema.OpenIDConnectClient{PKCEChallengeMethod: "S256"},
+			schema.IdentityProvidersOpenIDConnectClient{PKCEChallengeMethod: "S256"},
 			true,
 			true,
 			"S256",
@@ -539,7 +539,7 @@ func TestNewClientPKCE(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			client := oidc.NewClient(tc.have, &schema.OpenIDConnect{})
+			client := oidc.NewClient(tc.have, &schema.IdentityProvidersOpenIDConnect{})
 
 			assert.Equal(t, tc.expectedEnforcePKCE, client.GetPKCEEnforcement())
 			assert.Equal(t, tc.expectedEnforcePKCEChallengeMethod, client.GetPKCEChallengeMethodEnforcement())
@@ -563,7 +563,7 @@ func TestNewClientPKCE(t *testing.T) {
 func TestNewClientPAR(t *testing.T) {
 	testCases := []struct {
 		name     string
-		have     schema.OpenIDConnectClient
+		have     schema.IdentityProvidersOpenIDConnectClient
 		expected bool
 		r        *fosite.Request
 		err      string
@@ -571,7 +571,7 @@ func TestNewClientPAR(t *testing.T) {
 	}{
 		{
 			"ShouldNotEnforcEPARAndNotErrorOnNonPARRequest",
-			schema.OpenIDConnectClient{},
+			schema.IdentityProvidersOpenIDConnectClient{},
 			false,
 			&fosite.Request{},
 			"",
@@ -579,7 +579,7 @@ func TestNewClientPAR(t *testing.T) {
 		},
 		{
 			"ShouldEnforcePARAndErrorOnNonPARRequest",
-			schema.OpenIDConnectClient{EnforcePAR: true},
+			schema.IdentityProvidersOpenIDConnectClient{EnforcePAR: true},
 			true,
 			&fosite.Request{},
 			"invalid_request",
@@ -587,14 +587,14 @@ func TestNewClientPAR(t *testing.T) {
 		},
 		{
 			"ShouldEnforcePARAndErrorOnNonPARRequest",
-			schema.OpenIDConnectClient{EnforcePAR: true},
+			schema.IdentityProvidersOpenIDConnectClient{EnforcePAR: true},
 			true,
 			&fosite.Request{Form: map[string][]string{oidc.FormParameterRequestURI: {"https://example.com"}}},
 			"invalid_request",
 			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Pushed Authorization Requests are enforced for this client but no such request was sent. The request_uri parameter 'https://example.com' is malformed."},
 		{
 			"ShouldEnforcePARAndNotErrorOnPARRequest",
-			schema.OpenIDConnectClient{EnforcePAR: true},
+			schema.IdentityProvidersOpenIDConnectClient{EnforcePAR: true},
 			true,
 			&fosite.Request{Form: map[string][]string{oidc.FormParameterRequestURI: {fmt.Sprintf("%sabc", oidc.RedirectURIPrefixPushedAuthorizationRequestURN)}}},
 			"",
@@ -604,7 +604,7 @@ func TestNewClientPAR(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			client := oidc.NewClient(tc.have, &schema.OpenIDConnect{})
+			client := oidc.NewClient(tc.have, &schema.IdentityProvidersOpenIDConnect{})
 
 			assert.Equal(t, tc.expected, client.GetPAREnforcement())
 
@@ -634,13 +634,13 @@ func TestClient_GetEffectiveLifespan(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		have     schema.OpenIDConnectLifespan
+		have     schema.IdentityProvidersOpenIDConnectLifespan
 		subcases []subcase
 	}{
 		{
 			"ShouldHandleEdgeCases",
-			schema.OpenIDConnectLifespan{
-				OpenIDConnectLifespanToken: schema.OpenIDConnectLifespanToken{
+			schema.IdentityProvidersOpenIDConnectLifespan{
+				IdentityProvidersOpenIDConnectLifespanToken: schema.IdentityProvidersOpenIDConnectLifespanToken{
 					AccessToken:   time.Hour * 1,
 					RefreshToken:  time.Hour * 2,
 					IDToken:       time.Hour * 3,
@@ -666,7 +666,7 @@ func TestClient_GetEffectiveLifespan(t *testing.T) {
 		},
 		{
 			"ShouldHandleUnconfiguredClient",
-			schema.OpenIDConnectLifespan{},
+			schema.IdentityProvidersOpenIDConnectLifespan{},
 			[]subcase{
 				{
 					"ShouldHandleAuthorizationCodeFlowAuthorizationCode",
@@ -812,8 +812,8 @@ func TestClient_GetEffectiveLifespan(t *testing.T) {
 		},
 		{
 			"ShouldHandleConfiguredClientByTokenType",
-			schema.OpenIDConnectLifespan{
-				OpenIDConnectLifespanToken: schema.OpenIDConnectLifespanToken{
+			schema.IdentityProvidersOpenIDConnectLifespan{
+				IdentityProvidersOpenIDConnectLifespanToken: schema.IdentityProvidersOpenIDConnectLifespanToken{
 					AccessToken:   time.Hour * 1,
 					RefreshToken:  time.Hour * 2,
 					IDToken:       time.Hour * 3,
@@ -965,39 +965,39 @@ func TestClient_GetEffectiveLifespan(t *testing.T) {
 		},
 		{
 			"ShouldHandleConfiguredClientByTokenTypeByGrantType",
-			schema.OpenIDConnectLifespan{
-				OpenIDConnectLifespanToken: schema.OpenIDConnectLifespanToken{
+			schema.IdentityProvidersOpenIDConnectLifespan{
+				IdentityProvidersOpenIDConnectLifespanToken: schema.IdentityProvidersOpenIDConnectLifespanToken{
 					AccessToken:   time.Hour * 1,
 					RefreshToken:  time.Hour * 2,
 					IDToken:       time.Hour * 3,
 					AuthorizeCode: time.Minute * 5,
 				},
-				Grants: schema.OpenIDConnectLifespanGrants{
-					AuthorizeCode: schema.OpenIDConnectLifespanToken{
+				Grants: schema.IdentityProvidersOpenIDConnectLifespanGrants{
+					AuthorizeCode: schema.IdentityProvidersOpenIDConnectLifespanToken{
 						AccessToken:   time.Hour * 11,
 						RefreshToken:  time.Hour * 12,
 						IDToken:       time.Hour * 13,
 						AuthorizeCode: time.Minute * 15,
 					},
-					Implicit: schema.OpenIDConnectLifespanToken{
+					Implicit: schema.IdentityProvidersOpenIDConnectLifespanToken{
 						AccessToken:   time.Hour * 21,
 						RefreshToken:  time.Hour * 22,
 						IDToken:       time.Hour * 23,
 						AuthorizeCode: time.Minute * 25,
 					},
-					ClientCredentials: schema.OpenIDConnectLifespanToken{
+					ClientCredentials: schema.IdentityProvidersOpenIDConnectLifespanToken{
 						AccessToken:   time.Hour * 31,
 						RefreshToken:  time.Hour * 32,
 						IDToken:       time.Hour * 33,
 						AuthorizeCode: time.Minute * 35,
 					},
-					RefreshToken: schema.OpenIDConnectLifespanToken{
+					RefreshToken: schema.IdentityProvidersOpenIDConnectLifespanToken{
 						AccessToken:   time.Hour * 41,
 						RefreshToken:  time.Hour * 42,
 						IDToken:       time.Hour * 43,
 						AuthorizeCode: time.Minute * 45,
 					},
-					JWTBearer: schema.OpenIDConnectLifespanToken{
+					JWTBearer: schema.IdentityProvidersOpenIDConnectLifespanToken{
 						AccessToken:   time.Hour * 51,
 						RefreshToken:  time.Hour * 52,
 						IDToken:       time.Hour * 53,
@@ -1152,12 +1152,12 @@ func TestClient_GetEffectiveLifespan(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			client := oidc.NewClient(schema.OpenIDConnectClient{
+			client := oidc.NewClient(schema.IdentityProvidersOpenIDConnectClient{
 				ID:       "test",
 				Lifespan: "test",
-			}, &schema.OpenIDConnect{
-				Lifespans: schema.OpenIDConnectLifespans{
-					Custom: map[string]schema.OpenIDConnectLifespan{
+			}, &schema.IdentityProvidersOpenIDConnect{
+				Lifespans: schema.IdentityProvidersOpenIDConnectLifespans{
+					Custom: map[string]schema.IdentityProvidersOpenIDConnectLifespan{
 						"test": tc.have,
 					},
 				},
@@ -1175,7 +1175,7 @@ func TestClient_GetEffectiveLifespan(t *testing.T) {
 func TestNewClientResponseModes(t *testing.T) {
 	testCases := []struct {
 		name     string
-		have     schema.OpenIDConnectClient
+		have     schema.IdentityProvidersOpenIDConnectClient
 		expected []fosite.ResponseModeType
 		r        *fosite.AuthorizeRequest
 		err      string
@@ -1183,7 +1183,7 @@ func TestNewClientResponseModes(t *testing.T) {
 	}{
 		{
 			"ShouldEnforceResponseModePolicyAndAllowDefaultModeQuery",
-			schema.OpenIDConnectClient{ResponseModes: []string{oidc.ResponseModeQuery}},
+			schema.IdentityProvidersOpenIDConnectClient{ResponseModes: []string{oidc.ResponseModeQuery}},
 			[]fosite.ResponseModeType{fosite.ResponseModeQuery},
 			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeDefault, Request: fosite.Request{Form: map[string][]string{oidc.FormParameterResponseMode: nil}}},
 			"",
@@ -1191,7 +1191,7 @@ func TestNewClientResponseModes(t *testing.T) {
 		},
 		{
 			"ShouldEnforceResponseModePolicyAndFailOnDefaultMode",
-			schema.OpenIDConnectClient{ResponseModes: []string{oidc.ResponseModeFormPost}},
+			schema.IdentityProvidersOpenIDConnectClient{ResponseModes: []string{oidc.ResponseModeFormPost}},
 			[]fosite.ResponseModeType{fosite.ResponseModeFormPost},
 			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeDefault, Request: fosite.Request{Form: map[string][]string{oidc.FormParameterResponseMode: nil}}},
 			"unsupported_response_mode",
@@ -1199,7 +1199,7 @@ func TestNewClientResponseModes(t *testing.T) {
 		},
 		{
 			"ShouldNotEnforceConfiguredResponseMode",
-			schema.OpenIDConnectClient{ResponseModes: []string{oidc.ResponseModeFormPost}},
+			schema.IdentityProvidersOpenIDConnectClient{ResponseModes: []string{oidc.ResponseModeFormPost}},
 			[]fosite.ResponseModeType{fosite.ResponseModeFormPost},
 			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeQuery, Request: fosite.Request{Form: map[string][]string{oidc.FormParameterResponseMode: {oidc.ResponseModeQuery}}}},
 			"",
@@ -1207,7 +1207,7 @@ func TestNewClientResponseModes(t *testing.T) {
 		},
 		{
 			"ShouldNotEnforceUnconfiguredResponseMode",
-			schema.OpenIDConnectClient{ResponseModes: []string{}},
+			schema.IdentityProvidersOpenIDConnectClient{ResponseModes: []string{}},
 			[]fosite.ResponseModeType{},
 			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeDefault, Request: fosite.Request{Form: map[string][]string{oidc.FormParameterResponseMode: {oidc.ResponseModeQuery}}}},
 			"",
@@ -1217,7 +1217,7 @@ func TestNewClientResponseModes(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			client := oidc.NewClient(tc.have, &schema.OpenIDConnect{})
+			client := oidc.NewClient(tc.have, &schema.IdentityProvidersOpenIDConnect{})
 
 			assert.Equal(t, tc.expected, client.GetResponseModes())
 
@@ -1252,12 +1252,12 @@ func TestNewClient_JSONWebKeySetURI(t *testing.T) {
 		ok      bool
 	)
 
-	client = oidc.NewClient(schema.OpenIDConnectClient{
+	client = oidc.NewClient(schema.IdentityProvidersOpenIDConnectClient{
 		TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
-		PublicKeys: schema.OpenIDConnectClientPublicKeys{
+		PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
 			URI: MustParseRequestURI("https://google.com"),
 		},
-	}, &schema.OpenIDConnect{})
+	}, &schema.IdentityProvidersOpenIDConnect{})
 
 	require.NotNil(t, client)
 
@@ -1267,12 +1267,12 @@ func TestNewClient_JSONWebKeySetURI(t *testing.T) {
 
 	assert.Equal(t, "https://google.com", clientf.GetJSONWebKeysURI())
 
-	client = oidc.NewClient(schema.OpenIDConnectClient{
+	client = oidc.NewClient(schema.IdentityProvidersOpenIDConnectClient{
 		TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
-		PublicKeys: schema.OpenIDConnectClientPublicKeys{
+		PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
 			URI: nil,
 		},
-	}, &schema.OpenIDConnect{})
+	}, &schema.IdentityProvidersOpenIDConnect{})
 
 	require.NotNil(t, client)
 

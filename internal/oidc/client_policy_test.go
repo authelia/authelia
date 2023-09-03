@@ -15,14 +15,14 @@ func TestNewClientAuthorizationPolicy(t *testing.T) {
 	testCases := []struct {
 		name     string
 		policy   string
-		have     *schema.OpenIDConnect
+		have     *schema.IdentityProvidersOpenIDConnect
 		expected oidc.ClientAuthorizationPolicy
 		extra    func(t *testing.T, actual oidc.ClientAuthorizationPolicy)
 	}{
 		{
 			"ShouldReturnStandardPolicy",
 			"two_factor",
-			&schema.OpenIDConnect{},
+			&schema.IdentityProvidersOpenIDConnect{},
 			oidc.ClientAuthorizationPolicy{Name: "two_factor", DefaultPolicy: authorization.TwoFactor},
 			func(t *testing.T, actual oidc.ClientAuthorizationPolicy) {
 				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{Username: "abc"}))
@@ -33,11 +33,11 @@ func TestNewClientAuthorizationPolicy(t *testing.T) {
 		{
 			"ShouldReturnCustomPolicy",
 			"custom",
-			&schema.OpenIDConnect{
-				AuthorizationPolicies: map[string]schema.OpenIDConnectPolicy{
+			&schema.IdentityProvidersOpenIDConnect{
+				AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
 					"custom": {
 						DefaultPolicy: "deny",
-						Rules: []schema.OpenIDConnectPolicyRule{
+						Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
 							{
 								Policy: "two_factor",
 								Subjects: [][]string{
@@ -69,11 +69,11 @@ func TestNewClientAuthorizationPolicy(t *testing.T) {
 		{
 			"ShouldReturnCustomPolicyNoSubjects",
 			"custom",
-			&schema.OpenIDConnect{
-				AuthorizationPolicies: map[string]schema.OpenIDConnectPolicy{
+			&schema.IdentityProvidersOpenIDConnect{
+				AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
 					"custom": {
 						DefaultPolicy: "deny",
-						Rules: []schema.OpenIDConnectPolicyRule{
+						Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
 							{
 								Policy: "two_factor",
 							},

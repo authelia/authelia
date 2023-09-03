@@ -66,9 +66,9 @@ func newGitHubIssueTemplatesBugReportCmd() *cobra.Command {
 
 func cmdGitHubIssueTemplatesFeatureRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		cwd, file, root                                 string
-		tags, tagsFuture                                []string
-		latestMajor, latestMinor, latestPatch, versions int
+		cwd, file, root  string
+		tags, tagsFuture []string
+		versions         int
 	)
 
 	if cwd, err = cmd.Flags().GetString(cmdFlagCwd); err != nil {
@@ -91,21 +91,15 @@ func cmdGitHubIssueTemplatesFeatureRunE(cmd *cobra.Command, args []string) (err 
 		return err
 	}
 
-	latest := tags[0]
+	var latest *model.SemanticVersion
 
-	if _, err = fmt.Sscanf(latest, "v%d.%d.%d", &latestMajor, &latestMinor, &latestPatch); err != nil {
-		return fmt.Errorf("error occurred parsing version as semver: %w", err)
+	if latest, err = model.NewSemanticVersion(tags[0]); err != nil {
+		return fmt.Errorf("error extracting latest minor version from tag: %w", err)
 	}
 
-	var (
-		minor int
-	)
-
-	for minor = latestMinor + 1; minor < latestMinor+versions; minor++ {
-		tagsFuture = append(tagsFuture, fmt.Sprintf("v%d.%d.0", latestMajor, minor))
+	for i := 0; i < versions; i++ {
+		tagsFuture = append(tagsFuture, fmt.Sprintf("v%s", model.SemanticVersion{Major: latest.Major, Minor: latest.Minor + i + 1}.String()))
 	}
-
-	tagsFuture = append(tagsFuture, fmt.Sprintf("v%d.0.0", latestMajor+1))
 
 	var (
 		f *os.File

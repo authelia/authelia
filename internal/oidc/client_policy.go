@@ -8,7 +8,7 @@ import (
 )
 
 // NewClientAuthorizationPolicy creates a new ClientAuthorizationPolicy.
-func NewClientAuthorizationPolicy(name string, config *schema.OpenIDConnect) (policy ClientAuthorizationPolicy) {
+func NewClientAuthorizationPolicy(name string, config *schema.IdentityProvidersOpenIDConnect) (policy ClientAuthorizationPolicy) {
 	switch name {
 	case authorization.OneFactor.String(), authorization.TwoFactor.String():
 		return ClientAuthorizationPolicy{Name: name, DefaultPolicy: authorization.NewLevel(name)}
