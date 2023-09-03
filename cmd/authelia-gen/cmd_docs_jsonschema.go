@@ -257,7 +257,7 @@ func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.S
 
 	schema := r.Reflect(v)
 
-	schema.ID = jsonschema.ID(fmt.Sprintf(fmtJSONSchemaIdentifier, schemaVersion, file))
+	schema.ID = jsonschema.ID(fmt.Sprintf(model.FormatJSONSchemaIdentifier, schemaVersion, file))
 
 	if err = writeJSONSchema(schema, dir, schemaVersion, file); err != nil {
 		return err
@@ -288,7 +288,7 @@ func writeJSONSchema(schema *jsonschema.Schema, dir, version, file string) (err 
 		}
 	}
 
-	if f, err = os.Create(filepath.Join(dir, version, "json-schema", file)); err != nil {
+	if f, err = os.Create(filepath.Join(dir, version, "json-schema", file+".json")); err != nil {
 		return err
 	}
 

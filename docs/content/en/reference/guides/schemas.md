@@ -2,7 +2,7 @@
 title: "Schemas"
 description: "A reference guide on the schemas provided by Authelia"
 lead: "This section contains reference documentation for Authelia's schemas."
-date: 2022-12-23T21:58:54+11:00
+date: 2023-09-03T14:09:28+10:00
 draft: false
 images: []
 menu:
@@ -26,7 +26,7 @@ https://www.authelia.com/schemas/<version>/json-schema/<name>.json
 These schemas can be added to the top of a YAML file using the following format:
 
 ```yaml
-# yaml-language-server: $schema=https://www.authelia.com/schemas/<version>/json-schemas/<name>.json
+# yaml-language-server: $schema=https://www.authelia.com/schemas/<version>/json-schema/<name>.json
 
 example: 'this is just an example'
 ```

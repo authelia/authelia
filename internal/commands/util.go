@@ -15,7 +15,9 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func recoverErr(i any) error {
@@ -351,10 +353,21 @@ func exportYAMLWithJSONSchema(name, filename string, v any) (err error) {
 		}
 	}()
 
-	// TODO: Get binary version here.
-	version := "v4.38"
+	var (
+		semver *model.SemanticVersion
+	)
 
-	if _, err = f.WriteString(fmt.Sprintf("# yaml-language-server: $schema=https://www.authelia.com/schemas/%s/json-schemas/%s.json\n\n", version, name)); err != nil {
+	version := "latest"
+
+	if semver, err = model.NewSemanticVersion(utils.BuildTag); err == nil {
+		version = fmt.Sprintf("v%d.%d", semver.Major, semver.Minor+1)
+	}
+
+	if _, err = f.WriteString(fmt.Sprintf(model.FormatJSONSchemaYAMLLanguageServer, version, name)); err != nil {
+		return err
+	}
+
+	if _, err = f.WriteString("\n\n"); err != nil {
 		return err
 	}
 

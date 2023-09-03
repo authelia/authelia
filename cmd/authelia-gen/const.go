@@ -29,18 +29,14 @@ const (
 	fileDocsDataMisc       = "misc.json"
 	fileDocsDataConfigKeys = "configkeys.json"
 
-	fileDocsStaticJSONSchemasConfiguration      = "configuration.json"
-	fileDocsStaticJSONSchemasUserDatabase       = "user-database.json"
-	fileDocsStaticJSONSchemasExportsTOTP        = "exports.totp.json"
-	fileDocsStaticJSONSchemasExportsWebAuthn    = "exports.webauthn.json"
-	fileDocsStaticJSONSchemasExportsIdentifiers = "exports.identifiers.json"
+	fileDocsStaticJSONSchemasConfiguration      = "configuration"
+	fileDocsStaticJSONSchemasUserDatabase       = "user-database"
+	fileDocsStaticJSONSchemasExportsTOTP        = "exports.totp"
+	fileDocsStaticJSONSchemasExportsWebAuthn    = "exports.webauthn"
+	fileDocsStaticJSONSchemasExportsIdentifiers = "exports.identifiers"
 
 	fileGitHubIssueTemplateFR = ".github/ISSUE_TEMPLATE/feature-request.yml"
 	fileGitHubIssueTemplateBR = ".github/ISSUE_TEMPLATE/bug-report.yml"
-)
-
-const (
-	fmtJSONSchemaIdentifier = "https://www.authelia.com/schemas/%s/json-schema/%s"
 )
 
 const (
