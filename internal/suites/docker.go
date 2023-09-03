@@ -91,11 +91,12 @@ func (de *DockerEnvironment) Logs(service string, flags []string) (string, error
 	return string(content), err
 }
 
-func (de *DockerEnvironment) PrintLogs(ci bool, services ...string) (err error) {
+// PrintLogs for the given service names.
+func (de *DockerEnvironment) PrintLogs(services ...string) (err error) {
 	var logs string
 
 	for _, service := range services {
-		if ci && service == "authelia-frontend" && os.Getenv("CI") != t {
+		if service == "authelia-frontend" && os.Getenv("CI") == t {
 			continue
 		}
 

@@ -44,7 +44,7 @@ func init() {
 	}
 
 	displayAutheliaLogs := func() error {
-		return dockerEnvironment.PrintLogs(true, "authelia-backend", "authelia-frontend", "caddy")
+		return dockerEnvironment.PrintLogs("authelia-backend", "authelia-frontend", "caddy")
 	}
 
 	teardown := func(suitePath string) error {

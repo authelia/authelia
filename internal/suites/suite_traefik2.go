@@ -46,7 +46,7 @@ func init() {
 	}
 
 	displayAutheliaLogs := func() error {
-		return traefik2DockerEnvironment.PrintLogs(true, "authelia-backend", "authelia-frontend", "redis", "traefik")
+		return traefik2DockerEnvironment.PrintLogs("authelia-backend", "authelia-frontend", "redis", "traefik")
 	}
 
 	teardown := func(suitePath string) error {

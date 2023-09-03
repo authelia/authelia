@@ -30,7 +30,7 @@ func init() {
 	}
 
 	displayAutheliaLogs := func() error {
-		return multiCookieDomainDockerEnvironment.PrintLogs(false, "authelia-backend", "authelia-frontend")
+		return multiCookieDomainDockerEnvironment.PrintLogs("authelia-backend", "authelia-frontend")
 	}
 
 	teardown := func(suitePath string) error {
