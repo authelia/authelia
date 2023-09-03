@@ -283,7 +283,7 @@ func writeJSONSchema(schema *jsonschema.Schema, dir, version, file string) (err 
 	}
 
 	if _, err = os.Stat(filepath.Join(dir, version, "json-schema")); err != nil && os.IsNotExist(err) {
-		if err = os.Mkdir(filepath.Join(dir, version, "json-schema"), 0755); err != nil {
+		if err = os.MkdirAll(filepath.Join(dir, version, "json-schema"), 0755); err != nil {
 			return err
 		}
 	}
