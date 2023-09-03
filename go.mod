@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
-	github.com/authelia/jsonschema v0.1.5
+	github.com/authelia/jsonschema v0.1.7
 	github.com/deckarep/golang-set/v2 v2.3.1
 	github.com/duosecurity/duo_api_golang v0.0.0-20230418202038-096d3306c029
 	github.com/fasthttp/router v1.4.20
@@ -80,7 +80,7 @@ require (
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/iancoleman/orderedmap v0.2.0 // indirect
+	github.com/iancoleman/orderedmap v0.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect

@@ -686,7 +686,6 @@
         "timeout": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -1271,7 +1270,6 @@
         "pre_configured_consent_duration": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -1536,7 +1534,6 @@
         "access_token": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -1551,7 +1548,6 @@
         "authorize_code": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -1566,7 +1562,6 @@
         "id_token": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -1581,7 +1576,6 @@
         "refresh_token": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -1640,7 +1634,6 @@
         "access_token": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -1655,7 +1648,6 @@
         "authorize_code": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -1670,7 +1662,6 @@
         "id_token": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -1685,7 +1676,6 @@
         "refresh_token": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -1707,7 +1697,6 @@
         "access_token": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -1722,7 +1711,6 @@
         "authorize_code": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -1737,7 +1725,6 @@
         "id_token": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -1752,7 +1739,6 @@
         "refresh_token": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -1767,7 +1753,6 @@
         "jwt_secured_authorization": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -1804,7 +1789,6 @@
         "context_lifespan": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -1974,7 +1958,6 @@
         "max_desync": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -2053,7 +2036,6 @@
         "timeout": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -2082,16 +2064,8 @@
           "default": "localhost"
         },
         "sender": {
-          "oneOf": [
-            {
-              "type": "string",
-              "pattern": "^[a-zA-Z0-9.!#$%\u0026'*+/=?^_{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
-            },
-            {
-              "type": "string",
-              "pattern": "^[^\u003c]+ \u003c[a-zA-Z0-9.!#$%\u0026'*+/=?^_{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*\u003e$"
-            }
-          ],
+          "type": "string",
+          "format": "email",
           "title": "Sender",
           "description": "The sender used for SMTP"
         },
@@ -2102,18 +2076,11 @@
           "default": "[Authelia] {title}"
         },
         "startup_check_address": {
-          "oneOf": [
-            {
-              "type": "string",
-              "pattern": "^[a-zA-Z0-9.!#$%\u0026'*+/=?^_{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
-            },
-            {
-              "type": "string",
-              "pattern": "^[^\u003c]+ \u003c[a-zA-Z0-9.!#$%\u0026'*+/=?^_{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*\u003e$"
-            }
-          ],
+          "type": "string",
+          "format": "email",
           "title": "Startup Check Address",
-          "description": "The address used for the recipient in the startup check"
+          "description": "The address used for the recipient in the startup check",
+          "default": "Authelia Test \u003ctest@authelia.com\u003e"
         },
         "disable_require_tls": {
           "type": "boolean",
@@ -2277,7 +2244,6 @@
         "find_time": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -2292,7 +2258,6 @@
         "ban_time": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -2509,7 +2474,6 @@
         "read": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -2524,7 +2488,6 @@
         "write": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -2539,7 +2502,6 @@
         "idle": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -2574,7 +2536,6 @@
         "expiration": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -2587,7 +2548,6 @@
         "inactivity": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -2600,7 +2560,6 @@
         "remember_me": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -2659,7 +2618,6 @@
         "expiration": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -2672,7 +2630,6 @@
         "inactivity": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -2685,7 +2642,6 @@
         "remember_me": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -2890,7 +2846,6 @@
         "timeout": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -2945,7 +2900,6 @@
         "timeout": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
@@ -3193,7 +3147,6 @@
         "timeout": {
           "oneOf": [
             {
-              "$comment": "Example comment",
               "type": "string",
               "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
