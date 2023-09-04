@@ -1,7 +1,6 @@
 package suites
 
 import (
-	"fmt"
 	"os"
 	"time"
 )
@@ -47,37 +46,7 @@ func init() {
 	}
 
 	displayAutheliaLogs := func() error {
-		backendLogs, err := traefik2DockerEnvironment.Logs("authelia-backend", nil)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(backendLogs)
-
-		if os.Getenv("CI") != t {
-			frontendLogs, err := traefik2DockerEnvironment.Logs("authelia-frontend", nil)
-			if err != nil {
-				return err
-			}
-
-			fmt.Println(frontendLogs)
-		}
-
-		redisLogs, err := traefik2DockerEnvironment.Logs("redis", nil)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(redisLogs)
-
-		traefikLogs, err := traefik2DockerEnvironment.Logs("traefik", nil)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(traefikLogs)
-
-		return nil
+		return traefik2DockerEnvironment.PrintLogs("authelia-backend", "authelia-frontend", "redis", "traefik")
 	}
 
 	teardown := func(suitePath string) error {
