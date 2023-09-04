@@ -114,7 +114,7 @@ This section describes the individual configuration options.
 
 ### address
 
-{{< confkey type="address" required="yes" >}}
+{{< confkey type="address" default="smtp://127.0.0.1:25" required="yes" >}}
 {{< ref-common ref="address" description="Common Syntax: Address" text="This option uses a common syntax. " >}}
 
 Configures the address for the SMTP Server. The address itself is a connector and the scheme must be `smtp`,

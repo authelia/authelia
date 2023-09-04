@@ -22,7 +22,7 @@ type NotifierFileSystem struct {
 
 // NotifierSMTP represents the configuration of the SMTP server to send emails with.
 type NotifierSMTP struct {
-	Address             *AddressSMTP  `koanf:"address" json:"address" jsonschema:"default=smtp://localhost:25,title=Address" jsonschema_description:"The SMTP server address"`
+	Address             *AddressSMTP  `koanf:"address" json:"address" jsonschema:"default=smtp://127.0.0.1:25,title=Address" jsonschema_description:"The SMTP server address"`
 	Timeout             time.Duration `koanf:"timeout" json:"timeout" jsonschema:"default=5 seconds,title=Timeout" jsonschema_description:"The SMTP server connection timeout"`
 	Username            string        `koanf:"username" json:"username" jsonschema:"title=Username" jsonschema_description:"The username for SMTP authentication"`
 	Password            string        `koanf:"password" json:"password" jsonschema:"title=Password" jsonschema_description:"The password for SMTP authentication"`
@@ -44,7 +44,7 @@ type NotifierSMTP struct {
 
 // DefaultSMTPNotifierConfiguration represents default configuration parameters for the SMTP notifier.
 var DefaultSMTPNotifierConfiguration = NotifierSMTP{
-	Address:             &AddressSMTP{Address{true, false, -1, 25, &url.URL{Scheme: AddressSchemeSMTP, Host: "localhost:25"}}},
+	Address:             &AddressSMTP{Address{true, false, -1, 25, &url.URL{Scheme: AddressSchemeSMTP, Host: "127.0.0.1:25"}}},
 	Timeout:             time.Second * 5,
 	Subject:             "[Authelia] {title}",
 	Identifier:          "localhost",
