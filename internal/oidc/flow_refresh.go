@@ -106,7 +106,7 @@ func (c *RefreshTokenGrantHandler) HandleTokenEndpointRequest(ctx context.Contex
 	originalScopes := originalRequest.GetGrantedScopes()
 
 	for _, scope := range request.GetRequestedScopes() {
-		if !strategy(originalScopes, scope) {
+		if !originalScopes.Has(scope) {
 			if client, ok := request.GetClient().(RefreshFlowScopeClient); ok && client.GetRefreshFlowIgnoreOriginalGrantedScopes(ctx) {
 				// Skips addressing point 2 of the text in RFC6749 Section 6 and instead just prevents the scope
 				// requested from being granted.
