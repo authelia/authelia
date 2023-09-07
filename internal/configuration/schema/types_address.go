@@ -253,10 +253,10 @@ func (a *Address) IsExplicitlySecure() bool {
 // ValidateListener returns true if the Address is valid for a connection listener.
 func (a *Address) ValidateListener() error {
 	switch a.Scheme() {
-	case AddressSchemeTCP, AddressSchemeTCP4, AddressSchemeTCP6, AddressSchemeUDP, AddressSchemeUDP4, AddressSchemeUDP6, AddressSchemeUnix:
+	case AddressSchemeTCP, AddressSchemeTCP4, AddressSchemeTCP6, AddressSchemeUDP, AddressSchemeUDP4, AddressSchemeUDP6, AddressSchemeUnix, AddressSchemeFileDescriptor:
 		break
 	default:
-		return fmt.Errorf("scheme must be one of 'tcp', 'tcp4', 'tcp6', 'udp', 'udp4', 'udp6', or 'unix' but is configured as '%s'", a.Scheme())
+		return fmt.Errorf("scheme must be one of 'tcp', 'tcp4', 'tcp6', 'udp', 'udp4', 'udp6', 'unix', or 'fd' but is configured as '%s'", a.Scheme())
 	}
 
 	return nil
@@ -269,10 +269,10 @@ func (a *Address) ValidateHTTP() error {
 	}
 
 	switch a.Scheme() {
-	case AddressSchemeUnix:
+	case AddressSchemeUnix, AddressSchemeFileDescriptor:
 		return nil
 	default:
-		return fmt.Errorf("scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as '%s'", a.Scheme())
+		return fmt.Errorf("scheme must be one of 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd' but is configured as '%s'", a.Scheme())
 	}
 }
 
@@ -501,6 +501,10 @@ func (a *Address) validate() (err error) {
 		if err = a.validateProtocol(); err != nil {
 			return err
 		}
+	case AddressSchemeFileDescriptor:
+		if err = a.validateFD(); err != nil {
+			return err
+		}
 	}
 
 	a.valid = true
@@ -585,6 +589,19 @@ func (a *Address) validateUnixSocket() (err error) {
 
 	a.socket = true
 	a.umask = umask
+
+	return nil
+}
+
+func (a *Address) validateFD() (err error) {
+	port := a.url.Port()
+
+	actualPort, err := strconv.Atoi(port)
+	if err != nil {
+		return err
+	}
+
+	a.setport(actualPort)
 
 	return nil
 }

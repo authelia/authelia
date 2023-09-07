@@ -171,6 +171,14 @@ func TestNewAddressFromString(t *testing.T) {
 			"",
 		},
 		{
+			"ShouldParseFileDescriptor",
+			"fd://:4",
+			&Address{true, false, -1, 4, &url.URL{Scheme: "fd", Host: ":4"}},
+			":4",
+			"fd://:4",
+			"",
+		},
+		{
 			"ShouldNotParseInvalidPort",
 			"tcp://0.0.0.0:abc",
 			nil,
@@ -299,18 +307,18 @@ func TestAddress_ValidateErrors(t *testing.T) {
 			&Address{true, false, -1, 0, &url.URL{Scheme: AddressSchemeLDAP, Host: "127.0.0.1"}},
 			"",
 			"scheme must be one of 'smtp', 'submission', or 'submissions' but is configured as 'ldap'",
+			"scheme must be one of 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd' but is configured as 'ldap'",
 			"scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'ldap'",
-			"scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'ldap'",
-			"scheme must be one of 'tcp', 'tcp4', 'tcp6', 'udp', 'udp4', 'udp6', or 'unix' but is configured as 'ldap'",
+			"scheme must be one of 'tcp', 'tcp4', 'tcp6', 'udp', 'udp4', 'udp6', 'unix', or 'fd' but is configured as 'ldap'",
 		},
 		{
 			"ShouldValidateSMTPAddress",
 			&Address{true, false, -1, 0, &url.URL{Scheme: AddressSchemeSMTP, Host: "127.0.0.1"}},
 			"scheme must be one of 'ldap', 'ldaps', or 'ldapi' but is configured as 'smtp'",
 			"",
+			"scheme must be one of 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd' but is configured as 'smtp'",
 			"scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'smtp'",
-			"scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'smtp'",
-			"scheme must be one of 'tcp', 'tcp4', 'tcp6', 'udp', 'udp4', 'udp6', or 'unix' but is configured as 'smtp'",
+			"scheme must be one of 'tcp', 'tcp4', 'tcp6', 'udp', 'udp4', 'udp6', 'unix', or 'fd' but is configured as 'smtp'",
 		},
 		{
 			"ShouldValidateTCPAddress",
@@ -497,6 +505,22 @@ func TestAddressOutputValues(t *testing.T) {
 	assert.Equal(t, "example.com", address.Hostname())
 	assert.Equal(t, "example.com:9092", address.NetworkAddress())
 	assert.Equal(t, uint16(9092), address.Port())
+
+	address = &Address{true, false, -1, 9091, &url.URL{Scheme: AddressSchemeTCP, Host: "0.0.0.0:9091"}}
+
+	assert.Equal(t, "tcp://0.0.0.0:9091", address.String())
+	assert.Equal(t, "tcp", address.Scheme())
+	assert.Equal(t, "0.0.0.0:9091", address.Host())
+	assert.Equal(t, "0.0.0.0", address.Hostname())
+	assert.Equal(t, "0.0.0.0:9091", address.NetworkAddress())
+	assert.Equal(t, 9091, address.Port())
+
+	listener, err = address.Listener()
+
+	assert.NotNil(t, listener)
+	assert.NoError(t, err)
+
+	assert.NoError(t, listener.Close())
 }
 
 func TestNewAddressUnix(t *testing.T) {
