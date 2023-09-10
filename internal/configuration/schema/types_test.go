@@ -7,8 +7,10 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"os"
 	"reflect"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/authelia/jsonschema"
@@ -183,14 +185,14 @@ func TestNewX509CertificateChain(t *testing.T) {
 		thumbprintSHA256 string
 		err              string
 	}{
-		{"ShouldParseCertificate", x509CertificateRSA,
-			"956e53c127b18143241fb75d2149369d41ad1e4094c40cedcef22e468b37886b", ""},
-		{"ShouldParseCertificateChain", x509CertificateRSA + "\n" + x509CACertificateRSA,
-			"956e53c127b18143241fb75d2149369d41ad1e4094c40cedcef22e468b37886b", ""},
+		{"ShouldParseCertificate", x509CertificateRSA2048,
+			"c60a924512a120fc9bc8c176b005bdd310c4a9f0f1fdc690aa808aeccf700882", ""},
+		{"ShouldParseCertificateChain", x509CertificateRSA2048 + "\n" + x509CACertificateRSA2048,
+			"c60a924512a120fc9bc8c176b005bdd310c4a9f0f1fdc690aa808aeccf700882", ""},
 		{"ShouldNotParseInvalidCertificate", x509CertificateRSAInvalid, "",
 			"the PEM data chain contains an invalid certificate: x509: malformed certificate"},
 		{"ShouldNotParseInvalidCertificateBlock", x509CertificateRSAInvalidBlock, "", "invalid PEM block"},
-		{"ShouldNotParsePrivateKey", x509PrivateKeyRSA, "",
+		{"ShouldNotParsePrivateKey", x509PrivateKeyRSA2048, "",
 			"the PEM data chain contains a RSA PRIVATE KEY but only certificates are expected"},
 		{"ShouldNotParseEmptyPEMBlock", x509CertificateEmpty, "", "invalid PEM block"},
 		{"ShouldNotParseEmptyData", "", "", ""},
@@ -228,7 +230,7 @@ func TestTX509CertificateChain_EncodePEM(t *testing.T) {
 	}{
 		{
 			"ShouldEncodeSingle",
-			x509CertificateRSA + "\n",
+			x509CertificateRSA2048,
 		},
 	}
 
@@ -277,15 +279,15 @@ func TestX509CertificateChain(t *testing.T) {
 	assert.False(t, chain.EqualKey(nil))
 	assert.False(t, chain.EqualKey(&rsa.PrivateKey{}))
 
-	cert := MustParseCertificate(x509CertificateRSA)
-	cacert := MustParseCertificate(x509CACertificateRSA)
+	cert := MustParseCertificate(x509CertificateRSA4096)
+	cacert := MustParseCertificate(x509CACertificateRSA4096)
 
-	chain = MustParseX509CertificateChain(x509CertificateRSA + "\n" + x509CACertificateRSA)
-	key := MustParseRSAPrivateKey(x509PrivateKeyRSA)
+	chain = MustParseX509CertificateChain(x509CertificateRSA4096 + "\n" + x509CACertificateRSA4096)
+	key := MustParseRSAPrivateKey(x509PrivateKeyRSA4096)
 
 	thumbprint := chain.Thumbprint(crypto.SHA256)
 	assert.NotNil(t, thumbprint)
-	assert.Equal(t, "956e53c127b18143241fb75d2149369d41ad1e4094c40cedcef22e468b37886b", fmt.Sprintf("%x", thumbprint))
+	assert.Equal(t, "921392ab7c0ccff0f3cac258bad1f31996a10697b4bb646a4f3d1f74bf73b025", fmt.Sprintf("%x", thumbprint))
 
 	assert.True(t, chain.Equal(cert))
 	assert.False(t, chain.Equal(cacert))
@@ -293,7 +295,7 @@ func TestX509CertificateChain(t *testing.T) {
 
 	assert.NoError(t, chain.Validate())
 
-	chain = MustParseX509CertificateChain(x509CertificateRSA + "\n" + x509CertificateRSA)
+	chain = MustParseX509CertificateChain(x509CertificateRSA1024 + "\n" + x509CertificateRSA1024)
 	assert.EqualError(t, chain.Validate(), "certificate #1 in chain is not signed properly by certificate #2 in chain: x509: invalid signature: parent certificate cannot sign this kind of certificate")
 
 	chain = MustParseX509CertificateChain(x509CertificateRSAExpired + "\n" + x509CACertificateRSAExpired)
@@ -430,107 +432,6 @@ func MustParseRSAPrivateKey(data string) *rsa.PrivateKey {
 }
 
 var (
-	// Valid from 2022 to 2122 (years).
-	x509CertificateRSA = `-----BEGIN CERTIFICATE-----
-MIIC6DCCAdCgAwIBAgIRAIxvm0gFgsbh3D22rSZLuFQwDQYJKoZIhvcNAQELBQAw
-EzERMA8GA1UEChMIQXV0aGVsaWEwIBcNMjIxMDAyMDAzMDQyWhgPMjEyMjA5MDgw
-MDMwNDJaMBMxETAPBgNVBAoTCEF1dGhlbGlhMIIBIjANBgkqhkiG9w0BAQEFAAOC
-AQ8AMIIBCgKCAQEAy71EOkV3jOpVQtVTH5HYcI4PryUCiAEyxAIuO+66gaAa4aCd
-UCRr8iO/pt5nOwPxjPo+hMHhkcKpX7evj+wgYXAccpIQFSCYWTJkaXFL0jL7yFuE
-5xpjgRM/x6FfK0IbN5WmVWO9EjesbyMCyDoYpjwzIrxnB70F9Y0nrXst1SnW/Sy0
-01BQZNzD1tky1KDvEkw7L5mMPZFZMr5wV+ELvbo1LLvvrGYhhzbXWk7pPbxT0gAa
-7yVvQbDKuCDqssAUyQa2JdlDaQocpldtK6l+dc3IsSWKd2UMouta75ngr9E1igy3
-t7owMRqH8NjwKHt6KQeDVSdBnWNjG572vaRimQIDAQABozUwMzAOBgNVHQ8BAf8E
-BAMCBaAwEwYDVR0lBAwwCgYIKwYBBQUHAwEwDAYDVR0TAQH/BAIwADANBgkqhkiG
-9w0BAQsFAAOCAQEAaZJ09yGa+DGr/iTqshGdPKNCtcf/CXCkL52xiI7DzLxDt30P
-8vCuXXrrTGBY7eWYupcNy/MyqaUrz1ED+map3nQzZQBJ9vWIfr01B9phkg/WSaNJ
-1DlYtbPYzr86BlGP1V5d3Wv6JqF3tkWHI0kI38CT68fWdDKrfa5j3JdZGIVJW+51
-U0IE3Nqhfc76YzwQ3sNX5FT2Fr55RowH+l5OBPk0Bcztq58XmyPR/bvPfDASt8iS
-DBT+0iiDiwk6LvOkasL8p7nuh5Grc9LMEYXY/QMUbkIWhIVRFlqyJA9s8vGHx1D4
-96iYKudj+yvO17Szzr/NNmcwETbCs4j6P6QeiA==
------END CERTIFICATE-----`
-
-	// Private Key for x509CertificateRSA.
-	x509PrivateKeyRSA = `-----BEGIN RSA PRIVATE KEY-----
-MIIEowIBAAKCAQEAy71EOkV3jOpVQtVTH5HYcI4PryUCiAEyxAIuO+66gaAa4aCd
-UCRr8iO/pt5nOwPxjPo+hMHhkcKpX7evj+wgYXAccpIQFSCYWTJkaXFL0jL7yFuE
-5xpjgRM/x6FfK0IbN5WmVWO9EjesbyMCyDoYpjwzIrxnB70F9Y0nrXst1SnW/Sy0
-01BQZNzD1tky1KDvEkw7L5mMPZFZMr5wV+ELvbo1LLvvrGYhhzbXWk7pPbxT0gAa
-7yVvQbDKuCDqssAUyQa2JdlDaQocpldtK6l+dc3IsSWKd2UMouta75ngr9E1igy3
-t7owMRqH8NjwKHt6KQeDVSdBnWNjG572vaRimQIDAQABAoIBAA/EhhM8bRQqzo5t
-lBFNaELNu8kCRD/iV9tzj8BzqVt+2JW9qG8bYn9K5Po1HCglFfyjIVOE7cAqIJGX
-1a59x8PCuXDkfPolm6TLkZnXeta5u2K2MoLwN+M1aio5AvSGGTUkD8tr/KX8SQwQ
-2ZZFaML0xcBadF7U8jEey4NRlSp5/voiIAB+FrJHepZBz2XJYCX5s2vYLPMn+51R
-1HyO0n2aQ9H1Na8aBjTfAp9GDKJWBV3bSM7cVaLGlMFj/HNXUNVnSsVsJj0tdWKz
-K6r9zPskLnS+eNjCgqrOtZSqJ7M3PL0/PoTFPrr1Fevr+soKWCaPF94Ib94O9SEq
-scvP3kECgYEA0HBdGab0HjcZgFtsIaMm+eBcDhUmUrvMPUw6FmspKnc8wplscONW
-wrDGhR0dpT8+aAMD5jFC2pvyHjI5AWkW+53LB15j6SVzUlUMfS3VTwE2prLtDHDs
-nCDW2+fXY2kjv45efZGpMGbLJVePx2RCPzUlAlc14lzxnHgpo7eho1cCgYEA+jpi
-Eo/Jqa5CNd4hrXqFxZTFtU2Mn38ZKI3QK/l47/347yHLebjsYIIwJRoHenxWxNlz
-Y+BZ38vkP+f9BGAVGiRcyMmIJU0X305wKwl26Y2Q/tEm2OpwmDboD2pL9byi9vfY
-bz7pQGK/l9j86KofRwVJJRLsofPI1SsjnC8c448CgYAkpg0IjJ1RjriSJADwLSKW
-PseQxlE1rMVtZbC07mSPjeWGBbnWY3KGytQs5YCn5GXRne4alEC/9Tlt68CwKc0b
-spPXGNaSUL5lFIUcoWlm+bylNMKPNG+1x+RfR/VMCll5vcuJYooP85L2Xt3t3gfz
-2yFFtxXHVjY5H7uaiJgIAwKBgQDvkGXEj5TqtsL8/6YOiHb6Kuz+Hzi6mtxjTyI2
-d6mpWuWxTBGaf8kOvJWLb9gpFFGeNPGcdXaWJIZqCJjcT4Dkflu2f/uwepaYXGhX
-S8Bk6fwfee5PTmRt1mNmHsaKhgcfmznDh9+YnPIBVuULe5RmUlEtBWk3xEZKj/qP
-1Ss7UQKBgAwZQz+h5Z/XOJH3Qs5nJBKAZUiYkj3ux7G6tjx0cz7XcUYd/6enBpkY
-JeqVHB6G+bMRLwb+Hc5Vgpbd5GdaUWo8udaghHgSGPUVcn0lK38XhYek6ACGz7Lo
-xEfgtKoBlUq+uPb8H05HY0t9KybA3LA5wkRYYnJ17/nkZtrrJAmX
------END RSA PRIVATE KEY-----`
-
-	// Valid from 2022 to 2122 (years).
-	x509CACertificateRSA = `-----BEGIN CERTIFICATE-----
-MIIDBTCCAe2gAwIBAgIQAK/NIAl3Bdg4Xk0y/ZGL7jANBgkqhkiG9w0BAQsFADAT
-MREwDwYDVQQKEwhBdXRoZWxpYTAgFw0yMjEwMDIwMDMwMjFaGA8yMTIyMDkwODAw
-MzAyMVowEzERMA8GA1UEChMIQXV0aGVsaWEwggEiMA0GCSqGSIb3DQEBAQUAA4IB
-DwAwggEKAoIBAQCg7jdO1HmydfkPzTtz57pvAS3YOdBT0hlNjJ4N2lrKhNnixrzK
-+4R1dWQDP2SHbZQ0TskF8eQ8HhTr7AsApotTthJFkUgV2g+bv7wVroz0Hok5xtd4
-bnpOvG3YUCP13Nk3ZVxdQXqR3/G3MrbyiXVPcgU+0giJ8EBykbtMu8L79/1iyk+m
-w4fZfzTOeorRgspO3z3+pTAib2MCTA7bby1dX9qI/ysFPLdbJYfNQDxij8SzNLyJ
-EkQ4kh3jKXf1VcZjbQTtYTZ3JJDqM08OxGMKuXUxPHd72Xlb+Fzql8LjYdEy/YKA
-3r8FMf14lzcjvxtLnFXh//hiXh4+xgXMkrLZAgMBAAGjUzBRMA4GA1UdDwEB/wQE
-AwICpDAPBgNVHSUECDAGBgRVHSUAMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYE
-FGKpXiZA+8VQyMBqTTep+dVTthSbMA0GCSqGSIb3DQEBCwUAA4IBAQAE4DJg+Rb4
-iiocvxxQ85lhh94ql++E8MKuzIdN7ORs+ybUnsDD1WFDebubroTQuTSBkFrNuGNJ
-8B7NZsHiWWLvNsrnxxeC5CicqfhSDti0rKWsbGyeoq7Kqok5E4pwOzeRsxL2e/Hm
-G6LsUQuQMUG2vxKNynqmJS4VpgSVkiGhUfURFuRRDuRpVQ/XTl7jDIGf/ls7TAZq
-1AnmnSi4Cqy4hrTnwYUYkFCcH69onUKAoaVNl1eAH7ogxakz32WyWObY98NBrjzA
-I6VQlaQNSHtdFqDpu7NWJZZZSgN4BknbMYQEPNYCm701cPB4ahJbpg5C3pVPFSql
-Bc9iI6nN3PCr
------END CERTIFICATE-----`
-
-	/*
-				// Private Key for x509CACertificateRSA.
-				x509CAPrivateKeyRSA = `-----BEGIN RSA PRIVATE KEY-----
-		MIIEpAIBAAKCAQEAoO43TtR5snX5D807c+e6bwEt2DnQU9IZTYyeDdpayoTZ4sa8
-		yvuEdXVkAz9kh22UNE7JBfHkPB4U6+wLAKaLU7YSRZFIFdoPm7+8Fa6M9B6JOcbX
-		eG56Trxt2FAj9dzZN2VcXUF6kd/xtzK28ol1T3IFPtIIifBAcpG7TLvC+/f9YspP
-		psOH2X80znqK0YLKTt89/qUwIm9jAkwO228tXV/aiP8rBTy3WyWHzUA8Yo/EszS8
-		iRJEOJId4yl39VXGY20E7WE2dySQ6jNPDsRjCrl1MTx3e9l5W/hc6pfC42HRMv2C
-		gN6/BTH9eJc3I78bS5xV4f/4Yl4ePsYFzJKy2QIDAQABAoIBADlsZw3Y4Ufdsq6B
-		w/oasLqVSB+EmaKfMGosh+VXidgDyZ+S3KDtWJl09uf1wdBVOHHlvvNBGfidn0eD
-		pXVo+AQ5zpFGQtuRQMqJgvqVmzQshTi5i/8sJLZdpDBwgDRlxphusaORDsRojV6a
-		WQ94HwTnIZoF5ggaU1TOTXAW+39er+3CAkHZlqeCHliSdVWdAPy2AGTOKqTP3Pko
-		owbHkuCw53oWsDB9N8zqdVF+UBht0sFOQ8tEHq0OY1HJRtPhfvcFno9rADsna/Tg
-		5m0sWUwP+uQ2+n18ahqunclzANu/w1SE+DVvXmeKdWMXEyuyL7muKsLgW5Ksa4jR
-		h6gAwBUCgYEAwmigbqAWrVhh5W1t388WcfsD0M7a4vMg7a3L5Im5mThgUHu3K5bM
-		EYLR8RnReEUdxdF86ASup4ddyVlz7z+YuQ9+XdTwMLK5Zujqfu9U/vsLHBc8h9eP
-		B7C6etfnTBfQeQryPaako8mixBpS0/pQhDhBHpWcYLLTh+uE17+C2U8CgYEA0+pe
-		EzWj7RHZiaHp6WWOqGuaCa3JR0uh2zns1gVx0cCdaCYFI+fOmrihrvBCYTXCiDZ4
-		k4HGD48i1R8nUsV6HJfw0yhR2UmB46TnFYb0RgzuJhXlXtlivYVbSDhyzl1NBafC
-		9zuCITMqGw921w/unOamMD94VSBfxT4EMBpvV1cCgYEAlhNuxfePigHQkOwJBd03
-		1oWQTIFjOA+4O8MOwz4OqNl8gKUAogWnQ11Z9GWZ7t5sPWmaowH6UhmNrQIBHZBa
-		tYHga08WnIFb3rWvUI4xbyUdTnIhqDwfjjA/xNUnGPbJWKe6mR0ru8TMgdZQWpPB
-		1FAY9SNJtNxXr3WA94w/1sECgYBu0cEgioyPDSaVsvZ/93wC10JWjWsUvZiG7GPO
-		CErdRb0LGdbWUALbJnJm6X3NGDACy3mCqfrJaDDvArutrVeOXGa0BgHHf4lNYo71
-		0v0rJNflUs4AK+5W7cYunlZrVJ9StchfQd9rPTZnsE6VaN9/bZ663HYxDh0HKMdH
-		4IsZQQKBgQCsBJ2bP9dc7QcqMXs8k37USIMs4nz6YWkV0Q74bBhbbnKIhY4mxhwf
-		5WMBUntxYQT0yyygA8q/wJrjiWI9dr+Le0VAtg4Wn8CW0bNYvnMySn2++2E8m6jM
-		DBXePomOtkIwEdLGcO8csBLYQKn4x/5ONpYI2QAifIB8Gdxqnp5clg==
-		-----END RSA PRIVATE KEY-----`
-	*/
-
 	// Valid from 1970 to 1971 (years).
 	x509CertificateRSAExpired = `-----BEGIN CERTIFICATE-----
 MIIC5jCCAc6gAwIBAgIRAPKEPEnRO1hurtNAdEuDJA8wDQYJKoZIhvcNAQELBQAw
@@ -781,4 +682,57 @@ ZsjNr9jqHTjhyLVbDRlmJzcqoj4JhbKs6/I=
 
 type customSchemaImpl interface {
 	JSONSchema() *jsonschema.Schema
+}
+
+const (
+	pathCrypto = "../test_resources/crypto/%s.%s"
+)
+
+func MustLoadCryptoSet(alg string, pkcs8 bool, extra ...string) (certCA, keyCA, cert, key string) {
+	extraAlt := make([]string, len(extra))
+
+	copy(extraAlt, extra)
+
+	if pkcs8 {
+		extraAlt = append(extraAlt, "pkcs8")
+	}
+
+	return MustLoadCryptoRaw(true, alg, "crt", extra...), MustLoadCryptoRaw(true, alg, "pem", extra...), MustLoadCryptoRaw(false, alg, "crt", extraAlt...), MustLoadCryptoRaw(false, alg, "pem", extraAlt...)
+}
+
+func MustLoadCryptoRaw(ca bool, alg, ext string, extra ...string) string {
+	var fparts []string
+
+	if ca {
+		fparts = append(fparts, "ca")
+	}
+
+	fparts = append(fparts, strings.ToLower(alg))
+
+	if len(extra) != 0 {
+		fparts = append(fparts, extra...)
+	}
+
+	var (
+		data []byte
+		err  error
+	)
+
+	if data, err = os.ReadFile(fmt.Sprintf(pathCrypto, strings.Join(fparts, "."), ext)); err != nil {
+		panic(err)
+	}
+
+	return string(data)
+}
+
+var (
+	x509CertificateRSA1024, x509CertificateRSA2048, x509CertificateRSA4096 string
+	x509CACertificateRSA2048, x509CACertificateRSA4096                     string
+	x509PrivateKeyRSA2048, x509PrivateKeyRSA4096                           string
+)
+
+func init() {
+	_, _, x509CertificateRSA1024, _ = MustLoadCryptoSet("RSA", false, "1024")
+	x509CACertificateRSA2048, _, x509CertificateRSA2048, x509PrivateKeyRSA2048 = MustLoadCryptoSet("RSA", false, "2048")
+	x509CACertificateRSA4096, _, x509CertificateRSA4096, x509PrivateKeyRSA4096 = MustLoadCryptoSet("RSA", false, "4096")
 }

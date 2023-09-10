@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/x509"
 	"fmt"
@@ -537,7 +538,9 @@ func StringToCryptographicKeyHookFunc() mapstructure.DecodeHookFuncType {
 	}
 }
 
-// StringToPrivateKeyHookFunc decodes strings to rsa.PrivateKey's.
+// StringToPrivateKeyHookFunc decodes strings to rsa.PrivateKey's and ecdsa.PrivateKey's.
+//
+//nolint:gocyclo
 func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		if f.Kind() != reflect.String {
@@ -550,6 +553,7 @@ func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 
 		expectedTypeRSA := reflect.TypeOf(rsa.PrivateKey{})
 		expectedTypeECDSA := reflect.TypeOf(ecdsa.PrivateKey{})
+		expectedTypeEd25519 := reflect.TypeOf(ed25519.PrivateKey{})
 
 		var (
 			i            any
@@ -575,6 +579,14 @@ func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 			}
 
 			expectedType = expectedTypeECDSA
+		case expectedTypeEd25519:
+			var result *ed25519.PrivateKey
+
+			if dataStr == "" {
+				return result, nil
+			}
+
+			expectedType = expectedTypeEd25519
 		default:
 			return data, nil
 		}
@@ -600,6 +612,12 @@ func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 			}
 
 			return r, nil
+		case ed25519.PrivateKey:
+			if expectedType != expectedTypeEd25519 {
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "*", expectedType, fmt.Errorf("the data is for a %T not a *%s", r, expectedType))
+			}
+
+			return &r, nil
 		default:
 			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "*", expectedType, fmt.Errorf("the data is for a %T not a *%s", r, expectedType))
 		}
