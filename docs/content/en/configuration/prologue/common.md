@@ -342,7 +342,8 @@ this value. At the time of this writing `SSL3.0` will always produce errors.
 The certificate chain/bundle to be used with the [private_key](#privatekey) to perform mutual TLS authentication with
 the server.
 
-The value must be one or more certificates encoded in the DER base64 ([RFC4648]) encoded PEM format.
+The value must be one or more certificates encoded in the DER base64 ([RFC4648]) encoded PEM format. If more than one
+certificate is provided, in top down order, each certificate must be signed by the next certificate if provided.
 
 #### private_key
 
@@ -351,11 +352,16 @@ The value must be one or more certificates encoded in the DER base64 ([RFC4648])
 *__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
 especially for containerized deployments.*
 
-The private key to be used with the [certificate_chain](#certificatechain) for mutual TLS authentication.
+The private key to be used with the [certificate_chain](#certificatechain) for mutual TLS authentication. The public key
+material of the private key must match the private key of the first certificate in the
+[certificate_chain](#certificatechain).
 
-The value must be one private key encoded in the DER base64 ([RFC4648]) encoded PEM format. If more than one certificate
-is provided, in top down order, each certificate must be signed by the next certificate if provided.
+The value must be one private key encoded in the DER base64 ([RFC4648]) encoded PEM format and must be encoded per the
+[PKCS#8], [PKCS#1], or [SECG1] specifications.
 
+[PKCS#8]: https://datatracker.ietf.org/doc/html/rfc5208
+[PKCS#1]: https://datatracker.ietf.org/doc/html/rfc8017
+[SECG1]: https://datatracker.ietf.org/doc/html/rfc5915
 [RFC4648]: https://datatracker.ietf.org/doc/html/rfc4648
 
 ### Server Buffers

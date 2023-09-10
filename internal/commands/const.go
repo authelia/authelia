@@ -545,7 +545,9 @@ const (
 
 	cmdFlagNamePathCA  = "path.ca"
 	cmdFlagNameBundles = "bundles"
+	cmdFlagNameLegacy  = "legacy"
 
+	cmdFlagNameFileExtensionLegacy    = "file.extension.legacy"
 	cmdFlagNameFilePrivateKey         = "file.private-key"
 	cmdFlagNameFilePublicKey          = "file.public-key"
 	cmdFlagNameFileCertificate        = "file.certificate"
@@ -573,7 +575,6 @@ const (
 	cmdFlagNameNotAfter  = "not-after"
 	cmdFlagNameDuration  = "duration"
 
-	cmdFlagNamePKCS8 = "pkcs8"
 	cmdFlagNameBits  = "bits"
 	cmdFlagNameCurve = "curve"
 

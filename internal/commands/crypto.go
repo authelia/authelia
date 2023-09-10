@@ -6,6 +6,8 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"fmt"
+	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -273,20 +275,27 @@ func (ctx *CmdCtx) CryptoGenerateRunE(cmd *cobra.Command, args []string) (err er
 }
 
 // CryptoCertificateRequestRunE is the RunE for the authelia crypto certificate request command.
+//
+//nolint:gocyclo
 func (ctx *CmdCtx) CryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		template                *x509.CertificateRequest
-		privateKey              any
-		csr                     []byte
-		privateKeyPath, csrPath string
-		pkcs8                   bool
+		template                                      *x509.CertificateRequest
+		privateKey                                    any
+		csr                                           []byte
+		privateKeyPath, privateKeyLegacyPath, csrPath string
+		legacy                                        bool
+		dir, extLegacy                                string
 	)
 
-	if privateKey, err = ctx.cryptoGenPrivateKeyFromCmd(cmd); err != nil {
+	if legacy, err = cmd.Flags().GetBool(cmdFlagNameLegacy); err != nil {
 		return err
 	}
 
-	if pkcs8, err = cmd.Flags().GetBool(cmdFlagNamePKCS8); err != nil {
+	if extLegacy, err = cmd.Flags().GetString(cmdFlagNameFileExtensionLegacy); err != nil {
+		return err
+	}
+
+	if privateKey, err = ctx.cryptoGenPrivateKeyFromCmd(cmd); err != nil {
 		return err
 	}
 
@@ -311,46 +320,81 @@ func (ctx *CmdCtx) CryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) 
 		b.WriteString(fmt.Sprintf(", Bits: %d", k.N.BitLen()))
 	case *ecdsa.PrivateKey:
 		b.WriteString(fmt.Sprintf(", Elliptic Curve: %s", k.Curve.Params().Name))
+	case ed25519.PrivateKey:
+		// Legacy format is not available for Ed25519.
+		legacy = false
 	}
 
 	b.WriteString(fmt.Sprintf("\n\tSubject Alternative Names: %s\n\n", strings.Join(cryptoSANsToString(template.DNSNames, template.IPAddresses), ", ")))
 
-	if _, privateKeyPath, csrPath, err = cryptoGetWritePathsFromCmd(cmd); err != nil {
+	if dir, privateKeyPath, csrPath, err = cryptoGetWritePathsFromCmd(cmd); err != nil {
 		return err
 	}
 
+	privateKeyPaths := []string{filepath.Base(privateKeyPath)}
+
+	if legacy {
+		if ext := path.Ext(privateKeyPath); len(ext) == 0 {
+			privateKeyLegacyPath = fmt.Sprintf("%s.%s", privateKeyPath, extLegacy)
+		} else {
+			privateKeyLegacyPath = fmt.Sprintf("%s.%s%s", strings.TrimSuffix(privateKeyPath, ext), extLegacy, ext)
+		}
+
+		privateKeyPaths = append(privateKeyPaths, filepath.Base(privateKeyLegacyPath))
+	}
+
 	b.WriteString("Output Paths:\n")
-	b.WriteString(fmt.Sprintf("\tPrivate Key: %s\n", privateKeyPath))
-	b.WriteString(fmt.Sprintf("\tCertificate Request: %s\n\n", csrPath))
 
-	fmt.Print(b.String())
+	if cdir := filepath.Clean(dir); len(cdir) != 0 {
+		b.WriteString(fmt.Sprintf("\tDirectory: %s\n", cdir))
+	}
 
-	b.Reset()
+	b.WriteString(fmt.Sprintf("\tPrivate Key: %s\n", strings.Join(privateKeyPaths, ", ")))
+	b.WriteString(fmt.Sprintf("\tCertificate Request: %s\n\n", filepath.Base(csrPath)))
 
 	if csr, err = x509.CreateCertificateRequest(ctx.providers.Random, template, privateKey); err != nil {
 		return fmt.Errorf("failed to create certificate request: %w", err)
 	}
 
-	if err = utils.WriteKeyToPEM(privateKey, privateKeyPath, pkcs8); err != nil {
+	if err = utils.WriteKeyToPEM(privateKey, privateKeyPath, false); err != nil {
 		return err
+	}
+
+	if legacy {
+		if err = utils.WriteKeyToPEM(privateKey, privateKeyLegacyPath, true); err != nil {
+			return err
+		}
 	}
 
 	if err = utils.WriteCertificateBytesAsPEMToPath(csrPath, true, csr); err != nil {
 		return err
 	}
 
+	b.WriteString("\n")
+
+	fmt.Print(b.String())
+
+	b.Reset()
+
 	return nil
 }
 
 // CryptoCertificateGenerateRunE is the RunE for the authelia crypto certificate [rsa|ecdsa|ed25519] commands.
+//
+//nolint:gocyclo
 func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string, privateKey any) (err error) {
 	var (
 		template, caCertificate, parent       *x509.Certificate
 		publicKey, caPrivateKey, signatureKey any
-		pkcs8                                 bool
+		legacy                                bool
+		extLegacy                             string
 	)
 
-	if pkcs8, err = cmd.Flags().GetBool(cmdFlagNamePKCS8); err != nil {
+	if legacy, err = cmd.Flags().GetBool(cmdFlagNameLegacy); err != nil {
+		return err
+	}
+
+	if extLegacy, err = cmd.Flags().GetString(cmdFlagNameFileExtensionLegacy); err != nil {
 		return err
 	}
 
@@ -404,12 +448,15 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 		b.WriteString(fmt.Sprintf(", Bits: %d", k.N.BitLen()))
 	case *ecdsa.PrivateKey:
 		b.WriteString(fmt.Sprintf(", Elliptic Curve: %s", k.Curve.Params().Name))
+	case ed25519.PrivateKey:
+		// Legacy format is not available for Ed25519.
+		legacy = false
 	}
 
 	b.WriteString(fmt.Sprintf("\n\tSubject Alternative Names: %s\n\n", strings.Join(cryptoSANsToString(template.DNSNames, template.IPAddresses), ", ")))
 
 	var (
-		dir, privateKeyPath, certificatePath string
+		dir, privateKeyPath, privateKeyLegacyPath, certificatePath string
 
 		certificate []byte
 	)
@@ -418,16 +465,39 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 		return err
 	}
 
+	privateKeyPaths := []string{filepath.Base(privateKeyPath)}
+
+	if legacy {
+		if ext := path.Ext(privateKeyPath); len(ext) == 0 {
+			privateKeyLegacyPath = fmt.Sprintf("%s.%s", privateKeyPath, extLegacy)
+		} else {
+			privateKeyLegacyPath = fmt.Sprintf("%s.%s%s", strings.TrimSuffix(privateKeyPath, ext), extLegacy, ext)
+		}
+
+		privateKeyPaths = append(privateKeyPaths, filepath.Base(privateKeyLegacyPath))
+	}
+
 	b.WriteString("Output Paths:\n")
-	b.WriteString(fmt.Sprintf("\tPrivate Key: %s\n", privateKeyPath))
-	b.WriteString(fmt.Sprintf("\tCertificate: %s\n", certificatePath))
+
+	if cdir := filepath.Clean(dir); len(cdir) != 0 {
+		b.WriteString(fmt.Sprintf("\tDirectory: %s\n", cdir))
+	}
+
+	b.WriteString(fmt.Sprintf("\tPrivate Key: %s\n", strings.Join(privateKeyPaths, ", ")))
+	b.WriteString(fmt.Sprintf("\tCertificate: %s\n", filepath.Base(certificatePath)))
 
 	if certificate, err = x509.CreateCertificate(ctx.providers.Random, template, parent, publicKey, signatureKey); err != nil {
 		return fmt.Errorf("failed to create certificate: %w", err)
 	}
 
-	if err = utils.WriteKeyToPEM(privateKey, privateKeyPath, pkcs8); err != nil {
+	if err = utils.WriteKeyToPEM(privateKey, privateKeyPath, false); err != nil {
 		return err
+	}
+
+	if legacy {
+		if err = utils.WriteKeyToPEM(privateKey, privateKeyLegacyPath, true); err != nil {
+			return err
+		}
 	}
 
 	if err = utils.WriteCertificateBytesAsPEMToPath(certificatePath, false, certificate); err != nil {
@@ -450,17 +520,26 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 }
 
 // CryptoPairGenerateRunE is the RunE for the authelia crypto pair [rsa|ecdsa|ed25519] commands.
+//
+//nolint:gocyclo
 func (ctx *CmdCtx) CryptoPairGenerateRunE(cmd *cobra.Command, _ []string, privateKey any) (err error) {
 	var (
-		privateKeyPath, publicKeyPath string
-		pkcs8                         bool
+		privateKeyPath, publicKeyPath             string
+		privateKeyLegacyPath, publicKeyLegacyPath string
+		dir, extLegacy                            string
+
+		legacy bool
 	)
 
-	if pkcs8, err = cmd.Flags().GetBool(cmdFlagNamePKCS8); err != nil {
+	if legacy, err = cmd.Flags().GetBool(cmdFlagNameLegacy); err != nil {
 		return err
 	}
 
-	if _, privateKeyPath, publicKeyPath, err = cryptoGetWritePathsFromCmd(cmd); err != nil {
+	if extLegacy, err = cmd.Flags().GetString(cmdFlagNameFileExtensionLegacy); err != nil {
+		return err
+	}
+
+	if dir, privateKeyPath, publicKeyPath, err = cryptoGetWritePathsFromCmd(cmd); err != nil {
 		return err
 	}
 
@@ -475,18 +554,48 @@ func (ctx *CmdCtx) CryptoPairGenerateRunE(cmd *cobra.Command, _ []string, privat
 		b.WriteString(fmt.Sprintf("\tAlgorithm: ECDSA Curve %s\n\n", k.Curve.Params().Name))
 	case ed25519.PrivateKey:
 		b.WriteString("\tAlgorithm: Ed25519\n\n")
+
+		// Legacy format is not available for Ed25519.
+		legacy = false
+	}
+
+	privateKeyPaths := []string{filepath.Base(privateKeyPath)}
+	publicKeyPaths := []string{filepath.Base(publicKeyPath)}
+
+	if legacy {
+		if ext := path.Ext(privateKeyPath); len(ext) == 0 {
+			privateKeyLegacyPath = fmt.Sprintf("%s.%s", privateKeyPath, extLegacy)
+		} else {
+			privateKeyLegacyPath = fmt.Sprintf("%s.%s%s", strings.TrimSuffix(privateKeyPath, ext), extLegacy, ext)
+		}
+
+		if ext := path.Ext(publicKeyPath); len(ext) == 0 {
+			publicKeyLegacyPath = fmt.Sprintf("%s.%s", publicKeyPath, extLegacy)
+		} else {
+			publicKeyLegacyPath = fmt.Sprintf("%s.%s%s", strings.TrimSuffix(publicKeyPath, ext), extLegacy, ext)
+		}
+
+		privateKeyPaths = append(privateKeyPaths, filepath.Base(privateKeyLegacyPath))
+		publicKeyPaths = append(publicKeyPaths, filepath.Base(publicKeyLegacyPath))
 	}
 
 	b.WriteString("Output Paths:\n")
-	b.WriteString(fmt.Sprintf("\tPrivate Key: %s\n", privateKeyPath))
-	b.WriteString(fmt.Sprintf("\tPublic Key: %s\n\n", publicKeyPath))
 
-	fmt.Print(b.String())
+	if cdir := filepath.Clean(dir); len(cdir) != 0 {
+		b.WriteString(fmt.Sprintf("\tDirectory: %s\n", cdir))
+	}
 
-	b.Reset()
+	b.WriteString(fmt.Sprintf("\tPrivate Key: %s\n", strings.Join(privateKeyPaths, ", ")))
+	b.WriteString(fmt.Sprintf("\tPublic Key: %s\n\n", strings.Join(publicKeyPaths, ", ")))
 
-	if err = utils.WriteKeyToPEM(privateKey, privateKeyPath, pkcs8); err != nil {
+	if err = utils.WriteKeyToPEM(privateKey, privateKeyPath, false); err != nil {
 		return err
+	}
+
+	if legacy {
+		if err = utils.WriteKeyToPEM(privateKey, privateKeyLegacyPath, true); err != nil {
+			return err
+		}
 	}
 
 	var publicKey any
@@ -495,9 +604,21 @@ func (ctx *CmdCtx) CryptoPairGenerateRunE(cmd *cobra.Command, _ []string, privat
 		return fmt.Errorf("failed to obtain public key from private key")
 	}
 
-	if err = utils.WriteKeyToPEM(publicKey, publicKeyPath, pkcs8); err != nil {
+	if err = utils.WriteKeyToPEM(publicKey, publicKeyPath, false); err != nil {
 		return err
 	}
+
+	if legacy {
+		if err = utils.WriteKeyToPEM(publicKey, publicKeyLegacyPath, true); err != nil {
+			return err
+		}
+	}
+
+	b.WriteString("\n")
+
+	fmt.Print(b.String())
+
+	b.Reset()
 
 	return nil
 }

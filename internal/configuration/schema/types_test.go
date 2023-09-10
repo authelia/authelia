@@ -186,14 +186,14 @@ func TestNewX509CertificateChain(t *testing.T) {
 		err              string
 	}{
 		{"ShouldParseCertificate", x509CertificateRSA2048,
-			"c60a924512a120fc9bc8c176b005bdd310c4a9f0f1fdc690aa808aeccf700882", ""},
+			"68a0522fba5df4ec95206ea7f0851f59255617f7abccf42cb1ccc224273ffcfe", ""},
 		{"ShouldParseCertificateChain", x509CertificateRSA2048 + "\n" + x509CACertificateRSA2048,
-			"c60a924512a120fc9bc8c176b005bdd310c4a9f0f1fdc690aa808aeccf700882", ""},
+			"68a0522fba5df4ec95206ea7f0851f59255617f7abccf42cb1ccc224273ffcfe", ""},
 		{"ShouldNotParseInvalidCertificate", x509CertificateRSAInvalid, "",
 			"the PEM data chain contains an invalid certificate: x509: malformed certificate"},
 		{"ShouldNotParseInvalidCertificateBlock", x509CertificateRSAInvalidBlock, "", "invalid PEM block"},
 		{"ShouldNotParsePrivateKey", x509PrivateKeyRSA2048, "",
-			"the PEM data chain contains a RSA PRIVATE KEY but only certificates are expected"},
+			"the PEM data chain contains a PRIVATE KEY but only certificates are expected"},
 		{"ShouldNotParseEmptyPEMBlock", x509CertificateEmpty, "", "invalid PEM block"},
 		{"ShouldNotParseEmptyData", "", "", ""},
 	}
@@ -283,11 +283,11 @@ func TestX509CertificateChain(t *testing.T) {
 	cacert := MustParseCertificate(x509CACertificateRSA4096)
 
 	chain = MustParseX509CertificateChain(x509CertificateRSA4096 + "\n" + x509CACertificateRSA4096)
-	key := MustParseRSAPrivateKey(x509PrivateKeyRSA4096)
+	key := MustParsePKCS8RSAPrivateKey(x509PrivateKeyRSA4096)
 
 	thumbprint := chain.Thumbprint(crypto.SHA256)
 	assert.NotNil(t, thumbprint)
-	assert.Equal(t, "921392ab7c0ccff0f3cac258bad1f31996a10697b4bb646a4f3d1f74bf73b025", fmt.Sprintf("%x", thumbprint))
+	assert.Equal(t, "2d1e64e9dd3d3ebd352e1e4a86f4584745f4e2d83e4011efadd43bc078a1e78b", fmt.Sprintf("%x", thumbprint))
 
 	assert.True(t, chain.Equal(cert))
 	assert.False(t, chain.Equal(cacert))
@@ -409,26 +409,30 @@ func MustParseCertificate(data string) *x509.Certificate {
 	return cert
 }
 
-func MustParseRSAPrivateKey(data string) *rsa.PrivateKey {
-	block, x := pem.Decode([]byte(data))
-	if block == nil {
-		panic("not pem")
+func MustParsePKCS8RSAPrivateKey(data string) *rsa.PrivateKey {
+	return MustParsePKCS8PrivateKey(data).(*rsa.PrivateKey)
+}
+
+func MustParsePKCS8PrivateKey(data string) CryptographicPrivateKey {
+	block, _ := pem.Decode([]byte(data))
+	if block == nil || block.Bytes == nil || len(block.Bytes) == 0 {
+		panic("not pem encoded")
 	}
 
-	if len(x) != 0 {
-		panic("extra data")
+	if block.Type != "PRIVATE KEY" {
+		panic("not PKCS8 private key")
 	}
 
-	if block.Type != blockRSAPRIVATEKEY {
-		panic(fmt.Sprintf("not rsa private key block: %s", block.Type))
-	}
-
-	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
 		panic(err)
 	}
 
-	return key
+	if pkey, ok := key.(CryptographicPrivateKey); ok {
+		return pkey
+	}
+
+	panic("key does not implement the required members")
 }
 
 var (
@@ -688,13 +692,13 @@ const (
 	pathCrypto = "../test_resources/crypto/%s.%s"
 )
 
-func MustLoadCryptoSet(alg string, pkcs8 bool, extra ...string) (certCA, keyCA, cert, key string) {
+func MustLoadCryptoSet(alg string, legacy bool, extra ...string) (certCA, keyCA, cert, key string) {
 	extraAlt := make([]string, len(extra))
 
 	copy(extraAlt, extra)
 
-	if pkcs8 {
-		extraAlt = append(extraAlt, "pkcs8")
+	if legacy {
+		extraAlt = append(extraAlt, "legacy")
 	}
 
 	return MustLoadCryptoRaw(true, alg, "crt", extra...), MustLoadCryptoRaw(true, alg, "pem", extra...), MustLoadCryptoRaw(false, alg, "crt", extraAlt...), MustLoadCryptoRaw(false, alg, "pem", extraAlt...)

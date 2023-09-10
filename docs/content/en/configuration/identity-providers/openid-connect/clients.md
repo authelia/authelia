@@ -542,11 +542,18 @@ The key *__MUST__*:
 * Be a PEM block encoded in the DER base64 format ([RFC4648]).
 * Be either:
   * An RSA public key:
-    * With a key size of at least 2048 bits.
-  * An ECDSA public key with one of:
-    * A P-256 elliptical curve.
-    * A P-384 elliptical curve.
-    * A P-512 elliptical curve.
+    * Encoded in conformance to the [PKCS#8] or [PKCS#1] specifications.
+    * Have a key size of at least 2048 bits.
+  * An ECDSA public key:
+    * Encoded in conformance to the [PKCS#8] or [SECG1] specifications.
+    * Use one of the following elliptical curves:
+      * P-256.
+      * P-384.
+      * P-512.
+
+[PKCS#8]: https://datatracker.ietf.org/doc/html/rfc5208
+[PKCS#1]: https://datatracker.ietf.org/doc/html/rfc8017
+[SECG1]: https://datatracker.ietf.org/doc/html/rfc5915
 
 If the [certificate_chain](#certificatechain) is provided the private key must include matching public
 key data for the first certificate in the chain.
