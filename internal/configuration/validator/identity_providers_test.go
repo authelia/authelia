@@ -502,7 +502,7 @@ func TestShouldRaiseErrorOnCertificateNotValid(t *testing.T) {
 	assert.Len(t, validator.Warnings(), 0)
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: issuer_private_keys: key #1 with key id 'bf1e10': option 'certificate_chain' does not appear to contain the public key for the private key provided by option 'key'")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: issuer_private_keys: key #1 with key id 'f45387': option 'certificate_chain' does not appear to contain the public key for the private key provided by option 'key'")
 }
 
 func TestValidateIdentityProvidersOpenIDConnectMinimumParameterEntropy(t *testing.T) {
@@ -2950,10 +2950,10 @@ func TestValidateOIDCIssuer(t *testing.T) {
 			schema.IdentityProvidersOpenIDConnect{
 				IssuerPrivateKey: keyRSA2048,
 				IssuerPrivateKeys: []schema.JWK{
-					{KeyID: "1f8bfc", Key: keyRSA2048, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
+					{KeyID: "11023c", Key: keyRSA2048, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "1f8bfc"},
+					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "11023c"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
@@ -2971,17 +2971,17 @@ func TestValidateOIDCIssuer(t *testing.T) {
 			},
 			schema.IdentityProvidersOpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
-					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "1f8bfc"},
-					{Key: keyECDSAP256, CertificateChain: certECDSAP256, Algorithm: oidc.SigningAlgECDSAUsingP256AndSHA256, Use: oidc.KeyUseSignature, KeyID: "1e7788"},
-					{Key: keyECDSAP384, CertificateChain: certECDSAP384, Algorithm: oidc.SigningAlgECDSAUsingP384AndSHA384, Use: oidc.KeyUseSignature, KeyID: "ba8508"},
-					{Key: keyECDSAP521, CertificateChain: certECDSAP521, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature, KeyID: "7ecbac"},
+					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "11023c"},
+					{Key: keyECDSAP256, CertificateChain: certECDSAP256, Algorithm: oidc.SigningAlgECDSAUsingP256AndSHA256, Use: oidc.KeyUseSignature, KeyID: "b60463"},
+					{Key: keyECDSAP384, CertificateChain: certECDSAP384, Algorithm: oidc.SigningAlgECDSAUsingP384AndSHA384, Use: oidc.KeyUseSignature, KeyID: "9bde03"},
+					{Key: keyECDSAP521, CertificateChain: certECDSAP521, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature, KeyID: "2f6f9f"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs: map[string]string{
-						oidc.SigningAlgRSAUsingSHA256:          "1f8bfc",
-						oidc.SigningAlgECDSAUsingP256AndSHA256: "1e7788",
-						oidc.SigningAlgECDSAUsingP384AndSHA384: "ba8508",
-						oidc.SigningAlgECDSAUsingP521AndSHA512: "7ecbac",
+						oidc.SigningAlgRSAUsingSHA256:          "11023c",
+						oidc.SigningAlgECDSAUsingP256AndSHA256: "b60463",
+						oidc.SigningAlgECDSAUsingP384AndSHA384: "9bde03",
+						oidc.SigningAlgECDSAUsingP521AndSHA512: "2f6f9f",
 					},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512},
 				},
@@ -2998,11 +2998,11 @@ func TestValidateOIDCIssuer(t *testing.T) {
 			},
 			schema.IdentityProvidersOpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
-					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "1f8bfc"},
-					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "bf1e10"},
+					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "11023c"},
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "f45387"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "1f8bfc"},
+					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "11023c"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
@@ -3017,10 +3017,10 @@ func TestValidateOIDCIssuer(t *testing.T) {
 			},
 			schema.IdentityProvidersOpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA512, Use: oidc.KeyUseSignature, KeyID: "bf1e10"},
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA512, Use: oidc.KeyUseSignature, KeyID: "f45387"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA512: "bf1e10"},
+					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA512: "f45387"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA512},
 				},
 			},
@@ -3038,11 +3038,11 @@ func TestValidateOIDCIssuer(t *testing.T) {
 			},
 			schema.IdentityProvidersOpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "bf1e10"},
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "f45387"},
 					{Key: keyECDSAP224, CertificateChain: certECDSAP224},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "bf1e10"},
+					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "f45387"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
@@ -3059,15 +3059,15 @@ func TestValidateOIDCIssuer(t *testing.T) {
 			},
 			schema.IdentityProvidersOpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
-					{Key: keyRSA1024, CertificateChain: certRSA1024, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "cf375e"},
+					{Key: keyRSA1024, CertificateChain: certRSA1024, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "b1cfc2"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "cf375e"},
+					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "b1cfc2"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
 			[]string{
-				"identity_providers: oidc: issuer_private_keys: key #1 with key id 'cf375e': option 'key' is an RSA 1024 bit private key but it must at minimum be a RSA 2048 bit private key",
+				"identity_providers: oidc: issuer_private_keys: key #1 with key id 'b1cfc2': option 'key' is an RSA 1024 bit private key but it must at minimum be a RSA 2048 bit private key",
 			},
 		},
 		{
@@ -3079,7 +3079,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 			},
 			schema.IdentityProvidersOpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: "invalid", Use: oidc.KeyUseSignature, KeyID: "bf1e10"},
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: "invalid", Use: oidc.KeyUseSignature, KeyID: "f45387"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs:             map[string]string{},
@@ -3087,7 +3087,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 			},
 			[]string{
-				"identity_providers: oidc: issuer_private_keys: key #1 with key id 'bf1e10': option 'algorithm' must be one of 'RS256', 'PS256', 'ES256', 'RS384', 'PS384', 'ES384', 'RS512', 'PS512', or 'ES512' but it's configured as 'invalid'",
+				"identity_providers: oidc: issuer_private_keys: key #1 with key id 'f45387': option 'algorithm' must be one of 'RS256', 'PS256', 'ES256', 'RS384', 'PS384', 'ES384', 'RS512', 'PS512', or 'ES512' but it's configured as 'invalid'",
 				"identity_providers: oidc: issuer_private_keys: keys: must at least have one key supporting the 'RS256' algorithm but only has 'invalid'",
 			},
 		},
@@ -3100,15 +3100,15 @@ func TestValidateOIDCIssuer(t *testing.T) {
 			},
 			schema.IdentityProvidersOpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: "invalid", KeyID: "bf1e10"},
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: "invalid", KeyID: "f45387"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "bf1e10"},
+					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "f45387"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
 			[]string{
-				"identity_providers: oidc: issuer_private_keys: key #1 with key id 'bf1e10': option 'use' must be one of 'sig' but it's configured as 'invalid'",
+				"identity_providers: oidc: issuer_private_keys: key #1 with key id 'f45387': option 'use' must be one of 'sig' but it's configured as 'invalid'",
 			},
 		},
 		{
@@ -3210,7 +3210,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 			},
 			schema.IdentityProvidersOpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
-					{Key: keyEd2519, CertificateChain: certEd15519, KeyID: "14dfd3"},
+					{Key: keyEd2519, CertificateChain: certEd15519, KeyID: "9b759f"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs:             map[string]string{},
@@ -3218,27 +3218,27 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 			},
 			[]string{
-				"identity_providers: oidc: issuer_private_keys: key #1 with key id '14dfd3': option 'key' must be a RSA private key or ECDSA private key but it's type is ed25519.PrivateKey",
+				"identity_providers: oidc: issuer_private_keys: key #1 with key id '9b759f': option 'key' must be a RSA private key or ECDSA private key but it's type is ed25519.PrivateKey",
 			},
 		},
 		{
 			"ShouldRaiseErrorOnCertificateAsKey",
 			&schema.IdentityProvidersOpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
-					{Key: publicRSA2048Pair},
+					{Key: certRSA2048.Certificates()[0].PublicKey},
 				},
 			},
 			schema.IdentityProvidersOpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
-					{Key: publicRSA2048Pair, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "9a0e71"},
+					{Key: certRSA2048.Certificates()[0].PublicKey, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "11023c"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "9a0e71"},
+					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "11023c"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
 			[]string{
-				"identity_providers: oidc: issuer_private_keys: key #1 with key id '9a0e71': option 'key' must be a RSA private key or ECDSA private key but it's type is *rsa.PublicKey",
+				"identity_providers: oidc: issuer_private_keys: key #1 with key id '11023c': option 'key' must be a RSA private key or ECDSA private key but it's type is *rsa.PublicKey",
 			},
 		},
 		{
@@ -3250,15 +3250,15 @@ func TestValidateOIDCIssuer(t *testing.T) {
 			},
 			schema.IdentityProvidersOpenIDConnect{
 				IssuerPrivateKeys: []schema.JWK{
-					{Key: keyRSA2048, CertificateChain: frankenchain, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "1f8bfc"},
+					{Key: keyRSA2048, CertificateChain: frankenchain, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "11023c"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "1f8bfc"},
+					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "11023c"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
 			[]string{
-				"identity_providers: oidc: issuer_private_keys: key #1 with key id '1f8bfc': option 'certificate_chain' produced an error during validation of the chain: certificate #1 in chain is not signed properly by certificate #2 in chain: x509: invalid signature: parent certificate cannot sign this kind of certificate",
+				"identity_providers: oidc: issuer_private_keys: key #1 with key id '11023c': option 'certificate_chain' produced an error during validation of the chain: certificate #1 in chain is not signed properly by certificate #2 in chain: x509: invalid signature: parent certificate cannot sign this kind of certificate",
 			},
 		},
 		{
@@ -3545,7 +3545,7 @@ func MustDecodeSecret(value string) *schema.PasswordDigest {
 }
 
 func MustLoadCrypto(alg, mod, ext string, extra ...string) any {
-	fparts := []string{alg, mod}
+	fparts := []string{strings.ToLower(alg), mod}
 	if len(extra) != 0 {
 		fparts = append(fparts, extra...)
 	}
@@ -3556,7 +3556,7 @@ func MustLoadCrypto(alg, mod, ext string, extra ...string) any {
 		err     error
 	)
 
-	if data, err = os.ReadFile(fmt.Sprintf(pathCrypto, strings.Join(fparts, "_"), ext)); err != nil {
+	if data, err = os.ReadFile(fmt.Sprintf(pathCrypto, strings.Join(fparts, "."), ext)); err != nil {
 		panic(err)
 	}
 
@@ -3580,8 +3580,8 @@ func MustLoadCertificateChain(alg, op string) schema.X509CertificateChain {
 	}
 }
 
-func MustLoadEd15519PrivateKey(curve string, extra ...string) ed25519.PrivateKey {
-	decoded := MustLoadCrypto("ED25519", curve, "pem", extra...)
+func MustLoadEd15519PrivateKey(mod string, extra ...string) ed25519.PrivateKey {
+	decoded := MustLoadCrypto("ED25519", mod, "pem", extra...)
 
 	key, ok := decoded.(ed25519.PrivateKey)
 	if !ok {
@@ -3602,17 +3602,6 @@ func MustLoadECDSAPrivateKey(curve string, extra ...string) *ecdsa.PrivateKey {
 	return key
 }
 
-func MustLoadRSAPublicKey(bits string, extra ...string) *rsa.PublicKey {
-	decoded := MustLoadCrypto("RSA", bits, "pem", extra...)
-
-	key, ok := decoded.(*rsa.PublicKey)
-	if !ok {
-		panic(fmt.Errorf("the key was not a *rsa.PublicKey, it's a %T", key))
-	}
-
-	return key
-}
-
 func MustLoadRSAPrivateKey(bits string, extra ...string) *rsa.PrivateKey {
 	decoded := MustLoadCrypto("RSA", bits, "pem", extra...)
 
@@ -3624,16 +3613,20 @@ func MustLoadRSAPrivateKey(bits string, extra ...string) *rsa.PrivateKey {
 	return key
 }
 
+func MustLoadRSACertificatePrivateKeyPair(bits string, extra ...string) (chain schema.X509CertificateChain, key *rsa.PrivateKey) {
+	return MustLoadCertificateChain("RSA", bits), MustLoadRSAPrivateKey(bits, extra...)
+}
+
+func MustLoadECDSACertificatePrivateKeyPair(curve string, extra ...string) (chain schema.X509CertificateChain, key *ecdsa.PrivateKey) {
+	return MustLoadCertificateChain("ECDSA", curve), MustLoadECDSAPrivateKey(curve, extra...)
+}
+
 const (
 	pathCrypto = "../test_resources/crypto/%s.%s"
 )
 
 var (
 	tOpenIDConnectPBKDF2ClientSecret, tOpenIDConnectPlainTextClientSecret *schema.PasswordDigest
-
-	// Standard RSA key pair.
-	publicRSA2048Pair  *rsa.PublicKey
-	privateRSA2048Pair *rsa.PrivateKey
 
 	// Standard RSA key / certificate pairs.
 	keyRSA1024, keyRSA2048, keyRSA2048PKCS8, keyRSA4096 *rsa.PrivateKey
@@ -3642,10 +3635,6 @@ var (
 	// Standard ECDSA key / certificate pairs.
 	keyECDSAP224, keyECDSAP256, keyECDSAP384, keyECDSAP521     *ecdsa.PrivateKey
 	certECDSAP224, certECDSAP256, certECDSAP384, certECDSAP521 schema.X509CertificateChain
-
-	// Standard ECDSA key / certificate pairs.
-	keyECDSAP256PKCS8, keyECDSAP384PKCS8, keyECDSAP521PKCS8                        *ecdsa.PrivateKey
-	certECDSAP224PKCS8, certECDSAP256PKCS8, certECDSAP384PKCS8, certECDSAP521PKCS8 schema.X509CertificateChain //nolint:unused
 
 	// Ed15519 key / certificate pair.
 	keyEd2519   ed25519.PrivateKey
@@ -3656,29 +3645,16 @@ func init() {
 	tOpenIDConnectPBKDF2ClientSecret = MustDecodeSecret("$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng")
 	tOpenIDConnectPlainTextClientSecret = MustDecodeSecret("$plaintext$example")
 
-	publicRSA2048Pair = MustLoadRSAPublicKey("2048", "PAIR", "PUBLIC")
-	privateRSA2048Pair = MustLoadRSAPrivateKey("2048", "PAIR", "PRIVATE")
+	certRSA1024, keyRSA1024 = MustLoadRSACertificatePrivateKeyPair("1024")
+	certRSA2048, keyRSA2048 = MustLoadRSACertificatePrivateKeyPair("2048")
+	certRSA4096, keyRSA4096 = MustLoadRSACertificatePrivateKeyPair("4096")
 
-	keyRSA1024 = MustLoadRSAPrivateKey("1024")
-	keyRSA2048 = MustLoadRSAPrivateKey("2048")
-	keyRSA4096 = MustLoadRSAPrivateKey("4096")
-	keyECDSAP224 = MustLoadECDSAPrivateKey("P224")
-	keyECDSAP256 = MustLoadECDSAPrivateKey("P256")
-	keyECDSAP384 = MustLoadECDSAPrivateKey("P384")
-	keyECDSAP521 = MustLoadECDSAPrivateKey("P521")
-	keyEd2519 = MustLoadEd15519PrivateKey("PKCS8")
+	certECDSAP224, keyECDSAP224 = MustLoadECDSACertificatePrivateKeyPair("P224")
+	certECDSAP256, keyECDSAP256 = MustLoadECDSACertificatePrivateKeyPair("P256")
+	certECDSAP384, keyECDSAP384 = MustLoadECDSACertificatePrivateKeyPair("P384")
+	certECDSAP521, keyECDSAP521 = MustLoadECDSACertificatePrivateKeyPair("P521")
 
-	keyRSA2048PKCS8 = MustLoadRSAPrivateKey("2048", "PKCS8")
-	keyECDSAP256PKCS8 = MustLoadECDSAPrivateKey("P256", "PKCS8")
-	keyECDSAP384PKCS8 = MustLoadECDSAPrivateKey("P384", "PKCS8")
-	keyECDSAP521PKCS8 = MustLoadECDSAPrivateKey("P521", "PKCS8")
+	certEd15519, keyEd2519 = MustLoadCertificateChain("Ed25519", "pkcs8"), MustLoadEd15519PrivateKey("pkcs8")
 
-	certRSA1024 = MustLoadCertificateChain("RSA", "1024")
-	certRSA2048 = MustLoadCertificateChain("RSA", "2048")
-	certRSA4096 = MustLoadCertificateChain("RSA", "4096")
-	certECDSAP224 = MustLoadCertificateChain("ECDSA", "P224")
-	certECDSAP256 = MustLoadCertificateChain("ECDSA", "P256")
-	certECDSAP384 = MustLoadCertificateChain("ECDSA", "P384")
-	certECDSAP521 = MustLoadCertificateChain("ECDSA", "P521")
-	certEd15519 = MustLoadCertificateChain("ED25519", "PKCS8")
+	keyRSA2048PKCS8 = MustLoadRSAPrivateKey("2048", "pkcs8")
 }

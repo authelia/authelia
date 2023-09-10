@@ -74,7 +74,7 @@ func TestEncodeJWTSecuredResponseParameters(t *testing.T) {
 			"https://auth.example.com",
 			&fjwt.DefaultSigner{
 				GetPrivateKey: func(ctx context.Context) (any, error) {
-					return keyRSA2048, nil
+					return x509PrivateKeyRSA2048, nil
 				},
 			},
 			&oidc.BaseClient{
@@ -112,7 +112,7 @@ func TestEncodeJWTSecuredResponseParameters(t *testing.T) {
 			"https://auth.example.com",
 			&fjwt.DefaultSigner{
 				GetPrivateKey: func(ctx context.Context) (any, error) {
-					return keyRSA2048, nil
+					return x509PrivateKeyRSA2048, nil
 				},
 			},
 			&oidc.BaseClient{
@@ -134,7 +134,7 @@ func TestEncodeJWTSecuredResponseParameters(t *testing.T) {
 			"",
 			&fjwt.DefaultSigner{
 				GetPrivateKey: func(ctx context.Context) (any, error) {
-					return keyRSA2048, nil
+					return x509PrivateKeyRSA2048, nil
 				},
 			},
 			&oidc.BaseClient{
@@ -160,7 +160,7 @@ func TestEncodeJWTSecuredResponseParameters(t *testing.T) {
 			"",
 			&fjwt.DefaultSigner{
 				GetPrivateKey: func(ctx context.Context) (any, error) {
-					return keyRSA2048, nil
+					return x509PrivateKeyRSA2048, nil
 				},
 			},
 			&oidc.BaseClient{

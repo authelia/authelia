@@ -1,6 +1,7 @@
 package oidc_test
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"crypto/x509"
@@ -69,8 +70,114 @@ func MustLoadCrypto(alg, mod, ext string, extra ...string) any {
 	return decoded
 }
 
-func MustLoadCertificateChain(alg, op string) schema.X509CertificateChain {
-	decoded := MustLoadCrypto(alg, op, "crt")
+var (
+	tOpenIDConnectPBKDF2ClientSecret, tOpenIDConnectPlainTextClientSecret *schema.PasswordDigest
+)
+
+func MustLoadRSACryptoSet(pkcs8 bool, extra ...string) (chain schema.X509CertificateChain, key *rsa.PrivateKey) {
+	c, cc, k := MustLoadCryptoSet("RSA", pkcs8, extra...)
+
+	chain = MustParseCertificateChain(c, cc)
+
+	var (
+		decoded any
+		err     error
+		ok      bool
+	)
+
+	if decoded, err = utils.ParseX509FromPEMRecursive(k); err != nil {
+		panic(err)
+	}
+
+	if key, ok = decoded.(*rsa.PrivateKey); ok {
+		if chain.EqualKey(key) {
+			return chain, key
+		}
+
+		panic("key not valid for chain")
+	}
+
+	panic("invalid key")
+}
+
+func MustLoadECDSACryptoSet(pkcs8 bool, extra ...string) (chain schema.X509CertificateChain, key *ecdsa.PrivateKey) {
+	c, cc, k := MustLoadCryptoSet("ECDSA", pkcs8, extra...)
+
+	chain = MustParseCertificateChain(c, cc)
+
+	var (
+		decoded any
+		err     error
+		ok      bool
+	)
+
+	if decoded, err = utils.ParseX509FromPEMRecursive(k); err != nil {
+		panic(err)
+	}
+
+	if key, ok = decoded.(*ecdsa.PrivateKey); ok {
+		if chain.EqualKey(key) {
+			return chain, key
+		}
+
+		panic("key not valid for chain")
+	}
+
+	panic("invalid key")
+}
+
+func MustLoadCryptoSet(alg string, pkcs8 bool, extra ...string) (cert, certCA, key []byte) {
+	extraAlt := make([]string, len(extra))
+
+	copy(extraAlt, extra)
+
+	if pkcs8 {
+		extraAlt = append(extraAlt, "pkcs8")
+	}
+
+	return MustLoadCryptoRaw(false, alg, "crt", extraAlt...), MustLoadCryptoRaw(true, alg, "crt", extra...), MustLoadCryptoRaw(false, alg, "pem", extraAlt...)
+}
+
+func MustLoadCryptoRaw(ca bool, alg, ext string, extra ...string) []byte {
+	var fparts []string
+
+	if ca {
+		fparts = append(fparts, "ca")
+	}
+
+	fparts = append(fparts, strings.ToLower(alg))
+
+	if len(extra) != 0 {
+		fparts = append(fparts, extra...)
+	}
+
+	var (
+		data []byte
+		err  error
+	)
+
+	if data, err = os.ReadFile(fmt.Sprintf(pathCrypto, strings.Join(fparts, "."), ext)); err != nil {
+		panic(err)
+	}
+
+	return data
+}
+
+func MustParseCertificateChain(blocks ...[]byte) schema.X509CertificateChain {
+	buf := &bytes.Buffer{}
+
+	for _, block := range blocks {
+		buf.Write(block)
+	}
+
+	var (
+		decoded any
+		err     error
+	)
+
+	if decoded, err = utils.ParseX509FromPEMRecursive(buf.Bytes()); err != nil {
+		panic(err)
+	}
 
 	switch cert := decoded.(type) {
 	case *x509.Certificate:
@@ -82,68 +189,22 @@ func MustLoadCertificateChain(alg, op string) schema.X509CertificateChain {
 	}
 }
 
-func MustLoadECDSAPrivateKey(curve string, extra ...string) *ecdsa.PrivateKey {
-	decoded := MustLoadCrypto("ECDSA", curve, "pem", extra...)
-
-	key, ok := decoded.(*ecdsa.PrivateKey)
-	if !ok {
-		panic(fmt.Errorf("the key was not a *ecdsa.PrivateKey, it's a %T", key))
-	}
-
-	return key
-}
-
-func MustLoadRSAPublicKey(bits string, extra ...string) *rsa.PublicKey {
-	decoded := MustLoadCrypto("RSA", bits, "pem", extra...)
-
-	key, ok := decoded.(*rsa.PublicKey)
-	if !ok {
-		panic(fmt.Errorf("the key was not a *rsa.PublicKey, it's a %T", key))
-	}
-
-	return key
-}
-
-func MustLoadRSAPrivateKey(bits string, extra ...string) *rsa.PrivateKey {
-	decoded := MustLoadCrypto("RSA", bits, "pem", extra...)
-
-	key, ok := decoded.(*rsa.PrivateKey)
-	if !ok {
-		panic(fmt.Errorf("the key was not a *rsa.PrivateKey, it's a %T", key))
-	}
-
-	return key
-}
-
 var (
-	tOpenIDConnectPBKDF2ClientSecret, tOpenIDConnectPlainTextClientSecret *schema.PasswordDigest
+	x509CertificateChainRSA2048, x509CertificateChainRSA4096 schema.X509CertificateChain
+	x509PrivateKeyRSA2048, x509PrivateKeyRSA4096             *rsa.PrivateKey
 
-	// Standard RSA key / certificate pairs.
-	keyRSA1024, keyRSA2048, keyRSA4096    *rsa.PrivateKey
-	certRSA1024, certRSA2048, certRSA4096 schema.X509CertificateChain
-
-	// Standard ECDSA key / certificate pairs.
-	keyECDSAP224, keyECDSAP256, keyECDSAP384, keyECDSAP521     *ecdsa.PrivateKey
-	certECDSAP224, certECDSAP256, certECDSAP384, certECDSAP521 schema.X509CertificateChain
+	x509CertificateChainECDSAP256, x509CertificateChainECDSAP384, x509CertificateChainECDSAP521 schema.X509CertificateChain
+	x509PrivateKeyECDSAP256, x509PrivateKeyECDSAP384, x509PrivateKeyECDSAP521                   *ecdsa.PrivateKey
 )
 
 func init() {
 	tOpenIDConnectPBKDF2ClientSecret = MustDecodeSecret("$pbkdf2-sha512$100000$cfNEo93VkIUIvaXHqetFoQ$O6qFLAlwCMz6.hv9XqUEPnMtrFxODw70T7bmnfTzfNPi3iXbgUEmGiyA6msybOfmj7m3QJS6lLy4DglgJifkKw")
 	tOpenIDConnectPlainTextClientSecret = MustDecodeSecret("$plaintext$client-secret")
 
-	keyRSA1024 = MustLoadRSAPrivateKey("1024")
-	keyRSA2048 = MustLoadRSAPrivateKey("2048")
-	keyRSA4096 = MustLoadRSAPrivateKey("4096")
-	keyECDSAP224 = MustLoadECDSAPrivateKey("P224")
-	keyECDSAP256 = MustLoadECDSAPrivateKey("P256")
-	keyECDSAP384 = MustLoadECDSAPrivateKey("P384")
-	keyECDSAP521 = MustLoadECDSAPrivateKey("P521")
+	x509CertificateChainRSA2048, x509PrivateKeyRSA2048 = MustLoadRSACryptoSet(false, "2048")
+	x509CertificateChainRSA4096, x509PrivateKeyRSA4096 = MustLoadRSACryptoSet(false, "4096")
 
-	certRSA1024 = MustLoadCertificateChain("RSA", "1024")
-	certRSA2048 = MustLoadCertificateChain("RSA", "2048")
-	certRSA4096 = MustLoadCertificateChain("RSA", "4096")
-	certECDSAP224 = MustLoadCertificateChain("ECDSA", "P224")
-	certECDSAP256 = MustLoadCertificateChain("ECDSA", "P256")
-	certECDSAP384 = MustLoadCertificateChain("ECDSA", "P384")
-	certECDSAP521 = MustLoadCertificateChain("ECDSA", "P521")
+	x509CertificateChainECDSAP256, x509PrivateKeyECDSAP256 = MustLoadECDSACryptoSet(false, "P256")
+	x509CertificateChainECDSAP384, x509PrivateKeyECDSAP384 = MustLoadECDSACryptoSet(false, "P384")
+	x509CertificateChainECDSAP521, x509PrivateKeyECDSAP521 = MustLoadECDSACryptoSet(false, "P521")
 }

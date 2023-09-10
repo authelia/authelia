@@ -33,7 +33,7 @@ func TestJWTCoreStrategy(t *testing.T) {
 	strategy := &oidc.JWTCoreStrategy{
 		Signer: &jwt.DefaultSigner{
 			GetPrivateKey: func(ctx context.Context) (interface{}, error) {
-				return keyRSA2048, nil
+				return x509PrivateKeyRSA2048, nil
 			},
 		},
 		HMACCoreStrategy: &oidc.HMACCoreStrategy{

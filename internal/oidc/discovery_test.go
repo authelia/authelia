@@ -104,7 +104,7 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 func TestNewOpenIDConnectProviderDiscovery(t *testing.T) {
 	provider := oidc.NewOpenIDConnectProvider(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain:   schema.X509CertificateChain{},
-		IssuerPrivateKey:         keyRSA2048,
+		IssuerPrivateKey:         x509PrivateKeyRSA2048,
 		HMACSecret:               "asbdhaaskmdlkamdklasmdlkams",
 		EnablePKCEPlainChallenge: true,
 		Clients: []schema.IdentityProvidersOpenIDConnectClient{
@@ -145,7 +145,7 @@ func TestNewOpenIDConnectProviderDiscovery(t *testing.T) {
 func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *testing.T) {
 	provider := oidc.NewOpenIDConnectProvider(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       keyRSA2048,
+		IssuerPrivateKey:       x509PrivateKeyRSA2048,
 		HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
 		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
@@ -254,7 +254,7 @@ func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *test
 func TestNewOpenIDConnectProvider_GetOAuth2WellKnownConfiguration(t *testing.T) {
 	provider := oidc.NewOpenIDConnectProvider(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       keyRSA2048,
+		IssuerPrivateKey:       x509PrivateKeyRSA2048,
 		HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
 		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
@@ -349,7 +349,7 @@ func TestNewOpenIDConnectProvider_GetOAuth2WellKnownConfiguration(t *testing.T) 
 func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfigurationWithPlainPKCE(t *testing.T) {
 	provider := oidc.NewOpenIDConnectProvider(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain:   schema.X509CertificateChain{},
-		IssuerPrivateKey:         keyRSA2048,
+		IssuerPrivateKey:         x509PrivateKeyRSA2048,
 		HMACSecret:               "asbdhaaskmdlkamdklasmdlkams",
 		EnablePKCEPlainChallenge: true,
 		Clients: []schema.IdentityProvidersOpenIDConnectClient{

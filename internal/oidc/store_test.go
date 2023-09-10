@@ -25,7 +25,7 @@ import (
 func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       keyRSA2048,
+		IssuerPrivateKey:       x509PrivateKeyRSA2048,
 		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
 				ID:                  myclient,
@@ -62,7 +62,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 
 	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       keyRSA2048,
+		IssuerPrivateKey:       x509PrivateKeyRSA2048,
 		Clients:                []schema.IdentityProvidersOpenIDConnectClient{c1},
 	}, nil)
 
@@ -92,7 +92,7 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 
 	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       keyRSA2048,
+		IssuerPrivateKey:       x509PrivateKeyRSA2048,
 		Clients:                []schema.IdentityProvidersOpenIDConnectClient{c1},
 	}, nil)
 
@@ -106,7 +106,7 @@ func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
 
 	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       keyRSA2048,
+		IssuerPrivateKey:       x509PrivateKeyRSA2048,
 		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
 				ID:                  myclient,
