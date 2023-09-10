@@ -986,43 +986,43 @@ func TestStringToPrivateKeyHookFunc(t *testing.T) {
 		{
 			desc:   "ShouldDecodeRSA1024PrivateKey",
 			have:   x509PrivateKeyRSA1024,
-			want:   MustParseRSAPrivateKey(x509PrivateKeyRSA1024),
+			want:   MustParsePKCS8RSAPrivateKey(x509PrivateKeyRSA1024),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeRSA2048PrivateKey",
 			have:   x509PrivateKeyRSA2048,
-			want:   MustParseRSAPrivateKey(x509PrivateKeyRSA2048),
+			want:   MustParsePKCS8RSAPrivateKey(x509PrivateKeyRSA2048),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeRSA4096PrivateKey",
 			have:   x509PrivateKeyRSA4096,
-			want:   MustParseRSAPrivateKey(x509PrivateKeyRSA4096),
+			want:   MustParsePKCS8RSAPrivateKey(x509PrivateKeyRSA4096),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeECDSAP224PrivateKey",
 			have:   x509PrivateKeyECDSAP224,
-			want:   MustParseECDSAPrivateKey(x509PrivateKeyECDSAP224),
+			want:   MustParsePKCS8ECDSAPrivateKey(x509PrivateKeyECDSAP224),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeECDSAP256PrivateKey",
 			have:   x509PrivateKeyECDSAP256,
-			want:   MustParseECDSAPrivateKey(x509PrivateKeyECDSAP256),
+			want:   MustParsePKCS8ECDSAPrivateKey(x509PrivateKeyECDSAP256),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeECDSAP384PrivateKey",
 			have:   x509PrivateKeyECDSAP384,
-			want:   MustParseECDSAPrivateKey(x509PrivateKeyECDSAP384),
+			want:   MustParsePKCS8ECDSAPrivateKey(x509PrivateKeyECDSAP384),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeECDSAP521PrivateKey",
 			have:   x509PrivateKeyECDSAP521,
-			want:   MustParseECDSAPrivateKey(x509PrivateKeyECDSAP521),
+			want:   MustParsePKCS8ECDSAPrivateKey(x509PrivateKeyECDSAP521),
 			decode: true,
 		},
 		{
@@ -1654,7 +1654,7 @@ func TestStringToX509CertificateChainHookFunc(t *testing.T) {
 			have:     x509PrivateKeyECDSAP224,
 			expected: nilkey,
 			decode:   true,
-			err:      "could not decode to a *schema.X509CertificateChain: the PEM data chain contains a EC PRIVATE KEY but only certificates are expected",
+			err:      "could not decode to a *schema.X509CertificateChain: the PEM data chain contains a PRIVATE KEY but only certificates are expected",
 		},
 		{
 			desc:     "ShouldNotDecodeBadRSAPrivateKeyToCertificate",
@@ -1717,42 +1717,6 @@ bad key
 bad key
 -----END EC PRIVATE KEY-----`
 )
-
-func MustParseRSAPrivateKey(data string) *rsa.PrivateKey {
-	block, _ := pem.Decode([]byte(data))
-	if block == nil || block.Bytes == nil || len(block.Bytes) == 0 {
-		panic("not pem encoded")
-	}
-
-	if block.Type != "RSA PRIVATE KEY" {
-		panic("not rsa private key")
-	}
-
-	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-	if err != nil {
-		panic(err)
-	}
-
-	return key
-}
-
-func MustParseECDSAPrivateKey(data string) *ecdsa.PrivateKey {
-	block, _ := pem.Decode([]byte(data))
-	if block == nil || block.Bytes == nil || len(block.Bytes) == 0 {
-		panic("not pem encoded")
-	}
-
-	if block.Type != "EC PRIVATE KEY" {
-		panic("not ecdsa private key")
-	}
-
-	key, err := x509.ParseECPrivateKey(block.Bytes)
-	if err != nil {
-		panic(err)
-	}
-
-	return key
-}
 
 func MustParsePKCS8RSAPrivateKey(data string) *rsa.PrivateKey {
 	return MustParsePKCS8PrivateKey(data).(*rsa.PrivateKey)
@@ -1883,13 +1847,13 @@ const (
 	pathCrypto = "./test_resources/crypto/%s.%s"
 )
 
-func MustLoadCryptoSet(alg string, pkcs8 bool, extra ...string) (certCA, keyCA, cert, key string) {
+func MustLoadCryptoSet(alg string, legacy bool, extra ...string) (certCA, keyCA, cert, key string) {
 	extraAlt := make([]string, len(extra))
 
 	copy(extraAlt, extra)
 
-	if pkcs8 {
-		extraAlt = append(extraAlt, "pkcs8")
+	if legacy {
+		extraAlt = append(extraAlt, "legacy")
 	}
 
 	return MustLoadCryptoRaw(true, alg, "crt", extra...), MustLoadCryptoRaw(true, alg, "pem", extra...), MustLoadCryptoRaw(false, alg, "crt", extraAlt...), MustLoadCryptoRaw(false, alg, "pem", extraAlt...)

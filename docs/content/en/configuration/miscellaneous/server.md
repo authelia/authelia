@@ -121,7 +121,12 @@ beyond the scope of this guide.
 
 {{< confkey type="string" required="situational" >}}
 
-The path to the private key for TLS connections. Must be in DER base64/PEM format.
+The path to the private key for TLS connections. Must be in DER base64/PEM format and must be encoded per the [PKCS#8],
+[PKCS#1], or [SECG1] specifications.
+
+[PKCS#8]: https://datatracker.ietf.org/doc/html/rfc5208
+[PKCS#1]: https://datatracker.ietf.org/doc/html/rfc8017
+[SECG1]: https://datatracker.ietf.org/doc/html/rfc5915
 
 #### certificate
 

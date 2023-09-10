@@ -40,7 +40,6 @@ authelia crypto pair rsa generate --help
       --file.private-key string   name of the file to export the private key data to (default "private.pem")
       --file.public-key string    name of the file to export the public key data to (default "public.pem")
   -h, --help                      help for generate
-      --pkcs8                     force PKCS #8 ASN.1 format
 ```
 
 ### Options inherited from parent commands

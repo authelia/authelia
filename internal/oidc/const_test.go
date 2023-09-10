@@ -74,8 +74,8 @@ var (
 	tOpenIDConnectPBKDF2ClientSecret, tOpenIDConnectPlainTextClientSecret *schema.PasswordDigest
 )
 
-func MustLoadRSACryptoSet(pkcs8 bool, extra ...string) (chain schema.X509CertificateChain, key *rsa.PrivateKey) {
-	c, cc, k := MustLoadCryptoSet("RSA", pkcs8, extra...)
+func MustLoadRSACryptoSet(legacy bool, extra ...string) (chain schema.X509CertificateChain, key *rsa.PrivateKey) {
+	c, cc, k := MustLoadCryptoSet("RSA", legacy, extra...)
 
 	chain = MustParseCertificateChain(c, cc)
 
@@ -100,8 +100,8 @@ func MustLoadRSACryptoSet(pkcs8 bool, extra ...string) (chain schema.X509Certifi
 	panic("invalid key")
 }
 
-func MustLoadECDSACryptoSet(pkcs8 bool, extra ...string) (chain schema.X509CertificateChain, key *ecdsa.PrivateKey) {
-	c, cc, k := MustLoadCryptoSet("ECDSA", pkcs8, extra...)
+func MustLoadECDSACryptoSet(legacy bool, extra ...string) (chain schema.X509CertificateChain, key *ecdsa.PrivateKey) {
+	c, cc, k := MustLoadCryptoSet("ECDSA", legacy, extra...)
 
 	chain = MustParseCertificateChain(c, cc)
 
@@ -126,13 +126,13 @@ func MustLoadECDSACryptoSet(pkcs8 bool, extra ...string) (chain schema.X509Certi
 	panic("invalid key")
 }
 
-func MustLoadCryptoSet(alg string, pkcs8 bool, extra ...string) (cert, certCA, key []byte) {
+func MustLoadCryptoSet(alg string, legacy bool, extra ...string) (cert, certCA, key []byte) {
 	extraAlt := make([]string, len(extra))
 
 	copy(extraAlt, extra)
 
-	if pkcs8 {
-		extraAlt = append(extraAlt, "pkcs8")
+	if legacy {
+		extraAlt = append(extraAlt, "legacy")
 	}
 
 	return MustLoadCryptoRaw(false, alg, "crt", extraAlt...), MustLoadCryptoRaw(true, alg, "crt", extra...), MustLoadCryptoRaw(false, alg, "pem", extraAlt...)
