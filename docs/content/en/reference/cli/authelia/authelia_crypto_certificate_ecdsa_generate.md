@@ -48,15 +48,16 @@ authelia crypto certificate ecdsa generate --help
       --file.ca-certificate string      certificate authority certificate to use when signing this certificate (default "ca.public.crt")
       --file.ca-private-key string      certificate authority private key to use to signing this certificate (default "ca.private.pem")
       --file.certificate string         name of the file to export the certificate data to (default "public.crt")
+      --file.extension.legacy string    string to include before the actual extension as a sub-extension on the PKCS#1 and SECG1 legacy formats (default "legacy")
       --file.private-key string         name of the file to export the private key data to (default "private.pem")
   -h, --help                            help for generate
+      --legacy                          enables the output of the legacy PKCS#1 and SECG1 formats when enabled
   -l, --locality strings                certificate locality
       --not-after string                latest date and time the certificate is considered valid in various formats
       --not-before string               earliest date and time the certificate is considered valid in various formats (default is now)
   -o, --organization strings            certificate organization (default [Authelia])
       --organizational-unit strings     certificate organizational unit
       --path.ca string                  source directory of the certificate authority files, if not provided the certificate will be self-signed
-      --pkcs8                           force PKCS #8 ASN.1 format
   -p, --postcode strings                certificate postcode
       --province strings                certificate province
       --sans strings                    subject alternative names

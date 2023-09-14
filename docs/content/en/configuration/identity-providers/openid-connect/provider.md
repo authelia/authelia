@@ -198,11 +198,23 @@ The private key used to sign/encrypt the [OpenID Connect 1.0] issued [JWT]'s. Th
 administrator and can be done by following the
 [Generating an RSA Keypair](../../../reference/guides/generating-secure-values.md#generating-an-rsa-keypair) guide.
 
-The private key *__MUST__*:
+The key *__MUST__*:
+
 * Be a PEM block encoded in the DER base64 format ([RFC4648]).
-* Be one of:
-  * An RSA key with a key size of at least 2048 bits.
-  * An ECDSA private key with one of the P-256, P-384, or P-521 elliptical curves.
+* Be either:
+  * An RSA private key:
+    * Encoded in conformance to the [PKCS#8] or [PKCS#1] specifications.
+    * Have a key size of at least 2048 bits.
+  * An ECDSA private key:
+    * Encoded in conformance to the [PKCS#8] or [SECG1] specifications.
+    * Use one of the following elliptical curves:
+      * P-256.
+      * P-384.
+      * P-512.
+
+[PKCS#8]: https://datatracker.ietf.org/doc/html/rfc5208
+[PKCS#1]: https://datatracker.ietf.org/doc/html/rfc8017
+[SECG1]: https://datatracker.ietf.org/doc/html/rfc5915
 
 If the [certificate_chain](#certificatechain) is provided the private key must include matching public
 key data for the first certificate in the chain.
@@ -239,8 +251,12 @@ for `RS256` if provided.
 The issuer private key *__MUST__*:
 
 * Be a PEM block encoded in the DER base64 format ([RFC4648]).
-* Be an RSA private key:
-    * With a key size of at least 2048 bits.
+* Be a RSA private key:
+  * Encoded in conformance to the [PKCS#8] or [PKCS#1] specifications.
+  * Have a key size of at least 2048 bits.
+
+[PKCS#8]: https://datatracker.ietf.org/doc/html/rfc5208
+[PKCS#1]: https://datatracker.ietf.org/doc/html/rfc8017
 
 If the [issuer_certificate_chain](#issuercertificatechain) is provided the private key must include matching public
 key data for the first certificate in the chain.

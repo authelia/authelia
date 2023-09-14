@@ -15,7 +15,7 @@ import (
 func TestStatelessJWTValidator_IntrospectToken(t *testing.T) {
 	signer := &fjwt.DefaultSigner{
 		GetPrivateKey: func(ctx context.Context) (any, error) {
-			return keyRSA2048, nil
+			return x509PrivateKeyRSA2048, nil
 		},
 	}
 
@@ -30,7 +30,7 @@ func TestStatelessJWTValidator_IntrospectToken(t *testing.T) {
 			j.Header[oidc.JWTHeaderKeyAlgorithm] = method.Alg()
 		}
 
-		token, err := j.SignedString(keyRSA2048)
+		token, err := j.SignedString(x509PrivateKeyRSA2048)
 
 		if err != nil {
 			panic(err)

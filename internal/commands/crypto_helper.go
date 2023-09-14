@@ -62,7 +62,8 @@ func cmdFlagsCryptoPairGenerate(cmd *cobra.Command) {
 }
 
 func cmdFlagsCryptoPrivateKey(cmd *cobra.Command) {
-	cmd.Flags().Bool(cmdFlagNamePKCS8, false, "force PKCS #8 ASN.1 format")
+	cmd.Flags().String(cmdFlagNameFileExtensionLegacy, "legacy", "string to include before the actual extension as a sub-extension on the PKCS#1 and SECG1 legacy formats")
+	cmd.Flags().Bool(cmdFlagNameLegacy, false, "enables the output of the legacy PKCS#1 and SECG1 formats when enabled")
 	cmd.Flags().String(cmdFlagNameFilePrivateKey, "private.pem", "name of the file to export the private key data to")
 	cmd.Flags().StringP(cmdFlagNameDirectory, "d", "", "directory where the generated keys, certificates, etc will be stored")
 }
