@@ -11,7 +11,7 @@ require (
 	github.com/fasthttp/router v1.4.20
 	github.com/fasthttp/session/v2 v2.5.1
 	github.com/fsnotify/fsnotify v1.6.0
-	github.com/go-asn1-ber/asn1-ber v1.5.4
+	github.com/go-asn1-ber/asn1-ber v1.5.5
 	github.com/go-crypt/crypt v0.2.12
 	github.com/go-ldap/ldap/v3 v3.4.5
 	github.com/go-rod/rod v0.114.3
