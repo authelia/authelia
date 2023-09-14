@@ -1,8 +1,8 @@
 ---
-title: "authelia-gen code server"
-description: "Reference for the authelia-gen code server command."
+title: "authelia-gen docs json-schema exports"
+description: "Reference for the authelia-gen docs json-schema exports command."
 lead: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2023-09-14T21:17:24+10:00
 draft: false
 images: []
 menu:
@@ -12,18 +12,18 @@ weight: 915
 toc: true
 ---
 
-## authelia-gen code server
+## authelia-gen docs json-schema exports
 
-Generate the Authelia server files
+Generate docs JSON schema for the various exports
 
 ```
-authelia-gen code server [flags]
+authelia-gen docs json-schema exports [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for server
+  -h, --help   help for exports
 ```
 
 ### Options inherited from parent commands
@@ -69,5 +69,8 @@ authelia-gen code server [flags]
 
 ### SEE ALSO
 
-* [authelia-gen code](authelia-gen_code.md)	 - Generate code
+* [authelia-gen docs json-schema](authelia-gen_docs_json-schema.md)	 - Generate docs JSON schema
+* [authelia-gen docs json-schema exports identifiers](authelia-gen_docs_json-schema_exports_identifiers.md)	 - Generate docs JSON schema for the identifiers exports
+* [authelia-gen docs json-schema exports totp](authelia-gen_docs_json-schema_exports_totp.md)	 - Generate docs JSON schema for the TOTP exports
+* [authelia-gen docs json-schema exports webauthn](authelia-gen_docs_json-schema_exports_webauthn.md)	 - Generate docs JSON schema for the WebAuthn exports
 

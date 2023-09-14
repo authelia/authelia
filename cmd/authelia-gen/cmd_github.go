@@ -83,7 +83,7 @@ func cmdGitHubIssueTemplatesFeatureRunE(cmd *cobra.Command, args []string) (err 
 		return err
 	}
 
-	if versions, err = cmd.Flags().GetInt(cmdFlagVersions); err != nil {
+	if versions, err = cmd.Flags().GetInt(cmdFlagVersionCount); err != nil {
 		return err
 	}
 
@@ -143,7 +143,7 @@ func cmdGitHubIssueTemplatesBugReportRunE(cmd *cobra.Command, args []string) (er
 		return err
 	}
 
-	if versions, err = cmd.Flags().GetInt(cmdFlagVersions); err != nil {
+	if versions, err = cmd.Flags().GetInt(cmdFlagVersionCount); err != nil {
 		return err
 	}
 
