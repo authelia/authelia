@@ -63,7 +63,8 @@ authelia-gen docs data keys [flags]
       --next                                                       Enables next functionality with several generators like the JSON Schema generator
       --package.configuration.keys string                          Sets the package name of the keys file (default "schema")
       --package.scripts.gen string                                 Sets the package name of the authelia-scripts gen file (default "cmd")
-      --versions int                                               the maximum number of minor versions to list in output templates (default 5)
+      --version-count int                                          the maximum number of minor versions to list in output templates (default 5)
+      --versions strings                                           The versions to run the generator for, the special versions current and next are mutually exclusive
 ```
 
 ### SEE ALSO

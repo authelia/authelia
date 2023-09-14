@@ -105,14 +105,19 @@ const (
 	cmdFlagFileDocsCommitMsgGuidelines            = "file.docs-commit-msg-guidelines"
 	cmdFlagFeatureRequest                         = "file.feature-request"
 	cmdFlagBugReport                              = "file.bug-report"
-	cmdFlagLatest                                 = "latest"
-	cmdFlagNext                                   = "next"
+	cmdFlagVersions                               = "versions"
 
 	cmdFlagExclude           = "exclude"
-	cmdFlagVersions          = "versions"
+	cmdFlagVersionCount      = "version-count"
 	cmdFlagCwd               = "cwd"
 	cmdFlagPackageConfigKeys = "package.configuration.keys"
 	cmdFlagPackageScriptsGen = "package.scripts.gen"
+)
+
+const (
+	metaVersionNext    = "next"
+	metaVersionLatest  = "latest"
+	metaVersionCurrent = "current"
 )
 
 const (

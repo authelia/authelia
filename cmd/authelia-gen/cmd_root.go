@@ -30,7 +30,7 @@ func newRootCmd() *cobra.Command {
 	cmd.PersistentFlags().StringSliceP(cmdFlagExclude, "X", nil, "Sets the names of excluded generators")
 	cmd.PersistentFlags().String(cmdFlagFeatureRequest, fileGitHubIssueTemplateFR, "Sets the path of the feature request issue template file")
 	cmd.PersistentFlags().String(cmdFlagBugReport, fileGitHubIssueTemplateBR, "Sets the path of the bug report issue template file")
-	cmd.PersistentFlags().Int(cmdFlagVersions, 5, "the maximum number of minor versions to list in output templates")
+	cmd.PersistentFlags().Int(cmdFlagVersionCount, 5, "the maximum number of minor versions to list in output templates")
 	cmd.PersistentFlags().String(cmdFlagDirLocales, dirLocales, "The locales directory in relation to the root")
 	cmd.PersistentFlags().String(cmdFlagDirSchema, "internal/configuration/schema", "The schema directory in relation to the root")
 	cmd.PersistentFlags().String(cmdFlagDirAuthentication, "internal/authentication", "The authentication directory in relation to the root")
@@ -59,6 +59,7 @@ func newRootCmd() *cobra.Command {
 	cmd.PersistentFlags().String(cmdFlagFileDocsCommitMsgGuidelines, fileDocsCommitMessageGuidelines, "The commit message guidelines documentation file in relation to the root")
 	cmd.PersistentFlags().Bool("latest", false, "Enables latest functionality with several generators like the JSON Schema generator")
 	cmd.PersistentFlags().Bool("next", false, "Enables next functionality with several generators like the JSON Schema generator")
+	cmd.PersistentFlags().StringSlice(cmdFlagVersions, []string{}, "The versions to run the generator for, the special versions current and next are mutually exclusive")
 	cmd.AddCommand(newCodeCmd(), newDocsCmd(), newGitHubCmd(), newLocalesCmd(), newCommitLintCmd())
 
 	return cmd
