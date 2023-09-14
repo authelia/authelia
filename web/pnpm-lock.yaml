@@ -94,8 +94,8 @@ devDependencies:
     specifier: 17.7.0
     version: 17.7.0
   '@limegrass/eslint-plugin-import-alias':
-    specifier: 1.0.6
-    version: 1.0.6(eslint@8.49.0)
+    specifier: 1.1.0
+    version: 1.1.0(eslint@8.49.0)
   '@testing-library/jest-dom':
     specifier: 6.1.3
     version: 6.1.3(vitest@0.34.4)
@@ -2519,8 +2519,8 @@ packages:
       '@jridgewell/sourcemap-codec': 1.4.15
     dev: true
 
-  /@limegrass/eslint-plugin-import-alias@1.0.6(eslint@8.49.0):
-    resolution: {integrity: sha512-BtPmdHbL4NmkVh2wMnOboyOCrdLOpBqwwtBIsB0/giTiALw/UTHD9TyH4vVnbDOuWPZQgE6kKloJ9G77FApt7w==}
+  /@limegrass/eslint-plugin-import-alias@1.1.0(eslint@8.49.0):
+    resolution: {integrity: sha512-nC7fz4c+HXYoE+ZP7KxSURl8nEdcvsu0mQsp6oJ8DrBu9KV1NlhCyjqBTLB1TaaMtDqU0xYKoUrge6i+SHgyVQ==}
     peerDependencies:
       eslint: ^2 || ^3 || ^4 || ^5 || ^6 || ^7.2.0 || ^8
     dependencies:
@@ -5926,6 +5926,7 @@ packages:
 
   /json5@1.0.2:
     resolution: {integrity: sha512-g1MWMLBiz8FKi1e4w0UyVL3w+iJceWAFBAaBnnGKOpNa5f8TLktkbre1+s6oICydWAm+HRUGTmI+//xv2hvXYA==}
+    hasBin: true
     dependencies:
       minimist: 1.2.8
     dev: true
