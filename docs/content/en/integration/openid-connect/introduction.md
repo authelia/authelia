@@ -230,15 +230,15 @@ field is the valid values for the
 [token_endpoint_auth_method](../../configuration/identity-providers/openid-connect/clients.md#tokenendpointauthmethod)
 client configuration option.
 
-|             Description              |             Value             | Supported Client Types | Default for Client Type |                      Assertion Type                      |
-|:------------------------------------:|:-----------------------------:|:----------------------:|:-----------------------:|:--------------------------------------------------------:|
-|  Secret via HTTP Basic Auth Scheme   |     `client_secret_basic`     |     `confidential`     |           N/A           |                           N/A                            |
-|      Secret via HTTP POST Body       |     `client_secret_post`      |     `confidential`     |           N/A           |                           N/A                            |
-|        JWT (signed by secret)        |      `client_secret_jwt`      |     `confidential`     |           N/A           | `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` |
-|     JWT (signed by private key)      |       `private_key_jwt`       |     `confidential`     |           N/A           | `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` |
-|        [OAuth 2.0 Mutual-TLS]        |       `tls_client_auth`       |     Not Supported      |           N/A           |                           N/A                            |
-| [OAuth 2.0 Mutual-TLS] (Self Signed) | `self_signed_tls_client_auth` |     Not Supported      |           N/A           |                           N/A                            |
-|          No Authentication           |            `none`             |        `public`        |        `public`         |                           N/A                            |
+|             Description              |             Value             | Credential Type | Supported Client Types | Default for Client Type |                      Assertion Type                      |
+|:------------------------------------:|:-----------------------------:|:---------------:|:----------------------:|:-----------------------:|:--------------------------------------------------------:|
+|  Secret via HTTP Basic Auth Scheme   |     `client_secret_basic`     |     Secret      |     `confidential`     |           N/A           |                           N/A                            |
+|      Secret via HTTP POST Body       |     `client_secret_post`      |     Secret      |     `confidential`     |           N/A           |                           N/A                            |
+|        JWT (signed by secret)        |      `client_secret_jwt`      |     Secret      |     `confidential`     |           N/A           | `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` |
+|     JWT (signed by private key)      |       `private_key_jwt`       |   Private Key   |     `confidential`     |           N/A           | `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` |
+|        [OAuth 2.0 Mutual-TLS]        |       `tls_client_auth`       |   Private Key   |     Not Supported      |           N/A           |                           N/A                            |
+| [OAuth 2.0 Mutual-TLS] (Self Signed) | `self_signed_tls_client_auth` |   Private Key   |     Not Supported      |           N/A           |                           N/A                            |
+|          No Authentication           |            `none`             |       N/A       |        `public`        |        `public`         |                           N/A                            |
 
 [OpenID Connect 1.0 Client Authentication]: https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
 [OAuth 2.0 Mutual-TLS]: https://datatracker.ietf.org/doc/html/rfc8705

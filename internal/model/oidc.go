@@ -200,10 +200,6 @@ type OAuth2ConsentSession struct {
 func (s *OAuth2ConsentSession) Grant() {
 	s.GrantedScopes = s.RequestedScopes
 	s.GrantedAudience = s.RequestedAudience
-
-	if !utils.IsStringInSlice(s.ClientID, s.GrantedAudience) {
-		s.GrantedAudience = append(s.GrantedAudience, s.ClientID)
-	}
 }
 
 // HasExactGrants returns true if the granted audience and scopes of this consent matches exactly with another
