@@ -9,7 +9,7 @@ import (
 	"github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	jose "gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -45,6 +45,40 @@ func TestNewClient(t *testing.T) {
 		Secret:              tOpenIDConnectPlainTextClientSecret,
 		RedirectURIs:        []string{examplecom},
 		Scopes:              schema.DefaultOpenIDConnectClientConfiguration.Scopes,
+		Audience:            []string{"example"},
+		ResponseTypes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes,
+		GrantTypes:          schema.DefaultOpenIDConnectClientConfiguration.GrantTypes,
+		ResponseModes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseModes,
+	}
+
+	client = oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{})
+
+	assert.Equal(t, fosite.Arguments{myclient, "example"}, client.GetAudience())
+
+	config = schema.IdentityProvidersOpenIDConnectClient{
+		ID:                  myclient,
+		Description:         myclientdesc,
+		AuthorizationPolicy: twofactor,
+		Secret:              tOpenIDConnectPlainTextClientSecret,
+		RedirectURIs:        []string{examplecom},
+		Scopes:              schema.DefaultOpenIDConnectClientConfiguration.Scopes,
+		Audience:            []string{myclient},
+		ResponseTypes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes,
+		GrantTypes:          schema.DefaultOpenIDConnectClientConfiguration.GrantTypes,
+		ResponseModes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseModes,
+	}
+
+	client = oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{})
+
+	assert.Equal(t, fosite.Arguments{myclient}, client.GetAudience())
+
+	config = schema.IdentityProvidersOpenIDConnectClient{
+		ID:                  myclient,
+		Description:         myclientdesc,
+		AuthorizationPolicy: twofactor,
+		Secret:              tOpenIDConnectPlainTextClientSecret,
+		RedirectURIs:        []string{examplecom},
+		Scopes:              schema.DefaultOpenIDConnectClientConfiguration.Scopes,
 		ResponseTypes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes,
 		GrantTypes:          schema.DefaultOpenIDConnectClientConfiguration.GrantTypes,
 		ResponseModes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseModes,
@@ -55,6 +89,7 @@ func TestNewClient(t *testing.T) {
 	require.Len(t, client.GetResponseModes(), 1)
 	assert.Equal(t, fosite.ResponseModeFormPost, client.GetResponseModes()[0])
 	assert.Equal(t, authorization.TwoFactor, client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{}))
+	assert.Equal(t, fosite.Arguments{myclient}, client.GetAudience())
 
 	config = schema.IdentityProvidersOpenIDConnectClient{
 		TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,

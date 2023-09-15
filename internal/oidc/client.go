@@ -13,6 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewClient creates a new Client.
@@ -50,6 +51,10 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 
 		AuthorizationPolicy: NewClientAuthorizationPolicy(config.AuthorizationPolicy, c),
 		ConsentPolicy:       NewClientConsentPolicy(config.ConsentMode, config.ConsentPreConfiguredDuration),
+	}
+
+	if !utils.IsStringInSlice(base.ID, base.Audience) {
+		base.Audience = append([]string{base.ID}, base.Audience...)
 	}
 
 	if len(config.Lifespan) != 0 {

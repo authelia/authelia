@@ -15,6 +15,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func newDocsJSONSchemaCmd() *cobra.Command {
@@ -215,6 +216,7 @@ func docsJSONSchemaUserDatabaseRunE(cmd *cobra.Command, args []string) (err erro
 	return docsJSONSchemaGenerateRunE(cmd, args, version, schemaDir, &authentication.FileUserDatabase{}, dir, file, jsonschemaKoanfMapper)
 }
 
+//nolint:gocyclo
 func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.SemanticVersion, schemaDir string, v any, dir, file string, mapper func(reflect.Type) *jsonschema.Schema) (err error) {
 	r := &jsonschema.Reflector{
 		RequiredFromJSONSchemaTags: true,
@@ -242,29 +244,53 @@ func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.S
 	}
 
 	var (
-		latest, next bool
+		versions []string
 	)
 
-	latest, _ = cmd.Flags().GetBool(cmdFlagLatest)
-	next, _ = cmd.Flags().GetBool(cmdFlagNext)
+	versions, _ = cmd.Flags().GetStringSlice(cmdFlagVersions)
 
-	var schemaVersion string
+	if len(versions) == 0 {
+		versions = []string{metaVersionNext, metaVersionLatest}
+	}
 
-	schemaVersion = fmt.Sprintf("v%d.%d", version.Major, version.Minor)
-	if next {
-		schemaVersion = fmt.Sprintf("v%d.%d", version.Major, version.Minor+1)
+	next := utils.IsStringInSlice(metaVersionNext, versions)
+
+	if next && utils.IsStringInSlice(metaVersionCurrent, versions) {
+		return fmt.Errorf("failed to generate: meta version next and current are mutually exclusive")
 	}
 
 	schema := r.Reflect(v)
 
-	schema.ID = jsonschema.ID(fmt.Sprintf(model.FormatJSONSchemaIdentifier, schemaVersion, file))
+	for _, versionName := range versions {
+		var out string
 
-	if err = writeJSONSchema(schema, dir, schemaVersion, file); err != nil {
-		return err
-	}
+		switch versionName {
+		case metaVersionNext:
+			out = fmt.Sprintf("v%d.%d", version.Major, version.Minor+1)
+			schema.ID = jsonschema.ID(fmt.Sprintf(model.FormatJSONSchemaIdentifier, out, file))
+		case metaVersionCurrent:
+			out = fmt.Sprintf("v%d.%d", version.Major, version.Minor)
+			schema.ID = jsonschema.ID(fmt.Sprintf(model.FormatJSONSchemaIdentifier, out, file))
+		case metaVersionLatest:
+			out = metaVersionLatest
 
-	if latest {
-		if err = writeJSONSchema(schema, dir, "latest", file); err != nil {
+			if next {
+				schema.ID = jsonschema.ID(fmt.Sprintf(model.FormatJSONSchemaIdentifier, fmt.Sprintf("v%d.%d", version.Major, version.Minor+1), file))
+			} else {
+				schema.ID = jsonschema.ID(fmt.Sprintf(model.FormatJSONSchemaIdentifier, fmt.Sprintf("v%d.%d", version.Major, version.Minor), file))
+			}
+		default:
+			var parsed *model.SemanticVersion
+
+			if parsed, err = model.NewSemanticVersion(versionName); err != nil {
+				return fmt.Errorf("failed to parse version: %w", err)
+			}
+
+			out = fmt.Sprintf("v%d.%d", parsed.Major, parsed.Minor)
+			schema.ID = jsonschema.ID(fmt.Sprintf(model.FormatJSONSchemaIdentifier, fmt.Sprintf("v%d.%d", version.Major, version.Minor), file))
+		}
+
+		if err = writeJSONSchema(schema, dir, out, file); err != nil {
 			return err
 		}
 	}
