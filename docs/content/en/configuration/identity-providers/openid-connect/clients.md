@@ -160,8 +160,12 @@ their redirect URIs are as follows:
 
 {{< confkey type="list(string)" required="no" >}}
 
-A whitelist of audiences this client is allowed to request. These audiences are automatically granted to all access
-requests by default. The client [id](#id) is automatically allowed for every client.
+A whitelist of audiences this client is allowed to request. These audiences were previously automatically granted to all
+access requests unless specifically requested otherwise. The current behaviour is only those requested by the client in
+the `audience` parameter are granted. This behaviour can be tuned using the
+[requested_audience_mode](#requestedaudiencemode).
+
+This value does not affect the issued ID Tokens as they are always issued with the client identifier being the audience.
 
 ### scopes
 
@@ -232,6 +236,19 @@ The authorization policy for this client: either `one_factor` or `two_factor`.
 
 The name of the custom lifespan that this client uses. A custom lifespan is named and configured globally via the
 [custom](provider.md#custom) section within [lifespans](provider.md#lifespans).
+
+### requested_audience_mode
+
+{{< confkey type="string" default="explicit" required="no" >}}
+
+Controls the effective audience the client has requested. The following table describes the possible values and their
+behaviour. This value does not affect the issued ID Tokens as they are always issued with the client identifier being
+the audience.
+
+|  Value   |                                                   Description                                                    |
+|:--------:|:----------------------------------------------------------------------------------------------------------------:|
+| explicit |     Requires the client explicitly requests an audiences for an audience to be included in the issued tokens     |
+| implicit | Assumes if the client is requesting all audiences it is permitted to request if the audience parameter is absent |
 
 ### consent_mode
 

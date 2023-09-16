@@ -161,3 +161,40 @@ func TestNewClientConsentPolicy(t *testing.T) {
 
 	assert.Equal(t, "", oidc.ClientConsentMode(-1).String())
 }
+
+func TestNewClientRequestedAudienceMode(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		expected oidc.ClientRequestedAudienceMode
+	}{
+		{
+			"ShouldParsePolicyExplicit",
+			"explicit",
+			oidc.ClientRequestedAudienceModeExplicit,
+		},
+		{
+			"ShouldParsePolicyImplicit",
+			"implicit",
+			oidc.ClientRequestedAudienceModeImplicit,
+		},
+		{
+			"ShouldParsePolicyImplicitByDefault",
+			"",
+			oidc.ClientRequestedAudienceModeImplicit,
+		},
+		{
+			"ShouldParsePolicyImplicitByDefaultBadName",
+			"bad",
+			oidc.ClientRequestedAudienceModeImplicit,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, oidc.NewClientRequestedAudienceMode(tc.have))
+		})
+	}
+
+	assert.Equal(t, "", oidc.ClientConsentMode(-1).String())
+}

@@ -80,7 +80,8 @@ type BaseClient struct {
 
 	AuthorizationPolicy ClientAuthorizationPolicy
 
-	ConsentPolicy ClientConsentPolicy
+	ConsentPolicy         ClientConsentPolicy
+	RequestedAudienceMode ClientRequestedAudienceMode
 }
 
 // FullClient is the client with comprehensive supported features.
@@ -104,7 +105,6 @@ type Client interface {
 	GetDescription() (description string)
 	GetSecret() (secret algorithm.Digest)
 	GetSectorIdentifier() (sector string)
-	GetConsentResponseBody(consent *model.OAuth2ConsentSession) (body ConsentGetResponseBody)
 
 	GetAuthorizationSignedResponseAlg() (alg string)
 	GetAuthorizationSignedResponseKeyID() (kid string)
@@ -131,6 +131,8 @@ type Client interface {
 	ValidatePARPolicy(r fosite.Requester, prefix string) (err error)
 	ValidateResponseModePolicy(r fosite.AuthorizeRequester) (err error)
 
+	ApplyRequestedAudiencePolicy(requester fosite.Requester)
+	GetConsentResponseBody(consent *model.OAuth2ConsentSession) (body ConsentGetResponseBody)
 	GetConsentPolicy() ClientConsentPolicy
 	IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) (sufficient bool)
 	GetAuthorizationPolicyRequiredLevel(subject authorization.Subject) (level authorization.Level)
