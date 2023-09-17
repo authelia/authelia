@@ -167,13 +167,14 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 	}
 
 	testCases := []struct {
-		Name    string
-		Clients []schema.IdentityProvidersOpenIDConnectClient
-		Errors  []string
+		name    string
+		clients []schema.IdentityProvidersOpenIDConnectClient
+		errors  []string
+		test    func(t *testing.T, actual []schema.IdentityProvidersOpenIDConnectClient)
 	}{
 		{
-			Name: "EmptyIDAndSecret",
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
+			name: "EmptyIDAndSecret",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:                  "",
 					Secret:              nil,
@@ -181,14 +182,14 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					RedirectURIs:        []string{},
 				},
 			},
-			Errors: []string{
+			errors: []string{
 				"identity_providers: oidc: clients: client '': option 'secret' is required",
 				"identity_providers: oidc: clients: option 'id' is required but was absent on the clients in positions #1",
 			},
 		},
 		{
-			Name: "InvalidPolicy",
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
+			name: "InvalidPolicy",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:                  "client-1",
 					Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -198,13 +199,13 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					},
 				},
 			},
-			Errors: []string{
+			errors: []string{
 				"identity_providers: oidc: clients: client 'client-1': option 'authorization_policy' must be one of 'one_factor' or 'two_factor' but it's configured as 'a-policy'",
 			},
 		},
 		{
-			Name: "ClientIDDuplicated",
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
+			name: "ClientIDDuplicated",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:                  "client-x",
 					Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -218,13 +219,13 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					RedirectURIs:        []string{},
 				},
 			},
-			Errors: []string{
+			errors: []string{
 				"identity_providers: oidc: clients: option 'id' must be unique for every client but one or more clients share the following 'id' values 'client-x'",
 			},
 		},
 		{
-			Name: "RedirectURIInvalid",
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
+			name: "RedirectURIInvalid",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:                  "client-check-uri-parse",
 					Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -234,13 +235,13 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					},
 				},
 			},
-			Errors: []string{
+			errors: []string{
 				"identity_providers: oidc: clients: client 'client-check-uri-parse': option 'redirect_uris' has an invalid value: redirect uri 'http://abc@%two' could not be parsed: parse \"http://abc@%two\": invalid URL escape \"%tw\"",
 			},
 		},
 		{
-			Name: "RedirectURINotAbsolute",
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
+			name: "RedirectURINotAbsolute",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:                  "client-check-uri-abs",
 					Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -250,13 +251,13 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					},
 				},
 			},
-			Errors: []string{
+			errors: []string{
 				"identity_providers: oidc: clients: client 'client-check-uri-abs': option 'redirect_uris' has an invalid value: redirect uri 'google.com' must have a scheme but it's absent",
 			},
 		},
 		{
-			Name: "ValidSectorIdentifier",
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
+			name: "ValidSectorIdentifier",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:                  "client-valid-sector",
 					Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -269,8 +270,8 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			},
 		},
 		{
-			Name: "ValidSectorIdentifierWithPort",
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
+			name: "ValidSectorIdentifierWithPort",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:                  "client-valid-sector",
 					Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -283,8 +284,8 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			},
 		},
 		{
-			Name: "InvalidSectorIdentifierInvalidURL",
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
+			name: "InvalidSectorIdentifierInvalidURL",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:                  "client-invalid-sector",
 					Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -295,7 +296,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					SectorIdentifier: mustParseURL("https://user:pass@example.com/path?query=abc#fragment"),
 				},
 			},
-			Errors: []string{
+			errors: []string{
 				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier' with value 'https://user:pass@example.com/path?query=abc#fragment': must be a URL with only the host component for example 'example.com' but it has a scheme with the value 'https'",
 				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier' with value 'https://user:pass@example.com/path?query=abc#fragment': must be a URL with only the host component for example 'example.com' but it has a path with the value '/path'",
 				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier' with value 'https://user:pass@example.com/path?query=abc#fragment': must be a URL with only the host component for example 'example.com' but it has a query with the value 'query=abc'",
@@ -305,8 +306,8 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			},
 		},
 		{
-			Name: "InvalidSectorIdentifierInvalidHost",
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
+			name: "InvalidSectorIdentifierInvalidHost",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:                  "client-invalid-sector",
 					Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -317,13 +318,13 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					SectorIdentifier: mustParseURL("example.com/path?query=abc#fragment"),
 				},
 			},
-			Errors: []string{
+			errors: []string{
 				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier' with value 'example.com/path?query=abc#fragment': must be a URL with only the host component but appears to be invalid",
 			},
 		},
 		{
-			Name: "InvalidConsentMode",
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
+			name: "InvalidConsentMode",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:                  "client-bad-consent-mode",
 					Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -334,13 +335,13 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					ConsentMode: "cap",
 				},
 			},
-			Errors: []string{
+			errors: []string{
 				"identity_providers: oidc: clients: client 'client-bad-consent-mode': consent: option 'mode' must be one of 'auto', 'implicit', 'explicit', 'pre-configured', or 'auto' but it's configured as 'cap'",
 			},
 		},
 		{
-			Name: "InvalidPKCEChallengeMethod",
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
+			name: "InvalidPKCEChallengeMethod",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:                  "client-bad-pkce-mode",
 					Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -351,13 +352,13 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					PKCEChallengeMethod: "abc",
 				},
 			},
-			Errors: []string{
+			errors: []string{
 				"identity_providers: oidc: clients: client 'client-bad-pkce-mode': option 'pkce_challenge_method' must be one of 'plain' or 'S256' but it's configured as 'abc'",
 			},
 		},
 		{
-			Name: "InvalidPKCEChallengeMethodLowerCaseS256",
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
+			name: "InvalidPKCEChallengeMethodLowerCaseS256",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:                  "client-bad-pkce-mode-s256",
 					Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -368,20 +369,68 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					PKCEChallengeMethod: "s256",
 				},
 			},
-			Errors: []string{
+			errors: []string{
 				"identity_providers: oidc: clients: client 'client-bad-pkce-mode-s256': option 'pkce_challenge_method' must be one of 'plain' or 'S256' but it's configured as 's256'",
+			},
+		},
+		{
+			name: "ValidRequestedAudienceMode",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-good-ram",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					RequestedAudienceMode: "explicit",
+				},
+			},
+		},
+		{
+			name: "SetDefaultAudienceMode",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-no-ram",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					RequestedAudienceMode: "",
+				},
+			},
+			test: func(t *testing.T, actual []schema.IdentityProvidersOpenIDConnectClient) {
+				assert.Equal(t, "explicit", actual[0].RequestedAudienceMode)
+			},
+		},
+		{
+			name: "InvalidRequestedAudienceMode",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-bad-ram",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					RequestedAudienceMode: "magic",
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-bad-ram': option 'requested_audience_mode' must be one of 'explicit' or 'implicit' but it's configured as 'magic'",
 			},
 		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.Name, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			validator := schema.NewStructValidator()
 			config := &schema.IdentityProviders{
 				OIDC: &schema.IdentityProvidersOpenIDConnect{
 					HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 					IssuerPrivateKey: keyRSA2048,
-					Clients:          tc.Clients,
+					Clients:          tc.clients,
 				},
 			}
 
@@ -389,11 +438,15 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 
 			errs := validator.Errors()
 
-			require.Len(t, errs, len(tc.Errors))
-			for i, errStr := range tc.Errors {
+			require.Len(t, errs, len(tc.errors))
+			for i, errStr := range tc.errors {
 				t.Run(fmt.Sprintf("Error%d", i+1), func(t *testing.T) {
 					assert.EqualError(t, errs[i], errStr)
 				})
+			}
+
+			if tc.test != nil {
+				tc.test(t, config.OIDC.Clients)
 			}
 		})
 	}

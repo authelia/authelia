@@ -1256,6 +1256,15 @@
           "title": "Lifespan Name",
           "description": "The name of the custom lifespan to utilize for this client"
         },
+        "requested_audience_mode": {
+          "type": "string",
+          "enum": [
+            "explicit",
+            "implicit"
+          ],
+          "title": "Requested Audience Mode",
+          "description": "The Requested Audience Mode used for this client"
+        },
         "consent_mode": {
           "type": "string",
           "enum": [

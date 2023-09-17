@@ -50,6 +50,7 @@ var Keys = []string{
 	"identity_providers.oidc.clients[].response_modes",
 	"identity_providers.oidc.clients[].authorization_policy",
 	"identity_providers.oidc.clients[].lifespan",
+	"identity_providers.oidc.clients[].requested_audience_mode",
 	"identity_providers.oidc.clients[].consent_mode",
 	"identity_providers.oidc.clients[].pre_configured_consent_duration",
 	"identity_providers.oidc.clients[].enforce_par",

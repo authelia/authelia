@@ -110,7 +110,7 @@ func OAuthIntrospectionPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 
 		claims := map[string]any{
 			oidc.ClaimJWTID:              jti.String(),
-			oidc.ClaimIssuer:             issuer,
+			oidc.ClaimIssuer:             issuer.String(),
 			oidc.ClaimIssuedAt:           time.Now().UTC().Unix(),
 			oidc.ClaimTokenIntrospection: introspection,
 		}

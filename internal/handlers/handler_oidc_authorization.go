@@ -86,6 +86,8 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return
 	}
 
+	client.ApplyRequestedAudiencePolicy(requester)
+
 	var (
 		userSession session.UserSession
 		consent     *model.OAuth2ConsentSession

@@ -12,8 +12,6 @@ import (
 	"github.com/ory/x/errorsx"
 	"golang.org/x/text/language"
 	"gopkg.in/square/go-jose.v2"
-
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // IsPushedAuthorizedRequest returns true if the requester has a PushedAuthorizationRequest redirect_uri value.
@@ -295,13 +293,7 @@ func sliceIntrospectionResponseToRequesterAudience(response fosite.Introspection
 			return
 		}
 
-		aud = client.GetAudience()
-
-		if !utils.IsStringInSlice(client.GetID(), aud) {
-			aud = append(aud, client.GetID())
-		}
-
-		return aud
+		return []string{client.GetID()}
 	}
 
 	return nil

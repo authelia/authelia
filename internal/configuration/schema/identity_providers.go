@@ -127,6 +127,7 @@ type IdentityProvidersOpenIDConnectClient struct {
 	AuthorizationPolicy string `koanf:"authorization_policy" json:"authorization_policy" jsonschema:"title=Authorization Policy" jsonschema_description:"The Authorization Policy to apply to this client"`
 	Lifespan            string `koanf:"lifespan" json:"lifespan" jsonschema:"title=Lifespan Name" jsonschema_description:"The name of the custom lifespan to utilize for this client"`
 
+	RequestedAudienceMode        string         `koanf:"requested_audience_mode" json:"requested_audience_mode" jsonschema:"enum=explicit,enum=implicit,title=Requested Audience Mode" jsonschema_description:"The Requested Audience Mode used for this client"`
 	ConsentMode                  string         `koanf:"consent_mode" json:"consent_mode" jsonschema:"enum=auto,enum=explicit,enum=implicit,enum=pre-configured,title=Consent Mode" jsonschema_description:"The Consent Mode used for this client"`
 	ConsentPreConfiguredDuration *time.Duration `koanf:"pre_configured_consent_duration" json:"pre_configured_consent_duration" jsonschema:"default=7 days,title=Pre-Configured Consent Duration" jsonschema_description:"The Pre-Configured Consent Duration when using Consent Mode pre-configured for this client"`
 
@@ -191,6 +192,7 @@ var DefaultOpenIDConnectClientConfiguration = IdentityProvidersOpenIDConnectClie
 	AccessTokenSignedResponseAlg:   "none",
 	UserinfoSignedResponseAlg:      "none",
 	IntrospectionSignedResponseAlg: "none",
+	RequestedAudienceMode:          "explicit",
 	ConsentMode:                    "auto",
 	ConsentPreConfiguredDuration:   &defaultOIDCClientConsentPreConfiguredDuration,
 }

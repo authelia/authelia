@@ -407,6 +407,15 @@ func validateOIDCClient(c int, config *schema.IdentityProvidersOpenIDConnect, va
 		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, attrOIDCPKCEChallengeMethod, strJoinOr([]string{oidc.PKCEChallengeMethodPlain, oidc.PKCEChallengeMethodSHA256}), config.Clients[c].PKCEChallengeMethod))
 	}
 
+	switch config.Clients[c].RequestedAudienceMode {
+	case "":
+		config.Clients[c].RequestedAudienceMode = schema.DefaultOpenIDConnectClientConfiguration.RequestedAudienceMode
+	case oidc.ClientRequestedAudienceModeExplicit.String(), oidc.ClientRequestedAudienceModeImplicit.String():
+		break
+	default:
+		val.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, attrOIDCRequestedAudienceMode, strJoinOr([]string{oidc.ClientRequestedAudienceModeExplicit.String(), oidc.ClientRequestedAudienceModeImplicit.String()}), config.Clients[c].RequestedAudienceMode))
+	}
+
 	validateOIDCClientConsentMode(c, config, val)
 
 	validateOIDCClientScopes(c, config, val, errDeprecatedFunc)

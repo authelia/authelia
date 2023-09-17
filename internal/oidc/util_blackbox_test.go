@@ -175,7 +175,7 @@ func TestIntrospectionResponseToMap(t *testing.T) {
 					},
 				},
 			},
-			[]string{"https://rs.example.com", "rclient"},
+			[]string{"rclient"},
 			map[string]any{
 				oidc.ClaimActive:           true,
 				oidc.ClaimScope:            "openid profile",
