@@ -20,6 +20,35 @@ standard environment variables, the recommended way to set secrets is to use thi
 
 See the [security](#security) section for more information.
 
+## Filters
+
+In addition to the documented methods below, the configuration files can be passed through templating filters. These
+filters can be used to inject or modify content within the file. Specifically the `fileContent` function can be used to
+retrieve content of a file, and `nindent` can be used to add a new line and indent the content of that file.
+
+Take the following example:
+
+```yaml
+authentication_backend:
+  ldap:
+    address: 'ldap://{{ env "SERVICES_SERVER" }}'
+    tls:
+      private_key: |
+        {{- fileContent "./test_resources/example_filter_rsa_private_key" | nindent 8 }}
+```
+
+When considering the `address` the value from the environment variable `SERVICES_SERVER` are used in place of the content
+starting at the `{{` and `}}`, which indicate the start and end of the template content.
+
+When considering the `private_key` the start of a templated section also has a `-` which removes the whitespace before
+the template section which starts the template content just after the `|` above it. The `fileContent` function reads the
+content of the `./test_resources/example_filter_rsa_private_key` file (releative to the Authelia working directory), and
+the `nindent` function adds a new line and indents every line in the file by `8` characters. Note the `|` between
+`nindent` and `fileContent` passes the output of `fileContent` function to the `nindent` function.
+
+For more information on [File Filters](files.md#file-filters) including how to enable them, see the
+[File Filters](files.md#file-filters) guide.
+
 ## Layers
 
 *__Important Note:__* While this method is the third layer of the layered configuration model as described by the
