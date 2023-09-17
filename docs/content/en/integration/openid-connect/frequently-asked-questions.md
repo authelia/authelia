@@ -124,6 +124,38 @@ reasonably be matched to an individual authorization policy. Because the other c
 per-request authorization these criteria types are fairly unlikely to become part of OpenID Connect 1.0 as there are no
 ways to apply these criteria except during the initial authorization request.
 
+### Why isn't the Access Token a JSON Web Token?
+
+The Access Token and it's format is entirely up to Authorization Servers / OpenID Connect 1.0 Providers. The
+conventional way the Access Token is presented is as an opaque value which has no meaning. There are quite a few reasons
+this is the case, however standards and implementations exist which return the Access Token as a JSON Web Token. This is
+not specifically wrong when they do this, just as the standards allow us to decide the value should be opaque it also
+allows them to decide not to do that.
+
+The double-edged sword of a JSON Web Token is it's easy to perform a stateless check to see if a JSON Web Token is
+"valid" but also very hard to revoke it. A Resource Server may just check the JWT claims and signature to see if it
+looks like it *should* still be valid, without performing a stateful check with the Authorization Server frequently
+enough. This is why we *__strongly recommend__* that Access Tokens and ID Tokens have a short lifespan.
+
+There also exists standardized mechanisms for Resource Servers and those possessing an opaque Access Token to check the
+validity and metadata associated with them. These mechanisms are the Introspection Request and UserInfo Request.
+
+There are some other specific scenarios which would lead to the Access Token being revoked earlier than its original
+lifetime which make this desirable. When you combine these with the fact there are standardized mechanisms to have a
+similar outcome, it's obvious to us this is the sane default.
+
+For example during a Refresh Flow to the Token Endpoint the previously issued Access Token and Refresh Token should be
+transparently revoked. This means as soon as a Refresh Flow is performed either by the authorized party or a malicious
+one who's nefariously obtained the Refresh Token, the old Access Token and Refresh Token are effectively useless unless
+the Resource Server is caching these results.
+
+In addition as tokens can be manually revoked using the Revocation Endpoint in a scenario where a long lived token was
+revoked due to known compromise; the revocation will take place much faster.
+
+Users who still desire or have an application that requires the Access Token is a JWT should configure the
+[access_token_signed_response_alg](../../configuration/identity-providers/openid-connect/clients.md#accesstokensignedresponsealg)
+client configuration option.
+
 ## Solutions
 
 The following section details solutions for multiple of the questions above.
