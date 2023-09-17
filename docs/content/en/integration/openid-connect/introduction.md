@@ -26,6 +26,17 @@ the registered clients in the provider).
 This page is intended as an integration reference point for any implementers who wish to integrate an
 [OpenID Connect 1.0] Relying Party (client application) either as a developer or user of the third party Relying Party.
 
+## Audiences
+
+When it comes to [OpenID Connect 1.0] there are effectively two types of audiences. There is the audience embedded in
+the [ID Token] which should always include the requesting clients identifier and audience of the [Access Token] and
+[Refresh Token].
+
+While discovery of the audience of a [ID Token] is easy as it's always a [JSON Web Token], the format of the other
+tokens is effectively irrelevant to relying parties as only [OAuth 2.0] authorization and resource servers must
+understand the format. As such with the exception of [RFC9068] it's not possible from the token itself to discover or
+assume this information so this can only be discovered using Token Introspection.
+
 ## Scope Definitions
 
 The following scope definitions describe each scope supported and the associated effects including the individual claims
@@ -230,15 +241,15 @@ field is the valid values for the
 [token_endpoint_auth_method](../../configuration/identity-providers/openid-connect/clients.md#tokenendpointauthmethod)
 client configuration option.
 
-|             Description              |             Value             | Credential Type | Supported Client Types | Default for Client Type |                      Assertion Type                      |
-|:------------------------------------:|:-----------------------------:|:---------------:|:----------------------:|:-----------------------:|:--------------------------------------------------------:|
-|  Secret via HTTP Basic Auth Scheme   |     `client_secret_basic`     |     Secret      |     `confidential`     |           N/A           |                           N/A                            |
-|      Secret via HTTP POST Body       |     `client_secret_post`      |     Secret      |     `confidential`     |           N/A           |                           N/A                            |
-|        JWT (signed by secret)        |      `client_secret_jwt`      |     Secret      |     `confidential`     |           N/A           | `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` |
-|     JWT (signed by private key)      |       `private_key_jwt`       |   Private Key   |     `confidential`     |           N/A           | `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` |
-|        [OAuth 2.0 Mutual-TLS]        |       `tls_client_auth`       |   Private Key   |     Not Supported      |           N/A           |                           N/A                            |
-| [OAuth 2.0 Mutual-TLS] (Self Signed) | `self_signed_tls_client_auth` |   Private Key   |     Not Supported      |           N/A           |                           N/A                            |
-|          No Authentication           |            `none`             |       N/A       |        `public`        |        `public`         |                           N/A                            |
+|               Description                |             Value             | Credential Type | Supported Client Types | Default for Client Type |                      Assertion Type                      |
+|:----------------------------------------:|:-----------------------------:|:---------------:|:----------------------:|:-----------------------:|:--------------------------------------------------------:|
+|    Secret via HTTP Basic Auth Scheme     |     `client_secret_basic`     |     Secret      |     `confidential`     |           N/A           |                           N/A                            |
+|        Secret via HTTP POST Body         |     `client_secret_post`      |     Secret      |     `confidential`     |           N/A           |                           N/A                            |
+|   [JSON Web Token] (signed by secret)    |      `client_secret_jwt`      |     Secret      |     `confidential`     |           N/A           | `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` |
+| [JSON Web Token] (signed by private key) |       `private_key_jwt`       |   Private Key   |     `confidential`     |           N/A           | `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` |
+|          [OAuth 2.0 Mutual-TLS]          |       `tls_client_auth`       |   Private Key   |     Not Supported      |           N/A           |                           N/A                            |
+|   [OAuth 2.0 Mutual-TLS] (Self Signed)   | `self_signed_tls_client_auth` |   Private Key   |     Not Supported      |           N/A           |                           N/A                            |
+|            No Authentication             |            `none`             |       N/A       |        `public`        |        `public`         |                           N/A                            |
 
 [OpenID Connect 1.0 Client Authentication]: https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
 [OAuth 2.0 Mutual-TLS]: https://datatracker.ietf.org/doc/html/rfc8705
@@ -281,38 +292,39 @@ Below is a list of the potential values we place in the [Claim] and their meanin
 The following table describes the response from the [Introspection] endpoint depending on the
 [introspection_signing_alg](../../configuration/identity-providers/openid-connect/clients.md#introspectionsignedresponsealg).
 
-When responding with the Signed JWT the JWT `typ` header has the value of `token-introspection+jwt`.
+When responding with the Signed [JSON Web Token] the [JSON Web Token] `typ` header has the value of
+`token-introspection+jwt`.
 
-| Signing Algorithm |   Encoding   |                     Content Type                     |
-|:-----------------:|:------------:|:----------------------------------------------------:|
-|      `none`       |     JSON     |          `application/json; charset=utf-8`           |
-|      `RS256`      | JWT (Signed) | `application/token-introspection+jwt; charset=utf-8` |
-|      `RS384`      | JWT (Signed) | `application/token-introspection+jwt; charset=utf-8` |
-|      `RS512`      | JWT (Signed) | `application/token-introspection+jwt; charset=utf-8` |
-|      `PS256`      | JWT (Signed) | `application/token-introspection+jwt; charset=utf-8` |
-|      `PS384`      | JWT (Signed) | `application/token-introspection+jwt; charset=utf-8` |
-|      `PS512`      | JWT (Signed) | `application/token-introspection+jwt; charset=utf-8` |
-|      `ES256`      | JWT (Signed) | `application/token-introspection+jwt; charset=utf-8` |
-|      `ES384`      | JWT (Signed) | `application/token-introspection+jwt; charset=utf-8` |
-|      `ES512`      | JWT (Signed) | `application/token-introspection+jwt; charset=utf-8` |
+| Signing Algorithm |     Encoding     |                     Content Type                     |
+|:-----------------:|:----------------:|:----------------------------------------------------:|
+|      `none`       |      [JSON]      |          `application/json; charset=utf-8`           |
+|      `RS256`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|      `RS384`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|      `RS512`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|      `PS256`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|      `PS384`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|      `PS512`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|      `ES256`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|      `ES384`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|      `ES512`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
 
 ## User Information Signing Algorithm
 
 The following table describes the response from the [UserInfo] endpoint depending on the
 [userinfo_signed_response_alg](../../configuration/identity-providers/openid-connect/clients.md#userinfosignedresponsealg).
 
-| Signing Algorithm |   Encoding   |           Content Type            |
-|:-----------------:|:------------:|:---------------------------------:|
-|      `none`       |     JSON     | `application/json; charset=utf-8` |
-|      `RS256`      | JWT (Signed) | `application/jwt; charset=utf-8`  |
-|      `RS384`      | JWT (Signed) | `application/jwt; charset=utf-8`  |
-|      `RS512`      | JWT (Signed) | `application/jwt; charset=utf-8`  |
-|      `PS256`      | JWT (Signed) | `application/jwt; charset=utf-8`  |
-|      `PS384`      | JWT (Signed) | `application/jwt; charset=utf-8`  |
-|      `PS512`      | JWT (Signed) | `application/jwt; charset=utf-8`  |
-|      `ES256`      | JWT (Signed) | `application/jwt; charset=utf-8`  |
-|      `ES384`      | JWT (Signed) | `application/jwt; charset=utf-8`  |
-|      `ES512`      | JWT (Signed) | `application/jwt; charset=utf-8`  |
+| Signing Algorithm |     Encoding     |           Content Type            |
+|:-----------------:|:----------------:|:---------------------------------:|
+|      `none`       |      [JSON]      | `application/json; charset=utf-8` |
+|      `RS256`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|      `RS384`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|      `RS512`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|      `PS256`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|      `PS384`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|      `PS512`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|      `ES256`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|      `ES384`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|      `ES512`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
 
 ## Endpoint Implementations
 
@@ -372,9 +384,10 @@ Essentially it's a special endpoint that takes the same parameters as the [Autho
    body, not the URI).
 4. The request **MUST** occur over the back-channel.
 
-The response of this endpoint is a JSON Object with two key-value pairs:
-- `request_uri`
-- `expires_in`
+The response of this endpoint is [JSON] encoded with two key-value pairs:
+
+  - `request_uri`
+  - `expires_in`
 
 The `expires_in` indicates how long the `request_uri` is valid for. The `request_uri` is used as a parameter to the
 [Authorization] endpoint instead of the standard parameters (as the `request_uri` parameter).
@@ -440,6 +453,8 @@ The advantages of this approach are as follows:
 [OpenID Connect Discovery 1.0]: https://openid.net/specs/openid-connect-discovery-1_0.html
 [OAuth 2.0 Authorization Server Metadata]: https://datatracker.ietf.org/doc/html/rfc8414
 
+[JSON]: https://datatracker.ietf.org/doc/html/rfc8259
+[JSON Web Token]: https://datatracker.ietf.org/doc/html/rfc7519
 [JSON Web Key Set]: https://datatracker.ietf.org/doc/html/rfc7517#section-5
 
 [Offline Access]: https://openid.net/specs/openid-connect-core-1_0.html#OfflineAccess
@@ -463,6 +478,8 @@ The advantages of this approach are as follows:
 [RFC7636]: https://datatracker.ietf.org/doc/html/rfc7636
 [RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176
 [RFC9126]: https://datatracker.ietf.org/doc/html/rfc9126
+[RFC7519]: https://datatracker.ietf.org/doc/html/rfc7519
+[RFC9068]: https://datatracker.ietf.org/doc/html/rfc9068
 
 [RFC3987 Section 6.2.1: Simple String Comparison]: https://datatracker.ietf.org/doc/html/rfc3986#section-6.2.1
 [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)]: https://openid.net/specs/oauth-v2-jarm.html

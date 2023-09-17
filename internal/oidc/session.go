@@ -12,7 +12,6 @@ import (
 	"github.com/ory/fosite/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/model"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewSession creates a new empty OpenIDSession struct.
@@ -46,7 +45,6 @@ func NewSessionWithAuthorizeRequest(ctx Context, issuer *url.URL, kid, username 
 				RequestedAt: consent.RequestedAt,
 				IssuedAt:    ctx.GetClock().Now().UTC(),
 				Nonce:       requester.GetRequestForm().Get(ClaimNonce),
-				Audience:    requester.GetGrantedAudience(),
 				Extra:       extra,
 
 				AuthenticationMethodsReferences: amr,
@@ -65,11 +63,6 @@ func NewSessionWithAuthorizeRequest(ctx Context, issuer *url.URL, kid, username 
 		ExcludeNotBeforeClaim: false,
 		AllowedTopLevelClaims: nil,
 		Extra:                 map[string]any{},
-	}
-
-	// Ensure required audience value of the client_id exists.
-	if !utils.IsStringInSlice(requester.GetClient().GetID(), session.Claims.Audience) {
-		session.Claims.Audience = append(session.Claims.Audience, requester.GetClient().GetID())
 	}
 
 	session.Claims.Add(ClaimAuthorizedParty, session.ClientID)

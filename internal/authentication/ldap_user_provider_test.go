@@ -152,14 +152,14 @@ func TestResolveGroupsFilter(t *testing.T) {
 		name     string
 		have     schema.AuthenticationBackendLDAP
 		input    string
-		profile  ldapUserProfile
+		profile  *ldapUserProfile
 		expected string
 	}{
 		{
 			"ShouldResolveEmptyFilter",
 			schema.AuthenticationBackendLDAP{},
 			"",
-			ldapUserProfile{},
+			&ldapUserProfile{},
 			"",
 		},
 		{
@@ -176,7 +176,7 @@ func TestResolveGroupsFilter(t *testing.T) {
 				},
 			},
 			"",
-			ldapUserProfile{
+			&ldapUserProfile{
 				MemberOf: []string{"CN=abc,DC=example,DC=com", "CN=xyz,DC=example,DC=com"},
 			},
 			"(|(CN=abc)(CN=xyz))",
@@ -195,7 +195,7 @@ func TestResolveGroupsFilter(t *testing.T) {
 				},
 			},
 			"",
-			ldapUserProfile{
+			&ldapUserProfile{
 				MemberOf: []string{"CN=abc,DC=example,DC=com", "CN=xyz,DC=example,DC=com"},
 			},
 			"(|(distinguishedName=CN=abc,DC=example,DC=com)(distinguishedName=CN=xyz,DC=example,DC=com))",
@@ -210,7 +210,7 @@ func TestResolveGroupsFilter(t *testing.T) {
 				nil,
 				mockFactory)
 
-			assert.Equal(t, tc.expected, provider.resolveGroupsFilter("", &tc.profile))
+			assert.Equal(t, tc.expected, provider.resolveGroupsFilter("", tc.profile))
 		})
 	}
 }

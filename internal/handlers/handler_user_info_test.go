@@ -37,7 +37,7 @@ func (s *FetchSuite) TearDownTest() {
 }
 
 type expectedResponse struct {
-	db  model.UserInfo
+	db  *model.UserInfo
 	api *model.UserInfo
 	err error
 }
@@ -45,7 +45,7 @@ type expectedResponse struct {
 type expectedResponseAlt struct {
 	description string
 
-	db      model.UserInfo
+	db      *model.UserInfo
 	api     *model.UserInfo
 	loadErr error
 	saveErr error
@@ -55,13 +55,13 @@ type expectedResponseAlt struct {
 func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 	expectedResponses := []expectedResponse{
 		{
-			db: model.UserInfo{
+			db: &model.UserInfo{
 				Method: "totp",
 			},
 			err: nil,
 		},
 		{
-			db: model.UserInfo{
+			db: &model.UserInfo{
 				Method:      "webauthn",
 				HasWebAuthn: true,
 				HasTOTP:     true,
@@ -69,7 +69,7 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 			err: nil,
 		},
 		{
-			db: model.UserInfo{
+			db: &model.UserInfo{
 				Method:      "webauthn",
 				HasWebAuthn: true,
 				HasTOTP:     false,
@@ -77,7 +77,7 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 			err: nil,
 		},
 		{
-			db: model.UserInfo{
+			db: &model.UserInfo{
 				Method:      "mobile_push",
 				HasWebAuthn: false,
 				HasTOTP:     false,
@@ -85,18 +85,18 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 			err: nil,
 		},
 		{
-			db:  model.UserInfo{},
+			db:  &model.UserInfo{},
 			err: sql.ErrNoRows,
 		},
 		{
-			db:  model.UserInfo{},
+			db:  &model.UserInfo{},
 			err: errors.New("invalid thing"),
 		},
 	}
 
 	for _, resp := range expectedResponses {
 		if resp.api == nil {
-			resp.api = &resp.db
+			resp.api = resp.db
 		}
 
 		mock := mocks.NewMockAutheliaCtx(t)
@@ -111,7 +111,7 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 		mock.StorageMock.
 			EXPECT().
 			LoadUserInfo(mock.Ctx, gomock.Eq("john")).
-			Return(resp.db, resp.err)
+			Return(*resp.db, resp.err)
 
 		UserInfoGET(mock.Ctx)
 
@@ -158,7 +158,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 	expectedResponses := []expectedResponseAlt{
 		{
 			description: "should set method to totp by default even when user doesn't have totp configured and no preferred method",
-			db: model.UserInfo{
+			db: &model.UserInfo{
 				Method:      "",
 				HasTOTP:     false,
 				HasWebAuthn: false,
@@ -176,7 +176,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 		},
 		{
 			description: "should set method to duo by default when user has duo configured and no preferred method",
-			db: model.UserInfo{
+			db: &model.UserInfo{
 				Method:      "",
 				HasTOTP:     false,
 				HasWebAuthn: false,
@@ -194,7 +194,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 		},
 		{
 			description: "should set method to totp by default when user has duo configured and no preferred method but duo is not enabled",
-			db: model.UserInfo{
+			db: &model.UserInfo{
 				Method:      "",
 				HasTOTP:     false,
 				HasWebAuthn: false,
@@ -212,7 +212,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 		},
 		{
 			description: "should set method to duo by default when user has duo configured and no preferred method",
-			db: model.UserInfo{
+			db: &model.UserInfo{
 				Method:      "",
 				HasTOTP:     true,
 				HasWebAuthn: true,
@@ -234,7 +234,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 		},
 		{
 			description: "should default new users to totp if all enabled",
-			db: model.UserInfo{
+			db: &model.UserInfo{
 				Method:      "",
 				HasTOTP:     false,
 				HasWebAuthn: false,
@@ -255,7 +255,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 	for _, resp := range expectedResponses {
 		t.Run(resp.description, func(t *testing.T) {
 			if resp.api == nil {
-				resp.api = &resp.db
+				resp.api = resp.db
 			}
 
 			mock := mocks.NewMockAutheliaCtx(t)
@@ -286,7 +286,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 					mock.StorageMock.
 						EXPECT().
 						LoadUserInfo(mock.Ctx, gomock.Eq("john")).
-						Return(resp.db, nil),
+						Return(*resp.db, nil),
 					mock.StorageMock.EXPECT().
 						SavePreferred2FAMethod(mock.Ctx, gomock.Eq("john"), gomock.Eq(resp.api.Method)).
 						Return(resp.saveErr),
@@ -300,7 +300,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 					mock.StorageMock.
 						EXPECT().
 						LoadUserInfo(mock.Ctx, gomock.Eq("john")).
-						Return(resp.db, nil),
+						Return(*resp.db, nil),
 					mock.StorageMock.EXPECT().
 						SavePreferred2FAMethod(mock.Ctx, gomock.Eq("john"), gomock.Eq(resp.api.Method)).
 						Return(resp.saveErr),

@@ -106,27 +106,33 @@ func jwtValidate(ctx context.Context, signer jwt.Signer, rawToken string) (token
 }
 
 func (s *JWTCoreStrategy) GenerateJWT(ctx context.Context, tokenType fosite.TokenType, requester fosite.Requester) (string, string, error) {
-	if session, ok := requester.GetSession().(oauth2.JWTSessionContainer); !ok {
-		return "", "", errors.Errorf("Session must be of type JWTSessionContainer but got type: %T", requester.GetSession())
-	} else if session.GetJWTClaims() == nil {
-		return "", "", errors.New("GetTokenClaims() must not be nil")
-	} else {
-		claims := session.GetJWTClaims().
-			With(
-				session.GetExpiresAt(tokenType),
-				requester.GetGrantedScopes(),
-				requester.GetGrantedAudience(),
-			).
-			WithDefaults(
-				time.Now().UTC(),
-				s.Config.GetAccessTokenIssuer(ctx),
-			).
-			WithScopeField(
-				s.Config.GetJWTScopeField(ctx),
-			)
+	var (
+		session oauth2.JWTSessionContainer
+		ok      bool
+		claims  jwt.JWTClaimsContainer
+	)
 
-		return s.Signer.Generate(ctx, claims.ToMapClaims(), session.GetJWTHeader())
+	if session, ok = requester.GetSession().(oauth2.JWTSessionContainer); !ok {
+		return "", "", errors.Errorf("Session must be of type JWTSessionContainer but got type: %T", requester.GetSession())
 	}
+
+	if claims = session.GetJWTClaims(); claims == nil {
+		return "", "", errors.New("JWT Claims must not be nil")
+	}
+
+	return s.Signer.Generate(ctx, claims.
+		With(
+			session.GetExpiresAt(tokenType),
+			requester.GetGrantedScopes(),
+			requester.GetGrantedAudience(),
+		).
+		WithDefaults(
+			time.Now().UTC(),
+			s.Config.GetAccessTokenIssuer(ctx),
+		).
+		WithScopeField(
+			s.Config.GetJWTScopeField(ctx),
+		).ToMapClaims(), session.GetJWTHeader())
 }
 
 func isAccessTokenJWT(token string) (jwt bool, signature string) {

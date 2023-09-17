@@ -3,6 +3,7 @@ package oidc_test
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"testing"
 	"time"
 
@@ -45,40 +46,6 @@ func TestNewClient(t *testing.T) {
 		Secret:              tOpenIDConnectPlainTextClientSecret,
 		RedirectURIs:        []string{examplecom},
 		Scopes:              schema.DefaultOpenIDConnectClientConfiguration.Scopes,
-		Audience:            []string{"example"},
-		ResponseTypes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes,
-		GrantTypes:          schema.DefaultOpenIDConnectClientConfiguration.GrantTypes,
-		ResponseModes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseModes,
-	}
-
-	client = oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{})
-
-	assert.Equal(t, fosite.Arguments{myclient, "example"}, client.GetAudience())
-
-	config = schema.IdentityProvidersOpenIDConnectClient{
-		ID:                  myclient,
-		Description:         myclientdesc,
-		AuthorizationPolicy: twofactor,
-		Secret:              tOpenIDConnectPlainTextClientSecret,
-		RedirectURIs:        []string{examplecom},
-		Scopes:              schema.DefaultOpenIDConnectClientConfiguration.Scopes,
-		Audience:            []string{myclient},
-		ResponseTypes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes,
-		GrantTypes:          schema.DefaultOpenIDConnectClientConfiguration.GrantTypes,
-		ResponseModes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseModes,
-	}
-
-	client = oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{})
-
-	assert.Equal(t, fosite.Arguments{myclient}, client.GetAudience())
-
-	config = schema.IdentityProvidersOpenIDConnectClient{
-		ID:                  myclient,
-		Description:         myclientdesc,
-		AuthorizationPolicy: twofactor,
-		Secret:              tOpenIDConnectPlainTextClientSecret,
-		RedirectURIs:        []string{examplecom},
-		Scopes:              schema.DefaultOpenIDConnectClientConfiguration.Scopes,
 		ResponseTypes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes,
 		GrantTypes:          schema.DefaultOpenIDConnectClientConfiguration.GrantTypes,
 		ResponseModes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseModes,
@@ -89,7 +56,7 @@ func TestNewClient(t *testing.T) {
 	require.Len(t, client.GetResponseModes(), 1)
 	assert.Equal(t, fosite.ResponseModeFormPost, client.GetResponseModes()[0])
 	assert.Equal(t, authorization.TwoFactor, client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{}))
-	assert.Equal(t, fosite.Arguments{myclient}, client.GetAudience())
+	assert.Equal(t, fosite.Arguments(nil), client.GetAudience())
 
 	config = schema.IdentityProvidersOpenIDConnectClient{
 		TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
@@ -1316,4 +1283,56 @@ func TestNewClient_JSONWebKeySetURI(t *testing.T) {
 	require.True(t, ok)
 
 	assert.Equal(t, "", clientf.GetJSONWebKeysURI())
+}
+
+func TestBaseClient_ApplyRequestedAudiencePolicy(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     fosite.Arguments
+		audience []string
+		form     url.Values
+		policy   oidc.ClientRequestedAudienceMode
+		expected fosite.Arguments
+	}{
+		{
+			"ShouldNotModifyExplicit",
+			fosite.Arguments(nil),
+			[]string{"example", "end"},
+			nil,
+			oidc.ClientRequestedAudienceModeExplicit,
+			fosite.Arguments(nil),
+		},
+		{
+			"ShouldModifyImplicit",
+			fosite.Arguments(nil),
+			[]string{"example", "end"},
+			nil,
+			oidc.ClientRequestedAudienceModeImplicit,
+			[]string{"example", "end"},
+		},
+		{
+			"ShouldNotModifyImplicitFormParameter",
+			fosite.Arguments(nil),
+			[]string{"example", "end"},
+			url.Values{"audience": []string{}},
+			oidc.ClientRequestedAudienceModeImplicit,
+			fosite.Arguments(nil),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := &oidc.BaseClient{
+				ID:                    "test",
+				Audience:              tc.audience,
+				RequestedAudienceMode: tc.policy,
+			}
+
+			actual := &fosite.Request{RequestedAudience: tc.have, Form: tc.form}
+
+			client.ApplyRequestedAudiencePolicy(actual)
+
+			assert.Equal(t, tc.expected, actual.RequestedAudience)
+		})
+	}
 }

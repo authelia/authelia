@@ -172,6 +172,7 @@ const (
 	FormParameterClientAssertionType = "client_assertion_type"
 	FormParameterClientAssertion     = "client_assertion"
 	FormParameterScope               = valueScope
+	FormParameterAudience            = "audience"
 	FormParameterRefreshToken        = valueRefreshToken
 	FormParameterIssuer              = valueIss
 	FormParameterToken               = "token"

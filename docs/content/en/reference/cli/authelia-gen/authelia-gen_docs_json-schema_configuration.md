@@ -2,7 +2,7 @@
 title: "authelia-gen docs json-schema configuration"
 description: "Reference for the authelia-gen docs json-schema configuration command."
 lead: ""
-date: 2023-09-14T21:17:24+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
