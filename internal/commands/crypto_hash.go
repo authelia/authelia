@@ -63,9 +63,9 @@ func newCryptoHashGenerateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Example: cmdAutheliaCryptoHashGenerateExample,
 		Args:    cobra.NoArgs,
 		PreRunE: ctx.ChainRunE(
-			ctx.ConfigSetDefaultsRunE(defaults),
+			ctx.HelperConfigSetDefaultsRunE(defaults),
 			ctx.CryptoHashGenerateMapFlagsRunE,
-			ctx.ConfigLoadRunE,
+			ctx.HelperConfigLoadRunE,
 			ctx.ConfigValidateSectionPasswordRunE,
 		),
 		RunE: ctx.CryptoHashGenerateRunE,
@@ -116,9 +116,9 @@ func newCryptoHashGenerateSubCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
 		Example: fmt.Sprintf(fmtCmdAutheliaCryptoHashGenerateSubExample, use),
 		Args:    cobra.NoArgs,
 		PersistentPreRunE: ctx.ChainRunE(
-			ctx.ConfigSetDefaultsRunE(defaults),
+			ctx.HelperConfigSetDefaultsRunE(defaults),
 			ctx.CryptoHashGenerateMapFlagsRunE,
-			ctx.ConfigLoadRunE,
+			ctx.HelperConfigLoadRunE,
 			ctx.ConfigValidateSectionPasswordRunE,
 		),
 		RunE: ctx.CryptoHashGenerateRunE,

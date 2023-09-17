@@ -26,11 +26,11 @@ func NewRootCmd() (cmd *cobra.Command) {
 		Args:    cobra.NoArgs,
 		PreRunE: ctx.ChainRunE(
 			ctx.ConfigEnsureExistsRunE,
-			ctx.ConfigLoadRunE,
+			ctx.HelperConfigLoadRunE,
 			ctx.LogConfigure,
 			ctx.LogProcessCurrentUserRunE,
-			ctx.ConfigValidateKeysRunE,
-			ctx.ConfigValidateRunE,
+			ctx.HelperConfigValidateKeysRunE,
+			ctx.HelperConfigValidateRunE,
 			ctx.ConfigValidateLogRunE,
 		),
 		RunE: ctx.RootRunE,
@@ -39,7 +39,6 @@ func NewRootCmd() (cmd *cobra.Command) {
 	}
 
 	cmd.PersistentFlags().StringSliceP(cmdFlagNameConfig, "c", []string{"configuration.yml"}, "configuration files or directories to load, for more information run 'authelia -h authelia config'")
-
 	cmd.PersistentFlags().StringSlice(cmdFlagNameConfigExpFilters, nil, "list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'")
 
 	cmd.AddCommand(
@@ -47,7 +46,8 @@ func NewRootCmd() (cmd *cobra.Command) {
 		newBuildInfoCmd(ctx),
 		newCryptoCmd(ctx),
 		newStorageCmd(ctx),
-		newValidateConfigCmd(ctx),
+		newConfigCmd(ctx),
+		newConfigValidateLegacyCmd(ctx),
 
 		newHelpTopic("config", "Help for the config file/directory paths", helpTopicConfig),
 		newHelpTopic("filters", "help topic for the config filters", helpTopicConfigFilters),

@@ -399,12 +399,15 @@ schema version of the database.`
 authelia storage migrate down --target 20 --config config.yml
 authelia storage migrate down --target 20 --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
-	cmdAutheliaValidateConfigShort = "Check a configuration against the internal configuration validation mechanisms"
+	cmdAutheliaConfigValidateShort = "Check a configuration against the internal configuration validation mechanisms"
 
-	cmdAutheliaValidateConfigLong = `Check a configuration against the internal configuration validation mechanisms.
+	cmdAutheliaConfigValidateLong = `Check a configuration against the internal configuration validation mechanisms.
 
 This subcommand allows validation of the YAML and Environment configurations so that a configuration can be checked
 prior to deploying it.`
+
+	cmdAutheliaConfigValidateExample = `authelia validate-config
+authelia validate-config --config config.yml`
 
 	cmdAutheliaValidateConfigExample = `authelia validate-config
 authelia validate-config --config config.yml`

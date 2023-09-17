@@ -38,7 +38,7 @@ func newAccessControlCheckCommand(ctx *CmdCtx) (cmd *cobra.Command) {
 		Long:    cmdAutheliaAccessControlCheckPolicyLong,
 		Example: cmdAutheliaAccessControlCheckPolicyExample,
 		PreRunE: ctx.ChainRunE(
-			ctx.ConfigLoadRunE,
+			ctx.HelperConfigLoadRunE,
 		),
 		RunE: ctx.AccessControlCheckRunE,
 

@@ -101,7 +101,7 @@ func (s *FileSource) loadDir(_ *schema.StructValidator) (err error) {
 		name := entry.Name()
 
 		switch ext := filepath.Ext(name); ext {
-		case ".yml", ".yaml":
+		case extYML, extYAML:
 			if err = s.koanf.Load(FilteredFileProvider(filepath.Join(s.path, name), s.filters...), yaml.Parser()); err != nil {
 				return err
 			}
@@ -109,6 +109,76 @@ func (s *FileSource) loadDir(_ *schema.StructValidator) (err error) {
 	}
 
 	return nil
+}
+
+// ReadFiles reads all the files associated with this FileSource.
+func (s *FileSource) ReadFiles() (files []*File, err error) {
+	if s.path == "" {
+		return nil, errors.New("invalid file path source configuration")
+	}
+
+	var info os.FileInfo
+
+	if info, err = os.Stat(s.path); err != nil {
+		return nil, err
+	}
+
+	if info.IsDir() {
+		return s.readFilesDirectory(s.path)
+	}
+
+	return s.readFilesFile(s.path)
+}
+
+func (s *FileSource) readFilesFile(path string) (files []*File, err error) {
+	var file *File
+
+	if file, err = s.readFile(path); err != nil {
+		return nil, err
+	}
+
+	return []*File{file}, nil
+}
+
+func (s *FileSource) readFile(path string) (file *File, err error) {
+	file = &File{
+		Path: path,
+	}
+
+	if file.Data, err = FilteredFileProvider(path, s.filters...).ReadBytes(); err != nil {
+		return nil, err
+	}
+
+	return file, err
+}
+
+func (s *FileSource) readFilesDirectory(path string) (files []*File, err error) {
+	var entries []os.DirEntry
+
+	if entries, err = os.ReadDir(path); err != nil {
+		return nil, err
+	}
+
+	var file *File
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		name := entry.Name()
+
+		switch ext := filepath.Ext(name); ext {
+		case extYML, extYAML:
+			if file, err = s.readFile(filepath.Join(s.path, name)); err != nil {
+				return nil, err
+			}
+
+			files = append(files, file)
+		}
+	}
+
+	return files, nil
 }
 
 // NewBytesSource returns a configuration.Source configured to load from a specified bytes.
