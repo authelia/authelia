@@ -30,12 +30,23 @@ This page is intended as an integration reference point for any implementers who
 
 When it comes to [OpenID Connect 1.0] there are effectively two types of audiences. There is the audience embedded in
 the [ID Token] which should always include the requesting clients identifier and audience of the [Access Token] and
-[Refresh Token].
+[Refresh Token]. The intention of the audience in the [ID Token] is used to convey which Relying Party or client was the
+intended audience of the token. In contrast the audience of the [Access Token] is used by the Authorization Server or
+Resource Server to satisfy an internal policy.
 
-While discovery of the audience of a [ID Token] is easy as it's always a [JSON Web Token], the format of the other
-tokens is effectively irrelevant to relying parties as only [OAuth 2.0] authorization and resource servers must
-understand the format. As such with the exception of [RFC9068] it's not possible from the token itself to discover or
-assume this information so this can only be discovered using Token Introspection.
+It's also important to note that with the exception of [RFC9068] there is basically no standardized token format for
+a [Access Token] or a [Refresh Token]. Therefore there is no way without the use of the [Introspection] endpoint to
+determine what audiences these tokens are meant for. It should also be noted that like the scope of a [Refresh Token]
+should effectively never change this also applies to the audience of this token.
+
+For these reasons the audience of the [Access Token], [Refresh Token], and [ID Token] are effectively completely
+separate and Authelia treats them in this manner. An [ID Token] will always and only have the client identifier of the
+specific client that requested it per specification, the [Access Token] will always have the granted audience of the
+Authorization Flow or last successful Refresh Flow, and the [Refresh Token] will always have the granted audience of
+the Authorization Flow.
+
+For more information about opaque [Access Token] default see
+[Why isn't the Access Token a JSON Web Token? (Frequently Asked Questions)](./frequently-asked-questions.md#why-isnt-the-access-token-a-json-web-token).
 
 ## Scope Definitions
 
