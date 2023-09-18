@@ -303,7 +303,7 @@ func (ctx *AutheliaCtx) GetSessionProviderByTargetURL(targetURL *url.URL) (provi
 	domain := ctx.GetTargetURICookieDomain(targetURL)
 
 	if domain == "" {
-		return nil, fmt.Errorf("unable to retrieve domain session: %w", err)
+		return nil, fmt.Errorf("unable to retrieve domain session cookie configuration for url '%s'", targetURL)
 	}
 
 	return ctx.Providers.SessionProvider.Get(domain)
