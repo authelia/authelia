@@ -18,6 +18,9 @@ const (
 	constDelimiter = "."
 
 	constWindows = "windows"
+
+	extYML  = ".yml"
+	extYAML = ".yaml"
 )
 
 var (

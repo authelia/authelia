@@ -188,8 +188,8 @@ func (ctx *CmdCtx) ChainRunE(cmdRunEs ...CobraRunECmd) CobraRunECmd {
 	}
 }
 
-// ConfigSetFlagsMapRunE adds a command line source with flags mapping.
-func (ctx *CmdCtx) ConfigSetFlagsMapRunE(flags *pflag.FlagSet, flagsMap map[string]string, includeInvalidKeys, includeUnchangedKeys bool) (err error) {
+// HelperConfigSetFlagsMapRunE adds a command line source with flags mapping.
+func (ctx *CmdCtx) HelperConfigSetFlagsMapRunE(flags *pflag.FlagSet, flagsMap map[string]string, includeInvalidKeys, includeUnchangedKeys bool) (err error) {
 	if ctx.cconfig == nil {
 		ctx.cconfig = NewCmdCtxConfig()
 	}
@@ -199,8 +199,8 @@ func (ctx *CmdCtx) ConfigSetFlagsMapRunE(flags *pflag.FlagSet, flagsMap map[stri
 	return nil
 }
 
-// ConfigSetDefaultsRunE adds a defaults configuration source.
-func (ctx *CmdCtx) ConfigSetDefaultsRunE(defaults map[string]any) CobraRunECmd {
+// HelperConfigSetDefaultsRunE adds a defaults configuration source.
+func (ctx *CmdCtx) HelperConfigSetDefaultsRunE(defaults map[string]any) CobraRunECmd {
 	return func(cmd *cobra.Command, args []string) (err error) {
 		if ctx.cconfig == nil {
 			ctx.cconfig = NewCmdCtxConfig()
@@ -212,10 +212,10 @@ func (ctx *CmdCtx) ConfigSetDefaultsRunE(defaults map[string]any) CobraRunECmd {
 	}
 }
 
-// ConfigValidateKeysRunE validates the configuration (keys).
-func (ctx *CmdCtx) ConfigValidateKeysRunE(_ *cobra.Command, _ []string) (err error) {
+// HelperConfigValidateKeysRunE validates the configuration (keys).
+func (ctx *CmdCtx) HelperConfigValidateKeysRunE(_ *cobra.Command, _ []string) (err error) {
 	if ctx.cconfig == nil {
-		return fmt.Errorf("config validate keys must be used with ConfigLoadRunE")
+		return fmt.Errorf("HelperConfigValidateKeysRunE must be used with HelperConfigLoadRunE")
 	}
 
 	validator.ValidateKeys(ctx.cconfig.keys, configuration.DefaultEnvPrefix, ctx.cconfig.validator)
@@ -223,8 +223,8 @@ func (ctx *CmdCtx) ConfigValidateKeysRunE(_ *cobra.Command, _ []string) (err err
 	return nil
 }
 
-// ConfigValidateRunE validates the configuration (structure).
-func (ctx *CmdCtx) ConfigValidateRunE(_ *cobra.Command, _ []string) (err error) {
+// HelperConfigValidateRunE validates the configuration (structure).
+func (ctx *CmdCtx) HelperConfigValidateRunE(_ *cobra.Command, _ []string) (err error) {
 	validator.ValidateConfiguration(ctx.config, ctx.cconfig.validator)
 
 	return nil
@@ -381,8 +381,8 @@ func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err e
 	return nil
 }
 
-// ConfigLoadRunE loads the configuration into the CmdCtx.
-func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
+// HelperConfigLoadRunE loads the configuration into the CmdCtx.
+func (ctx *CmdCtx) HelperConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
 		configs []string
 
@@ -397,17 +397,19 @@ func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 		ctx.cconfig = NewCmdCtxConfig()
 	}
 
+	ctx.cconfig.sources = configuration.NewDefaultSourcesWithDefaults(
+		configs,
+		filters,
+		configuration.DefaultEnvPrefix,
+		configuration.DefaultEnvDelimiter,
+		ctx.cconfig.defaults,
+		ctx.cconfig.sources...)
+
 	if ctx.cconfig.keys, err = configuration.LoadAdvanced(
 		ctx.cconfig.validator,
 		"",
 		ctx.config,
-		configuration.NewDefaultSourcesWithDefaults(
-			configs,
-			filters,
-			configuration.DefaultEnvPrefix,
-			configuration.DefaultEnvDelimiter,
-			ctx.cconfig.defaults,
-			ctx.cconfig.sources...)...); err != nil {
+		ctx.cconfig.sources...); err != nil {
 		return err
 	}
 

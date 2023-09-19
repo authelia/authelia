@@ -160,7 +160,8 @@ commands executed from the container use the same filters. If both the CLI argum
 the environment variable is completely ignored.
 
 Filters can either be used on their own, in combination, or not at all. The filters are processed in order as they are
-defined.
+defined. You can preview the output of the YAML files when processed via the filters using the
+[authelia config template](../../reference/cli/authelia/authelia_config_template.md) command.
 
 Examples:
 

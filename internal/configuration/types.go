@@ -54,3 +54,9 @@ type MapSource struct {
 	m     map[string]any
 	koanf *koanf.Koanf
 }
+
+// File represents a file path and data content as bytes.
+type File struct {
+	Path string
+	Data []byte
+}
