@@ -2,6 +2,7 @@ package commands
 
 import (
 	"errors"
+	"regexp"
 )
 
 const (
@@ -399,6 +400,25 @@ schema version of the database.`
 authelia storage migrate down --target 20 --config config.yml
 authelia storage migrate down --target 20 --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
+	cmdAutheliaConfigShort = "Perform config related actions"
+
+	cmdAutheliaConfigLong = `Perform config related actions.
+
+This subcommand contains other subcommands related to the configuration.`
+
+	cmdAutheliaConfigExample = `authelia config --help`
+
+	cmdAutheliaConfigTemplateShort = "Template a configuration file or files with enabled filters"
+
+	cmdAutheliaConfigTemplateLong = `Template a configuration file or files with enabled filters.
+
+This subcommand allows debugging the filtered YAML files with any of the available filters. It should be noted this
+command needs to be executed with the same environment variables and working path as when normally running Authelia to
+be useful.`
+
+	cmdAutheliaConfigTemplateExample = `authelia config template --fitlers.experimental.template
+authelia config template --fitlers.experimental.expand-env --config config.yml`
+
 	cmdAutheliaConfigValidateShort = "Check a configuration against the internal configuration validation mechanisms"
 
 	cmdAutheliaConfigValidateLong = `Check a configuration against the internal configuration validation mechanisms.
@@ -406,10 +426,10 @@ authelia storage migrate down --target 20 --encryption-key b3453fde-ecc2-4a1f-94
 This subcommand allows validation of the YAML and Environment configurations so that a configuration can be checked
 prior to deploying it.`
 
-	cmdAutheliaConfigValidateExample = `authelia validate-config
-authelia validate-config --config config.yml`
+	cmdAutheliaConfigValidateExample = `authelia config validate
+authelia config validate --config config.yml`
 
-	cmdAutheliaValidateConfigExample = `authelia validate-config
+	cmdAutheliaConfigValidateLegacyExample = `authelia validate-config
 authelia validate-config --config config.yml`
 
 	cmdAutheliaCryptoShort = "Perform cryptographic operations"
@@ -786,7 +806,8 @@ Layouts:
 )
 
 const (
-	fmtLogServerListening = "Listening for %s connections on '%s' path '%s'"
+	fmtLogServerListening       = "Listening for %s connections on '%s' path '%s'"
+	fmtYAMLConfigTemplateHeader = "---\n##\n## The following the output of files passed through the enabeld Authelia configuration filters.\n## File Source Path: %s##\n\n"
 )
 
 const (
@@ -804,4 +825,8 @@ const (
 	providerNameStorage      = "storage"
 	providerNameUser         = "user"
 	providerNameNotification = "notification"
+)
+
+var (
+	reYAMLComment = regexp.MustCompile(`^---\n([.\n]*)`)
 )

@@ -3,7 +3,6 @@ package commands
 import (
 	"bytes"
 	"fmt"
-	"regexp"
 
 	"github.com/spf13/cobra"
 
@@ -13,9 +12,9 @@ import (
 func newConfigCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:     "config",
-		Short:   cmdAutheliaConfigValidateShort,
-		Long:    cmdAutheliaConfigValidateLong,
-		Example: cmdAutheliaValidateConfigExample,
+		Short:   cmdAutheliaConfigShort,
+		Long:    cmdAutheliaConfigLong,
+		Example: cmdAutheliaConfigExample,
 		Args:    cobra.NoArgs,
 		PreRunE: ctx.ChainRunE(
 			ctx.HelperConfigLoadRunE,
@@ -35,9 +34,9 @@ func newConfigCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 func newConfigTemplateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:     "template",
-		Short:   "TODO",
-		Long:    "TODO",
-		Example: "TODO",
+		Short:   cmdAutheliaConfigTemplateShort,
+		Long:    cmdAutheliaConfigTemplateLong,
+		Example: cmdAutheliaConfigTemplateExample,
 		Args:    cobra.NoArgs,
 		PreRunE: ctx.ChainRunE(
 			ctx.HelperConfigLoadRunE,
@@ -107,14 +106,6 @@ func (ctx *CmdCtx) ConfigValidateRunE(_ *cobra.Command, _ []string) (err error) 
 	return nil
 }
 
-var (
-	reYAMLComment = regexp.MustCompile(`^---\n([.\n]*)`)
-)
-
-const (
-	fmtYAMLConfigTemplateHeader = "---\n##\n## The following the output of files passed through the enabeld Authelia configuration filters.\n## File Source Path: %s##\n\n"
-)
-
 // ConfigTemplateRunE is the RunE for the authelia validate-config command.
 func (ctx *CmdCtx) ConfigTemplateRunE(_ *cobra.Command, _ []string) (err error) {
 	var (
@@ -154,7 +145,7 @@ func newConfigValidateLegacyCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = newConfigValidateCmd(ctx)
 
 	cmd.Use = "validate-config"
-	cmd.Example = cmdAutheliaValidateConfigExample
+	cmd.Example = cmdAutheliaConfigValidateLegacyExample
 
 	return cmd
 }
