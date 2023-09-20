@@ -188,6 +188,8 @@ var Keys = []string{
 	"session.cookies[]",
 	"session.cookies[].domain",
 	"session.cookies[].authelia_url",
+	"session.cookies[].default_redirection_url",
+	"session.cookies[]",
 	"session.redis.host",
 	"session.redis.port",
 	"session.redis.username",

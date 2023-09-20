@@ -396,6 +396,15 @@ func (ctx *AutheliaCtx) DestroySession() error {
 	return provider.DestroySession(ctx.RequestCtx)
 }
 
+// GetDefaultRedirectionURL retrieves the default redirection URL for the request.
+func (ctx *AutheliaCtx) GetDefaultRedirectionURL() *url.URL {
+	if provider, err := ctx.GetSessionProvider(); err == nil {
+		return provider.Config.DefaultRedirectionURL
+	}
+
+	return ctx.Configuration.DefaultRedirectionURL
+}
+
 // ReplyOK is a helper method to reply ok.
 func (ctx *AutheliaCtx) ReplyOK() {
 	ctx.SetContentTypeApplicationJSON()

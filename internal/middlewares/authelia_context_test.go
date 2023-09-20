@@ -546,3 +546,23 @@ func TestAutheliaCtx_GetTargetURICookieDomain(t *testing.T) {
 		})
 	}
 }
+
+func TestAutheliaCtx_GetDefaultRedirectionURL(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.example4.com/consent")
+
+	assert.Equal(t, &url.URL{Scheme: "https", Host: "fallback.example.com"}, mock.Ctx.GetDefaultRedirectionURL())
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.example.com/consent")
+
+	assert.Equal(t, &url.URL{Scheme: "https", Host: "www.example.com"}, mock.Ctx.GetDefaultRedirectionURL())
+
+	mock2 := mocks.NewMockAutheliaCtx(t)
+	defer mock2.Close()
+
+	mock2.Ctx.Request.Header.Set("X-Original-URL", "https://auth.example2.com/consent")
+
+	assert.Equal(t, &url.URL{Scheme: "https", Host: "www.example2.com"}, mock2.Ctx.GetDefaultRedirectionURL())
+}

@@ -27,15 +27,6 @@ theme: 'light'
 ## set using a secret: https://www.authelia.com/c/secrets
 jwt_secret: 'a_very_important_secret'
 
-## Default redirection URL
-##
-## If user tries to authenticate without any referer, Authelia does not know where to redirect the user to at the end
-## of the authentication process. This parameter allows you to specify the default redirection URL Authelia will use
-## in such a case.
-##
-## Note: this parameter is optional. If not provided, user won't be redirected upon successful authentication.
-# default_redirection_url: 'https://home.example.com/'
-
 ## Set the default 2FA method for new users and for when a user has a preferred method configured that has been
 ## disabled. This setting must be a method that is enabled.
 ## Options are totp, webauthn, mobile_push.
@@ -708,13 +699,27 @@ session:
       ## Note: the Authelia portal must also be in that domain.
       # domain: 'example.com'
 
-      ## Optional. The fully qualified URI of the portal to redirect users to on proxies that support redirections.
+      ## Required. The fully qualified URI of the portal to redirect users to on proxies that support redirections.
       ## Rules:
       ##   - MUST use the secure scheme 'https://'
-      ##   - The above domain MUST either:
+      ##   - The above 'domain' option MUST either:
       ##      - Match the host portion of this URI.
       ##      - Match the suffix of the host portion when prefixed with '.'.
       # authelia_url: 'https://auth.example.com'
+
+      ## Optional. The fully qualified URI used as the redirection location if the portal is accessed directly. Not
+      ## configuring this option disables the automatic redirection behaviour.
+      ##
+      ## Note: this parameter is optional. If not provided, user won't be redirected upon successful authentication
+      ## unless they were redirected to Authelia by the proxy.
+      ##
+      ## Rules:
+      ##   - MUST use the secure scheme 'https://'
+      ##   - MUST not match the 'authelia_url' option.
+      ##   - The above 'domain' option MUST either:
+      ##      - Match the host portion of this URI.
+      ##      - Match the suffix of the host portion when prefixed with '.'.
+      # default_redirection_url: 'https://www.example.com'
 
       ## Sets the Cookie SameSite value. Possible options are none, lax, or strict.
       ## Please read https://www.authelia.com/c/session#same_site

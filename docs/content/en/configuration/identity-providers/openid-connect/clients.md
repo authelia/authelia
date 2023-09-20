@@ -228,7 +228,8 @@ type, but when it is supported it will include the `query` response mode.
 
 {{< confkey type="string" default="two_factor" required="no" >}}
 
-The authorization policy for this client: either `one_factor` or `two_factor`.
+The authorization policy for this client: either `one_factor`, `two_factor`, or one of the ones configured in the
+provider [authorization_policies](./provider.md#authorizationpolicies) section.
 
 ### lifespan
 
