@@ -81,7 +81,7 @@ func (ctx *CmdCtx) ConfigStorageCommandLineConfigRunE(cmd *cobra.Command, _ []st
 		cmdFlagNameSecretSize: "totp.secret_size",
 	}
 
-	return ctx.ConfigSetFlagsMapRunE(cmd.Flags(), flagsMap, true, false)
+	return ctx.HelperConfigSetFlagsMapRunE(cmd.Flags(), flagsMap, true, false)
 }
 
 // ConfigValidateStorageRunE validates the storage config before running commands using it.
