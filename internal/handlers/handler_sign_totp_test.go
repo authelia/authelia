@@ -68,7 +68,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
-		Redirect: testRedirectionURL,
+		Redirect: testRedirectionURLString,
 	})
 }
 
@@ -139,7 +139,7 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
-	s.mock.Assert200OK(s.T(), nil)
+	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://www.example.com"})
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
@@ -260,7 +260,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFi
 	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
-	s.mock.Assert200OK(s.T(), nil)
+	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://www.example.com"})
 
 	s.NotEqual(
 		res[0][1],

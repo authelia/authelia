@@ -322,17 +322,19 @@ const (
 	errFmtSessionRedisSentinelMissingName     = "session: redis: high_availability: option 'sentinel_name' is required"
 	errFmtSessionRedisSentinelNodeHostMissing = "session: redis: high_availability: option 'nodes': option 'host' is required for each node but one or more nodes are missing this"
 
-	errFmtSessionDomainMustBeRoot                = "session: domain config %s: option 'domain' must be the domain you wish to protect not a wildcard domain but it's configured as '%s'"
-	errFmtSessionDomainSameSite                  = "session: domain config %s: option 'same_site' must be one of %s but it's configured as '%s'"
-	errFmtSessionDomainRequired                  = "session: domain config %s: option 'domain' is required"
-	errFmtSessionDomainHasPeriodPrefix           = "session: domain config %s: option 'domain' has a prefix of '.' which is not supported or intended behaviour: you can use this at your own risk but we recommend removing it"
-	errFmtSessionDomainDuplicate                 = "session: domain config %s: option 'domain' is a duplicate value for another configured session domain"
-	errFmtSessionDomainDuplicateCookieScope      = "session: domain config %s: option 'domain' shares the same cookie domain scope as another configured session domain"
-	errFmtSessionDomainPortalURLInsecure         = "session: domain config %s: option 'authelia_url' does not have a secure scheme with a value of '%s'"
-	errFmtSessionDomainPortalURLNotInCookieScope = "session: domain config %s: option 'authelia_url' does not share a cookie scope with domain '%s' with a value of '%s'"
-	errFmtSessionDomainInvalidDomain             = "session: domain config %s: option 'domain' does not appear to be a valid cookie domain or an ip address"
-	errFmtSessionDomainInvalidDomainNoDots       = "session: domain config %s: option 'domain' is not a valid cookie domain: must have at least a single period or be an ip address"
-	errFmtSessionDomainInvalidDomainPublic       = "session: domain config %s: option 'domain' is not a valid cookie domain: the domain is part of the special public suffix list"
+	errFmtSessionDomainMustBeRoot                        = "session: domain config %s: option 'domain' must be the domain you wish to protect not a wildcard domain but it's configured as '%s'"
+	errFmtSessionDomainSameSite                          = "session: domain config %s: option 'same_site' must be one of %s but it's configured as '%s'"
+	errFmtSessionDomainOptionRequired                    = "session: domain config %s: option '%s' is required"
+	errFmtSessionDomainHasPeriodPrefix                   = "session: domain config %s: option 'domain' has a prefix of '.' which is not supported or intended behaviour: you can use this at your own risk but we recommend removing it"
+	errFmtSessionDomainDuplicate                         = "session: domain config %s: option 'domain' is a duplicate value for another configured session domain"
+	errFmtSessionDomainDuplicateCookieScope              = "session: domain config %s: option 'domain' shares the same cookie domain scope as another configured session domain"
+	errFmtSessionDomainURLNotAbsolute                    = "session: domain config %s: option '%s' is not absolute with a value of '%s'"
+	errFmtSessionDomainURLInsecure                       = "session: domain config %s: option '%s' does not have a secure scheme with a value of '%s'"
+	errFmtSessionDomainURLNotInCookieScope               = "session: domain config %s: option '%s' does not share a cookie scope with domain '%s' with a value of '%s'"
+	errFmtSessionDomainAutheliaURLAndRedirectionURLEqual = "session: domain config %s: option 'default_redirection_url' with value '%s' is effectively equal to option 'authelia_url' with value '%s' which is not permitted"
+	errFmtSessionDomainInvalidDomain                     = "session: domain config %s: option 'domain' does not appear to be a valid cookie domain or an ip address"
+	errFmtSessionDomainInvalidDomainNoDots               = "session: domain config %s: option 'domain' is not a valid cookie domain: must have at least a single period or be an ip address"
+	errFmtSessionDomainInvalidDomainPublic               = "session: domain config %s: option 'domain' is not a valid cookie domain: the domain is part of the special public suffix list"
 )
 
 // Regulation Error Consts.
@@ -482,6 +484,9 @@ const (
 	attrOIDCAccessTokenSigKID     = "access_token_signed_response_key_id"
 	attrOIDCPKCEChallengeMethod   = "pkce_challenge_method"
 	attrOIDCRequestedAudienceMode = "requested_audience_mode"
+	attrSessionAutheliaURL        = "authelia_url"
+	attrSessionDomain             = "domain"
+	attrDefaultRedirectionURL     = "default_redirection_url"
 )
 
 var (

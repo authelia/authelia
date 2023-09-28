@@ -142,20 +142,29 @@ domains.
 
 #### authelia_url
 
-{{< confkey type="string" required="no" >}}
+{{< confkey type="string" required="yes" >}}
 
-*__Note:__ The AuthRequest implementation does not support redirection control on the authorization server. This means
-that the `authelia_url` option is ineffectual for both NGINX and HAProxy, or any other proxy which uses the AuthRequest
-implementation.*
-
-This is a completely optional URL which is the root URL of your Authelia installation for this cookie domain which can
-be used to generate the appropriate redirection for proxies which support this. This URL must:
+This is a required URL which is the root URL of your Authelia installation for this cookie domain which can
+be used to generate the appropriate redirection URL when authentication is required. This URL must:
 
 1. Be able to read and write cookies for the configured [domain](#domain-1).
 2. Use the `https://` scheme.
-3. Include the path if relevant (i.e. `https://example.com/authelia` rather than `https://example.com` if you're using the
-   [server path option](../miscellaneous/server.md#path) of `authelia` and if the Authelia portal is inaccessible from
-   `https://example.com`).
+3. Include the path if relevant (i.e. `https://example.com/authelia` rather than `https://example.com` if you're using
+   the [server path option](../miscellaneous/server.md#path) of `authelia` and if the Authelia portal is inaccessible from `https://example.com`).
+
+The appropriate query parameter or header for your relevant proxy can override this behaviour.
+
+#### default_redirection_url
+
+{{< confkey type="string" required="no" >}}
+
+This is a completely optional URL which is used as the redirection location when visiting Authelia directly. This option
+deprecates the global [default_redirection_url](../miscellaneous/introduction.md#defaultredirectionurl) option. This URL
+must:
+
+1. Be able to read and write cookies for the configured [domain](#domain-1).
+2. Use the `https://` scheme.
+3. Not be the same as the [authelia_url](#autheliaurl)
 
 If this option is absent you must use the appropriate query parameter or header for your relevant proxy.
 

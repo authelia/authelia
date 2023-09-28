@@ -64,3 +64,26 @@ func TestHasDomainSuffix(t *testing.T) {
 	assert.False(t, HasDomainSuffix("abc", ""))
 	assert.False(t, HasDomainSuffix("", ""))
 }
+
+func TestEqualURLs(t *testing.T) {
+	assert.False(t, EqualURLs(MustParseURL(url.Parse("https://google.com/abc#frag")), MustParseURL(url.Parse("https://google.com/abc"))))
+	assert.False(t, EqualURLs(&url.URL{Scheme: "https", Host: "example.com", RawFragment: "example"}, &url.URL{Scheme: "https", Host: "example.com"}))
+
+	assert.True(t, EqualURLs(MustParseURL(url.Parse("https://google.com")), MustParseURL(url.Parse("https://google.com"))))
+	assert.True(t, EqualURLs(MustParseURL(url.Parse("https://google.com")), MustParseURL(url.Parse("https://Google.com"))))
+	assert.True(t, EqualURLs(MustParseURL(url.Parse("https://google.com/abc")), MustParseURL(url.Parse("https://Google.com/abc"))))
+	assert.False(t, EqualURLs(MustParseURL(url.Parse("https://google.com/abc")), MustParseURL(url.Parse("https://Google.com/ABC"))))
+	assert.False(t, EqualURLs(MustParseURL(url.Parse("https://google.com/abc?abc=1")), MustParseURL(url.Parse("https://Google.com/abc"))))
+	assert.False(t, EqualURLs(MustParseURL(url.Parse("https://google2.com/abc")), MustParseURL(url.Parse("https://Google.com/abc"))))
+	assert.False(t, EqualURLs(MustParseURL(url.Parse("http://google.com/abc")), MustParseURL(url.Parse("https://Google.com/abc"))))
+	assert.True(t, EqualURLs(nil, nil))
+	assert.False(t, EqualURLs(nil, MustParseURL(url.Parse("http://google.com/abc"))))
+}
+
+func MustParseURL(uri *url.URL, err error) *url.URL {
+	if err != nil {
+		panic(err)
+	}
+
+	return uri
+}

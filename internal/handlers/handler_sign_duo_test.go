@@ -532,7 +532,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
 
 	DuoPOST(duoMock)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
-		Redirect: testRedirectionURL,
+		Redirect: testRedirectionURLString,
 	})
 }
 
@@ -578,7 +578,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotReturnRedirectURL() {
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
 	DuoPOST(duoMock)(s.mock.Ctx)
-	s.mock.Assert200OK(s.T(), nil)
+	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://www.example.com"})
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
