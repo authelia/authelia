@@ -21,8 +21,10 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 	var err error
 
 	if len(targetURI) == 0 {
-		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && ctx.Configuration.DefaultRedirectionURL != "" {
-			if err = ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL}); err != nil {
+		defaultRedirectionURL := ctx.GetDefaultRedirectionURL()
+
+		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && defaultRedirectionURL != nil {
+			if err = ctx.SetJSONBody(redirectResponse{Redirect: defaultRedirectionURL.String()}); err != nil {
 				ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 			}
 		} else {
@@ -60,8 +62,10 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 	if !ctx.IsSafeRedirectionTargetURI(targetURL) {
 		ctx.Logger.Debugf("Redirection URL %s is not safe", targetURI)
 
-		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && ctx.Configuration.DefaultRedirectionURL != "" {
-			if err = ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL}); err != nil {
+		defaultRedirectionURL := ctx.GetDefaultRedirectionURL()
+
+		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && defaultRedirectionURL != nil {
+			if err = ctx.SetJSONBody(redirectResponse{Redirect: defaultRedirectionURL.String()}); err != nil {
 				ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 			}
 
@@ -85,13 +89,15 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 	var err error
 
 	if len(targetURI) == 0 {
-		if len(ctx.Configuration.DefaultRedirectionURL) == 0 {
+		defaultRedirectionURL := ctx.GetDefaultRedirectionURL()
+
+		if defaultRedirectionURL == nil {
 			ctx.ReplyOK()
 
 			return
 		}
 
-		if err = ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL}); err != nil {
+		if err = ctx.SetJSONBody(redirectResponse{Redirect: defaultRedirectionURL.String()}); err != nil {
 			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 		}
 

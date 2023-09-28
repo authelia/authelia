@@ -5,7 +5,6 @@
 
 theme: grey
 jwt_secret: very_important_secret
-default_redirection_url: https://home.example.com:8080/
 
 server:
   address: 'tcp://:9091'
@@ -37,6 +36,7 @@ session:
   cookies:
     - domain: 'example.com'
       authelia_url: 'https://login.example.com:8080'
+      default_redirection_url: https://home.example.com:8080/
 
 storage:
   encryption_key: a_not_so_secure_encryption_key

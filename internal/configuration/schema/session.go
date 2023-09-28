@@ -27,15 +27,18 @@ type SessionCookieCommon struct {
 	Inactivity time.Duration `koanf:"inactivity" json:"inactivity" jsonschema:"default=5 minutes"`
 	RememberMe time.Duration `koanf:"remember_me" json:"remember_me" jsonschema:"default=30 days"`
 
-	DisableRememberMe bool
+	DisableRememberMe bool `json:"-"`
 }
 
 // SessionCookie represents the configuration for a cookie domain.
 type SessionCookie struct {
 	SessionCookieCommon `koanf:",squash"`
 
-	Domain      string   `koanf:"domain" json:"domain" jsonschema:"format=hostname,title=Domain" jsonschema_description:"The domain for this session cookie"`
-	AutheliaURL *url.URL `koanf:"authelia_url" json:"authelia_url" jsonschema:"format=uri,title=Authelia URL" jsonschema_description:"The Root Authelia URL to redirect users to for this session cookie"`
+	Domain                string   `koanf:"domain" json:"domain" jsonschema:"format=hostname,title=Domain" jsonschema_description:"The domain for this session cookie"`
+	AutheliaURL           *url.URL `koanf:"authelia_url" json:"authelia_url" jsonschema:"format=uri,title=Authelia URL" jsonschema_description:"The Root Authelia URL to redirect users to for this session cookie"`
+	DefaultRedirectionURL *url.URL `koanf:"default_redirection_url" json:"default_redirection_url" jsonschema:"format=uri,title=Default Redirection URL" jsonschema_description:"The default redirection URL for this cookie domain"`
+
+	Legacy bool `json:"-"`
 }
 
 // SessionRedis represents the configuration related to redis session store.

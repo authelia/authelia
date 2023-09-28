@@ -3,6 +3,7 @@ package mocks
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"testing"
 	"time"
 
@@ -50,7 +51,10 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	datetime, _ := time.Parse("2006-Jan-02", "2013-Feb-03")
 	mockAuthelia.Clock.Set(datetime)
 
-	config := schema.Configuration{}
+	config := schema.Configuration{
+		DefaultRedirectionURL: &url.URL{Scheme: "https", Host: "fallback.example.com"},
+	}
+
 	config.Session.Cookies = []schema.SessionCookie{
 		{
 			SessionCookieCommon: schema.SessionCookieCommon{
@@ -58,7 +62,8 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 				RememberMe: schema.DefaultSessionConfiguration.RememberMe,
 				Expiration: schema.DefaultSessionConfiguration.Expiration,
 			},
-			Domain: "example.com",
+			Domain:                "example.com",
+			DefaultRedirectionURL: &url.URL{Scheme: "https", Host: "www.example.com"},
 		},
 		{
 			SessionCookieCommon: schema.SessionCookieCommon{
@@ -66,7 +71,8 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 				RememberMe: schema.DefaultSessionConfiguration.RememberMe,
 				Expiration: schema.DefaultSessionConfiguration.Expiration,
 			},
-			Domain: "example2.com",
+			Domain:                "example2.com",
+			DefaultRedirectionURL: &url.URL{Scheme: "https", Host: "www.example2.com"},
 		},
 	}
 

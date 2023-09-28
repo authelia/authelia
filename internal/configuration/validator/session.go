@@ -11,65 +11,67 @@ import (
 )
 
 // ValidateSession validates and update session configuration.
-func ValidateSession(config *schema.Session, validator *schema.StructValidator) {
-	if config.Name == "" {
-		config.Name = schema.DefaultSessionConfiguration.Name
+func ValidateSession(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.Session.Name == "" {
+		config.Session.Name = schema.DefaultSessionConfiguration.Name
 	}
 
-	if config.Redis != nil {
-		if config.Redis.HighAvailability != nil {
-			validateRedisSentinel(config, validator)
+	if config.Session.Redis != nil {
+		if config.Session.Redis.HighAvailability != nil {
+			validateRedisSentinel(&config.Session, validator)
 		} else {
-			validateRedis(config, validator)
+			validateRedis(&config.Session, validator)
 		}
 	}
 
 	validateSession(config, validator)
 }
 
-func validateSession(config *schema.Session, validator *schema.StructValidator) {
-	if config.Expiration <= 0 {
-		config.Expiration = schema.DefaultSessionConfiguration.Expiration // 1 hour.
+func validateSession(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.Session.Expiration <= 0 {
+		config.Session.Expiration = schema.DefaultSessionConfiguration.Expiration // 1 hour.
 	}
 
-	if config.Inactivity <= 0 {
-		config.Inactivity = schema.DefaultSessionConfiguration.Inactivity // 5 min.
+	if config.Session.Inactivity <= 0 {
+		config.Session.Inactivity = schema.DefaultSessionConfiguration.Inactivity // 5 min.
 	}
 
 	switch {
-	case config.RememberMe == schema.RememberMeDisabled:
-		config.DisableRememberMe = true
-	case config.RememberMe <= 0:
-		config.RememberMe = schema.DefaultSessionConfiguration.RememberMe // 1 month.
+	case config.Session.RememberMe == schema.RememberMeDisabled:
+		config.Session.DisableRememberMe = true
+	case config.Session.RememberMe <= 0:
+		config.Session.RememberMe = schema.DefaultSessionConfiguration.RememberMe // 1 month.
 	}
 
-	if config.SameSite == "" {
-		config.SameSite = schema.DefaultSessionConfiguration.SameSite
-	} else if !utils.IsStringInSlice(config.SameSite, validSessionSameSiteValues) {
-		validator.Push(fmt.Errorf(errFmtSessionSameSite, strJoinOr(validSessionSameSiteValues), config.SameSite))
+	if config.Session.SameSite == "" {
+		config.Session.SameSite = schema.DefaultSessionConfiguration.SameSite
+	} else if !utils.IsStringInSlice(config.Session.SameSite, validSessionSameSiteValues) {
+		validator.Push(fmt.Errorf(errFmtSessionSameSite, strJoinOr(validSessionSameSiteValues), config.Session.SameSite))
 	}
 
-	cookies := len(config.Cookies)
+	cookies := len(config.Session.Cookies)
 
 	switch {
-	case cookies == 0 && config.Domain != "": //nolint:staticcheck
+	case cookies == 0 && config.Session.Domain != "": //nolint:staticcheck
 		// Add legacy configuration to the domains list.
-		config.Cookies = append(config.Cookies, schema.SessionCookie{
+		config.Session.Cookies = append(config.Session.Cookies, schema.SessionCookie{
 			SessionCookieCommon: schema.SessionCookieCommon{
-				Name:              config.Name,
-				SameSite:          config.SameSite,
-				Expiration:        config.Expiration,
-				Inactivity:        config.Inactivity,
-				RememberMe:        config.RememberMe,
-				DisableRememberMe: config.DisableRememberMe,
+				Name:              config.Session.Name,
+				SameSite:          config.Session.SameSite,
+				Expiration:        config.Session.Expiration,
+				Inactivity:        config.Session.Inactivity,
+				RememberMe:        config.Session.RememberMe,
+				DisableRememberMe: config.Session.DisableRememberMe,
 			},
-			Domain: config.Domain, //nolint:staticcheck
+			Domain:                config.Session.Domain, //nolint:staticcheck
+			DefaultRedirectionURL: config.DefaultRedirectionURL,
+			Legacy:                true,
 		})
-	case cookies != 0 && config.Domain != "": //nolint:staticcheck
+	case cookies != 0 && config.Session.Domain != "": //nolint:staticcheck
 		validator.Push(fmt.Errorf(errFmtSessionLegacyAndWarning))
 	}
 
-	validateSessionCookieDomains(config, validator)
+	validateSessionCookieDomains(&config.Session, validator)
 }
 
 func validateSessionCookieDomains(config *schema.Session, validator *schema.StructValidator) {
@@ -86,7 +88,7 @@ func validateSessionCookieDomains(config *schema.Session, validator *schema.Stru
 
 		validateSessionCookieName(i, config)
 
-		validateSessionCookiesAutheliaURL(i, config, validator)
+		validateSessionCookiesURLs(i, config, validator)
 
 		validateSessionExpiration(i, config)
 
@@ -104,7 +106,7 @@ func validateSessionDomainName(i int, config *schema.Session, validator *schema.
 
 	switch {
 	case d.Domain == "":
-		validator.Push(fmt.Errorf(errFmtSessionDomainRequired, sessionDomainDescriptor(i, d)))
+		validator.Push(fmt.Errorf(errFmtSessionDomainOptionRequired, sessionDomainDescriptor(i, d), attrSessionDomain))
 		return
 	case strings.HasPrefix(d.Domain, "*."):
 		validator.Push(fmt.Errorf(errFmtSessionDomainMustBeRoot, sessionDomainDescriptor(i, d), d.Domain))
@@ -154,15 +156,39 @@ func validateSessionUniqueCookieDomain(i int, config *schema.Session, domains []
 	}
 }
 
-// validateSessionCookiesAutheliaURL validates the AutheliaURL.
-func validateSessionCookiesAutheliaURL(index int, config *schema.Session, validator *schema.StructValidator) {
-	var d = config.Cookies[index]
+// validateSessionCookiesURLs validates the AutheliaURL and DefaultRedirectionURL.
+func validateSessionCookiesURLs(i int, config *schema.Session, validator *schema.StructValidator) {
+	var d = config.Cookies[i]
 
-	if d.AutheliaURL != nil && d.Domain != "" && !utils.IsURISafeRedirection(d.AutheliaURL, d.Domain) {
-		if utils.IsURISecure(d.AutheliaURL) {
-			validator.Push(fmt.Errorf(errFmtSessionDomainPortalURLNotInCookieScope, sessionDomainDescriptor(index, d), d.Domain, d.AutheliaURL))
-		} else {
-			validator.Push(fmt.Errorf(errFmtSessionDomainPortalURLInsecure, sessionDomainDescriptor(index, d), d.AutheliaURL))
+	if d.AutheliaURL == nil {
+		if !d.Legacy && d.Domain != "" {
+			validator.Push(fmt.Errorf(errFmtSessionDomainOptionRequired, sessionDomainDescriptor(i, d), attrSessionAutheliaURL))
+		}
+	} else {
+		if !d.AutheliaURL.IsAbs() {
+			validator.Push(fmt.Errorf(errFmtSessionDomainURLNotAbsolute, sessionDomainDescriptor(i, d), attrSessionAutheliaURL, d.AutheliaURL))
+		} else if !utils.IsURISecure(d.AutheliaURL) {
+			validator.Push(fmt.Errorf(errFmtSessionDomainURLInsecure, sessionDomainDescriptor(i, d), attrSessionAutheliaURL, d.AutheliaURL))
+		}
+
+		if d.Domain != "" && !utils.HasURIDomainSuffix(d.AutheliaURL, d.Domain) {
+			validator.Push(fmt.Errorf(errFmtSessionDomainURLNotInCookieScope, sessionDomainDescriptor(i, d), attrSessionAutheliaURL, d.Domain, d.AutheliaURL))
+		}
+	}
+
+	if d.DefaultRedirectionURL != nil {
+		if !d.DefaultRedirectionURL.IsAbs() {
+			validator.Push(fmt.Errorf(errFmtSessionDomainURLNotAbsolute, sessionDomainDescriptor(i, d), attrDefaultRedirectionURL, d.DefaultRedirectionURL))
+		} else if !utils.IsURISecure(d.DefaultRedirectionURL) {
+			validator.Push(fmt.Errorf(errFmtSessionDomainURLInsecure, sessionDomainDescriptor(i, d), attrDefaultRedirectionURL, d.DefaultRedirectionURL))
+		}
+
+		if d.Domain != "" && !utils.HasURIDomainSuffix(d.DefaultRedirectionURL, d.Domain) {
+			validator.Push(fmt.Errorf(errFmtSessionDomainURLNotInCookieScope, sessionDomainDescriptor(i, d), attrDefaultRedirectionURL, d.Domain, d.DefaultRedirectionURL))
+		}
+
+		if d.AutheliaURL != nil && utils.EqualURLs(d.AutheliaURL, d.DefaultRedirectionURL) {
+			validator.Push(fmt.Errorf(errFmtSessionDomainAutheliaURLAndRedirectionURLEqual, sessionDomainDescriptor(i, d), d.DefaultRedirectionURL, d.AutheliaURL))
 		}
 	}
 }

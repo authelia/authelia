@@ -860,6 +860,7 @@
         },
         "default_redirection_url": {
           "type": "string",
+          "format": "uri",
           "title": "The default redirection URL",
           "description": "Used to redirect users when they visit the portal directly"
         },
@@ -2578,9 +2579,6 @@
             }
           ]
         },
-        "DisableRememberMe": {
-          "type": "boolean"
-        },
         "secret": {
           "type": "string",
           "title": "Secret",
@@ -2660,9 +2658,6 @@
             }
           ]
         },
-        "DisableRememberMe": {
-          "type": "boolean"
-        },
         "domain": {
           "type": "string",
           "format": "hostname",
@@ -2674,6 +2669,12 @@
           "format": "uri",
           "title": "Authelia URL",
           "description": "The Root Authelia URL to redirect users to for this session cookie"
+        },
+        "default_redirection_url": {
+          "type": "string",
+          "format": "uri",
+          "title": "Default Redirection URL",
+          "description": "The default redirection URL for this cookie domain"
         }
       },
       "additionalProperties": false,

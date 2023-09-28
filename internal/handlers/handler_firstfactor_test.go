@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"net/url"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -315,7 +316,7 @@ type FirstFactorRedirectionSuite struct {
 
 func (s *FirstFactorRedirectionSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
-	s.mock.Ctx.Configuration.DefaultRedirectionURL = "https://default.local"
+	s.mock.Ctx.Configuration.DefaultRedirectionURL = &url.URL{Scheme: "https", Host: "default.local"}
 	s.mock.Ctx.Configuration.AccessControl.DefaultPolicy = testBypass
 	s.mock.Ctx.Configuration.AccessControl.Rules = []schema.AccessControlRule{
 		{
@@ -368,7 +369,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenNoTarget
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
 	// Respond with 200.
-	s.mock.Assert200OK(s.T(), redirectResponse{Redirect: "https://default.local"})
+	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://www.example.com"})
 }
 
 // When:
@@ -392,7 +393,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUns
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
 	// Respond with 200.
-	s.mock.Assert200OK(s.T(), redirectResponse{Redirect: "https://default.local"})
+	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://www.example.com"})
 }
 
 // When:

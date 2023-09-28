@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"net/url"
 	"runtime"
 	"testing"
 
@@ -30,7 +31,8 @@ func newDefaultConfig() schema.Configuration {
 				SessionCookieCommon: schema.SessionCookieCommon{
 					Name: "authelia_session",
 				},
-				Domain: exampleDotCom,
+				Domain:      exampleDotCom,
+				AutheliaURL: &url.URL{Scheme: "https", Host: "auth." + exampleDotCom},
 			},
 		},
 	}
@@ -100,13 +102,13 @@ func TestShouldRaiseErrorWithUndefinedJWTSecretKey(t *testing.T) {
 func TestShouldRaiseErrorWithBadDefaultRedirectionURL(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.DefaultRedirectionURL = "bad_default_redirection_url"
+	config.DefaultRedirectionURL = &url.URL{Host: "localhost"}
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 1)
 	require.Len(t, validator.Warnings(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "option 'default_redirection_url' is invalid: could not parse 'bad_default_redirection_url' as a URL")
+	assert.EqualError(t, validator.Errors()[0], "option 'default_redirection_url' is invalid: the url '//localhost' is not absolute")
 	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
 }
 
