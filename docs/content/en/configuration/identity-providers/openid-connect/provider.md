@@ -102,7 +102,7 @@ identity_providers:
     pushed_authorizations:
       enforce: false
       context_lifespan: '5m'
-    policies:
+    authorization_policies:
       policy_name:
         default_policy: 'two_factor'
         rules:
