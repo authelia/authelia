@@ -11,7 +11,8 @@ const (
 	tableTOTPConfigurations   = "totp_configurations"
 	tableUserOpaqueIdentifier = "user_opaque_identifier"
 	tableUserPreferences      = "user_preferences"
-	tableWebAuthnDevices      = "webauthn_devices"
+	tableWebAuthnCredentials  = "webauthn_credentials" //nolint:gosec // This is a table name, not a credential.
+	tableWebAuthnUsers        = "webauthn_users"
 
 	tableOAuth2BlacklistedJTI          = "oauth2_blacklisted_jti"
 	tableOAuth2ConsentSession          = "oauth2_consent_session"

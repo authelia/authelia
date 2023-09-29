@@ -15,7 +15,7 @@ type UserInfo struct {
 	// True if a TOTP device has been registered.
 	HasTOTP bool `db:"has_totp" json:"has_totp" valid:"required"`
 
-	// True if a WebAuthn device has been registered.
+	// True if a WebAuthn credential has been registered.
 	HasWebAuthn bool `db:"has_webauthn" json:"has_webauthn" valid:"required"`
 
 	// True if a duo device has been configured as the preferred.

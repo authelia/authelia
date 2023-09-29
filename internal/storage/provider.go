@@ -38,12 +38,17 @@ type Provider interface {
 	LoadTOTPConfiguration(ctx context.Context, username string) (config *model.TOTPConfiguration, err error)
 	LoadTOTPConfigurations(ctx context.Context, limit, page int) (configs []model.TOTPConfiguration, err error)
 
-	SaveWebAuthnDevice(ctx context.Context, device model.WebAuthnDevice) (err error)
-	UpdateWebAuthnDeviceSignIn(ctx context.Context, id int, rpid string, lastUsedAt sql.NullTime, signCount uint32, cloneWarning bool) (err error)
-	DeleteWebAuthnDevice(ctx context.Context, kid string) (err error)
-	DeleteWebAuthnDeviceByUsername(ctx context.Context, username, description string) (err error)
-	LoadWebAuthnDevices(ctx context.Context, limit, page int) (devices []model.WebAuthnDevice, err error)
-	LoadWebAuthnDevicesByUsername(ctx context.Context, username string) (devices []model.WebAuthnDevice, err error)
+	SaveWebAuthnUser(ctx context.Context, user model.WebAuthnUser) (err error)
+	LoadWebAuthnUser(ctx context.Context, rpid, username string) (user *model.WebAuthnUser, err error)
+
+	SaveWebAuthnCredential(ctx context.Context, credential model.WebAuthnCredential) (err error)
+	UpdateWebAuthnCredentialDescription(ctx context.Context, username string, credentialID int, description string) (err error)
+	UpdateWebAuthnCredentialSignIn(ctx context.Context, credential model.WebAuthnCredential) (err error)
+	DeleteWebAuthnCredential(ctx context.Context, kid string) (err error)
+	DeleteWebAuthnCredentialByUsername(ctx context.Context, username, description string) (err error)
+	LoadWebAuthnCredentials(ctx context.Context, limit, page int) (credentials []model.WebAuthnCredential, err error)
+	LoadWebAuthnCredentialsByUsername(ctx context.Context, rpid, username string) (credential []model.WebAuthnCredential, err error)
+	LoadWebAuthnCredentialByID(ctx context.Context, id int) (credential *model.WebAuthnCredential, err error)
 
 	SavePreferredDuoDevice(ctx context.Context, device model.DuoDevice) (err error)
 	DeletePreferredDuoDevice(ctx context.Context, username string) (err error)

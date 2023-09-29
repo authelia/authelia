@@ -2,6 +2,10 @@
   "name": "authelia",
   "version": "4.37.5",
   "private": true,
+  "engines": {
+    "node": ">=18.4.0",
+    "pnpm": "8"
+  },
   "pnpm": {
     "overrides": {
       "@typescript-eslint/eslint-plugin": "6.4.1",
@@ -29,6 +33,8 @@
     "@mui/icons-material": "5.14.11",
     "@mui/material": "5.14.11",
     "@mui/styles": "5.14.11",
+    "@simplewebauthn/browser": "8.2.1",
+    "@simplewebauthn/typescript-types": "8.0.0",
     "axios": "1.5.1",
     "broadcast-channel": "5.3.0",
     "classnames": "2.3.2",

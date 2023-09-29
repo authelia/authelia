@@ -12,9 +12,9 @@ import {
     IndexRoute,
     LogoutRoute,
     RegisterOneTimePasswordRoute,
-    RegisterWebAuthnRoute,
     ResetPasswordStep1Route,
     ResetPasswordStep2Route,
+    SettingsRoute,
 } from "@constants/Routes";
 import NotificationsContext from "@hooks/NotificationsContext";
 import { Notification } from "@models/Notifications";
@@ -28,13 +28,13 @@ import {
     getTheme,
 } from "@utils/Configuration";
 import RegisterOneTimePassword from "@views/DeviceRegistration/RegisterOneTimePassword";
-import RegisterWebAuthn from "@views/DeviceRegistration/RegisterWebAuthn";
 import BaseLoadingPage from "@views/LoadingPage/BaseLoadingPage";
 import ConsentView from "@views/LoginPortal/ConsentView/ConsentView";
 import LoginPortal from "@views/LoginPortal/LoginPortal";
 import SignOut from "@views/LoginPortal/SignOut/SignOut";
 import ResetPasswordStep1 from "@views/ResetPassword/ResetPasswordStep1";
 import ResetPasswordStep2 from "@views/ResetPassword/ResetPasswordStep2";
+import SettingsRouter from "@views/Settings/SettingsRouter";
 
 import "@fortawesome/fontawesome-svg-core/styles.css";
 
@@ -89,10 +89,10 @@ const App: React.FC<Props> = (props: Props) => {
                             <Routes>
                                 <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
                                 <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
-                                <Route path={RegisterWebAuthnRoute} element={<RegisterWebAuthn />} />
                                 <Route path={RegisterOneTimePasswordRoute} element={<RegisterOneTimePassword />} />
                                 <Route path={LogoutRoute} element={<SignOut />} />
                                 <Route path={ConsentRoute} element={<ConsentView />} />
+                                <Route path={`${SettingsRoute}/*`} element={<SettingsRouter />} />
                                 <Route
                                     path={`${IndexRoute}*`}
                                     element={

@@ -1,6 +1,6 @@
-import React, { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
+import React, { Fragment, ReactNode, useEffect, useState } from "react";
 
-import { Route, Routes, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 
 import {
     AuthenticatedRoute,
@@ -15,6 +15,7 @@ import { useConfiguration } from "@hooks/Configuration";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useQueryParam } from "@hooks/QueryParam";
 import { useRedirector } from "@hooks/Redirector";
+import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoPOST } from "@hooks/UserInfo";
 import { SecondFactorMethod } from "@models/Methods";
@@ -37,7 +38,6 @@ const RedirectionErrorMessage =
     "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct.";
 
 const LoginPortal = function (props: Props) {
-    const navigate = useNavigate();
     const location = useLocation();
     const redirectionURL = useQueryParam(RedirectionURL);
     const { createErrorNotification } = useNotifications();
@@ -48,24 +48,8 @@ const LoginPortal = function (props: Props) {
     const [state, fetchState, , fetchStateError] = useAutheliaState();
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoPOST();
     const [configuration, fetchConfiguration, , fetchConfigurationError] = useConfiguration();
-    const [searchParams] = useSearchParams();
 
-    const redirect = useCallback(
-        (
-            pathname: string,
-            preserveSearchParams: boolean = true,
-            searchParamsOverride: URLSearchParams | undefined = undefined,
-        ) => {
-            if (searchParamsOverride && URLSearchParamsHasValues(searchParamsOverride)) {
-                navigate({ pathname: pathname, search: `?${searchParamsOverride.toString()}` });
-            } else if (preserveSearchParams && URLSearchParamsHasValues(searchParams)) {
-                navigate({ pathname: pathname, search: `?${searchParams.toString()}` });
-            } else {
-                navigate({ pathname: pathname });
-            }
-        },
-        [navigate, searchParams],
-    );
+    const navigate = useRouterNavigate();
 
     // Fetch the state when portal is mounted.
     useEffect(() => {
@@ -138,17 +122,17 @@ const LoginPortal = function (props: Props) {
 
             if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
                 setFirstFactorDisabled(false);
-                redirect(IndexRoute);
+                navigate(IndexRoute);
             } else if (state.authentication_level >= AuthenticationLevel.OneFactor && userInfo && configuration) {
                 if (configuration.available_methods.size === 0) {
-                    redirect(AuthenticatedRoute, false);
+                    navigate(AuthenticatedRoute, false);
                 } else {
                     if (userInfo.method === SecondFactorMethod.WebAuthn) {
-                        redirect(`${SecondFactorRoute}${SecondFactorWebAuthnSubRoute}`);
+                        navigate(`${SecondFactorRoute}${SecondFactorWebAuthnSubRoute}`);
                     } else if (userInfo.method === SecondFactorMethod.MobilePush) {
-                        redirect(`${SecondFactorRoute}${SecondFactorPushSubRoute}`);
+                        navigate(`${SecondFactorRoute}${SecondFactorPushSubRoute}`);
                     } else {
-                        redirect(`${SecondFactorRoute}${SecondFactorTOTPSubRoute}`);
+                        navigate(`${SecondFactorRoute}${SecondFactorTOTPSubRoute}`);
                     }
                 }
             }
@@ -156,7 +140,7 @@ const LoginPortal = function (props: Props) {
     }, [
         state,
         redirectionURL,
-        redirect,
+        navigate,
         userInfo,
         setFirstFactorDisabled,
         configuration,
@@ -205,7 +189,7 @@ const LoginPortal = function (props: Props) {
                 }
             />
             <Route
-                path={`${SecondFactorRoute}*`}
+                path={`${SecondFactorRoute}/*`}
                 element={
                     state && userInfo && configuration ? (
                         <SecondFactorForm
@@ -244,8 +228,4 @@ function ComponentOrLoading(props: ComponentOrLoadingProps) {
             {props.ready ? props.children : null}
         </Fragment>
     );
-}
-
-function URLSearchParamsHasValues(params?: URLSearchParams) {
-    return params ? !params.entries().next().done : false;
 }
