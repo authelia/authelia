@@ -133,7 +133,7 @@ Feature List:
   * `ES256`, `ES384`, `ES512`
 * [Custom Authorization Policies / RBAC](#client-rbac):
   * Policies can be mapped to individual clients and reused
-  * Match criteria is only subjects as this is the only effective thing that is constant during the life of an
+  * Match criteria is only subjects as this is the only effective thing that is deterministic during the life of an
     authorization
 
 ### Beta 7
