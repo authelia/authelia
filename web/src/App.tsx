@@ -11,7 +11,6 @@ import {
     ConsentRoute,
     IndexRoute,
     LogoutRoute,
-    RegisterOneTimePasswordRoute,
     ResetPasswordStep1Route,
     ResetPasswordStep2Route,
     SettingsRoute,
@@ -27,7 +26,6 @@ import {
     getResetPasswordCustomURL,
     getTheme,
 } from "@utils/Configuration";
-import RegisterOneTimePassword from "@views/DeviceRegistration/RegisterOneTimePassword";
 import BaseLoadingPage from "@views/LoadingPage/BaseLoadingPage";
 import ConsentView from "@views/LoginPortal/ConsentView/ConsentView";
 import LoginPortal from "@views/LoginPortal/LoginPortal";
@@ -78,6 +76,7 @@ const App: React.FC<Props> = (props: Props) => {
             }
         }
     }, []);
+
     return (
         <CacheProvider value={cache}>
             <ThemeProvider theme={theme}>
@@ -89,7 +88,6 @@ const App: React.FC<Props> = (props: Props) => {
                             <Routes>
                                 <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
                                 <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
-                                <Route path={RegisterOneTimePasswordRoute} element={<RegisterOneTimePassword />} />
                                 <Route path={LogoutRoute} element={<SignOut />} />
                                 <Route path={ConsentRoute} element={<ConsentView />} />
                                 <Route path={`${SettingsRoute}/*`} element={<SettingsRouter />} />

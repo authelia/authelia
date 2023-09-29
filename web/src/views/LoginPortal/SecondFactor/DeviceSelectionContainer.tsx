@@ -91,8 +91,6 @@ const DefaultDeviceSelectionContainer = function (props: Props) {
     );
 };
 
-export default DefaultDeviceSelectionContainer;
-
 interface DeviceItemProps {
     id: number;
     device: SelectableDevice;
@@ -100,7 +98,7 @@ interface DeviceItemProps {
     onSelect: () => void;
 }
 
-function DeviceItem(props: DeviceItemProps) {
+const DeviceItem = function (props: DeviceItemProps) {
     const className = "device-option-" + props.id;
     const idName = "device-" + props.device.id;
     const style = makeStyles((theme: Theme) => ({
@@ -136,7 +134,7 @@ function DeviceItem(props: DeviceItemProps) {
             </Button>
         </Grid>
     );
-}
+};
 
 interface MethodItemProps {
     id: number;
@@ -145,7 +143,7 @@ interface MethodItemProps {
     onSelect: () => void;
 }
 
-function MethodItem(props: MethodItemProps) {
+const MethodItem = function (props: MethodItemProps) {
     const className = "method-option-" + props.id;
     const idName = "method-" + props.method;
     const style = makeStyles((theme: Theme) => ({
@@ -181,4 +179,6 @@ function MethodItem(props: MethodItemProps) {
             </Button>
         </Grid>
     );
-}
+};
+
+export default DefaultDeviceSelectionContainer;

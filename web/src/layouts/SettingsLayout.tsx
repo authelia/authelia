@@ -1,21 +1,22 @@
-import React, { ReactNode, useEffect } from "react";
+import React, { ReactNode, SyntheticEvent, useCallback, useEffect, useState } from "react";
 
-import { Dashboard } from "@mui/icons-material";
+import { Close, Dashboard } from "@mui/icons-material";
+import MenuIcon from "@mui/icons-material/Menu";
 import SystemSecurityUpdateGoodIcon from "@mui/icons-material/SystemSecurityUpdateGood";
 import {
     AppBar,
     Box,
-    Button,
-    Drawer,
-    Grid,
+    Divider,
     List,
     ListItem,
     ListItemButton,
     ListItemIcon,
     ListItemText,
+    SwipeableDrawer,
     Toolbar,
     Typography,
 } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
 import { useTranslation } from "react-i18next";
 
 import { IndexRoute, SettingsRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
@@ -33,8 +34,7 @@ const defaultDrawerWidth = 240;
 
 const SettingsLayout = function (props: Props) {
     const { t: translate } = useTranslation("settings");
-
-    const navigate = useRouterNavigate();
+    const [drawerOpen, setDrawerOpen] = useState(false);
 
     useEffect(() => {
         if (props.title) {
@@ -54,72 +54,120 @@ const SettingsLayout = function (props: Props) {
 
     const drawerWidth = props.drawerWidth === undefined ? defaultDrawerWidth : props.drawerWidth;
 
+    const handleToggleDrawer = (event: SyntheticEvent) => {
+        if (
+            event.nativeEvent instanceof KeyboardEvent &&
+            event.nativeEvent.type === "keydown" &&
+            (event.nativeEvent.key === "Tab" || event.nativeEvent.key === "Shift")
+        ) {
+            return;
+        }
+
+        setDrawerOpen((state) => !state);
+    };
+
+    const container = window !== undefined ? () => window.document.body : undefined;
+
+    const drawer = (
+        <Box onClick={handleToggleDrawer} sx={{ textAlign: "center" }}>
+            <Typography variant="h6" sx={{ my: 2 }}>
+                {translate("Settings")}
+            </Typography>
+            <Divider />
+            <List>
+                {navItems.map((item) => (
+                    <DrawerNavItem key={item.keyname} text={item.text} pathname={item.pathname} icon={item.icon} />
+                ))}
+            </List>
+        </Box>
+    );
+
     return (
         <Box sx={{ display: "flex" }}>
-            <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-                <Toolbar variant="dense">
-                    <Typography style={{ flexGrow: 1 }}>Authelia {translate("Settings")}</Typography>
-                    <Button
-                        variant="contained"
-                        color="success"
-                        onClick={() => {
-                            navigate(IndexRoute);
-                        }}
+            <AppBar component={"nav"}>
+                <Toolbar>
+                    <IconButton
+                        edge="start"
+                        color="inherit"
+                        aria-label="open drawer"
+                        onClick={handleToggleDrawer}
+                        sx={{ mr: 2 }}
                     >
-                        {translate("Close")}
-                    </Button>
+                        <MenuIcon />
+                    </IconButton>
+                    <Typography
+                        variant="h6"
+                        component={"div"}
+                        sx={{ flexGrow: 1, display: { xs: "none", sm: drawerOpen ? "none" : "block" } }}
+                    >
+                        {translate("Settings")}
+                    </Typography>
                 </Toolbar>
             </AppBar>
-            <Drawer
-                variant="permanent"
-                sx={{
-                    width: drawerWidth,
-                    flexShrink: 0,
-                    [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: "border-box" },
-                }}
-            >
-                <Toolbar variant="dense" />
-                <Box sx={{ overflow: "auto" }}>
-                    <List>
-                        <SettingsMenuItem pathname={SettingsRoute} text={translate("Overview")} icon={<Dashboard />} />
-                        <SettingsMenuItem
-                            pathname={`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`}
-                            text={translate("Two-Factor Authentication")}
-                            icon={<SystemSecurityUpdateGoodIcon />}
-                        />
-                    </List>
-                </Box>
-            </Drawer>
-            <Grid container id={props.id} spacing={0}>
-                <Grid item xs={12}>
-                    <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-                        <Toolbar variant="dense" />
-                        {props.children}
-                    </Box>
-                </Grid>
-            </Grid>
+            <Box component={"nav"}>
+                <SwipeableDrawer
+                    container={container}
+                    anchor={"left"}
+                    open={drawerOpen}
+                    onOpen={handleToggleDrawer}
+                    onClose={handleToggleDrawer}
+                    ModalProps={{
+                        keepMounted: true,
+                    }}
+                    sx={{
+                        display: { xs: "block" },
+                        "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth },
+                    }}
+                >
+                    {drawer}
+                </SwipeableDrawer>
+            </Box>
+            <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+                <Toolbar />
+                {props.children}
+            </Box>
         </Box>
     );
 };
 
-export default SettingsLayout;
-
-interface SettingsMenuItemProps {
-    pathname: string;
+interface NavItem {
+    keyname?: string;
     text: string;
-    icon: ReactNode;
+    pathname: string;
+    icon?: ReactNode;
 }
 
-const SettingsMenuItem = function (props: SettingsMenuItemProps) {
+const navItems: NavItem[] = [
+    { keyname: "overview", text: "Overview", pathname: SettingsRoute, icon: <Dashboard color={"primary"} /> },
+    {
+        keyname: "twofactor",
+        text: "Two-Factor Authentication",
+        pathname: `${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`,
+        icon: <SystemSecurityUpdateGoodIcon color={"primary"} />,
+    },
+    { keyname: "close", text: "Close", pathname: IndexRoute, icon: <Close color={"error"} /> },
+];
+
+const DrawerNavItem = function (props: NavItem) {
     const selected = window.location.pathname === props.pathname || window.location.pathname === props.pathname + "/";
     const navigate = useRouterNavigate();
 
+    const handleOnClick = useCallback(() => {
+        if (selected) {
+            return;
+        }
+
+        navigate(props.pathname);
+    }, [navigate, props, selected]);
+
     return (
-        <ListItem disablePadding onClick={!selected ? () => navigate(props.pathname) : undefined}>
+        <ListItem disablePadding onClick={handleOnClick}>
             <ListItemButton selected={selected}>
-                <ListItemIcon>{props.icon}</ListItemIcon>
+                {props.icon ? <ListItemIcon>{props.icon}</ListItemIcon> : null}
                 <ListItemText primary={props.text} />
             </ListItemButton>
         </ListItem>
     );
 };
+
+export default SettingsLayout;
