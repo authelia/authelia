@@ -553,7 +553,7 @@ func TestAutheliaCtx_GetDefaultRedirectionURL(t *testing.T) {
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.example4.com/consent")
 
-	assert.Equal(t, &url.URL{Scheme: "https", Host: "fallback.example.com"}, mock.Ctx.GetDefaultRedirectionURL())
+	assert.Nil(t, mock.Ctx.GetDefaultRedirectionURL())
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.example.com/consent")
 

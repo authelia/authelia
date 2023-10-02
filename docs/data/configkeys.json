@@ -15,11 +15,6 @@
         "env": "AUTHELIA_JWT_SECRET_FILE"
     },
     {
-        "path": "default_redirection_url",
-        "secret": false,
-        "env": "AUTHELIA_DEFAULT_REDIRECTION_URL"
-    },
-    {
         "path": "default_2fa_method",
         "secret": false,
         "env": "AUTHELIA_DEFAULT_2FA_METHOD"

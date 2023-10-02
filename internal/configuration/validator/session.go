@@ -50,9 +50,15 @@ func validateSession(config *schema.Configuration, validator *schema.StructValid
 	}
 
 	cookies := len(config.Session.Cookies)
+	n := len(config.Session.Domain) //nolint:staticcheck
+
+	if cookies != 0 && config.DefaultRedirectionURL != nil { //nolint:staticcheck
+		validator.Push(fmt.Errorf(errFmtSessionLegacyRedirectionURL))
+	}
 
 	switch {
-	case cookies == 0 && config.Session.Domain != "": //nolint:staticcheck
+	case cookies == 0 && n != 0:
+		validator.PushWarning(fmt.Errorf(errFmtSessionDomainLegacy))
 		// Add legacy configuration to the domains list.
 		config.Session.Cookies = append(config.Session.Cookies, schema.SessionCookie{
 			SessionCookieCommon: schema.SessionCookieCommon{
@@ -63,11 +69,11 @@ func validateSession(config *schema.Configuration, validator *schema.StructValid
 				RememberMe:        config.Session.RememberMe,
 				DisableRememberMe: config.Session.DisableRememberMe,
 			},
-			Domain:                config.Session.Domain, //nolint:staticcheck
-			DefaultRedirectionURL: config.DefaultRedirectionURL,
+			Domain:                config.Session.Domain,        //nolint:staticcheck
+			DefaultRedirectionURL: config.DefaultRedirectionURL, //nolint:staticcheck
 			Legacy:                true,
 		})
-	case cookies != 0 && config.Session.Domain != "": //nolint:staticcheck
+	case cookies != 0 && n != 0:
 		validator.Push(fmt.Errorf(errFmtSessionLegacyAndWarning))
 	}
 

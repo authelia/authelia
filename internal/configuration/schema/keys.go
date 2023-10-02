@@ -11,7 +11,6 @@ var Keys = []string{
 	"theme",
 	"certificates_directory",
 	"jwt_secret",
-	"default_redirection_url",
 	"default_2fa_method",
 	"log.level",
 	"log.format",
@@ -348,4 +347,5 @@ var Keys = []string{
 	"privacy_policy.enabled",
 	"privacy_policy.require_user_acceptance",
 	"privacy_policy.policy_url",
+	"default_redirection_url",
 }

@@ -17,15 +17,15 @@ type Session struct {
 	Redis *SessionRedis `koanf:"redis" json:"redis" jsonschema:"title=Redis" jsonschema_description:"Redis Session Provider configuration"`
 
 	// Deprecated: Use the cookies options instead.
-	Domain string `koanf:"domain" json:"domain" jsonschema:"deprecated"`
+	Domain string `koanf:"domain" json:"domain" jsonschema:"deprecated,title=Domain" jsonschema_description:"The domain for the cookie, this option has been deprecated in favor of the session multi-cookie domain configuration"`
 }
 
 type SessionCookieCommon struct {
-	Name       string        `koanf:"name" json:"name" jsonschema:"default=authelia_session"`
-	SameSite   string        `koanf:"same_site" json:"same_site" jsonschema:"default=lax,enum=lax,enum=strict,enum=none"`
-	Expiration time.Duration `koanf:"expiration" json:"expiration" jsonschema:"default=1 hour"`
-	Inactivity time.Duration `koanf:"inactivity" json:"inactivity" jsonschema:"default=5 minutes"`
-	RememberMe time.Duration `koanf:"remember_me" json:"remember_me" jsonschema:"default=30 days"`
+	Name       string        `koanf:"name" json:"name" jsonschema:"default=authelia_session" jsonschema_description:"The session cookie name"`
+	SameSite   string        `koanf:"same_site" json:"same_site" jsonschema:"default=lax,enum=lax,enum=strict,enum=none" jsonschema_description:"The session cookie same site value"`
+	Expiration time.Duration `koanf:"expiration" json:"expiration" jsonschema:"default=1 hour" jsonschema_description:"The session cookie expiration when remember me is not checked"`
+	Inactivity time.Duration `koanf:"inactivity" json:"inactivity" jsonschema:"default=5 minutes" jsonschema_description:"The session inactivity timeout"`
+	RememberMe time.Duration `koanf:"remember_me" json:"remember_me" jsonschema:"default=30 days" jsonschema_description:"The session cookie expiration when remember me is checked"`
 
 	DisableRememberMe bool `json:"-"`
 }

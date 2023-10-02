@@ -51,9 +51,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	datetime, _ := time.Parse("2006-Jan-02", "2013-Feb-03")
 	mockAuthelia.Clock.Set(datetime)
 
-	config := schema.Configuration{
-		DefaultRedirectionURL: &url.URL{Scheme: "https", Host: "fallback.example.com"},
-	}
+	config := schema.Configuration{}
 
 	config.Session.Cookies = []schema.SessionCookie{
 		{
