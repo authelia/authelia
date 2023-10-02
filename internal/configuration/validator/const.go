@@ -310,6 +310,8 @@ const (
 
 // Session error constants.
 const (
+	errFmtSessionDomainLegacy             = "session: option 'domain' is deprecated in v4.38.0 and has been replaced by a multi-domain configuration: this has automatically been mapped for you but you will need to adjust your configuration to remove this message and receive the latest messages"
+	errFmtSessionLegacyRedirectionURL     = "session: option 'cookies' must be configured with the per cookie option 'default_redirection_url' but the global one is configured which is not supported"
 	errFmtSessionOptionRequired           = "session: option '%s' is required"
 	errFmtSessionLegacyAndWarning         = "session: option 'domain' and option 'cookies' can't be specified at the same time"
 	errFmtSessionSameSite                 = "session: option 'same_site' must be one of %s but it's configured as '%s'"

@@ -26,10 +26,6 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 		validator.Push(fmt.Errorf("option 'jwt_secret' is required"))
 	}
 
-	if config.DefaultRedirectionURL != nil && !config.DefaultRedirectionURL.IsAbs() {
-		validator.Push(fmt.Errorf("option 'default_redirection_url' is invalid: the url '%s' is not absolute", config.DefaultRedirectionURL.String()))
-	}
-
 	validateDefault2FAMethod(config, validator)
 
 	ValidateTheme(config, validator)

@@ -63,7 +63,7 @@ func HasDomainSuffix(domain, domainSuffix string) bool {
 		return true
 	}
 
-	if strings.HasSuffix(domain, period+domainSuffix) {
+	if (strings.HasPrefix(domainSuffix, period) && strings.HasSuffix(domain, domainSuffix)) || strings.HasSuffix(domain, period+domainSuffix) {
 		return true
 	}
 

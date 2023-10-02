@@ -102,14 +102,46 @@ func TestShouldRaiseErrorWithUndefinedJWTSecretKey(t *testing.T) {
 func TestShouldRaiseErrorWithBadDefaultRedirectionURL(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.DefaultRedirectionURL = &url.URL{Host: "localhost"}
+	config.Session.Cookies[0].DefaultRedirectionURL = &url.URL{Host: "localhost"}
+
+	ValidateConfiguration(&config, validator)
+	require.Len(t, validator.Errors(), 2)
+	require.Len(t, validator.Warnings(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "session: domain config #1 (domain 'example.com'): option 'default_redirection_url' is not absolute with a value of '//localhost'")
+	assert.EqualError(t, validator.Errors()[1], "session: domain config #1 (domain 'example.com'): option 'default_redirection_url' does not share a cookie scope with domain 'example.com' with a value of '//localhost'")
+	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
+}
+
+func TestShouldRaiseErrorWithLegacyDefaultRedirectionURL(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+	config.DefaultRedirectionURL = &url.URL{Host: "localhost"} //nolint:staticcheck
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 1)
 	require.Len(t, validator.Warnings(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "option 'default_redirection_url' is invalid: the url '//localhost' is not absolute")
+	assert.EqualError(t, validator.Errors()[0], "session: option 'cookies' must be configured with the per cookie option 'default_redirection_url' but the global one is configured which is not supported")
 	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
+}
+
+func TestShouldAllowLegacyDefaultRedirectionURL(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+	config.DefaultRedirectionURL = &url.URL{Scheme: "https", Host: "www.example.com"} //nolint:staticcheck
+	config.Session.Cookies = nil
+	config.Session.Domain = "example.com" //nolint:staticcheck
+
+	ValidateConfiguration(&config, validator)
+	require.Len(t, validator.Errors(), 0)
+	require.Len(t, validator.Warnings(), 2)
+
+	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
+	assert.EqualError(t, validator.Warnings()[1], "session: option 'domain' is deprecated in v4.38.0 and has been replaced by a multi-domain configuration: this has automatically been mapped for you but you will need to adjust your configuration to remove this message and receive the latest messages")
+
+	assert.Equal(t, "example.com", config.Session.Cookies[0].Domain)
+	assert.Equal(t, &url.URL{Scheme: "https", Host: "www.example.com"}, config.Session.Cookies[0].DefaultRedirectionURL)
 }
 
 func TestShouldNotOverrideCertificatesDirectoryAndShouldPassWhenBlank(t *testing.T) {
