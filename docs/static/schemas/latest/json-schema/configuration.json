@@ -858,12 +858,6 @@
           "title": "Secret Key for JWT's",
           "description": "Used for signing HS256 JWT's for identity verification"
         },
-        "default_redirection_url": {
-          "type": "string",
-          "format": "uri",
-          "title": "The default redirection URL",
-          "description": "Used to redirect users when they visit the portal directly"
-        },
         "default_2fa_method": {
           "type": "string",
           "enum": [
@@ -953,6 +947,13 @@
           "$ref": "#/$defs/PrivacyPolicy",
           "title": "Privacy Policy",
           "description": "Privacy Policy Configuration"
+        },
+        "default_redirection_url": {
+          "type": "string",
+          "format": "uri",
+          "title": "The default redirection URL",
+          "description": "Used to redirect users when they visit the portal directly, this option has been deprecated in favor of the session multi-cookie domain configuration",
+          "deprecated": true
         }
       },
       "additionalProperties": false,
@@ -2532,6 +2533,7 @@
       "properties": {
         "name": {
           "type": "string",
+          "description": "The session cookie name",
           "default": "authelia_session"
         },
         "same_site": {
@@ -2541,6 +2543,7 @@
             "strict",
             "none"
           ],
+          "description": "The session cookie same site value",
           "default": "lax"
         },
         "expiration": {
@@ -2553,7 +2556,8 @@
               "type": "integer",
               "description": "The duration in seconds"
             }
-          ]
+          ],
+          "description": "The session cookie expiration when remember me is not checked"
         },
         "inactivity": {
           "oneOf": [
@@ -2565,7 +2569,8 @@
               "type": "integer",
               "description": "The duration in seconds"
             }
-          ]
+          ],
+          "description": "The session inactivity timeout"
         },
         "remember_me": {
           "oneOf": [
@@ -2577,7 +2582,8 @@
               "type": "integer",
               "description": "The duration in seconds"
             }
-          ]
+          ],
+          "description": "The session cookie expiration when remember me is checked"
         },
         "secret": {
           "type": "string",
@@ -2599,7 +2605,8 @@
         },
         "domain": {
           "type": "string",
-          "description": "Deprecated: Use the cookies options instead.",
+          "title": "Domain",
+          "description": "The domain for the cookie, this option has been deprecated in favor of the session multi-cookie domain configuration",
           "deprecated": true
         }
       },
@@ -2611,6 +2618,7 @@
       "properties": {
         "name": {
           "type": "string",
+          "description": "The session cookie name",
           "default": "authelia_session"
         },
         "same_site": {
@@ -2620,6 +2628,7 @@
             "strict",
             "none"
           ],
+          "description": "The session cookie same site value",
           "default": "lax"
         },
         "expiration": {
@@ -2632,7 +2641,8 @@
               "type": "integer",
               "description": "The duration in seconds"
             }
-          ]
+          ],
+          "description": "The session cookie expiration when remember me is not checked"
         },
         "inactivity": {
           "oneOf": [
@@ -2644,7 +2654,8 @@
               "type": "integer",
               "description": "The duration in seconds"
             }
-          ]
+          ],
+          "description": "The session inactivity timeout"
         },
         "remember_me": {
           "oneOf": [
@@ -2656,7 +2667,8 @@
               "type": "integer",
               "description": "The duration in seconds"
             }
-          ]
+          ],
+          "description": "The session cookie expiration when remember me is checked"
         },
         "domain": {
           "type": "string",

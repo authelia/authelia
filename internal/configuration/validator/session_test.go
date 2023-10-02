@@ -16,8 +16,12 @@ import (
 func newDefaultSessionConfig() schema.Configuration {
 	config := schema.Session{}
 	config.Secret = testJWTSecret
-	config.Domain = exampleDotCom //nolint:staticcheck
-	config.Cookies = []schema.SessionCookie{}
+	config.Cookies = []schema.SessionCookie{
+		{
+			Domain:      exampleDotCom,
+			AutheliaURL: &url.URL{Scheme: "https", Host: "auth.example.com"},
+		},
+	}
 
 	return schema.Configuration{Session: config}
 }
@@ -28,8 +32,8 @@ func TestShouldSetDefaultSessionValues(t *testing.T) {
 
 	ValidateSession(&config, validator)
 
-	assert.False(t, validator.HasWarnings())
-	assert.False(t, validator.HasErrors())
+	assert.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Errors(), 0)
 	assert.Equal(t, schema.DefaultSessionConfiguration.Name, config.Session.Name)
 	assert.Equal(t, schema.DefaultSessionConfiguration.Inactivity, config.Session.Inactivity)
 	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Session.Expiration)
@@ -42,6 +46,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 		name     string
 		have     schema.Configuration
 		expected schema.Configuration
+		warns    []string
 		errs     []string
 	}{
 		{
@@ -71,6 +76,9 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 						},
 					},
 				},
+			},
+			[]string{
+				"session: option 'domain' is deprecated in v4.38.0 and has been replaced by a multi-domain configuration: this has automatically been mapped for you but you will need to adjust your configuration to remove this message and receive the latest messages",
 			},
 			nil,
 		},
@@ -110,6 +118,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 					},
 				},
 			},
+			nil,
 			[]string{
 				"session: option 'same_site' must be one of 'none', 'lax', or 'strict' but it's configured as 'BAD VALUE'",
 			},
@@ -164,6 +173,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 				},
 			},
 			nil,
+			nil,
 		},
 		{
 			"ShouldErrorOnEmptyConfig",
@@ -184,6 +194,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 					Cookies: []schema.SessionCookie{},
 				},
 			},
+			nil,
 			[]string{
 				"session: option 'cookies' is required",
 			},
@@ -200,7 +211,11 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 
 			ValidateSession(&have, validator)
 
-			assert.Len(t, validator.Warnings(), 0)
+			warns := validator.Warnings()
+			require.Len(t, warns, len(tc.warns))
+			for i, err := range warns {
+				assert.EqualError(t, err, tc.warns[i])
+			}
 
 			errs := validator.Errors()
 			require.Len(t, validator.Errors(), len(tc.errs))
@@ -233,7 +248,7 @@ func TestShouldWarnSessionValuesWhenPotentiallyInvalid(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
-	config.Session.Domain = ".example.com" //nolint:staticcheck
+	config.Session.Cookies[0].Domain = ".example.com"
 
 	ValidateSession(&config, validator)
 
@@ -241,6 +256,20 @@ func TestShouldWarnSessionValuesWhenPotentiallyInvalid(t *testing.T) {
 	assert.Len(t, validator.Errors(), 0)
 
 	assert.EqualError(t, validator.Warnings()[0], "session: domain config #1 (domain '.example.com'): option 'domain' has a prefix of '.' which is not supported or intended behaviour: you can use this at your own risk but we recommend removing it")
+}
+
+func TestShouldErrorWithoutSessionDomainAutheliaURL(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	config.Session.Cookies[0].AutheliaURL = nil
+
+	ValidateSession(&config, validator)
+
+	require.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "session: domain config #1 (domain 'example.com'): option 'authelia_url' is required")
 }
 
 func TestShouldHandleRedisConfigSuccessfully(t *testing.T) {
@@ -662,7 +691,6 @@ func TestShouldRaiseErrorOnBadRedisTLSOptionsMinVerGreaterThanMax(t *testing.T) 
 func TestShouldRaiseErrorWhenHaveDuplicatedDomainName(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
-	config.Session.Domain = "" //nolint:staticcheck
 	config.Session.Cookies = append(config.Session.Cookies, schema.SessionCookie{
 		Domain:      exampleDotCom,
 		AutheliaURL: MustParseURL("https://login.example.com"),
@@ -674,8 +702,9 @@ func TestShouldRaiseErrorWhenHaveDuplicatedDomainName(t *testing.T) {
 
 	ValidateSession(&config, validator)
 	assert.False(t, validator.HasWarnings())
-	require.Len(t, validator.Errors(), 1)
+	require.Len(t, validator.Errors(), 2)
 	assert.EqualError(t, validator.Errors()[0], "session: domain config #2 (domain 'example.com'): option 'domain' is a duplicate value for another configured session domain")
+	assert.EqualError(t, validator.Errors()[1], "session: domain config #3 (domain 'example.com'): option 'domain' is a duplicate value for another configured session domain")
 }
 
 func TestShouldRaiseErrorWhenHaveNonAbsAutheliaURL(t *testing.T) {
@@ -754,7 +783,6 @@ func TestShouldRaiseErrorWhenHaveDefaultRedirectionURLEqualAutheliaURL(t *testin
 func TestShouldRaiseErrorWhenSubdomainConflicts(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
-	config.Session.Domain = "" //nolint:staticcheck
 	config.Session.Cookies = append(config.Session.Cookies, schema.SessionCookie{
 		Domain:      exampleDotCom,
 		AutheliaURL: MustParseURL("https://login.example.com"),
@@ -766,8 +794,9 @@ func TestShouldRaiseErrorWhenSubdomainConflicts(t *testing.T) {
 
 	ValidateSession(&config, validator)
 	assert.False(t, validator.HasWarnings())
-	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "session: domain config #2 (domain 'internal.example.com'): option 'domain' shares the same cookie domain scope as another configured session domain")
+	require.Len(t, validator.Errors(), 2)
+	assert.EqualError(t, validator.Errors()[0], "session: domain config #2 (domain 'example.com'): option 'domain' is a duplicate value for another configured session domain")
+	assert.EqualError(t, validator.Errors()[1], "session: domain config #3 (domain 'internal.example.com'): option 'domain' shares the same cookie domain scope as another configured session domain")
 }
 
 func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {
@@ -859,7 +888,7 @@ func TestShouldRaiseErrorWhenPortalURLIsInvalid(t *testing.T) {
 	}
 }
 
-func TestShouldRaiseErrorWhenSameSiteSetIncorrectly(t *testing.T) {
+func TestShouldRaiseErrorWhenSameSiteSetIncorrectlyGlobal(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 	config.Session.SameSite = "NOne"
@@ -867,10 +896,22 @@ func TestShouldRaiseErrorWhenSameSiteSetIncorrectly(t *testing.T) {
 	ValidateSession(&config, validator)
 
 	assert.False(t, validator.HasWarnings())
-	require.Len(t, validator.Errors(), 2)
+	require.Len(t, validator.Errors(), 1)
 
 	assert.EqualError(t, validator.Errors()[0], "session: option 'same_site' must be one of 'none', 'lax', or 'strict' but it's configured as 'NOne'")
-	assert.EqualError(t, validator.Errors()[1], "session: domain config #1 (domain 'example.com'): option 'same_site' must be one of 'none', 'lax', or 'strict' but it's configured as 'NOne'")
+}
+
+func TestShouldRaiseErrorWhenSameSiteSetIncorrectly(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.Session.Cookies[0].SameSite = "NONe"
+
+	ValidateSession(&config, validator)
+
+	assert.False(t, validator.HasWarnings())
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "session: domain config #1 (domain 'example.com'): option 'same_site' must be one of 'none', 'lax', or 'strict' but it's configured as 'NONe'")
 }
 
 func TestShouldNotRaiseErrorWhenSameSiteSetCorrectly(t *testing.T) {
@@ -927,24 +968,14 @@ func TestShouldNotAllowLegacyAndModernCookiesConfig(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
-	config.Session.Cookies = append(config.Session.Cookies, schema.SessionCookie{
-		SessionCookieCommon: schema.SessionCookieCommon{
-			Name:       config.Session.Name,
-			SameSite:   config.Session.SameSite,
-			Expiration: config.Session.Expiration,
-			Inactivity: config.Session.Inactivity,
-			RememberMe: config.Session.RememberMe,
-		},
-		Domain: config.Session.Domain, //nolint:staticcheck
-	})
+	config.Session.Domain = exampleDotCom //nolint:staticcheck
 
 	ValidateSession(&config, validator)
 
 	assert.Len(t, validator.Warnings(), 0)
-	require.Len(t, validator.Errors(), 2)
+	require.Len(t, validator.Errors(), 1)
 
 	assert.EqualError(t, validator.Errors()[0], "session: option 'domain' and option 'cookies' can't be specified at the same time")
-	assert.EqualError(t, validator.Errors()[1], "session: domain config #1 (domain 'example.com'): option 'authelia_url' is required")
 }
 
 func MustParseURL(uri string) *url.URL {

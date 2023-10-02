@@ -413,7 +413,7 @@ func (ctx *AutheliaCtx) GetDefaultRedirectionURL() *url.URL {
 		return provider.Config.DefaultRedirectionURL
 	}
 
-	return ctx.Configuration.DefaultRedirectionURL
+	return nil
 }
 
 // ReplyOK is a helper method to reply ok.

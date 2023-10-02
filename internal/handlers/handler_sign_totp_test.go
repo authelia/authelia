@@ -58,7 +58,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
 		EXPECT().
 		UpdateTOTPConfigurationSignIn(s.mock.Ctx, gomock.Any(), gomock.Any())
 
-	s.mock.Ctx.Configuration.DefaultRedirectionURL = testRedirectionURL
+	s.mock.Ctx.Configuration.Session.Cookies[0].DefaultRedirectionURL = testRedirectionURL
 
 	bodyBytes, err := json.Marshal(bodySignTOTPRequest{
 		Token: "abc",
@@ -96,7 +96,7 @@ func (s *HandlerSignTOTPSuite) TestShouldFailWhenTOTPSignInInfoFailsToUpdate() {
 		EXPECT().
 		UpdateTOTPConfigurationSignIn(s.mock.Ctx, gomock.Any(), gomock.Any()).Return(errors.New("failed to perform update"))
 
-	s.mock.Ctx.Configuration.DefaultRedirectionURL = testRedirectionURL
+	s.mock.Ctx.Configuration.Session.Cookies[0].DefaultRedirectionURL = testRedirectionURL
 
 	bodyBytes, err := json.Marshal(bodySignTOTPRequest{
 		Token: "abc",
