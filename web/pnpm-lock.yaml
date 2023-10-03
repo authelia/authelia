@@ -1,9 +1,5 @@
 lockfileVersion: '6.0'
 
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
-
 overrides:
   '@typescript-eslint/eslint-plugin': 6.4.1
   '@typescript-eslint/parser': 6.4.1
@@ -44,8 +40,8 @@ dependencies:
     specifier: 5.14.11
     version: 5.14.11(@types/react@18.2.24)(react@18.2.0)
   '@simplewebauthn/browser':
-    specifier: 8.2.1
-    version: 8.2.1
+    specifier: 8.3.1
+    version: 8.3.1
   '@simplewebauthn/typescript-types':
     specifier: 8.0.0
     version: 8.0.0
@@ -109,8 +105,8 @@ devDependencies:
     specifier: 14.0.0
     version: 14.0.0(react-dom@18.2.0)(react@18.2.0)
   '@types/node':
-    specifier: 20.8.0
-    version: 20.8.0
+    specifier: 20.8.2
+    version: 20.8.2
   '@types/react':
     specifier: 18.2.24
     version: 18.2.24
@@ -166,8 +162,8 @@ devDependencies:
     specifier: 4.6.0
     version: 4.6.0(eslint@8.50.0)
   happy-dom:
-    specifier: 12.4.0
-    version: 12.4.0
+    specifier: 12.6.0
+    version: 12.6.0
   husky:
     specifier: 8.0.3
     version: 8.0.3
@@ -182,7 +178,7 @@ devDependencies:
     version: 5.2.2
   vite:
     specifier: 4.4.9
-    version: 4.4.9(@types/node@20.8.0)
+    version: 4.4.9(@types/node@20.8.2)
   vite-plugin-checker:
     specifier: 0.6.2
     version: 0.6.2(eslint@8.50.0)(typescript@5.2.2)(vite@4.4.9)
@@ -197,7 +193,7 @@ devDependencies:
     version: 4.2.1(typescript@5.2.2)(vite@4.4.9)
   vitest:
     specifier: 0.34.6
-    version: 0.34.6(happy-dom@12.4.0)
+    version: 0.34.6(happy-dom@12.6.0)
   vitest-preview:
     specifier: 0.0.1
     version: 0.0.1
@@ -964,6 +960,16 @@ packages:
       '@babel/helper-plugin-utils': 7.22.5
     dev: true
 
+  /@babel/plugin-syntax-flow@7.21.4(@babel/core@7.22.20):
+    resolution: {integrity: sha512-l9xd3N+XG4fZRxEP3vXdK6RW7vN1Uf5dxzRC/09wV86wqZ/YYQooBIGNsiRdfNR3/q2/5pPzV4B54J/9ctX5jw==}
+    engines: {node: '>=6.9.0'}
+    peerDependencies:
+      '@babel/core': ^7.0.0-0
+    dependencies:
+      '@babel/core': 7.22.20
+      '@babel/helper-plugin-utils': 7.22.5
+    dev: true
+
   /@babel/plugin-syntax-flow@7.21.4(@babel/core@7.22.9):
     resolution: {integrity: sha512-l9xd3N+XG4fZRxEP3vXdK6RW7vN1Uf5dxzRC/09wV86wqZ/YYQooBIGNsiRdfNR3/q2/5pPzV4B54J/9ctX5jw==}
     engines: {node: '>=6.9.0'}
@@ -990,6 +996,16 @@ packages:
       '@babel/core': ^7.0.0-0
     dependencies:
       '@babel/core': 7.22.9
+      '@babel/helper-plugin-utils': 7.22.5
+    dev: true
+
+  /@babel/plugin-syntax-jsx@7.21.4(@babel/core@7.22.20):
+    resolution: {integrity: sha512-5hewiLct5OKyh6PLKEYaFclcqtIgCb6bmELouxjF6up5q3Sov7rOayW4RwhbaBL0dit8rA80GNfY+UuDp2mBbQ==}
+    engines: {node: '>=6.9.0'}
+    peerDependencies:
+      '@babel/core': ^7.0.0-0
+    dependencies:
+      '@babel/core': 7.22.20
       '@babel/helper-plugin-utils': 7.22.5
     dev: true
 
@@ -1396,6 +1412,20 @@ packages:
     dependencies:
       '@babel/core': 7.22.20
       '@babel/helper-plugin-utils': 7.22.5
+    dev: true
+
+  /@babel/plugin-transform-react-jsx@7.21.0(@babel/core@7.22.20):
+    resolution: {integrity: sha512-6OAWljMvQrZjR2DaNhVfRz6dkCAVV+ymcLUmaf8bccGOHn2v5rHJK3tTpij0BuhdYWP4LLaqj5lwcdlpAAPuvg==}
+    engines: {node: '>=6.9.0'}
+    peerDependencies:
+      '@babel/core': ^7.0.0-0
+    dependencies:
+      '@babel/core': 7.22.20
+      '@babel/helper-annotate-as-pure': 7.18.6
+      '@babel/helper-module-imports': 7.22.5
+      '@babel/helper-plugin-utils': 7.22.5
+      '@babel/plugin-syntax-jsx': 7.21.4(@babel/core@7.22.20)
+      '@babel/types': 7.22.5
     dev: true
 
   /@babel/plugin-transform-react-jsx@7.21.0(@babel/core@7.22.9):
@@ -1871,7 +1901,7 @@ packages:
       lodash.merge: 4.6.2
       lodash.uniq: 4.5.0
       resolve-from: 5.0.0
-      ts-node: 10.9.1(@types/node@20.8.0)(typescript@5.2.2)
+      ts-node: 10.9.1(@types/node@20.8.2)(typescript@5.2.2)
       typescript: 5.2.2
     transitivePeerDependencies:
       - '@swc/core'
@@ -2960,8 +2990,8 @@ packages:
     resolution: {integrity: sha512-sXo/qW2/pAcmT43VoRKOJbDOfV3cYpq3szSVfIThQXNt+E4DfKj361vaAt3c88U5tPUxzEswam7GW48PJqtKAg==}
     dev: true
 
-  /@simplewebauthn/browser@8.2.1:
-    resolution: {integrity: sha512-s8A2ADEpULrPcKBbewzWECgyUe4sOu06OwBN4UzSO5PmBj4TG9nXaz+Ihy7ZT8eK6lF+lPy/tKebfjc/7dY2HA==}
+  /@simplewebauthn/browser@8.3.1:
+    resolution: {integrity: sha512-bMW7oOkxX4ydRAkkPtJ1do2k9yOoIGc/hZYebcuEOVdJoC6wwVpu97mYY7Mz8B9hLlcaR5WFgBsLl5tSJVzm8A==}
     dependencies:
       '@simplewebauthn/typescript-types': 8.0.0
     dev: false
@@ -3139,7 +3169,7 @@ packages:
       dom-accessibility-api: 0.5.16
       lodash: 4.17.21
       redent: 3.0.0
-      vitest: 0.34.6(happy-dom@12.4.0)
+      vitest: 0.34.6(happy-dom@12.6.0)
     dev: true
 
   /@testing-library/react@14.0.0(react-dom@18.2.0)(react@18.2.0):
@@ -3209,7 +3239,7 @@ packages:
     resolution: {integrity: sha512-ALYone6pm6QmwZoAgeyNksccT9Q4AWZQ6PvfwR37GT6r6FWUPguq6sUmNGSMV2Wr761oQoBxwGGa6DR5o1DC9g==}
     dependencies:
       '@types/connect': 3.4.35
-      '@types/node': 20.8.0
+      '@types/node': 20.8.2
     dev: true
 
   /@types/chai-subset@1.3.3:
@@ -3225,7 +3255,7 @@ packages:
   /@types/connect@3.4.35:
     resolution: {integrity: sha512-cdeYyv4KWoEgpBISTxWvqYsVy444DOqehiF3fM3ne10AmJ62RSyNkUnxMJXHQWRQQX2eR94m5y1IZyDwBjV9FQ==}
     dependencies:
-      '@types/node': 20.8.0
+      '@types/node': 20.8.2
     dev: true
 
   /@types/estree@1.0.0:
@@ -3235,7 +3265,7 @@ packages:
   /@types/express-serve-static-core@4.17.33:
     resolution: {integrity: sha512-TPBqmR/HRYI3eC2E5hmiivIzv+bidAfXofM+sbonAGvyDhySGw9/PQZFt2BLOrjUUR++4eJVpx6KnLQK1Fk9tA==}
     dependencies:
-      '@types/node': 20.8.0
+      '@types/node': 20.8.2
       '@types/qs': 6.9.7
       '@types/range-parser': 1.2.4
     dev: true
@@ -3273,8 +3303,8 @@ packages:
     resolution: {integrity: sha512-4tT2UrL5LBqDwoed9wZ6N3umC4Yhz3W3FloMmiiG4JwmUJWpie0c7lcnUNd4gtMKuDEO4wRVS8B6Xa0uMRsMKg==}
     dev: true
 
-  /@types/node@20.8.0:
-    resolution: {integrity: sha512-LzcWltT83s1bthcvjBmiBvGJiiUe84NWRHkw+ZV6Fr41z2FbIzvc815dk2nQ3RAKMuN2fkenM/z3Xv2QzEpYxQ==}
+  /@types/node@20.8.2:
+    resolution: {integrity: sha512-Vvycsc9FQdwhxE3y3DzeIxuEJbWGDsnrxvMADzTDF/lcdR9/K+AQIeAghTQsHtotg/q0j3WEOYS/jQgSdWue3w==}
     dev: true
 
   /@types/normalize-package-data@2.4.1:
@@ -3325,7 +3355,7 @@ packages:
     resolution: {integrity: sha512-NUo5XNiAdULrJENtJXZZ3fHtfMolzZwczzBbnAeBbqBwG+LaG6YaJtuwzwGSQZ2wsCrxjEhNNjAkKigy3n8teQ==}
     dependencies:
       '@types/mime': 3.0.1
-      '@types/node': 20.8.0
+      '@types/node': 20.8.2
     dev: true
 
   /@types/zxcvbn@4.4.2:
@@ -3336,7 +3366,7 @@ packages:
     resolution: {integrity: sha512-3F5PtBzUW0dYlq77Lcqo13fv+58KDwUib3BddilE8ajPJT+faGgxmI9Sw+I8ZS22BYwoir9ZhNXcLi+S+I2bkw==}
     engines: {node: ^16.0.0 || >=18.0.0}
     peerDependencies:
-      '@typescript-eslint/parser': 6.4.1
+      '@typescript-eslint/parser': ^6.0.0 || ^6.0.0-alpha
       eslint: ^7.0.0 || ^8.0.0
       typescript: '*'
     peerDependenciesMeta:
@@ -3474,7 +3504,7 @@ packages:
       '@babel/plugin-transform-react-jsx-source': 7.22.5(@babel/core@7.22.20)
       '@types/babel__core': 7.20.2
       react-refresh: 0.14.0
-      vite: 4.4.9(@types/node@20.8.0)
+      vite: 4.4.9(@types/node@20.8.2)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -3497,7 +3527,7 @@ packages:
       istanbul-reports: 3.1.5
       picocolors: 1.0.0
       test-exclude: 6.0.0
-      vitest: 0.34.6(happy-dom@12.4.0)
+      vitest: 0.34.6(happy-dom@12.6.0)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -4147,7 +4177,7 @@ packages:
     dependencies:
       '@types/node': 20.5.1
       cosmiconfig: 8.1.3
-      ts-node: 10.9.1(@types/node@20.8.0)(typescript@5.2.2)
+      ts-node: 10.9.1(@types/node@20.8.2)(typescript@5.2.2)
       typescript: 5.2.2
     dev: true
 
@@ -4802,6 +4832,7 @@ packages:
 
   /eslint-config-prettier@9.0.0(eslint@8.50.0):
     resolution: {integrity: sha512-IcJsTkJae2S35pRsRAwoCE+925rJJStOdkKnLVgtE+tEpqU0EVVM7OqrwxqgptKdX29NUwC82I5pXsGFIgSevw==}
+    hasBin: true
     peerDependencies:
       eslint: '>=7.0.0'
     dependencies:
@@ -4918,8 +4949,8 @@ packages:
       '@babel/plugin-transform-react-jsx': ^7.14.9
       eslint: ^8.1.0
     dependencies:
-      '@babel/plugin-syntax-flow': 7.21.4(@babel/core@7.22.9)
-      '@babel/plugin-transform-react-jsx': 7.21.0(@babel/core@7.22.9)
+      '@babel/plugin-syntax-flow': 7.21.4(@babel/core@7.22.20)
+      '@babel/plugin-transform-react-jsx': 7.21.0(@babel/core@7.22.20)
       eslint: 8.50.0
       lodash: 4.17.21
       string-natural-compare: 3.0.1
@@ -4964,7 +4995,7 @@ packages:
     resolution: {integrity: sha512-sRLlSCpICzWuje66Gl9zvdF6mwD5X86I4u55hJyFBsxYOsBCmT5+kSUjf+fkFWVMMgpzNEupjW8WzUqi83hJAQ==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     peerDependencies:
-      '@typescript-eslint/eslint-plugin': 6.4.1
+      '@typescript-eslint/eslint-plugin': ^5.0.0 || ^6.0.0
       eslint: ^7.0.0 || ^8.0.0
       jest: '*'
     peerDependenciesMeta:
@@ -5572,8 +5603,8 @@ packages:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
     dev: true
 
-  /happy-dom@12.4.0:
-    resolution: {integrity: sha512-I3MUV+70GG4UfPuPLATndGwSZcB1q0EdJtwFTiC5nCNLGQY5tPdloyIJdq94lgVjH537gLFmo8zJgDvqvP/FDw==}
+  /happy-dom@12.6.0:
+    resolution: {integrity: sha512-gwin5N69/F6A64Sa8umvduVW5PhZljTILMZN5niyAwPsLTw6fzl+c2CukUNoy5Lc5jb5g32QaMUKw9dBGO+NJw==}
     dependencies:
       css.escape: 1.5.1
       entities: 4.5.0
@@ -7617,8 +7648,9 @@ packages:
       typescript: 5.2.2
     dev: true
 
-  /ts-node@10.9.1(@types/node@20.8.0)(typescript@5.2.2):
+  /ts-node@10.9.1(@types/node@20.8.2)(typescript@5.2.2):
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
+    hasBin: true
     peerDependencies:
       '@swc/core': '>=1.2.50'
       '@swc/wasm': '>=1.2.50'
@@ -7635,7 +7667,7 @@ packages:
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
-      '@types/node': 20.8.0
+      '@types/node': 20.8.2
       acorn: 8.9.0
       acorn-walk: 8.2.0
       arg: 4.1.3
@@ -7650,6 +7682,7 @@ packages:
   /tsconfck@2.1.1(typescript@5.2.2):
     resolution: {integrity: sha512-ZPCkJBKASZBmBUNqGHmRhdhM8pJYDdOXp4nRgj/O0JwUwsMq50lCDRQP/M5GBNAA0elPrq4gAeu4dkaVCuKWww==}
     engines: {node: ^14.13.1 || ^16 || >=18}
+    hasBin: true
     peerDependencies:
       typescript: ^4.3.5 || ^5.0.0
     peerDependenciesMeta:
@@ -7812,6 +7845,7 @@ packages:
 
   /update-browserslist-db@1.0.11(browserslist@4.21.10):
     resolution: {integrity: sha512-dCwEFf0/oT85M1fHBg4F0jtLwJrutGoHSQXCh7u4o2t1drG+c0a9Flnqww6XUKSfQMPpJBRjU8d4RXB09qtvaA==}
+    hasBin: true
     peerDependencies:
       browserslist: '>= 4.21.0'
     dependencies:
@@ -7851,7 +7885,7 @@ packages:
     engines: {node: '>= 0.8'}
     dev: true
 
-  /vite-node@0.34.6(@types/node@20.8.0):
+  /vite-node@0.34.6(@types/node@20.8.2):
     resolution: {integrity: sha512-nlBMJ9x6n7/Amaz6F3zJ97EBwR2FkzhBRxF5e+jE6LA3yi6Wtc2lyTij1OnDMIr34v5g/tVQtsVAzhT0jc5ygA==}
     engines: {node: '>=v14.18.0'}
     dependencies:
@@ -7860,7 +7894,7 @@ packages:
       mlly: 1.4.0
       pathe: 1.1.1
       picocolors: 1.0.0
-      vite: 4.4.9(@types/node@20.8.0)
+      vite: 4.4.9(@types/node@20.8.2)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -7918,7 +7952,7 @@ packages:
       strip-ansi: 6.0.1
       tiny-invariant: 1.3.1
       typescript: 5.2.2
-      vite: 4.4.9(@types/node@20.8.0)
+      vite: 4.4.9(@types/node@20.8.2)
       vscode-languageclient: 7.0.0
       vscode-languageserver: 7.0.0
       vscode-languageserver-textdocument: 1.0.8
@@ -7935,7 +7969,7 @@ packages:
       istanbul-lib-instrument: 5.2.1
       picocolors: 1.0.0
       test-exclude: 6.0.0
-      vite: 4.4.9(@types/node@20.8.0)
+      vite: 4.4.9(@types/node@20.8.2)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -7948,7 +7982,7 @@ packages:
       '@rollup/pluginutils': 5.0.4
       '@svgr/core': 8.1.0
       '@svgr/plugin-jsx': 8.1.0(@svgr/core@8.1.0)
-      vite: 4.4.9(@types/node@20.8.0)
+      vite: 4.4.9(@types/node@20.8.2)
     transitivePeerDependencies:
       - rollup
       - supports-color
@@ -7965,7 +7999,7 @@ packages:
       debug: 4.3.4
       globrex: 0.1.2
       tsconfck: 2.1.1(typescript@5.2.2)
-      vite: 4.4.9(@types/node@20.8.0)
+      vite: 4.4.9(@types/node@20.8.2)
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -7974,6 +8008,7 @@ packages:
   /vite@3.2.5(@types/node@18.16.5):
     resolution: {integrity: sha512-4mVEpXpSOgrssFZAOmGIr85wPHKvaDAcXqxVxVRZhljkJOMZi1ibLibzjLHzJvcok8BMguLc7g1W6W/GqZbLdQ==}
     engines: {node: ^14.18.0 || >=16.0.0}
+    hasBin: true
     peerDependencies:
       '@types/node': '>= 14'
       less: '*'
@@ -8004,9 +8039,10 @@ packages:
       fsevents: 2.3.2
     dev: true
 
-  /vite@4.4.9(@types/node@20.8.0):
+  /vite@4.4.9(@types/node@20.8.2):
     resolution: {integrity: sha512-2mbUn2LlUmNASWwSCNSJ/EG2HuSRTnVNaydp6vMCm5VIqJsjMfbIWtbH2kDuwUVW5mMUKKZvGPX/rqeqVvv1XA==}
     engines: {node: ^14.18.0 || >=16.0.0}
+    hasBin: true
     peerDependencies:
       '@types/node': '>= 14'
       less: '*'
@@ -8031,7 +8067,7 @@ packages:
       terser:
         optional: true
     dependencies:
-      '@types/node': 20.8.0
+      '@types/node': 20.8.2
       esbuild: 0.18.20
       postcss: 8.4.27
       rollup: 3.27.2
@@ -8056,9 +8092,10 @@ packages:
       - terser
     dev: true
 
-  /vitest@0.34.6(happy-dom@12.4.0):
+  /vitest@0.34.6(happy-dom@12.6.0):
     resolution: {integrity: sha512-+5CALsOvbNKnS+ZHMXtuUC7nL8/7F1F2DnHGjSsszX8zCjWSSviphCb/NuS9Nzf4Q03KyyDRBAXhF/8lffME4Q==}
     engines: {node: '>=v14.18.0'}
+    hasBin: true
     peerDependencies:
       '@edge-runtime/vm': '*'
       '@vitest/browser': '*'
@@ -8088,7 +8125,7 @@ packages:
     dependencies:
       '@types/chai': 4.3.5
       '@types/chai-subset': 1.3.3
-      '@types/node': 20.8.0
+      '@types/node': 20.8.2
       '@vitest/expect': 0.34.6
       '@vitest/runner': 0.34.6
       '@vitest/snapshot': 0.34.6
@@ -8099,7 +8136,7 @@ packages:
       cac: 6.7.14
       chai: 4.3.10
       debug: 4.3.4
-      happy-dom: 12.4.0
+      happy-dom: 12.6.0
       local-pkg: 0.4.3
       magic-string: 0.30.1
       pathe: 1.1.1
@@ -8108,8 +8145,8 @@ packages:
       strip-literal: 1.0.1
       tinybench: 2.5.0
       tinypool: 0.7.0
-      vite: 4.4.9(@types/node@20.8.0)
-      vite-node: 0.34.6(@types/node@20.8.0)
+      vite: 4.4.9(@types/node@20.8.2)
+      vite-node: 0.34.6(@types/node@20.8.2)
       why-is-node-running: 2.2.2
     transitivePeerDependencies:
       - less
@@ -8327,3 +8364,7 @@ packages:
   /zxcvbn@4.4.2:
     resolution: {integrity: sha512-Bq0B+ixT/DMyG8kgX2xWcI5jUvCwqrMxSFam7m0lAf78nf04hv6lNCsyLYdyYTrCVMqNDY/206K7eExYCeSyUQ==}
     dev: false
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
