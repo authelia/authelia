@@ -103,7 +103,7 @@
     "prettier": "3.0.3",
     "react-test-renderer": "18.2.0",
     "typescript": "5.2.2",
-    "vite": "4.4.10",
+    "vite": "4.4.11",
     "vite-plugin-checker": "0.6.2",
     "vite-plugin-istanbul": "5.0.0",
     "vite-plugin-svgr": "4.1.0",
