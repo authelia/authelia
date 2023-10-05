@@ -5,7 +5,7 @@ import { grey } from "@mui/material/colors";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 
-import { ReactComponent as UserSvg } from "@assets/images/user.svg";
+import UserSvg from "@assets/images/user.svg?react";
 import PrivacyPolicyDrawer from "@components/PrivacyPolicyDrawer";
 import PrivacyPolicyLink from "@components/PrivacyPolicyLink";
 import TypographyWithTooltip from "@components/TypographyWithTooltip";
