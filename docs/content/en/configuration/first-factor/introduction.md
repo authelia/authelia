@@ -39,8 +39,7 @@ This section describes the individual configuration options.
 
 ### refresh_interval
 
-{{< confkey type="duration" default="5m" required="no" >}}
-{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
+{{< confkey type="string" syntax="duration" default="5 minutes" required="no">}}
 
 This setting controls the interval at which details are refreshed from the backend. Particularly useful for
 [LDAP](#ldap).

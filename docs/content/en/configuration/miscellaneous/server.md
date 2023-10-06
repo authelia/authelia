@@ -58,8 +58,7 @@ server:
 
 ### address
 
-{{< confkey type="address" default="tcp://:9091/" required="no" >}}
-{{< ref-common ref="address" description="Common Syntax: Address" text="This option uses a common syntax. " >}}
+{{< confkey type="string" syntax="address" default="tcp://:9091/" required="no" >}}
 
 Configures the listener address for the Main HTTP Server. The address itself is a listener and the scheme must either be
 the `unix` scheme or one of the `tcp` schemes. It can configure the host, port, and path the listener responds to. If
@@ -155,13 +154,13 @@ research about how browsers utilize and understand this header before attempting
 
 ### buffers
 
-{{< confkey type="structure" required="no" common="../../prologue/common#server-buffers" common-name="Server buffers common structure" >}}
+{{< confkey type="structure" structure="server-buffers" required="no" >}}
 
 Configures the server buffers.
 
 ### timeouts
 
-{{< confkey type="structure" required="no" common="../../prologue/common#server-timeouts" common-name="Server timeouts common structure" >}}
+{{< confkey type="structure" structure="server-timeouts" required="no" >}}
 
 Configures the server timeouts.
 

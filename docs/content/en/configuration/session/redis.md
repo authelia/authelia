@@ -182,8 +182,7 @@ is useful if there are long delays in establishing connections.
 
 ### tls
 
-{{< confkey type="structure" required="no" >}}
-{{< ref-common ref="tls" description="Common Structure: TLS" text="This option uses a common structure. " >}}
+{{< confkey type="structure" structure="tls" required="no" >}}
 
 If defined enables connecting to [redis] over a TLS socket, and additionally controls the TLS connection
 validation parameters.

@@ -123,8 +123,7 @@ This section describes the individual configuration options.
 
 ### address
 
-{{< confkey type="string" required="yes" >}}
-{{< ref-common ref="address" description="Common Syntax: Address" text="This option uses a common syntax. " >}}
+{{< confkey type="string" syntax="address" required="yes" >}}
 
 The LDAP URL which consists of a scheme, hostname, and port. Format is `[<scheme>://]<hostname>[:<port>]`. The default
 scheme is `ldapi` if the path is absolute otherwise it's `ldaps`, and the permitted schemes are `ldap`, `ldaps`, or
@@ -158,8 +157,7 @@ See the [Implementation Guide](../../reference/guides/ldap.md#implementation-gui
 
 ### timeout
 
-{{< confkey type="duration" default="5s" required="no" >}}
-{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
+{{< confkey type="string" syntax="duration" default="5 seconds" required="no" >}}
 
 The timeout for dialing an LDAP connection.
 
@@ -173,8 +171,7 @@ URL's are slightly more secure.
 
 ### tls
 
-{{< confkey type="structure" required="no" >}}
-{{< ref-common ref="tls" description="Common Structure: TLS" text="This option uses a common structure. " >}}
+{{< confkey type="structure" structure="tls" required="no" >}}
 
 Controls the TLS connection validation parameters for either StartTLS or the TLS socket.
 
