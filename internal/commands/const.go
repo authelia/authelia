@@ -471,7 +471,7 @@ This subcommand allows preforming hashing cryptographic tasks.`
 This subcommand allows preforming cryptographic hash validations. i.e. checking hash digests against a password.`
 
 	cmdAutheliaCryptoHashValidateExample = `authelia crypto hash validate --help
-authelia crypto hash validate '$5$rounds=500000$WFjMpdCQxIkbNl0k$M0qZaZoK8Gwdh8Cw5diHgGfe5pE0iJvxcVG3.CVnQe.' -- 'p@ssw0rd'`
+authelia crypto hash validate --password 'p@ssw0rd' -- '$5$rounds=500000$WFjMpdCQxIkbNl0k$M0qZaZoK8Gwdh8Cw5diHgGfe5pE0iJvxcVG3.CVnQe.'`
 
 	cmdAutheliaCryptoHashGenerateShort = "Generate cryptographic hash digests"
 
