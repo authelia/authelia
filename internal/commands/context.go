@@ -143,7 +143,7 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 	ctx.providers.Authorizer = authorization.NewAuthorizer(ctx.config)
 	ctx.providers.NTP = ntp.NewProvider(&ctx.config.NTP)
 	ctx.providers.PasswordPolicy = middlewares.NewPasswordPolicyProvider(ctx.config.PasswordPolicy)
-	ctx.providers.Regulator = regulation.NewRegulator(ctx.config.Regulation, ctx.providers.StorageProvider, &clock.Real{})
+	ctx.providers.Regulator = regulation.NewRegulator(ctx.config.Regulation, ctx.providers.StorageProvider, clock.New())
 	ctx.providers.SessionProvider = session.NewProvider(ctx.config.Session, ctx.trusted)
 	ctx.providers.TOTP = totp.NewTimeBasedProvider(ctx.config.TOTP)
 

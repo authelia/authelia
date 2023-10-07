@@ -37,7 +37,7 @@ func NewAutheliaCtx(requestCTX *fasthttp.RequestCtx, configuration schema.Config
 	ctx.Providers = providers
 	ctx.Configuration = configuration
 	ctx.Logger = NewRequestLogger(ctx)
-	ctx.Clock = &clock.Real{}
+	ctx.Clock = clock.New()
 
 	return ctx
 }

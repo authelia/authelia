@@ -84,7 +84,7 @@ func NewLDAPUserProviderWithFactory(config schema.AuthenticationBackendLDAP, dis
 		log:                  logging.Logger(),
 		factory:              factory,
 		disableResetPassword: disableResetPassword,
-		clock:                &clock.Real{},
+		clock:                clock.New(),
 	}
 
 	provider.parseDynamicUsersConfiguration()
