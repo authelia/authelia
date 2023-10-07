@@ -45,19 +45,19 @@ In your Authelia configuration you will need to enter and update the following v
 ```yaml
   ldap:
     address: 'ldap://OpenLDAP:1389'
-    implementation: custom
-    timeout: 5s
+    implementation: 'custom'
+    timeout: '5s'
     start_tls: false
     tls:
-      server_name: ldap01.example.com
+      server_name: 'ldap01.example.com'
       skip_verify: true
-      minimum_version: TLS1.2
-    base_dn: DC=example,DC=com
-    additional_users_dn: OU=users
-    users_filter: (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
-    additional_groups_dn: OU=groups
-    groups_filter: (&(member=UID={input},OU=users,DC=example,DC=com)(objectClass=groupOfNames))
-    user: UID=authelia,OU=service accounts,DC=example,DC=com
+      minimum_version: 'TLS1.2'
+    base_dn: 'DC=example,DC=com'
+    additional_users_dn: 'OU=users'
+    users_filter: '(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))'
+    additional_groups_dn: 'OU=groups'
+    groups_filter: '(&(member=UID={input},OU=users,DC=example,DC=com)(objectClass=groupOfNames))'
+    user: 'UID=authelia,OU=service accounts,DC=example,DC=com'
     password: "SUPER_COMPLEX_PASSWORD"
     attributes:
       distinguished_name: 'distinguishedName'
@@ -94,20 +94,20 @@ In your Authelia configuration you will need to enter and update the following v
 ```yaml
  ldap:
     address: 'ldaps://ldap.example.com'
-    implementation: custom
-    timeout: 5s
+    implementation: 'custom'
+    timeout: '5s'
     start_tls: false
     tls:
-      server_name: ldap.example.com
+      server_name: 'ldap.example.com'
       skip_verify: true
-      minimum_version: TLS1.2
-    base_dn: dc=example,DC=com
-    additional_users_dn: CN=users,CN=accounts
-    users_filter: (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
-    additional_groups_dn: OU=groups
-    groups_filter: (&(member=UID={input},CN=users,CN=accounts,DC=example,DC=com)(objectClass=groupOfNames))
-    user: UID=authelia,CN=users,CN=accounts,DC=example,DC=com
-    password: "SUPER_COMPLEX_PASSWORD"
+      minimum_version: 'TLS1.2'
+    base_dn: 'dc=example,DC=com'
+    additional_users_dn: 'CN=users,CN=accounts'
+    users_filter: '(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))'
+    additional_groups_dn: 'OU=groups'
+    groups_filter: '(&(member=UID={input},CN=users,CN=accounts,DC=example,DC=com)(objectClass=groupOfNames))'
+    user: 'UID=authelia,CN=users,CN=accounts,DC=example,DC=com'
+    password: 'SUPER_COMPLEX_PASSWORD'
     attributes:
       distinguished_name: 'distinguishedName'
       username: 'uid'
@@ -139,19 +139,19 @@ In your Authelia configuration you will need to enter and update the following v
 ```yaml
 ldap:
     address: 'ldap://lldap:3890'
-    implementation: custom
-    timeout: 5s
+    implementation: 'custom'
+    timeout: '5s'
     start_tls: false
-    base_dn: dc=example,DC=com
-    additional_users_dn: OU=people
+    base_dn: 'dc=example,DC=com'
+    additional_users_dn: 'OU=people'
     # To allow sign in both with username and email, one can use a filter like
     # (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
-    users_filter: (&({username_attribute}={input})(objectClass=person))
-    additional_groups_dn: OU=groups
-    groups_filter: (member={dn})
+    users_filter: '(&({username_attribute}={input})(objectClass=person))'
+    additional_groups_dn: 'OU=groups'
+    groups_filter: '(member={dn})'
     # The username and password of the admin or service user.
-    user: UID=authelia,OU=people,DC=example,DC=com
-    password: "SUPER_COMPLEX_PASSWORD"
+    user: 'UID=authelia,OU=people,DC=example,DC=com'
+    password: 'SUPER_COMPLEX_PASSWORD'
     attributes:
       distinguished_name: 'distinguishedName'
       username: 'uid'

@@ -272,10 +272,7 @@ Configures the consent mode. The following table describes the different modes:
 
 ### pre_configured_consent_duration
 
-{{< confkey type="duration" default="1w" required="no" >}}
-
-*__Note:__ This setting uses the [duration notation format](../../prologue/common.md#duration-notation-format). Please see
-the [common options](../../prologue/common.md#duration-notation-format) documentation for information on this format.*
+{{< confkey type="string,integer" syntax="duration" default="1 week" required="no" >}}
 
 Specifying this in the configuration without a consent [consent_mode] enables the `pre-configured` mode. If this is
 specified as well as the [consent_mode] then it only has an effect if the [consent_mode] is `pre-configured` or `auto`.

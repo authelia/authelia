@@ -409,22 +409,19 @@ timeouts:
 
 #### read
 
-{{< confkey type="duration" default="6s" required="no" >}}
-{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
+{{< confkey type="string,integer" syntax="duration" default="6 seconds" required="no" >}}
 
 Configures the server read timeout.
 
 #### write
 
-{{< confkey type="duration" default="6s" required="no" >}}
-{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
+{{< confkey type="string,integer" syntax="duration" default="6 seconds" required="no" >}}
 
 Configures the server write timeout.
 
 #### idle
 
-{{< confkey type="duration" default="30s" required="no" >}}
-{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
+{{< confkey type="string,integer" syntax="duration" default="30 seconds" required="no" >}}
 
 Configures the server idle timeout.
 

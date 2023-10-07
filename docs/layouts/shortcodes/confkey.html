@@ -3,10 +3,66 @@
 {{- if (eq . "no") }}{{ $requiredClass = "confkey-notrequired" }}{{ $requiredText = "not required" }}
 {{- else if (eq . "situational") }}{{ $requiredClass = "confkey-situational" }}{{ $requiredText = "situational" }}
 {{ end }}{{- end }}
+{{- $type := "string" }}{{ with .Get "type" }}{{ $type = . }}{{ end }}
+{{- $syntax := "" }}{{ with .Get "syntax" }}{{ $syntax = . }}{{ end }}
+{{- $structure := "" }}{{ with .Get "structure" }}{{ $structure = . }}{{ end }}
+{{- $ref := (.Get "common") }}
+{{- if not $ref }}
+{{- if eq $type "structure" }}
+{{- with $structure }}{{ $ref = . }}{{ end }}
+{{- else if eq $syntax "duration" }}{{ $ref = "duration" }}
+{{- else if eq $syntax "address" }}{{ $ref = "address" }}
+{{- end }}
+{{- end }}
 <div class="mb-3">
-  <span class="badge confkey-type" data-bs-toggle="tooltip" data-bs-placement="top" title="The value type">{{ with .Get "type" }}{{ . }}{{ else }}string{{ end }}</span>
+  {{- range $t := (split $type ",") }}
+  <span class="badge confkey-type" data-bs-toggle="tooltip" data-bs-placement="top" title="The value type">{{ $t }}</span>
+  {{- end }}
+  {{- with $syntax }}
+  {{- if $ref }}
+  <a href="/configuration/prologue/common/#{{ $ref }}" class="badge confkey-syntax" data-bs-toggle="tooltip" data-bs-placement="top" title="The common syntax name">{{ $syntax }}</a>
+  {{- else }}
+  <span class="badge confkey-syntax" data-bs-toggle="tooltip" data-bs-placement="top" title="The common syntax nam">{{ $syntax }}</span>
+  {{- end }}
+  {{- end }}
+  {{- with $structure }}
+  {{- if $ref }}
+  <a href="/configuration/prologue/common/#{{ $ref }}" class="badge confkey-syntax" data-bs-toggle="tooltip" data-bs-placement="top" title="The common structure name">{{ $structure }}</a>
+  {{- else }}
+  <span class="badge confkey-syntax" data-bs-toggle="tooltip" data-bs-placement="top" title="The common structure name">{{ $structure }}</span>
+  {{- end }}
+  {{- end }}
   {{- with .Get "default" }}
   <span class="badge confkey-default" data-bs-toggle="tooltip" title="The default value">{{ . }}</span>
   {{- end }}
   <span class="badge {{ $requiredClass }}" data-bs-toggle="tooltip" title="If this option is required or not">{{ $requiredText }}</span>
 </div>
+{{- if $ref }}
+{{- $description := "common syntax" }}
+{{- $text := "This configuration option uses a common syntax. " }}
+{{- if eq $ref "duration" }}
+  {{- $description = "Common Syntax: Duration" }}
+  {{- $text = "This configuration option uses a common syntax. " }}
+{{- else if eq $ref "address" }}
+  {{- $description = "Common Syntax: Address" }}
+  {{- $text = "This configuration option uses a common syntax. " }}
+{{- else if eq $ref "tls" }}
+  {{- $description = "Common Structure: TLS" }}
+  {{- $text = "This configuration option uses a common structure. " }}
+{{- else if eq $ref "server-buffers" }}
+  {{- $description = "Common Structure: Server Buffers" }}
+  {{- $text = "This configuration option uses a common structure. " }}
+{{- else if eq $ref "server-timeouts" }}
+  {{- $description = "Common Structure: Server Timeouts" }}
+  {{- $text = "This configuration option uses a common structure. " }}
+{{- end }}
+{{- with .Get "common-description" }}{{ $description := . }}{{ end }}
+{{- with .Get "common-text" }}{{ $text := . }}{{ end }}
+<div class="alert alert-success d-flex" role="alert">
+  <div class="flex-shrink-1 alert-icon">⚠️</div>
+  <div class="w-100">
+    <b>Reference Note:</b> {{ $text }}For more information please see both the <a href="#configuration" class="alert-link">configuration example</a> and the <a href="/configuration/prologue/common/#{{ $ref }}" class="alert-link">{{ $description }}</a> reference guide.
+  </div>
+</div>
+<br />
+{{- end }}

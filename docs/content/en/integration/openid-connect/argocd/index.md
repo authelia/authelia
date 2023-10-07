@@ -41,16 +41,16 @@ This example makes the following assumptions:
 To configure [Argo CD] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
 
 ```yaml
-name: Authelia
-issuer: https://auth.example.com
-clientID: argocd
-clientSecret: insecure_secret
-cliClientID: argocd-cli
+name: 'Authelia'
+issuer: 'https://auth.example.com'
+clientID: 'argocd'
+clientSecret: 'insecure_secret'
+cliClientID: 'argocd-cli'
 requestedScopes:
-  - openid
-  - profile
-  - email
-  - groups
+  - 'openid'
+  - 'profile'
+  - 'email'
+  - 'groups'
 ```
 
 ### Authelia

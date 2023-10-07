@@ -117,8 +117,7 @@ See the [encryption_key docs](introduction.md#encryptionkey).
 
 ### address
 
-{{< confkey type="address" required="yes" >}}
-{{< ref-common ref="address" description="Common Syntax: Address" text="This option uses a common syntax. " >}}
+{{< confkey type="string" syntax="address" required="yes" >}}
 
 Configures the address for the PostgreSQL Server. The address itself is a connector and the scheme must either be
 the `unix` scheme or one of the `tcp` schemes.
@@ -178,15 +177,13 @@ characters and the user password is changed to this value.
 
 ### timeout
 
-{{< confkey type="duration" default="5s" required="no" >}}
-{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
+{{< confkey type="string,integer" syntax="duration" default="5 seconds" required="no" >}}
 
 The SQL connection timeout.
 
 ### tls
 
-{{< confkey type="structure" required="no" >}}
-{{< ref-common ref="tls" description="Common Structure: TLS" text="This option uses a common structure. " >}}
+{{< confkey type="structure" structure="tls" required="no" >}}
 
 If defined enables connecting to [PostgreSQL] over a TLS socket, and additionally controls the TLS connection
 validation parameters.

@@ -33,6 +33,7 @@ session:
   cookies:
     - domain: 'example.com'
       authelia_url: 'https://auth.example.com'
+      default_redirection_url: 'https://www.example.com'
       name: 'authelia_session'
       same_site: 'lax'
       inactivity: '5m'
@@ -95,22 +96,19 @@ The default `same_site` value for all `cookies` configurations.
 
 ### inactivity
 
-{{< confkey type="duration" default="5m" required="no" >}}
-{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
+{{< confkey type="string,integer" syntax="duration" default="5 minutes" required="no" >}}
 
 The default `inactivity` value for all [cookies](#cookies) configurations.
 
 ### expiration
 
-{{< confkey type="duration" default="1h" required="no" >}}
-{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
+{{< confkey type="string,integer" syntax="duration" default="1 hour" required="no" >}}
 
 The default `expiration` value for all [cookies](#cookies) configurations.
 
 ### remember_me
 
-{{< confkey type="duration" default="1M" required="no" >}}
-{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
+{{< confkey type="string,integer" syntax="duration" default="1 month" required="no" >}}
 
 The default `remember_me` value for all [cookies](#cookies) configurations.
 
@@ -194,8 +192,7 @@ state but it's available as an option anyway.
 
 #### inactivity
 
-{{< confkey type="duration" required="no" >}}
-{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
+{{< confkey type="string,integer" syntax="duration" required="no" >}}
 
 *__Default Value:__ This option takes its default value from the [inactivity](#inactivity) setting above.*
 
@@ -204,8 +201,7 @@ but don't want unused devices to be vulnerable.
 
 #### expiration
 
-{{< confkey type="duration" required="no" >}}
-{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
+{{< confkey type="string,integer" syntax="duration" required="no" >}}
 
 *__Default Value:__ This option takes its default value from the [expiration](#expiration) setting above.*
 
@@ -214,8 +210,7 @@ The period of time before the cookie expires and the session is destroyed. This 
 
 #### remember_me
 
-{{< confkey type="duration" required="no" >}}
-{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
+{{< confkey type="string,integer" syntax="duration" required="no" >}}
 
 *__Default Value:__ This option takes its default value from the [remember_me](#rememberme) setting above.*
 

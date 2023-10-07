@@ -92,15 +92,15 @@ See the [Docker Documentation](https://docs.docker.com/engine/reference/commandl
 An excerpt from a docker compose that allows you to specify multiple configuration files is as follows:
 
 ```yaml
-version: "3.8"
+version: '3.8'
 services:
   authelia:
-    container_name: authelia
-    image: authelia/authelia:latest
+    container_name: 'authelia'
+    image: 'authelia/authelia:latest'
     command:
-      - "authelia"
-      - "--config=/config/configuration.yaml"
-      - "--config=/config/configuration.acl.yaml"
+      - 'authelia'
+      - '--config=/config/configuration.yaml'
+      - '--config=/config/configuration.acl.yaml'
 
 ```
 
@@ -135,7 +135,7 @@ spec:
       enableServiceLinks: false
       containers:
         - name: authelia
-          image: docker.io/authelia/authelia:fix-missing-head-handler
+          image: docker.io/authelia/authelia:latest
           command:
             - authelia
           args:
