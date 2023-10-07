@@ -133,7 +133,7 @@ func validateDomains(rulePosition int, rule schema.AccessControlRule, validator 
 
 	for i, domain := range rule.Domains {
 		if len(domain) > 1 && domain[0] == '*' && domain[1] != '.' {
-			validator.PushWarning(fmt.Errorf("access control: rule #%d: domain #%d: domain '%s' is ineffective and should probably be '%s' instead", rulePosition, i+1, domain, fmt.Sprintf("*.%s", domain[1:])))
+			validator.PushWarning(fmt.Errorf("access_control: rule #%d: domain #%d: domain '%s' is ineffective and should probably be '%s' instead", rulePosition, i+1, domain, fmt.Sprintf("*.%s", domain[1:])))
 		}
 	}
 }
