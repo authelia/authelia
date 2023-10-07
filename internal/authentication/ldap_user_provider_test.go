@@ -6,12 +6,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-ldap/ldap/v3"
+	ldap "github.com/go-ldap/ldap/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/text/encoding/unicode"
 
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -5258,11 +5259,11 @@ func TestShouldParseDynamicConfiguration(t *testing.T) {
 		nil,
 		mockFactory)
 
-	clock := &utils.TestingClock{}
+	clk := &clock.Fixed{}
 
-	provider.clock = clock
+	provider.clock = clk
 
-	clock.Set(time.Unix(1670250519, 0))
+	clk.Set(time.Unix(1670250519, 0))
 
 	assert.True(t, provider.groupsFilterReplacementInput)
 	assert.True(t, provider.groupsFilterReplacementUsername)

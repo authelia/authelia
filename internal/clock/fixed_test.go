@@ -1,4 +1,4 @@
-package utils
+package clock
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ import (
 )
 
 func TestTestingClock(t *testing.T) {
-	c := &TestingClock{
+	c := &Fixed{
 		now: time.Unix(0, 0),
 	}
 
@@ -27,22 +27,4 @@ func TestTestingClock(t *testing.T) {
 	<-c.After(time.Millisecond * 100)
 
 	assert.Equal(t, before, c.Now())
-}
-
-func TestRealClock(t *testing.T) {
-	c := &RealClock{}
-
-	assert.WithinDuration(t, time.Now(), c.Now(), time.Second)
-
-	before := c.Now()
-
-	<-c.After(time.Millisecond * 100)
-
-	after := c.Now()
-
-	assert.WithinDuration(t, before, after, time.Millisecond*120)
-
-	diff := after.Sub(before)
-
-	assert.GreaterOrEqual(t, diff, time.Millisecond*100)
 }

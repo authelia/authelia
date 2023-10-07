@@ -20,6 +20,7 @@ module.exports = {
                 "authorization",
                 "buildkite",
                 "bundler",
+                "clock",
                 "cmd",
                 "codecov",
                 "commands",

@@ -14,10 +14,10 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // OpenIDConnectProvider for OpenID Connect.
@@ -154,7 +154,7 @@ type Context interface {
 
 	RootURL() (issuerURL *url.URL)
 	IssuerURL() (issuerURL *url.URL, err error)
-	GetClock() utils.Clock
+	GetClock() clock.Provider
 	GetJWTWithTimeFuncOption() jwt.ParserOption
 }
 
