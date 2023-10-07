@@ -13,6 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -36,7 +37,7 @@ func NewAutheliaCtx(requestCTX *fasthttp.RequestCtx, configuration schema.Config
 	ctx.Providers = providers
 	ctx.Configuration = configuration
 	ctx.Logger = NewRequestLogger(ctx)
-	ctx.Clock = utils.RealClock{}
+	ctx.Clock = &clock.Real{}
 
 	return ctx
 }
@@ -624,7 +625,7 @@ func (ctx *AutheliaCtx) RecordAuthn(success, regulated bool, method string) {
 }
 
 // GetClock returns the clock. For use with interface fulfillment.
-func (ctx *AutheliaCtx) GetClock() utils.Clock {
+func (ctx *AutheliaCtx) GetClock() clock.Provider {
 	return ctx.Clock
 }
 

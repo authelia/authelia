@@ -8,9 +8,10 @@ import (
 	"strconv"
 	"strings"
 
-	ldap "github.com/go-ldap/ldap/v3"
+	"github.com/go-ldap/ldap/v3"
 	"github.com/sirupsen/logrus"
 
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -24,7 +25,7 @@ type LDAPUserProvider struct {
 	log       *logrus.Logger
 	factory   LDAPClientFactory
 
-	clock utils.Clock
+	clock clock.Provider
 
 	disableResetPassword bool
 
@@ -83,7 +84,7 @@ func NewLDAPUserProviderWithFactory(config schema.AuthenticationBackendLDAP, dis
 		log:                  logging.Logger(),
 		factory:              factory,
 		disableResetPassword: disableResetPassword,
-		clock:                &utils.RealClock{},
+		clock:                &clock.Real{},
 	}
 
 	provider.parseDynamicUsersConfiguration()

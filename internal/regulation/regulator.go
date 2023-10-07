@@ -5,14 +5,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewRegulator create a regulator instance.
-func NewRegulator(config schema.Regulation, store storage.RegulatorProvider, clock utils.Clock) *Regulator {
+func NewRegulator(config schema.Regulation, store storage.RegulatorProvider, clock clock.Provider) *Regulator {
 	return &Regulator{
 		enabled: config.MaxRetries > 0,
 		store:   store,
