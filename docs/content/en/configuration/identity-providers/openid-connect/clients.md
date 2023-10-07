@@ -272,7 +272,7 @@ Configures the consent mode. The following table describes the different modes:
 
 ### pre_configured_consent_duration
 
-{{< confkey type="string" syntax="duration" default="1 week" required="no" >}}
+{{< confkey type="string,integer" syntax="duration" default="1 week" required="no" >}}
 
 Specifying this in the configuration without a consent [consent_mode] enables the `pre-configured` mode. If this is
 specified as well as the [consent_mode] then it only has an effect if the [consent_mode] is `pre-configured` or `auto`.

@@ -170,7 +170,7 @@ characters and the user password is changed to this value.
 
 ### timeout
 
-{{< confkey type="string" syntax="duration" default="5 seconds" required="no" >}}
+{{< confkey type="string,integer" syntax="duration" default="5 seconds" required="no" >}}
 
 The SQL connection timeout.
 

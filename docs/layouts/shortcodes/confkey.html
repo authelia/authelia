@@ -8,16 +8,16 @@
 {{- $structure := "" }}{{ with .Get "structure" }}{{ $structure = . }}{{ end }}
 {{- $ref := (.Get "common") }}
 {{- if not $ref }}
-{{- if eq $type "string" }}
-{{- if eq $syntax "duration" }}{{ $ref = "duration" }}
-{{- else if eq $syntax "address" }}{{ $ref = "address" }}
-{{- end }}
-{{- else if eq $type "structure" }}
+{{- if eq $type "structure" }}
 {{- with $structure }}{{ $ref = . }}{{ end }}
+{{- else if eq $syntax "duration" }}{{ $ref = "duration" }}
+{{- else if eq $syntax "address" }}{{ $ref = "address" }}
 {{- end }}
 {{- end }}
 <div class="mb-3">
-  <span class="badge confkey-type" data-bs-toggle="tooltip" data-bs-placement="top" title="The value type">{{ $type }}</span>
+  {{- range $t := (split $type ",") }}
+  <span class="badge confkey-type" data-bs-toggle="tooltip" data-bs-placement="top" title="The value type">{{ $t }}</span>
+  {{- end }}
   {{- with $syntax }}
   {{- if $ref }}
   <a href="/configuration/prologue/common/#{{ $ref }}" class="badge confkey-syntax" data-bs-toggle="tooltip" data-bs-placement="top" title="The common syntax name">{{ $syntax }}</a>

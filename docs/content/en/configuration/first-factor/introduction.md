@@ -39,7 +39,7 @@ This section describes the individual configuration options.
 
 ### refresh_interval
 
-{{< confkey type="string" syntax="duration" default="5 minutes" required="no">}}
+{{< confkey type="string,integer" syntax="duration" default="5 minutes" required="no">}}
 
 This setting controls the interval at which details are refreshed from the backend. Particularly useful for
 [LDAP](#ldap).

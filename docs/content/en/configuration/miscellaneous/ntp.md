@@ -74,7 +74,7 @@ Determines the NTP version supported. Valid values are 3 or 4.
 
 ### max_desync
 
-{{< confkey type="string" syntax="duration" default="3 seconds" required="no" >}}
+{{< confkey type="string,integer" syntax="duration" default="3 seconds" required="no" >}}
 
 This is used to tune the acceptable desync from the time reported from the NTP server.
 
