@@ -12,7 +12,7 @@ weight: 615
 toc: true
 ---
 
-### Questions
+## Questions
 
 The following section lists individual questions.
 
@@ -82,11 +82,12 @@ deprecated as is the `$plaintext$` prefix.
 
 The most common cause for this issue is when the affected application can not make requests to the Token [Endpoint].
 This becomes obvious when the log level is set to `debug` or `trace` and a presence of requests to the Authorization
-[Endpoint] without errors but an absence of requests made to the Token [Endpoint].
+[Endpoint] without errors (i.e. returns a success) but an absence of requests made to the Token [Endpoint].
 
 These requests can be identified by looking at the `path` field in the logs, or by messages prefixed with
 `Authorization Request` indicating a request to the Authorization [Endpoint] and `Access Request` indicating a request
-to the Token [Endpoint].
+to the Token [Endpoint]. Therefore if the logs indicate there was an Authorization Request and Access Request this
+specific scenario is not applicable to you.
 
 All causes should be clearly logged by the client application, and all errors that do not match this scenario are
 clearly logged by Authelia. It's not possible for us to log requests that never occur however.
