@@ -19,13 +19,13 @@ type Server struct {
 	Timeouts ServerTimeouts `koanf:"timeouts" json:"timeouts" jsonschema:"title=Timeouts" jsonschema_description:"The server timeouts configuration"`
 
 	// Deprecated: use address instead.
-	Host string `koanf:"host" json:"host" jsonschema:"deprecated"`
+	Host string `koanf:"host" json:"host" jsonschema:"deprecated,title=Host"`
 
 	// Deprecated: use address instead.
-	Port int `koanf:"port" json:"port" jsonschema:"deprecated"`
+	Port int `koanf:"port" json:"port" jsonschema:"deprecated,title=Port"`
 
 	// Deprecated: use address instead.
-	Path string `koanf:"path" json:"path" jsonschema:"deprecated"`
+	Path string `koanf:"path" json:"path" jsonschema:"deprecated,title=Path"`
 }
 
 // ServerEndpoints is the endpoints configuration for the HTTP server.

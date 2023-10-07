@@ -17,6 +17,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -650,6 +651,11 @@ func (ctx *AutheliaCtx) RecordAuthn(success, regulated bool, method string) {
 // GetClock returns the clock. For use with interface fulfillment.
 func (ctx *AutheliaCtx) GetClock() clock.Provider {
 	return ctx.Clock
+}
+
+// GetRandom returns the random provider. For use with interface fulfillment.
+func (ctx *AutheliaCtx) GetRandom() random.Provider {
+	return ctx.Providers.Random
 }
 
 // GetJWTWithTimeFuncOption returns the WithTimeFunc jwt.ParserOption. For use with interface fulfillment.

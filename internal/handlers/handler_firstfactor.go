@@ -72,10 +72,9 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 			return
 		}
 
-		// TODO: write tests.
 		provider, err := ctx.GetSessionProvider()
 		if err != nil {
-			ctx.Logger.Errorf("%s", err)
+			ctx.Logger.WithError(err).Error("Failed to get session provider during 1FA attempt")
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 

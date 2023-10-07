@@ -13,7 +13,7 @@
             "two_factor"
           ],
           "title": "Default Authorization Policy",
-          "description": "The default policy applied to all authorization requests. Not relevant to OpenID Connect.",
+          "description": "The default policy applied to all authorization requests unrelated to OpenID Connect 1.0",
           "default": "deny"
         },
         "networks": {
@@ -418,26 +418,31 @@
         },
         "iterations": {
           "type": "integer",
+          "title": "Iterations",
           "description": "Deprecated: Use individual password options instead.",
           "deprecated": true
         },
         "memory": {
           "type": "integer",
+          "title": "Memory",
           "description": "Deprecated: Use individual password options instead.",
           "deprecated": true
         },
         "parallelism": {
           "type": "integer",
+          "title": "Parallelism",
           "description": "Deprecated: Use individual password options instead.",
           "deprecated": true
         },
         "key_length": {
           "type": "integer",
+          "title": "Key Length",
           "description": "Deprecated: Use individual password options instead.",
           "deprecated": true
         },
         "salt_length": {
           "type": "integer",
+          "title": "Salt Length",
           "description": "Deprecated: Use individual password options instead.",
           "deprecated": true
         }
@@ -827,6 +832,7 @@
         "custom_url": {
           "type": "string",
           "format": "uri",
+          "title": "Custom URL",
           "description": "Disables the internal Password Reset option and instead redirects users to this specified URL"
         }
       },
@@ -952,7 +958,7 @@
           "type": "string",
           "format": "uri",
           "title": "The default redirection URL",
-          "description": "Used to redirect users when they visit the portal directly, this option has been deprecated in favor of the session multi-cookie domain configuration",
+          "description": "Deprecated: Use the session cookies option with the same name instead.",
           "deprecated": true
         }
       },
@@ -1939,7 +1945,7 @@
         "file_path": {
           "type": "string",
           "title": "File Path",
-          "description": "The File Path to save the logs to instead of sending them to stdout"
+          "description": "The File Path to save the logs to instead of sending them to stdout, it's strongly recommended this option is only enabled with 'keep_stdout' also enabled'"
         },
         "keep_stdout": {
           "type": "boolean",
@@ -1955,7 +1961,9 @@
     "NTP": {
       "properties": {
         "address": {
-          "$ref": "#/$defs/AddressUDP"
+          "$ref": "#/$defs/AddressUDP",
+          "title": "NTP Address",
+          "description": "The remote address of the NTP server"
         },
         "version": {
           "type": "integer",
@@ -2330,16 +2338,19 @@
         },
         "host": {
           "type": "string",
+          "title": "Host",
           "description": "Deprecated: use address instead.",
           "deprecated": true
         },
         "port": {
           "type": "integer",
+          "title": "Port",
           "description": "Deprecated: use address instead.",
           "deprecated": true
         },
         "path": {
           "type": "string",
+          "title": "Path",
           "description": "Deprecated: use address instead.",
           "deprecated": true
         }
@@ -2606,7 +2617,7 @@
         "domain": {
           "type": "string",
           "title": "Domain",
-          "description": "The domain for the cookie, this option has been deprecated in favor of the session multi-cookie domain configuration",
+          "description": "Deprecated: Use the session cookies option with the same name instead.",
           "deprecated": true
         }
       },
@@ -2674,19 +2685,19 @@
           "type": "string",
           "format": "hostname",
           "title": "Domain",
-          "description": "The domain for this session cookie"
+          "description": "The domain for this session cookie configuration"
         },
         "authelia_url": {
           "type": "string",
           "format": "uri",
           "title": "Authelia URL",
-          "description": "The Root Authelia URL to redirect users to for this session cookie"
+          "description": "The Root Authelia URL to redirect users to for this session cookie configuration"
         },
         "default_redirection_url": {
           "type": "string",
           "format": "uri",
           "title": "Default Redirection URL",
-          "description": "The default redirection URL for this cookie domain"
+          "description": "The default redirection URL for this session cookie configuration"
         }
       },
       "additionalProperties": false,
@@ -2881,11 +2892,13 @@
         },
         "host": {
           "type": "string",
+          "title": "Host",
           "description": "Deprecated: use address instead.",
           "deprecated": true
         },
         "port": {
           "type": "integer",
+          "title": "Host",
           "description": "Deprecated: use address instead.",
           "deprecated": true
         },
@@ -2935,16 +2948,20 @@
         },
         "host": {
           "type": "string",
+          "title": "Host",
           "description": "Deprecated: use address instead.",
           "deprecated": true
         },
         "port": {
           "type": "integer",
+          "title": "Host",
           "description": "Deprecated: use address instead.",
           "deprecated": true
         },
         "schema": {
           "type": "string",
+          "title": "Schema",
+          "description": "The default schema name to use",
           "default": "public"
         },
         "tls": {
@@ -2952,6 +2969,7 @@
         },
         "ssl": {
           "$ref": "#/$defs/StoragePostgreSQLSSL",
+          "title": "SSL",
           "description": "Deprecated: Use the TLS configuration instead.",
           "deprecated": true
         }
@@ -2964,18 +2982,33 @@
       "properties": {
         "mode": {
           "type": "string",
+          "enum": [
+            "disable",
+            "verify-ca",
+            "require",
+            "verify-full"
+          ],
+          "title": "Mode",
+          "description": "The SSL mode to use, deprecated and replaced with the TLS options",
           "deprecated": true
         },
         "root_certificate": {
           "type": "string",
+          "title": "Root Certificate",
+          "description": "Path to the Root Certificate to use, deprecated and replaced with the TLS options",
           "deprecated": true
         },
         "certificate": {
           "type": "string",
+          "title": "Certificate",
+          "description": "Path to the Certificate to use, deprecated and replaced with the TLS options",
           "deprecated": true
         },
         "key": {
-          "type": "string"
+          "type": "string",
+          "title": "Key",
+          "description": "Path to the Private Key to use, deprecated and replaced with the TLS options",
+          "deprecated": true
         }
       },
       "additionalProperties": false,
