@@ -131,7 +131,7 @@ The [redis] host or unix socket path. If utilising an IPv6 literal address it mu
 quoted:
 
 ```yaml
-host: "[fd00:1111:2222:3333::1]"
+host: '[fd00:1111:2222:3333::1]'
 ```
 
 ### port

@@ -68,17 +68,17 @@ __Examples:__
 
 ```yaml
 server:
-  address: tcp://127.0.0.1:9091/
+  address: 'tcp://127.0.0.1:9091/'
 ```
 
 ```yaml
 server:
-  address: tcp://127.0.0.1:9091/subpath
+  address: 'tcp://127.0.0.1:9091/subpath'
 ```
 
 ```yaml
 server:
-  address: unix:///var/run/authelia.sock
+  address: 'unix:///var/run/authelia.sock'
 ```
 
 ### asset_path

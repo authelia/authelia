@@ -68,3 +68,35 @@ body code span.line.hl {
   display: block;
   width: 100%;
 }
+
+.confkey-type {
+  background-color: $purple;
+}
+
+.confkey-syntax {
+  color: $white !important;
+  background-color: $pink;
+  text-decoration: none !important;
+}
+
+a:hover.confkey-syntax {
+  background-color: #ff00ff;
+  text-decoration: none !important;
+}
+
+.confkey-default {
+  background-color: $blue;
+}
+
+.confkey-required {
+  background-color: $red;
+}
+
+.confkey-notrequired {
+  background-color: $green;
+}
+
+.confkey-situational {
+  background-color: $orange;
+}
+
