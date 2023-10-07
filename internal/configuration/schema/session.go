@@ -16,8 +16,8 @@ type Session struct {
 
 	Redis *SessionRedis `koanf:"redis" json:"redis" jsonschema:"title=Redis" jsonschema_description:"Redis Session Provider configuration"`
 
-	// Deprecated: Use the cookies options instead.
-	Domain string `koanf:"domain" json:"domain" jsonschema:"deprecated,title=Domain" jsonschema_description:"The domain for the cookie, this option has been deprecated in favor of the session multi-cookie domain configuration"`
+	// Deprecated: Use the session cookies option with the same name instead.
+	Domain string `koanf:"domain" json:"domain" jsonschema:"deprecated,title=Domain"`
 }
 
 type SessionCookieCommon struct {
@@ -34,9 +34,9 @@ type SessionCookieCommon struct {
 type SessionCookie struct {
 	SessionCookieCommon `koanf:",squash"`
 
-	Domain                string   `koanf:"domain" json:"domain" jsonschema:"format=hostname,title=Domain" jsonschema_description:"The domain for this session cookie"`
-	AutheliaURL           *url.URL `koanf:"authelia_url" json:"authelia_url" jsonschema:"format=uri,title=Authelia URL" jsonschema_description:"The Root Authelia URL to redirect users to for this session cookie"`
-	DefaultRedirectionURL *url.URL `koanf:"default_redirection_url" json:"default_redirection_url" jsonschema:"format=uri,title=Default Redirection URL" jsonschema_description:"The default redirection URL for this cookie domain"`
+	Domain                string   `koanf:"domain" json:"domain" jsonschema:"format=hostname,title=Domain" jsonschema_description:"The domain for this session cookie configuration"`
+	AutheliaURL           *url.URL `koanf:"authelia_url" json:"authelia_url" jsonschema:"format=uri,title=Authelia URL" jsonschema_description:"The Root Authelia URL to redirect users to for this session cookie configuration"`
+	DefaultRedirectionURL *url.URL `koanf:"default_redirection_url" json:"default_redirection_url" jsonschema:"format=uri,title=Default Redirection URL" jsonschema_description:"The default redirection URL for this session cookie configuration"`
 
 	Legacy bool `json:"-"`
 }

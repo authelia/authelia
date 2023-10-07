@@ -42,7 +42,7 @@ func OpenIDConnectConsentGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err = ctx.SetJSONBody(client.GetConsentResponseBody(consent)); err != nil {
-		ctx.Error(fmt.Errorf("unable to set JSON body: %v", err), "Operation failed")
+		ctx.Error(fmt.Errorf("unable to set JSON body: %w", err), "Operation failed")
 	}
 }
 

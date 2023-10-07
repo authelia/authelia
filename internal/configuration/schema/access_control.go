@@ -3,7 +3,7 @@ package schema
 // AccessControl represents the configuration related to ACLs.
 type AccessControl struct {
 	// The default policy if no other policy matches the request.
-	DefaultPolicy string `koanf:"default_policy" json:"default_policy" jsonschema:"default=deny,enum=deny,enum=one_factor,enum=two_factor,title=Default Authorization Policy" jsonschema_description:"The default policy applied to all authorization requests. Not relevant to OpenID Connect."`
+	DefaultPolicy string `koanf:"default_policy" json:"default_policy" jsonschema:"default=deny,enum=deny,enum=one_factor,enum=two_factor,title=Default Authorization Policy" jsonschema_description:"The default policy applied to all authorization requests unrelated to OpenID Connect 1.0"`
 
 	// Represents a list of named network groups.
 	Networks []AccessControlNetwork `koanf:"networks" json:"networks" jsonschema:"title=Named Networks" jsonschema_description:"The list of named networks which can be reused in any ACL rule"`

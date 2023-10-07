@@ -29,10 +29,10 @@ type StorageSQL struct {
 	Timeout  time.Duration `koanf:"timeout" json:"timeout" jsonschema:"default=5 seconds,title=Timeout" jsonschema_description:"The timeout for the database connection"`
 
 	// Deprecated: use address instead.
-	Host string `koanf:"host" json:"host" jsonschema:"deprecated"`
+	Host string `koanf:"host" json:"host" jsonschema:"deprecated,title=Host"`
 
 	// Deprecated: use address instead.
-	Port int `koanf:"port" json:"port" jsonschema:"deprecated"`
+	Port int `koanf:"port" json:"port" jsonschema:"deprecated,title=Host"`
 }
 
 // StorageMySQL represents the configuration of a MySQL database.
@@ -45,20 +45,20 @@ type StorageMySQL struct {
 // StoragePostgreSQL represents the configuration of a PostgreSQL database.
 type StoragePostgreSQL struct {
 	StorageSQL `koanf:",squash"`
-	Schema     string `koanf:"schema" json:"schema" jsonschema:"default=public"`
+	Schema     string `koanf:"schema" json:"schema" jsonschema:"default=public,title=Schema" jsonschema_description:"The default schema name to use"`
 
 	TLS *TLS `koanf:"tls" json:"tls"`
 
 	// Deprecated: Use the TLS configuration instead.
-	SSL *StoragePostgreSQLSSL `koanf:"ssl" json:"ssl" jsonschema:"deprecated"`
+	SSL *StoragePostgreSQLSSL `koanf:"ssl" json:"ssl" jsonschema:"deprecated,title=SSL"`
 }
 
 // StoragePostgreSQLSSL represents the SSL configuration of a PostgreSQL database.
 type StoragePostgreSQLSSL struct {
-	Mode            string `koanf:"mode" json:"mode" jsonschema:"deprecated"`
-	RootCertificate string `koanf:"root_certificate" json:"root_certificate" jsonschema:"deprecated"`
-	Certificate     string `koanf:"certificate" json:"certificate" jsonschema:"deprecated"`
-	Key             string `koanf:"key" json:"key"`
+	Mode            string `koanf:"mode" json:"mode" jsonschema:"deprecated,enum=disable,enum=verify-ca,enum=require,enum=verify-full,title=Mode" jsonschema_description:"The SSL mode to use, deprecated and replaced with the TLS options"`
+	RootCertificate string `koanf:"root_certificate" json:"root_certificate" jsonschema:"deprecated,title=Root Certificate" jsonschema_description:"Path to the Root Certificate to use, deprecated and replaced with the TLS options"`
+	Certificate     string `koanf:"certificate" json:"certificate" jsonschema:"deprecated,title=Certificate" jsonschema_description:"Path to the Certificate to use, deprecated and replaced with the TLS options"`
+	Key             string `koanf:"key" json:"key" jsonschema:"deprecated,title=Key" jsonschema_description:"Path to the Private Key to use, deprecated and replaced with the TLS options"`
 }
 
 // DefaultSQLStorageConfiguration represents the default SQL configuration.
