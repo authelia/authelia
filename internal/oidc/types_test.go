@@ -15,9 +15,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func TestNewSession(t *testing.T) {
@@ -68,11 +68,11 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 
 	ctx := &TestContext{}
 
-	clock := &utils.TestingClock{}
+	clk := &clock.Fixed{}
 
-	clock.Set(time.Unix(10000000000, 0))
+	clk.Set(time.Unix(10000000000, 0))
 
-	ctx.Clock = clock
+	ctx.Clock = clk
 
 	session := oidc.NewSessionWithAuthorizeRequest(ctx, MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request)
 
@@ -153,11 +153,11 @@ func TestPopulateClientCredentialsFlowSessionWithAccessRequest(t *testing.T) {
 			func(ctx oidc.Context) {
 				c := ctx.(*TestContext)
 
-				clock := &utils.TestingClock{}
+				clk := &clock.Fixed{}
 
-				clock.Set(time.Unix(10000000000, 0))
+				clk.Set(time.Unix(10000000000, 0))
 
-				c.Clock = clock
+				c.Clock = clk
 			},
 			&TestContext{
 				IssuerURLFunc: func() (issuerURL *url.URL, err error) {
@@ -217,7 +217,7 @@ type TestContext struct {
 
 	MockIssuerURL *url.URL
 	IssuerURLFunc func() (issuerURL *url.URL, err error)
-	Clock         utils.Clock
+	Clock         clock.Provider
 }
 
 // IssuerURL returns the MockIssuerURL.
@@ -242,12 +242,12 @@ func (m *TestContext) IssuerURL() (issuerURL *url.URL, err error) {
 	return m.MockIssuerURL, nil
 }
 
-func (m *TestContext) GetClock() utils.Clock {
+func (m *TestContext) GetClock() clock.Provider {
 	if m.Clock != nil {
 		return m.Clock
 	}
 
-	return &utils.RealClock{}
+	return &clock.Real{}
 }
 
 func (m *TestContext) GetJWTWithTimeFuncOption() jwt.ParserOption {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/notification"
@@ -17,7 +18,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/totp"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // AutheliaCtx contains all server variables related to Authelia.
@@ -28,7 +28,7 @@ type AutheliaCtx struct {
 	Providers     Providers
 	Configuration schema.Configuration
 
-	Clock utils.Clock
+	Clock clock.Provider
 
 	session *session.Session
 }

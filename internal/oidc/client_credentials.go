@@ -69,7 +69,7 @@ func (h Hasher) Hash(_ context.Context, data []byte) (hash []byte, err error) {
 
 // DefaultClientAuthenticationStrategy is a copy of fosite's with the addition of the client_secret_jwt method and some
 // minor superficial changes.
-func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.Context, r *http.Request, form url.Values) (client fosite.Client, err error) {
+func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.Context, r *http.Request, form url.Values) (c fosite.Client, err error) {
 	switch assertionType := form.Get(FormParameterClientAssertionType); assertionType {
 	case "":
 		break
@@ -83,6 +83,8 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 	if err != nil {
 		return nil, err
 	}
+
+	var client Client
 
 	if client, err = p.Store.GetFullClient(ctx, clientID); err != nil {
 		if errors.Is(err, fosite.ErrInvalidClient) {
@@ -358,10 +360,12 @@ func parseJWTAssertionClientID(clientID string, claims jwt.MapClaims) (string, e
 	return "", fosite.ErrInvalidClient.WithHint("There was insufficient information in the request to identify the client this request is for.")
 }
 
-func (p *OpenIDConnectProvider) checkClientSecret(ctx context.Context, client fosite.Client, clientSecret []byte) (err error) {
-	if err = p.Config.GetSecretsHasher(ctx).Compare(ctx, client.GetHashedSecret(), clientSecret); err == nil {
+func (p *OpenIDConnectProvider) checkClientSecret(ctx context.Context, client Client, clientSecret []byte) (err error) {
+	if client.GetSecret().MatchBytes(clientSecret) {
 		return nil
 	}
+
+	err = errPasswordsDoNotMatch
 
 	cc, ok := client.(fosite.ClientWithSecretRotation)
 	if !ok {
