@@ -38,12 +38,40 @@ func TestValidateTOTP(t *testing.T) {
 				Issuer:           "abc",
 			},
 			expected: schema.TOTP{
-				DefaultAlgorithm: "SHA1",
-				DefaultDigits:    6,
-				DefaultPeriod:    30,
-				SecretSize:       32,
-				Skew:             schema.DefaultTOTPConfiguration.Skew,
-				Issuer:           "abc",
+				DefaultAlgorithm:  schema.TOTPAlgorithmSHA1,
+				DefaultDigits:     6,
+				DefaultPeriod:     30,
+				SecretSize:        32,
+				Skew:              schema.DefaultTOTPConfiguration.Skew,
+				Issuer:            "abc",
+				AllowedAlgorithms: []string{schema.TOTPAlgorithmSHA1},
+				AllowedDigits:     []int{6},
+				AllowedPeriods:    []int{30},
+			},
+		},
+		{
+			desc: "ShouldValidateGoodConfiguration",
+			have: schema.TOTP{
+				DefaultAlgorithm:  schema.TOTPAlgorithmSHA1,
+				DefaultDigits:     6,
+				DefaultPeriod:     30,
+				SecretSize:        32,
+				Skew:              schema.DefaultTOTPConfiguration.Skew,
+				Issuer:            "abc",
+				AllowedAlgorithms: []string{schema.TOTPAlgorithmSHA1},
+				AllowedDigits:     []int{6},
+				AllowedPeriods:    []int{30},
+			},
+			expected: schema.TOTP{
+				DefaultAlgorithm:  schema.TOTPAlgorithmSHA1,
+				DefaultDigits:     6,
+				DefaultPeriod:     30,
+				SecretSize:        32,
+				Skew:              schema.DefaultTOTPConfiguration.Skew,
+				Issuer:            "abc",
+				AllowedAlgorithms: []string{schema.TOTPAlgorithmSHA1},
+				AllowedDigits:     []int{6},
+				AllowedPeriods:    []int{30},
 			},
 		},
 		{
@@ -77,6 +105,36 @@ func TestValidateTOTP(t *testing.T) {
 				"totp: option 'secret_size' must be 20 or higher but it's configured as '10'",
 			},
 		},
+		{
+			desc: "ShouldRaiseErrorWhenInvalidTOTPAllowedValues",
+			have: schema.TOTP{
+				Skew:              schema.DefaultTOTPConfiguration.Skew,
+				Issuer:            "abc",
+				AllowedAlgorithms: []string{"sha3"},
+				AllowedPeriods:    []int{5},
+				AllowedDigits:     []int{20},
+			},
+			errs: []string{
+				"totp: option 'allowed_algorithm' must be one of 'SHA1', 'SHA256', or 'SHA512' but one of the values is 'SHA3'",
+				"totp: option 'allowed_periods' option must be 15 or more but one of the values is '5'",
+				"totp: option 'allowed_digits' must only have the values 6 or 8 but one of the values is '6'",
+			},
+		},
+		{
+			desc: "ShouldRaiseErrorWhenInvalidTOTPAllowedValues",
+			have: schema.TOTP{
+				Skew:              schema.DefaultTOTPConfiguration.Skew,
+				Issuer:            "abc",
+				AllowedAlgorithms: []string{"sha3"},
+				AllowedPeriods:    []int{5},
+				AllowedDigits:     []int{20},
+			},
+			errs: []string{
+				"totp: option 'allowed_algorithm' must be one of 'SHA1', 'SHA256', or 'SHA512' but one of the values is 'SHA3'",
+				"totp: option 'allowed_periods' option must be 15 or more but one of the values is '5'",
+				"totp: option 'allowed_digits' must only have the values 6 or 8 but one of the values is '6'",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -98,6 +156,9 @@ func TestValidateTOTP(t *testing.T) {
 				assert.Equal(t, tc.expected.Skew, config.TOTP.Skew)
 				assert.Equal(t, tc.expected.DefaultPeriod, config.TOTP.DefaultPeriod)
 				assert.Equal(t, tc.expected.SecretSize, config.TOTP.SecretSize)
+				assert.Equal(t, tc.expected.AllowedAlgorithms, config.TOTP.AllowedAlgorithms)
+				assert.Equal(t, tc.expected.AllowedDigits, config.TOTP.AllowedDigits)
+				assert.Equal(t, tc.expected.AllowedPeriods, config.TOTP.AllowedPeriods)
 			} else {
 				expectedErrs := len(tc.errs)
 

@@ -47,9 +47,8 @@ func validateTOTPValueSetAlgorithm(config *schema.Configuration, validator *sche
 	for i, algorithm := range config.TOTP.AllowedAlgorithms {
 		config.TOTP.AllowedAlgorithms[i] = strings.ToUpper(algorithm)
 
-		// TODO: Customize this error and test this loop.
 		if !utils.IsStringInSlice(config.TOTP.AllowedAlgorithms[i], schema.TOTPPossibleAlgorithms) {
-			validator.Push(fmt.Errorf(errFmtTOTPInvalidAlgorithm, strJoinOr(schema.TOTPPossibleAlgorithms), config.TOTP.AllowedAlgorithms[i]))
+			validator.Push(fmt.Errorf(errFmtTOTPInvalidAllowedAlgorithm, strJoinOr(schema.TOTPPossibleAlgorithms), config.TOTP.AllowedAlgorithms[i]))
 		}
 	}
 
@@ -68,9 +67,8 @@ func validateTOTPValueSetPeriod(config *schema.Configuration, validator *schema.
 	var hasDefaultPeriod bool
 
 	for _, period := range config.TOTP.AllowedPeriods {
-		// TODO: Customize this error and test this loop.
 		if period < 15 {
-			validator.Push(fmt.Errorf(errFmtTOTPInvalidPeriod, period))
+			validator.Push(fmt.Errorf(errFmtTOTPInvalidAllowedPeriod, period))
 		}
 
 		if period == config.TOTP.DefaultPeriod {
@@ -93,9 +91,8 @@ func validateTOTPValueSetDigits(config *schema.Configuration, validator *schema.
 	var hasDefaultDigits bool
 
 	for _, digits := range config.TOTP.AllowedDigits {
-		// TODO: Customize this error and test this loop.
 		if digits != 6 && digits != 8 {
-			validator.Push(fmt.Errorf(errFmtTOTPInvalidDigits, config.TOTP.DefaultDigits))
+			validator.Push(fmt.Errorf(errFmtTOTPInvalidAllowedDigit, config.TOTP.DefaultDigits))
 		}
 
 		if digits == config.TOTP.DefaultDigits {

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/pquerna/otp"
-	yaml "gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v3"
 )
 
 type TOTPOptions struct {
@@ -37,7 +37,7 @@ type TOTPConfiguration struct {
 	Secret     []byte       `db:"secret"`
 }
 
-// TOTPConfigurationJSON is the JSON representation
+// TOTPConfigurationJSON is the JSON representation for a TOTPConfiguration.
 type TOTPConfigurationJSON struct {
 	CreatedAt  time.Time  `json:"created_at"`
 	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
