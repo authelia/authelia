@@ -30,7 +30,7 @@ In our table `server.host` with a value of `0.0.0.0` is represented in [YAML] li
 
 ```yaml
 server:
-  host: 0.0.0.0
+  host: '0.0.0.0'
 ```
 
 ## Migrations

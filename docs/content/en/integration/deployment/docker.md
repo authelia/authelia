@@ -89,7 +89,7 @@ Use this [Standalone Example](#standalone-example) if you want to use
 {{< details "docker-compose.yml" >}}
 ```yaml
 ---
-version: "3.8"
+version: '3.8'
 secrets:
   JWT_SECRET:
     file: '${PWD}/data/authelia/secrets/JWT_SECRET'
@@ -133,7 +133,7 @@ Use this [Standalone Example](#standalone-example) if you want to use a standard
 {{< details "docker-compose.yml" >}}
 ```yaml
 ---
-version: "3.8"
+version: '3.8'
 services:
   authelia:
     container_name: 'authelia'
@@ -229,16 +229,16 @@ localhost IP address `127.0.0.1` on port `9091`. You need to adjust this to your
 ---
 services:
   authelia:
-    container_name: authelia
-    image: docker.io/authelia/authelia:latest
-    restart: unless-stopped
+    container_name: 'authelia'
+    image: 'docker.io/authelia/authelia:latest'
+    restart: 'unless-stopped'
     networks:
       net:
         aliases: []
     expose:
       - 9091
     ports:
-      - "127.0.0.1:9091:9091"
+      - '127.0.0.1:9091:9091'
 ...
 ```
 {{< /details >}}

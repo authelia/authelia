@@ -5,16 +5,7 @@
 {{ end }}{{- end }}
 {{- $type := "string" }}{{ with .Get "type" }}{{ $type = . }}{{ end }}
 {{- $syntax := "" }}{{ with .Get "syntax" }}{{ $syntax = . }}{{ end }}
-<div class="mb-3">
-  <span class="badge confkey-type" data-bs-toggle="tooltip" data-bs-placement="top" title="The value type">{{ $type }}</span>
-  {{- with $syntax }}
-  <span class="badge confkey-type" data-bs-toggle="tooltip" data-bs-placement="top" title="The value syntax">{{ $syntax }}</span>
-  {{- end }}
-  {{- with .Get "default" }}
-  <span class="badge confkey-default" data-bs-toggle="tooltip" title="The default value">{{ . }}</span>
-  {{- end }}
-  <span class="badge {{ $requiredClass }}" data-bs-toggle="tooltip" title="If this option is required or not">{{ $requiredText }}</span>
-</div>
+{{- $structure := "" }}{{ with .Get "structure" }}{{ $structure = . }}{{ end }}
 {{- $ref := (.Get "common") }}
 {{- if not $ref }}
 {{- if eq $type "string" }}
@@ -22,9 +13,30 @@
 {{- else if eq $syntax "address" }}{{ $ref = "address" }}
 {{- end }}
 {{- else if eq $type "structure" }}
-{{- with .Get "structure" }}{{ $ref = . }}{{ end }}
+{{- with $structure }}{{ $ref = . }}{{ end }}
 {{- end }}
 {{- end }}
+<div class="mb-3">
+  <span class="badge confkey-type" data-bs-toggle="tooltip" data-bs-placement="top" title="The value type">{{ $type }}</span>
+  {{- with $syntax }}
+  {{- if $ref }}
+  <a href="/configuration/prologue/common/#{{ $ref }}" class="badge confkey-syntax" data-bs-toggle="tooltip" data-bs-placement="top" title="The common syntax name">{{ $syntax }}</a>
+  {{- else }}
+  <span class="badge confkey-syntax" data-bs-toggle="tooltip" data-bs-placement="top" title="The common syntax nam">{{ $syntax }}</span>
+  {{- end }}
+  {{- end }}
+  {{- with $structure }}
+  {{- if $ref }}
+  <a href="/configuration/prologue/common/#{{ $ref }}" class="badge confkey-syntax" data-bs-toggle="tooltip" data-bs-placement="top" title="The common structure name">{{ $structure }}</a>
+  {{- else }}
+  <span class="badge confkey-syntax" data-bs-toggle="tooltip" data-bs-placement="top" title="The common structure name">{{ $structure }}</span>
+  {{- end }}
+  {{- end }}
+  {{- with .Get "default" }}
+  <span class="badge confkey-default" data-bs-toggle="tooltip" title="The default value">{{ . }}</span>
+  {{- end }}
+  <span class="badge {{ $requiredClass }}" data-bs-toggle="tooltip" title="If this option is required or not">{{ $requiredText }}</span>
+</div>
 {{- if $ref }}
 {{- $description := "common syntax" }}
 {{- $text := "This configuration option uses a common syntax. " }}

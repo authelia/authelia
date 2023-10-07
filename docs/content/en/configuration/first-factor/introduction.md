@@ -27,10 +27,10 @@ There are two ways to integrate *Authelia* with an authentication backend:
 
 ```yaml
 authentication_backend:
-  refresh_interval: 5m
+  refresh_interval: '5m'
   password_reset:
     disable: false
-    custom_url: ""
+    custom_url: ''
 ```
 
 ## Options
