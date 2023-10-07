@@ -41,7 +41,7 @@ The number of failed login attempts before a user may be banned. Setting this op
 
 ### find_time
 
-{{< confkey type="string" syntax="duration" default="2 minutes" required="no" >}}
+{{< confkey type="string,integer" syntax="duration" default="2 minutes" required="no" >}}
 
 The period of time analyzed for failed attempts. For
 example if you set `max_retries` to 3 and `find_time` to `2m` this means the user must have 3 failed logins in
@@ -49,7 +49,7 @@ example if you set `max_retries` to 3 and `find_time` to `2m` this means the use
 
 ### ban_time
 
-{{< confkey type="string" syntax="duration" default="5 minutes" required="no" >}}
+{{< confkey type="string,integer" syntax="duration" default="5 minutes" required="no" >}}
 
 The period of time the user is banned for after meeting the `max_retries` and `find_time` configuration. After this
 duration the account will be able to login again.
