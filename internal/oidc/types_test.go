@@ -68,11 +68,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 
 	ctx := &TestContext{}
 
-	clk := &clock.Fixed{}
-
-	clk.Set(time.Unix(10000000000, 0))
-
-	ctx.Clock = clk
+	ctx.Clock = clock.NewFixed(time.Unix(10000000000, 0))
 
 	session := oidc.NewSessionWithAuthorizeRequest(ctx, MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request)
 
@@ -153,11 +149,7 @@ func TestPopulateClientCredentialsFlowSessionWithAccessRequest(t *testing.T) {
 			func(ctx oidc.Context) {
 				c := ctx.(*TestContext)
 
-				clk := &clock.Fixed{}
-
-				clk.Set(time.Unix(10000000000, 0))
-
-				c.Clock = clk
+				c.Clock = clock.NewFixed(time.Unix(10000000000, 0))
 			},
 			&TestContext{
 				IssuerURLFunc: func() (issuerURL *url.URL, err error) {
@@ -247,7 +239,7 @@ func (m *TestContext) GetClock() clock.Provider {
 		return m.Clock
 	}
 
-	return &clock.Real{}
+	return clock.New()
 }
 
 func (m *TestContext) GetJWTWithTimeFuncOption() jwt.ParserOption {

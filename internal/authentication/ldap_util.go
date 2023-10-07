@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	ber "github.com/go-asn1-ber/asn1-ber"
-	ldap "github.com/go-ldap/ldap/v3"
+	"github.com/go-ldap/ldap/v3"
 )
 
 func ldapEntriesContainsEntry(needle *ldap.Entry, haystack []*ldap.Entry) bool {
