@@ -264,36 +264,36 @@ const (
 
 // Access Control error constants.
 const (
-	errFmtAccessControlDefaultPolicyValue = "access control: option 'default_policy' must be one of %s but it's " +
+	errFmtAccessControlDefaultPolicyValue = "access_control: option 'default_policy' must be one of %s but it's " +
 		"configured as '%s'"
-	errFmtAccessControlDefaultPolicyWithoutRules = "access control: 'default_policy' option '%s' is invalid: when " +
+	errFmtAccessControlDefaultPolicyWithoutRules = "access_control: 'default_policy' option '%s' is invalid: when " +
 		"no rules are specified it must be 'two_factor' or 'one_factor'"
-	errFmtAccessControlNetworkGroupIPCIDRInvalid = "access control: networks: network group '%s' is invalid: the " +
+	errFmtAccessControlNetworkGroupIPCIDRInvalid = "access_control: networks: network group '%s' is invalid: the " +
 		"network '%s' is not a valid IP or CIDR notation"
-	errFmtAccessControlWarnNoRulesDefaultPolicy = "access control: no rules have been specified so the " +
+	errFmtAccessControlWarnNoRulesDefaultPolicy = "access_control: no rules have been specified so the " +
 		"'default_policy' of '%s' is going to be applied to all requests"
-	errFmtAccessControlRuleNoDomains                    = "access control: rule %s: option 'domain' or 'domain_regex' must be present but are both absent"
-	errFmtAccessControlRuleNoPolicy                     = "access control: rule %s: option 'policy' must be present but it's absent"
-	errFmtAccessControlRuleInvalidPolicy                = "access control: rule %s: option 'policy' must be one of %s but it's configured as '%s'"
-	errAccessControlRuleBypassPolicyInvalidWithSubjects = "access control: rule %s: 'policy' option 'bypass' is " +
+	errFmtAccessControlRuleNoDomains                    = "access_control: rule %s: option 'domain' or 'domain_regex' must be present but are both absent"
+	errFmtAccessControlRuleNoPolicy                     = "access_control: rule %s: option 'policy' must be present but it's absent"
+	errFmtAccessControlRuleInvalidPolicy                = "access_control: rule %s: option 'policy' must be one of %s but it's configured as '%s'"
+	errAccessControlRuleBypassPolicyInvalidWithSubjects = "access_control: rule %s: 'policy' option 'bypass' is " +
 		"not supported when 'subject' option is configured: see " +
 		"https://www.authelia.com/c/acl#bypass"
-	errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomainRegex = "access control: rule %s: 'policy' option 'bypass' is " +
+	errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomainRegex = "access_control: rule %s: 'policy' option 'bypass' is " +
 		"not supported when 'domain_regex' option contains the user or group named matches. For more information see: " +
 		"https://www.authelia.com/c/acl-match-concept-2"
-	errFmtAccessControlRuleNetworksInvalid = "access control: rule %s: the network '%s' is not a " +
+	errFmtAccessControlRuleNetworksInvalid = "access_control: rule %s: the network '%s' is not a " +
 		"valid Group Name, IP, or CIDR notation"
-	errFmtAccessControlRuleSubjectInvalid = "access control: rule %s: 'subject' option '%s' is " +
+	errFmtAccessControlRuleSubjectInvalid = "access_control: rule %s: 'subject' option '%s' is " +
 		"invalid: must start with 'user:' or 'group:'"
-	errFmtAccessControlRuleInvalidEntries              = "access control: rule %s: option '%s' must only have the values %s but the values %s are present"
-	errFmtAccessControlRuleInvalidDuplicates           = "access control: rule %s: option '%s' must have unique values but the values %s are duplicated"
-	errFmtAccessControlRuleQueryInvalid                = "access control: rule %s: query: option 'operator' must be one of %s but it's configured as '%s'"
-	errFmtAccessControlRuleQueryInvalidNoValue         = "access control: rule %s: query: option '%s' is required but it's absent"
-	errFmtAccessControlRuleQueryInvalidNoValueOperator = "access control: rule %s: query: option '%s' must be present when the option 'operator' is '%s' but it's absent"
-	errFmtAccessControlRuleQueryInvalidValue           = "access control: rule %s: query: option '%s' must not be present when the option 'operator' is '%s' but it's present"
-	errFmtAccessControlRuleQueryInvalidValueParse      = "access control: rule %s: query: option '%s' is " +
+	errFmtAccessControlRuleInvalidEntries              = "access_control: rule %s: option '%s' must only have the values %s but the values %s are present"
+	errFmtAccessControlRuleInvalidDuplicates           = "access_control: rule %s: option '%s' must have unique values but the values %s are duplicated"
+	errFmtAccessControlRuleQueryInvalid                = "access_control: rule %s: query: option 'operator' must be one of %s but it's configured as '%s'"
+	errFmtAccessControlRuleQueryInvalidNoValue         = "access_control: rule %s: query: option '%s' is required but it's absent"
+	errFmtAccessControlRuleQueryInvalidNoValueOperator = "access_control: rule %s: query: option '%s' must be present when the option 'operator' is '%s' but it's absent"
+	errFmtAccessControlRuleQueryInvalidValue           = "access_control: rule %s: query: option '%s' must not be present when the option 'operator' is '%s' but it's present"
+	errFmtAccessControlRuleQueryInvalidValueParse      = "access_control: rule %s: query: option '%s' is " +
 		"invalid: %w"
-	errFmtAccessControlRuleQueryInvalidValueType = "access control: rule %s: query: option 'value' is " +
+	errFmtAccessControlRuleQueryInvalidValueType = "access_control: rule %s: query: option 'value' is " +
 		"invalid: expected type was string but got %T"
 )
 
