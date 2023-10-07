@@ -1,6 +1,8 @@
 package schema
 
-import "net/url"
+import (
+	"net/url"
+)
 
 // Configuration object extracted from YAML configuration file.
 type Configuration struct {
@@ -26,6 +28,6 @@ type Configuration struct {
 	PasswordPolicy        PasswordPolicy        `koanf:"password_policy" json:"password_policy" jsonschema:"title=Password Policy" jsonschema_description:"Password Policy Configuration"`
 	PrivacyPolicy         PrivacyPolicy         `koanf:"privacy_policy" json:"privacy_policy" jsonschema:"title=Privacy Policy" jsonschema_description:"Privacy Policy Configuration"`
 
-	// Deprecated: Use the cookies options instead.
-	DefaultRedirectionURL *url.URL `koanf:"default_redirection_url" json:"default_redirection_url" jsonschema:"deprecated,format=uri,title=The default redirection URL" jsonschema_description:"Used to redirect users when they visit the portal directly, this option has been deprecated in favor of the session multi-cookie domain configuration"`
+	// Deprecated: Use the session cookies option with the same name instead.
+	DefaultRedirectionURL *url.URL `koanf:"default_redirection_url" json:"default_redirection_url" jsonschema:"deprecated,format=uri,title=The default redirection URL"`
 }

@@ -587,23 +587,23 @@ func TestServerAuthzEndpointLegacyAsImplementationLegacyWhenBlank(t *testing.T) 
 }
 
 func TestValidateTLSPathStatInvalidArgument(t *testing.T) {
-	val := schema.NewStructValidator()
+	validator := schema.NewStructValidator()
 
-	validateServerTLSFileExists("key", string([]byte{0x0, 0x1}), val)
+	validateServerTLSFileExists("key", string([]byte{0x0, 0x1}), validator)
 
-	require.Len(t, val.Errors(), 1)
+	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, val.Errors()[0], "server: tls: option 'key' with path '\x00\x01' could not be verified due to a file system error: stat \x00\x01: invalid argument")
+	assert.EqualError(t, validator.Errors()[0], "server: tls: option 'key' with path '\x00\x01' could not be verified due to a file system error: stat \x00\x01: invalid argument")
 }
 
 func TestValidateTLSPathIsDir(t *testing.T) {
 	dir := t.TempDir()
 
-	val := schema.NewStructValidator()
+	validator := schema.NewStructValidator()
 
-	validateServerTLSFileExists("key", dir, val)
+	validateServerTLSFileExists("key", dir, validator)
 
-	require.Len(t, val.Errors(), 1)
+	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("server: tls: option 'key' with path '%s' refers to a directory but it should refer to a file", dir))
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf("server: tls: option 'key' with path '%s' refers to a directory but it should refer to a file", dir))
 }

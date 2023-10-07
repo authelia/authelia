@@ -17,6 +17,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -70,8 +71,8 @@ func (ctx *AutheliaCtx) Error(err error, message string) {
 
 // SetJSONError sets the body of the response to an JSON error KO message.
 func (ctx *AutheliaCtx) SetJSONError(message string) {
-	if replyErr := ctx.ReplyJSON(ErrorResponse{Status: "KO", Message: message}, 0); replyErr != nil {
-		ctx.Logger.Error(replyErr)
+	if err := ctx.ReplyJSON(ErrorResponse{Status: "KO", Message: message}, 0); err != nil {
+		ctx.Logger.Error(err)
 	}
 }
 
@@ -535,6 +536,18 @@ func (ctx *AutheliaCtx) GetXOriginalURLOrXForwardedURL() (requestURI *url.URL, e
 	}
 }
 
+// GetOrigin returns the expected origin for requests from this endpoint.
+func (ctx *AutheliaCtx) GetOrigin() (origin *url.URL, err error) {
+	if origin, err = ctx.GetXOriginalURLOrXForwardedURL(); err != nil {
+		return nil, err
+	}
+
+	origin.Path = ""
+	origin.RawPath = ""
+
+	return origin, nil
+}
+
 // IssuerURL returns the expected Issuer.
 func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
 	issuerURL = &url.URL{
@@ -627,6 +640,11 @@ func (ctx *AutheliaCtx) RecordAuthn(success, regulated bool, method string) {
 // GetClock returns the clock. For use with interface fulfillment.
 func (ctx *AutheliaCtx) GetClock() clock.Provider {
 	return ctx.Clock
+}
+
+// GetRandom returns the random provider. For use with interface fulfillment.
+func (ctx *AutheliaCtx) GetRandom() random.Provider {
+	return ctx.Providers.Random
 }
 
 // GetJWTWithTimeFuncOption returns the WithTimeFunc jwt.ParserOption. For use with interface fulfillment.

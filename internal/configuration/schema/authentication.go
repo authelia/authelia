@@ -20,7 +20,7 @@ type AuthenticationBackend struct {
 // AuthenticationBackendPasswordReset represents the configuration related to password reset functionality.
 type AuthenticationBackendPasswordReset struct {
 	Disable   bool    `koanf:"disable" json:"disable" jsonschema:"default=false,title=Disable" jsonschema_description:"Disables the Password Reset option"`
-	CustomURL url.URL `koanf:"custom_url" json:"custom_url" jsonschema:"Custom URL" jsonschema_description:"Disables the internal Password Reset option and instead redirects users to this specified URL"`
+	CustomURL url.URL `koanf:"custom_url" json:"custom_url" jsonschema:"title=Custom URL" jsonschema_description:"Disables the internal Password Reset option and instead redirects users to this specified URL"`
 }
 
 // AuthenticationBackendFile represents the configuration related to file-based backend.
@@ -50,19 +50,19 @@ type AuthenticationBackendFilePassword struct {
 	SCrypt    AuthenticationBackendFilePasswordSCrypt    `koanf:"scrypt" json:"scrypt" jsonschema:"title=SCrypt" jsonschema_description:"Configure the SCrypt password hashing parameters"`
 
 	// Deprecated: Use individual password options instead.
-	Iterations int `koanf:"iterations" json:"iterations" jsonschema:"deprecated"`
+	Iterations int `koanf:"iterations" json:"iterations" jsonschema:"deprecated,title=Iterations"`
 
 	// Deprecated: Use individual password options instead.
-	Memory int `koanf:"memory" json:"memory" jsonschema:"deprecated"`
+	Memory int `koanf:"memory" json:"memory" jsonschema:"deprecated,title=Memory"`
 
 	// Deprecated: Use individual password options instead.
-	Parallelism int `koanf:"parallelism" json:"parallelism" jsonschema:"deprecated"`
+	Parallelism int `koanf:"parallelism" json:"parallelism" jsonschema:"deprecated,title=Parallelism"`
 
 	// Deprecated: Use individual password options instead.
-	KeyLength int `koanf:"key_length" json:"key_length" jsonschema:"deprecated"`
+	KeyLength int `koanf:"key_length" json:"key_length" jsonschema:"deprecated,title=Key Length"`
 
 	// Deprecated: Use individual password options instead.
-	SaltLength int `koanf:"salt_length" json:"salt_length" jsonschema:"deprecated"`
+	SaltLength int `koanf:"salt_length" json:"salt_length" jsonschema:"deprecated,title=Salt Length"`
 }
 
 // AuthenticationBackendFilePasswordArgon2 represents the argon2 hashing settings.
@@ -119,7 +119,7 @@ type AuthenticationBackendLDAP struct {
 
 	AdditionalGroupsDN string `koanf:"additional_groups_dn" json:"additional_groups_dn" jsonschema:"title=Additional Group Base" jsonschema_description:"The base in addition to the Base DN for all directory server operations for groups"`
 	GroupsFilter       string `koanf:"groups_filter" json:"groups_filter" jsonschema:"title=Groups Filter" jsonschema_description:"The LDAP filter used to search for group objects"`
-	GroupSearchMode    string `koanf:"group_search_mode"  json:"group_search_mode" jsonschema:"default=filter,enum=filter,enum=memberof,title=Groups Search Mode" jsonschema_description:"The LDAP group search mode used to search for group objects"`
+	GroupSearchMode    string `koanf:"group_search_mode" json:"group_search_mode" jsonschema:"default=filter,enum=filter,enum=memberof,title=Groups Search Mode" jsonschema_description:"The LDAP group search mode used to search for group objects"`
 
 	Attributes AuthenticationBackendLDAPAttributes `koanf:"attributes" json:"attributes"`
 

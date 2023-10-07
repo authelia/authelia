@@ -21,6 +21,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -138,7 +139,9 @@ type TLSServerContext struct {
 func NewTLSServerContext(configuration schema.Configuration) (serverContext *TLSServerContext, err error) {
 	serverContext = new(TLSServerContext)
 
-	providers := middlewares.Providers{}
+	providers := middlewares.Providers{
+		Random: random.NewMathematical(),
+	}
 
 	providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: configuration.Notifier.TemplatePath})
 	if err != nil {

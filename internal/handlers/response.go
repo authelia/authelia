@@ -37,7 +37,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 	var targetURL *url.URL
 
 	if targetURL, err = url.ParseRequestURI(targetURI); err != nil {
-		ctx.Error(fmt.Errorf("unable to parse target URL %s: %s", targetURI, err), messageAuthenticationFailed)
+		ctx.Error(fmt.Errorf("unable to parse target URL %s: %w", targetURI, err), messageAuthenticationFailed)
 
 		return
 	}
