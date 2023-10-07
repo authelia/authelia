@@ -2573,9 +2573,9 @@ func TestValidateOIDCClients(t *testing.T) {
 				tc.setup(have)
 			}
 
-			val := schema.NewStructValidator()
+			validator := schema.NewStructValidator()
 
-			validateOIDCClient(0, have, val, errDeprecatedFunc)
+			validateOIDCClient(0, have, validator, errDeprecatedFunc)
 
 			t.Run("General", func(t *testing.T) {
 				assert.Equal(t, tc.expected.Scopes, have.Clients[0].Scopes)
@@ -2589,17 +2589,17 @@ func TestValidateOIDCClients(t *testing.T) {
 			})
 
 			t.Run("Warnings", func(t *testing.T) {
-				require.Len(t, val.Warnings(), len(tc.serrs))
+				require.Len(t, validator.Warnings(), len(tc.serrs))
 				for i, err := range tc.serrs {
-					assert.EqualError(t, val.Warnings()[i], err)
+					assert.EqualError(t, validator.Warnings()[i], err)
 				}
 			})
 
 			t.Run("Errors", func(t *testing.T) {
-				require.Len(t, val.Errors(), len(tc.errs))
+				require.Len(t, validator.Errors(), len(tc.errs))
 				for i, err := range tc.errs {
 					t.Run(fmt.Sprintf("Error%d", i+1), func(t *testing.T) {
-						assert.EqualError(t, val.Errors()[i], err)
+						assert.EqualError(t, validator.Errors()[i], err)
 					})
 				}
 			})
@@ -2661,17 +2661,17 @@ func TestValidateOIDCClientTokenEndpointAuthMethod(t *testing.T) {
 				},
 			}
 
-			val := schema.NewStructValidator()
+			validator := schema.NewStructValidator()
 
-			validateOIDCClientTokenEndpointAuth(0, have, val)
+			validateOIDCClientTokenEndpointAuth(0, have, validator)
 
 			assert.Equal(t, tc.expected, have.Clients[0].TokenEndpointAuthMethod)
-			assert.Len(t, val.Warnings(), 0)
-			require.Len(t, val.Errors(), len(tc.errs))
+			assert.Len(t, validator.Warnings(), 0)
+			require.Len(t, validator.Errors(), len(tc.errs))
 
 			if tc.errs != nil {
 				for i, err := range tc.errs {
-					assert.EqualError(t, val.Errors()[i], err)
+					assert.EqualError(t, validator.Errors()[i], err)
 				}
 			}
 		})
@@ -2969,9 +2969,9 @@ func TestValidateOIDCClientJWKS(t *testing.T) {
 				tc.setup(config)
 			}
 
-			val := schema.NewStructValidator()
+			validator := schema.NewStructValidator()
 
-			validateOIDCClientPublicKeys(0, config, val)
+			validateOIDCClientPublicKeys(0, config, validator)
 
 			if tc.expected != nil {
 				tc.expected(t, config)
@@ -2979,9 +2979,9 @@ func TestValidateOIDCClientJWKS(t *testing.T) {
 
 			n := len(tc.errs)
 
-			assert.Len(t, val.Warnings(), 0)
+			assert.Len(t, validator.Warnings(), 0)
 
-			theErrors := val.Errors()
+			theErrors := validator.Errors()
 			require.Len(t, theErrors, n)
 
 			for i := 0; i < n; i++ {
@@ -3370,9 +3370,9 @@ func TestValidateOIDCIssuer(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			val := schema.NewStructValidator()
+			validator := schema.NewStructValidator()
 
-			validateOIDCIssuer(tc.have, val)
+			validateOIDCIssuer(tc.have, validator)
 
 			assert.Equal(t, tc.expected.Discovery.DefaultKeyIDs, tc.have.Discovery.DefaultKeyIDs)
 			assert.Equal(t, tc.expected.Discovery.ResponseObjectSigningAlgs, tc.have.Discovery.ResponseObjectSigningAlgs)
@@ -3395,10 +3395,10 @@ func TestValidateOIDCIssuer(t *testing.T) {
 
 			n = len(tc.errs)
 
-			require.Len(t, val.Errors(), n)
+			require.Len(t, validator.Errors(), n)
 
 			for i := 0; i < n; i++ {
-				assert.EqualError(t, val.Errors()[i], tc.errs[i])
+				assert.EqualError(t, validator.Errors()[i], tc.errs[i])
 			}
 		})
 	}
@@ -3433,16 +3433,16 @@ func TestValidateLifespans(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			val := schema.NewStructValidator()
+			validator := schema.NewStructValidator()
 
-			validateOIDCLifespans(tc.have, val)
+			validateOIDCLifespans(tc.have, validator)
 
 			assert.Equal(t, tc.expected, tc.have.Discovery.Lifespans)
-			require.Len(t, val.Errors(), len(tc.errors))
+			require.Len(t, validator.Errors(), len(tc.errors))
 
 			for i, err := range tc.errors {
 				t.Run(fmt.Sprintf("Error%d", i+1), func(t *testing.T) {
-					assert.EqualError(t, val.Errors()[i], err)
+					assert.EqualError(t, validator.Errors()[i], err)
 				})
 			}
 		})
@@ -3575,16 +3575,16 @@ func TestValidateOIDCAuthorizationPolicies(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			val := schema.NewStructValidator()
+			validator := schema.NewStructValidator()
 
-			validateOIDCAuthorizationPolicies(tc.have, val)
+			validateOIDCAuthorizationPolicies(tc.have, validator)
 
 			assert.Equal(t, tc.expected, tc.have.Discovery.AuthorizationPolicies)
 
-			errs := val.Errors()
+			errs := validator.Errors()
 			sort.Sort(utils.ErrSliceSortAlphabetical(errs))
 
-			require.Len(t, val.Errors(), len(tc.errors))
+			require.Len(t, validator.Errors(), len(tc.errors))
 
 			for i, err := range tc.errors {
 				t.Run(fmt.Sprintf("Error%d", i+1), func(t *testing.T) {

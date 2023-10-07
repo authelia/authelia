@@ -43,7 +43,7 @@ type expectedResponse struct {
 }
 
 type expectedResponseAlt struct {
-	description string
+	name string
 
 	db      *model.UserInfo
 	api     *model.UserInfo
@@ -116,33 +116,18 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 		UserInfoGET(mock.Ctx)
 
 		if resp.err == nil {
-			t.Run("expected status code", func(t *testing.T) {
-				assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
-			})
+			assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 			actualPreferences := model.UserInfo{}
 
 			mock.GetResponseData(t, &actualPreferences)
 
-			t.Run("expected method", func(t *testing.T) {
-				assert.Equal(t, resp.api.Method, actualPreferences.Method)
-			})
-
-			t.Run("registered webauthn", func(t *testing.T) {
-				assert.Equal(t, resp.api.HasWebAuthn, actualPreferences.HasWebAuthn)
-			})
-
-			t.Run("registered totp", func(t *testing.T) {
-				assert.Equal(t, resp.api.HasTOTP, actualPreferences.HasTOTP)
-			})
-
-			t.Run("registered duo", func(t *testing.T) {
-				assert.Equal(t, resp.api.HasDuo, actualPreferences.HasDuo)
-			})
+			assert.Equal(t, resp.api.Method, actualPreferences.Method)
+			assert.Equal(t, resp.api.HasWebAuthn, actualPreferences.HasWebAuthn)
+			assert.Equal(t, resp.api.HasTOTP, actualPreferences.HasTOTP)
+			assert.Equal(t, resp.api.HasDuo, actualPreferences.HasDuo)
 		} else {
-			t.Run("expected status code", func(t *testing.T) {
-				assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
-			})
+			assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 			errResponse := mock.GetResponseError(t)
 
@@ -157,7 +142,7 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 	expectedResponses := []expectedResponseAlt{
 		{
-			description: "should set method to totp by default even when user doesn't have totp configured and no preferred method",
+			name: "ShouldSetMethodToTotpByDefaultEvenWhenUserDoesn't have totp configured and no preferred method",
 			db: &model.UserInfo{
 				Method:      "",
 				HasTOTP:     false,
@@ -175,7 +160,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			saveErr: nil,
 		},
 		{
-			description: "should set method to duo by default when user has duo configured and no preferred method",
+			name: "ShouldSetMethodToDuoByDefaultWhenUserHasDUOConfiguredAndNoPreferredMethod",
 			db: &model.UserInfo{
 				Method:      "",
 				HasTOTP:     false,
@@ -193,7 +178,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			saveErr: nil,
 		},
 		{
-			description: "should set method to totp by default when user has duo configured and no preferred method but duo is not enabled",
+			name: "ShouldSetMethodToTotpByDefaultWhenUserHasDuoConfiguredAndNoPreferredMethodButDUOIsNotEnabled",
 			db: &model.UserInfo{
 				Method:      "",
 				HasTOTP:     false,
@@ -211,7 +196,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			saveErr: nil,
 		},
 		{
-			description: "should set method to duo by default when user has duo configured and no preferred method",
+			name: "ShouldSetMethodToDuoByDefaultWhenUserHasDUOConfiguredAndNoPreferredMethod",
 			db: &model.UserInfo{
 				Method:      "",
 				HasTOTP:     true,
@@ -233,7 +218,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			saveErr: nil,
 		},
 		{
-			description: "should default new users to totp if all enabled",
+			name: "ShouldDefaultNewUsersToTOTPIfAllEnabled",
 			db: &model.UserInfo{
 				Method:      "",
 				HasTOTP:     false,
@@ -253,7 +238,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 	}
 
 	for _, resp := range expectedResponses {
-		t.Run(resp.description, func(t *testing.T) {
+		t.Run(resp.name, func(t *testing.T) {
 			if resp.api == nil {
 				resp.api = resp.db
 			}
@@ -310,7 +295,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			UserInfoPOST(mock.Ctx)
 
 			if resp.loadErr == nil && resp.saveErr == nil {
-				t.Run(fmt.Sprintf("%s/%s", resp.description, "expected status code"), func(t *testing.T) {
+				t.Run(fmt.Sprintf("%s/%s", resp.name, "expected status code"), func(t *testing.T) {
 					assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 				})
 

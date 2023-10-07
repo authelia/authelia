@@ -19,8 +19,8 @@ func TestShouldCheckNTPV4(t *testing.T) {
 		},
 	}
 
-	sv := schema.NewStructValidator()
-	validator.ValidateNTP(config, sv)
+	svalidator := schema.NewStructValidator()
+	validator.ValidateNTP(config, svalidator)
 
 	ntp := NewProvider(&config.NTP)
 
@@ -36,8 +36,8 @@ func TestShouldCheckNTPV3(t *testing.T) {
 		},
 	}
 
-	sv := schema.NewStructValidator()
-	validator.ValidateNTP(config, sv)
+	svalidator := schema.NewStructValidator()
+	validator.ValidateNTP(config, svalidator)
 
 	ntp := NewProvider(&config.NTP)
 

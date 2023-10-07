@@ -86,9 +86,9 @@ func TestValidateDuo(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			val := schema.NewStructValidator()
+			validator := schema.NewStructValidator()
 
-			ValidateDuo(tc.have, val)
+			ValidateDuo(tc.have, validator)
 
 			assert.Equal(t, tc.expected.Disable, tc.have.DuoAPI.Disable)
 			assert.Equal(t, tc.expected.Hostname, tc.have.DuoAPI.Hostname)
@@ -96,12 +96,12 @@ func TestValidateDuo(t *testing.T) {
 			assert.Equal(t, tc.expected.SecretKey, tc.have.DuoAPI.SecretKey)
 			assert.Equal(t, tc.expected.EnableSelfEnrollment, tc.have.DuoAPI.EnableSelfEnrollment)
 
-			require.Len(t, val.Errors(), len(tc.errs))
+			require.Len(t, validator.Errors(), len(tc.errs))
 
 			if len(tc.errs) != 0 {
 				for i, err := range tc.errs {
 					t.Run(fmt.Sprintf("Err%d", i+1), func(t *testing.T) {
-						assert.EqualError(t, val.Errors()[i], err)
+						assert.EqualError(t, validator.Errors()[i], err)
 					})
 				}
 			}

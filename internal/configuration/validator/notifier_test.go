@@ -291,11 +291,11 @@ func TestNotifierMiscMissingTemplateTests(t *testing.T) {
 		TemplatePath: string([]byte{0x0, 0x1}),
 	}
 
-	val := schema.NewStructValidator()
+	validator := schema.NewStructValidator()
 
-	validateNotifierTemplates(config, val)
+	validateNotifierTemplates(config, validator)
 
-	require.Len(t, val.Errors(), 1)
+	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, val.Errors()[0], "notifier: option 'template_path' refers to location '\x00\x01' which couldn't be opened: stat \x00\x01: invalid argument")
+	assert.EqualError(t, validator.Errors()[0], "notifier: option 'template_path' refers to location '\x00\x01' which couldn't be opened: stat \x00\x01: invalid argument")
 }

@@ -157,7 +157,7 @@ func HandlePreferredDeviceCheck(ctx *middlewares.AutheliaCtx, userSession *sessi
 		ctx.Logger.Debugf("Duo user: %s no longer enrolled removing preferred device", userSession.Username)
 
 		if err := ctx.Providers.StorageProvider.DeletePreferredDuoDevice(ctx, userSession.Username); err != nil {
-			return "", "", fmt.Errorf("unable to delete preferred Duo device and method for user %s: %s", userSession.Username, err)
+			return "", "", fmt.Errorf("unable to delete preferred Duo device and method for user %s: %w", userSession.Username, err)
 		}
 
 		if err := ctx.SetJSONBody(DuoSignResponse{Result: enroll, EnrollURL: enrollURL}); err != nil {
@@ -180,7 +180,7 @@ func HandlePreferredDeviceCheck(ctx *middlewares.AutheliaCtx, userSession *sessi
 			ctx.Logger.Debugf("Duo user: %s has no compatible device/method available removing preferred device", userSession.Username)
 
 			if err := ctx.Providers.StorageProvider.DeletePreferredDuoDevice(ctx, userSession.Username); err != nil {
-				return "", "", fmt.Errorf("unable to delete preferred Duo device and method for user %s: %s", userSession.Username, err)
+				return "", "", fmt.Errorf("unable to delete preferred Duo device and method for user %s: %w", userSession.Username, err)
 			}
 
 			if err := ctx.SetJSONBody(DuoSignResponse{Result: enroll}); err != nil {
@@ -243,7 +243,7 @@ func HandleAutoSelection(ctx *middlewares.AutheliaCtx, devices []DuoDevice, user
 	ctx.Logger.Debugf("Exactly one device: '%s' and method: '%s' found, saving as new preferred Duo device and method for user: %s", device, method, username)
 
 	if err := ctx.Providers.StorageProvider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: username, Method: method, Device: device}); err != nil {
-		return "", "", fmt.Errorf("unable to save new preferred Duo device and method for user %s: %s", username, err)
+		return "", "", fmt.Errorf("unable to save new preferred Duo device and method for user %s: %w", username, err)
 	}
 
 	return device, method, nil

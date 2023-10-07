@@ -78,15 +78,15 @@ func TestValidateTelemetry(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			v := schema.NewStructValidator()
+			validator := schema.NewStructValidator()
 
-			ValidateTelemetry(tc.have, v)
+			ValidateTelemetry(tc.have, validator)
 
 			assert.Equal(t, tc.expected.Telemetry.Metrics.Enabled, tc.have.Telemetry.Metrics.Enabled)
 			assert.Equal(t, tc.expected.Telemetry.Metrics.Address, tc.have.Telemetry.Metrics.Address)
 
 			lenWrns := len(tc.expectedWrns)
-			wrns := v.Warnings()
+			wrns := validator.Warnings()
 
 			if lenWrns == 0 {
 				assert.Len(t, wrns, 0)
@@ -99,7 +99,7 @@ func TestValidateTelemetry(t *testing.T) {
 			}
 
 			lenErrs := len(tc.expectedErrs)
-			errs := v.Errors()
+			errs := validator.Errors()
 
 			if lenErrs == 0 {
 				assert.Len(t, errs, 0)

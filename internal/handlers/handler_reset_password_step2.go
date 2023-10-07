@@ -61,7 +61,7 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 	userSession.PasswordResetUsername = nil
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Error(fmt.Errorf("unable to update password reset state: %s", err), messageOperationFailed)
+		ctx.Error(fmt.Errorf("unable to update password reset state: %w", err), messageOperationFailed)
 		return
 	}
 
