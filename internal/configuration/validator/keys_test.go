@@ -13,20 +13,20 @@ import (
 
 func TestShouldValidateGoodKeys(t *testing.T) {
 	configKeys := schema.Keys
-	val := schema.NewStructValidator()
-	ValidateKeys(configKeys, "AUTHELIA_", val)
+	validator := schema.NewStructValidator()
+	ValidateKeys(configKeys, "AUTHELIA_", validator)
 
-	require.Len(t, val.Errors(), 0)
+	require.Len(t, validator.Errors(), 0)
 }
 
 func TestShouldNotValidateBadKeys(t *testing.T) {
 	configKeys := schema.Keys
 	configKeys = append(configKeys, "bad_key")
 	configKeys = append(configKeys, "totp.skewy")
-	val := schema.NewStructValidator()
-	ValidateKeys(configKeys, "AUTHELIA_", val)
+	validator := schema.NewStructValidator()
+	ValidateKeys(configKeys, "AUTHELIA_", validator)
 
-	errs := val.Errors()
+	errs := validator.Errors()
 	require.Len(t, errs, 2)
 
 	assert.EqualError(t, errs[0], "configuration key not expected: bad_key")
@@ -38,11 +38,11 @@ func TestShouldNotValidateBadEnvKeys(t *testing.T) {
 	configKeys = append(configKeys, "AUTHELIA__BAD_ENV_KEY")
 	configKeys = append(configKeys, "AUTHELIA_BAD_ENV_KEY")
 
-	val := schema.NewStructValidator()
-	ValidateKeys(configKeys, "AUTHELIA_", val)
+	validator := schema.NewStructValidator()
+	ValidateKeys(configKeys, "AUTHELIA_", validator)
 
-	warns := val.Warnings()
-	assert.Len(t, val.Errors(), 0)
+	warns := validator.Warnings()
+	assert.Len(t, validator.Errors(), 0)
 	require.Len(t, warns, 2)
 
 	assert.EqualError(t, warns[0], "configuration environment variable not expected: AUTHELIA__BAD_ENV_KEY")
@@ -63,10 +63,10 @@ func TestAllSpecificErrorKeys(t *testing.T) {
 		}
 	}
 
-	val := schema.NewStructValidator()
-	ValidateKeys(configKeys, "AUTHELIA_", val)
+	validator := schema.NewStructValidator()
+	ValidateKeys(configKeys, "AUTHELIA_", validator)
 
-	errs := val.Errors()
+	errs := validator.Errors()
 
 	// Check only unique errors are shown. Require because if we don't the next test panics.
 	require.Len(t, errs, len(uniqueValues))
@@ -87,10 +87,10 @@ func TestSpecificErrorKeys(t *testing.T) {
 		"authentication_backend.file.hashing.algorithm",
 	}
 
-	val := schema.NewStructValidator()
-	ValidateKeys(configKeys, "AUTHELIA_", val)
+	validator := schema.NewStructValidator()
+	ValidateKeys(configKeys, "AUTHELIA_", validator)
 
-	errs := val.Errors()
+	errs := validator.Errors()
 
 	require.Len(t, errs, 5)
 
@@ -107,10 +107,10 @@ func TestPatternKeys(t *testing.T) {
 		"server.endpoints.authz.x.implementation",
 	}
 
-	val := schema.NewStructValidator()
-	ValidateKeys(configKeys, "AUTHELIA_", val)
+	validator := schema.NewStructValidator()
+	ValidateKeys(configKeys, "AUTHELIA_", validator)
 
-	errs := val.Errors()
+	errs := validator.Errors()
 
 	require.Len(t, errs, 0)
 }
@@ -124,11 +124,11 @@ func TestReplacedErrors(t *testing.T) {
 		"logs_level",
 	}
 
-	val := schema.NewStructValidator()
-	ValidateKeys(configKeys, "AUTHELIA_", val)
+	validator := schema.NewStructValidator()
+	ValidateKeys(configKeys, "AUTHELIA_", validator)
 
-	warns := val.Warnings()
-	errs := val.Errors()
+	warns := validator.Warnings()
+	errs := validator.Errors()
 
 	assert.Len(t, warns, 0)
 	require.Len(t, errs, 5)
