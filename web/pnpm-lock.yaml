@@ -47,8 +47,8 @@ dependencies:
     specifier: 1.5.1
     version: 1.5.1
   broadcast-channel:
-    specifier: 5.3.0
-    version: 5.3.0
+    specifier: 5.4.0
+    version: 5.4.0
   classnames:
     specifier: 2.3.2
     version: 2.3.2
@@ -1727,6 +1727,7 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.14.0
+    dev: true
 
   /@babel/runtime@7.22.5:
     resolution: {integrity: sha512-ecjvYlnAaZ/KVneE/OdKYBYfgXV3Ptu6zQWmgEF7vwKhQnvVS6bjMD2XYgj+SNvQ1GfK/pjgokfPkC/2CO8CuA==}
@@ -1740,7 +1741,6 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.14.0
-    dev: false
 
   /@babel/template@7.22.15:
     resolution: {integrity: sha512-QPErUVm4uyJa60rkI73qneDacvdvzxshT3kksGqlGWYdOTIUOwJ7RDUL8sGqslY1uXWSL6xMFKEXDS3ox2uF0w==}
@@ -1991,7 +1991,7 @@ packages:
     resolution: {integrity: sha512-m4HEDZleaaCH+XgDDsPF15Ht6wTLsgDTeR3WYj9Q/k76JtWhrJjcP4+/XlG8LGT/Rol9qUfOIztXeA84ATpqPQ==}
     dependencies:
       '@babel/helper-module-imports': 7.22.5
-      '@babel/runtime': 7.22.15
+      '@babel/runtime': 7.23.1
       '@emotion/hash': 0.9.1
       '@emotion/memoize': 0.8.1
       '@emotion/serialize': 1.1.2
@@ -3811,7 +3811,7 @@ packages:
     resolution: {integrity: sha512-Cg7TFGpIr01vOQNODXOOaGz2NpCU5gl8x1qJFbb6hbZxR7XrcE2vtbAsTAbJ7/xwJtUuJEw8K8Zr/AE0LHlesg==}
     engines: {node: '>=10', npm: '>=6'}
     dependencies:
-      '@babel/runtime': 7.22.15
+      '@babel/runtime': 7.23.1
       cosmiconfig: 7.1.0
       resolve: 1.22.3
 
@@ -3872,7 +3872,7 @@ packages:
       '@babel/preset-env': 7.21.4(@babel/core@7.22.9)
       '@babel/preset-react': 7.18.6(@babel/core@7.22.9)
       '@babel/preset-typescript': 7.21.4(@babel/core@7.22.9)
-      '@babel/runtime': 7.22.15
+      '@babel/runtime': 7.23.1
       babel-plugin-macros: 3.1.0
       babel-plugin-transform-react-remove-prop-types: 0.4.24
     transitivePeerDependencies:
@@ -3922,10 +3922,10 @@ packages:
       fill-range: 7.0.1
     dev: true
 
-  /broadcast-channel@5.3.0:
-    resolution: {integrity: sha512-0PmDYc/iUGZ4QbnCnV7u+WleygiS1bZ4oV6t4rANXYtSgEFtGhB5jimJPLOVpPtce61FVxrH8CYylfO5g7OLKw==}
+  /broadcast-channel@5.4.0:
+    resolution: {integrity: sha512-mHr7IwCHv9DF+d39wpazXOuusJJOKWckZI4uZ4bp6VQr/VIgx5cvYbsyn2uuWfWuCINvLNtPGY107JyXQ0fkAg==}
     dependencies:
-      '@babel/runtime': 7.22.10
+      '@babel/runtime': 7.23.1
       oblivious-set: 1.1.1
       p-queue: 6.6.2
       unload: 2.4.1
@@ -7130,7 +7130,7 @@ packages:
   /regenerator-transform@0.15.1:
     resolution: {integrity: sha512-knzmNAcuyxV+gQCufkYcvOqX/qIIfHLv0u5x79kRxuGojfYVky1f15TzZEu2Avte8QGepvUNTnLskf8E6X6Vyg==}
     dependencies:
-      '@babel/runtime': 7.22.15
+      '@babel/runtime': 7.23.1
     dev: true
 
   /regexp.prototype.flags@1.5.0:
