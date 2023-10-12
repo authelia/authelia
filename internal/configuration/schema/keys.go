@@ -10,7 +10,6 @@ package schema
 var Keys = []string{
 	"theme",
 	"certificates_directory",
-	"jwt_secret",
 	"default_2fa_method",
 	"log.level",
 	"log.format",
@@ -350,5 +349,12 @@ var Keys = []string{
 	"privacy_policy.enabled",
 	"privacy_policy.require_user_acceptance",
 	"privacy_policy.policy_url",
+	"identity_validation.reset_password.expiration",
+	"identity_validation.reset_password.jwt_algorithm",
+	"identity_validation.reset_password.jwt_secret",
+	"identity_validation.credential_management.expiration",
+	"identity_validation.credential_management.elevation_expiration",
+	"identity_validation.credential_management.characters",
+	"identity_validation.credential_management.skip_2fa",
 	"default_redirection_url",
 }

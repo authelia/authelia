@@ -1,12 +1,14 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useCallback, useState } from "react";
 
 import { Button, Paper, Stack, Tooltip, Typography } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
 import { useTranslation } from "react-i18next";
 
 import { UserInfoTOTPConfiguration } from "@models/TOTPConfiguration";
-import TOTPDevice from "@views/Settings/TwoFactorAuthentication/TOTPDevice";
-import TOTPRegisterDialogController from "@views/Settings/TwoFactorAuthentication/TOTPRegisterDialogController";
+import IdentityVerificationDialog from "@views/Settings/Common/IdentityVerificationDialog.tsx";
+import TOTPConfiguration from "@views/Settings/TwoFactorAuthentication/TOTPConfiguration.tsx";
+import TOTPDeleteDialog from "@views/Settings/TwoFactorAuthentication/TOTPDeleteDialog.tsx";
+import TOTPRegisterDialog from "@views/Settings/TwoFactorAuthentication/TOTPRegisterDialog.tsx";
 
 interface Props {
     config: UserInfoTOTPConfiguration | undefined | null;
@@ -16,14 +18,78 @@ interface Props {
 const TOTPPanel = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
-    const [showRegisterDialog, setShowRegisterDialog] = useState<boolean>(false);
+    const [dialogIdentityVerificationPendingOpen, setDialogIdentityVerificationPendingOpen] = useState(false);
+    const [dialogRegistrationOpen, setDialogRegistrationOpen] = useState(false);
+    const [dialogRegistrationPendingOpen, setDialogRegistrationPendingOpen] = useState(false);
+    const [dialogDeleteOpen, setDialogDeleteOpen] = useState(false);
+    const [dialogDeletePendingOpen, setDialogDeletePendingOpen] = useState(false);
+
+    const handleResetState = () => {
+        setDialogIdentityVerificationPendingOpen(false);
+        setDialogRegistrationOpen(false);
+        setDialogRegistrationPendingOpen(false);
+        setDialogDeleteOpen(false);
+        setDialogDeletePendingOpen(false);
+    };
+
+    const handleOpenDialogRegistration = () => {
+        setDialogRegistrationPendingOpen(false);
+        setDialogRegistrationOpen(true);
+    };
+
+    const handleOpenDialogDelete = () => {
+        setDialogDeletePendingOpen(false);
+        setDialogDeleteOpen(true);
+    };
+
+    const handleIVDClosed = useCallback(
+        (ok: boolean) => {
+            if (!ok) {
+                console.warn(
+                    "Identity Verification dialog close callback was not ok which should probably mean it was cancelled by the user.",
+                );
+
+                handleResetState();
+
+                return;
+            }
+
+            if (dialogRegistrationPendingOpen) {
+                handleOpenDialogRegistration();
+            } else if (dialogDeletePendingOpen) {
+                handleOpenDialogDelete();
+            }
+        },
+        [dialogDeletePendingOpen, dialogRegistrationPendingOpen],
+    );
+
+    const handleDelete = () => {
+        if (!props.config) {
+            return;
+        }
+
+        setDialogDeletePendingOpen(true);
+        setDialogIdentityVerificationPendingOpen(true);
+    };
 
     return (
         <Fragment>
-            <TOTPRegisterDialogController
-                open={showRegisterDialog}
+            <IdentityVerificationDialog
+                opening={dialogIdentityVerificationPendingOpen}
+                handleClosed={handleIVDClosed}
+                handleOpened={() => setDialogIdentityVerificationPendingOpen(false)}
+            />
+            <TOTPRegisterDialog
+                open={dialogRegistrationOpen}
                 setClosed={() => {
-                    setShowRegisterDialog(false);
+                    handleResetState();
+                    props.handleRefreshState();
+                }}
+            />
+            <TOTPDeleteDialog
+                open={dialogDeleteOpen}
+                handleClose={() => {
+                    handleResetState();
                     props.handleRefreshState();
                 }}
             />
@@ -42,7 +108,8 @@ const TOTPPanel = function (props: Props) {
                                         variant="outlined"
                                         color="primary"
                                         onClick={() => {
-                                            setShowRegisterDialog(true);
+                                            setDialogRegistrationPendingOpen(true);
+                                            setDialogIdentityVerificationPendingOpen(true);
                                         }}
                                     >
                                         {translate("Add")}
@@ -60,7 +127,11 @@ const TOTPPanel = function (props: Props) {
                     ) : (
                         <Grid xs={12}>
                             <Stack spacing={3}>
-                                <TOTPDevice config={props.config} handleRefresh={props.handleRefreshState} />
+                                <TOTPConfiguration
+                                    config={props.config}
+                                    handleRefresh={props.handleRefreshState}
+                                    handleDelete={handleDelete}
+                                />
                             </Stack>
                         </Grid>
                     )}

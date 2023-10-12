@@ -41,6 +41,6 @@ this instance if you wanted to downgrade to pre1 you would need to use an Authel
 |       10       |      4.38.0      |   Fix constraints on the `oauth2_access_token_session` table for the `client credentials` grant    |
 |       11       |      4.38.0      |             Adjust constraints for JWT Profile for OAuth 2.0 Access Tokens ([RFC9068])             |
 |       12       |      4.38.0      |                        WebAuthn adjustments for multi-cookie domain changes                        |
-
+|       13       |      4.38.0      |                   One-Time Password for Identity Verification via Email Changes                    |
 
 [RFC9068]: https://datatracker.ietf.org/doc/html/rfc9068

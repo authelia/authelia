@@ -10,11 +10,11 @@ import (
 )
 
 // NewIdentityVerification creates a new IdentityVerification from a given username and action.
-func NewIdentityVerification(jti uuid.UUID, username, action string, ip net.IP) (verification IdentityVerification) {
+func NewIdentityVerification(jti uuid.UUID, username, action string, ip net.IP, expiration time.Duration) (verification IdentityVerification) {
 	return IdentityVerification{
 		JTI:       jti,
 		IssuedAt:  time.Now(),
-		ExpiresAt: time.Now().Add(5 * time.Minute),
+		ExpiresAt: time.Now().Add(expiration),
 		Action:    action,
 		Username:  username,
 		IssuedIP:  NewIP(ip),

@@ -37,6 +37,12 @@ totp:
   period: 30
   skew: 1
   secret_size: 32
+  allowed_algorithms:
+    - 'SHA1'
+  allowed_digits:
+    - 6
+  allowed_periods:
+    - 30
 ```
 
 ## Options
@@ -131,6 +137,27 @@ The length in bytes of generated shared secrets. The minimum is 20 (or 160 bits)
 In most use cases 32 is sufficient. Though some authenticators may have issues with more than the minimum. Our minimum
 is the recommended value in [RFC4226], though technically according to the specification 16 bytes (or 128 bits) is the
 minimum.
+
+### allowed_algorithms
+
+{{< confkey type="list(integer)" default="SHA1" required="no" >}}
+
+Similar to [algorithm](#algorithm) with the same restrictions except this option allows users to pick from this list.
+This list will always contain the value configured in the [algorithm](#algorithm) option.
+
+### allowed_digits
+
+{{< confkey type="list(string)" default="6" required="no" >}}
+
+Similar to [digits](#digits) with the same restrictions except this option allows users to pick from this list. This
+list will always contain the value configured in the [digits](#digits) option.
+
+### allowed_periods
+
+{{< confkey type="list(integer)" default="30" required="no" >}}
+
+Similar to [period](#period) with the same restrictions except this option allows users to pick from this list. This
+list will always contain the value configured in the [period](#period) option.
 
 ## Registration
 

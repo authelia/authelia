@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 
 import { Button, Grid, Theme } from "@mui/material";
+import TextField from "@mui/material/TextField";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
-import FixedTextField from "@components/FixedTextField";
 import { IndexRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";
@@ -45,7 +45,7 @@ const ResetPasswordStep1 = function () {
         <LoginLayout title={translate("Reset password")} id="reset-password-step1-stage">
             <Grid container className={styles.root} spacing={2}>
                 <Grid item xs={12}>
-                    <FixedTextField
+                    <TextField
                         id="username-textfield"
                         label={translate("Username")}
                         variant="outlined"

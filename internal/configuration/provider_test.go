@@ -21,7 +21,7 @@ import (
 func TestShouldErrorSecretNotExist(t *testing.T) {
 	dir := t.TempDir()
 
-	testSetEnv(t, "JWT_SECRET_FILE", filepath.Join(dir, "jwt"))
+	testSetEnv(t, "IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE", filepath.Join(dir, "jwt"))
 	testSetEnv(t, "DUO_API_SECRET_KEY_FILE", filepath.Join(dir, "duo"))
 	testSetEnv(t, "SESSION_SECRET_FILE", filepath.Join(dir, "session"))
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", dir)
@@ -50,7 +50,7 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 	// ignore the errors before this as they are checked by the validator.
 	assert.EqualError(t, errs[0], fmt.Sprintf("secrets: error loading secret path %s into key 'authentication_backend.ldap.password': %s", dir, fmt.Sprintf(errFmtDir, dir)))
 	assert.EqualError(t, errs[1], fmt.Sprintf("secrets: error loading secret path %s into key 'duo_api.secret_key': file does not exist error occurred: %s", filepath.Join(dir, "duo"), fmt.Sprintf(errFmt, filepath.Join(dir, "duo"))))
-	assert.EqualError(t, errs[2], fmt.Sprintf("secrets: error loading secret path %s into key 'jwt_secret': file does not exist error occurred: %s", filepath.Join(dir, "jwt"), fmt.Sprintf(errFmt, filepath.Join(dir, "jwt"))))
+	assert.EqualError(t, errs[2], fmt.Sprintf("secrets: error loading secret path %s into key 'identity_validation.reset_password.jwt_secret': file does not exist error occurred: %s", filepath.Join(dir, "jwt"), fmt.Sprintf(errFmt, filepath.Join(dir, "jwt"))))
 	assert.EqualError(t, errs[3], fmt.Sprintf("secrets: error loading secret path %s into key 'storage.mysql.password': file does not exist error occurred: %s", filepath.Join(dir, "mysql"), fmt.Sprintf(errFmt, filepath.Join(dir, "mysql"))))
 	assert.EqualError(t, errs[4], fmt.Sprintf("secrets: error loading secret path %s into key 'notifier.smtp.password': file does not exist error occurred: %s", filepath.Join(dir, "notifier"), fmt.Sprintf(errFmt, filepath.Join(dir, "notifier"))))
 	assert.EqualError(t, errs[5], fmt.Sprintf("secrets: error loading secret path %s into key 'identity_providers.oidc.hmac_secret': file does not exist error occurred: %s", filepath.Join(dir, "oidc-hmac"), fmt.Sprintf(errFmt, filepath.Join(dir, "oidc-hmac"))))
@@ -74,7 +74,7 @@ func TestLoadShouldReturnErrWithoutSources(t *testing.T) {
 func TestShouldHaveNotifier(t *testing.T) {
 	testSetEnv(t, "SESSION_SECRET", "abc")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")
-	testSetEnv(t, "JWT_SECRET", "abc")
+	testSetEnv(t, "IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET", "abc")
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
 
 	val := schema.NewStructValidator()
@@ -124,7 +124,7 @@ func TestShouldParseLargeIntegerDurations(t *testing.T) {
 func TestShouldValidateConfigurationWithEnv(t *testing.T) {
 	testSetEnv(t, "SESSION_SECRET", "abc")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")
-	testSetEnv(t, "JWT_SECRET", "abc")
+	testSetEnv(t, "IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET", "abc")
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
 
 	val := schema.NewStructValidator()
@@ -138,7 +138,7 @@ func TestShouldValidateConfigurationWithEnv(t *testing.T) {
 func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 	testSetEnv(t, "SESSION_SECRET", "abc")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")
-	testSetEnv(t, "JWT_SECRET", "abc")
+	testSetEnv(t, "IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET", "abc")
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
 
 	t.Setenv("ABC_CLIENT_SECRET", "$plaintext$example-abc")
@@ -233,7 +233,7 @@ func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 	testSetEnv(t, "SESSION_SECRET", "an env session secret")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "an env storage mysql password")
 	testSetEnv(t, "STORAGE_MYSQL", "a bad env")
-	testSetEnv(t, "JWT_SECRET", "an env jwt secret")
+	testSetEnv(t, "IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET", "an env jwt secret")
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "an env authentication backend ldap password")
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_ADDRESS", "an env authentication backend ldap password")
 
@@ -421,7 +421,7 @@ func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T
 	testSetEnv(t, "SESSION_SECRET", "an env session secret")
 	testSetEnv(t, "SESSION_SECRET_FILE", "./test_resources/example_secret")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "an env storage mysql password")
-	testSetEnv(t, "JWT_SECRET_FILE", "./test_resources/example_secret")
+	testSetEnv(t, "IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE", "./test_resources/example_secret")
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "an env authentication backend ldap password")
 	testSetEnv(t, "STORAGE_ENCRYPTION_KEY", "a_very_bad_encryption_key")
 
@@ -434,7 +434,7 @@ func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T
 
 	assert.EqualError(t, val.Errors()[0], "secrets: error loading secret into key 'session.secret': it's already defined in other configuration sources")
 
-	assert.Equal(t, "example_secret value", config.JWTSecret)
+	assert.Equal(t, "example_secret value", config.IdentityValidation.ResetPassword.JWTSecret)
 	assert.Equal(t, "example_secret value", config.Session.Secret)
 	assert.Equal(t, "an env storage mysql password", config.Storage.MySQL.Password)
 	assert.Equal(t, "an env authentication backend ldap password", config.AuthenticationBackend.LDAP.Password)
@@ -464,7 +464,7 @@ func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
 func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
 	testSetEnv(t, "SESSION_SECRET_FILE", "./test_resources/example_secret")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD_FILE", "./test_resources/example_secret")
-	testSetEnv(t, "JWT_SECRET_FILE", "./test_resources/example_secret")
+	testSetEnv(t, "IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE", "./test_resources/example_secret")
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", "./test_resources/example_secret")
 	testSetEnv(t, "STORAGE_ENCRYPTION_KEY_FILE", "./test_resources/example_secret")
 
@@ -475,7 +475,7 @@ func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
 	assert.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
 
-	assert.Equal(t, "example_secret value", config.JWTSecret)
+	assert.Equal(t, "example_secret value", config.IdentityValidation.ResetPassword.JWTSecret)
 	assert.Equal(t, "example_secret value", config.Session.Secret)
 	assert.Equal(t, "example_secret value", config.AuthenticationBackend.LDAP.Password)
 	assert.Equal(t, "example_secret value", config.Storage.MySQL.Password)
@@ -539,7 +539,7 @@ func TestShouldConfigureConsent(t *testing.T) {
 func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
 	testSetEnv(t, "SESSION_SECRET", "abc")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")
-	testSetEnv(t, "JWT_SECRET", "abc")
+	testSetEnv(t, "IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET", "abc")
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
 
 	val := schema.NewStructValidator()
@@ -578,6 +578,7 @@ func TestShouldValidateDeprecatedEnvNames(t *testing.T) {
 
 func TestShouldValidateDeprecatedEnvNamesWithDeprecatedKeys(t *testing.T) {
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_URL", "ldap://from-env")
+	testSetEnv(t, "JWT_SECRET_FILE", "./test_resources/example_secret")
 
 	val := schema.NewStructValidator()
 	keys, c, err := Load(val, NewDefaultSources([]string{"./test_resources/config.deprecated.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
@@ -589,22 +590,24 @@ func TestShouldValidateDeprecatedEnvNamesWithDeprecatedKeys(t *testing.T) {
 	assert.Len(t, val.Errors(), 0)
 
 	warnings := val.Warnings()
-	require.Len(t, warnings, 10)
+	require.Len(t, warnings, 11)
 
 	sort.Sort(utils.ErrSliceSortAlphabetical(warnings))
 
 	assert.EqualError(t, warnings[0], "configuration key 'authentication_backend.ldap.url' is deprecated in 4.38.0 and has been replaced by 'authentication_backend.ldap.address': this has been automatically mapped for you but you will need to adjust your configuration to remove this message")
-	assert.EqualError(t, warnings[1], "configuration key 'notifier.smtp.host' is deprecated in 4.38.0 and has been replaced by 'notifier.smtp.address' when combined with the 'notifier.smtp.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
-	assert.EqualError(t, warnings[2], "configuration key 'notifier.smtp.port' is deprecated in 4.38.0 and has been replaced by 'notifier.smtp.address' when combined with the 'notifier.smtp.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
-	assert.EqualError(t, warnings[3], "configuration key 'server.host' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.port' and 'server.path' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
-	assert.EqualError(t, warnings[4], "configuration key 'server.path' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.host' and 'server.port' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
-	assert.EqualError(t, warnings[5], "configuration key 'server.port' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.host' and 'server.path' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
-	assert.EqualError(t, warnings[6], "configuration key 'storage.mysql.host' is deprecated in 4.38.0 and has been replaced by 'storage.mysql.address' when combined with the 'storage.mysql.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
-	assert.EqualError(t, warnings[7], "configuration key 'storage.mysql.port' is deprecated in 4.38.0 and has been replaced by 'storage.mysql.address' when combined with the 'storage.mysql.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
-	assert.EqualError(t, warnings[8], "configuration key 'storage.postgres.host' is deprecated in 4.38.0 and has been replaced by 'storage.postgres.address' when combined with the 'storage.postgres.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
-	assert.EqualError(t, warnings[9], "configuration key 'storage.postgres.port' is deprecated in 4.38.0 and has been replaced by 'storage.postgres.address' when combined with the 'storage.postgres.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[1], "configuration key 'jwt_secret' is deprecated in 4.38.0 and has been replaced by 'identity_validation.reset_password.jwt_secret': this has been automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[2], "configuration key 'notifier.smtp.host' is deprecated in 4.38.0 and has been replaced by 'notifier.smtp.address' when combined with the 'notifier.smtp.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[3], "configuration key 'notifier.smtp.port' is deprecated in 4.38.0 and has been replaced by 'notifier.smtp.address' when combined with the 'notifier.smtp.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[4], "configuration key 'server.host' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.port' and 'server.path' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[5], "configuration key 'server.path' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.host' and 'server.port' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[6], "configuration key 'server.port' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.host' and 'server.path' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[7], "configuration key 'storage.mysql.host' is deprecated in 4.38.0 and has been replaced by 'storage.mysql.address' when combined with the 'storage.mysql.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[8], "configuration key 'storage.mysql.port' is deprecated in 4.38.0 and has been replaced by 'storage.mysql.address' when combined with the 'storage.mysql.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[9], "configuration key 'storage.postgres.host' is deprecated in 4.38.0 and has been replaced by 'storage.postgres.address' when combined with the 'storage.postgres.port' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
+	assert.EqualError(t, warnings[10], "configuration key 'storage.postgres.port' is deprecated in 4.38.0 and has been replaced by 'storage.postgres.address' when combined with the 'storage.postgres.host' in the format of '[tcp://]<hostname>[:<port>]': this should be automatically mapped for you but you will need to adjust your configuration to remove this message")
 
 	assert.Equal(t, "ldap://from-env:389", c.AuthenticationBackend.LDAP.Address.String())
+	assert.Equal(t, "example_secret value", c.IdentityValidation.ResetPassword.JWTSecret)
 }
 
 func TestShouldRaiseErrOnInvalidNotifierSMTPSender(t *testing.T) {
