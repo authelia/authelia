@@ -3,8 +3,6 @@
 #                Authelia minimal configuration               #
 ###############################################################
 
-jwt_secret: unsecure_secret
-
 server:
   address: 'tcp://:9091'
   asset_path: '/config/assets/'
@@ -32,6 +30,11 @@ storage:
   encryption_key: a_not_so_secure_encryption_key
   local:
     path: /config/db.sqlite
+
+identity_validation:
+  reset_password:
+    # This secret can also be set using the env variables AUTHELIA_IDENTITY_VERIFICATION_RESET_PASSWORD_JWT_SECRET_FILE
+    jwt_secret: 'a_very_important_secret'
 
 access_control:
   default_policy: deny

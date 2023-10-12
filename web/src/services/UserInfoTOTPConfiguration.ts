@@ -11,8 +11,8 @@ import {
     AuthenticationOKResponse,
     CompleteTOTPSignInPath,
     ServiceResponse,
-    TOTPRegistrationOptionsPath,
-    UserInfoTOTPConfigurationPath,
+    TOTPConfigurationPath,
+    TOTPRegistrationPath,
     validateStatusAuthentication,
 } from "@services/Api";
 import { Get } from "@services/Client";
@@ -38,13 +38,13 @@ function toUserInfoTOTPConfiguration(payload: UserInfoTOTPConfigurationPayload):
 }
 
 export async function getUserInfoTOTPConfiguration(): Promise<UserInfoTOTPConfiguration> {
-    const res = await Get<UserInfoTOTPConfigurationPayload>(UserInfoTOTPConfigurationPath);
+    const res = await Get<UserInfoTOTPConfigurationPayload>(TOTPConfigurationPath);
 
     return toUserInfoTOTPConfiguration(res);
 }
 
 export async function getUserInfoTOTPConfigurationOptional(): Promise<UserInfoTOTPConfiguration | null> {
-    const res = await axios.get<ServiceResponse<UserInfoTOTPConfigurationPayload>>(UserInfoTOTPConfigurationPath, {
+    const res = await axios.get<ServiceResponse<UserInfoTOTPConfigurationPayload>>(TOTPConfigurationPath, {
         validateStatus: function (status) {
             return status < 300 || status === 404;
         },
@@ -67,7 +67,7 @@ export interface TOTPOptionsPayload {
 }
 
 export async function getTOTPOptions(): Promise<TOTPOptions> {
-    const res = await Get<TOTPOptionsPayload>(TOTPRegistrationOptionsPath);
+    const res = await Get<TOTPOptionsPayload>(TOTPRegistrationPath);
 
     return {
         algorithm: toEnum(res.algorithm),

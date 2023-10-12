@@ -177,9 +177,9 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 		WithPostMiddlewares(middlewares.Require1FA).
 		Build()
 
-	middleware2FA := middlewares.NewBridgeBuilder(*config, providers).
+	middlewareElevated1FA := middlewares.NewBridgeBuilder(*config, providers).
 		WithPreMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
-		WithPostMiddlewares(middlewares.Require2FAWithAPIResponse).
+		WithPostMiddlewares(middlewares.RequireElevated1FA).
 		Build()
 
 	r.HEAD("/api/health", middlewareAPI(handlers.HealthGET))
@@ -255,15 +255,23 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	r.POST("/api/user/info", middleware1FA(handlers.UserInfoPOST))
 	r.POST("/api/user/info/2fa_method", middleware1FA(handlers.MethodPreferencePOST))
 
+	// User Session Elevation.
+	middlewareDelaySecond := middlewares.ArbitraryDelay(time.Second)
+
+	r.GET("/api/user/session/elevation", middleware1FA(handlers.UserSessionElevationGET))
+	r.POST("/api/user/session/elevation", middleware1FA(handlers.UserSessionElevationPOST))
+	r.PUT("/api/user/session/elevation", middlewareDelaySecond(middleware1FA(handlers.UserSessionElevationPUT)))
+	r.DELETE("/api/user/session/elevation/{id}", middlewareAPI(handlers.UserSessionElevateDELETE))
+
 	if !config.TOTP.Disable {
 		// TOTP related endpoints.
-		r.GET("/api/user/info/totp", middleware1FA(handlers.UserTOTPInfoGET))
+		r.GET("/api/secondfactor/totp", middleware1FA(handlers.TimeBasedOneTimePasswordGET))
 		r.POST("/api/secondfactor/totp", middleware1FA(handlers.TimeBasedOneTimePasswordPOST))
-		r.DELETE("/api/secondfactor/totp", middleware2FA(handlers.TOTPConfigurationDELETE))
-		r.GET("/api/secondfactor/totp/register/options", middleware1FA(handlers.TOTPRegisterOptionsGET))
-		r.PUT("/api/secondfactor/totp/register", middleware1FA(handlers.TOTPRegisterPUT))
-		r.POST("/api/secondfactor/totp/register", middleware1FA(handlers.TOTPRegisterPOST))
-		r.DELETE("/api/secondfactor/totp/register", middleware1FA(handlers.TOTPRegisterDELETE))
+		r.DELETE("/api/secondfactor/totp", middleware1FA(handlers.TOTPConfigurationDELETE))
+		r.GET("/api/secondfactor/totp/register", middlewareElevated1FA(handlers.TOTPRegisterGET))
+		r.PUT("/api/secondfactor/totp/register", middlewareElevated1FA(handlers.TOTPRegisterPUT))
+		r.POST("/api/secondfactor/totp/register", middlewareElevated1FA(handlers.TOTPRegisterPOST))
+		r.DELETE("/api/secondfactor/totp/register", middlewareElevated1FA(handlers.TOTPRegisterDELETE))
 	}
 
 	if !config.WebAuthn.Disable {
@@ -272,10 +280,10 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 
 		// Management of the WebAuthn credentials.
 		r.GET("/api/secondfactor/webauthn/credentials", middleware1FA(handlers.WebAuthnCredentialsGET))
-		r.PUT("/api/secondfactor/webauthn/credential/register", middleware1FA(handlers.WebAuthnRegistrationPUT))
-		r.POST("/api/secondfactor/webauthn/credential/register", middleware1FA(handlers.WebAuthnRegistrationPOST))
-		r.PUT("/api/secondfactor/webauthn/credential/{credentialID}", middleware2FA(handlers.WebAuthnCredentialPUT))
-		r.DELETE("/api/secondfactor/webauthn/credential/{credentialID}", middleware2FA(handlers.WebAuthnCredentialDELETE))
+		r.PUT("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnRegistrationPUT))
+		r.POST("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnRegistrationPOST))
+		r.PUT("/api/secondfactor/webauthn/credential/{credentialID}", middlewareElevated1FA(handlers.WebAuthnCredentialPUT))
+		r.DELETE("/api/secondfactor/webauthn/credential/{credentialID}", middlewareElevated1FA(handlers.WebAuthnCredentialDELETE))
 	}
 
 	// Configure DUO api endpoint only if configuration exists.

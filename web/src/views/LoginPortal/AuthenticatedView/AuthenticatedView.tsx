@@ -7,10 +7,11 @@ import { useNavigate } from "react-router-dom";
 
 import { LogoutRoute as SignOutRoute } from "@constants/Routes";
 import LoginLayout from "@layouts/LoginLayout";
+import { UserInfo } from "@models/UserInfo.ts";
 import Authenticated from "@views/LoginPortal/Authenticated";
 
 export interface Props {
-    name: string;
+    userInfo: UserInfo;
 }
 
 const AuthenticatedView = function (props: Props) {
@@ -25,7 +26,11 @@ const AuthenticatedView = function (props: Props) {
     };
 
     return (
-        <LoginLayout id="authenticated-stage" title={`${translate("Hi")} ${props.name}`} showBrand>
+        <LoginLayout
+            id="authenticated-stage"
+            title={`${translate("Hi")} ${props.userInfo.display_name}`}
+            userInfo={props.userInfo}
+        >
             <Grid container>
                 <Grid item xs={12}>
                     <Button color="secondary" onClick={handleLogoutClick} id="logout-button">

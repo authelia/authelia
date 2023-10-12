@@ -3,6 +3,7 @@ package suites
 import (
 	"crypto/tls"
 	"fmt"
+	"io"
 	"net/http"
 	"testing"
 
@@ -47,21 +48,48 @@ func (s *BackendProtectionScenario) AssertRequestStatusCode(method, url string, 
 	})
 }
 
+func (s *BackendProtectionScenario) AssertRequestStatusCodeBody(method, url, body string, expectedStatusCode int) {
+	s.Run(url, func() {
+		req, err := http.NewRequest(method, url, nil)
+		s.Assert().NoError(err)
+
+		res, err := s.client.Do(req)
+
+		s.Assert().NoError(err)
+
+		s.Assert().Equal(expectedStatusCode, res.StatusCode)
+
+		data, err := io.ReadAll(res.Body)
+		s.Require().NoError(err)
+		s.Assert().Equal(body, string(data))
+	})
+}
+
 func (s *BackendProtectionScenario) TestProtectionOfBackendEndpoints() {
+	s.AssertRequestStatusCode(fasthttp.MethodGet, fmt.Sprintf("%s/api/secondfactor/totp", AutheliaBaseURL), fasthttp.StatusForbidden)
 	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/secondfactor/totp", AutheliaBaseURL), fasthttp.StatusForbidden)
-	s.AssertRequestStatusCode(fasthttp.MethodGet, fmt.Sprintf("%s/api/secondfactor/webauthn/credentials", AutheliaBaseURL), fasthttp.StatusForbidden)
+	s.AssertRequestStatusCode(fasthttp.MethodDelete, fmt.Sprintf("%s/api/secondfactor/totp", AutheliaBaseURL), fasthttp.StatusForbidden)
+	s.AssertRequestStatusCode(fasthttp.MethodGet, fmt.Sprintf("%s/api/secondfactor/totp/register", AutheliaBaseURL), fasthttp.StatusForbidden)
+	s.AssertRequestStatusCode(fasthttp.MethodPut, fmt.Sprintf("%s/api/secondfactor/totp/register", AutheliaBaseURL), fasthttp.StatusForbidden)
+	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/secondfactor/totp/register", AutheliaBaseURL), fasthttp.StatusForbidden)
+	s.AssertRequestStatusCode(fasthttp.MethodDelete, fmt.Sprintf("%s/api/secondfactor/totp/register", AutheliaBaseURL), fasthttp.StatusForbidden)
+
+	s.AssertRequestStatusCode(fasthttp.MethodGet, fmt.Sprintf("%s/api/secondfactor/webauthn", AutheliaBaseURL), fasthttp.StatusForbidden)
 	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/secondfactor/webauthn", AutheliaBaseURL), fasthttp.StatusForbidden)
+
+	s.AssertRequestStatusCode(fasthttp.MethodGet, fmt.Sprintf("%s/api/secondfactor/webauthn/credentials", AutheliaBaseURL), fasthttp.StatusForbidden)
 	s.AssertRequestStatusCode(fasthttp.MethodPut, fmt.Sprintf("%s/api/secondfactor/webauthn/credential/register", AutheliaBaseURL), fasthttp.StatusForbidden)
 	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/secondfactor/webauthn/credential/register", AutheliaBaseURL), fasthttp.StatusForbidden)
-	s.AssertRequestStatusCode(fasthttp.MethodDelete, fmt.Sprintf("%s/api/secondfactor/webauthn/credential/1", AutheliaBaseURL), fasthttp.StatusForbidden)
 	s.AssertRequestStatusCode(fasthttp.MethodPut, fmt.Sprintf("%s/api/secondfactor/webauthn/credential/1", AutheliaBaseURL), fasthttp.StatusForbidden)
+	s.AssertRequestStatusCode(fasthttp.MethodDelete, fmt.Sprintf("%s/api/secondfactor/webauthn/credential/1", AutheliaBaseURL), fasthttp.StatusForbidden)
 	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/user/info/2fa_method", AutheliaBaseURL), fasthttp.StatusForbidden)
 
 	s.AssertRequestStatusCode(fasthttp.MethodGet, fmt.Sprintf("%s/api/user/info", AutheliaBaseURL), fasthttp.StatusForbidden)
+	s.AssertRequestStatusCode(fasthttp.MethodGet, fmt.Sprintf("%s/api/user/session/elevation", AutheliaBaseURL), fasthttp.StatusForbidden)
+	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/user/session/elevation", AutheliaBaseURL), fasthttp.StatusForbidden)
+	s.AssertRequestStatusCode(fasthttp.MethodPut, fmt.Sprintf("%s/api/user/session/elevation", AutheliaBaseURL), fasthttp.StatusForbidden)
+	s.AssertRequestStatusCode(fasthttp.MethodDelete, fmt.Sprintf("%s/api/user/session/elevation/1", AutheliaBaseURL), fasthttp.StatusForbidden)
 	s.AssertRequestStatusCode(fasthttp.MethodGet, fmt.Sprintf("%s/api/configuration", AutheliaBaseURL), fasthttp.StatusForbidden)
-
-	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/secondfactor/totp/identity/start", AutheliaBaseURL), fasthttp.StatusForbidden)
-	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/secondfactor/totp/identity/finish", AutheliaBaseURL), fasthttp.StatusForbidden)
 }
 
 func (s *BackendProtectionScenario) TestInvalidEndpointsReturn404() {

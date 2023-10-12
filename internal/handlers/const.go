@@ -5,12 +5,6 @@ import (
 )
 
 const (
-	// ActionTOTPRegistration is the string representation of the action for which the token has been produced.
-	ActionTOTPRegistration = "RegisterTOTPDevice"
-
-	// ActionWebAuthnRegistration is the string representation of the action for which the token has been produced.
-	ActionWebAuthnRegistration = "RegisterWebAuthnDevice"
-
 	// ActionResetPassword is the string representation of the action for which the token has been produced.
 	ActionResetPassword = "ResetPassword"
 )

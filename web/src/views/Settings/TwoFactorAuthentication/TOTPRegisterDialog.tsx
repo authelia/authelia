@@ -63,7 +63,7 @@ interface AvailableOptions {
     periods: number[];
 }
 
-const TOTPRegisterDialogController = function (props: Props) {
+const TOTPRegisterDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const styles = useStyles();
@@ -490,7 +490,7 @@ const TOTPRegisterDialogController = function (props: Props) {
     }
 
     return (
-        <Dialog open={props.open} onClose={handleOnClose} maxWidth={"xs"} fullWidth={true}>
+        <Dialog open={props.open} onClose={handleOnClose} maxWidth={"lg"} fullWidth={true}>
             <DialogTitle>{translate("Register One Time Password (TOTP)")}</DialogTitle>
             <DialogContent>
                 <DialogContentText sx={{ mb: 3 }}>
@@ -576,4 +576,4 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
 }));
 
-export default TOTPRegisterDialogController;
+export default TOTPRegisterDialog;
