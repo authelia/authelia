@@ -30,10 +30,10 @@ const steps = ["Description", "Verification"];
 
 interface Props {
     open: boolean;
-    setCancelled: () => void;
+    setClosed: () => void;
 }
 
-const WebAuthnDeviceRegisterDialog = function (props: Props) {
+const WebAuthnCredentialRegisterDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const styles = useStyles();
@@ -60,7 +60,7 @@ const WebAuthnDeviceRegisterDialog = function (props: Props) {
     const handleClose = useCallback(() => {
         resetStates();
 
-        props.setCancelled();
+        props.setClosed();
     }, [props]);
 
     const performCredentialCreation = useCallback(async () => {
@@ -102,7 +102,7 @@ const WebAuthnDeviceRegisterDialog = function (props: Props) {
         } catch (err) {
             console.error(err);
             createErrorNotification(
-                "Failed to register your device. The identity verification process might have timed out.",
+                "Failed to register your credential. The identity verification process might have timed out.",
             );
         }
     }, [props.open, options, createErrorNotification, handleClose]);
@@ -206,7 +206,7 @@ const WebAuthnDeviceRegisterDialog = function (props: Props) {
                                     onKeyDown={(ev) => {
                                         if (ev.key === "Enter") {
                                             (async () => {
-                                                await handleNext();
+                                                handleNext();
                                             })();
 
                                             ev.preventDefault();
@@ -280,7 +280,7 @@ const WebAuthnDeviceRegisterDialog = function (props: Props) {
                         color={credentialDescription.length !== 0 ? "success" : "primary"}
                         disabled={activeStep !== 0}
                         onClick={async () => {
-                            await handleNext();
+                            handleNext();
                         }}
                     >
                         {translate("Next")}
@@ -291,7 +291,7 @@ const WebAuthnDeviceRegisterDialog = function (props: Props) {
     );
 };
 
-export default WebAuthnDeviceRegisterDialog;
+export default WebAuthnCredentialRegisterDialog;
 
 const useStyles = makeStyles((theme: Theme) => ({
     icon: {

@@ -8,7 +8,9 @@ server:
 log:
   level: debug
 
-jwt_secret: unsecure_secret
+identity_validation:
+  reset_password:
+    jwt_secret: 'unsecure_secret'
 
 authentication_backend:
   file:

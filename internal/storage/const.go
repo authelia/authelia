@@ -8,6 +8,7 @@ const (
 	tableAuthenticationLogs   = "authentication_logs"
 	tableDuoDevices           = "duo_devices"
 	tableIdentityVerification = "identity_verification"
+	tableOneTimeCode          = "one_time_code"
 	tableTOTPConfigurations   = "totp_configurations"
 	tableUserOpaqueIdentifier = "user_opaque_identifier"
 	tableUserPreferences      = "user_preferences"

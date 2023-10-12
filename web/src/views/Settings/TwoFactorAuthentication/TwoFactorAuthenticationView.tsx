@@ -1,27 +1,36 @@
-import React, { useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 
 import Grid from "@mui/material/Unstable_Grid2";
 
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserInfoPOST } from "@hooks/UserInfo";
 import { useUserInfoTOTPConfigurationOptional } from "@hooks/UserInfoTOTPConfiguration";
-import { useUserWebAuthnDevices } from "@hooks/WebAuthnDevices";
+import { useUserWebAuthnCredentials } from "@hooks/WebAuthnCredentials";
 import TOTPPanel from "@views/Settings/TwoFactorAuthentication/TOTPPanel";
-import WebAuthnDevicesPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnDevicesPanel";
+import WebAuthnCredentialsPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsPanel";
 
 interface Props {}
 
 const TwoFactorAuthSettings = function (props: Props) {
     const [refreshState, setRefreshState] = useState(0);
+    const [refreshWebAuthnState, setRefreshWebAuthnState] = useState(0);
+    const [refreshTOTPState, setRefreshTOTPState] = useState(0);
     const { createErrorNotification } = useNotifications();
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoPOST();
     const [userTOTPConfig, fetchUserTOTPConfig, , fetchUserTOTPConfigError] = useUserInfoTOTPConfigurationOptional();
-    const [userWebAuthnDevices, fetchUserWebAuthnDevices, , fetchUserWebAuthnDevicesError] = useUserWebAuthnDevices();
+    const [userWebAuthnCredentials, fetchUserWebAuthnCredentials, , fetchUserWebAuthnCredentialsError] =
+        useUserWebAuthnCredentials();
     const [hasTOTP, setHasTOTP] = useState(false);
     const [hasWebAuthn, setHasWebAuthn] = useState(false);
 
-    const handleRefreshState = () => {
+    const handleRefreshWebAuthnState = () => {
         setRefreshState((refreshState) => refreshState + 1);
+        setRefreshWebAuthnState((refreshWebAuthnState) => refreshWebAuthnState + 1);
+    };
+
+    const handleRefreshTOTPState = () => {
+        setRefreshState((refreshState) => refreshState + 1);
+        setRefreshTOTPState((refreshTOTPState) => refreshTOTPState + 1);
     };
 
     useEffect(() => {
@@ -44,11 +53,11 @@ const TwoFactorAuthSettings = function (props: Props) {
 
     useEffect(() => {
         fetchUserTOTPConfig();
-    }, [fetchUserTOTPConfig, hasTOTP]);
+    }, [fetchUserTOTPConfig, hasTOTP, refreshTOTPState]);
 
     useEffect(() => {
-        fetchUserWebAuthnDevices();
-    }, [fetchUserWebAuthnDevices, hasWebAuthn]);
+        fetchUserWebAuthnCredentials();
+    }, [fetchUserWebAuthnCredentials, hasWebAuthn, refreshWebAuthnState]);
 
     useEffect(() => {
         if (fetchUserInfoError) {
@@ -63,20 +72,25 @@ const TwoFactorAuthSettings = function (props: Props) {
     }, [fetchUserTOTPConfigError, createErrorNotification]);
 
     useEffect(() => {
-        if (fetchUserWebAuthnDevicesError) {
+        if (fetchUserWebAuthnCredentialsError) {
             createErrorNotification("There was an issue retrieving One Time Password Configuration");
         }
-    }, [fetchUserWebAuthnDevicesError, createErrorNotification]);
+    }, [fetchUserWebAuthnCredentialsError, createErrorNotification]);
 
     return (
-        <Grid container spacing={2}>
-            <Grid xs={12}>
-                <TOTPPanel config={userTOTPConfig} handleRefreshState={handleRefreshState} />
+        <Fragment>
+            <Grid container spacing={2}>
+                <Grid xs={12}>
+                    <TOTPPanel config={userTOTPConfig} handleRefreshState={handleRefreshTOTPState} />
+                </Grid>
+                <Grid xs={12}>
+                    <WebAuthnCredentialsPanel
+                        credentials={userWebAuthnCredentials}
+                        handleRefreshState={handleRefreshWebAuthnState}
+                    />
+                </Grid>
             </Grid>
-            <Grid xs={12}>
-                <WebAuthnDevicesPanel devices={userWebAuthnDevices} handleRefreshState={handleRefreshState} />
-            </Grid>
-        </Grid>
+        </Fragment>
     );
 };
 

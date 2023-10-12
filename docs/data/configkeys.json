@@ -10,11 +10,6 @@
         "env": "AUTHELIA_CERTIFICATES_DIRECTORY"
     },
     {
-        "path": "jwt_secret",
-        "secret": true,
-        "env": "AUTHELIA_JWT_SECRET_FILE"
-    },
-    {
         "path": "default_2fa_method",
         "secret": false,
         "env": "AUTHELIA_DEFAULT_2FA_METHOD"
@@ -1058,5 +1053,40 @@
         "path": "privacy_policy.policy_url",
         "secret": false,
         "env": "AUTHELIA_PRIVACY_POLICY_POLICY_URL"
+    },
+    {
+        "path": "identity_validation.reset_password.expiration",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_EXPIRATION"
+    },
+    {
+        "path": "identity_validation.reset_password.jwt_algorithm",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_ALGORITHM"
+    },
+    {
+        "path": "identity_validation.reset_password.jwt_secret",
+        "secret": true,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE"
+    },
+    {
+        "path": "identity_validation.credential_management.expiration",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_CREDENTIAL_MANAGEMENT_EXPIRATION"
+    },
+    {
+        "path": "identity_validation.credential_management.elevation_expiration",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_CREDENTIAL_MANAGEMENT_ELEVATION_EXPIRATION"
+    },
+    {
+        "path": "identity_validation.credential_management.characters",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_CREDENTIAL_MANAGEMENT_CHARACTERS"
+    },
+    {
+        "path": "identity_validation.credential_management.skip_2fa",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_CREDENTIAL_MANAGEMENT_SKIP_2FA"
     }
 ]

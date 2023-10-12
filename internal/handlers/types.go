@@ -50,6 +50,23 @@ type bodySignWebAuthnRequest struct {
 	Response json.RawMessage `json:"response"`
 }
 
+// bodyGETUserSessionElevate is the  model of the request body of the User Session Elevation PUT endpoint.
+type bodyGETUserSessionElevate struct {
+	Elevated bool   `json:"elevated"`
+	Expires  int    `json:"expires"`
+	DeleteID string `json:"delete_id"`
+}
+
+// bodyPOSTUserSessionElevate is the  model of the request body of the User Session Elevation PUT endpoint.
+type bodyPOSTUserSessionElevate struct {
+	DeleteID string `json:"delete_id"`
+}
+
+// bodyPUTUserSessionElevate is the  model of the request body of the User Session Elevation PUT endpoint.
+type bodyPUTUserSessionElevate struct {
+	OneTimeCode string `json:"otc"`
+}
+
 type bodyRegisterWebAuthnPUTRequest struct {
 	Description string `json:"description"`
 }

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/mail"
 	"path"
 	"time"
 
@@ -45,14 +44,27 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 			return
 		}
 
-		verification := model.NewIdentityVerification(jti, identity.Username, args.ActionClaim, ctx.RemoteIP())
+		verification := model.NewIdentityVerification(jti, identity.Username, args.ActionClaim, ctx.RemoteIP(), ctx.Configuration.IdentityValidation.ResetPassword.Expiration)
 
 		// Create the claim with the action to sign it.
 		claims := verification.ToIdentityVerificationClaim()
 
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		var method *jwt.SigningMethodHMAC
 
-		signedToken, err := token.SignedString([]byte(ctx.Configuration.JWTSecret))
+		switch ctx.Configuration.IdentityValidation.ResetPassword.JWTAlgorithm {
+		case "HS256":
+			method = jwt.SigningMethodHS256
+		case "HS384":
+			method = jwt.SigningMethodHS384
+		case "HS512":
+			method = jwt.SigningMethodHS512
+		default:
+			method = jwt.SigningMethodHS256
+		}
+
+		token := jwt.NewWithClaims(method, claims)
+
+		signedToken, err := token.SignedString([]byte(ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret))
 		if err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
@@ -72,7 +84,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 		linkURL.Path = path.Join(linkURL.Path, args.TargetEndpoint)
 		linkURL.RawQuery = query.Encode()
 
-		data := templates.EmailIdentityVerificationValues{
+		data := templates.EmailIdentityVerificationJWTValues{
 			Title:       args.MailTitle,
 			LinkURL:     linkURL.String(),
 			LinkText:    args.MailButtonContent,
@@ -83,9 +95,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 		ctx.Logger.Debugf("Sending an email to user %s (%s) to confirm identity for registering a device.",
 			identity.Username, identity.Email)
 
-		recipient := mail.Address{Name: identity.DisplayName, Address: identity.Email}
-
-		if err = ctx.Providers.Notifier.Send(ctx, recipient, args.MailTitle, ctx.Providers.Templates.GetIdentityVerificationEmailTemplate(), data); err != nil {
+		if err = ctx.Providers.Notifier.Send(ctx, identity.Address(), args.MailTitle, ctx.Providers.Templates.GetIdentityVerificationJWTEmailTemplate(), data); err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}
@@ -119,7 +129,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 
 		token, err := jwt.ParseWithClaims(finishBody.Token, &model.IdentityVerificationClaim{},
 			func(token *jwt.Token) (any, error) {
-				return []byte(ctx.Configuration.JWTSecret), nil
+				return []byte(ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret), nil
 			},
 			jwt.WithIssuedAt(),
 			jwt.WithIssuer("Authelia"),

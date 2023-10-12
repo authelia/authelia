@@ -1,13 +1,13 @@
 import React, { MutableRefObject, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button, Checkbox, FormControlLabel, Grid, Link, Theme } from "@mui/material";
+import TextField from "@mui/material/TextField";
 import makeStyles from "@mui/styles/makeStyles";
 import { BroadcastChannel } from "broadcast-channel";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
-import FixedTextField from "@components/FixedTextField";
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
@@ -111,7 +111,7 @@ const FirstFactorForm = function (props: Props) {
         <LoginLayout id="first-factor-stage" title={translate("Sign in")} showBrand>
             <Grid container spacing={2}>
                 <Grid item xs={12}>
-                    <FixedTextField
+                    <TextField
                         // TODO (PR: #806, Issue: #511) potentially refactor
                         inputRef={usernameRef}
                         id="username-textfield"
@@ -141,7 +141,7 @@ const FirstFactorForm = function (props: Props) {
                     />
                 </Grid>
                 <Grid item xs={12}>
-                    <FixedTextField
+                    <TextField
                         // TODO (PR: #806, Issue: #511) potentially refactor
                         inputRef={passwordRef}
                         id="password-textfield"

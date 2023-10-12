@@ -22,7 +22,7 @@ import {
     OptionalDataServiceResponse,
     ServiceResponse,
     WebAuthnAssertionPath,
-    WebAuthnDevicePath,
+    WebAuthnCredentialPath,
     WebAuthnRegistrationPath,
     validateStatusAuthentication,
 } from "@services/Api";
@@ -225,18 +225,18 @@ export async function finishRegistration(response: RegistrationResponseJSON) {
     return result;
 }
 
-export async function deleteUserWebAuthnDevice(deviceID: string) {
+export async function deleteUserWebAuthnCredential(credentialID: string) {
     return axios<AuthenticationOKResponse>({
         method: "DELETE",
-        url: `${WebAuthnDevicePath}/${deviceID}`,
+        url: `${WebAuthnCredentialPath}/${credentialID}`,
         validateStatus: validateStatusAuthentication,
     });
 }
 
-export async function updateUserWebAuthnDevice(deviceID: string, description: string) {
+export async function updateUserWebAuthnCredential(credentialID: string, description: string) {
     return axios<AuthenticationOKResponse>({
         method: "PUT",
-        url: `${WebAuthnDevicePath}/${deviceID}`,
+        url: `${WebAuthnCredentialPath}/${credentialID}`,
         data: { description: description },
         validateStatus: validateStatusAuthentication,
     });

@@ -2,12 +2,12 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { Button, Grid, IconButton, InputAdornment, Theme } from "@mui/material";
+import TextField from "@mui/material/TextField";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
-import FixedTextField from "@components/FixedTextField";
 import PasswordMeter from "@components/PasswordMeter";
 import { IndexRoute } from "@constants/Routes";
 import { IdentityToken } from "@constants/SearchParams";
@@ -113,7 +113,7 @@ const ResetPasswordStep2 = function () {
         <LoginLayout title={translate("Enter new password")} id="reset-password-step2-stage">
             <Grid container className={styles.root} spacing={2}>
                 <Grid item xs={12}>
-                    <FixedTextField
+                    <TextField
                         id="password1-textfield"
                         label={translate("New password")}
                         variant="outlined"
@@ -144,7 +144,7 @@ const ResetPasswordStep2 = function () {
                     )}
                 </Grid>
                 <Grid item xs={12}>
-                    <FixedTextField
+                    <TextField
                         id="password2-textfield"
                         label={translate("Repeat new password")}
                         variant="outlined"
