@@ -1,6 +1,4 @@
 ---
-jwt_secret: 'RUtG9TnbXrOl1XLLmDgySw1DGgx9QcrtepIf1uDDBlBVKFZxkVBruYKBi32PvaU'
-
 default_redirection_url: 'example.com'
 
 server:
@@ -37,6 +35,10 @@ regulation:
   max_retries: 3
   find_time: '2m'
   ban_time: '5m'
+
+identity_validation:
+  reset_password:
+    jwt_secret: 'RUtG9TnbXrOl1XLLmDgySw1DGgx9QcrtepIf1uDDBlBVKFZxkVBruYKBi32PvaU'
 
 storage:
   mysql:

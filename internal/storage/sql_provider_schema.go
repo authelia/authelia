@@ -13,7 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// SchemaTables returns a list of tables.
+// SchemaTables returns a list of tables from the storage provider.
 func (p *SQLProvider) SchemaTables(ctx context.Context) (tables []string, err error) {
 	var rows *sqlx.Rows
 
@@ -48,7 +48,7 @@ func (p *SQLProvider) SchemaTables(ctx context.Context) (tables []string, err er
 	return tables, nil
 }
 
-// SchemaVersion returns the version of the schema.
+// SchemaVersion returns the version of the schema from the storage provider.
 func (p *SQLProvider) SchemaVersion(ctx context.Context) (version int, err error) {
 	tables, err := p.SchemaTables(ctx)
 	if err != nil {
@@ -81,44 +81,12 @@ func (p *SQLProvider) SchemaVersion(ctx context.Context) (version int, err error
 	return 0, nil
 }
 
-// SchemaLatestVersion returns the latest version available for migration.
+// SchemaLatestVersion returns the latest version available for migration for the storage provider.
 func (p *SQLProvider) SchemaLatestVersion() (version int, err error) {
 	return latestMigrationVersion(p.name)
 }
 
-// SchemaMigrationsUp returns a list of migrations up available between the current version and the provided version.
-func (p *SQLProvider) SchemaMigrationsUp(ctx context.Context, version int) (migrations []model.SchemaMigration, err error) {
-	current, err := p.SchemaVersion(ctx)
-	if err != nil {
-		return migrations, err
-	}
-
-	if version == 0 {
-		version = SchemaLatest
-	}
-
-	if current >= version {
-		return migrations, ErrNoAvailableMigrations
-	}
-
-	return loadMigrations(p.name, current, version)
-}
-
-// SchemaMigrationsDown returns a list of migrations down available between the current version and the provided version.
-func (p *SQLProvider) SchemaMigrationsDown(ctx context.Context, version int) (migrations []model.SchemaMigration, err error) {
-	current, err := p.SchemaVersion(ctx)
-	if err != nil {
-		return migrations, err
-	}
-
-	if current <= version {
-		return migrations, ErrNoAvailableMigrations
-	}
-
-	return loadMigrations(p.name, current, version)
-}
-
-// SchemaMigrationHistory returns migration history rows.
+// SchemaMigrationHistory returns the storage provider migration history rows.
 func (p *SQLProvider) SchemaMigrationHistory(ctx context.Context) (migrations []model.Migration, err error) {
 	rows, err := p.db.QueryxContext(ctx, p.sqlSelectMigrations)
 	if err != nil {
@@ -145,7 +113,41 @@ func (p *SQLProvider) SchemaMigrationHistory(ctx context.Context) (migrations []
 	return migrations, nil
 }
 
-// SchemaMigrate migrates from the current version to the provided version.
+// SchemaMigrationsUp returns a list of storage provider up migrations available between the current version
+// and the provided version.
+func (p *SQLProvider) SchemaMigrationsUp(ctx context.Context, version int) (migrations []model.SchemaMigration, err error) {
+	current, err := p.SchemaVersion(ctx)
+	if err != nil {
+		return migrations, err
+	}
+
+	if version == 0 {
+		version = SchemaLatest
+	}
+
+	if current >= version {
+		return migrations, ErrNoAvailableMigrations
+	}
+
+	return loadMigrations(p.name, current, version)
+}
+
+// SchemaMigrationsDown returns a list of storage provider down migrations available between the current version
+// and the provided version.
+func (p *SQLProvider) SchemaMigrationsDown(ctx context.Context, version int) (migrations []model.SchemaMigration, err error) {
+	current, err := p.SchemaVersion(ctx)
+	if err != nil {
+		return migrations, err
+	}
+
+	if current <= version {
+		return migrations, ErrNoAvailableMigrations
+	}
+
+	return loadMigrations(p.name, current, version)
+}
+
+// SchemaMigrate migrates from the storage provider's current schema version to the provided schema version.
 func (p *SQLProvider) SchemaMigrate(ctx context.Context, up bool, version int) (err error) {
 	var (
 		tx   *sqlx.Tx
@@ -251,7 +253,7 @@ func (p *SQLProvider) schemaMigrateApply(ctx context.Context, conn SQLXConnectio
 
 		if migration.Version == 1 && migration.Up {
 			// Add the schema encryption value if upgrading to v1.
-			if err = p.setNewEncryptionCheckValue(ctx, conn, &p.key); err != nil {
+			if err = p.setNewEncryptionCheckValue(ctx, conn, &p.keys.encryption); err != nil {
 				return err
 			}
 		}

@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.authelia.com/schemas/v4.37/json-schema/exports.webauthn.json",
+  "$ref": "#/$defs/WebAuthnDeviceDataExport",
+  "$defs": {
+    "WebAuthnDeviceData": {
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Created At",
+          "description": "The time this device was created"
+        },
+        "last_used_at": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Last Used At",
+          "description": "The last time this device was used"
+        },
+        "rpid": {
+          "type": "string",
+          "title": "Relying Party ID",
+          "description": "The Relying Party ID used to register this device"
+        },
+        "username": {
+          "type": "string",
+          "title": "Username",
+          "description": "The username of the user this device belongs to"
+        },
+        "description": {
+          "type": "string",
+          "title": "Description",
+          "description": "The user description of this device"
+        },
+        "kid": {
+          "type": "string",
+          "title": "Public Key ID",
+          "description": "The Public Key ID of this device"
+        },
+        "aaguid": {
+          "type": "string",
+          "title": "AAGUID",
+          "description": "The Authenticator Attestation Global Unique Identifier of this device"
+        },
+        "attestation_type": {
+          "type": "string",
+          "title": "Attestation Type",
+          "description": "The attestation format type this device uses"
+        },
+        "transports": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Transports",
+          "description": "The last recorded device transports"
+        },
+        "sign_count": {
+          "type": "integer",
+          "title": "Sign Count",
+          "description": "The last recorded device sign count"
+        },
+        "clone_warning": {
+          "type": "boolean",
+          "title": "Clone Warning",
+          "description": "The clone warning status of the device"
+        },
+        "public_key": {
+          "type": "string",
+          "title": "Public Key",
+          "description": "The device public key"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "WebAuthnDeviceDataExport": {
+      "properties": {
+        "webauthn_devices": {
+          "items": {
+            "$ref": "#/$defs/WebAuthnDeviceData"
+          },
+          "type": "array",
+          "title": "WebAuthn Devices",
+          "description": "The list of WebAuthn devices"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    }
+  }
+}

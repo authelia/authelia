@@ -110,6 +110,20 @@ func (mr *MockStorageMockRecorder) ConsumeIdentityVerification(arg0, arg1, arg2 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeIdentityVerification", reflect.TypeOf((*MockStorage)(nil).ConsumeIdentityVerification), arg0, arg1, arg2)
 }
 
+// ConsumeOneTimeCode mocks base method.
+func (m *MockStorage) ConsumeOneTimeCode(arg0 context.Context, arg1 *model.OneTimeCode) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConsumeOneTimeCode", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ConsumeOneTimeCode indicates an expected call of ConsumeOneTimeCode.
+func (mr *MockStorageMockRecorder) ConsumeOneTimeCode(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeOneTimeCode", reflect.TypeOf((*MockStorage)(nil).ConsumeOneTimeCode), arg0, arg1)
+}
+
 // DeactivateOAuth2Session mocks base method.
 func (m *MockStorage) DeactivateOAuth2Session(arg0 context.Context, arg1 storage.OAuth2SessionType, arg2 string) error {
 	m.ctrl.T.Helper()
@@ -297,6 +311,66 @@ func (m *MockStorage) LoadOAuth2Session(arg0 context.Context, arg1 storage.OAuth
 func (mr *MockStorageMockRecorder) LoadOAuth2Session(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2Session", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2Session), arg0, arg1, arg2)
+}
+
+// LoadOneTimeCode mocks base method.
+func (m *MockStorage) LoadOneTimeCode(arg0 context.Context, arg1, arg2, arg3 string) (*model.OneTimeCode, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOneTimeCode", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*model.OneTimeCode)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOneTimeCode indicates an expected call of LoadOneTimeCode.
+func (mr *MockStorageMockRecorder) LoadOneTimeCode(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOneTimeCode", reflect.TypeOf((*MockStorage)(nil).LoadOneTimeCode), arg0, arg1, arg2, arg3)
+}
+
+// LoadOneTimeCodeByID mocks base method.
+func (m *MockStorage) LoadOneTimeCodeByID(arg0 context.Context, arg1 int) (*model.OneTimeCode, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOneTimeCodeByID", arg0, arg1)
+	ret0, _ := ret[0].(*model.OneTimeCode)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOneTimeCodeByID indicates an expected call of LoadOneTimeCodeByID.
+func (mr *MockStorageMockRecorder) LoadOneTimeCodeByID(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOneTimeCodeByID", reflect.TypeOf((*MockStorage)(nil).LoadOneTimeCodeByID), arg0, arg1)
+}
+
+// LoadOneTimeCodeByPublicID mocks base method.
+func (m *MockStorage) LoadOneTimeCodeByPublicID(arg0 context.Context, arg1 uuid.UUID) (*model.OneTimeCode, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOneTimeCodeByPublicID", arg0, arg1)
+	ret0, _ := ret[0].(*model.OneTimeCode)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOneTimeCodeByPublicID indicates an expected call of LoadOneTimeCodeByPublicID.
+func (mr *MockStorageMockRecorder) LoadOneTimeCodeByPublicID(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOneTimeCodeByPublicID", reflect.TypeOf((*MockStorage)(nil).LoadOneTimeCodeByPublicID), arg0, arg1)
+}
+
+// LoadOneTimeCodeBySignature mocks base method.
+func (m *MockStorage) LoadOneTimeCodeBySignature(arg0 context.Context, arg1 string) (*model.OneTimeCode, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOneTimeCodeBySignature", arg0, arg1)
+	ret0, _ := ret[0].(*model.OneTimeCode)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOneTimeCodeBySignature indicates an expected call of LoadOneTimeCodeBySignature.
+func (mr *MockStorageMockRecorder) LoadOneTimeCodeBySignature(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOneTimeCodeBySignature", reflect.TypeOf((*MockStorage)(nil).LoadOneTimeCodeBySignature), arg0, arg1)
 }
 
 // LoadPreferred2FAMethod mocks base method.
@@ -521,6 +595,20 @@ func (mr *MockStorageMockRecorder) RevokeOAuth2SessionByRequestID(arg0, arg1, ar
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeOAuth2SessionByRequestID", reflect.TypeOf((*MockStorage)(nil).RevokeOAuth2SessionByRequestID), arg0, arg1, arg2)
 }
 
+// RevokeOneTimeCode mocks base method.
+func (m *MockStorage) RevokeOneTimeCode(arg0 context.Context, arg1 uuid.UUID, arg2 model.IP) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevokeOneTimeCode", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RevokeOneTimeCode indicates an expected call of RevokeOneTimeCode.
+func (mr *MockStorageMockRecorder) RevokeOneTimeCode(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeOneTimeCode", reflect.TypeOf((*MockStorage)(nil).RevokeOneTimeCode), arg0, arg1, arg2)
+}
+
 // Rollback mocks base method.
 func (m *MockStorage) Rollback(arg0 context.Context) error {
 	m.ctrl.T.Helper()
@@ -660,6 +748,21 @@ func (m *MockStorage) SaveOAuth2Session(arg0 context.Context, arg1 storage.OAuth
 func (mr *MockStorageMockRecorder) SaveOAuth2Session(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2Session", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2Session), arg0, arg1, arg2)
+}
+
+// SaveOneTimeCode mocks base method.
+func (m *MockStorage) SaveOneTimeCode(arg0 context.Context, arg1 model.OneTimeCode) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveOneTimeCode", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SaveOneTimeCode indicates an expected call of SaveOneTimeCode.
+func (mr *MockStorageMockRecorder) SaveOneTimeCode(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOneTimeCode", reflect.TypeOf((*MockStorage)(nil).SaveOneTimeCode), arg0, arg1)
 }
 
 // SavePreferred2FAMethod mocks base method.

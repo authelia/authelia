@@ -2,12 +2,13 @@ import React, { useEffect } from "react";
 
 import { Route, Routes } from "react-router-dom";
 
-import { IndexRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
+import { IndexRoute, SettingsTestSubRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useAutheliaState } from "@hooks/State";
 import SettingsLayout from "@layouts/SettingsLayout";
 import { AuthenticationLevel } from "@services/State";
 import SettingsView from "@views/Settings/SettingsView";
+import TestView from "@views/Settings/Test/TestView";
 import TwoFactorAuthenticationView from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationView";
 
 export interface Props {}
@@ -31,6 +32,7 @@ const SettingsRouter = function (props: Props) {
             <Routes>
                 <Route path={IndexRoute} element={<SettingsView />} />
                 <Route path={SettingsTwoFactorAuthenticationSubRoute} element={<TwoFactorAuthenticationView />} />
+                <Route path={SettingsTestSubRoute} element={<TestView />} />
             </Routes>
         </SettingsLayout>
     );

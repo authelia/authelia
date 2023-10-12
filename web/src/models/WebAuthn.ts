@@ -105,7 +105,7 @@ export interface AuthenticationResult {
     result: AssertionResult;
 }
 
-export interface WebAuthnDevice {
+export interface WebAuthnCredential {
     id: string;
     created_at: string;
     last_used_at?: string;

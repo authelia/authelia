@@ -3,8 +3,7 @@
 #                   Authelia configuration                    #
 ###############################################################
 
-jwt_secret: a_very_important_secret
-default_redirection_url: https://public.example.com
+default_redirection_url: 'https://public.example.com'
 
 server:
   address: 'tcp://:9091'
@@ -14,6 +13,10 @@ log:
 
 totp:
   issuer: authelia.com
+
+identity_validation:
+  reset_password:
+    jwt_secret: 'a_very_important_secret'
 
 authentication_backend:
   file:

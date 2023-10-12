@@ -9,13 +9,13 @@ export const ConsentPath = basePath + "/api/oidc/consent";
 
 export const FirstFactorPath = basePath + "/api/firstfactor";
 
-export const TOTPRegistrationOptionsPath = basePath + "/api/secondfactor/totp/register/options";
 export const TOTPRegistrationPath = basePath + "/api/secondfactor/totp/register";
+export const TOTPConfigurationPath = basePath + "/api/secondfactor/totp";
 
 export const WebAuthnRegistrationPath = basePath + "/api/secondfactor/webauthn/credential/register";
 export const WebAuthnAssertionPath = basePath + "/api/secondfactor/webauthn";
-export const WebAuthnDevicesPath = basePath + "/api/secondfactor/webauthn/credentials";
-export const WebAuthnDevicePath = basePath + "/api/secondfactor/webauthn/credential";
+export const WebAuthnCredentialsPath = basePath + "/api/secondfactor/webauthn/credentials";
+export const WebAuthnCredentialPath = basePath + "/api/secondfactor/webauthn/credential";
 
 export const InitiateDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_devices";
 export const CompleteDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_device";
@@ -34,7 +34,7 @@ export const LogoutPath = basePath + "/api/logout";
 export const StatePath = basePath + "/api/state";
 export const UserInfoPath = basePath + "/api/user/info";
 export const UserInfo2FAMethodPath = basePath + "/api/user/info/2fa_method";
-export const UserInfoTOTPConfigurationPath = basePath + "/api/user/info/totp";
+export const UserSessionElevationPath = basePath + "/api/user/session/elevation";
 
 export const ConfigurationPath = basePath + "/api/configuration";
 export const PasswordPolicyConfigurationPath = basePath + "/api/configuration/password-policy";
