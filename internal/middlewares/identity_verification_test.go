@@ -56,7 +56,7 @@ func TestShouldFailIfJWTCannotBeSaved(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	mock.Ctx.Configuration.JWTSecret = testJWTSecret
+	mock.Ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret = testJWTSecret
 
 	mock.StorageMock.EXPECT().
 		SaveIdentityVerification(mock.Ctx, gomock.Any()).
@@ -73,7 +73,7 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	mock.Ctx.Configuration.JWTSecret = testJWTSecret
+	mock.Ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret = testJWTSecret
 	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedProto, "http")
 	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedHost, "host")
 
@@ -95,7 +95,7 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 
-	mock.Ctx.Configuration.JWTSecret = testJWTSecret
+	mock.Ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret = testJWTSecret
 	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedProto, "http")
 	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedHost, "host")
 
@@ -125,7 +125,7 @@ type IdentityVerificationFinishProcess struct {
 func (s *IdentityVerificationFinishProcess) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 
-	s.mock.Ctx.Configuration.JWTSecret = testJWTSecret
+	s.mock.Ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret = testJWTSecret
 }
 
 func (s *IdentityVerificationFinishProcess) TearDownTest() {
@@ -133,14 +133,14 @@ func (s *IdentityVerificationFinishProcess) TearDownTest() {
 }
 
 func createToken(ctx *mocks.MockAutheliaCtx, username, action string, expiresAt time.Time) (data string, verification model.IdentityVerification) {
-	verification = model.NewIdentityVerification(uuid.New(), username, action, ctx.Ctx.RemoteIP())
+	verification = model.NewIdentityVerification(uuid.New(), username, action, ctx.Ctx.RemoteIP(), time.Minute*5)
 
 	verification.ExpiresAt = expiresAt
 
 	claims := verification.ToIdentityVerificationClaim()
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	ss, _ := token.SignedString([]byte(ctx.Ctx.Configuration.JWTSecret))
+	ss, _ := token.SignedString([]byte(ctx.Ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret))
 
 	return ss, verification
 }

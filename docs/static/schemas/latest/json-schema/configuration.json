@@ -859,11 +859,6 @@
           "title": "Certificates Directory Path",
           "description": "The path to a directory which is used to determine the certificates that are trusted"
         },
-        "jwt_secret": {
-          "type": "string",
-          "title": "Secret Key for JWT's",
-          "description": "Used for signing HS256 JWT's for identity verification"
-        },
         "default_2fa_method": {
           "type": "string",
           "enum": [
@@ -953,6 +948,11 @@
           "$ref": "#/$defs/PrivacyPolicy",
           "title": "Privacy Policy",
           "description": "Privacy Policy Configuration"
+        },
+        "identity_validation": {
+          "$ref": "#/$defs/IdentityValidation",
+          "title": "Identity Validation",
+          "description": "Identity Validation Configuration"
         },
         "default_redirection_url": {
           "type": "string",
@@ -1868,6 +1868,107 @@
       "additionalProperties": false,
       "type": "object",
       "description": "IdentityProvidersOpenIDConnectPolicyRule configuration for OpenID Connect 1.0 authorization policies rules."
+    },
+    "IdentityValidation": {
+      "properties": {
+        "reset_password": {
+          "$ref": "#/$defs/IdentityValidationResetPassword",
+          "title": "Reset Password",
+          "description": "Identity validation options for the Reset Password flow"
+        },
+        "credential_management": {
+          "$ref": "#/$defs/IdentityValidationCredentials",
+          "title": "Credential Management",
+          "description": "Identity validation options for the Credential Management flows"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityValidation represents the configuration for identity verification actions/flows."
+    },
+    "IdentityValidationCredentials": {
+      "properties": {
+        "expiration": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Expiration",
+          "description": "Duration of time the OTP code is considered valid"
+        },
+        "elevation_expiration": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Elevation Expiration",
+          "description": "Duration of time the elevation can exist for after the user performs the validation"
+        },
+        "otp_characters": {
+          "type": "integer",
+          "maximum": 12,
+          "minimum": 6,
+          "title": "OTP Characters",
+          "description": "Number of characters in the generated OTP codes"
+        },
+        "skip_2fa": {
+          "type": "boolean",
+          "title": "Skip 2FA",
+          "description": "Skips 2FA requirement TODO"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityValidationCredentials represents the tunable aspects of the credential control identity verification action/flow."
+    },
+    "IdentityValidationResetPassword": {
+      "properties": {
+        "expiration": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Expiration",
+          "description": "Duration of time the JWT is considered valid"
+        },
+        "jwt_algorithm": {
+          "type": "string",
+          "enum": [
+            "HS256",
+            "HS384",
+            "HS512"
+          ],
+          "title": "JWT Algorithm",
+          "description": "The JWT Algorithm (JWA) used to sign the Reset Password flow JWT's'",
+          "default": "HS256"
+        },
+        "jwt_secret": {
+          "type": "string",
+          "title": "JWT Secret",
+          "description": "The JWT secret used to sign the Reset Password flow JWT's"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityValidationResetPassword represents the tunable aspects of the reset password identity verification action/flow."
     },
     "JWK": {
       "properties": {
@@ -3149,7 +3250,10 @@
           },
           "type": "array",
           "title": "Allowed Algorithms",
-          "description": "List of algorithms the user is allowed to select in addition to the default"
+          "description": "List of algorithms the user is allowed to select in addition to the default",
+          "default": [
+            "SHA1"
+          ]
         },
         "allowed_digits": {
           "items": {
@@ -3172,7 +3276,10 @@
           },
           "type": "array",
           "title": "Allowed Periods",
-          "description": "List of periods the user is allowed to select in addition to the default"
+          "description": "List of periods the user is allowed to select in addition to the default",
+          "default": [
+            30
+          ]
         }
       },
       "additionalProperties": false,

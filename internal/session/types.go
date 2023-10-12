@@ -1,6 +1,7 @@
 package session
 
 import (
+	"net"
 	"time"
 
 	"github.com/fasthttp/session/v2"
@@ -44,6 +45,8 @@ type UserSession struct {
 	PasswordResetUsername *string
 
 	RefreshTTL time.Time
+
+	Elevations Elevations
 }
 
 // TOTP holds the TOTP registration session data.
@@ -67,4 +70,16 @@ type Identity struct {
 	Username    string
 	Email       string
 	DisplayName string
+}
+
+// Elevations describes various session elevations.
+type Elevations struct {
+	User *Elevation
+}
+
+// Elevation is an individual elevation.
+type Elevation struct {
+	ID       int
+	RemoteIP net.IP
+	Expires  time.Time
 }

@@ -22,10 +22,6 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 		}
 	}
 
-	if config.JWTSecret == "" {
-		validator.Push(fmt.Errorf("option 'jwt_secret' is required"))
-	}
-
 	validateDefault2FAMethod(config, validator)
 
 	ValidateTheme(config, validator)
@@ -57,6 +53,8 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 	ValidateNotifier(&config.Notifier, validator)
 
 	ValidateIdentityProviders(&config.IdentityProviders, validator)
+
+	ValidateIdentityValidation(config, validator)
 
 	ValidateNTP(config, validator)
 

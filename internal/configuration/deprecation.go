@@ -358,4 +358,12 @@ var deprecations = map[string]Deprecation{
 		MapFunc: nil,
 		ErrFunc: nil,
 	},
+	"jwt_secret": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "jwt_secret",
+		NewKey:  "identity_validation.reset_password.jwt_secret",
+		AutoMap: true,
+		MapFunc: nil,
+		ErrFunc: nil,
+	},
 }

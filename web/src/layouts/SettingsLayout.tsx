@@ -1,6 +1,6 @@
 import React, { ReactNode, SyntheticEvent, useCallback, useEffect, useState } from "react";
 
-import { Close, Dashboard } from "@mui/icons-material";
+import { Close, Dashboard, ScienceOutlined } from "@mui/icons-material";
 import MenuIcon from "@mui/icons-material/Menu";
 import SystemSecurityUpdateGoodIcon from "@mui/icons-material/SystemSecurityUpdateGood";
 import {
@@ -19,7 +19,12 @@ import {
 import IconButton from "@mui/material/IconButton";
 import { useTranslation } from "react-i18next";
 
-import { IndexRoute, SettingsRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
+import {
+    IndexRoute,
+    SettingsRoute,
+    SettingsTestSubRoute,
+    SettingsTwoFactorAuthenticationSubRoute,
+} from "@constants/Routes";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 
 export interface Props {
@@ -144,6 +149,12 @@ const navItems: NavItem[] = [
         text: "Two-Factor Authentication",
         pathname: `${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`,
         icon: <SystemSecurityUpdateGoodIcon color={"primary"} />,
+    },
+    {
+        keyname: "test",
+        text: "Test",
+        pathname: `${SettingsRoute}${SettingsTestSubRoute}`,
+        icon: <ScienceOutlined color={"primary"} />,
     },
     { keyname: "close", text: "Close", pathname: IndexRoute, icon: <Close color={"error"} /> },
 ];

@@ -72,7 +72,7 @@ const SecondFactorForm = function (props: Props) {
             id="second-factor-stage"
             title={`${translate("Hi")} ${props.userInfo.display_name}`}
             showBrand
-            showSettings
+            userInfo={props.userInfo}
         >
             {props.configuration.available_methods.size > 1 ? (
                 <MethodSelectionDialog

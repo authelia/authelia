@@ -12,7 +12,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func TOTPRegisterOptionsGET(ctx *middlewares.AutheliaCtx) {
+func TOTPRegisterGET(ctx *middlewares.AutheliaCtx) {
 	if err := ctx.SetJSONBody(ctx.Providers.TOTP.Options()); err != nil {
 		ctx.Logger.Errorf("Unable to set TOTP options response in body: %s", err)
 	}

@@ -650,35 +650,64 @@ paths:
       security:
         - authelia_auth: []
   {{- if .TOTP }}
-  /api/user/info/totp:
+  /api/secondfactor/totp/register:
     get:
       tags:
-        - User Information
-      summary: User TOTP Configuration
+        - Second Factor
+      summary: TOTP Configuration Register
       description: >
-        The user TOTP info endpoint provides information necessary to display the TOTP component to validate their
-        TOTP input such as the period/frequency and number of digits.
+        The TOTP register endpoint (using the GET method verb) provides information important for registering the TOTP
+        configuration for the user. This endpoint only returns information used for this same endpoint when utilizing
+        the PUT method verb.
       responses:
         "200":
           description: Successful Operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/handlers.UserInfoTOTP'
+                $ref: '#/components/schemas/handlers.TOTPOptions'
         "403":
           description: Forbidden
       security:
         - authelia_auth: []
-  /api/secondfactor/totp/identity/start:
+    put:
+      tags:
+        - Second Factor
+      summary: TOTP Configuration Register
+      description: >
+        The TOTP register endpoint (using the PUT method verb) creates a temporary TOTP configuration which must then
+        be validated by the user using the POST method verb variant of this endpoint. Without validation the TOTP
+        configuration is not committed to the database and is instead temporarily stored in the session backend. This
+        action can also be followed by using the DELETE method verb for the same endpoint which will delete the
+        temporary configuration from the session.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.TOTPRegisterStartRequest'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.TOTPRegisterStartResponse'
+        "403":
+          description: Forbidden
+      security:
+        - authelia_auth: []
     post:
       tags:
         - Second Factor
-      summary: Identity Verification TOTP Token Creation
+      summary: TOTP Configuration Register
       description: >
-        This endpoint performs identity verification to begin the TOTP device registration process.
-
-        The session generated from this endpoint must be utilised for the subsequent step in the
-        `/api/secondfactor/totp/identity/finish` endpoint.
+        The TOTP register endpoint (using the POST method verb) provides the validation step for the endpoint where the
+        user provides the TOTP configuration generated token. If successful the configuration is saved to the database.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.TOTPRegisterFinishRequest'
       responses:
         "200":
           description: Successful Operation
@@ -686,40 +715,53 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.OkResponse'
+        "403":
+          description: Forbidden
       security:
         - authelia_auth: []
-  /api/secondfactor/totp/identity/finish:
-    post:
+    delete:
       tags:
         - Second Factor
-      summary: Identity Verification TOTP Token Validation and Device Creation
+      summary: TOTP Configuration Register
       description: >
-        This endpoint performs identity and token verification, upon success also generates TOTP device secret and
-        registers said device.
-
-        The session cookie generated from the `/api/secondfactor/totp/identity/start` endpoint must be utilised for the
-        step here.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/middlewares.IdentityVerificationFinishBody'
+        The TOTP register endpoint (using the DELETE method verb) removes the temporary TOTP configuration from the
+        session. It does NOT affect the TOTP configuration saved to the database.
       responses:
         "200":
           description: Successful Operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/handlers.TOTPKeyResponse'
+                $ref: '#/components/schemas/middlewares.OkResponse'
+        "403":
+          description: Forbidden
       security:
         - authelia_auth: []
   /api/secondfactor/totp:
+    get:
+      tags:
+        - Second Factor
+      summary: TOTP Configuration
+      description: >
+        The TOTP endpoint (using the GET method verb) provides information necessary to display the TOTP component to
+        validate their TOTP input such as the period and number of digits.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.TOTPConfiguration'
+        "403":
+          description: Forbidden
+      security:
+        - authelia_auth: []
     post:
       tags:
         - Second Factor
       summary: Second Factor Authentication - TOTP
-      description: This endpoint performs second factor authentication with a TOTP key.
+      description: >
+        The TOTP endpoint (using the POST method verb) performs second factor authentication with a TOTP configuration.
       requestBody:
         required: true
         content:
@@ -741,14 +783,33 @@ paths:
                 $ref: '#/components/schemas/middlewares.ErrorResponse'
       security:
         - authelia_auth: []
+    delete:
+      tags:
+        - Second Factor
+      summary: Second Factor Authentication - TOTP
+      description: >
+        The TOTP endpoint (using the DELETE method verb) deletes the TOTP configuration for the user from the database.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.OkResponse'
+        "403":
+          description: Forbidden
+      security:
+        - authelia_auth: []
   {{- end }}
   {{- if .WebAuthn }}
-  /api/secondfactor/webauthn/assertion:
+  /api/secondfactor/webauthn:
     get:
       tags:
         - Second Factor
-      summary: Second Factor Authentication - WebAuthn (Request)
-      description: This endpoint starts the second factor authentication process with the FIDO2 WebAuthn credential.
+      summary: Second Factor Authentication - WebAuthn
+      description: >
+        The WebAuthn endpoint (using the GET method verb) starts the second factor authentication process with the
+        FIDO2 WebAuthn credential.
       responses:
         "200":
           description: Successful Operation
@@ -764,7 +825,9 @@ paths:
       tags:
         - Second Factor
       summary: Second Factor Authentication - WebAuthn
-      description: This endpoint completes the second factor authentication process with the FIDO2 WebAuthn credential.
+      description: >
+        The WebAuthn endpoint (using the POST method verb) completes the second factor authentication process with the
+        FIDO2 WebAuthn credential.
       requestBody:
         required: true
         content:
@@ -782,43 +845,21 @@ paths:
           description: Unauthorized
       security:
         - authelia_auth: []
-  /api/secondfactor/webauthn/identity/start:
-    post:
+  /api/secondfactor/webauthn/register:
+    put:
       tags:
         - Second Factor
-      summary: Identity Verification WebAuthn Credential Creation
+      summary: WebAuthn Credential Register
       description: >
-        This endpoint performs identity verification to begin the FIDO2 WebAuthn credential attestation process
-        (registration).
-
-        The session generated from this endpoint must be utilised for the subsequent steps in the
-        `/api/secondfactor/webauthn/identity/finish` and `/api/secondfactor/webauthn/attestation` endpoints.
-      responses:
-        "200":
-          description: Successful Operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
-      security:
-        - authelia_auth: []
-  /api/secondfactor/webauthn/identity/finish:
-    post:
-      tags:
-        - Second Factor
-      summary: Identity Verification FIDO2 WebAuthn Credential Validation
-      description: >
-        This endpoint performs identity and token verification, upon success generates a FIDO2 WebAuthn credential
-        attestation challenge (registration).
-
-        The session cookie generated from the `/api/secondfactor/webauthn/identity/start` endpoint must be utilised
-        for the subsequent steps here and in the `/api/secondfactor/webauthn/attestation` endpoint.
+        The WebAuthn Register endpoint (using the PUT method verb) checks the intended description is okay and provides
+        the relevant credential creation options, and stores the creation options for a validation via the same endpoint
+        with the POST method verb.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/middlewares.IdentityVerificationFinishBody'
+              $ref: '#/components/schemas/webauthn.RegisterRequest'
       responses:
         "200":
           description: Successful Operation
@@ -826,14 +867,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/webauthn.PublicKeyCredentialCreationOptions'
-      security:
-        - authelia_auth: []
-  /api/secondfactor/webauthn/attestation:
     post:
       tags:
         - Second Factor
       summary: WebAuthn Credential Attestation
-      description: This endpoint performs WebAuthn credential attestation (registration).
+      description: >
+        The WebAuthn Register endpoint (using the POST method verb) validates the authenticators response and finalizes
+        the WebAuthn registration.
       requestBody:
         required: true
         content:
@@ -849,12 +889,14 @@ paths:
                 $ref: '#/components/schemas/middlewares.OkResponse'
       security:
         - authelia_auth: []
-  /api/secondfactor/webauthn/credentials/{credentialID}:
+  /api/secondfactor/webauthn/credential/{credentialID}:
     delete:
       tags:
         - Second Factor
-      summary: WebAuthn Credential Deletion
-      description: This endpoint deletes the specified WebAuthn credential.
+      summary: WebAuthn Credential
+      description: >
+        The WebAuthn credential endpoint (using the DELETE method verb) deletes the specified WebAuthn credential from
+        the database.
       responses:
         "200":
           description: Successful Operation
@@ -865,12 +907,14 @@ paths:
       security:
         - authelia_auth: []
       parameters:
-        - $ref: '#/components/parameters/deviceID'
+        - $ref: '#/components/parameters/credentialID'
     put:
       tags:
         - Second Factor
-      summary: WebAuthn Credential Update
-      description: This endpoint updates the description of the specified WebAuthn credential.
+      summary: WebAuthn Credential
+      description: >
+        The WebAuthn credential endpoint (using the PUT method verb) updates the description of the specified WebAuthn
+        credential.
       requestBody:
         required: true
         content:
@@ -887,7 +931,7 @@ paths:
       security:
         - authelia_auth: []
       parameters:
-        - $ref: '#/components/parameters/deviceID'
+        - $ref: '#/components/parameters/credentialID'
   {{- end }}
   {{- if .Duo }}
   /api/secondfactor/duo:
@@ -1596,7 +1640,7 @@ paths:
   {{- end }}
 components:
   parameters:
-    deviceID:
+    credentialID:
       in: path
       name: credentialID
       schema:
@@ -2017,7 +2061,98 @@ components:
             - 'mobile_push'
           example: totp
     {{- if .TOTP }}
-    handlers.UserInfoTOTP:
+    handlers.TOTPOptions:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            algorithm:
+              default: 'SHA1'
+              description: The default algorithm for the generated configuration.
+              type: string
+              example: 'SHA1'
+            length:
+              default: 30
+              description: The default period or length of time for the generated configuration.
+              type: integer
+              example: 30
+            digits:
+              default: 6
+              description: The default digits for the generated configuration.
+              type: integer
+              example: 6
+            algorithms:
+              default:
+                - 'SHA1'
+              description: The allowed algorithm values for the generated configuration.
+              example:
+                - 'SHA1'
+              type: array
+              items:
+                type: string
+            lengths:
+              default:
+                - 30
+              description: The allowed period or length values for the generated configuration.
+              example:
+                - 30
+              type: array
+              items:
+                type: integer
+            periods:
+              default:
+                - 6
+              description: The allowed digits values for the generated configuration.
+              example:
+                - 6
+              type: array
+              items:
+                type: integer
+    handlers.TOTPRegisterStartRequest:
+      type: object
+      properties:
+        algorithm:
+          default: 'SHA1'
+          description: The algorithm for the generated configuration.
+          type: string
+          example: 'SHA1'
+        length:
+          default: 30
+          description: The period or length of time for the generated configuration.
+          type: integer
+          example: 30
+        digits:
+          default: 6
+          description: The digits for the generated configuration.
+          type: integer
+          example: 6
+    handlers.TOTPRegisterStartResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            base32_secret:
+              description: The base32 encoded secret for the TOTP configuration.
+              type: string
+            otpauth_url:
+              description: The TOTP scheme URL for the TOTP configuration used to generate the QR code.
+              type: string
+    handlers.TOTPRegisterFinishRequest:
+      type: object
+      properties:
+        token:
+          description: The value generated by the authenticator.
+          type: string
+          example: '123456'
+    handlers.TOTPConfiguration:
       type: object
       properties:
         status:
@@ -2154,6 +2289,13 @@ components:
       properties:
         description:
           type: string
+    webauthn.RegisterRequest:
+      type: object
+      properties:
+        description:
+          description: The description the registered credential will have.
+          type: string
+          example: 'My Main Credential'
     webauthn.PublicKeyCredentialCreationOptions:
       type: object
       properties:

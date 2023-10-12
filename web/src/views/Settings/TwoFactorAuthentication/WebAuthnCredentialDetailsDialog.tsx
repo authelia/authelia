@@ -14,26 +14,31 @@ import Grid from "@mui/material/Unstable_Grid2";
 import { useTranslation } from "react-i18next";
 
 import CopyButton from "@components/CopyButton";
-import { WebAuthnDevice, toTransportName } from "@models/WebAuthn";
+import { FormatDateHumanReadable } from "@i18n/formats.ts";
+import { WebAuthnCredential, toTransportName } from "@models/WebAuthn";
 
 interface Props {
     open: boolean;
-    device: WebAuthnDevice;
+    credential: WebAuthnCredential;
     handleClose: () => void;
 }
 
-const WebAuthnDeviceDetailsDialog = function (props: Props) {
+const WebAuthnCredentialDetailsDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     return (
-        <Dialog open={props.open} onClose={props.handleClose} aria-labelledby="webauthn-device-details-dialog-title">
-            <DialogTitle id="webauthn-device-details-dialog-title">
+        <Dialog
+            open={props.open}
+            onClose={props.handleClose}
+            aria-labelledby="webauthn-credential-details-dialog-title"
+        >
+            <DialogTitle id="webauthn-credential-details-dialog-title">
                 {translate("WebAuthn Credential Details")}
             </DialogTitle>
             <DialogContent>
                 <DialogContentText sx={{ mb: 3 }}>
                     {translate("Extended WebAuthn credential information for security key", {
-                        description: props.device.description,
+                        description: props.credential.description,
                     })}
                 </DialogContentText>
                 <Grid container spacing={2}>
@@ -43,30 +48,30 @@ const WebAuthnDeviceDetailsDialog = function (props: Props) {
                     <Grid xs={12}>
                         <Divider />
                     </Grid>
-                    <PropertyText name={translate("Description")} value={props.device.description} />
-                    <PropertyText name={translate("Relying Party ID")} value={props.device.rpid} />
+                    <PropertyText name={translate("Description")} value={props.credential.description} />
+                    <PropertyText name={translate("Relying Party ID")} value={props.credential.rpid} />
                     <PropertyText
                         name={translate("Authenticator GUID")}
-                        value={props.device.aaguid === undefined ? translate("Unknown") : props.device.aaguid}
+                        value={props.credential.aaguid === undefined ? translate("Unknown") : props.credential.aaguid}
                     />
-                    <PropertyText name={translate("Attestation Type")} value={props.device.attestation_type} />
+                    <PropertyText name={translate("Attestation Type")} value={props.credential.attestation_type} />
                     <PropertyText
                         name={translate("Attachment")}
-                        value={props.device.attachment === "" ? translate("Unknown") : props.device.attachment}
+                        value={props.credential.attachment === "" ? translate("Unknown") : props.credential.attachment}
                     />
                     <PropertyText
                         name={translate("Discoverable")}
-                        value={props.device.discoverable ? translate("Yes") : translate("No")}
+                        value={props.credential.discoverable ? translate("Yes") : translate("No")}
                     />
                     <PropertyText
                         name={translate("User Verified")}
-                        value={props.device.verified ? translate("Yes") : translate("No")}
+                        value={props.credential.verified ? translate("Yes") : translate("No")}
                     />
                     <PropertyText
                         name={translate("Backup State")}
                         value={
-                            props.device.backup_eligible
-                                ? props.device.backup_state
+                            props.credential.backup_eligible
+                                ? props.credential.backup_state
                                     ? translate("Backed Up")
                                     : translate("Eligible")
                                 : translate("Not Eligible")
@@ -75,46 +80,30 @@ const WebAuthnDeviceDetailsDialog = function (props: Props) {
                     <PropertyText
                         name={translate("Transports")}
                         value={
-                            props.device.transports === null || props.device.transports.length === 0
+                            props.credential.transports === null || props.credential.transports.length === 0
                                 ? translate("Unknown")
-                                : props.device.transports.map((transport) => toTransportName(transport)).join(", ")
+                                : props.credential.transports.map((transport) => toTransportName(transport)).join(", ")
                         }
                     />
                     <PropertyText
                         name={translate("Clone Warning")}
-                        value={props.device.clone_warning ? translate("Yes") : translate("No")}
+                        value={props.credential.clone_warning ? translate("Yes") : translate("No")}
                     />
-                    <PropertyText name={translate("Usage Count")} value={`${props.device.sign_count}`} />
+                    <PropertyText name={translate("Usage Count")} value={`${props.credential.sign_count}`} />
                     <PropertyText
                         name={translate("Added")}
                         value={translate("{{when, datetime}}", {
-                            when: new Date(props.device.created_at),
-                            formatParams: {
-                                when: {
-                                    hour: "numeric",
-                                    minute: "numeric",
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                },
-                            },
+                            when: new Date(props.credential.created_at),
+                            formatParams: { when: FormatDateHumanReadable },
                         })}
                     />
                     <PropertyText
                         name={translate("Last Used")}
                         value={
-                            props.device.last_used_at
+                            props.credential.last_used_at
                                 ? translate("{{when, datetime}}", {
-                                      when: new Date(props.device.last_used_at),
-                                      formatParams: {
-                                          when: {
-                                              hour: "numeric",
-                                              minute: "numeric",
-                                              year: "numeric",
-                                              month: "long",
-                                              day: "numeric",
-                                          },
-                                      },
+                                      when: new Date(props.credential.last_used_at),
+                                      formatParams: { when: FormatDateHumanReadable },
                                   })
                                 : translate("Never")
                         }
@@ -125,7 +114,7 @@ const WebAuthnDeviceDetailsDialog = function (props: Props) {
                 <CopyButton
                     variant={"contained"}
                     tooltip={`${translate("Click to copy the")} ${translate("KID")}`}
-                    value={props.device.kid.toString()}
+                    value={props.credential.kid.toString()}
                     fullWidth={false}
                     childrenCopied={translate("Copied")}
                 >
@@ -134,7 +123,7 @@ const WebAuthnDeviceDetailsDialog = function (props: Props) {
                 <CopyButton
                     variant={"contained"}
                     tooltip={`${translate("Click to copy the")} ${translate("Public Key")}`}
-                    value={props.device.public_key.toString()}
+                    value={props.credential.public_key.toString()}
                     fullWidth={false}
                     childrenCopied={translate("Copied")}
                 >
@@ -163,4 +152,4 @@ function PropertyText(props: PropertyTextProps) {
     );
 }
 
-export default WebAuthnDeviceDetailsDialog;
+export default WebAuthnCredentialDetailsDialog;

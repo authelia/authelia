@@ -1,16 +1,15 @@
 import React, { ReactNode, useEffect } from "react";
 
-import SettingsIcon from "@mui/icons-material/Settings";
-import { AppBar, Box, Container, Grid, IconButton, Theme, Toolbar, Typography } from "@mui/material";
+import { AppBar, Box, Container, Grid, Theme, Toolbar, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 
 import UserSvg from "@assets/images/user.svg?react";
+import AccountSettingsMenu from "@components/AccountSettingsMenu.tsx";
 import Brand from "@components/Brand";
 import PrivacyPolicyDrawer from "@components/PrivacyPolicyDrawer";
 import TypographyWithTooltip from "@components/TypographyWithTooltip";
-import { SettingsRoute } from "@constants/Routes";
+import { UserInfo } from "@models/UserInfo.ts";
 import { getLogoOverride } from "@utils/Configuration";
 
 export interface Props {
@@ -21,13 +20,12 @@ export interface Props {
     subtitle?: string | null;
     subtitleTooltip?: string | null;
     showBrand?: boolean;
-    showSettings?: boolean;
+    userInfo?: UserInfo;
 }
 
 const LoginLayout = function (props: Props) {
     const { t: translate } = useTranslation();
 
-    const navigate = useNavigate();
     const styles = useStyles();
 
     const logo = getLogoOverride() ? (
@@ -40,29 +38,12 @@ const LoginLayout = function (props: Props) {
         document.title = `${translate("Login")} - Authelia`;
     }, [translate]);
 
-    const handleSettingsClick = () => {
-        navigate({
-            pathname: SettingsRoute,
-        });
-    };
-
     return (
         <Box>
             <AppBar position="static" color="transparent" elevation={0}>
-                <Toolbar variant="dense">
+                <Toolbar variant="regular">
                     <Typography style={{ flexGrow: 1 }} />
-                    {props.showSettings ? (
-                        <IconButton
-                            size="large"
-                            edge="start"
-                            color="inherit"
-                            aria-label="menu"
-                            sx={{ mr: 2 }}
-                            onClick={handleSettingsClick}
-                        >
-                            <SettingsIcon />
-                        </IconButton>
-                    ) : null}
+                    {props.userInfo ? <AccountSettingsMenu userInfo={props.userInfo} /> : null}
                 </Toolbar>
             </AppBar>
             <Grid
