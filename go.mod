@@ -14,7 +14,7 @@ require (
 	github.com/go-asn1-ber/asn1-ber v1.5.5
 	github.com/go-crypt/crypt v0.2.12
 	github.com/go-ldap/ldap/v3 v3.4.6
-	github.com/go-rod/rod v0.114.3
+	github.com/go-rod/rod v0.114.4
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/go-webauthn/webauthn v0.8.6
 	github.com/golang-jwt/jwt/v5 v5.0.0
@@ -34,7 +34,7 @@ require (
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/ory/fosite v0.44.0
 	github.com/ory/herodot v0.10.3-0.20230807143059-27cd6936499b
-	github.com/ory/x v0.0.590
+	github.com/ory/x v0.0.596
 	github.com/otiai10/copy v1.14.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.4.0
@@ -46,7 +46,7 @@ require (
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.50.0
 	github.com/wneessen/go-mail v0.4.0
-	golang.org/x/net v0.16.0
+	golang.org/x/net v0.17.0
 	golang.org/x/sync v0.4.0
 	golang.org/x/term v0.13.0
 	golang.org/x/text v0.13.0
