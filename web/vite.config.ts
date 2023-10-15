@@ -35,7 +35,49 @@ export default defineConfig(({ mode }) => {
 
                         return "static/media/[name].[hash].[ext]";
                     },
-                    chunkFileNames: `static/js/[name].[hash].js`,
+                    chunkFileNames: (chunkInfo) => {
+                        switch (chunkInfo.name) {
+                            case "index":
+                                return `static/js/[name].[hash].js`;
+                            default:
+                                if (chunkInfo.moduleIds.length === 0) {
+                                    return `static/js/[name].[hash].js`;
+                                }
+
+                                const last = chunkInfo.moduleIds[chunkInfo.moduleIds.length - 1];
+
+                                if (last.includes("@mui/")) {
+                                    return `static/js/mui.[name].[hash].js`;
+                                }
+
+                                const match = last.match(/authelia\/authelia\/web\/src\/([a-zA-Z]+)\/([a-zA-Z]+)/);
+
+                                if (match) {
+                                    switch (match[2]) {
+                                        case "LoginPortal":
+                                            return `static/js/portal.[name].[hash].js`;
+                                        case "ResetPassword":
+                                            return `static/js/reset-password.[name].[hash].js`;
+                                        case "Settings":
+                                            switch (chunkInfo.name) {
+                                                case "SettingsRouter":
+                                                    return `static/js/settings.router.[hash].js`;
+                                                default:
+                                                    return `static/js/settings.[name].[hash].js`;
+                                            }
+                                        default:
+                                            switch (chunkInfo.name) {
+                                                case "LoginLayout":
+                                                    return `static/js/${match[1]}.Login.[hash].js`;
+                                                default:
+                                                    return `static/js/${match[1]}.[name].[hash].js`;
+                                            }
+                                    }
+                                }
+
+                                return `static/js/[name].[hash].js`;
+                        }
+                    },
                     entryFileNames: `static/js/[name].[hash].js`,
                 },
             },
