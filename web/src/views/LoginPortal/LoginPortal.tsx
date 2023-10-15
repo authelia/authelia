@@ -1,4 +1,4 @@
-import React, { Fragment, ReactNode, useEffect, useState } from "react";
+import React, { Fragment, ReactNode, lazy, useEffect, useState } from "react";
 
 import { Route, Routes, useLocation } from "react-router-dom";
 
@@ -22,9 +22,10 @@ import { SecondFactorMethod } from "@models/Methods";
 import { checkSafeRedirection } from "@services/SafeRedirection";
 import { AuthenticationLevel } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
-import AuthenticatedView from "@views/LoginPortal/AuthenticatedView/AuthenticatedView";
-import FirstFactorForm from "@views/LoginPortal/FirstFactor/FirstFactorForm";
-import SecondFactorForm from "@views/LoginPortal/SecondFactor/SecondFactorForm";
+
+const AuthenticatedView = lazy(() => import("@views/LoginPortal/AuthenticatedView/AuthenticatedView"));
+const FirstFactorForm = lazy(() => import("@views/LoginPortal/FirstFactor/FirstFactorForm"));
+const SecondFactorForm = lazy(() => import("@views/LoginPortal/SecondFactor/SecondFactorForm"));
 
 export interface Props {
     duoSelfEnrollment: boolean;

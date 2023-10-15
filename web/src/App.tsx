@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, lazy, useEffect, useState } from "react";
 
 import createCache from "@emotion/cache";
 import { CacheProvider } from "@emotion/react";
@@ -27,14 +27,15 @@ import {
     getTheme,
 } from "@utils/Configuration";
 import BaseLoadingPage from "@views/LoadingPage/BaseLoadingPage";
-import ConsentView from "@views/LoginPortal/ConsentView/ConsentView";
 import LoginPortal from "@views/LoginPortal/LoginPortal";
-import SignOut from "@views/LoginPortal/SignOut/SignOut";
-import ResetPasswordStep1 from "@views/ResetPassword/ResetPasswordStep1";
-import ResetPasswordStep2 from "@views/ResetPassword/ResetPasswordStep2";
-import SettingsRouter from "@views/Settings/SettingsRouter";
 
 import "@fortawesome/fontawesome-svg-core/styles.css";
+
+const ConsentView = lazy(() => import("@views/LoginPortal/ConsentView/ConsentView"));
+const SignOut = lazy(() => import("@views/LoginPortal/SignOut/SignOut"));
+const ResetPasswordStep1 = lazy(() => import("@views/ResetPassword/ResetPasswordStep1"));
+const ResetPasswordStep2 = lazy(() => import("@views/ResetPassword/ResetPasswordStep2"));
+const SettingsRouter = lazy(() => import("@views/Settings/SettingsRouter"));
 
 faConfig.autoAddCss = false;
 
