@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { lazy, useEffect, useState } from "react";
 
 import { Button, Grid, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
@@ -22,9 +22,10 @@ import { UserInfo } from "@models/UserInfo";
 import { AuthenticationLevel } from "@services/State";
 import { setPreferred2FAMethod } from "@services/UserInfo";
 import MethodSelectionDialog from "@views/LoginPortal/SecondFactor/MethodSelectionDialog";
-import OneTimePasswordMethod from "@views/LoginPortal/SecondFactor/OneTimePasswordMethod";
-import PushNotificationMethod from "@views/LoginPortal/SecondFactor/PushNotificationMethod";
-import WebAuthnMethod from "@views/LoginPortal/SecondFactor/WebAuthnMethod";
+
+const OneTimePasswordMethod = lazy(() => import("@views/LoginPortal/SecondFactor/OneTimePasswordMethod"));
+const PushNotificationMethod = lazy(() => import("@views/LoginPortal/SecondFactor/PushNotificationMethod"));
+const WebAuthnMethod = lazy(() => import("@views/LoginPortal/SecondFactor/WebAuthnMethod"));
 
 export interface Props {
     authenticationLevel: AuthenticationLevel;
