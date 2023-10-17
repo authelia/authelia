@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 func TestIsSecretKey(t *testing.T) {
@@ -28,7 +30,7 @@ func TestGetEnvConfigMaps(t *testing.T) {
 		"mysecret.user_password",
 	}
 
-	keys, ignoredKeys := getEnvConfigMap(input, DefaultEnvPrefix, DefaultEnvDelimiter)
+	keys, ignoredKeys := getEnvConfigMap(input, DefaultEnvPrefix, DefaultEnvDelimiter, deprecations)
 
 	key, ok = keys[DefaultEnvPrefix+"MY_NON_SECRET_CONFIG_ITEM"]
 	assert.True(t, ok)
@@ -52,7 +54,7 @@ func TestGetEnvConfigMaps(t *testing.T) {
 	assert.Contains(t, ignoredKeys, DefaultEnvPrefix+"MYSECRET_USER_PASSWORD_FILE")
 }
 
-func TestGetSecretConfigMap(t *testing.T) {
+func TestGetSecretConfigMapMockInput(t *testing.T) {
 	var (
 		key string
 		ok  bool
@@ -65,7 +67,7 @@ func TestGetSecretConfigMap(t *testing.T) {
 		"mysecret.user_password",
 	}
 
-	keys := getSecretConfigMap(input, DefaultEnvPrefix, DefaultEnvDelimiter)
+	keys := getSecretConfigMap(input, DefaultEnvPrefix, DefaultEnvDelimiter, deprecations)
 
 	key, ok = keys[DefaultEnvPrefix+"MY_NON_SECRET_CONFIG_ITEM_FILE"]
 	assert.False(t, ok)
@@ -73,13 +75,27 @@ func TestGetSecretConfigMap(t *testing.T) {
 
 	key, ok = keys[DefaultEnvPrefix+"MYOTHER_CONFIGKEY_FILE"]
 	assert.True(t, ok)
-	assert.Equal(t, key, "myother.configkey")
+	assert.Equal(t, "myother.configkey", key)
 
 	key, ok = keys[DefaultEnvPrefix+"MYSECRET_PASSWORD_FILE"]
 	assert.True(t, ok)
-	assert.Equal(t, key, "mysecret.password")
+	assert.Equal(t, "mysecret.password", key)
 
 	key, ok = keys[DefaultEnvPrefix+"MYSECRET_USER_PASSWORD_FILE"]
 	assert.True(t, ok)
-	assert.Equal(t, key, "mysecret.user_password")
+	assert.Equal(t, "mysecret.user_password", key)
+}
+
+func TestGetSecretConfigMap(t *testing.T) {
+	keys := getSecretConfigMap(schema.Keys, DefaultEnvPrefix, DefaultEnvDelimiter, deprecations)
+
+	var (
+		key string
+		ok  bool
+	)
+
+	key, ok = keys[DefaultEnvPrefix+"JWT_SECRET_FILE"]
+
+	assert.True(t, ok)
+	assert.Equal(t, "jwt_secret", key)
 }
