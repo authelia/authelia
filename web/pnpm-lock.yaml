@@ -47,8 +47,8 @@ dependencies:
     specifier: 1.5.1
     version: 1.5.1
   broadcast-channel:
-    specifier: 5.4.0
-    version: 5.4.0
+    specifier: 5.5.0
+    version: 5.5.0
   classnames:
     specifier: 2.3.2
     version: 2.3.2
@@ -1735,6 +1735,13 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.14.0
+
+  /@babel/runtime@7.23.2:
+    resolution: {integrity: sha512-mM8eg4yl5D6i3lu2QKPuPH4FArvJ8KhTofbE7jwMUv9KX5mBvwPAqnV3MlyBNqdp9RyRKP6Yck8TrfYrPvX3bg==}
+    engines: {node: '>=6.9.0'}
+    dependencies:
+      regenerator-runtime: 0.14.0
+    dev: false
 
   /@babel/template@7.22.15:
     resolution: {integrity: sha512-QPErUVm4uyJa60rkI73qneDacvdvzxshT3kksGqlGWYdOTIUOwJ7RDUL8sGqslY1uXWSL6xMFKEXDS3ox2uF0w==}
@@ -3920,10 +3927,10 @@ packages:
       fill-range: 7.0.1
     dev: true
 
-  /broadcast-channel@5.4.0:
-    resolution: {integrity: sha512-mHr7IwCHv9DF+d39wpazXOuusJJOKWckZI4uZ4bp6VQr/VIgx5cvYbsyn2uuWfWuCINvLNtPGY107JyXQ0fkAg==}
+  /broadcast-channel@5.5.0:
+    resolution: {integrity: sha512-boNO+pUV0LzTlUV9AVhgJnOG43dJ0X/H4H4b5mrEduy1PoGMris1oNFgywzHCyXNe7UPdXiN21sp/hFyImvJ0A==}
     dependencies:
-      '@babel/runtime': 7.23.1
+      '@babel/runtime': 7.23.2
       oblivious-set: 1.1.1
       p-queue: 6.6.2
       unload: 2.4.1
