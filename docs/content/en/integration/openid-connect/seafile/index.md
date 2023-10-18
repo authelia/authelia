@@ -2,7 +2,7 @@
 title: "Seafile"
 description: "Integrating Seafile with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2023-10-18T15:16:47+02:00
 draft: false
 images: []
 menu:
@@ -17,8 +17,10 @@ community: true
 
 * [Authelia]
   * [v4.36.9](https://github.com/authelia/authelia/releases/tag/v4.36.9)
+  * [v4.37.5](https://github.com/authelia/authelia/releases/tag/v4.37.5)
 * [Seafile] Server
   * [9.0.9](https://manual.seafile.com/changelog/server-changelog/#909-2022-09-22)
+  * [10.0.1](https://manual.seafile.com/changelog/server-changelog/#1001-2023-04-11)
 
 ## Before You Begin
 
@@ -37,12 +39,12 @@ This example makes the following assumptions:
 
 ### Application
 
-To configure [Seafile] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+Configure [Seafile] to use Authelia as an [OpenID Connect 1.0] Provider.
 
 1. [Seafile] may require some dependencies such as `requests_oauthlib` to be manually installed.
    See the [Seafile] documentation in the [see also](#see-also) section for more information.
 
-2. Edit your [Seafile] `seahub_settings.py` configuration file and add configure the following:
+2. Edit your [Seafile] `seahub_settings.py` configuration file and add the following:
 
 ```python
 ENABLE_OAUTH = True
@@ -64,6 +66,13 @@ OAUTH_ATTRIBUTE_MAP = {
     "name": (False, "name"),
     "id": (False, "not used"),
 }
+
+# Optionally, enable webdav secrets so that clients that do not support
+# Oauth (e.g., davfs2) can login via basic auth. See also  
+# <https://manual.seafile.com/config/seahub_settings_py/#user-management-options>.
+# Mind that your reverse proxy should bypass the authelia redirections
+# for location '/seafdav'. 
+ENABLE_WEBDAV_SECRET = True
 ```
 
 ### Authelia
@@ -92,10 +101,47 @@ identity_providers:
       userinfo_signed_response_alg: 'none'
 ```
 
+If you plan to also use [Seafile's WebDAV extension], which apparently [does not support OAuth bearer](https://github.com/haiwen/seafdav/issues/76), and the [desktop app](https://github.com/authelia/authelia/issues/2840), some access-control rules might be required: 
+
+```yaml
+access_control:
+  rules:
+    - domain: 'seafile.example.com'
+      resources:
+        - '^/(api2?|seafhttp|media|seafdav)([/?].*)?$'
+      policy: bypass
+```
+Also, mind that your reverse proxy might need special arrangements -- see an example for Nginx here below. 
+
+### Nginx
+
+The [standard authrequest-based example](https://www.authelia.com/integration/proxies/nginx/#standard-example) applies. However, if you plan to use [Seafile's WebDAV extension], your reverse proxy should bypass authelia redirections for location `/seafdav`, so that Seafile falls back to authenticate against the user's WebDAV secret:
+
+```nginx
+server {
+    # as per standard authelia protected app example
+    ...
+
+    location / {
+        # as per standard authelia authrequest example
+        ...
+    }
+
+    location /seafdav {
+        # bypass authelia redirection
+        proxy_pass         http://127.0.0.1:8080/seafdav;
+        # stadard seafile proxy settings
+        ...
+    }
+}
+```
+
 ## See Also
 
 * [Seafile OAuth Authentication Documentation](https://manual.seafile.com/deploy/oauth/)
+* [Seafile's WebDAV extension](https://manual.seafile.com/extension/webdav/)
 
 [Authelia]: https://www.authelia.com
 [Seafile]: https://www.seafile.com/
+[Seafile's WebDAV extension]: https://manual.seafile.com/extension/webdav/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
