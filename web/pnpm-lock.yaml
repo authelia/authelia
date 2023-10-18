@@ -112,8 +112,8 @@ devDependencies:
     specifier: 18.2.14
     version: 18.2.14
   '@types/zxcvbn':
-    specifier: 4.4.2
-    version: 4.4.2
+    specifier: 4.4.3
+    version: 4.4.3
   '@typescript-eslint/eslint-plugin':
     specifier: 6.4.1
     version: 6.4.1(@typescript-eslint/parser@6.4.1)(eslint@8.51.0)(typescript@5.2.2)
@@ -3348,8 +3348,8 @@ packages:
       '@types/node': 20.8.6
     dev: true
 
-  /@types/zxcvbn@4.4.2:
-    resolution: {integrity: sha512-T7SEL8b/eN7AEhHQ8oFt7c6Y+l3p8OpH7KwJIe+5oBOPLMMioPeMsUTB3huNgEnXhiittV8Ohdw21Jg8E/f70Q==}
+  /@types/zxcvbn@4.4.3:
+    resolution: {integrity: sha512-AxZBi8J3V3lm+f2Vgg06D8y0womXpLf3ZEDYeLPGGK0ydR724sQH83T5tYgN+CN6VTRnAlevFKJkWTecCnk8ug==}
     dev: true
 
   /@typescript-eslint/eslint-plugin@6.4.1(@typescript-eslint/parser@6.4.1)(eslint@8.51.0)(typescript@5.2.2):
