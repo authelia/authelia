@@ -83,6 +83,9 @@ export default defineConfig(({ mode }) => {
             },
             sourcemap,
         },
+        optimizeDeps: {
+            include: ["@emotion/react", "@emotion/styled"],
+        },
         server: {
             open: false,
             port: 3000,
