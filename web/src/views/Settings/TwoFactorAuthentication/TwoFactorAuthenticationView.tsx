@@ -1,21 +1,28 @@
 import React, { Fragment, useEffect, useState } from "react";
 
 import Grid from "@mui/material/Unstable_Grid2";
+import { useTranslation } from "react-i18next";
 
+import { useConfiguration } from "@hooks/Configuration";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserInfoPOST } from "@hooks/UserInfo";
 import { useUserInfoTOTPConfigurationOptional } from "@hooks/UserInfoTOTPConfiguration";
 import { useUserWebAuthnCredentials } from "@hooks/WebAuthnCredentials";
 import TOTPPanel from "@views/Settings/TwoFactorAuthentication/TOTPPanel";
+import TwoFactorAuthenticationOptionsPanel from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationOptionsPanel";
 import WebAuthnCredentialsPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsPanel";
 
 interface Props {}
 
-const TwoFactorAuthSettings = function (props: Props) {
+const TwoFactorAuthenticationView = function (props: Props) {
+    const { t: translate } = useTranslation();
+
     const [refreshState, setRefreshState] = useState(0);
     const [refreshWebAuthnState, setRefreshWebAuthnState] = useState(0);
     const [refreshTOTPState, setRefreshTOTPState] = useState(0);
     const { createErrorNotification } = useNotifications();
+
+    const [configuration, fetchConfiguration, , fetchConfigurationError] = useConfiguration();
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoPOST();
     const [userTOTPConfig, fetchUserTOTPConfig, , fetchUserTOTPConfigError] = useUserInfoTOTPConfigurationOptional();
     const [userWebAuthnCredentials, fetchUserWebAuthnCredentials, , fetchUserWebAuthnCredentialsError] =
@@ -34,8 +41,9 @@ const TwoFactorAuthSettings = function (props: Props) {
     };
 
     useEffect(() => {
+        fetchConfiguration();
         fetchUserInfo();
-    }, [fetchUserInfo, refreshState]);
+    }, [fetchConfiguration, fetchUserInfo, refreshState]);
 
     useEffect(() => {
         if (userInfo === undefined) {
@@ -60,22 +68,37 @@ const TwoFactorAuthSettings = function (props: Props) {
     }, [fetchUserWebAuthnCredentials, hasWebAuthn, refreshWebAuthnState]);
 
     useEffect(() => {
-        if (fetchUserInfoError) {
-            createErrorNotification("There was an issue retrieving user preferences");
+        if (fetchConfigurationError) {
+            createErrorNotification(translate("There was an issue retrieving the global configuration"));
         }
-    }, [fetchUserInfoError, createErrorNotification]);
+    }, [fetchConfigurationError, createErrorNotification, translate]);
+
+    useEffect(() => {
+        if (fetchUserInfoError) {
+            createErrorNotification(translate("There was an issue retrieving the user preferences"));
+        }
+    }, [fetchUserInfoError, createErrorNotification, translate]);
 
     useEffect(() => {
         if (fetchUserTOTPConfigError) {
-            createErrorNotification("There was an issue retrieving One Time Password Configuration");
+            createErrorNotification(translate("There was an issue retrieving One-Time Password configuration"));
         }
-    }, [fetchUserTOTPConfigError, createErrorNotification]);
+    }, [fetchUserTOTPConfigError, createErrorNotification, translate]);
 
     useEffect(() => {
         if (fetchUserWebAuthnCredentialsError) {
-            createErrorNotification("There was an issue retrieving One Time Password Configuration");
+            createErrorNotification(translate("There was an issue retrieving the WebAuthn credentials"));
         }
-    }, [fetchUserWebAuthnCredentialsError, createErrorNotification]);
+    }, [fetchUserWebAuthnCredentialsError, createErrorNotification, translate]);
+
+    const handleRefreshUserInfo = () => {
+        fetchUserInfo();
+    };
+
+    useEffect(() => {
+        console.table(userInfo);
+        console.table(configuration);
+    }, [configuration, userInfo]);
 
     return (
         <Fragment>
@@ -89,9 +112,18 @@ const TwoFactorAuthSettings = function (props: Props) {
                         handleRefreshState={handleRefreshWebAuthnState}
                     />
                 </Grid>
+                {configuration && userInfo ? (
+                    <Grid xs={12}>
+                        <TwoFactorAuthenticationOptionsPanel
+                            config={configuration}
+                            info={userInfo}
+                            refresh={handleRefreshUserInfo}
+                        />
+                    </Grid>
+                ) : undefined}
             </Grid>
         </Fragment>
     );
 };
 
-export default TwoFactorAuthSettings;
+export default TwoFactorAuthenticationView;
