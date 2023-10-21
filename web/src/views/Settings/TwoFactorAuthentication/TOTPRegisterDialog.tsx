@@ -488,7 +488,7 @@ const TOTPRegisterDialog = function (props: Props) {
     }
 
     return (
-        <Dialog open={props.open} onClose={handleOnClose} maxWidth={"lg"} fullWidth={true}>
+        <Dialog open={props.open} onClose={handleOnClose} fullWidth={true}>
             <DialogTitle>{translate("Register {{item}}", { item: translate("One-Time Password") })}</DialogTitle>
             <DialogContent>
                 <DialogContentText sx={{ mb: 3 }}>
@@ -568,7 +568,7 @@ const useStyles = makeStyles((theme: Theme) => ({
         top: "calc(128px - 64px)",
         left: "calc(128px - 64px)",
         color: red[400],
-        fontSize: "128px",
+        fontSize: "8rem",
     },
     success: {
         marginBottom: theme.spacing(2),

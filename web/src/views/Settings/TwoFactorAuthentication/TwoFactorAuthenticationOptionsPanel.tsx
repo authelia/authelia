@@ -17,7 +17,7 @@ interface Props {
 }
 
 const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
-    const { t: translate } = useTranslation();
+    const { t: translate } = useTranslation("settings");
 
     const { createErrorNotification } = useNotifications();
 
@@ -34,7 +34,7 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
     }, [props.info]);
 
     useEffect(() => {
-        if (!props.info || !props.config || !hasMethods) return;
+        if (!props.config || !hasMethods) return;
         let valuesFinal: string[] = [];
 
         const values = Array.from(props.config.available_methods);
@@ -45,20 +45,20 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
             if (!valuesFinal.includes(v)) {
                 switch (value) {
                     case SecondFactorMethod.WebAuthn:
-                        if (props.info?.has_webauthn) valuesFinal.push(v);
+                        valuesFinal.push(v);
                         break;
                     case SecondFactorMethod.TOTP:
-                        if (props.info?.has_totp) valuesFinal.push(v);
+                        valuesFinal.push(v);
                         break;
                     case SecondFactorMethod.MobilePush:
-                        if (props.info?.has_duo) valuesFinal.push(v);
+                        valuesFinal.push(v);
                         break;
                 }
             }
         });
 
         setMethods(valuesFinal);
-    }, [props.config, hasMethods, props.info]);
+    }, [props.config, hasMethods]);
 
     const handleMethodChanged = (event: ChangeEvent<HTMLInputElement>) => {
         console.log(event.target.value);
