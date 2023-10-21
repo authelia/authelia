@@ -1,14 +1,14 @@
 import React, { Fragment, useCallback, useState } from "react";
 
 import { Button, Paper, Stack, Tooltip, Typography } from "@mui/material";
-import Grid from "@mui/material/Unstable_Grid2";
+import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import { useTranslation } from "react-i18next";
 
 import { UserInfoTOTPConfiguration } from "@models/TOTPConfiguration";
-import IdentityVerificationDialog from "@views/Settings/Common/IdentityVerificationDialog.tsx";
-import TOTPConfiguration from "@views/Settings/TwoFactorAuthentication/TOTPConfiguration.tsx";
-import TOTPDeleteDialog from "@views/Settings/TwoFactorAuthentication/TOTPDeleteDialog.tsx";
-import TOTPRegisterDialog from "@views/Settings/TwoFactorAuthentication/TOTPRegisterDialog.tsx";
+import IdentityVerificationDialog from "@views/Settings/Common/IdentityVerificationDialog";
+import TOTPConfiguration from "@views/Settings/TwoFactorAuthentication/TOTPConfiguration";
+import TOTPDeleteDialog from "@views/Settings/TwoFactorAuthentication/TOTPDeleteDialog";
+import TOTPRegisterDialog from "@views/Settings/TwoFactorAuthentication/TOTPRegisterDialog";
 
 interface Props {
     config: UserInfoTOTPConfiguration | undefined | null;

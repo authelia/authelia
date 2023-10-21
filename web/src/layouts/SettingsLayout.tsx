@@ -1,8 +1,6 @@
 import React, { ReactNode, SyntheticEvent, useCallback, useEffect, useState } from "react";
 
-import { Close, Dashboard, ScienceOutlined } from "@mui/icons-material";
-import MenuIcon from "@mui/icons-material/Menu";
-import SystemSecurityUpdateGoodIcon from "@mui/icons-material/SystemSecurityUpdateGood";
+import { Close, Dashboard, Menu, ScienceOutlined, SystemSecurityUpdateGood } from "@mui/icons-material";
 import {
     AppBar,
     Box,
@@ -98,7 +96,7 @@ const SettingsLayout = function (props: Props) {
                         onClick={handleToggleDrawer}
                         sx={{ mr: 2 }}
                     >
-                        <MenuIcon />
+                        <Menu />
                     </IconButton>
                     <Typography
                         variant="h6"
@@ -148,7 +146,7 @@ const navItems: NavItem[] = [
         keyname: "twofactor",
         text: "Two-Factor Authentication",
         pathname: `${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`,
-        icon: <SystemSecurityUpdateGoodIcon color={"primary"} />,
+        icon: <SystemSecurityUpdateGood color={"primary"} />,
     },
     {
         keyname: "test",

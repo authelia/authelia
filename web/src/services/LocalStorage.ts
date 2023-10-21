@@ -1,6 +1,6 @@
-import { LocalStorageSecondFactorMethod } from "@constants/LocalStorage.ts";
-import { SecondFactorMethod } from "@models/Methods.ts";
-import { Method2FA, isMethod2FA, toMethod2FA, toSecondFactorMethod } from "@services/UserInfo.ts";
+import { LocalStorageSecondFactorMethod } from "@constants/LocalStorage";
+import { SecondFactorMethod } from "@models/Methods";
+import { Method2FA, isMethod2FA, toMethod2FA, toSecondFactorMethod } from "@services/UserInfo";
 
 let hasLocalStorageSupport: null | boolean = null;
 const testKey = "authelia.test";

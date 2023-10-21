@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 
 import { LogoutRoute as SignOutRoute } from "@constants/Routes";
 import LoginLayout from "@layouts/LoginLayout";
-import { UserInfo } from "@models/UserInfo.ts";
+import { UserInfo } from "@models/UserInfo";
 import Authenticated from "@views/LoginPortal/Authenticated";
 
 export interface Props {

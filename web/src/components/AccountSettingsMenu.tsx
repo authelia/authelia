@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { LogoutRoute, SettingsRoute } from "@constants/Routes";
-import { UserInfo } from "@models/UserInfo.ts";
+import { UserInfo } from "@models/UserInfo";
 
 export interface Props {
     userInfo: UserInfo;
