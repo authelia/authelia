@@ -30,19 +30,37 @@ const WebAuthnCredentialDeleteDialog = function (props: Props) {
 
         if (response.data.status === "KO") {
             if (response.data.elevation) {
-                createErrorNotification(translate("You must be elevated to delete WebAuthn credentials"));
+                createErrorNotification(
+                    translate("You must be elevated to {{action}} a {{item}}", {
+                        action: translate("delete"),
+                        item: translate("WebAuthn Credential"),
+                    }),
+                );
             } else if (response.data.authentication) {
                 createErrorNotification(
-                    translate("You must have a higher authentication level to delete WebAuthn credentials"),
+                    translate("You must have a higher authentication level to {{action}} a {{item}}", {
+                        action: translate("delete"),
+                        item: "WebAuthn Credential",
+                    }),
                 );
             } else {
-                createErrorNotification(translate("There was a problem deleting the WebAuthn credential"));
+                createErrorNotification(
+                    translate("There was a problem {{action}} the {{item}}", {
+                        action: translate("deleting"),
+                        item: translate("WebAuthn Credential"),
+                    }),
+                );
             }
 
             return;
         }
 
-        createSuccessNotification(translate("Successfully deleted the WebAuthn credential"));
+        createSuccessNotification(
+            translate("Successfully {{action}} the {{item}}", {
+                action: translate("deleted"),
+                item: translate("WebAuthn Credential"),
+            }),
+        );
 
         props.handleClose();
     };
@@ -59,8 +77,8 @@ const WebAuthnCredentialDeleteDialog = function (props: Props) {
         <DeleteDialog
             open={props.open}
             handleClose={handleClose}
-            title={translate("Remove WebAuthn Credential")}
-            text={translate("Are you sure you want to remove the WebAuthn credential from from your account", {
+            title={translate("Remove {{item}}", { item: translate("WebAuthn Credential") })}
+            text={translate("Are you sure you want to remove the WebAuthn Credential from your account", {
                 description: props.credential?.description,
             })}
         />
