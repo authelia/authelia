@@ -64,3 +64,13 @@ export function getLocalStorageSecondFactorMethod(global: SecondFactorMethod): S
 
     return toSecondFactorMethod(local);
 }
+
+export function getLocalStorageWithFallback(key: string, fallback: string) {
+    const value = getLocalStorage(key);
+
+    if (value) {
+        return value;
+    }
+
+    return fallback;
+}

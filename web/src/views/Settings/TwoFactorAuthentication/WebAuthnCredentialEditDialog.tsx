@@ -43,42 +43,60 @@ const WebAuthnCredentialEditDialog = function (props: Props) {
 
     const handleEdit = async (name: string) => {
         if (!props.credential) {
-            createErrorNotification(translate("An error occurred when attempting to update the WebAuthn credential"));
+            createErrorNotification(translate("An error occurred when attempting to update the WebAuthn Credential"));
             return;
         }
 
         const response = await updateUserWebAuthnCredential(props.credential.id, name);
 
         if (!response) {
-            createErrorNotification(translate("An error occurred when attempting to update the WebAuthn credential"));
+            createErrorNotification(translate("An error occurred when attempting to update the WebAuthn Credential"));
             return;
         }
 
         if (response.data.status === "KO") {
             if (response.data.elevation) {
-                createErrorNotification(translate("You must be elevated to update WebAuthn credentials"));
+                createErrorNotification(
+                    translate("You must be elevated to {{action}} a {{item}}", {
+                        action: translate("update"),
+                        item: translate("WebAuthn Credential"),
+                    }),
+                );
             } else if (response.data.authentication) {
                 createErrorNotification(
-                    translate("You must have a higher authentication level to update WebAuthn credentials"),
+                    translate("You must have a higher authentication level to {{action}} a {{item}}", {
+                        action: translate("update"),
+                        item: translate("WebAuthn Credential"),
+                    }),
                 );
             } else {
-                createErrorNotification(translate("There was a problem updating the WebAuthn credential"));
+                createErrorNotification(
+                    translate("There was a problem {{action}} the {{item}}", {
+                        action: translate("updating"),
+                        item: translate("WebAuthn Credential"),
+                    }),
+                );
             }
 
             return;
         }
 
-        createSuccessNotification(translate("Successfully updated the WebAuthn credential"));
+        createSuccessNotification(
+            translate("Successfully {{action}} the {{item}}", {
+                action: translate("updated"),
+                item: translate("WebAuthn Credential"),
+            }),
+        );
 
         handleReset();
     };
 
     return (
         <Dialog open={props.open} onClose={handleCancel}>
-            <DialogTitle>{translate("Edit WebAuthn Credential")}</DialogTitle>
+            <DialogTitle>{translate("Edit {{item}}", { item: translate("WebAuthn Credential") })}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    {translate("Enter a new description for this WebAuthn credential")}
+                    {translate("Enter a new description for this WebAuthn Credential")}
                 </DialogContentText>
                 <TextField
                     autoFocus

@@ -31,7 +31,7 @@ const TOTPConfiguration = function (props: Props) {
             created_at={props.config.created_at}
             last_used_at={props.config.last_used_at}
             handleDelete={props.handleDelete}
-            tooltipDelete={translate("Remove the Time-based One-Time Password configuration")}
+            tooltipDelete={translate("Remove this {{item}}", { item: translate("One-Time Password") })}
         />
     );
 };
