@@ -7,6 +7,7 @@ import { CssBaseline, ThemeProvider } from "@mui/material";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 
 import NotificationBar from "@components/NotificationBar";
+import { LocalStorageThemeName } from "@constants/LocalStorage";
 import {
     ConsentRoute,
     IndexRoute,
@@ -17,6 +18,7 @@ import {
 } from "@constants/Routes";
 import NotificationsContext from "@hooks/NotificationsContext";
 import { Notification } from "@models/Notifications";
+import { getLocalStorageWithFallback } from "@services/LocalStorage";
 import * as themes from "@themes/index";
 import { getBasePath } from "@utils/BasePath";
 import {
@@ -26,7 +28,7 @@ import {
     getResetPasswordCustomURL,
     getTheme,
 } from "@utils/Configuration";
-import BaseLoadingPage from "@views/LoadingPage/BaseLoadingPage";
+import LoadingPage from "@views/LoadingPage/LoadingPage";
 import LoginPortal from "@views/LoginPortal/LoginPortal";
 
 import "@fortawesome/fontawesome-svg-core/styles.css";
@@ -39,19 +41,6 @@ const SettingsRouter = lazy(() => import("@views/Settings/SettingsRouter"));
 
 faConfig.autoAddCss = false;
 
-function Theme() {
-    switch (getTheme()) {
-        case "dark":
-            return themes.Dark;
-        case "grey":
-            return themes.Grey;
-        case "auto":
-            return window.matchMedia("(prefers-color-scheme: dark)").matches ? themes.Dark : themes.Light;
-        default:
-            return themes.Light;
-    }
-}
-
 export interface Props {
     nonce?: string;
 }
@@ -59,6 +48,7 @@ export interface Props {
 const App: React.FC<Props> = (props: Props) => {
     const [notification, setNotification] = useState(null as Notification | null);
     const [theme, setTheme] = useState(Theme());
+    const [themeName, setThemeName] = useState(getUserThemeName());
 
     const cache = createCache({
         key: "authelia",
@@ -67,21 +57,51 @@ const App: React.FC<Props> = (props: Props) => {
     });
 
     useEffect(() => {
-        if (getTheme() === "auto") {
+        setTheme(ThemeFromName(themeName));
+    }, [themeName]);
+
+    useEffect(() => {
+        if (getUserThemeName() === themes.ThemeNameAuto) {
             const query = window.matchMedia("(prefers-color-scheme: dark)");
             // MediaQueryLists does not inherit from EventTarget in Internet Explorer
             if (query.addEventListener) {
-                query.addEventListener("change", (e) => {
+                const listener = (e: MediaQueryListEvent) => {
                     setTheme(e.matches ? themes.Dark : themes.Light);
-                });
+                };
+
+                query.addEventListener("change", listener);
+
+                return () => {
+                    query.removeEventListener("change", listener);
+                };
             }
         }
+    }, []);
+
+    useEffect(() => {
+        const listener = (e: globalThis.StorageEvent) => {
+            if (!e.key || e.key !== LocalStorageThemeName) {
+                return;
+            }
+
+            if (e.newValue && e.newValue !== "") {
+                setThemeName(e.newValue);
+            } else {
+                setThemeName(getUserThemeName());
+            }
+        };
+
+        window.addEventListener("storage", listener);
+
+        return () => {
+            window.removeEventListener("storage", listener);
+        };
     }, []);
 
     return (
         <CacheProvider value={cache}>
             <ThemeProvider theme={theme}>
-                <Suspense fallback={<BaseLoadingPage message={"Loading"} />}>
+                <Suspense fallback={<LoadingPage />}>
                     <CssBaseline />
                     <NotificationsContext.Provider value={{ notification, setNotification }}>
                         <Router basename={getBasePath()}>
@@ -113,3 +133,26 @@ const App: React.FC<Props> = (props: Props) => {
 };
 
 export default App;
+
+function Theme() {
+    return ThemeFromName(getUserThemeName());
+}
+
+function ThemeFromName(name: string) {
+    switch (name) {
+        case themes.ThemeNameLight:
+            return themes.Light;
+        case themes.ThemeNameDark:
+            return themes.Dark;
+        case themes.ThemeNameGrey:
+            return themes.Grey;
+        case themes.ThemeNameAuto:
+            return window.matchMedia("(prefers-color-scheme: dark)").matches ? themes.Dark : themes.Light;
+        default:
+            return window.matchMedia("(prefers-color-scheme: dark)").matches ? themes.Dark : themes.Light;
+    }
+}
+
+const getUserThemeName = () => {
+    return getLocalStorageWithFallback(LocalStorageThemeName, getTheme());
+};

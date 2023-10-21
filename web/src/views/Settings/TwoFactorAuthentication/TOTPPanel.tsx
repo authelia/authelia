@@ -102,7 +102,9 @@ const TOTPPanel = function (props: Props) {
                         <Fragment>
                             <Grid xs={2}>
                                 <Tooltip
-                                    title={translate("Click to add a Time-based One-Time Password to your account")}
+                                    title={translate("Click to add a {{item}} to your account", {
+                                        item: translate("One-Time Password"),
+                                    })}
                                 >
                                     <Button
                                         variant="outlined"
@@ -119,7 +121,7 @@ const TOTPPanel = function (props: Props) {
                             <Grid xs={12}>
                                 <Typography variant={"subtitle2"}>
                                     {translate(
-                                        "The One-Time Password has not been registered. If you'd like to register it click add.",
+                                        "The One-Time Password has not been registered. If you'd like to register it click add",
                                     )}
                                 </Typography>
                             </Grid>

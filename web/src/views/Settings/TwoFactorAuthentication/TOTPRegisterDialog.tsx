@@ -200,13 +200,11 @@ const TOTPRegisterDialog = function (props: Props) {
                 console.error(err);
                 if ((err as Error).message.includes("Request failed with status code 403")) {
                     createErrorNotification(
-                        translate(
-                            "You must open the link from the same device and browser that initiated the registration process",
-                        ),
+                        translate("You must use the code from the same device and browser that initiated the process"),
                     );
                 } else {
                     createErrorNotification(
-                        translate("Failed to register device, the provided link is expired or has already been used"),
+                        translate("Failed to register device, the provided code is expired or has already been used"),
                     );
                 }
                 setHasErrored(true);
@@ -423,7 +421,7 @@ const TOTPRegisterDialog = function (props: Props) {
                                         childrenCopied={translate("Copied")}
                                         fullWidth={true}
                                     >
-                                        {translate("OTP URL")}
+                                        {translate("URI")}
                                     </CopyButton>
                                 </Grid>
                                 <Grid xs={4}>
@@ -491,10 +489,12 @@ const TOTPRegisterDialog = function (props: Props) {
 
     return (
         <Dialog open={props.open} onClose={handleOnClose} maxWidth={"lg"} fullWidth={true}>
-            <DialogTitle>{translate("Register One-Time Password (TOTP)")}</DialogTitle>
+            <DialogTitle>{translate("Register {{item}}", { item: translate("One-Time Password") })}</DialogTitle>
             <DialogContent>
                 <DialogContentText sx={{ mb: 3 }}>
-                    {translate("This dialog allows registration of the One-Time Password.")}
+                    {translate("This dialog handles registration of a {{item}}", {
+                        item: translate("One-Time Password"),
+                    })}
                 </DialogContentText>
                 <Grid container spacing={0} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
                     <Grid xs={12}>

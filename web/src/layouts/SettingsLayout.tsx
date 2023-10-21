@@ -79,7 +79,12 @@ const SettingsLayout = function (props: Props) {
             <Divider />
             <List>
                 {navItems.map((item) => (
-                    <DrawerNavItem key={item.keyname} text={item.text} pathname={item.pathname} icon={item.icon} />
+                    <DrawerNavItem
+                        key={item.keyname}
+                        text={translate(item.text)}
+                        pathname={item.pathname}
+                        icon={item.icon}
+                    />
                 ))}
             </List>
         </Box>
