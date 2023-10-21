@@ -1,20 +1,14 @@
 import React, { ChangeEvent, Fragment, useEffect, useState } from "react";
 
 import { FormControl, FormControlLabel, FormLabel, Paper, Radio, RadioGroup, Typography } from "@mui/material";
-import Grid from "@mui/material/Unstable_Grid2";
+import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import { useTranslation } from "react-i18next";
 
 import { useNotifications } from "@hooks/NotificationsContext";
-import { Configuration } from "@models/Configuration.ts";
+import { Configuration } from "@models/Configuration";
 import { SecondFactorMethod } from "@models/Methods";
-import { UserInfo } from "@models/UserInfo.ts";
-import {
-    Method2FA,
-    isMethod2FA,
-    setPreferred2FAMethod,
-    toMethod2FA,
-    toSecondFactorMethod,
-} from "@services/UserInfo.ts";
+import { UserInfo } from "@models/UserInfo";
+import { Method2FA, isMethod2FA, setPreferred2FAMethod, toMethod2FA, toSecondFactorMethod } from "@services/UserInfo";
 
 interface Props {
     refresh: () => void;

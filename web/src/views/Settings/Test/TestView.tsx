@@ -2,7 +2,7 @@ import React, { Fragment, useState } from "react";
 
 import { Button } from "@mui/material";
 import TextField from "@mui/material/TextField";
-import Grid from "@mui/material/Unstable_Grid2";
+import Grid from "@mui/material/Unstable_Grid2/Grid2";
 
 import { deleteElevation, finishElevation, getElevation, startElevation } from "@services/Test";
 import IdentityVerificationDialog from "@views/Settings/Common/IdentityVerificationDialog";

@@ -3,7 +3,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 
 import { useNotifications } from "@hooks/NotificationsContext";
-import { deleteUserTOTPConfiguration } from "@services/UserInfoTOTPConfiguration.ts";
+import { deleteUserTOTPConfiguration } from "@services/UserInfoTOTPConfiguration";
 import DeleteDialog from "@views/Settings/TwoFactorAuthentication/DeleteDialog";
 
 interface Props {

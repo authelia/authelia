@@ -19,7 +19,7 @@ import LoginLayout from "@layouts/LoginLayout";
 import { Configuration } from "@models/Configuration";
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
-import { setLocalStorageSecondFactorMethod } from "@services/LocalStorage.ts";
+import { setLocalStorageSecondFactorMethod } from "@services/LocalStorage";
 import { AuthenticationLevel } from "@services/State";
 import { setPreferred2FAMethod } from "@services/UserInfo";
 import MethodSelectionDialog from "@views/LoginPortal/SecondFactor/MethodSelectionDialog";

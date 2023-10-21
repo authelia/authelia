@@ -19,7 +19,7 @@ import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoPOST } from "@hooks/UserInfo";
 import { SecondFactorMethod } from "@models/Methods";
-import { getLocalStorageSecondFactorMethod } from "@services/LocalStorage.ts";
+import { getLocalStorageSecondFactorMethod } from "@services/LocalStorage";
 import { checkSafeRedirection } from "@services/SafeRedirection";
 import { AuthenticationLevel } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
