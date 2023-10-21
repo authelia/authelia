@@ -1,7 +1,7 @@
 import { Configuration } from "@models/Configuration";
 import { ConfigurationPath } from "@services/Api";
 import { Get } from "@services/Client";
-import { Method2FA, toEnum } from "@services/UserInfo";
+import { Method2FA, toSecondFactorMethod } from "@services/UserInfo";
 
 interface ConfigurationPayload {
     available_methods: Method2FA[];
@@ -9,5 +9,5 @@ interface ConfigurationPayload {
 
 export async function getConfiguration(): Promise<Configuration> {
     const config = await Get<ConfigurationPayload>(ConfigurationPath);
-    return { ...config, available_methods: new Set(config.available_methods.map(toEnum)) };
+    return { ...config, available_methods: new Set(config.available_methods.map(toSecondFactorMethod)) };
 }

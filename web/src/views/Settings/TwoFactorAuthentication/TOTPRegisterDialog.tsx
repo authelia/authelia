@@ -491,7 +491,7 @@ const TOTPRegisterDialog = function (props: Props) {
 
     return (
         <Dialog open={props.open} onClose={handleOnClose} maxWidth={"lg"} fullWidth={true}>
-            <DialogTitle>{translate("Register One Time Password (TOTP)")}</DialogTitle>
+            <DialogTitle>{translate("Register One-Time Password (TOTP)")}</DialogTitle>
             <DialogContent>
                 <DialogContentText sx={{ mb: 3 }}>
                     {translate("This dialog allows registration of the One-Time Password.")}
