@@ -54,7 +54,7 @@ const TOTPConfiguration = function (props: Props) {
                                       })}
                             </Typography>
                         </Stack>
-                        <Tooltip title={translate("Remove the Time-based One Time Password configuration")}>
+                        <Tooltip title={translate("Remove the Time-based One-Time Password configuration")}>
                             <IconButton color="primary" onClick={props.handleDelete}>
                                 <DeleteIcon />
                             </IconButton>

@@ -47,6 +47,7 @@ func RequireElevated1FA(next RequestHandler) RequestHandler {
 			}
 
 			ctx.ReplyForbidden()
+
 			return
 		}
 

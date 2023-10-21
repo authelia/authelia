@@ -12,7 +12,7 @@ import { SecondFactorMethod } from "@models/Methods";
 export interface Props {
     open: boolean;
     methods: Set<SecondFactorMethod>;
-    webauthnSupported: boolean;
+    webauthn: boolean;
 
     onClose: () => void;
     onClick: (method: SecondFactorMethod) => void;
@@ -39,7 +39,7 @@ const MethodSelectionDialog = function (props: Props) {
                             onClick={() => props.onClick(SecondFactorMethod.TOTP)}
                         />
                     ) : null}
-                    {props.methods.has(SecondFactorMethod.WebAuthn) && props.webauthnSupported ? (
+                    {props.methods.has(SecondFactorMethod.WebAuthn) && props.webauthn ? (
                         <MethodItem
                             id="webauthn-option"
                             method={translate("Security Key - WebAuthn")}
