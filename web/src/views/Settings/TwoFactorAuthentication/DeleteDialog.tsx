@@ -1,6 +1,6 @@
 import React from "react";
 
-import DeleteIcon from "@mui/icons-material/Delete";
+import { Delete } from "@mui/icons-material";
 import {
     Button,
     Dialog,
@@ -40,7 +40,7 @@ const DeleteDialog = function (props: Props) {
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleCancel}>{translate("Cancel")}</Button>
-                <Button variant={"outlined"} color={"error"} startIcon={<DeleteIcon />} onClick={handleDelete}>
+                <Button variant={"outlined"} color={"error"} startIcon={<Delete />} onClick={handleDelete}>
                     {translate("Remove")}
                 </Button>
             </DialogActions>

@@ -5,11 +5,11 @@ import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 
 import UserSvg from "@assets/images/user.svg?react";
-import AccountSettingsMenu from "@components/AccountSettingsMenu.tsx";
+import AccountSettingsMenu from "@components/AccountSettingsMenu";
 import Brand from "@components/Brand";
 import PrivacyPolicyDrawer from "@components/PrivacyPolicyDrawer";
 import TypographyWithTooltip from "@components/TypographyWithTooltip";
-import { UserInfo } from "@models/UserInfo.ts";
+import { UserInfo } from "@models/UserInfo";
 import { getLogoOverride } from "@utils/Configuration";
 
 export interface Props {
