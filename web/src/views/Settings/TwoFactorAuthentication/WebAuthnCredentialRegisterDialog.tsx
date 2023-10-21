@@ -134,7 +134,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
             if (credentialDescription.length === 0 || credentialDescription.length > 64) {
                 setErrorDescription(true);
                 createErrorNotification(
-                    translate("The Description must be more than 1 character and less than 64 characters."),
+                    translate("The Description must be more than 1 character and less than 64 characters"),
                 );
 
                 return;
@@ -147,20 +147,22 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                     if (res.options) {
                         setOptions(res.options);
                     } else {
-                        throw new Error(
-                            "Credential Creation Options Request succeeded but Credential Creation Options is empty.",
+                        createErrorNotification(
+                            translate(
+                                "Credential Creation Options Request succeeded but Credential Creation Options is empty",
+                            ),
                         );
                     }
 
                     break;
                 case 409:
                     setErrorDescription(true);
-                    createErrorNotification(translate("A WebAuthn Credential with that Description already exists."));
+                    createErrorNotification(translate("A WebAuthn Credential with that Description already exists"));
 
                     break;
                 default:
                     createErrorNotification(
-                        translate("Error occurred obtaining the WebAuthn Credential creation options."),
+                        translate("Error occurred obtaining the WebAuthn Credential creation options"),
                     );
             }
 
@@ -188,7 +190,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                             <InformationIcon />
                         </Box>
                         <Typography className={styles.instruction}>
-                            {translate("Enter a description for this credential")}
+                            {translate("Enter a description for this WebAuthn Credential")}
                         </Typography>
                         <Grid container spacing={1}>
                             <Grid xs={12}>
@@ -241,12 +243,12 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
 
     return (
         <Dialog open={props.open} onClose={handleOnClose} maxWidth={"xs"} fullWidth={true}>
-            <DialogTitle>{translate("Register WebAuthn Credential")}</DialogTitle>
+            <DialogTitle>{translate("Register {{item}}", { item: translate("WebAuthn Credential") })}</DialogTitle>
             <DialogContent>
                 <DialogContentText sx={{ mb: 3 }}>
-                    {translate(
-                        "This page allows registration of a new Security Key backed by modern WebAuthn Credential technology.",
-                    )}
+                    {translate("This dialog handles registration of a {{item}}", {
+                        item: translate("WebAuthn Credential"),
+                    })}
                 </DialogContentText>
                 <Grid container spacing={0} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
                     <Grid xs={12}>
