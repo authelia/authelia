@@ -19,6 +19,7 @@ import LoginLayout from "@layouts/LoginLayout";
 import { Configuration } from "@models/Configuration";
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
+import { setLocalStorageSecondFactorMethod } from "@services/LocalStorage.ts";
 import { AuthenticationLevel } from "@services/State";
 import { setPreferred2FAMethod } from "@services/UserInfo";
 import MethodSelectionDialog from "@views/LoginPortal/SecondFactor/MethodSelectionDialog";
@@ -54,10 +55,19 @@ const SecondFactorForm = function (props: Props) {
     };
 
     const handleMethodSelected = async (method: SecondFactorMethod) => {
+        const setLocal = setLocalStorageSecondFactorMethod(method);
+
+        if (!setLocal) {
+            await handleMethodSelectedFallback(method);
+        }
+
+        setMethodSelectionOpen(false);
+        props.onMethodChanged();
+    };
+
+    const handleMethodSelectedFallback = async (method: SecondFactorMethod) => {
         try {
             await setPreferred2FAMethod(method);
-            setMethodSelectionOpen(false);
-            props.onMethodChanged();
         } catch (err) {
             console.error(err);
             createErrorNotification("There was an issue updating preferred second factor method");
@@ -79,7 +89,7 @@ const SecondFactorForm = function (props: Props) {
                 <MethodSelectionDialog
                     open={methodSelectionOpen}
                     methods={props.configuration.available_methods}
-                    webauthnSupported={stateWebAuthnSupported}
+                    webauthn={stateWebAuthnSupported}
                     onClose={() => setMethodSelectionOpen(false)}
                     onClick={handleMethodSelected}
                 />

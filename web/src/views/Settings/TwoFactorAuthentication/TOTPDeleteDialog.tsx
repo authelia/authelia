@@ -36,7 +36,7 @@ const TOTPDeleteDialog = function (props: Props) {
             return;
         }
 
-        createSuccessNotification(translate("Successfully deleted the One Time Password configuration"));
+        createSuccessNotification(translate("Successfully deleted the One-Time Password configuration"));
 
         props.handleClose();
     };
@@ -53,8 +53,8 @@ const TOTPDeleteDialog = function (props: Props) {
         <DeleteDialog
             open={props.open}
             handleClose={handleClose}
-            title={translate("Remove One Time Password")}
-            text={translate("Are you sure you want to remove the Time-based One Time Password from from your account")}
+            title={translate("Remove One-Time Password")}
+            text={translate("Are you sure you want to remove the Time-based One-Time Password from from your account")}
         />
     );
 };
