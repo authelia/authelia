@@ -34,12 +34,12 @@ const WebAuthnCredentialInformationDialog = function (props: Props) {
             <DialogContent>
                 {!props.credential ? (
                     <DialogContentText sx={{ mb: 3 }}>
-                        {translate("The WebAuthn credential information is not loaded")}
+                        {translate("The WebAuthn Credential information is not loaded")}
                     </DialogContentText>
                 ) : (
                     <Fragment>
                         <DialogContentText sx={{ mb: 3 }}>
-                            {translate("Extended WebAuthn credential information for security key", {
+                            {translate("Extended information for WebAuthn Credential", {
                                 description: props.credential.description,
                             })}
                         </DialogContentText>
@@ -133,7 +133,7 @@ const WebAuthnCredentialInformationDialog = function (props: Props) {
                         {" "}
                         <CopyButton
                             variant={"contained"}
-                            tooltip={`${translate("Click to copy the")} ${translate("KID")}`}
+                            tooltip={translate("Click to copy the {{value}}", { value: "KID" })}
                             value={props.credential.kid.toString()}
                             fullWidth={false}
                             childrenCopied={translate("Copied")}
@@ -142,7 +142,7 @@ const WebAuthnCredentialInformationDialog = function (props: Props) {
                         </CopyButton>
                         <CopyButton
                             variant={"contained"}
-                            tooltip={`${translate("Click to copy the")} ${translate("Public Key")}`}
+                            tooltip={translate("Click to copy the {{value}}", { value: translate("Public Key") })}
                             value={props.credential.public_key.toString()}
                             fullWidth={false}
                             childrenCopied={translate("Copied")}

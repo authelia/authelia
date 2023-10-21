@@ -168,7 +168,11 @@ const WebAuthnCredentialsPanel = function (props: Props) {
                         <Typography variant="h5">{translate("WebAuthn Credentials")}</Typography>
                     </Grid>
                     <Grid xs={4} md={2}>
-                        <Tooltip title={translate("Click to add a WebAuthn credential to your account")}>
+                        <Tooltip
+                            title={translate("Click to add a {{item}} to your account", {
+                                item: translate("WebAuthn Credential"),
+                            })}
+                        >
                             <Button
                                 variant="outlined"
                                 color="primary"
@@ -185,7 +189,7 @@ const WebAuthnCredentialsPanel = function (props: Props) {
                         {props.credentials === undefined || props.credentials.length === 0 ? (
                             <Typography variant={"subtitle2"}>
                                 {translate(
-                                    "No WebAuthn Credentials have been registered. If you'd like to register one click add.",
+                                    "No WebAuthn Credentials have been registered. If you'd like to register one click add",
                                 )}
                             </Typography>
                         ) : (
