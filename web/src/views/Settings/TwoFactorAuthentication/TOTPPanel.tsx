@@ -127,7 +127,7 @@ const TOTPPanel = function (props: Props) {
                             </Grid>
                         </Fragment>
                     ) : (
-                        <Grid xs={12}>
+                        <Grid xs={12} md={6} xl={3}>
                             <Stack spacing={3}>
                                 <TOTPConfiguration
                                     config={props.config}

@@ -1,6 +1,6 @@
 import React, { ReactNode, SyntheticEvent, useCallback, useEffect, useState } from "react";
 
-import { Close, Dashboard, Menu, ScienceOutlined, SystemSecurityUpdateGood } from "@mui/icons-material";
+import { Close, Dashboard, Menu, SystemSecurityUpdateGood } from "@mui/icons-material";
 import {
     AppBar,
     Box,
@@ -17,12 +17,7 @@ import {
 import IconButton from "@mui/material/IconButton";
 import { useTranslation } from "react-i18next";
 
-import {
-    IndexRoute,
-    SettingsRoute,
-    SettingsTestSubRoute,
-    SettingsTwoFactorAuthenticationSubRoute,
-} from "@constants/Routes";
+import { IndexRoute, SettingsRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 
 export interface Props {
@@ -106,7 +101,7 @@ const SettingsLayout = function (props: Props) {
                     <Typography
                         variant="h6"
                         component={"div"}
-                        sx={{ flexGrow: 1, display: { xs: "none", sm: drawerOpen ? "none" : "block" } }}
+                        sx={{ flexGrow: 1, display: { xs: drawerOpen ? "none" : "block" } }}
                     >
                         {translate("Settings")}
                     </Typography>
@@ -152,12 +147,6 @@ const navItems: NavItem[] = [
         text: "Two-Factor Authentication",
         pathname: `${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`,
         icon: <SystemSecurityUpdateGood color={"primary"} />,
-    },
-    {
-        keyname: "test",
-        text: "Test",
-        pathname: `${SettingsRoute}${SettingsTestSubRoute}`,
-        icon: <ScienceOutlined color={"primary"} />,
     },
     { keyname: "close", text: "Close", pathname: IndexRoute, icon: <Close color={"error"} /> },
 ];

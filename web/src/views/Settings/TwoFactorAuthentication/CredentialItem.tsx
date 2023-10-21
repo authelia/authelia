@@ -3,6 +3,7 @@ import React from "react";
 import { Delete, Edit, InfoOutlined } from "@mui/icons-material";
 import { Box, Paper, Stack, Tooltip, Typography } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
+import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import { useTranslation } from "react-i18next";
 
 import { FormatDateHumanReadable } from "@i18n/formats";
@@ -27,52 +28,66 @@ const CredentialItem = function (props: Props) {
     return (
         <Paper variant="outlined">
             <Box sx={{ p: 3 }}>
-                <Stack direction={"row"} spacing={1} alignItems={"center"}>
-                    {props.icon}
-                    <Stack spacing={0}>
-                        <Box>
-                            <Typography display={"inline"} sx={{ fontWeight: "bold" }}>
-                                {props.description}
+                <Grid container xs={12} alignItems={"center"} height={"100%"}>
+                    <Grid xs={2} sm={1} marginRight={{ xs: 1, md: 2, xl: 3 }}>
+                        {props.icon}
+                    </Grid>
+                    <Grid xs={3} sm={6}>
+                        <Stack direction={"column"}>
+                            <Box>
+                                <Typography display={"inline"} sx={{ fontWeight: "bold" }}>
+                                    {props.description}
+                                </Typography>
+                                <Typography display={{ xs: "none", sm: "inline" }} variant={"body2"}>
+                                    {props.qualifier}
+                                </Typography>
+                            </Box>
+                            <Typography variant={"caption"} display={{ xs: "none", sm: "block" }}>
+                                {translate("Added when", {
+                                    when: props.created_at,
+                                    formatParams: { when: FormatDateHumanReadable },
+                                })}
                             </Typography>
-                            <Typography display={"inline"} variant={"body2"}>
-                                {props.qualifier}
+                            <Typography variant={"caption"} display={{ xs: "none", sm: "block" }}>
+                                {props.last_used_at === undefined
+                                    ? translate("Never used")
+                                    : translate("Last Used when", {
+                                          when: props.last_used_at,
+                                          formatParams: { when: FormatDateHumanReadable },
+                                      })}
                             </Typography>
-                        </Box>
-                        <Typography variant={"caption"}>
-                            {translate("Added when", {
-                                when: props.created_at,
-                                formatParams: { when: FormatDateHumanReadable },
-                            })}
-                        </Typography>
-                        <Typography variant={"caption"}>
-                            {props.last_used_at === undefined
-                                ? translate("Never used")
-                                : translate("Last Used when", {
-                                      when: props.last_used_at,
-                                      formatParams: { when: FormatDateHumanReadable },
-                                  })}
-                        </Typography>
-                    </Stack>
-                    {props.handleInformation ? (
-                        <TooltipElement tooltip={props.tooltipInformation}>
-                            <IconButton color="primary" onClick={props.handleInformation}>
-                                <InfoOutlined />
-                            </IconButton>
-                        </TooltipElement>
-                    ) : null}
-                    {props.handleEdit ? (
-                        <TooltipElement tooltip={props.tooltipEdit}>
-                            <IconButton color="primary" onClick={props.handleEdit}>
-                                <Edit />
-                            </IconButton>
-                        </TooltipElement>
-                    ) : null}
-                    <Tooltip title={props.tooltipDelete}>
-                        <IconButton color="primary" onClick={props.handleDelete}>
-                            <Delete />
-                        </IconButton>
-                    </Tooltip>
-                </Stack>
+                        </Stack>
+                    </Grid>
+                    <Grid xs={6} sm={4}>
+                        <Grid container xs={12} justifyContent={"flex-end"} alignItems={"center"} height={"100%"}>
+                            {props.handleInformation ? (
+                                <Grid xs={2} sm={1}>
+                                    <TooltipElement tooltip={props.tooltipInformation}>
+                                        <IconButton color="primary" onClick={props.handleInformation}>
+                                            <InfoOutlined />
+                                        </IconButton>
+                                    </TooltipElement>
+                                </Grid>
+                            ) : null}
+                            {props.handleEdit ? (
+                                <Grid xs={2} sm={1}>
+                                    <TooltipElement tooltip={props.tooltipEdit}>
+                                        <IconButton color="primary" onClick={props.handleEdit}>
+                                            <Edit />
+                                        </IconButton>
+                                    </TooltipElement>
+                                </Grid>
+                            ) : null}
+                            <Grid xs={2} sm={1}>
+                                <Tooltip title={props.tooltipDelete}>
+                                    <IconButton color="primary" onClick={props.handleDelete}>
+                                        <Delete />
+                                    </IconButton>
+                                </Tooltip>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </Grid>
             </Box>
         </Paper>
     );

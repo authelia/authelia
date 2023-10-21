@@ -13,4 +13,3 @@ export const LogoutRoute: string = "/logout";
 
 export const SettingsRoute: string = "/settings";
 export const SettingsTwoFactorAuthenticationSubRoute: string = "/two-factor-authentication";
-export const SettingsTestSubRoute: string = "/test";
