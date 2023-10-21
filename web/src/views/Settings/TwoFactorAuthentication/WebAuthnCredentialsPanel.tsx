@@ -1,15 +1,16 @@
 import React, { Fragment, useCallback, useState } from "react";
 
 import { Button, Paper, Tooltip, Typography } from "@mui/material";
-import Grid from "@mui/material/Unstable_Grid2";
+import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import { useTranslation } from "react-i18next";
 
 import { WebAuthnCredential } from "@models/WebAuthn";
 import IdentityVerificationDialog from "@views/Settings/Common/IdentityVerificationDialog";
 import WebAuthnCredentialDeleteDialog from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialDeleteDialog";
 import WebAuthnCredentialEditDialog from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialEditDialog";
+import WebAuthnCredentialInformationDialog from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialInformationDialog";
 import WebAuthnCredentialRegisterDialog from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialRegisterDialog";
-import WebAuthnCredentialsStack from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsStack";
+import WebAuthnCredentialsGrid from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsGrid";
 
 interface Props {
     credentials: WebAuthnCredential[] | undefined;
@@ -22,6 +23,8 @@ const WebAuthnCredentialsPanel = function (props: Props) {
     const [dialogIdentityVerificationPendingOpen, setDialogIdentityVerificationPendingOpen] = useState(false);
     const [dialogRegistrationOpen, setDialogRegistrationOpen] = useState(false);
     const [dialogRegistrationPendingOpen, setDialogRegistrationPendingOpen] = useState(false);
+    const [dialogInformationOpen, setDialogInformationOpen] = useState(false);
+    const [indexInformation, setIndexInformation] = useState(-1);
     const [dialogEditOpen, setDialogEditOpen] = useState(false);
     const [dialogEditPendingOpen, setDialogEditPendingOpen] = useState(false);
     const [indexEdit, setIndexEdit] = useState(-1);
@@ -79,7 +82,7 @@ const WebAuthnCredentialsPanel = function (props: Props) {
         [dialogDeletePendingOpen, dialogEditPendingOpen, dialogRegistrationPendingOpen],
     );
 
-    const handleDelete = (index: number) => {
+    const handleInformation = (index: number) => {
         if (!props.credentials) {
             return;
         }
@@ -88,9 +91,8 @@ const WebAuthnCredentialsPanel = function (props: Props) {
             return;
         }
 
-        setDialogDeletePendingOpen(true);
-        setIndexDelete(index);
-        setDialogIdentityVerificationPendingOpen(true);
+        setIndexInformation(index);
+        setDialogInformationOpen(true);
     };
 
     const handleEdit = (index: number) => {
@@ -104,6 +106,20 @@ const WebAuthnCredentialsPanel = function (props: Props) {
 
         setDialogEditPendingOpen(true);
         setIndexEdit(index);
+        setDialogIdentityVerificationPendingOpen(true);
+    };
+
+    const handleDelete = (index: number) => {
+        if (!props.credentials) {
+            return;
+        }
+
+        if (props.credentials.length + 1 < index) {
+            return;
+        }
+
+        setDialogDeletePendingOpen(true);
+        setIndexDelete(index);
         setDialogIdentityVerificationPendingOpen(true);
     };
 
@@ -121,17 +137,26 @@ const WebAuthnCredentialsPanel = function (props: Props) {
                     props.handleRefreshState();
                 }}
             />
-            <WebAuthnCredentialDeleteDialog
-                open={dialogDeleteOpen}
-                credential={indexDelete === -1 || !props.credentials ? undefined : props.credentials[indexDelete]}
+            <WebAuthnCredentialInformationDialog
+                credential={
+                    indexInformation === -1 || !props.credentials ? undefined : props.credentials[indexInformation]
+                }
+                open={dialogInformationOpen}
                 handleClose={() => {
-                    handleResetState();
-                    props.handleRefreshState();
+                    setDialogInformationOpen(false);
                 }}
             />
             <WebAuthnCredentialEditDialog
                 credential={indexEdit === -1 || !props.credentials ? undefined : props.credentials[indexEdit]}
                 open={dialogEditOpen}
+                handleClose={() => {
+                    handleResetState();
+                    props.handleRefreshState();
+                }}
+            />
+            <WebAuthnCredentialDeleteDialog
+                open={dialogDeleteOpen}
+                credential={indexDelete === -1 || !props.credentials ? undefined : props.credentials[indexDelete]}
                 handleClose={() => {
                     handleResetState();
                     props.handleRefreshState();
@@ -164,11 +189,12 @@ const WebAuthnCredentialsPanel = function (props: Props) {
                                 )}
                             </Typography>
                         ) : (
-                            <WebAuthnCredentialsStack
+                            <WebAuthnCredentialsGrid
                                 credentials={props.credentials}
                                 handleRefreshState={props.handleRefreshState}
-                                handleDelete={handleDelete}
+                                handleInformation={handleInformation}
                                 handleEdit={handleEdit}
+                                handleDelete={handleDelete}
                             />
                         )}
                     </Grid>

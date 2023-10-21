@@ -15,7 +15,7 @@ import {
     Theme,
     Typography,
 } from "@mui/material";
-import Grid from "@mui/material/Unstable_Grid2";
+import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import makeStyles from "@mui/styles/makeStyles";
 import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/typescript-types";
 import { useTranslation } from "react-i18next";

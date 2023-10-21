@@ -77,9 +77,6 @@ dependencies:
   react-dom:
     specifier: 18.2.0
     version: 18.2.0(react@18.2.0)
-  react-draggable:
-    specifier: 4.4.5
-    version: 4.4.5(react-dom@18.2.0)(react@18.2.0)
   react-i18next:
     specifier: 14.0.0
     version: 14.0.0(i18next@23.7.16)(react-dom@18.2.0)(react@18.2.0)
@@ -4326,7 +4323,7 @@ packages:
       asynciterator.prototype: 1.0.0
       es-abstract: 1.22.1
       es-set-tostringtag: 2.0.1
-      function-bind: 1.1.1
+      function-bind: 1.1.2
       globalthis: 1.0.3
       has-proto: 1.0.1
       has-symbols: 1.0.3
@@ -5289,10 +5286,6 @@ packages:
     dev: true
     optional: true
 
-  /function-bind@1.1.1:
-    resolution: {integrity: sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A==}
-    dev: true
-
   /function-bind@1.1.2:
     resolution: {integrity: sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==}
 
@@ -5509,7 +5502,7 @@ packages:
     resolution: {integrity: sha512-f2dvO0VU6Oej7RkWJGrehjbzMAjFp5/VKPp5tTpWIV4JHHZK1/BxbFRtf/siA2SWTe09caDmVtYYzWEIbBS4zw==}
     engines: {node: '>= 0.4.0'}
     dependencies:
-      function-bind: 1.1.1
+      function-bind: 1.1.2
     dev: true
 
   /hasown@2.0.0:
@@ -5730,6 +5723,7 @@ packages:
   /is-docker@2.2.1:
     resolution: {integrity: sha512-F+i2BKsFrH66iaUFc0woD8sLy8getkwTwtOBjvs56Cx4CgJDeKQeqfz8wAYiSb8JOprWhHH5p77PbmYCvvUuXQ==}
     engines: {node: '>=8'}
+    hasBin: true
     dev: true
 
   /is-docker@3.0.0:
@@ -6927,18 +6921,6 @@ packages:
     dependencies:
       loose-envify: 1.4.0
       react: 18.2.0
-
-  /react-draggable@4.4.5(react-dom@18.2.0)(react@18.2.0):
-    resolution: { integrity: sha512-OMHzJdyJbYTZo4uQE393fHcqqPYsEtkjfMgvCHr6rejT+Ezn4OZbNyGH50vv+SunC1RMvwOTSWkEODQLzw1M9g== }
-    peerDependencies:
-      react: '>= 16.3.0 || 18'
-      react-dom: '>= 16.3.0'
-    dependencies:
-      clsx: 1.2.1
-      prop-types: 15.8.1
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-    dev: false
 
   /react-i18next@14.0.0(i18next@23.7.16)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-OCrS8rHNAmnr8ggGRDxjakzihrMW7HCbsplduTm3EuuQ6fyvWGT41ksZpqbduYoqJurBmEsEVZ1pILSUWkHZng==}

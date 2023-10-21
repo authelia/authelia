@@ -15,7 +15,7 @@ import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 
 import OneTimeCodeTextField from "@components/OneTimeCodeTextField";
-import SuccessIcon from "@components/SuccessIcon.tsx";
+import SuccessIcon from "@components/SuccessIcon";
 import { useNotifications } from "@hooks/NotificationsContext";
 import {
     deleteUserSessionElevation,

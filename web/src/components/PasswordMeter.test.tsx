@@ -1,9 +1,7 @@
-// import React from "react";
-
 import { render, screen } from "@testing-library/react";
 
 import PasswordMeter from "@components/PasswordMeter";
-import "@i18n/index.ts";
+import "@i18n/index";
 import { PasswordPolicyMode } from "@models/PasswordPolicy";
 
 it("renders without crashing", () => {
