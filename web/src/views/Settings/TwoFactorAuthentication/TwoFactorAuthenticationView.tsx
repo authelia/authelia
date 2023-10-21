@@ -15,7 +15,7 @@ import WebAuthnCredentialsPanel from "@views/Settings/TwoFactorAuthentication/We
 interface Props {}
 
 const TwoFactorAuthenticationView = function (props: Props) {
-    const { t: translate } = useTranslation();
+    const { t: translate } = useTranslation("settings");
 
     const [refreshState, setRefreshState] = useState(0);
     const [refreshWebAuthnState, setRefreshWebAuthnState] = useState(0);
