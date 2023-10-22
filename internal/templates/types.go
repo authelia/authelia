@@ -32,7 +32,7 @@ type OpenAPIAssetTemplates struct {
 // NotificationTemplates are the templates for the notification system.
 type NotificationTemplates struct {
 	jwtIdentityVerification *EmailTemplate
-	otpIdentityVerification *EmailTemplate
+	otcIdentityVerification *EmailTemplate
 	event                   *EmailTemplate
 }
 

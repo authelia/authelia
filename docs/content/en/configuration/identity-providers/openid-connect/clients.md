@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "openid-connect"
-weight: 190220
+weight: 110220
 toc: true
 ---
 

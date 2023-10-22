@@ -19,6 +19,7 @@ import {
 } from "@models/WebAuthn";
 import {
     AuthenticationOKResponse,
+    OKResponse,
     OptionalDataServiceResponse,
     ServiceResponse,
     WebAuthnAssertionPath,
@@ -223,6 +224,18 @@ export async function finishRegistration(response: RegistrationResponseJSON) {
     }
 
     return result;
+}
+
+export async function deleteRegistration() {
+    try {
+        await axios.delete<OKResponse>(WebAuthnRegistrationPath);
+    } catch (e) {
+        console.error(e);
+
+        return false;
+    }
+
+    return true;
 }
 
 export async function deleteUserWebAuthnCredential(credentialID: string) {

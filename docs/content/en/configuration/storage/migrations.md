@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "storage"
-weight: 106200
+weight: 107200
 toc: true
 aliases:
   - /docs/configuration/storage/migrations.html
