@@ -152,9 +152,9 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	ctx.Logger.WithFields(map[string]any{"signature": signature, "id": otp.PublicID.String(), "username": identity.Username}).
-		Debug("Sending an email to user to confirm identity for registering a device.")
+		Debug("Sending an email to user to confirm identity for registering or managing a device.")
 
-	if err = ctx.Providers.Notifier.Send(ctx, identity.Address(), data.Title, ctx.Providers.Templates.GetIdentityVerificationOTPEmailTemplate(), data); err != nil {
+	if err = ctx.Providers.Notifier.Send(ctx, identity.Address(), data.Title, ctx.Providers.Templates.GetIdentityVerificationOTCEmailTemplate(), data); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 

@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "session"
-weight: 105200
+weight: 106200
 toc: true
 aliases:
   - /docs/configuration/session/redis.html
