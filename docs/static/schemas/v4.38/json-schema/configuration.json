@@ -1874,19 +1874,19 @@
         "reset_password": {
           "$ref": "#/$defs/IdentityValidationResetPassword",
           "title": "Reset Password",
-          "description": "Identity validation options for the Reset Password flow"
+          "description": "Identity Validation options for the Reset Password flow"
         },
-        "credential_management": {
-          "$ref": "#/$defs/IdentityValidationCredentials",
-          "title": "Credential Management",
-          "description": "Identity validation options for the Credential Management flows"
+        "elevated_session": {
+          "$ref": "#/$defs/IdentityValidationElevatedSession",
+          "title": "Elevated Session",
+          "description": "Identity Validation options for obtaining an Elevated Session for flows such as the Credential Management flows"
         }
       },
       "additionalProperties": false,
       "type": "object",
       "description": "IdentityValidation represents the configuration for identity verification actions/flows."
     },
-    "IdentityValidationCredentials": {
+    "IdentityValidationElevatedSession": {
       "properties": {
         "expiration": {
           "oneOf": [
@@ -1921,17 +1921,25 @@
           "maximum": 12,
           "minimum": 6,
           "title": "OTP Characters",
-          "description": "Number of characters in the generated OTP codes"
+          "description": "Number of characters in the generated OTP codes",
+          "default": 8
         },
-        "skip_2fa": {
+        "require_second_factor": {
           "type": "boolean",
-          "title": "Skip 2FA",
-          "description": "Skips 2FA requirement TODO"
+          "title": "Require Second Factor",
+          "description": "Requires the user use a second factor if they have any known second factor methods",
+          "default": false
+        },
+        "skip_second_factor": {
+          "type": "boolean",
+          "title": "Skip Second Factor",
+          "description": "Skips the primary identity verification process if the user has authenticated with a second factor",
+          "default": false
         }
       },
       "additionalProperties": false,
       "type": "object",
-      "description": "IdentityValidationCredentials represents the tunable aspects of the credential control identity verification action/flow."
+      "description": "IdentityValidationElevatedSession represents the tunable aspects of the credential control identity verification action/flow."
     },
     "IdentityValidationResetPassword": {
       "properties": {

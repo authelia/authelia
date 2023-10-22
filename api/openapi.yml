@@ -649,6 +649,93 @@ paths:
           description: Forbidden
       security:
         - authelia_auth: []
+  /api/user/session/elevation:
+    get:
+      tags:
+        - User Elevation
+      summary: User Session Elevation
+      description: >
+        The user session elevation endpoint (using the GET method verb) returns information indicating if the current
+        user session has elevated privileges from identity verification.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.ElevationStatus.Response'
+        "403":
+          description: Forbidden
+      security:
+        - authelia_auth: []
+    post:
+      tags:
+        - User Elevation
+      summary: User Session Elevation
+      description: >
+        The user session elevation endpoint (using the POST method verb) generates a new One-Time Code for the purpose
+        of elevating a user session. The One-Time Code is sent to a users email.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.ElevationVerify.Request'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.OkResponse'
+        "403":
+          description: Forbidden
+      security:
+        - authelia_auth: []
+    put:
+      tags:
+        - User Elevation
+      summary: User Session Elevation
+      description: >
+        The user session elevation endpoint (using the PUT method verb) verifies and consumes a One-Time Code, and
+        configures the session elevation.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.ElevationStart.Response'
+        "403":
+          description: Forbidden
+      security:
+        - authelia_auth: []
+  /api/user/session/elevation/{id}:
+    delete:
+      tags:
+        - User Elevation
+      summary: User Session Elevation
+      description: >
+        The user session elevation endpoint (using the DELETE method verb) deletes a pending One-Time Code from the
+        database so that it can't be used. This can be invoked by a user either by cancelling the One-Time Code window
+        or via the revoke link in the generated email.
+      parameters:
+        - in: path
+          name: id
+          description: The Delete ID of the pending User Session Elevation.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.OkResponse'
+        "403":
+          description: Forbidden
+      security:
+        - authelia_auth: []
   {{- if .TOTP }}
   /api/secondfactor/totp/register:
     get:
@@ -849,7 +936,7 @@ paths:
     put:
       tags:
         - Second Factor
-      summary: WebAuthn Credential Register
+      summary: WebAuthn Credential Registration (Attestation)
       description: >
         The WebAuthn Register endpoint (using the PUT method verb) checks the intended description is okay and provides
         the relevant credential creation options, and stores the creation options for a validation via the same endpoint
@@ -867,10 +954,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/webauthn.PublicKeyCredentialCreationOptions'
+        "401":
+          description: Unauthorized
+      security:
+        - authelia_auth: []
     post:
       tags:
         - Second Factor
-      summary: WebAuthn Credential Attestation
+      summary: WebAuthn Credential Registration (Attestation)
       description: >
         The WebAuthn Register endpoint (using the POST method verb) validates the authenticators response and finalizes
         the WebAuthn registration.
@@ -887,16 +978,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.OkResponse'
+        "401":
+          description: Unauthorized
       security:
         - authelia_auth: []
-  /api/secondfactor/webauthn/credential/{credentialID}:
     delete:
       tags:
         - Second Factor
-      summary: WebAuthn Credential
+      summary: WebAuthn Credential Registration (Attestation)
       description: >
-        The WebAuthn credential endpoint (using the DELETE method verb) deletes the specified WebAuthn credential from
-        the database.
+        The WebAuthn Register endpoint (using the DELETE method verb) removes all WebAuthn registration data from the
+        session.
       responses:
         "200":
           description: Successful Operation
@@ -904,10 +996,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.OkResponse'
+        "403":
+          description: Forbidden
       security:
         - authelia_auth: []
-      parameters:
-        - $ref: '#/components/parameters/credentialID'
+  /api/secondfactor/webauthn/credential/{credentialID}:
     put:
       tags:
         - Second Factor
@@ -915,6 +1008,8 @@ paths:
       description: >
         The WebAuthn credential endpoint (using the PUT method verb) updates the description of the specified WebAuthn
         credential.
+      parameters:
+        - $ref: '#/components/parameters/credentialID'
       requestBody:
         required: true
         content:
@@ -930,8 +1025,24 @@ paths:
                 $ref: '#/components/schemas/middlewares.OkResponse'
       security:
         - authelia_auth: []
+    delete:
+      tags:
+        - Second Factor
+      summary: WebAuthn Credential
+      description: >
+        The WebAuthn credential endpoint (using the DELETE method verb) deletes the specified WebAuthn credential from
+        the database.
       parameters:
         - $ref: '#/components/parameters/credentialID'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.OkResponse'
+      security:
+        - authelia_auth: []
   {{- end }}
   {{- if .Duo }}
   /api/secondfactor/duo:
@@ -2060,6 +2171,43 @@ components:
             - 'webauthn'
             - 'mobile_push'
           example: totp
+    handlers.ElevationStatus.Response:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            elevated:
+              description: The indicator of if the session is elevated.
+              type: boolean
+            expires:
+              description: The number of seconds the elevation is still valid for.
+              type: integer
+              example: 300
+            delete_id:
+              description: The value required to delete the current elevation.
+              type: string
+    handlers.ElevationStart.Response:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            delete_id:
+              description: The value required to delete the pending elevation.
+              type: string
+    handlers.ElevationVerify.Request:
+      type: object
+      properties:
+        otc:
+          description: The One-Time Code sent to the users email address.
+          type: string
     {{- if .TOTP }}
     handlers.TOTPOptions:
       type: object

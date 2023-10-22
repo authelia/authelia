@@ -261,18 +261,25 @@ identity_validation:
     ## The secret key used to sign and verify the JWT.
     jwt_secret: 'a_very_important_secret'
 
-  ## Credential Management flows. Adjusts the flow for managing credentials, adding, removing, etc.
-  # credential_management:
-    ## Maximum allowed time before the email and code is generated and when the user uses it in the duration common
-    ## syntax.
+  ## Elevated Session flows. Adjusts the flow which require elevated sessions for example managing credentials, adding,
+  ## removing, etc.
+  # elevated_session:
+    ## Maximum allowed time after the One-Time Code is generated that it is considered valid.
     # expiration: '5 minutes'
 
-    ## Maximum allowed time after the user uses the code and the user must perform the validation again in the duration
-    ## common syntax.
-    # elevation_expiration: '5 minutes'
+    ## Maximum allowed time after the user uses the One-Time Code and the user must perform the validation again in the
+    ## duration common syntax.
+    # elevation_expiration: '10 minutes'
 
     ## Number of characters the one-time password contains.
     # characters: 8
+
+    ## In addition to the One-Time Code requires the user performs a second factor authentication.
+    # require_second_factor: false
+
+    ## Skips the elevation requirement and entry of the One-Time Code if the user has performed second factor
+    ## authentication.
+    # skip_second_factor: false
 
 ##
 ## NTP Configuration

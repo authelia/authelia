@@ -1070,23 +1070,28 @@
         "env": "AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE"
     },
     {
-        "path": "identity_validation.credential_management.expiration",
+        "path": "identity_validation.elevated_session.expiration",
         "secret": false,
-        "env": "AUTHELIA_IDENTITY_VALIDATION_CREDENTIAL_MANAGEMENT_EXPIRATION"
+        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_EXPIRATION"
     },
     {
-        "path": "identity_validation.credential_management.elevation_expiration",
+        "path": "identity_validation.elevated_session.elevation_expiration",
         "secret": false,
-        "env": "AUTHELIA_IDENTITY_VALIDATION_CREDENTIAL_MANAGEMENT_ELEVATION_EXPIRATION"
+        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_ELEVATION_EXPIRATION"
     },
     {
-        "path": "identity_validation.credential_management.characters",
+        "path": "identity_validation.elevated_session.characters",
         "secret": false,
-        "env": "AUTHELIA_IDENTITY_VALIDATION_CREDENTIAL_MANAGEMENT_CHARACTERS"
+        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_CHARACTERS"
     },
     {
-        "path": "identity_validation.credential_management.skip_2fa",
+        "path": "identity_validation.elevated_session.require_second_factor",
         "secret": false,
-        "env": "AUTHELIA_IDENTITY_VALIDATION_CREDENTIAL_MANAGEMENT_SKIP_2FA"
+        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_REQUIRE_SECOND_FACTOR"
+    },
+    {
+        "path": "identity_validation.elevated_session.skip_second_factor",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_SKIP_SECOND_FACTOR"
     }
 ]
