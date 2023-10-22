@@ -222,3 +222,35 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 
 	ctxLogEvent(ctx, userSession.Username, "Second Factor Method Added", map[string]any{"Action": "Second Factor Method Added", "Category": "WebAuthn Credential", "Credential Description": device.Description})
 }
+
+// WebAuthnRegistrationDELETE deletes any active WebAuthn registration session..
+func WebAuthnRegistrationDELETE(ctx *middlewares.AutheliaCtx) {
+	var (
+		err         error
+		userSession session.UserSession
+	)
+
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred retrieving session for %s registration deletion", regulation.AuthTypeWebAuthn)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if userSession.WebAuthn != nil {
+		userSession.WebAuthn = nil
+
+		if err = ctx.SaveSession(userSession); err != nil {
+			ctx.Logger.WithError(err).Error("Error occurred attempting to save the updated session while attempting to delete the WebAuthn registration data")
+
+			ctx.SetStatusCode(fasthttp.StatusForbidden)
+			ctx.SetJSONError(messageOperationFailed)
+
+			return
+		}
+	}
+
+	ctx.ReplyOK()
+}

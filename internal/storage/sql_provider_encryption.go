@@ -132,22 +132,22 @@ func schemaEncryptionChangeKeyOneTimeCode(ctx context.Context, provider *SQLProv
 			return nil
 		}
 
-		return fmt.Errorf("error selecting one time codes: %w", err)
+		return fmt.Errorf("error selecting one-time codes: %w", err)
 	}
 
 	query := provider.db.Rebind(fmt.Sprintf(queryFmtUpdateOTCEncryptedData, tableOneTimeCode))
 
 	for _, c := range configs {
 		if c.Code, err = provider.decrypt(c.Code); err != nil {
-			return fmt.Errorf("error decrypting one time code with id '%d': %w", c.ID, err)
+			return fmt.Errorf("error decrypting one-time code with id '%d': %w", c.ID, err)
 		}
 
 		if c.Code, err = utils.Encrypt(c.Code, &key); err != nil {
-			return fmt.Errorf("error encrypting one time code with id '%d': %w", c.ID, err)
+			return fmt.Errorf("error encrypting one-time code with id '%d': %w", c.ID, err)
 		}
 
 		if _, err = tx.ExecContext(ctx, query, c.Code, c.ID); err != nil {
-			return fmt.Errorf("error updating one time code with id '%d': %w", c.ID, err)
+			return fmt.Errorf("error updating one-time code with id '%d': %w", c.ID, err)
 		}
 	}
 
@@ -319,7 +319,7 @@ func schemaEncryptionCheckKeyOneTimeCode(ctx context.Context, provider *SQLProvi
 	)
 
 	if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectOTCEncryptedData, tableOneTimeCode)); err != nil {
-		return tableOneTimeCode, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting one time codes: %w", err)}
+		return tableOneTimeCode, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting one time-codes: %w", err)}
 	}
 
 	var config encOneTimeCode
@@ -330,7 +330,7 @@ func schemaEncryptionCheckKeyOneTimeCode(ctx context.Context, provider *SQLProvi
 		if err = rows.StructScan(&config); err != nil {
 			_ = rows.Close()
 
-			return tableOneTimeCode, EncryptionValidationTableResult{Error: fmt.Errorf("error scanning one time code to struct: %w", err)}
+			return tableOneTimeCode, EncryptionValidationTableResult{Error: fmt.Errorf("error scanning one time-code to struct: %w", err)}
 		}
 
 		if _, err = provider.decrypt(config.Code); err != nil {

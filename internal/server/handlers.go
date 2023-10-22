@@ -261,6 +261,7 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	r.GET("/api/user/session/elevation", middleware1FA(handlers.UserSessionElevationGET))
 	r.POST("/api/user/session/elevation", middleware1FA(handlers.UserSessionElevationPOST))
 	r.PUT("/api/user/session/elevation", middlewareDelaySecond(middleware1FA(handlers.UserSessionElevationPUT)))
+
 	r.DELETE("/api/user/session/elevation/{id}", middlewareAPI(handlers.UserSessionElevateDELETE))
 
 	if !config.TOTP.Disable {
@@ -268,6 +269,7 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 		r.GET("/api/secondfactor/totp", middleware1FA(handlers.TimeBasedOneTimePasswordGET))
 		r.POST("/api/secondfactor/totp", middleware1FA(handlers.TimeBasedOneTimePasswordPOST))
 		r.DELETE("/api/secondfactor/totp", middleware1FA(handlers.TOTPConfigurationDELETE))
+
 		r.GET("/api/secondfactor/totp/register", middlewareElevated1FA(handlers.TOTPRegisterGET))
 		r.PUT("/api/secondfactor/totp/register", middlewareElevated1FA(handlers.TOTPRegisterPUT))
 		r.POST("/api/secondfactor/totp/register", middlewareElevated1FA(handlers.TOTPRegisterPOST))
@@ -280,8 +282,11 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 
 		// Management of the WebAuthn credentials.
 		r.GET("/api/secondfactor/webauthn/credentials", middleware1FA(handlers.WebAuthnCredentialsGET))
+
 		r.PUT("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnRegistrationPUT))
 		r.POST("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnRegistrationPOST))
+		r.DELETE("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnRegistrationDELETE))
+
 		r.PUT("/api/secondfactor/webauthn/credential/{credentialID}", middlewareElevated1FA(handlers.WebAuthnCredentialPUT))
 		r.DELETE("/api/secondfactor/webauthn/credential/{credentialID}", middlewareElevated1FA(handlers.WebAuthnCredentialDELETE))
 	}
