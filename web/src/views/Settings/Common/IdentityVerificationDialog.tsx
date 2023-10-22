@@ -90,7 +90,7 @@ const IdentityVerificationDialog = function (props: Props) {
         setLoading(false);
 
         createErrorNotification(
-            translate("The one-time code either doesn't match the one generated or an unknown error occurred"),
+            translate("The One-Time Code either doesn't match the one generated or an unknown error occurred"),
         );
 
         codeRef.current?.focus();
@@ -170,11 +170,11 @@ const IdentityVerificationDialog = function (props: Props) {
                 <DialogContent dividers>
                     <Typography gutterBottom>
                         {translate(
-                            "In order to perform this action policy enforcement requires additional identity verification and a one-time code has been sent to your email",
+                            "In order to perform this action policy enforcement requires additional identity verification and a One-Time Code has been sent to your email",
                         )}
                     </Typography>
                     <Typography gutterBottom>
-                        {translate("Closing this dialog or selecting cancel will invalidate the one-time code")}
+                        {translate("Closing this dialog or selecting cancel will invalidate the One-Time Code")}
                     </Typography>
                     <Box
                         sx={{

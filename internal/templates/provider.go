@@ -89,9 +89,9 @@ func (p *Provider) GetIdentityVerificationJWTEmailTemplate() (t *EmailTemplate) 
 	return p.templates.notification.jwtIdentityVerification
 }
 
-// GetIdentityVerificationOTPEmailTemplate returns the EmailTemplate for Identity Verification notifications.
-func (p *Provider) GetIdentityVerificationOTPEmailTemplate() (t *EmailTemplate) {
-	return p.templates.notification.otpIdentityVerification
+// GetIdentityVerificationOTCEmailTemplate returns the EmailTemplate for Identity Verification notifications.
+func (p *Provider) GetIdentityVerificationOTCEmailTemplate() (t *EmailTemplate) {
+	return p.templates.notification.otcIdentityVerification
 }
 
 // GetEventEmailTemplate returns an EmailTemplate used for generic event notifications.
@@ -111,7 +111,7 @@ func (p *Provider) load() (err error) {
 		errs = append(errs, err)
 	}
 
-	if p.templates.notification.otpIdentityVerification, err = loadEmailTemplate(TemplateNameEmailIdentityVerificationOTP, p.config.EmailTemplatesPath); err != nil {
+	if p.templates.notification.otcIdentityVerification, err = loadEmailTemplate(TemplateNameEmailIdentityVerificationOTC, p.config.EmailTemplatesPath); err != nil {
 		errs = append(errs, err)
 	}
 
