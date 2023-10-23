@@ -1,7 +1,7 @@
 import React, { Fragment, useState } from "react";
 
 import { Logout, Settings } from "@mui/icons-material";
-import { Avatar, Box, IconButton, ListItemIcon, Menu, MenuItem, Tooltip } from "@mui/material";
+import { Avatar, Box, Divider, IconButton, ListItemIcon, Menu, MenuItem, Tooltip } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -102,6 +102,7 @@ const AccountSettingsMenu = function (props: Props) {
                     </ListItemIcon>
                     Settings
                 </MenuItem>
+                <Divider />
                 <MenuItem onClick={handleLogoutClick}>
                     <ListItemIcon>
                         <Logout fontSize="small" />

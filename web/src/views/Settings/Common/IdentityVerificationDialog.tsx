@@ -7,9 +7,9 @@ import {
     Dialog,
     DialogActions,
     DialogContent,
+    DialogContentText,
     DialogTitle,
     Theme,
-    Typography,
 } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
@@ -18,13 +18,14 @@ import OneTimeCodeTextField from "@components/OneTimeCodeTextField";
 import SuccessIcon from "@components/SuccessIcon";
 import { useNotifications } from "@hooks/NotificationsContext";
 import {
+    UserSessionElevation,
     deleteUserSessionElevation,
     generateUserSessionElevation,
-    getUserSessionElevation,
     verifyUserSessionElevation,
 } from "@services/UserSessionElevation";
 
 type Props = {
+    elevation?: UserSessionElevation;
     opening: boolean;
     handleClosed: (ok: boolean) => void;
     handleOpened: () => void;
@@ -42,16 +43,17 @@ const IdentityVerificationDialog = function (props: Props) {
     const [success, setSuccess] = useState(false);
 
     const [codeInput, setCodeInput] = useState("");
-    const [codeDelete, setCodeDelete] = useState<undefined | string>(undefined);
+    const [codeDelete, setCodeDelete] = useState<string>();
     const [codeError, setCodeError] = useState(false);
     const codeRef = useRef<HTMLInputElement>(null);
 
     const handleClose = useCallback(
         (ok: boolean) => {
+            setOpen(false);
+
             setCodeInput("");
             setCodeDelete(undefined);
             setCodeError(false);
-            setOpen(false);
             setLoading(false);
             setSuccess(false);
             setClosing(false);
@@ -97,9 +99,7 @@ const IdentityVerificationDialog = function (props: Props) {
     }, [createErrorNotification, translate]);
 
     const handleLoad = useCallback(async () => {
-        const elevation = await getUserSessionElevation();
-
-        if (elevation && elevation.elevated) {
+        if (props.elevation && (props.elevation.elevated || props.elevation.skip_second_factor)) {
             handleClose(true);
 
             return;
@@ -107,9 +107,7 @@ const IdentityVerificationDialog = function (props: Props) {
 
         const attempt = await generateUserSessionElevation();
 
-        if (!attempt) {
-            throw new Error("Failed to load the data.");
-        }
+        if (!attempt) throw new Error("Failed to load the data.");
 
         setCodeDelete(attempt.delete_id);
         if (!open) {
@@ -119,9 +117,7 @@ const IdentityVerificationDialog = function (props: Props) {
     }, [handleClose, open, props]);
 
     const handleSubmit = useCallback(async () => {
-        if (codeInput === "") {
-            return;
-        }
+        if (codeInput === "") return;
 
         setLoading(true);
         const success = await verifyUserSessionElevation(codeInput);
@@ -134,14 +130,12 @@ const IdentityVerificationDialog = function (props: Props) {
     }, [codeInput, handleFailure, handleSuccess]);
 
     useEffect(() => {
-        if (closing || !props.opening) {
+        if (closing || !props.opening || !props.elevation) {
             return;
         }
 
-        setCodeInput("");
-
         handleLoad().catch(console.error);
-    }, [closing, handleLoad, props.opening]);
+    }, [closing, handleLoad, props.elevation, props.opening]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setCodeInput(e.target.value.replace(/\s/g, ""));
@@ -168,14 +162,14 @@ const IdentityVerificationDialog = function (props: Props) {
                 </DialogContent>
             ) : (
                 <DialogContent dividers>
-                    <Typography gutterBottom>
+                    <DialogContentText gutterBottom>
                         {translate(
                             "In order to perform this action policy enforcement requires additional identity verification and a One-Time Code has been sent to your email",
                         )}
-                    </Typography>
-                    <Typography gutterBottom>
+                    </DialogContentText>
+                    <DialogContentText gutterBottom>
                         {translate("Closing this dialog or selecting cancel will invalidate the One-Time Code")}
-                    </Typography>
+                    </DialogContentText>
                     <Box
                         sx={{
                             display: "flex",
