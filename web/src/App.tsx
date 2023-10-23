@@ -14,6 +14,7 @@ import {
     LogoutRoute,
     ResetPasswordStep1Route,
     ResetPasswordStep2Route,
+    RevokeOneTimeCodeRoute,
     SettingsRoute,
 } from "@constants/Routes";
 import NotificationsContext from "@hooks/NotificationsContext";
@@ -38,6 +39,7 @@ const SignOut = lazy(() => import("@views/LoginPortal/SignOut/SignOut"));
 const ResetPasswordStep1 = lazy(() => import("@views/ResetPassword/ResetPasswordStep1"));
 const ResetPasswordStep2 = lazy(() => import("@views/ResetPassword/ResetPasswordStep2"));
 const SettingsRouter = lazy(() => import("@views/Settings/SettingsRouter"));
+const RevokeOneTimeCodeView = lazy(() => import("@views/Revoke/RevokeOneTimeCodeView"));
 
 faConfig.autoAddCss = false;
 
@@ -111,6 +113,7 @@ const App: React.FC<Props> = (props: Props) => {
                                 <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
                                 <Route path={LogoutRoute} element={<SignOut />} />
                                 <Route path={ConsentRoute} element={<ConsentView />} />
+                                <Route path={RevokeOneTimeCodeRoute} element={<RevokeOneTimeCodeView />} />
                                 <Route path={`${SettingsRoute}/*`} element={<SettingsRouter />} />
                                 <Route
                                     path={`${IndexRoute}*`}

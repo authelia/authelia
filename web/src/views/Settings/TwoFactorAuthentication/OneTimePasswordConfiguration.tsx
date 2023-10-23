@@ -12,7 +12,7 @@ interface Props {
     handleDelete: (event: React.MouseEvent<HTMLElement>) => void;
 }
 
-const TOTPConfiguration = function (props: Props) {
+const OneTimePasswordConfiguration = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     return (
@@ -36,4 +36,4 @@ const TOTPConfiguration = function (props: Props) {
     );
 };
 
-export default TOTPConfiguration;
+export default OneTimePasswordConfiguration;

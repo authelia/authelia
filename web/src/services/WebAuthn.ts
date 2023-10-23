@@ -191,7 +191,7 @@ async function postRegistrationResponse(
 
 export async function postAuthenticationResponse(
     response: AuthenticationResponseJSON,
-    targetURL: string | undefined,
+    targetURL?: string | undefined,
     workflow?: string,
     workflowID?: string,
 ) {

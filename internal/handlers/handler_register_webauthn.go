@@ -220,7 +220,7 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	ctx.ReplyOK()
 	ctx.SetStatusCode(fasthttp.StatusCreated)
 
-	ctxLogEvent(ctx, userSession.Username, "Second Factor Method Added", map[string]any{"Action": "Second Factor Method Added", "Category": "WebAuthn Credential", "Credential Description": device.Description})
+	ctxLogEvent(ctx, userSession.Username, eventLogAction2FAAdded, map[string]any{eventLogKeyAction: eventLogAction2FAAdded, eventLogKeyCategory: eventLogCategoryWebAuthnCredential, eventLogKeyDescription: device.Description})
 }
 
 // WebAuthnRegistrationDELETE deletes any active WebAuthn registration session..

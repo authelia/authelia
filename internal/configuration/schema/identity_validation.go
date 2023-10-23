@@ -6,8 +6,8 @@ import (
 
 // IdentityValidation represents the configuration for identity verification actions/flows.
 type IdentityValidation struct {
-	ResetPassword        IdentityValidationResetPassword   `koanf:"reset_password" json:"reset_password" jsonschema:"title=Reset Password" jsonschema_description:"Identity Validation options for the Reset Password flow"`
-	CredentialManagement IdentityValidationElevatedSession `koanf:"elevated_session" json:"elevated_session" jsonschema:"title=Elevated Session" jsonschema_description:"Identity Validation options for obtaining an Elevated Session for flows such as the Credential Management flows"`
+	ResetPassword   IdentityValidationResetPassword   `koanf:"reset_password" json:"reset_password" jsonschema:"title=Reset Password" jsonschema_description:"Identity Validation options for the Reset Password flow"`
+	ElevatedSession IdentityValidationElevatedSession `koanf:"elevated_session" json:"elevated_session" jsonschema:"title=Elevated Session" jsonschema_description:"Identity Validation options for obtaining an Elevated Session for flows such as the Credential Management flows"`
 }
 
 // IdentityValidationResetPassword represents the tunable aspects of the reset password identity verification action/flow.
@@ -32,7 +32,7 @@ var DefaultIdentityValidation = IdentityValidation{
 		Expiration:   time.Minute * 5,
 		JWTAlgorithm: "HS256",
 	},
-	CredentialManagement: IdentityValidationElevatedSession{
+	ElevatedSession: IdentityValidationElevatedSession{
 		Expiration:          time.Minute * 5,
 		ElevationExpiration: time.Minute * 10,
 		Characters:          8,
