@@ -57,7 +57,7 @@ const ConsentView = function (props: Props) {
     const redirect = useRedirector();
     const consentID = searchParams.get(Identifier);
 
-    const [response, setResponse] = useState<ConsentGetResponseBody | undefined>(undefined);
+    const [response, setResponse] = useState<ConsentGetResponseBody>();
     const [error, setError] = useState<any>(undefined);
     const [preConfigure, setPreConfigure] = useState(false);
 

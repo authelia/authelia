@@ -11,7 +11,7 @@ interface Props {
     handleClose: () => void;
 }
 
-const TOTPDeleteDialog = function (props: Props) {
+const OneTimePasswordDeleteDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
     const { createSuccessNotification, createErrorNotification } = useNotifications();
 
@@ -77,4 +77,4 @@ const TOTPDeleteDialog = function (props: Props) {
     );
 };
 
-export default TOTPDeleteDialog;
+export default OneTimePasswordDeleteDialog;

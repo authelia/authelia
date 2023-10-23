@@ -63,7 +63,7 @@ interface AvailableOptions {
     periods: number[];
 }
 
-const TOTPRegisterDialog = function (props: Props) {
+const OneTimePasswordRegisterDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const styles = useStyles();
@@ -576,4 +576,4 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
 }));
 
-export default TOTPRegisterDialog;
+export default OneTimePasswordRegisterDialog;

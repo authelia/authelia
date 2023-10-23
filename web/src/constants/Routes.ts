@@ -13,3 +13,4 @@ export const LogoutRoute: string = "/logout";
 
 export const SettingsRoute: string = "/settings";
 export const SettingsTwoFactorAuthenticationSubRoute: string = "/two-factor-authentication";
+export const RevokeOneTimeCodeRoute: string = "/revoke/one-time-code";

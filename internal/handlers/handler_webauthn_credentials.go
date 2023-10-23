@@ -156,5 +156,7 @@ func WebAuthnCredentialDELETE(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	ctxLogEvent(ctx, userSession.Username, eventLogAction2FARemoved, map[string]any{eventLogKeyAction: eventLogAction2FARemoved, eventLogKeyCategory: eventLogCategoryWebAuthnCredential, eventLogKeyDescription: device.Description})
+
 	ctx.ReplyOK()
 }

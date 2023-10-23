@@ -8,6 +8,18 @@ import (
 	"github.com/authelia/authelia/v4/internal/templates"
 )
 
+const (
+	eventLogKeyAction      = "Action"
+	eventLogKeyCategory    = "Category"
+	eventLogKeyDescription = "Description"
+
+	eventLogAction2FAAdded   = "Second Factor Method Added"
+	eventLogAction2FARemoved = "Second Factor Method Removed"
+
+	eventLogCategoryOneTimePassword    = "One-Time Password"
+	eventLogCategoryWebAuthnCredential = "WebAuthn Credential"
+)
+
 func ctxLogEvent(ctx *middlewares.AutheliaCtx, username, description string, eventDetails map[string]any) {
 	var (
 		details *authentication.UserDetails

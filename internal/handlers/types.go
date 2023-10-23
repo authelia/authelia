@@ -52,9 +52,11 @@ type bodySignWebAuthnRequest struct {
 
 // bodyGETUserSessionElevate is the  model of the request body of the User Session Elevation PUT endpoint.
 type bodyGETUserSessionElevate struct {
-	Elevated bool   `json:"elevated"`
-	Expires  int    `json:"expires"`
-	DeleteID string `json:"delete_id"`
+	RequireSecondFactor bool `json:"require_second_factor"`
+	SkipSecondFactor    bool `json:"skip_second_factor"`
+	CanSkipSecondFactor bool `json:"can_skip_second_factor"`
+	Elevated            bool `json:"elevated"`
+	Expires             int  `json:"expires"`
 }
 
 // bodyPOSTUserSessionElevate is the  model of the request body of the User Session Elevation PUT endpoint.
