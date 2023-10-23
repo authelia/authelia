@@ -8,7 +8,7 @@ import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserInfoPOST } from "@hooks/UserInfo";
 import { useUserInfoTOTPConfigurationOptional } from "@hooks/UserInfoTOTPConfiguration";
 import { useUserWebAuthnCredentials } from "@hooks/WebAuthnCredentials";
-import TOTPPanel from "@views/Settings/TwoFactorAuthentication/TOTPPanel";
+import OneTimePasswordPanel from "@views/Settings/TwoFactorAuthentication/OneTimePasswordPanel.tsx";
 import TwoFactorAuthenticationOptionsPanel from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationOptionsPanel";
 import WebAuthnCredentialsPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsPanel";
 
@@ -115,19 +115,19 @@ const TwoFactorAuthenticationView = function (props: Props) {
         fetchUserInfo();
     };
 
-    useEffect(() => {
-        console.table(userInfo);
-        console.table(configuration);
-    }, [configuration, userInfo]);
-
     return (
         <Fragment>
             <Grid container spacing={2}>
                 <Grid xs={12}>
-                    <TOTPPanel config={userTOTPConfig} handleRefreshState={handleRefreshTOTPState} />
+                    <OneTimePasswordPanel
+                        info={userInfo}
+                        config={userTOTPConfig}
+                        handleRefreshState={handleRefreshTOTPState}
+                    />
                 </Grid>
                 <Grid xs={12}>
                     <WebAuthnCredentialsPanel
+                        info={userInfo}
                         credentials={userWebAuthnCredentials}
                         handleRefreshState={handleRefreshWebAuthnState}
                     />

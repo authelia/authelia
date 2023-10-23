@@ -38,8 +38,6 @@ type MockAutheliaCtx struct {
 	TOTPMock         *MockTOTP
 	RandomMock       *MockRandom
 
-	UserSession *session.UserSession
-
 	Clock clock.Fixed
 }
 

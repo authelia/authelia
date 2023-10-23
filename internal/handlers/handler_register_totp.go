@@ -187,6 +187,8 @@ func TOTPRegisterPOST(ctx *middlewares.AutheliaCtx) {
 
 		return
 	}
+
+	ctxLogEvent(ctx, userSession.Username, eventLogAction2FAAdded, map[string]any{eventLogKeyAction: eventLogAction2FAAdded, eventLogKeyCategory: eventLogCategoryOneTimePassword})
 }
 
 func TOTPRegisterDELETE(ctx *middlewares.AutheliaCtx) {
@@ -247,4 +249,6 @@ func TOTPConfigurationDELETE(ctx *middlewares.AutheliaCtx) {
 
 		return
 	}
+
+	ctxLogEvent(ctx, userSession.Username, eventLogAction2FARemoved, map[string]any{eventLogKeyAction: eventLogAction2FARemoved, eventLogKeyCategory: eventLogCategoryOneTimePassword})
 }

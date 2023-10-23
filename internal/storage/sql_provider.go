@@ -797,7 +797,7 @@ func (p *SQLProvider) FindIdentityVerification(ctx context.Context, jti string) 
 	}
 }
 
-// SaveOneTimeCode saves a one-time code to the storage provider after generating the signature which is returned
+// SaveOneTimeCode saves a One-Time Code to the storage provider after generating the signature which is returned
 // along with any error.
 func (p *SQLProvider) SaveOneTimeCode(ctx context.Context, code model.OneTimeCode) (signature string, err error) {
 	code.Signature = p.hmacSignature([]byte(code.Username), []byte(code.Intent), code.Code)

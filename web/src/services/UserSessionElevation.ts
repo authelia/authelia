@@ -9,10 +9,12 @@ import {
     toData,
 } from "@services/Api";
 
-export interface UserSessionElevationData {
+export interface UserSessionElevation {
+    require_second_factor: boolean;
+    skip_second_factor: boolean;
+    can_skip_second_factor: boolean;
     elevated: boolean;
     expires: number;
-    delete_id: string;
 }
 
 export interface UserSessionElevationGenerateData {
@@ -20,7 +22,7 @@ export interface UserSessionElevationGenerateData {
 }
 
 export async function getUserSessionElevation() {
-    const res = await axios<ServiceResponse<UserSessionElevationData>>({
+    const res = await axios<ServiceResponse<UserSessionElevation>>({
         method: "GET",
         url: UserSessionElevationPath,
     });
@@ -31,7 +33,7 @@ export async function getUserSessionElevation() {
         );
     }
 
-    return toData<UserSessionElevationData>(res);
+    return toData<UserSessionElevation>(res);
 }
 
 export async function generateUserSessionElevation() {

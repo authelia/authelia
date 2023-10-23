@@ -179,7 +179,7 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 
 	middlewareElevated1FA := middlewares.NewBridgeBuilder(*config, providers).
 		WithPreMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
-		WithPostMiddlewares(middlewares.RequireElevated1FA).
+		WithPostMiddlewares(middlewares.RequireElevated).
 		Build()
 
 	r.HEAD("/api/health", middlewareAPI(handlers.HealthGET))
