@@ -47,8 +47,8 @@ dependencies:
     specifier: 1.5.1
     version: 1.5.1
   broadcast-channel:
-    specifier: 5.5.0
-    version: 5.5.0
+    specifier: 5.5.1
+    version: 5.5.1
   classnames:
     specifier: 2.3.2
     version: 2.3.2
@@ -3928,8 +3928,8 @@ packages:
       fill-range: 7.0.1
     dev: true
 
-  /broadcast-channel@5.5.0:
-    resolution: {integrity: sha512-boNO+pUV0LzTlUV9AVhgJnOG43dJ0X/H4H4b5mrEduy1PoGMris1oNFgywzHCyXNe7UPdXiN21sp/hFyImvJ0A==}
+  /broadcast-channel@5.5.1:
+    resolution: {integrity: sha512-C7LtMmJCIIU07xtJngYE2OxaGTGBsG+wOa0mBSPRpbTF36kqtsXQhpxtCVDTkpe8gpZMn9C6PhH+mZ/js4IabA==}
     dependencies:
       '@babel/runtime': 7.23.2
       oblivious-set: 1.1.1
