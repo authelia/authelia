@@ -24,15 +24,15 @@ func ValidateIdentityValidation(config *schema.Configuration, validator *schema.
 		validator.Push(fmt.Errorf("identity_validation: reset_password: option 'jwt_secret' is required when the reset password functionality isn't disabled"))
 	}
 
-	if config.IdentityValidation.CredentialManagement.Expiration <= 0 {
-		config.IdentityValidation.CredentialManagement.Expiration = schema.DefaultIdentityValidation.CredentialManagement.Expiration
+	if config.IdentityValidation.ElevatedSession.Expiration <= 0 {
+		config.IdentityValidation.ElevatedSession.Expiration = schema.DefaultIdentityValidation.ElevatedSession.Expiration
 	}
 
-	if config.IdentityValidation.CredentialManagement.ElevationExpiration <= 0 {
-		config.IdentityValidation.CredentialManagement.ElevationExpiration = schema.DefaultIdentityValidation.CredentialManagement.ElevationExpiration
+	if config.IdentityValidation.ElevatedSession.ElevationExpiration <= 0 {
+		config.IdentityValidation.ElevatedSession.ElevationExpiration = schema.DefaultIdentityValidation.ElevatedSession.ElevationExpiration
 	}
 
-	if config.IdentityValidation.CredentialManagement.Characters <= 0 {
-		config.IdentityValidation.CredentialManagement.Characters = schema.DefaultIdentityValidation.CredentialManagement.Characters
+	if config.IdentityValidation.ElevatedSession.Characters <= 0 {
+		config.IdentityValidation.ElevatedSession.Characters = schema.DefaultIdentityValidation.ElevatedSession.Characters
 	}
 }

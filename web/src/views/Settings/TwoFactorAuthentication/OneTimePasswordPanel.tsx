@@ -4,24 +4,22 @@ import { Button, Paper, Tooltip, Typography } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import { useTranslation } from "react-i18next";
 
+import { UserInfoTOTPConfiguration } from "@models/TOTPConfiguration";
 import { UserInfo } from "@models/UserInfo";
-import { WebAuthnCredential } from "@models/WebAuthn";
 import { UserSessionElevation, getUserSessionElevation } from "@services/UserSessionElevation";
 import IdentityVerificationDialog from "@views/Settings/Common/IdentityVerificationDialog";
 import SecondFactorDialog from "@views/Settings/Common/SecondFactorDialog";
-import WebAuthnCredentialDeleteDialog from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialDeleteDialog";
-import WebAuthnCredentialEditDialog from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialEditDialog";
-import WebAuthnCredentialInformationDialog from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialInformationDialog";
-import WebAuthnCredentialRegisterDialog from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialRegisterDialog";
-import WebAuthnCredentialsGrid from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsGrid";
+import OneTimePasswordConfiguration from "@views/Settings/TwoFactorAuthentication/OneTimePasswordConfiguration.tsx";
+import OneTimePasswordDeleteDialog from "@views/Settings/TwoFactorAuthentication/OneTimePasswordDeleteDialog.tsx";
+import OneTimePasswordRegisterDialog from "@views/Settings/TwoFactorAuthentication/OneTimePasswordRegisterDialog.tsx";
 
 interface Props {
     info?: UserInfo;
-    credentials: WebAuthnCredential[] | undefined;
+    config: UserInfoTOTPConfiguration | undefined | null;
     handleRefreshState: () => void;
 }
 
-const WebAuthnCredentialsPanel = function (props: Props) {
+const OneTimePasswordPanel = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const [elevation, setElevation] = useState<UserSessionElevation>();
@@ -32,22 +30,13 @@ const WebAuthnCredentialsPanel = function (props: Props) {
     const [dialogRegisterOpen, setDialogRegisterOpen] = useState(false);
     const [dialogRegisterOpening, setDialogRegisterOpening] = useState(false);
 
-    const [dialogInformationOpen, setDialogInformationOpen] = useState(false);
-    const [indexInformation, setIndexInformation] = useState(-1);
-
-    const [dialogEditOpen, setDialogEditOpen] = useState(false);
-    const [dialogEditOpening, setDialogEditOpening] = useState(false);
-    const [indexEdit, setIndexEdit] = useState(-1);
-
     const [dialogDeleteOpen, setDialogDeleteOpen] = useState(false);
     const [dialogDeleteOpening, setDialogDeleteOpening] = useState(false);
-    const [indexDelete, setIndexDelete] = useState(-1);
 
     const handleResetStateOpening = () => {
         setDialogSFOpening(false);
         setDialogIVOpening(false);
         setDialogRegisterOpening(false);
-        setDialogEditOpening(false);
         setDialogDeleteOpening(false);
     };
 
@@ -57,10 +46,7 @@ const WebAuthnCredentialsPanel = function (props: Props) {
         setElevation(undefined);
 
         setDialogRegisterOpen(false);
-        setDialogEditOpen(false);
-        setIndexEdit(-1);
         setDialogDeleteOpen(false);
-        setIndexDelete(-1);
     }, []);
 
     const handleOpenDialogRegister = useCallback(() => {
@@ -71,11 +57,6 @@ const WebAuthnCredentialsPanel = function (props: Props) {
     const handleOpenDialogDelete = useCallback(() => {
         handleResetStateOpening();
         setDialogDeleteOpen(true);
-    }, []);
-
-    const handleOpenDialogEdit = useCallback(() => {
-        handleResetStateOpening();
-        setDialogEditOpen(true);
     }, []);
 
     const handleSFDialogClosed = (ok: boolean, changed: boolean) => {
@@ -122,16 +103,12 @@ const WebAuthnCredentialsPanel = function (props: Props) {
                 handleOpenDialogRegister();
             } else if (dialogDeleteOpening) {
                 handleOpenDialogDelete();
-            } else if (dialogEditOpening) {
-                handleOpenDialogEdit();
             }
         },
         [
             dialogDeleteOpening,
-            dialogEditOpening,
             dialogRegisterOpening,
             handleOpenDialogDelete,
-            handleOpenDialogEdit,
             handleOpenDialogRegister,
             handleResetState,
         ],
@@ -159,36 +136,15 @@ const WebAuthnCredentialsPanel = function (props: Props) {
         handleElevation();
     };
 
-    const handleInformation = (index: number) => {
-        if (!props.credentials) return;
-
-        if (props.credentials.length + 1 < index) return;
-
-        setIndexInformation(index);
-        setDialogInformationOpen(true);
-    };
-
-    const handleEdit = (index: number) => {
-        if (!props.credentials) return;
-
-        if (props.credentials.length + 1 < index) return;
-
-        setDialogEditOpening(true);
-        setIndexEdit(index);
-
-        handleElevation();
-    };
-
-    const handleDelete = (index: number) => {
-        if (!props.credentials) return;
-
-        if (props.credentials.length + 1 < index) return;
+    const handleDelete = () => {
+        if (!props.config) return;
 
         setDialogDeleteOpening(true);
-        setIndexDelete(index);
 
         handleElevation();
     };
+
+    const registered = props.config !== null && props.config !== undefined;
 
     return (
         <Fragment>
@@ -200,38 +156,20 @@ const WebAuthnCredentialsPanel = function (props: Props) {
                 handleOpened={handleSFDialogOpened}
             />
             <IdentityVerificationDialog
-                elevation={elevation}
                 opening={dialogIVOpening}
+                elevation={elevation}
                 handleClosed={handleIVDialogClosed}
                 handleOpened={handleIVDialogOpened}
             />
-            <WebAuthnCredentialRegisterDialog
+            <OneTimePasswordRegisterDialog
                 open={dialogRegisterOpen}
                 setClosed={() => {
                     handleResetState();
                     props.handleRefreshState();
                 }}
             />
-            <WebAuthnCredentialInformationDialog
-                credential={
-                    indexInformation === -1 || !props.credentials ? undefined : props.credentials[indexInformation]
-                }
-                open={dialogInformationOpen}
-                handleClose={() => {
-                    setDialogInformationOpen(false);
-                }}
-            />
-            <WebAuthnCredentialEditDialog
-                credential={indexEdit === -1 || !props.credentials ? undefined : props.credentials[indexEdit]}
-                open={dialogEditOpen}
-                handleClose={() => {
-                    handleResetState();
-                    props.handleRefreshState();
-                }}
-            />
-            <WebAuthnCredentialDeleteDialog
+            <OneTimePasswordDeleteDialog
                 open={dialogDeleteOpen}
-                credential={indexDelete === -1 || !props.credentials ? undefined : props.credentials[indexDelete]}
                 handleClose={() => {
                     handleResetState();
                     props.handleRefreshState();
@@ -240,40 +178,51 @@ const WebAuthnCredentialsPanel = function (props: Props) {
             <Paper variant={"outlined"}>
                 <Grid container spacing={2} padding={2}>
                     <Grid xs={12}>
-                        <Typography variant="h5">{translate("WebAuthn Credentials")}</Typography>
-                    </Grid>
-                    <Grid xs={4} md={2}>
-                        <Tooltip
-                            title={translate("Click to add a {{item}} to your account", {
-                                item: translate("WebAuthn Credential"),
-                            })}
-                        >
-                            <Button variant="outlined" color="primary" onClick={handleRegister}>
-                                {translate("Add")}
-                            </Button>
-                        </Tooltip>
+                        <Typography variant={"h5"}>{translate("One-Time Password")}</Typography>
                     </Grid>
                     <Grid xs={12}>
-                        {props.credentials === undefined || props.credentials.length === 0 ? (
+                        <Tooltip
+                            title={
+                                !registered
+                                    ? translate("Click to add a {{item}} to your account", {
+                                          item: translate("One-Time Password"),
+                                      })
+                                    : translate("You can only register a single One-Time Password")
+                            }
+                        >
+                            <span>
+                                <Button
+                                    variant="outlined"
+                                    color="primary"
+                                    onClick={handleRegister}
+                                    disabled={registered}
+                                >
+                                    {translate("Add")}
+                                </Button>
+                            </span>
+                        </Tooltip>
+                    </Grid>
+                    {props.config === null || props.config === undefined ? (
+                        <Grid xs={12}>
                             <Typography variant={"subtitle2"}>
                                 {translate(
-                                    "No WebAuthn Credentials have been registered. If you'd like to register one click add",
+                                    "The One-Time Password has not been registered. If you'd like to register it click add",
                                 )}
                             </Typography>
-                        ) : (
-                            <WebAuthnCredentialsGrid
-                                credentials={props.credentials}
-                                handleRefreshState={props.handleRefreshState}
-                                handleInformation={handleInformation}
-                                handleEdit={handleEdit}
+                        </Grid>
+                    ) : (
+                        <Grid xs={12} md={6} xl={3}>
+                            <OneTimePasswordConfiguration
+                                config={props.config}
+                                handleRefresh={props.handleRefreshState}
                                 handleDelete={handleDelete}
                             />
-                        )}
-                    </Grid>
+                        </Grid>
+                    )}
                 </Grid>
             </Paper>
         </Fragment>
     );
 };
 
-export default WebAuthnCredentialsPanel;
+export default OneTimePasswordPanel;

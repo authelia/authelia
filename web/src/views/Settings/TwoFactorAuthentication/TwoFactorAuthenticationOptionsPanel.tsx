@@ -21,7 +21,7 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
 
     const { createErrorNotification } = useNotifications();
 
-    const [method, setMethod] = useState<undefined | string>(undefined);
+    const [method, setMethod] = useState<string>();
     const [methods, setMethods] = useState<string[]>([]);
 
     const hasMethods =
@@ -61,8 +61,6 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
     }, [props.config, hasMethods]);
 
     const handleMethodChanged = (event: ChangeEvent<HTMLInputElement>) => {
-        console.log(event.target.value);
-
         if (isMethod2FA(event.target.value)) {
             const value = toSecondFactorMethod(event.target.value as Method2FA);
 
@@ -79,11 +77,6 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
                 });
         }
     };
-
-    useEffect(() => {
-        console.table(props.info);
-        console.table(props.config);
-    }, [props.config, props.info]);
 
     return (
         <Fragment>
