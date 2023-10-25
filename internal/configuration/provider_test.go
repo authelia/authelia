@@ -119,7 +119,6 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 
 	t.Setenv("ABC_CLIENT_SECRET", "$plaintext$example-abc")
 	t.Setenv("XYZ_CLIENT_SECRET", "$plaintext$example-xyz")
-	t.Setenv("ANOTHER_CLIENT_SECRET", "$plaintext$example-123")
 	t.Setenv("SERVICES_SERVER", "10.10.10.10")
 	t.Setenv("ROOT_DOMAIN", "example.org")
 
@@ -134,10 +133,11 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 	assert.Equal(t, "smtp://10.10.10.10:1025", config.Notifier.SMTP.Address.String())
 	assert.Equal(t, "10.10.10.10", config.Session.Redis.Host)
 
-	require.Len(t, config.IdentityProviders.OIDC.Clients, 3)
+	require.Len(t, config.IdentityProviders.OIDC.Clients, 4)
 	assert.Equal(t, "$plaintext$example-abc", config.IdentityProviders.OIDC.Clients[0].Secret.String())
 	assert.Equal(t, "$plaintext$example-xyz", config.IdentityProviders.OIDC.Clients[1].Secret.String())
-	assert.Equal(t, "$plaintext$example-123", config.IdentityProviders.OIDC.Clients[2].Secret.String())
+	assert.Equal(t, "$plaintext$example_secret value", config.IdentityProviders.OIDC.Clients[2].Secret.String())
+	assert.Equal(t, "$plaintext$abc", config.IdentityProviders.OIDC.Clients[3].Secret.String())
 }
 
 func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {

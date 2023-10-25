@@ -27,6 +27,7 @@ func FuncMap() map[string]any {
 	return map[string]any{
 		"iterate":     FuncIterate,
 		"fileContent": FuncFileContent,
+		"secret":      FuncSecret,
 		"env":         FuncGetEnv,
 		"expandenv":   FuncExpandEnv,
 		"split":       FuncStringSplit,
@@ -420,4 +421,13 @@ func FuncFileContent(path string) (data string, err error) {
 	}
 
 	return string(raw), nil
+}
+
+// FuncSecret returns the file content stripping the newlines from the end of the content.
+func FuncSecret(path string) (data string, err error) {
+	if data, err = FuncFileContent(path); err != nil {
+		return "", err
+	}
+
+	return strings.TrimRight(data, "\n"), nil
 }
