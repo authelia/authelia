@@ -151,7 +151,7 @@ dynamically built with bits coming from the FCGI environment:
 `<scheme>://<fqdn>[:<port>]/...`. To force HTTPS, Roundcube's conf flag
 `use_https` must be set. However, the redirection breaks when the backend
 application is listening on a specific port, because the resulting redirect
-URI would be something like 'https://<fqdn>:<port>/...'. Thus, to obtain the
+URI would be something like `https://<fqdn>:<port>/...`. Thus, to obtain the
 correct redirect URI `'https://<fqdn>/...'`, the fastcgi_param SERVER_PORT
 must be unset.
 
