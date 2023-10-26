@@ -72,19 +72,21 @@ type EmailPasswordResetValues struct {
 
 // EmailIdentityVerificationJWTValues are the values used for the identity verification JWT templates.
 type EmailIdentityVerificationJWTValues struct {
-	Title       string
-	DisplayName string
-	RemoteIP    string
-	LinkURL     string
-	LinkText    string
+	Title              string
+	DisplayName        string
+	RemoteIP           string
+	LinkURL            string
+	LinkText           string
+	RevocationLinkURL  string
+	RevocationLinkText string
 }
 
 // EmailIdentityVerificationOTCValues are the values used for the identity verification OTP templates.
 type EmailIdentityVerificationOTCValues struct {
-	Title       string
-	DisplayName string
-	RemoteIP    string
-	OneTimeCode string
-	LinkURL     string
-	LinkText    string
+	Title              string
+	DisplayName        string
+	RemoteIP           string
+	OneTimeCode        string
+	RevocationLinkURL  string
+	RevocationLinkText string
 }
