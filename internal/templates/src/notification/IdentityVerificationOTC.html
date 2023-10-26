@@ -86,8 +86,15 @@
       color: #ffffff;
       padding: 15px 30px;
       border-radius: 10px;
-      background: rgb(245, 0, 87);
       text-decoration: none;
+    }
+
+    .button-standard {
+      background: rgb(25, 118, 210);
+    }
+
+    .button-revoke {
+      background: rgb(245, 0, 87);
     }
 
     .link {
@@ -386,7 +393,7 @@
                     <tr>
                       <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #666666; text-align:center; line-height: 30px;"
                           st-content="fulltext-content">
-                        <a href="{{ .LinkURL }}" class="button">{{ .LinkText }}</a>
+                        <a href="{{ .RevocationLinkURL }}" class="button button-revoke">{{ .RevocationLinkText }}</a>
                       </td>
                     </tr>
                     <!-- End of content -->

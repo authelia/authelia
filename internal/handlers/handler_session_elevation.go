@@ -160,12 +160,12 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 	identity := userSession.Identity()
 
 	data := templates.EmailIdentityVerificationOTCValues{
-		Title:       "Confirm your identity",
-		LinkURL:     linkURL.String(),
-		LinkText:    "Revoke",
-		DisplayName: identity.DisplayName,
-		RemoteIP:    ctx.RemoteIP().String(),
-		OneTimeCode: string(otp.Code),
+		Title:              "Confirm your identity",
+		RevocationLinkURL:  linkURL.String(),
+		RevocationLinkText: "Revoke",
+		DisplayName:        identity.DisplayName,
+		RemoteIP:           ctx.RemoteIP().String(),
+		OneTimeCode:        string(otp.Code),
 	}
 
 	ctx.Logger.WithFields(map[string]any{"signature": signature, "id": otp.PublicID.String(), "username": identity.Username}).

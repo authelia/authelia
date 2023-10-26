@@ -131,8 +131,15 @@ type Provider interface {
 	// ConsumeIdentityVerification marks an identity verification record in the storage provider as consumed.
 	ConsumeIdentityVerification(ctx context.Context, jti string, ip model.NullIP) (err error)
 
+	// RevokeIdentityVerification marks an identity verification record in the storage provider as revoked.
+	RevokeIdentityVerification(ctx context.Context, jti string, ip model.NullIP) (err error)
+
 	// FindIdentityVerification checks if an identity verification record is in the storage provider and active.
 	FindIdentityVerification(ctx context.Context, jti string) (found bool, err error)
+
+	// LoadIdentityVerification loads an Identity Verification but does not do any validation.
+	// For easy validation you should use FindIdentityVerification which ensures the JWT is still valid.
+	LoadIdentityVerification(ctx context.Context, jti string) (verification *model.IdentityVerification, err error)
 
 	/*
 		Implementation for Identity Verification (OTP).
