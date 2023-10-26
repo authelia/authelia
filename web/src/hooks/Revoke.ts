@@ -7,3 +7,11 @@ export function useID(): string | undefined {
 
     return id === null ? undefined : id;
 }
+
+export function useToken(): string | undefined {
+    const [searchParams] = useSearchParams();
+
+    const token = searchParams.get("token");
+
+    return token === null ? undefined : token;
+}

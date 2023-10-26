@@ -30,8 +30,10 @@ type IdentityVerification struct {
 	ExpiresAt  time.Time    `db:"exp"`
 	Action     string       `db:"action"`
 	Username   string       `db:"username"`
-	Consumed   sql.NullTime `db:"consumed"`
+	ConsumedAt sql.NullTime `db:"consumed"`
 	ConsumedIP NullIP       `db:"consumed_ip"`
+	RevokedAt  sql.NullTime `db:"revoked"`
+	RevokedIP  NullIP       `db:"revoked_ip"`
 }
 
 // ToIdentityVerificationClaim converts the IdentityVerification into a IdentityVerificationClaim.
