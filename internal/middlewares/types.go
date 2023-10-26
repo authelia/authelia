@@ -78,12 +78,15 @@ type Basic func(next fasthttp.RequestHandler) (handler fasthttp.RequestHandler)
 // of the identity verification process.
 type IdentityVerificationStartArgs struct {
 	// Email template needs a subject, a title and the content of the button.
-	MailTitle         string
-	MailButtonContent string
+	MailTitle               string
+	MailButtonContent       string
+	MailButtonRevokeContent string
 
 	// The target endpoint where to redirect the user when verification process
 	// is completed successfully.
 	TargetEndpoint string
+
+	RevokeEndpoint string
 
 	// The action claim that will be stored in the JWT token.
 	ActionClaim string

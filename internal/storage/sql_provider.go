@@ -40,6 +40,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 		sqlInsertIdentityVerification:  fmt.Sprintf(queryFmtInsertIdentityVerification, tableIdentityVerification),
 		sqlConsumeIdentityVerification: fmt.Sprintf(queryFmtConsumeIdentityVerification, tableIdentityVerification),
+		sqlRevokeIdentityVerification:  fmt.Sprintf(queryFmtRevokeIdentityVerification, tableIdentityVerification),
 		sqlSelectIdentityVerification:  fmt.Sprintf(queryFmtSelectIdentityVerification, tableIdentityVerification),
 
 		sqlInsertOneTimeCode:            fmt.Sprintf(queryFmtInsertOTC, tableOneTimeCode),
@@ -171,6 +172,7 @@ type SQLProvider struct {
 	// Table: identity_verification.
 	sqlInsertIdentityVerification  string
 	sqlConsumeIdentityVerification string
+	sqlRevokeIdentityVerification  string
 	sqlSelectIdentityVerification  string
 
 	// Table: one_time_code.
@@ -776,6 +778,15 @@ func (p *SQLProvider) ConsumeIdentityVerification(ctx context.Context, jti strin
 	return nil
 }
 
+// RevokeIdentityVerification marks an identity verification record in the storage provider as revoked.
+func (p *SQLProvider) RevokeIdentityVerification(ctx context.Context, jti string, ip model.NullIP) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlRevokeIdentityVerification, ip, jti); err != nil {
+		return fmt.Errorf("error updating identity verification: %w", err)
+	}
+
+	return nil
+}
+
 // FindIdentityVerification checks if an identity verification record is in the storage provider and active.
 func (p *SQLProvider) FindIdentityVerification(ctx context.Context, jti string) (found bool, err error) {
 	verification := model.IdentityVerification{}
@@ -788,13 +799,27 @@ func (p *SQLProvider) FindIdentityVerification(ctx context.Context, jti string) 
 	}
 
 	switch {
-	case verification.Consumed.Valid:
+	case verification.RevokedAt.Valid:
+		return false, fmt.Errorf("the token has been revoked")
+	case verification.ConsumedAt.Valid:
 		return false, fmt.Errorf("the token has already been consumed")
 	case verification.ExpiresAt.Before(time.Now()):
 		return false, fmt.Errorf("the token expired %s ago", time.Since(verification.ExpiresAt))
 	default:
 		return true, nil
 	}
+}
+
+// LoadIdentityVerification loads an Identity Verification but does not do any validation.
+// For easy validation you should use FindIdentityVerification which ensures the JWT is still valid.
+func (p *SQLProvider) LoadIdentityVerification(ctx context.Context, jti string) (verification *model.IdentityVerification, err error) {
+	verification = &model.IdentityVerification{}
+
+	if err = p.db.GetContext(ctx, verification, p.sqlSelectIdentityVerification, jti); err != nil {
+		return nil, fmt.Errorf("error selecting identity verification: %w", err)
+	}
+
+	return verification, nil
 }
 
 // SaveOneTimeCode saves a One-Time Code to the storage provider after generating the signature which is returned
