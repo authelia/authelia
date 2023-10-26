@@ -247,7 +247,9 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 		// Password reset related endpoints.
 		r.POST("/api/reset-password/identity/start", middlewareAPI(handlers.ResetPasswordIdentityStart))
 		r.POST("/api/reset-password/identity/finish", middlewareAPI(handlers.ResetPasswordIdentityFinish))
+
 		r.POST("/api/reset-password", middlewareAPI(handlers.ResetPasswordPOST))
+		r.DELETE("/api/reset-password", middlewareAPI(handlers.ResetPasswordDELETE))
 	}
 
 	// Information about the user.

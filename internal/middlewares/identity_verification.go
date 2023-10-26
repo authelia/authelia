@@ -84,12 +84,23 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 		linkURL.Path = path.Join(linkURL.Path, args.TargetEndpoint)
 		linkURL.RawQuery = query.Encode()
 
+		revocationLinkURL := ctx.RootURL()
+
+		query = revocationLinkURL.Query()
+
+		query.Set(queryArgToken, signedToken)
+
+		revocationLinkURL.Path = path.Join(revocationLinkURL.Path, args.RevokeEndpoint)
+		revocationLinkURL.RawQuery = query.Encode()
+
 		data := templates.EmailIdentityVerificationJWTValues{
-			Title:       args.MailTitle,
-			LinkURL:     linkURL.String(),
-			LinkText:    args.MailButtonContent,
-			DisplayName: identity.DisplayName,
-			RemoteIP:    ctx.RemoteIP().String(),
+			Title:              args.MailTitle,
+			LinkURL:            linkURL.String(),
+			LinkText:           args.MailButtonContent,
+			RevocationLinkURL:  revocationLinkURL.String(),
+			RevocationLinkText: args.MailButtonRevokeContent,
+			DisplayName:        identity.DisplayName,
+			RemoteIP:           ctx.RemoteIP().String(),
 		}
 
 		ctx.Logger.Debugf("Sending an email to user %s (%s) to confirm identity for registering a device.",

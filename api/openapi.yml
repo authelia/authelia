@@ -569,17 +569,38 @@ paths:
         - Password Reset
       summary: Password Reset
       description: >
-        This endpoint is step 3 of 3 in the password reset process.
-
-        It validates the user session and changes the password.
-
+        The password reset endpoint (using the POST method verb) validates the user session and changes the password.
         The same session cookie must be used for all steps in this process.
+
+        This endpoint is step 3 of 3 in the password reset process.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/handlers.PasswordResetStep2RequestBody'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.OkResponse'
+      security:
+        - authelia_auth: []
+    delete:
+      tags:
+        - Password Reset
+      summary: Password Reset
+      description: >
+        The password reset endpoint (using the DELETE method verb) revokes a JWT associated with a password reset
+        operation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.PasswordResetBodyDELETE'
       responses:
         "200":
           description: Successful Operation
@@ -2069,6 +2090,13 @@ components:
         password:
           type: string
           example: password
+    handlers.PasswordResetBodyDELETE:
+      required:
+        - 'token'
+      type: object
+      properties:
+        token:
+          type: string
     {{- end }}
     {{- if .Duo }}
     handlers.bodySignDuoRequest:

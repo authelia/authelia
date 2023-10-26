@@ -170,6 +170,10 @@ type resetPasswordStep2RequestBody struct {
 	Password string `json:"password"`
 }
 
+type bodyRequestPasswordResetDELETE struct {
+	Token string `json:"token"`
+}
+
 // PasswordPolicyBody represents the response sent by the password reset step 2.
 type PasswordPolicyBody struct {
 	Mode             string `json:"mode"`

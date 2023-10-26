@@ -57,7 +57,7 @@ const (
 
 const (
 	queryFmtSelectIdentityVerification = `
-		SELECT id, jti, iat, issued_ip, exp, username, action, consumed, consumed_ip
+		SELECT id, jti, iat, issued_ip, exp, username, action, consumed, consumed_ip, revoked, revoked_ip
 		FROM %s
 		WHERE jti = ?;`
 
@@ -68,6 +68,11 @@ const (
 	queryFmtConsumeIdentityVerification = `
 		UPDATE %s
 		SET consumed = CURRENT_TIMESTAMP, consumed_ip = ?
+		WHERE jti = ?;`
+
+	queryFmtRevokeIdentityVerification = `
+		UPDATE %s
+		SET revoked = CURRENT_TIMESTAMP, revoked_ip = ?
 		WHERE jti = ?;`
 )
 

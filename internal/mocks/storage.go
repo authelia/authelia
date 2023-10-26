@@ -238,6 +238,21 @@ func (mr *MockStorageMockRecorder) LoadAuthenticationLogs(arg0, arg1, arg2, arg3
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAuthenticationLogs", reflect.TypeOf((*MockStorage)(nil).LoadAuthenticationLogs), arg0, arg1, arg2, arg3, arg4)
 }
 
+// LoadIdentityVerification mocks base method.
+func (m *MockStorage) LoadIdentityVerification(arg0 context.Context, arg1 string) (*model.IdentityVerification, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadIdentityVerification", arg0, arg1)
+	ret0, _ := ret[0].(*model.IdentityVerification)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadIdentityVerification indicates an expected call of LoadIdentityVerification.
+func (mr *MockStorageMockRecorder) LoadIdentityVerification(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadIdentityVerification", reflect.TypeOf((*MockStorage)(nil).LoadIdentityVerification), arg0, arg1)
+}
+
 // LoadOAuth2BlacklistedJTI mocks base method.
 func (m *MockStorage) LoadOAuth2BlacklistedJTI(arg0 context.Context, arg1 string) (*model.OAuth2BlacklistedJTI, error) {
 	m.ctrl.T.Helper()
@@ -551,6 +566,20 @@ func (m *MockStorage) LoadWebAuthnUser(arg0 context.Context, arg1, arg2 string) 
 func (mr *MockStorageMockRecorder) LoadWebAuthnUser(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadWebAuthnUser", reflect.TypeOf((*MockStorage)(nil).LoadWebAuthnUser), arg0, arg1, arg2)
+}
+
+// RevokeIdentityVerification mocks base method.
+func (m *MockStorage) RevokeIdentityVerification(arg0 context.Context, arg1 string, arg2 model.NullIP) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevokeIdentityVerification", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RevokeIdentityVerification indicates an expected call of RevokeIdentityVerification.
+func (mr *MockStorageMockRecorder) RevokeIdentityVerification(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeIdentityVerification", reflect.TypeOf((*MockStorage)(nil).RevokeIdentityVerification), arg0, arg1, arg2)
 }
 
 // RevokeOAuth2PARContext mocks base method.
