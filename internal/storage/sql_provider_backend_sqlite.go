@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 
 	"github.com/mattn/go-sqlite3"
-	_ "github.com/mattn/go-sqlite3" // Load the SQLite Driver used in the connection string.
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )

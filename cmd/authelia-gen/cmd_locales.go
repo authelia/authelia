@@ -119,7 +119,7 @@ func getLanguages(dir string) (languages *Languages, err error) {
 		ext := filepath.Ext(nameLower)
 		ns := strings.Replace(nameLower, ext, "", 1)
 
-		if ext != ".json" {
+		if ext != extJSON {
 			return nil
 		}
 

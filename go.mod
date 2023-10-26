@@ -10,7 +10,7 @@ require (
 	github.com/duosecurity/duo_api_golang v0.0.0-20230418202038-096d3306c029
 	github.com/fasthttp/router v1.4.21
 	github.com/fasthttp/session/v2 v2.5.2
-	github.com/fsnotify/fsnotify v1.6.0
+	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-asn1-ber/asn1-ber v1.5.5
 	github.com/go-crypt/crypt v0.2.12
 	github.com/go-ldap/ldap/v3 v3.4.6
@@ -34,7 +34,7 @@ require (
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/ory/fosite v0.44.0
 	github.com/ory/herodot v0.10.3-0.20230807143059-27cd6936499b
-	github.com/ory/x v0.0.596
+	github.com/ory/x v0.0.597
 	github.com/otiai10/copy v1.14.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.4.0
