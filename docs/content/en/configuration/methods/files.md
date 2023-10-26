@@ -163,6 +163,10 @@ Filters can either be used on their own, in combination, or not at all. The filt
 defined. You can preview the output of the YAML files when processed via the filters using the
 [authelia config template](../../reference/cli/authelia/authelia_config_template.md) command.
 
+_**Important Note:** the filters are applied in order and thus if the output of one filter outputs a string that
+contains syntax for a subsequent filter it will be filtered. It is therefore suggested the template filter is the only
+filter and if it isn't that it's last._
+
 Examples:
 
 ```bash

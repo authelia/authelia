@@ -60,8 +60,8 @@ type BytesFilter func(in []byte) (out []byte, err error)
 // NewFileFiltersDefault returns the default list of BytesFilter.
 func NewFileFiltersDefault() []BytesFilter {
 	return []BytesFilter{
-		NewTemplateFileFilter(),
 		NewExpandEnvFileFilter(),
+		NewTemplateFileFilter(),
 	}
 }
 

@@ -96,8 +96,26 @@ The following is a list of special functions and their syntax.
 
 #### iterate
 
-Input is a single uint. Returns a slice of uints from 0 to the provided uint.
+This template function takes a single input and is a positive integer. Returns a slice of uints from 0 to the provided
+input.
 
 #### fileContent
 
-Input is a path. Returns the content of a file.
+This template function takes a single input and is a string which should be a path. Returns the content of a file.
+
+Example:
+
+```yaml
+example: |
+  {{- fileContent "/absolute/path/to/file" | nindent 2 }}
+```
+
+#### secret
+
+Overload for [fileContent](#filecontent) except that tailing newlines will be removed.
+
+Example:
+
+```yaml
+example: '{{ secret "/absolute/path/to/file" }}'
+```

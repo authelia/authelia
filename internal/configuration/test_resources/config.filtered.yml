@@ -19,7 +19,7 @@ authentication_backend:
     address: 'ldap://{{ env "SERVICES_SERVER" }}'
     tls:
       private_key: |
-        {{- fileContent "./test_resources/example_filter_rsa_private_key" | nindent 8 }}
+        {{- secret "./test_resources/example_filter_rsa_private_key" | nindent 8 }}
     base_dn: dc=example,dc=com
     additional_users_dn: ou=users
     users_filter: (&({username_attribute}={input})(objectCategory=person)(objectClass=user))
@@ -161,6 +161,9 @@ identity_providers:
         secret: '$XYZ_CLIENT_SECRET'
         consent_mode: explicit
       - id: '123'
-        secret: $ANOTHER_CLIENT_SECRET
+        secret: '{{ secret "./test_resources/example_secret" }}'
+        consent_mode: explicit
+      - id: '456'
+        secret: '{{ secret "./test_resources/example_password_secret" }}'
         consent_mode: explicit
 ...
