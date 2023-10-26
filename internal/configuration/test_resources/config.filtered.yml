@@ -161,7 +161,7 @@ identity_providers:
         secret: '$XYZ_CLIENT_SECRET'
         consent_mode: explicit
       - id: '123'
-        secret: {{ secret "./test_resources/example_secret" }}
+        secret: '{{ secret "./test_resources/example_secret" }}'
         consent_mode: explicit
       - id: '456'
         secret: '{{ secret "./test_resources/example_password_secret" }}'
