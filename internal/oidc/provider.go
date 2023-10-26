@@ -20,7 +20,7 @@ func NewOpenIDConnectProvider(config *schema.IdentityProvidersOpenIDConnect, sto
 	signer := NewKeyManager(config)
 
 	provider = &OpenIDConnectProvider{
-		JSONWriter: herodot.NewJSONWriter(nil),
+		JSONWriter: herodot.NewJSONWriter(&NilErrorReporter{}),
 		Store:      NewStore(config, store),
 		KeyManager: signer,
 		Config:     NewConfig(config, signer, templates),

@@ -2,6 +2,7 @@ package oidc
 
 import (
 	"context"
+	"net/http"
 	"net/url"
 	"time"
 
@@ -193,6 +194,11 @@ type IDTokenSessionContainer interface {
 	IDTokenHeaders() *fjwt.Headers
 	IDTokenClaims() *fjwt.IDTokenClaims
 }
+
+// NilErrorReporter is a true nil herodot.ErrorReporter.
+type NilErrorReporter struct{}
+
+func (*NilErrorReporter) ReportError(r *http.Request, code int, err error, args ...interface{}) {}
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
 type ConsentGetResponseBody struct {
