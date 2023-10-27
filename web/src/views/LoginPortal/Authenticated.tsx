@@ -7,8 +7,10 @@ import { useTranslation } from "react-i18next";
 import SuccessIcon from "@components/SuccessIcon";
 
 const Authenticated = function () {
-    const styles = useStyles();
     const { t: translate } = useTranslation();
+
+    const styles = useStyles();
+
     return (
         <div id="authenticated-stage">
             <div className={styles.iconContainer}>

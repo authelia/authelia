@@ -156,7 +156,7 @@ func schemaEncryptionChangeKeyTOTP(ctx context.Context, provider *SQLProvider, t
 func schemaEncryptionChangeKeyWebAuthn(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error) {
 	var count int
 
-	if err = tx.GetContext(ctx, &count, fmt.Sprintf(queryFmtSelectRowCount, tableWebAuthnDevices)); err != nil {
+	if err = tx.GetContext(ctx, &count, fmt.Sprintf(queryFmtSelectRowCount, tableWebAuthnCredentials)); err != nil {
 		return err
 	}
 
@@ -164,29 +164,29 @@ func schemaEncryptionChangeKeyWebAuthn(ctx context.Context, provider *SQLProvide
 		return nil
 	}
 
-	devices := make([]encWebAuthnDevice, 0, count)
+	credentials := make([]encWebAuthnCredential, 0, count)
 
-	if err = tx.SelectContext(ctx, &devices, fmt.Sprintf(queryFmtSelectWebAuthnDevicesEncryptedData, tableWebAuthnDevices)); err != nil {
+	if err = tx.SelectContext(ctx, &credentials, fmt.Sprintf(queryFmtSelectWebAuthnCredentialsEncryptedData, tableWebAuthnCredentials)); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
 		}
 
-		return fmt.Errorf("error selecting WebAuthn devices: %w", err)
+		return fmt.Errorf("error selecting WebAuthn credentials: %w", err)
 	}
 
-	query := provider.db.Rebind(fmt.Sprintf(queryFmtUpdateWebAuthnDevicePublicKey, tableWebAuthnDevices))
+	query := provider.db.Rebind(fmt.Sprintf(queryFmtUpdateWebAuthnCredentialsEncryptedData, tableWebAuthnCredentials))
 
-	for _, d := range devices {
+	for _, d := range credentials {
 		if d.PublicKey, err = provider.decrypt(d.PublicKey); err != nil {
-			return fmt.Errorf("error decrypting WebAuthn device public key with id '%d': %w", d.ID, err)
+			return fmt.Errorf("error decrypting WebAuthn credential public key with id '%d': %w", d.ID, err)
 		}
 
 		if d.PublicKey, err = utils.Encrypt(d.PublicKey, &key); err != nil {
-			return fmt.Errorf("error encrypting WebAuthn device public key with id '%d': %w", d.ID, err)
+			return fmt.Errorf("error encrypting WebAuthn credential public key with id '%d': %w", d.ID, err)
 		}
 
 		if _, err = tx.ExecContext(ctx, query, d.PublicKey, d.ID); err != nil {
-			return fmt.Errorf("error updating WebAuthn device public key with id '%d': %w", d.ID, err)
+			return fmt.Errorf("error updating WebAuthn credential public key with id '%d': %w", d.ID, err)
 		}
 	}
 
@@ -268,29 +268,29 @@ func schemaEncryptionCheckKeyWebAuthn(ctx context.Context, provider *SQLProvider
 		err  error
 	)
 
-	if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectWebAuthnDevicesEncryptedData, tableWebAuthnDevices)); err != nil {
-		return tableWebAuthnDevices, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting WebAuthn devices: %w", err)}
+	if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectWebAuthnCredentialsEncryptedData, tableWebAuthnCredentials)); err != nil {
+		return tableWebAuthnCredentials, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting WebAuthn credentials: %w", err)}
 	}
 
-	var device encWebAuthnDevice
+	var credential encWebAuthnCredential
 
 	for rows.Next() {
 		result.Total++
 
-		if err = rows.StructScan(&device); err != nil {
+		if err = rows.StructScan(&credential); err != nil {
 			_ = rows.Close()
 
-			return tableWebAuthnDevices, EncryptionValidationTableResult{Error: fmt.Errorf("error scanning WebAuthn device to struct: %w", err)}
+			return tableWebAuthnCredentials, EncryptionValidationTableResult{Error: fmt.Errorf("error scanning WebAuthn credential to struct: %w", err)}
 		}
 
-		if _, err = provider.decrypt(device.PublicKey); err != nil {
+		if _, err = provider.decrypt(credential.PublicKey); err != nil {
 			result.Invalid++
 		}
 	}
 
 	_ = rows.Close()
 
-	return tableWebAuthnDevices, result
+	return tableWebAuthnCredentials, result
 }
 
 func schemaEncryptionCheckKeyOpenIDConnect(typeOAuth2Session OAuth2SessionType) EncryptionCheckKeyFunc {

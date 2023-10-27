@@ -15,7 +15,7 @@ const (
 	// SecondFactorMethodTOTP method using Time-Based One-Time Password applications like Google Authenticator.
 	SecondFactorMethodTOTP = "totp"
 
-	// SecondFactorMethodWebAuthn method using WebAuthn devices like YubiKey's.
+	// SecondFactorMethodWebAuthn method using WebAuthn credentials like YubiKey's.
 	SecondFactorMethodWebAuthn = "webauthn"
 
 	// SecondFactorMethodDuo method using Duo application to receive push notifications.

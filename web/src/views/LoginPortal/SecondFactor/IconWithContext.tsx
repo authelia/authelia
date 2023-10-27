@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 
-import { Theme } from "@mui/material";
+import { Box, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 
@@ -30,12 +30,12 @@ const IconWithContext = function (props: IconWithContextProps) {
     }))();
 
     return (
-        <div className={classnames(props.className, styles.root)}>
-            <div className={styles.iconContainer}>
-                <div className={styles.icon}>{props.icon}</div>
-            </div>
-            <div className={styles.context}>{props.children}</div>
-        </div>
+        <Box className={classnames(props.className, styles.root)}>
+            <Box className={styles.iconContainer}>
+                <Box className={styles.icon}>{props.icon}</Box>
+            </Box>
+            <Box className={styles.context}>{props.children}</Box>
+        </Box>
     );
 };
 

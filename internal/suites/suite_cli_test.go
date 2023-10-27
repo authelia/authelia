@@ -886,7 +886,7 @@ func (s *CLISuite) TestStorage02ShouldShowSchemaInfo() {
 	s.Assert().Contains(output, "migrations")
 	s.Assert().Contains(output, "encryption")
 	s.Assert().Contains(output, "encryption")
-	s.Assert().Contains(output, "webauthn_devices")
+	s.Assert().Contains(output, "webauthn_credentials")
 	s.Assert().Contains(output, "totp_configurations")
 	s.Assert().Contains(output, "Schema Encryption Key: valid")
 }
@@ -1141,7 +1141,7 @@ func (s *CLISuite) TestStorage05ShouldChangeEncryptionKey() {
 	s.Assert().Contains(output, "migrations")
 	s.Assert().Contains(output, "encryption")
 	s.Assert().Contains(output, "encryption")
-	s.Assert().Contains(output, "webauthn_devices")
+	s.Assert().Contains(output, "webauthn_credentials")
 	s.Assert().Contains(output, "totp_configurations")
 	s.Assert().Contains(output, "Schema Encryption Key: invalid")
 
@@ -1161,7 +1161,7 @@ func (s *CLISuite) TestStorage05ShouldChangeEncryptionKey() {
 	s.Assert().Contains(output, "\n\n\tTable (oauth2_refresh_token_session): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
 	s.Assert().Contains(output, "\n\n\tTable (oauth2_par_context): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
 	s.Assert().Contains(output, "\n\n\tTable (totp_configurations): FAILURE\n\t\tInvalid Rows: 4\n\t\tTotal Rows: 4\n")
-	s.Assert().Contains(output, "\n\n\tTable (webauthn_devices): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
+	s.Assert().Contains(output, "\n\n\tTable (webauthn_credentials): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "encryption", "check", "--encryption-key=apple-apple-apple-apple", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
@@ -1179,7 +1179,7 @@ func (s *CLISuite) TestStorage05ShouldChangeEncryptionKey() {
 	s.Assert().Contains(output, "\n\n\tTable (oauth2_refresh_token_session): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
 	s.Assert().Contains(output, "\n\n\tTable (oauth2_par_context): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
 	s.Assert().Contains(output, "\n\n\tTable (totp_configurations): SUCCESS\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 4\n")
-	s.Assert().Contains(output, "\n\n\tTable (webauthn_devices): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
+	s.Assert().Contains(output, "\n\n\tTable (webauthn_credentials): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "encryption", "change-key", "--encryption-key=apple-apple-apple-apple", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
