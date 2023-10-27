@@ -20,7 +20,7 @@ import (
 
 func newDocsJSONSchemaCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "json-schema",
+		Use:   pathJSONSchema,
 		Short: "Generate docs JSON schema",
 		RunE:  rootSubCommandsRunE,
 
@@ -147,7 +147,7 @@ func docsJSONSchemaExportsWebAuthnRunE(cmd *cobra.Command, args []string) (err e
 		return err
 	}
 
-	return docsJSONSchemaGenerateRunE(cmd, args, version, schemaDir, &model.WebAuthnDeviceDataExport{}, dir, file, nil)
+	return docsJSONSchemaGenerateRunE(cmd, args, version, schemaDir, &model.WebAuthnCredentialDataExport{}, dir, file, nil)
 }
 
 func docsJSONSchemaExportsIdentifiersRunE(cmd *cobra.Command, args []string) (err error) {
@@ -308,13 +308,13 @@ func writeJSONSchema(schema *jsonschema.Schema, dir, version, file string) (err 
 		return err
 	}
 
-	if _, err = os.Stat(filepath.Join(dir, version, "json-schema")); err != nil && os.IsNotExist(err) {
-		if err = os.MkdirAll(filepath.Join(dir, version, "json-schema"), 0755); err != nil {
+	if _, err = os.Stat(filepath.Join(dir, version, pathJSONSchema)); err != nil && os.IsNotExist(err) {
+		if err = os.MkdirAll(filepath.Join(dir, version, pathJSONSchema), 0755); err != nil {
 			return err
 		}
 	}
 
-	if f, err = os.Create(filepath.Join(dir, version, "json-schema", file+".json")); err != nil {
+	if f, err = os.Create(filepath.Join(dir, version, pathJSONSchema, file+extJSON)); err != nil {
 		return err
 	}
 

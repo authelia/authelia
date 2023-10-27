@@ -12,9 +12,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func TestWebAuthnDeviceImportExport(t *testing.T) {
-	have := WebAuthnDeviceExport{
-		WebAuthnDevices: []WebAuthnDevice{
+func TestWebAuthnCredentialImportExport(t *testing.T) {
+	have := WebAuthnCredentialExport{
+		WebAuthnCredentials: []WebAuthnCredential{
 			{
 				ID:              0,
 				CreatedAt:       time.Now(),
@@ -51,14 +51,14 @@ func TestWebAuthnDeviceImportExport(t *testing.T) {
 	out, err := yaml.Marshal(&have)
 	require.NoError(t, err)
 
-	imported := WebAuthnDeviceExport{}
+	imported := WebAuthnCredentialExport{}
 
 	require.NoError(t, yaml.Unmarshal(out, &imported))
-	require.Equal(t, len(have.WebAuthnDevices), len(imported.WebAuthnDevices))
+	require.Equal(t, len(have.WebAuthnCredentials), len(imported.WebAuthnCredentials))
 
-	for i, actual := range imported.WebAuthnDevices {
+	for i, actual := range imported.WebAuthnCredentials {
 		t.Run(actual.Description, func(t *testing.T) {
-			expected := have.WebAuthnDevices[i]
+			expected := have.WebAuthnCredentials[i]
 
 			assert.Equal(t, expected.KID, actual.KID)
 			assert.Equal(t, expected.PublicKey, actual.PublicKey)

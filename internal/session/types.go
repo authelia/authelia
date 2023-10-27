@@ -36,7 +36,7 @@ type UserSession struct {
 	AuthenticationMethodRefs oidc.AuthenticationMethodsReferences
 
 	// WebAuthn holds the session registration data for this session.
-	WebAuthn *webauthn.SessionData
+	WebAuthn *WebAuthn
 
 	// This boolean is set to true after identity verification and checked
 	// while doing the query actually updating the password.
@@ -45,7 +45,13 @@ type UserSession struct {
 	RefreshTTL time.Time
 }
 
-// Identity identity of the user who is being verified.
+// WebAuthn holds the standard webauthn session data plus some extra.
+type WebAuthn struct {
+	*webauthn.SessionData
+	Description string
+}
+
+// Identity of the user who is being verified.
 type Identity struct {
 	Username    string
 	Email       string
