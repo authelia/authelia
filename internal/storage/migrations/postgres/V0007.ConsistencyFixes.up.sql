@@ -158,4 +158,3 @@ ALTER TABLE oauth2_refresh_token_session
     ADD CONSTRAINT oauth2_refresh_token_session_subject_fkey
         FOREIGN KEY (subject)
             REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT;
-

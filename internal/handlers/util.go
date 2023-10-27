@@ -17,7 +17,7 @@ const (
 	eventLogAction2FARemoved = "Second Factor Method Removed"
 
 	eventLogCategoryOneTimePassword    = "One-Time Password"
-	eventLogCategoryWebAuthnCredential = "WebAuthn Credential"
+	eventLogCategoryWebAuthnCredential = "WebAuthn Credential" //nolint:gosec
 )
 
 func ctxLogEvent(ctx *middlewares.AutheliaCtx, username, description string, eventDetails map[string]any) {
