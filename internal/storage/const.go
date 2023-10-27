@@ -51,7 +51,7 @@ var tablesPre1 = []string{
 }
 
 const (
-	providerAll      = "all"
+	pathMigrations   = "migrations"
 	providerMySQL    = "mysql"
 	providerPostgres = "postgres"
 	providerSQLite   = "sqlite"
@@ -69,7 +69,7 @@ const (
 )
 
 var (
-	reMigration = regexp.MustCompile(`^V(?P<Version>\d{4})\.(?P<Name>[^.]+)\.(?P<Provider>(all|sqlite|postgres|mysql))\.(?P<Direction>(up|down))\.sql$`)
+	reMigration = regexp.MustCompile(`^V(?P<Version>\d{4})\.(?P<Name>[^.]+)\.(?P<Direction>(up|down))\.sql$`)
 )
 
 const (
