@@ -96,8 +96,8 @@ const (
 var (
 	storageLocalTmpConfig = schema.Configuration{
 		TOTP: schema.TOTP{
-			Issuer: "Authelia",
-			Period: 6,
+			Issuer:        "Authelia",
+			DefaultPeriod: 6,
 		},
 		Storage: schema.Storage{
 			EncryptionKey: "a_not_so_secure_encryption_key",

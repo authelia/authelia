@@ -108,8 +108,6 @@ const LoginLayout = function (props: Props) {
     );
 };
 
-export default LoginLayout;
-
 const useStyles = makeStyles((theme: Theme) => ({
     root: {
         minHeight: "90vh",
@@ -132,3 +130,5 @@ const useStyles = makeStyles((theme: Theme) => ({
         paddingBottom: theme.spacing(),
     },
 }));
+
+export default LoginLayout;

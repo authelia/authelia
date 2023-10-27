@@ -38,7 +38,7 @@ func ctxLogEvent(ctx *middlewares.AutheliaCtx, username, description string, eve
 
 	addresses := details.Addresses()
 
-	ctx.Logger.Debugf("Sending an email to user %s (%s) to inform them of an important event.", username, addresses[0])
+	ctx.Logger.Debugf("Sending an email to user %s (%s) to inform them of an important event.", username, addresses[0].String())
 
 	if err = ctx.Providers.Notifier.Send(ctx, addresses[0], description, ctx.Providers.Templates.GetEventEmailTemplate(), data); err != nil {
 		ctx.Logger.Error(err)

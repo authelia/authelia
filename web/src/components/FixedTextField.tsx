@@ -27,8 +27,6 @@ const FixedTextField = function (props: TextFieldProps) {
     );
 };
 
-export default FixedTextField;
-
 const useStyles = makeStyles((theme: Theme) => ({
     label: {
         backgroundColor: theme.palette.background.default,
@@ -36,3 +34,5 @@ const useStyles = makeStyles((theme: Theme) => ({
         paddingRight: theme.spacing(0.1),
     },
 }));
+
+export default FixedTextField;

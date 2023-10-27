@@ -81,11 +81,11 @@ func TestTOTPGenerateCustom(t *testing.T) {
 	}
 
 	totp := NewTimeBasedProvider(schema.TOTP{
-		Issuer:     "Authelia",
-		Algorithm:  "SHA1",
-		Digits:     6,
-		Period:     30,
-		SecretSize: 32,
+		Issuer:           "Authelia",
+		DefaultAlgorithm: "SHA1",
+		DefaultDigits:    6,
+		DefaultPeriod:    30,
+		SecretSize:       32,
 	})
 
 	for _, tc := range testCases {
@@ -118,15 +118,15 @@ func TestTOTPGenerateCustom(t *testing.T) {
 }
 
 func TestTOTPGenerate(t *testing.T) {
-	skew := uint(2)
+	skew := 2
 
 	totp := NewTimeBasedProvider(schema.TOTP{
-		Issuer:     "Authelia",
-		Algorithm:  "SHA256",
-		Digits:     8,
-		Period:     60,
-		Skew:       &skew,
-		SecretSize: 32,
+		Issuer:           "Authelia",
+		DefaultAlgorithm: "SHA256",
+		DefaultDigits:    8,
+		DefaultPeriod:    60,
+		Skew:             &skew,
+		SecretSize:       32,
 	})
 
 	assert.Equal(t, uint(2), totp.skew)
