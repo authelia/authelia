@@ -1,31 +1,14 @@
-import React, { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import { Button, Theme, useTheme } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
-
-import FailureIcon from "@components/FailureIcon";
-import FingerTouchIcon from "@components/FingerTouchIcon";
-import LinearProgressBar from "@components/LinearProgressBar";
+import WebAuthnTryIcon from "@components/WebAuthnTryIcon";
 import { RedirectionURL } from "@constants/SearchParams";
 import { useIsMountedRef } from "@hooks/Mounted";
 import { useQueryParam } from "@hooks/QueryParam";
-import { useTimer } from "@hooks/Timer";
 import { useWorkflow } from "@hooks/Workflow";
-import { AssertionResult } from "@models/WebAuthn";
+import { AssertionResult, AssertionResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
 import { AuthenticationLevel } from "@services/State";
-import {
-    getAssertionPublicKeyCredentialResult,
-    getAssertionRequestOptions,
-    postAssertionPublicKeyCredentialResult,
-} from "@services/WebAuthn";
-import IconWithContext from "@views/LoginPortal/SecondFactor/IconWithContext";
+import { getAuthenticationOptions, getAuthenticationResult, postAuthenticationResponse } from "@services/WebAuthn";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
-
-export enum State {
-    WaitTouch = 1,
-    InProgress = 2,
-    Failure = 3,
-}
 
 export interface Props {
     id: string;
@@ -38,13 +21,10 @@ export interface Props {
 }
 
 const WebAuthnMethod = function (props: Props) {
-    const signInTimeout = 30;
-    const [state, setState] = useState(State.WaitTouch);
-    const styles = useStyles();
+    const [state, setState] = useState(WebAuthnTouchState.WaitTouch);
     const redirectionURL = useQueryParam(RedirectionURL);
     const [workflow, workflowID] = useWorkflow();
     const mounted = useIsMountedRef();
-    const [timerPercent, triggerTimer] = useTimer(signInTimeout * 1000 - 500);
 
     const { onSignInSuccess, onSignInError } = props;
     const onSignInErrorCallback = useRef(onSignInError).current;
@@ -57,70 +37,40 @@ const WebAuthnMethod = function (props: Props) {
         }
 
         try {
-            triggerTimer();
-            setState(State.WaitTouch);
-            const assertionRequestResponse = await getAssertionRequestOptions();
+            setState(WebAuthnTouchState.WaitTouch);
+            const optionsStatus = await getAuthenticationOptions();
 
-            if (assertionRequestResponse.status !== 200 || assertionRequestResponse.options == null) {
-                setState(State.Failure);
+            if (optionsStatus.status !== 200 || optionsStatus.options == null) {
+                setState(WebAuthnTouchState.Failure);
                 onSignInErrorCallback(new Error("Failed to initiate security key sign in process"));
 
                 return;
             }
 
-            const result = await getAssertionPublicKeyCredentialResult(assertionRequestResponse.options);
+            const result = await getAuthenticationResult(optionsStatus.options);
 
             if (result.result !== AssertionResult.Success) {
                 if (!mounted.current) return;
-                switch (result.result) {
-                    case AssertionResult.FailureUserConsent:
-                        onSignInErrorCallback(new Error("You cancelled the assertion request."));
-                        break;
-                    case AssertionResult.FailureU2FFacetID:
-                        onSignInErrorCallback(new Error("The server responded with an invalid Facet ID for the URL."));
-                        break;
-                    case AssertionResult.FailureSyntax:
-                        onSignInErrorCallback(
-                            new Error(
-                                "The assertion challenge was rejected as malformed or incompatible by your browser.",
-                            ),
-                        );
-                        break;
-                    case AssertionResult.FailureWebAuthnNotSupported:
-                        onSignInErrorCallback(new Error("Your browser does not support the WebAuthN protocol."));
-                        break;
-                    case AssertionResult.FailureUnknownSecurity:
-                        onSignInErrorCallback(new Error("An unknown security error occurred."));
-                        break;
-                    case AssertionResult.FailureUnknown:
-                        onSignInErrorCallback(new Error("An unknown error occurred."));
-                        break;
-                    default:
-                        onSignInErrorCallback(new Error("An unexpected error occurred."));
-                        break;
-                }
-                setState(State.Failure);
+
+                setState(WebAuthnTouchState.Failure);
+
+                onSignInErrorCallback(new Error(AssertionResultFailureString(result.result)));
 
                 return;
             }
 
-            if (result.credential == null) {
+            if (result.response == null) {
                 onSignInErrorCallback(new Error("The browser did not respond with the expected attestation data."));
-                setState(State.Failure);
+                setState(WebAuthnTouchState.Failure);
 
                 return;
             }
 
             if (!mounted.current) return;
 
-            setState(State.InProgress);
+            setState(WebAuthnTouchState.InProgress);
 
-            const response = await postAssertionPublicKeyCredentialResult(
-                result.credential,
-                redirectionURL,
-                workflow,
-                workflowID,
-            );
+            const response = await postAuthenticationResponse(result.response, redirectionURL, workflow, workflowID);
 
             if (response.data.status === "OK" && response.status === 200) {
                 onSignInSuccessCallback(response.data.data ? response.data.data.redirect : undefined);
@@ -130,14 +80,14 @@ const WebAuthnMethod = function (props: Props) {
             if (!mounted.current) return;
 
             onSignInErrorCallback(new Error("The server rejected the security key."));
-            setState(State.Failure);
+            setState(WebAuthnTouchState.Failure);
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current) return;
             console.error(err);
             onSignInErrorCallback(new Error("Failed to initiate security key sign in process"));
-            setState(State.Failure);
+            setState(WebAuthnTouchState.Failure);
         }
     }, [
         onSignInErrorCallback,
@@ -146,7 +96,6 @@ const WebAuthnMethod = function (props: Props) {
         workflow,
         workflowID,
         mounted,
-        triggerTimer,
         props.authenticationLevel,
         props.registered,
     ]);
@@ -172,59 +121,9 @@ const WebAuthnMethod = function (props: Props) {
             state={methodState}
             onRegisterClick={props.onRegisterClick}
         >
-            <div className={styles.icon}>
-                <Icon state={state} timer={timerPercent} onRetryClick={doInitiateSignIn} />
-            </div>
+            <WebAuthnTryIcon onRetryClick={doInitiateSignIn} webauthnTouchState={state} />
         </MethodContainer>
     );
 };
 
 export default WebAuthnMethod;
-
-const useStyles = makeStyles((theme: Theme) => ({
-    icon: {
-        display: "inline-block",
-    },
-}));
-
-interface IconProps {
-    state: State;
-
-    timer: number;
-    onRetryClick: () => void;
-}
-
-function Icon(props: IconProps) {
-    const state = props.state as State;
-    const theme = useTheme();
-
-    const styles = makeStyles((theme: Theme) => ({
-        progressBar: {
-            marginTop: theme.spacing(),
-        },
-    }))();
-
-    const touch = (
-        <IconWithContext
-            icon={<FingerTouchIcon size={64} animated strong />}
-            className={state === State.WaitTouch ? undefined : "hidden"}
-        >
-            <LinearProgressBar value={props.timer} className={styles.progressBar} height={theme.spacing(2)} />
-        </IconWithContext>
-    );
-
-    const failure = (
-        <IconWithContext icon={<FailureIcon />} className={state === State.Failure ? undefined : "hidden"}>
-            <Button color="secondary" onClick={props.onRetryClick}>
-                Retry
-            </Button>
-        </IconWithContext>
-    );
-
-    return (
-        <Fragment>
-            {touch}
-            {failure}
-        </Fragment>
-    );
-}

@@ -50,7 +50,7 @@
 	"Reset": "Återställ",
 	"Scan QR Code": "Skanna QR koden",
 	"Secret": "Kod",
-	"Security Key - WebAuthN": "Säkerhetsnyckel - WebAuthN",
+	"Security Key - WebAuthn": "Säkerhetsnyckel - WebAuthn",
 	"Select a Device": "Välj en enhet",
 	"Sign in": "Logga in",
 	"Sign out": "Logga ut",
