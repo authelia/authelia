@@ -46,8 +46,8 @@ dependencies:
     specifier: 8.3.3
     version: 8.3.3
   axios:
-    specifier: 1.5.1
-    version: 1.5.1
+    specifier: 1.6.0
+    version: 1.6.0
   broadcast-channel:
     specifier: 5.5.1
     version: 5.5.1
@@ -162,8 +162,8 @@ devDependencies:
     specifier: 4.6.0
     version: 4.6.0(eslint@8.52.0)
   happy-dom:
-    specifier: 12.9.2
-    version: 12.9.2
+    specifier: 12.10.1
+    version: 12.10.1
   husky:
     specifier: 8.0.3
     version: 8.0.3
@@ -193,7 +193,7 @@ devDependencies:
     version: 4.2.1(typescript@5.2.2)(vite@4.5.0)
   vitest:
     specifier: 0.34.6
-    version: 0.34.6(happy-dom@12.9.2)
+    version: 0.34.6(happy-dom@12.10.1)
   vitest-preview:
     specifier: 0.0.1
     version: 0.0.1
@@ -3139,7 +3139,7 @@ packages:
       dom-accessibility-api: 0.5.16
       lodash: 4.17.21
       redent: 3.0.0
-      vitest: 0.34.6(happy-dom@12.9.2)
+      vitest: 0.34.6(happy-dom@12.10.1)
     dev: true
 
   /@testing-library/react@14.0.0(react-dom@18.2.0)(react@18.2.0):
@@ -3483,7 +3483,7 @@ packages:
       istanbul-reports: 3.1.5
       picocolors: 1.0.0
       test-exclude: 6.0.0
-      vitest: 0.34.6(happy-dom@12.9.2)
+      vitest: 0.34.6(happy-dom@12.10.1)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -3769,8 +3769,8 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
-  /axios@1.5.1:
-    resolution: {integrity: sha512-Q28iYCWzNHjAm+yEAot5QaAMxhMghWLFVf7rRdwhUI+c2jix2DUXjAHXVi+s1ibs3mjPO/cCgbA++3BjD0vP/A==}
+  /axios@1.6.0:
+    resolution: {integrity: sha512-EZ1DYihju9pwVB+jg67ogm+Tmqc6JmhamRN6I4Zt8DfZu5lbcQGw3ozH9lFejSJgs/ibaef3A9PMXPLeefFGJg==}
     dependencies:
       follow-redirects: 1.15.2
       form-data: 4.0.0
@@ -5570,8 +5570,8 @@ packages:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
     dev: true
 
-  /happy-dom@12.9.2:
-    resolution: {integrity: sha512-SEm+biZVa9E9aKuv81ucLi7+QRL9vb3+Zkgc1aNokNEPcZ/x/z/GfSdz+LXsXJmyiIKLSV1lfO/xhBX831spDg==}
+  /happy-dom@12.10.1:
+    resolution: {integrity: sha512-HW7tK/DtdVkEwnAju7qA3EFYmS+KM7NP29aK7vOlts/DdmfM6c+9R94tnckxQGrp58plJRWLO4iEzO/BHsDtBg==}
     dependencies:
       css.escape: 1.5.1
       entities: 4.5.0
@@ -8073,7 +8073,7 @@ packages:
       - terser
     dev: true
 
-  /vitest@0.34.6(happy-dom@12.9.2):
+  /vitest@0.34.6(happy-dom@12.10.1):
     resolution: {integrity: sha512-+5CALsOvbNKnS+ZHMXtuUC7nL8/7F1F2DnHGjSsszX8zCjWSSviphCb/NuS9Nzf4Q03KyyDRBAXhF/8lffME4Q==}
     engines: {node: '>=v14.18.0'}
     peerDependencies:
@@ -8116,7 +8116,7 @@ packages:
       cac: 6.7.14
       chai: 4.3.10
       debug: 4.3.4
-      happy-dom: 12.9.2
+      happy-dom: 12.10.1
       local-pkg: 0.4.3
       magic-string: 0.30.1
       pathe: 1.1.1
