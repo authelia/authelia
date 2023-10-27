@@ -73,7 +73,7 @@ func ResetPasswordDELETE(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if verification.Action != ActionResetPassword {
-		ctx.Error(fmt.Errorf("Token has the %s action but should have the %s action", ActionResetPassword), messageOperationFailed)
+		ctx.Error(fmt.Errorf("Token has the %s action but should have the %s action", verification.Action, ActionResetPassword), messageOperationFailed)
 		return
 	}
 
