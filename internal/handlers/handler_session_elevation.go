@@ -17,6 +17,8 @@ import (
 )
 
 // UserSessionElevationGET returns the session elevation status.
+//
+//nolint:gocyclo
 func UserSessionElevationGET(ctx *middlewares.AutheliaCtx) {
 	var (
 		userSession session.UserSession

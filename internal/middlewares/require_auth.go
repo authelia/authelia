@@ -20,12 +20,9 @@ func Require1FA(next RequestHandler) RequestHandler {
 	}
 }
 
-type ElevatedForbiddenResponse struct {
-	Elevation    bool `json:"elevation"`
-	FirstFactor  bool `json:"first_factor"`
-	SecondFactor bool `json:"second_factor"`
-}
-
+// RequireElevated requires various elevation criteria.
+//
+//nolint:gocyclo
 func RequireElevated(next RequestHandler) RequestHandler {
 	return func(ctx *AutheliaCtx) {
 		var (
