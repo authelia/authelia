@@ -3137,6 +3137,42 @@
           "title": "Secret Size",
           "description": "The secret size for generated TOTP keys",
           "default": 32
+        },
+        "allowed_algorithms": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "SHA1",
+              "SHA256",
+              "SHA512"
+            ]
+          },
+          "type": "array",
+          "title": "Allowed Algorithms",
+          "description": "List of algorithms the user is allowed to select in addition to the default"
+        },
+        "allowed_digits": {
+          "items": {
+            "type": "integer",
+            "enum": [
+              6,
+              8
+            ]
+          },
+          "type": "array",
+          "title": "Allowed Digits",
+          "description": "List of digits the user is allowed to select in addition to the default",
+          "default": [
+            6
+          ]
+        },
+        "allowed_periods": {
+          "items": {
+            "type": "integer"
+          },
+          "type": "array",
+          "title": "Allowed Periods",
+          "description": "List of periods the user is allowed to select in addition to the default"
         }
       },
       "additionalProperties": false,

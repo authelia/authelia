@@ -227,8 +227,6 @@ const FirstFactorForm = function (props: Props) {
     );
 };
 
-export default FirstFactorForm;
-
 const useStyles = makeStyles((theme: Theme) => ({
     actionRow: {
         display: "flex",
@@ -248,3 +246,5 @@ const useStyles = makeStyles((theme: Theme) => ({
         justifyContent: "flex-end",
     },
 }));
+
+export default FirstFactorForm;

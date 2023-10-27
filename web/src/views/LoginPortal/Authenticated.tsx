@@ -21,11 +21,11 @@ const Authenticated = function () {
     );
 };
 
-export default Authenticated;
-
 const useStyles = makeStyles((theme: Theme) => ({
     iconContainer: {
         marginBottom: theme.spacing(2),
         flex: "0 0 100%",
     },
 }));
+
+export default Authenticated;

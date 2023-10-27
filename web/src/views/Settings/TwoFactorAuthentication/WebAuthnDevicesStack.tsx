@@ -10,7 +10,7 @@ interface Props {
     handleRefreshState: () => void;
 }
 
-export default function WebAuthnDevicesStack(props: Props) {
+const WebAuthnDevicesStack = function (props: Props) {
     return (
         <Grid container spacing={3}>
             {props.devices.map((x, idx) => (
@@ -18,4 +18,6 @@ export default function WebAuthnDevicesStack(props: Props) {
             ))}
         </Grid>
     );
-}
+};
+
+export default WebAuthnDevicesStack;
