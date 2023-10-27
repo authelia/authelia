@@ -20,11 +20,11 @@ import makeStyles from "@mui/styles/makeStyles";
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
 
-import SuccessIcon from "@components/SuccessIcon.tsx";
+import SuccessIcon from "@components/SuccessIcon";
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
 import { UserSessionElevation } from "@services/UserSessionElevation";
-import LoadingPage from "@views/LoadingPage/LoadingPage.tsx";
+import LoadingPage from "@views/LoadingPage/LoadingPage";
 
 const SecondFactorMethodMobilePush = lazy(() => import("@views/Settings/Common/SecondFactorMethodMobilePush"));
 const SecondFactorMethodOneTimePassword = lazy(
