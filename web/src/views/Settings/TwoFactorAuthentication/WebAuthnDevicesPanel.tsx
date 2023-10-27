@@ -12,8 +12,7 @@ interface Props {
     devices: WebAuthnDevice[] | undefined;
     handleRefreshState: () => void;
 }
-
-export default function WebAuthnDevicesPanel(props: Props) {
+const WebAuthnDevicesPanel = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const [showRegisterDialog, setShowRegisterDialog] = useState<boolean>(false);
@@ -63,4 +62,6 @@ export default function WebAuthnDevicesPanel(props: Props) {
             </Paper>
         </Fragment>
     );
-}
+};
+
+export default WebAuthnDevicesPanel;

@@ -1,21 +1,19 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment } from "react";
 
-import { Check, ContentCopy } from "@mui/icons-material";
 import {
     Button,
-    CircularProgress,
     Dialog,
     DialogActions,
     DialogContent,
     DialogContentText,
     DialogTitle,
     Divider,
-    Tooltip,
     Typography,
 } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
 import { useTranslation } from "react-i18next";
 
+import CopyButton from "@components/CopyButton";
 import { WebAuthnDevice, toTransportName } from "@models/WebAuthn";
 
 interface Props {
@@ -24,12 +22,14 @@ interface Props {
     handleClose: () => void;
 }
 
-export default function WebAuthnDeviceDetailsDialog(props: Props) {
+const WebAuthnDeviceDetailsDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     return (
-        <Dialog open={props.open} onClose={props.handleClose}>
-            <DialogTitle>{translate("WebAuthn Credential Details")}</DialogTitle>
+        <Dialog open={props.open} onClose={props.handleClose} aria-labelledby="webauthn-device-details-dialog-title">
+            <DialogTitle id="webauthn-device-details-dialog-title">
+                {translate("WebAuthn Credential Details")}
+            </DialogTitle>
             <DialogContent>
                 <DialogContentText sx={{ mb: 3 }}>
                     {translate("Extended WebAuthn credential information for security key", {
@@ -39,12 +39,6 @@ export default function WebAuthnDeviceDetailsDialog(props: Props) {
                 <Grid container spacing={2}>
                     <Grid md={3} sx={{ display: { xs: "none", md: "block" } }}>
                         <Fragment />
-                    </Grid>
-                    <Grid xs={4} md={2}>
-                        <PropertyCopyButton name={translate("KID")} value={props.device.kid.toString()} />
-                    </Grid>
-                    <Grid xs={8} md={4}>
-                        <PropertyCopyButton name={translate("Public Key")} value={props.device.public_key.toString()} />
                     </Grid>
                     <Grid xs={12}>
                         <Divider />
@@ -128,59 +122,34 @@ export default function WebAuthnDeviceDetailsDialog(props: Props) {
                 </Grid>
             </DialogContent>
             <DialogActions>
+                <CopyButton
+                    variant={"contained"}
+                    tooltip={`${translate("Click to copy the")} ${translate("KID")}`}
+                    value={props.device.kid.toString()}
+                    fullWidth={false}
+                    childrenCopied={translate("Copied")}
+                >
+                    {translate("KID")}
+                </CopyButton>
+                <CopyButton
+                    variant={"contained"}
+                    tooltip={`${translate("Click to copy the")} ${translate("Public Key")}`}
+                    value={props.device.public_key.toString()}
+                    fullWidth={false}
+                    childrenCopied={translate("Copied")}
+                >
+                    {translate("Public Key")}
+                </CopyButton>
                 <Button onClick={props.handleClose}>{translate("Close")}</Button>
             </DialogActions>
         </Dialog>
     );
-}
+};
 
 interface PropertyTextProps {
     name: string;
     value: string;
     xs?: number;
-}
-
-function PropertyCopyButton(props: PropertyTextProps) {
-    const { t: translate } = useTranslation("settings");
-
-    const [copied, setCopied] = useState(false);
-    const [copying, setCopying] = useState(false);
-
-    const handleCopyToClipboard = () => {
-        if (copied) {
-            return;
-        }
-
-        (async () => {
-            setCopying(true);
-
-            await navigator.clipboard.writeText(props.value);
-
-            setTimeout(() => {
-                setCopying(false);
-                setCopied(true);
-            }, 500);
-
-            setTimeout(() => {
-                setCopied(false);
-            }, 2000);
-        })();
-    };
-
-    return (
-        <Tooltip title={`${translate("Click to copy the")} ${props.name}`}>
-            <Button
-                variant="outlined"
-                color={copied ? "success" : "primary"}
-                onClick={copying ? undefined : handleCopyToClipboard}
-                startIcon={
-                    copying ? <CircularProgress color="inherit" size={20} /> : copied ? <Check /> : <ContentCopy />
-                }
-            >
-                {copied ? translate("Copied") : props.name}
-            </Button>
-        </Tooltip>
-    );
 }
 
 function PropertyText(props: PropertyTextProps) {
@@ -193,3 +162,5 @@ function PropertyText(props: PropertyTextProps) {
         </Grid>
     );
 }
+
+export default WebAuthnDeviceDetailsDialog;

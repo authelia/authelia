@@ -40,8 +40,6 @@ const AuthenticatedView = function (props: Props) {
     );
 };
 
-export default AuthenticatedView;
-
 const useStyles = makeStyles((theme: Theme) => ({
     mainContainer: {
         border: "1px solid #d6d6d6",
@@ -51,3 +49,5 @@ const useStyles = makeStyles((theme: Theme) => ({
         marginBottom: theme.spacing(2),
     },
 }));
+
+export default AuthenticatedView;
