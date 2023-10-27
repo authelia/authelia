@@ -27,6 +27,7 @@ The following table is a support matrix for Authelia features and specific rever
 | [Traefik] 1.x ([guide](/i/traefik/v1))  |                     {{% support support="full" link="/i/traefik/v1" %}}                     |                           {{% support support="unknown" %}}                           |  {{% support support="full" %}}   |  {{% support support="full" %}}   |
 |                [Apache]                 |                                       {{% support %}}                                       |                                    {{% support %}}                                    |          {{% support %}}          |          {{% support %}}          |
 |                  [IIS]                  |                                       {{% support %}}                                       |                                    {{% support %}}                                    |          {{% support %}}          |          {{% support %}}          |
+|       [Pomerium] ([guide](/i/pomerium))       |                       {{% support support="full" %}}                        |  {{% support support="full" %}}  |          {{% support %}}          |  {{% support support="full" %}}   |
 
 Legend:
 
@@ -53,3 +54,4 @@ For more comprehensive support information please see the
 [Caddy]: https://caddyserver.com/
 [Apache]: https://httpd.apache.org/
 [IIS]: https://www.iis.net/
+[Pomerium]: https://www.pomerium.com/
