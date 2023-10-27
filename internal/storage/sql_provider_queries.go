@@ -118,62 +118,76 @@ const (
 		WHERE username = ?;`
 )
 
+//nolint:gosec // The following queries are not hard coded credentials.
 const (
-	queryFmtSelectWebAuthnDevices = `
-		SELECT id, created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning
+	queryFmtSelectWebAuthnCredentials = `
+		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key
 		FROM %s
 		LIMIT ?
 		OFFSET ?;`
 
-	queryFmtSelectWebAuthnDevicesEncryptedData = `
-		SELECT id, public_key
-		FROM %s;`
-
-	queryFmtSelectWebAuthnDevicesByUsername = `
-		SELECT id, created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning
+	queryFmtSelectWebAuthnCredentialsByUsername = `
+		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key
 		FROM %s
 		WHERE username = ?;`
 
-	queryFmtUpdateWebAuthnDevicePublicKey = `
-		UPDATE %s
-		SET public_key = ?
+	queryFmtSelectWebAuthnCredentialsByRPIDByUsername = `
+		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key
+		FROM %s
+		WHERE rpid = ? AND username = ?;`
+
+	queryFmtSelectWebAuthnCredentialByID = `
+		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key
+		FROM %s
 		WHERE id = ?;`
 
-	queryFmtUpdateWebAuthnDeviceRecordSignIn = `
+	queryFmtUpdateUpdateWebAuthnCredentialDescriptionByUsernameAndID = `
+		UPDATE %s
+		SET description = ?
+		WHERE username = ? AND id = ?;`
+
+	queryFmtUpdateWebAuthnCredentialRecordSignIn = `
 		UPDATE %s
 		SET
-			rpid = ?, last_used_at = ?, sign_count = ?,
+			rpid = ?, last_used_at = ?, sign_count = ?, discoverable = ?, present = ?, verified = ?, backup_eligible = ?, backup_state = ?,
 			clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
 		WHERE id = ?;`
 
-	queryFmtUpdateWebAuthnDeviceRecordSignInByUsername = `
-		UPDATE %s
-		SET
-			rpid = ?, last_used_at = ?, sign_count = ?,
-			clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
-		WHERE username = ? AND kid = ?;`
+	queryFmtInsertWebAuthnCredential = `
+		INSERT INTO %s (created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
-	queryFmtUpsertWebAuthnDevice = `
-		REPLACE INTO %s (created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
-
-	queryFmtUpsertWebAuthnDevicePostgreSQL = `
-		INSERT INTO %s (created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-			ON CONFLICT (username, description)
-			DO UPDATE SET created_at = $1, last_used_at = $2, rpid = $3, kid = $6, public_key = $7, attestation_type = $8, transport = $9, aaguid = $10, sign_count = $11, clone_warning = $12;`
-
-	queryFmtDeleteWebAuthnDevice = `
+	queryFmtDeleteWebAuthnCredential = `
 		DELETE FROM %s
 		WHERE kid = ?;`
 
-	queryFmtDeleteWebAuthnDeviceByUsername = `
+	queryFmtDeleteWebAuthnCredentialByUsername = `
 		DELETE FROM %s
 		WHERE username = ?;`
 
-	queryFmtDeleteWebAuthnDeviceByUsernameAndDescription = `
+	queryFmtDeleteWebAuthnCredentialByUsernameAndDescription = `
 		DELETE FROM %s
 		WHERE username = ? AND description = ?;`
+
+	queryFmtSelectWebAuthnCredentialsEncryptedData = `
+		SELECT id, public_key
+		FROM %s;`
+
+	queryFmtUpdateWebAuthnCredentialsEncryptedData = `
+		UPDATE %s
+		SET public_key = ?
+		WHERE id = ?;`
+)
+
+const (
+	queryFmtInsertWebAuthnUser = `
+		INSERT INTO %s (rpid, username, userid)
+		VALUES (?, ?, ?);`
+
+	queryFmtSelectWebAuthnUser = `
+		SELECT id, rpid, username, userid
+		FROM %s
+		WHERE rpid = ? AND username = ?;`
 )
 
 const (

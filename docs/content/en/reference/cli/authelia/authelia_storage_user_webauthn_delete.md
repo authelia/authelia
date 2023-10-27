@@ -14,13 +14,13 @@ toc: true
 
 ## authelia storage user webauthn delete
 
-Delete a WebAuthn device
+Delete a WebAuthn credential
 
 ### Synopsis
 
-Delete a WebAuthn device.
+Delete a WebAuthn credential.
 
-This subcommand allows deleting a WebAuthn device directly from the database.
+This subcommand allows deleting a WebAuthn credential directly from the database.
 
 ```
 authelia storage user webauthn delete [username] [flags]
@@ -43,10 +43,10 @@ authelia storage user webauthn delete --kid abc123 --encryption-key b3453fde-ecc
 ### Options
 
 ```
-      --all                  delete all of the users webauthn devices
-      --description string   delete a users webauthn device by description
+      --all                  delete all of the users WebAuthn credentials
+      --description string   delete a users WebAuthn credential by description
   -h, --help                 help for delete
-      --kid string           delete a users webauthn device by key id
+      --kid string           delete a users WebAuthn credential by key id
 ```
 
 ### Options inherited from parent commands
@@ -75,5 +75,5 @@ authelia storage user webauthn delete --kid abc123 --encryption-key b3453fde-ecc
 
 ### SEE ALSO
 
-* [authelia storage user webauthn](authelia_storage_user_webauthn.md)	 - Manage WebAuthn devices
+* [authelia storage user webauthn](authelia_storage_user_webauthn.md)	 - Manage WebAuthn credentials
 

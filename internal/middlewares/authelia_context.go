@@ -76,6 +76,17 @@ func (ctx *AutheliaCtx) SetJSONError(message string) {
 	}
 }
 
+// SetAuthenticationErrorJSON sets the body of the response to an JSON error KO message.
+func (ctx *AutheliaCtx) SetAuthenticationErrorJSON(status int, message string, authentication, elevation bool) {
+	if status > fasthttp.StatusOK {
+		ctx.SetStatusCode(status)
+	}
+
+	if err := ctx.ReplyJSON(AuthenticationErrorResponse{Status: "KO", Message: message, Authentication: authentication, Elevation: elevation}, 0); err != nil {
+		ctx.Logger.Error(err)
+	}
+}
+
 // ReplyError reply with an error but does not display any stack trace in the logs.
 func (ctx *AutheliaCtx) ReplyError(err error, message string) {
 	b, marshalErr := json.Marshal(ErrorResponse{Status: "KO", Message: message})

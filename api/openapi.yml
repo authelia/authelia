@@ -808,7 +808,7 @@ paths:
         - Second Factor
       summary: Identity Verification FIDO2 WebAuthn Credential Validation
       description: >
-        This endpoint performs identity and token verification, upon success generates a FIDO2 WebAuthn device
+        This endpoint performs identity and token verification, upon success generates a FIDO2 WebAuthn credential
         attestation challenge (registration).
 
         The session cookie generated from the `/api/secondfactor/webauthn/identity/start` endpoint must be utilised
@@ -849,6 +849,45 @@ paths:
                 $ref: '#/components/schemas/middlewares.OkResponse'
       security:
         - authelia_auth: []
+  /api/secondfactor/webauthn/credentials/{credentialID}:
+    delete:
+      tags:
+        - Second Factor
+      summary: WebAuthn Credential Deletion
+      description: This endpoint deletes the specified WebAuthn credential.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.OkResponse'
+      security:
+        - authelia_auth: []
+      parameters:
+        - $ref: '#/components/parameters/deviceID'
+    put:
+      tags:
+        - Second Factor
+      summary: WebAuthn Credential Update
+      description: This endpoint updates the description of the specified WebAuthn credential.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/webauthn.CredentialUpdateRequest'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.OkResponse'
+      security:
+        - authelia_auth: []
+      parameters:
+        - $ref: '#/components/parameters/deviceID'
   {{- end }}
   {{- if .Duo }}
   /api/secondfactor/duo:
@@ -1557,6 +1596,13 @@ paths:
   {{- end }}
 components:
   parameters:
+    deviceID:
+      in: path
+      name: credentialID
+      schema:
+        type: integer
+      required: true
+      description: Numeric WebAuthn Credential ID
     originalMethodParam:
       name: X-Original-Method
       in: header
@@ -2041,23 +2087,28 @@ components:
           type: string
           format: byte
     webauthn.CredentialAttestationResponse:
-      allOf:
-        - $ref: '#/components/schemas/webauthn.PublicKeyCredential'
-        - type: object
-          properties:
-            clientExtensionResults:
-              type: object
+      type: object
+      properties:
+        credential:
+          allOf:
+            - $ref: '#/components/schemas/webauthn.PublicKeyCredential'
+            - type: object
               properties:
-                appidExclude:
-                  type: boolean
-            response:
-              allOf:
-                - $ref: '#/components/schemas/webauthn.AuthenticatorResponse'
-                - type: object
+                clientExtensionResults:
+                  type: object
                   properties:
-                    attestationObject:
-                      type: string
-                      format: byte
+                    appidExclude:
+                      type: boolean
+                response:
+                  allOf:
+                    - $ref: '#/components/schemas/webauthn.AuthenticatorResponse'
+                    - type: object
+                      properties:
+                        attestationObject:
+                          type: string
+                          format: byte
+        description:
+          type: string
     webauthn.CredentialAssertionResponse:
       allOf:
         - $ref: '#/components/schemas/webauthn.PublicKeyCredential'
@@ -2098,6 +2149,11 @@ components:
                       format: uuid
                       pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
                       example: '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
+    webauthn.CredentialUpdateRequest:
+      type: object
+      properties:
+        description:
+          type: string
     webauthn.PublicKeyCredentialCreationOptions:
       type: object
       properties:

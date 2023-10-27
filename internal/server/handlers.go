@@ -177,6 +177,11 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 		WithPostMiddlewares(middlewares.Require1FA).
 		Build()
 
+	middleware2FA := middlewares.NewBridgeBuilder(*config, providers).
+		WithPreMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+		WithPostMiddlewares(middlewares.Require2FAWithAPIResponse).
+		Build()
+
 	r.HEAD("/api/health", middlewareAPI(handlers.HealthGET))
 	r.GET("/api/health", middlewareAPI(handlers.HealthGET))
 
@@ -259,13 +264,15 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	}
 
 	if !config.WebAuthn.Disable {
-		// WebAuthn Endpoints.
-		r.POST("/api/secondfactor/webauthn/identity/start", middleware1FA(handlers.WebauthnIdentityStart))
-		r.POST("/api/secondfactor/webauthn/identity/finish", middleware1FA(handlers.WebauthnIdentityFinish))
-		r.POST("/api/secondfactor/webauthn/attestation", middleware1FA(handlers.WebAuthnAttestationPOST))
+		r.GET("/api/secondfactor/webauthn", middleware1FA(handlers.WebAuthnAssertionGET))
+		r.POST("/api/secondfactor/webauthn", middleware1FA(handlers.WebAuthnAssertionPOST))
 
-		r.GET("/api/secondfactor/webauthn/assertion", middleware1FA(handlers.WebAuthnAssertionGET))
-		r.POST("/api/secondfactor/webauthn/assertion", middleware1FA(handlers.WebAuthnAssertionPOST))
+		// Management of the WebAuthn credentials.
+		r.GET("/api/secondfactor/webauthn/credentials", middleware1FA(handlers.WebAuthnCredentialsGET))
+		r.PUT("/api/secondfactor/webauthn/credential/register", middleware1FA(handlers.WebAuthnRegistrationPUT))
+		r.POST("/api/secondfactor/webauthn/credential/register", middleware1FA(handlers.WebAuthnRegistrationPOST))
+		r.PUT("/api/secondfactor/webauthn/credential/{credentialID}", middleware2FA(handlers.WebAuthnCredentialPUT))
+		r.DELETE("/api/secondfactor/webauthn/credential/{credentialID}", middleware2FA(handlers.WebAuthnCredentialDELETE))
 	}
 
 	// Configure DUO api endpoint only if configuration exists.

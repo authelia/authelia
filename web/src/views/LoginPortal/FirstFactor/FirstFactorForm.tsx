@@ -30,23 +30,27 @@ export interface Props {
 }
 
 const FirstFactorForm = function (props: Props) {
-    const styles = useStyles();
+    const { t: translate } = useTranslation();
+
     const navigate = useNavigate();
     const redirectionURL = useQueryParam(RedirectionURL);
     const requestMethod = useQueryParam(RequestMethod);
     const [workflow] = useWorkflow();
+    const { createErrorNotification } = useNotifications();
 
     const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
+
     const [rememberMe, setRememberMe] = useState(false);
     const [username, setUsername] = useState("");
     const [usernameError, setUsernameError] = useState(false);
     const [password, setPassword] = useState("");
     const [passwordError, setPasswordError] = useState(false);
-    const { createErrorNotification } = useNotifications();
+
     // TODO (PR: #806, Issue: #511) potentially refactor
     const usernameRef = useRef() as MutableRefObject<HTMLInputElement>;
     const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
-    const { t: translate } = useTranslation();
+
+    const styles = useStyles();
 
     useEffect(() => {
         const timeout = setTimeout(() => usernameRef.current.focus(), 10);
@@ -122,7 +126,7 @@ const FirstFactorForm = function (props: Props) {
                         onFocus={() => setUsernameError(false)}
                         autoCapitalize="none"
                         autoComplete="username"
-                        onKeyPress={(ev) => {
+                        onKeyDown={(ev) => {
                             if (ev.key === "Enter") {
                                 if (!username.length) {
                                     setUsernameError(true);
@@ -152,7 +156,7 @@ const FirstFactorForm = function (props: Props) {
                         onFocus={() => setPasswordError(false)}
                         type="password"
                         autoComplete="current-password"
-                        onKeyPress={(ev) => {
+                        onKeyDown={(ev) => {
                             if (ev.key === "Enter") {
                                 if (!username.length) {
                                     usernameRef.current.focus();
@@ -174,7 +178,7 @@ const FirstFactorForm = function (props: Props) {
                                     disabled={disabled}
                                     checked={rememberMe}
                                     onChange={handleRememberMeChange}
-                                    onKeyPress={(ev) => {
+                                    onKeyDown={(ev) => {
                                         if (ev.key === "Enter") {
                                             if (!username.length) {
                                                 usernameRef.current.focus();
