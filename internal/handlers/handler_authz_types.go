@@ -117,7 +117,7 @@ type AuthzImplementation int
 const (
 	AuthnStrategyCookieSession                       = "CookieSession"
 	AuthnStrategyHeaderAuthorization                 = "HeaderAuthorization"
-	AuthnStrategyHeaderProxyAuthorization            = "HeaderProxyAuthorization" //nolint:gosec
+	AuthnStrategyHeaderProxyAuthorization            = "HeaderProxyAuthorization"
 	AuthnStrategyHeaderAuthRequestProxyAuthorization = "HeaderAuthRequestProxyAuthorization"
 	AuthnStrategyHeaderLegacy                        = "HeaderLegacy"
 )

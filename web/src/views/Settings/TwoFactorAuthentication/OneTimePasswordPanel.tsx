@@ -9,9 +9,9 @@ import { UserInfo } from "@models/UserInfo";
 import { UserSessionElevation, getUserSessionElevation } from "@services/UserSessionElevation";
 import IdentityVerificationDialog from "@views/Settings/Common/IdentityVerificationDialog";
 import SecondFactorDialog from "@views/Settings/Common/SecondFactorDialog";
-import OneTimePasswordConfiguration from "@views/Settings/TwoFactorAuthentication/OneTimePasswordConfiguration.tsx";
-import OneTimePasswordDeleteDialog from "@views/Settings/TwoFactorAuthentication/OneTimePasswordDeleteDialog.tsx";
-import OneTimePasswordRegisterDialog from "@views/Settings/TwoFactorAuthentication/OneTimePasswordRegisterDialog.tsx";
+import OneTimePasswordConfiguration from "@views/Settings/TwoFactorAuthentication/OneTimePasswordConfiguration";
+import OneTimePasswordDeleteDialog from "@views/Settings/TwoFactorAuthentication/OneTimePasswordDeleteDialog";
+import OneTimePasswordRegisterDialog from "@views/Settings/TwoFactorAuthentication/OneTimePasswordRegisterDialog";
 
 interface Props {
     info?: UserInfo;
