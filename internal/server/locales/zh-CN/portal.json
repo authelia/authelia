@@ -50,7 +50,7 @@
 	"Reset": "Reset",
 	"Scan QR Code": "扫描二维码",
 	"Secret": "密钥",
-	"Security Key - WebAuthN": "安全密钥 - WebAuthN",
+	"Security Key - WebAuthn": "安全密钥 - WebAuthn",
 	"Select a Device": "选择一个设备",
 	"Sign in": "登录",
 	"Sign out": "登出",

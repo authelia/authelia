@@ -1,6 +1,6 @@
 import React, { ReactNode, useState } from "react";
 
-import { Button, Container, Grid, Theme, Typography } from "@mui/material";
+import { Box, Button, Container, Grid, Theme, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 
 import PushNotificationIcon from "@components/PushNotificationIcon";
@@ -127,12 +127,12 @@ function DeviceItem(props: DeviceItemProps) {
                 variant="contained"
                 onClick={props.onSelect}
             >
-                <div className={style.icon}>
+                <Box className={style.icon}>
                     <PushNotificationIcon width={32} height={32} />
-                </div>
-                <div>
+                </Box>
+                <Box>
                     <Typography>{props.device.name}</Typography>
-                </div>
+                </Box>
             </Button>
         </Grid>
     );
@@ -172,12 +172,12 @@ function MethodItem(props: MethodItemProps) {
                 variant="contained"
                 onClick={props.onSelect}
             >
-                <div className={style.icon}>
+                <Box className={style.icon}>
                     <PushNotificationIcon width={32} height={32} />
-                </div>
-                <div>
+                </Box>
+                <Box>
                     <Typography>{props.method}</Typography>
-                </div>
+                </Box>
             </Button>
         </Grid>
     );

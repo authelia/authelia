@@ -443,19 +443,19 @@ func (ctx *CmdCtx) StorageUserWebAuthnExportRunE(cmd *cobra.Command, args []stri
 	count := 0
 
 	var (
-		devices []model.WebAuthnDevice
+		devices []model.WebAuthnCredential
 	)
 
-	export := &model.WebAuthnDeviceExport{
-		WebAuthnDevices: nil,
+	export := &model.WebAuthnCredentialExport{
+		WebAuthnCredentials: nil,
 	}
 
 	for page := 0; true; page++ {
-		if devices, err = ctx.providers.StorageProvider.LoadWebAuthnDevices(ctx, limit, page); err != nil {
+		if devices, err = ctx.providers.StorageProvider.LoadWebAuthnCredentials(ctx, limit, page); err != nil {
 			return err
 		}
 
-		export.WebAuthnDevices = append(export.WebAuthnDevices, devices...)
+		export.WebAuthnCredentials = append(export.WebAuthnCredentials, devices...)
 
 		l := len(devices)
 
@@ -466,7 +466,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnExportRunE(cmd *cobra.Command, args []stri
 		}
 	}
 
-	if len(export.WebAuthnDevices) == 0 {
+	if len(export.WebAuthnCredentials) == 0 {
 		return fmt.Errorf("no data to export")
 	}
 
@@ -474,7 +474,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnExportRunE(cmd *cobra.Command, args []stri
 		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
 	}
 
-	fmt.Printf(cliOutputFmtSuccessfulUserExportFile, count, "WebAuthn devices", "YAML", filename)
+	fmt.Printf(cliOutputFmtSuccessfulUserExportFile, count, "WebAuthn credentials", "YAML", filename)
 
 	return nil
 }
@@ -505,27 +505,27 @@ func (ctx *CmdCtx) StorageUserWebAuthnImportRunE(cmd *cobra.Command, args []stri
 		return err
 	}
 
-	export := &model.WebAuthnDeviceExport{}
+	export := &model.WebAuthnCredentialExport{}
 
 	if err = yaml.Unmarshal(data, export); err != nil {
 		return err
 	}
 
-	if len(export.WebAuthnDevices) == 0 {
-		return fmt.Errorf("can't import a YAML file without WebAuthn devices data")
+	if len(export.WebAuthnCredentials) == 0 {
+		return fmt.Errorf("can't import a YAML file without WebAuthn credentials data")
 	}
 
 	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
 	}
 
-	for _, device := range export.WebAuthnDevices {
-		if err = ctx.providers.StorageProvider.SaveWebAuthnDevice(ctx, device); err != nil {
+	for _, device := range export.WebAuthnCredentials {
+		if err = ctx.providers.StorageProvider.SaveWebAuthnCredential(ctx, device); err != nil {
 			return err
 		}
 	}
 
-	fmt.Printf(cliOutputFmtSuccessfulUserImportFile, len(export.WebAuthnDevices), "WebAuthn devices", "YAML", filename)
+	fmt.Printf(cliOutputFmtSuccessfulUserImportFile, len(export.WebAuthnCredentials), "WebAuthn credentials", "YAML", filename)
 
 	return nil
 }
@@ -544,19 +544,19 @@ func (ctx *CmdCtx) StorageUserWebAuthnListRunE(cmd *cobra.Command, args []string
 		return storageWrapCheckSchemaErr(err)
 	}
 
-	var devices []model.WebAuthnDevice
+	var devices []model.WebAuthnCredential
 
 	user := args[0]
 
-	devices, err = ctx.providers.StorageProvider.LoadWebAuthnDevicesByUsername(ctx, user)
+	devices, err = ctx.providers.StorageProvider.LoadWebAuthnCredentialsByUsername(ctx, "", user)
 
 	switch {
-	case len(devices) == 0 || (err != nil && errors.Is(err, storage.ErrNoWebAuthnDevice)):
-		return fmt.Errorf("user '%s' has no webauthn devices", user)
+	case len(devices) == 0 || (err != nil && errors.Is(err, storage.ErrNoWebAuthnCredential)):
+		return fmt.Errorf("user '%s' has no WebAuthn credentials", user)
 	case err != nil:
 		return fmt.Errorf("can't list devices for user '%s': %w", user, err)
 	default:
-		fmt.Printf("WebAuthn Devices for user '%s':\n\n", user)
+		fmt.Printf("WebAuthn Credentials for user '%s':\n\n", user)
 		fmt.Printf("ID\tKID\tDescription\n")
 
 		for _, device := range devices {
@@ -577,19 +577,19 @@ func (ctx *CmdCtx) StorageUserWebAuthnListAllRunE(_ *cobra.Command, _ []string) 
 		return storageWrapCheckSchemaErr(err)
 	}
 
-	var devices []model.WebAuthnDevice
+	var devices []model.WebAuthnCredential
 
 	limit := 10
 
 	output := strings.Builder{}
 
 	for page := 0; true; page++ {
-		if devices, err = ctx.providers.StorageProvider.LoadWebAuthnDevices(ctx, limit, page); err != nil {
+		if devices, err = ctx.providers.StorageProvider.LoadWebAuthnCredentials(ctx, limit, page); err != nil {
 			return fmt.Errorf("failed to list devices: %w", err)
 		}
 
 		if page == 0 && len(devices) == 0 {
-			return errors.New("no webauthn devices in database")
+			return errors.New("no WebAuthn credentials in database")
 		}
 
 		for _, device := range devices {
@@ -601,7 +601,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnListAllRunE(_ *cobra.Command, _ []string) 
 		}
 	}
 
-	fmt.Printf("WebAuthn Devices:\n\nID\tKID\tDescription\tUsername\n")
+	fmt.Printf("WebAuthn Credentials:\n\nID\tKID\tDescription\tUsername\n")
 	fmt.Println(output.String())
 
 	return nil
@@ -627,26 +627,26 @@ func (ctx *CmdCtx) StorageUserWebAuthnDeleteRunE(cmd *cobra.Command, args []stri
 	}
 
 	if byKID {
-		if err = ctx.providers.StorageProvider.DeleteWebAuthnDevice(ctx, kid); err != nil {
-			return fmt.Errorf("failed to delete webauthn device with kid '%s': %w", kid, err)
+		if err = ctx.providers.StorageProvider.DeleteWebAuthnCredential(ctx, kid); err != nil {
+			return fmt.Errorf("failed to delete WebAuthn credential with kid '%s': %w", kid, err)
 		}
 
-		fmt.Printf("Successfully deleted WebAuthn device with key id '%s'\n", kid)
+		fmt.Printf("Successfully deleted WebAuthn credential with key id '%s'\n", kid)
 	} else {
-		err = ctx.providers.StorageProvider.DeleteWebAuthnDeviceByUsername(ctx, user, description)
+		err = ctx.providers.StorageProvider.DeleteWebAuthnCredentialByUsername(ctx, user, description)
 
 		if all {
 			if err != nil {
-				return fmt.Errorf("failed to delete all webauthn devices with username '%s': %w", user, err)
+				return fmt.Errorf("failed to delete all WebAuthn credentials with username '%s': %w", user, err)
 			}
 
-			fmt.Printf("Successfully deleted all WebAuthn devices for user '%s'\n", user)
+			fmt.Printf("Successfully deleted all WebAuthn credentials for user '%s'\n", user)
 		} else {
 			if err != nil {
-				return fmt.Errorf("failed to delete webauthn device with username '%s' and description '%s': %w", user, description, err)
+				return fmt.Errorf("failed to delete WebAuthn credential with username '%s' and description '%s': %w", user, description, err)
 			}
 
-			fmt.Printf("Successfully deleted WebAuthn device with description '%s' for user '%s'\n", description, user)
+			fmt.Printf("Successfully deleted WebAuthn credential with description '%s' for user '%s'\n", description, user)
 		}
 	}
 

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/url"
 
@@ -35,6 +36,16 @@ type bodySignWebAuthnRequest struct {
 	TargetURL  string `json:"targetURL"`
 	Workflow   string `json:"workflow"`
 	WorkflowID string `json:"workflowID"`
+
+	Response json.RawMessage `json:"response"`
+}
+
+type bodyRegisterWebAuthnPUTRequest struct {
+	Description string `json:"description"`
+}
+
+type bodyEditWebAuthnCredentialRequest struct {
+	Description string `json:"description"`
 }
 
 // bodySignDuoRequest is the  model of the request body of Duo 2FA authentication endpoint.

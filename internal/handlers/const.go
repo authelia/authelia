@@ -68,6 +68,7 @@ const (
 	messageAuthenticationFailed            = "Authentication failed. Check your credentials."
 	messageUnableToRegisterOneTimePassword = "Unable to set up one-time passwords." //nolint:gosec
 	messageUnableToRegisterSecurityKey     = "Unable to register your security key."
+	messageSecurityKeyDuplicateName        = "Another one of your security keys is already registered with that display name."
 	messageUnableToResetPassword           = "Unable to reset your password."
 	messageMFAValidationFailed             = "Authentication failed, please retry later."
 	messagePasswordWeak                    = "Your supplied password does not meet the password policy requirements"
