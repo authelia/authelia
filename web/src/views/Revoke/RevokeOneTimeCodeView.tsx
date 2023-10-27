@@ -6,7 +6,7 @@ import { IndexRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useID } from "@hooks/Revoke";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
-import { deleteUserSessionElevation } from "@services/UserSessionElevation.ts";
+import { deleteUserSessionElevation } from "@services/UserSessionElevation";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
 const RevokeOneTimeCodeView = function () {
