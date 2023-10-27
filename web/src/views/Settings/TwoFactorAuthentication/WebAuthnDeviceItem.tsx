@@ -21,8 +21,7 @@ interface Props {
     device: WebAuthnDevice;
     handleEdit: () => void;
 }
-
-export default function WebAuthnDeviceItem(props: Props) {
+const WebAuthnDeviceItem = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const { createSuccessNotification, createErrorNotification } = useNotifications();
@@ -197,4 +196,6 @@ export default function WebAuthnDeviceItem(props: Props) {
             </Paper>
         </Grid>
     );
-}
+};
+
+export default WebAuthnDeviceItem;

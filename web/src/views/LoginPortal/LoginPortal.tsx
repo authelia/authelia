@@ -211,8 +211,6 @@ const LoginPortal = function (props: Props) {
     );
 };
 
-export default LoginPortal;
-
 interface ComponentOrLoadingProps {
     ready: boolean;
 
@@ -229,3 +227,5 @@ function ComponentOrLoading(props: ComponentOrLoadingProps) {
         </Fragment>
     );
 }
+
+export default LoginPortal;

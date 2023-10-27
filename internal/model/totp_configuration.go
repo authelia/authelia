@@ -13,19 +13,31 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// TOTPConfiguration represents a users TOTP configuration row in the database.
-type TOTPConfiguration struct {
-	ID         int          `db:"id" json:"-"`
-	CreatedAt  time.Time    `db:"created_at" json:"-"`
-	LastUsedAt sql.NullTime `db:"last_used_at" json:"-"`
-	Username   string       `db:"username" json:"-"`
-	Issuer     string       `db:"issuer" json:"-"`
-	Algorithm  string       `db:"algorithm" json:"-"`
-	Digits     uint         `db:"digits" json:"digits"`
-	Period     uint         `db:"period" json:"period"`
-	Secret     []byte       `db:"secret" json:"-"`
+type TOTPOptions struct {
+	Algorithm  string   `json:"algorithm"`
+	Algorithms []string `json:"algorithms"`
+
+	Length  int   `json:"length"`
+	Lengths []int `json:"lengths"`
+
+	Period  int   `json:"period"`
+	Periods []int `json:"periods"`
 }
 
+// TOTPConfiguration represents a users TOTP configuration row in the database.
+type TOTPConfiguration struct {
+	ID         int          `db:"id"`
+	CreatedAt  time.Time    `db:"created_at"`
+	LastUsedAt sql.NullTime `db:"last_used_at"`
+	Username   string       `db:"username"`
+	Issuer     string       `db:"issuer"`
+	Algorithm  string       `db:"algorithm"`
+	Digits     uint         `db:"digits"`
+	Period     uint         `db:"period"`
+	Secret     []byte       `db:"secret"`
+}
+
+// TOTPConfigurationJSON is the JSON representation for a TOTPConfiguration.
 type TOTPConfigurationJSON struct {
 	CreatedAt  time.Time  `json:"created_at"`
 	LastUsedAt *time.Time `json:"last_used_at,omitempty"`

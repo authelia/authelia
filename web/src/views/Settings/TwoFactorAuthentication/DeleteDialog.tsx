@@ -10,7 +10,7 @@ interface Props {
     handleClose: (ok: boolean) => void;
 }
 
-export default function DeleteDialog(props: Props) {
+const DeleteDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const handleCancel = () => {
@@ -35,4 +35,6 @@ export default function DeleteDialog(props: Props) {
             </DialogActions>
         </Dialog>
     );
-}
+};
+
+export default DeleteDialog;

@@ -276,8 +276,6 @@ const useStyles = makeStyles((theme: Theme) => ({
     preConfigure: {},
 }));
 
-export default ConsentView;
-
 interface ComponentOrLoadingProps {
     ready: boolean;
 
@@ -294,3 +292,5 @@ function ComponentOrLoading(props: ComponentOrLoadingProps) {
         </Fragment>
     );
 }
+
+export default ConsentView;

@@ -16,7 +16,6 @@ const SettingsRouter = function (props: Props) {
     const navigate = useRouterNavigate();
     const [state, fetchState, , fetchStateError] = useAutheliaState();
 
-    // Fetch the state on page load
     useEffect(() => {
         fetchState();
     }, [fetchState]);

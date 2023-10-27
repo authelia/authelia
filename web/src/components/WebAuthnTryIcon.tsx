@@ -15,7 +15,7 @@ interface Props {
     webauthnTouchState: WebAuthnTouchState;
 }
 
-export default function WebAuthnTryIcon(props: Props) {
+const WebAuthnTryIcon = function (props: Props) {
     const touchTimeout = 30;
     const theme = useTheme();
     const [timerPercent, triggerTimer, clearTimer] = useTimer(touchTimeout * 1000 - 500);
@@ -65,4 +65,6 @@ export default function WebAuthnTryIcon(props: Props) {
             {failure}
         </Box>
     );
-}
+};
+
+export default WebAuthnTryIcon;
