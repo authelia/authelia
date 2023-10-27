@@ -560,6 +560,21 @@
         "env": "AUTHELIA_TOTP_SECRET_SIZE"
     },
     {
+        "path": "totp.allowed_algorithms",
+        "secret": false,
+        "env": "AUTHELIA_TOTP_ALLOWED_ALGORITHMS"
+    },
+    {
+        "path": "totp.allowed_digits",
+        "secret": false,
+        "env": "AUTHELIA_TOTP_ALLOWED_DIGITS"
+    },
+    {
+        "path": "totp.allowed_periods",
+        "secret": false,
+        "env": "AUTHELIA_TOTP_ALLOWED_PERIODS"
+    },
+    {
         "path": "duo_api.disable",
         "secret": false,
         "env": "AUTHELIA_DUO_API_DISABLE"

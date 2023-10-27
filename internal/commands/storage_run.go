@@ -683,7 +683,7 @@ func (ctx *CmdCtx) StorageUserTOTPGenerateRunE(cmd *cobra.Command, args []string
 
 	totpProvider := totp.NewTimeBasedProvider(ctx.config.TOTP)
 
-	if c, err = totpProvider.GenerateCustom(args[0], ctx.config.TOTP.Algorithm, secret, ctx.config.TOTP.Digits, ctx.config.TOTP.Period, ctx.config.TOTP.SecretSize); err != nil {
+	if c, err = totpProvider.GenerateCustom(args[0], ctx.config.TOTP.DefaultAlgorithm, secret, uint(ctx.config.TOTP.DefaultDigits), uint(ctx.config.TOTP.DefaultPeriod), uint(ctx.config.TOTP.SecretSize)); err != nil {
 		return err
 	}
 
