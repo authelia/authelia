@@ -132,3 +132,10 @@ type AuthenticationErrorResponse struct {
 	Authentication bool   `json:"authentication"`
 	Elevation      bool   `json:"elevation"`
 }
+
+// ElevatedForbiddenResponse is a response for RequireElevated.
+type ElevatedForbiddenResponse struct {
+	Elevation    bool `json:"elevation"`
+	FirstFactor  bool `json:"first_factor"`
+	SecondFactor bool `json:"second_factor"`
+}
