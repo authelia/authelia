@@ -7,5 +7,5 @@
 package cmd
 
 const (
-	versionSwaggerUI = "5.9.0"
+	versionSwaggerUI = "5.9.1"
 )
