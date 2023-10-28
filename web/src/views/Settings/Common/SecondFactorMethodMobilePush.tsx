@@ -6,7 +6,6 @@ import { useTranslation } from "react-i18next";
 
 import FailureIcon from "@components/FailureIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
-import SuccessIcon from "@components/SuccessIcon";
 import { useIsMountedRef } from "@hooks/Mounted";
 import {
     DuoDevicePostRequest,
@@ -72,7 +71,7 @@ const SecondFactorMethodMobilePush = function (props: Props) {
         }
     }, [mounted]);
 
-    const signInFunc = useCallback(async () => {
+    const handleDuoPush = useCallback(async () => {
         try {
             setState(State.SignInInProgress);
             const res = await completePushNotificationSignIn();
@@ -101,10 +100,7 @@ const SecondFactorMethodMobilePush = function (props: Props) {
             }
 
             setState(State.Success);
-            setTimeout(() => {
-                if (!mounted.current) return;
-                props.onSecondFactorSuccess();
-            }, 1500);
+            props.onSecondFactorSuccess();
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
@@ -134,8 +130,8 @@ const SecondFactorMethodMobilePush = function (props: Props) {
     );
 
     useEffect(() => {
-        if (state === State.SignInInProgress) signInFunc();
-    }, [signInFunc, state]);
+        if (state === State.SignInInProgress) handleDuoPush();
+    }, [handleDuoPush, state]);
 
     if (state === State.Selection)
         return (
@@ -149,10 +145,8 @@ const SecondFactorMethodMobilePush = function (props: Props) {
     let icon: ReactNode;
     switch (state) {
         case State.SignInInProgress:
-            icon = <PushNotificationIcon width={64} height={64} animated />;
-            break;
         case State.Success:
-            icon = <SuccessIcon />;
+            icon = <PushNotificationIcon width={64} height={64} animated />;
             break;
         case State.Failure:
             icon = <FailureIcon />;
@@ -160,17 +154,21 @@ const SecondFactorMethodMobilePush = function (props: Props) {
 
     return (
         <Fragment>
-            <Box className={styles.icon}>{icon}</Box>
-            <Box className={state !== State.Failure ? "hidden" : ""}>
-                <Button color="secondary" onClick={signInFunc}>
-                    Retry
-                </Button>
+            <Box className={styles.container}>
+                <Box className={styles.icon}>{icon}</Box>
+                <Box className={state !== State.Failure ? "hidden" : ""}>
+                    <Button color="secondary" onClick={handleDuoPush}>
+                        Retry
+                    </Button>
+                </Box>
             </Box>
-            <Box>
-                <Link component="button" id="selection-link" onClick={handleSelectDevice} underline="hover">
-                    {translate("Select a Device")}
-                </Link>
-            </Box>
+            {state !== State.Success ? (
+                <Box>
+                    <Link component="button" id="selection-link" onClick={handleSelectDevice} underline="hover">
+                        {translate("Select a Device")}
+                    </Link>
+                </Box>
+            ) : null}
         </Fragment>
     );
 };
@@ -178,6 +176,9 @@ const SecondFactorMethodMobilePush = function (props: Props) {
 export default SecondFactorMethodMobilePush;
 
 const useStyles = makeStyles((theme: Theme) => ({
+    container: {
+        height: "120px",
+    },
     icon: {
         width: "64px",
         height: "64px",
