@@ -3,11 +3,6 @@
 #                Authelia minimal configuration               #
 ###############################################################
 
-identity_validation:
-  reset_password:
-    # This secret can also be set using the env variables AUTHELIA_IDENTITY_VERIFICATION_RESET_PASSWORD_JWT_SECRET_FILE
-    jwt_secret: 'a_very_important_secret'
-
 theme: auto
 
 server:
@@ -23,6 +18,48 @@ telemetry:
 
 log:
   level: debug
+
+##
+## Identity Validation Configuration
+##
+## This configuration tunes the identity validation flows.
+identity_validation:
+
+  ## Reset Password flow. Adjusts how the reset password flow operates.
+  reset_password:
+    ## Maximum allowed time before the JWT is generated and when the user uses it in the duration common syntax.
+    # expiration: '5 minutes'
+
+    ## The algorithm used for the Reset Password JWT.
+    # jwt_algorithm: 'HS256'
+
+    ## The secret key used to sign and verify the JWT.
+    jwt_secret: 'a_very_important_secret'
+
+  ## Elevated Session flows. Adjusts the flow which require elevated sessions for example managing credentials, adding,
+  ## removing, etc.
+  elevated_session:
+    ## Maximum allowed time after the One-Time Code is generated that it is considered valid.
+    expiration: '5 minutes'
+
+    ## Maximum allowed time after the user uses the One-Time Code and the user must perform the validation again in the
+    ## duration common syntax.
+    elevation_expiration: '10 minutes'
+
+    ## Number of characters the one-time password contains.
+    characters: 8
+
+    ## In addition to the One-Time Code requires the user performs a second factor authentication.
+    require_second_factor: true
+
+    ## Skips the elevation requirement and entry of the One-Time Code if the user has performed second factor
+    ## authentication.
+    # skip_second_factor: false
+
+duo_api:
+  hostname: 'api-d438104b.duosecurity.com'
+  integration_key: 'DIYGFKJUTTUMIM8516YL'
+  secret_key: '6YwpZxtCl2SButmbM0w10Q5f1dikiR3rLGCERJBz'
 
 authentication_backend:
   file:

@@ -34,7 +34,7 @@ func IsNetworkGroupValid(config schema.AccessControl, network string) bool {
 	return false
 }
 
-// IsNetworkValid check if a network is valid.
+// IsNetworkValid checks if a network is valid.
 func IsNetworkValid(network string) (isValid bool) {
 	if net.ParseIP(network) == nil {
 		_, _, err := net.ParseCIDR(network)
