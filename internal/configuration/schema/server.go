@@ -45,7 +45,8 @@ type ServerEndpointsAuthz struct {
 
 // ServerEndpointsAuthzAuthnStrategy is the Authz endpoints configuration for the HTTP server.
 type ServerEndpointsAuthzAuthnStrategy struct {
-	Name string `koanf:"name" json:"name" jsonschema:"enum=HeaderAuthorization,enum=HeaderProxyAuthorization,enum=HeaderAuthRequestProxyAuthorization,enum=HeaderLegacy,enum=CookieSession,title=Name" jsonschema_description:"The name of the Authorization strategy to use"`
+	Name    string   `koanf:"name" json:"name" jsonschema:"enum=HeaderAuthorization,enum=HeaderProxyAuthorization,enum=HeaderAuthRequestProxyAuthorization,enum=HeaderLegacy,enum=CookieSession,title=Name" jsonschema_description:"The name of the Authorization strategy to use"`
+	Schemes []string `koanf:"schemes" json:"schemes" jsonschema:"enum=basic,enum=bearer,default=basic,title=Authorization Schemes" jsonschema_description:"The name of the authorization schemes to allow with the header strategies"`
 }
 
 // ServerTLS represents the configuration of the http servers TLS options.
@@ -74,39 +75,47 @@ var DefaultServerConfiguration = Server{
 	},
 	Endpoints: ServerEndpoints{
 		Authz: map[string]ServerEndpointsAuthz{
-			"legacy": {
-				Implementation: "Legacy",
-			},
-			"auth-request": {
-				Implementation: "AuthRequest",
+			AuthzEndpointNameLegacy: {
+				Implementation: AuthzImplementationLegacy,
 				AuthnStrategies: []ServerEndpointsAuthzAuthnStrategy{
 					{
-						Name: "HeaderAuthRequestProxyAuthorization",
-					},
-					{
-						Name: "CookieSession",
+						Name: AuthzStrategyHeaderLegacy,
 					},
 				},
 			},
-			"forward-auth": {
-				Implementation: "ForwardAuth",
+			AuthzEndpointNameAuthRequest: {
+				Implementation: AuthzImplementationAuthRequest,
 				AuthnStrategies: []ServerEndpointsAuthzAuthnStrategy{
 					{
-						Name: "HeaderProxyAuthorization",
+						Name:    AuthzStrategyHeaderAuthorization,
+						Schemes: []string{SchemeBasic},
 					},
 					{
-						Name: "CookieSession",
+						Name: AuthzStrategyHeaderCookieSession,
 					},
 				},
 			},
-			"ext-authz": {
-				Implementation: "ExtAuthz",
+			AuthzEndpointNameExtAuthz: {
+				Implementation: AuthzImplementationExtAuthz,
 				AuthnStrategies: []ServerEndpointsAuthzAuthnStrategy{
 					{
-						Name: "HeaderProxyAuthorization",
+						Name:    AuthzStrategyHeaderAuthorization,
+						Schemes: []string{SchemeBasic},
 					},
 					{
-						Name: "CookieSession",
+						Name: AuthzStrategyHeaderCookieSession,
+					},
+				},
+			},
+			AuthzEndpointNameForwardAuth: {
+				Implementation: AuthzImplementationForwardAuth,
+				AuthnStrategies: []ServerEndpointsAuthzAuthnStrategy{
+					{
+						Name:    AuthzStrategyHeaderAuthorization,
+						Schemes: []string{SchemeBasic},
+					},
+					{
+						Name: AuthzStrategyHeaderCookieSession,
 					},
 				},
 			},

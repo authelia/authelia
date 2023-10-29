@@ -315,6 +315,7 @@ var Keys = []string{
 	"server.endpoints.authz.*.implementation",
 	"server.endpoints.authz.*.authn_strategies",
 	"server.endpoints.authz.*.authn_strategies[].name",
+	"server.endpoints.authz.*.authn_strategies[].schemes",
 	"server.buffers.read",
 	"server.buffers.write",
 	"server.timeouts.read",

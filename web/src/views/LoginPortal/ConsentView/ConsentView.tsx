@@ -1,6 +1,6 @@
 import React, { Fragment, ReactNode, useEffect, useState } from "react";
 
-import { AccountBox, Autorenew, CheckBox, Contacts, Drafts, Group } from "@mui/icons-material";
+import { AccountBox, Autorenew, CheckBox, Contacts, Drafts, Group, LockOpen } from "@mui/icons-material";
 import {
     Button,
     Checkbox,
@@ -41,6 +41,8 @@ function scopeNameToAvatar(id: string) {
             return <Group />;
         case "email":
             return <Drafts />;
+        case "authelia.bearer.authz":
+            return <LockOpen />;
         default:
             return <CheckBox />;
     }
@@ -105,6 +107,8 @@ const ConsentView = function (props: Props) {
                 return translate("Access your group membership");
             case "email":
                 return translate("Access your email addresses");
+            case "authelia.bearer.authz":
+                return translate("Access protected resources logged in as you");
             default:
                 return id;
         }

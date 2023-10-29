@@ -489,6 +489,31 @@ func TestServerAuthzEndpointErrors(t *testing.T) {
 			[]string{"server: endpoints: authz: example: authn_strategies: duplicate strategy name detected with name 'CookieSession'"},
 		},
 		{
+			"ShouldErrorOnSchemesForInvalidStrategy",
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: "ForwardAuth", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{{Name: "CookieSession", Schemes: []string{"basic"}}}},
+			},
+			[]string{"server: endpoints: authz: example: authn_strategies: strategy #1 (CookieSession): option 'schemes' is not valid for the strategy"},
+		},
+		{
+			"ShouldErrorOnInvalidStrategySchemesAndUnnamedStrategy",
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: "ForwardAuth", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{{Name: "HeaderAuthorization", Schemes: []string{"basic", "bearer", "abc"}}}},
+			},
+			[]string{
+				"server: endpoints: authz: example: authn_strategies: strategy #1 (HeaderAuthorization): option 'schemes' must only include the values 'basic' or 'bearer' but has 'abc'",
+			},
+		},
+		{
+			"ShouldErrorOnUnnamedStrategy",
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: "ForwardAuth", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{{Name: "", Schemes: []string{"basic", "bearer", "abc"}}}},
+			},
+			[]string{
+				"server: endpoints: authz: example: authn_strategies: strategy #1: option 'name' must be configured",
+			},
+		},
+		{
 			"ShouldErrorOnInvalidChars",
 			map[string]schema.ServerEndpointsAuthz{
 				"/abc":  {Implementation: "ForwardAuth"},
@@ -567,6 +592,53 @@ func TestServerAuthzEndpointErrors(t *testing.T) {
 	}
 }
 
+func TestServerAuthzEndpointDefaults(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     map[string]schema.ServerEndpointsAuthz
+		expected map[string]schema.ServerEndpointsAuthz
+	}{
+		{
+			"ShouldSetDefaultSchemes",
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: "ForwardAuth", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{
+					{
+						Name:    "HeaderAuthorization",
+						Schemes: []string{},
+					},
+				}},
+			},
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: "ForwardAuth", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{
+					{
+						Name:    "HeaderAuthorization",
+						Schemes: []string{"basic"},
+					},
+				}},
+			},
+		},
+	}
+
+	validator := schema.NewStructValidator()
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator.Clear()
+
+			config := newDefaultConfig()
+
+			config.Server.Endpoints.Authz = tc.have
+
+			ValidateServerEndpoints(&config, validator)
+
+			assert.Len(t, validator.Warnings(), 0)
+			assert.Len(t, validator.Errors(), 0)
+
+			assert.Equal(t, tc.expected, config.Server.Endpoints.Authz)
+		})
+	}
+}
+
 func TestServerAuthzEndpointLegacyAsImplementationLegacyWhenBlank(t *testing.T) {
 	have := map[string]schema.ServerEndpointsAuthz{
 		"legacy": {},
@@ -583,7 +655,7 @@ func TestServerAuthzEndpointLegacyAsImplementationLegacyWhenBlank(t *testing.T) 
 	assert.Len(t, validator.Warnings(), 0)
 	assert.Len(t, validator.Errors(), 0)
 
-	assert.Equal(t, authzImplementationLegacy, config.Server.Endpoints.Authz[legacy].Implementation)
+	assert.Equal(t, schema.AuthzImplementationLegacy, config.Server.Endpoints.Authz[legacy].Implementation)
 }
 
 func TestValidateTLSPathStatInvalidArgument(t *testing.T) {

@@ -452,32 +452,6 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 	}
 }
 
-func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadScopes(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: keyRSA2048,
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
-				{
-					ID:                  "good_id",
-					Secret:              tOpenIDConnectPlainTextClientSecret,
-					AuthorizationPolicy: "two_factor",
-					Scopes:              []string{"openid", "bad_scope"},
-					RedirectURIs: []string{
-						"https://google.com/callback",
-					},
-				},
-			},
-		},
-	}
-
-	ValidateIdentityProviders(config, validator)
-
-	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'good_id': option 'scopes' must only have the values 'openid', 'email', 'profile', 'groups', or 'offline_access' but the values 'bad_scope' are present")
-}
-
 func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.IdentityProviders{
@@ -857,7 +831,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 		},
 		{
-			"ShouldIncludeMinimalScope",
+			"ShouldNotIncludeOldMinimalScope",
 			nil,
 			nil,
 			tcv{
@@ -867,7 +841,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				nil,
 			},
 			tcv{
-				[]string{oidc.ScopeOpenID, oidc.ScopeEmail},
+				[]string{oidc.ScopeEmail},
 				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
 				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
 				[]string{oidc.GrantTypeAuthorizationCode},
@@ -1030,7 +1004,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 		},
 		{
-			"ShouldRaiseErrorOnInvalidScopes",
+			"ShouldRaiseWarningOnInvalidScopes",
 			nil,
 			nil,
 			tcv{
@@ -1045,10 +1019,10 @@ func TestValidateOIDCClients(t *testing.T) {
 				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
 				[]string{oidc.GrantTypeAuthorizationCode},
 			},
-			nil,
 			[]string{
-				"identity_providers: oidc: clients: client 'test': option 'scopes' must only have the values 'openid', 'email', 'profile', 'groups', or 'offline_access' but the values 'group' are present",
+				"identity_providers: oidc: clients: client 'test': option 'scopes' only expects the values 'openid', 'email', 'profile', 'groups', 'offline_access', 'offline', or 'authelia.bearer.authz' but the unknown values 'group' are present and should generally only be used if a particular client requires a scope outside of our standard scopes",
 			},
+			nil,
 		},
 		{
 			"ShouldRaiseErrorOnMissingAuthorizationCodeFlowResponseTypeWithRefreshTokenValues",
@@ -2059,6 +2033,264 @@ func TestValidateOIDCClients(t *testing.T) {
 				"identity_providers: oidc: clients: client 'test': option 'userinfo_signed_response_alg' must be one of 'RS256' or 'none' but it's configured as 'rs256'",
 				"identity_providers: oidc: clients: client 'test': option 'introspection_signed_response_alg' must be one of 'RS256' or 'none' but it's configured as 'rs256'",
 			},
+		},
+		{
+			"ShouldHandleBearerErrorsMisconfiguredPublicClientType",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0] = schema.IdentityProvidersOpenIDConnectClient{
+					ID:                      "abc",
+					Secret:                  nil,
+					Public:                  true,
+					RedirectURIs:            []string{"http://localhost"},
+					Audience:                nil,
+					Scopes:                  []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOpenID},
+					GrantTypes:              []string{oidc.GrantTypeImplicit},
+					ResponseTypes:           []string{oidc.ResponseTypeImplicitFlowBoth},
+					ResponseModes:           []string{oidc.ResponseModeQuery},
+					AuthorizationPolicy:     "",
+					RequestedAudienceMode:   "",
+					ConsentMode:             oidc.ClientConsentModeImplicit.String(),
+					EnforcePAR:              false,
+					EnforcePKCE:             false,
+					PKCEChallengeMethod:     "",
+					TokenEndpointAuthMethod: "",
+				}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOpenID},
+				[]string{oidc.ResponseTypeImplicitFlowBoth},
+				[]string{oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeImplicit},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'abc': option 'scopes' must only have the values 'offline_access', 'offline', and 'authelia.bearer.authz' when configured with scope 'authelia.bearer.authz' but the values 'authelia.bearer.authz' and 'openid' are present",
+				"identity_providers: oidc: clients: client 'abc': option 'grant_types' must only have the values 'authorization_code', 'refresh_token', and 'client_credentials' when configured with scope 'authelia.bearer.authz' but the values 'implicit' are present",
+				"identity_providers: oidc: clients: client 'abc': option 'enforce_par' must be configured as 'true' when configured with scope 'authelia.bearer.authz' but it's configured as 'false'",
+				"identity_providers: oidc: clients: client 'abc': option 'enforce_pkce' must be configured as 'true' when configured with scope 'authelia.bearer.authz' but it's configured as 'false'",
+				"identity_providers: oidc: clients: client 'abc': option 'audience' must be configured when configured with scope 'authelia.bearer.authz' but it's absent",
+				"identity_providers: oidc: clients: client 'abc': option 'consent_mode' must be configured as 'explicit' when configured with scope 'authelia.bearer.authz' but it's configured as 'implicit'",
+				"identity_providers: oidc: clients: client 'abc': option 'response_types' must only have the values 'code' when configured with scope 'authelia.bearer.authz' but the values 'id_token token' are present",
+				"identity_providers: oidc: clients: client 'abc': option 'response_modes' must only have the values 'form_post' and 'form_post.jwt' when configured with scope 'authelia.bearer.authz' but the values 'query' are present",
+				"identity_providers: oidc: clients: client 'abc': option 'token_endpoint_auth_method' must be configured as 'none' when configured with scope 'authelia.bearer.authz' and the 'public' client type but it's configured as ''",
+			},
+		},
+		{
+			"ShouldHandleBearerErrorsMisconfiguredConfidentialClientType",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0] = schema.IdentityProvidersOpenIDConnectClient{
+					ID:                      "abc",
+					Secret:                  tOpenIDConnectPBKDF2ClientSecret,
+					Public:                  false,
+					RedirectURIs:            []string{"http://localhost"},
+					Audience:                nil,
+					Scopes:                  []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOpenID},
+					GrantTypes:              []string{oidc.GrantTypeImplicit},
+					ResponseTypes:           []string{oidc.ResponseTypeImplicitFlowBoth},
+					ResponseModes:           []string{oidc.ResponseModeQuery},
+					AuthorizationPolicy:     "",
+					RequestedAudienceMode:   "",
+					ConsentMode:             oidc.ClientConsentModeImplicit.String(),
+					EnforcePAR:              false,
+					EnforcePKCE:             true,
+					PKCEChallengeMethod:     "",
+					TokenEndpointAuthMethod: "",
+				}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOpenID},
+				[]string{oidc.ResponseTypeImplicitFlowBoth},
+				[]string{oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeImplicit},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'abc': option 'scopes' must only have the values 'offline_access', 'offline', and 'authelia.bearer.authz' when configured with scope 'authelia.bearer.authz' but the values 'authelia.bearer.authz' and 'openid' are present",
+				"identity_providers: oidc: clients: client 'abc': option 'grant_types' must only have the values 'authorization_code', 'refresh_token', and 'client_credentials' when configured with scope 'authelia.bearer.authz' but the values 'implicit' are present",
+				"identity_providers: oidc: clients: client 'abc': option 'enforce_par' must be configured as 'true' when configured with scope 'authelia.bearer.authz' but it's configured as 'false'",
+				"identity_providers: oidc: clients: client 'abc': option 'pkce_challenge_method' must be configured as 'S256' when configured with scope 'authelia.bearer.authz' but it's configured as ''",
+				"identity_providers: oidc: clients: client 'abc': option 'audience' must be configured when configured with scope 'authelia.bearer.authz' but it's absent",
+				"identity_providers: oidc: clients: client 'abc': option 'consent_mode' must be configured as 'explicit' when configured with scope 'authelia.bearer.authz' but it's configured as 'implicit'",
+				"identity_providers: oidc: clients: client 'abc': option 'response_types' must only have the values 'code' when configured with scope 'authelia.bearer.authz' but the values 'id_token token' are present",
+				"identity_providers: oidc: clients: client 'abc': option 'response_modes' must only have the values 'form_post' and 'form_post.jwt' when configured with scope 'authelia.bearer.authz' but the values 'query' are present",
+				"identity_providers: oidc: clients: client 'abc': option 'token_endpoint_auth_method' must be configured as 'client_secret_post', 'client_secret_jwt', or 'private_key_jwt' when configured with scope 'authelia.bearer.authz' and the 'confidential' client type but it's configured as ''",
+			},
+		},
+		{
+			"ShouldHandleBearerErrorsMisconfiguredConfidentialClientTypeClientCredentials",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0] = schema.IdentityProvidersOpenIDConnectClient{
+					ID:                      "abc",
+					Secret:                  tOpenIDConnectPBKDF2ClientSecret,
+					Public:                  false,
+					RedirectURIs:            []string{"http://localhost"},
+					Audience:                nil,
+					Scopes:                  []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOpenID},
+					GrantTypes:              []string{oidc.GrantTypeClientCredentials},
+					ResponseTypes:           nil,
+					ResponseModes:           nil,
+					AuthorizationPolicy:     "",
+					RequestedAudienceMode:   "",
+					ConsentMode:             oidc.ClientConsentModeImplicit.String(),
+					EnforcePAR:              false,
+					EnforcePKCE:             true,
+					PKCEChallengeMethod:     "",
+					TokenEndpointAuthMethod: "",
+				}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOpenID},
+				[]string(nil),
+				[]string(nil),
+				[]string{oidc.GrantTypeClientCredentials},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'abc': option 'scopes' must only have the values 'offline_access', 'offline', and 'authelia.bearer.authz' when configured with scope 'authelia.bearer.authz' but the values 'authelia.bearer.authz' and 'openid' are present",
+				"identity_providers: oidc: clients: client 'abc': option 'enforce_par' must be configured as 'true' when configured with scope 'authelia.bearer.authz' but it's configured as 'false'",
+				"identity_providers: oidc: clients: client 'abc': option 'pkce_challenge_method' must be configured as 'S256' when configured with scope 'authelia.bearer.authz' but it's configured as ''",
+				"identity_providers: oidc: clients: client 'abc': option 'audience' must be configured when configured with scope 'authelia.bearer.authz' but it's absent",
+				"identity_providers: oidc: clients: client 'abc': option 'token_endpoint_auth_method' must be configured as 'client_secret_post', 'client_secret_jwt', or 'private_key_jwt' when configured with scope 'authelia.bearer.authz' and the 'confidential' client type but it's configured as ''",
+				"identity_providers: oidc: clients: client 'abc': option 'scopes' has the values 'authelia.bearer.authz' and 'openid' however when exclusively utilizing the 'client_credentials' value for the 'grant_types' the values 'openid' are not allowed",
+			},
+		},
+		{
+			"ShouldHandleBearerErrorsNotExplicit",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0] = schema.IdentityProvidersOpenIDConnectClient{
+					ID:                      "abc",
+					Secret:                  nil,
+					Public:                  true,
+					RedirectURIs:            []string{"http://localhost"},
+					Audience:                nil,
+					Scopes:                  []string{oidc.ScopeAutheliaBearerAuthz},
+					EnforcePAR:              false,
+					EnforcePKCE:             false,
+					PKCEChallengeMethod:     "",
+					TokenEndpointAuthMethod: "",
+				}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeAutheliaBearerAuthz},
+				nil,
+				nil,
+				nil,
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'abc': option 'grant_types' must only have the values 'authorization_code', 'refresh_token', and 'client_credentials' when configured with scope 'authelia.bearer.authz' but it's not configured",
+				"identity_providers: oidc: clients: client 'abc': option 'enforce_par' must be configured as 'true' when configured with scope 'authelia.bearer.authz' but it's configured as 'false'",
+				"identity_providers: oidc: clients: client 'abc': option 'enforce_pkce' must be configured as 'true' when configured with scope 'authelia.bearer.authz' but it's configured as 'false'",
+				"identity_providers: oidc: clients: client 'abc': option 'audience' must be configured when configured with scope 'authelia.bearer.authz' but it's absent",
+				"identity_providers: oidc: clients: client 'abc': option 'consent_mode' must be configured as 'explicit' when configured with scope 'authelia.bearer.authz' but it's configured as ''",
+				"identity_providers: oidc: clients: client 'abc': option 'response_types' must only have the values 'code' when configured with scope 'authelia.bearer.authz' but it's not configured",
+				"identity_providers: oidc: clients: client 'abc': option 'response_modes' must only have the values 'form_post' and 'form_post.jwt' when configured with scope 'authelia.bearer.authz' but it's not configured",
+				"identity_providers: oidc: clients: client 'abc': option 'token_endpoint_auth_method' must be configured as 'none' when configured with scope 'authelia.bearer.authz' and the 'public' client type but it's configured as ''",
+			},
+		},
+		{
+			"ShouldHandleBearerValidConfidentialClientType",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0] = schema.IdentityProvidersOpenIDConnectClient{
+					ID:                      "abc",
+					Secret:                  tOpenIDConnectPBKDF2ClientSecret,
+					Public:                  false,
+					RedirectURIs:            []string{"http://localhost"},
+					Audience:                []string{"https://app.example.com"},
+					Scopes:                  []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess},
+					GrantTypes:              []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeRefreshToken},
+					ResponseTypes:           []string{oidc.ResponseTypeAuthorizationCodeFlow},
+					ResponseModes:           []string{oidc.ResponseModeFormPost, oidc.ResponseModeFormPostJWT},
+					AuthorizationPolicy:     "",
+					RequestedAudienceMode:   "",
+					ConsentMode:             oidc.ClientConsentModeExplicit.String(),
+					EnforcePAR:              true,
+					EnforcePKCE:             true,
+					PKCEChallengeMethod:     oidc.PKCEChallengeMethodSHA256,
+					TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
+				}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeFormPostJWT},
+				[]string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeRefreshToken},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldHandleBearerValidPublicClientType",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0] = schema.IdentityProvidersOpenIDConnectClient{
+					ID:                      "abc",
+					Secret:                  nil,
+					Public:                  true,
+					RedirectURIs:            []string{"http://localhost"},
+					Audience:                []string{"https://app.example.com"},
+					Scopes:                  []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess},
+					GrantTypes:              []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeRefreshToken},
+					ResponseTypes:           []string{oidc.ResponseTypeAuthorizationCodeFlow},
+					ResponseModes:           []string{oidc.ResponseModeFormPost},
+					AuthorizationPolicy:     "",
+					RequestedAudienceMode:   "",
+					ConsentMode:             oidc.ClientConsentModeExplicit.String(),
+					EnforcePAR:              true,
+					EnforcePKCE:             true,
+					PKCEChallengeMethod:     oidc.PKCEChallengeMethodSHA256,
+					TokenEndpointAuthMethod: oidc.ClientAuthMethodNone,
+				}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost},
+				[]string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeRefreshToken},
+			},
+			nil,
+			nil,
 		},
 		{
 			"ShouldSetDefaultConsentMode",

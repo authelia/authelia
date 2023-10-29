@@ -57,7 +57,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 		strategy AuthnStrategy
 	)
 
-	if authn, strategy, err = authz.authn(ctx, provider); err != nil {
+	if authn, strategy, err = authz.authn(ctx, provider, &object); err != nil {
 		authn.Object = object
 
 		ctx.Logger.WithError(err).Error("Error occurred while attempting to authenticate a request")
@@ -151,9 +151,9 @@ func (authz *Authz) getRedirectionURL(object *authorization.Object, autheliaURL 
 	return redirectionURL
 }
 
-func (authz *Authz) authn(ctx *middlewares.AutheliaCtx, provider *session.Session) (authn Authn, strategy AuthnStrategy, err error) {
+func (authz *Authz) authn(ctx *middlewares.AutheliaCtx, provider *session.Session, object *authorization.Object) (authn Authn, strategy AuthnStrategy, err error) {
 	for _, strategy = range authz.strategies {
-		if authn, err = strategy.Get(ctx, provider); err != nil {
+		if authn, err = strategy.Get(ctx, provider, object); err != nil {
 			if strategy.CanHandleUnauthorized() {
 				return Authn{Type: authn.Type, Level: authentication.NotAuthenticated, Username: anonymous}, strategy, err
 			}

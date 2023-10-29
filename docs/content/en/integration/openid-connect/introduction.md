@@ -125,6 +125,19 @@ This scope includes the profile information the authentication backend reports a
 | preferred_username |  string  |      username      | The username the user used to login with |
 |        name        |  string  |    display_name    |          The users display name          |
 
+### Special Scopes
+
+The following scopes represent special permissions granted to a specific token.
+
+#### authelia.bearer.authz
+
+This scope allows the granted access token to be utilized with the bearer authorization scheme on endpoints protected
+via Authelia.
+
+The specifics about this scope are discussed in the
+[OAuth 2.0 Bearer Token Usage for Authorization Endpoints](oauth-2.0-bearer-token-usage.md#authorization-endpoints)
+guide.
+
 ## Signing and Encryption Algorithms
 
 [OpenID Connect 1.0] and OAuth 2.0 support a wide variety of signature and encryption algorithms. Authelia supports
