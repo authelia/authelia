@@ -174,7 +174,7 @@ func ValidateServerEndpoints(config *schema.Configuration, validator *schema.Str
 			}
 
 			switch oEndpoint.Implementation {
-			case authzImplementationLegacy, authzImplementationExtAuthz:
+			case schema.AuthzImplementationLegacy, schema.AuthzImplementationExtAuthz:
 				if strings.HasPrefix(name, oName+"/") {
 					validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzPrefixDuplicate, name, oName, oEndpoint.Implementation))
 				}
@@ -183,17 +183,17 @@ func ValidateServerEndpoints(config *schema.Configuration, validator *schema.Str
 			}
 		}
 
-		validateServerEndpointsAuthzStrategies(name, endpoint.AuthnStrategies, validator)
+		validateServerEndpointsAuthzStrategies(name, endpoint.Implementation, endpoint.AuthnStrategies, validator)
 	}
 }
 
 func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name string, endpoint schema.ServerEndpointsAuthz, validator *schema.StructValidator) {
 	if name == legacy {
 		switch endpoint.Implementation {
-		case authzImplementationLegacy:
+		case schema.AuthzImplementationLegacy:
 			break
 		case "":
-			endpoint.Implementation = authzImplementationLegacy
+			endpoint.Implementation = schema.AuthzImplementationLegacy
 
 			config.Server.Endpoints.Authz[name] = endpoint
 		default:
@@ -212,18 +212,55 @@ func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name str
 	}
 }
 
-func validateServerEndpointsAuthzStrategies(name string, strategies []schema.ServerEndpointsAuthzAuthnStrategy, validator *schema.StructValidator) {
+//nolint:gocyclo
+func validateServerEndpointsAuthzStrategies(name, implementation string, strategies []schema.ServerEndpointsAuthzAuthnStrategy, validator *schema.StructValidator) {
+	var defaults []schema.ServerEndpointsAuthzAuthnStrategy
+
+	switch implementation {
+	case schema.AuthzImplementationLegacy:
+		defaults = schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameLegacy].AuthnStrategies
+	case schema.AuthzImplementationAuthRequest:
+		defaults = schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameAuthRequest].AuthnStrategies
+	case schema.AuthzImplementationExtAuthz:
+		defaults = schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameExtAuthz].AuthnStrategies
+	case schema.AuthzImplementationForwardAuth:
+		defaults = schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameForwardAuth].AuthnStrategies
+	}
+
+	if len(strategies) == 0 {
+		copy(strategies, defaults)
+
+		return
+	}
+
 	names := make([]string, len(strategies))
 
-	for _, strategy := range strategies {
-		if utils.IsStringInSlice(strategy.Name, names) {
+	for i, strategy := range strategies {
+		if strategy.Name != "" && utils.IsStringInSlice(strategy.Name, names) {
 			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzStrategyDuplicate, name, strategy.Name))
 		}
 
 		names = append(names, strategy.Name)
 
-		if !utils.IsStringInSlice(strategy.Name, validAuthzAuthnStrategies) {
+		switch {
+		case strategy.Name == "":
+			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzStrategyNoName, name, i+1))
+		case !utils.IsStringInSlice(strategy.Name, validAuthzAuthnStrategies):
 			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzStrategy, name, strJoinOr(validAuthzAuthnStrategies), strategy.Name))
+		default:
+			if utils.IsStringInSlice(strategy.Name, validAuthzAuthnHeaderStrategies) {
+				if len(strategy.Schemes) == 0 {
+					strategies[i].Schemes = defaults[0].Schemes
+				} else {
+					for _, scheme := range strategy.Schemes {
+						if !utils.IsStringInSlice(scheme, validAuthzAuthnStrategySchemes) {
+							validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzSchemes, name, i+1, strategy.Name, strJoinOr(validAuthzAuthnStrategySchemes), scheme))
+						}
+					}
+				}
+			} else if len(strategy.Schemes) != 0 {
+				validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzSchemesInvalidForStrategy, name, i+1, strategy.Name))
+			}
 		}
 	}
 }

@@ -12,6 +12,8 @@ const (
 	ScopeProfile       = "profile"
 	ScopeEmail         = "email"
 	ScopeGroups        = "groups"
+
+	ScopeAutheliaBearerAuthz = "authelia.bearer.authz"
 )
 
 // Registered Claim strings. See https://www.iana.org/assignments/jwt/jwt.xhtml.
