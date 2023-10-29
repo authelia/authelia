@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS webauthn_devices (
     public_key BYTEA NOT NULL,
     attestation_type VARCHAR(32),
     transport VARCHAR(64) DEFAULT '',
-    aaguid CHAR(36) NOT NULL,
+    aaguid CHAR(36) NULL,
     sign_count INTEGER DEFAULT 0,
     clone_warning BOOLEAN NOT NULL DEFAULT FALSE
 );

@@ -24,7 +24,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 		bodyJSON := bodyFirstFactorRequest{}
 
 		if err := ctx.ParseBody(&bodyJSON); err != nil {
-			ctx.Logger.Errorf(logFmtErrParseRequestBody, regulation.AuthType1FA, err)
+			ctx.Logger.WithError(err).Errorf(logFmtErrParseRequestBody, regulation.AuthType1FA)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
@@ -40,7 +40,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 				return
 			}
 
-			ctx.Logger.Errorf(logFmtErrRegulationFail, regulation.AuthType1FA, bodyJSON.Username, err)
+			ctx.Logger.WithError(err).Errorf(logFmtErrRegulationFail, regulation.AuthType1FA, bodyJSON.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
@@ -92,7 +92,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 
 		// Reset all values from previous session except OIDC workflow before regenerating the cookie.
 		if err = ctx.SaveSession(newSession); err != nil {
-			ctx.Logger.Errorf(logFmtErrSessionReset, regulation.AuthType1FA, bodyJSON.Username, err)
+			ctx.Logger.WithError(err).Errorf(logFmtErrSessionReset, regulation.AuthType1FA, bodyJSON.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
@@ -100,7 +100,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 		}
 
 		if err = ctx.RegenerateSession(); err != nil {
-			ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthType1FA, bodyJSON.Username, err)
+			ctx.Logger.WithError(err).Errorf(logFmtErrSessionRegenerate, regulation.AuthType1FA, bodyJSON.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
@@ -114,7 +114,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 		if keepMeLoggedIn {
 			err = provider.UpdateExpiration(ctx.RequestCtx, provider.Config.RememberMe)
 			if err != nil {
-				ctx.Logger.Errorf(logFmtErrSessionSave, "updated expiration", regulation.AuthType1FA, bodyJSON.Username, err)
+				ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated expiration", regulation.AuthType1FA, bodyJSON.Username)
 
 				respondUnauthorized(ctx, messageAuthenticationFailed)
 
@@ -125,7 +125,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 		// Get the details of the given user from the user provider.
 		userDetails, err := ctx.Providers.UserProvider.GetDetails(bodyJSON.Username)
 		if err != nil {
-			ctx.Logger.Errorf(logFmtErrObtainProfileDetails, regulation.AuthType1FA, bodyJSON.Username, err)
+			ctx.Logger.WithError(err).Errorf(logFmtErrObtainProfileDetails, regulation.AuthType1FA, bodyJSON.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
@@ -141,7 +141,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 		}
 
 		if err = ctx.SaveSession(userSession); err != nil {
-			ctx.Logger.Errorf(logFmtErrSessionSave, "updated profile", regulation.AuthType1FA, bodyJSON.Username, err)
+			ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated profile", regulation.AuthType1FA, bodyJSON.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 

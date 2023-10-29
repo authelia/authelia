@@ -61,14 +61,6 @@ const (
 )
 
 const (
-	extJSON = ".json"
-)
-
-const (
-	pathJSONSchema = "json-schema"
-)
-
-const (
 	pkgConfigSchema = "schema"
 	pkgScriptsGen   = "cmd"
 )

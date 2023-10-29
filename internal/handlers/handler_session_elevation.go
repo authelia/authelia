@@ -315,8 +315,6 @@ func UserSessionElevateDELETE(ctx *middlewares.AutheliaCtx) {
 
 	if _, err = base64.RawURLEncoding.Decode(decoded, []byte(value)); err != nil {
 		ctx.Logger.WithError(err).Error("Failed to base64 decode elevation identifier during elevation revocation.")
-
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
@@ -324,8 +322,6 @@ func UserSessionElevateDELETE(ctx *middlewares.AutheliaCtx) {
 
 	if id, err = uuid.FromBytes(decoded); err != nil {
 		ctx.Logger.WithError(err).Error("Failed to parse decoded elevation identifier during elevation revocation.")
-
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
@@ -333,8 +329,6 @@ func UserSessionElevateDELETE(ctx *middlewares.AutheliaCtx) {
 
 	if otp, err = ctx.Providers.StorageProvider.LoadOneTimeCodeByPublicID(ctx, id); err != nil {
 		ctx.Logger.WithError(err).Error("Failed to load the elevation One-Time Code row from the database during elevation revocation.")
-
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
@@ -342,8 +336,6 @@ func UserSessionElevateDELETE(ctx *middlewares.AutheliaCtx) {
 
 	if otp.RevokedAt.Valid {
 		ctx.Logger.Error("Failed to revoke the One-Time Code during elevation revocation as it's already revoked.")
-
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
@@ -351,8 +343,6 @@ func UserSessionElevateDELETE(ctx *middlewares.AutheliaCtx) {
 
 	if otp.ConsumedAt.Valid {
 		ctx.Logger.Error("Failed to revoke the One-Time Code during elevation revocation as it's consumed.")
-
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
@@ -360,8 +350,6 @@ func UserSessionElevateDELETE(ctx *middlewares.AutheliaCtx) {
 
 	if otp.Intent != model.OTCIntentUserSessionElevation {
 		ctx.Logger.Error("Failed to revoke the One-Time Code during elevation revocation as it doesn't have the expected intent.")
-
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
@@ -369,8 +357,6 @@ func UserSessionElevateDELETE(ctx *middlewares.AutheliaCtx) {
 
 	if err = ctx.Providers.StorageProvider.RevokeOneTimeCode(ctx, id, model.NewIP(ctx.RemoteIP())); err != nil {
 		ctx.Logger.WithError(err).Error("Failed to save the revocation information to the database during elevation revocation.")
-
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return

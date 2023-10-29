@@ -385,7 +385,6 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                     <Fragment>
                         <Grid xs={12} my={2}>
                             <FormControlLabel
-                                disabled={disableAdvanced}
                                 control={
                                     <Switch
                                         checked={showQRCode}
