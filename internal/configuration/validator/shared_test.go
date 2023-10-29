@@ -26,5 +26,5 @@ func TestValidateTLSConfig(t *testing.T) {
 	config.PrivateKey = keyRSA2048
 	config.CertificateChain = certRSA4096
 
-	assert.EqualError(t, ValidateTLSConfig(config, configDefault), "option 'certificates' is invalid: provided certificate does not contain the public key for the private key provided")
+	assert.EqualError(t, ValidateTLSConfig(config, configDefault), "option 'certificate_chain' is invalid: provided certificate chain does not contain the public key for the private key provided")
 }

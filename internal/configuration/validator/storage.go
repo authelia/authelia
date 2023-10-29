@@ -30,7 +30,7 @@ func ValidateStorage(config schema.Storage, validator *schema.StructValidator) {
 	}
 }
 
-func validateSQLConfiguration(config *schema.StorageSQL, validator *schema.StructValidator, provider string) {
+func validateSQLConfiguration(config, defaults *schema.StorageSQL, validator *schema.StructValidator, provider string) {
 	if config.Address == nil {
 		if config.Host == "" { //nolint:staticcheck
 			validator.Push(fmt.Errorf(errFmtStorageOptionMustBeProvided, provider, "address"))
@@ -56,6 +56,10 @@ func validateSQLConfiguration(config *schema.StorageSQL, validator *schema.Struc
 		}
 	}
 
+	if config.Address != nil && config.Address.IsTCP() && config.Address.Port() == 0 {
+		config.Address.SetPort(defaults.Address.Port())
+	}
+
 	if config.Username == "" || config.Password == "" {
 		validator.Push(fmt.Errorf(errFmtStorageUserPassMustBeProvided, provider))
 	}
@@ -70,7 +74,7 @@ func validateSQLConfiguration(config *schema.StorageSQL, validator *schema.Struc
 }
 
 func validateMySQLConfiguration(config *schema.StorageMySQL, validator *schema.StructValidator) {
-	validateSQLConfiguration(&config.StorageSQL, validator, "mysql")
+	validateSQLConfiguration(&config.StorageSQL, &schema.DefaultMySQLStorageConfiguration.StorageSQL, validator, "mysql")
 
 	if config.TLS != nil {
 		configDefaultTLS := &schema.TLS{
@@ -89,7 +93,7 @@ func validateMySQLConfiguration(config *schema.StorageMySQL, validator *schema.S
 }
 
 func validatePostgreSQLConfiguration(config *schema.StoragePostgreSQL, validator *schema.StructValidator) {
-	validateSQLConfiguration(&config.StorageSQL, validator, "postgres")
+	validateSQLConfiguration(&config.StorageSQL, &schema.DefaultPostgreSQLStorageConfiguration.StorageSQL, validator, "postgres")
 
 	if config.Schema == "" {
 		config.Schema = schema.DefaultPostgreSQLStorageConfiguration.Schema
