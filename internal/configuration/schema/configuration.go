@@ -15,7 +15,7 @@ type Configuration struct {
 	IdentityProviders     IdentityProviders     `koanf:"identity_providers" json:"identity_providers" jsonschema:"title=Identity Providers" jsonschema_description:"Identity Providers Configuration"`
 	AuthenticationBackend AuthenticationBackend `koanf:"authentication_backend" json:"authentication_backend" jsonschema:"title=Authentication Backend" jsonschema_description:"Authentication Backend Configuration"`
 	Session               Session               `koanf:"session" json:"session" jsonschema:"title=Session" jsonschema_description:"Session Configuration"`
-	TOTP                  TOTP                  `koanf:"totp" json:"totp" jsonschema:"title=TOTP" jsonschema_description:"Time-based One Time Password Configuration"`
+	TOTP                  TOTP                  `koanf:"totp" json:"totp" jsonschema:"title=TOTP" jsonschema_description:"Time-based One-Time Password Configuration"`
 	DuoAPI                DuoAPI                `koanf:"duo_api" json:"duo_api" jsonschema:"title=Duo API" jsonschema_description:"Duo API Configuration"`
 	AccessControl         AccessControl         `koanf:"access_control" json:"access_control" jsonschema:"title=Access Control" jsonschema_description:"Access Control Configuration"`
 	NTP                   NTP                   `koanf:"ntp" json:"ntp" jsonschema:"title=NTP" jsonschema_description:"Network Time Protocol Configuration"`

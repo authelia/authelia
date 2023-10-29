@@ -132,7 +132,7 @@ func (s *TwoFactorSuite) TestShouldFailTwoFactor() {
 	s.doLoginOneFactor(s.T(), s.Context(ctx), testUsername, testPassword, false, BaseDomain, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 	s.doEnterOTP(s.T(), s.Context(ctx), wrongPasscode)
-	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "The one-time password might be wrong")
+	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "The One-Time Password might be wrong")
 }
 
 func TestRunTwoFactor(t *testing.T) {
