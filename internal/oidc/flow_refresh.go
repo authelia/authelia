@@ -92,7 +92,7 @@ func (c *RefreshTokenGrantHandler) HandleTokenEndpointRequest(ctx context.Contex
 		  			include any scope not originally granted by the resource owner, and if omitted is treated as equal to
 		   			the scope originally granted by the resource owner.
 
-			See https://www.rfc-editor.org/rfc/rfc6749#section-6
+			See https://datatracker.ietf.org/doc/html/rfc6749#section-6
 	*/
 
 	// Addresses point 1 of the text in RFC6749 Section 6.

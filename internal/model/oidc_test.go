@@ -334,7 +334,7 @@ func TestNewOAuth2PARContext(t *testing.T) {
 				ResponseMode:         oidc.ResponseModeQuery,
 				DefaultResponseMode:  oidc.ResponseModeFragment,
 				Form:                 "redirect_uri=https%3A%2F%2Fexample.com",
-				Session:              []byte(`{"id_token":null,"challenge_id":null,"kid":"","client_id":"","exclude_nbf_claim":false,"allowed_top_level_claims":null,"extra":null}`),
+				Session:              []byte(`{"id_token":null,"challenge_id":null,"kid":"","client_id":"","client_credentials":false,"exclude_nbf_claim":false,"allowed_top_level_claims":null,"extra":null}`),
 			},
 			"",
 		},
