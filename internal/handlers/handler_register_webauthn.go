@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"strings"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -35,7 +36,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if w, err = newWebAuthn(ctx); err != nil {
-		ctx.Logger.Errorf("Unable to create provider to generate %s registration challenge for user '%s': %+v", regulation.AuthTypeWebAuthn, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf("Unable to create provider to generate %s registration challenge for user '%s'", regulation.AuthTypeWebAuthn, userSession.Username)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
@@ -43,7 +44,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err = json.Unmarshal(ctx.PostBody(), &bodyJSON); err != nil {
-		ctx.Logger.Errorf("Unable to parse %s registration request PUT data for user '%s': %+v", regulation.AuthTypeWebAuthn, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf("Unable to parse %s registration request PUT data for user '%s'", regulation.AuthTypeWebAuthn, userSession.Username)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
@@ -60,7 +61,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 
 	devices, err := ctx.Providers.StorageProvider.LoadWebAuthnCredentialsByUsername(ctx, w.Config.RPID, userSession.Username)
 	if err != nil && err != storage.ErrNoWebAuthnCredential {
-		ctx.Logger.Errorf("Unable to load existing %s devices for user '%s': %+v", regulation.AuthTypeWebAuthn, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf("Unable to load existing %s devices for user '%s'", regulation.AuthTypeWebAuthn, userSession.Username)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
@@ -79,7 +80,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if user, err = getWebAuthnUserByRPID(ctx, userSession.Username, userSession.DisplayName, w.Config.RPID); err != nil {
-		ctx.Logger.Errorf("Unable to load %s devices for registration challenge for user '%s': %+v", regulation.AuthTypeWebAuthn, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf("Unable to load %s devices for registration challenge for user '%s'", regulation.AuthTypeWebAuthn, userSession.Username)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
@@ -101,7 +102,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if creation, data.SessionData, err = w.BeginRegistration(user, opts...); err != nil {
-		ctx.Logger.Errorf("Unable to create %s registration challenge for user '%s': %+v", regulation.AuthTypeWebAuthn, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf("Unable to create %s registration challenge for user '%s'", regulation.AuthTypeWebAuthn, userSession.Username)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
@@ -111,7 +112,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 	userSession.WebAuthn = &data
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf(logFmtErrSessionSave, "registration challenge", regulation.AuthTypeWebAuthn, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "registration challenge", regulation.AuthTypeWebAuthn, userSession.Username)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
@@ -119,7 +120,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err = ctx.SetJSONBody(creation); err != nil {
-		ctx.Logger.Errorf(logFmtErrWriteResponseBody, regulation.AuthTypeWebAuthn, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf(logFmtErrWriteResponseBody, regulation.AuthTypeWebAuthn, userSession.Username)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
@@ -158,7 +159,7 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if w, err = newWebAuthn(ctx); err != nil {
-		ctx.Logger.Errorf("Unable to configure %s during registration for user '%s': %+v", regulation.AuthTypeWebAuthn, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf("Unable to configure %s during registration for user '%s'", regulation.AuthTypeWebAuthn, userSession.Username)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
@@ -166,11 +167,13 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if response, err = protocol.ParseCredentialCreationResponseBody(bytes.NewReader(ctx.PostBody())); err != nil {
-		switch e := err.(type) {
-		case *protocol.Error:
-			ctx.Logger.Errorf("Unable to parse %s registration for user '%s': %+v (%s)", regulation.AuthTypeWebAuthn, userSession.Username, err, e.DevInfo)
+		var e *protocol.Error
+
+		switch {
+		case errors.As(err, &e):
+			ctx.Logger.WithError(e).Errorf("Unable to parse %s registration for user '%s': %+v (%s)", regulation.AuthTypeWebAuthn, userSession.Username, err, e.DevInfo)
 		default:
-			ctx.Logger.Errorf("Unable to parse %s registration for user '%s': %+v", regulation.AuthTypeWebAuthn, userSession.Username, err)
+			ctx.Logger.WithError(err).Errorf("Unable to parse %s registration for user '%s'", regulation.AuthTypeWebAuthn, userSession.Username)
 		}
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
@@ -187,11 +190,13 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if credential, err = w.CreateCredential(user, *userSession.WebAuthn.SessionData, response); err != nil {
-		switch e := err.(type) {
-		case *protocol.Error:
-			ctx.Logger.Errorf("Unable to create %s credential for user '%s': %+v (%s)", regulation.AuthTypeWebAuthn, userSession.Username, err, e.DevInfo)
+		var e *protocol.Error
+
+		switch {
+		case errors.As(err, &e):
+			ctx.Logger.WithError(e).Errorf("Unable to create %s credential for user '%s': %s", regulation.AuthTypeWebAuthn, userSession.Username, e.DevInfo)
 		default:
-			ctx.Logger.Errorf("Unable to create %s credential for user '%s': %+v", regulation.AuthTypeWebAuthn, userSession.Username, err)
+			ctx.Logger.WithError(err).Errorf("Unable to create %s credential for user '%s'", regulation.AuthTypeWebAuthn, userSession.Username)
 		}
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
@@ -204,7 +209,7 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	device.Discoverable = webauthnCredentialCreationIsDiscoverable(ctx, response)
 
 	if err = ctx.Providers.StorageProvider.SaveWebAuthnCredential(ctx, device); err != nil {
-		ctx.Logger.Errorf("Unable to save %s device registration for user '%s': %+v", regulation.AuthTypeWebAuthn, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf("Unable to save %s device registration for user '%s'", regulation.AuthTypeWebAuthn, userSession.Username)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
@@ -214,7 +219,7 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	userSession.WebAuthn = nil
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf(logFmtErrSessionSave, "removal of the registration challenge", regulation.AuthTypeWebAuthn, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "removal of the registration challenge", regulation.AuthTypeWebAuthn, userSession.Username)
 	}
 
 	ctx.ReplyOK()

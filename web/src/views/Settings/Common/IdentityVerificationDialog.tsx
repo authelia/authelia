@@ -105,15 +105,17 @@ const IdentityVerificationDialog = function (props: Props) {
             return;
         }
 
+        if (open) {
+            return;
+        }
+
         const attempt = await generateUserSessionElevation();
 
         if (!attempt) throw new Error("Failed to load the data.");
 
         setCodeDelete(attempt.delete_id);
-        if (!open) {
-            props.handleOpened();
-            setOpen(true);
-        }
+        props.handleOpened();
+        setOpen(true);
     }, [handleClose, open, props]);
 
     const handleSubmit = useCallback(async () => {

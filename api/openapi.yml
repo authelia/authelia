@@ -95,7 +95,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
   /api/state:
     get:
       tags:
@@ -534,7 +534,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
       security:
         - authelia_auth: []
   /api/reset-password/identity/finish:
@@ -560,7 +560,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
       security:
         - authelia_auth: []
   /api/reset-password:
@@ -585,7 +585,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
       security:
         - authelia_auth: []
     delete:
@@ -607,7 +607,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.API'
       security:
         - authelia_auth: []
   {{- end }}
@@ -665,7 +665,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
         "403":
           description: Forbidden
       security:
@@ -707,7 +707,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
         "403":
           description: Forbidden
       security:
@@ -752,9 +752,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
-        "403":
-          description: Forbidden
+                $ref: '#/components/schemas/middlewares.Response.API'
       security:
         - authelia_auth: []
   {{- if .TOTP }}
@@ -822,7 +820,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
         "403":
           description: Forbidden
       security:
@@ -840,7 +838,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
         "403":
           description: Forbidden
       security:
@@ -888,7 +886,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.ErrorResponse'
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
     delete:
@@ -903,7 +901,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
         "403":
           description: Forbidden
       security:
@@ -998,7 +996,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
         "401":
           description: Unauthorized
       security:
@@ -1016,7 +1014,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
         "403":
           description: Forbidden
       security:
@@ -1043,7 +1041,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
       security:
         - authelia_auth: []
     delete:
@@ -1061,7 +1059,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
       security:
         - authelia_auth: []
   {{- end }}
@@ -1124,7 +1122,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
         "401":
           description: Unauthorized
       security:
@@ -2151,14 +2149,32 @@ components:
         token:
           type: string
           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc5MjU1OTYsImlzcyI6IkF1dGhlbGlhIiwiYWN0aW9uIjoiUmVzZXRQYXNzd29yZCIsInVzZXJuYW1lIjoiQW1pciJ9.636yqRrUCGCe4jsMCsonleX5CYWHncYqZum-YYb6VaY
-    middlewares.OkResponse:
+    middlewares.Response.API:
+      oneOf:
+        - $ref: '#/components/schemas/middlewares.Response.OK'
+        - $ref: '#/components/schemas/middlewares.Response.KO'
+    middlewares.Response.OK:
       type: object
       properties:
         status:
+          enum:
+            - 'OK'
           type: string
-          example: OK
+          example: 'OK'
         data:
           type: object
+          description: 'The data content for the response.'
+    middlewares.Response.KO:
+      type: object
+      properties:
+        status:
+          enum:
+            - 'KO'
+          type: string
+          example: 'KO'
+        message:
+          type: string
+          example: 'Operation Failed.'
     handlers.UserInfo:
       type: object
       properties:

@@ -74,13 +74,13 @@ const (
 )
 
 const (
-	logFmtErrParseRequestBody     = "Failed to parse %s request body: %+v"
-	logFmtErrWriteResponseBody    = "Failed to write %s response body for user '%s': %+v"
-	logFmtErrRegulationFail       = "Failed to perform %s authentication regulation for user '%s': %+v"
-	logFmtErrSessionRegenerate    = "Could not regenerate session during %s authentication for user '%s': %+v"
-	logFmtErrSessionReset         = "Could not reset session during %s authentication for user '%s': %+v"
-	logFmtErrSessionSave          = "Could not save session with the %s during %s authentication for user '%s': %+v"
-	logFmtErrObtainProfileDetails = "Could not obtain profile details during %s authentication for user '%s': %+v"
+	logFmtErrParseRequestBody     = "Failed to parse %s request body"
+	logFmtErrWriteResponseBody    = "Failed to write %s response body for user '%s'"
+	logFmtErrRegulationFail       = "Failed to perform %s authentication regulation for user '%s'"
+	logFmtErrSessionRegenerate    = "Could not regenerate session during %s authentication for user '%s'"
+	logFmtErrSessionReset         = "Could not reset session during %s authentication for user '%s'"
+	logFmtErrSessionSave          = "Could not save session with the %s during %s authentication for user '%s'"
+	logFmtErrObtainProfileDetails = "Could not obtain profile details during %s authentication for user '%s'"
 	logFmtTraceProfileDetails     = "Profile details for user '%s' => groups: %s, emails %s"
 )
 

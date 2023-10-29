@@ -30,7 +30,7 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if w, err = newWebAuthn(ctx); err != nil {
-		ctx.Logger.Errorf("Unable to configure %s during authentication challenge for user '%s': %+v", regulation.AuthTypeWebAuthn, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf("Unable to configure %s during authentication challenge for user '%s'", regulation.AuthTypeWebAuthn, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -38,7 +38,7 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if user, err = getWebAuthnUserByRPID(ctx, userSession.Username, userSession.DisplayName, w.Config.RPID); err != nil {
-		ctx.Logger.Errorf("Unable to load %s user details during authentication challenge for user '%s': %+v", regulation.AuthTypeWebAuthn, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf("Unable to load %s user details during authentication challenge for user '%s'", regulation.AuthTypeWebAuthn, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -65,7 +65,7 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if assertion, data.SessionData, err = w.BeginLogin(user, opts...); err != nil {
-		ctx.Logger.Errorf("Unable to create %s authentication challenge for user '%s': %+v", regulation.AuthTypeWebAuthn, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf("Unable to create %s authentication challenge for user '%s'", regulation.AuthTypeWebAuthn, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -75,7 +75,7 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	userSession.WebAuthn = &data
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf(logFmtErrSessionSave, "assertion challenge", regulation.AuthTypeWebAuthn, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "assertion challenge", regulation.AuthTypeWebAuthn, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -83,7 +83,7 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err = ctx.SetJSONBody(assertion); err != nil {
-		ctx.Logger.Errorf(logFmtErrWriteResponseBody, regulation.AuthTypeWebAuthn, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf(logFmtErrWriteResponseBody, regulation.AuthTypeWebAuthn, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -105,7 +105,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if err = ctx.ParseBody(&bodyJSON); err != nil {
-		ctx.Logger.Errorf(logFmtErrParseRequestBody, regulation.AuthTypeWebAuthn, err)
+		ctx.Logger.WithError(err).Errorf(logFmtErrParseRequestBody, regulation.AuthTypeWebAuthn)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -129,7 +129,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if w, err = newWebAuthn(ctx); err != nil {
-		ctx.Logger.Errorf("Unable to configure %s during authentication challenge for user '%s': %+v", regulation.AuthTypeWebAuthn, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf("Unable to configure %s during authentication challenge for user '%s'", regulation.AuthTypeWebAuthn, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -143,7 +143,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if assertionResponse, err = protocol.ParseCredentialRequestResponseBody(bytes.NewReader(bodyJSON.Response)); err != nil {
-		ctx.Logger.Errorf("Unable to parse %s authentication challenge for user '%s': %+v", regulation.AuthTypeWebAuthn, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf("Unable to parse %s authentication challenge for user '%s'", regulation.AuthTypeWebAuthn, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -151,7 +151,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if user, err = getWebAuthnUserByRPID(ctx, userSession.Username, userSession.DisplayName, w.Config.RPID); err != nil {
-		ctx.Logger.Errorf("Unable to load %s credentials for authentication challenge for user '%s': %+v", regulation.AuthTypeWebAuthn, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf("Unable to load %s credentials for authentication challenge for user '%s'", regulation.AuthTypeWebAuthn, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -175,7 +175,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 			found = true
 
 			if err = ctx.Providers.StorageProvider.UpdateWebAuthnCredentialSignIn(ctx, device); err != nil {
-				ctx.Logger.Errorf("Unable to save %s device signin count for authentication challenge for user '%s': %+v", regulation.AuthTypeWebAuthn, userSession.Username, err)
+				ctx.Logger.WithError(err).Errorf("Unable to save %s device signin count for authentication challenge for user '%s'", regulation.AuthTypeWebAuthn, userSession.Username)
 
 				respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -195,7 +195,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err = ctx.RegenerateSession(); err != nil {
-		ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeWebAuthn, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeWebAuthn, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -213,7 +213,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		assertionResponse.Response.AuthenticatorData.Flags.HasUserVerified())
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf(logFmtErrSessionSave, "removal of the authentiation challenge and authentication time", regulation.AuthTypeWebAuthn, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "removal of the authentiation challenge and authentication time", regulation.AuthTypeWebAuthn, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 

@@ -452,7 +452,7 @@ calculated in the [issuer_private_keys](provider.md#issuerprivatekeys).
 
 ### request_object_signing_alg
 
-{{< confkey type="string" default="RSA256" required="no" >}}
+{{< confkey type="string" default="RS256" required="no" >}}
 
 The JWT signing algorithm accepted for request objects.
 

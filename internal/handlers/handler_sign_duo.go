@@ -24,7 +24,7 @@ func DuoPOST(duoAPI duo.API) middlewares.RequestHandler {
 		)
 
 		if err = ctx.ParseBody(bodyJSON); err != nil {
-			ctx.Logger.Errorf(logFmtErrParseRequestBody, regulation.AuthTypeDuo, err)
+			ctx.Logger.WithError(err).Errorf(logFmtErrParseRequestBody, regulation.AuthTypeDuo)
 
 			respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -256,7 +256,7 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession,
 	)
 
 	if err = ctx.RegenerateSession(); err != nil {
-		ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeDuo, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeDuo, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -266,7 +266,7 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession,
 	userSession.SetTwoFactorDuo(ctx.Clock.Now())
 
 	if err = ctx.SaveSession(*userSession); err != nil {
-		ctx.Logger.Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeTOTP, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeTOTP, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
