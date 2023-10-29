@@ -140,6 +140,57 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 	assert.Equal(t, "$plaintext$abc", config.IdentityProviders.OIDC.Clients[3].Secret.String())
 }
 
+func TestShouldHandleNoAddressMySQLWithHostEnv(t *testing.T) {
+	testSetEnv(t, "STORAGE_MYSQL_HOST", "mysql")
+
+	val := schema.NewStructValidator()
+	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_no_address_mysql.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateConfiguration(config, val)
+
+	assert.Len(t, val.Warnings(), 1)
+	assert.Len(t, val.Errors(), 1)
+
+	assert.Equal(t, "mysql", config.Storage.MySQL.Host) //nolint:staticcheck
+	assert.Equal(t, "tcp://mysql:3306", config.Storage.MySQL.Address.String())
+}
+
+func TestShouldHandleNoAddressPostgreSQLWithHostEnv(t *testing.T) {
+	testSetEnv(t, "STORAGE_POSTGRES_HOST", "postgres")
+
+	val := schema.NewStructValidator()
+	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_no_address_postgres.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateConfiguration(config, val)
+
+	assert.Len(t, val.Warnings(), 1)
+	assert.Len(t, val.Errors(), 1)
+
+	assert.Equal(t, "postgres", config.Storage.PostgreSQL.Host) //nolint:staticcheck
+	assert.Equal(t, "tcp://postgres:5432", config.Storage.PostgreSQL.Address.String())
+}
+
+func TestShouldHandleNoAddressSMTPWithHostEnv(t *testing.T) {
+	testSetEnv(t, "NOTIFIER_SMTP_HOST", "smtp")
+
+	val := schema.NewStructValidator()
+	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_no_address_smtp.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateConfiguration(config, val)
+
+	assert.Len(t, val.Warnings(), 1)
+	assert.Len(t, val.Errors(), 1)
+
+	assert.Equal(t, "smtp", config.Notifier.SMTP.Host) //nolint:staticcheck
+	assert.Equal(t, "smtp://smtp:25", config.Notifier.SMTP.Address.String())
+}
+
 func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 	testSetEnv(t, "SESSION_SECRET", "an env session secret")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "an env storage mysql password")
