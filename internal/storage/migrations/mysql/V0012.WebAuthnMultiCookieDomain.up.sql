@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS webauthn_credentials (
     username VARCHAR(100) NOT NULL,
     description VARCHAR(30) NOT NULL,
     kid VARCHAR(512) NOT NULL,
-    aaguid CHAR(36) NOT NULL,
+    aaguid CHAR(36) NULL,
     attestation_type VARCHAR(32),
     attachment VARCHAR(64) NOT NULL,
     transport VARCHAR(64) DEFAULT '',

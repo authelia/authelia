@@ -2,7 +2,7 @@
 title: "Reset Password"
 description: "Reset Password Identity Validation Configuration"
 lead: "Authelia uses multiple methods to verify the identity of users to prevent a malicious user from performing actions on behalf of them. This section describes Reset Password method."
-date: 2023-10-28T18:57:18+11:00
+date: 2023-11-20T21:28:38+11:00
 draft: false
 images: []
 menu:

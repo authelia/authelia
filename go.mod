@@ -16,7 +16,7 @@ require (
 	github.com/go-ldap/ldap/v3 v3.4.6
 	github.com/go-rod/rod v0.114.5
 	github.com/go-sql-driver/mysql v1.7.1
-	github.com/go-webauthn/webauthn v0.8.6
+	github.com/go-webauthn/webauthn v0.9.1
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.5.0
@@ -70,11 +70,10 @@ require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/ecordell/optgen v0.0.6 // indirect
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
-	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
+	github.com/fxamacker/cbor/v2 v2.5.0 // indirect
 	github.com/go-crypt/x v0.2.8 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-webauthn/x v0.1.4 // indirect
-	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/glog v1.1.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-tpm v0.9.0 // indirect

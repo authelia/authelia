@@ -8,6 +8,7 @@ import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserInfoPOST } from "@hooks/UserInfo";
 import { useUserInfoTOTPConfigurationOptional } from "@hooks/UserInfoTOTPConfiguration";
 import { useUserWebAuthnCredentials } from "@hooks/WebAuthnCredentials";
+import { SecondFactorMethod } from "@models/Methods.ts";
 import OneTimePasswordPanel from "@views/Settings/TwoFactorAuthentication/OneTimePasswordPanel";
 import TwoFactorAuthenticationOptionsPanel from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationOptionsPanel";
 import WebAuthnCredentialsPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsPanel";
@@ -118,20 +119,24 @@ const TwoFactorAuthenticationView = function (props: Props) {
     return (
         <Fragment>
             <Grid container spacing={2}>
-                <Grid xs={12}>
-                    <OneTimePasswordPanel
-                        info={userInfo}
-                        config={userTOTPConfig}
-                        handleRefreshState={handleRefreshTOTPState}
-                    />
-                </Grid>
-                <Grid xs={12}>
-                    <WebAuthnCredentialsPanel
-                        info={userInfo}
-                        credentials={userWebAuthnCredentials}
-                        handleRefreshState={handleRefreshWebAuthnState}
-                    />
-                </Grid>
+                {configuration?.available_methods.has(SecondFactorMethod.TOTP) ? (
+                    <Grid xs={12}>
+                        <OneTimePasswordPanel
+                            info={userInfo}
+                            config={userTOTPConfig}
+                            handleRefreshState={handleRefreshTOTPState}
+                        />
+                    </Grid>
+                ) : null}
+                {configuration?.available_methods.has(SecondFactorMethod.WebAuthn) ? (
+                    <Grid xs={12}>
+                        <WebAuthnCredentialsPanel
+                            info={userInfo}
+                            credentials={userWebAuthnCredentials}
+                            handleRefreshState={handleRefreshWebAuthnState}
+                        />
+                    </Grid>
+                ) : null}
                 {configuration && userInfo ? (
                     <Grid xs={12}>
                         <TwoFactorAuthenticationOptionsPanel

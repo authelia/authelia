@@ -60,7 +60,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if err = ctx.ParseBody(&bodyJSON); err != nil {
-		ctx.Logger.Errorf(logFmtErrParseRequestBody, regulation.AuthTypeTOTP, err)
+		ctx.Logger.WithError(err).Errorf(logFmtErrParseRequestBody, regulation.AuthTypeTOTP)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -107,7 +107,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err = ctx.RegenerateSession(); err != nil {
-		ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeTOTP, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeTOTP, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -127,7 +127,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	userSession.SetTwoFactorTOTP(ctx.Clock.Now())
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeTOTP, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeTOTP, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 

@@ -2931,7 +2931,7 @@ func TestValidateOIDCClientJWKS(t *testing.T) {
 			nil,
 		},
 		{
-			"ShouldOnlyAllowRequetsObjectSigningAlgsThatTheClientHasKeysFor",
+			"ShouldOnlyAllowRequestObjectSigningAlgsThatTheClientHasKeysFor",
 			nil,
 			[]schema.JWK{
 				{KeyID: "test", Use: "", Algorithm: "", Key: keyECDSAP521.Public()},

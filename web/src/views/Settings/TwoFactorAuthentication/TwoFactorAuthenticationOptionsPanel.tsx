@@ -12,8 +12,8 @@ import { Method2FA, isMethod2FA, setPreferred2FAMethod, toMethod2FA, toSecondFac
 
 interface Props {
     refresh: () => void;
-    config?: Configuration;
-    info?: UserInfo;
+    config: Configuration;
+    info: UserInfo;
 }
 
 const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
@@ -24,8 +24,7 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
     const [method, setMethod] = useState<string>();
     const [methods, setMethods] = useState<string[]>([]);
 
-    const hasMethods =
-        props.info !== undefined && (props.info.has_totp || props.info.has_webauthn || props.info.has_duo);
+    const hasMethods = props.info.has_totp || props.info.has_webauthn || props.info.has_duo;
 
     useEffect(() => {
         if (props.info === undefined) return;
@@ -34,7 +33,7 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
     }, [props.info]);
 
     useEffect(() => {
-        if (!props.config || !hasMethods) return;
+        if (!hasMethods) return;
         let valuesFinal: string[] = [];
 
         const values = Array.from(props.config.available_methods);
@@ -45,20 +44,26 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
             if (!valuesFinal.includes(v)) {
                 switch (value) {
                     case SecondFactorMethod.WebAuthn:
-                        valuesFinal.push(v);
+                        if (props.info.has_webauthn) {
+                            valuesFinal.push(v);
+                        }
                         break;
                     case SecondFactorMethod.TOTP:
-                        valuesFinal.push(v);
+                        if (props.info.has_totp) {
+                            valuesFinal.push(v);
+                        }
                         break;
                     case SecondFactorMethod.MobilePush:
-                        valuesFinal.push(v);
+                        if (props.info.has_duo) {
+                            valuesFinal.push(v);
+                        }
                         break;
                 }
             }
         });
 
         setMethods(valuesFinal);
-    }, [props.config, hasMethods]);
+    }, [props.config, hasMethods, props.info.has_webauthn, props.info.has_totp, props.info.has_duo]);
 
     const handleMethodChanged = (event: ChangeEvent<HTMLInputElement>) => {
         if (isMethod2FA(event.target.value)) {
