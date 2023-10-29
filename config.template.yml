@@ -200,11 +200,11 @@ totp:
   ## https://www.authelia.com/c/totp#digits
   digits: 6
 
-  ## The period in seconds a one-time password is valid for.
+  ## The period in seconds a Time-based One-Time Password is valid for.
   ## Changing this option only affects newly generated TOTP configurations.
   period: 30
 
-  ## The skew controls number of one-time passwords either side of the current one that are valid.
+  ## The skew controls number of Time-based One-Time Passwords either side of the current one that are valid.
   ## Warning: before changing skew read the docs link below.
   skew: 1
   ## See: https://www.authelia.com/c/totp#input-validation to read

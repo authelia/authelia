@@ -14,7 +14,7 @@
 	"Deny": "Estä",
 	"Done": "Valmis",
 	"Enter new password": "Syötä uusi salasana",
-	"Enter one-time password": "Syötä kertakäyttösalasana",
+	"Enter One-Time Password": "Syötä kertakäyttösalasana",
 	"Failed to register device, the provided link is expired or has already been used": "Laitteen rekisteröinti epäonnistui, annettu linkki on vanhentunut tai sitä on jo käytetty",
 	"Hi": "Hei",
 	"Incorrect username or password": "Virheellinen käyttäjätunnus tai salasana.",

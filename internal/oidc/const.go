@@ -308,8 +308,8 @@ const (
 	AMRPasswordBasedAuthentication = "pwd"
 
 	// AMROneTimePassword is an RFC8176 Authentication Method Reference Value that represents authentication via a
-	// one-time password as per RFC4949. One-time password specifications that this authentication method applies to
-	// include RFC4226 and RFC6238.
+	// Time-based One-Time Password as per RFC4949. One-time password specifications that this authentication method
+	// applies to include RFC4226 and RFC6238.
 	//
 	// Authelia utilizes this when a user has used TOTP to authenticate. Factor: Have, Channel: Browser.
 	//
