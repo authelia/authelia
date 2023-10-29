@@ -193,6 +193,10 @@ const (
 	errFmtOIDCClientsWithEmptyID = "identity_providers: oidc: clients: option 'id' is required but was absent on the clients in positions %s"
 	errFmtOIDCClientsDeprecated  = "identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors"
 
+	errFmtMustOnlyHaveValues                  = "'%s' must only have the values %s "
+	errFmtMustBeConfiguredAs                  = "'%s' must be configured as %s "
+	errFmtOIDCClientOption                    = "identity_providers: oidc: clients: client '%s': option "
+	errFmtOIDCWhenScope                       = "when configured with scope '%s'"
 	errFmtOIDCClientInvalidSecretIs           = errFmtOIDCClientOption + "'secret' is "
 	errFmtOIDCClientInvalidSecret             = errFmtOIDCClientInvalidSecretIs + "required"
 	errFmtOIDCClientInvalidSecretPlainText    = errFmtOIDCClientInvalidSecretIs + "plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed when oidc becomes stable"
@@ -201,7 +205,6 @@ const (
 		"required to be empty when option 'public' is true"
 	errFmtOIDCClientPublicInvalidSecretClientAuthMethod = errFmtOIDCClientInvalidSecretIs +
 		"required to be empty when option 'token_endpoint_auth_method' is configured as '%s'"
-	errFmtOIDCClientOption                  = "identity_providers: oidc: clients: client '%s': option "
 	errFmtOIDCClientRedirectURIHas          = errFmtOIDCClientOption + "'redirect_uris' has "
 	errFmtOIDCClientRedirectURICantBeParsed = errFmtOIDCClientRedirectURIHas +
 		"an invalid value: redirect uri '%s' could not be parsed: %v"
@@ -212,8 +215,17 @@ const (
 		"an invalid value: redirect uri '%s' must have a scheme but it's absent"
 	errFmtOIDCClientInvalidConsentMode = "identity_providers: oidc: clients: client '%s': consent: option 'mode' must be one of " +
 		"%s but it's configured as '%s'"
-	errFmtOIDCClientInvalidEntries = errFmtOIDCClientOption + "'%s' must only have the values " +
-		"%s but the values %s are present"
+	errFmtOIDCClientInvalidEntries = errFmtOIDCClientOption + errFmtMustOnlyHaveValues +
+		"but the values %s are present"
+	errFmtOIDCClientUnknownScopeEntries = errFmtOIDCClientOption + "'%s' only expects the values " +
+		"%s but the unknown values %s are present and should generally only be used if a particular client requires a scope outside of our standard scopes"
+	errFmtOIDCClientInvalidEntriesScope = errFmtOIDCClientOption + errFmtMustOnlyHaveValues +
+		errFmtOIDCWhenScope + " but the values %s are present"
+	errFmtOIDCClientEmptyEntriesScope = errFmtOIDCClientOption + errFmtMustOnlyHaveValues +
+		errFmtOIDCWhenScope + " but it's not configured"
+	errFmtOIDCClientOptionRequiredScope             = errFmtOIDCClientOption + "'%s' must be configured " + errFmtOIDCWhenScope + " but it's absent"
+	errFmtOIDCClientOptionMustScope                 = errFmtOIDCClientOption + errFmtMustBeConfiguredAs + errFmtOIDCWhenScope + " but it's configured as '%s'"
+	errFmtOIDCClientOptionMustScopeClientType       = errFmtOIDCClientOption + errFmtMustBeConfiguredAs + errFmtOIDCWhenScope + " and the '%s' client type but it's configured as '%s'"
 	errFmtOIDCClientInvalidEntriesClientCredentials = errFmtOIDCClientOption + "'scopes' has the values " +
 		"%s however when exclusively utilizing the 'client_credentials' value for the 'grant_types' the values %s are not allowed"
 	errFmtOIDCClientInvalidEntryDuplicates = errFmtOIDCClientOption + "'%s' must have unique values but the values %s are duplicated"
@@ -364,11 +376,14 @@ const (
 	errFmtServerPathNotEndForwardSlash = "server: option 'address' must not and with a forward slash but it's configured as '%s'"
 	errFmtServerPathAlphaNum           = "server: option 'path' must only contain alpha numeric characters"
 
-	errFmtServerEndpointsAuthzImplementation    = "server: endpoints: authz: %s: option 'implementation' must be one of %s but it's configured as '%s'"
-	errFmtServerEndpointsAuthzStrategy          = "server: endpoints: authz: %s: authn_strategies: option 'name' must be one of %s but it's configured as '%s'"
-	errFmtServerEndpointsAuthzStrategyDuplicate = "server: endpoints: authz: %s: authn_strategies: duplicate strategy name detected with name '%s'"
-	errFmtServerEndpointsAuthzPrefixDuplicate   = "server: endpoints: authz: %s: endpoint starts with the same prefix as the '%s' endpoint with the '%s' implementation which accepts prefixes as part of its implementation"
-	errFmtServerEndpointsAuthzInvalidName       = "server: endpoints: authz: %s: contains invalid characters"
+	errFmtServerEndpointsAuthzImplementation            = "server: endpoints: authz: %s: option 'implementation' must be one of %s but it's configured as '%s'"
+	errFmtServerEndpointsAuthzStrategy                  = "server: endpoints: authz: %s: authn_strategies: option 'name' must be one of %s but it's configured as '%s'"
+	errFmtServerEndpointsAuthzSchemes                   = "server: endpoints: authz: %s: authn_strategies: strategy #%d (%s): option 'schemes' must only include the values %s but has '%s'"
+	errFmtServerEndpointsAuthzSchemesInvalidForStrategy = "server: endpoints: authz: %s: authn_strategies: strategy #%d (%s): option 'schemes' is not valid for the strategy"
+	errFmtServerEndpointsAuthzStrategyNoName            = "server: endpoints: authz: %s: authn_strategies: strategy #%d: option 'name' must be configured"
+	errFmtServerEndpointsAuthzStrategyDuplicate         = "server: endpoints: authz: %s: authn_strategies: duplicate strategy name detected with name '%s'"
+	errFmtServerEndpointsAuthzPrefixDuplicate           = "server: endpoints: authz: %s: endpoint starts with the same prefix as the '%s' endpoint with the '%s' implementation which accepts prefixes as part of its implementation"
+	errFmtServerEndpointsAuthzInvalidName               = "server: endpoints: authz: %s: contains invalid characters"
 
 	errFmtServerEndpointsAuthzLegacyInvalidImplementation = "server: endpoints: authz: %s: option 'implementation' is invalid: the endpoint with the name 'legacy' must use the 'Legacy' implementation"
 )
@@ -412,9 +427,7 @@ const (
 )
 
 const (
-	legacy                      = "legacy"
-	authzImplementationLegacy   = "Legacy"
-	authzImplementationExtAuthz = "ExtAuthz"
+	legacy = "legacy"
 )
 
 const (
@@ -422,8 +435,10 @@ const (
 )
 
 var (
-	validAuthzImplementations = []string{"AuthRequest", "ForwardAuth", authzImplementationExtAuthz, authzImplementationLegacy}
-	validAuthzAuthnStrategies = []string{"CookieSession", "HeaderAuthorization", "HeaderProxyAuthorization", "HeaderAuthRequestProxyAuthorization", "HeaderLegacy"}
+	validAuthzImplementations       = []string{schema.AuthzImplementationAuthRequest, schema.AuthzImplementationForwardAuth, schema.AuthzImplementationExtAuthz, schema.AuthzImplementationLegacy}
+	validAuthzAuthnStrategies       = []string{schema.AuthzStrategyHeaderCookieSession, schema.AuthzStrategyHeaderAuthorization, schema.AuthzStrategyHeaderProxyAuthorization, schema.AuthzStrategyHeaderAuthRequestProxyAuthorization, schema.AuthzStrategyHeaderLegacy}
+	validAuthzAuthnHeaderStrategies = []string{schema.AuthzStrategyHeaderAuthorization, schema.AuthzStrategyHeaderProxyAuthorization, schema.AuthzStrategyHeaderAuthRequestProxyAuthorization}
+	validAuthzAuthnStrategySchemes  = []string{schema.SchemeBasic, schema.SchemeBearer}
 )
 
 var (
@@ -501,7 +516,7 @@ const (
 var (
 	validOIDCCORSEndpoints = []string{oidc.EndpointAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
 
-	validOIDCClientScopes                    = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess}
+	validOIDCClientScopes                    = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess, oidc.ScopeOffline, oidc.ScopeAutheliaBearerAuthz}
 	validOIDCClientConsentModes              = []string{auto, oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
 	validOIDCClientResponseModes             = []string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery, oidc.ResponseModeFragment, oidc.ResponseModeJWT, oidc.ResponseModeFormPostJWT, oidc.ResponseModeQueryJWT, oidc.ResponseModeFragmentJWT}
 	validOIDCClientResponseTypes             = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth, oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
@@ -514,6 +529,11 @@ var (
 	validOIDCClientTokenEndpointAuthMethodsConfidential    = []string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT}
 	validOIDCClientTokenEndpointAuthSigAlgsClientSecretJWT = []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512}
 	validOIDCIssuerJWKSigningAlgs                          = []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512}
+
+	validOIDCClientScopesBearerAuthz        = []string{oidc.ScopeOfflineAccess, oidc.ScopeOffline, oidc.ScopeAutheliaBearerAuthz}
+	validOIDCClientResponseModesBearerAuthz = []string{oidc.ResponseModeFormPost, oidc.ResponseModeFormPostJWT}
+	validOIDCClientResponseTypesBearerAuthz = []string{oidc.ResponseTypeAuthorizationCodeFlow}
+	validOIDCClientGrantTypesBearerAuthz    = []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeRefreshToken, oidc.GrantTypeClientCredentials}
 )
 
 var (

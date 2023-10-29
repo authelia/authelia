@@ -493,8 +493,8 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainWithAuthorizationHead
 	builder := NewAuthzBuilder().WithImplementationLegacy()
 
 	builder = builder.WithStrategies(
-		NewHeaderAuthorizationAuthnStrategy(),
-		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(),
+		NewHeaderAuthorizationAuthnStrategy("basic"),
+		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy("basic"),
 		NewCookieSessionAuthnStrategy(builder.config.RefreshInterval),
 	)
 
@@ -540,8 +540,8 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithoutHeaderNoCookie() {
 	builder := NewAuthzBuilder().WithImplementationLegacy()
 
 	builder = builder.WithStrategies(
-		NewHeaderAuthorizationAuthnStrategy(),
-		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(),
+		NewHeaderAuthorizationAuthnStrategy("basic"),
+		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy("basic"),
 	)
 
 	authz := builder.Build()
@@ -573,8 +573,8 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithEmptyAuthorizationHeader() {
 	builder := NewAuthzBuilder().WithImplementationLegacy()
 
 	builder = builder.WithStrategies(
-		NewHeaderAuthorizationAuthnStrategy(),
-		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(),
+		NewHeaderAuthorizationAuthnStrategy("basic"),
+		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy("basic"),
 	)
 
 	authz := builder.Build()
@@ -608,8 +608,8 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithAuthorizationHeaderInvalidPassword
 	builder := NewAuthzBuilder().WithImplementationLegacy()
 
 	builder = builder.WithStrategies(
-		NewHeaderAuthorizationAuthnStrategy(),
-		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(),
+		NewHeaderAuthorizationAuthnStrategy("basic"),
+		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy("basic"),
 	)
 
 	authz := builder.Build()
@@ -645,7 +645,7 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithIncorrectAuthHeader() { // TestSho
 	builder := s.Builder()
 
 	builder = builder.WithStrategies(
-		NewHeaderAuthorizationAuthnStrategy(),
+		NewHeaderAuthorizationAuthnStrategy("basic"),
 	)
 
 	authz := builder.Build()

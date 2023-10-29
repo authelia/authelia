@@ -2466,6 +2466,21 @@
           ],
           "title": "Name",
           "description": "The name of the Authorization strategy to use"
+        },
+        "schemes": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "basic",
+              "bearer"
+            ]
+          },
+          "type": "array",
+          "title": "Authorization Schemes",
+          "description": "The name of the authorization schemes to allow with the header strategies",
+          "default": [
+            "basic"
+          ]
         }
       },
       "additionalProperties": false,

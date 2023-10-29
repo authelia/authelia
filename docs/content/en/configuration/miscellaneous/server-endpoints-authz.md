@@ -26,16 +26,22 @@ server:
         implementation: 'ForwardAuth'
         authn_strategies:
           - name: 'HeaderProxyAuthorization'
+            schemes:
+              - 'Basic'
           - name: 'CookieSession'
       ext-authz:
         implementation: 'ExtAuthz'
         authn_strategies:
           - name: 'HeaderProxyAuthorization'
+            schemes:
+              - 'Basic'
           - name: 'CookieSession'
       auth-request:
         implementation: 'AuthRequest'
         authn_strategies:
           - name: 'HeaderAuthRequestProxyAuthorization'
+            schemes:
+              - 'Basic'
           - name: 'CookieSession'
       legacy:
         implementation: 'Legacy'
@@ -80,3 +86,11 @@ immediately short-circuit the authentication, otherwise the next strategy in the
 The name of the strategy. Valid case-sensitive values are `CookieSession`, `HeaderAuthorization`,
 `HeaderProxyAuthorization`, `HeaderAuthRequestProxyAuthorization`, and `HeaderLegacy`. Read more about the strategies in
 the [reference guide](../../reference/guides/proxy-authorization.md#authn-strategies).
+
+#### schemes
+
+{{< confkey type="list(string)" default="Basic" required="no" >}}
+
+The list of schemes allowed on this endpoint. Options are `Basic`, and `Bearer`. This option is only applicable to the
+`HeaderAuthorization`, `HeaderProxyAuthorization`, and `HeaderAuthRequestProxyAuthorization` strategies and unavailable
+with the `legacy` endpoint which only uses `Basic`.

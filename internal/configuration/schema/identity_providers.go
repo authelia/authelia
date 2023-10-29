@@ -61,6 +61,7 @@ type IdentityProvidersOpenIDConnectDiscovery struct {
 	ResponseObjectSigningAlgs   []string
 	RequestObjectSigningAlgs    []string
 	JWTResponseAccessTokens     bool
+	BearerAuthorization         bool
 }
 
 type IdentityProvidersOpenIDConnectLifespans struct {
