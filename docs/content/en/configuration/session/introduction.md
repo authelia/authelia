@@ -72,16 +72,6 @@ It's __strongly recommended__ this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters.
 
-### domain
-
-{{< confkey type="string" required="no" >}}
-
-_**Deprecation Notice:** This option is deprecated. See the [cookies](#cookies) section and specifically the
-[cookies domain](#domain-1) option instead._
-
-This value automatically maps to a single cookies configuration using the default values. It cannot be assigned at the
-same time as a `cookies` configuration.
-
 ### name
 
 {{< confkey type="string" default="authelia_session" required="no" >}}
@@ -122,7 +112,8 @@ configurations with individual settings.
 
 {{< confkey type="string" required="yes" >}}
 
-*__Important Note:__ Browsers have rules regarding which cookie domains a website can write. In particular this.*
+*__Important Note:__ Browsers have rules regarding which cookie domains a website can write. In particular the
+[Public Suffix List] usually contains domains which are not permitted.*
 
 The domain the session cookie is assigned to protect. This must be the same as the domain Authelia is served on or the
 root of the domain, and consequently if the [authelia_url](#authelia_url) is configured must be able to read and write
@@ -131,12 +122,14 @@ cookies for this domain.
 For example if Authelia is accessible via the URL `https://auth.example.com` the domain should be either
 `auth.example.com` or `example.com`.
 
-The value must not match a domain on the [Public Suffix List](https://publicsuffix.org/list/) as browsers do not allow
+The value must not match a domain on the [Public Suffix List] as browsers do not allow
 websites to write cookies for these domains. This includes most Dynamic DNS services such as `duckdns.org`. You should
 use your domain instead of `duckdns.org` for this value, for example `example.duckdns.org`.
 
 Consequently, if you have `example.duckdns.org` and `example-auth.duckdns.org` you cannot share cookies between these
 domains.
+
+[Public Suffix List]: https://publicsuffix.org/list/
 
 #### authelia_url
 
