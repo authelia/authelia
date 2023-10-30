@@ -31,7 +31,7 @@
     "@mui/material": "5.14.15",
     "@mui/styles": "5.14.15",
     "axios": "1.6.0",
-    "broadcast-channel": "5.5.1",
+    "broadcast-channel": "6.0.0",
     "classnames": "2.3.2",
     "i18next": "23.6.0",
     "i18next-browser-languagedetector": "7.1.0",
