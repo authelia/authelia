@@ -178,7 +178,7 @@ or claims required which can be matched with the above guide.
 
 The scope values must be one of those documented in the
 [scope definitions](../../../integration/openid-connect/introduction.md#scope-definitions) with the exception of when
-the configured [grant_types](#granttypes) includes the `client_credentials` grant in which case arbitrary scopes are
+the configured [grant_types](#grant_types) includes the `client_credentials` grant in which case arbitrary scopes are
 also allowed,
 
 ### grant_types
@@ -219,7 +219,7 @@ See the [Response Modes](../../../integration/openid-connect/introduction.md#res
 [OpenID Connect 1.0 Integration Guide](../../../integration/openid-connect/introduction.md#response-modes) for more
 information.
 
-The default values are based on the [response_types](#responsetypes) values. When the [response_types](#responsetypes)
+The default values are based on the [response_types](#response_types) values. When the [response_types](#response_types)
 values include the `code` type then the `query` response mode will be included. When any other type is included the
 `fragment` response mode will be included. It's important to note at this time we do not support the `none` response
 type, but when it is supported it will include the `query` response mode.
@@ -229,7 +229,7 @@ type, but when it is supported it will include the `query` response mode.
 {{< confkey type="string" default="two_factor" required="no" >}}
 
 The authorization policy for this client: either `one_factor`, `two_factor`, or one of the ones configured in the
-provider [authorization_policies](./provider.md#authorizationpolicies) section.
+provider [authorization_policies](./provider.md#authorization_policies) section.
 
 ### lifespan
 
@@ -297,14 +297,14 @@ option.
 {{< confkey type="bool" default="false" required="no" >}}
 
 This configuration option enforces the use of [PKCE] for this registered client. To enforce it for all clients see the
-global [enforce_pkce](provider.md#enforcepkce) provider configuration option.
+global [enforce_pkce](provider.md#enforce_pkce) provider configuration option.
 
 ### pkce_challenge_method
 
 {{< confkey type="string" default="" required="no" >}}
 
 This setting enforces the use of the specified [PKCE] challenge method for this individual client. This setting also
-effectively enables the [enforce_pkce](#enforcepkce) option for this client.
+effectively enables the [enforce_pkce](#enforce_pkce) option for this client.
 
 Valid values are an empty string, `plain`, or `S256`. It should be noted that `S256` is strongly recommended if the
 relying party supports it.
@@ -574,7 +574,7 @@ The key *__MUST__*:
 [PKCS#1]: https://datatracker.ietf.org/doc/html/rfc8017
 [SECG1]: https://datatracker.ietf.org/doc/html/rfc5915
 
-If the [certificate_chain](#certificatechain) is provided the private key must include matching public
+If the [certificate_chain](#certificate_chain) is provided the private key must include matching public
 key data for the first certificate in the chain.
 
 ##### certificate_chain

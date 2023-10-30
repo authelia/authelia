@@ -339,7 +339,7 @@ this value. At the time of this writing `SSL3.0` will always produce errors.
 
 {{< confkey type="string" required="no" >}}
 
-The certificate chain/bundle to be used with the [private_key](#privatekey) to perform mutual TLS authentication with
+The certificate chain/bundle to be used with the [private_key](#private_key) to perform mutual TLS authentication with
 the server.
 
 The value must be one or more certificates encoded in the DER base64 ([RFC4648]) encoded PEM format. If more than one
@@ -352,9 +352,9 @@ certificate is provided, in top down order, each certificate must be signed by t
 *__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
 especially for containerized deployments.*
 
-The private key to be used with the [certificate_chain](#certificatechain) for mutual TLS authentication. The public key
+The private key to be used with the [certificate_chain](#certificate_chain) for mutual TLS authentication. The public key
 material of the private key must match the private key of the first certificate in the
-[certificate_chain](#certificatechain).
+[certificate_chain](#certificate_chain).
 
 The value must be one private key encoded in the DER base64 ([RFC4648]) encoded PEM format and must be encoded per the
 [PKCS#8], [PKCS#1], or [SECG1] specifications.

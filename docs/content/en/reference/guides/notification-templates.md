@@ -16,7 +16,7 @@ Authelia uses templates to generate the HTML and plaintext emails sent via the n
 two extensions; `.html` for HTML templates, and `.txt` for plaintext templates.
 
 This guide effectively documents the usage of the
-[template_path](../../configuration/notifications/introduction.md#templatepath) notification configuration option.
+[template_path](../../configuration/notifications/introduction.md#template_path) notification configuration option.
 
 ## Important Notes
 
@@ -36,7 +36,7 @@ This guide effectively documents the usage of the
 |    PasswordReset     |    Used to render notifications sent when password has successfully been reset    |
 
 For example, to modify the `IdentityVerification` HTML template, if your
-[template_path](../../configuration/notifications/introduction.md#templatepath) was configured as
+[template_path](../../configuration/notifications/introduction.md#template_path) was configured as
 `/config/email_templates`, you would create the `/config/email_templates/IdentityVerification.html` file to override the
 HTML `IdentityVerification` template.
 

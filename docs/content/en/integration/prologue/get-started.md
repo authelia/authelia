@@ -51,24 +51,25 @@ of initial setup.
 
 The important sections to consider in initial configuration are as follows:
 
-1. [jwt_secret](../../configuration/miscellaneous/introduction.md#jwtsecret) which is used to sign identity
-   verification emails
-2. [default_redirection_url](../../configuration/miscellaneous/introduction.md#defaultredirectionurl) which is the
-   default URL users will be redirected to when visiting *Authelia* directly
-3. [authentication_backend](../../configuration/first-factor/introduction.md) which you must pick between
+1. [jwt_secret](../../configuration/identity-validation/reset-password.md#jwt_secret) which is used to sign identity
+   verification emails for the reset password flow if enabled
+2. [authentication_backend](../../configuration/first-factor/introduction.md) which you must pick between
    [LDAP](../../configuration/first-factor/ldap.md) and a [YAML File](../../configuration/first-factor/file.md) and is
-   essential for users to authenticate.
-4. [storage](../../configuration/storage/introduction.md) which you must pick between the SQL Storage Providers, the
+   essential for users to authenticate
+3. [storage](../../configuration/storage/introduction.md) which you must pick between the SQL Storage Providers, the
    recommended one for testing and lite deployments is [SQLite3](../../configuration/storage/sqlite.md) and the
    recommended one for production deployments otherwise is [PostgreSQL](../../configuration/storage/postgres.md).
-5. [session](../../configuration/session/introduction.md) which is used to configure the session cookies, the
-   [domain](../../configuration/session/introduction.md#domain) and
-   [secret](../../configuration/session/introduction.md#secret) are the most important, and
-   [redis](../../configuration/session/redis.md) is recommended for production environments.
-6. [notifier](../../configuration/notifications/introduction.md) which is used to send 2FA registration emails etc,
+4. [session](../../configuration/session/introduction.md) which is used to configure:
+   1. The [session cookies](../../configuration/session/introduction.md#cookies) section should be configured with every SSO domain (none of them can be a suffix of
+      the others) you wish to protect, and the most important options in this section are
+      [domain](../../configuration/session/introduction.md#domain) and
+      [authelia_url](../../configuration/session/introduction.md#authelia_url)
+   2. The [secret](../../configuration/session/introduction.md#secret) is the most important, and
+       [redis](../../configuration/session/redis.md) is recommended for production environments.
+5. [notifier](../../configuration/notifications/introduction.md) which is used to send 2FA registration emails etc,
    there is an option for local file delivery but the [SMTP](../../configuration/notifications/smtp.md) option is
-   recommended for production.
-7. [access_control](../../configuration/security/access-control.md) is also important but should be configured with a
+   recommended for production and you must only configure one of these
+6. [access_control](../../configuration/security/access-control.md) is also important but should be configured with a
    very basic policy to begin with. Something like:
 
   ```yaml

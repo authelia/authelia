@@ -188,7 +188,7 @@ user searches and [additional_groups_dn](#additionalgroupsdn) for groups searche
 
 {{< confkey type="string" required="no" >}}
 
-Additional LDAP path to append to the [base_dn](#basedn) when searching for users. Useful if you want to restrict
+Additional LDAP path to append to the [base_dn](#base_dn) when searching for users. Useful if you want to restrict
 exactly which OU to get users from for either security or performance reasons. For example setting it to
 `OU=users,OU=people` with a base_dn set to `DC=example,DC=com` will mean user searches will occur in
 `OU=users,OU=people,DC=example,DC=com`.
@@ -219,7 +219,7 @@ Similar to [additional_users_dn](#additionalusersdn) but it applies to group sea
 default negating this requirement. Refer to the [filter defaults](../../reference/guides/ldap.md#filter-defaults) for
 more information.*
 
-Similar to [users_filter](#usersfilter) but it applies to group searches. In order to include groups the member is not
+Similar to [users_filter](#users_filter) but it applies to group searches. In order to include groups the member is not
 a direct member of, but is a member of another group that is a member of those (i.e. recursive groups), you may try
 using the following filter which is currently only tested against Microsoft Active Directory:
 

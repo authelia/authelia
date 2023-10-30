@@ -32,7 +32,9 @@ When it comes to [OpenID Connect 1.0] there are effectively two types of audienc
 the [ID Token] which should always include the requesting clients identifier and audience of the [Access Token] and
 [Refresh Token]. The intention of the audience in the [ID Token] is used to convey which Relying Party or client was the
 intended audience of the token. In contrast the audience of the [Access Token] is used by the Authorization Server or
-Resource Server to satisfy an internal policy.
+Resource Server to satisfy an internal policy. You could consider the [ID Token] and it's audience to be a public facing
+audience, and the audience of other tokens to be private or have private meaning even when the [Access Token] is using
+the [JWT Profile for OAuth 2.0 Access Tokens].
 
 It's also important to note that with the exception of [RFC9068] there is basically no standardized token format for
 a [Access Token] or a [Refresh Token]. Therefore there is no way without the use of the [Introspection] endpoint to
@@ -45,7 +47,7 @@ specific client that requested it per specification, the [Access Token] will alw
 Authorization Flow or last successful Refresh Flow, and the [Refresh Token] will always have the granted audience of
 the Authorization Flow.
 
-For more information about opaque [Access Token] default see
+For more information about the opaque [Access Token] default see
 [Why isn't the Access Token a JSON Web Token? (Frequently Asked Questions)](./frequently-asked-questions.md#why-isnt-the-access-token-a-json-web-token).
 
 ## Scope Definitions
@@ -179,7 +181,7 @@ The following describes the supported response types. See the [OAuth 2.0 Multipl
 more technical information. The default response modes column indicates which response modes are allowed by default on
 clients configured with this flow type value. The value field is both the required value for the `response_type`
 parameter in the authorization request and the
-[response_types](../../configuration/identity-providers/openid-connect/clients.md#responsetypes) client configuration
+[response_types](../../configuration/identity-providers/openid-connect/clients.md#response_types) client configuration
 option.
 
 |         Flow Type         |         Value         | Default [Response Modes](#response-modes) Values |
@@ -203,7 +205,7 @@ option.
 The following describes the supported response modes. See the [OAuth 2.0 Multiple Response Type Encoding Practices] for
 more technical information. The default response modes of a client is based on the [Response Types](#response-types)
 configuration. The value field is both the required value for the `response_mode` parameter in the authorization request
-and the [response_modes](../../configuration/identity-providers/openid-connect/clients.md#responsemodes) client
+and the [response_modes](../../configuration/identity-providers/openid-connect/clients.md#response_modes) client
 configuration option.
 
 |         Name          | Supported |      Value      |
@@ -226,7 +228,7 @@ configuration option.
 
 The following describes the various [OAuth 2.0] and [OpenID Connect 1.0] grant types and their support level. The value
 field is both the required value for the `grant_type` parameter in the access / token request and the
-[grant_types](../../configuration/identity-providers/openid-connect/clients.md#granttypes) client configuration option.
+[grant_types](../../configuration/identity-providers/openid-connect/clients.md#grant_types) client configuration option.
 
 |                   Grant Type                    | Supported |                     Value                      |                                                         Notes                                                         |
 |:-----------------------------------------------:|:---------:|:----------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------:|
@@ -492,6 +494,7 @@ The advantages of this approach are as follows:
 [RFC7519]: https://datatracker.ietf.org/doc/html/rfc7519
 [RFC9068]: https://datatracker.ietf.org/doc/html/rfc9068
 
+[JWT Profile for OAuth 2.0 Access Tokens]: https://oauth.net/2/jwt-access-tokens/
 [RFC3987 Section 6.2.1: Simple String Comparison]: https://datatracker.ietf.org/doc/html/rfc3986#section-6.2.1
 [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)]: https://openid.net/specs/oauth-v2-jarm.html
 [RFC9207: OAuth 2.0 Authorization Server Issuer Identification]: https://datatracker.ietf.org/doc/html/rfc9207

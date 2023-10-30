@@ -216,7 +216,7 @@ The key *__MUST__*:
 [PKCS#1]: https://datatracker.ietf.org/doc/html/rfc8017
 [SECG1]: https://datatracker.ietf.org/doc/html/rfc5915
 
-If the [certificate_chain](#certificatechain) is provided the private key must include matching public
+If the [certificate_chain](#certificate_chain) is provided the private key must include matching public
 key data for the first certificate in the chain.
 
 #### certificate_chain
@@ -368,7 +368,7 @@ rule is matched the user is not asked for consent and it is considered a rejecte
 [OpenID Connect 1.0] `access_denied` error.
 
 The key for the policy itself is the name of the policy, which is used when configuring the client
-[authorization_policy](clients.md#authorizationpolicy) option. In the example we name the policy `policy_name`.
+[authorization_policy](clients.md#authorization_policy) option. In the example we name the policy `policy_name`.
 
 #### default_policy
 
@@ -449,8 +449,8 @@ The key for the custom lifespan itself is the name of the lifespan, which is use
 ##### Example
 
 The following is an exhaustive example of all of the options available. Each of these options must follow all of the
-same rules as the [access_token](#accesstoken), [authorize_code](#authorizecode), [id_token](#idtoken), and
-[refresh_token](#refreshtoken) global default options. The global lifespan options are included for reference purposes.
+same rules as the [access_token](#access_token), [authorize_code](#authorize_code), [id_token](#id_token), and
+[refresh_token](#refresh_token) global default options. The global lifespan options are included for reference purposes.
 
 ```yaml
 identity_providers:
