@@ -663,6 +663,62 @@ func TestFuncIndent(t *testing.T) {
 	}
 }
 
+func TestFuncMultiLineIndent(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		indent   int
+		expected string
+	}{
+		{"ShouldIndentZeroMultiLine", "abc\n123", 0, "|\nabc\n123"},
+		{"ShouldIndentOneMultiLine", "abc\n123", 1, "|\n abc\n 123"},
+		{"ShouldIndentOneSingleLine", "abc", 1, " abc"},
+		{"ShouldIndentZeroSingleLine", "abc", 0, "abc"},
+	}
+
+	for _, tc := range testCases {
+		assert.Equal(t, tc.expected, FuncMultilineIndent(tc.indent, "|", tc.have))
+	}
+}
+
+func TestMultiLineQuote(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		char     rune
+		expected string
+	}{
+		{
+			"ShouldSQuoteSingleLine",
+			"abc",
+			rune(39),
+			`'abc'`,
+		},
+		{
+			"ShouldQuoteSingleLine",
+			"abc",
+			rune(34),
+			`"abc"`,
+		},
+		{
+			"ShouldNotQuoteLine",
+			"abc\n123",
+			rune(39),
+			"abc\n123",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			quote := FuncStringQuoteMultiLine(tc.char)
+
+			actual := quote(tc.have)
+
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
 func TestFuncUUIDv4(t *testing.T) {
 	assert.Len(t, FuncUUIDv4(), 36)
 }

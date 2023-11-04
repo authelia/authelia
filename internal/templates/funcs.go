@@ -47,10 +47,12 @@ func FuncMap() map[string]any {
 		"trimPrefix":  FuncStringTrimPrefix,
 		"replace":     FuncStringReplace,
 		"quote":       FuncStringQuote,
+		"mquote":      FuncStringQuoteMultiLine(rune(34)),
 		"sha1sum":     FuncHashSum(sha1.New),
 		"sha256sum":   FuncHashSum(sha256.New),
 		"sha512sum":   FuncHashSum(sha512.New),
 		"squote":      FuncStringSQuote,
+		"msquote":     FuncStringQuoteMultiLine(rune(39)),
 		"now":         time.Now,
 		"b64enc":      FuncB64Enc,
 		"b64dec":      FuncB64Dec,
@@ -80,6 +82,7 @@ func FuncMap() map[string]any {
 		"empty":       FuncEmpty,
 		"indent":      FuncIndent,
 		"nindent":     FuncNewlineIndent,
+		"mindent":     FuncMultilineIndent,
 		"uuidv4":      FuncUUIDv4,
 		"urlquery":    url.QueryEscape,
 		"urlunquery":  url.QueryUnescape,
@@ -210,6 +213,19 @@ func FuncElemsJoin(sep string, elems any) string {
 	return strings.Join(strslice(elems), sep)
 }
 
+// FuncStringQuote is a helper function that provides similar functionality to the helm quote func.
+func FuncStringQuote(in ...any) string {
+	out := make([]string, 0, len(in))
+
+	for _, s := range in {
+		if s != nil {
+			out = append(out, fmt.Sprintf("%q", strval(s)))
+		}
+	}
+
+	return strings.Join(out, " ")
+}
+
 // FuncStringSQuote is a helper function that provides similar functionality to the helm squote func.
 func FuncStringSQuote(in ...any) string {
 	out := make([]string, 0, len(in))
@@ -223,17 +239,26 @@ func FuncStringSQuote(in ...any) string {
 	return strings.Join(out, " ")
 }
 
-// FuncStringQuote is a helper function that provides similar functionality to the helm quote func.
-func FuncStringQuote(in ...any) string {
-	out := make([]string, 0, len(in))
+// FuncStringQuoteMultiLine is a helper function that provides similar functionality
+// to FuncStringQuote and FuncStringSQuote, however it skips quoting if the string contains multiple lines.
+func FuncStringQuoteMultiLine(char rune) func(in ...any) string {
+	return func(in ...any) string {
+		out := make([]string, 0, len(in))
 
-	for _, s := range in {
-		if s != nil {
-			out = append(out, fmt.Sprintf("%q", strval(s)))
+		for _, s := range in {
+			if s != nil {
+				sv := strval(s)
+
+				if strings.Contains(sv, "\n") {
+					out = append(out, sv)
+				} else {
+					out = append(out, fmt.Sprintf("%c%s%c", char, sv, char))
+				}
+			}
 		}
-	}
 
-	return strings.Join(out, " ")
+		return strings.Join(out, " ")
+	}
 }
 
 // FuncIterate is a template function which takes a single uint returning a slice of units from 0 up to that number.
@@ -405,6 +430,17 @@ func FuncIndent(indent int, value string) string {
 // FuncNewlineIndent is a helper function that provides similar functionality to the helm nindent func.
 func FuncNewlineIndent(indent int, value string) string {
 	return "\n" + FuncIndent(indent, value)
+}
+
+// FuncMultilineIndent is a helper function that performs YAML multiline intending with a multiline format input such as
+// |, |+, |-, >, >+, >-, etc. This is only true if the value has newline characters otherwise it just returns the same
+// output as the indent function.
+func FuncMultilineIndent(indent int, multiline, value string) string {
+	if !strings.Contains(value, "\n") {
+		return FuncIndent(indent, value)
+	}
+
+	return multiline + "\n" + FuncIndent(indent, value)
 }
 
 // FuncUUIDv4 is a helper function that provides similar functionality to the helm uuidv4 func.

@@ -149,6 +149,9 @@ notifier:
 
 identity_providers:
   oidc:
+    issuer_private_keys:
+      # yamllint disable-line rule:braces
+      - key: {{ secret "./test_resources/crypto/rsa.2048.pem" | mindent 10 "|" | msquote }}
     cors:
       allowed_origins:
         - https://google.com

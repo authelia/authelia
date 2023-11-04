@@ -114,8 +114,47 @@ example: |
 
 Overload for [fileContent](#filecontent) except that tailing newlines will be removed.
 
-Example:
+##### secret example
 
 ```yaml
 example: '{{ secret "/absolute/path/to/file" }}'
 ```
+
+#### mindent
+
+Similar function to `nindent` except it falls back to `indent` if there are no newlines, and includes the YAML multiline
+formatting string provided. Input is in the format of `(int, string, string)`.
+
+##### mindent example
+
+Input:
+
+```yaml
+example: {{ secret "/absolute/path/to/file" | mindent 2 "|" | msquote }}
+```
+
+Output (with multiple lines):
+
+```yaml
+example: |
+  <content of "/absolute/path/to/file">
+```
+
+Output (without multiple lines):
+
+```yaml
+example: '<content of "/absolute/path/to/file">'
+```
+
+#### mquote
+
+Similar to the `quote` function except it skips quoting for strings with multiple lines.
+
+See the [mindent example](#mindent-example) for an example usage (just replace `msquote` with `mquote`, and the expected
+quote char is `"` instead of `'`).
+
+#### msquote
+
+Similar to the `squote` function except it skips quoting for strings with multiple lines.
+
+See the [mindent example](#mindent-example) for an example usage.
