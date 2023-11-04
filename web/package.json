@@ -89,7 +89,7 @@
     "@vitejs/plugin-react": "4.1.1",
     "@vitest/coverage-istanbul": "0.34.6",
     "esbuild": "0.19.5",
-    "eslint": "8.52.0",
+    "eslint": "8.53.0",
     "eslint-config-prettier": "9.0.0",
     "eslint-config-react-app": "7.0.1",
     "eslint-formatter-rdjson": "1.0.6",
