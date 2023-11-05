@@ -672,7 +672,7 @@ func TestFuncMultiLineIndent(t *testing.T) {
 	}{
 		{"ShouldIndentZeroMultiLine", "abc\n123", 0, "|\nabc\n123"},
 		{"ShouldIndentOneMultiLine", "abc\n123", 1, "|\n abc\n 123"},
-		{"ShouldIndentOneSingleLine", "abc", 1, " abc"},
+		{"ShouldIndentOneSingleLine", "abc", 1, "abc"},
 		{"ShouldIndentZeroSingleLine", "abc", 0, "abc"},
 	}
 

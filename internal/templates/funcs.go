@@ -437,7 +437,7 @@ func FuncNewlineIndent(indent int, value string) string {
 // output as the indent function.
 func FuncMultilineIndent(indent int, multiline, value string) string {
 	if !strings.Contains(value, "\n") {
-		return FuncIndent(indent, value)
+		return value
 	}
 
 	return multiline + "\n" + FuncIndent(indent, value)
