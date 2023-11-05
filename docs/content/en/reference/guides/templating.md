@@ -122,7 +122,7 @@ example: '{{ secret "/absolute/path/to/file" }}'
 
 #### mindent
 
-Similar function to `nindent` except it falls back to `indent` if there are no newlines, and includes the YAML multiline
+Similar function to `nindent` except it skips indenting if there are no newlines, and includes the YAML multiline
 formatting string provided. Input is in the format of `(int, string, string)`.
 
 ##### mindent example
