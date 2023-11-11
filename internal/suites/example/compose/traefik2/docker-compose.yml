@@ -5,6 +5,8 @@ services:
     image: traefik:2.10.5
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
+      - './example/compose/traefik2/config:/config'
+      - './common/pki:/pki'
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.api.rule=Host(`traefik.example.com`)'
@@ -17,15 +19,7 @@ services:
       - 'traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true'
       - 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Email,Remote-Name'  # yamllint disable-line rule:line-length
     command:
-      - '--accesslog=true'
-      - '--api'
-      - '--providers.docker=true'
-      - '--entrypoints.https=true'
-      - '--entrypoints.https.address=:8080'
-      - '--log=true'
-      - '--log.level=DEBUG'
-      - '--providers.docker.exposedByDefault=false'
-      - '--serversTransport.insecureSkipVerify=true'
+      - '--configFile=/config/static.yml'
     networks:
       authelianet:
         aliases:
