@@ -16,7 +16,7 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.37.5](https://github.com/authelia/authelia/releases/tag/v4.37.5)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Memos](https://github.com/usememos/memos)
   * [0.16.1](https://github.com/usememos/memos/tree/v0.16.1)
 
