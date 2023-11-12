@@ -67,7 +67,7 @@ identity_providers:
   oidc:
     - id: memos
       description: memos
-      secret: 'insecure_secret'
+      secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
       public: false
       authorization_policy: two_factor
       redirect_uris:
