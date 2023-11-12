@@ -59,7 +59,7 @@ To configure [Memos](https://github.com/usememos/memos) to utilize Authelia as a
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Memos](https://github.com/usememos/memos)
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Memos]
 which will operate with the above example:
 
 ```yaml
