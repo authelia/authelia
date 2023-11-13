@@ -48,7 +48,7 @@ identity_providers:
 
 ### Organization configuration
 
-Go on the builder main page: **Settings > Organization** or url : https://budibase.justmammoth.us/builder/portal/settings/organisation
+Go on the builder main page: **Settings > Organization** or url : https://budibase.example.com/builder/portal/settings/organisation
 
 {{< figure src="budibase_org.png" alt="Budibase" width="300" >}}
 
