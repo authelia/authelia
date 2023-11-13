@@ -16,7 +16,7 @@ community: true
 ## Tested Versions
 
 - [Authelia]
-  - [v4.37.5](https://github.com/authelia/authelia/releases/tag/v4.37.5)
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [Budibase]
   - 2.13.9
 
