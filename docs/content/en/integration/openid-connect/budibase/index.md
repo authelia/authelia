@@ -55,6 +55,8 @@ Go on the builder main page: **Settings > Organization** or url : https://budiba
 - Org. name: example.com
 - Platform URL: https://budibase.example.com
 
+> ⚠️ **Don't forget to press save.**
+
 ### Auth configuration
 
 Go the builder main page: **Settings > Auth > OpenID Connect** or url : https://budibase.example.com/builder/portal/settings/auth
@@ -63,9 +65,11 @@ Go the builder main page: **Settings > Auth > OpenID Connect** or url : https://
 
 - Config URL: https://auth.example.com/.well-known/openid-configuration
 - Client ID: budibase
-- Client Secret: mysecret
+- Client Secret: myclientsecret
 - Name: Authelia
 - Icon: authelia.svg (Upload your own here [authelia branding](https://www.authelia.com/reference/guides/branding/))
+
+> ⚠️ **Don't forget to press save.**
 
 ## See Also
 
