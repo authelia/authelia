@@ -32,16 +32,18 @@ Authelia configuration.yml
 identity_providers:
   oidc:
     clients:
-      - id: budibase
-        secret: mysecret
-        authorization_policy: two_factor
+      - id: 'budibase'
+        description: 'Budibase'
+        secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        authorization_policy: 'two_factor'
         redirect_uris:
-          - https://budibase.example.com/api/global/auth/oidc/callback
+          - 'https://budibase.example.com/api/global/auth/oidc/callback'
         scopes:
-          - openid
-          - profile
-          - email
-          - offline_access
+          - 'openid'
+          - 'profile'
+          - 'email'
+          - 'offline_access'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 ## Budibase
