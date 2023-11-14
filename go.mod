@@ -44,7 +44,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
 	github.com/trustelem/zxcvbn v1.0.1
-	github.com/valyala/fasthttp v1.50.0
+	github.com/valyala/fasthttp v1.51.0
 	github.com/wneessen/go-mail v0.4.0
 	golang.org/x/net v0.18.0
 	golang.org/x/sync v0.5.0
@@ -87,7 +87,7 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jandelgado/gcov2lcov v1.0.5 // indirect
-	github.com/klauspost/compress v1.16.5 // indirect
+	github.com/klauspost/compress v1.17.0 // indirect
 	github.com/knadh/koanf/maps v0.1.1 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/goveralls v0.0.11 // indirect
