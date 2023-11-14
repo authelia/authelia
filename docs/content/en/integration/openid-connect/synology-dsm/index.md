@@ -87,6 +87,28 @@ identity_providers:
         - 'groups'
         - 'email'
       userinfo_signed_response_alg: 'none'
+
+  ldap:
+    implementation: custom
+    url: ldaps://ldap.yourdomain
+    timeout: 5s
+    start_tls: false
+    tls:
+      server_name: ldap.yourdomain
+      skip_verify: true
+      minimum_version: TLS1.2
+    base_dn: dc=ldap,dc=home
+    username_attribute: cn
+    additional_users_dn: cn=users
+    users_filter: (&({username_attribute}={input})(objectClass=person))
+    additional_groups_dn: cn=groups
+    groups_filter: (&(member={dn})(objectClass=groupOfNames))
+    group_name_attribute: cn
+    mail_attribute: mail
+    display_name_attribute: displayName
+    permit_referrals: false
+    user: uid=root,cn=users,dc=ldap,dc=home
+    # passowrd: AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE  #provided through environment variable / secrets file
 ```
 
 ## See Also
