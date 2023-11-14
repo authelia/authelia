@@ -51,7 +51,7 @@ implementations). The following steps are necessary to get Tailscale working wit
 
 1. Your domain will need to reply to a WebFinger request for your Authelia account
 2. Your domain root is `example.com` and the Authelia account in question is `user@example.com` the WebFinger request
-will be: `https://example.com/.well-known/webfinger/?resource=acct:user@example.com the complete request is `https://example.com/.well-known/webfinger?rel=http%3A%2F%2Fopenid.net%2Fspecs%2Fconnect%2F1.0%2Fissuer&resource=acct%3Auser%40example.com`
+will be: `https://example.com/.well-known/webfinger/?resource=acct:user@example.com` the complete request is `https://example.com/.well-known/webfinger?rel=http%3A%2F%2Fopenid.net%2Fspecs%2Fconnect%2F1.0%2Fissuer&resource=acct%3Auser%40example.com`
 3. The WebFinger request needs to be answered with the following example reply:
 ```json
 {

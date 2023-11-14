@@ -9,6 +9,14 @@ figure.figure-blog {
   color: $orange;
 }
 
+.pagination > div {
+  color: $link-color;
+}
+
+[data-dark-mode] .pagination > div {
+  color: $link-color-dark;
+}
+
 .icon-support-full {
   @extend .bi;
   @extend .bi-check-circle-fill;

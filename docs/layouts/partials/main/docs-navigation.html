@@ -4,7 +4,7 @@
 	{{ $pages := where site.RegularPages "Section" .Section -}}
   {{ $pages = ($pages.ByParam "Title").ByParam "Weight" -}}
 	{{ with $pages.Next . -}}
-		<a href="{{ .RelPermalink }}">
+		<a href="{{ .RelPermalink }}" class="pagination">
 			<div class="card my-1">
 				<div class="card-body py-2">
 					&larr; {{ .Title }}
@@ -13,7 +13,7 @@
 		</a>
 	{{ end -}}
 	{{ with $pages.Prev . -}}
-		<a class="ms-auto" href="{{ .RelPermalink }}">
+		<a class="ms-auto pagination" href="{{ .RelPermalink }}">
 			<div class="card my-1">
 				<div class="card-body py-2">
 					{{ .Title }} &rarr;
