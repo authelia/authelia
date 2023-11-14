@@ -16,10 +16,9 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.36.9](https://github.com/authelia/authelia/releases/tag/v4.36.9)
-  * [v4.37.5](https://github.com/authelia/authelia/releases/tag/v4.37.5)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+
 * [Seafile] Server
-  * [9.0.9](https://manual.seafile.com/changelog/server-changelog/#909-2022-09-22)
   * [10.0.1](https://manual.seafile.com/changelog/server-changelog/#1001-2023-04-11)
 
 ## Before You Begin
@@ -36,44 +35,6 @@ This example makes the following assumptions:
 * __Client Secret:__ `insecure_secret`
 
 ## Configuration
-
-### Application
-
-Configure [Seafile] to use Authelia as an [OpenID Connect 1.0] Provider.
-
-1. [Seafile] may require some dependencies such as `requests_oauthlib` to be manually installed.
-   See the [Seafile] documentation in the [see also](#see-also) section for more information.
-
-2. Edit your [Seafile] `seahub_settings.py` configuration file and add the following:
-
-```python
-ENABLE_OAUTH = True
-OAUTH_ENABLE_INSECURE_TRANSPORT = False
-OAUTH_CLIENT_ID = "seafile"
-OAUTH_CLIENT_SECRET = "insecure_secret"
-OAUTH_REDIRECT_URL = 'https://seafile.example.com/oauth/callback/'
-OAUTH_PROVIDER_DOMAIN = 'auth.example.com'
-OAUTH_AUTHORIZATION_URL = 'https://auth.example.com/api/oidc/authorization'
-OAUTH_TOKEN_URL = 'https://auth.example.com/api/oidc/token'
-OAUTH_USER_INFO_URL = 'https://auth.example.com/api/oidc/userinfo'
-OAUTH_SCOPE = [
-    "openid",
-    "profile",
-    "email",
-]
-OAUTH_ATTRIBUTE_MAP = {
-    "email": (True, "email"),
-    "name": (False, "name"),
-    "id": (False, "not used"),
-}
-
-# Optionally, enable webdav secrets so that clients that do not support
-# Oauth (e.g., davfs2) can login via basic auth. See also  
-# <https://manual.seafile.com/config/seahub_settings_py/#user-management-options>.
-# Mind that your reverse proxy should bypass the authelia redirections
-# for location '/seafdav'. 
-ENABLE_WEBDAV_SECRET = True
-```
 
 ### Authelia
 
@@ -99,9 +60,10 @@ identity_providers:
         - 'profile'
         - 'email'
       userinfo_signed_response_alg: 'none'
+      token_endpoint_auth_method: 'client_secret_basic'
 ```
 
-If you plan to also use [Seafile's WebDAV extension], which apparently [does not support OAuth bearer](https://github.com/haiwen/seafdav/issues/76), and the [desktop app](https://github.com/authelia/authelia/issues/2840), some access-control rules might be required: 
+If you plan to also use [Seafile's WebDAV extension], which apparently [does not support OAuth bearer](https://github.com/haiwen/seafdav/issues/76), and the [desktop app](https://github.com/authelia/authelia/issues/2840), some access-control rules might be required:
 
 ```yaml
 access_control:
@@ -111,30 +73,48 @@ access_control:
         - '^/(api2?|seafhttp|media|seafdav)([/?].*)?$'
       policy: bypass
 ```
-Also, mind that your reverse proxy might need special arrangements -- see an example for Nginx here below. 
 
-### Nginx
+### Application
 
-The [standard authrequest-based example](https://www.authelia.com/integration/proxies/nginx/#standard-example) applies. However, if you plan to use [Seafile's WebDAV extension], your reverse proxy should bypass authelia redirections for location `/seafdav`, so that Seafile falls back to authenticate against the user's WebDAV secret:
+Configure [Seafile] to use Authelia as an [OpenID Connect 1.0] Provider.
 
-```nginx
-server {
-    # as per standard authelia protected app example
-    ...
+1. [Seafile] may require some dependencies such as `requests_oauthlib` to be
+   manually installed.  See the [Seafile] documentation in the [see
+   also](#see-also) section for more information.
 
-    location / {
-        # as per standard authelia authrequest example
-        ...
-    }
+2. Edit your [Seafile] `seahub_settings.py` configuration file and add the
+   following:
 
-    location /seafdav {
-        # bypass authelia redirection
-        proxy_pass         http://127.0.0.1:8080/seafdav;
-        # stadard seafile proxy settings
-        ...
-    }
+```python
+ENABLE_OAUTH = True
+OAUTH_ENABLE_INSECURE_TRANSPORT = False
+OAUTH_CLIENT_ID = "seafile"
+OAUTH_CLIENT_SECRET = "insecure_secret"
+OAUTH_REDIRECT_URL = 'https://seafile.example.com/oauth/callback/'
+OAUTH_PROVIDER_DOMAIN = 'auth.example.com'
+OAUTH_AUTHORIZATION_URL = 'https://auth.example.com/api/oidc/authorization'
+OAUTH_TOKEN_URL = 'https://auth.example.com/api/oidc/token'
+OAUTH_USER_INFO_URL = 'https://auth.example.com/api/oidc/userinfo'
+OAUTH_SCOPE = [
+    "openid",
+    "profile",
+    "email",
+]
+OAUTH_ATTRIBUTE_MAP = {
+    "email": (True, "email"),
+    "name": (False, "name"),
+    "id": (False, "not used"),
 }
+
+# Optional
+#ENABLE_WEBDAV_SECRET = True
 ```
+
+Optionally, [enable webdav
+secrets](https://manual.seafile.com/config/seahub_settings_py/#user-management-options)
+so that clients that do not support Oauth (e.g.,
+[davfs2](https://savannah.nongnu.org/bugs/?57589)) can login via basic
+auth.
 
 ## See Also
 

@@ -15,18 +15,14 @@ community: true
 
 ## Tested Versions
 
-All packages are from Debian 12.
-
 * [Authelia]
-  * [4.37.5](https://github.com/authelia/authelia/releases/tag/v4.37.5)
+  * [4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Roundcube]
-  * [1.6.4](https://github.com/roundcube/roundcubemail/releases/tag/1.6.4)
+  * [1.6.5](https://github.com/roundcube/roundcubemail/releases/tag/1.6.4)
 * [Dovecot]
   * [2.3.20](https://dovecot.org/doc/NEWS)
 * [Postfix]
   * [3.7.6](https://www.postfix.org/announcements/postfix-3.8.1.html)
-* [Nginx]
-  * [1.22.1](https://nginx.org/en/CHANGES-1.22)
 
 ## Before You Begin
 
@@ -43,44 +39,11 @@ This example makes the following assumptions:
 
 ## Configuration
 
-### Application
-
-Configure [Roundcube OAuth2] to use Authelia as an [OpenID Connect 1.0]
-Provider. Edit your [Roundcube] `/etc/roundcube/config.inc.php` configuration
-file and add the following:
-
-```php
-// Authelia doesn't accept non-localhpst HTTP redirection but RC build its
-// redirect_uri from HTTP_HOST header which is a FQDN (even if reverse-proxied
-// to localhost)
-$config['use_https'] = true;
-
-$config['oauth_provider'] = 'generic';
-$config['oauth_provider_name'] = 'Authelia OIDC';
-$config['oauth_client_id'] = roundcube';
-$config['oauth_client_secret'] = 'insecure_secret';
-$config['oauth_auth_uri'] = 'https://auth.example.com/api/oidc/authorization';
-$config['oauth_token_uri'] = 'https://auth.example.com/api/oidc/token';
-$config['oauth_identity_uri'] = 'https://auth.example.com/api/oidc/userinfo';
-$config['oauth_identity_fields'] = ['email'];
-$config['oauth_scope'] = 'email openid profile';
-// Optionally, skip Roundcube's login page
-//$config['oauth_login_redirect'] = true;
-
-// Note on IMAP and SMTP backends (cf. Debian's '/etc/roundcube/defaults.inc.php').
-// - For an IMAP instance on localhost, the default conf is enough. Otherwise,
-//   set the corresponding SSL/TLS options via 'imap_host' and 'imap_conn_options';
-// - For an SMTP instance on localhost, no auth would be required. However
-//   RC's OAuth enforces 'smtp_auth_type' = 'XOAUTH2' plus credentials (cf.
-//   <https://github.com/roundcube/roundcubemail/issues/9183>), thus you *must*
-//   use TLS or SSL via 'smtp_host' and 'smtp_conn_options'!
-```
-
 ### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Roundcube]
-which will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client
+configuration](../../../configuration/identity-providers/openid-connect/clients.md)
+for use with [Roundcube]:
 
 ```yaml
 identity_providers:
@@ -99,6 +62,7 @@ identity_providers:
         - 'openid'
         - 'profile'
         - 'email'
+      token_endpoint_auth_method: 'client_secret_post'
 # optional
 access_control:
   rules:
@@ -108,52 +72,49 @@ access_control:
       policy: bypass
 ```
 
-Also, mind that your reverse proxy might need special arrangements -- see an example for Nginx here below.
+### Application
 
-### Nginx
+Configure [Roundcube OAuth2] to use Authelia as an [OpenID Connect 1.0]
+Provider. Edit your [Roundcube] `/etc/roundcube/config.inc.php` configuration
+file and add the following:
 
-The [standard authrequest-based
-example](https://www.authelia.com/integration/proxies/nginx/#standard-example)
-applies. However, if you want to use the *same* reverse-proxy instance for
-your protected application, its corresponding vhost might need the following
-adaptations:
+```php
+// Most probably you need this
+$config['use_https'] = true;
 
-```nginx
-# Backend proxied app on the same host
-server {
-    # See N.B. below
-    listen 9092;
-    server_name roundcube;
-
-    ...
-
-    location ~ [^/]\.php(?:/|$) {
-        fastcgi_split_path_info ^(.+?\.php)(/.*)$;
-        if (!-f $document_root$fastcgi_script_name) {
-            return 404;
-        }
-
-        include fastcgi_params;
-
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        fastcgi_param PATH_INFO       $fastcgi_path_info;
-
-        # See N.B. below
-        fastcgi_param  SERVER_PORT '';
-
-        fastcgi_pass $your_php_upstream;
-    }
-}
+$config['oauth_provider'] = 'generic';
+$config['oauth_provider_name'] = 'Authelia OIDC';
+$config['oauth_client_id'] = 'roundcube';
+$config['oauth_client_secret'] = 'insecure_secret';
+$config['oauth_auth_uri'] = 'https://auth.example.com/api/oidc/authorization';
+$config['oauth_token_uri'] = 'https://auth.example.com/api/oidc/token';
+$config['oauth_identity_uri'] = 'https://auth.example.com/api/oidc/userinfo';
+$config['oauth_identity_fields'] = ['email'];
+$config['oauth_scope'] = 'email openid profile';
+// Optionally, skip Roundcube's login page
+// $config['oauth_login_redirect'] = true;
 ```
 
-**N.B.** Roundcube's redirect URI is _not_ configurable, but is
+*__Important Note:__ Roundcube's redirect URI is not configurable, but is
 dynamically built with bits coming from the FCGI environment:
-`<scheme>://<fqdn>[:<port>]/...`. To force HTTPS, Roundcube's conf flag
-`use_https` must be set. However, the redirection breaks when the backend
-application is listening on a specific port, because the resulting redirect
-URI would be something like `https://<fqdn>:<port>/...`. Thus, to obtain the
-correct redirect URI `'https://<fqdn>/...'`, the fastcgi_param SERVER_PORT
-must be unset.
+`<scheme>://<fqdn>[:<port>]/...` -- specifically, the FQDN comes from the
+`HTTP_HOST` header. With Authelia, non-localhost HTTP redirection is not
+allowed, thus you might want to force HTTPS via Roundcube's conf flag
+`use_https`. However, the redirection breaks when the upstream application is
+listening on a explicit port, because the resulting redirect URI would be
+something like `https://<fqdn>:<port>/...`. Thus, to obtain the correct
+redirect URI `https://<fqdn>/...`, your reverse proxy's fastcgi parameter
+`SERVER_PORT` should be unset.*
+
+IMAP and SMTP backend configuration:
+- For an IMAP instance on localhost, the default conf should be
+  enough. Otherwise, set the corresponding SSL/TLS options via 'imap_host' and
+  'imap_conn_options';
+- For a SMTP instance on localhost, no auth would be required. However
+  [Roundcube OAuth
+  enforces](https://github.com/roundcube/roundcubemail/issues/9183)
+  'smtp_auth_type' = 'XOAUTH2' plus credentials, thus you *must* use TLS or
+  SSL via 'smtp_host' and 'smtp_conn_options'!
 
 
 ### Dovecot
@@ -165,7 +126,7 @@ must be unset.
 Normally in file `/etc/dovecot/dovecot.conf` or one of its ancillary files in
 `/etc/dovecot/conf.d/`:
 
-```nginx
+```bash
 auth_mechanisms = $auth_mechanisms oauthbearer xoauth2
 
 passdb {
@@ -188,13 +149,14 @@ service auth {
 
 As defined above, in file,  `/etc/dovecot/dovecot-oauth2.conf.ext`:
 
-```nginx
+```bash
 introspection_mode = post
 introspection_url = https://roundcube:insecure_secret@auth.example.com/api/oidc/introspection
 username_attribute = username
 ```
 
-**N.B.** The client ID and secret must figure as credentials in the `introspection_url`.
+*__Important Note:__ The client ID and secret must figure as credentials in
+the `introspection_url`.*
 
 ### Postfix
 
@@ -206,7 +168,7 @@ Postfix. Thus, Postfix must be configured with (Dovecot-type)
 [SASL](https://www.postfix.org/SASL_README.html) on port 25 (smtpd) or 587
 (submission), with the following minimum set of options:
 
-```nginx
+```bash
 smtpd_sasl_auth_enable = yes
 smtpd_sasl_path = private/auth
 smtpd_sasl_security_options = noanonymous, noplaintext
@@ -228,4 +190,3 @@ smtpd_sasl_type = dovecot
 [Dovecot OAuth2]: https://doc.dovecot.org/configuration_manual/authentication/oauth2/
 [Postfix]: https://www.postfix.org/
 [Postfix SASL]: https://www.postfix.org/SASL_README.html
-[Nginx]: http://nginx.org/
