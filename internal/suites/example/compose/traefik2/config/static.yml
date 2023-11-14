@@ -1,4 +1,5 @@
-# yaml-language-server: $schema=https://json.schemastore.org/traefik-v2.json
+---
+# yaml-language-server: $schema=v
 api:
   dashboard: true
   debug: false
@@ -29,3 +30,4 @@ providers:
   file:
     directory: /config/dynamic/
     watch: true
+...
