@@ -1,3 +1,4 @@
+---
 # yaml-language-server: $schema=https://json.schemastore.org/traefik-v2-file-provider.json
 tls:
   stores:
@@ -10,3 +11,4 @@ tls:
       keyFile: /pki/private.pem
       stores:
         - default
+...
