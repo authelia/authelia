@@ -104,7 +104,7 @@ In your Authelia configuration you will need to enter and update the following v
     base_dn: 'dc=example,DC=com'
     additional_users_dn: 'CN=users,CN=accounts'
     users_filter: '(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))'
-    additional_groups_dn: 'OU=groups'
+    additional_groups_dn: cn=groups,cn=accounts
     groups_filter: '(&(member=UID={input},CN=users,CN=accounts,DC=example,DC=com)(objectClass=groupOfNames))'
     user: 'UID=authelia,CN=users,CN=accounts,DC=example,DC=com'
     password: 'SUPER_COMPLEX_PASSWORD'
