@@ -30,7 +30,7 @@
     "@mui/icons-material": "5.14.18",
     "@mui/material": "5.14.18",
     "@mui/styles": "5.14.18",
-    "axios": "1.6.1",
+    "axios": "1.6.2",
     "broadcast-channel": "6.0.0",
     "classnames": "2.3.2",
     "i18next": "23.7.6",
