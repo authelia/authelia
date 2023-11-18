@@ -39,8 +39,16 @@ const DeleteDialog = function (props: Props) {
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleCancel}>{translate("Cancel")}</Button>
-                <Button variant={"outlined"} color={"error"} startIcon={<Delete />} onClick={handleDelete}>
+                <Button id={"dialog-cancel"} onClick={handleCancel}>
+                    {translate("Cancel")}
+                </Button>
+                <Button
+                    id={"dialog-delete"}
+                    variant={"outlined"}
+                    color={"error"}
+                    startIcon={<Delete />}
+                    onClick={handleDelete}
+                >
                     {translate("Remove")}
                 </Button>
             </DialogActions>

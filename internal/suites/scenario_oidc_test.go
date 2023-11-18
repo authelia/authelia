@@ -16,8 +16,6 @@ import (
 
 type OIDCScenario struct {
 	*RodSuite
-
-	secret string
 }
 
 func NewOIDCScenario() *OIDCScenario {
@@ -27,8 +25,7 @@ func NewOIDCScenario() *OIDCScenario {
 }
 
 func (s *OIDCScenario) SetupSuite() {
-	browser, err := StartRod()
-
+	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,7 +42,7 @@ func (s *OIDCScenario) SetupSuite() {
 	}()
 
 	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.secret = s.doRegisterAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, AdminBaseURL)
+	s.doRegisterTOTPAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, AdminBaseURL)
 }
 
 func (s *OIDCScenario) TearDownSuite() {
@@ -84,7 +81,7 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), "john", "password", false)
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
-	s.doValidateTOTP(s.T(), s.Context(ctx), s.secret)
+	s.doValidateTOTP(s.T(), s.Context(ctx), "john")
 
 	s.waitBodyContains(s.T(), s.Context(ctx), "Not logged yet...")
 
@@ -160,7 +157,7 @@ func (s *OIDCScenario) TestShouldDenyConsent() {
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), "john", "password", false)
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
-	s.doValidateTOTP(s.T(), s.Context(ctx), s.secret)
+	s.doValidateTOTP(s.T(), s.Context(ctx), "john")
 
 	s.waitBodyContains(s.T(), s.Context(ctx), "Not logged yet...")
 

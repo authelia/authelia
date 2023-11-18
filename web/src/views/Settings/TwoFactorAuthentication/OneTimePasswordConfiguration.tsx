@@ -17,6 +17,7 @@ const OneTimePasswordConfiguration = function (props: Props) {
 
     return (
         <CredentialItem
+            id={"one-time-password"}
             icon={<QrCode2 fontSize="large" />}
             description={props.config.issuer}
             qualifier={

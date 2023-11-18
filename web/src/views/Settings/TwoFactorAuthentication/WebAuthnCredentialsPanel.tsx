@@ -248,7 +248,12 @@ const WebAuthnCredentialsPanel = function (props: Props) {
                                 item: translate("WebAuthn Credential"),
                             })}
                         >
-                            <Button variant="outlined" color="primary" onClick={handleRegister}>
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                onClick={handleRegister}
+                                id={"webauthn-credential-add"}
+                            >
                                 {translate("Add")}
                             </Button>
                         </Tooltip>
