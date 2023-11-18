@@ -42,6 +42,7 @@ const WebAuthnCredentialItem = function (props: Props) {
                 }}
             />
             <CredentialItem
+                id={`webauthn-credential-${props.index}`}
                 icon={<Fingerprint fontSize="large" color={"warning"} />}
                 description={props.credential.description}
                 qualifier={` (${props.credential.attestation_type.toUpperCase()})`}

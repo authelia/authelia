@@ -20,8 +20,7 @@ func NewUserPreferencesScenario() *UserPreferencesScenario {
 }
 
 func (s *UserPreferencesScenario) SetupSuite() {
-	browser, err := StartRod()
-
+	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -78,7 +77,7 @@ func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
 	s.doLogout(s.T(), s.Context(ctx))
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "harry", "password", false, BaseDomain, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
-	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "one-time-password-method")
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "push-notification-method")
 
 	s.doLogout(s.T(), s.Context(ctx))
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))

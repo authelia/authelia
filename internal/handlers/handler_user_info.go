@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/valyala/fasthttp"
+
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -23,7 +25,8 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
 
-		ctx.ReplyForbidden()
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
@@ -72,7 +75,8 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
 
-		ctx.ReplyForbidden()
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}

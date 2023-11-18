@@ -127,7 +127,7 @@ const SecondFactorDialog = function (props: Props) {
     }, [closing, handleLoad, props, props.opening]);
 
     return (
-        <Dialog open={open} onClose={handleCancelled}>
+        <Dialog id={"dialog-verify-second-factor"} open={open} onClose={handleCancelled}>
             <DialogTitle>{translate("Identity Verification")}</DialogTitle>
             <DialogContent>
                 <DialogContentText gutterBottom>

@@ -30,12 +30,12 @@ func ctxLogEvent(ctx *middlewares.AutheliaCtx, username, description string, eve
 
 	// Send Notification.
 	if details, err = ctx.Providers.UserProvider.GetDetails(username); err != nil {
-		ctx.Logger.Error(err)
+		ctx.Logger.WithError(err).Errorf("Error occurred looking up user details for user '%s' while attempting to notify them of an important event", username)
 		return
 	}
 
 	if len(details.Emails) == 0 {
-		ctx.Logger.Error(fmt.Errorf("user %s has no email address configured", username))
+		ctx.Logger.WithError(fmt.Errorf("no email address was found for user")).Errorf("Error occurred looking up user details for user '%s' while attempting to notify them of an important event", username)
 		return
 	}
 
@@ -53,7 +53,7 @@ func ctxLogEvent(ctx *middlewares.AutheliaCtx, username, description string, eve
 	ctx.Logger.Debugf("Sending an email to user %s (%s) to inform them of an important event.", username, addresses[0].String())
 
 	if err = ctx.Providers.Notifier.Send(ctx, addresses[0], description, ctx.Providers.Templates.GetEventEmailTemplate(), data); err != nil {
-		ctx.Logger.Error(err)
+		ctx.Logger.WithError(err).Errorf("Error occurred sending notification to user '%s' while attempting to notify them of an important event", username)
 		return
 	}
 }

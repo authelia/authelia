@@ -5,13 +5,14 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
-	yaml "gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -30,8 +31,8 @@ type WebAuthnUser struct {
 }
 
 // HasFIDOU2F returns true if the user has any attestation type `fido-u2f` credentials.
-func (w WebAuthnUser) HasFIDOU2F() bool {
-	for _, c := range w.Credentials {
+func (u WebAuthnUser) HasFIDOU2F() bool {
+	for _, c := range u.Credentials {
 		if c.AttestationType == attestationTypeFIDOU2F {
 			return true
 		}
@@ -41,32 +42,32 @@ func (w WebAuthnUser) HasFIDOU2F() bool {
 }
 
 // WebAuthnID implements the webauthn.User interface.
-func (w WebAuthnUser) WebAuthnID() []byte {
-	return []byte(w.UserID)
+func (u WebAuthnUser) WebAuthnID() []byte {
+	return []byte(u.UserID)
 }
 
 // WebAuthnName implements the webauthn.User  interface.
-func (w WebAuthnUser) WebAuthnName() string {
-	return w.Username
+func (u WebAuthnUser) WebAuthnName() string {
+	return u.Username
 }
 
 // WebAuthnDisplayName implements the webauthn.User interface.
-func (w WebAuthnUser) WebAuthnDisplayName() string {
-	return w.DisplayName
+func (u WebAuthnUser) WebAuthnDisplayName() string {
+	return u.DisplayName
 }
 
 // WebAuthnIcon implements the webauthn.User interface.
-func (w WebAuthnUser) WebAuthnIcon() string {
+func (u WebAuthnUser) WebAuthnIcon() string {
 	return ""
 }
 
 // WebAuthnCredentials implements the webauthn.User interface.
-func (w WebAuthnUser) WebAuthnCredentials() (credentials []webauthn.Credential) {
-	credentials = make([]webauthn.Credential, len(w.Credentials))
+func (u WebAuthnUser) WebAuthnCredentials() (credentials []webauthn.Credential) {
+	credentials = make([]webauthn.Credential, len(u.Credentials))
 
 	var c webauthn.Credential
 
-	for i, credential := range w.Credentials {
+	for i, credential := range u.Credentials {
 		aaguid, err := credential.AAGUID.MarshalBinary()
 		if err != nil {
 			continue
@@ -108,8 +109,8 @@ func (w WebAuthnUser) WebAuthnCredentials() (credentials []webauthn.Credential) 
 }
 
 // WebAuthnCredentialDescriptors decodes the users credentials into protocol.CredentialDescriptor's.
-func (w WebAuthnUser) WebAuthnCredentialDescriptors() (descriptors []protocol.CredentialDescriptor) {
-	credentials := w.WebAuthnCredentials()
+func (u WebAuthnUser) WebAuthnCredentialDescriptors() (descriptors []protocol.CredentialDescriptor) {
+	credentials := u.WebAuthnCredentials()
 
 	descriptors = make([]protocol.CredentialDescriptor, len(credentials))
 
@@ -121,7 +122,7 @@ func (w WebAuthnUser) WebAuthnCredentialDescriptors() (descriptors []protocol.Cr
 }
 
 // NewWebAuthnCredential creates a WebAuthnCredential from a webauthn.Credential.
-func NewWebAuthnCredential(rpid, username, description string, credential *webauthn.Credential) (c WebAuthnCredential) {
+func NewWebAuthnCredential(ctx Context, rpid, username, description string, credential *webauthn.Credential) (c WebAuthnCredential) {
 	transport := make([]string, len(credential.Transport))
 
 	for i, t := range credential.Transport {
@@ -131,7 +132,7 @@ func NewWebAuthnCredential(rpid, username, description string, credential *webau
 	c = WebAuthnCredential{
 		RPID:            rpid,
 		Username:        username,
-		CreatedAt:       time.Now(),
+		CreatedAt:       ctx.GetClock().Now(),
 		Description:     description,
 		KID:             NewBase64(credential.ID),
 		AttestationType: credential.AttestationType,
@@ -179,27 +180,26 @@ type WebAuthnCredential struct {
 }
 
 // UpdateSignInInfo adjusts the values of the WebAuthnCredential after a sign in.
-func (d *WebAuthnCredential) UpdateSignInInfo(config *webauthn.Config, now time.Time, signCount uint32) {
-	d.LastUsedAt = sql.NullTime{Time: now, Valid: true}
+func (c *WebAuthnCredential) UpdateSignInInfo(config *webauthn.Config, now time.Time, authenticator webauthn.Authenticator) {
+	c.LastUsedAt = sql.NullTime{Time: now, Valid: true}
+	c.SignCount, c.CloneWarning = authenticator.SignCount, authenticator.CloneWarning
 
-	d.SignCount = signCount
-
-	if d.RPID != "" {
+	if c.RPID != "" {
 		return
 	}
 
-	switch d.AttestationType {
+	switch c.AttestationType {
 	case attestationTypeFIDOU2F:
-		d.RPID = config.RPOrigins[0]
+		c.RPID = config.RPOrigins[0]
 	default:
-		d.RPID = config.RPID
+		c.RPID = config.RPID
 	}
 }
 
 // DataValueLastUsedAt provides LastUsedAt as a *time.Time instead of sql.NullTime.
-func (d *WebAuthnCredential) DataValueLastUsedAt() *time.Time {
-	if d.LastUsedAt.Valid {
-		value := time.Unix(d.LastUsedAt.Time.Unix(), int64(d.LastUsedAt.Time.Nanosecond()))
+func (c *WebAuthnCredential) DataValueLastUsedAt() *time.Time {
+	if c.LastUsedAt.Valid {
+		value := time.Unix(c.LastUsedAt.Time.Unix(), int64(c.LastUsedAt.Time.Nanosecond()))
 
 		return &value
 	}
@@ -208,9 +208,9 @@ func (d *WebAuthnCredential) DataValueLastUsedAt() *time.Time {
 }
 
 // DataValueAAGUID provides AAGUID as a *string instead of uuid.NullUUID.
-func (d *WebAuthnCredential) DataValueAAGUID() *string {
-	if d.AAGUID.Valid {
-		value := d.AAGUID.UUID.String()
+func (c *WebAuthnCredential) DataValueAAGUID() *string {
+	if c.AAGUID.Valid {
+		value := c.AAGUID.UUID.String()
 
 		return &value
 	}
@@ -218,53 +218,53 @@ func (d *WebAuthnCredential) DataValueAAGUID() *string {
 	return nil
 }
 
-func (d *WebAuthnCredential) ToData() WebAuthnCredentialData {
+func (c *WebAuthnCredential) ToData() WebAuthnCredentialData {
 	o := WebAuthnCredentialData{
-		ID:              d.ID,
-		CreatedAt:       d.CreatedAt,
-		LastUsedAt:      d.DataValueLastUsedAt(),
-		RPID:            d.RPID,
-		Username:        d.Username,
-		Description:     d.Description,
-		KID:             d.KID.String(),
-		AAGUID:          d.DataValueAAGUID(),
-		AttestationType: d.AttestationType,
-		Attachment:      d.Attachment,
-		SignCount:       d.SignCount,
-		CloneWarning:    d.CloneWarning,
-		Present:         d.Present,
-		Verified:        d.Verified,
-		BackupEligible:  d.BackupEligible,
-		BackupState:     d.BackupState,
-		PublicKey:       base64.StdEncoding.EncodeToString(d.PublicKey),
+		ID:              c.ID,
+		CreatedAt:       c.CreatedAt,
+		LastUsedAt:      c.DataValueLastUsedAt(),
+		RPID:            c.RPID,
+		Username:        c.Username,
+		Description:     c.Description,
+		KID:             c.KID.String(),
+		AAGUID:          c.DataValueAAGUID(),
+		AttestationType: c.AttestationType,
+		Attachment:      c.Attachment,
+		SignCount:       c.SignCount,
+		CloneWarning:    c.CloneWarning,
+		Present:         c.Present,
+		Verified:        c.Verified,
+		BackupEligible:  c.BackupEligible,
+		BackupState:     c.BackupState,
+		PublicKey:       base64.StdEncoding.EncodeToString(c.PublicKey),
 	}
 
-	if d.Transport != "" {
-		o.Transports = strings.Split(d.Transport, ",")
+	if c.Transport != "" {
+		o.Transports = strings.Split(c.Transport, ",")
 	}
 
 	return o
 }
 
 // MarshalJSON returns the WebAuthnCredential in a JSON friendly manner.
-func (d *WebAuthnCredential) MarshalJSON() (data []byte, err error) {
-	return json.Marshal(d.ToData())
+func (c *WebAuthnCredential) MarshalJSON() (data []byte, err error) {
+	return json.Marshal(c.ToData())
 }
 
 // MarshalYAML marshals this model into YAML.
-func (d *WebAuthnCredential) MarshalYAML() (any, error) {
-	return d.ToData(), nil
+func (c *WebAuthnCredential) MarshalYAML() (any, error) {
+	return c.ToData(), nil
 }
 
 // UnmarshalYAML unmarshalls YAML into this model.
-func (d *WebAuthnCredential) UnmarshalYAML(value *yaml.Node) (err error) {
+func (c *WebAuthnCredential) UnmarshalYAML(value *yaml.Node) (err error) {
 	o := &WebAuthnCredentialData{}
 
 	if err = value.Decode(o); err != nil {
 		return err
 	}
 
-	if d.PublicKey, err = base64.StdEncoding.DecodeString(o.PublicKey); err != nil {
+	if c.PublicKey, err = base64.StdEncoding.DecodeString(o.PublicKey); err != nil {
 		return err
 	}
 
@@ -275,7 +275,7 @@ func (d *WebAuthnCredential) UnmarshalYAML(value *yaml.Node) (err error) {
 			return err
 		}
 
-		d.AAGUID = NullUUID(aaguid)
+		c.AAGUID = NullUUID(aaguid)
 	}
 
 	var kid []byte
@@ -284,25 +284,25 @@ func (d *WebAuthnCredential) UnmarshalYAML(value *yaml.Node) (err error) {
 		return err
 	}
 
-	d.KID = NewBase64(kid)
+	c.KID = NewBase64(kid)
 
-	d.CreatedAt = o.CreatedAt
-	d.RPID = o.RPID
-	d.Username = o.Username
-	d.Description = o.Description
-	d.AttestationType = o.AttestationType
-	d.Attachment = o.Attachment
-	d.Transport = strings.Join(o.Transports, ",")
-	d.SignCount = o.SignCount
-	d.CloneWarning = o.CloneWarning
-	d.Discoverable = o.Discoverable
-	d.Present = o.Present
-	d.Verified = o.Verified
-	d.BackupEligible = o.BackupEligible
-	d.BackupState = o.BackupState
+	c.CreatedAt = o.CreatedAt
+	c.RPID = o.RPID
+	c.Username = o.Username
+	c.Description = o.Description
+	c.AttestationType = o.AttestationType
+	c.Attachment = o.Attachment
+	c.Transport = strings.Join(o.Transports, ",")
+	c.SignCount = o.SignCount
+	c.CloneWarning = o.CloneWarning
+	c.Discoverable = o.Discoverable
+	c.Present = o.Present
+	c.Verified = o.Verified
+	c.BackupEligible = o.BackupEligible
+	c.BackupState = o.BackupState
 
 	if o.LastUsedAt != nil {
-		d.LastUsedAt = sql.NullTime{Valid: true, Time: *o.LastUsedAt}
+		c.LastUsedAt = sql.NullTime{Valid: true, Time: *o.LastUsedAt}
 	}
 
 	return nil
@@ -331,48 +331,52 @@ type WebAuthnCredentialData struct {
 	PublicKey       string     `yaml:"public_key" json:"public_key" jsonschema:"title=Public Key" jsonschema_description:"The credential public key"`
 }
 
-func (d *WebAuthnCredentialData) ToCredential() (credential *WebAuthnCredential, err error) {
+func (c *WebAuthnCredentialData) ToCredential() (credential *WebAuthnCredential, err error) {
 	credential = &WebAuthnCredential{
-		CreatedAt:       d.CreatedAt,
-		RPID:            d.RPID,
-		Username:        d.Username,
-		Description:     d.Description,
-		AttestationType: d.AttestationType,
-		Attachment:      d.Attachment,
-		Transport:       strings.Join(d.Transports, ","),
-		SignCount:       d.SignCount,
-		CloneWarning:    d.CloneWarning,
-		Discoverable:    d.Discoverable,
-		Present:         d.Present,
-		Verified:        d.Verified,
-		BackupEligible:  d.BackupEligible,
-		BackupState:     d.BackupState,
+		CreatedAt:       c.CreatedAt,
+		RPID:            c.RPID,
+		Username:        c.Username,
+		Description:     c.Description,
+		AttestationType: c.AttestationType,
+		Attachment:      c.Attachment,
+		Transport:       strings.Join(c.Transports, ","),
+		SignCount:       c.SignCount,
+		CloneWarning:    c.CloneWarning,
+		Discoverable:    c.Discoverable,
+		Present:         c.Present,
+		Verified:        c.Verified,
+		BackupEligible:  c.BackupEligible,
+		BackupState:     c.BackupState,
 	}
 
-	if credential.PublicKey, err = base64.StdEncoding.DecodeString(d.PublicKey); err != nil {
-		return nil, err
+	if len(c.PublicKey) != 0 {
+		if credential.PublicKey, err = base64.StdEncoding.DecodeString(c.PublicKey); err != nil {
+			return nil, err
+		}
 	}
 
 	var aaguid uuid.UUID
 
-	if d.AAGUID != nil {
-		if aaguid, err = uuid.Parse(*d.AAGUID); err != nil {
-			return nil, err
+	if c.AAGUID != nil {
+		if aaguid, err = uuid.Parse(*c.AAGUID); err != nil {
+			return nil, fmt.Errorf("error occurred parsing aaguid: %w", err)
 		}
 
 		credential.AAGUID = NullUUID(aaguid)
 	}
 
-	var kid []byte
+	if len(c.KID) != 0 {
+		var kid []byte
 
-	if kid, err = base64.StdEncoding.DecodeString(d.KID); err != nil {
-		return nil, err
+		if kid, err = base64.StdEncoding.DecodeString(c.KID); err != nil {
+			return nil, fmt.Errorf("error occurred deocding kid: %w", err)
+		}
+
+		credential.KID = NewBase64(kid)
 	}
 
-	credential.KID = NewBase64(kid)
-
-	if d.LastUsedAt != nil {
-		credential.LastUsedAt = sql.NullTime{Valid: true, Time: *d.LastUsedAt}
+	if c.LastUsedAt != nil {
+		credential.LastUsedAt = sql.NullTime{Valid: true, Time: *c.LastUsedAt}
 	}
 
 	return credential, nil

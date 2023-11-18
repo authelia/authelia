@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { Button, Grid, Theme } from "@mui/material";
+import { Button, FormControl, Grid, Theme } from "@mui/material";
 import TextField from "@mui/material/TextField";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
@@ -43,41 +43,49 @@ const ResetPasswordStep1 = function () {
 
     return (
         <LoginLayout title={translate("Reset password")} id="reset-password-step1-stage">
-            <Grid container className={styles.root} spacing={2}>
-                <Grid item xs={12}>
-                    <TextField
-                        id="username-textfield"
-                        label={translate("Username")}
-                        variant="outlined"
-                        fullWidth
-                        error={error}
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        onKeyDown={(ev) => {
-                            if (ev.key === "Enter") {
-                                doInitiateResetPasswordProcess();
-                                ev.preventDefault();
-                            }
-                        }}
-                    />
+            <FormControl id={"form-reset-password-username"}>
+                <Grid container className={styles.root} spacing={2}>
+                    <Grid item xs={12}>
+                        <TextField
+                            id="username-textfield"
+                            label={translate("Username")}
+                            variant="outlined"
+                            fullWidth
+                            error={error}
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            onKeyDown={(ev) => {
+                                if (ev.key === "Enter") {
+                                    doInitiateResetPasswordProcess();
+                                    ev.preventDefault();
+                                }
+                            }}
+                        />
+                    </Grid>
+                    <Grid item xs={6}>
+                        <Button
+                            id="reset-button"
+                            variant="contained"
+                            color="primary"
+                            fullWidth
+                            onClick={handleResetClick}
+                        >
+                            {translate("Reset")}
+                        </Button>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <Button
+                            id="cancel-button"
+                            variant="contained"
+                            color="primary"
+                            fullWidth
+                            onClick={handleCancelClick}
+                        >
+                            {translate("Cancel")}
+                        </Button>
+                    </Grid>
                 </Grid>
-                <Grid item xs={6}>
-                    <Button id="reset-button" variant="contained" color="primary" fullWidth onClick={handleResetClick}>
-                        {translate("Reset")}
-                    </Button>
-                </Grid>
-                <Grid item xs={6}>
-                    <Button
-                        id="cancel-button"
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                        onClick={handleCancelClick}
-                    >
-                        {translate("Cancel")}
-                    </Button>
-                </Grid>
-            </Grid>
+            </FormControl>
         </LoginLayout>
     );
 };

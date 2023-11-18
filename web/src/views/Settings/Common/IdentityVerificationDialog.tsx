@@ -145,7 +145,7 @@ const IdentityVerificationDialog = function (props: Props) {
     };
 
     return (
-        <Dialog open={open} onClose={handleCancelled}>
+        <Dialog id={"dialog-verify-one-time-code"} open={open} onClose={handleCancelled}>
             <DialogTitle>{translate("Identity Verification")}</DialogTitle>
             {success ? (
                 <DialogContent>
@@ -182,6 +182,7 @@ const IdentityVerificationDialog = function (props: Props) {
                         }}
                     >
                         <OneTimeCodeTextField
+                            id={"one-time-code"}
                             label={"One-Time Code"}
                             autoFocus={true}
                             value={codeInput}
@@ -195,10 +196,17 @@ const IdentityVerificationDialog = function (props: Props) {
             )}
             {success ? null : (
                 <DialogActions>
-                    <Button variant={"outlined"} color={"error"} disabled={loading} onClick={handleCancelled}>
+                    <Button
+                        id={"dialog-cancel"}
+                        variant={"outlined"}
+                        color={"error"}
+                        disabled={loading}
+                        onClick={handleCancelled}
+                    >
                         {translate("Cancel")}
                     </Button>
                     <Button
+                        id={"dialog-verify"}
                         variant={"outlined"}
                         color={"primary"}
                         disabled={loading}

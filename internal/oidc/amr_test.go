@@ -22,6 +22,7 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 		is   oidc.AuthenticationMethodsReferences
 		want testAMRWant
 	}{
+
 		{
 			desc: "Username and Password",
 

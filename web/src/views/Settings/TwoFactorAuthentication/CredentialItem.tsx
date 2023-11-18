@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { FormatDateHumanReadable } from "@i18n/formats";
 
 interface Props {
+    id: string;
     icon?: React.ReactNode;
     description: string;
     qualifier: string;
@@ -26,7 +27,7 @@ const CredentialItem = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     return (
-        <Paper variant="outlined">
+        <Paper variant="outlined" id={props.id}>
             <Box sx={{ p: 3 }}>
                 <Grid container xs={12} alignItems={"center"} height={"100%"}>
                     <Grid xs={2} sm={1} marginRight={{ xs: 1, md: 2, xl: 3 }}>
@@ -63,7 +64,11 @@ const CredentialItem = function (props: Props) {
                             {props.handleInformation ? (
                                 <Grid xs={2} sm={1}>
                                     <TooltipElement tooltip={props.tooltipInformation}>
-                                        <IconButton color="primary" onClick={props.handleInformation}>
+                                        <IconButton
+                                            color="primary"
+                                            onClick={props.handleInformation}
+                                            id={`${props.id}-information`}
+                                        >
                                             <InfoOutlined />
                                         </IconButton>
                                     </TooltipElement>
@@ -72,7 +77,7 @@ const CredentialItem = function (props: Props) {
                             {props.handleEdit ? (
                                 <Grid xs={2} sm={1}>
                                     <TooltipElement tooltip={props.tooltipEdit}>
-                                        <IconButton color="primary" onClick={props.handleEdit}>
+                                        <IconButton color="primary" onClick={props.handleEdit} id={`${props.id}-edit`}>
                                             <Edit />
                                         </IconButton>
                                     </TooltipElement>
@@ -80,7 +85,7 @@ const CredentialItem = function (props: Props) {
                             ) : null}
                             <Grid xs={2} sm={1}>
                                 <Tooltip title={props.tooltipDelete}>
-                                    <IconButton color="primary" onClick={props.handleDelete}>
+                                    <IconButton color="primary" onClick={props.handleDelete} id={`${props.id}-delete`}>
                                         <Delete />
                                     </IconButton>
                                 </Tooltip>

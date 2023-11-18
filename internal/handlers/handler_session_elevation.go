@@ -3,6 +3,7 @@ package handlers
 import (
 	"crypto/subtle"
 	"encoding/base64"
+	"fmt"
 	"path"
 	"strings"
 
@@ -28,10 +29,19 @@ func UserSessionElevationGET(ctx *middlewares.AutheliaCtx) {
 	response := &bodyGETUserSessionElevate{}
 
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Error("Failed to get user session from session provider during user session elevation lookup.")
+		ctx.Logger.WithError(err).Error("Error occurred retrieving user session elevation state: error occurred retrieving the user session data")
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+
+		return
+	}
+
+	if userSession.IsAnonymous() {
+		ctx.Logger.WithError(fmt.Errorf("user is anonymous")).Error("Error occurred retrieving user session elevation state")
+
+		ctx.SetJSONError(messageOperationFailed)
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
 
 		return
 	}
@@ -60,7 +70,7 @@ func UserSessionElevationGET(ctx *middlewares.AutheliaCtx) {
 		}
 	}
 
-	if userSession.Elevations.User != nil && !userSession.IsAnonymous() {
+	if userSession.Elevations.User != nil {
 		var deleted bool
 
 		response.Elevated = true
@@ -68,41 +78,38 @@ func UserSessionElevationGET(ctx *middlewares.AutheliaCtx) {
 
 		if userSession.Elevations.User.Expires.Before(ctx.Clock.Now()) {
 			ctx.Logger.WithFields(map[string]any{"username": userSession.Username, "expired": userSession.Elevations.User.Expires.Unix()}).
-				Info("The user session elevation has already expired so it has been deleted.")
+				Info("The user session elevation has already expired so it has been destroyed")
 
 			response.Elevated, deleted = false, true
 		}
 
 		if !userSession.Elevations.User.RemoteIP.Equal(ctx.RemoteIP()) {
 			ctx.Logger.WithFields(map[string]any{"username": userSession.Username, "elevation_ip": userSession.Elevations.User.RemoteIP.String()}).
-				Warn("The user session elevation was created from a different remote IP so it has been destroyed.")
+				Warn("The user session elevation was created from a different remote IP so it has been destroyed")
 
-			response.Elevated, deleted = false, true
+			response.Expires, response.Elevated, deleted = 0, false, true
 		}
 
 		if deleted {
 			userSession.Elevations.User = nil
 
 			if err = ctx.SaveSession(userSession); err != nil {
-				ctx.Logger.WithError(err).Error("Failed to save user session.")
+				ctx.Logger.WithError(err).Error("Error occurred retrieving the user session elevation state: error occurred saving the user session data")
 
-				ctx.SetStatusCode(fasthttp.StatusForbidden)
 				ctx.SetJSONError(messageOperationFailed)
+				ctx.SetStatusCode(fasthttp.StatusForbidden)
 
 				return
 			}
 		}
 	}
 
-	if response.Elevated && response.CanSkipSecondFactor {
-		response.CanSkipSecondFactor = false
-	}
-
 	if err = ctx.ReplyJSON(middlewares.OKResponse{Status: "OK", Data: response}, fasthttp.StatusOK); err != nil {
-		ctx.Logger.WithError(err).Error("Failed to write JSON response in elevation lookup.")
+		ctx.Logger.WithError(err).Error("Error occurred retrieving the user session elevation state: error occurred writing the response body")
+
+		ctx.SetJSONError(messageOperationFailed)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
@@ -116,10 +123,19 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Error("Failed to get user session from session provider during user session elevation create.")
+		ctx.Logger.WithError(err).Error("Error occurred creating user session elevation One-Time Code challenge: error occurred retrieving the user session data")
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+
+		return
+	}
+
+	if userSession.IsAnonymous() {
+		ctx.Logger.WithError(fmt.Errorf("user is anonymous")).Error("Error occurred creating user session elevation One-Time Code challenge")
+
+		ctx.SetJSONError(messageOperationFailed)
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
 
 		return
 	}
@@ -129,7 +145,7 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if otp, err = model.NewOneTimeCode(ctx, userSession.Username, ctx.Configuration.IdentityValidation.ElevatedSession.Characters, ctx.Configuration.IdentityValidation.ElevatedSession.Expiration); err != nil {
-		ctx.Logger.WithError(err).Error("Failed to generate elevation One-Time Code during user session elevation create.")
+		ctx.Logger.WithError(err).Errorf("Error occurred creating user session elevation One-Time Code challenge for user '%s': error occurred generating the One-Time Code challenge", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
@@ -140,7 +156,7 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 	var signature string
 
 	if signature, err = ctx.Providers.StorageProvider.SaveOneTimeCode(ctx, *otp); err != nil {
-		ctx.Logger.WithError(err).Error("Failed to save elevation One-Time Code during user session elevation create.")
+		ctx.Logger.WithError(err).Errorf("Error occurred creating user session elevation One-Time Code challenge for user '%s': error occurred saving the challenge to storage", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
@@ -171,9 +187,11 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	ctx.Logger.WithFields(map[string]any{"signature": signature, "id": otp.PublicID.String(), "username": identity.Username}).
-		Debug("Sending an email to user to confirm identity for session elevation.")
+		Debug("Sending an email to user to confirm identity for session elevation")
 
 	if err = ctx.Providers.Notifier.Send(ctx, identity.Address(), data.Title, ctx.Providers.Templates.GetIdentityVerificationOTCEmailTemplate(), data); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred creating user session elevation One-Time Code challenge for user '%s': error occurred sending the user the notification", userSession.Username)
+
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 
@@ -183,6 +201,8 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 	if err = ctx.SetJSONBody(&bodyPOSTUserSessionElevate{
 		DeleteID: deleteID,
 	}); err != nil {
+		ctx.Logger.WithError(err).Error("Error occurred creating user session elevation One-Time Code challenge: error occurred writing the response body")
+
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 
@@ -196,21 +216,12 @@ func UserSessionElevationPUT(ctx *middlewares.AutheliaCtx) {
 
 	var (
 		userSession session.UserSession
-		otp         *model.OneTimeCode
+		code        *model.OneTimeCode
 		err         error
 	)
 
-	if err = ctx.ParseBody(&bodyJSON); err != nil {
-		ctx.Logger.WithError(err).Error("Failed to parse user session elevation body.")
-
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred retrieving user session.")
+		ctx.Logger.WithError(err).Error("Error occurred validating user session elevation One-Time Code challenge: error occurred retrieving the user session data")
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
@@ -218,17 +229,37 @@ func UserSessionElevationPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if otp, err = ctx.Providers.StorageProvider.LoadOneTimeCode(ctx, userSession.Username, model.OTCIntentUserSessionElevation, bodyJSON.OneTimeCode); err != nil {
-		ctx.Logger.WithError(err).WithFields(map[string]any{"username": userSession.Username}).
-			Error("Error occurred retrieving user session elevation One-Time Code information from the database. This error should only occur due to database related issues.")
+	if userSession.IsAnonymous() {
+		ctx.Logger.WithError(fmt.Errorf("user is anonymous")).Error("Error occurred validating user session elevation One-Time Code challenge")
+
+		ctx.SetJSONError(messageOperationFailed)
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+
+		return
+	}
+
+	if err = ctx.ParseBody(&bodyJSON); err != nil {
+		ctx.Logger.WithError(err).Error("Error occurred validating user session elevation One-Time Code challenge: error parsing the request body")
+
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	bodyJSON.OneTimeCode = strings.ToUpper(bodyJSON.OneTimeCode)
+
+	if code, err = ctx.Providers.StorageProvider.LoadOneTimeCode(ctx, userSession.Username, model.OTCIntentUserSessionElevation, bodyJSON.OneTimeCode); err != nil {
+		ctx.Logger.WithError(err).
+			Errorf("Error occurred validating user session elevation One-Time Code challenge for user '%s': error occurred retrieving the code challenge from storage", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
-	} else if otp == nil {
-		ctx.Logger.WithFields(map[string]any{"username": userSession.Username}).
-			Error("Error occurred retrieving user session elevation One-Time Code information from the database. The code did not match any recorded codes.")
+	} else if code == nil {
+		ctx.Logger.WithError(fmt.Errorf("the code didn't match any recorded code challenges")).
+			Errorf("Error occurred validating user session elevation One-Time Code challenge for user '%s': error occurred retrieving the code challenge from storage", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
@@ -236,8 +267,8 @@ func UserSessionElevationPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if otp.ExpiresAt.Before(ctx.Clock.Now()) {
-		ctx.Logger.Error("Failed to consume the One-Time Code during user session elevation as it's expired.")
+	if code.ExpiresAt.Before(ctx.Clock.Now()) {
+		ctx.Logger.WithError(fmt.Errorf("the code challenge has expired")).Errorf("Error occurred validating user session elevation One-Time Code challenge for user '%s'", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
@@ -245,8 +276,8 @@ func UserSessionElevationPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if otp.RevokedAt.Valid {
-		ctx.Logger.Error("Failed to consume the One-Time Code during user session elevation as it's revoked.")
+	if code.RevokedAt.Valid {
+		ctx.Logger.WithError(fmt.Errorf("the code challenge has been revoked")).Errorf("Error occurred validating user session elevation One-Time Code challenge for user '%s'", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
@@ -254,8 +285,8 @@ func UserSessionElevationPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if otp.ConsumedAt.Valid {
-		ctx.Logger.Error("Failed to consume the One-Time Code during user session elevation as it's already consumed.")
+	if code.ConsumedAt.Valid {
+		ctx.Logger.WithError(fmt.Errorf("the code challenge has already been consumed")).Errorf("Error occurred validating user session elevation One-Time Code challenge for user '%s'", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
@@ -263,8 +294,8 @@ func UserSessionElevationPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if subtle.ConstantTimeCompare(otp.Code, []byte(strings.ToUpper(bodyJSON.OneTimeCode))) != 1 {
-		ctx.Logger.Error("Failed to consume the One-Time Code during user session elevation as it's already consumed.")
+	if code.Intent != model.OTCIntentUserSessionElevation {
+		ctx.Logger.WithError(fmt.Errorf("the code challenge has the '%s' intent but the '%s' intent is required", code.Intent, model.OTCIntentUserSessionElevation)).Errorf("Error occurred validating user session elevation One-Time Code challenge for user '%s'", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
@@ -272,10 +303,19 @@ func UserSessionElevationPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	otp.Consume(ctx)
+	if subtle.ConstantTimeCompare(code.Code, []byte(bodyJSON.OneTimeCode)) != 1 {
+		ctx.Logger.WithError(fmt.Errorf("the code does not match the code stored in the challenge")).Errorf("Error occurred validating user session elevation One-Time Code challenge for user '%s'", userSession.Username)
 
-	if err = ctx.Providers.StorageProvider.ConsumeOneTimeCode(ctx, otp); err != nil {
-		ctx.Logger.WithError(err).Error("Failed to consume the One-Time Code during user session elevation due to a database error.")
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	code.Consume(ctx)
+
+	if err = ctx.Providers.StorageProvider.ConsumeOneTimeCode(ctx, code); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating user session elevation One-Time Code challenge for user '%s': error occurred saving the consumption of the code to storage", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
@@ -284,13 +324,13 @@ func UserSessionElevationPUT(ctx *middlewares.AutheliaCtx) {
 	}
 
 	userSession.Elevations.User = &session.Elevation{
-		ID:       otp.ID,
+		ID:       code.ID,
 		RemoteIP: ctx.RemoteIP(),
 		Expires:  ctx.Clock.Now().Add(ctx.Configuration.IdentityValidation.ElevatedSession.ElevationExpiration),
 	}
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.WithError(err).Error("Failed to save the user session elevation to the session.")
+		ctx.Logger.WithError(err).Error("Error occurred validating user session elevation One-Time Code challenge: error occurred saving the user session data")
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
@@ -308,55 +348,65 @@ func UserSessionElevateDELETE(ctx *middlewares.AutheliaCtx) {
 	decoded := make([]byte, base64.RawURLEncoding.DecodedLen(len(value)))
 
 	var (
-		id  uuid.UUID
-		otp *model.OneTimeCode
-		err error
+		id   uuid.UUID
+		code *model.OneTimeCode
+		err  error
 	)
 
 	if _, err = base64.RawURLEncoding.Decode(decoded, []byte(value)); err != nil {
-		ctx.Logger.WithError(err).Error("Failed to base64 decode elevation identifier during elevation revocation.")
+		ctx.Logger.WithError(err).
+			Error("Error occurred revoking user session elevation One-Time Code challenge: error occurred decoding the identifier")
+
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
 	if id, err = uuid.FromBytes(decoded); err != nil {
-		ctx.Logger.WithError(err).Error("Failed to parse decoded elevation identifier during elevation revocation.")
+		ctx.Logger.WithError(err).
+			Error("Error occurred revoking user session elevation One-Time Code challenge: error occurred parsing the identifier")
+
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
-	if otp, err = ctx.Providers.StorageProvider.LoadOneTimeCodeByPublicID(ctx, id); err != nil {
-		ctx.Logger.WithError(err).Error("Failed to load the elevation One-Time Code row from the database during elevation revocation.")
+	if code, err = ctx.Providers.StorageProvider.LoadOneTimeCodeByPublicID(ctx, id); err != nil {
+		ctx.Logger.WithError(err).
+			Error("Error occurred revoking user session elevation One-Time Code challenge: error occurred retrieving the code challenge from storage")
+
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
-	if otp.RevokedAt.Valid {
-		ctx.Logger.Error("Failed to revoke the One-Time Code during elevation revocation as it's already revoked.")
+	if code.RevokedAt.Valid {
+		ctx.Logger.WithError(fmt.Errorf("the code challenge has already been revoked")).Errorf("Error occurred validating user session elevation One-Time Code challenge")
+
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
-	if otp.ConsumedAt.Valid {
-		ctx.Logger.Error("Failed to revoke the One-Time Code during elevation revocation as it's consumed.")
+	if code.ConsumedAt.Valid {
+		ctx.Logger.WithError(fmt.Errorf("the code challenge has already been consumed")).Errorf("Error occurred validating user session elevation One-Time Code challenge")
+
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
-	if otp.Intent != model.OTCIntentUserSessionElevation {
-		ctx.Logger.Error("Failed to revoke the One-Time Code during elevation revocation as it doesn't have the expected intent.")
+	if code.Intent != model.OTCIntentUserSessionElevation {
+		ctx.Logger.WithError(fmt.Errorf("the code challenge has the '%s' intent but the '%s' intent is required", code.Intent, model.OTCIntentUserSessionElevation)).Errorf("Error occurred revoking user session elevation One-Time Code challenge for user")
+
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
 	if err = ctx.Providers.StorageProvider.RevokeOneTimeCode(ctx, id, model.NewIP(ctx.RemoteIP())); err != nil {
-		ctx.Logger.WithError(err).Error("Failed to save the revocation information to the database during elevation revocation.")
+		ctx.Logger.WithError(err).Errorf("Error occurred revoking user session elevation One-Time Code challenge: error occurred saving the revocation of the code being saved to storage")
+
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
