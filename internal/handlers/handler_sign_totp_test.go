@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"regexp"
 	"testing"
 
@@ -265,6 +266,203 @@ func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFi
 	s.NotEqual(
 		res[0][1],
 		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
+}
+
+func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidValue() {
+	config := model.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
+
+	gomock.InOrder(
+		s.mock.StorageMock.EXPECT().
+			LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
+			Return(&config, nil),
+		s.mock.TOTPMock.EXPECT().
+			Validate(gomock.Eq("abc"), gomock.Eq(&config)).
+			Return(false, fmt.Errorf("invalid")),
+	)
+
+	bodyBytes, err := json.Marshal(bodySignTOTPRequest{
+		Token: "abc",
+	})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	r := regexp.MustCompile("^authelia_session=(.*); path=")
+	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+
+	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
+	s.mock.Assert401KO(s.T(), "Authentication failed, please retry later.")
+
+	s.NotEqual(
+		res[0][1],
+		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
+
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Failed to perform TOTP verification", "invalid")
+}
+
+func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidBoolean() {
+	config := model.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
+
+	gomock.InOrder(
+		s.mock.StorageMock.EXPECT().
+			LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
+			Return(&config, nil),
+		s.mock.TOTPMock.EXPECT().
+			Validate(gomock.Eq("abc"), gomock.Eq(&config)).
+			Return(false, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
+				Username:   "john",
+				Successful: false,
+				Banned:     false,
+				Time:       s.mock.Clock.Now(),
+				Type:       regulation.AuthTypeTOTP,
+				RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
+			})),
+	)
+
+	bodyBytes, err := json.Marshal(bodySignTOTPRequest{
+		Token: "abc",
+	})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	r := regexp.MustCompile("^authelia_session=(.*); path=")
+	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+
+	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
+	s.mock.Assert401KO(s.T(), "Authentication failed, please retry later.")
+
+	s.NotEqual(
+		res[0][1],
+		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
+
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Unsuccessful TOTP authentication attempt by user 'john'", "")
+}
+
+func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidBooleanMarkErr() {
+	config := model.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
+
+	gomock.InOrder(
+		s.mock.StorageMock.EXPECT().
+			LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
+			Return(&config, nil),
+		s.mock.TOTPMock.EXPECT().
+			Validate(gomock.Eq("abc"), gomock.Eq(&config)).
+			Return(false, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
+				Username:   "john",
+				Successful: false,
+				Banned:     false,
+				Time:       s.mock.Clock.Now(),
+				Type:       regulation.AuthTypeTOTP,
+				RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
+			})).Return(fmt.Errorf("failed to insert")),
+	)
+
+	bodyBytes, err := json.Marshal(bodySignTOTPRequest{
+		Token: "abc",
+	})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	r := regexp.MustCompile("^authelia_session=(.*); path=")
+	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+
+	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
+	s.mock.Assert401KO(s.T(), "Authentication failed, please retry later.")
+
+	s.NotEqual(
+		res[0][1],
+		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
+
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Unable to mark TOTP authentication attempt by user 'john'", "failed to insert")
+}
+
+func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidJSON() {
+	s.mock.Ctx.Request.SetBody([]byte(`{"token:"1234"}`))
+
+	r := regexp.MustCompile("^authelia_session=(.*); path=")
+	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+
+	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
+	s.mock.Assert401KO(s.T(), "Authentication failed, please retry later.")
+
+	s.NotEqual(
+		res[0][1],
+		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
+
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Failed to parse TOTP request body", "unable to parse body: invalid character '1' after object key")
+}
+
+func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidBooleanMarkErrSuccess() {
+	config := model.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
+
+	gomock.InOrder(
+		s.mock.StorageMock.EXPECT().
+			LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
+			Return(&config, nil),
+		s.mock.TOTPMock.EXPECT().
+			Validate(gomock.Eq("abc"), gomock.Eq(&config)).
+			Return(true, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
+				Username:   "john",
+				Successful: true,
+				Banned:     false,
+				Time:       s.mock.Clock.Now(),
+				Type:       regulation.AuthTypeTOTP,
+				RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
+			})).
+			Return(fmt.Errorf("failed to insert")),
+	)
+
+	bodyBytes, err := json.Marshal(bodySignTOTPRequest{
+		Token: "abc",
+	})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	r := regexp.MustCompile("^authelia_session=(.*); path=")
+	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+
+	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
+	s.mock.Assert401KO(s.T(), "Authentication failed, please retry later.")
+
+	s.NotEqual(
+		res[0][1],
+		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
+
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Unable to mark TOTP authentication attempt by user 'john'", "failed to insert")
+}
+
+func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidConfig() {
+	gomock.InOrder(
+		s.mock.StorageMock.EXPECT().
+			LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
+			Return(nil, fmt.Errorf("not found")),
+	)
+
+	bodyBytes, err := json.Marshal(bodySignTOTPRequest{
+		Token: "abc",
+	})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	r := regexp.MustCompile("^authelia_session=(.*); path=")
+	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+
+	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
+	s.mock.Assert401KO(s.T(), "Authentication failed, please retry later.")
+
+	s.NotEqual(
+		res[0][1],
+		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
+
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Failed to load TOTP configuration", "not found")
 }
 
 func TestRunHandlerSignTOTPSuite(t *testing.T) {

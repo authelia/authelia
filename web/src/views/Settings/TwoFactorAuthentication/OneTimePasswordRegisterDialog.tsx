@@ -387,6 +387,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                             <FormControlLabel
                                 control={
                                     <Switch
+                                        id={"qr-toggle"}
                                         checked={showQRCode}
                                         onChange={() => {
                                             setShowQRCode((value) => !value);
@@ -435,7 +436,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                 </Grid>
                                 <Grid xs={12}>
                                     <TextField
-                                        id="secret-url"
+                                        id={"secret-url"}
                                         label={translate("Secret")}
                                         className={styles.secret}
                                         value={secretURL === null ? "" : secretURL}
@@ -519,13 +520,23 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                 </Grid>
             </DialogContent>
             <DialogActions>
-                <Button color={"primary"} onClick={handleSetStepPrevious} disabled={activeStep === 0}>
+                <Button
+                    id={"dialog-previous"}
+                    color={"primary"}
+                    onClick={handleSetStepPrevious}
+                    disabled={activeStep === 0}
+                >
                     {translate("Previous")}
                 </Button>
-                <Button color={"error"} onClick={handleClose}>
+                <Button id={"dialog-cancel"} color={"error"} onClick={handleClose}>
                     {translate("Cancel")}
                 </Button>
-                <Button color={"primary"} onClick={handleSetStepNext} disabled={activeStep === steps.length - 1}>
+                <Button
+                    id={"dialog-next"}
+                    color={"primary"}
+                    onClick={handleSetStepNext}
+                    disabled={activeStep === steps.length - 1}
+                >
                     {translate("Next")}
                 </Button>
             </DialogActions>

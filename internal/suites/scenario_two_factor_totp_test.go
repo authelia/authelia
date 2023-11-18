@@ -12,21 +12,18 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type TwoFactorSuite struct {
+type TwoFactorTOTPSuite struct {
 	*RodSuite
-
-	secret string
 }
 
-func New2FAScenario() *TwoFactorSuite {
-	return &TwoFactorSuite{
+func NewTwoFactorTOTPScenario() *TwoFactorTOTPSuite {
+	return &TwoFactorTOTPSuite{
 		RodSuite: NewRodSuite(""),
 	}
 }
 
-func (s *TwoFactorSuite) SetupSuite() {
-	browser, err := StartRod()
-
+func (s *TwoFactorTOTPSuite) SetupSuite() {
+	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,10 +40,10 @@ func (s *TwoFactorSuite) SetupSuite() {
 	}()
 
 	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.secret = s.doLoginAndRegisterTOTP(s.T(), s.Context(ctx), "john", "password", false)
+	s.doLoginAndRegisterTOTP(s.T(), s.Context(ctx), "john", "password", false)
 }
 
-func (s *TwoFactorSuite) TearDownSuite() {
+func (s *TwoFactorTOTPSuite) TearDownSuite() {
 	err := s.RodSession.Stop()
 
 	if err != nil {
@@ -54,17 +51,17 @@ func (s *TwoFactorSuite) TearDownSuite() {
 	}
 }
 
-func (s *TwoFactorSuite) SetupTest() {
+func (s *TwoFactorTOTPSuite) SetupTest() {
 	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Page)
 }
 
-func (s *TwoFactorSuite) TearDownTest() {
+func (s *TwoFactorTOTPSuite) TearDownTest() {
 	s.collectCoverage(s.Page)
 	s.MustClose()
 }
 
-func (s *TwoFactorSuite) TestShouldNotAuthorizeSecretBeforeTwoFactor() {
+func (s *TwoFactorTOTPSuite) TestShouldNotAuthorizeSecretBeforeTwoFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer func() {
 		cancel()
@@ -94,7 +91,7 @@ func (s *TwoFactorSuite) TestShouldNotAuthorizeSecretBeforeTwoFactor() {
 	s.verifyURLIsRegexp(s.T(), s.Context(ctx), rx)
 }
 
-func (s *TwoFactorSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
+func (s *TwoFactorTOTPSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer func() {
 		cancel()
@@ -106,7 +103,7 @@ func (s *TwoFactorSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
 
 	// Login and register TOTP, logout and login again with 1FA & 2FA.
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
-	s.doLoginTwoFactor(s.T(), s.Context(ctx), username, password, false, s.secret, targetURL)
+	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), username, password, false, targetURL)
 
 	// And check if the user is redirected to the secret.
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
@@ -120,7 +117,7 @@ func (s *TwoFactorSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
 
-func (s *TwoFactorSuite) TestShouldFailTwoFactor() {
+func (s *TwoFactorTOTPSuite) TestShouldFailTwoFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
 	defer func() {
 		cancel()
@@ -135,10 +132,10 @@ func (s *TwoFactorSuite) TestShouldFailTwoFactor() {
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "The One-Time Password might be wrong")
 }
 
-func TestRunTwoFactor(t *testing.T) {
+func TestRunTwoFactorTOTP(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
 	}
 
-	suite.Run(t, New2FAScenario())
+	suite.Run(t, NewTwoFactorTOTPScenario())
 }

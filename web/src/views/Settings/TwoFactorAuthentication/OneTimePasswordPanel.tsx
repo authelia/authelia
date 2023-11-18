@@ -196,6 +196,7 @@ const OneTimePasswordPanel = function (props: Props) {
                                     color="primary"
                                     onClick={handleRegister}
                                     disabled={registered}
+                                    id={"one-time-password-add"}
                                 >
                                     {translate("Add")}
                                 </Button>

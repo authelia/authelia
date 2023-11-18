@@ -23,11 +23,13 @@ func NewOneTimeCode(ctx Context, username string, characters int, duration time.
 		code     []byte
 	)
 
-	if publicID, err = uuid.NewRandom(); err != nil {
+	src := ctx.GetRandom()
+
+	if publicID, err = uuid.NewRandomFromReader(src); err != nil {
 		return nil, fmt.Errorf("failed to generate public id: %w", err)
 	}
 
-	if code, err = ctx.GetRandom().BytesCustomErr(characters, []byte(random.CharSetUnambiguousUpper)); err != nil {
+	if code, err = src.BytesCustomErr(characters, []byte(random.CharSetUnambiguousUpper)); err != nil {
 		return nil, fmt.Errorf("failed to generate random bytes: %w", err)
 	}
 

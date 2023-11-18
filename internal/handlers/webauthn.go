@@ -12,7 +12,13 @@ import (
 	"github.com/authelia/authelia/v4/internal/random"
 )
 
-func getWebAuthnUserByRPID(ctx *middlewares.AutheliaCtx, username, displayname string, rpid string) (user *model.WebAuthnUser, err error) {
+const (
+	WebAuthnExtensionCredProps            = "credProps"
+	WebAuthnExtensionCredPropsResidentKey = "rk"
+	WebAuthnDiscoverable                  = "discoverable"
+)
+
+func handleGetWebAuthnUserByRPID(ctx *middlewares.AutheliaCtx, username, displayname string, rpid string) (user *model.WebAuthnUser, err error) {
 	if user, err = ctx.Providers.StorageProvider.LoadWebAuthnUser(ctx, rpid, username); err != nil {
 		return nil, err
 	}
@@ -43,7 +49,7 @@ func getWebAuthnUserByRPID(ctx *middlewares.AutheliaCtx, username, displayname s
 	return user, nil
 }
 
-func newWebAuthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error) {
+func handleNewWebAuthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error) {
 	var (
 		origin *url.URL
 	)
@@ -84,33 +90,33 @@ func newWebAuthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error)
 	return webauthn.New(config)
 }
 
-func webauthnCredentialCreationIsDiscoverable(ctx *middlewares.AutheliaCtx, response *protocol.ParsedCredentialCreationData) (discoverable bool) {
-	if value, ok := response.ClientExtensionResults["credProps"]; ok {
+func handleWebAuthnCredentialCreationIsDiscoverable(ctx *middlewares.AutheliaCtx, response *protocol.ParsedCredentialCreationData) (discoverable bool) {
+	if value, ok := response.ClientExtensionResults[WebAuthnExtensionCredProps]; ok {
 		switch credentialProperties := value.(type) {
 		case map[string]any:
 			var v any
 
-			if v, ok = credentialProperties["rk"]; ok {
+			if v, ok = credentialProperties[WebAuthnExtensionCredPropsResidentKey]; ok {
 				if discoverable, ok = v.(bool); ok {
-					ctx.Logger.WithFields(map[string]any{"discoverable": discoverable}).Trace("Determined Credential Discoverability via Client Extension Results")
+					ctx.Logger.WithFields(map[string]any{WebAuthnDiscoverable: discoverable}).Trace("Determined Credential Discoverability via Client Extension Results")
 
 					return discoverable
 				} else {
-					ctx.Logger.WithFields(map[string]any{"discoverable": false}).Trace("Assuming Credential Discoverability is false as the 'rk' field for the 'credProps' extension in the Client Extension Results was not a boolean")
+					ctx.Logger.WithFields(map[string]any{WebAuthnDiscoverable: false}).Trace("Assuming Credential Discoverability is false as the 'rk' field for the 'credProps' extension in the Client Extension Results was not a boolean")
 				}
 			} else {
-				ctx.Logger.WithFields(map[string]any{"discoverable": false}).Trace("Assuming Credential Discoverability is false as the 'rk' field for the 'credProps' extension was missing from the Client Extension Results")
+				ctx.Logger.WithFields(map[string]any{WebAuthnDiscoverable: false}).Trace("Assuming Credential Discoverability is false as the 'rk' field for the 'credProps' extension was missing from the Client Extension Results")
 			}
 
 			return false
 		default:
-			ctx.Logger.WithFields(map[string]any{"discoverable": false}).Trace("Assuming Credential Discoverability is false as the 'credProps' extension in the Client Extension Results does not appear to be a dictionary")
+			ctx.Logger.WithFields(map[string]any{WebAuthnDiscoverable: false}).Trace("Assuming Credential Discoverability is false as the 'credProps' extension in the Client Extension Results does not appear to be a dictionary")
 
 			return false
 		}
 	}
 
-	ctx.Logger.WithFields(map[string]any{"discoverable": false}).Trace("Assuming Credential Discoverability is false as the 'credProps' extension is missing from the Client Extension Results")
+	ctx.Logger.WithFields(map[string]any{WebAuthnDiscoverable: false}).Trace("Assuming Credential Discoverability is false as the 'credProps' extension is missing from the Client Extension Results")
 
 	return false
 }

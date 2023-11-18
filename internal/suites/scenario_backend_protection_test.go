@@ -37,7 +37,7 @@ func (s *BackendProtectionScenario) SetupSuite() {
 }
 
 func (s *BackendProtectionScenario) AssertRequestStatusCode(method, url string, expectedStatusCode int) {
-	s.Run(url, func() {
+	s.Run(fmt.Sprintf("%s/%s", method, url), func() {
 		req, err := http.NewRequest(method, url, nil)
 		s.Assert().NoError(err)
 
@@ -49,7 +49,7 @@ func (s *BackendProtectionScenario) AssertRequestStatusCode(method, url string, 
 }
 
 func (s *BackendProtectionScenario) AssertRequestStatusCodeBody(method, url, body string, expectedStatusCode int) {
-	s.Run(url, func() {
+	s.Run(fmt.Sprintf("%s/%s", method, url), func() {
 		req, err := http.NewRequest(method, url, nil)
 		s.Assert().NoError(err)
 
@@ -88,7 +88,7 @@ func (s *BackendProtectionScenario) TestProtectionOfBackendEndpoints() {
 	s.AssertRequestStatusCode(fasthttp.MethodGet, fmt.Sprintf("%s/api/user/session/elevation", AutheliaBaseURL), fasthttp.StatusForbidden)
 	s.AssertRequestStatusCode(fasthttp.MethodPost, fmt.Sprintf("%s/api/user/session/elevation", AutheliaBaseURL), fasthttp.StatusForbidden)
 	s.AssertRequestStatusCode(fasthttp.MethodPut, fmt.Sprintf("%s/api/user/session/elevation", AutheliaBaseURL), fasthttp.StatusForbidden)
-	s.AssertRequestStatusCode(fasthttp.MethodDelete, fmt.Sprintf("%s/api/user/session/elevation/1", AutheliaBaseURL), fasthttp.StatusForbidden)
+	s.AssertRequestStatusCodeBody(fasthttp.MethodDelete, fmt.Sprintf("%s/api/user/session/elevation/1", AutheliaBaseURL), `{"status":"KO","message":"Operation failed."}`, fasthttp.StatusOK)
 	s.AssertRequestStatusCode(fasthttp.MethodGet, fmt.Sprintf("%s/api/configuration", AutheliaBaseURL), fasthttp.StatusForbidden)
 }
 

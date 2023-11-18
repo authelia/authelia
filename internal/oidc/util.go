@@ -329,10 +329,15 @@ func toStringSlice(v any) (result []string) {
 
 func toTime(v any, def time.Time) (t time.Time) {
 	switch a := v.(type) {
+	case time.Time:
+		return a
 	case float64:
+		return time.Unix(int64(a), 0).UTC()
+	case int:
 		return time.Unix(int64(a), 0).UTC()
 	case int64:
 		return time.Unix(a, 0).UTC()
+
 	default:
 		return def
 	}
