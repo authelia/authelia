@@ -76,6 +76,7 @@ const SettingsLayout = function (props: Props) {
                 {navItems.map((item) => (
                     <DrawerNavItem
                         key={item.keyname}
+                        keyname={item.keyname}
                         text={translate(item.text)}
                         pathname={item.pathname}
                         icon={item.icon}
@@ -90,16 +91,17 @@ const SettingsLayout = function (props: Props) {
             <AppBar component={"nav"}>
                 <Toolbar>
                     <IconButton
-                        edge="start"
-                        color="inherit"
-                        aria-label="open drawer"
+                        id={"settings-menu"}
+                        edge={"start"}
+                        color={"inherit"}
+                        aria-label={"open drawer"}
                         onClick={handleToggleDrawer}
                         sx={{ mr: 2 }}
                     >
                         <Menu />
                     </IconButton>
                     <Typography
-                        variant="h6"
+                        variant={"h6"}
                         component={"div"}
                         sx={{ flexGrow: 1, display: { xs: drawerOpen ? "none" : "block" } }}
                     >
@@ -134,7 +136,7 @@ const SettingsLayout = function (props: Props) {
 };
 
 interface NavItem {
-    keyname?: string;
+    keyname: string;
     text: string;
     pathname: string;
     icon?: ReactNode;
@@ -165,7 +167,7 @@ const DrawerNavItem = function (props: NavItem) {
 
     return (
         <ListItem disablePadding onClick={handleOnClick}>
-            <ListItemButton selected={selected}>
+            <ListItemButton selected={selected} id={`settings-menu-${props.keyname}`}>
                 {props.icon ? <ListItemIcon>{props.icon}</ListItemIcon> : null}
                 <ListItemText primary={props.text} />
             </ListItemButton>

@@ -1,15 +1,7 @@
 import React from "react";
 
 import { Delete } from "@mui/icons-material";
-import {
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Typography,
-} from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 interface Props {
@@ -34,13 +26,19 @@ const DeleteDialog = function (props: Props) {
         <Dialog open={props.open} onClose={handleCancel}>
             <DialogTitle>{props.title}</DialogTitle>
             <DialogContent>
-                <DialogContentText>
-                    <Typography my={2}>{props.text}</Typography>
-                </DialogContentText>
+                <DialogContentText my={2}>{props.text}</DialogContentText>
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleCancel}>{translate("Cancel")}</Button>
-                <Button variant={"outlined"} color={"error"} startIcon={<Delete />} onClick={handleDelete}>
+                <Button id={"dialog-cancel"} onClick={handleCancel}>
+                    {translate("Cancel")}
+                </Button>
+                <Button
+                    id={"dialog-delete"}
+                    variant={"outlined"}
+                    color={"error"}
+                    startIcon={<Delete />}
+                    onClick={handleDelete}
+                >
                     {translate("Remove")}
                 </Button>
             </DialogActions>

@@ -31,8 +31,7 @@ func NewStandaloneWebDriverSuite() *StandaloneWebDriverSuite {
 func (s *StandaloneWebDriverSuite) SetupSuite() {
 	s.BaseSuite.SetupSuite()
 
-	browser, err := StartRod()
-
+	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -65,7 +64,7 @@ func (s *StandaloneWebDriverSuite) TestShouldLetUserKnowHeIsAlreadyAuthenticated
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	_ = s.doRegisterAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doRegisterTOTPAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, "")
 
 	// Visit home page to change context.
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
@@ -108,7 +107,7 @@ func (s *StandaloneWebDriverSuite) TestShouldRedirectAlreadyAuthenticatedUser() 
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	_ = s.doRegisterAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doRegisterTOTPAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, "")
 
 	// Visit home page to change context.
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
@@ -129,7 +128,7 @@ func (s *StandaloneWebDriverSuite) TestShouldNotRedirectAlreadyAuthenticatedUser
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	_ = s.doRegisterAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doRegisterTOTPAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, "")
 
 	// Visit home page to change context.
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
@@ -162,7 +161,7 @@ func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() 
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-not-registered")
 
 	// Then register the TOTP factor.
-	s.doRegisterTOTP(s.T(), s.Context(ctx))
+	s.doRegisterTOTP(s.T(), s.Context(ctx), username)
 	// And logout.
 	s.doLogout(s.T(), s.Context(ctx))
 
@@ -331,8 +330,8 @@ func (s *StandaloneSuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *StandaloneSuite) Test2FAScenario() {
-	suite.Run(s.T(), New2FAScenario())
+func (s *StandaloneSuite) NewTwoFactorTOTPScenario() {
+	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 
 func (s *StandaloneSuite) TestBypassPolicyScenario() {

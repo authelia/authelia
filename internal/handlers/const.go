@@ -60,8 +60,8 @@ var (
 const (
 	messageOperationFailed                 = "Operation failed."
 	messageAuthenticationFailed            = "Authentication failed. Check your credentials."
-	messageUnableToRegisterOneTimePassword = "Unable to set up one-time passwords." //nolint:gosec
-	messageUnableToDeleteOneTimePassword   = "Unable to delete one-time password."  //nolint:gosec
+	messageUnableToRegisterOneTimePassword = "Unable to set up one-time password." //nolint:gosec
+	messageUnableToDeleteOneTimePassword   = "Unable to delete one-time password." //nolint:gosec
 	messageUnableToRegisterSecurityKey     = "Unable to register your security key."
 	messageSecurityKeyDuplicateName        = "Another one of your security keys is already registered with that display name."
 	messageUnableToResetPassword           = "Unable to reset your password."
@@ -74,12 +74,15 @@ const (
 )
 
 const (
+	logFmtActionAuthentication = "authentication"
+	logFmtActionRegistration   = "registration"
+
 	logFmtErrParseRequestBody     = "Failed to parse %s request body"
 	logFmtErrWriteResponseBody    = "Failed to write %s response body for user '%s'"
 	logFmtErrRegulationFail       = "Failed to perform %s authentication regulation for user '%s'"
 	logFmtErrSessionRegenerate    = "Could not regenerate session during %s authentication for user '%s'"
 	logFmtErrSessionReset         = "Could not reset session during %s authentication for user '%s'"
-	logFmtErrSessionSave          = "Could not save session with the %s during %s authentication for user '%s'"
+	logFmtErrSessionSave          = "Could not save session with the %s during %s %s for user '%s'"
 	logFmtErrObtainProfileDetails = "Could not obtain profile details during %s authentication for user '%s'"
 	logFmtTraceProfileDetails     = "Profile details for user '%s' => groups: %s, emails %s"
 )

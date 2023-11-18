@@ -23,8 +23,7 @@ func NewBypassAllWebDriverSuite() *BypassAllWebDriverSuite {
 func (s *BypassAllWebDriverSuite) SetupSuite() {
 	s.BaseSuite.SetupSuite()
 
-	browser, err := StartRod()
-
+	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	if err != nil {
 		log.Fatal(err)
 	}

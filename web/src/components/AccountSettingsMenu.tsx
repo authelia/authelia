@@ -46,6 +46,7 @@ const AccountSettingsMenu = function (props: Props) {
             <Box sx={{ display: "flex", alignItems: "center", textAlign: "center" }}>
                 <Tooltip title={translate("Account Settings")}>
                     <IconButton
+                        id={"account-menu"}
                         onClick={handleAccountSettingsClick}
                         size={"small"}
                         sx={{ ml: 2 }}
@@ -96,14 +97,14 @@ const AccountSettingsMenu = function (props: Props) {
                 transformOrigin={{ horizontal: "right", vertical: "top" }}
                 anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
             >
-                <MenuItem onClick={handleSettingsClick}>
+                <MenuItem onClick={handleSettingsClick} id={"account-menu-settings"}>
                     <ListItemIcon>
                         <Settings fontSize="small" />
                     </ListItemIcon>
                     Settings
                 </MenuItem>
                 <Divider />
-                <MenuItem onClick={handleLogoutClick}>
+                <MenuItem onClick={handleLogoutClick} id={"account-menu-logout"}>
                     <ListItemIcon>
                         <Logout fontSize="small" />
                     </ListItemIcon>

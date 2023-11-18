@@ -4,7 +4,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/fasthttp/session/v2"
+	session "github.com/fasthttp/session/v2"
 	"github.com/go-webauthn/webauthn/webauthn"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -62,7 +62,7 @@ type TOTP struct {
 // WebAuthn holds the standard WebAuthn session data plus some extra.
 type WebAuthn struct {
 	*webauthn.SessionData
-	Description string
+	Description string `json:"description"`
 }
 
 // Identity of the user who is being verified.

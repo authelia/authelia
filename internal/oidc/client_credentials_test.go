@@ -33,43 +33,53 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
-func TestShouldNotRaiseErrorOnEqualPasswordsPlainText(t *testing.T) {
-	hasher, err := oidc.NewHasher()
+func TestHasher_Compare(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		input    string
+		expected string
+	}{
+		{
+			"ShouldComparePlainTextEqual",
+			"$plaintext$abc",
+			"abc",
+			"",
+		},
+		{
+			"ShouldComparePlainTextEqualWithSeparator",
+			"$plaintext$abc$123",
+			"abc$123",
+			"",
+		},
+		{
+			"ShouldComparePlainTextNotEqual",
+			"$plaintext$abc",
+			"123",
+			"The provided client secret did not match the registered client secret.",
+		},
+		{
+			"ShouldCompareReturnHasherErrorBadHash",
+			"bad$abc",
+			"abc",
+			"provided encoded hash has an invalid format: the digest doesn't begin with the delimiter '$' and is not one of the other understood formats",
+		},
+	}
 
+	hasher, err := oidc.NewHasher()
 	require.NoError(t, err)
 
-	a := []byte("$plaintext$abc")
-	b := []byte(abc)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.TODO()
 
-	ctx := context.TODO()
-
-	assert.NoError(t, hasher.Compare(ctx, a, b))
-}
-
-func TestShouldNotRaiseErrorOnEqualPasswordsPlainTextWithSeparator(t *testing.T) {
-	hasher, err := oidc.NewHasher()
-
-	require.NoError(t, err)
-
-	a := []byte("$plaintext$abc$123")
-	b := []byte("abc$123")
-
-	ctx := context.TODO()
-
-	assert.NoError(t, hasher.Compare(ctx, a, b))
-}
-
-func TestShouldRaiseErrorOnNonEqualPasswordsPlainText(t *testing.T) {
-	hasher, err := oidc.NewHasher()
-
-	require.NoError(t, err)
-
-	a := []byte("$plaintext$abc")
-	b := []byte("abcd")
-
-	ctx := context.TODO()
-
-	assert.EqualError(t, hasher.Compare(ctx, a, b), "The provided client secret did not match the registered client secret.")
+			if len(tc.expected) == 0 {
+				assert.NoError(t, hasher.Compare(ctx, []byte(tc.have), []byte(tc.input)))
+			} else {
+				assert.EqualError(t, hasher.Compare(ctx, []byte(tc.have), []byte(tc.input)), tc.expected)
+			}
+		})
+	}
 }
 
 func TestShouldHashPassword(t *testing.T) {

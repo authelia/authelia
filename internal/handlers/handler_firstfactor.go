@@ -114,7 +114,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 		if keepMeLoggedIn {
 			err = provider.UpdateExpiration(ctx.RequestCtx, provider.Config.RememberMe)
 			if err != nil {
-				ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated expiration", regulation.AuthType1FA, bodyJSON.Username)
+				ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated expiration", regulation.AuthType1FA, logFmtActionAuthentication, bodyJSON.Username)
 
 				respondUnauthorized(ctx, messageAuthenticationFailed)
 
@@ -141,7 +141,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 		}
 
 		if err = ctx.SaveSession(userSession); err != nil {
-			ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated profile", regulation.AuthType1FA, bodyJSON.Username)
+			ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated profile", regulation.AuthType1FA, logFmtActionAuthentication, bodyJSON.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
