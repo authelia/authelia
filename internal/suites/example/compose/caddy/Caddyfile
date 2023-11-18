@@ -14,7 +14,7 @@
 }
 
 login.example.com:8080 {
-	tls internal
+	tls /pki/public.crt /pki/private.pem
 	log
 	route {
 		reverse_proxy /.well-known/* authelia-backend:9091 {
@@ -50,13 +50,13 @@ login.example.com:8080 {
 }
 
 mail.example.com:8080 {
-	tls internal
+	tls /pki/public.crt /pki/private.pem
 	log
 	reverse_proxy smtp:1080
 }
 
 *.example.com:8080 {
-	tls internal
+	tls /pki/public.crt /pki/private.pem
 	log
 	forward_auth authelia-backend:9091 {
 		uri /api/authz/caddy
