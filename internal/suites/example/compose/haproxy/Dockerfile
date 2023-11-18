@@ -1,4 +1,4 @@
-FROM haproxy:2.8.3-alpine
+FROM haproxy:2.8.4-alpine
 USER root
 
 RUN \
