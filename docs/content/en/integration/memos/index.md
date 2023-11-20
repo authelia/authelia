@@ -2,7 +2,7 @@
 title: "Memos"
 description: "Integrating Memos with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
-date: 2023-11-10T21:51:47+10:00
+date: 2023-11-12T21:18:09+11:00
 draft: false
 images: []
 menu:
