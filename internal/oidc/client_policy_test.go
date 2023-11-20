@@ -25,7 +25,7 @@ func TestNewClientAuthorizationPolicy(t *testing.T) {
 			&schema.IdentityProvidersOpenIDConnect{},
 			oidc.ClientAuthorizationPolicy{Name: "two_factor", DefaultPolicy: authorization.TwoFactor},
 			func(t *testing.T, actual oidc.ClientAuthorizationPolicy) {
-				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{Username: "abc"}))
+				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{Username: abc}))
 				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{Username: "john"}))
 				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{}))
 			},
@@ -61,7 +61,7 @@ func TestNewClientAuthorizationPolicy(t *testing.T) {
 				},
 			}},
 			func(t *testing.T, actual oidc.ClientAuthorizationPolicy) {
-				assert.Equal(t, authorization.Denied, actual.GetRequiredLevel(authorization.Subject{Username: "abc"}))
+				assert.Equal(t, authorization.Denied, actual.GetRequiredLevel(authorization.Subject{Username: abc}))
 				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{Username: "john"}))
 				assert.Equal(t, authorization.Denied, actual.GetRequiredLevel(authorization.Subject{}))
 			},
@@ -87,7 +87,7 @@ func TestNewClientAuthorizationPolicy(t *testing.T) {
 				},
 			}},
 			func(t *testing.T, actual oidc.ClientAuthorizationPolicy) {
-				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{Username: "abc"}))
+				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{Username: abc}))
 				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{Username: "john"}))
 				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{}))
 			},

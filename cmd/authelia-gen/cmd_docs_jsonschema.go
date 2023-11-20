@@ -308,13 +308,13 @@ func writeJSONSchema(schema *jsonschema.Schema, dir, version, file string) (err 
 		return err
 	}
 
-	if _, err = os.Stat(filepath.Join(dir, version, "json-schema")); err != nil && os.IsNotExist(err) {
-		if err = os.MkdirAll(filepath.Join(dir, version, "json-schema"), 0755); err != nil {
+	if _, err = os.Stat(filepath.Join(dir, version, dirJSONSchema)); err != nil && os.IsNotExist(err) {
+		if err = os.MkdirAll(filepath.Join(dir, version, dirJSONSchema), 0755); err != nil {
 			return err
 		}
 	}
 
-	if f, err = os.Create(filepath.Join(dir, version, "json-schema", file+".json")); err != nil {
+	if f, err = os.Create(filepath.Join(dir, version, dirJSONSchema, file+extJSON)); err != nil {
 		return err
 	}
 

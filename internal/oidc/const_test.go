@@ -31,6 +31,10 @@ const (
 	es512 = "es512"
 )
 
+const (
+	abc = "abc"
+)
+
 func MustDecodeSecret(value string) *schema.PasswordDigest {
 	if secret, err := schema.DecodePasswordDigest(value); err != nil {
 		panic(err)

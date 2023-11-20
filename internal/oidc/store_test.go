@@ -267,102 +267,102 @@ func (s *StoreSuite) TestCreateSessions() {
 	gomock.InOrder(
 		s.mock.
 			EXPECT().
-			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeAuthorizeCode, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
+			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeAuthorizeCode, model.OAuth2Session{ChallengeID: challenge, RequestID: abc, ClientID: "example", Signature: abc, Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
 			Return(nil),
 		s.mock.
 			EXPECT().
-			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeAuthorizeCode, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
+			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeAuthorizeCode, model.OAuth2Session{ChallengeID: challenge, RequestID: abc, ClientID: "example", Signature: abc, Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
 			Return(fmt.Errorf("duplicate key")),
 		s.mock.
 			EXPECT().
-			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeAccessToken, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
+			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeAccessToken, model.OAuth2Session{ChallengeID: challenge, RequestID: abc, ClientID: "example", Signature: abc, Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
 			Return(nil),
 		s.mock.
 			EXPECT().
-			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
+			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, model.OAuth2Session{ChallengeID: challenge, RequestID: abc, ClientID: "example", Signature: abc, Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
 			Return(nil),
 		s.mock.
 			EXPECT().
-			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeOpenIDConnect, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
+			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeOpenIDConnect, model.OAuth2Session{ChallengeID: challenge, RequestID: abc, ClientID: "example", Signature: abc, Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
 			Return(nil),
 		s.mock.
 			EXPECT().
-			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypePKCEChallenge, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
+			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypePKCEChallenge, model.OAuth2Session{ChallengeID: challenge, RequestID: abc, ClientID: "example", Signature: abc, Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
 			Return(nil),
 		s.mock.
 			EXPECT().
-			SaveOAuth2PARContext(s.ctx, model.OAuth2PARContext{Signature: "abc", RequestID: "abc", ClientID: "example", Session: sessionData}).
+			SaveOAuth2PARContext(s.ctx, model.OAuth2PARContext{Signature: abc, RequestID: abc, ClientID: "example", Session: sessionData}).
 			Return(nil),
 	)
 
-	s.NoError(s.store.CreateAuthorizeCodeSession(s.ctx, "abc", &fosite.Request{
-		ID: "abc",
+	s.NoError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &fosite.Request{
+		ID: abc,
 		Client: &oidc.BaseClient{
 			ID: "example",
 		},
 		Session: session,
 	}))
 
-	s.EqualError(s.store.CreateAuthorizeCodeSession(s.ctx, "abc", &fosite.Request{
-		ID: "abc",
+	s.EqualError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &fosite.Request{
+		ID: abc,
 		Client: &oidc.BaseClient{
 			ID: "example",
 		},
 		Session: session,
 	}), "duplicate key")
 
-	s.EqualError(s.store.CreateAuthorizeCodeSession(s.ctx, "abc", &fosite.Request{
-		ID: "abc",
+	s.EqualError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &fosite.Request{
+		ID: abc,
 		Client: &oidc.BaseClient{
 			ID: "example",
 		},
 		Session: nil,
 	}), "failed to create new *model.OAuth2Session: the session type OpenIDSession was expected but the type '<nil>' was used")
 
-	s.NoError(s.store.CreateAccessTokenSession(s.ctx, "abc", &fosite.Request{
-		ID: "abc",
+	s.NoError(s.store.CreateAccessTokenSession(s.ctx, abc, &fosite.Request{
+		ID: abc,
 		Client: &oidc.BaseClient{
 			ID: "example",
 		},
 		Session: session,
 	}))
 
-	s.NoError(s.store.CreateRefreshTokenSession(s.ctx, "abc", &fosite.Request{
-		ID: "abc",
+	s.NoError(s.store.CreateRefreshTokenSession(s.ctx, abc, &fosite.Request{
+		ID: abc,
 		Client: &oidc.BaseClient{
 			ID: "example",
 		},
 		Session: session,
 	}))
 
-	s.NoError(s.store.CreateOpenIDConnectSession(s.ctx, "abc", &fosite.Request{
-		ID: "abc",
+	s.NoError(s.store.CreateOpenIDConnectSession(s.ctx, abc, &fosite.Request{
+		ID: abc,
 		Client: &oidc.BaseClient{
 			ID: "example",
 		},
 		Session: session,
 	}))
 
-	s.NoError(s.store.CreatePKCERequestSession(s.ctx, "abc", &fosite.Request{
-		ID: "abc",
+	s.NoError(s.store.CreatePKCERequestSession(s.ctx, abc, &fosite.Request{
+		ID: abc,
 		Client: &oidc.BaseClient{
 			ID: "example",
 		},
 		Session: session,
 	}))
 
-	s.NoError(s.store.CreatePARSession(s.ctx, "abc", &fosite.AuthorizeRequest{
+	s.NoError(s.store.CreatePARSession(s.ctx, abc, &fosite.AuthorizeRequest{
 		Request: fosite.Request{
-			ID: "abc",
+			ID: abc,
 			Client: &oidc.BaseClient{
 				ID: "example",
 			},
 			Session: session,
 		}}))
 
-	s.EqualError(s.store.CreatePARSession(s.ctx, "abc", &fosite.AuthorizeRequest{
+	s.EqualError(s.store.CreatePARSession(s.ctx, abc, &fosite.AuthorizeRequest{
 		Request: fosite.Request{
-			ID: "abc",
+			ID: abc,
 			Client: &oidc.BaseClient{
 				ID: "example",
 			},
@@ -525,7 +525,7 @@ func (s *StoreSuite) TestGetSessions() {
 		s.mock.
 			EXPECT().
 			LoadOAuth2PARContext(s.ctx, "urn:par").
-			Return(&model.OAuth2PARContext{Signature: "abc", RequestID: "abc", ClientID: "hs256", Session: sessionData}, nil),
+			Return(&model.OAuth2PARContext{Signature: abc, RequestID: abc, ClientID: "hs256", Session: sessionData}, nil),
 		s.mock.
 			EXPECT().
 			LoadOAuth2PARContext(s.ctx, "urn:par").
@@ -570,7 +570,7 @@ func (s *StoreSuite) TestGetSessions() {
 	s.NoError(err)
 
 	r, err = s.store.GetOpenIDConnectSession(s.ctx, "ot", &fosite.Request{
-		ID: "abc",
+		ID: abc,
 		Client: &oidc.BaseClient{
 			ID: "example",
 		},

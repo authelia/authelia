@@ -45,10 +45,22 @@ const (
 )
 
 const (
+	prefixCLI = "cli-"
+)
+
+const (
 	delimiterLineFrontMatter = "---"
 
 	localeDefault          = "en"
 	localeNamespaceDefault = "portal"
+)
+
+const (
+	extJSON = ".json"
+)
+
+const (
+	dirJSONSchema = "jsonschema"
 )
 
 const (

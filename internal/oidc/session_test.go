@@ -87,8 +87,8 @@ func TestSession_GetJWTHeader(t *testing.T) {
 		},
 		{
 			"ShouldReturnWithKeyID",
-			&oidc.Session{KID: "abc", DefaultSession: openid.NewDefaultSession()},
-			&jwt.Headers{Extra: map[string]any{oidc.JWTHeaderKeyType: oidc.JWTHeaderTypeValueAccessTokenJWT, oidc.JWTHeaderKeyIdentifier: "abc"}},
+			&oidc.Session{KID: abc, DefaultSession: openid.NewDefaultSession()},
+			&jwt.Headers{Extra: map[string]any{oidc.JWTHeaderKeyType: oidc.JWTHeaderTypeValueAccessTokenJWT, oidc.JWTHeaderKeyIdentifier: abc}},
 		},
 	}
 
@@ -112,8 +112,8 @@ func TestSession_GetJWTClaims(t *testing.T) {
 		},
 		{
 			"ShouldIncludeClientID",
-			&oidc.Session{DefaultSession: openid.NewDefaultSession(), ClientID: "abc"},
-			&jwt.JWTClaims{Extra: map[string]any{oidc.ClaimClientIdentifier: "abc"}},
+			&oidc.Session{DefaultSession: openid.NewDefaultSession(), ClientID: abc},
+			&jwt.JWTClaims{Extra: map[string]any{oidc.ClaimClientIdentifier: abc}},
 		},
 		{
 			"ShouldAllowTopLevelClaims",
@@ -123,8 +123,8 @@ func TestSession_GetJWTClaims(t *testing.T) {
 					Extra:       map[string]any{"test": 1},
 				},
 				Headers: &jwt.Headers{},
-			}, Extra: map[string]any{oidc.ClaimClientIdentifier: "x", "test": 1}, ClientID: "abc", AllowedTopLevelClaims: []string{oidc.ClaimClientIdentifier}},
-			&jwt.JWTClaims{Extra: map[string]any{oidc.ClaimClientIdentifier: "abc", oidc.ClaimExtra: map[string]any{oidc.ClaimClientIdentifier: "x", "test": 1}}},
+			}, Extra: map[string]any{oidc.ClaimClientIdentifier: "x", "test": 1}, ClientID: abc, AllowedTopLevelClaims: []string{oidc.ClaimClientIdentifier}},
+			&jwt.JWTClaims{Extra: map[string]any{oidc.ClaimClientIdentifier: abc, oidc.ClaimExtra: map[string]any{oidc.ClaimClientIdentifier: "x", "test": 1}}},
 		},
 		{
 			"ShouldAllowTopLevelClaims",
@@ -134,8 +134,8 @@ func TestSession_GetJWTClaims(t *testing.T) {
 					Extra:       map[string]any{"test": 1},
 				},
 				Headers: &jwt.Headers{},
-			}, Extra: map[string]any{oidc.ClaimClientIdentifier: "x"}, ClientID: "abc", AllowedTopLevelClaims: []string{oidc.ClaimClientIdentifier, "test"}},
-			&jwt.JWTClaims{Extra: map[string]any{oidc.ClaimClientIdentifier: "abc", oidc.ClaimExtra: map[string]any{oidc.ClaimClientIdentifier: "x"}, "test": 1}},
+			}, Extra: map[string]any{oidc.ClaimClientIdentifier: "x"}, ClientID: abc, AllowedTopLevelClaims: []string{oidc.ClaimClientIdentifier, "test"}},
+			&jwt.JWTClaims{Extra: map[string]any{oidc.ClaimClientIdentifier: abc, oidc.ClaimExtra: map[string]any{oidc.ClaimClientIdentifier: "x"}, "test": 1}},
 		},
 		{
 			"ShouldNotIncludeAMR",
@@ -145,8 +145,8 @@ func TestSession_GetJWTClaims(t *testing.T) {
 					Extra:       map[string]any{oidc.ClaimAuthenticationMethodsReference: []string{oidc.AMRMultiFactorAuthentication}},
 				},
 				Headers: &jwt.Headers{},
-			}, Extra: map[string]any{}, ClientID: "abc", AllowedTopLevelClaims: []string{oidc.ClaimClientIdentifier}},
-			&jwt.JWTClaims{Extra: map[string]any{oidc.ClaimClientIdentifier: "abc"}},
+			}, Extra: map[string]any{}, ClientID: abc, AllowedTopLevelClaims: []string{oidc.ClaimClientIdentifier}},
+			&jwt.JWTClaims{Extra: map[string]any{oidc.ClaimClientIdentifier: abc}},
 		},
 		{
 			"ShouldNotIncludeAMRAbsent",
@@ -156,8 +156,8 @@ func TestSession_GetJWTClaims(t *testing.T) {
 					Extra:       map[string]any{},
 				},
 				Headers: &jwt.Headers{},
-			}, Extra: map[string]any{}, ClientID: "abc", AllowedTopLevelClaims: []string{oidc.ClaimClientIdentifier, oidc.ClaimAuthenticationMethodsReference}},
-			&jwt.JWTClaims{Extra: map[string]any{oidc.ClaimClientIdentifier: "abc"}},
+			}, Extra: map[string]any{}, ClientID: abc, AllowedTopLevelClaims: []string{oidc.ClaimClientIdentifier, oidc.ClaimAuthenticationMethodsReference}},
+			&jwt.JWTClaims{Extra: map[string]any{oidc.ClaimClientIdentifier: abc}},
 		},
 		{
 			"ShouldIncludeAMR",
@@ -168,8 +168,8 @@ func TestSession_GetJWTClaims(t *testing.T) {
 					Extra:                           map[string]any{},
 				},
 				Headers: &jwt.Headers{},
-			}, Extra: map[string]any{}, ClientID: "abc", AllowedTopLevelClaims: []string{oidc.ClaimClientIdentifier, oidc.ClaimAuthenticationMethodsReference}},
-			&jwt.JWTClaims{Extra: map[string]any{oidc.ClaimAuthenticationMethodsReference: []string{oidc.AMRMultiFactorAuthentication}, oidc.ClaimClientIdentifier: "abc"}},
+			}, Extra: map[string]any{}, ClientID: abc, AllowedTopLevelClaims: []string{oidc.ClaimClientIdentifier, oidc.ClaimAuthenticationMethodsReference}},
+			&jwt.JWTClaims{Extra: map[string]any{oidc.ClaimAuthenticationMethodsReference: []string{oidc.AMRMultiFactorAuthentication}, oidc.ClaimClientIdentifier: abc}},
 		},
 	}
 

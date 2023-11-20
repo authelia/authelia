@@ -159,7 +159,7 @@ func TestPopulateClientCredentialsFlowSessionWithAccessRequest(t *testing.T) {
 			&fosite.AccessRequest{
 				Request: fosite.Request{
 					Client: &oidc.BaseClient{
-						ID: "abc",
+						ID: abc,
 					},
 				},
 			},
@@ -174,11 +174,11 @@ func TestPopulateClientCredentialsFlowSessionWithAccessRequest(t *testing.T) {
 						Issuer:      "https://example.com",
 						IssuedAt:    time.Unix(10000000000, 0).UTC(),
 						RequestedAt: time.Unix(10000000000, 0).UTC(),
-						Subject:     "abc",
+						Subject:     abc,
 						Extra:       map[string]any{},
 					},
 				},
-				ClientID: "abc",
+				ClientID: abc,
 			},
 			"",
 		},

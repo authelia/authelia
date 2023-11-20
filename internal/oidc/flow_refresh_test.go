@@ -792,10 +792,10 @@ func TestRefreshFlowSanitizeRestoreOriginalRequest(t *testing.T) {
 			&fosite.AccessRequest{
 				Request: fosite.Request{
 					ID:           "test2",
-					GrantedScope: fosite.Arguments{"abc", "123"},
+					GrantedScope: fosite.Arguments{abc, "123"},
 				},
 			},
-			fosite.Arguments{"abc", "123"},
+			fosite.Arguments{abc, "123"},
 		},
 		{
 			"ShouldRestoreIDAndNotRestoreScopeWhenRequest",
@@ -805,7 +805,7 @@ func TestRefreshFlowSanitizeRestoreOriginalRequest(t *testing.T) {
 			&fosite.AccessRequest{
 				Request: fosite.Request{
 					ID:           "test2",
-					GrantedScope: fosite.Arguments{"abc", "123"},
+					GrantedScope: fosite.Arguments{abc, "123"},
 				},
 			},
 			fosite.Arguments(nil),

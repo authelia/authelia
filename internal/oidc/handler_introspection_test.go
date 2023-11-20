@@ -356,13 +356,13 @@ func TestIntrospectionResponse(t *testing.T) {
 				Active: true,
 				AccessRequester: &fosite.AccessRequest{
 					Request: fosite.Request{
-						ID: "abc",
+						ID: abc,
 					},
 				},
 			},
 			"client1",
 			true,
-			"abc",
+			abc,
 		},
 		{
 			"ShouldReturnNilBadResponse",
