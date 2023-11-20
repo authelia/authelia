@@ -2,7 +2,7 @@
 title: "Budibase"
 description: "Integrating Budibase with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
-date: 2023-11-12T15:50:35+00:00
+date: 2023-11-16T06:16:54+11:00
 draft: false
 images: []
 menu:

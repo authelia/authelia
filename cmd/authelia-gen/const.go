@@ -60,7 +60,7 @@ const (
 )
 
 const (
-	dirJSONSchema = "jsonschema"
+	pathJSONSchema = "json-schema"
 )
 
 const (

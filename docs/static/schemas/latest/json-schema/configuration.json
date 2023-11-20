@@ -897,7 +897,7 @@
         "totp": {
           "$ref": "#/$defs/TOTP",
           "title": "TOTP",
-          "description": "Time-based One Time Password Configuration"
+          "description": "Time-based One-Time Password Configuration"
         },
         "duo_api": {
           "$ref": "#/$defs/DuoAPI",
