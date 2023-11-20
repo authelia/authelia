@@ -45,7 +45,7 @@ func cmdBuildRun(cobraCmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	log.Debug("Creating `" + OutputDir + "` directory")
+	log.Debug("Creating `" + OutputDir + txtDirectoryTidle)
 
 	if err = os.MkdirAll(OutputDir, os.ModePerm); err != nil {
 		log.Fatal(err)
@@ -114,7 +114,7 @@ func buildAutheliaBinaryGOX(xflags []string) {
 }
 
 func buildAutheliaBinaryGO(xflags []string) {
-	cmd := utils.CommandWithStdout("go", "build", "-buildmode=pie", "-trimpath", "-o", OutputDir+"/authelia", "-ldflags", "-linkmode=external -s -w "+strings.Join(xflags, " "), "./cmd/authelia/")
+	cmd := utils.CommandWithStdout("go", "build", "-buildmode=pie", "-trimpath", "-o", OutputDir+pathAuthelia, "-ldflags", "-linkmode=external -s -w "+strings.Join(xflags, " "), "./cmd/authelia/")
 
 	cmd.Env = append(os.Environ(),
 		"CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now")
@@ -146,7 +146,7 @@ func buildFrontend(branch string) {
 }
 
 func buildSwagger() {
-	cmd := utils.CommandWithStdout("bash", "-c", "wget -q https://github.com/swagger-api/swagger-ui/archive/v"+versionSwaggerUI+".tar.gz -O ./v"+versionSwaggerUI+".tar.gz")
+	cmd := utils.CommandWithStdout("bash", "-c", "wget -q https://github.com/swagger-api/swagger-ui/archive/v"+versionSwaggerUI+".tar.gz -O ./v"+versionSwaggerUI+extTarballGzip)
 
 	err := cmd.Run()
 	if err != nil {
@@ -160,14 +160,14 @@ func buildSwagger() {
 		log.Fatal(err)
 	}
 
-	cmd = utils.CommandWithStdout("tar", "-C", "internal/server/public_html/api", "--exclude=index.html", "--strip-components=2", "-xf", "v"+versionSwaggerUI+".tar.gz", "swagger-ui-"+versionSwaggerUI+"/dist")
+	cmd = utils.CommandWithStdout("tar", "-C", "internal/server/public_html/api", "--exclude=index.html", "--strip-components=2", "-xf", "v"+versionSwaggerUI+extTarballGzip, "swagger-ui-"+versionSwaggerUI+"/dist")
 
 	err = cmd.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	cmd = utils.CommandWithStdout("rm", "./v"+versionSwaggerUI+".tar.gz")
+	cmd = utils.CommandWithStdout("rm", "./v"+versionSwaggerUI+extTarballGzip)
 
 	err = cmd.Run()
 	if err != nil {

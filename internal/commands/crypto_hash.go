@@ -34,26 +34,26 @@ func newCryptoHashCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 func newCryptoHashGenerateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	defaults := map[string]any{
-		prefixFilePassword + ".algorithm":             schema.DefaultPasswordConfig.Algorithm,
-		prefixFilePassword + ".argon2.variant":        schema.DefaultPasswordConfig.Argon2.Variant,
-		prefixFilePassword + ".argon2.iterations":     schema.DefaultPasswordConfig.Argon2.Iterations,
-		prefixFilePassword + ".argon2.memory":         schema.DefaultPasswordConfig.Argon2.Memory,
-		prefixFilePassword + ".argon2.parallelism":    schema.DefaultPasswordConfig.Argon2.Parallelism,
-		prefixFilePassword + ".argon2.key_length":     schema.DefaultPasswordConfig.Argon2.KeyLength,
-		prefixFilePassword + ".argon2.salt_length":    schema.DefaultPasswordConfig.Argon2.SaltLength,
-		prefixFilePassword + ".sha2crypt.variant":     schema.DefaultPasswordConfig.SHA2Crypt.Variant,
-		prefixFilePassword + ".sha2crypt.iterations":  schema.DefaultPasswordConfig.SHA2Crypt.Iterations,
-		prefixFilePassword + ".sha2crypt.salt_length": schema.DefaultPasswordConfig.SHA2Crypt.SaltLength,
-		prefixFilePassword + ".pbkdf2.variant":        schema.DefaultPasswordConfig.PBKDF2.Variant,
-		prefixFilePassword + ".pbkdf2.iterations":     schema.DefaultPasswordConfig.PBKDF2.Iterations,
-		prefixFilePassword + ".pbkdf2.salt_length":    schema.DefaultPasswordConfig.PBKDF2.SaltLength,
-		prefixFilePassword + ".bcrypt.variant":        schema.DefaultPasswordConfig.BCrypt.Variant,
-		prefixFilePassword + ".bcrypt.cost":           schema.DefaultPasswordConfig.BCrypt.Cost,
-		prefixFilePassword + ".scrypt.iterations":     schema.DefaultPasswordConfig.SCrypt.Iterations,
-		prefixFilePassword + ".scrypt.block_size":     schema.DefaultPasswordConfig.SCrypt.BlockSize,
-		prefixFilePassword + ".scrypt.parallelism":    schema.DefaultPasswordConfig.SCrypt.Parallelism,
-		prefixFilePassword + ".scrypt.key_length":     schema.DefaultPasswordConfig.SCrypt.KeyLength,
-		prefixFilePassword + ".scrypt.salt_length":    schema.DefaultPasswordConfig.SCrypt.SaltLength,
+		prefixFilePassword + suffixAlgorithm:           schema.DefaultPasswordConfig.Algorithm,
+		prefixFilePassword + suffixArgon2Variant:       schema.DefaultPasswordConfig.Argon2.Variant,
+		prefixFilePassword + suffixArgon2Iterations:    schema.DefaultPasswordConfig.Argon2.Iterations,
+		prefixFilePassword + suffixArgon2Memory:        schema.DefaultPasswordConfig.Argon2.Memory,
+		prefixFilePassword + suffixArgon2Parallelism:   schema.DefaultPasswordConfig.Argon2.Parallelism,
+		prefixFilePassword + suffixArgon2KeyLength:     schema.DefaultPasswordConfig.Argon2.KeyLength,
+		prefixFilePassword + suffixArgon2SaltLength:    schema.DefaultPasswordConfig.Argon2.SaltLength,
+		prefixFilePassword + suffixSHA2CryptVariant:    schema.DefaultPasswordConfig.SHA2Crypt.Variant,
+		prefixFilePassword + suffixSHA2CryptIterations: schema.DefaultPasswordConfig.SHA2Crypt.Iterations,
+		prefixFilePassword + suffixSHA2CryptSaltLength: schema.DefaultPasswordConfig.SHA2Crypt.SaltLength,
+		prefixFilePassword + suffixPBKDF2Variant:       schema.DefaultPasswordConfig.PBKDF2.Variant,
+		prefixFilePassword + suffixPBKDF2Iterations:    schema.DefaultPasswordConfig.PBKDF2.Iterations,
+		prefixFilePassword + suffixPBKDF2SaltLength:    schema.DefaultPasswordConfig.PBKDF2.SaltLength,
+		prefixFilePassword + suffixBCryptVariant:       schema.DefaultPasswordConfig.BCrypt.Variant,
+		prefixFilePassword + suffixBCryptCost:          schema.DefaultPasswordConfig.BCrypt.Cost,
+		prefixFilePassword + suffixSCryptIterations:    schema.DefaultPasswordConfig.SCrypt.Iterations,
+		prefixFilePassword + suffixSCryptBlockSize:     schema.DefaultPasswordConfig.SCrypt.BlockSize,
+		prefixFilePassword + suffixSCryptParallelism:   schema.DefaultPasswordConfig.SCrypt.Parallelism,
+		prefixFilePassword + suffixSCryptKeyLength:     schema.DefaultPasswordConfig.SCrypt.KeyLength,
+		prefixFilePassword + suffixSCryptSaltLength:    schema.DefaultPasswordConfig.SCrypt.SaltLength,
 	}
 
 	cmd = &cobra.Command{
@@ -85,26 +85,26 @@ func newCryptoHashGenerateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 func newCryptoHashGenerateSubCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
 	defaults := map[string]any{
-		prefixFilePassword + ".algorithm":             schema.DefaultPasswordConfig.Algorithm,
-		prefixFilePassword + ".argon2.variant":        schema.DefaultPasswordConfig.Argon2.Variant,
-		prefixFilePassword + ".argon2.iterations":     schema.DefaultPasswordConfig.Argon2.Iterations,
-		prefixFilePassword + ".argon2.memory":         schema.DefaultPasswordConfig.Argon2.Memory,
-		prefixFilePassword + ".argon2.parallelism":    schema.DefaultPasswordConfig.Argon2.Parallelism,
-		prefixFilePassword + ".argon2.key_length":     schema.DefaultPasswordConfig.Argon2.KeyLength,
-		prefixFilePassword + ".argon2.salt_length":    schema.DefaultPasswordConfig.Argon2.SaltLength,
-		prefixFilePassword + ".sha2crypt.variant":     schema.DefaultPasswordConfig.SHA2Crypt.Variant,
-		prefixFilePassword + ".sha2crypt.iterations":  schema.DefaultPasswordConfig.SHA2Crypt.Iterations,
-		prefixFilePassword + ".sha2crypt.salt_length": schema.DefaultPasswordConfig.SHA2Crypt.SaltLength,
-		prefixFilePassword + ".pbkdf2.variant":        schema.DefaultPasswordConfig.PBKDF2.Variant,
-		prefixFilePassword + ".pbkdf2.iterations":     schema.DefaultPasswordConfig.PBKDF2.Iterations,
-		prefixFilePassword + ".pbkdf2.salt_length":    schema.DefaultPasswordConfig.PBKDF2.SaltLength,
-		prefixFilePassword + ".bcrypt.variant":        schema.DefaultPasswordConfig.BCrypt.Variant,
-		prefixFilePassword + ".bcrypt.cost":           schema.DefaultPasswordConfig.BCrypt.Cost,
-		prefixFilePassword + ".scrypt.iterations":     schema.DefaultPasswordConfig.SCrypt.Iterations,
-		prefixFilePassword + ".scrypt.block_size":     schema.DefaultPasswordConfig.SCrypt.BlockSize,
-		prefixFilePassword + ".scrypt.parallelism":    schema.DefaultPasswordConfig.SCrypt.Parallelism,
-		prefixFilePassword + ".scrypt.key_length":     schema.DefaultPasswordConfig.SCrypt.KeyLength,
-		prefixFilePassword + ".scrypt.salt_length":    schema.DefaultPasswordConfig.SCrypt.SaltLength,
+		prefixFilePassword + suffixAlgorithm:           schema.DefaultPasswordConfig.Algorithm,
+		prefixFilePassword + suffixArgon2Variant:       schema.DefaultPasswordConfig.Argon2.Variant,
+		prefixFilePassword + suffixArgon2Iterations:    schema.DefaultPasswordConfig.Argon2.Iterations,
+		prefixFilePassword + suffixArgon2Memory:        schema.DefaultPasswordConfig.Argon2.Memory,
+		prefixFilePassword + suffixArgon2Parallelism:   schema.DefaultPasswordConfig.Argon2.Parallelism,
+		prefixFilePassword + suffixArgon2KeyLength:     schema.DefaultPasswordConfig.Argon2.KeyLength,
+		prefixFilePassword + suffixArgon2SaltLength:    schema.DefaultPasswordConfig.Argon2.SaltLength,
+		prefixFilePassword + suffixSHA2CryptVariant:    schema.DefaultPasswordConfig.SHA2Crypt.Variant,
+		prefixFilePassword + suffixSHA2CryptIterations: schema.DefaultPasswordConfig.SHA2Crypt.Iterations,
+		prefixFilePassword + suffixSHA2CryptSaltLength: schema.DefaultPasswordConfig.SHA2Crypt.SaltLength,
+		prefixFilePassword + suffixPBKDF2Variant:       schema.DefaultPasswordConfig.PBKDF2.Variant,
+		prefixFilePassword + suffixPBKDF2Iterations:    schema.DefaultPasswordConfig.PBKDF2.Iterations,
+		prefixFilePassword + suffixPBKDF2SaltLength:    schema.DefaultPasswordConfig.PBKDF2.SaltLength,
+		prefixFilePassword + suffixBCryptVariant:       schema.DefaultPasswordConfig.BCrypt.Variant,
+		prefixFilePassword + suffixBCryptCost:          schema.DefaultPasswordConfig.BCrypt.Cost,
+		prefixFilePassword + suffixSCryptIterations:    schema.DefaultPasswordConfig.SCrypt.Iterations,
+		prefixFilePassword + suffixSCryptBlockSize:     schema.DefaultPasswordConfig.SCrypt.BlockSize,
+		prefixFilePassword + suffixSCryptParallelism:   schema.DefaultPasswordConfig.SCrypt.Parallelism,
+		prefixFilePassword + suffixSCryptKeyLength:     schema.DefaultPasswordConfig.SCrypt.KeyLength,
+		prefixFilePassword + suffixSCryptSaltLength:    schema.DefaultPasswordConfig.SCrypt.SaltLength,
 	}
 
 	useFmt := fmtCryptoHashUse(use)
@@ -216,38 +216,38 @@ func (ctx *CmdCtx) CryptoHashGenerateMapFlagsRunE(cmd *cobra.Command, args []str
 	switch cmd.Use {
 	case cmdUseHashArgon2:
 		flagsMap = map[string]string{
-			cmdFlagNameVariant:     prefixFilePassword + ".argon2.variant",
-			cmdFlagNameIterations:  prefixFilePassword + ".argon2.iterations",
-			cmdFlagNameMemory:      prefixFilePassword + ".argon2.memory",
-			cmdFlagNameParallelism: prefixFilePassword + ".argon2.parallelism",
-			cmdFlagNameKeySize:     prefixFilePassword + ".argon2.key_length",
-			cmdFlagNameSaltSize:    prefixFilePassword + ".argon2.salt_length",
+			cmdFlagNameVariant:     prefixFilePassword + suffixArgon2Variant,
+			cmdFlagNameIterations:  prefixFilePassword + suffixArgon2Iterations,
+			cmdFlagNameMemory:      prefixFilePassword + suffixArgon2Memory,
+			cmdFlagNameParallelism: prefixFilePassword + suffixArgon2Parallelism,
+			cmdFlagNameKeySize:     prefixFilePassword + suffixArgon2KeyLength,
+			cmdFlagNameSaltSize:    prefixFilePassword + suffixArgon2SaltLength,
 		}
 	case cmdUseHashSHA2Crypt:
 		flagsMap = map[string]string{
-			cmdFlagNameVariant:    prefixFilePassword + ".sha2crypt.variant",
-			cmdFlagNameIterations: prefixFilePassword + ".sha2crypt.iterations",
-			cmdFlagNameSaltSize:   prefixFilePassword + ".sha2crypt.salt_length",
+			cmdFlagNameVariant:    prefixFilePassword + suffixSHA2CryptVariant,
+			cmdFlagNameIterations: prefixFilePassword + suffixSHA2CryptIterations,
+			cmdFlagNameSaltSize:   prefixFilePassword + suffixSHA2CryptSaltLength,
 		}
 	case cmdUseHashPBKDF2:
 		flagsMap = map[string]string{
-			cmdFlagNameVariant:    prefixFilePassword + ".pbkdf2.variant",
-			cmdFlagNameIterations: prefixFilePassword + ".pbkdf2.iterations",
-			cmdFlagNameKeySize:    prefixFilePassword + ".pbkdf2.key_length",
-			cmdFlagNameSaltSize:   prefixFilePassword + ".pbkdf2.salt_length",
+			cmdFlagNameVariant:    prefixFilePassword + suffixPBKDF2Variant,
+			cmdFlagNameIterations: prefixFilePassword + suffixPBKDF2Iterations,
+			cmdFlagNameKeySize:    prefixFilePassword + suffixPBKDF2KeyLength,
+			cmdFlagNameSaltSize:   prefixFilePassword + suffixPBKDF2SaltLength,
 		}
 	case cmdUseHashBCrypt:
 		flagsMap = map[string]string{
-			cmdFlagNameVariant: prefixFilePassword + ".bcrypt.variant",
-			cmdFlagNameCost:    prefixFilePassword + ".bcrypt.cost",
+			cmdFlagNameVariant: prefixFilePassword + suffixBCryptVariant,
+			cmdFlagNameCost:    prefixFilePassword + suffixBCryptCost,
 		}
 	case cmdUseHashSCrypt:
 		flagsMap = map[string]string{
-			cmdFlagNameIterations:  prefixFilePassword + ".scrypt.iterations",
-			cmdFlagNameBlockSize:   prefixFilePassword + ".scrypt.block_size",
-			cmdFlagNameParallelism: prefixFilePassword + ".scrypt.parallelism",
-			cmdFlagNameKeySize:     prefixFilePassword + ".scrypt.key_length",
-			cmdFlagNameSaltSize:    prefixFilePassword + ".scrypt.salt_length",
+			cmdFlagNameIterations:  prefixFilePassword + suffixSCryptIterations,
+			cmdFlagNameBlockSize:   prefixFilePassword + suffixSCryptBlockSize,
+			cmdFlagNameParallelism: prefixFilePassword + suffixSCryptParallelism,
+			cmdFlagNameKeySize:     prefixFilePassword + suffixSCryptKeyLength,
+			cmdFlagNameSaltSize:    prefixFilePassword + suffixSCryptSaltLength,
 		}
 	}
 

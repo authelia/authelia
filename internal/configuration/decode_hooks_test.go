@@ -1707,11 +1707,13 @@ func TestStringToX509CertificateChainHookFunc(t *testing.T) {
 }
 
 var (
+	//nolint:gosec
 	x509PrivateKeyRSABad = `
 -----BEGIN RSA PRIVATE KEY-----
 bad key
 -----END RSA PRIVATE KEY-----`
 
+	//nolint:gosec
 	x509PrivateKeyECBad = `
 -----BEGIN EC PRIVATE KEY-----
 bad key

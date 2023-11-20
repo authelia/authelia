@@ -151,9 +151,9 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
 
 	// Swagger.
-	r.HEAD("/api/", bridgeSwagger(serveOpenAPIHandler))
-	r.GET("/api/", bridgeSwagger(serveOpenAPIHandler))
-	r.OPTIONS("/api/", policyCORSPublicGET.HandleOPTIONS)
+	r.HEAD(prefixAPI, bridgeSwagger(serveOpenAPIHandler))
+	r.GET(prefixAPI, bridgeSwagger(serveOpenAPIHandler))
+	r.OPTIONS(prefixAPI, policyCORSPublicGET.HandleOPTIONS)
 
 	r.HEAD("/api/index.html", bridgeSwagger(serveOpenAPIHandler))
 	r.GET("/api/index.html", bridgeSwagger(serveOpenAPIHandler))
@@ -164,8 +164,8 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	r.OPTIONS("/api/openapi.yml", policyCORSPublicGET.HandleOPTIONS)
 
 	for _, file := range filesSwagger {
-		r.HEAD("/api/"+file, handlerPublicHTML)
-		r.GET("/api/"+file, handlerPublicHTML)
+		r.HEAD(prefixAPI+file, handlerPublicHTML)
+		r.GET(prefixAPI+file, handlerPublicHTML)
 	}
 
 	middlewareAPI := middlewares.NewBridgeBuilder(*config, providers).

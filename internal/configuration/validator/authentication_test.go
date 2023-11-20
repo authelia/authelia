@@ -536,7 +536,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenResetURLIsI
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldNotRaiseErrorWhenResetURLIsValid() {
-	suite.config.PasswordReset.CustomURL = url.URL{Scheme: "https", Host: "google.com"}
+	suite.config.PasswordReset.CustomURL = url.URL{Scheme: schemeHTTPS, Host: "google.com"}
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
@@ -545,7 +545,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldNotRaiseErrorWhenResetURL
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldConfigureDisableResetPasswordWhenCustomURL() {
-	suite.config.PasswordReset.CustomURL = url.URL{Scheme: "https", Host: "google.com"}
+	suite.config.PasswordReset.CustomURL = url.URL{Scheme: schemeHTTPS, Host: "google.com"}
 	suite.config.PasswordReset.Disable = true
 
 	suite.True(suite.config.PasswordReset.Disable)

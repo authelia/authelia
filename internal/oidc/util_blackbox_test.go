@@ -25,12 +25,12 @@ func TestSortedJSONWebKey(t *testing.T) {
 		{
 			"ShouldOrderByKID",
 			[]jose.JSONWebKey{
-				{KeyID: "abc"},
+				{KeyID: abc},
 				{KeyID: "123"},
 			},
 			[]jose.JSONWebKey{
 				{KeyID: "123"},
-				{KeyID: "abc"},
+				{KeyID: abc},
 			},
 		},
 		{

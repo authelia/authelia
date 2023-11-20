@@ -265,7 +265,7 @@ func TestJWTSecuredAuthorizationResponseModeClaims_ToFrom(t *testing.T) {
 				ExpiresAt: time.Unix(10000+10, 0).UTC(),
 				Audience:  []string{"example"},
 				Extra: map[string]any{
-					"abc": 123,
+					abc: 123,
 				},
 			},
 			map[string]any{
@@ -274,7 +274,7 @@ func TestJWTSecuredAuthorizationResponseModeClaims_ToFrom(t *testing.T) {
 				oidc.ClaimIssuedAt:       int64(10000),
 				oidc.ClaimExpirationTime: int64(10010),
 				oidc.ClaimAudience:       []string{"example"},
-				"abc":                    123,
+				abc:                      123,
 			},
 			fjwt.MapClaims{
 				oidc.ClaimJWTID:          "example",
@@ -282,7 +282,7 @@ func TestJWTSecuredAuthorizationResponseModeClaims_ToFrom(t *testing.T) {
 				oidc.ClaimIssuedAt:       int64(10000),
 				oidc.ClaimExpirationTime: int64(10010),
 				oidc.ClaimAudience:       []string{"example"},
-				"abc":                    123,
+				abc:                      123,
 			},
 		},
 	}

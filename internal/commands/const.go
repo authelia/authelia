@@ -827,6 +827,30 @@ const (
 	providerNameNotification = "notification"
 )
 
+const (
+	suffixAlgorithm           = ".algorithm"
+	suffixSHA2CryptVariant    = ".sha2crypt.variant"
+	suffixSHA2CryptIterations = ".sha2crypt.iterations"
+	suffixSHA2CryptSaltLength = ".sha2crypt.salt_length"
+	suffixPBKDF2Variant       = ".pbkdf2.variant"
+	suffixPBKDF2Iterations    = ".pbkdf2.iterations"
+	suffixPBKDF2KeyLength     = ".pbkdf2.key_length"
+	suffixPBKDF2SaltLength    = ".pbkdf2.salt_length"
+	suffixBCryptVariant       = ".bcrypt.variant"
+	suffixBCryptCost          = ".bcrypt.cost"
+	suffixSCryptIterations    = ".scrypt.iterations"
+	suffixSCryptBlockSize     = ".scrypt.block_size"
+	suffixSCryptParallelism   = ".scrypt.parallelism"
+	suffixSCryptKeyLength     = ".scrypt.key_length"
+	suffixSCryptSaltLength    = ".scrypt.salt_length"
+	suffixArgon2Variant       = ".argon2.variant"
+	suffixArgon2Iterations    = ".argon2.iterations"
+	suffixArgon2Memory        = ".argon2.memory"
+	suffixArgon2Parallelism   = ".argon2.parallelism"
+	suffixArgon2KeyLength     = ".argon2.key_length"
+	suffixArgon2SaltLength    = ".argon2.salt_length"
+)
+
 var (
 	reYAMLComment = regexp.MustCompile(`^---\n([.\n]*)`)
 )

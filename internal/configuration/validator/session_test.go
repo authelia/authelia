@@ -19,7 +19,7 @@ func newDefaultSessionConfig() schema.Configuration {
 	config.Cookies = []schema.SessionCookie{
 		{
 			Domain:      exampleDotCom,
-			AutheliaURL: &url.URL{Scheme: "https", Host: "auth.example.com"},
+			AutheliaURL: &url.URL{Scheme: schemeHTTPS, Host: "auth.example.com"},
 		},
 	}
 
@@ -96,7 +96,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 								Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
 							},
 							Domain:      exampleDotCom,
-							AutheliaURL: &url.URL{Scheme: "https", Host: "auth." + exampleDotCom},
+							AutheliaURL: &url.URL{Scheme: schemeHTTPS, Host: authdot + exampleDotCom},
 						},
 					},
 				},
@@ -113,7 +113,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 								Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
 							},
 							Domain:      exampleDotCom,
-							AutheliaURL: &url.URL{Scheme: "https", Host: "auth." + exampleDotCom},
+							AutheliaURL: &url.URL{Scheme: schemeHTTPS, Host: authdot + exampleDotCom},
 						},
 					},
 				},
@@ -134,14 +134,14 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 					Cookies: []schema.SessionCookie{
 						{
 							Domain:      exampleDotCom,
-							AutheliaURL: &url.URL{Scheme: "https", Host: "auth." + exampleDotCom},
+							AutheliaURL: &url.URL{Scheme: schemeHTTPS, Host: authdot + exampleDotCom},
 						},
 						{
 							SessionCookieCommon: schema.SessionCookieCommon{
 								Name: "authelia_session", SameSite: "strict",
 							},
 							Domain:      "example2.com",
-							AutheliaURL: &url.URL{Scheme: "https", Host: "auth.example2.com"},
+							AutheliaURL: &url.URL{Scheme: schemeHTTPS, Host: "auth.example2.com"},
 						},
 					},
 				},
@@ -159,7 +159,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 								Expiration: time.Hour, Inactivity: time.Minute, RememberMe: schema.RememberMeDisabled, DisableRememberMe: true,
 							},
 							Domain:      exampleDotCom,
-							AutheliaURL: &url.URL{Scheme: "https", Host: "auth." + exampleDotCom},
+							AutheliaURL: &url.URL{Scheme: schemeHTTPS, Host: authdot + exampleDotCom},
 						},
 						{
 							SessionCookieCommon: schema.SessionCookieCommon{
@@ -167,7 +167,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 								Expiration: time.Hour, Inactivity: time.Minute, RememberMe: schema.RememberMeDisabled, DisableRememberMe: true,
 							},
 							Domain:      "example2.com",
-							AutheliaURL: &url.URL{Scheme: "https", Host: "auth.example2.com"},
+							AutheliaURL: &url.URL{Scheme: schemeHTTPS, Host: "auth.example2.com"},
 						},
 					},
 				},
@@ -833,7 +833,7 @@ func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {
 			}
 
 			if tc.have != "" {
-				config.Session.Cookies[0].AutheliaURL = &url.URL{Scheme: "https", Host: "auth." + tc.have}
+				config.Session.Cookies[0].AutheliaURL = &url.URL{Scheme: schemeHTTPS, Host: authdot + tc.have}
 			}
 
 			ValidateSession(&config, validator)
