@@ -2,6 +2,7 @@
   "name": "authelia",
   "version": "4.37.5",
   "private": true,
+  "type": "module",
   "pnpm": {
     "overrides": {
       "@babel/traverse": "7.23.2",
