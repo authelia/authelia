@@ -40,7 +40,7 @@ func validateOIDC(config *schema.IdentityProvidersOpenIDConnect, validator *sche
 	case config.MinimumParameterEntropy <= 0:
 		config.MinimumParameterEntropy = fosite.MinParameterEntropy
 	case config.MinimumParameterEntropy < fosite.MinParameterEntropy:
-		validator.PushWarning(fmt.Errorf(errFmtOIDCProviderInsecureParameterEntropy, fosite.MinParameterEntropy, config.MinimumParameterEntropy))
+		validator.PushWarning(fmt.Errorf(errFmtOIDCProviderInsecureParameterEntropyUnsafe, fosite.MinParameterEntropy, config.MinimumParameterEntropy))
 	}
 
 	switch config.EnforcePKCE {

@@ -23,7 +23,7 @@ func newCleanCmd() (cmd *cobra.Command) {
 }
 
 func cmdCleanRun(_ *cobra.Command, _ []string) {
-	log.Debug("Removing `" + OutputDir + "` directory")
+	log.Debug("Removing `" + OutputDir + txtDirectoryTidle)
 	err := os.RemoveAll(OutputDir)
 
 	if err != nil {

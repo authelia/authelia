@@ -182,7 +182,7 @@ func TestKeyManager(t *testing.T) {
 	assert.EqualError(t, err, "error getting jwk from token string: token is malformed: token contains an invalid number of segments")
 	assert.Nil(t, token)
 
-	sum, err = manager.Hash(ctx, []byte("abc"))
+	sum, err = manager.Hash(ctx, []byte(abc))
 	assert.NoError(t, err)
 	assert.Equal(t, "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", fmt.Sprintf("%x", sum))
 

@@ -39,7 +39,7 @@ func TestShouldNotRaiseErrorOnEqualPasswordsPlainText(t *testing.T) {
 	require.NoError(t, err)
 
 	a := []byte("$plaintext$abc")
-	b := []byte("abc")
+	b := []byte(abc)
 
 	ctx := context.TODO()
 
@@ -75,7 +75,7 @@ func TestShouldRaiseErrorOnNonEqualPasswordsPlainText(t *testing.T) {
 func TestShouldHashPassword(t *testing.T) {
 	hasher := oidc.Hasher{}
 
-	data := []byte("abc")
+	data := []byte(abc)
 
 	ctx := context.TODO()
 
@@ -1484,7 +1484,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateJWTWithArbitraryCl
 	assertion := NewAssertion("hs512", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
 
 	a := assertion.ToMapClaims()
-	a["aaa"] = "abc"
+	a["aaa"] = abc
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodHS512, a)
 
@@ -2418,8 +2418,8 @@ func TestPKCEHandler_HandleAuthorizeEndpointRequest(t *testing.T) {
 			true,
 			false,
 			true,
-			"abc",
-			"abc",
+			abc,
+			abc,
 			"abc123",
 			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The code_challenge_method is not supported, use S256 instead.",
 			client,
