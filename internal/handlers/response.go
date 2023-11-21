@@ -268,17 +268,17 @@ func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, ba
 		requestURI, requestMethod string
 	)
 
-	referer := ctx.Request.Header.Referer()
-	if referer != nil {
-		refererURL, err := url.ParseRequestURI(string(referer))
-		if err == nil {
+	if referer := ctx.Request.Header.Referer(); referer != nil {
+		var refererURL *url.URL
+
+		if refererURL, err = url.ParseRequestURI(string(referer)); err == nil {
 			requestURI = refererURL.Query().Get(queryArgRD)
 			requestMethod = refererURL.Query().Get(queryArgRM)
 		}
 	}
 
 	if err = ctx.Providers.Regulator.Mark(ctx, successful, bannedUntil != nil, username, requestURI, requestMethod, authType); err != nil {
-		ctx.Logger.Errorf("Unable to mark %s authentication attempt by user '%s': %+v", authType, username, err)
+		ctx.Logger.WithError(err).Errorf("Unable to mark %s authentication attempt by user '%s'", authType, username)
 
 		return err
 	}
@@ -288,7 +288,7 @@ func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, ba
 	} else {
 		switch {
 		case errAuth != nil:
-			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s': %+v", authType, username, errAuth)
+			ctx.Logger.WithError(errAuth).Errorf("Unsuccessful %s authentication attempt by user '%s'", authType, username)
 		case bannedUntil != nil:
 			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s' and they are banned until %s", authType, username, bannedUntil)
 		default:
