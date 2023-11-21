@@ -19,7 +19,7 @@ import (
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/go-crypt/crypt/algorithm/plaintext"
 	"github.com/valyala/fasthttp"
-	yaml "gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v3"
 )
 
 var cdecoder algorithm.DecoderRegister
@@ -401,6 +401,75 @@ func (c *X509CertificateChain) Validate() (err error) {
 	}
 
 	return nil
+}
+
+// NewRefreshIntervalDuration returns a RefreshIntervalDuration given a time.Duration.
+func NewRefreshIntervalDuration(value time.Duration) RefreshIntervalDuration {
+	return RefreshIntervalDuration{value: value, valid: true}
+}
+
+// NewRefreshIntervalDurationAlways returns a RefreshIntervalDuration with an always value.
+func NewRefreshIntervalDurationAlways() RefreshIntervalDuration {
+	return RefreshIntervalDuration{valid: true, always: true}
+}
+
+// NewRefreshIntervalDurationNever returns a RefreshIntervalDuration with a never value.
+func NewRefreshIntervalDurationNever() RefreshIntervalDuration {
+	return RefreshIntervalDuration{valid: true, never: true}
+}
+
+// RefreshIntervalDuration is a special time.Duration for the refresh interval.
+type RefreshIntervalDuration struct {
+	value  time.Duration
+	valid  bool
+	always bool
+	never  bool
+}
+
+// Valid returns true if the value was correctly newed up.
+func (d RefreshIntervalDuration) Valid() bool {
+	return d.valid
+}
+
+// Update returns true if the session could require updates.
+func (d RefreshIntervalDuration) Update() bool {
+	return !d.never && !d.always
+}
+
+// Always returns true if the interval is always.
+func (d RefreshIntervalDuration) Always() bool {
+	return d.always
+}
+
+// Never returns true if the interval is never.
+func (d RefreshIntervalDuration) Never() bool {
+	return d.never
+}
+
+// Value returns the time.Duration.
+func (d RefreshIntervalDuration) Value() time.Duration {
+	return d.value
+}
+
+// JSONSchema provides the json-schema formatting.
+func (RefreshIntervalDuration) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		Default: "5 minutes",
+		OneOf: []*jsonschema.Schema{
+			{
+				Type: jsonschema.TypeString,
+				Enum: []any{"always", "never"},
+			},
+			{
+				Type:    jsonschema.TypeString,
+				Pattern: `^\d+\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\s*\d+\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$`,
+			},
+			{
+				Type:        jsonschema.TypeInteger,
+				Description: "The duration in seconds",
+			},
+		},
+	}
 }
 
 type AccessControlRuleNetworks []string

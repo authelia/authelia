@@ -1,18 +1,15 @@
 package handlers
 
 import (
-	"time"
-
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewAuthzBuilder creates a new AuthzBuilder.
 func NewAuthzBuilder() *AuthzBuilder {
 	return &AuthzBuilder{
-		config: AuthzConfig{RefreshInterval: time.Second * -1},
+		config: AuthzConfig{RefreshInterval: schema.NewRefreshIntervalDurationAlways()},
 	}
 }
 
@@ -62,19 +59,8 @@ func (b *AuthzBuilder) WithConfig(config *schema.Configuration) *AuthzBuilder {
 		return b
 	}
 
-	var refreshInterval time.Duration
-
-	switch config.AuthenticationBackend.RefreshInterval {
-	case schema.ProfileRefreshDisabled:
-		refreshInterval = time.Second * -1
-	case schema.ProfileRefreshAlways:
-		refreshInterval = time.Second * 0
-	default:
-		refreshInterval, _ = utils.ParseDurationString(config.AuthenticationBackend.RefreshInterval)
-	}
-
 	b.config = AuthzConfig{
-		RefreshInterval: refreshInterval,
+		RefreshInterval: config.AuthenticationBackend.RefreshInterval,
 	}
 
 	return b

@@ -14,31 +14,31 @@ func TestAuthzBuilder_WithConfig(t *testing.T) {
 
 	builder.WithConfig(&schema.Configuration{
 		AuthenticationBackend: schema.AuthenticationBackend{
-			RefreshInterval: "always",
+			RefreshInterval: schema.NewRefreshIntervalDurationAlways(),
 		},
 	})
 
-	assert.Equal(t, time.Second*0, builder.config.RefreshInterval)
+	assert.Equal(t, schema.NewRefreshIntervalDurationAlways(), builder.config.RefreshInterval)
 
 	builder.WithConfig(&schema.Configuration{
 		AuthenticationBackend: schema.AuthenticationBackend{
-			RefreshInterval: "disable",
+			RefreshInterval: schema.NewRefreshIntervalDurationNever(),
 		},
 	})
 
-	assert.Equal(t, time.Second*-1, builder.config.RefreshInterval)
+	assert.Equal(t, schema.NewRefreshIntervalDurationNever(), builder.config.RefreshInterval)
 
 	builder.WithConfig(&schema.Configuration{
 		AuthenticationBackend: schema.AuthenticationBackend{
-			RefreshInterval: "1m",
+			RefreshInterval: schema.NewRefreshIntervalDuration(time.Minute),
 		},
 	})
 
-	assert.Equal(t, time.Minute, builder.config.RefreshInterval)
+	assert.Equal(t, schema.NewRefreshIntervalDuration(time.Minute), builder.config.RefreshInterval)
 
 	builder.WithConfig(nil)
 
-	assert.Equal(t, time.Minute, builder.config.RefreshInterval)
+	assert.Equal(t, schema.NewRefreshIntervalDuration(time.Minute), builder.config.RefreshInterval)
 }
 
 func TestAuthzBuilder_WithEndpointConfig(t *testing.T) {

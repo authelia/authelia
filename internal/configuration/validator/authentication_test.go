@@ -65,6 +65,19 @@ func (suite *FileBasedAuthenticationBackend) TestShouldValidateCompleteConfigura
 	suite.Len(suite.validator.Errors(), 0)
 }
 
+func (suite *FileBasedAuthenticationBackend) TestShouldValidateWatchDefaultResetInterval() {
+	suite.config.File.Watch = true
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Len(suite.validator.Errors(), 0)
+
+	suite.True(suite.config.RefreshInterval.Valid())
+	suite.True(suite.config.RefreshInterval.Always())
+	suite.False(suite.config.RefreshInterval.Never())
+}
+
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenNoPathProvided() {
 	suite.config.File.Path = ""
 
@@ -751,17 +764,6 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldNotRaiseOnEmptyUsernameAt
 	suite.Len(suite.validator.Errors(), 0)
 }
 
-func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseOnBadRefreshInterval() {
-	suite.config.RefreshInterval = "blah"
-
-	ValidateAuthenticationBackend(&suite.config, suite.validator)
-
-	suite.Len(suite.validator.Warnings(), 0)
-	suite.Require().Len(suite.validator.Errors(), 1)
-
-	suite.EqualError(suite.validator.Errors()[0], "authentication_backend: option 'refresh_interval' is configured to 'blah' but it must be either in duration common syntax or one of 'disable', or 'always': could not parse 'blah' as a duration")
-}
-
 func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultImplementation() {
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
@@ -820,7 +822,10 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultRefreshInterval
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Len(suite.validator.Errors(), 0)
 
-	suite.Equal("5m", suite.config.RefreshInterval)
+	suite.Require().NotNil(suite.config.RefreshInterval)
+	suite.False(suite.config.RefreshInterval.Always())
+	suite.False(suite.config.RefreshInterval.Never())
+	suite.Equal(time.Minute*5, suite.config.RefreshInterval.Value())
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseWhenUsersFilterDoesNotContainEnclosingParenthesis() {

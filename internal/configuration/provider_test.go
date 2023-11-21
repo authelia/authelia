@@ -86,6 +86,24 @@ func TestShouldHaveNotifier(t *testing.T) {
 	assert.NotNil(t, config.Notifier)
 }
 
+func TestShouldConfigureRefreshIntervalDisable(t *testing.T) {
+	testSetEnv(t, "SESSION_SECRET", "abc")
+	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")
+	testSetEnv(t, "JWT_SECRET", "abc")
+	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
+
+	val := schema.NewStructValidator()
+	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	require.NotNil(t, config.AuthenticationBackend.RefreshInterval)
+	assert.True(t, config.AuthenticationBackend.RefreshInterval.Never())
+	assert.False(t, config.AuthenticationBackend.RefreshInterval.Always())
+}
+
 func TestShouldParseLargeIntegerDurations(t *testing.T) {
 	val := schema.NewStructValidator()
 	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.durations.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
@@ -96,6 +114,11 @@ func TestShouldParseLargeIntegerDurations(t *testing.T) {
 
 	assert.Equal(t, durationMax, config.Regulation.FindTime)
 	assert.Equal(t, time.Second*1000, config.Regulation.BanTime)
+
+	require.NotNil(t, config.AuthenticationBackend.RefreshInterval)
+	assert.Equal(t, false, config.AuthenticationBackend.RefreshInterval.Always())
+	assert.Equal(t, false, config.AuthenticationBackend.RefreshInterval.Never())
+	assert.Equal(t, time.Minute*5, config.AuthenticationBackend.RefreshInterval.Value())
 }
 
 func TestShouldValidateConfigurationWithEnv(t *testing.T) {
@@ -669,6 +692,41 @@ func TestShouldDecodeSMTPSenderWithName(t *testing.T) {
 	assert.Equal(t, "Admin", config.Notifier.SMTP.Sender.Name)
 	assert.Equal(t, "admin@example.com", config.Notifier.SMTP.Sender.Address)
 	assert.Equal(t, schema.RememberMeDisabled, config.Session.RememberMe)
+}
+
+func TestShouldConfigureRefreshIntervalAlways(t *testing.T) {
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_alt.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	require.NotNil(t, config.AuthenticationBackend.RefreshInterval)
+	assert.False(t, config.AuthenticationBackend.RefreshInterval.Never())
+	assert.True(t, config.AuthenticationBackend.RefreshInterval.Always())
+}
+
+func TestShouldConfigureRefreshIntervalDefault(t *testing.T) {
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.no-refresh.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	validator.ValidateAuthenticationBackend(&config.AuthenticationBackend, val)
+
+	require.NotNil(t, config.AuthenticationBackend.RefreshInterval)
+	assert.False(t, config.AuthenticationBackend.RefreshInterval.Always())
+	assert.False(t, config.AuthenticationBackend.RefreshInterval.Never())
+	assert.Equal(t, time.Minute*5, config.AuthenticationBackend.RefreshInterval.Value())
 }
 
 func TestShouldParseRegex(t *testing.T) {
