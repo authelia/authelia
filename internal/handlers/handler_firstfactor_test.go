@@ -75,7 +75,8 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 	}`)
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
-	assert.Equal(s.T(), "Unsuccessful 1FA authentication attempt by user 'test': failed", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Unsuccessful 1FA authentication attempt by user 'test'", s.mock.Hook.LastEntry().Message)
+	assert.EqualError(s.T(), s.mock.Hook.LastEntry().Data["error"].(error), "failed")
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
@@ -176,7 +177,8 @@ func (s *FirstFactorSuite) TestShouldFailIfAuthenticationMarkFail() {
 	}`)
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
-	assert.Equal(s.T(), "Unable to mark 1FA authentication attempt by user 'test': failed", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Unable to mark 1FA authentication attempt by user 'test'", s.mock.Hook.LastEntry().Message)
+	assert.EqualError(s.T(), s.mock.Hook.LastEntry().Data["error"].(error), "failed")
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
