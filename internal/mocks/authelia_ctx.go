@@ -74,6 +74,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 		},
 	}
 
+	config.AuthenticationBackend.RefreshInterval = schema.NewRefreshIntervalDuration(schema.RefreshIntervalDefault)
 	config.AccessControl = schema.AccessControl{
 		DefaultPolicy: "deny",
 		Rules: []schema.AccessControlRule{

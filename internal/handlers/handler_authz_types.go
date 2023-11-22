@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"net/url"
-	"time"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/session"
 )
@@ -75,7 +75,7 @@ type Authn struct {
 
 // AuthzConfig represents the configuration elements of the Authz type.
 type AuthzConfig struct {
-	RefreshInterval time.Duration
+	RefreshInterval schema.RefreshIntervalDuration
 
 	// StatusCodeBadRequest is sent for configuration issues prior to performing authorization checks. It's set by the
 	// builder.

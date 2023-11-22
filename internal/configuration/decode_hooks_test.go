@@ -559,6 +559,277 @@ func TestToTimeDurationHookFuncPointer(t *testing.T) {
 	}
 }
 
+func TestToRefreshIntervalDurationHookFunc(t *testing.T) {
+	testCases := []struct {
+		desc   string
+		have   any
+		want   any
+		err    string
+		decode bool
+	}{
+		{
+			desc:   "ShouldDecodeFourtyFiveSeconds",
+			have:   "45s",
+			want:   schema.NewRefreshIntervalDuration(time.Second * 45),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeOneMinute",
+			have:   "1m",
+			want:   schema.NewRefreshIntervalDuration(time.Minute),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeTwoHours",
+			have:   "2h",
+			want:   schema.NewRefreshIntervalDuration(time.Hour * 2),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeThreeDays",
+			have:   "3d",
+			want:   schema.NewRefreshIntervalDuration(time.Hour * 24 * 3),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeFourWeeks",
+			have:   "4w",
+			want:   schema.NewRefreshIntervalDuration(time.Hour * 24 * 7 * 4),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeFiveMonths",
+			have:   "5M",
+			want:   schema.NewRefreshIntervalDuration(time.Hour * 24 * 30 * 5),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeSixYears",
+			have:   "6y",
+			want:   schema.NewRefreshIntervalDuration(time.Hour * 24 * 365 * 6),
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotDecodeInvalidString",
+			have:   "abc",
+			want:   schema.RefreshIntervalDuration{},
+			err:    "could not decode 'abc' to a schema.RefreshIntervalDuration: could not parse 'abc' as a duration",
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeIntToSeconds",
+			have:   60,
+			want:   schema.NewRefreshIntervalDuration(time.Second * 60),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeInt8ToSeconds",
+			have:   int8(90),
+			want:   schema.NewRefreshIntervalDuration(time.Second * 90),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeInt16ToSeconds",
+			have:   int16(90),
+			want:   schema.NewRefreshIntervalDuration(time.Second * 90),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeInt32ToSeconds",
+			have:   int32(90),
+			want:   schema.NewRefreshIntervalDuration(time.Second * 90),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeFloat64ToSeconds",
+			have:   float64(90),
+			want:   schema.NewRefreshIntervalDuration(time.Second * 90),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeFloat64ToSeconds",
+			have:   math.MaxFloat64,
+			want:   schema.NewRefreshIntervalDuration(time.Duration(math.MaxInt64)),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeInt64ToSeconds",
+			have:   int64(120),
+			want:   schema.NewRefreshIntervalDuration(time.Second * 120),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeTimeDuration",
+			have:   time.Second * 30,
+			want:   schema.NewRefreshIntervalDuration(time.Second * 30),
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotDecodeToString",
+			have:   int64(30),
+			want:   "",
+			decode: false,
+		},
+		{
+			desc:   "ShouldDecodeFromIntZero",
+			have:   0,
+			want:   schema.NewRefreshIntervalDuration(time.Duration(0)),
+			decode: true,
+		},
+		{
+			desc:   "ShouldSkipParsingBoolean",
+			have:   true,
+			want:   schema.RefreshIntervalDuration{},
+			decode: false,
+		},
+		{
+			desc: "ShouldNotDecodeFromBool",
+			have: true,
+			want: true,
+		},
+	}
+
+	hook := configuration.ToRefreshIntervalDurationHookFunc()
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+			switch {
+			case !tc.decode:
+				assert.NoError(t, err)
+				assert.Equal(t, tc.have, result)
+			case tc.err == "":
+				assert.NoError(t, err)
+				require.Equal(t, tc.want, result)
+			default:
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, result)
+			}
+		})
+	}
+}
+
+func TestTestToRefreshIntervalDurationHookFuncPointer(t *testing.T) {
+	testCases := []struct {
+		desc   string
+		have   any
+		want   any
+		err    string
+		decode bool
+	}{
+		{
+			desc:   "ShouldDecodeFourtyFiveSeconds",
+			have:   "45s",
+			want:   testRefreshIntervalDurationPtr(time.Second * 45),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeOneMinute",
+			have:   "1m",
+			want:   testRefreshIntervalDurationPtr(time.Minute),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeTwoHours",
+			have:   "2h",
+			want:   testRefreshIntervalDurationPtr(time.Hour * 2),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeThreeDays",
+			have:   "3d",
+			want:   testRefreshIntervalDurationPtr(time.Hour * 24 * 3),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeFourWeeks",
+			have:   "4w",
+			want:   testRefreshIntervalDurationPtr(time.Hour * 24 * 7 * 4),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeFiveMonths",
+			have:   "5M",
+			want:   testRefreshIntervalDurationPtr(time.Hour * 24 * 30 * 5),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeSixYears",
+			have:   "6y",
+			want:   testRefreshIntervalDurationPtr(time.Hour * 24 * 365 * 6),
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotDecodeInvalidString",
+			have:   "abc",
+			want:   testRefreshIntervalDurationPtr(time.Duration(0)),
+			err:    "could not decode 'abc' to a *schema.RefreshIntervalDuration: could not parse 'abc' as a duration",
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeIntToSeconds",
+			have:   60,
+			want:   testRefreshIntervalDurationPtr(time.Second * 60),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeInt32ToSeconds",
+			have:   int32(90),
+			want:   testRefreshIntervalDurationPtr(time.Second * 90),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeInt64ToSeconds",
+			have:   int64(120),
+			want:   testRefreshIntervalDurationPtr(time.Second * 120),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeTimeDuration",
+			have:   time.Second * 30,
+			want:   testRefreshIntervalDurationPtr(time.Second * 30),
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotDecodeToString",
+			have:   int64(30),
+			want:   &testString,
+			decode: false,
+		},
+		{
+			desc:   "ShouldDecodeFromIntZero",
+			have:   0,
+			want:   testRefreshIntervalDurationPtr(time.Duration(0)),
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotDecodeFromBool",
+			have:   true,
+			want:   &testTrue,
+			decode: false,
+		},
+	}
+
+	hook := configuration.ToRefreshIntervalDurationHookFunc()
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+			switch {
+			case !tc.decode:
+				assert.NoError(t, err)
+				assert.Equal(t, tc.have, result)
+			case tc.err == "":
+				assert.NoError(t, err)
+				require.Equal(t, tc.want, result)
+			default:
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, result)
+			}
+		})
+	}
+}
+
 func TestStringToRegexpFunc(t *testing.T) {
 	testCases := []struct {
 		desc     string
@@ -1799,6 +2070,12 @@ func testInt32Ptr(i int32) *int32 {
 
 func testTimeDurationPtr(t time.Duration) *time.Duration {
 	return &t
+}
+
+func testRefreshIntervalDurationPtr(t time.Duration) *schema.RefreshIntervalDuration {
+	x := schema.NewRefreshIntervalDuration(t)
+
+	return &x
 }
 
 var (

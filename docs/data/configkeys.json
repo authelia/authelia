@@ -145,6 +145,16 @@
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_REFRESH_INTERVAL"
     },
     {
+        "path": "authentication_backend.refresh_interval",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_REFRESH_INTERVAL"
+    },
+    {
+        "path": "authentication_backend.refresh_interval",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_REFRESH_INTERVAL"
+    },
+    {
         "path": "authentication_backend.file.path",
         "secret": false,
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PATH"

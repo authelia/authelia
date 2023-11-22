@@ -10,7 +10,7 @@ import (
 type AuthenticationBackend struct {
 	PasswordReset AuthenticationBackendPasswordReset `koanf:"password_reset" json:"password_reset" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behaviour"`
 
-	RefreshInterval string `koanf:"refresh_interval" json:"refresh_interval" jsonschema:"title=Refresh Interval" jsonschema_description:"How frequently the user details are refreshed from the backend"`
+	RefreshInterval RefreshIntervalDuration `koanf:"refresh_interval" json:"refresh_interval" jsonschema:"default=5 minutes,title=Refresh Interval" jsonschema_description:"How frequently the user details are refreshed from the backend"`
 
 	// The file authentication backend configuration.
 	File *AuthenticationBackendFile `koanf:"file" json:"file" jsonschema:"title=File Backend" jsonschema_description:"The file authentication backend configuration"`
@@ -139,6 +139,10 @@ type AuthenticationBackendLDAPAttributes struct {
 	Mail              string `koanf:"mail" json:"mail" jsonschema:"title=Attribute: User Mail" jsonschema_description:"The directory server attribute which contains the mail address for all users and groups"`
 	MemberOf          string `koanf:"member_of" jsonschema:"title=Attribute: Member Of" jsonschema_description:"The directory server attribute which contains the objects that an object is a member of"`
 	GroupName         string `koanf:"group_name" json:"group_name" jsonschema:"title=Attribute: Group Name" jsonschema_description:"The directory server attribute which contains the group name for all groups"`
+}
+
+var DefaultAuthenticationBackendConfig = AuthenticationBackend{
+	RefreshInterval: NewRefreshIntervalDuration(time.Minute * 5),
 }
 
 // DefaultPasswordConfig represents the default configuration related to Argon2id hashing.

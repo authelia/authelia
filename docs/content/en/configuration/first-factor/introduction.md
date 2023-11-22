@@ -41,8 +41,15 @@ This section describes the individual configuration options.
 
 {{< confkey type="string,integer" syntax="duration" default="5 minutes" required="no">}}
 
-This setting controls the interval at which details are refreshed from the backend. Particularly useful for
-[LDAP](#ldap).
+_**Note:** when using the [File Provider](#file) this value has a default value of `always` as the cost in this
+scenario is basically not measurable, users can however override this setting by setting an explicit value._
+
+This setting controls the interval at which details are refreshed from the backend. The details refreshed in order of
+importance are the groups, email address, and display name. This is particularly useful for the [File Provider](#file)
+when [watch](file.md#watch) is enabled or generally with the [LDAP Provider](#ldap).
+
+In addition to the duration values this option accepts `always` and `disable` as values; where `always` will always
+refresh this value, and `disable` will never refresh the profile.
 
 ### password_reset
 

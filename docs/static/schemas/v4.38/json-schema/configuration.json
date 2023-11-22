@@ -329,7 +329,7 @@
           "description": "Allows configuration of the password reset behaviour"
         },
         "refresh_interval": {
-          "type": "string",
+          "$ref": "#/$defs/RefreshIntervalDuration",
           "title": "Refresh Interval",
           "description": "How frequently the user details are refreshed from the backend"
         },
@@ -2251,6 +2251,26 @@
       "additionalProperties": false,
       "type": "object",
       "description": "PrivacyPolicy is the privacy policy configuration."
+    },
+    "RefreshIntervalDuration": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "always",
+            "never"
+          ]
+        },
+        {
+          "type": "string",
+          "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+        },
+        {
+          "type": "integer",
+          "description": "The duration in seconds"
+        }
+      ],
+      "default": "5 minutes"
     },
     "Regulation": {
       "properties": {

@@ -20,14 +20,9 @@ import (
 )
 
 // NewCookieSessionAuthnStrategy creates a new CookieSessionAuthnStrategy.
-func NewCookieSessionAuthnStrategy(refreshInterval time.Duration) *CookieSessionAuthnStrategy {
-	if refreshInterval < time.Second*0 {
-		return &CookieSessionAuthnStrategy{}
-	}
-
+func NewCookieSessionAuthnStrategy(refresh schema.RefreshIntervalDuration) *CookieSessionAuthnStrategy {
 	return &CookieSessionAuthnStrategy{
-		refreshEnabled:  true,
-		refreshInterval: refreshInterval,
+		refresh: refresh,
 	}
 }
 
@@ -75,8 +70,7 @@ func NewHeaderLegacyAuthnStrategy() *HeaderLegacyAuthnStrategy {
 
 // CookieSessionAuthnStrategy is a session cookie AuthnStrategy.
 type CookieSessionAuthnStrategy struct {
-	refreshEnabled  bool
-	refreshInterval time.Duration
+	refresh schema.RefreshIntervalDuration
 }
 
 // Get returns the Authn information for this AuthnStrategy.
@@ -107,7 +101,7 @@ func (s *CookieSessionAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, provider 
 		}
 	}
 
-	if invalid := handleVerifyGETAuthnCookieValidate(ctx, provider, &userSession, s.refreshEnabled, s.refreshInterval); invalid {
+	if invalid := handleVerifyGETAuthnCookieValidate(ctx, provider, &userSession, s.refresh); invalid {
 		if err = ctx.DestroySession(); err != nil {
 			ctx.Logger.WithError(err).Errorf("Unable to destroy user session")
 		}
@@ -308,7 +302,7 @@ func (s *HeaderLegacyAuthnStrategy) HandleUnauthorized(ctx *middlewares.Authelia
 	handleAuthzUnauthorizedAuthorizationBasic(ctx, authn)
 }
 
-func handleVerifyGETAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, profileRefreshEnabled bool, profileRefreshInterval time.Duration) (invalid bool) {
+func handleVerifyGETAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (invalid bool) {
 	isAnonymous := userSession.Username == ""
 
 	if isAnonymous && userSession.AuthenticationLevel != authentication.NotAuthenticated {
@@ -323,7 +317,7 @@ func handleVerifyGETAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *
 		return true
 	}
 
-	if invalid = handleVerifyGETAuthnCookieValidateUpdate(ctx, userSession, isAnonymous, profileRefreshEnabled, profileRefreshInterval); invalid {
+	if invalid = handleVerifyGETAuthnCookieValidateRefresh(ctx, userSession, isAnonymous, refresh); invalid {
 		return true
 	}
 
@@ -350,14 +344,14 @@ func handleVerifyGETAuthnCookieValidateInactivity(ctx *middlewares.AutheliaCtx, 
 	return time.Unix(userSession.LastActivity, 0).Add(provider.Config.Inactivity).Before(ctx.Clock.Now())
 }
 
-func handleVerifyGETAuthnCookieValidateUpdate(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, isAnonymous, enabled bool, interval time.Duration) (invalid bool) {
-	if !enabled || isAnonymous {
+func handleVerifyGETAuthnCookieValidateRefresh(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, isAnonymous bool, refresh schema.RefreshIntervalDuration) (invalid bool) {
+	if refresh.Never() || isAnonymous {
 		return false
 	}
 
 	ctx.Logger.WithField("username", userSession.Username).Trace("Checking if we need check the authentication backend for an updated profile for user")
 
-	if interval != schema.RefreshIntervalAlways && userSession.RefreshTTL.After(ctx.Clock.Now()) {
+	if !refresh.Always() && userSession.RefreshTTL.After(ctx.Clock.Now()) {
 		return false
 	}
 
@@ -387,8 +381,8 @@ func handleVerifyGETAuthnCookieValidateUpdate(ctx *middlewares.AutheliaCtx, user
 	diffEmails, diffGroups = utils.IsStringSlicesDifferent(userSession.Emails, details.Emails), utils.IsStringSlicesDifferent(userSession.Groups, details.Groups)
 	diffDisplayName = userSession.DisplayName != details.DisplayName
 
-	if interval != schema.RefreshIntervalAlways {
-		userSession.RefreshTTL = ctx.Clock.Now().Add(interval)
+	if !refresh.Always() {
+		userSession.RefreshTTL = ctx.Clock.Now().Add(refresh.Value())
 	}
 
 	if !diffEmails && !diffGroups && !diffDisplayName {

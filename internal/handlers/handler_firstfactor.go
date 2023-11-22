@@ -4,10 +4,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/regulation"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // FirstFactorPOST is the handler performing the first factory.
@@ -138,8 +136,8 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 
 		userSession.SetOneFactor(ctx.Clock.Now(), userDetails, keepMeLoggedIn)
 
-		if refresh, refreshInterval := getProfileRefreshSettings(ctx.Configuration.AuthenticationBackend); refresh {
-			userSession.RefreshTTL = ctx.Clock.Now().Add(refreshInterval)
+		if ctx.Configuration.AuthenticationBackend.RefreshInterval.Update() {
+			userSession.RefreshTTL = ctx.Clock.Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())
 		}
 
 		if err = ctx.SaveSession(userSession); err != nil {
@@ -158,23 +156,4 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
 		}
 	}
-}
-
-func getProfileRefreshSettings(cfg schema.AuthenticationBackend) (refresh bool, refreshInterval time.Duration) {
-	if cfg.LDAP != nil {
-		if cfg.RefreshInterval == schema.ProfileRefreshDisabled {
-			refresh = false
-			refreshInterval = 0
-		} else {
-			refresh = true
-
-			if cfg.RefreshInterval != schema.ProfileRefreshAlways {
-				refreshInterval, _ = utils.ParseDurationString(cfg.RefreshInterval)
-			} else {
-				refreshInterval = schema.RefreshIntervalAlways
-			}
-		}
-	}
-
-	return refresh, refreshInterval
 }

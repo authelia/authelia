@@ -20,12 +20,11 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 		validator.Push(fmt.Errorf(errFmtAuthBackendNotConfigured))
 	}
 
-	if config.RefreshInterval == "" {
-		config.RefreshInterval = schema.RefreshIntervalDefault
-	} else {
-		_, err := utils.ParseDurationString(config.RefreshInterval)
-		if err != nil && config.RefreshInterval != schema.ProfileRefreshDisabled && config.RefreshInterval != schema.ProfileRefreshAlways {
-			validator.Push(fmt.Errorf(errFmtAuthBackendRefreshInterval, config.RefreshInterval, err))
+	if !config.RefreshInterval.Valid() {
+		if config.File != nil && config.File.Watch {
+			config.RefreshInterval = schema.NewRefreshIntervalDurationAlways()
+		} else {
+			config.RefreshInterval = schema.NewRefreshIntervalDuration(schema.RefreshIntervalDefault)
 		}
 	}
 
