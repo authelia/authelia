@@ -73,6 +73,7 @@ var decodedTypes = []reflect.Type{
 	reflect.TypeOf(schema.AddressSMTP{}),
 	reflect.TypeOf(schema.X509CertificateChain{}),
 	reflect.TypeOf(schema.PasswordDigest{}),
+	reflect.TypeOf(schema.RefreshIntervalDuration{}),
 	reflect.TypeOf(rsa.PrivateKey{}),
 	reflect.TypeOf(ecdsa.PrivateKey{}),
 }
