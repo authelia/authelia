@@ -1,6 +1,6 @@
-import React, { MutableRefObject, useEffect, useMemo, useRef, useState } from "react";
+import React, { MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { Button, Checkbox, FormControlLabel, Grid, Link, Theme } from "@mui/material";
+import { Alert, AlertTitle, Button, Checkbox, FormControl, FormControlLabel, Grid, Link, Theme } from "@mui/material";
 import TextField from "@mui/material/TextField";
 import makeStyles from "@mui/styles/makeStyles";
 import { BroadcastChannel } from "broadcast-channel";
@@ -14,6 +14,7 @@ import { useNotifications } from "@hooks/NotificationsContext";
 import { useQueryParam } from "@hooks/QueryParam";
 import { useWorkflow } from "@hooks/Workflow";
 import LoginLayout from "@layouts/LoginLayout";
+import { IsCapsLockModified } from "@services/CapsLock.ts";
 import { postFirstFactor } from "@services/FirstFactor";
 
 export interface Props {
@@ -44,9 +45,10 @@ const FirstFactorForm = function (props: Props) {
     const [username, setUsername] = useState("");
     const [usernameError, setUsernameError] = useState(false);
     const [password, setPassword] = useState("");
+    const [passwordCapsLock, setPasswordCapsLock] = useState(false);
+    const [passwordCapsLockPartial, setPasswordCapsLockPartial] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
 
-    // TODO (PR: #806, Issue: #511) potentially refactor
     const usernameRef = useRef() as MutableRefObject<HTMLInputElement>;
     const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
 
@@ -71,7 +73,7 @@ const FirstFactorForm = function (props: Props) {
         setRememberMe(!rememberMe);
     };
 
-    const handleSignIn = async () => {
+    const handleSignIn = useCallback(async () => {
         if (username === "" || password === "") {
             if (username === "") {
                 setUsernameError(true);
@@ -95,7 +97,18 @@ const FirstFactorForm = function (props: Props) {
             setPassword("");
             passwordRef.current.focus();
         }
-    };
+    }, [
+        createErrorNotification,
+        loginChannel,
+        password,
+        props,
+        redirectionURL,
+        rememberMe,
+        requestMethod,
+        translate,
+        username,
+        workflow,
+    ]);
 
     const handleResetPasswordClick = () => {
         if (props.resetPassword) {
@@ -107,122 +120,172 @@ const FirstFactorForm = function (props: Props) {
         }
     };
 
+    const handleUsernameKeyDown = useCallback(
+        (event: React.KeyboardEvent<HTMLDivElement>) => {
+            if (event.key === "Enter") {
+                if (!username.length) {
+                    setUsernameError(true);
+                } else if (username.length && password.length) {
+                    handleSignIn().catch(console.error);
+                } else {
+                    setUsernameError(false);
+                    passwordRef.current.focus();
+                }
+            }
+        },
+        [handleSignIn, password.length, username.length],
+    );
+
+    const handlePasswordKeyDown = useCallback(
+        (event: React.KeyboardEvent<HTMLDivElement>) => {
+            if (event.key === "Enter") {
+                if (!username.length) {
+                    usernameRef.current.focus();
+                } else if (!password.length) {
+                    passwordRef.current.focus();
+                }
+                handleSignIn().catch(console.error);
+                event.preventDefault();
+            }
+        },
+        [handleSignIn, password.length, username.length],
+    );
+
+    const handlePasswordKeyUp = useCallback(
+        (event: React.KeyboardEvent<HTMLDivElement>) => {
+            if (password.length <= 1) {
+                setPasswordCapsLock(false);
+                setPasswordCapsLockPartial(false);
+
+                if (password.length === 0) {
+                    return;
+                }
+            }
+
+            const modified = IsCapsLockModified(event);
+
+            if (modified === null) return;
+
+            if (modified) {
+                setPasswordCapsLock(true);
+            } else {
+                setPasswordCapsLockPartial(true);
+            }
+        },
+        [password.length],
+    );
+
+    const handleRememberMeKeyDown = useCallback(
+        (event: React.KeyboardEvent<HTMLButtonElement>) => {
+            if (event.key === "Enter") {
+                if (!username.length) {
+                    usernameRef.current.focus();
+                } else if (!password.length) {
+                    passwordRef.current.focus();
+                }
+                handleSignIn().catch(console.error);
+            }
+        },
+        [handleSignIn, password.length, username.length],
+    );
+
     return (
         <LoginLayout id="first-factor-stage" title={translate("Sign in")} showBrand>
-            <Grid container spacing={2}>
-                <Grid item xs={12}>
-                    <TextField
-                        // TODO (PR: #806, Issue: #511) potentially refactor
-                        inputRef={usernameRef}
-                        id="username-textfield"
-                        label={translate("Username")}
-                        variant="outlined"
-                        required
-                        value={username}
-                        error={usernameError}
-                        disabled={disabled}
-                        fullWidth
-                        onChange={(v) => setUsername(v.target.value)}
-                        onFocus={() => setUsernameError(false)}
-                        autoCapitalize="none"
-                        autoComplete="username"
-                        onKeyDown={(ev) => {
-                            if (ev.key === "Enter") {
-                                if (!username.length) {
-                                    setUsernameError(true);
-                                } else if (username.length && password.length) {
-                                    handleSignIn();
-                                } else {
-                                    setUsernameError(false);
-                                    passwordRef.current.focus();
-                                }
-                            }
-                        }}
-                    />
-                </Grid>
-                <Grid item xs={12}>
-                    <TextField
-                        // TODO (PR: #806, Issue: #511) potentially refactor
-                        inputRef={passwordRef}
-                        id="password-textfield"
-                        label={translate("Password")}
-                        variant="outlined"
-                        required
-                        fullWidth
-                        disabled={disabled}
-                        value={password}
-                        error={passwordError}
-                        onChange={(v) => setPassword(v.target.value)}
-                        onFocus={() => setPasswordError(false)}
-                        type="password"
-                        autoComplete="current-password"
-                        onKeyDown={(ev) => {
-                            if (ev.key === "Enter") {
-                                if (!username.length) {
-                                    usernameRef.current.focus();
-                                } else if (!password.length) {
-                                    passwordRef.current.focus();
-                                }
-                                handleSignIn();
-                                ev.preventDefault();
-                            }
-                        }}
-                    />
-                </Grid>
-                {props.rememberMe ? (
-                    <Grid item xs={12} className={classnames(styles.actionRow)}>
-                        <FormControlLabel
-                            control={
-                                <Checkbox
-                                    id="remember-checkbox"
-                                    disabled={disabled}
-                                    checked={rememberMe}
-                                    onChange={handleRememberMeChange}
-                                    onKeyDown={(ev) => {
-                                        if (ev.key === "Enter") {
-                                            if (!username.length) {
-                                                usernameRef.current.focus();
-                                            } else if (!password.length) {
-                                                passwordRef.current.focus();
-                                            }
-                                            handleSignIn();
-                                        }
-                                    }}
-                                    value="rememberMe"
-                                    color="primary"
-                                />
-                            }
-                            className={styles.rememberMe}
-                            label={translate("Remember me")}
+            <FormControl id={"form-login"}>
+                <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                        <TextField
+                            inputRef={usernameRef}
+                            id="username-textfield"
+                            label={translate("Username")}
+                            variant="outlined"
+                            required
+                            value={username}
+                            error={usernameError}
+                            disabled={disabled}
+                            fullWidth
+                            onChange={(v) => setUsername(v.target.value)}
+                            onFocus={() => setUsernameError(false)}
+                            autoCapitalize="none"
+                            autoComplete="username"
+                            onKeyDown={handleUsernameKeyDown}
                         />
                     </Grid>
-                ) : null}
-                <Grid item xs={12}>
-                    <Button
-                        id="sign-in-button"
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                        disabled={disabled}
-                        onClick={handleSignIn}
-                    >
-                        {translate("Sign in")}
-                    </Button>
-                </Grid>
-                {props.resetPassword ? (
-                    <Grid item xs={12} className={classnames(styles.actionRow, styles.flexEnd)}>
-                        <Link
-                            id="reset-password-button"
-                            component="button"
-                            onClick={handleResetPasswordClick}
-                            className={styles.resetLink}
-                            underline="hover"
-                        >
-                            {translate("Reset password?")}
-                        </Link>
+                    <Grid item xs={12}>
+                        <TextField
+                            inputRef={passwordRef}
+                            id="password-textfield"
+                            label={translate("Password")}
+                            variant="outlined"
+                            required
+                            fullWidth
+                            disabled={disabled}
+                            value={password}
+                            error={passwordError}
+                            onChange={(v) => setPassword(v.target.value)}
+                            onFocus={() => setPasswordError(false)}
+                            type="password"
+                            autoComplete="current-password"
+                            onKeyDown={handlePasswordKeyDown}
+                            onKeyUp={handlePasswordKeyUp}
+                        />
                     </Grid>
-                ) : null}
-            </Grid>
+                    {passwordCapsLock ? (
+                        <Grid item xs={12} marginX={2}>
+                            <Alert severity={"warning"}>
+                                <AlertTitle>{translate("Warning")}</AlertTitle>
+                                {passwordCapsLockPartial
+                                    ? translate("The password was partially entered with Caps Lock")
+                                    : translate("The password was entered with Caps Lock")}
+                            </Alert>
+                        </Grid>
+                    ) : null}
+                    {props.rememberMe ? (
+                        <Grid item xs={12} className={classnames(styles.actionRow)}>
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        id="remember-checkbox"
+                                        disabled={disabled}
+                                        checked={rememberMe}
+                                        onChange={handleRememberMeChange}
+                                        onKeyDown={handleRememberMeKeyDown}
+                                        value="rememberMe"
+                                        color="primary"
+                                    />
+                                }
+                                className={styles.rememberMe}
+                                label={translate("Remember me")}
+                            />
+                        </Grid>
+                    ) : null}
+                    <Grid item xs={12}>
+                        <Button
+                            id="sign-in-button"
+                            variant="contained"
+                            color="primary"
+                            fullWidth
+                            disabled={disabled}
+                            onClick={handleSignIn}
+                        >
+                            {translate("Sign in")}
+                        </Button>
+                    </Grid>
+                    {props.resetPassword ? (
+                        <Grid item xs={12} className={classnames(styles.actionRow, styles.flexEnd)}>
+                            <Link
+                                id="reset-password-button"
+                                component="button"
+                                onClick={handleResetPasswordClick}
+                                className={styles.resetLink}
+                                underline="hover"
+                            >
+                                {translate("Reset password?")}
+                            </Link>
+                        </Grid>
+                    ) : null}
+                </Grid>
+            </FormControl>
         </LoginLayout>
     );
 };
