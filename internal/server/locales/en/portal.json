@@ -64,6 +64,8 @@
 	"The above application is requesting the following permissions": "The above application is requesting the following permissions",
 	"The One-Time Code identifier was not provided": "The One-Time Code identifier was not provided",
 	"The password does not meet the password policy": "The password does not meet the password policy",
+	"The password was entered with Caps Lock": "The password was entered with Caps Lock.",
+	"The password was partially entered with Caps Lock": "The password was partially entered with Caps Lock.",
 	"The resource you're attempting to access requires two-factor authentication": "The resource you're attempting to access requires two-factor authentication.",
 	"The Token was not provided": "The Token was not provided",
 	"There was a problem initiating the registration process": "There was a problem initiating the registration process",
