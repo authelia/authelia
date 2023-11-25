@@ -4,7 +4,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/fasthttp/session/v2"
+	session "github.com/fasthttp/session/v2"
 	"github.com/go-webauthn/webauthn/webauthn"
 
 	"github.com/authelia/authelia/v4/internal/authentication"

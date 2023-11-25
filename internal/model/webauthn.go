@@ -5,13 +5,14 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
-	yaml "gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -121,7 +122,7 @@ func (w WebAuthnUser) WebAuthnCredentialDescriptors() (descriptors []protocol.Cr
 }
 
 // NewWebAuthnCredential creates a WebAuthnCredential from a webauthn.Credential.
-func NewWebAuthnCredential(rpid, username, description string, credential *webauthn.Credential) (c WebAuthnCredential) {
+func NewWebAuthnCredential(ctx Context, rpid, username, description string, credential *webauthn.Credential) (c WebAuthnCredential) {
 	transport := make([]string, len(credential.Transport))
 
 	for i, t := range credential.Transport {
@@ -131,7 +132,7 @@ func NewWebAuthnCredential(rpid, username, description string, credential *webau
 	c = WebAuthnCredential{
 		RPID:            rpid,
 		Username:        username,
-		CreatedAt:       time.Now(),
+		CreatedAt:       ctx.GetClock().Now(),
 		Description:     description,
 		KID:             NewBase64(credential.ID),
 		AttestationType: credential.AttestationType,
@@ -180,9 +181,7 @@ type WebAuthnCredential struct {
 
 // UpdateSignInInfo adjusts the values of the WebAuthnCredential after a sign in.
 func (d *WebAuthnCredential) UpdateSignInInfo(config *webauthn.Config, now time.Time, signCount uint32) {
-	d.LastUsedAt = sql.NullTime{Time: now, Valid: true}
-
-	d.SignCount = signCount
+	d.LastUsedAt, d.SignCount = sql.NullTime{Time: now, Valid: true}, signCount
 
 	if d.RPID != "" {
 		return
@@ -349,27 +348,31 @@ func (d *WebAuthnCredentialData) ToCredential() (credential *WebAuthnCredential,
 		BackupState:     d.BackupState,
 	}
 
-	if credential.PublicKey, err = base64.StdEncoding.DecodeString(d.PublicKey); err != nil {
-		return nil, err
+	if len(d.PublicKey) != 0 {
+		if credential.PublicKey, err = base64.StdEncoding.DecodeString(d.PublicKey); err != nil {
+			return nil, err
+		}
 	}
 
 	var aaguid uuid.UUID
 
 	if d.AAGUID != nil {
 		if aaguid, err = uuid.Parse(*d.AAGUID); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error occurred parsing aaguid: %w", err)
 		}
 
 		credential.AAGUID = NullUUID(aaguid)
 	}
 
-	var kid []byte
+	if len(d.KID) != 0 {
+		var kid []byte
 
-	if kid, err = base64.StdEncoding.DecodeString(d.KID); err != nil {
-		return nil, err
+		if kid, err = base64.StdEncoding.DecodeString(d.KID); err != nil {
+			return nil, fmt.Errorf("error occurred deocding kid: %w", err)
+		}
+
+		credential.KID = NewBase64(kid)
 	}
-
-	credential.KID = NewBase64(kid)
 
 	if d.LastUsedAt != nil {
 		credential.LastUsedAt = sql.NullTime{Valid: true, Time: *d.LastUsedAt}

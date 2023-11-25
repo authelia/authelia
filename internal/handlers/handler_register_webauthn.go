@@ -112,7 +112,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 	userSession.WebAuthn = &data
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "registration challenge", regulation.AuthTypeWebAuthn, userSession.Username)
+		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "registration challenge", regulation.AuthTypeWebAuthn, logFmtActionRegistration, userSession.Username)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
@@ -204,7 +204,7 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	device := model.NewWebAuthnCredential(w.Config.RPID, userSession.Username, userSession.WebAuthn.Description, credential)
+	device := model.NewWebAuthnCredential(ctx, w.Config.RPID, userSession.Username, userSession.WebAuthn.Description, credential)
 
 	device.Discoverable = webauthnCredentialCreationIsDiscoverable(ctx, response)
 
@@ -219,7 +219,7 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	userSession.WebAuthn = nil
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "removal of the registration challenge", regulation.AuthTypeWebAuthn, userSession.Username)
+		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "removal of the registration challenge", regulation.AuthTypeWebAuthn, logFmtActionRegistration, userSession.Username)
 	}
 
 	ctx.ReplyOK()

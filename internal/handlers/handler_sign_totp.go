@@ -33,11 +33,11 @@ func TimeBasedOneTimePasswordGET(ctx *middlewares.AutheliaCtx) {
 		if errors.Is(err, storage.ErrNoTOTPConfiguration) {
 			ctx.SetStatusCode(fasthttp.StatusNotFound)
 			ctx.SetJSONError("Could not find TOTP Configuration for user.")
-			ctx.Logger.Errorf("Failed to lookup TOTP configuration for user '%s'", userSession.Username)
+			ctx.Logger.WithError(err).Errorf("Failed to lookup TOTP configuration for user '%s'", userSession.Username)
 		} else {
 			ctx.SetStatusCode(fasthttp.StatusInternalServerError)
 			ctx.SetJSONError("Could not find TOTP Configuration for user.")
-			ctx.Logger.Errorf("Failed to lookup TOTP configuration for user '%s' with unknown error: %v", userSession.Username, err)
+			ctx.Logger.WithError(err).Errorf("Failed to lookup TOTP configuration for user '%s' with unknown error", userSession.Username)
 		}
 
 		return
@@ -77,23 +77,22 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	config, err := ctx.Providers.StorageProvider.LoadTOTPConfiguration(ctx, userSession.Username)
 	if err != nil {
-		ctx.Logger.Errorf("Failed to load TOTP configuration: %+v", err)
+		ctx.Logger.WithError(err).Errorf("Failed to load TOTP configuration")
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
 		return
 	}
 
-	isValid, err := ctx.Providers.TOTP.Validate(bodyJSON.Token, config)
-	if err != nil {
-		ctx.Logger.Errorf("Failed to perform TOTP verification: %+v", err)
+	var valid bool
+
+	if valid, err = ctx.Providers.TOTP.Validate(bodyJSON.Token, config); err != nil {
+		ctx.Logger.WithError(err).Errorf("Failed to perform TOTP verification")
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
 		return
-	}
-
-	if !isValid {
+	} else if !valid {
 		_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeTOTP, nil)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
@@ -117,7 +116,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	config.UpdateSignInInfo(ctx.Clock.Now())
 
 	if err = ctx.Providers.StorageProvider.UpdateTOTPConfigurationSignIn(ctx, config.ID, config.LastUsedAt); err != nil {
-		ctx.Logger.Errorf("Unable to save %s device sign in metadata for user '%s': %v", regulation.AuthTypeTOTP, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf("Unable to save %s device sign in metadata for user '%s'", regulation.AuthTypeTOTP, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -127,7 +126,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	userSession.SetTwoFactorTOTP(ctx.Clock.Now())
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeTOTP, userSession.Username)
+		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeTOTP, logFmtActionAuthentication, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 

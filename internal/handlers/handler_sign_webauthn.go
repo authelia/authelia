@@ -75,7 +75,7 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	userSession.WebAuthn = &data
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "assertion challenge", regulation.AuthTypeWebAuthn, userSession.Username)
+		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "assertion challenge", regulation.AuthTypeWebAuthn, logFmtActionAuthentication, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -213,7 +213,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		assertionResponse.Response.AuthenticatorData.Flags.HasUserVerified())
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "removal of the authentiation challenge and authentication time", regulation.AuthTypeWebAuthn, userSession.Username)
+		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "removal of the authentiation challenge and authentication time", regulation.AuthTypeWebAuthn, logFmtActionAuthentication, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 

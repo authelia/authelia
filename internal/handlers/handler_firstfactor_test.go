@@ -466,6 +466,8 @@ func TestFirstFactorSuite(t *testing.T) {
 }
 
 func AssertLogEntryMessageAndError(t *testing.T, entry *logrus.Entry, message, err string) {
+	require.NotNil(t, entry)
+
 	assert.Equal(t, message, entry.Message)
 
 	v, ok := entry.Data["error"]

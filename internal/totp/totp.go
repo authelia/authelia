@@ -15,14 +15,7 @@ import (
 // NewTimeBasedProvider creates a new totp.TimeBased which implements the totp.Provider.
 func NewTimeBasedProvider(config schema.TOTP) (provider *TimeBased) {
 	provider = &TimeBased{
-		opts: &model.TOTPOptions{
-			Algorithm:  config.DefaultAlgorithm,
-			Algorithms: config.AllowedAlgorithms,
-			Period:     config.DefaultPeriod,
-			Periods:    config.AllowedPeriods,
-			Length:     config.DefaultDigits,
-			Lengths:    config.AllowedDigits,
-		},
+		opts:      NewTOTPOptionsFromSchema(config),
 		issuer:    config.Issuer,
 		algorithm: config.DefaultAlgorithm,
 		digits:    uint(config.DefaultDigits),
@@ -37,6 +30,17 @@ func NewTimeBasedProvider(config schema.TOTP) (provider *TimeBased) {
 	}
 
 	return provider
+}
+
+func NewTOTPOptionsFromSchema(config schema.TOTP) *model.TOTPOptions {
+	return &model.TOTPOptions{
+		Algorithm:  config.DefaultAlgorithm,
+		Algorithms: config.AllowedAlgorithms,
+		Period:     config.DefaultPeriod,
+		Periods:    config.AllowedPeriods,
+		Length:     config.DefaultDigits,
+		Lengths:    config.AllowedDigits,
+	}
 }
 
 // TimeBased totp.Provider for production use.
