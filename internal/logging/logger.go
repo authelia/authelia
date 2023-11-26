@@ -3,6 +3,7 @@ package logging
 import (
 	"io"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -44,6 +45,24 @@ func InitializeLogger(config schema.Log, log bool) (err error) {
 	return ConfigureLogger(config, log)
 }
 
+var reFormatFilePath = regexp.MustCompile(`(%d|\{datetime(:([^}]+))?})`)
+
+func FormatFilePath(in string, now time.Time) (out string) {
+	matches := reFormatFilePath.FindStringSubmatch(in)
+
+	if len(matches) == 0 {
+		return in
+	}
+
+	layout := time.RFC3339
+
+	if len(matches[3]) != 0 {
+		layout = matches[3]
+	}
+
+	return strings.Replace(in, matches[0], now.Format(layout), 1)
+}
+
 // ConfigureLogger configures the default loggers level, formatting, and the output destinations.
 func ConfigureLogger(config schema.Log, log bool) (err error) {
 	setLevelStr(config.Level, log)
@@ -61,7 +80,7 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 	case config.FilePath != "":
 		var file *os.File
 
-		if file, err = os.OpenFile(strings.ReplaceAll(config.FilePath, "%d", time.Now().Format(time.RFC3339)), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600); err != nil {
+		if file, err = os.OpenFile(FormatFilePath(config.FilePath, time.Now()), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600); err != nil {
 			return err
 		}
 
