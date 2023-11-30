@@ -78,7 +78,7 @@ type Provider interface {
 	SaveTOTPHistory(ctx context.Context, username string, step uint64) (err error)
 
 	// ExistsTOTPHistory checks if a TOTP history item exists in the storage provider.
-	ExistsTOTPHistory(ctx context.Context, username string, step uint64, since time.Time) (exists bool, err error)
+	ExistsTOTPHistory(ctx context.Context, username string, step uint64) (exists bool, err error)
 
 	/*
 		Implementation for User WebAuthn Information.

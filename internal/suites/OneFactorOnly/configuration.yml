@@ -50,4 +50,7 @@ access_control:
 notifier:
   filesystem:
     filename: /config/notifier.html
+
+totp:
+  disable_reuse_security_policy: true
 ...

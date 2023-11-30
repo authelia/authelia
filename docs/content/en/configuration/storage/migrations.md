@@ -43,5 +43,6 @@ this instance if you wanted to downgrade to pre1 you would need to use an Authel
 |       12       |      4.38.0      |                        WebAuthn adjustments for multi-cookie domain changes                        |
 |       13       |      4.38.0      |                   One-Time Password for Identity Verification via Email Changes                    |
 |       14       |      4.38.0      |                                    Revoke Reset Password Token                                     |
+|       15       |      4.38.0      |                         Time-based One-Time Password security enhancement                          |
 
 [RFC9068]: https://datatracker.ietf.org/doc/html/rfc9068

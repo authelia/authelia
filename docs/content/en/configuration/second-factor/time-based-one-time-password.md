@@ -43,6 +43,7 @@ totp:
     - 6
   allowed_periods:
     - 30
+  disable_reuse_security_policy: false
 ```
 
 ## Options
@@ -158,6 +159,14 @@ list will always contain the value configured in the [digits](#digits) option.
 
 Similar to [period](#period) with the same restrictions except this option allows users to pick from this list. This
 list will always contain the value configured in the [period](#period) option.
+
+### disable_reuse_security_policy
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Disables the policy which prevents reuse of a Time-based One-Time Password codes. This is an additional security measure
+which prevents codes from being replayed. This should only affect codes which are used within the validity period more
+than once.
 
 ## Registration
 

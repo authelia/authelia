@@ -79,4 +79,7 @@ identity_providers:
         authorization_policy: one_factor
         redirect_uris:
           - https://oidc-public.example.com:8080/oauth2/callback
+
+totp:
+  disable_reuse_security_policy: true
 ...

@@ -1,6 +1,7 @@
 package totp
 
 import (
+	"context"
 	"encoding/base32"
 	"testing"
 	"time"
@@ -8,7 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/random"
 )
 
 func TestTOTPGenerateCustom(t *testing.T) {
@@ -88,9 +91,11 @@ func TestTOTPGenerateCustom(t *testing.T) {
 		SecretSize:       32,
 	})
 
+	ctx := NewContext(context.TODO(), &clock.Real{}, &random.Cryptographical{})
+
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			c, err := totp.GenerateCustom(tc.username, tc.algorithm, tc.secret, tc.digits, tc.period, tc.secretSize)
+			c, err := totp.GenerateCustom(ctx, tc.username, tc.algorithm, tc.secret, tc.digits, tc.period, tc.secretSize)
 			if tc.err == "" {
 				assert.NoError(t, err)
 				require.NotNil(t, c)
@@ -131,7 +136,9 @@ func TestTOTPGenerate(t *testing.T) {
 
 	assert.Equal(t, uint(2), totp.skew)
 
-	config, err := totp.Generate("john")
+	ctx := NewContext(context.TODO(), &clock.Real{}, &random.Cryptographical{})
+
+	config, err := totp.Generate(ctx, "john")
 	assert.NoError(t, err)
 
 	assert.Equal(t, "Authelia", config.Issuer)

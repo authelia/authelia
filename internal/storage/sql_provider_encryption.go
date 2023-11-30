@@ -477,8 +477,8 @@ func (p *SQLProvider) decrypt(cipherText []byte) (clearText []byte, err error) {
 	return utils.Decrypt(cipherText, &p.keys.encryption)
 }
 
-func (p *SQLProvider) hmacSignature(values ...[]byte) string {
-	h := hmac.New(sha512.New, p.keys.signature)
+func (p *SQLProvider) otcHMACSignature(values ...[]byte) string {
+	h := hmac.New(sha512.New, p.keys.otcHMAC)
 
 	for i := 0; i < len(values); i++ {
 		h.Write(values[i])
@@ -487,10 +487,28 @@ func (p *SQLProvider) hmacSignature(values ...[]byte) string {
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-func (p *SQLProvider) getKeySigHMAC(ctx context.Context) (key []byte, err error) {
-	if key, err = p.getEncryptionValue(ctx, "hmac_signature_key"); err != nil {
+func (p *SQLProvider) otpHMACSignature(values ...[]byte) string {
+	h := hmac.New(sha256.New, p.keys.otpHMAC)
+
+	for i := 0; i < len(values); i++ {
+		h.Write(values[i])
+	}
+
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+func (p *SQLProvider) getHMACOneTimeCode(ctx context.Context) (key []byte, err error) {
+	return p.getHMACKey(ctx, "hmac_key_otc", sha512.BlockSize)
+}
+
+func (p *SQLProvider) getHMACOneTimePassword(ctx context.Context) (key []byte, err error) {
+	return p.getHMACKey(ctx, "hmac_key_otp", sha256.BlockSize)
+}
+
+func (p *SQLProvider) getHMACKey(ctx context.Context, name string, size int) (key []byte, err error) {
+	if key, err = p.getEncryptionValue(ctx, name); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			key = make([]byte, sha512.BlockSize)
+			key = make([]byte, size)
 
 			_, err = rand.Read(key)
 
@@ -498,7 +516,7 @@ func (p *SQLProvider) getKeySigHMAC(ctx context.Context) (key []byte, err error)
 				return nil, fmt.Errorf("failed to generate hmac key: %w", err)
 			}
 
-			if err = p.setEncryptionValue(ctx, "hmac_signature_key", key); err != nil {
+			if err = p.setEncryptionValue(ctx, name, key); err != nil {
 				return nil, err
 			}
 

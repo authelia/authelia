@@ -65,6 +65,8 @@ func TimeBasedOneTimePasswordGET(ctx *middlewares.AutheliaCtx) {
 }
 
 // TimeBasedOneTimePasswordPOST validate the TOTP passcode provided by the user.
+//
+//nolint:gocyclo
 func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	bodyJSON := bodySignTOTPRequest{}
 
@@ -112,7 +114,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if valid, step, err = ctx.Providers.TOTP.Validate(bodyJSON.Token, config); err != nil {
+	if valid, step, err = ctx.Providers.TOTP.Validate(ctx, bodyJSON.Token, config); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred validating the user input", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -132,31 +134,33 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if exists, err = ctx.Providers.StorageProvider.ExistsTOTPHistory(ctx, userSession.Username, step*uint64(config.Period), config.HistorySince(ctx.GetClock().Now(), ctx.Configuration.TOTP.Skew)); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred checking the TOTP history", userSession.Username)
+	if !ctx.Configuration.TOTP.DisableReuseSecurityPolicy {
+		if exists, err = ctx.Providers.StorageProvider.ExistsTOTPHistory(ctx, userSession.Username, step*uint64(config.Period)); err != nil {
+			ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred checking the TOTP history", userSession.Username)
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageMFAValidationFailed)
+			ctx.SetStatusCode(fasthttp.StatusForbidden)
+			ctx.SetJSONError(messageMFAValidationFailed)
 
-		return
-	}
+			return
+		}
 
-	if exists {
-		ctx.Logger.WithError(fmt.Errorf("the user has already used this code recently and will not be permitted to reuse it")).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred satisfying security policies", userSession.Username)
+		if exists {
+			ctx.Logger.WithError(fmt.Errorf("the user has already used this code recently and will not be permitted to reuse it")).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred satisfying security policies", userSession.Username)
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageMFAValidationFailed)
+			ctx.SetStatusCode(fasthttp.StatusForbidden)
+			ctx.SetJSONError(messageMFAValidationFailed)
 
-		return
-	}
+			return
+		}
 
-	if err = ctx.Providers.StorageProvider.SaveTOTPHistory(ctx, userSession.Username, step*uint64(config.Period)); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred saving the TOTP history to the storage backend", userSession.Username)
+		if err = ctx.Providers.StorageProvider.SaveTOTPHistory(ctx, userSession.Username, step*uint64(config.Period)); err != nil {
+			ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred saving the TOTP history to the storage backend", userSession.Username)
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageMFAValidationFailed)
+			ctx.SetStatusCode(fasthttp.StatusForbidden)
+			ctx.SetJSONError(messageMFAValidationFailed)
 
-		return
+			return
+		}
 	}
 
 	if err = markAuthenticationAttempt(ctx, true, nil, userSession.Username, regulation.AuthTypeTOTP, nil); err != nil {
