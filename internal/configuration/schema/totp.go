@@ -13,6 +13,8 @@ type TOTP struct {
 	AllowedAlgorithms []string `koanf:"allowed_algorithms" json:"allowed_algorithms" jsonschema:"title=Allowed Algorithms,enum=SHA1,enum=SHA256,enum=SHA512,default=SHA1" jsonschema_description:"List of algorithms the user is allowed to select in addition to the default"`
 	AllowedDigits     []int    `koanf:"allowed_digits" json:"allowed_digits" jsonschema:"title=Allowed Digits,enum=6,enum=8,default=6" jsonschema_description:"List of digits the user is allowed to select in addition to the default"`
 	AllowedPeriods    []int    `koanf:"allowed_periods" json:"allowed_periods" jsonschema:"title=Allowed Periods,default=30" jsonschema_description:"List of periods the user is allowed to select in addition to the default"`
+
+	DisableReuseSecurityPolicy bool `koanf:"disable_reuse_security_policy" json:"disable_reuse_security_policy" jsonschema:"title=Disable Reuse Security Policy,default=false" jsonschema_description:"Disables the security policy that prevents reuse of a TOTP code"`
 }
 
 var defaultTOTPSkew = 1

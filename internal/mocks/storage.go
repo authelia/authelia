@@ -5,6 +5,7 @@
 //
 //	mockgen -package mocks -destination storage.go -mock_names Provider=MockStorage github.com/authelia/authelia/v4/internal/storage Provider
 //
+
 // Package mocks is a generated GoMock package.
 package mocks
 
@@ -213,18 +214,18 @@ func (mr *MockStorageMockRecorder) DeleteWebAuthnCredentialByUsername(arg0, arg1
 }
 
 // ExistsTOTPHistory mocks base method.
-func (m *MockStorage) ExistsTOTPHistory(arg0 context.Context, arg1 string, arg2 uint64, arg3 time.Time) (bool, error) {
+func (m *MockStorage) ExistsTOTPHistory(arg0 context.Context, arg1 string, arg2 uint64) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ExistsTOTPHistory", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "ExistsTOTPHistory", arg0, arg1, arg2)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ExistsTOTPHistory indicates an expected call of ExistsTOTPHistory.
-func (mr *MockStorageMockRecorder) ExistsTOTPHistory(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockStorageMockRecorder) ExistsTOTPHistory(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExistsTOTPHistory", reflect.TypeOf((*MockStorage)(nil).ExistsTOTPHistory), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExistsTOTPHistory", reflect.TypeOf((*MockStorage)(nil).ExistsTOTPHistory), arg0, arg1, arg2)
 }
 
 // FindIdentityVerification mocks base method.
