@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/clock"
@@ -260,6 +260,24 @@ func (m *MockAutheliaCtx) SetRequestBody(t *testing.T, body interface{}) {
 // Assert401KO assert an error response from the service.
 func (m *MockAutheliaCtx) Assert401KO(t *testing.T, message string) {
 	assert.Equal(t, fasthttp.StatusUnauthorized, m.Ctx.Response.StatusCode())
+	assert.Equal(t, fmt.Sprintf("{\"status\":\"KO\",\"message\":\"%s\"}", message), string(m.Ctx.Response.Body()))
+}
+
+// Assert403KO assert an error response from the service.
+func (m *MockAutheliaCtx) Assert403KO(t *testing.T, message string) {
+	assert.Equal(t, fasthttp.StatusForbidden, m.Ctx.Response.StatusCode())
+	assert.Equal(t, fmt.Sprintf("{\"status\":\"KO\",\"message\":\"%s\"}", message), string(m.Ctx.Response.Body()))
+}
+
+// Assert404KO assert an error response from the service.
+func (m *MockAutheliaCtx) Assert404KO(t *testing.T, message string) {
+	assert.Equal(t, fasthttp.StatusNotFound, m.Ctx.Response.StatusCode())
+	assert.Equal(t, fmt.Sprintf("{\"status\":\"KO\",\"message\":\"%s\"}", message), string(m.Ctx.Response.Body()))
+}
+
+// Assert500KO assert an error response from the service.
+func (m *MockAutheliaCtx) Assert500KO(t *testing.T, message string) {
+	assert.Equal(t, fasthttp.StatusInternalServerError, m.Ctx.Response.StatusCode())
 	assert.Equal(t, fmt.Sprintf("{\"status\":\"KO\",\"message\":\"%s\"}", message), string(m.Ctx.Response.Body()))
 }
 

@@ -6,6 +6,7 @@ require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/authelia/jsonschema v0.1.7
+	github.com/authelia/otp v1.0.0
 	github.com/deckarep/golang-set/v2 v2.6.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20240205144049-bb361ad4ae1c
 	github.com/fasthttp/router v1.4.22
@@ -18,7 +19,6 @@ require (
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/go-webauthn/webauthn v0.9.1
 	github.com/golang-jwt/jwt/v5 v5.2.0
-	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-retryablehttp v0.7.5
 	github.com/jackc/pgx/v5 v5.5.3
@@ -37,7 +37,6 @@ require (
 	github.com/ory/x v0.0.616
 	github.com/otiai10/copy v1.14.0
 	github.com/pkg/errors v0.9.1
-	github.com/pquerna/otp v1.4.0
 	github.com/prometheus/client_golang v1.19.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0
@@ -46,6 +45,7 @@ require (
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.52.0
 	github.com/wneessen/go-mail v0.4.1
+	go.uber.org/mock v0.3.0
 	golang.org/x/net v0.21.0
 	golang.org/x/sync v0.6.0
 	golang.org/x/term v0.17.0
@@ -58,7 +58,7 @@ require (
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
+	github.com/boombuler/barcode v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
 	github.com/cristalhq/jwt/v4 v4.0.2 // indirect
@@ -75,6 +75,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-webauthn/x v0.1.4 // indirect
 	github.com/golang/glog v1.1.2 // indirect
+	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-tpm v0.9.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect

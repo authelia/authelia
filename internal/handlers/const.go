@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"errors"
+
 	"github.com/valyala/fasthttp"
 )
 
@@ -58,15 +60,17 @@ var (
 )
 
 const (
-	messageOperationFailed                 = "Operation failed."
-	messageAuthenticationFailed            = "Authentication failed. Check your credentials."
-	messageUnableToRegisterOneTimePassword = "Unable to set up one-time password." //nolint:gosec
-	messageUnableToDeleteOneTimePassword   = "Unable to delete one-time password." //nolint:gosec
-	messageUnableToRegisterSecurityKey     = "Unable to register your security key."
-	messageSecurityKeyDuplicateName        = "Another one of your security keys is already registered with that display name."
-	messageUnableToResetPassword           = "Unable to reset your password."
-	messageMFAValidationFailed             = "Authentication failed, please retry later."
-	messagePasswordWeak                    = "Your supplied password does not meet the password policy requirements"
+	messageOperationFailed                       = "Operation failed."
+	messageAuthenticationFailed                  = "Authentication failed. Check your credentials."
+	messageUnableToOptionsOneTimePassword        = "Unable to retrieve TOTP registration options."            //nolint:gosec
+	messageUnableToRegisterOneTimePassword       = "Unable to set up one-time password."                      //nolint:gosec
+	messageUnableToDeleteRegisterOneTimePassword = "Unable to delete one-time password registration session." //nolint:gosec
+	messageUnableToDeleteOneTimePassword         = "Unable to delete one-time password."
+	messageUnableToRegisterSecurityKey           = "Unable to register your security key."
+	messageSecurityKeyDuplicateName              = "Another one of your security keys is already registered with that display name."
+	messageUnableToResetPassword                 = "Unable to reset your password."
+	messageMFAValidationFailed                   = "Authentication failed, please retry later."
+	messagePasswordWeak                          = "Your supplied password does not meet the password policy requirements"
 )
 
 const (
@@ -78,7 +82,6 @@ const (
 	logFmtActionRegistration   = "registration"
 
 	logFmtErrParseRequestBody     = "Failed to parse %s request body"
-	logFmtErrWriteResponseBody    = "Failed to write %s response body for user '%s'"
 	logFmtErrRegulationFail       = "Failed to perform %s authentication regulation for user '%s'"
 	logFmtErrSessionRegenerate    = "Could not regenerate session during %s authentication for user '%s'"
 	logFmtErrSessionReset         = "Could not reset session during %s authentication for user '%s'"
@@ -139,3 +142,14 @@ var ldapPasswordComplexityErrors = []string{
 	"LDAP Result Code 19 \"Constraint Violation\": Password fails quality checking policy",
 	"LDAP Result Code 19 \"Constraint Violation\": Password is too young to change",
 }
+
+const (
+	errStrReqBodyParse        = "error parsing the request body"
+	errStrRespBody            = "error occurred writing the response body"
+	errStrUserSessionData     = "error occurred retrieving the user session data"
+	errStrUserSessionDataSave = "error occurred saving the user session data"
+)
+
+var (
+	errUserAnonymous = errors.New("user is anonymous")
+)

@@ -15,4 +15,3 @@ CREATE TABLE IF NOT EXISTS one_time_code (
 );
 
 CREATE UNIQUE INDEX one_time_code_lookup_key ON one_time_code (signature, username);
-CREATE INDEX one_time_code_lookup ON one_time_code (signature, username);

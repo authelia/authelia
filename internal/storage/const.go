@@ -10,6 +10,7 @@ const (
 	tableIdentityVerification = "identity_verification"
 	tableOneTimeCode          = "one_time_code"
 	tableTOTPConfigurations   = "totp_configurations"
+	tableTOTPHistory          = "totp_history"
 	tableUserOpaqueIdentifier = "user_opaque_identifier"
 	tableUserPreferences      = "user_preferences"
 	tableWebAuthnCredentials  = "webauthn_credentials" //nolint:gosec // This is a table name, not a credential.

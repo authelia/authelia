@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/pquerna/otp"
+	"github.com/authelia/otp"
 	"gopkg.in/yaml.v3"
 )
 
@@ -62,6 +62,19 @@ func (c TOTPConfiguration) MarshalJSON() (data []byte, err error) {
 	}
 
 	return json.Marshal(o)
+}
+
+// HistorySince provides a reasonably accurate window for previously successful attempts to check for history.
+func (c *TOTPConfiguration) HistorySince(now time.Time, skew *int) time.Time {
+	var s int
+
+	if skew == nil {
+		s = 2
+	} else {
+		s = *skew + 2
+	}
+
+	return now.Add(-time.Second * time.Duration(c.Period) * time.Duration(s))
 }
 
 // LastUsed provides LastUsedAt as a *time.Time instead of sql.NullTime.

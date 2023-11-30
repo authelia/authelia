@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/go-webauthn/webauthn/webauthn"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -162,7 +162,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 			regexp.MustCompile(`^\{"status":"KO","message":"Unable to register your security key."}$`),
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn registration challenge for user 'john': error occurred retrieving the WebAuthn user configuration from storage", "database closed")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn registration challenge for user 'john': error occurred retrieving the WebAuthn user configuration from the storage backend", "database closed")
 			},
 		},
 		{
@@ -189,7 +189,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 			regexp.MustCompile(`^\{"status":"KO","message":"Unable to register your security key."}$`),
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn registration challenge for user 'john': error occurred retrieving the WebAuthn user configuration from storage", "no user x")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn registration challenge for user 'john': error occurred retrieving the WebAuthn user configuration from the storage backend", "no user x")
 			},
 		},
 		{
@@ -574,7 +574,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error occurred saving the registration to storage", "disk full")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error occurred saving the credential to the storage backend", "disk full")
 			},
 		},
 		{
@@ -620,7 +620,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error occurred retrieving the WebAuthn user configuration from storage", "no dice")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error occurred retrieving the WebAuthn user configuration from the storage backend", "no dice")
 			},
 		},
 		{
@@ -662,7 +662,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error occurred retrieving the WebAuthn user configuration from storage", "not enough cowbell")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error occurred retrieving the WebAuthn user configuration from the storage backend", "not enough cowbell")
 			},
 		},
 		{
