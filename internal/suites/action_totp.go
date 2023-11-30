@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/authelia/otp"
+	"github.com/authelia/otp/totp"
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/input"
-	"github.com/pquerna/otp"
-	"github.com/pquerna/otp/totp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

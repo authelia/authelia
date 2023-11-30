@@ -42,7 +42,7 @@ func WebAuthnCredentialsGET(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred loading WebAuthn credentials: error occurred loading session data")
+		ctx.Logger.WithError(err).Errorf("Error occurred loading WebAuthn credentials: %s", errStrUserSessionData)
 
 		ctx.SetJSONError(messageOperationFailed)
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -51,7 +51,7 @@ func WebAuthnCredentialsGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if userSession.IsAnonymous() {
-		ctx.Logger.WithError(fmt.Errorf("user is anonymous")).Errorf("Error occurred loading WebAuthn credentials")
+		ctx.Logger.WithError(errUserAnonymous).Errorf("Error occurred loading WebAuthn credentials")
 
 		ctx.SetJSONError(messageOperationFailed)
 
@@ -69,7 +69,7 @@ func WebAuthnCredentialsGET(ctx *middlewares.AutheliaCtx) {
 	var credentials []model.WebAuthnCredential
 
 	if credentials, err = ctx.Providers.StorageProvider.LoadWebAuthnCredentialsByUsername(ctx, origin.Hostname(), userSession.Username); err != nil && err != storage.ErrNoWebAuthnCredential {
-		ctx.Logger.WithError(err).Errorf("Error occurred loading WebAuthn credentials for user '%s'", userSession.Username)
+		ctx.Logger.WithError(err).Errorf("Error occurred loading WebAuthn credentials for user '%s': error occurred loading credentials from the storage backend", userSession.Username)
 
 		ctx.SetJSONError(messageOperationFailed)
 
@@ -77,7 +77,7 @@ func WebAuthnCredentialsGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err = ctx.SetJSONBody(credentials); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error ccurred loading WebAuthn credentials for user '%s': error occurred attempting to write the response body", userSession.Username)
+		ctx.Logger.WithError(err).Errorf("Error ccurred loading WebAuthn credentials for user '%s': %s", userSession.Username, errStrRespBody)
 	}
 }
 
@@ -90,31 +90,35 @@ func WebAuthnCredentialPUT(ctx *middlewares.AutheliaCtx) {
 		credential  *model.WebAuthnCredential
 		userSession session.UserSession
 
+		origin      *url.URL
+		credentials []model.WebAuthnCredential
+
 		err error
 	)
 
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred modifying WebAuthn credential: error occurred loading session data")
+		ctx.Logger.WithError(err).Errorf("Error occurred modifying WebAuthn credential: %s", errStrUserSessionData)
 
-		ctx.SetJSONError(messageOperationFailed)
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
 	if userSession.IsAnonymous() {
-		ctx.Logger.WithError(fmt.Errorf("user is anonymous")).Errorf("Error occurred modifying WebAuthn credential")
+		ctx.Logger.WithError(errUserAnonymous).Errorf("Error occurred modifying WebAuthn credential")
 
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
 	if err = json.Unmarshal(ctx.PostBody(), &bodyJSON); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred modifying WebAuthn credential: error occurred parsing the form data")
+		ctx.Logger.WithError(err).Errorf("Error occurred modifying WebAuthn credential for user '%s': %s", userSession.Username, errStrReqBodyParse)
 
-		ctx.SetJSONError(messageOperationFailed)
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
@@ -122,6 +126,7 @@ func WebAuthnCredentialPUT(ctx *middlewares.AutheliaCtx) {
 	if id, err = getWebAuthnCredentialIDFromContext(ctx); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred modifying WebAuthn credential for user '%s': error occurred trying to determine the credential ID", userSession.Username)
 
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
@@ -130,14 +135,16 @@ func WebAuthnCredentialPUT(ctx *middlewares.AutheliaCtx) {
 	if len(bodyJSON.Description) == 0 {
 		ctx.Logger.WithError(fmt.Errorf("description is empty")).Errorf("Error occurred modifying WebAuthn credential for user '%s", userSession.Username)
 
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
 	if credential, err = ctx.Providers.StorageProvider.LoadWebAuthnCredentialByID(ctx, id); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred modifying WebAuthn credential for user '%s': error occurred trying to load the credential", userSession.Username)
+		ctx.Logger.WithError(err).Errorf("Error occurred modifying WebAuthn credential for user '%s': error occurred loading the credential from the storage backend", userSession.Username)
 
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
@@ -146,14 +153,49 @@ func WebAuthnCredentialPUT(ctx *middlewares.AutheliaCtx) {
 	if credential.Username != userSession.Username {
 		ctx.Logger.WithError(fmt.Errorf("user '%s' owns the credential with id '%d'", credential.Username, credential.ID)).Errorf("Error occurred modifying WebAuthn credential for user '%s'", userSession.Username)
 
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
-	if err = ctx.Providers.StorageProvider.UpdateWebAuthnCredentialDescription(ctx, userSession.Username, id, bodyJSON.Description); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred modifying WebAuthn credential for user '%s': error occurred while attempting to save the modified credential in storage", userSession.Username)
+	if origin, err = ctx.GetOrigin(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred modifying WebAuthn credential for user '%s': error occurred determining the origin for the request", userSession.Username)
 
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if credentials, err = ctx.Providers.StorageProvider.LoadWebAuthnCredentialsByUsername(ctx, origin.Hostname(), userSession.Username); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred modifying WebAuthn credential for user '%s': error occurred looking up existing credentials", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	for _, c := range credentials {
+		if c.ID == id {
+			continue
+		}
+
+		if c.Description == bodyJSON.Description {
+			ctx.Logger.WithError(fmt.Errorf("credential with id '%d' also has the description '%s'", c.ID, bodyJSON.Description)).Errorf("Error occurred modifying WebAuthn credential for user '%s': error occurred ensuring the credentials had unique descriptions", userSession.Username)
+
+			ctx.SetStatusCode(fasthttp.StatusConflict)
+			ctx.SetJSONError(messageOperationFailed)
+
+			return
+		}
+	}
+
+	if err = ctx.Providers.StorageProvider.UpdateWebAuthnCredentialDescription(ctx, userSession.Username, id, bodyJSON.Description); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred modifying WebAuthn credential for user '%s': error occurred while attempting to update the modified credential in the storage backend", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
@@ -172,33 +214,36 @@ func WebAuthnCredentialDELETE(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred deleting WebAuthn credential: error occurred loading session data")
+		ctx.Logger.WithError(err).Errorf("Error occurred deleting WebAuthn credential: %s", errStrUserSessionData)
 
-		ctx.SetJSONError(messageOperationFailed)
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
 	if userSession.IsAnonymous() {
-		ctx.Logger.WithError(fmt.Errorf("user is anonymous")).Errorf("Error occurred modifying WebAuthn credential")
+		ctx.Logger.WithError(errUserAnonymous).Errorf("Error occurred modifying WebAuthn credential")
 
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
 	if id, err = getWebAuthnCredentialIDFromContext(ctx); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred deleting WebAuthn credential: error occurred trying to determine the credential ID")
+		ctx.Logger.WithError(err).Errorf("Error occurred deleting WebAuthn credential for user '%s': error occurred trying to determine the credential ID", userSession.Username)
 
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
 	if credential, err = ctx.Providers.StorageProvider.LoadWebAuthnCredentialByID(ctx, id); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred deleting WebAuthn credential for user '%s': error occurred trying to load the credential", userSession.Username)
+		ctx.Logger.WithError(err).Errorf("Error occurred deleting WebAuthn credential for user '%s': error occurred trying to load the credential from the storage backend", userSession.Username)
 
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
@@ -207,14 +252,16 @@ func WebAuthnCredentialDELETE(ctx *middlewares.AutheliaCtx) {
 	if credential.Username != userSession.Username {
 		ctx.Logger.WithError(fmt.Errorf("user '%s' owns the credential with id '%d'", credential.Username, credential.ID)).Errorf("Error occurred deleting WebAuthn credential for user '%s'", userSession.Username)
 
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
 	if err = ctx.Providers.StorageProvider.DeleteWebAuthnCredential(ctx, credential.KID.String()); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred delete WebAuthn credential for user '%s': error occurred while attempting to delete the credential from storage", userSession.Username)
+		ctx.Logger.WithError(err).Errorf("Error occurred delete WebAuthn credential for user '%s': error occurred while attempting to delete the credential from the storage backend", userSession.Username)
 
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return

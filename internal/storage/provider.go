@@ -71,6 +71,16 @@ type Provider interface {
 	LoadTOTPConfigurations(ctx context.Context, limit, page int) (configs []model.TOTPConfiguration, err error)
 
 	/*
+		Implementation for User TOTP History.
+	*/
+
+	// SaveTOTPHistory saves a TOTP history item in the storage provider.
+	SaveTOTPHistory(ctx context.Context, username string, step uint64) (err error)
+
+	// ExistsTOTPHistory checks if a TOTP history item exists in the storage provider.
+	ExistsTOTPHistory(ctx context.Context, username string, step uint64, since time.Time) (exists bool, err error)
+
+	/*
 		Implementation for User WebAuthn Information.
 	*/
 

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pquerna/otp"
-	"github.com/pquerna/otp/totp"
+	"github.com/authelia/otp"
+	"github.com/authelia/otp/totp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -104,7 +104,7 @@ func (p TimeBased) Generate(username string) (config *model.TOTPConfiguration, e
 }
 
 // Validate the token against the given configuration.
-func (p TimeBased) Validate(token string, config *model.TOTPConfiguration) (valid bool, err error) {
+func (p TimeBased) Validate(token string, config *model.TOTPConfiguration) (valid bool, step uint64, err error) {
 	opts := totp.ValidateOpts{
 		Period:    config.Period,
 		Skew:      p.skew,
@@ -112,10 +112,14 @@ func (p TimeBased) Validate(token string, config *model.TOTPConfiguration) (vali
 		Algorithm: otpStringToAlgo(config.Algorithm),
 	}
 
-	return totp.ValidateCustom(token, string(config.Secret), time.Now().UTC(), opts)
+	return totp.ValidateCustomStep(token, string(config.Secret), time.Now().UTC(), opts)
 }
 
 // Options returns the configured options for this provider.
 func (p TimeBased) Options() model.TOTPOptions {
 	return *p.opts
 }
+
+var (
+	_ Provider = (*TimeBased)(nil)
+)

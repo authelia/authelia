@@ -1,7 +1,7 @@
 package totp
 
 import (
-	"github.com/pquerna/otp"
+	"github.com/authelia/otp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )

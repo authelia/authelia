@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -58,6 +59,9 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 		sqlUpdateTOTPConfigRecordSignIn:           fmt.Sprintf(queryFmtUpdateTOTPConfigRecordSignIn, tableTOTPConfigurations),
 		sqlUpdateTOTPConfigRecordSignInByUsername: fmt.Sprintf(queryFmtUpdateTOTPConfigRecordSignInByUsername, tableTOTPConfigurations),
+
+		sqlInsertTOTPHistory: fmt.Sprintf(queryFmtInsertTOTPHistory, tableTOTPHistory),
+		sqlSelectTOTPHistory: fmt.Sprintf(queryFmtSelectTOTPHistory, tableTOTPHistory),
 
 		sqlInsertWebAuthnUser: fmt.Sprintf(queryFmtInsertWebAuthnUser, tableWebAuthnUsers),
 		sqlSelectWebAuthnUser: fmt.Sprintf(queryFmtSelectWebAuthnUser, tableWebAuthnUsers),
@@ -192,6 +196,10 @@ type SQLProvider struct {
 
 	sqlUpdateTOTPConfigRecordSignIn           string
 	sqlUpdateTOTPConfigRecordSignInByUsername string
+
+	// Table: totp_history.
+	sqlInsertTOTPHistory string
+	sqlSelectTOTPHistory string
 
 	// Table: webauthn_users.
 	sqlInsertWebAuthnUser string
@@ -544,6 +552,30 @@ func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string
 	}
 
 	return config, nil
+}
+
+// SaveTOTPHistory saves a TOTP history item in the storage provider.
+func (p *SQLProvider) SaveTOTPHistory(ctx context.Context, username string, step uint64) (err error) {
+	signature := p.hmacSignature([]byte(strconv.Itoa(int(step))), []byte(username))
+
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertTOTPHistory, username, signature); err != nil {
+		return fmt.Errorf("error inserting TOTP history for user '%s': %w", username, err)
+	}
+
+	return nil
+}
+
+// ExistsTOTPHistory checks if a TOTP history item exists in the storage provider.
+func (p *SQLProvider) ExistsTOTPHistory(ctx context.Context, username string, step uint64, since time.Time) (exists bool, err error) {
+	var count int
+
+	signature := p.hmacSignature([]byte(strconv.Itoa(int(step))), []byte(username))
+
+	if err = p.db.SelectContext(ctx, &count, p.sqlSelectTOTPHistory, username, signature, since); err != nil {
+		return false, fmt.Errorf("error checking if TOTP history exists: %w", err)
+	}
+
+	return count != 0, nil
 }
 
 // LoadTOTPConfigurations load a set of TOTP configurations from the storage provider.

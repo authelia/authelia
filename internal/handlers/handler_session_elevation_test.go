@@ -9,11 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -449,7 +449,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred creating user session elevation One-Time Code challenge for user 'john': error occurred saving the challenge to storage", "failed to insert")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred creating user session elevation One-Time Code challenge for user 'john': error occurred saving the challenge to the storage backend", "failed to insert")
 			},
 		},
 		{
@@ -670,7 +670,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge: error parsing the request body", "unable to parse body: invalid character 'A' looking for beginning of value")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge for user 'john': error parsing the request body", "unable to parse body: invalid character 'A' looking for beginning of value")
 			},
 		},
 		{
@@ -905,7 +905,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge for user 'john': error occurred retrieving the code challenge from storage", "the code didn't match any recorded code challenges")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge for user 'john': error occurred retrieving the code challenge from the storage backend", "the code didn't match any recorded code challenges")
 			},
 		},
 		{
@@ -934,7 +934,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge for user 'john': error occurred retrieving the code challenge from storage", "not found")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge for user 'john': error occurred retrieving the code challenge from the storage backend", "not found")
 			},
 		},
 	}
@@ -1068,7 +1068,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred revoking user session elevation One-Time Code challenge: error occurred saving the revocation of the code being saved to storage", "failed to update")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred revoking user session elevation One-Time Code challenge: error occurred saving the revocation to the storage backend", "failed to update")
 			},
 		},
 		{
@@ -1108,7 +1108,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred revoking user session elevation One-Time Code challenge for user", "the code challenge has the 'abc' intent but the 'use' intent is required")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred revoking user session elevation One-Time Code challenge", "the code challenge has the 'abc' intent but the 'use' intent is required")
 			},
 		},
 		{
@@ -1149,7 +1149,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge", "the code challenge has already been consumed")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred revoking user session elevation One-Time Code challenge", "the code challenge has already been consumed")
 			},
 		},
 		{
@@ -1190,7 +1190,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge", "the code challenge has already been revoked")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred revoking user session elevation One-Time Code challenge", "the code challenge has already been revoked")
 			},
 		},
 		{
@@ -1219,7 +1219,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred revoking user session elevation One-Time Code challenge: error occurred retrieving the code challenge from storage", "invalid user")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred revoking user session elevation One-Time Code challenge: error occurred retrieving the code challenge from the storage backend", "invalid user")
 			},
 		},
 		{
