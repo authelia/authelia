@@ -27,7 +27,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred generating a WebAuthn registration challenge: error occurred retrieving the user session data")
+		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn registration challenge: %s", errStrUserSessionData)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageUnableToRegisterSecurityKey)
@@ -36,7 +36,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if userSession.IsAnonymous() {
-		ctx.Logger.WithError(fmt.Errorf("user is anonymous")).Error("Error occurred generating a WebAuthn registration challenge")
+		ctx.Logger.WithError(errUserAnonymous).Error("Error occurred generating a WebAuthn registration challenge")
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageUnableToRegisterSecurityKey)
@@ -45,7 +45,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err = json.Unmarshal(ctx.PostBody(), &bodyJSON); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn registration challenge for user '%s': error parsing the request body", userSession.Username)
+		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn registration challenge for user '%s': %s", userSession.Username, errStrReqBodyParse)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(messageUnableToRegisterSecurityKey)
@@ -72,7 +72,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, userSession.DisplayName, w.Config.RPID); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn registration challenge for user '%s': error occurred retrieving the WebAuthn user configuration from storage", userSession.Username)
+		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn registration challenge for user '%s': error occurred retrieving the WebAuthn user configuration from the storage backend", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageUnableToRegisterSecurityKey)
@@ -117,7 +117,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 	userSession.WebAuthn = &data
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred generating a WebAuthn registration challenge: error occurred saving the user session data")
+		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn registration challenge for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageUnableToRegisterSecurityKey)
@@ -126,7 +126,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err = ctx.SetJSONBody(creation); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn registration challenge for user '%s': error occurred writing the response body", userSession.Username)
+		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn registration challenge for user '%s': %s", userSession.Username, errStrRespBody)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageUnableToRegisterSecurityKey)
@@ -150,7 +150,7 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred validating a WebAuthn registration challenge: error occurred retrieving the user session data")
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge: %s", errStrUserSessionData)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageUnableToRegisterSecurityKey)
@@ -159,7 +159,7 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if userSession.IsAnonymous() {
-		ctx.Logger.WithError(fmt.Errorf("user is anonymous")).Error("Error occurred validating a WebAuthn registration challenge")
+		ctx.Logger.WithError(errUserAnonymous).Error("Error occurred validating a WebAuthn registration challenge")
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageUnableToRegisterSecurityKey)
@@ -180,7 +180,7 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 		userSession.WebAuthn = nil
 
 		if err = ctx.SaveSession(userSession); err != nil {
-			ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error occurred saving the user session data", userSession.Username)
+			ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
 		}
 	}()
 
@@ -189,9 +189,9 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 
 		switch {
 		case errors.As(err, &e):
-			ctx.Logger.WithError(fmt.Errorf("%w: %s", e, e.DevInfo)).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error parsing the request body", userSession.Username)
+			ctx.Logger.WithError(fmt.Errorf("%w: %s", e, e.DevInfo)).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': %s", userSession.Username, errStrReqBodyParse)
 		default:
-			ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error parsing the request body", userSession.Username)
+			ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': %s", userSession.Username, errStrReqBodyParse)
 		}
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
@@ -210,7 +210,7 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, userSession.DisplayName, w.Config.RPID); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error occurred retrieving the WebAuthn user configuration from storage", userSession.Username)
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error occurred retrieving the WebAuthn user configuration from the storage backend", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(messageUnableToRegisterSecurityKey)
@@ -239,7 +239,7 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	credential.Discoverable = handleWebAuthnCredentialCreationIsDiscoverable(ctx, response)
 
 	if err = ctx.Providers.StorageProvider.SaveWebAuthnCredential(ctx, credential); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error occurred saving the registration to storage", userSession.Username)
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error occurred saving the credential to the storage backend", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageUnableToRegisterSecurityKey)
@@ -261,7 +261,7 @@ func WebAuthnRegistrationDELETE(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred deleting a WebAuthn registration challenge: error occurred retrieving the user session data")
+		ctx.Logger.WithError(err).Errorf("Error occurred deleting a WebAuthn registration challenge: %s", errStrUserSessionData)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
@@ -270,7 +270,7 @@ func WebAuthnRegistrationDELETE(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if userSession.IsAnonymous() {
-		ctx.Logger.WithError(fmt.Errorf("user is anonymous")).Error("Error occurred deleting a WebAuthn registration challenge")
+		ctx.Logger.WithError(errUserAnonymous).Error("Error occurred deleting a WebAuthn registration challenge")
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
@@ -282,7 +282,7 @@ func WebAuthnRegistrationDELETE(ctx *middlewares.AutheliaCtx) {
 		userSession.WebAuthn = nil
 
 		if err = ctx.SaveSession(userSession); err != nil {
-			ctx.Logger.WithError(err).Error("Error occurred deleting a WebAuthn registration challenge: error occurred saving the user session data")
+			ctx.Logger.WithError(err).Errorf("Error occurred deleting a WebAuthn registration challenge for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
 
 			ctx.SetStatusCode(fasthttp.StatusForbidden)
 			ctx.SetJSONError(messageOperationFailed)

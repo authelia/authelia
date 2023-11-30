@@ -774,6 +774,10 @@ paths:
                 $ref: '#/components/schemas/handlers.TOTPOptions'
         "403":
           description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
     put:
@@ -798,8 +802,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/handlers.TOTPRegisterStartResponse'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
         "403":
           description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
     post:
@@ -821,8 +835,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
         "403":
           description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
     delete:
@@ -841,6 +865,10 @@ paths:
                 $ref: '#/components/schemas/middlewares.Response.OK'
         "403":
           description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
   /api/secondfactor/totp:
@@ -860,6 +888,22 @@ paths:
                 $ref: '#/components/schemas/handlers.TOTPConfiguration'
         "403":
           description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
     post:
@@ -881,8 +925,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/handlers.redirectResponse'
-        "401":
-          description: Unauthorized
+        "403":
+          description: Forbidden
           content:
             application/json:
               schema:
@@ -904,6 +948,10 @@ paths:
                 $ref: '#/components/schemas/middlewares.Response.OK'
         "403":
           description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
   {{- end }}
@@ -923,8 +971,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/webauthn.PublicKeyCredentialRequestOptions'
-        "401":
-          description: Unauthorized
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
     post:
@@ -947,8 +999,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/handlers.redirectResponse'
-        "401":
-          description: Unauthorized
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
   /api/secondfactor/webauthn/register:
@@ -973,8 +1029,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/webauthn.PublicKeyCredentialCreationOptions'
-        "401":
-          description: Unauthorized
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
     post:
@@ -991,14 +1063,24 @@ paths:
             schema:
               $ref: '#/components/schemas/webauthn.CredentialAttestationResponse'
       responses:
-        "200":
-          description: Successful Operation
+        "201":
+          description: Created
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
-        "401":
-          description: Unauthorized
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
     delete:
@@ -1017,6 +1099,10 @@ paths:
                 $ref: '#/components/schemas/middlewares.Response.OK'
         "403":
           description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
   /api/secondfactor/webauthn/credential/{credentialID}:
@@ -1042,6 +1128,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
     delete:
@@ -1060,6 +1164,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
   {{- end }}

@@ -167,6 +167,17 @@ const (
 		WHERE id = ?;`
 )
 
+const (
+	queryFmtInsertTOTPHistory = `
+		INSERT INTO %s (username, step)
+		VALUES (?, ?);`
+
+	queryFmtSelectTOTPHistory = `
+		SELECT COUNT(id)
+		FROM %s
+		WHERE username = ? AND step = ?;`
+)
+
 //nolint:gosec // The following queries are not hard coded credentials.
 const (
 	queryFmtSelectWebAuthnCredentials = `

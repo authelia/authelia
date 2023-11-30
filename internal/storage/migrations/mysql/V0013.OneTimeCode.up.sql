@@ -14,5 +14,4 @@ CREATE TABLE IF NOT EXISTS one_time_code (
     code BLOB NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
-CREATE UNIQUE INDEX one_time_code_signature ON one_time_code (signature);
-CREATE INDEX one_time_code_lookup ON one_time_code (signature, username);
+CREATE UNIQUE INDEX one_time_code_signature ON one_time_code (signature, username);

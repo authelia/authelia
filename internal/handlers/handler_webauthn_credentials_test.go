@@ -5,10 +5,10 @@ import (
 	"net/mail"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -138,7 +138,7 @@ func TestWebAuthnCredentialsGET(t *testing.T) {
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred loading WebAuthn credentials for user 'john'", "bad block")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred loading WebAuthn credentials for user 'john': error occurred loading credentials from the storage backend", "bad block")
 			},
 		},
 		{
@@ -204,13 +204,113 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
-				mock.StorageMock.EXPECT().LoadWebAuthnCredentialByID(mock.Ctx, 1).Return(&model.WebAuthnCredential{ID: 1, Username: testUsername}, nil)
-				mock.StorageMock.EXPECT().UpdateWebAuthnCredentialDescription(mock.Ctx, testUsername, 1, "abc").Return(nil)
+				gomock.InOrder(
+					mock.StorageMock.
+						EXPECT().
+						LoadWebAuthnCredentialByID(mock.Ctx, 1).
+						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername}, nil),
+					mock.StorageMock.
+						EXPECT().
+						LoadWebAuthnCredentialsByUsername(mock.Ctx, exampleDotCom, testUsername).
+						Return([]model.WebAuthnCredential{{ID: 1, Username: testUsername}}, nil),
+					mock.StorageMock.
+						EXPECT().
+						UpdateWebAuthnCredentialDescription(mock.Ctx, testUsername, 1, "abc").
+						Return(nil),
+				)
 			},
 			`{"description":"abc"}`,
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,
 			nil,
+		},
+		{
+			"ShouldHandleDuplicateNames",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationLevel = authentication.OneFactor
+
+				require.NoError(t, mock.Ctx.SaveSession(us))
+
+				gomock.InOrder(
+					mock.StorageMock.
+						EXPECT().
+						LoadWebAuthnCredentialByID(mock.Ctx, 1).
+						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername}, nil),
+					mock.StorageMock.
+						EXPECT().
+						LoadWebAuthnCredentialsByUsername(mock.Ctx, exampleDotCom, testUsername).
+						Return([]model.WebAuthnCredential{{ID: 1, Username: testUsername}, {ID: 2, Description: "abc", Username: testUsername}}, nil),
+				)
+			},
+			`{"description":"abc"}`,
+			`{"status":"KO","message":"Operation failed."}`,
+			fasthttp.StatusConflict,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error occurred ensuring the credentials had unique descriptions", "credential with id '2' also has the description 'abc'")
+			},
+		},
+		{
+			"ShouldHandleDuplicateFail",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationLevel = authentication.OneFactor
+
+				require.NoError(t, mock.Ctx.SaveSession(us))
+
+				gomock.InOrder(
+					mock.StorageMock.
+						EXPECT().
+						LoadWebAuthnCredentialByID(mock.Ctx, 1).
+						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername}, nil),
+					mock.StorageMock.
+						EXPECT().
+						LoadWebAuthnCredentialsByUsername(mock.Ctx, exampleDotCom, testUsername).
+						Return(nil, fmt.Errorf("oops")),
+				)
+			},
+			`{"description":"abc"}`,
+			`{"status":"KO","message":"Operation failed."}`,
+			fasthttp.StatusForbidden,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error occurred looking up existing credentials", "oops")
+			},
+		},
+		{
+			"ShouldHandleBadOrigin",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationLevel = authentication.OneFactor
+
+				require.NoError(t, mock.Ctx.SaveSession(us))
+
+				gomock.InOrder(
+					mock.StorageMock.
+						EXPECT().
+						LoadWebAuthnCredentialByID(mock.Ctx, 1).
+						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername}, nil),
+				)
+
+				mock.Ctx.Request.Header.Set("X-Original-URL", "##!@#!@")
+			},
+			`{"description":"abc"}`,
+			`{"status":"KO","message":"Operation failed."}`,
+			fasthttp.StatusForbidden,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error occurred determining the origin for the request", "failed to parse X-Original-URL header: parse \"##!@#!@\": invalid URI for request")
+			},
 		},
 		{
 			"ShouldHandleAnotherUser",
@@ -224,11 +324,16 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
-				mock.StorageMock.EXPECT().LoadWebAuthnCredentialByID(mock.Ctx, 1).Return(&model.WebAuthnCredential{ID: 1, Username: "anotheruser"}, nil)
+				gomock.InOrder(
+					mock.StorageMock.
+						EXPECT().
+						LoadWebAuthnCredentialByID(mock.Ctx, 1).
+						Return(&model.WebAuthnCredential{ID: 1, Username: "anotheruser"}, nil),
+				)
 			},
 			`{"description":"abc"}`,
 			`{"status":"KO","message":"Operation failed."}`,
-			fasthttp.StatusOK,
+			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john'", "user 'anotheruser' owns the credential with id '1'")
 			},
@@ -245,14 +350,26 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
-				mock.StorageMock.EXPECT().LoadWebAuthnCredentialByID(mock.Ctx, 1).Return(&model.WebAuthnCredential{ID: 1, Username: testUsername}, nil)
-				mock.StorageMock.EXPECT().UpdateWebAuthnCredentialDescription(mock.Ctx, testUsername, 1, "abc").Return(fmt.Errorf("gremlin"))
+				gomock.InOrder(
+					mock.StorageMock.
+						EXPECT().
+						LoadWebAuthnCredentialByID(mock.Ctx, 1).
+						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername}, nil),
+					mock.StorageMock.
+						EXPECT().
+						LoadWebAuthnCredentialsByUsername(mock.Ctx, exampleDotCom, testUsername).
+						Return([]model.WebAuthnCredential{{ID: 1, Username: testUsername}}, nil),
+					mock.StorageMock.
+						EXPECT().
+						UpdateWebAuthnCredentialDescription(mock.Ctx, testUsername, 1, "abc").
+						Return(fmt.Errorf("gremlin")),
+				)
 			},
 			`{"description":"abc"}`,
 			`{"status":"KO","message":"Operation failed."}`,
-			fasthttp.StatusOK,
+			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error occurred while attempting to save the modified credential in storage", "gremlin")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error occurred while attempting to update the modified credential in the storage backend", "gremlin")
 			},
 		},
 		{
@@ -271,9 +388,9 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 			},
 			`{"description":"abc"}`,
 			`{"status":"KO","message":"Operation failed."}`,
-			fasthttp.StatusOK,
+			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error occurred trying to load the credential", "deleted")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error occurred loading the credential from the storage backend", "deleted")
 			},
 		},
 		{
@@ -292,7 +409,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential: error occurred parsing the form data", "invalid character 'a' after object key")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error parsing the request body", "invalid character 'a' after object key")
 			},
 		},
 		{
@@ -309,7 +426,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 			},
 			`{"description":""}`,
 			`{"status":"KO","message":"Operation failed."}`,
-			fasthttp.StatusOK,
+			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john", "description is empty")
 			},
@@ -319,7 +436,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 			nil,
 			`{"description":"abc"}`,
 			`{"status":"KO","message":"Operation failed."}`,
-			fasthttp.StatusOK,
+			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential", "user is anonymous")
 			},
@@ -496,9 +613,9 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 				)
 			},
 			`{"status":"KO","message":"Operation failed."}`,
-			fasthttp.StatusOK,
+			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred delete WebAuthn credential for user 'john': error occurred while attempting to delete the credential from storage", "bad pipe")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred delete WebAuthn credential for user 'john': error occurred while attempting to delete the credential from the storage backend", "bad pipe")
 			},
 		},
 		{
@@ -520,9 +637,9 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 				)
 			},
 			`{"status":"KO","message":"Operation failed."}`,
-			fasthttp.StatusOK,
+			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting WebAuthn credential for user 'john': error occurred trying to load the credential", "bad sql password")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting WebAuthn credential for user 'john': error occurred trying to load the credential from the storage backend", "bad sql password")
 			},
 		},
 		{
@@ -544,7 +661,7 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 				)
 			},
 			`{"status":"KO","message":"Operation failed."}`,
-			fasthttp.StatusOK,
+			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting WebAuthn credential for user 'john'", "user 'baduser' owns the credential with id '1'")
 			},
@@ -566,14 +683,14 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting WebAuthn credential: error occurred trying to determine the credential ID", "strconv.Atoi: parsing \"a\": invalid syntax")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting WebAuthn credential for user 'john': error occurred trying to determine the credential ID", "strconv.Atoi: parsing \"a\": invalid syntax")
 			},
 		},
 		{
 			"ShouldHandleAnonymous",
 			nil,
 			`{"status":"KO","message":"Operation failed."}`,
-			fasthttp.StatusOK,
+			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential", "user is anonymous")
 			},

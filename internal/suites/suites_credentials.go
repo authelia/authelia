@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pquerna/otp/totp"
+	"github.com/authelia/otp/totp"
 )
 
 func NewRodSuiteCredentials() *RodSuiteCredentials {

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/valyala/fasthttp"
 
@@ -20,9 +21,19 @@ func TimeBasedOneTimePasswordGET(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
+		ctx.Logger.WithError(err).Errorf("Error occurred retrieving TOTP configuration: %s", errStrUserSessionData)
 
-		ctx.ReplyForbidden()
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		return
+	}
+
+	if userSession.IsAnonymous() {
+		ctx.Logger.WithError(errUserAnonymous).Error("Error occurred retrieving TOTP configuration")
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
 
 		return
 	}
@@ -30,24 +41,27 @@ func TimeBasedOneTimePasswordGET(ctx *middlewares.AutheliaCtx) {
 	var config *model.TOTPConfiguration
 
 	if config, err = ctx.Providers.StorageProvider.LoadTOTPConfiguration(ctx, userSession.Username); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred retrieving TOTP configuration for user '%s': error occurred retrieving the configuration from the storage backend", userSession.Username)
+
 		if errors.Is(err, storage.ErrNoTOTPConfiguration) {
 			ctx.SetStatusCode(fasthttp.StatusNotFound)
 			ctx.SetJSONError("Could not find TOTP Configuration for user.")
-			ctx.Logger.WithError(err).Errorf("Failed to lookup TOTP configuration for user '%s'", userSession.Username)
 		} else {
 			ctx.SetStatusCode(fasthttp.StatusInternalServerError)
 			ctx.SetJSONError("Could not find TOTP Configuration for user.")
-			ctx.Logger.WithError(err).Errorf("Failed to lookup TOTP configuration for user '%s' with unknown error", userSession.Username)
 		}
 
 		return
 	}
 
 	if err = ctx.SetJSONBody(config); err != nil {
-		ctx.Logger.Errorf("Unable to perform TOTP configuration response: %s", err)
-	}
+		ctx.Logger.WithError(err).Errorf("Error occurred retrieving TOTP configuration for user '%s': %s", userSession.Username, errStrRespBody)
 
-	ctx.SetStatusCode(fasthttp.StatusOK)
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		return
+	}
 }
 
 // TimeBasedOneTimePasswordPOST validate the TOTP passcode provided by the user.
@@ -55,60 +69,108 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	bodyJSON := bodySignTOTPRequest{}
 
 	var (
-		userSession session.UserSession
-		err         error
+		userSession   session.UserSession
+		config        *model.TOTPConfiguration
+		valid, exists bool
+		step          uint64
+		err           error
 	)
 
-	if err = ctx.ParseBody(&bodyJSON); err != nil {
-		ctx.Logger.WithError(err).Errorf(logFmtErrParseRequestBody, regulation.AuthTypeTOTP)
-
-		respondUnauthorized(ctx, messageMFAValidationFailed)
-
-		return
-	}
-
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication: %s", errStrUserSessionData)
 
-		respondUnauthorized(ctx, messageMFAValidationFailed)
-
-		return
-	}
-
-	config, err := ctx.Providers.StorageProvider.LoadTOTPConfiguration(ctx, userSession.Username)
-	if err != nil {
-		ctx.Logger.WithError(err).Errorf("Failed to load TOTP configuration")
-
-		respondUnauthorized(ctx, messageMFAValidationFailed)
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
 
 		return
 	}
 
-	var valid bool
+	if userSession.IsAnonymous() {
+		ctx.Logger.WithError(errUserAnonymous).Error("Error occurred validating a TOTP authentication")
 
-	if valid, err = ctx.Providers.TOTP.Validate(bodyJSON.Token, config); err != nil {
-		ctx.Logger.WithError(err).Errorf("Failed to perform TOTP verification")
-
-		respondUnauthorized(ctx, messageMFAValidationFailed)
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
 
 		return
-	} else if !valid {
+	}
+
+	if err = ctx.ParseBody(&bodyJSON); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': %s", userSession.Username, errStrReqBodyParse)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		return
+	}
+
+	if config, err = ctx.Providers.StorageProvider.LoadTOTPConfiguration(ctx, userSession.Username); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred retreiving the configuration from the storage backend", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		return
+	}
+
+	if valid, step, err = ctx.Providers.TOTP.Validate(bodyJSON.Token, config); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred validating the user input", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		return
+	}
+
+	if !valid {
+		ctx.Logger.WithError(fmt.Errorf("the user input wasn't valid")).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred validating the user input", userSession.Username)
+
 		_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeTOTP, nil)
 
-		respondUnauthorized(ctx, messageMFAValidationFailed)
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		return
+	}
+
+	if exists, err = ctx.Providers.StorageProvider.ExistsTOTPHistory(ctx, userSession.Username, step*uint64(config.Period), config.HistorySince(ctx.GetClock().Now(), ctx.Configuration.TOTP.Skew)); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred checking the TOTP history", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		return
+	}
+
+	if exists {
+		ctx.Logger.WithError(fmt.Errorf("the user has already used this code recently and will not be permitted to reuse it")).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred satisfying security policies", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		return
+	}
+
+	if err = ctx.Providers.StorageProvider.SaveTOTPHistory(ctx, userSession.Username, step*uint64(config.Period)); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred saving the TOTP history to the storage backend", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
 
 		return
 	}
 
 	if err = markAuthenticationAttempt(ctx, true, nil, userSession.Username, regulation.AuthTypeTOTP, nil); err != nil {
-		respondUnauthorized(ctx, messageMFAValidationFailed)
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
 		return
 	}
 
 	if err = ctx.RegenerateSession(); err != nil {
-		ctx.Logger.WithError(err).Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeTOTP, userSession.Username)
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error regenerating the user session", userSession.Username)
 
-		respondUnauthorized(ctx, messageMFAValidationFailed)
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
 
 		return
 	}
@@ -116,9 +178,10 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	config.UpdateSignInInfo(ctx.Clock.Now())
 
 	if err = ctx.Providers.StorageProvider.UpdateTOTPConfigurationSignIn(ctx, config.ID, config.LastUsedAt); err != nil {
-		ctx.Logger.WithError(err).Errorf("Unable to save %s device sign in metadata for user '%s'", regulation.AuthTypeTOTP, userSession.Username)
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred saving the credential sign-in information to the storage backend", userSession.Username)
 
-		respondUnauthorized(ctx, messageMFAValidationFailed)
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
 
 		return
 	}
@@ -126,9 +189,10 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	userSession.SetTwoFactorTOTP(ctx.Clock.Now())
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeTOTP, logFmtActionAuthentication, userSession.Username)
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
 
-		respondUnauthorized(ctx, messageMFAValidationFailed)
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
 
 		return
 	}

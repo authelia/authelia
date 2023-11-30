@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/go-webauthn/webauthn/webauthn"
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -133,7 +133,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn authentication challenge for user 'john': error occurred retrieving the WebAuthn user configuration from storage", "failed")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn authentication challenge for user 'john': error occurred retrieving the WebAuthn user configuration from the storage backend", "failed")
 			},
 		},
 		{
@@ -379,7 +379,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn authentication challenge: error occurred validating the authenticator response", "authenticator sign count indicates that it is cloned")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn authentication challenge for user 'john': error occurred validating the authenticator response", "authenticator sign count indicates that it is cloned")
 			},
 		},
 		{
@@ -450,7 +450,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn authentication challenge for user 'john': error occurred saving the credential sign-in information to storage", "failed to update")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn authentication challenge for user 'john': error occurred saving the credential sign-in information to the storage backend", "failed to update")
 			},
 		},
 		{
@@ -521,7 +521,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 			"",
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn authentication challenge: error occurred recording the authentication result", "bad record")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Unable to mark WebAuthn authentication attempt by user 'john'", "bad record")
 			},
 		},
 		{
@@ -616,7 +616,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 			},
 			`{"response":{"id":true,"rawId":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","response":{"authenticatorData":"DGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtwFAAAAAw","clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiaW4xY0wtb1dmU2pTZDd1dXdVdnYybmRPQW1SWGIwY09BYlVvVHRBcXZHRSIsIm9yaWdpbiI6Imh0dHBzOi8vbG9naW4uZXhhbXBsZS5jb206ODA4MCIsImNyb3NzT3JpZ2luIjpmYWxzZSwib3RoZXJfa2V5c19jYW5fYmVfYWRkZWRfaGVyZSI6ImRvIG5vdCBjb21wYXJlIGNsaWVudERhdGFKU09OIGFnYWluc3QgYSB0ZW1wbGF0ZS4gU2VlIGh0dHBzOi8vZ29vLmdsL3lhYlBleCJ9","signature":"MEQCIBlJ2Fxf6ZwLNTCQglz0AW0pD4HlU8W5Yk696jjfxVxhAiAhAMkLh8iKyhW6zSmzwfQDjMF2nKjVHzEs7jLHRPDZ2A"},"type":"public-key","clientExtensionResults":{},"authenticatorAttachment":"cross-platform"},"targetURL":null}`,
 			"",
-			fasthttp.StatusForbidden,
+			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn authentication challenge for user 'john': error parsing the request body", "Parse error for Assertion")
 			},
@@ -646,7 +646,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 			},
 			`{"response:{"id":true,"rawId":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","response":{"authenticatorData":"DGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtwFAAAAAw","clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiaW4xY0wtb1dmU2pTZDd1dXdVdnYybmRPQW1SWGIwY09BYlVvVHRBcXZHRSIsIm9yaWdpbiI6Imh0dHBzOi8vbG9naW4uZXhhbXBsZS5jb206ODA4MCIsImNyb3NzT3JpZ2luIjpmYWxzZSwib3RoZXJfa2V5c19jYW5fYmVfYWRkZWRfaGVyZSI6ImRvIG5vdCBjb21wYXJlIGNsaWVudERhdGFKU09OIGFnYWluc3QgYSB0ZW1wbGF0ZS4gU2VlIGh0dHBzOi8vZ29vLmdsL3lhYlBleCJ9","signature":"MEQCIBlJ2Fxf6ZwLNTCQglz0AW0pD4HlU8W5Yk696jjfxVxhAiAhAMkLh8iKyhW6zSmzwfQDjMF2nKjVHzEs7jLHRPDZ2A"},"type":"public-key","clientExtensionResults":{},"authenticatorAttachment":"cross-platform"},"targetURL":null}`,
 			"",
-			fasthttp.StatusForbidden,
+			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn authentication challenge for user 'john': error parsing the request body", "unable to parse body: invalid character 'i' after object key")
 			},
@@ -696,7 +696,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
-			`{"response:{"id":true,"rawId":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","response":{"authenticatorData":"DGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtwFAAAAAw","clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiaW4xY0wtb1dmU2pTZDd1dXdVdnYybmRPQW1SWGIwY09BYlVvVHRBcXZHRSIsIm9yaWdpbiI6Imh0dHBzOi8vbG9naW4uZXhhbXBsZS5jb206ODA4MCIsImNyb3NzT3JpZ2luIjpmYWxzZSwib3RoZXJfa2V5c19jYW5fYmVfYWRkZWRfaGVyZSI6ImRvIG5vdCBjb21wYXJlIGNsaWVudERhdGFKU09OIGFnYWluc3QgYSB0ZW1wbGF0ZS4gU2VlIGh0dHBzOi8vZ29vLmdsL3lhYlBleCJ9","signature":"MEQCIBlJ2Fxf6ZwLNTCQglz0AW0pD4HlU8W5Yk696jjfxVxhAiAhAMkLh8iKyhW6zSmzwfQDjMF2nKjVHzEs7jLHRPDZ2A"},"type":"public-key","clientExtensionResults":{},"authenticatorAttachment":"cross-platform"},"targetURL":null}`,
+			dataReqGood,
 			"",
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -715,7 +715,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 			},
 		},
 		{
-			"ShouldFailUpdateAuthLog",
+			"ShouldFailLoadWebAuthnUser",
 			&schema.DefaultWebAuthnConfiguration,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()
@@ -750,7 +750,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 			"",
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn authentication challenge for user 'john': error occurred retrieving the WebAuthn user configuration from storage", "failed to load credentials")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn authentication challenge for user 'john': error occurred retrieving the WebAuthn user configuration from the storage backend", "failed to load credentials")
 			},
 		},
 		{
@@ -785,7 +785,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 			"",
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn authentication challenge for user 'john': error occurred retrieving the WebAuthn user configuration from storage", "failed load user")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn authentication challenge for user 'john': error occurred retrieving the WebAuthn user configuration from the storage backend", "failed load user")
 			},
 		},
 	}

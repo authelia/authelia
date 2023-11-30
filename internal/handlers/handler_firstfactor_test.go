@@ -5,12 +5,10 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/golang/mock/gomock"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -463,26 +461,4 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvi
 func TestFirstFactorSuite(t *testing.T) {
 	suite.Run(t, new(FirstFactorSuite))
 	suite.Run(t, new(FirstFactorRedirectionSuite))
-}
-
-func AssertLogEntryMessageAndError(t *testing.T, entry *logrus.Entry, message, err string) {
-	require.NotNil(t, entry)
-
-	assert.Equal(t, message, entry.Message)
-
-	v, ok := entry.Data["error"]
-
-	if err == "" {
-		assert.False(t, ok)
-		assert.Nil(t, v)
-	} else {
-		assert.True(t, ok)
-		require.NotNil(t, v)
-
-		theErr, ok := v.(error)
-		assert.True(t, ok)
-		require.NotNil(t, theErr)
-
-		assert.EqualError(t, theErr, err)
-	}
 }
