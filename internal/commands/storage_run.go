@@ -16,6 +16,7 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
@@ -683,7 +684,7 @@ func (ctx *CmdCtx) StorageUserTOTPGenerateRunE(cmd *cobra.Command, args []string
 
 	totpProvider := totp.NewTimeBasedProvider(ctx.config.TOTP)
 
-	if c, err = totpProvider.GenerateCustom(args[0], ctx.config.TOTP.DefaultAlgorithm, secret, uint(ctx.config.TOTP.DefaultDigits), uint(ctx.config.TOTP.DefaultPeriod), uint(ctx.config.TOTP.SecretSize)); err != nil {
+	if c, err = totpProvider.GenerateCustom(totp.NewContext(ctx, &clock.Real{}, &random.Cryptographical{}), args[0], ctx.config.TOTP.DefaultAlgorithm, secret, uint(ctx.config.TOTP.DefaultDigits), uint(ctx.config.TOTP.DefaultPeriod), uint(ctx.config.TOTP.SecretSize)); err != nil {
 		return err
 	}
 

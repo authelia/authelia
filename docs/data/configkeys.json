@@ -570,6 +570,11 @@
         "env": "AUTHELIA_TOTP_ALLOWED_PERIODS"
     },
     {
+        "path": "totp.disable_reuse_security_policy",
+        "secret": false,
+        "env": "AUTHELIA_TOTP_DISABLE_REUSE_SECURITY_POLICY"
+    },
+    {
         "path": "duo_api.disable",
         "secret": false,
         "env": "AUTHELIA_DUO_API_DISABLE"

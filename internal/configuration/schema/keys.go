@@ -220,6 +220,7 @@ var Keys = []string{
 	"totp.allowed_algorithms",
 	"totp.allowed_digits",
 	"totp.allowed_periods",
+	"totp.disable_reuse_security_policy",
 	"duo_api.disable",
 	"duo_api.hostname",
 	"duo_api.integration_key",

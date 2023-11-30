@@ -65,4 +65,7 @@ access_control:
 notifier:
   filesystem:
     filename: /tmp/notification.txt
+
+totp:
+  disable_reuse_security_policy: true
 ...

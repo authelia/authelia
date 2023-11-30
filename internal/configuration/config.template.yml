@@ -209,6 +209,21 @@ totp:
   ## The size of the generated shared secrets. Default is 32 and is sufficient in most use cases, minimum is 20.
   # secret_size: 32
 
+  ## The allowed algorithms for a user to pick from.
+  # allowed_algorithms:
+  # - 'SHA1'
+
+  ## The allowed digits for a user to pick from.
+  # allowed_digits:
+  # - 6
+
+  ## The allowed periods for a user to pick from.
+  # allowed_periods:
+  # - 30
+
+  ## Disable the reuse security policy which prevents replays of one-time password code values.
+  # disable_reuse_security_policy: false
+
 ##
 ## WebAuthn Configuration
 ##

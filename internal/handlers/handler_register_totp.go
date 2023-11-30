@@ -97,7 +97,7 @@ func TOTPRegisterPUT(ctx *middlewares.AutheliaCtx) {
 
 	var config *model.TOTPConfiguration
 
-	if config, err = ctx.Providers.TOTP.GenerateCustom(userSession.Username, bodyJSON.Algorithm, "", uint(bodyJSON.Length), uint(bodyJSON.Period), 0); err != nil {
+	if config, err = ctx.Providers.TOTP.GenerateCustom(ctx, userSession.Username, bodyJSON.Algorithm, "", uint(bodyJSON.Length), uint(bodyJSON.Period), 0); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred generating a TOTP registration session for user '%s': error generating TOTP configuration", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -202,7 +202,7 @@ func TOTPRegisterPOST(ctx *middlewares.AutheliaCtx) {
 		Secret:    []byte(userSession.TOTP.Secret),
 	}
 
-	if valid, step, err = ctx.Providers.TOTP.Validate(bodyJSON.Token, &config); err != nil {
+	if valid, step, err = ctx.Providers.TOTP.Validate(ctx, bodyJSON.Token, &config); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP registration session for user '%s': error occurred validating the user input against the session", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -220,13 +220,15 @@ func TOTPRegisterPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.Providers.StorageProvider.SaveTOTPHistory(ctx, userSession.Username, step*uint64(config.Period)); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP registration session for user '%s': error occurred saving the TOTP history to the storage backend", userSession.Username)
+	if !ctx.Configuration.TOTP.DisableReuseSecurityPolicy {
+		if err = ctx.Providers.StorageProvider.SaveTOTPHistory(ctx, userSession.Username, step*uint64(config.Period)); err != nil {
+			ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP registration session for user '%s': error occurred saving the TOTP history to the storage backend", userSession.Username)
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageUnableToRegisterOneTimePassword)
+			ctx.SetStatusCode(fasthttp.StatusForbidden)
+			ctx.SetJSONError(messageUnableToRegisterOneTimePassword)
 
-		return
+			return
+		}
 	}
 
 	if err = ctx.Providers.StorageProvider.SaveTOTPConfiguration(ctx, config); err != nil {

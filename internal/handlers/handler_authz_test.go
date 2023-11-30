@@ -31,7 +31,7 @@ func (s *AuthzSuite) GetMock(config *schema.Configuration, targetURI *url.URL, s
 	mock := mocks.NewMockAutheliaCtx(s.T())
 
 	if session != nil {
-		domain := mock.Ctx.GetTargetURICookieDomain(targetURI)
+		domain := mock.Ctx.GetCookieDomainFromTargetURI(targetURI)
 
 		provider, err := mock.Ctx.GetCookieDomainSessionProvider(domain)
 		s.Require().NoError(err)

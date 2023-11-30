@@ -34,6 +34,7 @@ storage:
 
 totp:
   issuer: example.com
+  disable_reuse_security_policy: true
 
 identity_validation:
   reset_password:

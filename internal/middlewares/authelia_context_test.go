@@ -541,7 +541,7 @@ func TestAutheliaCtx_GetTargetURICookieDomain(t *testing.T) {
 
 			mock.Ctx.Configuration.Session.Cookies = tc.config
 
-			assert.Equal(t, tc.expected, mock.Ctx.GetTargetURICookieDomain(tc.have))
+			assert.Equal(t, tc.expected, mock.Ctx.GetCookieDomainFromTargetURI(tc.have))
 			assert.Equal(t, tc.secure, mock.Ctx.IsSafeRedirectionTargetURI(tc.have))
 		})
 	}

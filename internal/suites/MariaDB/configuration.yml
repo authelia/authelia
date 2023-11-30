@@ -41,6 +41,7 @@ storage:
 # See: https://github.com/google/google-authenticator/wiki/Key-Uri-Format for more info on issuer names
 totp:
   issuer: example.com
+  disable_reuse_security_policy: true
 
 identity_validation:
   reset_password:

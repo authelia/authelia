@@ -3288,6 +3288,12 @@
           "default": [
             30
           ]
+        },
+        "disable_reuse_security_policy": {
+          "type": "boolean",
+          "title": "Disable Reuse Security Policy",
+          "description": "Disables the security policy that prevents reuse of a TOTP code",
+          "default": false
         }
       },
       "additionalProperties": false,

@@ -312,7 +312,8 @@ type SQLProvider struct {
 // SQLProviderKeys are the cryptography keys used by a SQLProvider.
 type SQLProviderKeys struct {
 	encryption [32]byte
-	signature  []byte
+	otcHMAC    []byte
+	otpHMAC    []byte
 }
 
 // StartupCheck implements the provider startup check interface.
@@ -357,8 +358,12 @@ func (p *SQLProvider) StartupCheck() (err error) {
 		return fmt.Errorf("error during schema migrate: %w", err)
 	}
 
-	if p.keys.signature, err = p.getKeySigHMAC(ctx); err != nil {
-		return fmt.Errorf("failed to initialize the hmac signature key during startup: %w", err)
+	if p.keys.otcHMAC, err = p.getHMACOneTimeCode(ctx); err != nil {
+		return fmt.Errorf("failed to initialize the hmac one-time code signature key during startup: %w", err)
+	}
+
+	if p.keys.otpHMAC, err = p.getHMACOneTimePassword(ctx); err != nil {
+		return fmt.Errorf("failed to initialize the hmac one-time password signature key during startup: %w", err)
 	}
 
 	return nil
@@ -556,7 +561,7 @@ func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string
 
 // SaveTOTPHistory saves a TOTP history item in the storage provider.
 func (p *SQLProvider) SaveTOTPHistory(ctx context.Context, username string, step uint64) (err error) {
-	signature := p.hmacSignature([]byte(strconv.Itoa(int(step))), []byte(username))
+	signature := p.otpHMACSignature([]byte(strconv.Itoa(int(step))), []byte(username))
 
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertTOTPHistory, username, signature); err != nil {
 		return fmt.Errorf("error inserting TOTP history for user '%s': %w", username, err)
@@ -566,12 +571,12 @@ func (p *SQLProvider) SaveTOTPHistory(ctx context.Context, username string, step
 }
 
 // ExistsTOTPHistory checks if a TOTP history item exists in the storage provider.
-func (p *SQLProvider) ExistsTOTPHistory(ctx context.Context, username string, step uint64, since time.Time) (exists bool, err error) {
+func (p *SQLProvider) ExistsTOTPHistory(ctx context.Context, username string, step uint64) (exists bool, err error) {
 	var count int
 
-	signature := p.hmacSignature([]byte(strconv.Itoa(int(step))), []byte(username))
+	signature := p.otpHMACSignature([]byte(strconv.Itoa(int(step))), []byte(username))
 
-	if err = p.db.SelectContext(ctx, &count, p.sqlSelectTOTPHistory, username, signature, since); err != nil {
+	if err = p.db.GetContext(ctx, &count, p.sqlSelectTOTPHistory, username, signature); err != nil {
 		return false, fmt.Errorf("error checking if TOTP history exists: %w", err)
 	}
 
@@ -857,7 +862,7 @@ func (p *SQLProvider) LoadIdentityVerification(ctx context.Context, jti string) 
 // SaveOneTimeCode saves a One-Time Code to the storage provider after generating the signature which is returned
 // along with any error.
 func (p *SQLProvider) SaveOneTimeCode(ctx context.Context, code model.OneTimeCode) (signature string, err error) {
-	code.Signature = p.hmacSignature([]byte(code.Username), []byte(code.Intent), code.Code)
+	code.Signature = p.otcHMACSignature([]byte(code.Username), []byte(code.Intent), code.Code)
 
 	if code.Code, err = p.encrypt(code.Code); err != nil {
 		return "", fmt.Errorf("error encrypting the one-time code value for user '%s' with signature '%s': %w", code.Username, code.Signature, err)
@@ -894,7 +899,7 @@ func (p *SQLProvider) RevokeOneTimeCode(ctx context.Context, publicID uuid.UUID,
 func (p *SQLProvider) LoadOneTimeCode(ctx context.Context, username, intent, raw string) (code *model.OneTimeCode, err error) {
 	code = &model.OneTimeCode{}
 
-	signature := p.hmacSignature([]byte(username), []byte(intent), []byte(raw))
+	signature := p.otcHMACSignature([]byte(username), []byte(intent), []byte(raw))
 
 	if err = p.db.GetContext(ctx, code, p.sqlSelectOneTimeCode, signature, username); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
