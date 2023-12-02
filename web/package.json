@@ -91,7 +91,7 @@
     "@vitest/coverage-istanbul": "0.34.6",
     "esbuild": "0.19.8",
     "eslint": "8.55.0",
-    "eslint-config-prettier": "9.0.0",
+    "eslint-config-prettier": "9.1.0",
     "eslint-config-react-app": "7.0.1",
     "eslint-formatter-rdjson": "1.0.6",
     "eslint-import-resolver-typescript": "3.6.1",
