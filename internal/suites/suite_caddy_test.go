@@ -20,7 +20,7 @@ func (s *CaddySuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *CaddySuite) NewTwoFactorTOTPScenario() {
+func (s *CaddySuite) TestTwoFactorTOTPScenario() {
 	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 

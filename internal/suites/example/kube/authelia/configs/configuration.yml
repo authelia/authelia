@@ -58,6 +58,10 @@ session:
     host: redis-service
     port: 6379
 
+totp:
+  issuer: example.com
+  disable_reuse_security_policy: true
+
 regulation:
   max_retries: 3
   find_time: 120

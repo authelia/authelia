@@ -24,7 +24,7 @@ func (s *PathPrefixSuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *PathPrefixSuite) NewTwoFactorTOTPScenario() {
+func (s *PathPrefixSuite) TestTwoFactorTOTPScenario() {
 	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 

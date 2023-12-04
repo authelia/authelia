@@ -20,7 +20,7 @@ func (s *ActiveDirectorySuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *ActiveDirectorySuite) NewTwoFactorTOTPScenario() {
+func (s *ActiveDirectorySuite) TestTwoFactorTOTPScenario() {
 	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 
