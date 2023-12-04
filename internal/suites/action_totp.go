@@ -21,7 +21,11 @@ type OptionsTOTP struct {
 }
 
 func (rs *RodSession) doMaybeDeleteTOTP(t *testing.T, page *rod.Page, username string) {
-	require.NoError(t, page.WaitStable(time.Millisecond*100))
+	ctx := page.GetContext()
+
+	require.NoError(t, ctx.Err())
+
+	require.NoError(t, page.WaitStable(time.Millisecond*50))
 
 	has, _, err := page.Has("#one-time-password-delete")
 	require.NoError(t, err)
@@ -50,16 +54,7 @@ func (rs *RodSession) doMustDeleteTOTP(t *testing.T, page *rod.Page, username st
 	require.True(t, has)
 }
 
-func (rs *RodSession) doRegisterTOTP(t *testing.T, page *rod.Page, username string) {
-	credential := rs.GetOneTimePassword(username)
-
-	if credential.Valid() {
-		return
-	}
-
-	rs.doSettingsOpen(t, page)
-	rs.doSettingsMenuTwoFactor(t, page)
-
+func (rs *RodSession) doRegisterTOTPStart(t *testing.T, page *rod.Page, username string) {
 	rs.doMaybeDeleteTOTP(t, page, username)
 
 	elementAdd := rs.WaitElementLocatedByID(t, page, "one-time-password-add")
@@ -67,6 +62,87 @@ func (rs *RodSession) doRegisterTOTP(t *testing.T, page *rod.Page, username stri
 	require.NoError(t, elementAdd.Click("left", 1))
 
 	rs.doMaybeVerifyIdentity(t, page)
+}
+
+func (rs *RodSession) doRegisterTOTPFinish(t *testing.T, page *rod.Page, username string, credential RodSuiteCredentialOneTimePassword) {
+	passcode, err := credential.Generate(time.Now())
+	require.NoError(t, err)
+
+	rs.doEnterOTP(t, page, passcode)
+	rs.verifyNotificationDisplayed(t, page, "Successfully added the One-Time Password.")
+
+	rs.SetOneTimePassword(username, credential)
+}
+
+func (rs *RodSession) doRegisterTOTPAdvanced(t *testing.T, page *rod.Page, username string, algorithm string, digits, period int) {
+	rs.doRegisterTOTPStart(t, page, username)
+
+	require.NoError(t, rs.WaitElementLocatedByID(t, page, "one-time-password-advanced").Click("left", 1))
+	require.NoError(t, rs.WaitElementLocatedByID(t, page, "one-time-password-algorithm-"+algorithm).Click("left", 1))
+	require.NoError(t, rs.WaitElementLocatedByID(t, page, "one-time-password-length-"+strconv.Itoa(digits)).Click("left", 1))
+	require.NoError(t, rs.WaitElementLocatedByID(t, page, "one-time-password-period-"+strconv.Itoa(period)).Click("left", 1))
+	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-next").Click("left", 1))
+	require.NoError(t, rs.WaitElementLocatedByID(t, page, "qr-toggle").Click("left", 1))
+
+	element := rs.WaitElementLocatedByID(t, page, "secret-url")
+
+	raw, err := element.Text()
+	require.NoError(t, err)
+
+	secretURL, err := url.Parse(raw)
+	require.NoError(t, err)
+
+	values := secretURL.Query()
+
+	credential := RodSuiteCredentialOneTimePassword{
+		Secret: values.Get("secret"),
+	}
+
+	ualgorithm := values.Get("algorithm")
+
+	uperiod, err := strconv.Atoi(values.Get("period"))
+	require.NoError(t, err)
+
+	udigits, err := strconv.Atoi(values.Get("digits"))
+	require.NoError(t, err)
+
+	require.Equal(t, algorithm, ualgorithm)
+	require.Equal(t, period, uperiod)
+	require.Equal(t, digits, udigits)
+
+	var alg otp.Algorithm
+
+	switch strings.ToUpper(ualgorithm) {
+	case SHA1:
+		alg = otp.AlgorithmSHA1
+	case SHA256:
+		alg = otp.AlgorithmSHA256
+	case SHA512:
+		alg = otp.AlgorithmSHA512
+	}
+
+	credential.ValidationOptions = totp.ValidateOpts{
+		Period:    uint(uperiod),
+		Skew:      1,
+		Digits:    otp.Digits(udigits),
+		Algorithm: alg,
+	}
+
+	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-next").Click("left", 1))
+
+	rs.doRegisterTOTPFinish(t, page, username, credential)
+}
+
+func (rs *RodSession) doOpenSettingsAndRegisterTOTP(t *testing.T, page *rod.Page, username string) {
+	credential := rs.GetOneTimePassword(username)
+
+	if credential.Valid() {
+		return
+	}
+
+	rs.doOpenSettings(t, page)
+	rs.doOpenSettingsMenuClickTwoFactor(t, page)
+	rs.doRegisterTOTPStart(t, page, username)
 
 	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-next").Click("left", 1))
 	require.NoError(t, rs.WaitElementLocatedByID(t, page, "qr-toggle").Click("left", 1))
@@ -86,11 +162,11 @@ func (rs *RodSession) doRegisterTOTP(t *testing.T, page *rod.Page, username stri
 	algorithm := otp.AlgorithmSHA1
 
 	switch strings.ToUpper(values.Get("algorithm")) {
-	case "SHA1":
+	case SHA1:
 		algorithm = otp.AlgorithmSHA1
-	case "SHA256":
+	case SHA256:
 		algorithm = otp.AlgorithmSHA256
-	case "SHA512":
+	case SHA512:
 		algorithm = otp.AlgorithmSHA512
 	}
 
@@ -100,8 +176,6 @@ func (rs *RodSession) doRegisterTOTP(t *testing.T, page *rod.Page, username stri
 	digits, err := strconv.ParseInt(values.Get("digits"), 10, 32)
 	require.NoError(t, err)
 
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-next").Click("left", 1))
-
 	credential.ValidationOptions = totp.ValidateOpts{
 		Period:    uint(period),
 		Skew:      1,
@@ -109,19 +183,15 @@ func (rs *RodSession) doRegisterTOTP(t *testing.T, page *rod.Page, username stri
 		Algorithm: algorithm,
 	}
 
-	passcode, err := credential.Generate(time.Now())
+	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-next").Click("left", 1))
 
-	require.NoError(t, err)
+	rs.doRegisterTOTPFinish(t, page, username, credential)
 
-	rs.doEnterOTP(t, page, passcode)
-
-	rs.SetOneTimePassword(username, credential)
-
-	require.NoError(t, page.WaitStable(time.Millisecond*100))
+	require.NoError(t, page.WaitStable(time.Millisecond*50))
 	rs.doHoverAllMuiTooltip(t, page)
-	require.NoError(t, page.WaitStable(time.Millisecond*100))
+	require.NoError(t, page.WaitStable(time.Millisecond*50))
 
-	rs.doSettingsMenuClose(t, page)
+	rs.doOpenSettingsMenuClickClose(t, page)
 }
 
 func (rs *RodSession) doEnterOTP(t *testing.T, page *rod.Page, passcode string) {

@@ -8,7 +8,7 @@ import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserInfoPOST } from "@hooks/UserInfo";
 import { useUserInfoTOTPConfigurationOptional } from "@hooks/UserInfoTOTPConfiguration";
 import { useUserWebAuthnCredentials } from "@hooks/WebAuthnCredentials";
-import { SecondFactorMethod } from "@models/Methods.ts";
+import { SecondFactorMethod } from "@models/Methods";
 import OneTimePasswordPanel from "@views/Settings/TwoFactorAuthentication/OneTimePasswordPanel";
 import TwoFactorAuthenticationOptionsPanel from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationOptionsPanel";
 import WebAuthnCredentialsPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsPanel";

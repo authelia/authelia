@@ -594,7 +594,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 			"",
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Unsuccessful WebAuthn authentication attempt by user 'john'", "Error validating origin")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Unsuccessful WebAuthn authentication attempt by user 'john'", "Error validating origin (verification_error): Expected Values: [https://login.example.com:8080], Received: http://example.com")
 			},
 		},
 		{
@@ -624,7 +624,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 			"",
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn authentication challenge for user 'john': error parsing the request body", "Parse error for Assertion")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn authentication challenge for user 'john': error parsing the request body", "Parse error for Assertion (invalid_request): json: cannot unmarshal bool into Go struct field CredentialAssertionResponse.id of type string")
 			},
 		},
 		{

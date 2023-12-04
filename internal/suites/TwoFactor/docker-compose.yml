@@ -1,0 +1,14 @@
+---
+version: '3'
+services:
+  authelia-backend:
+    environment:
+      - AUTHELIA_JWT_SECRET_FILE=/tmp/authelia/StandaloneSuite/jwt
+      - AUTHELIA_SESSION_SECRET_FILE=/tmp/authelia/StandaloneSuite/session
+    volumes:
+      - './TwoFactor/configuration.yml:/config/configuration.yml:ro'
+      - './TwoFactor/users.yml:/config/users.yml'
+      - './common/pki:/pki:ro'
+      - '/tmp:/tmp'
+    user: ${USER_ID}:${GROUP_ID}
+...

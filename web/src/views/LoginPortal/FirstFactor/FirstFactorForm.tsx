@@ -14,7 +14,7 @@ import { useNotifications } from "@hooks/NotificationsContext";
 import { useQueryParam } from "@hooks/QueryParam";
 import { useWorkflow } from "@hooks/Workflow";
 import LoginLayout from "@layouts/LoginLayout";
-import { IsCapsLockModified } from "@services/CapsLock.ts";
+import { IsCapsLockModified } from "@services/CapsLock";
 import { postFirstFactor } from "@services/FirstFactor";
 
 export interface Props {

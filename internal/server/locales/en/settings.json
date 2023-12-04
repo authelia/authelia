@@ -4,6 +4,7 @@
 	"Add": "Add",
 	"Added when": "Added {{when, datetime}}",
 	"Added": "Added",
+	"added": "added",
 	"Advanced": "Advanced",
 	"Algorithm": "Algorithm",
 	"An error occurred when attempting to update the WebAuthn Credential": "An error occurred when attempting to update the WebAuthn Credential",

@@ -1,14 +1,16 @@
 import React, { ChangeEvent, Fragment, useEffect, useState } from "react";
 
-import { FormControl, FormControlLabel, FormLabel, Paper, Radio, RadioGroup, Typography } from "@mui/material";
+import { Paper, Typography } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import { useTranslation } from "react-i18next";
 
+import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { Configuration } from "@models/Configuration";
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
-import { Method2FA, isMethod2FA, setPreferred2FAMethod, toMethod2FA, toSecondFactorMethod } from "@services/UserInfo";
+import { Method2FA, isMethod2FA, setPreferred2FAMethod, toSecondFactorMethod } from "@services/UserInfo";
+import TwoFactorAuthenticationOptionsMethodsRadioGroup from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationOptionsMethodsRadioGroup";
 
 interface Props {
     refresh: () => void;
@@ -18,44 +20,42 @@ interface Props {
 
 const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
     const { t: translate } = useTranslation("settings");
-
     const { createErrorNotification } = useNotifications();
+    const { localStorageMethod, setLocalStorageMethod, localStorageMethodAvailable } = useLocalStorageMethodContext();
 
-    const [method, setMethod] = useState<string>();
-    const [methods, setMethods] = useState<string[]>([]);
+    const [method, setMethod] = useState<SecondFactorMethod>();
+    const [methods, setMethods] = useState<SecondFactorMethod[]>([]);
 
     const hasMethods = props.info.has_totp || props.info.has_webauthn || props.info.has_duo;
 
     useEffect(() => {
         if (props.info === undefined) return;
 
-        setMethod(toMethod2FA(props.info.method));
+        setMethod(props.info.method);
     }, [props.info]);
 
     useEffect(() => {
         if (!hasMethods) return;
-        let valuesFinal: string[] = [];
+        let valuesFinal: SecondFactorMethod[] = [];
 
         const values = Array.from(props.config.available_methods);
 
         values.forEach((value) => {
-            const v = toMethod2FA(value);
-
-            if (!valuesFinal.includes(v)) {
+            if (!valuesFinal.includes(value)) {
                 switch (value) {
                     case SecondFactorMethod.WebAuthn:
                         if (props.info.has_webauthn) {
-                            valuesFinal.push(v);
+                            valuesFinal.push(value);
                         }
                         break;
                     case SecondFactorMethod.TOTP:
                         if (props.info.has_totp) {
-                            valuesFinal.push(v);
+                            valuesFinal.push(value);
                         }
                         break;
                     case SecondFactorMethod.MobilePush:
                         if (props.info.has_duo) {
-                            valuesFinal.push(v);
+                            valuesFinal.push(value);
                         }
                         break;
                 }
@@ -65,7 +65,7 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
         setMethods(valuesFinal);
     }, [props.config, hasMethods, props.info.has_webauthn, props.info.has_totp, props.info.has_duo]);
 
-    const handleMethodChanged = (event: ChangeEvent<HTMLInputElement>) => {
+    const handleMethodAccountChanged = (event: ChangeEvent<HTMLInputElement>) => {
         if (isMethod2FA(event.target.value)) {
             const value = toSecondFactorMethod(event.target.value as Method2FA);
 
@@ -75,11 +75,17 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
                     createErrorNotification("There was an issue updating preferred second factor method");
                 })
                 .then(() => {
-                    setMethod(event.target.value);
+                    setMethod(value);
                 })
                 .finally(() => {
                     props.refresh();
                 });
+        }
+    };
+
+    const handleMethodBrowserChanged = (event: ChangeEvent<HTMLInputElement>) => {
+        if (isMethod2FA(event.target.value)) {
+            setLocalStorageMethod(toSecondFactorMethod(event.target.value as Method2FA));
         }
     };
 
@@ -95,46 +101,24 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
                             <Grid container spacing={2} padding={2}>
                                 {method === undefined ? null : (
                                     <Grid xs={4}>
-                                        <FormControl>
-                                            <FormLabel id={"two-factor-method-label"}>
-                                                {translate("Default Method")}
-                                            </FormLabel>
-                                            <RadioGroup value={method} onChange={handleMethodChanged} row>
-                                                {methods.map((value, index) => {
-                                                    switch (value) {
-                                                        case "webauthn":
-                                                            return (
-                                                                <FormControlLabel
-                                                                    control={<Radio />}
-                                                                    label={translate("WebAuthn")}
-                                                                    key={index}
-                                                                    value={value}
-                                                                />
-                                                            );
-                                                        case "totp":
-                                                            return (
-                                                                <FormControlLabel
-                                                                    control={<Radio />}
-                                                                    label={translate("One-Time Password")}
-                                                                    key={index}
-                                                                    value={value}
-                                                                />
-                                                            );
-                                                        case "mobile_push":
-                                                            return (
-                                                                <FormControlLabel
-                                                                    control={<Radio />}
-                                                                    label={translate("Mobile Push")}
-                                                                    key={index}
-                                                                    value={value}
-                                                                />
-                                                            );
-                                                        default:
-                                                            return <Fragment />;
-                                                    }
-                                                })}
-                                            </RadioGroup>
-                                        </FormControl>
+                                        <TwoFactorAuthenticationOptionsMethodsRadioGroup
+                                            id={"account"}
+                                            name={"Default Method"}
+                                            method={method}
+                                            methods={methods}
+                                            handleMethodChanged={handleMethodAccountChanged}
+                                        />
+                                    </Grid>
+                                )}
+                                {!localStorageMethodAvailable || localStorageMethod === undefined ? null : (
+                                    <Grid xs={4}>
+                                        <TwoFactorAuthenticationOptionsMethodsRadioGroup
+                                            id={"local"}
+                                            name={"Default Method (Browser)"}
+                                            method={localStorageMethod}
+                                            methods={methods}
+                                            handleMethodChanged={handleMethodBrowserChanged}
+                                        />
                                     </Grid>
                                 )}
                             </Grid>

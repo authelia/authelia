@@ -744,7 +744,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error parsing the request body", "Parse error for Registration: invalid character 'w' looking for beginning of value")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error parsing the request body", "Parse error for Registration (invalid_request): invalid character 'w' looking for beginning of value")
 			},
 		},
 		{
@@ -859,7 +859,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error comparing the response to the WebAuthn session data", "Error validating the authenticator response: RP Hash mismatch. Expected 0c6ca0839c3a5683557833f618a2556665df2a088964787d53850b4ad4d3bedc and Received a379a6f6eeafb9a55e378c118034e2751e682fab9f2d30ab13d2125586ce1947")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error comparing the response to the WebAuthn session data", "Error validating the authenticator response (verification_error): RP Hash mismatch. Expected 0c6ca0839c3a5683557833f618a2556665df2a088964787d53850b4ad4d3bedc and Received a379a6f6eeafb9a55e378c118034e2751e682fab9f2d30ab13d2125586ce1947")
 			},
 		},
 	}
