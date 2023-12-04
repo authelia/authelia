@@ -17,6 +17,52 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
+func TestWebAuthnFormatError(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     error
+		expected string
+	}{
+		{
+			"ShouldHandleStandardError",
+			fmt.Errorf("abc123"),
+			"abc123",
+		},
+		{
+			"ShouldHandleProtocolErrorWithDevInfo",
+			&protocol.Error{
+				Type:    "a_error",
+				Details: "a bad thing",
+				DevInfo: "example",
+			},
+			"a bad thing (a_error): example",
+		},
+		{
+			"ShouldHandleProtocolErrorWithDevInfoWithoutType",
+			&protocol.Error{
+				Details: "a bad thing",
+				DevInfo: "example",
+			},
+			"a bad thing: example",
+		},
+		{
+			"ShouldHandleProtocolErrorWithoutDevInfo",
+			&protocol.Error{
+				Details: "a bad thing",
+			},
+			"a bad thing",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := formatWebAuthnError(tc.have)
+
+			assert.EqualError(t, actual, tc.expected)
+		})
+	}
+}
+
 func TestWebAuthnGetUserx(t *testing.T) {
 	testCases := []struct {
 		name        string

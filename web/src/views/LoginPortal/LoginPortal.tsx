@@ -11,6 +11,7 @@ import {
     SecondFactorWebAuthnSubRoute,
 } from "@constants/Routes";
 import { RedirectionURL } from "@constants/SearchParams";
+import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
 import { useConfiguration } from "@hooks/Configuration";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useQueryParam } from "@hooks/QueryParam";
@@ -19,7 +20,6 @@ import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoPOST } from "@hooks/UserInfo";
 import { SecondFactorMethod } from "@models/Methods";
-import { getLocalStorageSecondFactorMethod } from "@services/LocalStorage";
 import { checkSafeRedirection } from "@services/SafeRedirection";
 import { AuthenticationLevel } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
@@ -46,6 +46,7 @@ const LoginPortal = function (props: Props) {
     const [firstFactorDisabled, setFirstFactorDisabled] = useState(true);
     const [broadcastRedirect, setBroadcastRedirect] = useState(false);
     const redirector = useRedirector();
+    const { localStorageMethod } = useLocalStorageMethodContext();
 
     const [state, fetchState, , fetchStateError] = useAutheliaState();
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoPOST();
@@ -119,6 +120,7 @@ const LoginPortal = function (props: Props) {
                 } catch (err) {
                     createErrorNotification(RedirectionErrorMessage);
                 }
+
                 return;
             }
 
@@ -129,7 +131,7 @@ const LoginPortal = function (props: Props) {
                 if (configuration.available_methods.size === 0) {
                     navigate(AuthenticatedRoute, false);
                 } else {
-                    const method = getLocalStorageSecondFactorMethod(userInfo.method);
+                    const method = localStorageMethod || userInfo.method;
 
                     if (method === SecondFactorMethod.WebAuthn) {
                         navigate(`${SecondFactorRoute}${SecondFactorWebAuthnSubRoute}`);
@@ -151,6 +153,7 @@ const LoginPortal = function (props: Props) {
         createErrorNotification,
         redirector,
         broadcastRedirect,
+        localStorageMethod,
     ]);
 
     const handleChannelStateChange = async () => {

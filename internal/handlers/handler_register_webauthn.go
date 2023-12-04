@@ -3,7 +3,6 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -106,7 +105,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if creation, data.SessionData, err = w.BeginRegistration(user, opts...); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn registration challenge for user '%s': error occurred starting the registration session", userSession.Username)
+		ctx.Logger.WithError(formatWebAuthnError(err)).Errorf("Error occurred generating a WebAuthn registration challenge for user '%s': error occurred starting the registration session", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageUnableToRegisterSecurityKey)
@@ -185,14 +184,7 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	}()
 
 	if response, err = protocol.ParseCredentialCreationResponseBody(bytes.NewReader(ctx.PostBody())); err != nil {
-		var e *protocol.Error
-
-		switch {
-		case errors.As(err, &e):
-			ctx.Logger.WithError(fmt.Errorf("%w: %s", e, e.DevInfo)).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': %s", userSession.Username, errStrReqBodyParse)
-		default:
-			ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': %s", userSession.Username, errStrReqBodyParse)
-		}
+		ctx.Logger.WithError(formatWebAuthnError(err)).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': %s", userSession.Username, errStrReqBodyParse)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(messageUnableToRegisterSecurityKey)
@@ -219,14 +211,7 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if c, err = w.CreateCredential(user, *userSession.WebAuthn.SessionData, response); err != nil {
-		var e *protocol.Error
-
-		switch {
-		case errors.As(err, &e):
-			ctx.Logger.WithError(fmt.Errorf("%w: %s", e, e.DevInfo)).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error comparing the response to the WebAuthn session data", userSession.Username)
-		default:
-			ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error comparing the response to the WebAuthn session data", userSession.Username)
-		}
+		ctx.Logger.WithError(formatWebAuthnError(err)).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error comparing the response to the WebAuthn session data", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageUnableToRegisterSecurityKey)

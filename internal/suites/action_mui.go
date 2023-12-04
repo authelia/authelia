@@ -11,8 +11,6 @@ import (
 func (rs *RodSession) doHoverAllMuiTooltip(t *testing.T, page *rod.Page) {
 	pos := page.Mouse.Position()
 
-	require.NoError(t, page.WaitStable(time.Millisecond*10))
-
 	elements, err := page.Elements(".MuiTooltip-tooltip")
 
 	require.NoError(t, err)

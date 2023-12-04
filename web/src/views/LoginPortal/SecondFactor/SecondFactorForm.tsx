@@ -14,12 +14,12 @@ import {
     SettingsTwoFactorAuthenticationSubRoute,
     LogoutRoute as SignOutRoute,
 } from "@constants/Routes";
+import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";
 import { Configuration } from "@models/Configuration";
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
-import { setLocalStorageSecondFactorMethod } from "@services/LocalStorage";
 import { AuthenticationLevel } from "@services/State";
 import { setPreferred2FAMethod } from "@services/UserInfo";
 import MethodSelectionDialog from "@views/LoginPortal/SecondFactor/MethodSelectionDialog";
@@ -42,8 +42,9 @@ const SecondFactorForm = function (props: Props) {
     const styles = useStyles();
     const navigate = useNavigate();
     const [methodSelectionOpen, setMethodSelectionOpen] = useState(false);
-    const { createErrorNotification } = useNotifications();
     const [stateWebAuthnSupported, setStateWebAuthnSupported] = useState(false);
+    const { createErrorNotification } = useNotifications();
+    const { setLocalStorageMethod, localStorageMethodAvailable } = useLocalStorageMethodContext();
     const { t: translate } = useTranslation();
 
     useEffect(() => {
@@ -55,9 +56,9 @@ const SecondFactorForm = function (props: Props) {
     };
 
     const handleMethodSelected = async (method: SecondFactorMethod) => {
-        const setLocal = setLocalStorageSecondFactorMethod(method);
-
-        if (!setLocal) {
+        if (localStorageMethodAvailable) {
+            setLocalStorageMethod(method);
+        } else {
             await handleMethodSelectedFallback(method);
         }
 
