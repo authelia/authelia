@@ -5,6 +5,7 @@
       "@root/*": ["./*"],
       "@assets/*": ["assets/*"],
       "@components/*": ["components/*"],
+      "@contexts/*": ["contexts/*"],
       "@constants/*": ["constants/*"],
       "@hooks/*": ["hooks/*"],
       "@i18n/*": ["i18n/*"],

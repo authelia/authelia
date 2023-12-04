@@ -14,6 +14,12 @@ var (
 	Example3DotCom = "example3.com:8080"
 )
 
+const (
+	SHA1   = "SHA1"
+	SHA256 = "SHA256"
+	SHA512 = "SHA512"
+)
+
 // GetPathPrefix returns the prefix/url_base of the login portal.
 func GetPathPrefix() string {
 	return os.Getenv("PathPrefix")

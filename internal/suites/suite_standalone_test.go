@@ -161,7 +161,7 @@ func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() 
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-not-registered")
 
 	// Then register the TOTP factor.
-	s.doRegisterTOTP(s.T(), s.Context(ctx), username)
+	s.doOpenSettingsAndRegisterTOTP(s.T(), s.Context(ctx), username)
 	// And logout.
 	s.doLogout(s.T(), s.Context(ctx))
 
@@ -330,8 +330,12 @@ func (s *StandaloneSuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *StandaloneSuite) NewTwoFactorTOTPScenario() {
+func (s *StandaloneSuite) TestTwoFactorTOTPScenario() {
 	suite.Run(s.T(), NewTwoFactorTOTPScenario())
+}
+
+func (s *StandaloneSuite) TestTwoFactorWebAuthnScenario() {
+	suite.Run(s.T(), NewTwoFactorWebAuthnScenario())
 }
 
 func (s *StandaloneSuite) TestBypassPolicyScenario() {

@@ -101,7 +101,7 @@ const WebAuthnMethod = function (props: Props) {
     ]);
 
     useEffect(() => {
-        doInitiateSignIn();
+        doInitiateSignIn().catch(console.error);
     }, [doInitiateSignIn]);
 
     let methodState = MethodContainerState.METHOD;

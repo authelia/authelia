@@ -64,7 +64,7 @@ func (rs *RodSession) doLoginSecondFactorTOTP(t *testing.T, page *rod.Page, user
 // Login 1FA and register 2FA.
 func (rs *RodSession) doLoginAndRegisterTOTP(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool) {
 	rs.doLoginOneFactor(t, page, username, password, keepMeLoggedIn, BaseDomain, "")
-	rs.doRegisterTOTP(t, page, username)
+	rs.doOpenSettingsAndRegisterTOTP(t, page, username)
 
 	rs.verifyIsSecondFactorPage(t, page)
 }
@@ -74,4 +74,12 @@ func (rs *RodSession) doRegisterTOTPAndLogin2FA(t *testing.T, page *rod.Page, us
 	// Register TOTP secret and logout.
 	rs.doLoginAndRegisterTOTPThenLogout(t, page, username, password)
 	rs.doLoginSecondFactorTOTP(t, page, username, password, keepMeLoggedIn, targetURL)
+}
+
+func (rs *RodSession) doLoginAndRegisterWebAuthn(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool) {
+	rs.doLoginOneFactor(t, page, username, password, keepMeLoggedIn, BaseDomain, "")
+	require.Greater(t, len(rs.GetWebAuthnAuthenticatorID()), 0)
+	rs.doWebAuthnCredentialRegisterAfterVisitSettings(t, page, "testing")
+
+	rs.verifyIsSecondFactorPage(t, page)
 }

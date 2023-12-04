@@ -20,7 +20,7 @@ func (s *DockerSuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *DockerSuite) NewTwoFactorTOTPScenario() {
+func (s *DockerSuite) TestTwoFactorTOTPScenario() {
 	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 

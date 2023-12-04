@@ -20,7 +20,7 @@ func (s *HAProxySuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *HAProxySuite) NewTwoFactorTOTPScenario() {
+func (s *HAProxySuite) TestTwoFactorTOTPScenario() {
 	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 

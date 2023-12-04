@@ -20,7 +20,7 @@ func (s *KubernetesSuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *KubernetesSuite) NewTwoFactorTOTPScenario() {
+func (s *KubernetesSuite) TestTwoFactorTOTPScenario() {
 	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 

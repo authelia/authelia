@@ -36,7 +36,11 @@ const CredentialItem = function (props: Props) {
                     <Grid xs={3} sm={6}>
                         <Stack direction={"column"}>
                             <Box>
-                                <Typography display={"inline"} sx={{ fontWeight: "bold" }}>
+                                <Typography
+                                    id={`${props.id}-description`}
+                                    display={"inline"}
+                                    sx={{ fontWeight: "bold" }}
+                                >
                                     {props.description}
                                 </Typography>
                                 <Typography display={{ xs: "none", sm: "inline" }} variant={"body2"}>

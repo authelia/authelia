@@ -37,13 +37,13 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const styles = useStyles();
-    const { createErrorNotification } = useNotifications();
+    const { createSuccessNotification, createErrorNotification } = useNotifications();
 
     const [state, setState] = useState(WebAuthnTouchState.WaitTouch);
     const [activeStep, setActiveStep] = useState(0);
     const [options, setOptions] = useState<PublicKeyCredentialCreationOptionsJSON | null>(null);
     const [timeout, setTimeout] = useState<number | null>(null);
-    const [credentialDescription, setCredentialDescription] = useState("");
+    const [description, setDescription] = useState("");
     const [errorDescription, setErrorDescription] = useState(false);
 
     const nameRef = useRef() as MutableRefObject<HTMLInputElement>;
@@ -53,7 +53,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
         setOptions(null);
         setActiveStep(0);
         setTimeout(null);
-        setCredentialDescription("");
+        setDescription("");
         setErrorDescription(false);
     };
 
@@ -74,19 +74,25 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
         try {
             setState(WebAuthnTouchState.WaitTouch);
 
-            const resultCredentialCreation = await startWebAuthnRegistration(options);
+            const result = await startWebAuthnRegistration(options);
 
             setTimeout(null);
 
-            if (resultCredentialCreation.result === AttestationResult.Success) {
-                if (resultCredentialCreation.response == null) {
+            if (result.result === AttestationResult.Success) {
+                if (result.response == null) {
                     throw new Error("Credential Creation Request succeeded but Registration Response is empty.");
                 }
 
-                const response = await finishRegistration(resultCredentialCreation.response);
+                const response = await finishRegistration(result.response);
 
                 switch (response.status) {
                     case AttestationResult.Success:
+                        createSuccessNotification(
+                            translate("Successfully {{action}} the {{item}}", {
+                                action: translate("added"),
+                                item: translate("WebAuthn Credential"),
+                            }),
+                        );
                         break;
                     case AttestationResult.Failure:
                         createErrorNotification(response.message);
@@ -95,7 +101,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
 
                 return;
             } else {
-                createErrorNotification(AttestationResultFailureString(resultCredentialCreation.result));
+                createErrorNotification(AttestationResultFailureString(result.result));
                 setState(WebAuthnTouchState.Failure);
             }
         } catch (err) {
@@ -106,7 +112,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
         } finally {
             handleClose();
         }
-    }, [props.open, options, createErrorNotification, handleClose]);
+    }, [props.open, options, createSuccessNotification, translate, createErrorNotification, handleClose]);
 
     useEffect(() => {
         if (!props.open || state !== WebAuthnTouchState.Failure || activeStep !== 0) {
@@ -132,7 +138,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
         }
 
         (async function () {
-            if (credentialDescription.length === 0 || credentialDescription.length > 64) {
+            if (description.length === 0 || description.length > 64) {
                 setErrorDescription(true);
                 createErrorNotification(
                     translate("The Description must be more than 1 character and less than 64 characters"),
@@ -141,7 +147,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                 return;
             }
 
-            const res = await getAttestationCreationOptions(credentialDescription);
+            const res = await getAttestationCreationOptions(description);
 
             switch (res.status) {
                 case 200:
@@ -169,11 +175,11 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
 
             await performCredentialCreation();
         })();
-    }, [createErrorNotification, credentialDescription, performCredentialCreation, props.open, translate]);
+    }, [createErrorNotification, description, performCredentialCreation, props.open, translate]);
 
     const handleCredentialDescription = useCallback(
         (description: string) => {
-            setCredentialDescription(description);
+            setDescription(description);
 
             if (errorDescription) {
                 setErrorDescription(false);
@@ -197,11 +203,11 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                             <Grid xs={12}>
                                 <TextField
                                     inputRef={nameRef}
-                                    id="name-textfield"
+                                    id="webauthn-credential-description"
                                     label={translate("Description")}
                                     variant="outlined"
                                     required
-                                    value={credentialDescription}
+                                    value={description}
                                     error={errorDescription}
                                     disabled={false}
                                     onChange={(v) => handleCredentialDescription(v.target.value)}
@@ -272,6 +278,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
             </DialogContent>
             <DialogActions>
                 <Button
+                    id={"dialog-cancel"}
                     color={activeStep === 1 && state !== WebAuthnTouchState.Failure ? "primary" : "error"}
                     disabled={activeStep === 1 && state !== WebAuthnTouchState.Failure}
                     onClick={handleClose}
@@ -280,7 +287,8 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                 </Button>
                 {activeStep === 0 ? (
                     <Button
-                        color={credentialDescription.length !== 0 ? "success" : "primary"}
+                        id={"dialog-next"}
+                        color={description.length !== 0 ? "success" : "primary"}
                         disabled={activeStep !== 0}
                         onClick={async () => {
                             handleNext();

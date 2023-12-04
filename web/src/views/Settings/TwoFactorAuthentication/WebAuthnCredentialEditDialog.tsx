@@ -101,7 +101,7 @@ const WebAuthnCredentialEditDialog = function (props: Props) {
                 <TextField
                     autoFocus
                     inputRef={descriptionRef}
-                    id="name-textfield"
+                    id="webauthn-credential-description"
                     label={translate("Description")}
                     variant="standard"
                     required
@@ -125,8 +125,12 @@ const WebAuthnCredentialEditDialog = function (props: Props) {
                 />
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleCancel}>{translate("Cancel")}</Button>
-                <Button onClick={handleUpdate}>{translate("Update")}</Button>
+                <Button id={"dialog-cancel"} onClick={handleCancel}>
+                    {translate("Cancel")}
+                </Button>
+                <Button id={"dialog-update"} onClick={handleUpdate}>
+                    {translate("Update")}
+                </Button>
             </DialogActions>
         </Dialog>
     );

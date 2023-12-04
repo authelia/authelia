@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 
@@ -17,6 +19,24 @@ const (
 	WebAuthnExtensionCredPropsResidentKey = "rk"
 	WebAuthnDiscoverable                  = "discoverable"
 )
+
+func formatWebAuthnError(err error) error {
+	out := &protocol.Error{}
+
+	if errors.As(err, &out) {
+		if len(out.DevInfo) == 0 {
+			return err
+		}
+
+		if len(out.Type) == 0 {
+			return fmt.Errorf("%w: %s", err, out.DevInfo)
+		}
+
+		return fmt.Errorf("%w (%s): %s", err, out.Type, out.DevInfo)
+	}
+
+	return err
+}
 
 func handleGetWebAuthnUserByRPID(ctx *middlewares.AutheliaCtx, username, displayname string, rpid string) (user *model.WebAuthnUser, err error) {
 	if user, err = ctx.Providers.StorageProvider.LoadWebAuthnUser(ctx, rpid, username); err != nil {

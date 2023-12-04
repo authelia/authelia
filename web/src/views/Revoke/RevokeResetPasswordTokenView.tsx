@@ -6,7 +6,7 @@ import { IndexRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useToken } from "@hooks/Revoke";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
-import { deleteResetPasswordToken } from "@services/ResetPassword.ts";
+import { deleteResetPasswordToken } from "@services/ResetPassword";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
 const RevokeResetPasswordTokenView = function () {

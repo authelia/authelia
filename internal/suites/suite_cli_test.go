@@ -917,7 +917,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 				Username:  "john",
 				Period:    30,
 				Digits:    6,
-				Algorithm: "SHA1",
+				Algorithm: SHA1,
 			},
 		},
 		{
@@ -925,7 +925,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 				Username:  "mary",
 				Period:    45,
 				Digits:    6,
-				Algorithm: "SHA1",
+				Algorithm: SHA1,
 			},
 		},
 		{
@@ -933,7 +933,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 				Username:  "fred",
 				Period:    30,
 				Digits:    8,
-				Algorithm: "SHA1",
+				Algorithm: SHA1,
 			},
 		},
 		{
@@ -941,7 +941,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 				Username:  "jone",
 				Period:    30,
 				Digits:    6,
-				Algorithm: "SHA512",
+				Algorithm: SHA512,
 			},
 			png: true,
 		},

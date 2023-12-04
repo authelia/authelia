@@ -20,7 +20,7 @@ func (s *MySQLSuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *MySQLSuite) NewTwoFactorTOTPScenario() {
+func (s *MySQLSuite) TestTwoFactorTOTPScenario() {
 	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 
