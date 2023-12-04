@@ -20,7 +20,7 @@ func (s *PostgresSuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *PostgresSuite) NewTwoFactorTOTPScenario() {
+func (s *PostgresSuite) TestTwoFactorTOTPScenario() {
 	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 

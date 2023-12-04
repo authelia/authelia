@@ -20,7 +20,7 @@ func (s *LDAPSuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *LDAPSuite) NewTwoFactorTOTPScenario() {
+func (s *LDAPSuite) TestTwoFactorTOTPScenario() {
 	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 

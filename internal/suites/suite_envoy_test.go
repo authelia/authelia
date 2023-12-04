@@ -20,7 +20,7 @@ func (s *EnvoySuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *EnvoySuite) NewTwoFactorTOTPScenario() {
+func (s *EnvoySuite) TestTwoFactorTOTPScenario() {
 	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 

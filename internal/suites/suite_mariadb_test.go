@@ -20,7 +20,7 @@ func (s *MariaDBSuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *MariaDBSuite) NewTwoFactorTOTPScenario() {
+func (s *MariaDBSuite) TestTwoFactorTOTPScenario() {
 	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 
