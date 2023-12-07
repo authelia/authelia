@@ -7,5 +7,3 @@ Please:
 
 See the [Documentation Contributing Guide](https://www.authelia.com/contributing/prologue/documentation-contributions/) for more
 information.
-
-Test
