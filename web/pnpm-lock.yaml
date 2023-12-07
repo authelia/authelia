@@ -188,8 +188,8 @@ devDependencies:
     specifier: 4.2.0
     version: 4.2.0(typescript@5.3.3)(vite@5.0.6)
   vite-tsconfig-paths:
-    specifier: 4.2.1
-    version: 4.2.1(typescript@5.3.3)(vite@5.0.6)
+    specifier: 4.2.2
+    version: 4.2.2(typescript@5.3.3)(vite@5.0.6)
   vitest:
     specifier: 1.0.2
     version: 1.0.2(@types/node@20.10.4)(happy-dom@12.10.3)
@@ -7946,8 +7946,8 @@ packages:
       - typescript
     dev: true
 
-  /vite-tsconfig-paths@4.2.1(typescript@5.3.3)(vite@5.0.6):
-    resolution: {integrity: sha512-GNUI6ZgPqT3oervkvzU+qtys83+75N/OuDaQl7HmOqFTb0pjZsuARrRipsyJhJ3enqV8beI1xhGbToR4o78nSQ==}
+  /vite-tsconfig-paths@4.2.2(typescript@5.3.3)(vite@5.0.6):
+    resolution: {integrity: sha512-dq0FjyxHHDnp0uS3P12WEOX2W7NeuLzX9AWP38D7Zw2CTbFErapwQVlCiT5DMJcVWKQ1MMdTe92PZl/rBQ7qcw==}
     peerDependencies:
       vite: '*'
     peerDependenciesMeta:
