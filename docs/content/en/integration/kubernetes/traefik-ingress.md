@@ -54,17 +54,14 @@ __SHOULD NOT__ be applied to the Authelia [Ingress] / [IngressRoute] itself.*
 apiVersion: 'traefik.containo.us/v1alpha1'
 kind: 'Middleware'
 metadata:
-  name: 'forwardauth-authelia'
-  namespace: 'default'
+  name: 'forwardauth-authelia' # name of middleware as it appears in Traefik, and how you reference in ingress rules
+  namespace: 'default' # name of namespace that Traefik is in
   labels:
     app.kubernetes.io/instance: 'authelia'
     app.kubernetes.io/name: 'authelia'
 spec:
   forwardAuth:
     address: 'http://authelia.default.svc.cluster.local/api/authz/forward-auth'
-    ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest this is
-    ## configured in the Session Cookies section of the Authelia configuration.
-    # address: 'http://authelia.default.svc.cluster.local/api/authz/forward-auth?authelia_url=https%3A%2F%2Fauth.example.com%2F'
     authResponseHeaders:
       - 'Authorization'
       - 'Proxy-Authorization'
@@ -75,6 +72,10 @@ spec:
 ...
 ```
 {{< /details >}}
+### Configuring URL in the proxy
+*We strongly suggest this is configured in the Session Cookies section of the Authelia configuration.*  
+Replace the address in the example middleware above with the following example syntax -  
+`address: 'http://authelia.default.svc.cluster.local/api/authz/forward-auth?authelia_url=https%3A%2F%2Fauth.example.com%2F'`
 
 ## Ingress
 
@@ -91,8 +92,8 @@ metadata:
   name: 'app'
   namespace: 'default'
   annotations:
-    traefik.ingress.kubernetes.io/router.entryPoints: 'websecure'
-    traefik.ingress.kubernetes.io/router.middlewares: 'default-forwardauth-authelia@kubernetescrd'
+    traefik.ingress.kubernetes.io/router.entryPoints: 'websecure' # name of your https entry point (default is 'websecure')
+    traefik.ingress.kubernetes.io/router.middlewares: 'default-forwardauth-authelia@kubernetescrd' # name of your middleware, as defined in your middleware.yaml
     traefik.ingress.kubernetes.io/router.tls: 'true'
 spec:
   rules:
@@ -123,15 +124,15 @@ apiVersion: 'traefik.containo.us/v1alpha1'
 kind: 'IngressRoute'
 metadata:
   name: 'app'
-  namespace: 'default'
+  namespace: 'default' 
 spec:
   entryPoints:
-    - 'websecure'
+    - 'websecure'  # name of your https entry point (default is 'websecure')
   routes:
     - kind: 'Rule'
       match: 'Host(`app.example.com`)'
       middlewares:
-        - name: 'forwardauth-authelia'
+        - name: 'forwardauth-authelia' # name of your middleware, as defined in your middleware.yaml
           namespace: 'default'
       services:
         - kind: 'Service'
