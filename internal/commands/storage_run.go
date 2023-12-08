@@ -1200,7 +1200,7 @@ func (ctx *CmdCtx) StorageUserIdentifiersGenerateRunE(cmd *cobra.Command, _ []st
 		}
 	}
 
-	fmt.Printf("Successfully generated and addded opaque identifiers:\n")
+	fmt.Printf("Successfully generated and added opaque identifiers:\n")
 	fmt.Printf("\tUsers: '%s'\n", strings.Join(users, "', '"))
 	fmt.Printf("\tSectors: '%s'\n", strings.Join(sectors, "', '"))
 	fmt.Printf("\tServices: '%s'\n", strings.Join(services, "', '"))
