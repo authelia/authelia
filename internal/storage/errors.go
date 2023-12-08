@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	// ErrNoAuthenticationLogs error thrown when no matching authentication logs hve been found in DB.
+	// ErrNoAuthenticationLogs error thrown when no matching authentication logs have been found in DB.
 	ErrNoAuthenticationLogs = errors.New("no matching authentication logs found")
 
 	// ErrNoTOTPConfiguration error thrown when no TOTP configuration has been found in DB.

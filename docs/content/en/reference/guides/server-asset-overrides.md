@@ -45,7 +45,7 @@ utilize these overrides should either check for changes to the files in the
 [Contribute](../../contributing/prologue/translations.md) their translation to ensure it is maintained.*
 
 The locales directory holds folders of internationalization locales. This directory can be utilized to override these
-locales. They are the names of locales that are returned by the `navigator.langauge` ECMAScript command. These are
+locales. They are the names of locales that are returned by the `navigator.language` ECMAScript command. These are
 generally those in the [RFC5646 / BCP47 Format](https://datatracker.ietf.org/doc/html/rfc5646) specifically the language
 codes from [Crowdin](https://support.crowdin.com/api/language-codes/).
 
