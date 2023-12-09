@@ -72,10 +72,6 @@ spec:
 ...
 ```
 {{< /details >}}
-### Configuring URL in the proxy
-*We strongly suggest this is configured in the Session Cookies section of the Authelia configuration.*  
-Replace the address in the example middleware above with the following example syntax -  
-`address: 'http://authelia.default.svc.cluster.local/api/authz/forward-auth?authelia_url=https%3A%2F%2Fauth.example.com%2F'`
 
 ## Ingress
 
