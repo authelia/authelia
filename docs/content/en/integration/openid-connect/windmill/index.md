@@ -54,9 +54,9 @@ identity_providers:
 
 Go on the workspaces page as a Superadmin: **Superadmin settings > Core**
 
-{{< figure src="windmill_core.png" alt="Windmill" width="300" >}}
-
 - Base Url: https://windmill.example.com
+
+{{< figure src="windmill_core.png" alt="Windmill" >}}
 
 > ⚠️ **Don't forget to press save.**
 
@@ -64,11 +64,11 @@ Go on the workspaces page as a Superadmin: **Superadmin settings > Core**
 
 Go on the workspaces page as a Superadmin: **Superadmin settings > SSO/OAuth**
 
-{{< figure src="windmill_sso.png" alt="Windmill" width="300" >}}
-
 - Config URL: https://auth.example.com
 - Client Id: Windmill
 - Client Secret: insecure_secret
+
+{{< figure src="windmill_sso.png" alt="Windmill" >}}
 
 > ⚠️ **Don't forget to press save.**
 
