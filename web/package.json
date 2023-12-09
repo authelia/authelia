@@ -105,11 +105,11 @@
     "prettier": "3.1.0",
     "react-test-renderer": "18.2.0",
     "typescript": "5.3.3",
-    "vite": "5.0.6",
+    "vite": "5.0.7",
     "vite-plugin-checker": "0.6.2",
     "vite-plugin-istanbul": "5.0.0",
     "vite-plugin-svgr": "4.2.0",
-    "vite-tsconfig-paths": "4.2.1",
+    "vite-tsconfig-paths": "4.2.2",
     "vitest": "1.0.2",
     "vitest-preview": "0.0.1"
   }
