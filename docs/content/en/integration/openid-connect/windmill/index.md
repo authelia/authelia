@@ -52,7 +52,7 @@ identity_providers:
 
 ### Core configuration
 
-Go on the workspaces page as a Superadmin: **Superadmin settings > Core**
+**Superadmin settings > Core**
 
 - Base Url: https://windmill.example.com
 
@@ -62,7 +62,7 @@ Go on the workspaces page as a Superadmin: **Superadmin settings > Core**
 
 ### Auth configuration
 
-Go on the workspaces page as a Superadmin: **Superadmin settings > SSO/OAuth**
+**Superadmin settings > SSO/OAuth**
 
 - Config URL: https://auth.example.com
 - Client Id: Windmill
