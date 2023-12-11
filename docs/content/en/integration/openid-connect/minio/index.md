@@ -89,7 +89,7 @@ identity_providers:
 
 ## See Also
 
-- [MinIO OpenID Identiy Management](https://min.io/docs/minio/linux/reference/minio-server/minio-server.html#minio-server-envvar-external-identity-management-openid)
+- [MinIO OpenID Identity Management](https://min.io/docs/minio/linux/reference/minio-server/minio-server.html#minio-server-envvar-external-identity-management-openid)
 
 [MinIO]: https://minio.com/
 [Authelia]: https://www.authelia.com

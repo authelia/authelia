@@ -205,7 +205,7 @@ but don't want unused devices to be vulnerable.
 
 *__Default Value:__ This option takes its default value from the [expiration](#expiration) setting above.*
 
-The period of time before the cookie expires and the session is destroyed. This is overriden by
+The period of time before the cookie expires and the session is destroyed. This is overridden by
 [remember_me](#rememberme) when the remember me box is checked.
 
 #### remember_me

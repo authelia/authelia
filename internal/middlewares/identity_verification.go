@@ -140,7 +140,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 			ctx.Error(fmt.Errorf("Token is only valid in the future"), messageIdentityVerificationTokenNotValidYet)
 			return
 		case errors.Is(err, jwt.ErrTokenSignatureInvalid):
-			ctx.Error(fmt.Errorf("Token signature does't match"), messageIdentityVerificationTokenSig)
+			ctx.Error(fmt.Errorf("Token signature doesn't match"), messageIdentityVerificationTokenSig)
 			return
 		default:
 			ctx.Error(fmt.Errorf("Cannot handle this token: %w", err), messageOperationFailed)

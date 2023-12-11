@@ -15,7 +15,7 @@ aliases:
 ---
 
 [WebAuthn] requires urgent implementation as [Chrome removed support of their U2F API since August 2022][chrome-removed-u2f]. It is a modern evolution of the
-[FIDO U2F] protocol and is very similar in many ways. It even includes a backwards compatability extension called
+[FIDO U2F] protocol and is very similar in many ways. It even includes a backwards compatibility extension called
 the [FIDO AppID Extension] which allows a previously registered [FIDO U2F] device to be used with the protocol to
 authenticate.
 
