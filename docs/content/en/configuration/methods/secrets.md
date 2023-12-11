@@ -42,7 +42,7 @@ starting at the `{{` and `}}`, which indicate the start and end of the template 
 
 When considering the `private_key` the start of a templated section also has a `-` which removes the whitespace before
 the template section which starts the template content just after the `|` above it. The `fileContent` function reads the
-content of the `./test_resources/example_filter_rsa_private_key` file (releative to the Authelia working directory), and
+content of the `./test_resources/example_filter_rsa_private_key` file (relative to the Authelia working directory), and
 the `nindent` function adds a new line and indents every line in the file by `8` characters. Note the `|` between
 `nindent` and `fileContent` passes the output of `fileContent` function to the `nindent` function.
 

@@ -44,7 +44,7 @@ func OAuthIntrospectionPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 		return
 	}
 
-	ctx.Logger.Tracef("Introspection Request with id '%s' yeilded a %s (active: %t) requested at %s created with request id '%s' on client with id '%s'", requestID, responder.GetTokenUse(), responder.IsActive(), responder.GetAccessRequester().GetRequestedAt().String(), responder.GetAccessRequester().GetID(), responder.GetAccessRequester().GetClient().GetID())
+	ctx.Logger.Tracef("Introspection Request with id '%s' yielded a %s (active: %t) requested at %s created with request id '%s' on client with id '%s'", requestID, responder.GetTokenUse(), responder.IsActive(), responder.GetAccessRequester().GetRequestedAt().String(), responder.GetAccessRequester().GetID(), responder.GetAccessRequester().GetClient().GetID())
 
 	aud, introspection := oidc.IntrospectionResponseToMap(responder)
 

@@ -95,7 +95,7 @@ func GenerateCertificate(privateKeyBuilder PrivateKeyBuilder, hosts []string, va
 
 	keyPEMBytes, err := ConvertDERToPEM(keyDERBytes, PrivateKey)
 	if err != nil {
-		return nil, nil, fmt.Errorf("faile to convert certificate in DER format into PEM: %v", err)
+		return nil, nil, fmt.Errorf("failed to convert certificate in DER format into PEM: %v", err)
 	}
 
 	return certPEMBytes, keyPEMBytes, nil

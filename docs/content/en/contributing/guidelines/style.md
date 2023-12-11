@@ -131,7 +131,7 @@ PostgreSQL a serial type.
 #### Table/Column Names
 
 Table and Column names must be in snake case format. This means they must have only lowercase letters, and have words
-seperated by underscores. The reasoning for this is that some database engines ignore case by default and this makes it
+separated by underscores. The reasoning for this is that some database engines ignore case by default and this makes it
 easy to be consistent with the casing.
 
 #### Context

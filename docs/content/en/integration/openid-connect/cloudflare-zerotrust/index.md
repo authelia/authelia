@@ -50,7 +50,7 @@ To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect 1
 1. Visit the [Cloudflare Zero Trust Dashboard](https://dash.teams.cloudflare.com)
 2. Visit `Settings`
 3. Visit `Authentication`
-4. Under `Login nethods` select `Add new`
+4. Under `Login methods` select `Add new`
 5. Select `OpenID Connect`
 6. Set the following values:
    1. Name: `Authelia`

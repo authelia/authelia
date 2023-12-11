@@ -173,7 +173,7 @@ the [Argon2] algorithm is the best choice of the algorithms available, but it's 
 variant is the most resilient variant, followed by the `argon2d` variant and the `argon2i` variant not being recommended.
 It's strongly recommended if you're unsure that you use `argon2id`. [Scrypt] is a likely second best algorithm. [PBKDF2]
 is practically the only choice when it comes to [FIPS-140 compliance]. The `sha512` variant of the [SHA2 Crypt]
-algorithm is also a reasonable option, but is mainly available for backwards compatability.
+algorithm is also a reasonable option, but is mainly available for backwards compatibility.
 
 All other algorithms and variants available exist only for interoperability and we discourage their use if a better
 algorithm is available in your scenario.

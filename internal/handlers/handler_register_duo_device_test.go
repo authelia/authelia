@@ -41,12 +41,12 @@ func (s *RegisterDuoDeviceSuite) TestShouldCallDuoAPIAndFail() {
 	values := url.Values{}
 	values.Set("username", "john")
 
-	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(nil, fmt.Errorf("Connnection error"))
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(nil, fmt.Errorf("Connection error"))
 
 	DuoDevicesGET(duoMock)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Authentication failed, please retry later.")
-	assert.Equal(s.T(), "duo PreAuth API errored: Connnection error", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "duo PreAuth API errored: Connection error", s.mock.Hook.LastEntry().Message)
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 

@@ -493,7 +493,7 @@ paths:
       tags:
         - Authentication
       summary: Logout
-      description: The logout endpoint allows a user to logout and destroy a sesssion.
+      description: The logout endpoint allows a user to logout and destroy a session.
       requestBody:
         required: true
         content:

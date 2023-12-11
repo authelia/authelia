@@ -254,7 +254,7 @@ configuration option must be blank and the [password_reset disable](introduction
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-Authelia searches for the RootDSE to discover supported controls and extensions. This option is a compatability option
+Authelia searches for the RootDSE to discover supported controls and extensions. This option is a compatibility option
 which *__should not__* be enabled unless the LDAP server returns an error when searching for the RootDSE.
 
 ### user

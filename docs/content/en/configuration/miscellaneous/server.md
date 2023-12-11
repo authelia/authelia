@@ -89,7 +89,7 @@ Authelia by default serves all static assets from an embedded filesystem in the 
 
 Modifying this setting will allow you to override and serve specific assets for Authelia from a specified path. All
 assets that can be overridden must be placed in the `asset_path`. The structure of this directory and the assets which
-can be overriden is documented in the
+can be overridden is documented in the
 [Sever Asset Overrides Reference Guide](../../reference/guides/server-asset-overrides.md).
 
 ### disable_healthcheck

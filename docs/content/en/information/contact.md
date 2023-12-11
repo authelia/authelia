@@ -23,7 +23,7 @@ informational page.
 
 ### Discussions
 
-The [GitHub Discussions](https://github.com/authelia/authelia/discussions) forum is the correct location to discus
+The [GitHub Discussions](https://github.com/authelia/authelia/discussions) forum is the correct location to discuss
 anything that is not a bug or feature request such as:
 
 - Ideas about future features where it's not clear most people can use it (allows users to vote on it)
