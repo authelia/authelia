@@ -54,8 +54,8 @@ dependencies:
     specifier: 2.3.2
     version: 2.3.2
   i18next:
-    specifier: 23.7.8
-    version: 23.7.8
+    specifier: 23.7.9
+    version: 23.7.9
   i18next-browser-languagedetector:
     specifier: 7.2.0
     version: 7.2.0
@@ -73,7 +73,7 @@ dependencies:
     version: 18.2.0(react@18.2.0)
   react-i18next:
     specifier: 13.5.0
-    version: 13.5.0(i18next@23.7.8)(react-dom@18.2.0)(react@18.2.0)
+    version: 13.5.0(i18next@23.7.9)(react-dom@18.2.0)(react@18.2.0)
   react-loading:
     specifier: 2.0.3
     version: 2.0.3(prop-types@15.8.1)(react@18.2.0)
@@ -1625,7 +1625,6 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.14.0
-    dev: false
 
   /@babel/template@7.22.15:
     resolution: {integrity: sha512-QPErUVm4uyJa60rkI73qneDacvdvzxshT3kksGqlGWYdOTIUOwJ7RDUL8sGqslY1uXWSL6xMFKEXDS3ox2uF0w==}
@@ -3554,7 +3553,7 @@ packages:
     resolution: {integrity: sha512-Cg7TFGpIr01vOQNODXOOaGz2NpCU5gl8x1qJFbb6hbZxR7XrcE2vtbAsTAbJ7/xwJtUuJEw8K8Zr/AE0LHlesg==}
     engines: {node: '>=10', npm: '>=6'}
     dependencies:
-      '@babel/runtime': 7.23.4
+      '@babel/runtime': 7.23.6
       cosmiconfig: 7.1.0
       resolve: 1.22.8
 
@@ -5485,10 +5484,10 @@ packages:
       - encoding
     dev: false
 
-  /i18next@23.7.8:
-    resolution: {integrity: sha512-yCe9964O+1abdIG01AOzk6P9mQi0HVJV1B57whYJQu6TjmrB9JHHDYonDI8amGt6M6b9bP3x3R0Zh7ROmvX7JQ==}
+  /i18next@23.7.9:
+    resolution: {integrity: sha512-wturtxTfJLJdLzHhyfxXo2l9Cbu2Iz4wF4065oWThPvdFJMUUG3fhXD3BLCHgrv4VxfScORq0i9sfCdjVPbgiw==}
     dependencies:
-      '@babel/runtime': 7.23.4
+      '@babel/runtime': 7.23.6
     dev: false
 
   /iconv-lite@0.4.24:
@@ -6802,7 +6801,7 @@ packages:
       react: 18.2.0
       scheduler: 0.23.0
 
-  /react-i18next@13.5.0(i18next@23.7.8)(react-dom@18.2.0)(react@18.2.0):
+  /react-i18next@13.5.0(i18next@23.7.9)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-CFJ5NDGJ2MUyBohEHxljOq/39NQ972rh1ajnadG9BjTk+UXbHLq4z5DKEbEQBDoIhUmmbuS/fIMJKo6VOax1HA==}
     peerDependencies:
       i18next: '>= 23.2.3'
@@ -6817,7 +6816,7 @@ packages:
     dependencies:
       '@babel/runtime': 7.23.2
       html-parse-stringify: 3.0.1
-      i18next: 23.7.8
+      i18next: 23.7.9
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
     dev: false
@@ -7009,7 +7008,7 @@ packages:
   /regenerator-transform@0.15.1:
     resolution: {integrity: sha512-knzmNAcuyxV+gQCufkYcvOqX/qIIfHLv0u5x79kRxuGojfYVky1f15TzZEu2Avte8QGepvUNTnLskf8E6X6Vyg==}
     dependencies:
-      '@babel/runtime': 7.23.4
+      '@babel/runtime': 7.23.6
     dev: true
 
   /regexp.prototype.flags@1.5.0:
