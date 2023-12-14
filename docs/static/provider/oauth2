@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>OAuth 2.0 Framework for Go (Provider Role)</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="go-import" content="authelia.com/provider/oauth2 git https://github.com/authelia/oauth2-provider">
+    <meta http-equiv="refresh" content="0; url=https://pkg.go.dev/authelia.com/provider/oauth2">
+</head>
+<body>
+<a href="https://pkg.go.dev/authelia.com/provider/oauth2">Redirecting to documentation...</a>
+</body>
+</html>
