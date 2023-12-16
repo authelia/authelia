@@ -250,9 +250,11 @@ func validateRedis(config *schema.Session, validator *schema.StructValidator) {
 
 	validateRedisCommon(config, validator)
 
-	if config.Redis.Port == 0 {
+	abs := path.IsAbs(config.Redis.Host)
+
+	if !abs && config.Redis.Port == 0 {
 		config.Redis.Port = schema.DefaultRedisConfiguration.Port
-	} else if !path.IsAbs(config.Redis.Host) && (config.Redis.Port < 1 || config.Redis.Port > 65535) {
+	} else if !abs && (config.Redis.Port < 1 || config.Redis.Port > 65535) {
 		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, config.Redis.Port))
 	}
 

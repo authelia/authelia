@@ -298,6 +298,27 @@ func TestShouldHandleRedisConfigSuccessfully(t *testing.T) {
 	assert.Equal(t, 8, config.Session.Redis.MaximumActiveConnections)
 }
 
+func TestShouldHandleRedisSocketConfigSuccessfully(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	// Set redis config because password must be set only when redis is used.
+	config.Session.Redis = &schema.SessionRedis{
+		Host:     "/path/to/socket.sock",
+		Port:     0,
+		Password: "password",
+	}
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Errors(), 0)
+
+	assert.Equal(t, 8, config.Session.Redis.MaximumActiveConnections)
+	assert.Equal(t, 0, config.Session.Redis.Port)
+	assert.Equal(t, "/path/to/socket.sock", config.Session.Redis.Host)
+}
+
 func TestShouldRaiseErrorWithInvalidRedisPortLow(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
