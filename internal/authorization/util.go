@@ -42,9 +42,10 @@ func (l Level) String() string {
 }
 
 func stringSliceToRegexpSlice(strings []string) (regexps []regexp.Regexp, err error) {
+	var pattern *regexp.Regexp
+
 	for _, str := range strings {
-		pattern, err := regexp.Compile(str)
-		if err != nil {
+		if pattern, err = regexp.Compile(str); err != nil {
 			return nil, err
 		}
 
@@ -56,15 +57,21 @@ func stringSliceToRegexpSlice(strings []string) (regexps []regexp.Regexp, err er
 
 func schemaSubjectToACLSubject(subjectRule string) (subject SubjectMatcher) {
 	if strings.HasPrefix(subjectRule, prefixUser) {
-		user := strings.Trim(subjectRule[len(prefixUser):], " ")
+		user := strings.Trim(subjectRule[lenPrefixUser:], " ")
 
 		return AccessControlUser{Name: user}
 	}
 
 	if strings.HasPrefix(subjectRule, prefixGroup) {
-		group := strings.Trim(subjectRule[len(prefixGroup):], " ")
+		group := strings.Trim(subjectRule[lenPrefixGroup:], " ")
 
 		return AccessControlGroup{Name: group}
+	}
+
+	if strings.HasPrefix(subjectRule, prefixOAuth2Client) {
+		clientID := strings.Trim(subjectRule[lenPrefixOAuth2Client:], " ")
+
+		return AccessControlClient{Provider: "OAuth2", ID: clientID}
 	}
 
 	return nil

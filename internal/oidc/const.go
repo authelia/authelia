@@ -355,3 +355,10 @@ const (
 const (
 	durationZero = time.Duration(0)
 )
+
+const (
+	fieldRFC6750Error            = "error"
+	fieldRFC6750ErrorDescription = "error_description"
+	fieldRFC6750Realm            = "realm"
+	fieldRFC6750Scope            = valueScope
+)
