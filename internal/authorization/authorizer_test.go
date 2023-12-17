@@ -78,6 +78,11 @@ var AnonymousUser = Subject{
 	IP:       net.ParseIP("127.0.0.1"),
 }
 
+var OAuth2UserClientAClient = Subject{
+	ClientID: "a_client",
+	IP:       net.ParseIP("127.0.0.1"),
+}
+
 var UserWithGroups = Subject{
 	Username: "john",
 	Groups:   []string{"dev", "admins"},
@@ -336,13 +341,18 @@ func (s *AuthorizerSuite) TestShouldCheckRulePrecedence() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
 		WithRule(schema.AccessControlRule{
+			Domains: []string{"public.example.com"},
+			Policy:  bypass,
+		}).
+		WithRule(schema.AccessControlRule{
 			Domains:  []string{"protected.example.com"},
-			Policy:   bypass,
+			Policy:   oneFactor,
 			Subjects: [][]string{{"user:john"}},
 		}).
 		WithRule(schema.AccessControlRule{
-			Domains: []string{"protected.example.com"},
-			Policy:  oneFactor,
+			Domains:  []string{"protected.example.com"},
+			Policy:   oneFactor,
+			Subjects: [][]string{{"oauth2:client:a_client"}},
 		}).
 		WithRule(schema.AccessControlRule{
 			Domains: []string{"*.example.com"},
@@ -350,9 +360,13 @@ func (s *AuthorizerSuite) TestShouldCheckRulePrecedence() {
 		}).
 		Build()
 
-	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", fasthttp.MethodGet, Bypass)
-	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", fasthttp.MethodGet, OneFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://public.example.com/", fasthttp.MethodGet, TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", fasthttp.MethodGet, TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://public.example.com/", fasthttp.MethodGet, Bypass)
+	tester.CheckAuthorizations(s.T(), Bob, "https://public.example.com/", fasthttp.MethodGet, Bypass)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://public.example.com/", fasthttp.MethodGet, Bypass)
+	tester.CheckAuthorizations(s.T(), OAuth2UserClientAClient, "https://public.example.com/", fasthttp.MethodGet, Bypass)
+	tester.CheckAuthorizations(s.T(), OAuth2UserClientAClient, "https://protected.example.com/", fasthttp.MethodGet, OneFactor)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckDomainMatching() {

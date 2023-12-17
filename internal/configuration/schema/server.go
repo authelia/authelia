@@ -81,6 +81,9 @@ var DefaultServerConfiguration = Server{
 					{
 						Name: AuthzStrategyHeaderLegacy,
 					},
+					{
+						Name: AuthzStrategyHeaderCookieSession,
+					},
 				},
 			},
 			AuthzEndpointNameAuthRequest: {

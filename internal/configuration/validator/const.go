@@ -205,6 +205,9 @@ const (
 		"required to be empty when option 'public' is true"
 	errFmtOIDCClientPublicInvalidSecretClientAuthMethod = errFmtOIDCClientInvalidSecretIs +
 		"required to be empty when option 'token_endpoint_auth_method' is configured as '%s'"
+	errFmtOIDCClientIDTooLong           = errFmtOIDCClientOption + "'id' must not be more than 100 characters but it has %d characters"
+	errFmtOIDCClientIDInvalidCharacters = errFmtOIDCClientOption + "'id' must only contain RFC3986 unreserved characters"
+
 	errFmtOIDCClientRedirectURIHas          = errFmtOIDCClientOption + "'redirect_uris' has "
 	errFmtOIDCClientRedirectURICantBeParsed = errFmtOIDCClientRedirectURIHas +
 		"an invalid value: redirect uri '%s' could not be parsed: %v"
@@ -227,7 +230,7 @@ const (
 	errFmtOIDCClientOptionMustScope                 = errFmtOIDCClientOption + errFmtMustBeConfiguredAs + errFmtOIDCWhenScope + " but it's configured as '%s'"
 	errFmtOIDCClientOptionMustScopeClientType       = errFmtOIDCClientOption + errFmtMustBeConfiguredAs + errFmtOIDCWhenScope + " and the '%s' client type but it's configured as '%s'"
 	errFmtOIDCClientInvalidEntriesClientCredentials = errFmtOIDCClientOption + "'scopes' has the values " +
-		"%s however when exclusively utilizing the 'client_credentials' value for the 'grant_types' the values %s are not allowed"
+		"%s however when utilizing the 'client_credentials' value for the 'grant_types' the values %s are not allowed"
 	errFmtOIDCClientInvalidEntryDuplicates = errFmtOIDCClientOption + "'%s' must have unique values but the values %s are duplicated"
 	errFmtOIDCClientInvalidValue           = errFmtOIDCClientOption +
 		"'%s' must be one of %s but it's configured as '%s'"
@@ -541,6 +544,7 @@ var (
 	reDomainCharacters  = regexp.MustCompile(`^[a-z0-9-]+(\.[a-z0-9-]+)+[a-z0-9]$`)
 	reAuthzEndpointName = regexp.MustCompile(`^[a-zA-Z](([a-zA-Z0-9/._-]*)([a-zA-Z]))?$`)
 	reOpenIDConnectKID  = regexp.MustCompile(`^([a-zA-Z0-9](([a-zA-Z0-9._~-]*)([a-zA-Z0-9]))?)?$`)
+	reRFC3986Unreserved = regexp.MustCompile(`^[a-zA-Z0-9._~-]+$`)
 )
 
 var replacedKeys = map[string]string{

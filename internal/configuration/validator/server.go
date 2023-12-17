@@ -253,7 +253,7 @@ func validateServerEndpointsAuthzStrategies(name, implementation string, strateg
 					strategies[i].Schemes = defaults[0].Schemes
 				} else {
 					for _, scheme := range strategy.Schemes {
-						if !utils.IsStringInSlice(scheme, validAuthzAuthnStrategySchemes) {
+						if !utils.IsStringInSliceFold(scheme, validAuthzAuthnStrategySchemes) {
 							validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzSchemes, name, i+1, strategy.Name, strJoinOr(validAuthzAuthnStrategySchemes), scheme))
 						}
 					}

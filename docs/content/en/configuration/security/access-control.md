@@ -254,8 +254,14 @@ identify the subject is [one_factor]. See [Rule Matching Concept 2] for more inf
 
 This criteria matches identifying characteristics about the subject. Currently this is either user or groups the user
 belongs to. This allows you to effectively control exactly what each user is authorized to access or to specifically
-require two-factor authentication to specific users. Subjects are prefixed with either `user:` or `group:` to identify
-which part of the identity to check.
+require two-factor authentication to specific users. Subjects must be prefixed with the following prefixes to
+specifically match a specific part of a subject.
+
+|   Subject Type   |      Prefix      |                                                                  Description                                                                   |
+|:----------------:|:----------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|
+|       User       |     `user:`      |                                                        Matches the username of a user.                                                         |
+|      Group       |     `group:`     |                                                Matches if the user has a group with this name.                                                 |
+| OAuth 2.0 Client | `oauth2:client:` | Matches if the request has been authorized via a token issued by a client with the specified id utilizing the `client_credentials` grant type. |
 
 The format of this rule is unique in as much as it is a list of lists. The logic behind this format is to allow for both
 `OR` and `AND` logic. The first level of the list defines the `OR` logic, and the second level defines the `AND` logic.

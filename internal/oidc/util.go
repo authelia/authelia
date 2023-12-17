@@ -3,6 +3,7 @@ package oidc
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -359,6 +360,70 @@ func IsJWTProfileAccessToken(token *fjwt.Token) bool {
 	typ, ok = raw.(string)
 
 	return ok && (typ == JWTHeaderTypeValueAccessTokenJWT)
+}
+
+// RFC6750Header turns a *fosite.RFC6749Error into the values for a RFC6750 format WWW-Authenticate Bearer response
+// header, excluding the Bearer prefix.
+func RFC6750Header(realm, scope string, err *fosite.RFC6749Error) string {
+	values := err.ToValues()
+
+	if realm != "" {
+		values.Set("realm", realm)
+	}
+
+	if scope != "" {
+		values.Set("scope", scope)
+	}
+
+	//nolint:prealloc
+	var (
+		keys []string
+		key  string
+	)
+
+	for key = range values {
+		keys = append(keys, key)
+	}
+
+	sort.Slice(keys, func(i, j int) bool {
+		switch keys[i] {
+		case fieldRFC6750Realm:
+			return true
+		case fieldRFC6750Error:
+			switch keys[j] {
+			case fieldRFC6750ErrorDescription, fieldRFC6750Scope:
+				return true
+			default:
+				return false
+			}
+		case fieldRFC6750ErrorDescription:
+			switch keys[j] {
+			case fieldRFC6750Scope:
+				return true
+			default:
+				return false
+			}
+		case fieldRFC6750Scope:
+			switch keys[j] {
+			case fieldRFC6750Realm, fieldRFC6750Error, fieldRFC6750ErrorDescription:
+				return false
+			default:
+				return keys[i] < keys[j]
+			}
+		default:
+			return keys[i] < keys[j]
+		}
+	})
+
+	parts := make([]string, len(keys))
+
+	var i int
+
+	for i, key = range keys {
+		parts[i] = fmt.Sprintf(`%s="%s"`, key, values.Get(key))
+	}
+
+	return strings.Join(parts, ",")
 }
 
 // AccessResponderToClearMap returns a clear friendly map copy of the responder map values.
