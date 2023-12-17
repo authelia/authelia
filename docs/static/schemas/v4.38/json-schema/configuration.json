@@ -279,12 +279,12 @@
       "oneOf": [
         {
           "type": "string",
-          "pattern": "^(user|group):.+$"
+          "pattern": "^(user|group|oauth2:client:):.+$"
         },
         {
           "items": {
             "type": "string",
-            "pattern": "^(user|group):.+$"
+            "pattern": "^(user|group|oauth2:client:):.+$"
           },
           "type": "array"
         },
@@ -292,7 +292,7 @@
           "items": {
             "items": {
               "type": "string",
-              "pattern": "^(user|group):.+$"
+              "pattern": "^(user|group|oauth2:client:):.+$"
             },
             "type": "array"
           },

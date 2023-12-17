@@ -53,7 +53,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	}
 
 	var (
-		authn    Authn
+		authn    *Authn
 		strategy AuthnStrategy
 	)
 
@@ -66,7 +66,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 		case nil:
 			ctx.ReplyUnauthorized()
 		default:
-			strategy.HandleUnauthorized(ctx, &authn, authz.getRedirectionURL(&object, autheliaURL))
+			strategy.HandleUnauthorized(ctx, authn, authz.getRedirectionURL(&object, autheliaURL))
 		}
 
 		return
@@ -79,6 +79,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 		authorization.Subject{
 			Username: authn.Details.Username,
 			Groups:   authn.Details.Groups,
+			ClientID: authn.ClientID,
 			IP:       ctx.RemoteIP(),
 		},
 		object,
@@ -97,9 +98,9 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 			handler = authz.handleUnauthorized
 		}
 
-		handler(ctx, &authn, authz.getRedirectionURL(&object, autheliaURL))
+		handler(ctx, authn, authz.getRedirectionURL(&object, autheliaURL))
 	case AuthzResultAuthorized:
-		authz.handleAuthorized(ctx, &authn)
+		authz.handleAuthorized(ctx, authn)
 	}
 }
 
@@ -151,14 +152,20 @@ func (authz *Authz) getRedirectionURL(object *authorization.Object, autheliaURL 
 	return redirectionURL
 }
 
-func (authz *Authz) authn(ctx *middlewares.AutheliaCtx, provider *session.Session, object *authorization.Object) (authn Authn, strategy AuthnStrategy, err error) {
+func (authz *Authz) authn(ctx *middlewares.AutheliaCtx, provider *session.Session, object *authorization.Object) (authn *Authn, strategy AuthnStrategy, err error) {
 	for _, strategy = range authz.strategies {
 		if authn, err = strategy.Get(ctx, provider, object); err != nil {
+			// Ensure an error returned can never result in an authenticated user.
+			authn.Level = authentication.NotAuthenticated
+			authn.Username = anonymous
+			authn.ClientID = ""
+			authn.Details = authentication.UserDetails{}
+
 			if strategy.CanHandleUnauthorized() {
-				return Authn{Type: authn.Type, Level: authentication.NotAuthenticated, Username: anonymous}, strategy, err
+				return authn, strategy, err
 			}
 
-			return Authn{Type: authn.Type, Level: authentication.NotAuthenticated, Username: anonymous}, nil, err
+			return authn, nil, err
 		}
 
 		if authn.Level != authentication.NotAuthenticated {

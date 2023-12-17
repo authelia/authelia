@@ -33,6 +33,7 @@ type ObjectMatcher interface {
 type Subject struct {
 	Username string
 	Groups   []string
+	ClientID string
 	IP       net.IP
 }
 

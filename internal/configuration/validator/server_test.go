@@ -496,6 +496,13 @@ func TestServerAuthzEndpointErrors(t *testing.T) {
 			[]string{"server: endpoints: authz: example: authn_strategies: strategy #1 (CookieSession): option 'schemes' is not valid for the strategy"},
 		},
 		{
+			"ShouldNotErrorOnSchemeCase",
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: "ForwardAuth", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{{Name: "HeaderAuthorization", Schemes: []string{"basIc"}}}},
+			},
+			nil,
+		},
+		{
 			"ShouldErrorOnInvalidStrategySchemesAndUnnamedStrategy",
 			map[string]schema.ServerEndpointsAuthz{
 				"example": {Implementation: "ForwardAuth", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{{Name: "HeaderAuthorization", Schemes: []string{"basic", "bearer", "abc"}}}},

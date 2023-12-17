@@ -1,7 +1,6 @@
 package oidc
 
 import (
-	"context"
 	"net/url"
 	"time"
 
@@ -71,32 +70,6 @@ func NewSessionWithAuthorizeRequest(ctx Context, issuer *url.URL, kid, username 
 	return session
 }
 
-// PopulateClientCredentialsFlowSessionWithAccessRequest is used to configure a session when performing a client credentials grant.
-func PopulateClientCredentialsFlowSessionWithAccessRequest(ctx Context, request fosite.AccessRequester, session *Session, funcGetKID func(ctx context.Context, kid, alg string) string) (err error) {
-	var (
-		issuer *url.URL
-		client Client
-		ok     bool
-	)
-
-	if issuer, err = ctx.IssuerURL(); err != nil {
-		return fosite.ErrServerError.WithWrap(err).WithDebugf("Failed to determine the issuer with error: %s.", err.Error())
-	}
-
-	if client, ok = request.GetClient().(Client); !ok {
-		return fosite.ErrServerError.WithDebugf("Failed to get the client for the request.")
-	}
-
-	session.Subject = ""
-	session.Claims.Subject = client.GetID()
-	session.ClientID = client.GetID()
-	session.DefaultSession.Claims.Issuer = issuer.String()
-	session.DefaultSession.Claims.IssuedAt = ctx.GetClock().Now().UTC()
-	session.DefaultSession.Claims.RequestedAt = ctx.GetClock().Now().UTC()
-
-	return nil
-}
-
 // Session holds OpenID Connect 1.0 Session information.
 type Session struct {
 	*openid.DefaultSession `json:"id_token"`
@@ -104,6 +77,7 @@ type Session struct {
 	ChallengeID           uuid.NullUUID  `json:"challenge_id"`
 	KID                   string         `json:"kid"`
 	ClientID              string         `json:"client_id"`
+	ClientCredentials     bool           `json:"client_credentials"`
 	ExcludeNotBeforeClaim bool           `json:"exclude_nbf_claim"`
 	AllowedTopLevelClaims []string       `json:"allowed_top_level_claims"`
 	Extra                 map[string]any `json:"extra"`

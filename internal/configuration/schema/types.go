@@ -604,7 +604,7 @@ var jsonschemaACLNetwork = jsonschema.Schema{
 
 var jsonschemaACLSubject = jsonschema.Schema{
 	Type:    jsonschema.TypeString,
-	Pattern: "^(user|group):.+$",
+	Pattern: "^(user|group|oauth2:client:):.+$",
 }
 
 var jsonschemaACLMethod = jsonschema.Schema{

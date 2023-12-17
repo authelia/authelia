@@ -1,8 +1,8 @@
 ---
 title: "OAuth 2.0 Bearer Token Usage"
-description: "An introduction into utilizing the Authelia OpenID Connect 1.0 Provider as an authorization method"
-lead: "An introduction into utilizing the Authelia OpenID Connect 1.0 Provider as an authorization method."
-date: 2023-12-02T07:26:24+11:00
+description: "An introduction into utilizing the Authelia OAuth 2.0 Provider as an authorization method"
+lead: "An introduction into utilizing the Authelia OAuth 2.0 Provider as an authorization method."
+date: 2023-12-29T20:38:06+11:00
 draft: false
 images: []
 menu:
@@ -12,31 +12,63 @@ weight: 611
 toc: true
 ---
 
-Access Tokens can be granted which can be leveraged as bearer tokens for the purpose of authorization in place of
-standard authentication flows.
+Access Tokens can be granted which can be leveraged as bearer tokens for the purpose of authorization in place of the
+Session Cookie Forwarded Authorization Flow. This is performed leveraging the
+[RFC6750: OAuth 2.0 Bearer Token Usage] specification.
 
 ## Authorization Endpoints
 
-When utilizing the `authelia.bearer.authz` scope clients are able to request users grant access to a bearer token which
-can be utilized in place of the standard authorization flows for protected resources by utilizing
-[OAuth 2.0 Bearer Token Usage] authorization scheme norms (i.e. using the bearer scheme) when specifically accessing
-resources protected via the forwarded authentication flow which directly integrates into proxies. It should be clearly
-noted that this means it is not for accessing
-the Authelia API.
+A [registered OAuth 2.0 client](../../configuration/identity-providers/openid-connect/provider.md#clients) which is
+permitted to grant the `authelia.bearer.authz` scope is able to request users grant access to a token which can be used
+for the forwarded authentication flow integrated into a proxy (i.e. `access_control` rules) in place of the standard
+session cookie based authorization flow (which redirects unauthorized users) by utilizing
+[RFC6750: OAuth 2.0 Bearer Token Usage] authorization scheme norms (i.e. using the bearer scheme).
+
+_**Note:** these tokens are not intended for usage with the Authelia API, a separate exclusive scope (or scopes) and
+specific audiences will likely be implemented at a later date for this._
 
 ### General Protections
 
 The following protections have been taken into account:
 
-- The Access Tokens which are used for this purpose must have been granted the correct `authelia.bearer.authz` scope.
-- The user who grants consent for the token is effectively the user who is considered for the authorization rule
-  processing.
-- The audience of the token is also considered and if the token does not have an audience which is an exact match or the
-  prefix of the URL being requested the authorization will automatically be denied.
+- There are several safeguards to ensure this Authorization Flow cannot operate accidentally. It must be explicitly
+  configured:
+  - The authorization endpoint must be explicitly configured to allow the `bearer` scheme. See
+    [Authorization Endpoint Configuration](#authorization-endpoint-configuration).
+  - Must be utilizing the new session configuration. See [Session Configuration](#session-configuration).
+  - The [OpenID Connect 1.0 Provider](../../configuration/identity-providers/openid-connect/provider.md) must be
+    configured.
+  - One or more [OpenID Connect 1.0 Clients](../../configuration/identity-providers/openid-connect/clients.md) must be
+    registered with the `authelia.bearer.authz` scope and relevant required parameters.
+  - Additional policy requirements are enforced for the client registrations to ensure as much reasonable protection
+    as possible.
+- The token must:
+  - Be granted the `authelia.bearer.authz` scope.
+  - Be presented via the `bearer` scheme in the header matching your server Authorization Endpoints configuration. See
+    [Authorization Endpoint Configuration](#authorization-endpoint-configuration).
+  - Not be expired, revoked, or otherwise invalid.
+  - Actually be an Access Token (tokens with the prefix `authelia_at_`, not tokens with the prefixes `authelia_rt_`
+    or `authelia_ac_`).
+- Authorizations using this method have special specific processing rules when considering the access control rules:
+  - If the token was granted via the `authorization_code` grant then the user who granted the consent for the requested
+    scope and audience and their effective authentication level (1FA or 2FA) will be used to match the configured
+    access control rules.
+  - If the token was granted via the `client_credentials` grant then the token will always be considered as having an
+    authentication level of 1FA and when it comes to matching a subject rule a special subject type `oauth2:client:<id>`
+    will match the token instead of a user or groups (where `<id>` is the registered client id). See
+    [Access Control Configuration](#access-control-configuration).
+  - The audience of the token is also considered and if the token does not have an audience which is an exact match or
+    the prefix of the URL being requested the authorization will automatically be denied.
 - At this time each request using this scheme will cause a lookup to be performed on the authentication backend.
+- Specific changes to the client registration will result in the authorization being denied such as:
+  - The client is no longer registered.
+  - The `authelia.bearer.authz` scope is removed from the registration.
+  - The audience which matches the request is removed from the registration.
+- The audience of the token must explicitly be requested. Omission of the `audience` parameter may be denied and will
+  not grant any audience (thus making it useless) even if the client has been whitelisted for the particular audience.
 
-For example if `john` consents to grant the token and it includes the audience `https://app.example.com` but the user
-`john` is not normally authorized to visit `https://app.example.com` the token will not grant access to this resource.
+For example if `john` consents to grant the token and it includes the audience `https://app1.example.com` but the user
+`john` is not normally authorized to visit `https://app1.example.com` the token will not grant access to this resource.
 In addition if `john` has his access updated via the access control rules, their groups, etc. then this access is
 automatically applied to these tokens.
 
@@ -50,6 +82,13 @@ The following recommendations should be considered by users who use this authori
 - Using the JWT Profile for Access Tokens effectively makes the introspection stateless and is discouraged for this
   purpose unless you have specific performance issues. We would rather find the cause of the performance issues and
   improve them in an instance where they are noticed.
+
+### Audience Request
+
+While not explicitly part of the specifications the `audience` parameter can be used during the Authorization Request
+phase of the Authorization Code Grant Flow or the Access Token Request phase of the Client Credentials Grant Flow. The
+specification leaves it up to Authorization Server policy specifically how audiences are granted and this seems like a
+common practice.
 
 ### Authorization Endpoint Configuration
 
@@ -65,7 +104,7 @@ server:
       forward-auth:
         implementation: 'ForwardAuth'
         authn_strategies:
-          - name: 'HeaderProxyAuthorization'
+          - name: 'HeaderAuthorization'
             schemes:
               - 'Basic'
               - 'Bearer'
@@ -73,7 +112,7 @@ server:
       ext-authz:
         implementation: 'ExtAuthz'
         authn_strategies:
-          - name: 'HeaderProxyAuthorization'
+          - name: 'HeaderAuthorization'
             schemes:
               - 'Basic'
               - 'Bearer'
@@ -81,7 +120,7 @@ server:
       auth-request:
         implementation: 'AuthRequest'
         authn_strategies:
-          - name: 'HeaderAuthRequestProxyAuthorization'
+          - name: 'HeaderAuthRequestAuthorization'
             schemes:
               - 'Basic'
               - 'Bearer'
@@ -93,6 +132,41 @@ server:
           - name: 'CookieSession'
 ```
 
+### Session Configuration
+
+This feature is only intended to be supported while using the new session configuration syntax. See the example below.
+
+```yaml
+session:
+  secret: 'insecure_session_secret'
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://auth.example.com'
+      default_redirection_url: 'https://www.example.com'
+```
+
+### Access Control Configuration
+
+In addition to the restriction of the token audience having to match the target location you must also grant access
+in the Access Control section of of the configuration either to the user or in the instance of the `client_credentials`
+grant the client itself.
+
+It is important to note that the `client_credentials` grant is **always** treated as 1FA thus only the `one_factor`
+policy is useful for this grant type.
+
+```yaml
+access_control:
+  rules:
+    ## The 'app1.example.com' domain for the user 'john' regardless if they're using OAuth 2.0 or session based flows.
+    - domain: app1.example.com
+      policy: one_factor
+      subject: 'user:john'
+
+    ## The 'app2.example.com' domain for the 'example-three' client when using the 'client_credentials' grant.
+    - domain: app2.example.com
+      policy: one_factor
+      subject: 'oauth2:client:example-three'
+```
 ### Client Restrictions
 
 In addition to the above protections, this scope **_MUST_** only be configured on clients with strict security rules
@@ -127,12 +201,12 @@ identity_providers:
       - id: 'example-one'
         public: true
         redirect_uris:
-          - 'http://localhost:2121'
+          - 'http://localhost/callback'
         scopes:
           - 'offline_access'
           - 'authelia.bearer.authz'
         audience:
-          - 'https://app.example.com'
+          - 'https://app1.example.com'
           - 'https://app2.example.com'
         grant_types:
           - 'authorization_code'
@@ -150,6 +224,8 @@ identity_providers:
 
 ##### Confidential Client Example: Authorization Code Flow
 
+This is likely the most common configuration for most users.
+
 ```yaml
 identity_providers:
   oidc:
@@ -158,12 +234,12 @@ identity_providers:
         secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         redirect_uris:
-          - 'https://id.example.com'
+          - 'http://localhost/callback'
         scopes:
           - 'offline_access'
           - 'authelia.bearer.authz'
         audience:
-          - 'https://app.example.com'
+          - 'https://app1.example.com'
           - 'https://app2.example.com'
         grant_types:
           - 'authorization_code'
@@ -181,24 +257,25 @@ identity_providers:
 
 ##### Confidential Client Example: Client Credentials Flow
 
+This example illustrates a method to configure a Client Credential flow for this purpose. This flow is useful for
+automations. It's important to note that for access control evaluation purposes this token will match a subject of
+`oauth2:client:example-two` i.e. the `oauth2:client:` prefix followed by the client id.
+
 ```yaml
 identity_providers:
   oidc:
     clients:
-      - id: 'example-two'
+      - id: 'example-three'
         secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
-        redirect_uris:
-          - 'https://id.example.com'
         scopes:
           - 'authelia.bearer.authz'
         audience:
-          - 'https://app.example.com'
+          - 'https://app1.example.com'
           - 'https://app2.example.com'
         grant_types:
           - 'client_credentials'
-        enforce_par: true
-        enforce_pkce: true
-        pkce_challenge_method: 'S256'
         token_endpoint_auth_method: 'client_secret_post'
 ```
+
+[RFC6750: OAuth 2.0 Bearer Token Usage]: https://datatracker.ietf.org/doc/html/rfc6750
