@@ -194,7 +194,7 @@ compromising a user's security without their knowledge.
 
 Authelia by default ensures that the SMTP server connection is secured via TLS prior to sending sensitive information.
 
-The [disable_require_tls](../../configuration/notifications/smtp.md#disablerequiretls) option disables this
+The [disable_require_tls](../../configuration/notifications/smtp.md#disable_require_tls) option disables this
 requirement which means the emails may be sent in cleartext. This is the least secure option as it effectively removes
 the validation of SMTP certificates and makes using an encrypted connection with TLS optional.
 

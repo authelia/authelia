@@ -144,12 +144,12 @@ with 64 or more characters.
 
 {{< confkey type="list(object" required="no" >}}
 
-The list of JWKS instead of or in addition to the [issuer_private_key](#issuerprivatekey) and
-[issuer_certificate_chain](#issuercertificatechain). Can also accept ECDSA Private Key's and Certificates.
+The list of JWKS instead of or in addition to the [issuer_private_key](#issuer_private_key) and
+[issuer_certificate_chain](#issuer_certificate_chain). Can also accept ECDSA Private Key's and Certificates.
 
 The default key for each algorithm is is decided based on the order of this list. The first key for each algorithm is
 considered the default if a client is not configured to use a specific key id. For example if a client has
-[id_token_signed_response_alg](clients.md#idtokensignedresponsealg) `ES256` and [id_token_signed_response_key_id](clients.md#idtokensignedresponsekeyid) is
+[id_token_signed_response_alg](clients.md#id_token_signed_response_alg) `ES256` and [id_token_signed_response_key_id](clients.md#id_token_signed_response_key_id) is
 not specified then the first `ES256` key in this list is used.
 
 #### key_id
@@ -216,7 +216,7 @@ The key *__MUST__*:
 [PKCS#1]: https://datatracker.ietf.org/doc/html/rfc8017
 [SECG1]: https://datatracker.ietf.org/doc/html/rfc5915
 
-If the [certificate_chain](#certificatechain) is provided the private key must include matching public
+If the [certificate_chain](#certificate_chain) is provided the private key must include matching public
 key data for the first certificate in the chain.
 
 #### certificate_chain
@@ -244,7 +244,7 @@ The private key used to sign/encrypt the [OpenID Connect 1.0] issued [JWT]'s. Th
 administrator and can be done by following the
 [Generating an RSA Keypair](../../../reference/guides/generating-secure-values.md#generating-an-rsa-keypair) guide.
 
-This private key is automatically appended to the [issuer_private_keys](#issuerprivatekeys) and assumed to be for the
+This private key is automatically appended to the [issuer_private_keys](#issuer_private_keys) and assumed to be for the
 `RS256` algorithm. If provided it is always the first key in this list. As such this key is assumed to be the default
 for `RS256` if provided.
 
@@ -258,14 +258,14 @@ The issuer private key *__MUST__*:
 [PKCS#8]: https://datatracker.ietf.org/doc/html/rfc5208
 [PKCS#1]: https://datatracker.ietf.org/doc/html/rfc8017
 
-If the [issuer_certificate_chain](#issuercertificatechain) is provided the private key must include matching public
+If the [issuer_certificate_chain](#issuer_certificate_chain) is provided the private key must include matching public
 key data for the first certificate in the chain.
 
 ### issuer_certificate_chain
 
 {{< confkey type="string" required="no" >}}
 
-The certificate chain/bundle to be used with the [issuer_private_key](#issuerprivatekey) DER base64 ([RFC4648])
+The certificate chain/bundle to be used with the [issuer_private_key](#issuer_private_key) DER base64 ([RFC4648])
 encoded PEM format used to sign/encrypt the [OpenID Connect 1.0] [JWT]'s. When configured it enables the [x5c] and [x5t]
 JSON key's in the JWKs [Discoverable Endpoint](../../../integration/openid-connect/introduction.md#discoverable-endpoints)
 as per [RFC7517].
@@ -274,7 +274,7 @@ as per [RFC7517].
 [x5c]: https://datatracker.ietf.org/doc/html/rfc7517#section-4.7
 [x5t]: https://datatracker.ietf.org/doc/html/rfc7517#section-4.8
 
-The first certificate in the chain must have the public key for the [issuer_private_key](#issuerprivatekey), each
+The first certificate in the chain must have the public key for the [issuer_private_key](#issuer_private_key), each
 certificate in the chain must be valid for the current date, and each certificate in the chain should be signed by the
 certificate immediately following it if present.
 
@@ -330,8 +330,8 @@ Allows [JWT Access Tokens](https://oauth.net/2/jwt-access-tokens/) to be introsp
 the JWT claims have all of the required introspection information, and assumes that they have not been revoked. This is
 strongly discouraged unless you have a very specific use case.
 
-A client with an [access_token_signed_response_alg](clients.md#accesstokensignedresponsealg) or
-[access_token_signed_response_key_id](clients.md#accesstokensignedresponsekeyid) must be configured for this option to
+A client with an [access_token_signed_response_alg](clients.md#access_token_signed_response_alg) or
+[access_token_signed_response_key_id](clients.md#access_token_signed_response_key_id) must be configured for this option to
 be enabled.
 
 ### pushed_authorizations
@@ -368,7 +368,7 @@ rule is matched the user is not asked for consent and it is considered a rejecte
 [OpenID Connect 1.0] `access_denied` error.
 
 The key for the policy itself is the name of the policy, which is used when configuring the client
-[authorization_policy](clients.md#authorizationpolicy) option. In the example we name the policy `policy_name`.
+[authorization_policy](clients.md#authorization_policy) option. In the example we name the policy `policy_name`.
 
 #### default_policy
 
@@ -449,8 +449,8 @@ The key for the custom lifespan itself is the name of the lifespan, which is use
 ##### Example
 
 The following is an exhaustive example of all of the options available. Each of these options must follow all of the
-same rules as the [access_token](#accesstoken), [authorize_code](#authorizecode), [id_token](#idtoken), and
-[refresh_token](#refreshtoken) global default options. The global lifespan options are included for reference purposes.
+same rules as the [access_token](#access_token), [authorize_code](#authorize_code), [id_token](#id_token), and
+[refresh_token](#refresh_token) global default options. The global lifespan options are included for reference purposes.
 
 ```yaml
 identity_providers:
@@ -520,14 +520,14 @@ option is at least in this list. The potential endpoints which this can be enabl
 A list of permitted origins.
 
 Any origin with https is permitted unless this option is configured or the
-[allowed_origins_from_client_redirect_uris](#allowedoriginsfromclientredirecturis) option is enabled. This means
+[allowed_origins_from_client_redirect_uris](#allowed_origins_from_client_redirect_uris) option is enabled. This means
 you must configure this option manually if you want http endpoints to be permitted to make cross-origin requests to the
 [OpenID Connect 1.0] endpoints, however this is not recommended.
 
 Origins must only have the scheme, hostname and port, they may not have a trailing slash or path.
 
 In addition to an Origin URI, you may specify the wildcard origin in the allowed_origins. It MUST be specified by itself
-and the [allowed_origins_from_client_redirect_uris](#allowedoriginsfromclientredirecturis) MUST NOT be enabled. The
+and the [allowed_origins_from_client_redirect_uris](#allowed_origins_from_client_redirect_uris) MUST NOT be enabled. The
 wildcard origin is denoted as `*`. Examples:
 
 ```yaml
