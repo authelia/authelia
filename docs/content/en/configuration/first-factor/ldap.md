@@ -181,14 +181,14 @@ Controls the TLS connection validation parameters for either StartTLS or the TLS
 
 Sets the base distinguished name container for all LDAP queries. If your LDAP domain is example.com this is usually
 `DC=example,DC=com`, however you can fine tune this to be more specific for example to only include objects inside the
-authelia OU: `OU=authelia,DC=example,DC=com`. This is prefixed with the [additional_users_dn](#additionalusersdn) for
-user searches and [additional_groups_dn](#additionalgroupsdn) for groups searches.
+authelia OU: `OU=authelia,DC=example,DC=com`. This is prefixed with the [additional_users_dn](#additional_users_dn) for
+user searches and [additional_groups_dn](#additional_groups_dn) for groups searches.
 
 ### additional_users_dn
 
 {{< confkey type="string" required="no" >}}
 
-Additional LDAP path to append to the [base_dn](#basedn) when searching for users. Useful if you want to restrict
+Additional LDAP path to append to the [base_dn](#base_dn) when searching for users. Useful if you want to restrict
 exactly which OU to get users from for either security or performance reasons. For example setting it to
 `OU=users,OU=people` with a base_dn set to `DC=example,DC=com` will mean user searches will occur in
 `OU=users,OU=people,DC=example,DC=com`.
@@ -209,7 +209,7 @@ The default value is dependent on the [implementation](#implementation), refer t
 
 {{< confkey type="string" required="no" >}}
 
-Similar to [additional_users_dn](#additionalusersdn) but it applies to group searches.
+Similar to [additional_users_dn](#additional_users_dn) but it applies to group searches.
 
 ### groups_filter
 
