@@ -81,7 +81,7 @@
     "@limegrass/eslint-plugin-import-alias": "1.1.0",
     "@testing-library/jest-dom": "6.1.5",
     "@testing-library/react": "14.1.2",
-    "@types/node": "20.10.4",
+    "@types/node": "20.10.5",
     "@types/react": "18.2.45",
     "@types/react-dom": "18.2.18",
     "@types/zxcvbn": "4.4.4",
