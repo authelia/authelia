@@ -360,3 +360,25 @@ func IsJWTProfileAccessToken(token *fjwt.Token) bool {
 
 	return ok && (typ == JWTHeaderTypeValueAccessTokenJWT)
 }
+
+// AccessResponderToClearMap returns a clear friendly map copy of the responder map values.
+func AccessResponderToClearMap(responder fosite.AccessResponder) map[string]any {
+	m := responder.ToMap()
+
+	data := make(map[string]any, len(m))
+
+	for key, value := range responder.ToMap() {
+		switch key {
+		case "access_token":
+			data[key] = "authelia_at_**************"
+		case "refresh_token":
+			data[key] = "authelia_rt_**************"
+		case "id_token":
+			data[key] = "*********.***********.*************"
+		default:
+			data[key] = value
+		}
+	}
+
+	return data
+}

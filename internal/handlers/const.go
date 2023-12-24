@@ -120,7 +120,6 @@ const (
 	logFmtErrConsentCantGrantRejected           = logFmtErrConsentWithIDCouldNotBeProcessed + "the user explicitly rejected this consent session"
 	logFmtErrConsentSaveSessionResponse         = logFmtErrConsentWithIDCouldNotBeProcessed + "error occurred saving consent session response: %+v"
 	logFmtErrConsentSaveSession                 = logFmtErrConsentWithIDCouldNotBeProcessed + "error occurred saving consent session: %+v"
-	logFmtErrConsentGenerate                    = logFmtConsentPrefix + "could not be processed: error occurred generating consent: %+v"
 )
 
 // Duo constants.
