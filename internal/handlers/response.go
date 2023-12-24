@@ -130,18 +130,18 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 }
 
 // handleOIDCWorkflowResponse handle the redirection upon authentication in the OIDC workflow.
-func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, targetURI, workflowID string) {
+func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, targetURI, workflowID string) {
 	switch {
 	case len(workflowID) != 0:
-		handleOIDCWorkflowResponseWithID(ctx, workflowID)
+		handleOIDCWorkflowResponseWithID(ctx, userSession, workflowID)
 	case len(targetURI) != 0:
-		handleOIDCWorkflowResponseWithTargetURL(ctx, targetURI)
+		handleOIDCWorkflowResponseWithTargetURL(ctx, userSession, targetURI)
 	default:
 		ctx.Error(fmt.Errorf("invalid post data: must contain either a target url or a workflow id"), messageAuthenticationFailed)
 	}
 }
 
-func handleOIDCWorkflowResponseWithTargetURL(ctx *middlewares.AutheliaCtx, targetURI string) {
+func handleOIDCWorkflowResponseWithTargetURL(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, targetURI string) {
 	var (
 		issuerURL *url.URL
 		targetURL *url.URL
@@ -162,14 +162,6 @@ func handleOIDCWorkflowResponseWithTargetURL(ctx *middlewares.AutheliaCtx, targe
 		return
 	}
 
-	var userSession session.UserSession
-
-	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Error(fmt.Errorf("unable to redirect to '%s': failed to lookup session: %w", targetURL, err), messageAuthenticationFailed)
-
-		return
-	}
-
 	if userSession.IsAnonymous() {
 		ctx.Error(fmt.Errorf("unable to redirect to '%s': user is anonymous", targetURL), messageAuthenticationFailed)
 
@@ -181,7 +173,7 @@ func handleOIDCWorkflowResponseWithTargetURL(ctx *middlewares.AutheliaCtx, targe
 	}
 }
 
-func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, id string) {
+func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, id string) {
 	var (
 		workflowID uuid.UUID
 		client     oidc.Client
@@ -209,14 +201,6 @@ func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, id string) {
 
 	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(ctx, consent.ClientID); err != nil {
 		ctx.Error(fmt.Errorf("unable to get client for client with id '%s' with consent challenge id '%s': %w", id, consent.ChallengeID, err), messageAuthenticationFailed)
-
-		return
-	}
-
-	var userSession session.UserSession
-
-	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Error(fmt.Errorf("unable to redirect for authorization/consent for client with id '%s' with consent challenge id '%s': failed to lookup session: %w", client.GetID(), consent.ChallengeID, err), messageAuthenticationFailed)
 
 		return
 	}
