@@ -298,6 +298,9 @@ match exactly with the granted scopes/audience.
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
+_**Important Note:** A majority of clients will not support this option as it requires a special but highly secure
+authorization flow._
+
 This configuration option enforces the use of a [Pushed Authorization Requests] flow for this registered client.
 To enforce it for all clients see the global [pushed_authorizations enforce](provider.md#enforce) provider configuration
 option.
@@ -321,7 +324,10 @@ relying party supports it.
 
 ### authorization_signed_response_alg
 
-{{< confkey type="string" default="RS256" required="no" >}}
+{{< confkey type="string" default="none" required="no" >}}
+
+_**Important Note:** A majority of clients will not support this option as the whole authorization response will be a
+signed and/or encrypted JWT with additional tokens embedded into it._
 
 _**Note:** This value is completely ignored if the
 [authorization_signed_response_key_id](#authorization_signed_response_key_id) is defined._
@@ -330,10 +336,10 @@ The algorithm used to sign the authorization responses.
 
 See the response object section of the
 [integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information including
-the algorithm column for supported values. This value can not be set to `none`.
+the algorithm column for supported values.
 
-The algorithm chosen must have a key configured in the [issuer_private_keys] section to
-be considered valid.
+With the exclusion of `none` which returns a traditional authorization response, the algorithm chosen must have a key
+configured in the [issuer_private_keys] section to be considered valid.
 
 See the response object section of the [integration guide](../../../integration/openid-connect/introduction.md#response-object)
 for more information including the algorithm column for supported values.
@@ -342,8 +348,11 @@ for more information including the algorithm column for supported values.
 
 {{< confkey type="string" required="no" >}}
 
-_**Note:** This value automatically configures the [authorization_signed_response_alg](#authorization_signed_response_alg) value with the algorithm
-of the specified key._
+_**Important Note:** A majority of clients will not support this option as the whole authorization response will be a
+signed and/or encrypted JWT with additional tokens embedded into it._
+
+_**Note:** This value automatically configures the [authorization_signed_response_alg](#authorization_signed_response_alg)
+value with the algorithm of the specified key._
 
 The key id of the JWK used to sign the ID Tokens in the token responses. The value of this must one of those provided or
 calculated in the [issuer_private_keys].
@@ -352,7 +361,8 @@ calculated in the [issuer_private_keys].
 
 {{< confkey type="string" default="RS256" required="no" >}}
 
-_**Note:** This value is completely ignored if the [id_token_signed_response_key_id](#id_token_signed_response_key_id) is defined._
+_**Note:** This value is completely ignored if the [id_token_signed_response_key_id](#id_token_signed_response_key_id)
+is defined._
 
 The algorithm used to sign the ID Tokens in the token responses.
 
@@ -369,8 +379,8 @@ for more information including the algorithm column for supported values.
 
 {{< confkey type="string" required="no" >}}
 
-_**Note:** This value automatically configures the [id_token_signed_response_alg](#id_token_signed_response_alg) value with the algorithm
-of the specified key._
+_**Note:** This value automatically configures the [id_token_signed_response_alg](#id_token_signed_response_alg) value
+with the algorithm of the specified key._
 
 The key id of the JWK used to sign the ID Tokens in the token responses. The value of this must one of those provided or
 calculated in the [issuer_private_keys].
@@ -379,7 +389,8 @@ calculated in the [issuer_private_keys].
 
 {{< confkey type="string" default="none" required="no" >}}
 
-_**Note:** This value is completely ignored if the [access_token_signed_response_key_id](#access_token_signed_response_key_id) is defined._
+_**Note:** This value is completely ignored if the [access_token_signed_response_key_id](#access_token_signed_response_key_id)
+is defined._
 
 The algorithm used to sign the ID Tokens in the token responses.
 
