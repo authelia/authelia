@@ -69,4 +69,4 @@ has configured a second factor authentication method.
 {{< confkey type="boolean" default="false" required="no" >}}
 
 Skips the elevated session requirement if the user has performed second factor authentication. Can be combined with the
-[require_second_factor](#requiresecondfactor) option to always (and only) require second factor authentication.
+[require_second_factor](#require_second_factor) option to always (and only) require second factor authentication.

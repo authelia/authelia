@@ -74,7 +74,7 @@ It expects the following:
 
 * The file `data/authelia/config/configuration.yml` is present and the configuration file.
 * The directory `data/authelia/secrets/` exists and contain the relevant [secret](../../configuration/methods/secrets.md) files:
-  * A file named `JWT_SECRET` for the [jwt_secret](../../configuration/miscellaneous/introduction.md#jwt_secret)
+  * A file named `JWT_SECRET` for the [jwt_secret](../../configuration/identity-validation/reset-password.md#jwt_secret)
   * A file named `SESSION_SECRET` for the [session secret](../../configuration/session/introduction.md#secret)
   * A file named `STORAGE_PASSWORD` for the [PostgreSQL password secret](../../configuration/storage/postgres.md#password)
   * A file named `STORAGE_ENCRYPTION_KEY` for the [storage encryption_key secret](../../configuration/storage/introduction.md#encryption_key)
@@ -111,7 +111,7 @@ services:
       - 9091
     secrets: ['JWT_SECRET', 'SESSION_SECRET', 'STORAGE_PASSWORD', 'STORAGE_ENCRYPTION_KEY']
     environment:
-      AUTHELIA_JWT_SECRET_FILE: '/run/secrets/JWT_SECRET'
+      AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE: '/run/secrets/JWT_SECRET'
       AUTHELIA_SESSION_SECRET_FILE: '/run/secrets/SESSION_SECRET'
       AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE: '/run/secrets/STORAGE_PASSWORD'
       AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: '/run/secrets/STORAGE_ENCRYPTION_KEY'
