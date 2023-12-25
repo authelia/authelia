@@ -219,7 +219,7 @@ Similar to [additional_users_dn](#additional_users_dn) but it applies to group s
 default negating this requirement. Refer to the [filter defaults](../../reference/guides/ldap.md#filter-defaults) for
 more information.*
 
-Similar to [users_filter](#usersfilter) but it applies to group searches. In order to include groups the member is not
+Similar to [users_filter](#users_filter) but it applies to group searches. In order to include groups the member is not
 a direct member of, but is a member of another group that is a member of those (i.e. recursive groups), you may try
 using the following filter which is currently only tested against Microsoft Active Directory:
 
@@ -343,7 +343,7 @@ The directory server attribute that is used by Authelia to determine the group n
 
 ## Refresh Interval
 
-It's recommended you either use the default [refresh interval](introduction.md#refreshinterval) or configure this to
+It's recommended you either use the default [refresh interval](introduction.md#refresh_interval) or configure this to
 a value low enough to refresh the user groups and status (deleted, disabled, etc) to adequately secure your environment.
 
 ## Important notes

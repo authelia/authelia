@@ -40,8 +40,8 @@ Logging can be [configured](../../configuration/miscellaneous/logging.md) to out
 - If you configure the [file_path] option without the [keep_stdout] configuration option enabled then you will be
   required to join the stdout / console / docker logs with the file logs.
 
-[keep_stdout]: ../../configuration/miscellaneous/logging.md#keepstdout
-[file_path]: ../../configuration/miscellaneous/logging.md#filepath
+[keep_stdout]: ../../configuration/miscellaneous/logging.md#keep_stdout
+[file_path]: ../../configuration/miscellaneous/logging.md#file_path
 
 ### Large Amount of Logs
 

@@ -24,7 +24,7 @@ The most insecure method is unauthenticated binds. They are generally considered
 at all ensures anyone with any level of network access can easily obtain objects and their attributes.
 
 Authelia does support unauthenticated binds but it is not by default, you must configure the
-[permit_unauthenticated_bind](../../configuration/first-factor/ldap.md#permitunauthenticatedbind) configuration
+[permit_unauthenticated_bind](../../configuration/first-factor/ldap.md#permit_unauthenticated_bind) configuration
 option.
 
 ### End-User Binding
@@ -99,7 +99,7 @@ This means:
 2. The `memberOf` attribute *__MUST__* include the distinguished name of the group.
 3. If the `{memberof:dn}` replacement is used:
    1. The distinguished name *__MUST__* be searchable by your directory server.
-3. The first relative distinguished name of the distinguished name *__MUST__* be search
+4. The first relative distinguished name of the distinguished name *__MUST__* be search
 
 ### Filter replacements
 
