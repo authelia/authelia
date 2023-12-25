@@ -180,8 +180,8 @@ of the target service.
 
 Read more in the [certificates_directory] documentation for this option.
 
-[certificates_directory]: ../../configuration/miscellaneous/introduction.md#certificatesdirectory
-[certificates directory]: #configuration-option--certificatesdirectory
+[certificates_directory]: ../../configuration/miscellaneous/introduction.md#certificates_directory
+[certificates directory]: #configuration-option-certificates_directory
 
 ### Configuration Option: tls.skip_verify
 
@@ -198,7 +198,7 @@ The [disable_require_tls](../../configuration/notifications/smtp.md#disable_requ
 requirement which means the emails may be sent in cleartext. This is the least secure option as it effectively removes
 the validation of SMTP certificates and makes using an encrypted connection with TLS optional.
 
-This means not only can the vulnerabilities of the [skip_verify](#configuration-option--tlsskipverify) option be
+This means not only can the vulnerabilities of the [skip_verify](#configuration-option-tlsskip_verify) option be
 exploited, but any router or switch along the route of the email which receives the packets could be used to silently
 exploit the cleartext nature of the connection to manipulate the email in transit.
 
@@ -246,7 +246,7 @@ would not even be able to create a TCP connection. This measure is recommended i
 configured some kind of ACLs specifically allowing the communication between proxies and Authelia instances like in a
 service mesh or some kind of network overlay.
 
-To configure mutual TLS, please refer to [this document](../../configuration/miscellaneous/server.md#clientcertificates)
+To configure mutual TLS, please refer to [this document](../../configuration/miscellaneous/server.md#client_certificates)
 
 ## Additional security
 
@@ -264,7 +264,7 @@ database. The value of this option should be long and as random as possible. See
 [documentation](../../configuration/session/introduction.md#secret) for this option.
 
 The validity period of session is highly configurable. For example in a highly security conscious domain you could
-set the session [remember_me](../../configuration/session/introduction.md#rememberme) to 0 to disable this
+set the session [remember_me](../../configuration/session/introduction.md#remember_me) to 0 to disable this
 feature, and set the [expiration](../../configuration/session/introduction.md#expiration) to 2 hours and the
 [inactivity](../../configuration/session/introduction.md#inactivity) of 10 minutes. Configuring the session security in this
 manner would mean if the cookie age was more than 2 hours or if the user was inactive for more than 10 minutes the

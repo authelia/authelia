@@ -179,7 +179,7 @@ The following describes the supported response types. See the [OAuth 2.0 Multipl
 more technical information. The default response modes column indicates which response modes are allowed by default on
 clients configured with this flow type value. The value field is both the required value for the `response_type`
 parameter in the authorization request and the
-[response_types](../../configuration/identity-providers/openid-connect/clients.md#responsetypes) client configuration
+[response_types](../../configuration/identity-providers/openid-connect/clients.md#response_types) client configuration
 option.
 
 |         Flow Type         |         Value         | Default [Response Modes](#response-modes) Values |
@@ -203,7 +203,7 @@ option.
 The following describes the supported response modes. See the [OAuth 2.0 Multiple Response Type Encoding Practices] for
 more technical information. The default response modes of a client is based on the [Response Types](#response-types)
 configuration. The value field is both the required value for the `response_mode` parameter in the authorization request
-and the [response_modes](../../configuration/identity-providers/openid-connect/clients.md#responsemodes) client
+and the [response_modes](../../configuration/identity-providers/openid-connect/clients.md#response_modes) client
 configuration option.
 
 |         Name          | Supported |      Value      |
@@ -226,7 +226,7 @@ configuration option.
 
 The following describes the various [OAuth 2.0] and [OpenID Connect 1.0] grant types and their support level. The value
 field is both the required value for the `grant_type` parameter in the access / token request and the
-[grant_types](../../configuration/identity-providers/openid-connect/clients.md#granttypes) client configuration option.
+[grant_types](../../configuration/identity-providers/openid-connect/clients.md#grant_types) client configuration option.
 
 |                   Grant Type                    | Supported |                     Value                      |                                                         Notes                                                         |
 |:-----------------------------------------------:|:---------:|:----------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------:|
@@ -249,7 +249,7 @@ field is both the required value for the `grant_type` parameter in the access / 
 The following describes the supported client authentication methods. See the [OpenID Connect 1.0 Client Authentication]
 specification and the [OAuth 2.0 - Client Types] specification for more information. The value
 field is the valid values for the
-[token_endpoint_auth_method](../../configuration/identity-providers/openid-connect/clients.md#tokenendpointauthmethod)
+[token_endpoint_auth_method](../../configuration/identity-providers/openid-connect/clients.md#token_endpoint_auth_method)
 client configuration option.
 
 |               Description                |             Value             | Credential Type | Supported Client Types | Default for Client Type |                      Assertion Type                      |
@@ -301,7 +301,7 @@ Below is a list of the potential values we place in the [Claim] and their meanin
 ## Introspection Signing Algorithm
 
 The following table describes the response from the [Introspection] endpoint depending on the
-[introspection_signing_alg](../../configuration/identity-providers/openid-connect/clients.md#introspectionsignedresponsealg).
+[introspection_signing_alg](../../configuration/identity-providers/openid-connect/clients.md#introspection_signed_response_alg).
 
 When responding with the Signed [JSON Web Token] the [JSON Web Token] `typ` header has the value of
 `token-introspection+jwt`.
@@ -322,7 +322,7 @@ When responding with the Signed [JSON Web Token] the [JSON Web Token] `typ` head
 ## User Information Signing Algorithm
 
 The following table describes the response from the [UserInfo] endpoint depending on the
-[userinfo_signed_response_alg](../../configuration/identity-providers/openid-connect/clients.md#userinfosignedresponsealg).
+[userinfo_signed_response_alg](../../configuration/identity-providers/openid-connect/clients.md#userinfo_signed_response_alg).
 
 | Signing Algorithm |     Encoding     |           Content Type            |
 |:-----------------:|:----------------:|:---------------------------------:|

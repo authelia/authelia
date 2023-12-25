@@ -14,7 +14,7 @@ toc: false
 
 The following table is a support matrix for Authelia features and specific reverse proxies.
 
-|                  Proxy                  |                                               Standard                                      |                                             Kubernetes                                |              XHR Redirect         |           Request Method          |
+|                  Proxy                  |                                          Standard                                           |                                      Kubernetes                                       |           XHR Redirect            |          Request Method           |
 |:---------------------------------------:|:-------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------:|:---------------------------------:|:---------------------------------:|
 |     [Traefik] ([guide](/i/traefik))     |                      {{% support support="full" link="/i/traefik" %}}                       | {{% support support="full" link="../../integration/kubernetes/traefik-ingress.md" %}} |  {{% support support="full" %}}   |  {{% support support="full" %}}   |
 |       [Caddy] ([guide](/i/caddy))       |                       {{% support support="full" link="/i/caddy" %}}                        |                           {{% support support="unknown" %}}                           |  {{% support support="full" %}}   |  {{% support support="full" %}}   |

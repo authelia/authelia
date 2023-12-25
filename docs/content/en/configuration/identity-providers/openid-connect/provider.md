@@ -427,8 +427,8 @@ The default maximum lifetime of a refresh token. The refresh token can be used t
 access tokens or id tokens with an up-to-date expiration.
 
 A good starting point is 50% more or 30 minutes more (which ever is less) time than the highest lifespan out of the
-[access token lifespan](#accesstokenlifespan) and the [id token lifespan](#idtokenlifespan). For instance the default for all of these is 60 minutes,
-so the default refresh token lifespan is 90 minutes.
+[access token](#access_token) lifespan and the [id token](#id_token) lifespan. For instance the default for all of these
+is 60 minutes, so the default refresh token lifespan is 90 minutes.
 
 #### custom
 

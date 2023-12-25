@@ -164,7 +164,7 @@ check the clients.
 
 ## Encryption
 
-The TOTP secret is [encrypted](../storage/introduction.md#encryptionkey) in the database in version 4.33.0 and above.
+The TOTP secret is [encrypted](../storage/introduction.md#encryption_key) in the database in version 4.33.0 and above.
 This is so a user having access to only the database cannot easily compromise your two-factor authentication method.
 
 This may be inconvenient for some users who wish to export TOTP keys from Authelia to other services. As such there is

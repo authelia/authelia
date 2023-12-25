@@ -51,9 +51,9 @@ of initial setup.
 
 The important sections to consider in initial configuration are as follows:
 
-1. [jwt_secret](../../configuration/miscellaneous/introduction.md#jwtsecret) which is used to sign identity
+1. [jwt_secret](../../configuration/miscellaneous/introduction.md#jwt_secret) which is used to sign identity
    verification emails
-2. [default_redirection_url](../../configuration/miscellaneous/introduction.md#defaultredirectionurl) which is the
+2. [default_redirection_url](../../configuration/miscellaneous/introduction.md#default_redirection_url) which is the
    default URL users will be redirected to when visiting *Authelia* directly
 3. [authentication_backend](../../configuration/first-factor/introduction.md) which you must pick between
    [LDAP](../../configuration/first-factor/ldap.md) and a [YAML File](../../configuration/first-factor/file.md) and is
