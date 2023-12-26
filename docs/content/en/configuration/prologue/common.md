@@ -111,9 +111,10 @@ are no optional portions.
 The Unix Domain Socket format also accepts a query string. The following query parameters control certain behaviour of
 this address type.
 
-| Parameter | Listeners | Connectors |                                                               Purpose                                                                |
-|:---------:|:---------:|:----------:|:------------------------------------------------------------------------------------------------------------------------------------:|
-|  `umask`  |    Yes    |     No     | Sets the umask prior to creating the socket and restores it after creating it. The value must be an octal number with 3 or 4 digits. |
+| Parameter | Listeners | Connectors |                                                                                                           Purpose                                                                                                            |
+|:---------:|:---------:|:----------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+|  `umask`  |    Yes    |     No     |                                             Sets the umask prior to creating the socket and restores it after creating it. The value must be an octal number with 3 or 4 digits.                                             |
+|  `path`   |    Yes    |     No     | Sets the path variable to configure the subpath, specifically for a unix socket but technically works for TCP as well. Note that this should just be the alphanumeric portion it should not be prefixed with a forward slash |
 
 
 ```text
@@ -122,6 +123,14 @@ unix://<path>
 
 ```text
 unix://<path>?umask=0022
+```
+
+```text
+unix://<path>?path=auth
+```
+
+```text
+unix://<path>?umask=0022&path=auth
 ```
 
 ##### Examples

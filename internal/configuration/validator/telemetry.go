@@ -20,7 +20,7 @@ func ValidateTelemetry(config *schema.Configuration, validator *schema.StructVal
 		config.Telemetry.Metrics.Address.SetPort(schema.DefaultTelemetryConfig.Metrics.Address.Port())
 	}
 
-	if config.Telemetry.Metrics.Address.Path() == "" {
+	if config.Telemetry.Metrics.Address.RouterPath() == "" {
 		config.Telemetry.Metrics.Address.SetPath(schema.DefaultTelemetryConfig.Metrics.Address.Path())
 	}
 
