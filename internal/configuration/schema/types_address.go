@@ -136,7 +136,7 @@ func (AddressTCP) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		Type:    jsonschema.TypeString,
 		Format:  "uri",
-		Pattern: `^((tcp(4|6)?:\/\/)?([^:\/]*(:\d+)|[^:\/]+(:\d+)?)(\/.*)?|unix:\/\/\/[^?\n]+(\?umask=[0-7]{3,4})?)$`,
+		Pattern: `^((tcp(4|6)?:\/\/)?([^:\/]*(:\d+)|[^:\/]+(:\d+)?)(\/.*)?|unix:\/\/\/[^?\n]+(\?(umask=[0-7]{3,4}|path=[a-z]+)(&(umask=[0-7]{3,4}|path=[a-zA-Z0-9.~_-]+))?)?)$`,
 	}
 }
 
@@ -377,6 +377,20 @@ func (a *Address) SetPort(port int) {
 func (a *Address) Path() string {
 	if !a.valid || a.url == nil {
 		return ""
+	}
+
+	return a.url.Path
+}
+
+// RouterPath returns the path the server router uses for serving up requests. Should be the same as Path unless the
+// path query parameter has been set.
+func (a *Address) RouterPath() string {
+	if !a.valid || a.url == nil {
+		return ""
+	}
+
+	if a.url.Query().Has("path") {
+		return fmt.Sprintf("/%s", a.url.Query().Get("path"))
 	}
 
 	return a.url.Path
