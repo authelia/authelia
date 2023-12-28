@@ -27,3 +27,5 @@ authelia-image-dev.tar
 __debug_bin
 
 internal/suites/common/pki/ca/*.private.pem
+internal/server/public_html/*
+!internal/server/public_html/.gitkeep

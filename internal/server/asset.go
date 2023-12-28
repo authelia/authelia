@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	//go:embed public_html
+	//go:embed public_html/*
 	assets embed.FS
 
 	//go:embed locales
