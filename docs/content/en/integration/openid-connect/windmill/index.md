@@ -2,7 +2,7 @@
 title: "Windmill"
 description: "Integrating Windmill with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
-date: 2023-11-16T06:16:54+11:00
+date: 2023-12-10T10:52:22+11:00
 draft: false
 images: []
 menu:
