@@ -136,7 +136,7 @@ func (AddressTCP) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		Type:    jsonschema.TypeString,
 		Format:  "uri",
-		Pattern: `^((tcp(4|6)?:\/\/)?([^:\/]*(:\d+)|[^:\/]+(:\d+)?)(\/.*)?|unix:\/\/\/[^?\n]+(\?(umask=[0-7]{3,4}|path=[a-z]+)(&(umask=[0-7]{3,4}|path=[a-zA-Z0-9.~_-]+))?)?)$`,
+		Pattern: `^((tcp[46]?:\/\/)?([^:\/]*(:\d+)|[^:\/]+(:\d+)?)(\/.*)?|unix:\/\/\/[^?\n]+(\?(umask=[0-7]{3,4}|path=[a-z]+)(&(umask=[0-7]{3,4}|path=[a-zA-Z0-9.~_-]+))?)?)$`,
 	}
 }
 
@@ -150,7 +150,7 @@ func (AddressUDP) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		Type:    jsonschema.TypeString,
 		Format:  "uri",
-		Pattern: `^(udp(4|6)?:\/\/)?([^:\/]*(:\d+)|[^:\/]+(:\d+)?)(\/.*)?$`,
+		Pattern: `^(udp[46]?:\/\/)?([^:\/]*(:\d+)|[^:\/]+(:\d+)?)(\/.*)?$`,
 	}
 }
 
