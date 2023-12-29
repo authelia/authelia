@@ -121,7 +121,6 @@ Build the Web Frontend:
 ```bash
 cd web && pnpm build
 cd ..
-cp -r api internal/server/public_html/api
 ```
 
 Build the Binary (with debug symbols):
