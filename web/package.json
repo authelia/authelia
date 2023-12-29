@@ -33,7 +33,7 @@
     "@mui/styles": "5.15.2",
     "axios": "1.6.3",
     "broadcast-channel": "7.0.0",
-    "classnames": "2.3.3",
+    "classnames": "2.5.0",
     "i18next": "23.7.12",
     "i18next-browser-languagedetector": "7.2.0",
     "i18next-http-backend": "2.4.2",
