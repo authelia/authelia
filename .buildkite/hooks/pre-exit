@@ -8,4 +8,4 @@ if [[ ! "${BUILDKITE_COMMAND}" =~ "buildkite-agent pipeline upload" ]] && \
   docker system prune -af --volumes
 fi
 
-sudo find /tmp/ ! -wholename "/tmp/" ! -name "buildkite*" ! -name "job-env-*" -type d,f -exec rm -rf {} +
+sudo find /tmp/ ! -wholename "/tmp/" ! -wholename "/tmp/buildkite-agent-hook-wrapper*" ! -name "buildkite*" ! -name "job-env-*" -type d,f -exec rm -rf {} +
