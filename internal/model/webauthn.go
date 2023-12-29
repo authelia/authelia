@@ -171,6 +171,7 @@ type WebAuthnCredential struct {
 	Transport       string        `db:"transport"`
 	SignCount       uint32        `db:"sign_count"`
 	CloneWarning    bool          `db:"clone_warning"`
+	Legacy          bool          `db:"legacy"`
 	Discoverable    bool          `db:"discoverable"`
 	Present         bool          `db:"present"`
 	Verified        bool          `db:"verified"`
@@ -232,6 +233,7 @@ func (c *WebAuthnCredential) ToData() WebAuthnCredentialData {
 		Attachment:      c.Attachment,
 		SignCount:       c.SignCount,
 		CloneWarning:    c.CloneWarning,
+		Legacy:          c.Legacy,
 		Present:         c.Present,
 		Verified:        c.Verified,
 		BackupEligible:  c.BackupEligible,
@@ -323,6 +325,7 @@ type WebAuthnCredentialData struct {
 	Transports      []string   `yaml:"transports" json:"transports" jsonschema:"title=Transports" jsonschema_description:"The last recorded credential transports"`
 	SignCount       uint32     `yaml:"sign_count" json:"sign_count" jsonschema:"title=Sign Count" jsonschema_description:"The last recorded credential sign count"`
 	CloneWarning    bool       `yaml:"clone_warning" json:"clone_warning" jsonschema:"title=Clone Warning" jsonschema_description:"The clone warning status of the credential"`
+	Legacy          bool       `yaml:"legacy" json:"legacy" jsonschema:"title=Legacy" jsonschema_description:"The legacy value indicates this credential may need to be registered again"`
 	Discoverable    bool       `yaml:"discoverable" json:"discoverable" jsonschema:"title=Discoverable" jsonschema_description:"The discoverable status of this credential"`
 	Present         bool       `yaml:"present" json:"present" jsonschema:"title=Present" jsonschema_description:"The user presence status of this credential"`
 	Verified        bool       `yaml:"verified" json:"verified" jsonschema:"title=Verified" jsonschema_description:"The verified status of this credential"`
@@ -342,6 +345,7 @@ func (c *WebAuthnCredentialData) ToCredential() (credential *WebAuthnCredential,
 		Transport:       strings.Join(c.Transports, ","),
 		SignCount:       c.SignCount,
 		CloneWarning:    c.CloneWarning,
+		Legacy:          c.Legacy,
 		Discoverable:    c.Discoverable,
 		Present:         c.Present,
 		Verified:        c.Verified,

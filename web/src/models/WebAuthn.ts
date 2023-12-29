@@ -118,12 +118,24 @@ export interface WebAuthnCredential {
     transports: null | string[];
     sign_count: number;
     clone_warning: boolean;
+    legacy: boolean;
     discoverable: boolean;
     present: boolean;
     verified: boolean;
     backup_eligible: boolean;
     backup_state: boolean;
     public_key: Uint8Array;
+}
+
+export function toAttachmentName(attachment: string) {
+    switch (attachment.toLowerCase()) {
+        case "cross-platform":
+            return "Cross-Platform";
+        case "platform":
+            return "Platform";
+        default:
+            return "Unknown";
+    }
 }
 
 export function toTransportName(transport: string) {

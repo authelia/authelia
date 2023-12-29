@@ -73,6 +73,11 @@
           "title": "Clone Warning",
           "description": "The clone warning status of the credential"
         },
+        "legacy": {
+          "type": "boolean",
+          "title": "Legacy",
+          "description": "The legacy value indicates this credential may need to be registered again"
+        },
         "discoverable": {
           "type": "boolean",
           "title": "Discoverable",
