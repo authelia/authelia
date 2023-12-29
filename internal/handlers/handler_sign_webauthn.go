@@ -216,7 +216,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if bodyJSON.Workflow == workflowOpenIDConnect {
-		handleOIDCWorkflowResponse(ctx, bodyJSON.TargetURL, bodyJSON.WorkflowID)
+		handleOIDCWorkflowResponse(ctx, &userSession, bodyJSON.TargetURL, bodyJSON.WorkflowID)
 	} else {
 		Handle2FAResponse(ctx, bodyJSON.TargetURL)
 	}

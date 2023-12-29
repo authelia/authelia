@@ -47,7 +47,7 @@ There are currently two providers for session storage (three if you count Redis 
 
 * Memory (default, stateful, no additional configuration)
 * [Redis](redis.md) (stateless).
-* [Redis Sentinel](redis.md#highavailability) (stateless, highly available).
+* [Redis Sentinel](redis.md#high_availability) (stateless, highly available).
 
 ### Kubernetes or High Availability
 
@@ -148,7 +148,8 @@ be used to generate the appropriate redirection URL when authentication is requi
 1. Be able to read and write cookies for the configured [domain](#domain-1).
 2. Use the `https://` scheme.
 3. Include the path if relevant (i.e. `https://example.com/authelia` rather than `https://example.com` if you're using
-   the [server path option](../miscellaneous/server.md#path) of `authelia` and if the Authelia portal is inaccessible from `https://example.com`).
+   the [server address option](../miscellaneous/server.md#address) of `authelia` to specify a subpath and if the
+   Authelia portal is inaccessible from `https://example.com`).
 
 The appropriate query parameter or header for your relevant proxy can override this behaviour.
 

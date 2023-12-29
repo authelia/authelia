@@ -114,11 +114,11 @@ the [resources](../../configuration/security/access-control.md#resources),
 [methods](../../configuration/security/access-control.md#methods), and
 [networks](../../configuration/security/access-control.md#networks) criteria are very specific to each request and to
 some degree so are the [domain](../../configuration/security/access-control.md#domain) and
-[domain regex](../../configuration/security/access-control.md#domainregex) criteria as the token is issued to the client
+[domain regex](../../configuration/security/access-control.md#domain_regex) criteria as the token is issued to the client
 not a specific domain.
 
 For these reasons we implemented the
-[authorization policy](../../configuration/identity-providers/openid-connect/clients.md#authorizationpolicy) as a direct
+[authorization policy](../../configuration/identity-providers/openid-connect/clients.md#authorization_policy) as a direct
 option in the client. It's likely in the future that we'll expand this option to encompass the features that work well
 with OpenID Connect 1.0 such as the [subject](../../configuration/security/access-control.md#subject) criteria which
 reasonably be matched to an individual authorization policy. Because the other criteria are mostly geared towards
@@ -154,7 +154,7 @@ In addition as tokens can be manually revoked using the Revocation Endpoint in a
 revoked due to known compromise; the revocation will take place much faster.
 
 Users who still desire or have an application that requires the Access Token is a JWT should configure the
-[access_token_signed_response_alg](../../configuration/identity-providers/openid-connect/clients.md#accesstokensignedresponsealg)
+[access_token_signed_response_alg](../../configuration/identity-providers/openid-connect/clients.md#access_token_signed_response_alg)
 client configuration option.
 
 ## Solutions

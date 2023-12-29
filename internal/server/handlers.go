@@ -400,8 +400,8 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	r.NotFound = handleNotFound(bridge(serveIndexHandler))
 
 	handler := middlewares.LogRequest(r.Handler)
-	if config.Server.Address.Path() != "/" {
-		handler = middlewares.StripPath(config.Server.Address.Path())(handler)
+	if config.Server.Address.RouterPath() != "/" {
+		handler = middlewares.StripPath(config.Server.Address.RouterPath())(handler)
 	}
 
 	handler = middlewares.Wrap(middlewares.NewMetricsRequest(providers.Metrics), handler)

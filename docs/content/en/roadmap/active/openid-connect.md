@@ -202,7 +202,7 @@ See the [OpenID Connect 1.0] website for the [OpenID Connect Session Management 
 
 See the [OpenID Connect 1.0] website for the [OpenID Connect Back-Channel Logout 1.0] specification.
 
-Should be implemented alongside [Dynamic Client Registration](#openid-connect-dynamic-client-registration).
+Should be implemented alongside [Dynamic Client Registration](#openid-connect-dynamic-client-registration-10).
 
 #### OpenID Connect Front-Channel Logout 1.0
 
@@ -210,7 +210,7 @@ Should be implemented alongside [Dynamic Client Registration](#openid-connect-dy
 
 See the [OpenID Connect 1.0] website for the [OpenID Connect Front-Channel Logout 1.0] specification.
 
-Should be implemented alongside [Dynamic Client Registration](#openid-connect-dynamic-client-registration).
+Should be implemented alongside [Dynamic Client Registration](#openid-connect-dynamic-client-registration-10).
 
 #### OpenID Connect RP-Initiated Logout 1.0
 

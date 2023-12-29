@@ -110,7 +110,7 @@ func handleOIDCAuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issuer
 		return nil, true
 	}
 
-	if consent, err = model.NewOAuth2ConsentSession(subject, requester); err != nil {
+	if consent, err = handleOpenIDConnectNewConsentSession(subject, requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentGenerateError, requester.GetID(), client.GetID(), client.GetConsentPolicy(), "generating", err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotGenerate)
@@ -211,6 +211,22 @@ func handleOIDCAuthorizationConsentGetRedirectionURL(_ *middlewares.AutheliaCtx,
 	redirectURL.RawQuery = query.Encode()
 
 	return redirectURL
+}
+
+func handleOpenIDConnectNewConsentSession(subject uuid.UUID, requester fosite.AuthorizeRequester, prefixPAR string) (consent *model.OAuth2ConsentSession, err error) {
+	if oidc.IsPushedAuthorizedRequest(requester, prefixPAR) {
+		form := url.Values{}
+
+		form.Set(oidc.FormParameterRequestURI, requester.GetRequestForm().Get(oidc.FormParameterRequestURI))
+
+		if requester.GetRequestForm().Has(oidc.FormParameterClientID) {
+			form.Set(oidc.FormParameterClientID, requester.GetRequestForm().Get(oidc.FormParameterClientID))
+		}
+
+		return model.NewOAuth2ConsentSessionWithForm(subject, requester, form)
+	}
+
+	return model.NewOAuth2ConsentSession(subject, requester)
 }
 
 func verifyOIDCUserAuthorizedForConsent(ctx *middlewares.AutheliaCtx, client oidc.Client, userSession session.UserSession, consent *model.OAuth2ConsentSession, subject uuid.UUID) (err error) {

@@ -39,7 +39,7 @@ This section describes the individual configuration options.
 
 ### encryption_key
 
-See the [encryption_key docs](introduction.md#encryptionkey).
+See the [encryption_key docs](introduction.md#encryption_key).
 
 ### path
 

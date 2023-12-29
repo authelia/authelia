@@ -354,7 +354,7 @@ to configure the proxy server correctly in order to accurately match requests wi
 combine CIDR networks with the alias rules as you please.*
 
 The main use case for this criteria is adjust the security requirements of a resource based on the location of a user.
-You can theoretically consider a specific network to be one of the factors involved in authentiation, you can deny
+You can theoretically consider a specific network to be one of the factors involved in authentication, you can deny
 specific networks, etc.
 
 For example if you have an application exposed on both the local networks and the external networks, you are able to
