@@ -47,4 +47,8 @@ It's likely that you have not configured __Authelia__ correctly. Please read thi
 had a look at {{< github-link path="config.template.yml" >}} and
 [configuration documentation](../../../configuration/second-factor/duo.md).
 
+### I have access to the *Push Notification* option, but there is an error message: *"no compatible device found".*
+
+There is a problem with your **Users** configuration in Duo. There are no users configured in Duo that match your Authelia user. Note that the admin user you create when you sign up is not automatically added as a **User** in Duo. 
+
 [Duo]: https://duo.com/
