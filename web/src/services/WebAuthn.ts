@@ -195,6 +195,14 @@ export async function postAuthenticationResponse(
     workflow?: string,
     workflowID?: string,
 ) {
+    if (response.response.userHandle) {
+        // Encode the userHandle to match the typing on the backend.
+        response.response.userHandle = btoa(response.response.userHandle)
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=/g, "");
+    }
+
     return axios.post<ServiceResponse<SignInResponse>>(WebAuthnAssertionPath, {
         response: response,
         targetURL: targetURL,
