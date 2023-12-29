@@ -51,8 +51,8 @@ dependencies:
     specifier: 7.0.0
     version: 7.0.0
   classnames:
-    specifier: 2.3.3
-    version: 2.3.3
+    specifier: 2.5.0
+    version: 2.5.0
   i18next:
     specifier: 23.7.12
     version: 23.7.12
@@ -3819,8 +3819,8 @@ packages:
       fsevents: 2.3.3
     dev: true
 
-  /classnames@2.3.3:
-    resolution: {integrity: sha512-1inzZmicIFcmUya7PGtUQeXtcF7zZpPnxtQoYOrz0uiOBGlLFa4ik4361seYL2JCcRDIyfdFHiwQolESFlw+Og==}
+  /classnames@2.5.0:
+    resolution: {integrity: sha512-FQuRlyKinxrb5gwJlfVASbSrDlikDJ07426TrfPsdGLvtochowmkbnSFdQGJ2aoXrSetq5KqGV9emvWpy+91xA==}
     dev: false
 
   /cliui@8.0.1:
