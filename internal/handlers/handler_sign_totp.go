@@ -134,17 +134,19 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if !ctx.Configuration.TOTP.DisableReuseSecurityPolicy {
-		if exists, err = ctx.Providers.StorageProvider.ExistsTOTPHistory(ctx, userSession.Username, step*uint64(config.Period)); err != nil {
-			ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred checking the TOTP history", userSession.Username)
+	if exists, err = ctx.Providers.StorageProvider.ExistsTOTPHistory(ctx, userSession.Username, step*uint64(config.Period)); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred checking the TOTP history", userSession.Username)
 
-			ctx.SetStatusCode(fasthttp.StatusForbidden)
-			ctx.SetJSONError(messageMFAValidationFailed)
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
 
-			return
-		}
+		return
+	}
 
-		if exists {
+	if exists {
+		if ctx.Configuration.TOTP.DisableReuseSecurityPolicy {
+			ctx.Logger.WithFields(map[string]any{"username": userSession.Username}).Warn("User has reused a Time-based One Time Password with the given step but the policy to disable reuse is disabled")
+		} else {
 			ctx.Logger.WithError(fmt.Errorf("the user has already used this code recently and will not be permitted to reuse it")).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred satisfying security policies", userSession.Username)
 
 			ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -152,15 +154,13 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 			return
 		}
+	} else if err = ctx.Providers.StorageProvider.SaveTOTPHistory(ctx, userSession.Username, step*uint64(config.Period)); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred saving the TOTP history to the storage backend", userSession.Username)
 
-		if err = ctx.Providers.StorageProvider.SaveTOTPHistory(ctx, userSession.Username, step*uint64(config.Period)); err != nil {
-			ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred saving the TOTP history to the storage backend", userSession.Username)
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
 
-			ctx.SetStatusCode(fasthttp.StatusForbidden)
-			ctx.SetJSONError(messageMFAValidationFailed)
-
-			return
-		}
+		return
 	}
 
 	if err = markAuthenticationAttempt(ctx, true, nil, userSession.Username, regulation.AuthTypeTOTP, nil); err != nil {
