@@ -54,8 +54,8 @@ dependencies:
     specifier: 2.5.1
     version: 2.5.1
   i18next:
-    specifier: 23.7.12
-    version: 23.7.12
+    specifier: 23.7.13
+    version: 23.7.13
   i18next-browser-languagedetector:
     specifier: 7.2.0
     version: 7.2.0
@@ -73,7 +73,7 @@ dependencies:
     version: 18.2.0(react@18.2.0)
   react-i18next:
     specifier: 14.0.0
-    version: 14.0.0(i18next@23.7.12)(react-dom@18.2.0)(react@18.2.0)
+    version: 14.0.0(i18next@23.7.13)(react-dom@18.2.0)(react@18.2.0)
   react-loading:
     specifier: 2.0.3
     version: 2.0.3(prop-types@15.8.1)(react@18.2.0)
@@ -5557,8 +5557,8 @@ packages:
       - encoding
     dev: false
 
-  /i18next@23.7.12:
-    resolution: {integrity: sha512-BZcAvh5M/s2CDrbxNFT8kscfzCYW607wnc4wnQ11HaHDJlS46P/0+P++nmgnc5CIjSQ1DfHAM9RE+hIyALvI7g==}
+  /i18next@23.7.13:
+    resolution: {integrity: sha512-DbCPlw6VmURSZa43iOnycxq9o15e+WuBWDBZ3aj+gQZcDz4sgnuKwrcwmP1n8gSSCwCN7CRFGTpnwTd93A16Mg==}
     dependencies:
       '@babel/runtime': 7.23.6
     dev: false
@@ -6892,7 +6892,7 @@ packages:
       react: 18.2.0
       scheduler: 0.23.0
 
-  /react-i18next@14.0.0(i18next@23.7.12)(react-dom@18.2.0)(react@18.2.0):
+  /react-i18next@14.0.0(i18next@23.7.13)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-OCrS8rHNAmnr8ggGRDxjakzihrMW7HCbsplduTm3EuuQ6fyvWGT41ksZpqbduYoqJurBmEsEVZ1pILSUWkHZng==}
     peerDependencies:
       i18next: '>= 23.2.3'
@@ -6907,7 +6907,7 @@ packages:
     dependencies:
       '@babel/runtime': 7.23.6
       html-parse-stringify: 3.0.1
-      i18next: 23.7.12
+      i18next: 23.7.13
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
     dev: false
