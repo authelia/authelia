@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Delete, Edit, InfoOutlined } from "@mui/icons-material";
+import { Delete, Edit, InfoOutlined, ReportProblem } from "@mui/icons-material";
 import { Box, Paper, Stack, Tooltip, Typography } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import Grid from "@mui/material/Unstable_Grid2/Grid2";
@@ -13,9 +13,11 @@ interface Props {
     icon?: React.ReactNode;
     description: string;
     qualifier: string;
+    problem?: boolean;
     created_at: Date;
     last_used_at?: Date;
     tooltipInformation?: string;
+    tooltipInformationProblem?: string;
     tooltipEdit?: string;
     tooltipDelete: string;
     handleInformation?: (event: React.MouseEvent<HTMLElement>) => void;
@@ -35,7 +37,7 @@ const CredentialItem = function (props: Props) {
                     </Grid>
                     <Grid xs={3} sm={6}>
                         <Stack direction={"column"}>
-                            <Box>
+                            <Stack direction={"row"}>
                                 <Typography
                                     id={`${props.id}-description`}
                                     display={"inline"}
@@ -43,10 +45,10 @@ const CredentialItem = function (props: Props) {
                                 >
                                     {props.description}
                                 </Typography>
-                                <Typography display={{ xs: "none", sm: "inline" }} variant={"body2"}>
+                                <Typography display={{ xs: "none", sm: "inline" }} variant={"body2"} px={2}>
                                     {props.qualifier}
                                 </Typography>
-                            </Box>
+                            </Stack>
                             <Typography variant={"caption"} display={{ xs: "none", sm: "block" }}>
                                 {translate("Added when", {
                                     when: props.created_at,
@@ -67,13 +69,17 @@ const CredentialItem = function (props: Props) {
                         <Grid container xs={12} justifyContent={"flex-end"} alignItems={"center"} height={"100%"}>
                             {props.handleInformation ? (
                                 <Grid xs={2} sm={1}>
-                                    <TooltipElement tooltip={props.tooltipInformation}>
+                                    <TooltipElement
+                                        tooltip={
+                                            props.problem ? props.tooltipInformationProblem : props.tooltipInformation
+                                        }
+                                    >
                                         <IconButton
                                             color="primary"
                                             onClick={props.handleInformation}
                                             id={`${props.id}-information`}
                                         >
-                                            <InfoOutlined />
+                                            {props.problem ? <ReportProblem color={"warning"} /> : <InfoOutlined />}
                                         </IconButton>
                                     </TooltipElement>
                                 </Grid>
