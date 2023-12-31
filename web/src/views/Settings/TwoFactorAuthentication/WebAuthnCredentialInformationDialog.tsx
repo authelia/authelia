@@ -1,6 +1,7 @@
 import React, { Fragment } from "react";
 
 import {
+    Alert,
     Button,
     Dialog,
     DialogActions,
@@ -15,7 +16,7 @@ import { useTranslation } from "react-i18next";
 
 import CopyButton from "@components/CopyButton";
 import { FormatDateHumanReadable } from "@i18n/formats";
-import { WebAuthnCredential, toTransportName } from "@models/WebAuthn";
+import { WebAuthnCredential, toAttachmentName, toTransportName } from "@models/WebAuthn";
 
 interface Props {
     open: boolean;
@@ -43,6 +44,15 @@ const WebAuthnCredentialInformationDialog = function (props: Props) {
                                 description: props.credential.description,
                             })}
                         </DialogContentText>
+                        {props.credential.legacy ? (
+                            <DialogContentText sx={{ mb: 3 }}>
+                                <Alert severity={"warning"}>
+                                    {translate(
+                                        "This is a legacy WebAuthn Credential. If it's not operating normally you may need to delete it and register it again.",
+                                    )}
+                                </Alert>
+                            </DialogContentText>
+                        ) : null}
                         <Grid container spacing={2}>
                             <Grid md={3} sx={{ display: { xs: "none", md: "block" } }}>
                                 <Fragment />
@@ -66,11 +76,7 @@ const WebAuthnCredentialInformationDialog = function (props: Props) {
                             />
                             <PropertyText
                                 name={translate("Attachment")}
-                                value={
-                                    props.credential.attachment === ""
-                                        ? translate("Unknown")
-                                        : props.credential.attachment
-                                }
+                                value={translate(toAttachmentName(props.credential.attachment))}
                             />
                             <PropertyText
                                 name={translate("Discoverable")}

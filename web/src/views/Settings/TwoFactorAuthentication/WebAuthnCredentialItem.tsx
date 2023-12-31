@@ -47,8 +47,12 @@ const WebAuthnCredentialItem = function (props: Props) {
                 description={props.credential.description}
                 qualifier={` (${props.credential.attestation_type.toUpperCase()})`}
                 created_at={new Date(props.credential.created_at)}
+                problem={props.credential.legacy}
                 last_used_at={props.credential.last_used_at ? new Date(props.credential.last_used_at) : undefined}
                 tooltipInformation={translate("Display extended information for this WebAuthn Credential")}
+                tooltipInformationProblem={translate(
+                    "There is an issue with this Credential to find out more click to display extended information for this WebAuthn Credential",
+                )}
                 tooltipEdit={translate("Edit this {{item}}", { item: translate("WebAuthn Credential") })}
                 tooltipDelete={translate("Remove this {{item}}", { item: translate("WebAuthn Credential") })}
                 handleInformation={handleInformation}
