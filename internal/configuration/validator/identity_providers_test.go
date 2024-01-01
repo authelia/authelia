@@ -702,7 +702,7 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testi
 	require.Len(t, validator.Errors(), 2)
 	assert.Len(t, validator.Warnings(), 0)
 
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'client-with-invalid-secret': option 'secret' is required to be empty when option 'public' is true")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'client-with-invalid-secret': option 'secret' is required to be absent when option 'public' is true")
 	assert.EqualError(t, validator.Errors()[1], "identity_providers: oidc: clients: client 'client-with-bad-redirect-uri': option 'redirect_uris' has the redirect uri 'urn:ietf:wg:oauth:2.0:oob' when option 'public' is false but this is invalid as this uri is not valid for the openid connect confidential client type")
 }
 
@@ -1652,7 +1652,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'token_endpoint_auth_method' must be one of 'client_secret_post', 'client_secret_basic', or 'private_key_jwt' when configured as the confidential client type unless it only includes implicit flow response types such as 'id_token', 'token', and 'id_token token' but it's configured as 'none'",
-				"identity_providers: oidc: clients: client 'test': option 'secret' is required to be empty when option 'token_endpoint_auth_method' is configured as 'none'",
+				"identity_providers: oidc: clients: client 'test': option 'secret' is required to be absent when option 'token_endpoint_auth_method' is configured as 'none'",
 			},
 		},
 		{
@@ -1678,7 +1678,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'token_endpoint_auth_method' must be one of 'client_secret_post', 'client_secret_basic', or 'private_key_jwt' when configured as the confidential client type unless it only includes implicit flow response types such as 'id_token', 'token', and 'id_token token' but it's configured as 'none'",
-				"identity_providers: oidc: clients: client 'test': option 'secret' is required to be empty when option 'token_endpoint_auth_method' is configured as 'none'",
+				"identity_providers: oidc: clients: client 'test': option 'secret' is required to be absent when option 'token_endpoint_auth_method' is configured as 'none'",
 			},
 		},
 		{
@@ -2474,7 +2474,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'token_endpoint_auth_signing_alg' is required when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'",
 				"identity_providers: oidc: clients: client 'test': option 'public_keys' is required with 'token_endpoint_auth_method' set to 'private_key_jwt'",
-				"identity_providers: oidc: clients: client 'test': option 'secret' is required to be empty when option 'token_endpoint_auth_method' is configured as 'private_key_jwt'",
+				"identity_providers: oidc: clients: client 'test': option 'secret' is required to be absent when option 'token_endpoint_auth_method' is configured as 'private_key_jwt'",
 			},
 		},
 		{

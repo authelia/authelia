@@ -202,9 +202,9 @@ const (
 	errFmtOIDCClientInvalidSecretPlainText    = errFmtOIDCClientInvalidSecretIs + "plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed when oidc becomes stable"
 	errFmtOIDCClientInvalidSecretNotPlainText = errFmtOIDCClientOption + "'secret' must be plaintext with option 'token_endpoint_auth_method' with a value of 'client_secret_jwt'"
 	errFmtOIDCClientPublicInvalidSecret       = errFmtOIDCClientInvalidSecretIs +
-		"required to be empty when option 'public' is true"
+		"required to be absent when option 'public' is true"
 	errFmtOIDCClientPublicInvalidSecretClientAuthMethod = errFmtOIDCClientInvalidSecretIs +
-		"required to be empty when option 'token_endpoint_auth_method' is configured as '%s'"
+		"required to be absent when option 'token_endpoint_auth_method' is configured as '%s'"
 	errFmtOIDCClientIDTooLong           = errFmtOIDCClientOption + "'id' must not be more than 100 characters but it has %d characters"
 	errFmtOIDCClientIDInvalidCharacters = errFmtOIDCClientOption + "'id' must only contain RFC3986 unreserved characters"
 
