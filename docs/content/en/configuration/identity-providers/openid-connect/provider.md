@@ -370,6 +370,24 @@ rule is matched the user is not asked for consent and it is considered a rejecte
 The key for the policy itself is the name of the policy, which is used when configuring the client
 [authorization_policy](clients.md#authorization_policy) option. In the example we name the policy `policy_name`.
 
+The follow example shows a policy named `policy_name` which will `deny` access to users in the `services` group, with
+a default policy of `two_factor` for everyone else. This policy is applied to the client with id
+`client_with_policy_name`. You should refer to the below headings which describe each configuration key in more detail.
+
+```yaml
+identity_providers:
+  oidc:
+    authorization_policies:
+      policy_name:
+        default_policy: 'two_factor'
+        rules:
+          - policy: 'deny'
+            subject: 'group:services'
+    clients:
+      - id: 'client_with_policy_name'
+        authorization_policy: 'policy_name'
+```
+
 #### default_policy
 
 {{< confkey type="string" default="two_factor" required="no" >}}
