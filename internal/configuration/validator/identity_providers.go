@@ -921,29 +921,30 @@ func validateOIDCClientTokenEndpointAuth(c int, config *schema.IdentityProviders
 			config.Clients[c].ID, config.Clients[c].TokenEndpointAuthMethod))
 	}
 
-	secret := false
+	secretExpected := false
+	secret := config.Clients[c].Secret != nil && config.Clients[c].Secret.Digest != nil
 
 	switch config.Clients[c].TokenEndpointAuthMethod {
+	case "":
+		if !config.Clients[c].Public {
+			secretExpected = true
+		}
 	case oidc.ClientAuthMethodClientSecretJWT:
 		validateOIDCClientTokenEndpointAuthClientSecretJWT(c, config, validator)
 
-		secret = true
-	case "":
-		if !config.Clients[c].Public {
-			secret = true
-		}
+		secretExpected = true
 	case oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic:
-		secret = true
+		secretExpected = true
 	case oidc.ClientAuthMethodPrivateKeyJWT:
 		validateOIDCClientTokenEndpointAuthPublicKeyJWT(config.Clients[c], validator)
 	}
 
-	if secret {
+	if secretExpected {
 		if config.Clients[c].Public {
 			return
 		}
 
-		if config.Clients[c].Secret == nil {
+		if !secret {
 			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSecret, config.Clients[c].ID))
 		} else {
 			switch {
@@ -953,7 +954,7 @@ func validateOIDCClientTokenEndpointAuth(c int, config *schema.IdentityProviders
 				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSecretNotPlainText, config.Clients[c].ID))
 			}
 		}
-	} else if config.Clients[c].Secret != nil {
+	} else if secret {
 		if config.Clients[c].Public {
 			validator.Push(fmt.Errorf(errFmtOIDCClientPublicInvalidSecret, config.Clients[c].ID))
 		} else {

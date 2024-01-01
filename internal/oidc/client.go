@@ -102,7 +102,11 @@ func (c *BaseClient) GetDescription() string {
 
 // GetSecret returns the Secret.
 func (c *BaseClient) GetSecret() algorithm.Digest {
-	return c.Secret
+	if c.Secret == nil || c.Secret.Digest == nil {
+		return nil
+	}
+
+	return c.Secret.Digest
 }
 
 // GetSectorIdentifier returns the SectorIdentifier for this client.
@@ -112,7 +116,7 @@ func (c *BaseClient) GetSectorIdentifier() string {
 
 // GetHashedSecret returns the Secret.
 func (c *BaseClient) GetHashedSecret() (secret []byte) {
-	if c.Secret == nil {
+	if c.Secret == nil || c.Secret.Digest == nil {
 		return []byte(nil)
 	}
 
