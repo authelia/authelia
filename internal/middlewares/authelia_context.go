@@ -23,11 +23,11 @@ import (
 )
 
 // NewRequestLogger create a new request logger for the given request.
-func NewRequestLogger(ctx *AutheliaCtx) *logrus.Entry {
+func NewRequestLogger(ctx *fasthttp.RequestCtx) *logrus.Entry {
 	return logging.Logger().WithFields(logrus.Fields{
 		logging.FieldMethod:   string(ctx.Method()),
 		logging.FieldPath:     string(ctx.Path()),
-		logging.FieldRemoteIP: ctx.RemoteIP().String(),
+		logging.FieldRemoteIP: RequestCtxRemoteIP(ctx).String(),
 	})
 }
 
@@ -37,7 +37,7 @@ func NewAutheliaCtx(requestCTX *fasthttp.RequestCtx, configuration schema.Config
 	ctx.RequestCtx = requestCTX
 	ctx.Providers = providers
 	ctx.Configuration = configuration
-	ctx.Logger = NewRequestLogger(ctx)
+	ctx.Logger = NewRequestLogger(ctx.RequestCtx)
 	ctx.Clock = clock.New()
 
 	return ctx
@@ -482,17 +482,7 @@ func (ctx *AutheliaCtx) SetJSONBody(value any) error {
 
 // RemoteIP return the remote IP taking X-Forwarded-For header into account if provided.
 func (ctx *AutheliaCtx) RemoteIP() net.IP {
-	if header := ctx.Request.Header.PeekBytes(headerXForwardedFor); len(header) != 0 {
-		ips := strings.SplitN(string(header), ",", 2)
-
-		if len(ips) != 0 {
-			if ip := net.ParseIP(strings.Trim(ips[0], " ")); ip != nil {
-				return ip
-			}
-		}
-	}
-
-	return ctx.RequestCtx.RemoteIP()
+	return RequestCtxRemoteIP(ctx.RequestCtx)
 }
 
 // GetXForwardedURL returns the parsed X-Forwarded-Proto, X-Forwarded-Host, and X-Forwarded-URI request header as a
