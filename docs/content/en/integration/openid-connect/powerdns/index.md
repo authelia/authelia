@@ -61,6 +61,8 @@ To configure [PowerDNS Admin] to utilize Authelia as an [OpenID Connect 1.0] Pro
 
 *__Note:__ Currently, Authelia only supports the preferred_username and name claims under the profile scope. However PowerDNS-Admin only supports a FirstName LastName system, where the two are separate, instead of using the name claim to fetch the full name. This means that the names in the system are incorrect. (See linked ticket(https://github.com/authelia/authelia/issues/4338))
 
+{{< figure src="powerdns.png" alt="PowerDNS Admin" width="736" style="padding-right: 10px" >}}
+
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
