@@ -70,6 +70,38 @@ identity_providers:
         request_object_signing_alg: 'RS256'
         token_endpoint_auth_signing_alg: 'RS256'
         token_endpoint_auth_method: ''
+        public_keys:
+          uri: 'https://oidc.example.com:8080/oauth2/jwks.json'
+          values:
+            - key_id: 'example'
+              algorithm: 'RS256'
+              use: 'sig'
+              key: |
+                -----BEGIN RSA PUBLIC KEY-----
+                MEgCQQDAwV26ZA1lodtOQxNrJ491gWT+VzFum9IeZ+WTmMypYWyW1CzXKwsvTHDz
+                9ec+jserR3EMQ0Rr24lj13FL1ib5AgMBAAE=
+                -----END RSA PUBLIC KEY----
+              certificate_chain: |
+                -----BEGIN CERTIFICATE-----
+                MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
+                MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
+                NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
+                AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
+                z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
+                JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
+                Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
+                1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+                -----END CERTIFICATE-----
+                -----BEGIN CERTIFICATE-----
+                MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
+                MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
+                NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
+                AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
+                z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
+                JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
+                Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
+                1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+                -----END CERTIFICATE-----
 ```
 
 ## Options
@@ -543,6 +575,47 @@ Required when the following options are configured:
 Required when the following options are configured to specific values:
 
 - [token_endpoint_auth_method](#token_endpoint_auth_method): `private_key_jwt`
+
+The following is a contextual example (see below for information regarding each option):
+
+```yaml
+identity_providers:
+  oidc:
+    clients:
+      - id: 'example'
+        public_keys:
+          uri: 'https://oidc.example.com:8080/oauth2/jwks.json'
+          values:
+            - key_id: 'example'
+              algorithm: 'RS256'
+              use: 'sig'
+              key: |
+                -----BEGIN RSA PUBLIC KEY-----
+                MEgCQQDAwV26ZA1lodtOQxNrJ491gWT+VzFum9IeZ+WTmMypYWyW1CzXKwsvTHDz
+                9ec+jserR3EMQ0Rr24lj13FL1ib5AgMBAAE=
+                -----END RSA PUBLIC KEY----
+              certificate_chain: |
+                -----BEGIN CERTIFICATE-----
+                MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
+                MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
+                NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
+                AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
+                z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
+                JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
+                Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
+                1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+                -----END CERTIFICATE-----
+                -----BEGIN CERTIFICATE-----
+                MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
+                MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
+                NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
+                AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
+                z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
+                JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
+                Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
+                1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+                -----END CERTIFICATE-----
+```
 
 #### uri
 
