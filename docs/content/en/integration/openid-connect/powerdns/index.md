@@ -91,7 +91,7 @@ identity_providers:
           - code
         grant_types:
           - authorization_code
-        userinfo_signing_algorithm: none
+        userinfo_signed_response_alg: 'none'
 ```
 
 ## See Also
