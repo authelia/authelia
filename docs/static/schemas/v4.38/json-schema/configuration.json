@@ -1029,12 +1029,14 @@
         "issuer_certificate_chain": {
           "$ref": "#/$defs/X509CertificateChain",
           "title": "Issuer Certificate Chain",
-          "description": "The Issuer Certificate Chain with an RSA Public Key used to sign ID Tokens"
+          "description": "The Issuer Certificate Chain with an RSA Public Key used to sign ID Tokens",
+          "deprecated": true
         },
         "issuer_private_key": {
           "type": "string",
           "title": "Issuer Private Key",
-          "description": "The Issuer Private Key with an RSA Private Key used to sign ID Tokens"
+          "description": "The Issuer Private Key with an RSA Private Key used to sign ID Tokens",
+          "deprecated": true
         },
         "enable_client_debug_messages": {
           "type": "boolean",

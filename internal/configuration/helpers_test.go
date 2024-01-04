@@ -48,11 +48,12 @@ func TestGetEnvConfigMaps(t *testing.T) {
 	assert.False(t, ok)
 	assert.Equal(t, key, "")
 
-	assert.Len(t, ignoredKeys, 4)
-	assert.Contains(t, ignoredKeys, DefaultEnvPrefix+"MYOTHER_CONFIGKEY_FILE")
-	assert.Contains(t, ignoredKeys, DefaultEnvPrefix+"MYSECRET_PASSWORD_FILE")
-	assert.Contains(t, ignoredKeys, DefaultEnvPrefix+"MYSECRET_USER_PASSWORD_FILE")
-	assert.Contains(t, ignoredKeys, DefaultEnvPrefix+"JWT_SECRET_FILE")
+	assert.Len(t, ignoredKeys, 6)
+	assert.Contains(t, ignoredKeys, DefaultEnvPrefix+MYOTHER_CONFIGKEY_FILE)
+	assert.Contains(t, ignoredKeys, DefaultEnvPrefix+MYSECRET_PASSWORD_FILE)
+	assert.Contains(t, ignoredKeys, DefaultEnvPrefix+MYSECRET_USER_PASSWORD_FILE)
+	assert.Contains(t, ignoredKeys, DefaultEnvPrefix+"IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE")
+	assert.Contains(t, ignoredKeys, DefaultEnvPrefix+"IDENTITY_PROVIDERS_OIDC_ISSUER_CERTIFICATE_CHAIN_FILE")
 }
 
 func TestGetSecretConfigMapMockInput(t *testing.T) {
