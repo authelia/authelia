@@ -16,8 +16,8 @@ type IdentityProvidersOpenIDConnect struct {
 	HMACSecret        string `koanf:"hmac_secret" json:"hmac_secret" jsonschema:"title=HMAC Secret" jsonschema_description:"The HMAC Secret used to sign Access Tokens"`
 	IssuerPrivateKeys []JWK  `koanf:"issuer_private_keys" json:"issuer_private_keys" jsonschema:"title=Issuer Private Keys" jsonschema_description:"The Private Keys used to sign ID Tokens"`
 
-	IssuerCertificateChain X509CertificateChain `koanf:"issuer_certificate_chain" json:"issuer_certificate_chain" jsonschema:"title=Issuer Certificate Chain" jsonschema_description:"The Issuer Certificate Chain with an RSA Public Key used to sign ID Tokens"`
-	IssuerPrivateKey       *rsa.PrivateKey      `koanf:"issuer_private_key" json:"issuer_private_key" jsonschema:"title=Issuer Private Key" jsonschema_description:"The Issuer Private Key with an RSA Private Key used to sign ID Tokens"`
+	IssuerCertificateChain X509CertificateChain `koanf:"issuer_certificate_chain" json:"issuer_certificate_chain" jsonschema:"deprecated,title=Issuer Certificate Chain" jsonschema_description:"The Issuer Certificate Chain with an RSA Public Key used to sign ID Tokens"`
+	IssuerPrivateKey       *rsa.PrivateKey      `koanf:"issuer_private_key" json:"issuer_private_key" jsonschema:"deprecated,title=Issuer Private Key" jsonschema_description:"The Issuer Private Key with an RSA Private Key used to sign ID Tokens"`
 
 	EnableClientDebugMessages bool `koanf:"enable_client_debug_messages" json:"enable_client_debug_messages" jsonschema:"default=false,title=Enable Client Debug Messages" jsonschema_description:"Enables additional debug messages for clients"`
 	MinimumParameterEntropy   int  `koanf:"minimum_parameter_entropy" json:"minimum_parameter_entropy" jsonschema:"default=8,minimum=-1,title=Minimum Parameter Entropy" jsonschema_description:"The minimum entropy of the nonce parameter"`

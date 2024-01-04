@@ -221,7 +221,7 @@ func TestAuthorization_ParsBasic(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			authz := NewAuthorization()
 
-			err := authz.ParseBasic(tc.username, tc.password)
+			err := authz.EncodeBasic(tc.username, tc.password)
 
 			if len(tc.err) == 0 {
 				assert.NoError(t, err)
@@ -239,7 +239,7 @@ func TestAuthorization_ParsBasic(t *testing.T) {
 				assert.Equal(t, tc.username, username)
 				assert.Equal(t, tc.password, password)
 
-				assert.EqualError(t, authz.ParseBasic(tc.username, tc.password), "invalid state: this scheme has already performed a parse action")
+				assert.EqualError(t, authz.EncodeBasic(tc.username, tc.password), "invalid state: this scheme has already performed a parse action")
 			} else {
 				assert.EqualError(t, err, tc.err)
 			}
@@ -278,7 +278,7 @@ func TestAuthorization_ParsBearer(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			authz := NewAuthorization()
 
-			err := authz.ParseBearer(tc.bearer)
+			err := authz.EncodeBearer(tc.bearer)
 
 			if len(tc.err) == 0 {
 				assert.NoError(t, err)
@@ -293,7 +293,7 @@ func TestAuthorization_ParsBearer(t *testing.T) {
 				assert.Equal(t, "", username)
 				assert.Equal(t, "", password)
 
-				assert.EqualError(t, authz.ParseBearer(tc.bearer), "invalid state: this scheme has already performed a parse action")
+				assert.EqualError(t, authz.EncodeBearer(tc.bearer), "invalid state: this scheme has already performed a parse action")
 			} else {
 				assert.EqualError(t, err, tc.err)
 			}

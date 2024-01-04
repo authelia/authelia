@@ -358,4 +358,24 @@ var deprecations = map[string]Deprecation{
 		MapFunc: nil,
 		ErrFunc: nil,
 	},
+	"identity_providers.oidc.issuer_private_key": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "identity_providers.oidc.issuer_private_key",
+		NewKey:  "identity_providers.oidc.issuer_private_keys",
+		AutoMap: false,
+		MapFunc: nil,
+		ErrFunc: func(d Deprecation, keysFinal map[string]any, value any, val *schema.StructValidator) {
+			val.PushWarning(fmt.Errorf("configuration key '%s' is deprecated in %s and should be configured using the new configuration key '%s': this has been automatically mapped for you but you will need to adjust your configuration (see https://www.authelia.com/c/oidc) to remove this message", d.Key, d.Version, d.NewKey))
+		},
+	},
+	"identity_providers.oidc.issuer_certificate_chain": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "identity_providers.oidc.issuer_certificate_chain",
+		NewKey:  "identity_providers.oidc.issuer_private_keys",
+		AutoMap: false,
+		MapFunc: nil,
+		ErrFunc: func(d Deprecation, keysFinal map[string]any, value any, val *schema.StructValidator) {
+			val.PushWarning(fmt.Errorf("configuration key '%s' is deprecated in %s and should be configured using the new configuration key '%s': this has been automatically mapped for you but you will need to adjust your configuration (see https://www.authelia.com/c/oidc) to remove this message", d.Key, d.Version, d.NewKey))
+		},
+	},
 }

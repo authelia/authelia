@@ -106,8 +106,6 @@ other configuration using the environment but instead of loading a file the valu
 [authentication_backend.ldap.password]: ../first-factor/ldap.md#password
 [authentication_backend.ldap.tls.certificate_chain]: ../first-factor/ldap.md#tls
 [authentication_backend.ldap.tls.private_key]: ../first-factor/ldap.md#tls
-[identity_providers.oidc.issuer_certificate_chain]: ../identity-providers/openid-connect/provider.md#issuer_certificate_chain
-[identity_providers.oidc.issuer_private_key]: ../identity-providers/openid-connect/provider.md#issuer_private_key
 [identity_providers.oidc.hmac_secret]: ../identity-providers/openid-connect/provider.md#hmac_secret
 
 

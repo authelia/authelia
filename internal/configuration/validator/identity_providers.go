@@ -119,6 +119,8 @@ func validateOIDCLifespans(config *schema.IdentityProvidersOpenIDConnect, _ *sch
 
 func validateOIDCIssuer(config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
 	switch {
+	case len(config.IssuerPrivateKeys) != 0 && (config.IssuerPrivateKey != nil || config.IssuerCertificateChain.HasCertificates()):
+		validator.Push(fmt.Errorf("identity_providers: oidc: option `issuer_private_keys` must not be configured at the same time as 'issuer_private_key' or 'issuer_certificate_chain'"))
 	case config.IssuerPrivateKey != nil:
 		validateOIDCIssuerPrivateKey(config)
 
