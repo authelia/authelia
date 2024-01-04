@@ -77,18 +77,18 @@ identity_providers:
         description: 'PowerDNS'
         secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
-        authorization_policy: two_factor
+        authorization_policy: 'two_factor'
         redirect_uris:
-          - https://powerdns.example.com/oidc/authorized
+          - 'https://powerdns.example.com/oidc/authorized'
         scopes:
-          - openid
-          - profile
-          - groups
-          - email
+          - 'openid'
+          - 'profile'
+          - 'groups'
+          - 'email'
         response_types:
-          - code
+          - 'code'
         grant_types:
-          - authorization_code
+          - 'authorization_code'
         userinfo_signed_response_alg: 'none'
 ```
 
