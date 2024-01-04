@@ -34,7 +34,31 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 2)
 
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option `issuer_private_keys` or 'issuer_private_key' is required")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option `issuer_private_keys` is required")
+	assert.EqualError(t, validator.Errors()[1], "identity_providers: oidc: option 'clients' must have one or more clients configured")
+}
+
+func TestShouldRaiseErrorWhenInvalidOIDCServerConfigurationBothKeyTypesSpecified(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.IdentityProviders{
+		OIDC: &schema.IdentityProvidersOpenIDConnect{
+			HMACSecret:       "abc",
+			IssuerPrivateKey: keyRSA2048,
+			IssuerPrivateKeys: []schema.JWK{
+				{
+					Use:       "sig",
+					Algorithm: "RS256",
+					Key:       keyRSA4096,
+				},
+			},
+		},
+	}
+
+	ValidateIdentityProviders(config, validator)
+
+	require.Len(t, validator.Errors(), 2)
+
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option `issuer_private_keys` must not be configured at the same time as 'issuer_private_key' or 'issuer_certificate_chain'")
 	assert.EqualError(t, validator.Errors()[1], "identity_providers: oidc: option 'clients' must have one or more clients configured")
 }
 

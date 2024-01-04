@@ -156,7 +156,7 @@ const (
 const (
 	errFmtOIDCProviderNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +
 		"more clients configured"
-	errFmtOIDCProviderNoPrivateKey            = "identity_providers: oidc: option `issuer_private_keys` or 'issuer_private_key' is required"
+	errFmtOIDCProviderNoPrivateKey            = "identity_providers: oidc: option `issuer_private_keys` is required"
 	errFmtOIDCProviderEnforcePKCEInvalidValue = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
 		"'public_clients_only' or 'always', but it's configured as '%s'"
 	errFmtOIDCProviderInsecureParameterEntropy       = "identity_providers: oidc: option 'minimum_parameter_entropy' is "

@@ -1244,46 +1244,6 @@ notifier:
         # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
         # -----END CERTIFICATE-----
 
-    ## The issuer_private_key is used to sign the JWT forged by OpenID Connect. This is in addition to the
-    ## issuer_private_keys option. Assumed to use the RS256 algorithm, and must not be specified if any of the
-    ## keys in issuer_private_keys also has the algorithm RS256 or are an RSA key without an algorithm.
-    ## Issuer Private Key can also be set using a secret: https://www.authelia.com/c/secrets
-    # issuer_private_key: |
-      # -----BEGIN RSA PRIVATE KEY-----
-      # MIIBPAIBAAJBAK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZF
-      # p7aTcToHMf00z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAQJBAJdpB0+RQ9ZFwy9Uk38P
-      # 5zZpUB8cL8ZFeEFluQeVbt0vyNa+cPLvDLouY87onduXtMz5AKIatLaTOjuG2thh
-      # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
-      # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
-      # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-      # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
-      # -----END RSA PRIVATE KEY-----
-
-    ## Optional matching certificate chain in PEM DER form that matches the issuer_private_key. All certificates within
-    ## the chain must be valid and current, and from top to bottom each certificate must be signed by the next
-    ## certificate in the chain if provided.
-    # issuer_certificate_chain: |
-      # -----BEGIN CERTIFICATE-----
-      # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-      # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-      # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-      # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-      # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-      # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-      # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-      # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
-      # -----END CERTIFICATE-----
-      # -----BEGIN CERTIFICATE-----
-      # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-      # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-      # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-      # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-      # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-      # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-      # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-      # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
-      # -----END CERTIFICATE-----
-
     ## Enables additional debug messages.
     # enable_client_debug_messages: false
 

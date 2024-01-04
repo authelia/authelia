@@ -45,16 +45,6 @@
         "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE"
     },
     {
-        "path": "identity_providers.oidc.issuer_certificate_chain",
-        "secret": true,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_CERTIFICATE_CHAIN_FILE"
-    },
-    {
-        "path": "identity_providers.oidc.issuer_private_key",
-        "secret": true,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE"
-    },
-    {
         "path": "identity_providers.oidc.enable_client_debug_messages",
         "secret": false,
         "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ENABLE_CLIENT_DEBUG_MESSAGES"
