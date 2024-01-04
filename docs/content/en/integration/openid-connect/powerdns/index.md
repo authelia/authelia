@@ -18,7 +18,7 @@ aliases:
 ## Tested Versions
 
 * [Authelia]
-  * [v4.35.5](https://github.com/authelia/authelia/releases/tag/v4.35.5)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [PowerDNS Admin]
   * [v0.4.1]([https://github.com/PowerDNS-Admin/PowerDNS-Admin](https://github.com/PowerDNS-Admin/PowerDNS-Admin/releases/tag/v0.4.1))
 
