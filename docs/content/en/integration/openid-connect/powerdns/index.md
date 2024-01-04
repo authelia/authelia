@@ -11,8 +11,6 @@ menu:
 weight: 620
 toc: true
 community: true
-aliases:
-  - /docs/community/oidc-integrations/powerdns.html
 ---
 
 ## Tested Versions
