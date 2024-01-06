@@ -212,9 +212,11 @@ func handleOIDCAuthorizationConsentModePreConfiguredGetPreConfig(ctx *middleware
 
 			return config, nil
 		}
+
+		ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' using consent mode '%s' request with scopes '%s' and audience '%s' did not match pre-configured consent with scopes '%s' and audience '%s'", requester.GetID(), client.GetID(), client.GetConsentPolicy(), strings.Join(requester.GetRequestedScopes(), " "), strings.Join(requester.GetRequestedAudience(), " "), strings.Join(config.Scopes, " "), strings.Join(config.Audience, " "))
 	}
 
-	ctx.Logger.Debugf(logFmtDbgConsentPreConfUnsuccessfulLookup, requester.GetID(), client.GetID(), client.GetConsentPolicy(), client.GetID(), subject, strings.Join(requester.GetRequestedScopes(), " "))
+	ctx.Logger.Debugf(logFmtDbgConsentPreConfUnsuccessfulLookup, requester.GetID(), client.GetID(), client.GetConsentPolicy(), client.GetID(), subject, strings.Join(requester.GetRequestedScopes(), " "), strings.Join(requester.GetRequestedAudience(), " "))
 
 	return nil, nil
 }
