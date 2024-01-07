@@ -16,7 +16,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
@@ -263,16 +262,4 @@ func verifyOIDCUserAuthorizedForConsent(ctx *middlewares.AutheliaCtx, client oid
 	}
 
 	return nil
-}
-
-func getOIDCExpectedScopesAndAudienceFromRequest(requester fosite.Requester) (scopes, audience []string) {
-	return getOIDCExpectedScopesAndAudience(requester.GetClient().GetID(), requester.GetRequestedScopes(), requester.GetRequestedAudience())
-}
-
-func getOIDCExpectedScopesAndAudience(clientID string, scopes, audience []string) (expectedScopes, expectedAudience []string) {
-	if !utils.IsStringInSlice(clientID, audience) {
-		audience = append(audience, clientID)
-	}
-
-	return scopes, audience
 }
