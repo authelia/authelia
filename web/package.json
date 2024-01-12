@@ -102,7 +102,7 @@
     "eslint-plugin-react-hooks": "4.6.0",
     "happy-dom": "13.0.2",
     "husky": "8.0.3",
-    "prettier": "3.2.0",
+    "prettier": "3.2.1",
     "react-test-renderer": "18.2.0",
     "typescript": "5.3.3",
     "vite": "5.0.11",
