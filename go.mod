@@ -21,7 +21,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.5.0
 	github.com/hashicorp/go-retryablehttp v0.7.5
-	github.com/jackc/pgx/v5 v5.5.1
+	github.com/jackc/pgx/v5 v5.5.2
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/knadh/koanf/parsers/yaml v0.1.0
 	github.com/knadh/koanf/providers/confmap v0.1.0
