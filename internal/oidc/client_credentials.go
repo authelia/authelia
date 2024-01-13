@@ -360,8 +360,22 @@ func parseJWTAssertionClientID(clientID string, claims jwt.MapClaims) (string, e
 	return "", fosite.ErrInvalidClient.WithHint("There was insufficient information in the request to identify the client this request is for.")
 }
 
-func (p *OpenIDConnectProvider) checkClientSecret(ctx context.Context, client Client, clientSecret []byte) (err error) {
-	if client.GetSecret().MatchBytes(clientSecret) {
+func (p *OpenIDConnectProvider) checkClientSecret(ctx context.Context, client Client, value []byte) (err error) {
+	if len(value) == 0 {
+		if client.IsPublic() {
+			return errorsx.WithStack(fosite.ErrInvalidClient.WithHint("The registered client doesn't support the authentication method used."))
+		}
+
+		return errorsx.WithStack(fosite.ErrInvalidRequest.WithHint("The registered client requires authentication but it was not found."))
+	}
+
+	secret := client.GetSecret()
+
+	if secret == nil {
+		return errorsx.WithStack(fosite.ErrInvalidClient.WithHint("The registered client doesn't support the authentication method used."))
+	}
+
+	if secret.MatchBytes(value) {
 		return nil
 	}
 
@@ -373,7 +387,7 @@ func (p *OpenIDConnectProvider) checkClientSecret(ctx context.Context, client Cl
 	}
 
 	for _, hash := range cc.GetRotatedHashes() {
-		if err = p.Config.GetSecretsHasher(ctx).Compare(ctx, hash, clientSecret); err == nil {
+		if err = p.Config.GetSecretsHasher(ctx).Compare(ctx, hash, value); err == nil {
 			return nil
 		}
 	}

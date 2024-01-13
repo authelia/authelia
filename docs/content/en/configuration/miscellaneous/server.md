@@ -39,19 +39,7 @@ server:
   endpoints:
     enable_pprof: false
     enable_expvars: false
-    authz:
-      forward-auth:
-        implementation: 'ForwardAuth'
-        authn_strategies: []
-      ext-authz:
-        implementation: 'ExtAuthz'
-        authn_strategies: []
-      auth-request:
-        implementation: 'AuthRequest'
-        authn_strategies: []
-      legacy:
-        implementation: 'Legacy'
-        authn_strategies: []
+    authz: {} ## See the dedicated "Server Authz Endpoints" configuration guide.
 ```
 
 ## Options
