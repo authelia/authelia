@@ -28,27 +28,12 @@ community: true
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://guacamole.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://guacamole.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `guacamole`
 * __Client Secret:__ `insecure_secret`
 
 ## Configuration
-
-### Application
-
-To configure [Apache Guacamole] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
-
-```yaml
-openid-client-id: guacamole
-openid-scope: openid profile groups email
-openid-issuer: https://auth.example.com
-openid-jwks-endpoint: https://auth.example.com/jwks.json
-openid-authorization-endpoint: https://auth.example.com/api/oidc/authorization?state=1234abcedfdhf
-openid-redirect-uri: https://guacamole.example.com
-openid-username-claim-type: preferred_username
-openid-groups-claim-type: groups
-```
 
 ### Authelia
 
@@ -79,6 +64,21 @@ identity_providers:
       grant_types:
         - 'implicit'
       userinfo_signed_response_alg: 'none'
+```
+
+### Application
+
+To configure [Apache Guacamole] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+
+```yaml
+openid-client-id: guacamole
+openid-scope: openid profile groups email
+openid-issuer: https://auth.example.com
+openid-jwks-endpoint: https://auth.example.com/jwks.json
+openid-authorization-endpoint: https://auth.example.com/api/oidc/authorization?state=1234abcedfdhf
+openid-redirect-uri: https://guacamole.example.com
+openid-username-claim-type: preferred_username
+openid-groups-claim-type: groups
 ```
 
 ## See Also

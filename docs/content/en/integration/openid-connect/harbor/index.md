@@ -28,34 +28,12 @@ community: true
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://harbor.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://harbor.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `harbor`
 * __Client Secret:__ `insecure_secret`
 
 ## Configuration
-
-### Application
-
-To configure [Harbor] to utilize Authelia as an [OpenID Connect 1.0] Provider:
-
-1. Visit Administration
-2. Visit Configuration
-3. Visit Authentication
-4. Select `OIDC` from the `Auth Mode` drop down
-5. Set the following values:
-   1. OIDC Provider Name: `Authelia`
-   2. OIDC Provider Endpoint: `https://auth.example.com`
-   3. OIDC Client ID: `harbor`
-   4. OIDC Client Secret: `insecure_secret`
-   5. Group Claim Name: `groups`
-   6. OIDC Scope: `openid,profile,email,groups`
-   7. For OIDC Admin Group you can specify a group name that matches your authentication backend.
-   8. Ensure `Verify Certificate` is checked.
-   9. Ensure `Automatic onboarding` is checked if you want users to be created by default.
-   10. Username Claim: `preferred_username`
-6. Click `Test OIDC Server`
-7. Click `Save`
 
 ### Authelia
 
@@ -83,6 +61,28 @@ identity_providers:
         - 'email'
       userinfo_signed_response_alg: 'none'
 ```
+
+### Application
+
+To configure [Harbor] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+
+1. Visit Administration
+2. Visit Configuration
+3. Visit Authentication
+4. Select `OIDC` from the `Auth Mode` drop down
+5. Set the following values:
+   1. OIDC Provider Name: `Authelia`
+   2. OIDC Provider Endpoint: `https://auth.example.com`
+   3. OIDC Client ID: `harbor`
+   4. OIDC Client Secret: `insecure_secret`
+   5. Group Claim Name: `groups`
+   6. OIDC Scope: `openid,profile,email,groups`
+   7. For OIDC Admin Group you can specify a group name that matches your authentication backend.
+   8. Ensure `Verify Certificate` is checked.
+   9. Ensure `Automatic onboarding` is checked if you want users to be created by default.
+   10. Username Claim: `preferred_username`
+6. Click `Test OIDC Server`
+7. Click `Save`
 
 ## See Also
 

@@ -30,8 +30,8 @@ As with all guides in this section it's important you read the [introduction](..
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://organizr.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://organizr.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Reverse Proxy IP:__ `172.16.0.1`
 
 ## Configuration
