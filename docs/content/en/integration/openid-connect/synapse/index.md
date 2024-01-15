@@ -29,36 +29,11 @@ community: true
 This example makes the following assumptions:
 
 * __Application Root URL:__ `https://matrix.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `synapse`
 * __Client Secret:__ `insecure_secret`
 
 ## Configuration
-
-### Application
-
-To configure [Synapse] to utilize Authelia as an [OpenID Connect 1.0] Provider:
-
-1. Edit your [Synapse] `homeserver.yaml` configuration file and add configure the following:
-
-```yaml
-oidc_providers:
-  - idp_id: authelia
-    idp_name: "Authelia"
-    idp_icon: "mxc://authelia.com/cKlrTPsGvlpKxAYeHWJsdVHI"
-    discover: true
-    issuer: "https://auth.example.com"
-    client_id: "synapse"
-    client_secret: "insecure_secret"
-    scopes: ["openid", "profile", "email"]
-    allow_existing_users: true
-    user_mapping_provider:
-      config:
-        subject_claim: "sub"
-        localpart_template: "{{ user.preferred_username }}"
-        display_name_template: "{{ user.name }}"
-        email_template: "{{ user.email }}"
-```
 
 ### Authelia
 
@@ -84,6 +59,31 @@ identity_providers:
         - 'profile'
         - 'email'
       userinfo_signed_response_alg: 'none'
+```
+
+### Application
+
+To configure [Synapse] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+
+1. Edit your [Synapse] `homeserver.yaml` configuration file and add configure the following:
+
+```yaml
+oidc_providers:
+  - idp_id: authelia
+    idp_name: "Authelia"
+    idp_icon: "mxc://authelia.com/cKlrTPsGvlpKxAYeHWJsdVHI"
+    discover: true
+    issuer: "https://auth.example.com"
+    client_id: "synapse"
+    client_secret: "insecure_secret"
+    scopes: ["openid", "profile", "email"]
+    allow_existing_users: true
+    user_mapping_provider:
+      config:
+        subject_claim: "sub"
+        localpart_template: "{{ user.preferred_username }}"
+        display_name_template: "{{ user.name }}"
+        email_template: "{{ user.email }}"
 ```
 
 ## See Also

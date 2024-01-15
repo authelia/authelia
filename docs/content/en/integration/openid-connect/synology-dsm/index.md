@@ -34,33 +34,11 @@ recommended that you ensure Authelia and [Synology DSM] share a LDAP server.*
 This example makes the following assumptions:
 
 * __Application Root URL:__ `https://dsm.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `synology-dsm`
 * __Client Secret:__ `insecure_secret`
 
 ## Configuration
-
-### Application
-
-To configure [Synology DSM] to utilize Authelia as an [OpenID Connect 1.0] Provider:
-
-1. Go to DSM.
-2. Go to `Control Panel`.
-3. Go To `Domain/LDAP`.
-4. Go to `SSO Client`.
-5. Check the `Enable OpenID Connect SSO service` checkbox in the `OpenID Connect SSO Service` section.
-6. Configure the following values:
-    * Profile: `OIDC`
-    * Name: `Authelia`
-    * Well Known URL: `https://auth.example.com/.well-known/openid-configuration`
-    * Application ID: `synology-dsm`
-    * Application Key: `insecure_secret`
-    * Redirect URL: `https://dsm.example.com`
-    * Authorisation Scope: `openid profile groups email`
-    * Username Claim: `preferred_username`
-7. Save the settings.
-
-{{< figure src="client.png" alt="Synology" width="736" >}}
 
 ### Authelia
 
@@ -88,6 +66,28 @@ identity_providers:
         - 'email'
       userinfo_signed_response_alg: 'none'
 ```
+
+### Application
+
+To configure [Synology DSM] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+
+1. Go to DSM.
+2. Go to `Control Panel`.
+3. Go To `Domain/LDAP`.
+4. Go to `SSO Client`.
+5. Check the `Enable OpenID Connect SSO service` checkbox in the `OpenID Connect SSO Service` section.
+6. Configure the following values:
+  * Profile: `OIDC`
+  * Name: `Authelia`
+  * Well Known URL: `https://auth.example.com/.well-known/openid-configuration`
+  * Application ID: `synology-dsm`
+  * Application Key: `insecure_secret`
+  * Redirect URL: `https://dsm.example.com`
+  * Authorisation Scope: `openid profile groups email`
+  * Username Claim: `preferred_username`
+7. Save the settings.
+
+{{< figure src="client.png" alt="Synology" width="736" >}}
 
 ## See Also
 

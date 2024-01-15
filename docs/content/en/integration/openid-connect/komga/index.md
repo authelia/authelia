@@ -28,39 +28,12 @@ community: true
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://komga.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://komga.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `komga`
 * __Client Secret:__ `insecure_secret`
 
 ## Configuration
-
-### Application
-
-To configure [Komga] to utilize Authelia as an [OpenID Connect 1.0] Provider:
-
-1. Configure the security section of the [Komga] configuration:
-```yaml
-komga:
-  ## Comment if you don't want automatic account creation.
-  oauth2-account-creation: true
-spring:
-  security:
-    oauth2:
-      client:
-        registration:
-          authelia:
-            client-id: 'komga'
-            client-secret: 'insecure_secret'
-            client-name: 'Authelia'
-            scope: 'openid,profile,email'
-            authorization-grant-type: 'authorization_code'
-            redirect-uri: "{baseScheme}://{baseHost}{basePort}{basePath}/login/oauth2/code/authelia"
-        provider:
-          authelia:
-            issuer-uri: 'https://auth.example.com'
-            user-name-attribute: 'preferred_username'
-````
 
 ### Authelia
 
@@ -89,6 +62,33 @@ identity_providers:
         - 'authorization_code'
       userinfo_signed_response_alg: 'none'
 ```
+
+### Application
+
+To configure [Komga] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+
+1. Configure the security section of the [Komga] configuration:
+```yaml
+komga:
+  ## Comment if you don't want automatic account creation.
+  oauth2-account-creation: true
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          authelia:
+            client-id: 'komga'
+            client-secret: 'insecure_secret'
+            client-name: 'Authelia'
+            scope: 'openid,profile,email'
+            authorization-grant-type: 'authorization_code'
+            redirect-uri: "{baseScheme}://{baseHost}{basePort}{basePath}/login/oauth2/code/authelia"
+        provider:
+          authelia:
+            issuer-uri: 'https://auth.example.com'
+            user-name-attribute: 'preferred_username'
+````
 
 ## See Also
 

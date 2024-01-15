@@ -28,17 +28,12 @@ community: true
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://vault.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://vault.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `vault`
 * __Client Secret:__ `insecure_secret`
 
 ## Configuration
-
-### Application
-
-To configure [HashiCorp Vault] to utilize Authelia as an [OpenID Connect 1.0] Provider please see the links in the
-[see also](#see-also) section.
 
 ### Authelia
 
@@ -67,6 +62,11 @@ identity_providers:
         - 'email'
       userinfo_signed_response_alg: 'none'
 ```
+
+### Application
+
+To configure [HashiCorp Vault] to utilize Authelia as an [OpenID Connect 1.0] Provider please see the links in the
+[see also](#see-also) section.
 
 ## See Also
 

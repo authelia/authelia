@@ -32,8 +32,8 @@ community: true
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://roundcube.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://roundcube.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `roundcube`
 * __Client Secret:__ `insecure_secret`
 
