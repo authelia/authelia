@@ -28,8 +28,8 @@ community: true
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://bookstack.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://bookstack.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `bookstack`
 * __Client Secret:__ `insecure_secret`
 
@@ -40,20 +40,6 @@ the secret or URL encode the secret yourself.*
 [RFC6749 Appendix B]: https://datatracker.ietf.org/doc/html/rfc6749#appendix-B
 
 ## Configuration
-
-### Application
-
-To configure [BookStack] to utilize Authelia as an [OpenID Connect 1.0] Provider:
-
-1. Edit your .env file
-2. Set the following values:
-   1. AUTH_METHOD: `oidc`
-   2. OIDC_NAME: `Authelia`
-   3. OIDC_DISPLAY_NAME_CLAIMS: `name`
-   4. OIDC_CLIENT_ID: `bookstack`
-   5. OIDC_CLIENT_SECRET: `insecure_secret`
-   6. OIDC_ISSUER: `https://auth.example.com`
-   7. OIDC_ISSUER_DISCOVER: `true`
 
 ### Authelia
 
@@ -80,6 +66,20 @@ identity_providers:
         - 'email'
       userinfo_signed_response_alg: 'none'
 ```
+
+### Application
+
+To configure [BookStack] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+
+1. Edit your .env file
+2. Set the following values:
+   1. AUTH_METHOD: `oidc`
+   2. OIDC_NAME: `Authelia`
+   3. OIDC_DISPLAY_NAME_CLAIMS: `name`
+   4. OIDC_CLIENT_ID: `bookstack`
+   5. OIDC_CLIENT_SECRET: `insecure_secret`
+   6. OIDC_ISSUER: `https://auth.example.com`
+   7. OIDC_ISSUER_DISCOVER: `true`
 
 ## See Also
 

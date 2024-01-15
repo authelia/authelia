@@ -28,8 +28,8 @@ community: true
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://memos.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://memos.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `memos`
 * __Client Secret:__ `insecure_secret`
 

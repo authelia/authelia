@@ -30,8 +30,8 @@ As with all guides in this section it's important you read the [introduction](..
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://seafile.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://seafile.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __User Email Domain:__ `@example.com`
 
 ## Configuration

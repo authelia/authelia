@@ -29,8 +29,8 @@ community: true
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://seafile.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://seafile.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `seafile`
 * __Client Secret:__ `insecure_secret`
 
@@ -63,16 +63,8 @@ identity_providers:
       token_endpoint_auth_method: 'client_secret_basic'
 ```
 
-If you plan to also use [Seafile's WebDAV extension], which apparently [does not support OAuth bearer](https://github.com/haiwen/seafdav/issues/76), and the [desktop app](https://github.com/authelia/authelia/issues/2840), some access-control rules might be required:
-
-```yaml
-access_control:
-  rules:
-    - domain: 'seafile.example.com'
-      resources:
-        - '^/(api2?|seafhttp|media|seafdav)([/?].*)?$'
-      policy: bypass
-```
+_**Important Note:** The [Seafile's WebDAV extension] [does not support OAuth bearer](https://github.com/haiwen/seafdav/issues/76)
+at the time of this writing._
 
 ### Application
 

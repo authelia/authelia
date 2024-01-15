@@ -30,33 +30,12 @@ aliases:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://portainer.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://portainer.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `portainer`
 * __Client Secret:__ `insecure_secret`
 
 ## Configuration
-
-### Application
-
-To configure [Portainer] to utilize Authelia as an [OpenID Connect 1.0] Provider:
-
-1. Visit Settings
-2. Visit Authentication
-3. Set the following values:
-   1. Authentication Method: OAuth
-   2. Provider: Custom
-   3. Enable *Automatic User Provision* if you want users to automatically be created in [Portainer].
-   4. Client ID: `portainer`
-   5. Client Secret: `insecure_secret`
-   6. Authorization URL: `https://auth.example.com/api/oidc/authorization`
-   7. Access Token URL: `https://auth.example.com/api/oidc/token`
-   8. Resource URL: `https://auth.example.com/api/oidc/userinfo`
-   9. Redirect URL: `https://portainer.example.com`
-   10. User Identifier: `preferred_username`
-   11. Scopes: `openid profile groups email`
-
-{{< figure src="portainer.png" alt="Portainer" width="736" style="padding-right: 10px" >}}
 
 ### Authelia
 
@@ -84,6 +63,27 @@ identity_providers:
         - 'email'
       userinfo_signed_response_alg: 'none'
 ```
+
+### Application
+
+To configure [Portainer] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+
+1. Visit Settings
+2. Visit Authentication
+3. Set the following values:
+   1. Authentication Method: OAuth
+   2. Provider: Custom
+   3. Enable *Automatic User Provision* if you want users to automatically be created in [Portainer].
+   4. Client ID: `portainer`
+   5. Client Secret: `insecure_secret`
+   6. Authorization URL: `https://auth.example.com/api/oidc/authorization`
+   7. Access Token URL: `https://auth.example.com/api/oidc/token`
+   8. Resource URL: `https://auth.example.com/api/oidc/userinfo`
+   9. Redirect URL: `https://portainer.example.com`
+   10. User Identifier: `preferred_username`
+   11. Scopes: `openid profile groups email`
+
+{{< figure src="portainer.png" alt="Portainer" width="736" style="padding-right: 10px" >}}
 
 ## See Also
 
