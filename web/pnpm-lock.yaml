@@ -98,8 +98,8 @@ devDependencies:
     specifier: 1.1.0
     version: 1.1.0(eslint@8.56.0)
   '@testing-library/jest-dom':
-    specifier: 6.2.0
-    version: 6.2.0(vitest@1.2.1)
+    specifier: 6.2.1
+    version: 6.2.1(vitest@1.2.1)
   '@testing-library/react':
     specifier: 14.1.2
     version: 14.1.2(react-dom@18.2.0)(react@18.2.0)
@@ -1634,6 +1634,7 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.14.0
+    dev: false
 
   /@babel/runtime@7.23.8:
     resolution: {integrity: sha512-Y7KbAP984rn1VGMbGqKmBLio9V7y5Je9GvU4rQPCPinCyNfUcToxIXl06d59URp/F3LwinvODxab5N/G6qggkw==}
@@ -2920,16 +2921,19 @@ packages:
       pretty-format: 27.5.1
     dev: true
 
-  /@testing-library/jest-dom@6.2.0(vitest@1.2.1):
-    resolution: {integrity: sha512-+BVQlJ9cmEn5RDMUS8c2+TU6giLvzaHZ8sU/x0Jj7fk+6/46wPdwlgOPcpxS17CjcanBi/3VmGMqVr2rmbUmNw==}
+  /@testing-library/jest-dom@6.2.1(vitest@1.2.1):
+    resolution: {integrity: sha512-Nuy/uFFDe9h/2jwoUuMKgoxvgkUv4S9jI9bARj6dGUKJ3euRhg8JFi5sciYbrayoxkadEOZednRT9+vo6LvvxQ==}
     engines: {node: '>=14', npm: '>=6', yarn: '>=1'}
     peerDependencies:
       '@jest/globals': '>= 28'
+      '@types/bun': latest
       '@types/jest': '>= 28'
       jest: '>= 28'
       vitest: '>= 0.32'
     peerDependenciesMeta:
       '@jest/globals':
+        optional: true
+      '@types/bun':
         optional: true
       '@types/jest':
         optional: true
@@ -2939,7 +2943,7 @@ packages:
         optional: true
     dependencies:
       '@adobe/css-tools': 4.3.2
-      '@babel/runtime': 7.23.6
+      '@babel/runtime': 7.23.8
       aria-query: 5.3.0
       chalk: 3.0.0
       css.escape: 1.5.1
