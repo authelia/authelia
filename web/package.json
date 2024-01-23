@@ -89,7 +89,7 @@
     "@typescript-eslint/parser": "6.19.1",
     "@vitejs/plugin-react": "4.2.1",
     "@vitest/coverage-istanbul": "1.2.1",
-    "esbuild": "0.19.11",
+    "esbuild": "0.19.12",
     "eslint": "8.56.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-config-react-app": "7.0.1",
