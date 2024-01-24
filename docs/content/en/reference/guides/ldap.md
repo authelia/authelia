@@ -71,7 +71,7 @@ The following implementations exist:
 
 [Active Directory]: https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/active-directory-domain-services
 [FreeIPA]: https://www.freeipa.org/
-[lldap]: https://github.com/nitnelave/lldap
+[lldap]: https://github.com/lldap/lldap
 [GLAuth]: https://glauth.github.io/
 [RFC2307bis]: https://datatracker.ietf.org/doc/html/draft-howard-rfc2307bis-02
 
