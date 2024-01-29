@@ -45,8 +45,8 @@ dependencies:
     specifier: 5.15.6
     version: 5.15.6(@types/react@18.2.48)(react@18.2.0)
   axios:
-    specifier: 1.6.5
-    version: 1.6.5
+    specifier: 1.6.7
+    version: 1.6.7
   broadcast-channel:
     specifier: 7.0.0
     version: 7.0.0
@@ -3782,8 +3782,8 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
-  /axios@1.6.5:
-    resolution: {integrity: sha512-Ii012v05KEVuUoFWmMW/UQv9aRIc3ZwkWDcM+h5Il8izZCtRVpDUfwpoFf7eOtajT3QiGR4yDUx7lPqHJULgbg==}
+  /axios@1.6.7:
+    resolution: {integrity: sha512-/hDJGff6/c7u0hDkvkGxR/oy6CbCs8ziCsC7SqmhjfozqiJGc8Z11wrv9z9lYfY4K8l+H9TpjcMDX0xOZmx+RA==}
     dependencies:
       follow-redirects: 1.15.4
       form-data: 4.0.0
