@@ -98,8 +98,8 @@ devDependencies:
     specifier: 1.1.0
     version: 1.1.0(eslint@8.56.0)
   '@testing-library/jest-dom':
-    specifier: 6.4.0
-    version: 6.4.0(vitest@1.2.2)
+    specifier: 6.4.1
+    version: 6.4.1(vitest@1.2.2)
   '@testing-library/react':
     specifier: 14.1.2
     version: 14.1.2(react-dom@18.2.0)(react@18.2.0)
@@ -1641,6 +1641,7 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.14.0
+    dev: false
 
   /@babel/runtime@7.23.9:
     resolution: {integrity: sha512-0CX6F+BI2s9dkUqr08KFrAIZgNFj75rdBU/DjCyYLIaV/quFjkk6T+EJ2LkZHyZTbEV4L5p97mNkUsHl2wLFAw==}
@@ -1869,7 +1870,7 @@ packages:
     resolution: {integrity: sha512-m4HEDZleaaCH+XgDDsPF15Ht6wTLsgDTeR3WYj9Q/k76JtWhrJjcP4+/XlG8LGT/Rol9qUfOIztXeA84ATpqPQ==}
     dependencies:
       '@babel/helper-module-imports': 7.22.15
-      '@babel/runtime': 7.23.8
+      '@babel/runtime': 7.23.9
       '@emotion/hash': 0.9.1
       '@emotion/memoize': 0.8.1
       '@emotion/serialize': 1.1.2
@@ -3125,7 +3126,7 @@ packages:
     engines: {node: '>=14'}
     dependencies:
       '@babel/code-frame': 7.22.13
-      '@babel/runtime': 7.23.8
+      '@babel/runtime': 7.23.9
       '@types/aria-query': 5.0.1
       aria-query: 5.3.0
       chalk: 4.1.2
@@ -3134,8 +3135,8 @@ packages:
       pretty-format: 27.5.1
     dev: true
 
-  /@testing-library/jest-dom@6.4.0(vitest@1.2.2):
-    resolution: {integrity: sha512-GgGT3OR8qhIjk2SBMy51AYDWoMnAyR/cwjZO4SttuBmIQ9wWy9QmVOeaSbgT5Bm0J6qLBaf4+dsJWfisvafoaA==}
+  /@testing-library/jest-dom@6.4.1(vitest@1.2.2):
+    resolution: {integrity: sha512-Z7qMM3J2Zw5H/nC2/5CYx5YcuaD56JmDFKNIozZ89VIo6o6Y9FMhssics4e2madEKYDNEpZz3+glPGz0yWMOag==}
     engines: {node: '>=14', npm: '>=6', yarn: '>=1'}
     peerDependencies:
       '@jest/globals': '>= 28'
@@ -3156,7 +3157,7 @@ packages:
         optional: true
     dependencies:
       '@adobe/css-tools': 4.3.2
-      '@babel/runtime': 7.23.8
+      '@babel/runtime': 7.23.9
       aria-query: 5.3.0
       chalk: 3.0.0
       css.escape: 1.5.1
@@ -3869,7 +3870,7 @@ packages:
       '@babel/preset-env': 7.21.4(@babel/core@7.23.5)
       '@babel/preset-react': 7.18.6(@babel/core@7.23.5)
       '@babel/preset-typescript': 7.21.4(@babel/core@7.23.5)
-      '@babel/runtime': 7.23.8
+      '@babel/runtime': 7.23.9
       babel-plugin-macros: 3.1.0
       babel-plugin-transform-react-remove-prop-types: 0.4.24
     transitivePeerDependencies:
