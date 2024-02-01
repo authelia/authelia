@@ -205,5 +205,5 @@ export function getBytesFromBase64(str: string): Uint8Array {
         result[j + 2] = buffer & 0xff;
     }
 
-    return result.subarray(0, result.length - missingOctets);
+    return result.slice(0, result.length - missingOctets);
 }
