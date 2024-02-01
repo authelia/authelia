@@ -82,7 +82,7 @@
     "@testing-library/jest-dom": "6.4.1",
     "@testing-library/react": "14.1.2",
     "@types/node": "20.11.15",
-    "@types/react": "18.2.48",
+    "@types/react": "18.2.51",
     "@types/react-dom": "18.2.18",
     "@types/zxcvbn": "4.4.4",
     "@typescript-eslint/eslint-plugin": "6.20.0",
