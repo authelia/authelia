@@ -72,8 +72,8 @@ dependencies:
     specifier: 18.2.0
     version: 18.2.0(react@18.2.0)
   react-i18next:
-    specifier: 14.0.1
-    version: 14.0.1(i18next@23.8.2)(react-dom@18.2.0)(react@18.2.0)
+    specifier: 14.0.2
+    version: 14.0.2(i18next@23.8.2)(react-dom@18.2.0)(react@18.2.0)
   react-loading:
     specifier: 2.0.3
     version: 2.0.3(prop-types@15.8.1)(react@18.2.0)
@@ -1624,13 +1624,6 @@ packages:
 
   /@babel/runtime@7.23.6:
     resolution: {integrity: sha512-zHd0eUrf5GZoOWVCXp6koAKQTfZV07eit6bGPmJgnZdnSAvvZee6zniW2XMF7Cmc4ISOOnPy3QaSiIJGJkVEDQ==}
-    engines: {node: '>=6.9.0'}
-    dependencies:
-      regenerator-runtime: 0.14.0
-    dev: false
-
-  /@babel/runtime@7.23.8:
-    resolution: {integrity: sha512-Y7KbAP984rn1VGMbGqKmBLio9V7y5Je9GvU4rQPCPinCyNfUcToxIXl06d59URp/F3LwinvODxab5N/G6qggkw==}
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.14.0
@@ -7156,8 +7149,8 @@ packages:
       react: 18.2.0
       scheduler: 0.23.0
 
-  /react-i18next@14.0.1(i18next@23.8.2)(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-TMV8hFismBmpMdIehoFHin/okfvgjFhp723RYgIqB4XyhDobVMyukyM3Z8wtTRmajyFMZrBl/OaaXF2P6WjUAw==}
+  /react-i18next@14.0.2(i18next@23.8.2)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-YOB/H1IgXveEWeTsCHez18QjDXImzVZOcF9/JroSbjYoN1LOfCoARFJUQQ8VNow0TnGOtHq9SwTmismm78CTTA==}
     peerDependencies:
       i18next: '>= 23.2.3'
       react: '>= 16.8.0 || 18'
@@ -7169,7 +7162,7 @@ packages:
       react-native:
         optional: true
     dependencies:
-      '@babel/runtime': 7.23.8
+      '@babel/runtime': 7.23.9
       html-parse-stringify: 3.0.1
       i18next: 23.8.2
       react: 18.2.0
