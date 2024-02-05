@@ -7,7 +7,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/authelia/jsonschema v0.1.7
 	github.com/deckarep/golang-set/v2 v2.6.0
-	github.com/duosecurity/duo_api_golang v0.0.0-20230418202038-096d3306c029
+	github.com/duosecurity/duo_api_golang v0.0.0-20240205144049-bb361ad4ae1c
 	github.com/fasthttp/router v1.4.22
 	github.com/fasthttp/session/v2 v2.5.3
 	github.com/fsnotify/fsnotify v1.7.0
