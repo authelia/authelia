@@ -47,7 +47,7 @@
     "zxcvbn": "4.4.2"
   },
   "scripts": {
-    "prepare": "cd .. && husky install .github",
+    "prepare": "cd .. && husky .github",
     "start": "vite --host",
     "build": "vite build",
     "coverage": "VITE_COVERAGE=true vite build",
