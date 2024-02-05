@@ -16,6 +16,7 @@ require (
 	github.com/go-ldap/ldap/v3 v3.4.6
 	github.com/go-rod/rod v0.114.7
 	github.com/go-sql-driver/mysql v1.7.1
+	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1
 	github.com/go-webauthn/webauthn v0.5.0
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/golang/mock v1.6.0
@@ -30,7 +31,6 @@ require (
 	github.com/knadh/koanf/providers/rawbytes v0.1.0
 	github.com/knadh/koanf/v2 v2.0.2
 	github.com/mattn/go-sqlite3 v1.14.22
-	github.com/mitchellh/mapstructure v1.5.0
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/ory/fosite v0.44.0
 	github.com/ory/herodot v0.10.3-0.20230807143059-27cd6936499b
@@ -73,7 +73,6 @@ require (
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
 	github.com/go-crypt/x v0.2.8 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
-	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1 // indirect
 	github.com/go-webauthn/revoke v0.1.9 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/glog v1.1.2 // indirect
@@ -94,6 +93,7 @@ require (
 	github.com/mattn/goveralls v0.0.11 // indirect
 	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/ory/go-acc v0.2.9-0.20230103102148-6b1c9a70dbbe // indirect
 	github.com/ory/go-convenience v0.1.0 // indirect

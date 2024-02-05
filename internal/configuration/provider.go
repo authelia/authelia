@@ -3,8 +3,8 @@ package configuration
 import (
 	"fmt"
 
+	"github.com/go-viper/mapstructure/v2"
 	"github.com/knadh/koanf/v2"
-	"github.com/mitchellh/mapstructure"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )

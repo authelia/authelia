@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/go-crypt/crypt/algorithm/plaintext"
-	"github.com/mitchellh/mapstructure"
+	"github.com/go-viper/mapstructure/v2"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
