@@ -59,7 +59,7 @@ identity_providers:
         enforce_par: false
         enforce_pkce: false
         pkce_challenge_method: 'S256'
-        authorization_signed_response_alg: 'RS256'
+        authorization_signed_response_alg: 'none'
         authorization_signed_response_key_id: ''
         id_token_signed_response_alg: 'RS256'
         id_token_signed_response_key_id: ''
