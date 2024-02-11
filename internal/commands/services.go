@@ -316,6 +316,8 @@ func servicesRun(ctx *CmdCtx) {
 		svcWatcherUsersFunc,
 	} {
 		if service := serviceFunc(ctx); service != nil {
+			service.Log().Trace("Service Loaded")
+
 			services = append(services, service)
 
 			group.Go(service.Run)
