@@ -126,6 +126,10 @@ func FuncExpandEnv(s string) string {
 
 // FuncGetEnv is a special version of os.GetEnv that excludes secret keys.
 func FuncGetEnv(key string) string {
+	if key == "$" {
+		return key
+	}
+
 	if isSecretEnvKey(key) {
 		return ""
 	}
