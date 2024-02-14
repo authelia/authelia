@@ -45,7 +45,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.52.0
-	github.com/wneessen/go-mail v0.4.0
+	github.com/wneessen/go-mail v0.4.1
 	golang.org/x/net v0.21.0
 	golang.org/x/sync v0.6.0
 	golang.org/x/term v0.17.0
