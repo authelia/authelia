@@ -73,6 +73,8 @@ Add the following Generic OAuth configuration to the [Grafana] configuration:
 ```ini
 [server]
 root_url = https://grafana.example.com
+[auth]
+oauth_allow_insecure_email_lookup = true
 [auth.generic_oauth]
 enabled = true
 name = Authelia
@@ -88,6 +90,7 @@ login_attribute_path = preferred_username
 groups_attribute_path = groups
 name_attribute_path = name
 use_pkce = true
+skip_org_role_sync = true
 ```
 
 #### Environment Variables
