@@ -16,7 +16,7 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.37.5](https://github.com/authelia/authelia/releases/tag/v4.37.5)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Freshrss]
   * [1.23.1](https://github.com/FreshRSS/FreshRSS/releases/tag/1.23.1)
 
@@ -35,6 +35,10 @@ This example makes the following assumptions:
 * __Port:__ '443'
   * this is the port freshrss is served over (usually 80 for http and 443 for https) NOT the port of the docker container
 
+### Special Notes
+
+1. The FressRSS implementation seems to always include the port in the requested `redirect_uri`. As Authelia strictly conforms to the specifications this means the client registration **_MUST_** include the port for the requested `redirect_uri` to match.
+
 ## Configuration
 
 ### Authelia
@@ -49,18 +53,19 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-    - id: freshrss
-      description: freshrss
+    - id: 'freshrss'
+      description: 'freshrss'
       secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
       public: false
-      authorization_policy: two_factor
+      authorization_policy: 'two_factor'
       redirect_uris:
-        - https://freshrss.example.com:443/i/oidc/ # IMPORTANT: you must add the port to the redirect uri
+        - 'https://freshrss.example.com:443/i/oidc/'
       scopes:
-        - openid
-        - groups
-        - email
-        - profile
+        - 'openid'
+        - 'groups'
+        - 'email'
+        - 'profile'
+      token_endpoint_auth_method: 'client_secret_post'
       userinfo_signed_response_alg: 'none'
 ```
 
