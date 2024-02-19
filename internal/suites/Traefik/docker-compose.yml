@@ -3,7 +3,7 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './Traefik/configuration.yml:/config/configuration.yml:ro'
+      - './Traefik/configuration.yml:/config/configuration.yml'
       - './Traefik/users.yml:/config/users.yml'
-      - './common/pki:/pki:ro'
+      - './common/pki:/pki'
 ...
