@@ -439,6 +439,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			errs := validator.Errors()
 
 			require.Len(t, errs, len(tc.errors))
+
 			for i, errStr := range tc.errors {
 				t.Run(fmt.Sprintf("Error%d", i+1), func(t *testing.T) {
 					assert.EqualError(t, errs[i], errStr)
@@ -2590,6 +2591,7 @@ func TestValidateOIDCClients(t *testing.T) {
 
 			t.Run("Warnings", func(t *testing.T) {
 				require.Len(t, validator.Warnings(), len(tc.serrs))
+
 				for i, err := range tc.serrs {
 					assert.EqualError(t, validator.Warnings()[i], err)
 				}
@@ -2597,6 +2599,7 @@ func TestValidateOIDCClients(t *testing.T) {
 
 			t.Run("Errors", func(t *testing.T) {
 				require.Len(t, validator.Errors(), len(tc.errs))
+
 				for i, err := range tc.errs {
 					t.Run(fmt.Sprintf("Error%d", i+1), func(t *testing.T) {
 						assert.EqualError(t, validator.Errors()[i], err)

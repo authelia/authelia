@@ -175,9 +175,11 @@ func replaceDates(path string, date time.Time, dateGit *time.Time) {
 			switch {
 			case scanner.Text() == delimiterLineFrontMatter:
 				buf.Write(scanner.Bytes())
+
 				frontmatter++
 			case frontmatter != 0 && strings.HasPrefix(scanner.Text(), "date: "):
 				buf.WriteString(dateGitLine)
+
 				found++
 			default:
 				buf.Write(scanner.Bytes())

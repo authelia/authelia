@@ -3,7 +3,7 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './PathPrefix/configuration.yml:/config/configuration.yml:ro'
+      - './PathPrefix/configuration.yml:/config/configuration.yml'
       - './PathPrefix/users.yml:/config/users.yml'
-      - './common/pki:/pki:ro'
+      - './common/pki:/pki'
 ...

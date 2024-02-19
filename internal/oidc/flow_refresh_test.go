@@ -666,6 +666,7 @@ func TestRefreshTokenGrantHandler_HandleTokenEndpointRequest(t *testing.T) {
 			err := handler.HandleTokenEndpointRequest(context.TODO(), requester)
 			if tc.err != nil {
 				assert.Equal(t, tc.err.Error(), err.Error())
+
 				if tc.rexpected != nil {
 					assert.Regexp(t, tc.rexpected, oidc.ErrorToDebugRFC6749Error(err))
 				} else {

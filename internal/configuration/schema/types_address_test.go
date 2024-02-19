@@ -596,6 +596,7 @@ func TestAddress_Dial(t *testing.T) {
 
 			} else {
 				assert.Nil(t, conn)
+
 				if tc.err != "" {
 					assert.EqualError(t, err, tc.err)
 				} else {

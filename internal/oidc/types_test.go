@@ -193,6 +193,7 @@ func TestPopulateClientCredentialsFlowSessionWithAccessRequest(t *testing.T) {
 			err := oidc.PopulateClientCredentialsFlowSessionWithAccessRequest(tc.ctx, tc.request, tc.have, nil)
 
 			assert.Equal(t, "", tc.have.GetSubject())
+
 			if len(tc.err) == 0 {
 				assert.NoError(t, err)
 				assert.EqualValues(t, tc.expected, tc.have)
