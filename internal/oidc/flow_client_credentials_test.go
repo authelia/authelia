@@ -229,6 +229,7 @@ func TestClientCredentialsGrantHandler_PopulateTokenEndpointResponse(t *testing.
 			strategy := mocks.NewMockAccessTokenStrategy(ctrl)
 			request := fosite.NewAccessRequest(new(fosite.DefaultSession))
 			response := fosite.NewAccessResponse()
+
 			defer ctrl.Finish()
 
 			handler := oidc.ClientCredentialsGrantHandler{

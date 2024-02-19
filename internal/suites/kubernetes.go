@@ -74,6 +74,7 @@ func (k Kubectl) WaitPodsReady(namespace string, timeout time.Duration) error {
 		lines := strings.Split(string(output), "\n")
 
 		nonEmptyLines := make([]string, 0)
+
 		for _, line := range lines {
 			if line != "" {
 				nonEmptyLines = append(nonEmptyLines, line)

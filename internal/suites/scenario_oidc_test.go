@@ -139,6 +139,7 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 			}
 
 			assert.NoError(t, err)
+
 			switch expected := tc.expected.(type) {
 			case *regexp.Regexp:
 				assert.Regexp(t, expected, actual)

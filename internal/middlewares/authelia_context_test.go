@@ -294,11 +294,13 @@ func TestAutheliaCtx_IssuerURL(t *testing.T) {
 				require.NotNil(t, actual)
 
 				assert.Equal(t, tc.expected, actual.String())
+
 				if len(tc.expectedProto) == 0 {
 					assert.Equal(t, tc.proto, actual.Scheme)
 				} else {
 					assert.Equal(t, tc.expectedProto, actual.Scheme)
 				}
+
 				assert.Equal(t, tc.host, actual.Host)
 				assert.Equal(t, tc.base, actual.Path)
 			} else {
@@ -329,6 +331,7 @@ func TestShouldCallNextWithAutheliaCtx(t *testing.T) {
 	middleware(func(actx *middlewares.AutheliaCtx) {
 		// Authelia context wraps the request.
 		assert.Equal(t, ctx, actx.RequestCtx)
+
 		nextCalled = true
 	})(ctx)
 

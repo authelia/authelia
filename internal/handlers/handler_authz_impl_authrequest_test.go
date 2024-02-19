@@ -63,6 +63,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsDeny() {
 					query.Set(queryArgRD, pairURI.TargetURI.String())
 					query.Set(queryArgRM, method)
 					expected.RawQuery = query.Encode()
+
 					assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 					assert.Equal(t, expected.String(), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
 				})

@@ -213,6 +213,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 
 			warns := validator.Warnings()
 			require.Len(t, warns, len(tc.warns))
+
 			for i, err := range warns {
 				assert.EqualError(t, err, tc.warns[i])
 			}

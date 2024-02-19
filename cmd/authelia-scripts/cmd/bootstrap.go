@@ -235,6 +235,7 @@ func prepareHostsFile() {
 				} else {
 					lines[i] = entry.IP + " " + entry.Domain
 					modified = true
+
 					break
 				}
 			}
