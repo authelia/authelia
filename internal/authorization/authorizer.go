@@ -64,7 +64,7 @@ func (p *Authorizer) GetRequiredLevel(subject Subject, object Object) (hasSubjec
 
 	for _, rule := range p.rules {
 		if rule.IsMatch(subject, object) {
-			p.log.Tracef(traceFmtACLHitMiss, "HIT", rule.Position, subject, object, object.Method)
+			p.log.Tracef(traceFmtACLHitMiss, "HIT", rule.Position, subject, object, object.Method, rule.Policy)
 
 			return rule.HasSubjects, rule.Policy
 		}

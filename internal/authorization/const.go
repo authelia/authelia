@@ -48,4 +48,4 @@ var (
 	IdentitySubexpNames = []string{subexpNameUser, subexpNameGroup}
 )
 
-const traceFmtACLHitMiss = "ACL %s Position %d for subject %s and object %s (method %s)"
+const traceFmtACLHitMiss = "ACL %s Position %d for subject %s and object %s (method %s, policy %s)"
