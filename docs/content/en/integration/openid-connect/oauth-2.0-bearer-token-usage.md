@@ -259,7 +259,7 @@ identity_providers:
 
 This example illustrates a method to configure a Client Credential flow for this purpose. This flow is useful for
 automations. It's important to note that for access control evaluation purposes this token will match a subject of
-`oauth2:client:example-two` i.e. the `oauth2:client:` prefix followed by the client id.
+`oauth2:client:example-three` i.e. the `oauth2:client:` prefix followed by the client id.
 
 ```yaml
 identity_providers:
