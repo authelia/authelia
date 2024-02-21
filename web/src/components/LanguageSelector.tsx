@@ -29,7 +29,7 @@ const LanguageSelector = function (props: Props) {
     };
     const handleClose = (lng: string) => {
         setAnchorEl(null);
-        if (lng !== "") {
+        if (lng) {
             props.onChange(lng);
         }
     };

@@ -16,6 +16,7 @@ import { useQueryParam } from "@hooks/QueryParam";
 import { useWorkflow } from "@hooks/Workflow";
 import LoginLayout from "@layouts/LoginLayout";
 import { postFirstFactor } from "@services/FirstFactor";
+import { localStoreSet } from "@utils/localStorage";
 
 export interface Props {
     disabled: boolean;
@@ -47,8 +48,8 @@ const FirstFactorForm = function (props: Props) {
     // TODO (PR: #806, Issue: #511) potentially refactor
     const usernameRef = useRef() as MutableRefObject<HTMLInputElement>;
     const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
-    const { t: translate } = useTranslation();
-    const [lang, setLang] = useState("en");
+    const { t: translate, i18n } = useTranslation();
+    const [lang, setLang] = useState(i18n.language);
 
     useEffect(() => {
         const timeout = setTimeout(() => usernameRef.current.focus(), 10);
@@ -67,6 +68,13 @@ const FirstFactorForm = function (props: Props) {
 
     const handleRememberMeChange = () => {
         setRememberMe(!rememberMe);
+    };
+
+    // handle the language selection
+    const handleChangeLanguage = (lng: string) => {
+        setLang(lng);
+        i18n.changeLanguage(lng);
+        localStoreSet("lng", lng);
     };
 
     const handleSignIn = async () => {
@@ -107,7 +115,7 @@ const FirstFactorForm = function (props: Props) {
 
     return (
         <LoginLayout id="first-factor-stage" title={translate("Sign in")} showBrand>
-            <LanguageSelector value={lang} onChange={(lng: string) => setLang(lng)}></LanguageSelector>
+            <LanguageSelector value={lang} onChange={handleChangeLanguage}></LanguageSelector>
             <Grid container spacing={2}>
                 <Grid item xs={12}>
                     <FixedTextField
