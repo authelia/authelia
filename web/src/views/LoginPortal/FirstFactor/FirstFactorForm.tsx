@@ -100,17 +100,14 @@ const FirstFactorForm = function (props: Props) {
             if (props.resetPasswordCustomURL !== "") {
                 window.open(props.resetPasswordCustomURL);
             } else {
-                    navigate(ResetPasswordStep1Route);
+                navigate(ResetPasswordStep1Route);
             }
         }
     };
 
     return (
         <LoginLayout id="first-factor-stage" title={translate("Sign in")} showBrand>
-            <LanguageSelector
-                value={lang}
-                onChange={(lng: string) => setLang(lng)}
-                ></LanguageSelector>
+            <LanguageSelector value={lang} onChange={(lng: string) => setLang(lng)}></LanguageSelector>
             <Grid container spacing={2}>
                 <Grid item xs={12}>
                     <FixedTextField
