@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import FixedTextField from "@components/FixedTextField";
+import LanguageSelector from "@components/LanguageSelector";
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
@@ -47,6 +48,7 @@ const FirstFactorForm = function (props: Props) {
     const usernameRef = useRef() as MutableRefObject<HTMLInputElement>;
     const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
     const { t: translate } = useTranslation();
+    const [lang, setLang] = useState("en");
 
     useEffect(() => {
         const timeout = setTimeout(() => usernameRef.current.focus(), 10);
@@ -98,13 +100,17 @@ const FirstFactorForm = function (props: Props) {
             if (props.resetPasswordCustomURL !== "") {
                 window.open(props.resetPasswordCustomURL);
             } else {
-                navigate(ResetPasswordStep1Route);
+                    navigate(ResetPasswordStep1Route);
             }
         }
     };
 
     return (
         <LoginLayout id="first-factor-stage" title={translate("Sign in")} showBrand>
+            <LanguageSelector
+                value={lang}
+                onChange={(lng: string) => setLang(lng)}
+                ></LanguageSelector>
             <Grid container spacing={2}>
                 <Grid item xs={12}>
                     <FixedTextField
