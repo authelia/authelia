@@ -57,7 +57,7 @@ i18n.use(Backend)
 export default i18n;
 
 export const supportedLngsNames = [
-    {{- range $i, $value := .Languages }}
+    {{- range $i, $value := .RealLng }}
     { lng: "{{ $value.Locale }}", name: "{{ $value.Display }}" },
     {{- end }}
 ];

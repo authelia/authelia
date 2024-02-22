@@ -170,6 +170,7 @@ func getLanguages(dir string) (languages *Languages, err error) {
 		}
 
 		languages.Languages = append(languages.Languages, l)
+		languages.RealLng = append(languages.RealLng, l)
 
 		locales = append(locales, l.Locale)
 
@@ -214,6 +215,10 @@ func getLanguages(dir string) (languages *Languages, err error) {
 
 	sort.Slice(languages.Languages, func(i, j int) bool {
 		return languages.Languages[i].Locale == localeDefault || languages.Languages[i].Locale < languages.Languages[j].Locale
+	})
+
+	sort.Slice(languages.RealLng, func(i, j int) bool {
+		return languages.RealLng[i].Locale == localeDefault || languages.RealLng[i].Locale < languages.RealLng[j].Locale
 	})
 
 	return languages, nil
