@@ -149,6 +149,7 @@ func getLanguages(dir string) (languages *Languages, err error) {
 		var localeReal string
 
 		parts := strings.SplitN(locale, "-", 2)
+		// var shortLocale = parts[0].
 		if len(parts) == 2 && strings.EqualFold(parts[0], parts[1]) {
 			localeReal = parts[0]
 		} else {
@@ -162,7 +163,7 @@ func getLanguages(dir string) (languages *Languages, err error) {
 		}
 
 		l := Language{
-			Display:    display.English.Tags().Name(tag),
+			Display:    fmt.Sprintf("%s [%s]", display.English.Tags().Name(tag), localeReal),
 			Locale:     localeReal,
 			Namespaces: []string{ns},
 			Fallbacks:  []string{languages.Defaults.Language.Locale},
@@ -181,6 +182,7 @@ func getLanguages(dir string) (languages *Languages, err error) {
 
 	var langs []Language //nolint:prealloc
 
+	// adding locale fallbacks.
 	for i, lang := range languages.Languages {
 		p := lang.Tag.Parent()
 

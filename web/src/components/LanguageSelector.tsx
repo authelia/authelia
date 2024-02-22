@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import LanguageIcon from "@mui/icons-material/Language";
-import { Box, IconButton, Menu, MenuItem, Theme } from "@mui/material";
+import { Box, IconButton, Menu, MenuItem, Select, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 
@@ -10,6 +10,7 @@ import { supportedLngsNames } from "i18n";
 export interface Props {
     value: string;
     onChange: Function;
+    picker: Boolean;
 }
 
 const LanguageSelector = function (props: Props) {
@@ -27,7 +28,8 @@ const LanguageSelector = function (props: Props) {
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
     };
-    const handleClose = (lng: string) => {
+
+    const handleChange = (lng: string) => {
         setAnchorEl(null);
         if (lng) {
             props.onChange(lng);
@@ -35,12 +37,12 @@ const LanguageSelector = function (props: Props) {
     };
 
     const languages = supportedLngsNames.map((lng) => (
-        <MenuItem key={lng.lng} onClick={() => handleClose(lng.lng)} value={lng.lng}>
+        <MenuItem key={lng.lng} onClick={() => handleChange(lng.lng)} value={lng.lng}>
             {lng.name}
         </MenuItem>
     ));
 
-    return (
+    return props.picker ? (
         <Box className={classnames(styles.topRight)}>
             <IconButton
                 onClick={handleClick}
@@ -56,14 +58,16 @@ const LanguageSelector = function (props: Props) {
                 anchorEl={anchorEl}
                 id="account-menu"
                 open={open}
-                onClose={() => handleClose("")}
-                onClick={() => handleClose("")}
+                onClose={() => handleChange("")}
+                onClick={() => handleChange("")}
                 transformOrigin={{ horizontal: "right", vertical: "top" }}
                 anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
             >
                 {languages}
             </Menu>
         </Box>
+    ) : (
+        <Select value={props.value}>{languages}</Select>
     );
 };
 
