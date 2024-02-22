@@ -97,7 +97,7 @@ type Languages struct {
 	Defaults   DefaultsLanguages `json:"defaults"`
 	Namespaces []string          `json:"namespaces"`
 	Languages  []Language        `json:"languages"`
-	RealLng    []Language        `json:"realLng"`
+	RealLng    []Language        `json:"-"`
 }
 
 type DefaultsLanguages struct {
