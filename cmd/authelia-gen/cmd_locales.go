@@ -146,32 +146,21 @@ func getLanguages(dir string) (languages *Languages, err error) {
 			return nil
 		}
 
-		var localeReal string
-
-		parts := strings.SplitN(locale, "-", 2)
-		// var shortLocale = parts[0].
-		if len(parts) == 2 && strings.EqualFold(parts[0], parts[1]) {
-			localeReal = parts[0]
-		} else {
-			localeReal = locale
-		}
-
 		var tag language.Tag
 
-		if tag, err = language.Parse(localeReal); err != nil {
-			return fmt.Errorf("failed to parse language '%s': %w", localeReal, err)
+		if tag, err = language.Parse(locale); err != nil {
+			return fmt.Errorf("failed to parse language '%s': %w", locale, err)
 		}
 
 		l := Language{
-			Display:    fmt.Sprintf("%s [%s]", display.English.Tags().Name(tag), localeReal),
-			Locale:     localeReal,
+			Display:    display.English.Tags().Name(tag),
+			Locale:     locale,
 			Namespaces: []string{ns},
 			Fallbacks:  []string{languages.Defaults.Language.Locale},
 			Tag:        tag,
 		}
 
 		languages.Languages = append(languages.Languages, l)
-		languages.RealLng = append(languages.RealLng, l)
 
 		locales = append(locales, l.Locale)
 
@@ -190,15 +179,16 @@ func getLanguages(dir string) (languages *Languages, err error) {
 			continue
 		}
 
-		if utils.IsStringInSlice(p.String(), locales) {
-			continue
-		}
-
 		if p.String() != lang.Locale {
 			lang.Fallbacks = append([]string{p.String()}, lang.Fallbacks...)
+			lang.Parent = p.String()
 		}
 
 		languages.Languages[i] = lang
+
+		if utils.IsStringInSlice(p.String(), locales) {
+			continue
+		}
 
 		l := Language{
 			Display:    display.English.Tags().Name(p),
@@ -217,10 +207,6 @@ func getLanguages(dir string) (languages *Languages, err error) {
 
 	sort.Slice(languages.Languages, func(i, j int) bool {
 		return languages.Languages[i].Locale == localeDefault || languages.Languages[i].Locale < languages.Languages[j].Locale
-	})
-
-	sort.Slice(languages.RealLng, func(i, j int) bool {
-		return languages.RealLng[i].Locale == localeDefault || languages.RealLng[i].Locale < languages.RealLng[j].Locale
 	})
 
 	return languages, nil

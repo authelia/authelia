@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 
+import ExpandLess from "@mui/icons-material/ExpandLess";
+import ExpandMore from "@mui/icons-material/ExpandMore";
 import LanguageIcon from "@mui/icons-material/Language";
-import { Box, IconButton, Menu, MenuItem, Select, Theme } from "@mui/material";
+import { Box, Collapse, IconButton, ListItemText, ListSubheader, Menu, MenuItem, Select, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 
@@ -13,9 +15,20 @@ export interface Props {
     picker: Boolean;
 }
 
+const languageTree = supportedLngsNames
+    .filter((lng: any) => !lng.parent)
+    .map((lng) => {
+        return {
+            name: lng.name,
+            lng: lng.lng,
+            children: supportedLngsNames.filter((l: any) => l.parent === lng.lng),
+        };
+    });
+
 const LanguageSelector = function (props: Props) {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
+    const [expanded, setExpanded] = useState("");
 
     const styles = makeStyles((theme: Theme) => ({
         topRight: {
@@ -36,11 +49,57 @@ const LanguageSelector = function (props: Props) {
         }
     };
 
-    const languages = supportedLngsNames.map((lng) => (
-        <MenuItem key={lng.lng} onClick={() => handleChange(lng.lng)} value={lng.lng}>
-            {lng.name}
-        </MenuItem>
-    ));
+    const handleCollapse = (locale: string) => {
+        if (locale === expanded) {
+            setExpanded("");
+        } else {
+            setExpanded(locale);
+        }
+    };
+
+    const languages = languageTree.map((lng) => {
+        // if locale have not children, it is selectable
+        if (lng.children.length === 0) {
+            return (
+                <MenuItem key={lng.lng} onClick={() => handleChange(lng.lng)} value={lng.lng}>
+                    <ListItemText>{lng.name}</ListItemText>
+                </MenuItem>
+            );
+        } else if (lng.children.length === 1) {
+            // if the locale have only one child, we select the children
+            return (
+                <MenuItem key={lng.lng} onClick={() => handleChange(lng.children[0].lng)} value={lng.children[0].lng}>
+                    <ListItemText>{lng.name}</ListItemText>
+                </MenuItem>
+            );
+        } else {
+            // if the locale have more than 1 children they are added
+            const children = lng.children.map((child) => {
+                return (
+                    <MenuItem key={child.lng} onClick={() => handleChange(child.lng)} value={child.lng}>
+                        <ListItemText>&nbsp;&nbsp;{child.name}</ListItemText>
+                    </MenuItem>
+                );
+            });
+
+            if (props.picker) {
+                return (
+                    <div key={lng.lng}>
+                        <MenuItem value={lng.lng}>
+                            <ListItemText onClick={() => handleCollapse(lng.lng)}>{lng.name}</ListItemText>
+                            {expanded === lng.lng ? <ExpandLess /> : <ExpandMore />}
+                        </MenuItem>
+                        <Collapse in={expanded === lng.lng} timeout="auto">
+                            {children}
+                        </Collapse>
+                    </div>
+                );
+            } else {
+                children.unshift(<ListSubheader>{lng.name}</ListSubheader>);
+                return children;
+            }
+        }
+    });
 
     return props.picker ? (
         <Box className={classnames(styles.topRight)}>
@@ -59,9 +118,13 @@ const LanguageSelector = function (props: Props) {
                 id="account-menu"
                 open={open}
                 onClose={() => handleChange("")}
-                onClick={() => handleChange("")}
                 transformOrigin={{ horizontal: "right", vertical: "top" }}
                 anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+                PaperProps={{
+                    style: {
+                        width: 350,
+                    },
+                }}
             >
                 {languages}
             </Menu>

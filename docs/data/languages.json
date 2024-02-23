@@ -11,7 +11,7 @@
     ],
     "languages": [
         {
-            "display": "English [en]",
+            "display": "English",
             "locale": "en",
             "namespaces": [
                 "portal"
@@ -31,7 +31,7 @@
             ]
         },
         {
-            "display": "Arabic (Saudi Arabia) [ar-SA]",
+            "display": "Arabic (Saudi Arabia)",
             "locale": "ar-SA",
             "namespaces": [
                 "portal"
@@ -52,7 +52,7 @@
             ]
         },
         {
-            "display": "Czech (Czechia) [cs-CZ]",
+            "display": "Czech (Czechia)",
             "locale": "cs-CZ",
             "namespaces": [
                 "portal"
@@ -73,7 +73,7 @@
             ]
         },
         {
-            "display": "Danish (Denmark) [da-DK]",
+            "display": "Danish (Denmark)",
             "locale": "da-DK",
             "namespaces": [
                 "portal"
@@ -84,12 +84,23 @@
             ]
         },
         {
-            "display": "German [de]",
+            "display": "German",
             "locale": "de",
             "namespaces": [
                 "portal"
             ],
             "fallbacks": [
+                "en"
+            ]
+        },
+        {
+            "display": "German (Germany)",
+            "locale": "de-DE",
+            "namespaces": [
+                "portal"
+            ],
+            "fallbacks": [
+                "de",
                 "en"
             ]
         },
@@ -104,7 +115,7 @@
             ]
         },
         {
-            "display": "Greek (Greece) [el-GR]",
+            "display": "Greek (Greece)",
             "locale": "el-GR",
             "namespaces": [
                 "portal"
@@ -115,7 +126,7 @@
             ]
         },
         {
-            "display": "Spanish [es]",
+            "display": "Spanish",
             "locale": "es",
             "namespaces": [
                 "portal"
@@ -125,7 +136,18 @@
             ]
         },
         {
-            "display": "Finnish [fi]",
+            "display": "European Spanish",
+            "locale": "es-ES",
+            "namespaces": [
+                "portal"
+            ],
+            "fallbacks": [
+                "es",
+                "en"
+            ]
+        },
+        {
+            "display": "Finnish",
             "locale": "fi",
             "namespaces": [
                 "portal"
@@ -135,7 +157,18 @@
             ]
         },
         {
-            "display": "French [fr]",
+            "display": "Finnish (Finland)",
+            "locale": "fi-FI",
+            "namespaces": [
+                "portal"
+            ],
+            "fallbacks": [
+                "fi",
+                "en"
+            ]
+        },
+        {
+            "display": "French",
             "locale": "fr",
             "namespaces": [
                 "portal"
@@ -145,7 +178,18 @@
             ]
         },
         {
-            "display": "Hungarian [hu]",
+            "display": "French (France)",
+            "locale": "fr-FR",
+            "namespaces": [
+                "portal"
+            ],
+            "fallbacks": [
+                "fr",
+                "en"
+            ]
+        },
+        {
+            "display": "Hungarian",
             "locale": "hu",
             "namespaces": [
                 "portal"
@@ -155,12 +199,34 @@
             ]
         },
         {
-            "display": "Italian [it]",
+            "display": "Hungarian (Hungary)",
+            "locale": "hu-HU",
+            "namespaces": [
+                "portal"
+            ],
+            "fallbacks": [
+                "hu",
+                "en"
+            ]
+        },
+        {
+            "display": "Italian",
             "locale": "it",
             "namespaces": [
                 "portal"
             ],
             "fallbacks": [
+                "en"
+            ]
+        },
+        {
+            "display": "Italian (Italy)",
+            "locale": "it-IT",
+            "namespaces": [
+                "portal"
+            ],
+            "fallbacks": [
+                "it",
                 "en"
             ]
         },
@@ -175,7 +241,7 @@
             ]
         },
         {
-            "display": "Japanese (Japan) [ja-JP]",
+            "display": "Japanese (Japan)",
             "locale": "ja-JP",
             "namespaces": [
                 "portal"
@@ -196,7 +262,7 @@
             ]
         },
         {
-            "display": "Norwegian Bokmål (Norway) [nb-NO]",
+            "display": "Norwegian Bokmål (Norway)",
             "locale": "nb-NO",
             "namespaces": [
                 "portal"
@@ -207,7 +273,7 @@
             ]
         },
         {
-            "display": "Dutch [nl]",
+            "display": "Dutch",
             "locale": "nl",
             "namespaces": [
                 "portal"
@@ -217,7 +283,18 @@
             ]
         },
         {
-            "display": "Norwegian Bokmål [no]",
+            "display": "Dutch (Netherlands)",
+            "locale": "nl-NL",
+            "namespaces": [
+                "portal"
+            ],
+            "fallbacks": [
+                "nl",
+                "en"
+            ]
+        },
+        {
+            "display": "Norwegian Bokmål",
             "locale": "no",
             "namespaces": [
                 "portal"
@@ -227,7 +304,18 @@
             ]
         },
         {
-            "display": "Polish [pl]",
+            "display": "Norwegian Bokmål (Norway)",
+            "locale": "no-NO",
+            "namespaces": [
+                "portal"
+            ],
+            "fallbacks": [
+                "no",
+                "en"
+            ]
+        },
+        {
+            "display": "Polish",
             "locale": "pl",
             "namespaces": [
                 "portal"
@@ -237,7 +325,18 @@
             ]
         },
         {
-            "display": "Portuguese [pt]",
+            "display": "Polish (Poland)",
+            "locale": "pl-PL",
+            "namespaces": [
+                "portal"
+            ],
+            "fallbacks": [
+                "pl",
+                "en"
+            ]
+        },
+        {
+            "display": "Portuguese",
             "locale": "pt",
             "namespaces": [
                 "portal"
@@ -247,17 +346,29 @@
             ]
         },
         {
-            "display": "Brazilian Portuguese [pt-BR]",
+            "display": "Brazilian Portuguese",
             "locale": "pt-BR",
             "namespaces": [
                 "portal"
             ],
             "fallbacks": [
+                "pt",
                 "en"
             ]
         },
         {
-            "display": "Romanian [ro]",
+            "display": "European Portuguese",
+            "locale": "pt-PT",
+            "namespaces": [
+                "portal"
+            ],
+            "fallbacks": [
+                "pt",
+                "en"
+            ]
+        },
+        {
+            "display": "Romanian",
             "locale": "ro",
             "namespaces": [
                 "portal"
@@ -267,12 +378,34 @@
             ]
         },
         {
-            "display": "Russian [ru]",
+            "display": "Romanian (Romania)",
+            "locale": "ro-RO",
+            "namespaces": [
+                "portal"
+            ],
+            "fallbacks": [
+                "ro",
+                "en"
+            ]
+        },
+        {
+            "display": "Russian",
             "locale": "ru",
             "namespaces": [
                 "portal"
             ],
             "fallbacks": [
+                "en"
+            ]
+        },
+        {
+            "display": "Russian (Russia)",
+            "locale": "ru-RU",
+            "namespaces": [
+                "portal"
+            ],
+            "fallbacks": [
+                "ru",
                 "en"
             ]
         },
@@ -287,7 +420,7 @@
             ]
         },
         {
-            "display": "Slovenian (Slovenia) [sl-SI]",
+            "display": "Slovenian (Slovenia)",
             "locale": "sl-SI",
             "namespaces": [
                 "portal"
@@ -308,7 +441,7 @@
             ]
         },
         {
-            "display": "Swedish (Sweden) [sv-SE]",
+            "display": "Swedish (Sweden)",
             "locale": "sv-SE",
             "namespaces": [
                 "portal"
@@ -329,7 +462,7 @@
             ]
         },
         {
-            "display": "Ukrainian (Ukraine) [uk-UA]",
+            "display": "Ukrainian (Ukraine)",
             "locale": "uk-UA",
             "namespaces": [
                 "portal"
@@ -350,7 +483,7 @@
             ]
         },
         {
-            "display": "Chinese (China) [zh-CN]",
+            "display": "Chinese (China)",
             "locale": "zh-CN",
             "namespaces": [
                 "portal"
@@ -361,7 +494,7 @@
             ]
         },
         {
-            "display": "Chinese (Taiwan) [zh-TW]",
+            "display": "Chinese (Taiwan)",
             "locale": "zh-TW",
             "namespaces": [
                 "portal"
