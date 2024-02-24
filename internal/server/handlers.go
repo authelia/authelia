@@ -111,6 +111,7 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 
 	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
 	handlerLocales := newLocalesEmbeddedHandler()
+	handlerLocalesList := newLocalesListHandler()
 
 	bridge := middlewares.NewBridgeBuilder(*config, providers).
 		WithPreMiddlewares(middlewares.SecurityHeaders).Build()
@@ -144,6 +145,8 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	r.GET("/static/{filepath:*}", handlerPublicHTML)
 
 	// Locales.
+	r.GET("/locales", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocalesList))
+
 	r.HEAD("/locales/{language:[a-z]{1,3}}-{variant:[a-zA-Z0-9-]+}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
 	r.GET("/locales/{language:[a-z]{1,3}}-{variant:[a-zA-Z0-9-]+}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
 

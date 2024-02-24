@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 
+	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"golang.org/x/text/language/display"
 )
@@ -42,8 +43,10 @@ func getLanguages(dir fs.FS) (languages *Languages, err error) {
 		return nil, fmt.Errorf("failed to parse default language: %w", err)
 	}
 
+	caser := cases.Title(defaultTag)
+
 	languages.Defaults.Language = Language{
-		Display: display.English.Tags().Name(defaultTag),
+		Display: caser.String(display.Self.Name(defaultTag)),
 		Locale:  localeDefault,
 	}
 
@@ -93,8 +96,10 @@ func getLanguages(dir fs.FS) (languages *Languages, err error) {
 			return fmt.Errorf("failed to parse language '%s': %w", locale, err)
 		}
 
+		caser := cases.Title(tag)
+
 		l := Language{
-			Display:    display.English.Tags().Name(tag),
+			Display:    caser.String(display.Self.Name(tag)),
 			Locale:     locale,
 			Namespaces: []string{ns},
 			Fallbacks:  []string{languages.Defaults.Language.Locale},
@@ -131,8 +136,9 @@ func getLanguages(dir fs.FS) (languages *Languages, err error) {
 			continue
 		}
 
+		caser := cases.Title(lang.Tag)
 		l := Language{
-			Display:    display.English.Tags().Name(p),
+			Display:    caser.String(display.Self.Name(p)),
 			Locale:     p.String(),
 			Namespaces: lang.Namespaces,
 			Fallbacks:  []string{languages.Defaults.Language.Locale},

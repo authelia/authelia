@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha1" //nolint:gosec // Usage is for collision avoidance not security.
 	"embed"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -113,12 +114,14 @@ func newLocalesPathResolver() func(ctx *fasthttp.RequestCtx) (supported bool, as
 	}
 
 	aliases := map[string]string{
+		"ar": "ar-SA",
 		"cs": "cs-CZ",
 		"da": "da-DK",
 		"el": "el-GR",
 		"ja": "ja-JP",
 		"nb": "nb-NO",
 		"sv": "sv-SE",
+		"sl": "sl-SI",
 		"uk": "uk-UA",
 		"zh": "zh-CN",
 	}
@@ -246,5 +249,57 @@ func hfsHandleErr(ctx *fasthttp.RequestCtx, err error) {
 		handlers.SetStatusCodeResponse(ctx, fasthttp.StatusForbidden)
 	default:
 		handlers.SetStatusCodeResponse(ctx, fasthttp.StatusInternalServerError)
+	}
+}
+
+// newLocalesListHandler handles request for obtaining the available locales in backend.
+func newLocalesListHandler() (handler fasthttp.RequestHandler) {
+	etags := map[string][]byte{}
+	getEmbedETags(locales, "locales", etags)
+
+	// getAssetName := newLocalesPathResolver().
+
+	return func(ctx *fasthttp.RequestCtx) {
+		var (
+			data []byte
+			err  error
+		)
+		// TODO: add etag support
+		// if etag, ok := etags[asset]; ok {
+		// 	ctx.Response.Header.SetBytesKV(headerETag, etag)
+		// 	ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlETaggedAssets)
+
+		// 	if bytes.Equal(etag, ctx.Request.Header.PeekBytes(headerIfNoneMatch)) {
+		// 		ctx.SetStatusCode(fasthttp.StatusNotModified)
+
+		// 		return
+		// 	}
+		// }.
+
+		localeInfo, err := utils.GetLanguagesFromEmbedFS(locales)
+		if err != nil {
+			handlers.SetStatusCodeResponse(ctx, fasthttp.StatusNotFound)
+
+			return
+		}
+
+		// TODO: log error ?
+		data, err = json.Marshal(localeInfo)
+		if err != nil {
+			handlers.SetStatusCodeResponse(ctx, fasthttp.StatusNotFound)
+			return
+		}
+
+		middlewares.SetStandardSecurityHeaders(ctx)
+		middlewares.SetContentTypeApplicationJSON(ctx)
+
+		switch {
+		case ctx.IsHead():
+			ctx.Response.ResetBody()
+			ctx.Response.SkipBody = true
+			ctx.Response.Header.Set(fasthttp.HeaderContentLength, strconv.Itoa(len(data)))
+		default:
+			ctx.SetBody(data)
+		}
 	}
 }

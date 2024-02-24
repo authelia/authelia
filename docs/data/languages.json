@@ -21,7 +21,7 @@
             ]
         },
         {
-            "display": "Arabic",
+            "display": "العربية",
             "locale": "ar",
             "namespaces": [
                 "portal"
@@ -31,7 +31,7 @@
             ]
         },
         {
-            "display": "Arabic (Saudi Arabia)",
+            "display": "العربية",
             "locale": "ar-SA",
             "namespaces": [
                 "portal"
@@ -42,7 +42,7 @@
             ]
         },
         {
-            "display": "Czech",
+            "display": "Čeština",
             "locale": "cs",
             "namespaces": [
                 "portal"
@@ -52,7 +52,7 @@
             ]
         },
         {
-            "display": "Czech (Czechia)",
+            "display": "Čeština",
             "locale": "cs-CZ",
             "namespaces": [
                 "portal"
@@ -63,7 +63,7 @@
             ]
         },
         {
-            "display": "Danish",
+            "display": "Dansk",
             "locale": "da",
             "namespaces": [
                 "portal"
@@ -73,7 +73,7 @@
             ]
         },
         {
-            "display": "Danish (Denmark)",
+            "display": "Dansk",
             "locale": "da-DK",
             "namespaces": [
                 "portal"
@@ -84,7 +84,7 @@
             ]
         },
         {
-            "display": "German",
+            "display": "Deutsch",
             "locale": "de",
             "namespaces": [
                 "portal"
@@ -94,7 +94,7 @@
             ]
         },
         {
-            "display": "German (Germany)",
+            "display": "Deutsch",
             "locale": "de-DE",
             "namespaces": [
                 "portal"
@@ -105,7 +105,7 @@
             ]
         },
         {
-            "display": "Greek",
+            "display": "Ελληνικά",
             "locale": "el",
             "namespaces": [
                 "portal"
@@ -115,7 +115,7 @@
             ]
         },
         {
-            "display": "Greek (Greece)",
+            "display": "Ελληνικά",
             "locale": "el-GR",
             "namespaces": [
                 "portal"
@@ -126,7 +126,7 @@
             ]
         },
         {
-            "display": "Spanish",
+            "display": "Español",
             "locale": "es",
             "namespaces": [
                 "portal"
@@ -136,7 +136,7 @@
             ]
         },
         {
-            "display": "European Spanish",
+            "display": "Español De España",
             "locale": "es-ES",
             "namespaces": [
                 "portal"
@@ -147,7 +147,7 @@
             ]
         },
         {
-            "display": "Finnish",
+            "display": "Suomi",
             "locale": "fi",
             "namespaces": [
                 "portal"
@@ -157,7 +157,7 @@
             ]
         },
         {
-            "display": "Finnish (Finland)",
+            "display": "Suomi",
             "locale": "fi-FI",
             "namespaces": [
                 "portal"
@@ -168,7 +168,7 @@
             ]
         },
         {
-            "display": "French",
+            "display": "Français",
             "locale": "fr",
             "namespaces": [
                 "portal"
@@ -178,7 +178,7 @@
             ]
         },
         {
-            "display": "French (France)",
+            "display": "Français",
             "locale": "fr-FR",
             "namespaces": [
                 "portal"
@@ -189,7 +189,7 @@
             ]
         },
         {
-            "display": "Hungarian",
+            "display": "Magyar",
             "locale": "hu",
             "namespaces": [
                 "portal"
@@ -199,7 +199,7 @@
             ]
         },
         {
-            "display": "Hungarian (Hungary)",
+            "display": "Magyar",
             "locale": "hu-HU",
             "namespaces": [
                 "portal"
@@ -210,7 +210,7 @@
             ]
         },
         {
-            "display": "Italian",
+            "display": "Italiano",
             "locale": "it",
             "namespaces": [
                 "portal"
@@ -220,7 +220,7 @@
             ]
         },
         {
-            "display": "Italian (Italy)",
+            "display": "Italiano",
             "locale": "it-IT",
             "namespaces": [
                 "portal"
@@ -231,7 +231,7 @@
             ]
         },
         {
-            "display": "Japanese",
+            "display": "日本語",
             "locale": "ja",
             "namespaces": [
                 "portal"
@@ -241,7 +241,7 @@
             ]
         },
         {
-            "display": "Japanese (Japan)",
+            "display": "日本語",
             "locale": "ja-JP",
             "namespaces": [
                 "portal"
@@ -252,7 +252,7 @@
             ]
         },
         {
-            "display": "Norwegian Bokmål",
+            "display": "Norsk Bokmål",
             "locale": "nb",
             "namespaces": [
                 "portal"
@@ -262,7 +262,7 @@
             ]
         },
         {
-            "display": "Norwegian Bokmål (Norway)",
+            "display": "Norsk Bokmål",
             "locale": "nb-NO",
             "namespaces": [
                 "portal"
@@ -273,7 +273,7 @@
             ]
         },
         {
-            "display": "Dutch",
+            "display": "Nederlands",
             "locale": "nl",
             "namespaces": [
                 "portal"
@@ -283,7 +283,7 @@
             ]
         },
         {
-            "display": "Dutch (Netherlands)",
+            "display": "Nederlands",
             "locale": "nl-NL",
             "namespaces": [
                 "portal"
@@ -294,7 +294,7 @@
             ]
         },
         {
-            "display": "Norwegian Bokmål",
+            "display": "Norsk Bokmål",
             "locale": "no",
             "namespaces": [
                 "portal"
@@ -304,7 +304,7 @@
             ]
         },
         {
-            "display": "Norwegian Bokmål (Norway)",
+            "display": "Norsk Bokmål",
             "locale": "no-NO",
             "namespaces": [
                 "portal"
@@ -315,7 +315,7 @@
             ]
         },
         {
-            "display": "Polish",
+            "display": "Polski",
             "locale": "pl",
             "namespaces": [
                 "portal"
@@ -325,7 +325,7 @@
             ]
         },
         {
-            "display": "Polish (Poland)",
+            "display": "Polski",
             "locale": "pl-PL",
             "namespaces": [
                 "portal"
@@ -336,7 +336,7 @@
             ]
         },
         {
-            "display": "Portuguese",
+            "display": "Português",
             "locale": "pt",
             "namespaces": [
                 "portal"
@@ -346,7 +346,7 @@
             ]
         },
         {
-            "display": "Brazilian Portuguese",
+            "display": "Português",
             "locale": "pt-BR",
             "namespaces": [
                 "portal"
@@ -357,7 +357,7 @@
             ]
         },
         {
-            "display": "European Portuguese",
+            "display": "Português Europeu",
             "locale": "pt-PT",
             "namespaces": [
                 "portal"
@@ -368,7 +368,7 @@
             ]
         },
         {
-            "display": "Romanian",
+            "display": "Română",
             "locale": "ro",
             "namespaces": [
                 "portal"
@@ -378,7 +378,7 @@
             ]
         },
         {
-            "display": "Romanian (Romania)",
+            "display": "Română",
             "locale": "ro-RO",
             "namespaces": [
                 "portal"
@@ -389,7 +389,7 @@
             ]
         },
         {
-            "display": "Russian",
+            "display": "Русский",
             "locale": "ru",
             "namespaces": [
                 "portal"
@@ -399,7 +399,7 @@
             ]
         },
         {
-            "display": "Russian (Russia)",
+            "display": "Русский",
             "locale": "ru-RU",
             "namespaces": [
                 "portal"
@@ -410,7 +410,7 @@
             ]
         },
         {
-            "display": "Slovenian",
+            "display": "Slovenščina",
             "locale": "sl",
             "namespaces": [
                 "portal"
@@ -420,7 +420,7 @@
             ]
         },
         {
-            "display": "Slovenian (Slovenia)",
+            "display": "Slovenščina",
             "locale": "sl-SI",
             "namespaces": [
                 "portal"
@@ -431,7 +431,7 @@
             ]
         },
         {
-            "display": "Swedish",
+            "display": "Svenska",
             "locale": "sv",
             "namespaces": [
                 "portal"
@@ -441,7 +441,7 @@
             ]
         },
         {
-            "display": "Swedish (Sweden)",
+            "display": "Svenska",
             "locale": "sv-SE",
             "namespaces": [
                 "portal"
@@ -452,7 +452,7 @@
             ]
         },
         {
-            "display": "Ukrainian",
+            "display": "Українська",
             "locale": "uk",
             "namespaces": [
                 "portal"
@@ -462,7 +462,7 @@
             ]
         },
         {
-            "display": "Ukrainian (Ukraine)",
+            "display": "Українська",
             "locale": "uk-UA",
             "namespaces": [
                 "portal"
@@ -473,7 +473,7 @@
             ]
         },
         {
-            "display": "Chinese",
+            "display": "中文",
             "locale": "zh",
             "namespaces": [
                 "portal"
@@ -483,7 +483,7 @@
             ]
         },
         {
-            "display": "Chinese (China)",
+            "display": "中文",
             "locale": "zh-CN",
             "namespaces": [
                 "portal"
@@ -494,7 +494,7 @@
             ]
         },
         {
-            "display": "Chinese (Taiwan)",
+            "display": "繁體中文",
             "locale": "zh-TW",
             "namespaces": [
                 "portal"

@@ -68,7 +68,7 @@ const LanguageSelector = function (props: Props) {
         } else if (lng.children.length === 1) {
             // if the locale have only one child, we select the children
             return (
-                <MenuItem key={lng.lng} onClick={() => handleChange(lng.children[0].lng)} value={lng.children[0].lng}>
+                <MenuItem key={lng.lng} onClick={() => handleChange(lng.lng)} value={lng.lng}>
                     <ListItemText>{lng.name}</ListItemText>
                 </MenuItem>
             );
