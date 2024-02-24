@@ -22,7 +22,7 @@ type Language struct {
 	Locale     string   `json:"locale"`
 	Namespaces []string `json:"namespaces,omitempty"`
 	Fallbacks  []string `json:"fallbacks,omitempty"`
-	Parent     string   `json:"-"`
+	Parent     string   `json:"parent"`
 
 	Tag language.Tag `json:"-"`
 }

@@ -39,6 +39,8 @@ export const UserInfoTOTPConfigurationPath = basePath + "/api/user/info/totp";
 export const ConfigurationPath = basePath + "/api/configuration";
 export const PasswordPolicyConfigurationPath = basePath + "/api/configuration/password-policy";
 
+export const LocaleInformationPath = basePath + "/locales";
+
 export interface ErrorResponse {
     status: "KO";
     message: string;

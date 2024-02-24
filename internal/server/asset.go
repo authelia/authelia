@@ -284,9 +284,9 @@ func newLocalesListHandler() (handler fasthttp.RequestHandler) {
 		}
 
 		// TODO: log error ?
-		data, err = json.Marshal(localeInfo)
+		data, err = json.Marshal(middlewares.OKResponse{Status: "OK", Data: localeInfo})
 		if err != nil {
-			handlers.SetStatusCodeResponse(ctx, fasthttp.StatusNotFound)
+			handlers.SetStatusCodeResponse(ctx, fasthttp.StatusInternalServerError)
 			return
 		}
 

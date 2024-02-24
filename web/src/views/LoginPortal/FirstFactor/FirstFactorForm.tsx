@@ -1,4 +1,4 @@
-import React, { MutableRefObject, useEffect, useMemo, useRef, useState } from "react";
+import React, { MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button, Checkbox, FormControlLabel, Grid, Link, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
@@ -16,6 +16,7 @@ import { useQueryParam } from "@hooks/QueryParam";
 import { useWorkflow } from "@hooks/Workflow";
 import LoginLayout from "@layouts/LoginLayout";
 import { postFirstFactor } from "@services/FirstFactor";
+import { getLocaleInformation } from "@services/LocaleInformation";
 import { localStoreSet } from "@utils/localStorage";
 
 export interface Props {
@@ -50,6 +51,7 @@ const FirstFactorForm = function (props: Props) {
     const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
     const { t: translate, i18n } = useTranslation();
     const [lang, setLang] = useState(i18n.language);
+    const [localeList, setLocaleList] = useState<Array<any>>([]);
 
     useEffect(() => {
         const timeout = setTimeout(() => usernameRef.current.focus(), 10);
@@ -68,13 +70,6 @@ const FirstFactorForm = function (props: Props) {
 
     const handleRememberMeChange = () => {
         setRememberMe(!rememberMe);
-    };
-
-    // handle the language selection
-    const handleChangeLanguage = (lng: string) => {
-        setLang(lng);
-        i18n.changeLanguage(lng);
-        localStoreSet("lng", lng);
     };
 
     const handleSignIn = async () => {
@@ -113,9 +108,31 @@ const FirstFactorForm = function (props: Props) {
         }
     };
 
+    // handle the language selection
+    const handleChangeLanguage = (lng: string) => {
+        setLang(lng);
+        i18n.changeLanguage(lng);
+        localStoreSet("lng", lng);
+    };
+
+    const localeInfoCB = useCallback(async () => {
+        try {
+            const data = await getLocaleInformation();
+            setLocaleList(data.languages);
+
+            return data;
+        } catch (err) {
+            console.log("could not get locale list:", err);
+        }
+    }, []);
+
+    useEffect(() => {
+        localeInfoCB();
+    }, [localeInfoCB]);
+
     return (
         <LoginLayout id="first-factor-stage" title={translate("Sign in")} showBrand>
-            <LanguageSelector value={lang} onChange={handleChangeLanguage} picker={true}></LanguageSelector>
+            <LanguageSelector value={lang} localeList={localeList} onChange={handleChangeLanguage} picker={true} />
             <Grid container spacing={2}>
                 <Grid item xs={12}>
                     <FixedTextField
