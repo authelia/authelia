@@ -111,6 +111,18 @@ Configure the following environment variables:
 |  GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH  |                      name                       |
 |       GF_AUTH_GENERIC_OAUTH_USE_PKCE        |                      true                       |
 
+#### (Optional) define a role mapping
+
+By adding a role mapping to your grafana configuration you can sync your Authelia group membership with Grafana roles.
+
+The following role mapping should work with Authelia's group info:
+
+```ini
+role_attribute_path = contains(groups, 'admin') && 'Admin' || contains(groups, 'editor') && 'Editor' || 'Viewer'
+```
+
+You can adapt the mapping to match your needs and defined groups. To actually assign the admin role you need to use the ``allow_assign_grafana_admin`` configuration option.
+
 ## See Also
 
 * [Grafana OAuth Documentation](https://grafana.com/docs/grafana/latest/auth/generic-oauth/)
