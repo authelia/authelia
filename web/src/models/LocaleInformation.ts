@@ -10,7 +10,7 @@ export interface LocaleInformation {
 export interface DefaultLanguage {
     display: string;
     locale: string;
-    parent: string;
+    parent?: string;
 }
 
 export interface Language {
@@ -18,5 +18,5 @@ export interface Language {
     fallbacks: Array<string>;
     locale: string;
     namespaces: Array<string>;
-    parent: string;
+    parent?: string;
 }

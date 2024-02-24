@@ -22,5 +22,7 @@ export function localStorageAvailable() {
 export function localStoreSet(key: string, value: string) {
     if (localStorageAvailable()) {
         window.localStorage.setItem(key, value);
+    } else {
+        console.error("local storage not supported");
     }
 }

@@ -12,7 +12,11 @@ interface LocaleInformationPayload {
 }
 
 export async function getLocaleInformation(): Promise<LocaleInformation> {
-    const data = await Get<LocaleInformationPayload>(LocaleInformationPath);
-
-    return { ...data };
+    try {
+        const data = await Get<LocaleInformationPayload>(LocaleInformationPath);
+        return { ...data };
+    } catch (error) {
+        console.error("Failed to fetch locale information:", error);
+        throw new Error("Failed to fetch locale information");
+    }
 }
