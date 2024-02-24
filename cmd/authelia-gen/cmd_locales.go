@@ -3,15 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
-	"sort"
-	"strings"
 
 	"github.com/spf13/cobra"
-	"golang.org/x/text/language"
-	"golang.org/x/text/language/display"
 
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -50,7 +45,7 @@ func localesRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	data, err := getLanguages(filepath.Join(root, pathLocales))
+	data, err := utils.GetLanguagesFromPath(filepath.Join(root, pathLocales))
 	if err != nil {
 		return err
 	}
@@ -86,128 +81,4 @@ func localesRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	return nil
-}
-
-//nolint:gocyclo
-func getLanguages(dir string) (languages *Languages, err error) {
-	//nolint:prealloc
-	var locales []string
-
-	languages = &Languages{
-		Defaults: DefaultsLanguages{
-			Namespace: localeNamespaceDefault,
-		},
-	}
-
-	var defaultTag language.Tag
-
-	if defaultTag, err = language.Parse(localeDefault); err != nil {
-		return nil, fmt.Errorf("failed to parse default language: %w", err)
-	}
-
-	languages.Defaults.Language = Language{
-		Display: display.English.Tags().Name(defaultTag),
-		Locale:  localeDefault,
-	}
-
-	if err = filepath.Walk(dir, func(path string, info fs.FileInfo, errWalk error) (err error) {
-		if errWalk != nil {
-			return errWalk
-		}
-
-		nameLower := strings.ToLower(info.Name())
-		ext := filepath.Ext(nameLower)
-		ns := strings.Replace(nameLower, ext, "", 1)
-
-		if ext != extJSON {
-			return nil
-		}
-
-		if !utils.IsStringInSlice(ns, languages.Namespaces) {
-			languages.Namespaces = append(languages.Namespaces, ns)
-		}
-
-		fdir, _ := filepath.Split(path)
-
-		locale := filepath.Base(fdir)
-
-		if utils.IsStringInSlice(locale, locales) {
-			for i, l := range languages.Languages {
-				if l.Locale == locale {
-					if utils.IsStringInSlice(ns, languages.Languages[i].Namespaces) {
-						break
-					}
-
-					languages.Languages[i].Namespaces = append(languages.Languages[i].Namespaces, ns)
-					break
-				}
-			}
-
-			return nil
-		}
-
-		var tag language.Tag
-
-		if tag, err = language.Parse(locale); err != nil {
-			return fmt.Errorf("failed to parse language '%s': %w", locale, err)
-		}
-
-		l := Language{
-			Display:    display.English.Tags().Name(tag),
-			Locale:     locale,
-			Namespaces: []string{ns},
-			Fallbacks:  []string{languages.Defaults.Language.Locale},
-			Tag:        tag,
-		}
-
-		languages.Languages = append(languages.Languages, l)
-
-		locales = append(locales, l.Locale)
-
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	var langs []Language //nolint:prealloc
-
-	// adding locale fallbacks.
-	for i, lang := range languages.Languages {
-		p := lang.Tag.Parent()
-
-		if p.String() == "und" || strings.Contains(p.String(), "-") {
-			continue
-		}
-
-		if p.String() != lang.Locale {
-			lang.Fallbacks = append([]string{p.String()}, lang.Fallbacks...)
-			lang.Parent = p.String()
-		}
-
-		languages.Languages[i] = lang
-
-		if utils.IsStringInSlice(p.String(), locales) {
-			continue
-		}
-
-		l := Language{
-			Display:    display.English.Tags().Name(p),
-			Locale:     p.String(),
-			Namespaces: lang.Namespaces,
-			Fallbacks:  []string{languages.Defaults.Language.Locale},
-			Tag:        p,
-		}
-
-		langs = append(langs, l)
-
-		locales = append(locales, l.Locale)
-	}
-
-	languages.Languages = append(languages.Languages, langs...)
-
-	sort.Slice(languages.Languages, func(i, j int) bool {
-		return languages.Languages[i].Locale == localeDefault || languages.Languages[i].Locale < languages.Languages[j].Locale
-	})
-
-	return languages, nil
 }

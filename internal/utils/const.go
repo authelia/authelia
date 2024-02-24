@@ -135,3 +135,10 @@ const (
 	strPathNotFound = "pathnotfound"
 	strFileNotFound = "filenotfound"
 )
+
+// locales.
+const (
+	localeDefault          = "en"
+	localeNamespaceDefault = "portal"
+	extJSON                = ".json"
+)
