@@ -89,8 +89,8 @@ dependencies:
 
 devDependencies:
   '@commitlint/cli':
-    specifier: 19.0.1
-    version: 19.0.1(@types/node@20.11.21)(typescript@5.3.3)
+    specifier: 19.0.2
+    version: 19.0.2(@types/node@20.11.21)(typescript@5.3.3)
   '@commitlint/config-conventional':
     specifier: 19.0.0
     version: 19.0.0
@@ -1681,14 +1681,14 @@ packages:
       '@babel/helper-validator-identifier': 7.22.20
       to-fast-properties: 2.0.0
 
-  /@commitlint/cli@19.0.1(@types/node@20.11.21)(typescript@5.3.3):
-    resolution: {integrity: sha512-6D+KT/RasFPF92M549I3lABSBWXAdmKvBfxtYWlWO5JdYFSK+B6jY6XyE/hN/DNSYvwwcuNk+CzbqQcy+EbrCw==}
+  /@commitlint/cli@19.0.2(@types/node@20.11.21)(typescript@5.3.3):
+    resolution: {integrity: sha512-oaFHcjOASFFdtei/EF0lPg9ubnqVJsAjEmiDPeBQqk8wO7qppO7vp595SP7vOjTyDJlPVc2jUxCJSKxdq5temQ==}
     engines: {node: '>=v18'}
     hasBin: true
     dependencies:
       '@commitlint/format': 19.0.0
       '@commitlint/lint': 19.0.0
-      '@commitlint/load': 19.0.1(@types/node@20.11.21)(typescript@5.3.3)
+      '@commitlint/load': 19.0.2(@types/node@20.11.21)(typescript@5.3.3)
       '@commitlint/read': 19.0.0
       '@commitlint/types': 19.0.0
       execa: 8.0.1
@@ -1757,13 +1757,13 @@ packages:
       '@commitlint/types': 19.0.0
     dev: true
 
-  /@commitlint/load@19.0.1(@types/node@20.11.21)(typescript@5.3.3):
-    resolution: {integrity: sha512-5w5RHhtidRPMRm8ktph+NKypt1Wu5Z2jbU1Lc+1IS9Azy83JWRBQ9xKBbW9gF66R/TwHF0v6Jy8KOqRS8I/GgA==}
+  /@commitlint/load@19.0.2(@types/node@20.11.21)(typescript@5.3.3):
+    resolution: {integrity: sha512-ZbSQ8+vMsGHuZ/YxyDBz3i5zacQuAvON37xQGshGew/KwBmPfrF/sGEHNsD/znm3j2H6+iF5xslfkH1D382gbg==}
     engines: {node: '>=v18'}
     dependencies:
       '@commitlint/config-validator': 19.0.0
       '@commitlint/execute-rule': 19.0.0
-      '@commitlint/resolve-extends': 19.0.1
+      '@commitlint/resolve-extends': 19.0.2
       '@commitlint/types': 19.0.0
       chalk: 5.3.0
       cosmiconfig: 8.3.6(typescript@5.3.3)
@@ -1800,8 +1800,8 @@ packages:
       minimist: 1.2.8
     dev: true
 
-  /@commitlint/resolve-extends@19.0.1:
-    resolution: {integrity: sha512-U5BRCNEiib0I06e6utNzBXZRu/t/bzlqVljS5kaNwggPN1VS+Kvuks8fY97j85B8sifHXU5dhUICPRKP8Oj31A==}
+  /@commitlint/resolve-extends@19.0.2:
+    resolution: {integrity: sha512-yCdY4+JZpKPwnR6/YZAs9Ukpr3oqHbjYmwszEH2djYjprczg8j2okIeZyNM4dzD6+BqlSu/y0Eou2vE+wP+KnA==}
     engines: {node: '>=v18'}
     dependencies:
       '@commitlint/config-validator': 19.0.0
@@ -1809,6 +1809,7 @@ packages:
       global-directory: 4.0.1
       import-meta-resolve: 4.0.0
       lodash.mergewith: 4.6.2
+      resolve-from: 5.0.0
     dev: true
 
   /@commitlint/rules@19.0.0:

@@ -76,7 +76,7 @@
     ]
   },
   "devDependencies": {
-    "@commitlint/cli": "19.0.1",
+    "@commitlint/cli": "19.0.2",
     "@commitlint/config-conventional": "19.0.0",
     "@limegrass/eslint-plugin-import-alias": "1.2.0",
     "@testing-library/jest-dom": "6.4.2",
