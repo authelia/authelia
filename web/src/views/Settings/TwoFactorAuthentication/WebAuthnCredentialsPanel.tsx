@@ -80,9 +80,7 @@ const WebAuthnCredentialsPanel = function (props: Props) {
 
     const handleSFDialogClosed = (ok: boolean, changed: boolean) => {
         if (!ok) {
-            console.warn(
-                "Second Factor dialog close callback was not ok which should probably mean it was cancelled by the user.",
-            );
+            console.warn("Second Factor dialog close callback failed, it was likely cancelled by the user.");
 
             handleResetState();
 
@@ -108,7 +106,7 @@ const WebAuthnCredentialsPanel = function (props: Props) {
         (ok: boolean) => {
             if (!ok) {
                 console.warn(
-                    "Identity Verification dialog close callback was not ok which should probably mean it was cancelled by the user.",
+                    "Identity Verification dialog close callback failed, it was likely cancelled by the user.",
                 );
 
                 handleResetState();

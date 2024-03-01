@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -16,21 +15,21 @@ import (
 )
 
 func getWebAuthnCredentialIDFromContext(ctx *middlewares.AutheliaCtx) (int, error) {
-	credentialIDStr, ok := ctx.UserValue("credentialID").(string)
-	if !ok {
-		ctx.SetStatusCode(fasthttp.StatusBadRequest)
-		return 0, errors.New("Invalid credential ID type")
+	value := ctx.UserValue("credentialID")
+
+	switch v := value.(type) {
+	case nil:
+		return 0, fmt.Errorf("error occurred retrieving WebAuthn Credential ID from context: the user value wasn't set")
+	case string:
+		credentialID, err := strconv.Atoi(v)
+		if err != nil {
+			return 0, fmt.Errorf("error occurred retrieving WebAuthn Credential ID from context: failed to parse '%s' as an integer: %w", v, err)
+		}
+
+		return credentialID, nil
+	default:
+		return 0, fmt.Errorf("error occurred retrieving WebAuthn Credential ID from context: the type '%T' is not a string", value)
 	}
-
-	credentialID, err := strconv.Atoi(credentialIDStr)
-	if err != nil {
-		ctx.Error(err, messageOperationFailed)
-		ctx.SetStatusCode(fasthttp.StatusBadRequest)
-
-		return 0, err
-	}
-
-	return credentialID, nil
 }
 
 // WebAuthnCredentialsGET returns all credentials registered for the current user.
@@ -77,7 +76,7 @@ func WebAuthnCredentialsGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err = ctx.SetJSONBody(credentials); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error ccurred loading WebAuthn credentials for user '%s': %s", userSession.Username, errStrRespBody)
+		ctx.Logger.WithError(err).Errorf("Error occurred loading WebAuthn credentials for user '%s': %s", userSession.Username, errStrRespBody)
 	}
 }
 
@@ -123,19 +122,19 @@ func WebAuthnCredentialPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if id, err = getWebAuthnCredentialIDFromContext(ctx); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred modifying WebAuthn credential for user '%s': error occurred trying to determine the credential ID", userSession.Username)
+	if len(bodyJSON.Description) == 0 {
+		ctx.Logger.WithError(fmt.Errorf("description is empty")).Errorf("Error occurred modifying WebAuthn credential for user '%s", userSession.Username)
 
-		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
-	if len(bodyJSON.Description) == 0 {
-		ctx.Logger.WithError(fmt.Errorf("description is empty")).Errorf("Error occurred modifying WebAuthn credential for user '%s", userSession.Username)
+	if id, err = getWebAuthnCredentialIDFromContext(ctx); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred modifying WebAuthn credential for user '%s': error occurred trying to determine the credential ID", userSession.Username)
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return

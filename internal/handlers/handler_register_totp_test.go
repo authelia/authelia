@@ -704,7 +704,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred sending notification to user 'john' while attempting to notify them of an important event", "kittens")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred sending notification to user 'john' while attempting to alert them of an important event", "kittens")
 			},
 		},
 		{
@@ -751,7 +751,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred looking up user details for user 'john' while attempting to notify them of an important event", "no email address was found for user")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred looking up user details for user 'john' while attempting to alert them of an important event", "no email address was found for user")
 			},
 		},
 		{
@@ -798,7 +798,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred looking up user details for user 'john' while attempting to notify them of an important event", "lookup failure")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred looking up user details for user 'john' while attempting to alert them of an important event", "lookup failure")
 			},
 		},
 		{
@@ -939,7 +939,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred sending notification to user 'john' while attempting to notify them of an important event", "bad conn")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred sending notification to user 'john' while attempting to alert them of an important event", "bad conn")
 			},
 		},
 		{
@@ -966,7 +966,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred looking up user details for user 'john' while attempting to notify them of an important event", "lookup err")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred looking up user details for user 'john' while attempting to alert them of an important event", "lookup err")
 			},
 		},
 		{

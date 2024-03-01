@@ -71,7 +71,6 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current) return;
             console.error(err);
-            // onSignInErrorCallback(new Error("Failed to initiate security key sign in process"));
             setState(WebAuthnTouchState.Failure);
         }
     }, [mounted, props]);

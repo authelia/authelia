@@ -569,7 +569,7 @@ paths:
         - Password Reset
       summary: Password Reset
       description: >
-        The password reset endpoint (using the POST method verb) validates the user session and changes the password.
+        The password reset endpoint validates the user session and changes the password.
         The same session cookie must be used for all steps in this process.
 
         This endpoint is step 3 of 3 in the password reset process.
@@ -593,7 +593,7 @@ paths:
         - Password Reset
       summary: Password Reset
       description: >
-        The password reset endpoint (using the DELETE method verb) revokes a JWT associated with a password reset
+        The password reset endpoint revokes a JWT associated with a password reset
         operation.
       requestBody:
         required: true
@@ -676,7 +676,7 @@ paths:
         - User Elevation
       summary: User Session Elevation
       description: >
-        The user session elevation endpoint (using the GET method verb) returns information indicating if the current
+        The user session elevation endpoint returns information indicating if the current
         user session has elevated privileges from identity verification.
       responses:
         "200":
@@ -694,7 +694,7 @@ paths:
         - User Elevation
       summary: User Session Elevation
       description: >
-        The user session elevation endpoint (using the POST method verb) generates a new One-Time Code for the purpose
+        The user session elevation endpoint generates a new One-Time Code for the purpose
         of elevating a user session. The One-Time Code is sent to a users email.
       requestBody:
         content:
@@ -717,7 +717,7 @@ paths:
         - User Elevation
       summary: User Session Elevation
       description: >
-        The user session elevation endpoint (using the PUT method verb) verifies and consumes a One-Time Code, and
+        The user session elevation endpoint verifies and consumes a One-Time Code, and
         configures the session elevation.
       responses:
         "200":
@@ -736,7 +736,7 @@ paths:
         - User Elevation
       summary: User Session Elevation
       description: >
-        The user session elevation endpoint (using the DELETE method verb) deletes a pending One-Time Code from the
+        The user session elevation endpoint deletes a pending One-Time Code from the
         database so that it can't be used. This can be invoked by a user either by cancelling the One-Time Code window
         or via the revoke link in the generated email.
       parameters:
@@ -762,7 +762,7 @@ paths:
         - Second Factor
       summary: TOTP Configuration Register
       description: >
-        The TOTP register endpoint (using the GET method verb) provides information important for registering the TOTP
+        The TOTP register endpoint provides information important for registering the TOTP
         configuration for the user. This endpoint only returns information used for this same endpoint when utilizing
         the PUT method verb.
       responses:
@@ -785,7 +785,7 @@ paths:
         - Second Factor
       summary: TOTP Configuration Register
       description: >
-        The TOTP register endpoint (using the PUT method verb) creates a temporary TOTP configuration which must then
+        The TOTP register endpoint creates a temporary TOTP configuration which must then
         be validated by the user using the POST method verb variant of this endpoint. Without validation the TOTP
         configuration is not committed to the database and is instead temporarily stored in the session backend. This
         action can also be followed by using the DELETE method verb for the same endpoint which will delete the
@@ -821,7 +821,7 @@ paths:
         - Second Factor
       summary: TOTP Configuration Register
       description: >
-        The TOTP register endpoint (using the POST method verb) provides the validation step for the endpoint where the
+        The TOTP register endpoint provides the validation step for the endpoint where the
         user provides the TOTP configuration generated token. If successful the configuration is saved to the database.
       requestBody:
         content:
@@ -854,7 +854,7 @@ paths:
         - Second Factor
       summary: TOTP Configuration Register
       description: >
-        The TOTP register endpoint (using the DELETE method verb) removes the temporary TOTP configuration from the
+        The TOTP register endpoint removes the temporary TOTP configuration from the
         session. It does NOT affect the TOTP configuration saved to the database.
       responses:
         "200":
@@ -877,7 +877,7 @@ paths:
         - Second Factor
       summary: TOTP Configuration
       description: >
-        The TOTP endpoint (using the GET method verb) provides information necessary to display the TOTP component to
+        The TOTP endpoint provides information necessary to display the TOTP component to
         validate their TOTP input such as the period and number of digits.
       responses:
         "200":
@@ -911,7 +911,7 @@ paths:
         - Second Factor
       summary: Second Factor Authentication - TOTP
       description: >
-        The TOTP endpoint (using the POST method verb) performs second factor authentication with a TOTP configuration.
+        The TOTP endpoint performs second factor authentication with a TOTP configuration.
       requestBody:
         required: true
         content:
@@ -938,7 +938,7 @@ paths:
         - Second Factor
       summary: Second Factor Authentication - TOTP
       description: >
-        The TOTP endpoint (using the DELETE method verb) deletes the TOTP configuration for the user from the database.
+        The TOTP endpoint deletes the TOTP configuration for the user from the database.
       responses:
         "200":
           description: Successful Operation
@@ -962,7 +962,7 @@ paths:
         - Second Factor
       summary: Second Factor Authentication - WebAuthn
       description: >
-        The WebAuthn endpoint (using the GET method verb) starts the second factor authentication process with the
+        The WebAuthn endpoint starts the second factor authentication process with the
         FIDO2 WebAuthn credential.
       responses:
         "200":
@@ -984,7 +984,7 @@ paths:
         - Second Factor
       summary: Second Factor Authentication - WebAuthn
       description: >
-        The WebAuthn endpoint (using the POST method verb) completes the second factor authentication process with the
+        The WebAuthn endpoint completes the second factor authentication process with the
         FIDO2 WebAuthn credential.
       requestBody:
         required: true
@@ -1013,7 +1013,7 @@ paths:
         - Second Factor
       summary: WebAuthn Credential Registration (Attestation)
       description: >
-        The WebAuthn Register endpoint (using the PUT method verb) checks the intended description is okay and provides
+        The WebAuthn Register endpoint checks the intended description is okay and provides
         the relevant credential creation options, and stores the creation options for a validation via the same endpoint
         with the POST method verb.
       requestBody:
@@ -1054,7 +1054,7 @@ paths:
         - Second Factor
       summary: WebAuthn Credential Registration (Attestation)
       description: >
-        The WebAuthn Register endpoint (using the POST method verb) validates the authenticators response and finalizes
+        The WebAuthn Register endpoint validates the authenticators response and finalizes
         the WebAuthn registration.
       requestBody:
         required: true
@@ -1088,7 +1088,7 @@ paths:
         - Second Factor
       summary: WebAuthn Credential Registration (Attestation)
       description: >
-        The WebAuthn Register endpoint (using the DELETE method verb) removes all WebAuthn registration data from the
+        The WebAuthn Register endpoint removes all WebAuthn registration data from the
         session.
       responses:
         "200":
@@ -1111,7 +1111,7 @@ paths:
         - Second Factor
       summary: WebAuthn Credential
       description: >
-        The WebAuthn credential endpoint (using the PUT method verb) updates the description of the specified WebAuthn
+        The WebAuthn credential endpoint updates the description of the specified WebAuthn
         credential.
       parameters:
         - $ref: '#/components/parameters/credentialID'
@@ -1153,7 +1153,7 @@ paths:
         - Second Factor
       summary: WebAuthn Credential
       description: >
-        The WebAuthn credential endpoint (using the DELETE method verb) deletes the specified WebAuthn credential from
+        The WebAuthn credential endpoint deletes the specified WebAuthn credential from
         the database.
       parameters:
         - $ref: '#/components/parameters/credentialID'

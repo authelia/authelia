@@ -2,7 +2,7 @@
 title: "Reset Password"
 description: "Reset Password Identity Validation Configuration"
 lead: "Authelia uses multiple methods to verify the identity of users to prevent a malicious user from performing actions on behalf of them. This section describes Reset Password method."
-date: 2023-12-30T07:23:12+11:00
+date: 2024-03-02T16:18:15+11:00
 draft: false
 images: []
 menu:
@@ -44,7 +44,7 @@ The duration of time the emailed JWT is considered valid.
 
 {{< confkey type="string" default="HS256" required="no" >}}
 
-The JWA used to sign the JWT. Must be one of the HMAC backed JWA's.
+The JWA used to sign the JWT. Must be HS256, HS384, or HS512.
 
 ### jwt_secret
 

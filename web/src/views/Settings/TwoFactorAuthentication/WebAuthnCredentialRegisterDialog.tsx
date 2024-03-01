@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import makeStyles from "@mui/styles/makeStyles";
-import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/typescript-types";
+import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/types";
 import { useTranslation } from "react-i18next";
 
 import InformationIcon from "@components/InformationIcon";

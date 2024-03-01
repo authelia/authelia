@@ -50,7 +50,7 @@ export default defineConfig(({ mode }) => {
                                     return `static/js/mui.[name].[hash].js`;
                                 }
 
-                                const match = last.match(/authelia\/authelia\/web\/src\/([a-zA-Z]+)\/([a-zA-Z]+)/);
+                                const match = last.match(/authelia\/web\/src\/([a-zA-Z]+)\/([a-zA-Z]+)/);
 
                                 if (match) {
                                     switch (match[2]) {

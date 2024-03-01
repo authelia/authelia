@@ -20,6 +20,10 @@ const (
 	WebAuthnDiscoverable                  = "discoverable"
 )
 
+const (
+	webauthnCredentialDescriptionMaxLen = 64
+)
+
 func formatWebAuthnError(err error) error {
 	out := &protocol.Error{}
 

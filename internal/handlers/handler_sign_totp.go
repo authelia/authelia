@@ -105,6 +105,15 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	if n := len(bodyJSON.Token); n != 6 && n != 8 {
+		ctx.Logger.Errorf("Error occurred validating a TOTP authentication for user '%s': expected code length is 6 or 8 but the user provided code was %d characters in length", userSession.Username, n)
+
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		return
+	}
+
 	if config, err = ctx.Providers.StorageProvider.LoadTOTPConfiguration(ctx, userSession.Username); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred retreiving the configuration from the storage backend", userSession.Username)
 

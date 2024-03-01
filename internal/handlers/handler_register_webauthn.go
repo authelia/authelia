@@ -52,7 +52,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if length := len(bodyJSON.Description); length == 0 || length > 64 {
+	if length := len(bodyJSON.Description); length == 0 || length > webauthnCredentialDescriptionMaxLen {
 		ctx.Logger.WithError(fmt.Errorf("description has a length of %d but must be between 1 and 64", length)).Errorf("Error occurred generating a WebAuthn registration challenge for user '%s': error occurred validating the description chosen by the user", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)

@@ -3,7 +3,7 @@ import {
     PublicKeyCredentialCreationOptionsJSON,
     PublicKeyCredentialRequestOptionsJSON,
     RegistrationResponseJSON,
-} from "@simplewebauthn/typescript-types";
+} from "@simplewebauthn/types";
 
 export interface PublicKeyCredentialCreationOptionsStatus {
     options?: PublicKeyCredentialCreationOptionsJSON;

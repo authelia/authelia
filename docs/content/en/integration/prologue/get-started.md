@@ -52,10 +52,10 @@ of initial setup.
 The important sections to consider in initial configuration are as follows:
 
 1. [jwt_secret](../../configuration/identity-validation/reset-password.md#jwt_secret) which is used to sign identity
-   verification emails for the reset password flow if enabled
+   verification emails for the reset password flow if enabled.
 2. [authentication_backend](../../configuration/first-factor/introduction.md) which you must pick between
    [LDAP](../../configuration/first-factor/ldap.md) and a [YAML File](../../configuration/first-factor/file.md) and is
-   essential for users to authenticate
+   essential for users to authenticate.
 3. [storage](../../configuration/storage/introduction.md) which you must pick between the SQL Storage Providers, the
    recommended one for testing and lite deployments is [SQLite3](../../configuration/storage/sqlite.md) and the
    recommended one for production deployments otherwise is [PostgreSQL](../../configuration/storage/postgres.md).
@@ -63,12 +63,12 @@ The important sections to consider in initial configuration are as follows:
    1. The [session cookies](../../configuration/session/introduction.md#cookies) section should be configured with every SSO domain (none of them can be a suffix of
       the others) you wish to protect, and the most important options in this section are
       [domain](../../configuration/session/introduction.md#domain) and
-      [authelia_url](../../configuration/session/introduction.md#authelia_url)
+      [authelia_url](../../configuration/session/introduction.md#authelia_url).
    2. The [secret](../../configuration/session/introduction.md#secret) is the most important, and
        [redis](../../configuration/session/redis.md) is recommended for production environments.
 5. [notifier](../../configuration/notifications/introduction.md) which is used to send 2FA registration emails etc,
    there is an option for local file delivery but the [SMTP](../../configuration/notifications/smtp.md) option is
-   recommended for production and you must only configure one of these
+   recommended for production and you must only configure one of these.
 6. [access_control](../../configuration/security/access-control.md) is also important but should be configured with a
    very basic policy to begin with. Something like:
 

@@ -70,7 +70,7 @@ const (
 	messageSecurityKeyDuplicateName              = "Another one of your security keys is already registered with that display name."
 	messageUnableToResetPassword                 = "Unable to reset your password."
 	messageMFAValidationFailed                   = "Authentication failed, please retry later."
-	messagePasswordWeak                          = "Your supplied password does not meet the password policy requirements"
+	messagePasswordWeak                          = "Your supplied password does not meet the password policy requirements."
 )
 
 const (

@@ -17,11 +17,11 @@ func ValidateIdentityValidation(config *schema.Configuration, validator *schema.
 	case len(config.IdentityValidation.ResetPassword.JWTAlgorithm) == 0:
 		config.IdentityValidation.ResetPassword.JWTAlgorithm = schema.DefaultIdentityValidation.ResetPassword.JWTAlgorithm
 	case !utils.IsStringInSlice(config.IdentityValidation.ResetPassword.JWTAlgorithm, validIdentityValidationJWTAlgorithms):
-		validator.Push(fmt.Errorf("identity_validation: reset_password: option 'jwt_algorithm' must be one of %s but it's configured as '%s'", strJoinOr(validIdentityValidationJWTAlgorithms), config.IdentityValidation.ResetPassword.JWTAlgorithm))
+		validator.Push(fmt.Errorf(errFmtIdentityValidationResetPasswordJWTAlgorithm, strJoinOr(validIdentityValidationJWTAlgorithms), config.IdentityValidation.ResetPassword.JWTAlgorithm))
 	}
 
 	if !config.AuthenticationBackend.PasswordReset.Disable && len(config.IdentityValidation.ResetPassword.JWTSecret) == 0 {
-		validator.Push(fmt.Errorf("identity_validation: reset_password: option 'jwt_secret' is required when the reset password functionality isn't disabled"))
+		validator.Push(fmt.Errorf(errFmtIdentityValidationResetPasswordJWTSecret))
 	}
 
 	if config.IdentityValidation.ElevatedSession.Expiration <= 0 {
@@ -34,5 +34,7 @@ func ValidateIdentityValidation(config *schema.Configuration, validator *schema.
 
 	if config.IdentityValidation.ElevatedSession.Characters <= 0 {
 		config.IdentityValidation.ElevatedSession.Characters = schema.DefaultIdentityValidation.ElevatedSession.Characters
+	} else if config.IdentityValidation.ElevatedSession.Characters > 20 {
+		validator.Push(fmt.Errorf(errFmtIdentityValidationElevatedSessionCharacterLength, config.IdentityValidation.ElevatedSession.Characters))
 	}
 }

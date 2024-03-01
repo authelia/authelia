@@ -145,7 +145,7 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if otp, err = model.NewOneTimeCode(ctx, userSession.Username, ctx.Configuration.IdentityValidation.ElevatedSession.Characters, ctx.Configuration.IdentityValidation.ElevatedSession.Expiration); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred creating user session elevation One-Time Code challenge for user '%s': error occurred generating the One-Time Code challenge", userSession.Username)
+		ctx.Logger.WithError(err).Errorf("Error occurred creating user session elevation One-Time Code challenge for user '%s': error occurred generating the challenge", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
@@ -247,7 +247,16 @@ func UserSessionElevationPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	bodyJSON.OneTimeCode = strings.ToUpper(bodyJSON.OneTimeCode)
+	bodyJSON.OneTimeCode = strings.TrimSpace(strings.ToUpper(bodyJSON.OneTimeCode))
+
+	if n := len(bodyJSON.OneTimeCode); n > 20 {
+		ctx.Logger.Errorf("Error occurred validating user session elevation One-Time Code challenge for user '%s': expected maximum code length is %d but the user provided code was %d characters in length", userSession.Username, 20, n)
+
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
 
 	if code, err = ctx.Providers.StorageProvider.LoadOneTimeCode(ctx, userSession.Username, model.OTCIntentUserSessionElevation, bodyJSON.OneTimeCode); err != nil {
 		ctx.Logger.WithError(err).

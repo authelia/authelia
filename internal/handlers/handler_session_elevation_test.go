@@ -491,7 +491,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred creating user session elevation One-Time Code challenge for user 'john': error occurred generating the One-Time Code challenge", "failed to generate random bytes: deadlock")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred creating user session elevation One-Time Code challenge for user 'john': error occurred generating the challenge", "failed to generate random bytes: deadlock")
 			},
 		},
 		{
@@ -518,7 +518,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred creating user session elevation One-Time Code challenge for user 'john': error occurred generating the One-Time Code challenge", "failed to generate public id: random unavailable")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred creating user session elevation One-Time Code challenge for user 'john': error occurred generating the challenge", "failed to generate public id: random unavailable")
 			},
 		},
 		{
@@ -624,6 +624,48 @@ func TestUserSessionElevationPUT(t *testing.T) {
 			nil,
 		},
 		{
+			"ShouldHandleValidCodeWithWhiteSpace",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.DisplayName = testDisplayName
+				us.Emails = []string{"john@example.com"}
+
+				us.AuthenticationLevel = authentication.OneFactor
+
+				require.NoError(t, mock.Ctx.SaveSession(us))
+
+				code := &model.OneTimeCode{
+					ID:        1,
+					PublicID:  uuid.Must(uuid.Parse("01020304-0506-4722-8910-111213141500")),
+					IssuedAt:  mock.Clock.Now(),
+					IssuedIP:  model.NewIP(net.ParseIP("0.0.0.0")),
+					ExpiresAt: mock.Clock.Now().Add(time.Minute),
+					Username:  testUsername,
+					Intent:    model.OTCIntentUserSessionElevation,
+					Code:      []byte("ABC123ABC1"),
+				}
+
+				gomock.InOrder(
+					mock.StorageMock.
+						EXPECT().
+						LoadOneTimeCode(mock.Ctx, testUsername, model.OTCIntentUserSessionElevation, "ABC123ABC1").
+						Return(code, nil),
+					mock.StorageMock.
+						EXPECT().
+						ConsumeOneTimeCode(mock.Ctx, code).
+						Return(nil),
+				)
+			},
+			`{"otc":"ABC123ABC1   "}`,
+			`{"status":"OK"}`,
+			fasthttp.StatusOK,
+			nil,
+		},
+		{
 			"ShouldHandleAnonymous",
 			nil,
 			`{"otc":"ABC123ABC1"}`,
@@ -705,6 +747,28 @@ func TestUserSessionElevationPUT(t *testing.T) {
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge for user 'john': error parsing the request body", "unable to parse body: invalid character 'A' looking for beginning of value")
+			},
+		},
+		{
+			"ShouldHandleLongCodes",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.DisplayName = testDisplayName
+				us.Emails = []string{"john@example.com"}
+
+				us.AuthenticationLevel = authentication.OneFactor
+
+				require.NoError(t, mock.Ctx.SaveSession(us))
+			},
+			`{"otc":"ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1ABC123ABC1"}`,
+			`{"status":"KO","message":"Operation failed."}`,
+			fasthttp.StatusBadRequest,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating user session elevation One-Time Code challenge for user 'john': expected maximum code length is 20 but the user provided code was 360 characters in length", "")
 			},
 		},
 		{

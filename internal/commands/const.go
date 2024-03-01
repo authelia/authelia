@@ -197,7 +197,7 @@ This subcommand allows interacting with WebAuthn credentials.`
 
 	cmdAutheliaStorageUserWebAuthnImportLong = `Perform imports of the WebAuthn credentials.
 
-This subcommand allows importing WebAuthn credentials from various formats.`
+This subcommand allows importing WebAuthn credentials from the YAML format.`
 
 	cmdAutheliaStorageUserWebAuthnImportExample = `authelia storage user webauthn export
 authelia storage user webauthn import --file authelia.export.webauthn.yaml
@@ -280,7 +280,7 @@ authelia storage user totp delete john --encryption-key b3453fde-ecc2-4a1f-9422-
 
 	cmdAutheliaStorageUserTOTPImportLong = `Perform imports of the TOTP configurations.
 
-This subcommand allows importing TOTP configurations from various formats.`
+This subcommand allows importing TOTP configurations from the YAML format.`
 
 	cmdAutheliaStorageUserTOTPImportExample = `authelia storage user totp import authelia.export.totp.yaml
 authelia storage user totp import --config config.yml authelia.export.totp.yaml

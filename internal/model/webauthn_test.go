@@ -287,6 +287,7 @@ func TestWebAuthnCredentialData_ToCredential(t *testing.T) {
 			actual, err := tc.have.ToCredential()
 
 			assert.Equal(t, tc.expected, actual)
+
 			if len(tc.err) == 0 {
 				assert.NoError(t, err)
 			} else {

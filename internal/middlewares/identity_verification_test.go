@@ -182,7 +182,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsNotFoundInDB(
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "The identity verification token has already been used")
-	assert.Equal(s.T(), "Token is not in DB, it might have already been used", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Error occurred looking up identity verification during the validation phase, the token was not found in the database which could indicate it was never generated or was already used", s.mock.Hook.LastEntry().Message)
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsInvalid() {
@@ -191,7 +191,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsInvalid() {
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed")
-	assert.Equal(s.T(), "Cannot parse token", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Error occurred validating the identity verification token as it appears to be malformed, this potentially can occur if you've not copied the full link", s.mock.Hook.LastEntry().Message)
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenExpired() {
@@ -203,7 +203,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenExpired() {
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "The identity verification token has expired")
-	assert.Equal(s.T(), "Token expired", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Error occurred validating the identity verification token validity period as it appears to be expired", s.mock.Hook.LastEntry().Message)
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailForWrongAction() {
@@ -218,7 +218,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailForWrongAction() {
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed")
-	assert.Equal(s.T(), "This token has not been generated for this kind of action", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Error occurred handling the identity verification token, the token action '' does not match the endpoint action 'EXP_ACTION' which is not allowed", s.mock.Hook.LastEntry().Message)
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailForWrongUser() {
@@ -235,7 +235,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailForWrongUser() {
 	middlewares.IdentityVerificationFinish(args, next)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed")
-	assert.Equal(s.T(), "This token has not been generated for this user", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Error occurred handling the identity verification token, the user is not allowed to use this token", s.mock.Hook.LastEntry().Message)
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenCannotBeRemovedFromDB() {
@@ -254,7 +254,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenCannotBeRemoved
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed")
-	assert.Equal(s.T(), "cannot remove", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Error occurred consuming the identity verification during the validation phase", s.mock.Hook.LastEntry().Message)
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldReturn200OnFinishComplete() {

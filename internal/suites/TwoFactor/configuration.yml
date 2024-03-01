@@ -19,6 +19,10 @@ telemetry:
 log:
   level: debug
 
+identity_validation:
+  reset_password:
+    jwt_secret: 'a_very_important_secret'
+
 authentication_backend:
   file:
     path: /config/users.yml

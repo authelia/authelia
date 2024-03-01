@@ -2,7 +2,7 @@
 title: "Elevated Session"
 description: "Elevated Session Identity Validation Configuration"
 lead: "Authelia uses multiple methods to verify the identity of users to prevent a malicious user from performing actions on behalf of them. This section describes the Elevated Session method."
-date: 2023-12-30T07:23:12+11:00
+date: 2024-03-02T16:18:15+11:00
 draft: false
 images: []
 menu:
@@ -55,7 +55,8 @@ The duration of time that the session elevation lasts after validating the One-T
 
 {{< confkey type="integer" default="8" required="no" >}}
 
-The number of characters the random One-Time Code has.
+The number of characters the random One-Time Code has. Maximum value is currently 20, but we recommend keeping it
+between 8 and 12. It's strongly discouraged to reduce it below 8.
 
 ### require_second_factor
 

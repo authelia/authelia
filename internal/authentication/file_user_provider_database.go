@@ -38,7 +38,7 @@ func NewFileUserDatabase(filePath string, searchEmail, searchCI bool) (database 
 type FileUserDatabase struct {
 	*sync.RWMutex `json:"-"`
 
-	Users map[string]FileUserDatabaseUserDetails `json:"users" jsonschema:"required,title=Users" jsonschema_description:"The dictionary of users"`
+	Users map[string]FileUserDatabaseUserDetails `json:"users" jsonschema:"required,title=Users" jsonschema_description:"The dictionary of users."`
 
 	Path    string            `json:"-"`
 	Emails  map[string]string `json:"-"`
@@ -214,11 +214,11 @@ func (m *FileUserDatabase) ToDatabaseModel() (model *FileDatabaseModel) {
 // FileUserDatabaseUserDetails is the model of user details in the file database.
 type FileUserDatabaseUserDetails struct {
 	Username    string                 `json:"-"`
-	Password    *schema.PasswordDigest `json:"password" jsonschema:"required,title=Password" jsonschema_description:"The hashed password for the user"`
-	DisplayName string                 `json:"displayname" jsonschema:"required,title=Display Name" jsonschema_description:"The display name for the user"`
-	Email       string                 `json:"email" jsonschema:"title=Email" jsonschema_description:"The email for the user"`
-	Groups      []string               `json:"groups" jsonschema:"title=Groups" jsonschema_description:"The groups list for the user"`
-	Disabled    bool                   `json:"disabled" jsonschema:"default=false,title=Disabled" jsonschema_description:"The disabled status for the user"`
+	Password    *schema.PasswordDigest `json:"password" jsonschema:"required,title=Password" jsonschema_description:"The hashed password for the user."`
+	DisplayName string                 `json:"displayname" jsonschema:"required,title=Display Name" jsonschema_description:"The display name for the user."`
+	Email       string                 `json:"email" jsonschema:"title=Email" jsonschema_description:"The email for the user."`
+	Groups      []string               `json:"groups" jsonschema:"title=Groups" jsonschema_description:"The groups list for the user."`
+	Disabled    bool                   `json:"disabled" jsonschema:"default=false,title=Disabled" jsonschema_description:"The disabled status for the user."`
 }
 
 // ToUserDetails converts FileUserDatabaseUserDetails into a *UserDetails given a username.
@@ -243,7 +243,7 @@ func (m FileUserDatabaseUserDetails) ToUserDetailsModel() (model FileDatabaseUse
 
 // FileDatabaseModel is the model of users file database.
 type FileDatabaseModel struct {
-	Users map[string]FileDatabaseUserDetailsModel `yaml:"users" json:"users" valid:"required" jsonschema:"required,title=Users" jsonschema_description:"The dictionary of users"`
+	Users map[string]FileDatabaseUserDetailsModel `yaml:"users" json:"users" valid:"required" jsonschema:"required,title=Users" jsonschema_description:"The dictionary of users."`
 }
 
 // ReadToFileUserDatabase reads the FileDatabaseModel into a FileUserDatabase.

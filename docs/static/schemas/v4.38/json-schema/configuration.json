@@ -13,7 +13,7 @@
             "two_factor"
           ],
           "title": "Default Authorization Policy",
-          "description": "The default policy applied to all authorization requests unrelated to OpenID Connect 1.0",
+          "description": "The default policy applied to all authorization requests unrelated to OpenID Connect 1.0.",
           "default": "deny"
         },
         "networks": {
@@ -22,7 +22,7 @@
           },
           "type": "array",
           "title": "Named Networks",
-          "description": "The list of named networks which can be reused in any ACL rule"
+          "description": "The list of named networks which can be reused in any ACL rule."
         },
         "rules": {
           "items": {
@@ -30,7 +30,7 @@
           },
           "type": "array",
           "title": "Rules List",
-          "description": "The list of ACL rules to enumerate for requests"
+          "description": "The list of ACL rules to enumerate for requests."
         }
       },
       "additionalProperties": false,
@@ -42,12 +42,12 @@
         "name": {
           "type": "string",
           "title": "Network Name",
-          "description": "The name of this network to be used in the networks section of the rules section"
+          "description": "The name of this network to be used in the networks section of the rules section."
         },
         "networks": {
           "$ref": "#/$defs/AccessControlNetworkNetworks",
           "title": "Networks",
-          "description": "The remote IP's or network ranges in CIDR notation that this rule applies to"
+          "description": "The remote IP's or network ranges in CIDR notation that this rule applies to."
         }
       },
       "additionalProperties": false,
@@ -93,12 +93,12 @@
         "domain": {
           "$ref": "#/$defs/AccessControlRuleDomains",
           "title": "Domain Literals",
-          "description": "The literal domains to match the domain against that this rule applies to"
+          "description": "The literal domains to match the domain against that this rule applies to."
         },
         "domain_regex": {
           "$ref": "#/$defs/AccessControlRuleRegex",
           "title": "Domain Regex Patterns",
-          "description": "The regex patterns to match the domain against that this rule applies to"
+          "description": "The regex patterns to match the domain against that this rule applies to."
         },
         "policy": {
           "type": "string",
@@ -109,26 +109,26 @@
             "two_factor"
           ],
           "title": "Rule Policy",
-          "description": "The policy this rule applies when all criteria match"
+          "description": "The policy this rule applies when all criteria match."
         },
         "subject": {
           "$ref": "#/$defs/AccessControlRuleSubjects",
           "title": "AccessControlRuleSubjects",
-          "description": "The users or groups that this rule applies to"
+          "description": "The users or groups that this rule applies to."
         },
         "networks": {
           "$ref": "#/$defs/AccessControlRuleNetworks",
           "title": "Networks",
-          "description": "The remote IP's, network ranges in CIDR notation, or network names that this rule applies to"
+          "description": "The remote IP's, network ranges in CIDR notation, or network names that this rule applies to."
         },
         "resources": {
           "$ref": "#/$defs/AccessControlRuleRegex",
           "title": "Resources or Paths",
-          "description": "The regex patterns to match the resource paths that this rule applies to"
+          "description": "The regex patterns to match the resource paths that this rule applies to."
         },
         "methods": {
           "$ref": "#/$defs/AccessControlRuleMethods",
-          "description": "The list of request methods this rule applies to"
+          "description": "The list of request methods this rule applies to."
         },
         "query": {
           "items": {
@@ -139,7 +139,7 @@
           },
           "type": "array",
           "title": "Query Rules",
-          "description": "The list of query parameter rules this rule applies to"
+          "description": "The list of query parameter rules this rule applies to."
         }
       },
       "additionalProperties": false,
@@ -240,16 +240,16 @@
             "not pattern"
           ],
           "title": "Operator",
-          "description": "The list of query parameter rules this rule applies to"
+          "description": "The list of query parameter rules this rule applies to."
         },
         "key": {
           "type": "string",
           "title": "Key",
-          "description": "The Query Parameter key this rule applies to"
+          "description": "The Query Parameter key this rule applies to."
         },
         "value": {
           "title": "Value",
-          "description": "The Query Parameter value for this rule"
+          "description": "The Query Parameter value for this rule."
         }
       },
       "additionalProperties": false,
@@ -326,22 +326,22 @@
         "password_reset": {
           "$ref": "#/$defs/AuthenticationBackendPasswordReset",
           "title": "Password Reset",
-          "description": "Allows configuration of the password reset behaviour"
+          "description": "Allows configuration of the password reset behaviour."
         },
         "refresh_interval": {
           "$ref": "#/$defs/RefreshIntervalDuration",
           "title": "Refresh Interval",
-          "description": "How frequently the user details are refreshed from the backend"
+          "description": "How frequently the user details are refreshed from the backend."
         },
         "file": {
           "$ref": "#/$defs/AuthenticationBackendFile",
           "title": "File Backend",
-          "description": "The file authentication backend configuration"
+          "description": "The file authentication backend configuration."
         },
         "ldap": {
           "$ref": "#/$defs/AuthenticationBackendLDAP",
           "title": "LDAP Backend",
-          "description": "The LDAP authentication backend configuration"
+          "description": "The LDAP authentication backend configuration."
         }
       },
       "additionalProperties": false,
@@ -353,23 +353,23 @@
         "path": {
           "type": "string",
           "title": "Path",
-          "description": "The file path to the user database"
+          "description": "The file path to the user database."
         },
         "watch": {
           "type": "boolean",
           "title": "Watch",
-          "description": "Enables watching the file for external changes and dynamically reloading the database",
+          "description": "Enables watching the file for external changes and dynamically reloading the database.",
           "default": false
         },
         "password": {
           "$ref": "#/$defs/AuthenticationBackendFilePassword",
           "title": "Password Options",
-          "description": "Allows configuration of the password hashing options when the user passwords are changed directly by Authelia"
+          "description": "Allows configuration of the password hashing options when the user passwords are changed directly by Authelia."
         },
         "search": {
           "$ref": "#/$defs/AuthenticationBackendFileSearch",
           "title": "Search",
-          "description": "Configures the user searching behaviour"
+          "description": "Configures the user searching behaviour."
         }
       },
       "additionalProperties": false,
@@ -388,33 +388,33 @@
             "scrypt"
           ],
           "title": "Algorithm",
-          "description": "The password hashing algorithm to use",
+          "description": "The password hashing algorithm to use.",
           "default": "argon2"
         },
         "argon2": {
           "$ref": "#/$defs/AuthenticationBackendFilePasswordArgon2",
           "title": "Argon2",
-          "description": "Configure the Argon2 password hashing parameters"
+          "description": "Configure the Argon2 password hashing parameters."
         },
         "sha2crypt": {
           "$ref": "#/$defs/AuthenticationBackendFilePasswordSHA2Crypt",
           "title": "SHA2Crypt",
-          "description": "Configure the SHA2Crypt password hashing parameters"
+          "description": "Configure the SHA2Crypt password hashing parameters."
         },
         "pbkdf2": {
           "$ref": "#/$defs/AuthenticationBackendFilePasswordPBKDF2",
           "title": "PBKDF2",
-          "description": "Configure the PBKDF2 password hashing parameters"
+          "description": "Configure the PBKDF2 password hashing parameters."
         },
         "bcrypt": {
           "$ref": "#/$defs/AuthenticationBackendFilePasswordBCrypt",
           "title": "BCrypt",
-          "description": "Configure the BCrypt password hashing parameters"
+          "description": "Configure the BCrypt password hashing parameters."
         },
         "scrypt": {
           "$ref": "#/$defs/AuthenticationBackendFilePasswordSCrypt",
           "title": "SCrypt",
-          "description": "Configure the SCrypt password hashing parameters"
+          "description": "Configure the SCrypt password hashing parameters."
         },
         "iterations": {
           "type": "integer",
@@ -461,13 +461,13 @@
             "argon2d"
           ],
           "title": "Variant",
-          "description": "The Argon2 variant to be used",
+          "description": "The Argon2 variant to be used.",
           "default": "argon2id"
         },
         "iterations": {
           "type": "integer",
           "title": "Iterations",
-          "description": "The number of Argon2 iterations (parameter t) to be used",
+          "description": "The number of Argon2 iterations (parameter t) to be used.",
           "default": 3
         },
         "memory": {
@@ -475,7 +475,7 @@
           "maximum": 4294967295,
           "minimum": 8,
           "title": "Memory",
-          "description": "The Argon2 amount of memory in kibibytes (parameter m) to be used",
+          "description": "The Argon2 amount of memory in kibibytes (parameter m) to be used.",
           "default": 65536
         },
         "parallelism": {
@@ -483,7 +483,7 @@
           "maximum": 16777215,
           "minimum": 1,
           "title": "Parallelism",
-          "description": "The Argon2 degree of parallelism (parameter p) to be used",
+          "description": "The Argon2 degree of parallelism (parameter p) to be used.",
           "default": 4
         },
         "key_length": {
@@ -491,7 +491,7 @@
           "maximum": 2147483647,
           "minimum": 4,
           "title": "Key Length",
-          "description": "The Argon2 key output length",
+          "description": "The Argon2 key output length.",
           "default": 32
         },
         "salt_length": {
@@ -499,7 +499,7 @@
           "maximum": 2147483647,
           "minimum": 1,
           "title": "Salt Length",
-          "description": "The Argon2 salt length",
+          "description": "The Argon2 salt length.",
           "default": 16
         }
       },
@@ -516,7 +516,7 @@
             "sha256"
           ],
           "title": "Variant",
-          "description": "The BCrypt variant to be used",
+          "description": "The BCrypt variant to be used.",
           "default": "standard"
         },
         "cost": {
@@ -524,7 +524,7 @@
           "maximum": 31,
           "minimum": 10,
           "title": "Cost",
-          "description": "The BCrypt cost to be used",
+          "description": "The BCrypt cost to be used.",
           "default": 12
         }
       },
@@ -544,7 +544,7 @@
             "sha512"
           ],
           "title": "Variant",
-          "description": "The PBKDF2 variant to be used",
+          "description": "The PBKDF2 variant to be used.",
           "default": "sha512"
         },
         "iterations": {
@@ -552,7 +552,7 @@
           "maximum": 2147483647,
           "minimum": 100000,
           "title": "Iterations",
-          "description": "The PBKDF2 iterations to be used",
+          "description": "The PBKDF2 iterations to be used.",
           "default": 310000
         },
         "salt_length": {
@@ -560,7 +560,7 @@
           "maximum": 2147483647,
           "minimum": 8,
           "title": "Salt Length",
-          "description": "The PBKDF2 salt length to be used",
+          "description": "The PBKDF2 salt length to be used.",
           "default": 16
         }
       },
@@ -575,7 +575,7 @@
           "maximum": 58,
           "minimum": 1,
           "title": "Iterations",
-          "description": "The SCrypt iterations to be used",
+          "description": "The SCrypt iterations to be used.",
           "default": 16
         },
         "block_size": {
@@ -583,7 +583,7 @@
           "maximum": 36028797018963967,
           "minimum": 1,
           "title": "Key Length",
-          "description": "The SCrypt block size to be used",
+          "description": "The SCrypt block size to be used.",
           "default": 8
         },
         "parallelism": {
@@ -591,7 +591,7 @@
           "maximum": 1073741823,
           "minimum": 1,
           "title": "Key Length",
-          "description": "The SCrypt parallelism factor to be used",
+          "description": "The SCrypt parallelism factor to be used.",
           "default": 1
         },
         "key_length": {
@@ -599,7 +599,7 @@
           "maximum": 137438953440,
           "minimum": 1,
           "title": "Key Length",
-          "description": "The SCrypt key length to be used",
+          "description": "The SCrypt key length to be used.",
           "default": 32
         },
         "salt_length": {
@@ -607,7 +607,7 @@
           "maximum": 1024,
           "minimum": 8,
           "title": "Salt Length",
-          "description": "The SCrypt salt length to be used",
+          "description": "The SCrypt salt length to be used.",
           "default": 16
         }
       },
@@ -624,7 +624,7 @@
             "sha512"
           ],
           "title": "Variant",
-          "description": "The SHA2Crypt variant to be used",
+          "description": "The SHA2Crypt variant to be used.",
           "default": "sha512"
         },
         "iterations": {
@@ -632,7 +632,7 @@
           "maximum": 999999999,
           "minimum": 1000,
           "title": "Iterations",
-          "description": "The SHA2Crypt iterations (parameter rounds) to be used",
+          "description": "The SHA2Crypt iterations (parameter rounds) to be used.",
           "default": 50000
         },
         "salt_length": {
@@ -640,7 +640,7 @@
           "maximum": 16,
           "minimum": 1,
           "title": "Salt Length",
-          "description": "The SHA2Crypt salt length to be used",
+          "description": "The SHA2Crypt salt length to be used.",
           "default": 16
         }
       },
@@ -653,13 +653,13 @@
         "email": {
           "type": "boolean",
           "title": "Email Searching",
-          "description": "Allows users to either use their username or their configured email as a username",
+          "description": "Allows users to either use their username or their configured email as a username.",
           "default": false
         },
         "case_insensitive": {
           "type": "boolean",
           "title": "Case Insensitive Searching",
-          "description": "Allows usernames to be any case during the search",
+          "description": "Allows usernames to be any case during the search.",
           "default": false
         }
       },
@@ -672,7 +672,7 @@
         "address": {
           "$ref": "#/$defs/AddressLDAP",
           "title": "Address",
-          "description": "The address of the LDAP directory server"
+          "description": "The address of the LDAP directory server."
         },
         "implementation": {
           "type": "string",
@@ -685,7 +685,7 @@
             "glauth"
           ],
           "title": "Implementation",
-          "description": "The implementation which mostly decides the default values",
+          "description": "The implementation which mostly decides the default values.",
           "default": "custom"
         },
         "timeout": {
@@ -700,43 +700,43 @@
             }
           ],
           "title": "Timeout",
-          "description": "The LDAP directory server connection timeout"
+          "description": "The LDAP directory server connection timeout."
         },
         "start_tls": {
           "type": "boolean",
           "title": "StartTLS",
-          "description": "Enables the use of StartTLS",
+          "description": "Enables the use of StartTLS.",
           "default": false
         },
         "tls": {
           "$ref": "#/$defs/TLS",
           "title": "TLS",
-          "description": "The LDAP directory server TLS connection properties"
+          "description": "The LDAP directory server TLS connection properties."
         },
         "base_dn": {
           "type": "string",
           "title": "Base DN",
-          "description": "The base for all directory server operations"
+          "description": "The base for all directory server operations."
         },
         "additional_users_dn": {
           "type": "string",
           "title": "Additional User Base",
-          "description": "The base in addition to the Base DN for all directory server operations for users"
+          "description": "The base in addition to the Base DN for all directory server operations for users."
         },
         "users_filter": {
           "type": "string",
           "title": "Users Filter",
-          "description": "The LDAP filter used to search for user objects"
+          "description": "The LDAP filter used to search for user objects."
         },
         "additional_groups_dn": {
           "type": "string",
           "title": "Additional Group Base",
-          "description": "The base in addition to the Base DN for all directory server operations for groups"
+          "description": "The base in addition to the Base DN for all directory server operations for groups."
         },
         "groups_filter": {
           "type": "string",
           "title": "Groups Filter",
-          "description": "The LDAP filter used to search for group objects"
+          "description": "The LDAP filter used to search for group objects."
         },
         "group_search_mode": {
           "type": "string",
@@ -745,7 +745,7 @@
             "memberof"
           ],
           "title": "Groups Search Mode",
-          "description": "The LDAP group search mode used to search for group objects",
+          "description": "The LDAP group search mode used to search for group objects.",
           "default": "filter"
         },
         "attributes": {
@@ -754,30 +754,30 @@
         "permit_referrals": {
           "type": "boolean",
           "title": "Permit Referrals",
-          "description": "Enables chasing LDAP referrals",
+          "description": "Enables chasing LDAP referrals.",
           "default": false
         },
         "permit_unauthenticated_bind": {
           "type": "boolean",
           "title": "Permit Unauthenticated Bind",
-          "description": "Enables omission of the password to perform an unauthenticated bind",
+          "description": "Enables omission of the password to perform an unauthenticated bind.",
           "default": false
         },
         "permit_feature_detection_failure": {
           "type": "boolean",
           "title": "Permit Feature Detection Failure",
-          "description": "Enables failures when detecting directory server features using the Root DSE lookup",
+          "description": "Enables failures when detecting directory server features using the Root DSE lookup.",
           "default": false
         },
         "user": {
           "type": "string",
           "title": "User",
-          "description": "The user distinguished name for LDAP binding"
+          "description": "The user distinguished name for LDAP binding."
         },
         "password": {
           "type": "string",
           "title": "Password",
-          "description": "The password for LDAP authenticated binding"
+          "description": "The password for LDAP authenticated binding."
         }
       },
       "additionalProperties": false,
@@ -789,32 +789,32 @@
         "distinguished_name": {
           "type": "string",
           "title": "Attribute: Distinguished Name",
-          "description": "The directory server attribute which contains the distinguished name for all objects"
+          "description": "The directory server attribute which contains the distinguished name for all objects."
         },
         "username": {
           "type": "string",
           "title": "Attribute: User Username",
-          "description": "The directory server attribute which contains the username for all users"
+          "description": "The directory server attribute which contains the username for all users."
         },
         "display_name": {
           "type": "string",
           "title": "Attribute: User Display Name",
-          "description": "The directory server attribute which contains the display name for all users"
+          "description": "The directory server attribute which contains the display name for all users."
         },
         "mail": {
           "type": "string",
           "title": "Attribute: User Mail",
-          "description": "The directory server attribute which contains the mail address for all users and groups"
+          "description": "The directory server attribute which contains the mail address for all users and groups."
         },
         "MemberOf": {
           "type": "string",
           "title": "Attribute: Member Of",
-          "description": "The directory server attribute which contains the objects that an object is a member of"
+          "description": "The directory server attribute which contains the objects that an object is a member of."
         },
         "group_name": {
           "type": "string",
           "title": "Attribute: Group Name",
-          "description": "The directory server attribute which contains the group name for all groups"
+          "description": "The directory server attribute which contains the group name for all groups."
         }
       },
       "additionalProperties": false,
@@ -826,14 +826,14 @@
         "disable": {
           "type": "boolean",
           "title": "Disable",
-          "description": "Disables the Password Reset option",
+          "description": "Disables the Password Reset option.",
           "default": false
         },
         "custom_url": {
           "type": "string",
           "format": "uri",
           "title": "Custom URL",
-          "description": "Disables the internal Password Reset option and instead redirects users to this specified URL"
+          "description": "Disables the internal Password Reset option and instead redirects users to this specified URL."
         }
       },
       "additionalProperties": false,
@@ -851,13 +851,13 @@
             "grey"
           ],
           "title": "Theme Name",
-          "description": "The name of the theme to apply to the web UI",
+          "description": "The name of the theme to apply to the web UI.",
           "default": "light"
         },
         "certificates_directory": {
           "type": "string",
           "title": "Certificates Directory Path",
-          "description": "The path to a directory which is used to determine the certificates that are trusted"
+          "description": "The path to a directory which is used to determine the certificates that are trusted."
         },
         "default_2fa_method": {
           "type": "string",
@@ -867,92 +867,92 @@
             "mobile_push"
           ],
           "title": "Default 2FA method",
-          "description": "When a user logs in for the first time this is the 2FA method configured for them"
+          "description": "When a user logs in for the first time this is the 2FA method configured for them."
         },
         "log": {
           "$ref": "#/$defs/Log",
           "title": "Log",
-          "description": "Logging Configuration"
+          "description": "Logging Configuration."
         },
         "identity_providers": {
           "$ref": "#/$defs/IdentityProviders",
           "title": "Identity Providers",
-          "description": "Identity Providers Configuration"
+          "description": "Identity Providers Configuration."
         },
         "authentication_backend": {
           "$ref": "#/$defs/AuthenticationBackend",
           "title": "Authentication Backend",
-          "description": "Authentication Backend Configuration"
+          "description": "Authentication Backend Configuration."
         },
         "session": {
           "$ref": "#/$defs/Session",
           "title": "Session",
-          "description": "Session Configuration"
+          "description": "Session Configuration."
         },
         "totp": {
           "$ref": "#/$defs/TOTP",
           "title": "TOTP",
-          "description": "Time-based One-Time Password Configuration"
+          "description": "Time-based One-Time Password Configuration."
         },
         "duo_api": {
           "$ref": "#/$defs/DuoAPI",
           "title": "Duo API",
-          "description": "Duo API Configuration"
+          "description": "Duo API Configuration."
         },
         "access_control": {
           "$ref": "#/$defs/AccessControl",
           "title": "Access Control",
-          "description": "Access Control Configuration"
+          "description": "Access Control Configuration."
         },
         "ntp": {
           "$ref": "#/$defs/NTP",
           "title": "NTP",
-          "description": "Network Time Protocol Configuration"
+          "description": "Network Time Protocol Configuration."
         },
         "regulation": {
           "$ref": "#/$defs/Regulation",
           "title": "Regulation",
-          "description": "Regulation Configuration"
+          "description": "Regulation Configuration."
         },
         "storage": {
           "$ref": "#/$defs/Storage",
           "title": "Storage",
-          "description": "Storage Configuration"
+          "description": "Storage Configuration."
         },
         "notifier": {
           "$ref": "#/$defs/Notifier",
           "title": "Notifier",
-          "description": "Notifier Configuration"
+          "description": "Notifier Configuration."
         },
         "server": {
           "$ref": "#/$defs/Server",
           "title": "Server",
-          "description": "Server Configuration"
+          "description": "Server Configuration."
         },
         "telemetry": {
           "$ref": "#/$defs/Telemetry",
           "title": "Telemetry",
-          "description": "Telemetry Configuration"
+          "description": "Telemetry Configuration."
         },
         "webauthn": {
           "$ref": "#/$defs/WebAuthn",
           "title": "WebAuthn",
-          "description": "WebAuthn Configuration"
+          "description": "WebAuthn Configuration."
         },
         "password_policy": {
           "$ref": "#/$defs/PasswordPolicy",
           "title": "Password Policy",
-          "description": "Password Policy Configuration"
+          "description": "Password Policy Configuration."
         },
         "privacy_policy": {
           "$ref": "#/$defs/PrivacyPolicy",
           "title": "Privacy Policy",
-          "description": "Privacy Policy Configuration"
+          "description": "Privacy Policy Configuration."
         },
         "identity_validation": {
           "$ref": "#/$defs/IdentityValidation",
           "title": "Identity Validation",
-          "description": "Identity Validation Configuration"
+          "description": "Identity Validation Configuration."
         },
         "default_redirection_url": {
           "type": "string",
@@ -971,29 +971,29 @@
         "disable": {
           "type": "boolean",
           "title": "Disable",
-          "description": "Disable the Duo API integration",
+          "description": "Disable the Duo API integration.",
           "default": false
         },
         "hostname": {
           "type": "string",
           "format": "hostname",
           "title": "Hostname",
-          "description": "The Hostname provided by your Duo API dashboard"
+          "description": "The Hostname provided by your Duo API dashboard."
         },
         "integration_key": {
           "type": "string",
           "title": "Integration Key",
-          "description": "The Integration Key provided by your Duo API dashboard"
+          "description": "The Integration Key provided by your Duo API dashboard."
         },
         "secret_key": {
           "type": "string",
           "title": "Secret Key",
-          "description": "The Secret Key provided by your Duo API dashboard"
+          "description": "The Secret Key provided by your Duo API dashboard."
         },
         "enable_self_enrollment": {
           "type": "boolean",
           "title": "Enable Self Enrollment",
-          "description": "Enable the Self Enrollment flow",
+          "description": "Enable the Self Enrollment flow.",
           "default": false
         }
       },
@@ -1016,7 +1016,7 @@
         "hmac_secret": {
           "type": "string",
           "title": "HMAC Secret",
-          "description": "The HMAC Secret used to sign Access Tokens"
+          "description": "The HMAC Secret used to sign Access Tokens."
         },
         "issuer_private_keys": {
           "items": {
@@ -1024,29 +1024,29 @@
           },
           "type": "array",
           "title": "Issuer Private Keys",
-          "description": "The Private Keys used to sign ID Tokens"
+          "description": "The Private Keys used to sign ID Tokens."
         },
         "issuer_certificate_chain": {
           "$ref": "#/$defs/X509CertificateChain",
           "title": "Issuer Certificate Chain",
-          "description": "The Issuer Certificate Chain with an RSA Public Key used to sign ID Tokens"
+          "description": "The Issuer Certificate Chain with an RSA Public Key used to sign ID Tokens."
         },
         "issuer_private_key": {
           "type": "string",
           "title": "Issuer Private Key",
-          "description": "The Issuer Private Key with an RSA Private Key used to sign ID Tokens"
+          "description": "The Issuer Private Key with an RSA Private Key used to sign ID Tokens."
         },
         "enable_client_debug_messages": {
           "type": "boolean",
           "title": "Enable Client Debug Messages",
-          "description": "Enables additional debug messages for clients",
+          "description": "Enables additional debug messages for clients.",
           "default": false
         },
         "minimum_parameter_entropy": {
           "type": "integer",
           "minimum": -1,
           "title": "Minimum Parameter Entropy",
-          "description": "The minimum entropy of the nonce parameter",
+          "description": "The minimum entropy of the nonce parameter.",
           "default": 8
         },
         "enforce_pkce": {
@@ -1057,29 +1057,29 @@
             "always"
           ],
           "title": "Enforce PKCE",
-          "description": "Controls enforcement of the use of Proof Key for Code Exchange on all clients",
+          "description": "Controls enforcement of the use of Proof Key for Code Exchange on all clients.",
           "default": "public_clients_only"
         },
         "enable_pkce_plain_challenge": {
           "type": "boolean",
           "title": "Enable PKCE Plain Challenge",
-          "description": "Enables use of the discouraged plain Proof Key for Code Exchange challenges",
+          "description": "Enables use of the discouraged plain Proof Key for Code Exchange challenges.",
           "default": false
         },
         "enable_jwt_access_token_stateless_introspection": {
           "type": "boolean",
           "title": "Enable JWT Access Token Stateless Introspection",
-          "description": "Allows the use of stateless introspection of JWT Access Tokens which is not recommended"
+          "description": "Allows the use of stateless introspection of JWT Access Tokens which is not recommended."
         },
         "pushed_authorizations": {
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectPAR",
           "title": "Pushed Authorizations",
-          "description": "Configuration options for Pushed Authorization Requests"
+          "description": "Configuration options for Pushed Authorization Requests."
         },
         "cors": {
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectCORS",
           "title": "CORS",
-          "description": "Configuration options for Cross-Origin Request Sharing"
+          "description": "Configuration options for Cross-Origin Request Sharing."
         },
         "clients": {
           "items": {
@@ -1087,7 +1087,7 @@
           },
           "type": "array",
           "title": "Clients",
-          "description": "OpenID Connect 1.0 clients registry"
+          "description": "OpenID Connect 1.0 clients registry."
         },
         "authorization_policies": {
           "patternProperties": {
@@ -1097,12 +1097,12 @@
           },
           "type": "object",
           "title": "Authorization Policies",
-          "description": "Custom client authorization policies"
+          "description": "Custom client authorization policies."
         },
         "lifespans": {
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespans",
           "title": "Lifespans",
-          "description": "Token lifespans configuration"
+          "description": "Token lifespans configuration."
         }
       },
       "additionalProperties": false,
@@ -1126,7 +1126,7 @@
           "type": "array",
           "uniqueItems": true,
           "title": "Endpoints",
-          "description": "List of endpoints to enable CORS handling for"
+          "description": "List of endpoints to enable CORS handling for."
         },
         "allowed_origins": {
           "items": {
@@ -1135,12 +1135,12 @@
           },
           "type": "array",
           "title": "Allowed Origins",
-          "description": "List of arbitrary allowed origins for CORS requests"
+          "description": "List of arbitrary allowed origins for CORS requests."
         },
         "allowed_origins_from_client_redirect_uris": {
           "type": "boolean",
           "title": "Allowed Origins From Client Redirect URIs",
-          "description": "Automatically include the redirect URIs from the registered clients",
+          "description": "Automatically include the redirect URIs from the registered clients.",
           "default": false
         }
       },
@@ -1154,34 +1154,34 @@
           "type": "string",
           "minLength": 1,
           "title": "ID",
-          "description": "The Client ID"
+          "description": "The Client ID."
         },
         "description": {
           "type": "string",
           "title": "Description",
-          "description": "The Client Description for End-Users"
+          "description": "The Client Description for End-Users."
         },
         "secret": {
           "$ref": "#/$defs/PasswordDigest",
           "title": "Secret",
-          "description": "The Client Secret for Client Authentication"
+          "description": "The Client Secret for Client Authentication."
         },
         "sector_identifier": {
           "type": "string",
           "format": "uri",
           "title": "Sector Identifier",
-          "description": "The Client Sector Identifier for Privacy Isolation"
+          "description": "The Client Sector Identifier for Privacy Isolation."
         },
         "public": {
           "type": "boolean",
           "title": "Public",
-          "description": "Enables the Public Client Type",
+          "description": "Enables the Public Client Type.",
           "default": false
         },
         "redirect_uris": {
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectClientRedirectURIs",
           "title": "Redirect URIs",
-          "description": "List of authorized redirect URIs"
+          "description": "List of authorized redirect URIs."
         },
         "audience": {
           "items": {
@@ -1190,7 +1190,7 @@
           "type": "array",
           "uniqueItems": true,
           "title": "Audience",
-          "description": "List of authorized audiences"
+          "description": "List of authorized audiences."
         },
         "scopes": {
           "items": {
@@ -1206,7 +1206,7 @@
           "type": "array",
           "uniqueItems": true,
           "title": "Scopes",
-          "description": "The Scopes this client is allowed request and be granted"
+          "description": "The Scopes this client is allowed request and be granted."
         },
         "grant_types": {
           "items": {
@@ -1220,7 +1220,7 @@
           "type": "array",
           "uniqueItems": true,
           "title": "Grant Types",
-          "description": "The Grant Types this client is allowed to use for the protected endpoints"
+          "description": "The Grant Types this client is allowed to use for the protected endpoints."
         },
         "response_types": {
           "items": {
@@ -1238,7 +1238,7 @@
           "type": "array",
           "uniqueItems": true,
           "title": "Response Types",
-          "description": "The Response Types the client is authorized to request"
+          "description": "The Response Types the client is authorized to request."
         },
         "response_modes": {
           "items": {
@@ -1252,17 +1252,17 @@
           "type": "array",
           "uniqueItems": true,
           "title": "Response Modes",
-          "description": "The Response Modes this client is authorized request"
+          "description": "The Response Modes this client is authorized request."
         },
         "authorization_policy": {
           "type": "string",
           "title": "Authorization Policy",
-          "description": "The Authorization Policy to apply to this client"
+          "description": "The Authorization Policy to apply to this client."
         },
         "lifespan": {
           "type": "string",
           "title": "Lifespan Name",
-          "description": "The name of the custom lifespan to utilize for this client"
+          "description": "The name of the custom lifespan to utilize for this client."
         },
         "requested_audience_mode": {
           "type": "string",
@@ -1271,7 +1271,7 @@
             "implicit"
           ],
           "title": "Requested Audience Mode",
-          "description": "The Requested Audience Mode used for this client"
+          "description": "The Requested Audience Mode used for this client."
         },
         "consent_mode": {
           "type": "string",
@@ -1282,7 +1282,7 @@
             "pre-configured"
           ],
           "title": "Consent Mode",
-          "description": "The Consent Mode used for this client"
+          "description": "The Consent Mode used for this client."
         },
         "pre_configured_consent_duration": {
           "oneOf": [
@@ -1296,18 +1296,18 @@
             }
           ],
           "title": "Pre-Configured Consent Duration",
-          "description": "The Pre-Configured Consent Duration when using Consent Mode pre-configured for this client"
+          "description": "The Pre-Configured Consent Duration when using Consent Mode pre-configured for this client."
         },
         "enforce_par": {
           "type": "boolean",
           "title": "Enforce PAR",
-          "description": "Enforces Pushed Authorization Requests for this client",
+          "description": "Enforces Pushed Authorization Requests for this client.",
           "default": false
         },
         "enforce_pkce": {
           "type": "boolean",
           "title": "Enforce PKCE",
-          "description": "Enforces Proof Key for Code Exchange for this client",
+          "description": "Enforces Proof Key for Code Exchange for this client.",
           "default": false
         },
         "pkce_challenge_method": {
@@ -1317,7 +1317,7 @@
             "S256"
           ],
           "title": "PKCE Challenge Method",
-          "description": "The PKCE Challenge Method enforced on this client"
+          "description": "The PKCE Challenge Method enforced on this client."
         },
         "authorization_signed_response_alg": {
           "type": "string",
@@ -1334,13 +1334,13 @@
             "PS512"
           ],
           "title": "Authorization Response Signing Algorithm",
-          "description": "The Authorization Endpoint Signing Algorithm this client uses",
+          "description": "The Authorization Endpoint Signing Algorithm this client uses.",
           "default": "none"
         },
         "authorization_signed_response_key_id": {
           "type": "string",
           "title": "Authorization Response Signing Key ID",
-          "description": "The Key ID this client uses to sign the Authorization responses (overrides the 'authorization_signed_response_alg')"
+          "description": "The Key ID this client uses to sign the Authorization responses (overrides the 'authorization_signed_response_alg')."
         },
         "id_token_signed_response_alg": {
           "type": "string",
@@ -1356,13 +1356,13 @@
             "PS512"
           ],
           "title": "ID Token Signing Algorithm",
-          "description": "The algorithm (JWA) this client uses to sign ID Tokens",
+          "description": "The algorithm (JWA) this client uses to sign ID Tokens.",
           "default": "RS256"
         },
         "id_token_signed_response_key_id": {
           "type": "string",
           "title": "ID Token Signing Key ID",
-          "description": "The Key ID this client uses to sign ID Tokens (overrides the 'id_token_signing_alg')"
+          "description": "The Key ID this client uses to sign ID Tokens (overrides the 'id_token_signing_alg')."
         },
         "access_token_signed_response_alg": {
           "type": "string",
@@ -1379,13 +1379,13 @@
             "PS512"
           ],
           "title": "Access Token Signing Algorithm",
-          "description": "The algorithm (JWA) this client uses to sign Access Tokens",
+          "description": "The algorithm (JWA) this client uses to sign Access Tokens.",
           "default": "none"
         },
         "access_token_signed_response_key_id": {
           "type": "string",
           "title": "Access Token Signing Key ID",
-          "description": "The Key ID this client uses to sign Access Tokens (overrides the 'access_token_signed_response_alg')"
+          "description": "The Key ID this client uses to sign Access Tokens (overrides the 'access_token_signed_response_alg')."
         },
         "userinfo_signed_response_alg": {
           "type": "string",
@@ -1402,13 +1402,13 @@
             "PS512"
           ],
           "title": "UserInfo Response Signing Algorithm",
-          "description": "The UserInfo Endpoint Signing Algorithm this client uses",
+          "description": "The UserInfo Endpoint Signing Algorithm this client uses.",
           "default": "none"
         },
         "userinfo_signed_response_key_id": {
           "type": "string",
           "title": "UserInfo Response Signing Key ID",
-          "description": "The Key ID this client uses to sign the UserInfo responses (overrides the 'userinfo_signed_response_alg')"
+          "description": "The Key ID this client uses to sign the UserInfo responses (overrides the 'userinfo_signed_response_alg')."
         },
         "introspection_signed_response_alg": {
           "type": "string",
@@ -1425,13 +1425,13 @@
             "PS512"
           ],
           "title": "Introspection Response Signing Algorithm",
-          "description": "The Introspection Endpoint Signing Algorithm this client uses",
+          "description": "The Introspection Endpoint Signing Algorithm this client uses.",
           "default": "none"
         },
         "introspection_signed_response_key_id": {
           "type": "string",
           "title": "Introspection Response Signing Key ID",
-          "description": "The Key ID this client uses to sign the Introspection responses (overrides the 'introspection_signed_response_alg')"
+          "description": "The Key ID this client uses to sign the Introspection responses (overrides the 'introspection_signed_response_alg')."
         },
         "request_object_signing_alg": {
           "type": "string",
@@ -1447,7 +1447,7 @@
             "PS512"
           ],
           "title": "Request Object Signing Algorithm",
-          "description": "The Request Object Signing Algorithm the provider accepts for this client"
+          "description": "The Request Object Signing Algorithm the provider accepts for this client."
         },
         "token_endpoint_auth_signing_alg": {
           "type": "string",
@@ -1466,7 +1466,7 @@
             "PS512"
           ],
           "title": "Token Endpoint Auth Signing Algorithm",
-          "description": "The Token Endpoint Auth Signing Algorithm the provider accepts for this client"
+          "description": "The Token Endpoint Auth Signing Algorithm the provider accepts for this client."
         },
         "token_endpoint_auth_method": {
           "type": "string",
@@ -1478,12 +1478,12 @@
             "client_secret_jwt"
           ],
           "title": "Token Endpoint Auth Method",
-          "description": "The Token Endpoint Auth Method enforced by the provider for this client"
+          "description": "The Token Endpoint Auth Method enforced by the provider for this client."
         },
         "public_keys": {
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectClientPublicKeys",
           "title": "Public Keys",
-          "description": "Public Key options used to validate request objects and the 'private_key_jwt' client authentication method for this client"
+          "description": "Public Key options used to validate request objects and the 'private_key_jwt' client authentication method for this client."
         }
       },
       "additionalProperties": false,
@@ -1515,7 +1515,7 @@
           "type": "string",
           "format": "uri",
           "title": "URI",
-          "description": "URI of the JWKS endpoint which contains the Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client"
+          "description": "URI of the JWKS endpoint which contains the Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client."
         },
         "values": {
           "items": {
@@ -1523,7 +1523,7 @@
           },
           "type": "array",
           "title": "Values",
-          "description": "List of arbitrary Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client"
+          "description": "List of arbitrary Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client."
         }
       },
       "additionalProperties": false,
@@ -1560,7 +1560,7 @@
             }
           ],
           "title": "Access Token Lifespan",
-          "description": "The duration an Access Token is valid for"
+          "description": "The duration an Access Token is valid for."
         },
         "authorize_code": {
           "oneOf": [
@@ -1574,7 +1574,7 @@
             }
           ],
           "title": "Authorize Code Lifespan",
-          "description": "The duration an Authorization Code is valid for"
+          "description": "The duration an Authorization Code is valid for."
         },
         "id_token": {
           "oneOf": [
@@ -1588,7 +1588,7 @@
             }
           ],
           "title": "ID Token Lifespan",
-          "description": "The duration an ID Token is valid for"
+          "description": "The duration an ID Token is valid for."
         },
         "refresh_token": {
           "oneOf": [
@@ -1602,12 +1602,12 @@
             }
           ],
           "title": "Refresh Token Lifespan",
-          "description": "The duration a Refresh Token is valid for"
+          "description": "The duration a Refresh Token is valid for."
         },
         "grants": {
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanGrants",
           "title": "Grant Types",
-          "description": "Allows tuning the token lifespans for individual grant types"
+          "description": "Allows tuning the token lifespans for individual grant types."
         }
       },
       "additionalProperties": false,
@@ -1619,27 +1619,27 @@
         "authorize_code": {
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanToken",
           "title": "Authorize Code Grant",
-          "description": "Allows tuning the token lifespans for the authorize code grant"
+          "description": "Allows tuning the token lifespans for the authorize code grant."
         },
         "implicit": {
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanToken",
           "title": "Implicit Grant",
-          "description": "Allows tuning the token lifespans for the implicit flow and grant"
+          "description": "Allows tuning the token lifespans for the implicit flow and grant."
         },
         "client_credentials": {
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanToken",
           "title": "Client Credentials Grant",
-          "description": "Allows tuning the token lifespans for the client credentials grant"
+          "description": "Allows tuning the token lifespans for the client credentials grant."
         },
         "refresh_token": {
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanToken",
           "title": "Refresh Token Grant",
-          "description": "Allows tuning the token lifespans for the refresh token grant"
+          "description": "Allows tuning the token lifespans for the refresh token grant."
         },
         "jwt_bearer": {
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanToken",
           "title": "JWT Bearer Grant",
-          "description": "Allows tuning the token lifespans for the JWT bearer grant"
+          "description": "Allows tuning the token lifespans for the JWT bearer grant."
         }
       },
       "additionalProperties": false,
@@ -1660,7 +1660,7 @@
             }
           ],
           "title": "Access Token Lifespan",
-          "description": "The duration an Access Token is valid for"
+          "description": "The duration an Access Token is valid for."
         },
         "authorize_code": {
           "oneOf": [
@@ -1674,7 +1674,7 @@
             }
           ],
           "title": "Authorize Code Lifespan",
-          "description": "The duration an Authorization Code is valid for"
+          "description": "The duration an Authorization Code is valid for."
         },
         "id_token": {
           "oneOf": [
@@ -1688,7 +1688,7 @@
             }
           ],
           "title": "ID Token Lifespan",
-          "description": "The duration an ID Token is valid for"
+          "description": "The duration an ID Token is valid for."
         },
         "refresh_token": {
           "oneOf": [
@@ -1702,7 +1702,7 @@
             }
           ],
           "title": "Refresh Token Lifespan",
-          "description": "The duration a Refresh Token is valid for"
+          "description": "The duration a Refresh Token is valid for."
         }
       },
       "additionalProperties": false,
@@ -1723,7 +1723,7 @@
             }
           ],
           "title": "Access Token Lifespan",
-          "description": "The duration an Access Token is valid for"
+          "description": "The duration an Access Token is valid for."
         },
         "authorize_code": {
           "oneOf": [
@@ -1737,7 +1737,7 @@
             }
           ],
           "title": "Authorize Code Lifespan",
-          "description": "The duration an Authorization Code is valid for"
+          "description": "The duration an Authorization Code is valid for."
         },
         "id_token": {
           "oneOf": [
@@ -1751,7 +1751,7 @@
             }
           ],
           "title": "ID Token Lifespan",
-          "description": "The duration an ID Token is valid for"
+          "description": "The duration an ID Token is valid for."
         },
         "refresh_token": {
           "oneOf": [
@@ -1765,7 +1765,7 @@
             }
           ],
           "title": "Refresh Token Lifespan",
-          "description": "The duration a Refresh Token is valid for"
+          "description": "The duration a Refresh Token is valid for."
         },
         "jwt_secured_authorization": {
           "oneOf": [
@@ -1779,7 +1779,7 @@
             }
           ],
           "title": "JARM",
-          "description": "Allows tuning the token lifespan for the JWT Secured Authorization Response Mode (JARM)"
+          "description": "Allows tuning the token lifespan for the JWT Secured Authorization Response Mode (JARM)."
         },
         "custom": {
           "patternProperties": {
@@ -1789,7 +1789,7 @@
           },
           "type": "object",
           "title": "Custom Lifespans",
-          "description": "Allows creating custom lifespans to be used by individual clients"
+          "description": "Allows creating custom lifespans to be used by individual clients."
         }
       },
       "additionalProperties": false,
@@ -1800,7 +1800,7 @@
         "enforce": {
           "type": "boolean",
           "title": "Enforce",
-          "description": "Enforce the use of PAR for all requests on all clients",
+          "description": "Enforce the use of PAR for all requests on all clients.",
           "default": false
         },
         "context_lifespan": {
@@ -1815,7 +1815,7 @@
             }
           ],
           "title": "Context Lifespan",
-          "description": "How long a PAR context is valid for"
+          "description": "How long a PAR context is valid for."
         }
       },
       "additionalProperties": false,
@@ -1832,7 +1832,7 @@
             "deny"
           ],
           "title": "Default Policy",
-          "description": "The default policy action for this policy"
+          "description": "The default policy action for this policy."
         },
         "rules": {
           "items": {
@@ -1840,7 +1840,7 @@
           },
           "type": "array",
           "title": "Rules",
-          "description": "The list of rules for this policy"
+          "description": "The list of rules for this policy."
         }
       },
       "additionalProperties": false,
@@ -1857,12 +1857,12 @@
             "deny"
           ],
           "title": "Policy",
-          "description": "The policy to apply to this rule"
+          "description": "The policy to apply to this rule."
         },
         "subject": {
           "$ref": "#/$defs/AccessControlRuleSubjects",
           "title": "Subject",
-          "description": "Allows tuning the token lifespans for the authorize code grant"
+          "description": "Allows tuning the token lifespans for the authorize code grant."
         }
       },
       "additionalProperties": false,
@@ -1874,12 +1874,12 @@
         "reset_password": {
           "$ref": "#/$defs/IdentityValidationResetPassword",
           "title": "Reset Password",
-          "description": "Identity Validation options for the Reset Password flow"
+          "description": "Identity Validation options for the Reset Password flow."
         },
         "elevated_session": {
           "$ref": "#/$defs/IdentityValidationElevatedSession",
           "title": "Elevated Session",
-          "description": "Identity Validation options for obtaining an Elevated Session for flows such as the Credential Management flows"
+          "description": "Identity Validation options for obtaining an Elevated Session for flows such as the Credential Management flows."
         }
       },
       "additionalProperties": false,
@@ -1900,7 +1900,7 @@
             }
           ],
           "title": "Expiration",
-          "description": "Duration of time the OTP code is considered valid"
+          "description": "Duration of time the OTP code is considered valid."
         },
         "elevation_expiration": {
           "oneOf": [
@@ -1914,26 +1914,26 @@
             }
           ],
           "title": "Elevation Expiration",
-          "description": "Duration of time the elevation can exist for after the user performs the validation"
+          "description": "Duration of time the elevation can exist for after the user performs the validation."
         },
         "otp_characters": {
           "type": "integer",
           "maximum": 12,
           "minimum": 6,
           "title": "OTP Characters",
-          "description": "Number of characters in the generated OTP codes",
+          "description": "Number of characters in the generated OTP codes.",
           "default": 8
         },
         "require_second_factor": {
           "type": "boolean",
           "title": "Require Second Factor",
-          "description": "Requires the user use a second factor if they have any known second factor methods",
+          "description": "Requires the user use a second factor if they have any known second factor methods.",
           "default": false
         },
         "skip_second_factor": {
           "type": "boolean",
           "title": "Skip Second Factor",
-          "description": "Skips the primary identity verification process if the user has authenticated with a second factor",
+          "description": "Skips the primary identity verification process if the user has authenticated with a second factor.",
           "default": false
         }
       },
@@ -1955,7 +1955,7 @@
             }
           ],
           "title": "Expiration",
-          "description": "Duration of time the JWT is considered valid"
+          "description": "Duration of time the JWT is considered valid."
         },
         "jwt_algorithm": {
           "type": "string",
@@ -1965,13 +1965,13 @@
             "HS512"
           ],
           "title": "JWT Algorithm",
-          "description": "The JWT Algorithm (JWA) used to sign the Reset Password flow JWT's'",
+          "description": "The JWT Algorithm (JWA) used to sign the Reset Password flow JWT's.",
           "default": "HS256"
         },
         "jwt_secret": {
           "type": "string",
           "title": "JWT Secret",
-          "description": "The JWT secret used to sign the Reset Password flow JWT's"
+          "description": "The JWT secret used to sign the Reset Password flow JWT's."
         }
       },
       "additionalProperties": false,
@@ -1984,7 +1984,7 @@
           "type": "string",
           "maxLength": 100,
           "title": "Key ID",
-          "description": "The ID of this JWK"
+          "description": "The ID of this JWK."
         },
         "use": {
           "type": "string",
@@ -1992,7 +1992,7 @@
             "sig"
           ],
           "title": "Use",
-          "description": "The Use of this JWK",
+          "description": "The Use of this JWK.",
           "default": "sig"
         },
         "algorithm": {
@@ -2012,16 +2012,16 @@
             "PS512"
           ],
           "title": "Algorithm",
-          "description": "The Algorithm of this JWK"
+          "description": "The Algorithm of this JWK."
         },
         "key": {
           "type": "string",
-          "description": "The Private/Public key material of this JWK in Base64 PEM format"
+          "description": "The Private/Public key material of this JWK in Base64 PEM format."
         },
         "certificate_chain": {
           "$ref": "#/$defs/X509CertificateChain",
           "title": "Certificate Chain",
-          "description": "The optional associated certificate which matches the Key public key portion for this JWK"
+          "description": "The optional associated certificate which matches the Key public key portion for this JWK."
         }
       },
       "additionalProperties": false,
@@ -2040,7 +2040,7 @@
             "trace"
           ],
           "title": "Level",
-          "description": "The minimum Level a Log message must be before it's added to the log'"
+          "description": "The minimum Level a Log message must be before it's added to the log."
         },
         "format": {
           "type": "string",
@@ -2049,17 +2049,17 @@
             "text"
           ],
           "title": "Format",
-          "description": "The Format of Log messages"
+          "description": "The Format of Log messages."
         },
         "file_path": {
           "type": "string",
           "title": "File Path",
-          "description": "The File Path to save the logs to instead of sending them to stdout, it's strongly recommended this option is only enabled with 'keep_stdout' also enabled'"
+          "description": "The File Path to save the logs to instead of sending them to stdout, it's strongly recommended this option is only enabled with 'keep_stdout' also enabled."
         },
         "keep_stdout": {
           "type": "boolean",
           "title": "Keep Stdout",
-          "description": "Enables keeping stdout when using the File Path option",
+          "description": "Enables keeping stdout when using the File Path option.",
           "default": false
         }
       },
@@ -2072,7 +2072,7 @@
         "address": {
           "$ref": "#/$defs/AddressUDP",
           "title": "NTP Address",
-          "description": "The remote address of the NTP server"
+          "description": "The remote address of the NTP server."
         },
         "version": {
           "type": "integer",
@@ -2081,7 +2081,7 @@
             4
           ],
           "title": "NTP Version",
-          "description": "The NTP Version to use"
+          "description": "The NTP Version to use."
         },
         "max_desync": {
           "oneOf": [
@@ -2095,18 +2095,18 @@
             }
           ],
           "title": "Maximum Desync",
-          "description": "The maximum amount of time that the server can be out of sync"
+          "description": "The maximum amount of time that the server can be out of sync."
         },
         "disable_startup_check": {
           "type": "boolean",
           "title": "Disable Startup Check",
-          "description": "Disables the NTP Startup Check entirely",
+          "description": "Disables the NTP Startup Check entirely.",
           "default": false
         },
         "disable_failure": {
           "type": "boolean",
           "title": "Disable Failure",
-          "description": "Disables complete failure whe the Startup Check fails and instead just logs the error",
+          "description": "Disables complete failure whe the Startup Check fails and instead just logs the error.",
           "default": false
         }
       },
@@ -2119,23 +2119,23 @@
         "disable_startup_check": {
           "type": "boolean",
           "title": "Disable Startup Check",
-          "description": "Disables the notifier startup checks",
+          "description": "Disables the notifier startup checks.",
           "default": false
         },
         "filesystem": {
           "$ref": "#/$defs/NotifierFileSystem",
           "title": "File System",
-          "description": "The File System notifier"
+          "description": "The File System notifier."
         },
         "smtp": {
           "$ref": "#/$defs/NotifierSMTP",
           "title": "SMTP",
-          "description": "The SMTP notifier"
+          "description": "The SMTP notifier."
         },
         "template_path": {
           "type": "string",
           "title": "Template Path",
-          "description": "The path for notifier template overrides"
+          "description": "The path for notifier template overrides."
         }
       },
       "additionalProperties": false,
@@ -2147,7 +2147,7 @@
         "filename": {
           "type": "string",
           "title": "Filename",
-          "description": "The file path of the notifications"
+          "description": "The file path of the notifications."
         }
       },
       "additionalProperties": false,
@@ -2159,7 +2159,7 @@
         "address": {
           "$ref": "#/$defs/AddressSMTP",
           "title": "Address",
-          "description": "The SMTP server address"
+          "description": "The SMTP server address."
         },
         "timeout": {
           "oneOf": [
@@ -2173,65 +2173,65 @@
             }
           ],
           "title": "Timeout",
-          "description": "The SMTP server connection timeout"
+          "description": "The SMTP server connection timeout."
         },
         "username": {
           "type": "string",
           "title": "Username",
-          "description": "The username for SMTP authentication"
+          "description": "The username for SMTP authentication."
         },
         "password": {
           "type": "string",
           "title": "Password",
-          "description": "The password for SMTP authentication"
+          "description": "The password for SMTP authentication."
         },
         "identifier": {
           "type": "string",
           "title": "Identifier",
-          "description": "The identifier used during the HELO/EHLO command",
+          "description": "The identifier used during the HELO/EHLO command.",
           "default": "localhost"
         },
         "sender": {
           "type": "string",
           "format": "email",
           "title": "Sender",
-          "description": "The sender used for SMTP"
+          "description": "The sender used for SMTP."
         },
         "subject": {
           "type": "string",
           "title": "Subject",
-          "description": "The subject format used",
+          "description": "The subject format used.",
           "default": "[Authelia] {title}"
         },
         "startup_check_address": {
           "type": "string",
           "format": "email",
           "title": "Startup Check Address",
-          "description": "The address used for the recipient in the startup check",
+          "description": "The address used for the recipient in the startup check.",
           "default": "Authelia Test \u003ctest@authelia.com\u003e"
         },
         "disable_require_tls": {
           "type": "boolean",
           "title": "Disable Require TLS",
-          "description": "Disables the requirement to use TLS",
+          "description": "Disables the requirement to use TLS.",
           "default": false
         },
         "disable_html_emails": {
           "type": "boolean",
           "title": "Disable HTML Emails",
-          "description": "Disables the mixed content type of emails and only sends the plaintext version",
+          "description": "Disables the mixed content type of emails and only sends the plaintext version.",
           "default": false
         },
         "disable_starttls": {
           "type": "boolean",
           "title": "Disable StartTLS",
-          "description": "Disables the opportunistic StartTLS functionality which is useful for bad SMTP servers which advertise support for it but don't actually support it'",
+          "description": "Disables the opportunistic StartTLS functionality which is useful for bad SMTP servers which advertise support for it but don't actually support it.",
           "default": false
         },
         "tls": {
           "$ref": "#/$defs/TLS",
           "title": "TLS",
-          "description": "The SMTP server TLS connection properties"
+          "description": "The SMTP server TLS connection properties."
         },
         "host": {
           "type": "string",
@@ -2257,12 +2257,12 @@
         "standard": {
           "$ref": "#/$defs/PasswordPolicyStandard",
           "title": "Standard",
-          "description": "The standard password policy engine"
+          "description": "The standard password policy engine."
         },
         "zxcvbn": {
           "$ref": "#/$defs/PasswordPolicyZXCVBN",
           "title": "ZXCVBN",
-          "description": "The ZXCVBN password policy engine"
+          "description": "The ZXCVBN password policy engine."
         }
       },
       "additionalProperties": false,
@@ -2274,42 +2274,42 @@
         "enabled": {
           "type": "boolean",
           "title": "Enabled",
-          "description": "Enables the standard password policy engine",
+          "description": "Enables the standard password policy engine.",
           "default": false
         },
         "min_length": {
           "type": "integer",
           "title": "Minimum Length",
-          "description": "Minimum password length"
+          "description": "Minimum password length."
         },
         "max_length": {
           "type": "integer",
           "title": "Maximum Length",
-          "description": "Maximum password length",
+          "description": "Maximum password length.",
           "default": 8
         },
         "require_uppercase": {
           "type": "boolean",
           "title": "Require Uppercase",
-          "description": "Require uppercase characters",
+          "description": "Require uppercase characters.",
           "default": false
         },
         "require_lowercase": {
           "type": "boolean",
           "title": "Require Lowercase",
-          "description": "Require lowercase characters",
+          "description": "Require lowercase characters.",
           "default": false
         },
         "require_number": {
           "type": "boolean",
           "title": "Require Number",
-          "description": "Require numeric characters",
+          "description": "Require numeric characters.",
           "default": false
         },
         "require_special": {
           "type": "boolean",
           "title": "Require Special",
-          "description": "Require symbolic characters",
+          "description": "Require symbolic characters.",
           "default": false
         }
       },
@@ -2322,13 +2322,13 @@
         "enabled": {
           "type": "boolean",
           "title": "Enabled",
-          "description": "Enables the ZXCVBN password policy engine",
+          "description": "Enables the ZXCVBN password policy engine.",
           "default": false
         },
         "min_score": {
           "type": "integer",
           "title": "Minimum Score",
-          "description": "The minimum ZXCVBN score allowed",
+          "description": "The minimum ZXCVBN score allowed.",
           "default": 3
         }
       },
@@ -2341,20 +2341,20 @@
         "enabled": {
           "type": "boolean",
           "title": "Enabled",
-          "description": "Enables the Privacy Policy functionality",
+          "description": "Enables the Privacy Policy functionality.",
           "default": false
         },
         "require_user_acceptance": {
           "type": "boolean",
           "title": "Require User Acceptance",
-          "description": "Enables the requirement for users to accept the policy",
+          "description": "Enables the requirement for users to accept the policy.",
           "default": false
         },
         "policy_url": {
           "type": "string",
           "format": "uri",
           "title": "Policy URL",
-          "description": "The URL of the privacy policy"
+          "description": "The URL of the privacy policy."
         }
       },
       "additionalProperties": false,
@@ -2386,7 +2386,7 @@
         "max_retries": {
           "type": "integer",
           "title": "Maximum Retries",
-          "description": "The maximum number of failed attempts permitted before banning a user",
+          "description": "The maximum number of failed attempts permitted before banning a user.",
           "default": 3
         },
         "find_time": {
@@ -2401,7 +2401,7 @@
             }
           ],
           "title": "Find Time",
-          "description": "The amount of time to consider when determining the number of failed attempts"
+          "description": "The amount of time to consider when determining the number of failed attempts."
         },
         "ban_time": {
           "oneOf": [
@@ -2415,7 +2415,7 @@
             }
           ],
           "title": "Ban Time",
-          "description": "The amount of time to ban the user for when it's determined the maximum retries has been exceeded'"
+          "description": "The amount of time to ban the user for when it's determined the maximum retries has been exceeded."
         }
       },
       "additionalProperties": false,
@@ -2427,43 +2427,43 @@
         "address": {
           "$ref": "#/$defs/AddressTCP",
           "title": "Address",
-          "description": "The address to listen on"
+          "description": "The address to listen on."
         },
         "asset_path": {
           "type": "string",
           "title": "Asset Path",
-          "description": "The directory where the server asset overrides reside"
+          "description": "The directory where the server asset overrides reside."
         },
         "disable_healthcheck": {
           "type": "boolean",
           "title": "Disable Healthcheck",
-          "description": "Disables the healthcheck functionality",
+          "description": "Disables the healthcheck functionality.",
           "default": false
         },
         "tls": {
           "$ref": "#/$defs/ServerTLS",
           "title": "TLS",
-          "description": "The server TLS configuration"
+          "description": "The server TLS configuration."
         },
         "headers": {
           "$ref": "#/$defs/ServerHeaders",
           "title": "Headers",
-          "description": "The server headers configuration"
+          "description": "The server headers configuration."
         },
         "endpoints": {
           "$ref": "#/$defs/ServerEndpoints",
           "title": "Endpoints",
-          "description": "The server endpoints configuration"
+          "description": "The server endpoints configuration."
         },
         "buffers": {
           "$ref": "#/$defs/ServerBuffers",
           "title": "Buffers",
-          "description": "The server buffers configuration"
+          "description": "The server buffers configuration."
         },
         "timeouts": {
           "$ref": "#/$defs/ServerTimeouts",
           "title": "Timeouts",
-          "description": "The server timeouts configuration"
+          "description": "The server timeouts configuration."
         },
         "host": {
           "type": "string",
@@ -2493,13 +2493,13 @@
         "read": {
           "type": "integer",
           "title": "Read",
-          "description": "The read buffer size",
+          "description": "The read buffer size.",
           "default": 4096
         },
         "write": {
           "type": "integer",
           "title": "Write",
-          "description": "The write buffer size",
+          "description": "The write buffer size.",
           "default": 4096
         }
       },
@@ -2512,13 +2512,13 @@
         "enable_pprof": {
           "type": "boolean",
           "title": "Enable PProf",
-          "description": "Enables the developer specific pprof endpoints which should not be used in production and only used for debugging purposes",
+          "description": "Enables the developer specific pprof endpoints which should not be used in production and only used for debugging purposes.",
           "default": false
         },
         "enable_expvars": {
           "type": "boolean",
           "title": "Enable ExpVars",
-          "description": "Enables the developer specific ExpVars endpoints which should not be used in production and only used for debugging purposes",
+          "description": "Enables the developer specific ExpVars endpoints which should not be used in production and only used for debugging purposes.",
           "default": false
         },
         "authz": {
@@ -2529,7 +2529,7 @@
           },
           "type": "object",
           "title": "Authz",
-          "description": "Configures the Authorization endpoints"
+          "description": "Configures the Authorization endpoints."
         }
       },
       "additionalProperties": false,
@@ -2547,7 +2547,7 @@
             "Legacy"
           ],
           "title": "Implementation",
-          "description": "The specific Authorization implementation to use for this endpoint"
+          "description": "The specific Authorization implementation to use for this endpoint."
         },
         "authn_strategies": {
           "items": {
@@ -2555,7 +2555,7 @@
           },
           "type": "array",
           "title": "Authn Strategies",
-          "description": "The specific Authorization strategies to use for this endpoint"
+          "description": "The specific Authorization strategies to use for this endpoint."
         }
       },
       "additionalProperties": false,
@@ -2574,7 +2574,7 @@
             "CookieSession"
           ],
           "title": "Name",
-          "description": "The name of the Authorization strategy to use"
+          "description": "The name of the Authorization strategy to use."
         }
       },
       "additionalProperties": false,
@@ -2586,7 +2586,7 @@
         "csp_template": {
           "type": "string",
           "title": "CSP Template",
-          "description": "The Content Security Policy template",
+          "description": "The Content Security Policy template.",
           "default": "default-src 'self'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-%s'; frame-ancestors 'none'; base-uri 'self'"
         }
       },
@@ -2599,12 +2599,12 @@
         "certificate": {
           "type": "string",
           "title": "Certificate",
-          "description": "Path to the Certificate"
+          "description": "Path to the Certificate."
         },
         "key": {
           "type": "string",
           "title": "Key",
-          "description": "Path to the Private Key"
+          "description": "Path to the Private Key."
         },
         "client_certificates": {
           "items": {
@@ -2613,7 +2613,7 @@
           "type": "array",
           "uniqueItems": true,
           "title": "Client Certificates",
-          "description": "Path to the Client Certificates to trust for mTLS"
+          "description": "Path to the Client Certificates to trust for mTLS."
         }
       },
       "additionalProperties": false,
@@ -2634,7 +2634,7 @@
             }
           ],
           "title": "Read",
-          "description": "The read timeout"
+          "description": "The read timeout."
         },
         "write": {
           "oneOf": [
@@ -2648,7 +2648,7 @@
             }
           ],
           "title": "Write",
-          "description": "The write timeout"
+          "description": "The write timeout."
         },
         "idle": {
           "oneOf": [
@@ -2662,7 +2662,7 @@
             }
           ],
           "title": "Idle",
-          "description": "The idle timeout"
+          "description": "The idle timeout."
         }
       },
       "additionalProperties": false,
@@ -2673,7 +2673,7 @@
       "properties": {
         "name": {
           "type": "string",
-          "description": "The session cookie name",
+          "description": "The session cookie name.",
           "default": "authelia_session"
         },
         "same_site": {
@@ -2683,7 +2683,7 @@
             "strict",
             "none"
           ],
-          "description": "The session cookie same site value",
+          "description": "The session cookie same site value.",
           "default": "lax"
         },
         "expiration": {
@@ -2697,7 +2697,7 @@
               "description": "The duration in seconds"
             }
           ],
-          "description": "The session cookie expiration when remember me is not checked"
+          "description": "The session cookie expiration when remember me is not checked."
         },
         "inactivity": {
           "oneOf": [
@@ -2710,7 +2710,7 @@
               "description": "The duration in seconds"
             }
           ],
-          "description": "The session inactivity timeout"
+          "description": "The session inactivity timeout."
         },
         "remember_me": {
           "oneOf": [
@@ -2723,12 +2723,12 @@
               "description": "The duration in seconds"
             }
           ],
-          "description": "The session cookie expiration when remember me is checked"
+          "description": "The session cookie expiration when remember me is checked."
         },
         "secret": {
           "type": "string",
           "title": "Secret",
-          "description": "Secret used to encrypt the session data"
+          "description": "Secret used to encrypt the session data."
         },
         "cookies": {
           "items": {
@@ -2736,12 +2736,12 @@
           },
           "type": "array",
           "title": "Cookies",
-          "description": "List of cookie domain configurations"
+          "description": "List of cookie domain configurations."
         },
         "redis": {
           "$ref": "#/$defs/SessionRedis",
           "title": "Redis",
-          "description": "Redis Session Provider configuration"
+          "description": "Redis Session Provider configuration."
         },
         "domain": {
           "type": "string",
@@ -2758,7 +2758,7 @@
       "properties": {
         "name": {
           "type": "string",
-          "description": "The session cookie name",
+          "description": "The session cookie name.",
           "default": "authelia_session"
         },
         "same_site": {
@@ -2768,7 +2768,7 @@
             "strict",
             "none"
           ],
-          "description": "The session cookie same site value",
+          "description": "The session cookie same site value.",
           "default": "lax"
         },
         "expiration": {
@@ -2782,7 +2782,7 @@
               "description": "The duration in seconds"
             }
           ],
-          "description": "The session cookie expiration when remember me is not checked"
+          "description": "The session cookie expiration when remember me is not checked."
         },
         "inactivity": {
           "oneOf": [
@@ -2795,7 +2795,7 @@
               "description": "The duration in seconds"
             }
           ],
-          "description": "The session inactivity timeout"
+          "description": "The session inactivity timeout."
         },
         "remember_me": {
           "oneOf": [
@@ -2808,25 +2808,25 @@
               "description": "The duration in seconds"
             }
           ],
-          "description": "The session cookie expiration when remember me is checked"
+          "description": "The session cookie expiration when remember me is checked."
         },
         "domain": {
           "type": "string",
           "format": "hostname",
           "title": "Domain",
-          "description": "The domain for this session cookie configuration"
+          "description": "The domain for this session cookie configuration."
         },
         "authelia_url": {
           "type": "string",
           "format": "uri",
           "title": "Authelia URL",
-          "description": "The Root Authelia URL to redirect users to for this session cookie configuration"
+          "description": "The Root Authelia URL to redirect users to for this session cookie configuration."
         },
         "default_redirection_url": {
           "type": "string",
           "format": "uri",
           "title": "Default Redirection URL",
-          "description": "The default redirection URL for this session cookie configuration"
+          "description": "The default redirection URL for this session cookie configuration."
         }
       },
       "additionalProperties": false,
@@ -2838,40 +2838,40 @@
         "host": {
           "type": "string",
           "title": "Host",
-          "description": "The redis server host"
+          "description": "The redis server host."
         },
         "port": {
           "type": "integer",
           "title": "Host",
-          "description": "The redis server port",
+          "description": "The redis server port.",
           "default": 6379
         },
         "username": {
           "type": "string",
           "title": "Username",
-          "description": "The redis username"
+          "description": "The redis username."
         },
         "password": {
           "type": "string",
           "title": "Password",
-          "description": "The redis password"
+          "description": "The redis password."
         },
         "database_index": {
           "type": "integer",
           "title": "Database Index",
-          "description": "The redis database index",
+          "description": "The redis database index.",
           "default": 0
         },
         "maximum_active_connections": {
           "type": "integer",
           "title": "Maximum Active Connections",
-          "description": "The maximum connections that can be made to redis at one time",
+          "description": "The maximum connections that can be made to redis at one time.",
           "default": 8
         },
         "minimum_idle_connections": {
           "type": "integer",
           "title": "Minimum Idle Connections",
-          "description": "The minimum idle connections that should be open to redis"
+          "description": "The minimum idle connections that should be open to redis."
         },
         "tls": {
           "$ref": "#/$defs/TLS"
@@ -2889,28 +2889,28 @@
         "sentinel_name": {
           "type": "string",
           "title": "Sentinel Name",
-          "description": "The name of the sentinel instance"
+          "description": "The name of the sentinel instance."
         },
         "sentinel_username": {
           "type": "string",
           "title": "Sentinel Username",
-          "description": "The username for the sentinel instance"
+          "description": "The username for the sentinel instance."
         },
         "sentinel_password": {
           "type": "string",
           "title": "Sentinel Username",
-          "description": "The username for the sentinel instance"
+          "description": "The username for the sentinel instance."
         },
         "route_by_latency": {
           "type": "boolean",
           "title": "Route by Latency",
-          "description": "Uses the Route by Latency mode",
+          "description": "Uses the Route by Latency mode.",
           "default": false
         },
         "route_randomly": {
           "type": "boolean",
           "title": "Route Randomly",
-          "description": "Uses the Route Randomly mode",
+          "description": "Uses the Route Randomly mode.",
           "default": false
         },
         "nodes": {
@@ -2919,7 +2919,7 @@
           },
           "type": "array",
           "title": "Nodes",
-          "description": "The pre-populated list of nodes for the sentinel instance"
+          "description": "The pre-populated list of nodes for the sentinel instance."
         }
       },
       "additionalProperties": false,
@@ -2931,12 +2931,12 @@
         "host": {
           "type": "string",
           "title": "Host",
-          "description": "The redis sentinel node host"
+          "description": "The redis sentinel node host."
         },
         "port": {
           "type": "integer",
           "title": "Port",
-          "description": "The redis sentinel node port",
+          "description": "The redis sentinel node port.",
           "default": 26379
         }
       },
@@ -2949,22 +2949,22 @@
         "local": {
           "$ref": "#/$defs/StorageLocal",
           "title": "Local",
-          "description": "The Local SQLite3 Storage configuration settings"
+          "description": "The Local SQLite3 Storage configuration settings."
         },
         "mysql": {
           "$ref": "#/$defs/StorageMySQL",
           "title": "MySQL",
-          "description": "The MySQL/MariaDB Storage configuration settings"
+          "description": "The MySQL/MariaDB Storage configuration settings."
         },
         "postgres": {
           "$ref": "#/$defs/StoragePostgreSQL",
           "title": "PostgreSQL",
-          "description": "The PostgreSQL Storage configuration settings"
+          "description": "The PostgreSQL Storage configuration settings."
         },
         "encryption_key": {
           "type": "string",
           "title": "Encryption Key",
-          "description": "The Storage Encryption Key used to secure security sensitive values in the storage engine"
+          "description": "The Storage Encryption Key used to secure security sensitive values in the storage engine."
         }
       },
       "additionalProperties": false,
@@ -2976,7 +2976,7 @@
         "path": {
           "type": "string",
           "title": "Path",
-          "description": "The Path for the SQLite3 database file"
+          "description": "The Path for the SQLite3 database file."
         }
       },
       "additionalProperties": false,
@@ -2988,22 +2988,22 @@
         "address": {
           "$ref": "#/$defs/AddressTCP",
           "title": "Address",
-          "description": "The address of the database"
+          "description": "The address of the database."
         },
         "database": {
           "type": "string",
           "title": "Database",
-          "description": "The database name to use upon a successful connection"
+          "description": "The database name to use upon a successful connection."
         },
         "username": {
           "type": "string",
           "title": "Username",
-          "description": "The username to use to authenticate"
+          "description": "The username to use to authenticate."
         },
         "password": {
           "type": "string",
           "title": "Password",
-          "description": "The password to use to authenticate"
+          "description": "The password to use to authenticate."
         },
         "timeout": {
           "oneOf": [
@@ -3017,7 +3017,7 @@
             }
           ],
           "title": "Timeout",
-          "description": "The timeout for the database connection"
+          "description": "The timeout for the database connection."
         },
         "host": {
           "type": "string",
@@ -3044,22 +3044,22 @@
         "address": {
           "$ref": "#/$defs/AddressTCP",
           "title": "Address",
-          "description": "The address of the database"
+          "description": "The address of the database."
         },
         "database": {
           "type": "string",
           "title": "Database",
-          "description": "The database name to use upon a successful connection"
+          "description": "The database name to use upon a successful connection."
         },
         "username": {
           "type": "string",
           "title": "Username",
-          "description": "The username to use to authenticate"
+          "description": "The username to use to authenticate."
         },
         "password": {
           "type": "string",
           "title": "Password",
-          "description": "The password to use to authenticate"
+          "description": "The password to use to authenticate."
         },
         "timeout": {
           "oneOf": [
@@ -3073,7 +3073,7 @@
             }
           ],
           "title": "Timeout",
-          "description": "The timeout for the database connection"
+          "description": "The timeout for the database connection."
         },
         "host": {
           "type": "string",
@@ -3090,7 +3090,7 @@
         "schema": {
           "type": "string",
           "title": "Schema",
-          "description": "The default schema name to use",
+          "description": "The default schema name to use.",
           "default": "public"
         },
         "tls": {
@@ -3118,25 +3118,25 @@
             "verify-full"
           ],
           "title": "Mode",
-          "description": "The SSL mode to use, deprecated and replaced with the TLS options",
+          "description": "The SSL mode to use, deprecated and replaced with the TLS options.",
           "deprecated": true
         },
         "root_certificate": {
           "type": "string",
           "title": "Root Certificate",
-          "description": "Path to the Root Certificate to use, deprecated and replaced with the TLS options",
+          "description": "Path to the Root Certificate to use, deprecated and replaced with the TLS options.",
           "deprecated": true
         },
         "certificate": {
           "type": "string",
           "title": "Certificate",
-          "description": "Path to the Certificate to use, deprecated and replaced with the TLS options",
+          "description": "Path to the Certificate to use, deprecated and replaced with the TLS options.",
           "deprecated": true
         },
         "key": {
           "type": "string",
           "title": "Key",
-          "description": "Path to the Private Key to use, deprecated and replaced with the TLS options",
+          "description": "Path to the Private Key to use, deprecated and replaced with the TLS options.",
           "deprecated": true
         }
       },
@@ -3149,35 +3149,35 @@
         "minimum_version": {
           "$ref": "#/$defs/TLSVersion",
           "title": "Minimum Version",
-          "description": "The minimum TLS version accepted"
+          "description": "The minimum TLS version accepted."
         },
         "maximum_version": {
           "$ref": "#/$defs/TLSVersion",
           "title": "Maximum Version",
-          "description": "The maximum TLS version accepted"
+          "description": "The maximum TLS version accepted."
         },
         "skip_verify": {
           "type": "boolean",
           "title": "Skip Verify",
-          "description": "Disable all verification of the TLS properties",
+          "description": "Disable all verification of the TLS properties.",
           "default": false
         },
         "server_name": {
           "type": "string",
           "format": "hostname",
           "title": "Server Name",
-          "description": "The expected server name to match the certificate against"
+          "description": "The expected server name to match the certificate against."
         },
         "private_key": {
           "type": "string",
           "pattern": "^-{5}(BEGIN ((RSA|EC) )?PRIVATE KEY-{5}\\n([a-zA-Z0-9/+]{1,64}\\n)+([a-zA-Z0-9/+]{1,64}[=]{0,2})\\n-{5}END ((RSA|EC) )?PRIVATE KEY-{5}\\n?)+$",
           "title": "Private Key",
-          "description": "The private key"
+          "description": "The private key."
         },
         "certificate_chain": {
           "$ref": "#/$defs/X509CertificateChain",
           "title": "Certificate Chain",
-          "description": "The certificate chain"
+          "description": "The certificate chain."
         }
       },
       "additionalProperties": false,
@@ -3198,13 +3198,13 @@
         "disable": {
           "type": "boolean",
           "title": "Disable",
-          "description": "Disables the TOTP 2FA functionality",
+          "description": "Disables the TOTP 2FA functionality.",
           "default": false
         },
         "issuer": {
           "type": "string",
           "title": "Issuer",
-          "description": "The issuer value for generated TOTP keys",
+          "description": "The issuer value for generated TOTP keys.",
           "default": "Authelia"
         },
         "algorithm": {
@@ -3215,7 +3215,7 @@
             "SHA512"
           ],
           "title": "Algorithm",
-          "description": "The algorithm value for generated TOTP keys",
+          "description": "The algorithm value for generated TOTP keys.",
           "default": "SHA1"
         },
         "digits": {
@@ -3225,26 +3225,26 @@
             8
           ],
           "title": "Digits",
-          "description": "The digits value for generated TOTP keys",
+          "description": "The digits value for generated TOTP keys.",
           "default": 6
         },
         "period": {
           "type": "integer",
           "title": "Period",
-          "description": "The period value for generated TOTP keys",
+          "description": "The period value for generated TOTP keys.",
           "default": 30
         },
         "skew": {
           "type": "integer",
           "title": "Skew",
-          "description": "The permitted skew for generated TOTP keys",
+          "description": "The permitted skew for generated TOTP keys.",
           "default": 1
         },
         "secret_size": {
           "type": "integer",
           "minimum": 20,
           "title": "Secret Size",
-          "description": "The secret size for generated TOTP keys",
+          "description": "The secret size for generated TOTP keys.",
           "default": 32
         },
         "allowed_algorithms": {
@@ -3258,7 +3258,7 @@
           },
           "type": "array",
           "title": "Allowed Algorithms",
-          "description": "List of algorithms the user is allowed to select in addition to the default",
+          "description": "List of algorithms the user is allowed to select in addition to the default.",
           "default": [
             "SHA1"
           ]
@@ -3273,7 +3273,7 @@
           },
           "type": "array",
           "title": "Allowed Digits",
-          "description": "List of digits the user is allowed to select in addition to the default",
+          "description": "List of digits the user is allowed to select in addition to the default.",
           "default": [
             6
           ]
@@ -3284,7 +3284,7 @@
           },
           "type": "array",
           "title": "Allowed Periods",
-          "description": "List of periods the user is allowed to select in addition to the default",
+          "description": "List of periods the user is allowed to select in addition to the default.",
           "default": [
             30
           ]
@@ -3292,7 +3292,7 @@
         "disable_reuse_security_policy": {
           "type": "boolean",
           "title": "Disable Reuse Security Policy",
-          "description": "Disables the security policy that prevents reuse of a TOTP code",
+          "description": "Disables the security policy that prevents reuse of a TOTP code.",
           "default": false
         }
       },
@@ -3305,7 +3305,7 @@
         "metrics": {
           "$ref": "#/$defs/TelemetryMetrics",
           "title": "Metrics",
-          "description": "The telemetry metrics server configuration"
+          "description": "The telemetry metrics server configuration."
         }
       },
       "additionalProperties": false,
@@ -3317,23 +3317,23 @@
         "enabled": {
           "type": "boolean",
           "title": "Enabled",
-          "description": "Enables the metrics server",
+          "description": "Enables the metrics server.",
           "default": false
         },
         "address": {
           "$ref": "#/$defs/AddressTCP",
           "title": "Address",
-          "description": "The address for the metrics server to listen on"
+          "description": "The address for the metrics server to listen on."
         },
         "buffers": {
           "$ref": "#/$defs/ServerBuffers",
           "title": "Buffers",
-          "description": "The server buffers configuration for the metrics server"
+          "description": "The server buffers configuration for the metrics server."
         },
         "timeouts": {
           "$ref": "#/$defs/ServerTimeouts",
           "title": "Timeouts",
-          "description": "The server timeouts configuration for the metrics server"
+          "description": "The server timeouts configuration for the metrics server."
         }
       },
       "additionalProperties": false,
@@ -3345,13 +3345,13 @@
         "disable": {
           "type": "boolean",
           "title": "Disable",
-          "description": "Disables the WebAuthn 2FA functionality",
+          "description": "Disables the WebAuthn 2FA functionality.",
           "default": false
         },
         "display_name": {
           "type": "string",
           "title": "Display Name",
-          "description": "The display name attribute for the WebAuthn relying party",
+          "description": "The display name attribute for the WebAuthn relying party.",
           "default": "Authelia"
         },
         "attestation_conveyance_preference": {
@@ -3362,7 +3362,7 @@
             "direct"
           ],
           "title": "Conveyance Preference",
-          "description": "The default conveyance preference for all WebAuthn credentials",
+          "description": "The default conveyance preference for all WebAuthn credentials.",
           "default": "indirect"
         },
         "user_verification": {
@@ -3373,7 +3373,7 @@
             "required"
           ],
           "title": "User Verification",
-          "description": "The default user verification preference for all WebAuthn credentials",
+          "description": "The default user verification preference for all WebAuthn credentials.",
           "default": "preferred"
         },
         "timeout": {
@@ -3388,7 +3388,7 @@
             }
           ],
           "title": "Timeout",
-          "description": "The default timeout for all WebAuthn ceremonies"
+          "description": "The default timeout for all WebAuthn ceremonies."
         }
       },
       "additionalProperties": false,

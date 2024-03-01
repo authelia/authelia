@@ -33,13 +33,19 @@ func TestGetWebAuthnCredentialIDFromContext(t *testing.T) {
 			"ShouldNotParseInt",
 			5,
 			0,
-			"Invalid credential ID type",
+			"error occurred retrieving WebAuthn Credential ID from context: the type 'int' is not a string",
 		},
 		{
 			"ShouldNotParseAlpha",
 			"abc",
 			0,
-			"strconv.Atoi: parsing \"abc\": invalid syntax",
+			"error occurred retrieving WebAuthn Credential ID from context: failed to parse 'abc' as an integer: strconv.Atoi: parsing \"abc\": invalid syntax",
+		},
+		{
+			"ShouldHandleMissingCredentialID",
+			nil,
+			0,
+			"error occurred retrieving WebAuthn Credential ID from context: the user value wasn't set",
 		},
 	}
 
@@ -220,6 +226,38 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 				)
 			},
 			`{"description":"abc"}`,
+			`{"status":"OK"}`,
+			fasthttp.StatusOK,
+			nil,
+		},
+		{
+			"ShouldHandleSuccessfulAdjustmentWithUnknownFields",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationLevel = authentication.OneFactor
+
+				require.NoError(t, mock.Ctx.SaveSession(us))
+
+				gomock.InOrder(
+					mock.StorageMock.
+						EXPECT().
+						LoadWebAuthnCredentialByID(mock.Ctx, 1).
+						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername}, nil),
+					mock.StorageMock.
+						EXPECT().
+						LoadWebAuthnCredentialsByUsername(mock.Ctx, exampleDotCom, testUsername).
+						Return([]model.WebAuthnCredential{{ID: 1, Username: testUsername}}, nil),
+					mock.StorageMock.
+						EXPECT().
+						UpdateWebAuthnCredentialDescription(mock.Ctx, testUsername, 1, "abc").
+						Return(nil),
+				)
+			},
+			`{"description":"abc","not_a_field":true}`,
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,
 			nil,
@@ -459,7 +497,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error occurred trying to determine the credential ID", "strconv.Atoi: parsing \"a\": invalid syntax")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error occurred trying to determine the credential ID", "error occurred retrieving WebAuthn Credential ID from context: failed to parse 'a' as an integer: strconv.Atoi: parsing \"a\": invalid syntax")
 			},
 		},
 	}
@@ -558,7 +596,7 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred sending notification to user 'john' while attempting to notify them of an important event", "bad conn")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred sending notification to user 'john' while attempting to alert them of an important event", "bad conn")
 			},
 		},
 		{
@@ -588,7 +626,7 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred looking up user details for user 'john' while attempting to notify them of an important event", "bad user")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred looking up user details for user 'john' while attempting to alert them of an important event", "bad user")
 			},
 		},
 		{
@@ -683,7 +721,7 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting WebAuthn credential for user 'john': error occurred trying to determine the credential ID", "strconv.Atoi: parsing \"a\": invalid syntax")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting WebAuthn credential for user 'john': error occurred trying to determine the credential ID", "error occurred retrieving WebAuthn Credential ID from context: failed to parse 'a' as an integer: strconv.Atoi: parsing \"a\": invalid syntax")
 			},
 		},
 		{

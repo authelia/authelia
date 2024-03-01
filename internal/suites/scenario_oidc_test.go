@@ -79,9 +79,9 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 
 	s.doVisit(s.T(), s.Context(ctx), OIDCBaseURL)
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
-	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), "john", "password", false)
+	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), testUsername, "password", false)
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
-	s.doValidateTOTP(s.T(), s.Context(ctx), "john")
+	s.doValidateTOTP(s.T(), s.Context(ctx), testUsername)
 
 	s.waitBodyContains(s.T(), s.Context(ctx), "Not logged yet...")
 
@@ -156,9 +156,9 @@ func (s *OIDCScenario) TestShouldDenyConsent() {
 
 	s.doVisit(s.T(), s.Context(ctx), OIDCBaseURL)
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
-	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), "john", "password", false)
+	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), testUsername, "password", false)
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
-	s.doValidateTOTP(s.T(), s.Context(ctx), "john")
+	s.doValidateTOTP(s.T(), s.Context(ctx), testUsername)
 
 	s.waitBodyContains(s.T(), s.Context(ctx), "Not logged yet...")
 

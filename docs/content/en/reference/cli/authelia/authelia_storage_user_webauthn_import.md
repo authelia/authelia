@@ -20,7 +20,7 @@ Perform imports of the WebAuthn credentials
 
 Perform imports of the WebAuthn credentials.
 
-This subcommand allows importing WebAuthn credentials from various formats.
+This subcommand allows importing WebAuthn credentials from the YAML format.
 
 ```
 authelia storage user webauthn import <filename> [flags]

@@ -26,19 +26,19 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 	decode := func(in string) []byte {
 		value, err := base64.StdEncoding.DecodeString(in)
 		if err != nil {
-			panic(err)
+			t.Fatal("Failed to decode base64 string:", err)
 		}
 
 		return value
 	}
 
 	testCases := []struct {
-		name           string
-		config         *schema.WebAuthn
-		setup          func(t *testing.T, mock *mocks.MockAutheliaCtx)
-		expected       *regexp.Regexp
-		expectedStatus int
-		expectedf      func(t *testing.T, mock *mocks.MockAutheliaCtx)
+		name             string
+		config           *schema.WebAuthn
+		setup            func(t *testing.T, mock *mocks.MockAutheliaCtx)
+		expected         *regexp.Regexp
+		expectedStatus   int
+		validateResponse func(t *testing.T, mock *mocks.MockAutheliaCtx)
 	}{
 		{
 			"ShouldSuccess",
@@ -208,8 +208,8 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 			assert.Equal(t, tc.expectedStatus, mock.Ctx.Response.StatusCode())
 			assert.Regexp(t, tc.expected, string(mock.Ctx.Response.Body()))
 
-			if tc.expectedf != nil {
-				tc.expectedf(t, mock)
+			if tc.validateResponse != nil {
+				tc.validateResponse(t, mock)
 			}
 		})
 	}
@@ -229,7 +229,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 	decode := func(in string) []byte {
 		value, err := base64.StdEncoding.DecodeString(in)
 		if err != nil {
-			panic(err)
+			t.Fatal("Failed to decode base64 string:", err)
 		}
 
 		return value
@@ -680,6 +680,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 
 				mock.Clock.Set(mock.Clock.Now().Add(2 * time.Minute))
 
+				// This malformed URL is chosen to invoke the url.Parse errors.
 				mock.Ctx.Request.Header.Set("X-Original-URL", "!@#*(&jklqnwdkjqwe")
 			},
 			dataReqGood,

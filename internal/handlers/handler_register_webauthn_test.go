@@ -355,7 +355,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 	decode := func(in string) []byte {
 		value, err := base64.StdEncoding.DecodeString(in)
 		if err != nil {
-			panic(err)
+			t.Fatal("Failed to decode base64 string:", err)
 		}
 
 		return value
@@ -372,13 +372,13 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 	)
 
 	testCases := []struct {
-		name           string
-		config         *schema.WebAuthn
-		setup          func(t *testing.T, mock *mocks.MockAutheliaCtx)
-		have           string
-		expected       string
-		expectedStatus int
-		expectedf      func(t *testing.T, mock *mocks.MockAutheliaCtx)
+		name             string
+		config           *schema.WebAuthn
+		setup            func(t *testing.T, mock *mocks.MockAutheliaCtx)
+		have             string
+		expected         string
+		expectedStatus   int
+		validateResponse func(t *testing.T, mock *mocks.MockAutheliaCtx)
 	}{
 		{
 			"ShouldSuccess",
@@ -491,7 +491,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred sending notification to user 'john' while attempting to notify them of an important event", "invalid server")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred sending notification to user 'john' while attempting to alert them of an important event", "invalid server")
 			},
 		},
 		{
@@ -545,7 +545,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred looking up user details for user 'john' while attempting to notify them of an important event", "failed conn")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred looking up user details for user 'john' while attempting to alert them of an important event", "failed conn")
 			},
 		},
 		{
@@ -889,8 +889,8 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 			assert.Equal(t, tc.expectedStatus, mock.Ctx.Response.StatusCode())
 			assert.Equal(t, tc.expected, string(mock.Ctx.Response.Body()))
 
-			if tc.expectedf != nil {
-				tc.expectedf(t, mock)
+			if tc.validateResponse != nil {
+				tc.validateResponse(t, mock)
 			}
 		})
 	}

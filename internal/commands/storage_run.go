@@ -448,7 +448,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnExportRunE(cmd *cobra.Command, args []stri
 	)
 
 	export := &model.WebAuthnCredentialExport{
-		WebAuthnCredentials: nil,
+		WebAuthnCredentials: []model.WebAuthnCredential{},
 	}
 
 	for page := 0; true; page++ {

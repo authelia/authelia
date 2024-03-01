@@ -342,7 +342,7 @@ func (ctx *AutheliaCtx) GetSessionProvider() (provider *session.Session, err err
 // GetCookieDomainSessionProvider returns the session provider for the provided domain.
 func (ctx *AutheliaCtx) GetCookieDomainSessionProvider(domain string) (provider *session.Session, err error) {
 	if domain == "" {
-		return nil, fmt.Errorf("unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+		return nil, fmt.Errorf("unable to retrieve session cookie domain provider: no configured session cookie domain matches the domain '%s'", domain)
 	}
 
 	return ctx.Providers.SessionProvider.Get(domain)

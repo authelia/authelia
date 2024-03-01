@@ -4,7 +4,7 @@ import {
     PublicKeyCredentialCreationOptionsJSON,
     PublicKeyCredentialRequestOptionsJSON,
     RegistrationResponseJSON,
-} from "@simplewebauthn/typescript-types";
+} from "@simplewebauthn/types";
 import axios, { AxiosError, AxiosResponse } from "axios";
 
 import {
