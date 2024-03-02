@@ -70,16 +70,21 @@
   weight = 20
 
 [[footer]]
+  name = "Versioning Policy"
+  url = "/policies/versioning"
+  weight = 30
+
+[[footer]]
   name = "Code of Conduct"
   url = "/code-of-conduct"
-  weight = 30
+  weight = 40
 
 [[footer]]
   name = "About"
   url = "/information/about"
-  weight = 40
+  weight = 50
 
 [[footer]]
   name = "Contact"
   url = "/information/contact"
-  weight = 50
+  weight = 60
