@@ -85,5 +85,5 @@ To configure [PocketBase] to utilize Authelia as an [OpenID Connect 1.0], please
 * [PocketBase OAuth Documentation](https://pocketbase.io/docs/authentication/#oauth2-integration)
 
 [Authelia]: https://www.authelia.com
-[Grafana]: https://pocketbase.io
+[PocketBase]: https://pocketbase.io
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
