@@ -73,7 +73,7 @@ To configure [PocketBase] to utilize Authelia as an [OpenID Connect 1.0], please
 5. Configure:
    1. ClientID: `upsnap`
    2. Client secret: `insecure_secret`
-   3. Display name: `Authelia` (or whatever you want)
+   3. Display name: `Authelia`(or whatever you want)
    4. Auth URL: https://auth.example.com/api/oidc/authorization
    5. Token URL: https://auth.example.com/api/oidc/token
    6. User API URL: https://auth.example.com/api/oidc/userinfo
