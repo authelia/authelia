@@ -76,3 +76,17 @@ func (s *UserSession) AuthenticatedTime(level authorization.Level) (authenticate
 		return time.Unix(0, 0).UTC(), errors.New("invalid authorization level")
 	}
 }
+
+// Identity value of the user session.
+func (s *UserSession) Identity() Identity {
+	identity := Identity{
+		Username:    s.Username,
+		DisplayName: s.DisplayName,
+	}
+
+	if len(s.Emails) != 0 {
+		identity.Email = s.Emails[0]
+	}
+
+	return identity
+}

@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -31,7 +31,7 @@ func (s *AuthzSuite) GetMock(config *schema.Configuration, targetURI *url.URL, s
 	mock := mocks.NewMockAutheliaCtx(s.T())
 
 	if session != nil {
-		domain := mock.Ctx.GetTargetURICookieDomain(targetURI)
+		domain := mock.Ctx.GetCookieDomainFromTargetURI(targetURI)
 
 		provider, err := mock.Ctx.GetCookieDomainSessionProvider(domain)
 		s.Require().NoError(err)

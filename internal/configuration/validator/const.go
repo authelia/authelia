@@ -125,10 +125,13 @@ const (
 
 // TOTP Error constants.
 const (
-	errFmtTOTPInvalidAlgorithm  = "totp: option 'algorithm' must be one of %s but it's configured as '%s'"
-	errFmtTOTPInvalidPeriod     = "totp: option 'period' option must be 15 or more but it's configured as '%d'"
-	errFmtTOTPInvalidDigits     = "totp: option 'digits' must be 6 or 8 but it's configured as '%d'"
-	errFmtTOTPInvalidSecretSize = "totp: option 'secret_size' must be %d or higher but it's configured as '%d'" //nolint:gosec
+	errFmtTOTPInvalidAlgorithm        = "totp: option 'algorithm' must be one of %s but it's configured as '%s'"
+	errFmtTOTPInvalidAllowedAlgorithm = "totp: option 'allowed_algorithm' must be one of %s but one of the values is '%s'"
+	errFmtTOTPInvalidPeriod           = "totp: option 'period' option must be 15 or more but it's configured as '%d'"
+	errFmtTOTPInvalidAllowedPeriod    = "totp: option 'allowed_periods' option must be 15 or more but one of the values is '%d'"
+	errFmtTOTPInvalidDigits           = "totp: option 'digits' must be 6 or 8 but it's configured as '%d'"
+	errFmtTOTPInvalidAllowedDigit     = "totp: option 'allowed_digits' must only have the values 6 or 8 but one of the values is '%d'"
+	errFmtTOTPInvalidSecretSize       = "totp: option 'secret_size' must be %d or higher but it's configured as '%d'" //nolint:gosec
 )
 
 // Storage Error constants.
@@ -403,6 +406,12 @@ const (
 )
 
 const (
+	errFmtIdentityValidationResetPasswordJWTAlgorithm      = "identity_validation: reset_password: option 'jwt_algorithm' must be one of %s but it's configured as '%s'"
+	errFmtIdentityValidationResetPasswordJWTSecret         = "identity_validation: reset_password: option 'jwt_secret' is required when the reset password functionality isn't disabled"
+	errFmtIdentityValidationElevatedSessionCharacterLength = "identity_validation: elevated_session: option 'characters' must be 20 or less but it's configured as %d"
+)
+
+const (
 	operatorPresent    = "present"
 	operatorAbsent     = "absent"
 	operatorEqual      = "equal"
@@ -496,6 +505,10 @@ const (
 	attrSessionAutheliaURL        = "authelia_url"
 	attrSessionDomain             = "domain"
 	attrDefaultRedirectionURL     = "default_redirection_url"
+)
+
+var (
+	validIdentityValidationJWTAlgorithms = []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512}
 )
 
 var (

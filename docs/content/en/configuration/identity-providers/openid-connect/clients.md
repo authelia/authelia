@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "openid-connect"
-weight: 190220
+weight: 110220
 toc: true
 ---
 
@@ -59,7 +59,7 @@ identity_providers:
         enforce_par: false
         enforce_pkce: false
         pkce_challenge_method: 'S256'
-        authorization_signed_response_alg: 'RS256'
+        authorization_signed_response_alg: 'none'
         authorization_signed_response_key_id: ''
         id_token_signed_response_alg: 'RS256'
         id_token_signed_response_key_id: ''
@@ -523,7 +523,7 @@ calculated in the [issuer_private_keys].
 
 ### request_object_signing_alg
 
-{{< confkey type="string" default="RSA256" required="no" >}}
+{{< confkey type="string" default="RS256" required="no" >}}
 
 The JWT signing algorithm accepted for request objects.
 

@@ -3,8 +3,6 @@
 #                Authelia minimal configuration               #
 ###############################################################
 
-jwt_secret: unsecure_secret
-
 server:
   address: 'tcp://:9091'
   tls:
@@ -24,9 +22,9 @@ session:
     - name: 'authelia_sessin'
       domain: 'example.com'
       authelia_url: 'https://login.example.com:8080'
-      default_redirection_url: https://home.example.com:8080/
-      inactivity: 5
-      expiration: 8
+      default_redirection_url: 'https://home.example.com:8080/'
+      inactivity: 7
+      expiration: 10
       remember_me: 1y
 
 storage:
@@ -36,6 +34,11 @@ storage:
 
 totp:
   issuer: example.com
+  disable_reuse_security_policy: true
+
+identity_validation:
+  reset_password:
+    jwt_secret: 'a_very_important_secret'
 
 access_control:
   default_policy: deny

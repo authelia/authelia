@@ -3,6 +3,10 @@
   "version": "4.37.5",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=18.4.0",
+    "pnpm": "8"
+  },
   "pnpm": {
     "overrides": {
       "@babel/traverse": "7.23.2",
@@ -31,6 +35,8 @@
     "@mui/icons-material": "5.15.11",
     "@mui/material": "5.15.11",
     "@mui/styles": "5.15.11",
+    "@simplewebauthn/browser": "9.0.1",
+    "@simplewebauthn/types": "9.0.1",
     "axios": "1.6.7",
     "broadcast-channel": "7.0.0",
     "classnames": "2.5.1",

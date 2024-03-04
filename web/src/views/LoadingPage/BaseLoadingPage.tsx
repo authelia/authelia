@@ -22,8 +22,6 @@ const BaseLoadingPage = function (props: Props) {
     );
 };
 
-export default BaseLoadingPage;
-
 const useStyles = makeStyles((theme: Theme) => ({
     gridOuter: {
         alignItems: "center",
@@ -35,3 +33,5 @@ const useStyles = makeStyles((theme: Theme) => ({
         display: "inline-block",
     },
 }));
+
+export default BaseLoadingPage;

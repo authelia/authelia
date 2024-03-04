@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "openid-connect"
-weight: 190200
+weight: 110200
 toc: true
 aliases:
   - /c/oidc

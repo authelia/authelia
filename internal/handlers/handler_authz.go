@@ -36,7 +36,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if provider, err = ctx.GetSessionProviderByTargetURL(object.URL); err != nil {
+	if provider, err = ctx.GetSessionProviderByTargetURI(object.URL); err != nil {
 		ctx.Logger.WithError(err).WithField("target_url", object.URL.String()).Error("Target URL does not appear to have a relevant session cookies configuration")
 
 		ctx.ReplyStatusCode(authz.config.StatusCodeBadRequest)

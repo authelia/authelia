@@ -8,7 +8,7 @@ import (
 	reflect "reflect"
 
 	algorithm "github.com/go-crypt/crypt/algorithm"
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockHash is a mock of Hash interface.

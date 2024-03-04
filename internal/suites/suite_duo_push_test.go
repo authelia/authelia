@@ -26,8 +26,7 @@ func NewDuoPushWebDriverSuite() *DuoPushWebDriverSuite {
 }
 
 func (s *DuoPushWebDriverSuite) SetupSuite() {
-	browser, err := StartRod()
-
+	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -394,8 +393,7 @@ func NewDuoPushDefaultRedirectionSuite() *DuoPushDefaultRedirectionSuite {
 func (s *DuoPushDefaultRedirectionSuite) SetupSuite() {
 	s.BaseSuite.SetupSuite()
 
-	browser, err := StartRod()
-
+	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	if err != nil {
 		log.Fatal(err)
 	}

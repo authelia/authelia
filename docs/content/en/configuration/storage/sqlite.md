@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "storage"
-weight: 106500
+weight: 107500
 toc: true
 aliases:
   - /docs/configuration/storage/sqlite.html

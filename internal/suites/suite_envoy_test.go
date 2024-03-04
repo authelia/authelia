@@ -20,8 +20,8 @@ func (s *EnvoySuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *EnvoySuite) Test2FAScenario() {
-	suite.Run(s.T(), New2FAScenario())
+func (s *EnvoySuite) TestTwoFactorTOTPScenario() {
+	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 
 func (s *EnvoySuite) TestCustomHeaders() {

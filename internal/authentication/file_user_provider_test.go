@@ -14,9 +14,9 @@ import (
 	"github.com/go-crypt/crypt/algorithm/bcrypt"
 	"github.com/go-crypt/crypt/algorithm/pbkdf2"
 	"github.com/go-crypt/crypt/algorithm/scrypt"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )

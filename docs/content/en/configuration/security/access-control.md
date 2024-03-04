@@ -319,7 +319,7 @@ permission to do GET requests, their authentication level was `one_factor`, and 
 who have done requests other than HEAD or GET which means the user experience may suffer. These are the reasons it's
 only recommended to use this to increase security where essential and for CORS preflight.
 
-The accepted and valid methods for this configuration option are those specified in well known RFC's. The RFC's and the
+The accepted and valid methods for this configuration option are those specified in well known RFCs. The RFCs and the
 relevant methods are listed in this table:
 
 |    RFC    |                        Methods                        |                     Additional Documentation                     |

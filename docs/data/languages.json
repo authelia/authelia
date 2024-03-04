@@ -7,14 +7,16 @@
         "namespace": "portal"
     },
     "namespaces": [
-        "portal"
+        "portal",
+        "settings"
     ],
     "languages": [
         {
             "display": "English",
             "locale": "en",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "en"
