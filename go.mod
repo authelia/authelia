@@ -9,7 +9,7 @@ require (
 	github.com/authelia/otp v1.0.0
 	github.com/deckarep/golang-set/v2 v2.6.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20240205144049-bb361ad4ae1c
-	github.com/fasthttp/router v1.4.22
+	github.com/fasthttp/router v1.5.0
 	github.com/fasthttp/session/v2 v2.5.4
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-asn1-ber/asn1-ber v1.5.5
