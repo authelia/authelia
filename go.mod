@@ -10,7 +10,7 @@ require (
 	github.com/deckarep/golang-set/v2 v2.6.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20240205144049-bb361ad4ae1c
 	github.com/fasthttp/router v1.4.22
-	github.com/fasthttp/session/v2 v2.5.3
+	github.com/fasthttp/session/v2 v2.5.4
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-asn1-ber/asn1-ber v1.5.5
 	github.com/go-crypt/crypt v0.2.18
@@ -103,9 +103,9 @@ require (
 	github.com/prometheus/client_model v0.5.0 // indirect
 	github.com/prometheus/common v0.48.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
-	github.com/redis/go-redis/v9 v9.3.0 // indirect
+	github.com/redis/go-redis/v9 v9.5.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
+	github.com/savsgio/gotils v0.0.0-20240303185622-093b76447511 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
