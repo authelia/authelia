@@ -201,7 +201,7 @@ func jwkCalculateThumbprint(key schema.CryptographicKey) (thumbprintStr string, 
 }
 
 func getResponseObjectAlgFromKID(config *schema.IdentityProvidersOpenIDConnect, kid, alg string) string {
-	for _, jwk := range config.IssuerPrivateKeys {
+	for _, jwk := range config.JSONWebKeys {
 		if kid == jwk.KeyID {
 			return jwk.Algorithm
 		}

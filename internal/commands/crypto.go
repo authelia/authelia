@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"fmt"
+	"net/url"
 	"path"
 	"path/filepath"
 	"strings"
@@ -253,6 +254,10 @@ func (ctx *CmdCtx) CryptoRandRunE(cmd *cobra.Command, args []string) (err error)
 	}
 
 	fmt.Printf("Random Value: %s\n", random)
+
+	if value := url.QueryEscape(random); random != value {
+		fmt.Printf("Random Value (URL Encoded): %s\n", value)
+	}
 
 	return nil
 }

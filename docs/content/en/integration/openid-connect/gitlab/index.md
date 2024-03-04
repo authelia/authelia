@@ -47,19 +47,19 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-    - id: 'gitlab'
-      description: 'GitLab'
-      secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-      public: false
-      authorization_policy: 'two_factor'
-      redirect_uris:
-        - 'https://gitlab.example.com/users/auth/openid_connect/callback'
-      scopes:
-        - 'openid'
-        - 'profile'
-        - 'groups'
-        - 'email'
-      userinfo_signed_response_alg: 'none'
+      - client_id: 'gitlab'
+        client_name: 'GitLab'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        public: false
+        authorization_policy: 'two_factor'
+        redirect_uris:
+          - 'https://gitlab.example.com/users/auth/openid_connect/callback'
+        scopes:
+          - 'openid'
+          - 'profile'
+          - 'groups'
+          - 'email'
+        userinfo_signed_response_alg: 'none'
 ```
 
 ### Application

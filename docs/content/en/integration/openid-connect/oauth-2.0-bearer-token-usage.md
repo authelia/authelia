@@ -2,7 +2,7 @@
 title: "OAuth 2.0 Bearer Token Usage"
 description: "An introduction into utilizing the Authelia OAuth 2.0 Provider as an authorization method"
 lead: "An introduction into utilizing the Authelia OAuth 2.0 Provider as an authorization method."
-date: 2024-01-01T13:17:53+11:00
+date: 2024-03-05T19:11:16+10:00
 draft: false
 images: []
 menu:
@@ -19,9 +19,9 @@ Session Cookie Forwarded Authorization Flow. This is performed leveraging the
 ## Authorization Endpoints
 
 A [registered OAuth 2.0 client](../../configuration/identity-providers/openid-connect/provider.md#clients) which is
-permitted to grant the `authelia.bearer.authz` scope is able to request users grant access to a token which can be used
+permitted to request the `authelia.bearer.authz` scope can request users grant access to a token which can be used
 for the forwarded authentication flow integrated into a proxy (i.e. `access_control` rules) in place of the standard
-session cookie based authorization flow (which redirects unauthorized users) by utilizing
+session cookie-based authorization flow (which redirects unauthorized users) by utilizing
 [RFC6750: OAuth 2.0 Bearer Token Usage] authorization scheme norms (i.e. using the bearer scheme).
 
 _**Note:** these tokens are not intended for usage with the Authelia API, a separate exclusive scope (or scopes) and
@@ -29,7 +29,7 @@ specific audiences will likely be implemented at a later date for this._
 
 ### General Protections
 
-The following protections have been taken into account:
+The following protections have been considered:
 
 - There are several safeguards to ensure this Authorization Flow cannot operate accidentally. It must be explicitly
   configured:
@@ -58,8 +58,8 @@ The following protections have been taken into account:
     will match the token instead of a user or groups (where `<id>` is the registered client id). See
     [Access Control Configuration](#access-control-configuration).
   - The audience of the token is also considered and if the token does not have an audience which is an exact match or
-    the prefix of the URL being requested the authorization will automatically be denied.
-- At this time each request using this scheme will cause a lookup to be performed on the authentication backend.
+    the prefix of the URL being requested, the authorization will automatically be denied.
+- At this time, each request using this scheme will cause a lookup to be performed on the authentication backend.
 - Specific changes to the client registration will result in the authorization being denied such as:
   - The client is no longer registered.
   - The `authelia.bearer.authz` scope is removed from the registration.
@@ -67,8 +67,8 @@ The following protections have been taken into account:
 - The audience of the token must explicitly be requested. Omission of the `audience` parameter may be denied and will
   not grant any audience (thus making it useless) even if the client has been whitelisted for the particular audience.
 
-For example if `john` consents to grant the token and it includes the audience `https://app1.example.com` but the user
-`john` is not normally authorized to visit `https://app1.example.com` the token will not grant access to this resource.
+For example, if `john` consents to grant the token, and it includes the audience `https://app1.example.com`, but the
+ user `john` is not normally authorized to visit `https://app1.example.com` the token will not grant access to this resource.
 In addition if `john` has his access updated via the access control rules, their groups, etc. then this access is
 automatically applied to these tokens.
 
@@ -85,7 +85,7 @@ The following recommendations should be considered by users who use this authori
 
 ### Audience Request
 
-While not explicitly part of the specifications the `audience` parameter can be used during the Authorization Request
+While not explicitly part of the specifications, the `audience` parameter can be used during the Authorization Request
 phase of the Authorization Code Grant Flow or the Access Token Request phase of the Client Credentials Grant Flow. The
 specification leaves it up to Authorization Server policy specifically how audiences are granted and this seems like a
 common practice.
@@ -148,7 +148,7 @@ session:
 ### Access Control Configuration
 
 In addition to the restriction of the token audience having to match the target location you must also grant access
-in the Access Control section of of the configuration either to the user or in the instance of the `client_credentials`
+in the Access Control section of the configuration either to the user or in the instance of the `client_credentials`
 grant the client itself.
 
 It is important to note that the `client_credentials` grant is **always** treated as 1FA thus only the `one_factor`
@@ -198,7 +198,7 @@ The following examples illustrate how the [Client Restrictions](#client-restrict
 identity_providers:
   oidc:
     clients:
-      - id: 'example-one'
+      - client_id: 'example-one'
         public: true
         redirect_uris:
           - 'http://localhost/callback'
@@ -230,8 +230,8 @@ This is likely the most common configuration for most users.
 identity_providers:
   oidc:
     clients:
-      - id: 'example-two'
-        secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+      - client_id: 'example-two'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         redirect_uris:
           - 'http://localhost/callback'
@@ -259,14 +259,14 @@ identity_providers:
 
 This example illustrates a method to configure a Client Credential flow for this purpose. This flow is useful for
 automations. It's important to note that for access control evaluation purposes this token will match a subject of
-`oauth2:client:example-two` i.e. the `oauth2:client:` prefix followed by the client id.
+`oauth2:client:example-three` i.e. the `oauth2:client:` prefix followed by the client id.
 
 ```yaml
 identity_providers:
   oidc:
     clients:
-      - id: 'example-three'
-        secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+      - client_id: 'example-three'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         scopes:
           - 'authelia.bearer.authz'

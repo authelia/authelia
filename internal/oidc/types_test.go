@@ -44,7 +44,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		Request: fosite.Request{
 			ID:     requestID.String(),
 			Form:   formValues,
-			Client: &oidc.BaseClient{ID: "example"},
+			Client: &oidc.RegisteredClient{ID: "example"},
 		},
 	}
 

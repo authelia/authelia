@@ -1250,10 +1250,9 @@ notifier:
     ## HMAC Secret can also be set using a secret: https://www.authelia.com/c/secrets
     # hmac_secret: 'this_is_a_secret_abc123abc123abc'
 
-    ## Issuer JWKS configures multiple JSON Web Keys. It's required that at least one of these is RS256 or the
-    ## option issuer_private_key is configured. There must only be one key per algorithm at this time.
-    ## For RSA keys the minimum is a 2048 bit key.
-    # issuer_private_keys:
+    ## The JWK's issuer option configures multiple JSON Web Keys. It's required that at least one of the JWK's
+    ## configured has the RS256 algorithm. For RSA keys (RS or PS) the minimum is a 2048 bit key.
+    # jwks:
     # -
       ## Key ID embedded into the JWT header for key matching. Must be an alphanumeric string with 7 or less characters.
       ## This value is automatically generated if not provided. It's recommended to not configure this.
@@ -1345,20 +1344,22 @@ notifier:
     ## Clients is a list of known clients and their configuration.
     # clients:
       # -
-        ## The ID is the OpenID Connect ClientID which is used to link an application to a configuration.
-        # id: 'myapp'
+        ## The Client ID is the OAuth 2.0 and OpenID Connect 1.0 Client ID which is used to link an application to a
+        ## configuration.
+        # client_id: 'myapp'
 
         ## The description to show to users when they end up on the consent screen. Defaults to the ID above.
-        # description: 'My Application'
+        # client_name: 'My Application'
 
         ## The client secret is a shared secret between Authelia and the consumer of this client.
         # yamllint disable-line rule:line-length
-        # secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        # client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
 
         ## Sector Identifiers are occasionally used to generate pairwise subject identifiers. In most cases this is not
         ## necessary. Read the documentation for more information.
-        ## The subject identifier must be the host component of a URL, which is a domain name with an optional port.
-        # sector_identifier: 'example.com'
+        ## The subject identifier must be the host component of a URL, which is a domain name with an optional port. It
+        ## must return a JSON document which contains an array of every 'redirect_uris' value of each client using it.
+        # sector_identifier_uri: 'https://example.com/sector.json'
 
         ## Sets the client to public. This should typically not be set, please see the documentation for usage.
         # public: false
@@ -1407,11 +1408,11 @@ notifier:
         ## configured as 'auto' or 'pre-configured' in the duration common syntax.
         # pre_configured_consent_duration: '1 week'
 
-        ## Enforces the use of Pushed Authorization Requests for this client when set to true.
-        # enforce_par: false
+        ## Requires the use of Pushed Authorization Requests for this client when set to true.
+        # require_pushed_authorization_requests: false
 
         ## Enforces the use of PKCE for this client when set to true.
-        # enforce_pkce: false
+        # require_pkce: false
 
         ## Enables stateless introspection for RFC9068 JWT Access Tokens. This should be false unless you have a
         ## specific use case as it effectively prevents revocation of these access tokens.
@@ -1422,6 +1423,8 @@ notifier:
         # pkce_challenge_method: 'S256'
 
         ## The permitted client authentication method for the Token Endpoint for this client.
+        ## For confidential client types this value defaults to 'client_secret_basic' and for the public client types it
+        ## defaults to 'none' per the specifications.
         # token_endpoint_auth_method: 'client_secret_basic'
 
         ## The permitted client authentication signing algorithm for the Token Endpoint for this client when using
@@ -1478,52 +1481,52 @@ notifier:
         ## when configured.
         # introspection_signed_response_key_id: ''
 
-        ## Trusted public keys configuration for request object signing for things such as private_key_jwt
-        # public_keys:
+        ## Trusted public keys configuration for request object signing for things such as 'private_key_jwt'.
+        ## URL of the HTTPS endpoint which serves the keys. Please note the 'jwks_uri' and the 'jwks' option below
+        ## are mutually exclusive.
+        # jwks_uri: 'https://app.example.com/jwks.json'
 
-          ## URL of the HTTPS endpoint which serves the keys. It's recommended to manually configure them in the
-          ## values option below. Please note the URL and the individual values are mutually exclusive.
-          # uri: 'https://app.example.com/jwks.json'
+        ## Trusted public keys configuration for request object signing for things such as 'private_key_jwt'.
+        ## List of JWKs known and registered with this client. It's recommended to use the 'jwks_uri' option if
+        ## available due to key rotation. Please note the 'jwks' and the 'jwks_uri' option above are mutually exclusive.
+        # jwks:
+          # -
+            ## Key ID used to match the JWT's to an individual identifier. This option is required if configured.
+            # key_id: 'example'
 
-          ## Values from the individual keys.
-          # values:
-            # -
-              ## Key ID used to match the JWT's to an individual identifier. This option is required if configured.
-              # key_id: 'example'
+            ## The key algorithm expected with this key.
+            # algorithm: 'RS256'
 
-              ## The key algorithm expected with this key.
-              # algorithm: 'RS256'
+            ## The key use expected with this key. Currently only 'sig' is supported.
+            # use: 'sig'
 
-              ## The key use expected with this key. Currently only 'sig' is supported.
-              # use: 'sig'
+            ## Required Public Key in PEM DER form.
+            # key: |
+            # -----BEGIN RSA PUBLIC KEY-----
+            # MEgCQQDAwV26ZA1lodtOQxNrJ491gWT+VzFum9IeZ+WTmMypYWyW1CzXKwsvTHDz
+            # 9ec+jserR3EMQ0Rr24lj13FL1ib5AgMBAAE_DO_NOT_USE=
+            # -----END RSA PUBLIC KEY----
 
-              ## Required Public Key in PEM DER form.
-              # key: |
-                # -----BEGIN RSA PUBLIC KEY-----
-                # MEgCQQDAwV26ZA1lodtOQxNrJ491gWT+VzFum9IeZ+WTmMypYWyW1CzXKwsvTHDz
-                # 9ec+jserR3EMQ0Rr24lj13FL1ib5AgMBAAE_DO_NOT_USE=
-                # -----END RSA PUBLIC KEY----
-
-              ## The matching certificate chain in PEM DER form that matches the key if available.
-              # certificate_chain: |
-                # -----BEGIN CERTIFICATE-----
-                # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-                # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-                # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-                # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-                # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-                # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-                # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-                # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
-                # -----END CERTIFICATE-----
-                # -----BEGIN CERTIFICATE-----
-                # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-                # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-                # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-                # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-                # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-                # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-                # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-                # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
-                # -----END CERTIFICATE-----
+            ## The matching certificate chain in PEM DER form that matches the key if available.
+            # certificate_chain: |
+            # -----BEGIN CERTIFICATE-----
+            # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
+            # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
+            # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
+            # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
+            # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
+            # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
+            # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
+            # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+            # -----END CERTIFICATE-----
+            # -----BEGIN CERTIFICATE-----
+            # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
+            # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
+            # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
+            # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
+            # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
+            # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
+            # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
+            # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+            # -----END CERTIFICATE-----
 ...

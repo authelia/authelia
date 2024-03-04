@@ -128,7 +128,7 @@ func TestIntrospectionResponseToMap(t *testing.T) {
 						RequestedAt:     time.Unix(100000, 0).UTC(),
 						GrantedScope:    fosite.Arguments{oidc.ScopeOpenID, oidc.ScopeProfile},
 						GrantedAudience: fosite.Arguments{"https://example.com", "aclient"},
-						Client:          &oidc.BaseClient{ID: "aclient"},
+						Client:          &oidc.RegisteredClient{ID: "aclient"},
 					},
 				},
 			},
@@ -150,7 +150,7 @@ func TestIntrospectionResponseToMap(t *testing.T) {
 						RequestedAt:     time.Unix(100000, 0).UTC(),
 						GrantedScope:    fosite.Arguments{oidc.ScopeOpenID, oidc.ScopeProfile},
 						GrantedAudience: fosite.Arguments{"https://example.com", "aclient"},
-						Client:          &oidc.BaseClient{ID: "aclient"},
+						Client:          &oidc.RegisteredClient{ID: "aclient"},
 						Session: &oidc.Session{
 							DefaultSession: &openid.DefaultSession{
 								ExpiresAt: map[fosite.TokenType]time.Time{
@@ -183,7 +183,7 @@ func TestIntrospectionResponseToMap(t *testing.T) {
 		{
 			"ShouldReturnActiveWithAccessRequesterAndSessionWithIDTokenClaimsAndUsername",
 			&oidc.IntrospectionResponse{
-				Client: &oidc.BaseClient{
+				Client: &oidc.RegisteredClient{
 					ID:       "rclient",
 					Audience: []string{"https://rs.example.com"},
 				},
@@ -193,7 +193,7 @@ func TestIntrospectionResponseToMap(t *testing.T) {
 						RequestedAt:     time.Unix(100000, 0).UTC(),
 						GrantedScope:    fosite.Arguments{oidc.ScopeOpenID, oidc.ScopeProfile},
 						GrantedAudience: fosite.Arguments{"https://example.com", "aclient"},
-						Client:          &oidc.BaseClient{ID: "aclient"},
+						Client:          &oidc.RegisteredClient{ID: "aclient"},
 						Session: &oidc.Session{
 							DefaultSession: &openid.DefaultSession{
 								ExpiresAt: map[fosite.TokenType]time.Time{

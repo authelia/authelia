@@ -163,9 +163,9 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 	assert.Equal(t, "$plaintext$example_secret value", config.IdentityProviders.OIDC.Clients[2].Secret.String())
 	assert.Equal(t, "$plaintext$abc", config.IdentityProviders.OIDC.Clients[3].Secret.String())
 
-	require.Len(t, config.IdentityProviders.OIDC.IssuerPrivateKeys, 1)
+	require.Len(t, config.IdentityProviders.OIDC.JSONWebKeys, 1)
 
-	key, ok := config.IdentityProviders.OIDC.IssuerPrivateKeys[0].Key.(schema.CryptographicPrivateKey)
+	key, ok := config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(schema.CryptographicPrivateKey)
 	assert.True(t, ok)
 	require.NotNil(t, key)
 

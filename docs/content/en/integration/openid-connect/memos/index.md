@@ -59,14 +59,15 @@ To configure [Memos](https://github.com/usememos/memos) to utilize Authelia as a
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../configuration/identity-providers/openid-connect/clients.md) for use with [Memos]
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Memos]
 which will operate with the above example:
 
 ```yaml
 identity_providers:
   oidc:
-    - id: 'memos'
-      secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+    - client_id: 'memos'
+      client_name: 'Memos'
+      client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
       public: false
       authorization_policy: 'two_factor'
       redirect_uris:
@@ -83,4 +84,4 @@ identity_providers:
 
 [Authelia]: https://www.authelia.com
 [Memos]: https://github.com/usememos/memos
-[OpenID Connect 1.0]: ../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

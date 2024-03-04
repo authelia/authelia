@@ -27,7 +27,7 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 		{
 			desc:                                  "ShouldHaveStandardCodeChallengeMethods",
 			pkcePlainChallenge:                    false,
-			clients:                               map[string]oidc.Client{"a": &oidc.BaseClient{}},
+			clients:                               map[string]oidc.Client{"a": &oidc.RegisteredClient{}},
 			expectCodeChallengeMethodsSupported:   []string{oidc.PKCEChallengeMethodSHA256},
 			expectSubjectTypesSupported:           []string{oidc.SubjectTypePublic, oidc.SubjectTypePairwise},
 			expectedIDTokenSigAlgsSupported:       []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone},
@@ -39,7 +39,7 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 		{
 			desc:                                  "ShouldHaveAllCodeChallengeMethods",
 			pkcePlainChallenge:                    true,
-			clients:                               map[string]oidc.Client{"a": &oidc.BaseClient{}},
+			clients:                               map[string]oidc.Client{"a": &oidc.RegisteredClient{}},
 			expectCodeChallengeMethodsSupported:   []string{oidc.PKCEChallengeMethodSHA256, oidc.PKCEChallengeMethodPlain},
 			expectSubjectTypesSupported:           []string{oidc.SubjectTypePublic, oidc.SubjectTypePairwise},
 			expectedIDTokenSigAlgsSupported:       []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone},
@@ -51,7 +51,7 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 		{
 			desc:               "ShouldIncludeDiscoveredResponseObjectSigningAlgs",
 			pkcePlainChallenge: false,
-			clients:            map[string]oidc.Client{"a": &oidc.BaseClient{}},
+			clients:            map[string]oidc.Client{"a": &oidc.RegisteredClient{}},
 			discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 				ResponseObjectSigningAlgs: []string{oidc.SigningAlgECDSAUsingP521AndSHA512},
 			},

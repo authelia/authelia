@@ -149,7 +149,7 @@ notifier:
 
 identity_providers:
   oidc:
-    issuer_private_keys:
+    jwks:
       # yamllint disable-line rule:braces
       - key: {{ secret "./test_resources/crypto/rsa.2048.pem" | mindent 10 "|" | msquote }}
     cors:
@@ -157,16 +157,16 @@ identity_providers:
         - 'https://google.com'
         - 'https://example.com'
     clients:
-      - id: 'abc'
-        secret: '${ABC_CLIENT_SECRET}'
+      - client_id: 'abc'
+        client_secret: '${ABC_CLIENT_SECRET}'
         consent_mode: 'explicit'
-      - id: 'xyz'
-        secret: '$XYZ_CLIENT_SECRET'
+      - client_id: 'xyz'
+        client_secret: '$XYZ_CLIENT_SECRET'
         consent_mode: 'explicit'
-      - id: '123'
-        secret: '{{ secret "./test_resources/example_secret" }}'
+      - client_id: '123'
+        client_secret: '{{ secret "./test_resources/example_secret" }}'
         consent_mode: explicit
-      - id: '456'
-        secret: '{{ secret "./test_resources/example_password_secret" }}'
+      - client_id: '456'
+        client_secret: '{{ secret "./test_resources/example_password_secret" }}'
         consent_mode: explicit
 ...

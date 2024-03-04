@@ -130,8 +130,8 @@ identity_providers:
         - 'https://example.com'
     minimum_parameter_entropy: -1
     clients:
-      - id: 'abc'
-        secret: '123'
+      - client_id: 'abc'
+        client_secret: '123'
         consent_mode: 'explicit'
         userinfo_signed_response_alg: 'none'
 ...

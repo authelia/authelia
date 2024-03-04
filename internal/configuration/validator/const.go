@@ -159,7 +159,7 @@ const (
 const (
 	errFmtOIDCProviderNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +
 		"more clients configured"
-	errFmtOIDCProviderNoPrivateKey            = "identity_providers: oidc: option `issuer_private_keys` is required"
+	errFmtOIDCProviderNoPrivateKey            = "identity_providers: oidc: option `jwks` is required"
 	errFmtOIDCProviderEnforcePKCEInvalidValue = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
 		"'public_clients_only' or 'always', but it's configured as '%s'"
 	errFmtOIDCProviderInsecureParameterEntropy       = "identity_providers: oidc: option 'minimum_parameter_entropy' is "
@@ -167,18 +167,18 @@ const (
 		"configured to an unsafe and insecure value, it should at least be %d but it's configured to %d"
 	errFmtOIDCProviderInsecureDisabledParameterEntropy = errFmtOIDCProviderInsecureParameterEntropy +
 		"disabled which is considered unsafe and insecure"
-	errFmtOIDCProviderPrivateKeysInvalid                 = "identity_providers: oidc: issuer_private_keys: key #%d: option 'key' must be a valid private key but the provided data is malformed as it's missing the public key bits"
-	errFmtOIDCProviderPrivateKeysCalcThumbprint          = "identity_providers: oidc: issuer_private_keys: key #%d: option 'key' failed to calculate thumbprint to configure key id value: %w"
-	errFmtOIDCProviderPrivateKeysKeyIDLength             = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option `key_id` must be 100 characters or less"
-	errFmtOIDCProviderPrivateKeysAttributeNotUnique      = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option '%s' must be unique"
-	errFmtOIDCProviderPrivateKeysKeyIDNotValid           = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'key_id' must only contain RFC3986 unreserved characters and must only start and end with alphanumeric characters"
-	errFmtOIDCProviderPrivateKeysProperties              = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'key' failed to get key properties: %w"
-	errFmtOIDCProviderPrivateKeysInvalidOptionOneOf      = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option '%s' must be one of %s but it's configured as '%s'"
-	errFmtOIDCProviderPrivateKeysRSAKeyLessThan2048Bits  = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must at minimum be a RSA 2048 bit private key"
-	errFmtOIDCProviderPrivateKeysKeyNotRSAOrECDSA        = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'key' must be a RSA private key or ECDSA private key but it's type is %T"
-	errFmtOIDCProviderPrivateKeysKeyCertificateMismatch  = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the private key provided by option 'key'"
-	errFmtOIDCProviderPrivateKeysCertificateChainInvalid = "identity_providers: oidc: issuer_private_keys: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
-	errFmtOIDCProviderPrivateKeysNoRS256                 = "identity_providers: oidc: issuer_private_keys: keys: must at least have one key supporting the '%s' algorithm but only has %s"
+	errFmtOIDCProviderPrivateKeysInvalid                 = "identity_providers: oidc: jwks: key #%d: option 'key' must be a valid private key but the provided data is malformed as it's missing the public key bits"
+	errFmtOIDCProviderPrivateKeysCalcThumbprint          = "identity_providers: oidc: jwks: key #%d: option 'key' failed to calculate thumbprint to configure key id value: %w"
+	errFmtOIDCProviderPrivateKeysKeyIDLength             = "identity_providers: oidc: jwks: key #%d with key id '%s': option `key_id` must be 100 characters or less"
+	errFmtOIDCProviderPrivateKeysAttributeNotUnique      = "identity_providers: oidc: jwks: key #%d with key id '%s': option '%s' must be unique"
+	errFmtOIDCProviderPrivateKeysKeyIDNotValid           = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key_id' must only contain RFC3986 unreserved characters and must only start and end with alphanumeric characters"
+	errFmtOIDCProviderPrivateKeysProperties              = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key' failed to get key properties: %w"
+	errFmtOIDCProviderPrivateKeysInvalidOptionOneOf      = "identity_providers: oidc: jwks: key #%d with key id '%s': option '%s' must be one of %s but it's configured as '%s'"
+	errFmtOIDCProviderPrivateKeysRSAKeyLessThan2048Bits  = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must at minimum be a RSA 2048 bit private key"
+	errFmtOIDCProviderPrivateKeysKeyNotRSAOrECDSA        = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key' must be a RSA private key or ECDSA private key but it's type is %T"
+	errFmtOIDCProviderPrivateKeysKeyCertificateMismatch  = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the private key provided by option 'key'"
+	errFmtOIDCProviderPrivateKeysCertificateChainInvalid = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
+	errFmtOIDCProviderPrivateKeysNoRS256                 = "identity_providers: oidc: jwks: keys: must at least have one key supporting the '%s' algorithm but only has %s"
 
 	errFmtOIDCCORSInvalidOrigin                    = "identity_providers: oidc: cors: option 'allowed_origins' contains an invalid value '%s' as it has a %s: origins must only be scheme, hostname, and an optional port"
 	errFmtOIDCCORSInvalidOriginWildcard            = "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' with more than one origin but the wildcard origin must be defined by itself"
@@ -250,13 +250,13 @@ const (
 	errFmtOIDCClientInvalidTokenEndpointAuthSigAlgMissingPrivateKeyJWT = errFmtOIDCClientOption +
 		"'token_endpoint_auth_signing_alg' is required when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'"
 	errFmtOIDCClientInvalidPublicKeysPrivateKeyJWT = errFmtOIDCClientOption +
-		"'public_keys' is required with 'token_endpoint_auth_method' set to 'private_key_jwt'"
+		"'jwks_uri' or 'jwks' is required with 'token_endpoint_auth_method' set to 'private_key_jwt'"
 	errFmtOIDCClientInvalidSectorIdentifier = errFmtOIDCClientOption +
-		"'sector_identifier' with value '%s': must be a URL with only the host component for example '%s' but it has a %s with the value '%s'"
+		"'sector_identifier_uri' with value '%s': must be a URL with only the host component for example '%s' but it has a %s with the value '%s'"
 	errFmtOIDCClientInvalidSectorIdentifierWithoutValue = errFmtOIDCClientOption +
-		"'sector_identifier' with value '%s': must be a URL with only the host component for example '%s' but it has a %s"
+		"'sector_identifier_uri' with value '%s': must be a URL with only the host component for example '%s' but it has a %s"
 	errFmtOIDCClientInvalidSectorIdentifierHost = errFmtOIDCClientOption +
-		"'sector_identifier' with value '%s': must be a URL with only the host component but appears to be invalid"
+		"'sector_identifier_uri' with value '%s': must be a URL with only the host component but appears to be invalid"
 	errFmtOIDCClientInvalidGrantTypeMatch = errFmtOIDCClientOption +
 		"'grant_types' should only have grant type values which are valid with the configured 'response_types' for the client but '%s' expects a response type %s such as %s but the response types are %s"
 	errFmtOIDCClientInvalidGrantTypeRefresh = errFmtOIDCClientOption +
@@ -267,17 +267,17 @@ const (
 	errFmtOIDCClientInvalidRefreshTokenOptionWithoutCodeResponseType = errFmtOIDCClientOption +
 		"'%s' should only have the values %s if the client is also configured with a 'response_type' such as %s which respond with authorization codes"
 
-	errFmtOIDCClientPublicKeysBothURIAndValuesConfigured  = "identity_providers: oidc: clients: client '%s': public_keys: option 'uri' must not be defined at the same time as option 'values'"
-	errFmtOIDCClientPublicKeysURIInvalidScheme            = "identity_providers: oidc: clients: client '%s': public_keys: option 'uri' must have the 'https' scheme but the scheme is '%s'"
-	errFmtOIDCClientPublicKeysProperties                  = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d with key id '%s': option 'key' failed to get key properties: %w"
-	errFmtOIDCClientPublicKeysInvalidOptionOneOf          = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d with key id '%s': option '%s' must be one of %s but it's configured as '%s'"
-	errFmtOIDCClientPublicKeysInvalidOptionMissingOneOf   = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d: option '%s' must be provided"
-	errFmtOIDCClientPublicKeysKeyMalformed                = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d: option 'key' option 'key' must be a valid private key but the provided data is malformed as it's missing the public key bits"
-	errFmtOIDCClientPublicKeysRSAKeyLessThan2048Bits      = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must at minimum be a RSA 2048 bit private key"
-	errFmtOIDCClientPublicKeysKeyNotRSAOrECDSA            = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d with key id '%s': option 'key' must be a RSA public key or ECDSA public key but it's type is %T"
-	errFmtOIDCClientPublicKeysCertificateChainKeyMismatch = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the public key provided by option 'key'"
-	errFmtOIDCClientPublicKeysCertificateChainInvalid     = "identity_providers: oidc: clients: client '%s': public_keys: values: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
-	errFmtOIDCClientPublicKeysROSAMissingAlgorithm        = errFmtOIDCClientOption + "'request_object_signing_alg' must be one of %s configured in the client option 'public_keys'"
+	errFmtOIDCClientPublicKeysBothURIAndValuesConfigured  = "identity_providers: oidc: clients: client '%s': option 'jwks_uri' must not be defined at the same time as option 'jwks'"
+	errFmtOIDCClientPublicKeysURIInvalidScheme            = "identity_providers: oidc: clients: client '%s': option 'jwks_uri' must have the 'https' scheme but the scheme is '%s'"
+	errFmtOIDCClientPublicKeysProperties                  = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' failed to get key properties: %w"
+	errFmtOIDCClientPublicKeysInvalidOptionOneOf          = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option '%s' must be one of %s but it's configured as '%s'"
+	errFmtOIDCClientPublicKeysInvalidOptionMissingOneOf   = "identity_providers: oidc: clients: client '%s': jwks: key #%d: option '%s' must be provided"
+	errFmtOIDCClientPublicKeysKeyMalformed                = "identity_providers: oidc: clients: client '%s': jwks: key #%d: option 'key' option 'key' must be a valid private key but the provided data is malformed as it's missing the public key bits"
+	errFmtOIDCClientPublicKeysRSAKeyLessThan2048Bits      = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must at minimum be a RSA 2048 bit private key"
+	errFmtOIDCClientPublicKeysKeyNotRSAOrECDSA            = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' must be a RSA public key or ECDSA public key but it's type is %T"
+	errFmtOIDCClientPublicKeysCertificateChainKeyMismatch = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the public key provided by option 'key'"
+	errFmtOIDCClientPublicKeysCertificateChainInvalid     = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
+	errFmtOIDCClientPublicKeysROSAMissingAlgorithm        = errFmtOIDCClientOption + "'request_object_signing_alg' must be one of %s configured in the client option 'jwks'"
 )
 
 // WebAuthn Error constants.

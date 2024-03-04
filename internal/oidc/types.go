@@ -43,18 +43,18 @@ type Store struct {
 	clients  map[string]Client
 }
 
-// BaseClient is the base for all clients.
-type BaseClient struct {
-	ID               string
-	Description      string
-	Secret           *schema.PasswordDigest
-	SectorIdentifier string
-	Public           bool
+// RegisteredClient represents a registered client.
+type RegisteredClient struct {
+	ID                  string
+	Description         string
+	Secret              *schema.PasswordDigest
+	SectorIdentifierURI *url.URL
+	Public              bool
 
-	EnforcePAR bool
+	RequirePushedAuthorizationRequests bool
 
-	EnforcePKCE                bool
-	EnforcePKCEChallengeMethod bool
+	RequirePKCE                bool
+	RequirePKCEChallengeMethod bool
 	PKCEChallengeMethod        string
 
 	Audience      []string
@@ -83,15 +83,10 @@ type BaseClient struct {
 
 	ConsentPolicy         ClientConsentPolicy
 	RequestedAudienceMode ClientRequestedAudienceMode
-}
-
-// FullClient is the client with comprehensive supported features.
-type FullClient struct {
-	*BaseClient
 
 	RequestURIs                 []string
 	JSONWebKeys                 *jose.JSONWebKeySet
-	JSONWebKeysURI              string
+	JSONWebKeysURI              *url.URL
 	RequestObjectSigningAlg     string
 	TokenEndpointAuthMethod     string
 	TokenEndpointAuthSigningAlg string
@@ -123,7 +118,7 @@ type Client interface {
 	GetIntrospectionSignedResponseAlg() (alg string)
 	GetIntrospectionSignedResponseKeyID() (kid string)
 
-	GetPAREnforcement() (enforce bool)
+	GetRequirePushedAuthorizationRequests() (enforce bool)
 	GetPKCEEnforcement() (enforce bool)
 	GetPKCEChallengeMethodEnforcement() (enforce bool)
 	GetPKCEChallengeMethod() (method string)

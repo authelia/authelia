@@ -343,7 +343,7 @@ func TestRefreshTokenGrantHandler_HandleTokenEndpointRequest(t *testing.T) {
 			name: "ShouldPassWithScopeBroadeningOnRefreshFlowScopeClientTrue",
 			setup: func(config *fosite.Config, strategy oauth2.RefreshTokenStrategy, store *storage.MemoryStore, requester *fosite.AccessRequest) {
 				requester.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
-				requester.Client = &oidc.BaseClient{
+				requester.Client = &oidc.RegisteredClient{
 					ID:                                     "foo",
 					GrantTypes:                             fosite.Arguments{oidc.GrantTypeRefreshToken},
 					Scopes:                                 []string{"foo", "bar", "baz", oidc.ScopeOffline},
@@ -376,7 +376,7 @@ func TestRefreshTokenGrantHandler_HandleTokenEndpointRequest(t *testing.T) {
 			name: "ShouldFailWithScopeBroadeningOnRefreshFlowScopeClientFalse",
 			setup: func(config *fosite.Config, strategy oauth2.RefreshTokenStrategy, store *storage.MemoryStore, requester *fosite.AccessRequest) {
 				requester.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
-				requester.Client = &oidc.BaseClient{
+				requester.Client = &oidc.RegisteredClient{
 					ID:                                     "foo",
 					GrantTypes:                             fosite.Arguments{oidc.GrantTypeRefreshToken},
 					Scopes:                                 []string{"foo", "bar", "baz", oidc.ScopeOffline},

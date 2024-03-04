@@ -67,7 +67,7 @@ func TestOpenIDConnectProvider_WriteAuthorizeResponse(t *testing.T) {
 			&fosite.AuthorizeRequest{
 				ResponseMode: oidc.ResponseModeQuery,
 				Request: fosite.Request{
-					Client: &oidc.BaseClient{
+					Client: &oidc.RegisteredClient{
 						ID: "example",
 						RedirectURIs: []string{
 							"https://app.example.com/callback",
@@ -94,7 +94,7 @@ func TestOpenIDConnectProvider_WriteAuthorizeResponse(t *testing.T) {
 			&fosite.AuthorizeRequest{
 				ResponseMode: oidc.ResponseModeQuery,
 				Request: fosite.Request{
-					Client: &oidc.BaseClient{
+					Client: &oidc.RegisteredClient{
 						ID: "example",
 						RedirectURIs: []string{
 							"https://app.example.com/callback",
@@ -160,7 +160,7 @@ func TestOpenIDConnectProvider_WriteAuthorizeResponse(t *testing.T) {
 			&fosite.AuthorizeRequest{
 				ResponseMode: oidc.ResponseModeQuery,
 				Request: fosite.Request{
-					Client: &oidc.BaseClient{
+					Client: &oidc.RegisteredClient{
 						ID: "example",
 						RedirectURIs: []string{
 							"https://app.example.com/callback?abc=true",
@@ -187,7 +187,7 @@ func TestOpenIDConnectProvider_WriteAuthorizeResponse(t *testing.T) {
 			&fosite.AuthorizeRequest{
 				ResponseMode: oidc.ResponseModeFragment,
 				Request: fosite.Request{
-					Client: &oidc.BaseClient{
+					Client: &oidc.RegisteredClient{
 						ID: "example",
 						RedirectURIs: []string{
 							"https://app.example.com/callback",
@@ -214,7 +214,7 @@ func TestOpenIDConnectProvider_WriteAuthorizeResponse(t *testing.T) {
 			&fosite.AuthorizeRequest{
 				ResponseMode: oidc.ResponseModeFormPost,
 				Request: fosite.Request{
-					Client: &oidc.BaseClient{
+					Client: &oidc.RegisteredClient{
 						ID: "example",
 						RedirectURIs: []string{
 							"https://app.example.com/callback",
@@ -242,7 +242,7 @@ func TestOpenIDConnectProvider_WriteAuthorizeResponse(t *testing.T) {
 				ResponseMode:  oidc.ResponseModeJWT,
 				ResponseTypes: fosite.Arguments{oidc.ResponseTypeAuthorizationCodeFlow},
 				Request: fosite.Request{
-					Client: &oidc.BaseClient{
+					Client: &oidc.RegisteredClient{
 						ID: "example",
 						RedirectURIs: []string{
 							"https://app.example.com/callback",
@@ -272,7 +272,7 @@ func TestOpenIDConnectProvider_WriteAuthorizeResponse(t *testing.T) {
 				ResponseMode:  oidc.ResponseModeFormPostJWT,
 				ResponseTypes: fosite.Arguments{oidc.ResponseTypeAuthorizationCodeFlow},
 				Request: fosite.Request{
-					Client: &oidc.BaseClient{
+					Client: &oidc.RegisteredClient{
 						ID: "example",
 						RedirectURIs: []string{
 							"https://app.example.com/callback",
@@ -302,7 +302,7 @@ func TestOpenIDConnectProvider_WriteAuthorizeResponse(t *testing.T) {
 				ResponseMode:  oidc.ResponseModeFragmentJWT,
 				ResponseTypes: fosite.Arguments{oidc.ResponseTypeAuthorizationCodeFlow},
 				Request: fosite.Request{
-					Client: &oidc.BaseClient{
+					Client: &oidc.RegisteredClient{
 						ID: "example",
 						RedirectURIs: []string{
 							"https://app.example.com/callback",
@@ -332,7 +332,7 @@ func TestOpenIDConnectProvider_WriteAuthorizeResponse(t *testing.T) {
 				ResponseMode:  oidc.ResponseModeJWT,
 				ResponseTypes: fosite.Arguments{oidc.ResponseTypeAuthorizationCodeFlow},
 				Request: fosite.Request{
-					Client: &oidc.BaseClient{
+					Client: &oidc.RegisteredClient{
 						ID: "example",
 						RedirectURIs: []string{
 							"https://app.example.com/callback",
@@ -370,7 +370,7 @@ func TestOpenIDConnectProvider_WriteAuthorizeResponse(t *testing.T) {
 				ResponseMode:  oidc.ResponseModeJWT,
 				ResponseTypes: fosite.Arguments{oidc.ResponseTypeImplicitFlowBoth},
 				Request: fosite.Request{
-					Client: &oidc.BaseClient{
+					Client: &oidc.RegisteredClient{
 						ID: "example",
 						RedirectURIs: []string{
 							"https://app.example.com/callback",
@@ -408,7 +408,7 @@ func TestOpenIDConnectProvider_WriteAuthorizeResponse(t *testing.T) {
 				ResponseMode:  oidc.ResponseModeFormPostJWT,
 				ResponseTypes: fosite.Arguments{oidc.ResponseTypeAuthorizationCodeFlow},
 				Request: fosite.Request{
-					Client: &oidc.BaseClient{
+					Client: &oidc.RegisteredClient{
 						ID: "example",
 						RedirectURIs: []string{
 							"https://app.example.com/callback",
@@ -508,7 +508,7 @@ func TestOpenIDConnectProvider_WriteAuthorizeError(t *testing.T) {
 			&fosite.AuthorizeRequest{
 				ResponseMode: oidc.ResponseModeQuery,
 				Request: fosite.Request{
-					Client: &oidc.BaseClient{
+					Client: &oidc.RegisteredClient{
 						ID: "example",
 						RedirectURIs: []string{
 							"https://app.example.com/callback",
@@ -533,7 +533,7 @@ func TestOpenIDConnectProvider_WriteAuthorizeError(t *testing.T) {
 				ResponseMode: oidc.ResponseModeQuery,
 				State:        "abc123state",
 				Request: fosite.Request{
-					Client: &oidc.BaseClient{
+					Client: &oidc.RegisteredClient{
 						ID: "example",
 						RedirectURIs: []string{
 							"https://app.example.com/callback",
@@ -558,7 +558,7 @@ func TestOpenIDConnectProvider_WriteAuthorizeError(t *testing.T) {
 				ResponseMode: oidc.ResponseModeQuery,
 				State:        "abc123state",
 				Request: fosite.Request{
-					Client: &oidc.BaseClient{
+					Client: &oidc.RegisteredClient{
 						ID: "example",
 						RedirectURIs: []string{
 							"https://app.example.com/callback",

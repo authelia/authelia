@@ -28,7 +28,7 @@ func TestNewClient(t *testing.T) {
 	assert.Len(t, client.GetResponseTypes(), 1)
 	assert.Equal(t, "", client.GetSectorIdentifier())
 
-	bclient, ok := client.(*oidc.BaseClient)
+	bclient, ok := client.(*oidc.RegisteredClient)
 	require.True(t, ok)
 	assert.Equal(t, "", bclient.UserinfoSignedResponseAlg)
 	assert.Equal(t, oidc.SigningAlgNone, client.GetUserinfoSignedResponseAlg())
@@ -36,12 +36,12 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, oidc.SigningAlgNone, client.GetIntrospectionSignedResponseAlg())
 	assert.Equal(t, "", client.GetIntrospectionSignedResponseKeyID())
 
-	_, ok = client.(*oidc.FullClient)
-	assert.False(t, ok)
+	_, ok = client.(*oidc.RegisteredClient)
+	assert.True(t, ok)
 
 	config = schema.IdentityProvidersOpenIDConnectClient{
 		ID:                  myclient,
-		Description:         myclientdesc,
+		Name:                myclientdesc,
 		AuthorizationPolicy: twofactor,
 		Secret:              tOpenIDConnectPlainTextClientSecret,
 		RedirectURIs:        []string{examplecom},
@@ -64,7 +64,7 @@ func TestNewClient(t *testing.T) {
 
 	client = oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{})
 
-	fclient, ok := client.(*oidc.FullClient)
+	fclient, ok := client.(*oidc.RegisteredClient)
 
 	require.True(t, ok)
 
@@ -143,10 +143,10 @@ func TestNewClient(t *testing.T) {
 
 	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetRequestObjectSigningAlgorithm())
 
-	assert.Equal(t, "", fclient.JSONWebKeysURI)
+	assert.Nil(t, fclient.JSONWebKeysURI)
 	assert.Equal(t, "", fclient.GetJSONWebKeysURI())
 
-	fclient.JSONWebKeysURI = "https://example.com"
+	fclient.JSONWebKeysURI = MustParseRequestURI("https://example.com")
 	assert.Equal(t, "https://example.com", fclient.GetJSONWebKeysURI())
 
 	var niljwks *jose.JSONWebKeySet
@@ -175,44 +175,44 @@ func TestNewClient(t *testing.T) {
 func TestBaseClient_Misc(t *testing.T) {
 	testCases := []struct {
 		name     string
-		setup    func(client *oidc.BaseClient)
-		expected func(t *testing.T, client *oidc.BaseClient)
+		setup    func(client *oidc.RegisteredClient)
+		expected func(t *testing.T, client *oidc.RegisteredClient)
 	}{
 		{
 			"ShouldReturnGetRefreshFlowIgnoreOriginalGrantedScopes",
-			func(client *oidc.BaseClient) {
+			func(client *oidc.RegisteredClient) {
 				client.RefreshFlowIgnoreOriginalGrantedScopes = true
 			},
-			func(t *testing.T, client *oidc.BaseClient) {
+			func(t *testing.T, client *oidc.RegisteredClient) {
 				assert.True(t, client.GetRefreshFlowIgnoreOriginalGrantedScopes(context.TODO()))
 			},
 		},
 		{
 			"ShouldReturnGetRefreshFlowIgnoreOriginalGrantedScopesFalse",
-			func(client *oidc.BaseClient) {
+			func(client *oidc.RegisteredClient) {
 				client.RefreshFlowIgnoreOriginalGrantedScopes = false
 			},
-			func(t *testing.T, client *oidc.BaseClient) {
+			func(t *testing.T, client *oidc.RegisteredClient) {
 				assert.False(t, client.GetRefreshFlowIgnoreOriginalGrantedScopes(context.TODO()))
 			},
 		},
 		{
 			"ShouldReturnClientAuthorizationPolicy",
-			func(client *oidc.BaseClient) {
+			func(client *oidc.RegisteredClient) {
 				client.AuthorizationPolicy = oidc.ClientAuthorizationPolicy{
 					DefaultPolicy: authorization.OneFactor,
 				}
 			},
-			func(t *testing.T, client *oidc.BaseClient) {
+			func(t *testing.T, client *oidc.RegisteredClient) {
 				assert.Equal(t, authorization.OneFactor, client.GetAuthorizationPolicy().DefaultPolicy)
 			},
 		},
 		{
 			"ShouldReturnClientAuthorizationPolicyEmpty",
-			func(client *oidc.BaseClient) {
+			func(client *oidc.RegisteredClient) {
 				client.AuthorizationPolicy = oidc.ClientAuthorizationPolicy{}
 			},
-			func(t *testing.T, client *oidc.BaseClient) {
+			func(t *testing.T, client *oidc.RegisteredClient) {
 				assert.Equal(t, authorization.Bypass, client.GetAuthorizationPolicy().DefaultPolicy)
 			},
 		},
@@ -220,7 +220,7 @@ func TestBaseClient_Misc(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			client := &oidc.BaseClient{}
+			client := &oidc.RegisteredClient{}
 
 			tc.setup(client)
 
@@ -229,25 +229,25 @@ func TestBaseClient_Misc(t *testing.T) {
 	}
 }
 
-func TestBaseClient_ValidatePARPolicy(t *testing.T) {
+func TestRegisteredClient_ValidatePARPolicy(t *testing.T) {
 	testCases := []struct {
 		name     string
-		client   *oidc.BaseClient
+		client   *oidc.RegisteredClient
 		have     *fosite.Request
 		expected string
 	}{
 		{
 			"ShouldNotEnforcePAR",
-			&oidc.BaseClient{
-				EnforcePAR: false,
+			&oidc.RegisteredClient{
+				RequirePushedAuthorizationRequests: false,
 			},
 			&fosite.Request{},
 			"",
 		},
 		{
 			"ShouldEnforcePARAndErrorWithoutCorrectRequestURI",
-			&oidc.BaseClient{
-				EnforcePAR: true,
+			&oidc.RegisteredClient{
+				RequirePushedAuthorizationRequests: true,
 			},
 			&fosite.Request{
 				Form: map[string][]string{
@@ -258,8 +258,8 @@ func TestBaseClient_ValidatePARPolicy(t *testing.T) {
 		},
 		{
 			"ShouldEnforcePARAndErrorWithEmptyRequestURI",
-			&oidc.BaseClient{
-				EnforcePAR: true,
+			&oidc.RegisteredClient{
+				RequirePushedAuthorizationRequests: true,
 			},
 			&fosite.Request{
 				Form: map[string][]string{
@@ -270,8 +270,8 @@ func TestBaseClient_ValidatePARPolicy(t *testing.T) {
 		},
 		{
 			"ShouldEnforcePARAndNotErrorWithCorrectRequestURI",
-			&oidc.BaseClient{
-				EnforcePAR: true,
+			&oidc.RegisteredClient{
+				RequirePushedAuthorizationRequests: true,
 			},
 			&fosite.Request{
 				Form: map[string][]string{
@@ -297,7 +297,7 @@ func TestBaseClient_ValidatePARPolicy(t *testing.T) {
 }
 
 func TestIsAuthenticationLevelSufficient(t *testing.T) {
-	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
+	c := &oidc.RegisteredClient{}
 
 	c.AuthorizationPolicy = oidc.ClientAuthorizationPolicy{DefaultPolicy: authorization.Bypass}
 	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated, authorization.Subject{}))
@@ -321,7 +321,7 @@ func TestIsAuthenticationLevelSufficient(t *testing.T) {
 }
 
 func TestClient_GetConsentResponseBody(t *testing.T) {
-	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
+	c := &oidc.RegisteredClient{}
 
 	consentRequestBody := c.GetConsentResponseBody(nil)
 	assert.Equal(t, "", consentRequestBody.ClientID)
@@ -348,7 +348,7 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 }
 
 func TestClient_GetAudience(t *testing.T) {
-	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
+	c := &oidc.RegisteredClient{}
 
 	audience := c.GetAudience()
 	assert.Len(t, audience, 0)
@@ -361,7 +361,7 @@ func TestClient_GetAudience(t *testing.T) {
 }
 
 func TestClient_GetScopes(t *testing.T) {
-	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
+	c := &oidc.RegisteredClient{}
 
 	scopes := c.GetScopes()
 	assert.Len(t, scopes, 0)
@@ -374,7 +374,7 @@ func TestClient_GetScopes(t *testing.T) {
 }
 
 func TestClient_GetGrantTypes(t *testing.T) {
-	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
+	c := &oidc.RegisteredClient{}
 
 	grantTypes := c.GetGrantTypes()
 	require.Len(t, grantTypes, 1)
@@ -388,7 +388,7 @@ func TestClient_GetGrantTypes(t *testing.T) {
 }
 
 func TestClient_Hashing(t *testing.T) {
-	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
+	c := &oidc.RegisteredClient{}
 
 	hashedSecret := c.GetHashedSecret()
 	assert.Equal(t, []byte(nil), hashedSecret)
@@ -399,7 +399,7 @@ func TestClient_Hashing(t *testing.T) {
 }
 
 func TestClient_GetHashedSecret(t *testing.T) {
-	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
+	c := &oidc.RegisteredClient{}
 
 	hashedSecret := c.GetHashedSecret()
 	assert.Equal(t, []byte(nil), hashedSecret)
@@ -411,7 +411,7 @@ func TestClient_GetHashedSecret(t *testing.T) {
 }
 
 func TestClient_GetID(t *testing.T) {
-	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
+	c := &oidc.RegisteredClient{}
 
 	id := c.GetID()
 	assert.Equal(t, "", id)
@@ -423,7 +423,7 @@ func TestClient_GetID(t *testing.T) {
 }
 
 func TestClient_GetRedirectURIs(t *testing.T) {
-	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
+	c := &oidc.RegisteredClient{}
 
 	redirectURIs := c.GetRedirectURIs()
 	require.Len(t, redirectURIs, 0)
@@ -436,7 +436,7 @@ func TestClient_GetRedirectURIs(t *testing.T) {
 }
 
 func TestClient_GetResponseModes(t *testing.T) {
-	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
+	c := &oidc.RegisteredClient{}
 
 	responseModes := c.GetResponseModes()
 	require.Len(t, responseModes, 0)
@@ -455,7 +455,7 @@ func TestClient_GetResponseModes(t *testing.T) {
 }
 
 func TestClient_GetResponseTypes(t *testing.T) {
-	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
+	c := &oidc.RegisteredClient{}
 
 	responseTypes := c.GetResponseTypes()
 	require.Len(t, responseTypes, 1)
@@ -492,7 +492,7 @@ func TestNewClientPKCE(t *testing.T) {
 		},
 		{
 			"ShouldEnforcePKCEAndErrorOnNonPKCERequest",
-			schema.IdentityProvidersOpenIDConnectClient{EnforcePKCE: true},
+			schema.IdentityProvidersOpenIDConnectClient{RequirePKCE: true},
 			true,
 			false,
 			"",
@@ -502,7 +502,7 @@ func TestNewClientPKCE(t *testing.T) {
 		},
 		{
 			"ShouldEnforcePKCEAndNotErrorOnPKCERequest",
-			schema.IdentityProvidersOpenIDConnectClient{EnforcePKCE: true},
+			schema.IdentityProvidersOpenIDConnectClient{RequirePKCE: true},
 			true,
 			false,
 			"",
@@ -581,7 +581,7 @@ func TestNewClientPAR(t *testing.T) {
 		},
 		{
 			"ShouldEnforcePARAndErrorOnNonPARRequest",
-			schema.IdentityProvidersOpenIDConnectClient{EnforcePAR: true},
+			schema.IdentityProvidersOpenIDConnectClient{RequirePushedAuthorizationRequests: true},
 			true,
 			&fosite.Request{},
 			"invalid_request",
@@ -589,14 +589,14 @@ func TestNewClientPAR(t *testing.T) {
 		},
 		{
 			"ShouldEnforcePARAndErrorOnNonPARRequest",
-			schema.IdentityProvidersOpenIDConnectClient{EnforcePAR: true},
+			schema.IdentityProvidersOpenIDConnectClient{RequirePushedAuthorizationRequests: true},
 			true,
 			&fosite.Request{Form: map[string][]string{oidc.FormParameterRequestURI: {"https://example.com"}}},
 			"invalid_request",
 			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Pushed Authorization Requests are enforced for this client but no such request was sent. The request_uri parameter 'https://example.com' is malformed."},
 		{
 			"ShouldEnforcePARAndNotErrorOnPARRequest",
-			schema.IdentityProvidersOpenIDConnectClient{EnforcePAR: true},
+			schema.IdentityProvidersOpenIDConnectClient{RequirePushedAuthorizationRequests: true},
 			true,
 			&fosite.Request{Form: map[string][]string{oidc.FormParameterRequestURI: {fmt.Sprintf("%sabc", oidc.RedirectURIPrefixPushedAuthorizationRequestURN)}}},
 			"",
@@ -608,7 +608,7 @@ func TestNewClientPAR(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			client := oidc.NewClient(tc.have, &schema.IdentityProvidersOpenIDConnect{})
 
-			assert.Equal(t, tc.expected, client.GetPAREnforcement())
+			assert.Equal(t, tc.expected, client.GetRequirePushedAuthorizationRequests())
 
 			if tc.r != nil {
 				err := client.ValidatePARPolicy(tc.r, oidc.RedirectURIPrefixPushedAuthorizationRequestURN)
@@ -1239,7 +1239,7 @@ func TestNewClientResponseModes(t *testing.T) {
 }
 
 func TestClient_IsPublic(t *testing.T) {
-	c := &oidc.FullClient{BaseClient: &oidc.BaseClient{}}
+	c := &oidc.RegisteredClient{}
 
 	assert.False(t, c.IsPublic())
 
@@ -1249,40 +1249,36 @@ func TestClient_IsPublic(t *testing.T) {
 
 func TestNewClient_JSONWebKeySetURI(t *testing.T) {
 	var (
-		client  oidc.Client
-		clientf *oidc.FullClient
-		ok      bool
+		client     oidc.Client
+		registered *oidc.RegisteredClient
+		ok         bool
 	)
 
 	client = oidc.NewClient(schema.IdentityProvidersOpenIDConnectClient{
 		TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
-		PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
-			URI: MustParseRequestURI("https://google.com"),
-		},
+		JSONWebKeysURI:          MustParseRequestURI("https://google.com"),
 	}, &schema.IdentityProvidersOpenIDConnect{})
 
 	require.NotNil(t, client)
 
-	clientf, ok = client.(*oidc.FullClient)
+	registered, ok = client.(*oidc.RegisteredClient)
 
 	require.True(t, ok)
 
-	assert.Equal(t, "https://google.com", clientf.GetJSONWebKeysURI())
+	assert.Equal(t, "https://google.com", registered.GetJSONWebKeysURI())
 
 	client = oidc.NewClient(schema.IdentityProvidersOpenIDConnectClient{
 		TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
-		PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
-			URI: nil,
-		},
+		JSONWebKeysURI:          nil,
 	}, &schema.IdentityProvidersOpenIDConnect{})
 
 	require.NotNil(t, client)
 
-	clientf, ok = client.(*oidc.FullClient)
+	registered, ok = client.(*oidc.RegisteredClient)
 
 	require.True(t, ok)
 
-	assert.Equal(t, "", clientf.GetJSONWebKeysURI())
+	assert.Equal(t, "", registered.GetJSONWebKeysURI())
 }
 
 func TestBaseClient_ApplyRequestedAudiencePolicy(t *testing.T) {
@@ -1322,7 +1318,7 @@ func TestBaseClient_ApplyRequestedAudiencePolicy(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			client := &oidc.BaseClient{
+			client := &oidc.RegisteredClient{
 				ID:                    "test",
 				Audience:              tc.audience,
 				RequestedAudienceMode: tc.policy,
