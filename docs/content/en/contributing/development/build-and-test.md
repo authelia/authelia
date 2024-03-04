@@ -14,7 +14,7 @@ aliases:
   - /docs/contributing/build-and-dev.html
 ---
 
-__Authelia__ is built a [React] frontend user portal bundled in a [Go] application which acts as a basic webserver for
+__Authelia__ is built a [React] frontend user portal bundled in a [Go] application which acts as a basic web server for
 the [React] assets and a dedicated API.
 
 The GitHub repository comes with a CLI dedicated to developers called
