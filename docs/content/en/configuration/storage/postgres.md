@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "storage"
-weight: 106400
+weight: 107400
 toc: true
 aliases:
   - /docs/configuration/storage/postgres.html

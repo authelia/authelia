@@ -10,7 +10,7 @@ import (
 	time "time"
 
 	ldap "github.com/go-ldap/ldap/v3"
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockLDAPClient is a mock of LDAPClient interface.

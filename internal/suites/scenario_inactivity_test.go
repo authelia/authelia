@@ -7,13 +7,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
 type InactivityScenario struct {
 	*RodSuite
-
-	secret string
 }
 
 func NewInactivityScenario() *InactivityScenario {
@@ -23,15 +22,14 @@ func NewInactivityScenario() *InactivityScenario {
 }
 
 func (s *InactivityScenario) SetupSuite() {
-	browser, err := StartRod()
-
+	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	s.RodSession = browser
 
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -42,7 +40,7 @@ func (s *InactivityScenario) SetupSuite() {
 
 	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
-	s.secret = s.doRegisterAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, targetURL)
+	s.doRegisterTOTPAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, targetURL)
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
 
@@ -73,7 +71,7 @@ func (s *InactivityScenario) TestShouldRequireReauthenticationAfterInactivityPer
 
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
 
-	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, s.secret, "")
+	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
@@ -84,7 +82,7 @@ func (s *InactivityScenario) TestShouldRequireReauthenticationAfterInactivityPer
 }
 
 func (s *InactivityScenario) TestShouldRequireReauthenticationAfterCookieExpiration() {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -92,7 +90,7 @@ func (s *InactivityScenario) TestShouldRequireReauthenticationAfterCookieExpirat
 
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
 
-	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, s.secret, "")
+	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
 
 	for i := 0; i < 3; i++ {
 		s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
@@ -106,7 +104,7 @@ func (s *InactivityScenario) TestShouldRequireReauthenticationAfterCookieExpirat
 
 	time.Sleep(2 * time.Second)
 
-	s.doVisit(s.T(), s.Context(ctx), targetURL)
+	require.NoError(s.T(), s.Context(ctx).Reload())
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 }
 
@@ -119,7 +117,7 @@ func (s *InactivityScenario) TestShouldDisableCookieExpirationAndInactivity() {
 
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
 
-	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", true, s.secret, "")
+	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", true, "")
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
 

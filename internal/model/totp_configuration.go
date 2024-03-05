@@ -9,23 +9,35 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/pquerna/otp"
+	"github.com/authelia/otp"
 	"gopkg.in/yaml.v3"
 )
 
-// TOTPConfiguration represents a users TOTP configuration row in the database.
-type TOTPConfiguration struct {
-	ID         int          `db:"id" json:"-"`
-	CreatedAt  time.Time    `db:"created_at" json:"-"`
-	LastUsedAt sql.NullTime `db:"last_used_at" json:"-"`
-	Username   string       `db:"username" json:"-"`
-	Issuer     string       `db:"issuer" json:"-"`
-	Algorithm  string       `db:"algorithm" json:"-"`
-	Digits     uint         `db:"digits" json:"digits"`
-	Period     uint         `db:"period" json:"period"`
-	Secret     []byte       `db:"secret" json:"-"`
+type TOTPOptions struct {
+	Algorithm  string   `json:"algorithm"`
+	Algorithms []string `json:"algorithms"`
+
+	Length  int   `json:"length"`
+	Lengths []int `json:"lengths"`
+
+	Period  int   `json:"period"`
+	Periods []int `json:"periods"`
 }
 
+// TOTPConfiguration represents a users TOTP configuration row in the database.
+type TOTPConfiguration struct {
+	ID         int          `db:"id"`
+	CreatedAt  time.Time    `db:"created_at"`
+	LastUsedAt sql.NullTime `db:"last_used_at"`
+	Username   string       `db:"username"`
+	Issuer     string       `db:"issuer"`
+	Algorithm  string       `db:"algorithm"`
+	Digits     uint         `db:"digits"`
+	Period     uint         `db:"period"`
+	Secret     []byte       `db:"secret"`
+}
+
+// TOTPConfigurationJSON is the JSON representation for a TOTPConfiguration.
 type TOTPConfigurationJSON struct {
 	CreatedAt  time.Time  `json:"created_at"`
 	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
@@ -50,6 +62,19 @@ func (c TOTPConfiguration) MarshalJSON() (data []byte, err error) {
 	}
 
 	return json.Marshal(o)
+}
+
+// HistorySince provides a reasonably accurate window for previously successful attempts to check for history.
+func (c *TOTPConfiguration) HistorySince(now time.Time, skew *int) time.Time {
+	var s int
+
+	if skew == nil {
+		s = 2
+	} else {
+		s = *skew + 2
+	}
+
+	return now.Add(-time.Second * time.Duration(c.Period) * time.Duration(s))
 }
 
 // LastUsed provides LastUsedAt as a *time.Time instead of sql.NullTime.
@@ -150,19 +175,19 @@ func (c *TOTPConfiguration) UnmarshalYAML(value *yaml.Node) (err error) {
 
 // TOTPConfigurationData is used for marshalling/unmarshalling tasks.
 type TOTPConfigurationData struct {
-	CreatedAt  time.Time  `yaml:"created_at" json:"created_at" jsonschema:"title=Created At" jsonschema_description:"The time the configuration was created"`
-	LastUsedAt *time.Time `yaml:"last_used_at" json:"last_used_at" jsonschema:"title=Last Used At" jsonschema_description:"The time the configuration was last used at"`
-	Username   string     `yaml:"username" json:"username" jsonschema:"title=Username" jsonschema_description:"The username of the user this configuration belongs to"`
-	Issuer     string     `yaml:"issuer" json:"issuer" jsonschema:"title=Issuer" jsonschema_description:"The issuer name this was generated with"`
-	Algorithm  string     `yaml:"algorithm" json:"algorithm" jsonschema:"title=Algorithm" jsonschema_description:"The algorithm this configuration uses"`
-	Digits     uint       `yaml:"digits" json:"digits" jsonschema:"title=Digits" jsonschema_description:"The number of digits this configuration uses"`
-	Period     uint       `yaml:"period" json:"period" jsonschema:"title=Period" jsonschema_description:"The period of time this configuration uses"`
-	Secret     string     `yaml:"secret" json:"secret" jsonschema:"title=Secret" jsonschema_description:"The secret shared key for this configuration"`
+	CreatedAt  time.Time  `yaml:"created_at" json:"created_at" jsonschema:"title=Created At" jsonschema_description:"The time the configuration was created."`
+	LastUsedAt *time.Time `yaml:"last_used_at" json:"last_used_at" jsonschema:"title=Last Used At" jsonschema_description:"The time the configuration was last used at."`
+	Username   string     `yaml:"username" json:"username" jsonschema:"title=Username" jsonschema_description:"The username of the user this configuration belongs to."`
+	Issuer     string     `yaml:"issuer" json:"issuer" jsonschema:"title=Issuer" jsonschema_description:"The issuer name this was generated with."`
+	Algorithm  string     `yaml:"algorithm" json:"algorithm" jsonschema:"title=Algorithm" jsonschema_description:"The algorithm this configuration uses."`
+	Digits     uint       `yaml:"digits" json:"digits" jsonschema:"title=Digits" jsonschema_description:"The number of digits this configuration uses."`
+	Period     uint       `yaml:"period" json:"period" jsonschema:"title=Period" jsonschema_description:"The period of time this configuration uses."`
+	Secret     string     `yaml:"secret" json:"secret" jsonschema:"title=Secret" jsonschema_description:"The secret shared key for this configuration."`
 }
 
 // TOTPConfigurationDataExport represents a TOTPConfiguration export file.
 type TOTPConfigurationDataExport struct {
-	TOTPConfigurations []TOTPConfigurationData `yaml:"totp_configurations" json:"totp_configurations" jsonschema:"title=TOTP Configurations" jsonschema_description:"The list of TOTP configurations"`
+	TOTPConfigurations []TOTPConfigurationData `yaml:"totp_configurations" json:"totp_configurations" jsonschema:"title=TOTP Configurations" jsonschema_description:"The list of TOTP configurations."`
 }
 
 // TOTPConfigurationExport represents a TOTPConfiguration export file.

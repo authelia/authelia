@@ -3,7 +3,9 @@
 #                Authelia minimal configuration               #
 ###############################################################
 
-jwt_secret: unsecure_secret
+identity_validation:
+  reset_password:
+    jwt_secret: 'a_very_important_secret'
 
 server:
   address: 'tcp://:9091'
@@ -66,4 +68,7 @@ notifier:
     address: 'smtp://smtp:1025'
     sender: admin@example.com
     disable_require_tls: true
+
+totp:
+  disable_reuse_security_policy: true
 ...

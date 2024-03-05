@@ -3,8 +3,6 @@
 #                Authelia minimal configuration               #
 ###############################################################
 
-jwt_secret: unsecure_secret
-
 server:
   address: 'tcp://:9091'
   asset_path: '/config/assets/'
@@ -33,6 +31,10 @@ storage:
   local:
     path: /config/db.sqlite
 
+identity_validation:
+  reset_password:
+    jwt_secret: 'a_very_important_secret'
+
 access_control:
   default_policy: deny
   rules:
@@ -52,4 +54,7 @@ notifier:
     address: 'smtp://smtp:1025'
     sender: admin@example.com
     disable_require_tls: true
+
+totp:
+  disable_reuse_security_policy: true
 ...

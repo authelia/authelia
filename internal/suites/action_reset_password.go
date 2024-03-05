@@ -2,6 +2,7 @@ package suites
 
 import (
 	"testing"
+	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/stretchr/testify/require"
@@ -10,6 +11,9 @@ import (
 func (rs *RodSession) doInitiatePasswordReset(t *testing.T, page *rod.Page, username string) {
 	err := rs.WaitElementLocatedByID(t, page, "reset-password-button").Click("left", 1)
 	require.NoError(t, err)
+
+	require.NoError(t, page.WaitStable(time.Millisecond*100))
+
 	// Fill in username.
 	err = rs.WaitElementLocatedByID(t, page, "username-textfield").Input(username)
 	require.NoError(t, err)
@@ -19,7 +23,7 @@ func (rs *RodSession) doInitiatePasswordReset(t *testing.T, page *rod.Page, user
 }
 
 func (rs *RodSession) doCompletePasswordReset(t *testing.T, page *rod.Page, newPassword1, newPassword2 string) {
-	link := doGetLinkFromLastMail(t)
+	link := doGetResetPasswordJWTLinkFromLastEmail(t)
 	rs.doVisit(t, page, link)
 
 	password1 := rs.WaitElementLocatedByID(t, page, "password1-textfield")

@@ -5,77 +5,76 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 const (
 	// This is the latest schema version for the purpose of tests.
-	LatestVersion = 11
+	LatestVersion = 15
 )
 
-func TestShouldObtainCorrectUpMigrations(t *testing.T) {
-	ver, err := latestMigrationVersion(providerSQLite)
-	require.NoError(t, err)
-
-	assert.Equal(t, LatestVersion, ver)
-
-	migrations, err := loadMigrations(providerSQLite, 0, ver)
-	require.NoError(t, err)
-
-	assert.Len(t, migrations, ver)
-
-	for i := 0; i < len(migrations); i++ {
-		assert.Equal(t, i+1, migrations[i].Version)
+func TestShouldObtainCorrectMigrations(t *testing.T) {
+	testCases := []struct {
+		name     string
+		provider string
+	}{
+		{
+			"ShouldTestSQLite",
+			providerSQLite,
+		},
+		{
+			"ShouldTestPostgreSQL",
+			providerPostgres,
+		},
+		{
+			"ShouldTestMySQL",
+			providerMySQL,
+		},
 	}
-}
 
-func TestShouldObtainCorrectDownMigrations(t *testing.T) {
-	ver, err := latestMigrationVersion(providerSQLite)
-	require.NoError(t, err)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ver, err := latestMigrationVersion(tc.provider)
+			require.NoError(t, err)
 
-	assert.Equal(t, LatestVersion, ver)
+			assert.Equal(t, LatestVersion, ver)
 
-	migrations, err := loadMigrations(providerSQLite, ver, 0)
-	require.NoError(t, err)
+			var (
+				migrations []model.SchemaMigration
+			)
 
-	assert.Len(t, migrations, ver)
+			// UP.
+			migrations, err = loadMigrations(tc.provider, 0, ver)
+			require.NoError(t, err)
 
-	for i := 0; i < len(migrations); i++ {
-		assert.Equal(t, ver-i, migrations[i].Version)
+			assert.Len(t, migrations, ver)
+
+			for i := 0; i < len(migrations); i++ {
+				assert.Equal(t, i+1, migrations[i].Version)
+			}
+
+			migrations, err = loadMigrations(tc.provider, 1, ver)
+			require.NoError(t, err)
+
+			assert.Len(t, migrations, ver-1)
+
+			// DOWN.
+			migrations, err = loadMigrations(providerSQLite, ver, 0)
+			require.NoError(t, err)
+
+			assert.Len(t, migrations, ver)
+
+			for i := 0; i < len(migrations); i++ {
+				assert.Equal(t, ver-i, migrations[i].Version)
+			}
+
+			migrations, err = loadMigrations(tc.provider, ver, 1)
+			require.NoError(t, err)
+
+			assert.Len(t, migrations, ver-1)
+		})
 	}
-}
-
-func TestMigrationShouldGetSpecificMigrationIfAvaliable(t *testing.T) {
-	upMigrationsPostgreSQL, err := loadMigrations(providerPostgres, 8, 9)
-	require.NoError(t, err)
-	require.Len(t, upMigrationsPostgreSQL, 1)
-
-	assert.True(t, upMigrationsPostgreSQL[0].Up)
-	assert.Equal(t, 9, upMigrationsPostgreSQL[0].Version)
-	assert.Equal(t, providerPostgres, upMigrationsPostgreSQL[0].Provider)
-
-	upMigrationsSQLite, err := loadMigrations(providerSQLite, 8, 9)
-	require.NoError(t, err)
-	require.Len(t, upMigrationsSQLite, 1)
-
-	assert.True(t, upMigrationsSQLite[0].Up)
-	assert.Equal(t, 9, upMigrationsSQLite[0].Version)
-	assert.Equal(t, providerAll, upMigrationsSQLite[0].Provider)
-
-	downMigrationsPostgreSQL, err := loadMigrations(providerPostgres, 9, 8)
-	require.NoError(t, err)
-	require.Len(t, downMigrationsPostgreSQL, 1)
-
-	assert.False(t, downMigrationsPostgreSQL[0].Up)
-	assert.Equal(t, 9, downMigrationsPostgreSQL[0].Version)
-	assert.Equal(t, providerAll, downMigrationsPostgreSQL[0].Provider)
-
-	downMigrationsSQLite, err := loadMigrations(providerSQLite, 9, 8)
-	require.NoError(t, err)
-	require.Len(t, downMigrationsSQLite, 1)
-
-	assert.False(t, downMigrationsSQLite[0].Up)
-	assert.Equal(t, 9, downMigrationsSQLite[0].Version)
-	assert.Equal(t, providerAll, downMigrationsSQLite[0].Provider)
 }
 
 func TestMigrationShouldReturnErrorOnSame(t *testing.T) {

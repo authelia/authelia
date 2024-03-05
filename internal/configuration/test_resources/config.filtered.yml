@@ -5,14 +5,14 @@ server:
   address: 'tcp://{{ env "SERVICES_SERVER" }}:9091'
 
 log:
-  level: debug
+  level: 'debug'
 
 totp:
-  issuer: authelia.com
+  issuer: 'authelia.com'
 
 duo_api:
   hostname: 'api-123456789.{{ env "ROOT_DOMAIN" }}'
-  integration_key: ABCDEF
+  integration_key: 'ABCDEF'
 
 authentication_backend:
   ldap:
@@ -20,52 +20,52 @@ authentication_backend:
     tls:
       private_key: |
         {{- secret "./test_resources/example_filter_rsa_private_key" | nindent 8 }}
-    base_dn: dc=example,dc=com
-    additional_users_dn: ou=users
-    users_filter: (&({username_attribute}={input})(objectCategory=person)(objectClass=user))
-    additional_groups_dn: ou=groups
-    groups_filter: (&(member={dn})(objectClass=groupOfNames))
-    user: cn=admin,dc=example,dc=com
+    base_dn: 'dc=example,dc=com'
+    additional_users_dn: 'ou=users'
+    users_filter: '(&({username_attribute}={input})(objectCategory=person)(objectClass=user))'
+    additional_groups_dn: 'ou=groups'
+    groups_filter: '(&(member={dn})(objectClass=groupOfNames))'
+    user: 'cn=admin,dc=example,dc=com'
     attributes:
       username: 'uid'
       group_name: 'cn'
       mail: 'mail'
 
 access_control:
-  default_policy: deny
+  default_policy: 'deny'
 
   rules:
     # Rules applied to everyone
     - domain:
         - 'public.{{ env "ROOT_DOMAIN" }}'
-      policy: bypass
+      policy: 'bypass'
 
     - domain:
         - 'secure.{{ env "ROOT_DOMAIN" }}'
-      policy: one_factor
+      policy: 'one_factor'
       # Network based rule, if not provided any network matches.
       networks:
-        - 192.168.1.0/24
+        - '192.168.1.0/24'
     - domain:
         - 'secure.{{ env "ROOT_DOMAIN" }}'
-      policy: two_factor
+      policy: 'two_factor'
 
     - domain:
         - 'singlefactor.{{ env "ROOT_DOMAIN" }}'
         - 'onefactor.{{ env "ROOT_DOMAIN" }}'
-      policy: one_factor
+      policy: 'one_factor'
 
     # Rules applied to 'admins' group
     - domain:
         - 'mx2.mail.{{ env "ROOT_DOMAIN" }}'
       subject:
         - 'group:admins'
-      policy: deny
+      policy: 'deny'
     - domain:
         - '*.{{ env "ROOT_DOMAIN" }}'
       subject:
         - ['group:admins']
-      policy: two_factor
+      policy: 'two_factor'
 
     # Rules applied to 'dev' group
     - domain:
@@ -74,7 +74,7 @@ access_control:
         - '^/groups/dev/.*$'
       subject:
         - ['group:dev']
-      policy: two_factor
+      policy: 'two_factor'
 
     # Rules applied to user 'john'
     - domain:
@@ -83,7 +83,7 @@ access_control:
         - '^/users/john/.*$'
       subject:
         - ['user:john']
-      policy: two_factor
+      policy: 'two_factor'
 
     # Rules applied to 'dev' group and user 'john'
     - domain:
@@ -93,7 +93,7 @@ access_control:
       subject:
         - ['group:dev']
         - ['user:john']
-      policy: deny
+      policy: 'deny'
 
     # Rules applied to user 'harry'
     - domain:
@@ -102,47 +102,47 @@ access_control:
         - '^/users/harry/.*$'
       subject:
         - ['user:harry']
-      policy: two_factor
+      policy: 'two_factor'
 
     # Rules applied to user 'bob'
     - domain:
         - '*.mail.{{ env "ROOT_DOMAIN" }}'
       subject:
         - ['user:bob']
-      policy: two_factor
+      policy: 'two_factor'
     - domain:
         - 'dev.{{ env "ROOT_DOMAIN" }}'
       resources:
         - '^/users/bob/.*$'
       subject:
         - ['user:bob']
-      policy: two_factor
+      policy: 'two_factor'
 
 session:
-  name: authelia_session
-  expiration: 3600000  # 1 hour
-  inactivity: 300000  # 5 minutes
+  name: 'authelia_session'
+  expiration: '1 hour'
+  inactivity: '5 minutes'
   domain: '{{ env "ROOT_DOMAIN" }}'
   redis:
-    host: ${SERVICES_SERVER}
+    host: '${SERVICES_SERVER}'
     port: 6379
     high_availability:
-      sentinel_name: test
+      sentinel_name: 'test'
 
 regulation:
   max_retries: 3
-  find_time: 120
-  ban_time: 300
+  find_time: '2 minutes'
+  ban_time: '5 minutes'
 
 storage:
   mysql:
     address: 'tcp://{{ env "SERVICES_SERVER" }}:3306'
-    database: authelia
-    username: authelia
+    database: 'authelia'
+    username: 'authelia'
 
 notifier:
   smtp:
-    username: test
+    username: 'test'
     address: 'smtp://{{ env "SERVICES_SERVER" }}:1025'
     sender: 'admin@{{ env "ROOT_DOMAIN" }}'
     disable_require_tls: true
@@ -154,15 +154,15 @@ identity_providers:
       - key: {{ secret "./test_resources/crypto/rsa.2048.pem" | mindent 10 "|" | msquote }}
     cors:
       allowed_origins:
-        - https://google.com
-        - https://example.com
+        - 'https://google.com'
+        - 'https://example.com'
     clients:
-      - id: abc
+      - id: 'abc'
         secret: '${ABC_CLIENT_SECRET}'
-        consent_mode: explicit
-      - id: xyz
+        consent_mode: 'explicit'
+      - id: 'xyz'
         secret: '$XYZ_CLIENT_SECRET'
-        consent_mode: explicit
+        consent_mode: 'explicit'
       - id: '123'
         secret: '{{ secret "./test_resources/example_secret" }}'
         consent_mode: explicit

@@ -1,9 +1,10 @@
 package session
 
 import (
+	"net"
 	"time"
 
-	"github.com/fasthttp/session/v2"
+	session "github.com/fasthttp/session/v2"
 	"github.com/go-webauthn/webauthn/webauthn"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -36,18 +37,49 @@ type UserSession struct {
 	AuthenticationMethodRefs oidc.AuthenticationMethodsReferences
 
 	// WebAuthn holds the session registration data for this session.
-	WebAuthn *webauthn.SessionData
+	WebAuthn *WebAuthn
+	TOTP     *TOTP
 
 	// This boolean is set to true after identity verification and checked
 	// while doing the query actually updating the password.
 	PasswordResetUsername *string
 
 	RefreshTTL time.Time
+
+	Elevations Elevations
 }
 
-// Identity identity of the user who is being verified.
+// TOTP holds the TOTP registration session data.
+type TOTP struct {
+	Issuer    string
+	Algorithm string
+	Digits    uint
+	Period    uint
+	Secret    string
+	Expires   time.Time
+}
+
+// WebAuthn holds the standard WebAuthn session data plus some extra.
+type WebAuthn struct {
+	*webauthn.SessionData
+	Description string `json:"description"`
+}
+
+// Identity of the user who is being verified.
 type Identity struct {
 	Username    string
 	Email       string
 	DisplayName string
+}
+
+// Elevations describes various session elevations.
+type Elevations struct {
+	User *Elevation
+}
+
+// Elevation is an individual elevation.
+type Elevation struct {
+	ID       int
+	RemoteIP net.IP
+	Expires  time.Time
 }

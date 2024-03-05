@@ -11,7 +11,7 @@ export interface Props {
     tooltip?: string;
 }
 
-export default function TypographyWithTooltip(props: Props): JSX.Element {
+const TypographyWithTooltip = function (props: Props): JSX.Element {
     return (
         <Fragment>
             {props.tooltip ? (
@@ -23,4 +23,6 @@ export default function TypographyWithTooltip(props: Props): JSX.Element {
             )}
         </Fragment>
     );
-}
+};
+
+export default TypographyWithTooltip;
