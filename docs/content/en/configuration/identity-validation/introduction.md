@@ -2,7 +2,7 @@
 title: "Identity Validation"
 description: "Identity Validation Configuration"
 lead: "Authelia uses multiple methods to verify the identity of users to prevent a malicious user from performing actions on behalf of them. This section describes these methods."
-date: 2024-03-02T16:18:15+11:00
+date: 2024-03-04T20:29:11+11:00
 draft: false
 images: []
 menu:

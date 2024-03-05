@@ -41,12 +41,12 @@ func TestGetEnvConfigMaps(t *testing.T) {
 	assert.Equal(t, key, "mysecret.user_password")
 
 	key, ok = keys[DefaultEnvPrefix+"MYOTHER_CONFIGKEY"]
-	assert.False(t, ok)
-	assert.Equal(t, key, "")
+	assert.True(t, ok)
+	assert.Equal(t, "myother.configkey", key)
 
 	key, ok = keys[DefaultEnvPrefix+"MYSECRET_PASSWORD"]
-	assert.False(t, ok)
-	assert.Equal(t, key, "")
+	assert.True(t, ok)
+	assert.Equal(t, "mysecret.password", key)
 
 	assert.Len(t, ignoredKeys, 4)
 	assert.Contains(t, ignoredKeys, DefaultEnvPrefix+"MYOTHER_CONFIGKEY_FILE")

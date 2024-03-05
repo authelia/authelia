@@ -482,6 +482,19 @@ func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
 	assert.Equal(t, "example_secret value", config.Storage.EncryptionKey)
 }
 
+func TestShouldNotErrorOnLogLevel(t *testing.T) {
+	testSetEnv(t, "LOG_LEVEL", "warn")
+
+	val := schema.NewStructValidator()
+	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_nolog.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	assert.Equal(t, "warn", config.Log.Level)
+}
+
 func TestShouldLoadURLList(t *testing.T) {
 	val := schema.NewStructValidator()
 	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
