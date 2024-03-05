@@ -1,6 +1,7 @@
 package model
 
 import (
+	"crypto/rand"
 	"database/sql"
 	"encoding/json"
 	"testing"
@@ -156,4 +157,14 @@ func TestTOTPConfigurationImportExport(t *testing.T) {
 			assert.Equal(t, expected.LastUsedAt.Valid, actual.LastUsedAt.Valid)
 		})
 	}
+}
+
+func MustRead(n int) []byte {
+	data := make([]byte, n)
+
+	if _, err := rand.Read(data); err != nil {
+		panic(err)
+	}
+
+	return data
 }

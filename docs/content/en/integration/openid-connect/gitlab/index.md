@@ -28,12 +28,39 @@ community: true
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://gitlab.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://gitlab.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `gitlab`
 * __Client Secret:__ `insecure_secret`
 
 ## Configuration
+
+### Authelia
+
+The following YAML configuration is an example __Authelia__
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [GitLab]
+which will operate with the above example:
+
+```yaml
+identity_providers:
+  oidc:
+    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
+    ## See: https://www.authelia.com/c/oidc
+    clients:
+    - id: 'gitlab'
+      description: 'GitLab'
+      secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+      public: false
+      authorization_policy: 'two_factor'
+      redirect_uris:
+        - 'https://gitlab.example.com/users/auth/openid_connect/callback'
+      scopes:
+        - 'openid'
+        - 'profile'
+        - 'groups'
+        - 'email'
+      userinfo_signed_response_alg: 'none'
+```
 
 ### Application
 
@@ -64,33 +91,6 @@ gitlab_rails['omniauth_providers'] = [
     }
   }
 ]
-```
-
-### Authelia
-
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [GitLab]
-which will operate with the above example:
-
-```yaml
-identity_providers:
-  oidc:
-    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
-    ## See: https://www.authelia.com/c/oidc
-    clients:
-    - id: 'gitlab'
-      description: 'GitLab'
-      secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-      public: false
-      authorization_policy: 'two_factor'
-      redirect_uris:
-        - 'https://gitlab.example.com/users/auth/openid_connect/callback'
-      scopes:
-        - 'openid'
-        - 'profile'
-        - 'groups'
-        - 'email'
-      userinfo_signed_response_alg: 'none'
 ```
 
 ## See Also

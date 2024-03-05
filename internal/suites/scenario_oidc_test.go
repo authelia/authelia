@@ -16,8 +16,6 @@ import (
 
 type OIDCScenario struct {
 	*RodSuite
-
-	secret string
 }
 
 func NewOIDCScenario() *OIDCScenario {
@@ -27,8 +25,7 @@ func NewOIDCScenario() *OIDCScenario {
 }
 
 func (s *OIDCScenario) SetupSuite() {
-	browser, err := StartRod()
-
+	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,7 +42,7 @@ func (s *OIDCScenario) SetupSuite() {
 	}()
 
 	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.secret = s.doRegisterAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, AdminBaseURL)
+	s.doRegisterTOTPAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, AdminBaseURL)
 }
 
 func (s *OIDCScenario) TearDownSuite() {
@@ -82,9 +79,9 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 
 	s.doVisit(s.T(), s.Context(ctx), OIDCBaseURL)
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
-	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), "john", "password", false)
+	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), testUsername, "password", false)
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
-	s.doValidateTOTP(s.T(), s.Context(ctx), s.secret)
+	s.doValidateTOTP(s.T(), s.Context(ctx), testUsername)
 
 	s.waitBodyContains(s.T(), s.Context(ctx), "Not logged yet...")
 
@@ -139,6 +136,7 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 			}
 
 			assert.NoError(t, err)
+
 			switch expected := tc.expected.(type) {
 			case *regexp.Regexp:
 				assert.Regexp(t, expected, actual)
@@ -158,9 +156,9 @@ func (s *OIDCScenario) TestShouldDenyConsent() {
 
 	s.doVisit(s.T(), s.Context(ctx), OIDCBaseURL)
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
-	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), "john", "password", false)
+	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), testUsername, "password", false)
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
-	s.doValidateTOTP(s.T(), s.Context(ctx), s.secret)
+	s.doValidateTOTP(s.T(), s.Context(ctx), testUsername)
 
 	s.waitBodyContains(s.T(), s.Context(ctx), "Not logged yet...")
 

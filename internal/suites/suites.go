@@ -10,6 +10,7 @@ func NewRodSuite(name string) *RodSuite {
 		BaseSuite: &BaseSuite{
 			Name: name,
 		},
+		RodSuiteCredentialsProvider: NewRodSuiteCredentials(),
 	}
 }
 
@@ -19,6 +20,8 @@ type RodSuite struct {
 
 	*RodSession
 	*rod.Page
+
+	RodSuiteCredentialsProvider
 }
 
 type BaseSuite struct {

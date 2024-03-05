@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "openid-connect"
-weight: 190220
+weight: 110220
 toc: true
 ---
 
@@ -59,7 +59,7 @@ identity_providers:
         enforce_par: false
         enforce_pkce: false
         pkce_challenge_method: 'S256'
-        authorization_signed_response_alg: 'RS256'
+        authorization_signed_response_alg: 'none'
         authorization_signed_response_key_id: ''
         id_token_signed_response_alg: 'RS256'
         id_token_signed_response_key_id: ''
@@ -70,6 +70,38 @@ identity_providers:
         request_object_signing_alg: 'RS256'
         token_endpoint_auth_signing_alg: 'RS256'
         token_endpoint_auth_method: ''
+        public_keys:
+          uri: 'https://oidc.example.com:8080/oauth2/jwks.json'
+          values:
+            - key_id: 'example'
+              algorithm: 'RS256'
+              use: 'sig'
+              key: |
+                -----BEGIN RSA PUBLIC KEY-----
+                MEgCQQDAwV26ZA1lodtOQxNrJ491gWT+VzFum9IeZ+WTmMypYWyW1CzXKwsvTHDz
+                9ec+jserR3EMQ0Rr24lj13FL1ib5AgMBAAE=
+                -----END RSA PUBLIC KEY----
+              certificate_chain: |
+                -----BEGIN CERTIFICATE-----
+                MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
+                MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
+                NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
+                AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
+                z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
+                JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
+                Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
+                1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+                -----END CERTIFICATE-----
+                -----BEGIN CERTIFICATE-----
+                MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
+                MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
+                NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
+                AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
+                z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
+                JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
+                Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
+                1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+                -----END CERTIFICATE-----
 ```
 
 ## Options
@@ -179,17 +211,18 @@ This value does not affect the issued ID Tokens as they are always issued with t
 
 ### scopes
 
-{{< confkey type="list(string)" default="openid, groups, profile, email" required="no" >}}
+{{< confkey type="list(string)" default="openid,groups,profile,email" required="no" >}}
 
 A list of scopes to allow this client to consume. See
 [scope definitions](../../../integration/openid-connect/introduction.md#scope-definitions) for more information. The
 documentation for the application you are trying to configure [OpenID Connect 1.0] for will likely have a list of scopes
 or claims required which can be matched with the above guide.
 
-The scope values must be one of those documented in the
-[scope definitions](../../../integration/openid-connect/introduction.md#scope-definitions) with the exception of when
-the configured [grant_types](#grant_types) includes the `client_credentials` grant in which case arbitrary scopes are
-also allowed,
+The scope values should generally be one of those documented in the
+[scope definitions](../../../integration/openid-connect/introduction.md#scope-definitions) with the exception of when a client requires a specific scope we do not define. Users should
+expect to see a warning in the logs if they configure a scope not in our definitions with the exception of a client
+where the configured [grant_types](#grant_types) includes the `client_credentials` grant in which case arbitrary scopes are
+expected,
 
 ### grant_types
 
@@ -240,6 +273,25 @@ type, but when it is supported it will include the `query` response mode.
 
 The authorization policy for this client: either `one_factor`, `two_factor`, or one of the ones configured in the
 provider [authorization_policies](./provider.md#authorization_policies) section.
+
+The follow example shows a policy named `policy_name` which will `deny` access to users in the `services` group, with
+a default policy of `two_factor` for everyone else. This policy is applied to the client with id
+`client_with_policy_name`. You should refer to the [authorization_policies](./provider.md#authorization_policies)
+section for more in depth information.
+
+```yaml
+identity_providers:
+  oidc:
+    authorization_policies:
+      policy_name:
+        default_policy: 'two_factor'
+        rules:
+          - policy: 'deny'
+            subject: 'group:services'
+    clients:
+      - id: 'client_with_policy_name'
+        authorization_policy: 'policy_name'
+```
 
 ### lifespan
 
@@ -472,7 +524,7 @@ calculated in the [issuer_private_keys].
 
 ### request_object_signing_alg
 
-{{< confkey type="string" default="RSA256" required="no" >}}
+{{< confkey type="string" default="RS256" required="no" >}}
 
 The JWT signing algorithm accepted for request objects.
 
@@ -524,6 +576,47 @@ Required when the following options are configured:
 Required when the following options are configured to specific values:
 
 - [token_endpoint_auth_method](#token_endpoint_auth_method): `private_key_jwt`
+
+The following is a contextual example (see below for information regarding each option):
+
+```yaml
+identity_providers:
+  oidc:
+    clients:
+      - id: 'example'
+        public_keys:
+          uri: 'https://oidc.example.com:8080/oauth2/jwks.json'
+          values:
+            - key_id: 'example'
+              algorithm: 'RS256'
+              use: 'sig'
+              key: |
+                -----BEGIN RSA PUBLIC KEY-----
+                MEgCQQDAwV26ZA1lodtOQxNrJ491gWT+VzFum9IeZ+WTmMypYWyW1CzXKwsvTHDz
+                9ec+jserR3EMQ0Rr24lj13FL1ib5AgMBAAE=
+                -----END RSA PUBLIC KEY----
+              certificate_chain: |
+                -----BEGIN CERTIFICATE-----
+                MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
+                MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
+                NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
+                AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
+                z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
+                JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
+                Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
+                1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+                -----END CERTIFICATE-----
+                -----BEGIN CERTIFICATE-----
+                MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
+                MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
+                NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
+                AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
+                z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
+                JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
+                Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
+                1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+                -----END CERTIFICATE-----
+```
 
 #### uri
 

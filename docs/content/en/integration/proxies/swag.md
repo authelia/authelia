@@ -156,7 +156,7 @@ services:
     volumes:
       - '${PWD}/data/swag:/config'
       ## Uncomment the line below if you want to use the Authelia configuration snippets.
-      #- ${PWD}/data/nginx/snippets:/snippets:ro
+      #- '${PWD}/data/nginx/snippets:/snippets'
     environment:
       PUID: '1000'
       PGID: '1000'

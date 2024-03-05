@@ -3,7 +3,7 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './BypassAll/configuration.yml:/config/configuration.yml:ro'
+      - './BypassAll/configuration.yml:/config/configuration.yml'
       - './BypassAll/users.yml:/config/users.yml'
-      - './common/pki:/pki:ro'
+      - './common/pki:/pki'
 ...

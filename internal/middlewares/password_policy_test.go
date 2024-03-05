@@ -134,6 +134,7 @@ func TestPasswordPolicyProvider_Validate(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			require.Equal(t, len(tc.have), len(tc.expected))
+
 			for i := 0; i < len(tc.have); i++ {
 				provider := NewPasswordPolicyProvider(tc.config)
 				t.Run(tc.have[i], func(t *testing.T) {

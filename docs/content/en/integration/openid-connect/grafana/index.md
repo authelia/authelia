@@ -28,12 +28,39 @@ community: true
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://grafana.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://grafana.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `grafana`
 * __Client Secret:__ `insecure_secret`
 
 ## Configuration
+
+### Authelia
+
+The following YAML configuration is an example __Authelia__
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Grafana]
+which will operate with the above example:
+
+```yaml
+identity_providers:
+  oidc:
+    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
+    ## See: https://www.authelia.com/c/oidc
+    clients:
+    - id: 'grafana'
+      description: 'Grafana'
+      secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+      public: false
+      authorization_policy: 'two_factor'
+      redirect_uris:
+        - 'https://grafana.example.com/login/generic_oauth'
+      scopes:
+        - 'openid'
+        - 'profile'
+        - 'groups'
+        - 'email'
+      userinfo_signed_response_alg: 'none'
+```
 
 ### Application
 
@@ -83,33 +110,18 @@ Configure the following environment variables:
 | GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH |                     groups                      |
 |  GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH  |                      name                       |
 |       GF_AUTH_GENERIC_OAUTH_USE_PKCE        |                      true                       |
+| GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH  |            See [Role Attribute Path]            |
 
-### Authelia
+[Role Attribute Path]: #role-attribute-path
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Grafana]
-which will operate with the above example:
+#### Role Attribute Path
 
-```yaml
-identity_providers:
-  oidc:
-    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
-    ## See: https://www.authelia.com/c/oidc
-    clients:
-    - id: 'grafana'
-      description: 'Grafana'
-      secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-      public: false
-      authorization_policy: 'two_factor'
-      redirect_uris:
-        - 'https://grafana.example.com/login/generic_oauth'
-      scopes:
-        - 'openid'
-        - 'profile'
-        - 'groups'
-        - 'email'
-      userinfo_signed_response_alg: 'none'
-```
+The role attribute path configuration is optional but allows mapping Authelia group membership with Grafana roles. If you do not wish to automatically do this you can just omit the environment variable.
+
+The following example maps the Authelia `admin` group to the `Admin` role, and the `editor` group to the `Editor` role, otherwise it will set the user as having the `Viewer` role:
+
+```ini
+role_attribute_path = contains(groups, 'admin') && 'Admin' || contains(groups, 'editor') && 'Editor' || 'Viewer'
 
 ## See Also
 

@@ -21,36 +21,52 @@ import (
 
 // NewSMTPNotifier creates a SMTPNotifier using the notifier configuration.
 func NewSMTPNotifier(config *schema.NotifierSMTP, certPool *x509.CertPool) *SMTPNotifier {
+	log := logging.Logger().WithFields(map[string]any{"provider": "notifier"})
+
 	var tlsconfig *tls.Config
 
 	if config.TLS != nil {
 		tlsconfig = utils.NewTLSConfig(config.TLS, certPool)
 	}
 
-	opts := []gomail.Option{
-		gomail.WithPort(config.Address.Port()),
-		gomail.WithTLSConfig(tlsconfig),
-		gomail.WithHELO(config.Identifier),
-		gomail.WithTimeout(config.Timeout),
-		gomail.WithoutNoop(),
-	}
-
-	ssl := config.Address.IsExplicitlySecure()
-
-	if ssl {
-		opts = append(opts, gomail.WithSSL())
-	}
+	var opts []gomail.Option
 
 	switch {
-	case ssl:
-		break
+	case config.Address.IsExplicitlySecure():
+		opts = []gomail.Option{
+			gomail.WithSSLPort(false),
+			gomail.WithTLSPortPolicy(gomail.TLSMandatory),
+		}
+
+		log.Trace("Configuring with Explicit TLS")
 	case config.DisableStartTLS:
-		opts = append(opts, gomail.WithTLSPolicy(gomail.NoTLS))
+		opts = []gomail.Option{
+			gomail.WithTLSPortPolicy(gomail.NoTLS),
+			gomail.WithPort(config.Address.Port()),
+		}
+
+		log.Trace("Configuring without TLS")
 	case config.DisableRequireTLS:
-		opts = append(opts, gomail.WithTLSPolicy(gomail.TLSOpportunistic))
+		opts = []gomail.Option{
+			gomail.WithTLSPortPolicy(gomail.TLSOpportunistic),
+		}
+
+		log.Trace("Configuring with Opportunistic TLS")
 	default:
-		opts = append(opts, gomail.WithTLSPolicy(gomail.TLSMandatory))
+		opts = []gomail.Option{
+			gomail.WithTLSPortPolicy(gomail.TLSMandatory),
+		}
+
+		log.Trace("Configuring with Mandatory TLS")
 	}
+
+	opts = append(opts,
+		gomail.WithTLSConfig(tlsconfig),
+		gomail.WithTimeout(config.Timeout),
+		gomail.WithHELO(config.Identifier),
+		gomail.WithoutNoop(),
+		gomail.WithPort(config.Address.Port()),
+	)
 
 	var domain string
 
@@ -62,12 +78,20 @@ func NewSMTPNotifier(config *schema.NotifierSMTP, certPool *x509.CertPool) *SMTP
 		domain = "localhost.localdomain"
 	}
 
+	log.WithFields(map[string]any{
+		"port":    config.Address.Port(),
+		"helo":    config.Identifier,
+		"timeout": config.Timeout.Seconds(),
+		"tls":     tlsconfig,
+		"domain":  domain,
+	}).Trace("Configuring Provider")
+
 	return &SMTPNotifier{
 		config: config,
 		domain: domain,
 		random: &random.Cryptographical{},
-		tls:    utils.NewTLSConfig(config.TLS, certPool),
-		log:    logging.Logger(),
+		tls:    tlsconfig,
+		log:    log,
 		opts:   opts,
 	}
 }
@@ -78,7 +102,7 @@ type SMTPNotifier struct {
 	domain string
 	random random.Provider
 	tls    *tls.Config
-	log    *logrus.Logger
+	log    *logrus.Entry
 	opts   []gomail.Option
 }
 
@@ -86,15 +110,25 @@ type SMTPNotifier struct {
 func (n *SMTPNotifier) StartupCheck() (err error) {
 	var client *gomail.Client
 
+	n.log.WithFields(map[string]any{"hostname": n.config.Address.Hostname()}).Trace("Creating Startup Check Client")
+
 	if client, err = gomail.NewClient(n.config.Address.Hostname(), n.opts...); err != nil {
 		return fmt.Errorf("failed to establish client: %w", err)
 	}
 
 	ctx := context.Background()
 
+	n.log.Trace("Dialing Startup Check Connection")
+
+	if auth := NewOpportunisticSMTPAuth(n.config); auth != nil {
+		client.SetSMTPAuthCustom(auth)
+	}
+
 	if err = client.DialWithContext(ctx); err != nil {
 		return fmt.Errorf("failed to dial connection: %w", err)
 	}
+
+	n.log.Trace("Closing Startup Check Connection")
 
 	if err = client.Close(); err != nil {
 		return fmt.Errorf("failed to close connection: %w", err)

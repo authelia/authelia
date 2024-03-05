@@ -3,10 +3,10 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './CLI/configuration.yml:/config/configuration.yml:ro'
-      - './CLI/storage.yml:/config/configuration.storage.yml:ro'
+      - './CLI/configuration.yml:/config/configuration.yml'
+      - './CLI/storage.yml:/config/configuration.storage.yml'
       - './CLI/users.yml:/config/users.yml'
-      - './common/pki:/pki:ro'
+      - './common/pki:/pki'
       - '/tmp:/tmp'
     user: ${USER_ID}:${GROUP_ID}
 ...

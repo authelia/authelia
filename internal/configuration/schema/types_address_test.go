@@ -596,6 +596,7 @@ func TestAddress_Dial(t *testing.T) {
 
 			} else {
 				assert.Nil(t, conn)
+
 				if tc.err != "" {
 					assert.EqualError(t, err, tc.err)
 				} else {
@@ -634,7 +635,7 @@ func TestAddress_UnixDomainSocket(t *testing.T) {
 			fmt.Sprintf("unix://%s", filepath.Join(dir, "example.sock")),
 			true,
 			filepath.Join(dir, "example.sock"),
-			filepath.Join(dir, "example.sock"),
+			"/",
 			"",
 			-1,
 			"",
@@ -644,7 +645,7 @@ func TestAddress_UnixDomainSocket(t *testing.T) {
 			fmt.Sprintf("unix://%s?umask=0022", filepath.Join(dir, "example.sock")),
 			true,
 			filepath.Join(dir, "example.sock"),
-			filepath.Join(dir, "example.sock"),
+			"/",
 			"0022",
 			18,
 			"",

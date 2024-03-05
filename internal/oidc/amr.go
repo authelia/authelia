@@ -1,5 +1,24 @@
 package oidc
 
+func NewAuthenticationMethodsReferencesFromClaim(claim []string) (amr AuthenticationMethodsReferences) {
+	for _, ref := range claim {
+		switch ref {
+		case AMRPasswordBasedAuthentication:
+			amr.UsernameAndPassword = true
+		case AMROneTimePassword:
+			amr.TOTP = true
+		case AMRShortMessageService:
+			amr.Duo = true
+		case AMRHardwareSecuredKey:
+			amr.WebAuthn = true
+		case AMRUserPresence:
+			amr.WebAuthnUserVerified = true
+		}
+	}
+
+	return amr
+}
+
 // AuthenticationMethodsReferences holds AMR information.
 type AuthenticationMethodsReferences struct {
 	UsernameAndPassword  bool

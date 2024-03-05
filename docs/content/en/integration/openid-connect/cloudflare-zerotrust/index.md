@@ -27,7 +27,7 @@ community: true
 This example makes the following assumptions:
 
 * __Cloudflare Team Name:__ `example-team`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `cloudflare`
 * __Client Secret:__ `insecure_secret`
 
@@ -38,30 +38,6 @@ characters for the secret or URL encode the secret yourself.*
 [RFC6749 Appendix B]: https://datatracker.ietf.org/doc/html/rfc6749#appendix-B
 
 ## Configuration
-
-### Application
-
-*__Important Note:__ It is a requirement that the Authelia URL's can be requested by Cloudflare's servers. This usually
-means that the URL's are accessible to foreign clients on the internet. There may be a way to configure this without
-accessibility to foreign clients on the internet on Cloudflare's end but this is beyond the scope of this document.*
-
-To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect 1.0] Provider:
-
-1. Visit the [Cloudflare Zero Trust Dashboard](https://dash.teams.cloudflare.com)
-2. Visit `Settings`
-3. Visit `Authentication`
-4. Under `Login methods` select `Add new`
-5. Select `OpenID Connect`
-6. Set the following values:
-   1. Name: `Authelia`
-   2. App ID: `cloudflare`
-   3. Client Secret: `insecure_secret`
-   4. Auth URL: `https://auth.example.com/api/oidc/authorization`
-   5. Token URL: `https://auth.example.com/api/oidc/token`
-   6. Certificate URL: `https://auth.example.com/jwks.json`
-   7. Enable `Proof Key for Code Exchange (PKCE)`
-   8. Add the following OIDC Claims: `preferred_username`, `mail`
-7. Click Save
 
 ### Authelia
 
@@ -88,6 +64,30 @@ identity_providers:
         - 'email'
       userinfo_signed_response_alg: 'none'
 ```
+
+### Application
+
+*__Important Note:__ It is a requirement that the Authelia URL's can be requested by Cloudflare's servers. This usually
+means that the URL's are accessible to foreign clients on the internet. There may be a way to configure this without
+accessibility to foreign clients on the internet on Cloudflare's end but this is beyond the scope of this document.*
+
+To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+
+1. Visit the [Cloudflare Zero Trust Dashboard](https://dash.teams.cloudflare.com)
+2. Visit `Settings`
+3. Visit `Authentication`
+4. Under `Login methods` select `Add new`
+5. Select `OpenID Connect`
+6. Set the following values:
+   1. Name: `Authelia`
+   2. App ID: `cloudflare`
+   3. Client Secret: `insecure_secret`
+   4. Auth URL: `https://auth.example.com/api/oidc/authorization`
+   5. Token URL: `https://auth.example.com/api/oidc/token`
+   6. Certificate URL: `https://auth.example.com/jwks.json`
+   7. Enable `Proof Key for Code Exchange (PKCE)`
+   8. Add the following OIDC Claims: `preferred_username`, `mail`
+7. Click Save
 
 ## See Also
 

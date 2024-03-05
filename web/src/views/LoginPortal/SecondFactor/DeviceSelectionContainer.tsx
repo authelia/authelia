@@ -1,6 +1,6 @@
 import React, { ReactNode, useState } from "react";
 
-import { Button, Container, Grid, Theme, Typography } from "@mui/material";
+import { Box, Button, Container, Grid, Theme, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 
 import PushNotificationIcon from "@components/PushNotificationIcon";
@@ -91,8 +91,6 @@ const DefaultDeviceSelectionContainer = function (props: Props) {
     );
 };
 
-export default DefaultDeviceSelectionContainer;
-
 interface DeviceItemProps {
     id: number;
     device: SelectableDevice;
@@ -100,7 +98,7 @@ interface DeviceItemProps {
     onSelect: () => void;
 }
 
-function DeviceItem(props: DeviceItemProps) {
+const DeviceItem = function (props: DeviceItemProps) {
     const className = "device-option-" + props.id;
     const idName = "device-" + props.device.id;
     const style = makeStyles((theme: Theme) => ({
@@ -127,16 +125,16 @@ function DeviceItem(props: DeviceItemProps) {
                 variant="contained"
                 onClick={props.onSelect}
             >
-                <div className={style.icon}>
+                <Box className={style.icon}>
                     <PushNotificationIcon width={32} height={32} />
-                </div>
-                <div>
+                </Box>
+                <Box>
                     <Typography>{props.device.name}</Typography>
-                </div>
+                </Box>
             </Button>
         </Grid>
     );
-}
+};
 
 interface MethodItemProps {
     id: number;
@@ -145,7 +143,7 @@ interface MethodItemProps {
     onSelect: () => void;
 }
 
-function MethodItem(props: MethodItemProps) {
+const MethodItem = function (props: MethodItemProps) {
     const className = "method-option-" + props.id;
     const idName = "method-" + props.method;
     const style = makeStyles((theme: Theme) => ({
@@ -172,13 +170,15 @@ function MethodItem(props: MethodItemProps) {
                 variant="contained"
                 onClick={props.onSelect}
             >
-                <div className={style.icon}>
+                <Box className={style.icon}>
                     <PushNotificationIcon width={32} height={32} />
-                </div>
-                <div>
+                </Box>
+                <Box>
                     <Typography>{props.method}</Typography>
-                </div>
+                </Box>
             </Button>
         </Grid>
     );
-}
+};
+
+export default DefaultDeviceSelectionContainer;

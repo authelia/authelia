@@ -1,16 +1,12 @@
 package handlers
 
 import (
+	"errors"
+
 	"github.com/valyala/fasthttp"
 )
 
 const (
-	// ActionTOTPRegistration is the string representation of the action for which the token has been produced.
-	ActionTOTPRegistration = "RegisterTOTPDevice"
-
-	// ActionWebAuthnRegistration is the string representation of the action for which the token has been produced.
-	ActionWebAuthnRegistration = "RegisterWebAuthnDevice"
-
 	// ActionResetPassword is the string representation of the action for which the token has been produced.
 	ActionResetPassword = "ResetPassword"
 )
@@ -64,13 +60,17 @@ var (
 )
 
 const (
-	messageOperationFailed                 = "Operation failed."
-	messageAuthenticationFailed            = "Authentication failed. Check your credentials."
-	messageUnableToRegisterOneTimePassword = "Unable to set up one-time passwords." //nolint:gosec
-	messageUnableToRegisterSecurityKey     = "Unable to register your security key."
-	messageUnableToResetPassword           = "Unable to reset your password."
-	messageMFAValidationFailed             = "Authentication failed, please retry later."
-	messagePasswordWeak                    = "Your supplied password does not meet the password policy requirements"
+	messageOperationFailed                       = "Operation failed."
+	messageAuthenticationFailed                  = "Authentication failed. Check your credentials."
+	messageUnableToOptionsOneTimePassword        = "Unable to retrieve TOTP registration options."            //nolint:gosec
+	messageUnableToRegisterOneTimePassword       = "Unable to set up one-time password."                      //nolint:gosec
+	messageUnableToDeleteRegisterOneTimePassword = "Unable to delete one-time password registration session." //nolint:gosec
+	messageUnableToDeleteOneTimePassword         = "Unable to delete one-time password."
+	messageUnableToRegisterSecurityKey           = "Unable to register your security key."
+	messageSecurityKeyDuplicateName              = "Another one of your security keys is already registered with that display name."
+	messageUnableToResetPassword                 = "Unable to reset your password."
+	messageMFAValidationFailed                   = "Authentication failed, please retry later."
+	messagePasswordWeak                          = "Your supplied password does not meet the password policy requirements."
 )
 
 const (
@@ -78,13 +78,15 @@ const (
 )
 
 const (
-	logFmtErrParseRequestBody     = "Failed to parse %s request body: %+v"
-	logFmtErrWriteResponseBody    = "Failed to write %s response body for user '%s': %+v"
-	logFmtErrRegulationFail       = "Failed to perform %s authentication regulation for user '%s': %+v"
-	logFmtErrSessionRegenerate    = "Could not regenerate session during %s authentication for user '%s': %+v"
-	logFmtErrSessionReset         = "Could not reset session during %s authentication for user '%s': %+v"
-	logFmtErrSessionSave          = "Could not save session with the %s during %s authentication for user '%s': %+v"
-	logFmtErrObtainProfileDetails = "Could not obtain profile details during %s authentication for user '%s': %+v"
+	logFmtActionAuthentication = "authentication"
+	logFmtActionRegistration   = "registration"
+
+	logFmtErrParseRequestBody     = "Failed to parse %s request body"
+	logFmtErrRegulationFail       = "Failed to perform %s authentication regulation for user '%s'"
+	logFmtErrSessionRegenerate    = "Could not regenerate session during %s authentication for user '%s'"
+	logFmtErrSessionReset         = "Could not reset session during %s authentication for user '%s'"
+	logFmtErrSessionSave          = "Could not save session with the %s during %s %s for user '%s'"
+	logFmtErrObtainProfileDetails = "Could not obtain profile details during %s authentication for user '%s'"
 	logFmtTraceProfileDetails     = "Profile details for user '%s' => groups: %s, emails %s"
 )
 
@@ -108,7 +110,7 @@ const (
 	logFmtDbgConsentAuthenticationSufficiency = logFmtConsentPrefix + "authentication level '%s' is %s for client level '%s'"
 	logFmtDbgConsentRedirect                  = logFmtConsentPrefix + "is being redirected to '%s'"
 	logFmtDbgConsentPreConfSuccessfulLookup   = logFmtConsentPrefix + "successfully looked up pre-configured consent with signature of client id '%s' and subject '%s' and scopes '%s' with id '%d'"
-	logFmtDbgConsentPreConfUnsuccessfulLookup = logFmtConsentPrefix + "unsuccessfully looked up pre-configured consent with signature of client id '%s' and subject '%s' and scopes '%s'"
+	logFmtDbgConsentPreConfUnsuccessfulLookup = logFmtConsentPrefix + "unsuccessfully looked up pre-configured consent with signature of client id '%s' and subject '%s' and scopes '%s' and audience '%s'"
 	logFmtDbgConsentPreConfTryingLookup       = logFmtConsentPrefix + "attempting to discover pre-configurations with signature of client id '%s' and subject '%s' and scopes '%s'"
 
 	logFmtErrConsentWithIDCouldNotBeProcessed = logFmtConsentPrefix + "could not be processed: error occurred performing consent for consent session with id '%s': "
@@ -140,3 +142,14 @@ var ldapPasswordComplexityErrors = []string{
 	"LDAP Result Code 19 \"Constraint Violation\": Password fails quality checking policy",
 	"LDAP Result Code 19 \"Constraint Violation\": Password is too young to change",
 }
+
+const (
+	errStrReqBodyParse        = "error parsing the request body"
+	errStrRespBody            = "error occurred writing the response body"
+	errStrUserSessionData     = "error occurred retrieving the user session data"
+	errStrUserSessionDataSave = "error occurred saving the user session data"
+)
+
+var (
+	errUserAnonymous = errors.New("user is anonymous")
+)

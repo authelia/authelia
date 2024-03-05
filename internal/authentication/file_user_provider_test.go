@@ -14,9 +14,9 @@ import (
 	"github.com/go-crypt/crypt/algorithm/bcrypt"
 	"github.com/go-crypt/crypt/algorithm/pbkdf2"
 	"github.com/go-crypt/crypt/algorithm/scrypt"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -151,6 +151,7 @@ func TestShouldReloadDatabase(t *testing.T) {
 			actual, theError := provider.Reload()
 
 			assert.Equal(t, tc.expected, actual)
+
 			if tc.err == "" {
 				assert.NoError(t, theError)
 			} else {
@@ -311,6 +312,7 @@ func TestShouldUpdatePasswordHashingAlgorithmToArgon2id(t *testing.T) {
 		require.True(t, ok)
 
 		assert.True(t, strings.HasPrefix(db.Users["harry"].Password.Encode(), "$6$"))
+
 		err := provider.UpdatePassword("harry", "newpassword")
 		assert.NoError(t, err)
 
@@ -341,6 +343,7 @@ func TestShouldUpdatePasswordHashingAlgorithmToSHA512(t *testing.T) {
 		require.True(t, ok)
 
 		assert.True(t, strings.HasPrefix(db.Users["john"].Password.Encode(), "$argon2id$"))
+
 		err := provider.UpdatePassword("john", "newpassword")
 		assert.NoError(t, err)
 

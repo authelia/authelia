@@ -3,7 +3,7 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './NetworkACL/configuration.yml:/config/configuration.yml:ro'
+      - './NetworkACL/configuration.yml:/config/configuration.yml'
       - './NetworkACL/users.yml:/config/users.yml'
-      - './common/pki:/pki:ro'
+      - './common/pki:/pki'
 ...

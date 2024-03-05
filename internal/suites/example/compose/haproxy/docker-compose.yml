@@ -4,10 +4,10 @@ services:
   haproxy:
     image: authelia/integration-haproxy
     volumes:
-      - ./example/compose/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-      - ./example/compose/haproxy/http.lua:/usr/local/etc/haproxy/haproxy-lua-http/http.lua
-      - ./example/compose/haproxy/auth-request.lua:/usr/local/etc/haproxy/auth-request.lua
-      - ./common/pki:/pki
+      - './example/compose/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg'
+      - './example/compose/haproxy/http.lua:/usr/local/etc/haproxy/haproxy-lua-http/http.lua'
+      - './example/compose/haproxy/auth-request.lua:/usr/local/etc/haproxy/auth-request.lua'
+      - './common/pki:/pki'
     networks:
       authelianet:
         ipv4_address: 192.168.240.100

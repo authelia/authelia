@@ -18,7 +18,7 @@ community: true
 * [Authelia]
   * [v4.37.5](https://github.com/authelia/authelia/releases/tag/v4.37.5)
 * [MinIO]
-  * [2023-03-13T19:46:17Z](https://github.com/minio/minio/releases/tag/RELEASE.2023-03-13T19-46-17Z)
+  * [2024-01-05T22-17-24Z](https://github.com/minio/minio/releases/tag/RELEASE.2024-01-05T22-17-24Z)
 
 ## Before You Begin
 
@@ -28,37 +28,12 @@ community: true
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://minio.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://minio.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `minio`
 * __Client Secret:__ `insecure_secret`
 
 ## Configuration
-
-### Application
-
-To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider:
-
-1. Login to [MinIO]
-2. On the left hand menu, go to `Identity`, then `OpenID`
-3. On the top right, click `Create Configuration`
-4. On the screen that appears, enter the following information:
-    - Name: `authelia`
-    - Config URL: `https://auth.example.com/.well-known/openid-configuration`
-    - Client ID: `minio`
-    - Client Secret: `insecure_secret`
-    - Claim Name: Leave Empty
-    - Display Name: `Authelia`
-    - Claim Prefix: `authelia`
-    - Scopes: `openid,profile,email`
-    - Redirect URI: `https://minio.example.com/oauth_callback`
-    - Role Policy: `readonly`
-    - Claim User Info: Disabled
-    - Redirect URI Dynamic: Disabled
-5. Press `Save` at the bottom
-6. Accept the offer of a server restart at the top
-7. When the login screen appears again, click the `Other Authentication Methods` open, then select `Authelia` from the list.
-8. Login
 
 ### Authelia
 
@@ -78,7 +53,7 @@ identity_providers:
       public: false
       authorization_policy: 'two_factor'
       redirect_uris:
-        - 'https://minio.example.com/apps/oidc_login/oidc'
+        - 'https://minio.example.com/oauth_callback'
       scopes:
         - 'openid'
         - 'profile'
@@ -86,6 +61,33 @@ identity_providers:
         - 'groups'
       userinfo_signed_response_alg: 'none'
 ```
+
+### Application
+
+To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+
+1. Login to [MinIO]
+2. On the left hand menu, go to `Identity`, then `OpenID`
+3. On the top right, click `Create Configuration`
+4. On the screen that appears, enter the following information:
+    - Name: `authelia`
+    - Config URL: `https://auth.example.com/.well-known/openid-configuration`
+    - Client ID: `minio`
+    - Client Secret: `insecure_secret`
+    - Claim Name: `groups`
+    - Display Name: `Authelia`
+    - Claim Prefix: Leave Empty
+    - Scopes: `openid,profile,email,groups`
+    - Redirect URI: `https://minio.example.com/oauth_callback`
+    - Role Policy: Leave Empty
+    - Claim User Info: Disabled
+    - Redirect URI Dynamic: Disabled
+5. Press `Save` at the bottom
+6. Accept the offer of a server restart at the top
+    - Refresh the page and sign out if not done so automatically
+7. Add a [default policy](https://min.io/docs/minio/linux/administration/identity-access-management/policy-based-access-control.html#built-in-policies) to your user groups in Authelia
+8. When the login screen appears again, click the `Other Authentication Methods` open, then select `Authelia` from the list.
+9. Login
 
 ## See Also
 

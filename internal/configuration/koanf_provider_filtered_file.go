@@ -98,7 +98,7 @@ func NewExpandEnvFileFilter() BytesFilter {
 	log := logging.Logger()
 
 	return func(in []byte) (out []byte, err error) {
-		out = []byte(os.ExpandEnv(string(in)))
+		out = []byte(os.Expand(string(in), templates.FuncGetEnv))
 
 		if log.Level >= logrus.TraceLevel {
 			log.
