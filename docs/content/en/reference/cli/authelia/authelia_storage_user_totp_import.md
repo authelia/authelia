@@ -20,7 +20,7 @@ Perform imports of the TOTP configurations
 
 Perform imports of the TOTP configurations.
 
-This subcommand allows importing TOTP configurations from various formats.
+This subcommand allows importing TOTP configurations from the YAML format.
 
 ```
 authelia storage user totp import <filename> [flags]

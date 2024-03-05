@@ -110,6 +110,18 @@ Configure the following environment variables:
 | GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH |                     groups                      |
 |  GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH  |                      name                       |
 |       GF_AUTH_GENERIC_OAUTH_USE_PKCE        |                      true                       |
+| GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH  |            See [Role Attribute Path]            |
+
+[Role Attribute Path]: #role-attribute-path
+
+#### Role Attribute Path
+
+The role attribute path configuration is optional but allows mapping Authelia group membership with Grafana roles. If you do not wish to automatically do this you can just omit the environment variable.
+
+The following example maps the Authelia `admin` group to the `Admin` role, and the `editor` group to the `Editor` role, otherwise it will set the user as having the `Viewer` role:
+
+```ini
+role_attribute_path = contains(groups, 'admin') && 'Admin' || contains(groups, 'editor') && 'Editor' || 'Viewer'
 
 ## See Also
 

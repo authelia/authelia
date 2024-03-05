@@ -31,6 +31,7 @@ module.exports = {
                 "go",
                 "golangci-lint",
                 "handlers",
+                "husky",
                 "logging",
                 "metrics",
                 "middlewares",

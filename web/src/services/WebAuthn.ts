@@ -1,171 +1,35 @@
-import axios, { AxiosResponse } from "axios";
+import { startAuthentication, startRegistration } from "@simplewebauthn/browser";
+import {
+    AuthenticationResponseJSON,
+    PublicKeyCredentialCreationOptionsJSON,
+    PublicKeyCredentialRequestOptionsJSON,
+    RegistrationResponseJSON,
+} from "@simplewebauthn/types";
+import axios, { AxiosError, AxiosResponse } from "axios";
 
 import {
-    AssertionPublicKeyCredentialResult,
     AssertionResult,
-    AttestationPublicKeyCredential,
-    AttestationPublicKeyCredentialJSON,
-    AttestationPublicKeyCredentialResult,
     AttestationResult,
+    AuthenticationResult,
     CredentialCreation,
     CredentialRequest,
-    PublicKeyCredentialCreationOptionsJSON,
     PublicKeyCredentialCreationOptionsStatus,
-    PublicKeyCredentialDescriptorJSON,
-    PublicKeyCredentialJSON,
-    PublicKeyCredentialRequestOptionsJSON,
     PublicKeyCredentialRequestOptionsStatus,
+    RegistrationResult,
 } from "@models/WebAuthn";
 import {
+    AuthenticationOKResponse,
+    OKResponse,
     OptionalDataServiceResponse,
     ServiceResponse,
     WebAuthnAssertionPath,
-    WebAuthnAttestationPath,
-    WebAuthnIdentityFinishPath,
+    WebAuthnCredentialPath,
+    WebAuthnRegistrationPath,
+    validateStatusAuthentication,
 } from "@services/Api";
 import { SignInResponse } from "@services/SignIn";
-import { getBase64WebEncodingFromBytes, getBytesFromBase64 } from "@utils/Base64";
-
-export function isWebAuthnSecure(): boolean {
-    if (window.isSecureContext) {
-        return true;
-    }
-
-    return window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-}
-
-export function isWebAuthnSupported(): boolean {
-    return window?.PublicKeyCredential !== undefined && typeof window.PublicKeyCredential === "function";
-}
-
-export async function isWebAuthnPlatformAuthenticatorAvailable(): Promise<boolean> {
-    if (!isWebAuthnSupported()) {
-        return false;
-    }
-
-    return window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-}
-
-function arrayBufferEncode(value: ArrayBuffer): string {
-    return getBase64WebEncodingFromBytes(new Uint8Array(value));
-}
-
-function arrayBufferDecode(value: string): ArrayBuffer {
-    return getBytesFromBase64(value);
-}
-
-function decodePublicKeyCredentialDescriptor(
-    descriptor: PublicKeyCredentialDescriptorJSON,
-): PublicKeyCredentialDescriptor {
-    return {
-        id: arrayBufferDecode(descriptor.id),
-        type: descriptor.type,
-        transports: descriptor.transports,
-    };
-}
-
-function decodePublicKeyCredentialCreationOptions(
-    options: PublicKeyCredentialCreationOptionsJSON,
-): PublicKeyCredentialCreationOptions {
-    return {
-        attestation: options.attestation,
-        authenticatorSelection: options.authenticatorSelection,
-        challenge: arrayBufferDecode(options.challenge),
-        excludeCredentials: options.excludeCredentials?.map(decodePublicKeyCredentialDescriptor),
-        extensions: options.extensions,
-        pubKeyCredParams: options.pubKeyCredParams,
-        rp: options.rp,
-        timeout: options.timeout,
-        user: {
-            displayName: options.user.displayName,
-            id: arrayBufferDecode(options.user.id),
-            name: options.user.name,
-        },
-    };
-}
-
-function decodePublicKeyCredentialRequestOptions(
-    options: PublicKeyCredentialRequestOptionsJSON,
-): PublicKeyCredentialRequestOptions {
-    let allowCredentials: PublicKeyCredentialDescriptor[] | undefined = undefined;
-
-    if (options.allowCredentials?.length !== 0) {
-        allowCredentials = options.allowCredentials?.map(decodePublicKeyCredentialDescriptor);
-    }
-
-    return {
-        allowCredentials: allowCredentials,
-        challenge: arrayBufferDecode(options.challenge),
-        extensions: options.extensions,
-        rpId: options.rpId,
-        timeout: options.timeout,
-        userVerification: options.userVerification,
-    };
-}
-
-function encodeAttestationPublicKeyCredential(
-    credential: AttestationPublicKeyCredential,
-): AttestationPublicKeyCredentialJSON {
-    const response = credential.response as AuthenticatorAttestationResponse;
-
-    let transports: string[] | undefined;
-
-    if (response?.getTransports !== undefined && typeof response.getTransports === "function") {
-        transports = response.getTransports();
-    }
-
-    return {
-        id: credential.id,
-        type: credential.type,
-        authenticatorAttachment: credential.authenticatorAttachment,
-        rawId: arrayBufferEncode(credential.rawId),
-        clientExtensionResults: credential.getClientExtensionResults(),
-        response: {
-            ...response,
-            attestationObject: arrayBufferEncode(response.attestationObject),
-            clientDataJSON: arrayBufferEncode(response.clientDataJSON),
-        },
-        transports: transports,
-    };
-}
-
-function encodeAssertionPublicKeyCredential(
-    credential: PublicKeyCredential,
-    targetURL: string | undefined,
-    workflow: string | undefined,
-    workflowID: string | undefined,
-): PublicKeyCredentialJSON {
-    const response = credential.response as AuthenticatorAssertionResponse;
-
-    let userHandle: string;
-
-    if (response.userHandle == null) {
-        userHandle = "";
-    } else {
-        userHandle = arrayBufferEncode(response.userHandle);
-    }
-
-    return {
-        id: credential.id,
-        type: credential.type,
-        authenticatorAttachment: credential.authenticatorAttachment,
-        rawId: arrayBufferEncode(credential.rawId),
-        clientExtensionResults: credential.getClientExtensionResults(),
-        response: {
-            authenticatorData: arrayBufferEncode(response.authenticatorData),
-            clientDataJSON: arrayBufferEncode(response.clientDataJSON),
-            signature: arrayBufferEncode(response.signature),
-            userHandle: userHandle,
-        },
-        targetURL: targetURL,
-        workflow: workflow,
-        workflowID: workflowID,
-    };
-}
 
 function getAttestationResultFromDOMException(exception: DOMException): AttestationResult {
-    console.error(exception);
-
     // Docs for this section:
     // https://w3c.github.io/webauthn/#sctn-op-make-cred
     switch (exception.name) {
@@ -178,6 +42,7 @@ function getAttestationResultFromDOMException(exception: DOMException): Attestat
         case "InvalidStateError":
             // § 6.3.2 Step 3.
             return AttestationResult.FailureExcluded;
+        case "AbortError":
         case "NotAllowedError":
             // § 6.3.2 Step 3 and Step 6.
             return AttestationResult.FailureUserConsent;
@@ -185,45 +50,55 @@ function getAttestationResultFromDOMException(exception: DOMException): Attestat
             // § 6.3.2 Step 4.
             return AttestationResult.FailureUserVerificationOrResidentKey;
         default:
-            console.error(`Unhandled DOMException occurred during WebAuthN attestation: ${exception}`);
+            console.error(`Unhandled DOMException occurred during WebAuthn attestation: ${exception}`);
             return AttestationResult.FailureUnknown;
     }
 }
 
 function getAssertionResultFromDOMException(
     exception: DOMException,
-    requestOptions: PublicKeyCredentialRequestOptions,
+    options: PublicKeyCredentialRequestOptionsJSON,
 ): AssertionResult {
-    console.error(exception);
-
     // Docs for this section:
     // https://w3c.github.io/webauthn/#sctn-op-get-assertion
     switch (exception.name) {
         case "UnknownError":
             // § 6.3.3 Step 1 and Step 12.
             return AssertionResult.FailureSyntax;
+        case "InvalidStateError":
+            // § 6.3.2 Step 3.
+            return AssertionResult.FailureUnrecognized;
+        case "AbortError":
         case "NotAllowedError":
             // § 6.3.3 Step 6 and Step 7.
             return AssertionResult.FailureUserConsent;
         case "SecurityError":
-            if (requestOptions.extensions?.appid !== undefined) {
+            if (options.extensions?.appid !== undefined) {
                 // § 10.1 and 10.2 Step 3.
                 return AssertionResult.FailureU2FFacetID;
             } else {
                 return AssertionResult.FailureUnknownSecurity;
             }
         default:
-            console.error(`Unhandled DOMException occurred during WebAuthN assertion: ${exception}`);
+            console.error(`Unhandled DOMException occurred during WebAuthn assertion: ${exception}`);
             return AssertionResult.FailureUnknown;
     }
 }
 
-async function getAttestationCreationOptions(token: string): Promise<PublicKeyCredentialCreationOptionsStatus> {
-    let response: AxiosResponse<ServiceResponse<CredentialCreation>>;
-
-    response = await axios.post<ServiceResponse<CredentialCreation>>(WebAuthnIdentityFinishPath, {
-        token: token,
-    });
+export async function getAttestationCreationOptions(
+    description: string,
+): Promise<PublicKeyCredentialCreationOptionsStatus> {
+    const response = await axios.put<ServiceResponse<CredentialCreation>>(
+        WebAuthnRegistrationPath,
+        {
+            description: description,
+        },
+        {
+            validateStatus: function (status) {
+                return status < 300 || status === 409;
+            },
+        },
+    );
 
     if (response.data.status !== "OK" || response.data.data == null) {
         return {
@@ -232,12 +107,12 @@ async function getAttestationCreationOptions(token: string): Promise<PublicKeyCr
     }
 
     return {
-        options: decodePublicKeyCredentialCreationOptions(response.data.data.publicKey),
+        options: response.data.data.publicKey,
         status: response.status,
     };
 }
 
-export async function getAssertionRequestOptions(): Promise<PublicKeyCredentialRequestOptionsStatus> {
+export async function getAuthenticationOptions(): Promise<PublicKeyCredentialRequestOptionsStatus> {
     let response: AxiosResponse<ServiceResponse<CredentialRequest>>;
 
     response = await axios.get<ServiceResponse<CredentialRequest>>(WebAuthnAssertionPath);
@@ -249,67 +124,57 @@ export async function getAssertionRequestOptions(): Promise<PublicKeyCredentialR
     }
 
     return {
-        options: decodePublicKeyCredentialRequestOptions(response.data.data.publicKey),
+        options: response.data.data.publicKey,
         status: response.status,
     };
 }
 
-async function getAttestationPublicKeyCredentialResult(
-    creationOptions: PublicKeyCredentialCreationOptions,
-): Promise<AttestationPublicKeyCredentialResult> {
-    const result: AttestationPublicKeyCredentialResult = {
-        result: AttestationResult.Success,
+export async function startWebAuthnRegistration(options: PublicKeyCredentialCreationOptionsJSON) {
+    const result: RegistrationResult = {
+        result: AttestationResult.Failure,
     };
 
     try {
-        result.credential = (await navigator.credentials.create({
-            publicKey: creationOptions,
-        })) as AttestationPublicKeyCredential;
+        result.response = await startRegistration(options);
     } catch (e) {
-        result.result = AttestationResult.Failure;
-
         const exception = e as DOMException;
         if (exception !== undefined) {
             result.result = getAttestationResultFromDOMException(exception);
-
+            console.error(exception);
             return result;
         } else {
-            console.error(`Unhandled exception occurred during WebAuthN attestation: ${e}`);
+            console.error(`Unhandled exception occurred during WebAuthn attestation: ${e}`);
         }
     }
 
-    if (result.credential == null) {
-        result.result = AttestationResult.Failure;
-    } else {
+    if (result.response != null) {
         result.result = AttestationResult.Success;
     }
 
     return result;
 }
 
-export async function getAssertionPublicKeyCredentialResult(
-    requestOptions: PublicKeyCredentialRequestOptions,
-): Promise<AssertionPublicKeyCredentialResult> {
-    const result: AssertionPublicKeyCredentialResult = {
+export async function getAuthenticationResult(options: PublicKeyCredentialRequestOptionsJSON) {
+    const result: AuthenticationResult = {
         result: AssertionResult.Success,
     };
 
     try {
-        result.credential = (await navigator.credentials.get({ publicKey: requestOptions })) as PublicKeyCredential;
+        result.response = await startAuthentication(options);
     } catch (e) {
-        result.result = AssertionResult.Failure;
-
         const exception = e as DOMException;
         if (exception !== undefined) {
-            result.result = getAssertionResultFromDOMException(exception, requestOptions);
+            result.result = getAssertionResultFromDOMException(exception, options);
+
+            console.error(exception);
 
             return result;
         } else {
-            console.error(`Unhandled exception occurred during WebAuthN assertion: ${e}`);
+            console.error(`Unhandled exception occurred during WebAuthn authentication: ${e}`);
         }
     }
 
-    if (result.credential == null) {
+    if (result.response == null) {
         result.result = AssertionResult.Failure;
     } else {
         result.result = AssertionResult.Success;
@@ -318,82 +183,82 @@ export async function getAssertionPublicKeyCredentialResult(
     return result;
 }
 
-async function postAttestationPublicKeyCredentialResult(
-    credential: AttestationPublicKeyCredential,
+async function postRegistrationResponse(
+    response: RegistrationResponseJSON,
 ): Promise<AxiosResponse<OptionalDataServiceResponse<any>>> {
-    const credentialJSON = encodeAttestationPublicKeyCredential(credential);
-
-    return axios.post<OptionalDataServiceResponse<any>>(WebAuthnAttestationPath, credentialJSON);
+    return axios.post<OptionalDataServiceResponse<any>>(WebAuthnRegistrationPath, response);
 }
 
-export async function postAssertionPublicKeyCredentialResult(
-    credential: PublicKeyCredential,
-    targetURL: string | undefined,
+export async function postAuthenticationResponse(
+    response: AuthenticationResponseJSON,
+    targetURL?: string | undefined,
     workflow?: string,
     workflowID?: string,
-): Promise<AxiosResponse<ServiceResponse<SignInResponse>>> {
-    const credentialJSON = encodeAssertionPublicKeyCredential(credential, targetURL, workflow, workflowID);
+) {
+    if (response.response.userHandle) {
+        // Encode the userHandle to match the typing on the backend.
+        response.response.userHandle = btoa(response.response.userHandle)
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=/g, "");
+    }
 
-    return axios.post<ServiceResponse<SignInResponse>>(WebAuthnAssertionPath, credentialJSON);
+    return axios.post<ServiceResponse<SignInResponse>>(WebAuthnAssertionPath, {
+        response: response,
+        targetURL: targetURL,
+        workflow: workflow,
+        workflowID: workflowID,
+    });
 }
 
-export async function performAttestationCeremony(token: string): Promise<AttestationResult> {
-    const attestationCreationOpts = await getAttestationCreationOptions(token);
+export async function finishRegistration(response: RegistrationResponseJSON) {
+    let result = {
+        status: AttestationResult.Failure,
+        message: "Device registration failed.",
+    };
 
-    if (attestationCreationOpts.status !== 200 || attestationCreationOpts.options == null) {
-        if (attestationCreationOpts.status === 403) {
-            return AttestationResult.FailureToken;
+    try {
+        const resp = await postRegistrationResponse(response);
+        if (resp.data.status === "OK" && (resp.status === 200 || resp.status === 201)) {
+            return {
+                status: AttestationResult.Success,
+                message: "",
+            };
         }
-
-        return AttestationResult.Failure;
+    } catch (error) {
+        if (error instanceof AxiosError && error.response !== undefined) {
+            result.message = error.response.data.message;
+        }
     }
 
-    const attestationResult = await getAttestationPublicKeyCredentialResult(attestationCreationOpts.options);
-
-    if (attestationResult.result !== AttestationResult.Success) {
-        return attestationResult.result;
-    } else if (attestationResult.credential == null) {
-        return AttestationResult.Failure;
-    }
-
-    const response = await postAttestationPublicKeyCredentialResult(attestationResult.credential);
-
-    if (response.data.status === "OK" && (response.status === 200 || response.status === 201)) {
-        return AttestationResult.Success;
-    }
-
-    return AttestationResult.Failure;
+    return result;
 }
 
-export async function performAssertionCeremony(
-    targetURL?: string,
-    workflow?: string,
-    workflowID?: string,
-): Promise<AssertionResult> {
-    const assertionRequestOpts = await getAssertionRequestOptions();
+export async function deleteRegistration() {
+    try {
+        await axios.delete<OKResponse>(WebAuthnRegistrationPath);
+    } catch (e) {
+        console.error(e);
 
-    if (assertionRequestOpts.status !== 200 || assertionRequestOpts.options == null) {
-        return AssertionResult.FailureChallenge;
+        return false;
     }
 
-    const assertionResult = await getAssertionPublicKeyCredentialResult(assertionRequestOpts.options);
+    return true;
+}
 
-    if (assertionResult.result !== AssertionResult.Success) {
-        return assertionResult.result;
-    } else if (assertionResult.credential == null) {
-        return AssertionResult.Failure;
-    }
+export async function deleteUserWebAuthnCredential(credentialID: string) {
+    return axios<AuthenticationOKResponse>({
+        method: "DELETE",
+        url: `${WebAuthnCredentialPath}/${credentialID}`,
+        validateStatus: validateStatusAuthentication,
+    });
+}
 
-    const response = await postAssertionPublicKeyCredentialResult(
-        assertionResult.credential,
-        targetURL,
-        workflow,
-        workflowID,
-    );
-
-    if (response.data.status === "OK" && response.status === 200) {
-        return AssertionResult.Success;
-    }
-
-    return AssertionResult.Failure;
+export async function updateUserWebAuthnCredential(credentialID: string, description: string) {
+    return axios<AuthenticationOKResponse>({
+        method: "PUT",
+        url: `${WebAuthnCredentialPath}/${credentialID}`,
+        data: { description: description },
+        validateStatus: validateStatusAuthentication,
+    });
 }

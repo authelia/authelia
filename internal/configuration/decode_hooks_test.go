@@ -66,6 +66,7 @@ func TestStringToMailAddressHookFunc(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+
 			switch {
 			case !tc.decode:
 				assert.NoError(t, err)
@@ -127,6 +128,7 @@ func TestStringToMailAddressHookFuncPointer(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+
 			switch {
 			case !tc.decode:
 				assert.NoError(t, err)
@@ -200,6 +202,7 @@ func TestStringToURLHookFunc(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+
 			switch {
 			case !tc.decode:
 				assert.NoError(t, err)
@@ -273,6 +276,7 @@ func TestStringToURLHookFuncPointer(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+
 			switch {
 			case !tc.decode:
 				assert.NoError(t, err)
@@ -423,6 +427,7 @@ func TestToTimeDurationHookFunc(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+
 			switch {
 			case !tc.decode:
 				assert.NoError(t, err)
@@ -544,6 +549,7 @@ func TestToTimeDurationHookFuncPointer(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+
 			switch {
 			case !tc.decode:
 				assert.NoError(t, err)
@@ -694,6 +700,7 @@ func TestToRefreshIntervalDurationHookFunc(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+
 			switch {
 			case !tc.decode:
 				assert.NoError(t, err)
@@ -815,6 +822,7 @@ func TestTestToRefreshIntervalDurationHookFuncPointer(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+
 			switch {
 			case !tc.decode:
 				assert.NoError(t, err)
@@ -903,6 +911,7 @@ func TestStringToRegexpFunc(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+
 			switch {
 			case !tc.decode:
 				assert.NoError(t, err)
@@ -911,9 +920,9 @@ func TestStringToRegexpFunc(t *testing.T) {
 				assert.NoError(t, err)
 				require.Equal(t, tc.want, result)
 
-				pattern := result.(regexp.Regexp)
-
 				var names []string
+
+				pattern := result.(regexp.Regexp)
 				for _, name := range pattern.SubexpNames() {
 					if name != "" {
 						names = append(names, name)
@@ -1016,6 +1025,7 @@ func TestStringToRegexpFuncPointers(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+
 			switch {
 			case !tc.decode:
 				assert.NoError(t, err)
@@ -1030,6 +1040,7 @@ func TestStringToRegexpFuncPointers(t *testing.T) {
 					assert.Nil(t, pattern)
 				} else {
 					var names []string
+
 					for _, name := range pattern.SubexpNames() {
 						if name != "" {
 							names = append(names, name)
@@ -1382,6 +1393,7 @@ func TestStringToPrivateKeyHookFunc(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+
 			switch {
 			case !tc.decode:
 				assert.NoError(t, err)
@@ -1470,6 +1482,7 @@ func TestStringToX509CertificateHookFunc(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+
 			switch {
 			case !tc.decode:
 				assert.NoError(t, err)
@@ -1941,6 +1954,7 @@ func TestStringToX509CertificateChainHookFunc(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			actual, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.expected), tc.have)
+
 			switch {
 			case !tc.decode:
 				assert.NoError(t, err)
@@ -1956,6 +1970,7 @@ func TestStringToX509CertificateChainHookFunc(t *testing.T) {
 				switch chain := actual.(type) {
 				case *schema.X509CertificateChain:
 					require.NotNil(t, chain)
+
 					if tc.verr == "" {
 						assert.NoError(t, chain.Validate())
 					} else {
@@ -1963,6 +1978,7 @@ func TestStringToX509CertificateChainHookFunc(t *testing.T) {
 					}
 				case schema.X509CertificateChain:
 					require.NotNil(t, chain)
+
 					if tc.verr == "" {
 						assert.NoError(t, chain.Validate())
 					} else {

@@ -139,6 +139,7 @@ func cmdSuitesTeardownRun(_ *cobra.Command, args []string) {
 		if runningSuite == "" {
 			log.Fatal(ErrNoRunningSuite)
 		}
+
 		suiteName = runningSuite
 	}
 
@@ -167,11 +168,13 @@ func cmdSuitesTestRun(_ *cobra.Command, args []string) {
 	} else {
 		if runningSuite != "" {
 			fmt.Println(txtRunningSuite + runningSuite + ") detected. Run tests of that suite")
+
 			if err := runSuiteTests(runningSuite, false); err != nil {
 				log.Fatal(err)
 			}
 		} else {
 			fmt.Println("No suite provided therefore all suites will be tested")
+
 			if err := runAllSuites(); err != nil {
 				log.Fatal(err)
 			}

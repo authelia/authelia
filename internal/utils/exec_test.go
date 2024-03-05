@@ -50,6 +50,7 @@ func TestShouldRunFuncUntilNoError(t *testing.T) {
 		if counter < 3 {
 			return errors.New("not ready")
 		}
+
 		return nil
 	})
 	assert.NoError(t, err, "")
@@ -63,6 +64,7 @@ func TestShouldFailAfterMaxAttemps(t *testing.T) {
 		if counter < 4 {
 			return errors.New("not ready")
 		}
+
 		return nil
 	})
 	assert.ErrorContains(t, err, "not ready")

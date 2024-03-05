@@ -3,7 +3,7 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './Envoy/configuration.yml:/config/configuration.yml:ro'
+      - './Envoy/configuration.yml:/config/configuration.yml'
       - './Envoy/users.yml:/config/users.yml'
-      - './common/pki:/pki:ro'
+      - './common/pki:/pki'
 ...

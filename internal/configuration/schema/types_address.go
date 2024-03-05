@@ -389,8 +389,12 @@ func (a *Address) RouterPath() string {
 		return ""
 	}
 
-	if a.url.Query().Has("path") {
-		return fmt.Sprintf("/%s", a.url.Query().Get("path"))
+	if a.socket {
+		if a.url.Query().Has("path") {
+			return fmt.Sprintf("/%s", a.url.Query().Get("path"))
+		}
+
+		return "/"
 	}
 
 	return a.url.Path

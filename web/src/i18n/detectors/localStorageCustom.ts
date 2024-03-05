@@ -1,25 +1,7 @@
 import { CustomDetector, DetectorOptions } from "i18next-browser-languagedetector";
 
-let hasLocalStorageSupport: null | boolean = null;
-const testKey = "authelia.test";
-const testValue = "foo";
-
-const localStorageAvailable = () => {
-    if (hasLocalStorageSupport !== null) return hasLocalStorageSupport;
-
-    if (typeof window !== "undefined" && window.localStorage !== null) {
-        hasLocalStorageSupport = true;
-
-        try {
-            window.localStorage.setItem(testKey, testValue);
-            window.localStorage.removeItem(testKey);
-        } catch (e) {
-            hasLocalStorageSupport = false;
-        }
-    }
-
-    return hasLocalStorageSupport;
-};
+import { LocalStorageLanguagePreference } from "@constants/LocalStorage";
+import { getLocalStorage } from "@services/LocalStorage";
 
 const LocalStorageCustomDetector: CustomDetector = {
     name: "localStorageCustom",
@@ -27,8 +9,9 @@ const LocalStorageCustomDetector: CustomDetector = {
     lookup(options: DetectorOptions): string | undefined {
         let found;
 
-        if (options.lookupLocalStorage && localStorageAvailable()) {
-            const lng = window.localStorage.getItem(options.lookupLocalStorage);
+        if (options.lookupLocalStorage) {
+            const lng = getLocalStorage(LocalStorageLanguagePreference);
+
             if (lng && lng !== "") {
                 found = lng;
             }

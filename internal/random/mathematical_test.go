@@ -42,7 +42,7 @@ func TestMathematical(t *testing.T) {
 	assert.Len(t, strdata, 11)
 
 	i := p.Intn(999)
-	assert.Greater(t, i, 0)
+	assert.Greater(t, i, -1)
 	assert.Less(t, i, 999)
 
 	i, err = p.IntnErr(999)

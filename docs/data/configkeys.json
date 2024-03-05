@@ -10,11 +10,6 @@
         "env": "AUTHELIA_CERTIFICATES_DIRECTORY"
     },
     {
-        "path": "jwt_secret",
-        "secret": true,
-        "env": "AUTHELIA_JWT_SECRET_FILE"
-    },
-    {
         "path": "default_2fa_method",
         "secret": false,
         "env": "AUTHELIA_DEFAULT_2FA_METHOD"
@@ -43,16 +38,6 @@
         "path": "identity_providers.oidc.hmac_secret",
         "secret": true,
         "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE"
-    },
-    {
-        "path": "identity_providers.oidc.issuer_certificate_chain",
-        "secret": true,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_CERTIFICATE_CHAIN_FILE"
-    },
-    {
-        "path": "identity_providers.oidc.issuer_private_key",
-        "secret": true,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE"
     },
     {
         "path": "identity_providers.oidc.enable_client_debug_messages",
@@ -560,6 +545,26 @@
         "env": "AUTHELIA_TOTP_SECRET_SIZE"
     },
     {
+        "path": "totp.allowed_algorithms",
+        "secret": false,
+        "env": "AUTHELIA_TOTP_ALLOWED_ALGORITHMS"
+    },
+    {
+        "path": "totp.allowed_digits",
+        "secret": false,
+        "env": "AUTHELIA_TOTP_ALLOWED_DIGITS"
+    },
+    {
+        "path": "totp.allowed_periods",
+        "secret": false,
+        "env": "AUTHELIA_TOTP_ALLOWED_PERIODS"
+    },
+    {
+        "path": "totp.disable_reuse_security_policy",
+        "secret": false,
+        "env": "AUTHELIA_TOTP_DISABLE_REUSE_SECURITY_POLICY"
+    },
+    {
         "path": "duo_api.disable",
         "secret": false,
         "env": "AUTHELIA_DUO_API_DISABLE"
@@ -1043,5 +1048,45 @@
         "path": "privacy_policy.policy_url",
         "secret": false,
         "env": "AUTHELIA_PRIVACY_POLICY_POLICY_URL"
+    },
+    {
+        "path": "identity_validation.reset_password.expiration",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_EXPIRATION"
+    },
+    {
+        "path": "identity_validation.reset_password.jwt_algorithm",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_ALGORITHM"
+    },
+    {
+        "path": "identity_validation.reset_password.jwt_secret",
+        "secret": true,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE"
+    },
+    {
+        "path": "identity_validation.elevated_session.expiration",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_EXPIRATION"
+    },
+    {
+        "path": "identity_validation.elevated_session.elevation_expiration",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_ELEVATION_EXPIRATION"
+    },
+    {
+        "path": "identity_validation.elevated_session.characters",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_CHARACTERS"
+    },
+    {
+        "path": "identity_validation.elevated_session.require_second_factor",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_REQUIRE_SECOND_FACTOR"
+    },
+    {
+        "path": "identity_validation.elevated_session.skip_second_factor",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_SKIP_SECOND_FACTOR"
     }
 ]

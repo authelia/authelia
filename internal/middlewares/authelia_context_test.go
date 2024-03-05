@@ -5,10 +5,10 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -294,11 +294,13 @@ func TestAutheliaCtx_IssuerURL(t *testing.T) {
 				require.NotNil(t, actual)
 
 				assert.Equal(t, tc.expected, actual.String())
+
 				if len(tc.expectedProto) == 0 {
 					assert.Equal(t, tc.proto, actual.Scheme)
 				} else {
 					assert.Equal(t, tc.expectedProto, actual.Scheme)
 				}
+
 				assert.Equal(t, tc.host, actual.Host)
 				assert.Equal(t, tc.base, actual.Path)
 			} else {
@@ -329,6 +331,7 @@ func TestShouldCallNextWithAutheliaCtx(t *testing.T) {
 	middleware(func(actx *middlewares.AutheliaCtx) {
 		// Authelia context wraps the request.
 		assert.Equal(t, ctx, actx.RequestCtx)
+
 		nextCalled = true
 	})(ctx)
 
@@ -541,7 +544,7 @@ func TestAutheliaCtx_GetTargetURICookieDomain(t *testing.T) {
 
 			mock.Ctx.Configuration.Session.Cookies = tc.config
 
-			assert.Equal(t, tc.expected, mock.Ctx.GetTargetURICookieDomain(tc.have))
+			assert.Equal(t, tc.expected, mock.Ctx.GetCookieDomainFromTargetURI(tc.have))
 			assert.Equal(t, tc.secure, mock.Ctx.IsSafeRedirectionTargetURI(tc.have))
 		})
 	}
