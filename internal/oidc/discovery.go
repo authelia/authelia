@@ -8,7 +8,7 @@ import (
 )
 
 // NewOpenIDConnectWellKnownConfiguration generates a new OpenIDConnectWellKnownConfiguration.
-func NewOpenIDConnectWellKnownConfiguration(c *schema.OpenIDConnect) (config OpenIDConnectWellKnownConfiguration) {
+func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDConnect) (config OpenIDConnectWellKnownConfiguration) {
 	config = OpenIDConnectWellKnownConfiguration{
 		OAuth2WellKnownConfiguration: OAuth2WellKnownConfiguration{
 			CommonDiscoveryOptions: CommonDiscoveryOptions{

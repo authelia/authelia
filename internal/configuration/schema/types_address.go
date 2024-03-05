@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/authelia/jsonschema"
 )
 
 // NewAddress returns an *Address and error depending on the ability to parse the string as an Address.
@@ -129,9 +131,27 @@ type AddressTCP struct {
 	Address
 }
 
+// JSONSchema returns the appropriate *jsonschema.Schema for this type.
+func (AddressTCP) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		Type:    jsonschema.TypeString,
+		Format:  "uri",
+		Pattern: `^((tcp[46]?:\/\/)?([^:\/]*(:\d+)|[^:\/]+(:\d+)?)(\/.*)?|unix:\/\/\/[^?\n]+(\?(umask=[0-7]{3,4}|path=[a-z]+)(&(umask=[0-7]{3,4}|path=[a-zA-Z0-9.~_-]+))?)?)$`,
+	}
+}
+
 // AddressUDP is just a type with an underlying type of Address.
 type AddressUDP struct {
 	Address
+}
+
+// JSONSchema returns the appropriate *jsonschema.Schema for this type.
+func (AddressUDP) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		Type:    jsonschema.TypeString,
+		Format:  "uri",
+		Pattern: `^(udp[46]?:\/\/)?([^:\/]*(:\d+)|[^:\/]+(:\d+)?)(\/.*)?$`,
+	}
 }
 
 // AddressLDAP is just a type with an underlying type of Address.
@@ -139,9 +159,27 @@ type AddressLDAP struct {
 	Address
 }
 
+// JSONSchema returns the appropriate *jsonschema.Schema for this type.
+func (AddressLDAP) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		Type:    jsonschema.TypeString,
+		Format:  "uri",
+		Pattern: `^((ldaps?:\/\/)?([^:\/]*(:\d+)|[^:\/]+(:\d+)?)?|ldapi:\/\/(\/[^?\n]+)?)$`,
+	}
+}
+
 // AddressSMTP is just a type with an underlying type of Address.
 type AddressSMTP struct {
 	Address
+}
+
+// JSONSchema returns the appropriate *jsonschema.Schema for this type.
+func (AddressSMTP) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		Type:    jsonschema.TypeString,
+		Format:  "uri",
+		Pattern: `^((smtp|submissions?):\/\/)?([^:\/]*(:\d+)|[^:\/]+(:\d+)?)?$`,
+	}
 }
 
 // Address represents an address.
@@ -152,6 +190,15 @@ type Address struct {
 	port   int
 
 	url *url.URL
+}
+
+// JSONSchema returns the appropriate *jsonschema.Schema for this type.
+func (Address) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		Type:    jsonschema.TypeString,
+		Format:  "uri",
+		Pattern: `^((unix:\/\/)?\/[^?\n]+(\?umask=[0-7]{3,4})?|ldapi:\/\/(\/[^?\n]+)?|(((tcp|udp)(4|6)?|ldaps?|smtp|submissions?):\/\/)?[^:\/]*(:\d+)?(\/.*)?)$`,
+	}
 }
 
 // Valid returns true if the Address is valid.
@@ -330,6 +377,24 @@ func (a *Address) SetPort(port int) {
 func (a *Address) Path() string {
 	if !a.valid || a.url == nil {
 		return ""
+	}
+
+	return a.url.Path
+}
+
+// RouterPath returns the path the server router uses for serving up requests. Should be the same as Path unless the
+// path query parameter has been set.
+func (a *Address) RouterPath() string {
+	if !a.valid || a.url == nil {
+		return ""
+	}
+
+	if a.socket {
+		if a.url.Query().Has("path") {
+			return fmt.Sprintf("/%s", a.url.Query().Get("path"))
+		}
+
+		return "/"
 	}
 
 	return a.url.Path

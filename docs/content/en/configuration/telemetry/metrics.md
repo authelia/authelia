@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "telemetry"
-weight: 108200
+weight: 109200
 toc: true
 ---
 
@@ -44,23 +44,20 @@ Determines if the [Prometheus] HTTP Metrics Exporter is enabled.
 
 ### address
 
-{{< confkey type="address" default="tcp://:9959/" required="no" >}}
-{{< ref-common ref="address" description="Common Syntax: Address" text="This option uses a common syntax. " >}}
+{{< confkey type="string" syntax="address" default="tcp://:9959/" required="no" >}}
 
 Configures the listener address for the [Prometheus] Metrics Exporter HTTP Server. The address itself is a listener and
 the scheme must either be the `unix` scheme or one of the `tcp` schemes.
 
 ### buffers
 
-{{< confkey type="structure" required="no" >}}
-{{< ref-common ref="server-buffers" description="Common Structures: Buffers" text="This option uses a common structure. " >}}
+{{< confkey type="structure" structure="server-buffers" required="no" >}}
 
 Configures the server buffers.
 
 ### timeouts
 
-{{< confkey type="structure" required="no" >}}
-{{< ref-common ref="server-timeouts" description="Common Structures: Timeouts" text="This option uses a common structure. " >}}
+{{< confkey type="structure" structure="server-timeouts" required="no" >}}
 
 Configures the server timeouts.
 

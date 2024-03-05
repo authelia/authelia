@@ -10,18 +10,33 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
+	"github.com/authelia/jsonschema"
 	"github.com/go-crypt/crypt"
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/go-crypt/crypt/algorithm/plaintext"
+	"github.com/valyala/fasthttp"
+	"gopkg.in/yaml.v3"
 )
 
 var cdecoder algorithm.DecoderRegister
 
 // DecodePasswordDigest returns a new PasswordDigest if it can be decoded.
 func DecodePasswordDigest(encodedDigest string) (digest *PasswordDigest, err error) {
+	var d algorithm.Digest
+
+	if d, err = DecodeAlgorithmDigest(encodedDigest); err != nil {
+		return nil, err
+	}
+
+	return NewPasswordDigest(d), nil
+}
+
+// DecodeAlgorithmDigest returns a new algorithm.Digest if it can be decoded.
+func DecodeAlgorithmDigest(encodedDigest string) (digest algorithm.Digest, err error) {
 	if cdecoder == nil {
 		if cdecoder, err = crypt.NewDefaultDecoder(); err != nil {
 			return nil, fmt.Errorf("failed to initialize decoder: %w", err)
@@ -32,18 +47,25 @@ func DecodePasswordDigest(encodedDigest string) (digest *PasswordDigest, err err
 		}
 	}
 
-	var d algorithm.Digest
+	return cdecoder.Decode(encodedDigest)
+}
 
-	if d, err = cdecoder.Decode(encodedDigest); err != nil {
-		return nil, err
-	}
-
-	return &PasswordDigest{Digest: d}, nil
+// NewPasswordDigest returns a new *PasswordDigest from an algorithm.Digest.
+func NewPasswordDigest(digest algorithm.Digest) *PasswordDigest {
+	return &PasswordDigest{Digest: digest}
 }
 
 // PasswordDigest is a configuration type for the crypt.Digest.
 type PasswordDigest struct {
 	algorithm.Digest
+}
+
+// JSONSchema returns the JSON Schema information for the PasswordDigest type.
+func (PasswordDigest) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		Type:    jsonschema.TypeString,
+		Pattern: `^\$((argon2(id|i|d)\$v=19\$m=\d+,t=\d+,p=\d+|scrypt\$ln=\d+,r=\d+,p=\d+)\$[a-zA-Z0-9\/+]+\$[a-zA-Z0-9\/+]+|pbkdf2(-sha(224|256|384|512))?\$\d+\$[a-zA-Z0-9\/.]+\$[a-zA-Z0-9\/.]+|bcrypt-sha256\$v=2,t=2b,r=\d+\$[a-zA-Z0-9\/.]+\$[a-zA-Z0-9\/.]+|2(a|b|y)?\$\d+\$[a-zA-Z0-9.\/]+|(5|6)\$rounds=\d+\$[a-zA-Z0-9.\/]+\$[a-zA-Z0-9.\/]+|plaintext\$.+|base64\$[a-zA-Z0-9.=\/]+)$`,
+	}
 }
 
 // PlainText returns a *plaintext.Digest and boolean. If the PasswordDigest is not a plaintext.Digest then it returns
@@ -69,6 +91,20 @@ func (d *PasswordDigest) IsPlainText() (is bool) {
 	default:
 		return false
 	}
+}
+
+func (d *PasswordDigest) UnmarshalYAML(value *yaml.Node) (err error) {
+	digestRaw := ""
+
+	if err = value.Decode(&digestRaw); err != nil {
+		return err
+	}
+
+	if d.Digest, err = DecodeAlgorithmDigest(digestRaw); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // NewX509CertificateChain creates a new *X509CertificateChain from a given string, parsing each PEM block one by one.
@@ -141,6 +177,19 @@ type TLSVersion struct {
 	Value uint16
 }
 
+// JSONSchema returns the JSON Schema information for the TLSVersion type.
+func (TLSVersion) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		Type: jsonschema.TypeString,
+		Enum: []any{
+			"TLS1.0",
+			"TLS1.1",
+			"TLS1.2",
+			"TLS1.3",
+		},
+	}
+}
+
 // MaxVersion returns the value of this as a MaxVersion value.
 func (v *TLSVersion) MaxVersion() uint16 {
 	if v.Value == 0 {
@@ -189,6 +238,14 @@ type CryptographicKey any
 // X509CertificateChain is a helper struct that holds a list of *x509.Certificate's.
 type X509CertificateChain struct {
 	certs []*x509.Certificate
+}
+
+// JSONSchema returns the JSON Schema information for the X509CertificateChain type.
+func (X509CertificateChain) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		Type:    jsonschema.TypeString,
+		Pattern: `^(-{5}BEGIN CERTIFICATE-{5}\n([a-zA-Z0-9/+]{1,64}\n)+([a-zA-Z0-9/+]{1,64}[=]{0,2})\n-{5}END CERTIFICATE-{5}\n?)+$`,
+	}
 }
 
 // Thumbprint returns the Thumbprint for the first certificate.
@@ -299,6 +356,10 @@ func (c *X509CertificateChain) Leaf() (leaf *x509.Certificate) {
 
 // EncodePEM encodes the entire chain as PEM bytes.
 func (c *X509CertificateChain) EncodePEM() (encoded []byte, err error) {
+	if !c.HasCertificates() {
+		return nil, nil
+	}
+
 	buf := &bytes.Buffer{}
 
 	for _, cert := range c.certs {
@@ -340,4 +401,230 @@ func (c *X509CertificateChain) Validate() (err error) {
 	}
 
 	return nil
+}
+
+// NewRefreshIntervalDuration returns a RefreshIntervalDuration given a time.Duration.
+func NewRefreshIntervalDuration(value time.Duration) RefreshIntervalDuration {
+	return RefreshIntervalDuration{value: value, valid: true}
+}
+
+// NewRefreshIntervalDurationAlways returns a RefreshIntervalDuration with an always value.
+func NewRefreshIntervalDurationAlways() RefreshIntervalDuration {
+	return RefreshIntervalDuration{valid: true, always: true}
+}
+
+// NewRefreshIntervalDurationNever returns a RefreshIntervalDuration with a never value.
+func NewRefreshIntervalDurationNever() RefreshIntervalDuration {
+	return RefreshIntervalDuration{valid: true, never: true}
+}
+
+// RefreshIntervalDuration is a special time.Duration for the refresh interval.
+type RefreshIntervalDuration struct {
+	value  time.Duration
+	valid  bool
+	always bool
+	never  bool
+}
+
+// Valid returns true if the value was correctly newed up.
+func (d RefreshIntervalDuration) Valid() bool {
+	return d.valid
+}
+
+// Update returns true if the session could require updates.
+func (d RefreshIntervalDuration) Update() bool {
+	return !d.never && !d.always
+}
+
+// Always returns true if the interval is always.
+func (d RefreshIntervalDuration) Always() bool {
+	return d.always
+}
+
+// Never returns true if the interval is never.
+func (d RefreshIntervalDuration) Never() bool {
+	return d.never
+}
+
+// Value returns the time.Duration.
+func (d RefreshIntervalDuration) Value() time.Duration {
+	return d.value
+}
+
+// JSONSchema provides the json-schema formatting.
+func (RefreshIntervalDuration) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		Default: "5 minutes",
+		OneOf: []*jsonschema.Schema{
+			{
+				Type: jsonschema.TypeString,
+				Enum: []any{"always", "never"},
+			},
+			{
+				Type:    jsonschema.TypeString,
+				Pattern: `^\d+\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\s*\d+\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$`,
+			},
+			{
+				Type:        jsonschema.TypeInteger,
+				Description: "The duration in seconds",
+			},
+		},
+	}
+}
+
+type AccessControlRuleNetworks []string
+
+func (AccessControlRuleNetworks) JSONSchema() *jsonschema.Schema {
+	return &jsonschemaWeakStringUniqueSlice
+}
+
+type IdentityProvidersOpenIDConnectClientRedirectURIs []string
+
+func (IdentityProvidersOpenIDConnectClientRedirectURIs) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		OneOf: []*jsonschema.Schema{
+			&jsonschemaURI,
+			{
+				Type:        jsonschema.TypeArray,
+				Items:       &jsonschemaURI,
+				UniqueItems: true,
+			},
+		},
+	}
+}
+
+// AccessControlNetworkNetworks represents the ACL AccessControlNetworkNetworks type.
+type AccessControlNetworkNetworks []string
+
+func (AccessControlNetworkNetworks) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		OneOf: []*jsonschema.Schema{
+			&jsonschemaACLNetwork,
+			{
+				Type:        jsonschema.TypeArray,
+				Items:       &jsonschemaACLNetwork,
+				UniqueItems: true,
+			},
+		},
+	}
+}
+
+type AccessControlRuleDomains []string
+
+func (AccessControlRuleDomains) JSONSchema() *jsonschema.Schema {
+	return &jsonschemaWeakStringUniqueSlice
+}
+
+type AccessControlRuleMethods []string
+
+func (AccessControlRuleMethods) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		OneOf: []*jsonschema.Schema{
+			&jsonschemaACLMethod,
+			{
+				Type:        jsonschema.TypeArray,
+				Items:       &jsonschemaACLMethod,
+				UniqueItems: true,
+			},
+		},
+	}
+}
+
+// AccessControlRuleRegex represents the ACL AccessControlRuleSubjects type.
+type AccessControlRuleRegex []regexp.Regexp
+
+func (AccessControlRuleRegex) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		OneOf: []*jsonschema.Schema{
+			{
+				Type:   jsonschema.TypeString,
+				Format: jsonschema.FormatStringRegex,
+			},
+			{
+				Type: jsonschema.TypeArray,
+				Items: &jsonschema.Schema{
+					Type:   jsonschema.TypeString,
+					Format: jsonschema.FormatStringRegex,
+				},
+				UniqueItems: true,
+			},
+		},
+	}
+}
+
+// AccessControlRuleSubjects represents the ACL AccessControlRuleSubjects type.
+type AccessControlRuleSubjects [][]string
+
+func (AccessControlRuleSubjects) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		OneOf: []*jsonschema.Schema{
+			&jsonschemaACLSubject,
+			{
+				Type:  jsonschema.TypeArray,
+				Items: &jsonschemaACLSubject,
+			},
+			{
+				Type: jsonschema.TypeArray,
+				Items: &jsonschema.Schema{
+					Type:  jsonschema.TypeArray,
+					Items: &jsonschemaACLSubject,
+				},
+				UniqueItems: true,
+			},
+		},
+	}
+}
+
+type CSPTemplate string
+
+var jsonschemaURI = jsonschema.Schema{
+	Type:   jsonschema.TypeString,
+	Format: jsonschema.FormatStringURI,
+}
+
+var jsonschemaWeakStringUniqueSlice = jsonschema.Schema{
+	OneOf: []*jsonschema.Schema{
+		{
+			Type: jsonschema.TypeString,
+		},
+		{
+			Type: jsonschema.TypeArray,
+			Items: &jsonschema.Schema{
+				Type: jsonschema.TypeString,
+			},
+			UniqueItems: true,
+		},
+	},
+}
+
+var jsonschemaACLNetwork = jsonschema.Schema{
+	Type:    jsonschema.TypeString,
+	Pattern: `((^((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))(\/([0-2]?[0-9]|3[0-2]))?$)|(^((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))?(\/(12[0-8]|1[0-1][0-9]|[0-9]{1,2}))?$))`,
+}
+
+var jsonschemaACLSubject = jsonschema.Schema{
+	Type:    jsonschema.TypeString,
+	Pattern: "^(user|group|oauth2:client:):.+$",
+}
+
+var jsonschemaACLMethod = jsonschema.Schema{
+	Type: jsonschema.TypeString,
+	Enum: []any{
+		fasthttp.MethodGet,
+		fasthttp.MethodHead,
+		fasthttp.MethodPost,
+		fasthttp.MethodPut,
+		fasthttp.MethodPatch,
+		fasthttp.MethodDelete,
+		fasthttp.MethodTrace,
+		fasthttp.MethodConnect,
+		fasthttp.MethodOptions,
+		"COPY",
+		"LOCK",
+		"MKCOL",
+		"MOVE",
+		"PROPFIND",
+		"PROPPATCH",
+		"UNLOCK",
+	},
 }

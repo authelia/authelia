@@ -8,11 +8,11 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -23,7 +23,7 @@ import (
 func TestOpenIDConnectProvider_NewIntrospectionRequest(t *testing.T) {
 	testCases := []struct {
 		name       string
-		clients    []schema.OpenIDConnectClient
+		clients    []schema.IdentityProvidersOpenIDConnectClient
 		setup      func(ctx gomock.Matcher, provider *oidc.OpenIDConnectProvider, mock *mocks.MockTokenIntrospector)
 		req        *http.Request
 		expected   fosite.TokenUse
@@ -67,7 +67,7 @@ func TestOpenIDConnectProvider_NewIntrospectionRequest(t *testing.T) {
 		},
 		{
 			"ShouldIntrospectAccessTokenWithBasicCredentials",
-			[]schema.OpenIDConnectClient{
+			[]schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:     "client_id",
 					Secret: MustDecodeSecret("$plaintext$client_secret"),
@@ -91,7 +91,7 @@ func TestOpenIDConnectProvider_NewIntrospectionRequest(t *testing.T) {
 		},
 		{
 			"ShouldNotIntrospectAccessTokenWithBasicCredentialsInvalidClientSecret",
-			[]schema.OpenIDConnectClient{
+			[]schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:     "client_id",
 					Secret: MustDecodeSecret("$plaintext$client_secret2"),
@@ -113,7 +113,7 @@ func TestOpenIDConnectProvider_NewIntrospectionRequest(t *testing.T) {
 		},
 		{
 			"ShouldNotIntrospectAccessTokenWithBasicCredentialsInvalidClientID",
-			[]schema.OpenIDConnectClient{
+			[]schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:     "client_id2",
 					Secret: MustDecodeSecret("$plaintext$client_secret"),
@@ -135,7 +135,7 @@ func TestOpenIDConnectProvider_NewIntrospectionRequest(t *testing.T) {
 		},
 		{
 			"ShouldNotIntrospectAccessTokenWithBasicCredentialsInvalidAuthorizationHeader",
-			[]schema.OpenIDConnectClient{
+			[]schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:     "client_id2",
 					Secret: MustDecodeSecret("$plaintext$client_secret"),
@@ -318,7 +318,7 @@ func TestOpenIDConnectProvider_NewIntrospectionRequest(t *testing.T) {
 
 			ctx := gomock.AssignableToTypeOf(context.WithValue(context.TODO(), fosite.ContextKey("test"), nil))
 
-			provider := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnect{HMACSecret: badhmac, Clients: tc.clients}, store, tp)
+			provider := oidc.NewOpenIDConnectProvider(&schema.IdentityProvidersOpenIDConnect{HMACSecret: badhmac, Clients: tc.clients}, store, tp)
 
 			provider.Config.Handlers.TokenIntrospection = fosite.TokenIntrospectionHandlers{mock}
 
@@ -356,13 +356,13 @@ func TestIntrospectionResponse(t *testing.T) {
 				Active: true,
 				AccessRequester: &fosite.AccessRequest{
 					Request: fosite.Request{
-						ID: "abc",
+						ID: abc,
 					},
 				},
 			},
 			"client1",
 			true,
-			"abc",
+			abc,
 		},
 		{
 			"ShouldReturnNilBadResponse",

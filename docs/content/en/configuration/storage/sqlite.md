@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "storage"
-weight: 106500
+weight: 107500
 toc: true
 aliases:
   - /docs/configuration/storage/sqlite.html
@@ -39,7 +39,7 @@ This section describes the individual configuration options.
 
 ### encryption_key
 
-See the [encryption_key docs](introduction.md#encryptionkey).
+See the [encryption_key docs](introduction.md#encryption_key).
 
 ### path
 

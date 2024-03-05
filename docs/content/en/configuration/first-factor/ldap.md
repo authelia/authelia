@@ -123,8 +123,7 @@ This section describes the individual configuration options.
 
 ### address
 
-{{< confkey type="string" required="yes" >}}
-{{< ref-common ref="address" description="Common Syntax: Address" text="This option uses a common syntax. " >}}
+{{< confkey type="string" syntax="address" required="yes" >}}
 
 The LDAP URL which consists of a scheme, hostname, and port. Format is `[<scheme>://]<hostname>[:<port>]`. The default
 scheme is `ldapi` if the path is absolute otherwise it's `ldaps`, and the permitted schemes are `ldap`, `ldaps`, or
@@ -158,8 +157,7 @@ See the [Implementation Guide](../../reference/guides/ldap.md#implementation-gui
 
 ### timeout
 
-{{< confkey type="duration" default="5s" required="no" >}}
-{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
+{{< confkey type="string,integer" syntax="duration" default="5 seconds" required="no" >}}
 
 The timeout for dialing an LDAP connection.
 
@@ -173,8 +171,7 @@ URL's are slightly more secure.
 
 ### tls
 
-{{< confkey type="structure" required="no" >}}
-{{< ref-common ref="tls" description="Common Structure: TLS" text="This option uses a common structure. " >}}
+{{< confkey type="structure" structure="tls" required="no" >}}
 
 Controls the TLS connection validation parameters for either StartTLS or the TLS socket.
 
@@ -184,14 +181,14 @@ Controls the TLS connection validation parameters for either StartTLS or the TLS
 
 Sets the base distinguished name container for all LDAP queries. If your LDAP domain is example.com this is usually
 `DC=example,DC=com`, however you can fine tune this to be more specific for example to only include objects inside the
-authelia OU: `OU=authelia,DC=example,DC=com`. This is prefixed with the [additional_users_dn](#additionalusersdn) for
-user searches and [additional_groups_dn](#additionalgroupsdn) for groups searches.
+authelia OU: `OU=authelia,DC=example,DC=com`. This is prefixed with the [additional_users_dn](#additional_users_dn) for
+user searches and [additional_groups_dn](#additional_groups_dn) for groups searches.
 
 ### additional_users_dn
 
 {{< confkey type="string" required="no" >}}
 
-Additional LDAP path to append to the [base_dn](#basedn) when searching for users. Useful if you want to restrict
+Additional LDAP path to append to the [base_dn](#base_dn) when searching for users. Useful if you want to restrict
 exactly which OU to get users from for either security or performance reasons. For example setting it to
 `OU=users,OU=people` with a base_dn set to `DC=example,DC=com` will mean user searches will occur in
 `OU=users,OU=people,DC=example,DC=com`.
@@ -212,7 +209,7 @@ The default value is dependent on the [implementation](#implementation), refer t
 
 {{< confkey type="string" required="no" >}}
 
-Similar to [additional_users_dn](#additionalusersdn) but it applies to group searches.
+Similar to [additional_users_dn](#additional_users_dn) but it applies to group searches.
 
 ### groups_filter
 
@@ -222,7 +219,7 @@ Similar to [additional_users_dn](#additionalusersdn) but it applies to group sea
 default negating this requirement. Refer to the [filter defaults](../../reference/guides/ldap.md#filter-defaults) for
 more information.*
 
-Similar to [users_filter](#usersfilter) but it applies to group searches. In order to include groups the member is not
+Similar to [users_filter](#users_filter) but it applies to group searches. In order to include groups the member is not
 a direct member of, but is a member of another group that is a member of those (i.e. recursive groups), you may try
 using the following filter which is currently only tested against Microsoft Active Directory:
 
@@ -257,7 +254,7 @@ configuration option must be blank and the [password_reset disable](introduction
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-Authelia searches for the RootDSE to discover supported controls and extensions. This option is a compatability option
+Authelia searches for the RootDSE to discover supported controls and extensions. This option is a compatibility option
 which *__should not__* be enabled unless the LDAP server returns an error when searching for the RootDSE.
 
 ### user
@@ -346,7 +343,7 @@ The directory server attribute that is used by Authelia to determine the group n
 
 ## Refresh Interval
 
-It's recommended you either use the default [refresh interval](introduction.md#refreshinterval) or configure this to
+It's recommended you either use the default [refresh interval](introduction.md#refresh_interval) or configure this to
 a value low enough to refresh the user groups and status (deleted, disabled, etc) to adequately secure your environment.
 
 ## Important notes

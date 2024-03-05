@@ -12,8 +12,6 @@ import (
 
 type DefaultRedirectionURLScenario struct {
 	*RodSuite
-
-	secret string
 }
 
 func NewDefaultRedirectionURLScenario() *DefaultRedirectionURLScenario {
@@ -23,8 +21,7 @@ func NewDefaultRedirectionURLScenario() *DefaultRedirectionURLScenario {
 }
 
 func (s *DefaultRedirectionURLScenario) SetupSuite() {
-	browser, err := StartRod()
-
+	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,7 +38,7 @@ func (s *DefaultRedirectionURLScenario) SetupSuite() {
 	}()
 
 	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.secret = s.doLoginAndRegisterTOTP(s.T(), s.Context(ctx), "john", "password", false)
+	s.doLoginAndRegisterTOTP(s.T(), s.Context(ctx), "john", "password", false)
 }
 
 func (s *DefaultRedirectionURLScenario) TearDownSuite() {
@@ -71,11 +68,11 @@ func (s *DefaultRedirectionURLScenario) TestUserIsRedirectedToDefaultURL() {
 
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
 
-	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, s.secret, targetURL)
+	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, targetURL)
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 	s.doLogout(s.T(), s.Context(ctx))
 
-	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, s.secret, "")
+	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsHome(s.T(), s.Page)
 }
 

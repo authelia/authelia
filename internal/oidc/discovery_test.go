@@ -17,7 +17,7 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 		pkcePlainChallenge bool
 		enforcePAR         bool
 		clients            map[string]oidc.Client
-		discovery          schema.OpenIDConnectDiscovery
+		discovery          schema.IdentityProvidersOpenIDConnectDiscovery
 
 		expectCodeChallengeMethodsSupported, expectSubjectTypesSupported  []string
 		expectedIDTokenSigAlgsSupported, expectedUserInfoSigAlgsSupported []string
@@ -52,7 +52,7 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 			desc:               "ShouldIncludeDiscoveredResponseObjectSigningAlgs",
 			pkcePlainChallenge: false,
 			clients:            map[string]oidc.Client{"a": &oidc.BaseClient{}},
-			discovery: schema.OpenIDConnectDiscovery{
+			discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 				ResponseObjectSigningAlgs: []string{oidc.SigningAlgECDSAUsingP521AndSHA512},
 			},
 			expectCodeChallengeMethodsSupported:   []string{oidc.PKCEChallengeMethodSHA256},
@@ -67,9 +67,9 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			c := schema.OpenIDConnect{
+			c := schema.IdentityProvidersOpenIDConnect{
 				EnablePKCEPlainChallenge: tc.pkcePlainChallenge,
-				PAR: schema.OpenIDConnectPAR{
+				PAR: schema.IdentityProvidersOpenIDConnectPAR{
 					Enforce: tc.enforcePAR,
 				},
 				Discovery: tc.discovery,
@@ -102,12 +102,12 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 }
 
 func TestNewOpenIDConnectProviderDiscovery(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnect{
+	provider := oidc.NewOpenIDConnectProvider(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain:   schema.X509CertificateChain{},
-		IssuerPrivateKey:         keyRSA2048,
+		IssuerPrivateKey:         x509PrivateKeyRSA2048,
 		HMACSecret:               "asbdhaaskmdlkamdklasmdlkams",
 		EnablePKCEPlainChallenge: true,
-		Clients: []schema.OpenIDConnectClient{
+		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
 				ID:                  "a-client",
 				Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -143,11 +143,11 @@ func TestNewOpenIDConnectProviderDiscovery(t *testing.T) {
 }
 
 func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnect{
+	provider := oidc.NewOpenIDConnectProvider(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       keyRSA2048,
+		IssuerPrivateKey:       x509PrivateKeyRSA2048,
 		HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
-		Clients: []schema.OpenIDConnectClient{
+		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
 				ID:                  "a-client",
 				Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -252,11 +252,11 @@ func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *test
 }
 
 func TestNewOpenIDConnectProvider_GetOAuth2WellKnownConfiguration(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnect{
+	provider := oidc.NewOpenIDConnectProvider(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       keyRSA2048,
+		IssuerPrivateKey:       x509PrivateKeyRSA2048,
 		HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
-		Clients: []schema.OpenIDConnectClient{
+		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
 				ID:                  "a-client",
 				Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -347,12 +347,12 @@ func TestNewOpenIDConnectProvider_GetOAuth2WellKnownConfiguration(t *testing.T) 
 }
 
 func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfigurationWithPlainPKCE(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(&schema.OpenIDConnect{
+	provider := oidc.NewOpenIDConnectProvider(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain:   schema.X509CertificateChain{},
-		IssuerPrivateKey:         keyRSA2048,
+		IssuerPrivateKey:         x509PrivateKeyRSA2048,
 		HMACSecret:               "asbdhaaskmdlkamdklasmdlkams",
 		EnablePKCEPlainChallenge: true,
-		Clients: []schema.OpenIDConnectClient{
+		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
 				ID:                  "a-client",
 				Secret:              tOpenIDConnectPlainTextClientSecret,

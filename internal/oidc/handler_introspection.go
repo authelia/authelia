@@ -56,7 +56,7 @@ func (p *OpenIDConnectProvider) NewIntrospectionRequest(ctx context.Context, r *
 	}, nil
 }
 
-func (p *OpenIDConnectProvider) handleNewIntrospectionRequestClientAuthentication(ctx context.Context, r *http.Request, session fosite.Session, token string) (client fosite.Client, err error) {
+func (p *OpenIDConnectProvider) handleNewIntrospectionRequestClientAuthentication(ctx context.Context, r *http.Request, session fosite.Session, token string) (c fosite.Client, err error) {
 	if clientToken := fosite.AccessTokenFromRequest(r); clientToken != "" {
 		if token == clientToken {
 			return nil, errorsx.WithStack(fosite.ErrRequestUnauthorized.WithHint("Bearer and introspection token are identical."))
@@ -73,7 +73,7 @@ func (p *OpenIDConnectProvider) handleNewIntrospectionRequestClientAuthenticatio
 			return nil, errorsx.WithStack(fosite.ErrRequestUnauthorized.WithHintf("HTTP Authorization header did not provide a token of type 'access_token', got type '%s'.", use))
 		}
 
-		client = ar.GetClient()
+		c = ar.GetClient()
 	} else {
 		var (
 			clientID, clientSecret string
@@ -87,7 +87,9 @@ func (p *OpenIDConnectProvider) handleNewIntrospectionRequestClientAuthenticatio
 			return nil, errorsx.WithStack(fosite.ErrRequestUnauthorized.WithHint("HTTP Authorization header missing."))
 		}
 
-		if client, err = p.Store.GetClient(ctx, clientID); err != nil {
+		var client Client
+
+		if client, err = p.Store.GetFullClient(ctx, clientID); err != nil {
 			return nil, errorsx.WithStack(fosite.ErrRequestUnauthorized.WithHint("Unable to find OAuth 2.0 Client from HTTP basic authorization header.").WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 		}
 
@@ -95,9 +97,11 @@ func (p *OpenIDConnectProvider) handleNewIntrospectionRequestClientAuthenticatio
 		if err = p.checkClientSecret(ctx, client, []byte(clientSecret)); err != nil {
 			return nil, errorsx.WithStack(fosite.ErrRequestUnauthorized.WithHint("OAuth 2.0 Client credentials are invalid."))
 		}
+
+		c = client
 	}
 
-	return client, nil
+	return c, nil
 }
 
 // IntrospectionResponse is a copy of the fosite.IntrospectionResponse which also includes a fosite.Client to satisfy

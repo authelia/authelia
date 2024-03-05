@@ -22,7 +22,7 @@ func TestHMACCoreStrategy(t *testing.T) {
 	config := &oidc.Config{
 		TokenEntropy: 10,
 		GlobalSecret: secreta,
-		Lifespans: schema.OpenIDConnectLifespanToken{
+		Lifespans: schema.IdentityProvidersOpenIDConnectLifespanToken{
 			AccessToken:   time.Hour,
 			RefreshToken:  time.Hour,
 			AuthorizeCode: time.Minute,

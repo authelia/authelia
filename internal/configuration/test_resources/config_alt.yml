@@ -15,6 +15,7 @@ duo_api:
   integration_key: 'ABCDEF'
 
 authentication_backend:
+  refresh_interval: 'always'
   ldap:
     address: 'ldap://127.0.0.1'
     base_dn: 'dc=example,dc=com'

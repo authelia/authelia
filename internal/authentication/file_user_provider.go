@@ -21,20 +21,20 @@ import (
 
 // FileUserProvider is a provider reading details from a file.
 type FileUserProvider struct {
-	config        *schema.FileAuthenticationBackend
+	config        *schema.AuthenticationBackendFile
 	hash          algorithm.Hash
-	database      FileUserDatabase
+	database      FileUserProviderDatabase
 	mutex         *sync.Mutex
 	timeoutReload time.Time
 }
 
 // NewFileUserProvider creates a new instance of FileUserProvider.
-func NewFileUserProvider(config *schema.FileAuthenticationBackend) (provider *FileUserProvider) {
+func NewFileUserProvider(config *schema.AuthenticationBackendFile) (provider *FileUserProvider) {
 	return &FileUserProvider{
 		config:        config,
 		mutex:         &sync.Mutex{},
 		timeoutReload: time.Now().Add(-1 * time.Second),
-		database:      NewYAMLUserDatabase(config.Path, config.Search.Email, config.Search.CaseInsensitive),
+		database:      NewFileUserDatabase(config.Path, config.Search.Email, config.Search.CaseInsensitive),
 	}
 }
 
@@ -66,7 +66,7 @@ func (p *FileUserProvider) Reload() (reloaded bool, err error) {
 
 // CheckUserPassword checks if provided password matches for the given user.
 func (p *FileUserProvider) CheckUserPassword(username string, password string) (match bool, err error) {
-	var details DatabaseUserDetails
+	var details FileUserDatabaseUserDetails
 
 	if details, err = p.database.GetUserDetails(username); err != nil {
 		return false, err
@@ -76,12 +76,12 @@ func (p *FileUserProvider) CheckUserPassword(username string, password string) (
 		return false, ErrUserNotFound
 	}
 
-	return details.Digest.MatchAdvanced(password)
+	return details.Password.MatchAdvanced(password)
 }
 
 // GetDetails retrieve the groups a user belongs to.
 func (p *FileUserProvider) GetDetails(username string) (details *UserDetails, err error) {
-	var d DatabaseUserDetails
+	var d FileUserDatabaseUserDetails
 
 	if d, err = p.database.GetUserDetails(username); err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (p *FileUserProvider) GetDetails(username string) (details *UserDetails, er
 
 // UpdatePassword update the password of the given user.
 func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (err error) {
-	var details DatabaseUserDetails
+	var details FileUserDatabaseUserDetails
 
 	if details, err = p.database.GetUserDetails(username); err != nil {
 		return err
@@ -106,9 +106,13 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (
 		return ErrUserNotFound
 	}
 
-	if details.Digest, err = p.hash.Hash(newPassword); err != nil {
+	var digest algorithm.Digest
+
+	if digest, err = p.hash.Hash(newPassword); err != nil {
 		return err
 	}
+
+	details.Password = schema.NewPasswordDigest(digest)
 
 	p.database.SetUserDetails(details.Username, &details)
 
@@ -138,7 +142,7 @@ func (p *FileUserProvider) StartupCheck() (err error) {
 	}
 
 	if p.database == nil {
-		p.database = NewYAMLUserDatabase(p.config.Path, p.config.Search.Email, p.config.Search.CaseInsensitive)
+		p.database = NewFileUserDatabase(p.config.Path, p.config.Search.Email, p.config.Search.CaseInsensitive)
 	}
 
 	if err = p.database.Load(); err != nil {
@@ -153,7 +157,7 @@ func (p *FileUserProvider) setTimeoutReload(now time.Time) {
 }
 
 // NewFileCryptoHashFromConfig returns a crypt.Hash given a valid configuration.
-func NewFileCryptoHashFromConfig(config schema.Password) (hash algorithm.Hash, err error) {
+func NewFileCryptoHashFromConfig(config schema.AuthenticationBackendFilePassword) (hash algorithm.Hash, err error) {
 	switch config.Algorithm {
 	case hashArgon2, "":
 		hash, err = argon2.New(

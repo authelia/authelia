@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/x509"
 	"fmt"
@@ -112,9 +113,117 @@ func StringToURLHookFunc() mapstructure.DecodeHookFuncType {
 	}
 }
 
+func DecodeTimeDuration(f, expectedType reflect.Type, prefixType string, data any) (result time.Duration, err error) {
+	e := reflect.TypeOf(time.Duration(0))
+
+	switch {
+	case f.Kind() == reflect.String:
+		dataStr := data.(string)
+
+		if result, err = utils.ParseDurationString(dataStr); err != nil {
+			return time.Duration(0), fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
+		}
+	case f.Kind() == reflect.Int:
+		seconds := data.(int)
+
+		result = time.Second * time.Duration(seconds)
+	case f.Kind() == reflect.Int8:
+		seconds := data.(int8)
+
+		result = time.Second * time.Duration(seconds)
+	case f.Kind() == reflect.Int16:
+		seconds := data.(int16)
+
+		result = time.Second * time.Duration(seconds)
+	case f.Kind() == reflect.Int32:
+		seconds := data.(int32)
+
+		result = time.Second * time.Duration(seconds)
+	case f.Kind() == reflect.Float64:
+		fseconds := data.(float64)
+
+		if fseconds > durationMax.Seconds() {
+			result = durationMax
+		} else {
+			seconds, _ := strconv.Atoi(fmt.Sprintf("%.0f", fseconds))
+
+			result = time.Second * time.Duration(seconds)
+		}
+	case f == e:
+		result = data.(time.Duration)
+	case f.Kind() == reflect.Int64:
+		seconds := data.(int64)
+
+		result = time.Second * time.Duration(seconds)
+	}
+
+	return result, nil
+}
+
+// ToRefreshIntervalDurationHookFunc converts string and integer types to a schema.RefreshIntervalDuration.
+func ToRefreshIntervalDurationHookFunc() mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
+		var ptr bool
+
+		switch f.Kind() {
+		case reflect.String, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Float64:
+			// We only allow string and integer from kinds to match.
+			break
+		default:
+			return data, nil
+		}
+
+		prefixType := ""
+
+		if t.Kind() == reflect.Ptr {
+			ptr = true
+			prefixType = "*"
+		}
+
+		expectedType := reflect.TypeOf(schema.RefreshIntervalDuration{})
+
+		if ptr && t.Elem() != expectedType {
+			return data, nil
+		} else if !ptr && t != expectedType {
+			return data, nil
+		}
+
+		var (
+			result  schema.RefreshIntervalDuration
+			decoded bool
+		)
+
+		if f.Kind() == reflect.String {
+			dataStr, ok := data.(string)
+			if ok {
+				switch dataStr {
+				case schema.ProfileRefreshAlways:
+					result, decoded = schema.NewRefreshIntervalDurationAlways(), true
+				case schema.ProfileRefreshDisabled:
+					result, decoded = schema.NewRefreshIntervalDurationNever(), true
+				}
+			}
+		}
+
+		if !decoded {
+			var resultv time.Duration
+
+			if resultv, err = DecodeTimeDuration(f, expectedType, prefixType, data); err != nil {
+				return nil, err
+			}
+
+			result = schema.NewRefreshIntervalDuration(resultv)
+		}
+
+		if ptr {
+			return &result, nil
+		}
+
+		return result, nil
+	}
+}
+
 // ToTimeDurationHookFunc converts string and integer types to a time.Duration.
-//
-//nolint:gocyclo // Function is necessarily complex though flows well due to switch statement usage.
 func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
 	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		var (
@@ -145,45 +254,8 @@ func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
 
 		var result time.Duration
 
-		switch {
-		case f.Kind() == reflect.String:
-			dataStr := data.(string)
-
-			if result, err = utils.ParseDurationString(dataStr); err != nil {
-				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
-			}
-		case f.Kind() == reflect.Int:
-			seconds := data.(int)
-
-			result = time.Second * time.Duration(seconds)
-		case f.Kind() == reflect.Int8:
-			seconds := data.(int8)
-
-			result = time.Second * time.Duration(seconds)
-		case f.Kind() == reflect.Int16:
-			seconds := data.(int16)
-
-			result = time.Second * time.Duration(seconds)
-		case f.Kind() == reflect.Int32:
-			seconds := data.(int32)
-
-			result = time.Second * time.Duration(seconds)
-		case f.Kind() == reflect.Float64:
-			fseconds := data.(float64)
-
-			if fseconds > durationMax.Seconds() {
-				result = durationMax
-			} else {
-				seconds, _ := strconv.Atoi(fmt.Sprintf("%.0f", fseconds))
-
-				result = time.Second * time.Duration(seconds)
-			}
-		case f == expectedType:
-			result = data.(time.Duration)
-		case f.Kind() == reflect.Int64:
-			seconds := data.(int64)
-
-			result = time.Second * time.Duration(seconds)
+		if result, err = DecodeTimeDuration(f, expectedType, prefixType, data); err != nil {
+			return nil, err
 		}
 
 		if ptr {
@@ -490,7 +562,7 @@ func StringToCryptoPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 			return data, nil
 		}
 
-		field, _ := reflect.TypeOf(schema.TLSConfig{}).FieldByName("PrivateKey")
+		field, _ := reflect.TypeOf(schema.TLS{}).FieldByName("PrivateKey")
 		expectedType := field.Type
 
 		if t != expectedType {
@@ -537,7 +609,9 @@ func StringToCryptographicKeyHookFunc() mapstructure.DecodeHookFuncType {
 	}
 }
 
-// StringToPrivateKeyHookFunc decodes strings to rsa.PrivateKey's.
+// StringToPrivateKeyHookFunc decodes strings to rsa.PrivateKey's and ecdsa.PrivateKey's.
+//
+//nolint:gocyclo
 func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		if f.Kind() != reflect.String {
@@ -550,6 +624,7 @@ func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 
 		expectedTypeRSA := reflect.TypeOf(rsa.PrivateKey{})
 		expectedTypeECDSA := reflect.TypeOf(ecdsa.PrivateKey{})
+		expectedTypeEd25519 := reflect.TypeOf(ed25519.PrivateKey{})
 
 		var (
 			i            any
@@ -575,6 +650,14 @@ func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 			}
 
 			expectedType = expectedTypeECDSA
+		case expectedTypeEd25519:
+			var result *ed25519.PrivateKey
+
+			if dataStr == "" {
+				return result, nil
+			}
+
+			expectedType = expectedTypeEd25519
 		default:
 			return data, nil
 		}
@@ -600,6 +683,12 @@ func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 			}
 
 			return r, nil
+		case ed25519.PrivateKey:
+			if expectedType != expectedTypeEd25519 {
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "*", expectedType, fmt.Errorf("the data is for a %T not a *%s", r, expectedType))
+			}
+
+			return &r, nil
 		default:
 			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "*", expectedType, fmt.Errorf("the data is for a %T not a *%s", r, expectedType))
 		}

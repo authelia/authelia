@@ -12,7 +12,7 @@ import (
 
 // Session a session provider.
 type Session struct {
-	Config schema.SessionCookieConfiguration
+	Config schema.SessionCookie
 
 	sessionHolder *session.Session
 }

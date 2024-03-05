@@ -5,14 +5,14 @@ import (
 )
 
 var (
-	// ErrNoAuthenticationLogs error thrown when no matching authentication logs hve been found in DB.
+	// ErrNoAuthenticationLogs error thrown when no matching authentication logs have been found in DB.
 	ErrNoAuthenticationLogs = errors.New("no matching authentication logs found")
 
 	// ErrNoTOTPConfiguration error thrown when no TOTP configuration has been found in DB.
 	ErrNoTOTPConfiguration = errors.New("no TOTP configuration for user")
 
-	// ErrNoWebAuthnDevice error thrown when no WebAuthn device handle has been found in DB.
-	ErrNoWebAuthnDevice = errors.New("no WebAuthn device found")
+	// ErrNoWebAuthnCredential error thrown when no WebAuthn credential handle has been found in DB.
+	ErrNoWebAuthnCredential = errors.New("no WebAuthn credential found")
 
 	// ErrNoDuoDevice error thrown when no Duo device and method has been found in DB.
 	ErrNoDuoDevice = errors.New("no Duo device and method saved")

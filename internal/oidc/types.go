@@ -2,113 +2,24 @@ package oidc
 
 import (
 	"context"
+	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ory/fosite"
-	"github.com/ory/fosite/handler/openid"
 	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/ory/herodot"
 	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
-
-// NewSession creates a new empty OpenIDSession struct.
-func NewSession() (session *Session) {
-	return &Session{
-		DefaultSession: &openid.DefaultSession{
-			Claims: &fjwt.IDTokenClaims{
-				Extra: map[string]any{},
-			},
-			Headers: &fjwt.Headers{
-				Extra: map[string]any{},
-			},
-		},
-		Extra: map[string]any{},
-	}
-}
-
-// NewSessionWithAuthorizeRequest uses details from an AuthorizeRequester to generate an OpenIDSession.
-func NewSessionWithAuthorizeRequest(ctx Context, issuer *url.URL, kid, username string, amr []string, extra map[string]any,
-	authTime time.Time, consent *model.OAuth2ConsentSession, requester fosite.AuthorizeRequester) (session *Session) {
-	if extra == nil {
-		extra = map[string]any{}
-	}
-
-	session = &Session{
-		DefaultSession: &openid.DefaultSession{
-			Claims: &fjwt.IDTokenClaims{
-				Subject:     consent.Subject.UUID.String(),
-				Issuer:      issuer.String(),
-				AuthTime:    authTime,
-				RequestedAt: consent.RequestedAt,
-				IssuedAt:    ctx.GetClock().Now().UTC(),
-				Nonce:       requester.GetRequestForm().Get(ClaimNonce),
-				Audience:    requester.GetGrantedAudience(),
-				Extra:       extra,
-
-				AuthenticationMethodsReferences: amr,
-			},
-			Headers: &fjwt.Headers{
-				Extra: map[string]any{
-					JWTHeaderKeyIdentifier: kid,
-				},
-			},
-			Subject:  consent.Subject.UUID.String(),
-			Username: username,
-		},
-		ChallengeID:           model.NullUUID(consent.ChallengeID),
-		KID:                   kid,
-		ClientID:              requester.GetClient().GetID(),
-		ExcludeNotBeforeClaim: false,
-		AllowedTopLevelClaims: nil,
-		Extra:                 map[string]any{},
-	}
-
-	// Ensure required audience value of the client_id exists.
-	if !utils.IsStringInSlice(requester.GetClient().GetID(), session.Claims.Audience) {
-		session.Claims.Audience = append(session.Claims.Audience, requester.GetClient().GetID())
-	}
-
-	session.Claims.Add(ClaimAuthorizedParty, session.ClientID)
-	session.Claims.Add(ClaimClientIdentifier, session.ClientID)
-
-	return session
-}
-
-// PopulateClientCredentialsFlowSessionWithAccessRequest is used to configure a session when performing a client credentials grant.
-func PopulateClientCredentialsFlowSessionWithAccessRequest(ctx Context, request fosite.AccessRequester, session *Session, funcGetKID func(ctx context.Context, kid, alg string) string) (err error) {
-	var (
-		issuer *url.URL
-		client Client
-		ok     bool
-	)
-
-	if issuer, err = ctx.IssuerURL(); err != nil {
-		return fosite.ErrServerError.WithWrap(err).WithDebugf("Failed to determine the issuer with error: %s.", err.Error())
-	}
-
-	if client, ok = request.GetClient().(Client); !ok {
-		return fosite.ErrServerError.WithDebugf("Failed to get the client for the request.")
-	}
-
-	session.Subject = ""
-	session.Claims.Subject = client.GetID()
-	session.ClientID = client.GetID()
-	session.DefaultSession.Claims.Issuer = issuer.String()
-	session.DefaultSession.Claims.IssuedAt = ctx.GetClock().Now().UTC()
-	session.DefaultSession.Claims.RequestedAt = ctx.GetClock().Now().UTC()
-
-	return nil
-}
 
 // OpenIDConnectProvider for OpenID Connect.
 type OpenIDConnectProvider struct {
@@ -153,7 +64,7 @@ type BaseClient struct {
 	ResponseTypes []string
 	ResponseModes []fosite.ResponseModeType
 
-	Lifespans schema.OpenIDConnectLifespan
+	Lifespans schema.IdentityProvidersOpenIDConnectLifespan
 
 	AuthorizationSignedResponseAlg   string
 	AuthorizationSignedResponseKeyID string
@@ -170,7 +81,8 @@ type BaseClient struct {
 
 	AuthorizationPolicy ClientAuthorizationPolicy
 
-	ConsentPolicy ClientConsentPolicy
+	ConsentPolicy         ClientConsentPolicy
+	RequestedAudienceMode ClientRequestedAudienceMode
 }
 
 // FullClient is the client with comprehensive supported features.
@@ -194,7 +106,6 @@ type Client interface {
 	GetDescription() (description string)
 	GetSecret() (secret algorithm.Digest)
 	GetSectorIdentifier() (sector string)
-	GetConsentResponseBody(consent *model.OAuth2ConsentSession) (body ConsentGetResponseBody)
 
 	GetAuthorizationSignedResponseAlg() (alg string)
 	GetAuthorizationSignedResponseKeyID() (kid string)
@@ -221,6 +132,8 @@ type Client interface {
 	ValidatePARPolicy(r fosite.Requester, prefix string) (err error)
 	ValidateResponseModePolicy(r fosite.AuthorizeRequester) (err error)
 
+	ApplyRequestedAudiencePolicy(requester fosite.Requester)
+	GetConsentResponseBody(consent *model.OAuth2ConsentSession) (body ConsentGetResponseBody)
 	GetConsentPolicy() ClientConsentPolicy
 	IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) (sufficient bool)
 	GetAuthorizationPolicyRequiredLevel(subject authorization.Subject) (level authorization.Level)
@@ -242,7 +155,7 @@ type Context interface {
 
 	RootURL() (issuerURL *url.URL)
 	IssuerURL() (issuerURL *url.URL, err error)
-	GetClock() utils.Clock
+	GetClock() clock.Provider
 	GetJWTWithTimeFuncOption() jwt.ParserOption
 }
 
@@ -281,6 +194,11 @@ type IDTokenSessionContainer interface {
 	IDTokenHeaders() *fjwt.Headers
 	IDTokenClaims() *fjwt.IDTokenClaims
 }
+
+// NilErrorReporter is a true nil herodot.ErrorReporter.
+type NilErrorReporter struct{}
+
+func (*NilErrorReporter) ReportError(r *http.Request, code int, err error, args ...interface{}) {}
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
 type ConsentGetResponseBody struct {

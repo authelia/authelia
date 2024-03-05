@@ -92,7 +92,7 @@ func validateListNotAllowed(values, filter []string) (invalid []string) {
 	return invalid
 }
 
-func validateList(values, valid []string, chkDuplicate bool) (invalid, duplicates []string) { //nolint:unparam
+func validateList(values, valid []string, chkDuplicate bool) (invalid, duplicates []string) {
 	chkValid := len(valid) != 0
 
 	for i, value := range values {
@@ -200,7 +200,7 @@ func jwkCalculateThumbprint(key schema.CryptographicKey) (thumbprintStr string, 
 	return fmt.Sprintf("%x", thumbprint)[:6], nil
 }
 
-func getResponseObjectAlgFromKID(config *schema.OpenIDConnect, kid, alg string) string {
+func getResponseObjectAlgFromKID(config *schema.IdentityProvidersOpenIDConnect, kid, alg string) string {
 	for _, jwk := range config.IssuerPrivateKeys {
 		if kid == jwk.KeyID {
 			return jwk.Algorithm

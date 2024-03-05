@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -37,15 +37,15 @@ func (s *FetchSuite) TearDownTest() {
 }
 
 type expectedResponse struct {
-	db  model.UserInfo
+	db  *model.UserInfo
 	api *model.UserInfo
 	err error
 }
 
 type expectedResponseAlt struct {
-	description string
+	name string
 
-	db      model.UserInfo
+	db      *model.UserInfo
 	api     *model.UserInfo
 	loadErr error
 	saveErr error
@@ -55,13 +55,13 @@ type expectedResponseAlt struct {
 func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 	expectedResponses := []expectedResponse{
 		{
-			db: model.UserInfo{
+			db: &model.UserInfo{
 				Method: "totp",
 			},
 			err: nil,
 		},
 		{
-			db: model.UserInfo{
+			db: &model.UserInfo{
 				Method:      "webauthn",
 				HasWebAuthn: true,
 				HasTOTP:     true,
@@ -69,7 +69,7 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 			err: nil,
 		},
 		{
-			db: model.UserInfo{
+			db: &model.UserInfo{
 				Method:      "webauthn",
 				HasWebAuthn: true,
 				HasTOTP:     false,
@@ -77,7 +77,7 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 			err: nil,
 		},
 		{
-			db: model.UserInfo{
+			db: &model.UserInfo{
 				Method:      "mobile_push",
 				HasWebAuthn: false,
 				HasTOTP:     false,
@@ -85,18 +85,18 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 			err: nil,
 		},
 		{
-			db:  model.UserInfo{},
+			db:  &model.UserInfo{},
 			err: sql.ErrNoRows,
 		},
 		{
-			db:  model.UserInfo{},
+			db:  &model.UserInfo{},
 			err: errors.New("invalid thing"),
 		},
 	}
 
 	for _, resp := range expectedResponses {
 		if resp.api == nil {
-			resp.api = &resp.db
+			resp.api = resp.db
 		}
 
 		mock := mocks.NewMockAutheliaCtx(t)
@@ -111,38 +111,23 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 		mock.StorageMock.
 			EXPECT().
 			LoadUserInfo(mock.Ctx, gomock.Eq("john")).
-			Return(resp.db, resp.err)
+			Return(*resp.db, resp.err)
 
 		UserInfoGET(mock.Ctx)
 
 		if resp.err == nil {
-			t.Run("expected status code", func(t *testing.T) {
-				assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
-			})
+			assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 			actualPreferences := model.UserInfo{}
 
 			mock.GetResponseData(t, &actualPreferences)
 
-			t.Run("expected method", func(t *testing.T) {
-				assert.Equal(t, resp.api.Method, actualPreferences.Method)
-			})
-
-			t.Run("registered webauthn", func(t *testing.T) {
-				assert.Equal(t, resp.api.HasWebAuthn, actualPreferences.HasWebAuthn)
-			})
-
-			t.Run("registered totp", func(t *testing.T) {
-				assert.Equal(t, resp.api.HasTOTP, actualPreferences.HasTOTP)
-			})
-
-			t.Run("registered duo", func(t *testing.T) {
-				assert.Equal(t, resp.api.HasDuo, actualPreferences.HasDuo)
-			})
+			assert.Equal(t, resp.api.Method, actualPreferences.Method)
+			assert.Equal(t, resp.api.HasWebAuthn, actualPreferences.HasWebAuthn)
+			assert.Equal(t, resp.api.HasTOTP, actualPreferences.HasTOTP)
+			assert.Equal(t, resp.api.HasDuo, actualPreferences.HasDuo)
 		} else {
-			t.Run("expected status code", func(t *testing.T) {
-				assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
-			})
+			assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 			errResponse := mock.GetResponseError(t)
 
@@ -157,8 +142,8 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 	expectedResponses := []expectedResponseAlt{
 		{
-			description: "should set method to totp by default even when user doesn't have totp configured and no preferred method",
-			db: model.UserInfo{
+			name: "ShouldSetMethodToTotpByDefaultEvenWhenUserDoesn't have totp configured and no preferred method",
+			db: &model.UserInfo{
 				Method:      "",
 				HasTOTP:     false,
 				HasWebAuthn: false,
@@ -175,8 +160,8 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			saveErr: nil,
 		},
 		{
-			description: "should set method to duo by default when user has duo configured and no preferred method",
-			db: model.UserInfo{
+			name: "ShouldSetMethodToDuoByDefaultWhenUserHasDUOConfiguredAndNoPreferredMethod",
+			db: &model.UserInfo{
 				Method:      "",
 				HasTOTP:     false,
 				HasWebAuthn: false,
@@ -193,8 +178,8 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			saveErr: nil,
 		},
 		{
-			description: "should set method to totp by default when user has duo configured and no preferred method but duo is not enabled",
-			db: model.UserInfo{
+			name: "ShouldSetMethodToTotpByDefaultWhenUserHasDuoConfiguredAndNoPreferredMethodButDUOIsNotEnabled",
+			db: &model.UserInfo{
 				Method:      "",
 				HasTOTP:     false,
 				HasWebAuthn: false,
@@ -206,13 +191,13 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 				HasWebAuthn: false,
 				HasDuo:      true,
 			},
-			config:  &schema.Configuration{DuoAPI: schema.DuoAPIConfiguration{Disable: true}},
+			config:  &schema.Configuration{DuoAPI: schema.DuoAPI{Disable: true}},
 			loadErr: nil,
 			saveErr: nil,
 		},
 		{
-			description: "should set method to duo by default when user has duo configured and no preferred method",
-			db: model.UserInfo{
+			name: "ShouldSetMethodToDuoByDefaultWhenUserHasDUOConfiguredAndNoPreferredMethod",
+			db: &model.UserInfo{
 				Method:      "",
 				HasTOTP:     true,
 				HasWebAuthn: true,
@@ -225,7 +210,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 				HasDuo:      true,
 			},
 			config: &schema.Configuration{
-				TOTP: schema.TOTPConfiguration{
+				TOTP: schema.TOTP{
 					Disable: true,
 				},
 			},
@@ -233,8 +218,8 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			saveErr: nil,
 		},
 		{
-			description: "should default new users to totp if all enabled",
-			db: model.UserInfo{
+			name: "ShouldDefaultNewUsersToTOTPIfAllEnabled",
+			db: &model.UserInfo{
 				Method:      "",
 				HasTOTP:     false,
 				HasWebAuthn: false,
@@ -253,9 +238,9 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 	}
 
 	for _, resp := range expectedResponses {
-		t.Run(resp.description, func(t *testing.T) {
+		t.Run(resp.name, func(t *testing.T) {
 			if resp.api == nil {
-				resp.api = &resp.db
+				resp.api = resp.db
 			}
 
 			mock := mocks.NewMockAutheliaCtx(t)
@@ -286,7 +271,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 					mock.StorageMock.
 						EXPECT().
 						LoadUserInfo(mock.Ctx, gomock.Eq("john")).
-						Return(resp.db, nil),
+						Return(*resp.db, nil),
 					mock.StorageMock.EXPECT().
 						SavePreferred2FAMethod(mock.Ctx, gomock.Eq("john"), gomock.Eq(resp.api.Method)).
 						Return(resp.saveErr),
@@ -300,7 +285,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 					mock.StorageMock.
 						EXPECT().
 						LoadUserInfo(mock.Ctx, gomock.Eq("john")).
-						Return(resp.db, nil),
+						Return(*resp.db, nil),
 					mock.StorageMock.EXPECT().
 						SavePreferred2FAMethod(mock.Ctx, gomock.Eq("john"), gomock.Eq(resp.api.Method)).
 						Return(resp.saveErr),
@@ -310,7 +295,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			UserInfoPOST(mock.Ctx)
 
 			if resp.loadErr == nil && resp.saveErr == nil {
-				t.Run(fmt.Sprintf("%s/%s", resp.description, "expected status code"), func(t *testing.T) {
+				t.Run(fmt.Sprintf("%s/%s", resp.name, "expected status code"), func(t *testing.T) {
 					assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 				})
 

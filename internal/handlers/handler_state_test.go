@@ -45,7 +45,7 @@ func (s *StateGetSuite) TestShouldReturnUsernameFromSession() {
 		Status: "OK",
 		Data: StateResponse{
 			Username:              "username",
-			DefaultRedirectionURL: "",
+			DefaultRedirectionURL: "https://www.example.com",
 			AuthenticationLevel:   authentication.NotAuthenticated,
 		},
 	}
@@ -77,7 +77,7 @@ func (s *StateGetSuite) TestShouldReturnAuthenticationLevelFromSession() {
 		Status: "OK",
 		Data: StateResponse{
 			Username:              "",
-			DefaultRedirectionURL: "",
+			DefaultRedirectionURL: "https://www.example.com",
 			AuthenticationLevel:   authentication.OneFactor,
 		},
 	}

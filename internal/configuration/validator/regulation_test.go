@@ -11,7 +11,7 @@ import (
 
 func newDefaultRegulationConfig() schema.Configuration {
 	config := schema.Configuration{
-		Regulation: schema.RegulationConfiguration{},
+		Regulation: schema.Regulation{},
 	}
 
 	return config

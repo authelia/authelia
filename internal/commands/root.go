@@ -26,9 +26,11 @@ func NewRootCmd() (cmd *cobra.Command) {
 		Args:    cobra.NoArgs,
 		PreRunE: ctx.ChainRunE(
 			ctx.ConfigEnsureExistsRunE,
-			ctx.ConfigLoadRunE,
-			ctx.ConfigValidateKeysRunE,
-			ctx.ConfigValidateRunE,
+			ctx.HelperConfigLoadRunE,
+			ctx.LogConfigure,
+			ctx.LogProcessCurrentUserRunE,
+			ctx.HelperConfigValidateKeysRunE,
+			ctx.HelperConfigValidateRunE,
 			ctx.ConfigValidateLogRunE,
 		),
 		RunE: ctx.RootRunE,
@@ -37,7 +39,6 @@ func NewRootCmd() (cmd *cobra.Command) {
 	}
 
 	cmd.PersistentFlags().StringSliceP(cmdFlagNameConfig, "c", []string{"configuration.yml"}, "configuration files or directories to load, for more information run 'authelia -h authelia config'")
-
 	cmd.PersistentFlags().StringSlice(cmdFlagNameConfigExpFilters, nil, "list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'")
 
 	cmd.AddCommand(
@@ -45,7 +46,8 @@ func NewRootCmd() (cmd *cobra.Command) {
 		newBuildInfoCmd(ctx),
 		newCryptoCmd(ctx),
 		newStorageCmd(ctx),
-		newValidateConfigCmd(ctx),
+		newConfigCmd(ctx),
+		newConfigValidateLegacyCmd(ctx),
 
 		newHelpTopic("config", "Help for the config file/directory paths", helpTopicConfig),
 		newHelpTopic("filters", "help topic for the config filters", helpTopicConfigFilters),
@@ -62,8 +64,8 @@ func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 		ctx.log.Info("===> Authelia is running in development mode. <===")
 	}
 
-	if err = logging.InitializeLogger(ctx.config.Log, true); err != nil {
-		ctx.log.Fatalf("Cannot initialize logger: %v", err)
+	if err = logging.ConfigureLogger(ctx.config.Log, true); err != nil {
+		ctx.log.Fatalf("Cannot configure logger: %v", err)
 	}
 
 	warns, errs := ctx.LoadProviders()
@@ -86,6 +88,8 @@ func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 
 	ctx.cconfig = nil
 
+	ctx.log.Trace("Starting Services")
+
 	servicesRun(ctx)
 
 	return nil
@@ -97,23 +101,37 @@ func doStartupChecks(ctx *CmdCtx) {
 		err      error
 	)
 
+	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameStorage}).Trace("Performing Startup Check")
+
 	if err = doStartupCheck(ctx, providerNameStorage, ctx.providers.StorageProvider, false); err != nil {
 		ctx.log.WithError(err).WithField(logFieldProvider, providerNameStorage).Error(logMessageStartupCheckError)
 
 		failures = append(failures, providerNameStorage)
+	} else {
+		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameStorage}).Trace("Startup Check Completed Successfully")
 	}
+
+	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameUser}).Trace("Performing Startup Check")
 
 	if err = doStartupCheck(ctx, providerNameUser, ctx.providers.UserProvider, false); err != nil {
 		ctx.log.WithError(err).WithField(logFieldProvider, providerNameUser).Error(logMessageStartupCheckError)
 
 		failures = append(failures, providerNameUser)
+	} else {
+		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameUser}).Trace("Startup Check Completed Successfully")
 	}
+
+	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNotification}).Trace("Performing Startup Check")
 
 	if err = doStartupCheck(ctx, providerNameNotification, ctx.providers.Notifier, ctx.config.Notifier.DisableStartupCheck); err != nil {
 		ctx.log.WithError(err).WithField(logFieldProvider, providerNameNotification).Error(logMessageStartupCheckError)
 
 		failures = append(failures, providerNameNotification)
+	} else {
+		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNotification}).Trace("Startup Check Completed Successfully")
 	}
+
+	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNTP}).Trace("Performing Startup Check")
 
 	if err = doStartupCheck(ctx, providerNameNTP, ctx.providers.NTP, ctx.config.NTP.DisableStartupCheck); err != nil {
 		if !ctx.config.NTP.DisableFailure {
@@ -123,6 +141,8 @@ func doStartupChecks(ctx *CmdCtx) {
 		} else {
 			ctx.log.WithError(err).WithField(logFieldProvider, providerNameNTP).Warn(logMessageStartupCheckError)
 		}
+	} else {
+		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNTP}).Trace("Startup Check Completed Successfully")
 	}
 
 	if len(failures) != 0 {

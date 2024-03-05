@@ -2,11 +2,14 @@ package handlers
 
 import (
 	"net/url"
-	"time"
+
+	"github.com/ory/fosite"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
@@ -66,16 +69,26 @@ const (
 type Authn struct {
 	Username string
 	Method   string
+	ClientID string
 
 	Details authentication.UserDetails
 	Level   authentication.Level
 	Object  authorization.Object
 	Type    AuthnType
+
+	Header HeaderAuthorization
+}
+
+type HeaderAuthorization struct {
+	Authorization *model.Authorization
+	Realm         string
+	Scope         string
+	Error         *fosite.RFC6749Error
 }
 
 // AuthzConfig represents the configuration elements of the Authz type.
 type AuthzConfig struct {
-	RefreshInterval time.Duration
+	RefreshInterval schema.RefreshIntervalDuration
 
 	// StatusCodeBadRequest is sent for configuration issues prior to performing authorization checks. It's set by the
 	// builder.
@@ -91,7 +104,7 @@ type AuthzBuilder struct {
 
 // AuthnStrategy is a strategy used for Authz authentication.
 type AuthnStrategy interface {
-	Get(ctx *middlewares.AutheliaCtx, provider *session.Session) (authn Authn, err error)
+	Get(ctx *middlewares.AutheliaCtx, provider *session.Session, object *authorization.Object) (authn *Authn, err error)
 	CanHandleUnauthorized() (handle bool)
 	HandleUnauthorized(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL)
 }

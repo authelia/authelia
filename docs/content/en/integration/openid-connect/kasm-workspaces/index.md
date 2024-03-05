@@ -28,37 +28,17 @@ community: true
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://kasm.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://kasm.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `kasm`
 * __Client Secret:__ `insecure_secret`
 
 ## Configuration
 
-### Application
-
-To configure [Kasm Workspaces] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
-
-1. Visit Authentication
-2. Visit OpenID
-3. Set the following values:
-   1. Enable *Automatic User Provision* if you want users to automatically be created in [Kasm Workspaces].
-   2. Enable *Auto Login* if you want automatic user login.
-   3. Enable *Default* if you want Authelia to be the default sign-in method.
-   4. Client ID: `kasm`
-   5. Client Secret: `insecure_secret`
-   6. Authorization URL: `https://auth.example.com/api/oidc/authorization`
-   7. Token URL: `https://auth.example.com/api/oidc/token`
-   8. User Info URL: `https://auth.example.com/api/oidc/userinfo`
-   9. Scope (One Per Line): `openid profile groups email`
-   10. User Identifier: `preferred_username`
-
-{{< figure src="kasm.png" alt="Kasam Workspaces" width="736" style="padding-right: 10px" >}}
-
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with
 [Kasm Workspaces] which will operate with the above example:
 
 ```yaml
@@ -82,6 +62,26 @@ identity_providers:
         consent_mode: 'implicit'
         userinfo_signed_response_alg: 'none'
 ```
+
+### Application
+
+To configure [Kasm Workspaces] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+
+1. Visit Authentication
+2. Visit OpenID
+3. Set the following values:
+   1. Enable *Automatic User Provision* if you want users to automatically be created in [Kasm Workspaces].
+   2. Enable *Auto Login* if you want automatic user login.
+   3. Enable *Default* if you want Authelia to be the default sign-in method.
+   4. Client ID: `kasm`
+   5. Client Secret: `insecure_secret`
+   6. Authorization URL: `https://auth.example.com/api/oidc/authorization`
+   7. Token URL: `https://auth.example.com/api/oidc/token`
+   8. User Info URL: `https://auth.example.com/api/oidc/userinfo`
+   9. Scope (One Per Line): `openid profile groups email`
+   10. User Identifier: `preferred_username`
+
+{{< figure src="kasm.png" alt="Kasam Workspaces" width="736" style="padding-right: 10px" >}}
 
 ## See Also
 

@@ -3,7 +3,7 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './HAProxy/configuration.yml:/config/configuration.yml:ro'
+      - './HAProxy/configuration.yml:/config/configuration.yml'
       - './HAProxy/users.yml:/config/users.yml'
-      - './common/pki:/pki:ro'
+      - './common/pki:/pki'
 ...

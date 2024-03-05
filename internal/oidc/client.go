@@ -16,7 +16,7 @@ import (
 )
 
 // NewClient creates a new Client.
-func NewClient(config schema.OpenIDConnectClient, c *schema.OpenIDConnect) (client Client) {
+func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.IdentityProvidersOpenIDConnect) (client Client) {
 	base := &BaseClient{
 		ID:               config.ID,
 		Description:      config.Description,
@@ -48,8 +48,9 @@ func NewClient(config schema.OpenIDConnectClient, c *schema.OpenIDConnect) (clie
 		IntrospectionSignedResponseAlg:   config.IntrospectionSignedResponseAlg,
 		IntrospectionSignedResponseKeyID: config.IntrospectionSignedResponseKeyID,
 
-		AuthorizationPolicy: NewClientAuthorizationPolicy(config.AuthorizationPolicy, c),
-		ConsentPolicy:       NewClientConsentPolicy(config.ConsentMode, config.ConsentPreConfiguredDuration),
+		AuthorizationPolicy:   NewClientAuthorizationPolicy(config.AuthorizationPolicy, c),
+		ConsentPolicy:         NewClientConsentPolicy(config.ConsentMode, config.ConsentPreConfiguredDuration),
+		RequestedAudienceMode: NewClientRequestedAudienceMode(config.RequestedAudienceMode),
 	}
 
 	if len(config.Lifespan) != 0 {
@@ -254,6 +255,41 @@ func (c *BaseClient) GetPKCEChallengeMethod() string {
 	return c.PKCEChallengeMethod
 }
 
+// ApplyRequestedAudiencePolicy applies the requested audience policy to a fosite.Requester.
+func (c *BaseClient) ApplyRequestedAudiencePolicy(requester fosite.Requester) {
+	switch c.RequestedAudienceMode {
+	case ClientRequestedAudienceModeExplicit:
+		return
+	case ClientRequestedAudienceModeImplicit:
+		if requester.GetRequestForm().Has(FormParameterAudience) || len(requester.GetRequestedAudience()) != 0 {
+			return
+		}
+
+		requester.SetRequestedAudience(c.Audience)
+	}
+}
+
+// GetConsentResponseBody returns the proper consent response body for this session.OIDCWorkflowSession.
+func (c *BaseClient) GetConsentResponseBody(consent *model.OAuth2ConsentSession) ConsentGetResponseBody {
+	body := ConsentGetResponseBody{
+		ClientID:          c.ID,
+		ClientDescription: c.Description,
+		PreConfiguration:  c.ConsentPolicy.Mode == ClientConsentModePreConfigured,
+	}
+
+	if consent != nil {
+		body.Scopes = consent.RequestedScopes
+		body.Audience = consent.RequestedAudience
+	}
+
+	return body
+}
+
+// GetConsentPolicy returns Consent.
+func (c *BaseClient) GetConsentPolicy() ClientConsentPolicy {
+	return c.ConsentPolicy
+}
+
 // IsAuthenticationLevelSufficient returns if the provided authentication.Level is sufficient for the client of the AutheliaClient.
 func (c *BaseClient) IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) bool {
 	if level == authentication.NotAuthenticated {
@@ -271,27 +307,6 @@ func (c *BaseClient) GetAuthorizationPolicyRequiredLevel(subject authorization.S
 // GetAuthorizationPolicy returns the ClientAuthorizationPolicy from the Policy.
 func (c *BaseClient) GetAuthorizationPolicy() ClientAuthorizationPolicy {
 	return c.AuthorizationPolicy
-}
-
-// GetConsentPolicy returns Consent.
-func (c *BaseClient) GetConsentPolicy() ClientConsentPolicy {
-	return c.ConsentPolicy
-}
-
-// GetConsentResponseBody returns the proper consent response body for this session.OIDCWorkflowSession.
-func (c *BaseClient) GetConsentResponseBody(consent *model.OAuth2ConsentSession) ConsentGetResponseBody {
-	body := ConsentGetResponseBody{
-		ClientID:          c.ID,
-		ClientDescription: c.Description,
-		PreConfiguration:  c.ConsentPolicy.Mode == ClientConsentModePreConfigured,
-	}
-
-	if consent != nil {
-		body.Scopes = consent.RequestedScopes
-		body.Audience = consent.RequestedAudience
-	}
-
-	return body
 }
 
 // IsPublic returns the value of the Public property.
@@ -369,7 +384,7 @@ func (c *BaseClient) GetRefreshFlowIgnoreOriginalGrantedScopes(ctx context.Conte
 	return c.RefreshFlowIgnoreOriginalGrantedScopes
 }
 
-func (c *BaseClient) getGrantTypeLifespan(gt fosite.GrantType) (gtl schema.OpenIDConnectLifespanToken) {
+func (c *BaseClient) getGrantTypeLifespan(gt fosite.GrantType) (gtl schema.IdentityProvidersOpenIDConnectLifespanToken) {
 	switch gt {
 	case fosite.GrantTypeAuthorizationCode:
 		return c.Lifespans.Grants.AuthorizeCode

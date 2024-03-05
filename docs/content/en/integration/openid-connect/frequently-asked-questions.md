@@ -12,7 +12,7 @@ weight: 615
 toc: true
 ---
 
-### Questions
+## Questions
 
 The following section lists individual questions.
 
@@ -41,7 +41,7 @@ party / client application encoding the characters correctly as it uses the
 
 #### Tuning work factors
 
-When hashing the client secrets, authelia performs the hashing operation to authenticate the client when receiving requests.
+When hashing the client secrets, Authelia performs the hashing operation to authenticate the client when receiving requests.
 This hashing operation takes time by design (the *work* part of the work factor) to hinder an attacker trying to obtain the client secret.
 The amount of time taken depends on your hardware and the work factor.
 
@@ -51,6 +51,9 @@ your hardware's capabilities.
 To test the duration of different work factors, you can measure it like this:
 `time authelia crypto hash generate pbkdf2 --variant sha512 --iterations 310000 --password insecure_password`.
 Note: You should not use your actual passwords for this test, the time taken should be the same for any reasonable password length.
+
+You can read more about password hashing tuning in the
+[Passwords reference guide](../../reference/guides/passwords.md#tuning).
 
 #### Plaintext
 
@@ -79,11 +82,12 @@ deprecated as is the `$plaintext$` prefix.
 
 The most common cause for this issue is when the affected application can not make requests to the Token [Endpoint].
 This becomes obvious when the log level is set to `debug` or `trace` and a presence of requests to the Authorization
-[Endpoint] without errors but an absence of requests made to the Token [Endpoint].
+[Endpoint] without errors (i.e. returns a success) but an absence of requests made to the Token [Endpoint].
 
 These requests can be identified by looking at the `path` field in the logs, or by messages prefixed with
 `Authorization Request` indicating a request to the Authorization [Endpoint] and `Access Request` indicating a request
-to the Token [Endpoint].
+to the Token [Endpoint]. Therefore if the logs indicate there was an Authorization Request and Access Request this
+specific scenario is not applicable to you.
 
 All causes should be clearly logged by the client application, and all errors that do not match this scenario are
 clearly logged by Authelia. It's not possible for us to log requests that never occur however.
@@ -110,16 +114,48 @@ the [resources](../../configuration/security/access-control.md#resources),
 [methods](../../configuration/security/access-control.md#methods), and
 [networks](../../configuration/security/access-control.md#networks) criteria are very specific to each request and to
 some degree so are the [domain](../../configuration/security/access-control.md#domain) and
-[domain regex](../../configuration/security/access-control.md#domainregex) criteria as the token is issued to the client
+[domain regex](../../configuration/security/access-control.md#domain_regex) criteria as the token is issued to the client
 not a specific domain.
 
 For these reasons we implemented the
-[authorization policy](../../configuration/identity-providers/openid-connect/clients.md#authorizationpolicy) as a direct
+[authorization policy](../../configuration/identity-providers/openid-connect/clients.md#authorization_policy) as a direct
 option in the client. It's likely in the future that we'll expand this option to encompass the features that work well
 with OpenID Connect 1.0 such as the [subject](../../configuration/security/access-control.md#subject) criteria which
 reasonably be matched to an individual authorization policy. Because the other criteria are mostly geared towards
 per-request authorization these criteria types are fairly unlikely to become part of OpenID Connect 1.0 as there are no
 ways to apply these criteria except during the initial authorization request.
+
+### Why isn't the Access Token a JSON Web Token?
+
+The Access Token and it's format is entirely up to Authorization Servers / OpenID Connect 1.0 Providers. The
+conventional way the Access Token is presented is as an opaque value which has no meaning. There are quite a few reasons
+this is the case, however standards and implementations exist which return the Access Token as a JSON Web Token. This is
+not specifically wrong when they do this, just as the standards allow us to decide the value should be opaque it also
+allows them to decide not to do that.
+
+The double-edged sword of a JSON Web Token is it's easy to perform a stateless check to see if a JSON Web Token is
+"valid" but also very hard to revoke it. A Resource Server may just check the JWT claims and signature to see if it
+looks like it *should* still be valid, without performing a stateful check with the Authorization Server frequently
+enough. This is why we *__strongly recommend__* that Access Tokens and ID Tokens have a short lifespan.
+
+There also exists standardized mechanisms for Resource Servers and those possessing an opaque Access Token to check the
+validity and metadata associated with them. These mechanisms are the Introspection Request and UserInfo Request.
+
+There are some other specific scenarios which would lead to the Access Token being revoked earlier than its original
+lifetime which make this desirable. When you combine these with the fact there are standardized mechanisms to have a
+similar outcome, it's obvious to us this is the sane default.
+
+For example during a Refresh Flow to the Token Endpoint the previously issued Access Token and Refresh Token should be
+transparently revoked. This means as soon as a Refresh Flow is performed either by the authorized party or a malicious
+one who's nefariously obtained the Refresh Token, the old Access Token and Refresh Token are effectively useless unless
+the Resource Server is caching these results.
+
+In addition as tokens can be manually revoked using the Revocation Endpoint in a scenario where a long lived token was
+revoked due to known compromise; the revocation will take place much faster.
+
+Users who still desire or have an application that requires the Access Token is a JWT should configure the
+[access_token_signed_response_alg](../../configuration/identity-providers/openid-connect/clients.md#access_token_signed_response_alg)
+client configuration option.
 
 ## Solutions
 

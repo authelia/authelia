@@ -441,7 +441,7 @@ func TestOpenIDConnectProvider_WriteAuthorizeResponse(t *testing.T) {
 			config := &oidc.Config{
 				Signer: &jwt.DefaultSigner{
 					GetPrivateKey: func(ctx context.Context) (interface{}, error) {
-						return keyRSA2048, nil
+						return x509PrivateKeyRSA2048, nil
 					},
 				},
 				Templates: tp,
@@ -588,7 +588,7 @@ func TestOpenIDConnectProvider_WriteAuthorizeError(t *testing.T) {
 			config := &oidc.Config{
 				Signer: &jwt.DefaultSigner{
 					GetPrivateKey: func(ctx context.Context) (interface{}, error) {
-						return keyRSA2048, nil
+						return x509PrivateKeyRSA2048, nil
 					},
 				},
 				Templates: tp,

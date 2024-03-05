@@ -18,11 +18,11 @@ func IsPolicyValid(policy string) (isValid bool) {
 
 // IsSubjectValid check if a subject is valid.
 func IsSubjectValid(subject string) (isValid bool) {
-	return subject == "" || strings.HasPrefix(subject, "user:") || strings.HasPrefix(subject, "group:")
+	return subject == "" || strings.HasPrefix(subject, "user:") || strings.HasPrefix(subject, "group:") || strings.HasPrefix(subject, "oauth2:client:")
 }
 
 // IsNetworkGroupValid check if a network group is valid.
-func IsNetworkGroupValid(config schema.AccessControlConfiguration, network string) bool {
+func IsNetworkGroupValid(config schema.AccessControl, network string) bool {
 	for _, networks := range config.Networks {
 		if network != networks.Name {
 			continue
@@ -34,7 +34,7 @@ func IsNetworkGroupValid(config schema.AccessControlConfiguration, network strin
 	return false
 }
 
-// IsNetworkValid check if a network is valid.
+// IsNetworkValid checks if a network is valid.
 func IsNetworkValid(network string) (isValid bool) {
 	if net.ParseIP(network) == nil {
 		_, _, err := net.ParseCIDR(network)
@@ -44,7 +44,7 @@ func IsNetworkValid(network string) (isValid bool) {
 	return true
 }
 
-func ruleDescriptor(position int, rule schema.ACLRule) string {
+func ruleDescriptor(position int, rule schema.AccessControlRule) string {
 	if len(rule.Domains) == 0 {
 		return fmt.Sprintf("#%d", position)
 	}
@@ -113,7 +113,7 @@ func ValidateRules(config *schema.Configuration, validator *schema.StructValidat
 	}
 }
 
-func validateBypass(rulePosition int, rule schema.ACLRule, validator *schema.StructValidator) {
+func validateBypass(rulePosition int, rule schema.AccessControlRule, validator *schema.StructValidator) {
 	if len(rule.Subjects) != 0 {
 		validator.Push(fmt.Errorf(errAccessControlRuleBypassPolicyInvalidWithSubjects, ruleDescriptor(rulePosition, rule)))
 	}
@@ -126,19 +126,19 @@ func validateBypass(rulePosition int, rule schema.ACLRule, validator *schema.Str
 	}
 }
 
-func validateDomains(rulePosition int, rule schema.ACLRule, validator *schema.StructValidator) {
+func validateDomains(rulePosition int, rule schema.AccessControlRule, validator *schema.StructValidator) {
 	if len(rule.Domains)+len(rule.DomainsRegex) == 0 {
 		validator.Push(fmt.Errorf(errFmtAccessControlRuleNoDomains, ruleDescriptor(rulePosition, rule)))
 	}
 
 	for i, domain := range rule.Domains {
 		if len(domain) > 1 && domain[0] == '*' && domain[1] != '.' {
-			validator.PushWarning(fmt.Errorf("access control: rule #%d: domain #%d: domain '%s' is ineffective and should probably be '%s' instead", rulePosition, i+1, domain, fmt.Sprintf("*.%s", domain[1:])))
+			validator.PushWarning(fmt.Errorf("access_control: rule #%d: domain #%d: domain '%s' is ineffective and should probably be '%s' instead", rulePosition, i+1, domain, fmt.Sprintf("*.%s", domain[1:])))
 		}
 	}
 }
 
-func validateNetworks(rulePosition int, rule schema.ACLRule, config schema.AccessControlConfiguration, validator *schema.StructValidator) {
+func validateNetworks(rulePosition int, rule schema.AccessControlRule, config schema.AccessControl, validator *schema.StructValidator) {
 	for _, network := range rule.Networks {
 		if !IsNetworkValid(network) {
 			if !IsNetworkGroupValid(config, network) {
@@ -148,7 +148,7 @@ func validateNetworks(rulePosition int, rule schema.ACLRule, config schema.Acces
 	}
 }
 
-func validateSubjects(rulePosition int, rule schema.ACLRule, validator *schema.StructValidator) {
+func validateSubjects(rulePosition int, rule schema.AccessControlRule, validator *schema.StructValidator) {
 	for _, subjectRule := range rule.Subjects {
 		for _, subject := range subjectRule {
 			if !IsSubjectValid(subject) {
@@ -158,7 +158,7 @@ func validateSubjects(rulePosition int, rule schema.ACLRule, validator *schema.S
 	}
 }
 
-func validateMethods(rulePosition int, rule schema.ACLRule, validator *schema.StructValidator) {
+func validateMethods(rulePosition int, rule schema.AccessControlRule, validator *schema.StructValidator) {
 	invalid, duplicates := validateList(rule.Methods, validACLHTTPMethodVerbs, true)
 
 	if len(invalid) != 0 {
@@ -171,7 +171,7 @@ func validateMethods(rulePosition int, rule schema.ACLRule, validator *schema.St
 }
 
 //nolint:gocyclo
-func validateQuery(i int, rule schema.ACLRule, config *schema.Configuration, validator *schema.StructValidator) {
+func validateQuery(i int, rule schema.AccessControlRule, config *schema.Configuration, validator *schema.StructValidator) {
 	for j := 0; j < len(config.AccessControl.Rules[i].Query); j++ {
 		for k := 0; k < len(config.AccessControl.Rules[i].Query[j]); k++ {
 			if config.AccessControl.Rules[i].Query[j][k].Operator == "" {

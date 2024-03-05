@@ -22,7 +22,7 @@ type AuthorizerTester struct {
 	*Authorizer
 }
 
-func NewAuthorizerTester(config schema.AccessControlConfiguration) *AuthorizerTester {
+func NewAuthorizerTester(config schema.AccessControl) *AuthorizerTester {
 	fullConfig := &schema.Configuration{
 		AccessControl: config,
 	}
@@ -51,7 +51,7 @@ func (s *AuthorizerTester) GetRuleMatchResults(subject Subject, requestURI, meth
 }
 
 type AuthorizerTesterBuilder struct {
-	config schema.AccessControlConfiguration
+	config schema.AccessControl
 }
 
 func NewAuthorizerBuilder() *AuthorizerTesterBuilder {
@@ -63,7 +63,7 @@ func (b *AuthorizerTesterBuilder) WithDefaultPolicy(policy string) *AuthorizerTe
 	return b
 }
 
-func (b *AuthorizerTesterBuilder) WithRule(rule schema.ACLRule) *AuthorizerTesterBuilder {
+func (b *AuthorizerTesterBuilder) WithRule(rule schema.AccessControlRule) *AuthorizerTesterBuilder {
 	b.config.Rules = append(b.config.Rules, rule)
 	return b
 }
@@ -75,6 +75,11 @@ func (b *AuthorizerTesterBuilder) Build() *AuthorizerTester {
 var AnonymousUser = Subject{
 	Username: "",
 	Groups:   []string{},
+	IP:       net.ParseIP("127.0.0.1"),
+}
+
+var OAuth2UserClientAClient = Subject{
+	ClientID: "a_client",
 	IP:       net.ParseIP("127.0.0.1"),
 }
 
@@ -133,7 +138,7 @@ func (s *AuthorizerSuite) TestShouldCheckDefaultDeniedConfig() {
 func (s *AuthorizerSuite) TestShouldCheckMultiDomainRule() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"*.example.com"},
 			Policy:  bypass,
 		}).
@@ -150,11 +155,11 @@ func (s *AuthorizerSuite) TestShouldCheckMultiDomainRule() {
 func (s *AuthorizerSuite) TestShouldCheckDynamicDomainRules() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"{user}.example.com"},
 			Policy:  oneFactor,
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"{group}.example.com"},
 			Policy:  oneFactor,
 		}).
@@ -169,7 +174,7 @@ func (s *AuthorizerSuite) TestShouldCheckDynamicDomainRules() {
 func (s *AuthorizerSuite) TestShouldCheckMultipleDomainRule() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"*.example.com", "other.com"},
 			Policy:  bypass,
 		}).
@@ -189,15 +194,15 @@ func (s *AuthorizerSuite) TestShouldCheckMultipleDomainRule() {
 func (s *AuthorizerSuite) TestShouldCheckFactorsPolicy() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"single.example.com"},
 			Policy:  oneFactor,
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"protected.example.com"},
 			Policy:  twoFactor,
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"public.example.com"},
 			Policy:  bypass,
 		}).
@@ -212,9 +217,9 @@ func (s *AuthorizerSuite) TestShouldCheckFactorsPolicy() {
 func (s *AuthorizerSuite) TestShouldCheckQueryPolicy() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"one.example.com"},
-			Query: [][]schema.ACLQueryRule{
+			Query: [][]schema.AccessControlRuleQuery{
 				{
 					{
 						Operator: operatorEqual,
@@ -235,9 +240,9 @@ func (s *AuthorizerSuite) TestShouldCheckQueryPolicy() {
 			},
 			Policy: oneFactor,
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"two.example.com"},
-			Query: [][]schema.ACLQueryRule{
+			Query: [][]schema.AccessControlRuleQuery{
 				{
 					{
 						Operator: operatorEqual,
@@ -255,9 +260,9 @@ func (s *AuthorizerSuite) TestShouldCheckQueryPolicy() {
 			},
 			Policy: twoFactor,
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"three.example.com"},
-			Query: [][]schema.ACLQueryRule{
+			Query: [][]schema.AccessControlRuleQuery{
 				{
 					{
 						Operator: operatorNotEqual,
@@ -273,9 +278,9 @@ func (s *AuthorizerSuite) TestShouldCheckQueryPolicy() {
 			},
 			Policy: twoFactor,
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"four.example.com"},
-			Query: [][]schema.ACLQueryRule{
+			Query: [][]schema.AccessControlRuleQuery{
 				{
 					{
 						Operator: operatorPattern,
@@ -286,9 +291,9 @@ func (s *AuthorizerSuite) TestShouldCheckQueryPolicy() {
 			},
 			Policy: twoFactor,
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"five.example.com"},
-			Query: [][]schema.ACLQueryRule{
+			Query: [][]schema.AccessControlRuleQuery{
 				{
 					{
 						Operator: operatorNotPattern,
@@ -335,46 +340,55 @@ func (s *AuthorizerSuite) TestShouldCheckQueryPolicy() {
 func (s *AuthorizerSuite) TestShouldCheckRulePrecedence() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
+			Domains: []string{"public.example.com"},
+			Policy:  bypass,
+		}).
+		WithRule(schema.AccessControlRule{
 			Domains:  []string{"protected.example.com"},
-			Policy:   bypass,
+			Policy:   oneFactor,
 			Subjects: [][]string{{"user:john"}},
 		}).
-		WithRule(schema.ACLRule{
-			Domains: []string{"protected.example.com"},
-			Policy:  oneFactor,
+		WithRule(schema.AccessControlRule{
+			Domains:  []string{"protected.example.com"},
+			Policy:   oneFactor,
+			Subjects: [][]string{{"oauth2:client:a_client"}},
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"*.example.com"},
 			Policy:  twoFactor,
 		}).
 		Build()
 
-	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", fasthttp.MethodGet, Bypass)
-	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", fasthttp.MethodGet, OneFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://public.example.com/", fasthttp.MethodGet, TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", fasthttp.MethodGet, TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://public.example.com/", fasthttp.MethodGet, Bypass)
+	tester.CheckAuthorizations(s.T(), Bob, "https://public.example.com/", fasthttp.MethodGet, Bypass)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://public.example.com/", fasthttp.MethodGet, Bypass)
+	tester.CheckAuthorizations(s.T(), OAuth2UserClientAClient, "https://public.example.com/", fasthttp.MethodGet, Bypass)
+	tester.CheckAuthorizations(s.T(), OAuth2UserClientAClient, "https://protected.example.com/", fasthttp.MethodGet, OneFactor)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckDomainMatching() {
 	tester := NewAuthorizerBuilder().
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"public.example.com"},
 			Policy:  bypass,
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"one-factor.example.com"},
 			Policy:  oneFactor,
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"two-factor.example.com"},
 			Policy:  twoFactor,
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:  []string{"*.example.com"},
 			Policy:   oneFactor,
 			Subjects: [][]string{{"group:admins"}},
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"*.example.com"},
 			Policy:  twoFactor,
 		}).
@@ -466,23 +480,23 @@ func (s *AuthorizerSuite) TestShouldCheckDomainRegexMatching() {
 	}
 
 	tester := NewAuthorizerBuilder().
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			DomainsRegex: createSliceRegexRule(s.T(), []string{`^.*\.example.com$`}),
 			Policy:       bypass,
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			DomainsRegex: createSliceRegexRule(s.T(), []string{`^.*\.example2.com$`}),
 			Policy:       oneFactor,
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			DomainsRegex: createSliceRegexRule(s.T(), []string{`^(?P<User>[a-zA-Z0-9]+)\.regex.com$`}),
 			Policy:       oneFactor,
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			DomainsRegex: createSliceRegexRule(s.T(), []string{`^group-(?P<Group>[a-zA-Z0-9]+)\.regex.com$`}),
 			Policy:       twoFactor,
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			DomainsRegex: createSliceRegexRule(s.T(), []string{`^.*\.(one|two).com$`}),
 			Policy:       twoFactor,
 		}).
@@ -548,17 +562,17 @@ func (s *AuthorizerSuite) TestShouldCheckResourceSubjectMatching() {
 	}
 
 	tester := NewAuthorizerBuilder().
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:   []string{"id.example.com"},
 			Policy:    oneFactor,
 			Resources: createSliceRegexRule(s.T(), []string{`^/(?P<User>[a-zA-Z0-9]+)/personal(/|/.*)?$`, `^/(?P<Group>[a-zA-Z0-9]+)/group(/|/.*)?$`}),
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:   []string{"id.example.com"},
 			Policy:    deny,
 			Resources: createSliceRegexRule(s.T(), []string{`^/([a-zA-Z0-9]+)/personal(/|/.*)?$`, `^/([a-zA-Z0-9]+)/group(/|/.*)?$`}),
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"id.example.com"},
 			Policy:  bypass,
 		}).
@@ -629,7 +643,7 @@ func (s *AuthorizerSuite) TestShouldCheckResourceSubjectMatching() {
 func (s *AuthorizerSuite) TestShouldCheckUserMatching() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:  []string{"protected.example.com"},
 			Policy:   oneFactor,
 			Subjects: [][]string{{"user:john"}},
@@ -643,7 +657,7 @@ func (s *AuthorizerSuite) TestShouldCheckUserMatching() {
 func (s *AuthorizerSuite) TestShouldCheckGroupMatching() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:  []string{"protected.example.com"},
 			Policy:   oneFactor,
 			Subjects: [][]string{{"group:admins"}},
@@ -657,7 +671,7 @@ func (s *AuthorizerSuite) TestShouldCheckGroupMatching() {
 func (s *AuthorizerSuite) TestShouldCheckSubjectsMatching() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:  []string{"protected.example.com"},
 			Policy:   oneFactor,
 			Subjects: [][]string{{"group:admins"}, {"user:bob"}},
@@ -673,7 +687,7 @@ func (s *AuthorizerSuite) TestShouldCheckSubjectsMatching() {
 func (s *AuthorizerSuite) TestShouldCheckMultipleSubjectsMatching() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:  []string{"protected.example.com"},
 			Policy:   oneFactor,
 			Subjects: [][]string{{"group:admins", "user:bob"}, {"group:admins", "group:dev"}},
@@ -688,27 +702,27 @@ func (s *AuthorizerSuite) TestShouldCheckMultipleSubjectsMatching() {
 func (s *AuthorizerSuite) TestShouldCheckIPMatching() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:  []string{"protected.example.com"},
 			Policy:   bypass,
 			Networks: []string{"192.168.1.8", "10.0.0.8"},
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:  []string{"protected.example.com"},
 			Policy:   oneFactor,
 			Networks: []string{"10.0.0.7"},
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:  []string{"net.example.com"},
 			Policy:   twoFactor,
 			Networks: []string{"10.0.0.0/8"},
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:  []string{"ipv6.example.com"},
 			Policy:   twoFactor,
 			Networks: []string{"fec0::1/64"},
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:  []string{"ipv6-alt.example.com"},
 			Policy:   twoFactor,
 			Networks: []string{"fec0::1"},
@@ -732,17 +746,17 @@ func (s *AuthorizerSuite) TestShouldCheckIPMatching() {
 func (s *AuthorizerSuite) TestShouldCheckMethodMatching() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"protected.example.com"},
 			Policy:  bypass,
 			Methods: []string{fasthttp.MethodOptions, fasthttp.MethodHead, fasthttp.MethodGet, fasthttp.MethodConnect, fasthttp.MethodTrace},
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"protected.example.com"},
 			Policy:  oneFactor,
 			Methods: []string{fasthttp.MethodPut, fasthttp.MethodPatch, fasthttp.MethodPost},
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"protected.example.com"},
 			Policy:  twoFactor,
 			Methods: []string{fasthttp.MethodDelete},
@@ -773,27 +787,27 @@ func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
 
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:   []string{"resource.example.com"},
 			Policy:    bypass,
 			Resources: createSliceRegexRule(s.T(), []string{"^/case/[a-z]+$", "^/$"}),
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:   []string{"resource.example.com"},
 			Policy:    bypass,
 			Resources: createSliceRegexRule(s.T(), []string{"^/bypass/.*$", "^/$", "embedded"}),
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:   []string{"resource.example.com"},
 			Policy:    oneFactor,
 			Resources: createSliceRegexRule(s.T(), []string{"^/one_factor/.*$"}),
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:   []string{"resource.example.com"},
 			Policy:    twoFactor,
 			Resources: createSliceRegexRule(s.T(), []string{"^/a/longer/rule/.*$"}),
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:   []string{"resource.example.com"},
 			Policy:    twoFactor,
 			Resources: createSliceRegexRule(s.T(), []string{"^/an/exact/path/$"}),
@@ -833,15 +847,15 @@ func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
 // This test assures that rules without domains (not allowed by schema validator at this time) will pass validation correctly.
 func (s *AuthorizerSuite) TestShouldMatchAnyDomainIfBlank() {
 	tester := NewAuthorizerBuilder().
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Policy:  bypass,
 			Methods: []string{fasthttp.MethodOptions, fasthttp.MethodHead, fasthttp.MethodGet, fasthttp.MethodConnect, fasthttp.MethodTrace},
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Policy:  oneFactor,
 			Methods: []string{fasthttp.MethodPut, fasthttp.MethodPatch},
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Policy:  twoFactor,
 			Methods: []string{fasthttp.MethodDelete},
 		}).
@@ -875,37 +889,37 @@ func (s *AuthorizerSuite) TestShouldMatchResourceWithSubjectRules() {
 
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:   []string{"public.example.com"},
 			Resources: createSliceRegexRule(s.T(), []string{"^/admin/.*$"}),
 			Subjects:  [][]string{{"group:admins"}},
 			Policy:    oneFactor,
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:   []string{"public.example.com"},
 			Resources: createSliceRegexRule(s.T(), []string{"^/admin/.*$"}),
 			Policy:    deny,
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"public.example.com"},
 			Policy:  bypass,
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:   []string{"public2.example.com"},
 			Resources: createSliceRegexRule(s.T(), []string{"^/admin/.*$"}),
 			Subjects:  [][]string{{"group:admins"}},
 			Policy:    bypass,
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:   []string{"public2.example.com"},
 			Resources: createSliceRegexRule(s.T(), []string{"^/admin/.*$"}),
 			Policy:    deny,
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"public2.example.com"},
 			Policy:  bypass,
 		}).
-		WithRule(schema.ACLRule{
+		WithRule(schema.AccessControlRule{
 			Domains:  []string{"private.example.com"},
 			Subjects: [][]string{{"group:admins"}},
 			Policy:   twoFactor,
@@ -1004,9 +1018,9 @@ func TestRunSuite(t *testing.T) {
 
 func TestNewAuthorizer(t *testing.T) {
 	config := &schema.Configuration{
-		AccessControl: schema.AccessControlConfiguration{
+		AccessControl: schema.AccessControl{
 			DefaultPolicy: deny,
-			Rules: []schema.ACLRule{
+			Rules: []schema.AccessControlRule{
 				{
 					Domains: []string{"example.com"},
 					Policy:  twoFactor,
@@ -1039,9 +1053,9 @@ func TestNewAuthorizer(t *testing.T) {
 
 func TestAuthorizerIsSecondFactorEnabledRuleWithNoOIDC(t *testing.T) {
 	config := &schema.Configuration{
-		AccessControl: schema.AccessControlConfiguration{
+		AccessControl: schema.AccessControl{
 			DefaultPolicy: deny,
-			Rules: []schema.ACLRule{
+			Rules: []schema.AccessControlRule{
 				{
 					Domains: []string{"example.com"},
 					Policy:  oneFactor,
@@ -1060,9 +1074,9 @@ func TestAuthorizerIsSecondFactorEnabledRuleWithNoOIDC(t *testing.T) {
 
 func TestAuthorizerIsSecondFactorEnabledRuleWithOIDC(t *testing.T) {
 	config := &schema.Configuration{
-		AccessControl: schema.AccessControlConfiguration{
+		AccessControl: schema.AccessControl{
 			DefaultPolicy: deny,
-			Rules: []schema.ACLRule{
+			Rules: []schema.AccessControlRule{
 				{
 					Domains: []string{"example.com"},
 					Policy:  oneFactor,
@@ -1070,8 +1084,8 @@ func TestAuthorizerIsSecondFactorEnabledRuleWithOIDC(t *testing.T) {
 			},
 		},
 		IdentityProviders: schema.IdentityProviders{
-			OIDC: &schema.OpenIDConnect{
-				Clients: []schema.OpenIDConnectClient{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
 					{
 						AuthorizationPolicy: oneFactor,
 					},

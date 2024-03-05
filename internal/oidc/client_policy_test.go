@@ -15,17 +15,17 @@ func TestNewClientAuthorizationPolicy(t *testing.T) {
 	testCases := []struct {
 		name     string
 		policy   string
-		have     *schema.OpenIDConnect
+		have     *schema.IdentityProvidersOpenIDConnect
 		expected oidc.ClientAuthorizationPolicy
 		extra    func(t *testing.T, actual oidc.ClientAuthorizationPolicy)
 	}{
 		{
 			"ShouldReturnStandardPolicy",
 			"two_factor",
-			&schema.OpenIDConnect{},
+			&schema.IdentityProvidersOpenIDConnect{},
 			oidc.ClientAuthorizationPolicy{Name: "two_factor", DefaultPolicy: authorization.TwoFactor},
 			func(t *testing.T, actual oidc.ClientAuthorizationPolicy) {
-				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{Username: "abc"}))
+				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{Username: abc}))
 				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{Username: "john"}))
 				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{}))
 			},
@@ -33,11 +33,11 @@ func TestNewClientAuthorizationPolicy(t *testing.T) {
 		{
 			"ShouldReturnCustomPolicy",
 			"custom",
-			&schema.OpenIDConnect{
-				AuthorizationPolicies: map[string]schema.OpenIDConnectPolicy{
+			&schema.IdentityProvidersOpenIDConnect{
+				AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
 					"custom": {
 						DefaultPolicy: "deny",
-						Rules: []schema.OpenIDConnectPolicyRule{
+						Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
 							{
 								Policy: "two_factor",
 								Subjects: [][]string{
@@ -61,7 +61,7 @@ func TestNewClientAuthorizationPolicy(t *testing.T) {
 				},
 			}},
 			func(t *testing.T, actual oidc.ClientAuthorizationPolicy) {
-				assert.Equal(t, authorization.Denied, actual.GetRequiredLevel(authorization.Subject{Username: "abc"}))
+				assert.Equal(t, authorization.Denied, actual.GetRequiredLevel(authorization.Subject{Username: abc}))
 				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{Username: "john"}))
 				assert.Equal(t, authorization.Denied, actual.GetRequiredLevel(authorization.Subject{}))
 			},
@@ -69,11 +69,11 @@ func TestNewClientAuthorizationPolicy(t *testing.T) {
 		{
 			"ShouldReturnCustomPolicyNoSubjects",
 			"custom",
-			&schema.OpenIDConnect{
-				AuthorizationPolicies: map[string]schema.OpenIDConnectPolicy{
+			&schema.IdentityProvidersOpenIDConnect{
+				AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
 					"custom": {
 						DefaultPolicy: "deny",
-						Rules: []schema.OpenIDConnectPolicyRule{
+						Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
 							{
 								Policy: "two_factor",
 							},
@@ -87,7 +87,7 @@ func TestNewClientAuthorizationPolicy(t *testing.T) {
 				},
 			}},
 			func(t *testing.T, actual oidc.ClientAuthorizationPolicy) {
-				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{Username: "abc"}))
+				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{Username: abc}))
 				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{Username: "john"}))
 				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{}))
 			},
@@ -156,6 +156,43 @@ func TestNewClientConsentPolicy(t *testing.T) {
 			if tc.extra != nil {
 				tc.extra(t, actual)
 			}
+		})
+	}
+
+	assert.Equal(t, "", oidc.ClientConsentMode(-1).String())
+}
+
+func TestNewClientRequestedAudienceMode(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		expected oidc.ClientRequestedAudienceMode
+	}{
+		{
+			"ShouldParsePolicyExplicit",
+			"explicit",
+			oidc.ClientRequestedAudienceModeExplicit,
+		},
+		{
+			"ShouldParsePolicyImplicit",
+			"implicit",
+			oidc.ClientRequestedAudienceModeImplicit,
+		},
+		{
+			"ShouldParsePolicyImplicitByDefault",
+			"",
+			oidc.ClientRequestedAudienceModeImplicit,
+		},
+		{
+			"ShouldParsePolicyImplicitByDefaultBadName",
+			"bad",
+			oidc.ClientRequestedAudienceModeImplicit,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, oidc.NewClientRequestedAudienceMode(tc.have))
 		})
 	}
 

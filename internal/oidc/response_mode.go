@@ -41,9 +41,9 @@ type ResponseModeHandler struct {
 func (h *ResponseModeHandler) ResponseModes() fosite.ResponseModeTypes {
 	return fosite.ResponseModeTypes{
 		fosite.ResponseModeDefault,
-		fosite.ResponseModeQuery,
-		fosite.ResponseModeFragment,
-		fosite.ResponseModeFormPost,
+		ResponseModeQuery,
+		ResponseModeFragment,
+		ResponseModeFormPost,
 		ResponseModeJWT,
 		ResponseModeQueryJWT,
 		ResponseModeFragmentJWT,

@@ -21,20 +21,7 @@
 # certificates_directory: '/config/certificates/'
 
 ## The theme to display: light, dark, grey, auto.
-theme: 'light'
-
-## The secret used to generate JWT tokens when validating user identity by email confirmation. JWT Secret can also be
-## set using a secret: https://www.authelia.com/c/secrets
-jwt_secret: 'a_very_important_secret'
-
-## Default redirection URL
-##
-## If user tries to authenticate without any referer, Authelia does not know where to redirect the user to at the end
-## of the authentication process. This parameter allows you to specify the default redirection URL Authelia will use
-## in such a case.
-##
-## Note: this parameter is optional. If not provided, user won't be redirected upon successful authentication.
-# default_redirection_url: 'https://home.example.com/'
+# theme: 'light'
 
 ## Set the default 2FA method for new users and for when a user has a preferred method configured that has been
 ## disabled. This setting must be a method that is enabled.
@@ -44,7 +31,7 @@ jwt_secret: 'a_very_important_secret'
 ##
 ## Server Configuration
 ##
-server:
+# server:
   ## The address for the Main server to listen on in the address common syntax.
   ## Formats:
   ##  - [<scheme>://]<hostname>[:<port>][/<path>]
@@ -63,21 +50,21 @@ server:
   # disable_healthcheck: false
 
   ## Authelia by default doesn't accept TLS communication on the server port. This section overrides this behaviour.
-  tls:
+  # tls:
     ## The path to the DER base64/PEM format private key.
-    key: ''
+    # key: ''
 
     ## The path to the DER base64/PEM format public certificate.
-    certificate: ''
+    # certificate: ''
 
     ## The list of certificates for client authentication.
-    client_certificates: []
+    # client_certificates: []
 
   ## Server headers configuration/customization.
-  headers:
+  # headers:
 
     ## The CSP Template. Read the docs.
-    csp_template: ''
+    # csp_template: ''
 
   ## Server Buffers configuration.
   # buffers:
@@ -97,13 +84,13 @@ server:
   # timeouts:
 
     ## Read timeout in the duration common syntax.
-    # read: '6s'
+    # read: '6 seconds'
 
     ## Write timeout in the duration common syntax.
-    # write: '6s'
+    # write: '6 seconds'
 
     ## Idle timeout in the duration common syntax.
-    # idle: '30s'
+    # idle: '30 seconds'
 
   ## Server Endpoints configuration.
   ## This section is considered advanced and it SHOULD NOT be configured unless you've read the relevant documentation.
@@ -179,13 +166,13 @@ telemetry:
     # timeouts:
 
       ## Read timeout in the duration common syntax.
-      # read: '6s'
+      # read: '6 seconds'
 
       ## Write timeout in the duration common syntax.
-      # write: '6s'
+      # write: '6 seconds'
 
       ## Idle timeout in the duration common syntax.
-      # idle: '30s'
+      # idle: '30 seconds'
 
 ##
 ## TOTP Configuration
@@ -196,31 +183,46 @@ totp:
   disable: false
 
   ## The issuer name displayed in the Authenticator application of your choice.
-  issuer: 'authelia.com'
+  # issuer: 'authelia.com'
 
   ## The TOTP algorithm to use.
   ## It is CRITICAL you read the documentation before changing this option:
   ## https://www.authelia.com/c/totp#algorithm
-  algorithm: 'SHA1'
+  # algorithm: 'SHA1'
 
   ## The number of digits a user has to input. Must either be 6 or 8.
   ## Changing this option only affects newly generated TOTP configurations.
   ## It is CRITICAL you read the documentation before changing this option:
   ## https://www.authelia.com/c/totp#digits
-  digits: 6
+  # digits: 6
 
-  ## The period in seconds a one-time password is valid for.
+  ## The period in seconds a Time-based One-Time Password is valid for.
   ## Changing this option only affects newly generated TOTP configurations.
-  period: 30
+  # period: 30
 
-  ## The skew controls number of one-time passwords either side of the current one that are valid.
+  ## The skew controls number of Time-based One-Time Passwords either side of the current one that are valid.
   ## Warning: before changing skew read the docs link below.
-  skew: 1
+  # skew: 1
   ## See: https://www.authelia.com/c/totp#input-validation to read
   ## the documentation.
 
   ## The size of the generated shared secrets. Default is 32 and is sufficient in most use cases, minimum is 20.
-  secret_size: 32
+  # secret_size: 32
+
+  ## The allowed algorithms for a user to pick from.
+  # allowed_algorithms:
+  # - 'SHA1'
+
+  ## The allowed digits for a user to pick from.
+  # allowed_digits:
+  # - 6
+
+  ## The allowed periods for a user to pick from.
+  # allowed_periods:
+  # - 30
+
+  ## Disable the reuse security policy which prevents replays of one-time password code values.
+  # disable_reuse_security_policy: false
 
 ##
 ## WebAuthn Configuration
@@ -231,7 +233,7 @@ webauthn:
   disable: false
 
   ## The interaction timeout for WebAuthn dialogues in the duration common syntax.
-  # timeout: '60s'
+  # timeout: '60 seconds'
 
   ## The display name the browser should show the user for when using WebAuthn to login/register.
   # display_name: 'Authelia'
@@ -258,10 +260,47 @@ webauthn:
   # enable_self_enrollment: false
 
 ##
+## Identity Validation Configuration
+##
+## This configuration tunes the identity validation flows.
+identity_validation:
+
+  ## Reset Password flow. Adjusts how the reset password flow operates.
+  reset_password:
+    ## Maximum allowed time before the JWT is generated and when the user uses it in the duration common syntax.
+    # expiration: '5 minutes'
+
+    ## The algorithm used for the Reset Password JWT.
+    # jwt_algorithm: 'HS256'
+
+    ## The secret key used to sign and verify the JWT.
+    jwt_secret: 'a_very_important_secret'
+
+  ## Elevated Session flows. Adjusts the flow which require elevated sessions for example managing credentials, adding,
+  ## removing, etc.
+  # elevated_session:
+    ## Maximum allowed time after the One-Time Code is generated that it is considered valid.
+    # expiration: '5 minutes'
+
+    ## Maximum allowed time after the user uses the One-Time Code and the user must perform the validation again in the
+    ## duration common syntax.
+    # elevation_expiration: '10 minutes'
+
+    ## Number of characters the one-time password contains.
+    # characters: 8
+
+    ## In addition to the One-Time Code requires the user performs a second factor authentication.
+    # require_second_factor: false
+
+    ## Skips the elevation requirement and entry of the One-Time Code if the user has performed second factor
+    ## authentication.
+    # skip_second_factor: false
+
+##
 ## NTP Configuration
 ##
 ## This is used to validate the servers time is accurate enough to validate TOTP.
-ntp:
+# ntp:
   ## The address of the NTP server to connect to in the address common syntax.
   ## Format: [<scheme>://]<hostname>[:<port>].
   ## Square brackets indicate optional portions of the format. Scheme must be 'udp', 'udp4', or 'udp6'.
@@ -269,19 +308,19 @@ ntp:
   # address: 'udp://time.cloudflare.com:123'
 
   ## NTP version.
-  version: 4
+  # version: 4
 
   ## Maximum allowed time offset between the host and the NTP server in the duration common syntax.
-  # max_desync: '3s'
+  # max_desync: '3 seconds'
 
   ## Disables the NTP check on startup entirely. This means Authelia will not contact a remote service at all if you
   ## set this to true, and can operate in a truly offline mode.
-  disable_startup_check: false
+  # disable_startup_check: false
 
   ## The default of false will prevent startup only if we can contact the NTP server and the time is out of sync with
   ## the NTP server more than the configured max_desync. If you set this to true, an error will be logged but startup
   ## will continue regardless of results.
-  disable_failure: false
+  # disable_failure: false
 
 ##
 ## Authentication Backend Provider Configuration
@@ -306,7 +345,7 @@ authentication_backend:
   ## To force update on every request you can set this to '0' or 'always', this will increase processor demand.
   ## See the below documentation for more information.
   ## Refresh Interval docs: https://www.authelia.com/c/1fa#refresh-interval
-  # refresh_interval: '5m'
+  # refresh_interval: '5 minutes'
 
   ##
   ## LDAP (Authentication Provider)
@@ -336,7 +375,7 @@ authentication_backend:
     # implementation: 'custom'
 
     ## The dial timeout for LDAP in the duration common syntax.
-    # timeout: '5s'
+    # timeout: '5 seconds'
 
     ## Use StartTLS with the LDAP connection.
     # start_tls: false
@@ -708,13 +747,27 @@ session:
       ## Note: the Authelia portal must also be in that domain.
       # domain: 'example.com'
 
-      ## Optional. The fully qualified URI of the portal to redirect users to on proxies that support redirections.
+      ## Required. The fully qualified URI of the portal to redirect users to on proxies that support redirections.
       ## Rules:
       ##   - MUST use the secure scheme 'https://'
-      ##   - The above domain MUST either:
+      ##   - The above 'domain' option MUST either:
       ##      - Match the host portion of this URI.
       ##      - Match the suffix of the host portion when prefixed with '.'.
       # authelia_url: 'https://auth.example.com'
+
+      ## Optional. The fully qualified URI used as the redirection location if the portal is accessed directly. Not
+      ## configuring this option disables the automatic redirection behaviour.
+      ##
+      ## Note: this parameter is optional. If not provided, user won't be redirected upon successful authentication
+      ## unless they were redirected to Authelia by the proxy.
+      ##
+      ## Rules:
+      ##   - MUST use the secure scheme 'https://'
+      ##   - MUST not match the 'authelia_url' option.
+      ##   - The above 'domain' option MUST either:
+      ##      - Match the host portion of this URI.
+      ##      - Match the suffix of the host portion when prefixed with '.'.
+      # default_redirection_url: 'https://www.example.com'
 
       ## Sets the Cookie SameSite value. Possible options are none, lax, or strict.
       ## Please read https://www.authelia.com/c/session#same_site
@@ -727,16 +780,16 @@ session:
       ## The inactivity time before the session is reset. If expiration is set to 1h, and this is set to 5m, if the user
       ## does not select the remember me option their session will get destroyed after 1h, or after 5m since the last
       ## time Authelia detected user activity.
-      # inactivity: '5m'
+      # inactivity: '5 minutes'
 
       ## The time before the session cookie expires and the session is destroyed if remember me IS NOT selected by the
       ## user.
-      # expiration: '1h'
+      # expiration: '1 hour'
 
       ## The time before the cookie expires and the session is destroyed if remember me IS selected by the user. Setting
       ## this value to -1 disables remember me for this session cookie domain. If allowed and the user uses the remember
       ## me checkbox this overrides the expiration option and disables the inactivity option.
-      # remember_me: '1M'
+      # remember_me: '1 month'
 
   ## Cookie Session Domain default 'name' value.
   name: 'authelia_session'
@@ -868,16 +921,16 @@ session:
 ##
 ## This mechanism prevents attackers from brute forcing the first factor. It bans the user if too many attempts are made
 ## in a short period of time.
-regulation:
+# regulation:
   ## The number of failed login attempts before user is banned. Set it to 0 to disable regulation.
-  max_retries: 3
+  # max_retries: 3
 
   ## The time range during which the user can attempt login before being banned in the duration common syntax. The user
   ## is banned if the authentication failed 'max_retries' times in a 'find_time' seconds window.
-  find_time: '2m'
+  # find_time: '2 minutes'
 
   ## The length of time before a banned user can login again in the duration common syntax.
-  ban_time: '5m'
+  # ban_time: '5 minutes'
 
 ##
 ## Storage Provider Configuration
@@ -922,7 +975,7 @@ regulation:
     # password: 'mypassword'
 
     ## The connection timeout in the duration common syntax.
-    # timeout: '5s'
+    # timeout: '5 seconds'
 
     ## MySQL TLS settings. Configuring this requires TLS.
     # tls:
@@ -1005,7 +1058,7 @@ regulation:
     # password: 'mypassword'
 
     ## The connection timeout in the duration common syntax.
-    # timeout: '5s'
+    # timeout: '5 seconds'
 
     ## PostgreSQL TLS settings. Configuring this requires TLS.
     # tls:
@@ -1096,7 +1149,7 @@ notifier:
     # address: 'smtp://127.0.0.1:25'
 
     ## The connection timeout in the duration common syntax.
-    # timeout: '5s'
+    # timeout: '5 seconds'
 
     ## The username used for SMTP authentication.
     # username: 'test'
@@ -1239,46 +1292,6 @@ notifier:
         # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
         # -----END CERTIFICATE-----
 
-    ## The issuer_private_key is used to sign the JWT forged by OpenID Connect. This is in addition to the
-    ## issuer_private_keys option. Assumed to use the RS256 algorithm, and must not be specified if any of the
-    ## keys in issuer_private_keys also has the algorithm RS256 or are an RSA key without an algorithm.
-    ## Issuer Private Key can also be set using a secret: https://www.authelia.com/c/secrets
-    # issuer_private_key: |
-      # -----BEGIN RSA PRIVATE KEY-----
-      # MIIBPAIBAAJBAK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZF
-      # p7aTcToHMf00z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAQJBAJdpB0+RQ9ZFwy9Uk38P
-      # 5zZpUB8cL8ZFeEFluQeVbt0vyNa+cPLvDLouY87onduXtMz5AKIatLaTOjuG2thh
-      # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
-      # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
-      # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-      # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
-      # -----END RSA PRIVATE KEY-----
-
-    ## Optional matching certificate chain in PEM DER form that matches the issuer_private_key. All certificates within
-    ## the chain must be valid and current, and from top to bottom each certificate must be signed by the next
-    ## certificate in the chain if provided.
-    # issuer_certificate_chain: |
-      # -----BEGIN CERTIFICATE-----
-      # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-      # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-      # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-      # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-      # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-      # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-      # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-      # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
-      # -----END CERTIFICATE-----
-      # -----BEGIN CERTIFICATE-----
-      # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-      # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-      # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-      # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-      # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-      # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-      # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-      # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
-      # -----END CERTIFICATE-----
-
     ## Enables additional debug messages.
     # enable_client_debug_messages: false
 
@@ -1303,10 +1316,10 @@ notifier:
     # lifespans:
       ## Configures the default/fallback lifespan for given token types. This behaviour applies to all clients and all
       ## grant types but you can override this behaviour using the custom lifespans.
-      # access_token: '1h'
-      # authorize_code: '1m'
-      # id_token: '1h'
-      # refresh_token: '90m'
+      # access_token: '1 hour'
+      # authorize_code: '1 minute'
+      # id_token: '1 hour'
+      # refresh_token: '90 minutes'
 
     ## Cross-Origin Resource Sharing (CORS) settings.
     # cors:
@@ -1392,7 +1405,7 @@ notifier:
 
         ## This value controls the duration a consent on this client remains remembered when the consent mode is
         ## configured as 'auto' or 'pre-configured' in the duration common syntax.
-        # pre_configured_consent_duration: '1w'
+        # pre_configured_consent_duration: '1 week'
 
         ## Enforces the use of Pushed Authorization Requests for this client when set to true.
         # enforce_par: false

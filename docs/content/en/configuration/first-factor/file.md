@@ -72,7 +72,7 @@ The path to the file with the user details list. Supported file types are:
 
 Enables reloading the database by watching it for changes.
 
-### search
+### search {#config-search}
 
 Username searching functionality options.
 

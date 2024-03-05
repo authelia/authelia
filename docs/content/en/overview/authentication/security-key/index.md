@@ -45,14 +45,14 @@ Easy, right?!
 
 ## Frequently Asked Questions
 
-### Can I register multiple FIDO2 WebAuthn devices?
+### Can I register multiple FIDO2 WebAuthn credentials?
 
-At present this is not possible in the frontend. However the backend technically supports it. We plan to add this to the
-frontend in the near future. Subscribe to [this issue](https://github.com/authelia/authelia/issues/275) for updates.
+Yes, as of v4.38.0 and above Authelia supports registering multiple WebAuthn credentials as per the
+[roadmap](../../../roadmap/active/webauthn.md#multi-device-registration).
 
 ### Can I perform a passwordless login?
 
-Not at this time. We will tackle this at a later date.
+Not at this time. We will tackle this at a later date as per the [roadmap](../../../roadmap/active/webauthn.md#passwordless-login).
 
 ### Why don't I have access to the *Security Key* option?
 

@@ -8,11 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	"github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -23,10 +23,10 @@ import (
 )
 
 func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
-	s := oidc.NewStore(&schema.OpenIDConnect{
+	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       keyRSA2048,
-		Clients: []schema.OpenIDConnectClient{
+		IssuerPrivateKey:       x509PrivateKeyRSA2048,
+		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
 				ID:                  myclient,
 				Description:         myclientdesc,
@@ -52,7 +52,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 
 	id := myclient
 
-	c1 := schema.OpenIDConnectClient{
+	c1 := schema.IdentityProvidersOpenIDConnectClient{
 		ID:                  id,
 		Description:         myclientdesc,
 		AuthorizationPolicy: onefactor,
@@ -60,10 +60,10 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 		Secret:              tOpenIDConnectPlainTextClientSecret,
 	}
 
-	s := oidc.NewStore(&schema.OpenIDConnect{
+	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       keyRSA2048,
-		Clients:                []schema.OpenIDConnectClient{c1},
+		IssuerPrivateKey:       x509PrivateKeyRSA2048,
+		Clients:                []schema.IdentityProvidersOpenIDConnectClient{c1},
 	}, nil)
 
 	client, err := s.GetFullClient(ctx, id)
@@ -82,7 +82,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 	ctx := context.Background()
 
-	c1 := schema.OpenIDConnectClient{
+	c1 := schema.IdentityProvidersOpenIDConnectClient{
 		ID:                  myclient,
 		Description:         myclientdesc,
 		AuthorizationPolicy: onefactor,
@@ -90,10 +90,10 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 		Secret:              tOpenIDConnectPlainTextClientSecret,
 	}
 
-	s := oidc.NewStore(&schema.OpenIDConnect{
+	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       keyRSA2048,
-		Clients:                []schema.OpenIDConnectClient{c1},
+		IssuerPrivateKey:       x509PrivateKeyRSA2048,
+		Clients:                []schema.IdentityProvidersOpenIDConnectClient{c1},
 	}, nil)
 
 	client, err := s.GetFullClient(ctx, "another-client")
@@ -104,10 +104,10 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
 	ctx := context.Background()
 
-	s := oidc.NewStore(&schema.OpenIDConnect{
+	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
 		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       keyRSA2048,
-		Clients: []schema.OpenIDConnectClient{
+		IssuerPrivateKey:       x509PrivateKeyRSA2048,
+		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
 				ID:                  myclient,
 				Description:         myclientdesc,
@@ -142,8 +142,8 @@ func (s *StoreSuite) SetupTest() {
 	s.ctx = context.Background()
 	s.ctrl = gomock.NewController(s.T())
 	s.mock = mocks.NewMockStorage(s.ctrl)
-	s.store = oidc.NewStore(&schema.OpenIDConnect{
-		Clients: []schema.OpenIDConnectClient{
+	s.store = oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
+		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
 				ID:                  "hs256",
 				Secret:              tOpenIDConnectPBKDF2ClientSecret,
@@ -267,102 +267,102 @@ func (s *StoreSuite) TestCreateSessions() {
 	gomock.InOrder(
 		s.mock.
 			EXPECT().
-			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeAuthorizeCode, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
+			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeAuthorizeCode, model.OAuth2Session{ChallengeID: challenge, RequestID: abc, ClientID: "example", Signature: abc, Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
 			Return(nil),
 		s.mock.
 			EXPECT().
-			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeAuthorizeCode, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
+			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeAuthorizeCode, model.OAuth2Session{ChallengeID: challenge, RequestID: abc, ClientID: "example", Signature: abc, Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
 			Return(fmt.Errorf("duplicate key")),
 		s.mock.
 			EXPECT().
-			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeAccessToken, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
+			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeAccessToken, model.OAuth2Session{ChallengeID: challenge, RequestID: abc, ClientID: "example", Signature: abc, Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
 			Return(nil),
 		s.mock.
 			EXPECT().
-			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
+			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, model.OAuth2Session{ChallengeID: challenge, RequestID: abc, ClientID: "example", Signature: abc, Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
 			Return(nil),
 		s.mock.
 			EXPECT().
-			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeOpenIDConnect, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
+			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypeOpenIDConnect, model.OAuth2Session{ChallengeID: challenge, RequestID: abc, ClientID: "example", Signature: abc, Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
 			Return(nil),
 		s.mock.
 			EXPECT().
-			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypePKCEChallenge, model.OAuth2Session{ChallengeID: challenge, RequestID: "abc", ClientID: "example", Signature: "abc", Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
+			SaveOAuth2Session(s.ctx, storage.OAuth2SessionTypePKCEChallenge, model.OAuth2Session{ChallengeID: challenge, RequestID: abc, ClientID: "example", Signature: abc, Active: true, Session: sessionData, RequestedScopes: model.StringSlicePipeDelimited{}, GrantedScopes: model.StringSlicePipeDelimited{}}).
 			Return(nil),
 		s.mock.
 			EXPECT().
-			SaveOAuth2PARContext(s.ctx, model.OAuth2PARContext{Signature: "abc", RequestID: "abc", ClientID: "example", Session: sessionData}).
+			SaveOAuth2PARContext(s.ctx, model.OAuth2PARContext{Signature: abc, RequestID: abc, ClientID: "example", Session: sessionData}).
 			Return(nil),
 	)
 
-	s.NoError(s.store.CreateAuthorizeCodeSession(s.ctx, "abc", &fosite.Request{
-		ID: "abc",
+	s.NoError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &fosite.Request{
+		ID: abc,
 		Client: &oidc.BaseClient{
 			ID: "example",
 		},
 		Session: session,
 	}))
 
-	s.EqualError(s.store.CreateAuthorizeCodeSession(s.ctx, "abc", &fosite.Request{
-		ID: "abc",
+	s.EqualError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &fosite.Request{
+		ID: abc,
 		Client: &oidc.BaseClient{
 			ID: "example",
 		},
 		Session: session,
 	}), "duplicate key")
 
-	s.EqualError(s.store.CreateAuthorizeCodeSession(s.ctx, "abc", &fosite.Request{
-		ID: "abc",
+	s.EqualError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &fosite.Request{
+		ID: abc,
 		Client: &oidc.BaseClient{
 			ID: "example",
 		},
 		Session: nil,
 	}), "failed to create new *model.OAuth2Session: the session type OpenIDSession was expected but the type '<nil>' was used")
 
-	s.NoError(s.store.CreateAccessTokenSession(s.ctx, "abc", &fosite.Request{
-		ID: "abc",
+	s.NoError(s.store.CreateAccessTokenSession(s.ctx, abc, &fosite.Request{
+		ID: abc,
 		Client: &oidc.BaseClient{
 			ID: "example",
 		},
 		Session: session,
 	}))
 
-	s.NoError(s.store.CreateRefreshTokenSession(s.ctx, "abc", &fosite.Request{
-		ID: "abc",
+	s.NoError(s.store.CreateRefreshTokenSession(s.ctx, abc, &fosite.Request{
+		ID: abc,
 		Client: &oidc.BaseClient{
 			ID: "example",
 		},
 		Session: session,
 	}))
 
-	s.NoError(s.store.CreateOpenIDConnectSession(s.ctx, "abc", &fosite.Request{
-		ID: "abc",
+	s.NoError(s.store.CreateOpenIDConnectSession(s.ctx, abc, &fosite.Request{
+		ID: abc,
 		Client: &oidc.BaseClient{
 			ID: "example",
 		},
 		Session: session,
 	}))
 
-	s.NoError(s.store.CreatePKCERequestSession(s.ctx, "abc", &fosite.Request{
-		ID: "abc",
+	s.NoError(s.store.CreatePKCERequestSession(s.ctx, abc, &fosite.Request{
+		ID: abc,
 		Client: &oidc.BaseClient{
 			ID: "example",
 		},
 		Session: session,
 	}))
 
-	s.NoError(s.store.CreatePARSession(s.ctx, "abc", &fosite.AuthorizeRequest{
+	s.NoError(s.store.CreatePARSession(s.ctx, abc, &fosite.AuthorizeRequest{
 		Request: fosite.Request{
-			ID: "abc",
+			ID: abc,
 			Client: &oidc.BaseClient{
 				ID: "example",
 			},
 			Session: session,
 		}}))
 
-	s.EqualError(s.store.CreatePARSession(s.ctx, "abc", &fosite.AuthorizeRequest{
+	s.EqualError(s.store.CreatePARSession(s.ctx, abc, &fosite.AuthorizeRequest{
 		Request: fosite.Request{
-			ID: "abc",
+			ID: abc,
 			Client: &oidc.BaseClient{
 				ID: "example",
 			},
@@ -525,7 +525,7 @@ func (s *StoreSuite) TestGetSessions() {
 		s.mock.
 			EXPECT().
 			LoadOAuth2PARContext(s.ctx, "urn:par").
-			Return(&model.OAuth2PARContext{Signature: "abc", RequestID: "abc", ClientID: "hs256", Session: sessionData}, nil),
+			Return(&model.OAuth2PARContext{Signature: abc, RequestID: abc, ClientID: "hs256", Session: sessionData}, nil),
 		s.mock.
 			EXPECT().
 			LoadOAuth2PARContext(s.ctx, "urn:par").
@@ -570,7 +570,7 @@ func (s *StoreSuite) TestGetSessions() {
 	s.NoError(err)
 
 	r, err = s.store.GetOpenIDConnectSession(s.ctx, "ot", &fosite.Request{
-		ID: "abc",
+		ID: abc,
 		Client: &oidc.BaseClient{
 			ID: "example",
 		},

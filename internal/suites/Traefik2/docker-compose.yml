@@ -3,9 +3,9 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './Traefik2/configuration.yml:/config/configuration.yml:ro'
+      - './Traefik2/configuration.yml:/config/configuration.yml'
       - './Traefik2/users.yml:/config/users.yml'
       - './Traefik2/favicon.ico:/config/assets/favicon.ico'
       - './Traefik2/logo.png:/config/assets/logo.png'
-      - './common/pki:/pki:ro'
+      - './common/pki:/pki'
 ...

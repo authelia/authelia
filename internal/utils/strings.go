@@ -25,7 +25,7 @@ func IsStringAbsURL(input string) (err error) {
 	return nil
 }
 
-// IsStringAlphaNumeric returns false if any rune in the string is not alpha-numeric.
+// IsStringAlphaNumeric returns false if any rune in the string is not alphanumeric.
 func IsStringAlphaNumeric(input string) bool {
 	for _, r := range input {
 		if !unicode.IsLetter(r) && !unicode.IsNumber(r) {

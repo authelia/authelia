@@ -95,7 +95,7 @@ func GenerateCertificate(privateKeyBuilder PrivateKeyBuilder, hosts []string, va
 
 	keyPEMBytes, err := ConvertDERToPEM(keyDERBytes, PrivateKey)
 	if err != nil {
-		return nil, nil, fmt.Errorf("faile to convert certificate in DER format into PEM: %v", err)
+		return nil, nil, fmt.Errorf("failed to convert certificate in DER format into PEM: %v", err)
 	}
 
 	return certPEMBytes, keyPEMBytes, nil
@@ -302,8 +302,8 @@ func IsX509PrivateKey(i any) bool {
 	}
 }
 
-// NewTLSConfig generates a tls.Config from a schema.TLSConfig and a x509.CertPool.
-func NewTLSConfig(config *schema.TLSConfig, rootCAs *x509.CertPool) (tlsConfig *tls.Config) {
+// NewTLSConfig generates a tls.Config from a schema.TLS and a x509.CertPool.
+func NewTLSConfig(config *schema.TLS, rootCAs *x509.CertPool) (tlsConfig *tls.Config) {
 	var certificates []tls.Certificate
 
 	if config.PrivateKey != nil && config.CertificateChain.HasCertificates() {
@@ -435,8 +435,8 @@ func WritePEMBlocksToWriter(wr io.Writer, blocks ...*pem.Block) (err error) {
 }
 
 // WriteKeyToPEM writes a key that can be encoded as a PEM to a file in the PEM format.
-func WriteKeyToPEM(key any, path string, pkcs8 bool) (err error) {
-	block, err := PEMBlockFromX509Key(key, pkcs8)
+func WriteKeyToPEM(key any, path string, legacy bool) (err error) {
+	block, err := PEMBlockFromX509Key(key, legacy)
 	if err != nil {
 		return err
 	}
@@ -445,7 +445,7 @@ func WriteKeyToPEM(key any, path string, pkcs8 bool) (err error) {
 }
 
 // PEMBlockFromX509Key turns a PublicKey or PrivateKey into a pem.Block.
-func PEMBlockFromX509Key(key any, pkcs8 bool) (pemBlock *pem.Block, err error) {
+func PEMBlockFromX509Key(key any, legacy bool) (block *pem.Block, err error) {
 	var (
 		data      []byte
 		blockType string
@@ -453,38 +453,38 @@ func PEMBlockFromX509Key(key any, pkcs8 bool) (pemBlock *pem.Block, err error) {
 
 	switch k := key.(type) {
 	case *rsa.PrivateKey:
-		if pkcs8 {
-			blockType = BlockTypePKCS8PrivateKey
-			data, err = x509.MarshalPKCS8PrivateKey(key)
+		if legacy {
+			blockType = BlockTypeRSAPrivateKey
+			data = x509.MarshalPKCS1PrivateKey(k)
 
 			break
 		}
 
-		blockType = BlockTypeRSAPrivateKey
-		data = x509.MarshalPKCS1PrivateKey(k)
+		blockType = BlockTypePKCS8PrivateKey
+		data, err = x509.MarshalPKCS8PrivateKey(key)
 	case *ecdsa.PrivateKey:
-		if pkcs8 {
-			blockType = BlockTypePKCS8PrivateKey
-			data, err = x509.MarshalPKCS8PrivateKey(key)
+		if legacy {
+			blockType = BlockTypeECDSAPrivateKey
+			data, err = x509.MarshalECPrivateKey(k)
 
 			break
 		}
 
-		blockType = BlockTypeECDSAPrivateKey
-		data, err = x509.MarshalECPrivateKey(k)
+		blockType = BlockTypePKCS8PrivateKey
+		data, err = x509.MarshalPKCS8PrivateKey(key)
 	case ed25519.PrivateKey:
 		blockType = BlockTypePKCS8PrivateKey
 		data, err = x509.MarshalPKCS8PrivateKey(k)
 	case *rsa.PublicKey:
-		if pkcs8 {
-			blockType = BlockTypePKIXPublicKey
-			data, err = x509.MarshalPKIXPublicKey(key)
+		if legacy {
+			blockType = BlockTypeRSAPublicKey
+			data = x509.MarshalPKCS1PublicKey(k)
 
 			break
 		}
 
-		blockType = BlockTypeRSAPublicKey
-		data = x509.MarshalPKCS1PublicKey(k)
+		blockType = BlockTypePKIXPublicKey
+		data, err = x509.MarshalPKIXPublicKey(key)
 	case *ecdsa.PublicKey, ed25519.PublicKey:
 		blockType = BlockTypePKIXPublicKey
 		data, err = x509.MarshalPKIXPublicKey(k)

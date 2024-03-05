@@ -1,4 +1,4 @@
-FROM golang:1.21.0-alpine
+FROM golang:1.22.0-alpine3.18
 
 ARG USER_ID
 ARG GROUP_ID

@@ -14,9 +14,9 @@ import (
 	"github.com/go-crypt/crypt/algorithm/bcrypt"
 	"github.com/go-crypt/crypt/algorithm/pbkdf2"
 	"github.com/go-crypt/crypt/algorithm/scrypt"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -49,7 +49,7 @@ func TestShouldErrorFailCreateDB(t *testing.T) {
 
 	f := filepath.Join(dir, "x", "users.yml")
 
-	provider := NewFileUserProvider(&schema.FileAuthenticationBackend{Path: f, Password: schema.DefaultPasswordConfig})
+	provider := NewFileUserProvider(&schema.AuthenticationBackendFile{Path: f, Password: schema.DefaultPasswordConfig})
 
 	require.NotNil(t, provider)
 
@@ -70,7 +70,7 @@ func TestShouldErrorBadPasswordConfig(t *testing.T) {
 
 	require.NoError(t, os.WriteFile(f, UserDatabaseContent, 0600))
 
-	provider := NewFileUserProvider(&schema.FileAuthenticationBackend{Path: f})
+	provider := NewFileUserProvider(&schema.AuthenticationBackendFile{Path: f})
 
 	require.NotNil(t, provider)
 
@@ -85,7 +85,7 @@ func TestShouldNotPanicOnNilDB(t *testing.T) {
 	assert.NoError(t, os.WriteFile(f, UserDatabaseContent, 0600))
 
 	provider := &FileUserProvider{
-		config:        &schema.FileAuthenticationBackend{Path: f, Password: schema.DefaultPasswordConfig},
+		config:        &schema.AuthenticationBackendFile{Path: f, Password: schema.DefaultPasswordConfig},
 		mutex:         &sync.Mutex{},
 		timeoutReload: time.Now().Add(-1 * time.Second),
 	}
@@ -130,7 +130,7 @@ func TestShouldReloadDatabase(t *testing.T) {
 
 				provider.config.Path = p
 
-				provider.database = NewYAMLUserDatabase(p, provider.config.Search.Email, provider.config.Search.CaseInsensitive)
+				provider.database = NewFileUserDatabase(p, provider.config.Search.Email, provider.config.Search.CaseInsensitive)
 			},
 			false,
 			"",
@@ -141,7 +141,7 @@ func TestShouldReloadDatabase(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			provider := NewFileUserProvider(&schema.FileAuthenticationBackend{
+			provider := NewFileUserProvider(&schema.AuthenticationBackendFile{
 				Path:     path,
 				Password: schema.DefaultPasswordConfig,
 			})
@@ -151,6 +151,7 @@ func TestShouldReloadDatabase(t *testing.T) {
 			actual, theError := provider.Reload()
 
 			assert.Equal(t, tc.expected, actual)
+
 			if tc.err == "" {
 				assert.NoError(t, theError)
 			} else {
@@ -307,10 +308,11 @@ func TestShouldUpdatePasswordHashingAlgorithmToArgon2id(t *testing.T) {
 
 		assert.NoError(t, provider.StartupCheck())
 
-		db, ok := provider.database.(*YAMLUserDatabase)
+		db, ok := provider.database.(*FileUserDatabase)
 		require.True(t, ok)
 
-		assert.True(t, strings.HasPrefix(db.Users["harry"].Digest.Encode(), "$6$"))
+		assert.True(t, strings.HasPrefix(db.Users["harry"].Password.Encode(), "$6$"))
+
 		err := provider.UpdatePassword("harry", "newpassword")
 		assert.NoError(t, err)
 
@@ -322,7 +324,7 @@ func TestShouldUpdatePasswordHashingAlgorithmToArgon2id(t *testing.T) {
 		ok, err = provider.CheckUserPassword("harry", "newpassword")
 		assert.NoError(t, err)
 		assert.True(t, ok)
-		assert.True(t, strings.HasPrefix(db.Users["harry"].Digest.Encode(), "$argon2id$"))
+		assert.True(t, strings.HasPrefix(db.Users["harry"].Password.Encode(), "$argon2id$"))
 	})
 }
 
@@ -337,10 +339,11 @@ func TestShouldUpdatePasswordHashingAlgorithmToSHA512(t *testing.T) {
 
 		assert.NoError(t, provider.StartupCheck())
 
-		db, ok := provider.database.(*YAMLUserDatabase)
+		db, ok := provider.database.(*FileUserDatabase)
 		require.True(t, ok)
 
-		assert.True(t, strings.HasPrefix(db.Users["john"].Digest.Encode(), "$argon2id$"))
+		assert.True(t, strings.HasPrefix(db.Users["john"].Password.Encode(), "$argon2id$"))
+
 		err := provider.UpdatePassword("john", "newpassword")
 		assert.NoError(t, err)
 
@@ -352,7 +355,7 @@ func TestShouldUpdatePasswordHashingAlgorithmToSHA512(t *testing.T) {
 		ok, err = provider.CheckUserPassword("john", "newpassword")
 		assert.NoError(t, err)
 		assert.True(t, ok)
-		assert.True(t, strings.HasPrefix(db.Users["john"].Digest.Encode(), "$6$"))
+		assert.True(t, strings.HasPrefix(db.Users["john"].Password.Encode(), "$6$"))
 	})
 }
 
@@ -388,7 +391,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadSchemaForFirstTime(t *testing.T) {
 
 		provider := NewFileUserProvider(&config)
 
-		assert.EqualError(t, provider.StartupCheck(), "error reading the authentication database: could not validate the schema: Users: non zero value required")
+		assert.EqualError(t, provider.StartupCheck(), "error reading the authentication database: could not validate the schema: users: non zero value required")
 	})
 }
 
@@ -586,15 +589,15 @@ func TestShouldAllowLookupCI(t *testing.T) {
 func TestNewFileCryptoHashFromConfig(t *testing.T) {
 	testCases := []struct {
 		name     string
-		have     schema.Password
+		have     schema.AuthenticationBackendFilePassword
 		expected any
 		err      string
 	}{
 		{
 			"ShouldCreatePBKDF2",
-			schema.Password{
+			schema.AuthenticationBackendFilePassword{
 				Algorithm: "pbkdf2",
-				PBKDF2: schema.PBKDF2Password{
+				PBKDF2: schema.AuthenticationBackendFilePasswordPBKDF2{
 					Variant:    "sha256",
 					Iterations: 100000,
 					SaltLength: 16,
@@ -605,9 +608,9 @@ func TestNewFileCryptoHashFromConfig(t *testing.T) {
 		},
 		{
 			"ShouldCreateSCrypt",
-			schema.Password{
+			schema.AuthenticationBackendFilePassword{
 				Algorithm: "scrypt",
-				SCrypt: schema.SCryptPassword{
+				SCrypt: schema.AuthenticationBackendFilePasswordSCrypt{
 					Iterations:  12,
 					SaltLength:  16,
 					Parallelism: 1,
@@ -620,9 +623,9 @@ func TestNewFileCryptoHashFromConfig(t *testing.T) {
 		},
 		{
 			"ShouldCreateBCrypt",
-			schema.Password{
+			schema.AuthenticationBackendFilePassword{
 				Algorithm: "bcrypt",
-				BCrypt: schema.BCryptPassword{
+				BCrypt: schema.AuthenticationBackendFilePasswordBCrypt{
 					Variant: "standard",
 					Cost:    12,
 				},
@@ -632,7 +635,7 @@ func TestNewFileCryptoHashFromConfig(t *testing.T) {
 		},
 		{
 			"ShouldFailToCreateSCryptInvalidParameter",
-			schema.Password{
+			schema.AuthenticationBackendFilePassword{
 				Algorithm: "scrypt",
 			},
 			nil,
@@ -640,7 +643,7 @@ func TestNewFileCryptoHashFromConfig(t *testing.T) {
 		},
 		{
 			"ShouldFailUnknown",
-			schema.Password{
+			schema.AuthenticationBackendFilePassword{
 				Algorithm: "unknown",
 			},
 			nil,
@@ -688,7 +691,7 @@ func TestHashError(t *testing.T) {
 
 func TestDatabaseError(t *testing.T) {
 	WithDatabase(t, UserDatabaseContent, func(path string) {
-		db := NewYAMLUserDatabase(path, false, false)
+		db := NewFileUserDatabase(path, false, false)
 		assert.NoError(t, db.Load())
 
 		config := DefaultFileAuthenticationBackendConfiguration
@@ -717,7 +720,7 @@ func TestDatabaseError(t *testing.T) {
 }
 
 var (
-	DefaultFileAuthenticationBackendConfiguration = schema.FileAuthenticationBackend{
+	DefaultFileAuthenticationBackendConfiguration = schema.AuthenticationBackendFile{
 		Path:     "",
 		Password: schema.DefaultCIPasswordConfig,
 	}

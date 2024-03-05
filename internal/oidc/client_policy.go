@@ -8,7 +8,7 @@ import (
 )
 
 // NewClientAuthorizationPolicy creates a new ClientAuthorizationPolicy.
-func NewClientAuthorizationPolicy(name string, config *schema.OpenIDConnect) (policy ClientAuthorizationPolicy) {
+func NewClientAuthorizationPolicy(name string, config *schema.IdentityProvidersOpenIDConnect) (policy ClientAuthorizationPolicy) {
 	switch name {
 	case authorization.OneFactor.String(), authorization.TwoFactor.String():
 		return ClientAuthorizationPolicy{Name: name, DefaultPolicy: authorization.NewLevel(name)}
@@ -30,6 +30,32 @@ func NewClientAuthorizationPolicy(name string, config *schema.OpenIDConnect) (po
 		}
 
 		return ClientAuthorizationPolicy{DefaultPolicy: authorization.TwoFactor}
+	}
+}
+
+// NewClientConsentPolicy converts the config options into an oidc.ClientConsentPolicy.
+func NewClientConsentPolicy(mode string, duration *time.Duration) ClientConsentPolicy {
+	switch mode {
+	case ClientConsentModeImplicit.String():
+		return ClientConsentPolicy{Mode: ClientConsentModeImplicit}
+	case ClientConsentModePreConfigured.String():
+		return ClientConsentPolicy{Mode: ClientConsentModePreConfigured, Duration: *duration}
+	case ClientConsentModeExplicit.String():
+		return ClientConsentPolicy{Mode: ClientConsentModeExplicit}
+	default:
+		return ClientConsentPolicy{Mode: ClientConsentModeExplicit}
+	}
+}
+
+// NewClientRequestedAudienceMode converts the config option into an oidc.ClientRequestedAudienceMode.
+func NewClientRequestedAudienceMode(mode string) ClientRequestedAudienceMode {
+	switch mode {
+	case ClientRequestedAudienceModeImplicit.String():
+		return ClientRequestedAudienceModeImplicit
+	case ClientRequestedAudienceModeExplicit.String():
+		return ClientRequestedAudienceModeExplicit
+	default:
+		return ClientRequestedAudienceModeImplicit
 	}
 }
 
@@ -81,20 +107,6 @@ func (p *ClientAuthorizationPolicyRule) IsMatch(subject authorization.Subject) (
 	return p.MatchesSubjects(subject)
 }
 
-// NewClientConsentPolicy converts the config options into an oidc.ClientConsentPolicy.
-func NewClientConsentPolicy(mode string, duration *time.Duration) ClientConsentPolicy {
-	switch mode {
-	case ClientConsentModeImplicit.String():
-		return ClientConsentPolicy{Mode: ClientConsentModeImplicit}
-	case ClientConsentModePreConfigured.String():
-		return ClientConsentPolicy{Mode: ClientConsentModePreConfigured, Duration: *duration}
-	case ClientConsentModeExplicit.String():
-		return ClientConsentPolicy{Mode: ClientConsentModeExplicit}
-	default:
-		return ClientConsentPolicy{Mode: ClientConsentModeExplicit}
-	}
-}
-
 // ClientConsentPolicy is the consent configuration for a client.
 type ClientConsentPolicy struct {
 	Mode     ClientConsentMode
@@ -132,6 +144,31 @@ func (c ClientConsentMode) String() string {
 		return valueImplicit
 	case ClientConsentModePreConfigured:
 		return valuePreconfigured
+	default:
+		return ""
+	}
+}
+
+// ClientRequestedAudienceMode represents the requested audience mode for a client.
+type ClientRequestedAudienceMode int
+
+const (
+	// ClientRequestedAudienceModeExplicit means the client requires that the audience is explicitly requested
+	// for it to be considered requested and therefore granted.
+	ClientRequestedAudienceModeExplicit ClientRequestedAudienceMode = iota
+
+	// ClientRequestedAudienceModeImplicit means the client implicitly assumes that the requested audience is all of the
+	// permitted audiences when the request parameter is absent.
+	ClientRequestedAudienceModeImplicit
+)
+
+// String returns the string representation of the ClientRequestedAudienceMode.
+func (ram ClientRequestedAudienceMode) String() string {
+	switch ram {
+	case ClientRequestedAudienceModeExplicit:
+		return valueExplicit
+	case ClientRequestedAudienceModeImplicit:
+		return valueImplicit
 	default:
 		return ""
 	}

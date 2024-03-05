@@ -177,8 +177,8 @@ func createTemporaryDirectory() {
 func createPNPMDirectory() {
 	home := os.Getenv("HOME")
 	if home != "" {
-		bootstrapPrintln("Creating ", home+"/.local/share/pnpm/store")
-		err := os.MkdirAll(home+"/.local/share/pnpm/store", 0755)
+		bootstrapPrintln("Creating ", home+pathPNPMStore)
+		err := os.MkdirAll(home+pathPNPMStore, 0755)
 
 		if err != nil {
 			panic(err)
@@ -235,6 +235,7 @@ func prepareHostsFile() {
 				} else {
 					lines[i] = entry.IP + " " + entry.Domain
 					modified = true
+
 					break
 				}
 			}

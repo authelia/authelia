@@ -1,6 +1,7 @@
 package model
 
 import (
+	"crypto/rand"
 	"database/sql"
 	"encoding/json"
 	"testing"
@@ -20,7 +21,19 @@ issue prior to code being shipped.
 For this reason it's essential that the marshalled object contains all values populated, especially the secret.
 */
 func TestShouldOnlyMarshalPeriodAndDigitsAndAbsolutelyNeverSecret(t *testing.T) {
-	object := TOTPConfiguration{
+	object := &TOTPConfiguration{
+		ID:        1,
+		Username:  "john",
+		Issuer:    "Authelia",
+		Algorithm: "SHA1",
+		Digits:    6,
+		Period:    30,
+
+		// DO NOT CHANGE THIS VALUE UNLESS YOU FULLY UNDERSTAND THE COMMENT AT THE TOP OF THIS TEST.
+		Secret: []byte("ABC123"),
+	}
+
+	object2 := TOTPConfiguration{
 		ID:        1,
 		Username:  "john",
 		Issuer:    "Authelia",
@@ -35,15 +48,23 @@ func TestShouldOnlyMarshalPeriodAndDigitsAndAbsolutelyNeverSecret(t *testing.T) 
 	data, err := json.Marshal(object)
 	assert.NoError(t, err)
 
-	assert.Equal(t, "{\"digits\":6,\"period\":30}", string(data))
+	data2, err := json.Marshal(object2)
+	assert.NoError(t, err)
+
+	assert.Equal(t, "{\"created_at\":\"0001-01-01T00:00:00Z\",\"issuer\":\"Authelia\",\"algorithm\":\"SHA1\",\"digits\":6,\"period\":30}", string(data))
+	assert.Equal(t, "{\"created_at\":\"0001-01-01T00:00:00Z\",\"issuer\":\"Authelia\",\"algorithm\":\"SHA1\",\"digits\":6,\"period\":30}", string(data2))
 
 	// DO NOT REMOVE OR CHANGE THESE TESTS UNLESS YOU FULLY UNDERSTAND THE COMMENT AT THE TOP OF THIS TEST.
 	require.NotContains(t, string(data), "secret")
+	require.NotContains(t, string(data2), "secret")
 	require.NotContains(t, string(data), "ABC123")
+	require.NotContains(t, string(data2), "ABC123")
+	require.NotContains(t, string(data), "QUJDMTIz")
+	require.NotContains(t, string(data2), "QUJDMTIz")
 }
 
 func TestShouldReturnErrWhenImageTooSmall(t *testing.T) {
-	object := TOTPConfiguration{
+	object := &TOTPConfiguration{
 		ID:        1,
 		Username:  "john",
 		Issuer:    "Authelia",
@@ -60,7 +81,7 @@ func TestShouldReturnErrWhenImageTooSmall(t *testing.T) {
 }
 
 func TestShouldReturnImage(t *testing.T) {
-	object := TOTPConfiguration{
+	object := &TOTPConfiguration{
 		ID:        1,
 		Username:  "john",
 		Issuer:    "Authelia",
@@ -136,4 +157,14 @@ func TestTOTPConfigurationImportExport(t *testing.T) {
 			assert.Equal(t, expected.LastUsedAt.Valid, actual.LastUsedAt.Valid)
 		})
 	}
+}
+
+func MustRead(n int) []byte {
+	data := make([]byte, n)
+
+	if _, err := rand.Read(data); err != nil {
+		panic(err)
+	}
+
+	return data
 }

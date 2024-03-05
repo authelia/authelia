@@ -2,14 +2,16 @@ import { Button, Drawer, DrawerProps, Grid, Typography } from "@mui/material";
 import { Trans, useTranslation } from "react-i18next";
 
 import PrivacyPolicyLink from "@components/PrivacyPolicyLink";
+import { LocalStoragePrivacyPolicyAccepted } from "@constants/LocalStorage";
 import { usePersistentStorageValue } from "@hooks/PersistentStorage";
 import { getPrivacyPolicyEnabled, getPrivacyPolicyRequireAccept } from "@utils/Configuration";
 
 const PrivacyPolicyDrawer = function (props: DrawerProps) {
+    const { t: translate } = useTranslation();
+
     const privacyEnabled = getPrivacyPolicyEnabled();
     const privacyRequireAccept = getPrivacyPolicyRequireAccept();
-    const [accepted, setAccepted] = usePersistentStorageValue<boolean>("privacy-policy-accepted", false);
-    const { t: translate } = useTranslation();
+    const [accepted, setAccepted] = usePersistentStorageValue<boolean>(LocalStoragePrivacyPolicyAccepted, false);
 
     return privacyEnabled && privacyRequireAccept && !accepted ? (
         <Drawer {...props} anchor="bottom" open={!accepted}>

@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "session"
-weight: 105200
+weight: 106200
 toc: true
 aliases:
   - /docs/configuration/session/redis.html
@@ -131,7 +131,7 @@ The [redis] host or unix socket path. If utilising an IPv6 literal address it mu
 quoted:
 
 ```yaml
-host: "[fd00:1111:2222:3333::1]"
+host: '[fd00:1111:2222:3333::1]'
 ```
 
 ### port
@@ -182,8 +182,7 @@ is useful if there are long delays in establishing connections.
 
 ### tls
 
-{{< confkey type="structure" required="no" >}}
-{{< ref-common ref="tls" description="Common Structure: TLS" text="This option uses a common structure. " >}}
+{{< confkey type="structure" structure="tls" required="no" >}}
 
 If defined enables connecting to [redis] over a TLS socket, and additionally controls the TLS connection
 validation parameters.

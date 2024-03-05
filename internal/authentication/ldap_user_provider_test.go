@@ -7,23 +7,24 @@ import (
 	"time"
 
 	"github.com/go-ldap/ldap/v3"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 	"golang.org/x/text/encoding/unicode"
 
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func TestNewLDAPUserProvider(t *testing.T) {
-	provider := NewLDAPUserProvider(schema.AuthenticationBackend{LDAP: &schema.LDAPAuthenticationBackend{}}, nil)
+	provider := NewLDAPUserProvider(schema.AuthenticationBackend{LDAP: &schema.AuthenticationBackendLDAP{}}, nil)
 
 	assert.NotNil(t, provider)
 }
 
 func TestNewLDAPUserProviderWithFactoryWithoutFactory(t *testing.T) {
-	provider := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackend{}, false, nil, nil)
+	provider := NewLDAPUserProviderWithFactory(schema.AuthenticationBackendLDAP{}, false, nil, nil)
 
 	assert.NotNil(t, provider)
 
@@ -38,7 +39,7 @@ func TestShouldCreateRawConnectionWhenSchemeIsLDAP(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
@@ -70,7 +71,7 @@ func TestShouldCreateTLSConnectionWhenSchemeIsLDAPS(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPSAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
@@ -120,7 +121,7 @@ func TestEscapeSpecialCharsInGroupsFilter(t *testing.T) {
 	mockFactory := NewMockLDAPClientFactory(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:      testLDAPSAddress,
 			GroupsFilter: "(|(member={dn})(uid={username})(uid={input}))",
 		},
@@ -150,23 +151,23 @@ func TestResolveGroupsFilter(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		have     schema.LDAPAuthenticationBackend
+		have     schema.AuthenticationBackendLDAP
 		input    string
-		profile  ldapUserProfile
+		profile  *ldapUserProfile
 		expected string
 	}{
 		{
 			"ShouldResolveEmptyFilter",
-			schema.LDAPAuthenticationBackend{},
+			schema.AuthenticationBackendLDAP{},
 			"",
-			ldapUserProfile{},
+			&ldapUserProfile{},
 			"",
 		},
 		{
 			"ShouldResolveMemberOfRDNFilter",
-			schema.LDAPAuthenticationBackend{
+			schema.AuthenticationBackendLDAP{
 				GroupsFilter: "(|{memberof:rdn})",
-				Attributes: schema.LDAPAuthenticationAttributes{
+				Attributes: schema.AuthenticationBackendLDAPAttributes{
 					DistinguishedName: "distinguishedName",
 					GroupName:         "cn",
 					MemberOf:          "memberOf",
@@ -176,16 +177,16 @@ func TestResolveGroupsFilter(t *testing.T) {
 				},
 			},
 			"",
-			ldapUserProfile{
+			&ldapUserProfile{
 				MemberOf: []string{"CN=abc,DC=example,DC=com", "CN=xyz,DC=example,DC=com"},
 			},
 			"(|(CN=abc)(CN=xyz))",
 		},
 		{
 			"ShouldResolveMemberOfDNFilter",
-			schema.LDAPAuthenticationBackend{
+			schema.AuthenticationBackendLDAP{
 				GroupsFilter: "(|{memberof:dn})",
-				Attributes: schema.LDAPAuthenticationAttributes{
+				Attributes: schema.AuthenticationBackendLDAPAttributes{
 					DistinguishedName: "distinguishedName",
 					GroupName:         "cn",
 					MemberOf:          "memberOf",
@@ -195,7 +196,7 @@ func TestResolveGroupsFilter(t *testing.T) {
 				},
 			},
 			"",
-			ldapUserProfile{
+			&ldapUserProfile{
 				MemberOf: []string{"CN=abc,DC=example,DC=com", "CN=xyz,DC=example,DC=com"},
 			},
 			"(|(distinguishedName=CN=abc,DC=example,DC=com)(distinguishedName=CN=xyz,DC=example,DC=com))",
@@ -210,7 +211,7 @@ func TestResolveGroupsFilter(t *testing.T) {
 				nil,
 				mockFactory)
 
-			assert.Equal(t, tc.expected, provider.resolveGroupsFilter("", &tc.profile))
+			assert.Equal(t, tc.expected, provider.resolveGroupsFilter("", tc.profile))
 		})
 	}
 }
@@ -246,7 +247,7 @@ func (e *ExtendedSearchRequestMatcher) String() string {
 func TestShouldCheckLDAPEpochFilters(t *testing.T) {
 	type have struct {
 		users string
-		attr  schema.LDAPAuthenticationAttributes
+		attr  schema.AuthenticationBackendLDAPAttributes
 	}
 
 	type expected struct {
@@ -302,7 +303,7 @@ func TestShouldCheckLDAPEpochFilters(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			provider := NewLDAPUserProviderWithFactory(
-				schema.LDAPAuthenticationBackend{
+				schema.AuthenticationBackendLDAP{
 					UsersFilter: tc.have.users,
 					Attributes:  tc.have.attr,
 					BaseDN:      "dc=example,dc=com",
@@ -326,11 +327,11 @@ func TestShouldCheckLDAPServerExtensions(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:     testLDAPAddress,
 			User:        "cn=admin,dc=example,dc=com",
 			UsersFilter: "(|({username_attribute}={input})({mail_attribute}={input}))",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -394,11 +395,11 @@ func TestShouldNotCheckLDAPServerExtensionsWhenRootDSEReturnsMoreThanOneEntry(t 
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:     testLDAPAddress,
 			User:        "cn=admin,dc=example,dc=com",
 			UsersFilter: "(|({username_attribute}={input})({mail_attribute}={input}))",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -463,11 +464,11 @@ func TestShouldCheckLDAPServerControlTypes(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:     testLDAPAddress,
 			User:        "cn=admin,dc=example,dc=com",
 			UsersFilter: "(|({username_attribute}={input})({mail_attribute}={input}))",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -531,11 +532,11 @@ func TestShouldNotEnablePasswdModifyExtensionOrControlTypes(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:     testLDAPAddress,
 			User:        "cn=admin,dc=example,dc=com",
 			UsersFilter: "(|({username_attribute}={input})({mail_attribute}={input}))",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -599,11 +600,11 @@ func TestShouldReturnCheckServerConnectError(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:     testLDAPAddress,
 			User:        "cn=admin,dc=example,dc=com",
 			UsersFilter: "(|({username_attribute}={input})({mail_attribute}={input}))",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -635,11 +636,11 @@ func TestShouldReturnCheckServerSearchError(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:     testLDAPAddress,
 			User:        "cn=admin,dc=example,dc=com",
 			UsersFilter: "(|({username_attribute}={input})({mail_attribute}={input}))",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -683,12 +684,12 @@ func TestShouldPermitRootDSEFailure(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			PermitFeatureDetectionFailure: true,
 			Address:                       testLDAPAddress,
 			User:                          "cn=admin,dc=example,dc=com",
 			UsersFilter:                   "(|({username_attribute}={input})({mail_attribute}={input}))",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -747,11 +748,11 @@ func TestShouldEscapeUserInput(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:     testLDAPAddress,
 			User:        "cn=admin,dc=example,dc=com",
 			UsersFilter: "(|({username_attribute}={input})({mail_attribute}={input}))",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -784,11 +785,11 @@ func TestShouldReturnEmailWhenAttributeSameAsUsername(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "mail",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -858,11 +859,11 @@ func TestShouldReturnUsernameAndBlankDisplayNameWhenAttributesTheSame(t *testing
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "uid",
@@ -932,11 +933,11 @@ func TestShouldReturnBlankEmailAndDisplayNameWhenAttrsLenZero(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -1013,12 +1014,12 @@ func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:     testLDAPAddress,
 			User:        "cn=admin,dc=example,dc=com",
 			UsersFilter: "(&({username_attribute}={input})(&(objectCategory=person)(objectClass=user)))",
 			Password:    "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -1092,11 +1093,11 @@ func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -1169,11 +1170,11 @@ func TestLDAPUserProvider_GetDetails_ShouldReturnOnUserError(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -1217,11 +1218,11 @@ func TestLDAPUserProvider_GetDetails_ShouldReturnOnGroupsError(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -1290,11 +1291,11 @@ func TestShouldNotCrashWhenEmailsAreNotRetrievedFromLDAP(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				DisplayName: "displayName",
 				MemberOf:    "memberOf",
@@ -1356,11 +1357,11 @@ func TestShouldUnauthenticatedBind(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				DisplayName: "displayName",
 				MemberOf:    "memberOf",
@@ -1422,11 +1423,11 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -1498,11 +1499,11 @@ func TestShouldReturnUsernameFromLDAPSearchModeMemberOfRDN(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -1588,11 +1589,11 @@ func TestShouldReturnUsernameFromLDAPSearchModeMemberOfDN(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "CN=Administrator,CN=Users,DC=example,DC=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				DistinguishedName: "distinguishedName",
 				Username:          "sAMAccountName",
 				Mail:              "mail",
@@ -1676,11 +1677,11 @@ func TestShouldReturnErrSearchMemberOf(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "CN=Administrator,CN=Users,DC=example,DC=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				DistinguishedName: "distinguishedName",
 				Username:          "sAMAccountName",
 				Mail:              "mail",
@@ -1760,11 +1761,11 @@ func TestShouldReturnErrUnknownSearchMode(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "CN=Administrator,CN=Users,DC=example,DC=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				DistinguishedName: "distinguishedName",
 				Username:          "sAMAccountName",
 				Mail:              "mail",
@@ -1836,11 +1837,11 @@ func TestShouldSkipEmptyAttributesSearchModeMemberOf(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "CN=Administrator,CN=Users,DC=example,DC=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				DistinguishedName: "distinguishedName",
 				Username:          "sAMAccountName",
 				Mail:              "mail",
@@ -1950,11 +1951,11 @@ func TestShouldSkipEmptyAttributesSearchModeFilter(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "CN=Administrator,CN=Users,DC=example,DC=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				DistinguishedName: "distinguishedName",
 				Username:          "sAMAccountName",
 				Mail:              "mail",
@@ -2064,11 +2065,11 @@ func TestShouldSkipEmptyGroupsResultMemberOf(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -2146,11 +2147,11 @@ func TestShouldReturnUsernameFromLDAPWithReferralsInErrorAndResult(t *testing.T)
 	mockClientReferralAlt := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -2275,11 +2276,11 @@ func TestShouldReturnUsernameFromLDAPWithReferralsInErrorAndNoResult(t *testing.
 	mockClientReferral := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -2366,11 +2367,11 @@ func TestShouldReturnDialErrDuringReferralSearchUsernameFromLDAPWithReferralsInE
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -2421,11 +2422,11 @@ func TestShouldReturnSearchErrDuringReferralSearchUsernameFromLDAPWithReferralsI
 	mockClientReferral := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -2485,11 +2486,11 @@ func TestShouldNotReturnUsernameFromLDAPWithReferralsInErrorAndReferralsNotPermi
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -2535,11 +2536,11 @@ func TestShouldReturnUsernameFromLDAPWithReferralsErr(t *testing.T) {
 	mockClientReferral := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -2626,11 +2627,11 @@ func TestShouldNotUpdateUserPasswordConnect(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -2696,11 +2697,11 @@ func TestShouldNotUpdateUserPasswordGetDetails(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -2776,11 +2777,11 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -2886,12 +2887,12 @@ func TestShouldUpdateUserPasswordMSAD(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Implementation: "activedirectory",
 			Address:        testLDAPAddress,
 			User:           "cn=admin,dc=example,dc=com",
 			Password:       "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -2999,12 +3000,12 @@ func TestShouldUpdateUserPasswordMSADWithReferrals(t *testing.T) {
 	mockClientReferral := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Implementation: "activedirectory",
 			Address:        testLDAPAddress,
 			User:           "cn=admin,dc=example,dc=com",
 			Password:       "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -3130,12 +3131,12 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralConnectErr(t *test
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Implementation: "activedirectory",
 			Address:        testLDAPAddress,
 			User:           "cn=admin,dc=example,dc=com",
 			Password:       "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -3252,12 +3253,12 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralModifyErr(t *testi
 	mockClientReferral := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Implementation: "activedirectory",
 			Address:        testLDAPAddress,
 			User:           "cn=admin,dc=example,dc=com",
 			Password:       "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -3387,12 +3388,12 @@ func TestShouldUpdateUserPasswordMSADWithoutReferrals(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Implementation: "activedirectory",
 			Address:        testLDAPAddress,
 			User:           "cn=admin,dc=example,dc=com",
 			Password:       "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -3504,11 +3505,11 @@ func TestShouldUpdateUserPasswordPasswdModifyExtension(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -3614,11 +3615,11 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferrals(t *testing.T
 	mockClientReferral := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -3744,11 +3745,11 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithoutReferrals(t *testin
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -3860,11 +3861,11 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsReferralConne
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -3981,11 +3982,11 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsReferralPassw
 	mockClientReferral := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -4115,12 +4116,12 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHints(t *testing
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Implementation: "activedirectory",
 			Address:        testLDAPAddress,
 			User:           "cn=admin,dc=example,dc=com",
 			Password:       "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				DistinguishedName: "distinguishedName",
 				Username:          "sAMAccountName",
 				Mail:              "mail",
@@ -4230,12 +4231,12 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHintsDeprecated(
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Implementation: "activedirectory",
 			Address:        testLDAPAddress,
 			User:           "cn=admin,dc=example,dc=com",
 			Password:       "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				DistinguishedName: "distinguishedName",
 				Username:          "sAMAccountName",
 				Mail:              "mail",
@@ -4345,12 +4346,12 @@ func TestShouldUpdateUserPasswordActiveDirectory(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Implementation: "activedirectory",
 			Address:        testLDAPAddress,
 			User:           "cn=admin,dc=example,dc=com",
 			Password:       "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				DistinguishedName: "distinguishedName",
 				Username:          "sAMAccountName",
 				Mail:              "mail",
@@ -4460,12 +4461,12 @@ func TestShouldUpdateUserPasswordBasic(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Implementation: "custom",
 			Address:        testLDAPAddress,
 			User:           "uid=admin,dc=example,dc=com",
 			Password:       "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -4571,11 +4572,11 @@ func TestShouldReturnErrorWhenMultipleUsernameAttributes(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -4640,11 +4641,11 @@ func TestShouldReturnErrorWhenZeroUsernameAttributes(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -4709,11 +4710,11 @@ func TestShouldReturnErrorWhenUsernameAttributeNotReturned(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -4774,11 +4775,11 @@ func TestShouldReturnErrorWhenMultipleUsersFound(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -4860,11 +4861,11 @@ func TestShouldReturnErrorWhenNoDN(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -4929,11 +4930,11 @@ func TestShouldCheckValidUserPassword(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -5000,11 +5001,11 @@ func TestShouldNotCheckValidUserPasswordWithConnectError(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -5042,11 +5043,11 @@ func TestShouldNotCheckValidUserPasswordWithGetProfileError(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -5087,11 +5088,11 @@ func TestShouldCheckInvalidUserPassword(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -5158,11 +5159,11 @@ func TestShouldCallStartTLSWhenEnabled(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -5237,11 +5238,11 @@ func TestShouldParseDynamicConfiguration(t *testing.T) {
 	mockFactory := NewMockLDAPClientFactory(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -5258,11 +5259,7 @@ func TestShouldParseDynamicConfiguration(t *testing.T) {
 		nil,
 		mockFactory)
 
-	clock := &utils.TestingClock{}
-
-	provider.clock = clock
-
-	clock.Set(time.Unix(1670250519, 0))
+	provider.clock = clock.NewFixed(time.Unix(1670250519, 0))
 
 	assert.True(t, provider.groupsFilterReplacementInput)
 	assert.True(t, provider.groupsFilterReplacementUsername)
@@ -5289,11 +5286,11 @@ func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -5304,7 +5301,7 @@ func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T
 			AdditionalUsersDN: "ou=users",
 			BaseDN:            "dc=example,dc=com",
 			StartTLS:          true,
-			TLS: &schema.TLSConfig{
+			TLS: &schema.TLS{
 				SkipVerify: true,
 			},
 		},
@@ -5380,11 +5377,11 @@ func TestShouldReturnLDAPSAlreadySecuredWhenStartTLSAttempted(t *testing.T) {
 	mockClient := NewMockLDAPClient(ctrl)
 
 	provider := NewLDAPUserProviderWithFactory(
-		schema.LDAPAuthenticationBackend{
+		schema.AuthenticationBackendLDAP{
 			Address:  testLDAPSAddress,
 			User:     "cn=admin,dc=example,dc=com",
 			Password: "password",
-			Attributes: schema.LDAPAuthenticationAttributes{
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
 				Username:    "uid",
 				Mail:        "mail",
 				DisplayName: "displayName",
@@ -5394,7 +5391,7 @@ func TestShouldReturnLDAPSAlreadySecuredWhenStartTLSAttempted(t *testing.T) {
 			AdditionalUsersDN: "ou=users",
 			BaseDN:            "dc=example,dc=com",
 			StartTLS:          true,
-			TLS: &schema.TLSConfig{
+			TLS: &schema.TLS{
 				SkipVerify: true,
 			},
 		},

@@ -162,7 +162,9 @@ considered as sane for a reasonable system however we still recommend taking tim
 adequately determine the [cost](#cost).
 
 While there are recommended parameters for each algorithm it's your responsibility to tune these individually for your
-particular system.
+particular system. We strongly recommend reading other sources such as the
+[OWASP Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html) when tuning these
+algorithms.
 
 #### Algorithm Choice
 
@@ -171,12 +173,15 @@ the [Argon2] algorithm is the best choice of the algorithms available, but it's 
 variant is the most resilient variant, followed by the `argon2d` variant and the `argon2i` variant not being recommended.
 It's strongly recommended if you're unsure that you use `argon2id`. [Scrypt] is a likely second best algorithm. [PBKDF2]
 is practically the only choice when it comes to [FIPS-140 compliance]. The `sha512` variant of the [SHA2 Crypt]
-algorithm is also a reasonable option, but is mainly available for backwards compatability.
+algorithm is also a reasonable option, but is mainly available for backwards compatibility.
 
 All other algorithms and variants available exist only for interoperability and we discourage their use if a better
 algorithm is available in your scenario.
 
 #### Recommended Parameters: Argon2
+
+**_Important Note:_ The memory parameter assumes you're utilizing the new configuration with the explicit names
+detailed in the [Argon2 configuration](../../configuration/first-factor/file.md#argon2) documentation.**
 
 This table adapts the [RFC9106 Parameter Choice] recommendations to our configuration options:
 

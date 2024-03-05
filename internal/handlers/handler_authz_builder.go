@@ -1,18 +1,16 @@
 package handlers
 
 import (
-	"time"
-
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 // NewAuthzBuilder creates a new AuthzBuilder.
 func NewAuthzBuilder() *AuthzBuilder {
 	return &AuthzBuilder{
-		config: AuthzConfig{RefreshInterval: time.Second * -1},
+		config: AuthzConfig{RefreshInterval: schema.NewRefreshIntervalDurationAlways()},
 	}
 }
 
@@ -62,19 +60,8 @@ func (b *AuthzBuilder) WithConfig(config *schema.Configuration) *AuthzBuilder {
 		return b
 	}
 
-	var refreshInterval time.Duration
-
-	switch config.AuthenticationBackend.RefreshInterval {
-	case schema.ProfileRefreshDisabled:
-		refreshInterval = time.Second * -1
-	case schema.ProfileRefreshAlways:
-		refreshInterval = time.Second * 0
-	default:
-		refreshInterval, _ = utils.ParseDurationString(config.AuthenticationBackend.RefreshInterval)
-	}
-
 	b.config = AuthzConfig{
-		RefreshInterval: refreshInterval,
+		RefreshInterval: config.AuthenticationBackend.RefreshInterval,
 	}
 
 	return b
@@ -82,7 +69,7 @@ func (b *AuthzBuilder) WithConfig(config *schema.Configuration) *AuthzBuilder {
 
 // WithEndpointConfig configures the AuthzBuilder with a *schema.ServerAuthzEndpointConfig. Should be called AFTER
 // WithConfig or WithAuthzConfig.
-func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerAuthzEndpoint) *AuthzBuilder {
+func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerEndpointsAuthz) *AuthzBuilder {
 	switch config.Implementation {
 	case AuthzImplForwardAuth.String():
 		b.WithImplementationForwardAuth()
@@ -101,11 +88,11 @@ func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerAuthzEndpoint) *Au
 		case AuthnStrategyCookieSession:
 			b.strategies = append(b.strategies, NewCookieSessionAuthnStrategy(b.config.RefreshInterval))
 		case AuthnStrategyHeaderAuthorization:
-			b.strategies = append(b.strategies, NewHeaderAuthorizationAuthnStrategy())
+			b.strategies = append(b.strategies, NewHeaderAuthorizationAuthnStrategy(strategy.Schemes...))
 		case AuthnStrategyHeaderProxyAuthorization:
-			b.strategies = append(b.strategies, NewHeaderProxyAuthorizationAuthnStrategy())
+			b.strategies = append(b.strategies, NewHeaderProxyAuthorizationAuthnStrategy(strategy.Schemes...))
 		case AuthnStrategyHeaderAuthRequestProxyAuthorization:
-			b.strategies = append(b.strategies, NewHeaderProxyAuthorizationAuthRequestAuthnStrategy())
+			b.strategies = append(b.strategies, NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(strategy.Schemes...))
 		case AuthnStrategyHeaderLegacy:
 			b.strategies = append(b.strategies, NewHeaderLegacyAuthnStrategy())
 		}
@@ -130,9 +117,9 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 		case AuthzImplLegacy:
 			authz.strategies = []AuthnStrategy{NewHeaderLegacyAuthnStrategy(), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
 		case AuthzImplAuthRequest:
-			authz.strategies = []AuthnStrategy{NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
+			authz.strategies = []AuthnStrategy{NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
 		default:
-			authz.strategies = []AuthnStrategy{NewHeaderProxyAuthorizationAuthnStrategy(), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
+			authz.strategies = []AuthnStrategy{NewHeaderProxyAuthorizationAuthnStrategy(model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
 		}
 	}
 

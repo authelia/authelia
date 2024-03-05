@@ -25,13 +25,13 @@ func TestEncryptionValidationResult(t *testing.T) {
 	result = &EncryptionValidationResult{
 		InvalidCheckValue: false,
 		Tables: map[string]EncryptionValidationTableResult{
-			tableWebAuthnDevices: {
+			tableWebAuthnCredentials: {
 				Invalid: 10,
 				Total:   20,
 			},
 		},
 	}
-	assert.Equal(t, "FAILURE", result.Tables[tableWebAuthnDevices].ResultDescriptor())
+	assert.Equal(t, "FAILURE", result.Tables[tableWebAuthnCredentials].ResultDescriptor())
 
 	assert.False(t, result.Success())
 	assert.True(t, result.Checked())
@@ -39,7 +39,7 @@ func TestEncryptionValidationResult(t *testing.T) {
 	result = &EncryptionValidationResult{
 		InvalidCheckValue: false,
 		Tables: map[string]EncryptionValidationTableResult{
-			tableWebAuthnDevices: {
+			tableWebAuthnCredentials: {
 				Error: fmt.Errorf("failed to check table"),
 			},
 		},
@@ -47,12 +47,12 @@ func TestEncryptionValidationResult(t *testing.T) {
 
 	assert.False(t, result.Success())
 	assert.False(t, result.Checked())
-	assert.Equal(t, "N/A", result.Tables[tableWebAuthnDevices].ResultDescriptor())
+	assert.Equal(t, "N/A", result.Tables[tableWebAuthnCredentials].ResultDescriptor())
 
 	result = &EncryptionValidationResult{
 		InvalidCheckValue: false,
 		Tables: map[string]EncryptionValidationTableResult{
-			tableWebAuthnDevices: {
+			tableWebAuthnCredentials: {
 				Total: 20,
 			},
 		},
@@ -60,7 +60,7 @@ func TestEncryptionValidationResult(t *testing.T) {
 
 	assert.True(t, result.Success())
 	assert.True(t, result.Checked())
-	assert.Equal(t, "SUCCESS", result.Tables[tableWebAuthnDevices].ResultDescriptor())
+	assert.Equal(t, "SUCCESS", result.Tables[tableWebAuthnCredentials].ResultDescriptor())
 }
 
 func TestOAuth2SessionType(t *testing.T) {

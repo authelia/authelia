@@ -596,6 +596,7 @@ func TestAddress_Dial(t *testing.T) {
 
 			} else {
 				assert.Nil(t, conn)
+
 				if tc.err != "" {
 					assert.EqualError(t, err, tc.err)
 				} else {
@@ -614,6 +615,7 @@ func TestAddress_UnixDomainSocket(t *testing.T) {
 		have     string
 		socket   bool
 		path     string
+		rpath    string
 		strUmask string
 		umask    int
 		err      string
@@ -624,6 +626,7 @@ func TestAddress_UnixDomainSocket(t *testing.T) {
 			false,
 			"",
 			"",
+			"",
 			-1,
 			"",
 		},
@@ -632,6 +635,7 @@ func TestAddress_UnixDomainSocket(t *testing.T) {
 			fmt.Sprintf("unix://%s", filepath.Join(dir, "example.sock")),
 			true,
 			filepath.Join(dir, "example.sock"),
+			"/",
 			"",
 			-1,
 			"",
@@ -641,6 +645,17 @@ func TestAddress_UnixDomainSocket(t *testing.T) {
 			fmt.Sprintf("unix://%s?umask=0022", filepath.Join(dir, "example.sock")),
 			true,
 			filepath.Join(dir, "example.sock"),
+			"/",
+			"0022",
+			18,
+			"",
+		},
+		{
+			"ShouldParseSocketWithUmaskAndPath",
+			fmt.Sprintf("unix://%s?umask=0022&path=abc", filepath.Join(dir, "example.sock")),
+			true,
+			filepath.Join(dir, "example.sock"),
+			"/abc",
 			"0022",
 			18,
 			"",
@@ -649,6 +664,7 @@ func TestAddress_UnixDomainSocket(t *testing.T) {
 			"ShouldParseSocketWithBadUmask",
 			fmt.Sprintf("unix://%s?umask=abc", filepath.Join(dir, "example.sock")),
 			true,
+			"",
 			"",
 			"",
 			-1,
@@ -661,8 +677,10 @@ func TestAddress_UnixDomainSocket(t *testing.T) {
 			actual, err := NewAddress(tc.have)
 
 			if tc.err == "" {
+				require.NoError(t, err)
 				assert.Equal(t, tc.socket, actual.IsUnixDomainSocket())
 				assert.Equal(t, tc.path, actual.Path())
+				assert.Equal(t, tc.rpath, actual.RouterPath())
 				assert.Equal(t, tc.strUmask, actual.Umask())
 				assert.Equal(t, tc.umask, actual.umask)
 
@@ -745,6 +763,41 @@ func TestAddress_Path(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.expected, tc.have.Path())
+		})
+	}
+}
+
+func TestAddress_RouterPath(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     Address
+		expected string
+	}{
+		{
+			"ShouldReturnEmptyPath",
+			Address{true, false, -1, 80, &url.URL{Scheme: AddressSchemeTCP, Host: "tcphosta"}},
+			"",
+		},
+		{
+			"ShouldReturnPath",
+			Address{true, false, -1, 80, &url.URL{Scheme: AddressSchemeTCP, Host: "tcphosta", Path: "/apath"}},
+			"/apath",
+		},
+		{
+			"ShouldNotReturnPathInvalid",
+			Address{false, false, -1, 80, &url.URL{Scheme: AddressSchemeTCP, Host: "tcphosta", Path: "/apath"}},
+			"",
+		},
+		{
+			"ShouldNotReturnPathNil",
+			Address{true, false, -1, 80, nil},
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.have.RouterPath())
 		})
 	}
 }

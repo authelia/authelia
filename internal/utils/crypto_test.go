@@ -424,6 +424,7 @@ func TestX509ParseKeyUsage(t *testing.T) {
 
 				assert.Equal(t, tc.expected, actual)
 			}
+
 			for _, have := range tc.have {
 				t.Run(strings.Join(have, ","), func(t *testing.T) {
 					actual := X509ParseKeyUsage(have, tc.ca)
@@ -462,6 +463,7 @@ func TestX509ParseExtendedKeyUsage(t *testing.T) {
 
 				assert.Equal(t, tc.expected, actual)
 			}
+
 			for _, have := range tc.have {
 				t.Run(strings.Join(have, ","), func(t *testing.T) {
 					actual := X509ParseExtendedKeyUsage(have, tc.ca)

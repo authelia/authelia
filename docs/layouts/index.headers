@@ -8,3 +8,12 @@
   Referrer-Policy: strict-origin
   Permissions-Policy: geolocation=(self), microphone=(), camera=()
   Access-Control-Allow-Origin: *
+
+/client/*
+  Content-Type: text/html; charset=UTF-8
+
+/provider/*
+  Content-Type: text/html; charset=UTF-8
+
+/tools/*
+  Content-Type: text/html; charset=UTF-8

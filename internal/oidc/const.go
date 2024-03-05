@@ -12,6 +12,8 @@ const (
 	ScopeProfile       = "profile"
 	ScopeEmail         = "email"
 	ScopeGroups        = "groups"
+
+	ScopeAutheliaBearerAuthz = "authelia.bearer.authz"
 )
 
 // Registered Claim strings. See https://www.iana.org/assignments/jwt/jwt.xhtml.
@@ -172,6 +174,7 @@ const (
 	FormParameterClientAssertionType = "client_assertion_type"
 	FormParameterClientAssertion     = "client_assertion"
 	FormParameterScope               = valueScope
+	FormParameterAudience            = "audience"
 	FormParameterRefreshToken        = valueRefreshToken
 	FormParameterIssuer              = valueIss
 	FormParameterToken               = "token"
@@ -307,8 +310,8 @@ const (
 	AMRPasswordBasedAuthentication = "pwd"
 
 	// AMROneTimePassword is an RFC8176 Authentication Method Reference Value that represents authentication via a
-	// one-time password as per RFC4949. One-time password specifications that this authentication method applies to
-	// include RFC4226 and RFC6238.
+	// Time-based One-Time Password as per RFC4949. One-time password specifications that this authentication method
+	// applies to include RFC4226 and RFC6238.
 	//
 	// Authelia utilizes this when a user has used TOTP to authenticate. Factor: Have, Channel: Browser.
 	//
@@ -351,4 +354,11 @@ const (
 
 const (
 	durationZero = time.Duration(0)
+)
+
+const (
+	fieldRFC6750Error            = "error"
+	fieldRFC6750ErrorDescription = "error_description"
+	fieldRFC6750Realm            = "realm"
+	fieldRFC6750Scope            = valueScope
 )

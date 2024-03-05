@@ -1,7 +1,7 @@
 ---
 title: "Server Authz Endpoints"
 description: "Configuring the Server Authz Endpoint Settings."
-lead: "Authelia supports several authorization endpoints on the internal webserver. This section describes how to configure and tune them."
+lead: "Authelia supports several authorization endpoints on the internal web server. This section describes how to configure and tune them."
 date: 2023-01-25T20:36:40+11:00
 draft: false
 images: []
@@ -26,16 +26,22 @@ server:
         implementation: 'ForwardAuth'
         authn_strategies:
           - name: 'HeaderProxyAuthorization'
+            schemes:
+              - 'Basic'
           - name: 'CookieSession'
       ext-authz:
         implementation: 'ExtAuthz'
         authn_strategies:
           - name: 'HeaderProxyAuthorization'
+            schemes:
+              - 'Basic'
           - name: 'CookieSession'
       auth-request:
         implementation: 'AuthRequest'
         authn_strategies:
           - name: 'HeaderAuthRequestProxyAuthorization'
+            schemes:
+              - 'Basic'
           - name: 'CookieSession'
       legacy:
         implementation: 'Legacy'
@@ -80,3 +86,11 @@ immediately short-circuit the authentication, otherwise the next strategy in the
 The name of the strategy. Valid case-sensitive values are `CookieSession`, `HeaderAuthorization`,
 `HeaderProxyAuthorization`, `HeaderAuthRequestProxyAuthorization`, and `HeaderLegacy`. Read more about the strategies in
 the [reference guide](../../reference/guides/proxy-authorization.md#authn-strategies).
+
+#### schemes
+
+{{< confkey type="list(string)" default="Basic" required="no" >}}
+
+The list of schemes allowed on this endpoint. Options are `Basic`, and `Bearer`. This option is only applicable to the
+`HeaderAuthorization`, `HeaderProxyAuthorization`, and `HeaderAuthRequestProxyAuthorization` strategies and unavailable
+with the `legacy` endpoint which only uses `Basic`.

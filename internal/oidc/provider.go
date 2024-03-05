@@ -12,7 +12,7 @@ import (
 )
 
 // NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.
-func NewOpenIDConnectProvider(config *schema.OpenIDConnect, store storage.Provider, templates *templates.Provider) (provider *OpenIDConnectProvider) {
+func NewOpenIDConnectProvider(config *schema.IdentityProvidersOpenIDConnect, store storage.Provider, templates *templates.Provider) (provider *OpenIDConnectProvider) {
 	if config == nil {
 		return nil
 	}
@@ -20,7 +20,7 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnect, store storage.Provid
 	signer := NewKeyManager(config)
 
 	provider = &OpenIDConnectProvider{
-		JSONWriter: herodot.NewJSONWriter(nil),
+		JSONWriter: herodot.NewJSONWriter(&NilErrorReporter{}),
 		Store:      NewStore(config, store),
 		KeyManager: signer,
 		Config:     NewConfig(config, signer, templates),

@@ -18,10 +18,15 @@ import (
 
 // NewOAuth2ConsentSession creates a new OAuth2ConsentSession.
 func NewOAuth2ConsentSession(subject uuid.UUID, r fosite.Requester) (consent *OAuth2ConsentSession, err error) {
+	return NewOAuth2ConsentSessionWithForm(subject, r, r.GetRequestForm())
+}
+
+// NewOAuth2ConsentSessionWithForm creates a new OAuth2ConsentSession with a custom form parameter..
+func NewOAuth2ConsentSessionWithForm(subject uuid.UUID, r fosite.Requester, form url.Values) (consent *OAuth2ConsentSession, err error) {
 	consent = &OAuth2ConsentSession{
 		ClientID:          r.GetClient().GetID(),
 		Subject:           NullUUID(subject),
-		Form:              r.GetRequestForm().Encode(),
+		Form:              form.Encode(),
 		RequestedAt:       r.GetRequestedAt(),
 		RequestedScopes:   StringSlicePipeDelimited(r.GetRequestedScopes()),
 		RequestedAudience: StringSlicePipeDelimited(r.GetRequestedAudience()),
@@ -200,10 +205,6 @@ type OAuth2ConsentSession struct {
 func (s *OAuth2ConsentSession) Grant() {
 	s.GrantedScopes = s.RequestedScopes
 	s.GrantedAudience = s.RequestedAudience
-
-	if !utils.IsStringInSlice(s.ClientID, s.GrantedAudience) {
-		s.GrantedAudience = append(s.GrantedAudience, s.ClientID)
-	}
 }
 
 // HasExactGrants returns true if the granted audience and scopes of this consent matches exactly with another

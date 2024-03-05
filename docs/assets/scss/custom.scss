@@ -9,6 +9,18 @@ figure.figure-blog {
   color: $orange;
 }
 
+.pagination > div {
+  color: $link-color;
+}
+
+[data-dark-mode] .pagination > div {
+  color: $link-color-dark;
+}
+
+[data-dark-mode] p {
+  color: $body-color-dark;
+}
+
 .icon-support-full {
   @extend .bi;
   @extend .bi-check-circle-fill;
@@ -68,3 +80,35 @@ body code span.line.hl {
   display: block;
   width: 100%;
 }
+
+.confkey-type {
+  background-color: $purple;
+}
+
+.confkey-syntax {
+  color: $white !important;
+  background-color: $pink;
+  text-decoration: none !important;
+}
+
+a:hover.confkey-syntax {
+  background-color: #ff00ff;
+  text-decoration: none !important;
+}
+
+.confkey-default {
+  background-color: $blue;
+}
+
+.confkey-required {
+  background-color: $red;
+}
+
+.confkey-notrequired {
+  background-color: $green;
+}
+
+.confkey-situational {
+  background-color: $orange;
+}
+

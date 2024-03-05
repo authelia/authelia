@@ -25,12 +25,12 @@ func TestSortedJSONWebKey(t *testing.T) {
 		{
 			"ShouldOrderByKID",
 			[]jose.JSONWebKey{
-				{KeyID: "abc"},
+				{KeyID: abc},
 				{KeyID: "123"},
 			},
 			[]jose.JSONWebKey{
 				{KeyID: "123"},
-				{KeyID: "abc"},
+				{KeyID: abc},
 			},
 		},
 		{
@@ -51,6 +51,43 @@ func TestSortedJSONWebKey(t *testing.T) {
 			sort.Sort(oidc.SortedJSONWebKey(tc.have))
 
 			assert.Equal(t, tc.expected, tc.have)
+		})
+	}
+}
+
+func TestRFC6750Header(t *testing.T) {
+	testCaes := []struct {
+		name     string
+		have     *fosite.RFC6749Error
+		realm    string
+		scope    string
+		expected string
+	}{
+		{
+			"ShouldEncodeAll",
+			&fosite.RFC6749Error{
+				ErrorField:       "invalid_example",
+				DescriptionField: "A description",
+			},
+			"abc",
+			"openid",
+			`realm="abc",error="invalid_example",error_description="A description",scope="openid"`,
+		},
+		{
+			"ShouldEncodeBasic",
+			&fosite.RFC6749Error{
+				ErrorField:       "invalid_example",
+				DescriptionField: "A description",
+			},
+			"",
+			"",
+			`error="invalid_example",error_description="A description"`,
+		},
+	}
+
+	for _, tc := range testCaes {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, oidc.RFC6750Header(tc.realm, tc.scope, tc.have))
 		})
 	}
 }
@@ -175,7 +212,7 @@ func TestIntrospectionResponseToMap(t *testing.T) {
 					},
 				},
 			},
-			[]string{"https://rs.example.com", "rclient"},
+			[]string{"rclient"},
 			map[string]any{
 				oidc.ClaimActive:           true,
 				oidc.ClaimScope:            "openid profile",

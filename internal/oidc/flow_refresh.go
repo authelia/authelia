@@ -92,7 +92,7 @@ func (c *RefreshTokenGrantHandler) HandleTokenEndpointRequest(ctx context.Contex
 		  			include any scope not originally granted by the resource owner, and if omitted is treated as equal to
 		   			the scope originally granted by the resource owner.
 
-			See https://www.rfc-editor.org/rfc/rfc6749#section-6
+			See https://datatracker.ietf.org/doc/html/rfc6749#section-6
 	*/
 
 	// Addresses point 1 of the text in RFC6749 Section 6.
@@ -106,7 +106,7 @@ func (c *RefreshTokenGrantHandler) HandleTokenEndpointRequest(ctx context.Contex
 	originalScopes := originalRequest.GetGrantedScopes()
 
 	for _, scope := range request.GetRequestedScopes() {
-		if !strategy(originalScopes, scope) {
+		if !originalScopes.Has(scope) {
 			if client, ok := request.GetClient().(RefreshFlowScopeClient); ok && client.GetRefreshFlowIgnoreOriginalGrantedScopes(ctx) {
 				// Skips addressing point 2 of the text in RFC6749 Section 6 and instead just prevents the scope
 				// requested from being granted.

@@ -8,8 +8,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-// ValidateTLSConfig sets the default values and validates a schema.TLSConfig.
-func ValidateTLSConfig(config *schema.TLSConfig, configDefault *schema.TLSConfig) (err error) {
+// ValidateTLSConfig sets the default values and validates a schema.TLS.
+func ValidateTLSConfig(config *schema.TLS, configDefault *schema.TLS) (err error) {
 	if configDefault == nil {
 		return errors.New("must provide configDefault")
 	}
@@ -38,8 +38,8 @@ func ValidateTLSConfig(config *schema.TLSConfig, configDefault *schema.TLSConfig
 		return fmt.Errorf("option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version %s is greater than the maximum version %s", config.MinimumVersion.String(), config.MaximumVersion.String())
 	}
 
-	if (config.CertificateChain.HasCertificates() || config.PrivateKey != nil) && !config.CertificateChain.EqualKey(config.PrivateKey) {
-		return errors.New("option 'certificates' is invalid: provided certificate does not contain the public key for the private key provided")
+	if config.CertificateChain.HasCertificates() && config.PrivateKey != nil && !config.CertificateChain.EqualKey(config.PrivateKey) {
+		return errors.New("option 'certificate_chain' is invalid: provided certificate chain does not contain the public key for the private key provided")
 	}
 
 	return nil

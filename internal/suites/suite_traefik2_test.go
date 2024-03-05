@@ -23,8 +23,8 @@ func (s *Traefik2Suite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *Traefik2Suite) Test2FAScenario() {
-	suite.Run(s.T(), New2FAScenario())
+func (s *Traefik2Suite) TestTwoFactorTOTPScenario() {
+	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 
 func (s *Traefik2Suite) TestCustomHeaders() {
@@ -46,15 +46,15 @@ func (s *Traefik2Suite) TestShouldKeepSessionAfterRedisRestart() {
 		s.Require().NoError(err)
 	}()
 
-	browser, err := StartRod()
+	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	s.Require().NoError(err)
 	s.RodSession = browser
 
 	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Page)
-	secret := s.doRegisterThenLogout(s.T(), s.Context(ctx), "john", "password")
+	s.doLoginAndRegisterTOTPThenLogout(s.T(), s.Context(ctx), "john", "password")
 
-	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, secret, "")
+	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
 
 	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s/secret.html", SecureBaseURL))
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))

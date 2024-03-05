@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "notifications"
-weight: 107200
+weight: 108200
 toc: true
 aliases:
   - /docs/configuration/notifier/smtp.html
@@ -114,8 +114,7 @@ This section describes the individual configuration options.
 
 ### address
 
-{{< confkey type="address" required="yes" >}}
-{{< ref-common ref="address" description="Common Syntax: Address" text="This option uses a common syntax. " >}}
+{{< confkey type="string" syntax="address" required="yes" >}}
 
 Configures the address for the SMTP Server. The address itself is a connector and the scheme must be `smtp`,
 `submission`, or `submissions`. The only difference between these schemes are the default ports and `submissions`
@@ -140,8 +139,7 @@ notifier:
 
 ### timeout
 
-{{< confkey type="duration" default="5s" required="no" >}}
-{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
+{{< confkey type="string,integer" syntax="duration" default="5 seconds" required="no" >}}
 
 The SMTP connection timeout.
 
@@ -228,8 +226,7 @@ mixed emails which contain both HTML and text so this option is rarely necessary
 
 ### tls
 
-{{< confkey type="structure" required="no" >}}
-{{< ref-common ref="tls" description="Common Structure: TLS" text="This option uses a common structure. " >}}
+{{< confkey type="structure" structure="tls" required="no" >}}
 
 Controls the TLS connection validation parameters for either StartTLS or the TLS socket.
 

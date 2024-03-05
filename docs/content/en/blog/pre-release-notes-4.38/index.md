@@ -44,6 +44,20 @@ The following contains information on getting access to the pre-production build
 _**Note:** We strongly recommend people who wish to try the beta builds make backups of their proxy configuration,
 Authelia configuration, and Authelia database prior to attempting to do so._
 
+### 4.38.0-beta3
+
+This includes most if not all final features. We are working on a few other useful features but it's unclear if time
+time will permit. We are seeking feedback in
+[GitHub Discussions](https://github.com/authelia/authelia/discussions/categories/pre-release-feedback) for those
+interested in being involved.
+
+Actual Builds:
+
+- Container Images:
+  - [docker.io/authelia/authelia:v4.38.0-beta3](https://hub.docker.com/layers/authelia/authelia/v4.38.0-beta3/images/sha256-c3f0729d1c286e77bb19158cdd91fc8ac3939ee35c4dbb7f1d232cf68db24ad6?context=explore)
+  - [ghcr.io/authelia/authelia:v4.38.0-beta3](https://github.com/orgs/authelia/packages/container/authelia/142137031?tag=v4.38.0-beta3)
+- [Binaries](https://buildkite.com/authelia/authelia/builds/24711#annotation-ctx-success)
+
 ### 4.38.0-beta2
 
 This is a quick release before we start merging the TOTP and WebAuthn improvements. Once these are merged another beta
@@ -51,7 +65,7 @@ will be released and then shortly after the release will be officially published
 
 Notable Missing Features from this build:
 
-- Multi-Device Webauthn
+- Multi-Device WebAuthn
 - Device Registration OTP
 
 Actual Builds:

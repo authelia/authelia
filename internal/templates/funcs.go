@@ -17,6 +17,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/google/uuid"
@@ -27,7 +28,9 @@ func FuncMap() map[string]any {
 	return map[string]any{
 		"iterate":     FuncIterate,
 		"fileContent": FuncFileContent,
+		"secret":      FuncSecret,
 		"env":         FuncGetEnv,
+		"mustEnv":     FuncMustGetEnv,
 		"expandenv":   FuncExpandEnv,
 		"split":       FuncStringSplit,
 		"splitList":   FuncStringSplitList,
@@ -46,10 +49,12 @@ func FuncMap() map[string]any {
 		"trimPrefix":  FuncStringTrimPrefix,
 		"replace":     FuncStringReplace,
 		"quote":       FuncStringQuote,
+		"mquote":      FuncStringQuoteMultiLine(rune(34)),
 		"sha1sum":     FuncHashSum(sha1.New),
 		"sha256sum":   FuncHashSum(sha256.New),
 		"sha512sum":   FuncHashSum(sha512.New),
 		"squote":      FuncStringSQuote,
+		"msquote":     FuncStringQuoteMultiLine(rune(39)),
 		"now":         time.Now,
 		"b64enc":      FuncB64Enc,
 		"b64dec":      FuncB64Dec,
@@ -79,6 +84,7 @@ func FuncMap() map[string]any {
 		"empty":       FuncEmpty,
 		"indent":      FuncIndent,
 		"nindent":     FuncNewlineIndent,
+		"mindent":     FuncMultilineIndent,
 		"uuidv4":      FuncUUIDv4,
 		"urlquery":    url.QueryEscape,
 		"urlunquery":  url.QueryUnescape,
@@ -122,11 +128,32 @@ func FuncExpandEnv(s string) string {
 
 // FuncGetEnv is a special version of os.GetEnv that excludes secret keys.
 func FuncGetEnv(key string) string {
+	if key == "$" {
+		return key
+	}
+
 	if isSecretEnvKey(key) {
 		return ""
 	}
 
-	return os.Getenv(key)
+	value, _ := syscall.Getenv(key)
+
+	return value
+}
+
+// FuncMustGetEnv is a special version of os.GetEnv that excludes secret keys and returns an error if it doesn't exist.
+func FuncMustGetEnv(key string) (string, error) {
+	if isSecretEnvKey(key) {
+		return "", nil
+	}
+
+	value, found := syscall.Getenv(key)
+
+	if !found {
+		return "", fmt.Errorf("environment variable '%s' isn't set", key)
+	}
+
+	return value, nil
 }
 
 // FuncHashSum is a helper function that provides similar functionality to helm sum funcs.
@@ -209,6 +236,19 @@ func FuncElemsJoin(sep string, elems any) string {
 	return strings.Join(strslice(elems), sep)
 }
 
+// FuncStringQuote is a helper function that provides similar functionality to the helm quote func.
+func FuncStringQuote(in ...any) string {
+	out := make([]string, 0, len(in))
+
+	for _, s := range in {
+		if s != nil {
+			out = append(out, fmt.Sprintf("%q", strval(s)))
+		}
+	}
+
+	return strings.Join(out, " ")
+}
+
 // FuncStringSQuote is a helper function that provides similar functionality to the helm squote func.
 func FuncStringSQuote(in ...any) string {
 	out := make([]string, 0, len(in))
@@ -222,17 +262,26 @@ func FuncStringSQuote(in ...any) string {
 	return strings.Join(out, " ")
 }
 
-// FuncStringQuote is a helper function that provides similar functionality to the helm quote func.
-func FuncStringQuote(in ...any) string {
-	out := make([]string, 0, len(in))
+// FuncStringQuoteMultiLine is a helper function that provides similar functionality
+// to FuncStringQuote and FuncStringSQuote, however it skips quoting if the string contains multiple lines.
+func FuncStringQuoteMultiLine(char rune) func(in ...any) string {
+	return func(in ...any) string {
+		out := make([]string, 0, len(in))
 
-	for _, s := range in {
-		if s != nil {
-			out = append(out, fmt.Sprintf("%q", strval(s)))
+		for _, s := range in {
+			if s != nil {
+				sv := strval(s)
+
+				if strings.Contains(sv, "\n") {
+					out = append(out, sv)
+				} else {
+					out = append(out, fmt.Sprintf("%c%s%c", char, sv, char))
+				}
+			}
 		}
-	}
 
-	return strings.Join(out, " ")
+		return strings.Join(out, " ")
+	}
 }
 
 // FuncIterate is a template function which takes a single uint returning a slice of units from 0 up to that number.
@@ -406,6 +455,17 @@ func FuncNewlineIndent(indent int, value string) string {
 	return "\n" + FuncIndent(indent, value)
 }
 
+// FuncMultilineIndent is a helper function that performs YAML multiline intending with a multiline format input such as
+// |, |+, |-, >, >+, >-, etc. This is only true if the value has newline characters otherwise it just returns the same
+// output as the indent function.
+func FuncMultilineIndent(indent int, multiline, value string) string {
+	if !strings.Contains(value, "\n") {
+		return value
+	}
+
+	return multiline + "\n" + FuncIndent(indent, value)
+}
+
 // FuncUUIDv4 is a helper function that provides similar functionality to the helm uuidv4 func.
 func FuncUUIDv4() string {
 	return uuid.New().String()
@@ -420,4 +480,13 @@ func FuncFileContent(path string) (data string, err error) {
 	}
 
 	return string(raw), nil
+}
+
+// FuncSecret returns the file content stripping the newlines from the end of the content.
+func FuncSecret(path string) (data string, err error) {
+	if data, err = FuncFileContent(path); err != nil {
+		return "", err
+	}
+
+	return strings.TrimRight(data, "\n"), nil
 }

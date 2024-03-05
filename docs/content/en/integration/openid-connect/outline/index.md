@@ -28,8 +28,8 @@ community: true
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://outline.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://outline.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `outline`
 * __Client Secret:__ `insecure_secret`
 
@@ -37,25 +37,6 @@ This example makes the following assumptions:
 in an error as [Outline] will attempt to use a refresh token that is never issued.*
 
 ## Configuration
-
-### Application
-
-To configure [Outline] to utilize Authelia as an [OpenID Connect 1.0] Provider:
-
-1. Configure the following environment options:
-```text
-URL=https://outline.example.com
-FORCE_HTTPS=true
-
-OIDC_CLIENT_ID=outline
-OIDC_CLIENT_SECRET=insecure_secret
-OIDC_AUTH_URI=https://auth.example.com/api/oidc/authorization
-OIDC_TOKEN_URI=https://auth.example.com/api/oidc/token
-OIDC_USERINFO_URI=https://auth.example.com/api/oidc/userinfo
-OIDC_USERNAME_CLAIM=preferred_username
-OIDC_DISPLAY_NAME=Authelia
-OIDC_SCOPES="openid offline_access profile email"
-```
 
 ### Authelia
 
@@ -82,6 +63,25 @@ identity_providers:
         - 'profile'
         - 'email'
       userinfo_signed_response_alg: 'none'
+```
+
+### Application
+
+To configure [Outline] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+
+1. Configure the following environment options:
+```text
+URL=https://outline.example.com
+FORCE_HTTPS=true
+
+OIDC_CLIENT_ID=outline
+OIDC_CLIENT_SECRET=insecure_secret
+OIDC_AUTH_URI=https://auth.example.com/api/oidc/authorization
+OIDC_TOKEN_URI=https://auth.example.com/api/oidc/token
+OIDC_USERINFO_URI=https://auth.example.com/api/oidc/userinfo
+OIDC_USERNAME_CLAIM=preferred_username
+OIDC_DISPLAY_NAME=Authelia
+OIDC_SCOPES="openid offline_access profile email"
 ```
 
 ## See Also

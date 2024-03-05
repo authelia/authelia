@@ -5,8 +5,10 @@
 
 1. The [OpenID Connect 1.0](https://openid.net/specs/openid-connect-core-1_0.html) `client_id` parameter:
     1. This *__must__* be a unique value for every client.
-    2. The value used in this guide is merely for demonstration purposes and you can theoretically use nearly any
-       alphanumeric string.
+    2. The value used in this guide is merely for readability and demonstration purposes and you should not use this
+       value. We recommend 64 random characters but you can use any arbitrary value that meets the other criteria.
+    3. This *__must__* only contain [RFC3986 Unreserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3).
+    4. This *__must__* be no more than 100 characters in length.
 2. The [OpenID Connect 1.0](https://openid.net/specs/openid-connect-core-1_0.html) `secret` parameter:
     1. The value used in this guide is merely for demonstration purposes and you *__should absolutely not__* use this in
        production and should instead utilize the

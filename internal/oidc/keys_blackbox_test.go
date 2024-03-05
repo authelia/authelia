@@ -17,61 +17,61 @@ import (
 )
 
 func TestKeyManager(t *testing.T) {
-	config := &schema.OpenIDConnect{
+	config := &schema.IdentityProvidersOpenIDConnect{
 		IssuerPrivateKeys: []schema.JWK{
 			{
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgRSAUsingSHA256,
-				Key:              keyRSA2048,
-				CertificateChain: certRSA2048,
+				Key:              x509PrivateKeyRSA2048,
+				CertificateChain: x509CertificateChainRSA2048,
 			},
 			{
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgRSAUsingSHA384,
-				Key:              keyRSA2048,
-				CertificateChain: certRSA2048,
+				Key:              x509PrivateKeyRSA2048,
+				CertificateChain: x509CertificateChainRSA2048,
 			},
 			{
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgRSAUsingSHA512,
-				Key:              keyRSA4096,
-				CertificateChain: certRSA4096,
+				Key:              x509PrivateKeyRSA4096,
+				CertificateChain: x509CertificateChainRSA4096,
 			},
 			{
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgRSAPSSUsingSHA256,
-				Key:              keyRSA2048,
-				CertificateChain: certRSA2048,
+				Key:              x509PrivateKeyRSA2048,
+				CertificateChain: x509CertificateChainRSA2048,
 			},
 			{
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgRSAPSSUsingSHA384,
-				Key:              keyRSA2048,
-				CertificateChain: certRSA2048,
+				Key:              x509PrivateKeyRSA2048,
+				CertificateChain: x509CertificateChainRSA2048,
 			},
 			{
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgRSAPSSUsingSHA512,
-				Key:              keyRSA4096,
-				CertificateChain: certRSA4096,
+				Key:              x509PrivateKeyRSA4096,
+				CertificateChain: x509CertificateChainRSA4096,
 			},
 			{
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgECDSAUsingP256AndSHA256,
-				Key:              keyECDSAP256,
-				CertificateChain: certECDSAP256,
+				Key:              x509PrivateKeyECDSAP256,
+				CertificateChain: x509CertificateChainECDSAP256,
 			},
 			{
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgECDSAUsingP384AndSHA384,
-				Key:              keyECDSAP384,
-				CertificateChain: certECDSAP384,
+				Key:              x509PrivateKeyECDSAP384,
+				CertificateChain: x509CertificateChainECDSAP384,
 			},
 			{
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgECDSAUsingP521AndSHA512,
-				Key:              keyECDSAP521,
-				CertificateChain: certECDSAP521,
+				Key:              x509PrivateKeyECDSAP521,
+				CertificateChain: x509CertificateChainECDSAP521,
 			},
 		},
 	}
@@ -182,7 +182,7 @@ func TestKeyManager(t *testing.T) {
 	assert.EqualError(t, err, "error getting jwk from token string: token is malformed: token contains an invalid number of segments")
 	assert.Nil(t, token)
 
-	sum, err = manager.Hash(ctx, []byte("abc"))
+	sum, err = manager.Hash(ctx, []byte(abc))
 	assert.NoError(t, err)
 	assert.Equal(t, "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", fmt.Sprintf("%x", sum))
 
@@ -255,8 +255,8 @@ func TestJWKFunctionality(t *testing.T) {
 				KeyID:            "rsa2048-rs256",
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgRSAUsingSHA256,
-				Key:              keyRSA2048,
-				CertificateChain: certRSA2048,
+				Key:              x509PrivateKeyRSA2048,
+				CertificateChain: x509CertificateChainRSA2048,
 			},
 		},
 		{
@@ -264,8 +264,8 @@ func TestJWKFunctionality(t *testing.T) {
 				KeyID:            "rsa2048-rs384",
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgRSAUsingSHA384,
-				Key:              keyRSA2048,
-				CertificateChain: certRSA2048,
+				Key:              x509PrivateKeyRSA2048,
+				CertificateChain: x509CertificateChainRSA2048,
 			},
 		},
 		{
@@ -273,8 +273,8 @@ func TestJWKFunctionality(t *testing.T) {
 				KeyID:            "rsa2048-rs512",
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgRSAUsingSHA512,
-				Key:              keyRSA2048,
-				CertificateChain: certRSA2048,
+				Key:              x509PrivateKeyRSA2048,
+				CertificateChain: x509CertificateChainRSA2048,
 			},
 		},
 		{
@@ -282,8 +282,8 @@ func TestJWKFunctionality(t *testing.T) {
 				KeyID:            "rsa4096-rs256",
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgRSAUsingSHA256,
-				Key:              keyRSA4096,
-				CertificateChain: certRSA4096,
+				Key:              x509PrivateKeyRSA4096,
+				CertificateChain: x509CertificateChainRSA4096,
 			},
 		},
 		{
@@ -291,8 +291,8 @@ func TestJWKFunctionality(t *testing.T) {
 				KeyID:            "rsa4096-rs384",
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgRSAUsingSHA384,
-				Key:              keyRSA4096,
-				CertificateChain: certRSA4096,
+				Key:              x509PrivateKeyRSA4096,
+				CertificateChain: x509CertificateChainRSA4096,
 			},
 		},
 		{
@@ -300,8 +300,8 @@ func TestJWKFunctionality(t *testing.T) {
 				KeyID:            "rsa4096-rs512",
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgRSAUsingSHA512,
-				Key:              keyRSA4096,
-				CertificateChain: certRSA4096,
+				Key:              x509PrivateKeyRSA4096,
+				CertificateChain: x509CertificateChainRSA4096,
 			},
 		},
 		{
@@ -309,8 +309,8 @@ func TestJWKFunctionality(t *testing.T) {
 				KeyID:            "rsa2048-rs256",
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgRSAPSSUsingSHA256,
-				Key:              keyRSA2048,
-				CertificateChain: certRSA2048,
+				Key:              x509PrivateKeyRSA2048,
+				CertificateChain: x509CertificateChainRSA2048,
 			},
 		},
 		{
@@ -318,8 +318,8 @@ func TestJWKFunctionality(t *testing.T) {
 				KeyID:            "rsa2048-ps384",
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgRSAPSSUsingSHA384,
-				Key:              keyRSA2048,
-				CertificateChain: certRSA2048,
+				Key:              x509PrivateKeyRSA2048,
+				CertificateChain: x509CertificateChainRSA2048,
 			},
 		},
 		{
@@ -327,8 +327,8 @@ func TestJWKFunctionality(t *testing.T) {
 				KeyID:            "rsa2048-ps512",
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgRSAPSSUsingSHA512,
-				Key:              keyRSA2048,
-				CertificateChain: certRSA2048,
+				Key:              x509PrivateKeyRSA2048,
+				CertificateChain: x509CertificateChainRSA2048,
 			},
 		},
 		{
@@ -336,8 +336,8 @@ func TestJWKFunctionality(t *testing.T) {
 				KeyID:            "rsa4096-ps256",
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgRSAPSSUsingSHA256,
-				Key:              keyRSA4096,
-				CertificateChain: certRSA4096,
+				Key:              x509PrivateKeyRSA4096,
+				CertificateChain: x509CertificateChainRSA4096,
 			},
 		},
 		{
@@ -345,8 +345,8 @@ func TestJWKFunctionality(t *testing.T) {
 				KeyID:            "rsa4096-ps384",
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgRSAPSSUsingSHA384,
-				Key:              keyRSA4096,
-				CertificateChain: certRSA4096,
+				Key:              x509PrivateKeyRSA4096,
+				CertificateChain: x509CertificateChainRSA4096,
 			},
 		},
 		{
@@ -354,8 +354,8 @@ func TestJWKFunctionality(t *testing.T) {
 				KeyID:            "rsa4096-ps512",
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgRSAPSSUsingSHA512,
-				Key:              keyRSA4096,
-				CertificateChain: certRSA4096,
+				Key:              x509PrivateKeyRSA4096,
+				CertificateChain: x509CertificateChainRSA4096,
 			},
 		},
 		{
@@ -363,8 +363,8 @@ func TestJWKFunctionality(t *testing.T) {
 				KeyID:            "ecdsaP256",
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgECDSAUsingP256AndSHA256,
-				Key:              keyECDSAP256,
-				CertificateChain: certECDSAP256,
+				Key:              x509PrivateKeyECDSAP256,
+				CertificateChain: x509CertificateChainECDSAP256,
 			},
 		},
 		{
@@ -372,8 +372,8 @@ func TestJWKFunctionality(t *testing.T) {
 				KeyID:            "ecdsaP384",
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgECDSAUsingP384AndSHA384,
-				Key:              keyECDSAP384,
-				CertificateChain: certECDSAP384,
+				Key:              x509PrivateKeyECDSAP384,
+				CertificateChain: x509CertificateChainECDSAP384,
 			},
 		},
 		{
@@ -381,8 +381,8 @@ func TestJWKFunctionality(t *testing.T) {
 				KeyID:            "ecdsaP521",
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgECDSAUsingP521AndSHA512,
-				Key:              keyECDSAP521,
-				CertificateChain: certECDSAP521,
+				Key:              x509PrivateKeyECDSAP521,
+				CertificateChain: x509CertificateChainECDSAP521,
 			},
 		},
 	}

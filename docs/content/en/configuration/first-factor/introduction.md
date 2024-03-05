@@ -27,10 +27,10 @@ There are two ways to integrate *Authelia* with an authentication backend:
 
 ```yaml
 authentication_backend:
-  refresh_interval: 5m
+  refresh_interval: '5m'
   password_reset:
     disable: false
-    custom_url: ""
+    custom_url: ''
 ```
 
 ## Options
@@ -39,11 +39,17 @@ This section describes the individual configuration options.
 
 ### refresh_interval
 
-{{< confkey type="duration" default="5m" required="no" >}}
-{{< ref-common ref="duration" description="Common Syntax: Duration" text="This option uses a common syntax. " >}}
+{{< confkey type="string,integer" syntax="duration" default="5 minutes" required="no">}}
 
-This setting controls the interval at which details are refreshed from the backend. Particularly useful for
-[LDAP](#ldap).
+_**Note:** when using the [File Provider](#file) this value has a default value of `always` as the cost in this
+scenario is basically not measurable, users can however override this setting by setting an explicit value._
+
+This setting controls the interval at which details are refreshed from the backend. The details refreshed in order of
+importance are the groups, email address, and display name. This is particularly useful for the [File Provider](#file)
+when [watch](file.md#watch) is enabled or generally with the [LDAP Provider](#ldap).
+
+In addition to the duration values this option accepts `always` and `disable` as values; where `always` will always
+refresh this value, and `disable` will never refresh the profile.
 
 ### password_reset
 

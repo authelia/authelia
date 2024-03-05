@@ -1,7 +1,7 @@
 ---
 title: "Server"
 description: "Configuring the Server Settings."
-lead: "Authelia runs an internal webserver. This section describes how to configure and tune this."
+lead: "Authelia runs an internal web server. This section describes how to configure and tune this."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -39,27 +39,14 @@ server:
   endpoints:
     enable_pprof: false
     enable_expvars: false
-    authz:
-      forward-auth:
-        implementation: 'ForwardAuth'
-        authn_strategies: []
-      ext-authz:
-        implementation: 'ExtAuthz'
-        authn_strategies: []
-      auth-request:
-        implementation: 'AuthRequest'
-        authn_strategies: []
-      legacy:
-        implementation: 'Legacy'
-        authn_strategies: []
+    authz: {} ## See the dedicated "Server Authz Endpoints" configuration guide.
 ```
 
 ## Options
 
 ### address
 
-{{< confkey type="address" default="tcp://:9091/" required="no" >}}
-{{< ref-common ref="address" description="Common Syntax: Address" text="This option uses a common syntax. " >}}
+{{< confkey type="string" syntax="address" default="tcp://:9091/" required="no" >}}
 
 Configures the listener address for the Main HTTP Server. The address itself is a listener and the scheme must either be
 the `unix` scheme or one of the `tcp` schemes. It can configure the host, port, and path the listener responds to. If
@@ -69,28 +56,28 @@ __Examples:__
 
 ```yaml
 server:
-  address: tcp://127.0.0.1:9091/
+  address: 'tcp://127.0.0.1:9091/'
 ```
 
 ```yaml
 server:
-  address: tcp://127.0.0.1:9091/subpath
+  address: 'tcp://127.0.0.1:9091/subpath'
 ```
 
 ```yaml
 server:
-  address: unix:///var/run/authelia.sock
+  address: 'unix:///var/run/authelia.sock'
 ```
 
 ### asset_path
 
-{{< confkey type="string " required="no" >}}
+{{< confkey type="string" required="no" >}}
 
-Authelia by default serves all static assets from an embedded filesystem in the Go binary.
+Authelia by default serves all static assets from an embedded file system in the Go binary.
 
 Modifying this setting will allow you to override and serve specific assets for Authelia from a specified path. All
 assets that can be overridden must be placed in the `asset_path`. The structure of this directory and the assets which
-can be overriden is documented in the
+can be overridden is documented in the
 [Sever Asset Overrides Reference Guide](../../reference/guides/server-asset-overrides.md).
 
 ### disable_healthcheck
@@ -99,7 +86,7 @@ can be overriden is documented in the
 
 On startup Authelia checks for the existence of /app/healthcheck.sh and /app/.healthcheck.env and if both of these exist
 it writes the configuration vars for the healthcheck to the /app/.healthcheck.env file. In instances where this is not
-desirable it's possible to disable these interactions entirely.
+desirable, it's possible to disable these interactions entirely.
 
 An example situation where this is the case is in Kubernetes when set security policies that prevent writing to the
 ephemeral storage of a container or just don't want to enable the internal health check.
@@ -121,7 +108,12 @@ beyond the scope of this guide.
 
 {{< confkey type="string" required="situational" >}}
 
-The path to the private key for TLS connections. Must be in DER base64/PEM format.
+The path to the private key for TLS connections. Must be in DER base64/PEM format and must be encoded per the [PKCS#8],
+[PKCS#1], or [SECG1] specifications.
+
+[PKCS#8]: https://datatracker.ietf.org/doc/html/rfc5208
+[PKCS#1]: https://datatracker.ietf.org/doc/html/rfc8017
+[SECG1]: https://datatracker.ietf.org/doc/html/rfc5915
 
 #### certificate
 
@@ -143,20 +135,20 @@ or intermediate certificates. If no item is provided mutual TLS is disabled.
 {{< confkey type="string" required="no" >}}
 
 This customizes the value of the Content-Security-Policy header. It will replace all instances of the below placeholder
-with the nonce value of the Authelia react bundle. This is an advanced option to customize and you should do sufficient
-research about how browsers utilize and understand this header before attempting to customize it.
+with the nonce value of the Authelia react bundle. This is an advanced option to customize, and you should do
+sufficient research about how browsers utilize and understand this header before attempting to customize it.
 
 {{< csp >}}
 
 ### buffers
 
-{{< confkey type="structure" required="no" common="../../prologue/common#server-buffers" common-name="Server buffers common structure" >}}
+{{< confkey type="structure" structure="server-buffers" required="no" >}}
 
 Configures the server buffers.
 
 ### timeouts
 
-{{< confkey type="structure" required="no" common="../../prologue/common#server-timeouts" common-name="Server timeouts common structure" >}}
+{{< confkey type="structure" structure="server-timeouts" required="no" >}}
 
 Configures the server timeouts.
 
@@ -191,10 +183,10 @@ Generally this does not need to be configured for most use cases. See the
 ### Buffer Sizes
 
 The read and write buffer sizes generally should be the same. This is because when Authelia verifies
-if the user is authorized to visit a URL, it also sends back nearly the same size response as the request. However
+if the user is authorized to visit a URL, it also sends back nearly the same size response as the request. However,
 you're able to tune these individually depending on your needs.
 
 ### Asset Overrides
 
-If replacing the Logo for your Authelia portal it is recommended to upload a transparent PNG of your desired logo.
+If replacing the Logo for your Authelia portal, it is recommended to upload a transparent PNG of your desired logo.
 Authelia will automatically resize the logo to an appropriate size to present in the frontend.

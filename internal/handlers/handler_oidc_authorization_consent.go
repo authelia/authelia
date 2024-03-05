@@ -16,7 +16,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
@@ -110,7 +109,7 @@ func handleOIDCAuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issuer
 		return nil, true
 	}
 
-	if consent, err = model.NewOAuth2ConsentSession(subject, requester); err != nil {
+	if consent, err = handleOpenIDConnectNewConsentSession(subject, requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentGenerateError, requester.GetID(), client.GetID(), client.GetConsentPolicy(), "generating", err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotGenerate)
@@ -213,6 +212,22 @@ func handleOIDCAuthorizationConsentGetRedirectionURL(_ *middlewares.AutheliaCtx,
 	return redirectURL
 }
 
+func handleOpenIDConnectNewConsentSession(subject uuid.UUID, requester fosite.AuthorizeRequester, prefixPAR string) (consent *model.OAuth2ConsentSession, err error) {
+	if oidc.IsPushedAuthorizedRequest(requester, prefixPAR) {
+		form := url.Values{}
+
+		form.Set(oidc.FormParameterRequestURI, requester.GetRequestForm().Get(oidc.FormParameterRequestURI))
+
+		if requester.GetRequestForm().Has(oidc.FormParameterClientID) {
+			form.Set(oidc.FormParameterClientID, requester.GetRequestForm().Get(oidc.FormParameterClientID))
+		}
+
+		return model.NewOAuth2ConsentSessionWithForm(subject, requester, form)
+	}
+
+	return model.NewOAuth2ConsentSession(subject, requester)
+}
+
 func verifyOIDCUserAuthorizedForConsent(ctx *middlewares.AutheliaCtx, client oidc.Client, userSession session.UserSession, consent *model.OAuth2ConsentSession, subject uuid.UUID) (err error) {
 	var sid uint32
 
@@ -247,16 +262,4 @@ func verifyOIDCUserAuthorizedForConsent(ctx *middlewares.AutheliaCtx, client oid
 	}
 
 	return nil
-}
-
-func getOIDCExpectedScopesAndAudienceFromRequest(requester fosite.Requester) (scopes, audience []string) {
-	return getOIDCExpectedScopesAndAudience(requester.GetClient().GetID(), requester.GetRequestedScopes(), requester.GetRequestedAudience())
-}
-
-func getOIDCExpectedScopesAndAudience(clientID string, scopes, audience []string) (expectedScopes, expectedAudience []string) {
-	if !utils.IsStringInSlice(clientID, audience) {
-		audience = append(audience, clientID)
-	}
-
-	return scopes, audience
 }

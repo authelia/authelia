@@ -16,13 +16,13 @@ import (
 
 type NotifierSuite struct {
 	suite.Suite
-	config    schema.NotifierConfiguration
+	config    schema.Notifier
 	validator *schema.StructValidator
 }
 
 func (suite *NotifierSuite) SetupTest() {
 	suite.validator = schema.NewStructValidator()
-	suite.config.SMTP = &schema.SMTPNotifierConfiguration{
+	suite.config.SMTP = &schema.NotifierSMTP{
 		Address:  &schema.AddressSMTP{Address: schema.NewAddressFromNetworkValues(schema.AddressSchemeSMTP, exampleDotCom, 25)},
 		Username: "john",
 		Password: "password",
@@ -57,7 +57,7 @@ func (suite *NotifierSuite) TestShouldEnsureEitherSMTPOrFilesystemIsProvided() {
 
 	suite.Len(suite.validator.Errors(), 0)
 
-	suite.config.FileSystem = &schema.FileSystemNotifierConfiguration{
+	suite.config.FileSystem = &schema.NotifierFileSystem{
 		Filename: "test",
 	}
 
@@ -147,7 +147,7 @@ func (suite *NotifierSuite) TestSMTPShouldDefaultStartupCheckAddress() {
 
 func (suite *NotifierSuite) TestSMTPShouldDefaultTLSServerNameToHost() {
 	suite.config.SMTP.Address.SetHostname("google.com")
-	suite.config.SMTP.TLS = &schema.TLSConfig{
+	suite.config.SMTP.TLS = &schema.TLS{
 		MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS11},
 	}
 
@@ -162,7 +162,7 @@ func (suite *NotifierSuite) TestSMTPShouldDefaultTLSServerNameToHost() {
 }
 
 func (suite *NotifierSuite) TestSMTPShouldErrorOnSSL30() {
-	suite.config.SMTP.TLS = &schema.TLSConfig{
+	suite.config.SMTP.TLS = &schema.TLS{
 		MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
 	}
 
@@ -175,7 +175,7 @@ func (suite *NotifierSuite) TestSMTPShouldErrorOnSSL30() {
 }
 
 func (suite *NotifierSuite) TestSMTPShouldErrorOnTLSMinVerGreaterThanMaxVer() {
-	suite.config.SMTP.TLS = &schema.TLSConfig{
+	suite.config.SMTP.TLS = &schema.TLS{
 		MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
 		MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS10},
 	}
@@ -262,7 +262,7 @@ File Tests.
 */
 func (suite *NotifierSuite) TestFileShouldEnsureFilenameIsProvided() {
 	suite.config.SMTP = nil
-	suite.config.FileSystem = &schema.FileSystemNotifierConfiguration{
+	suite.config.FileSystem = &schema.NotifierFileSystem{
 		Filename: "test",
 	}
 	ValidateNotifier(&suite.config, suite.validator)
@@ -287,15 +287,15 @@ func TestNotifierSuite(t *testing.T) {
 }
 
 func TestNotifierMiscMissingTemplateTests(t *testing.T) {
-	config := &schema.NotifierConfiguration{
+	config := &schema.Notifier{
 		TemplatePath: string([]byte{0x0, 0x1}),
 	}
 
-	val := schema.NewStructValidator()
+	validator := schema.NewStructValidator()
 
-	validateNotifierTemplates(config, val)
+	validateNotifierTemplates(config, validator)
 
-	require.Len(t, val.Errors(), 1)
+	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, val.Errors()[0], "notifier: option 'template_path' refers to location '\x00\x01' which couldn't be opened: stat \x00\x01: invalid argument")
+	assert.EqualError(t, validator.Errors()[0], "notifier: option 'template_path' refers to location '\x00\x01' which couldn't be opened: stat \x00\x01: invalid argument")
 }

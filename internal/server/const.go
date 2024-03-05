@@ -46,7 +46,7 @@ var (
 	dirsHTTPServer = []struct {
 		name, prefix string
 	}{
-		{name: "/api", prefix: "/api/"},
+		{name: "/api", prefix: prefixAPI},
 		{name: "/.well-known", prefix: "/.well-known/"},
 		{name: "/static", prefix: "/static/"},
 		{name: "/locales", prefix: "/locales/"},
@@ -61,6 +61,7 @@ const (
 	localhost   = "localhost"
 	schemeHTTP  = "http"
 	schemeHTTPS = "https"
+	prefixAPI   = "/api/"
 )
 
 var (

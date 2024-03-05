@@ -8,10 +8,13 @@ const (
 	tableAuthenticationLogs   = "authentication_logs"
 	tableDuoDevices           = "duo_devices"
 	tableIdentityVerification = "identity_verification"
+	tableOneTimeCode          = "one_time_code"
 	tableTOTPConfigurations   = "totp_configurations"
+	tableTOTPHistory          = "totp_history"
 	tableUserOpaqueIdentifier = "user_opaque_identifier"
 	tableUserPreferences      = "user_preferences"
-	tableWebAuthnDevices      = "webauthn_devices"
+	tableWebAuthnCredentials  = "webauthn_credentials" //nolint:gosec // This is a table name, not a credential.
+	tableWebAuthnUsers        = "webauthn_users"
 
 	tableOAuth2BlacklistedJTI          = "oauth2_blacklisted_jti"
 	tableOAuth2ConsentSession          = "oauth2_consent_session"
@@ -49,7 +52,7 @@ var tablesPre1 = []string{
 }
 
 const (
-	providerAll      = "all"
+	pathMigrations   = "migrations"
 	providerMySQL    = "mysql"
 	providerPostgres = "postgres"
 	providerSQLite   = "sqlite"
@@ -67,7 +70,7 @@ const (
 )
 
 var (
-	reMigration = regexp.MustCompile(`^V(?P<Version>\d{4})\.(?P<Name>[^.]+)\.(?P<Provider>(all|sqlite|postgres|mysql))\.(?P<Direction>(up|down))\.sql$`)
+	reMigration = regexp.MustCompile(`^V(?P<Version>\d{4})\.(?P<Name>[^.]+)\.(?P<Direction>(up|down))\.sql$`)
 )
 
 const (

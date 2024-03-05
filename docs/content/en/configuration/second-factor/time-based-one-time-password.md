@@ -1,7 +1,7 @@
 ---
-title: "Time-based One Time Password"
-description: "Configuring the Time-based One Time Password Second Factor Method."
-lead: "Authelia supports utilizing time-based one-time passwords as a 2FA method."
+title: "Time-based One-Time Password"
+description: "Configuring the Time-based One-Time Password Second Factor Method."
+lead: "Authelia supports utilizing Time-based One-Time Passwords as a 2FA method."
 date: 2020-02-29T01:43:59+01:00
 draft: false
 images: []
@@ -37,6 +37,13 @@ totp:
   period: 30
   skew: 1
   secret_size: 32
+  allowed_algorithms:
+    - 'SHA1'
+  allowed_digits:
+    - 6
+  allowed_periods:
+    - 30
+  disable_reuse_security_policy: false
 ```
 
 ## Options
@@ -53,7 +60,7 @@ This disables One-Time Password (TOTP) if set to true.
 
 {{< confkey type="string" default="Authelia" required="no" >}}
 
-Applications generating one-time passwords usually display an issuer to
+Applications generating Time-based One-Time Passwords usually display an issuer to
 differentiate applications registered by the user.
 
 Authelia allows customisation of the issuer to differentiate the entry created
@@ -115,11 +122,11 @@ information.
 
 {{< confkey type="integer" default="1" required="no" >}}
 
-The number of one time passwords either side of the current valid one time password that should also be considered valid.
-The default of 1 results in 3 one time passwords valid. A setting of 2 would result in 5. With the default period of 30
-this would result in 90 and 150 seconds of valid one time passwords respectively. Please see the
-[input validation](#input-validation) section for how this option and the [period](#period) option interact with each
-other.
+The number of Time-based One-Time Passwords either side of the current valid Time-based One-Time Password that should
+also be considered valid. The default of 1 results in 3 Time-based One-Time Passwords valid. A setting of 2 would result
+in 5. With the default period of 30 this would result in 90 and 150 seconds of valid Time-based One-Time Passwords
+respectively. Please see the [input validation](#input-validation) section for how this option and the [period](#period)
+option interact with each other.
 
 Changing this value affects all TOTP validations, not just newly registered ones.
 
@@ -131,6 +138,35 @@ The length in bytes of generated shared secrets. The minimum is 20 (or 160 bits)
 In most use cases 32 is sufficient. Though some authenticators may have issues with more than the minimum. Our minimum
 is the recommended value in [RFC4226], though technically according to the specification 16 bytes (or 128 bits) is the
 minimum.
+
+### allowed_algorithms
+
+{{< confkey type="list(integer)" default="SHA1" required="no" >}}
+
+Similar to [algorithm](#algorithm) with the same restrictions except this option allows users to pick from this list.
+This list will always contain the value configured in the [algorithm](#algorithm) option.
+
+### allowed_digits
+
+{{< confkey type="list(string)" default="6" required="no" >}}
+
+Similar to [digits](#digits) with the same restrictions except this option allows users to pick from this list. This
+list will always contain the value configured in the [digits](#digits) option.
+
+### allowed_periods
+
+{{< confkey type="list(integer)" default="30" required="no" >}}
+
+Similar to [period](#period) with the same restrictions except this option allows users to pick from this list. This
+list will always contain the value configured in the [period](#period) option.
+
+### disable_reuse_security_policy
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Disables the policy which prevents reuse of a Time-based One-Time Password codes. This is an additional security measure
+which prevents codes from being replayed. This should only affect codes which are used within the validity period more
+than once.
 
 ## Registration
 
@@ -148,15 +184,15 @@ users to register a new device, you can delete the old device for a particular u
 The period and skew configuration parameters affect each other. The default values are a period of 30 and a skew of 1.
 It is highly recommended you do not change these unless you wish to set skew to 0.
 
-These options affect security by changing the length of time a one-time password is valid for. The formula to calculate
-the effective validity period is `period + (period * skew * 2)`. For example period 30 and skew 1 would result in 90
-seconds of validity, and period 30 and skew 2 would result in 150 seconds of validity.
+These options affect security by changing the length of time a Time-based One-Time Password is valid for. The formula to
+calculate the effective validity period is `period + (period * skew * 2)`. For example period 30 and skew 1 would result
+in 90 seconds of validity, and period 30 and skew 2 would result in 150 seconds of validity.
 
 ## System time accuracy
 
 It's important to note that if the system time is not accurate enough then clients will seemingly not generate valid
 passwords for TOTP. Conversely this is the same when the client time is not accurate enough. This is due to the
-Time-based One Time Passwords being time-based.
+Time-based One-Time Passwords being time-based.
 
 Authelia by default checks the system time against an [NTP server](../miscellaneous/ntp.md) on startup. This helps to
 prevent a time synchronization issue on the server being an issue. There is however no effective and reliable way to
@@ -164,7 +200,7 @@ check the clients.
 
 ## Encryption
 
-The TOTP secret is [encrypted](../storage/introduction.md#encryptionkey) in the database in version 4.33.0 and above.
+The TOTP secret is [encrypted](../storage/introduction.md#encryption_key) in the database in version 4.33.0 and above.
 This is so a user having access to only the database cannot easily compromise your two-factor authentication method.
 
 This may be inconvenient for some users who wish to export TOTP keys from Authelia to other services. As such there is

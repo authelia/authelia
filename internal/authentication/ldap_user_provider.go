@@ -8,9 +8,10 @@ import (
 	"strconv"
 	"strings"
 
-	ldap "github.com/go-ldap/ldap/v3"
+	"github.com/go-ldap/ldap/v3"
 	"github.com/sirupsen/logrus"
 
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -18,13 +19,13 @@ import (
 
 // LDAPUserProvider is a UserProvider that connects to LDAP servers like ActiveDirectory, OpenLDAP, OpenDJ, FreeIPA, etc.
 type LDAPUserProvider struct {
-	config    schema.LDAPAuthenticationBackend
+	config    schema.AuthenticationBackendLDAP
 	tlsConfig *tls.Config
 	dialOpts  []ldap.DialOpt
 	log       *logrus.Logger
 	factory   LDAPClientFactory
 
-	clock utils.Clock
+	clock clock.Provider
 
 	disableResetPassword bool
 
@@ -57,7 +58,7 @@ func NewLDAPUserProvider(config schema.AuthenticationBackend, certPool *x509.Cer
 }
 
 // NewLDAPUserProviderWithFactory creates a new instance of LDAPUserProvider with the specified LDAPClientFactory.
-func NewLDAPUserProviderWithFactory(config schema.LDAPAuthenticationBackend, disableResetPassword bool, certPool *x509.CertPool, factory LDAPClientFactory) (provider *LDAPUserProvider) {
+func NewLDAPUserProviderWithFactory(config schema.AuthenticationBackendLDAP, disableResetPassword bool, certPool *x509.CertPool, factory LDAPClientFactory) (provider *LDAPUserProvider) {
 	if config.TLS == nil {
 		config.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.TLS
 	}
@@ -83,7 +84,7 @@ func NewLDAPUserProviderWithFactory(config schema.LDAPAuthenticationBackend, dis
 		log:                  logging.Logger(),
 		factory:              factory,
 		disableResetPassword: disableResetPassword,
-		clock:                &utils.RealClock{},
+		clock:                clock.New(),
 	}
 
 	provider.parseDynamicUsersConfiguration()

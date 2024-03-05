@@ -66,38 +66,22 @@ In addition this represents a bad user experience in some instances such as:
 
 #### Option 1: Adjusting the Default Configuration
 
-Open the generated `authelia-server.conf`. Adjust the following sections. There are two snippets, one before and one
-after. The only lines that change are the `set $authelia_backend` lines, and this configuration assumes you're
+Open the generated `authelia-server.conf`. Adjust the following section. There are two snippets, one before and one
+after. The only line that changes is the `set $signin_url` line, with `$http_host` replaced by `auth.example.com` and this configuration assumes you're
 serving Authelia at `auth.example.com`.
 
 ```nginx
-    ## Set $authelia_backend to route requests to the current domain by default
-    set $authelia_backend $http_host;
-    ## In order for WebAuthn to work with multiple domains authelia must operate on a separate subdomain
-    ## To use authelia on a separate subdomain:
-    ##  * comment the $authelia_backend line above
-    ##  * rename /config/nginx/proxy-confs/authelia.conf.sample to /config/nginx/proxy-confs/authelia.conf
-    ##  * make sure that your dns has a cname set for authelia
-    ##  * uncomment the $authelia_backend line below and change example.com to your domain
-    ##  * restart the swag container
-    #set $authelia_backend authelia.example.com;
-
-    return 302 https://$authelia_backend/authelia/?rd=$target_url;
+    if ($signin_url = '') {
+        ## Set the $signin_url variable
+        set $signin_url https://$http_host/authelia/?rd=$target_url;
+    }
 ```
 
 ```nginx
-    ## Set $authelia_backend to route requests to the current domain by default
-    # set $authelia_backend $http_host;
-    ## In order for WebAuthn to work with multiple domains authelia must operate on a separate subdomain
-    ## To use authelia on a separate subdomain:
-    ##  * comment the $authelia_backend line above
-    ##  * rename /config/nginx/proxy-confs/authelia.conf.sample to /config/nginx/proxy-confs/authelia.conf
-    ##  * make sure that your dns has a cname set for authelia
-    ##  * uncomment the $authelia_backend line below and change example.com to your domain
-    ##  * restart the swag container
-    set $authelia_backend auth.example.com;
-
-    return 302 https://$authelia_backend/authelia/?rd=$target_url;
+    if ($signin_url = '') {
+        ## Set the $signin_url variable
+        set $signin_url https://auth.example.com/authelia/?rd=$target_url;
+    }
 ```
 
 #### Option 2: Using the Authelia Supplementary Configuration Snippets
@@ -172,7 +156,7 @@ services:
     volumes:
       - '${PWD}/data/swag:/config'
       ## Uncomment the line below if you want to use the Authelia configuration snippets.
-      #- ${PWD}/data/nginx/snippets:/snippets:ro
+      #- '${PWD}/data/nginx/snippets:/snippets'
     environment:
       PUID: '1000'
       PGID: '1000'

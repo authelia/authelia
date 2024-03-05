@@ -4,10 +4,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/regulation"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // FirstFactorPOST is the handler performing the first factory.
@@ -26,7 +24,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 		bodyJSON := bodyFirstFactorRequest{}
 
 		if err := ctx.ParseBody(&bodyJSON); err != nil {
-			ctx.Logger.Errorf(logFmtErrParseRequestBody, regulation.AuthType1FA, err)
+			ctx.Logger.WithError(err).Errorf(logFmtErrParseRequestBody, regulation.AuthType1FA)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
@@ -42,7 +40,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 				return
 			}
 
-			ctx.Logger.Errorf(logFmtErrRegulationFail, regulation.AuthType1FA, bodyJSON.Username, err)
+			ctx.Logger.WithError(err).Errorf(logFmtErrRegulationFail, regulation.AuthType1FA, bodyJSON.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
@@ -72,10 +70,9 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 			return
 		}
 
-		// TODO: write tests.
 		provider, err := ctx.GetSessionProvider()
 		if err != nil {
-			ctx.Logger.Errorf("%s", err)
+			ctx.Logger.WithError(err).Error("Failed to get session provider during 1FA attempt")
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
@@ -95,7 +92,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 
 		// Reset all values from previous session except OIDC workflow before regenerating the cookie.
 		if err = ctx.SaveSession(newSession); err != nil {
-			ctx.Logger.Errorf(logFmtErrSessionReset, regulation.AuthType1FA, bodyJSON.Username, err)
+			ctx.Logger.WithError(err).Errorf(logFmtErrSessionReset, regulation.AuthType1FA, bodyJSON.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
@@ -103,7 +100,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 		}
 
 		if err = ctx.RegenerateSession(); err != nil {
-			ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthType1FA, bodyJSON.Username, err)
+			ctx.Logger.WithError(err).Errorf(logFmtErrSessionRegenerate, regulation.AuthType1FA, bodyJSON.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
@@ -117,7 +114,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 		if keepMeLoggedIn {
 			err = provider.UpdateExpiration(ctx.RequestCtx, provider.Config.RememberMe)
 			if err != nil {
-				ctx.Logger.Errorf(logFmtErrSessionSave, "updated expiration", regulation.AuthType1FA, bodyJSON.Username, err)
+				ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated expiration", regulation.AuthType1FA, logFmtActionAuthentication, bodyJSON.Username)
 
 				respondUnauthorized(ctx, messageAuthenticationFailed)
 
@@ -128,7 +125,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 		// Get the details of the given user from the user provider.
 		userDetails, err := ctx.Providers.UserProvider.GetDetails(bodyJSON.Username)
 		if err != nil {
-			ctx.Logger.Errorf(logFmtErrObtainProfileDetails, regulation.AuthType1FA, bodyJSON.Username, err)
+			ctx.Logger.WithError(err).Errorf(logFmtErrObtainProfileDetails, regulation.AuthType1FA, bodyJSON.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
@@ -139,12 +136,12 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 
 		userSession.SetOneFactor(ctx.Clock.Now(), userDetails, keepMeLoggedIn)
 
-		if refresh, refreshInterval := getProfileRefreshSettings(ctx.Configuration.AuthenticationBackend); refresh {
-			userSession.RefreshTTL = ctx.Clock.Now().Add(refreshInterval)
+		if ctx.Configuration.AuthenticationBackend.RefreshInterval.Update() {
+			userSession.RefreshTTL = ctx.Clock.Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())
 		}
 
 		if err = ctx.SaveSession(userSession); err != nil {
-			ctx.Logger.Errorf(logFmtErrSessionSave, "updated profile", regulation.AuthType1FA, bodyJSON.Username, err)
+			ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated profile", regulation.AuthType1FA, logFmtActionAuthentication, bodyJSON.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
@@ -154,28 +151,9 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 		successful = true
 
 		if bodyJSON.Workflow == workflowOpenIDConnect {
-			handleOIDCWorkflowResponse(ctx, bodyJSON.TargetURL, bodyJSON.WorkflowID)
+			handleOIDCWorkflowResponse(ctx, &userSession, bodyJSON.TargetURL, bodyJSON.WorkflowID)
 		} else {
 			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
 		}
 	}
-}
-
-func getProfileRefreshSettings(cfg schema.AuthenticationBackend) (refresh bool, refreshInterval time.Duration) {
-	if cfg.LDAP != nil {
-		if cfg.RefreshInterval == schema.ProfileRefreshDisabled {
-			refresh = false
-			refreshInterval = 0
-		} else {
-			refresh = true
-
-			if cfg.RefreshInterval != schema.ProfileRefreshAlways {
-				refreshInterval, _ = utils.ParseDurationString(cfg.RefreshInterval)
-			} else {
-				refreshInterval = schema.RefreshIntervalAlways
-			}
-		}
-	}
-
-	return refresh, refreshInterval
 }

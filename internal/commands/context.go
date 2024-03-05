@@ -5,6 +5,10 @@ import (
 	"crypto/x509"
 	"fmt"
 	"os"
+	"os/user"
+	"strconv"
+	"strings"
+	"syscall"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -12,6 +16,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
@@ -138,7 +143,7 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 	ctx.providers.Authorizer = authorization.NewAuthorizer(ctx.config)
 	ctx.providers.NTP = ntp.NewProvider(&ctx.config.NTP)
 	ctx.providers.PasswordPolicy = middlewares.NewPasswordPolicyProvider(ctx.config.PasswordPolicy)
-	ctx.providers.Regulator = regulation.NewRegulator(ctx.config.Regulation, ctx.providers.StorageProvider, utils.RealClock{})
+	ctx.providers.Regulator = regulation.NewRegulator(ctx.config.Regulation, ctx.providers.StorageProvider, clock.New())
 	ctx.providers.SessionProvider = session.NewProvider(ctx.config.Session, ctx.trusted)
 	ctx.providers.TOTP = totp.NewTimeBasedProvider(ctx.config.TOTP)
 
@@ -184,8 +189,8 @@ func (ctx *CmdCtx) ChainRunE(cmdRunEs ...CobraRunECmd) CobraRunECmd {
 	}
 }
 
-// ConfigSetFlagsMapRunE adds a command line source with flags mapping.
-func (ctx *CmdCtx) ConfigSetFlagsMapRunE(flags *pflag.FlagSet, flagsMap map[string]string, includeInvalidKeys, includeUnchangedKeys bool) (err error) {
+// HelperConfigSetFlagsMapRunE adds a command line source with flags mapping.
+func (ctx *CmdCtx) HelperConfigSetFlagsMapRunE(flags *pflag.FlagSet, flagsMap map[string]string, includeInvalidKeys, includeUnchangedKeys bool) (err error) {
 	if ctx.cconfig == nil {
 		ctx.cconfig = NewCmdCtxConfig()
 	}
@@ -195,8 +200,8 @@ func (ctx *CmdCtx) ConfigSetFlagsMapRunE(flags *pflag.FlagSet, flagsMap map[stri
 	return nil
 }
 
-// ConfigSetDefaultsRunE adds a defaults configuration source.
-func (ctx *CmdCtx) ConfigSetDefaultsRunE(defaults map[string]any) CobraRunECmd {
+// HelperConfigSetDefaultsRunE adds a defaults configuration source.
+func (ctx *CmdCtx) HelperConfigSetDefaultsRunE(defaults map[string]any) CobraRunECmd {
 	return func(cmd *cobra.Command, args []string) (err error) {
 		if ctx.cconfig == nil {
 			ctx.cconfig = NewCmdCtxConfig()
@@ -208,10 +213,10 @@ func (ctx *CmdCtx) ConfigSetDefaultsRunE(defaults map[string]any) CobraRunECmd {
 	}
 }
 
-// ConfigValidateKeysRunE validates the configuration (keys).
-func (ctx *CmdCtx) ConfigValidateKeysRunE(_ *cobra.Command, _ []string) (err error) {
+// HelperConfigValidateKeysRunE validates the configuration (keys).
+func (ctx *CmdCtx) HelperConfigValidateKeysRunE(_ *cobra.Command, _ []string) (err error) {
 	if ctx.cconfig == nil {
-		return fmt.Errorf("config validate keys must be used with ConfigLoadRunE")
+		return fmt.Errorf("HelperConfigValidateKeysRunE must be used with HelperConfigLoadRunE")
 	}
 
 	validator.ValidateKeys(ctx.cconfig.keys, configuration.DefaultEnvPrefix, ctx.cconfig.validator)
@@ -219,9 +224,75 @@ func (ctx *CmdCtx) ConfigValidateKeysRunE(_ *cobra.Command, _ []string) (err err
 	return nil
 }
 
-// ConfigValidateRunE validates the configuration (structure).
-func (ctx *CmdCtx) ConfigValidateRunE(_ *cobra.Command, _ []string) (err error) {
+// HelperConfigValidateRunE validates the configuration (structure).
+func (ctx *CmdCtx) HelperConfigValidateRunE(_ *cobra.Command, _ []string) (err error) {
 	validator.ValidateConfiguration(ctx.config, ctx.cconfig.validator)
+
+	return nil
+}
+
+func (ctx *CmdCtx) LogConfigure(_ *cobra.Command, _ []string) (err error) {
+	config := ctx.config.Log
+
+	switch config.Level {
+	case logging.LevelError, logging.LevelWarn, logging.LevelInfo, logging.LevelDebug, logging.LevelTrace:
+		break
+	default:
+		config.Level = logging.LevelTrace
+	}
+
+	switch config.Format {
+	case logging.FormatText, logging.FormatJSON:
+		break
+	default:
+		config.Format = logging.FormatText
+	}
+
+	config.KeepStdout = true
+
+	if err = logging.InitializeLogger(config, false); err != nil {
+		return fmt.Errorf("Cannot initialize logger: %w", err)
+	}
+
+	return nil
+}
+
+func (ctx *CmdCtx) LogProcessCurrentUserRunE(_ *cobra.Command, _ []string) (err error) {
+	var current *user.User
+
+	if current, err = user.Current(); err != nil {
+		current = &user.User{Uid: strconv.Itoa(syscall.Getuid()), Gid: strconv.Itoa(syscall.Getuid())}
+	}
+
+	fields := map[string]any{"uid": current.Uid, "gid": current.Gid}
+
+	if current.Username != "" {
+		fields["username"] = current.Username
+	}
+
+	if current.Name != "" {
+		fields["name"] = current.Name
+	}
+
+	var gids []string
+
+	if gids, err = current.GroupIds(); err == nil && len(gids) != 0 {
+		gidsFinal := []string{}
+
+		for _, gid := range gids {
+			if gid == current.Gid {
+				continue
+			}
+
+			gidsFinal = append(gidsFinal, gid)
+		}
+
+		if len(gidsFinal) != 0 {
+			fields["gids"] = strings.Join(gidsFinal, ",")
+		}
+	}
+
+	ctx.log.WithFields(fields).Debug("Process user information")
 
 	return nil
 }
@@ -311,8 +382,8 @@ func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err e
 	return nil
 }
 
-// ConfigLoadRunE loads the configuration into the CmdCtx.
-func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
+// HelperConfigLoadRunE loads the configuration into the CmdCtx.
+func (ctx *CmdCtx) HelperConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
 		configs []string
 
@@ -327,17 +398,19 @@ func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 		ctx.cconfig = NewCmdCtxConfig()
 	}
 
+	ctx.cconfig.sources = configuration.NewDefaultSourcesWithDefaults(
+		configs,
+		filters,
+		configuration.DefaultEnvPrefix,
+		configuration.DefaultEnvDelimiter,
+		ctx.cconfig.defaults,
+		ctx.cconfig.sources...)
+
 	if ctx.cconfig.keys, err = configuration.LoadAdvanced(
 		ctx.cconfig.validator,
 		"",
 		ctx.config,
-		configuration.NewDefaultSourcesWithDefaults(
-			configs,
-			filters,
-			configuration.DefaultEnvPrefix,
-			configuration.DefaultEnvDelimiter,
-			ctx.cconfig.defaults,
-			ctx.cconfig.sources...)...); err != nil {
+		ctx.cconfig.sources...); err != nil {
 		return err
 	}
 

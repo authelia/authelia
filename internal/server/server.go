@@ -15,7 +15,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-// CreateDefaultServer Create Authelia's internal webserver with the given configuration and providers.
+// CreateDefaultServer Create Authelia's internal web server with the given configuration and providers.
 func CreateDefaultServer(config *schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, paths []string, isTLS bool, err error) {
 	if err = providers.Templates.LoadTemplatedAssets(assets); err != nil {
 		return nil, nil, nil, false, fmt.Errorf("failed to load templated assets: %w", err)
@@ -71,17 +71,17 @@ func CreateDefaultServer(config *schema.Configuration, providers middlewares.Pro
 	}
 
 	if err = writeHealthCheckEnv(config.Server.DisableHealthcheck, connectionScheme, config.Server.Address.Hostname(),
-		config.Server.Address.Path(), config.Server.Address.Port()); err != nil {
+		config.Server.Address.RouterPath(), config.Server.Address.Port()); err != nil {
 		return nil, nil, nil, false, fmt.Errorf("unable to configure healthcheck: %w", err)
 	}
 
 	paths = []string{"/"}
 
-	switch config.Server.Address.Path() {
+	switch config.Server.Address.RouterPath() {
 	case "/", "":
 		break
 	default:
-		paths = append(paths, config.Server.Address.Path())
+		paths = append(paths, config.Server.Address.RouterPath())
 	}
 
 	return server, listener, paths, isTLS, nil
@@ -96,7 +96,7 @@ func CreateMetricsServer(config *schema.Configuration, providers middlewares.Pro
 	server = &fasthttp.Server{
 		ErrorHandler:          handleError("telemetry.metrics"),
 		NoDefaultServerHeader: true,
-		Handler:               handleMetrics(config.Telemetry.Metrics.Address.Path()),
+		Handler:               handleMetrics(config.Telemetry.Metrics.Address.RouterPath()),
 		ReadBufferSize:        config.Telemetry.Metrics.Buffers.Read,
 		WriteBufferSize:       config.Telemetry.Metrics.Buffers.Write,
 		ReadTimeout:           config.Telemetry.Metrics.Timeouts.Read,
@@ -109,5 +109,5 @@ func CreateMetricsServer(config *schema.Configuration, providers middlewares.Pro
 		return nil, nil, nil, false, fmt.Errorf("error occurred while attempting to initialize metrics telemetry server listener for address '%s': %w", config.Telemetry.Metrics.Address.String(), err)
 	}
 
-	return server, listener, []string{config.Telemetry.Metrics.Address.Path()}, false, nil
+	return server, listener, []string{config.Telemetry.Metrics.Address.RouterPath()}, false, nil
 }

@@ -23,7 +23,7 @@ func TestJWTCoreStrategy(t *testing.T) {
 	config := &oidc.Config{
 		TokenEntropy: 10,
 		GlobalSecret: secreta,
-		Lifespans: schema.OpenIDConnectLifespanToken{
+		Lifespans: schema.IdentityProvidersOpenIDConnectLifespanToken{
 			AccessToken:   time.Hour,
 			RefreshToken:  time.Hour,
 			AuthorizeCode: time.Minute,
@@ -33,7 +33,7 @@ func TestJWTCoreStrategy(t *testing.T) {
 	strategy := &oidc.JWTCoreStrategy{
 		Signer: &jwt.DefaultSigner{
 			GetPrivateKey: func(ctx context.Context) (interface{}, error) {
-				return keyRSA2048, nil
+				return x509PrivateKeyRSA2048, nil
 			},
 		},
 		HMACCoreStrategy: &oidc.HMACCoreStrategy{
@@ -113,7 +113,7 @@ func TestJWTCoreStrategy(t *testing.T) {
 	assert.EqualError(t, oidc.ErrorToDebugRFC6749Error(strategy.ValidateAccessToken(ctx, &fosite.Request{RequestedAt: time.Now(), Session: &fosite.DefaultSession{}}, strings.Replace(token, signature, "qePeTyHu389VN_1woLEGR2v1LDJxUWhxrZZfDgUEf_hPtdnRKZv9fVLWJFNI06r87sC9Uu7IjuLqzAuqjwnE86BKZLYkMf780fPr-73Ohoq4jXUQI40uUodxaY4LVPuvq_5W2bAqLm5F03snKOYDQc_GQggek4SVmyDKqSUdvH4M5KXFhp2XyCu7BYv-retZG3K5Z0s_VS_tE8FF_S7_k1MXqSv_wwndmrn8ik-58bXlQe1bAHpvWCrtVQFJWEdtGaQoVDK40PHzLEaWEx47ys8jnAM4-rwNoBbxbP9NnK4Y1XRD1hzOpMYJ7UGa7hUwaIoOkmfEuhWGUZnNeyQRHQ", 1))), "Token signature mismatch. Check that you provided  a valid token in the right format. square/go-jose: error in cryptographic primitive")
 
 	token, signature, err = strategy.GenerateAccessToken(ctx, &fosite.Request{Client: &oidc.BaseClient{AccessTokenSignedResponseAlg: oidc.SigningAlgRSAUsingSHA256}, Session: &BadJWTSessionContainer{Session: &fosite.DefaultSession{}}})
-	assert.EqualError(t, err, "GetTokenClaims() must not be nil")
+	assert.EqualError(t, err, "JWT Claims must not be nil")
 	assert.Empty(t, token)
 	assert.Empty(t, signature)
 }

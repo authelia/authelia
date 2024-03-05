@@ -116,9 +116,10 @@ Feature List:
 
 {{< roadmap-status stage="in-progress" version="v4.38.0" >}}
 
-* [RFC9126: OAuth 2.0 Pushed Authorization Requests]
 * [RFC9068: JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens]
+* [RFC9126: OAuth 2.0 Pushed Authorization Requests]
 * [RFC9207: OAuth 2.0 Authorization Server Issuer Identification]
+* [RFC6750: OAuth 2.0 Bearer Token Usage]
 * [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)]
 * [JWT Response for OAuth Token Inspection]
 * [RFC7523: JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants]:
@@ -133,7 +134,7 @@ Feature List:
   * `ES256`, `ES384`, `ES512`
 * [Custom Authorization Policies / RBAC](#client-rbac):
   * Policies can be mapped to individual clients and reused
-  * Match criteria is only subjects as this is the only effective thing that is constant during the life of an
+  * Match criteria is only subjects as this is the only effective thing that is deterministic during the life of an
     authorization
 
 ### Beta 7
@@ -202,7 +203,7 @@ See the [OpenID Connect 1.0] website for the [OpenID Connect Session Management 
 
 See the [OpenID Connect 1.0] website for the [OpenID Connect Back-Channel Logout 1.0] specification.
 
-Should be implemented alongside [Dynamic Client Registration](#openid-connect-dynamic-client-registration).
+Should be implemented alongside [Dynamic Client Registration](#openid-connect-dynamic-client-registration-10).
 
 #### OpenID Connect Front-Channel Logout 1.0
 
@@ -210,7 +211,7 @@ Should be implemented alongside [Dynamic Client Registration](#openid-connect-dy
 
 See the [OpenID Connect 1.0] website for the [OpenID Connect Front-Channel Logout 1.0] specification.
 
-Should be implemented alongside [Dynamic Client Registration](#openid-connect-dynamic-client-registration).
+Should be implemented alongside [Dynamic Client Registration](#openid-connect-dynamic-client-registration-10).
 
 #### OpenID Connect RP-Initiated Logout 1.0
 
@@ -259,6 +260,7 @@ The `preferred_username` claim was missing and was fixed.
 [RFC9126: OAuth 2.0 Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
 [RFC8414: OAuth 2.0 Authorization Server Metadata]: https://datatracker.ietf.org/doc/html/rfc8414
 [RFC9207: OAuth 2.0 Authorization Server Issuer Identification]: https://datatracker.ietf.org/doc/html/rfc9207
+[RFC6750: OAuth 2.0 Bearer Token Usage]: https://datatracker.ietf.org/doc/html/rfc6750
 [RFC9068: JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens]: https://datatracker.ietf.org/doc/html/rfc9068
 
 [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)]: https://openid.net/specs/oauth-v2-jarm.html

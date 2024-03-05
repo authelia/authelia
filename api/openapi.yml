@@ -95,7 +95,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
   /api/state:
     get:
       tags:
@@ -493,7 +493,7 @@ paths:
       tags:
         - Authentication
       summary: Logout
-      description: The logout endpoint allows a user to logout and destroy a sesssion.
+      description: The logout endpoint allows a user to logout and destroy a session.
       requestBody:
         required: true
         content:
@@ -534,7 +534,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
       security:
         - authelia_auth: []
   /api/reset-password/identity/finish:
@@ -560,7 +560,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
       security:
         - authelia_auth: []
   /api/reset-password:
@@ -569,11 +569,10 @@ paths:
         - Password Reset
       summary: Password Reset
       description: >
-        This endpoint is step 3 of 3 in the password reset process.
-
-        It validates the user session and changes the password.
-
+        The password reset endpoint validates the user session and changes the password.
         The same session cookie must be used for all steps in this process.
+
+        This endpoint is step 3 of 3 in the password reset process.
       requestBody:
         required: true
         content:
@@ -586,7 +585,29 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
+      security:
+        - authelia_auth: []
+    delete:
+      tags:
+        - Password Reset
+      summary: Password Reset
+      description: >
+        The password reset endpoint revokes a JWT associated with a password reset
+        operation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.PasswordResetBodyDELETE'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.API'
       security:
         - authelia_auth: []
   {{- end }}
@@ -644,82 +665,253 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
         "403":
           description: Forbidden
       security:
         - authelia_auth: []
-  {{- if .TOTP }}
-  /api/user/info/totp:
+  /api/user/session/elevation:
     get:
       tags:
-        - User Information
-      summary: User TOTP Configuration
+        - User Elevation
+      summary: User Session Elevation
       description: >
-        The user TOTP info endpoint provides information necessary to display the TOTP component to validate their
-        TOTP input such as the period/frequency and number of digits.
+        The user session elevation endpoint returns information indicating if the current
+        user session has elevated privileges from identity verification.
       responses:
         "200":
           description: Successful Operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/handlers.UserInfoTOTP'
+                $ref: '#/components/schemas/handlers.ElevationStatus.Response'
         "403":
           description: Forbidden
       security:
         - authelia_auth: []
-  /api/secondfactor/totp/identity/start:
     post:
       tags:
-        - Second Factor
-      summary: Identity Verification TOTP Token Creation
+        - User Elevation
+      summary: User Session Elevation
       description: >
-        This endpoint performs identity verification to begin the TOTP device registration process.
-
-        The session generated from this endpoint must be utilised for the subsequent step in the
-        `/api/secondfactor/totp/identity/finish` endpoint.
-      responses:
-        "200":
-          description: Successful Operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
-      security:
-        - authelia_auth: []
-  /api/secondfactor/totp/identity/finish:
-    post:
-      tags:
-        - Second Factor
-      summary: Identity Verification TOTP Token Validation and Device Creation
-      description: >
-        This endpoint performs identity and token verification, upon success also generates TOTP device secret and
-        registers said device.
-
-        The session cookie generated from the `/api/secondfactor/totp/identity/start` endpoint must be utilised for the
-        step here.
+        The user session elevation endpoint generates a new One-Time Code for the purpose
+        of elevating a user session. The One-Time Code is sent to a users email.
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/middlewares.IdentityVerificationFinishBody'
+              $ref: '#/components/schemas/handlers.ElevationVerify.Request'
       responses:
         "200":
           description: Successful Operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/handlers.TOTPKeyResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
+        "403":
+          description: Forbidden
+      security:
+        - authelia_auth: []
+    put:
+      tags:
+        - User Elevation
+      summary: User Session Elevation
+      description: >
+        The user session elevation endpoint verifies and consumes a One-Time Code, and
+        configures the session elevation.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.ElevationStart.Response'
+        "403":
+          description: Forbidden
+      security:
+        - authelia_auth: []
+  /api/user/session/elevation/{id}:
+    delete:
+      tags:
+        - User Elevation
+      summary: User Session Elevation
+      description: >
+        The user session elevation endpoint deletes a pending One-Time Code from the
+        database so that it can't be used. This can be invoked by a user either by cancelling the One-Time Code window
+        or via the revoke link in the generated email.
+      parameters:
+        - in: path
+          name: id
+          description: The Delete ID of the pending User Session Elevation.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.API'
+      security:
+        - authelia_auth: []
+  {{- if .TOTP }}
+  /api/secondfactor/totp/register:
+    get:
+      tags:
+        - Second Factor
+      summary: TOTP Configuration Register
+      description: >
+        The TOTP register endpoint provides information important for registering the TOTP
+        configuration for the user. This endpoint only returns information used for this same endpoint when utilizing
+        the PUT method verb.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.TOTPOptions'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+    put:
+      tags:
+        - Second Factor
+      summary: TOTP Configuration Register
+      description: >
+        The TOTP register endpoint creates a temporary TOTP configuration which must then
+        be validated by the user using the POST method verb variant of this endpoint. Without validation the TOTP
+        configuration is not committed to the database and is instead temporarily stored in the session backend. This
+        action can also be followed by using the DELETE method verb for the same endpoint which will delete the
+        temporary configuration from the session.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.TOTPRegisterStartRequest'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.TOTPRegisterStartResponse'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+    post:
+      tags:
+        - Second Factor
+      summary: TOTP Configuration Register
+      description: >
+        The TOTP register endpoint provides the validation step for the endpoint where the
+        user provides the TOTP configuration generated token. If successful the configuration is saved to the database.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.TOTPRegisterFinishRequest'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.OK'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+    delete:
+      tags:
+        - Second Factor
+      summary: TOTP Configuration Register
+      description: >
+        The TOTP register endpoint removes the temporary TOTP configuration from the
+        session. It does NOT affect the TOTP configuration saved to the database.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.OK'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
   /api/secondfactor/totp:
+    get:
+      tags:
+        - Second Factor
+      summary: TOTP Configuration
+      description: >
+        The TOTP endpoint provides information necessary to display the TOTP component to
+        validate their TOTP input such as the period and number of digits.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.TOTPConfiguration'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
     post:
       tags:
         - Second Factor
       summary: Second Factor Authentication - TOTP
-      description: This endpoint performs second factor authentication with a TOTP key.
+      description: >
+        The TOTP endpoint performs second factor authentication with a TOTP configuration.
       requestBody:
         required: true
         content:
@@ -733,22 +925,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/handlers.redirectResponse'
-        "401":
-          description: Unauthorized
+        "403":
+          description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.ErrorResponse'
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+    delete:
+      tags:
+        - Second Factor
+      summary: Second Factor Authentication - TOTP
+      description: >
+        The TOTP endpoint deletes the TOTP configuration for the user from the database.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.OK'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
   {{- end }}
   {{- if .WebAuthn }}
-  /api/secondfactor/webauthn/assertion:
+  /api/secondfactor/webauthn:
     get:
       tags:
         - Second Factor
-      summary: Second Factor Authentication - WebAuthn (Request)
-      description: This endpoint starts the second factor authentication process with the FIDO2 WebAuthn credential.
+      summary: Second Factor Authentication - WebAuthn
+      description: >
+        The WebAuthn endpoint starts the second factor authentication process with the
+        FIDO2 WebAuthn credential.
       responses:
         "200":
           description: Successful Operation
@@ -756,15 +971,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/webauthn.PublicKeyCredentialRequestOptions'
-        "401":
-          description: Unauthorized
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
     post:
       tags:
         - Second Factor
       summary: Second Factor Authentication - WebAuthn
-      description: This endpoint completes the second factor authentication process with the FIDO2 WebAuthn credential.
+      description: >
+        The WebAuthn endpoint completes the second factor authentication process with the
+        FIDO2 WebAuthn credential.
       requestBody:
         required: true
         content:
@@ -778,47 +999,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/handlers.redirectResponse'
-        "401":
-          description: Unauthorized
-      security:
-        - authelia_auth: []
-  /api/secondfactor/webauthn/identity/start:
-    post:
-      tags:
-        - Second Factor
-      summary: Identity Verification WebAuthn Credential Creation
-      description: >
-        This endpoint performs identity verification to begin the FIDO2 WebAuthn credential attestation process
-        (registration).
-
-        The session generated from this endpoint must be utilised for the subsequent steps in the
-        `/api/secondfactor/webauthn/identity/finish` and `/api/secondfactor/webauthn/attestation` endpoints.
-      responses:
-        "200":
-          description: Successful Operation
+        "403":
+          description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
-  /api/secondfactor/webauthn/identity/finish:
-    post:
+  /api/secondfactor/webauthn/register:
+    put:
       tags:
         - Second Factor
-      summary: Identity Verification FIDO2 WebAuthn Credential Validation
+      summary: WebAuthn Credential Registration (Attestation)
       description: >
-        This endpoint performs identity and token verification, upon success generates a FIDO2 WebAuthn device
-        attestation challenge (registration).
-
-        The session cookie generated from the `/api/secondfactor/webauthn/identity/start` endpoint must be utilised
-        for the subsequent steps here and in the `/api/secondfactor/webauthn/attestation` endpoint.
+        The WebAuthn Register endpoint checks the intended description is okay and provides
+        the relevant credential creation options, and stores the creation options for a validation via the same endpoint
+        with the POST method verb.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/middlewares.IdentityVerificationFinishBody'
+              $ref: '#/components/schemas/webauthn.RegisterRequest'
       responses:
         "200":
           description: Successful Operation
@@ -826,14 +1029,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/webauthn.PublicKeyCredentialCreationOptions'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
-  /api/secondfactor/webauthn/attestation:
     post:
       tags:
         - Second Factor
-      summary: WebAuthn Credential Attestation
-      description: This endpoint performs WebAuthn credential attestation (registration).
+      summary: WebAuthn Credential Registration (Attestation)
+      description: >
+        The WebAuthn Register endpoint validates the authenticators response and finalizes
+        the WebAuthn registration.
       requestBody:
         required: true
         content:
@@ -841,12 +1063,119 @@ paths:
             schema:
               $ref: '#/components/schemas/webauthn.CredentialAttestationResponse'
       responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.OK'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+    delete:
+      tags:
+        - Second Factor
+      summary: WebAuthn Credential Registration (Attestation)
+      description: >
+        The WebAuthn Register endpoint removes all WebAuthn registration data from the
+        session.
+      responses:
         "200":
           description: Successful Operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+  /api/secondfactor/webauthn/credential/{credentialID}:
+    put:
+      tags:
+        - Second Factor
+      summary: WebAuthn Credential
+      description: >
+        The WebAuthn credential endpoint updates the description of the specified WebAuthn
+        credential.
+      parameters:
+        - $ref: '#/components/parameters/credentialID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/webauthn.CredentialUpdateRequest'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.OK'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+    delete:
+      tags:
+        - Second Factor
+      summary: WebAuthn Credential
+      description: >
+        The WebAuthn credential endpoint deletes the specified WebAuthn credential from
+        the database.
+      parameters:
+        - $ref: '#/components/parameters/credentialID'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.OK'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
   {{- end }}
@@ -909,7 +1238,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/middlewares.Response.OK'
         "401":
           description: Unauthorized
       security:
@@ -1557,6 +1886,13 @@ paths:
   {{- end }}
 components:
   parameters:
+    credentialID:
+      in: path
+      name: credentialID
+      schema:
+        type: integer
+      required: true
+      description: Numeric WebAuthn Credential ID
     originalMethodParam:
       name: X-Original-Method
       in: header
@@ -1868,6 +2204,13 @@ components:
         password:
           type: string
           example: password
+    handlers.PasswordResetBodyDELETE:
+      required:
+        - 'token'
+      type: object
+      properties:
+        token:
+          type: string
     {{- end }}
     {{- if .Duo }}
     handlers.bodySignDuoRequest:
@@ -1922,14 +2265,32 @@ components:
         token:
           type: string
           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc5MjU1OTYsImlzcyI6IkF1dGhlbGlhIiwiYWN0aW9uIjoiUmVzZXRQYXNzd29yZCIsInVzZXJuYW1lIjoiQW1pciJ9.636yqRrUCGCe4jsMCsonleX5CYWHncYqZum-YYb6VaY
-    middlewares.OkResponse:
+    middlewares.Response.API:
+      oneOf:
+        - $ref: '#/components/schemas/middlewares.Response.OK'
+        - $ref: '#/components/schemas/middlewares.Response.KO'
+    middlewares.Response.OK:
       type: object
       properties:
         status:
+          enum:
+            - 'OK'
           type: string
-          example: OK
+          example: 'OK'
         data:
           type: object
+          description: 'The data content for the response.'
+    middlewares.Response.KO:
+      type: object
+      properties:
+        status:
+          enum:
+            - 'KO'
+          type: string
+          example: 'KO'
+        message:
+          type: string
+          example: 'Operation Failed.'
     handlers.UserInfo:
       type: object
       properties:
@@ -1970,8 +2331,136 @@ components:
             - 'webauthn'
             - 'mobile_push'
           example: totp
+    handlers.ElevationStatus.Response:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            elevated:
+              description: The indicator of if the session is elevated.
+              type: boolean
+            expires:
+              description: The number of seconds the elevation is still valid for.
+              type: integer
+              example: 300
+            delete_id:
+              description: The value required to delete the current elevation.
+              type: string
+    handlers.ElevationStart.Response:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            delete_id:
+              description: The value required to delete the pending elevation.
+              type: string
+    handlers.ElevationVerify.Request:
+      type: object
+      properties:
+        otc:
+          description: The One-Time Code sent to the users email address.
+          type: string
     {{- if .TOTP }}
-    handlers.UserInfoTOTP:
+    handlers.TOTPOptions:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            algorithm:
+              default: 'SHA1'
+              description: The default algorithm for the generated configuration.
+              type: string
+              example: 'SHA1'
+            length:
+              default: 30
+              description: The default period or length of time for the generated configuration.
+              type: integer
+              example: 30
+            digits:
+              default: 6
+              description: The default digits for the generated configuration.
+              type: integer
+              example: 6
+            algorithms:
+              default:
+                - 'SHA1'
+              description: The allowed algorithm values for the generated configuration.
+              example:
+                - 'SHA1'
+              type: array
+              items:
+                type: string
+            lengths:
+              default:
+                - 30
+              description: The allowed period or length values for the generated configuration.
+              example:
+                - 30
+              type: array
+              items:
+                type: integer
+            periods:
+              default:
+                - 6
+              description: The allowed digits values for the generated configuration.
+              example:
+                - 6
+              type: array
+              items:
+                type: integer
+    handlers.TOTPRegisterStartRequest:
+      type: object
+      properties:
+        algorithm:
+          default: 'SHA1'
+          description: The algorithm for the generated configuration.
+          type: string
+          example: 'SHA1'
+        length:
+          default: 30
+          description: The period or length of time for the generated configuration.
+          type: integer
+          example: 30
+        digits:
+          default: 6
+          description: The digits for the generated configuration.
+          type: integer
+          example: 6
+    handlers.TOTPRegisterStartResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            base32_secret:
+              description: The base32 encoded secret for the TOTP configuration.
+              type: string
+            otpauth_url:
+              description: The TOTP scheme URL for the TOTP configuration used to generate the QR code.
+              type: string
+    handlers.TOTPRegisterFinishRequest:
+      type: object
+      properties:
+        token:
+          description: The value generated by the authenticator.
+          type: string
+          example: '123456'
+    handlers.TOTPConfiguration:
       type: object
       properties:
         status:
@@ -2041,23 +2530,28 @@ components:
           type: string
           format: byte
     webauthn.CredentialAttestationResponse:
-      allOf:
-        - $ref: '#/components/schemas/webauthn.PublicKeyCredential'
-        - type: object
-          properties:
-            clientExtensionResults:
-              type: object
+      type: object
+      properties:
+        credential:
+          allOf:
+            - $ref: '#/components/schemas/webauthn.PublicKeyCredential'
+            - type: object
               properties:
-                appidExclude:
-                  type: boolean
-            response:
-              allOf:
-                - $ref: '#/components/schemas/webauthn.AuthenticatorResponse'
-                - type: object
+                clientExtensionResults:
+                  type: object
                   properties:
-                    attestationObject:
-                      type: string
-                      format: byte
+                    appidExclude:
+                      type: boolean
+                response:
+                  allOf:
+                    - $ref: '#/components/schemas/webauthn.AuthenticatorResponse'
+                    - type: object
+                      properties:
+                        attestationObject:
+                          type: string
+                          format: byte
+        description:
+          type: string
     webauthn.CredentialAssertionResponse:
       allOf:
         - $ref: '#/components/schemas/webauthn.PublicKeyCredential'
@@ -2098,6 +2592,18 @@ components:
                       format: uuid
                       pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
                       example: '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
+    webauthn.CredentialUpdateRequest:
+      type: object
+      properties:
+        description:
+          type: string
+    webauthn.RegisterRequest:
+      type: object
+      properties:
+        description:
+          description: The description the registered credential will have.
+          type: string
+          example: 'My Main Credential'
     webauthn.PublicKeyCredentialCreationOptions:
       type: object
       properties:

@@ -1,7 +1,7 @@
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:20-alpine AS builder-frontend
+FROM node:21-alpine AS builder-frontend
 
 WORKDIR /node/src/app
 
@@ -13,7 +13,7 @@ RUN yarn install --frozen-lockfile && yarn build
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.21.0-alpine AS builder-backend
+FROM golang:1.22.0-alpine3.18 AS builder-backend
 
 WORKDIR /go/src/app
 
@@ -43,7 +43,7 @@ RUN \
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.18.3
+FROM alpine:3.19.1
 
 WORKDIR /app
 

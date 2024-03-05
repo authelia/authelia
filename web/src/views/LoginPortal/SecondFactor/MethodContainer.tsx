@@ -28,14 +28,15 @@ export interface Props {
 }
 
 const DefaultMethodContainer = function (props: Props) {
-    const styles = useStyles();
     const { t: translate } = useTranslation();
+
+    const styles = useStyles();
+
     const registerMessage = props.registered
         ? props.title === "Push Notification"
             ? ""
-            : translate("Lost your device?")
+            : translate("Manage devices")
         : translate("Register device");
-    const selectMessage = translate("Select a Device");
 
     let container: ReactNode;
     let stateClass: string = "";
@@ -62,7 +63,7 @@ const DefaultMethodContainer = function (props: Props) {
             </div>
             {props.onSelectClick && props.registered ? (
                 <Link component="button" id="selection-link" onClick={props.onSelectClick} underline="hover">
-                    {selectMessage}
+                    {translate("Select a Device")}
                 </Link>
             ) : null}
             {(props.onRegisterClick && props.title !== "Push Notification") ||

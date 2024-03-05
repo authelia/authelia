@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -25,7 +25,7 @@ type RegulatorSuite struct {
 
 func (s *RegulatorSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
-	s.mock.Ctx.Configuration.Regulation = schema.RegulationConfiguration{
+	s.mock.Ctx.Configuration.Regulation = schema.Regulation{
 		MaxRetries: 3,
 		BanTime:    time.Second * 180,
 		FindTime:   time.Second * 30,
@@ -307,7 +307,7 @@ func (s *RegulatorSuite) TestShouldHaveRegulatorDisabled() {
 		Return(attemptsInDB, nil)
 
 	// Check Disabled Functionality.
-	config := schema.RegulationConfiguration{
+	config := schema.Regulation{
 		MaxRetries: 0,
 		FindTime:   time.Second * 180,
 		BanTime:    time.Second * 180,
@@ -318,7 +318,7 @@ func (s *RegulatorSuite) TestShouldHaveRegulatorDisabled() {
 	assert.NoError(s.T(), err)
 
 	// Check Enabled Functionality.
-	config = schema.RegulationConfiguration{
+	config = schema.Regulation{
 		MaxRetries: 1,
 		FindTime:   time.Second * 180,
 		BanTime:    time.Second * 180,

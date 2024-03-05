@@ -109,8 +109,8 @@ services:
       - '80:8080'
       - '443:8443'
     volumes:
-      - '${PWD}/data/envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro'
-      - '${PWD}/data/certificates:/certificates:ro'
+      - '${PWD}/data/envoy/envoy.yaml:/etc/envoy/envoy.yaml'
+      - '${PWD}/data/certificates:/certificates'
   authelia:
     container_name: 'authelia'
     image: 'authelia/authelia'

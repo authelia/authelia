@@ -28,30 +28,13 @@ community: true
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://argocd.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://argocd.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `argocd`
 * __Client Secret:__ `insecure_secret`
 * __CLI Client ID:__ `argocd-cli`
 
 ## Configuration
-
-### Application
-
-To configure [Argo CD] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
-
-```yaml
-name: Authelia
-issuer: https://auth.example.com
-clientID: argocd
-clientSecret: insecure_secret
-cliClientID: argocd-cli
-requestedScopes:
-  - openid
-  - profile
-  - email
-  - groups
-```
 
 ### Authelia
 
@@ -91,6 +74,23 @@ identity_providers:
         - 'profile'
         - 'offline_access'
       userinfo_signed_response_alg: 'none'
+```
+
+### Application
+
+To configure [Argo CD] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+
+```yaml
+name: 'Authelia'
+issuer: 'https://auth.example.com'
+clientID: 'argocd'
+clientSecret: 'insecure_secret'
+cliClientID: 'argocd-cli'
+requestedScopes:
+  - 'openid'
+  - 'profile'
+  - 'email'
+  - 'groups'
 ```
 
 ## See Also

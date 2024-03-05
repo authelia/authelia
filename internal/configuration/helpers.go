@@ -7,15 +7,19 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func getEnvConfigMap(keys []string, prefix, delimiter string) (keyMap map[string]string, ignoredKeys []string) {
+func getEnvConfigMap(keys []string, prefix, delimiter string, ds map[string]Deprecation) (keyMap map[string]string, ignoredKeys []string) {
 	keyMap = make(map[string]string)
 
 	for _, key := range keys {
-		if strings.Contains(key, delimiter) {
-			keyMap[ToEnvironmentKey(key, prefix, delimiter)] = key
-		}
+		keyMap[ToEnvironmentKey(key, prefix, delimiter)] = key
 
 		// Secret envs should be ignored by the env parser.
+		if IsSecretKey(key) {
+			ignoredKeys = append(ignoredKeys, ToEnvironmentSecretKey(key, prefix, delimiter))
+		}
+	}
+
+	for key := range ds {
 		if IsSecretKey(key) {
 			ignoredKeys = append(ignoredKeys, ToEnvironmentSecretKey(key, prefix, delimiter))
 		}
@@ -26,16 +30,30 @@ func getEnvConfigMap(keys []string, prefix, delimiter string) (keyMap map[string
 			continue
 		}
 
-		keyMap[ToEnvironmentKey(deprecation.Key, prefix, delimiter)] = deprecation.Key
+		d := ToEnvironmentKey(deprecation.Key, prefix, delimiter)
+
+		if _, ok := keyMap[d]; ok {
+			continue
+		}
+
+		keyMap[d] = deprecation.Key
 	}
 
 	return keyMap, ignoredKeys
 }
 
-func getSecretConfigMap(keys []string, prefix, delimiter string) (keyMap map[string]string) {
+func getSecretConfigMap(keys []string, prefix, delimiter string, ds map[string]Deprecation) (keyMap map[string]string) {
 	keyMap = make(map[string]string)
 
 	for _, key := range keys {
+		if IsSecretKey(key) {
+			originalKey := strings.ToUpper(strings.ReplaceAll(key, constDelimiter, delimiter)) + constSecretSuffix
+
+			keyMap[prefix+originalKey] = key
+		}
+	}
+
+	for key := range ds {
 		if IsSecretKey(key) {
 			originalKey := strings.ToUpper(strings.ReplaceAll(key, constDelimiter, delimiter)) + constSecretSuffix
 

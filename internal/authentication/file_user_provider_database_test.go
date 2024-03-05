@@ -10,7 +10,7 @@ import (
 )
 
 func TestDatabaseModel_Read(t *testing.T) {
-	model := &DatabaseModel{}
+	model := &FileDatabaseModel{}
 
 	dir := t.TempDir()
 

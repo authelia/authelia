@@ -51,6 +51,7 @@ authelia --config /etc/authelia/config/
 
 * [authelia access-control](authelia_access-control.md)	 - Helpers for the access control system
 * [authelia build-info](authelia_build-info.md)	 - Show the build information of Authelia
+* [authelia config](authelia_config.md)	 - Perform config related actions
 * [authelia crypto](authelia_crypto.md)	 - Perform cryptographic operations
 * [authelia storage](authelia_storage.md)	 - Manage the Authelia storage
 * [authelia validate-config](authelia_validate-config.md)	 - Check a configuration against the internal configuration validation mechanisms

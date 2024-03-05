@@ -37,12 +37,12 @@ func OpenIDConnectConsentGET(ctx *middlewares.AutheliaCtx) {
 		handled bool
 	)
 
-	if _, consent, client, handled = oidcConsentGetSessionsAndClient(ctx, consentID); handled {
+	if _, consent, client, handled = handleOpenIDConnectConsentGetSessionsAndClient(ctx, consentID); handled {
 		return
 	}
 
 	if err = ctx.SetJSONBody(client.GetConsentResponseBody(consent)); err != nil {
-		ctx.Error(fmt.Errorf("unable to set JSON body: %v", err), "Operation failed")
+		ctx.Error(fmt.Errorf("unable to set JSON body: %w", err), "Operation failed")
 	}
 }
 
@@ -75,7 +75,7 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 		handled     bool
 	)
 
-	if userSession, consent, client, handled = oidcConsentGetSessionsAndClient(ctx, consentID); handled {
+	if userSession, consent, client, handled = handleOpenIDConnectConsentGetSessionsAndClient(ctx, consentID); handled {
 		return
 	}
 
@@ -160,7 +160,7 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-func oidcConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, consentID uuid.UUID) (userSession session.UserSession, consent *model.OAuth2ConsentSession, client oidc.Client, handled bool) {
+func handleOpenIDConnectConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, consentID uuid.UUID) (userSession session.UserSession, consent *model.OAuth2ConsentSession, client oidc.Client, handled bool) {
 	var (
 		err error
 	)

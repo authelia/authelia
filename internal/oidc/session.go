@@ -1,6 +1,7 @@
 package oidc
 
 import (
+	"net/url"
 	"time"
 
 	"github.com/google/uuid"
@@ -8,7 +9,66 @@ import (
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
+
+	"github.com/authelia/authelia/v4/internal/model"
 )
+
+// NewSession creates a new empty OpenIDSession struct.
+func NewSession() (session *Session) {
+	return &Session{
+		DefaultSession: &openid.DefaultSession{
+			Claims: &jwt.IDTokenClaims{
+				Extra: map[string]any{},
+			},
+			Headers: &jwt.Headers{
+				Extra: map[string]any{},
+			},
+		},
+		Extra: map[string]any{},
+	}
+}
+
+// NewSessionWithAuthorizeRequest uses details from an AuthorizeRequester to generate an OpenIDSession.
+func NewSessionWithAuthorizeRequest(ctx Context, issuer *url.URL, kid, username string, amr []string, extra map[string]any,
+	authTime time.Time, consent *model.OAuth2ConsentSession, requester fosite.AuthorizeRequester) (session *Session) {
+	if extra == nil {
+		extra = map[string]any{}
+	}
+
+	session = &Session{
+		DefaultSession: &openid.DefaultSession{
+			Claims: &jwt.IDTokenClaims{
+				Subject:     consent.Subject.UUID.String(),
+				Issuer:      issuer.String(),
+				AuthTime:    authTime,
+				RequestedAt: consent.RequestedAt,
+				IssuedAt:    ctx.GetClock().Now().UTC(),
+				Nonce:       requester.GetRequestForm().Get(ClaimNonce),
+				Extra:       extra,
+
+				AuthenticationMethodsReferences: amr,
+			},
+			Headers: &jwt.Headers{
+				Extra: map[string]any{
+					JWTHeaderKeyIdentifier: kid,
+				},
+			},
+			Subject:  consent.Subject.UUID.String(),
+			Username: username,
+		},
+		ChallengeID:           model.NullUUID(consent.ChallengeID),
+		KID:                   kid,
+		ClientID:              requester.GetClient().GetID(),
+		ExcludeNotBeforeClaim: false,
+		AllowedTopLevelClaims: nil,
+		Extra:                 map[string]any{},
+	}
+
+	session.Claims.Add(ClaimAuthorizedParty, session.ClientID)
+	session.Claims.Add(ClaimClientIdentifier, session.ClientID)
+
+	return session
+}
 
 // Session holds OpenID Connect 1.0 Session information.
 type Session struct {
@@ -17,6 +77,7 @@ type Session struct {
 	ChallengeID           uuid.NullUUID  `json:"challenge_id"`
 	KID                   string         `json:"kid"`
 	ClientID              string         `json:"client_id"`
+	ClientCredentials     bool           `json:"client_credentials"`
 	ExcludeNotBeforeClaim bool           `json:"exclude_nbf_claim"`
 	AllowedTopLevelClaims []string       `json:"allowed_top_level_claims"`
 	Extra                 map[string]any `json:"extra"`

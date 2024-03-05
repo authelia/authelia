@@ -3,18 +3,23 @@ package main
 import (
 	"crypto/ecdsa"
 	"crypto/rsa"
+	"encoding/json"
 	"fmt"
 	"net/mail"
 	"net/url"
+	"os"
 	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
 	"time"
 
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func getPFlagPath(flags *pflag.FlagSet, flagNames ...string) (fullPath string, err error) {
@@ -68,6 +73,7 @@ var decodedTypes = []reflect.Type{
 	reflect.TypeOf(schema.AddressSMTP{}),
 	reflect.TypeOf(schema.X509CertificateChain{}),
 	reflect.TypeOf(schema.PasswordDigest{}),
+	reflect.TypeOf(schema.RefreshIntervalDuration{}),
 	reflect.TypeOf(rsa.PrivateKey{}),
 	reflect.TypeOf(ecdsa.PrivateKey{}),
 }
@@ -86,8 +92,30 @@ func containsType(needle reflect.Type, haystack []reflect.Type) (contains bool) 
 	return false
 }
 
+func readVersion(cmd *cobra.Command) (version *model.SemanticVersion, err error) {
+	var (
+		pathPackageJSON string
+		dataPackageJSON []byte
+		packageJSON     PackageJSON
+	)
+
+	if pathPackageJSON, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagWeb, cmdFlagFileWebPackage); err != nil {
+		return nil, err
+	}
+
+	if dataPackageJSON, err = os.ReadFile(pathPackageJSON); err != nil {
+		return nil, err
+	}
+
+	if err = json.Unmarshal(dataPackageJSON, &packageJSON); err != nil {
+		return nil, fmt.Errorf("failed to unmarshall package.json: %w", err)
+	}
+
+	return model.NewSemanticVersion(packageJSON.Version)
+}
+
 //nolint:gocyclo
-func readTags(prefix string, t reflect.Type, envSkip bool) (tags []string) {
+func readTags(prefix string, t reflect.Type, envSkip, deprecatedSkip bool) (tags []string) {
 	tags = make([]string, 0)
 
 	if envSkip && (t.Kind() == reflect.Slice || t.Kind() == reflect.Map) {
@@ -96,7 +124,7 @@ func readTags(prefix string, t reflect.Type, envSkip bool) (tags []string) {
 
 	if t.Kind() != reflect.Struct {
 		if t.Kind() == reflect.Slice {
-			tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, "", true, false), t.Elem(), envSkip)...)
+			tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, "", true, false), t.Elem(), envSkip, deprecatedSkip)...)
 		}
 
 		return
@@ -104,6 +132,10 @@ func readTags(prefix string, t reflect.Type, envSkip bool) (tags []string) {
 
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
+
+		if deprecatedSkip && isDeprecated(field) {
+			continue
+		}
 
 		tag := field.Tag.Get("koanf")
 
@@ -116,7 +148,7 @@ func readTags(prefix string, t reflect.Type, envSkip bool) (tags []string) {
 		switch kind := field.Type.Kind(); kind {
 		case reflect.Struct:
 			if !containsType(field.Type, decodedTypes) {
-				tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, false, false), field.Type, envSkip)...)
+				tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, false, false), field.Type, envSkip, deprecatedSkip)...)
 
 				continue
 			}
@@ -131,18 +163,18 @@ func readTags(prefix string, t reflect.Type, envSkip bool) (tags []string) {
 			case reflect.Struct:
 				if !containsType(field.Type.Elem(), decodedTypes) {
 					tags = append(tags, getKeyNameFromTagAndPrefix(prefix, tag, false, false))
-					tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, kind == reflect.Slice, kind == reflect.Map), field.Type.Elem(), envSkip)...)
+					tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, kind == reflect.Slice, kind == reflect.Map), field.Type.Elem(), envSkip, deprecatedSkip)...)
 
 					continue
 				}
 			case reflect.Slice:
-				tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, kind == reflect.Slice, kind == reflect.Map), field.Type.Elem(), envSkip)...)
+				tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, kind == reflect.Slice, kind == reflect.Map), field.Type.Elem(), envSkip, deprecatedSkip)...)
 			}
 		case reflect.Ptr:
 			switch field.Type.Elem().Kind() {
 			case reflect.Struct:
 				if !containsType(field.Type.Elem(), decodedTypes) {
-					tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, false, false), field.Type.Elem(), envSkip)...)
+					tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, false, false), field.Type.Elem(), envSkip, deprecatedSkip)...)
 
 					continue
 				}
@@ -155,7 +187,7 @@ func readTags(prefix string, t reflect.Type, envSkip bool) (tags []string) {
 
 				if k == reflect.Struct {
 					if !containsType(field.Type.Elem(), decodedTypes) {
-						tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, true, false), field.Type.Elem(), envSkip)...)
+						tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, true, false), field.Type.Elem(), envSkip, deprecatedSkip)...)
 
 						continue
 					}
@@ -176,6 +208,19 @@ func isValueKind(kind reflect.Kind) bool {
 	default:
 		return true
 	}
+}
+
+func isDeprecated(field reflect.StructField) bool {
+	var (
+		value string
+		ok    bool
+	)
+
+	if value, ok = field.Tag.Lookup("jsonschema"); !ok {
+		return false
+	}
+
+	return utils.IsStringInSlice("deprecated", strings.Split(value, ","))
 }
 
 func getKeyNameFromTagAndPrefix(prefix, name string, isSlice, isMap bool) string {

@@ -3,7 +3,6 @@ package validator
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -20,16 +19,6 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 			validator.Push(fmt.Errorf("the location 'certificates_directory' could not be inspected: %w", err))
 		} else if !info.IsDir() {
 			validator.Push(fmt.Errorf("the location 'certificates_directory' refers to '%s' is not a directory", config.CertificatesDirectory))
-		}
-	}
-
-	if config.JWTSecret == "" {
-		validator.Push(fmt.Errorf("option 'jwt_secret' is required"))
-	}
-
-	if config.DefaultRedirectionURL != "" {
-		if err = utils.IsStringAbsURL(config.DefaultRedirectionURL); err != nil {
-			validator.Push(fmt.Errorf("option 'default_redirection_url' is invalid: %s", strings.ReplaceAll(err.Error(), "like 'http://' or 'https://'", "like 'ldap://' or 'ldaps://'")))
 		}
 	}
 
@@ -51,7 +40,7 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 
 	ValidateRules(config, validator)
 
-	ValidateSession(&config.Session, validator)
+	ValidateSession(config, validator)
 
 	ValidateRegulation(config, validator)
 
@@ -64,6 +53,8 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 	ValidateNotifier(&config.Notifier, validator)
 
 	ValidateIdentityProviders(&config.IdentityProviders, validator)
+
+	ValidateIdentityValidation(config, validator)
 
 	ValidateNTP(config, validator)
 

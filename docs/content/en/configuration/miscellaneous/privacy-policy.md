@@ -44,10 +44,10 @@ accepted is recorded and checked in the browser
 If the user has not accepted the policy they should not be able to interact with the Authelia UI via normal means.
 
 Administrators who are required to abide by the [GDPR] or other privacy laws should be advised that
-[OpenID Connect 1.0](../identity-providers/openid-connect.md) clients configured with the `implicit` consent mode are
-unlikely to trigger the display of the Authelia UI if the user is already authenticated.
+[OpenID Connect 1.0](../identity-providers/openid-connect/provider.md) clients configured with the `implicit` consent
+mode are unlikely to trigger the display of the Authelia UI if the user is already authenticated.
 
-We wont be adding checks like this to the `implicit` consent mode when that mode in particular is unlikely to be
+We won't be adding checks like this to the `implicit` consent mode when that mode in particular is unlikely to be
 compliant with those laws, and that mode is not strictly compliant with the OpenID Connect 1.0 specifications. It is
 therefore recommended if `require_user_acceptance` is enabled then administrators should avoid using the `implicit`
 consent mode or do so at their own risk.

@@ -5,10 +5,10 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -294,11 +294,13 @@ func TestAutheliaCtx_IssuerURL(t *testing.T) {
 				require.NotNil(t, actual)
 
 				assert.Equal(t, tc.expected, actual.String())
+
 				if len(tc.expectedProto) == 0 {
 					assert.Equal(t, tc.proto, actual.Scheme)
 				} else {
 					assert.Equal(t, tc.expectedProto, actual.Scheme)
 				}
+
 				assert.Equal(t, tc.host, actual.Host)
 				assert.Equal(t, tc.base, actual.Path)
 			} else {
@@ -329,6 +331,7 @@ func TestShouldCallNextWithAutheliaCtx(t *testing.T) {
 	middleware(func(actx *middlewares.AutheliaCtx) {
 		// Authelia context wraps the request.
 		assert.Equal(t, ctx, actx.RequestCtx)
+
 		nextCalled = true
 	})(ctx)
 
@@ -490,32 +493,31 @@ func TestAutheliaCtx_GetTargetURICookieDomain(t *testing.T) {
 	testCases := []struct {
 		name     string
 		have     *url.URL
-		config   []schema.SessionCookieConfiguration
+		config   []schema.SessionCookie
 		expected string
 		secure   bool
 	}{
 		{
 			"ShouldReturnEmptyNil",
 			nil,
-			[]schema.SessionCookieConfiguration{},
+			[]schema.SessionCookie{},
 			"",
 			false,
 		},
 		{
 			"ShouldReturnEmptyNoMatch",
 			&url.URL{Scheme: "https", Host: "example.com"},
-			[]schema.SessionCookieConfiguration{},
+			[]schema.SessionCookie{},
 			"",
 			false,
 		},
 		{
 			"ShouldReturnDomain",
 			&url.URL{Scheme: "https", Host: "example.com"},
-			[]schema.SessionCookieConfiguration{
+			[]schema.SessionCookie{
 				{
-					SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-						Domain: "example.com",
-					},
+					Domain:              "example.com",
+					SessionCookieCommon: schema.SessionCookieCommon{},
 				},
 			},
 			"example.com",
@@ -524,11 +526,10 @@ func TestAutheliaCtx_GetTargetURICookieDomain(t *testing.T) {
 		{
 			"ShouldReturnDomain",
 			&url.URL{Scheme: "http", Host: "example.com"},
-			[]schema.SessionCookieConfiguration{
+			[]schema.SessionCookie{
 				{
-					SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-						Domain: "example.com",
-					},
+					Domain:              "example.com",
+					SessionCookieCommon: schema.SessionCookieCommon{},
 				},
 			},
 			"example.com",
@@ -543,8 +544,28 @@ func TestAutheliaCtx_GetTargetURICookieDomain(t *testing.T) {
 
 			mock.Ctx.Configuration.Session.Cookies = tc.config
 
-			assert.Equal(t, tc.expected, mock.Ctx.GetTargetURICookieDomain(tc.have))
+			assert.Equal(t, tc.expected, mock.Ctx.GetCookieDomainFromTargetURI(tc.have))
 			assert.Equal(t, tc.secure, mock.Ctx.IsSafeRedirectionTargetURI(tc.have))
 		})
 	}
+}
+
+func TestAutheliaCtx_GetDefaultRedirectionURL(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.example4.com/consent")
+
+	assert.Nil(t, mock.Ctx.GetDefaultRedirectionURL())
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.example.com/consent")
+
+	assert.Equal(t, &url.URL{Scheme: "https", Host: "www.example.com"}, mock.Ctx.GetDefaultRedirectionURL())
+
+	mock2 := mocks.NewMockAutheliaCtx(t)
+	defer mock2.Close()
+
+	mock2.Ctx.Request.Header.Set("X-Original-URL", "https://auth.example2.com/consent")
+
+	assert.Equal(t, &url.URL{Scheme: "https", Host: "www.example2.com"}, mock2.Ctx.GetDefaultRedirectionURL())
 }

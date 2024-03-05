@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/storage"
@@ -23,59 +22,70 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/mock/gomock"
 	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func TestShouldNotRaiseErrorOnEqualPasswordsPlainText(t *testing.T) {
-	hasher, err := oidc.NewHasher()
+func TestHasher_Compare(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		input    string
+		expected string
+	}{
+		{
+			"ShouldComparePlainTextEqual",
+			"$plaintext$abc",
+			"abc",
+			"",
+		},
+		{
+			"ShouldComparePlainTextEqualWithSeparator",
+			"$plaintext$abc$123",
+			"abc$123",
+			"",
+		},
+		{
+			"ShouldComparePlainTextNotEqual",
+			"$plaintext$abc",
+			"123",
+			"The provided client secret did not match the registered client secret.",
+		},
+		{
+			"ShouldCompareReturnHasherErrorBadHash",
+			"bad$abc",
+			"abc",
+			"provided encoded hash has an invalid format: the digest doesn't begin with the delimiter '$' and is not one of the other understood formats",
+		},
+	}
 
+	hasher, err := oidc.NewHasher()
 	require.NoError(t, err)
 
-	a := []byte("$plaintext$abc")
-	b := []byte("abc")
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.TODO()
 
-	ctx := context.TODO()
-
-	assert.NoError(t, hasher.Compare(ctx, a, b))
-}
-
-func TestShouldNotRaiseErrorOnEqualPasswordsPlainTextWithSeparator(t *testing.T) {
-	hasher, err := oidc.NewHasher()
-
-	require.NoError(t, err)
-
-	a := []byte("$plaintext$abc$123")
-	b := []byte("abc$123")
-
-	ctx := context.TODO()
-
-	assert.NoError(t, hasher.Compare(ctx, a, b))
-}
-
-func TestShouldRaiseErrorOnNonEqualPasswordsPlainText(t *testing.T) {
-	hasher, err := oidc.NewHasher()
-
-	require.NoError(t, err)
-
-	a := []byte("$plaintext$abc")
-	b := []byte("abcd")
-
-	ctx := context.TODO()
-
-	assert.EqualError(t, hasher.Compare(ctx, a, b), "The provided client secret did not match the registered client secret.")
+			if len(tc.expected) == 0 {
+				assert.NoError(t, hasher.Compare(ctx, []byte(tc.have), []byte(tc.input)))
+			} else {
+				assert.EqualError(t, hasher.Compare(ctx, []byte(tc.have), []byte(tc.input)), tc.expected)
+			}
+		})
+	}
 }
 
 func TestShouldHashPassword(t *testing.T) {
 	hasher := oidc.Hasher{}
 
-	data := []byte("abc")
+	data := []byte(abc)
 
 	ctx := context.TODO()
 
@@ -192,7 +202,7 @@ func (s *ClientAuthenticationStrategySuite) GetCtx() oidc.Context {
 	return &TestContext{
 		Context:       context.TODO(),
 		MockIssuerURL: s.GetIssuerURL(),
-		Clock:         &utils.RealClock{},
+		Clock:         clock.New(),
 	}
 }
 
@@ -202,12 +212,12 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 
 	secret := tOpenIDConnectPlainTextClientSecret
 
-	s.provider = oidc.NewOpenIDConnectProvider(&schema.OpenIDConnect{
+	s.provider = oidc.NewOpenIDConnectProvider(&schema.IdentityProvidersOpenIDConnect{
 		IssuerPrivateKeys: []schema.JWK{
-			{Key: keyRSA2048, CertificateChain: certRSA2048, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAUsingSHA256},
+			{Key: x509PrivateKeyRSA2048, CertificateChain: x509CertificateChainRSA2048, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAUsingSHA256},
 		},
 		HMACSecret: "abc123",
-		Clients: []schema.OpenIDConnectClient{
+		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
 				ID:                  "hs256",
 				Secret:              secret,
@@ -328,9 +338,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA256,
-				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
-						{KeyID: rs256, Key: keyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
+						{KeyID: rs256, Key: x509PrivateKeyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
 					},
 				},
 			},
@@ -342,9 +352,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA384,
-				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
-						{KeyID: "rs384", Key: keyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAUsingSHA384, Use: oidc.KeyUseSignature},
+						{KeyID: "rs384", Key: x509PrivateKeyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAUsingSHA384, Use: oidc.KeyUseSignature},
 					},
 				},
 			},
@@ -356,9 +366,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA512,
-				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
-						{KeyID: "rs512", Key: keyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAUsingSHA512, Use: oidc.KeyUseSignature},
+						{KeyID: "rs512", Key: x509PrivateKeyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAUsingSHA512, Use: oidc.KeyUseSignature},
 					},
 				},
 			},
@@ -370,9 +380,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA256,
-				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
-						{KeyID: "ps256", Key: keyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAPSSUsingSHA256, Use: oidc.KeyUseSignature},
+						{KeyID: "ps256", Key: x509PrivateKeyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAPSSUsingSHA256, Use: oidc.KeyUseSignature},
 					},
 				},
 			},
@@ -384,9 +394,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA384,
-				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
-						{KeyID: "ps384", Key: keyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAPSSUsingSHA384, Use: oidc.KeyUseSignature},
+						{KeyID: "ps384", Key: x509PrivateKeyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAPSSUsingSHA384, Use: oidc.KeyUseSignature},
 					},
 				},
 			},
@@ -398,9 +408,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA512,
-				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
-						{KeyID: "ps512", Key: keyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAPSSUsingSHA512, Use: oidc.KeyUseSignature},
+						{KeyID: "ps512", Key: x509PrivateKeyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAPSSUsingSHA512, Use: oidc.KeyUseSignature},
 					},
 				},
 			},
@@ -412,9 +422,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP256AndSHA256,
-				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
-						{KeyID: "es256", Key: keyECDSAP256.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP256AndSHA256, Use: oidc.KeyUseSignature},
+						{KeyID: "es256", Key: x509PrivateKeyECDSAP256.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP256AndSHA256, Use: oidc.KeyUseSignature},
 					},
 				},
 			},
@@ -426,9 +436,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP384AndSHA384,
-				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
-						{KeyID: "es384", Key: keyECDSAP384.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP384AndSHA384, Use: oidc.KeyUseSignature},
+						{KeyID: "es384", Key: x509PrivateKeyECDSAP384.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP384AndSHA384, Use: oidc.KeyUseSignature},
 					},
 				},
 			},
@@ -440,9 +450,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP521AndSHA512,
-				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
-						{KeyID: es512, Key: keyECDSAP521.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature},
+						{KeyID: es512, Key: x509PrivateKeyECDSAP521.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature},
 					},
 				},
 			},
@@ -454,9 +464,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA256,
-				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
-						{KeyID: es512, Key: keyECDSAP521.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature},
+						{KeyID: es512, Key: x509PrivateKeyECDSAP521.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature},
 					},
 				},
 			},
@@ -468,7 +478,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA256,
-				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{},
 				},
 			},
@@ -480,9 +490,9 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP521AndSHA512,
-				PublicKeys: schema.OpenIDConnectClientPublicKeys{
+				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
 					Values: []schema.JWK{
-						{KeyID: es512, Key: keyECDSAP521.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: "enc"},
+						{KeyID: es512, Key: x509PrivateKeyECDSAP521.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: "enc"},
 					},
 				},
 			},
@@ -784,7 +794,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnMismatchedAsse
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodPS256, assertion)
 
-	token, err := assertionJWT.SignedString(keyRSA2048)
+	token, err := assertionJWT.SignedString(x509PrivateKeyRSA2048)
 
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
@@ -802,7 +812,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnMismatchedAlg(
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodPS256, assertion)
 
-	token, err := assertionJWT.SignedString(keyRSA2048)
+	token, err := assertionJWT.SignedString(x509PrivateKeyRSA2048)
 
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
@@ -820,7 +830,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnClientAssertio
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS256, assertion)
 
-	token, err := assertionJWT.SignedString(keyRSA2048)
+	token, err := assertionJWT.SignedString(x509PrivateKeyRSA2048)
 
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
@@ -839,7 +849,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnClientAssertio
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS256, assertion)
 
-	token, err := assertionJWT.SignedString(keyRSA2048)
+	token, err := assertionJWT.SignedString(x509PrivateKeyRSA2048)
 
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
@@ -876,7 +886,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS256, assertion)
 
-	token, err := assertionJWT.SignedString(keyRSA2048)
+	token, err := assertionJWT.SignedString(x509PrivateKeyRSA2048)
 
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
@@ -895,7 +905,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnBadAlgRS256() 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodPS256, assertion)
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = rs256
 
-	token, err := assertionJWT.SignedString(keyRSA2048)
+	token, err := assertionJWT.SignedString(x509PrivateKeyRSA2048)
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
@@ -913,7 +923,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnBadKidRS256() 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS256, assertion)
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "nokey"
 
-	token, err := assertionJWT.SignedString(keyRSA2048)
+	token, err := assertionJWT.SignedString(x509PrivateKeyRSA2048)
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
@@ -931,7 +941,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnBadTypRS256() 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodES256, assertion)
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = rs256
 
-	token, err := assertionJWT.SignedString(keyECDSAP256)
+	token, err := assertionJWT.SignedString(x509PrivateKeyECDSAP256)
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
@@ -949,7 +959,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysRS256() {
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS256, assertion)
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = rs256
 
-	token, err := assertionJWT.SignedString(keyRSA2048)
+	token, err := assertionJWT.SignedString(x509PrivateKeyRSA2048)
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
@@ -982,7 +992,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS384, assertion)
 
-	token, err := assertionJWT.SignedString(keyRSA2048)
+	token, err := assertionJWT.SignedString(x509PrivateKeyRSA2048)
 
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
@@ -1001,7 +1011,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysRS384() {
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS384, assertion)
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "rs384"
 
-	token, err := assertionJWT.SignedString(keyRSA2048)
+	token, err := assertionJWT.SignedString(x509PrivateKeyRSA2048)
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
@@ -1034,7 +1044,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS512, assertion)
 
-	token, err := assertionJWT.SignedString(keyRSA2048)
+	token, err := assertionJWT.SignedString(x509PrivateKeyRSA2048)
 
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
@@ -1053,7 +1063,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysRS512() {
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS512, assertion)
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "rs512"
 
-	token, err := assertionJWT.SignedString(keyRSA2048)
+	token, err := assertionJWT.SignedString(x509PrivateKeyRSA2048)
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
@@ -1086,7 +1096,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodPS256, assertion)
 
-	token, err := assertionJWT.SignedString(keyRSA2048)
+	token, err := assertionJWT.SignedString(x509PrivateKeyRSA2048)
 
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
@@ -1105,7 +1115,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysPS256() {
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodPS256, assertion)
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "ps256"
 
-	token, err := assertionJWT.SignedString(keyRSA2048)
+	token, err := assertionJWT.SignedString(x509PrivateKeyRSA2048)
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
@@ -1138,7 +1148,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodPS384, assertion)
 
-	token, err := assertionJWT.SignedString(keyRSA2048)
+	token, err := assertionJWT.SignedString(x509PrivateKeyRSA2048)
 
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
@@ -1157,7 +1167,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysPS384() {
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodPS384, assertion)
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "ps384"
 
-	token, err := assertionJWT.SignedString(keyRSA2048)
+	token, err := assertionJWT.SignedString(x509PrivateKeyRSA2048)
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
@@ -1190,7 +1200,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodPS512, assertion)
 
-	token, err := assertionJWT.SignedString(keyRSA2048)
+	token, err := assertionJWT.SignedString(x509PrivateKeyRSA2048)
 
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
@@ -1209,7 +1219,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysPS512() {
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodPS512, assertion)
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "ps512"
 
-	token, err := assertionJWT.SignedString(keyRSA2048)
+	token, err := assertionJWT.SignedString(x509PrivateKeyRSA2048)
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
@@ -1242,7 +1252,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodES256, assertion)
 
-	token, err := assertionJWT.SignedString(keyECDSAP256)
+	token, err := assertionJWT.SignedString(x509PrivateKeyECDSAP256)
 
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
@@ -1261,7 +1271,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES256() {
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodES256, assertion)
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "es256"
 
-	token, err := assertionJWT.SignedString(keyECDSAP256)
+	token, err := assertionJWT.SignedString(x509PrivateKeyECDSAP256)
 
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
@@ -1295,7 +1305,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodES384, assertion)
 
-	token, err := assertionJWT.SignedString(keyECDSAP384)
+	token, err := assertionJWT.SignedString(x509PrivateKeyECDSAP384)
 
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
@@ -1314,7 +1324,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES384() {
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodES384, assertion)
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "es384"
 
-	token, err := assertionJWT.SignedString(keyECDSAP384)
+	token, err := assertionJWT.SignedString(x509PrivateKeyECDSAP384)
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
@@ -1347,7 +1357,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldRaiseErrorOnUnregisteredKe
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodES512, assertion)
 
-	token, err := assertionJWT.SignedString(keyECDSAP521)
+	token, err := assertionJWT.SignedString(x509PrivateKeyECDSAP521)
 
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
@@ -1366,7 +1376,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldAuthKeysES512() {
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodES512, assertion)
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = es512
 
-	token, err := assertionJWT.SignedString(keyECDSAP521)
+	token, err := assertionJWT.SignedString(x509PrivateKeyECDSAP521)
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
@@ -1400,7 +1410,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailKeysES512Enc() {
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodES512, assertion)
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = es512
 
-	token, err := assertionJWT.SignedString(keyECDSAP521)
+	token, err := assertionJWT.SignedString(x509PrivateKeyECDSAP521)
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
@@ -1418,7 +1428,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailKeysRS256MismatchedKID
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS256, assertion)
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = es512
 
-	token, err := assertionJWT.SignedString(keyRSA2048)
+	token, err := assertionJWT.SignedString(x509PrivateKeyRSA2048)
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
@@ -1436,7 +1446,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailWithoutKeys() {
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodRS256, assertion)
 	assertionJWT.Header[oidc.JWTHeaderKeyIdentifier] = "rs256"
 
-	token, err := assertionJWT.SignedString(keyRSA2048)
+	token, err := assertionJWT.SignedString(x509PrivateKeyRSA2048)
 	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
 	s.Require().NotEqual("", token)
 
@@ -1484,7 +1494,7 @@ func (s *ClientAuthenticationStrategySuite) TestShouldValidateJWTWithArbitraryCl
 	assertion := NewAssertion("hs512", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
 
 	a := assertion.ToMapClaims()
-	a["aaa"] = "abc"
+	a["aaa"] = abc
 
 	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodHS512, a)
 
@@ -2418,8 +2428,8 @@ func TestPKCEHandler_HandleAuthorizeEndpointRequest(t *testing.T) {
 			true,
 			false,
 			true,
-			"abc",
-			"abc",
+			abc,
+			abc,
 			"abc123",
 			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The code_challenge_method is not supported, use S256 instead.",
 			client,

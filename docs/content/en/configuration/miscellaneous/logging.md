@@ -78,9 +78,11 @@ Logs can be stored in a file when file path is provided. Otherwise logs are writ
 level to `debug` or `trace` this will generate large amount of log entries. Administrators will need to ensure that
 they rotate and/or truncate the logs over time to prevent significant long-term disk usage.
 
-If you include the value `%d` in the filename it will replace this value with a date time indicative of the time
-the logger was initialized using [RFC3339](https://datatracker.ietf.org/doc/html/rfc3339) as the format which is
-represented as `2006-01-02T15:04:05Z07:00` in go.
+There are two replacements that exist in this string for the purpose of including the date. The `%d` value which just
+uses the [RFC3339] layout, and the `{datetime}` replacement which by
+default uses the [RFC3339] layout, but optionally can be suffixed with the
+[Go Layout](https://pkg.go.dev/time#pkg-constants) semantics in the format of `{datetime:<layout>}` where `<layout>` is
+the layout supported by Go.
 
 #### File Path Examples
 
@@ -96,6 +98,13 @@ __Date Time Example:__
 ```yaml
 log:
   file_path: /config/authelia.%d.log
+```
+
+__Date Time Example (with custom layout):__
+
+```yaml
+log:
+  file_path: /config/authelia.{datetime:Mon Jan 2 15:04:05 MST 2006}.log
 ```
 
 ### keep_stdout
