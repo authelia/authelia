@@ -18,7 +18,7 @@ require (
 	github.com/go-rod/rod v0.114.7
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/go-webauthn/webauthn v0.10.1
-	github.com/golang-jwt/jwt/v5 v5.2.0
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-retryablehttp v0.7.5
 	github.com/jackc/pgx/v5 v5.5.4
