@@ -3,7 +3,9 @@
 #                   Authelia configuration                    #
 ###############################################################
 
-jwt_secret: unsecure_secret
+identity_validation:
+  reset_password:
+    jwt_secret: 'a_very_important_secret'
 
 server:
   address: 'tcp://:9091'
@@ -16,6 +18,7 @@ log:
 
 totp:
   issuer: authelia.com
+  disable_reuse_security_policy: true
 
 authentication_backend:
   ldap:

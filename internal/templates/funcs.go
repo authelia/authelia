@@ -17,6 +17,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/google/uuid"
@@ -29,6 +30,7 @@ func FuncMap() map[string]any {
 		"fileContent": FuncFileContent,
 		"secret":      FuncSecret,
 		"env":         FuncGetEnv,
+		"mustEnv":     FuncMustGetEnv,
 		"expandenv":   FuncExpandEnv,
 		"split":       FuncStringSplit,
 		"splitList":   FuncStringSplitList,
@@ -126,11 +128,32 @@ func FuncExpandEnv(s string) string {
 
 // FuncGetEnv is a special version of os.GetEnv that excludes secret keys.
 func FuncGetEnv(key string) string {
+	if key == "$" {
+		return key
+	}
+
 	if isSecretEnvKey(key) {
 		return ""
 	}
 
-	return os.Getenv(key)
+	value, _ := syscall.Getenv(key)
+
+	return value
+}
+
+// FuncMustGetEnv is a special version of os.GetEnv that excludes secret keys and returns an error if it doesn't exist.
+func FuncMustGetEnv(key string) (string, error) {
+	if isSecretEnvKey(key) {
+		return "", nil
+	}
+
+	value, found := syscall.Getenv(key)
+
+	if !found {
+		return "", fmt.Errorf("environment variable '%s' isn't set", key)
+	}
+
+	return value, nil
 }
 
 // FuncHashSum is a helper function that provides similar functionality to helm sum funcs.

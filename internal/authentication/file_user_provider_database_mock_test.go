@@ -7,7 +7,7 @@ package authentication
 import (
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockFileUserDatabase is a mock of FileUserProviderDatabase interface.

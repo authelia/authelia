@@ -22,8 +22,7 @@ func NewAvailableMethodsScenario(methods []string) *AvailableMethodsScenario {
 }
 
 func (s *AvailableMethodsScenario) SetupSuite() {
-	browser, err := StartRod()
-
+	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	if err != nil {
 		log.Fatal(err)
 	}

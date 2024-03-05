@@ -12,66 +12,48 @@
 
 {{ $mermaid := resources.Get "js/mermaid.js" | js.Build -}}
 
-{{ $app := resources.Get "js/app.js" -}}
-
-{{ $slice := slice $app -}}
+{{ $jsBundle := slice (resources.Get "js/app.js") -}}
 
 {{ if .Site.Params.options.lazySizes -}}
-  {{ $lazySizes := resources.Get "js/lazysizes.js" -}}
-  {{ $lazySizes := $lazySizes | js.Build -}}
-  {{ $slice = $slice | append $lazySizes -}}
+  {{ $jsBundle = $jsBundle | append (resources.Get "js/lazysizes.js" | js.Build) -}}
 {{ end -}}
 
 {{ if .Site.Params.options.clipBoard -}}
-  {{ $clipBoard := resources.Get "js/clipboard.js" -}}
-  {{ $clipBoard := $clipBoard | js.Build -}}
-  {{ $slice = $slice | append $clipBoard -}}
+  {{ $jsBundle = $jsBundle | append (resources.Get "js/clipboard.js" | js.Build) -}}
 {{ end -}}
 
 {{ if .Site.Params.options.instantPage -}}
-  {{ $instantPage := resources.Get "js/instant.page.js" -}}
-  {{ $instantPage := $instantPage | js.Build -}}
-  {{ $slice = $slice | append $instantPage -}}
+  {{ $jsBundle = $jsBundle | append (resources.Get "js/instant.page.js" | js.Build) -}}
 {{ end -}}
 
 {{ $showFlexSearch := .Site.Params.options.flexSearch }}
 
 {{ if $showFlexSearch -}}
-  {{ $flexSearch := resources.Get "js/vendor/flexsearch/dist/flexsearch.bundle.js" -}}
-  {{ $slice = $slice | append $flexSearch -}}
+  {{ $jsBundle = $jsBundle | append (resources.Get "js/vendor/flexsearch/dist/flexsearch.bundle.js") -}}
   {{ if and (isset .Site.Params.options "searchsectionsshow") (not (eq .Site.Params.options.searchSectionsShow "ALL")) -}}
   {{ $showFlexSearch = or (eq (len .Site.Params.options.searchSectionsShow) 0) (in .Site.Params.options.searchSectionsShow .Section) (and .IsHome (in .Site.Params.options.searchSectionsShow "HomePage")) -}}
   {{ end -}}
 {{ end -}}
 
 {{ if .Site.Params.options.darkMode -}}
-  {{ $darkMode := resources.Get "js/darkmode.js" -}}
-  {{ $darkMode := $darkMode | js.Build -}}
-  {{ $slice = $slice | append $darkMode -}}
+  {{ $jsBundle = $jsBundle | append (resources.Get "js/darkmode.js" | js.Build) -}}
 {{ end -}}
 
 {{ if and (.Site.Params.alert) (.Site.Params.alertDismissable) -}}
-  {{ $alert := resources.Get "js/alert.js" -}}
-  {{ $alert := $alert | js.Build -}}
-  {{ $slice = $slice | append $alert -}}
+  {{ $jsBundle = $jsBundle | append (resources.Get "js/alert.js" | js.Build) -}}
 {{ end -}}
 
 {{ if .Site.Params.options.kaTex -}}
-  {{ $katexConfig := resources.Get "js/katex.js" -}}
-  {{ $katexConfig := $katexConfig | js.Build -}}
-  {{ $slice = $slice | append $katexConfig -}}
+  {{ $jsBundle = $jsBundle | append (resources.Get "js/katex.js" | js.Build) -}}
 {{ end -}}
 
-{{ $scrollLock := resources.Get "js/scroll-lock.js" | js.Build -}}
-{{ $slice = $slice | append $scrollLock -}}
+{{ $jsBundle = $jsBundle | append (resources.Get "js/scroll-lock.js" | js.Build) -}}
 
 {{ if .Site.Params.options.toTopButton -}}
-  {{ $toTopButton := resources.Get "js/to-top.js" -}}
-  {{ $toTopButton := $toTopButton | js.Build -}}
-  {{ $slice = $slice | append $toTopButton -}}
+  {{ $jsBundle = $jsBundle | append (resources.Get "js/to-top.js" | js.Build) -}}
 {{ end -}}
 
-{{ $js := $slice | resources.Concat "main.js" -}}
+{{ $js := $jsBundle | resources.Concat "main.js" -}}
 
 {{ if eq (hugo.Environment) "development" -}}
   {{ if .Site.Params.options.bootStrapJs -}}

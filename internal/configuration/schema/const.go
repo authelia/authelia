@@ -125,8 +125,32 @@ const (
 )
 
 const (
-	blockCERTIFICATE   = "CERTIFICATE"
-	blockRSAPRIVATEKEY = "RSA PRIVATE KEY"
+	blockCERTIFICATE = "CERTIFICATE"
+)
+
+// Authorization Schemes.
+const (
+	SchemeBasic  = "basic"
+	SchemeBearer = "bearer"
+)
+
+// Authz values.
+const (
+	AuthzEndpointNameLegacy      = "legacy"
+	AuthzEndpointNameAuthRequest = "auth-request"
+	AuthzEndpointNameExtAuthz    = "ext-authz"
+	AuthzEndpointNameForwardAuth = "forward-auth"
+
+	AuthzImplementationLegacy      = "Legacy"
+	AuthzImplementationAuthRequest = "AuthRequest"
+	AuthzImplementationExtAuthz    = "ExtAuthz"
+	AuthzImplementationForwardAuth = "ForwardAuth"
+
+	AuthzStrategyHeaderCookieSession                 = "CookieSession"
+	AuthzStrategyHeaderAuthorization                 = "HeaderAuthorization"
+	AuthzStrategyHeaderProxyAuthorization            = "HeaderProxyAuthorization"
+	AuthzStrategyHeaderAuthRequestProxyAuthorization = "HeaderAuthRequestProxyAuthorization"
+	AuthzStrategyHeaderLegacy                        = "HeaderLegacy"
 )
 
 const (

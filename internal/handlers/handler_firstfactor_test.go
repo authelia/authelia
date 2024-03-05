@@ -5,10 +5,10 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -36,7 +36,7 @@ func (s *FirstFactorSuite) TestShouldFailIfBodyIsNil() {
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
 	// No body.
-	assert.Equal(s.T(), "Failed to parse 1FA request body: unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Failed to parse 1FA request body", "unable to parse body: unexpected end of JSON input")
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
@@ -47,7 +47,7 @@ func (s *FirstFactorSuite) TestShouldFailIfBodyIsInBadFormat() {
 	}`)
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
-	assert.Equal(s.T(), "Failed to parse 1FA request body: unable to validate body: password: non zero value required", s.mock.Hook.LastEntry().Message)
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Failed to parse 1FA request body", "unable to validate body: password: non zero value required")
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
@@ -75,8 +75,8 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 	}`)
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
-	assert.Equal(s.T(), "Unsuccessful 1FA authentication attempt by user 'test'", s.mock.Hook.LastEntry().Message)
-	assert.EqualError(s.T(), s.mock.Hook.LastEntry().Data["error"].(error), "failed")
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Unsuccessful 1FA authentication attempt by user 'test'", "failed")
+
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
@@ -155,7 +155,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
 	}`)
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
-	assert.Equal(s.T(), "Could not obtain profile details during 1FA authentication for user 'test': failed", s.mock.Hook.LastEntry().Message)
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Could not obtain profile details during 1FA authentication for user 'test'", "failed")
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
@@ -177,8 +177,7 @@ func (s *FirstFactorSuite) TestShouldFailIfAuthenticationMarkFail() {
 	}`)
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
-	assert.Equal(s.T(), "Unable to mark 1FA authentication attempt by user 'test'", s.mock.Hook.LastEntry().Message)
-	assert.EqualError(s.T(), s.mock.Hook.LastEntry().Data["error"].(error), "failed")
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Unable to mark 1FA authentication attempt by user 'test'", "failed")
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 

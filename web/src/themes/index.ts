@@ -23,6 +23,11 @@ declare module "@mui/styles/defaultTheme" {
     interface DefaultTheme extends Theme {}
 }
 
+export const ThemeNameAuto = "auto";
+export const ThemeNameLight = "light";
+export const ThemeNameDark = "dark";
+export const ThemeNameGrey = "grey";
+
 export { default as Light } from "@themes/Light";
 export { default as Dark } from "@themes/Dark";
 export { default as Grey } from "@themes/Grey";

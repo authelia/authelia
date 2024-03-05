@@ -18,7 +18,7 @@ func IsPolicyValid(policy string) (isValid bool) {
 
 // IsSubjectValid check if a subject is valid.
 func IsSubjectValid(subject string) (isValid bool) {
-	return subject == "" || strings.HasPrefix(subject, "user:") || strings.HasPrefix(subject, "group:")
+	return subject == "" || strings.HasPrefix(subject, "user:") || strings.HasPrefix(subject, "group:") || strings.HasPrefix(subject, "oauth2:client:")
 }
 
 // IsNetworkGroupValid check if a network group is valid.
@@ -34,7 +34,7 @@ func IsNetworkGroupValid(config schema.AccessControl, network string) bool {
 	return false
 }
 
-// IsNetworkValid check if a network is valid.
+// IsNetworkValid checks if a network is valid.
 func IsNetworkValid(network string) (isValid bool) {
 	if net.ParseIP(network) == nil {
 		_, _, err := net.ParseCIDR(network)

@@ -23,8 +23,7 @@ func NewSigninEmailScenario() *SigninEmailScenario {
 }
 
 func (s *SigninEmailScenario) SetupSuite() {
-	browser, err := StartRod()
-
+	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	if err != nil {
 		log.Fatal(err)
 	}

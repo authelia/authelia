@@ -1,6 +1,7 @@
 package totp
 
 import (
+	"context"
 	"encoding/base32"
 	"testing"
 	"time"
@@ -8,7 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/random"
 )
 
 func TestTOTPGenerateCustom(t *testing.T) {
@@ -81,16 +84,18 @@ func TestTOTPGenerateCustom(t *testing.T) {
 	}
 
 	totp := NewTimeBasedProvider(schema.TOTP{
-		Issuer:     "Authelia",
-		Algorithm:  "SHA1",
-		Digits:     6,
-		Period:     30,
-		SecretSize: 32,
+		Issuer:           "Authelia",
+		DefaultAlgorithm: "SHA1",
+		DefaultDigits:    6,
+		DefaultPeriod:    30,
+		SecretSize:       32,
 	})
+
+	ctx := NewContext(context.TODO(), &clock.Real{}, &random.Cryptographical{})
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			c, err := totp.GenerateCustom(tc.username, tc.algorithm, tc.secret, tc.digits, tc.period, tc.secretSize)
+			c, err := totp.GenerateCustom(ctx, tc.username, tc.algorithm, tc.secret, tc.digits, tc.period, tc.secretSize)
 			if tc.err == "" {
 				assert.NoError(t, err)
 				require.NotNil(t, c)
@@ -118,20 +123,22 @@ func TestTOTPGenerateCustom(t *testing.T) {
 }
 
 func TestTOTPGenerate(t *testing.T) {
-	skew := uint(2)
+	skew := 2
 
 	totp := NewTimeBasedProvider(schema.TOTP{
-		Issuer:     "Authelia",
-		Algorithm:  "SHA256",
-		Digits:     8,
-		Period:     60,
-		Skew:       &skew,
-		SecretSize: 32,
+		Issuer:           "Authelia",
+		DefaultAlgorithm: "SHA256",
+		DefaultDigits:    8,
+		DefaultPeriod:    60,
+		Skew:             &skew,
+		SecretSize:       32,
 	})
 
 	assert.Equal(t, uint(2), totp.skew)
 
-	config, err := totp.Generate("john")
+	ctx := NewContext(context.TODO(), &clock.Real{}, &random.Cryptographical{})
+
+	config, err := totp.Generate(ctx, "john")
 	assert.NoError(t, err)
 
 	assert.Equal(t, "Authelia", config.Issuer)

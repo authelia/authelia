@@ -23,11 +23,11 @@ import (
 )
 
 // NewRequestLogger create a new request logger for the given request.
-func NewRequestLogger(ctx *AutheliaCtx) *logrus.Entry {
+func NewRequestLogger(ctx *fasthttp.RequestCtx) *logrus.Entry {
 	return logging.Logger().WithFields(logrus.Fields{
 		logging.FieldMethod:   string(ctx.Method()),
 		logging.FieldPath:     string(ctx.Path()),
-		logging.FieldRemoteIP: ctx.RemoteIP().String(),
+		logging.FieldRemoteIP: RequestCtxRemoteIP(ctx).String(),
 	})
 }
 
@@ -37,7 +37,7 @@ func NewAutheliaCtx(requestCTX *fasthttp.RequestCtx, configuration schema.Config
 	ctx.RequestCtx = requestCTX
 	ctx.Providers = providers
 	ctx.Configuration = configuration
-	ctx.Logger = NewRequestLogger(ctx)
+	ctx.Logger = NewRequestLogger(ctx.RequestCtx)
 	ctx.Clock = clock.New()
 
 	return ctx
@@ -72,6 +72,17 @@ func (ctx *AutheliaCtx) Error(err error, message string) {
 // SetJSONError sets the body of the response to an JSON error KO message.
 func (ctx *AutheliaCtx) SetJSONError(message string) {
 	if err := ctx.ReplyJSON(ErrorResponse{Status: "KO", Message: message}, 0); err != nil {
+		ctx.Logger.Error(err)
+	}
+}
+
+// SetAuthenticationErrorJSON sets the body of the response to an JSON error KO message.
+func (ctx *AutheliaCtx) SetAuthenticationErrorJSON(status int, message string, authentication, elevation bool) {
+	if status > fasthttp.StatusOK {
+		ctx.SetStatusCode(status)
+	}
+
+	if err := ctx.ReplyJSON(AuthenticationErrorResponse{Status: "KO", Message: message, Authentication: authentication, Elevation: elevation}, 0); err != nil {
 		ctx.Logger.Error(err)
 	}
 }
@@ -259,8 +270,8 @@ func (ctx *AutheliaCtx) RootURLSlash() (issuerURL *url.URL) {
 	}
 }
 
-// GetTargetURICookieDomain returns the session provider for the targetURI domain.
-func (ctx *AutheliaCtx) GetTargetURICookieDomain(targetURI *url.URL) string {
+// GetCookieDomainFromTargetURI returns the session provider for the targetURI domain.
+func (ctx *AutheliaCtx) GetCookieDomainFromTargetURI(targetURI *url.URL) string {
 	if targetURI == nil {
 		return ""
 	}
@@ -286,7 +297,7 @@ func (ctx *AutheliaCtx) IsSafeRedirectionTargetURI(targetURI *url.URL) bool {
 		return false
 	}
 
-	return ctx.GetTargetURICookieDomain(targetURI) != ""
+	return ctx.GetCookieDomainFromTargetURI(targetURI) != ""
 }
 
 // GetCookieDomain returns the cookie domain for the current request.
@@ -297,15 +308,15 @@ func (ctx *AutheliaCtx) GetCookieDomain() (domain string, err error) {
 		return "", fmt.Errorf("unable to retrieve cookie domain: %s", err)
 	}
 
-	return ctx.GetTargetURICookieDomain(targetURI), nil
+	return ctx.GetCookieDomainFromTargetURI(targetURI), nil
 }
 
-// GetSessionProviderByTargetURL returns the session provider for the Request's domain.
-func (ctx *AutheliaCtx) GetSessionProviderByTargetURL(targetURL *url.URL) (provider *session.Session, err error) {
-	domain := ctx.GetTargetURICookieDomain(targetURL)
+// GetSessionProviderByTargetURI returns the session provider for the Request's domain.
+func (ctx *AutheliaCtx) GetSessionProviderByTargetURI(targetURL *url.URL) (provider *session.Session, err error) {
+	domain := ctx.GetCookieDomainFromTargetURI(targetURL)
 
 	if domain == "" {
-		return nil, fmt.Errorf("unable to retrieve domain session cookie configuration for url '%s'", targetURL)
+		return nil, fmt.Errorf("unable to retrieve session cookie domain provider: no configured session cookie domain matches the url '%s'", targetURL)
 	}
 
 	return ctx.Providers.SessionProvider.Get(domain)
@@ -314,13 +325,13 @@ func (ctx *AutheliaCtx) GetSessionProviderByTargetURL(targetURL *url.URL) (provi
 // GetSessionProvider returns the session provider for the Request's domain.
 func (ctx *AutheliaCtx) GetSessionProvider() (provider *session.Session, err error) {
 	if ctx.session == nil {
-		var domain string
+		var targetURI *url.URL
 
-		if domain, err = ctx.GetCookieDomain(); err != nil {
-			return nil, err
+		if targetURI, err = ctx.GetXOriginalURLOrXForwardedURL(); err != nil {
+			return nil, fmt.Errorf("unable to retrieve session cookie domain: %w", err)
 		}
 
-		if ctx.session, err = ctx.GetCookieDomainSessionProvider(domain); err != nil {
+		if ctx.session, err = ctx.GetSessionProviderByTargetURI(targetURI); err != nil {
 			return nil, err
 		}
 	}
@@ -331,7 +342,7 @@ func (ctx *AutheliaCtx) GetSessionProvider() (provider *session.Session, err err
 // GetCookieDomainSessionProvider returns the session provider for the provided domain.
 func (ctx *AutheliaCtx) GetCookieDomainSessionProvider(domain string) (provider *session.Session, err error) {
 	if domain == "" {
-		return nil, fmt.Errorf("unable to retrieve domain session: %w", err)
+		return nil, fmt.Errorf("unable to retrieve session cookie domain provider: no configured session cookie domain matches the domain '%s'", domain)
 	}
 
 	return ctx.Providers.SessionProvider.Get(domain)
@@ -471,17 +482,7 @@ func (ctx *AutheliaCtx) SetJSONBody(value any) error {
 
 // RemoteIP return the remote IP taking X-Forwarded-For header into account if provided.
 func (ctx *AutheliaCtx) RemoteIP() net.IP {
-	if header := ctx.Request.Header.PeekBytes(headerXForwardedFor); len(header) != 0 {
-		ips := strings.SplitN(string(header), ",", 2)
-
-		if len(ips) != 0 {
-			if ip := net.ParseIP(strings.Trim(ips[0], " ")); ip != nil {
-				return ip
-			}
-		}
-	}
-
-	return ctx.RequestCtx.RemoteIP()
+	return RequestCtxRemoteIP(ctx.RequestCtx)
 }
 
 // GetXForwardedURL returns the parsed X-Forwarded-Proto, X-Forwarded-Host, and X-Forwarded-URI request header as a

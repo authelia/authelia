@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/url"
 
@@ -30,11 +31,50 @@ type bodySignTOTPRequest struct {
 	WorkflowID string `json:"workflowID"`
 }
 
+type bodyRegisterTOTP struct {
+	Algorithm string `json:"algorithm"`
+	Length    int    `json:"length"`
+	Period    int    `json:"period"`
+}
+
+type bodyRegisterFinishTOTP struct {
+	Token string `json:"token" valid:"required"`
+}
+
 // bodySignWebAuthnRequest is the  model of the request body of WebAuthn 2FA authentication endpoint.
 type bodySignWebAuthnRequest struct {
 	TargetURL  string `json:"targetURL"`
 	Workflow   string `json:"workflow"`
 	WorkflowID string `json:"workflowID"`
+
+	Response json.RawMessage `json:"response"`
+}
+
+// bodyGETUserSessionElevate is the  model of the request body of the User Session Elevation PUT endpoint.
+type bodyGETUserSessionElevate struct {
+	RequireSecondFactor bool `json:"require_second_factor"`
+	SkipSecondFactor    bool `json:"skip_second_factor"`
+	CanSkipSecondFactor bool `json:"can_skip_second_factor"`
+	Elevated            bool `json:"elevated"`
+	Expires             int  `json:"expires"`
+}
+
+// bodyPOSTUserSessionElevate is the  model of the request body of the User Session Elevation PUT endpoint.
+type bodyPOSTUserSessionElevate struct {
+	DeleteID string `json:"delete_id"`
+}
+
+// bodyPUTUserSessionElevate is the  model of the request body of the User Session Elevation PUT endpoint.
+type bodyPUTUserSessionElevate struct {
+	OneTimeCode string `json:"otc"`
+}
+
+type bodyRegisterWebAuthnPUTRequest struct {
+	Description string `json:"description"`
+}
+
+type bodyEditWebAuthnCredentialRequest struct {
+	Description string `json:"description"`
 }
 
 // bodySignDuoRequest is the  model of the request body of Duo 2FA authentication endpoint.
@@ -128,6 +168,10 @@ type resetPasswordStep1RequestBody struct {
 // resetPasswordStep2RequestBody model of the reset password (step2) request body.
 type resetPasswordStep2RequestBody struct {
 	Password string `json:"password"`
+}
+
+type bodyRequestPasswordResetDELETE struct {
+	Token string `json:"token"`
 }
 
 // PasswordPolicyBody represents the response sent by the password reset step 2.

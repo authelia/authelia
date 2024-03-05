@@ -1,12 +1,15 @@
 package model
 
 import (
+	"context"
 	"database/sql"
 	"database/sql/driver"
 	"encoding/base64"
 	"fmt"
 	"net"
 
+	"github.com/authelia/authelia/v4/internal/clock"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -175,4 +178,13 @@ func (s *StringSlicePipeDelimited) Scan(value any) (err error) {
 // Value is the StringSlicePipeDelimited implementation of the databases/sql driver.Valuer.
 func (s StringSlicePipeDelimited) Value() (driver.Value, error) {
 	return utils.StringJoinDelimitedEscaped(s, '|'), nil
+}
+
+// Context is a commonly used context.Context within Authelia.
+type Context interface {
+	context.Context
+
+	GetClock() clock.Provider
+	RemoteIP() net.IP
+	GetRandom() random.Provider
 }

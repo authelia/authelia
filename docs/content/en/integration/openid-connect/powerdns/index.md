@@ -2,7 +2,7 @@
 title: "PowerDNS Admin"
 description: "Integrating PowerDNS with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
-date: 2024-01-03T00:10:37+10:00
+date: 2024-01-16T08:47:18+11:00
 draft: false
 images: []
 menu:

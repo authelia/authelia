@@ -21,8 +21,7 @@ func NewBypassPolicyScenario() *BypassPolicyScenario {
 }
 
 func (s *BypassPolicyScenario) SetupSuite() {
-	browser, err := StartRod()
-
+	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	if err != nil {
 		log.Fatal(err)
 	}

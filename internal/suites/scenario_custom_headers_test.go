@@ -24,8 +24,7 @@ func NewCustomHeadersScenario() *CustomHeadersScenario {
 }
 
 func (s *CustomHeadersScenario) SetupSuite() {
-	browser, err := StartRod()
-
+	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	if err != nil {
 		log.Fatal(err)
 	}

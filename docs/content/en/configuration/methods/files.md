@@ -184,6 +184,18 @@ The name used to enable this filter is `expand-env`.
 This filter is the most common filter type used by many other applications. It is similar to using `envsubst` where it
 replaces a string like `$EXAMPLE` or `${EXAMPLE}` with the value of the `EXAMPLE` environment variable.
 
+This filter utilizes [os.ExpandEnv](https://pkg.go.dev/os#ExpandEnv) but does not include any environment variables that
+look like they're an Authelia secret. This filter is very limited in what we can achieve, and there are known
+limitations with this filter which may not be possible for us to work around. We discourage it's usage as the `template`
+is much more robust and we have a lot more freedom to make adjustments to this filter compared to the `expand-env`
+filter.
+
+Known Limitations:
+
+- Has no way to handle escaping a `$` so treats all `$` values as an expansion value. This can be escaped using `$$` as
+  an indication that it should be a `$` literal. However this functionality likely will not work under all
+  circumstances.
+
 ### Go Template Filter
 
 The name used to enable this filter is `template`.
