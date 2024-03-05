@@ -58,7 +58,7 @@ func (ctx *CmdCtx) BuildInfoRunE(_ *cobra.Command, _ []string) (err error) {
 	}
 
 	_, err = fmt.Printf(fmtAutheliaBuild, utils.BuildTag, utils.BuildState, utils.BuildBranch, utils.BuildCommit,
-		utils.BuildNumber, runtime.GOOS, runtime.GOARCH, utils.BuildDate, utils.BuildExtra, b.String())
+		utils.BuildNumber, runtime.GOOS, runtime.GOARCH, runtime.Compiler, utils.BuildDate, utils.BuildExtra, b.String())
 
 	return err
 }

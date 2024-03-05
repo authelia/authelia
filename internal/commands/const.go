@@ -28,6 +28,7 @@ Commit: %s
 Build Number: %s
 Build OS: %s
 Build Arch: %s
+Build Compiler: %s
 Build Date: %s
 Extra: %s
 
