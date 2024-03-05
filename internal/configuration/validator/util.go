@@ -92,7 +92,7 @@ func validateListNotAllowed(values, filter []string) (invalid []string) {
 	return invalid
 }
 
-func validateList(values, valid []string, chkDuplicate bool) (invalid, duplicates []string) { //nolint:unparam
+func validateList(values, valid []string, chkDuplicate bool) (invalid, duplicates []string) {
 	chkValid := len(valid) != 0
 
 	for i, value := range values {
