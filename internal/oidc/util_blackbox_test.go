@@ -55,6 +55,43 @@ func TestSortedJSONWebKey(t *testing.T) {
 	}
 }
 
+func TestRFC6750Header(t *testing.T) {
+	testCaes := []struct {
+		name     string
+		have     *fosite.RFC6749Error
+		realm    string
+		scope    string
+		expected string
+	}{
+		{
+			"ShouldEncodeAll",
+			&fosite.RFC6749Error{
+				ErrorField:       "invalid_example",
+				DescriptionField: "A description",
+			},
+			"abc",
+			"openid",
+			`realm="abc",error="invalid_example",error_description="A description",scope="openid"`,
+		},
+		{
+			"ShouldEncodeBasic",
+			&fosite.RFC6749Error{
+				ErrorField:       "invalid_example",
+				DescriptionField: "A description",
+			},
+			"",
+			"",
+			`error="invalid_example",error_description="A description"`,
+		},
+	}
+
+	for _, tc := range testCaes {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, oidc.RFC6750Header(tc.realm, tc.scope, tc.have))
+		})
+	}
+}
+
 func TestIntrospectionResponseToMap(t *testing.T) {
 	testCases := []struct {
 		name        string

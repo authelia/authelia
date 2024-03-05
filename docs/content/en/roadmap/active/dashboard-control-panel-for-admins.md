@@ -2,7 +2,7 @@
 title: "Dashboard / Control Panel for Administrators"
 description: "Authelia Administrator Dashboard."
 lead: "A dashboard or control panel for administrators to adjust system settings is easily one of the most impactful features we can implement."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-02-01T07:02:53+11:00
 draft: false
 images: []
 menu:

@@ -9,43 +9,43 @@
           "type": "string",
           "format": "date-time",
           "title": "Created At",
-          "description": "The time the configuration was created"
+          "description": "The time the configuration was created."
         },
         "last_used_at": {
           "type": "string",
           "format": "date-time",
           "title": "Last Used At",
-          "description": "The time the configuration was last used at"
+          "description": "The time the configuration was last used at."
         },
         "username": {
           "type": "string",
           "title": "Username",
-          "description": "The username of the user this configuration belongs to"
+          "description": "The username of the user this configuration belongs to."
         },
         "issuer": {
           "type": "string",
           "title": "Issuer",
-          "description": "The issuer name this was generated with"
+          "description": "The issuer name this was generated with."
         },
         "algorithm": {
           "type": "string",
           "title": "Algorithm",
-          "description": "The algorithm this configuration uses"
+          "description": "The algorithm this configuration uses."
         },
         "digits": {
           "type": "integer",
           "title": "Digits",
-          "description": "The number of digits this configuration uses"
+          "description": "The number of digits this configuration uses."
         },
         "period": {
           "type": "integer",
           "title": "Period",
-          "description": "The period of time this configuration uses"
+          "description": "The period of time this configuration uses."
         },
         "secret": {
           "type": "string",
           "title": "Secret",
-          "description": "The secret shared key for this configuration"
+          "description": "The secret shared key for this configuration."
         }
       },
       "additionalProperties": false,
@@ -59,7 +59,7 @@
           },
           "type": "array",
           "title": "TOTP Configurations",
-          "description": "The list of TOTP configurations"
+          "description": "The list of TOTP configurations."
         }
       },
       "additionalProperties": false,

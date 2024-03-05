@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -334,7 +334,7 @@ func TestNewOAuth2PARContext(t *testing.T) {
 				ResponseMode:         oidc.ResponseModeQuery,
 				DefaultResponseMode:  oidc.ResponseModeFragment,
 				Form:                 "redirect_uri=https%3A%2F%2Fexample.com",
-				Session:              []byte(`{"id_token":null,"challenge_id":null,"kid":"","client_id":"","exclude_nbf_claim":false,"allowed_top_level_claims":null,"extra":null}`),
+				Session:              []byte(`{"id_token":null,"challenge_id":null,"kid":"","client_id":"","client_credentials":false,"exclude_nbf_claim":false,"allowed_top_level_claims":null,"extra":null}`),
 			},
 			"",
 		},

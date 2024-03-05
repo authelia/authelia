@@ -12,7 +12,9 @@ server:
 log:
   level: debug
 
-jwt_secret: unsecure_secret
+identity_validation:
+  reset_password:
+    jwt_secret: 'a_very_important_secret'
 
 authentication_backend:
   file:
@@ -63,4 +65,7 @@ access_control:
 notifier:
   filesystem:
     filename: /tmp/notification.txt
+
+totp:
+  disable_reuse_security_policy: true
 ...

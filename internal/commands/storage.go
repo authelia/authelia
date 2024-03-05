@@ -301,9 +301,9 @@ func newStorageUserWebAuthnDeleteCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().Bool(cmdFlagNameAll, false, "delete all of the users webauthn devices")
-	cmd.Flags().String(cmdFlagNameDescription, "", "delete a users webauthn device by description")
-	cmd.Flags().String(cmdFlagNameKeyID, "", "delete a users webauthn device by key id")
+	cmd.Flags().Bool(cmdFlagNameAll, false, "delete all of the users WebAuthn credentials")
+	cmd.Flags().String(cmdFlagNameDescription, "", "delete a users WebAuthn credential by description")
+	cmd.Flags().String(cmdFlagNameKeyID, "", "delete a users WebAuthn credential by key id")
 
 	return cmd
 }

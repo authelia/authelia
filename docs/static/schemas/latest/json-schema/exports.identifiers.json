@@ -19,22 +19,22 @@
         "service": {
           "type": "string",
           "title": "Service",
-          "description": "The service name this UUID is used with"
+          "description": "The service name this UUID is used with."
         },
         "sector_id": {
           "type": "string",
           "title": "Sector Identifier",
-          "description": "Sector Identifier this UUID is used with"
+          "description": "Sector Identifier this UUID is used with."
         },
         "username": {
           "type": "string",
           "title": "Username",
-          "description": "The username of the user this UUID is for"
+          "description": "The username of the user this UUID is for."
         },
         "identifier": {
           "$ref": "#/$defs/UUID",
           "title": "Identifier",
-          "description": "The random UUID for this opaque identifier"
+          "description": "The random UUID for this opaque identifier."
         }
       },
       "additionalProperties": false,
@@ -48,7 +48,7 @@
           },
           "type": "array",
           "title": "Identifiers",
-          "description": "The list of opaque identifiers"
+          "description": "The list of opaque identifiers."
         }
       },
       "additionalProperties": false,

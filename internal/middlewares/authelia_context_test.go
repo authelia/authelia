@@ -5,10 +5,10 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -544,7 +544,7 @@ func TestAutheliaCtx_GetTargetURICookieDomain(t *testing.T) {
 
 			mock.Ctx.Configuration.Session.Cookies = tc.config
 
-			assert.Equal(t, tc.expected, mock.Ctx.GetTargetURICookieDomain(tc.have))
+			assert.Equal(t, tc.expected, mock.Ctx.GetCookieDomainFromTargetURI(tc.have))
 			assert.Equal(t, tc.secure, mock.Ctx.IsSafeRedirectionTargetURI(tc.have))
 		})
 	}
