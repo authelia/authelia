@@ -122,9 +122,6 @@ The following example maps the Authelia `admin` group to the `Admin` role, and t
 
 ```ini
 role_attribute_path = contains(groups, 'admin') && 'Admin' || contains(groups, 'editor') && 'Editor' || 'Viewer'
-```
-
-You can adapt the mapping to match your needs and defined groups. To actually assign the admin role you need to use the ``allow_assign_grafana_admin`` configuration option.
 
 ## See Also
 
