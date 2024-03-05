@@ -18,8 +18,15 @@ const (
 )
 
 const (
-	prefixUser  = "user:"
-	prefixGroup = "group:"
+	prefixUser         = "user:"
+	prefixGroup        = "group:"
+	prefixOAuth2Client = "oauth2:client:"
+)
+
+const (
+	lenPrefixUser         = len(prefixUser)
+	lenPrefixGroup        = len(prefixGroup)
+	lenPrefixOAuth2Client = len(prefixOAuth2Client)
 )
 
 const (

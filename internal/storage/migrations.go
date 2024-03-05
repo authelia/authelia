@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"path"
 	"sort"
 	"strconv"
 	"strings"
@@ -21,7 +22,7 @@ func latestMigrationVersion(providerName string) (version int, err error) {
 		migration model.SchemaMigration
 	)
 
-	if entries, err = migrationsFS.ReadDir("migrations"); err != nil {
+	if entries, err = migrationsFS.ReadDir(path.Join(pathMigrations, providerName)); err != nil {
 		return -1, err
 	}
 
@@ -30,12 +31,8 @@ func latestMigrationVersion(providerName string) (version int, err error) {
 			continue
 		}
 
-		if migration, err = scanMigration(entry.Name()); err != nil {
+		if migration, err = scanMigration(providerName, entry.Name()); err != nil {
 			return -1, err
-		}
-
-		if migration.Provider != providerName && migration.Provider != providerAll {
-			continue
 		}
 
 		if !migration.Up {
@@ -59,12 +56,11 @@ func loadMigrations(providerName string, prior, target int) (migrations []model.
 	}
 
 	var (
-		migrationsAll []model.SchemaMigration
-		migration     model.SchemaMigration
-		entries       []fs.DirEntry
+		migration model.SchemaMigration
+		entries   []fs.DirEntry
 	)
 
-	if entries, err = migrationsFS.ReadDir("migrations"); err != nil {
+	if entries, err = migrationsFS.ReadDir(path.Join(pathMigrations, providerName)); err != nil {
 		return nil, err
 	}
 
@@ -75,36 +71,15 @@ func loadMigrations(providerName string, prior, target int) (migrations []model.
 			continue
 		}
 
-		if migration, err = scanMigration(entry.Name()); err != nil {
+		if migration, err = scanMigration(providerName, entry.Name()); err != nil {
 			return nil, err
 		}
 
-		if skipMigration(providerName, up, target, prior, &migration) {
+		if skipMigration(up, target, prior, &migration) {
 			continue
 		}
 
-		if migration.Provider == providerAll {
-			migrationsAll = append(migrationsAll, migration)
-		} else {
-			migrations = append(migrations, migration)
-		}
-	}
-
-	// Add "all" migrations for versions that don't exist.
-	for _, am := range migrationsAll {
-		found := false
-
-		for _, m := range migrations {
-			if m.Version == am.Version {
-				found = true
-
-				break
-			}
-		}
-
-		if !found {
-			migrations = append(migrations, am)
-		}
+		migrations = append(migrations, migration)
 	}
 
 	if up {
@@ -120,12 +95,7 @@ func loadMigrations(providerName string, prior, target int) (migrations []model.
 	return migrations, nil
 }
 
-func skipMigration(providerName string, up bool, target, prior int, migration *model.SchemaMigration) (skip bool) {
-	if migration.Provider != providerAll && migration.Provider != providerName {
-		// Skip if migration.Provider is not a match.
-		return true
-	}
-
+func skipMigration(up bool, target, prior int, migration *model.SchemaMigration) (skip bool) {
 	if up {
 		if !migration.Up {
 			// Skip if we wanted an Up migration but it isn't an Up migration.
@@ -152,7 +122,7 @@ func skipMigration(providerName string, up bool, target, prior int, migration *m
 	return false
 }
 
-func scanMigration(m string) (migration model.SchemaMigration, err error) {
+func scanMigration(providerName, m string) (migration model.SchemaMigration, err error) {
 	if !reMigration.MatchString(m) {
 		return model.SchemaMigration{}, errors.New("invalid migration: could not parse the format")
 	}
@@ -161,12 +131,12 @@ func scanMigration(m string) (migration model.SchemaMigration, err error) {
 
 	migration = model.SchemaMigration{
 		Name:     strings.ReplaceAll(result[reMigration.SubexpIndex("Name")], "_", " "),
-		Provider: result[reMigration.SubexpIndex("Provider")],
+		Provider: providerName,
 	}
 
 	var data []byte
 
-	if data, err = migrationsFS.ReadFile(fmt.Sprintf("migrations/%s", m)); err != nil {
+	if data, err = migrationsFS.ReadFile(path.Join(pathMigrations, providerName, m)); err != nil {
 		return model.SchemaMigration{}, err
 	}
 
@@ -182,13 +152,6 @@ func scanMigration(m string) (migration model.SchemaMigration, err error) {
 	}
 
 	migration.Version, _ = strconv.Atoi(result[reMigration.SubexpIndex("Version")])
-
-	switch migration.Provider {
-	case providerAll, providerSQLite, providerMySQL, providerPostgres:
-		break
-	default:
-		return model.SchemaMigration{}, fmt.Errorf("invalid migration: value in Provider group '%s' must be all, sqlite, postgres, or mysql", migration.Provider)
-	}
 
 	return migration, nil
 }

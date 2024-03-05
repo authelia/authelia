@@ -34,10 +34,20 @@ func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 	ctx.Logger.Debugf("Access Request with id '%s' on client with id '%s' is being processed", requester.GetID(), client.GetID())
 
 	if requester.GetGrantTypes().ExactOne(oidc.GrantTypeClientCredentials) {
-		if err = oidc.PopulateClientCredentialsFlowSessionWithAccessRequest(ctx, requester, session, ctx.Providers.OpenIDConnect.KeyManager.GetKeyID); err != nil {
+		if err = oidc.PopulateClientCredentialsFlowSessionWithAccessRequest(ctx, client, session); err != nil {
 			ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), oidc.ErrorToDebugRFC6749Error(err))
 
 			ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
+
+			return
+		}
+
+		if err = oidc.PopulateClientCredentialsFlowRequester(ctx, ctx.Providers.OpenIDConnect, client, requester); err != nil {
+			ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), oidc.ErrorToDebugRFC6749Error(err))
+
+			ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
+
+			return
 		}
 	}
 

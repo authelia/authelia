@@ -214,6 +214,7 @@ func TestNewX509CertificateChain(t *testing.T) {
 					assert.NotNil(t, actual.Leaf())
 					assert.NotNil(t, actual.CertificatesRaw())
 				}
+
 				assert.NoError(t, err)
 			default:
 				assert.Nil(t, actual)

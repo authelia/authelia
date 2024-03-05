@@ -10,6 +10,6 @@ menu:
   docs:
     parent: "identity-providers"
     identifier: "openid-connect"
-weight: 190120
+weight: 110120
 toc: true
 ---

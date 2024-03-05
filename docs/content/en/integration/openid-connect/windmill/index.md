@@ -24,6 +24,15 @@ community: true
 
 {{% oidc-common %}}
 
+### Assumptions
+
+This example makes the following assumptions:
+
+* __Application Root URL:__ `https://windmill.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
+* __Client ID:__ `windmill`
+* __Client Secret:__ `insecure_secret`
+
 ### Authelia
 
 Authelia configuration.yml
@@ -34,7 +43,7 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-    - id: 'Windmill'
+    - id: 'windmill'
       description: 'Windmill'
       secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
       authorization_policy: 'two_factor'

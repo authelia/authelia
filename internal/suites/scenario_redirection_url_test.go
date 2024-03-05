@@ -21,8 +21,7 @@ func NewRedirectionURLScenario() *RedirectionURLScenario {
 }
 
 func (s *RedirectionURLScenario) SetupSuite() {
-	browser, err := StartRod()
-
+	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	if err != nil {
 		log.Fatal(err)
 	}

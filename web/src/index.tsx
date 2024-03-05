@@ -5,7 +5,7 @@ import { createRoot } from "react-dom/client";
 import "@root/index.css";
 import App from "@root/App";
 import * as serviceWorker from "@root/serviceWorker";
-import "@i18n/index.ts";
+import "@i18n/index";
 
 const nonce = document.head.querySelector("[property=csp-nonce][content]")?.getAttribute("content") || undefined;
 const root = createRoot(document.getElementById("root")!);

@@ -28,13 +28,43 @@ community: true
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://misago.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://misago.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `misago`
 * __Client Secret:__ `insecure_secret`
 
 
 ## Configuration
+
+### Authelia
+
+The following YAML configuration is an example **Authelia** [client configuration](https://www.authelia.com/configuration/identity-providers/openid-connect/#clients) for use with [Misago] which will operate with the above example:
+
+```yaml
+identity_providers:
+  oidc:
+    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
+    ## See: https://www.authelia.com/c/oidc
+    clients:
+    - id: 'misago'
+      description: 'Misago'
+      secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+      public: false
+      authorization_policy: 'two_factor'
+      scopes:
+        - 'openid'
+        - 'profile'
+        - 'email'
+      redirect_uris:
+        - 'https://misago.example.com/oauth2/complete/'
+      grant_types:
+        - 'authorization_code'
+      response_types:
+        - 'code'
+      response_modes:
+        - 'query'
+      userinfo_signed_response_alg: 'none'
+```
 
 ### Application
 
@@ -76,36 +106,6 @@ To configure [Misago] to utilize Authelia as an [OpenID Connect 1.0](https://www
 {{< figure src="misago-step-3-4.png" alt="Retrieving user data" width="736" style="padding-right: 10px" >}}
 
 {{< figure src="misago-step-3-5.png" alt="User JSON mappings" width="736" style="padding-right: 10px" >}}
-
-### Authelia
-
-The following YAML configuration is an example **Authelia** [client configuration](https://www.authelia.com/configuration/identity-providers/openid-connect/#clients) for use with [Misago] which will operate with the above example:
-
-```yaml
-identity_providers:
-  oidc:
-    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
-    ## See: https://www.authelia.com/c/oidc
-    clients:
-    - id: 'misago'
-      description: 'Misago'
-      secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-      public: false
-      authorization_policy: 'two_factor'
-      scopes:
-        - 'openid'
-        - 'profile'
-        - 'email'
-      redirect_uris:
-        - 'https://misago.example.com/oauth2/complete/'
-      grant_types:
-        - 'authorization_code'
-      response_types:
-        - 'code'
-      response_modes:
-        - 'query'
-      userinfo_signed_response_alg: 'none'
-```
 
 ---
 ## See Also

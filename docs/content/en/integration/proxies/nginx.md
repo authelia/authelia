@@ -127,8 +127,8 @@ services:
       - '80:80'
       - '443:443'
     volumes:
-      - ${PWD}/data/nginx/snippets:/config/nginx/snippets:ro
-      - ${PWD}/data/nginx/site-confs:/config/nginx/site-confs:ro
+      - '${PWD}/data/nginx/snippets:/config/nginx/snippets'
+      - '${PWD}/data/nginx/site-confs:/config/nginx/site-confs'
     environment:
       TZ: 'Australia/Melbourne'
       DOCKER_MODS: 'linuxserver/mods:nginx-proxy-confs'

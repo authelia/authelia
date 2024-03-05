@@ -38,6 +38,7 @@ storage:
 
 totp:
   issuer: example.com
+  disable_reuse_security_policy: true
 
 access_control:
   default_policy: deny

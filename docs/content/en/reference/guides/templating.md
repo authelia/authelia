@@ -99,6 +99,10 @@ The following is a list of special functions and their syntax.
 This template function takes a single input and is a positive integer. Returns a slice of uints from 0 to the provided
 input.
 
+#### mustEnv
+
+Same as [env](#env) except if the environment variable is not set it returns an error.
+
 #### fileContent
 
 This template function takes a single input and is a string which should be a path. Returns the content of a file.

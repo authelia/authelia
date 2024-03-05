@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -56,7 +56,7 @@ func TestShouldFailIfJWTCannotBeSaved(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	mock.Ctx.Configuration.JWTSecret = testJWTSecret
+	mock.Ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret = testJWTSecret
 
 	mock.StorageMock.EXPECT().
 		SaveIdentityVerification(mock.Ctx, gomock.Any()).
@@ -73,7 +73,7 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	mock.Ctx.Configuration.JWTSecret = testJWTSecret
+	mock.Ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret = testJWTSecret
 	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedProto, "http")
 	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedHost, "host")
 
@@ -95,7 +95,7 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 
-	mock.Ctx.Configuration.JWTSecret = testJWTSecret
+	mock.Ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret = testJWTSecret
 	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedProto, "http")
 	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedHost, "host")
 
@@ -125,7 +125,7 @@ type IdentityVerificationFinishProcess struct {
 func (s *IdentityVerificationFinishProcess) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 
-	s.mock.Ctx.Configuration.JWTSecret = testJWTSecret
+	s.mock.Ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret = testJWTSecret
 }
 
 func (s *IdentityVerificationFinishProcess) TearDownTest() {
@@ -133,14 +133,14 @@ func (s *IdentityVerificationFinishProcess) TearDownTest() {
 }
 
 func createToken(ctx *mocks.MockAutheliaCtx, username, action string, expiresAt time.Time) (data string, verification model.IdentityVerification) {
-	verification = model.NewIdentityVerification(uuid.New(), username, action, ctx.Ctx.RemoteIP())
+	verification = model.NewIdentityVerification(uuid.New(), username, action, ctx.Ctx.RemoteIP(), time.Minute*5)
 
 	verification.ExpiresAt = expiresAt
 
 	claims := verification.ToIdentityVerificationClaim()
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	ss, _ := token.SignedString([]byte(ctx.Ctx.Configuration.JWTSecret))
+	ss, _ := token.SignedString([]byte(ctx.Ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret))
 
 	return ss, verification
 }
@@ -182,7 +182,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsNotFoundInDB(
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "The identity verification token has already been used")
-	assert.Equal(s.T(), "Token is not in DB, it might have already been used", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Error occurred looking up identity verification during the validation phase, the token was not found in the database which could indicate it was never generated or was already used", s.mock.Hook.LastEntry().Message)
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsInvalid() {
@@ -191,7 +191,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsInvalid() {
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed")
-	assert.Equal(s.T(), "Cannot parse token", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Error occurred validating the identity verification token as it appears to be malformed, this potentially can occur if you've not copied the full link", s.mock.Hook.LastEntry().Message)
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenExpired() {
@@ -203,7 +203,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenExpired() {
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "The identity verification token has expired")
-	assert.Equal(s.T(), "Token expired", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Error occurred validating the identity verification token validity period as it appears to be expired", s.mock.Hook.LastEntry().Message)
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailForWrongAction() {
@@ -218,7 +218,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailForWrongAction() {
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed")
-	assert.Equal(s.T(), "This token has not been generated for this kind of action", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Error occurred handling the identity verification token, the token action '' does not match the endpoint action 'EXP_ACTION' which is not allowed", s.mock.Hook.LastEntry().Message)
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailForWrongUser() {
@@ -235,7 +235,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailForWrongUser() {
 	middlewares.IdentityVerificationFinish(args, next)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed")
-	assert.Equal(s.T(), "This token has not been generated for this user", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Error occurred handling the identity verification token, the user is not allowed to use this token", s.mock.Hook.LastEntry().Message)
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenCannotBeRemovedFromDB() {
@@ -254,7 +254,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenCannotBeRemoved
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed")
-	assert.Equal(s.T(), "cannot remove", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Error occurred consuming the identity verification during the validation phase", s.mock.Hook.LastEntry().Message)
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldReturn200OnFinishComplete() {

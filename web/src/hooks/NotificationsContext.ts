@@ -15,8 +15,6 @@ interface NotificationContextProps {
 
 const NotificationsContext = createContext<NotificationContextProps>({ notification: null, setNotification: () => {} });
 
-export default NotificationsContext;
-
 export function useNotifications() {
     let useNotificationsProps = useContext(NotificationsContext);
 
@@ -47,3 +45,5 @@ export function useNotifications() {
         isActive,
     };
 }
+
+export default NotificationsContext;

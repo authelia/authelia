@@ -8,7 +8,7 @@ import (
 	reflect "reflect"
 
 	v3 "github.com/go-ldap/ldap/v3"
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockLDAPClientFactory is a mock of LDAPClientFactory interface.

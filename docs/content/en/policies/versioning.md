@@ -22,6 +22,24 @@ prevent automatic upgrade of the `major` version.
 We generally do not recommend automated upgrades of critical systems but instead recommend ensuring you are notified an
 upgrade exists.
 
+## Important Notes
+
+1. This versioning policy **_does not_** cover the following:
+   1. Changes between stable releases. i.e. changes to `master`, alpha, beta, pre-release, or any other testing build.
+   2. The notable [exceptions](#exceptions).
+2. Examples (i.e. it's not limited to these examples) of the changes which may occur between stable releases are:
+   - Features may be removed.
+   - The method of configuring unreleased features may change. i.e. configuration keys may change, or additional keys
+     may be required to enable a feature.
+3. Significant manual changes may be required to gain access to new features depending on their implementation and
+   complexity. This however does not mean existing functionality is intended to break, just new functionality may be
+   unavailable without manual intervention.
+4. There may be deprecations in `minor` or `patch` releases. This however **_does not_** mean that you can't continue to
+   the deprecated item, it just means it's discouraged as it **_does_** mean that it's likely in the next `major`
+   release it will be completely removed. This applies but is not limited to:
+   - Features.
+   - Configuration Keys.
+
 ## Supported Versions
 
 The following information is indicative of our support policy:
@@ -49,7 +67,8 @@ This means that a breaking change may occur to one but not the other as these co
 
 ## Exceptions
 
-There are exceptions to this versioning policy.
+There are exceptions to this versioning policy and this section details these exceptions. It should be noted while there
+may be breaking changes in these exception areas we generally avoid making them where possible.
 
 ### Advanced Customizations
 

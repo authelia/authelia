@@ -84,7 +84,6 @@ other configuration using the environment but instead of loading a file the valu
 {{% table-config-keys secrets="true" %}}
 
 [server.tls.key]: ../miscellaneous/server.md#key
-[jwt_secret]: ../miscellaneous/introduction.md#jwt_secret
 [duo_api.integration_key]: ../second-factor/duo.md#integration_key
 [duo_api.secret_key]: ../second-factor/duo.md#secret_key
 [session.secret]: ../session/introduction.md#secret
@@ -106,10 +105,8 @@ other configuration using the environment but instead of loading a file the valu
 [authentication_backend.ldap.password]: ../first-factor/ldap.md#password
 [authentication_backend.ldap.tls.certificate_chain]: ../first-factor/ldap.md#tls
 [authentication_backend.ldap.tls.private_key]: ../first-factor/ldap.md#tls
-[identity_providers.oidc.issuer_certificate_chain]: ../identity-providers/openid-connect/provider.md#issuer_certificate_chain
-[identity_providers.oidc.issuer_private_key]: ../identity-providers/openid-connect/provider.md#issuer_private_key
 [identity_providers.oidc.hmac_secret]: ../identity-providers/openid-connect/provider.md#hmac_secret
-
+[identity_validation.reset_password.jwt_secret]: ../identity-validation/reset-password.md#jwt_secret
 
 ## Secrets in configuration file
 

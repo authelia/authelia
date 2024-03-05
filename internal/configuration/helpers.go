@@ -11,9 +11,7 @@ func getEnvConfigMap(keys []string, prefix, delimiter string, ds map[string]Depr
 	keyMap = make(map[string]string)
 
 	for _, key := range keys {
-		if strings.Contains(key, delimiter) {
-			keyMap[ToEnvironmentKey(key, prefix, delimiter)] = key
-		}
+		keyMap[ToEnvironmentKey(key, prefix, delimiter)] = key
 
 		// Secret envs should be ignored by the env parser.
 		if IsSecretKey(key) {
@@ -32,7 +30,13 @@ func getEnvConfigMap(keys []string, prefix, delimiter string, ds map[string]Depr
 			continue
 		}
 
-		keyMap[ToEnvironmentKey(deprecation.Key, prefix, delimiter)] = deprecation.Key
+		d := ToEnvironmentKey(deprecation.Key, prefix, delimiter)
+
+		if _, ok := keyMap[d]; ok {
+			continue
+		}
+
+		keyMap[d] = deprecation.Key
 	}
 
 	return keyMap, ignoredKeys

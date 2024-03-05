@@ -1,0 +1,3 @@
+ALTER TABLE identity_verification
+    ADD COLUMN revoked TIMESTAMP NULL DEFAULT NULL,
+    ADD COLUMN revoked_ip VARCHAR(39) NULL DEFAULT NULL;

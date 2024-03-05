@@ -12,8 +12,6 @@ server:
 log:
   level: debug
 
-jwt_secret: very_important_secret
-
 authentication_backend:
   file:
     path: /config/users.yml
@@ -26,7 +24,7 @@ session:
   cookies:
     - domain: 'example.com'
       authelia_url: 'https://login.example.com:8080'
-      default_redirection_url: https://home.example.com:8080/
+      default_redirection_url: 'https://home.example.com:8080/'
 
 # Configuration of the storage backend used to store data and secrets. i.e. totp data
 storage:
@@ -43,6 +41,11 @@ storage:
 # See: https://github.com/google/google-authenticator/wiki/Key-Uri-Format for more info on issuer names
 totp:
   issuer: example.com
+  disable_reuse_security_policy: true
+
+identity_validation:
+  reset_password:
+    jwt_secret: 'a_very_important_secret'
 
 access_control:
   default_policy: deny

@@ -419,13 +419,12 @@ typically located at `/etc/fail2ban/filter.d`.
 # the fourth line catches attempts to spam via the password reset form or 2fa device reset form. This requires debug logging to be enabled
 
 [Definition]
-failregex = ^.*Unsuccessful 1FA authentication attempt by user .*remote_ip="?<HOST>"? stack.*
-            ^.*Unsuccessful (TOTP|Duo|U2F) authentication attempt by user .*remote_ip="?<HOST>"? stack.*
-            ^.*user not found.*path=/api/reset-password/identity/start remote_ip="?<HOST>"? stack.*
-            ^.*Sending an email to user.*path=/api/.*/start remote_ip="?<HOST>"?
+failregex = ^.*Unsuccessful (1FA|TOTP|Duo|U2F) authentication attempt by user .*remote_ip"?(:|=)"?<HOST>"?.*$
+            ^.*user not found.*path=/api/reset-password/identity/start remote_ip"?(:|=)"?<HOST>"?.*$
+            ^.*Sending an email to user.*path=/api/.*/start remote_ip"?(:|=)"?<HOST>"?.*$
 
-ignoreregex = ^.*level=info.*
-              ^.*level=warning.*
+ignoreregex = ^.*level"?(:|=)"?info.*
+              ^.*level"?(:|=)"?warning.*
 ```
 
 Modify the `jail.local` file. In Debian-based systems the folder is typically located at `/etc/fail2ban/`. If the file
@@ -442,6 +441,7 @@ maxretry = 3
 bantime = 1d
 findtime = 1d
 chain = DOCKER-USER
+action = iptables-allports[name=authelia]
 ```
 
 If you are not using Docker remove the line "chain = DOCKER-USER". You will need to restart the fail2ban service for the

@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "openid-connect"
-weight: 190220
+weight: 110220
 toc: true
 ---
 
@@ -59,7 +59,7 @@ identity_providers:
         enforce_par: false
         enforce_pkce: false
         pkce_challenge_method: 'S256'
-        authorization_signed_response_alg: 'RS256'
+        authorization_signed_response_alg: 'none'
         authorization_signed_response_key_id: ''
         id_token_signed_response_alg: 'RS256'
         id_token_signed_response_key_id: ''
@@ -211,17 +211,18 @@ This value does not affect the issued ID Tokens as they are always issued with t
 
 ### scopes
 
-{{< confkey type="list(string)" default="openid, groups, profile, email" required="no" >}}
+{{< confkey type="list(string)" default="openid,groups,profile,email" required="no" >}}
 
 A list of scopes to allow this client to consume. See
 [scope definitions](../../../integration/openid-connect/introduction.md#scope-definitions) for more information. The
 documentation for the application you are trying to configure [OpenID Connect 1.0] for will likely have a list of scopes
 or claims required which can be matched with the above guide.
 
-The scope values must be one of those documented in the
-[scope definitions](../../../integration/openid-connect/introduction.md#scope-definitions) with the exception of when
-the configured [grant_types](#grant_types) includes the `client_credentials` grant in which case arbitrary scopes are
-also allowed,
+The scope values should generally be one of those documented in the
+[scope definitions](../../../integration/openid-connect/introduction.md#scope-definitions) with the exception of when a client requires a specific scope we do not define. Users should
+expect to see a warning in the logs if they configure a scope not in our definitions with the exception of a client
+where the configured [grant_types](#grant_types) includes the `client_credentials` grant in which case arbitrary scopes are
+expected,
 
 ### grant_types
 
@@ -523,7 +524,7 @@ calculated in the [issuer_private_keys].
 
 ### request_object_signing_alg
 
-{{< confkey type="string" default="RSA256" required="no" >}}
+{{< confkey type="string" default="RS256" required="no" >}}
 
 The JWT signing algorithm accepted for request objects.
 

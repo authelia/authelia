@@ -24,6 +24,15 @@ community: true
 
 {{% oidc-common %}}
 
+### Assumptions
+
+This example makes the following assumptions:
+
+* __Application Root URL:__ `https://budibase.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
+* __Client ID:__ `budibase`
+* __Client Secret:__ `insecure_secret`
+
 ### Authelia
 
 Authelia configuration.yml
@@ -46,9 +55,9 @@ identity_providers:
         token_endpoint_auth_method: 'client_secret_basic'
 ```
 
-## Budibase
+### Application
 
-### Organization configuration
+#### Organization configuration
 
 Go on the builder main page: **Settings > Organization** or url : https://budibase.example.com/builder/portal/settings/organisation
 
@@ -59,7 +68,7 @@ Go on the builder main page: **Settings > Organization** or url : https://budiba
 
 > ⚠️ **Don't forget to press save.**
 
-### Auth configuration
+#### Auth configuration
 
 Go the builder main page: **Settings > Auth > OpenID Connect** or url : https://budibase.example.com/builder/portal/settings/auth
 
