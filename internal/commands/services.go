@@ -106,7 +106,7 @@ type Service interface {
 	Log() *logrus.Entry
 }
 
-// ServerService is a Service which runs a webserver.
+// ServerService is a Service which runs a web server.
 type ServerService struct {
 	name     string
 	server   *fasthttp.Server
@@ -316,6 +316,8 @@ func servicesRun(ctx *CmdCtx) {
 		svcWatcherUsersFunc,
 	} {
 		if service := serviceFunc(ctx); service != nil {
+			service.Log().Trace("Service Loaded")
+
 			services = append(services, service)
 
 			group.Go(service.Run)

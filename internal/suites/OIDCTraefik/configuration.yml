@@ -8,7 +8,9 @@ server:
 log:
   level: debug
 
-jwt_secret: unsecure_secret
+identity_validation:
+  reset_password:
+    jwt_secret: 'a_very_important_secret'
 
 authentication_backend:
   file:
@@ -63,18 +65,23 @@ notifier:
 identity_providers:
   oidc:
     enable_client_debug_messages: true
-    hmac_secret: IVPWBkAdJHje3uz7LtFTDU2pFUfh39Xm
+    hmac_secret: 'IVPWBkAdJHje3uz7LtFTDU2pFUfh39Xm'
     clients:
-      - id: oidc-tester-app
-        secret: foobar
-        authorization_policy: two_factor
+      - client_id: 'oidc-tester-app'
+        ## 'foobar'
+        client_secret: '$pbkdf2-sha512$310000$EniFUo2z8Yjw3op3lrtuyA$xhopyOyffx2TqsQvEhoMSo1sxywIvJV8HZw/zdf62xtyryY/nkNkdcUV82r.xtd5NuyvZo7DPkOlcffM/Wvsmw'  # yamllint disable-line rule:line-length
+        authorization_policy: 'two_factor'
         redirect_uris:
-          - https://oidc.example.com:8080/oauth2/callback
+          - 'https://oidc.example.com:8080/oauth2/callback'
       # This client is used for testing purpose. As of now, the app must be protected by ACLs
       # otherwise it won't work properly.
-      - id: oidc-tester-app-public
-        secret: foobar
-        authorization_policy: one_factor
+      - client_id: 'oidc-tester-app-public'
+        ## 'foobar'
+        client_secret: '$pbkdf2-sha512$310000$EniFUo2z8Yjw3op3lrtuyA$xhopyOyffx2TqsQvEhoMSo1sxywIvJV8HZw/zdf62xtyryY/nkNkdcUV82r.xtd5NuyvZo7DPkOlcffM/Wvsmw'  # yamllint disable-line rule:line-length
+        authorization_policy: 'one_factor'
         redirect_uris:
-          - https://oidc-public.example.com:8080/oauth2/callback
+          - 'https://oidc-public.example.com:8080/oauth2/callback'
+
+totp:
+  disable_reuse_security_policy: true
 ...

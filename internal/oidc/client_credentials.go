@@ -18,13 +18,13 @@ import (
 	"github.com/go-crypt/crypt"
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/go-crypt/crypt/algorithm/plaintext"
+	"github.com/go-jose/go-jose/v3"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/handler/pkce"
 	"github.com/ory/x/errorsx"
 	"github.com/valyala/fasthttp"
-	"gopkg.in/square/go-jose.v2"
 )
 
 // NewHasher returns a new Hasher.
@@ -94,7 +94,7 @@ func (p *OpenIDConnectProvider) DefaultClientAuthenticationStrategy(ctx context.
 		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 	}
 
-	if fclient, ok := client.(*FullClient); ok {
+	if fclient, ok := client.(*RegisteredClient); ok {
 		cmethod := fclient.GetTokenEndpointAuthMethod()
 
 		switch {
@@ -182,7 +182,11 @@ func (p *OpenIDConnectProvider) JWTBearerClientAuthenticationStrategy(ctx contex
 		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'jti' from 'client_assertion' is invalid.").WithWrap(err))
 	}
 
-	tokenURL := p.Config.GetTokenURL(ctx)
+	var tokenURL string
+
+	if tokenURLs := p.Config.GetTokenURLs(ctx); len(tokenURLs) != 0 {
+		tokenURL = tokenURLs[0]
+	}
 
 	switch {
 	case iss != client.GetID():
@@ -275,7 +279,7 @@ func (p *OpenIDConnectProvider) parseJWTAssertion(ctx context.Context, form url.
 			return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithWrap(err).WithDebug(ErrorToDebugRFC6749Error(err).Error()))
 		}
 
-		fclient, ok := client.(*FullClient)
+		fclient, ok := client.(*RegisteredClient)
 		if !ok {
 			return nil, errorsx.WithStack(fosite.ErrInvalidRequest.WithHint("The client configuration does not support OpenID Connect specific authentication methods."))
 		}
@@ -495,6 +499,14 @@ func clientCredentialsFromBasicAuth(header http.Header) (clientID, clientSecret 
 	clientID, clientSecret, ok = strings.Cut(cs, ":")
 	if !ok {
 		return "", "", false, errors.New("failed to parse http authorization header: invalid value: the basic scheme separator was missing")
+	}
+
+	if clientID, err = url.QueryUnescape(clientID); err != nil {
+		return "", "", false, fmt.Errorf("failed to query unescape client id from http authorization header: %w", err)
+	}
+
+	if clientSecret, err = url.QueryUnescape(clientSecret); err != nil {
+		return "", "", false, fmt.Errorf("failed to query unescape client secret from http authorization header: %w", err)
 	}
 
 	return clientID, clientSecret, true, nil

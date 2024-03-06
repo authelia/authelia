@@ -78,12 +78,15 @@ type Basic func(next fasthttp.RequestHandler) (handler fasthttp.RequestHandler)
 // of the identity verification process.
 type IdentityVerificationStartArgs struct {
 	// Email template needs a subject, a title and the content of the button.
-	MailTitle         string
-	MailButtonContent string
+	MailTitle               string
+	MailButtonContent       string
+	MailButtonRevokeContent string
 
 	// The target endpoint where to redirect the user when verification process
 	// is completed successfully.
 	TargetEndpoint string
+
+	RevokeEndpoint string
 
 	// The action claim that will be stored in the JWT token.
 	ActionClaim string
@@ -120,4 +123,19 @@ type OKResponse struct {
 type ErrorResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
+}
+
+// AuthenticationErrorResponse model of an error response.
+type AuthenticationErrorResponse struct {
+	Status         string `json:"status"`
+	Message        string `json:"message"`
+	Authentication bool   `json:"authentication"`
+	Elevation      bool   `json:"elevation"`
+}
+
+// ElevatedForbiddenResponse is a response for RequireElevated.
+type ElevatedForbiddenResponse struct {
+	Elevation    bool `json:"elevation"`
+	FirstFactor  bool `json:"first_factor"`
+	SecondFactor bool `json:"second_factor"`
 }

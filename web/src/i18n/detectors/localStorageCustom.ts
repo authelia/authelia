@@ -1,6 +1,8 @@
 import { CustomDetector, DetectorOptions } from "i18next-browser-languagedetector";
 
 import { localStorageAvailable } from "@utils/localStorage";
+import { LocalStorageLanguagePreference } from "@constants/LocalStorage";
+import { getLocalStorage } from "@services/LocalStorage";
 
 const LocalStorageCustomDetector: CustomDetector = {
     name: "localStorageCustom",
@@ -8,8 +10,9 @@ const LocalStorageCustomDetector: CustomDetector = {
     lookup(options: DetectorOptions): string | undefined {
         let found;
 
-        if (options.lookupLocalStorage && localStorageAvailable()) {
-            const lng = window.localStorage.getItem(options.lookupLocalStorage);
+        if (options.lookupLocalStorage) {
+            const lng = getLocalStorage(LocalStorageLanguagePreference);
+
             if (lng && lng !== "") {
                 found = lng;
             }

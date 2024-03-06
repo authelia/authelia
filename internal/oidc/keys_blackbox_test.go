@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/go-jose/go-jose/v3"
 	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -18,7 +18,7 @@ import (
 
 func TestKeyManager(t *testing.T) {
 	config := &schema.IdentityProvidersOpenIDConnect{
-		IssuerPrivateKeys: []schema.JWK{
+		JSONWebKeys: []schema.JWK{
 			{
 				Use:              oidc.KeyUseSignature,
 				Algorithm:        oidc.SigningAlgRSAUsingSHA256,
@@ -78,10 +78,10 @@ func TestKeyManager(t *testing.T) {
 
 	config.Discovery.DefaultKeyIDs = map[string]string{}
 
-	for i, key := range config.IssuerPrivateKeys {
+	for i, key := range config.JSONWebKeys {
 		kid := fmt.Sprintf("kid-%s-%s", key.Algorithm, key.Use)
 
-		config.IssuerPrivateKeys[i].KeyID = kid
+		config.JSONWebKeys[i].KeyID = kid
 
 		if _, ok := config.Discovery.DefaultKeyIDs[key.Algorithm]; !ok {
 			config.Discovery.DefaultKeyIDs[key.Algorithm] = kid
@@ -155,7 +155,7 @@ func TestKeyManager(t *testing.T) {
 	set := manager.Set(ctx)
 
 	assert.NotNil(t, set)
-	assert.Len(t, set.Keys, len(config.IssuerPrivateKeys))
+	assert.Len(t, set.Keys, len(config.JSONWebKeys))
 
 	data, err := json.Marshal(&set)
 	assert.NoError(t, err)

@@ -8,11 +8,11 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -352,7 +352,7 @@ func TestIntrospectionResponse(t *testing.T) {
 		{
 			"ShouldTestActiveToken",
 			&oidc.IntrospectionResponse{
-				Client: &oidc.BaseClient{ID: "client1"},
+				Client: &oidc.RegisteredClient{ID: "client1"},
 				Active: true,
 				AccessRequester: &fosite.AccessRequest{
 					Request: fosite.Request{

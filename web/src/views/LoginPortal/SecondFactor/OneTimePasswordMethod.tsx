@@ -99,7 +99,7 @@ const OneTimePasswordMethod = function (props: Props) {
     }, [props.authenticationLevel, setState]);
 
     useEffect(() => {
-        signInFunc();
+        signInFunc().catch(console.error);
     }, [signInFunc]);
 
     let methodState = MethodContainerState.METHOD;

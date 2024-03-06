@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-jose/go-jose/v3"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
 	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/text/language"
-	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
@@ -55,6 +55,43 @@ func TestSortedJSONWebKey(t *testing.T) {
 	}
 }
 
+func TestRFC6750Header(t *testing.T) {
+	testCaes := []struct {
+		name     string
+		have     *fosite.RFC6749Error
+		realm    string
+		scope    string
+		expected string
+	}{
+		{
+			"ShouldEncodeAll",
+			&fosite.RFC6749Error{
+				ErrorField:       "invalid_example",
+				DescriptionField: "A description",
+			},
+			"abc",
+			"openid",
+			`realm="abc",error="invalid_example",error_description="A description",scope="openid"`,
+		},
+		{
+			"ShouldEncodeBasic",
+			&fosite.RFC6749Error{
+				ErrorField:       "invalid_example",
+				DescriptionField: "A description",
+			},
+			"",
+			"",
+			`error="invalid_example",error_description="A description"`,
+		},
+	}
+
+	for _, tc := range testCaes {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, oidc.RFC6750Header(tc.realm, tc.scope, tc.have))
+		})
+	}
+}
+
 func TestIntrospectionResponseToMap(t *testing.T) {
 	testCases := []struct {
 		name        string
@@ -91,7 +128,7 @@ func TestIntrospectionResponseToMap(t *testing.T) {
 						RequestedAt:     time.Unix(100000, 0).UTC(),
 						GrantedScope:    fosite.Arguments{oidc.ScopeOpenID, oidc.ScopeProfile},
 						GrantedAudience: fosite.Arguments{"https://example.com", "aclient"},
-						Client:          &oidc.BaseClient{ID: "aclient"},
+						Client:          &oidc.RegisteredClient{ID: "aclient"},
 					},
 				},
 			},
@@ -113,7 +150,7 @@ func TestIntrospectionResponseToMap(t *testing.T) {
 						RequestedAt:     time.Unix(100000, 0).UTC(),
 						GrantedScope:    fosite.Arguments{oidc.ScopeOpenID, oidc.ScopeProfile},
 						GrantedAudience: fosite.Arguments{"https://example.com", "aclient"},
-						Client:          &oidc.BaseClient{ID: "aclient"},
+						Client:          &oidc.RegisteredClient{ID: "aclient"},
 						Session: &oidc.Session{
 							DefaultSession: &openid.DefaultSession{
 								ExpiresAt: map[fosite.TokenType]time.Time{
@@ -146,7 +183,7 @@ func TestIntrospectionResponseToMap(t *testing.T) {
 		{
 			"ShouldReturnActiveWithAccessRequesterAndSessionWithIDTokenClaimsAndUsername",
 			&oidc.IntrospectionResponse{
-				Client: &oidc.BaseClient{
+				Client: &oidc.RegisteredClient{
 					ID:       "rclient",
 					Audience: []string{"https://rs.example.com"},
 				},
@@ -156,7 +193,7 @@ func TestIntrospectionResponseToMap(t *testing.T) {
 						RequestedAt:     time.Unix(100000, 0).UTC(),
 						GrantedScope:    fosite.Arguments{oidc.ScopeOpenID, oidc.ScopeProfile},
 						GrantedAudience: fosite.Arguments{"https://example.com", "aclient"},
-						Client:          &oidc.BaseClient{ID: "aclient"},
+						Client:          &oidc.RegisteredClient{ID: "aclient"},
 						Session: &oidc.Session{
 							DefaultSession: &openid.DefaultSession{
 								ExpiresAt: map[fosite.TokenType]time.Time{

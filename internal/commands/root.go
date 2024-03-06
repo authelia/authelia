@@ -88,6 +88,8 @@ func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 
 	ctx.cconfig = nil
 
+	ctx.log.Trace("Starting Services")
+
 	servicesRun(ctx)
 
 	return nil
@@ -99,23 +101,37 @@ func doStartupChecks(ctx *CmdCtx) {
 		err      error
 	)
 
+	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameStorage}).Trace("Performing Startup Check")
+
 	if err = doStartupCheck(ctx, providerNameStorage, ctx.providers.StorageProvider, false); err != nil {
 		ctx.log.WithError(err).WithField(logFieldProvider, providerNameStorage).Error(logMessageStartupCheckError)
 
 		failures = append(failures, providerNameStorage)
+	} else {
+		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameStorage}).Trace("Startup Check Completed Successfully")
 	}
+
+	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameUser}).Trace("Performing Startup Check")
 
 	if err = doStartupCheck(ctx, providerNameUser, ctx.providers.UserProvider, false); err != nil {
 		ctx.log.WithError(err).WithField(logFieldProvider, providerNameUser).Error(logMessageStartupCheckError)
 
 		failures = append(failures, providerNameUser)
+	} else {
+		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameUser}).Trace("Startup Check Completed Successfully")
 	}
+
+	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNotification}).Trace("Performing Startup Check")
 
 	if err = doStartupCheck(ctx, providerNameNotification, ctx.providers.Notifier, ctx.config.Notifier.DisableStartupCheck); err != nil {
 		ctx.log.WithError(err).WithField(logFieldProvider, providerNameNotification).Error(logMessageStartupCheckError)
 
 		failures = append(failures, providerNameNotification)
+	} else {
+		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNotification}).Trace("Startup Check Completed Successfully")
 	}
+
+	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNTP}).Trace("Performing Startup Check")
 
 	if err = doStartupCheck(ctx, providerNameNTP, ctx.providers.NTP, ctx.config.NTP.DisableStartupCheck); err != nil {
 		if !ctx.config.NTP.DisableFailure {
@@ -125,6 +141,8 @@ func doStartupChecks(ctx *CmdCtx) {
 		} else {
 			ctx.log.WithError(err).WithField(logFieldProvider, providerNameNTP).Warn(logMessageStartupCheckError)
 		}
+	} else {
+		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNTP}).Trace("Startup Check Completed Successfully")
 	}
 
 	if len(failures) != 0 {

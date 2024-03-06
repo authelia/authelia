@@ -22,7 +22,6 @@ aliases:
 ```yaml
 certificates_directory: '/config/certs/'
 default_redirection_url: 'https://home.example.com:8080/'
-jwt_secret: 'v3ry_important_s3cr3t'
 theme: 'light'
 ```
 
@@ -71,17 +70,6 @@ Options are:
 ```yaml
 default_2fa_method: totp
 ```
-
-### jwt_secret
-
-{{< confkey type="string" required="yes" >}}
-
-*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
-especially for containerized deployments.*
-
-Defines the secret used to craft JWT tokens leveraged by the identity verification process. This can a random string.
-It's strongly recommended this is a [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with
-64 or more characters.
 
 ### theme
 

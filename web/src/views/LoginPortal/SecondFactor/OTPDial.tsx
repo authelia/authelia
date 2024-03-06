@@ -45,8 +45,6 @@ const OTPDial = function (props: Props) {
     );
 };
 
-export default OTPDial;
-
 const useStyles = makeStyles((theme: Theme) => ({
     timeProgress: {},
     register: {
@@ -85,3 +83,5 @@ function Icon(props: IconProps) {
         </Fragment>
     );
 }
+
+export default OTPDial;

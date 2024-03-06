@@ -16,7 +16,7 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.37.5](https://github.com/authelia/authelia/releases/tag/v4.37.5)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Firezone]
   * [0.7.25](https://github.com/firezone/firezone/releases/tag/0.7.25)
 
@@ -51,20 +51,20 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-    - id: 'firezone'
-      description: 'Firezone'
-      secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-      public: false
-      authorization_policy: 'two_factor'
-      enforce_pkce: true
-      pkce_challenge_method: 'S256'
-      redirect_uris:
-        - 'https://firezone.example.com/auth/oidc/authelia/callback'
-      scopes:
-        - 'openid'
-        - 'email'
-        - 'profile'
-      userinfo_signed_response_alg: 'none'
+      - client_id: 'firezone'
+        client_name: 'Firezone'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        public: false
+        authorization_policy: 'two_factor'
+        require_pkce: true
+        pkce_challenge_method: 'S256'
+        redirect_uris:
+          - 'https://firezone.example.com/auth/oidc/authelia/callback'
+        scopes:
+          - 'openid'
+          - 'email'
+          - 'profile'
+        userinfo_signed_response_alg: 'none'
 ```
 
 ### Application

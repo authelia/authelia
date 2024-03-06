@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"sort"
 	"strconv"
-	"strings"
 
 	"github.com/ory/fosite"
 
@@ -120,67 +119,92 @@ func validateOIDCLifespans(config *schema.IdentityProvidersOpenIDConnect, _ *sch
 
 func validateOIDCIssuer(config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
 	switch {
+	case len(config.JSONWebKeys) != 0 && (config.IssuerPrivateKey != nil || config.IssuerCertificateChain.HasCertificates()):
+		validator.Push(fmt.Errorf("identity_providers: oidc: option `jwks` must not be configured at the same time as 'issuer_private_key' or 'issuer_certificate_chain'"))
 	case config.IssuerPrivateKey != nil:
 		validateOIDCIssuerPrivateKey(config)
 
 		fallthrough
-	case len(config.IssuerPrivateKeys) != 0:
-		validateOIDCIssuerPrivateKeys(config, validator)
+	case len(config.JSONWebKeys) != 0:
+		validateOIDCIssuerJSONWebKeys(config, validator)
+		validateOIDDIssuerSigningAlgsDiscovery(config, validator)
 	default:
 		validator.Push(fmt.Errorf(errFmtOIDCProviderNoPrivateKey))
 	}
 }
 
+func validateOIDDIssuerSigningAlgsDiscovery(config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	config.DiscoverySignedResponseAlg, config.DiscoverySignedResponseKeyID = validateOIDCAlgKIDDefault(config, config.DiscoverySignedResponseAlg, config.DiscoverySignedResponseKeyID, schema.DefaultOpenIDConnectConfiguration.DiscoverySignedResponseAlg)
+
+	switch config.DiscoverySignedResponseKeyID {
+	case "":
+		switch config.DiscoverySignedResponseAlg {
+		case "", oidc.SigningAlgNone, oidc.SigningAlgRSAUsingSHA256:
+			break
+		default:
+			if !utils.IsStringInSlice(config.DiscoverySignedResponseAlg, config.Discovery.ResponseObjectSigningAlgs) {
+				validator.Push(fmt.Errorf(errFmtOIDCProviderInvalidValue, attrOIDCDiscoSigAlg, strJoinOr(append(config.Discovery.ResponseObjectSigningAlgs, oidc.SigningAlgNone)), config.DiscoverySignedResponseAlg))
+			}
+		}
+	default:
+		if !utils.IsStringInSlice(config.DiscoverySignedResponseKeyID, config.Discovery.ResponseObjectSigningKeyIDs) {
+			validator.Push(fmt.Errorf(errFmtOIDCProviderInvalidValue, attrOIDCDiscoSigKID, strJoinOr(config.Discovery.ResponseObjectSigningKeyIDs), config.DiscoverySignedResponseKeyID))
+		} else {
+			config.DiscoverySignedResponseAlg = getResponseObjectAlgFromKID(config, config.DiscoverySignedResponseKeyID, config.DiscoverySignedResponseAlg)
+		}
+	}
+}
+
 func validateOIDCIssuerPrivateKey(config *schema.IdentityProvidersOpenIDConnect) {
-	config.IssuerPrivateKeys = append([]schema.JWK{{
+	config.JSONWebKeys = append([]schema.JWK{{
 		Algorithm:        oidc.SigningAlgRSAUsingSHA256,
 		Use:              oidc.KeyUseSignature,
 		Key:              config.IssuerPrivateKey,
 		CertificateChain: config.IssuerCertificateChain,
-	}}, config.IssuerPrivateKeys...)
+	}}, config.JSONWebKeys...)
 }
 
-func validateOIDCIssuerPrivateKeys(config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+func validateOIDCIssuerJSONWebKeys(config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
 	var (
 		props *JWKProperties
 		err   error
 	)
 
-	config.Discovery.ResponseObjectSigningKeyIDs = make([]string, len(config.IssuerPrivateKeys))
+	config.Discovery.ResponseObjectSigningKeyIDs = make([]string, len(config.JSONWebKeys))
 	config.Discovery.DefaultKeyIDs = map[string]string{}
 
-	for i := 0; i < len(config.IssuerPrivateKeys); i++ {
-		if key, ok := config.IssuerPrivateKeys[i].Key.(*rsa.PrivateKey); ok && key.PublicKey.N == nil {
+	for i := 0; i < len(config.JSONWebKeys); i++ {
+		if key, ok := config.JSONWebKeys[i].Key.(*rsa.PrivateKey); ok && key.PublicKey.N == nil {
 			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysInvalid, i+1))
 
 			continue
 		}
 
-		switch n := len(config.IssuerPrivateKeys[i].KeyID); {
+		if props, err = schemaJWKGetProperties(config.JSONWebKeys[i]); err != nil {
+			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysProperties, i+1, config.JSONWebKeys[i].KeyID, err))
+
+			continue
+		}
+
+		switch n := len(config.JSONWebKeys[i].KeyID); {
 		case n == 0:
-			if config.IssuerPrivateKeys[i].KeyID, err = jwkCalculateThumbprint(config.IssuerPrivateKeys[i].Key); err != nil {
+			if config.JSONWebKeys[i].KeyID, err = jwkCalculateKID(config.JSONWebKeys[i].Key, props, config.JSONWebKeys[i].Algorithm); err != nil {
 				validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysCalcThumbprint, i+1, err))
 
 				continue
 			}
 		case n > 100:
-			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysKeyIDLength, i+1, config.IssuerPrivateKeys[i].KeyID))
+			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysKeyIDLength, i+1, config.JSONWebKeys[i].KeyID))
 		}
 
-		if config.IssuerPrivateKeys[i].KeyID != "" && utils.IsStringInSlice(config.IssuerPrivateKeys[i].KeyID, config.Discovery.ResponseObjectSigningKeyIDs) {
-			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysAttributeNotUnique, i+1, config.IssuerPrivateKeys[i].KeyID, attrOIDCKeyID))
+		if config.JSONWebKeys[i].KeyID != "" && utils.IsStringInSlice(config.JSONWebKeys[i].KeyID, config.Discovery.ResponseObjectSigningKeyIDs) {
+			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysAttributeNotUnique, i+1, config.JSONWebKeys[i].KeyID, attrOIDCKeyID))
 		}
 
-		config.Discovery.ResponseObjectSigningKeyIDs[i] = config.IssuerPrivateKeys[i].KeyID
+		config.Discovery.ResponseObjectSigningKeyIDs[i] = config.JSONWebKeys[i].KeyID
 
-		if !reOpenIDConnectKID.MatchString(config.IssuerPrivateKeys[i].KeyID) {
-			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysKeyIDNotValid, i+1, config.IssuerPrivateKeys[i].KeyID))
-		}
-
-		if props, err = schemaJWKGetProperties(config.IssuerPrivateKeys[i]); err != nil {
-			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysProperties, i+1, config.IssuerPrivateKeys[i].KeyID, err))
-
-			continue
+		if !reOpenIDConnectKID.MatchString(config.JSONWebKeys[i].KeyID) {
+			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysKeyIDNotValid, i+1, config.JSONWebKeys[i].KeyID))
 		}
 
 		validateOIDCIssuerPrivateKeysUseAlg(i, props, config, validator)
@@ -193,33 +217,33 @@ func validateOIDCIssuerPrivateKeys(config *schema.IdentityProvidersOpenIDConnect
 }
 
 func validateOIDCIssuerPrivateKeysUseAlg(i int, props *JWKProperties, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
-	switch config.IssuerPrivateKeys[i].Use {
+	switch config.JSONWebKeys[i].Use {
 	case "":
-		config.IssuerPrivateKeys[i].Use = props.Use
+		config.JSONWebKeys[i].Use = props.Use
 	case oidc.KeyUseSignature:
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysInvalidOptionOneOf, i+1, config.IssuerPrivateKeys[i].KeyID, attrOIDCKeyUse, strJoinOr([]string{oidc.KeyUseSignature}), config.IssuerPrivateKeys[i].Use))
+		validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysInvalidOptionOneOf, i+1, config.JSONWebKeys[i].KeyID, attrOIDCKeyUse, strJoinOr([]string{oidc.KeyUseSignature}), config.JSONWebKeys[i].Use))
 	}
 
 	switch {
-	case config.IssuerPrivateKeys[i].Algorithm == "":
-		config.IssuerPrivateKeys[i].Algorithm = props.Algorithm
+	case config.JSONWebKeys[i].Algorithm == "":
+		config.JSONWebKeys[i].Algorithm = props.Algorithm
 
 		fallthrough
-	case utils.IsStringInSlice(config.IssuerPrivateKeys[i].Algorithm, validOIDCIssuerJWKSigningAlgs):
-		if config.IssuerPrivateKeys[i].KeyID != "" && config.IssuerPrivateKeys[i].Algorithm != "" {
-			if _, ok := config.Discovery.DefaultKeyIDs[config.IssuerPrivateKeys[i].Algorithm]; !ok {
-				config.Discovery.DefaultKeyIDs[config.IssuerPrivateKeys[i].Algorithm] = config.IssuerPrivateKeys[i].KeyID
+	case utils.IsStringInSlice(config.JSONWebKeys[i].Algorithm, validOIDCIssuerJWKSigningAlgs):
+		if config.JSONWebKeys[i].KeyID != "" && config.JSONWebKeys[i].Algorithm != "" {
+			if _, ok := config.Discovery.DefaultKeyIDs[config.JSONWebKeys[i].Algorithm]; !ok {
+				config.Discovery.DefaultKeyIDs[config.JSONWebKeys[i].Algorithm] = config.JSONWebKeys[i].KeyID
 			}
 		}
 	default:
-		validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysInvalidOptionOneOf, i+1, config.IssuerPrivateKeys[i].KeyID, attrOIDCAlgorithm, strJoinOr(validOIDCIssuerJWKSigningAlgs), config.IssuerPrivateKeys[i].Algorithm))
+		validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysInvalidOptionOneOf, i+1, config.JSONWebKeys[i].KeyID, attrOIDCAlgorithm, strJoinOr(validOIDCIssuerJWKSigningAlgs), config.JSONWebKeys[i].Algorithm))
 	}
 
-	if config.IssuerPrivateKeys[i].Algorithm != "" {
-		if !utils.IsStringInSlice(config.IssuerPrivateKeys[i].Algorithm, config.Discovery.ResponseObjectSigningAlgs) {
-			config.Discovery.ResponseObjectSigningAlgs = append(config.Discovery.ResponseObjectSigningAlgs, config.IssuerPrivateKeys[i].Algorithm)
+	if config.JSONWebKeys[i].Algorithm != "" {
+		if !utils.IsStringInSlice(config.JSONWebKeys[i].Algorithm, config.Discovery.ResponseObjectSigningAlgs) {
+			config.Discovery.ResponseObjectSigningAlgs = append(config.Discovery.ResponseObjectSigningAlgs, config.JSONWebKeys[i].Algorithm)
 		}
 	}
 }
@@ -230,28 +254,28 @@ func validateOIDCIssuerPrivateKeyPair(i int, config *schema.IdentityProvidersOpe
 		err           error
 	)
 
-	switch key := config.IssuerPrivateKeys[i].Key.(type) {
+	switch key := config.JSONWebKeys[i].Key.(type) {
 	case *rsa.PrivateKey:
 		checkEqualKey = true
 
 		if key.Size() < 256 {
 			checkEqualKey = false
 
-			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysRSAKeyLessThan2048Bits, i+1, config.IssuerPrivateKeys[i].KeyID, key.Size()*8))
+			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysRSAKeyLessThan2048Bits, i+1, config.JSONWebKeys[i].KeyID, key.Size()*8))
 		}
 	case *ecdsa.PrivateKey:
 		checkEqualKey = true
 	default:
-		validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysKeyNotRSAOrECDSA, i+1, config.IssuerPrivateKeys[i].KeyID, key))
+		validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysKeyNotRSAOrECDSA, i+1, config.JSONWebKeys[i].KeyID, key))
 	}
 
-	if config.IssuerPrivateKeys[i].CertificateChain.HasCertificates() {
-		if checkEqualKey && !config.IssuerPrivateKeys[i].CertificateChain.EqualKey(config.IssuerPrivateKeys[i].Key) {
-			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysKeyCertificateMismatch, i+1, config.IssuerPrivateKeys[i].KeyID))
+	if config.JSONWebKeys[i].CertificateChain.HasCertificates() {
+		if checkEqualKey && !config.JSONWebKeys[i].CertificateChain.EqualKey(config.JSONWebKeys[i].Key) {
+			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysKeyCertificateMismatch, i+1, config.JSONWebKeys[i].KeyID))
 		}
 
-		if err = config.IssuerPrivateKeys[i].CertificateChain.Validate(); err != nil {
-			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysCertificateChainInvalid, i+1, config.IssuerPrivateKeys[i].KeyID, err))
+		if err = config.JSONWebKeys[i].CertificateChain.Validate(); err != nil {
+			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysCertificateChainInvalid, i+1, config.JSONWebKeys[i].KeyID, err))
 		}
 	}
 }
@@ -322,8 +346,8 @@ func validateOIDCOptionsCORSAllowedOriginsFromClientRedirectURIs(config *schema.
 
 			origin := utils.OriginFromURL(uri)
 
-			if !utils.IsURLInSlice(*origin, config.CORS.AllowedOrigins) {
-				config.CORS.AllowedOrigins = append(config.CORS.AllowedOrigins, *origin)
+			if !utils.IsURLInSlice(origin, config.CORS.AllowedOrigins) {
+				config.CORS.AllowedOrigins = append(config.CORS.AllowedOrigins, origin)
 			}
 		}
 	}
@@ -347,19 +371,26 @@ func validateOIDCClients(config *schema.IdentityProvidersOpenIDConnect, validato
 	errDeprecatedFunc := func() { errDeprecated = true }
 
 	for c, client := range config.Clients {
-		if client.ID == "" {
+		n := len(client.ID)
+
+		switch {
+		case n == 0:
 			blankClientIDs = append(blankClientIDs, "#"+strconv.Itoa(c+1))
-		} else {
-			if client.Description == "" {
-				config.Clients[c].Description = client.ID
+		case n > 100:
+			validator.Push(fmt.Errorf(errFmtOIDCClientIDTooLong, client.ID, n))
+		case !reRFC3986Unreserved.MatchString(client.ID):
+			validator.Push(fmt.Errorf(errFmtOIDCClientIDInvalidCharacters, client.ID))
+		default:
+			if client.Name == "" {
+				config.Clients[c].Name = client.ID
 			}
 
-			if id := strings.ToLower(client.ID); utils.IsStringInSlice(id, clientIDs) {
-				if !utils.IsStringInSlice(id, duplicateClientIDs) {
-					duplicateClientIDs = append(duplicateClientIDs, id)
+			if utils.IsStringInSlice(client.ID, clientIDs) {
+				if !utils.IsStringInSlice(client.ID, duplicateClientIDs) {
+					duplicateClientIDs = append(duplicateClientIDs, client.ID)
 				}
 			} else {
-				clientIDs = append(clientIDs, id)
+				clientIDs = append(clientIDs, client.ID)
 			}
 		}
 
@@ -380,7 +411,15 @@ func validateOIDCClients(config *schema.IdentityProvidersOpenIDConnect, validato
 }
 
 func validateOIDCClient(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, errDeprecatedFunc func()) {
+	ccg := utils.IsStringInSlice(oidc.GrantTypeClientCredentials, config.Clients[c].GrantTypes)
+
 	switch {
+	case ccg:
+		if config.Clients[c].AuthorizationPolicy == "" {
+			config.Clients[c].AuthorizationPolicy = policyOneFactor
+		} else if config.Clients[c].AuthorizationPolicy != policyOneFactor {
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, "authorization_policy", strJoinOr([]string{policyOneFactor}), config.Clients[c].AuthorizationPolicy))
+		}
 	case config.Clients[c].AuthorizationPolicy == "":
 		config.Clients[c].AuthorizationPolicy = schema.DefaultOpenIDConnectClientConfiguration.AuthorizationPolicy
 	case utils.IsStringInSlice(config.Clients[c].AuthorizationPolicy, config.Discovery.AuthorizationPolicies):
@@ -416,12 +455,14 @@ func validateOIDCClient(c int, config *schema.IdentityProvidersOpenIDConnect, va
 		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, attrOIDCRequestedAudienceMode, strJoinOr([]string{oidc.ClientRequestedAudienceModeExplicit.String(), oidc.ClientRequestedAudienceModeImplicit.String()}), config.Clients[c].RequestedAudienceMode))
 	}
 
-	validateOIDCClientConsentMode(c, config, validator)
+	setDefaults := validateOIDCClientScopesSpecialBearerAuthz(c, config, ccg, validator)
 
-	validateOIDCClientScopes(c, config, validator, errDeprecatedFunc)
-	validateOIDCClientResponseTypes(c, config, validator, errDeprecatedFunc)
-	validateOIDCClientResponseModes(c, config, validator, errDeprecatedFunc)
-	validateOIDCClientGrantTypes(c, config, validator, errDeprecatedFunc)
+	validateOIDCClientConsentMode(c, config, validator, setDefaults)
+
+	validateOIDCClientScopes(c, config, validator, ccg, errDeprecatedFunc)
+	validateOIDCClientResponseTypes(c, config, validator, setDefaults, errDeprecatedFunc)
+	validateOIDCClientResponseModes(c, config, validator, setDefaults, errDeprecatedFunc)
+	validateOIDCClientGrantTypes(c, config, validator, setDefaults, errDeprecatedFunc)
 	validateOIDCClientRedirectURIs(c, config, validator, errDeprecatedFunc)
 
 	validateOIDDClientSigningAlgs(c, config, validator)
@@ -434,30 +475,31 @@ func validateOIDCClient(c int, config *schema.IdentityProvidersOpenIDConnect, va
 
 func validateOIDCClientPublicKeys(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
 	switch {
-	case config.Clients[c].PublicKeys.URI != nil && len(config.Clients[c].PublicKeys.Values) != 0:
+	case config.Clients[c].JSONWebKeysURI != nil && len(config.Clients[c].JSONWebKeys) != 0:
 		validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysBothURIAndValuesConfigured, config.Clients[c].ID))
-	case config.Clients[c].PublicKeys.URI != nil:
-		if config.Clients[c].PublicKeys.URI.Scheme != schemeHTTPS {
-			validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysURIInvalidScheme, config.Clients[c].ID, config.Clients[c].PublicKeys.URI.Scheme))
+	case config.Clients[c].JSONWebKeysURI != nil:
+		if config.Clients[c].JSONWebKeysURI.Scheme != schemeHTTPS {
+			validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysURIInvalidScheme, config.Clients[c].ID, config.Clients[c].JSONWebKeysURI.Scheme))
 		}
-	case len(config.Clients[c].PublicKeys.Values) != 0:
+	case len(config.Clients[c].JSONWebKeys) != 0:
 		validateOIDCClientJSONWebKeysList(c, config, validator)
 	}
 }
 
+//nolint:gocyclo
 func validateOIDCClientJSONWebKeysList(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
 	var (
 		props *JWKProperties
 		err   error
 	)
 
-	for i := 0; i < len(config.Clients[c].PublicKeys.Values); i++ {
-		if config.Clients[c].PublicKeys.Values[i].KeyID == "" {
+	for i := 0; i < len(config.Clients[c].JSONWebKeys); i++ {
+		if config.Clients[c].JSONWebKeys[i].KeyID == "" {
 			validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysInvalidOptionMissingOneOf, config.Clients[c].ID, i+1, attrOIDCKeyID))
 		}
 
-		if props, err = schemaJWKGetProperties(config.Clients[c].PublicKeys.Values[i]); err != nil {
-			validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysProperties, config.Clients[c].ID, i+1, config.Clients[c].PublicKeys.Values[i].KeyID, err))
+		if props, err = schemaJWKGetProperties(config.Clients[c].JSONWebKeys[i]); err != nil {
+			validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysProperties, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, err))
 
 			continue
 		}
@@ -466,7 +508,7 @@ func validateOIDCClientJSONWebKeysList(c int, config *schema.IdentityProvidersOp
 
 		var checkEqualKey bool
 
-		switch key := config.Clients[c].PublicKeys.Values[i].Key.(type) {
+		switch key := config.Clients[c].JSONWebKeys[i].Key.(type) {
 		case nil:
 			validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysInvalidOptionMissingOneOf, config.Clients[c].ID, i+1, attrOIDCKey))
 		case *rsa.PublicKey:
@@ -479,99 +521,105 @@ func validateOIDCClientJSONWebKeysList(c int, config *schema.IdentityProvidersOp
 			} else if key.Size() < 256 {
 				checkEqualKey = false
 
-				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysRSAKeyLessThan2048Bits, config.Clients[c].ID, i+1, config.Clients[c].PublicKeys.Values[i].KeyID, key.Size()*8))
+				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysRSAKeyLessThan2048Bits, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, key.Size()*8))
 			}
 		case *ecdsa.PublicKey:
 			checkEqualKey = true
 		default:
-			validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysKeyNotRSAOrECDSA, config.Clients[c].ID, i+1, config.Clients[c].PublicKeys.Values[i].KeyID, key))
+			validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysKeyNotRSAOrECDSA, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, key))
 		}
 
-		if config.Clients[c].PublicKeys.Values[i].CertificateChain.HasCertificates() {
-			if checkEqualKey && !config.Clients[c].PublicKeys.Values[i].CertificateChain.EqualKey(config.Clients[c].PublicKeys.Values[i].Key) {
-				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysCertificateChainKeyMismatch, config.Clients[c].ID, i+1, config.Clients[c].PublicKeys.Values[i].KeyID))
+		if config.Clients[c].JSONWebKeys[i].CertificateChain.HasCertificates() {
+			if checkEqualKey && !config.Clients[c].JSONWebKeys[i].CertificateChain.EqualKey(config.Clients[c].JSONWebKeys[i].Key) {
+				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysCertificateChainKeyMismatch, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID))
 			}
 
-			if err = config.Clients[c].PublicKeys.Values[i].CertificateChain.Validate(); err != nil {
-				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysCertificateChainInvalid, config.Clients[c].ID, i+1, config.Clients[c].PublicKeys.Values[i].KeyID, err))
+			if err = config.Clients[c].JSONWebKeys[i].CertificateChain.Validate(); err != nil {
+				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysCertificateChainInvalid, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, err))
 			}
 		}
 	}
 
-	if config.Clients[c].RequestObjectSigningAlg != "" && !utils.IsStringInSlice(config.Clients[c].RequestObjectSigningAlg, config.Clients[c].Discovery.RequestObjectSigningAlgs) {
+	if config.Clients[c].RequestObjectSigningAlg != "" && config.Clients[c].JSONWebKeysURI == nil && !utils.IsStringInSlice(config.Clients[c].RequestObjectSigningAlg, config.Clients[c].Discovery.RequestObjectSigningAlgs) {
 		validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysROSAMissingAlgorithm, config.Clients[c].ID, strJoinOr(config.Clients[c].Discovery.RequestObjectSigningAlgs)))
 	}
 }
 
 func validateOIDCClientJSONWebKeysListKeyUseAlg(c, i int, props *JWKProperties, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
-	switch config.Clients[c].PublicKeys.Values[i].Use {
+	switch config.Clients[c].JSONWebKeys[i].Use {
 	case "":
-		config.Clients[c].PublicKeys.Values[i].Use = props.Use
+		config.Clients[c].JSONWebKeys[i].Use = props.Use
 	case oidc.KeyUseSignature:
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysInvalidOptionOneOf, config.Clients[c].ID, i+1, config.Clients[c].PublicKeys.Values[i].KeyID, attrOIDCKeyUse, strJoinOr([]string{oidc.KeyUseSignature}), config.Clients[c].PublicKeys.Values[i].Use))
+		validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysInvalidOptionOneOf, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, attrOIDCKeyUse, strJoinOr([]string{oidc.KeyUseSignature}), config.Clients[c].JSONWebKeys[i].Use))
 	}
 
 	switch {
-	case config.Clients[c].PublicKeys.Values[i].Algorithm == "":
-		config.Clients[c].PublicKeys.Values[i].Algorithm = props.Algorithm
-	case utils.IsStringInSlice(config.Clients[c].PublicKeys.Values[i].Algorithm, validOIDCIssuerJWKSigningAlgs):
+	case config.Clients[c].JSONWebKeys[i].Algorithm == "":
+		config.Clients[c].JSONWebKeys[i].Algorithm = props.Algorithm
+	case utils.IsStringInSlice(config.Clients[c].JSONWebKeys[i].Algorithm, validOIDCIssuerJWKSigningAlgs):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysInvalidOptionOneOf, config.Clients[c].ID, i+1, config.Clients[c].PublicKeys.Values[i].KeyID, attrOIDCAlgorithm, strJoinOr(validOIDCIssuerJWKSigningAlgs), config.Clients[c].PublicKeys.Values[i].Algorithm))
+		validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysInvalidOptionOneOf, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, attrOIDCAlgorithm, strJoinOr(validOIDCIssuerJWKSigningAlgs), config.Clients[c].JSONWebKeys[i].Algorithm))
 	}
 
-	if config.Clients[c].PublicKeys.Values[i].Algorithm != "" {
-		if !utils.IsStringInSlice(config.Clients[c].PublicKeys.Values[i].Algorithm, config.Discovery.RequestObjectSigningAlgs) {
-			config.Discovery.RequestObjectSigningAlgs = append(config.Discovery.RequestObjectSigningAlgs, config.Clients[c].PublicKeys.Values[i].Algorithm)
+	if config.Clients[c].JSONWebKeys[i].Algorithm != "" {
+		if !utils.IsStringInSlice(config.Clients[c].JSONWebKeys[i].Algorithm, config.Discovery.RequestObjectSigningAlgs) {
+			config.Discovery.RequestObjectSigningAlgs = append(config.Discovery.RequestObjectSigningAlgs, config.Clients[c].JSONWebKeys[i].Algorithm)
 		}
 
-		if !utils.IsStringInSlice(config.Clients[c].PublicKeys.Values[i].Algorithm, config.Clients[c].Discovery.RequestObjectSigningAlgs) {
-			config.Clients[c].Discovery.RequestObjectSigningAlgs = append(config.Clients[c].Discovery.RequestObjectSigningAlgs, config.Clients[c].PublicKeys.Values[i].Algorithm)
+		if !utils.IsStringInSlice(config.Clients[c].JSONWebKeys[i].Algorithm, config.Clients[c].Discovery.RequestObjectSigningAlgs) {
+			config.Clients[c].Discovery.RequestObjectSigningAlgs = append(config.Clients[c].Discovery.RequestObjectSigningAlgs, config.Clients[c].JSONWebKeys[i].Algorithm)
 		}
 	}
 }
 
 func validateOIDCClientSectorIdentifier(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
-	if config.Clients[c].SectorIdentifier.String() != "" {
-		if utils.IsURLHostComponent(config.Clients[c].SectorIdentifier) || utils.IsURLHostComponentWithPort(config.Clients[c].SectorIdentifier) {
-			return
+	if config.Clients[c].SectorIdentifierURI == nil {
+		return
+	}
+
+	if utils.IsURLHostComponent(config.Clients[c].SectorIdentifierURI) || utils.IsURLHostComponentWithPort(config.Clients[c].SectorIdentifierURI) {
+		return
+	}
+
+	if config.Clients[c].SectorIdentifierURI.Scheme != "" {
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), config.Clients[c].SectorIdentifierURI.Host, "scheme", config.Clients[c].SectorIdentifierURI.Scheme))
+
+		if config.Clients[c].SectorIdentifierURI.Path != "" {
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), config.Clients[c].SectorIdentifierURI.Host, "path", config.Clients[c].SectorIdentifierURI.Path))
 		}
 
-		if config.Clients[c].SectorIdentifier.Scheme != "" {
-			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifier.String(), config.Clients[c].SectorIdentifier.Host, "scheme", config.Clients[c].SectorIdentifier.Scheme))
-
-			if config.Clients[c].SectorIdentifier.Path != "" {
-				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifier.String(), config.Clients[c].SectorIdentifier.Host, "path", config.Clients[c].SectorIdentifier.Path))
-			}
-
-			if config.Clients[c].SectorIdentifier.RawQuery != "" {
-				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifier.String(), config.Clients[c].SectorIdentifier.Host, "query", config.Clients[c].SectorIdentifier.RawQuery))
-			}
-
-			if config.Clients[c].SectorIdentifier.Fragment != "" {
-				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifier.String(), config.Clients[c].SectorIdentifier.Host, "fragment", config.Clients[c].SectorIdentifier.Fragment))
-			}
-
-			if config.Clients[c].SectorIdentifier.User != nil {
-				if config.Clients[c].SectorIdentifier.User.Username() != "" {
-					validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifier.String(), config.Clients[c].SectorIdentifier.Host, "username", config.Clients[c].SectorIdentifier.User.Username()))
-				}
-
-				if _, set := config.Clients[c].SectorIdentifier.User.Password(); set {
-					validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifierWithoutValue, config.Clients[c].ID, config.Clients[c].SectorIdentifier.String(), config.Clients[c].SectorIdentifier.Host, "password"))
-				}
-			}
-		} else if config.Clients[c].SectorIdentifier.Host == "" {
-			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifierHost, config.Clients[c].ID, config.Clients[c].SectorIdentifier.String()))
+		if config.Clients[c].SectorIdentifierURI.RawQuery != "" {
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), config.Clients[c].SectorIdentifierURI.Host, "query", config.Clients[c].SectorIdentifierURI.RawQuery))
 		}
+
+		if config.Clients[c].SectorIdentifierURI.Fragment != "" {
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), config.Clients[c].SectorIdentifierURI.Host, "fragment", config.Clients[c].SectorIdentifierURI.Fragment))
+		}
+
+		if config.Clients[c].SectorIdentifierURI.User != nil {
+			if config.Clients[c].SectorIdentifierURI.User.Username() != "" {
+				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), config.Clients[c].SectorIdentifierURI.Host, "username", config.Clients[c].SectorIdentifierURI.User.Username()))
+			}
+
+			if _, set := config.Clients[c].SectorIdentifierURI.User.Password(); set {
+				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifierWithoutValue, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), config.Clients[c].SectorIdentifierURI.Host, "password"))
+			}
+		}
+	} else if config.Clients[c].SectorIdentifierURI.Host == "" {
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifierHost, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String()))
 	}
 }
 
-func validateOIDCClientConsentMode(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+func validateOIDCClientConsentMode(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, setDefaults bool) {
 	switch {
 	case utils.IsStringInSlice(config.Clients[c].ConsentMode, []string{"", auto}):
+		if !setDefaults {
+			break
+		}
+
 		if config.Clients[c].ConsentPreConfiguredDuration != nil {
 			config.Clients[c].ConsentMode = oidc.ClientConsentModePreConfigured.String()
 		} else {
@@ -588,8 +636,8 @@ func validateOIDCClientConsentMode(c int, config *schema.IdentityProvidersOpenID
 	}
 }
 
-func validateOIDCClientScopes(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, errDeprecatedFunc func()) {
-	if len(config.Clients[c].Scopes) == 0 {
+func validateOIDCClientScopes(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, ccg bool, errDeprecatedFunc func()) {
+	if len(config.Clients[c].Scopes) == 0 && !ccg {
 		config.Clients[c].Scopes = schema.DefaultOpenIDConnectClientConfiguration.Scopes
 	}
 
@@ -601,16 +649,10 @@ func validateOIDCClientScopes(c int, config *schema.IdentityProvidersOpenIDConne
 		validator.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, attrOIDCScopes, strJoinAnd(duplicates)))
 	}
 
-	if utils.IsStringInSlice(oidc.GrantTypeClientCredentials, config.Clients[c].GrantTypes) {
+	if ccg {
 		validateOIDCClientScopesClientCredentialsGrant(c, config, validator)
-	} else {
-		if !utils.IsStringInSlice(oidc.ScopeOpenID, config.Clients[c].Scopes) {
-			config.Clients[c].Scopes = append([]string{oidc.ScopeOpenID}, config.Clients[c].Scopes...)
-		}
-
-		if len(invalid) != 0 {
-			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidEntries, config.Clients[c].ID, attrOIDCScopes, strJoinOr(validOIDCClientScopes), strJoinAnd(invalid)))
-		}
+	} else if len(invalid) != 0 {
+		validator.PushWarning(fmt.Errorf(errFmtOIDCClientUnknownScopeEntries, config.Clients[c].ID, attrOIDCScopes, strJoinOr(validOIDCClientScopes), strJoinAnd(invalid)))
 	}
 
 	if utils.IsStringSliceContainsAny([]string{oidc.ScopeOfflineAccess, oidc.ScopeOffline}, config.Clients[c].Scopes) &&
@@ -625,11 +667,81 @@ func validateOIDCClientScopes(c int, config *schema.IdentityProvidersOpenIDConne
 	}
 }
 
-func validateOIDCClientScopesClientCredentialsGrant(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
-	if len(config.Clients[c].GrantTypes) != 1 {
-		return
+//nolint:gocyclo
+func validateOIDCClientScopesSpecialBearerAuthz(c int, config *schema.IdentityProvidersOpenIDConnect, ccg bool, validator *schema.StructValidator) bool {
+	if !utils.IsStringInSlice(oidc.ScopeAutheliaBearerAuthz, config.Clients[c].Scopes) {
+		return true
 	}
 
+	if !config.Discovery.BearerAuthorization {
+		config.Discovery.BearerAuthorization = true
+	}
+
+	if !utils.IsStringSliceContainsAll(config.Clients[c].Scopes, validOIDCClientScopesBearerAuthz) {
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidEntriesScope, config.Clients[c].ID, attrOIDCScopes, strJoinAnd(validOIDCClientScopesBearerAuthz), oidc.ScopeAutheliaBearerAuthz, strJoinAnd(config.Clients[c].Scopes)))
+	}
+
+	if len(config.Clients[c].GrantTypes) == 0 {
+		validator.Push(fmt.Errorf(errFmtOIDCClientEmptyEntriesScope, config.Clients[c].ID, attrOIDCGrantTypes, strJoinAnd(validOIDCClientGrantTypesBearerAuthz), oidc.ScopeAutheliaBearerAuthz))
+	} else {
+		invalid, _ := validateList(config.Clients[c].GrantTypes, validOIDCClientGrantTypesBearerAuthz, false)
+
+		if len(invalid) != 0 {
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidEntriesScope, config.Clients[c].ID, attrOIDCGrantTypes, strJoinAnd(validOIDCClientGrantTypesBearerAuthz), oidc.ScopeAutheliaBearerAuthz, strJoinAnd(invalid)))
+		}
+	}
+
+	if len(config.Clients[c].Audience) == 0 {
+		validator.Push(fmt.Errorf(errFmtOIDCClientOptionRequiredScope, config.Clients[c].ID, "audience", oidc.ScopeAutheliaBearerAuthz))
+	}
+
+	if !ccg {
+		if !config.Clients[c].RequirePushedAuthorizationRequests {
+			validator.Push(fmt.Errorf(errFmtOIDCClientOptionMustScope, config.Clients[c].ID, "enforce_par", "'true'", oidc.ScopeAutheliaBearerAuthz, "false"))
+		}
+
+		if !config.Clients[c].RequirePKCE {
+			validator.Push(fmt.Errorf(errFmtOIDCClientOptionMustScope, config.Clients[c].ID, "enforce_pkce", "'true'", oidc.ScopeAutheliaBearerAuthz, "false"))
+		} else if config.Clients[c].PKCEChallengeMethod != oidc.PKCEChallengeMethodSHA256 {
+			validator.Push(fmt.Errorf(errFmtOIDCClientOptionMustScope, config.Clients[c].ID, attrOIDCPKCEChallengeMethod, "'"+oidc.PKCEChallengeMethodSHA256+"'", oidc.ScopeAutheliaBearerAuthz, config.Clients[c].PKCEChallengeMethod))
+		}
+
+		if config.Clients[c].ConsentMode != oidc.ClientConsentModeExplicit.String() {
+			validator.Push(fmt.Errorf(errFmtOIDCClientOptionMustScope, config.Clients[c].ID, "consent_mode", "'"+oidc.ClientConsentModeExplicit.String()+"'", oidc.ScopeAutheliaBearerAuthz, config.Clients[c].ConsentMode))
+		}
+
+		if len(config.Clients[c].ResponseTypes) == 0 {
+			validator.Push(fmt.Errorf(errFmtOIDCClientEmptyEntriesScope, config.Clients[c].ID, attrOIDCResponseTypes, strJoinAnd(validOIDCClientResponseTypesBearerAuthz), oidc.ScopeAutheliaBearerAuthz))
+		} else if !utils.IsStringSliceContainsAll(config.Clients[c].ResponseTypes, validOIDCClientResponseTypesBearerAuthz) ||
+			!utils.IsStringSliceContainsAny(config.Clients[c].ResponseTypes, validOIDCClientResponseTypesBearerAuthz) {
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidEntriesScope, config.Clients[c].ID, attrOIDCResponseTypes, strJoinAnd(validOIDCClientResponseTypesBearerAuthz), oidc.ScopeAutheliaBearerAuthz, strJoinAnd(config.Clients[c].ResponseTypes)))
+		}
+
+		if len(config.Clients[c].ResponseModes) == 0 {
+			validator.Push(fmt.Errorf(errFmtOIDCClientEmptyEntriesScope, config.Clients[c].ID, attrOIDCResponseModes, strJoinAnd(validOIDCClientResponseModesBearerAuthz), oidc.ScopeAutheliaBearerAuthz))
+		} else if !utils.IsStringSliceContainsAll(config.Clients[c].ResponseModes, validOIDCClientResponseModesBearerAuthz) ||
+			!utils.IsStringSliceContainsAny(config.Clients[c].ResponseModes, validOIDCClientResponseModesBearerAuthz) {
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidEntriesScope, config.Clients[c].ID, attrOIDCResponseModes, strJoinAnd(validOIDCClientResponseModesBearerAuthz), oidc.ScopeAutheliaBearerAuthz, strJoinAnd(config.Clients[c].ResponseModes)))
+		}
+	}
+
+	if config.Clients[c].Public {
+		if config.Clients[c].TokenEndpointAuthMethod != oidc.ClientAuthMethodNone {
+			validator.Push(fmt.Errorf(errFmtOIDCClientOptionMustScopeClientType, config.Clients[c].ID, attrOIDCTokenAuthMethod, "'"+oidc.ClientAuthMethodNone+"'", oidc.ScopeAutheliaBearerAuthz, "public", config.Clients[c].TokenEndpointAuthMethod))
+		}
+	} else {
+		switch config.Clients[c].TokenEndpointAuthMethod {
+		case oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretJWT, oidc.ClientAuthMethodPrivateKeyJWT:
+			break
+		default:
+			validator.Push(fmt.Errorf(errFmtOIDCClientOptionMustScopeClientType, config.Clients[c].ID, attrOIDCTokenAuthMethod, strJoinOr([]string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretJWT, oidc.ClientAuthMethodPrivateKeyJWT}), oidc.ScopeAutheliaBearerAuthz, "confidential", config.Clients[c].TokenEndpointAuthMethod))
+		}
+	}
+
+	return false
+}
+
+func validateOIDCClientScopesClientCredentialsGrant(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
 	invalid := validateListNotAllowed(config.Clients[c].Scopes, []string{oidc.ScopeOpenID, oidc.ScopeOffline, oidc.ScopeOfflineAccess})
 
 	if len(invalid) > 0 {
@@ -637,8 +749,12 @@ func validateOIDCClientScopesClientCredentialsGrant(c int, config *schema.Identi
 	}
 }
 
-func validateOIDCClientResponseTypes(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, errDeprecatedFunc func()) {
+func validateOIDCClientResponseTypes(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, setDefaults bool, errDeprecatedFunc func()) {
 	if len(config.Clients[c].ResponseTypes) == 0 {
+		if !setDefaults {
+			return
+		}
+
 		config.Clients[c].ResponseTypes = schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes
 	}
 
@@ -655,8 +771,12 @@ func validateOIDCClientResponseTypes(c int, config *schema.IdentityProvidersOpen
 	}
 }
 
-func validateOIDCClientResponseModes(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, errDeprecatedFunc func()) {
+func validateOIDCClientResponseModes(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, setDefaults bool, errDeprecatedFunc func()) {
 	if len(config.Clients[c].ResponseModes) == 0 {
+		if !setDefaults {
+			return
+		}
+
 		config.Clients[c].ResponseModes = schema.DefaultOpenIDConnectClientConfiguration.ResponseModes
 
 		for _, responseType := range config.Clients[c].ResponseTypes {
@@ -687,8 +807,12 @@ func validateOIDCClientResponseModes(c int, config *schema.IdentityProvidersOpen
 	}
 }
 
-func validateOIDCClientGrantTypes(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, errDeprecatedFunc func()) {
+func validateOIDCClientGrantTypes(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, setDefaults bool, errDeprecatedFunc func()) {
 	if len(config.Clients[c].GrantTypes) == 0 {
+		if !setDefaults {
+			return
+		}
+
 		validateOIDCClientGrantTypesSetDefaults(c, config)
 	}
 
@@ -811,7 +935,11 @@ func validateOIDCClientTokenEndpointAuth(c int, config *schema.IdentityProviders
 
 	switch {
 	case config.Clients[c].TokenEndpointAuthMethod == "":
-		break
+		if config.Clients[c].Public {
+			config.Clients[c].TokenEndpointAuthMethod = oidc.ClientAuthMethodNone
+		} else {
+			config.Clients[c].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretBasic
+		}
 	case !utils.IsStringInSlice(config.Clients[c].TokenEndpointAuthMethod, validOIDCClientTokenEndpointAuthMethods):
 		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
 			config.Clients[c].ID, attrOIDCTokenAuthMethod, strJoinOr(validOIDCClientTokenEndpointAuthMethods), config.Clients[c].TokenEndpointAuthMethod))
@@ -883,8 +1011,8 @@ func validateOIDCClientTokenEndpointAuthPublicKeyJWT(config schema.IdentityProvi
 		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthSigAlg, config.ID, strJoinOr(validOIDCIssuerJWKSigningAlgs), config.TokenEndpointAuthMethod))
 	}
 
-	if config.PublicKeys.URI == nil {
-		if len(config.PublicKeys.Values) == 0 {
+	if config.JSONWebKeysURI == nil {
+		if len(config.JSONWebKeys) == 0 {
 			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidPublicKeysPrivateKeyJWT, config.ID))
 		} else if len(config.Discovery.RequestObjectSigningAlgs) != 0 && !utils.IsStringInSlice(config.TokenEndpointAuthSigningAlg, config.Discovery.RequestObjectSigningAlgs) {
 			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthSigAlgReg, config.ID, strJoinOr(config.Discovery.RequestObjectSigningAlgs), config.TokenEndpointAuthMethod))
@@ -901,7 +1029,7 @@ func validateOIDDClientSigningAlgs(c int, config *schema.IdentityProvidersOpenID
 }
 
 func validateOIDDClientSigningAlgsIDToken(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
-	config.Clients[c].IDTokenSignedResponseAlg, config.Clients[c].IDTokenSignedResponseKeyID = validateOIDCClientAlgKIDDefault(config, config.Clients[c].IDTokenSignedResponseAlg, config.Clients[c].IDTokenSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.IDTokenSignedResponseAlg)
+	config.Clients[c].IDTokenSignedResponseAlg, config.Clients[c].IDTokenSignedResponseKeyID = validateOIDCAlgKIDDefault(config, config.Clients[c].IDTokenSignedResponseAlg, config.Clients[c].IDTokenSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.IDTokenSignedResponseAlg)
 
 	switch config.Clients[c].IDTokenSignedResponseKeyID {
 	case "":
@@ -925,7 +1053,7 @@ func validateOIDDClientSigningAlgsIDToken(c int, config *schema.IdentityProvider
 }
 
 func validateOIDDClientSigningAlgsAccessToken(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
-	config.Clients[c].AccessTokenSignedResponseAlg, config.Clients[c].AccessTokenSignedResponseKeyID = validateOIDCClientAlgKIDDefault(config, config.Clients[c].AccessTokenSignedResponseAlg, config.Clients[c].AccessTokenSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.AccessTokenSignedResponseAlg)
+	config.Clients[c].AccessTokenSignedResponseAlg, config.Clients[c].AccessTokenSignedResponseKeyID = validateOIDCAlgKIDDefault(config, config.Clients[c].AccessTokenSignedResponseAlg, config.Clients[c].AccessTokenSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.AccessTokenSignedResponseAlg)
 
 	switch config.Clients[c].AccessTokenSignedResponseKeyID {
 	case "":
@@ -953,7 +1081,7 @@ func validateOIDDClientSigningAlgsAccessToken(c int, config *schema.IdentityProv
 }
 
 func validateOIDDClientSigningAlgsUserInfo(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
-	config.Clients[c].UserinfoSignedResponseAlg, config.Clients[c].UserinfoSignedResponseKeyID = validateOIDCClientAlgKIDDefault(config, config.Clients[c].UserinfoSignedResponseAlg, config.Clients[c].UserinfoSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.UserinfoSignedResponseAlg)
+	config.Clients[c].UserinfoSignedResponseAlg, config.Clients[c].UserinfoSignedResponseKeyID = validateOIDCAlgKIDDefault(config, config.Clients[c].UserinfoSignedResponseAlg, config.Clients[c].UserinfoSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.UserinfoSignedResponseAlg)
 
 	switch config.Clients[c].UserinfoSignedResponseKeyID {
 	case "":
@@ -977,7 +1105,7 @@ func validateOIDDClientSigningAlgsUserInfo(c int, config *schema.IdentityProvide
 }
 
 func validateOIDDClientSigningAlgsIntrospection(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
-	config.Clients[c].IntrospectionSignedResponseAlg, config.Clients[c].IntrospectionSignedResponseKeyID = validateOIDCClientAlgKIDDefault(config, config.Clients[c].IntrospectionSignedResponseAlg, config.Clients[c].IntrospectionSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.IntrospectionSignedResponseAlg)
+	config.Clients[c].IntrospectionSignedResponseAlg, config.Clients[c].IntrospectionSignedResponseKeyID = validateOIDCAlgKIDDefault(config, config.Clients[c].IntrospectionSignedResponseAlg, config.Clients[c].IntrospectionSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.IntrospectionSignedResponseAlg)
 
 	switch config.Clients[c].IntrospectionSignedResponseKeyID {
 	case "":
@@ -1001,7 +1129,7 @@ func validateOIDDClientSigningAlgsIntrospection(c int, config *schema.IdentityPr
 }
 
 func validateOIDDClientSigningAlgsJARM(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
-	config.Clients[c].AuthorizationSignedResponseAlg, config.Clients[c].AuthorizationSignedResponseKeyID = validateOIDCClientAlgKIDDefault(config, config.Clients[c].AuthorizationSignedResponseAlg, config.Clients[c].AuthorizationSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.AuthorizationSignedResponseAlg)
+	config.Clients[c].AuthorizationSignedResponseAlg, config.Clients[c].AuthorizationSignedResponseKeyID = validateOIDCAlgKIDDefault(config, config.Clients[c].AuthorizationSignedResponseAlg, config.Clients[c].AuthorizationSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.AuthorizationSignedResponseAlg)
 
 	switch config.Clients[c].AuthorizationSignedResponseKeyID {
 	case "":
@@ -1024,7 +1152,7 @@ func validateOIDDClientSigningAlgsJARM(c int, config *schema.IdentityProvidersOp
 	}
 }
 
-func validateOIDCClientAlgKIDDefault(config *schema.IdentityProvidersOpenIDConnect, algCurrent, kidCurrent, algDefault string) (alg, kid string) {
+func validateOIDCAlgKIDDefault(config *schema.IdentityProvidersOpenIDConnect, algCurrent, kidCurrent, algDefault string) (alg, kid string) {
 	alg, kid = algCurrent, kidCurrent
 
 	switch balg, bkid := len(alg) != 0, len(kid) != 0; {
@@ -1042,7 +1170,7 @@ func validateOIDCClientAlgKIDDefault(config *schema.IdentityProvidersOpenIDConne
 	case !balg && !bkid:
 		return
 	case !bkid:
-		for _, jwk := range config.IssuerPrivateKeys {
+		for _, jwk := range config.JSONWebKeys {
 			if alg == jwk.Algorithm {
 				kid = jwk.KeyID
 
@@ -1050,7 +1178,7 @@ func validateOIDCClientAlgKIDDefault(config *schema.IdentityProvidersOpenIDConne
 			}
 		}
 	case !balg:
-		for _, jwk := range config.IssuerPrivateKeys {
+		for _, jwk := range config.JSONWebKeys {
 			if kid == jwk.KeyID {
 				alg = jwk.Algorithm
 

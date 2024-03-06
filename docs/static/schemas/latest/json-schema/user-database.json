@@ -13,7 +13,7 @@
           },
           "type": "object",
           "title": "Users",
-          "description": "The dictionary of users"
+          "description": "The dictionary of users."
         }
       },
       "additionalProperties": false,
@@ -28,17 +28,17 @@
         "password": {
           "$ref": "#/$defs/PasswordDigest",
           "title": "Password",
-          "description": "The hashed password for the user"
+          "description": "The hashed password for the user."
         },
         "displayname": {
           "type": "string",
           "title": "Display Name",
-          "description": "The display name for the user"
+          "description": "The display name for the user."
         },
         "email": {
           "type": "string",
           "title": "Email",
-          "description": "The email for the user"
+          "description": "The email for the user."
         },
         "groups": {
           "items": {
@@ -46,12 +46,12 @@
           },
           "type": "array",
           "title": "Groups",
-          "description": "The groups list for the user"
+          "description": "The groups list for the user."
         },
         "disabled": {
           "type": "boolean",
           "title": "Disabled",
-          "description": "The disabled status for the user",
+          "description": "The disabled status for the user.",
           "default": false
         }
       },

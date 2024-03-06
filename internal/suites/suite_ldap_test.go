@@ -20,8 +20,8 @@ func (s *LDAPSuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *LDAPSuite) Test2FAScenario() {
-	suite.Run(s.T(), New2FAScenario())
+func (s *LDAPSuite) TestTwoFactorTOTPScenario() {
+	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 
 func (s *LDAPSuite) TestResetPassword() {

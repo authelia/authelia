@@ -8,11 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	"github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -29,7 +29,7 @@ func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
 				ID:                  myclient,
-				Description:         myclientdesc,
+				Name:                myclientdesc,
 				AuthorizationPolicy: onefactor,
 				Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
 				Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -54,7 +54,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 
 	c1 := schema.IdentityProvidersOpenIDConnectClient{
 		ID:                  id,
-		Description:         myclientdesc,
+		Name:                myclientdesc,
 		AuthorizationPolicy: onefactor,
 		Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
 		Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -70,7 +70,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, client)
 	assert.Equal(t, id, client.GetID())
-	assert.Equal(t, myclientdesc, client.GetDescription())
+	assert.Equal(t, myclientdesc, client.GetName())
 	assert.Equal(t, fosite.Arguments(c1.Scopes), client.GetScopes())
 	assert.Equal(t, fosite.Arguments([]string{oidc.GrantTypeAuthorizationCode}), client.GetGrantTypes())
 	assert.Equal(t, fosite.Arguments([]string{oidc.ResponseTypeAuthorizationCodeFlow}), client.GetResponseTypes())
@@ -84,7 +84,7 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 
 	c1 := schema.IdentityProvidersOpenIDConnectClient{
 		ID:                  myclient,
-		Description:         myclientdesc,
+		Name:                myclientdesc,
 		AuthorizationPolicy: onefactor,
 		Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
 		Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -110,7 +110,7 @@ func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
 		Clients: []schema.IdentityProvidersOpenIDConnectClient{
 			{
 				ID:                  myclient,
-				Description:         myclientdesc,
+				Name:                myclientdesc,
 				AuthorizationPolicy: onefactor,
 				Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
 				Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -297,7 +297,7 @@ func (s *StoreSuite) TestCreateSessions() {
 
 	s.NoError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &fosite.Request{
 		ID: abc,
-		Client: &oidc.BaseClient{
+		Client: &oidc.RegisteredClient{
 			ID: "example",
 		},
 		Session: session,
@@ -305,7 +305,7 @@ func (s *StoreSuite) TestCreateSessions() {
 
 	s.EqualError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &fosite.Request{
 		ID: abc,
-		Client: &oidc.BaseClient{
+		Client: &oidc.RegisteredClient{
 			ID: "example",
 		},
 		Session: session,
@@ -313,7 +313,7 @@ func (s *StoreSuite) TestCreateSessions() {
 
 	s.EqualError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &fosite.Request{
 		ID: abc,
-		Client: &oidc.BaseClient{
+		Client: &oidc.RegisteredClient{
 			ID: "example",
 		},
 		Session: nil,
@@ -321,7 +321,7 @@ func (s *StoreSuite) TestCreateSessions() {
 
 	s.NoError(s.store.CreateAccessTokenSession(s.ctx, abc, &fosite.Request{
 		ID: abc,
-		Client: &oidc.BaseClient{
+		Client: &oidc.RegisteredClient{
 			ID: "example",
 		},
 		Session: session,
@@ -329,7 +329,7 @@ func (s *StoreSuite) TestCreateSessions() {
 
 	s.NoError(s.store.CreateRefreshTokenSession(s.ctx, abc, &fosite.Request{
 		ID: abc,
-		Client: &oidc.BaseClient{
+		Client: &oidc.RegisteredClient{
 			ID: "example",
 		},
 		Session: session,
@@ -337,7 +337,7 @@ func (s *StoreSuite) TestCreateSessions() {
 
 	s.NoError(s.store.CreateOpenIDConnectSession(s.ctx, abc, &fosite.Request{
 		ID: abc,
-		Client: &oidc.BaseClient{
+		Client: &oidc.RegisteredClient{
 			ID: "example",
 		},
 		Session: session,
@@ -345,7 +345,7 @@ func (s *StoreSuite) TestCreateSessions() {
 
 	s.NoError(s.store.CreatePKCERequestSession(s.ctx, abc, &fosite.Request{
 		ID: abc,
-		Client: &oidc.BaseClient{
+		Client: &oidc.RegisteredClient{
 			ID: "example",
 		},
 		Session: session,
@@ -354,7 +354,7 @@ func (s *StoreSuite) TestCreateSessions() {
 	s.NoError(s.store.CreatePARSession(s.ctx, abc, &fosite.AuthorizeRequest{
 		Request: fosite.Request{
 			ID: abc,
-			Client: &oidc.BaseClient{
+			Client: &oidc.RegisteredClient{
 				ID: "example",
 			},
 			Session: session,
@@ -363,7 +363,7 @@ func (s *StoreSuite) TestCreateSessions() {
 	s.EqualError(s.store.CreatePARSession(s.ctx, abc, &fosite.AuthorizeRequest{
 		Request: fosite.Request{
 			ID: abc,
-			Client: &oidc.BaseClient{
+			Client: &oidc.RegisteredClient{
 				ID: "example",
 			},
 			Session: nil,
@@ -571,7 +571,7 @@ func (s *StoreSuite) TestGetSessions() {
 
 	r, err = s.store.GetOpenIDConnectSession(s.ctx, "ot", &fosite.Request{
 		ID: abc,
-		Client: &oidc.BaseClient{
+		Client: &oidc.RegisteredClient{
 			ID: "example",
 		},
 		Session: session,

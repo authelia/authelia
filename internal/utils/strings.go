@@ -151,7 +151,7 @@ func IsStringSlicesDifferentFold(a, b []string) (different bool) {
 }
 
 // IsURLInSlice returns true if the needle url.URL is in the []url.URL haystack.
-func IsURLInSlice(needle url.URL, haystack []url.URL) (has bool) {
+func IsURLInSlice(needle *url.URL, haystack []*url.URL) (has bool) {
 	for i := 0; i < len(haystack); i++ {
 		if strings.EqualFold(needle.String(), haystack[i].String()) {
 			return true
@@ -162,7 +162,7 @@ func IsURLInSlice(needle url.URL, haystack []url.URL) (has bool) {
 }
 
 // StringSliceFromURLs returns a []string from a []url.URL.
-func StringSliceFromURLs(urls []url.URL) []string {
+func StringSliceFromURLs(urls []*url.URL) []string {
 	result := make([]string, len(urls))
 
 	for i := 0; i < len(urls); i++ {
@@ -173,8 +173,8 @@ func StringSliceFromURLs(urls []url.URL) []string {
 }
 
 // URLsFromStringSlice returns a []url.URL from a []string.
-func URLsFromStringSlice(urls []string) []url.URL {
-	var result []url.URL
+func URLsFromStringSlice(urls []string) []*url.URL {
+	var result []*url.URL
 
 	for i := 0; i < len(urls); i++ {
 		u, err := url.Parse(urls[i])
@@ -182,7 +182,7 @@ func URLsFromStringSlice(urls []string) []url.URL {
 			continue
 		}
 
-		result = append(result, *u)
+		result = append(result, u)
 	}
 
 	return result
@@ -266,14 +266,18 @@ func JoinAndCanonicalizeHeaders(sep []byte, headers ...string) (joined []byte) {
 
 // IsURLHostComponent returns true if the provided url.URL that was parsed from a string to a url.URL via url.Parse is
 // just a hostname. This is needed because of the way this function parses such strings.
-func IsURLHostComponent(u url.URL) (isHostComponent bool) {
-	return u.Path != "" && u.Scheme == "" && u.Host == "" && u.RawPath == "" && u.Opaque == "" &&
+func IsURLHostComponent(u *url.URL) (isHostComponent bool) {
+	return u != nil && u.Path != "" && u.Scheme == "" && u.Host == "" && u.RawPath == "" && u.Opaque == "" &&
 		u.RawQuery == "" && u.Fragment == "" && u.RawFragment == ""
 }
 
 // IsURLHostComponentWithPort returns true if the provided url.URL that was parsed from a string to a url.URL via
 // url.Parse is just a hostname with a port. This is needed because of the way this function parses such strings.
-func IsURLHostComponentWithPort(u url.URL) (isHostComponentWithPort bool) {
+func IsURLHostComponentWithPort(u *url.URL) (isHostComponentWithPort bool) {
+	if u == nil {
+		return false
+	}
+
 	if u.Opaque != "" && u.Scheme != "" && u.Host == "" && u.Path == "" && u.RawPath == "" &&
 		u.RawQuery == "" && u.Fragment == "" && u.RawFragment == "" {
 		_, err := strconv.Atoi(u.Opaque)

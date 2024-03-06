@@ -40,6 +40,11 @@ const (
 )
 
 const (
+	pathJSONSchema = "json-schema"
+	extJSON        = ".json"
+)
+
+const (
 	dateFmtRFC2822 = "Mon, _2 Jan 2006 15:04:05 -0700"
 	dateFmtYAML    = "2006-01-02T15:04:05-07:00"
 )
@@ -50,14 +55,6 @@ const (
 
 const (
 	delimiterLineFrontMatter = "---"
-)
-
-const (
-	extJSON = ".json"
-)
-
-const (
-	pathJSONSchema = "json-schema"
 )
 
 const (

@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "openid-connect"
-weight: 190200
+weight: 110200
 toc: true
 aliases:
   - /c/oidc
@@ -32,14 +32,15 @@ More information about the beta can be found in the [roadmap](../../../roadmap/a
 
 ## Configuration
 
-The following snippet provides a configuration example for the [OpenID Connect 1.0] Provider. This is not
-intended for production use it's used to provide context and an indentation example.
+{{< config-alert-example >}}
+
+The following snippet provides a configuration example for the [OpenID Connect 1.0] Provider.
 
 ```yaml
 identity_providers:
   oidc:
     hmac_secret: 'this_is_a_secret_abc123abc123abc'
-    issuer_private_keys:
+    jwks:
       - key_id: 'example'
         algorithm: 'RS256'
         use: 'sig'
@@ -73,6 +74,9 @@ identity_providers:
     minimum_parameter_entropy: 8
     enforce_pkce: 'public_clients_only'
     enable_pkce_plain_challenge: false
+    enable_jwt_access_token_stateless_introspection: false
+    discovery_signed_response_alg: 'none'
+    discovery_signed_response_key_id: ''
     pushed_authorizations:
       enforce: false
       context_lifespan: '5m'
@@ -114,24 +118,26 @@ It's __strongly recommended__ this is a
 [Random Alphanumeric String](../../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string)
 with 64 or more characters.
 
-### issuer_private_keys
+### jwks
 
-{{< confkey type="list(object" required="no" >}}
+{{< confkey type="list(object)" required="yes" >}}
 
-The list of JWKS instead of or in addition to the [issuer_private_key](#issuer_private_key) and
-[issuer_certificate_chain](#issuer_certificate_chain). Can also accept ECDSA Private Key's and Certificates.
+The list of issuer JSON Web Keys. At least one of these must be an RSA Private key and be configured with the RS256
+algorithm. Can also be used to configure many types of JSON Web Keys for the issuer such as the other RSA based JSON Web
+Key formats and ECDSA JSON Web Key formats.
 
-The default key for each algorithm is is decided based on the order of this list. The first key for each algorithm is
+The default key for each algorithm is decided based on the order of this list. The first key for each algorithm is
 considered the default if a client is not configured to use a specific key id. For example if a client has
-[id_token_signed_response_alg](clients.md#id_token_signed_response_alg) `ES256` and [id_token_signed_response_key_id](clients.md#id_token_signed_response_key_id) is
-not specified then the first `ES256` key in this list is used.
+[id_token_signed_response_alg](clients.md#id_token_signed_response_alg) `ES256` and
+[id_token_signed_response_key_id](clients.md#id_token_signed_response_key_id) is not specified then the first `ES256`
+key in this list is used.
 
 The following is a contextual example (see below for information regarding each option):
 
 ```yaml
 identity_providers:
   oidc:
-    issuer_private_keys:
+    jwks:
       - key_id: 'example'
         algorithm: 'RS256'
         use: 'sig'
@@ -163,14 +169,50 @@ identity_providers:
           -----END CERTIFICATE-----
 ```
 
+The following is a contextual example (see below for information regarding each option):
+
+```yaml
+identity_providers:
+  oidc:
+    jwks:
+      - key_id: 'example'
+        algorithm: 'RS256'
+        use: 'sig'
+        key: |
+          -----BEGIN RSA PUBLIC KEY-----
+          MEgCQQDAwV26ZA1lodtOQxNrJ491gWT+VzFum9IeZ+WTmMypYWyW1CzXKwsvTHDz
+          9ec+jserR3EMQ0Rr24lj13FL1ib5AgMBAAE=
+          -----END RSA PUBLIC KEY----
+        certificate_chain: |
+          -----BEGIN CERTIFICATE-----
+          MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
+          MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
+          NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
+          AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
+          z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
+          JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
+          Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
+          1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+          -----END CERTIFICATE-----
+          -----BEGIN CERTIFICATE-----
+          MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
+          MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
+          NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
+          AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
+          z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
+          JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
+          Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
+          1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+          -----END CERTIFICATE-----
+```
 
 #### key_id
 
 {{< confkey type="string" default="<thumbprint of public key>" required="no" >}}
 
 Completely optional, and generally discouraged unless there is a collision between the automatically generated key id's.
-If provided must be a unique string with 100 or less characters, with a recommendation to use a length less
-than 10. In addition it must meet the following rules:
+If provided must be a unique string with 100 or fewer characters, with a recommendation to use a length less
+than 15. In addition, it must meet the following rules:
 
 - Match the regular expression `^[a-zA-Z0-9](([a-zA-Z0-9._~-]*)([a-zA-Z0-9]))?$` which should enforce the following rules:
   - Start with an alphanumeric character.
@@ -178,7 +220,7 @@ than 10. In addition it must meet the following rules:
   - Only contain the [RFC3986 Unreserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3).
 
 The default if this value is omitted is the first 7 characters of the public key SHA256 thumbprint encoded into
-hexadecimal.
+hexadecimal, followed by a hyphen, then followed by the lowercase algorithm value.
 
 #### use
 
@@ -248,48 +290,6 @@ The first certificate in the chain must have the public key for the [key](#key),
 valid for the current date, and each certificate in the chain should be signed by the certificate immediately following
 it if present.
 
-### issuer_private_key
-
-{{< confkey type="string" required="yes" >}}
-
-The private key used to sign/encrypt the [OpenID Connect 1.0] issued [JWT]'s. The key must be generated by the
-administrator and can be done by following the
-[Generating an RSA Keypair](../../../reference/guides/generating-secure-values.md#generating-an-rsa-keypair) guide.
-
-This private key is automatically appended to the [issuer_private_keys](#issuer_private_keys) and assumed to be for the
-`RS256` algorithm. If provided it is always the first key in this list. As such this key is assumed to be the default
-for `RS256` if provided.
-
-The issuer private key *__MUST__*:
-
-* Be a PEM block encoded in the DER base64 format ([RFC4648]).
-* Be a RSA private key:
-  * Encoded in conformance to the [PKCS#8] or [PKCS#1] specifications.
-  * Have a key size of at least 2048 bits.
-
-[PKCS#8]: https://datatracker.ietf.org/doc/html/rfc5208
-[PKCS#1]: https://datatracker.ietf.org/doc/html/rfc8017
-
-If the [issuer_certificate_chain](#issuer_certificate_chain) is provided the private key must include matching public
-key data for the first certificate in the chain.
-
-### issuer_certificate_chain
-
-{{< confkey type="string" required="no" >}}
-
-The certificate chain/bundle to be used with the [issuer_private_key](#issuer_private_key) DER base64 ([RFC4648])
-encoded PEM format used to sign/encrypt the [OpenID Connect 1.0] [JWT]'s. When configured it enables the [x5c] and [x5t]
-JSON key's in the JWKs [Discoverable Endpoint](../../../integration/openid-connect/introduction.md#discoverable-endpoints)
-as per [RFC7517].
-
-[RFC7517]: https://datatracker.ietf.org/doc/html/rfc7517
-[x5c]: https://datatracker.ietf.org/doc/html/rfc7517#section-4.7
-[x5t]: https://datatracker.ietf.org/doc/html/rfc7517#section-4.8
-
-The first certificate in the chain must have the public key for the [issuer_private_key](#issuer_private_key), each
-certificate in the chain must be valid for the current date, and each certificate in the chain should be signed by the
-certificate immediately following it if present.
-
 ### enable_client_debug_messages
 
 {{< confkey type="boolean" default="false" required="no" >}}
@@ -346,6 +346,43 @@ A client with an [access_token_signed_response_alg](clients.md#access_token_sign
 [access_token_signed_response_key_id](clients.md#access_token_signed_response_key_id) must be configured for this option to
 be enabled.
 
+### discovery_signed_response_alg
+
+{{< confkey type="string" default="none" required="no" >}}
+
+_**Important Note:** Many clients do not support this option and it has a performance cost. It's therefore recommended
+unless you have a specific need that you do not enable this option._
+
+_**Note:** This value is completely ignored if the
+[discovery_signed_response_key_id](#discovery_signed_response_key_id) is defined._
+
+The algorithm used to sign the [OAuth 2.0 Authorization Server Metadata] and [OpenID Connect Discovery 1.0] responses.
+Per the specifications this Signed JSON Web Token is stored in the `signed_metadata` value using the compact encoding.
+
+See the response object section of the
+[integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information including
+the algorithm column for supported values.
+
+With the exclusion of `none` which excludes the `signed_metadata` value, the algorithm chosen must have a key
+configured in the [jwks](#jwks) section to be considered valid.
+
+See the response object section of the [integration guide](../../../integration/openid-connect/introduction.md#response-object)
+for more information including the algorithm column for supported values.
+
+### discovery_signed_response_key_id
+
+{{< confkey type="string" required="no" >}}
+
+_**Important Note:** Many clients do not support this option and it has a performance cost. It's therefore recommended
+unless you have a specific need that you do not enable this option._
+
+_**Note:** This value automatically configures the [discovery_signed_response_alg](#discovery_signed_response_alg)
+value with the algorithm of the specified key._
+
+The algorithm used to sign the [OAuth 2.0 Authorization Server Metadata] and [OpenID Connect Discovery 1.0] responses.
+The value of this must one of those provided or calculated in the [jwks](#jwks). Per the specifications this Signed JSON
+Web Token is stored in the `signed_metadata` value using the compact encoding.
+
 ### pushed_authorizations
 
 Controls the behaviour of [Pushed Authorization Requests].
@@ -396,7 +433,7 @@ identity_providers:
           - policy: 'deny'
             subject: 'group:services'
     clients:
-      - id: 'client_with_policy_name'
+      - client_id: 'client_with_policy_name'
         authorization_policy: 'policy_name'
 ```
 
@@ -526,7 +563,7 @@ identity_providers:
 
 ### cors
 
-Some [OpenID Connect 1.0] Endpoints need to allow cross-origin resource sharing, however some are optional. This section allows
+Some [OpenID Connect 1.0] Endpoints need to allow cross-origin resource sharing; however, some are optional. This section allows
 you to configure the optional parts. We reply with CORS headers when the request includes the Origin header.
 
 #### endpoints
@@ -594,6 +631,8 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 
 [token lifespan]: https://docs.apigee.com/api-platform/antipatterns/oauth-long-expiration
 [OpenID Connect 1.0]: https://openid.net/connect/
+[OAuth 2.0 Authorization Server Metadata]: https://oauth.net/2/authorization-server-metadata/
+[OpenID Connect Discovery 1.0]: https://openid.net/specs/openid-connect-discovery-1_0.html
 [Token Endpoint]: https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
 [JWT]: https://datatracker.ietf.org/doc/html/rfc7519
 [RFC6234]: https://datatracker.ietf.org/doc/html/rfc6234

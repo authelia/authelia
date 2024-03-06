@@ -18,7 +18,7 @@ aliases:
 ## Tested Versions
 
 * [Authelia]
-  * [v4.35.6](https://github.com/authelia/authelia/releases/tag/v4.35.6)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Proxmox]
   * 7.1-10
 
@@ -55,18 +55,18 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-    - id: 'proxmox'
-      description: 'Proxmox'
-      secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-      public: false
-      authorization_policy: 'two_factor'
-      redirect_uris:
-        - 'https://proxmox.example.com'
-      scopes:
-        - 'openid'
-        - 'profile'
-        - 'email'
-      userinfo_signed_response_alg: 'none'
+      - client_id: 'proxmox'
+        client_name: 'Proxmox'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        public: false
+        authorization_policy: 'two_factor'
+        redirect_uris:
+          - 'https://proxmox.example.com'
+        scopes:
+          - 'openid'
+          - 'profile'
+          - 'email'
+        userinfo_signed_response_alg: 'none'
 ```
 
 ### Application

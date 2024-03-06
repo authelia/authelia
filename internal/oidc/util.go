@@ -3,15 +3,16 @@ package oidc
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
+	"github.com/go-jose/go-jose/v3"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ory/fosite"
 	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/ory/x/errorsx"
 	"golang.org/x/text/language"
-	"gopkg.in/square/go-jose.v2"
 )
 
 // IsPushedAuthorizedRequest returns true if the requester has a PushedAuthorizationRequest redirect_uri value.
@@ -329,10 +330,15 @@ func toStringSlice(v any) (result []string) {
 
 func toTime(v any, def time.Time) (t time.Time) {
 	switch a := v.(type) {
+	case time.Time:
+		return a
 	case float64:
+		return time.Unix(int64(a), 0).UTC()
+	case int:
 		return time.Unix(int64(a), 0).UTC()
 	case int64:
 		return time.Unix(a, 0).UTC()
+
 	default:
 		return def
 	}
@@ -359,6 +365,70 @@ func IsJWTProfileAccessToken(token *fjwt.Token) bool {
 	typ, ok = raw.(string)
 
 	return ok && (typ == JWTHeaderTypeValueAccessTokenJWT)
+}
+
+// RFC6750Header turns a *fosite.RFC6749Error into the values for a RFC6750 format WWW-Authenticate Bearer response
+// header, excluding the Bearer prefix.
+func RFC6750Header(realm, scope string, err *fosite.RFC6749Error) string {
+	values := err.ToValues()
+
+	if realm != "" {
+		values.Set("realm", realm)
+	}
+
+	if scope != "" {
+		values.Set("scope", scope)
+	}
+
+	//nolint:prealloc
+	var (
+		keys []string
+		key  string
+	)
+
+	for key = range values {
+		keys = append(keys, key)
+	}
+
+	sort.Slice(keys, func(i, j int) bool {
+		switch keys[i] {
+		case fieldRFC6750Realm:
+			return true
+		case fieldRFC6750Error:
+			switch keys[j] {
+			case fieldRFC6750ErrorDescription, fieldRFC6750Scope:
+				return true
+			default:
+				return false
+			}
+		case fieldRFC6750ErrorDescription:
+			switch keys[j] {
+			case fieldRFC6750Scope:
+				return true
+			default:
+				return false
+			}
+		case fieldRFC6750Scope:
+			switch keys[j] {
+			case fieldRFC6750Realm, fieldRFC6750Error, fieldRFC6750ErrorDescription:
+				return false
+			default:
+				return keys[i] < keys[j]
+			}
+		default:
+			return keys[i] < keys[j]
+		}
+	})
+
+	parts := make([]string, len(keys))
+
+	var i int
+
+	for i, key = range keys {
+		parts[i] = fmt.Sprintf(`%s="%s"`, key, values.Get(key))
+	}
+
+	return strings.Join(parts, ",")
 }
 
 // AccessResponderToClearMap returns a clear friendly map copy of the responder map values.

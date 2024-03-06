@@ -43,18 +43,18 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-    - id: 'windmill'
-      description: 'Windmill'
-      secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-      authorization_policy: 'two_factor'
-      redirect_uris:
-        - 'https://windmill.example.com/user/login_callback/authelia'
-      scopes:
-        - 'openid'
-        - 'profile'
-        - 'email'
-        - 'groups'
-      userinfo_signed_response_alg: none
+      - client_id: 'windmill'
+        client_name: 'Windmill'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        authorization_policy: 'two_factor'
+        redirect_uris:
+          - 'https://windmill.example.com/user/login_callback/authelia'
+        scopes:
+          - 'openid'
+          - 'profile'
+          - 'email'
+          - 'groups'
+        userinfo_signed_response_alg: none
 ```
 
 ## Budibase

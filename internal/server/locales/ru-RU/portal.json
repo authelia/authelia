@@ -50,7 +50,7 @@
 	"Reset": "Сбросить",
 	"Scan QR Code": "Отсканировать QR Code",
 	"Secret": "Секрет",
-	"Security Key - WebAuthN": "Сектретный ключ - WebAuthN",
+	"Security Key - WebAuthn": "Сектретный ключ - WebAuthn",
 	"Select a Device": "Выберите устройство",
 	"Sign in": "Авторизация",
 	"Sign out": "Выход",

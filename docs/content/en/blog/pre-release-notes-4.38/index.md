@@ -65,7 +65,7 @@ will be released and then shortly after the release will be officially published
 
 Notable Missing Features from this build:
 
-- Multi-Device Webauthn
+- Multi-Device WebAuthn
 - Device Registration OTP
 
 Actual Builds:

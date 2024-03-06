@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/go-jose/go-jose/v3"
 	"golang.org/x/net/publicsuffix"
-	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -92,7 +92,7 @@ func validateListNotAllowed(values, filter []string) (invalid []string) {
 	return invalid
 }
 
-func validateList(values, valid []string, chkDuplicate bool) (invalid, duplicates []string) { //nolint:unparam
+func validateList(values, valid []string, chkDuplicate bool) (invalid, duplicates []string) {
 	chkValid := len(valid) != 0
 
 	for i, value := range values {
@@ -179,7 +179,7 @@ func schemaJWKGetProperties(jwk schema.JWK) (properties *JWKProperties, err erro
 	}
 }
 
-func jwkCalculateThumbprint(key schema.CryptographicKey) (thumbprintStr string, err error) {
+func jwkCalculateKID(key schema.CryptographicKey, props *JWKProperties, alg string) (kid string, err error) {
 	j := jose.JSONWebKey{}
 
 	switch k := key.(type) {
@@ -191,17 +191,25 @@ func jwkCalculateThumbprint(key schema.CryptographicKey) (thumbprintStr string, 
 		return "", nil
 	}
 
+	if alg == "" {
+		alg = props.Algorithm
+	}
+
 	var thumbprint []byte
 
 	if thumbprint, err = j.Thumbprint(crypto.SHA256); err != nil {
 		return "", err
 	}
 
-	return fmt.Sprintf("%x", thumbprint)[:6], nil
+	if alg == "" {
+		return fmt.Sprintf("%x", thumbprint)[:6], nil
+	}
+
+	return fmt.Sprintf("%s-%s", fmt.Sprintf("%x", thumbprint)[:6], strings.ToLower(alg)), nil
 }
 
 func getResponseObjectAlgFromKID(config *schema.IdentityProvidersOpenIDConnect, kid, alg string) string {
-	for _, jwk := range config.IssuerPrivateKeys {
+	for _, jwk := range config.JSONWebKeys {
 		if kid == jwk.KeyID {
 			return jwk.Algorithm
 		}

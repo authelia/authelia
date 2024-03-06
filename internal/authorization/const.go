@@ -18,8 +18,15 @@ const (
 )
 
 const (
-	prefixUser  = "user:"
-	prefixGroup = "group:"
+	prefixUser         = "user:"
+	prefixGroup        = "group:"
+	prefixOAuth2Client = "oauth2:client:"
+)
+
+const (
+	lenPrefixUser         = len(prefixUser)
+	lenPrefixGroup        = len(prefixGroup)
+	lenPrefixOAuth2Client = len(prefixOAuth2Client)
 )
 
 const (
@@ -48,4 +55,4 @@ var (
 	IdentitySubexpNames = []string{subexpNameUser, subexpNameGroup}
 )
 
-const traceFmtACLHitMiss = "ACL %s Position %d for subject %s and object %s (method %s)"
+const traceFmtACLHitMiss = "ACL %s Position %d for subject %s and object %s (method %s, policy %s)"

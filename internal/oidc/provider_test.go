@@ -27,7 +27,7 @@ func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing
 			{
 				ID:                  myclient,
 				Secret:              tOpenIDConnectPlainTextClientSecret,
-				SectorIdentifier:    url.URL{Host: examplecomsid},
+				SectorIdentifierURI: &url.URL{Host: examplecomsid},
 				AuthorizationPolicy: onefactor,
 				RedirectURIs: []string{
 					examplecom,
@@ -65,7 +65,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *tes
 			},
 			{
 				ID:                  "b-client",
-				Description:         "Normal Description",
+				Name:                "Normal Description",
 				Secret:              tOpenIDConnectPlainTextClientSecret,
 				AuthorizationPolicy: twofactor,
 				RedirectURIs: []string{

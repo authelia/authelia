@@ -8,13 +8,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/storage"
 	"github.com/ory/fosite/token/hmac"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -343,7 +343,7 @@ func TestRefreshTokenGrantHandler_HandleTokenEndpointRequest(t *testing.T) {
 			name: "ShouldPassWithScopeBroadeningOnRefreshFlowScopeClientTrue",
 			setup: func(config *fosite.Config, strategy oauth2.RefreshTokenStrategy, store *storage.MemoryStore, requester *fosite.AccessRequest) {
 				requester.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
-				requester.Client = &oidc.BaseClient{
+				requester.Client = &oidc.RegisteredClient{
 					ID:                                     "foo",
 					GrantTypes:                             fosite.Arguments{oidc.GrantTypeRefreshToken},
 					Scopes:                                 []string{"foo", "bar", "baz", oidc.ScopeOffline},
@@ -376,7 +376,7 @@ func TestRefreshTokenGrantHandler_HandleTokenEndpointRequest(t *testing.T) {
 			name: "ShouldFailWithScopeBroadeningOnRefreshFlowScopeClientFalse",
 			setup: func(config *fosite.Config, strategy oauth2.RefreshTokenStrategy, store *storage.MemoryStore, requester *fosite.AccessRequest) {
 				requester.GrantTypes = fosite.Arguments{oidc.GrantTypeRefreshToken}
-				requester.Client = &oidc.BaseClient{
+				requester.Client = &oidc.RegisteredClient{
 					ID:                                     "foo",
 					GrantTypes:                             fosite.Arguments{oidc.GrantTypeRefreshToken},
 					Scopes:                                 []string{"foo", "bar", "baz", oidc.ScopeOffline},

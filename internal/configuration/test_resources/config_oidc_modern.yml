@@ -130,7 +130,7 @@ notifier:
 identity_providers:
   oidc:
     hmac_secret: '1nb2j3kh1b23kjh1b23jh1b23j1h2b3'
-    issuer_private_keys:
+    jwks:
       keys:
         keya:
           key: |
@@ -208,7 +208,7 @@ identity_providers:
         - 'https://google.com'
         - 'https://example.com'
     clients:
-      - id: 'abc'
-        secret: '123'
+      - client_id: 'abc'
+        client_secret: '123'
         consent_mode: 'explicit'
 ...

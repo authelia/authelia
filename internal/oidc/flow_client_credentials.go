@@ -2,6 +2,7 @@ package oidc
 
 import (
 	"context"
+	"net/url"
 	"time"
 
 	"github.com/ory/fosite"
@@ -92,3 +93,78 @@ func (c *ClientCredentialsGrantHandler) CanHandleTokenEndpointRequest(ctx contex
 var (
 	_ fosite.TokenEndpointHandler = (*ClientCredentialsGrantHandler)(nil)
 )
+
+// PopulateClientCredentialsFlowSessionWithAccessRequest is used to configure a session when performing a client credentials grant.
+func PopulateClientCredentialsFlowSessionWithAccessRequest(ctx Context, client fosite.Client, session *Session) (err error) {
+	var (
+		issuer *url.URL
+	)
+
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		return fosite.ErrServerError.WithWrap(err).WithDebugf("Failed to determine the issuer with error: %s.", err.Error())
+	}
+
+	if client == nil {
+		return fosite.ErrServerError.WithDebug("Failed to get the client for the request.")
+	}
+
+	session.Subject = ""
+	session.Claims.Subject = client.GetID()
+	session.ClientID = client.GetID()
+	session.DefaultSession.Claims.Issuer = issuer.String()
+	session.DefaultSession.Claims.IssuedAt = ctx.GetClock().Now().UTC()
+	session.DefaultSession.Claims.RequestedAt = ctx.GetClock().Now().UTC()
+	session.ClientCredentials = true
+
+	return nil
+}
+
+// PopulateClientCredentialsFlowRequester is used to grant the authorized scopes and audiences when performing a client
+// credentials grant.
+func PopulateClientCredentialsFlowRequester(ctx Context, config fosite.Configurator, client fosite.Client, requester fosite.Requester) (err error) {
+	if client == nil || config == nil || requester == nil {
+		return fosite.ErrServerError.WithDebug("Failed to get the client, configuration, or requester for the request.")
+	}
+
+	scopes := requester.GetRequestedScopes()
+	audience := requester.GetRequestedAudience()
+
+	var authz, nauthz bool
+
+	strategy := config.GetScopeStrategy(ctx)
+
+	for _, scope := range scopes {
+		switch scope {
+		case ScopeOffline, ScopeOfflineAccess:
+			break
+		case ScopeAutheliaBearerAuthz:
+			authz = true
+		default:
+			nauthz = true
+		}
+
+		if strategy(client.GetScopes(), scope) {
+			requester.GrantScope(scope)
+		} else {
+			return fosite.ErrInvalidScope.WithDebugf("The scope '%s' is not authorized on client with id '%s'.", scope, client.GetID())
+		}
+	}
+
+	if authz && nauthz {
+		return fosite.ErrInvalidScope.WithDebugf("The scope '%s' must only be requested by itself or with the '%s' scope, no other scopes are permitted.", ScopeAutheliaBearerAuthz, ScopeOfflineAccess)
+	}
+
+	if authz && len(audience) == 0 {
+		return fosite.ErrInvalidRequest.WithDebugf("The scope '%s' requires the request also include an audience.", ScopeAutheliaBearerAuthz)
+	}
+
+	if err = config.GetAudienceStrategy(ctx)(client.GetAudience(), audience); err != nil {
+		return err
+	}
+
+	for _, aud := range audience {
+		requester.GrantAudience(aud)
+	}
+
+	return nil
+}

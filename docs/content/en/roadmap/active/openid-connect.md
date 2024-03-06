@@ -116,9 +116,10 @@ Feature List:
 
 {{< roadmap-status stage="in-progress" version="v4.38.0" >}}
 
-* [RFC9126: OAuth 2.0 Pushed Authorization Requests]
 * [RFC9068: JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens]
+* [RFC9126: OAuth 2.0 Pushed Authorization Requests]
 * [RFC9207: OAuth 2.0 Authorization Server Issuer Identification]
+* [RFC6750: OAuth 2.0 Bearer Token Usage]
 * [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)]
 * [JWT Response for OAuth Token Inspection]
 * [RFC7523: JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants]:
@@ -259,6 +260,7 @@ The `preferred_username` claim was missing and was fixed.
 [RFC9126: OAuth 2.0 Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
 [RFC8414: OAuth 2.0 Authorization Server Metadata]: https://datatracker.ietf.org/doc/html/rfc8414
 [RFC9207: OAuth 2.0 Authorization Server Issuer Identification]: https://datatracker.ietf.org/doc/html/rfc9207
+[RFC6750: OAuth 2.0 Bearer Token Usage]: https://datatracker.ietf.org/doc/html/rfc6750
 [RFC9068: JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens]: https://datatracker.ietf.org/doc/html/rfc9068
 
 [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)]: https://openid.net/specs/oauth-v2-jarm.html

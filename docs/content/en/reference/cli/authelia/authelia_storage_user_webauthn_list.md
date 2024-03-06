@@ -14,13 +14,13 @@ toc: true
 
 ## authelia storage user webauthn list
 
-List WebAuthn devices
+List WebAuthn credentials
 
 ### Synopsis
 
-List WebAuthn devices.
+List WebAuthn credentials.
 
-This subcommand allows listing WebAuthn devices.
+This subcommand allows listing WebAuthn credentials.
 
 ```
 authelia storage user webauthn list [username] [flags]
@@ -69,5 +69,5 @@ authelia storage user webauthn list john --encryption-key b3453fde-ecc2-4a1f-942
 
 ### SEE ALSO
 
-* [authelia storage user webauthn](authelia_storage_user_webauthn.md)	 - Manage WebAuthn devices
+* [authelia storage user webauthn](authelia_storage_user_webauthn.md)	 - Manage WebAuthn credentials
 

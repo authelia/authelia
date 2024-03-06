@@ -15,12 +15,25 @@ import (
 	"text/template"
 
 	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/input"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 )
 
 var browserPaths = []string{"/usr/bin/chromium-browser", "/usr/bin/chromium"}
+
+func StringToKeys(value string) []input.Key {
+	n := len(value)
+
+	keys := make([]input.Key, n)
+
+	for i := 0; i < n; i++ {
+		keys[i] = input.Key(value[i])
+	}
+
+	return keys
+}
 
 // ValidateBrowserPath validates the appropriate chromium browser path.
 func ValidateBrowserPath(path string) (browserPath string, err error) {

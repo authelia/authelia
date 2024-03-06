@@ -52,11 +52,15 @@ session:
   cookies:
     - domain: 'example.com'
       authelia_url: 'https://login.example.com:8080'
-      default_redirection_url: https://home.example.com:8080
+      default_redirection_url: 'https://home.example.com:8080'
 
   redis:
     host: redis-service
     port: 6379
+
+totp:
+  issuer: example.com
+  disable_reuse_security_policy: true
 
 regulation:
   max_retries: 3
