@@ -70,7 +70,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, client)
 	assert.Equal(t, id, client.GetID())
-	assert.Equal(t, myclientdesc, client.GetDescription())
+	assert.Equal(t, myclientdesc, client.GetName())
 	assert.Equal(t, fosite.Arguments(c1.Scopes), client.GetScopes())
 	assert.Equal(t, fosite.Arguments([]string{oidc.GrantTypeAuthorizationCode}), client.GetGrantTypes())
 	assert.Equal(t, fosite.Arguments([]string{oidc.ResponseTypeAuthorizationCodeFlow}), client.GetResponseTypes())

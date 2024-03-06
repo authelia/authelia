@@ -23,7 +23,7 @@ func TestNewClient(t *testing.T) {
 	config := schema.IdentityProvidersOpenIDConnectClient{}
 	client := oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{})
 	assert.Equal(t, "", client.GetID())
-	assert.Equal(t, "", client.GetDescription())
+	assert.Equal(t, "", client.GetName())
 	assert.Len(t, client.GetResponseModes(), 0)
 	assert.Len(t, client.GetResponseTypes(), 1)
 	assert.Equal(t, "", client.GetSectorIdentifier())
@@ -330,7 +330,7 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 	assert.Equal(t, []string(nil), consentRequestBody.Audience)
 
 	c.ID = myclient
-	c.Description = myclientdesc
+	c.Name = myclientdesc
 
 	consent := &model.OAuth2ConsentSession{
 		RequestedAudience: []string{examplecom},

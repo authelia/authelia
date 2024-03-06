@@ -141,7 +141,7 @@ This must be provided when the client is a confidential client type provided wit
 must be blank when using the public client type. To set the client type to public see the [public](#public)
 configuration option.
 
-### sector_identifier
+### sector_identifier_uri
 
 {{< confkey type="string" required="no" >}}
 

@@ -19,7 +19,7 @@ import (
 func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.IdentityProvidersOpenIDConnect) (client Client) {
 	registered := &RegisteredClient{
 		ID:                  config.ID,
-		Description:         config.Name,
+		Name:                config.Name,
 		Secret:              config.Secret,
 		SectorIdentifierURI: config.SectorIdentifierURI,
 		Public:              config.Public,
@@ -72,18 +72,18 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 	return registered
 }
 
-// GetID returns the ID.
+// GetID returns the ID for the client.
 func (c *RegisteredClient) GetID() string {
 	return c.ID
 }
 
-// GetDescription returns the Description.
-func (c *RegisteredClient) GetDescription() string {
-	if c.Description == "" {
-		c.Description = c.GetID()
+// GetName returns the Name for the client.
+func (c *RegisteredClient) GetName() (name string) {
+	if c.Name == "" {
+		c.Name = c.GetID()
 	}
 
-	return c.Description
+	return c.Name
 }
 
 // GetSecret returns the Secret.
@@ -263,7 +263,7 @@ func (c *RegisteredClient) ApplyRequestedAudiencePolicy(requester fosite.Request
 func (c *RegisteredClient) GetConsentResponseBody(consent *model.OAuth2ConsentSession) ConsentGetResponseBody {
 	body := ConsentGetResponseBody{
 		ClientID:          c.ID,
-		ClientDescription: c.Description,
+		ClientDescription: c.Name,
 		PreConfiguration:  c.ConsentPolicy.Mode == ClientConsentModePreConfigured,
 	}
 

@@ -46,7 +46,7 @@ type Store struct {
 // RegisteredClient represents a registered client.
 type RegisteredClient struct {
 	ID                  string
-	Description         string
+	Name                string
 	Secret              *schema.PasswordDigest
 	SectorIdentifierURI *url.URL
 	Public              bool
@@ -98,7 +98,7 @@ type Client interface {
 	fosite.ResponseModeClient
 	RefreshFlowScopeClient
 
-	GetDescription() (description string)
+	GetName() (name string)
 	GetSecret() (secret algorithm.Digest)
 	GetSectorIdentifier() (sector string)
 
