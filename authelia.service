@@ -1,5 +1,6 @@
 [Unit]
 Description=Authelia authentication and authorization server
+Documentation=https://www.authelia.com
 After=multi-user.target
 
 [Service]
