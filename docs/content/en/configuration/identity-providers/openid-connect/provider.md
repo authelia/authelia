@@ -74,6 +74,9 @@ identity_providers:
     minimum_parameter_entropy: 8
     enforce_pkce: 'public_clients_only'
     enable_pkce_plain_challenge: false
+    enable_jwt_access_token_stateless_introspection: false
+    discovery_signed_response_alg: 'none'
+    discovery_signed_response_key_id: ''
     pushed_authorizations:
       enforce: false
       context_lifespan: '5m'
