@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/go-jose/go-jose/v3"
 	"golang.org/x/net/publicsuffix"
-	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
