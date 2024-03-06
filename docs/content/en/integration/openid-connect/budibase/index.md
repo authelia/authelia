@@ -40,10 +40,12 @@ Authelia configuration.yml
 ```yaml
 identity_providers:
   oidc:
+    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
+    ## See: https://www.authelia.com/c/oidc
     clients:
-      - id: 'budibase'
-        description: 'Budibase'
-        secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+      - client_id: 'budibase'
+        client_name: 'Budibase'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         authorization_policy: 'two_factor'
         redirect_uris:
           - 'https://budibase.example.com/api/global/auth/oidc/callback'

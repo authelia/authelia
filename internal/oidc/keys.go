@@ -26,7 +26,7 @@ func NewKeyManager(config *schema.IdentityProvidersOpenIDConnect) (manager *KeyM
 		algs:    map[string]*JWK{},
 	}
 
-	for _, sjwk := range config.IssuerPrivateKeys {
+	for _, sjwk := range config.JSONWebKeys {
 		jwk := NewJWK(sjwk)
 
 		manager.kids[sjwk.KeyID] = jwk

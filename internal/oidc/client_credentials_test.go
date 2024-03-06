@@ -213,7 +213,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 	secret := tOpenIDConnectPlainTextClientSecret
 
 	s.provider = oidc.NewOpenIDConnectProvider(&schema.IdentityProvidersOpenIDConnect{
-		IssuerPrivateKeys: []schema.JWK{
+		JSONWebKeys: []schema.JWK{
 			{Key: x509PrivateKeyRSA2048, CertificateChain: x509CertificateChainRSA2048, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAUsingSHA256},
 		},
 		HMACSecret: "abc123",
@@ -338,10 +338,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA256,
-				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
-					Values: []schema.JWK{
-						{KeyID: rs256, Key: x509PrivateKeyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
-					},
+				JSONWebKeys: []schema.JWK{
+					{KeyID: rs256, Key: x509PrivateKeyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
 				},
 			},
 			{
@@ -352,10 +350,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA384,
-				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
-					Values: []schema.JWK{
-						{KeyID: "rs384", Key: x509PrivateKeyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAUsingSHA384, Use: oidc.KeyUseSignature},
-					},
+				JSONWebKeys: []schema.JWK{
+					{KeyID: "rs384", Key: x509PrivateKeyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAUsingSHA384, Use: oidc.KeyUseSignature},
 				},
 			},
 			{
@@ -366,10 +362,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA512,
-				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
-					Values: []schema.JWK{
-						{KeyID: "rs512", Key: x509PrivateKeyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAUsingSHA512, Use: oidc.KeyUseSignature},
-					},
+				JSONWebKeys: []schema.JWK{
+					{KeyID: "rs512", Key: x509PrivateKeyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAUsingSHA512, Use: oidc.KeyUseSignature},
 				},
 			},
 			{
@@ -380,10 +374,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA256,
-				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
-					Values: []schema.JWK{
-						{KeyID: "ps256", Key: x509PrivateKeyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAPSSUsingSHA256, Use: oidc.KeyUseSignature},
-					},
+				JSONWebKeys: []schema.JWK{
+					{KeyID: "ps256", Key: x509PrivateKeyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAPSSUsingSHA256, Use: oidc.KeyUseSignature},
 				},
 			},
 			{
@@ -394,10 +386,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA384,
-				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
-					Values: []schema.JWK{
-						{KeyID: "ps384", Key: x509PrivateKeyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAPSSUsingSHA384, Use: oidc.KeyUseSignature},
-					},
+				JSONWebKeys: []schema.JWK{
+					{KeyID: "ps384", Key: x509PrivateKeyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAPSSUsingSHA384, Use: oidc.KeyUseSignature},
 				},
 			},
 			{
@@ -408,10 +398,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAPSSUsingSHA512,
-				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
-					Values: []schema.JWK{
-						{KeyID: "ps512", Key: x509PrivateKeyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAPSSUsingSHA512, Use: oidc.KeyUseSignature},
-					},
+				JSONWebKeys: []schema.JWK{
+					{KeyID: "ps512", Key: x509PrivateKeyRSA2048.PublicKey, Algorithm: oidc.SigningAlgRSAPSSUsingSHA512, Use: oidc.KeyUseSignature},
 				},
 			},
 			{
@@ -422,10 +410,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP256AndSHA256,
-				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
-					Values: []schema.JWK{
-						{KeyID: "es256", Key: x509PrivateKeyECDSAP256.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP256AndSHA256, Use: oidc.KeyUseSignature},
-					},
+				JSONWebKeys: []schema.JWK{
+					{KeyID: "es256", Key: x509PrivateKeyECDSAP256.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP256AndSHA256, Use: oidc.KeyUseSignature},
 				},
 			},
 			{
@@ -436,10 +422,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP384AndSHA384,
-				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
-					Values: []schema.JWK{
-						{KeyID: "es384", Key: x509PrivateKeyECDSAP384.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP384AndSHA384, Use: oidc.KeyUseSignature},
-					},
+				JSONWebKeys: []schema.JWK{
+					{KeyID: "es384", Key: x509PrivateKeyECDSAP384.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP384AndSHA384, Use: oidc.KeyUseSignature},
 				},
 			},
 			{
@@ -450,10 +434,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP521AndSHA512,
-				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
-					Values: []schema.JWK{
-						{KeyID: es512, Key: x509PrivateKeyECDSAP521.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature},
-					},
+				JSONWebKeys: []schema.JWK{
+					{KeyID: es512, Key: x509PrivateKeyECDSAP521.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature},
 				},
 			},
 			{
@@ -464,10 +446,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA256,
-				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
-					Values: []schema.JWK{
-						{KeyID: es512, Key: x509PrivateKeyECDSAP521.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature},
-					},
+				JSONWebKeys: []schema.JWK{
+					{KeyID: es512, Key: x509PrivateKeyECDSAP521.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature},
 				},
 			},
 			{
@@ -478,9 +458,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgRSAUsingSHA256,
-				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
-					Values: []schema.JWK{},
-				},
+				JSONWebKeys:                 []schema.JWK{},
 			},
 			{
 				ID:                  "es512u",
@@ -490,10 +468,8 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 				},
 				TokenEndpointAuthMethod:     oidc.ClientAuthMethodPrivateKeyJWT,
 				TokenEndpointAuthSigningAlg: oidc.SigningAlgECDSAUsingP521AndSHA512,
-				PublicKeys: schema.IdentityProvidersOpenIDConnectClientPublicKeys{
-					Values: []schema.JWK{
-						{KeyID: es512, Key: x509PrivateKeyECDSAP521.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: "enc"},
-					},
+				JSONWebKeys: []schema.JWK{
+					{KeyID: es512, Key: x509PrivateKeyECDSAP521.PublicKey, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: "enc"},
 				},
 			},
 			{
@@ -611,7 +587,7 @@ func (s *ClientAuthenticationStrategySuite) SetupTest() {
 	}, s.store, nil)
 
 	c, _ := s.provider.Store.GetFullClient(context.TODO(), "no-key")
-	client := c.(*oidc.FullClient)
+	client := c.(*oidc.RegisteredClient)
 
 	client.SetJSONWebKeys(&jose.JSONWebKeySet{})
 }
@@ -2017,27 +1993,6 @@ func (s *ClientAuthenticationStrategySuite) TestShouldFailAssertionMethodBad() {
 	s.Nil(client)
 }
 
-func (s *ClientAuthenticationStrategySuite) TestShouldFailAssertionBaseClient() {
-	assertion := NewAssertion("base", s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
-
-	assertionJWT := jwt.NewWithClaims(jwt.SigningMethodHS512, assertion)
-
-	token, err := assertionJWT.SignedString([]byte("client-secret"))
-
-	s.Require().NoError(oidc.ErrorToDebugRFC6749Error(err))
-	s.Require().NotEqual("", token)
-
-	r := s.GetAssertionRequest(token)
-
-	ctx := s.GetCtx()
-
-	client, err := s.provider.DefaultClientAuthenticationStrategy(ctx, r, r.PostForm)
-
-	s.EqualError(err, "invalid_request")
-	s.EqualError(oidc.ErrorToDebugRFC6749Error(err), "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. The client configuration does not support OpenID Connect specific authentication methods.")
-	s.Nil(client)
-}
-
 func (s *ClientAuthenticationStrategySuite) TestShouldFailAssertionMethodClientSecretBasic() {
 	assertion := NewAssertion(oidc.ClientAuthMethodClientSecretBasic, s.GetTokenURL(), time.Now().Add(time.Second*-3), time.Unix(time.Now().Add(time.Minute).Unix(), 0))
 
@@ -2338,7 +2293,7 @@ func TestPKCEHandler_HandleAuthorizeEndpointRequest(t *testing.T) {
 	strategy := &TestCodeStrategy{}
 	config := &oidc.Config{}
 
-	client := &oidc.BaseClient{ID: "test"}
+	client := &oidc.RegisteredClient{ID: "test"}
 
 	handler := &oidc.PKCEHandler{Storage: store, AuthorizeCodeStrategy: strategy, Config: config}
 
@@ -2348,7 +2303,7 @@ func TestPKCEHandler_HandleAuthorizeEndpointRequest(t *testing.T) {
 		enforce, enforcePublicClients, allowPlain bool
 		method, challenge, code                   string
 		expected                                  string
-		client                                    *oidc.BaseClient
+		client                                    *oidc.RegisteredClient
 	}{
 		{
 			"ShouldNotHandleBlankResponseModes",
@@ -2482,12 +2437,12 @@ func TestPKCEHandler_HandleTokenEndpointRequest(t *testing.T) {
 
 	handler := &oidc.PKCEHandler{Storage: store, AuthorizeCodeStrategy: strategy, Config: config}
 
-	clientConfidential := &oidc.BaseClient{
+	clientConfidential := &oidc.RegisteredClient{
 		ID:     "test",
 		Public: false,
 	}
 
-	clientPublic := &oidc.BaseClient{
+	clientPublic := &oidc.RegisteredClient{
 		ID:     "test",
 		Public: true,
 	}
@@ -2499,7 +2454,7 @@ func TestPKCEHandler_HandleTokenEndpointRequest(t *testing.T) {
 		method, challenge, verifier               string
 		code                                      string
 		expected                                  string
-		client                                    *oidc.BaseClient
+		client                                    *oidc.RegisteredClient
 	}{
 		{
 			"ShouldFailNotAuthCode",
@@ -2801,7 +2756,7 @@ func TestPKCEHandler_HandleTokenEndpointRequest(t *testing.T) {
 }
 
 func TestPKCEHandler_HandleTokenEndpointRequest_Mock(t *testing.T) {
-	client := &oidc.BaseClient{
+	client := &oidc.RegisteredClient{
 		ID:     "test",
 		Public: false,
 	}
@@ -2813,7 +2768,7 @@ func TestPKCEHandler_HandleTokenEndpointRequest_Mock(t *testing.T) {
 		enforce, enforcePublicClients, allowPlain bool
 		method, challenge, verifier               string
 		expected                                  string
-		client                                    *oidc.BaseClient
+		client                                    *oidc.RegisteredClient
 	}{
 		{
 			"ShouldPassS256WithConfidentialClientWhenEnforcedWhenAllowPlain",

@@ -13,8 +13,8 @@ type IdentityProviders struct {
 
 // IdentityProvidersOpenIDConnect represents the configuration for OpenID Connect 1.0.
 type IdentityProvidersOpenIDConnect struct {
-	HMACSecret        string `koanf:"hmac_secret" json:"hmac_secret" jsonschema:"title=HMAC Secret" jsonschema_description:"The HMAC Secret used to sign Access Tokens."`
-	IssuerPrivateKeys []JWK  `koanf:"issuer_private_keys" json:"issuer_private_keys" jsonschema:"title=Issuer Private Keys" jsonschema_description:"The Private Keys used to sign ID Tokens."`
+	HMACSecret  string `koanf:"hmac_secret" json:"hmac_secret" jsonschema:"title=HMAC Secret" jsonschema_description:"The HMAC Secret used to sign Access Tokens."`
+	JSONWebKeys []JWK  `koanf:"jwks" json:"jwks" jsonschema:"title=Issuer JSON Web Keys" jsonschema_description:"The JWK's which are to be used to sign various objects like ID Tokens."`
 
 	IssuerCertificateChain X509CertificateChain `koanf:"issuer_certificate_chain" json:"issuer_certificate_chain" jsonschema:"title=Issuer Certificate Chain,deprecated" jsonschema_description:"The Issuer Certificate Chain with an RSA Public Key used to sign ID Tokens."`
 	IssuerPrivateKey       *rsa.PrivateKey      `koanf:"issuer_private_key" json:"issuer_private_key" jsonschema:"title=Issuer Private Key,deprecated" jsonschema_description:"The Issuer Private Key with an RSA Private Key used to sign ID Tokens."`
@@ -103,19 +103,19 @@ type IdentityProvidersOpenIDConnectPAR struct {
 
 // IdentityProvidersOpenIDConnectCORS represents an OpenID Connect 1.0 CORS config.
 type IdentityProvidersOpenIDConnectCORS struct {
-	Endpoints      []string  `koanf:"endpoints" json:"endpoints" jsonschema:"uniqueItems,enum=authorization,enum=pushed-authorization-request,enum=token,enum=introspection,enum=revocation,enum=userinfo,title=Endpoints" jsonschema_description:"List of endpoints to enable CORS handling for."`
-	AllowedOrigins []url.URL `koanf:"allowed_origins" json:"allowed_origins" jsonschema:"format=uri,title=Allowed Origins" jsonschema_description:"List of arbitrary allowed origins for CORS requests."`
+	Endpoints      []string   `koanf:"endpoints" json:"endpoints" jsonschema:"uniqueItems,enum=authorization,enum=pushed-authorization-request,enum=token,enum=introspection,enum=revocation,enum=userinfo,title=Endpoints" jsonschema_description:"List of endpoints to enable CORS handling for."`
+	AllowedOrigins []*url.URL `koanf:"allowed_origins" json:"allowed_origins" jsonschema:"format=uri,title=Allowed Origins" jsonschema_description:"List of arbitrary allowed origins for CORS requests."`
 
 	AllowedOriginsFromClientRedirectURIs bool `koanf:"allowed_origins_from_client_redirect_uris" json:"allowed_origins_from_client_redirect_uris" jsonschema:"default=false,title=Allowed Origins From Client Redirect URIs" jsonschema_description:"Automatically include the redirect URIs from the registered clients."`
 }
 
 // IdentityProvidersOpenIDConnectClient represents a configuration for an OpenID Connect 1.0 client.
 type IdentityProvidersOpenIDConnectClient struct {
-	ID               string          `koanf:"id" json:"id" jsonschema:"required,minLength=1,title=ID" jsonschema_description:"The Client ID."`
-	Description      string          `koanf:"description" json:"description" jsonschema:"title=Description" jsonschema_description:"The Client Description for End-Users."`
-	Secret           *PasswordDigest `koanf:"secret" json:"secret" jsonschema:"title=Secret" jsonschema_description:"The Client Secret for Client Authentication."`
-	SectorIdentifier url.URL         `koanf:"sector_identifier" json:"sector_identifier" jsonschema:"title=Sector Identifier" jsonschema_description:"The Client Sector Identifier for Privacy Isolation."`
-	Public           bool            `koanf:"public" json:"public" jsonschema:"default=false,title=Public" jsonschema_description:"Enables the Public Client Type."`
+	ID                  string          `koanf:"client_id" json:"client_id" jsonschema:"required,minLength=1,title=Client ID" jsonschema_description:"The Client ID."`
+	Name                string          `koanf:"client_name" json:"client_name" jsonschema:"title=Client Name" jsonschema_description:"The Client Name displayed to End-Users."`
+	Secret              *PasswordDigest `koanf:"client_secret" json:"client_secret" jsonschema:"title=Client Secret" jsonschema_description:"The Client Secret for Client Authentication."`
+	SectorIdentifierURI *url.URL        `koanf:"sector_identifier_uri" json:"sector_identifier_uri" jsonschema:"title=Sector Identifier URI" jsonschema_description:"The Client Sector Identifier URI for Privacy Isolation via Pairwise subject types."`
+	Public              bool            `koanf:"public" json:"public" jsonschema:"default=false,title=Public" jsonschema_description:"Enables the Public Client Type."`
 
 	RedirectURIs IdentityProvidersOpenIDConnectClientRedirectURIs `koanf:"redirect_uris" json:"redirect_uris" jsonschema:"required,title=Redirect URIs" jsonschema_description:"List of authorized redirect URIs."`
 
@@ -132,8 +132,8 @@ type IdentityProvidersOpenIDConnectClient struct {
 	ConsentMode                  string         `koanf:"consent_mode" json:"consent_mode" jsonschema:"enum=auto,enum=explicit,enum=implicit,enum=pre-configured,title=Consent Mode" jsonschema_description:"The Consent Mode used for this client."`
 	ConsentPreConfiguredDuration *time.Duration `koanf:"pre_configured_consent_duration" json:"pre_configured_consent_duration" jsonschema:"default=7 days,title=Pre-Configured Consent Duration" jsonschema_description:"The Pre-Configured Consent Duration when using Consent Mode pre-configured for this client."`
 
-	EnforcePAR  bool `koanf:"enforce_par" json:"enforce_par" jsonschema:"default=false,title=Enforce PAR" jsonschema_description:"Enforces Pushed Authorization Requests for this client."`
-	EnforcePKCE bool `koanf:"enforce_pkce" json:"enforce_pkce" jsonschema:"default=false,title=Enforce PKCE" jsonschema_description:"Enforces Proof Key for Code Exchange for this client."`
+	RequirePushedAuthorizationRequests bool `koanf:"require_pushed_authorization_requests" json:"require_pushed_authorization_requests" jsonschema:"default=false,title=Require Pushed Authorization Requests" jsonschema_description:"Requires Pushed Authorization Requests for this client to perform an authorization."`
+	RequirePKCE                        bool `koanf:"require_pkce" json:"require_pkce" jsonschema:"default=false,title=Require PKCE" jsonschema_description:"Requires a Proof Key for this client to perform Code Exchange."`
 
 	PKCEChallengeMethod string `koanf:"pkce_challenge_method" json:"pkce_challenge_method" jsonschema:"enum=plain,enum=S256,title=PKCE Challenge Method" jsonschema_description:"The PKCE Challenge Method enforced on this client."`
 
@@ -152,15 +152,10 @@ type IdentityProvidersOpenIDConnectClient struct {
 
 	TokenEndpointAuthMethod string `koanf:"token_endpoint_auth_method" json:"token_endpoint_auth_method" jsonschema:"enum=none,enum=client_secret_post,enum=client_secret_basic,enum=private_key_jwt,enum=client_secret_jwt,title=Token Endpoint Auth Method" jsonschema_description:"The Token Endpoint Auth Method enforced by the provider for this client."`
 
-	PublicKeys IdentityProvidersOpenIDConnectClientPublicKeys `koanf:"public_keys" json:"public_keys,omitempty" jsonschema:"title=Public Keys" jsonschema_description:"Public Key options used to validate request objects and the 'private_key_jwt' client authentication method for this client."`
+	JSONWebKeysURI *url.URL `koanf:"jwks_uri" json:"jwks_uri" jsonschema:"title=JSON Web Keys URI" jsonschema_description:"URI of the JWKS endpoint which contains the Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client."`
+	JSONWebKeys    []JWK    `koanf:"jwks" json:"jwks" jsonschema:"title=JSON Web Keys" jsonschema_description:"List of arbitrary Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client."`
 
 	Discovery IdentityProvidersOpenIDConnectDiscovery `json:"-"` // MetaData value. Not configurable by users.
-}
-
-// IdentityProvidersOpenIDConnectClientPublicKeys represents the Client Public Keys configuration for an OpenID Connect 1.0 client.
-type IdentityProvidersOpenIDConnectClientPublicKeys struct {
-	URI    *url.URL `koanf:"uri" json:"uri" jsonschema:"oneof_required=URI,title=URI" jsonschema_description:"URI of the JWKS endpoint which contains the Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client."`
-	Values []JWK    `koanf:"values" json:"values" jsonschema:"oneof_required=Values,title=Values" jsonschema_description:"List of arbitrary Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client."`
 }
 
 // DefaultOpenIDConnectConfiguration contains defaults for OIDC.

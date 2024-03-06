@@ -16,7 +16,7 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.36.4](https://github.com/authelia/authelia/releases/tag/v4.36.4)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Komga]
   * [v0.157.1](https://github.com/gotson/komga/releases/tag/v0.157.1)
 
@@ -47,20 +47,20 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-    - id: 'komga'
-      description: 'Komga'
-      secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-      public: false
-      authorization_policy: 'two_factor'
-      redirect_uris:
-        - 'https://komga.example.com/login/oauth2/code/authelia'
-      scopes:
-        - 'openid'
-        - 'profile'
-        - 'email'
-      grant_types:
-        - 'authorization_code'
-      userinfo_signed_response_alg: 'none'
+      - client_id: 'komga'
+        client_name: 'Komga'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        public: false
+        authorization_policy: 'two_factor'
+        redirect_uris:
+          - 'https://komga.example.com/login/oauth2/code/authelia'
+        scopes:
+          - 'openid'
+          - 'profile'
+          - 'email'
+        grant_types:
+          - 'authorization_code'
+        userinfo_signed_response_alg: 'none'
 ```
 
 ### Application

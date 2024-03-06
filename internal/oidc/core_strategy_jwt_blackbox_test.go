@@ -97,12 +97,12 @@ func TestJWTCoreStrategy(t *testing.T) {
 	assert.NoError(t, strategy.ValidateAccessToken(ctx, &fosite.Request{RequestedAt: time.Now().Add(time.Hour * -2400), Session: &fosite.DefaultSession{ExpiresAt: map[fosite.TokenType]time.Time{fosite.AccessToken: time.Now().Add(100 * time.Hour)}}}, token))
 	assert.EqualError(t, strategy.ValidateAccessToken(ctx, &fosite.Request{RequestedAt: time.Now(), Session: &fosite.DefaultSession{ExpiresAt: map[fosite.TokenType]time.Time{fosite.AccessToken: time.Now().Add(-100 * time.Second)}}}, token), "invalid_token")
 
-	token, signature, err = strategy.GenerateAccessToken(ctx, &fosite.Request{Client: &oidc.BaseClient{AccessTokenSignedResponseAlg: oidc.SigningAlgRSAUsingSHA256}})
+	token, signature, err = strategy.GenerateAccessToken(ctx, &fosite.Request{Client: &oidc.RegisteredClient{AccessTokenSignedResponseAlg: oidc.SigningAlgRSAUsingSHA256}})
 	assert.Equal(t, "", token)
 	assert.Equal(t, "", signature)
 	assert.EqualError(t, err, "Session must be of type JWTSessionContainer but got type: <nil>")
 
-	token, signature, err = strategy.GenerateAccessToken(ctx, &fosite.Request{Client: &oidc.BaseClient{AccessTokenSignedResponseAlg: oidc.SigningAlgRSAUsingSHA256}, Session: oidc.NewSession()})
+	token, signature, err = strategy.GenerateAccessToken(ctx, &fosite.Request{Client: &oidc.RegisteredClient{AccessTokenSignedResponseAlg: oidc.SigningAlgRSAUsingSHA256}, Session: oidc.NewSession()})
 	assert.Regexp(t, regexp.MustCompile(`^[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+$`), token)
 	assert.Regexp(t, regexp.MustCompile(`^[a-zA-Z0-9-_]+$`), signature)
 	assert.True(t, strings.HasSuffix(token, signature))
@@ -112,7 +112,7 @@ func TestJWTCoreStrategy(t *testing.T) {
 	assert.Equal(t, signature, strategy.AccessTokenSignature(ctx, token))
 	assert.EqualError(t, oidc.ErrorToDebugRFC6749Error(strategy.ValidateAccessToken(ctx, &fosite.Request{RequestedAt: time.Now(), Session: &fosite.DefaultSession{}}, strings.Replace(token, signature, "qePeTyHu389VN_1woLEGR2v1LDJxUWhxrZZfDgUEf_hPtdnRKZv9fVLWJFNI06r87sC9Uu7IjuLqzAuqjwnE86BKZLYkMf780fPr-73Ohoq4jXUQI40uUodxaY4LVPuvq_5W2bAqLm5F03snKOYDQc_GQggek4SVmyDKqSUdvH4M5KXFhp2XyCu7BYv-retZG3K5Z0s_VS_tE8FF_S7_k1MXqSv_wwndmrn8ik-58bXlQe1bAHpvWCrtVQFJWEdtGaQoVDK40PHzLEaWEx47ys8jnAM4-rwNoBbxbP9NnK4Y1XRD1hzOpMYJ7UGa7hUwaIoOkmfEuhWGUZnNeyQRHQ", 1))), "Token signature mismatch. Check that you provided  a valid token in the right format. square/go-jose: error in cryptographic primitive")
 
-	token, signature, err = strategy.GenerateAccessToken(ctx, &fosite.Request{Client: &oidc.BaseClient{AccessTokenSignedResponseAlg: oidc.SigningAlgRSAUsingSHA256}, Session: &BadJWTSessionContainer{Session: &fosite.DefaultSession{}}})
+	token, signature, err = strategy.GenerateAccessToken(ctx, &fosite.Request{Client: &oidc.RegisteredClient{AccessTokenSignedResponseAlg: oidc.SigningAlgRSAUsingSHA256}, Session: &BadJWTSessionContainer{Session: &fosite.DefaultSession{}}})
 	assert.EqualError(t, err, "JWT Claims must not be nil")
 	assert.Empty(t, token)
 	assert.Empty(t, signature)

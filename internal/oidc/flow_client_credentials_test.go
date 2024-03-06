@@ -126,7 +126,7 @@ func TestClientCredentialsGrantHandler_HandleTokenEndpointRequest(t *testing.T) 
 				mock.EXPECT().GetGrantTypes().Return(fosite.Arguments{oidc.GrantTypeClientCredentials})
 				mock.EXPECT().GetRequestedScopes().Return([]string{"foo", "bar", "baz.bar"})
 				mock.EXPECT().GetRequestedAudience().Return([]string{})
-				mock.EXPECT().GetClient().Return(&oidc.BaseClient{
+				mock.EXPECT().GetClient().Return(&oidc.RegisteredClient{
 					GrantTypes: fosite.Arguments{oidc.GrantTypeClientCredentials},
 					Scopes:     []string{"foo", "bar", "baz"},
 				})
@@ -143,7 +143,7 @@ func TestClientCredentialsGrantHandler_HandleTokenEndpointRequest(t *testing.T) 
 				mock.EXPECT().GetGrantTypes().Return(fosite.Arguments{oidc.GrantTypeClientCredentials})
 				mock.EXPECT().GetRequestedScopes().Return([]string{})
 				mock.EXPECT().GetRequestedAudience().Return([]string{})
-				mock.EXPECT().GetClient().Return(&oidc.BaseClient{
+				mock.EXPECT().GetClient().Return(&oidc.RegisteredClient{
 					GrantTypes: fosite.Arguments{oidc.GrantTypeClientCredentials},
 					Scopes:     []string{"foo", "bar", "baz"},
 				})
@@ -160,7 +160,7 @@ func TestClientCredentialsGrantHandler_HandleTokenEndpointRequest(t *testing.T) 
 				mock.EXPECT().GetGrantTypes().Return(fosite.Arguments{oidc.GrantTypeClientCredentials})
 				mock.EXPECT().GetRequestedScopes().Return([]string{})
 				mock.EXPECT().GetRequestedAudience().Return([]string{})
-				mock.EXPECT().GetClient().Return(&oidc.BaseClient{
+				mock.EXPECT().GetClient().Return(&oidc.RegisteredClient{
 					GrantTypes: fosite.Arguments{oidc.GrantTypeClientCredentials},
 					Scopes:     []string{"foo", "bar", "baz"},
 				})
@@ -312,7 +312,7 @@ func TestPopulateClientCredentialsFlowSessionWithAccessRequest(t *testing.T) {
 					return &url.URL{Scheme: "https", Host: "example.com"}, nil
 				},
 			},
-			&oidc.BaseClient{
+			&oidc.RegisteredClient{
 				ID: abc,
 			},
 			oidc.NewSession(),
@@ -373,7 +373,7 @@ func TestPopulateClientCredentialsFlowRequester(t *testing.T) {
 			nil,
 			&TestContext{},
 			&oidc.Config{},
-			&oidc.BaseClient{},
+			&oidc.RegisteredClient{},
 			&fosite.Request{},
 			&fosite.Request{},
 			"",
@@ -393,7 +393,7 @@ func TestPopulateClientCredentialsFlowRequester(t *testing.T) {
 			nil,
 			&TestContext{},
 			&oidc.Config{},
-			&oidc.BaseClient{ID: "abc", Scopes: []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOpenID}},
+			&oidc.RegisteredClient{ID: "abc", Scopes: []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOpenID}},
 			&fosite.Request{RequestedScope: fosite.Arguments{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOpenID}},
 			&fosite.Request{},
 			"The requested scope is invalid, unknown, or malformed. The scope 'authelia.bearer.authz' must only be requested by itself or with the 'offline_access' scope, no other scopes are permitted.",
@@ -403,7 +403,7 @@ func TestPopulateClientCredentialsFlowRequester(t *testing.T) {
 			nil,
 			&TestContext{},
 			&oidc.Config{},
-			&oidc.BaseClient{ID: "abc", Scopes: []string{oidc.ScopeAutheliaBearerAuthz}},
+			&oidc.RegisteredClient{ID: "abc", Scopes: []string{oidc.ScopeAutheliaBearerAuthz}},
 			&fosite.Request{RequestedScope: fosite.Arguments{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess}},
 			&fosite.Request{},
 			"The requested scope is invalid, unknown, or malformed. The scope 'offline_access' is not authorized on client with id 'abc'.",
@@ -413,7 +413,7 @@ func TestPopulateClientCredentialsFlowRequester(t *testing.T) {
 			nil,
 			&TestContext{},
 			&oidc.Config{},
-			&oidc.BaseClient{ID: "abc", Scopes: []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess}},
+			&oidc.RegisteredClient{ID: "abc", Scopes: []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess}},
 			&fosite.Request{RequestedScope: fosite.Arguments{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess}},
 			&fosite.Request{},
 			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Make sure that the various parameters are correct, be aware of case sensitivity and trim your parameters. Make sure that the client you are using has exactly whitelisted the redirect_uri you specified. The scope 'authelia.bearer.authz' requires the request also include an audience.",
@@ -423,7 +423,7 @@ func TestPopulateClientCredentialsFlowRequester(t *testing.T) {
 			nil,
 			&TestContext{},
 			&oidc.Config{},
-			&oidc.BaseClient{ID: "abc", Scopes: []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess}},
+			&oidc.RegisteredClient{ID: "abc", Scopes: []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess}},
 			&fosite.Request{RequestedScope: fosite.Arguments{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess}, RequestedAudience: fosite.Arguments{"https://example.com"}},
 			&fosite.Request{},
 			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Requested audience 'https://example.com' has not been whitelisted by the OAuth 2.0 Client.",
@@ -433,7 +433,7 @@ func TestPopulateClientCredentialsFlowRequester(t *testing.T) {
 			nil,
 			&TestContext{},
 			&oidc.Config{},
-			&oidc.BaseClient{ID: "abc", Scopes: []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess}, Audience: fosite.Arguments{"https://example.com"}},
+			&oidc.RegisteredClient{ID: "abc", Scopes: []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess}, Audience: fosite.Arguments{"https://example.com"}},
 			&fosite.Request{
 				RequestedScope:    fosite.Arguments{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess},
 				RequestedAudience: fosite.Arguments{"https://example.com"},
@@ -451,7 +451,7 @@ func TestPopulateClientCredentialsFlowRequester(t *testing.T) {
 			nil,
 			&TestContext{},
 			&oidc.Config{},
-			&oidc.BaseClient{ID: "abc", Scopes: []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess}, Audience: fosite.Arguments{"https://example.com", "https://app.example.com"}},
+			&oidc.RegisteredClient{ID: "abc", Scopes: []string{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess}, Audience: fosite.Arguments{"https://example.com", "https://app.example.com"}},
 			&fosite.Request{
 				RequestedScope:    fosite.Arguments{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess},
 				RequestedAudience: fosite.Arguments{"https://example.com"},

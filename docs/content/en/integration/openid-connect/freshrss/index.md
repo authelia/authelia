@@ -2,7 +2,7 @@
 title: "freshrss"
 description: "Integrating Freshrss with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
-date: 2024-02-14T20:29:13+11:00
+date: 2024-03-05T21:58:32+11:00
 draft: false
 images: []
 menu:
@@ -17,7 +17,7 @@ community: true
 
 * [Authelia]
   * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [Freshrss]
+* [FreshRSS]
   * [1.23.1](https://github.com/FreshRSS/FreshRSS/releases/tag/1.23.1)
 
 ## Before You Begin
@@ -33,18 +33,20 @@ This example makes the following assumptions:
 * __Client ID:__ `freshrss`
 * __Client Secret:__ `insecure_secret`
 * __Port:__ '443'
-  * this is the port freshrss is served over (usually 80 for http and 443 for https) NOT the port of the docker container
+  * This is the port [FreshRSS] is served over (usually 80 for http and 443 for https) NOT the port of the container.
 
 ### Special Notes
 
-1. The FressRSS implementation seems to always include the port in the requested `redirect_uri`. As Authelia strictly conforms to the specifications this means the client registration **_MUST_** include the port for the requested `redirect_uri` to match.
+1. The [FreshRSS] implementation seems to always include the port in the requested `redirect_uri`. As Authelia strictly
+   conforms to the specifications this means the client registration **_MUST_** include the port for the requested
+   `redirect_uri` to match.
 
 ## Configuration
 
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [freshrss](https://freshrss.github.io/FreshRSS/) which
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [FreshRSS] which
 will operate with the above example:
 
 ```yaml
@@ -53,9 +55,9 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-    - id: 'freshrss'
-      description: 'freshrss'
-      secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+    - client_id: 'freshrss'
+      client_name: 'freshrss'
+      client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
       public: false
       authorization_policy: 'two_factor'
       redirect_uris:
@@ -71,7 +73,10 @@ identity_providers:
 
 ### Application
 
-1. To configure [freshrss](https://freshrss.github.io/FreshRSS/) to utilize Authelia as an [OpenID Connect 1.0](https://www.authelia.com/integration/openid-connect/introduction/) Provider, specify the following environment variables:
+1. To configure [FreshRSS] to utilize Authelia as an [OpenID Connect 1.0](https://www.authelia.com/integration/openid-connect/introduction/) Provider, specify the below environment
+   variables.
+2. Open the newly created [FreshRSS] instance.
+3. During initial config, select "HTTP" during the user creation
 
 ```yaml
 environment:
@@ -84,13 +89,11 @@ environment:
   OIDC_SCOPES: openid groups email profile
   OIDC_X_FORWARDED_HEADERS: X-Forwarded-Host X-Forwarded-Port X-Forwarded-Proto
 ```
-2. Open the newly created freshrss instance
-3. During initial config, select "HTTP" during the user creation
 
 ## See Also
 
 - [freshrss OIDC documentation](https://freshrss.github.io/FreshRSS/en/admins/16_OpenID-Connect.html)
 
 [Authelia]: https://www.authelia.com
-[freshrss]: https://freshrss.github.io/FreshRSS/
+[FreshRSS]: https://freshrss.github.io/FreshRSS/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md

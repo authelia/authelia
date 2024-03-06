@@ -39,7 +39,7 @@ intended for production use it's used to provide context and an indentation exam
 identity_providers:
   oidc:
     hmac_secret: 'this_is_a_secret_abc123abc123abc'
-    issuer_private_keys:
+    jwks:
       - key_id: 'example'
         algorithm: 'RS256'
         use: 'sig'
@@ -114,7 +114,7 @@ It's __strongly recommended__ this is a
 [Random Alphanumeric String](../../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string)
 with 64 or more characters.
 
-### issuer_private_keys
+### jwks
 
 {{< confkey type="list(object)" required="yes" >}}
 
@@ -133,7 +133,7 @@ The following is a contextual example (see below for information regarding each 
 ```yaml
 identity_providers:
   oidc:
-    issuer_private_keys:
+    jwks:
       - key_id: 'example'
         algorithm: 'RS256'
         use: 'sig'
@@ -170,7 +170,7 @@ The following is a contextual example (see below for information regarding each 
 ```yaml
 identity_providers:
   oidc:
-    issuer_private_keys:
+    jwks:
       - key_id: 'example'
         algorithm: 'RS256'
         use: 'sig'
@@ -393,7 +393,7 @@ identity_providers:
           - policy: 'deny'
             subject: 'group:services'
     clients:
-      - id: 'client_with_policy_name'
+      - client_id: 'client_with_policy_name'
         authorization_policy: 'policy_name'
 ```
 

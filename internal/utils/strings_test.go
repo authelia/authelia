@@ -313,9 +313,9 @@ func TestIsURLInSlice(t *testing.T) {
 	example, err := url.ParseRequestURI("https://example.com")
 	assert.NoError(t, err)
 
-	assert.True(t, IsURLInSlice(*google, urls))
-	assert.False(t, IsURLInSlice(*microsoft, urls))
-	assert.True(t, IsURLInSlice(*example, urls))
+	assert.True(t, IsURLInSlice(google, urls))
+	assert.False(t, IsURLInSlice(microsoft, urls))
+	assert.True(t, IsURLInSlice(example, urls))
 }
 
 func TestOriginFromURL(t *testing.T) {
@@ -376,8 +376,8 @@ func TestIsURLHostComponent(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, u)
 
-			assert.Equal(t, tc.expectedA, IsURLHostComponent(*u))
-			assert.Equal(t, tc.expectedB, IsURLHostComponentWithPort(*u))
+			assert.Equal(t, tc.expectedA, IsURLHostComponent(u))
+			assert.Equal(t, tc.expectedB, IsURLHostComponentWithPort(u))
 		})
 	}
 }

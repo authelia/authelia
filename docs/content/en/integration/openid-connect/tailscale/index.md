@@ -16,7 +16,7 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.37.5](https://github.com/authelia/authelia/releases/tag/v4.37.5)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Tailscale] - **Note:** Version not important, since configuration is via the WebUI
   * [1.38.4](https://github.com/tailscale/tailscale/releases/tag/v1.38.4)
 
@@ -48,15 +48,15 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-    - id: 'tailscale'
-      description: 'Tailscale'
-      secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-      redirect_uris:
-        - 'https://login.tailscale.com/a/oauth_response'
-      scopes:
-        - 'openid'
-        - 'email'
-        - 'profile'
+      - client_id: 'tailscale'
+        client_name: 'Tailscale'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        redirect_uris:
+          - 'https://login.tailscale.com/a/oauth_response'
+        scopes:
+          - 'openid'
+          - 'email'
+          - 'profile'
 ```
 
 ### Application

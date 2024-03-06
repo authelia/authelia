@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/go-crypt/crypt"
@@ -292,6 +293,10 @@ func (ctx *CmdCtx) CryptoHashGenerateRunE(cmd *cobra.Command, args []string) (er
 
 	if random {
 		fmt.Printf("Random Password: %s\n", password)
+
+		if value := url.QueryEscape(password); password != value {
+			fmt.Printf("Random Password (URL Encoded): %s\n", value)
+		}
 	}
 
 	fmt.Printf("Digest: %s\n", digest.Encode())

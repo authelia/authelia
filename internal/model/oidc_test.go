@@ -196,7 +196,7 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 		{
 			"ShouldErrorOnBadForm",
 			func(mock *mocks.MockFositeStorage) {
-				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.BaseClient{ID: parclientid}, nil)
+				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.RegisteredClient{ID: parclientid}, nil)
 			},
 			&model.OAuth2PARContext{
 				ID:        1,
@@ -212,7 +212,7 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 		{
 			"ShouldErrorOnBadFormRedirectURI",
 			func(mock *mocks.MockFositeStorage) {
-				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.BaseClient{ID: parclientid}, nil)
+				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.RegisteredClient{ID: parclientid}, nil)
 			},
 			&model.OAuth2PARContext{
 				ID:        1,
@@ -228,7 +228,7 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 		{
 			"ShouldRestoreAuthorizeRequest",
 			func(mock *mocks.MockFositeStorage) {
-				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.BaseClient{ID: parclientid}, nil)
+				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.RegisteredClient{ID: parclientid}, nil)
 			},
 			&model.OAuth2PARContext{
 				ID:          1,
@@ -257,7 +257,7 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 				HandledResponseTypes: fosite.Arguments{oidc.ResponseTypeAuthorizationCodeFlow},
 				Request: fosite.Request{
 					ID:                requestid,
-					Client:            &oidc.BaseClient{ID: parclientid},
+					Client:            &oidc.RegisteredClient{ID: parclientid},
 					RequestedScope:    fosite.Arguments{oidc.ScopeOpenID, oidc.ScopeOffline},
 					RequestedAudience: fosite.Arguments{parclientid},
 					RequestedAt:       time.Unix(10000000, 0),
@@ -315,7 +315,7 @@ func TestNewOAuth2PARContext(t *testing.T) {
 				Request: fosite.Request{
 					ID:                "a-id",
 					RequestedAt:       time.Time{},
-					Client:            &oidc.BaseClient{ID: "a-client"},
+					Client:            &oidc.RegisteredClient{ID: "a-client"},
 					RequestedScope:    fosite.Arguments{oidc.ScopeOpenID},
 					Form:              url.Values{oidc.FormParameterRedirectURI: []string{"https://example.com"}},
 					Session:           &oidc.Session{},
@@ -347,7 +347,7 @@ func TestNewOAuth2PARContext(t *testing.T) {
 				Request: fosite.Request{
 					ID:                "a-id",
 					RequestedAt:       time.Time{},
-					Client:            &oidc.BaseClient{ID: "a-client"},
+					Client:            &oidc.RegisteredClient{ID: "a-client"},
 					RequestedScope:    fosite.Arguments{oidc.ScopeOpenID},
 					Form:              url.Values{oidc.FormParameterRedirectURI: []string{"https://example.com"}},
 					Session:           &openid.DefaultSession{},
@@ -410,7 +410,7 @@ func TestOAuth2Session_ToRequest(t *testing.T) {
 		{
 			"ShouldErrorOnBadForm",
 			func(mock *mocks.MockFositeStorage) {
-				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.BaseClient{ID: parclientid}, nil)
+				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.RegisteredClient{ID: parclientid}, nil)
 			},
 			&model.OAuth2Session{
 				ID:        1,
@@ -426,7 +426,7 @@ func TestOAuth2Session_ToRequest(t *testing.T) {
 		{
 			"ShouldRestoreRequest",
 			func(mock *mocks.MockFositeStorage) {
-				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.BaseClient{ID: parclientid}, nil)
+				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.RegisteredClient{ID: parclientid}, nil)
 			},
 			&model.OAuth2Session{
 				ID:                1,
@@ -445,7 +445,7 @@ func TestOAuth2Session_ToRequest(t *testing.T) {
 			},
 			&fosite.Request{
 				ID:                requestid,
-				Client:            &oidc.BaseClient{ID: parclientid},
+				Client:            &oidc.RegisteredClient{ID: parclientid},
 				RequestedScope:    fosite.Arguments{oidc.ScopeOpenID, oidc.ScopeOffline},
 				RequestedAudience: fosite.Arguments{parclientid},
 				RequestedAt:       time.Unix(10000000, 0),
@@ -595,7 +595,7 @@ func TestMisc(t *testing.T) {
 
 	sub := uuid.MustParse("b9423f3a-65da-4ea8-8f6b-1dafb141f3a8")
 
-	session, err := model.NewOAuth2ConsentSession(sub, &fosite.Request{Client: &oidc.BaseClient{ID: "abc"}})
+	session, err := model.NewOAuth2ConsentSession(sub, &fosite.Request{Client: &oidc.RegisteredClient{ID: "abc"}})
 
 	assert.NoError(t, err)
 	assert.NotNil(t, session)

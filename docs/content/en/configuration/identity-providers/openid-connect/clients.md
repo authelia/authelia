@@ -28,10 +28,10 @@ intended for production use it's used to provide context and an indentation exam
 identity_providers:
   oidc:
     clients:
-      - id: 'unique-client-identifier'
-        description: 'My Application'
-        secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-        sector_identifier: ''
+      - client_id: 'unique-client-identifier'
+        client_name: 'My Application'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        sector_identifier_uri: ''
         public: false
         redirect_uris:
           - 'https://oidc.example.com:8080/oauth2/callback'
@@ -56,8 +56,8 @@ identity_providers:
         requested_audience_mode: 'explicit'
         consent_mode: 'explicit'
         pre_configured_consent_duration: '1 week'
-        enforce_par: false
-        enforce_pkce: false
+        require_pushed_authorization_requests: false
+        require_pkce: false
         pkce_challenge_method: 'S256'
         authorization_signed_response_alg: 'none'
         authorization_signed_response_key_id: ''
@@ -69,44 +69,43 @@ identity_providers:
         userinfo_signed_response_key_id: ''
         request_object_signing_alg: 'RS256'
         token_endpoint_auth_signing_alg: 'RS256'
-        token_endpoint_auth_method: ''
-        public_keys:
-          uri: 'https://oidc.example.com:8080/oauth2/jwks.json'
-          values:
-            - key_id: 'example'
-              algorithm: 'RS256'
-              use: 'sig'
-              key: |
-                -----BEGIN RSA PUBLIC KEY-----
-                MEgCQQDAwV26ZA1lodtOQxNrJ491gWT+VzFum9IeZ+WTmMypYWyW1CzXKwsvTHDz
-                9ec+jserR3EMQ0Rr24lj13FL1ib5AgMBAAE=
-                -----END RSA PUBLIC KEY----
-              certificate_chain: |
-                -----BEGIN CERTIFICATE-----
-                MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-                MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-                NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-                AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-                z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-                JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-                Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-                1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
-                -----END CERTIFICATE-----
-                -----BEGIN CERTIFICATE-----
-                MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-                MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-                NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-                AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-                z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-                JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-                Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-                1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
-                -----END CERTIFICATE-----
+        token_endpoint_auth_method: 'client_secret_basic'
+        jwks_uri: ''
+        jwks:
+          - key_id: 'example'
+            algorithm: 'RS256'
+            use: 'sig'
+            key: |
+              -----BEGIN RSA PUBLIC KEY-----
+              MEgCQQDAwV26ZA1lodtOQxNrJ491gWT+VzFum9IeZ+WTmMypYWyW1CzXKwsvTHDz
+              9ec+jserR3EMQ0Rr24lj13FL1ib5AgMBAAE=
+              -----END RSA PUBLIC KEY----
+            certificate_chain: |
+              -----BEGIN CERTIFICATE-----
+              MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
+              MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
+              NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
+              AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
+              z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
+              JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
+              Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
+              1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+              -----END CERTIFICATE-----
+              -----BEGIN CERTIFICATE-----
+              MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
+              MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
+              NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
+              AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
+              z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
+              JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
+              Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
+              1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+              -----END CERTIFICATE-----
 ```
 
 ## Options
 
-### id
+### client_id
 
 {{< confkey type="string" required="yes" >}}
 
@@ -117,17 +116,17 @@ The Client ID for this client. It must exactly match the Client ID configured in
 
 Valid Client ID's have the following characteristics:
 
-- Less than or Equal to 100 characters.
+- Less than or equal to 100 characters.
 - Only contains [RFC3986 Unreserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3).
 - Completely unique from other configured clients.
 
-### description
+### client_name
 
 {{< confkey type="string" default="*same as id*" required="no" >}}
 
-A friendly description for this client shown in the UI. This defaults to the same as the ID.
+A friendly name for this client shown in the UI. This defaults to the same as the ID.
 
-### secret
+### client_secret
 
 {{< confkey type="string" required="situational" >}}
 
@@ -135,14 +134,14 @@ The shared secret between Authelia and the application consuming this client. Th
 configured in the application.
 
 This secret must be generated by the administrator and can be done by following the
-[How Do I Generate Client Secrets](../../../integration/openid-connect/frequently-asked-questions.md#how-do-i-generate-client-secrets) FAQ.
+[How Do I Generate a Client Identifier or Client Secret](../../../integration/openid-connect/frequently-asked-questions.md#how-do-i-generate-a-client-identifier-or-client-secret) FAQ.
 
 This must be provided when the client is a confidential client type provided with the exception if you've configured a
 [token_endpoint_auth_method](#token_endpoint_auth_method) that uses a credential type that isn't a secret (i.e. a key), and
 must be blank when using the public client type. To set the client type to public see the [public](#public)
 configuration option.
 
-### sector_identifier
+### sector_identifier_uri
 
 {{< confkey type="string" required="no" >}}
 
@@ -180,7 +179,7 @@ the server.
 
 This enables the public client type for this client. This is for clients that are not capable of maintaining
 confidentiality of credentials, you can read more about client types in [RFC6749 Section 2.1]. This is particularly
-useful for SPA's and CLI tools. This option requires setting the [client secret](#secret) to a blank string.
+useful for SPA's and CLI tools. This option requires setting the [client secret](#client_secret) to a blank string.
 
 ### redirect_uris
 
@@ -289,7 +288,7 @@ identity_providers:
           - policy: 'deny'
             subject: 'group:services'
     clients:
-      - id: 'client_with_policy_name'
+      - client_id: 'client_with_policy_name'
         authorization_policy: 'policy_name'
 ```
 
@@ -346,7 +345,7 @@ match exactly with the granted scopes/audience.
 
 [consent_mode]: #consent_mode
 
-### enforce_par
+### require_pushed_authorization_requests
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
@@ -357,7 +356,7 @@ This configuration option enforces the use of a [Pushed Authorization Requests] 
 To enforce it for all clients see the global [pushed_authorizations enforce](provider.md#enforce) provider configuration
 option.
 
-### enforce_pkce
+### require_pkce
 
 {{< confkey type="bool" default="false" required="no" >}}
 
@@ -369,7 +368,7 @@ global [enforce_pkce](provider.md#enforce_pkce) provider configuration option.
 {{< confkey type="string" default="" required="no" >}}
 
 This setting enforces the use of the specified [PKCE] challenge method for this individual client. This setting also
-effectively enables the [enforce_pkce](#enforce_pkce) option for this client.
+effectively enables the [require_pkce](#require_pkce) option for this client.
 
 Valid values are an empty string, `plain`, or `S256`. It should be noted that `S256` is strongly recommended if the
 relying party supports it.
@@ -391,7 +390,7 @@ See the response object section of the
 the algorithm column for supported values.
 
 With the exclusion of `none` which returns a traditional authorization response, the algorithm chosen must have a key
-configured in the [issuer_private_keys] section to be considered valid.
+configured in the [jwks] section to be considered valid.
 
 See the response object section of the [integration guide](../../../integration/openid-connect/introduction.md#response-object)
 for more information including the algorithm column for supported values.
@@ -407,7 +406,7 @@ _**Note:** This value automatically configures the [authorization_signed_respons
 value with the algorithm of the specified key._
 
 The key id of the JWK used to sign the ID Tokens in the token responses. The value of this must one of those provided or
-calculated in the [issuer_private_keys].
+calculated in the [jwks].
 
 ### id_token_signed_response_alg
 
@@ -422,7 +421,7 @@ See the response object section of the
 [integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information including
 the algorithm column for supported values. This value can not be set to `none`.
 
-The algorithm chosen must have a key configured in the [issuer_private_keys] section to be considered valid.
+The algorithm chosen must have a key configured in the [jwks] section to be considered valid.
 
 See the response object section of the [integration guide](../../../integration/openid-connect/introduction.md#response-object)
 for more information including the algorithm column for supported values.
@@ -435,7 +434,7 @@ _**Note:** This value automatically configures the [id_token_signed_response_alg
 with the algorithm of the specified key._
 
 The key id of the JWK used to sign the ID Tokens in the token responses. The value of this must one of those provided or
-calculated in the [issuer_private_keys].
+calculated in the issuer [jwks] section.
 
 ### access_token_signed_response_alg
 
@@ -450,7 +449,7 @@ See the response object section of the
 [integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information including
 the algorithm column for supported values. This value can not be set to `none`.
 
-The algorithm chosen must have a key configured in the [issuer_private_keys] section to
+The algorithm chosen must have a key configured in the issuer [jwks] section to
 be considered valid. In addition to the values listed we also support `none` as a value
 for this endpoint. When using the `none` value the Access Token is completely opaque and is not a JWT.
 
@@ -466,7 +465,7 @@ algorithm of the specified key._
 
 The key id of the JWK used to sign the [JWT Access Tokens](https://oauth.net/2/jwt-access-tokens/) in the token
 responses. The value of this must one of those provided or calculated in the
-[issuer_private_keys].
+issuer [jwks] section.
 
 ### userinfo_signed_response_alg
 
@@ -480,7 +479,7 @@ See the response object section of the [integration guide](../../../integration/
 for more information including the algorithm column for supported values. In addition to the values listed we also
 support `none` as a value for this endpoint.
 
-The algorithm chosen must have a key configured in the [issuer_private_keys] section to
+The algorithm chosen must have a key configured in the issuer [jwks] section to
 be considered valid.
 
 ### userinfo_signed_response_key_id
@@ -492,7 +491,7 @@ with the algorithm of the specified key._
 
 The key id of the JWK used to sign the userinfo endpoint responses in the token responses. The value of this must one of
 those provided or calculated in the
-[issuer_private_keys].
+issuer [jwks] section.
 
 ### introspection_signed_response_alg
 
@@ -509,8 +508,7 @@ If configured to any other value the response is a JWT in the `application/token
 See the response object section of the [integration guide](../../../integration/openid-connect/introduction.md#response-object)
 for more information including the algorithm column for supported values.
 
-The algorithm chosen must have a key configured in the [issuer_private_keys] section to
-be considered valid.
+The algorithm chosen must have a key configured in the issuer [jwks] section to be considered valid.
 
 ### introspection_signed_response_key_id
 
@@ -520,7 +518,7 @@ _**Note:** This value automatically configures the [introspection_signed_respons
 value with the algorithm of the specified key._
 
 The key id of the JWK used to sign the Introspection responses. The value of this must one of those provided or
-calculated in the [issuer_private_keys].
+calculated in the issuer [jwks] section.
 
 ### request_object_signing_alg
 
@@ -534,12 +532,12 @@ the algorithm column for supported values.
 
 ### token_endpoint_auth_method
 
-{{< confkey type="string" default="" required="no" >}}
+{{< confkey type="string" default="client_secret_basic" required="no" >}}
 
 The registered client authentication mechanism used by this client for the [Token Endpoint]. If no method is defined
-the confidential client type will accept any supported method. The public client type defaults to `none` as this
-is required by the specification. This may be required as a breaking change in future versions.
-Supported values are `client_secret_basic`, `client_secret_post`, `client_secret_jwt`, `private_key_jwt`, and `none`.
+the confidential client type will default to `client_secret_basic` as this is required by the specification. The public
+client type defaults to `none` as this is required by the specification. Supported values are `client_secret_basic`,
+`client_secret_post`, `client_secret_jwt`, `private_key_jwt`, and `none`.
 
 See the [integration guide](../../../integration/openid-connect/introduction.md#client-authentication-method) for
 more information.
@@ -562,11 +560,19 @@ otherwise we assume the default value:
 | [token_endpoint_auth_method](#token_endpoint_auth_method) |  `private_key_jwt`  | `RS256` |
 | [token_endpoint_auth_method](#token_endpoint_auth_method) | `client_secret_jwt` | `HS256` |
 
-### public_keys
+### jwks_uri
 
-This section configures the trusted JSON Web Keys or JWKS for this registered client. This can either be static values
-(recommended) or a URI using the `https` scheme. This section is situational required. These are used to validate the
-[JWT] assertions from clients.
+{{< confkey type="string" required="situational" >}}
+
+*__Important Note:__ the URL given in this value MUST be resolvable by Authelia and MUST present a certificate signed by
+a certificate trusted by your environment. It is beyond our intentions to support anything other than this.*
+
+The fully qualified, `https` scheme, and appropriately signed URI for the JWKs endpoint that implements
+[RFC7517 Section 5](https://datatracker.ietf.org/doc/html/rfc7517#section-5).This is mutually exclusive with [jwks](#jwks), meaning they must not be configured at the same
+time. It's recommended that you configure this option to account for key rotation instead of [jwks](#jwks).
+
+This option or the [jwks](#jwks) option configures the trusted JSON Web Keys or JWKs for this registered client.
+This section is situationally required. These are used to validate the [JWT] assertions from clients.
 
 Required when the following options are configured:
 
@@ -583,72 +589,73 @@ The following is a contextual example (see below for information regarding each 
 identity_providers:
   oidc:
     clients:
-      - id: 'example'
-        public_keys:
-          uri: 'https://oidc.example.com:8080/oauth2/jwks.json'
-          values:
-            - key_id: 'example'
-              algorithm: 'RS256'
-              use: 'sig'
-              key: |
-                -----BEGIN RSA PUBLIC KEY-----
-                MEgCQQDAwV26ZA1lodtOQxNrJ491gWT+VzFum9IeZ+WTmMypYWyW1CzXKwsvTHDz
-                9ec+jserR3EMQ0Rr24lj13FL1ib5AgMBAAE=
-                -----END RSA PUBLIC KEY----
-              certificate_chain: |
-                -----BEGIN CERTIFICATE-----
-                MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-                MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-                NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-                AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-                z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-                JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-                Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-                1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
-                -----END CERTIFICATE-----
-                -----BEGIN CERTIFICATE-----
-                MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-                MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-                NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-                AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-                z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-                JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-                Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-                1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
-                -----END CERTIFICATE-----
+      - client_id: 'example'
+        jwks_uri: 'https://oidc.example.com:8080/oauth2/jwks.json'
+        jwks:
+          - key_id: 'example'
+            algorithm: 'RS256'
+            use: 'sig'
+            key: |
+              -----BEGIN RSA PUBLIC KEY-----
+              MEgCQQDAwV26ZA1lodtOQxNrJ491gWT+VzFum9IeZ+WTmMypYWyW1CzXKwsvTHDz
+              9ec+jserR3EMQ0Rr24lj13FL1ib5AgMBAAE=
+              -----END RSA PUBLIC KEY----
+            certificate_chain: |
+              -----BEGIN CERTIFICATE-----
+              MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
+              MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
+              NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
+              AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
+              z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
+              JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
+              Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
+              1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+              -----END CERTIFICATE-----
+              -----BEGIN CERTIFICATE-----
+              MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
+              MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
+              NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
+              AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
+              z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
+              JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
+              Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
+              1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+              -----END CERTIFICATE-----
 ```
 
-#### uri
-
-{{< confkey type="string" required="no" >}}
-
-The fully qualified, `https` scheme, and appropriately signed URI for the JWKS endpoint that implements
-[RFC7517 Section 5](https://datatracker.ietf.org/doc/html/rfc7517#section-5). Must not be configured at the same time
-as [values](#values). It's recommended that you do not configure this option, but statically configure [values](#values)
-instead.
-
-*__Important Note:__ the URL given in this value MUST be resolvable by Authelia and MUST present a certificate signed by
-a certificate trusted by your environment. It is beyond our intentions to support anything other than this.*
-
-#### values
+### jwks
 
 {{< confkey type="list(object)" required="situational" >}}
 
-A list of static keys.
+A list of manually configured JSON Web Keys. This is mutually exclusive with [jwks_uri](#jwks_uri), meaning they must
+not be configured at the same time. It's recommended that you configure the [jwks_uri](#jwks_uri) option to account for
+key rotation instead of this option.
 
-##### key_id
+This option or the [jwks_uri](#jwks_uri) option configures the trusted JSON Web Keys or JWKs for this registered client.
+This section is situationally required. These are used to validate the [JWT] assertions from clients.
+
+Required when the following options are configured:
+
+- [request_object_signing_alg](#request_object_signing_alg)
+- [token_endpoint_auth_signing_alg](#token_endpoint_auth_signing_alg)
+
+Required when the following options are configured to specific values:
+
+- [token_endpoint_auth_method](#token_endpoint_auth_method): `private_key_jwt`
+
+#### key_id
 
 {{< confkey type="string" required="yes" >}}
 
 The Key ID used to match the request object's JWT header `kid` value against.
 
-##### use
+#### use
 
 {{< confkey type="string" default="sig" required="no" >}}
 
 The key usage. Defaults to `sig` which is the only available option at this time.
 
-##### algorithm
+#### algorithm
 
 {{< confkey type="string" default="RS256" required="situational" >}}
 
@@ -660,7 +667,7 @@ for more information. The `Algorithm` column lists supported values, the `Key` c
 [key](#key) type constraints that exist for the algorithm, and the `JWK Default Conditions` column briefly explains the
 conditions under which it's the default algorithm.
 
-##### key
+#### key
 
 {{< confkey type="string" required="yes" >}}
 
@@ -690,7 +697,7 @@ The key *__MUST__*:
 If the [certificate_chain](#certificate_chain) is provided the private key must include matching public
 key data for the first certificate in the chain.
 
-##### certificate_chain
+#### certificate_chain
 
 {{< confkey type="string" required="no" >}}
 
@@ -715,4 +722,4 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [Subject Identifier Type]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
 [Pairwise Identifier Algorithm]: https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg
 [Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
-[issuer_private_keys]: provider.md#issuer_private_keys
+[jwks]: provider.md#jwks

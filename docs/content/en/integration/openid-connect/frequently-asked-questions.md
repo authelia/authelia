@@ -16,30 +16,54 @@ toc: true
 
 The following section lists individual questions.
 
-### How do I generate client secrets?
+### How do I generate a client identifier or client secret?
 
-We strongly recommend the following guidelines for generating client secrets:
+We strongly recommend the following guidelines for generating a client identifier or client secret:
 
-1. Each client should have a unique secret.
-2. Each secret should be randomly generated.
-3. Each secret should have a length above 40 characters.
-4. The secrets should be stored in the configuration in a supported hash format. *__Note:__ This does not mean you
-   configure the relying party / client application with the hashed version, just the secret value in the Authelia
-   configuration.*
-5. Secrets should only have alphanumeric characters as some implementations do not appropriately encode the secret
-   when using it to access the token endpoint.
+1. Each client should have a unique identifier and secret pair.
+2. Each identifier and secret should be randomly generated.
+3. Each identifier and secret should have a length above 40 characters.
+4. The identifier and secret should be stored in the configuration in a supported hash format. *__Note:__ This does not
+   mean you configure the relying party / client application with a hashed secret, the hashed secret should just be used
+   for the `client_secret` value in the Authelia client configuration and the relying party / client application should
+   have the plain text secret.*
+5. Identifiers and Secrets should only have [RFC3986 Unreserved Characters] as some implementations do not appropriately
+   encode the identifier or secret when using it to access the token endpoint. See
+   [Why does Authelia return an error about the client identifier or client secret being incorrect when they are correct]
+   FAQ on this specific issue for more information.
 
-Authelia provides an easy way to perform such actions via the [Generating a Random Password Hash] guide. Users can
-perform a command such as
+[Why does Authelia return an error about the client identifier or client secret being incorrect when they are correct]: #why-does-authelia-return-an-error-about-the-client-identifier-or-client-secret-being-incorrect-when-they-are-correct
+
+Authelia provides an easy way to perform such actions.
+
+#### Client ID / Identifier
+
+Users can easily generate a client id / identifier by following the [Generating a Random Alphanumeric String] guide. For
+example users can perform the
+`authelia crypto rand --length 72 --charset rfc3986` command to generate a client id / identifier with 72 characters
+which is printed. This random command also avoids issues with
+a relying party / client application encoding the characters correctly as it uses the [RFC3986 Unreserved Characters].
+
+If a different charset is used if the value would be different when URL encoded then it will also print this value
+separately.
+
+[Generating a Random Alphanumeric String]: ../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string
+
+#### Client Secret
+
+Users can easily generate a client secret by following the [Generating a Random Password Hash] guide. For example users
+can perform the
 `authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986` command to
-both generate a client secret with 72 characters which is printed and is to be used with the relying party and hash it
-using PBKDF2 which can be stored in the Authelia configuration. This random command also avoids issues with a relying
-party / client application encoding the characters correctly as it uses the
-[RFC3986 Unreserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3).
+both generate a client secret with 72 characters which is printed and is to be used with the relying party
+and hash it using PBKDF2 which can be stored in the Authelia configuration. This random command also avoids issues with
+a relying party / client application encoding the characters correctly as it uses the [RFC3986 Unreserved Characters].
+
+If a different charset is used if the value would be different when URL encoded then it will also print this value
+separately.
 
 [Generating a Random Password Hash]: ../../reference/guides/generating-secure-values.md#generating-a-random-password-hash
 
-#### Tuning work factors
+##### Tuning work factors
 
 When hashing the client secrets, Authelia performs the hashing operation to authenticate the client when receiving requests.
 This hashing operation takes time by design (the *work* part of the work factor) to hinder an attacker trying to obtain the client secret.
@@ -55,7 +79,7 @@ Note: You should not use your actual passwords for this test, the time taken sho
 You can read more about password hashing tuning in the
 [Passwords reference guide](../../reference/guides/passwords.md#tuning).
 
-#### Plaintext
+##### Plaintext
 
 Authelia *technically* supports storing the plaintext secret in the configuration. This will likely be completely
 unavailable in the future as it was a mistake to implement it like this in the first place. While some other OpenID
@@ -72,11 +96,25 @@ Authelia currently does not implement any of the specifications or protocols whi
 the clear such as most notably the `client_secret_jwt` grant, we will however likely soon implement `client_secret_jwt`.
 We are however *__strongly discouraging__* and formally deprecating the use of plaintext client secrets for purposes
 outside those required by specifications. We instead recommended that users remove this from their configuration
-entirely and use the [How Do I Generate Client Secrets](#how-do-i-generate-client-secrets) FAQ.
+entirely and use the [How Do I Generate a Client Identifier or Client Secret](#how-do-i-generate-a-client-identifier-or-client-secret) FAQ.
 
 Plaintext is either denoted by the `$plaintext$` prefix where everything after the prefix is the secret. In addition if
 the secret does not start with the `$` character it's considered as a plaintext secret for the time being but is
 deprecated as is the `$plaintext$` prefix.
+
+### Why does Authelia return an error about the client identifier or client secret being incorrect when they are correct?
+
+When using `client_secret_basic` several implementations of OAuth 2.0 and OpenID Connect 1.0 do not properly URL encode
+these values as is absolutely required by the specification before encoding the header value. Both the client id and
+client secret must be encoded using the `application/x-www-form-urlencoded` encoding algorithm (i.e. URL encoded) before
+being used as the username and password values for the Basic authorization scheme as detailed in
+[RFC6749 Section 2.3.1](https://datatracker.ietf.org/doc/html/rfc6749#section-2.3.1).
+
+Authelia enforces this practice. In situations where the client does not conform to the specification we suggest
+ensuring the client id and client secret only use the unreserved characters or you URL encode these values yourself.
+
+For these reasons since v4.38.0 Authelia has included a URL encoded value when generating random strings or password
+hashes if the URL encoded value differs from the non-encoded value.
 
 ### Why isn't my application able to retrieve the token even though I've consented?
 
@@ -218,3 +256,4 @@ docker run -d --name application --network proxy <other application arguments>
 ```
 
 [Endpoint]: ./introduction.md#discoverable-endpoints
+[RFC3986 Unreserved Characters]: https://datatracker.ietf.org/doc/html/rfc3986#section-2.3

@@ -294,6 +294,38 @@ var deprecations = map[string]Deprecation{
 		MapFunc: nil,
 		ErrFunc: nil,
 	},
+	"identity_providers.oidc.clients[].id": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "identity_providers.oidc.clients[].id",
+		NewKey:  "identity_providers.oidc.clients[].client_id",
+		AutoMap: true,
+		MapFunc: nil,
+		ErrFunc: nil,
+	},
+	"identity_providers.oidc.clients[].secret": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "identity_providers.oidc.clients[].secret",
+		NewKey:  "identity_providers.oidc.clients[].client_secret",
+		AutoMap: true,
+		MapFunc: nil,
+		ErrFunc: nil,
+	},
+	"identity_providers.oidc.clients[].description": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "identity_providers.oidc.clients[].description",
+		NewKey:  "identity_providers.oidc.clients[].client_name",
+		AutoMap: true,
+		MapFunc: nil,
+		ErrFunc: nil,
+	},
+	"identity_providers.oidc.clients[].sector_identifier": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "identity_providers.oidc.clients[].sector_identifier",
+		NewKey:  "identity_providers.oidc.clients[].sector_identifier_uri",
+		AutoMap: true,
+		MapFunc: nil,
+		ErrFunc: nil,
+	},
 	"authentication_backend.ldap.username_attribute": {
 		Version: model.SemanticVersion{Major: 4, Minor: 38},
 		Key:     "authentication_backend.ldap.username_attribute",
@@ -361,7 +393,7 @@ var deprecations = map[string]Deprecation{
 	"identity_providers.oidc.issuer_private_key": {
 		Version: model.SemanticVersion{Major: 4, Minor: 38},
 		Key:     "identity_providers.oidc.issuer_private_key",
-		NewKey:  "identity_providers.oidc.issuer_private_keys",
+		NewKey:  "identity_providers.oidc.jwks",
 		AutoMap: false,
 		MapFunc: nil,
 		ErrFunc: func(d Deprecation, keysFinal map[string]any, value any, val *schema.StructValidator) {
@@ -371,7 +403,7 @@ var deprecations = map[string]Deprecation{
 	"identity_providers.oidc.issuer_certificate_chain": {
 		Version: model.SemanticVersion{Major: 4, Minor: 38},
 		Key:     "identity_providers.oidc.issuer_certificate_chain",
-		NewKey:  "identity_providers.oidc.issuer_private_keys",
+		NewKey:  "identity_providers.oidc.jwks",
 		AutoMap: false,
 		MapFunc: nil,
 		ErrFunc: func(d Deprecation, keysFinal map[string]any, value any, val *schema.StructValidator) {

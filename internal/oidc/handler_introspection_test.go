@@ -352,7 +352,7 @@ func TestIntrospectionResponse(t *testing.T) {
 		{
 			"ShouldTestActiveToken",
 			&oidc.IntrospectionResponse{
-				Client: &oidc.BaseClient{ID: "client1"},
+				Client: &oidc.RegisteredClient{ID: "client1"},
 				Active: true,
 				AccessRequester: &fosite.AccessRequest{
 					Request: fosite.Request{

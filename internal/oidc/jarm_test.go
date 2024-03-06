@@ -35,7 +35,7 @@ func TestEncodeJWTSecuredResponseParameters(t *testing.T) {
 					return nil, nil
 				},
 			},
-			&oidc.BaseClient{},
+			&oidc.RegisteredClient{},
 			nil,
 			nil,
 			jwt.MapClaims{},
@@ -49,7 +49,7 @@ func TestEncodeJWTSecuredResponseParameters(t *testing.T) {
 					return nil, nil
 				},
 			},
-			&oidc.BaseClient{},
+			&oidc.RegisteredClient{},
 			1,
 			nil,
 			jwt.MapClaims{},
@@ -63,7 +63,7 @@ func TestEncodeJWTSecuredResponseParameters(t *testing.T) {
 					return nil, nil
 				},
 			},
-			&oidc.BaseClient{},
+			&oidc.RegisteredClient{},
 			nil,
 			nil,
 			jwt.MapClaims{},
@@ -77,7 +77,7 @@ func TestEncodeJWTSecuredResponseParameters(t *testing.T) {
 					return x509PrivateKeyRSA2048, nil
 				},
 			},
-			&oidc.BaseClient{
+			&oidc.RegisteredClient{
 				ID:                               "example",
 				AuthorizationSignedResponseAlg:   oidc.SigningAlgRSAUsingSHA256,
 				AuthorizationSignedResponseKeyID: "12345",
@@ -94,7 +94,7 @@ func TestEncodeJWTSecuredResponseParameters(t *testing.T) {
 			"ShouldErrorOnNilSigner",
 			"https://auth.example.com",
 			nil,
-			&oidc.BaseClient{
+			&oidc.RegisteredClient{
 				ID:                               "example",
 				AuthorizationSignedResponseAlg:   oidc.SigningAlgRSAUsingSHA256,
 				AuthorizationSignedResponseKeyID: "12345",
@@ -115,7 +115,7 @@ func TestEncodeJWTSecuredResponseParameters(t *testing.T) {
 					return x509PrivateKeyRSA2048, nil
 				},
 			},
-			&oidc.BaseClient{
+			&oidc.RegisteredClient{
 				ID:                               "example",
 				AuthorizationSignedResponseAlg:   oidc.SigningAlgRSAUsingSHA256,
 				AuthorizationSignedResponseKeyID: "12345",
@@ -137,7 +137,7 @@ func TestEncodeJWTSecuredResponseParameters(t *testing.T) {
 					return x509PrivateKeyRSA2048, nil
 				},
 			},
-			&oidc.BaseClient{
+			&oidc.RegisteredClient{
 				ID:                               "example",
 				AuthorizationSignedResponseAlg:   oidc.SigningAlgRSAUsingSHA256,
 				AuthorizationSignedResponseKeyID: "12345",
@@ -163,7 +163,7 @@ func TestEncodeJWTSecuredResponseParameters(t *testing.T) {
 					return x509PrivateKeyRSA2048, nil
 				},
 			},
-			&oidc.BaseClient{
+			&oidc.RegisteredClient{
 				ID:                               "example",
 				AuthorizationSignedResponseAlg:   oidc.SigningAlgRSAUsingSHA256,
 				AuthorizationSignedResponseKeyID: "12345",

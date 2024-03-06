@@ -1018,13 +1018,13 @@
           "title": "HMAC Secret",
           "description": "The HMAC Secret used to sign Access Tokens."
         },
-        "issuer_private_keys": {
+        "jwks": {
           "items": {
             "$ref": "#/$defs/JWK"
           },
           "type": "array",
-          "title": "Issuer Private Keys",
-          "description": "The Private Keys used to sign ID Tokens."
+          "title": "Issuer JSON Web Keys",
+          "description": "The JWK's which are to be used to sign various objects like ID Tokens."
         },
         "issuer_certificate_chain": {
           "$ref": "#/$defs/X509CertificateChain",
@@ -1152,27 +1152,27 @@
     },
     "IdentityProvidersOpenIDConnectClient": {
       "properties": {
-        "id": {
+        "client_id": {
           "type": "string",
           "minLength": 1,
-          "title": "ID",
+          "title": "Client ID",
           "description": "The Client ID."
         },
-        "description": {
+        "client_name": {
           "type": "string",
-          "title": "Description",
-          "description": "The Client Description for End-Users."
+          "title": "Client Name",
+          "description": "The Client Name displayed to End-Users."
         },
-        "secret": {
+        "client_secret": {
           "$ref": "#/$defs/PasswordDigest",
-          "title": "Secret",
+          "title": "Client Secret",
           "description": "The Client Secret for Client Authentication."
         },
-        "sector_identifier": {
+        "sector_identifier_uri": {
           "type": "string",
           "format": "uri",
-          "title": "Sector Identifier",
-          "description": "The Client Sector Identifier for Privacy Isolation."
+          "title": "Sector Identifier URI",
+          "description": "The Client Sector Identifier URI for Privacy Isolation via Pairwise subject types."
         },
         "public": {
           "type": "boolean",
@@ -1300,16 +1300,16 @@
           "title": "Pre-Configured Consent Duration",
           "description": "The Pre-Configured Consent Duration when using Consent Mode pre-configured for this client."
         },
-        "enforce_par": {
+        "require_pushed_authorization_requests": {
           "type": "boolean",
-          "title": "Enforce PAR",
-          "description": "Enforces Pushed Authorization Requests for this client.",
+          "title": "Require Pushed Authorization Requests",
+          "description": "Requires Pushed Authorization Requests for this client to perform an authorization.",
           "default": false
         },
-        "enforce_pkce": {
+        "require_pkce": {
           "type": "boolean",
-          "title": "Enforce PKCE",
-          "description": "Enforces Proof Key for Code Exchange for this client.",
+          "title": "Require PKCE",
+          "description": "Requires a Proof Key for this client to perform Code Exchange.",
           "default": false
         },
         "pkce_challenge_method": {
@@ -1482,55 +1482,29 @@
           "title": "Token Endpoint Auth Method",
           "description": "The Token Endpoint Auth Method enforced by the provider for this client."
         },
-        "public_keys": {
-          "$ref": "#/$defs/IdentityProvidersOpenIDConnectClientPublicKeys",
-          "title": "Public Keys",
-          "description": "Public Key options used to validate request objects and the 'private_key_jwt' client authentication method for this client."
-        }
-      },
-      "additionalProperties": false,
-      "type": "object",
-      "required": [
-        "id",
-        "redirect_uris",
-        "scopes"
-      ],
-      "description": "IdentityProvidersOpenIDConnectClient represents a configuration for an OpenID Connect 1.0 client."
-    },
-    "IdentityProvidersOpenIDConnectClientPublicKeys": {
-      "oneOf": [
-        {
-          "required": [
-            "uri"
-          ],
-          "title": "URI"
-        },
-        {
-          "required": [
-            "values"
-          ],
-          "title": "Values"
-        }
-      ],
-      "properties": {
-        "uri": {
+        "jwks_uri": {
           "type": "string",
           "format": "uri",
-          "title": "URI",
+          "title": "JSON Web Keys URI",
           "description": "URI of the JWKS endpoint which contains the Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client."
         },
-        "values": {
+        "jwks": {
           "items": {
             "$ref": "#/$defs/JWK"
           },
           "type": "array",
-          "title": "Values",
+          "title": "JSON Web Keys",
           "description": "List of arbitrary Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client."
         }
       },
       "additionalProperties": false,
       "type": "object",
-      "description": "IdentityProvidersOpenIDConnectClientPublicKeys represents the Client Public Keys configuration for an OpenID Connect 1.0 client."
+      "required": [
+        "client_id",
+        "redirect_uris",
+        "scopes"
+      ],
+      "description": "IdentityProvidersOpenIDConnectClient represents a configuration for an OpenID Connect 1.0 client."
     },
     "IdentityProvidersOpenIDConnectClientRedirectURIs": {
       "oneOf": [
