@@ -208,7 +208,7 @@ identity_providers:
         - 'https://google.com'
         - 'https://example.com'
     clients:
-      - id: 'abc'
-        secret: '123'
+      - client_id: 'abc'
+        client_secret: '123'
         consent_mode: 'explicit'
 ...

@@ -16,7 +16,7 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.35.5)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [ownCloud Infinite Scale]
   * 4.0.5
 
@@ -49,59 +49,59 @@ identity_providers:
     # Extend the access and refresh token lifespan from the default 30m to work around ownCloud client re-authentication prompts every few hours.
     # It should be possible to remove this once Authelia supports dynamic client registration (DCR).
     # Note: ownCloud's built-in IDP uses a value of 30d.
-    access_token_lifespan: 2d
-    refresh_token_lifespan: 3d
+    access_token_lifespan: '2d'
+    refresh_token_lifespan: '3d'
 
     cors:
       endpoints:
-        - authorization
-        - token
-        - revocation
-        - introspection
-        - userinfo
+        - 'authorization'
+        - 'token'
+        - 'revocation'
+        - 'introspection'
+        - 'userinfo'
     clients:
-      - id: ownCloud
-        description: ownCloud Infinite Scale
+      - client_id: 'ownCloud'
+        client_name: 'ownCloud Infinite Scale'
         public: true
         redirect_uris:
-          - https://owncloud.home.yourdomain.com/
-          - https://owncloud.home.yourdomain.com/oidc-callback.html
-          - https://owncloud.home.yourdomain.com/oidc-silent-redirect.html
-      - id: xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69
-        description: ownCloud desktop client
-        secret: 'UBntmLjC2yYCeHwsyj73Uwo9TAaecAetRwMw0xYcvNL9yRdLSUi0hUAHfvCHFeFh'
+          - 'https://owncloud.home.yourdomain.com/'
+          - 'https://owncloud.home.yourdomain.com/oidc-callback.html'
+          - 'https://owncloud.home.yourdomain.com/oidc-silent-redirect.html'
+      - client_id: 'xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69'
+        client_name: 'ownCloud desktop client'
+        client_secret: 'UBntmLjC2yYCeHwsyj73Uwo9TAaecAetRwMw0xYcvNL9yRdLSUi0hUAHfvCHFeFh'
         scopes:
-          - openid
-          - groups
-          - profile
-          - email
-          - offline_access
+          - 'openid'
+          - 'groups'
+          - 'profile'
+          - 'email'
+          - 'offline_access'
         redirect_uris:
-          - http://127.0.0.1
-          - http://localhost
-      - id: e4rAsNUSIUs0lF4nbv9FmCeUkTlV9GdgTLDH1b5uie7syb90SzEVrbN7HIpmWJeD
-        description: ownCloud Android app
-        secret: 'dInFYGV33xKzhbRmpqQltYNdfLdJIfJ9L5ISoKhNoT9qZftpdWSP71VrpGR9pmoD'
+          - 'http://127.0.0.1'
+          - 'http://localhost'
+      - client_id: 'e4rAsNUSIUs0lF4nbv9FmCeUkTlV9GdgTLDH1b5uie7syb90SzEVrbN7HIpmWJeD'
+        client_name: 'ownCloud Android app'
+        client_secret: 'dInFYGV33xKzhbRmpqQltYNdfLdJIfJ9L5ISoKhNoT9qZftpdWSP71VrpGR9pmoD'
         scopes:
-          - openid
-          - groups
-          - profile
-          - email
-          - offline_access
+          - 'openid'
+          - 'groups'
+          - 'profile'
+          - 'email'
+          - 'offline_access'
         redirect_uris:
-          - oc://android.owncloud.com
-      - id: mxd5OQDk6es5LzOzRvidJNfXLUZS2oN3oUFeXPP8LpPrhx3UroJFduGEYIBOxkY1
-        description: ownCloud iOS app
-        secret: 'KFeFWWEZO9TkisIQzR3fo7hfiMXlOpaqP8CFuTbSHzV1TUuGECglPxpiVKJfOXIx'
+          - 'oc://android.owncloud.com'
+      - client_id: 'mxd5OQDk6es5LzOzRvidJNfXLUZS2oN3oUFeXPP8LpPrhx3UroJFduGEYIBOxkY1'
+        client_name: 'ownCloud iOS app'
+        client_secret: 'KFeFWWEZO9TkisIQzR3fo7hfiMXlOpaqP8CFuTbSHzV1TUuGECglPxpiVKJfOXIx'
         scopes:
-          - openid
-          - groups
-          - profile
-          - email
-          - offline_access
+          - 'openid'
+          - 'groups'
+          - 'profile'
+          - 'email'
+          - 'offline_access'
         redirect_uris:
-          - oc://ios.owncloud.com
-          - oc.ios://ios.owncloud.com
+          - 'oc://ios.owncloud.com'
+          - 'oc.ios://ios.owncloud.com'
 ```
 
 ### Application

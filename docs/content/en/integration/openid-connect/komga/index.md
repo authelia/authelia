@@ -16,7 +16,7 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.36.4](https://github.com/authelia/authelia/releases/tag/v4.36.4)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Komga]
   * [v0.157.1](https://github.com/gotson/komga/releases/tag/v0.157.1)
 

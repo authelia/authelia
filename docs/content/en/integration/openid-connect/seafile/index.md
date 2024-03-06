@@ -70,12 +70,10 @@ at the time of this writing._
 
 Configure [Seafile] to use Authelia as an [OpenID Connect 1.0] Provider.
 
-1. [Seafile] may require some dependencies such as `requests_oauthlib` to be
-   manually installed.  See the [Seafile] documentation in the [see
-   also](#see-also) section for more information.
+1. [Seafile] may require some dependencies such as `requests_oauthlib` to be manually installed. See the [Seafile]
+   documentation in the [see also](#see-also) section for more information.
 
-2. Edit your [Seafile] `seahub_settings.py` configuration file and add the
-   following:
+2. Edit your [Seafile] `seahub_settings.py` configuration file and add the following:
 
 ```python
 ENABLE_OAUTH = True
@@ -102,11 +100,9 @@ OAUTH_ATTRIBUTE_MAP = {
 #ENABLE_WEBDAV_SECRET = True
 ```
 
-Optionally, [enable webdav
-secrets](https://manual.seafile.com/config/seahub_settings_py/#user-management-options)
-so that clients that do not support Oauth (e.g.,
-[davfs2](https://savannah.nongnu.org/bugs/?57589)) can login via basic
-auth.
+Optionally, [enable webdav secrets](https://manual.seafile.com/config/seahub_settings_py/#user-management-options) so
+that clients that do not support OAuth 2.0 (e.g., [davfs2](https://savannah.nongnu.org/bugs/?57589)) can login via
+basic auth.
 
 ## See Also
 

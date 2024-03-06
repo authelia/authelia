@@ -18,7 +18,7 @@ aliases:
 ## Tested Versions
 
 * [Authelia]
-  * [v4.35.6](https://github.com/authelia/authelia/releases/tag/v4.35.6)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Proxmox]
   * 7.1-10
 

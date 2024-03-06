@@ -16,7 +16,7 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.35.6](https://github.com/authelia/authelia/releases/tag/v4.35.6)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Synapse]
   * [v1.60.0](https://github.com/matrix-org/synapse/releases/tag/v1.60.0)
 

@@ -16,7 +16,7 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.36.3](https://github.com/authelia/authelia/releases/tag/v4.36.2)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Apache Guacamole]
   * __UNKNOWN__
 
