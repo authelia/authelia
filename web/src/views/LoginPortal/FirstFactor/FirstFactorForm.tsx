@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import LanguageSelector from "@components/LanguageSelector";
+import { LocalStorageLanguagePreference } from "@constants/LocalStorage";
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
@@ -198,7 +199,7 @@ const FirstFactorForm = function (props: Props) {
     const handleChangeLanguage = (lng: string) => {
         setLang(lng);
         i18n.changeLanguage(lng);
-        localStoreSet("lng", lng);
+        localStoreSet(LocalStorageLanguagePreference, lng);
     };
 
     const localeInfoCB = useCallback(async () => {
@@ -208,7 +209,7 @@ const FirstFactorForm = function (props: Props) {
 
             return data;
         } catch (err) {
-            console.log("could not get locale list:", err);
+            console.error("could not get locale list:", err);
         }
     }, []);
 
@@ -218,7 +219,7 @@ const FirstFactorForm = function (props: Props) {
 
     return (
         <LoginLayout id="first-factor-stage" title={translate("Sign in")} showBrand>
-             <LanguageSelector value={lang} localeList={localeList} onChange={handleChangeLanguage} picker={true} />
+            <LanguageSelector value={lang} localeList={localeList} onChange={handleChangeLanguage} picker={true} />
             <FormControl id={"form-login"}>
                 <Grid container spacing={2}>
                     <Grid item xs={12}>
