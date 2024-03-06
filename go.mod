@@ -15,7 +15,7 @@ require (
 	github.com/go-asn1-ber/asn1-ber v1.5.5
 	github.com/go-crypt/crypt v0.2.18
 	github.com/go-ldap/ldap/v3 v3.4.6
-	github.com/go-rod/rod v0.114.7
+	github.com/go-rod/rod v0.114.8
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1
 	github.com/go-webauthn/webauthn v0.10.1
