@@ -3393,7 +3393,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 			},
 			[]string{
-				"identity_providers: oidc: jwks: key #2: option 'key' failed to calculate thumbprint to configure key id value: square/go-jose: unsupported/unknown elliptic curve",
+				"identity_providers: oidc: jwks: key #2: option 'key' failed to calculate thumbprint to configure key id value: go-jose/go-jose: unsupported/unknown elliptic curve",
 			},
 		},
 		{
