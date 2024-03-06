@@ -21,8 +21,9 @@ in the [integration](../../../integration/openid-connect/introduction.md) docume
 
 ## Configuration
 
-The following snippet provides a configuration example for the [OpenID Connect 1.0] Registered Clients. This is not
-intended for production use it's used to provide context and an indentation example.
+{{< config-alert-example >}}
+
+The following snippet provides a configuration example for a [OpenID Connect 1.0] Registered Client.
 
 ```yaml
 identity_providers:

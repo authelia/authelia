@@ -179,7 +179,7 @@ func schemaJWKGetProperties(jwk schema.JWK) (properties *JWKProperties, err erro
 	}
 }
 
-func jwkCalculateThumbprint(key schema.CryptographicKey) (thumbprintStr string, err error) {
+func jwkCalculateKID(key schema.CryptographicKey, alg string) (kid string, err error) {
 	j := jose.JSONWebKey{}
 
 	switch k := key.(type) {
@@ -191,13 +191,26 @@ func jwkCalculateThumbprint(key schema.CryptographicKey) (thumbprintStr string, 
 		return "", nil
 	}
 
+	if alg == "" {
+		switch j.Key.(type) {
+		case *rsa.PublicKey:
+			alg = "RS256"
+		case *ecdsa.PublicKey:
+			alg = "ES256"
+		}
+	}
+
 	var thumbprint []byte
 
 	if thumbprint, err = j.Thumbprint(crypto.SHA256); err != nil {
 		return "", err
 	}
 
-	return fmt.Sprintf("%x", thumbprint)[:6], nil
+	if alg == "" {
+		return fmt.Sprintf("%x", thumbprint)[:6], nil
+	}
+
+	return fmt.Sprintf("%s-%s", fmt.Sprintf("%x", thumbprint)[:6], strings.ToLower(alg)), nil
 }
 
 func getResponseObjectAlgFromKID(config *schema.IdentityProvidersOpenIDConnect, kid, alg string) string {
