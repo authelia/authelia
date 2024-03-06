@@ -210,7 +210,7 @@ identity_providers:
 
 Completely optional, and generally discouraged unless there is a collision between the automatically generated key id's.
 If provided must be a unique string with 100 or less characters, with a recommendation to use a length less
-than 15. In addition it must meet the following rules:
+than 15. In addition, it must meet the following rules:
 
 - Match the regular expression `^[a-zA-Z0-9](([a-zA-Z0-9._~-]*)([a-zA-Z0-9]))?$` which should enforce the following rules:
   - Start with an alphanumeric character.
