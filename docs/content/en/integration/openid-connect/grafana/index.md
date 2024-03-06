@@ -64,7 +64,7 @@ identity_providers:
 
 ### Application
 
-To configure [Grafana] to utilize Authelia as an [OpenID Connect 1.0] Provider you have two effective options:
+To configure [Grafana] to utilize Authelia as an [OpenID Connect 1.0] Provider, you have two effective options:
 
 #### Configuration File
 
@@ -110,23 +110,28 @@ Configure the following environment variables:
 | GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH |                     groups                      |
 |  GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH  |                      name                       |
 |       GF_AUTH_GENERIC_OAUTH_USE_PKCE        |                      true                       |
-| GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH  |            See [Role Attribute Path]            |
+|  GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH  |            See [Role Attribute Path]            |
 
 [Role Attribute Path]: #role-attribute-path
 
 #### Role Attribute Path
 
-The role attribute path configuration is optional but allows mapping Authelia group membership with Grafana roles. If you do not wish to automatically do this you can just omit the environment variable.
+The role attribute path configuration is optional but allows mapping Authelia group membership with Grafana roles. If
+you do not wish to automatically do this you can just omit the environment variable.
 
-The following example maps the Authelia `admin` group to the `Admin` role, and the `editor` group to the `Editor` role, otherwise it will set the user as having the `Viewer` role:
+The ways you can configure this rule value is vast as an examle if you wanted a default role of `Viewer`, but also
+wanted everyone in the `admin` Authelia group to be in the `Admin` role, and everyone in the `editor` Authelia group to
+be in the `Editor` role, a rule similar to
+`contains(groups, 'admin') && 'Admin' || contains(groups, 'editor') && 'Editor' || 'Viewer'` would be needed.
 
-```ini
-role_attribute_path = contains(groups, 'admin') && 'Admin' || contains(groups, 'editor') && 'Editor' || 'Viewer'
+See [Grafana Generic OAuth2 Documentation: Configure role mapping] for more information.
 
 ## See Also
 
 * [Grafana OAuth Documentation](https://grafana.com/docs/grafana/latest/auth/generic-oauth/)
+* [Grafana Generic OAuth2 Documentation: Configure role mapping]
 
 [Authelia]: https://www.authelia.com
 [Grafana]: https://grafana.com/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[Grafana Generic OAuth2 Documentation: Configure role mapping]: https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/generic-oauth/#configure-role-mapping

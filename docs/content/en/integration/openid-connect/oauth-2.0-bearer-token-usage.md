@@ -60,7 +60,7 @@ The following protections have been considered:
   - The audience of the token is also considered and if the token does not have an audience which is an exact match or
     the prefix of the URL being requested, the authorization will automatically be denied.
 - At this time, each request using this scheme will cause a lookup to be performed on the authentication backend.
-- Specific changes to the client registration will result in the authorization being denied such as:
+- Specific changes to the client registration will result in the authorization being denied, such as:
   - The client is no longer registered.
   - The `authelia.bearer.authz` scope is removed from the registration.
   - The audience which matches the request is removed from the registration.
@@ -69,7 +69,7 @@ The following protections have been considered:
 
 For example, if `john` consents to grant the token, and it includes the audience `https://app1.example.com`, but the
  user `john` is not normally authorized to visit `https://app1.example.com` the token will not grant access to this resource.
-In addition if `john` has his access updated via the access control rules, their groups, etc. then this access is
+In addition, if `john` has his access updated via the access control rules, their groups, etc., then this access is
 automatically applied to these tokens.
 
 These rules effectively give both administrators and end-users fine-grained control over which endpoints can utilize
@@ -87,7 +87,7 @@ The following recommendations should be considered by users who use this authori
 
 While not explicitly part of the specifications, the `audience` parameter can be used during the Authorization Request
 phase of the Authorization Code Grant Flow or the Access Token Request phase of the Client Credentials Grant Flow. The
-specification leaves it up to Authorization Server policy specifically how audiences are granted and this seems like a
+specification leaves it up to Authorization Server policy specifically how audiences are granted, and this seems like a
 common practice.
 
 ### Authorization Endpoint Configuration
@@ -151,7 +151,7 @@ In addition to the restriction of the token audience having to match the target 
 in the Access Control section of the configuration either to the user or in the instance of the `client_credentials`
 grant the client itself.
 
-It is important to note that the `client_credentials` grant is **always** treated as 1FA thus only the `one_factor`
+It is important to note that the `client_credentials` grant is **always** treated as 1FA, thus only the `one_factor`
 policy is useful for this grant type.
 
 ```yaml
