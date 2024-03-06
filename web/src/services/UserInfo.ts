@@ -17,22 +17,26 @@ export interface MethodPreferencePayload {
     method: Method2FA;
 }
 
-export function toEnum(method: Method2FA): SecondFactorMethod {
+export function isMethod2FA(method: string) {
+    return ["webauthn", "totp", "mobile_push"].includes(method);
+}
+
+export function toSecondFactorMethod(method: Method2FA): SecondFactorMethod {
     switch (method) {
         case "totp":
             return SecondFactorMethod.TOTP;
         case "webauthn":
-            return SecondFactorMethod.Webauthn;
+            return SecondFactorMethod.WebAuthn;
         case "mobile_push":
             return SecondFactorMethod.MobilePush;
     }
 }
 
-export function toString(method: SecondFactorMethod): Method2FA {
+export function toMethod2FA(method: SecondFactorMethod): Method2FA {
     switch (method) {
         case SecondFactorMethod.TOTP:
             return "totp";
-        case SecondFactorMethod.Webauthn:
+        case SecondFactorMethod.WebAuthn:
             return "webauthn";
         case SecondFactorMethod.MobilePush:
             return "mobile_push";
@@ -41,14 +45,14 @@ export function toString(method: SecondFactorMethod): Method2FA {
 
 export async function postUserInfo(): Promise<UserInfo> {
     const res = await Post<UserInfoPayload>(UserInfoPath);
-    return { ...res, method: toEnum(res.method) };
+    return { ...res, method: toSecondFactorMethod(res.method) };
 }
 
 export async function getUserInfo(): Promise<UserInfo> {
     const res = await Get<UserInfoPayload>(UserInfoPath);
-    return { ...res, method: toEnum(res.method) };
+    return { ...res, method: toSecondFactorMethod(res.method) };
 }
 
 export function setPreferred2FAMethod(method: SecondFactorMethod) {
-    return PostWithOptionalResponse(UserInfo2FAMethodPath, { method: toString(method) } as MethodPreferencePayload);
+    return PostWithOptionalResponse(UserInfo2FAMethodPath, { method: toMethod2FA(method) } as MethodPreferencePayload);
 }

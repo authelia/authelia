@@ -14,6 +14,12 @@ var (
 	Example3DotCom = "example3.com:8080"
 )
 
+const (
+	SHA1   = "SHA1"
+	SHA256 = "SHA256"
+	SHA512 = "SHA512"
+)
+
 // GetPathPrefix returns the prefix/url_base of the login portal.
 func GetPathPrefix() string {
 	return os.Getenv("PathPrefix")
@@ -58,6 +64,9 @@ var PublicBaseURL = fmt.Sprintf("https://public.%s", BaseDomain)
 // SecureBaseURL the base URL of the secure domain.
 var SecureBaseURL = fmt.Sprintf("https://secure.%s", BaseDomain)
 
+// DenyBaseURL the base URL of the dev domain.
+var DenyBaseURL = fmt.Sprintf("https://deny.%s", BaseDomain)
+
 // DevBaseURL the base URL of the dev domain.
 var DevBaseURL = fmt.Sprintf("https://dev.%s", BaseDomain)
 
@@ -83,8 +92,8 @@ const (
 )
 
 const (
-	envFileProd        = "./web/.env.production"
-	envFileDev         = "./web/.env.development"
+	envFileProd        = "/web/.env.production"
+	envFileDev         = "/web/.env.development"
 	namespaceAuthelia  = "authelia"
 	namespaceDashboard = "kubernetes-dashboard"
 	namespaceKube      = "kube-system"
@@ -92,13 +101,13 @@ const (
 
 var (
 	storageLocalTmpConfig = schema.Configuration{
-		TOTP: schema.TOTPConfiguration{
-			Issuer: "Authelia",
-			Period: 6,
+		TOTP: schema.TOTP{
+			Issuer:        "Authelia",
+			DefaultPeriod: 6,
 		},
-		Storage: schema.StorageConfiguration{
+		Storage: schema.Storage{
 			EncryptionKey: "a_not_so_secure_encryption_key",
-			Local: &schema.LocalStorageConfiguration{
+			Local: &schema.StorageLocal{
 				Path: "/tmp/db.sqlite3",
 			},
 		},

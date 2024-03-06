@@ -3,7 +3,7 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './Docker/configuration.yml:/config/configuration.yml:ro'
+      - './Docker/configuration.yml:/config/configuration.yml'
       - './Docker/users.yml:/config/users.yml'
-      - './common/pki:/pki:ro'
+      - './common/pki:/pki'
 ...

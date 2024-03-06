@@ -16,7 +16,7 @@ type Provider struct {
 }
 
 // NewProvider instantiate a session provider given a configuration.
-func NewProvider(config schema.SessionConfiguration, certPool *x509.CertPool) *Provider {
+func NewProvider(config schema.Session, certPool *x509.CertPool) *Provider {
 	log := logging.Logger()
 
 	name, p, s, err := NewSessionProvider(config, certPool)

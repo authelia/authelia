@@ -9,12 +9,27 @@ var DockerImageName = "authelia/authelia"
 // IntermediateDockerImageName local name of the docker image.
 var IntermediateDockerImageName = "authelia:dist"
 
-const dockerhub = "docker.io"
-const ghcr = "ghcr.io"
+const (
+	dockerhub = "docker.io"
+	ghcr      = "ghcr.io"
+)
 
-const masterTag = "master"
-const stringFalse = "false"
-const webDirectory = "web"
+const (
+	masterTag    = "master"
+	stringFalse  = "false"
+	webDirectory = "web"
+)
+
+const (
+	pathPNPMStore  = "/.local/share/pnpm/store"
+	pathAuthelia   = "/authelia"
+	extTarballGzip = ".tar.gz"
+)
+
+const (
+	txtDirectoryTidle = "` directory"
+	txtRunningSuite   = "Running suite ("
+)
 
 const fmtLDFLAGSX = "-X 'github.com/authelia/authelia/v4/internal/utils.%s=%s'"
 

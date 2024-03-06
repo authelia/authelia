@@ -8,6 +8,97 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestIsStringAbsURL(t *testing.T) {
+	testCases := []struct {
+		name string
+		have string
+		err  string
+	}{
+		{
+			"ShouldBeAbs",
+			"https://google.com",
+			"",
+		},
+		{
+			"ShouldNotBeAbs",
+			"google.com",
+			"could not parse 'google.com' as a URL",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			theError := IsStringAbsURL(tc.have)
+
+			if tc.err == "" {
+				assert.NoError(t, theError)
+			} else {
+				assert.EqualError(t, theError, tc.err)
+			}
+		})
+	}
+}
+
+func TestIsStringInSliceF(t *testing.T) {
+	testCases := []struct {
+		name     string
+		needle   string
+		haystack []string
+		isEqual  func(needle, item string) bool
+		expected bool
+	}{
+		{
+			"ShouldBePresent",
+			"good",
+			[]string{"good"},
+			func(needle, item string) bool {
+				return needle == item
+			},
+			true,
+		},
+		{
+			"ShouldNotBePresent",
+			"bad",
+			[]string{"good"},
+			func(needle, item string) bool {
+				return needle == item
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, IsStringInSliceF(tc.needle, tc.haystack, tc.isEqual))
+		})
+	}
+}
+
+func TestStringHTMLEscape(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		expected string
+	}{
+		{
+			"ShouldNotAlterAlphaNum",
+			"abc123",
+			"abc123",
+		},
+		{
+			"ShouldEscapeSpecial",
+			"abc123><@#@",
+			"abc123&gt;&lt;@#@",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, StringHTMLEscape(tc.have))
+		})
+	}
+}
+
 func TestStringSplitDelimitedEscaped(t *testing.T) {
 	testCases := []struct {
 		desc, have string
@@ -178,17 +269,6 @@ func TestShouldNotFindStringInSliceFold(t *testing.T) {
 	assert.False(t, IsStringInSliceFold(b, slice))
 }
 
-func TestIsStringInSliceSuffix(t *testing.T) {
-	suffixes := []string{"apple", "banana"}
-
-	assert.True(t, IsStringInSliceSuffix("apple.banana", suffixes))
-	assert.True(t, IsStringInSliceSuffix("a.banana", suffixes))
-	assert.True(t, IsStringInSliceSuffix("a_banana", suffixes))
-	assert.True(t, IsStringInSliceSuffix("an.apple", suffixes))
-	assert.False(t, IsStringInSliceSuffix("an.orange", suffixes))
-	assert.False(t, IsStringInSliceSuffix("an.apple.orange", suffixes))
-}
-
 func TestIsStringSliceContainsAll(t *testing.T) {
 	needles := []string{"abc", "123", "xyz"}
 	haystackOne := []string{"abc", "tvu", "123", "456", "xyz"}
@@ -233,16 +313,16 @@ func TestIsURLInSlice(t *testing.T) {
 	example, err := url.ParseRequestURI("https://example.com")
 	assert.NoError(t, err)
 
-	assert.True(t, IsURLInSlice(*google, urls))
-	assert.False(t, IsURLInSlice(*microsoft, urls))
-	assert.True(t, IsURLInSlice(*example, urls))
+	assert.True(t, IsURLInSlice(google, urls))
+	assert.False(t, IsURLInSlice(microsoft, urls))
+	assert.True(t, IsURLInSlice(example, urls))
 }
 
 func TestOriginFromURL(t *testing.T) {
 	google, err := url.Parse("https://google.com/abc?a=123#five")
 	assert.NoError(t, err)
 
-	origin := OriginFromURL(*google)
+	origin := OriginFromURL(google)
 	assert.Equal(t, "https://google.com", origin.String())
 }
 
@@ -296,8 +376,8 @@ func TestIsURLHostComponent(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, u)
 
-			assert.Equal(t, tc.expectedA, IsURLHostComponent(*u))
-			assert.Equal(t, tc.expectedB, IsURLHostComponentWithPort(*u))
+			assert.Equal(t, tc.expectedA, IsURLHostComponent(u))
+			assert.Equal(t, tc.expectedB, IsURLHostComponentWithPort(u))
 		})
 	}
 }

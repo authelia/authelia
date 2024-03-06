@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -22,16 +23,97 @@ func TestShouldSetDefaultServerValues(t *testing.T) {
 	assert.Len(t, validator.Errors(), 0)
 	assert.Len(t, validator.Warnings(), 0)
 
-	assert.Equal(t, schema.DefaultServerConfiguration.Host, config.Server.Host)
-	assert.Equal(t, schema.DefaultServerConfiguration.Port, config.Server.Port)
+	assert.Equal(t, schema.DefaultServerConfiguration.Address, config.Server.Address)
 	assert.Equal(t, schema.DefaultServerConfiguration.Buffers.Read, config.Server.Buffers.Read)
 	assert.Equal(t, schema.DefaultServerConfiguration.Buffers.Write, config.Server.Buffers.Write)
 	assert.Equal(t, schema.DefaultServerConfiguration.TLS.Key, config.Server.TLS.Key)
 	assert.Equal(t, schema.DefaultServerConfiguration.TLS.Certificate, config.Server.TLS.Certificate)
-	assert.Equal(t, schema.DefaultServerConfiguration.Path, config.Server.Path)
 	assert.Equal(t, schema.DefaultServerConfiguration.Endpoints.EnableExpvars, config.Server.Endpoints.EnableExpvars)
 	assert.Equal(t, schema.DefaultServerConfiguration.Endpoints.EnablePprof, config.Server.Endpoints.EnablePprof)
 	assert.Equal(t, schema.DefaultServerConfiguration.Endpoints.Authz, config.Server.Endpoints.Authz)
+
+	assert.Equal(t, "", config.Server.Host) //nolint:staticcheck
+	assert.Equal(t, 0, config.Server.Port)  //nolint:staticcheck
+	assert.Equal(t, "", config.Server.Path) //nolint:staticcheck
+}
+
+func TestShouldSetDefaultServerValuesWithLegacyAddress(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     schema.Server
+		expected schema.Address
+	}{
+		{
+			"ShouldParseAll",
+			schema.Server{
+				Host: "abc",
+				Port: 123,
+				Path: "subpath",
+			},
+			MustParseAddress("tcp://abc:123/subpath"),
+		},
+		{
+			"ShouldParseHostAndPort",
+			schema.Server{
+				Host: "abc",
+				Port: 123,
+			},
+			MustParseAddress("tcp://abc:123/"),
+		},
+		{
+			"ShouldParseHostAndPath",
+			schema.Server{
+				Host: "abc",
+				Path: "subpath",
+			},
+			MustParseAddress("tcp://abc:9091/subpath"),
+		},
+		{
+			"ShouldParsePortAndPath",
+			schema.Server{
+				Port: 123,
+				Path: "subpath",
+			},
+			MustParseAddress("tcp://:123/subpath"),
+		},
+		{
+			"ShouldParseHost",
+			schema.Server{
+				Host: "abc",
+			},
+			MustParseAddress("tcp://abc:9091/"),
+		},
+		{
+			"ShouldParsePort",
+			schema.Server{
+				Port: 123,
+			},
+			MustParseAddress("tcp://:123/"),
+		},
+		{
+			"ShouldParsePath",
+			schema.Server{
+				Path: "subpath",
+			},
+			MustParseAddress("tcp://:9091/subpath"),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+			config := &schema.Configuration{
+				Server: tc.have,
+			}
+
+			ValidateServer(config, validator)
+
+			assert.Len(t, validator.Errors(), 0)
+			assert.Len(t, validator.Warnings(), 0)
+
+			assert.Equal(t, &schema.AddressTCP{Address: tc.expected}, config.Server.Address)
+		})
+	}
 }
 
 func TestShouldSetDefaultConfig(t *testing.T) {
@@ -47,26 +129,82 @@ func TestShouldSetDefaultConfig(t *testing.T) {
 	assert.Equal(t, schema.DefaultServerConfiguration.Buffers.Write, config.Server.Buffers.Write)
 }
 
-func TestShouldParsePathCorrectly(t *testing.T) {
-	validator := schema.NewStructValidator()
+func TestValidateSeverAddress(t *testing.T) {
 	config := &schema.Configuration{
-		Server: schema.ServerConfiguration{
-			Path: "apple",
+		Server: schema.Server{
+			Address: &schema.AddressTCP{Address: MustParseAddress("tcp://:9091/path/")},
 		},
 	}
 
+	validator := schema.NewStructValidator()
 	ValidateServer(config, validator)
 
-	assert.Len(t, validator.Errors(), 0)
+	require.Len(t, validator.Errors(), 1)
 	assert.Len(t, validator.Warnings(), 0)
 
-	assert.Equal(t, "/apple", config.Server.Path)
+	assert.EqualError(t, validator.Errors()[0], "server: option 'address' must not and with a forward slash but it's configured as '/path/'")
+}
+
+func TestValidateServerShouldCorrectlyIdentifyValidAddressSchemes(t *testing.T) {
+	testCases := []struct {
+		have     string
+		expected string
+	}{
+		{schema.AddressSchemeTCP, ""},
+		{schema.AddressSchemeTCP4, ""},
+		{schema.AddressSchemeTCP6, ""},
+		{schema.AddressSchemeUDP, "server: option 'address' with value 'udp://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'udp'"},
+		{schema.AddressSchemeUDP4, "server: option 'address' with value 'udp4://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'udp4'"},
+		{schema.AddressSchemeUDP6, "server: option 'address' with value 'udp6://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'udp6'"},
+		{schema.AddressSchemeUnix, ""},
+		{"http", "server: option 'address' with value 'http://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'http'"},
+	}
+
+	have := &schema.Configuration{
+		Server: schema.Server{
+			Buffers: schema.ServerBuffers{
+				Read:  -1,
+				Write: -1,
+			},
+			Timeouts: schema.ServerTimeouts{
+				Read:  time.Second * -1,
+				Write: time.Second * -1,
+				Idle:  time.Second * -1,
+			},
+		},
+	}
+
+	validator := schema.NewStructValidator()
+
+	for _, tc := range testCases {
+		t.Run(tc.have, func(t *testing.T) {
+			validator.Clear()
+
+			switch tc.have {
+			case schema.AddressSchemeUnix:
+				have.Server.Address = &schema.AddressTCP{Address: schema.NewAddressUnix("/path/to/authelia.sock")}
+			default:
+				have.Server.Address = &schema.AddressTCP{Address: schema.NewAddressFromNetworkValues(tc.have, "", 9091)}
+			}
+
+			ValidateServer(have, validator)
+
+			assert.Len(t, validator.Warnings(), 0)
+
+			if tc.expected == "" {
+				assert.Len(t, validator.Errors(), 0)
+			} else {
+				require.Len(t, validator.Errors(), 1)
+				assert.EqualError(t, validator.Errors()[0], tc.expected)
+			}
+		})
+	}
 }
 
 func TestShouldDefaultOnNegativeValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.Server{
 			Buffers: schema.ServerBuffers{
 				Read:  -1,
 				Write: -1,
@@ -94,7 +232,7 @@ func TestShouldDefaultOnNegativeValues(t *testing.T) {
 func TestShouldRaiseOnNonAlphanumericCharsInPath(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.Server{
 			Path: "app le",
 		},
 	}
@@ -109,7 +247,7 @@ func TestShouldRaiseOnNonAlphanumericCharsInPath(t *testing.T) {
 func TestShouldRaiseOnForwardSlashInPath(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.Server{
 			Path: "app/le",
 		},
 	}
@@ -121,15 +259,27 @@ func TestShouldRaiseOnForwardSlashInPath(t *testing.T) {
 	assert.Error(t, validator.Errors()[0], "server path must not contain any forward slashes")
 }
 
-func TestShouldValidateAndUpdateHost(t *testing.T) {
+func TestShouldValidateAndUpdateAddress(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.Server.Host = ""
+	config.Server.Address = nil
 
 	ValidateServer(&config, validator)
 
 	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, "0.0.0.0", config.Server.Host)
+	assert.Equal(t, "tcp://:9091/", config.Server.Address.String())
+}
+
+func TestShouldRaiseErrorOnLegacyAndModernValues(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+	config.Server.Host = local25 //nolint:staticcheck
+	config.Server.Port = 9999    //nolint:staticcheck
+
+	ValidateServer(&config, validator)
+
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "server: option 'host' and 'port' can't be configured at the same time as 'address'")
 }
 
 func TestShouldRaiseErrorWhenTLSCertWithoutKeyIsProvided(t *testing.T) {
@@ -162,7 +312,7 @@ func TestShouldRaiseErrorWhenTLSCertDoesNotExist(t *testing.T) {
 
 	ValidateServer(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "server: tls: file path /tmp/unexisting_file provided in 'certificate' does not exist")
+	assert.EqualError(t, validator.Errors()[0], "server: tls: option 'certificate' with path '/tmp/unexisting_file' refers to a file that doesn't exist")
 }
 
 func TestShouldRaiseErrorWhenTLSKeyWithoutCertIsProvided(t *testing.T) {
@@ -195,7 +345,7 @@ func TestShouldRaiseErrorWhenTLSKeyDoesNotExist(t *testing.T) {
 
 	ValidateServer(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "server: tls: file path /tmp/unexisting_file provided in 'key' does not exist")
+	assert.EqualError(t, validator.Errors()[0], "server: tls: option 'key' with path '/tmp/unexisting_file' refers to a file that doesn't exist")
 }
 
 func TestShouldNotRaiseErrorWhenBothTLSCertificateAndKeyAreProvided(t *testing.T) {
@@ -239,7 +389,7 @@ func TestShouldRaiseErrorWhenTLSClientCertificateDoesNotExist(t *testing.T) {
 
 	ValidateServer(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "server: tls: client_certificates: certificates: file path /tmp/unexisting does not exist")
+	assert.EqualError(t, validator.Errors()[0], "server: tls: option 'client_certificates' with path '/tmp/unexisting' refers to a file that doesn't exist")
 }
 
 func TestShouldRaiseErrorWhenTLSClientAuthIsDefinedButNotServerCertificate(t *testing.T) {
@@ -265,24 +415,12 @@ func TestShouldNotUpdateConfig(t *testing.T) {
 	ValidateServer(&config, validator)
 
 	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, 9090, config.Server.Port)
-	assert.Equal(t, loopback, config.Server.Host)
-}
-
-func TestShouldValidateAndUpdatePort(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-	config.Server.Port = 0
-
-	ValidateServer(&config, validator)
-
-	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, 9091, config.Server.Port)
+	assert.Equal(t, "tcp://127.0.0.1:9090/", config.Server.Address.String())
 }
 
 func TestServerEndpointsDevelShouldWarn(t *testing.T) {
 	config := &schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.Server{
 			Endpoints: schema.ServerEndpoints{
 				EnablePprof:   true,
 				EnableExpvars: true,
@@ -304,49 +442,87 @@ func TestServerEndpointsDevelShouldWarn(t *testing.T) {
 func TestServerAuthzEndpointErrors(t *testing.T) {
 	testCases := []struct {
 		name string
-		have map[string]schema.ServerAuthzEndpoint
+		have map[string]schema.ServerEndpointsAuthz
 		errs []string
 	}{
 		{"ShouldAllowDefaultEndpoints", schema.DefaultServerConfiguration.Endpoints.Authz, nil},
 		{"ShouldAllowSetDefaultEndpoints", nil, nil},
 		{
 			"ShouldErrorOnInvalidEndpointImplementations",
-			map[string]schema.ServerAuthzEndpoint{
+			map[string]schema.ServerEndpointsAuthz{
 				"example": {Implementation: "zero"},
 			},
-			[]string{"server: endpoints: authz: example: option 'implementation' must be one of 'AuthRequest', 'ForwardAuth', 'ExtAuthz', 'Legacy' but is configured as 'zero'"},
+			[]string{
+				"server: endpoints: authz: example: option 'implementation' must be one of 'AuthRequest', 'ForwardAuth', 'ExtAuthz', or 'Legacy' but it's configured as 'zero'",
+			},
 		},
 		{
 			"ShouldErrorOnInvalidEndpointImplementationLegacy",
-			map[string]schema.ServerAuthzEndpoint{
+			map[string]schema.ServerEndpointsAuthz{
 				"legacy": {Implementation: "zero"},
 			},
-			[]string{"server: endpoints: authz: legacy: option 'implementation' must be one of 'AuthRequest', 'ForwardAuth', 'ExtAuthz', 'Legacy' but is configured as 'zero'"},
+			[]string{
+				"server: endpoints: authz: legacy: option 'implementation' must be one of 'AuthRequest', 'ForwardAuth', 'ExtAuthz', or 'Legacy' but it's configured as 'zero'",
+			},
 		},
 		{
 			"ShouldErrorOnInvalidEndpointLegacyImplementation",
-			map[string]schema.ServerAuthzEndpoint{
+			map[string]schema.ServerEndpointsAuthz{
 				"legacy": {Implementation: "ExtAuthz"},
 			},
 			[]string{"server: endpoints: authz: legacy: option 'implementation' is invalid: the endpoint with the name 'legacy' must use the 'Legacy' implementation"},
 		},
 		{
 			"ShouldErrorOnInvalidAuthnStrategies",
-			map[string]schema.ServerAuthzEndpoint{
-				"example": {Implementation: "ExtAuthz", AuthnStrategies: []schema.ServerAuthzEndpointAuthnStrategy{{Name: "bad-name"}}},
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: "ExtAuthz", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{{Name: "bad-name"}}},
 			},
-			[]string{"server: endpoints: authz: example: authn_strategies: option 'name' must be one of 'CookieSession', 'HeaderAuthorization', 'HeaderProxyAuthorization', 'HeaderAuthRequestProxyAuthorization', 'HeaderLegacy' but is configured as 'bad-name'"},
+			[]string{
+				"server: endpoints: authz: example: authn_strategies: option 'name' must be one of 'CookieSession', 'HeaderAuthorization', 'HeaderProxyAuthorization', 'HeaderAuthRequestProxyAuthorization', or 'HeaderLegacy' but it's configured as 'bad-name'",
+			},
 		},
 		{
 			"ShouldErrorOnDuplicateName",
-			map[string]schema.ServerAuthzEndpoint{
-				"example": {Implementation: "ExtAuthz", AuthnStrategies: []schema.ServerAuthzEndpointAuthnStrategy{{Name: "CookieSession"}, {Name: "CookieSession"}}},
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: "ExtAuthz", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{{Name: "CookieSession"}, {Name: "CookieSession"}}},
 			},
 			[]string{"server: endpoints: authz: example: authn_strategies: duplicate strategy name detected with name 'CookieSession'"},
 		},
 		{
+			"ShouldErrorOnSchemesForInvalidStrategy",
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: "ForwardAuth", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{{Name: "CookieSession", Schemes: []string{"basic"}}}},
+			},
+			[]string{"server: endpoints: authz: example: authn_strategies: strategy #1 (CookieSession): option 'schemes' is not valid for the strategy"},
+		},
+		{
+			"ShouldNotErrorOnSchemeCase",
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: "ForwardAuth", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{{Name: "HeaderAuthorization", Schemes: []string{"basIc"}}}},
+			},
+			nil,
+		},
+		{
+			"ShouldErrorOnInvalidStrategySchemesAndUnnamedStrategy",
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: "ForwardAuth", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{{Name: "HeaderAuthorization", Schemes: []string{"basic", "bearer", "abc"}}}},
+			},
+			[]string{
+				"server: endpoints: authz: example: authn_strategies: strategy #1 (HeaderAuthorization): option 'schemes' must only include the values 'basic' or 'bearer' but has 'abc'",
+			},
+		},
+		{
+			"ShouldErrorOnUnnamedStrategy",
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: "ForwardAuth", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{{Name: "", Schemes: []string{"basic", "bearer", "abc"}}}},
+			},
+			[]string{
+				"server: endpoints: authz: example: authn_strategies: strategy #1: option 'name' must be configured",
+			},
+		},
+		{
 			"ShouldErrorOnInvalidChars",
-			map[string]schema.ServerAuthzEndpoint{
+			map[string]schema.ServerEndpointsAuthz{
 				"/abc":  {Implementation: "ForwardAuth"},
 				"/abc/": {Implementation: "ForwardAuth"},
 				"abc/":  {Implementation: "ForwardAuth"},
@@ -371,7 +547,7 @@ func TestServerAuthzEndpointErrors(t *testing.T) {
 		},
 		{
 			"ShouldErrorOnEndpointsWithDuplicatePrefix",
-			map[string]schema.ServerAuthzEndpoint{
+			map[string]schema.ServerEndpointsAuthz{
 				"apple":         {Implementation: "ForwardAuth"},
 				"apple/abc":     {Implementation: "ForwardAuth"},
 				"pear/abc":      {Implementation: "ExtAuthz"},
@@ -423,8 +599,55 @@ func TestServerAuthzEndpointErrors(t *testing.T) {
 	}
 }
 
+func TestServerAuthzEndpointDefaults(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     map[string]schema.ServerEndpointsAuthz
+		expected map[string]schema.ServerEndpointsAuthz
+	}{
+		{
+			"ShouldSetDefaultSchemes",
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: "ForwardAuth", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{
+					{
+						Name:    "HeaderAuthorization",
+						Schemes: []string{},
+					},
+				}},
+			},
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: "ForwardAuth", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{
+					{
+						Name:    "HeaderAuthorization",
+						Schemes: []string{"basic"},
+					},
+				}},
+			},
+		},
+	}
+
+	validator := schema.NewStructValidator()
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator.Clear()
+
+			config := newDefaultConfig()
+
+			config.Server.Endpoints.Authz = tc.have
+
+			ValidateServerEndpoints(&config, validator)
+
+			assert.Len(t, validator.Warnings(), 0)
+			assert.Len(t, validator.Errors(), 0)
+
+			assert.Equal(t, tc.expected, config.Server.Endpoints.Authz)
+		})
+	}
+}
+
 func TestServerAuthzEndpointLegacyAsImplementationLegacyWhenBlank(t *testing.T) {
-	have := map[string]schema.ServerAuthzEndpoint{
+	have := map[string]schema.ServerEndpointsAuthz{
 		"legacy": {},
 	}
 
@@ -439,5 +662,27 @@ func TestServerAuthzEndpointLegacyAsImplementationLegacyWhenBlank(t *testing.T) 
 	assert.Len(t, validator.Warnings(), 0)
 	assert.Len(t, validator.Errors(), 0)
 
-	assert.Equal(t, authzImplementationLegacy, config.Server.Endpoints.Authz[legacy].Implementation)
+	assert.Equal(t, schema.AuthzImplementationLegacy, config.Server.Endpoints.Authz[legacy].Implementation)
+}
+
+func TestValidateTLSPathStatInvalidArgument(t *testing.T) {
+	validator := schema.NewStructValidator()
+
+	validateServerTLSFileExists("key", string([]byte{0x0, 0x1}), validator)
+
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "server: tls: option 'key' with path '\x00\x01' could not be verified due to a file system error: stat \x00\x01: invalid argument")
+}
+
+func TestValidateTLSPathIsDir(t *testing.T) {
+	dir := t.TempDir()
+
+	validator := schema.NewStructValidator()
+
+	validateServerTLSFileExists("key", dir, validator)
+
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf("server: tls: option 'key' with path '%s' refers to a directory but it should refer to a file", dir))
 }

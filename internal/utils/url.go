@@ -63,9 +63,44 @@ func HasDomainSuffix(domain, domainSuffix string) bool {
 		return true
 	}
 
-	if strings.HasSuffix(domain, period+domainSuffix) {
+	if (strings.HasPrefix(domainSuffix, period) && strings.HasSuffix(domain, domainSuffix)) || strings.HasSuffix(domain, period+domainSuffix) {
 		return true
 	}
 
 	return false
+}
+
+// EqualURLs returns true if the two *url.URL values are effectively equal taking into consideration web normalization.
+func EqualURLs(first, second *url.URL) bool {
+	if first == nil && second == nil {
+		return true
+	} else if first == nil || second == nil {
+		return false
+	}
+
+	if !strings.EqualFold(first.Scheme, second.Scheme) {
+		return false
+	}
+
+	if !strings.EqualFold(first.Host, second.Host) {
+		return false
+	}
+
+	if first.Path != second.Path {
+		return false
+	}
+
+	if first.RawQuery != second.RawQuery {
+		return false
+	}
+
+	if first.Fragment != second.Fragment {
+		return false
+	}
+
+	if first.RawFragment != second.RawFragment {
+		return false
+	}
+
+	return true
 }

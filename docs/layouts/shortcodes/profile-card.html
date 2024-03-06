@@ -1,0 +1,10 @@
+{{- $key := .Get "name" }}
+<section class="vh-100">
+  <div class="container py-5 h-100">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+      <div class="col-md-12">
+{{ partial "content/profile-card.html" (dict "Site" .Site "Profile" $key) }}
+      </div>
+    </div>
+  </div>
+</section>

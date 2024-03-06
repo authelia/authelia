@@ -6,14 +6,15 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/valyala/fasthttp"
 )
 
 func doHTTPGetQuery(t *testing.T, url string) []byte {
 	client := NewHTTPClient()
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(fasthttp.MethodGet, url, nil)
 	assert.NoError(t, err)
 
-	req.Header.Add("Accept", "application/json")
+	req.Header.Add(fasthttp.HeaderAccept, "application/json")
 	resp, err := client.Do(req)
 	assert.NoError(t, err)
 

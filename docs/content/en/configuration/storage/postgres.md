@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "storage"
-weight: 106400
+weight: 107400
 toc: true
 aliases:
   - /docs/configuration/storage/postgres.html
@@ -21,21 +21,23 @@ guide for supported version information.
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 storage:
-  encryption_key: a_very_important_secret
+  encryption_key: 'a_very_important_secret'
   postgres:
-    host: 127.0.0.1
-    port: 5432
-    database: authelia
-    schema: public
-    username: authelia
-    password: mypassword
+    address: 'tcp://127.0.0.1:5432'
+    database: 'authelia'
+    schema: 'public'
+    username: 'authelia'
+    password: 'mypassword'
+    timeout: '5s'
     tls:
-      server_name: postgres.example.com
+      server_name: 'postgres.example.com'
       skip_verify: false
-      minimum_version: TLS1.2
-      maximum_version: TLS1.3
+      minimum_version: 'TLS1.2'
+      maximum_version: 'TLS1.3'
       certificate_chain: |
         -----BEGIN CERTIFICATE-----
         MIIC5jCCAc6gAwIBAgIRAK4Sj7FiN6PXo/urPfO4E7owDQYJKoZIhvcNAQELBQAw
@@ -107,37 +109,38 @@ storage:
 
 ## Options
 
+This section describes the individual configuration options.
+
 ### encryption_key
 
 See the [encryption_key docs](introduction.md#encryption_key).
 
-### host
+### address
 
-{{< confkey type="string" required="yes" >}}
+{{< confkey type="string" syntax="address" required="yes" >}}
 
-The database server host. This can also be a unix socket.
+Configures the address for the PostgreSQL Server. The address itself is a connector and the scheme must either be
+the `unix` scheme or one of the `tcp` schemes.
 
-If utilising an IPv6 literal address it must be enclosed by square brackets and quoted:
-
-```yaml
-storage:
-  postgres:
-    host: "[fd00:1111:2222:3333::1]"
-```
-
-If utilizing a unix socket it must have the `/` prefix:
+__Examples:__
 
 ```yaml
 storage:
   postgres:
-    host: /var/run/postgres.sock
+    address: 'tcp://127.0.0.1:5432'
 ```
 
-### port
+```yaml
+storage:
+  postgres:
+    address: 'tcp://[fd00:1111:2222:3333::1]:5432'
+```
 
-{{< confkey type="integer" default="5432" required="no" >}}
-
-The port the database server is listening on.
+```yaml
+storage:
+  postgres:
+    address: 'unix:///var/run/postgres.sock'
+```
 
 ### database
 
@@ -174,13 +177,15 @@ characters and the user password is changed to this value.
 
 ### timeout
 
-{{< confkey type="duration" default="5s" required="no" >}}
+{{< confkey type="string,integer" syntax="duration" default="5 seconds" required="no" >}}
 
 The SQL connection timeout.
 
 ### tls
 
+{{< confkey type="structure" structure="tls" required="no" >}}
+
 If defined enables connecting to [PostgreSQL] over a TLS socket, and additionally controls the TLS connection
-validation process. You can see how to configure the tls section [here](../prologue/common.md#tls-configuration).
+validation parameters.
 
 [PostgreSQL]: https://www.postgresql.org/

@@ -1,6 +1,6 @@
 ---
 title: "Apache Guacamole"
-description: "Integrating Apache Guacamole with the Authelia OpenID Connect Provider."
+description: "Integrating Apache Guacamole with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
 date: 2022-07-31T13:09:05+10:00
 draft: false
@@ -16,7 +16,7 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.36.3](https://github.com/authelia/authelia/releases/tag/v4.36.2)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Apache Guacamole]
   * __UNKNOWN__
 
@@ -28,12 +28,43 @@ community: true
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://guacamole.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://guacamole.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `guacamole`
 * __Client Secret:__ `insecure_secret`
 
 ## Configuration
+
+### Authelia
+
+The following YAML configuration is an example __Authelia__
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with
+[Apache Guacamole] which will operate with the above example:
+
+```yaml
+identity_providers:
+  oidc:
+    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
+    ## See: https://www.authelia.com/c/oidc
+    clients:
+      - client_id: 'guacamole'
+        client_name: 'Apache Guacamole'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        public: false
+        authorization_policy: 'two_factor'
+        redirect_uris:
+          - 'https://guacamole.example.com'
+        scopes:
+          - 'openid'
+          - 'profile'
+          - 'groups'
+          - 'email'
+        response_types:
+          - 'id_token'
+        grant_types:
+          - 'implicit'
+        userinfo_signed_response_alg: 'none'
+```
 
 ### Application
 
@@ -48,32 +79,6 @@ openid-authorization-endpoint: https://auth.example.com/api/oidc/authorization?s
 openid-redirect-uri: https://guacamole.example.com
 openid-username-claim-type: preferred_username
 openid-groups-claim-type: groups
-```
-
-### Authelia
-
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with
-[Apache Guacamole] which will operate with the above example:
-
-```yaml
-- id: guacamole
-  description: Apache Guacamole
-  secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-  public: false
-  authorization_policy: two_factor
-  redirect_uris:
-    - https://guacamole.example.com
-  scopes:
-    - openid
-    - profile
-    - groups
-    - email
-  response_types:
-    - id_token
-  grant_types:
-    - implicit
-  userinfo_signing_algorithm: none
 ```
 
 ## See Also

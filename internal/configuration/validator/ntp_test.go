@@ -11,7 +11,7 @@ import (
 
 func newDefaultNTPConfig() schema.Configuration {
 	return schema.Configuration{
-		NTP: schema.NTPConfiguration{},
+		NTP: schema.NTP{},
 	}
 }
 
@@ -49,5 +49,17 @@ func TestShouldRaiseErrorOnInvalidNTPVersion(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "ntp: option 'version' must be either 3 or 4 but it is configured as '1'")
+	assert.EqualError(t, validator.Errors()[0], "ntp: option 'version' must be either 3 or 4 but it's configured as '1'")
+}
+
+func TestShouldRaiseErrorOnInvalidNTPScheme(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultNTPConfig()
+	config.NTP.Address = &schema.AddressUDP{Address: MustParseAddress("tcp://abc:123")}
+
+	ValidateNTP(&config, validator)
+
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "ntp: option 'address' with value 'tcp://abc:123' is invalid: scheme must be one of 'udp', 'udp4', or 'udp6' but is configured as 'tcp'")
 }

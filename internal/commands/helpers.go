@@ -68,7 +68,7 @@ func storageTOTPGenerateRunEOptsFromFlags(flags *pflag.FlagSet) (force bool, fil
 	return force, filename, secret, nil
 }
 
-func storageWebauthnDeleteRunEOptsFromFlags(flags *pflag.FlagSet, args []string) (all, byKID bool, description, kid, user string, err error) {
+func storageWebAuthnDeleteRunEOptsFromFlags(flags *pflag.FlagSet, args []string) (all, byKID bool, description, kid, user string, err error) {
 	if len(args) != 0 {
 		user = args[0]
 	}

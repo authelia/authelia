@@ -3,7 +3,7 @@ package totp
 import (
 	"testing"
 
-	"github.com/pquerna/otp"
+	"github.com/authelia/otp"
 	"github.com/stretchr/testify/assert"
 )
 

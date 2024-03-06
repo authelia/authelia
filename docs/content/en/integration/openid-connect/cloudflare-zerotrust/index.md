@@ -1,6 +1,6 @@
 ---
 title: "Cloudflare Zero Trust"
-description: "Integrating Cloudflare Zero Trust with the Authelia OpenID Connect Provider."
+description: "Integrating Cloudflare Zero Trust with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
@@ -16,7 +16,7 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.35.6](https://github.com/authelia/authelia/releases/tag/v4.35.6)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 
 ## Before You Begin
 
@@ -27,7 +27,7 @@ community: true
 This example makes the following assumptions:
 
 * __Cloudflare Team Name:__ `example-team`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `cloudflare`
 * __Client Secret:__ `insecure_secret`
 
@@ -38,6 +38,32 @@ characters for the secret or URL encode the secret yourself.*
 [RFC6749 Appendix B]: https://datatracker.ietf.org/doc/html/rfc6749#appendix-B
 
 ## Configuration
+
+### Authelia
+
+The following YAML configuration is an example __Authelia__
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Cloudflare]
+which will operate with the above example:
+
+```yaml
+identity_providers:
+  oidc:
+    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
+    ## See: https://www.authelia.com/c/oidc
+    clients:
+      - client_id: 'cloudflare'
+        client_name: 'Cloudflare ZeroTrust'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        public: false
+        authorization_policy: 'two_factor'
+        redirect_uris:
+          - 'https://example-team.cloudflareaccess.com/cdn-cgi/access/callback'
+        scopes:
+          - 'openid'
+          - 'profile'
+          - 'email'
+        userinfo_signed_response_alg: 'none'
+```
 
 ### Application
 
@@ -50,7 +76,7 @@ To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect 1
 1. Visit the [Cloudflare Zero Trust Dashboard](https://dash.teams.cloudflare.com)
 2. Visit `Settings`
 3. Visit `Authentication`
-4. Under `Login nethods` select `Add new`
+4. Under `Login methods` select `Add new`
 5. Select `OpenID Connect`
 6. Set the following values:
    1. Name: `Authelia`
@@ -62,27 +88,6 @@ To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect 1
    7. Enable `Proof Key for Code Exchange (PKCE)`
    8. Add the following OIDC Claims: `preferred_username`, `mail`
 7. Click Save
-
-### Authelia
-
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Cloudflare]
-which will operate with the above example:
-
-```yaml
-- id: cloudflare
-  description: Cloudflare ZeroTrust
-  secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-  public: false
-  authorization_policy: two_factor
-  redirect_uris:
-    - https://example-team.cloudflareaccess.com/cdn-cgi/access/callback
-  scopes:
-    - openid
-    - profile
-    - email
-  userinfo_signing_algorithm: none
-```
 
 ## See Also
 

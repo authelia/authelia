@@ -11,23 +11,26 @@ import (
 // OpenIDConnectConfigurationWellKnownGET handles requests to a .well-known endpoint (RFC5785) which returns the
 // OpenID Connect Discovery 1.0 metadata.
 //
-// https://datatracker.ietf.org/doc/html/rfc5785
+// RFC5785: Defining Well-Known URIs (https://datatracker.ietf.org/doc/html/rfc5785)
 //
-// https://openid.net/specs/openid-connect-discovery-1_0.html
+// OpenID Connect Discovery 1.0 (https://openid.net/specs/openid-connect-discovery-1_0.html)
 func OpenIDConnectConfigurationWellKnownGET(ctx *middlewares.AutheliaCtx) {
 	var (
 		issuer *url.URL
 		err    error
 	)
 
-	issuer = ctx.RootURL()
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred determining issuer")
 
-	wellKnown := ctx.Providers.OpenIDConnect.GetOpenIDConnectWellKnownConfiguration(issuer.String())
+		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
 
-	if err = ctx.ReplyJSON(wellKnown, fasthttp.StatusOK); err != nil {
-		ctx.Logger.Errorf("Error occurred in JSON encode: %+v", err)
+		return
+	}
 
-		// TODO: Determine if this is the appropriate error code here.
+	if err = ctx.ReplyJSON(ctx.Providers.OpenIDConnect.GetOpenIDConnectWellKnownConfiguration(issuer.String()), fasthttp.StatusOK); err != nil {
+		ctx.Logger.WithError(err).Error("Error occurred encoding JSON response")
+
 		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
 
 		return
@@ -37,23 +40,26 @@ func OpenIDConnectConfigurationWellKnownGET(ctx *middlewares.AutheliaCtx) {
 // OAuthAuthorizationServerWellKnownGET handles requests to a .well-known endpoint (RFC5785) which returns the
 // OAuth 2.0 Authorization Server Metadata (RFC8414).
 //
-// https://datatracker.ietf.org/doc/html/rfc5785
+// RFC5785: Defining Well-Known URIs (https://datatracker.ietf.org/doc/html/rfc5785)
 //
-// https://datatracker.ietf.org/doc/html/rfc8414
+// RFC8414: OAuth 2.0 Authorization Server Metadata (https://datatracker.ietf.org/doc/html/rfc8414)
 func OAuthAuthorizationServerWellKnownGET(ctx *middlewares.AutheliaCtx) {
 	var (
 		issuer *url.URL
 		err    error
 	)
 
-	issuer = ctx.RootURL()
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred determining issuer")
 
-	wellKnown := ctx.Providers.OpenIDConnect.GetOAuth2WellKnownConfiguration(issuer.String())
+		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
 
-	if err = ctx.ReplyJSON(wellKnown, fasthttp.StatusOK); err != nil {
-		ctx.Logger.Errorf("Error occurred in JSON encode: %+v", err)
+		return
+	}
 
-		// TODO: Determine if this is the appropriate error code here.
+	if err = ctx.ReplyJSON(ctx.Providers.OpenIDConnect.GetOAuth2WellKnownConfiguration(issuer.String()), fasthttp.StatusOK); err != nil {
+		ctx.Logger.WithError(err).Error("Error occurred encoding JSON response")
+
 		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
 
 		return

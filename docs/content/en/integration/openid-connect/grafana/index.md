@@ -1,6 +1,6 @@
 ---
 title: "Grafana"
-description: "Integrating Grafana with the Authelia OpenID Connect Provider."
+description: "Integrating Grafana with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
@@ -16,7 +16,7 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.35.5](https://github.com/authelia/authelia/releases/tag/v4.35.5)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Grafana]
   * 8.0.0
 
@@ -28,16 +28,43 @@ community: true
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://grafana.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://grafana.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `grafana`
 * __Client Secret:__ `insecure_secret`
 
 ## Configuration
 
+### Authelia
+
+The following YAML configuration is an example __Authelia__
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Grafana]
+which will operate with the above example:
+
+```yaml
+identity_providers:
+  oidc:
+    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
+    ## See: https://www.authelia.com/c/oidc
+    clients:
+      - client_id: 'grafana'
+        client_name: 'Grafana'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        public: false
+        authorization_policy: 'two_factor'
+        redirect_uris:
+          - 'https://grafana.example.com/login/generic_oauth'
+        scopes:
+          - 'openid'
+          - 'profile'
+          - 'groups'
+          - 'email'
+        userinfo_signed_response_alg: 'none'
+```
+
 ### Application
 
-To configure [Grafana] to utilize Authelia as an [OpenID Connect 1.0] Provider you have two effective options:
+To configure [Grafana] to utilize Authelia as an [OpenID Connect 1.0] Provider, you have two effective options:
 
 #### Configuration File
 
@@ -83,33 +110,28 @@ Configure the following environment variables:
 | GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH |                     groups                      |
 |  GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH  |                      name                       |
 |       GF_AUTH_GENERIC_OAUTH_USE_PKCE        |                      true                       |
+|  GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH  |            See [Role Attribute Path]            |
 
-### Authelia
+[Role Attribute Path]: #role-attribute-path
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Grafana]
-which will operate with the above example:
+#### Role Attribute Path
 
-```yaml
-- id: grafana
-  description: Grafana
-  secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-  public: false
-  authorization_policy: two_factor
-  redirect_uris:
-    - https://grafana.example.com/login/generic_oauth
-  scopes:
-    - openid
-    - profile
-    - groups
-    - email
-  userinfo_signing_algorithm: none
-```
+The role attribute path configuration is optional but allows mapping Authelia group membership with Grafana roles. If
+you do not wish to automatically do this you can just omit the environment variable.
+
+The ways you can configure this rule value is vast as an examle if you wanted a default role of `Viewer`, but also
+wanted everyone in the `admin` Authelia group to be in the `Admin` role, and everyone in the `editor` Authelia group to
+be in the `Editor` role, a rule similar to
+`contains(groups, 'admin') && 'Admin' || contains(groups, 'editor') && 'Editor' || 'Viewer'` would be needed.
+
+See [Grafana Generic OAuth2 Documentation: Configure role mapping] for more information.
 
 ## See Also
 
 * [Grafana OAuth Documentation](https://grafana.com/docs/grafana/latest/auth/generic-oauth/)
+* [Grafana Generic OAuth2 Documentation: Configure role mapping]
 
 [Authelia]: https://www.authelia.com
 [Grafana]: https://grafana.com/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[Grafana Generic OAuth2 Documentation: Configure role mapping]: https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/generic-oauth/#configure-role-mapping

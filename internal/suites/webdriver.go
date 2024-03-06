@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/input"
 	"github.com/go-rod/rod/lib/launcher"
 	"github.com/stretchr/testify/require"
 )
@@ -16,10 +17,50 @@ import (
 type RodSession struct {
 	Launcher  *launcher.Launcher
 	WebDriver *rod.Browser
+
+	RodSuiteCredentialsProvider
 }
 
-// StartRodWithProxy create a rod/chromedp session.
-func StartRodWithProxy(proxy string) (session *RodSession, err error) {
+type RodSessionCredentials struct {
+	TOTP *OptionsTOTP
+}
+
+type RodSessionOpts struct {
+	proxy    string
+	provider RodSuiteCredentialsProvider
+}
+
+type RodSessionOpt func(opts *RodSessionOpts) (err error)
+
+func RodSessionWithProxy(proxy string) RodSessionOpt {
+	return func(opts *RodSessionOpts) (err error) {
+		opts.proxy = proxy
+
+		return nil
+	}
+}
+
+func RodSessionWithCredentials(provider RodSuiteCredentialsProvider) RodSessionOpt {
+	return func(opts *RodSessionOpts) (err error) {
+		opts.provider = provider
+
+		return nil
+	}
+}
+
+func NewRodSession(options ...RodSessionOpt) (session *RodSession, err error) {
+	opts := &RodSessionOpts{}
+
+	for _, option := range options {
+		if err = option(opts); err != nil {
+			return nil, fmt.Errorf("failed to apply option: %w", err)
+		}
+	}
+
+	if opts.provider == nil {
+		opts.provider = NewRodSuiteCredentials()
+	}
+
 	var browserPath string
 
 	if browserPath, err = GetBrowserPath(); err != nil {
@@ -38,7 +79,7 @@ func StartRodWithProxy(proxy string) (session *RodSession, err error) {
 
 	l := launcher.New().
 		Bin(browserPath).
-		Proxy(proxy).
+		Proxy(opts.proxy).
 		Headless(headless).
 		Devtools(true)
 	url := l.MustLaunch()
@@ -52,14 +93,15 @@ func StartRodWithProxy(proxy string) (session *RodSession, err error) {
 	browser.MustIgnoreCertErrors(true)
 
 	return &RodSession{
-		Launcher:  l,
-		WebDriver: browser,
+		Launcher:                    l,
+		WebDriver:                   browser,
+		RodSuiteCredentialsProvider: opts.provider,
 	}, nil
 }
 
 // StartRod create a rod/chromedp session.
 func StartRod() (*RodSession, error) {
-	return StartRodWithProxy("")
+	return NewRodSession()
 }
 
 // Stop stop the rod/chromedp session.
@@ -121,4 +163,14 @@ func (rs *RodSession) waitBodyContains(t *testing.T, page *rod.Page, pattern str
 	}
 
 	require.NoError(t, err)
+}
+
+func (rs *RodSession) toInputs(in string) (out []input.Key) {
+	out = make([]input.Key, len(in))
+
+	for i, c := range in {
+		out[i] = input.Key(c)
+	}
+
+	return out
 }

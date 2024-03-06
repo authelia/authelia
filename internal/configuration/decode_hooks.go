@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/x509"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"net/url"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -111,13 +113,60 @@ func StringToURLHookFunc() mapstructure.DecodeHookFuncType {
 	}
 }
 
-// ToTimeDurationHookFunc converts string and integer types to a time.Duration.
-func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
+func DecodeTimeDuration(f, expectedType reflect.Type, prefixType string, data any) (result time.Duration, err error) {
+	e := reflect.TypeOf(time.Duration(0))
+
+	switch {
+	case f.Kind() == reflect.String:
+		dataStr := data.(string)
+
+		if result, err = utils.ParseDurationString(dataStr); err != nil {
+			return time.Duration(0), fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
+		}
+	case f.Kind() == reflect.Int:
+		seconds := data.(int)
+
+		result = time.Second * time.Duration(seconds)
+	case f.Kind() == reflect.Int8:
+		seconds := data.(int8)
+
+		result = time.Second * time.Duration(seconds)
+	case f.Kind() == reflect.Int16:
+		seconds := data.(int16)
+
+		result = time.Second * time.Duration(seconds)
+	case f.Kind() == reflect.Int32:
+		seconds := data.(int32)
+
+		result = time.Second * time.Duration(seconds)
+	case f.Kind() == reflect.Float64:
+		fseconds := data.(float64)
+
+		if fseconds > durationMax.Seconds() {
+			result = durationMax
+		} else {
+			seconds, _ := strconv.Atoi(fmt.Sprintf("%.0f", fseconds))
+
+			result = time.Second * time.Duration(seconds)
+		}
+	case f == e:
+		result = data.(time.Duration)
+	case f.Kind() == reflect.Int64:
+		seconds := data.(int64)
+
+		result = time.Second * time.Duration(seconds)
+	}
+
+	return result, nil
+}
+
+// ToRefreshIntervalDurationHookFunc converts string and integer types to a schema.RefreshIntervalDuration.
+func ToRefreshIntervalDurationHookFunc() mapstructure.DecodeHookFuncType {
 	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		var ptr bool
 
 		switch f.Kind() {
-		case reflect.String, reflect.Int, reflect.Int32, reflect.Int64:
+		case reflect.String, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Float64:
 			// We only allow string and integer from kinds to match.
 			break
 		default:
@@ -125,6 +174,62 @@ func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
 		}
 
 		prefixType := ""
+
+		if t.Kind() == reflect.Ptr {
+			ptr = true
+			prefixType = "*"
+		}
+
+		expectedType := reflect.TypeOf(schema.RefreshIntervalDuration{})
+
+		if ptr && t.Elem() != expectedType {
+			return data, nil
+		} else if !ptr && t != expectedType {
+			return data, nil
+		}
+
+		var (
+			result  schema.RefreshIntervalDuration
+			decoded bool
+		)
+
+		if f.Kind() == reflect.String {
+			dataStr, ok := data.(string)
+			if ok {
+				switch dataStr {
+				case schema.ProfileRefreshAlways:
+					result, decoded = schema.NewRefreshIntervalDurationAlways(), true
+				case schema.ProfileRefreshDisabled:
+					result, decoded = schema.NewRefreshIntervalDurationNever(), true
+				}
+			}
+		}
+
+		if !decoded {
+			var resultv time.Duration
+
+			if resultv, err = DecodeTimeDuration(f, expectedType, prefixType, data); err != nil {
+				return nil, err
+			}
+
+			result = schema.NewRefreshIntervalDuration(resultv)
+		}
+
+		if ptr {
+			return &result, nil
+		}
+
+		return result, nil
+	}
+}
+
+// ToTimeDurationHookFunc converts string and integer types to a time.Duration.
+func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
+		var (
+			ptr        bool
+			prefixType string
+		)
 
 		if t.Kind() == reflect.Ptr {
 			ptr = true
@@ -139,29 +244,18 @@ func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
 			return data, nil
 		}
 
+		switch f.Kind() {
+		case reflect.String, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Float64:
+			// We only allow string and integer from kinds to match.
+			break
+		default:
+			return data, nil
+		}
+
 		var result time.Duration
 
-		switch {
-		case f.Kind() == reflect.String:
-			dataStr := data.(string)
-
-			if result, err = utils.ParseDurationString(dataStr); err != nil {
-				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
-			}
-		case f.Kind() == reflect.Int:
-			seconds := data.(int)
-
-			result = time.Second * time.Duration(seconds)
-		case f.Kind() == reflect.Int32:
-			seconds := data.(int32)
-
-			result = time.Second * time.Duration(seconds)
-		case f == expectedType:
-			result = data.(time.Duration)
-		case f.Kind() == reflect.Int64:
-			seconds := data.(int64)
-
-			result = time.Second * time.Duration(seconds)
+		if result, err = DecodeTimeDuration(f, expectedType, prefixType, data); err != nil {
+			return nil, err
 		}
 
 		if ptr {
@@ -219,6 +313,8 @@ func StringToRegexpHookFunc() mapstructure.DecodeHookFuncType {
 }
 
 // StringToAddressHookFunc decodes a string into an Address or *Address.
+//
+//nolint:gocyclo // This is an adequately clear function even with the complexity.
 func StringToAddressHookFunc() mapstructure.DecodeHookFuncType {
 	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		var ptr bool
@@ -235,32 +331,105 @@ func StringToAddressHookFunc() mapstructure.DecodeHookFuncType {
 		}
 
 		expectedType := reflect.TypeOf(schema.Address{})
+		expectedTypeTCP := reflect.TypeOf(schema.AddressTCP{})
+		expectedTypeUDP := reflect.TypeOf(schema.AddressUDP{})
+		expectedTypeLDAP := reflect.TypeOf(schema.AddressLDAP{})
+		expectedTypeSMTP := reflect.TypeOf(schema.AddressSMTP{})
 
-		if ptr && t.Elem() != expectedType {
-			return data, nil
-		} else if !ptr && t != expectedType {
-			return data, nil
+		switch {
+		case ptr:
+			switch t.Elem() {
+			case expectedType:
+			case expectedTypeTCP:
+				expectedType = expectedTypeTCP
+			case expectedTypeUDP:
+				expectedType = expectedTypeUDP
+			case expectedTypeLDAP:
+				expectedType = expectedTypeLDAP
+			case expectedTypeSMTP:
+				expectedType = expectedTypeSMTP
+			default:
+				return data, nil
+			}
+		default:
+			switch t {
+			case expectedType:
+				break
+			case expectedTypeTCP:
+				expectedType = expectedTypeTCP
+			case expectedTypeUDP:
+				expectedType = expectedTypeUDP
+			case expectedTypeLDAP:
+				expectedType = expectedTypeLDAP
+			case expectedTypeSMTP:
+				expectedType = expectedTypeSMTP
+			default:
+				return data, nil
+			}
 		}
 
 		dataStr := data.(string)
 
 		var result *schema.Address
 
-		if result, err = schema.NewAddressFromString(dataStr); err != nil {
-			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
-		}
+		switch expectedType {
+		case expectedTypeTCP:
+			if result, err = schema.NewAddressDefault(dataStr, schema.AddressSchemeTCP, schema.AddressSchemeUnix); err != nil {
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
+			}
 
-		if ptr {
-			return result, nil
-		}
+			if ptr {
+				return &schema.AddressTCP{Address: *result}, nil
+			}
 
-		return *result, nil
+			return schema.AddressTCP{Address: *result}, nil
+		case expectedTypeUDP:
+			if result, err = schema.NewAddressDefault(dataStr, schema.AddressSchemeUDP, schema.AddressSchemeUnix); err != nil {
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
+			}
+
+			if ptr {
+				return &schema.AddressUDP{Address: *result}, nil
+			}
+
+			return schema.AddressUDP{Address: *result}, nil
+		case expectedTypeLDAP:
+			if result, err = schema.NewAddressDefault(dataStr, schema.AddressSchemeLDAPS, schema.AddressSchemeLDAPI); err != nil {
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
+			}
+
+			if ptr {
+				return &schema.AddressLDAP{Address: *result}, nil
+			}
+
+			return schema.AddressLDAP{Address: *result}, nil
+		case expectedTypeSMTP:
+			if result, err = schema.NewAddressDefault(dataStr, schema.AddressSchemeSMTP, schema.AddressSchemeUnix); err != nil {
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
+			}
+
+			if ptr {
+				return &schema.AddressSMTP{Address: *result}, nil
+			}
+
+			return schema.AddressSMTP{Address: *result}, nil
+		default:
+			if result, err = schema.NewAddress(dataStr); err != nil {
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
+			}
+
+			if ptr {
+				return result, nil
+			}
+
+			return *result, nil
+		}
 	}
 }
 
 // StringToX509CertificateHookFunc decodes strings to x509.Certificate's.
 func StringToX509CertificateHookFunc() mapstructure.DecodeHookFuncType {
-	return func(f reflect.Type, t reflect.Type, data any) (value interface{}, err error) {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		if f.Kind() != reflect.String {
 			return data, nil
 		}
@@ -283,7 +452,7 @@ func StringToX509CertificateHookFunc() mapstructure.DecodeHookFuncType {
 			return result, nil
 		}
 
-		var i interface{}
+		var i any
 
 		if i, err = utils.ParseX509FromPEM([]byte(dataStr)); err != nil {
 			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "*", expectedType, err)
@@ -300,7 +469,7 @@ func StringToX509CertificateHookFunc() mapstructure.DecodeHookFuncType {
 
 // StringToX509CertificateChainHookFunc decodes strings to schema.X509CertificateChain's.
 func StringToX509CertificateChainHookFunc() mapstructure.DecodeHookFuncType {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		var ptr bool
 
 		if f.Kind() != reflect.String {
@@ -348,7 +517,7 @@ func StringToX509CertificateChainHookFunc() mapstructure.DecodeHookFuncType {
 
 // StringToTLSVersionHookFunc decodes strings to schema.TLSVersion's.
 func StringToTLSVersionHookFunc() mapstructure.DecodeHookFuncType {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		var ptr bool
 
 		if f.Kind() != reflect.String {
@@ -388,12 +557,12 @@ func StringToTLSVersionHookFunc() mapstructure.DecodeHookFuncType {
 
 // StringToCryptoPrivateKeyHookFunc decodes strings to schema.CryptographicPrivateKey's.
 func StringToCryptoPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		if f.Kind() != reflect.String {
 			return data, nil
 		}
 
-		field, _ := reflect.TypeOf(schema.TLSConfig{}).FieldByName("PrivateKey")
+		field, _ := reflect.TypeOf(schema.TLS{}).FieldByName("PrivateKey")
 		expectedType := field.Type
 
 		if t != expectedType {
@@ -416,9 +585,35 @@ func StringToCryptoPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 	}
 }
 
-// StringToPrivateKeyHookFunc decodes strings to rsa.PrivateKey's.
+// StringToCryptographicKeyHookFunc decodes strings to schema.CryptographicKey's.
+func StringToCryptographicKeyHookFunc() mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		field, _ := reflect.TypeOf(schema.JWK{}).FieldByName("Key")
+		expectedType := field.Type
+
+		if t != expectedType {
+			return data, nil
+		}
+
+		dataStr := data.(string)
+
+		if value, err = utils.ParseX509FromPEM([]byte(dataStr)); err != nil {
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "", expectedType, err)
+		}
+
+		return value, nil
+	}
+}
+
+// StringToPrivateKeyHookFunc decodes strings to rsa.PrivateKey's and ecdsa.PrivateKey's.
+//
+//nolint:gocyclo
 func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		if f.Kind() != reflect.String {
 			return data, nil
 		}
@@ -429,6 +624,7 @@ func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 
 		expectedTypeRSA := reflect.TypeOf(rsa.PrivateKey{})
 		expectedTypeECDSA := reflect.TypeOf(ecdsa.PrivateKey{})
+		expectedTypeEd25519 := reflect.TypeOf(ed25519.PrivateKey{})
 
 		var (
 			i            any
@@ -454,6 +650,14 @@ func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 			}
 
 			expectedType = expectedTypeECDSA
+		case expectedTypeEd25519:
+			var result *ed25519.PrivateKey
+
+			if dataStr == "" {
+				return result, nil
+			}
+
+			expectedType = expectedTypeEd25519
 		default:
 			return data, nil
 		}
@@ -479,6 +683,12 @@ func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 			}
 
 			return r, nil
+		case ed25519.PrivateKey:
+			if expectedType != expectedTypeEd25519 {
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "*", expectedType, fmt.Errorf("the data is for a %T not a *%s", r, expectedType))
+			}
+
+			return &r, nil
 		default:
 			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "*", expectedType, fmt.Errorf("the data is for a %T not a *%s", r, expectedType))
 		}
@@ -487,7 +697,7 @@ func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 
 // StringToPasswordDigestHookFunc decodes a string into a crypt.Digest.
 func StringToPasswordDigestHookFunc() mapstructure.DecodeHookFuncType {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		var ptr bool
 
 		if f.Kind() != reflect.String {
@@ -513,11 +723,11 @@ func StringToPasswordDigestHookFunc() mapstructure.DecodeHookFuncType {
 
 		var result *schema.PasswordDigest
 
-		if !strings.HasPrefix(dataStr, "$") {
-			dataStr = fmt.Sprintf(plaintext.EncodingFmt, plaintext.AlgIdentifierPlainText, dataStr)
-		}
-
 		if dataStr != "" {
+			if !strings.HasPrefix(dataStr, "$") {
+				dataStr = fmt.Sprintf(plaintext.EncodingFmt, plaintext.AlgIdentifierPlainText, dataStr)
+			}
+
 			if result, err = schema.DecodePasswordDigest(dataStr); err != nil {
 				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType.String(), err)
 			}

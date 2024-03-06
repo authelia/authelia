@@ -50,6 +50,11 @@ authelia --config config.custom.yml
 We recommend utilizing [VSCodium](https://vscodium.com/) or [VSCode](https://code.visualstudio.com/), both with the
 [YAML Extension](https://open-vsx.org/extension/redhat/vscode-yaml) by RedHat to validate this file type.
 
+This extension allows validation of the format and schema of a YAML file. To facilitate schema validation we publish
+a set of JSON schemas which you can include as a special comment in order to validate the YAML file further. See the
+[JSON Schema reference guide](../../reference/guides/schemas.md#json-schema) for more information including instructions
+on how to utilize the schemas.
+
 ## Multiple Configuration Files
 
 You can have multiple configuration files which will be merged in the order specified. If duplicate keys are specified
@@ -61,11 +66,11 @@ authelia --config configuration.yml,config-acl.yml,config-other.yml
 ```
 
 Authelia's configuration files use the YAML format. A template with all possible options can be found at the root of the
-repository [here](https://github.com/authelia/authelia/blob/master/config.template.yml).
+repository {{< github-link name="here" path="config.template.yml" >}}.
 
-*__Important Note:__ You should not have configuration sections such as Access Control Rules or OpenID Connect clients
-configured in multiple files. If you wish to split these into their own files that is fine, but if you have two files that
-specify these sections and expect them to merge properly you are asking for trouble.*
+*__Important Note:__ You should not have configuration sections such as Access Control Rules or OpenID Connect 1.0
+clients configured in multiple files. If you wish to split these into their own files that is fine, but if you have two
+files that specify these sections and expect them to merge properly you are asking for trouble.*
 
 ### Container
 
@@ -87,15 +92,15 @@ See the [Docker Documentation](https://docs.docker.com/engine/reference/commandl
 An excerpt from a docker compose that allows you to specify multiple configuration files is as follows:
 
 ```yaml
-version: "3.8"
+version: '3.8'
 services:
   authelia:
-    container_name: authelia
-    image: authelia/authelia:latest
+    container_name: 'authelia'
+    image: 'authelia/authelia:latest'
     command:
-      - "authelia"
-      - "--config=/config/configuration.yaml"
-      - "--config=/config/configuration.acl.yaml"
+      - 'authelia'
+      - '--config=/config/configuration.yaml'
+      - '--config=/config/configuration.acl.yaml'
 
 ```
 
@@ -130,7 +135,7 @@ spec:
       enableServiceLinks: false
       containers:
         - name: authelia
-          image: docker.io/authelia/authelia:fix-missing-head-handler
+          image: docker.io/authelia/authelia:latest
           command:
             - authelia
           args:
@@ -155,7 +160,12 @@ commands executed from the container use the same filters. If both the CLI argum
 the environment variable is completely ignored.
 
 Filters can either be used on their own, in combination, or not at all. The filters are processed in order as they are
-defined.
+defined. You can preview the output of the YAML files when processed via the filters using the
+[authelia config template](../../reference/cli/authelia/authelia_config_template.md) command.
+
+_**Important Note:** the filters are applied in order and thus if the output of one filter outputs a string that
+contains syntax for a subsequent filter it will be filtered. It is therefore suggested the template filter is the only
+filter and if it isn't that it's last._
 
 Examples:
 
@@ -173,6 +183,18 @@ The name used to enable this filter is `expand-env`.
 
 This filter is the most common filter type used by many other applications. It is similar to using `envsubst` where it
 replaces a string like `$EXAMPLE` or `${EXAMPLE}` with the value of the `EXAMPLE` environment variable.
+
+This filter utilizes [os.ExpandEnv](https://pkg.go.dev/os#ExpandEnv) but does not include any environment variables that
+look like they're an Authelia secret. This filter is very limited in what we can achieve, and there are known
+limitations with this filter which may not be possible for us to work around. We discourage it's usage as the `template`
+is much more robust and we have a lot more freedom to make adjustments to this filter compared to the `expand-env`
+filter.
+
+Known Limitations:
+
+- Has no way to handle escaping a `$` so treats all `$` values as an expansion value. This can be escaped using `$$` as
+  an indication that it should be a `$` literal. However this functionality likely will not work under all
+  circumstances.
 
 ### Go Template Filter
 

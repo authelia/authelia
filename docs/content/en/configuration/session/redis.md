@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "session"
-weight: 105200
+weight: 106200
 toc: true
 aliases:
   - /docs/configuration/session/redis.html
@@ -20,21 +20,23 @@ this option and we highly recommend it in production environments. It requires y
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 session:
   redis:
-    host: 127.0.0.1
+    host: '127.0.0.1'
     port: 6379
-    username: authelia
-    password: authelia
+    username: 'authelia'
+    password: 'authelia'
     database_index: 0
     maximum_active_connections: 8
     minimum_idle_connections: 0
     tls:
-      server_name: myredis.example.com
+      server_name: 'myredis.example.com'
       skip_verify: false
-      minimum_version: TLS1.2
-      maximum_version: TLS1.3
+      minimum_version: 'TLS1.2'
+      maximum_version: 'TLS1.3'
       certificate_chain: |
         -----BEGIN CERTIFICATE-----
         MIIC5jCCAc6gAwIBAgIRAK4Sj7FiN6PXo/urPfO4E7owDQYJKoZIhvcNAQELBQAw
@@ -103,21 +105,23 @@ session:
         DO NOT USE==
         -----END RSA PRIVATE KEY-----
     high_availability:
-      sentinel_name: mysentinel
+      sentinel_name: 'mysentinel'
       # If `sentinel_username` is supplied, Authelia will connect using ACL-based
       # authentication. Otherwise, it will use traditional `requirepass` auth.
-      sentinel_username: sentinel_user
-      sentinel_password: sentinel_specific_pass
+      sentinel_username: 'sentinel_user'
+      sentinel_password: 'sentinel_specific_pass'
       nodes:
-        - host: sentinel-node1
+        - host: 'sentinel-node1'
           port: 26379
-        - host: sentinel-node2
+        - host: 'sentinel-node2'
           port: 26379
       route_by_latency: false
       route_randomly: false
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### host
 
@@ -127,7 +131,7 @@ The [redis] host or unix socket path. If utilising an IPv6 literal address it mu
 quoted:
 
 ```yaml
-host: "[fd00:1111:2222:3333::1]"
+host: '[fd00:1111:2222:3333::1]'
 ```
 
 ### port
@@ -178,8 +182,10 @@ is useful if there are long delays in establishing connections.
 
 ### tls
 
-If defined enables [redis] over TLS, and additionally controls the TLS connection validation process. You can see how to
-configure the tls section [here](../prologue/common.md#tls-configuration).
+{{< confkey type="structure" structure="tls" required="no" >}}
+
+If defined enables connecting to [redis] over a TLS socket, and additionally controls the TLS connection
+validation parameters.
 
 ### high_availability
 

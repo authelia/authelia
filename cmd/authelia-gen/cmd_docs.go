@@ -13,7 +13,7 @@ func newDocsCmd() *cobra.Command {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.AddCommand(newDocsCLICmd(), newDocsDataCmd(), newDocsDateCmd())
+	cmd.AddCommand(newDocsCLICmd(), newDocsDataCmd(), newDocsDateCmd(), newDocsJSONSchemaCmd())
 
 	return cmd
 }

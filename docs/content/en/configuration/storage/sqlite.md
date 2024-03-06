@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "storage"
-weight: 106500
+weight: 107500
 toc: true
 aliases:
   - /docs/configuration/storage/sqlite.html
@@ -24,18 +24,22 @@ but this requires you setup an external database such as [PostgreSQL](postgres.m
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 storage:
-  encryption_key: a_very_important_secret
+  encryption_key: 'a_very_important_secret'
   local:
-    path: /config/db.sqlite3
+    path: '/config/db.sqlite3'
 ```
 
 ## Options
 
+This section describes the individual configuration options.
+
 ### encryption_key
 
-See the [encryption_key docs](introduction.md#encryptionkey).
+See the [encryption_key docs](introduction.md#encryption_key).
 
 ### path
 

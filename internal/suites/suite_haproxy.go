@@ -1,7 +1,6 @@
 package suites
 
 import (
-	"fmt"
 	"os"
 	"time"
 )
@@ -32,14 +31,12 @@ func init() {
 		})
 	}
 
-	setup := func(suitePath string) error {
-		err := dockerEnvironment.Up()
-		if err != nil {
+	setup := func(suitePath string) (err error) {
+		if err = dockerEnvironment.Up(); err != nil {
 			return err
 		}
 
-		err = waitUntilAutheliaIsReady(dockerEnvironment, haproxySuiteName)
-		if err != nil {
+		if err = waitUntilAutheliaIsReady(dockerEnvironment, haproxySuiteName); err != nil {
 			return err
 		}
 
@@ -47,30 +44,7 @@ func init() {
 	}
 
 	displayAutheliaLogs := func() error {
-		backendLogs, err := dockerEnvironment.Logs("authelia-backend", nil)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(backendLogs)
-
-		if os.Getenv("CI") != t {
-			frontendLogs, err := dockerEnvironment.Logs("authelia-frontend", nil)
-			if err != nil {
-				return err
-			}
-
-			fmt.Println(frontendLogs)
-		}
-
-		haproxyLogs, err := dockerEnvironment.Logs("haproxy", nil)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(haproxyLogs)
-
-		return nil
+		return dockerEnvironment.PrintLogs("authelia-backend", "authelia-frontend", "haproxy")
 	}
 
 	teardown := func(suitePath string) error {

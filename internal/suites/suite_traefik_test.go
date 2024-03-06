@@ -20,8 +20,8 @@ func (s *TraefikSuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *TraefikSuite) Test2FAScenario() {
-	suite.Run(s.T(), New2FAScenario())
+func (s *TraefikSuite) TestTwoFactorTOTPScenario() {
+	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 
 func (s *TraefikSuite) TestRedirectionURLScenario() {

@@ -1,7 +1,6 @@
 package suites
 
 import (
-	"fmt"
 	"os"
 	"time"
 )
@@ -19,14 +18,12 @@ func init() {
 		"internal/suites/example/compose/duo-api/docker-compose.yml",
 	})
 
-	setup := func(suitePath string) error {
-		err := dockerEnvironment.Up()
-		if err != nil {
+	setup := func(suitePath string) (err error) {
+		if err = dockerEnvironment.Up(); err != nil {
 			return err
 		}
 
-		err = waitUntilAutheliaIsReady(dockerEnvironment, duoPushSuiteName)
-		if err != nil {
+		if err = waitUntilAutheliaIsReady(dockerEnvironment, duoPushSuiteName); err != nil {
 			return err
 		}
 
@@ -34,28 +31,7 @@ func init() {
 	}
 
 	displayAutheliaLogs := func() error {
-		backendLogs, err := dockerEnvironment.Logs("authelia-backend", nil)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(backendLogs)
-
-		frontendLogs, err := dockerEnvironment.Logs("authelia-frontend", nil)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(frontendLogs)
-
-		duoAPILogs, err := dockerEnvironment.Logs("duo-api", nil)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(duoAPILogs)
-
-		return nil
+		return dockerEnvironment.PrintLogs("authelia-backend", "authelia-frontend", "duo-api")
 	}
 
 	teardown := func(suitePath string) error {

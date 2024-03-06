@@ -25,7 +25,7 @@ func IsStringAbsURL(input string) (err error) {
 	return nil
 }
 
-// IsStringAlphaNumeric returns false if any rune in the string is not alpha-numeric.
+// IsStringAlphaNumeric returns false if any rune in the string is not alphanumeric.
 func IsStringAlphaNumeric(input string) bool {
 	for _, r := range input {
 		if !unicode.IsLetter(r) && !unicode.IsNumber(r) {
@@ -51,17 +51,6 @@ func IsStringInSlice(needle string, haystack []string) (inSlice bool) {
 func IsStringInSliceF(needle string, haystack []string, isEqual func(needle, item string) bool) (inSlice bool) {
 	for _, b := range haystack {
 		if isEqual(needle, b) {
-			return true
-		}
-	}
-
-	return false
-}
-
-// IsStringInSliceSuffix checks if the needle string has one of the suffixes in the haystack.
-func IsStringInSliceSuffix(needle string, haystack []string) (hasSuffix bool) {
-	for _, straw := range haystack {
-		if strings.HasSuffix(needle, straw) {
 			return true
 		}
 	}
@@ -104,8 +93,13 @@ func IsStringSliceContainsAll(needles []string, haystack []string) (inSlice bool
 
 // IsStringSliceContainsAny checks if the haystack contains any of the strings in the needles.
 func IsStringSliceContainsAny(needles []string, haystack []string) (inSlice bool) {
+	return IsStringSliceContainsAnyF(needles, haystack, IsStringInSlice)
+}
+
+// IsStringSliceContainsAnyF checks if the haystack contains any of the strings in the needles using the isInSlice func.
+func IsStringSliceContainsAnyF(needles []string, haystack []string, isInSlice func(needle string, haystack []string) bool) (inSlice bool) {
 	for _, n := range needles {
-		if IsStringInSlice(n, haystack) {
+		if isInSlice(n, haystack) {
 			return true
 		}
 	}
@@ -157,7 +151,7 @@ func IsStringSlicesDifferentFold(a, b []string) (different bool) {
 }
 
 // IsURLInSlice returns true if the needle url.URL is in the []url.URL haystack.
-func IsURLInSlice(needle url.URL, haystack []url.URL) (has bool) {
+func IsURLInSlice(needle *url.URL, haystack []*url.URL) (has bool) {
 	for i := 0; i < len(haystack); i++ {
 		if strings.EqualFold(needle.String(), haystack[i].String()) {
 			return true
@@ -168,7 +162,7 @@ func IsURLInSlice(needle url.URL, haystack []url.URL) (has bool) {
 }
 
 // StringSliceFromURLs returns a []string from a []url.URL.
-func StringSliceFromURLs(urls []url.URL) []string {
+func StringSliceFromURLs(urls []*url.URL) []string {
 	result := make([]string, len(urls))
 
 	for i := 0; i < len(urls); i++ {
@@ -179,8 +173,8 @@ func StringSliceFromURLs(urls []url.URL) []string {
 }
 
 // URLsFromStringSlice returns a []url.URL from a []string.
-func URLsFromStringSlice(urls []string) []url.URL {
-	var result []url.URL
+func URLsFromStringSlice(urls []string) []*url.URL {
+	var result []*url.URL
 
 	for i := 0; i < len(urls); i++ {
 		u, err := url.Parse(urls[i])
@@ -188,15 +182,15 @@ func URLsFromStringSlice(urls []string) []url.URL {
 			continue
 		}
 
-		result = append(result, *u)
+		result = append(result, u)
 	}
 
 	return result
 }
 
 // OriginFromURL returns an origin url.URL given another url.URL.
-func OriginFromURL(u url.URL) (origin url.URL) {
-	return url.URL{
+func OriginFromURL(u *url.URL) (origin *url.URL) {
+	return &url.URL{
 		Scheme: u.Scheme,
 		Host:   u.Host,
 	}
@@ -272,14 +266,18 @@ func JoinAndCanonicalizeHeaders(sep []byte, headers ...string) (joined []byte) {
 
 // IsURLHostComponent returns true if the provided url.URL that was parsed from a string to a url.URL via url.Parse is
 // just a hostname. This is needed because of the way this function parses such strings.
-func IsURLHostComponent(u url.URL) (isHostComponent bool) {
-	return u.Path != "" && u.Scheme == "" && u.Host == "" && u.RawPath == "" && u.Opaque == "" &&
+func IsURLHostComponent(u *url.URL) (isHostComponent bool) {
+	return u != nil && u.Path != "" && u.Scheme == "" && u.Host == "" && u.RawPath == "" && u.Opaque == "" &&
 		u.RawQuery == "" && u.Fragment == "" && u.RawFragment == ""
 }
 
 // IsURLHostComponentWithPort returns true if the provided url.URL that was parsed from a string to a url.URL via
 // url.Parse is just a hostname with a port. This is needed because of the way this function parses such strings.
-func IsURLHostComponentWithPort(u url.URL) (isHostComponentWithPort bool) {
+func IsURLHostComponentWithPort(u *url.URL) (isHostComponentWithPort bool) {
+	if u == nil {
+		return false
+	}
+
 	if u.Opaque != "" && u.Scheme != "" && u.Host == "" && u.Path == "" && u.RawPath == "" &&
 		u.RawQuery == "" && u.Fragment == "" && u.RawFragment == "" {
 		_, err := strconv.Atoi(u.Opaque)

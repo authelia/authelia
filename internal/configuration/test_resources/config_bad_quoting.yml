@@ -1,57 +1,56 @@
 ---
-jwt_secret: RUtG9TnbXrOl1XLLmDgySw1DGgx9QcrtepIf1uDDBlBVKFZxkVBruYKBi32PvaU
-
-default_redirection_url: example.com
+default_redirection_url: 'example.com'
 
 server:
-  host: 0.0.0.0
-  port: 9091
+  address: 'tcp://:9091'
 
 log:
-  level: debug
+  level: 'debug'
 
 totp:
-  issuer: example.com
+  issuer: 'example.com'
   period: 30
   skew: 1
 
 authentication_backend:
   file:
-    path: /config/users_database.yml
+    path: '/config/users_database.yml'
 
 access_control:
-  default_policy: deny
+  default_policy: 'deny'
   rules:
-    - domain: example.com
-      policy: bypass
-    - domain: *.example.com
-      policy: one_factor
+    - domain: 'example.com'
+      policy: 'bypass'
+    - domain: '*.example.com'
+      policy: 'one_factor'
 
 session:
-  name: authelia_session
-  secret: TVPMIcDFbBwhnW3kLJzKhdjeHhtqisr7m28FgRY8oLh2A4lwuV2jV2ZGdGbh4aa
-  expiration: 3600
-  inactivity: 300
-  domain: example.com
+  name: 'authelia_session'
+  secret: 'TVPMIcDFbBwhnW3kLJzKhdjeHhtqisr7m28FgRY8oLh2A4lwuV2jV2ZGdGbh4aa'
+  expiration: '1h'
+  inactivity: '5m'
+  domain: 'example.com'
 
 regulation:
   max_retries: 3
-  find_time: 120
-  ban_time: 300
+  find_time: '2m'
+  ban_time: '5m'
+
+identity_validation:
+  reset_password:
+    jwt_secret: 'RUtG9TnbXrOl1XLLmDgySw1DGgx9QcrtepIf1uDDBlBVKFZxkVBruYKBi32PvaU'
 
 storage:
   mysql:
-    host: example.com
-    port: 3306
-    database: authelia
-    username: authelia
-    password: example.com
+    address: 'tcp://example.com:3306'
+    database: 'authelia'
+    username: 'authelia'
+    password: 'example.com'
 
 notifier:
   smtp:
-    username: example.com
-    password: example.com
-    host: smtp.gmail.com
-    port: 465
-    sender: example.com
+    address: 'submissions://smtp.gmail.com:465'
+    username: 'example.com'
+    password: 'example.com'
+    sender: 'example.com'
 ...

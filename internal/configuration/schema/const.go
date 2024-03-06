@@ -44,18 +44,15 @@ const (
 // ErrTLSVersionNotSupported returned when an unknown TLS version supplied.
 var ErrTLSVersionNotSupported = errors.New("supplied tls version isn't supported")
 
-// ProfileRefreshDisabled represents a Value for refresh_interval that disables the check entirely.
-const ProfileRefreshDisabled = "disable"
-
 const (
 	// ProfileRefreshAlways represents a value for refresh_interval that's the same as 0ms.
 	ProfileRefreshAlways = "always"
 
-	// RefreshIntervalDefault represents the default value of refresh_interval.
-	RefreshIntervalDefault = "5m"
+	// ProfileRefreshDisabled represents a Value for refresh_interval that disables the check entirely.
+	ProfileRefreshDisabled = "disable"
 
-	// RefreshIntervalAlways represents the duration value refresh interval should have if set to always.
-	RefreshIntervalAlways = 0 * time.Millisecond
+	// RefreshIntervalDefault represents the default value of refresh_interval.
+	RefreshIntervalDefault = time.Minute * 5
 )
 
 const (
@@ -76,6 +73,14 @@ const (
 
 	// LDAPImplementationGLAuth is the string for the GLAuth LDAP implementation.
 	LDAPImplementationGLAuth = "glauth"
+)
+
+const (
+	// LDAPGroupSearchModeFilter is the string for the filter group search mode.
+	LDAPGroupSearchModeFilter = "filter"
+
+	// LDAPGroupSearchModeMemberOf is the string for the memberOf group search mode.
+	LDAPGroupSearchModeMemberOf = "memberof"
 )
 
 // TOTP Algorithm.
@@ -103,19 +108,79 @@ const (
 	TOTPSecretSizeMinimum = 20
 )
 
-// regexpHasScheme checks if a string has a scheme. Valid characters for schemes include alphanumeric, hyphen,
-// period, and plus characters.
-var regexpHasScheme = regexp.MustCompile(`^[-+.a-zA-Z\d]+://`)
+var (
+	// regexpHasScheme checks if a string has a scheme. Valid characters for schemes include alphanumeric, hyphen,
+	// period, and plus characters.
+	regexpHasScheme = regexp.MustCompile(`^[-+.a-zA-Z\d]*(://|:$)`)
 
-const (
-	blockCERTIFICATE   = "CERTIFICATE"
-	blockRSAPRIVATEKEY = "RSA PRIVATE KEY"
+	regexpIsUmask = regexp.MustCompile(`^[0-7]{3,4}$`)
 )
 
 const (
-	ldapAttrMail        = "mail"
-	ldapAttrUserID      = "uid"
-	ldapAttrDisplayName = "displayName"
-	ldapAttrDescription = "description"
-	ldapAttrCommonName  = "cn"
+	policyTwoFactor = "two_factor"
+)
+
+const (
+	addressQueryParamUmask = "umask"
+)
+
+const (
+	blockCERTIFICATE = "CERTIFICATE"
+)
+
+// Authorization Schemes.
+const (
+	SchemeBasic  = "basic"
+	SchemeBearer = "bearer"
+)
+
+// Authz values.
+const (
+	AuthzEndpointNameLegacy      = "legacy"
+	AuthzEndpointNameAuthRequest = "auth-request"
+	AuthzEndpointNameExtAuthz    = "ext-authz"
+	AuthzEndpointNameForwardAuth = "forward-auth"
+
+	AuthzImplementationLegacy      = "Legacy"
+	AuthzImplementationAuthRequest = "AuthRequest"
+	AuthzImplementationExtAuthz    = "ExtAuthz"
+	AuthzImplementationForwardAuth = "ForwardAuth"
+
+	AuthzStrategyHeaderCookieSession                 = "CookieSession"
+	AuthzStrategyHeaderAuthorization                 = "HeaderAuthorization"
+	AuthzStrategyHeaderProxyAuthorization            = "HeaderProxyAuthorization"
+	AuthzStrategyHeaderAuthRequestProxyAuthorization = "HeaderAuthRequestProxyAuthorization"
+	AuthzStrategyHeaderLegacy                        = "HeaderLegacy"
+)
+
+const (
+	ldapGroupSearchModeFilter = "filter"
+)
+
+const (
+	ldapAttrDistinguishedName = "distinguishedName"
+	ldapAttrMail              = "mail"
+	ldapAttrUserID            = "uid"
+	ldapAttrSAMAccountName    = "sAMAccountName"
+	ldapAttrDisplayName       = "displayName"
+	ldapAttrDescription       = "description"
+	ldapAttrCommonName        = "cn"
+	ldapAttrMemberOf          = "memberOf"
+)
+
+// Address Schemes.
+const (
+	AddressSchemeTCP         = "tcp"
+	AddressSchemeTCP4        = "tcp4"
+	AddressSchemeTCP6        = "tcp6"
+	AddressSchemeUDP         = "udp"
+	AddressSchemeUDP4        = "udp4"
+	AddressSchemeUDP6        = "udp6"
+	AddressSchemeUnix        = "unix"
+	AddressSchemeLDAP        = "ldap"
+	AddressSchemeLDAPS       = "ldaps"
+	AddressSchemeLDAPI       = "ldapi"
+	AddressSchemeSMTP        = "smtp"
+	AddressSchemeSUBMISSION  = "submission"
+	AddressSchemeSUBMISSIONS = "submissions"
 )

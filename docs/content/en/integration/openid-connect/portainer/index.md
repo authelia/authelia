@@ -1,6 +1,6 @@
 ---
 title: "Portainer"
-description: "Integrating Portainer with the Authelia OpenID Connect Provider."
+description: "Integrating Portainer with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
@@ -18,7 +18,7 @@ aliases:
 ## Tested Versions
 
 * [Authelia]
-  * [v4.35.5](https://github.com/authelia/authelia/releases/tag/v4.35.5)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Portainer] CE and EE
   * 2.12.2
 
@@ -30,12 +30,39 @@ aliases:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://portainer.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://portainer.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `portainer`
 * __Client Secret:__ `insecure_secret`
 
 ## Configuration
+
+### Authelia
+
+The following YAML configuration is an example __Authelia__
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Portainer]
+which will operate with the above example:
+
+```yaml
+identity_providers:
+  oidc:
+    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
+    ## See: https://www.authelia.com/c/oidc
+    clients:
+      - client_id: 'portainer'
+        client_name: 'Portainer'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        public: false
+        authorization_policy: 'two_factor'
+        redirect_uris:
+          - 'https://portainer.example.com'
+        scopes:
+          - 'openid'
+          - 'profile'
+          - 'groups'
+          - 'email'
+        userinfo_signed_response_alg: 'none'
+```
 
 ### Application
 
@@ -57,28 +84,6 @@ To configure [Portainer] to utilize Authelia as an [OpenID Connect 1.0] Provider
    11. Scopes: `openid profile groups email`
 
 {{< figure src="portainer.png" alt="Portainer" width="736" style="padding-right: 10px" >}}
-
-### Authelia
-
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Portainer]
-which will operate with the above example:
-
-```yaml
-- id: portainer
-  description: Portainer
-  secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-  public: false
-  authorization_policy: two_factor
-  redirect_uris:
-    - https://portainer.example.com
-  scopes:
-    - openid
-    - profile
-    - groups
-    - email
-  userinfo_signing_algorithm: none
-```
 
 ## See Also
 

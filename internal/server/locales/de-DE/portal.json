@@ -14,7 +14,7 @@
 	"Deny": "Ablehnen",
 	"Done": "Erledigt",
 	"Enter new password": "Neues Passwort eingeben",
-	"Enter one-time password": "Einmal-Passwort eingeben",
+	"Enter One-Time Password": "Einmal-Passwort eingeben",
 	"Failed to register device, the provided link is expired or has already been used": "Gerät konnte nicht registriert werden, der angegebene Link ist abgelaufen oder wurde bereits verwendet",
 	"Hi": "Hallo",
 	"Incorrect username or password": "Falscher Benutzername oder falsches Passwort.",
@@ -39,6 +39,7 @@
 	"Password": "Passwort",
 	"Passwords do not match": "Die Passwörter stimmen nicht überein.",
 	"Powered by": "Betrieben mit",
+	"Privacy Policy": "Datenschutzerklärung",
 	"Push Notification": "Push-Benachrichtigung",
 	"Register device": "Gerät registrieren",
 	"Register your first device by clicking on the link below": "Registrieren Sie Ihr erstes Gerät, indem Sie auf den unten stehenden Link klicken.",
@@ -50,7 +51,7 @@
 	"Reset": "Zurücksetzen",
 	"Scan QR Code": "QR-Code scannen",
 	"Secret": "Geheimnis",
-	"Security Key - WebAuthN": "Sicherheitsschlüssel - WebAuthN",
+	"Security Key - WebAuthn": "Sicherheitsschlüssel - WebAuthn",
 	"Select a Device": "Gerät auswählen",
 	"Sign in": "Anmelden",
 	"Sign out": "Abmelden",
@@ -67,6 +68,7 @@
 	"Use OpenID to verify your identity": "Verwenden Sie OpenID, um Ihre Identität zu überprüfen",
 	"Username": "Benutzername",
 	"You must open the link from the same device and browser that initiated the registration process": "Sie müssen den Link mit demselben Gerät und demselben Browser öffnen, mit dem Sie den Registrierungsprozess gestartet haben.",
+	"You must view and accept the Privacy Policy before using": "Sie müssen erst die <0>Datenschutzerklärung</0> ansehen und akzeptieren",
 	"You're being signed out and redirected": "Sie werden abgemeldet und umgeleitet",
 	"Your supplied password does not meet the password policy requirements": "Ihr angegebenes Passwort entspricht nicht den Anforderungen der Passwortrichtlinie."
 }

@@ -25,11 +25,13 @@ func waitUntilServiceLogDetected(
 		if err != nil {
 			return false, err
 		}
+
 		for _, pattern := range logPatterns {
 			if strings.Contains(logs, pattern) {
 				return true, nil
 			}
 		}
+
 		return false, nil
 	})
 

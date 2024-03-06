@@ -1,6 +1,6 @@
 ---
 title: "BookStack"
-description: "Integrating BookStack with the Authelia OpenID Connect Provider."
+description: "Integrating BookStack with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
@@ -16,9 +16,9 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.35.5](https://github.com/authelia/authelia/releases/tag/v4.35.5)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [BookStack]
-  * 20.10
+  * 23.02.2
 
 ## Before You Begin
 
@@ -28,8 +28,8 @@ community: true
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://bookstack.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://bookstack.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `bookstack`
 * __Client Secret:__ `insecure_secret`
 
@@ -40,6 +40,32 @@ the secret or URL encode the secret yourself.*
 [RFC6749 Appendix B]: https://datatracker.ietf.org/doc/html/rfc6749#appendix-B
 
 ## Configuration
+
+### Authelia
+
+The following YAML configuration is an example __Authelia__
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [BookStack]
+which will operate with the above example:
+
+```yaml
+identity_providers:
+  oidc:
+    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
+    ## See: https://www.authelia.com/c/oidc
+    clients:
+      - client_id: 'bookstack'
+        client_name: 'BookStack'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        public: false
+        authorization_policy: 'two_factor'
+        redirect_uris:
+          - 'https://bookstack.example.com/oidc/callback'
+        scopes:
+          - 'openid'
+          - 'profile'
+          - 'email'
+        userinfo_signed_response_alg: 'none'
+```
 
 ### Application
 
@@ -54,27 +80,6 @@ To configure [BookStack] to utilize Authelia as an [OpenID Connect 1.0] Provider
    5. OIDC_CLIENT_SECRET: `insecure_secret`
    6. OIDC_ISSUER: `https://auth.example.com`
    7. OIDC_ISSUER_DISCOVER: `true`
-
-### Authelia
-
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [BookStack]
-which will operate with the above example:
-
-```yaml
-- id: bookstack
-  description: BookStack
-  secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-  public: false
-  authorization_policy: two_factor
-  redirect_uris:
-    - https://bookstack.example.com/oidc/callback
-  scopes:
-    - openid
-    - profile
-    - email
-  userinfo_signing_algorithm: none
-```
 
 ## See Also
 

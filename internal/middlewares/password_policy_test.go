@@ -13,47 +13,47 @@ import (
 func TestNewPasswordPolicyProvider(t *testing.T) {
 	testCases := []struct {
 		desc     string
-		have     schema.PasswordPolicyConfiguration
+		have     schema.PasswordPolicy
 		expected PasswordPolicyProvider
 	}{
 		{
 			desc:     "ShouldReturnUnconfiguredProvider",
-			have:     schema.PasswordPolicyConfiguration{},
+			have:     schema.PasswordPolicy{},
 			expected: &StandardPasswordPolicyProvider{},
 		},
 		{
 			desc:     "ShouldReturnProviderWhenZxcvbn",
-			have:     schema.PasswordPolicyConfiguration{ZXCVBN: schema.PasswordPolicyZXCVBNParams{Enabled: true, MinScore: 10}},
+			have:     schema.PasswordPolicy{ZXCVBN: schema.PasswordPolicyZXCVBN{Enabled: true, MinScore: 10}},
 			expected: &ZXCVBNPasswordPolicyProvider{minScore: 10},
 		},
 		{
 			desc:     "ShouldReturnConfiguredProviderWithMin",
-			have:     schema.PasswordPolicyConfiguration{Standard: schema.PasswordPolicyStandardParams{Enabled: true, MinLength: 8}},
+			have:     schema.PasswordPolicy{Standard: schema.PasswordPolicyStandard{Enabled: true, MinLength: 8}},
 			expected: &StandardPasswordPolicyProvider{min: 8},
 		},
 		{
 			desc:     "ShouldReturnConfiguredProviderWitHMinMax",
-			have:     schema.PasswordPolicyConfiguration{Standard: schema.PasswordPolicyStandardParams{Enabled: true, MinLength: 8, MaxLength: 100}},
+			have:     schema.PasswordPolicy{Standard: schema.PasswordPolicyStandard{Enabled: true, MinLength: 8, MaxLength: 100}},
 			expected: &StandardPasswordPolicyProvider{min: 8, max: 100},
 		},
 		{
 			desc:     "ShouldReturnConfiguredProviderWithMinLowercase",
-			have:     schema.PasswordPolicyConfiguration{Standard: schema.PasswordPolicyStandardParams{Enabled: true, MinLength: 8, RequireLowercase: true}},
+			have:     schema.PasswordPolicy{Standard: schema.PasswordPolicyStandard{Enabled: true, MinLength: 8, RequireLowercase: true}},
 			expected: &StandardPasswordPolicyProvider{min: 8, patterns: []regexp.Regexp{*regexp.MustCompile(`[a-z]+`)}},
 		},
 		{
 			desc:     "ShouldReturnConfiguredProviderWithMinLowercaseUppercase",
-			have:     schema.PasswordPolicyConfiguration{Standard: schema.PasswordPolicyStandardParams{Enabled: true, MinLength: 8, RequireLowercase: true, RequireUppercase: true}},
+			have:     schema.PasswordPolicy{Standard: schema.PasswordPolicyStandard{Enabled: true, MinLength: 8, RequireLowercase: true, RequireUppercase: true}},
 			expected: &StandardPasswordPolicyProvider{min: 8, patterns: []regexp.Regexp{*regexp.MustCompile(`[a-z]+`), *regexp.MustCompile(`[A-Z]+`)}},
 		},
 		{
 			desc:     "ShouldReturnConfiguredProviderWithMinLowercaseUppercaseNumber",
-			have:     schema.PasswordPolicyConfiguration{Standard: schema.PasswordPolicyStandardParams{Enabled: true, MinLength: 8, RequireLowercase: true, RequireUppercase: true, RequireNumber: true}},
+			have:     schema.PasswordPolicy{Standard: schema.PasswordPolicyStandard{Enabled: true, MinLength: 8, RequireLowercase: true, RequireUppercase: true, RequireNumber: true}},
 			expected: &StandardPasswordPolicyProvider{min: 8, patterns: []regexp.Regexp{*regexp.MustCompile(`[a-z]+`), *regexp.MustCompile(`[A-Z]+`), *regexp.MustCompile(`[0-9]+`)}},
 		},
 		{
 			desc:     "ShouldReturnConfiguredProviderWithMinLowercaseUppercaseSpecial",
-			have:     schema.PasswordPolicyConfiguration{Standard: schema.PasswordPolicyStandardParams{Enabled: true, MinLength: 8, RequireLowercase: true, RequireUppercase: true, RequireSpecial: true}},
+			have:     schema.PasswordPolicy{Standard: schema.PasswordPolicyStandard{Enabled: true, MinLength: 8, RequireLowercase: true, RequireUppercase: true, RequireSpecial: true}},
 			expected: &StandardPasswordPolicyProvider{min: 8, patterns: []regexp.Regexp{*regexp.MustCompile(`[a-z]+`), *regexp.MustCompile(`[A-Z]+`), *regexp.MustCompile(`[^a-zA-Z0-9]+`)}},
 		},
 	}
@@ -69,25 +69,25 @@ func TestNewPasswordPolicyProvider(t *testing.T) {
 func TestPasswordPolicyProvider_Validate(t *testing.T) {
 	testCases := []struct {
 		desc     string
-		config   schema.PasswordPolicyConfiguration
+		config   schema.PasswordPolicy
 		have     []string
 		expected []error
 	}{
 		{
 			desc:     "ShouldValidateAllPasswords",
-			config:   schema.PasswordPolicyConfiguration{},
+			config:   schema.PasswordPolicy{},
 			have:     []string{"a", "1", "a really str0ng pass12nm3kjl12word@@#4"},
 			expected: []error{nil, nil, nil},
 		},
 		{
 			desc:     "ShouldValidatePasswordMinLength",
-			config:   schema.PasswordPolicyConfiguration{Standard: schema.PasswordPolicyStandardParams{Enabled: true, MinLength: 8}},
+			config:   schema.PasswordPolicy{Standard: schema.PasswordPolicyStandard{Enabled: true, MinLength: 8}},
 			have:     []string{"a", "b123", "1111111", "aaaaaaaa", "1o23nm1kio2n3k12jn"},
 			expected: []error{errPasswordPolicyNoMet, errPasswordPolicyNoMet, errPasswordPolicyNoMet, nil, nil},
 		},
 		{
 			desc:   "ShouldValidatePasswordMaxLength",
-			config: schema.PasswordPolicyConfiguration{Standard: schema.PasswordPolicyStandardParams{Enabled: true, MaxLength: 30}},
+			config: schema.PasswordPolicy{Standard: schema.PasswordPolicyStandard{Enabled: true, MaxLength: 30}},
 			have: []string{
 				"a1234567894654wkjnkjasnskjandkjansdkjnas",
 				"012345678901234567890123456789a",
@@ -99,13 +99,13 @@ func TestPasswordPolicyProvider_Validate(t *testing.T) {
 		},
 		{
 			desc:     "ShouldValidatePasswordAdvancedLowerUpperMin8",
-			config:   schema.PasswordPolicyConfiguration{Standard: schema.PasswordPolicyStandardParams{Enabled: true, MinLength: 8, RequireLowercase: true, RequireUppercase: true}},
+			config:   schema.PasswordPolicy{Standard: schema.PasswordPolicyStandard{Enabled: true, MinLength: 8, RequireLowercase: true, RequireUppercase: true}},
 			have:     []string{"a", "b123", "1111111", "aaaaaaaa", "1o23nm1kio2n3k12jn", "ANJKJQ@#NEK!@#NJK!@#", "qjik2nkjAkjlmn123"},
 			expected: []error{errPasswordPolicyNoMet, errPasswordPolicyNoMet, errPasswordPolicyNoMet, errPasswordPolicyNoMet, errPasswordPolicyNoMet, errPasswordPolicyNoMet, nil},
 		},
 		{
 			desc:   "ShouldValidatePasswordAdvancedAllMax100Min8",
-			config: schema.PasswordPolicyConfiguration{Standard: schema.PasswordPolicyStandardParams{Enabled: true, MinLength: 8, MaxLength: 100, RequireLowercase: true, RequireUppercase: true, RequireNumber: true, RequireSpecial: true}},
+			config: schema.PasswordPolicy{Standard: schema.PasswordPolicyStandard{Enabled: true, MinLength: 8, MaxLength: 100, RequireLowercase: true, RequireUppercase: true, RequireNumber: true, RequireSpecial: true}},
 			have: []string{
 				"a",
 				"b123",
@@ -134,6 +134,7 @@ func TestPasswordPolicyProvider_Validate(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			require.Equal(t, len(tc.have), len(tc.expected))
+
 			for i := 0; i < len(tc.have); i++ {
 				provider := NewPasswordPolicyProvider(tc.config)
 				t.Run(tc.have[i], func(t *testing.T) {

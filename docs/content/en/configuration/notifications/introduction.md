@@ -8,13 +8,15 @@ images: []
 menu:
   configuration:
     parent: "notifications"
-weight: 107100
+weight: 108100
 toc: true
 ---
 
 Authelia sends messages to users in order to verify their identity.
 
 ## Configuration
+
+{{< config-alert-example >}}
 
 ```yaml
 notifier:
@@ -25,6 +27,8 @@ notifier:
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### disable_startup_check
 

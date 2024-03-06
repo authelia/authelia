@@ -18,7 +18,9 @@ repository (but search first in case a similar issue already exists).
 
 If you would like to fix a bug or implement a feature, please fork the repository and create a Pull Request.
 More information on getting set up locally can be found in the
-[Development Contribution](https://www.authelia.com/contributing/development/introduction/) documentation.
+[Development Contribution](https://www.authelia.com/contributing/development/introduction/) documentation, in addition
+the [Contribution Guidelines](https://www.authelia.com/contributing/guidelines/introduction/) documentation includes
+several contribution guidelines.
 
 Before you start any Pull Request, it's recommended that you create an issue to discuss first if you have any doubts
 about requirement or implementation. That way you can be sure that the maintainer(s) agree on what to change and how,
@@ -28,11 +30,20 @@ issue so that no one else starts any duplicate work.
 Pull Requests can only be merged once all status checks are green, which means `authelia-scripts --log-level debug ci`
 passes, and coverage does not regress.
 
-## Do not force push to your pull request branch
+### Do not force push to your pull request branch
 
-Please do not force push to your PR's branch after you have created your PR, as doing so makes it harder for us to
-review your work. PRs will always be squashed by us when we merge your work. Commit as many times as you need in your
+Please do not force push to your PR's branch after you have created your PR especially when a maintainer has either
+performed a review or has indicated they are performing a review, as doing so makes it harder to review your commits
+accurately. PRs will always be squashed by us when we merge your work. Commit as many times as you need in your
 pull request branch.
+
+A few exceptions exist to this rule and are as follows:
+
+- Making adjustments to the commit message i.e. for the following reasons:
+	- To comply with the [Commit Message] guidelines
+- To rebase your changes off of master or another branch
+
+[Commit Message]: https://www.authelia.com/contributing/guidelines/commit-message/
 
 ## Re-requesting a review
 

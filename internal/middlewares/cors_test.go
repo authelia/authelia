@@ -56,13 +56,13 @@ func TestCORSPolicyBuilder_WithAllowedMethods(t *testing.T) {
 
 	assert.Nil(t, cors.methods)
 
-	cors.WithAllowedMethods("GET")
+	cors.WithAllowedMethods(fasthttp.MethodGet)
 
-	assert.Equal(t, []string{"GET"}, cors.methods)
+	assert.Equal(t, []string{fasthttp.MethodGet}, cors.methods)
 
-	cors.WithAllowedMethods("POST", "PATCH")
+	cors.WithAllowedMethods(fasthttp.MethodPost, fasthttp.MethodPatch)
 
-	assert.Equal(t, []string{"POST", "PATCH"}, cors.methods)
+	assert.Equal(t, []string{fasthttp.MethodPost, fasthttp.MethodPatch}, cors.methods)
 
 	cors.WithAllowedMethods()
 
@@ -167,7 +167,7 @@ func TestCORSPolicyBuilder_HandleOPTIONS(t *testing.T) {
 	ctx.Request.Header.SetBytesK(headerAccessControlRequestHeaders, "X-Example-Header")
 	ctx.Request.Header.SetBytesKV(headerOrigin, origin)
 
-	cors.WithAllowedMethods("GET", "OPTIONS")
+	cors.WithAllowedMethods(fasthttp.MethodGet, fasthttp.MethodOptions)
 
 	policy = cors.Build()
 	policy.HandleOPTIONS(ctx)
@@ -245,7 +245,7 @@ func TestCORSPolicyBuilder_HandleOPTIONS_WithoutOrigin(t *testing.T) {
 
 	ctx.Request.Header.SetBytesK(headerAccessControlRequestHeaders, "X-Example-Header")
 
-	cors.WithAllowedMethods("GET", "OPTIONS")
+	cors.WithAllowedMethods(fasthttp.MethodGet, fasthttp.MethodOptions)
 
 	policy = cors.Build()
 	policy.HandleOPTIONS(ctx)
@@ -311,7 +311,7 @@ func TestCORSPolicyBuilder_HandleOPTIONSWithAllowedOrigins(t *testing.T) {
 	ctx.Request.Header.SetBytesKV(headerOrigin, origin)
 
 	cors.WithAllowedOrigins("*")
-	cors.WithAllowedMethods("GET", "OPTIONS")
+	cors.WithAllowedMethods(fasthttp.MethodGet, fasthttp.MethodOptions)
 
 	policy = cors.Build()
 	policy.HandleOPTIONS(ctx)
@@ -383,7 +383,7 @@ func TestCORSPolicyBuilder_HandleOPTIONSWithVaryOnly(t *testing.T) {
 	ctx.Request.Header.SetBytesK(headerAccessControlRequestHeaders, "X-Example-Header")
 	ctx.Request.Header.SetBytesKV(headerOrigin, origin)
 
-	cors.WithAllowedMethods("GET", "OPTIONS")
+	cors.WithAllowedMethods(fasthttp.MethodGet, fasthttp.MethodOptions)
 
 	policy = cors.Build()
 	policy.HandleOPTIONS(ctx)
@@ -429,7 +429,7 @@ func TestCORSPolicyBuilder_HandleOPTIONSWithAllowedHeaders(t *testing.T) {
 	ctx.Request.Header.SetBytesK(headerAccessControlRequestHeaders, "X-Example-Header")
 	ctx.Request.Header.SetBytesKV(headerOrigin, origin)
 
-	cors.WithAllowedMethods("GET", "OPTIONS")
+	cors.WithAllowedMethods(fasthttp.MethodGet, fasthttp.MethodOptions)
 
 	policy = cors.Build()
 	policy.HandleOPTIONS(ctx)
@@ -516,7 +516,7 @@ func Test_CORSApplyAutomaticAllowAllPolicy_WithRequestMethod(t *testing.T) {
 
 	ctx.Request.Header.SetBytesKV(headerOrigin, origin)
 	ctx.Request.Header.SetBytesK(headerAccessControlRequestHeaders, "X-Example-Header")
-	ctx.Request.Header.SetBytesK(headerAccessControlRequestMethod, "GET")
+	ctx.Request.Header.SetBytesK(headerAccessControlRequestMethod, fasthttp.MethodGet)
 
 	cors := NewCORSPolicyBuilder()
 
@@ -528,7 +528,7 @@ func Test_CORSApplyAutomaticAllowAllPolicy_WithRequestMethod(t *testing.T) {
 	assert.Equal(t, headerValueFalse, ctx.Response.Header.PeekBytes(headerAccessControlAllowCredentials))
 	assert.Equal(t, headerValueMaxAge, ctx.Response.Header.PeekBytes(headerAccessControlMaxAge))
 	assert.Equal(t, []byte("X-Example-Header"), ctx.Response.Header.PeekBytes(headerAccessControlAllowHeaders))
-	assert.Equal(t, []byte("GET"), ctx.Response.Header.PeekBytes(headerAccessControlAllowMethods))
+	assert.Equal(t, []byte(fasthttp.MethodGet), ctx.Response.Header.PeekBytes(headerAccessControlAllowMethods))
 }
 
 func Test_CORSApplyAutomaticAllowAllPolicy_ShouldNotModifyFotNonHTTPSRequests(t *testing.T) {
@@ -538,7 +538,7 @@ func Test_CORSApplyAutomaticAllowAllPolicy_ShouldNotModifyFotNonHTTPSRequests(t 
 
 	ctx.Request.Header.SetBytesKV(headerOrigin, origin)
 	ctx.Request.Header.SetBytesK(headerAccessControlRequestHeaders, "X-Example-Header")
-	ctx.Request.Header.SetBytesK(headerAccessControlRequestMethod, "GET")
+	ctx.Request.Header.SetBytesK(headerAccessControlRequestMethod, fasthttp.MethodGet)
 
 	cors := NewCORSPolicyBuilder().WithVary()
 
@@ -560,11 +560,11 @@ func Test_CORSMiddleware_AsMiddleware(t *testing.T) {
 
 	ctx.Request.Header.SetBytesKV(headerOrigin, origin)
 	ctx.Request.Header.SetBytesK(headerAccessControlRequestHeaders, "X-Example-Header")
-	ctx.Request.Header.SetBytesK(headerAccessControlRequestMethod, "GET")
+	ctx.Request.Header.SetBytesK(headerAccessControlRequestMethod, fasthttp.MethodGet)
 
 	middleware := NewBridgeBuilder(schema.Configuration{}, Providers{}).Build()
 
-	cors := NewCORSPolicyBuilder().WithAllowedMethods("GET", "OPTIONS")
+	cors := NewCORSPolicyBuilder().WithAllowedMethods(fasthttp.MethodGet, fasthttp.MethodOptions)
 
 	policy := cors.Build()
 

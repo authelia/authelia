@@ -58,8 +58,7 @@ func localesRunE(cmd *cobra.Command, args []string) (err error) {
 	fullPathWebI18NIndex := filepath.Join(root, pathWebI18NIndex)
 
 	var (
-		f        *os.File
-		dataJSON []byte
+		f *os.File
 	)
 
 	if f, err = os.Create(fullPathWebI18NIndex); err != nil {
@@ -70,14 +69,20 @@ func localesRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if dataJSON, err = json.Marshal(data); err != nil {
-		return err
-	}
+	_ = f.Close()
 
 	fullPathDocsDataLanguages := filepath.Join(root, pathDocsDataLanguages)
 
-	if err = os.WriteFile(fullPathDocsDataLanguages, dataJSON, 0600); err != nil {
+	if f, err = os.OpenFile(fullPathDocsDataLanguages, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0600); err != nil {
 		return fmt.Errorf("failed to write file '%s': %w", fullPathDocsDataLanguages, err)
+	}
+
+	encoder := json.NewEncoder(f)
+
+	encoder.SetIndent("", "    ")
+
+	if err = encoder.Encode(data); err != nil {
+		return fmt.Errorf("failed to encode json data: %w", err)
 	}
 
 	return nil
@@ -114,7 +119,7 @@ func getLanguages(dir string) (languages *Languages, err error) {
 		ext := filepath.Ext(nameLower)
 		ns := strings.Replace(nameLower, ext, "", 1)
 
-		if ext != ".json" {
+		if ext != extJSON {
 			return nil
 		}
 

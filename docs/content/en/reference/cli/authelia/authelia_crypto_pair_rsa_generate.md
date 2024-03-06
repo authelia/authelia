@@ -35,12 +35,13 @@ authelia crypto pair rsa generate --help
 ### Options
 
 ```
-  -b, --bits int                  number of RSA bits for the certificate (default 2048)
-  -d, --directory string          directory where the generated keys, certificates, etc will be stored
-      --file.private-key string   name of the file to export the private key data to (default "private.pem")
-      --file.public-key string    name of the file to export the public key data to (default "public.pem")
-  -h, --help                      help for generate
-      --pkcs8                     force PKCS #8 ASN.1 format
+  -b, --bits int                       number of RSA bits for the certificate (default 2048)
+  -d, --directory string               directory where the generated keys, certificates, etc will be stored
+      --file.extension.legacy string   string to include before the actual extension as a sub-extension on the PKCS#1 and SECG1 legacy formats (default "legacy")
+      --file.private-key string        name of the file to export the private key data to (default "private.pem")
+      --file.public-key string         name of the file to export the public key data to (default "public.pem")
+  -h, --help                           help for generate
+      --legacy                         enables the output of the legacy PKCS#1 and SECG1 formats when enabled
 ```
 
 ### Options inherited from parent commands

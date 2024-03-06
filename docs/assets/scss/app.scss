@@ -9,6 +9,8 @@
 
 /** Import Bootstrap Icons */
 $bootstrap-icons-font-file: "./fonts/bootstrap-icons";
+
+/* stylelint-disable-next-line scss/at-import-partial-extension */
 @import "bootstrap-icons/font/bootstrap-icons.scss";
 
 /** Import highlight.js */

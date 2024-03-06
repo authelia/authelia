@@ -30,15 +30,14 @@ func NewMultiCookieDomainScenario(domain, nextDomain string, cookieNames []strin
 }
 
 func (s *MultiCookieDomainScenario) SetupSuite() {
-	browser, err := StartRod()
+	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	s.RodSession = browser
 
-	err = updateDevEnvFileForDomain(s.domain, false)
-	s.Require().NoError(err)
+	s.Require().NoError(updateDevEnvFileForDomain(s.domain, false))
 }
 
 func (s *MultiCookieDomainScenario) TearDownSuite() {
@@ -133,8 +132,7 @@ func (s *MultiCookieDomainScenario) TestShouldStayLoggedInOnNextDomainWhenLogged
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", s.remember, s.domain, firstDomainTargetURL)
 	s.verifySecretAuthorized(s.T(), s.Page)
 
-	err := updateDevEnvFileForDomain(s.nextDomain, false)
-	s.Require().NoError(err)
+	s.Require().NoError(updateDevEnvFileForDomain(s.nextDomain, false))
 
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", !s.remember, s.nextDomain, nextDomainTargetURL)
 	s.verifySecretAuthorized(s.T(), s.Page)

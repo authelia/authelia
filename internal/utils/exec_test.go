@@ -2,7 +2,6 @@ package utils
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -16,8 +15,6 @@ func TestShouldExecCommandOnAutheliaRootPath(t *testing.T) {
 	assert.NoError(t, err, "")
 
 	str := strings.Trim(string(result), "\n")
-
-	fmt.Println(string(result))
 
 	assert.NoError(t, err, "")
 	assert.Equal(t, true, strings.HasSuffix(str, "authelia"))
@@ -53,6 +50,7 @@ func TestShouldRunFuncUntilNoError(t *testing.T) {
 		if counter < 3 {
 			return errors.New("not ready")
 		}
+
 		return nil
 	})
 	assert.NoError(t, err, "")
@@ -66,6 +64,7 @@ func TestShouldFailAfterMaxAttemps(t *testing.T) {
 		if counter < 4 {
 			return errors.New("not ready")
 		}
+
 		return nil
 	})
 	assert.ErrorContains(t, err, "not ready")

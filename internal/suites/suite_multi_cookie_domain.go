@@ -1,7 +1,6 @@
 package suites
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -18,31 +17,20 @@ var multiCookieDomainDockerEnvironment = NewDockerEnvironment([]string{
 })
 
 func init() {
-	setup := func(suitePath string) error {
-		err := multiCookieDomainDockerEnvironment.Up()
-		if err != nil {
+	setup := func(suitePath string) (err error) {
+		if err = multiCookieDomainDockerEnvironment.Up(); err != nil {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(multiCookieDomainDockerEnvironment, multiCookieDomainSuiteName)
+		if err = waitUntilAutheliaIsReady(multiCookieDomainDockerEnvironment, multiCookieDomainSuiteName); err != nil {
+			return err
+		}
+
+		return updateDevEnvFileForDomain(BaseDomain, true)
 	}
 
 	displayAutheliaLogs := func() error {
-		backendLogs, err := multiCookieDomainDockerEnvironment.Logs("authelia-backend", nil)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(backendLogs)
-
-		frontendLogs, err := multiCookieDomainDockerEnvironment.Logs("authelia-frontend", nil)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(frontendLogs)
-
-		return nil
+		return multiCookieDomainDockerEnvironment.PrintLogs("authelia-backend", "authelia-frontend")
 	}
 
 	teardown := func(suitePath string) error {

@@ -1,9 +1,6 @@
 package handlers
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -23,7 +20,7 @@ func friendlyMethod(m string) (fm string) {
 func friendlyUsername(username string) (fusername string) {
 	switch username {
 	case "":
-		return "<anonymous>"
+		return anonymous
 	default:
 		return username
 	}
@@ -54,39 +51,55 @@ func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaC
 	emailsAdded, emailsRemoved := utils.StringSlicesDelta(userSession.Emails, details.Emails)
 	nameDelta := userSession.DisplayName != details.DisplayName
 
-	var groupsDelta []string
-	if len(groupsAdded) != 0 {
-		groupsDelta = append(groupsDelta, fmt.Sprintf("added: %s.", strings.Join(groupsAdded, ", ")))
+	fields := map[string]any{"username": userSession.Username}
+	msg := "User session groups are current"
+
+	if len(groupsAdded) != 0 || len(groupsRemoved) != 0 {
+		if len(groupsAdded) != 0 {
+			fields["added"] = groupsAdded
+		}
+
+		if len(groupsRemoved) != 0 {
+			fields["removed"] = groupsRemoved
+		}
+
+		msg = "User session groups were updated"
 	}
 
-	if len(groupsRemoved) != 0 {
-		groupsDelta = append(groupsDelta, fmt.Sprintf("removed: %s.", strings.Join(groupsRemoved, ", ")))
-	}
+	ctx.Logger.WithFields(fields).Trace(msg)
 
-	if len(groupsDelta) != 0 {
-		ctx.Logger.Tracef("Updated groups detected for %s. %s", userSession.Username, strings.Join(groupsDelta, " "))
+	if len(emailsAdded) != 0 || len(emailsRemoved) != 0 {
+		if len(emailsAdded) != 0 {
+			fields["added"] = emailsAdded
+		} else {
+			delete(fields, "added")
+		}
+
+		if len(emailsRemoved) != 0 {
+			fields["removed"] = emailsRemoved
+		} else {
+			delete(fields, "removed")
+		}
+
+		msg = "User session emails were updated"
 	} else {
-		ctx.Logger.Tracef("No updated groups detected for %s", userSession.Username)
+		msg = "User session emails are current"
+
+		delete(fields, "added")
+		delete(fields, "removed")
 	}
 
-	var emailsDelta []string
-	if len(emailsAdded) != 0 {
-		emailsDelta = append(emailsDelta, fmt.Sprintf("added: %s.", strings.Join(emailsAdded, ", ")))
-	}
-
-	if len(emailsRemoved) != 0 {
-		emailsDelta = append(emailsDelta, fmt.Sprintf("removed: %s.", strings.Join(emailsRemoved, ", ")))
-	}
-
-	if len(emailsDelta) != 0 {
-		ctx.Logger.Tracef("Updated emails detected for %s. %s", userSession.Username, strings.Join(emailsDelta, " "))
-	} else {
-		ctx.Logger.Tracef("No updated emails detected for %s", userSession.Username)
-	}
+	ctx.Logger.WithFields(fields).Trace(msg)
 
 	if nameDelta {
-		ctx.Logger.Tracef("Updated display name detected for %s. Added: %s. Removed: %s.", userSession.Username, details.DisplayName, userSession.DisplayName)
+		ctx.Logger.
+			WithFields(map[string]any{
+				"username": userSession.Username,
+				"before":   userSession.DisplayName,
+				"after":    details.DisplayName,
+			}).
+			Trace("User session display name updated")
 	} else {
-		ctx.Logger.Tracef("No updated display name detected for %s", userSession.Username)
+		ctx.Logger.Trace("User session display name is current")
 	}
 }

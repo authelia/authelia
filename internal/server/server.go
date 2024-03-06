@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"strconv"
 
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
@@ -16,14 +15,14 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-// CreateDefaultServer Create Authelia's internal webserver with the given configuration and providers.
+// CreateDefaultServer Create Authelia's internal web server with the given configuration and providers.
 func CreateDefaultServer(config *schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, paths []string, isTLS bool, err error) {
 	if err = providers.Templates.LoadTemplatedAssets(assets); err != nil {
 		return nil, nil, nil, false, fmt.Errorf("failed to load templated assets: %w", err)
 	}
 
 	server = &fasthttp.Server{
-		ErrorHandler:          handleError(),
+		ErrorHandler:          handleError("server"),
 		Handler:               handleRouter(config, providers),
 		NoDefaultServerHeader: true,
 		ReadBufferSize:        config.Server.Buffers.Read,
@@ -34,11 +33,13 @@ func CreateDefaultServer(config *schema.Configuration, providers middlewares.Pro
 		Logger:                logging.LoggerPrintf(logrus.DebugLevel),
 	}
 
-	address := net.JoinHostPort(config.Server.Host, strconv.Itoa(config.Server.Port))
-
 	var (
-		connectionScheme string
+		connectionScheme = schemeHTTP
 	)
+
+	if listener, err = config.Server.Address.Listener(); err != nil {
+		return nil, nil, nil, false, fmt.Errorf("error occurred while attempting to initialize main server listener for address '%s': %w", config.Server.Address.String(), err)
+	}
 
 	if config.Server.TLS.Certificate != "" && config.Server.TLS.Key != "" {
 		isTLS, connectionScheme = true, schemeHTTPS
@@ -66,26 +67,21 @@ func CreateDefaultServer(config *schema.Configuration, providers middlewares.Pro
 			server.TLSConfig.ClientAuth = tls.RequireAndVerifyClientCert
 		}
 
-		if listener, err = tls.Listen("tcp", address, server.TLSConfig.Clone()); err != nil {
-			return nil, nil, nil, false, fmt.Errorf("unable to initialize tcp listener: %w", err)
-		}
-	} else {
-		connectionScheme = schemeHTTP
-
-		if listener, err = net.Listen("tcp", address); err != nil {
-			return nil, nil, nil, false, fmt.Errorf("unable to initialize tcp listener: %w", err)
-		}
+		listener = tls.NewListener(listener, server.TLSConfig.Clone())
 	}
 
-	if err = writeHealthCheckEnv(config.Server.DisableHealthcheck, connectionScheme, config.Server.Host,
-		config.Server.Path, config.Server.Port); err != nil {
+	if err = writeHealthCheckEnv(config.Server.DisableHealthcheck, connectionScheme, config.Server.Address.Hostname(),
+		config.Server.Address.RouterPath(), config.Server.Address.Port()); err != nil {
 		return nil, nil, nil, false, fmt.Errorf("unable to configure healthcheck: %w", err)
 	}
 
 	paths = []string{"/"}
 
-	if config.Server.Path != "" {
-		paths = append(paths, config.Server.Path)
+	switch config.Server.Address.RouterPath() {
+	case "/", "":
+		break
+	default:
+		paths = append(paths, config.Server.Address.RouterPath())
 	}
 
 	return server, listener, paths, isTLS, nil
@@ -98,9 +94,9 @@ func CreateMetricsServer(config *schema.Configuration, providers middlewares.Pro
 	}
 
 	server = &fasthttp.Server{
-		ErrorHandler:          handleError(),
+		ErrorHandler:          handleError("telemetry.metrics"),
 		NoDefaultServerHeader: true,
-		Handler:               handleMetrics(),
+		Handler:               handleMetrics(config.Telemetry.Metrics.Address.RouterPath()),
 		ReadBufferSize:        config.Telemetry.Metrics.Buffers.Read,
 		WriteBufferSize:       config.Telemetry.Metrics.Buffers.Write,
 		ReadTimeout:           config.Telemetry.Metrics.Timeouts.Read,
@@ -110,8 +106,8 @@ func CreateMetricsServer(config *schema.Configuration, providers middlewares.Pro
 	}
 
 	if listener, err = config.Telemetry.Metrics.Address.Listener(); err != nil {
-		return nil, nil, nil, false, err
+		return nil, nil, nil, false, fmt.Errorf("error occurred while attempting to initialize metrics telemetry server listener for address '%s': %w", config.Telemetry.Metrics.Address.String(), err)
 	}
 
-	return server, listener, []string{"/metrics"}, false, nil
+	return server, listener, []string{config.Telemetry.Metrics.Address.RouterPath()}, false, nil
 }

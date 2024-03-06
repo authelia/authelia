@@ -11,6 +11,7 @@ yaml-files:
 ignore: |
   api/openapi.yml
   docs/pnpm-lock.yaml
+  docs/node_modules/
   internal/configuration/test_resources/config_bad_quoting.yml
   web/pnpm-lock.yaml
   web/node_modules/

@@ -3,6 +3,6 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './ActiveDirectory/configuration.yml:/config/configuration.yml:ro'
-      - './common/pki:/pki:ro'
+      - './ActiveDirectory/configuration.yml:/config/configuration.yml'
+      - './common/pki:/pki'
 ...

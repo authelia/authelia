@@ -21,6 +21,7 @@ func NewPrometheus() (provider *Prometheus) {
 type Prometheus struct {
 	authnDuration   *prometheus.HistogramVec
 	reqDuration     *prometheus.HistogramVec
+	reqDurationOIDC *prometheus.HistogramVec
 	reqCounter      *prometheus.CounterVec
 	authzCounter    *prometheus.CounterVec
 	authnCounter    *prometheus.CounterVec
@@ -31,6 +32,11 @@ type Prometheus struct {
 func (r *Prometheus) RecordRequest(statusCode, requestMethod string, elapsed time.Duration) {
 	r.reqCounter.WithLabelValues(statusCode, requestMethod).Inc()
 	r.reqDuration.WithLabelValues(statusCode).Observe(elapsed.Seconds())
+}
+
+// RecordRequestOpenIDConnect takes the statusCode string, requestMethod string, and the elapsed time.Duration to record the request and request duration metrics.
+func (r *Prometheus) RecordRequestOpenIDConnect(endpoint, statusCode string, elapsed time.Duration) {
+	r.reqDurationOIDC.WithLabelValues(endpoint, statusCode).Observe(elapsed.Seconds())
 }
 
 // RecordAuthz takes the statusCode string to record the verify endpoint request metrics.
@@ -72,6 +78,16 @@ func (r *Prometheus) register() {
 			Buckets:   []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 15, 20, 30, 40, 50, 60},
 		},
 		[]string{"code"},
+	)
+
+	r.reqDurationOIDC = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Subsystem: "authelia",
+			Name:      "request_duration_openid_connect",
+			Help:      "The time a HTTP request takes to process in seconds for the OpenID Connect 1.0 endpoints.",
+			Buckets:   []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 15, 20, 30, 40, 50, 60},
+		},
+		[]string{"endpoint", "code"},
 	)
 
 	r.reqCounter = promauto.NewCounterVec(

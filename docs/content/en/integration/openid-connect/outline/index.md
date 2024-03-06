@@ -1,6 +1,6 @@
 ---
 title: "Outline"
-description: "Integrating Outline with the Authelia OpenID Connect Provider."
+description: "Integrating Outline with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
 date: 2022-08-12T09:11:42+10:00
 draft: false
@@ -16,7 +16,7 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.36.4](https://github.com/authelia/authelia/releases/tag/v4.36.4)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Outline]
   * 0.65.2
 
@@ -28,8 +28,8 @@ community: true
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://outline.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://outline.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `outline`
 * __Client Secret:__ `insecure_secret`
 
@@ -37,6 +37,33 @@ This example makes the following assumptions:
 in an error as [Outline] will attempt to use a refresh token that is never issued.*
 
 ## Configuration
+
+### Authelia
+
+The following YAML configuration is an example __Authelia__
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Outline]
+which will operate with the above example:
+
+```yaml
+identity_providers:
+  oidc:
+    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
+    ## See: https://www.authelia.com/c/oidc
+    clients:
+      - client_id: 'outline'
+        client_name: 'Outline'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        public: false
+        authorization_policy: 'two_factor'
+        redirect_uris:
+          - 'https://outline.example.com/auth/oidc.callback'
+        scopes:
+          - 'openid'
+          - 'offline_access'
+          - 'profile'
+          - 'email'
+        userinfo_signed_response_alg: 'none'
+```
 
 ### Application
 
@@ -55,28 +82,6 @@ OIDC_USERINFO_URI=https://auth.example.com/api/oidc/userinfo
 OIDC_USERNAME_CLAIM=preferred_username
 OIDC_DISPLAY_NAME=Authelia
 OIDC_SCOPES="openid offline_access profile email"
-```
-
-### Authelia
-
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Outline]
-which will operate with the above example:
-
-```yaml
-- id: outline
-  description: Outline
-  secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-  public: false
-  authorization_policy: two_factor
-  redirect_uris:
-    - https://outline.example.com/auth/oidc.callback
-  scopes:
-    - openid
-    - offline_access
-    - profile
-    - email
-  userinfo_signing_algorithm: none
 ```
 
 ## See Also

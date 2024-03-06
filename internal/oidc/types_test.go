@@ -1,20 +1,24 @@
-package oidc
+package oidc_test
 
 import (
+	"context"
 	"net/url"
 	"testing"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
 func TestNewSession(t *testing.T) {
-	session := NewSession()
+	session := oidc.NewSession()
 
 	require.NotNil(t, session)
 
@@ -34,24 +38,24 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 
 	formValues := url.Values{}
 
-	formValues.Set(ClaimNonce, "abc123xyzauthelia")
+	formValues.Set(oidc.ClaimNonce, "abc123xyzauthelia")
 
 	request := &fosite.AuthorizeRequest{
 		Request: fosite.Request{
 			ID:     requestID.String(),
 			Form:   formValues,
-			Client: &Client{ID: "example"},
+			Client: &oidc.RegisteredClient{ID: "example"},
 		},
 	}
 
 	extra := map[string]any{
-		ClaimPreferredUsername: "john",
+		oidc.ClaimPreferredUsername: "john",
 	}
 
 	requested := time.Unix(1647332518, 0)
 	authAt := time.Unix(1647332500, 0)
-	issuer := "https://example.com"
-	amr := []string{AMRPasswordBasedAuthentication}
+	issuer := examplecom
+	amr := []string{oidc.AMRPasswordBasedAuthentication}
 
 	consent := &model.OAuth2ConsentSession{
 		ChallengeID: uuid.New(),
@@ -59,7 +63,11 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		Subject:     uuid.NullUUID{UUID: subject, Valid: true},
 	}
 
-	session := NewSessionWithAuthorizeRequest(MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request)
+	ctx := &TestContext{}
+
+	ctx.Clock = clock.NewFixed(time.Unix(10000000000, 0))
+
+	session := oidc.NewSessionWithAuthorizeRequest(ctx, MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Extra)
@@ -80,16 +88,16 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	assert.Equal(t, authAt, session.Claims.AuthTime)
 	assert.Equal(t, requested, session.Claims.RequestedAt)
 	assert.Equal(t, issuer, session.Claims.Issuer)
-	assert.Equal(t, "john", session.Claims.Extra[ClaimPreferredUsername])
+	assert.Equal(t, "john", session.Claims.Extra[oidc.ClaimPreferredUsername])
 
-	assert.Equal(t, "primary", session.Headers.Get(JWTHeaderKeyIdentifier))
+	assert.Equal(t, "primary", session.Headers.Get(oidc.JWTHeaderKeyIdentifier))
 
 	consent = &model.OAuth2ConsentSession{
 		ChallengeID: uuid.New(),
 		RequestedAt: requested,
 	}
 
-	session = NewSessionWithAuthorizeRequest(MustParseRequestURI(issuer), "primary", "john", nil, nil, authAt, consent, request)
+	session = oidc.NewSessionWithAuthorizeRequest(ctx, MustParseRequestURI(issuer), "primary", "john", nil, nil, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Claims)
@@ -97,10 +105,61 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	assert.Nil(t, session.Claims.AuthenticationMethodsReferences)
 }
 
-func MustParseRequestURI(input string) *url.URL {
-	if requestURI, err := url.ParseRequestURI(input); err != nil {
-		panic(err)
-	} else {
-		return requestURI
+// TestContext is a minimal implementation of Context for the purpose of testing.
+type TestContext struct {
+	context.Context
+
+	MockIssuerURL *url.URL
+	IssuerURLFunc func() (issuerURL *url.URL, err error)
+	Clock         clock.Provider
+}
+
+// IssuerURL returns the MockIssuerURL.
+func (m *TestContext) RootURL() (issuerURL *url.URL) {
+	if m.IssuerURLFunc != nil {
+		if issuer, err := m.IssuerURLFunc(); err != nil {
+			panic(err)
+		} else {
+			return issuer
+		}
 	}
+
+	return m.MockIssuerURL
+}
+
+// IssuerURL returns the MockIssuerURL.
+func (m *TestContext) IssuerURL() (issuerURL *url.URL, err error) {
+	if m.IssuerURLFunc != nil {
+		return m.IssuerURLFunc()
+	}
+
+	return m.MockIssuerURL, nil
+}
+
+func (m *TestContext) GetClock() clock.Provider {
+	if m.Clock != nil {
+		return m.Clock
+	}
+
+	return clock.New()
+}
+
+func (m *TestContext) GetJWTWithTimeFuncOption() jwt.ParserOption {
+	return jwt.WithTimeFunc(m.GetClock().Now)
+}
+
+type TestCodeStrategy struct {
+	signature string
+}
+
+func (m *TestCodeStrategy) AuthorizeCodeSignature(ctx context.Context, token string) string {
+	return m.signature
+}
+
+func (m *TestCodeStrategy) GenerateAuthorizeCode(ctx context.Context, requester fosite.Requester) (token string, signature string, err error) {
+	return "", "", nil
+}
+
+func (m *TestCodeStrategy) ValidateAuthorizeCode(ctx context.Context, requester fosite.Requester, token string) (err error) {
+	return nil
 }

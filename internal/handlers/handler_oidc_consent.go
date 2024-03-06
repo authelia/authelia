@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -32,16 +33,16 @@ func OpenIDConnectConsentGET(ctx *middlewares.AutheliaCtx) {
 
 	var (
 		consent *model.OAuth2ConsentSession
-		client  *oidc.Client
+		client  oidc.Client
 		handled bool
 	)
 
-	if _, consent, client, handled = oidcConsentGetSessionsAndClient(ctx, consentID); handled {
+	if _, consent, client, handled = handleOpenIDConnectConsentGetSessionsAndClient(ctx, consentID); handled {
 		return
 	}
 
 	if err = ctx.SetJSONBody(client.GetConsentResponseBody(consent)); err != nil {
-		ctx.Error(fmt.Errorf("unable to set JSON body: %v", err), "Operation failed")
+		ctx.Error(fmt.Errorf("unable to set JSON body: %w", err), "Operation failed")
 	}
 }
 
@@ -70,11 +71,11 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		userSession session.UserSession
 		consent     *model.OAuth2ConsentSession
-		client      *oidc.Client
+		client      oidc.Client
 		handled     bool
 	)
 
-	if userSession, consent, client, handled = oidcConsentGetSessionsAndClient(ctx, consentID); handled {
+	if userSession, consent, client, handled = handleOpenIDConnectConsentGetSessionsAndClient(ctx, consentID); handled {
 		return
 	}
 
@@ -86,16 +87,24 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
+		ctx.Logger.Errorf("User '%s' can't consent to authorization request for client with id '%s' as they are not sufficiently authenticated",
+			userSession.Username, consent.ClientID)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
 	if bodyJSON.Consent {
 		consent.Grant()
 
 		if bodyJSON.PreConfigure {
-			if client.Consent.Mode == oidc.ClientConsentModePreConfigured {
+			if client.GetConsentPolicy().Mode == oidc.ClientConsentModePreConfigured {
 				config := model.OAuth2ConsentPreConfig{
 					ClientID:  consent.ClientID,
 					Subject:   consent.Subject.UUID,
 					CreatedAt: time.Now(),
-					ExpiresAt: sql.NullTime{Time: time.Now().Add(client.Consent.Duration), Valid: true},
+					ExpiresAt: sql.NullTime{Time: time.Now().Add(client.GetConsentPolicy().Duration), Valid: true},
 					Scopes:    consent.GrantedScopes,
 					Audience:  consent.GrantedAudience,
 				}
@@ -151,7 +160,7 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-func oidcConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, consentID uuid.UUID) (userSession session.UserSession, consent *model.OAuth2ConsentSession, client *oidc.Client, handled bool) {
+func handleOpenIDConnectConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, consentID uuid.UUID) (userSession session.UserSession, consent *model.OAuth2ConsentSession, client oidc.Client, handled bool) {
 	var (
 		err error
 	)
@@ -170,7 +179,7 @@ func oidcConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, consentID uui
 		return userSession, nil, nil, true
 	}
 
-	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(consent.ClientID); err != nil {
+	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(ctx, consent.ClientID); err != nil {
 		ctx.Logger.Errorf("Unable to find related client configuration with name '%s': %v", consent.ClientID, err)
 		ctx.ReplyForbidden()
 
@@ -185,7 +194,7 @@ func oidcConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, consentID uui
 		return userSession, nil, nil, true
 	}
 
-	switch client.Consent.Mode {
+	switch client.GetConsentPolicy().Mode {
 	case oidc.ClientConsentModeImplicit:
 		ctx.Logger.Errorf("Unable to perform OpenID Connect Consent for user '%s' and client id '%s': the client is using the implicit consent mode", userSession.Username, consent.ClientID)
 		ctx.ReplyForbidden()
@@ -206,7 +215,7 @@ func oidcConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, consentID uui
 		}
 	}
 
-	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
+	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
 		ctx.Logger.Errorf("Unable to perform OpenID Connect Consent for user '%s' and client id '%s': the user is not sufficiently authenticated", userSession.Username, consent.ClientID)
 		ctx.ReplyForbidden()
 

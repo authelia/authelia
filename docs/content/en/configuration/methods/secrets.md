@@ -20,6 +20,35 @@ standard environment variables, the recommended way to set secrets is to use thi
 
 See the [security](#security) section for more information.
 
+## Filters
+
+In addition to the documented methods below, the configuration files can be passed through templating filters. These
+filters can be used to inject or modify content within the file. Specifically the `fileContent` function can be used to
+retrieve content of a file, and `nindent` can be used to add a new line and indent the content of that file.
+
+Take the following example:
+
+```yaml
+authentication_backend:
+  ldap:
+    address: 'ldap://{{ env "SERVICES_SERVER" }}'
+    tls:
+      private_key: |
+        {{- fileContent "./test_resources/example_filter_rsa_private_key" | nindent 8 }}
+```
+
+When considering the `address` the value from the environment variable `SERVICES_SERVER` are used in place of the content
+starting at the `{{` and `}}`, which indicate the start and end of the template content.
+
+When considering the `private_key` the start of a templated section also has a `-` which removes the whitespace before
+the template section which starts the template content just after the `|` above it. The `fileContent` function reads the
+content of the `./test_resources/example_filter_rsa_private_key` file (relative to the Authelia working directory), and
+the `nindent` function adds a new line and indents every line in the file by `8` characters. Note the `|` between
+`nindent` and `fileContent` passes the output of `fileContent` function to the `nindent` function.
+
+For more information on [File Filters](files.md#file-filters) including how to enable them, see the
+[File Filters](files.md#file-filters) guide.
+
 ## Layers
 
 *__Important Note:__* While this method is the third layer of the layered configuration model as described by the
@@ -55,15 +84,14 @@ other configuration using the environment but instead of loading a file the valu
 {{% table-config-keys secrets="true" %}}
 
 [server.tls.key]: ../miscellaneous/server.md#key
-[jwt_secret]: ../miscellaneous/introduction.md#jwtsecret
-[duo_api.integration_key]: ../second-factor/duo.md#integrationkey
-[duo_api.secret_key]: ../second-factor/duo.md#secretkey
+[duo_api.integration_key]: ../second-factor/duo.md#integration_key
+[duo_api.secret_key]: ../second-factor/duo.md#secret_key
 [session.secret]: ../session/introduction.md#secret
 [session.redis.password]: ../session/redis.md#password
 [session.redis.tls.certificate_chain]: ../session/redis.md#tls
 [session.redis.tls.private_key]: ../session/redis.md#tls
-[session.redis.high_availability.sentinel_password]: ../session/redis.md#sentinelpassword
-[storage.encryption_key]: ../storage/introduction.md#encryptionkey
+[session.redis.high_availability.sentinel_password]: ../session/redis.md#sentinel_password
+[storage.encryption_key]: ../storage/introduction.md#encryption_key
 [storage.mysql.password]: ../storage/mysql.md#password
 [storage.mysql.tls.certificate_chain]: ../storage/mysql.md#tls
 [storage.mysql.tls.private_key]: ../storage/mysql.md#tls
@@ -77,10 +105,8 @@ other configuration using the environment but instead of loading a file the valu
 [authentication_backend.ldap.password]: ../first-factor/ldap.md#password
 [authentication_backend.ldap.tls.certificate_chain]: ../first-factor/ldap.md#tls
 [authentication_backend.ldap.tls.private_key]: ../first-factor/ldap.md#tls
-[identity_providers.oidc.issuer_certificate_chain]: ../identity-providers/open-id-connect.md#issuercertificatechain
-[identity_providers.oidc.issuer_private_key]: ../identity-providers/open-id-connect.md#issuerprivatekey
-[identity_providers.oidc.hmac_secret]: ../identity-providers/open-id-connect.md#hmacsecret
-
+[identity_providers.oidc.hmac_secret]: ../identity-providers/openid-connect/provider.md#hmac_secret
+[identity_validation.reset_password.jwt_secret]: ../identity-validation/reset-password.md#jwt_secret
 
 ## Secrets in configuration file
 

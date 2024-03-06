@@ -78,6 +78,7 @@ var hostEntries = []HostEntry{
 	{Domain: "login.example.com", IP: "192.168.240.100"},
 	{Domain: "admin.example.com", IP: "192.168.240.100"},
 	{Domain: "singlefactor.example.com", IP: "192.168.240.100"},
+	{Domain: "deny.example.com", IP: "192.168.240.100"},
 	{Domain: "dev.example.com", IP: "192.168.240.100"},
 	{Domain: "home.example.com", IP: "192.168.240.100"},
 	{Domain: "mx1.mail.example.com", IP: "192.168.240.100"},
@@ -176,8 +177,8 @@ func createTemporaryDirectory() {
 func createPNPMDirectory() {
 	home := os.Getenv("HOME")
 	if home != "" {
-		bootstrapPrintln("Creating ", home+"/.local/share/pnpm/store")
-		err := os.MkdirAll(home+"/.local/share/pnpm/store", 0755)
+		bootstrapPrintln("Creating ", home+pathPNPMStore)
+		err := os.MkdirAll(home+pathPNPMStore, 0755)
 
 		if err != nil {
 			panic(err)
@@ -193,7 +194,7 @@ func pnpmInstall() {
 		panic(err)
 	}
 
-	shell(fmt.Sprintf("cd %s/web && pnpm install", cwd))
+	shell(fmt.Sprintf("cd %s/web && pnpm install --force", cwd))
 }
 
 func bootstrapPrintln(args ...any) {
@@ -234,6 +235,7 @@ func prepareHostsFile() {
 				} else {
 					lines[i] = entry.IP + " " + entry.Domain
 					modified = true
+
 					break
 				}
 			}

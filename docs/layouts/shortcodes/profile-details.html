@@ -1,0 +1,49 @@
+{{- $key := .Get "name" }}
+{{- $profile := index $.Site.Data.profiles.people $key }}
+{{- if $profile }}
+{{- $team := "" }}
+{{- if $profile.team }}
+{{- $team = index $.Site.Data.profiles.teams $profile.team }}
+{{- end }}
+{{- $email := false }}
+{{- if $profile.email }}{{ $email = true }}{{ end }}
+{{- $matrix := false }}
+{{- if $profile.matrix }}{{ $matrix = true }}{{ end }}
+{{- $discord := false }}
+{{- if (and $profile.discord $profile.discord.id) }}{{ $discord = true }}{{ end }}
+{{- if $profile.github }}
+<div class="mt-3 mb-4">
+  <img src="https://github.com/{{ $profile.github }}.png"
+       class="rounded-circle img-fluid" style="width: 100px;" />
+</div>
+{{- if $team }}
+<p class="text-muted mb-4"><a href="{{ printf "%s#%s-team" (absURL "information/about") ($profile.team | lower) }}" target="_self">{{ $team.display }} Team</a></p>
+{{- end }}
+<p class="text-muted mb-4">
+  <i class="bi bi-geo-alt"></i> {{ $profile.location }}
+</p>
+{{- if $profile.description }}
+<p class="text-muted mb-4">{{ $profile.description }}</p>
+{{- end }}
+{{- if $profile.github }}
+<p>
+  <i class="bi bi-github"></i> <a href="https://github.com/{{ $profile.github }}/" target="_blank" rel="noopener" data-toggle="tooltip" data-placement="bottom" title="Checkout {{ $profile.display }} on GitHub ({{ $profile.github }})">{{ $profile.github }}</a>
+</p>
+{{- end }}
+{{- if $email }}
+<p>
+  <i class="bi bi-envelope"></i> <a href="mailto:{{ $profile.email }}" data-toggle="tooltip" data-placement="bottom" title="Email {{ $profile.display }} ({{ $profile.email }})">{{ $profile.email }}</a>
+</p>
+{{- end }}
+{{- if (or $matrix $discord) }}
+<p>
+  {{- if $matrix }}
+  <i class="bi bi-chat-right-quote"></i> <a href="https://matrix.to/#/{{ $profile.matrix }}" target="_blank" rel="noopener" data-toggle="tooltip" data-placement="bottom" title="Message {{ $profile.display }} on Matrix ({{ $profile.matrix }})">{{ $profile.matrix }}</a>
+  {{- end }}
+  {{- if $discord }}
+  <i class="bi bi-discord"></i> <a href="https://discord.com/users/{{ $profile.discord.id }}" target="_blank" rel="noopener" data-toggle="tooltip" data-placement="bottom" title="Message {{ $profile.display}} on Discord ({{ $profile.discord.tag }})">{{ $profile.discord.tag }}</a>
+  {{- end }}
+</p>
+{{- end }}
+{{- end }}
+{{- end }}

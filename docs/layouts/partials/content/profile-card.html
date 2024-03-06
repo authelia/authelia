@@ -1,0 +1,46 @@
+{{- $profile := index $.Site.Data.profiles.people .Profile }}
+{{- if $profile }}
+{{- $team := "" }}
+{{- if $profile.team }}
+{{- $team = index $.Site.Data.profiles.teams $profile.team }}
+{{- end }}
+<div class="card" style="border-radius: 15px;">
+  <div class="card-body text-center">
+    {{- if $profile.github }}
+    <div class="mt-3 mb-4">
+      <img src="https://github.com/{{ $profile.github }}.png"
+           class="rounded-circle img-fluid" style="width: 100px;" />
+    </div>
+    {{- end }}
+    <h4 class="mb-2">{{ $profile.display }}</h4>
+    {{- if $team }}
+    <p class="text-muted mb-4"><a href="{{ printf "%s#%s-team" (absURL "information/about") ($profile.team | lower) }}" target="_self">{{ $team.display }} Team</a></p>
+    {{- end }}
+    <div class="mb-4 pb-2">
+      {{- if $profile.email }}
+      <a role="button" class="btn btn-outline-primary btn-floating rounded-circle" href="mailto:{{ $profile.email }}" data-toggle="tooltip" data-placement="bottom" title="Email {{ $profile.display }} ({{ $profile.email }})">
+        <i class="bi bi-envelope-fill"></i>
+      </a>
+      {{- end }}
+      {{- if $profile.github }}
+      <a role="button" class="btn btn-outline-primary btn-floating rounded-circle" href="https://github.com/{{ $profile.github }}/" target="_blank" rel="noopener" data-toggle="tooltip" data-placement="bottom" title="Checkout {{ $profile.display }} on GitHub ({{ $profile.github }})">
+        <i class="bi bi-github"></i>
+      </a>
+      {{- end }}
+      {{- if $profile.matrix }}
+      <a role="button" class="btn btn-outline-primary btn-floating rounded-circle" href="https://matrix.to/#/{{ $profile.matrix }}" target="_blank" rel="noopener" data-toggle="tooltip" data-placement="bottom" title="Message {{ $profile.display }} on Matrix ({{ $profile.matrix }})">
+        <i class="bi bi-chat-right-quote-fill"></i>
+      </a>
+      {{- end }}
+      {{- if (and $profile.discord $profile.discord.id) }}
+      <a role="button" class="btn btn-outline-primary btn-floating rounded-circle" href="https://discord.com/users/{{ $profile.discord.id }}" target="_blank" rel="noopener" data-toggle="tooltip" data-placement="bottom" title="Message {{ $profile.display}} on Discord ({{ $profile.discord.tag }})">
+        <i class="bi bi-discord"></i>
+      </a>
+      {{- end }}
+    </div>
+    <a role="button" class="btn btn-primary btn-rounded btn-lg" href="{{ printf "%s/%s/" (absURL "contributors") .Profile }}">
+    Profile Details
+    </a>
+  </div>
+</div>
+{{- end }}

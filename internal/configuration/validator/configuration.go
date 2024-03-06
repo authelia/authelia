@@ -3,7 +3,6 @@ package validator
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -23,16 +22,6 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 		}
 	}
 
-	if config.JWTSecret == "" {
-		validator.Push(fmt.Errorf("option 'jwt_secret' is required"))
-	}
-
-	if config.DefaultRedirectionURL != "" {
-		if err = utils.IsStringAbsURL(config.DefaultRedirectionURL); err != nil {
-			validator.Push(fmt.Errorf("option 'default_redirection_url' is invalid: %s", strings.ReplaceAll(err.Error(), "like 'http://' or 'https://'", "like 'ldap://' or 'ldaps://'")))
-		}
-	}
-
 	validateDefault2FAMethod(config, validator)
 
 	ValidateTheme(config, validator)
@@ -43,7 +32,7 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 
 	ValidateTOTP(config, validator)
 
-	ValidateWebauthn(config, validator)
+	ValidateWebAuthn(config, validator)
 
 	ValidateAuthenticationBackend(&config.AuthenticationBackend, validator)
 
@@ -51,7 +40,7 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 
 	ValidateRules(config, validator)
 
-	ValidateSession(&config.Session, validator)
+	ValidateSession(config, validator)
 
 	ValidateRegulation(config, validator)
 
@@ -64,6 +53,8 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 	ValidateNotifier(&config.Notifier, validator)
 
 	ValidateIdentityProviders(&config.IdentityProviders, validator)
+
+	ValidateIdentityValidation(config, validator)
 
 	ValidateNTP(config, validator)
 
@@ -78,7 +69,7 @@ func validateDefault2FAMethod(config *schema.Configuration, validator *schema.St
 	}
 
 	if !utils.IsStringInSlice(config.Default2FAMethod, validDefault2FAMethods) {
-		validator.Push(fmt.Errorf(errFmtInvalidDefault2FAMethod, config.Default2FAMethod, strings.Join(validDefault2FAMethods, "', '")))
+		validator.Push(fmt.Errorf(errFmtInvalidDefault2FAMethod, strJoinOr(validDefault2FAMethods), config.Default2FAMethod))
 
 		return
 	}
@@ -89,7 +80,7 @@ func validateDefault2FAMethod(config *schema.Configuration, validator *schema.St
 		enabledMethods = append(enabledMethods, "totp")
 	}
 
-	if !config.Webauthn.Disable {
+	if !config.WebAuthn.Disable {
 		enabledMethods = append(enabledMethods, "webauthn")
 	}
 
@@ -98,6 +89,6 @@ func validateDefault2FAMethod(config *schema.Configuration, validator *schema.St
 	}
 
 	if !utils.IsStringInSlice(config.Default2FAMethod, enabledMethods) {
-		validator.Push(fmt.Errorf(errFmtInvalidDefault2FAMethodDisabled, config.Default2FAMethod, strings.Join(enabledMethods, "', '")))
+		validator.Push(fmt.Errorf(errFmtInvalidDefault2FAMethodDisabled, strJoinOr(enabledMethods), config.Default2FAMethod))
 	}
 }

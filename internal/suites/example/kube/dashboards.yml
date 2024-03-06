@@ -250,7 +250,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: dashboard-metrics-scraper
-          image: kubernetesui/metrics-scraper:v1.0.8
+          image: kubernetesui/metrics-scraper:v1.0.9
           ports:
             - containerPort: 8000
               protocol: TCP

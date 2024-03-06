@@ -75,7 +75,7 @@ const OneTimePasswordMethod = function (props: Props) {
             onSignInSuccessCallback(res ? res.redirect : undefined);
         } catch (err) {
             console.error(err);
-            onSignInErrorCallback(new Error("The one-time password might be wrong"));
+            onSignInErrorCallback(new Error("The One-Time Password might be wrong"));
             setState(State.Failure);
         }
         setPasscode("");
@@ -99,7 +99,7 @@ const OneTimePasswordMethod = function (props: Props) {
     }, [props.authenticationLevel, setState]);
 
     useEffect(() => {
-        signInFunc();
+        signInFunc().catch(console.error);
     }, [signInFunc]);
 
     let methodState = MethodContainerState.METHOD;
@@ -113,7 +113,7 @@ const OneTimePasswordMethod = function (props: Props) {
         <MethodContainer
             id={props.id}
             title={translate("One-Time Password")}
-            explanation={translate("Enter one-time password")}
+            explanation={translate("Enter One-Time Password")}
             duoSelfEnrollment={false}
             registered={props.registered}
             state={methodState}

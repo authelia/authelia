@@ -58,7 +58,7 @@ func (s *CLISuite) TestShouldPrintBuildInformation() {
 	s.Assert().Contains(output, "Build Arch: ")
 	s.Assert().Contains(output, "Build Date: ")
 
-	r := regexp.MustCompile(`^Last Tag: v\d+\.\d+\.\d+\nState: (tagged|untagged) (clean|dirty)\nBranch: [^\s\n]+\nCommit: [0-9a-f]{40}\nBuild Number: \d+\nBuild OS: (linux|darwin|windows|freebsd)\nBuild Arch: (amd64|arm|arm64)\nBuild Date: (Sun|Mon|Tue|Wed|Thu|Fri|Sat), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} [+-]\d{4}\nExtra: \n`)
+	r := regexp.MustCompile(`^Last Tag: v\d+\.\d+\.\d+\nState: (tagged|untagged) (clean|dirty)\nBranch: [^\s\n]+\nCommit: [0-9a-f]{40}\nBuild Number: \d+\nBuild OS: (linux|darwin|windows|freebsd)\nBuild Arch: (amd64|arm|arm64)\nBuild Compiler: gc\nBuild Date: (Sun|Mon|Tue|Wed|Thu|Fri|Sat), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} [+-]\d{4}\nExtra: \n`)
 	s.Assert().Regexp(r, output)
 }
 
@@ -255,8 +255,9 @@ func (s *CLISuite) TestShouldGenerateRSACertificateRequest() {
 	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate Request: /tmp/request.csr")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tCertificate Request: request.csr")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSACurveP224CertificateRequest() {
@@ -270,8 +271,9 @@ func (s *CLISuite) TestShouldGenerateECDSACurveP224CertificateRequest() {
 	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate Request: /tmp/request.csr")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tCertificate Request: request.csr")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSACurveP256CertificateRequest() {
@@ -285,8 +287,9 @@ func (s *CLISuite) TestShouldGenerateECDSACurveP256CertificateRequest() {
 	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate Request: /tmp/request.csr")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tCertificate Request: request.csr")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSACurveP384CertificateRequest() {
@@ -300,8 +303,9 @@ func (s *CLISuite) TestShouldGenerateECDSACurveP384CertificateRequest() {
 	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate Request: /tmp/request.csr")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tCertificate Request: request.csr")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSACurveP521CertificateRequest() {
@@ -315,8 +319,9 @@ func (s *CLISuite) TestShouldGenerateECDSACurveP521CertificateRequest() {
 	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate Request: /tmp/request.csr")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tCertificate Request: request.csr")
 }
 
 func (s *CLISuite) TestShouldGenerateEd25519CertificateRequest() {
@@ -330,8 +335,9 @@ func (s *CLISuite) TestShouldGenerateEd25519CertificateRequest() {
 	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate Request: /tmp/request.csr")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tCertificate Request: request.csr")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSA() {
@@ -347,8 +353,9 @@ func (s *CLISuite) TestShouldGenerateCertificateRSA() {
 	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tCertificate: public.crt")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSAWithIPAddress() {
@@ -364,8 +371,9 @@ func (s *CLISuite) TestShouldGenerateCertificateRSAWithIPAddress() {
 	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com, IP.1:127.0.0.1")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tCertificate: public.crt")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSAWithNotBefore() {
@@ -382,8 +390,9 @@ func (s *CLISuite) TestShouldGenerateCertificateRSAWithNotBefore() {
 	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tCertificate: public.crt")
 }
 
 func (s *CLISuite) TestShouldFailGenerateCertificateRSAWithInvalidNotBefore() {
@@ -405,8 +414,9 @@ func (s *CLISuite) TestShouldGenerateCertificateRSAWith4096Bits() {
 	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tCertificate: public.crt")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateWithCustomizedSubject() {
@@ -422,8 +432,9 @@ func (s *CLISuite) TestShouldGenerateCertificateWithCustomizedSubject() {
 	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tCertificate: public.crt")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateCA() {
@@ -439,8 +450,9 @@ func (s *CLISuite) TestShouldGenerateCertificateCA() {
 	s.Assert().Contains(output, "\tSubject Alternative Names: ")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/ca.private.pem")
-	s.Assert().Contains(output, "\tCertificate: /tmp/ca.public.crt")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: ca.private.pem")
+	s.Assert().Contains(output, "\tCertificate: ca.public.crt")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
@@ -456,8 +468,9 @@ func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
 	s.Assert().Contains(output, "\tSubject Alternative Names: ")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/ca.private.pem")
-	s.Assert().Contains(output, "\tCertificate: /tmp/ca.public.crt")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: ca.private.pem")
+	s.Assert().Contains(output, "\tCertificate: ca.public.crt")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "crypto", "certificate", "rsa", "generate", "--common-name=example.com", "--sans='*.example.com'", "--path.ca", "/tmp/", "--directory=/tmp/"})
 	s.Assert().NoError(err)
@@ -473,8 +486,9 @@ func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
 	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tCertificate: public.crt")
 
 	// Check the certificates look fine.
 	privateKeyData, err := os.ReadFile("/tmp/private.pem")
@@ -535,8 +549,9 @@ func (s *CLISuite) TestShouldGenerateCertificateEd25519() {
 	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tCertificate: public.crt")
 }
 
 func (s *CLISuite) TestShouldFailGenerateCertificateParseNotBefore() {
@@ -564,8 +579,9 @@ func (s *CLISuite) TestShouldGenerateCertificateECDSACurveP224() {
 	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tCertificate: public.crt")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSACurveP256() {
@@ -581,8 +597,9 @@ func (s *CLISuite) TestShouldGenerateCertificateECDSACurveP256() {
 	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tCertificate: public.crt")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSACurveP384() {
@@ -598,8 +615,9 @@ func (s *CLISuite) TestShouldGenerateCertificateECDSACurveP384() {
 	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tCertificate: public.crt")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSACurveP521() {
@@ -615,8 +633,9 @@ func (s *CLISuite) TestShouldGenerateCertificateECDSACurveP521() {
 	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tCertificate: public.crt")
 }
 
 func (s *CLISuite) TestShouldGenerateRSAKeyPair() {
@@ -627,8 +646,9 @@ func (s *CLISuite) TestShouldGenerateRSAKeyPair() {
 	s.Assert().Contains(output, "Algorithm: RSA-256 2048 bits\n\n")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tPublic Key: /tmp/public.pem")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tPublic Key: public.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateRSAKeyPairWith4069Bits() {
@@ -639,8 +659,9 @@ func (s *CLISuite) TestShouldGenerateRSAKeyPairWith4069Bits() {
 	s.Assert().Contains(output, "Algorithm: RSA-512 4096 bits\n\n")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tPublic Key: /tmp/public.pem")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tPublic Key: public.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSAKeyPair() {
@@ -651,8 +672,9 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPair() {
 	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-256\n\n")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tPublic Key: /tmp/public.pem")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tPublic Key: public.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP224() {
@@ -663,8 +685,9 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP224() {
 	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-224\n\n")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tPublic Key: /tmp/public.pem")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tPublic Key: public.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP256() {
@@ -675,8 +698,9 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP256() {
 	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-256\n\n")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tPublic Key: /tmp/public.pem")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tPublic Key: public.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP384() {
@@ -687,8 +711,9 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP384() {
 	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-384\n\n")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tPublic Key: /tmp/public.pem")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tPublic Key: public.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP521() {
@@ -699,8 +724,9 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP521() {
 	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-521\n\n")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tPublic Key: /tmp/public.pem")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tPublic Key: public.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateEd25519KeyPair() {
@@ -711,8 +737,9 @@ func (s *CLISuite) TestShouldGenerateEd25519KeyPair() {
 	s.Assert().Contains(output, "Algorithm: Ed25519\n\n")
 
 	s.Assert().Contains(output, "Output Paths:")
-	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tPublic Key: /tmp/public.pem")
+	s.Assert().Contains(output, "\tDirectory: /tmp")
+	s.Assert().Contains(output, "\tPrivate Key: private.pem")
+	s.Assert().Contains(output, "\tPublic Key: public.pem")
 }
 
 func (s *CLISuite) TestShouldNotGenerateECDSAKeyPairCurveInvalid() {
@@ -859,7 +886,7 @@ func (s *CLISuite) TestStorage02ShouldShowSchemaInfo() {
 	s.Assert().Contains(output, "migrations")
 	s.Assert().Contains(output, "encryption")
 	s.Assert().Contains(output, "encryption")
-	s.Assert().Contains(output, "webauthn_devices")
+	s.Assert().Contains(output, "webauthn_credentials")
 	s.Assert().Contains(output, "totp_configurations")
 	s.Assert().Contains(output, "Schema Encryption Key: valid")
 }
@@ -890,7 +917,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 				Username:  "john",
 				Period:    30,
 				Digits:    6,
-				Algorithm: "SHA1",
+				Algorithm: SHA1,
 			},
 		},
 		{
@@ -898,7 +925,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 				Username:  "mary",
 				Period:    45,
 				Digits:    6,
-				Algorithm: "SHA1",
+				Algorithm: SHA1,
 			},
 		},
 		{
@@ -906,7 +933,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 				Username:  "fred",
 				Period:    30,
 				Digits:    8,
-				Algorithm: "SHA1",
+				Algorithm: SHA1,
 			},
 		},
 		{
@@ -914,7 +941,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 				Username:  "jone",
 				Period:    30,
 				Digits:    6,
-				Algorithm: "SHA512",
+				Algorithm: SHA512,
 			},
 			png: true,
 		},
@@ -1114,7 +1141,7 @@ func (s *CLISuite) TestStorage05ShouldChangeEncryptionKey() {
 	s.Assert().Contains(output, "migrations")
 	s.Assert().Contains(output, "encryption")
 	s.Assert().Contains(output, "encryption")
-	s.Assert().Contains(output, "webauthn_devices")
+	s.Assert().Contains(output, "webauthn_credentials")
 	s.Assert().Contains(output, "totp_configurations")
 	s.Assert().Contains(output, "Schema Encryption Key: invalid")
 
@@ -1132,8 +1159,9 @@ func (s *CLISuite) TestStorage05ShouldChangeEncryptionKey() {
 	s.Assert().Contains(output, "\n\n\tTable (oauth2_openid_connect_session): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
 	s.Assert().Contains(output, "\n\n\tTable (oauth2_pkce_request_session): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
 	s.Assert().Contains(output, "\n\n\tTable (oauth2_refresh_token_session): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
+	s.Assert().Contains(output, "\n\n\tTable (oauth2_par_context): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
 	s.Assert().Contains(output, "\n\n\tTable (totp_configurations): FAILURE\n\t\tInvalid Rows: 4\n\t\tTotal Rows: 4\n")
-	s.Assert().Contains(output, "\n\n\tTable (webauthn_devices): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
+	s.Assert().Contains(output, "\n\n\tTable (webauthn_credentials): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "encryption", "check", "--encryption-key=apple-apple-apple-apple", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
@@ -1149,8 +1177,9 @@ func (s *CLISuite) TestStorage05ShouldChangeEncryptionKey() {
 	s.Assert().Contains(output, "\n\n\tTable (oauth2_openid_connect_session): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
 	s.Assert().Contains(output, "\n\n\tTable (oauth2_pkce_request_session): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
 	s.Assert().Contains(output, "\n\n\tTable (oauth2_refresh_token_session): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
+	s.Assert().Contains(output, "\n\n\tTable (oauth2_par_context): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
 	s.Assert().Contains(output, "\n\n\tTable (totp_configurations): SUCCESS\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 4\n")
-	s.Assert().Contains(output, "\n\n\tTable (webauthn_devices): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
+	s.Assert().Contains(output, "\n\n\tTable (webauthn_credentials): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "encryption", "change-key", "--encryption-key=apple-apple-apple-apple", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")

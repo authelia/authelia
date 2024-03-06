@@ -14,7 +14,7 @@ aliases:
   - /docs/contributing/build-and-dev.html
 ---
 
-__Authelia__ is built a [React] frontend user portal bundled in a [Go] application which acts as a basic webserver for
+__Authelia__ is built a [React] frontend user portal bundled in a [Go] application which acts as a basic web server for
 the [React] assets and a dedicated API.
 
 The GitHub repository comes with a CLI dedicated to developers called
@@ -93,6 +93,50 @@ authelia-scripts suites test Standalone
 ```
 
 The suite will be spawned, tests will be run and then the suite will be torn down automatically.
+
+## Manually Building
+
+### Binary
+
+If you want to manually build the binary from source you will require the open source software described in the
+[Development Environment](./environment.md#setup) documentation. Then you can follow the below steps on Linux (you may
+have to adapt them on other systems).
+
+Clone the Repository:
+
+```bash
+git clone https://github.com/authelia/authelia.git
+```
+
+Download the Dependencies:
+
+```bash
+cd authelia && go mod download
+cd web && pnpm install
+cd ..
+```
+
+Build the Web Frontend:
+
+```bash
+cd web && pnpm build
+cd ..
+cp -r api internal/server/public_html/api
+```
+
+Build the Binary (with debug symbols):
+
+```bash
+CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LDFLAGS="-Wl,-z,relro,-z,now" \
+go build -ldflags "-linkmode=external" -trimpath -buildmode=pie -o authelia ./cmd/authelia
+```
+
+Build the Binary (without debug symbols):
+
+```bash
+CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LDFLAGS="-Wl,-z,relro,-z,now" \
+go build -ldflags "-linkmode=external -s -w" -trimpath -buildmode=pie -o authelia ./cmd/authelia
+```
 
 [suites]: ./integration-suites.md
 [React]: https://reactjs.org/

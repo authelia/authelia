@@ -1,0 +1,33 @@
+---
+# yaml-language-server: $schema=v
+api:
+  dashboard: true
+  debug: false
+  insecure: false
+
+log:
+  level: DEBUG
+
+accessLog: {}
+
+pilot:
+  dashboard: false
+
+global:
+  sendAnonymousUsage: false
+  checkNewVersion: false
+
+entryPoints:
+  https:
+    address: ":8080/tcp"
+
+serversTransport:
+  insecureSkipVerify: true
+
+providers:
+  docker:
+    exposedByDefault: false
+  file:
+    directory: /config/dynamic/
+    watch: true
+...

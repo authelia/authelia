@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/valyala/fasthttp"
+
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -23,7 +25,8 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
 
-		ctx.ReplyForbidden()
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
@@ -31,15 +34,15 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 	if _, err = ctx.Providers.StorageProvider.LoadPreferred2FAMethod(ctx, userSession.Username); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			if err = ctx.Providers.StorageProvider.SavePreferred2FAMethod(ctx, userSession.Username, ""); err != nil {
-				ctx.Error(fmt.Errorf("unable to load user information: %v", err), messageOperationFailed)
+				ctx.Error(fmt.Errorf("unable to load user information: error occurred trying to save the users preferred 2FA method: %w", err), messageOperationFailed)
 			}
 		} else {
-			ctx.Error(fmt.Errorf("unable to load user information: %v", err), messageOperationFailed)
+			ctx.Error(fmt.Errorf("unable to load user information: error occurred trying to lookup the users preferred 2FA method: %w", err), messageOperationFailed)
 		}
 	}
 
 	if userInfo, err = ctx.Providers.StorageProvider.LoadUserInfo(ctx, userSession.Username); err != nil {
-		ctx.Error(fmt.Errorf("unable to load user information: %v", err), messageOperationFailed)
+		ctx.Error(fmt.Errorf("unable to load user information: %w", err), messageOperationFailed)
 		return
 	}
 
@@ -49,7 +52,7 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 
 	if changed = userInfo.SetDefaultPreferred2FAMethod(ctx.AvailableSecondFactorMethods(), ctx.Configuration.Default2FAMethod); changed {
 		if err = ctx.Providers.StorageProvider.SavePreferred2FAMethod(ctx, userSession.Username, userInfo.Method); err != nil {
-			ctx.Error(fmt.Errorf("unable to save user two factor method: %v", err), messageOperationFailed)
+			ctx.Error(fmt.Errorf("unable to save user two factor method: %w", err), messageOperationFailed)
 			return
 		}
 	}
@@ -58,7 +61,7 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 
 	err = ctx.SetJSONBody(userInfo)
 	if err != nil {
-		ctx.Logger.Errorf("Unable to set user info response in body: %s", err)
+		ctx.Logger.WithError(err).Errorf("Error occurred trying to set user info response in body")
 	}
 }
 
@@ -72,14 +75,15 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
 
-		ctx.ReplyForbidden()
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
 	userInfo, err := ctx.Providers.StorageProvider.LoadUserInfo(ctx, userSession.Username)
 	if err != nil {
-		ctx.Error(fmt.Errorf("unable to load user information: %v", err), messageOperationFailed)
+		ctx.Error(fmt.Errorf("unable to load user information: %w", err), messageOperationFailed)
 		return
 	}
 
@@ -87,7 +91,7 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 
 	err = ctx.SetJSONBody(userInfo)
 	if err != nil {
-		ctx.Logger.Errorf("Unable to set user info response in body: %s", err)
+		ctx.Logger.Errorf("Unable to set user info response in body: %+v", err)
 	}
 }
 
@@ -119,10 +123,9 @@ func MethodPreferencePOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	ctx.Logger.Debugf("Save new preferred 2FA method of user %s to %s", userSession.Username, bodyJSON.Method)
-	err = ctx.Providers.StorageProvider.SavePreferred2FAMethod(ctx, userSession.Username, bodyJSON.Method)
 
-	if err != nil {
-		ctx.Error(fmt.Errorf("unable to save new preferred 2FA method: %s", err), messageOperationFailed)
+	if err = ctx.Providers.StorageProvider.SavePreferred2FAMethod(ctx, userSession.Username, bodyJSON.Method); err != nil {
+		ctx.Error(fmt.Errorf("unable to save new preferred 2FA method: %w", err), messageOperationFailed)
 		return
 	}
 

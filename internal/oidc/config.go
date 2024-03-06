@@ -6,6 +6,7 @@ import (
 	"hash"
 	"html/template"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
@@ -13,7 +14,6 @@ import (
 	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/handler/par"
-	"github.com/ory/fosite/handler/pkce"
 	"github.com/ory/fosite/i18n"
 	"github.com/ory/fosite/token/hmac"
 	"github.com/ory/fosite/token/jwt"
@@ -23,35 +23,61 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func NewConfig(config *schema.OpenIDConnectConfiguration, templates *templates.Provider) *Config {
-	c := &Config{
+func NewConfig(config *schema.IdentityProvidersOpenIDConnect, signer jwt.Signer, templates *templates.Provider) (c *Config) {
+	c = &Config{
+		Signer:                     signer,
 		GlobalSecret:               []byte(utils.HashSHA256FromString(config.HMACSecret)),
 		SendDebugMessagesToClients: config.EnableClientDebugMessages,
 		MinParameterEntropy:        config.MinimumParameterEntropy,
-		Lifespans: LifespanConfig{
-			AccessToken:   config.AccessTokenLifespan,
-			AuthorizeCode: config.AuthorizeCodeLifespan,
-			IDToken:       config.IDTokenLifespan,
-			RefreshToken:  config.RefreshTokenLifespan,
-		},
+		Lifespans:                  config.Lifespans.IdentityProvidersOpenIDConnectLifespanToken,
 		ProofKeyCodeExchange: ProofKeyCodeExchangeConfig{
 			Enforce:                   config.EnforcePKCE == "always",
 			EnforcePublicClients:      config.EnforcePKCE != "never",
 			AllowPlainChallengeMethod: config.EnablePKCEPlainChallenge,
 		},
-		Templates: templates,
+		PAR: PARConfig{
+			Enforced:        config.PAR.Enforce,
+			ContextLifespan: config.PAR.ContextLifespan,
+			URIPrefix:       RedirectURIPrefixPushedAuthorizationRequestURN,
+		},
+		JWTAccessToken: JWTAccessTokenConfig{
+			Enable:                       config.Discovery.JWTResponseAccessTokens,
+			EnableStatelessIntrospection: config.EnableJWTAccessTokenStatelessIntrospection,
+		},
+		JWTSecuredAuthorizationLifespan: config.Lifespans.JWTSecuredAuthorization,
+		Templates:                       templates,
 	}
 
-	c.Strategy.Core = &HMACCoreStrategy{
-		Enigma: &hmac.HMACStrategy{Config: c},
+	c.Handlers.ResponseMode = &ResponseModeHandler{c}
+
+	if config.Discovery.JWTResponseAccessTokens {
+		c.Strategy.Core = &JWTCoreStrategy{
+			Signer: signer,
+			HMACCoreStrategy: &HMACCoreStrategy{
+				Enigma: &hmac.HMACStrategy{Config: c},
+				Config: c,
+			},
+			Config: c,
+		}
+	} else {
+		c.Strategy.Core = &HMACCoreStrategy{
+			Enigma: &hmac.HMACStrategy{Config: c},
+			Config: c,
+		}
+	}
+
+	c.Strategy.OpenID = &openid.DefaultStrategy{
+		Signer: signer,
 		Config: c,
-		prefix: tokenPrefixFmt,
 	}
 
 	return c
 }
 
+// Config is an implementation of the fosite.Configurator.
 type Config struct {
+	Signer jwt.Signer
+
 	// GlobalSecret is the global secret used to sign and verify signatures.
 	GlobalSecret []byte
 
@@ -67,12 +93,16 @@ type Config struct {
 	JWTScopeField  jwt.JWTScopeFieldEnum
 	JWTMaxDuration time.Duration
 
-	Hasher               *AdaptiveHasher
+	JWTSecuredAuthorizationLifespan time.Duration
+
+	JWTAccessToken JWTAccessTokenConfig
+
+	Hasher               *Hasher
 	Hash                 HashConfig
 	Strategy             StrategyConfig
 	PAR                  PARConfig
 	Handlers             HandlersConfig
-	Lifespans            LifespanConfig
+	Lifespans            schema.IdentityProvidersOpenIDConnectLifespanToken
 	ProofKeyCodeExchange ProofKeyCodeExchangeConfig
 	GrantTypeJWTBearer   GrantTypeJWTBearerConfig
 
@@ -84,18 +114,19 @@ type Config struct {
 	AllowedPrompts      []string
 	RefreshTokenScopes  []string
 
-	HTTPClient           *retryablehttp.Client
-	FormPostHTMLTemplate *template.Template
-	MessageCatalog       i18n.MessageCatalog
+	HTTPClient     *retryablehttp.Client
+	MessageCatalog i18n.MessageCatalog
 
 	Templates *templates.Provider
 }
 
+// HashConfig holds specific fosite.Configurator information for hashing.
 type HashConfig struct {
 	ClientSecrets fosite.Hasher
 	HMAC          func() (h hash.Hash)
 }
 
+// StrategyConfig holds specific fosite.Configurator information for various strategies.
 type StrategyConfig struct {
 	Core                 oauth2.CoreStrategy
 	OpenID               openid.OpenIDConnectTokenStrategy
@@ -105,17 +136,29 @@ type StrategyConfig struct {
 	ClientAuthentication fosite.ClientAuthenticationStrategy
 }
 
+// JWTAccessTokenConfig represents the JWT Access Token config.
+type JWTAccessTokenConfig struct {
+	Enable                       bool
+	EnableStatelessIntrospection bool
+}
+
+// PARConfig holds specific fosite.Configurator information for Pushed Authorization Requests.
 type PARConfig struct {
 	Enforced        bool
 	URIPrefix       string
 	ContextLifespan time.Duration
 }
 
+// IssuersConfig holds specific fosite.Configurator information for the issuer.
 type IssuersConfig struct {
 	IDToken     string
 	AccessToken string
+
+	AuthorizationServerIssuerIdentification string
+	JWTSecuredResponseMode                  string
 }
 
+// HandlersConfig holds specific fosite.Configurator handlers configuration information.
 type HandlersConfig struct {
 	// ResponseMode provides an extension handler for custom response modes.
 	ResponseMode fosite.ResponseModeHandler
@@ -136,33 +179,32 @@ type HandlersConfig struct {
 	PushedAuthorizeEndpoint fosite.PushedAuthorizeEndpointHandlers
 }
 
+// GrantTypeJWTBearerConfig holds specific fosite.Configurator information for the JWT Bearer Grant Type.
 type GrantTypeJWTBearerConfig struct {
 	OptionalClientAuth bool
 	OptionalJTIClaim   bool
 	OptionalIssuedDate bool
 }
 
+// ProofKeyCodeExchangeConfig holds specific fosite.Configurator information for PKCE.
 type ProofKeyCodeExchangeConfig struct {
 	Enforce                   bool
 	EnforcePublicClients      bool
 	AllowPlainChallengeMethod bool
 }
 
-type LifespanConfig struct {
-	AccessToken   time.Duration
-	AuthorizeCode time.Duration
-	IDToken       time.Duration
-	RefreshToken  time.Duration
-}
+// LoadHandlers reloads the handlers based on the current configuration.
+func (c *Config) LoadHandlers(store *Store) {
+	validator := openid.NewOpenIDConnectRequestValidator(c.Signer, c)
 
-const (
-	PromptNone    = none
-	PromptLogin   = "login"
-	PromptConsent = "consent"
-)
+	var statelessJWT any
 
-func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
-	validator := openid.NewOpenIDConnectRequestValidator(strategy, c)
+	if c.JWTAccessToken.Enable && c.JWTAccessToken.EnableStatelessIntrospection {
+		statelessJWT = &StatelessJWTValidator{
+			Signer: c.Signer,
+			Config: c,
+		}
+	}
 
 	handlers := []any{
 		&oauth2.AuthorizeExplicitGrantHandler{
@@ -178,7 +220,7 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 			AccessTokenStorage:  store,
 			Config:              c,
 		},
-		&oauth2.ClientCredentialsGrantHandler{
+		&ClientCredentialsGrantHandler{
 			HandleHelper: &oauth2.HandleHelper{
 				AccessTokenStrategy: c.Strategy.Core,
 				AccessTokenStorage:  store,
@@ -186,7 +228,7 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 			},
 			Config: c,
 		},
-		&oauth2.RefreshTokenGrantHandler{
+		&RefreshTokenGrantHandler{
 			AccessTokenStrategy:    c.Strategy.Core,
 			RefreshTokenStrategy:   c.Strategy.Core,
 			TokenRevocationStorage: store,
@@ -238,6 +280,7 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 			},
 			Config: c,
 		},
+		statelessJWT,
 		&oauth2.CoreValidator{
 			CoreStrategy: c.Strategy.Core,
 			CoreStorage:  store,
@@ -248,7 +291,7 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 			RefreshTokenStrategy:   c.Strategy.Core,
 			TokenRevocationStorage: store,
 		},
-		&pkce.Handler{
+		&PKCEHandler{
 			AuthorizeCodeStrategy: c.Strategy.Core,
 			Storage:               store,
 			Config:                c,
@@ -257,11 +300,20 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 			Storage: store,
 			Config:  c,
 		},
+		&AuthorizationServerIssuerIdentificationHandler{
+			Config: c,
+		},
 	}
 
-	x := HandlersConfig{}
+	x := HandlersConfig{
+		ResponseMode: c.Handlers.ResponseMode,
+	}
 
 	for _, handler := range handlers {
+		if handler == nil {
+			continue
+		}
+
 		if h, ok := handler.(fosite.AuthorizeEndpointHandler); ok {
 			x.AuthorizeEndpoint.Append(h)
 		}
@@ -276,6 +328,10 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 
 		if h, ok := handler.(fosite.RevocationHandler); ok {
 			x.Revocation.Append(h)
+		}
+
+		if h, ok := handler.(fosite.PushedAuthorizeEndpointHandler); ok {
+			x.PushedAuthorizeEndpoint.Append(h)
 		}
 	}
 
@@ -356,14 +412,30 @@ func (c *Config) GetJWTScopeField(ctx context.Context) (field jwt.JWTScopeFieldE
 	return c.JWTScopeField
 }
 
+// GetIssuerFallback returns the issuer from the ctx or returns the fallback value.
+func (c *Config) GetIssuerFallback(ctx context.Context, fallback string) (issuer string) {
+	if octx, ok := ctx.(Context); ok {
+		if iss, err := octx.IssuerURL(); err == nil {
+			return iss.String()
+		}
+	}
+
+	return fallback
+}
+
 // GetIDTokenIssuer returns the ID token issuer.
 func (c *Config) GetIDTokenIssuer(ctx context.Context) (issuer string) {
-	return c.Issuers.IDToken
+	return c.GetIssuerFallback(ctx, c.Issuers.IDToken)
 }
 
 // GetAccessTokenIssuer returns the access token issuer.
 func (c *Config) GetAccessTokenIssuer(ctx context.Context) (issuer string) {
-	return c.Issuers.AccessToken
+	return c.GetIssuerFallback(ctx, c.Issuers.AccessToken)
+}
+
+// GetAuthorizationServerIdentificationIssuer returns the Authorization Server Identification issuer.
+func (c *Config) GetAuthorizationServerIdentificationIssuer(ctx context.Context) (issuer string) {
+	return c.GetIssuerFallback(ctx, c.Issuers.AuthorizationServerIssuerIdentification)
 }
 
 // GetDisableRefreshTokenValidation returns the disable refresh token validation flag.
@@ -371,10 +443,29 @@ func (c *Config) GetDisableRefreshTokenValidation(ctx context.Context) (disable 
 	return c.DisableRefreshTokenValidation
 }
 
+// GetJWTSecuredAuthorizeResponseModeLifespan returns the configured JWT Secured Authorization lifespan.
+func (c *Config) GetJWTSecuredAuthorizeResponseModeLifespan(ctx context.Context) (lifespan time.Duration) {
+	if c.JWTSecuredAuthorizationLifespan.Seconds() <= 0 {
+		c.JWTSecuredAuthorizationLifespan = lifespanJWTSecuredAuthorizationDefault
+	}
+
+	return c.JWTSecuredAuthorizationLifespan
+}
+
+// GetJWTSecuredAuthorizeResponseModeSigner returns jwt.Signer for JWT Secured Authorization Responses.
+func (c *Config) GetJWTSecuredAuthorizeResponseModeSigner(ctx context.Context) (signer jwt.Signer) {
+	return c.Signer
+}
+
+// GetJWTSecuredAuthorizeResponseModeIssuer returns the issuer for JWT Secured Authorization Responses.
+func (c *Config) GetJWTSecuredAuthorizeResponseModeIssuer(ctx context.Context) string {
+	return c.GetIssuerFallback(ctx, c.Issuers.JWTSecuredResponseMode)
+}
+
 // GetAuthorizeCodeLifespan returns the authorization code lifespan.
 func (c *Config) GetAuthorizeCodeLifespan(ctx context.Context) (lifespan time.Duration) {
-	if c.Lifespans.AuthorizeCode <= 0 {
-		c.Lifespans.AccessToken = lifespanAuthorizeCodeDefault
+	if c.Lifespans.AuthorizeCode.Seconds() <= 0 {
+		c.Lifespans.AuthorizeCode = lifespanAuthorizeCodeDefault
 	}
 
 	return c.Lifespans.AuthorizeCode
@@ -382,8 +473,8 @@ func (c *Config) GetAuthorizeCodeLifespan(ctx context.Context) (lifespan time.Du
 
 // GetRefreshTokenLifespan returns the refresh token lifespan.
 func (c *Config) GetRefreshTokenLifespan(ctx context.Context) (lifespan time.Duration) {
-	if c.Lifespans.RefreshToken <= 0 {
-		c.Lifespans.AccessToken = lifespanRefreshTokenDefault
+	if c.Lifespans.RefreshToken.Seconds() <= 0 {
+		c.Lifespans.RefreshToken = lifespanRefreshTokenDefault
 	}
 
 	return c.Lifespans.RefreshToken
@@ -391,8 +482,8 @@ func (c *Config) GetRefreshTokenLifespan(ctx context.Context) (lifespan time.Dur
 
 // GetIDTokenLifespan returns the ID token lifespan.
 func (c *Config) GetIDTokenLifespan(ctx context.Context) (lifespan time.Duration) {
-	if c.Lifespans.IDToken <= 0 {
-		c.Lifespans.AccessToken = lifespanTokenDefault
+	if c.Lifespans.IDToken.Seconds() <= 0 {
+		c.Lifespans.IDToken = lifespanTokenDefault
 	}
 
 	return c.Lifespans.IDToken
@@ -400,7 +491,7 @@ func (c *Config) GetIDTokenLifespan(ctx context.Context) (lifespan time.Duration
 
 // GetAccessTokenLifespan returns the access token lifespan.
 func (c *Config) GetAccessTokenLifespan(ctx context.Context) (lifespan time.Duration) {
-	if c.Lifespans.AccessToken <= 0 {
+	if c.Lifespans.AccessToken.Seconds() <= 0 {
 		c.Lifespans.AccessToken = lifespanTokenDefault
 	}
 
@@ -515,13 +606,22 @@ func (c *Config) GetFormPostHTMLTemplate(ctx context.Context) (tmpl *template.Te
 
 // GetTokenURL returns the token URL.
 func (c *Config) GetTokenURL(ctx context.Context) (tokenURL string) {
+	if octx, ok := ctx.(Context); ok {
+		switch issuerURL, err := octx.IssuerURL(); err {
+		case nil:
+			return strings.ToLower(issuerURL.JoinPath(EndpointPathToken).String())
+		default:
+			return c.TokenURL
+		}
+	}
+
 	return c.TokenURL
 }
 
 // GetSecretsHasher returns the client secrets hashing function.
 func (c *Config) GetSecretsHasher(ctx context.Context) (hasher fosite.Hasher) {
 	if c.Hash.ClientSecrets == nil {
-		c.Hash.ClientSecrets, _ = NewAdaptiveHasher()
+		c.Hash.ClientSecrets, _ = NewHasher()
 	}
 
 	return c.Hash.ClientSecrets
@@ -568,7 +668,7 @@ func (c *Config) GetResponseModeHandlerExtension(ctx context.Context) (handler f
 // usually 'urn:ietf:params:oauth:request_uri:'.
 func (c *Config) GetPushedAuthorizeRequestURIPrefix(ctx context.Context) string {
 	if c.PAR.URIPrefix == "" {
-		c.PAR.URIPrefix = urnPARPrefix
+		c.PAR.URIPrefix = RedirectURIPrefixPushedAuthorizationRequestURN
 	}
 
 	return c.PAR.URIPrefix
@@ -583,7 +683,7 @@ func (c *Config) EnforcePushedAuthorize(ctx context.Context) bool {
 
 // GetPushedAuthorizeContextLifespan is the lifespan of the short-lived PAR context.
 func (c *Config) GetPushedAuthorizeContextLifespan(ctx context.Context) (lifespan time.Duration) {
-	if c.PAR.ContextLifespan == 0 {
+	if c.PAR.ContextLifespan.Seconds() <= 0 {
 		c.PAR.ContextLifespan = lifespanPARContextDefault
 	}
 

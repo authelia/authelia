@@ -24,7 +24,7 @@ services:
       - 'traefik.http.routers.authelia_frontend.entrypoints=https'
       - 'traefik.http.routers.authelia_frontend.tls=true'
     environment:
-      - VITE_PUBLIC_URL=${PathPrefix}
+      - VITE_BASEPATH=${PathPrefix}
     networks:
       - authelianet
 ...

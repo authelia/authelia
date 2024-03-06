@@ -1,9 +1,9 @@
 package templates
 
 import (
-	"embed"
 	"fmt"
 	th "html/template"
+	"io/fs"
 	"path"
 	tt "text/template"
 )
@@ -28,7 +28,7 @@ type Provider struct {
 }
 
 // LoadTemplatedAssets takes an embed.FS and loads each templated asset document into a Template.
-func (p *Provider) LoadTemplatedAssets(fs embed.FS) (err error) {
+func (p *Provider) LoadTemplatedAssets(fs fs.ReadFileFS) (err error) {
 	var (
 		data []byte
 	)
@@ -60,7 +60,7 @@ func (p *Provider) LoadTemplatedAssets(fs embed.FS) (err error) {
 	}
 
 	if p.templates.asset.api.spec, err = tt.
-		New("api/public_html/openapi.yaml").
+		New("assets/public_html/api/openapi.yml").
 		Funcs(FuncMap()).
 		Parse(string(data)); err != nil {
 		return err
@@ -84,14 +84,19 @@ func (p *Provider) GetAssetOpenAPISpecTemplate() (t Template) {
 	return p.templates.asset.api.spec
 }
 
+// GetIdentityVerificationJWTEmailTemplate returns the EmailTemplate for Identity Verification notifications.
+func (p *Provider) GetIdentityVerificationJWTEmailTemplate() (t *EmailTemplate) {
+	return p.templates.notification.jwtIdentityVerification
+}
+
+// GetIdentityVerificationOTCEmailTemplate returns the EmailTemplate for Identity Verification notifications.
+func (p *Provider) GetIdentityVerificationOTCEmailTemplate() (t *EmailTemplate) {
+	return p.templates.notification.otcIdentityVerification
+}
+
 // GetEventEmailTemplate returns an EmailTemplate used for generic event notifications.
 func (p *Provider) GetEventEmailTemplate() (t *EmailTemplate) {
 	return p.templates.notification.event
-}
-
-// GetIdentityVerificationEmailTemplate returns the EmailTemplate for Identity Verification notifications.
-func (p *Provider) GetIdentityVerificationEmailTemplate() (t *EmailTemplate) {
-	return p.templates.notification.identityVerification
 }
 
 // GetOpenIDConnectAuthorizeResponseFormPostTemplate returns a Template used to generate the OpenID Connect 1.0 Form Post Authorize Response.
@@ -102,7 +107,11 @@ func (p *Provider) GetOpenIDConnectAuthorizeResponseFormPostTemplate() (t *th.Te
 func (p *Provider) load() (err error) {
 	var errs []error
 
-	if p.templates.notification.identityVerification, err = loadEmailTemplate(TemplateNameEmailIdentityVerification, p.config.EmailTemplatesPath); err != nil {
+	if p.templates.notification.jwtIdentityVerification, err = loadEmailTemplate(TemplateNameEmailIdentityVerificationJWT, p.config.EmailTemplatesPath); err != nil {
+		errs = append(errs, err)
+	}
+
+	if p.templates.notification.otcIdentityVerification, err = loadEmailTemplate(TemplateNameEmailIdentityVerificationOTC, p.config.EmailTemplatesPath); err != nil {
 		errs = append(errs, err)
 	}
 

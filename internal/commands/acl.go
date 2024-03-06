@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
@@ -37,7 +38,7 @@ func newAccessControlCheckCommand(ctx *CmdCtx) (cmd *cobra.Command) {
 		Long:    cmdAutheliaAccessControlCheckPolicyLong,
 		Example: cmdAutheliaAccessControlCheckPolicyExample,
 		PreRunE: ctx.ChainRunE(
-			ctx.ConfigLoadRunE,
+			ctx.HelperConfigLoadRunE,
 		),
 		RunE: ctx.AccessControlCheckRunE,
 
@@ -45,7 +46,7 @@ func newAccessControlCheckCommand(ctx *CmdCtx) (cmd *cobra.Command) {
 	}
 
 	cmd.Flags().String("url", "", "the url of the object")
-	cmd.Flags().String("method", "GET", "the HTTP method of the object")
+	cmd.Flags().String("method", fasthttp.MethodGet, "the HTTP method of the object")
 	cmd.Flags().String("username", "", "the username of the subject")
 	cmd.Flags().StringSlice("groups", nil, "the groups of the subject")
 	cmd.Flags().String("ip", "", "the ip of the subject")

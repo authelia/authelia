@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -19,25 +20,26 @@ func TestKoanfEnvironmentCallback(t *testing.T) {
 	)
 
 	keyMap := map[string]string{
-		DefaultEnvPrefix + "KEY_EXAMPLE_UNDERSCORE": "key.example_underscore",
+		DefaultEnvPrefix + KEY_EXAMPLE_UNDERSCORE: "key.example_underscore",
 	}
-	ignoredKeys := []string{DefaultEnvPrefix + "SOME_SECRET"}
+
+	ignoredKeys := []string{DefaultEnvPrefix + SOME_SECRET}
 
 	callback := koanfEnvironmentCallback(keyMap, ignoredKeys, DefaultEnvPrefix, DefaultEnvDelimiter)
 
-	key, value = callback(DefaultEnvPrefix+"KEY_EXAMPLE_UNDERSCORE", "value")
+	key, value = callback(DefaultEnvPrefix+KEY_EXAMPLE_UNDERSCORE, "value")
 	assert.Equal(t, "key.example_underscore", key)
 	assert.Equal(t, "value", value)
 
-	key, value = callback(DefaultEnvPrefix+"KEY_EXAMPLE", "value")
-	assert.Equal(t, DefaultEnvPrefix+"KEY_EXAMPLE", key)
+	key, value = callback(DefaultEnvPrefix+KEY_EXAMPLE, "value")
+	assert.Equal(t, DefaultEnvPrefix+KEY_EXAMPLE, key)
 	assert.Equal(t, "value", value)
 
 	key, value = callback(DefaultEnvPrefix+"THEME", "value")
 	assert.Equal(t, "theme", key)
 	assert.Equal(t, "value", value)
 
-	key, value = callback(DefaultEnvPrefix+"SOME_SECRET", "value")
+	key, value = callback(DefaultEnvPrefix+SOME_SECRET, "value")
 	assert.Equal(t, "", key)
 	assert.Nil(t, value)
 }
@@ -117,10 +119,92 @@ func TestKoanfSecretCallbackShouldErrorOnFSError(t *testing.T) {
 	callback := koanfEnvironmentSecretsCallback(keyMap, val)
 
 	key, value := callback("AUTHELIA_THEME", secret)
-	assert.Equal(t, "theme", key)
-	assert.Equal(t, "", value)
+	assert.Equal(t, "", key)
+	assert.Equal(t, nil, value)
 
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
-	assert.EqualError(t, val.Errors()[0], fmt.Sprintf(errFmtSecretIOIssue, secret, "theme", fmt.Sprintf("open %s: permission denied", secret)))
+	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("secrets: error loading secret path %s into key 'theme': file permission error occurred: open %s: permission denied", secret, secret))
+}
+
+func TestKoanfCommandLineWithMappingCallback(t *testing.T) {
+	testCases := []struct {
+		name          string
+		have          []string
+		flagName      string
+		flagValue     string
+		mapped        string
+		valid         bool
+		unchanged     bool
+		expectedName  string
+		expectedValue any
+	}{
+		{
+			"ShouldDecodeStandard",
+			[]string{"--commands", "abc"},
+			"commands",
+			"",
+			"command.another",
+			false,
+			false,
+			"command.another",
+			"abc",
+		},
+		{
+			"ShouldSkipUnchangedKey",
+			[]string{},
+			"commands",
+			"abc",
+			"command.another",
+			false,
+			false,
+			"",
+			nil,
+		},
+		{
+			"ShouldLookupNormalizedKey",
+			[]string{"--log.file-path", "abc"},
+			"log.file-path",
+			"",
+			"",
+			true,
+			false,
+			"log.file_path",
+			"abc",
+		},
+		{
+			"ShouldReturnUnmodified",
+			[]string{"--commands", "abc"},
+			"commands",
+			"",
+			"",
+			false,
+			false,
+			"",
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			flagset := pflag.NewFlagSet("test", pflag.ContinueOnError)
+
+			flagset.String(tc.flagName, tc.flagValue, "")
+
+			assert.NoError(t, flagset.Parse(tc.have))
+
+			mapper := map[string]string{}
+
+			if tc.mapped != "" {
+				mapper[tc.flagName] = tc.mapped
+			}
+
+			callback := koanfCommandLineWithMappingCallback(mapper, tc.valid, tc.unchanged)
+
+			actualName, actualValue := callback(flagset.Lookup(tc.flagName))
+
+			assert.Equal(t, tc.expectedName, actualName)
+			assert.Equal(t, tc.expectedValue, actualValue)
+		})
+	}
 }

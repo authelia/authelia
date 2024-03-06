@@ -140,22 +140,22 @@ desired secret value.
 generatorOptions:
   disableNameSuffixHash: true
   labels:
-    type: generated
-    app: authelia
+    type: 'generated'
+    app: 'authelia'
 secretGenerator:
-  - name: authelia
+  - name: 'authelia'
     files:
-      - DUO_SECRET_KEY
-      - JWT_SECRET
-      - LDAP_PASSWORD
-      - OIDC_HMAC_SECRET
-      - OIDC_ISSUER_PRIVATE_KEY
-      - REDIS_PASSWORD
-      - REDIS_SENTINEL_PASSWORD
-      - SESSION_SECRET
-      - SMTP_PASSWORD
-      - STORAGE_ENCRYPTION_KEY
-      - STORAGE_PASSWORD
+      - 'DUO_SECRET_KEY'
+      - 'JWT_SECRET'
+      - 'LDAP_PASSWORD'
+      - 'OIDC_HMAC_SECRET'
+      - 'OIDC_ISSUER_PRIVATE_KEY'
+      - 'REDIS_PASSWORD'
+      - 'REDIS_SENTINEL_PASSWORD'
+      - 'SESSION_SECRET'
+      - 'SMTP_PASSWORD'
+      - 'STORAGE_ENCRYPTION_KEY'
+      - 'STORAGE_PASSWORD'
 ...
 ```
 {{< /details >}}
@@ -173,59 +173,59 @@ The example is an excerpt for a manifest which can mount volumes. Examples of th
 ---
 spec:
   containers:
-    - name: authelia
+    - name: 'authelia'
       env:
-        - name: AUTHELIA_DUO_API_SECRET_KEY_FILE
-          value: /app/secrets/DUO_SECRET_KEY
-        - name: AUTHELIA_JWT_SECRET_FILE
-          value: /app/secrets/JWT_SECRET
-        - name: AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE
-          value: /app/secrets/LDAP_PASSWORD
-        - name: AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE
-          value: /app/secrets/OIDC_HMAC_SECRET
-        - name: AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE
-          value: /app/secrets/OIDC_ISSUER_PRIVATE_KEY
-        - name: AUTHELIA_SESSION_REDIS_PASSWORD_FILE
-          value: /app/secrets/REDIS_PASSWORD
-        - name: AUTHELIA_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE
-          value: /app/secrets/REDIS_SENTINEL_PASSWORD
-        - name: AUTHELIA_SESSION_SECRET_FILE
-          value: /app/secrets/SESSION_SECRET
-        - name: AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
-          value: /app/secrets/SMTP_PASSWORD
-        - name: AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE
-          value: /app/secrets/STORAGE_ENCRYPTION_KEY
-        - name: AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE
-          value: /app/secrets/STORAGE_ENCRYPTION_KEY
+        - name: 'AUTHELIA_DUO_API_SECRET_KEY_FILE'
+          value: '/app/secrets/DUO_SECRET_KEY'
+        - name: 'AUTHELIA_JWT_SECRET_FILE'
+          value: '/app/secrets/JWT_SECRET'
+        - name: 'AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE'
+          value: '/app/secrets/LDAP_PASSWORD'
+        - name: 'AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE'
+          value: '/app/secrets/OIDC_HMAC_SECRET'
+        - name: 'AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE'
+          value: '/app/secrets/OIDC_ISSUER_PRIVATE_KEY'
+        - name: 'AUTHELIA_SESSION_REDIS_PASSWORD_FILE'
+          value: '/app/secrets/REDIS_PASSWORD'
+        - name: 'AUTHELIA_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE'
+          value: '/app/secrets/REDIS_SENTINEL_PASSWORD'
+        - name: 'AUTHELIA_SESSION_SECRET_FILE'
+          value: '/app/secrets/SESSION_SECRET'
+        - name: 'AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE'
+          value: '/app/secrets/SMTP_PASSWORD'
+        - name: 'AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE'
+          value: '/app/secrets/STORAGE_ENCRYPTION_KEY'
+        - name: 'AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE'
+          value: '/app/secrets/STORAGE_ENCRYPTION_KEY'
       volumeMounts:
-        - mountPath: /app/secrets
-          name: secrets
+        - mountPath: '/app/secrets'
+          name: 'secrets'
           readOnly: true
   volumes:
-    - name: secrets
+    - name: 'secrets'
       secret:
-        secretName: authelia
+        secretName: 'authelia'
         items:
-          - key: DUO_SECRET_KEY
-            path: DUO_SECRET_KEY
-          - key: JWT_SECRET
-            path: JWT_SECRET
-          - key: OIDC_HMAC_SECRET
-            path: OIDC_HMAC_SECRET
-          - key: OIDC_ISSUER_PRIVATE_KEY
-            path: OIDC_ISSUER_PRIVATE_KEY
-          - key: REDIS_PASSWORD
-            path: REDIS_PASSWORD
-          - key: REDIS_SENTINEL_PASSWORD
-            path: REDIS_SENTINEL_PASSWORD
-          - key: SESSION_SECRET
-            path: SESSION_SECRET
-          - key: SMTP_PASSWORD
-            path: SMTP_PASSWORD
-          - key: STORAGE_ENCRYPTION_KEY
-            path: STORAGE_ENCRYPTION_KEY
-          - key: STORAGE_PASSWORD
-            path: STORAGE_PASSWORD
+          - key: 'DUO_SECRET_KEY'
+            path: 'DUO_SECRET_KEY'
+          - key: 'JWT_SECRET'
+            path: 'JWT_SECRET'
+          - key: 'OIDC_HMAC_SECRET'
+            path: 'OIDC_HMAC_SECRET'
+          - key: 'OIDC_ISSUER_PRIVATE_KEY'
+            path: 'OIDC_ISSUER_PRIVATE_KEY'
+          - key: 'REDIS_PASSWORD'
+            path: 'REDIS_PASSWORD'
+          - key: 'REDIS_SENTINEL_PASSWORD'
+            path: 'REDIS_SENTINEL_PASSWORD'
+          - key: 'SESSION_SECRET'
+            path: 'SESSION_SECRET'
+          - key: 'SMTP_PASSWORD'
+            path: 'SMTP_PASSWORD'
+          - key: 'STORAGE_ENCRYPTION_KEY'
+            path: 'STORAGE_ENCRYPTION_KEY'
+          - key: 'STORAGE_PASSWORD'
+            path: 'STORAGE_PASSWORD'
 ...
 ```
 {{< /details >}}

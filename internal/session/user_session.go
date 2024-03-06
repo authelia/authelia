@@ -56,23 +56,37 @@ func (s *UserSession) SetTwoFactorDuo(now time.Time) {
 	s.AuthenticationMethodRefs.Duo = true
 }
 
-// SetTwoFactorWebauthn sets the relevant Webauthn AMR's and sets the factor to 2FA.
-func (s *UserSession) SetTwoFactorWebauthn(now time.Time, userPresence, userVerified bool) {
+// SetTwoFactorWebAuthn sets the relevant WebAuthn AMR's and sets the factor to 2FA.
+func (s *UserSession) SetTwoFactorWebAuthn(now time.Time, userPresence, userVerified bool) {
 	s.setTwoFactor(now)
-	s.AuthenticationMethodRefs.Webauthn = true
-	s.AuthenticationMethodRefs.WebauthnUserPresence, s.AuthenticationMethodRefs.WebauthnUserVerified = userPresence, userVerified
+	s.AuthenticationMethodRefs.WebAuthn = true
+	s.AuthenticationMethodRefs.WebAuthnUserPresence, s.AuthenticationMethodRefs.WebAuthnUserVerified = userPresence, userVerified
 
-	s.Webauthn = nil
+	s.WebAuthn = nil
 }
 
 // AuthenticatedTime returns the unix timestamp this session authenticated successfully at the given level.
 func (s *UserSession) AuthenticatedTime(level authorization.Level) (authenticatedTime time.Time, err error) {
 	switch level {
 	case authorization.OneFactor:
-		return time.Unix(s.FirstFactorAuthnTimestamp, 0), nil
+		return time.Unix(s.FirstFactorAuthnTimestamp, 0).UTC(), nil
 	case authorization.TwoFactor:
-		return time.Unix(s.SecondFactorAuthnTimestamp, 0), nil
+		return time.Unix(s.SecondFactorAuthnTimestamp, 0).UTC(), nil
 	default:
-		return time.Unix(0, 0), errors.New("invalid authorization level")
+		return time.Unix(0, 0).UTC(), errors.New("invalid authorization level")
 	}
+}
+
+// Identity value of the user session.
+func (s *UserSession) Identity() Identity {
+	identity := Identity{
+		Username:    s.Username,
+		DisplayName: s.DisplayName,
+	}
+
+	if len(s.Emails) != 0 {
+		identity.Email = s.Emails[0]
+	}
+
+	return identity
 }

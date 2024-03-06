@@ -75,6 +75,14 @@ Lastly Authelia's implementation of Argon2id is highly tunable. You can tune the
 (time), parallelism, and memory usage. To read more about this please read how to
 [configure](../../configuration/first-factor/file.md) file authentication.
 
+## Protections against return oriented programming attacks and general hardening
+
+Authelia is built as a position independent executable which makes Return Oriented Programming (ROP) attacks
+significantly more difficult to execute reliably.
+
+In addition it is built as a static binary with full relocation read-only support making this and several other
+traditional binary weaknesses significantly more difficult to exploit.
+
 ## User profile and group membership always kept up-to-date (LDAP authentication provider)
 
 This measure is unrelated to the File authentication provider.
@@ -152,7 +160,7 @@ values.
 
 As such all SMTP connections require the following:
 
-1. A TLS Connection (STARTTLS or implicit) has been negotiated before authentication or sending emails (_unauthenticated
+1. A TLS Connection (StartTLS or implicit) has been negotiated before authentication or sending emails (_unauthenticated
  connections require it as well_)
 2. Valid X509 Certificate presented to the client during the TLS handshake
 
@@ -172,8 +180,8 @@ of the target service.
 
 Read more in the [certificates_directory] documentation for this option.
 
-[certificates_directory]: ../../configuration/miscellaneous/introduction.md#certificatesdirectory
-[certificates directory]: #configuration-option--certificatesdirectory
+[certificates_directory]: ../../configuration/miscellaneous/introduction.md#certificates_directory
+[certificates directory]: #configuration-option-certificates_directory
 
 ### Configuration Option: tls.skip_verify
 
@@ -186,11 +194,11 @@ compromising a user's security without their knowledge.
 
 Authelia by default ensures that the SMTP server connection is secured via TLS prior to sending sensitive information.
 
-The [disable_require_tls](../../configuration/notifications/smtp.md#disablerequiretls) option disables this
+The [disable_require_tls](../../configuration/notifications/smtp.md#disable_require_tls) option disables this
 requirement which means the emails may be sent in cleartext. This is the least secure option as it effectively removes
 the validation of SMTP certificates and makes using an encrypted connection with TLS optional.
 
-This means not only can the vulnerabilities of the [skip_verify](#configuration-option--tlsskipverify) option be
+This means not only can the vulnerabilities of the [skip_verify](#configuration-option-tlsskip_verify) option be
 exploited, but any router or switch along the route of the email which receives the packets could be used to silently
 exploit the cleartext nature of the connection to manipulate the email in transit.
 
@@ -199,22 +207,22 @@ for SMTP servers that allow unauthenticated relaying (bad practice).
 
 ### SMTP Ports
 
-All SMTP connections begin as [cleartext], and then negotiate to upgrade to a secure TLS connection via STARTTLS.
+All SMTP connections begin as [cleartext], and then negotiate to upgrade to a secure TLS connection via StartTLS.
 
 The [`submissions` service][service-submissions] (_typically port 465_) is an exception to this rule, where the
-connection begins immediately secured with TLS (_similar to HTTPS_). When the configured [port for
-SMTP][docs-config-smtp-port] is set to `465`, Authelia will initiate TLS connections without requiring STARTTLS
+connection begins immediately secured with TLS (_similar to HTTPS_). When the configured [scheme for
+SMTP][docs-config-smtp-port] is set to `submissions`, Authelia will initiate TLS connections without requiring StartTLS
 negotiation.
 
-When the `submissions` service port is available, it [should be preferred][port-465] over any STARTTLS port for
+When the `submissions` service port is available, it [should be preferred][port-465] over any StartTLS port for
 submitting mail.
 
 **NOTE:** Prior to 2018, port 465 was previously assigned for a similar purpose known as [`smtps`][port-465] (_A TLS
 only equivalent of the `smtp` port 25_), which it had been deprecated for. Port 465 has since been re-assigned for only
 supporting mail submission (_which unlike SMTP transfers via port 25, [requires authentication][smtp-auth]_), similar
-to port 587 (_the `submission` port, a common alternative that uses STARTTLS instead_).
+to port 587 (_the `submission` port, a common alternative that uses StartTLS instead_).
 
-[docs-config-smtp-port]: ../../configuration/notifications/smtp.md#port
+[docs-config-smtp-port]: ../../configuration/notifications/smtp.md#address
 [cleartext]: https://cwe.mitre.org/data/definitions/312.html
 [service-submissions]: https://datatracker.ietf.org/doc/html/rfc8314#section-7.3
 [port-465]: https://datatracker.ietf.org/doc/html/rfc8314#section-3.3
@@ -238,7 +246,7 @@ would not even be able to create a TCP connection. This measure is recommended i
 configured some kind of ACLs specifically allowing the communication between proxies and Authelia instances like in a
 service mesh or some kind of network overlay.
 
-To configure mutual TLS, please refer to [this document](../../configuration/miscellaneous/server.md#clientcertificates)
+To configure mutual TLS, please refer to [this document](../../configuration/miscellaneous/server.md#client_certificates)
 
 ## Additional security
 
@@ -256,7 +264,7 @@ database. The value of this option should be long and as random as possible. See
 [documentation](../../configuration/session/introduction.md#secret) for this option.
 
 The validity period of session is highly configurable. For example in a highly security conscious domain you could
-set the session [remember_me](../../configuration/session/introduction.md#rememberme) to 0 to disable this
+set the session [remember_me](../../configuration/session/introduction.md#remember_me) to 0 to disable this
 feature, and set the [expiration](../../configuration/session/introduction.md#expiration) to 2 hours and the
 [inactivity](../../configuration/session/introduction.md#inactivity) of 10 minutes. Configuring the session security in this
 manner would mean if the cookie age was more than 2 hours or if the user was inactive for more than 10 minutes the
@@ -268,12 +276,32 @@ This document previously detailed additional per-proxy configuration options tha
 improve security. These headers are now documented here and implemented by default in all responses due to the fact
 the experience should be the same regardless of which proxy you're utilizing and the area is rapidly evolving.
 
-Users who need custom behaviours in this area can submit a request or remove/replace the headers as necessary.
+Users who need custom behaviours in this area can submit a request or remove/replace the headers as necessary. These
+headers will evolve over time just as the web standards and security recommendations evolve. These headers prevent
+loading Authelia in specific scenarios, primarily in an
+[Inline Frame](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe) which is generally considered a high
+security risk.
+
+The [OWASP](https://owasp.org/) helpful
+[HTTP Security Response Headers Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html)
+was used as a basis for most of the decisions regarding these headers. Users who which to customize the behaviour should
+consider this cheat sheet mandatory reading before they do so.
+
+#### X-XSS-Protection
+
+__Value:__ N/A
+__Endpoints:__ All
+__Status:__ Unsupported Non-standard
+
+We do not include this header as this feature is not present in any modern browser and could introduce vulnerabilities
+if enabled at all. Going forward [CORS], [CORP], CORB, and [COEP] are the standards for browser centric site security.
+See the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection) for more information.
 
 #### X-Content-Type-Options
 
 __Value:__ `nosniff`
 __Endpoints:__ All
+__Status:__ Supported Standard
 
 Prevents MIME type sniffing. See the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options) for more information.
@@ -282,6 +310,7 @@ Prevents MIME type sniffing. See the
 
 __Value:__ `strict-origin-when-cross-origin`
 __Endpoints:__ All
+__Status:__ Supported Standard
 
 Sends only the origin as the referrer in cross-origin requests, but sends the origin, path, and query string in
 same-origin requests. See the
@@ -289,32 +318,70 @@ same-origin requests. See the
 
 #### X-Frame-Options
 
-__Value:__ `SAMEORIGIN`
+__Value:__ `DENY`
 __Endpoints:__ All
+__Status:__ Supported Standard
 
 Prevents Authelia rendering in a `frame`, `iframe`, `embed`, or `object` element. See the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options) for more information.
 
-#### X-XSS-Protection
-
-__Value:__ `0`
-__Endpoints:__ All
-
-We disable this as this feature is not present in any modern browser and could introduce vulnerabilities if enabled at
-all. Going forward [CORS], [CORP], CORB, and [COEP] are the standards for browser centric site security. See the
-[MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection) for more information.
-
 #### Permissions-Policy
 
-__Value:__ `interest-cohort=()`
+__Value:__ `accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), screen-wake-lock=(), sync-xhr=(), xr-spatial-tracking=(), interest-cohort=()`
 __Endpoints:__ All
+__Status:__ Supported Standard
 
-Disables FLoC Cohorts.
+Disables browser features not required by Authelia including the
+[Federated Learning of Cohorts](https://en.wikipedia.org/wiki/Federated_Learning_of_Cohorts). It should be noted while
+this is a supported standard individual features of the permissions policy may not be supported by some browsers or
+browser configurations. See the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy) and
+the [Permissions Policy website](https://www.permissionspolicy.com/) for
+more information.
+
+#### X-DNS-Prefetch-Control
+
+__Value:__ `off`
+__Endpoints:__ All
+__Status:__ Non-standard
+
+Prevents browsers from performing a DNS prefetch for links displayed on Authelia pages. Not all browsers support this.
+See the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-DNS-Prefetch-Control) for more information.
+
+
+#### Cross-Origin-Opener-Policy
+
+__Value:__ `same-origin`
+__Endpoints:__ All
+__Status:__ Supported Standard
+
+Enables context isolation for the Authelia page so only pages with the same origin are using the same browsing context.
+See the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy) for more
+information.
+
+#### Cross-Origin-Embedder-Policy
+
+__Value:__ `require-corp`
+__Endpoints:__ All
+__Status:__ Supported Standard
+
+Prevents embedding of resources that do not have the [Cross-Origin-Resource-Policy](#cross-origin-resource-policy)
+header. See the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Embedder-Policy) for more
+information.
+
+#### Cross-Origin-Resource-Policy
+
+__Value:__ `same-site`
+__Endpoints:__ All
+__Status:__ Supported Standard
+
+Prevents inclusion of resources that do not share the same origin. See the
+[MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Resource-Policy) for more information.
 
 #### Pragma
 
 __Value:__ `no-cache`
 __Endpoints:__ API
+__Status:__ Supported Standard
 
 Disables caching of API requests on HTTP/1.0 browsers. See the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma) for more information.
@@ -323,6 +390,7 @@ Disables caching of API requests on HTTP/1.0 browsers. See the
 
 __Value:__ `no-store`
 __Endpoints:__ API
+__Status:__ Supported Standard
 
 Disables caching responses entirely on HTTP/1.1 browsers. See the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) for more information.
@@ -351,13 +419,12 @@ typically located at `/etc/fail2ban/filter.d`.
 # the fourth line catches attempts to spam via the password reset form or 2fa device reset form. This requires debug logging to be enabled
 
 [Definition]
-failregex = ^.*Unsuccessful 1FA authentication attempt by user .*remote_ip="?<HOST>"? stack.*
-            ^.*Unsuccessful (TOTP|Duo|U2F) authentication attempt by user .*remote_ip="?<HOST>"? stack.*
-            ^.*user not found.*path=/api/reset-password/identity/start remote_ip="?<HOST>"? stack.*
-            ^.*Sending an email to user.*path=/api/.*/start remote_ip="?<HOST>"?
+failregex = ^.*Unsuccessful (1FA|TOTP|Duo|U2F) authentication attempt by user .*remote_ip"?(:|=)"?<HOST>"?.*$
+            ^.*user not found.*path=/api/reset-password/identity/start remote_ip"?(:|=)"?<HOST>"?.*$
+            ^.*Sending an email to user.*path=/api/.*/start remote_ip"?(:|=)"?<HOST>"?.*$
 
-ignoreregex = ^.*level=info.*
-              ^.*level=warning.*
+ignoreregex = ^.*level"?(:|=)"?info.*
+              ^.*level"?(:|=)"?warning.*
 ```
 
 Modify the `jail.local` file. In Debian-based systems the folder is typically located at `/etc/fail2ban/`. If the file
@@ -374,6 +441,7 @@ maxretry = 3
 bantime = 1d
 findtime = 1d
 chain = DOCKER-USER
+action = iptables-allports[name=authelia]
 ```
 
 If you are not using Docker remove the line "chain = DOCKER-USER". You will need to restart the fail2ban service for the
@@ -453,7 +521,7 @@ The examples below assume you'd like to run the container as UID 8000 and GID 90
 Example for the docker CLI:
 
 ```shell
-docker run -e PUID=1000 -e PGID=1000 -v /authelia:/config authelia/authelia:latest
+docker run -e PUID=8000 -e PGID=9000 -v /authelia:/config authelia/authelia:latest
 ```
 
 Example for docker-compose:
@@ -465,8 +533,8 @@ services:
     image: authelia/authelia
     container_name: authelia
     environment:
-      PUID: 1000
-      PGID: 1000
+      PUID: 8000
+      PGID: 9000
     volumes:
       - ./authelia:/config
 ```

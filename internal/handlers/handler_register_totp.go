@@ -1,77 +1,350 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
+	"time"
+
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// identityRetrieverFromSession retriever computing the identity from the cookie session.
-func identityRetrieverFromSession(ctx *middlewares.AutheliaCtx) (identity *session.Identity, err error) {
-	var userSession session.UserSession
-
-	if userSession, err = ctx.GetSession(); err != nil {
-		return nil, fmt.Errorf("error retrieving user session for request: %w", err)
-	}
-
-	if len(userSession.Emails) == 0 {
-		return nil, fmt.Errorf("user %s does not have any email address", userSession.Username)
-	}
-
-	return &session.Identity{
-		Username:    userSession.Username,
-		DisplayName: userSession.DisplayName,
-		Email:       userSession.Emails[0],
-	}, nil
-}
-
-func isTokenUserValidFor2FARegistration(ctx *middlewares.AutheliaCtx, username string) bool {
-	userSession, err := ctx.GetSession()
-
-	return err == nil && userSession.Username == username
-}
-
-// TOTPIdentityStart the handler for initiating the identity validation.
-var TOTPIdentityStart = middlewares.IdentityVerificationStart(middlewares.IdentityVerificationStartArgs{
-	MailTitle:             "Register your mobile",
-	MailButtonContent:     "Register",
-	TargetEndpoint:        "/one-time-password/register",
-	ActionClaim:           ActionTOTPRegistration,
-	IdentityRetrieverFunc: identityRetrieverFromSession,
-}, nil)
-
-func totpIdentityFinish(ctx *middlewares.AutheliaCtx, username string) {
+// TOTPRegisterGET returns the registration specific options.
+func TOTPRegisterGET(ctx *middlewares.AutheliaCtx) {
 	var (
-		config *model.TOTPConfiguration
-		err    error
+		userSession session.UserSession
+		err         error
 	)
 
-	if config, err = ctx.Providers.TOTP.Generate(username); err != nil {
-		ctx.Error(fmt.Errorf("unable to generate TOTP key: %s", err), messageUnableToRegisterOneTimePassword)
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred retrieving TOTP registration options: %s", errStrUserSessionData)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToOptionsOneTimePassword)
+
+		return
 	}
 
-	if err = ctx.Providers.StorageProvider.SaveTOTPConfiguration(ctx, *config); err != nil {
-		ctx.Error(fmt.Errorf("unable to save TOTP secret in DB: %s", err), messageUnableToRegisterOneTimePassword)
+	if userSession.IsAnonymous() {
+		ctx.Logger.WithError(errUserAnonymous).Error("Error occurred retrieving TOTP registration options")
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToOptionsOneTimePassword)
+
+		return
+	}
+
+	if err = ctx.SetJSONBody(ctx.Providers.TOTP.Options()); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred retrieving TOTP registration options for user '%s': %s", userSession.Username, errStrRespBody)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToOptionsOneTimePassword)
+	}
+}
+
+// TOTPRegisterPUT handles the users choice of registration specific options and returns the generated configuration.
+func TOTPRegisterPUT(ctx *middlewares.AutheliaCtx) {
+	var (
+		userSession session.UserSession
+		bodyJSON    bodyRegisterTOTP
+		err         error
+	)
+
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred generating a TOTP registration session: %s", errStrUserSessionData)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToRegisterOneTimePassword)
+
+		return
+	}
+
+	if userSession.IsAnonymous() {
+		ctx.Logger.WithError(errUserAnonymous).Error("Error occurred generating a TOTP registration session")
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToRegisterOneTimePassword)
+
+		return
+	}
+
+	if err = json.Unmarshal(ctx.PostBody(), &bodyJSON); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred generating a TOTP registration session for user '%s': %s", userSession.Username, errStrReqBodyParse)
+
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError(messageUnableToRegisterOneTimePassword)
+
+		return
+	}
+
+	opts := ctx.Providers.TOTP.Options()
+
+	if !utils.IsStringInSlice(bodyJSON.Algorithm, opts.Algorithms) ||
+		!utils.IsIntegerInSlice(bodyJSON.Period, opts.Periods) ||
+		!utils.IsIntegerInSlice(bodyJSON.Length, opts.Lengths) {
+		ctx.Logger.WithError(fmt.Errorf("the algorithm '%s', period '%d', or length '%d' was not permitted by configured policy", bodyJSON.Algorithm, bodyJSON.Period, bodyJSON.Length)).Errorf("Error occurred generating a TOTP registration session for user '%s': error occurred validating registration options selection", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError(messageUnableToRegisterOneTimePassword)
+
+		return
+	}
+
+	var config *model.TOTPConfiguration
+
+	if config, err = ctx.Providers.TOTP.GenerateCustom(ctx, userSession.Username, bodyJSON.Algorithm, "", uint(bodyJSON.Length), uint(bodyJSON.Period), 0); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred generating a TOTP registration session for user '%s': error generating TOTP configuration", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToRegisterOneTimePassword)
+
+		return
+	}
+
+	userSession.TOTP = &session.TOTP{
+		Issuer:    config.Issuer,
+		Algorithm: config.Algorithm,
+		Digits:    config.Digits,
+		Period:    config.Period,
+		Secret:    string(config.Secret),
+		Expires:   ctx.Clock.Now().Add(time.Minute * 10),
+	}
+
+	if err = ctx.SaveSession(userSession); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred generating a TOTP registration session for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToRegisterOneTimePassword)
+
 		return
 	}
 
 	response := TOTPKeyResponse{
 		OTPAuthURL:   config.URI(),
-		Base32Secret: string(config.Secret),
+		Base32Secret: userSession.TOTP.Secret,
 	}
 
 	if err = ctx.SetJSONBody(response); err != nil {
-		ctx.Logger.Errorf("Unable to set TOTP key response in body: %s", err)
-	}
+		ctx.Logger.WithError(err).Errorf("Error occurred generating a TOTP registration session for user '%s': %s", userSession.Username, errStrRespBody)
 
-	ctxLogEvent(ctx, username, "Second Factor Method Added", map[string]any{"Action": "Second Factor Method Added", "Category": "Time-based One Time Password"})
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToRegisterOneTimePassword)
+	}
 }
 
-// TOTPIdentityFinish the handler for finishing the identity validation.
-var TOTPIdentityFinish = middlewares.IdentityVerificationFinish(
-	middlewares.IdentityVerificationFinishArgs{
-		ActionClaim:          ActionTOTPRegistration,
-		IsTokenUserValidFunc: isTokenUserValidFor2FARegistration,
-	}, totpIdentityFinish)
+// TOTPRegisterPOST handles validation that the user has properly registered the configuration.
+func TOTPRegisterPOST(ctx *middlewares.AutheliaCtx) {
+	var (
+		userSession session.UserSession
+		bodyJSON    bodyRegisterFinishTOTP
+		valid       bool
+		step        uint64
+		err         error
+	)
+
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP registration session: %s", errStrUserSessionData)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToRegisterOneTimePassword)
+
+		return
+	}
+
+	if userSession.IsAnonymous() {
+		ctx.Logger.WithError(errUserAnonymous).Error("Error occurred validating a TOTP registration session")
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToRegisterOneTimePassword)
+
+		return
+	}
+
+	if err = json.Unmarshal(ctx.PostBody(), &bodyJSON); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP registration session for user '%s': %s", userSession.Username, errStrReqBodyParse)
+
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError(messageUnableToRegisterOneTimePassword)
+
+		return
+	}
+
+	if userSession.TOTP == nil {
+		ctx.Logger.Errorf("Error occurred validating a TOTP registration session for user '%s': the user did not initiate a registration session on their current session", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToRegisterOneTimePassword)
+
+		return
+	}
+
+	if ctx.Clock.Now().After(userSession.TOTP.Expires) {
+		ctx.Logger.WithError(fmt.Errorf("the registration session is expired")).Errorf("Error occurred validating a TOTP registration session for user '%s': error occurred validating the session", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToRegisterOneTimePassword)
+
+		return
+	}
+
+	config := model.TOTPConfiguration{
+		CreatedAt: ctx.Clock.Now(),
+		Username:  userSession.Username,
+		Issuer:    userSession.TOTP.Issuer,
+		Algorithm: userSession.TOTP.Algorithm,
+		Period:    userSession.TOTP.Period,
+		Digits:    userSession.TOTP.Digits,
+		Secret:    []byte(userSession.TOTP.Secret),
+	}
+
+	if valid, step, err = ctx.Providers.TOTP.Validate(ctx, bodyJSON.Token, &config); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP registration session for user '%s': error occurred validating the user input against the session", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToRegisterOneTimePassword)
+
+		return
+	}
+
+	if !valid {
+		ctx.Logger.WithError(fmt.Errorf("user input did not match any expected value")).Errorf("Error occurred validating a TOTP registration session for user '%s'", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToRegisterOneTimePassword)
+
+		return
+	}
+
+	if !ctx.Configuration.TOTP.DisableReuseSecurityPolicy {
+		if err = ctx.Providers.StorageProvider.SaveTOTPHistory(ctx, userSession.Username, step*uint64(config.Period)); err != nil {
+			ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP registration session for user '%s': error occurred saving the TOTP history to the storage backend", userSession.Username)
+
+			ctx.SetStatusCode(fasthttp.StatusForbidden)
+			ctx.SetJSONError(messageUnableToRegisterOneTimePassword)
+
+			return
+		}
+	}
+
+	if err = ctx.Providers.StorageProvider.SaveTOTPConfiguration(ctx, config); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP registration session for user '%s': error occurred saving the TOTP configuration to the storage backend", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToRegisterOneTimePassword)
+
+		return
+	}
+
+	userSession.TOTP = nil
+
+	if err = ctx.SaveSession(userSession); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP registration session for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToRegisterOneTimePassword)
+
+		return
+	}
+
+	ctxLogEvent(ctx, userSession.Username, eventLogAction2FAAdded, map[string]any{eventLogKeyAction: eventLogAction2FAAdded, eventLogKeyCategory: eventLogCategoryOneTimePassword})
+
+	ctx.ReplyOK()
+}
+
+// TOTPRegisterDELETE removes a pending TOTP registration.
+func TOTPRegisterDELETE(ctx *middlewares.AutheliaCtx) {
+	var (
+		userSession session.UserSession
+		err         error
+	)
+
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred deleting a TOTP registration session: %s", errStrUserSessionData)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToDeleteRegisterOneTimePassword)
+
+		return
+	}
+
+	if userSession.IsAnonymous() {
+		ctx.Logger.WithError(errUserAnonymous).Error("Error occurred deleting a TOTP registration session")
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToDeleteRegisterOneTimePassword)
+
+		return
+	}
+
+	if userSession.TOTP == nil {
+		ctx.ReplyOK()
+
+		return
+	}
+
+	userSession.TOTP = nil
+
+	if err = ctx.SaveSession(userSession); err != nil {
+		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "deleted pending TOTP configuration", regulation.AuthTypeTOTP, logFmtActionRegistration, userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToDeleteRegisterOneTimePassword)
+
+		return
+	}
+
+	ctx.ReplyOK()
+}
+
+// TOTPConfigurationDELETE removes a registered TOTP configuration.
+func TOTPConfigurationDELETE(ctx *middlewares.AutheliaCtx) {
+	var (
+		userSession session.UserSession
+		err         error
+	)
+
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred deleting a TOTP configuration: %s", errStrUserSessionData)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToDeleteOneTimePassword)
+
+		return
+	}
+
+	if userSession.IsAnonymous() {
+		ctx.Logger.WithError(errUserAnonymous).Error("Error occurred deleting a TOTP configuration")
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToDeleteOneTimePassword)
+
+		return
+	}
+
+	if _, err = ctx.Providers.StorageProvider.LoadTOTPConfiguration(ctx, userSession.Username); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred deleting a TOTP configuration for user '%s': error occurred loading configuration from the storage backend", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToDeleteOneTimePassword)
+
+		return
+	}
+
+	if err = ctx.Providers.StorageProvider.DeleteTOTPConfiguration(ctx, userSession.Username); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred deleting a TOTP configuration for user '%s': error occurred deleting configuration from the storage backend", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToDeleteOneTimePassword)
+
+		return
+	}
+
+	ctxLogEvent(ctx, userSession.Username, eventLogAction2FARemoved, map[string]any{eventLogKeyAction: eventLogAction2FARemoved, eventLogKeyCategory: eventLogCategoryOneTimePassword})
+
+	ctx.ReplyOK()
+}

@@ -1,28 +1,28 @@
 package schema
 
 import (
-	"net"
+	"net/url"
 	"time"
 )
 
-// TelemetryConfig represents the telemetry config.
-type TelemetryConfig struct {
-	Metrics TelemetryMetricsConfig `koanf:"metrics"`
+// Telemetry represents the telemetry config.
+type Telemetry struct {
+	Metrics TelemetryMetrics `koanf:"metrics" json:"metrics" jsonschema:"title=Metrics" jsonschema_description:"The telemetry metrics server configuration."`
 }
 
-// TelemetryMetricsConfig represents the telemetry metrics config.
-type TelemetryMetricsConfig struct {
-	Enabled bool     `koanf:"enabled"`
-	Address *Address `koanf:"address"`
+// TelemetryMetrics represents the telemetry metrics config.
+type TelemetryMetrics struct {
+	Enabled bool        `koanf:"enabled" json:"enabled" jsonschema:"default=false,title=Enabled" jsonschema_description:"Enables the metrics server."`
+	Address *AddressTCP `koanf:"address" json:"address" jsonschema:"default=tcp://:9959/,title=Address" jsonschema_description:"The address for the metrics server to listen on."`
 
-	Buffers  ServerBuffers  `koanf:"buffers"`
-	Timeouts ServerTimeouts `koanf:"timeouts"`
+	Buffers  ServerBuffers  `koanf:"buffers" json:"buffers" jsonschema:"title=Buffers" jsonschema_description:"The server buffers configuration for the metrics server."`
+	Timeouts ServerTimeouts `koanf:"timeouts" json:"timeouts" jsonschema:"title=Timeouts" jsonschema_description:"The server timeouts configuration for the metrics server."`
 }
 
 // DefaultTelemetryConfig is the default telemetry configuration.
-var DefaultTelemetryConfig = TelemetryConfig{
-	Metrics: TelemetryMetricsConfig{
-		Address: &Address{true, "tcp", net.ParseIP("0.0.0.0"), 9959},
+var DefaultTelemetryConfig = Telemetry{
+	Metrics: TelemetryMetrics{
+		Address: &AddressTCP{Address{true, false, -1, 9959, &url.URL{Scheme: AddressSchemeTCP, Host: ":9959", Path: "/metrics"}}},
 		Buffers: ServerBuffers{
 			Read:  4096,
 			Write: 4096,

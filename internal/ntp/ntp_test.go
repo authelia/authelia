@@ -12,15 +12,15 @@ import (
 
 func TestShouldCheckNTPV4(t *testing.T) {
 	config := &schema.Configuration{
-		NTP: schema.NTPConfiguration{
-			Address:       "time.cloudflare.com:123",
+		NTP: schema.NTP{
+			Address:       &schema.AddressUDP{Address: schema.NewAddressFromNetworkValues(schema.AddressSchemeUDP, "time.cloudflare.com", 123)},
 			Version:       4,
 			MaximumDesync: time.Second * 3,
 		},
 	}
 
-	sv := schema.NewStructValidator()
-	validator.ValidateNTP(config, sv)
+	svalidator := schema.NewStructValidator()
+	validator.ValidateNTP(config, svalidator)
 
 	ntp := NewProvider(&config.NTP)
 
@@ -29,15 +29,15 @@ func TestShouldCheckNTPV4(t *testing.T) {
 
 func TestShouldCheckNTPV3(t *testing.T) {
 	config := &schema.Configuration{
-		NTP: schema.NTPConfiguration{
-			Address:       "time.cloudflare.com:123",
+		NTP: schema.NTP{
+			Address:       &schema.AddressUDP{Address: schema.NewAddressFromNetworkValues(schema.AddressSchemeUDP, "time.cloudflare.com", 123)},
 			Version:       3,
 			MaximumDesync: time.Second * 3,
 		},
 	}
 
-	sv := schema.NewStructValidator()
-	validator.ValidateNTP(config, sv)
+	svalidator := schema.NewStructValidator()
+	validator.ValidateNTP(config, svalidator)
 
 	ntp := NewProvider(&config.NTP)
 

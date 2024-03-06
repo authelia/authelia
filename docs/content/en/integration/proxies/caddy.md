@@ -63,6 +63,47 @@ to the trusted proxy list in [Caddy]:
 * 192.168.0.0/16
 * fc00::/7
 
+## Assumptions and Adaptation
+
+This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
+can not reasonably have examples for every advanced configuration option that exists. The
+following are the assumptions we make:
+
+* Deployment Scenario:
+  * Single Host
+  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
+  * Proxy is deployed as a Container on a network shared with Authelia
+* The above assumption means that Authelia should be accessible to the proxy on `http://authelia:9091` and as such:
+  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
+    certificate defined
+  * You will have to adapt all instances of `authelia` in the URL if:
+    * you're using a different container name
+    * you deployed the proxy to a different location
+  * You will have to adapt all instances of `9091` in the URL if:
+    * you have adjusted the default port in the configuration
+  * You will have to adapt the entire URL if:
+    * Authelia is on a different host to the proxy
+* All services are part of the `example.com` domain:
+  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
+    just testing or you want ot use that specific domain
+
+## Implementation
+
+[Caddy] utilizes the [ForwardAuth](../../reference/guides/proxy-authorization.md#forwardauth) Authz implementation. The
+associated [Metadata](../../reference/guides/proxy-authorization.md#forwardauth-metadata) should be considered required.
+
+The examples below assume you are using the default
+[Authz Endpoints Configuration](../../configuration/miscellaneous/server-endpoints-authz.md) or one similar to the
+following minimal configuration:
+
+```yaml
+server:
+  endpoints:
+    authz:
+      forward-auth:
+        implementation: 'ForwardAuth'
+```
+
 ## Configuration
 
 Below you will find commented examples of the following configuration:
@@ -81,7 +122,7 @@ support to ensure the basic example covers your use case in a secure way.
 {{< details "Caddyfile" >}}
 ```caddyfile
 ## It is important to read the following document before enabling this section:
-##     https://www.authelia.com/integration/proxies/caddy/#forwarded-header-trust#trusted-proxies
+##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies
 (trusted_proxy_list) {
        ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
        # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
@@ -117,10 +158,13 @@ nextcloud.example.com {
 
 #### Subpath
 
+*__Important:__ In order to use a subpath, you must also update your Authelia
+[server address configuration](../../configuration/miscellaneous/server.md#address) to listen on the new endpoint.*
+
 {{< details "Caddyfile" >}}
 ```caddyfile
 ## It is important to read the following document before enabling this section:
-##     https://www.authelia.com/integration/proxies/caddy/#forwarded-header-trust#trusted-proxies
+##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies
 (trusted_proxy_list) {
        ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
        # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
@@ -165,7 +209,7 @@ preferred in *most* situations. If you are unsure of what you're doing please do
 {{< details "Caddyfile" >}}
 ```caddyfile
 ## It is important to read the following document before enabling this section:
-##     https://www.authelia.com/integration/proxies/caddy/#forwarded-header-trust#trusted-proxies
+##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies
 (trusted_proxy_list) {
        ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
        # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
@@ -189,7 +233,7 @@ nextcloud.example.com {
                 rewrite "/api/authz/forward-auth?authelia_url=https://auth.example.com/"
 
                 header_up X-Forwarded-Method {method}
-                header_up X-Forwarded-Uri {uri}
+                header_up X-Forwarded-URI {uri}
 
                 ## If the auth request:
                 ##   1. Responds with a status code IN the 200-299 range.

@@ -42,9 +42,10 @@ func (l Level) String() string {
 }
 
 func stringSliceToRegexpSlice(strings []string) (regexps []regexp.Regexp, err error) {
+	var pattern *regexp.Regexp
+
 	for _, str := range strings {
-		pattern, err := regexp.Compile(str)
-		if err != nil {
+		if pattern, err = regexp.Compile(str); err != nil {
 			return nil, err
 		}
 
@@ -56,15 +57,21 @@ func stringSliceToRegexpSlice(strings []string) (regexps []regexp.Regexp, err er
 
 func schemaSubjectToACLSubject(subjectRule string) (subject SubjectMatcher) {
 	if strings.HasPrefix(subjectRule, prefixUser) {
-		user := strings.Trim(subjectRule[len(prefixUser):], " ")
+		user := strings.Trim(subjectRule[lenPrefixUser:], " ")
 
 		return AccessControlUser{Name: user}
 	}
 
 	if strings.HasPrefix(subjectRule, prefixGroup) {
-		group := strings.Trim(subjectRule[len(prefixGroup):], " ")
+		group := strings.Trim(subjectRule[lenPrefixGroup:], " ")
 
 		return AccessControlGroup{Name: group}
+	}
+
+	if strings.HasPrefix(subjectRule, prefixOAuth2Client) {
+		clientID := strings.Trim(subjectRule[lenPrefixOAuth2Client:], " ")
+
+		return AccessControlClient{Provider: "OAuth2", ID: clientID}
 	}
 
 	return nil
@@ -138,7 +145,7 @@ func schemaNetworksToACL(networkRules []string, networksMap map[string][]*net.IP
 	return networks
 }
 
-func parseSchemaNetworks(schemaNetworks []schema.ACLNetwork) (networksMap map[string][]*net.IPNet, networksCacheMap map[string]*net.IPNet) {
+func parseSchemaNetworks(schemaNetworks []schema.AccessControlNetwork) (networksMap map[string][]*net.IPNet, networksCacheMap map[string]*net.IPNet) {
 	// These maps store pointers to the net.IPNet values so we can reuse them efficiently.
 	// The networksMap contains the named networks as keys, the networksCacheMap contains the CIDR notations as keys.
 	networksMap = map[string][]*net.IPNet{}
@@ -206,6 +213,10 @@ func domainToPrefixSuffix(domain string) (prefix, suffix string) {
 	}
 
 	return parts[0], strings.Join(parts[1:], ".")
+}
+
+func NewSubjects(subjectRules [][]string) (subjects []AccessControlSubjects) {
+	return schemaSubjectsToACL(subjectRules)
 }
 
 // IsAuthLevelSufficient returns true if the current authenticationLevel is above the authorizationLevel.

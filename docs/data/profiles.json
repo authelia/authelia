@@ -1,0 +1,81 @@
+{
+  "people": {
+    "clement-michaud": {
+      "display": "Clément Michaud",
+      "description": "",
+      "team": "core",
+      "location": "Paris",
+      "github": "clems4ever",
+      "email": "",
+      "discord": {
+        "id": "",
+        "tag": ""
+      },
+      "matrix": ""
+    },
+    "amir-zarrinkafsh": {
+      "display": "Amir Zarrinkafsh",
+      "description": "",
+      "team": "core",
+      "location": "Melbourne, Australia",
+      "github": "nightah",
+      "email": "",
+      "discord": {
+        "id": "",
+        "tag": ""
+      },
+      "matrix": ""
+    },
+    "james-elliott": {
+      "display": "James Elliott",
+      "description": "",
+      "team": "core",
+      "location": "Melbourne, Australia",
+      "github": "james-d-elliott",
+      "email": "james.elliott@authelia.com",
+      "discord": {
+        "id": "209869584814047232",
+        "tag": "James#6549"
+      },
+      "matrix": "@james:authelia.com"
+    },
+    "manuel-nunez": {
+      "display": "Manuel Nuñez",
+      "description": "",
+      "team": "maintainers",
+      "location": "Argentina",
+      "github": "mind-ar",
+      "email": "",
+      "discord": {
+        "id": "",
+        "tag": ""
+      },
+      "matrix": ""
+    }
+  },
+  "teams": {
+    "core": {
+      "display": "Core",
+      "description": "The Core Team are effectively members of the Maintainers Team with extra responsibilities.",
+      "people": ["clement-michaud", "amir-zarrinkafsh", "james-elliott"],
+      "responsibilities": [
+        "All responsibilities of the Maintainers Team",
+        "Review and merge pull requests from all other teams",
+        "Handle vulnerability and security related bug reports",
+        "Handle project governance unanimously",
+        "Maintain the project roadmap",
+        "Coordinate collaboration",
+        "Maintain the continuous integration and delivery pipelines and related mechanisms"
+      ]
+    },
+    "maintainers": {
+      "display": "Maintainers",
+      "description": "The Maintainer Team are traditional repository maintainers.",
+      "people": ["manuel-nunez"],
+      "responsibilities": [
+        "Review and merge pull requests from external parties",
+        "Respond to bug reports, feature requests, discussions, and support chat rooms"
+      ]
+    }
+  }
+}

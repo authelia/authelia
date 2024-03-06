@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/valyala/fasthttp"
@@ -58,13 +59,23 @@ func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 			return
 		}
 
+		middlewares.SetStandardSecurityHeaders(ctx)
+
 		contentType := mime.TypeByExtension(path.Ext(p))
 		if len(contentType) == 0 {
 			contentType = http.DetectContentType(data)
 		}
 
 		ctx.SetContentType(contentType)
-		ctx.SetBody(data)
+
+		switch {
+		case ctx.IsHead():
+			ctx.Response.ResetBody()
+			ctx.Response.SkipBody = true
+			ctx.Response.Header.Set(fasthttp.HeaderContentLength, strconv.Itoa(len(data)))
+		default:
+			ctx.SetBody(data)
+		}
 	}
 }
 
@@ -180,9 +191,17 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 			data = []byte("{}")
 		}
 
+		middlewares.SetStandardSecurityHeaders(ctx)
 		middlewares.SetContentTypeApplicationJSON(ctx)
 
-		ctx.SetBody(data)
+		switch {
+		case ctx.IsHead():
+			ctx.Response.ResetBody()
+			ctx.Response.SkipBody = true
+			ctx.Response.Header.Set(fasthttp.HeaderContentLength, strconv.Itoa(len(data)))
+		default:
+			ctx.SetBody(data)
+		}
 	}
 }
 

@@ -81,6 +81,8 @@ The following functions which mimic the behaviour of helm exist in most templati
 - indent
 - nindent
 - uuidv4
+- urlquery
+- urlunquery (opposite of urlquery)
 
 See the [Helm Documentation](https://helm.sh/docs/chart_template_guide/function_list/) for more information. Please
 note that only the functions listed above are supported and the functions don't necessarily behave exactly the same.
@@ -94,8 +96,69 @@ The following is a list of special functions and their syntax.
 
 #### iterate
 
-Input is a single uint. Returns a slice of uints from 0 to the provided uint.
+This template function takes a single input and is a positive integer. Returns a slice of uints from 0 to the provided
+input.
+
+#### mustEnv
+
+Same as [env](#env) except if the environment variable is not set it returns an error.
 
 #### fileContent
 
-Input is a path. Returns the content of a file.
+This template function takes a single input and is a string which should be a path. Returns the content of a file.
+
+Example:
+
+```yaml
+example: |
+  {{- fileContent "/absolute/path/to/file" | nindent 2 }}
+```
+
+#### secret
+
+Overload for [fileContent](#filecontent) except that tailing newlines will be removed.
+
+##### secret example
+
+```yaml
+example: '{{ secret "/absolute/path/to/file" }}'
+```
+
+#### mindent
+
+Similar function to `nindent` except it skips indenting if there are no newlines, and includes the YAML multiline
+formatting string provided. Input is in the format of `(int, string, string)`.
+
+##### mindent example
+
+Input:
+
+```yaml
+example: {{ secret "/absolute/path/to/file" | mindent 2 "|" | msquote }}
+```
+
+Output (with multiple lines):
+
+```yaml
+example: |
+  <content of "/absolute/path/to/file">
+```
+
+Output (without multiple lines):
+
+```yaml
+example: '<content of "/absolute/path/to/file">'
+```
+
+#### mquote
+
+Similar to the `quote` function except it skips quoting for strings with multiple lines.
+
+See the [mindent example](#mindent-example) for an example usage (just replace `msquote` with `mquote`, and the expected
+quote char is `"` instead of `'`).
+
+#### msquote
+
+Similar to the `squote` function except it skips quoting for strings with multiple lines.
+
+See the [mindent example](#mindent-example) for an example usage.

@@ -48,11 +48,11 @@ for, and the structure it must have.
   │       │             │
   │       │             └─⫸ Summary in present tense. Not capitalized. No period at the end.
   │       │
-  │       └─⫸ Commit Scope: api|autheliabot|authentication|authorization|buildkite|bundler|cmd|
-  │                          codecov|commands|configuration|deps|docker|duo|go|golangci-lint|
-  │                          handlers|logging|metrics|middlewares|mocks|model|notification|npm|ntp|
-  │                          oidc|random|regulation|renovate|reviewdog|server|session|storage|
-  │                          suites|templates|totp|utils|web
+  │       └─⫸ Commit Scope: api|autheliabot|authentication|authorization|buildkite|bundler|clock|
+  │                          cmd|codecov|commands|configuration|deps|docker|duo|go|golangci-lint|
+  │                          handlers|husky|logging|metrics|middlewares|mocks|model|notification|
+  │                          npm|ntp|oidc|random|regulation|renovate|reviewdog|server|session|
+  │                          storage|suites|templates|totp|utils|web
   │
   └─⫸ Commit Type: build|ci|docs|feat|fix|i18n|perf|refactor|release|revert|test
 ```
@@ -64,7 +64,7 @@ The `<type>` and `<summary>` fields are mandatory, the `(<scope>)` field is opti
 * __build__ Changes that affect the build system or external dependencies
   (example scopes: bundler, deps, docker, go, npm)
 * __ci__ Changes to our CI configuration files and scripts
-  (example scopes: autheliabot, buildkite, codecov, golangci-lint, renovate, reviewdog)
+  (example scopes: autheliabot, buildkite, codecov, husky, golangci-lint, renovate, reviewdog)
 * __docs__ Documentation only changes
 * __feat__ A new feature
 * __fix__ A bug fix
@@ -81,6 +81,7 @@ commit messages).
 
 * authentication
 * authorization
+* clock
 * commands
 * configuration
 * duo
@@ -140,6 +141,8 @@ BREAKING CHANGE: <breaking change summary>
 <BLANK LINE>
 <BLANK LINE>
 Fixes #<issue number>
+
+Signed-off-by: <AUTHOR>
 ```
 
 Breaking Change section should start with the phrase "BREAKING CHANGE: " followed by a summary of the breaking change, a
@@ -165,6 +168,8 @@ This in turn will cause issues when attempting to utilise the log with the provi
 We now override any TTY detection/logging treatments and disable coloring/removal of the timestamp when a user is utilising the text based logger to a file.
 
 Fixes #1480.
+
+Signed-off-by: John Smith <jsmith@org.com>
 ```
 
 This document is based on [AngularJS Git Commit Message Format].

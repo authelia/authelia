@@ -17,14 +17,17 @@ aliases:
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
-certificates_directory: /config/certs/
-default_redirection_url: https://home.example.com:8080/
-jwt_secret: v3ry_important_s3cr3t
-theme: light
+certificates_directory: '/config/certs/'
+default_redirection_url: 'https://home.example.com:8080/'
+theme: 'light'
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### certificates_directory
 
@@ -36,6 +39,9 @@ key or the CA public key which signed them (don't add the private key).
 ### default_redirection_url
 
 {{< confkey type="string" required="no" >}}
+
+*__Important Note:__ You should configure the domain specific redirection URL's in the
+[session](../session/introduction.md#default_redirection_url) configuration instead of using this option.*
 
 The default redirection URL is the URL where users are redirected when Authelia cannot detect the target URL where the
 user was heading.
@@ -64,17 +70,6 @@ Options are:
 ```yaml
 default_2fa_method: totp
 ```
-
-### jwt_secret
-
-{{< confkey type="string" required="yes" >}}
-
-*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
-especially for containerized deployments.*
-
-Defines the secret used to craft JWT tokens leveraged by the identity verification process. This can a random string.
-It's strongly recommended this is a [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with
-64 or more characters.
 
 ### theme
 

@@ -1,6 +1,6 @@
 ---
 title: "Gitea"
-description: "Integrating Gitea with the Authelia OpenID Connect Provider."
+description: "Integrating Gitea with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
 date: 2022-07-01T13:07:02+10:00
 draft: false
@@ -16,7 +16,7 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.36.3](https://github.com/authelia/authelia/releases/tag/v4.36.3)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Gitea]
   * [1.17.0](https://github.com/go-gitea/gitea/releases/tag/v1.17.0)
 
@@ -28,8 +28,8 @@ community: true
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://gitea.example.com`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Application Root URL:__ `https://gitea.example.com/`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `gitea`
 * __Client Secret:__ `insecure_secret`
 * __Authentication Name (Gitea):__ `authelia`:
@@ -38,6 +38,32 @@ This example makes the following assumptions:
       This means if you change this value you need to update the redirect URI.
 
 ## Configuration
+
+### Authelia
+
+The following YAML configuration is an example __Authelia__
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Gitea] which
+will operate with the above example:
+
+```yaml
+identity_providers:
+  oidc:
+    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
+    ## See: https://www.authelia.com/c/oidc
+    clients:
+      - client_id: 'gitea'
+        client_name: 'Gitea'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        public: false
+        authorization_policy: 'two_factor'
+        redirect_uris:
+          - 'https://gitea.example.com/user/oauth2/authelia/callback'
+        scopes:
+          - 'openid'
+          - 'email'
+          - 'profile'
+        userinfo_signed_response_alg: 'none'
+```
 
 ### Application
 
@@ -74,32 +100,11 @@ SHOW_REGISTRATION_BUTTON                      = false
 Take a look at the [See Also](#see-also) section for the cheatsheets corresponding to the sections above for their
 descriptions.
 
-### Authelia
-
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Gitea] which
-will operate with the above example:
-
-```yaml
-- id: gitea
-  description: Gitea
-  secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-  public: false
-  authorization_policy: two_factor
-  redirect_uris:
-    - https://gitea.example.com/user/oauth2/authelia/callback
-  scopes:
-    - openid
-    - email
-    - profile
-  userinfo_signing_algorithm: none
-```
-
 ## See Also
 
-- [Gitea] app.ini [Config Cheat Sheet - OpenID](https://docs.gitea.io/en-us/config-cheat-sheet/#openid-openid)
-- [Gitea] app.ini [Config Cheat Sheet - Service](https://docs.gitea.io/en-us/config-cheat-sheet/#service-service)
+- [Gitea] app.ini [Config Cheat Sheet](https://docs.gitea.io/en-us/config-cheat-sheet):
+  - [OpenID](https://docs.gitea.io/en-us/config-cheat-sheet/#openid-openid)
+  - [Service](https://docs.gitea.io/en-us/config-cheat-sheet/#service-service)
 
-- [Authelia]: https://www.authelia.com
 [Gitea]: https://gitea.io/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md

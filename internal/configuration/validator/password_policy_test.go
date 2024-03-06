@@ -13,45 +13,45 @@ import (
 func TestValidatePasswordPolicy(t *testing.T) {
 	testCases := []struct {
 		desc           string
-		have, expected *schema.PasswordPolicyConfiguration
+		have, expected *schema.PasswordPolicy
 		expectedErrs   []string
 	}{
 		{
 			desc: "ShouldRaiseErrorsWhenMisconfigured",
-			have: &schema.PasswordPolicyConfiguration{
-				Standard: schema.PasswordPolicyStandardParams{
+			have: &schema.PasswordPolicy{
+				Standard: schema.PasswordPolicyStandard{
 					Enabled:   true,
 					MinLength: -1,
 				},
-				ZXCVBN: schema.PasswordPolicyZXCVBNParams{
+				ZXCVBN: schema.PasswordPolicyZXCVBN{
 					Enabled: true,
 				},
 			},
-			expected: &schema.PasswordPolicyConfiguration{
-				Standard: schema.PasswordPolicyStandardParams{
+			expected: &schema.PasswordPolicy{
+				Standard: schema.PasswordPolicyStandard{
 					Enabled:   true,
 					MinLength: -1,
 				},
-				ZXCVBN: schema.PasswordPolicyZXCVBNParams{
+				ZXCVBN: schema.PasswordPolicyZXCVBN{
 					Enabled:  true,
 					MinScore: 3,
 				},
 			},
 			expectedErrs: []string{
 				"password_policy: only a single password policy mechanism can be specified",
-				"password_policy: standard: option 'min_length' must be greater than 0 but is configured as -1",
+				"password_policy: standard: option 'min_length' must be greater than 0 but it's configured as -1",
 			},
 		},
 		{
 			desc: "ShouldNotRaiseErrorsStandard",
-			have: &schema.PasswordPolicyConfiguration{
-				Standard: schema.PasswordPolicyStandardParams{
+			have: &schema.PasswordPolicy{
+				Standard: schema.PasswordPolicyStandard{
 					Enabled:   true,
 					MinLength: 8,
 				},
 			},
-			expected: &schema.PasswordPolicyConfiguration{
-				Standard: schema.PasswordPolicyStandardParams{
+			expected: &schema.PasswordPolicy{
+				Standard: schema.PasswordPolicyStandard{
 					Enabled:   true,
 					MinLength: 8,
 				},
@@ -59,13 +59,13 @@ func TestValidatePasswordPolicy(t *testing.T) {
 		},
 		{
 			desc: "ShouldNotRaiseErrorsZXCVBN",
-			have: &schema.PasswordPolicyConfiguration{
-				ZXCVBN: schema.PasswordPolicyZXCVBNParams{
+			have: &schema.PasswordPolicy{
+				ZXCVBN: schema.PasswordPolicyZXCVBN{
 					Enabled: true,
 				},
 			},
-			expected: &schema.PasswordPolicyConfiguration{
-				ZXCVBN: schema.PasswordPolicyZXCVBNParams{
+			expected: &schema.PasswordPolicy{
+				ZXCVBN: schema.PasswordPolicyZXCVBN{
 					Enabled:  true,
 					MinScore: 3,
 				},
@@ -73,14 +73,14 @@ func TestValidatePasswordPolicy(t *testing.T) {
 		},
 		{
 			desc: "ShouldSetDefaultstandard",
-			have: &schema.PasswordPolicyConfiguration{
-				Standard: schema.PasswordPolicyStandardParams{
+			have: &schema.PasswordPolicy{
+				Standard: schema.PasswordPolicyStandard{
 					Enabled:   true,
 					MinLength: 0,
 				},
 			},
-			expected: &schema.PasswordPolicyConfiguration{
-				Standard: schema.PasswordPolicyStandardParams{
+			expected: &schema.PasswordPolicy{
+				Standard: schema.PasswordPolicyStandard{
 					Enabled:   true,
 					MinLength: 8,
 				},
@@ -88,14 +88,14 @@ func TestValidatePasswordPolicy(t *testing.T) {
 		},
 		{
 			desc: "ShouldRaiseErrorsZXCVBNTooLow",
-			have: &schema.PasswordPolicyConfiguration{
-				ZXCVBN: schema.PasswordPolicyZXCVBNParams{
+			have: &schema.PasswordPolicy{
+				ZXCVBN: schema.PasswordPolicyZXCVBN{
 					Enabled:  true,
 					MinScore: -1,
 				},
 			},
-			expected: &schema.PasswordPolicyConfiguration{
-				ZXCVBN: schema.PasswordPolicyZXCVBNParams{
+			expected: &schema.PasswordPolicy{
+				ZXCVBN: schema.PasswordPolicyZXCVBN{
 					Enabled:  true,
 					MinScore: -1,
 				},
@@ -106,14 +106,14 @@ func TestValidatePasswordPolicy(t *testing.T) {
 		},
 		{
 			desc: "ShouldRaiseErrorsZXCVBNTooHigh",
-			have: &schema.PasswordPolicyConfiguration{
-				ZXCVBN: schema.PasswordPolicyZXCVBNParams{
+			have: &schema.PasswordPolicy{
+				ZXCVBN: schema.PasswordPolicyZXCVBN{
 					Enabled:  true,
 					MinScore: 5,
 				},
 			},
-			expected: &schema.PasswordPolicyConfiguration{
-				ZXCVBN: schema.PasswordPolicyZXCVBNParams{
+			expected: &schema.PasswordPolicy{
+				ZXCVBN: schema.PasswordPolicyZXCVBN{
 					Enabled:  true,
 					MinScore: 5,
 				},

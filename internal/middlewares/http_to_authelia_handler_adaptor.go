@@ -87,6 +87,7 @@ func NewHTTPToAutheliaHandlerAdaptor(h AutheliaHandlerFunc) RequestHandler {
 		ctx.Request.Header.VisitAll(func(k, v []byte) {
 			sk := string(k)
 			sv := string(v)
+
 			switch sk {
 			case "Transfer-Encoding":
 				r.TransferEncoding = append(r.TransferEncoding, sv)

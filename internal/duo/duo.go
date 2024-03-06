@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	duoapi "github.com/duosecurity/duo_api_golang"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -47,7 +48,7 @@ func (d *APIImpl) Call(ctx *middlewares.AutheliaCtx, userSession *session.UserSe
 func (d *APIImpl) PreAuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (*PreAuthResponse, error) {
 	var preAuthResponse PreAuthResponse
 
-	response, err := d.Call(ctx, userSession, values, "POST", "/auth/v2/preauth")
+	response, err := d.Call(ctx, userSession, values, fasthttp.MethodPost, "/auth/v2/preauth")
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +65,7 @@ func (d *APIImpl) PreAuthCall(ctx *middlewares.AutheliaCtx, userSession *session
 func (d *APIImpl) AuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (*AuthResponse, error) {
 	var authResponse AuthResponse
 
-	response, err := d.Call(ctx, userSession, values, "POST", "/auth/v2/auth")
+	response, err := d.Call(ctx, userSession, values, fasthttp.MethodPost, "/auth/v2/auth")
 	if err != nil {
 		return nil, err
 	}

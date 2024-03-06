@@ -2,7 +2,6 @@ package validator
 
 import (
 	"fmt"
-	"net/url"
 	"strings"
 
 	"github.com/go-crypt/crypt/algorithm/argon2"
@@ -21,12 +20,11 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 		validator.Push(fmt.Errorf(errFmtAuthBackendNotConfigured))
 	}
 
-	if config.RefreshInterval == "" {
-		config.RefreshInterval = schema.RefreshIntervalDefault
-	} else {
-		_, err := utils.ParseDurationString(config.RefreshInterval)
-		if err != nil && config.RefreshInterval != schema.ProfileRefreshDisabled && config.RefreshInterval != schema.ProfileRefreshAlways {
-			validator.Push(fmt.Errorf(errFmtAuthBackendRefreshInterval, config.RefreshInterval, err))
+	if !config.RefreshInterval.Valid() {
+		if config.File != nil && config.File.Watch {
+			config.RefreshInterval = schema.NewRefreshIntervalDurationAlways()
+		} else {
+			config.RefreshInterval = schema.NewRefreshIntervalDuration(schema.RefreshIntervalDefault)
 		}
 	}
 
@@ -53,7 +51,7 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 }
 
 // validateFileAuthenticationBackend validates and updates the file authentication backend configuration.
-func validateFileAuthenticationBackend(config *schema.FileAuthenticationBackend, validator *schema.StructValidator) {
+func validateFileAuthenticationBackend(config *schema.AuthenticationBackendFile, validator *schema.StructValidator) {
 	if config.Path == "" {
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPathNotConfigured))
 	}
@@ -62,7 +60,7 @@ func validateFileAuthenticationBackend(config *schema.FileAuthenticationBackend,
 }
 
 // ValidatePasswordConfiguration validates the file auth backend password configuration.
-func ValidatePasswordConfiguration(config *schema.Password, validator *schema.StructValidator) {
+func ValidatePasswordConfiguration(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
 	validateFileAuthenticationBackendPasswordConfigLegacy(config)
 
 	switch {
@@ -71,7 +69,7 @@ func ValidatePasswordConfiguration(config *schema.Password, validator *schema.St
 	case utils.IsStringInSlice(config.Algorithm, validHashAlgorithms):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordUnknownAlg, config.Algorithm, strings.Join(validHashAlgorithms, "', '")))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordUnknownAlg, strJoinOr(validHashAlgorithms), config.Algorithm))
 	}
 
 	validateFileAuthenticationBackendPasswordConfigArgon2(config, validator)
@@ -82,14 +80,14 @@ func ValidatePasswordConfiguration(config *schema.Password, validator *schema.St
 }
 
 //nolint:gocyclo // Function is well formed.
-func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Password, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
 	switch {
 	case config.Argon2.Variant == "":
 		config.Argon2.Variant = schema.DefaultPasswordConfig.Argon2.Variant
 	case utils.IsStringInSlice(config.Argon2.Variant, validArgon2Variants):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashArgon2, config.Argon2.Variant, strings.Join(validArgon2Variants, "', '")))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashArgon2, strJoinOr(validArgon2Variants), config.Argon2.Variant))
 	}
 
 	switch {
@@ -140,14 +138,14 @@ func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Passwo
 	}
 }
 
-func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.Password, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
 	switch {
 	case config.SHA2Crypt.Variant == "":
 		config.SHA2Crypt.Variant = schema.DefaultPasswordConfig.SHA2Crypt.Variant
 	case utils.IsStringInSlice(config.SHA2Crypt.Variant, validSHA2CryptVariants):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashSHA2Crypt, config.SHA2Crypt.Variant, strings.Join(validSHA2CryptVariants, "', '")))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashSHA2Crypt, strJoinOr(validSHA2CryptVariants), config.SHA2Crypt.Variant))
 	}
 
 	switch {
@@ -169,14 +167,14 @@ func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.Pas
 	}
 }
 
-func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.Password, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
 	switch {
 	case config.PBKDF2.Variant == "":
 		config.PBKDF2.Variant = schema.DefaultPasswordConfig.PBKDF2.Variant
 	case utils.IsStringInSlice(config.PBKDF2.Variant, validPBKDF2Variants):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashPBKDF2, config.PBKDF2.Variant, strings.Join(validPBKDF2Variants, "', '")))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashPBKDF2, strJoinOr(validPBKDF2Variants), config.PBKDF2.Variant))
 	}
 
 	switch {
@@ -198,14 +196,14 @@ func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.Passwo
 	}
 }
 
-func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.Password, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
 	switch {
 	case config.BCrypt.Variant == "":
 		config.BCrypt.Variant = schema.DefaultPasswordConfig.BCrypt.Variant
 	case utils.IsStringInSlice(config.BCrypt.Variant, validBCryptVariants):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashBCrypt, config.BCrypt.Variant, strings.Join(validBCryptVariants, "', '")))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashBCrypt, strJoinOr(validBCryptVariants), config.BCrypt.Variant))
 	}
 
 	switch {
@@ -219,7 +217,7 @@ func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.Passwo
 }
 
 //nolint:gocyclo
-func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.Password, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
 	switch {
 	case config.SCrypt.Iterations == 0:
 		config.SCrypt.Iterations = schema.DefaultPasswordConfig.SCrypt.Iterations
@@ -266,8 +264,8 @@ func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.Passwo
 	}
 }
 
-//nolint:gocyclo // Function is clear enough.
-func validateFileAuthenticationBackendPasswordConfigLegacy(config *schema.Password) {
+//nolint:gocyclo,staticcheck // Function is clear enough and being used for deprecated functionality mapping.
+func validateFileAuthenticationBackendPasswordConfigLegacy(config *schema.AuthenticationBackendFilePassword) {
 	switch config.Algorithm {
 	case hashLegacySHA512:
 		config.Algorithm = hashSHA2Crypt
@@ -323,14 +321,10 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 
 	defaultTLS := validateLDAPAuthenticationBackendImplementation(config, validator)
 
-	if config.LDAP.URL == "" {
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "url"))
-	} else {
-		defaultTLS.ServerName = validateLDAPAuthenticationBackendURL(config.LDAP, validator)
-	}
+	defaultTLS.ServerName = validateLDAPAuthenticationAddress(config.LDAP, validator)
 
 	if config.LDAP.TLS == nil {
-		config.LDAP.TLS = &schema.TLSConfig{}
+		config.LDAP.TLS = &schema.TLS{}
 	}
 
 	if err := ValidateTLSConfig(config.LDAP.TLS, defaultTLS); err != nil {
@@ -352,8 +346,8 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 	validateLDAPRequiredParameters(config, validator)
 }
 
-func validateLDAPAuthenticationBackendImplementation(config *schema.AuthenticationBackend, validator *schema.StructValidator) *schema.TLSConfig {
-	var implementation *schema.LDAPAuthenticationBackend
+func validateLDAPAuthenticationBackendImplementation(config *schema.AuthenticationBackend, validator *schema.StructValidator) *schema.TLS {
+	var implementation *schema.AuthenticationBackendLDAP
 
 	switch config.LDAP.Implementation {
 	case schema.LDAPImplementationCustom:
@@ -369,17 +363,17 @@ func validateLDAPAuthenticationBackendImplementation(config *schema.Authenticati
 	case schema.LDAPImplementationGLAuth:
 		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth
 	default:
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendImplementation, config.LDAP.Implementation, strings.Join(validLDAPImplementations, "', '")))
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendOptionMustBeOneOf, "implementation", strJoinOr(validLDAPImplementations), config.LDAP.Implementation))
 	}
 
-	tlsconfig := &schema.TLSConfig{}
+	tlsconfig := &schema.TLS{}
 
 	if implementation != nil {
 		if config.LDAP.Timeout == 0 {
 			config.LDAP.Timeout = implementation.Timeout
 		}
 
-		tlsconfig = &schema.TLSConfig{
+		tlsconfig = &schema.TLS{
 			MinimumVersion: implementation.TLS.MinimumVersion,
 			MaximumVersion: implementation.TLS.MaximumVersion,
 		}
@@ -394,61 +388,68 @@ func ldapImplementationShouldSetStr(config, implementation string) bool {
 	return config == "" && implementation != ""
 }
 
-func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *schema.LDAPAuthenticationBackend, implementation *schema.LDAPAuthenticationBackend) {
+func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *schema.AuthenticationBackendLDAP, implementation *schema.AuthenticationBackendLDAP) {
 	if ldapImplementationShouldSetStr(config.AdditionalUsersDN, implementation.AdditionalUsersDN) {
 		config.AdditionalUsersDN = implementation.AdditionalUsersDN
-	}
-
-	if ldapImplementationShouldSetStr(config.AdditionalGroupsDN, implementation.AdditionalGroupsDN) {
-		config.AdditionalGroupsDN = implementation.AdditionalGroupsDN
 	}
 
 	if ldapImplementationShouldSetStr(config.UsersFilter, implementation.UsersFilter) {
 		config.UsersFilter = implementation.UsersFilter
 	}
 
-	if ldapImplementationShouldSetStr(config.UsernameAttribute, implementation.UsernameAttribute) {
-		config.UsernameAttribute = implementation.UsernameAttribute
-	}
-
-	if ldapImplementationShouldSetStr(config.DisplayNameAttribute, implementation.DisplayNameAttribute) {
-		config.DisplayNameAttribute = implementation.DisplayNameAttribute
-	}
-
-	if ldapImplementationShouldSetStr(config.MailAttribute, implementation.MailAttribute) {
-		config.MailAttribute = implementation.MailAttribute
+	if ldapImplementationShouldSetStr(config.AdditionalGroupsDN, implementation.AdditionalGroupsDN) {
+		config.AdditionalGroupsDN = implementation.AdditionalGroupsDN
 	}
 
 	if ldapImplementationShouldSetStr(config.GroupsFilter, implementation.GroupsFilter) {
 		config.GroupsFilter = implementation.GroupsFilter
 	}
 
-	if ldapImplementationShouldSetStr(config.GroupNameAttribute, implementation.GroupNameAttribute) {
-		config.GroupNameAttribute = implementation.GroupNameAttribute
+	if ldapImplementationShouldSetStr(config.GroupSearchMode, implementation.GroupSearchMode) {
+		config.GroupSearchMode = implementation.GroupSearchMode
+	}
+
+	if ldapImplementationShouldSetStr(config.Attributes.DistinguishedName, implementation.Attributes.DistinguishedName) {
+		config.Attributes.DistinguishedName = implementation.Attributes.DistinguishedName
+	}
+
+	if ldapImplementationShouldSetStr(config.Attributes.Username, implementation.Attributes.Username) {
+		config.Attributes.Username = implementation.Attributes.Username
+	}
+
+	if ldapImplementationShouldSetStr(config.Attributes.DisplayName, implementation.Attributes.DisplayName) {
+		config.Attributes.DisplayName = implementation.Attributes.DisplayName
+	}
+
+	if ldapImplementationShouldSetStr(config.Attributes.Mail, implementation.Attributes.Mail) {
+		config.Attributes.Mail = implementation.Attributes.Mail
+	}
+
+	if ldapImplementationShouldSetStr(config.Attributes.MemberOf, implementation.Attributes.MemberOf) {
+		config.Attributes.MemberOf = implementation.Attributes.MemberOf
+	}
+
+	if ldapImplementationShouldSetStr(config.Attributes.GroupName, implementation.Attributes.GroupName) {
+		config.Attributes.GroupName = implementation.Attributes.GroupName
 	}
 }
 
-func validateLDAPAuthenticationBackendURL(config *schema.LDAPAuthenticationBackend, validator *schema.StructValidator) (hostname string) {
+func validateLDAPAuthenticationAddress(config *schema.AuthenticationBackendLDAP, validator *schema.StructValidator) (hostname string) {
+	if config.Address == nil {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "address"))
+
+		return
+	}
+
 	var (
-		parsedURL *url.URL
-		err       error
+		err error
 	)
 
-	if parsedURL, err = url.Parse(config.URL); err != nil {
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendURLNotParsable, err))
-
-		return
+	if err = config.Address.ValidateLDAP(); err != nil {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendAddress, config.Address.String(), err))
 	}
 
-	if parsedURL.Scheme != schemeLDAP && parsedURL.Scheme != schemeLDAPS {
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendURLInvalidScheme, parsedURL.Scheme))
-
-		return
-	}
-
-	config.URL = parsedURL.String()
-
-	return parsedURL.Hostname()
+	return config.Address.Hostname()
 }
 
 func validateLDAPRequiredParameters(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
@@ -495,5 +496,33 @@ func validateLDAPRequiredParameters(config *schema.AuthenticationBackend, valida
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "groups_filter"))
 	} else if !strings.HasPrefix(config.LDAP.GroupsFilter, "(") || !strings.HasSuffix(config.LDAP.GroupsFilter, ")") {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterEnclosingParenthesis, "groups_filter", config.LDAP.GroupsFilter, config.LDAP.GroupsFilter))
+	}
+
+	validateLDAPGroupFilter(config, validator)
+}
+
+func validateLDAPGroupFilter(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
+	if config.LDAP.GroupSearchMode == "" {
+		config.LDAP.GroupSearchMode = schema.LDAPGroupSearchModeFilter
+	}
+
+	if !utils.IsStringInSlice(config.LDAP.GroupSearchMode, validLDAPGroupSearchModes) {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendOptionMustBeOneOf, "group_search_mode", strJoinOr(validLDAPGroupSearchModes), config.LDAP.GroupSearchMode))
+	}
+
+	pMemberOfDN, pMemberOfRDN := strings.Contains(config.LDAP.GroupsFilter, "{memberof:dn}"), strings.Contains(config.LDAP.GroupsFilter, "{memberof:rdn}")
+
+	if config.LDAP.GroupSearchMode == schema.LDAPGroupSearchModeMemberOf {
+		if !pMemberOfDN && !pMemberOfRDN {
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholderGroupSearchMode, "groups_filter", strJoinOr([]string{"{memberof:rdn}", "{memberof:dn}"}), config.LDAP.GroupSearchMode))
+		}
+	}
+
+	if pMemberOfDN && config.LDAP.Attributes.DistinguishedName == "" {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "distinguished_name", strJoinOr([]string{"{memberof:dn}"})))
+	}
+
+	if (pMemberOfDN || pMemberOfRDN) && config.LDAP.Attributes.MemberOf == "" {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "member_of", strJoinOr([]string{"{memberof:rdn}", "{memberof:dn}"})))
 	}
 }

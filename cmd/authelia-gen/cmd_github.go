@@ -5,10 +5,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
+
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 func newGitHubCmd() *cobra.Command {
@@ -65,9 +66,9 @@ func newGitHubIssueTemplatesBugReportCmd() *cobra.Command {
 
 func cmdGitHubIssueTemplatesFeatureRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		cwd, file, root                                 string
-		tags, tagsFuture                                []string
-		latestMajor, latestMinor, latestPatch, versions int
+		cwd, file, root  string
+		tags, tagsFuture []string
+		versions         int
 	)
 
 	if cwd, err = cmd.Flags().GetString(cmdFlagCwd); err != nil {
@@ -82,7 +83,7 @@ func cmdGitHubIssueTemplatesFeatureRunE(cmd *cobra.Command, args []string) (err 
 		return err
 	}
 
-	if versions, err = cmd.Flags().GetInt(cmdFlagVersions); err != nil {
+	if versions, err = cmd.Flags().GetInt(cmdFlagVersionCount); err != nil {
 		return err
 	}
 
@@ -90,21 +91,15 @@ func cmdGitHubIssueTemplatesFeatureRunE(cmd *cobra.Command, args []string) (err 
 		return err
 	}
 
-	latest := tags[0]
+	var latest *model.SemanticVersion
 
-	if _, err = fmt.Sscanf(latest, "v%d.%d.%d", &latestMajor, &latestMinor, &latestPatch); err != nil {
-		return fmt.Errorf("error occurred parsing version as semver: %w", err)
+	if latest, err = model.NewSemanticVersion(tags[0]); err != nil {
+		return fmt.Errorf("error extracting latest minor version from tag: %w", err)
 	}
 
-	var (
-		minor int
-	)
-
-	for minor = latestMinor + 1; minor < latestMinor+versions; minor++ {
-		tagsFuture = append(tagsFuture, fmt.Sprintf("v%d.%d.0", latestMajor, minor))
+	for i := 0; i < versions; i++ {
+		tagsFuture = append(tagsFuture, fmt.Sprintf("v%s", model.SemanticVersion{Major: latest.Major, Minor: latest.Minor + i + 1}.String()))
 	}
-
-	tagsFuture = append(tagsFuture, fmt.Sprintf("v%d.0.0", latestMajor+1))
 
 	var (
 		f *os.File
@@ -130,8 +125,8 @@ func cmdGitHubIssueTemplatesFeatureRunE(cmd *cobra.Command, args []string) (err 
 
 func cmdGitHubIssueTemplatesBugReportRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		cwd, file, dirRoot    string
-		latestMinor, versions int
+		cwd, file, dirRoot string
+		versions           int
 
 		tags []string
 	)
@@ -148,7 +143,7 @@ func cmdGitHubIssueTemplatesBugReportRunE(cmd *cobra.Command, args []string) (er
 		return err
 	}
 
-	if versions, err = cmd.Flags().GetInt(cmdFlagVersions); err != nil {
+	if versions, err = cmd.Flags().GetInt(cmdFlagVersionCount); err != nil {
 		return err
 	}
 
@@ -156,39 +151,35 @@ func cmdGitHubIssueTemplatesBugReportRunE(cmd *cobra.Command, args []string) (er
 		return err
 	}
 
-	latest := tags[0]
+	var latest, version *model.SemanticVersion
 
-	latestParts := strings.Split(latest, ".")
-
-	if len(latestParts) < 2 {
-		return fmt.Errorf("error extracting latest minor version from tag: %s does not appear to be a semver", latest)
-	}
-
-	if latestMinor, err = strconv.Atoi(latestParts[1]); err != nil {
+	if latest, err = model.NewSemanticVersion(tags[0]); err != nil {
 		return fmt.Errorf("error extracting latest minor version from tag: %w", err)
 	}
 
-	//nolint:prealloc
-	var (
-		tagsRecent []string
-		parts      []string
-		minor      int
-	)
+	minimum := latest.Copy()
+
+	minimum.Patch = 0
+	minimum.Minor -= versions
+
+	var tagsRecent []string
 
 	for _, tag := range tags {
-		if parts = strings.Split(tag, "."); len(parts) < 2 {
-			return fmt.Errorf("error extracting minor version from tag: %s does not appear to be a semver", tag)
+		if len(tag) == 0 {
+			continue
 		}
 
-		if minor, err = strconv.Atoi(parts[1]); err != nil {
+		if version, err = model.NewSemanticVersion(tag); err != nil {
 			return fmt.Errorf("error extracting minor version from tag: %w", err)
 		}
 
-		if minor < latestMinor-versions {
-			break
+		if !version.IsStable() {
+			continue
 		}
 
-		tagsRecent = append(tagsRecent, tag)
+		if version.GreaterThanOrEqual(minimum) {
+			tagsRecent = append(tagsRecent, tag)
+		}
 	}
 
 	var (

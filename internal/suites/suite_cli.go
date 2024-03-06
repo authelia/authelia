@@ -1,7 +1,6 @@
 package suites
 
 import (
-	"fmt"
 	"os"
 	"time"
 )
@@ -15,8 +14,8 @@ func init() {
 		"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
 	})
 
-	setup := func(suitePath string) error {
-		if err := dockerEnvironment.Up(); err != nil {
+	setup := func(suitePath string) (err error) {
+		if err = dockerEnvironment.Up(); err != nil {
 			return err
 		}
 
@@ -24,14 +23,7 @@ func init() {
 	}
 
 	displayAutheliaLogs := func() error {
-		backendLogs, err := dockerEnvironment.Logs("authelia-backend", nil)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(backendLogs)
-
-		return nil
+		return dockerEnvironment.PrintLogs("authelia-backend")
 	}
 
 	teardown := func(suitePath string) error {

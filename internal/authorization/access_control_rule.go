@@ -7,8 +7,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// NewAccessControlRules converts a schema.AccessControlConfiguration into an AccessControlRule slice.
-func NewAccessControlRules(config schema.AccessControlConfiguration) (rules []*AccessControlRule) {
+// NewAccessControlRules converts a schema.AccessControl into an AccessControlRule slice.
+func NewAccessControlRules(config schema.AccessControl) (rules []*AccessControlRule) {
 	networksMap, networksCacheMap := parseSchemaNetworks(config.Networks)
 
 	for i, schemaRule := range config.Rules {
@@ -19,7 +19,7 @@ func NewAccessControlRules(config schema.AccessControlConfiguration) (rules []*A
 }
 
 // NewAccessControlRule parses a schema ACL and generates an internal ACL.
-func NewAccessControlRule(pos int, rule schema.ACLRule, networksMap map[string][]*net.IPNet, networksCacheMap map[string]*net.IPNet) *AccessControlRule {
+func NewAccessControlRule(pos int, rule schema.AccessControlRule, networksMap map[string][]*net.IPNet, networksCacheMap map[string]*net.IPNet) *AccessControlRule {
 	r := &AccessControlRule{
 		Position: pos,
 		Query:    NewAccessControlQuery(rule.Query),

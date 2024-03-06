@@ -19,7 +19,7 @@ import (
 )
 
 // NewProviderConfig creates a configuration for creating the session provider.
-func NewProviderConfig(config schema.SessionCookieConfiguration, providerName string, serializer Serializer) ProviderConfig {
+func NewProviderConfig(config schema.SessionCookie, providerName string, serializer Serializer) ProviderConfig {
 	c := session.NewDefaultConfig()
 
 	c.SessionIDGeneratorFunc = func() []byte {
@@ -83,7 +83,7 @@ func NewProviderSession(pconfig ProviderConfig, provider session.Provider) (p *s
 	return p, nil
 }
 
-func NewProviderConfigAndSession(config schema.SessionCookieConfiguration, providerName string, serializer Serializer, provider session.Provider) (c ProviderConfig, p *session.Session, err error) {
+func NewProviderConfigAndSession(config schema.SessionCookie, providerName string, serializer Serializer, provider session.Provider) (c ProviderConfig, p *session.Session, err error) {
 	c = NewProviderConfig(config, providerName, serializer)
 
 	if p, err = NewProviderSession(c, provider); err != nil {
@@ -93,7 +93,7 @@ func NewProviderConfigAndSession(config schema.SessionCookieConfiguration, provi
 	return c, p, nil
 }
 
-func NewSessionProvider(config schema.SessionConfiguration, certPool *x509.CertPool) (name string, provider session.Provider, serializer Serializer, err error) {
+func NewSessionProvider(config schema.Session, certPool *x509.CertPool) (name string, provider session.Provider, serializer Serializer, err error) {
 	// If redis configuration is provided, then use the redis provider.
 	switch {
 	case config.Redis != nil:
@@ -134,7 +134,7 @@ func NewSessionProvider(config schema.SessionConfiguration, certPool *x509.CertP
 				DB:               config.Redis.DatabaseIndex, // DB is the fasthttp/session property for the Redis DB Index.
 				PoolSize:         config.Redis.MaximumActiveConnections,
 				MinIdleConns:     config.Redis.MinimumIdleConnections,
-				IdleTimeout:      300,
+				ConnMaxIdleTime:  300,
 				TLSConfig:        tlsConfig,
 				KeyPrefix:        "authelia-session",
 			})
@@ -152,17 +152,17 @@ func NewSessionProvider(config schema.SessionConfiguration, certPool *x509.CertP
 			}
 
 			provider, err = redis.New(redis.Config{
-				Logger:       logging.LoggerCtxPrintf(logrus.TraceLevel),
-				Network:      network,
-				Addr:         addr,
-				Username:     config.Redis.Username,
-				Password:     config.Redis.Password,
-				DB:           config.Redis.DatabaseIndex, // DB is the fasthttp/session property for the Redis DB Index.
-				PoolSize:     config.Redis.MaximumActiveConnections,
-				MinIdleConns: config.Redis.MinimumIdleConnections,
-				IdleTimeout:  300,
-				TLSConfig:    tlsConfig,
-				KeyPrefix:    "authelia-session",
+				Logger:          logging.LoggerCtxPrintf(logrus.TraceLevel),
+				Network:         network,
+				Addr:            addr,
+				Username:        config.Redis.Username,
+				Password:        config.Redis.Password,
+				DB:              config.Redis.DatabaseIndex, // DB is the fasthttp/session property for the Redis DB Index.
+				PoolSize:        config.Redis.MaximumActiveConnections,
+				MinIdleConns:    config.Redis.MinimumIdleConnections,
+				ConnMaxIdleTime: 300,
+				TLSConfig:       tlsConfig,
+				KeyPrefix:       "authelia-session",
 			})
 		}
 	default:

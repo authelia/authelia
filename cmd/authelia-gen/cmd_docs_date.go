@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/valyala/fasthttp"
 	"gopkg.in/yaml.v3"
 )
 
@@ -24,7 +25,7 @@ func newDocsDateCmd() *cobra.Command {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().String("commit-until", "HEAD", "The commit to check the logs until")
+	cmd.Flags().String("commit-until", fasthttp.MethodHead, "The commit to check the logs until")
 	cmd.Flags().String("commit-since", "", "The commit to check the logs since")
 
 	return cmd
@@ -86,7 +87,17 @@ func docsDateRunE(cmd *cobra.Command, args []string) (err error) {
 		)
 
 		if value, ok := frontmatter["date"]; ok {
-			date = value.(time.Time)
+			date, ok = value.(time.Time)
+
+			if !ok {
+				var abspath string
+
+				if abspath, err = filepath.Abs(path); err != nil {
+					abspath = path
+				}
+
+				return fmt.Errorf("frontmatter for %s has an invalid date value: is %T with a value of %s", abspath, value, value)
+			}
 		}
 
 		dateGit := getDateFromGit(cwd, abs, commitFilter)
@@ -164,9 +175,11 @@ func replaceDates(path string, date time.Time, dateGit *time.Time) {
 			switch {
 			case scanner.Text() == delimiterLineFrontMatter:
 				buf.Write(scanner.Bytes())
+
 				frontmatter++
 			case frontmatter != 0 && strings.HasPrefix(scanner.Text(), "date: "):
 				buf.WriteString(dateGitLine)
+
 				found++
 			default:
 				buf.Write(scanner.Bytes())

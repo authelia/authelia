@@ -17,7 +17,7 @@ aliases:
 The way the translation process is facilitated is via [Crowdin]. We encourage members of the community to
 [join the Authelia Crowdin project](https://translate.authelia.com) and help translate their preferred language.
 
-## New Langauges
+## New Languages
 
 If the language you wish to translate is not on [Crowdin] then you have a few options:
 
@@ -29,7 +29,7 @@ If the language you wish to translate is not on [Crowdin] then you have a few op
 ## Overrides
 
 Users can override translations easily locally using the
-[assets](../../configuration/miscellaneous/server.md#assetpath) directory. This is useful if you wish to perform a
+[assets](../../configuration/miscellaneous/server.md#asset_path) directory. This is useful if you wish to perform a
 translation and see if it looks correct in the browser.
 
 [Crowdin]: https://translate.authelia.com

@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "storage"
-weight: 106100
+weight: 107100
 toc: true
 aliases:
   - /docs/configuration/storage/
@@ -21,15 +21,19 @@ The available storage backends are listed in the table of contents below.
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 storage:
-  encryption_key: a_very_important_secret
+  encryption_key: 'a_very_important_secret'
   local: {}
   mysql: {}
   postgres: {}
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### encryption_key
 

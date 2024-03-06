@@ -37,7 +37,7 @@ __Authelia__ and is thus not supported for high availability.
 
 __Severity:__ *BREAKING*.
 
-__Solution:__ Use a session provider other than SQLite3 (MySQL, MariaDB, PostgreSQL).
+__Solution:__ Use a storage provider other than SQLite3 (MySQL, MariaDB, PostgreSQL).
 
 Use of the local storage provider (SQLite3) is not supported in high availability setups
 due to a design limitation with how SQLite3 operates. Use any of the other storage providers.

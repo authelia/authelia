@@ -4,6 +4,8 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"io/fs"
+	"path"
 	"sort"
 	"strconv"
 	"strings"
@@ -15,8 +17,12 @@ import (
 var migrationsFS embed.FS
 
 func latestMigrationVersion(providerName string) (version int, err error) {
-	entries, err := migrationsFS.ReadDir("migrations")
-	if err != nil {
+	var (
+		entries   []fs.DirEntry
+		migration model.SchemaMigration
+	)
+
+	if entries, err = migrationsFS.ReadDir(path.Join(pathMigrations, providerName)); err != nil {
 		return -1, err
 	}
 
@@ -25,21 +31,16 @@ func latestMigrationVersion(providerName string) (version int, err error) {
 			continue
 		}
 
-		m, err := scanMigration(entry.Name())
-		if err != nil {
+		if migration, err = scanMigration(providerName, entry.Name()); err != nil {
 			return -1, err
 		}
 
-		if m.Provider != providerName {
+		if !migration.Up {
 			continue
 		}
 
-		if !m.Up {
-			continue
-		}
-
-		if m.Version > version {
-			version = m.Version
+		if migration.Version > version {
+			version = migration.Version
 		}
 	}
 
@@ -50,12 +51,16 @@ func latestMigrationVersion(providerName string) (version int, err error) {
 // target versions. If the target version is -1 this indicates the latest version. If the target version is 0
 // this indicates the database zero state.
 func loadMigrations(providerName string, prior, target int) (migrations []model.SchemaMigration, err error) {
-	if prior == target && (prior != -1 || target != -1) {
+	if prior == target {
 		return nil, ErrMigrateCurrentVersionSameAsTarget
 	}
 
-	entries, err := migrationsFS.ReadDir("migrations")
-	if err != nil {
+	var (
+		migration model.SchemaMigration
+		entries   []fs.DirEntry
+	)
+
+	if entries, err = migrationsFS.ReadDir(path.Join(pathMigrations, providerName)); err != nil {
 		return nil, err
 	}
 
@@ -66,12 +71,11 @@ func loadMigrations(providerName string, prior, target int) (migrations []model.
 			continue
 		}
 
-		migration, err := scanMigration(entry.Name())
-		if err != nil {
+		if migration, err = scanMigration(providerName, entry.Name()); err != nil {
 			return nil, err
 		}
 
-		if skipMigration(providerName, up, target, prior, &migration) {
+		if skipMigration(up, target, prior, &migration) {
 			continue
 		}
 
@@ -91,31 +95,20 @@ func loadMigrations(providerName string, prior, target int) (migrations []model.
 	return migrations, nil
 }
 
-func skipMigration(providerName string, up bool, target, prior int, migration *model.SchemaMigration) (skip bool) {
-	if migration.Provider != providerAll && migration.Provider != providerName {
-		// Skip if migration.Provider is not a match.
-		return true
-	}
-
+func skipMigration(up bool, target, prior int, migration *model.SchemaMigration) (skip bool) {
 	if up {
 		if !migration.Up {
 			// Skip if we wanted an Up migration but it isn't an Up migration.
 			return true
 		}
 
-		if target != -1 && (migration.Version > target || migration.Version <= prior) {
+		if migration.Version > target || migration.Version <= prior {
 			// Skip if the migration version is greater than the target or less than or equal to the previous version.
 			return true
 		}
 	} else {
 		if migration.Up {
 			// Skip if we didn't want an Up migration but it is an Up migration.
-			return true
-		}
-
-		if migration.Version == 1 && target == -1 {
-			// Skip if we're targeting pre1 and the migration version is 1 as this migration will destroy all data
-			// preventing a successful migration.
 			return true
 		}
 
@@ -129,42 +122,36 @@ func skipMigration(providerName string, up bool, target, prior int, migration *m
 	return false
 }
 
-func scanMigration(m string) (migration model.SchemaMigration, err error) {
-	result := reMigration.FindStringSubmatch(m)
-
-	if result == nil || len(result) != 5 {
+func scanMigration(providerName, m string) (migration model.SchemaMigration, err error) {
+	if !reMigration.MatchString(m) {
 		return model.SchemaMigration{}, errors.New("invalid migration: could not parse the format")
 	}
 
+	result := reMigration.FindStringSubmatch(m)
+
 	migration = model.SchemaMigration{
-		Name:     strings.ReplaceAll(result[2], "_", " "),
-		Provider: result[3],
+		Name:     strings.ReplaceAll(result[reMigration.SubexpIndex("Name")], "_", " "),
+		Provider: providerName,
 	}
 
-	data, err := migrationsFS.ReadFile(fmt.Sprintf("migrations/%s", m))
-	if err != nil {
+	var data []byte
+
+	if data, err = migrationsFS.ReadFile(path.Join(pathMigrations, providerName, m)); err != nil {
 		return model.SchemaMigration{}, err
 	}
 
 	migration.Query = string(data)
 
-	switch result[4] {
+	switch direction := result[reMigration.SubexpIndex("Direction")]; direction {
 	case "up":
 		migration.Up = true
 	case "down":
 		migration.Up = false
 	default:
-		return model.SchemaMigration{}, fmt.Errorf("invalid migration: value in position 4 '%s' must be up or down", result[4])
+		return model.SchemaMigration{}, fmt.Errorf("invalid migration: value in Direction group '%s' must be up or down", direction)
 	}
 
-	migration.Version, _ = strconv.Atoi(result[1])
-
-	switch migration.Provider {
-	case providerAll, providerSQLite, providerMySQL, providerPostgres:
-		break
-	default:
-		return model.SchemaMigration{}, fmt.Errorf("invalid migration: value in position 3 '%s' must be all, sqlite, postgres, or mysql", result[3])
-	}
+	migration.Version, _ = strconv.Atoi(result[reMigration.SubexpIndex("Version")])
 
 	return migration, nil
 }

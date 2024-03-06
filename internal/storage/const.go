@@ -8,76 +8,27 @@ const (
 	tableAuthenticationLogs   = "authentication_logs"
 	tableDuoDevices           = "duo_devices"
 	tableIdentityVerification = "identity_verification"
+	tableOneTimeCode          = "one_time_code"
 	tableTOTPConfigurations   = "totp_configurations"
+	tableTOTPHistory          = "totp_history"
 	tableUserOpaqueIdentifier = "user_opaque_identifier"
 	tableUserPreferences      = "user_preferences"
-	tableWebauthnDevices      = "webauthn_devices"
+	tableWebAuthnCredentials  = "webauthn_credentials" //nolint:gosec // This is a table name, not a credential.
+	tableWebAuthnUsers        = "webauthn_users"
 
+	tableOAuth2BlacklistedJTI          = "oauth2_blacklisted_jti"
 	tableOAuth2ConsentSession          = "oauth2_consent_session"
 	tableOAuth2ConsentPreConfiguration = "oauth2_consent_preconfiguration"
 
+	tableOAuth2AccessTokenSession   = "oauth2_access_token_session" //nolint:gosec // This is not a hardcoded credential.
 	tableOAuth2AuthorizeCodeSession = "oauth2_authorization_code_session"
-	tableOAuth2AccessTokenSession   = "oauth2_access_token_session"  //nolint:gosec // This is not a hardcoded credential.
-	tableOAuth2RefreshTokenSession  = "oauth2_refresh_token_session" //nolint:gosec // This is not a hardcoded credential.
-	tableOAuth2PKCERequestSession   = "oauth2_pkce_request_session"
 	tableOAuth2OpenIDConnectSession = "oauth2_openid_connect_session"
-	tableOAuth2BlacklistedJTI       = "oauth2_blacklisted_jti"
+	tableOAuth2PARContext           = "oauth2_par_context"
+	tableOAuth2PKCERequestSession   = "oauth2_pkce_request_session"
+	tableOAuth2RefreshTokenSession  = "oauth2_refresh_token_session" //nolint:gosec // This is not a hardcoded credential.
 
 	tableMigrations = "migrations"
 	tableEncryption = "encryption"
-)
-
-// OAuth2SessionType represents the potential OAuth 2.0 session types.
-type OAuth2SessionType int
-
-// Representation of specific OAuth 2.0 session types.
-const (
-	OAuth2SessionTypeAuthorizeCode OAuth2SessionType = iota
-	OAuth2SessionTypeAccessToken
-	OAuth2SessionTypeRefreshToken
-	OAuth2SessionTypePKCEChallenge
-	OAuth2SessionTypeOpenIDConnect
-)
-
-// String returns a string representation of this OAuth2SessionType.
-func (s OAuth2SessionType) String() string {
-	switch s {
-	case OAuth2SessionTypeAuthorizeCode:
-		return "authorization code"
-	case OAuth2SessionTypeAccessToken:
-		return "access token"
-	case OAuth2SessionTypeRefreshToken:
-		return "refresh token"
-	case OAuth2SessionTypePKCEChallenge:
-		return "pkce challenge"
-	case OAuth2SessionTypeOpenIDConnect:
-		return "openid connect"
-	default:
-		return "invalid"
-	}
-}
-
-// Table returns the table name for this session type.
-func (s OAuth2SessionType) Table() string {
-	switch s {
-	case OAuth2SessionTypeAuthorizeCode:
-		return tableOAuth2AuthorizeCodeSession
-	case OAuth2SessionTypeAccessToken:
-		return tableOAuth2AccessTokenSession
-	case OAuth2SessionTypeRefreshToken:
-		return tableOAuth2RefreshTokenSession
-	case OAuth2SessionTypePKCEChallenge:
-		return tableOAuth2PKCERequestSession
-	case OAuth2SessionTypeOpenIDConnect:
-		return tableOAuth2OpenIDConnectSession
-	default:
-		return ""
-	}
-}
-
-const (
-	sqlNetworkTypeTCP        = "tcp"
-	sqlNetworkTypeUnixSocket = "unix"
 )
 
 const (
@@ -101,7 +52,7 @@ var tablesPre1 = []string{
 }
 
 const (
-	providerAll      = "all"
+	pathMigrations   = "migrations"
 	providerMySQL    = "mysql"
 	providerPostgres = "postgres"
 	providerSQLite   = "sqlite"
@@ -119,7 +70,7 @@ const (
 )
 
 var (
-	reMigration = regexp.MustCompile(`^V(\d{4})\.([^.]+)\.(all|sqlite|postgres|mysql)\.(up|down)\.sql$`)
+	reMigration = regexp.MustCompile(`^V(?P<Version>\d{4})\.(?P<Name>[^.]+)\.(?P<Direction>(up|down))\.sql$`)
 )
 
 const (

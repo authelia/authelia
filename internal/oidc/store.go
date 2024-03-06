@@ -18,20 +18,20 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-// NewStore returns a Store when provided with a schema.OpenIDConnectConfiguration and storage.Provider.
-func NewStore(config *schema.OpenIDConnectConfiguration, provider storage.Provider) (store *Store) {
+// NewStore returns a Store when provided with a schema.OpenIDConnect and storage.Provider.
+func NewStore(config *schema.IdentityProvidersOpenIDConnect, provider storage.Provider) (store *Store) {
 	logger := logging.Logger()
 
 	store = &Store{
 		provider: provider,
-		clients:  map[string]*Client{},
+		clients:  map[string]Client{},
 	}
 
 	for _, client := range config.Clients {
-		policy := authorization.NewLevel(client.Policy)
-		logger.Debugf("Registering client %s with policy %s (%v)", client.ID, client.Policy, policy)
+		policy := authorization.NewLevel(client.AuthorizationPolicy)
+		logger.Debugf("Registering client %s with policy %s (%v)", client.ID, client.AuthorizationPolicy, policy)
 
-		store.clients[client.ID] = NewClient(client)
+		store.clients[client.ID] = NewClient(client, config)
 	}
 
 	return store
@@ -65,29 +65,19 @@ func (s *Store) GetSubject(ctx context.Context, sectorID, username string) (subj
 	return opaqueID.Identifier, nil
 }
 
-// GetClientPolicy retrieves the policy from the client with the matching provided id.
-func (s *Store) GetClientPolicy(id string) (level authorization.Level) {
-	client, err := s.GetFullClient(id)
-	if err != nil {
-		return authorization.TwoFactor
-	}
-
-	return client.Policy
-}
-
 // GetFullClient returns a fosite.Client asserted as an Client matching the provided id.
-func (s *Store) GetFullClient(id string) (client *Client, err error) {
+func (s *Store) GetFullClient(_ context.Context, id string) (client Client, err error) {
 	client, ok := s.clients[id]
 	if !ok {
-		return nil, fosite.ErrNotFound
+		return nil, fosite.ErrInvalidClient.WithDebugf("Client with id '%s' does not appear to be a registered client.", id)
 	}
 
 	return client, nil
 }
 
 // IsValidClientID returns true if the provided id exists in the OpenIDConnectProvider.Clients map.
-func (s *Store) IsValidClientID(id string) (valid bool) {
-	_, err := s.GetFullClient(id)
+func (s *Store) IsValidClientID(ctx context.Context, id string) (valid bool) {
+	_, err := s.GetFullClient(ctx, id)
 
 	return err == nil
 }
@@ -112,8 +102,8 @@ func (s *Store) Rollback(ctx context.Context) (err error) {
 
 // GetClient loads the client by its ID or returns an error if the client does not exist or another error occurred.
 // This implements a portion of fosite.ClientManager.
-func (s *Store) GetClient(_ context.Context, id string) (client fosite.Client, err error) {
-	return s.GetFullClient(id)
+func (s *Store) GetClient(ctx context.Context, id string) (client fosite.Client, err error) {
+	return s.GetFullClient(ctx, id)
 }
 
 // ClientAssertionJWTValid returns an error if the JTI is known or the DB check failed and nil if the JTI is not known.
@@ -165,7 +155,7 @@ func (s *Store) InvalidateAuthorizeCodeSession(ctx context.Context, code string)
 // This implements a portion of oauth2.AuthorizeCodeStorage.
 func (s *Store) GetAuthorizeCodeSession(ctx context.Context, code string, session fosite.Session) (request fosite.Requester, err error) {
 	// TODO: Implement the fosite.ErrInvalidatedAuthorizeCode error above. This requires splitting the invalidated sessions and deleted sessions.
-	return s.loadSessionBySignature(ctx, storage.OAuth2SessionTypeAuthorizeCode, code, session)
+	return s.loadRequesterBySignature(ctx, storage.OAuth2SessionTypeAuthorizeCode, code, session)
 }
 
 // CreateAccessTokenSession stores the authorization request for a given access token.
@@ -190,7 +180,7 @@ func (s *Store) RevokeAccessToken(ctx context.Context, requestID string) (err er
 // GetAccessTokenSession gets the authorization request for a given access token.
 // This implements a portion of oauth2.AccessTokenStorage.
 func (s *Store) GetAccessTokenSession(ctx context.Context, signature string, session fosite.Session) (request fosite.Requester, err error) {
-	return s.loadSessionBySignature(ctx, storage.OAuth2SessionTypeAccessToken, signature, session)
+	return s.loadRequesterBySignature(ctx, storage.OAuth2SessionTypeAccessToken, signature, session)
 }
 
 // CreateRefreshTokenSession stores the authorization request for a given refresh token.
@@ -223,7 +213,7 @@ func (s *Store) RevokeRefreshTokenMaybeGracePeriod(ctx context.Context, requestI
 // GetRefreshTokenSession gets the authorization request for a given refresh token.
 // This implements a portion of oauth2.RefreshTokenStorage.
 func (s *Store) GetRefreshTokenSession(ctx context.Context, signature string, session fosite.Session) (request fosite.Requester, err error) {
-	return s.loadSessionBySignature(ctx, storage.OAuth2SessionTypeRefreshToken, signature, session)
+	return s.loadRequesterBySignature(ctx, storage.OAuth2SessionTypeRefreshToken, signature, session)
 }
 
 // CreatePKCERequestSession stores the authorization request for a given PKCE request.
@@ -235,17 +225,17 @@ func (s *Store) CreatePKCERequestSession(ctx context.Context, signature string, 
 // DeletePKCERequestSession marks the authorization request for a given PKCE request as deleted.
 // This implements a portion of pkce.PKCERequestStorage.
 func (s *Store) DeletePKCERequestSession(ctx context.Context, signature string) (err error) {
-	return s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeAccessToken, signature)
+	return s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypePKCEChallenge, signature)
 }
 
 // GetPKCERequestSession gets the authorization request for a given PKCE request.
 // This implements a portion of pkce.PKCERequestStorage.
 func (s *Store) GetPKCERequestSession(ctx context.Context, signature string, session fosite.Session) (requester fosite.Requester, err error) {
-	return s.loadSessionBySignature(ctx, storage.OAuth2SessionTypePKCEChallenge, signature, session)
+	return s.loadRequesterBySignature(ctx, storage.OAuth2SessionTypePKCEChallenge, signature, session)
 }
 
-// CreateOpenIDConnectSession creates an open id connect session for a given authorize code.
-// This is relevant for explicit open id connect flow.
+// CreateOpenIDConnectSession creates an OpenID Connect 1.0 connect session for a given authorize code.
+// This is relevant for explicit OpenID Connect 1.0 flow.
 // This implements a portion of openid.OpenIDConnectRequestStorage.
 func (s *Store) CreateOpenIDConnectSession(ctx context.Context, authorizeCode string, request fosite.Requester) (err error) {
 	return s.saveSession(ctx, storage.OAuth2SessionTypeOpenIDConnect, authorizeCode, request)
@@ -254,7 +244,7 @@ func (s *Store) CreateOpenIDConnectSession(ctx context.Context, authorizeCode st
 // DeleteOpenIDConnectSession just implements the method required by fosite even though it's unused.
 // This implements a portion of openid.OpenIDConnectRequestStorage.
 func (s *Store) DeleteOpenIDConnectSession(ctx context.Context, authorizeCode string) (err error) {
-	return s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeAccessToken, authorizeCode)
+	return s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeOpenIDConnect, authorizeCode)
 }
 
 // GetOpenIDConnectSession returns error:
@@ -263,7 +253,37 @@ func (s *Store) DeleteOpenIDConnectSession(ctx context.Context, authorizeCode st
 // - or an arbitrary error if an error occurred.
 // This implements a portion of openid.OpenIDConnectRequestStorage.
 func (s *Store) GetOpenIDConnectSession(ctx context.Context, authorizeCode string, request fosite.Requester) (r fosite.Requester, err error) {
-	return s.loadSessionBySignature(ctx, storage.OAuth2SessionTypeOpenIDConnect, authorizeCode, request.GetSession())
+	return s.loadRequesterBySignature(ctx, storage.OAuth2SessionTypeOpenIDConnect, authorizeCode, request.GetSession())
+}
+
+// CreatePARSession stores the pushed authorization request context. The requestURI is used to derive the key.
+// This implements a portion of fosite.PARStorage.
+func (s *Store) CreatePARSession(ctx context.Context, requestURI string, request fosite.AuthorizeRequester) (err error) {
+	var par *model.OAuth2PARContext
+
+	if par, err = model.NewOAuth2PARContext(requestURI, request); err != nil {
+		return err
+	}
+
+	return s.provider.SaveOAuth2PARContext(ctx, *par)
+}
+
+// GetPARSession gets the push authorization request context. The caller is expected to merge the AuthorizeRequest.
+// This implements a portion of fosite.PARStorage.
+func (s *Store) GetPARSession(ctx context.Context, requestURI string) (request fosite.AuthorizeRequester, err error) {
+	var par *model.OAuth2PARContext
+
+	if par, err = s.provider.LoadOAuth2PARContext(ctx, requestURI); err != nil {
+		return nil, err
+	}
+
+	return par.ToAuthorizeRequest(ctx, NewSession(), s)
+}
+
+// DeletePARSession deletes the context.
+// This implements a portion of fosite.PARStorage.
+func (s *Store) DeletePARSession(ctx context.Context, requestURI string) (err error) {
+	return s.provider.RevokeOAuth2PARContext(ctx, requestURI)
 }
 
 // IsJWTUsed implements an interface required for RFC7523.
@@ -280,7 +300,7 @@ func (s *Store) MarkJWTUsedForTime(ctx context.Context, jti string, exp time.Tim
 	return s.SetClientAssertionJWT(ctx, jti, exp)
 }
 
-func (s *Store) loadSessionBySignature(ctx context.Context, sessionType storage.OAuth2SessionType, signature string, session fosite.Session) (r fosite.Requester, err error) {
+func (s *Store) loadRequesterBySignature(ctx context.Context, sessionType storage.OAuth2SessionType, signature string, session fosite.Session) (r fosite.Requester, err error) {
 	var (
 		sessionModel *model.OAuth2Session
 	)
@@ -299,8 +319,13 @@ func (s *Store) loadSessionBySignature(ctx context.Context, sessionType storage.
 		return nil, err
 	}
 
-	if !sessionModel.Active && sessionType == storage.OAuth2SessionTypeAuthorizeCode {
-		return r, fosite.ErrInvalidatedAuthorizeCode
+	if !sessionModel.Active {
+		switch sessionType {
+		case storage.OAuth2SessionTypeAuthorizeCode:
+			return r, fosite.ErrInvalidatedAuthorizeCode
+		default:
+			return r, fosite.ErrInactiveToken
+		}
 	}
 
 	return r, nil

@@ -3,9 +3,9 @@
   functions = "functions"
 
 [build.environment]
-  NODE_VERSION = "16.18.1"
-  NPM_VERSION = "8.19.2"
-  GO_VERSION = "1.19.5"
+  NODE_VERSION = "18.19.1"
+  NPM_VERSION = "10.2.4"
+  GO_VERSION = "1.22.0"
 
 [context.production]
   command = "pnpm run build"

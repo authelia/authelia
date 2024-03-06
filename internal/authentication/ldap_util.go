@@ -67,12 +67,12 @@ func ldapEscape(inputUsername string) string {
 }
 
 func ldapGetReferral(err error) (referral string, ok bool) {
-	if !ldap.IsErrorWithCode(err, ldap.LDAPResultReferral) {
-		return "", false
-	}
-
 	switch e := err.(type) {
 	case *ldap.Error:
+		if e.ResultCode != ldap.LDAPResultReferral {
+			return "", false
+		}
+
 		if e.Packet == nil {
 			return "", false
 		}

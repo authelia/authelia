@@ -139,6 +139,7 @@ func cmdSuitesTeardownRun(_ *cobra.Command, args []string) {
 		if runningSuite == "" {
 			log.Fatal(ErrNoRunningSuite)
 		}
+
 		suiteName = runningSuite
 	}
 
@@ -158,7 +159,7 @@ func cmdSuitesTestRun(_ *cobra.Command, args []string) {
 		suiteArg := args[0]
 
 		if runningSuite != "" && suiteArg != runningSuite {
-			log.Fatal(errors.New("Running suite (" + runningSuite + ") is different than suite(s) to be tested (" + suiteArg + "). Shutdown running suite and retry"))
+			log.Fatal(errors.New(txtRunningSuite + runningSuite + ") is different than suite(s) to be tested (" + suiteArg + "). Shutdown running suite and retry"))
 		}
 
 		if err := runMultipleSuitesTests(strings.Split(suiteArg, ","), runningSuite == ""); err != nil {
@@ -166,12 +167,14 @@ func cmdSuitesTestRun(_ *cobra.Command, args []string) {
 		}
 	} else {
 		if runningSuite != "" {
-			fmt.Println("Running suite (" + runningSuite + ") detected. Run tests of that suite")
+			fmt.Println(txtRunningSuite + runningSuite + ") detected. Run tests of that suite")
+
 			if err := runSuiteTests(runningSuite, false); err != nil {
 				log.Fatal(err)
 			}
 		} else {
 			fmt.Println("No suite provided therefore all suites will be tested")
+
 			if err := runAllSuites(); err != nil {
 				log.Fatal(err)
 			}

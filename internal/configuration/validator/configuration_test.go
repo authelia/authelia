@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"net/url"
 	"runtime"
 	"testing"
 
@@ -13,34 +14,37 @@ import (
 
 func newDefaultConfig() schema.Configuration {
 	config := schema.Configuration{}
-	config.Server.Host = loopback
-	config.Server.Port = 9090
+	config.Server.Address = &schema.AddressTCP{Address: schema.NewAddressFromNetworkValues("tcp", loopback, 9090)}
 	config.Log.Level = "info"
 	config.Log.Format = "text"
-	config.JWTSecret = testJWTSecret
-	config.AuthenticationBackend.File = &schema.FileAuthenticationBackend{
+	config.IdentityValidation.ResetPassword = schema.IdentityValidationResetPassword{
+		JWTSecret: testJWTSecret,
+	}
+
+	config.AuthenticationBackend.File = &schema.AuthenticationBackendFile{
 		Path: "/a/path",
 	}
-	config.AccessControl = schema.AccessControlConfiguration{
+	config.AccessControl = schema.AccessControl{
 		DefaultPolicy: "two_factor",
 	}
-	config.Session = schema.SessionConfiguration{
+	config.Session = schema.Session{
 		Secret: "secret",
-		Cookies: []schema.SessionCookieConfiguration{
+		Cookies: []schema.SessionCookie{
 			{
-				SessionCookieCommonConfiguration: schema.SessionCookieCommonConfiguration{
-					Name:   "authelia_session",
-					Domain: exampleDotCom,
+				SessionCookieCommon: schema.SessionCookieCommon{
+					Name: "authelia_session",
 				},
+				Domain:      exampleDotCom,
+				AutheliaURL: &url.URL{Scheme: schemeHTTPS, Host: authdot + exampleDotCom},
 			},
 		},
 	}
 	config.Storage.EncryptionKey = testEncryptionKey
-	config.Storage.Local = &schema.LocalStorageConfiguration{
+	config.Storage.Local = &schema.StorageLocal{
 		Path: "abc",
 	}
-	config.Notifier = schema.NotifierConfiguration{
-		FileSystem: &schema.FileSystemNotifierConfiguration{
+	config.Notifier = schema.Notifier{
+		FileSystem: &schema.NotifierFileSystem{
 			Filename: "/tmp/file",
 		},
 	}
@@ -70,7 +74,7 @@ func TestShouldAddDefaultAccessControl(t *testing.T) {
 	config := newDefaultConfig()
 
 	config.AccessControl.DefaultPolicy = ""
-	config.AccessControl.Rules = []schema.ACLRule{
+	config.AccessControl.Rules = []schema.AccessControlRule{
 		{
 			Policy: "bypass",
 			Domains: []string{
@@ -85,30 +89,51 @@ func TestShouldAddDefaultAccessControl(t *testing.T) {
 	assert.Equal(t, "deny", config.AccessControl.DefaultPolicy)
 }
 
-func TestShouldRaiseErrorWithUndefinedJWTSecretKey(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-	config.JWTSecret = ""
-
-	ValidateConfiguration(&config, validator)
-	require.Len(t, validator.Errors(), 1)
-	require.Len(t, validator.Warnings(), 1)
-
-	assert.EqualError(t, validator.Errors()[0], "option 'jwt_secret' is required")
-	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
-}
-
 func TestShouldRaiseErrorWithBadDefaultRedirectionURL(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.DefaultRedirectionURL = "bad_default_redirection_url"
+	config.Session.Cookies[0].DefaultRedirectionURL = &url.URL{Host: "localhost"}
+
+	ValidateConfiguration(&config, validator)
+	require.Len(t, validator.Errors(), 2)
+	require.Len(t, validator.Warnings(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "session: domain config #1 (domain 'example.com'): option 'default_redirection_url' is not absolute with a value of '//localhost'")
+	assert.EqualError(t, validator.Errors()[1], "session: domain config #1 (domain 'example.com'): option 'default_redirection_url' does not share a cookie scope with domain 'example.com' with a value of '//localhost'")
+	assert.EqualError(t, validator.Warnings()[0], "access_control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
+}
+
+func TestShouldRaiseErrorWithLegacyDefaultRedirectionURL(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+	config.DefaultRedirectionURL = &url.URL{Host: "localhost"} //nolint:staticcheck
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 1)
 	require.Len(t, validator.Warnings(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "option 'default_redirection_url' is invalid: could not parse 'bad_default_redirection_url' as a URL")
-	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
+	assert.EqualError(t, validator.Errors()[0], "session: option 'cookies' must be configured with the per cookie option 'default_redirection_url' but the global one is configured which is not supported")
+	assert.EqualError(t, validator.Warnings()[0], "access_control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
+}
+
+func TestShouldAllowLegacyDefaultRedirectionURL(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+
+	config.Session.Cookies = nil
+
+	config.DefaultRedirectionURL = &url.URL{Scheme: "https", Host: "www.example.com"} //nolint:staticcheck
+	config.Session.Domain = "example.com"                                             //nolint:staticcheck
+
+	ValidateConfiguration(&config, validator)
+	require.Len(t, validator.Errors(), 0)
+	require.Len(t, validator.Warnings(), 2)
+
+	assert.EqualError(t, validator.Warnings()[0], "access_control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
+	assert.EqualError(t, validator.Warnings()[1], "session: option 'domain' is deprecated in v4.38.0 and has been replaced by a multi-domain configuration: this has automatically been mapped for you but you will need to adjust your configuration to remove this message and receive the latest messages")
+
+	assert.Equal(t, "example.com", config.Session.Cookies[0].Domain)
+	assert.Equal(t, &url.URL{Scheme: schemeHTTPS, Host: "www.example.com"}, config.Session.Cookies[0].DefaultRedirectionURL)
 }
 
 func TestShouldNotOverrideCertificatesDirectoryAndShouldPassWhenBlank(t *testing.T) {
@@ -122,7 +147,7 @@ func TestShouldNotOverrideCertificatesDirectoryAndShouldPassWhenBlank(t *testing
 
 	require.Equal(t, "", config.CertificatesDirectory)
 
-	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
+	assert.EqualError(t, validator.Warnings()[0], "access_control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
 }
 
 func TestShouldRaiseErrorOnInvalidCertificatesDirectory(t *testing.T) {
@@ -141,7 +166,7 @@ func TestShouldRaiseErrorOnInvalidCertificatesDirectory(t *testing.T) {
 		assert.EqualError(t, validator.Errors()[0], "the location 'certificates_directory' could not be inspected: stat not-a-real-file.go: no such file or directory")
 	}
 
-	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
+	assert.EqualError(t, validator.Warnings()[0], "access_control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
 
 	config = newDefaultConfig()
 
@@ -154,7 +179,7 @@ func TestShouldRaiseErrorOnInvalidCertificatesDirectory(t *testing.T) {
 	require.Len(t, validator.Warnings(), 1)
 
 	assert.EqualError(t, validator.Errors()[0], "the location 'certificates_directory' refers to 'const.go' is not a directory")
-	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
+	assert.EqualError(t, validator.Warnings()[0], "access_control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
 }
 
 func TestShouldNotRaiseErrorOnValidCertificatesDirectory(t *testing.T) {
@@ -167,7 +192,7 @@ func TestShouldNotRaiseErrorOnValidCertificatesDirectory(t *testing.T) {
 	assert.Len(t, validator.Errors(), 0)
 	require.Len(t, validator.Warnings(), 1)
 
-	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
+	assert.EqualError(t, validator.Warnings()[0], "access_control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
 }
 
 func TestValidateDefault2FAMethod(t *testing.T) {
@@ -180,7 +205,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 			desc: "ShouldAllowConfiguredMethodTOTP",
 			have: &schema.Configuration{
 				Default2FAMethod: "totp",
-				DuoAPI: schema.DuoAPIConfiguration{
+				DuoAPI: schema.DuoAPI{
 					SecretKey:      "a key",
 					IntegrationKey: "another key",
 					Hostname:       "none",
@@ -188,10 +213,10 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 			},
 		},
 		{
-			desc: "ShouldAllowConfiguredMethodWebauthn",
+			desc: "ShouldAllowConfiguredMethodWebAuthn",
 			have: &schema.Configuration{
 				Default2FAMethod: "webauthn",
-				DuoAPI: schema.DuoAPIConfiguration{
+				DuoAPI: schema.DuoAPI{
 					SecretKey:      "a key",
 					IntegrationKey: "another key",
 					Hostname:       "none",
@@ -202,7 +227,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 			desc: "ShouldAllowConfiguredMethodMobilePush",
 			have: &schema.Configuration{
 				Default2FAMethod: "mobile_push",
-				DuoAPI: schema.DuoAPIConfiguration{
+				DuoAPI: schema.DuoAPI{
 					SecretKey:      "a key",
 					IntegrationKey: "another key",
 					Hostname:       "none",
@@ -213,40 +238,40 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 			desc: "ShouldNotAllowDisabledMethodTOTP",
 			have: &schema.Configuration{
 				Default2FAMethod: "totp",
-				DuoAPI: schema.DuoAPIConfiguration{
+				DuoAPI: schema.DuoAPI{
 					SecretKey:      "a key",
 					IntegrationKey: "another key",
 					Hostname:       "none",
 				},
-				TOTP: schema.TOTPConfiguration{Disable: true},
+				TOTP: schema.TOTP{Disable: true},
 			},
 			expectedErrs: []string{
-				"option 'default_2fa_method' is configured as 'totp' but must be one of the following enabled method values: 'webauthn', 'mobile_push'",
+				"option 'default_2fa_method' must be one of the enabled options 'webauthn' or 'mobile_push' but it's configured as 'totp'",
 			},
 		},
 		{
-			desc: "ShouldNotAllowDisabledMethodWebauthn",
+			desc: "ShouldNotAllowDisabledMethodWebAuthn",
 			have: &schema.Configuration{
 				Default2FAMethod: "webauthn",
-				DuoAPI: schema.DuoAPIConfiguration{
+				DuoAPI: schema.DuoAPI{
 					SecretKey:      "a key",
 					IntegrationKey: "another key",
 					Hostname:       "none",
 				},
-				Webauthn: schema.WebauthnConfiguration{Disable: true},
+				WebAuthn: schema.WebAuthn{Disable: true},
 			},
 			expectedErrs: []string{
-				"option 'default_2fa_method' is configured as 'webauthn' but must be one of the following enabled method values: 'totp', 'mobile_push'",
+				"option 'default_2fa_method' must be one of the enabled options 'totp' or 'mobile_push' but it's configured as 'webauthn'",
 			},
 		},
 		{
 			desc: "ShouldNotAllowDisabledMethodMobilePush",
 			have: &schema.Configuration{
 				Default2FAMethod: "mobile_push",
-				DuoAPI:           schema.DuoAPIConfiguration{Disable: true},
+				DuoAPI:           schema.DuoAPI{Disable: true},
 			},
 			expectedErrs: []string{
-				"option 'default_2fa_method' is configured as 'mobile_push' but must be one of the following enabled method values: 'totp', 'webauthn'",
+				"option 'default_2fa_method' must be one of the enabled options 'totp' or 'webauthn' but it's configured as 'mobile_push'",
 			},
 		},
 		{
@@ -255,7 +280,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 				Default2FAMethod: "duo",
 			},
 			expectedErrs: []string{
-				"option 'default_2fa_method' is configured as 'duo' but must be one of the following values: 'totp', 'webauthn', 'mobile_push'",
+				"option 'default_2fa_method' must be one of 'totp', 'webauthn', or 'mobile_push' but it's configured as 'duo'",
 			},
 		},
 	}

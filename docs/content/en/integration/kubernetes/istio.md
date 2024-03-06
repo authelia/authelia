@@ -13,7 +13,7 @@ toc: true
 ---
 
 Istio uses [Envoy](../proxies/envoy.md) as an Ingress. This means it has a relatively comprehensive integration option.
-Istio is supported with Authelia v4.37.0 and higher via [Envoy]'s [external authorization] filter.
+Istio is supported with Authelia v4.37.0 and higher via the [Envoy] proxy [external authorization] filter.
 
 [external authorization]: https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto.html#extensions-filters-http-ext-authz-v3-extauthz
 
@@ -30,8 +30,8 @@ This is an example IstioOperator manifest adjusted to authenticate with Authelia
 portions of the resource that you add as well as context. You will need to adapt it to your needs.
 
 ```yaml
-apiVersion: install.istio.io/v1alpha1
-kind: IstioOperator
+apiVersion: 'install.istio.io/v1alpha1'
+kind: 'IstioOperator'
 spec:
   meshConfig:
     extensionProviders:
@@ -63,13 +63,13 @@ spec:
 The following [Authorization Policy] applies the above filter extension provider to the `nextcloud.example.com` domain:
 
 ```yaml
-apiVersion: security.istio.io/v1beta1
-kind: AuthorizationPolicy
+apiVersion: 'security.istio.io/v1beta1'
+kind: 'AuthorizationPolicy'
 metadata:
-  name: nextcloud
-  namespace: apps
+  name: 'nextcloud'
+  namespace: 'apps'
 spec:
-  action: CUSTOM
+  action: 'CUSTOM'
   provider:
     name:  'authelia'
   rules:

@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"fmt"
+	"net/url"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/valyala/fasthttp"
+	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -34,7 +36,7 @@ func (s *FirstFactorSuite) TestShouldFailIfBodyIsNil() {
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
 	// No body.
-	assert.Equal(s.T(), "Failed to parse 1FA request body: unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Failed to parse 1FA request body", "unable to parse body: unexpected end of JSON input")
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
@@ -45,7 +47,7 @@ func (s *FirstFactorSuite) TestShouldFailIfBodyIsInBadFormat() {
 	}`)
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
-	assert.Equal(s.T(), "Failed to parse 1FA request body: unable to validate body: password: non zero value required", s.mock.Hook.LastEntry().Message)
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Failed to parse 1FA request body", "unable to validate body: password: non zero value required")
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
@@ -73,7 +75,8 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 	}`)
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
-	assert.Equal(s.T(), "Unsuccessful 1FA authentication attempt by user 'test': failed", s.mock.Hook.LastEntry().Message)
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Unsuccessful 1FA authentication attempt by user 'test'", "failed")
+
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
@@ -152,7 +155,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
 	}`)
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
-	assert.Equal(s.T(), "Could not obtain profile details during 1FA authentication for user 'test': failed", s.mock.Hook.LastEntry().Message)
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Could not obtain profile details during 1FA authentication for user 'test'", "failed")
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
@@ -174,7 +177,7 @@ func (s *FirstFactorSuite) TestShouldFailIfAuthenticationMarkFail() {
 	}`)
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
-	assert.Equal(s.T(), "Unable to mark 1FA authentication attempt by user 'test': failed", s.mock.Hook.LastEntry().Message)
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Unable to mark 1FA authentication attempt by user 'test'", "failed")
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
@@ -206,7 +209,7 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
 	// Respond with 200.
-	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), []byte("{\"status\":\"OK\"}"), s.mock.Ctx.Response.Body())
 
 	userSession, err := s.mock.Ctx.GetSession()
@@ -248,7 +251,7 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
 	// Respond with 200.
-	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), []byte("{\"status\":\"OK\"}"), s.mock.Ctx.Response.Body())
 
 	userSession, err := s.mock.Ctx.GetSession()
@@ -293,7 +296,7 @@ func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSess
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
 	// Respond with 200.
-	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), []byte("{\"status\":\"OK\"}"), s.mock.Ctx.Response.Body())
 
 	userSession, err := s.mock.Ctx.GetSession()
@@ -314,9 +317,9 @@ type FirstFactorRedirectionSuite struct {
 
 func (s *FirstFactorRedirectionSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
-	s.mock.Ctx.Configuration.DefaultRedirectionURL = "https://default.local"
+	s.mock.Ctx.Configuration.Session.Cookies[0].DefaultRedirectionURL = &url.URL{Scheme: "https", Host: "default.local"}
 	s.mock.Ctx.Configuration.AccessControl.DefaultPolicy = testBypass
-	s.mock.Ctx.Configuration.AccessControl.Rules = []schema.ACLRule{
+	s.mock.Ctx.Configuration.AccessControl.Rules = []schema.AccessControlRule{
 		{
 			Domains: []string{"default.local"},
 			Policy:  "one_factor",
@@ -367,7 +370,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenNoTarget
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
 	// Respond with 200.
-	s.mock.Assert200OK(s.T(), redirectResponse{Redirect: "https://default.local"})
+	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://www.example.com"})
 }
 
 // When:
@@ -391,7 +394,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUns
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
 	// Respond with 200.
-	s.mock.Assert200OK(s.T(), redirectResponse{Redirect: "https://default.local"})
+	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://www.example.com"})
 }
 
 // When:
@@ -403,7 +406,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUns
 //	the user should receive 200 without redirection URL.
 func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedAndTwoFactorEnabled() {
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
-		AccessControl: schema.AccessControlConfiguration{
+		AccessControl: schema.AccessControl{
 			DefaultPolicy: "two_factor",
 		},
 	})
@@ -429,9 +432,9 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedA
 //	the user should receive 200 without redirection URL.
 func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvidedAndTwoFactorEnabled() {
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
-		AccessControl: schema.AccessControlConfiguration{
+		AccessControl: schema.AccessControl{
 			DefaultPolicy: "one_factor",
-			Rules: []schema.ACLRule{
+			Rules: []schema.AccessControlRule{
 				{
 					Domains: []string{"test.example.com"},
 					Policy:  "one_factor",

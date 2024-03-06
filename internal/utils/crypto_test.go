@@ -325,7 +325,7 @@ func TestShouldParseCurves(t *testing.T) {
 	}
 }
 
-func testMustBuildPrivateKey(b PrivateKeyBuilder) interface{} {
+func testMustBuildPrivateKey(b PrivateKeyBuilder) any {
 	k, err := b.Build()
 	if err != nil {
 		panic(err)
@@ -337,8 +337,8 @@ func testMustBuildPrivateKey(b PrivateKeyBuilder) interface{} {
 func TestPublicKeyFromPrivateKey(t *testing.T) {
 	testCases := []struct {
 		Name       string
-		PrivateKey interface{}
-		Expected   interface{}
+		PrivateKey any
+		Expected   any
 	}{
 		{
 			Name:       "RSA2048",
@@ -424,6 +424,7 @@ func TestX509ParseKeyUsage(t *testing.T) {
 
 				assert.Equal(t, tc.expected, actual)
 			}
+
 			for _, have := range tc.have {
 				t.Run(strings.Join(have, ","), func(t *testing.T) {
 					actual := X509ParseKeyUsage(have, tc.ca)
@@ -462,6 +463,7 @@ func TestX509ParseExtendedKeyUsage(t *testing.T) {
 
 				assert.Equal(t, tc.expected, actual)
 			}
+
 			for _, have := range tc.have {
 				t.Run(strings.Join(have, ","), func(t *testing.T) {
 					actual := X509ParseExtendedKeyUsage(have, tc.ca)

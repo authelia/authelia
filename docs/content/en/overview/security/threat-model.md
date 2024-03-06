@@ -86,5 +86,5 @@ It's important to note that Authelia is considered running in a trusted environm
    transmitted unsigned to the backends, meaning a malicious user within the network could pretend to be
    Authelia and send those headers to bypass authentication and gain access to the service. This could be mitigated by
    transmitting those headers with a digital signature which could be verified by the backend however, many backends
-   just won't support it. It has therefore been decided to invest in OpenID Connect instead to solve that authentication
-   delegation problem.
+   just won't support it. It has therefore been decided to invest in OpenID Connect 1.0 instead to solve that
+   authentication delegation problem.

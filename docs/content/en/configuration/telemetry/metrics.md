@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "telemetry"
-weight: 108200
+weight: 109200
 toc: true
 ---
 
@@ -16,21 +16,25 @@ toc: true
 
 ## Configuration
 
+{{< config-alert-example >}}
+
 ```yaml
 telemetry:
   metrics:
     enabled: false
-    address: "tcp://0.0.0.0:9959"
+    address: 'tcp://:9959/'
     buffers:
       read: 4096
       write: 4096
     timeouts:
-      read: 6s
-      write: 6s
-      idle: 30s
+      read: '6s'
+      write: '6s'
+      idle: '30s'
 ```
 
 ## Options
+
+This section describes the individual configuration options.
 
 ### enabled
 
@@ -40,20 +44,22 @@ Determines if the [Prometheus] HTTP Metrics Exporter is enabled.
 
 ### address
 
-{{< confkey type="address" default="tcp://0.0.0.0:9959" required="no" >}}
+{{< confkey type="string" syntax="address" default="tcp://:9959/" required="no" >}}
 
-Configures the listener address for the [Prometheus] HTTP Metrics Exporter. This configuration key uses the
-[Address](../prologue/common.md#address) format. The scheme must be `tcp://` or empty.
+Configures the listener address for the [Prometheus] Metrics Exporter HTTP Server. The address itself is a listener and
+the scheme must either be the `unix` scheme or one of the `tcp` schemes.
 
 ### buffers
 
-Configures the server buffers. See the [Server Buffers](../prologue/common.md#server-buffers) documentation for more
-information.
+{{< confkey type="structure" structure="server-buffers" required="no" >}}
+
+Configures the server buffers.
 
 ### timeouts
 
-Configures the server timeouts. See the [Server Timeouts](../prologue/common.md#server-timeouts) documentation for more
-information.
+{{< confkey type="structure" structure="server-timeouts" required="no" >}}
+
+Configures the server timeouts.
 
 ## See More
 

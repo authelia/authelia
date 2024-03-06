@@ -35,12 +35,13 @@ authelia crypto pair ecdsa generate --help
 ### Options
 
 ```
-  -b, --curve string              Sets the elliptic curve which can be P224, P256, P384, or P521 (default "P256")
-  -d, --directory string          directory where the generated keys, certificates, etc will be stored
-      --file.private-key string   name of the file to export the private key data to (default "private.pem")
-      --file.public-key string    name of the file to export the public key data to (default "public.pem")
-  -h, --help                      help for generate
-      --pkcs8                     force PKCS #8 ASN.1 format
+  -b, --curve string                   Sets the elliptic curve which can be P224, P256, P384, or P521 (default "P256")
+  -d, --directory string               directory where the generated keys, certificates, etc will be stored
+      --file.extension.legacy string   string to include before the actual extension as a sub-extension on the PKCS#1 and SECG1 legacy formats (default "legacy")
+      --file.private-key string        name of the file to export the private key data to (default "private.pem")
+      --file.public-key string         name of the file to export the public key data to (default "public.pem")
+  -h, --help                           help for generate
+      --legacy                         enables the output of the legacy PKCS#1 and SECG1 formats when enabled
 ```
 
 ### Options inherited from parent commands

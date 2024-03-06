@@ -3,9 +3,9 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './DuoPush/configuration.yml:/config/configuration.yml:ro'
+      - './DuoPush/configuration.yml:/config/configuration.yml'
       - './DuoPush/users.yml:/config/users.yml'
-      - './common/pki:/pki:ro'
+      - './common/pki:/pki'
       - '/tmp:/tmp'
     user: ${USER_ID}:${GROUP_ID}
 ...

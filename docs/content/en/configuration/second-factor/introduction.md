@@ -14,7 +14,7 @@ toc: true
 
 ## One Time Password
 
-Authelia supports configuring [Time-based One Time Password](time-based-one-time-password.md)'s.
+Authelia supports configuring [Time-based One-Time Password](time-based-one-time-password.md)'s.
 
 ## Security Key
 

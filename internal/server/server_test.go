@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path"
 	"strconv"
 	"strings"
 	"testing"
@@ -22,15 +21,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
-
-func Test(t *testing.T) {
-	fmt.Println(path.Join("/api/authz/", "abc"))
-	fmt.Println(path.Join("/api/authz/", "abc/123/", "{path:*}"))
-	fmt.Println(path.Join("/api/authz/", "abc/123/"))
-}
 
 // TemporaryCertificate contains the FD of 2 temporary files containing the PEM format of the certificate and private key.
 type TemporaryCertificate struct {
@@ -145,7 +139,9 @@ type TLSServerContext struct {
 func NewTLSServerContext(configuration schema.Configuration) (serverContext *TLSServerContext, err error) {
 	serverContext = new(TLSServerContext)
 
-	providers := middlewares.Providers{}
+	providers := middlewares.Providers{
+		Random: random.NewMathematical(),
+	}
 
 	providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: configuration.Notifier.TemplatePath})
 	if err != nil {
@@ -196,7 +192,8 @@ func TestShouldRaiseErrorWhenClientDoesNotSkipVerify(t *testing.T) {
 	defer certificateContext.Close()
 
 	tlsServerContext, err := NewTLSServerContext(schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.Server{
+			Address: &schema.AddressTCP{Address: schema.NewAddressFromNetworkValues("tcp", "0.0.0.0", 9091)},
 			TLS: schema.ServerTLS{
 				Certificate: certificateContext.Certificates[0].CertFile.Name(),
 				Key:         certificateContext.Certificates[0].KeyFile.Name(),
@@ -207,7 +204,7 @@ func TestShouldRaiseErrorWhenClientDoesNotSkipVerify(t *testing.T) {
 
 	defer tlsServerContext.Close()
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://local.example.com:%d", tlsServerContext.Port()), nil)
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("https://local.example.com:%d", tlsServerContext.Port()), nil)
 	require.NoError(t, err)
 
 	_, err = http.DefaultClient.Do(req)
@@ -224,7 +221,8 @@ func TestShouldServeOverTLSWhenClientDoesSkipVerify(t *testing.T) {
 	defer certificateContext.Close()
 
 	tlsServerContext, err := NewTLSServerContext(schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.Server{
+			Address: schema.DefaultServerConfiguration.Address,
 			TLS: schema.ServerTLS{
 				Certificate: certificateContext.Certificates[0].CertFile.Name(),
 				Key:         certificateContext.Certificates[0].KeyFile.Name(),
@@ -235,7 +233,7 @@ func TestShouldServeOverTLSWhenClientDoesSkipVerify(t *testing.T) {
 
 	defer tlsServerContext.Close()
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://local.example.com:%d/api/notfound", tlsServerContext.Port()), nil)
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("https://local.example.com:%d/api/notfound", tlsServerContext.Port()), nil)
 	require.NoError(t, err)
 
 	tr := &http.Transport{
@@ -261,7 +259,8 @@ func TestShouldServeOverTLSWhenClientHasProperRootCA(t *testing.T) {
 	defer certificateContext.Close()
 
 	tlsServerContext, err := NewTLSServerContext(schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.Server{
+			Address: schema.DefaultServerConfiguration.Address,
 			TLS: schema.ServerTLS{
 				Certificate: certificateContext.Certificates[0].CertFile.Name(),
 				Key:         certificateContext.Certificates[0].KeyFile.Name(),
@@ -272,7 +271,7 @@ func TestShouldServeOverTLSWhenClientHasProperRootCA(t *testing.T) {
 
 	defer tlsServerContext.Close()
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://local.example.com:%d/api/notfound", tlsServerContext.Port()), nil)
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("https://local.example.com:%d/api/notfound", tlsServerContext.Port()), nil)
 	require.NoError(t, err)
 
 	block, _ := pem.Decode(certificateContext.Certificates[0].CertificatePEM)
@@ -312,7 +311,8 @@ func TestShouldRaiseWhenMutualTLSIsConfiguredAndClientIsNotAuthenticated(t *test
 	require.NoError(t, err)
 
 	tlsServerContext, err := NewTLSServerContext(schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.Server{
+			Address: schema.DefaultServerConfiguration.Address,
 			TLS: schema.ServerTLS{
 				Certificate:        certificateContext.Certificates[0].CertFile.Name(),
 				Key:                certificateContext.Certificates[0].KeyFile.Name(),
@@ -324,7 +324,7 @@ func TestShouldRaiseWhenMutualTLSIsConfiguredAndClientIsNotAuthenticated(t *test
 
 	defer tlsServerContext.Close()
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://local.example.com:%d/api/notfound", tlsServerContext.Port()), nil)
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("https://local.example.com:%d/api/notfound", tlsServerContext.Port()), nil)
 	require.NoError(t, err)
 
 	// Create a root CA for the client to properly validate server cert.
@@ -341,7 +341,7 @@ func TestShouldRaiseWhenMutualTLSIsConfiguredAndClientIsNotAuthenticated(t *test
 
 	_, err = client.Do(req)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "remote error: tls: bad certificate")
+	assert.Contains(t, err.Error(), "remote error: tls: certificate required")
 }
 
 func TestShouldServeProperlyWhenMutualTLSIsConfiguredAndClientIsAuthenticated(t *testing.T) {
@@ -355,7 +355,8 @@ func TestShouldServeProperlyWhenMutualTLSIsConfiguredAndClientIsAuthenticated(t 
 	require.NoError(t, err)
 
 	tlsServerContext, err := NewTLSServerContext(schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.Server{
+			Address: schema.DefaultServerConfiguration.Address,
 			TLS: schema.ServerTLS{
 				Certificate:        certificateContext.Certificates[0].CertFile.Name(),
 				Key:                certificateContext.Certificates[0].KeyFile.Name(),
@@ -367,7 +368,7 @@ func TestShouldServeProperlyWhenMutualTLSIsConfiguredAndClientIsAuthenticated(t 
 
 	defer tlsServerContext.Close()
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://local.example.com:%d/api/notfound", tlsServerContext.Port()), nil)
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("https://local.example.com:%d/api/notfound", tlsServerContext.Port()), nil)
 	require.NoError(t, err)
 
 	// Create a root CA for the client to properly validate server cert.

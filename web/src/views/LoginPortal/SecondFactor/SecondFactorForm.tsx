@@ -1,29 +1,32 @@
-import React, { useEffect, useState } from "react";
+import React, { lazy, useEffect, useState } from "react";
 
 import { Button, Grid, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
+import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
 import { Route, Routes, useNavigate } from "react-router-dom";
 
 import {
     SecondFactorPushSubRoute,
     SecondFactorTOTPSubRoute,
-    SecondFactorWebauthnSubRoute,
+    SecondFactorWebAuthnSubRoute,
+    SettingsRoute,
+    SettingsTwoFactorAuthenticationSubRoute,
     LogoutRoute as SignOutRoute,
 } from "@constants/Routes";
+import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";
 import { Configuration } from "@models/Configuration";
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
-import { initiateTOTPRegistrationProcess, initiateWebauthnRegistrationProcess } from "@services/RegisterDevice";
 import { AuthenticationLevel } from "@services/State";
 import { setPreferred2FAMethod } from "@services/UserInfo";
-import { isWebauthnSupported } from "@services/Webauthn";
 import MethodSelectionDialog from "@views/LoginPortal/SecondFactor/MethodSelectionDialog";
-import OneTimePasswordMethod from "@views/LoginPortal/SecondFactor/OneTimePasswordMethod";
-import PushNotificationMethod from "@views/LoginPortal/SecondFactor/PushNotificationMethod";
-import WebauthnMethod from "@views/LoginPortal/SecondFactor/WebauthnMethod";
+
+const OneTimePasswordMethod = lazy(() => import("@views/LoginPortal/SecondFactor/OneTimePasswordMethod"));
+const PushNotificationMethod = lazy(() => import("@views/LoginPortal/SecondFactor/PushNotificationMethod"));
+const WebAuthnMethod = lazy(() => import("@views/LoginPortal/SecondFactor/WebAuthnMethod"));
 
 export interface Props {
     authenticationLevel: AuthenticationLevel;
@@ -39,41 +42,33 @@ const SecondFactorForm = function (props: Props) {
     const styles = useStyles();
     const navigate = useNavigate();
     const [methodSelectionOpen, setMethodSelectionOpen] = useState(false);
-    const { createInfoNotification, createErrorNotification } = useNotifications();
-    const [registrationInProgress, setRegistrationInProgress] = useState(false);
-    const [webauthnSupported, setWebauthnSupported] = useState(false);
+    const [stateWebAuthnSupported, setStateWebAuthnSupported] = useState(false);
+    const { createErrorNotification } = useNotifications();
+    const { setLocalStorageMethod, localStorageMethodAvailable } = useLocalStorageMethodContext();
     const { t: translate } = useTranslation();
 
     useEffect(() => {
-        setWebauthnSupported(isWebauthnSupported());
-    }, [setWebauthnSupported]);
-
-    const initiateRegistration = (initiateRegistrationFunc: () => Promise<void>) => {
-        return async () => {
-            if (registrationInProgress) {
-                return;
-            }
-            setRegistrationInProgress(true);
-            try {
-                await initiateRegistrationFunc();
-                createInfoNotification(translate("An email has been sent to your address to complete the process"));
-            } catch (err) {
-                console.error(err);
-                createErrorNotification(translate("There was a problem initiating the registration process"));
-            }
-            setRegistrationInProgress(false);
-        };
-    };
+        setStateWebAuthnSupported(browserSupportsWebAuthn());
+    }, [setStateWebAuthnSupported]);
 
     const handleMethodSelectionClick = () => {
         setMethodSelectionOpen(true);
     };
 
     const handleMethodSelected = async (method: SecondFactorMethod) => {
+        if (localStorageMethodAvailable) {
+            setLocalStorageMethod(method);
+        } else {
+            await handleMethodSelectedFallback(method);
+        }
+
+        setMethodSelectionOpen(false);
+        props.onMethodChanged();
+    };
+
+    const handleMethodSelectedFallback = async (method: SecondFactorMethod) => {
         try {
             await setPreferred2FAMethod(method);
-            setMethodSelectionOpen(false);
-            props.onMethodChanged();
         } catch (err) {
             console.error(err);
             createErrorNotification("There was an issue updating preferred second factor method");
@@ -85,12 +80,17 @@ const SecondFactorForm = function (props: Props) {
     };
 
     return (
-        <LoginLayout id="second-factor-stage" title={`${translate("Hi")} ${props.userInfo.display_name}`} showBrand>
+        <LoginLayout
+            id="second-factor-stage"
+            title={`${translate("Hi")} ${props.userInfo.display_name}`}
+            showBrand
+            userInfo={props.userInfo}
+        >
             {props.configuration.available_methods.size > 1 ? (
                 <MethodSelectionDialog
                     open={methodSelectionOpen}
                     methods={props.configuration.available_methods}
-                    webauthnSupported={webauthnSupported}
+                    webauthn={stateWebAuthnSupported}
                     onClose={() => setMethodSelectionOpen(false)}
                     onClick={handleMethodSelected}
                 />
@@ -117,21 +117,25 @@ const SecondFactorForm = function (props: Props) {
                                     authenticationLevel={props.authenticationLevel}
                                     // Whether the user has a TOTP secret registered already
                                     registered={props.userInfo.has_totp}
-                                    onRegisterClick={initiateRegistration(initiateTOTPRegistrationProcess)}
+                                    onRegisterClick={() => {
+                                        navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
+                                    }}
                                     onSignInError={(err) => createErrorNotification(err.message)}
                                     onSignInSuccess={props.onAuthenticationSuccess}
                                 />
                             }
                         />
                         <Route
-                            path={SecondFactorWebauthnSubRoute}
+                            path={SecondFactorWebAuthnSubRoute}
                             element={
-                                <WebauthnMethod
+                                <WebAuthnMethod
                                     id="webauthn-method"
                                     authenticationLevel={props.authenticationLevel}
-                                    // Whether the user has a Webauthn device registered already
+                                    // Whether the user has a WebAuthn device registered already
                                     registered={props.userInfo.has_webauthn}
-                                    onRegisterClick={initiateRegistration(initiateWebauthnRegistrationProcess)}
+                                    onRegisterClick={() => {
+                                        navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
+                                    }}
                                     onSignInError={(err) => createErrorNotification(err.message)}
                                     onSignInSuccess={props.onAuthenticationSuccess}
                                 />

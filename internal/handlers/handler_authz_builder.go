@@ -1,17 +1,16 @@
 package handlers
 
 import (
-	"fmt"
-	"time"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 // NewAuthzBuilder creates a new AuthzBuilder.
 func NewAuthzBuilder() *AuthzBuilder {
 	return &AuthzBuilder{
-		config: AuthzConfig{RefreshInterval: time.Second * -1},
+		config: AuthzConfig{RefreshInterval: schema.NewRefreshIntervalDurationAlways()},
 	}
 }
 
@@ -22,31 +21,10 @@ func (b *AuthzBuilder) WithStrategies(strategies ...AuthnStrategy) *AuthzBuilder
 	return b
 }
 
-// WithStrategyCookie adds the Cookie header strategy to the strategies in this builder.
-func (b *AuthzBuilder) WithStrategyCookie(refreshInterval time.Duration) *AuthzBuilder {
-	b.strategies = append(b.strategies, NewCookieSessionAuthnStrategy(refreshInterval))
-
-	return b
-}
-
-// WithStrategyAuthorization adds the Authorization header strategy to the strategies in this builder.
-func (b *AuthzBuilder) WithStrategyAuthorization() *AuthzBuilder {
-	b.strategies = append(b.strategies, NewHeaderAuthorizationAuthnStrategy())
-
-	return b
-}
-
-// WithStrategyProxyAuthorization adds the Proxy-Authorization header strategy to the strategies in this builder.
-func (b *AuthzBuilder) WithStrategyProxyAuthorization() *AuthzBuilder {
-	b.strategies = append(b.strategies, NewHeaderProxyAuthorizationAuthnStrategy())
-
-	return b
-}
-
 // WithImplementationLegacy configures this builder to output an Authz which is used with the Legacy
 // implementation which is a mix of the other implementations and usually works with most proxies.
 func (b *AuthzBuilder) WithImplementationLegacy() *AuthzBuilder {
-	b.impl = AuthzImplLegacy
+	b.implementation = AuthzImplLegacy
 
 	return b
 }
@@ -54,7 +32,7 @@ func (b *AuthzBuilder) WithImplementationLegacy() *AuthzBuilder {
 // WithImplementationForwardAuth configures this builder to output an Authz which is used with the ForwardAuth
 // implementation traditionally used by Traefik, Caddy, and Skipper.
 func (b *AuthzBuilder) WithImplementationForwardAuth() *AuthzBuilder {
-	b.impl = AuthzImplForwardAuth
+	b.implementation = AuthzImplForwardAuth
 
 	return b
 }
@@ -62,7 +40,7 @@ func (b *AuthzBuilder) WithImplementationForwardAuth() *AuthzBuilder {
 // WithImplementationAuthRequest configures this builder to output an Authz which is used with the AuthRequest
 // implementation traditionally used by NGINX.
 func (b *AuthzBuilder) WithImplementationAuthRequest() *AuthzBuilder {
-	b.impl = AuthzImplAuthRequest
+	b.implementation = AuthzImplAuthRequest
 
 	return b
 }
@@ -70,7 +48,7 @@ func (b *AuthzBuilder) WithImplementationAuthRequest() *AuthzBuilder {
 // WithImplementationExtAuthz configures this builder to output an Authz which is used with the ExtAuthz
 // implementation traditionally used by Envoy.
 func (b *AuthzBuilder) WithImplementationExtAuthz() *AuthzBuilder {
-	b.impl = AuthzImplExtAuthz
+	b.implementation = AuthzImplExtAuthz
 
 	return b
 }
@@ -82,25 +60,8 @@ func (b *AuthzBuilder) WithConfig(config *schema.Configuration) *AuthzBuilder {
 		return b
 	}
 
-	var refreshInterval time.Duration
-
-	switch config.AuthenticationBackend.RefreshInterval {
-	case schema.ProfileRefreshDisabled:
-		refreshInterval = time.Second * -1
-	case schema.ProfileRefreshAlways:
-		refreshInterval = time.Second * 0
-	default:
-		refreshInterval, _ = utils.ParseDurationString(config.AuthenticationBackend.RefreshInterval)
-	}
-
 	b.config = AuthzConfig{
-		RefreshInterval: refreshInterval,
-		Domains: []AuthzDomain{
-			{
-				Name:      fmt.Sprintf(".%s", config.Session.Domain),
-				PortalURL: nil,
-			},
-		},
+		RefreshInterval: config.AuthenticationBackend.RefreshInterval,
 	}
 
 	return b
@@ -108,7 +69,7 @@ func (b *AuthzBuilder) WithConfig(config *schema.Configuration) *AuthzBuilder {
 
 // WithEndpointConfig configures the AuthzBuilder with a *schema.ServerAuthzEndpointConfig. Should be called AFTER
 // WithConfig or WithAuthzConfig.
-func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerAuthzEndpoint) *AuthzBuilder {
+func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerEndpointsAuthz) *AuthzBuilder {
 	switch config.Implementation {
 	case AuthzImplForwardAuth.String():
 		b.WithImplementationForwardAuth()
@@ -127,23 +88,15 @@ func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerAuthzEndpoint) *Au
 		case AuthnStrategyCookieSession:
 			b.strategies = append(b.strategies, NewCookieSessionAuthnStrategy(b.config.RefreshInterval))
 		case AuthnStrategyHeaderAuthorization:
-			b.strategies = append(b.strategies, NewHeaderAuthorizationAuthnStrategy())
+			b.strategies = append(b.strategies, NewHeaderAuthorizationAuthnStrategy(strategy.Schemes...))
 		case AuthnStrategyHeaderProxyAuthorization:
-			b.strategies = append(b.strategies, NewHeaderProxyAuthorizationAuthnStrategy())
+			b.strategies = append(b.strategies, NewHeaderProxyAuthorizationAuthnStrategy(strategy.Schemes...))
 		case AuthnStrategyHeaderAuthRequestProxyAuthorization:
-			b.strategies = append(b.strategies, NewHeaderProxyAuthorizationAuthRequestAuthnStrategy())
+			b.strategies = append(b.strategies, NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(strategy.Schemes...))
 		case AuthnStrategyHeaderLegacy:
 			b.strategies = append(b.strategies, NewHeaderLegacyAuthnStrategy())
 		}
 	}
-
-	return b
-}
-
-// WithAuthzConfig allows configuring the Authz config by providing a AuthzConfig directly. Recommended this is only
-// used in testing and WithConfig is used instead.
-func (b *AuthzBuilder) WithAuthzConfig(config AuthzConfig) *AuthzBuilder {
-	b.config = config
 
 	return b
 }
@@ -154,22 +107,25 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 		config:           b.config,
 		strategies:       b.strategies,
 		handleAuthorized: handleAuthzAuthorizedStandard,
+		implementation:   b.implementation,
 	}
 
+	authz.config.StatusCodeBadRequest = fasthttp.StatusBadRequest
+
 	if len(authz.strategies) == 0 {
-		switch b.impl {
+		switch b.implementation {
 		case AuthzImplLegacy:
 			authz.strategies = []AuthnStrategy{NewHeaderLegacyAuthnStrategy(), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
 		case AuthzImplAuthRequest:
-			authz.strategies = []AuthnStrategy{NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
+			authz.strategies = []AuthnStrategy{NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
 		default:
-			authz.strategies = []AuthnStrategy{NewHeaderProxyAuthorizationAuthnStrategy(), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
+			authz.strategies = []AuthnStrategy{NewHeaderProxyAuthorizationAuthnStrategy(model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
 		}
 	}
 
-	switch b.impl {
+	switch b.implementation {
 	case AuthzImplLegacy:
-		authz.legacy = true
+		authz.config.StatusCodeBadRequest = fasthttp.StatusUnauthorized
 		authz.handleGetObject = handleAuthzGetObjectLegacy
 		authz.handleUnauthorized = handleAuthzUnauthorizedLegacy
 		authz.handleGetAutheliaURL = handleAuthzPortalURLLegacy
@@ -180,6 +136,7 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 	case AuthzImplAuthRequest:
 		authz.handleGetObject = handleAuthzGetObjectAuthRequest
 		authz.handleUnauthorized = handleAuthzUnauthorizedAuthRequest
+		authz.handleGetAutheliaURL = handleAuthzPortalURLFromQuery
 	case AuthzImplExtAuthz:
 		authz.handleGetObject = handleAuthzGetObjectExtAuthz
 		authz.handleUnauthorized = handleAuthzUnauthorizedExtAuthz

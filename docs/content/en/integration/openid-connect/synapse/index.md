@@ -1,6 +1,6 @@
 ---
 title: "Synapse"
-description: "Integrating Synapse with the Authelia OpenID Connect Provider."
+description: "Integrating Synapse with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
@@ -16,7 +16,7 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.35.6](https://github.com/authelia/authelia/releases/tag/v4.35.6)
+  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Synapse]
   * [v1.60.0](https://github.com/matrix-org/synapse/releases/tag/v1.60.0)
 
@@ -29,11 +29,37 @@ community: true
 This example makes the following assumptions:
 
 * __Application Root URL:__ `https://matrix.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com`
+* __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `synapse`
 * __Client Secret:__ `insecure_secret`
 
 ## Configuration
+
+### Authelia
+
+The following YAML configuration is an example __Authelia__
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Synapse]
+which will operate with the above example:
+
+```yaml
+identity_providers:
+  oidc:
+    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
+    ## See: https://www.authelia.com/c/oidc
+    clients:
+      - client_id: 'synapse'
+        client_name: 'Synapse'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        public: false
+        authorization_policy: 'two_factor'
+        redirect_uris:
+          - 'https://synapse.example.com/_synapse/client/oidc/callback'
+        scopes:
+          - 'openid'
+          - 'profile'
+          - 'email'
+        userinfo_signed_response_alg: 'none'
+```
 
 ### Application
 
@@ -58,27 +84,6 @@ oidc_providers:
         localpart_template: "{{ user.preferred_username }}"
         display_name_template: "{{ user.name }}"
         email_template: "{{ user.email }}"
-```
-
-### Authelia
-
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Synapse]
-which will operate with the above example:
-
-```yaml
-- id: synapse
-  description: Synapse
-  secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-  public: false
-  authorization_policy: two_factor
-  redirect_uris:
-    - https://synapse.example.com/_synapse/client/oidc/callback
-  scopes:
-    - openid
-    - profile
-    - email
-  userinfo_signing_algorithm: none
 ```
 
 ## See Also

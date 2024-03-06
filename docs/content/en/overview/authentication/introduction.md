@@ -27,8 +27,8 @@ __Authelia__ enables primarily two-factor authentication. These methods offered 
 
 * 1FA or first-factor authentication which is handled by a username and password. This falls into the
   *something you know* categorization.
-* 2FA or second-factor authentication which is handled by several methods including one-time passwords, authentication
-  keys, etc. This falls into the *something you have* categorization.
+* 2FA or second-factor authentication which is handled by several methods including Time-based One-Time Passwords,
+  authentication keys, etc. This falls into the *something you have* categorization.
 
 In addition to this Authelia can apply authorization policies to individual website resources which restrict which
 identities can access which resources from a given remote address. These policies can require 1FA, 2FA, or outright deny

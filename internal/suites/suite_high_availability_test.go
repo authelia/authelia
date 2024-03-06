@@ -10,6 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/valyala/fasthttp"
 )
 
 type HighAvailabilityWebDriverSuite struct {
@@ -25,8 +26,7 @@ func NewHighAvailabilityWebDriverSuite() *HighAvailabilityWebDriverSuite {
 func (s *HighAvailabilityWebDriverSuite) SetupSuite() {
 	s.BaseSuite.SetupSuite()
 
-	browser, err := StartRod()
-
+	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,12 +59,12 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActive() {
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	secret := s.doRegisterThenLogout(s.T(), s.Context(ctx), "john", "password")
+	s.doLoginAndRegisterTOTPThenLogout(s.T(), s.Context(ctx), "john", "password")
 
 	err := haDockerEnvironment.Restart("redis-node-0")
 	s.Require().NoError(err)
 
-	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, secret, "")
+	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 }
 
@@ -75,9 +75,9 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	secret := s.doRegisterThenLogout(s.T(), s.Context(ctx), "john", "password")
+	s.doLoginAndRegisterTOTPThenLogout(s.T(), s.Context(ctx), "john", "password")
 
-	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, secret, "")
+	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
 	err := haDockerEnvironment.Stop("redis-node-0")
@@ -99,7 +99,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 	s.doLogout(s.T(), s.Context(ctx))
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 
-	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, secret, fmt.Sprintf("%s/secret.html", SecureBaseURL))
+	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, fmt.Sprintf("%s/secret.html", SecureBaseURL))
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
 
@@ -110,9 +110,9 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	secret := s.doRegisterThenLogout(s.T(), s.Context(ctx), "john", "password")
+	s.doLoginAndRegisterTOTPThenLogout(s.T(), s.Context(ctx), "john", "password")
 
-	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, secret, "")
+	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
 	err := haDockerEnvironment.Stop("redis-sentinel-0")
@@ -146,12 +146,12 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserDataInDB() {
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	secret := s.doRegisterThenLogout(s.T(), s.Context(ctx), "john", "password")
+	s.doLoginAndRegisterTOTPThenLogout(s.T(), s.Context(ctx), "john", "password")
 
 	err := haDockerEnvironment.Restart("mariadb")
 	s.Require().NoError(err)
 
-	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, secret, "")
+	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 }
 
@@ -162,7 +162,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepSessionAfterAutheliaResta
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	secret := s.doRegisterAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.doRegisterTOTPAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
 	err := haDockerEnvironment.Restart("authelia-backend")
@@ -182,7 +182,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepSessionAfterAutheliaResta
 	s.doLogout(s.T(), s.Context(ctx))
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 
-	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, secret, fmt.Sprintf("%s/secret.html", SecureBaseURL))
+	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, fmt.Sprintf("%s/secret.html", SecureBaseURL))
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
 
@@ -251,7 +251,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldVerifyAccessControl() {
 				cancel()
 			}()
 
-			s.doRegisterAndLogin2FA(t, s.Context(ctx), username, "password", false, "")
+			s.doRegisterTOTPAndLogin2FA(t, s.Context(ctx), username, "password", false, "")
 
 			for url, authorizations := range expectedAuthorizations {
 				t.Run(url, func(t *testing.T) {
@@ -282,7 +282,7 @@ func NewHighAvailabilitySuite() *HighAvailabilitySuite {
 
 func DoGetWithAuth(t *testing.T, username, password string) int {
 	client := NewHTTPClient()
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/secret.html", SingleFactorBaseURL), nil)
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/secret.html", SingleFactorBaseURL), nil)
 	assert.NoError(t, err)
 	req.SetBasicAuth(username, password)
 
@@ -293,17 +293,17 @@ func DoGetWithAuth(t *testing.T, username, password string) int {
 }
 
 func (s *HighAvailabilitySuite) TestBasicAuth() {
-	s.Assert().Equal(DoGetWithAuth(s.T(), "john", "password"), 200)
-	s.Assert().Equal(DoGetWithAuth(s.T(), "john", "bad-password"), 302)
-	s.Assert().Equal(DoGetWithAuth(s.T(), "dontexist", "password"), 302)
+	s.Assert().Equal(fasthttp.StatusOK, DoGetWithAuth(s.T(), "john", "password"))
+	s.Assert().Equal(fasthttp.StatusFound, DoGetWithAuth(s.T(), "john", "bad-password"))
+	s.Assert().Equal(fasthttp.StatusFound, DoGetWithAuth(s.T(), "dontexist", "password"))
 }
 
 func (s *HighAvailabilitySuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *HighAvailabilitySuite) Test2FAScenario() {
-	suite.Run(s.T(), New2FAScenario())
+func (s *HighAvailabilitySuite) TestTwoFactorTOTPScenario() {
+	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 
 func (s *HighAvailabilitySuite) TestRegulationScenario() {

@@ -3,11 +3,13 @@
 #                Authelia minimal configuration               #
 ###############################################################
 
-jwt_secret: unsecure_secret
+identity_validation:
+  reset_password:
+    jwt_secret: 'a_very_important_secret'
 
 server:
-  port: 9091
-  asset_path: /config/assets/
+  address: 'tcp://:9091'
+  asset_path: '/config/assets/'
   tls:
     certificate: /pki/public.backend.crt
     key: /pki/private.backend.pem
@@ -40,12 +42,12 @@ storage:
     path: /config/db.sqlite
 
 access_control:
-  default_policy: bypass
+  default_policy: deny
   rules:
-    - domain: "login.example.com"
+    - domain: ["home.example.com", "public.example.com"]
       policy: bypass
-    - domain: "public.example.com"
-      policy: bypass
+    - domain: "deny.example.com"
+      policy: deny
     - domain: "admin.example.com"
       policy: two_factor
     - domain: "secure.example.com"
@@ -55,8 +57,10 @@ access_control:
 
 notifier:
   smtp:
-    host: smtp
-    port: 1025
+    address: 'smtp://smtp:1025'
     sender: admin@example.com
     disable_require_tls: true
+
+totp:
+  disable_reuse_security_policy: true
 ...

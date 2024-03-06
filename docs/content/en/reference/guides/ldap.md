@@ -24,7 +24,7 @@ The most insecure method is unauthenticated binds. They are generally considered
 at all ensures anyone with any level of network access can easily obtain objects and their attributes.
 
 Authelia does support unauthenticated binds but it is not by default, you must configure the
-[permit_unauthenticated_bind](../../configuration/first-factor/ldap.md#permitunauthenticatedbind) configuration
+[permit_unauthenticated_bind](../../configuration/first-factor/ldap.md#permit_unauthenticated_bind) configuration
 option.
 
 ### End-User Binding
@@ -71,9 +71,35 @@ The following implementations exist:
 
 [Active Directory]: https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/active-directory-domain-services
 [FreeIPA]: https://www.freeipa.org/
-[lldap]: https://github.com/nitnelave/lldap
+[lldap]: https://github.com/lldap/lldap
 [GLAuth]: https://glauth.github.io/
 [RFC2307bis]: https://datatracker.ietf.org/doc/html/draft-howard-rfc2307bis-02
+
+### Group Search Modes
+
+There are currently two group search modes that exist.
+
+#### Search Mode: filter
+
+The `filter` search mode is the default search mode. Generally this is recommended.
+
+#### Search Mode: memberof
+
+The `memberof` search mode is a special search mode. Generally this is discouraged and is currently experimental.
+
+Some systems provide a `memberOf` attribute which may include additional groups that the user is a member of. This
+search mode allows using this attribute as a method to determine their groups. How it works is the search is performed
+against the base with the subtree scope and the groups filter must include one of the `{memberof:*}` replacements, and
+the distinguished names of the results from the search are compared (case-insensitive) against the users `memberOf`
+attribute to determine if they are members.
+
+This means:
+
+1. The groups still must be in the search base that you have configured.
+2. The `memberOf` attribute *__MUST__* include the distinguished name of the group.
+3. If the `{memberof:dn}` replacement is used:
+   1. The distinguished name *__MUST__* be searchable by your directory server.
+4. The first relative distinguished name of the distinguished name *__MUST__* be search
 
 ### Filter replacements
 
@@ -85,25 +111,65 @@ is ever established. In addition to this, during the startup phase we purposeful
 phase replacements exist so we only have to check if the replacement is necessary once, and we don't needlessly perform
 every possible replacement on every search regardless of if it's needed or not.
 
+#### General filter replacements
+
+|          Placeholder           |  Phase  |                 Replacement                 |
+|:------------------------------:|:-------:|:-------------------------------------------:|
+| {distinguished_name_attribute} | startup | The configured distinguished name attribute |
+|      {username_attribute}      | startup |      The configured username attribute      |
+|        {mail_attribute}        | startup |        The configured mail attribute        |
+|    {display_name_attribute}    | startup |    The configured display name attribute    |
+|     {member_of_attribute}      | startup |     The configured member of attribute      |
+|            {input}             | search  |      The input into the username field      |
+
 #### Users filter replacements
 
-|       Placeholder        |  Phase  |                                                   Replacement                                                    |
-|:------------------------:|:-------:|:----------------------------------------------------------------------------------------------------------------:|
-|   {username_attribute}   | startup |                                        The configured username attribute                                         |
-|     {mail_attribute}     | startup |                                          The configured mail attribute                                           |
-| {display_name_attribute} | startup |                                      The configured display name attribute                                       |
-|         {input}          | search  |                                        The input into the username field                                         |
-| {date-time:generalized}  | search  |          The current UTC time formatted as a LDAP generalized time in the format of `20060102150405.0Z`          |
-|     {date-time:unix}     | search  |                                    The current time formatted as a Unix epoch                                    |
-| {date-time:microsoft-nt} | search  | The current time formatted as a Microsoft NT epoch which is used by some Microsoft [Active Directory] attributes |
+|          Placeholder           |  Phase  |                                                   Replacement                                                    |
+|:------------------------------:|:-------:|:----------------------------------------------------------------------------------------------------------------:|
+|    {date-time:generalized}     | search  |          The current UTC time formatted as a LDAP generalized time in the format of `20060102150405.0Z`          |
+|        {date-time:unix}        | search  |                                    The current time formatted as a Unix epoch                                    |
+|    {date-time:microsoft-nt}    | search  | The current time formatted as a Microsoft NT epoch which is used by some Microsoft [Active Directory] attributes |
 
 #### Groups filter replacements
 
-| Placeholder | Phase  |                                Replacement                                |
-|:-----------:|:------:|:-------------------------------------------------------------------------:|
-|   {input}   | search |                     The input into the username field                     |
-| {username}  | search | The username from the profile lookup obtained from the username attribute |
-|    {dn}     | search |              The distinguished name from the profile lookup               |
+|  Placeholder   | Phase  |                                                                     Replacement                                                                      |
+|:--------------:|:------:|:----------------------------------------------------------------------------------------------------------------------------------------------------:|
+|   {username}   | search |                                      The username from the profile lookup obtained from the username attribute                                       |
+|      {dn}      | search |                                                    The distinguished name from the profile lookup                                                    |
+| {memberof:dn}  | search |                                                            See the detailed section below                                                            |
+| {memberof:rdn} | search | Only allowed with the `memberof` search method and contains the first relative distinguished name of every `memberOf` entry a use has in parenthesis |
+
+##### memberof:dn
+
+Requirements:
+
+1. Must be using the `memberof` search mode.
+2. Must have the distinguished name attribute configured in Authelia.
+3. Directory server must support searching by the distinguished name attribute (many directory services *__DO NOT__*
+   have a distinguished name attribute).
+
+##### memberof:rdn
+
+Requirements:
+
+1. Must be using the `memberof` search mode.
+2. Directory server must support searching by the first relative distinguished name as an attribute.
+
+Splits every `memberOf` value to obtain th e first relative distinguished name and joins all of those after surrounding
+them in parenthesis. This makes the general suggested filter pattern for this particular replacement
+`(|{memberof:rdn})`. The format of this value is as follows:
+
+```text
+(<RDN>)
+```
+
+For example if the user has the following distinguished names in their object:
+
+- CN=abc,OU=groups,DC=example,DC=com
+- CN=xyz,OU=groups,DC=example,DC=com
+
+The value will be replaced with `(CN=abc)(CN=xyz)` which using the suggested pattern for the filter becomes
+`(|(CN=abc)(CN=xyz))` which will then return any user that as a `CN` of `abc` or `xyz`.
 
 ### Defaults
 
@@ -122,14 +188,14 @@ The following set defaults for the `additional_users_dn` and `additional_groups_
 This table describes the attribute defaults for each implementation. i.e. the username_attribute is described by the
 Username column.
 
-| Implementation  |    Username    | Display Name | Mail | Group Name |
-|:---------------:|:--------------:|:------------:|:----:|:----------:|
-|     custom      |      N/A       | displayName  | mail |     cn     |
-| activedirectory | sAMAccountName | displayName  | mail |     cn     |
-|   rfc2307bis    |      uid       | displayName  | mail |     cn     |
-|     freeipa     |      uid       | displayName  | mail |     cn     |
-|      lldap      |      uid       |      cn      | mail |     cn     |
-|     glauth      |       cn       | description  | mail |     cn     |
+| Implementation  |    Username    | Display Name | Mail | Group Name | Distinguished Name | Member Of |
+|:---------------:|:--------------:|:------------:|:----:|:----------:|:------------------:|:---------:|
+|     custom      |      N/A       | displayName  | mail |     cn     |        N/A         |    N/A    |
+| activedirectory | sAMAccountName | displayName  | mail |     cn     | distinguishedName  | memberOf  |
+|   rfc2307bis    |      uid       | displayName  | mail |     cn     |        N/A         | memberOf  |
+|     freeipa     |      uid       | displayName  | mail |     cn     |        N/A         | memberOf  |
+|      lldap      |      uid       |      cn      | mail |     cn     |        N/A         | memberOf  |
+|     glauth      |       cn       | description  | mail |     cn     |        N/A         | memberOf  |
 
 #### Filter defaults
 
@@ -146,8 +212,8 @@ the following conditions:
 - Their password is expired:
   - The [Active Directory] implementation achieves this via the `(!(pwdLastSet=0))` filter.
   - The [FreeIPA] implementation achieves this via the `(krbPasswordExpiration>={date-time:generalized})` filter.
+  - The [RFC2307bis] implementation achieves this via the `(!(pwdReset=TRUE))` filter.
   - The following implementations have no suitable attribute for this as far as we're aware:
-    - [RFC2307bis]
     - [GLAuth]
     - [lldap]
 - Their account is expired:
@@ -162,7 +228,7 @@ the following conditions:
 |:---------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------------:|
 |     custom      |                                                                                                                           N/A                                                                                                                            |                                                                    N/A                                                                    |
 | activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(&#124;(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt}))) |                               (&(member={dn})(&#124;(sAMAccountType=268435456)(sAMAccountType=536870912)))                                |
-|   rfc2307bis    |                                                         (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(&#124;(objectClass=inetOrgPerson)(objectClass=organizationalPerson)))                                                         | (&(&#124;(member={dn})(uniqueMember={dn}))(&#124;(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=groupOfMembers))) |
+|   rfc2307bis    |                                                (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(&#124;(objectClass=inetOrgPerson)(objectClass=organizationalPerson))(!(pwdReset=TRUE)))                                                | (&(&#124;(member={dn})(uniqueMember={dn}))(&#124;(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=groupOfMembers))) |
 |     freeipa     |   (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(&#124;(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))   |                                                (&(member={dn})(objectClass=groupOfNames))                                                 |
 |      lldap      |                                                                                 (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))                                                                                  |                                                (&(member={dn})(objectClass=groupOfNames))                                                 |
 |     glauth      |                                                                 (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=posixAccount)(!(accountStatus=inactive)))                                                                 |                                              (&(uniqueMember={dn})(objectClass=posixGroup))                                               |

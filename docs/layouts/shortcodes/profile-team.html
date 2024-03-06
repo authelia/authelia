@@ -1,0 +1,23 @@
+{{- $key := .Get "name" }}
+{{- $team := index $.Site.Data.profiles.teams $key }}
+{{- if $team }}
+{{- $header := .Get "header" }}
+{{- if not $header }}{{ $header = "####" }}{{ end }}
+{{ $team.description }}
+
+{{ $header }} Responsibilities
+
+{{- range $team.responsibilities }}
+- {{ . }}
+{{- end }}
+
+{{ $header }} Members
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+{{- range $team.people }}
+  <div class="col col-align-c">
+  {{ partial "content/profile-card.html" (dict "Site" $.Site "Profile" .) }}
+  </div>
+{{- end }}
+</div>
+{{- end }}

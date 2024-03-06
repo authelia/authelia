@@ -44,25 +44,27 @@ In your Authelia configuration you will need to enter and update the following v
 
 ```yaml
   ldap:
-    implementation: custom
-    url: ldap://OpenLDAP:1389
-    timeout: 5s
+    address: 'ldap://OpenLDAP:1389'
+    implementation: 'custom'
+    timeout: '5s'
     start_tls: false
     tls:
-      server_name: ldap01.example.com
+      server_name: 'ldap01.example.com'
       skip_verify: true
-      minimum_version: TLS1.2
-    base_dn: DC=example,DC=com
-    additional_users_dn: OU=users
-    users_filter: (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
-    username_attribute: uid
-    mail_attribute: mail
-    display_name_attribute: displayName
-    additional_groups_dn: OU=groups
-    groups_filter: (&(member=UID={input},OU=users,DC=example,DC=com)(objectClass=groupOfNames))
-    group_name_attribute: cn
-    user: UID=authelia,OU=service accounts,DC=example,DC=com
+      minimum_version: 'TLS1.2'
+    base_dn: 'DC=example,DC=com'
+    additional_users_dn: 'OU=users'
+    users_filter: '(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))'
+    additional_groups_dn: 'OU=groups'
+    groups_filter: '(&(member=UID={input},OU=users,DC=example,DC=com)(objectClass=groupOfNames))'
+    user: 'UID=authelia,OU=service accounts,DC=example,DC=com'
     password: "SUPER_COMPLEX_PASSWORD"
+    attributes:
+      distinguished_name: 'distinguishedName'
+      username: 'uid'
+      mail: 'mail'
+      member_of: 'memberOf'
+      group_name: 'cn'
 ```
 Following this, restart Authelia, and you should be able to begin using LDAP integration for your user logins, with
 Authelia taking the email attribute for users straight from the 'mail' attribute within the LDAP object.
@@ -91,25 +93,27 @@ In your Authelia configuration you will need to enter and update the following v
 
 ```yaml
  ldap:
-    implementation: custom
-    url: ldaps://ldap.example.com
-    timeout: 5s
+    address: 'ldaps://ldap.example.com'
+    implementation: 'custom'
+    timeout: '5s'
     start_tls: false
     tls:
-      server_name: ldap.example.com
+      server_name: 'ldap.example.com'
       skip_verify: true
-      minimum_version: TLS1.2
-    base_dn: dc=example,DC=com
-    username_attribute: uid
-    additional_users_dn: CN=users,CN=accounts
-    users_filter: (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
-    additional_groups_dn: OU=groups
-    groups_filter: (&(member=UID={input},CN=users,CN=accounts,DC=example,DC=com)(objectClass=groupOfNames))
-    group_name_attribute: cn
-    mail_attribute: mail
-    display_name_attribute: displayName
-    user: UID=authelia,CN=users,CN=accounts,DC=example,DC=com
-    password: "SUPER_COMPLEX_PASSWORD"
+      minimum_version: 'TLS1.2'
+    base_dn: 'dc=example,DC=com'
+    additional_users_dn: 'CN=users,CN=accounts'
+    users_filter: '(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))'
+    additional_groups_dn: cn=groups,cn=accounts
+    groups_filter: '(&(member=UID={input},CN=users,CN=accounts,DC=example,DC=com)(objectClass=groupOfNames))'
+    user: 'UID=authelia,CN=users,CN=accounts,DC=example,DC=com'
+    password: 'SUPER_COMPLEX_PASSWORD'
+    attributes:
+      distinguished_name: 'distinguishedName'
+      username: 'uid'
+      mail: 'mail'
+      member_of: 'memberOf'
+      group_name: 'cn'
 ```
 Following this, restart Authelia, and you should be able to begin using LDAP integration for your user logins, with
 Authelia taking the email attribute for users straight from the 'mail' attribute within the LDAP object.
@@ -134,24 +138,26 @@ In your Authelia configuration you will need to enter and update the following v
 
 ```yaml
 ldap:
-    implementation: custom
-    url: ldap://lldap:3890
-    timeout: 5s
+    address: 'ldap://lldap:3890'
+    implementation: 'custom'
+    timeout: '5s'
     start_tls: false
-    base_dn: dc=example,DC=com
-    username_attribute: uid
-    additional_users_dn: OU=people
+    base_dn: 'dc=example,DC=com'
+    additional_users_dn: 'OU=people'
     # To allow sign in both with username and email, one can use a filter like
     # (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
-    users_filter: (&({username_attribute}={input})(objectClass=person))
-    additional_groups_dn: OU=groups
-    groups_filter: (member={dn})
-    group_name_attribute: cn
-    mail_attribute: mail
-    display_name_attribute: displayName
+    users_filter: '(&({username_attribute}={input})(objectClass=person))'
+    additional_groups_dn: 'OU=groups'
+    groups_filter: '(member={dn})'
     # The username and password of the admin or service user.
-    user: UID=authelia,OU=people,DC=example,DC=com
-    password: "SUPER_COMPLEX_PASSWORD"
+    user: 'UID=authelia,OU=people,DC=example,DC=com'
+    password: 'SUPER_COMPLEX_PASSWORD'
+    attributes:
+      distinguished_name: 'distinguishedName'
+      username: 'uid'
+      mail: 'mail'
+      member_of: 'memberOf'
+      group_name: 'cn'
 ```
 Following this, restart Authelia, and you should be able to begin using lldap integration for your user logins, with
 Authelia taking the email attribute for users straight from the 'mail' attribute within the LDAP object.

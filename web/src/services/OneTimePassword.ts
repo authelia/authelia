@@ -1,5 +1,5 @@
-import { CompleteTOTPSignInPath } from "@services/Api";
-import { PostWithOptionalResponse } from "@services/Client";
+import { CompleteTOTPSignInPath, TOTPRegistrationPath } from "@services/Api";
+import { DeleteWithOptionalResponse, PostWithOptionalResponse } from "@services/Client";
 import { SignInResponse } from "@services/SignIn";
 
 interface CompleteTOTPSignInBody {
@@ -18,4 +18,16 @@ export function completeTOTPSignIn(passcode: string, targetURL?: string, workflo
     };
 
     return PostWithOptionalResponse<SignInResponse>(CompleteTOTPSignInPath, body);
+}
+
+export function completeTOTPRegister(passcode: string) {
+    const body: CompleteTOTPSignInBody = {
+        token: `${passcode}`,
+    };
+
+    return PostWithOptionalResponse(TOTPRegistrationPath, body);
+}
+
+export function stopTOTPRegister() {
+    return DeleteWithOptionalResponse(TOTPRegistrationPath);
 }

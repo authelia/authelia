@@ -24,7 +24,7 @@ func DuoPOST(duoAPI duo.API) middlewares.RequestHandler {
 		)
 
 		if err = ctx.ParseBody(bodyJSON); err != nil {
-			ctx.Logger.Errorf(logFmtErrParseRequestBody, regulation.AuthTypeDuo, err)
+			ctx.Logger.WithError(err).Errorf(logFmtErrParseRequestBody, regulation.AuthTypeDuo)
 
 			respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -157,7 +157,7 @@ func HandlePreferredDeviceCheck(ctx *middlewares.AutheliaCtx, userSession *sessi
 		ctx.Logger.Debugf("Duo user: %s no longer enrolled removing preferred device", userSession.Username)
 
 		if err := ctx.Providers.StorageProvider.DeletePreferredDuoDevice(ctx, userSession.Username); err != nil {
-			return "", "", fmt.Errorf("unable to delete preferred Duo device and method for user %s: %s", userSession.Username, err)
+			return "", "", fmt.Errorf("unable to delete preferred Duo device and method for user %s: %w", userSession.Username, err)
 		}
 
 		if err := ctx.SetJSONBody(DuoSignResponse{Result: enroll, EnrollURL: enrollURL}); err != nil {
@@ -180,7 +180,7 @@ func HandlePreferredDeviceCheck(ctx *middlewares.AutheliaCtx, userSession *sessi
 			ctx.Logger.Debugf("Duo user: %s has no compatible device/method available removing preferred device", userSession.Username)
 
 			if err := ctx.Providers.StorageProvider.DeletePreferredDuoDevice(ctx, userSession.Username); err != nil {
-				return "", "", fmt.Errorf("unable to delete preferred Duo device and method for user %s: %s", userSession.Username, err)
+				return "", "", fmt.Errorf("unable to delete preferred Duo device and method for user %s: %w", userSession.Username, err)
 			}
 
 			if err := ctx.SetJSONBody(DuoSignResponse{Result: enroll}); err != nil {
@@ -243,7 +243,7 @@ func HandleAutoSelection(ctx *middlewares.AutheliaCtx, devices []DuoDevice, user
 	ctx.Logger.Debugf("Exactly one device: '%s' and method: '%s' found, saving as new preferred Duo device and method for user: %s", device, method, username)
 
 	if err := ctx.Providers.StorageProvider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: username, Method: method, Device: device}); err != nil {
-		return "", "", fmt.Errorf("unable to save new preferred Duo device and method for user %s: %s", username, err)
+		return "", "", fmt.Errorf("unable to save new preferred Duo device and method for user %s: %w", username, err)
 	}
 
 	return device, method, nil
@@ -256,7 +256,7 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession,
 	)
 
 	if err = ctx.RegenerateSession(); err != nil {
-		ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeDuo, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeDuo, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -266,7 +266,7 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession,
 	userSession.SetTwoFactorDuo(ctx.Clock.Now())
 
 	if err = ctx.SaveSession(*userSession); err != nil {
-		ctx.Logger.Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeTOTP, userSession.Username, err)
+		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeTOTP, logFmtActionAuthentication, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -274,7 +274,7 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession,
 	}
 
 	if bodyJSON.Workflow == workflowOpenIDConnect {
-		handleOIDCWorkflowResponse(ctx, bodyJSON.TargetURL, bodyJSON.WorkflowID)
+		handleOIDCWorkflowResponse(ctx, userSession, bodyJSON.TargetURL, bodyJSON.WorkflowID)
 	} else {
 		Handle2FAResponse(ctx, bodyJSON.TargetURL)
 	}

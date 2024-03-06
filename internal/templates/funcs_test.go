@@ -274,18 +274,22 @@ func TestFuncElemsJoin(t *testing.T) {
 }
 
 func TestFuncIterate(t *testing.T) {
+	uintptr := func(in uint) *uint {
+		return &in
+	}
+
 	testCases := []struct {
 		name     string
-		have     uint
+		have     *uint
 		expected []uint
 	}{
-		{"ShouldGiveZeroResults", 0, nil},
-		{"ShouldGive10Results", 10, []uint{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}},
+		{"ShouldGiveZeroResults", uintptr(0), nil},
+		{"ShouldGive10Results", uintptr(10), []uint{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, FuncIterate(&tc.have))
+			assert.Equal(t, tc.expected, FuncIterate(tc.have))
 		})
 	}
 }
@@ -655,6 +659,113 @@ func TestFuncIndent(t *testing.T) {
 	for _, tc := range testCases {
 		for i, f := range []func(i int, v string) string{FuncIndent, FuncNewlineIndent} {
 			assert.Equal(t, tc.expected[i], f(tc.indent, tc.have))
+		}
+	}
+}
+
+func TestFuncMultiLineIndent(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		indent   int
+		expected string
+	}{
+		{"ShouldIndentZeroMultiLine", "abc\n123", 0, "|\nabc\n123"},
+		{"ShouldIndentOneMultiLine", "abc\n123", 1, "|\n abc\n 123"},
+		{"ShouldIndentOneSingleLine", "abc", 1, "abc"},
+		{"ShouldIndentZeroSingleLine", "abc", 0, "abc"},
+	}
+
+	for _, tc := range testCases {
+		assert.Equal(t, tc.expected, FuncMultilineIndent(tc.indent, "|", tc.have))
+	}
+}
+
+func TestMultiLineQuote(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		char     rune
+		expected string
+	}{
+		{
+			"ShouldSQuoteSingleLine",
+			"abc",
+			rune(39),
+			`'abc'`,
+		},
+		{
+			"ShouldQuoteSingleLine",
+			"abc",
+			rune(34),
+			`"abc"`,
+		},
+		{
+			"ShouldNotQuoteLine",
+			"abc\n123",
+			rune(39),
+			"abc\n123",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			quote := FuncStringQuoteMultiLine(tc.char)
+
+			actual := quote(tc.have)
+
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func TestFuncUUIDv4(t *testing.T) {
+	assert.Len(t, FuncUUIDv4(), 36)
+}
+
+func TestFuncFileContent(t *testing.T) {
+	testCases := []struct {
+		name           string
+		path           string
+		expected       string
+		expectedSecret string
+		expectedErr    string
+	}{
+		{
+			"ShouldReadFile",
+			"../configuration/test_resources/example_secret",
+			"example_secret value\n",
+			"example_secret value",
+			"",
+		},
+		{
+			"ShouldNotReadBadFile",
+			"../configuration/test_resources/example_secretx",
+			"",
+			"",
+			"open ../configuration/test_resources/example_secretx: no such file or directory",
+		},
+	}
+
+	for _, tc := range testCases {
+		actual, theErr := FuncFileContent(tc.path)
+
+		assert.Equal(t, tc.expected, actual)
+
+		if tc.expectedErr != "" {
+			assert.EqualError(t, theErr, tc.expectedErr)
+		} else {
+			assert.NoError(t, theErr)
+		}
+
+		actual, theErr = FuncSecret(tc.path)
+
+		assert.Equal(t, tc.expectedSecret, actual)
+
+		if tc.expectedErr != "" {
+			assert.EqualError(t, theErr, tc.expectedErr)
+		} else {
+			assert.NoError(t, theErr)
 		}
 	}
 }
