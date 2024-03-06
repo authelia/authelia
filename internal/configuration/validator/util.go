@@ -179,7 +179,7 @@ func schemaJWKGetProperties(jwk schema.JWK) (properties *JWKProperties, err erro
 	}
 }
 
-func jwkCalculateKID(key schema.CryptographicKey, alg string) (kid string, err error) {
+func jwkCalculateKID(key schema.CryptographicKey, props *JWKProperties, alg string) (kid string, err error) {
 	j := jose.JSONWebKey{}
 
 	switch k := key.(type) {
@@ -192,12 +192,7 @@ func jwkCalculateKID(key schema.CryptographicKey, alg string) (kid string, err e
 	}
 
 	if alg == "" {
-		switch j.Key.(type) {
-		case *rsa.PublicKey:
-			alg = oidc.SigningAlgRSAUsingSHA256
-		case *ecdsa.PublicKey:
-			alg = oidc.SigningAlgECDSAUsingP256AndSHA256
-		}
+		alg = props.Algorithm
 	}
 
 	var thumbprint []byte

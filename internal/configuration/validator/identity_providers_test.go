@@ -3309,15 +3309,15 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				JSONWebKeys: []schema.JWK{
 					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "35db6c-rs256"},
 					{Key: keyECDSAP256, CertificateChain: certECDSAP256, Algorithm: oidc.SigningAlgECDSAUsingP256AndSHA256, Use: oidc.KeyUseSignature, KeyID: "d0fe7d-es256"},
-					{Key: keyECDSAP384, CertificateChain: certECDSAP384, Algorithm: oidc.SigningAlgECDSAUsingP384AndSHA384, Use: oidc.KeyUseSignature, KeyID: "45839a-es256"},
-					{Key: keyECDSAP521, CertificateChain: certECDSAP521, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature, KeyID: "556238-es256"},
+					{Key: keyECDSAP384, CertificateChain: certECDSAP384, Algorithm: oidc.SigningAlgECDSAUsingP384AndSHA384, Use: oidc.KeyUseSignature, KeyID: "45839a-es384"},
+					{Key: keyECDSAP521, CertificateChain: certECDSAP521, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature, KeyID: "556238-es512"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultKeyIDs: map[string]string{
 						oidc.SigningAlgRSAUsingSHA256:          "35db6c-rs256",
 						oidc.SigningAlgECDSAUsingP256AndSHA256: "d0fe7d-es256",
-						oidc.SigningAlgECDSAUsingP384AndSHA384: "45839a-es256",
-						oidc.SigningAlgECDSAUsingP521AndSHA512: "556238-es256",
+						oidc.SigningAlgECDSAUsingP384AndSHA384: "45839a-es384",
+						oidc.SigningAlgECDSAUsingP521AndSHA512: "556238-es512",
 					},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512},
 				},
