@@ -1301,6 +1301,18 @@ notifier:
     ## for security reasons.
     # enforce_pkce: 'public_clients_only'
 
+    ## SECURITY NOTICE: It's not recommended changing this option. We encourage you to read the documentation and fully
+    ## understanding it before enabling this option.
+    # enable_jwt_access_token_stateless_introspection: false
+
+    ## The signing algorithm used for signing the discovery and metadata responses. An issuer JWK with a matching
+    ## algorithm must be available when configured. Most clients completely ignore this and it has a performance cost.
+    # discovery_signed_response_alg: 'none'
+
+    ## The signing key id used for signing the discovery and metadata responses. An issuer JWK with a matching key id
+    ## must be available when configured. Most clients completely ignore this and it has a performance cost.
+    # discovery_signed_response_key_id: ''
+
     ## Authorization Policies which can be utilized by clients. The 'policy_name' is an arbitrary value that you pick
     ## which is utilized as the value for the 'authorization_policy' on the client.
     # authorization_policies:

@@ -127,8 +127,31 @@ func validateOIDCIssuer(config *schema.IdentityProvidersOpenIDConnect, validator
 		fallthrough
 	case len(config.JSONWebKeys) != 0:
 		validateOIDCIssuerJSONWebKeys(config, validator)
+		validateOIDDIssuerSigningAlgsDiscovery(config, validator)
 	default:
 		validator.Push(fmt.Errorf(errFmtOIDCProviderNoPrivateKey))
+	}
+}
+
+func validateOIDDIssuerSigningAlgsDiscovery(config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	config.DiscoverySignedResponseAlg, config.DiscoverySignedResponseKeyID = validateOIDCAlgKIDDefault(config, config.DiscoverySignedResponseAlg, config.DiscoverySignedResponseKeyID, schema.DefaultOpenIDConnectConfiguration.DiscoverySignedResponseAlg)
+
+	switch config.DiscoverySignedResponseKeyID {
+	case "":
+		switch config.DiscoverySignedResponseAlg {
+		case "", oidc.SigningAlgNone, oidc.SigningAlgRSAUsingSHA256:
+			break
+		default:
+			if !utils.IsStringInSlice(config.DiscoverySignedResponseAlg, config.Discovery.ResponseObjectSigningAlgs) {
+				validator.Push(fmt.Errorf(errFmtOIDCProviderInvalidValue, attrOIDCDiscoSigAlg, strJoinOr(append(config.Discovery.ResponseObjectSigningAlgs, oidc.SigningAlgNone)), config.DiscoverySignedResponseAlg))
+			}
+		}
+	default:
+		if !utils.IsStringInSlice(config.DiscoverySignedResponseKeyID, config.Discovery.ResponseObjectSigningKeyIDs) {
+			validator.Push(fmt.Errorf(errFmtOIDCProviderInvalidValue, attrOIDCDiscoSigKID, strJoinOr(config.Discovery.ResponseObjectSigningKeyIDs), config.DiscoverySignedResponseKeyID))
+		} else {
+			config.DiscoverySignedResponseAlg = getResponseObjectAlgFromKID(config, config.DiscoverySignedResponseKeyID, config.DiscoverySignedResponseAlg)
+		}
 	}
 }
 
@@ -1006,7 +1029,7 @@ func validateOIDDClientSigningAlgs(c int, config *schema.IdentityProvidersOpenID
 }
 
 func validateOIDDClientSigningAlgsIDToken(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
-	config.Clients[c].IDTokenSignedResponseAlg, config.Clients[c].IDTokenSignedResponseKeyID = validateOIDCClientAlgKIDDefault(config, config.Clients[c].IDTokenSignedResponseAlg, config.Clients[c].IDTokenSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.IDTokenSignedResponseAlg)
+	config.Clients[c].IDTokenSignedResponseAlg, config.Clients[c].IDTokenSignedResponseKeyID = validateOIDCAlgKIDDefault(config, config.Clients[c].IDTokenSignedResponseAlg, config.Clients[c].IDTokenSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.IDTokenSignedResponseAlg)
 
 	switch config.Clients[c].IDTokenSignedResponseKeyID {
 	case "":
@@ -1030,7 +1053,7 @@ func validateOIDDClientSigningAlgsIDToken(c int, config *schema.IdentityProvider
 }
 
 func validateOIDDClientSigningAlgsAccessToken(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
-	config.Clients[c].AccessTokenSignedResponseAlg, config.Clients[c].AccessTokenSignedResponseKeyID = validateOIDCClientAlgKIDDefault(config, config.Clients[c].AccessTokenSignedResponseAlg, config.Clients[c].AccessTokenSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.AccessTokenSignedResponseAlg)
+	config.Clients[c].AccessTokenSignedResponseAlg, config.Clients[c].AccessTokenSignedResponseKeyID = validateOIDCAlgKIDDefault(config, config.Clients[c].AccessTokenSignedResponseAlg, config.Clients[c].AccessTokenSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.AccessTokenSignedResponseAlg)
 
 	switch config.Clients[c].AccessTokenSignedResponseKeyID {
 	case "":
@@ -1058,7 +1081,7 @@ func validateOIDDClientSigningAlgsAccessToken(c int, config *schema.IdentityProv
 }
 
 func validateOIDDClientSigningAlgsUserInfo(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
-	config.Clients[c].UserinfoSignedResponseAlg, config.Clients[c].UserinfoSignedResponseKeyID = validateOIDCClientAlgKIDDefault(config, config.Clients[c].UserinfoSignedResponseAlg, config.Clients[c].UserinfoSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.UserinfoSignedResponseAlg)
+	config.Clients[c].UserinfoSignedResponseAlg, config.Clients[c].UserinfoSignedResponseKeyID = validateOIDCAlgKIDDefault(config, config.Clients[c].UserinfoSignedResponseAlg, config.Clients[c].UserinfoSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.UserinfoSignedResponseAlg)
 
 	switch config.Clients[c].UserinfoSignedResponseKeyID {
 	case "":
@@ -1082,7 +1105,7 @@ func validateOIDDClientSigningAlgsUserInfo(c int, config *schema.IdentityProvide
 }
 
 func validateOIDDClientSigningAlgsIntrospection(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
-	config.Clients[c].IntrospectionSignedResponseAlg, config.Clients[c].IntrospectionSignedResponseKeyID = validateOIDCClientAlgKIDDefault(config, config.Clients[c].IntrospectionSignedResponseAlg, config.Clients[c].IntrospectionSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.IntrospectionSignedResponseAlg)
+	config.Clients[c].IntrospectionSignedResponseAlg, config.Clients[c].IntrospectionSignedResponseKeyID = validateOIDCAlgKIDDefault(config, config.Clients[c].IntrospectionSignedResponseAlg, config.Clients[c].IntrospectionSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.IntrospectionSignedResponseAlg)
 
 	switch config.Clients[c].IntrospectionSignedResponseKeyID {
 	case "":
@@ -1106,7 +1129,7 @@ func validateOIDDClientSigningAlgsIntrospection(c int, config *schema.IdentityPr
 }
 
 func validateOIDDClientSigningAlgsJARM(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
-	config.Clients[c].AuthorizationSignedResponseAlg, config.Clients[c].AuthorizationSignedResponseKeyID = validateOIDCClientAlgKIDDefault(config, config.Clients[c].AuthorizationSignedResponseAlg, config.Clients[c].AuthorizationSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.AuthorizationSignedResponseAlg)
+	config.Clients[c].AuthorizationSignedResponseAlg, config.Clients[c].AuthorizationSignedResponseKeyID = validateOIDCAlgKIDDefault(config, config.Clients[c].AuthorizationSignedResponseAlg, config.Clients[c].AuthorizationSignedResponseKeyID, schema.DefaultOpenIDConnectClientConfiguration.AuthorizationSignedResponseAlg)
 
 	switch config.Clients[c].AuthorizationSignedResponseKeyID {
 	case "":
@@ -1129,7 +1152,7 @@ func validateOIDDClientSigningAlgsJARM(c int, config *schema.IdentityProvidersOp
 	}
 }
 
-func validateOIDCClientAlgKIDDefault(config *schema.IdentityProvidersOpenIDConnect, algCurrent, kidCurrent, algDefault string) (alg, kid string) {
+func validateOIDCAlgKIDDefault(config *schema.IdentityProvidersOpenIDConnect, algCurrent, kidCurrent, algDefault string) (alg, kid string) {
 	alg, kid = algCurrent, kidCurrent
 
 	switch balg, bkid := len(alg) != 0, len(kid) != 0; {

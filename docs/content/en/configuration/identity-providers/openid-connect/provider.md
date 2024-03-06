@@ -74,6 +74,9 @@ identity_providers:
     minimum_parameter_entropy: 8
     enforce_pkce: 'public_clients_only'
     enable_pkce_plain_challenge: false
+    enable_jwt_access_token_stateless_introspection: false
+    discovery_signed_response_alg: 'none'
+    discovery_signed_response_key_id: ''
     pushed_authorizations:
       enforce: false
       context_lifespan: '5m'
@@ -202,7 +205,6 @@ identity_providers:
           1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
           -----END CERTIFICATE-----
 ```
-
 
 #### key_id
 
@@ -343,6 +345,43 @@ strongly discouraged unless you have a very specific use case.
 A client with an [access_token_signed_response_alg](clients.md#access_token_signed_response_alg) or
 [access_token_signed_response_key_id](clients.md#access_token_signed_response_key_id) must be configured for this option to
 be enabled.
+
+### discovery_signed_response_alg
+
+{{< confkey type="string" default="none" required="no" >}}
+
+_**Important Note:** Many clients do not support this option and it has a performance cost. It's therefore recommended
+unless you have a specific need that you do not enable this option._
+
+_**Note:** This value is completely ignored if the
+[discovery_signed_response_key_id](#discovery_signed_response_key_id) is defined._
+
+The algorithm used to sign the [OAuth 2.0 Authorization Server Metadata] and [OpenID Connect Discovery 1.0] responses.
+Per the specifications this Signed JSON Web Token is stored in the `signed_metadata` value using the compact encoding.
+
+See the response object section of the
+[integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information including
+the algorithm column for supported values.
+
+With the exclusion of `none` which excludes the `signed_metadata` value, the algorithm chosen must have a key
+configured in the [jwks](#jwks) section to be considered valid.
+
+See the response object section of the [integration guide](../../../integration/openid-connect/introduction.md#response-object)
+for more information including the algorithm column for supported values.
+
+### discovery_signed_response_key_id
+
+{{< confkey type="string" required="no" >}}
+
+_**Important Note:** Many clients do not support this option and it has a performance cost. It's therefore recommended
+unless you have a specific need that you do not enable this option._
+
+_**Note:** This value automatically configures the [discovery_signed_response_alg](#discovery_signed_response_alg)
+value with the algorithm of the specified key._
+
+The algorithm used to sign the [OAuth 2.0 Authorization Server Metadata] and [OpenID Connect Discovery 1.0] responses.
+The value of this must one of those provided or calculated in the [jwks](#jwks). Per the specifications this Signed JSON
+Web Token is stored in the `signed_metadata` value using the compact encoding.
 
 ### pushed_authorizations
 
@@ -524,7 +563,7 @@ identity_providers:
 
 ### cors
 
-Some [OpenID Connect 1.0] Endpoints need to allow cross-origin resource sharing, however some are optional. This section allows
+Some [OpenID Connect 1.0] Endpoints need to allow cross-origin resource sharing; however, some are optional. This section allows
 you to configure the optional parts. We reply with CORS headers when the request includes the Origin header.
 
 #### endpoints
@@ -592,6 +631,8 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 
 [token lifespan]: https://docs.apigee.com/api-platform/antipatterns/oauth-long-expiration
 [OpenID Connect 1.0]: https://openid.net/connect/
+[OAuth 2.0 Authorization Server Metadata]: https://oauth.net/2/authorization-server-metadata/
+[OpenID Connect Discovery 1.0]: https://openid.net/specs/openid-connect-discovery-1_0.html
 [Token Endpoint]: https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
 [JWT]: https://datatracker.ietf.org/doc/html/rfc7519
 [RFC6234]: https://datatracker.ietf.org/doc/html/rfc6234

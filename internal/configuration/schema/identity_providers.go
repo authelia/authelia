@@ -16,9 +16,6 @@ type IdentityProvidersOpenIDConnect struct {
 	HMACSecret  string `koanf:"hmac_secret" json:"hmac_secret" jsonschema:"title=HMAC Secret" jsonschema_description:"The HMAC Secret used to sign Access Tokens."`
 	JSONWebKeys []JWK  `koanf:"jwks" json:"jwks" jsonschema:"title=Issuer JSON Web Keys" jsonschema_description:"The JWK's which are to be used to sign various objects like ID Tokens."`
 
-	IssuerCertificateChain X509CertificateChain `koanf:"issuer_certificate_chain" json:"issuer_certificate_chain" jsonschema:"title=Issuer Certificate Chain,deprecated" jsonschema_description:"The Issuer Certificate Chain with an RSA Public Key used to sign ID Tokens."`
-	IssuerPrivateKey       *rsa.PrivateKey      `koanf:"issuer_private_key" json:"issuer_private_key" jsonschema:"title=Issuer Private Key,deprecated" jsonschema_description:"The Issuer Private Key with an RSA Private Key used to sign ID Tokens."`
-
 	EnableClientDebugMessages bool `koanf:"enable_client_debug_messages" json:"enable_client_debug_messages" jsonschema:"default=false,title=Enable Client Debug Messages" jsonschema_description:"Enables additional debug messages for clients."`
 	MinimumParameterEntropy   int  `koanf:"minimum_parameter_entropy" json:"minimum_parameter_entropy" jsonschema:"default=8,minimum=-1,title=Minimum Parameter Entropy" jsonschema_description:"The minimum entropy of the nonce parameter."`
 
@@ -26,6 +23,9 @@ type IdentityProvidersOpenIDConnect struct {
 	EnablePKCEPlainChallenge bool   `koanf:"enable_pkce_plain_challenge" json:"enable_pkce_plain_challenge" jsonschema:"default=false,title=Enable PKCE Plain Challenge" jsonschema_description:"Enables use of the discouraged plain Proof Key for Code Exchange challenges."`
 
 	EnableJWTAccessTokenStatelessIntrospection bool `koanf:"enable_jwt_access_token_stateless_introspection" json:"enable_jwt_access_token_stateless_introspection" jsonschema:"title=Enable JWT Access Token Stateless Introspection" jsonschema_description:"Allows the use of stateless introspection of JWT Access Tokens which is not recommended."`
+
+	DiscoverySignedResponseAlg   string `koanf:"discovery_signed_response_alg" json:"discovery_signed_response_alg" jsonschema:"default=none,enum=none,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,title=Discovery Response Signing Algorithm" jsonschema_description:"The Algorithm this provider uses to sign the Discovery and Metadata Document responses."`
+	DiscoverySignedResponseKeyID string `koanf:"discovery_signed_response_key_id" json:"discovery_signed_response_key_id" jsonschema:"title=Discovery Response Signing Key ID" jsonschema_description:"The Key ID this provider uses to sign the Discovery and Metadata Document responses (overrides the 'discovery_signed_response_alg')."`
 
 	PAR  IdentityProvidersOpenIDConnectPAR  `koanf:"pushed_authorizations" json:"pushed_authorizations" jsonschema:"title=Pushed Authorizations" jsonschema_description:"Configuration options for Pushed Authorization Requests."`
 	CORS IdentityProvidersOpenIDConnectCORS `koanf:"cors" json:"cors" jsonschema:"title=CORS" jsonschema_description:"Configuration options for Cross-Origin Request Sharing."`
@@ -36,6 +36,9 @@ type IdentityProvidersOpenIDConnect struct {
 	Lifespans             IdentityProvidersOpenIDConnectLifespans         `koanf:"lifespans" json:"lifespans" jsonschema:"title=Lifespans" jsonschema_description:"Token lifespans configuration."`
 
 	Discovery IdentityProvidersOpenIDConnectDiscovery `json:"-"` // MetaData value. Not configurable by users.
+
+	IssuerCertificateChain X509CertificateChain `koanf:"issuer_certificate_chain" json:"issuer_certificate_chain" jsonschema:"title=Issuer Certificate Chain,deprecated" jsonschema_description:"The Issuer Certificate Chain with an RSA Public Key used to sign ID Tokens."`
+	IssuerPrivateKey       *rsa.PrivateKey      `koanf:"issuer_private_key" json:"issuer_private_key" jsonschema:"title=Issuer Private Key,deprecated" jsonschema_description:"The Issuer Private Key with an RSA Private Key used to sign ID Tokens."`
 }
 
 // IdentityProvidersOpenIDConnectPolicy configuration for OpenID Connect 1.0 authorization policies.

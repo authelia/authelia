@@ -393,7 +393,6 @@ func TestNewOpenIDConnectWellKnownConfiguration_Copy(t *testing.T) {
 				ServiceDocumentation:                       "",
 				OPPolicyURI:                                "",
 				OPTOSURI:                                   "",
-				SignedMetadata:                             "",
 			},
 			OAuth2DiscoveryOptions: oidc.OAuth2DiscoveryOptions{
 				IntrospectionEndpoint:                              "",
@@ -491,7 +490,7 @@ func TestNewOpenIDConnectWellKnownConfiguration_Copy(t *testing.T) {
 			FederationRegistrationEndpoint:                 "",
 			ClientRegistrationTypesSupported:               nil,
 			RequestAuthenticationMethodsSupported:          nil,
-			RequestAuthenticationSigningAlgValuesSupproted: nil,
+			RequestAuthenticationSigningAlgValuesSupported: nil,
 		},
 	}
 
