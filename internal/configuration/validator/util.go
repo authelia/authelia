@@ -194,9 +194,9 @@ func jwkCalculateKID(key schema.CryptographicKey, alg string) (kid string, err e
 	if alg == "" {
 		switch j.Key.(type) {
 		case *rsa.PublicKey:
-			alg = "RS256"
+			alg = oidc.SigningAlgRSAUsingSHA256
 		case *ecdsa.PublicKey:
-			alg = "ES256"
+			alg = oidc.SigningAlgECDSAUsingP256AndSHA256
 		}
 	}
 
