@@ -32,8 +32,9 @@ More information about the beta can be found in the [roadmap](../../../roadmap/a
 
 ## Configuration
 
-The following snippet provides a configuration example for the [OpenID Connect 1.0] Provider. This is not
-intended for production use it's used to provide context and an indentation example.
+{{< config-alert-example >}}
+
+The following snippet provides a configuration example for the [OpenID Connect 1.0] Provider.
 
 ```yaml
 identity_providers:
@@ -208,8 +209,8 @@ identity_providers:
 {{< confkey type="string" default="<thumbprint of public key>" required="no" >}}
 
 Completely optional, and generally discouraged unless there is a collision between the automatically generated key id's.
-If provided must be a unique string with 100 or less characters, with a recommendation to use a length less
-than 10. In addition it must meet the following rules:
+If provided must be a unique string with 100 or fewer characters, with a recommendation to use a length less
+than 15. In addition, it must meet the following rules:
 
 - Match the regular expression `^[a-zA-Z0-9](([a-zA-Z0-9._~-]*)([a-zA-Z0-9]))?$` which should enforce the following rules:
   - Start with an alphanumeric character.
@@ -217,7 +218,7 @@ than 10. In addition it must meet the following rules:
   - Only contain the [RFC3986 Unreserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3).
 
 The default if this value is omitted is the first 7 characters of the public key SHA256 thumbprint encoded into
-hexadecimal.
+hexadecimal, followed by a hyphen, then followed by the lowercase algorithm value.
 
 #### use
 

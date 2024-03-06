@@ -126,7 +126,7 @@ func validateOIDCIssuer(config *schema.IdentityProvidersOpenIDConnect, validator
 
 		fallthrough
 	case len(config.JSONWebKeys) != 0:
-		validateOIDCIssuerPrivateKeys(config, validator)
+		validateOIDCIssuerJSONWebKeys(config, validator)
 	default:
 		validator.Push(fmt.Errorf(errFmtOIDCProviderNoPrivateKey))
 	}
@@ -141,7 +141,7 @@ func validateOIDCIssuerPrivateKey(config *schema.IdentityProvidersOpenIDConnect)
 	}}, config.JSONWebKeys...)
 }
 
-func validateOIDCIssuerPrivateKeys(config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+func validateOIDCIssuerJSONWebKeys(config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
 	var (
 		props *JWKProperties
 		err   error
@@ -157,9 +157,15 @@ func validateOIDCIssuerPrivateKeys(config *schema.IdentityProvidersOpenIDConnect
 			continue
 		}
 
+		if props, err = schemaJWKGetProperties(config.JSONWebKeys[i]); err != nil {
+			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysProperties, i+1, config.JSONWebKeys[i].KeyID, err))
+
+			continue
+		}
+
 		switch n := len(config.JSONWebKeys[i].KeyID); {
 		case n == 0:
-			if config.JSONWebKeys[i].KeyID, err = jwkCalculateThumbprint(config.JSONWebKeys[i].Key); err != nil {
+			if config.JSONWebKeys[i].KeyID, err = jwkCalculateKID(config.JSONWebKeys[i].Key, props, config.JSONWebKeys[i].Algorithm); err != nil {
 				validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysCalcThumbprint, i+1, err))
 
 				continue
@@ -176,12 +182,6 @@ func validateOIDCIssuerPrivateKeys(config *schema.IdentityProvidersOpenIDConnect
 
 		if !reOpenIDConnectKID.MatchString(config.JSONWebKeys[i].KeyID) {
 			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysKeyIDNotValid, i+1, config.JSONWebKeys[i].KeyID))
-		}
-
-		if props, err = schemaJWKGetProperties(config.JSONWebKeys[i]); err != nil {
-			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysProperties, i+1, config.JSONWebKeys[i].KeyID, err))
-
-			continue
 		}
 
 		validateOIDCIssuerPrivateKeysUseAlg(i, props, config, validator)
