@@ -1016,14 +1016,15 @@
         "hmac_secret": {
           "type": "string",
           "title": "HMAC Secret",
-          "description": "The HMAC Secret used to sign Access Tokens"
+          "description": "The HMAC Secret used to sign Access Tokens."
         },
         "jwks": {
           "items": {
             "$ref": "#/$defs/JWK"
           },
           "type": "array",
-          "title": "Issuer JSON Web Keys"
+          "title": "Issuer JSON Web Keys",
+          "description": "The JWK's which are to be used to sign various objects like ID Tokens."
         },
         "issuer_certificate_chain": {
           "$ref": "#/$defs/X509CertificateChain",

@@ -2,7 +2,7 @@
 title: "ownCloud Infinite Scale"
 description: "Integrating ownCloud Infinite Scale with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-05T21:58:32+11:00
 draft: false
 images: []
 menu:

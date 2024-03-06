@@ -2,7 +2,7 @@
 title: "PocketBase"
 description: "Integrating PocketBase with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
-date: 2024-03-03T10:46:12+02:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:

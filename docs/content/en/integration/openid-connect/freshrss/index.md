@@ -2,7 +2,7 @@
 title: "freshrss"
 description: "Integrating Freshrss with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
-date: 2024-02-14T20:29:13+11:00
+date: 2024-03-05T21:58:32+11:00
 draft: false
 images: []
 menu:
