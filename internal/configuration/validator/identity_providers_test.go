@@ -1747,6 +1747,8 @@ func TestValidateOIDCClients(t *testing.T) {
 					},
 				}
 
+				have.DiscoverySignedResponseAlg = oidc.SigningAlgRSAUsingSHA384
+
 				have.Clients[0].IntrospectionSignedResponseAlg = oidc.SigningAlgRSAUsingSHA384
 				have.Clients[0].UserinfoSignedResponseAlg = oidc.SigningAlgRSAUsingSHA512
 				have.Clients[0].IDTokenSignedResponseAlg = oidc.SigningAlgECDSAUsingP521AndSHA512
@@ -1757,12 +1759,14 @@ func TestValidateOIDCClients(t *testing.T) {
 				have.Discovery.ResponseObjectSigningKeyIDs = []string{id + oidc.SigningAlgRSAUsingSHA384, id + oidc.SigningAlgRSAUsingSHA512, id + oidc.SigningAlgECDSAUsingP521AndSHA512}
 			},
 			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA384, have.DiscoverySignedResponseAlg)
 				assert.Equal(t, oidc.SigningAlgRSAUsingSHA384, have.Clients[0].IntrospectionSignedResponseAlg)
 				assert.Equal(t, oidc.SigningAlgRSAUsingSHA512, have.Clients[0].UserinfoSignedResponseAlg)
 				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].IDTokenSignedResponseAlg)
 				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].AccessTokenSignedResponseAlg)
 				assert.Equal(t, oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].AuthorizationSignedResponseAlg)
 
+				assert.Equal(t, id+oidc.SigningAlgRSAUsingSHA384, have.DiscoverySignedResponseKeyID)
 				assert.Equal(t, id+oidc.SigningAlgRSAUsingSHA384, have.Clients[0].IntrospectionSignedResponseKeyID)
 				assert.Equal(t, id+oidc.SigningAlgRSAUsingSHA512, have.Clients[0].UserinfoSignedResponseKeyID)
 				assert.Equal(t, id+oidc.SigningAlgECDSAUsingP521AndSHA512, have.Clients[0].IDTokenSignedResponseKeyID)
@@ -2043,6 +2047,7 @@ func TestValidateOIDCClients(t *testing.T) {
 		{
 			"ShouldRaiseErrorOnInvalidResponseSigningAlg",
 			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.DiscoverySignedResponseAlg = rs256
 				have.Clients[0].AuthorizationSignedResponseAlg = rs256
 				have.Clients[0].IntrospectionSignedResponseAlg = rs256
 				have.Clients[0].IDTokenSignedResponseAlg = rs256
@@ -2070,6 +2075,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 			nil,
 			[]string{
+				"identity_providers: oidc: option 'discovery_signed_response_alg' must be one of 'RS256' or 'none' but it's configured as 'rs256'",
 				"identity_providers: oidc: clients: client 'test': option 'authorization_signed_response_alg' must be one of 'RS256' but it's configured as 'rs256'",
 				"identity_providers: oidc: clients: client 'test': option 'id_token_signed_response_alg' must be one of 'RS256' but it's configured as 'rs256'",
 				"identity_providers: oidc: clients: client 'test': option 'access_token_signed_response_alg' must be one of 'RS256' but it's configured as 'rs256'",
@@ -2706,6 +2712,7 @@ func TestValidateOIDCClients(t *testing.T) {
 		{
 			"ShouldRaiseErrorOnInvalidKeyID",
 			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.DiscoverySignedResponseKeyID = "ij"
 				have.Clients[0].AuthorizationSignedResponseKeyID = "01"
 				have.Clients[0].IDTokenSignedResponseKeyID = "ab"
 				have.Clients[0].UserinfoSignedResponseKeyID = "cd"
@@ -2714,6 +2721,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				have.Discovery.ResponseObjectSigningKeyIDs = []string{"abc123xyz"}
 			},
 			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
+				assert.Equal(t, "ij", have.DiscoverySignedResponseKeyID)
 				assert.Equal(t, "ef", have.Clients[0].IntrospectionSignedResponseKeyID)
 				assert.Equal(t, "01", have.Clients[0].AuthorizationSignedResponseKeyID)
 				assert.Equal(t, "ab", have.Clients[0].IDTokenSignedResponseKeyID)
@@ -2734,6 +2742,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 			nil,
 			[]string{
+				"identity_providers: oidc: option 'discovery_signed_response_key_id' must be one of 'abc123xyz' but it's configured as 'ij'",
 				"identity_providers: oidc: clients: client 'test': option 'authorization_signed_response_key_id' must be one of 'abc123xyz' but it's configured as '01'",
 				"identity_providers: oidc: clients: client 'test': option 'id_token_signed_response_key_id' must be one of 'abc123xyz' but it's configured as 'ab'",
 				"identity_providers: oidc: clients: client 'test': option 'access_token_signed_response_key_id' must be one of 'abc123xyz' but it's configured as 'gh'",
@@ -2848,6 +2857,7 @@ func TestValidateOIDCClients(t *testing.T) {
 
 			validator := schema.NewStructValidator()
 
+			validateOIDDIssuerSigningAlgsDiscovery(have, validator)
 			validateOIDCClient(0, have, validator, errDeprecatedFunc)
 
 			t.Run("General", func(t *testing.T) {

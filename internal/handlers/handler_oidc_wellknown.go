@@ -36,26 +36,28 @@ func OpenIDConnectConfigurationWellKnownGET(ctx *middlewares.AutheliaCtx) {
 		OpenIDConnectWellKnownConfiguration: ctx.Providers.OpenIDConnect.GetOpenIDConnectWellKnownConfiguration(issuer.String()),
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, &oidc.OpenIDConnectWellKnownClaims{
-		OpenIDConnectWellKnownSignedConfiguration: metadata,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ID:        uuid.New().String(),
-			Issuer:    issuer.String(),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
-		},
-	})
+	if ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseKeyID != "" {
+		token := jwt.NewWithClaims(jwt.SigningMethodRS256, &oidc.OpenIDConnectWellKnownClaims{
+			OpenIDConnectWellKnownSignedConfiguration: metadata,
+			RegisteredClaims: jwt.RegisteredClaims{
+				ID:        uuid.New().String(),
+				Issuer:    issuer.String(),
+				IssuedAt:  jwt.NewNumericDate(time.Now()),
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+			},
+		})
 
-	kid := ctx.Providers.OpenIDConnect.KeyManager.GetKeyID(ctx, "", oidc.SigningAlgRSAUsingSHA256)
+		kid := ctx.Providers.OpenIDConnect.KeyManager.GetKeyID(ctx, ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseKeyID, ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseAlg)
 
-	token.Header[oidc.JWTHeaderKeyIdentifier] = kid
+		token.Header[oidc.JWTHeaderKeyIdentifier] = kid
 
-	if metadata.SignedMetadata, err = token.SignedString(ctx.Providers.OpenIDConnect.KeyManager.Get(ctx, kid, oidc.SigningAlgRSAUsingSHA256).PrivateJWK().Key); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred signing metadata")
+		if metadata.SignedMetadata, err = token.SignedString(ctx.Providers.OpenIDConnect.KeyManager.Get(ctx, kid, ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseAlg).PrivateJWK().Key); err != nil {
+			ctx.Logger.WithError(err).Errorf("Error occurred signing metadata")
 
-		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
+			ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
 
-		return
+			return
+		}
 	}
 
 	if err = ctx.ReplyJSON(metadata, fasthttp.StatusOK); err != nil {
@@ -91,26 +93,28 @@ func OAuthAuthorizationServerWellKnownGET(ctx *middlewares.AutheliaCtx) {
 		OAuth2WellKnownConfiguration: ctx.Providers.OpenIDConnect.GetOAuth2WellKnownConfiguration(issuer.String()),
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, &oidc.OAuth2WellKnownClaims{
-		OAuth2WellKnownSignedConfiguration: metadata,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ID:        uuid.New().String(),
-			Issuer:    issuer.String(),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
-		},
-	})
+	if ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseKeyID != "" {
+		token := jwt.NewWithClaims(jwt.SigningMethodRS256, &oidc.OAuth2WellKnownClaims{
+			OAuth2WellKnownSignedConfiguration: metadata,
+			RegisteredClaims: jwt.RegisteredClaims{
+				ID:        uuid.New().String(),
+				Issuer:    issuer.String(),
+				IssuedAt:  jwt.NewNumericDate(time.Now()),
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+			},
+		})
 
-	kid := ctx.Providers.OpenIDConnect.KeyManager.GetKeyID(ctx, "", oidc.SigningAlgRSAUsingSHA256)
+		kid := ctx.Providers.OpenIDConnect.KeyManager.GetKeyID(ctx, ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseKeyID, ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseAlg)
 
-	token.Header[oidc.JWTHeaderKeyIdentifier] = kid
+		token.Header[oidc.JWTHeaderKeyIdentifier] = kid
 
-	if metadata.SignedMetadata, err = token.SignedString(ctx.Providers.OpenIDConnect.KeyManager.Get(ctx, kid, oidc.SigningAlgRSAUsingSHA256).PrivateJWK().Key); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred signing metadata")
+		if metadata.SignedMetadata, err = token.SignedString(ctx.Providers.OpenIDConnect.KeyManager.Get(ctx, kid, ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseAlg).PrivateJWK().Key); err != nil {
+			ctx.Logger.WithError(err).Errorf("Error occurred signing metadata")
 
-		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
+			ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
 
-		return
+			return
+		}
 	}
 
 	if err = ctx.ReplyJSON(metadata, fasthttp.StatusOK); err != nil {

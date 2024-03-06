@@ -24,6 +24,9 @@ type IdentityProvidersOpenIDConnect struct {
 
 	EnableJWTAccessTokenStatelessIntrospection bool `koanf:"enable_jwt_access_token_stateless_introspection" json:"enable_jwt_access_token_stateless_introspection" jsonschema:"title=Enable JWT Access Token Stateless Introspection" jsonschema_description:"Allows the use of stateless introspection of JWT Access Tokens which is not recommended."`
 
+	DiscoverySignedResponseAlg   string `koanf:"discovery_signed_response_alg" json:"discovery_signed_response_alg" jsonschema:"default=none,enum=none,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,title=Discovery Response Signing Algorithm" jsonschema_description:"The Algorithm this provider uses to sign the Discovery and Metadata Document responses."`
+	DiscoverySignedResponseKeyID string `koanf:"discovery_signed_response_key_id" json:"discovery_signed_response_key_id" jsonschema:"title=Discovery Response Signing Key ID" jsonschema_description:"The Key ID this provider uses to sign the Discovery and Metadata Document responses (overrides the 'discovery_signed_response_alg')."`
+
 	PAR  IdentityProvidersOpenIDConnectPAR  `koanf:"pushed_authorizations" json:"pushed_authorizations" jsonschema:"title=Pushed Authorizations" jsonschema_description:"Configuration options for Pushed Authorization Requests."`
 	CORS IdentityProvidersOpenIDConnectCORS `koanf:"cors" json:"cors" jsonschema:"title=CORS" jsonschema_description:"Configuration options for Cross-Origin Request Sharing."`
 

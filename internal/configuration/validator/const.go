@@ -55,6 +55,11 @@ const (
 	schemeHTTPS = "https"
 )
 
+// General fmt consts.
+const (
+	errFmtMustBeOneOf = "'%s' must be one of %s but it's configured as '%s'"
+)
+
 // Notifier Error constants.
 const (
 	errFmtNotifierMultipleConfigured = "notifier: please ensure only one of the 'smtp' or 'filesystem' notifier is configured"
@@ -179,6 +184,8 @@ const (
 	errFmtOIDCProviderPrivateKeysKeyCertificateMismatch  = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the private key provided by option 'key'"
 	errFmtOIDCProviderPrivateKeysCertificateChainInvalid = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
 	errFmtOIDCProviderPrivateKeysNoRS256                 = "identity_providers: oidc: jwks: keys: must at least have one key supporting the '%s' algorithm but only has %s"
+	errFmtOIDCProviderInvalidValue                       = "identity_providers: oidc: option " +
+		errFmtMustBeOneOf
 
 	errFmtOIDCCORSInvalidOrigin                    = "identity_providers: oidc: cors: option 'allowed_origins' contains an invalid value '%s' as it has a %s: origins must only be scheme, hostname, and an optional port"
 	errFmtOIDCCORSInvalidOriginWildcard            = "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' with more than one origin but the wildcard origin must be defined by itself"
@@ -236,7 +243,7 @@ const (
 		"%s however when utilizing the 'client_credentials' value for the 'grant_types' the values %s are not allowed"
 	errFmtOIDCClientInvalidEntryDuplicates = errFmtOIDCClientOption + "'%s' must have unique values but the values %s are duplicated"
 	errFmtOIDCClientInvalidValue           = errFmtOIDCClientOption +
-		"'%s' must be one of %s but it's configured as '%s'"
+		errFmtMustBeOneOf
 	errFmtOIDCClientInvalidLifespan = errFmtOIDCClientOption +
 		"'lifespan' must not be configured when no custom lifespans are configured but it's configured as '%s'"
 	errFmtOIDCClientInvalidTokenEndpointAuthMethod = errFmtOIDCClientOption +
@@ -508,6 +515,8 @@ const (
 	attrOIDCGrantTypes            = "grant_types"
 	attrOIDCRedirectURIs          = "redirect_uris"
 	attrOIDCTokenAuthMethod       = "token_endpoint_auth_method"
+	attrOIDCDiscoSigAlg           = "discovery_signed_response_alg"
+	attrOIDCDiscoSigKID           = "discovery_signed_response_key_id"
 	attrOIDCUsrSigAlg             = "userinfo_signed_response_alg"
 	attrOIDCUsrSigKID             = "userinfo_signed_response_key_id"
 	attrOIDCIntrospectionSigAlg   = "introspection_signed_response_alg"
