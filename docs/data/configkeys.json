@@ -65,6 +65,16 @@
         "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ENABLE_JWT_ACCESS_TOKEN_STATELESS_INTROSPECTION"
     },
     {
+        "path": "identity_providers.oidc.discovery_signed_response_alg",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DISCOVERY_SIGNED_RESPONSE_ALG"
+    },
+    {
+        "path": "identity_providers.oidc.discovery_signed_response_key_id",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DISCOVERY_SIGNED_RESPONSE_KEY_ID"
+    },
+    {
         "path": "identity_providers.oidc.pushed_authorizations.enforce",
         "secret": false,
         "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_PUSHED_AUTHORIZATIONS_ENFORCE"

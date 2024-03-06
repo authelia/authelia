@@ -1026,18 +1026,6 @@
           "title": "Issuer JSON Web Keys",
           "description": "The JWK's which are to be used to sign various objects like ID Tokens."
         },
-        "issuer_certificate_chain": {
-          "$ref": "#/$defs/X509CertificateChain",
-          "title": "Issuer Certificate Chain",
-          "description": "The Issuer Certificate Chain with an RSA Public Key used to sign ID Tokens.",
-          "deprecated": true
-        },
-        "issuer_private_key": {
-          "type": "string",
-          "title": "Issuer Private Key",
-          "description": "The Issuer Private Key with an RSA Private Key used to sign ID Tokens.",
-          "deprecated": true
-        },
         "enable_client_debug_messages": {
           "type": "boolean",
           "title": "Enable Client Debug Messages",
@@ -1073,6 +1061,29 @@
           "title": "Enable JWT Access Token Stateless Introspection",
           "description": "Allows the use of stateless introspection of JWT Access Tokens which is not recommended."
         },
+        "discovery_signed_response_alg": {
+          "type": "string",
+          "enum": [
+            "none",
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "Discovery Response Signing Algorithm",
+          "description": "The Algorithm this provider uses to sign the Discovery and Metadata Document responses.",
+          "default": "none"
+        },
+        "discovery_signed_response_key_id": {
+          "type": "string",
+          "title": "Discovery Response Signing Key ID",
+          "description": "The Key ID this provider uses to sign the Discovery and Metadata Document responses (overrides the 'discovery_signed_response_alg')."
+        },
         "pushed_authorizations": {
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectPAR",
           "title": "Pushed Authorizations",
@@ -1105,6 +1116,18 @@
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespans",
           "title": "Lifespans",
           "description": "Token lifespans configuration."
+        },
+        "issuer_certificate_chain": {
+          "$ref": "#/$defs/X509CertificateChain",
+          "title": "Issuer Certificate Chain",
+          "description": "The Issuer Certificate Chain with an RSA Public Key used to sign ID Tokens.",
+          "deprecated": true
+        },
+        "issuer_private_key": {
+          "type": "string",
+          "title": "Issuer Private Key",
+          "description": "The Issuer Private Key with an RSA Private Key used to sign ID Tokens.",
+          "deprecated": true
         }
       },
       "additionalProperties": false,

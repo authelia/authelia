@@ -195,7 +195,7 @@ func TestConfig_Misc(t *testing.T) {
 	assert.Nil(t, config.GetPushedAuthorizeEndpointHandlers(ctx))
 	assert.Nil(t, config.GetResponseModeHandlerExtension(ctx))
 
-	assert.Equal(t, "", config.GetTokenURL(ctx))
+	assert.Equal(t, []string{""}, config.GetTokenURLs(ctx))
 
 	octx := &TestContext{
 		Context: ctx,
@@ -204,7 +204,7 @@ func TestConfig_Misc(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, "", config.GetTokenURL(octx))
+	assert.Equal(t, []string{""}, config.GetTokenURLs(octx))
 }
 
 func TestConfig_PAR(t *testing.T) {
