@@ -18,13 +18,13 @@ import (
 	"github.com/go-crypt/crypt"
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/go-crypt/crypt/algorithm/plaintext"
+	"github.com/go-jose/go-jose/v3"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/handler/pkce"
 	"github.com/ory/x/errorsx"
 	"github.com/valyala/fasthttp"
-	"gopkg.in/square/go-jose.v2"
 )
 
 // NewHasher returns a new Hasher.
@@ -182,7 +182,11 @@ func (p *OpenIDConnectProvider) JWTBearerClientAuthenticationStrategy(ctx contex
 		return nil, errorsx.WithStack(fosite.ErrInvalidClient.WithHint("Claim 'jti' from 'client_assertion' is invalid.").WithWrap(err))
 	}
 
-	tokenURL := p.Config.GetTokenURL(ctx)
+	var tokenURL string
+
+	if tokenURLs := p.Config.GetTokenURLs(ctx); len(tokenURLs) != 0 {
+		tokenURL = tokenURLs[0]
+	}
 
 	switch {
 	case iss != client.GetID():

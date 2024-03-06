@@ -10,10 +10,10 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/go-jose/go-jose/v3"
 	"github.com/golang-jwt/jwt/v5"
 	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/ory/x/errorsx"
-	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )

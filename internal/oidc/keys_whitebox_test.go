@@ -9,7 +9,7 @@ import (
 func TestValidateToken(t *testing.T) {
 	sig, err := validateToken("none", nil)
 	assert.Equal(t, "", sig)
-	assert.EqualError(t, err, "square/go-jose: compact JWS format must have three parts")
+	assert.EqualError(t, err, "go-jose/go-jose: compact JWS format must have three parts")
 }
 
 func TestGetTokenSignature(t *testing.T) {

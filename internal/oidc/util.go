@@ -7,12 +7,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-jose/go-jose/v3"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ory/fosite"
 	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/ory/x/errorsx"
 	"golang.org/x/text/language"
-	"gopkg.in/square/go-jose.v2"
 )
 
 // IsPushedAuthorizedRequest returns true if the requester has a PushedAuthorizationRequest redirect_uri value.

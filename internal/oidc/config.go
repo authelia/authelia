@@ -97,12 +97,15 @@ type Config struct {
 
 	JWTAccessToken JWTAccessTokenConfig
 
-	Hasher               *Hasher
-	Hash                 HashConfig
-	Strategy             StrategyConfig
-	PAR                  PARConfig
-	Handlers             HandlersConfig
-	Lifespans            schema.IdentityProvidersOpenIDConnectLifespanToken
+	Hasher    *Hasher
+	Hash      HashConfig
+	Strategy  StrategyConfig
+	PAR       PARConfig
+	Handlers  HandlersConfig
+	Lifespans schema.IdentityProvidersOpenIDConnectLifespanToken
+
+	VerifiableCredentialsNonceLifespan time.Duration
+
 	ProofKeyCodeExchange ProofKeyCodeExchangeConfig
 	GrantTypeJWTBearer   GrantTypeJWTBearerConfig
 
@@ -605,17 +608,17 @@ func (c *Config) GetFormPostHTMLTemplate(ctx context.Context) (tmpl *template.Te
 }
 
 // GetTokenURL returns the token URL.
-func (c *Config) GetTokenURL(ctx context.Context) (tokenURL string) {
+func (c *Config) GetTokenURLs(ctx context.Context) (tokenURLs []string) {
 	if octx, ok := ctx.(Context); ok {
 		switch issuerURL, err := octx.IssuerURL(); err {
 		case nil:
-			return strings.ToLower(issuerURL.JoinPath(EndpointPathToken).String())
+			return []string{strings.ToLower(issuerURL.JoinPath(EndpointPathToken).String())}
 		default:
-			return c.TokenURL
+			return []string{c.TokenURL}
 		}
 	}
 
-	return c.TokenURL
+	return []string{c.TokenURL}
 }
 
 // GetSecretsHasher returns the client secrets hashing function.
@@ -688,4 +691,9 @@ func (c *Config) GetPushedAuthorizeContextLifespan(ctx context.Context) (lifespa
 	}
 
 	return c.PAR.ContextLifespan
+}
+
+// GetVerifiableCredentialsNonceLifespan is the lifespan of the verifiable credentials' nonce.
+func (c *Config) GetVerifiableCredentialsNonceLifespan(ctx context.Context) (lifespan time.Duration) {
+	return c.VerifiableCredentialsNonceLifespan
 }

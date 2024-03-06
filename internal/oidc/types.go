@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/go-crypt/crypt/algorithm"
+	"github.com/go-jose/go-jose/v3"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ory/fosite"
 	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/ory/herodot"
-	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
