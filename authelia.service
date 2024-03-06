@@ -6,37 +6,15 @@ After=multi-user.target
 Environment=AUTHELIA_SERVER_DISABLE_HEALTHCHECK=true
 ExecStart=/usr/bin/authelia --config /etc/authelia/configuration.yml
 SyslogIdentifier=authelia
-
-# Remove all capabilities(7), this is a stateless web server:
 CapabilityBoundingSet=
-
-# Ensure the service can never gain new privileges:
 NoNewPrivileges=yes
-
-# Prohibit access to any kind of namespacing:
 RestrictNamespaces=yes
-
-# Make home directories inaccessible:
 ProtectHome=true
-
-# Make device nodes except for /dev/null, /dev/zero, /dev/full,
-# /dev/random and /dev/urandom inaccessible:
 PrivateDevices=yes
-
-# Make users other than root and the user for this daemon inaccessible:
 PrivateUsers=yes
-
-# Make cgroup file system hierarchy inaccessible:
 ProtectControlGroups=yes
-
-# Deny kernel module loading:
 ProtectKernelModules=yes
-
-# Make kernel variables (e.g. /proc/sys) read-only:
 ProtectKernelTunables=yes
-
-# Filter dangerous system calls. The following is listed as safe basic choice
-# in systemd.exec(5):
 SystemCallArchitectures=native
 SystemCallFilter=@system-service
 SystemCallErrorNumber=EPERM
