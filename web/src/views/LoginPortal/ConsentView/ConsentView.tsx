@@ -148,7 +148,6 @@ const ConsentView = function (props: Props) {
                 id="consent-stage"
                 title={`${translate("Hi")} ${userInfo?.display_name}`}
                 subtitle={translate("Consent Request")}
-                showBrand
             >
                 <Grid container>
                     <Grid item xs={12}>

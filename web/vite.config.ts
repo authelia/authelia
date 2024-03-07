@@ -69,6 +69,8 @@ export default defineConfig(({ mode }) => {
                                             switch (chunkInfo.name) {
                                                 case "LoginLayout":
                                                     return `static/js/${match[1]}.Login.[hash].js`;
+                                                case "MinimalLayout":
+                                                    return `static/js/${match[1]}.Minimal.[hash].js`;
                                                 default:
                                                     return `static/js/${match[1]}.[name].[hash].js`;
                                             }

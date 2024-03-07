@@ -13,7 +13,7 @@ import { IndexRoute } from "@constants/Routes";
 import { IdentityToken } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useQueryParam } from "@hooks/QueryParam";
-import LoginLayout from "@layouts/LoginLayout";
+import MinimalLayout from "@layouts/MinimalLayout";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
 import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
@@ -110,7 +110,7 @@ const ResetPasswordStep2 = function () {
     const handleCancelClick = () => navigate(IndexRoute);
 
     return (
-        <LoginLayout title={translate("Enter new password")} id="reset-password-step2-stage">
+        <MinimalLayout title={translate("Enter new password")} id="reset-password-step2-stage">
             <FormControl id={"form-reset-password"}>
                 <Grid container className={styles.root} spacing={2}>
                     <Grid item xs={12}>
@@ -191,7 +191,7 @@ const ResetPasswordStep2 = function () {
                     </Grid>
                 </Grid>
             </FormControl>
-        </LoginLayout>
+        </MinimalLayout>
     );
 };
 
