@@ -78,7 +78,7 @@ func koanfRemapKeysStandard(keys map[string]any, val *schema.StructValidator, ds
 			}
 
 			if !mapHasKey(d.NewKey, keys) && !mapHasKey(d.NewKey, keysFinal) {
-				val.PushWarning(fmt.Errorf(errFmtAutoMapKey, d.Key, d.Version.String(), d.NewKey))
+				val.PushWarning(fmt.Errorf(errFmtAutoMapKey, d.Key, d.Version.String(), d.NewKey, d.Version.NextMajor().String()))
 
 				if d.MapFunc != nil {
 					keysFinal[d.NewKey] = d.MapFunc(value)
@@ -141,7 +141,7 @@ func koanfRemapKeysMapped(keys map[string]any, val *schema.StructValidator, ds m
 
 						continue
 					} else {
-						val.PushWarning(fmt.Errorf(errFmtAutoMapKey, d.Key, d.Version.String(), d.NewKey))
+						val.PushWarning(fmt.Errorf(errFmtAutoMapKey, d.Key, d.Version.String(), d.NewKey, d.Version.NextMajor().String()))
 					}
 
 					newkey := strings.Replace(d.NewKey, prefix, "", 1)

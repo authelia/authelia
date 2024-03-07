@@ -139,3 +139,18 @@ func (v SemanticVersion) GreaterThanOrEqual(version SemanticVersion) (ge bool) {
 func (v SemanticVersion) LessThanOrEqual(version SemanticVersion) (ge bool) {
 	return v.Equal(version) || v.LessThan(version)
 }
+
+// NextMajor returns the next major SemanticVersion from this current SemanticVersion.
+func (v SemanticVersion) NextMajor() (version SemanticVersion) {
+	return SemanticVersion{Major: v.Major + 1}
+}
+
+// NextMinor returns the next minor SemanticVersion from this current SemanticVersion.
+func (v SemanticVersion) NextMinor() (version SemanticVersion) {
+	return SemanticVersion{Major: v.Major, Minor: v.Minor + 1}
+}
+
+// NextPatch returns the next patch SemanticVersion from this current SemanticVersion.
+func (v SemanticVersion) NextPatch() (version SemanticVersion) {
+	return SemanticVersion{Major: v.Major, Minor: v.Minor, Patch: v.Patch + 1}
+}
