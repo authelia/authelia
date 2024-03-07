@@ -187,7 +187,7 @@ var deprecations = map[string]Deprecation{
 		Keep:    true,
 		MapFunc: nil,
 		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf("configuration key '%s' is deprecated in %s and has been replaced by '%s' when combined with the 'server.port' and 'server.path' in the format of %s: this should be automatically mapped for you but you will need to adjust your configuration to remove this message", d.Key, d.Version.String(), d.NewKey, "'[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]'"))
+			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version, d.NewKey, "server.port' and 'server.path", "[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]", d.Version.NextMajor()))
 		},
 	},
 	"server.port": {
@@ -198,7 +198,7 @@ var deprecations = map[string]Deprecation{
 		Keep:    true,
 		MapFunc: nil,
 		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf("configuration key '%s' is deprecated in %s and has been replaced by '%s' when combined with the 'server.host' and 'server.path' in the format of %s: this should be automatically mapped for you but you will need to adjust your configuration to remove this message", d.Key, d.Version.String(), d.NewKey, "'[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]'"))
+			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version, d.NewKey, "server.host' and 'server.path", "[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]", d.Version.NextMajor()))
 		},
 	},
 	"server.path": {
@@ -209,7 +209,7 @@ var deprecations = map[string]Deprecation{
 		Keep:    true,
 		MapFunc: nil,
 		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf("configuration key '%s' is deprecated in %s and has been replaced by '%s' when combined with the 'server.host' and 'server.port' in the format of %s: this should be automatically mapped for you but you will need to adjust your configuration to remove this message", d.Key, d.Version.String(), d.NewKey, "'[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]'"))
+			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version, d.NewKey, "server.host' and 'server.port", "[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]", d.Version.NextMajor()))
 		},
 	},
 	"storage.mysql.host": {
@@ -220,7 +220,7 @@ var deprecations = map[string]Deprecation{
 		Keep:    true,
 		MapFunc: nil,
 		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version.String(), d.NewKey, "storage.mysql.port", "[tcp://]<hostname>[:<port>]"))
+			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version, d.NewKey, "storage.mysql.port", "[tcp://]<hostname>[:<port>]", d.Version.NextMajor()))
 		},
 	},
 	"storage.mysql.port": {
@@ -231,7 +231,7 @@ var deprecations = map[string]Deprecation{
 		Keep:    true,
 		MapFunc: nil,
 		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version.String(), d.NewKey, "storage.mysql.host", "[tcp://]<hostname>[:<port>]"))
+			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version, d.NewKey, "storage.mysql.host", "[tcp://]<hostname>[:<port>]", d.Version.NextMajor()))
 		},
 	},
 	"storage.postgres.host": {
@@ -242,7 +242,7 @@ var deprecations = map[string]Deprecation{
 		Keep:    true,
 		MapFunc: nil,
 		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version.String(), d.NewKey, "storage.postgres.port", "[tcp://]<hostname>[:<port>]"))
+			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version, d.NewKey, "storage.postgres.port", "[tcp://]<hostname>[:<port>]", d.Version.NextMajor()))
 		},
 	},
 	"storage.postgres.port": {
@@ -253,7 +253,7 @@ var deprecations = map[string]Deprecation{
 		Keep:    true,
 		MapFunc: nil,
 		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version.String(), d.NewKey, "storage.postgres.host", "[tcp://]<hostname>[:<port>]"))
+			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version, d.NewKey, "storage.postgres.host", "[tcp://]<hostname>[:<port>]", d.Version.NextMajor()))
 		},
 	},
 	"notifier.smtp.host": {
@@ -264,7 +264,7 @@ var deprecations = map[string]Deprecation{
 		Keep:    true,
 		MapFunc: nil,
 		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version.String(), d.NewKey, "notifier.smtp.port", "[tcp://]<hostname>[:<port>]"))
+			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version, d.NewKey, "notifier.smtp.port", "[tcp://]<hostname>[:<port>]", d.Version.NextMajor()))
 		},
 	},
 	"notifier.smtp.port": {
@@ -275,7 +275,7 @@ var deprecations = map[string]Deprecation{
 		Keep:    true,
 		MapFunc: nil,
 		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version.String(), d.NewKey, "notifier.smtp.host", "[tcp://]<hostname>[:<port>]"))
+			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version, d.NewKey, "notifier.smtp.host", "[tcp://]<hostname>[:<port>]", d.Version.NextMajor()))
 		},
 	},
 	"authentication_backend.ldap.url": {
@@ -397,7 +397,7 @@ var deprecations = map[string]Deprecation{
 		AutoMap: false,
 		MapFunc: nil,
 		ErrFunc: func(d Deprecation, keysFinal map[string]any, value any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf("configuration key '%s' is deprecated in %s and should be configured using the new configuration key '%s': this has been automatically mapped for you but you will need to adjust your configuration (see https://www.authelia.com/c/oidc) to remove this message", d.Key, d.Version, d.NewKey))
+			val.PushWarning(fmt.Errorf(errFmtAutoMapKey+" : see https://www.authelia.com/c/oidc for more information", d.Key, d.Version, d.NewKey, d.Version.NextMajor()))
 		},
 	},
 	"identity_providers.oidc.issuer_certificate_chain": {

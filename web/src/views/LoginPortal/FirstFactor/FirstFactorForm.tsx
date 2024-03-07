@@ -218,8 +218,8 @@ const FirstFactorForm = function (props: Props) {
     }, [localeInfoCB]);
 
     return (
-        <LoginLayout id="first-factor-stage" title={translate("Sign in")} showBrand>
-            <LanguageSelector value={lang} localeList={localeList} onChange={handleChangeLanguage} picker={true} />
+        <LoginLayout id="first-factor-stage" title={translate("Sign in")}>
+        <LanguageSelector value={lang} localeList={localeList} onChange={handleChangeLanguage} picker={true} />
             <FormControl id={"form-login"}>
                 <Grid container spacing={2}>
                     <Grid item xs={12}>

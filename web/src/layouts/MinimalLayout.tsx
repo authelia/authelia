@@ -6,7 +6,6 @@ import { useTranslation } from "react-i18next";
 
 import UserSvg from "@assets/images/user.svg?react";
 import AccountSettingsMenu from "@components/AccountSettingsMenu";
-import Brand from "@components/Brand";
 import PrivacyPolicyDrawer from "@components/PrivacyPolicyDrawer";
 import TypographyWithTooltip from "@components/TypographyWithTooltip";
 import { UserInfo } from "@models/UserInfo";
@@ -16,13 +15,10 @@ export interface Props {
     id?: string;
     children?: ReactNode;
     title?: string | null;
-    titleTooltip?: string | null;
-    subtitle?: string | null;
-    subtitleTooltip?: string | null;
     userInfo?: UserInfo;
 }
 
-const LoginLayout = function (props: Props) {
+const MinimalLayout = function (props: Props) {
     const { t: translate } = useTranslation();
 
     const styles = useStyles();
@@ -60,26 +56,12 @@ const LoginLayout = function (props: Props) {
                         </Grid>
                         {props.title ? (
                             <Grid item xs={12}>
-                                <TypographyWithTooltip
-                                    variant={"h5"}
-                                    value={props.title}
-                                    tooltip={props.titleTooltip !== null ? props.titleTooltip : undefined}
-                                />
-                            </Grid>
-                        ) : null}
-                        {props.subtitle ? (
-                            <Grid item xs={12}>
-                                <TypographyWithTooltip
-                                    variant={"h6"}
-                                    value={props.subtitle}
-                                    tooltip={props.subtitleTooltip !== null ? props.subtitleTooltip : undefined}
-                                />
+                                <TypographyWithTooltip variant={"h5"} value={props.title} />
                             </Grid>
                         ) : null}
                         <Grid item xs={12} className={styles.body}>
                             {props.children}
                         </Grid>
-                        <Brand />
                     </Grid>
                 </Container>
                 <PrivacyPolicyDrawer />
@@ -97,8 +79,6 @@ const useStyles = makeStyles((theme: Theme) => ({
         paddingLeft: 32,
         paddingRight: 32,
     },
-    title: {},
-    subtitle: {},
     icon: {
         margin: theme.spacing(),
         width: "64px",
@@ -111,4 +91,4 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
 }));
 
-export default LoginLayout;
+export default MinimalLayout;

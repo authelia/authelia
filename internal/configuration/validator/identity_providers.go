@@ -697,11 +697,11 @@ func validateOIDCClientScopesSpecialBearerAuthz(c int, config *schema.IdentityPr
 
 	if !ccg {
 		if !config.Clients[c].RequirePushedAuthorizationRequests {
-			validator.Push(fmt.Errorf(errFmtOIDCClientOptionMustScope, config.Clients[c].ID, "enforce_par", "'true'", oidc.ScopeAutheliaBearerAuthz, "false"))
+			validator.Push(fmt.Errorf(errFmtOIDCClientOptionMustScope, config.Clients[c].ID, "require_pushed_authorization_requests", "'true'", oidc.ScopeAutheliaBearerAuthz, "false"))
 		}
 
 		if !config.Clients[c].RequirePKCE {
-			validator.Push(fmt.Errorf(errFmtOIDCClientOptionMustScope, config.Clients[c].ID, "enforce_pkce", "'true'", oidc.ScopeAutheliaBearerAuthz, "false"))
+			validator.Push(fmt.Errorf(errFmtOIDCClientOptionMustScope, config.Clients[c].ID, "require_pkce", "'true'", oidc.ScopeAutheliaBearerAuthz, "false"))
 		} else if config.Clients[c].PKCEChallengeMethod != oidc.PKCEChallengeMethodSHA256 {
 			validator.Push(fmt.Errorf(errFmtOIDCClientOptionMustScope, config.Clients[c].ID, attrOIDCPKCEChallengeMethod, "'"+oidc.PKCEChallengeMethodSHA256+"'", oidc.ScopeAutheliaBearerAuthz, config.Clients[c].PKCEChallengeMethod))
 		}
@@ -731,10 +731,10 @@ func validateOIDCClientScopesSpecialBearerAuthz(c int, config *schema.IdentityPr
 		}
 	} else {
 		switch config.Clients[c].TokenEndpointAuthMethod {
-		case oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretJWT, oidc.ClientAuthMethodPrivateKeyJWT:
+		case oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodClientSecretJWT, oidc.ClientAuthMethodPrivateKeyJWT:
 			break
 		default:
-			validator.Push(fmt.Errorf(errFmtOIDCClientOptionMustScopeClientType, config.Clients[c].ID, attrOIDCTokenAuthMethod, strJoinOr([]string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretJWT, oidc.ClientAuthMethodPrivateKeyJWT}), oidc.ScopeAutheliaBearerAuthz, "confidential", config.Clients[c].TokenEndpointAuthMethod))
+			validator.Push(fmt.Errorf(errFmtOIDCClientOptionMustScopeClientType, config.Clients[c].ID, attrOIDCTokenAuthMethod, strJoinOr([]string{oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodClientSecretJWT, oidc.ClientAuthMethodPrivateKeyJWT}), oidc.ScopeAutheliaBearerAuthz, "confidential", config.Clients[c].TokenEndpointAuthMethod))
 		}
 	}
 

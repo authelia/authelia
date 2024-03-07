@@ -185,7 +185,7 @@ which must be explicitly set:
 8. Must either:
   - Be a public client with the Token Endpoint authentication method `none`. See configuration option
     `token_endpoint_auth_method`.
-  - Be a confidential client with the Token Endpoint authentication method `client_secret_post`, `client_secret_jwt`, or
+  - Be a confidential client with the Token Endpoint authentication method `client_secret_basic`, `client_secret_jwt`, or
     `private_key_jwt` configured. See configuration option `token_endpoint_auth_method`.
 
 #### Examples
@@ -252,7 +252,7 @@ identity_providers:
         enforce_par: true
         enforce_pkce: true
         pkce_challenge_method: 'S256'
-        token_endpoint_auth_method: 'client_secret_post'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 ##### Confidential Client Example: Client Credentials Flow
@@ -275,7 +275,7 @@ identity_providers:
           - 'https://app2.example.com'
         grant_types:
           - 'client_credentials'
-        token_endpoint_auth_method: 'client_secret_post'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 [RFC6750: OAuth 2.0 Bearer Token Usage]: https://datatracker.ietf.org/doc/html/rfc6750

@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { LogoutRoute as SignOutRoute } from "@constants/Routes";
-import LoginLayout from "@layouts/LoginLayout";
+import MinimalLayout from "@layouts/MinimalLayout";
 import { UserInfo } from "@models/UserInfo";
 import Authenticated from "@views/LoginPortal/Authenticated";
 
@@ -26,7 +26,7 @@ const AuthenticatedView = function (props: Props) {
     };
 
     return (
-        <LoginLayout
+        <MinimalLayout
             id="authenticated-stage"
             title={`${translate("Hi")} ${props.userInfo.display_name}`}
             userInfo={props.userInfo}
@@ -41,7 +41,7 @@ const AuthenticatedView = function (props: Props) {
                     <Authenticated />
                 </Grid>
             </Grid>
-        </LoginLayout>
+        </MinimalLayout>
     );
 };
 
