@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 import { IndexRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
-import LoginLayout from "@layouts/LoginLayout";
+import MinimalLayout from "@layouts/MinimalLayout";
 import { initiateResetPasswordProcess } from "@services/ResetPassword";
 
 const ResetPasswordStep1 = function () {
@@ -42,7 +42,7 @@ const ResetPasswordStep1 = function () {
     };
 
     return (
-        <LoginLayout title={translate("Reset password")} id="reset-password-step1-stage">
+        <MinimalLayout title={translate("Reset password")} id="reset-password-step1-stage">
             <FormControl id={"form-reset-password-username"}>
                 <Grid container className={styles.root} spacing={2}>
                     <Grid item xs={12}>
@@ -86,7 +86,7 @@ const ResetPasswordStep1 = function () {
                     </Grid>
                 </Grid>
             </FormControl>
-        </LoginLayout>
+        </MinimalLayout>
     );
 };
 

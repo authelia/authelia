@@ -11,7 +11,7 @@ import { useIsMountedRef } from "@hooks/Mounted";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useQueryParam } from "@hooks/QueryParam";
 import { useRedirector } from "@hooks/Redirector";
-import LoginLayout from "@layouts/LoginLayout";
+import MinimalLayout from "@layouts/MinimalLayout";
 import { signOut } from "@services/SignOut";
 
 export interface Props {}
@@ -57,9 +57,9 @@ const SignOut = function (props: Props) {
     }
 
     return (
-        <LoginLayout title={translate("Sign out")}>
+        <MinimalLayout title={translate("Sign out")}>
             <Typography className={styles.typo}>{translate("You're being signed out and redirected")}...</Typography>
-        </LoginLayout>
+        </MinimalLayout>
     );
 };
 

@@ -83,7 +83,6 @@ const SecondFactorForm = function (props: Props) {
         <LoginLayout
             id="second-factor-stage"
             title={`${translate("Hi")} ${props.userInfo.display_name}`}
-            showBrand
             userInfo={props.userInfo}
         >
             {props.configuration.available_methods.size > 1 ? (
