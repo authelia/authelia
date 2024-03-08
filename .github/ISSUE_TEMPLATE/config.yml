@@ -1,8 +1,8 @@
 ---
 blank_issues_enabled: false
 contact_links:
-  - name: 'Documentation Issues and Ideas'
-    url: 'https://github.com/authelia/authelia/discussions/new?category=general'
+  - name: 'Documentation Feedback'
+    url: 'https://github.com/authelia/authelia/discussions/new?category=documentation-feedback'
     about: 'Submit feedback about the documentation such as issues/mistakes or ideas'
   - name: 'Idea'
     url: 'https://github.com/authelia/authelia/discussions/new?category=ideas'
