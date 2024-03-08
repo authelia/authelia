@@ -19,7 +19,7 @@ body:
         4. Please only provide a released specific version or versions. Latest is not a version. Only released stable versions should be reported here; unreleased, untagged, or beta versions should have a report submitted via a [discussion](https://github.com/authelia/authelia/discussions/new/choose) instead.
         5. Please only report bugs with the Authelia application itself. Issues which match one of the following criteria should not be reported here (for the purpose of keeping the issue tracking clear and concise) but should be a [discussion](https://github.com/authelia/authelia/discussions/new/choose) instead:
             - Bugs with third-party software.
-            - Mistakes in the documentation.
+            - Mistakes in the documentation (which should be reported via the [Documentation Feedback](https://github.com/authelia/authelia/discussions/new?category=documentation-feedback) discussions).
             - Potential bugs where it is not somewhat clear that it's a bug with Authelia itself, a third party, or a misunderstanding/assumption about functionality.
         6. Please read the [Troubleshooting](https://www.authelia.com/r/troubleshooting) reference guide:
             - Do not truncate any logs unless you are complying with the specific instructions in the [Logs](https://www.authelia.com/r/troubleshooting#logs) section.
