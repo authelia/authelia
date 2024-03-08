@@ -18,10 +18,10 @@ The [Docker] container is deployed with the following image names:
 * [docker.io/authelia/authelia](https://hub.docker.com/r/authelia/authelia)
 * [ghcr.io/authelia/authelia](https://github.com/authelia/authelia/pkgs/container/authelia)
 
-## Get Started
+## Get started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Container

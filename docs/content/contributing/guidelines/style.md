@@ -18,7 +18,7 @@ aliases:
 This is a general guide to the code style we aim to abide by. This is by no means an exhaustive list and we're
 constantly changing and improving it. This is also a work in progress document.
 
-For our commit messages please see our [Commit Message Guidelines](commit-message.md).
+For our commit messages please see our [Commit Message Guidelines](../guidelines/commit-message.md).
 
 ## Tools
 

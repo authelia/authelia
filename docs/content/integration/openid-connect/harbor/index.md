@@ -90,4 +90,4 @@ To configure [Harbor] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 [Authelia]: https://www.authelia.com
 [Harbor]: https://goharbor.io/
-[OpenID Connect 1.0]: ../introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

@@ -23,7 +23,7 @@ This method will use the plain text email template for readability purposes.
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 notifier:
   disable_startup_check: false
   filesystem:

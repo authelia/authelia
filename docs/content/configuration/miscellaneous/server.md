@@ -19,7 +19,7 @@ aliases:
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 server:
   address: 'tcp://:9091/'
   disable_healthcheck: false
@@ -176,7 +176,7 @@ Enables the go [expvar](https://pkg.go.dev/expvar) endpoints.
 
 This is an *__advanced__* option allowing configuration of the authorization endpoints and has its own section.
 Generally this does not need to be configured for most use cases. See the
-[authz configuration](server-endpoints-authz.md) for more information.
+[authz configuration](./server-endpoints-authz.md) for more information.
 
 ## Additional Notes
 

@@ -34,9 +34,7 @@ More information about the beta can be found in the [roadmap](../../../roadmap/a
 
 {{< config-alert-example >}}
 
-The following snippet provides a configuration example for the [OpenID Connect 1.0] Provider.
-
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     hmac_secret: 'this_is_a_secret_abc123abc123abc'

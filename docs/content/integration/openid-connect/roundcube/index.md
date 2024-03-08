@@ -167,7 +167,7 @@ smtpd_sasl_type = dovecot
 [Authelia]: https://www.authelia.com
 [Roundcube]: https://roundcube.net/
 [Roundcube OAuth2]: https://github.com/roundcube/roundcubemail/wiki/Configuration:-OAuth2
-[OpenID Connect 1.0]: ../introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [Dovecot]: https://dovecot.org/
 [Dovecot OAuth2]: https://doc.dovecot.org/configuration_manual/authentication/oauth2/
 [Postfix]: https://www.postfix.org/

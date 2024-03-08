@@ -22,7 +22,7 @@ This process is performed by issuing a HMAC signed JWT using a secret key only k
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_validation:
   reset_password:
     expiration: '5 minutes'

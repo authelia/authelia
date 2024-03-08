@@ -4,6 +4,7 @@ description: "Drop us an email."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
+type: legal
 aliases:
   - /contact
   - /contact.html

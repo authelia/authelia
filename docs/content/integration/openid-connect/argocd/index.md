@@ -99,7 +99,7 @@ requestedScopes:
 
 [Authelia]: https://www.authelia.com
 [Argo CD]: https://argo-cd.readthedocs.io/en/stable/
-[OpenID Connect 1.0]: ../introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md
 
 
 

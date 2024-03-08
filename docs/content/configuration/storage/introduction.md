@@ -23,7 +23,7 @@ The available storage backends are listed in the table of contents below.
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 storage:
   encryption_key: 'a_very_important_secret'
   local: {}

@@ -96,4 +96,4 @@ environment:
 
 [Authelia]: https://www.authelia.com
 [FreshRSS]: https://freshrss.github.io/FreshRSS/
-[OpenID Connect 1.0]: ../introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

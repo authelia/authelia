@@ -27,7 +27,7 @@ additional benefits.
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 ntp:
   address: 'udp://time.cloudflare.com:123'
   version: 3

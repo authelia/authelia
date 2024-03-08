@@ -19,7 +19,7 @@ aliases:
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 certificates_directory: '/config/certs/'
 default_redirection_url: 'https://home.example.com:8080/'
 theme: 'light'

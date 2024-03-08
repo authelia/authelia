@@ -23,9 +23,7 @@ in the [integration](../../../integration/openid-connect/introduction.md) docume
 
 {{< config-alert-example >}}
 
-The following snippet provides a configuration example for a [OpenID Connect 1.0] Registered Client.
-
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     clients:
@@ -274,11 +272,11 @@ type, but when it is supported it will include the `query` response mode.
 {{< confkey type="string" default="two_factor" required="no" >}}
 
 The authorization policy for this client: either `one_factor`, `two_factor`, or one of the ones configured in the
-provider [authorization_policies](provider.md#authorization_policies) section.
+provider [authorization_policies](./provider.md#authorization_policies) section.
 
 The follow example shows a policy named `policy_name` which will `deny` access to users in the `services` group, with
 a default policy of `two_factor` for everyone else. This policy is applied to the client with id
-`client_with_policy_name`. You should refer to the [authorization_policies](provider.md#authorization_policies)
+`client_with_policy_name`. You should refer to the [authorization_policies](./provider.md#authorization_policies)
 section for more in depth information.
 
 ```yaml

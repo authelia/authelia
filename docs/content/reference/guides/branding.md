@@ -50,11 +50,11 @@ The logo is just the Authelia circle logo without any text.
 
 #### Logo Files
 
-[PSD](https://www.authelia.com/images/branding/logo.psd) | [AI](https://www.authelia.com/images/branding/logo.ai) | [SVG](https://www.authelia.com/images/branding/logo.svg) | [PNG](https://www.authelia.com/images/branding/logo.png)
+[PSD](/native/branding/logo.psd) | [AI](/native/branding/logo.ai) | [SVG](/svgs/branding/logo.svg) | [PNG](/images/branding/logo.png)
 
 #### Logo Example
 
-{{< figure src="/images/branding/logo.svg" link="/images/branding/logo.svg" target="_blank" alt="Authelia Logo" width="150" ignoreStaticImages="false" >}}
+{{< inline-svg src="svgs/branding/logo.svg" alt="Authelia Logo" width="150" height="150" class="svg-inline-custom" ignoreStaticImages="false" >}}
 
 ### Logo (Cropped)
 
@@ -62,11 +62,11 @@ The logo is the same as the standard logo without padding.
 
 #### Logo (Cropped) Files
 
-[PSD](https://www.authelia.com/images/branding/logo-cropped.psd) | [AI](https://www.authelia.com/images/branding/logo-cropped.ai) | [SVG](https://www.authelia.com/images/branding/logo-cropped.svg) | [PNG](https://www.authelia.com/images/branding/logo-cropped.png)
+[PSD](/images/branding/logo-cropped.psd) | [AI](/images/branding/logo-cropped.ai) | [SVG](/svgs/branding/logo-cropped.svg) | [PNG](/images/branding/logo-cropped.png)
 
 #### Logo (Cropped) Example
 
-{{< figure src="/images/branding/logo-cropped.svg" link="/images/branding/logo-cropped.svg" target="_blank" alt="Authelia Logo" width="150" ignoreStaticImages="false" >}}
+{{< inline-svg src="svgs/branding/logo-cropped.svg" alt="Authelia Logo (Cropped)" width="150" height="150" class="svg-inline-custom" ignoreStaticImages="false" >}}
 
 ### Title
 
@@ -74,9 +74,8 @@ The title is the Authelia circle logo with the `authelia` branded text.
 
 #### Title Files
 
-[PSD](https://www.authelia.com/images/branding/title.psd) | [AI](https://www.authelia.com/images/branding/title.ai) | [SVG](https://www.authelia.com/images/branding/title.svg) | [PNG](https://www.authelia.com/images/branding/title.png)
+[PSD](/native/branding/title.psd) | [AI](/native/branding/title.ai) | [SVG](/svgs/branding/title.svg) | [PNG](/images/branding/title.png)
 
 #### Title Example
 
-{{< figure src="/images/branding/title.svg" link="/images/branding/title.svg" target="_blank" alt="Authelia Title" width="300" ignoreStaticImages="false" >}}
-
+{{< inline-svg src="svgs/branding/title.svg" alt="Authelia Title" width="300" height="150" class="svg-inline-custom" ignoreStaticImages="false" >}}

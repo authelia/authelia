@@ -89,4 +89,4 @@ To configure [Kasm Workspaces] to utilize Authelia as an [OpenID Connect 1.0] Pr
 
 [Authelia]: https://www.authelia.com
 [Kasm Workspaces]: https://kasmweb.com/
-[OpenID Connect 1.0]: ../introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

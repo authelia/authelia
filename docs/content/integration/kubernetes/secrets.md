@@ -14,10 +14,10 @@ toc: true
 
 The following serve as examples of how to inject secrets into the Authelia container on [Kubernetes].
 
-## Get Started
+## Get started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Creation

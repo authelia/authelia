@@ -84,4 +84,4 @@ identity_providers:
 
 [Authelia]: https://www.authelia.com
 [Memos]: https://github.com/usememos/memos
-[OpenID Connect 1.0]: ../introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

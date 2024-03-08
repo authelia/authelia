@@ -255,5 +255,5 @@ docker run -d --name proxy --network proxy --network-alias auth.example.com <oth
 docker run -d --name application --network proxy <other application arguments>
 ```
 
-[Endpoint]: introduction.md#discoverable-endpoints
+[Endpoint]: ./introduction.md#discoverable-endpoints
 [RFC3986 Unreserved Characters]: https://datatracker.ietf.org/doc/html/rfc3986#section-2.3

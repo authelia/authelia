@@ -24,7 +24,7 @@ information.*
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 access_control:
   default_policy: 'deny'
   networks:

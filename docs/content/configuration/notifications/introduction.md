@@ -18,7 +18,7 @@ Authelia sends messages to users in order to verify their identity.
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 notifier:
   disable_startup_check: false
   template_path: ''

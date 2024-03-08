@@ -74,6 +74,6 @@ List of supported languages and variants:
 
 {{% table-i18n-overrides %}}
 
-More information may be available from the [Internationalization Reference Guide](internationalization.md).
+More information may be available from the [Internationalization Reference Guide](./internationalization.md).
 
 [Versioning Policy]: ../../policies/versioning.md

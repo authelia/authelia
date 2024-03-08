@@ -18,7 +18,7 @@ toc: true
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 telemetry:
   metrics:
     enabled: false

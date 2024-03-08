@@ -27,7 +27,7 @@ section of the configuration.
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 duo_api:
   disable: false
   hostname: 'api-123456789.example.com'

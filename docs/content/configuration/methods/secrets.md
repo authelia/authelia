@@ -28,7 +28,7 @@ retrieve content of a file, and `nindent` can be used to add a new line and inde
 
 Take the following example:
 
-```yaml
+```yaml {title="configuration.yml"}
 authentication_backend:
   ldap:
     address: 'ldap://{{ env "SERVICES_SERVER" }}'

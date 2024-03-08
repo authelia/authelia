@@ -98,4 +98,4 @@ identity_providers:
 
 [Authelia]: https://www.authelia.com
 [Portainer]: https://www.portainer.io/
-[OpenID Connect 1.0]: ../introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

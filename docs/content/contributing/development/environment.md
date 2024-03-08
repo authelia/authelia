@@ -92,7 +92,7 @@ your `/etc/hosts`:
 The IP address `192.168.240.100` is the IP attributed by [Docker] to the reverse proxy. Once added you can access the
 listed subdomains from your browser, and they will be served by the reverse proxy.
 
-[suites]: integration-suites.md
+[suites]: ./integration-suites.md
 [Buildkite]: https://buildkite.com/
 [React]: https://reactjs.org/
 [go]: https://go.dev/dl/

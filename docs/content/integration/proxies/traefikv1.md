@@ -22,10 +22,10 @@ method of deploying a proxy. These guides show a suggested setup only and you ne
 configuration and customize it to your needs. To-that-end we include links to the official proxy documentation
 throughout this documentation and in the [See Also](#see-also) section.*
 
-## Get Started
+## Get started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Trusted Proxies
@@ -83,7 +83,7 @@ The examples below assume you are using the default
 [Authz Endpoints Configuration](../../configuration/miscellaneous/server-endpoints-authz.md) or one similar to the
 following minimal configuration:
 
-```yaml
+```yaml {title="configuration.yml"}
 server:
   endpoints:
     authz:
@@ -114,7 +114,7 @@ Given that this is not compatible with [Traefik] 1.x you can call the __Authelia
 
 ##### docker-compose.yml
 
-```yaml
+```yaml {title="docker-compose.yml"}
 version: '3'
 
 networks:

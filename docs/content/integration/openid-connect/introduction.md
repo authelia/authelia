@@ -48,7 +48,7 @@ Authorization Flow or last successful Refresh Flow, and the [Refresh Token] will
 the Authorization Flow.
 
 For more information about the opaque [Access Token] default see
-[Why isn't the Access Token a JSON Web Token? (Frequently Asked Questions)](frequently-asked-questions.md#why-isnt-the-access-token-a-json-web-token).
+[Why isn't the Access Token a JSON Web Token? (Frequently Asked Questions)](./frequently-asked-questions.md#why-isnt-the-access-token-a-json-web-token).
 
 ## Scope Definitions
 

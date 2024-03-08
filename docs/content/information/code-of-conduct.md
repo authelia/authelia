@@ -10,6 +10,7 @@ menu:
     parent: "information"
 weight: 100
 toc: true
+type: legal
 aliases:
   - /code-of-conduct
   - /code-of-conduct.html

@@ -108,4 +108,4 @@ descriptions.
 
 [Authelia]: https://www.authelia.com
 [Gitea]: https://gitea.io/
-[OpenID Connect 1.0]: ../introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

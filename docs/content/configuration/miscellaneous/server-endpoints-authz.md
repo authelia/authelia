@@ -18,7 +18,7 @@ aliases:
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title=configuration.yml}
 server:
   endpoints:
     authz:

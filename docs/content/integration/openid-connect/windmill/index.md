@@ -87,4 +87,4 @@ identity_providers:
 
 [Authelia]: https://www.authelia.com
 [Windmill]: https://www.windmill.dev
-[OpenID Connect 1.0]: ../introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

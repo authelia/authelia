@@ -22,7 +22,7 @@ authentication attempts. This helps prevent brute-force attacks.
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 regulation:
   max_retries: 3
   find_time: '2m'

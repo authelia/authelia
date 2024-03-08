@@ -63,7 +63,7 @@ reverse proxy in question does not even support running as a [Kubernetes] [Ingre
 to perform authentication transparently to the user are not typically available inside a cluster.
 
 More information about [Kubernetes] deployments of Authelia can be read in the
-[documentation](..roduction.md).
+[documentation](../../integration/kubernetes/introduction.md).
 
 ### XHR Redirect
 

@@ -76,6 +76,6 @@ The original template content can be found on
 ## Functions
 
 Several functions are implemented with the email templates. See the
-[Templating Reference Guide](templating.md) for more information.
+[Templating Reference Guide](../../reference/guides/templating.md) for more information.
 
 [Versioning Policy]: ../../policies/versioning.md

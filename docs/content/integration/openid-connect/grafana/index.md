@@ -133,5 +133,5 @@ See [Grafana Generic OAuth2 Documentation: Configure role mapping] for more info
 
 [Authelia]: https://www.authelia.com
 [Grafana]: https://grafana.com/
-[OpenID Connect 1.0]: ../introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [Grafana Generic OAuth2 Documentation: Configure role mapping]: https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/generic-oauth/#configure-role-mapping

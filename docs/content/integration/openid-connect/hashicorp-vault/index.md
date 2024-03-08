@@ -75,4 +75,4 @@ To configure [HashiCorp Vault] to utilize Authelia as an [OpenID Connect 1.0] Pr
 
 [Authelia]: https://www.authelia.com
 [HashiCorp Vault]: https://www.vaultproject.io/
-[OpenID Connect 1.0]: ../introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

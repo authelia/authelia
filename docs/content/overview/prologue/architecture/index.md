@@ -22,7 +22,7 @@ connected to application backends and therefore the payloads sent by the clients
 Authelia, only the authentication pieces will, like the Authorization header for instance. Consequently, the protected
 APIs can be a REST, a GraphQL or any other kind of API on top of HTTP.
 
-{{< figure src="architecture-diagram.png" caption="Architecture Diagram" alt="Architecture Diagram" >}}
+{{< picture src="architecture-diagram.png" caption="Architecture Diagram" alt="Architecture Diagram" >}}
 
 ## Workflow
 
@@ -45,7 +45,7 @@ proxy to let the query pass through.
 
 Here is a description of the complete workflow:
 
-{{< figure src="sequence-diagram.png" caption="Sequence Diagram" alt="Sequence Diagram" >}}
+{{< picture src="sequence-diagram.png" caption="Sequence Diagram" alt="Sequence Diagram" >}}
 
 ## HTTP/HTTPS
 

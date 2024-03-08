@@ -26,7 +26,7 @@ but this requires you setup an external database such as [PostgreSQL](postgres.m
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 storage:
   encryption_key: 'a_very_important_secret'
   local:

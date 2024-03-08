@@ -25,7 +25,7 @@ the One-Time Code so that it cannot be used to create a new elevated session.
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_validation:
   elevated_session:
     expiration: '5 minutes'

@@ -22,7 +22,7 @@ the session cookie behaviour and the domains which Authelia can service authoriz
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 session:
   secret: 'insecure_session_secret'
   name: 'authelia_session'

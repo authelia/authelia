@@ -19,7 +19,7 @@ aliases:
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 notifier:
   disable_startup_check: false
   smtp:

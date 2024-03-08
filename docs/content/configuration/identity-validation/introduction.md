@@ -16,7 +16,7 @@ toc: true
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_validation:
   elevated_session:
     expiration: '5 minutes'

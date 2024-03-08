@@ -23,7 +23,7 @@ guide for supported version information.
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 storage:
   encryption_key: 'a_very_important_secret'
   postgres:

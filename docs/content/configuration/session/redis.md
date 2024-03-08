@@ -22,7 +22,7 @@ this option and we highly recommend it in production environments. It requires y
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 session:
   redis:
     host: '127.0.0.1'

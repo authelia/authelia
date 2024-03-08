@@ -18,8 +18,8 @@ There are three main methods to deploy *Authelia*.
 2. [Kubernetes](../kubernetes/introduction.md)
 3. [Bare-Metal](bare-metal.md)
 
-## Get Started
+## Get started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.

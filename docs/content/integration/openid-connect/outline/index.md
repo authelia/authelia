@@ -90,4 +90,4 @@ OIDC_SCOPES="openid offline_access profile email"
 
 [Authelia]: https://www.authelia.com
 [Outline]: https://www.getoutline.com/
-[OpenID Connect 1.0]: ../introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

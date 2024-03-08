@@ -1,16 +1,20 @@
 ---
 title: "4.37: Pre-Release Notes"
 description: "Authelia 4.37 is just around the corner. This version has several additional features and improvements to existing features. In this blog post we'll discuss the new features and roughly what it means for users."
-lead: "Pre-Release Notes for 4.37"
-excerpt: "Authelia 4.37 is just around the corner. This version has several additional features and improvements to existing features. In this blog post we'll discuss the new features and roughly what it means for users."
+summary: "Authelia 4.37 is just around the corner. This version has several additional features and improvements to existing features. In this blog post we'll discuss the new features and roughly what it means for users."
 date: 2022-09-26T06:55:09+10:00
 draft: false
-images: []
+weight: 50
 categories: ["News", "Release Notes"]
 tags: ["releases", "pre-release-notes"]
 contributors: ["James Elliott"]
 pinned: false
 homepage: false
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 Authelia [4.37](https://github.com/authelia/authelia/milestone/16) is just around the corner. This version has several

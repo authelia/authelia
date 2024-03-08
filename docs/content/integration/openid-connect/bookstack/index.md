@@ -87,4 +87,4 @@ To configure [BookStack] to utilize Authelia as an [OpenID Connect 1.0] Provider
 
 [Authelia]: https://www.authelia.com
 [BookStack]: https://www.bookstackapp.com/
-[OpenID Connect 1.0]: ../introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

@@ -96,4 +96,4 @@ To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect 1
 [Authelia]: https://www.authelia.com
 [Cloudflare]: https://www.cloudflare.com/
 [Cloudflare Zero Trust]: https://www.cloudflare.com/products/zero-trust/
-[OpenID Connect 1.0]: ../introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

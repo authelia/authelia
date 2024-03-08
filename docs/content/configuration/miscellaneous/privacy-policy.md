@@ -16,7 +16,7 @@ toc: true
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 privacy_policy:
   enabled: false
   require_user_acceptance: false

@@ -42,7 +42,7 @@ page for more information on how to become a sponsor.
 
 Our [apt repository](https://apt.authelia.com) is hosted thanks to [Balto](https://www.getbalto.com/?from=Authelia).
 
-{{< figure src="/images/logos/balto.svg" alt="Balto" width="193" style="padding-right: 10px"  ignoreStaticImages="false" >}}
+{{< inline-svg src="svgs/logos/balto.svg" alt="Balto" style="padding-right: 10px" class="svg-inline-custom" ignoreStaticImages="false" >}}
 
 ### Buildkite
 
@@ -57,7 +57,7 @@ Our [localization platform](https://translate.authelia.com) is hosted by [Crowdi
 
 Our development IDE's are provided by [JetBrains](https://www.jetbrains.com/?from=Authelia).
 
-{{< figure src="/images/logos/jetbrains.svg" alt="JetBrains" width="50" style="padding-right: 10px" ignoreStaticImages="false" >}}
+{{< inline-svg src="svgs/logos/jetbrains.svg" alt="JetBrains" width="50" style="padding-right: 10px" class="svg-inline-custom" ignoreStaticImages="false" >}}
 
 ### Microsoft
 
@@ -65,9 +65,9 @@ Our pipeline agents which we rely on for productivity are hosted on [Azure](http
 and our [git repositories](https://github.com/authelia) are hosted on [GitHub](https://github.com/?from=Authela)
 which are both [Microsoft](https://www.microsoft.com/?from=Authelia) products.
 
-{{< figure src="/images/logos/microsoft.svg" alt="Microsoft" width="234.45" style="padding-right: 10px" ignoreStaticImages="false" >}}
+{{< inline-svg src="svgs/logos/microsoft.svg" alt="Microsoft" width="234" style="padding-right: 10px" class="svg-inline-custom" ignoreStaticImages="false" >}}
 
-{{< figure src="/images/logos/azure.svg" alt="Azure" width="173.55" style="padding-right: 10px" ignoreStaticImages="false" >}}
+{{< inline-svg src="svgs/logos/azure.svg" alt="Azure" width="173" style="padding-right: 10px" class="svg-inline-custom" ignoreStaticImages="false" >}}
 
 ### Netlify
 

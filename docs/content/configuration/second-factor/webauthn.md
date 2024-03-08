@@ -18,7 +18,7 @@ aliases:
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 webauthn:
   disable: false
   display_name: 'Authelia'

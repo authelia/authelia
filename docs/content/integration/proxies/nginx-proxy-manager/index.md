@@ -21,10 +21,10 @@ method of deploying a proxy. These guides show a suggested setup only and you ne
 configuration and customize it to your needs. To-that-end we include links to the official proxy documentation
 throughout this documentation and in the [See Also](#see-also) section.*
 
-## Get Started
+## Get started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get Started](../../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get started](../../prologue/get-started.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Requirements
@@ -68,7 +68,7 @@ following are the assumptions we make:
 
 The following docker compose example has various applications suitable for setting up an example environment.
 
-{{< details "docker-compose.yaml" >}}
+{{< details "docker-compose.yml" >}}
 ```yaml
 ---
 version: "3.8"
@@ -192,11 +192,11 @@ location / {
 
 Authelia Portal `Details` tab example:
 
-{{< figure src="authelia.details.png" alt="Step 2" width="450" >}}
+{{< picture src="authelia.details.png" alt="Step 2" width="450" >}}
 
 Authelia Portal `Advanced` tab example:
 
-{{< figure src="authelia.advanced.png" alt="Step 4" width="450" >}}
+{{< picture src="authelia.advanced.png" alt="Step 4" width="450" >}}
 
 ### Protected Application
 
@@ -226,11 +226,11 @@ location / {
 
 Protected Application (Nextcloud) `Details` tab example:
 
-{{< figure src="nextcloud.details.png" alt="Step 2" width="450" >}}
+{{< picture src="nextcloud.details.png" alt="Step 2" width="450" >}}
 
 Protected Application (Nextcloud) `Advanced` tab example:
 
-{{< figure src="protectedapp.advanced.png" alt="Step 4" width="450" >}}
+{{< picture src="protectedapp.advanced.png" alt="Step 4" width="450" >}}
 
 #### Protected Application Custom Locations
 
@@ -249,13 +249,13 @@ location /custom {
 }
 ```
 
-{{< figure src="protectedapp.customlocation.png" alt="Custom Location" width="450" >}}
+{{< picture src="protectedapp.customlocation.png" alt="Custom Location" width="450" >}}
 
 #### Proxy Hosts Screenshot
 
 The following screenshot shows an example of following the directions for the Authelia Portal and two applications:
 
-{{< figure src="proxyhosts.png" alt="Step 4" width="450" >}}
+{{< picture src="proxyhosts.png" alt="Step 4" width="450" >}}
 
 ## See Also
 

@@ -49,7 +49,7 @@ To configure [Organizr] to trust the `Remote-User` and `Remote-Email` header do 
    5. Override Logout: `Enabled`
    6. Logout URL: `https://auth.example.com/logout`
 
-{{< figure src="organizr.png" alt="Organizr" width="736" style="padding-right: 10px" >}}
+{{< picture src="organizr.png" alt="Organizr" width="736" style="padding-right: 10px" >}}
 
 ## See Also
 

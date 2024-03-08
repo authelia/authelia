@@ -28,7 +28,7 @@ and many only support SHA1.
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 totp:
   disable: false
   issuer: 'authelia.com'

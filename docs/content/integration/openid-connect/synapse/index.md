@@ -92,4 +92,4 @@ oidc_providers:
 
 [Authelia]: https://www.authelia.com
 [Synapse]: https://github.com/matrix-org/synapse
-[OpenID Connect 1.0]: ../introduction.md
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md

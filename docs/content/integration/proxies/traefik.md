@@ -31,10 +31,10 @@ You need the following to run __Authelia__ with [Traefik]:
 * [Traefik] [v2.4.1](https://github.com/traefik/traefik/releases/tag/v2.4.1) or greater if you wish to use
   [basic authentication](#basic-authentication)
 
-## Get Started
+## Get started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Trusted Proxies
@@ -70,7 +70,7 @@ The examples below assume you are using the default
 [Authz Endpoints Configuration](../../configuration/miscellaneous/server-endpoints-authz.md) or one similar to the
 following minimal configuration:
 
-```yaml
+```yaml {title="configuration.yml"}
 server:
   endpoints:
     authz:
@@ -122,7 +122,7 @@ following are the assumptions we make:
 This is an example configuration using [docker compose] labels:
 
 {{< details "docker-compose.yml" >}}
-```yaml
+```yaml {title="docker-compse.yml"}
 ---
 version: "3.8"
 networks:
@@ -259,7 +259,7 @@ This example uses a `docker-compose.yml` similar to the one above however it has
      `authelia-net@docker` service, and commenting the `authelia` service in the `http.service` section.
 
 {{< details "docker-compose.yml" >}}
-```yaml
+```yaml {title="docker-compse.yml"}
 ---
 version: "3.8"
 networks:
@@ -371,7 +371,7 @@ This file is part of the dynamic configuration and should have the path
 `${PWD}/data/traefik/config` in the docker compose above.
 
 {{< details "traefik.yml" >}}
-```yaml
+```yaml {title="traefik.yml"}
 ---
 entryPoints:
   web:
@@ -538,7 +538,7 @@ This can be avoided a couple different ways:
    * Utilise the [depends_on](https://docs.docker.com/compose/compose-file/#depends_on) option
 2. Define the __Authelia__ middleware on your [Traefik] container. See the below example.
 
-```yaml
+```yaml {title="docker-compose.yml"}
 - 'traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/authz/forward-auth'
 ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest this is
 ## configured in the Session Cookies section of the Authelia configuration.

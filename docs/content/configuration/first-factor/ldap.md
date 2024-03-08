@@ -19,7 +19,7 @@ aliases:
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 authentication_backend:
   ldap:
     address: 'ldap://127.0.0.1'

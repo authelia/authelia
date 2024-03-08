@@ -1,5 +1,6 @@
 ---
 title: "First Factor"
+name: "test"
 description: "Configuring Authelia First Factor Authentication."
 lead: "Authelia uses a username and password for a first factor method. This section describes configuring this."
 date: 2022-06-15T17:51:47+10:00
@@ -25,7 +26,7 @@ There are two ways to integrate *Authelia* with an authentication backend:
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 authentication_backend:
   refresh_interval: '5m'
   password_reset:

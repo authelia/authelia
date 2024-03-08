@@ -15,10 +15,10 @@ toc: true
 Authelia offers a [Helm Chart] which can make integration with [Kubernetes] much easier. It's currently considered beta
 status, and as such is subject to breaking changes.
 
-## Get Started
+## Get started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Repository

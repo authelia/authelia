@@ -1,16 +1,20 @@
 ---
 title: "Say hello to the new website 👋"
 description: "Introducing the new website"
-lead: "Introducing the new website"
-excerpt: "Introducing the new website"
+summary: "Introducing the new website"
 date: 2022-06-15T17:51:47+10:00
 draft: false
-images: []
+weight: 50
 categories: ["News"]
 tags: ["website"]
 contributors: ["James Elliott"]
 pinned: false
 homepage: false
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 We're pleased to have you take a look at our new website. It combines both the main landing site and the documentation

@@ -22,10 +22,10 @@ method of deploying a proxy. These guides show a suggested setup only and you ne
 configuration and customize it to your needs. To-that-end we include links to the official proxy documentation
 throughout this documentation and in the [See Also](#see-also) section.*
 
-## Get Started
+## Get started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Requirements
@@ -85,7 +85,7 @@ The examples below assume you are using the default
 [Authz Endpoints Configuration](../../configuration/miscellaneous/server-endpoints-authz.md) or one similar to the
 following minimal configuration:
 
-```yaml
+```yaml {title="configuration.yml"}
 server:
   endpoints:
     authz:
@@ -106,8 +106,7 @@ they have several configuration examples in the `/config/nginx/proxy-confs` dire
 If you're looking for a more complete solution [linuxserver.io] also have an nginx container called [SWAG](swag.md)
 which includes ACME and various other useful utilities.
 
-{{< details "docker-compose.yaml" >}}
-```yaml
+```yaml {title="docker-compose.yml"}
 ---
 version: "3.8"
 
@@ -174,7 +173,6 @@ services:
       TZ: 'Australia/Melbourne'
 ...
 ```
-{{< /details >}}
 
 ## Configuration
 
@@ -213,8 +211,7 @@ The directive `include /config/nginx/snippets/authelia-authrequest.conf;` within
 [NGINX] to perform authorization with Authelia. Every `location` block you wish for Authelia to perform authorization for
 should include this directive.
 
-{{< details "/config/nginx/site-confs/auth.conf (Authelia Portal)" >}}
-```nginx
+```nginx {title="site-confs/auth.conf"}
 server {
     listen 80;
     server_name auth.*;
@@ -244,10 +241,8 @@ server {
     }
 }
 ```
-{{< /details >}}
 
-{{< details "/config/nginx/site-confs/nextcloud.conf (Protected Application - Nextcloud)" >}}
-```nginx
+```nginx {title="site-confs/nextcloud.conf"}
 server {
     listen 80;
     server_name nextcloud.*;
@@ -271,10 +266,8 @@ server {
     }
 }
 ```
-{{< /details >}}
 
-{{< details "/config/nginx/site-confs/whoami.conf (Protected Application - whoami)" >}}
-```nginx
+```nginx {title="site-confs/whoami.conf"}
 server {
     listen 80;
     server_name whoami.*;
@@ -298,7 +291,6 @@ server {
     }
 }
 ```
-{{< /details >}}
 
 ### HTTP Basic Authentication Example
 
@@ -311,8 +303,7 @@ the configuration for TLS or SSL but is not included as part of the examples.
 The Authelia Portal file from the [Standard Example](#standard-example) configuration can be reused for this example as
 such it isn't repeated.
 
-{{< details "/config/nginx/site-confs/nextcloud.conf (Protected Application - Nextcloud)" >}}
-```nginx
+```nginx {title="site-confs/nextcloud.conf"}
 server {
     listen 80;
     server_name nextcloud.*;
@@ -336,7 +327,6 @@ server {
     }
 }
 ```
-{{< /details >}}
 
 ### Supporting Configuration Snippets
 
@@ -356,8 +346,7 @@ The following is an example `proxy.conf`. The important directives include the `
 
 Generally this variant is the suggested variant.
 
-{{< details "/config/nginx/snippets/proxy.conf" >}}
-```nginx
+```nginx {title="proxy.conf"}
 ## Headers
 proxy_set_header Host $host;
 proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
@@ -395,15 +384,13 @@ proxy_read_timeout 360;
 proxy_send_timeout 360;
 proxy_connect_timeout 360;
 ```
-{{< /details >}}
 
 ##### Headers Only Variant
 
 Generally the [standard variant](#standard-variant) is the suggested variant. This variant only contains the required
 headers for Authelia to operate.
 
-{{< details "/config/nginx/snippets/proxy.conf" >}}
-```nginx
+```nginx {title="proxy.conf"}
 ## Headers
 proxy_set_header Host $host;
 proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
@@ -413,15 +400,13 @@ proxy_set_header X-Forwarded-URI $request_uri;
 proxy_set_header X-Forwarded-Ssl on;
 proxy_set_header X-Forwarded-For $remote_addr;
 ```
-{{< /details >}}
 
 #### authelia-location.conf
 
 *The following snippet is used within the `server` block of a virtual host as a supporting endpoint used by
 `auth_request` and is paired with [authelia-authrequest.conf](#authelia-authrequestconf).*
 
-{{< details "/config/nginx/snippets/authelia-location.conf" >}}
-```nginx
+```nginx {title="authelia-location.conf"}
 set $upstream_authelia http://authelia:9091/api/authz/auth-request;
 
 ## Virtual endpoint created by nginx to forward auth requests.
@@ -455,15 +440,13 @@ location /internal/authelia/authz {
     proxy_connect_timeout 240;
 }
 ```
-{{< /details >}}
 
 #### authelia-authrequest.conf
 
 *The following snippet is used within a `location` block of a virtual host which uses the appropriate location block
 and is paired with [authelia-location.conf](#authelia-locationconf).*
 
-{{< details "/config/nginx/snippets/authelia-authrequest.conf" >}}
-```nginx
+```nginx {title="authelia-authrequest.conf"}
 ## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
 auth_request /internal/authelia/authz;
 
@@ -497,7 +480,6 @@ error_page 401 =302 $redirection_url;
 ## URL parameter set to $target_url. This requires users update 'auth.example.com/' with their external authelia URL.
 # error_page 401 =302 https://auth.example.com/?rd=$target_url;
 ```
-{{< /details >}}
 
 #### authelia-location-basic.conf
 
@@ -510,8 +492,7 @@ endpoint. It's recommended to use [authelia-location.conf](#authelia-locationcon
 _**Note:** This example assumes you configured an authz endpoint with the name `auth-request/basic` and the
 implementation `AuthRequest` which contains the `HeaderAuthorization` and `HeaderProxyAuthorization` strategies._
 
-{{< details "/config/nginx/snippets/authelia-location-basic.conf" >}}
-```nginx
+```nginx {title="authelia-location-basic.conf"}
 set $upstream_authelia http://authelia:9091/api/authz/auth-request/basic;
 
 # Virtual endpoint created by nginx to forward auth requests.
@@ -550,7 +531,6 @@ location /internal/authelia/authz/basic {
     proxy_connect_timeout 240;
 }
 ```
-{{< /details >}}
 
 #### authelia-authrequest-basic.conf
 
@@ -560,8 +540,7 @@ required. It's only used if you want to only allow
 [HTTP Basic Authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication) for a particular
 endpoint. It's recommended to use [authelia-authrequest.conf](#authelia-authrequestconf) instead.*
 
-{{< details "/config/nginx/snippets/authelia-authrequest-basic.conf" >}}
-```nginx
+```nginx {title="authelia-authrequest-basic.conf"}
 ## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
 auth_request /internal/authelia/authz/basic;
 
@@ -577,7 +556,6 @@ proxy_set_header Remote-Groups $groups;
 proxy_set_header Remote-Name $name;
 proxy_set_header Remote-Email $email;
 ```
-{{< /details >}}
 
 #### authelia-location-detect.conf
 
@@ -587,8 +565,7 @@ snippet is rarely required. It's only used if you want to conditionally require
 [HTTP Basic Authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication) for a particular
 endpoint. It's recommended to use [authelia-location.conf](#authelia-locationconf) instead.*
 
-{{< details "/config/nginx/snippets/authelia-location-detect.conf" >}}
-```nginx
+```nginx {title="authelia-location-detect.conf"}
 include /config/nginx/snippets/authelia-location.conf;
 
 set $is_basic_auth ""; # false value
@@ -619,7 +596,6 @@ location  /internal/authelia/authz/detect {
     return 302 https://auth.example.com/$is_args$args;
 }
 ```
-{{< /details >}}
 
 #### authelia-authrequest-detect.conf
 
@@ -629,8 +605,7 @@ required. It's only used if you want to conditionally require
 [HTTP Basic Authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication) for a particular
 endpoint. It's recommended to use [authelia-authrequest.conf](#authelia-authrequestconf) instead.*
 
-{{< details "/config/nginx/snippets/authelia-authrequest-detect.conf" >}}
-```nginx
+```nginx {title="authelia-authrequest-detect.conf"}
 ## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
 auth_request /internal/authelia/authz;
 
@@ -655,7 +630,6 @@ proxy_set_header Remote-Email $email;
 ## If the subreqest returns 200 pass to the backend, if the subrequest returns 401 redirect to the portal.
 error_page 401 =302 /internal/authelia/authz/detect?rd=$target_url;
 ```
-{{< /details >}}
 
 ## See Also
 

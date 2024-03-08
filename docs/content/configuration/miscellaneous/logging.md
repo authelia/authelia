@@ -20,7 +20,7 @@ The logging section tunes the logging settings.
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 log:
   level: 'info'
   format: 'text'

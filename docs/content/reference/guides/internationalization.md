@@ -16,4 +16,4 @@ toc: true
 
 {{% table-i18n-locales %}}
 
-Information about overriding the web portal internationalization is available from the [Server Asset Overrides Reference Guide](server-asset-overrides.md).
+Information about overriding the web portal internationalization is available from the [Server Asset Overrides Reference Guide](./server-asset-overrides.md).

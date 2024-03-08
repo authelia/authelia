@@ -14,7 +14,7 @@ aliases:
   - /i/k8s
 ---
 
-{{< figure src="/images/logos/kubernetes.png" alt="Kubernetes" width="100" style="padding-right: 10px" ignoreStaticImages="false" >}}
+{{< figure src="images/logos/kubernetes.png" alt="Kubernetes" width="100" style="padding-right: 10px" ignoreStaticImages="false" >}}
 
 ## UNDER CONSTRUCTION
 
@@ -27,10 +27,10 @@ The following areas are actively being worked on for Kubernetes:
 
 Users are welcome to reach out directly by using any of our various [contact options](../../information/contact.md).
 
-## Get Started
+## Get started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Important Notes

@@ -20,7 +20,7 @@ aliases:
 
 {{< config-alert-example >}}
 
-```yaml
+```yaml {title="configuration.yml"}
 password_policy:
   standard:
     enabled: false
