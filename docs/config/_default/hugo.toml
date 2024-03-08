@@ -28,8 +28,8 @@ copyRight = "Copyright (c) 2016-%s Authelia"
 
 # remove .{ext} from text/netlify
 [mediaTypes."text/netlify"]
-suffixes = [""]
-delimiter = ""
+  suffixes = [""]
+  delimiter = ""
 
 [outputFormats.searchIndex]
   mediaType = "application/json"
