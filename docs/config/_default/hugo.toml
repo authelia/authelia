@@ -23,13 +23,8 @@ copyRight = "Copyright (c) 2016-%s Authelia"
   enable = true
 
 [outputs]
-  home = ["HTML", "RSS", "searchIndex", "REDIRECTS", "HEADERS"]
+  home = ["HTML", "RSS", "searchIndex"]
   section = ["HTML", "RSS", "SITEMAP"]
-
-# remove .{ext} from text/netlify
-[mediaTypes."text/netlify"]
-  suffixes = [""]
-  delimiter = ""
 
 [outputFormats.searchIndex]
   mediaType = "application/json"
@@ -45,20 +40,6 @@ copyRight = "Copyright (c) 2016-%s Authelia"
   isPlainText = true
   noUgly = true
   rel  = "sitemap"
-
-# add output format for netlify _redirects
-[outputFormats.REDIRECTS]
-  mediaType = "text/netlify"
-  baseName = "_redirects"
-  isPlainText = true
-  notAlternative = true
-
-# add output format for netlify _headers
-[outputFormats.HEADERS]
-  mediaType = "text/netlify"
-  baseName = "_headers"
-  isPlainText = true
-  notAlternative = true
 
 [sitemap]
   changefreq = "monthly"
