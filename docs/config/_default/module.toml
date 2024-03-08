@@ -27,8 +27,16 @@
   target = "assets/svgs/tabler-icons"
 
 [[mounts]]
+  source = "node_modules/bootstrap-icons/font/fonts"
+  target = "static/fonts"
+
+[[mounts]]
   source = "assets"
   target = "assets"
+
+[[mounts]]
+  source = 'static'
+  target = 'assets'
 
 ## content
 [[mounts]]

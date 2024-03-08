@@ -21,13 +21,17 @@
   </div>
   {{ end -}}
   {{ if eq $.Site.Language.LanguageName "English" }}
-  {{ partial "prefooter/en.html" . -}}
+  {{ partial "prefooter/features/en.html" . -}}
   {{ end }}
 {{ end }}
 
 {{ define "sidebar-footer" }}
 {{ if site.Params.doks.sectionFooter -}}
-{{ partial "main/support.html" . -}}
+{{ if eq $.Site.Language.LanguageName "English" }}
+{{ partial "prefooter/support/en.html" . -}}
+{{ end }}
 {{ end -}}
-{{ partial "main/blog.html" . -}}
+{{ if eq $.Site.Language.LanguageName "English" }}
+{{ partial "prefooter/blog/en.html" . -}}
+{{ end }}
 {{ end }}
