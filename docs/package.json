@@ -1,77 +1,52 @@
 {
-  "name": "@hyas/doks",
+  "name": "authelia",
+  "version": "0.0.0",
   "description": "Doks theme",
-  "version": "0.5.0",
-  "engines": {
-    "node": ">=18.19.1",
-    "pnpm": ">=8.14.1"
-  },
-  "browserslist": [
-    "defaults"
-  ],
-  "repository": "https://github.com/h-enk/doks",
+  "author": "Hyas",
   "license": "MIT",
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
-    "init": "shx rm -rf .git && git init -b main",
+    "dev": "exec-bin node_modules/.bin/hugo/hugo server --bind=0.0.0.0 --disableFastRender --baseURL=http://localhost --noHTTPCache",
+    "dev:drafts": "exec-bin node_modules/.bin/hugo/hugo server --bind=0.0.0.0 --disableFastRender --baseURL=http://localhost --noHTTPCache --buildDrafts",
     "create": "exec-bin node_modules/.bin/hugo/hugo new",
-    "prestart": "npm run clean",
-    "start": "exec-bin node_modules/.bin/hugo/hugo server --bind=0.0.0.0 --disableFastRender",
-    "prebuild": "npm run clean",
-    "build": "exec-bin node_modules/.bin/hugo/hugo --gc --minify",
-    "build:preview": "npm run build -D -F",
-    "clean": "shx rm -rf public resources",
-    "clean:install": "shx rm -rf package-lock.json node_modules ",
-    "lint": "npm run -s lint:scripts && npm run -s lint:styles && npm run -s lint:markdown",
-    "lint:scripts": "eslint assets/js config functions",
-    "lint:styles": "stylelint \"assets/scss/**/*.{css,sass,scss,sss,less}\"",
-    "lint:markdown": "markdownlint-cli2 \"*.md\" \"content/**/*.md\"",
-    "lint:markdown-fix": "markdownlint-cli2-fix \"*.md\" \"content/**/*.md\"",
-    "server": "exec-bin node_modules/.bin/hugo/hugo server",
-    "test": "npm run -s lint",
-    "env": "env",
-    "precheck": "npm version",
-    "check": "exec-bin node_modules/.bin/hugo/hugo version",
-    "copy:katex-fonts": "shx cp ./node_modules/katex/dist/fonts/* ./static/fonts/",
-    "postinstall": "hugo-installer --version otherDependencies.hugo --extended --destination node_modules/.bin/hugo",
-    "version": "auto-changelog -p && git add CHANGELOG.md"
+    "lint": "npm run lint:scripts && npm run lint:styles && npm run lint:markdown",
+    "lint:scripts": "eslint --cache assets/js",
+    "lint:styles": "stylelint --cache \\\"assets/scss/**/*.{css,sass,scss}\\\"",
+    "lint:markdown": "markdownlint-cli2 \\\"*.md\\\" \\\"content/**/*.md\\\"",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "exec-bin node_modules/.bin/hugo/hugo --minify",
+    "preview": "http-server --gzip --brotli --ext=html --cors",
+    "clean": "npm run clean:build && npm run clean:lint && npm run clean:install",
+    "clean:build": "shx rm -rf public resources .hugo_build.lock",
+    "clean:install": "shx rm -rf node_modules package-lock.json yarn.lock pnpm-lock.yaml",
+    "clean:lint": "shx rm -rf .eslintcache .stylelintcache",
+    "preinfo": "npm version",
+    "info": "npm list",
+    "postinfo": "exec-bin node_modules/.bin/hugo/hugo version",
+    "postinstall": "hugo-installer --version otherDependencies.hugo --extended --destination node_modules/.bin/hugo"
+  },
+  "dependencies": {
+    "@hyas/doks-core": "^1.4.1",
+    "@hyas/images": "^3.1.0",
+    "@hyas/inline-svg": "^1.0.5",
+    "@hyas/seo": "^2.1.0",
+    "@tabler/icons": "^2.40.0",
+    "bootstrap-icons": "1.11.3",
+    "exec-bin": "^1.0.0",
+    "gethyas": "^2.2.2",
+    "hugo-installer": "^4.0.1"
   },
   "devDependencies": {
-    "@babel/cli": "7.23.9",
-    "@babel/core": "7.24.0",
-    "@babel/preset-env": "7.24.0",
-    "@fullhuman/postcss-purgecss": "5.0.0",
-    "@hyas/images": "0.3.2",
-    "@popperjs/core": "2.11.8",
-    "auto-changelog": "2.4.0",
-    "autoprefixer": "10.4.18",
-    "bootstrap": "5.3.3",
-    "bootstrap-icons": "1.11.3",
-    "clipboard": "2.0.11",
-    "eslint": "8.57.0",
-    "exec-bin": "1.0.0",
-    "flexsearch": "0.7.34",
-    "highlight.js": "11.9.0",
-    "hugo-installer": "4.0.1",
-    "instant.page": "5.2.0",
-    "katex": "0.16.9",
-    "lazysizes": "5.3.2",
-    "markdownlint-cli2": "0.12.1",
-    "netlify-plugin-submit-sitemap": "0.4.0",
-    "node-fetch": "3.3.2",
-    "postcss": "8.4.35",
-    "postcss-cli": "11.0.0",
-    "purgecss-whitelister": "2.4.0",
-    "shx": "0.3.4",
-    "stylelint": "16.2.1",
-    "stylelint-config-standard-scss": "13.0.0"
+    "shx": "^0.3.4"
   },
   "otherDependencies": {
     "hugo": "0.123.7"
   },
   "overrides": {
     "semver": "^7.5.4"
-  }
+  },
+  "engines": {
+    "node": ">=18.14.1",
+    "pnpm": ">=8.10.0"
+  },
+  "packageManager": "pnpm@8.12.0"
 }

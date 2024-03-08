@@ -5,3 +5,8 @@
   [en.params]
     languageISO = "EN"
     languageTag = "en-US"
+    footer = 'Powered by <a class="text-muted" href="https://www.netlify.com/">Netlify</a>, <a class="text-muted" href="https://gohugo.io/">Hugo</a>, and <a class="text-muted" href="https://gethyas.com/">Hyas</a>'
+    copyRight = 'Copyright © 2016-%s <a class="text-muted" href="https://github.com/authelia">Authelia</a>'
+    alertText = '<a class="alert-link stretched-link fw-normal" href="/blog/example-post/">Doks version 1.0 just shipped!</a>'
+    lead = 'Authelia is an open-source <a href="./overview/authentication/introduction/">authentication</a> and <a href="./overview/authorization/access-control/">authorization</a> server and portal fulfilling the identity and access management (IAM) role of information security in providing <a href="./overview/authentication/introduction/">multi-factor authentication</a> and single sign-on (SSO) for your applications via a web portal. It acts as a companion for <a href="./overview/prologue/supported-proxies/">common reverse proxies</a>.'
+    licenseLead = 'Open-source Apache 2.0 Licensed. <a href="https://github.com/authelia/authelia">GitHub v%s</a>'
