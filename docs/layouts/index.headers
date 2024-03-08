@@ -1,5 +1,4 @@
 /*
-  # Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
   X-XSS-Protection: 1; mode=block
@@ -8,6 +7,7 @@
   Referrer-Policy: strict-origin
   Permissions-Policy: geolocation=(self), microphone=(), camera=()
   Access-Control-Allow-Origin: *
+  X-Authelia-Version: 1
 
 /client/*
   Content-Type: text/html; charset=UTF-8
