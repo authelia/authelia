@@ -46,15 +46,14 @@ mainSections = ["overview", "configuration", "integration", "contributing", "roa
   # Nav
   # sectionNav = ["docs"] # ["docs"] (default) or list of sections (e.g. ["docs", "guides"])
   sectionNav = ["overview", "configuration", "integration", "contributing", "roadmap", "reference"]
-
   toTopButton = true # false (default) or true
   breadcrumbTrail = true # false (default) or true
   headlineHash = true # true (default) or false
   scrollSpy = true # true (default) or false
 
   # Multilingual
-  multilingualMode = true # false (default) or true
-  showMissingLanguages = false # whether or not to show untranslated languages in the language menu; true (default) or false
+  multilingualMode = false # false (default) or true
+  showMissingLanguages = true # whether or not to show untranslated languages in the language menu; true (default) or false
 
   # Versioning
   docsVersioning = false # false (default) or true

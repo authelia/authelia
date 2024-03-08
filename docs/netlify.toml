@@ -3,8 +3,8 @@
   functions = "functions"
 
 [build.environment]
-  NODE_VERSION = "20.10.0"
-  NPM_VERSION = "10.2.3"
+  NODE_VERSION = "18.16.1"
+  NPM_VERSION = "9.5.1"
 
 [context.production]
   command = "pnpm build"
@@ -31,4 +31,18 @@
 
 # Redirects and rewrites — https://docs.netlify.com/routing/redirects/#syntax-for-the-netlify-configuration-file
 
-
+# Custom headers — https://docs.netlify.com/routing/headers/#syntax-for-the-netlify-configuration-file
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Content-Security-Policy = "default-src 'self'; manifest-src 'self'; connect-src 'self'; font-src 'self'; img-src 'self' https://avatars.githubusercontent.com data:; script-src 'self' 'nonce-dXNlcj0iaGVsbG8iLGRvbWFpbj0iaGVua3ZlcmxpbmRlLmNvbSIsZG9jdW1lbnQud3JpdGUodXNlcisiQCIrZG9tYWluKTs=' 'sha256-aWZ3y/RxbBYKHXH0z8+8ljrHG1mSBvyzSfxSMjBSaXk='; style-src 'self'"
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "strict-origin"
+    Permissions-Policy = "geolocation=(self), microphone=(), camera=()"
+    Cache-Control= '''
+    public,
+    max-age=31536000'''
+    Access-Control-Allow-Origin = "*"
