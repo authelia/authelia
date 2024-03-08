@@ -26,6 +26,11 @@ copyRight = "Copyright (c) 2016-%s Authelia"
   home = ["HTML", "RSS", "searchIndex", "REDIRECTS", "HEADERS"]
   section = ["HTML", "RSS", "SITEMAP"]
 
+# remove .{ext} from text/netlify
+[mediaTypes."text/netlify"]
+suffixes = [""]
+delimiter = ""
+
 [outputFormats.searchIndex]
   mediaType = "application/json"
   baseName = "search-index"
