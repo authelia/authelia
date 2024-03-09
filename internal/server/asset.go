@@ -80,9 +80,11 @@ func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 	}
 }
 
+//nolint:gocyclo
 func newLocalesPathResolver() func(ctx *fasthttp.RequestCtx) (supported bool, asset string) {
 	var (
 		languages, dirs []string
+		aliases         = map[string]string{}
 	)
 
 	entries, err := locales.ReadDir("locales")
@@ -108,18 +110,22 @@ func newLocalesPathResolver() func(ctx *fasthttp.RequestCtx) (supported bool, as
 		}
 	}
 
-	aliases := map[string]string{
-		"ar": "ar-SA",
-		"cs": "cs-CZ",
-		"da": "da-DK",
-		"el": "el-GR",
-		"ja": "ja-JP",
-		"no": "nb",
-		"sv": "sv-SE",
-		"sl": "sl-SI",
-		"uk": "uk-UA",
-		"zh": "zh-CN",
+	// generate list of macro to micro locale aliases.
+	if localeInfo, err := utils.GetLanguagesFromEmbedFS(locales); err != nil {
+		for _, v := range localeInfo.Languages {
+			if v.Parent == "" {
+				continue
+			}
+
+			_, ok := aliases[v.Parent]
+
+			if !ok {
+				aliases[v.Parent] = v.Locale
+			}
+		}
 	}
+
+	aliases["no"] = "nb"
 
 	return func(ctx *fasthttp.RequestCtx) (supported bool, asset string) {
 		var language, namespace, variant, locale string
@@ -255,42 +261,22 @@ func hfsHandleErr(ctx *fasthttp.RequestCtx, err error) {
 
 // newLocalesListHandler handles request for obtaining the available locales in backend.
 func newLocalesListHandler() (handler fasthttp.RequestHandler) {
-	etags := map[string][]byte{}
-	getEmbedETags(locales, "locales", etags)
+	var (
+		data []byte
+		err  error
+	)
 
-	// getAssetName := newLocalesPathResolver().
+	localeInfo, err := utils.GetLanguagesFromEmbedFS(locales)
+	if err != nil {
+		panic(errCantLoadLocaleInfo + err.Error())
+	}
+
+	data, err = json.Marshal(middlewares.OKResponse{Status: "OK", Data: localeInfo})
+	if err != nil {
+		panic(errCantLoadLocaleInfo + err.Error())
+	}
 
 	return func(ctx *fasthttp.RequestCtx) {
-		var (
-			data []byte
-			err  error
-		)
-		// TODO: add etag support
-		// if etag, ok := etags[asset]; ok {
-		// 	ctx.Response.Header.SetBytesKV(headerETag, etag)
-		// 	ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlETaggedAssets)
-
-		// 	if bytes.Equal(etag, ctx.Request.Header.PeekBytes(headerIfNoneMatch)) {
-		// 		ctx.SetStatusCode(fasthttp.StatusNotModified)
-
-		// 		return
-		// 	}
-		// }.
-
-		localeInfo, err := utils.GetLanguagesFromEmbedFS(locales)
-		if err != nil {
-			handlers.SetStatusCodeResponse(ctx, fasthttp.StatusNotFound)
-
-			return
-		}
-
-		// TODO: log error ?
-		data, err = json.Marshal(middlewares.OKResponse{Status: "OK", Data: localeInfo})
-		if err != nil {
-			handlers.SetStatusCodeResponse(ctx, fasthttp.StatusInternalServerError)
-			return
-		}
-
 		middlewares.SetStandardSecurityHeaders(ctx)
 		middlewares.SetContentTypeApplicationJSON(ctx)
 
