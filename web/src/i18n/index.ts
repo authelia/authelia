@@ -139,6 +139,11 @@ i18n.use(Backend)
 
 export default i18n;
 
+// supportedLngsNames contains the list of the supported languages/locales
+// each element of the list contains:
+//  - lng: locale name (ie "en-AU")
+//  - name: the display name of the locale (ie "English")
+//  - parent: the parent/base language of this locales, it can be an empty string if the locale is root
 export const supportedLngsNames = [
     { lng: "en", name: "English", parent: "" },
     { lng: "ar", name: "العربية", parent: "" },
