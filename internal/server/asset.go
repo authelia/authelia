@@ -111,7 +111,7 @@ func newLocalesPathResolver() func(ctx *fasthttp.RequestCtx) (supported bool, as
 	}
 
 	// generate list of macro to micro locale aliases.
-	if localeInfo, err := utils.GetLanguagesFromEmbedFS(locales); err != nil {
+	if localeInfo, err := utils.GetLanguagesFromEmbedFS(locales); err == nil {
 		for _, v := range localeInfo.Languages {
 			if v.Parent == "" {
 				continue
@@ -266,12 +266,7 @@ func newLocalesListHandler() (handler fasthttp.RequestHandler) {
 		err  error
 	)
 
-	localeInfo, err := utils.GetLanguagesFromEmbedFS(locales)
-	if err != nil {
-		panic(errCantLoadLocaleInfo + err.Error())
-	}
-
-	data, err = json.Marshal(middlewares.OKResponse{Status: "OK", Data: localeInfo})
+	data, etag, err := getLocaleJSONandHash()
 	if err != nil {
 		panic(errCantLoadLocaleInfo + err.Error())
 	}
@@ -279,6 +274,14 @@ func newLocalesListHandler() (handler fasthttp.RequestHandler) {
 	return func(ctx *fasthttp.RequestCtx) {
 		middlewares.SetStandardSecurityHeaders(ctx)
 		middlewares.SetContentTypeApplicationJSON(ctx)
+
+		ctx.Response.Header.SetBytesKV(headerETag, etag)
+		ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlETaggedAssets)
+
+		if bytes.Equal(etag, ctx.Request.Header.PeekBytes(headerIfNoneMatch)) {
+			ctx.SetStatusCode(fasthttp.StatusNotModified)
+			return
+		}
 
 		switch {
 		case ctx.IsHead():
@@ -289,4 +292,23 @@ func newLocalesListHandler() (handler fasthttp.RequestHandler) {
 			ctx.SetBody(data)
 		}
 	}
+}
+
+// return locale information in JSON format, also return a hash to be used as etag.
+func getLocaleJSONandHash() ([]byte, []byte, error) {
+	localeInfo, err := utils.GetLanguagesFromEmbedFS(locales)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%s: %s", errCantLoadLocaleInfo, err)
+	}
+
+	data, err := json.Marshal(middlewares.OKResponse{Status: "OK", Data: localeInfo})
+	if err != nil {
+		return nil, nil, fmt.Errorf("%s: %s", errCantLoadLocaleInfo, err)
+	}
+
+	sum := sha1.New() //nolint:gosec // Usage is for collision avoidance not security.
+	sum.Write(data)
+	hash := []byte(fmt.Sprintf("%x", sum.Sum(nil)))
+
+	return data, hash, nil
 }
