@@ -121,7 +121,7 @@ func getLanguages(dir fs.FS) (languages *Languages, err error) {
 	for i, lang := range languages.Languages {
 		p := lang.Tag.Parent()
 
-		if p.String() == "und" || strings.Contains(p.String(), "-") {
+		if p.String() == undefinedLocaleTag || strings.Contains(p.String(), "-") {
 			continue
 		}
 
@@ -157,4 +157,21 @@ func getLanguages(dir fs.FS) (languages *Languages, err error) {
 	})
 
 	return languages, nil
+}
+
+// GetLocaleParentOrBaseString returns the base language specified locale.
+func GetLocaleParentOrBaseString(locale string) (string, error) {
+	tag, err := language.Parse(locale)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse language '%s': %w", locale, err)
+	}
+
+	parent := tag.Parent()
+
+	if parent.String() == undefinedLocaleTag || strings.Contains(parent.String(), "-") {
+		base, _ := tag.Base()
+		return base.String(), nil
+	}
+
+	return parent.String(), nil
 }

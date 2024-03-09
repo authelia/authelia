@@ -91,13 +91,8 @@ func newLocalesPathResolver() func(ctx *fasthttp.RequestCtx) (supported bool, as
 			if entry.IsDir() {
 				var lng string
 
-				switch len(entry.Name()) {
-				case 2:
-					lng = entry.Name()
-				case 0:
+				if lng, err = utils.GetLocaleParentOrBaseString(entry.Name()); err != nil {
 					continue
-				default:
-					lng = strings.SplitN(entry.Name(), "-", 2)[0]
 				}
 
 				if !utils.IsStringInSlice(entry.Name(), dirs) {
@@ -119,7 +114,7 @@ func newLocalesPathResolver() func(ctx *fasthttp.RequestCtx) (supported bool, as
 		"da": "da-DK",
 		"el": "el-GR",
 		"ja": "ja-JP",
-		"nb": "nb-NO",
+		"no": "nb",
 		"sv": "sv-SE",
 		"sl": "sl-SI",
 		"uk": "uk-UA",
@@ -131,10 +126,6 @@ func newLocalesPathResolver() func(ctx *fasthttp.RequestCtx) (supported bool, as
 
 		language, namespace = ctx.UserValue("language").(string), ctx.UserValue("namespace").(string)
 
-		if !utils.IsStringInSlice(language, languages) {
-			return false, ""
-		}
-
 		if v := ctx.UserValue("variant"); v != nil {
 			variant = v.(string)
 			locale = fmt.Sprintf("%s-%s", language, variant)
@@ -143,10 +134,20 @@ func newLocalesPathResolver() func(ctx *fasthttp.RequestCtx) (supported bool, as
 		}
 
 		ll := language + "-" + strings.ToUpper(language)
-		alias, ok := aliases[locale]
+
+		alias, useAlias := aliases[locale]
+		if useAlias {
+			if language, err = utils.GetLocaleParentOrBaseString(alias); err != nil {
+				return false, ""
+			}
+		}
+
+		if !utils.IsStringInSlice(language, languages) {
+			return false, ""
+		}
 
 		switch {
-		case ok:
+		case useAlias:
 			return true, fmt.Sprintf("locales/%s/%s.json", alias, namespace)
 		case utils.IsStringInSlice(locale, dirs):
 			return true, fmt.Sprintf("locales/%s/%s.json", locale, namespace)

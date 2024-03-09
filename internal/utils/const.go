@@ -141,4 +141,5 @@ const (
 	localeDefault          = "en"
 	localeNamespaceDefault = "portal"
 	extJSON                = ".json"
+	undefinedLocaleTag     = "und"
 )
