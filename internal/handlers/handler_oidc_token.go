@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/ory/fosite"
+	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -14,8 +14,8 @@ import (
 // https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
 func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
 	var (
-		requester fosite.AccessRequester
-		responder fosite.AccessResponder
+		requester oauthelia2.AccessRequester
+		responder oauthelia2.AccessResponder
 		err       error
 	)
 

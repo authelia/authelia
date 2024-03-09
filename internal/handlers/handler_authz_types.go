@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/url"
 
-	"github.com/ory/fosite"
+	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -83,7 +83,7 @@ type HeaderAuthorization struct {
 	Authorization *model.Authorization
 	Realm         string
 	Scope         string
-	Error         *fosite.RFC6749Error
+	Error         *oauthelia2.RFC6749Error
 }
 
 // AuthzConfig represents the configuration elements of the Authz type.

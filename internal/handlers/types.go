@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"net/url"
 
+	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/google/uuid"
-	"github.com/ory/fosite"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -190,4 +190,4 @@ type handlerAuthorizationConsent func(
 	ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
 	userSession session.UserSession, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request,
-	requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool)
+	requester oauthelia2.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool)

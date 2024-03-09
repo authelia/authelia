@@ -5,6 +5,7 @@
 //
 //	mockgen -package mocks -destination user_provider.go -mock_names UserProvider=MockUserProvider github.com/authelia/authelia/v4/internal/authentication UserProvider
 //
+
 // Package mocks is a generated GoMock package.
 package mocks
 

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ory/fosite"
-	"github.com/ory/fosite/handler/oauth2"
-	"github.com/ory/fosite/token/jwt"
+	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/handler/oauth2"
+	"authelia.com/provider/oauth2/token/jwt"
 	"github.com/ory/x/errorsx"
 	"github.com/pkg/errors"
 )
@@ -20,8 +20,8 @@ type JWTCoreStrategy struct {
 
 	HMACCoreStrategy *HMACCoreStrategy
 	Config           interface {
-		fosite.AccessTokenIssuerProvider
-		fosite.JWTScopeFieldProvider
+		oauthelia2.AccessTokenIssuerProvider
+		oauthelia2.JWTScopeFieldProvider
 	}
 }
 
@@ -37,21 +37,21 @@ func (s *JWTCoreStrategy) AccessTokenSignature(ctx context.Context, token string
 }
 
 // GenerateAccessToken implements oauth2.AccessTokenStrategy.
-func (s *JWTCoreStrategy) GenerateAccessToken(ctx context.Context, requester fosite.Requester) (token string, signature string, err error) {
+func (s *JWTCoreStrategy) GenerateAccessToken(ctx context.Context, requester oauthelia2.Requester) (token string, signature string, err error) {
 	var (
 		client Client
 		ok     bool
 	)
 
 	if client, ok = requester.GetClient().(Client); ok && client.GetJWTProfileOAuthAccessTokensEnabled() {
-		return s.GenerateJWT(ctx, fosite.AccessToken, requester)
+		return s.GenerateJWT(ctx, oauthelia2.AccessToken, requester)
 	}
 
 	return s.HMACCoreStrategy.GenerateAccessToken(ctx, requester)
 }
 
 // ValidateAccessToken implements oauth2.AccessTokenStrategy.
-func (s *JWTCoreStrategy) ValidateAccessToken(ctx context.Context, requester fosite.Requester, token string) (err error) {
+func (s *JWTCoreStrategy) ValidateAccessToken(ctx context.Context, requester oauthelia2.Requester, token string) (err error) {
 	if ok, _ := isAccessTokenJWT(token); ok {
 		_, err = jwtValidate(ctx, s.Signer, token)
 
@@ -67,12 +67,12 @@ func (s *JWTCoreStrategy) RefreshTokenSignature(ctx context.Context, token strin
 }
 
 // GenerateRefreshToken implements oauth2.RefreshTokenStrategy.
-func (s *JWTCoreStrategy) GenerateRefreshToken(ctx context.Context, req fosite.Requester) (token string, signature string, err error) {
+func (s *JWTCoreStrategy) GenerateRefreshToken(ctx context.Context, req oauthelia2.Requester) (token string, signature string, err error) {
 	return s.HMACCoreStrategy.GenerateRefreshToken(ctx, req)
 }
 
 // ValidateRefreshToken implements oauth2.RefreshTokenStrategy.
-func (s *JWTCoreStrategy) ValidateRefreshToken(ctx context.Context, req fosite.Requester, token string) error {
+func (s *JWTCoreStrategy) ValidateRefreshToken(ctx context.Context, req oauthelia2.Requester, token string) error {
 	return s.HMACCoreStrategy.ValidateRefreshToken(ctx, req, token)
 }
 
@@ -82,12 +82,12 @@ func (s *JWTCoreStrategy) AuthorizeCodeSignature(ctx context.Context, token stri
 }
 
 // GenerateAuthorizeCode implements oauth2.AuthorizeCodeStrategy.
-func (s *JWTCoreStrategy) GenerateAuthorizeCode(ctx context.Context, req fosite.Requester) (token string, signature string, err error) {
+func (s *JWTCoreStrategy) GenerateAuthorizeCode(ctx context.Context, req oauthelia2.Requester) (token string, signature string, err error) {
 	return s.HMACCoreStrategy.GenerateAuthorizeCode(ctx, req)
 }
 
 // ValidateAuthorizeCode implements oauth2.AuthorizeCodeStrategy.
-func (s *JWTCoreStrategy) ValidateAuthorizeCode(ctx context.Context, req fosite.Requester, token string) error {
+func (s *JWTCoreStrategy) ValidateAuthorizeCode(ctx context.Context, req oauthelia2.Requester, token string) error {
 	return s.HMACCoreStrategy.ValidateAuthorizeCode(ctx, req, token)
 }
 
@@ -105,7 +105,7 @@ func jwtValidate(ctx context.Context, signer jwt.Signer, rawToken string) (token
 	return token, nil
 }
 
-func (s *JWTCoreStrategy) GenerateJWT(ctx context.Context, tokenType fosite.TokenType, requester fosite.Requester) (string, string, error) {
+func (s *JWTCoreStrategy) GenerateJWT(ctx context.Context, tokenType oauthelia2.TokenType, requester oauthelia2.Requester) (string, string, error) {
 	var (
 		session oauth2.JWTSessionContainer
 		ok      bool
@@ -128,6 +128,7 @@ func (s *JWTCoreStrategy) GenerateJWT(ctx context.Context, tokenType fosite.Toke
 		).
 		WithDefaults(
 			time.Now().UTC(),
+			time.Now().UTC(),
 			s.Config.GetAccessTokenIssuer(ctx),
 		).
 		WithScopeField(
@@ -149,24 +150,24 @@ func isAccessTokenJWT(token string) (jwt bool, signature string) {
 	return true, parts[2]
 }
 
-func jwtValidationErrorToRFC6749Error(v *jwt.ValidationError) *fosite.RFC6749Error {
+func jwtValidationErrorToRFC6749Error(v *jwt.ValidationError) *oauthelia2.RFC6749Error {
 	switch {
 	case v == nil:
 		return nil
 	case v.Has(jwt.ValidationErrorMalformed):
-		return fosite.ErrInvalidTokenFormat
+		return oauthelia2.ErrInvalidTokenFormat
 	case v.Has(jwt.ValidationErrorUnverifiable | jwt.ValidationErrorSignatureInvalid):
-		return fosite.ErrTokenSignatureMismatch
+		return oauthelia2.ErrTokenSignatureMismatch
 	case v.Has(jwt.ValidationErrorExpired):
-		return fosite.ErrTokenExpired
+		return oauthelia2.ErrTokenExpired
 	case v.Has(jwt.ValidationErrorAudience |
 		jwt.ValidationErrorIssuedAt |
 		jwt.ValidationErrorIssuer |
 		jwt.ValidationErrorNotValidYet |
 		jwt.ValidationErrorId |
 		jwt.ValidationErrorClaimsInvalid):
-		return fosite.ErrTokenClaim
+		return oauthelia2.ErrTokenClaim
 	default:
-		return fosite.ErrRequestUnauthorized
+		return oauthelia2.ErrRequestUnauthorized
 	}
 }

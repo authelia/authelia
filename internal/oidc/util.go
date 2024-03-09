@@ -3,32 +3,33 @@ package oidc
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"sort"
 	"strings"
 	"time"
 
-	"github.com/go-jose/go-jose/v3"
+	oauthelia2 "authelia.com/provider/oauth2"
+	fjwt "authelia.com/provider/oauth2/token/jwt"
+	"github.com/go-jose/go-jose/v4"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/ory/fosite"
-	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/ory/x/errorsx"
 	"golang.org/x/text/language"
 )
 
 // IsPushedAuthorizedRequest returns true if the requester has a PushedAuthorizationRequest redirect_uri value.
-func IsPushedAuthorizedRequest(r fosite.Requester, prefix string) bool {
+func IsPushedAuthorizedRequest(r oauthelia2.Requester, prefix string) bool {
 	return strings.HasPrefix(r.GetRequestForm().Get(FormParameterRequestURI), prefix)
 }
 
-// MatchScopes uses a fosite.ScopeStrategy to check if scopes match.
-func MatchScopes(strategy fosite.ScopeStrategy, granted, scopes []string) error {
+// MatchScopes uses a oauthelia2.ScopeStrategy to check if scopes match.
+func MatchScopes(strategy oauthelia2.ScopeStrategy, granted, scopes []string) error {
 	for _, scope := range scopes {
 		if scope == "" {
 			continue
 		}
 
 		if !strategy(granted, scope) {
-			return errorsx.WithStack(fosite.ErrInvalidScope.WithHintf("The request scope '%s' has not been granted or is not allowed to be requested.", scope))
+			return errorsx.WithStack(oauthelia2.ErrInvalidScope.WithHintf("The request scope '%s' has not been granted or is not allowed to be requested.", scope))
 		}
 	}
 
@@ -137,22 +138,14 @@ func JTIFromMapClaims(m jwt.MapClaims) (jti string, err error) {
 	return jti, nil
 }
 
-func getExpiresIn(r fosite.Requester, key fosite.TokenType, defaultLifespan time.Duration, now time.Time) time.Duration {
-	if r.GetSession().GetExpiresAt(key).IsZero() {
-		return defaultLifespan
-	}
-
-	return time.Duration(r.GetSession().GetExpiresAt(key).UnixNano() - now.UnixNano())
-}
-
 // ErrorToDebugRFC6749Error converts the provided error to a *DebugRFC6749Error provided it is not nil and can be
-// cast as a *fosite.RFC6749Error.
+// cast as a *oauthelia2.RFC6749Error.
 func ErrorToDebugRFC6749Error(err error) (rfc error) {
 	if err == nil {
 		return nil
 	}
 
-	var e *fosite.RFC6749Error
+	var e *oauthelia2.RFC6749Error
 
 	if errors.As(err, &e) {
 		return &DebugRFC6749Error{e}
@@ -161,10 +154,10 @@ func ErrorToDebugRFC6749Error(err error) (rfc error) {
 	return err
 }
 
-// DebugRFC6749Error is a decorator type which makes the underlying *fosite.RFC6749Error expose debug information and
+// DebugRFC6749Error is a decorator type which makes the underlying *oauthelia2.RFC6749Error expose debug information and
 // show the full error description.
 type DebugRFC6749Error struct {
-	*fosite.RFC6749Error
+	*oauthelia2.RFC6749Error
 }
 
 // Error implements the builtin error interface and shows the error with its debug info and description.
@@ -173,140 +166,17 @@ func (err *DebugRFC6749Error) Error() string {
 }
 
 // GetLangFromRequester gets the expected language for a requester.
-func GetLangFromRequester(requester fosite.Requester) language.Tag {
+func GetLangFromRequester(requester oauthelia2.Requester) language.Tag {
 	var (
-		ctx fosite.G11NContext
+		ctx oauthelia2.G11NContext
 		ok  bool
 	)
 
-	if ctx, ok = requester.(fosite.G11NContext); ok {
+	if ctx, ok = requester.(oauthelia2.G11NContext); ok {
 		return ctx.GetLang()
 	}
 
 	return language.English
-}
-
-// IntrospectionResponseToMap converts a fosite.IntrospectionResponder into a map[string]any which is used to either
-// respond to the introspection request with JSON or a JWT.
-func IntrospectionResponseToMap(response fosite.IntrospectionResponder) (aud []string, introspection map[string]any) {
-	introspection = map[string]any{
-		ClaimActive: false,
-	}
-
-	if response == nil {
-		return nil, introspection
-	}
-
-	if response.IsActive() {
-		introspection[ClaimActive] = true
-
-		mapIntrospectionAccessRequesterToMap(response.GetAccessRequester(), introspection)
-	}
-
-	return sliceIntrospectionResponseToRequesterAudience(response), introspection
-}
-
-func mapIntrospectionAccessRequesterToMap(ar fosite.AccessRequester, introspection map[string]any) {
-	if ar == nil {
-		return
-	}
-
-	var (
-		ok  bool
-		aud fosite.Arguments
-	)
-
-	if client := ar.GetClient(); client != nil {
-		if id := client.GetID(); id != "" {
-			introspection[ClaimClientIdentifier] = id
-		}
-	}
-
-	if scope := ar.GetGrantedScopes(); len(scope) > 0 {
-		introspection[ClaimScope] = strings.Join(scope, " ")
-	}
-
-	if _, ok = introspection[ClaimIssuedAt]; !ok {
-		if rat := ar.GetRequestedAt(); !rat.IsZero() {
-			introspection[ClaimIssuedAt] = rat.Unix()
-		}
-	}
-
-	if aud = ar.GetGrantedAudience(); len(aud) > 0 {
-		introspection[ClaimAudience] = []string(aud)
-	}
-
-	mapIntrospectionAccessRequesterSessionToMap(ar, introspection)
-}
-
-func mapIntrospectionAccessRequesterSessionToMap(ar fosite.AccessRequester, introspection map[string]any) {
-	session := ar.GetSession()
-
-	if session == nil {
-		return
-	}
-
-	var (
-		ok    bool
-		extra fosite.ExtraClaimsSession
-	)
-
-	if extra, ok = session.(fosite.ExtraClaimsSession); ok {
-		claims := extra.GetExtraClaims()
-
-		for name, value := range claims {
-			switch name {
-			// We do not allow these to be set through extra claims.
-			case ClaimExpirationTime, ClaimClientIdentifier, ClaimScope, ClaimIssuedAt, ClaimSubject, ClaimAudience, ClaimUsername:
-				continue
-			default:
-				introspection[name] = value
-			}
-		}
-	}
-
-	if exp := session.GetExpiresAt(fosite.AccessToken); !exp.IsZero() {
-		introspection[ClaimExpirationTime] = exp.Unix()
-	}
-
-	var claimsSession IDTokenClaimsSession
-
-	if sub := session.GetSubject(); sub != "" {
-		introspection[ClaimSubject] = sub
-	} else if claimsSession, ok = session.(IDTokenClaimsSession); ok {
-		claims := claimsSession.GetIDTokenClaims()
-
-		if claims != nil && claims.Subject != "" {
-			introspection[ClaimSubject] = claims.Subject
-		}
-	}
-
-	if username := session.GetUsername(); username != "" {
-		introspection[ClaimUsername] = username
-	}
-}
-
-func sliceIntrospectionResponseToRequesterAudience(response fosite.IntrospectionResponder) (aud []string) {
-	if cr, ok := response.(ClientRequesterResponder); ok {
-		var client fosite.Client
-
-		if client = cr.GetClient(); client == nil {
-			return
-		}
-
-		return []string{client.GetID()}
-	}
-
-	return nil
-}
-
-func mapCopy(src map[string]any) (dst map[string]any) {
-	dst = make(map[string]any, len(src))
-	for k, v := range src {
-		dst[k] = v
-	}
-
-	return dst
 }
 
 func toStringSlice(v any) (result []string) {
@@ -367,9 +237,9 @@ func IsJWTProfileAccessToken(token *fjwt.Token) bool {
 	return ok && (typ == JWTHeaderTypeValueAccessTokenJWT)
 }
 
-// RFC6750Header turns a *fosite.RFC6749Error into the values for a RFC6750 format WWW-Authenticate Bearer response
+// RFC6750Header turns a *oauthelia2.RFC6749Error into the values for a RFC6750 format WWW-Authenticate Bearer response
 // header, excluding the Bearer prefix.
-func RFC6750Header(realm, scope string, err *fosite.RFC6749Error) string {
+func RFC6750Header(realm, scope string, err *oauthelia2.RFC6749Error) string {
 	values := err.ToValues()
 
 	if realm != "" {
@@ -432,7 +302,7 @@ func RFC6750Header(realm, scope string, err *fosite.RFC6749Error) string {
 }
 
 // AccessResponderToClearMap returns a clear friendly map copy of the responder map values.
-func AccessResponderToClearMap(responder fosite.AccessResponder) map[string]any {
+func AccessResponderToClearMap(responder oauthelia2.AccessResponder) map[string]any {
 	m := responder.ToMap()
 
 	data := make(map[string]any, len(m))
@@ -451,4 +321,79 @@ func AccessResponderToClearMap(responder fosite.AccessResponder) map[string]any 
 	}
 
 	return data
+}
+
+// PopulateClientCredentialsFlowSessionWithAccessRequest is used to configure a session when performing a client credentials grant.
+func PopulateClientCredentialsFlowSessionWithAccessRequest(ctx Context, client oauthelia2.Client, session *Session) (err error) {
+	var (
+		issuer *url.URL
+	)
+
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		return oauthelia2.ErrServerError.WithWrap(err).WithDebugf("Failed to determine the issuer with error: %s.", err.Error())
+	}
+
+	if client == nil {
+		return oauthelia2.ErrServerError.WithDebug("Failed to get the client for the request.")
+	}
+
+	session.Subject = ""
+	session.Claims.Subject = client.GetID()
+	session.ClientID = client.GetID()
+	session.DefaultSession.Claims.Issuer = issuer.String()
+	session.DefaultSession.Claims.IssuedAt = ctx.GetClock().Now().UTC()
+	session.DefaultSession.Claims.RequestedAt = ctx.GetClock().Now().UTC()
+	session.ClientCredentials = true
+
+	return nil
+}
+
+// PopulateClientCredentialsFlowRequester is used to grant the authorized scopes and audiences when performing a client
+// credentials grant.
+func PopulateClientCredentialsFlowRequester(ctx Context, config oauthelia2.Configurator, client oauthelia2.Client, requester oauthelia2.Requester) (err error) {
+	if client == nil || config == nil || requester == nil {
+		return oauthelia2.ErrServerError.WithDebug("Failed to get the client, configuration, or requester for the request.")
+	}
+
+	scopes := requester.GetRequestedScopes()
+	audience := requester.GetRequestedAudience()
+
+	var authz, nauthz bool
+
+	strategy := config.GetScopeStrategy(ctx)
+
+	for _, scope := range scopes {
+		switch scope {
+		case ScopeOffline, ScopeOfflineAccess:
+			break
+		case ScopeAutheliaBearerAuthz:
+			authz = true
+		default:
+			nauthz = true
+		}
+
+		if strategy(client.GetScopes(), scope) {
+			requester.GrantScope(scope)
+		} else {
+			return oauthelia2.ErrInvalidScope.WithDebugf("The scope '%s' is not authorized on client with id '%s'.", scope, client.GetID())
+		}
+	}
+
+	if authz && nauthz {
+		return oauthelia2.ErrInvalidScope.WithDebugf("The scope '%s' must only be requested by itself or with the '%s' scope, no other scopes are permitted.", ScopeAutheliaBearerAuthz, ScopeOfflineAccess)
+	}
+
+	if authz && len(audience) == 0 {
+		return oauthelia2.ErrInvalidRequest.WithDebugf("The scope '%s' requires the request also include an audience.", ScopeAutheliaBearerAuthz)
+	}
+
+	if err = config.GetAudienceStrategy(ctx)(client.GetAudience(), audience); err != nil {
+		return err
+	}
+
+	for _, aud := range audience {
+		requester.GrantAudience(aud)
+	}
+
+	return nil
 }

@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
+	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/go-crypt/crypt/algorithm"
-	"github.com/go-jose/go-jose/v3"
-	"github.com/ory/fosite"
+	"github.com/go-jose/go-jose/v4"
 	"github.com/ory/x/errorsx"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -20,7 +20,6 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 	registered := &RegisteredClient{
 		ID:                  config.ID,
 		Name:                config.Name,
-		Secret:              config.Secret,
 		SectorIdentifierURI: config.SectorIdentifierURI,
 		Public:              config.Public,
 
@@ -33,7 +32,7 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		RedirectURIs:  config.RedirectURIs,
 		GrantTypes:    config.GrantTypes,
 		ResponseTypes: config.ResponseTypes,
-		ResponseModes: []fosite.ResponseModeType{},
+		ResponseModes: []oauthelia2.ResponseModeType{},
 
 		RequirePushedAuthorizationRequests: config.RequirePushedAuthorizationRequests,
 
@@ -59,6 +58,10 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		JSONWebKeys:    NewPublicJSONWebKeySetFromSchemaJWK(config.JSONWebKeys),
 	}
 
+	if config.Secret != nil && config.Secret.Digest != nil {
+		registered.ClientSecret = &ClientSecretDigest{PasswordDigest: config.Secret}
+	}
+
 	if len(config.Lifespan) != 0 {
 		if lifespans, ok := c.Lifespans.Custom[config.Lifespan]; ok {
 			registered.Lifespans = lifespans
@@ -66,7 +69,7 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 	}
 
 	for _, mode := range config.ResponseModes {
-		registered.ResponseModes = append(registered.ResponseModes, fosite.ResponseModeType(mode))
+		registered.ResponseModes = append(registered.ResponseModes, oauthelia2.ResponseModeType(mode))
 	}
 
 	return registered
@@ -89,6 +92,16 @@ func (c *RegisteredClient) GetName() (name string) {
 // GetSecret returns the Secret.
 func (c *RegisteredClient) GetSecret() algorithm.Digest {
 	return c.Secret
+}
+
+// GetClientSecret returns the oauth2.ClientSecret.
+func (c *RegisteredClient) GetClientSecret() oauthelia2.ClientSecret {
+	return c.ClientSecret
+}
+
+// GetRotatedClientSecrets returns the rotated oauth2.ClientSecret values.
+func (c *RegisteredClient) GetRotatedClientSecrets() []oauthelia2.ClientSecret {
+	return nil
 }
 
 // GetSectorIdentifier returns the SectorIdentifier for this client.
@@ -115,37 +128,37 @@ func (c *RegisteredClient) GetRedirectURIs() (redirectURIs []string) {
 }
 
 // GetGrantTypes returns the GrantTypes.
-func (c *RegisteredClient) GetGrantTypes() fosite.Arguments {
+func (c *RegisteredClient) GetGrantTypes() oauthelia2.Arguments {
 	if len(c.GrantTypes) == 0 {
-		return fosite.Arguments{"authorization_code"}
+		return oauthelia2.Arguments{"authorization_code"}
 	}
 
 	return c.GrantTypes
 }
 
 // GetResponseTypes returns the ResponseTypes.
-func (c *RegisteredClient) GetResponseTypes() fosite.Arguments {
+func (c *RegisteredClient) GetResponseTypes() oauthelia2.Arguments {
 	if len(c.ResponseTypes) == 0 {
-		return fosite.Arguments{"code"}
+		return oauthelia2.Arguments{"code"}
 	}
 
 	return c.ResponseTypes
 }
 
 // GetScopes returns the Scopes.
-func (c *RegisteredClient) GetScopes() fosite.Arguments {
+func (c *RegisteredClient) GetScopes() oauthelia2.Arguments {
 	return c.Scopes
 }
 
 // GetAudience returns the Audience.
-func (c *RegisteredClient) GetAudience() fosite.Arguments {
+func (c *RegisteredClient) GetAudience() oauthelia2.Arguments {
 	return c.Audience
 }
 
 // GetResponseModes returns the valid response modes for this client.
 //
-// Implements the fosite.ResponseModeClient.
-func (c *RegisteredClient) GetResponseModes() []fosite.ResponseModeType {
+// Implements the oauthelia2.ResponseModeClient.
+func (c *RegisteredClient) GetResponseModes() []oauthelia2.ResponseModeType {
 	return c.ResponseModes
 }
 
@@ -245,8 +258,8 @@ func (c *RegisteredClient) GetPKCEChallengeMethod() string {
 	return c.PKCEChallengeMethod
 }
 
-// ApplyRequestedAudiencePolicy applies the requested audience policy to a fosite.Requester.
-func (c *RegisteredClient) ApplyRequestedAudiencePolicy(requester fosite.Requester) {
+// ApplyRequestedAudiencePolicy applies the requested audience policy to a oauthelia2.Requester.
+func (c *RegisteredClient) ApplyRequestedAudiencePolicy(requester oauthelia2.Requester) {
 	switch c.RequestedAudienceMode {
 	case ClientRequestedAudienceModeExplicit:
 		return
@@ -305,19 +318,19 @@ func (c *RegisteredClient) IsPublic() bool {
 }
 
 // ValidatePKCEPolicy is a helper function to validate PKCE policy constraints on a per-client basis.
-func (c *RegisteredClient) ValidatePKCEPolicy(r fosite.Requester) (err error) {
+func (c *RegisteredClient) ValidatePKCEPolicy(r oauthelia2.Requester) (err error) {
 	form := r.GetRequestForm()
 
 	if c.RequirePKCE {
 		if form.Get(FormParameterCodeChallenge) == "" {
-			return errorsx.WithStack(fosite.ErrInvalidRequest.
+			return errorsx.WithStack(oauthelia2.ErrInvalidRequest.
 				WithHint("Clients must include a code_challenge when performing the authorize code flow, but it is missing.").
 				WithDebug("The server is configured in a way that enforces PKCE for this client."))
 		}
 
 		if c.RequirePKCEChallengeMethod {
 			if method := form.Get(FormParameterCodeChallengeMethod); method != c.PKCEChallengeMethod {
-				return errorsx.WithStack(fosite.ErrInvalidRequest.
+				return errorsx.WithStack(oauthelia2.ErrInvalidRequest.
 					WithHintf("Client must use code_challenge_method=%s, %s is not allowed.", c.PKCEChallengeMethod, method).
 					WithDebugf("The server is configured in a way that enforces PKCE %s as challenge method for this client.", c.PKCEChallengeMethod))
 			}
@@ -328,7 +341,7 @@ func (c *RegisteredClient) ValidatePKCEPolicy(r fosite.Requester) (err error) {
 }
 
 // ValidatePARPolicy is a helper function to validate additional policy constraints on a per-client basis.
-func (c *RegisteredClient) ValidatePARPolicy(r fosite.Requester, prefix string) (err error) {
+func (c *RegisteredClient) ValidatePARPolicy(r oauthelia2.Requester, prefix string) (err error) {
 	if c.RequirePushedAuthorizationRequests {
 		if !IsPushedAuthorizedRequest(r, prefix) {
 			switch requestURI := r.GetRequestForm().Get(FormParameterRequestURI); requestURI {
@@ -344,9 +357,9 @@ func (c *RegisteredClient) ValidatePARPolicy(r fosite.Requester, prefix string) 
 }
 
 // ValidateResponseModePolicy is an additional check to the response mode parameter to ensure if it's omitted that the
-// default response mode for the fosite.AuthorizeRequester is permitted.
-func (c *RegisteredClient) ValidateResponseModePolicy(r fosite.AuthorizeRequester) (err error) {
-	if r.GetResponseMode() != fosite.ResponseModeDefault {
+// default response mode for the oauthelia2.AuthorizeRequester is permitted.
+func (c *RegisteredClient) ValidateResponseModePolicy(r oauthelia2.AuthorizeRequester) (err error) {
+	if r.GetResponseMode() != oauthelia2.ResponseModeDefault {
 		return nil
 	}
 
@@ -364,7 +377,7 @@ func (c *RegisteredClient) ValidateResponseModePolicy(r fosite.AuthorizeRequeste
 		}
 	}
 
-	return errorsx.WithStack(fosite.ErrUnsupportedResponseMode.WithHintf(`The request omitted the response_mode making the default response_mode "%s" based on the other authorization request parameters but registered OAuth 2.0 client doesn't support this response_mode`, m))
+	return errorsx.WithStack(oauthelia2.ErrUnsupportedResponseMode.WithHintf(`The request omitted the response_mode making the default response_mode "%s" based on the other authorization request parameters but registered OAuth 2.0 client doesn't support this response_mode`, m))
 }
 
 // GetRefreshFlowIgnoreOriginalGrantedScopes returns the value which indicates if the client should ignore the
@@ -374,17 +387,17 @@ func (c *RegisteredClient) GetRefreshFlowIgnoreOriginalGrantedScopes(ctx context
 	return c.RefreshFlowIgnoreOriginalGrantedScopes
 }
 
-func (c *RegisteredClient) getGrantTypeLifespan(gt fosite.GrantType) (gtl schema.IdentityProvidersOpenIDConnectLifespanToken) {
+func (c *RegisteredClient) getGrantTypeLifespan(gt oauthelia2.GrantType) (gtl schema.IdentityProvidersOpenIDConnectLifespanToken) {
 	switch gt {
-	case fosite.GrantTypeAuthorizationCode:
+	case oauthelia2.GrantTypeAuthorizationCode:
 		return c.Lifespans.Grants.AuthorizeCode
-	case fosite.GrantTypeImplicit:
+	case oauthelia2.GrantTypeImplicit:
 		return c.Lifespans.Grants.Implicit
-	case fosite.GrantTypeClientCredentials:
+	case oauthelia2.GrantTypeClientCredentials:
 		return c.Lifespans.Grants.ClientCredentials
-	case fosite.GrantTypeRefreshToken:
+	case oauthelia2.GrantTypeRefreshToken:
 		return c.Lifespans.Grants.RefreshToken
-	case fosite.GrantTypeJWTBearer:
+	case oauthelia2.GrantTypeJWTBearer:
 		return c.Lifespans.Grants.JWTBearer
 	default:
 		return gtl
@@ -392,12 +405,12 @@ func (c *RegisteredClient) getGrantTypeLifespan(gt fosite.GrantType) (gtl schema
 }
 
 // GetEffectiveLifespan returns the effective lifespan for a grant type and token type otherwise returns the fallback
-// value. This implements the fosite.ClientWithCustomTokenLifespans interface.
-func (c *RegisteredClient) GetEffectiveLifespan(gt fosite.GrantType, tt fosite.TokenType, fallback time.Duration) time.Duration {
+// value. This implements the oauthelia2.ClientWithCustomTokenLifespans interface.
+func (c *RegisteredClient) GetEffectiveLifespan(gt oauthelia2.GrantType, tt oauthelia2.TokenType, fallback time.Duration) time.Duration {
 	gtl := c.getGrantTypeLifespan(gt)
 
 	switch tt {
-	case fosite.AccessToken:
+	case oauthelia2.AccessToken:
 		switch {
 		case gtl.AccessToken > durationZero:
 			return gtl.AccessToken
@@ -406,7 +419,7 @@ func (c *RegisteredClient) GetEffectiveLifespan(gt fosite.GrantType, tt fosite.T
 		default:
 			return fallback
 		}
-	case fosite.AuthorizeCode:
+	case oauthelia2.AuthorizeCode:
 		switch {
 		case gtl.AuthorizeCode > durationZero:
 			return gtl.AuthorizeCode
@@ -415,7 +428,7 @@ func (c *RegisteredClient) GetEffectiveLifespan(gt fosite.GrantType, tt fosite.T
 		default:
 			return fallback
 		}
-	case fosite.IDToken:
+	case oauthelia2.IDToken:
 		switch {
 		case gtl.IDToken > durationZero:
 			return gtl.IDToken
@@ -424,7 +437,7 @@ func (c *RegisteredClient) GetEffectiveLifespan(gt fosite.GrantType, tt fosite.T
 		default:
 			return fallback
 		}
-	case fosite.RefreshToken:
+	case oauthelia2.RefreshToken:
 		switch {
 		case gtl.RefreshToken > durationZero:
 			return gtl.RefreshToken

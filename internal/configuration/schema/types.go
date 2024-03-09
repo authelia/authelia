@@ -9,6 +9,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -90,6 +91,21 @@ func (d *PasswordDigest) IsPlainText() (is bool) {
 		return true
 	default:
 		return false
+	}
+}
+
+// GetPlainTextValue returns a *plaintext.Digest's byte value from Key() and an error. If the PasswordDigest is not a
+// plaintext.Digest then it returns nil and an error, otherwise it returns the value and nil.
+func (d *PasswordDigest) GetPlainTextValue() (value []byte, err error) {
+	if d == nil || d.Digest == nil {
+		return nil, errors.New("error: nil value")
+	}
+
+	switch digest := d.Digest.(type) {
+	case *plaintext.Digest:
+		return digest.Key(), nil
+	default:
+		return nil, errors.New("error: digest isn't plaintext")
 	}
 }
 

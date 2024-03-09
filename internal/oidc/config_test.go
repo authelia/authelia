@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ory/fosite/token/jwt"
+	"authelia.com/provider/oauth2/token/jwt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -193,7 +193,6 @@ func TestConfig_Misc(t *testing.T) {
 	assert.Nil(t, config.GetTokenIntrospectionHandlers(ctx))
 	assert.Nil(t, config.GetRevocationHandlers(ctx))
 	assert.Nil(t, config.GetPushedAuthorizeEndpointHandlers(ctx))
-	assert.Nil(t, config.GetResponseModeHandlerExtension(ctx))
 
 	assert.Equal(t, []string{""}, config.GetTokenURLs(ctx))
 

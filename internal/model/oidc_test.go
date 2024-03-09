@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
+	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/handler/openid"
 	"github.com/google/uuid"
-	"github.com/ory/fosite"
-	"github.com/ory/fosite/handler/openid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -35,21 +35,21 @@ func TestNewOAuth2SessionFromRequest(t *testing.T) {
 	testCaases := []struct {
 		name      string
 		signature string
-		have      fosite.Requester
+		have      oauthelia2.Requester
 		expected  *model.OAuth2Session
 		err       string
 	}{
 		{
 			"ShouldNewUpStandard",
 			"abc",
-			&fosite.Request{
+			&oauthelia2.Request{
 				ID: "example",
-				Client: &fosite.DefaultClient{
+				Client: &oauthelia2.DefaultClient{
 					ID: "client_id",
 				},
 				Session:        session,
-				RequestedScope: fosite.Arguments{oidc.ScopeOpenID},
-				GrantedScope:   fosite.Arguments{oidc.ScopeOpenID},
+				RequestedScope: oauthelia2.Arguments{oidc.ScopeOpenID},
+				GrantedScope:   oauthelia2.Arguments{oidc.ScopeOpenID},
 			},
 			&model.OAuth2Session{
 				ChallengeID:     challenge,
@@ -67,9 +67,9 @@ func TestNewOAuth2SessionFromRequest(t *testing.T) {
 		{
 			"ShouldNewUpWithoutScopes",
 			"abc",
-			&fosite.Request{
+			&oauthelia2.Request{
 				ID: "example",
-				Client: &fosite.DefaultClient{
+				Client: &oauthelia2.DefaultClient{
 					ID: "client_id",
 				},
 				Session:        session,
@@ -92,9 +92,9 @@ func TestNewOAuth2SessionFromRequest(t *testing.T) {
 		{
 			"ShouldRaiseErrorOnInvalidSessionType",
 			"abc",
-			&fosite.Request{
+			&oauthelia2.Request{
 				ID: "example",
-				Client: &fosite.DefaultClient{
+				Client: &oauthelia2.DefaultClient{
 					ID: "client_id",
 				},
 				Session:        &openid.DefaultSession{},
@@ -109,7 +109,7 @@ func TestNewOAuth2SessionFromRequest(t *testing.T) {
 			"abc",
 			nil,
 			nil,
-			"failed to create new *model.OAuth2Session: the fosite.Requester was nil",
+			"failed to create new *model.OAuth2Session: the oauthelia2.Requester was nil",
 		},
 	}
 
@@ -169,33 +169,33 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		setup    func(mock *mocks.MockFositeStorage)
+		setup    func(mock *mocks.MockOAuth2Storage)
 		have     *model.OAuth2PARContext
-		expected *fosite.AuthorizeRequest
+		expected *oauthelia2.AuthorizeRequest
 		err      string
 	}{
 		{
 			"ShouldErrorInvalidJSONData",
 			nil,
 			&model.OAuth2PARContext{},
-			&fosite.AuthorizeRequest{},
+			&oauthelia2.AuthorizeRequest{},
 			"error occurred while mapping PAR context back to an Authorize Request while trying to unmarshal the JSON session data: unexpected end of JSON input",
 		},
 		{
 			"ShouldErrorInvalidClient",
-			func(mock *mocks.MockFositeStorage) {
-				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(nil, fosite.ErrNotFound)
+			func(mock *mocks.MockOAuth2Storage) {
+				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(nil, oauthelia2.ErrNotFound)
 			},
 			&model.OAuth2PARContext{
 				ClientID: parclientid,
 				Session:  []byte("{}"),
 			},
-			&fosite.AuthorizeRequest{},
+			&oauthelia2.AuthorizeRequest{},
 			"error occurred while mapping PAR context back to an Authorize Request while trying to lookup the registered client: not_found",
 		},
 		{
 			"ShouldErrorOnBadForm",
-			func(mock *mocks.MockFositeStorage) {
+			func(mock *mocks.MockOAuth2Storage) {
 				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.RegisteredClient{ID: parclientid}, nil)
 			},
 			&model.OAuth2PARContext{
@@ -211,7 +211,7 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 		},
 		{
 			"ShouldErrorOnBadFormRedirectURI",
-			func(mock *mocks.MockFositeStorage) {
+			func(mock *mocks.MockOAuth2Storage) {
 				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.RegisteredClient{ID: parclientid}, nil)
 			},
 			&model.OAuth2PARContext{
@@ -227,7 +227,7 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 		},
 		{
 			"ShouldRestoreAuthorizeRequest",
-			func(mock *mocks.MockFositeStorage) {
+			func(mock *mocks.MockOAuth2Storage) {
 				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.RegisteredClient{ID: parclientid}, nil)
 			},
 			&model.OAuth2PARContext{
@@ -248,18 +248,18 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 				DefaultResponseMode:  oidc.ResponseModeQuery,
 				HandledResponseTypes: model.StringSlicePipeDelimited{oidc.ResponseTypeAuthorizationCodeFlow},
 			},
-			&fosite.AuthorizeRequest{
+			&oauthelia2.AuthorizeRequest{
 				RedirectURI:          MustParseRequestURI("https://example.com"),
 				State:                "abc123",
-				ResponseMode:         fosite.ResponseModeQuery,
-				DefaultResponseMode:  fosite.ResponseModeQuery,
-				ResponseTypes:        fosite.Arguments{oidc.ResponseTypeAuthorizationCodeFlow},
-				HandledResponseTypes: fosite.Arguments{oidc.ResponseTypeAuthorizationCodeFlow},
-				Request: fosite.Request{
+				ResponseMode:         oauthelia2.ResponseModeQuery,
+				DefaultResponseMode:  oauthelia2.ResponseModeQuery,
+				ResponseTypes:        oauthelia2.Arguments{oidc.ResponseTypeAuthorizationCodeFlow},
+				HandledResponseTypes: oauthelia2.Arguments{oidc.ResponseTypeAuthorizationCodeFlow},
+				Request: oauthelia2.Request{
 					ID:                requestid,
 					Client:            &oidc.RegisteredClient{ID: parclientid},
-					RequestedScope:    fosite.Arguments{oidc.ScopeOpenID, oidc.ScopeOffline},
-					RequestedAudience: fosite.Arguments{parclientid},
+					RequestedScope:    oauthelia2.Arguments{oidc.ScopeOpenID, oidc.ScopeOffline},
+					RequestedAudience: oauthelia2.Arguments{parclientid},
 					RequestedAt:       time.Unix(10000000, 0),
 					Session:           oidc.NewSession(),
 					Form: url.Values{
@@ -279,7 +279,7 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 
 			defer ctrl.Finish()
 
-			mock := mocks.NewMockFositeStorage(ctrl)
+			mock := mocks.NewMockOAuth2Storage(ctrl)
 
 			if tc.setup != nil {
 				tc.setup(mock)
@@ -301,25 +301,25 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 func TestNewOAuth2PARContext(t *testing.T) {
 	testCases := []struct {
 		name     string
-		have     fosite.AuthorizeRequester
+		have     oauthelia2.AuthorizeRequester
 		id       string
 		expected *model.OAuth2PARContext
 		err      string
 	}{
 		{
 			"ShouldCreatePARContext",
-			&fosite.AuthorizeRequest{
-				HandledResponseTypes: fosite.Arguments{oidc.ResponseTypeHybridFlowIDToken},
-				ResponseMode:         fosite.ResponseModeQuery,
-				DefaultResponseMode:  fosite.ResponseModeFragment,
-				Request: fosite.Request{
+			&oauthelia2.AuthorizeRequest{
+				HandledResponseTypes: oauthelia2.Arguments{oidc.ResponseTypeHybridFlowIDToken},
+				ResponseMode:         oauthelia2.ResponseModeQuery,
+				DefaultResponseMode:  oauthelia2.ResponseModeFragment,
+				Request: oauthelia2.Request{
 					ID:                "a-id",
 					RequestedAt:       time.Time{},
 					Client:            &oidc.RegisteredClient{ID: "a-client"},
-					RequestedScope:    fosite.Arguments{oidc.ScopeOpenID},
+					RequestedScope:    oauthelia2.Arguments{oidc.ScopeOpenID},
 					Form:              url.Values{oidc.FormParameterRedirectURI: []string{"https://example.com"}},
 					Session:           &oidc.Session{},
-					RequestedAudience: fosite.Arguments{"a-client"},
+					RequestedAudience: oauthelia2.Arguments{"a-client"},
 				},
 			},
 			"123",
@@ -340,18 +340,18 @@ func TestNewOAuth2PARContext(t *testing.T) {
 		},
 		{
 			"ShouldFailCreateWrongSessionType",
-			&fosite.AuthorizeRequest{
-				HandledResponseTypes: fosite.Arguments{oidc.ResponseTypeHybridFlowIDToken},
-				ResponseMode:         fosite.ResponseModeQuery,
-				DefaultResponseMode:  fosite.ResponseModeFragment,
-				Request: fosite.Request{
+			&oauthelia2.AuthorizeRequest{
+				HandledResponseTypes: oauthelia2.Arguments{oidc.ResponseTypeHybridFlowIDToken},
+				ResponseMode:         oauthelia2.ResponseModeQuery,
+				DefaultResponseMode:  oauthelia2.ResponseModeFragment,
+				Request: oauthelia2.Request{
 					ID:                "a-id",
 					RequestedAt:       time.Time{},
 					Client:            &oidc.RegisteredClient{ID: "a-client"},
-					RequestedScope:    fosite.Arguments{oidc.ScopeOpenID},
+					RequestedScope:    oauthelia2.Arguments{oidc.ScopeOpenID},
 					Form:              url.Values{oidc.FormParameterRedirectURI: []string{"https://example.com"}},
 					Session:           &openid.DefaultSession{},
-					RequestedAudience: fosite.Arguments{"a-client"},
+					RequestedAudience: oauthelia2.Arguments{"a-client"},
 				},
 			},
 			"123",
@@ -383,33 +383,33 @@ func TestOAuth2Session_ToRequest(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		setup    func(mock *mocks.MockFositeStorage)
+		setup    func(mock *mocks.MockOAuth2Storage)
 		have     *model.OAuth2Session
-		expected *fosite.Request
+		expected *oauthelia2.Request
 		err      string
 	}{
 		{
 			"ShouldErrorInvalidJSONData",
 			nil,
 			&model.OAuth2Session{},
-			&fosite.Request{},
+			&oauthelia2.Request{},
 			"error occurred while mapping OAuth 2.0 Session back to a Request while trying to unmarshal the JSON session data: unexpected end of JSON input",
 		},
 		{
 			"ShouldErrorInvalidClient",
-			func(mock *mocks.MockFositeStorage) {
-				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(nil, fosite.ErrNotFound)
+			func(mock *mocks.MockOAuth2Storage) {
+				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(nil, oauthelia2.ErrNotFound)
 			},
 			&model.OAuth2Session{
 				ClientID: parclientid,
 				Session:  []byte("{}"),
 			},
-			&fosite.Request{},
+			&oauthelia2.Request{},
 			"error occurred while mapping OAuth 2.0 Session back to a Request while trying to lookup the registered client: not_found",
 		},
 		{
 			"ShouldErrorOnBadForm",
-			func(mock *mocks.MockFositeStorage) {
+			func(mock *mocks.MockOAuth2Storage) {
 				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.RegisteredClient{ID: parclientid}, nil)
 			},
 			&model.OAuth2Session{
@@ -425,7 +425,7 @@ func TestOAuth2Session_ToRequest(t *testing.T) {
 		},
 		{
 			"ShouldRestoreRequest",
-			func(mock *mocks.MockFositeStorage) {
+			func(mock *mocks.MockOAuth2Storage) {
 				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.RegisteredClient{ID: parclientid}, nil)
 			},
 			&model.OAuth2Session{
@@ -443,11 +443,11 @@ func TestOAuth2Session_ToRequest(t *testing.T) {
 					oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
 				}.Encode(),
 			},
-			&fosite.Request{
+			&oauthelia2.Request{
 				ID:                requestid,
 				Client:            &oidc.RegisteredClient{ID: parclientid},
-				RequestedScope:    fosite.Arguments{oidc.ScopeOpenID, oidc.ScopeOffline},
-				RequestedAudience: fosite.Arguments{parclientid},
+				RequestedScope:    oauthelia2.Arguments{oidc.ScopeOpenID, oidc.ScopeOffline},
+				RequestedAudience: oauthelia2.Arguments{parclientid},
 				RequestedAt:       time.Unix(10000000, 0),
 				Session:           oidc.NewSession(),
 				Form: url.Values{
@@ -466,7 +466,7 @@ func TestOAuth2Session_ToRequest(t *testing.T) {
 
 			defer ctrl.Finish()
 
-			mock := mocks.NewMockFositeStorage(ctrl)
+			mock := mocks.NewMockOAuth2Storage(ctrl)
 
 			if tc.setup != nil {
 				tc.setup(mock)
@@ -595,7 +595,7 @@ func TestMisc(t *testing.T) {
 
 	sub := uuid.MustParse("b9423f3a-65da-4ea8-8f6b-1dafb141f3a8")
 
-	session, err := model.NewOAuth2ConsentSession(sub, &fosite.Request{Client: &oidc.RegisteredClient{ID: "abc"}})
+	session, err := model.NewOAuth2ConsentSession(sub, &oauthelia2.Request{Client: &oidc.RegisteredClient{ID: "abc"}})
 
 	assert.NoError(t, err)
 	assert.NotNil(t, session)

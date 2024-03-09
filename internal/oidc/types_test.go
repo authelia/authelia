@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
+	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -40,8 +40,8 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 
 	formValues.Set(oidc.ClaimNonce, "abc123xyzauthelia")
 
-	request := &fosite.AuthorizeRequest{
-		Request: fosite.Request{
+	request := &oauthelia2.AuthorizeRequest{
+		Request: oauthelia2.Request{
 			ID:     requestID.String(),
 			Form:   formValues,
 			Client: &oidc.RegisteredClient{ID: "example"},
@@ -156,10 +156,10 @@ func (m *TestCodeStrategy) AuthorizeCodeSignature(ctx context.Context, token str
 	return m.signature
 }
 
-func (m *TestCodeStrategy) GenerateAuthorizeCode(ctx context.Context, requester fosite.Requester) (token string, signature string, err error) {
+func (m *TestCodeStrategy) GenerateAuthorizeCode(ctx context.Context, requester oauthelia2.Requester) (token string, signature string, err error) {
 	return "", "", nil
 }
 
-func (m *TestCodeStrategy) ValidateAuthorizeCode(ctx context.Context, requester fosite.Requester, token string) (err error) {
+func (m *TestCodeStrategy) ValidateAuthorizeCode(ctx context.Context, requester oauthelia2.Requester, token string) (err error) {
 	return nil
 }

@@ -3,7 +3,7 @@ package oidc
 import (
 	"fmt"
 
-	"github.com/ory/fosite"
+	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/ory/herodot"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -26,10 +26,9 @@ func NewOpenIDConnectProvider(config *schema.IdentityProvidersOpenIDConnect, sto
 		Config:     NewConfig(config, signer, templates),
 	}
 
-	provider.OAuth2Provider = fosite.NewOAuth2Provider(provider.Store, provider.Config)
+	provider.Provider = oauthelia2.New(provider.Store, provider.Config)
 
 	provider.Config.LoadHandlers(provider.Store)
-	provider.Config.Strategy.ClientAuthentication = provider.DefaultClientAuthenticationStrategy
 
 	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config)
 

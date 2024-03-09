@@ -5,6 +5,7 @@
 //
 //	mockgen -package mocks -destination totp.go -mock_names Provider=MockTOTP github.com/authelia/authelia/v4/internal/totp Provider
 //
+
 // Package mocks is a generated GoMock package.
 package mocks
 

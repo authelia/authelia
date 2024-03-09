@@ -6,11 +6,11 @@ import (
 	"net/url"
 	"time"
 
+	oauthelia2 "authelia.com/provider/oauth2"
+	fjwt "authelia.com/provider/oauth2/token/jwt"
 	"github.com/go-crypt/crypt/algorithm"
-	"github.com/go-jose/go-jose/v3"
+	"github.com/go-jose/go-jose/v4"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/ory/fosite"
-	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/ory/herodot"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -23,7 +23,7 @@ import (
 
 // OpenIDConnectProvider for OpenID Connect.
 type OpenIDConnectProvider struct {
-	fosite.OAuth2Provider
+	oauthelia2.Provider
 	*herodot.JSONWriter
 	*Store
 	*Config
@@ -33,9 +33,9 @@ type OpenIDConnectProvider struct {
 	discovery OpenIDConnectWellKnownConfiguration
 }
 
-// Store is Authelia's internal representation of the fosite.Storage interface. It maps the following
+// Store is Authelia's internal representation of the oauthelia2.Storage interface. It maps the following
 // interfaces to the storage.Provider interface:
-// fosite.Storage, fosite.ClientManager, storage.Transactional, oauth2.AuthorizeCodeStorage, oauth2.AccessTokenStorage,
+// oauthelia2.Storage, oauthelia2.ClientManager, storage.Transactional, oauth2.AuthorizeCodeStorage, oauth2.AccessTokenStorage,
 // oauth2.RefreshTokenStorage, oauth2.TokenRevocationStorage, pkce.PKCERequestStorage,
 // openid.OpenIDConnectRequestStorage, and partially implements rfc7523.RFC7523KeyStorage.
 type Store struct {
@@ -47,6 +47,7 @@ type Store struct {
 type RegisteredClient struct {
 	ID                  string
 	Name                string
+	ClientSecret        *ClientSecretDigest
 	Secret              *schema.PasswordDigest
 	SectorIdentifierURI *url.URL
 	Public              bool
@@ -62,7 +63,7 @@ type RegisteredClient struct {
 	RedirectURIs  []string
 	GrantTypes    []string
 	ResponseTypes []string
-	ResponseModes []fosite.ResponseModeType
+	ResponseModes []oauthelia2.ResponseModeType
 
 	Lifespans schema.IdentityProvidersOpenIDConnectLifespan
 
@@ -94,8 +95,8 @@ type RegisteredClient struct {
 
 // Client represents the internal client definitions.
 type Client interface {
-	fosite.Client
-	fosite.ResponseModeClient
+	oauthelia2.Client
+	oauthelia2.ResponseModeClient
 	RefreshFlowScopeClient
 
 	GetName() (name string)
@@ -123,23 +124,23 @@ type Client interface {
 	GetPKCEChallengeMethodEnforcement() (enforce bool)
 	GetPKCEChallengeMethod() (method string)
 
-	ValidatePKCEPolicy(r fosite.Requester) (err error)
-	ValidatePARPolicy(r fosite.Requester, prefix string) (err error)
-	ValidateResponseModePolicy(r fosite.AuthorizeRequester) (err error)
+	ValidatePKCEPolicy(r oauthelia2.Requester) (err error)
+	ValidatePARPolicy(r oauthelia2.Requester, prefix string) (err error)
+	ValidateResponseModePolicy(r oauthelia2.AuthorizeRequester) (err error)
 
-	ApplyRequestedAudiencePolicy(requester fosite.Requester)
+	ApplyRequestedAudiencePolicy(requester oauthelia2.Requester)
 	GetConsentResponseBody(consent *model.OAuth2ConsentSession) (body ConsentGetResponseBody)
 	GetConsentPolicy() ClientConsentPolicy
 	IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) (sufficient bool)
 	GetAuthorizationPolicyRequiredLevel(subject authorization.Subject) (level authorization.Level)
 	GetAuthorizationPolicy() (policy ClientAuthorizationPolicy)
 
-	GetEffectiveLifespan(gt fosite.GrantType, tt fosite.TokenType, fallback time.Duration) (lifespan time.Duration)
+	GetEffectiveLifespan(gt oauthelia2.GrantType, tt oauthelia2.TokenType, fallback time.Duration) (lifespan time.Duration)
 }
 
 // RefreshFlowScopeClient is a client which can be customized to ignore scopes that were not originally granted.
 type RefreshFlowScopeClient interface {
-	fosite.Client
+	oauthelia2.Client
 
 	GetRefreshFlowIgnoreOriginalGrantedScopes(ctx context.Context) (ignoreOriginalGrantedScopes bool)
 }
@@ -154,9 +155,9 @@ type Context interface {
 	GetJWTWithTimeFuncOption() jwt.ParserOption
 }
 
-// ClientRequesterResponder is a fosite.Requster or fosite.Responder with a GetClient method.
+// ClientRequesterResponder is a oauthelia2.Requster or fosite.Responder with a GetClient method.
 type ClientRequesterResponder interface {
-	GetClient() fosite.Client
+	GetClient() oauthelia2.Client
 }
 
 // IDTokenClaimsSession is a session which can return the IDTokenClaims type.
@@ -164,12 +165,11 @@ type IDTokenClaimsSession interface {
 	GetIDTokenClaims() *fjwt.IDTokenClaims
 }
 
-// Configurator is an internal extension to the fosite.Configurator.
+// Configurator is an internal extension to the oauthelia2.Configurator.
 type Configurator interface {
-	fosite.Configurator
+	oauthelia2.Configurator
 
 	AuthorizationServerIssuerIdentificationProvider
-	JWTSecuredResponseModeProvider
 }
 
 // AuthorizationServerIssuerIdentificationProvider provides OAuth 2.0 Authorization Server Issuer Identification related methods.

@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
+	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/google/uuid"
-	"github.com/ory/fosite"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -20,7 +20,7 @@ func OAuthRevocationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r
 	)
 
 	if requestID, err = uuid.NewRandom(); err != nil {
-		ctx.Providers.OpenIDConnect.WriteRevocationResponse(ctx, rw, fosite.ErrServerError)
+		ctx.Providers.OpenIDConnect.WriteRevocationResponse(ctx, rw, oauthelia2.ErrServerError)
 
 		return
 	}
