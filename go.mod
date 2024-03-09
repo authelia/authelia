@@ -13,11 +13,11 @@ require (
 	github.com/fasthttp/session/v2 v2.5.4
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-asn1-ber/asn1-ber v1.5.5
-	github.com/go-crypt/crypt v0.2.18
+	github.com/go-crypt/crypt v0.2.19
 	github.com/go-jose/go-jose/v3 v3.0.3
 	github.com/go-ldap/ldap/v3 v3.4.6
 	github.com/go-rod/rod v0.114.8
-	github.com/go-sql-driver/mysql v1.7.1
+	github.com/go-sql-driver/mysql v1.8.0
 	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1
 	github.com/go-webauthn/webauthn v0.10.1
 	github.com/golang-jwt/jwt/v5 v5.2.1
@@ -55,6 +55,7 @@ require (
 )
 
 require (
+	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -75,7 +76,7 @@ require (
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fxamacker/cbor/v2 v2.5.0 // indirect
-	github.com/go-crypt/x v0.2.12 // indirect
+	github.com/go-crypt/x v0.2.13 // indirect
 	github.com/go-logr/logr v1.3.0 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
