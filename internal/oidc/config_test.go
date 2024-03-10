@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"authelia.com/provider/oauth2/handler/oauth2"
 	"authelia.com/provider/oauth2/token/jwt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -239,9 +240,11 @@ func TestNewConfig(t *testing.T) {
 
 	require.NoError(t, err)
 
-	config := oidc.NewConfig(c, nil, tmpl)
+	signer := oidc.NewKeyManager(c)
 
-	assert.IsType(t, &oidc.JWTCoreStrategy{}, config.Strategy.Core)
+	config := oidc.NewConfig(c, signer, tmpl)
+
+	assert.IsType(t, &oauth2.JWTProfileCoreStrategy{}, config.Strategy.Core)
 
 	config.LoadHandlers(nil)
 

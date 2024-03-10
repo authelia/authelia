@@ -15,7 +15,6 @@ import (
 	"authelia.com/provider/oauth2/handler/par"
 	"authelia.com/provider/oauth2/handler/pkce"
 	"authelia.com/provider/oauth2/i18n"
-	"authelia.com/provider/oauth2/token/hmac"
 	"authelia.com/provider/oauth2/token/jwt"
 	"github.com/hashicorp/go-retryablehttp"
 
@@ -54,19 +53,9 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, signer jwt.Signer,
 	}
 
 	if config.Discovery.JWTResponseAccessTokens {
-		c.Strategy.Core = &JWTCoreStrategy{
-			Signer: signer,
-			HMACCoreStrategy: &HMACCoreStrategy{
-				Enigma: &hmac.HMACStrategy{Config: c},
-				Config: c,
-			},
-			Config: c,
-		}
+		c.Strategy.Core = oauth2.NewCoreStrategy(c, "authelia_%s_", signer)
 	} else {
-		c.Strategy.Core = &HMACCoreStrategy{
-			Enigma: &hmac.HMACStrategy{Config: c},
-			Config: c,
-		}
+		c.Strategy.Core = oauth2.NewCoreStrategy(c, "authelia_%s_", nil)
 	}
 
 	c.Strategy.OpenID = &openid.DefaultStrategy{
