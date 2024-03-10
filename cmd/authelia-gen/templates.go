@@ -15,7 +15,6 @@ var (
 	tmplCodeConfigurationSchemaKeys = template.Must(newTMPL("internal_configuration_schema_keys.go"))
 	tmplGitHubIssueTemplateBug      = template.Must(newTMPL("github_issue_template_bug_report.yml"))
 	tmplIssueTemplateFeature        = template.Must(newTMPL("github_issue_template_feature.yml"))
-	tmplWebI18NIndex                = template.Must(newTMPL("web_i18n_index.ts"))
 	tmplDotCommitLintRC             = template.Must(newTMPL("dot_commitlintrc.cjs"))
 	tmplDocsCommitMessageGuidelines = template.Must(newTMPL("docs-contributing-development-commitmsg.md"))
 	tmplScriptsGen                  = template.Must(newTMPL("cmd-authelia-scripts-gen.go"))
