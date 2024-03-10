@@ -211,15 +211,6 @@ const (
 	JWTHeaderTypeValueAccessTokenJWT        = "at+jwt"
 )
 
-const (
-	tokenPrefixOrgAutheliaFmt = "authelia_%s_" //nolint:gosec
-	tokenPrefixOrgOryFmt      = "ory_%s_"      //nolint:gosec
-
-	TokenPrefixPartAccessToken   = "at"
-	TokenPrefixPartRefreshToken  = "rt"
-	TokenPrefixPartAuthorizeCode = "ac"
-)
-
 // Paths.
 const (
 	EndpointPathConsent                           = "/consent"
