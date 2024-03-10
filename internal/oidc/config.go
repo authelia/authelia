@@ -105,6 +105,7 @@ type Config struct {
 
 	RevokeRefreshTokensExplicit                        bool
 	EnforceRevokeFlowRevokeRefreshTokensExplicitClient bool
+	EnforceJWTProfileAccessTokens                      bool
 
 	TokenEntropy        int
 	MinParameterEntropy int
@@ -307,6 +308,7 @@ func (c *Config) LoadHandlers(store *Store) {
 			AccessTokenStrategy:    c.Strategy.Core,
 			RefreshTokenStrategy:   c.Strategy.Core,
 			TokenRevocationStorage: store,
+			Config:                 c,
 		},
 		&pkce.Handler{
 			AuthorizeCodeStrategy: c.Strategy.Core,
@@ -753,4 +755,8 @@ func (c *Config) GetRFC8693TokenTypes(ctx context.Context) map[string]oauthelia2
 
 func (c *Config) GetDefaultRFC8693RequestedTokenType(ctx context.Context) string {
 	return c.RFC8693.DefaultRequestedTokenType
+}
+
+func (c *Config) GetEnforceJWTProfileAccessTokens(ctx context.Context) (enforce bool) {
+	return c.EnforceJWTProfileAccessTokens
 }

@@ -176,6 +176,14 @@ func (c *RegisteredClient) GetAuthorizationSignedResponseKeyID() (kid string) {
 	return c.AuthorizationSignedResponseKeyID
 }
 
+func (c *RegisteredClient) GetAuthorizationEncryptedResponseAlg() (alg string) {
+	return ""
+}
+
+func (c *RegisteredClient) GetAuthorizationEncryptedResponseEncryptionAlg() (alg string) {
+	return ""
+}
+
 // GetIDTokenSignedResponseAlg returns the IDTokenSignedResponseAlg.
 func (c *RegisteredClient) GetIDTokenSignedResponseAlg() (alg string) {
 	if c.IDTokenSignedResponseAlg == "" {
@@ -204,9 +212,9 @@ func (c *RegisteredClient) GetAccessTokenSignedResponseKeyID() (alg string) {
 	return c.AccessTokenSignedResponseKeyID
 }
 
-// GetJWTProfileOAuthAccessTokensEnabled returns true if this client is configured to return the
+// GetEnableJWTProfileOAuthAccessTokens returns true if this client is configured to return the
 // RFC9068 JWT Profile for OAuth 2.0 Access Tokens.
-func (c *RegisteredClient) GetJWTProfileOAuthAccessTokensEnabled() bool {
+func (c *RegisteredClient) GetEnableJWTProfileOAuthAccessTokens() bool {
 	return c.GetAccessTokenSignedResponseAlg() != SigningAlgNone || len(c.GetAccessTokenSignedResponseKeyID()) > 0
 }
 
@@ -387,68 +395,8 @@ func (c *RegisteredClient) GetRefreshFlowIgnoreOriginalGrantedScopes(ctx context
 	return c.RefreshFlowIgnoreOriginalGrantedScopes
 }
 
-func (c *RegisteredClient) getGrantTypeLifespan(gt oauthelia2.GrantType) (gtl schema.IdentityProvidersOpenIDConnectLifespanToken) {
-	switch gt {
-	case oauthelia2.GrantTypeAuthorizationCode:
-		return c.Lifespans.Grants.AuthorizeCode
-	case oauthelia2.GrantTypeImplicit:
-		return c.Lifespans.Grants.Implicit
-	case oauthelia2.GrantTypeClientCredentials:
-		return c.Lifespans.Grants.ClientCredentials
-	case oauthelia2.GrantTypeRefreshToken:
-		return c.Lifespans.Grants.RefreshToken
-	case oauthelia2.GrantTypeJWTBearer:
-		return c.Lifespans.Grants.JWTBearer
-	default:
-		return gtl
-	}
-}
-
-// GetEffectiveLifespan returns the effective lifespan for a grant type and token type otherwise returns the fallback
-// value. This implements the oauthelia2.ClientWithCustomTokenLifespans interface.
-func (c *RegisteredClient) GetEffectiveLifespan(gt oauthelia2.GrantType, tt oauthelia2.TokenType, fallback time.Duration) time.Duration {
-	gtl := c.getGrantTypeLifespan(gt)
-
-	switch tt {
-	case oauthelia2.AccessToken:
-		switch {
-		case gtl.AccessToken > durationZero:
-			return gtl.AccessToken
-		case c.Lifespans.AccessToken > durationZero:
-			return c.Lifespans.AccessToken
-		default:
-			return fallback
-		}
-	case oauthelia2.AuthorizeCode:
-		switch {
-		case gtl.AuthorizeCode > durationZero:
-			return gtl.AuthorizeCode
-		case c.Lifespans.AuthorizeCode > durationZero:
-			return c.Lifespans.AuthorizeCode
-		default:
-			return fallback
-		}
-	case oauthelia2.IDToken:
-		switch {
-		case gtl.IDToken > durationZero:
-			return gtl.IDToken
-		case c.Lifespans.IDToken > durationZero:
-			return c.Lifespans.IDToken
-		default:
-			return fallback
-		}
-	case oauthelia2.RefreshToken:
-		switch {
-		case gtl.RefreshToken > durationZero:
-			return gtl.RefreshToken
-		case c.Lifespans.RefreshToken > durationZero:
-			return c.Lifespans.RefreshToken
-		default:
-			return fallback
-		}
-	default:
-		return fallback
-	}
+func (c *RegisteredClient) GetRevokeRefreshTokensExplicit(ctx context.Context) (explicit bool) {
+	return false
 }
 
 // GetRequestURIs is an array of request_uri values that are pre-registered by the RP for use at the OP. Servers MAY
@@ -508,4 +456,76 @@ func (c *RegisteredClient) GetTokenEndpointAuthSigningAlgorithm() string {
 	}
 
 	return c.TokenEndpointAuthSigningAlg
+}
+
+func (c *RegisteredClient) GetAllowMultipleAuthenticationMethods(ctx context.Context) (allow bool) {
+	return false
+}
+
+func (c *RegisteredClient) GetClientCredentialsFlowAllowImplicitScope() (allow bool) {
+	return false
+}
+
+// GetEffectiveLifespan returns the effective lifespan for a grant type and token type otherwise returns the fallback
+// value. This implements the oauthelia2.ClientWithCustomTokenLifespans interface.
+func (c *RegisteredClient) GetEffectiveLifespan(gt oauthelia2.GrantType, tt oauthelia2.TokenType, fallback time.Duration) time.Duration {
+	gtl := c.getGrantTypeLifespan(gt)
+
+	switch tt {
+	case oauthelia2.AccessToken:
+		switch {
+		case gtl.AccessToken > durationZero:
+			return gtl.AccessToken
+		case c.Lifespans.AccessToken > durationZero:
+			return c.Lifespans.AccessToken
+		default:
+			return fallback
+		}
+	case oauthelia2.AuthorizeCode:
+		switch {
+		case gtl.AuthorizeCode > durationZero:
+			return gtl.AuthorizeCode
+		case c.Lifespans.AuthorizeCode > durationZero:
+			return c.Lifespans.AuthorizeCode
+		default:
+			return fallback
+		}
+	case oauthelia2.IDToken:
+		switch {
+		case gtl.IDToken > durationZero:
+			return gtl.IDToken
+		case c.Lifespans.IDToken > durationZero:
+			return c.Lifespans.IDToken
+		default:
+			return fallback
+		}
+	case oauthelia2.RefreshToken:
+		switch {
+		case gtl.RefreshToken > durationZero:
+			return gtl.RefreshToken
+		case c.Lifespans.RefreshToken > durationZero:
+			return c.Lifespans.RefreshToken
+		default:
+			return fallback
+		}
+	default:
+		return fallback
+	}
+}
+
+func (c *RegisteredClient) getGrantTypeLifespan(gt oauthelia2.GrantType) (gtl schema.IdentityProvidersOpenIDConnectLifespanToken) {
+	switch gt {
+	case oauthelia2.GrantTypeAuthorizationCode:
+		return c.Lifespans.Grants.AuthorizeCode
+	case oauthelia2.GrantTypeImplicit:
+		return c.Lifespans.Grants.Implicit
+	case oauthelia2.GrantTypeClientCredentials:
+		return c.Lifespans.Grants.ClientCredentials
+	case oauthelia2.GrantTypeRefreshToken:
+		return c.Lifespans.Grants.RefreshToken
+	case oauthelia2.GrantTypeJWTBearer:
+		return c.Lifespans.Grants.JWTBearer
+	default:
+		return gtl
+	}
 }

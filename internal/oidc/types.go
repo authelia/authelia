@@ -111,7 +111,7 @@ type Client interface {
 
 	GetAccessTokenSignedResponseAlg() (alg string)
 	GetAccessTokenSignedResponseKeyID() (kid string)
-	GetJWTProfileOAuthAccessTokensEnabled() bool
+	GetEnableJWTProfileOAuthAccessTokens() bool
 
 	GetUserinfoSignedResponseAlg() (alg string)
 	GetUserinfoSignedResponseKeyID() (kid string)
@@ -945,3 +945,16 @@ type OpenIDConnectWellKnownClaims struct {
 
 	jwt.RegisteredClaims
 }
+
+var (
+	_ Client                                                 = (*RegisteredClient)(nil)
+	_ oauthelia2.Client                                      = (*RegisteredClient)(nil)
+	_ oauthelia2.ClientAuthenticationPolicyClient            = (*RegisteredClient)(nil)
+	_ oauthelia2.OpenIDConnectClient                         = (*RegisteredClient)(nil)
+	_ oauthelia2.RefreshFlowScopeClient                      = (*RegisteredClient)(nil)
+	_ oauthelia2.RevokeFlowRevokeRefreshTokensExplicitClient = (*RegisteredClient)(nil)
+	_ oauthelia2.JARMClient                                  = (*RegisteredClient)(nil)
+	_ oauthelia2.ResponseModeClient                          = (*RegisteredClient)(nil)
+	_ oauthelia2.ClientCredentialsFlowPolicyClient           = (*RegisteredClient)(nil)
+	_ oauthelia2.JWTProfileClient                            = (*RegisteredClient)(nil)
+)
