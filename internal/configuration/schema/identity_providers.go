@@ -120,13 +120,13 @@ type IdentityProvidersOpenIDConnectClient struct {
 	SectorIdentifierURI *url.URL        `koanf:"sector_identifier_uri" json:"sector_identifier_uri" jsonschema:"title=Sector Identifier URI" jsonschema_description:"The Client Sector Identifier URI for Privacy Isolation via Pairwise subject types."`
 	Public              bool            `koanf:"public" json:"public" jsonschema:"default=false,title=Public" jsonschema_description:"Enables the Public Client Type."`
 
-	RedirectURIs IdentityProvidersOpenIDConnectClientRedirectURIs `koanf:"redirect_uris" json:"redirect_uris" jsonschema:"required,title=Redirect URIs" jsonschema_description:"List of authorized redirect URIs."`
+	RedirectURIs IdentityProvidersOpenIDConnectClientRedirectURIs `koanf:"redirect_uris" json:"redirect_uris" jsonschema:"title=Redirect URIs" jsonschema_description:"List of authorized redirect URIs."`
 
 	Audience      []string `koanf:"audience" json:"audience" jsonschema:"uniqueItems,title=Audience" jsonschema_description:"List of authorized audiences."`
-	Scopes        []string `koanf:"scopes" json:"scopes" jsonschema:"required,enum=openid,enum=offline_access,enum=groups,enum=email,enum=profile,uniqueItems,title=Scopes" jsonschema_description:"The Scopes this client is allowed request and be granted."`
-	GrantTypes    []string `koanf:"grant_types" json:"grant_types" jsonschema:"enum=authorization_code,enum=implicit,enum=refresh_token,uniqueItems,title=Grant Types" jsonschema_description:"The Grant Types this client is allowed to use for the protected endpoints."`
+	Scopes        []string `koanf:"scopes" json:"scopes" jsonschema:"required,enum=openid,enum=offline_access,enum=groups,enum=email,enum=profile,enum=authelia.bearer.authz,uniqueItems,title=Scopes" jsonschema_description:"The Scopes this client is allowed request and be granted."`
+	GrantTypes    []string `koanf:"grant_types" json:"grant_types" jsonschema:"enum=authorization_code,enum=implicit,enum=refresh_token,enum=client_credentials,uniqueItems,title=Grant Types" jsonschema_description:"The Grant Types this client is allowed to use for the protected endpoints."`
 	ResponseTypes []string `koanf:"response_types" json:"response_types" jsonschema:"enum=code,enum=id_token token,enum=id_token,enum=token,enum=code token,enum=code id_token,enum=code id_token token,uniqueItems,title=Response Types" jsonschema_description:"The Response Types the client is authorized to request."`
-	ResponseModes []string `koanf:"response_modes" json:"response_modes" jsonschema:"enum=form_post,enum=query,enum=fragment,uniqueItems,title=Response Modes" jsonschema_description:"The Response Modes this client is authorized request."`
+	ResponseModes []string `koanf:"response_modes" json:"response_modes" jsonschema:"enum=form_post,enum=form_post.jwt,enum=query,enum=query.jwt,enum=fragment,enum=fragment.jwt,enum=jwt,uniqueItems,title=Response Modes" jsonschema_description:"The Response Modes this client is authorized request."`
 
 	AuthorizationPolicy string `koanf:"authorization_policy" json:"authorization_policy" jsonschema:"title=Authorization Policy" jsonschema_description:"The Authorization Policy to apply to this client."`
 	Lifespan            string `koanf:"lifespan" json:"lifespan" jsonschema:"title=Lifespan Name" jsonschema_description:"The name of the custom lifespan to utilize for this client."`
