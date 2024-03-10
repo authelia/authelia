@@ -279,12 +279,12 @@
       "oneOf": [
         {
           "type": "string",
-          "pattern": "^(user|group|oauth2:client:):.+$"
+          "pattern": "^(user|group|oauth2:client):.+$"
         },
         {
           "items": {
             "type": "string",
-            "pattern": "^(user|group|oauth2:client:):.+$"
+            "pattern": "^(user|group|oauth2:client):.+$"
           },
           "type": "array"
         },
@@ -292,7 +292,7 @@
           "items": {
             "items": {
               "type": "string",
-              "pattern": "^(user|group|oauth2:client:):.+$"
+              "pattern": "^(user|group|oauth2:client):.+$"
             },
             "type": "array"
           },
@@ -1125,6 +1125,7 @@
         },
         "issuer_private_key": {
           "type": "string",
+          "pattern": "^-{5}(BEGIN (RSA )?PRIVATE KEY-{5}\\n([a-zA-Z0-9\\/+]{1,64}\\n)+([a-zA-Z0-9\\/+]{1,64}[=]{0,2})\\n-{5}END (RSA )?PRIVATE KEY-{5}\\n?)+$",
           "title": "Issuer Private Key",
           "description": "The Issuer Private Key with an RSA Private Key used to sign ID Tokens.",
           "deprecated": true
@@ -1225,7 +1226,8 @@
               "offline_access",
               "groups",
               "email",
-              "profile"
+              "profile",
+              "authelia.bearer.authz"
             ]
           },
           "type": "array",
@@ -1239,7 +1241,8 @@
             "enum": [
               "authorization_code",
               "implicit",
-              "refresh_token"
+              "refresh_token",
+              "client_credentials"
             ]
           },
           "type": "array",
@@ -1270,8 +1273,12 @@
             "type": "string",
             "enum": [
               "form_post",
+              "form_post.jwt",
               "query",
-              "fragment"
+              "query.jwt",
+              "fragment",
+              "fragment.jwt",
+              "jwt"
             ]
           },
           "type": "array",
@@ -1524,7 +1531,6 @@
       "type": "object",
       "required": [
         "client_id",
-        "redirect_uris",
         "scopes"
       ],
       "description": "IdentityProvidersOpenIDConnectClient represents a configuration for an OpenID Connect 1.0 client."
@@ -2015,6 +2021,7 @@
         },
         "key": {
           "type": "string",
+          "pattern": "^-{5}BEGIN (((RSA|EC) )?(PRIVATE|PUBLIC) KEY|CERTIFICATE)-{5}\\n([a-zA-Z0-9\\/+]{1,64}\\n)+([a-zA-Z0-9\\/+]{1,64}[=]{0,2})\\n-{5}END (((RSA|EC) )?(PRIVATE|PUBLIC) KEY|CERTIFICATE)-{5}\\n?$",
           "description": "The Private/Public key material of this JWK in Base64 PEM format."
         },
         "certificate_chain": {
@@ -3184,7 +3191,7 @@
         },
         "private_key": {
           "type": "string",
-          "pattern": "^-{5}(BEGIN ((RSA|EC) )?PRIVATE KEY-{5}\\n([a-zA-Z0-9/+]{1,64}\\n)+([a-zA-Z0-9/+]{1,64}[=]{0,2})\\n-{5}END ((RSA|EC) )?PRIVATE KEY-{5}\\n?)+$",
+          "pattern": "^-{5}BEGIN ((RSA|EC) )?PRIVATE KEY-{5}\\n([a-zA-Z0-9\\/+]{1,64}\\n)+([a-zA-Z0-9\\/+]{1,64}[=]{0,2})\\n-{5}END ((RSA|EC) )?PRIVATE KEY-{5}\\n?$",
           "title": "Private Key",
           "description": "The private key."
         },
@@ -3411,7 +3418,7 @@
     },
     "X509CertificateChain": {
       "type": "string",
-      "pattern": "^(-{5}BEGIN CERTIFICATE-{5}\\n([a-zA-Z0-9/+]{1,64}\\n)+([a-zA-Z0-9/+]{1,64}[=]{0,2})\\n-{5}END CERTIFICATE-{5}\\n?)+$"
+      "pattern": "^(-{5}BEGIN CERTIFICATE-{5}\\n([a-zA-Z0-9\\/+]{1,64}\\n)+([a-zA-Z0-9\\/+]{1,64}[=]{0,2})\\n-{5}END CERTIFICATE-{5}\\n?)+$"
     }
   }
 }

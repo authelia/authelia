@@ -18,7 +18,7 @@ community: true
 * [Authelia]
   * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [GitLab] CE
-  * 14.0.1
+  * 16.9.0
 
 ## Before You Begin
 
@@ -36,6 +36,10 @@ This example makes the following assumptions:
 ## Configuration
 
 ### Authelia
+
+_**Important Note:** This configuration assumes you've configured the `client_auth_method` in [GitLab] as per below. If you
+have not done this the default in [GitLab] will require the `token_endpoint_auth_method` changes to
+`client_secret_post`._
 
 The following YAML configuration is an example __Authelia__
 [client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [GitLab]
@@ -60,6 +64,7 @@ identity_providers:
           - 'groups'
           - 'email'
         userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 ### Application
@@ -76,13 +81,16 @@ gitlab_rails['omniauth_providers'] = [
     icon: "https://www.authelia.com/images/branding/logo-cropped.png",
     args: {
       name: "openid_connect",
-      scope: ["openid","profile","email","groups"],
-      response_type: "code",
+      strategy_class: "OmniAuth::Strategies::OpenIDConnect",
       issuer: "https://auth.example.com",
       discovery: true,
-      client_auth_method: "query",
+      scope: ["openid","profile","email","groups"],
+      client_auth_method: "basic",
+      response_type: "code",
+      response_mode: "query",
       uid_field: "preferred_username",
-      send_scope_to_token_endpoint: "false",
+      send_scope_to_token_endpoint: true,
+      pkce: true,
       client_options: {
         identifier: "gitlab",
         secret: "insecure_secret",
@@ -92,6 +100,16 @@ gitlab_rails['omniauth_providers'] = [
   }
 ]
 ```
+
+#### Groups
+
+[GitLab] offers group mapping options with OpenID Connect 1.0, shamefully it's only for paid plans. However see
+[the guide](https://docs.gitlab.com/ee/administration/auth/oidc.html#configure-users-based-on-oidc-group-membership) on
+how to configure it on their end.
+
+Alternatively if GitLab is associated with LDAP you can use that as a group source, and you can configure a policy on
+Authelia to restrict which resource owners are allowed access to the client for free via a custom `authorization_policy`
+value.
 
 ## See Also
 
