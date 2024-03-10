@@ -120,26 +120,38 @@ func getLanguages(dir fs.FS) (languages *Languages, err error) {
 	// adding locale fallbacks.
 	for i, lang := range languages.Languages {
 		p := lang.Tag.Parent()
+		parentString := p.String()
 
-		if p.String() == undefinedLocaleTag || strings.Contains(p.String(), "-") {
+		if parentString == undefinedLocaleTag {
 			continue
 		}
 
-		if p.String() != lang.Locale {
-			lang.Fallbacks = append([]string{p.String()}, lang.Fallbacks...)
-			lang.Parent = p.String()
+		// if parent is a microlanguage, use base language as parent
+		// this is true for cases as spanish argentina and spanish mexico.
+		if strings.Contains(parentString, "-") {
+			b, _ := lang.Tag.Base()
+			if p, err = language.Parse(b.String()); err != nil {
+				continue
+			}
+
+			parentString = p.String()
+		}
+
+		if parentString != lang.Locale {
+			lang.Fallbacks = append([]string{parentString}, lang.Fallbacks...)
+			lang.Parent = parentString
 		}
 
 		languages.Languages[i] = lang
 
-		if IsStringInSlice(p.String(), locales) {
+		if IsStringInSlice(parentString, locales) {
 			continue
 		}
 
 		caser := cases.Title(lang.Tag)
 		l := Language{
 			Display:    caser.String(display.Self.Name(p)),
-			Locale:     p.String(),
+			Locale:     parentString,
 			Namespaces: lang.Namespaces,
 			Fallbacks:  []string{languages.Defaults.Language.Locale},
 			Tag:        p,

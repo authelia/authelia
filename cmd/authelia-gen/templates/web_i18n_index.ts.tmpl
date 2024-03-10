@@ -7,13 +7,14 @@
 // 		go run ./cmd/authelia-gen locales
 //
 
-import i18n from "i18next";
+import i18n, { FallbackLngObjList } from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import Backend from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
 
 import { LocalStorageLanguageCurrent } from "@constants/LocalStorage";
 import LocalStorageCustomDetector from "@i18n/detectors/localStorageCustom";
+import { getLocaleInformation } from "@services/LocaleInformation";
 import { getBasePath } from "@utils/BasePath";
 
 const basePath = getBasePath();
@@ -38,18 +39,8 @@ i18n.use(Backend)
         ns: [{{ range $i, $value := .Namespaces }}{{ if eq $i 0 }}"{{ $value }}"{{ else }}, "{{ $value }}"{{ end }}{{ end }}],
         defaultNS: "{{ .Defaults.Namespace }}",
         fallbackLng: {
-            default: ["{{ .Defaults.Language.Locale }}"],
-            {{- range .Languages }}
-            {{- if and (not (eq .Locale "en")) (not (eq (len .Fallbacks) 0)) }}
-            {{ if contains "-" .Locale }}"{{ .Locale }}"{{ else }}{{ .Locale }}{{ end }}: [{{ range $i, $value := .Fallbacks }}{{ if eq $i 0 }}"{{ $value }}"{{ else }}, "{{ $value }}"{{ end }}{{ end }}],
-            {{- end }}
-            {{- end }}
+            default: ["en"],
         },
-        supportedLngs: [
-        	{{- range $i, $value := .Languages }}
-            "{{ $value.Locale }}",
-        	{{- end }}
-        ],
         lowerCaseLng: false,
         nonExplicitSupportedLngs: true,
         interpolation: {
@@ -60,13 +51,18 @@ i18n.use(Backend)
 
 export default i18n;
 
-// supportedLngsNames contains the list of the supported languages/locales
-// each element of the list contains:
-//  - lng: locale name (ie "en-AU")
-//  - name: the display name of the locale (ie "English")
-//  - parent: the parent/base language of this locales, it can be an empty string if the locale is root
-export const supportedLngsNames = [
-    {{- range $i, $value := .Languages }}
-    { lng: "{{ $value.Locale }}", name: "{{ $value.Display }}", parent: "{{ $value.Parent }}" },
-    {{- end }}
-];
+getLocaleInformation()
+    .then((response) => {
+        const supportedLngs = response.languages.map((l) => l.locale);
+        var fallbackLng: FallbackLngObjList = {
+            default: ["en"],
+        };
+        response.languages.forEach((l) => {
+            fallbackLng[l.locale] = l.fallbacks;
+        });
+        i18n.options.supportedLngs = supportedLngs;
+        i18n.options.fallbackLng = fallbackLng;
+    })
+    .catch((err) => {
+        console.error(err);
+    });

@@ -7,13 +7,14 @@
 // 		go run ./cmd/authelia-gen locales
 //
 
-import i18n from "i18next";
+import i18n, { FallbackLngObjList } from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import Backend from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
 
 import { LocalStorageLanguageCurrent } from "@constants/LocalStorage";
 import LocalStorageCustomDetector from "@i18n/detectors/localStorageCustom";
+import { getLocaleInformation } from "@services/LocaleInformation";
 import { getBasePath } from "@utils/BasePath";
 
 const basePath = getBasePath();
@@ -39,96 +40,7 @@ i18n.use(Backend)
         defaultNS: "portal",
         fallbackLng: {
             default: ["en"],
-            ar: ["en"],
-            "ar-SA": ["ar", "en"],
-            cs: ["en"],
-            "cs-CZ": ["cs", "en"],
-            da: ["en"],
-            "da-DK": ["da", "en"],
-            de: ["en"],
-            "de-DE": ["de", "en"],
-            el: ["en"],
-            "el-GR": ["el", "en"],
-            es: ["en"],
-            "es-ES": ["es", "en"],
-            fi: ["en"],
-            "fi-FI": ["fi", "en"],
-            fr: ["en"],
-            "fr-FR": ["fr", "en"],
-            hu: ["en"],
-            "hu-HU": ["hu", "en"],
-            it: ["en"],
-            "it-IT": ["it", "en"],
-            ja: ["en"],
-            "ja-JP": ["ja", "en"],
-            nb: ["en"],
-            nl: ["en"],
-            "nl-NL": ["nl", "en"],
-            pl: ["en"],
-            "pl-PL": ["pl", "en"],
-            pt: ["en"],
-            "pt-BR": ["pt", "en"],
-            "pt-PT": ["pt", "en"],
-            ro: ["en"],
-            "ro-RO": ["ro", "en"],
-            ru: ["en"],
-            "ru-RU": ["ru", "en"],
-            sl: ["en"],
-            "sl-SI": ["sl", "en"],
-            sv: ["en"],
-            "sv-SE": ["sv", "en"],
-            uk: ["en"],
-            "uk-UA": ["uk", "en"],
-            zh: ["en"],
-            "zh-CN": ["zh", "en"],
-            "zh-TW": ["en"],
         },
-        supportedLngs: [
-            "en",
-            "ar",
-            "ar-SA",
-            "cs",
-            "cs-CZ",
-            "da",
-            "da-DK",
-            "de",
-            "de-DE",
-            "el",
-            "el-GR",
-            "es",
-            "es-ES",
-            "fi",
-            "fi-FI",
-            "fr",
-            "fr-FR",
-            "hu",
-            "hu-HU",
-            "it",
-            "it-IT",
-            "ja",
-            "ja-JP",
-            "nb",
-            "nl",
-            "nl-NL",
-            "pl",
-            "pl-PL",
-            "pt",
-            "pt-BR",
-            "pt-PT",
-            "ro",
-            "ro-RO",
-            "ru",
-            "ru-RU",
-            "sl",
-            "sl-SI",
-            "sv",
-            "sv-SE",
-            "uk",
-            "uk-UA",
-            "zh",
-            "zh-CN",
-            "zh-TW",
-        ],
         lowerCaseLng: false,
         nonExplicitSupportedLngs: true,
         interpolation: {
@@ -139,54 +51,18 @@ i18n.use(Backend)
 
 export default i18n;
 
-// supportedLngsNames contains the list of the supported languages/locales
-// each element of the list contains:
-//  - lng: locale name (ie "en-AU")
-//  - name: the display name of the locale (ie "English")
-//  - parent: the parent/base language of this locales, it can be an empty string if the locale is root
-export const supportedLngsNames = [
-    { lng: "en", name: "English", parent: "" },
-    { lng: "ar", name: "العربية", parent: "" },
-    { lng: "ar-SA", name: "العربية", parent: "ar" },
-    { lng: "cs", name: "Čeština", parent: "" },
-    { lng: "cs-CZ", name: "Čeština", parent: "cs" },
-    { lng: "da", name: "Dansk", parent: "" },
-    { lng: "da-DK", name: "Dansk", parent: "da" },
-    { lng: "de", name: "Deutsch", parent: "" },
-    { lng: "de-DE", name: "Deutsch", parent: "de" },
-    { lng: "el", name: "Ελληνικά", parent: "" },
-    { lng: "el-GR", name: "Ελληνικά", parent: "el" },
-    { lng: "es", name: "Español", parent: "" },
-    { lng: "es-ES", name: "Español De España", parent: "es" },
-    { lng: "fi", name: "Suomi", parent: "" },
-    { lng: "fi-FI", name: "Suomi", parent: "fi" },
-    { lng: "fr", name: "Français", parent: "" },
-    { lng: "fr-FR", name: "Français", parent: "fr" },
-    { lng: "hu", name: "Magyar", parent: "" },
-    { lng: "hu-HU", name: "Magyar", parent: "hu" },
-    { lng: "it", name: "Italiano", parent: "" },
-    { lng: "it-IT", name: "Italiano", parent: "it" },
-    { lng: "ja", name: "日本語", parent: "" },
-    { lng: "ja-JP", name: "日本語", parent: "ja" },
-    { lng: "nb", name: "Norsk Bokmål", parent: "" },
-    { lng: "nl", name: "Nederlands", parent: "" },
-    { lng: "nl-NL", name: "Nederlands", parent: "nl" },
-    { lng: "pl", name: "Polski", parent: "" },
-    { lng: "pl-PL", name: "Polski", parent: "pl" },
-    { lng: "pt", name: "Português", parent: "" },
-    { lng: "pt-BR", name: "Português", parent: "pt" },
-    { lng: "pt-PT", name: "Português Europeu", parent: "pt" },
-    { lng: "ro", name: "Română", parent: "" },
-    { lng: "ro-RO", name: "Română", parent: "ro" },
-    { lng: "ru", name: "Русский", parent: "" },
-    { lng: "ru-RU", name: "Русский", parent: "ru" },
-    { lng: "sl", name: "Slovenščina", parent: "" },
-    { lng: "sl-SI", name: "Slovenščina", parent: "sl" },
-    { lng: "sv", name: "Svenska", parent: "" },
-    { lng: "sv-SE", name: "Svenska", parent: "sv" },
-    { lng: "uk", name: "Українська", parent: "" },
-    { lng: "uk-UA", name: "Українська", parent: "uk" },
-    { lng: "zh", name: "中文", parent: "" },
-    { lng: "zh-CN", name: "中文", parent: "zh" },
-    { lng: "zh-TW", name: "繁體中文", parent: "" },
-];
+getLocaleInformation()
+    .then((response) => {
+        const supportedLngs = response.languages.map((l) => l.locale);
+        var fallbackLng: FallbackLngObjList = {
+            default: ["en"],
+        };
+        response.languages.forEach((l) => {
+            fallbackLng[l.locale] = l.fallbacks;
+        });
+        i18n.options.supportedLngs = supportedLngs;
+        i18n.options.fallbackLng = fallbackLng;
+    })
+    .catch((err) => {
+        console.error(err);
+    });

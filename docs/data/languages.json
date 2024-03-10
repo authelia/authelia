@@ -151,8 +151,8 @@
             "parent": ""
         },
         {
-            "display": "Español De España",
-            "locale": "es-ES",
+            "display": "Español Latinoamericano",
+            "locale": "es-419",
             "namespaces": [
                 "portal"
             ],
@@ -514,9 +514,10 @@
                 "portal"
             ],
             "fallbacks": [
+                "zh",
                 "en"
             ],
-            "parent": ""
+            "parent": "zh"
         }
     ]
 }
