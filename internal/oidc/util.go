@@ -355,16 +355,9 @@ func PopulateClientCredentialsFlowRequester(ctx Context, config oauthelia2.Confi
 		return oauthelia2.ErrServerError.WithDebug("Failed to get the client, configuration, or requester for the request.")
 	}
 
-	if c, ok := client.(Client); ok {
-		c.ApplyRequestedAudiencePolicy(requester)
-	}
-
 	scopes := requester.GetRequestedScopes()
-	audience := requester.GetRequestedAudience()
 
 	var authz, nauthz bool
-
-	strategy := config.GetScopeStrategy(ctx)
 
 	for _, scope := range scopes {
 		switch scope {
@@ -375,28 +368,10 @@ func PopulateClientCredentialsFlowRequester(ctx Context, config oauthelia2.Confi
 		default:
 			nauthz = true
 		}
-
-		if strategy(client.GetScopes(), scope) {
-			requester.GrantScope(scope)
-		} else {
-			return oauthelia2.ErrInvalidScope.WithDebugf("The scope '%s' is not authorized on client with id '%s'.", scope, client.GetID())
-		}
 	}
 
 	if authz && nauthz {
 		return oauthelia2.ErrInvalidScope.WithDebugf("The scope '%s' must only be requested by itself or with the '%s' scope, no other scopes are permitted.", ScopeAutheliaBearerAuthz, ScopeOfflineAccess)
-	}
-
-	if authz && len(audience) == 0 {
-		return oauthelia2.ErrInvalidRequest.WithDebugf("The scope '%s' requires the request also include an audience.", ScopeAutheliaBearerAuthz)
-	}
-
-	if err = config.GetAudienceStrategy(ctx)(client.GetAudience(), audience); err != nil {
-		return err
-	}
-
-	for _, aud := range audience {
-		requester.GrantAudience(aud)
 	}
 
 	return nil

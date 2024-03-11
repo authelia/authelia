@@ -3,7 +3,7 @@ module github.com/authelia/authelia/v4
 go 1.21
 
 require (
-	authelia.com/provider/oauth2 v0.0.0-20240311044041-ee04059fc8b9
+	authelia.com/provider/oauth2 v0.0.0-20240311113727-cac816a63437
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/authelia/jsonschema v0.1.7

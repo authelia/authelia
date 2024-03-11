@@ -49,6 +49,7 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, signer jwt.Signer,
 		JWTSecuredAuthorizationLifespan:                    config.Lifespans.JWTSecuredAuthorization,
 		RevokeRefreshTokensExplicit:                        true,
 		EnforceRevokeFlowRevokeRefreshTokensExplicitClient: true,
+		ClientCredentialsFlowImplicitGrantRequested:        true,
 		Templates: templates,
 	}
 
@@ -106,6 +107,7 @@ type Config struct {
 	RevokeRefreshTokensExplicit                        bool
 	EnforceRevokeFlowRevokeRefreshTokensExplicitClient bool
 	EnforceJWTProfileAccessTokens                      bool
+	ClientCredentialsFlowImplicitGrantRequested        bool
 
 	TokenEntropy        int
 	MinParameterEntropy int
@@ -567,6 +569,10 @@ func (c *Config) GetAudienceStrategy(ctx context.Context) (strategy oauthelia2.A
 	}
 
 	return c.Strategy.Audience
+}
+
+func (c *Config) GetClientCredentialsFlowImplicitGrantRequested(ctx context.Context) (implicit bool) {
+	return c.ClientCredentialsFlowImplicitGrantRequested
 }
 
 // GetMinParameterEntropy returns the minimum parameter entropy.

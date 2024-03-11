@@ -22,10 +22,6 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		SectorIdentifierURI: config.SectorIdentifierURI,
 		Public:              config.Public,
 
-		RequirePKCE:                config.RequirePKCE || config.PKCEChallengeMethod != "",
-		RequirePKCEChallengeMethod: config.PKCEChallengeMethod != "",
-		PKCEChallengeMethod:        config.PKCEChallengeMethod,
-
 		Audience:      config.Audience,
 		Scopes:        config.Scopes,
 		RedirectURIs:  config.RedirectURIs,
@@ -33,7 +29,16 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		ResponseTypes: config.ResponseTypes,
 		ResponseModes: []oauthelia2.ResponseModeType{},
 
-		RequirePushedAuthorizationRequests: config.RequirePushedAuthorizationRequests,
+		RequirePKCE:                config.RequirePKCE || config.PKCEChallengeMethod != "",
+		RequirePKCEChallengeMethod: config.PKCEChallengeMethod != "",
+		PKCEChallengeMethod:        config.PKCEChallengeMethod,
+
+		RequirePushedAuthorizationRequests:      config.RequirePushedAuthorizationRequests,
+		ClientCredentialsFlowAllowImplicitScope: false,
+
+		AuthorizationPolicy:   NewClientAuthorizationPolicy(config.AuthorizationPolicy, c),
+		ConsentPolicy:         NewClientConsentPolicy(config.ConsentMode, config.ConsentPreConfiguredDuration),
+		RequestedAudienceMode: NewClientRequestedAudienceMode(config.RequestedAudienceMode),
 
 		AuthorizationSignedResponseAlg:   config.AuthorizationSignedResponseAlg,
 		AuthorizationSignedResponseKeyID: config.AuthorizationSignedResponseKeyID,
@@ -45,13 +50,9 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		UserinfoSignedResponseKeyID:      config.UserinfoSignedResponseKeyID,
 		IntrospectionSignedResponseAlg:   config.IntrospectionSignedResponseAlg,
 		IntrospectionSignedResponseKeyID: config.IntrospectionSignedResponseKeyID,
-
-		AuthorizationPolicy:         NewClientAuthorizationPolicy(config.AuthorizationPolicy, c),
-		ConsentPolicy:               NewClientConsentPolicy(config.ConsentMode, config.ConsentPreConfiguredDuration),
-		RequestedAudienceMode:       NewClientRequestedAudienceMode(config.RequestedAudienceMode),
-		TokenEndpointAuthMethod:     config.TokenEndpointAuthMethod,
-		TokenEndpointAuthSigningAlg: config.TokenEndpointAuthSigningAlg,
-		RequestObjectSigningAlg:     config.RequestObjectSigningAlg,
+		RequestObjectSigningAlg:          config.RequestObjectSigningAlg,
+		TokenEndpointAuthSigningAlg:      config.TokenEndpointAuthSigningAlg,
+		TokenEndpointAuthMethod:          config.TokenEndpointAuthMethod,
 
 		JSONWebKeysURI: config.JSONWebKeysURI,
 		JSONWebKeys:    NewPublicJSONWebKeySetFromSchemaJWK(config.JSONWebKeys),
@@ -430,8 +431,12 @@ func (c *RegisteredClient) GetAllowMultipleAuthenticationMethods(ctx context.Con
 	return c.AllowMultipleAuthenticationMethods
 }
 
-func (c *RegisteredClient) GetClientCredentialsFlowAllowImplicitScope() (allow bool) {
+func (c *RegisteredClient) GetClientCredentialsFlowRequestedScopeImplicit() (allow bool) {
 	return c.ClientCredentialsFlowAllowImplicitScope
+}
+
+func (c *RegisteredClient) GetRequestedAudienceImplicit() (implicit bool) {
+	return c.RequestedAudienceMode == ClientRequestedAudienceModeImplicit
 }
 
 // GetEffectiveLifespan returns the effective lifespan for a grant type and token type otherwise returns the fallback
