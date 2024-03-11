@@ -88,7 +88,7 @@ identity_providers:
 Notes:
 
 - You will need to enable Header Authorization strategy for your [Server Authz Endpoints].
-- The configuration has a [requested_audience_mode] value of `implicit` which is used to automatically grant all audiences the client is permitted to request, the default is `explicit` which does not do this and the client must also request the audience using the `audience` form parameter. As [Uptime Kuma] does not currently support this this configuration is required. 
+- The configuration has a [requested_audience_mode] value of `implicit` which is used to automatically grant all audiences the client is permitted to request, the default is `explicit` which does not do this and the client must also request the audience using the `audience` form parameter. As [Uptime Kuma] does not currently support this configuration is required. 
 - The `audience` (or multiple) is the endpoints of the secured resource you want to monitor using [Uptime Kuma].
 - If you have multiple monitors you can either have multiple clients or add the allowed audiences to the existing client from this example, also make sure to add the additional entries to access control rules.
 
