@@ -82,8 +82,8 @@ identity_providers:
           - 'https://application.example.com/'
         grant_types:
           - 'client_credentials'
-        requested_audience_mode: implicit
-        token_endpoint_auth_method: client_secret_basic
+        requested_audience_mode: 'implicit'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 Notes:
 
@@ -114,6 +114,6 @@ See the following screenshot for an authentication example of the above:
 
 [Authelia]: https://www.authelia.com
 [Uptime Kuma]: https://github.com/louislam/uptime-kuma
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[requested_audience_mode]: ../../../configuration/openid-connect/clients/#requested_audience_mode
-[Server Authz Endpoints]: ../../../configuration/miscellaneous/server-endpoints-authz/
+[OpenID Connect 1.0]: ../openid-connect/introduction.md
+[requested_audience_mode]: ../../configuration/openid-connect/clients/#requested_audience_mode
+[Server Authz Endpoints]: ../../configuration/miscellaneous/server-endpoints-authz/
