@@ -207,10 +207,10 @@ const (
 	errFmtMustBeConfiguredAs                  = "'%s' must be configured as %s "
 	errFmtOIDCClientOption                    = "identity_providers: oidc: clients: client '%s': option "
 	errFmtOIDCWhenScope                       = "when configured with scope '%s'"
-	errFmtOIDCClientInvalidSecretIs           = errFmtOIDCClientOption + "'secret' is "
+	errFmtOIDCClientInvalidSecretIs           = errFmtOIDCClientOption + "'client_secret' is "
 	errFmtOIDCClientInvalidSecret             = errFmtOIDCClientInvalidSecretIs + "required"
-	errFmtOIDCClientInvalidSecretPlainText    = errFmtOIDCClientInvalidSecretIs + "plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed when oidc becomes stable"
-	errFmtOIDCClientInvalidSecretNotPlainText = errFmtOIDCClientOption + "'secret' must be plaintext with option 'token_endpoint_auth_method' with a value of 'client_secret_jwt'"
+	errFmtOIDCClientInvalidSecretPlainText    = errFmtOIDCClientInvalidSecretIs + "plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future"
+	errFmtOIDCClientInvalidSecretNotPlainText = errFmtOIDCClientOption + "'client_secret' must be plaintext with option 'token_endpoint_auth_method' with a value of 'client_secret_jwt'"
 	errFmtOIDCClientPublicInvalidSecret       = errFmtOIDCClientInvalidSecretIs +
 		"required to be empty when option 'public' is true"
 	errFmtOIDCClientPublicInvalidSecretClientAuthMethod = errFmtOIDCClientInvalidSecretIs +

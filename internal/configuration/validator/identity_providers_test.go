@@ -207,7 +207,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 				},
 			},
 			errors: []string{
-				"identity_providers: oidc: clients: client '': option 'secret' is required",
+				"identity_providers: oidc: clients: client '': option 'client_secret' is required",
 				"identity_providers: oidc: clients: option 'id' is required but was absent on the clients in positions #1",
 			},
 		},
@@ -727,7 +727,7 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testi
 	require.Len(t, validator.Errors(), 2)
 	assert.Len(t, validator.Warnings(), 0)
 
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'client-with-invalid-secret': option 'secret' is required to be empty when option 'public' is true")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'client-with-invalid-secret': option 'client_secret' is required to be empty when option 'public' is true")
 	assert.EqualError(t, validator.Errors()[1], "identity_providers: oidc: clients: client 'client-with-bad-redirect-uri': option 'redirect_uris' has the redirect uri 'urn:ietf:wg:oauth:2.0:oob' when option 'public' is false but this is invalid as this uri is not valid for the openid connect confidential client type")
 }
 
@@ -814,7 +814,7 @@ func TestValidateIdentityProvidersShouldRaiseWarningOnPlainTextClients(t *testin
 	assert.Len(t, validator.Errors(), 0)
 	require.Len(t, validator.Warnings(), 1)
 
-	assert.EqualError(t, validator.Warnings()[0], "identity_providers: oidc: clients: client 'client-with-invalid-secret_standard': option 'secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed when oidc becomes stable")
+	assert.EqualError(t, validator.Warnings()[0], "identity_providers: oidc: clients: client 'client-with-invalid-secret_standard': option 'client_secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future")
 }
 
 // All valid schemes are supported as defined in https://datatracker.ietf.org/doc/html/rfc8252#section-7.1
@@ -1677,7 +1677,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'token_endpoint_auth_method' must be one of 'client_secret_post', 'client_secret_basic', or 'private_key_jwt' when configured as the confidential client type unless it only includes implicit flow response types such as 'id_token', 'token', and 'id_token token' but it's configured as 'none'",
-				"identity_providers: oidc: clients: client 'test': option 'secret' is required to be empty when option 'token_endpoint_auth_method' is configured as 'none'",
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' is required to be empty when option 'token_endpoint_auth_method' is configured as 'none'",
 			},
 		},
 		{
@@ -1703,7 +1703,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'token_endpoint_auth_method' must be one of 'client_secret_post', 'client_secret_basic', or 'private_key_jwt' when configured as the confidential client type unless it only includes implicit flow response types such as 'id_token', 'token', and 'id_token token' but it's configured as 'none'",
-				"identity_providers: oidc: clients: client 'test': option 'secret' is required to be empty when option 'token_endpoint_auth_method' is configured as 'none'",
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' is required to be empty when option 'token_endpoint_auth_method' is configured as 'none'",
 			},
 		},
 		{
@@ -2505,7 +2505,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'token_endpoint_auth_signing_alg' is required when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'",
 				"identity_providers: oidc: clients: client 'test': option 'jwks_uri' or 'jwks' is required with 'token_endpoint_auth_method' set to 'private_key_jwt'",
-				"identity_providers: oidc: clients: client 'test': option 'secret' is required to be empty when option 'token_endpoint_auth_method' is configured as 'private_key_jwt'",
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' is required to be empty when option 'token_endpoint_auth_method' is configured as 'private_key_jwt'",
 			},
 		},
 		{
@@ -2612,7 +2612,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 			nil,
 			[]string{
-				"identity_providers: oidc: clients: client 'test': option 'secret' must be plaintext with option 'token_endpoint_auth_method' with a value of 'client_secret_jwt'",
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' must be plaintext with option 'token_endpoint_auth_method' with a value of 'client_secret_jwt'",
 			},
 		},
 		{
@@ -2658,7 +2658,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 			nil,
 			[]string{
-				"identity_providers: oidc: clients: client 'test': option 'secret' must be plaintext with option 'token_endpoint_auth_method' with a value of 'client_secret_jwt'",
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' must be plaintext with option 'token_endpoint_auth_method' with a value of 'client_secret_jwt'",
 			},
 		},
 		{
@@ -2906,7 +2906,7 @@ func TestValidateOIDCClientTokenEndpointAuthMethod(t *testing.T) {
 			false,
 			oidc.ClientAuthMethodClientSecretBasic,
 			[]string{
-				"identity_providers: oidc: clients: client 'test': option 'secret' is required",
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' is required",
 			},
 		},
 		{
