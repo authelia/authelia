@@ -1046,7 +1046,7 @@
             "never",
             "always"
           ],
-          "title": "Require PKCE",
+          "title": "Enforce PKCE",
           "description": "Controls enforcement of the use of Proof Key for Code Exchange on all clients.",
           "default": "public_clients_only"
         },
