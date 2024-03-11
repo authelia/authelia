@@ -32,5 +32,5 @@ func (c *controlMsftServerPolicyHints) Encode() (packet *ber.Packet) {
 
 // String implements ldap.Control.
 func (c *controlMsftServerPolicyHints) String() string {
-	return "Require the password history length constraint (MS-SAMR section 3.1.1.7.1) during password set: " + c.GetControlType()
+	return "Enforce the password history length constraint (MS-SAMR section 3.1.1.7.1) during password set: " + c.GetControlType()
 }
