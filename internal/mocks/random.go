@@ -5,6 +5,7 @@
 //
 //	mockgen -package mocks -destination random.go -mock_names Provider=MockRandom github.com/authelia/authelia/v4/internal/random Provider
 //
+
 // Package mocks is a generated GoMock package.
 package mocks
 

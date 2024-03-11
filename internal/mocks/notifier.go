@@ -5,6 +5,7 @@
 //
 //	mockgen -package mocks -destination notifier.go -mock_names Notifier=MockNotifier github.com/authelia/authelia/v4/internal/notification Notifier
 //
+
 // Package mocks is a generated GoMock package.
 package mocks
 

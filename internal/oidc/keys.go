@@ -10,9 +10,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/go-jose/go-jose/v3"
+	fjwt "authelia.com/provider/oauth2/token/jwt"
+	"github.com/go-jose/go-jose/v4"
 	"github.com/golang-jwt/jwt/v5"
-	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/ory/x/errorsx"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"

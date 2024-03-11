@@ -6,10 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-jose/go-jose/v3"
-	"github.com/ory/fosite"
-	"github.com/ory/fosite/handler/openid"
-	fjwt "github.com/ory/fosite/token/jwt"
+	oauthelia2 "authelia.com/provider/oauth2"
+	fjwt "authelia.com/provider/oauth2/token/jwt"
+	"github.com/go-jose/go-jose/v4"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/text/language"
 
@@ -58,14 +57,14 @@ func TestSortedJSONWebKey(t *testing.T) {
 func TestRFC6750Header(t *testing.T) {
 	testCaes := []struct {
 		name     string
-		have     *fosite.RFC6749Error
+		have     *oauthelia2.RFC6749Error
 		realm    string
 		scope    string
 		expected string
 	}{
 		{
 			"ShouldEncodeAll",
-			&fosite.RFC6749Error{
+			&oauthelia2.RFC6749Error{
 				ErrorField:       "invalid_example",
 				DescriptionField: "A description",
 			},
@@ -75,7 +74,7 @@ func TestRFC6750Header(t *testing.T) {
 		},
 		{
 			"ShouldEncodeBasic",
-			&fosite.RFC6749Error{
+			&oauthelia2.RFC6749Error{
 				ErrorField:       "invalid_example",
 				DescriptionField: "A description",
 			},
@@ -88,151 +87,6 @@ func TestRFC6750Header(t *testing.T) {
 	for _, tc := range testCaes {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.expected, oidc.RFC6750Header(tc.realm, tc.scope, tc.have))
-		})
-	}
-}
-
-func TestIntrospectionResponseToMap(t *testing.T) {
-	testCases := []struct {
-		name        string
-		have        fosite.IntrospectionResponder
-		expectedaud []string
-		expected    map[string]any
-	}{
-		{
-			"ShouldDecodeInactive",
-			&oidc.IntrospectionResponse{},
-			nil,
-			map[string]any{oidc.ClaimActive: false},
-		},
-		{
-			"ShouldReturnInactiveWhenNil",
-			nil,
-			nil,
-			map[string]any{oidc.ClaimActive: false},
-		},
-		{
-			"ShouldReturnActiveWithoutAccessRequester",
-			&oidc.IntrospectionResponse{
-				Active: true,
-			},
-			nil,
-			map[string]any{oidc.ClaimActive: true},
-		},
-		{
-			"ShouldReturnActiveWithAccessRequester",
-			&oidc.IntrospectionResponse{
-				Active: true,
-				AccessRequester: &fosite.AccessRequest{
-					Request: fosite.Request{
-						RequestedAt:     time.Unix(100000, 0).UTC(),
-						GrantedScope:    fosite.Arguments{oidc.ScopeOpenID, oidc.ScopeProfile},
-						GrantedAudience: fosite.Arguments{"https://example.com", "aclient"},
-						Client:          &oidc.RegisteredClient{ID: "aclient"},
-					},
-				},
-			},
-			nil,
-			map[string]any{
-				oidc.ClaimActive:           true,
-				oidc.ClaimScope:            "openid profile",
-				oidc.ClaimAudience:         []string{"https://example.com", "aclient"},
-				oidc.ClaimIssuedAt:         int64(100000),
-				oidc.ClaimClientIdentifier: "aclient",
-			},
-		},
-		{
-			"ShouldReturnActiveWithAccessRequesterAndSession",
-			&oidc.IntrospectionResponse{
-				Active: true,
-				AccessRequester: &fosite.AccessRequest{
-					Request: fosite.Request{
-						RequestedAt:     time.Unix(100000, 0).UTC(),
-						GrantedScope:    fosite.Arguments{oidc.ScopeOpenID, oidc.ScopeProfile},
-						GrantedAudience: fosite.Arguments{"https://example.com", "aclient"},
-						Client:          &oidc.RegisteredClient{ID: "aclient"},
-						Session: &oidc.Session{
-							DefaultSession: &openid.DefaultSession{
-								ExpiresAt: map[fosite.TokenType]time.Time{
-									fosite.AccessToken: time.Unix(1000000, 0).UTC(),
-								},
-								Subject: "asubj",
-								Claims: &fjwt.IDTokenClaims{
-									Extra: map[string]any{
-										"aclaim":                 1,
-										oidc.ClaimExpirationTime: 0,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			nil,
-			map[string]any{
-				oidc.ClaimActive:           true,
-				oidc.ClaimScope:            "openid profile",
-				oidc.ClaimAudience:         []string{"https://example.com", "aclient"},
-				oidc.ClaimIssuedAt:         int64(100000),
-				oidc.ClaimClientIdentifier: "aclient",
-				"aclaim":                   1,
-				oidc.ClaimSubject:          "asubj",
-				oidc.ClaimExpirationTime:   int64(1000000),
-			},
-		},
-		{
-			"ShouldReturnActiveWithAccessRequesterAndSessionWithIDTokenClaimsAndUsername",
-			&oidc.IntrospectionResponse{
-				Client: &oidc.RegisteredClient{
-					ID:       "rclient",
-					Audience: []string{"https://rs.example.com"},
-				},
-				Active: true,
-				AccessRequester: &fosite.AccessRequest{
-					Request: fosite.Request{
-						RequestedAt:     time.Unix(100000, 0).UTC(),
-						GrantedScope:    fosite.Arguments{oidc.ScopeOpenID, oidc.ScopeProfile},
-						GrantedAudience: fosite.Arguments{"https://example.com", "aclient"},
-						Client:          &oidc.RegisteredClient{ID: "aclient"},
-						Session: &oidc.Session{
-							DefaultSession: &openid.DefaultSession{
-								ExpiresAt: map[fosite.TokenType]time.Time{
-									fosite.AccessToken: time.Unix(1000000, 0).UTC(),
-								},
-								Username: "auser",
-								Claims: &fjwt.IDTokenClaims{
-									Subject: "asubj",
-									Extra: map[string]any{
-										"aclaim":                 1,
-										oidc.ClaimExpirationTime: 0,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			[]string{"rclient"},
-			map[string]any{
-				oidc.ClaimActive:           true,
-				oidc.ClaimScope:            "openid profile",
-				oidc.ClaimAudience:         []string{"https://example.com", "aclient"},
-				oidc.ClaimIssuedAt:         int64(100000),
-				oidc.ClaimClientIdentifier: "aclient",
-				"aclaim":                   1,
-				oidc.ClaimSubject:          "asubj",
-				oidc.ClaimExpirationTime:   int64(1000000),
-				oidc.ClaimUsername:         "auser",
-			},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			aud, introspection := oidc.IntrospectionResponseToMap(tc.have)
-
-			assert.Equal(t, tc.expectedaud, aud)
-			assert.Equal(t, tc.expected, introspection)
 		})
 	}
 }
@@ -285,7 +139,7 @@ func TestIsJWTProfileAccessToken(t *testing.T) {
 func TestGetLangFromRequester(t *testing.T) {
 	testCases := []struct {
 		name     string
-		have     fosite.Requester
+		have     oauthelia2.Requester
 		expected language.Tag
 	}{
 		{
@@ -295,12 +149,12 @@ func TestGetLangFromRequester(t *testing.T) {
 		},
 		{
 			"ShouldReturnEmpty",
-			&fosite.Request{},
+			&oauthelia2.Request{},
 			language.Tag{},
 		},
 		{
 			"ShouldReturnValueFromRequest",
-			&fosite.Request{
+			&oauthelia2.Request{
 				Lang: language.French,
 			},
 			language.French,
@@ -327,29 +181,29 @@ func (t TestGetLangRequester) GetRequestedAt() (requestedAt time.Time) {
 	return time.Now().UTC()
 }
 
-func (t TestGetLangRequester) GetClient() (client fosite.Client) {
+func (t TestGetLangRequester) GetClient() (client oauthelia2.Client) {
 	return nil
 }
 
-func (t TestGetLangRequester) GetRequestedScopes() (scopes fosite.Arguments) {
+func (t TestGetLangRequester) GetRequestedScopes() (scopes oauthelia2.Arguments) {
 	return nil
 }
 
-func (t TestGetLangRequester) GetRequestedAudience() (audience fosite.Arguments) {
+func (t TestGetLangRequester) GetRequestedAudience() (audience oauthelia2.Arguments) {
 	return nil
 }
 
-func (t TestGetLangRequester) SetRequestedScopes(scopes fosite.Arguments) {}
+func (t TestGetLangRequester) SetRequestedScopes(scopes oauthelia2.Arguments) {}
 
-func (t TestGetLangRequester) SetRequestedAudience(audience fosite.Arguments) {}
+func (t TestGetLangRequester) SetRequestedAudience(audience oauthelia2.Arguments) {}
 
 func (t TestGetLangRequester) AppendRequestedScope(scope string) {}
 
-func (t TestGetLangRequester) GetGrantedScopes() (grantedScopes fosite.Arguments) {
+func (t TestGetLangRequester) GetGrantedScopes() (grantedScopes oauthelia2.Arguments) {
 	return nil
 }
 
-func (t TestGetLangRequester) GetGrantedAudience() (grantedAudience fosite.Arguments) {
+func (t TestGetLangRequester) GetGrantedAudience() (grantedAudience oauthelia2.Arguments) {
 	return nil
 }
 
@@ -357,18 +211,18 @@ func (t TestGetLangRequester) GrantScope(scope string) {}
 
 func (t TestGetLangRequester) GrantAudience(audience string) {}
 
-func (t TestGetLangRequester) GetSession() (session fosite.Session) {
+func (t TestGetLangRequester) GetSession() (session oauthelia2.Session) {
 	return nil
 }
 
-func (t TestGetLangRequester) SetSession(session fosite.Session) {}
+func (t TestGetLangRequester) SetSession(session oauthelia2.Session) {}
 
 func (t TestGetLangRequester) GetRequestForm() url.Values {
 	return nil
 }
 
-func (t TestGetLangRequester) Merge(requester fosite.Requester) {}
+func (t TestGetLangRequester) Merge(requester oauthelia2.Requester) {}
 
-func (t TestGetLangRequester) Sanitize(allowedParameters []string) fosite.Requester {
+func (t TestGetLangRequester) Sanitize(allowedParameters []string) oauthelia2.Requester {
 	return nil
 }

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ory/fosite"
+	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -467,27 +467,27 @@ func handleVerifyGETAuthorizationBearer(ctx *middlewares.AutheliaCtx, authn *Aut
 
 type AuthzBearerIntrospectionProvider interface {
 	GetFullClient(ctx context.Context, id string) (client oidc.Client, err error)
-	GetAudienceStrategy(ctx context.Context) (strategy fosite.AudienceMatchingStrategy)
-	IntrospectToken(ctx context.Context, token string, tokenUse fosite.TokenUse, session fosite.Session, scope ...string) (fosite.TokenUse, fosite.AccessRequester, error)
+	GetAudienceStrategy(ctx context.Context) (strategy oauthelia2.AudienceMatchingStrategy)
+	IntrospectToken(ctx context.Context, token string, tokenUse oauthelia2.TokenUse, session oauthelia2.Session, scope ...string) (oauthelia2.TokenUse, oauthelia2.AccessRequester, error)
 }
 
 func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provider AuthzBearerIntrospectionProvider, authn *Authn, object *authorization.Object) (username, clientID string, ccs bool, level authentication.Level, err error) {
 	var (
-		use       fosite.TokenUse
-		requester fosite.AccessRequester
+		use       oauthelia2.TokenUse
+		requester oauthelia2.AccessRequester
 	)
 
-	authn.Header.Error = &fosite.RFC6749Error{
+	authn.Header.Error = &oauthelia2.RFC6749Error{
 		ErrorField:       "invalid_token",
 		DescriptionField: "The access token is expired, revoked, malformed, or invalid for other reasons. The client can obtain a new access token and try again.",
 	}
 
-	if use, requester, err = provider.IntrospectToken(ctx, authn.Header.Authorization.Value(), fosite.AccessToken, oidc.NewSession(), oidc.ScopeAutheliaBearerAuthz); err != nil {
+	if use, requester, err = provider.IntrospectToken(ctx, authn.Header.Authorization.Value(), oauthelia2.AccessToken, oidc.NewSession(), oidc.ScopeAutheliaBearerAuthz); err != nil {
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("error performing token introspection: %w", err)
 	}
 
-	if use != fosite.AccessToken {
-		authn.Header.Error = fosite.ErrInvalidRequest
+	if use != oauthelia2.AccessToken {
+		authn.Header.Error = oauthelia2.ErrInvalidRequest
 
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("token is not an access token")
 	}

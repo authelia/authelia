@@ -6,11 +6,10 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/go-crypt/crypt/algorithm"
-	"github.com/go-jose/go-jose/v3"
+	oauthelia2 "authelia.com/provider/oauth2"
+	fjwt "authelia.com/provider/oauth2/token/jwt"
+	"github.com/go-jose/go-jose/v4"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/ory/fosite"
-	fjwt "github.com/ory/fosite/token/jwt"
 	"github.com/ory/herodot"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -23,7 +22,7 @@ import (
 
 // OpenIDConnectProvider for OpenID Connect.
 type OpenIDConnectProvider struct {
-	fosite.OAuth2Provider
+	oauthelia2.Provider
 	*herodot.JSONWriter
 	*Store
 	*Config
@@ -33,9 +32,9 @@ type OpenIDConnectProvider struct {
 	discovery OpenIDConnectWellKnownConfiguration
 }
 
-// Store is Authelia's internal representation of the fosite.Storage interface. It maps the following
+// Store is Authelia's internal representation of the oauthelia2.Storage interface. It maps the following
 // interfaces to the storage.Provider interface:
-// fosite.Storage, fosite.ClientManager, storage.Transactional, oauth2.AuthorizeCodeStorage, oauth2.AccessTokenStorage,
+// oauthelia2.Storage, oauthelia2.ClientManager, storage.Transactional, oauth2.AuthorizeCodeStorage, oauth2.AccessTokenStorage,
 // oauth2.RefreshTokenStorage, oauth2.TokenRevocationStorage, pkce.PKCERequestStorage,
 // openid.OpenIDConnectRequestStorage, and partially implements rfc7523.RFC7523KeyStorage.
 type Store struct {
@@ -45,11 +44,12 @@ type Store struct {
 
 // RegisteredClient represents a registered client.
 type RegisteredClient struct {
-	ID                  string
-	Name                string
-	Secret              *schema.PasswordDigest
-	SectorIdentifierURI *url.URL
-	Public              bool
+	ID                   string
+	Name                 string
+	ClientSecret         *ClientSecretDigest
+	RotatedClientSecrets []*ClientSecretDigest
+	SectorIdentifierURI  *url.URL
+	Public               bool
 
 	RequirePushedAuthorizationRequests bool
 
@@ -62,45 +62,54 @@ type RegisteredClient struct {
 	RedirectURIs  []string
 	GrantTypes    []string
 	ResponseTypes []string
-	ResponseModes []fosite.ResponseModeType
+	ResponseModes []oauthelia2.ResponseModeType
 
 	Lifespans schema.IdentityProvidersOpenIDConnectLifespan
 
-	AuthorizationSignedResponseAlg   string
-	AuthorizationSignedResponseKeyID string
-	IDTokenSignedResponseAlg         string
-	IDTokenSignedResponseKeyID       string
-	AccessTokenSignedResponseAlg     string
-	AccessTokenSignedResponseKeyID   string
-	UserinfoSignedResponseAlg        string
-	UserinfoSignedResponseKeyID      string
+	AuthorizationSignedResponseAlg              string
+	AuthorizationSignedResponseKeyID            string
+	AuthorizationEncryptedResponseAlg           string
+	AuthorizationEncryptedResponseEncryptionAlg string
+
+	IDTokenSignedResponseAlg   string
+	IDTokenSignedResponseKeyID string
+
+	AccessTokenSignedResponseAlg   string
+	AccessTokenSignedResponseKeyID string
+
+	UserinfoSignedResponseAlg   string
+	UserinfoSignedResponseKeyID string
+
 	IntrospectionSignedResponseAlg   string
 	IntrospectionSignedResponseKeyID string
 
-	RefreshFlowIgnoreOriginalGrantedScopes bool
+	RequestObjectSigningAlg string
+
+	TokenEndpointAuthMethod     string
+	TokenEndpointAuthSigningAlg string
+
+	RefreshFlowIgnoreOriginalGrantedScopes  bool
+	AllowMultipleAuthenticationMethods      bool
+	ClientCredentialsFlowAllowImplicitScope bool
 
 	AuthorizationPolicy ClientAuthorizationPolicy
 
 	ConsentPolicy         ClientConsentPolicy
 	RequestedAudienceMode ClientRequestedAudienceMode
 
-	RequestURIs                 []string
-	JSONWebKeys                 *jose.JSONWebKeySet
-	JSONWebKeysURI              *url.URL
-	RequestObjectSigningAlg     string
-	TokenEndpointAuthMethod     string
-	TokenEndpointAuthSigningAlg string
+	RequestURIs    []string
+	JSONWebKeys    *jose.JSONWebKeySet
+	JSONWebKeysURI *url.URL
 }
 
 // Client represents the internal client definitions.
 type Client interface {
-	fosite.Client
-	fosite.ResponseModeClient
+	oauthelia2.Client
+	oauthelia2.ResponseModeClient
 	RefreshFlowScopeClient
 
 	GetName() (name string)
-	GetSecret() (secret algorithm.Digest)
-	GetSectorIdentifier() (sector string)
+	GetSectorIdentifierURI() (sector string)
 
 	GetAuthorizationSignedResponseAlg() (alg string)
 	GetAuthorizationSignedResponseKeyID() (kid string)
@@ -110,7 +119,7 @@ type Client interface {
 
 	GetAccessTokenSignedResponseAlg() (alg string)
 	GetAccessTokenSignedResponseKeyID() (kid string)
-	GetJWTProfileOAuthAccessTokensEnabled() bool
+	GetEnableJWTProfileOAuthAccessTokens() bool
 
 	GetUserinfoSignedResponseAlg() (alg string)
 	GetUserinfoSignedResponseKeyID() (kid string)
@@ -119,27 +128,25 @@ type Client interface {
 	GetIntrospectionSignedResponseKeyID() (kid string)
 
 	GetRequirePushedAuthorizationRequests() (enforce bool)
-	GetPKCEEnforcement() (enforce bool)
-	GetPKCEChallengeMethodEnforcement() (enforce bool)
+
+	GetEnforcePKCE() (enforce bool)
+	GetEnforcePKCEChallengeMethod() (enforce bool)
 	GetPKCEChallengeMethod() (method string)
 
-	ValidatePKCEPolicy(r fosite.Requester) (err error)
-	ValidatePARPolicy(r fosite.Requester, prefix string) (err error)
-	ValidateResponseModePolicy(r fosite.AuthorizeRequester) (err error)
+	ValidateResponseModePolicy(r oauthelia2.AuthorizeRequester) (err error)
 
-	ApplyRequestedAudiencePolicy(requester fosite.Requester)
 	GetConsentResponseBody(consent *model.OAuth2ConsentSession) (body ConsentGetResponseBody)
 	GetConsentPolicy() ClientConsentPolicy
 	IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) (sufficient bool)
 	GetAuthorizationPolicyRequiredLevel(subject authorization.Subject) (level authorization.Level)
 	GetAuthorizationPolicy() (policy ClientAuthorizationPolicy)
 
-	GetEffectiveLifespan(gt fosite.GrantType, tt fosite.TokenType, fallback time.Duration) (lifespan time.Duration)
+	GetEffectiveLifespan(gt oauthelia2.GrantType, tt oauthelia2.TokenType, fallback time.Duration) (lifespan time.Duration)
 }
 
 // RefreshFlowScopeClient is a client which can be customized to ignore scopes that were not originally granted.
 type RefreshFlowScopeClient interface {
-	fosite.Client
+	oauthelia2.Client
 
 	GetRefreshFlowIgnoreOriginalGrantedScopes(ctx context.Context) (ignoreOriginalGrantedScopes bool)
 }
@@ -154,9 +161,9 @@ type Context interface {
 	GetJWTWithTimeFuncOption() jwt.ParserOption
 }
 
-// ClientRequesterResponder is a fosite.Requster or fosite.Responder with a GetClient method.
+// ClientRequesterResponder is a oauthelia2.Requster or fosite.Responder with a GetClient method.
 type ClientRequesterResponder interface {
-	GetClient() fosite.Client
+	GetClient() oauthelia2.Client
 }
 
 // IDTokenClaimsSession is a session which can return the IDTokenClaims type.
@@ -164,12 +171,11 @@ type IDTokenClaimsSession interface {
 	GetIDTokenClaims() *fjwt.IDTokenClaims
 }
 
-// Configurator is an internal extension to the fosite.Configurator.
+// Configurator is an internal extension to the oauthelia2.Configurator.
 type Configurator interface {
-	fosite.Configurator
+	oauthelia2.Configurator
 
 	AuthorizationServerIssuerIdentificationProvider
-	JWTSecuredResponseModeProvider
 }
 
 // AuthorizationServerIssuerIdentificationProvider provides OAuth 2.0 Authorization Server Issuer Identification related methods.
@@ -945,3 +951,20 @@ type OpenIDConnectWellKnownClaims struct {
 
 	jwt.RegisteredClaims
 }
+
+var (
+	_ Client                                                       = (*RegisteredClient)(nil)
+	_ oauthelia2.Client                                            = (*RegisteredClient)(nil)
+	_ oauthelia2.RotatedClientSecretsClient                        = (*RegisteredClient)(nil)
+	_ oauthelia2.ProofKeyCodeExchangeClient                        = (*RegisteredClient)(nil)
+	_ oauthelia2.ClientAuthenticationPolicyClient                  = (*RegisteredClient)(nil)
+	_ oauthelia2.OpenIDConnectClient                               = (*RegisteredClient)(nil)
+	_ oauthelia2.RefreshFlowScopeClient                            = (*RegisteredClient)(nil)
+	_ oauthelia2.RevokeFlowRevokeRefreshTokensExplicitClient       = (*RegisteredClient)(nil)
+	_ oauthelia2.JARMClient                                        = (*RegisteredClient)(nil)
+	_ oauthelia2.PushedAuthorizationRequestClient                  = (*RegisteredClient)(nil)
+	_ oauthelia2.ResponseModeClient                                = (*RegisteredClient)(nil)
+	_ oauthelia2.ClientCredentialsFlowRequestedScopeImplicitClient = (*RegisteredClient)(nil)
+	_ oauthelia2.RequestedAudienceImplicitClient                   = (*RegisteredClient)(nil)
+	_ oauthelia2.JWTProfileClient                                  = (*RegisteredClient)(nil)
+)

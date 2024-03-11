@@ -1084,10 +1084,10 @@
           "title": "Discovery Response Signing Key ID",
           "description": "The Key ID this provider uses to sign the Discovery and Metadata Document responses (overrides the 'discovery_signed_response_alg')."
         },
-        "pushed_authorizations": {
-          "$ref": "#/$defs/IdentityProvidersOpenIDConnectPAR",
-          "title": "Pushed Authorizations",
-          "description": "Configuration options for Pushed Authorization Requests."
+        "require_pushed_authorization_requests": {
+          "type": "boolean",
+          "title": "Require Pushed Authorization Requests",
+          "description": "Requires Pushed Authorization Requests for all clients for this Issuer."
         },
         "cors": {
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectCORS",
@@ -1799,33 +1799,6 @@
       },
       "additionalProperties": false,
       "type": "object"
-    },
-    "IdentityProvidersOpenIDConnectPAR": {
-      "properties": {
-        "enforce": {
-          "type": "boolean",
-          "title": "Enforce",
-          "description": "Enforce the use of PAR for all requests on all clients.",
-          "default": false
-        },
-        "context_lifespan": {
-          "oneOf": [
-            {
-              "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
-            },
-            {
-              "type": "integer",
-              "description": "The duration in seconds"
-            }
-          ],
-          "title": "Context Lifespan",
-          "description": "How long a PAR context is valid for."
-        }
-      },
-      "additionalProperties": false,
-      "type": "object",
-      "description": "IdentityProvidersOpenIDConnectPAR represents an OpenID Connect 1.0 PAR config."
     },
     "IdentityProvidersOpenIDConnectPolicy": {
       "properties": {

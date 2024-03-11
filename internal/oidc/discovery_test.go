@@ -68,11 +68,9 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			c := schema.IdentityProvidersOpenIDConnect{
-				EnablePKCEPlainChallenge: tc.pkcePlainChallenge,
-				PAR: schema.IdentityProvidersOpenIDConnectPAR{
-					Enforce: tc.enforcePAR,
-				},
-				Discovery: tc.discovery,
+				EnablePKCEPlainChallenge:           tc.pkcePlainChallenge,
+				RequirePushedAuthorizationRequests: tc.enforcePAR,
+				Discovery:                          tc.discovery,
 			}
 
 			actual := oidc.NewOpenIDConnectWellKnownConfiguration(&c)

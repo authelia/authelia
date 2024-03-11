@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"time"
 
+	"authelia.com/provider/oauth2/storage"
 	"github.com/google/uuid"
-	"github.com/ory/fosite/storage"
 
 	"github.com/authelia/authelia/v4/internal/model"
 )

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ory/fosite"
+	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -71,12 +71,12 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 	require.NotNil(t, client)
 	assert.Equal(t, id, client.GetID())
 	assert.Equal(t, myclientdesc, client.GetName())
-	assert.Equal(t, fosite.Arguments(c1.Scopes), client.GetScopes())
-	assert.Equal(t, fosite.Arguments([]string{oidc.GrantTypeAuthorizationCode}), client.GetGrantTypes())
-	assert.Equal(t, fosite.Arguments([]string{oidc.ResponseTypeAuthorizationCodeFlow}), client.GetResponseTypes())
+	assert.Equal(t, oauthelia2.Arguments(c1.Scopes), client.GetScopes())
+	assert.Equal(t, oauthelia2.Arguments([]string{oidc.GrantTypeAuthorizationCode}), client.GetGrantTypes())
+	assert.Equal(t, oauthelia2.Arguments([]string{oidc.ResponseTypeAuthorizationCodeFlow}), client.GetResponseTypes())
 	assert.Equal(t, []string(nil), client.GetRedirectURIs())
 	assert.Equal(t, authorization.OneFactor, client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{}))
-	assert.Equal(t, "$plaintext$client-secret", client.GetSecret().Encode())
+	assert.Equal(t, "$plaintext$client-secret", client.GetClientSecret().(*oidc.ClientSecretDigest).Encode())
 }
 
 func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
@@ -295,7 +295,7 @@ func (s *StoreSuite) TestCreateSessions() {
 			Return(nil),
 	)
 
-	s.NoError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &fosite.Request{
+	s.NoError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &oauthelia2.Request{
 		ID: abc,
 		Client: &oidc.RegisteredClient{
 			ID: "example",
@@ -303,7 +303,7 @@ func (s *StoreSuite) TestCreateSessions() {
 		Session: session,
 	}))
 
-	s.EqualError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &fosite.Request{
+	s.EqualError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &oauthelia2.Request{
 		ID: abc,
 		Client: &oidc.RegisteredClient{
 			ID: "example",
@@ -311,7 +311,7 @@ func (s *StoreSuite) TestCreateSessions() {
 		Session: session,
 	}), "duplicate key")
 
-	s.EqualError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &fosite.Request{
+	s.EqualError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &oauthelia2.Request{
 		ID: abc,
 		Client: &oidc.RegisteredClient{
 			ID: "example",
@@ -319,7 +319,7 @@ func (s *StoreSuite) TestCreateSessions() {
 		Session: nil,
 	}), "failed to create new *model.OAuth2Session: the session type OpenIDSession was expected but the type '<nil>' was used")
 
-	s.NoError(s.store.CreateAccessTokenSession(s.ctx, abc, &fosite.Request{
+	s.NoError(s.store.CreateAccessTokenSession(s.ctx, abc, &oauthelia2.Request{
 		ID: abc,
 		Client: &oidc.RegisteredClient{
 			ID: "example",
@@ -327,7 +327,7 @@ func (s *StoreSuite) TestCreateSessions() {
 		Session: session,
 	}))
 
-	s.NoError(s.store.CreateRefreshTokenSession(s.ctx, abc, &fosite.Request{
+	s.NoError(s.store.CreateRefreshTokenSession(s.ctx, abc, &oauthelia2.Request{
 		ID: abc,
 		Client: &oidc.RegisteredClient{
 			ID: "example",
@@ -335,7 +335,7 @@ func (s *StoreSuite) TestCreateSessions() {
 		Session: session,
 	}))
 
-	s.NoError(s.store.CreateOpenIDConnectSession(s.ctx, abc, &fosite.Request{
+	s.NoError(s.store.CreateOpenIDConnectSession(s.ctx, abc, &oauthelia2.Request{
 		ID: abc,
 		Client: &oidc.RegisteredClient{
 			ID: "example",
@@ -343,7 +343,7 @@ func (s *StoreSuite) TestCreateSessions() {
 		Session: session,
 	}))
 
-	s.NoError(s.store.CreatePKCERequestSession(s.ctx, abc, &fosite.Request{
+	s.NoError(s.store.CreatePKCERequestSession(s.ctx, abc, &oauthelia2.Request{
 		ID: abc,
 		Client: &oidc.RegisteredClient{
 			ID: "example",
@@ -351,8 +351,8 @@ func (s *StoreSuite) TestCreateSessions() {
 		Session: session,
 	}))
 
-	s.NoError(s.store.CreatePARSession(s.ctx, abc, &fosite.AuthorizeRequest{
-		Request: fosite.Request{
+	s.NoError(s.store.CreatePARSession(s.ctx, abc, &oauthelia2.AuthorizeRequest{
+		Request: oauthelia2.Request{
 			ID: abc,
 			Client: &oidc.RegisteredClient{
 				ID: "example",
@@ -360,8 +360,8 @@ func (s *StoreSuite) TestCreateSessions() {
 			Session: session,
 		}}))
 
-	s.EqualError(s.store.CreatePARSession(s.ctx, abc, &fosite.AuthorizeRequest{
-		Request: fosite.Request{
+	s.EqualError(s.store.CreatePARSession(s.ctx, abc, &oauthelia2.AuthorizeRequest{
+		Request: oauthelia2.Request{
 			ID: abc,
 			Client: &oidc.RegisteredClient{
 				ID: "example",
@@ -533,7 +533,7 @@ func (s *StoreSuite) TestGetSessions() {
 	)
 
 	var (
-		r   fosite.Requester
+		r   oauthelia2.Requester
 		err error
 	)
 
@@ -569,7 +569,7 @@ func (s *StoreSuite) TestGetSessions() {
 	s.NotNil(r)
 	s.NoError(err)
 
-	r, err = s.store.GetOpenIDConnectSession(s.ctx, "ot", &fosite.Request{
+	r, err = s.store.GetOpenIDConnectSession(s.ctx, "ot", &oauthelia2.Request{
 		ID: abc,
 		Client: &oidc.RegisteredClient{
 			ID: "example",

@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/go-jose/go-jose/v3"
-	fjwt "github.com/ory/fosite/token/jwt"
+	fjwt "authelia.com/provider/oauth2/token/jwt"
+	"github.com/go-jose/go-jose/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 

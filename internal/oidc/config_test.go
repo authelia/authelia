@@ -7,7 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ory/fosite/token/jwt"
+	"authelia.com/provider/oauth2/handler/oauth2"
+	"authelia.com/provider/oauth2/token/jwt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -193,7 +194,6 @@ func TestConfig_Misc(t *testing.T) {
 	assert.Nil(t, config.GetTokenIntrospectionHandlers(ctx))
 	assert.Nil(t, config.GetRevocationHandlers(ctx))
 	assert.Nil(t, config.GetPushedAuthorizeEndpointHandlers(ctx))
-	assert.Nil(t, config.GetResponseModeHandlerExtension(ctx))
 
 	assert.Equal(t, []string{""}, config.GetTokenURLs(ctx))
 
@@ -216,13 +216,13 @@ func TestConfig_PAR(t *testing.T) {
 	assert.Equal(t, "urn:ietf:params:oauth:request_uri:", config.GetPushedAuthorizeRequestURIPrefix(ctx))
 	assert.Equal(t, "urn:ietf:params:oauth:request_uri:", config.PAR.URIPrefix)
 
-	assert.False(t, config.PAR.Enforced)
-	assert.False(t, config.EnforcePushedAuthorize(ctx))
-	assert.False(t, config.PAR.Enforced)
+	assert.False(t, config.PAR.Require)
+	assert.False(t, config.GetRequirePushedAuthorizationRequests(ctx))
+	assert.False(t, config.PAR.Require)
 
-	config.PAR.Enforced = true
+	config.PAR.Require = true
 
-	assert.True(t, config.EnforcePushedAuthorize(ctx))
+	assert.True(t, config.GetRequirePushedAuthorizationRequests(ctx))
 
 	assert.Equal(t, time.Duration(0), config.PAR.ContextLifespan)
 	assert.Equal(t, time.Minute*5, config.GetPushedAuthorizeContextLifespan(ctx))
@@ -240,9 +240,11 @@ func TestNewConfig(t *testing.T) {
 
 	require.NoError(t, err)
 
-	config := oidc.NewConfig(c, nil, tmpl)
+	signer := oidc.NewKeyManager(c)
 
-	assert.IsType(t, &oidc.JWTCoreStrategy{}, config.Strategy.Core)
+	config := oidc.NewConfig(c, signer, tmpl)
+
+	assert.IsType(t, &oauth2.JWTProfileCoreStrategy{}, config.Strategy.Core)
 
 	config.LoadHandlers(nil)
 

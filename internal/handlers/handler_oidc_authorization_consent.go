@@ -8,8 +8,8 @@ import (
 	"path"
 	"strings"
 
+	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/google/uuid"
-	"github.com/ory/fosite"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -20,7 +20,7 @@ import (
 
 func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
 	userSession session.UserSession,
-	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
+	rw http.ResponseWriter, r *http.Request, requester oauthelia2.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		subject uuid.UUID
 		err     error
@@ -35,8 +35,8 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.UR
 	case userSession.IsAnonymous():
 		handler = handleOIDCAuthorizationConsentNotAuthenticated
 	case authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel, level):
-		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
-			ctx.Logger.Errorf(logFmtErrConsentCantGetSubject, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.Username, client.GetSectorIdentifier(), err)
+		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
+			ctx.Logger.Errorf(logFmtErrConsentCantGetSubject, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.Username, client.GetSectorIdentifierURI(), err)
 
 			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrSubjectCouldNotLookup)
 
@@ -53,7 +53,7 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.UR
 		default:
 			ctx.Logger.Errorf(logFmtErrConsentCantDetermineConsentMode, requester.GetID(), client.GetID())
 
-			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, fosite.ErrServerError.WithHint("Could not determine the client consent mode."))
+			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not determine the client consent mode."))
 
 			return nil, true
 		}
@@ -66,8 +66,8 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.UR
 			return nil, true
 		}
 
-		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
-			ctx.Logger.Errorf(logFmtErrConsentCantGetSubject, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.Username, client.GetSectorIdentifier(), err)
+		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
+			ctx.Logger.Errorf(logFmtErrConsentCantGetSubject, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.Username, client.GetSectorIdentifierURI(), err)
 
 			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrSubjectCouldNotLookup)
 
@@ -82,7 +82,7 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.UR
 
 func handleOIDCAuthorizationConsentNotAuthenticated(ctx *middlewares.AutheliaCtx, issuer *url.URL, _ oidc.Client,
 	_ session.UserSession, _ uuid.UUID,
-	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
+	rw http.ResponseWriter, r *http.Request, requester oauthelia2.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
 	redirectionURL := handleOIDCAuthorizationConsentGetRedirectionURL(ctx, issuer, nil, requester, r.Form)
 
 	handleOIDCPushedAuthorizeConsent(ctx, requester, r.Form)
@@ -94,7 +94,7 @@ func handleOIDCAuthorizationConsentNotAuthenticated(ctx *middlewares.AutheliaCtx
 
 func handleOIDCAuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
 	userSession session.UserSession, subject uuid.UUID,
-	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
+	rw http.ResponseWriter, r *http.Request, requester oauthelia2.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		err error
 	)
@@ -131,7 +131,7 @@ func handleOIDCAuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issuer
 }
 
 func handleOIDCAuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issuer *url.URL, consent *model.OAuth2ConsentSession, client oidc.Client,
-	userSession session.UserSession, rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) {
+	userSession session.UserSession, rw http.ResponseWriter, r *http.Request, requester oauthelia2.AuthorizeRequester) {
 	var location *url.URL
 
 	if client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
@@ -157,7 +157,7 @@ func handleOIDCAuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issuer
 	http.Redirect(rw, r, location.String(), http.StatusFound)
 }
 
-func handleOIDCPushedAuthorizeConsent(ctx *middlewares.AutheliaCtx, requester fosite.AuthorizeRequester, form url.Values) {
+func handleOIDCPushedAuthorizeConsent(ctx *middlewares.AutheliaCtx, requester oauthelia2.AuthorizeRequester, form url.Values) {
 	if !oidc.IsPushedAuthorizedRequest(requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)) {
 		return
 	}
@@ -178,7 +178,7 @@ func handleOIDCPushedAuthorizeConsent(ctx *middlewares.AutheliaCtx, requester fo
 	}
 }
 
-func handleOIDCAuthorizationConsentGetRedirectionURL(_ *middlewares.AutheliaCtx, issuer *url.URL, consent *model.OAuth2ConsentSession, requester fosite.AuthorizeRequester, form url.Values) (redirectURL *url.URL) {
+func handleOIDCAuthorizationConsentGetRedirectionURL(_ *middlewares.AutheliaCtx, issuer *url.URL, consent *model.OAuth2ConsentSession, requester oauthelia2.AuthorizeRequester, form url.Values) (redirectURL *url.URL) {
 	iss := issuer.String()
 
 	if !strings.HasSuffix(iss, "/") {
@@ -212,7 +212,7 @@ func handleOIDCAuthorizationConsentGetRedirectionURL(_ *middlewares.AutheliaCtx,
 	return redirectURL
 }
 
-func handleOpenIDConnectNewConsentSession(subject uuid.UUID, requester fosite.AuthorizeRequester, prefixPAR string) (consent *model.OAuth2ConsentSession, err error) {
+func handleOpenIDConnectNewConsentSession(subject uuid.UUID, requester oauthelia2.AuthorizeRequester, prefixPAR string) (consent *model.OAuth2ConsentSession, err error) {
 	if oidc.IsPushedAuthorizedRequest(requester, prefixPAR) {
 		form := url.Values{}
 
@@ -238,7 +238,7 @@ func verifyOIDCUserAuthorizedForConsent(ctx *middlewares.AutheliaCtx, client oid
 	}
 
 	if sid = subject.ID(); sid == 0 {
-		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
+		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
 			return fmt.Errorf("failed to lookup subject: %w", err)
 		}
 
@@ -258,7 +258,7 @@ func verifyOIDCUserAuthorizedForConsent(ctx *middlewares.AutheliaCtx, client oid
 	}
 
 	if consent.Subject.UUID.ID() != sid {
-		return fmt.Errorf("the consent subject identifier '%s' isn't owned by user '%s' who has a subject identifier of '%s' with sector identifier '%s'", consent.Subject.UUID, userSession.Username, subject, client.GetSectorIdentifier())
+		return fmt.Errorf("the consent subject identifier '%s' isn't owned by user '%s' who has a subject identifier of '%s' with sector identifier '%s'", consent.Subject.UUID, userSession.Username, subject, client.GetSectorIdentifierURI())
 	}
 
 	return nil

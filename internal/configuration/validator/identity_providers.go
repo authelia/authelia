@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/ory/fosite"
+	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -37,9 +37,9 @@ func validateOIDC(config *schema.IdentityProvidersOpenIDConnect, validator *sche
 	case config.MinimumParameterEntropy == -1:
 		validator.PushWarning(fmt.Errorf(errFmtOIDCProviderInsecureDisabledParameterEntropy))
 	case config.MinimumParameterEntropy <= 0:
-		config.MinimumParameterEntropy = fosite.MinParameterEntropy
-	case config.MinimumParameterEntropy < fosite.MinParameterEntropy:
-		validator.PushWarning(fmt.Errorf(errFmtOIDCProviderInsecureParameterEntropyUnsafe, fosite.MinParameterEntropy, config.MinimumParameterEntropy))
+		config.MinimumParameterEntropy = oauthelia2.MinParameterEntropy
+	case config.MinimumParameterEntropy < oauthelia2.MinParameterEntropy:
+		validator.PushWarning(fmt.Errorf(errFmtOIDCProviderInsecureParameterEntropyUnsafe, oauthelia2.MinParameterEntropy, config.MinimumParameterEntropy))
 	}
 
 	switch config.EnforcePKCE {
