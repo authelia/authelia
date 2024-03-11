@@ -115,5 +115,5 @@ See the following screenshot for an authentication example of the above:
 [Authelia]: https://www.authelia.com
 [Uptime Kuma]: https://github.com/louislam/uptime-kuma
 [OpenID Connect 1.0]: ../openid-connect/introduction.md
-[requested_audience_mode]: ../../configuration/openid-connect/clients/#requested_audience_mode
+[requested_audience_mode]: ../../configuration/identity-providers/openid-connect/clients/#requested_audience_mode
 [Server Authz Endpoints]: ../../configuration/miscellaneous/server-endpoints-authz/
