@@ -1,6 +1,6 @@
 ---
 title: "Uptime Kuma"
-description: "Integrating Uptime-Kuma status monitors with the Authelia OpenID Connect 1.0 Provider."
+description: "Integrating Uptime Kuma status monitors with the Authelia OpenID Connect 1.0 Provider."
 lead: ""
 date: 2024-03-11T16:05:00+01:00
 draft: false
@@ -17,7 +17,7 @@ community: true
 
 * [Authelia]
   * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [Uptime-Kuma]
+* [Uptime Kuma]
   * [v1.23.11](https://github.com/louislam/uptime-kuma/releases/tag/1.23.11)
 
 ## Before You Begin
@@ -39,7 +39,7 @@ This example makes the following assumptions:
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Uptime-Kuma]
+[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Uptime Kuma]
 which will operate with the above example:
 
 ```yaml
@@ -73,7 +73,7 @@ identity_providers:
     ## See: https://www.authelia.com/c/oidc
     clients:
       - client_id: 'uptime-kuma-monitor'
-        client_name: 'Uptime-Kuma Monitor'
+        client_name: 'Uptime Kuma Monitor'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         scopes:
@@ -88,14 +88,14 @@ identity_providers:
 Notes:
 
 - You will need to enable Header Authorization strategy for your [Server Authz Endpoints].
-- When you use `implicit` audience mode, you do not need to provide an `audience` in your token request. When using `explicit` audience mode, you will need to provide the specific audience in your request. See [`requested_audience_mode`] - right now Uptime-Kuma does not support setting audience, so you need to keep this at `implicit` for now.
-- The `audience` (or multiple) is the endpoints of the secured ressources you want to monitor using Uptime-Kuma
+- When you use `implicit` audience mode, you do not need to provide an `audience` in your token request. When using `explicit` audience mode, you will need to provide the specific audience in your request. See [`requested_audience_mode`] - right now Uptime Kuma does not support setting audience, so you need to keep this at `implicit` for now.
+- The `audience` (or multiple) is the endpoints of the secured ressources you want to monitor using Uptime Kuma
 - If you have multiple monitors you can either have multiple clients or add the allowed audiences to the existing client from this example, also make sure to add the additional audiences to access control rules.
 
 
 ### Application
 
-To configure [Uptime-Kuma] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Uptime Kuma] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Create a new status monitor or configure an existing one
 2. Choose monitor type e.g. HTTP(s) Keyword and set a keyword you want to find
@@ -109,15 +109,14 @@ To configure [Uptime-Kuma] to utilize Authelia as an [OpenID Connect 1.0] Provid
    - OAuth Scope: `authelia.bearer.authz`
 
 See the following screenshot for an authentication example of the above:  
-{{< figure src="uptime-kuma-authentication.png" alt="Uptime-Kuma Authentiaction example" width="300" >}}
+{{< figure src="uptime-kuma-authentication.png" alt="Uptime Kuma Authentiaction example" width="300" >}}
 
 
 ## See Also
 
-* [Uptime-Kuma PR #3119](https://github.com/louislam/uptime-kuma/pull/3119)
-* [Authelia](https://www.authelia.com)
-* [Uptime-Kuma](https://github.com/louislam/uptime-kuma)
-
+* [Uptime Kuma PR #3119](https://github.com/louislam/uptime-kuma/pull/3119)
+[Authelia]: https://www.authelia.com
+[Uptime Kuma]: https://github.com/louislam/uptime-kuma
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[`requested_audience_mode`]: ../../openid-connect/clients/#requested_audience_mode
-[Server Authz Endpoints]: ../../miscellaneous/server-endpoints-authz/
+[`requested_audience_mode`]: ../../../configuration/openid-connect/clients/#requested_audience_mode
+[Server Authz Endpoints]: ../../../configuration/miscellaneous/server-endpoints-authz/
