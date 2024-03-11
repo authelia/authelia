@@ -240,11 +240,7 @@ func getEmbedETags(embedFS embed.FS, root string, etags map[string][]byte) {
 			continue
 		}
 
-		sum := sha1.New() //nolint:gosec // Usage is for collision avoidance not security.
-
-		sum.Write(data)
-
-		etags[p] = []byte(fmt.Sprintf("%x", sum.Sum(nil)))
+		etags[p] = generateEtag(data)
 	}
 }
 
@@ -260,20 +256,37 @@ func hfsHandleErr(ctx *fasthttp.RequestCtx, err error) {
 }
 
 // newLocalesListHandler handles request for obtaining the available locales in backend.
-func newLocalesListHandler() (handler fasthttp.RequestHandler) {
+func newLocalesListHandler() (handler func(ctx *middlewares.AutheliaCtx)) {
 	var (
 		data []byte
 		err  error
 	)
 
-	data, etag, err := getLocaleJSONandHash()
+	// preload embedded locales.
+	localeInfo, err := utils.GetLanguagesFromEmbedFS(locales)
 	if err != nil {
 		panic(errCantLoadLocaleInfo + err.Error())
 	}
 
-	return func(ctx *fasthttp.RequestCtx) {
-		middlewares.SetStandardSecurityHeaders(ctx)
-		middlewares.SetContentTypeApplicationJSON(ctx)
+	return func(ctx *middlewares.AutheliaCtx) {
+		if ctx.Configuration.CustomLocales.Enabled {
+			customLocaleInfo, err := utils.GetLanguagesFromPath(ctx.Configuration.CustomLocales.Path)
+
+			if err != nil {
+				ctx.Logger.Errorf("Unable to load custom locales: %s", err)
+			}
+
+			mergeLocaleInfo(localeInfo, customLocaleInfo)
+		}
+		// parse embedded locales.
+		data, err = json.Marshal(middlewares.OKResponse{Status: "OK", Data: localeInfo})
+
+		if err != nil {
+			ctx.Logger.Errorf("Unable to marshal locales: %s", err)
+		}
+
+		// generate etag for embedded locales.
+		etag := generateEtag(data)
 
 		ctx.Response.Header.SetBytesKV(headerETag, etag)
 		ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlETaggedAssets)
@@ -294,21 +307,14 @@ func newLocalesListHandler() (handler fasthttp.RequestHandler) {
 	}
 }
 
-// return locale information in JSON format, also return a hash to be used as etag.
-func getLocaleJSONandHash() ([]byte, []byte, error) {
-	localeInfo, err := utils.GetLanguagesFromEmbedFS(locales)
-	if err != nil {
-		return nil, nil, fmt.Errorf("%s: %s", errCantLoadLocaleInfo, err)
-	}
-
-	data, err := json.Marshal(middlewares.OKResponse{Status: "OK", Data: localeInfo})
-	if err != nil {
-		return nil, nil, fmt.Errorf("%s: %s", errCantLoadLocaleInfo, err)
-	}
-
+// generateEtag generates a unique etag for specified payload.
+func generateEtag(payload []byte) []byte {
 	sum := sha1.New() //nolint:gosec // Usage is for collision avoidance not security.
-	sum.Write(data)
-	hash := []byte(fmt.Sprintf("%x", sum.Sum(nil)))
+	sum.Write(payload)
 
-	return data, hash, nil
+	return []byte(fmt.Sprintf("%x", sum.Sum(nil)))
+}
+
+func mergeLocaleInfo(embedded *utils.Languages, custom *utils.Languages) {
+
 }
