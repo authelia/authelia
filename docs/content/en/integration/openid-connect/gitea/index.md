@@ -106,5 +106,6 @@ descriptions.
   - [OpenID](https://docs.gitea.io/en-us/config-cheat-sheet/#openid-openid)
   - [Service](https://docs.gitea.io/en-us/config-cheat-sheet/#service-service)
 
+[Authelia]: https://www.authelia.com
 [Gitea]: https://gitea.io/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md

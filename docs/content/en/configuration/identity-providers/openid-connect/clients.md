@@ -68,6 +68,8 @@ identity_providers:
         access_token_signed_response_key_id: ''
         userinfo_signed_response_alg: 'none'
         userinfo_signed_response_key_id: ''
+        introspection_signed_response_alg: 'none'
+        introspection_signed_response_key_id: ''
         request_object_signing_alg: 'RS256'
         token_endpoint_auth_signing_alg: 'RS256'
         token_endpoint_auth_method: 'client_secret_basic'
