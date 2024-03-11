@@ -35,8 +35,8 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.UR
 	case userSession.IsAnonymous():
 		handler = handleOIDCAuthorizationConsentNotAuthenticated
 	case authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel, level):
-		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
-			ctx.Logger.Errorf(logFmtErrConsentCantGetSubject, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.Username, client.GetSectorIdentifier(), err)
+		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
+			ctx.Logger.Errorf(logFmtErrConsentCantGetSubject, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.Username, client.GetSectorIdentifierURI(), err)
 
 			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrSubjectCouldNotLookup)
 
@@ -66,8 +66,8 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.UR
 			return nil, true
 		}
 
-		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
-			ctx.Logger.Errorf(logFmtErrConsentCantGetSubject, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.Username, client.GetSectorIdentifier(), err)
+		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
+			ctx.Logger.Errorf(logFmtErrConsentCantGetSubject, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.Username, client.GetSectorIdentifierURI(), err)
 
 			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrSubjectCouldNotLookup)
 
@@ -238,7 +238,7 @@ func verifyOIDCUserAuthorizedForConsent(ctx *middlewares.AutheliaCtx, client oid
 	}
 
 	if sid = subject.ID(); sid == 0 {
-		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
+		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
 			return fmt.Errorf("failed to lookup subject: %w", err)
 		}
 
@@ -258,7 +258,7 @@ func verifyOIDCUserAuthorizedForConsent(ctx *middlewares.AutheliaCtx, client oid
 	}
 
 	if consent.Subject.UUID.ID() != sid {
-		return fmt.Errorf("the consent subject identifier '%s' isn't owned by user '%s' who has a subject identifier of '%s' with sector identifier '%s'", consent.Subject.UUID, userSession.Username, subject, client.GetSectorIdentifier())
+		return fmt.Errorf("the consent subject identifier '%s' isn't owned by user '%s' who has a subject identifier of '%s' with sector identifier '%s'", consent.Subject.UUID, userSession.Username, subject, client.GetSectorIdentifierURI())
 	}
 
 	return nil

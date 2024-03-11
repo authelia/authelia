@@ -61,14 +61,6 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 	}
 
 	if !oidc.IsPushedAuthorizedRequest(requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)) {
-		if err = client.ValidatePKCEPolicy(requester); err != nil {
-			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' failed to validate the PKCE policy: %s", requester.GetID(), client.GetID(), oidc.ErrorToDebugRFC6749Error(err))
-
-			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
-
-			return
-		}
-
 		if err = client.ValidateResponseModePolicy(requester); err != nil {
 			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' failed to validate the Response Mode: %s", requester.GetID(), client.GetID(), oidc.ErrorToDebugRFC6749Error(err))
 
@@ -76,14 +68,6 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 			return
 		}
-	}
-
-	if err = client.ValidatePKCEPolicy(requester); err != nil {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' failed to validate the PKCE policy: %s", requester.GetID(), clientID, oidc.ErrorToDebugRFC6749Error(err))
-
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
-
-		return
 	}
 
 	client.ApplyRequestedAudiencePolicy(requester)
@@ -180,14 +164,6 @@ func OpenIDConnectPushedAuthorizationRequest(ctx *middlewares.AutheliaCtx, rw ht
 		} else {
 			ctx.Logger.Errorf("Pushed Authorization Request with id '%s' on client with id '%s' could not be processed: failed to find client: %+v", requester.GetID(), clientID, err)
 		}
-
-		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, err)
-
-		return
-	}
-
-	if err = client.ValidatePKCEPolicy(requester); err != nil {
-		ctx.Logger.Errorf("Pushed Authorization Request with id '%s' on client with id '%s' failed to validate the PKCE policy: %s", requester.GetID(), client.GetID(), oidc.ErrorToDebugRFC6749Error(err))
 
 		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, err)
 

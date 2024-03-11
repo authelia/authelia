@@ -355,6 +355,10 @@ func PopulateClientCredentialsFlowRequester(ctx Context, config oauthelia2.Confi
 		return oauthelia2.ErrServerError.WithDebug("Failed to get the client, configuration, or requester for the request.")
 	}
 
+	if c, ok := client.(Client); ok {
+		c.ApplyRequestedAudiencePolicy(requester)
+	}
+
 	scopes := requester.GetRequestedScopes()
 	audience := requester.GetRequestedAudience()
 

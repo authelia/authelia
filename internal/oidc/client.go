@@ -5,7 +5,6 @@ import (
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
-	"github.com/go-crypt/crypt/algorithm"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/ory/x/errorsx"
 
@@ -89,37 +88,29 @@ func (c *RegisteredClient) GetName() (name string) {
 	return c.Name
 }
 
-// GetSecret returns the Secret.
-func (c *RegisteredClient) GetSecret() algorithm.Digest {
-	return c.Secret
-}
-
 // GetClientSecret returns the oauth2.ClientSecret.
-func (c *RegisteredClient) GetClientSecret() oauthelia2.ClientSecret {
+func (c *RegisteredClient) GetClientSecret() (secret oauthelia2.ClientSecret) {
 	return c.ClientSecret
 }
 
 // GetRotatedClientSecrets returns the rotated oauth2.ClientSecret values.
-func (c *RegisteredClient) GetRotatedClientSecrets() []oauthelia2.ClientSecret {
-	return nil
+func (c *RegisteredClient) GetRotatedClientSecrets() (secrets []oauthelia2.ClientSecret) {
+	secrets = make([]oauthelia2.ClientSecret, len(c.RotatedClientSecrets))
+
+	for i, secret := range c.RotatedClientSecrets {
+		secrets[i] = secret
+	}
+
+	return secrets
 }
 
-// GetSectorIdentifier returns the SectorIdentifier for this client.
-func (c *RegisteredClient) GetSectorIdentifier() string {
+// GetSectorIdentifierURI returns the SectorIdentifier for this client.
+func (c *RegisteredClient) GetSectorIdentifierURI() (sector string) {
 	if c.SectorIdentifierURI == nil {
 		return ""
 	}
 
 	return c.SectorIdentifierURI.String()
-}
-
-// GetHashedSecret returns the Secret.
-func (c *RegisteredClient) GetHashedSecret() (secret []byte) {
-	if c.Secret == nil {
-		return []byte(nil)
-	}
-
-	return []byte(c.Secret.Encode())
 }
 
 // GetRedirectURIs returns the RedirectURIs.
@@ -128,7 +119,7 @@ func (c *RegisteredClient) GetRedirectURIs() (redirectURIs []string) {
 }
 
 // GetGrantTypes returns the GrantTypes.
-func (c *RegisteredClient) GetGrantTypes() oauthelia2.Arguments {
+func (c *RegisteredClient) GetGrantTypes() (types oauthelia2.Arguments) {
 	if len(c.GrantTypes) == 0 {
 		return oauthelia2.Arguments{"authorization_code"}
 	}
@@ -137,7 +128,7 @@ func (c *RegisteredClient) GetGrantTypes() oauthelia2.Arguments {
 }
 
 // GetResponseTypes returns the ResponseTypes.
-func (c *RegisteredClient) GetResponseTypes() oauthelia2.Arguments {
+func (c *RegisteredClient) GetResponseTypes() (types oauthelia2.Arguments) {
 	if len(c.ResponseTypes) == 0 {
 		return oauthelia2.Arguments{"code"}
 	}
@@ -146,19 +137,19 @@ func (c *RegisteredClient) GetResponseTypes() oauthelia2.Arguments {
 }
 
 // GetScopes returns the Scopes.
-func (c *RegisteredClient) GetScopes() oauthelia2.Arguments {
+func (c *RegisteredClient) GetScopes() (scopes oauthelia2.Arguments) {
 	return c.Scopes
 }
 
 // GetAudience returns the Audience.
-func (c *RegisteredClient) GetAudience() oauthelia2.Arguments {
+func (c *RegisteredClient) GetAudience() (audience oauthelia2.Arguments) {
 	return c.Audience
 }
 
 // GetResponseModes returns the valid response modes for this client.
 //
 // Implements the oauthelia2.ResponseModeClient.
-func (c *RegisteredClient) GetResponseModes() []oauthelia2.ResponseModeType {
+func (c *RegisteredClient) GetResponseModes() (modes []oauthelia2.ResponseModeType) {
 	return c.ResponseModes
 }
 
@@ -177,7 +168,7 @@ func (c *RegisteredClient) GetAuthorizationSignedResponseKeyID() (kid string) {
 }
 
 func (c *RegisteredClient) GetAuthorizationEncryptedResponseAlg() (alg string) {
-	return ""
+	return c.AuthorizationEncryptedResponseAlg
 }
 
 func (c *RegisteredClient) GetAuthorizationEncryptedResponseEncryptionAlg() (alg string) {
@@ -194,7 +185,7 @@ func (c *RegisteredClient) GetIDTokenSignedResponseAlg() (alg string) {
 }
 
 // GetIDTokenSignedResponseKeyID returns the IDTokenSignedResponseKeyID.
-func (c *RegisteredClient) GetIDTokenSignedResponseKeyID() (alg string) {
+func (c *RegisteredClient) GetIDTokenSignedResponseKeyID() (kid string) {
 	return c.IDTokenSignedResponseKeyID
 }
 
@@ -208,18 +199,12 @@ func (c *RegisteredClient) GetAccessTokenSignedResponseAlg() (alg string) {
 }
 
 // GetAccessTokenSignedResponseKeyID returns the AccessTokenSignedResponseKeyID.
-func (c *RegisteredClient) GetAccessTokenSignedResponseKeyID() (alg string) {
+func (c *RegisteredClient) GetAccessTokenSignedResponseKeyID() (kid string) {
 	return c.AccessTokenSignedResponseKeyID
 }
 
-// GetEnableJWTProfileOAuthAccessTokens returns true if this client is configured to return the
-// RFC9068 JWT Profile for OAuth 2.0 Access Tokens.
-func (c *RegisteredClient) GetEnableJWTProfileOAuthAccessTokens() bool {
-	return c.GetAccessTokenSignedResponseAlg() != SigningAlgNone || len(c.GetAccessTokenSignedResponseKeyID()) > 0
-}
-
 // GetUserinfoSignedResponseAlg returns the UserinfoSignedResponseAlg.
-func (c *RegisteredClient) GetUserinfoSignedResponseAlg() string {
+func (c *RegisteredClient) GetUserinfoSignedResponseAlg() (alg string) {
 	if c.UserinfoSignedResponseAlg == "" {
 		c.UserinfoSignedResponseAlg = SigningAlgNone
 	}
@@ -246,23 +231,54 @@ func (c *RegisteredClient) GetIntrospectionSignedResponseKeyID() (alg string) {
 	return c.IntrospectionSignedResponseKeyID
 }
 
+// GetTokenEndpointAuthSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing the JWT
+// [JWT] used to authenticate the Client at the Token Endpoint for the private_key_jwt and client_secret_jwt
+// authentication methods.
+func (c *RegisteredClient) GetTokenEndpointAuthSigningAlg() (alg string) {
+	if c.TokenEndpointAuthSigningAlg == "" {
+		c.TokenEndpointAuthSigningAlg = SigningAlgRSAUsingSHA256
+	}
+
+	return c.TokenEndpointAuthSigningAlg
+}
+
+// GetTokenEndpointAuthMethod returns the requested Client Authentication Method for the Token Endpoint. The options are
+// client_secret_post, client_secret_basic, client_secret_jwt, private_key_jwt, and none.
+func (c *RegisteredClient) GetTokenEndpointAuthMethod() (method string) {
+	if c.TokenEndpointAuthMethod == "" {
+		if c.Public {
+			c.TokenEndpointAuthMethod = ClientAuthMethodNone
+		} else {
+			c.TokenEndpointAuthMethod = ClientAuthMethodClientSecretBasic
+		}
+	}
+
+	return c.TokenEndpointAuthMethod
+}
+
+// GetEnableJWTProfileOAuthAccessTokens returns true if this client is configured to return the
+// RFC9068 JWT Profile for OAuth 2.0 Access Tokens.
+func (c *RegisteredClient) GetEnableJWTProfileOAuthAccessTokens() (enable bool) {
+	return c.GetAccessTokenSignedResponseAlg() != SigningAlgNone || len(c.GetAccessTokenSignedResponseKeyID()) > 0
+}
+
 // GetRequirePushedAuthorizationRequests returns RequirePushedAuthorizationRequests.
-func (c *RegisteredClient) GetRequirePushedAuthorizationRequests() bool {
+func (c *RegisteredClient) GetRequirePushedAuthorizationRequests() (require bool) {
 	return c.RequirePushedAuthorizationRequests
 }
 
-// GetPKCEEnforcement returns RequirePKCE.
-func (c *RegisteredClient) GetPKCEEnforcement() bool {
+// GetEnforcePKCE returns RequirePKCE.
+func (c *RegisteredClient) GetEnforcePKCE() (enforce bool) {
 	return c.RequirePKCE
 }
 
-// GetPKCEChallengeMethodEnforcement returns RequirePKCEChallengeMethod.
-func (c *RegisteredClient) GetPKCEChallengeMethodEnforcement() bool {
+// GetEnforcePKCEChallengeMethod returns RequirePKCEChallengeMethod.
+func (c *RegisteredClient) GetEnforcePKCEChallengeMethod() (enforce bool) {
 	return c.RequirePKCEChallengeMethod
 }
 
 // GetPKCEChallengeMethod returns PKCEChallengeMethod.
-func (c *RegisteredClient) GetPKCEChallengeMethod() string {
+func (c *RegisteredClient) GetPKCEChallengeMethod() (method string) {
 	return c.PKCEChallengeMethod
 }
 
@@ -297,12 +313,12 @@ func (c *RegisteredClient) GetConsentResponseBody(consent *model.OAuth2ConsentSe
 }
 
 // GetConsentPolicy returns Consent.
-func (c *RegisteredClient) GetConsentPolicy() ClientConsentPolicy {
+func (c *RegisteredClient) GetConsentPolicy() (policy ClientConsentPolicy) {
 	return c.ConsentPolicy
 }
 
 // IsAuthenticationLevelSufficient returns if the provided authentication.Level is sufficient for the client of the AutheliaClient.
-func (c *RegisteredClient) IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) bool {
+func (c *RegisteredClient) IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) (sufficient bool) {
 	if level == authentication.NotAuthenticated {
 		return false
 	}
@@ -311,41 +327,18 @@ func (c *RegisteredClient) IsAuthenticationLevelSufficient(level authentication.
 }
 
 // GetAuthorizationPolicyRequiredLevel returns the required authorization.Level given an authorization.Subject.
-func (c *RegisteredClient) GetAuthorizationPolicyRequiredLevel(subject authorization.Subject) authorization.Level {
+func (c *RegisteredClient) GetAuthorizationPolicyRequiredLevel(subject authorization.Subject) (level authorization.Level) {
 	return c.AuthorizationPolicy.GetRequiredLevel(subject)
 }
 
 // GetAuthorizationPolicy returns the ClientAuthorizationPolicy from the Policy.
-func (c *RegisteredClient) GetAuthorizationPolicy() ClientAuthorizationPolicy {
+func (c *RegisteredClient) GetAuthorizationPolicy() (policy ClientAuthorizationPolicy) {
 	return c.AuthorizationPolicy
 }
 
 // IsPublic returns the value of the Public property.
-func (c *RegisteredClient) IsPublic() bool {
+func (c *RegisteredClient) IsPublic() (public bool) {
 	return c.Public
-}
-
-// ValidatePKCEPolicy is a helper function to validate PKCE policy constraints on a per-client basis.
-func (c *RegisteredClient) ValidatePKCEPolicy(r oauthelia2.Requester) (err error) {
-	form := r.GetRequestForm()
-
-	if c.RequirePKCE {
-		if form.Get(FormParameterCodeChallenge) == "" {
-			return errorsx.WithStack(oauthelia2.ErrInvalidRequest.
-				WithHint("Clients must include a code_challenge when performing the authorize code flow, but it is missing.").
-				WithDebug("The server is configured in a way that enforces PKCE for this client."))
-		}
-
-		if c.RequirePKCEChallengeMethod {
-			if method := form.Get(FormParameterCodeChallengeMethod); method != c.PKCEChallengeMethod {
-				return errorsx.WithStack(oauthelia2.ErrInvalidRequest.
-					WithHintf("Client must use code_challenge_method=%s, %s is not allowed.", c.PKCEChallengeMethod, method).
-					WithDebugf("The server is configured in a way that enforces PKCE %s as challenge method for this client.", c.PKCEChallengeMethod))
-			}
-		}
-	}
-
-	return nil
 }
 
 // ValidatePARPolicy is a helper function to validate additional policy constraints on a per-client basis.
@@ -391,7 +384,7 @@ func (c *RegisteredClient) ValidateResponseModePolicy(r oauthelia2.AuthorizeRequ
 // GetRefreshFlowIgnoreOriginalGrantedScopes returns the value which indicates if the client should ignore the
 // originally granted scopes when the scope parameter is present. The specification requires that this is always false,
 // however some misbehaving clients may need this option.
-func (c *RegisteredClient) GetRefreshFlowIgnoreOriginalGrantedScopes(ctx context.Context) (ignoreOriginalGrantedScopes bool) {
+func (c *RegisteredClient) GetRefreshFlowIgnoreOriginalGrantedScopes(ctx context.Context) (ignore bool) {
 	return c.RefreshFlowIgnoreOriginalGrantedScopes
 }
 
@@ -403,12 +396,12 @@ func (c *RegisteredClient) GetRevokeRefreshTokensExplicit(ctx context.Context) (
 // cache the contents of the files referenced by these URIs and not retrieve them at the time they are used in a request.
 // OPs can require that request_uri values used be pre-registered with the require_request_uri_registration
 // discovery parameter.
-func (c *RegisteredClient) GetRequestURIs() []string {
+func (c *RegisteredClient) GetRequestURIs() (uris []string) {
 	return c.RequestURIs
 }
 
 // GetJSONWebKeys returns the JSON Web Key Set containing the public key used by the client to authenticate.
-func (c *RegisteredClient) GetJSONWebKeys() *jose.JSONWebKeySet {
+func (c *RegisteredClient) GetJSONWebKeys() (keys *jose.JSONWebKeySet) {
 	return c.JSONWebKeys
 }
 
@@ -419,7 +412,7 @@ func (c *RegisteredClient) SetJSONWebKeys(jwks *jose.JSONWebKeySet) {
 
 // GetJSONWebKeysURI returns the URL for lookup of JSON Web Key Set containing the
 // public key used by the client to authenticate.
-func (c *RegisteredClient) GetJSONWebKeysURI() string {
+func (c *RegisteredClient) GetJSONWebKeysURI() (uri string) {
 	if c.JSONWebKeysURI == nil {
 		return ""
 	}
@@ -427,43 +420,18 @@ func (c *RegisteredClient) GetJSONWebKeysURI() string {
 	return c.JSONWebKeysURI.String()
 }
 
-// GetRequestObjectSigningAlgorithm returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing Request
+// GetRequestObjectSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing Request
 // Objects sent to the OP. All Request Objects from this Client MUST be rejected, if not signed with this algorithm.
-func (c *RegisteredClient) GetRequestObjectSigningAlgorithm() string {
+func (c *RegisteredClient) GetRequestObjectSigningAlg() (alg string) {
 	return c.RequestObjectSigningAlg
 }
 
-// GetTokenEndpointAuthMethod returns the requested Client Authentication Method for the Token Endpoint. The options are
-// client_secret_post, client_secret_basic, client_secret_jwt, private_key_jwt, and none.
-func (c *RegisteredClient) GetTokenEndpointAuthMethod() string {
-	if c.TokenEndpointAuthMethod == "" {
-		if c.Public {
-			c.TokenEndpointAuthMethod = ClientAuthMethodNone
-		} else {
-			c.TokenEndpointAuthMethod = ClientAuthMethodClientSecretBasic
-		}
-	}
-
-	return c.TokenEndpointAuthMethod
-}
-
-// GetTokenEndpointAuthSigningAlgorithm returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing the JWT
-// [JWT] used to authenticate the Client at the Token Endpoint for the private_key_jwt and client_secret_jwt
-// authentication methods.
-func (c *RegisteredClient) GetTokenEndpointAuthSigningAlgorithm() string {
-	if c.TokenEndpointAuthSigningAlg == "" {
-		c.TokenEndpointAuthSigningAlg = SigningAlgRSAUsingSHA256
-	}
-
-	return c.TokenEndpointAuthSigningAlg
-}
-
 func (c *RegisteredClient) GetAllowMultipleAuthenticationMethods(ctx context.Context) (allow bool) {
-	return false
+	return c.AllowMultipleAuthenticationMethods
 }
 
 func (c *RegisteredClient) GetClientCredentialsFlowAllowImplicitScope() (allow bool) {
-	return false
+	return c.ClientCredentialsFlowAllowImplicitScope
 }
 
 // GetEffectiveLifespan returns the effective lifespan for a grant type and token type otherwise returns the fallback

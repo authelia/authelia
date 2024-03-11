@@ -8,7 +8,6 @@ import (
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	fjwt "authelia.com/provider/oauth2/token/jwt"
-	"github.com/go-crypt/crypt/algorithm"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ory/herodot"
@@ -45,12 +44,12 @@ type Store struct {
 
 // RegisteredClient represents a registered client.
 type RegisteredClient struct {
-	ID                  string
-	Name                string
-	ClientSecret        *ClientSecretDigest
-	Secret              *schema.PasswordDigest
-	SectorIdentifierURI *url.URL
-	Public              bool
+	ID                   string
+	Name                 string
+	ClientSecret         *ClientSecretDigest
+	RotatedClientSecrets []*ClientSecretDigest
+	SectorIdentifierURI  *url.URL
+	Public               bool
 
 	RequirePushedAuthorizationRequests bool
 
@@ -67,30 +66,40 @@ type RegisteredClient struct {
 
 	Lifespans schema.IdentityProvidersOpenIDConnectLifespan
 
-	AuthorizationSignedResponseAlg   string
-	AuthorizationSignedResponseKeyID string
-	IDTokenSignedResponseAlg         string
-	IDTokenSignedResponseKeyID       string
-	AccessTokenSignedResponseAlg     string
-	AccessTokenSignedResponseKeyID   string
-	UserinfoSignedResponseAlg        string
-	UserinfoSignedResponseKeyID      string
+	AuthorizationSignedResponseAlg              string
+	AuthorizationSignedResponseKeyID            string
+	AuthorizationEncryptedResponseAlg           string
+	AuthorizationEncryptedResponseEncryptionAlg string
+
+	IDTokenSignedResponseAlg   string
+	IDTokenSignedResponseKeyID string
+
+	AccessTokenSignedResponseAlg   string
+	AccessTokenSignedResponseKeyID string
+
+	UserinfoSignedResponseAlg   string
+	UserinfoSignedResponseKeyID string
+
 	IntrospectionSignedResponseAlg   string
 	IntrospectionSignedResponseKeyID string
 
-	RefreshFlowIgnoreOriginalGrantedScopes bool
+	RequestObjectSigningAlg string
+
+	TokenEndpointAuthMethod     string
+	TokenEndpointAuthSigningAlg string
+
+	RefreshFlowIgnoreOriginalGrantedScopes  bool
+	AllowMultipleAuthenticationMethods      bool
+	ClientCredentialsFlowAllowImplicitScope bool
 
 	AuthorizationPolicy ClientAuthorizationPolicy
 
 	ConsentPolicy         ClientConsentPolicy
 	RequestedAudienceMode ClientRequestedAudienceMode
 
-	RequestURIs                 []string
-	JSONWebKeys                 *jose.JSONWebKeySet
-	JSONWebKeysURI              *url.URL
-	RequestObjectSigningAlg     string
-	TokenEndpointAuthMethod     string
-	TokenEndpointAuthSigningAlg string
+	RequestURIs    []string
+	JSONWebKeys    *jose.JSONWebKeySet
+	JSONWebKeysURI *url.URL
 }
 
 // Client represents the internal client definitions.
@@ -100,8 +109,7 @@ type Client interface {
 	RefreshFlowScopeClient
 
 	GetName() (name string)
-	GetSecret() (secret algorithm.Digest)
-	GetSectorIdentifier() (sector string)
+	GetSectorIdentifierURI() (sector string)
 
 	GetAuthorizationSignedResponseAlg() (alg string)
 	GetAuthorizationSignedResponseKeyID() (kid string)
@@ -120,11 +128,11 @@ type Client interface {
 	GetIntrospectionSignedResponseKeyID() (kid string)
 
 	GetRequirePushedAuthorizationRequests() (enforce bool)
-	GetPKCEEnforcement() (enforce bool)
-	GetPKCEChallengeMethodEnforcement() (enforce bool)
+
+	GetEnforcePKCE() (enforce bool)
+	GetEnforcePKCEChallengeMethod() (enforce bool)
 	GetPKCEChallengeMethod() (method string)
 
-	ValidatePKCEPolicy(r oauthelia2.Requester) (err error)
 	ValidatePARPolicy(r oauthelia2.Requester, prefix string) (err error)
 	ValidateResponseModePolicy(r oauthelia2.AuthorizeRequester) (err error)
 
@@ -949,6 +957,8 @@ type OpenIDConnectWellKnownClaims struct {
 var (
 	_ Client                                                 = (*RegisteredClient)(nil)
 	_ oauthelia2.Client                                      = (*RegisteredClient)(nil)
+	_ oauthelia2.RotatedClientSecretsClient                  = (*RegisteredClient)(nil)
+	_ oauthelia2.ProofKeyCodeExchangeClient                  = (*RegisteredClient)(nil)
 	_ oauthelia2.ClientAuthenticationPolicyClient            = (*RegisteredClient)(nil)
 	_ oauthelia2.OpenIDConnectClient                         = (*RegisteredClient)(nil)
 	_ oauthelia2.RefreshFlowScopeClient                      = (*RegisteredClient)(nil)

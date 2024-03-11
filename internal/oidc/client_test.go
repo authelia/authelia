@@ -26,7 +26,7 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, "", client.GetName())
 	assert.Len(t, client.GetResponseModes(), 0)
 	assert.Len(t, client.GetResponseTypes(), 1)
-	assert.Equal(t, "", client.GetSectorIdentifier())
+	assert.Equal(t, "", client.GetSectorIdentifierURI())
 
 	bclient, ok := client.(*oidc.RegisteredClient)
 	require.True(t, ok)
@@ -133,15 +133,15 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, oidc.ClientAuthMethodClientSecretPost, fclient.GetTokenEndpointAuthMethod())
 
 	assert.Equal(t, "", fclient.TokenEndpointAuthSigningAlg)
-	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetTokenEndpointAuthSigningAlgorithm())
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetTokenEndpointAuthSigningAlg())
 	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.TokenEndpointAuthSigningAlg)
 
 	assert.Equal(t, "", fclient.RequestObjectSigningAlg)
-	assert.Equal(t, "", fclient.GetRequestObjectSigningAlgorithm())
+	assert.Equal(t, "", fclient.GetRequestObjectSigningAlg())
 
 	fclient.RequestObjectSigningAlg = oidc.SigningAlgRSAUsingSHA256
 
-	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetRequestObjectSigningAlgorithm())
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetRequestObjectSigningAlg())
 
 	assert.Nil(t, fclient.JSONWebKeysURI)
 	assert.Equal(t, "", fclient.GetJSONWebKeysURI())
@@ -390,24 +390,9 @@ func TestClient_GetGrantTypes(t *testing.T) {
 func TestClient_Hashing(t *testing.T) {
 	c := &oidc.RegisteredClient{}
 
-	hashedSecret := c.GetHashedSecret()
-	assert.Equal(t, []byte(nil), hashedSecret)
+	c.ClientSecret = &oidc.ClientSecretDigest{PasswordDigest: tOpenIDConnectPlainTextClientSecret}
 
-	c.Secret = tOpenIDConnectPlainTextClientSecret
-
-	assert.True(t, c.Secret.MatchBytes([]byte("client-secret")))
-}
-
-func TestClient_GetHashedSecret(t *testing.T) {
-	c := &oidc.RegisteredClient{}
-
-	hashedSecret := c.GetHashedSecret()
-	assert.Equal(t, []byte(nil), hashedSecret)
-
-	c.Secret = tOpenIDConnectPlainTextClientSecret
-
-	hashedSecret = c.GetHashedSecret()
-	assert.Equal(t, []byte("$plaintext$client-secret"), hashedSecret)
+	assert.True(t, c.ClientSecret.MatchBytes([]byte("client-secret")))
 }
 
 func TestClient_GetID(t *testing.T) {
@@ -476,18 +461,12 @@ func TestNewClientPKCE(t *testing.T) {
 		expectedEnforcePKCE                bool
 		expectedEnforcePKCEChallengeMethod bool
 		expected                           string
-		r                                  *oauthelia2.Request
-		err                                string
-		desc                               string
 	}{
 		{
 			"ShouldNotEnforcePKCEAndNotErrorOnNonPKCERequest",
 			schema.IdentityProvidersOpenIDConnectClient{},
 			false,
 			false,
-			"",
-			&oauthelia2.Request{},
-			"",
 			"",
 		},
 		{
@@ -496,9 +475,6 @@ func TestNewClientPKCE(t *testing.T) {
 			true,
 			false,
 			"",
-			&oauthelia2.Request{},
-			"invalid_request",
-			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Clients must include a code_challenge when performing the authorize code flow, but it is missing. The server is configured in a way that enforces PKCE for this client.",
 		},
 		{
 			"ShouldEnforcePKCEAndNotErrorOnPKCERequest",
@@ -506,36 +482,24 @@ func TestNewClientPKCE(t *testing.T) {
 			true,
 			false,
 			"",
-			&oauthelia2.Request{Form: map[string][]string{"code_challenge": {abc}}},
-			"",
-			"",
 		},
 		{"ShouldEnforcePKCEFromChallengeMethodAndErrorOnNonPKCERequest",
 			schema.IdentityProvidersOpenIDConnectClient{PKCEChallengeMethod: "S256"},
 			true,
 			true,
 			"S256",
-			&oauthelia2.Request{},
-			"invalid_request",
-			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Clients must include a code_challenge when performing the authorize code flow, but it is missing. The server is configured in a way that enforces PKCE for this client.",
 		},
 		{"ShouldEnforcePKCEFromChallengeMethodAndErrorOnInvalidChallengeMethod",
 			schema.IdentityProvidersOpenIDConnectClient{PKCEChallengeMethod: "S256"},
 			true,
 			true,
 			"S256",
-			&oauthelia2.Request{Form: map[string][]string{"code_challenge": {abc}}},
-			"invalid_request",
-			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Client must use code_challenge_method=S256,  is not allowed. The server is configured in a way that enforces PKCE S256 as challenge method for this client.",
 		},
 		{"ShouldEnforcePKCEFromChallengeMethodAndNotErrorOnValidRequest",
 			schema.IdentityProvidersOpenIDConnectClient{PKCEChallengeMethod: "S256"},
 			true,
 			true,
 			"S256",
-			&oauthelia2.Request{Form: map[string][]string{"code_challenge": {abc}, "code_challenge_method": {"S256"}}},
-			"",
-			"",
 		},
 	}
 
@@ -543,21 +507,9 @@ func TestNewClientPKCE(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			client := oidc.NewClient(tc.have, &schema.IdentityProvidersOpenIDConnect{})
 
-			assert.Equal(t, tc.expectedEnforcePKCE, client.GetPKCEEnforcement())
-			assert.Equal(t, tc.expectedEnforcePKCEChallengeMethod, client.GetPKCEChallengeMethodEnforcement())
+			assert.Equal(t, tc.expectedEnforcePKCE, client.GetEnforcePKCE())
+			assert.Equal(t, tc.expectedEnforcePKCEChallengeMethod, client.GetEnforcePKCEChallengeMethod())
 			assert.Equal(t, tc.expected, client.GetPKCEChallengeMethod())
-
-			if tc.r != nil {
-				err := client.ValidatePKCEPolicy(tc.r)
-
-				if tc.err != "" {
-					require.NotNil(t, err)
-					assert.EqualError(t, err, tc.err)
-					assert.Equal(t, tc.desc, oauthelia2.ErrorToRFC6749Error(err).WithExposeDebug(true).GetDescription())
-				} else {
-					assert.NoError(t, err)
-				}
-			}
 		})
 	}
 }
